@@ -136,8 +136,8 @@ fun order_problem_facts _ [] = []
 
 (* A fairly random selection of types used for monomorphizing. *)
 val ground_types =
-  [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}, @{typ bool},
-   @{typ unit}]
+  [\<^typ>\<open>nat\<close>, HOLogic.intT, HOLogic.realT, \<^typ>\<open>nat => bool\<close>, \<^typ>\<open>bool\<close>,
+   \<^typ>\<open>unit\<close>]
 
 fun ground_type_of_tvar _ [] tvar = raise TYPE ("ground_type_of_tvar", [TVar tvar], [])
   | ground_type_of_tvar thy (T :: Ts) tvar =
@@ -147,7 +147,7 @@ fun ground_type_of_tvar _ [] tvar = raise TYPE ("ground_type_of_tvar", [TVar tva
 fun monomorphize_term ctxt t =
   let val thy = Proof_Context.theory_of ctxt in
     t |> map_types (map_type_tvar (ground_type_of_tvar thy ground_types))
-    handle TYPE _ => @{prop True}
+    handle TYPE _ => \<^prop>\<open>True\<close>
   end
 
 fun heading_sort_key heading =
@@ -170,7 +170,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
       |> map (fn ((_, loc), th) =>
         ((Thm.get_name_hint th, loc), th |> Thm.prop_of |> mono ? monomorphize_term ctxt))
       |> generate_atp_problem ctxt true format Axiom type_enc Exporter combsN false false true []
-        @{prop False}
+        \<^prop>\<open>False\<close>
       |> #1 |> sort_by (heading_sort_key o fst)
     val prelude = fst (split_last problem)
     val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts

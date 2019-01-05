@@ -11,7 +11,7 @@ begin
 subsection \<open>Signature\<close>
 
 text \<open>
-  For the definition of real vector spaces a type @{typ 'a} of the sort
+  For the definition of real vector spaces a type \<^typ>\<open>'a\<close> of the sort
   \<open>{plus, minus, zero}\<close> is considered, on which a real scalar multiplication
   \<open>\<cdot>\<close> is declared.
 \<close>
@@ -23,7 +23,7 @@ consts
 subsection \<open>Vector space laws\<close>
 
 text \<open>
-  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from @{typ 'a} with the
+  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from \<^typ>\<open>'a\<close> with the
   following vector space laws: The set \<open>V\<close> is closed under addition and scalar
   multiplication, addition is associative and commutative; \<open>- x\<close> is the
   inverse of \<open>x\<close> wrt.\ addition and \<open>0\<close> is the neutral element of addition.

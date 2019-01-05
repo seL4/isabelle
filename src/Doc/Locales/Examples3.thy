@@ -5,7 +5,7 @@ begin
 subsection \<open>Third Version: Local Interpretation
   \label{sec:local-interpretation}\<close>
 
-text \<open>In the above example, the fact that @{term "(\<le>)"} is a partial
+text \<open>In the above example, the fact that \<^term>\<open>(\<le>)\<close> is a partial
   order for the integers was used in the second goal to
   discharge the premise in the definition of \<open>(\<sqsubset>)\<close>.  In
   general, proofs of the equations not only may involve definitions
@@ -40,8 +40,8 @@ subsection \<open>Further Interpretations\<close>
 
 text \<open>Further interpretations are necessary for
   the other locales.  In \<open>lattice\<close> the operations~\<open>\<sqinter>\<close>
-  and~\<open>\<squnion>\<close> are substituted by @{term "min :: int \<Rightarrow> int \<Rightarrow> int"}
-  and @{term "max :: int \<Rightarrow> int \<Rightarrow> int"}.  The entire proof for the
+  and~\<open>\<squnion>\<close> are substituted by \<^term>\<open>min :: int \<Rightarrow> int \<Rightarrow> int\<close>
+  and \<^term>\<open>max :: int \<Rightarrow> int \<Rightarrow> int\<close>.  The entire proof for the
   interpretation is reproduced to give an example of a more
   elaborate interpretation proof.  Note that the equations are named
   so they can be used in a later example.\<close>
@@ -115,7 +115,7 @@ text \<open>Theorems that are available in the theory at this point are shown in
   the \isakeyword{sublocale} command.  Existing interpretations are
   skipped avoiding duplicate work.
 \item
-  The predicate @{term "(<)"} appears in theorem @{thm [source]
+  The predicate \<^term>\<open>(<)\<close> appears in theorem @{thm [source]
   int.less_total}
   although an equation for the replacement of \<open>(\<sqsubset>)\<close> was only
   given in the interpretation of \<open>partial_order\<close>.  The
@@ -128,7 +128,7 @@ text \<open>Theorems that are available in the theory at this point are shown in
 text \<open>The interpretations for a locale $n$ within the current
   theory may be inspected with \isakeyword{print\_interps}~$n$.  This
   prints the list of instances of $n$, for which interpretations exist.
-  For example, \isakeyword{print\_interps} @{term partial_order}
+  For example, \isakeyword{print\_interps} \<^term>\<open>partial_order\<close>
   outputs the following:
 \begin{small}
 \begin{alltt}
@@ -148,7 +148,7 @@ text \<open>The interpretations for a locale $n$ within the current
 section \<open>Locale Expressions \label{sec:expressions}\<close>
 
 text \<open>
-  A map~@{term \<phi>} between partial orders~\<open>\<sqsubseteq>\<close> and~\<open>\<preceq>\<close>
+  A map~\<^term>\<open>\<phi>\<close> between partial orders~\<open>\<sqsubseteq>\<close> and~\<open>\<preceq>\<close>
   is called order preserving if \<open>x \<sqsubseteq> y\<close> implies \<open>\<phi> x \<preceq>
   \<phi> y\<close>.  This situation is more complex than those encountered so
   far: it involves two partial orders, and it is desirable to use the
@@ -218,8 +218,7 @@ text (in order_preserving) \<open>Here are examples of theorems that are
   \hspace*{1em}@{thm [source] le'.less_le_trans}:
   @{thm [display, indent=4] le'.less_le_trans}
   While there is infix syntax for the strict operation associated with
-  @{term "(\<sqsubseteq>)"}, there is none for the strict version of @{term
-  "(\<preceq>)"}.  The syntax \<open>\<sqsubset>\<close> for \<open>less\<close> is only
+  \<^term>\<open>(\<sqsubseteq>)\<close>, there is none for the strict version of \<^term>\<open>(\<preceq>)\<close>.  The syntax \<open>\<sqsubset>\<close> for \<open>less\<close> is only
   available for the original instance it was declared for.  We may
   introduce infix syntax for \<open>le'.less\<close> with the following declaration:\<close>
 
@@ -285,8 +284,7 @@ text\<open>
     assumes hom_meet: "\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
       and hom_join: "\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
 
-text \<open>The parameter instantiation in the first instance of @{term
-  lattice} is omitted.  This causes the parameter~\<open>le\<close> to be
+text \<open>The parameter instantiation in the first instance of \<^term>\<open>lattice\<close> is omitted.  This causes the parameter~\<open>le\<close> to be
   added to the \isakeyword{for} clause, and the locale has
   parameters~\<open>le\<close>,~\<open>le'\<close> and, of course,~\<open>\<phi>\<close>.
 
@@ -383,10 +381,10 @@ text \<open>There are situations where an interpretation is not possible
   certain conditions are fulfilled.  Take, for example, the function
   \<open>\<lambda>i. n * i\<close> that scales its argument by a constant factor.
   This function is order preserving (and even a lattice endomorphism)
-  with respect to @{term "(\<le>)"} provided \<open>n \<ge> 0\<close>.
+  with respect to \<^term>\<open>(\<le>)\<close> provided \<open>n \<ge> 0\<close>.
 
   It is not possible to express this using a global interpretation,
-  because it is in general unspecified whether~@{term n} is
+  because it is in general unspecified whether~\<^term>\<open>n\<close> is
   non-negative, but one may make an interpretation in an inner context
   of a proof where full information is available.
   This is not fully satisfactory either, since potentially
@@ -409,7 +407,7 @@ text \<open>It is again convenient to make the interpretation in an
     using non_neg by unfold_locales (rule mult_left_mono)
 
 text \<open>While the proof of the previous interpretation
-  is straightforward from monotonicity lemmas for~@{term "(*)"}, the
+  is straightforward from monotonicity lemmas for~\<^term>\<open>(*)\<close>, the
   second proof follows a useful pattern.\<close>
 
   sublocale %visible non_negative \<subseteq> lattice_end "(\<le>)" "\<lambda>i. n * i"
@@ -418,9 +416,8 @@ text \<open>While the proof of the previous interpretation
       interpretation equations immediately yields two subgoals that
       reflect the core conjecture.
       @{subgoals [display]}
-      It is now necessary to show, in the context of @{term
-      non_negative}, that multiplication by~@{term n} commutes with
-      @{term min} and @{term max}.\<close>
+      It is now necessary to show, in the context of \<^term>\<open>non_negative\<close>, that multiplication by~\<^term>\<open>n\<close> commutes with
+      \<^term>\<open>min\<close> and \<^term>\<open>max\<close>.\<close>
   qed (auto simp: hom_le)
 
 text (in order_preserving) \<open>The lemma @{thm [source] hom_le}
@@ -452,7 +449,7 @@ text \<open>Unfortunately this is a cyclic interpretation that leads to an
   and the interpretation is rejected.
 
   Instead it is necessary to declare a locale that is logically
-  equivalent to @{term partial_order} but serves to collect facts
+  equivalent to \<^term>\<open>partial_order\<close> but serves to collect facts
   about functions spaces where the co-domain is a partial order, and
   to make the interpretation in its context:\<close>
 

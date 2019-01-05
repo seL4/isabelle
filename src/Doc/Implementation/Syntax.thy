@@ -81,46 +81,43 @@ text %mlref \<open>
   @{index_ML Syntax.string_of_term: "Proof.context -> term -> string"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Syntax.read_typs}~\<open>ctxt strs\<close> parses and checks a simultaneous list
+  \<^descr> \<^ML>\<open>Syntax.read_typs\<close>~\<open>ctxt strs\<close> parses and checks a simultaneous list
   of source strings as types of the logic.
 
-  \<^descr> @{ML Syntax.read_terms}~\<open>ctxt strs\<close> parses and checks a simultaneous list
+  \<^descr> \<^ML>\<open>Syntax.read_terms\<close>~\<open>ctxt strs\<close> parses and checks a simultaneous list
   of source strings as terms of the logic. Type-reconstruction puts all parsed
   terms into the same scope: types of free variables ultimately need to
   coincide.
 
   If particular type-constraints are required for some of the arguments, the
   read operations needs to be split into its parse and check phases. Then it
-  is possible to use @{ML Type.constraint} on the intermediate pre-terms
+  is possible to use \<^ML>\<open>Type.constraint\<close> on the intermediate pre-terms
   (\secref{sec:term-check}).
 
-  \<^descr> @{ML Syntax.read_props}~\<open>ctxt strs\<close> parses and checks a simultaneous list
+  \<^descr> \<^ML>\<open>Syntax.read_props\<close>~\<open>ctxt strs\<close> parses and checks a simultaneous list
   of source strings as terms of the logic, with an implicit type-constraint
-  for each argument to enforce type @{typ prop}; this also affects the inner
-  syntax for parsing. The remaining type-reconstruction works as for @{ML
-  Syntax.read_terms}.
+  for each argument to enforce type \<^typ>\<open>prop\<close>; this also affects the inner
+  syntax for parsing. The remaining type-reconstruction works as for \<^ML>\<open>Syntax.read_terms\<close>.
 
-  \<^descr> @{ML Syntax.read_typ}, @{ML Syntax.read_term}, @{ML Syntax.read_prop} are
+  \<^descr> \<^ML>\<open>Syntax.read_typ\<close>, \<^ML>\<open>Syntax.read_term\<close>, \<^ML>\<open>Syntax.read_prop\<close> are
   like the simultaneous versions, but operate on a single argument only. This
   convenient shorthand is adequate in situations where a single item in its
-  own scope is processed. Do not use @{ML "map o Syntax.read_term"} where @{ML
-  Syntax.read_terms} is actually intended!
+  own scope is processed. Do not use \<^ML>\<open>map o Syntax.read_term\<close> where \<^ML>\<open>Syntax.read_terms\<close> is actually intended!
 
-  \<^descr> @{ML Syntax.pretty_typ}~\<open>ctxt T\<close> and @{ML Syntax.pretty_term}~\<open>ctxt t\<close>
+  \<^descr> \<^ML>\<open>Syntax.pretty_typ\<close>~\<open>ctxt T\<close> and \<^ML>\<open>Syntax.pretty_term\<close>~\<open>ctxt t\<close>
   uncheck and pretty-print the given type or term, respectively. Although the
   uncheck phase acts on a simultaneous list as well, this is rarely used in
   practice, so only the singleton case is provided as combined pretty
   operation. There is no distinction of term vs.\ proposition.
 
-  \<^descr> @{ML Syntax.string_of_typ} and @{ML Syntax.string_of_term} are convenient
-  compositions of @{ML Syntax.pretty_typ} and @{ML Syntax.pretty_term} with
-  @{ML Pretty.string_of} for output. The result may be concatenated with other
+  \<^descr> \<^ML>\<open>Syntax.string_of_typ\<close> and \<^ML>\<open>Syntax.string_of_term\<close> are convenient
+  compositions of \<^ML>\<open>Syntax.pretty_typ\<close> and \<^ML>\<open>Syntax.pretty_term\<close> with
+  \<^ML>\<open>Pretty.string_of\<close> for output. The result may be concatenated with other
   strings, as long as there is no further formatting and line-breaking
   involved.
 
 
-  @{ML Syntax.read_term}, @{ML Syntax.read_prop}, and @{ML
-  Syntax.string_of_term} are the most important operations in practice.
+  \<^ML>\<open>Syntax.read_term\<close>, \<^ML>\<open>Syntax.read_prop\<close>, and \<^ML>\<open>Syntax.string_of_term\<close> are the most important operations in practice.
 
   \<^medskip>
   Note that the string values that are passed in and out are annotated by the
@@ -130,8 +127,8 @@ text %mlref \<open>
   datatype, encoded as concrete string for historical reasons.
 
   The standard way to provide the required position markup for input works via
-  the outer syntax parser wrapper @{ML Parse.inner_syntax}, which is already
-  part of @{ML Parse.typ}, @{ML Parse.term}, @{ML Parse.prop}. So a string
+  the outer syntax parser wrapper \<^ML>\<open>Parse.inner_syntax\<close>, which is already
+  part of \<^ML>\<open>Parse.typ\<close>, \<^ML>\<open>Parse.term\<close>, \<^ML>\<open>Parse.prop\<close>. So a string
   obtained from one of the latter may be directly passed to the corresponding
   read operation: this yields PIDE markup of the input and precise positions
   for warning and error messages.
@@ -168,27 +165,26 @@ text %mlref \<open>
   @{index_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Syntax.parse_typ}~\<open>ctxt str\<close> parses a source string as pre-type that
+  \<^descr> \<^ML>\<open>Syntax.parse_typ\<close>~\<open>ctxt str\<close> parses a source string as pre-type that
   is ready to be used with subsequent check operations.
 
-  \<^descr> @{ML Syntax.parse_term}~\<open>ctxt str\<close> parses a source string as pre-term that
+  \<^descr> \<^ML>\<open>Syntax.parse_term\<close>~\<open>ctxt str\<close> parses a source string as pre-term that
   is ready to be used with subsequent check operations.
 
-  \<^descr> @{ML Syntax.parse_prop}~\<open>ctxt str\<close> parses a source string as pre-term that
+  \<^descr> \<^ML>\<open>Syntax.parse_prop\<close>~\<open>ctxt str\<close> parses a source string as pre-term that
   is ready to be used with subsequent check operations. The inner syntax
-  category is @{typ prop} and a suitable type-constraint is included to ensure
+  category is \<^typ>\<open>prop\<close> and a suitable type-constraint is included to ensure
   that this information is observed in subsequent type reconstruction.
 
-  \<^descr> @{ML Syntax.unparse_typ}~\<open>ctxt T\<close> unparses a type after uncheck
+  \<^descr> \<^ML>\<open>Syntax.unparse_typ\<close>~\<open>ctxt T\<close> unparses a type after uncheck
   operations, to turn it into a pretty tree.
 
-  \<^descr> @{ML Syntax.unparse_term}~\<open>ctxt T\<close> unparses a term after uncheck
+  \<^descr> \<^ML>\<open>Syntax.unparse_term\<close>~\<open>ctxt T\<close> unparses a term after uncheck
   operations, to turn it into a pretty tree. There is no distinction for
   propositions here.
 
 
-  These operations always operate on a single item; use the combinator @{ML
-  map} to apply them to a list.
+  These operations always operate on a single item; use the combinator \<^ML>\<open>map\<close> to apply them to a list.
 \<close>
 
 
@@ -230,36 +226,34 @@ text %mlref \<open>
   @{index_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Syntax.check_typs}~\<open>ctxt Ts\<close> checks a simultaneous list of pre-types
+  \<^descr> \<^ML>\<open>Syntax.check_typs\<close>~\<open>ctxt Ts\<close> checks a simultaneous list of pre-types
   as types of the logic. Typically, this involves normalization of type
   synonyms.
 
-  \<^descr> @{ML Syntax.check_terms}~\<open>ctxt ts\<close> checks a simultaneous list of pre-terms
+  \<^descr> \<^ML>\<open>Syntax.check_terms\<close>~\<open>ctxt ts\<close> checks a simultaneous list of pre-terms
   as terms of the logic. Typically, this involves type-inference and
   normalization term abbreviations. The types within the given terms are
-  treated in the same way as for @{ML Syntax.check_typs}.
+  treated in the same way as for \<^ML>\<open>Syntax.check_typs\<close>.
 
   Applications sometimes need to check several types and terms together. The
-  standard approach uses @{ML Logic.mk_type} to embed the language of types
+  standard approach uses \<^ML>\<open>Logic.mk_type\<close> to embed the language of types
   into that of terms; all arguments are appended into one list of terms that
-  is checked; afterwards the type arguments are recovered with @{ML
-  Logic.dest_type}.
+  is checked; afterwards the type arguments are recovered with \<^ML>\<open>Logic.dest_type\<close>.
 
-  \<^descr> @{ML Syntax.check_props}~\<open>ctxt ts\<close> checks a simultaneous list of pre-terms
-  as terms of the logic, such that all terms are constrained by type @{typ
-  prop}. The remaining check operation works as @{ML Syntax.check_terms}
+  \<^descr> \<^ML>\<open>Syntax.check_props\<close>~\<open>ctxt ts\<close> checks a simultaneous list of pre-terms
+  as terms of the logic, such that all terms are constrained by type \<^typ>\<open>prop\<close>. The remaining check operation works as \<^ML>\<open>Syntax.check_terms\<close>
   above.
 
-  \<^descr> @{ML Syntax.uncheck_typs}~\<open>ctxt Ts\<close> unchecks a simultaneous list of types
+  \<^descr> \<^ML>\<open>Syntax.uncheck_typs\<close>~\<open>ctxt Ts\<close> unchecks a simultaneous list of types
   of the logic, in preparation of pretty printing.
 
-  \<^descr> @{ML Syntax.uncheck_terms}~\<open>ctxt ts\<close> unchecks a simultaneous list of terms
+  \<^descr> \<^ML>\<open>Syntax.uncheck_terms\<close>~\<open>ctxt ts\<close> unchecks a simultaneous list of terms
   of the logic, in preparation of pretty printing. There is no distinction for
   propositions here.
 
 
   These operations always operate simultaneously on a list; use the combinator
-  @{ML singleton} to apply them to a single item.
+  \<^ML>\<open>singleton\<close> to apply them to a single item.
 \<close>
 
 end

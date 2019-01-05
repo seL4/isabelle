@@ -1577,7 +1577,7 @@ subsection \<open>Synthetic division and polynomial roots\<close>
 
 subsubsection \<open>Synthetic division\<close>
 
-text \<open>Synthetic division is simply division by the linear polynomial @{term "x - c"}.\<close>
+text \<open>Synthetic division is simply division by the linear polynomial \<^term>\<open>x - c\<close>.\<close>
 
 definition synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
   where "synthetic_divmod p c = fold_coeffs (\<lambda>a (q, r). (pCons r q, a + c * r)) p (0, 0)"

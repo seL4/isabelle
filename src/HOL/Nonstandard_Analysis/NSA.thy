@@ -1373,7 +1373,7 @@ lemma mem_monad_self [simp]: "x \<in> monad x"
   by (simp add: monad_def)
 
 
-subsection \<open>Proof that @{term "x \<approx> y"} implies @{term"\<bar>x\<bar> \<approx> \<bar>y\<bar>"}\<close>
+subsection \<open>Proof that \<^term>\<open>x \<approx> y\<close> implies \<^term>\<open>\<bar>x\<bar> \<approx> \<bar>y\<bar>\<close>\<close>
 
 lemma approx_subset_monad: "x \<approx> y \<Longrightarrow> {x, y} \<le> monad x"
   by (simp (no_asm)) (simp add: approx_monad_iff)
@@ -1468,7 +1468,7 @@ lemma hrabs_add_minus_Infinitesimal_cancel:
   done
 
 
-subsection \<open>More @{term HFinite} and @{term Infinitesimal} Theorems\<close>
+subsection \<open>More \<^term>\<open>HFinite\<close> and \<^term>\<open>Infinitesimal\<close> Theorems\<close>
 
 text \<open>
   Interesting slightly counterintuitive theorem: necessary
@@ -1754,7 +1754,7 @@ lemma st_hrabs: "x \<in> HFinite \<Longrightarrow> \<bar>st x\<bar> = st \<bar>x
 
 subsection \<open>Alternative Definitions using Free Ultrafilter\<close>
 
-subsubsection \<open>@{term HFinite}\<close>
+subsubsection \<open>\<^term>\<open>HFinite\<close>\<close>
 
 lemma HFinite_FreeUltrafilterNat:
   "star_n X \<in> HFinite \<Longrightarrow> \<exists>u. eventually (\<lambda>n. norm (X n) < u) \<U>"
@@ -1778,7 +1778,7 @@ lemma HFinite_FreeUltrafilterNat_iff:
   by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
 
-subsubsection \<open>@{term HInfinite}\<close>
+subsubsection \<open>\<^term>\<open>HInfinite\<close>\<close>
 
 lemma lemma_Compl_eq: "- {n. u < norm (f n)} = {n. norm (f n) \<le> u}"
   by auto
@@ -1835,7 +1835,7 @@ lemma HInfinite_FreeUltrafilterNat_iff:
   by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
 
-subsubsection \<open>@{term Infinitesimal}\<close>
+subsubsection \<open>\<^term>\<open>Infinitesimal\<close>\<close>
 
 lemma ball_SReal_eq: "(\<forall>x::hypreal \<in> Reals. P x) \<longleftrightarrow> (\<forall>x::real. P (star_of x))"
   by (auto simp: SReal_def)
@@ -1930,7 +1930,7 @@ text \<open>The complement of \<open>{n. \<bar>real n\<bar> \<le> u} = {n. u < \
 lemma Compl_real_le_eq: "- {n::nat. real n \<le> u} = {n. u < real n}"
   by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
-text \<open>@{term \<omega>} is a member of @{term HInfinite}.\<close>
+text \<open>\<^term>\<open>\<omega>\<close> is a member of \<^term>\<open>HInfinite\<close>.\<close>
 theorem HInfinite_omega [simp]: "\<omega> \<in> HInfinite"
   apply (simp add: omega_def)
   apply (rule FreeUltrafilterNat_HInfinite)

@@ -5,7 +5,7 @@ imports Collecting
 begin
 
 text\<open>The idea: the state is propagated through the annotated command as an
-annotation @{term "{s}"}, all other annotations are @{term "{}"}. It is easy
+annotation \<^term>\<open>{s}\<close>, all other annotations are \<^term>\<open>{}\<close>. It is easy
 to show that this semantics approximates the collecting semantics.\<close>
 
 lemma step_preserves_le:

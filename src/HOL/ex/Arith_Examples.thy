@@ -13,25 +13,24 @@ text \<open>
   distribution.  This file merely contains some additional tests and special
   corner cases.  Some rather technical remarks:
 
-  @{ML Lin_Arith.simple_tac} is a very basic version of the tactic.  It performs no
+  \<^ML>\<open>Lin_Arith.simple_tac\<close> is a very basic version of the tactic.  It performs no
   meta-to-object-logic conversion, and only some splitting of operators.
-  @{ML Lin_Arith.tac} performs meta-to-object-logic conversion, full
+  \<^ML>\<open>Lin_Arith.tac\<close> performs meta-to-object-logic conversion, full
   splitting of operators, and NNF normalization of the goal.  The \<open>arith\<close>
   method combines them both, and tries other methods (e.g.~\<open>presburger\<close>)
   as well.  This is the one that you should use in your proofs!
 
-  An \<open>arith\<close>-based simproc is available as well (see @{ML
-  Lin_Arith.simproc}), which---for performance
-  reasons---however does even less splitting than @{ML Lin_Arith.simple_tac}
+  An \<open>arith\<close>-based simproc is available as well (see \<^ML>\<open>Lin_Arith.simproc\<close>), which---for performance
+  reasons---however does even less splitting than \<^ML>\<open>Lin_Arith.simple_tac\<close>
   at the moment (namely inequalities only).  (On the other hand, it
-  does take apart conjunctions, which @{ML Lin_Arith.simple_tac} currently
+  does take apart conjunctions, which \<^ML>\<open>Lin_Arith.simple_tac\<close> currently
   does not do.)
 \<close>
 
 
-subsection \<open>Splitting of Operators: @{term max}, @{term min}, @{term abs},
-           @{term minus}, @{term nat}, @{term modulo},
-           @{term divide}\<close>
+subsection \<open>Splitting of Operators: \<^term>\<open>max\<close>, \<^term>\<open>min\<close>, \<^term>\<open>abs\<close>,
+           \<^term>\<open>minus\<close>, \<^term>\<open>nat\<close>, \<^term>\<open>modulo\<close>,
+           \<^term>\<open>divide\<close>\<close>
 
 lemma "(i::nat) <= max i j"
   by linarith

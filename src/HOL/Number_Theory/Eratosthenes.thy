@@ -23,7 +23,7 @@ end
 
 subsection \<open>Main corpus\<close>
 
-text \<open>The sieve is modelled as a list of booleans, where @{const False} means \emph{marked out}.\<close>
+text \<open>The sieve is modelled as a list of booleans, where \<^const>\<open>False\<close> means \emph{marked out}.\<close>
 
 type_synonym marks = "bool list"
 
@@ -175,8 +175,8 @@ text \<open>
 
   \begin{itemize}
 
-    \item @{const sieve} can abort as soon as @{term n} is too big to let
-      @{const mark_out} have any effect.
+    \item \<^const>\<open>sieve\<close> can abort as soon as \<^term>\<open>n\<close> is too big to let
+      \<^const>\<open>mark_out\<close> have any effect.
 
     \item Search for further primes can be given up as soon as the search
       position exceeds the square root of the maximum candidate.

@@ -12,11 +12,11 @@ text \<open>This theory implements the set operations \<open>insert\<close>, \<o
 All operations are reduced to a single operation \<open>join l x r\<close> that joins two BSTs \<open>l\<close> and \<open>r\<close>
 and an element \<open>x\<close> such that \<open>l < x < r\<close>.
 
-The theory is based on theory @{theory "HOL-Data_Structures.Tree2"} where nodes have an additional field.
+The theory is based on theory \<^theory>\<open>HOL-Data_Structures.Tree2\<close> where nodes have an additional field.
 This field is ignored here but it means that this theory can be instantiated
-with red-black trees (see theory @{file "Set2_Join_RBT.thy"}) and other balanced trees.
+with red-black trees (see theory \<^file>\<open>Set2_Join_RBT.thy\<close>) and other balanced trees.
 This approach is very concrete and fixes the type of trees.
-Alternatively, one could assume some abstract type @{typ 't} of trees with suitable decomposition
+Alternatively, one could assume some abstract type \<^typ>\<open>'t\<close> of trees with suitable decomposition
 and recursion operators on it.\<close>
 
 locale Set2_Join =
@@ -304,7 +304,7 @@ proof(induction t1 t2 rule: diff.induct)
         split!: tree.split prod.split dest: inv_Node)
 qed
 
-text \<open>Locale @{locale Set2_Join} implements locale @{locale Set2}:\<close>
+text \<open>Locale \<^locale>\<open>Set2_Join\<close> implements locale \<^locale>\<open>Set2\<close>:\<close>
 
 sublocale Set2
 where empty = Leaf and insert = insert and delete = delete and isin = isin

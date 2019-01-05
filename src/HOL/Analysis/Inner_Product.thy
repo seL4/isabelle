@@ -11,21 +11,21 @@ begin
 subsection \<open>Real inner product spaces\<close>
 
 text \<open>
-  Temporarily relax type constraints for @{term "open"}, @{term "uniformity"},
-  @{term dist}, and @{term norm}.
+  Temporarily relax type constraints for \<^term>\<open>open\<close>, \<^term>\<open>uniformity\<close>,
+  \<^term>\<open>dist\<close>, and \<^term>\<open>norm\<close>.
 \<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::open set \<Rightarrow> bool"})\<close>
+  (\<^const_name>\<open>open\<close>, SOME \<^typ>\<open>'a::open set \<Rightarrow> bool\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::dist \<Rightarrow> 'a \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>dist\<close>, SOME \<^typ>\<open>'a::dist \<Rightarrow> 'a \<Rightarrow> real\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name uniformity}, SOME @{typ "('a::uniformity \<times> 'a) filter"})\<close>
+  (\<^const_name>\<open>uniformity\<close>, SOME \<^typ>\<open>('a::uniformity \<times> 'a) filter\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>norm\<close>, SOME \<^typ>\<open>'a::norm \<Rightarrow> real\<close>)\<close>
 
 class real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
@@ -202,21 +202,21 @@ lemma inner_divide_right:
   by (metis inner_commute inner_divide_left)
 
 text \<open>
-  Re-enable constraints for @{term "open"}, @{term "uniformity"},
-  @{term dist}, and @{term norm}.
+  Re-enable constraints for \<^term>\<open>open\<close>, \<^term>\<open>uniformity\<close>,
+  \<^term>\<open>dist\<close>, and \<^term>\<open>norm\<close>.
 \<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
+  (\<^const_name>\<open>open\<close>, SOME \<^typ>\<open>'a::topological_space set \<Rightarrow> bool\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name uniformity}, SOME @{typ "('a::uniform_space \<times> 'a) filter"})\<close>
+  (\<^const_name>\<open>uniformity\<close>, SOME \<^typ>\<open>('a::uniform_space \<times> 'a) filter\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>dist\<close>, SOME \<^typ>\<open>'a::metric_space \<Rightarrow> 'a \<Rightarrow> real\<close>)\<close>
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>norm\<close>, SOME \<^typ>\<open>'a::real_normed_vector \<Rightarrow> real\<close>)\<close>
 
 lemma bounded_bilinear_inner:
   "bounded_bilinear (inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real)"

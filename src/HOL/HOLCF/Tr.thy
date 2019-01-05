@@ -21,7 +21,7 @@ definition TT :: "tr"
 definition FF :: "tr"
   where "FF = Def False"
 
-text \<open>Exhaustion and Elimination for type @{typ tr}\<close>
+text \<open>Exhaustion and Elimination for type \<^typ>\<open>tr\<close>\<close>
 
 lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
   by (induct t) (auto simp: FF_def TT_def)
@@ -34,7 +34,7 @@ lemma tr_induct [case_names bottom TT FF, induct type: tr]:
   "P \<bottom> \<Longrightarrow> P TT \<Longrightarrow> P FF \<Longrightarrow> P x"
   by (cases x) simp_all
 
-text \<open>distinctness for type @{typ tr}\<close>
+text \<open>distinctness for type \<^typ>\<open>tr\<close>\<close>
 
 lemma dist_below_tr [simp]:
   "TT \<notsqsubseteq> \<bottom>" "FF \<notsqsubseteq> \<bottom>" "TT \<notsqsubseteq> FF" "FF \<notsqsubseteq> TT"

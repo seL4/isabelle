@@ -12,15 +12,15 @@ begin
 subsection \<open>Oracle declaration\<close>
 
 text \<open>
-  This oracle makes tautologies of the form @{prop "P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P"}.
+  This oracle makes tautologies of the form \<^prop>\<open>P \<longleftrightarrow> P \<longleftrightarrow> P \<longleftrightarrow> P\<close>.
   The length is specified by an integer, which is checked to be even
   and positive.
 \<close>
 
 oracle iff_oracle = \<open>
   let
-    fun mk_iff 1 = Var (("P", 0), @{typ bool})
-      | mk_iff n = HOLogic.mk_eq (Var (("P", 0), @{typ bool}), mk_iff (n - 1));
+    fun mk_iff 1 = Var (("P", 0), \<^typ>\<open>bool\<close>)
+      | mk_iff n = HOLogic.mk_eq (Var (("P", 0), \<^typ>\<open>bool\<close>), mk_iff (n - 1));
   in
     fn (thy, n) =>
       if n > 0 andalso n mod 2 = 0
@@ -32,23 +32,23 @@ oracle iff_oracle = \<open>
 
 subsection \<open>Oracle as low-level rule\<close>
 
-ML \<open>iff_oracle (@{theory}, 2)\<close>
-ML \<open>iff_oracle (@{theory}, 10)\<close>
+ML \<open>iff_oracle (\<^theory>, 2)\<close>
+ML \<open>iff_oracle (\<^theory>, 10)\<close>
 
 ML \<open>
-  Thm.peek_status (iff_oracle (@{theory}, 10));
-  @{assert} (#oracle it);
+  Thm.peek_status (iff_oracle (\<^theory>, 10));
+  \<^assert> (#oracle it);
 \<close>
 
 text \<open>These oracle calls had better fail.\<close>
 
 ML \<open>
-  (iff_oracle (@{theory}, 5); error "Bad oracle")
+  (iff_oracle (\<^theory>, 5); error "Bad oracle")
     handle Fail _ => writeln "Oracle failed, as expected"
 \<close>
 
 ML \<open>
-  (iff_oracle (@{theory}, 1); error "Bad oracle")
+  (iff_oracle (\<^theory>, 1); error "Bad oracle")
     handle Fail _ => writeln "Oracle failed, as expected"
 \<close>
 

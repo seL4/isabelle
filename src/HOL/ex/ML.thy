@@ -35,7 +35,7 @@ text \<open>
 \<close>
 
 ML \<open>length []\<close>
-ML \<open>@{assert} (length [] = 0)\<close>
+ML \<open>\<^assert> (length [] = 0)\<close>
 
 
 text \<open>Formal entities from the surrounding context may be referenced as
@@ -43,9 +43,9 @@ text \<open>Formal entities from the surrounding context may be referenced as
 
 term "1 + 1"   \<comment> \<open>term within theory source\<close>
 
-ML \<open>@{term "1 + 1"}   (* term as symbolic ML datatype value *)\<close>
+ML \<open>\<^term>\<open>1 + 1\<close>   (* term as symbolic ML datatype value *)\<close>
 
-ML \<open>@{term "1 + (1::int)"}\<close>
+ML \<open>\<^term>\<open>1 + (1::int)\<close>\<close>
 
 
 ML \<open>
@@ -53,7 +53,7 @@ ML \<open>
   val s = \<open>1 + 1\<close>;
 
   (* read term via old-style string interface *)
-  val t = Syntax.read_term @{context} (Syntax.implode_input s);
+  val t = Syntax.read_term \<^context> (Syntax.implode_input s);
 \<close>
 
 
@@ -122,7 +122,7 @@ ML \<open>
 \<close>
 
 text \<open>
-  The @{ML_structure Par_List} module provides high-level combinators for
+  The \<^ML_structure>\<open>Par_List\<close> module provides high-level combinators for
   parallel list operations.
 \<close>
 
@@ -141,7 +141,7 @@ term "factorial 4"  \<comment> \<open>symbolic term\<close>
 value "factorial 4"  \<comment> \<open>evaluation via ML code generation in the background\<close>
 
 declare [[ML_source_trace]]
-ML \<open>@{term "factorial 4"}\<close>  \<comment> \<open>symbolic term in ML\<close>
+ML \<open>\<^term>\<open>factorial 4\<close>\<close>  \<comment> \<open>symbolic term in ML\<close>
 ML \<open>@{code "factorial"}\<close>  \<comment> \<open>ML code from function specification\<close>
 
 

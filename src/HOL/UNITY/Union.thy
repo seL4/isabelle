@@ -372,7 +372,7 @@ by (simp add: ok_def Allowed_def)
 lemma OK_iff_Allowed: "OK I F = (\<forall>i \<in> I. \<forall>j \<in> I-{i}. F i \<in> Allowed(F j))"
 by (auto simp add: OK_iff_ok ok_iff_Allowed)
 
-subsection\<open>@{term safety_prop}, for reasoning about
+subsection\<open>\<^term>\<open>safety_prop\<close>, for reasoning about
  given instances of "ok"\<close>
 
 lemma safety_prop_Acts_iff:

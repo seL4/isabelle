@@ -55,7 +55,7 @@ inductive_set yahalom :: "event list set"
  | YM4:  
        \<comment> \<open>Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.  The premise
-           @{term "A \<noteq> Server"} is needed for \<open>Says_Server_not_range\<close>.
+           \<^term>\<open>A \<noteq> Server\<close> is needed for \<open>Says_Server_not_range\<close>.
            Alice can check that K is symmetric by its length.\<close>
          "\<lbrakk>evs4 \<in> yahalom;  A \<noteq> Server;  K \<in> symKeys;
              Gets A \<lbrace>Crypt(shrK A) \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>, X\<rbrace>
@@ -129,7 +129,7 @@ lemma YM4_Key_parts_knows_Spy:
       \<Longrightarrow> K \<in> parts (knows Spy evs)"
   by (metis parts.Body parts.Fst parts.Snd  Says_imp_knows_Spy parts.Inj)
 
-text\<open>Theorems of the form @{term "X \<notin> parts (knows Spy evs)"} imply 
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (knows Spy evs)\<close> imply 
 that NOBODY sends messages containing X!\<close>
 
 text\<open>Spy never sees a good agent's shared key!\<close>
@@ -299,8 +299,8 @@ done
 
 text\<open>B knows, by the second part of A's message, that the Server
   distributed the key quoting nonce NB.  This part says nothing about
-  agent names.  Secrecy of NB is crucial.  Note that @{term "Nonce NB
-  \<notin> analz(knows Spy evs)"} must be the FIRST antecedent of the
+  agent names.  Secrecy of NB is crucial.  Note that \<^term>\<open>Nonce NB
+  \<notin> analz(knows Spy evs)\<close> must be the FIRST antecedent of the
   induction formula.\<close>
 
 lemma B_trusts_YM4_newK [rule_format]:
@@ -393,14 +393,14 @@ apply (simp_all del: image_insert image_Un
             analz_image_freshK fresh_not_KeyWithNonce
             imp_disj_not1               (*Moves NBa\<noteq>NB to the front*)
             Says_Server_KeyWithNonce)
-txt\<open>For Oops, simplification proves @{prop "NBa\<noteq>NB"}.  By
-  @{term Says_Server_KeyWithNonce}, we get @{prop "\<not> KeyWithNonce K NB
-  evs"}; then simplification can apply the induction hypothesis with
-  @{term "KK = {K}"}.\<close>
+txt\<open>For Oops, simplification proves \<^prop>\<open>NBa\<noteq>NB\<close>.  By
+  \<^term>\<open>Says_Server_KeyWithNonce\<close>, we get \<^prop>\<open>\<not> KeyWithNonce K NB
+  evs\<close>; then simplification can apply the induction hypothesis with
+  \<^term>\<open>KK = {K}\<close>.\<close>
   subgoal \<comment> \<open>Fake\<close> by spy_analz
   subgoal \<comment> \<open>YM2\<close> by blast
   subgoal \<comment> \<open>YM3\<close> by blast
-  subgoal \<comment> \<open>YM4: If @{prop "A \<in> bad"} then @{term NBa} is known, therefore @{prop "NBa \<noteq> NB"}.\<close>
+  subgoal \<comment> \<open>YM4: If \<^prop>\<open>A \<in> bad\<close> then \<^term>\<open>NBa\<close> is known, therefore \<^prop>\<open>NBa \<noteq> NB\<close>.\<close>
     by (metis A_trusts_YM3 Gets_imp_analz_Spy Gets_imp_knows_Spy KeyWithNonce_def
         Spy_analz_shrK analz.Fst analz.Snd analz_shrK_Decrypt parts.Fst parts.Inj)
 done
@@ -491,7 +491,7 @@ apply (simp_all add: split_ifs pushes new_keys_not_analzd analz_insert_eq
     by (blast dest!: no_nonce_YM1_YM2 dest: Gets_imp_Says Says_unique_NB)
   subgoal \<comment> \<open>YM4: key K is visible to Spy, contradicting session key secrecy theorem\<close>
     \<comment> \<open>Case analysis on whether Aa is bad;
-            use \<open>Says_unique_NB\<close> to identify message components: @{term "Aa=A"}, @{term "Ba=B"}\<close>
+            use \<open>Says_unique_NB\<close> to identify message components: \<^term>\<open>Aa=A\<close>, \<^term>\<open>Ba=B\<close>\<close>
     apply clarify
     apply (blast dest!: Says_unique_NB analz_shrK_Decrypt
                         parts.Inj [THEN parts.Fst, THEN A_trusts_YM3]
@@ -581,7 +581,7 @@ theorem YM3_auth_B_to_A:
 
 
 subsection\<open>Authenticating A to B using the certificate 
-  @{term "Crypt K (Nonce NB)"}\<close>
+  \<^term>\<open>Crypt K (Nonce NB)\<close>\<close>
 
 text\<open>Assuming the session key is secure, if both certificates are present then
   A has said NB.  We can't be sure about the rest of A's message, but only
@@ -597,9 +597,9 @@ apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
   subgoal \<comment> \<open>Fake\<close> by blast
-  subgoal \<comment> \<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
+  subgoal \<comment> \<open>YM3 because the message \<^term>\<open>Crypt K (Nonce NB)\<close> could not exist\<close>
      by (force dest!: Crypt_imp_keysFor)
-   subgoal \<comment> \<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
+   subgoal \<comment> \<open>YM4: was \<^term>\<open>Crypt K (Nonce NB)\<close> the very last message? If not, use the induction hypothesis,
                otherwise by unicity of session keys\<close>
      by (blast dest!: Gets_imp_Says A_trusts_YM3 B_trusts_YM4_shrK Crypt_Spy_analz_bad
              dest: Says_imp_knows_Spy [THEN parts.Inj] unique_session_keys)

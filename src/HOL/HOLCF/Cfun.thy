@@ -35,13 +35,13 @@ syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation \<open>
 (* rewrite (_cabs x t) => (Abs_cfun (%x. t)) *)
-  [Syntax_Trans.mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})]
+  [Syntax_Trans.mk_binder_tr (\<^syntax_const>\<open>_cabs\<close>, \<^const_syntax>\<open>Abs_cfun\<close>)]
 \<close>
 
 print_translation \<open>
-  [(@{const_syntax Abs_cfun}, fn _ => fn [Abs abs] =>
+  [(\<^const_syntax>\<open>Abs_cfun\<close>, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
-      in Syntax.const @{syntax_const "_cabs"} $ x $ t end)]
+      in Syntax.const \<^syntax_const>\<open>_cabs\<close> $ x $ t end)]
 \<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 
 text \<open>Syntax for nested abstractions\<close>
@@ -57,10 +57,10 @@ parse_ast_translation \<open>
 (* cf. Syntax.lambda_ast_tr from src/Pure/Syntax/syn_trans.ML *)
   let
     fun Lambda_ast_tr [pats, body] =
-          Ast.fold_ast_p @{syntax_const "_cabs"}
-            (Ast.unfold_ast @{syntax_const "_cargs"} (Ast.strip_positions pats), body)
+          Ast.fold_ast_p \<^syntax_const>\<open>_cabs\<close>
+            (Ast.unfold_ast \<^syntax_const>\<open>_cargs\<close> (Ast.strip_positions pats), body)
       | Lambda_ast_tr asts = raise Ast.AST ("Lambda_ast_tr", asts);
-  in [(@{syntax_const "_Lambda"}, K Lambda_ast_tr)] end
+  in [(\<^syntax_const>\<open>_Lambda\<close>, K Lambda_ast_tr)] end
 \<close>
 
 print_ast_translation \<open>
@@ -68,13 +68,13 @@ print_ast_translation \<open>
 (* cf. Syntax.abs_ast_tr' from src/Pure/Syntax/syn_trans.ML *)
   let
     fun cabs_ast_tr' asts =
-      (case Ast.unfold_ast_p @{syntax_const "_cabs"}
-          (Ast.Appl (Ast.Constant @{syntax_const "_cabs"} :: asts)) of
+      (case Ast.unfold_ast_p \<^syntax_const>\<open>_cabs\<close>
+          (Ast.Appl (Ast.Constant \<^syntax_const>\<open>_cabs\<close> :: asts)) of
         ([], _) => raise Ast.AST ("cabs_ast_tr'", asts)
       | (xs, body) => Ast.Appl
-          [Ast.Constant @{syntax_const "_Lambda"},
-           Ast.fold_ast @{syntax_const "_cargs"} xs, body]);
-  in [(@{syntax_const "_cabs"}, K cabs_ast_tr')] end
+          [Ast.Constant \<^syntax_const>\<open>_Lambda\<close>,
+           Ast.fold_ast \<^syntax_const>\<open>_cargs\<close> xs, body]);
+  in [(\<^syntax_const>\<open>_cabs\<close>, K cabs_ast_tr')] end
 \<close>
 
 text \<open>Dummy patterns for continuous abstraction\<close>
@@ -126,8 +126,8 @@ lemma beta_cfun: "cont f \<Longrightarrow> (\<Lambda> x. f x)\<cdot>u = f u"
 subsubsection \<open>Beta-reduction simproc\<close>
 
 text \<open>
-  Given the term @{term "(\<Lambda> x. f x)\<cdot>y"}, the procedure tries to
-  construct the theorem @{term "(\<Lambda> x. f x)\<cdot>y \<equiv> f y"}.  If this
+  Given the term \<^term>\<open>(\<Lambda> x. f x)\<cdot>y\<close>, the procedure tries to
+  construct the theorem \<^term>\<open>(\<Lambda> x. f x)\<cdot>y \<equiv> f y\<close>.  If this
   theorem cannot be completely solved by the cont2cont rules, then
   the procedure returns the ordinary conditional \<open>beta_cfun\<close>
   rule.
@@ -198,7 +198,7 @@ lemmas monofun_Rep_cfun = cont_Rep_cfun [THEN cont2mono]
 lemmas monofun_Rep_cfun1 = cont_Rep_cfun1 [THEN cont2mono]
 lemmas monofun_Rep_cfun2 = cont_Rep_cfun2 [THEN cont2mono]
 
-text \<open>contlub, cont properties of @{term Rep_cfun} in each argument\<close>
+text \<open>contlub, cont properties of \<^term>\<open>Rep_cfun\<close> in each argument\<close>
 
 lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
   by (rule cont_Rep_cfun2 [THEN cont2contlubE])
@@ -217,7 +217,7 @@ lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubse
 lemma monofun_cfun: "f \<sqsubseteq> g \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>y"
   by (rule below_trans [OF monofun_cfun_fun monofun_cfun_arg])
 
-text \<open>ch2ch - rules for the type @{typ "'a \<rightarrow> 'b"}\<close>
+text \<open>ch2ch - rules for the type \<^typ>\<open>'a \<rightarrow> 'b\<close>\<close>
 
 lemma chain_monofun: "chain Y \<Longrightarrow> chain (\<lambda>i. f\<cdot>(Y i))"
   by (erule monofun_Rep_cfun2 [THEN ch2ch_monofun])
@@ -235,7 +235,7 @@ lemma ch2ch_LAM [simp]:
   "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> (\<And>i. cont (\<lambda>x. S i x)) \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
   by (simp add: chain_def cfun_below_iff)
 
-text \<open>contlub, cont properties of @{term Rep_cfun} in both arguments\<close>
+text \<open>contlub, cont properties of \<^term>\<open>Rep_cfun\<close> in both arguments\<close>
 
 lemma lub_APP: "chain F \<Longrightarrow> chain Y \<Longrightarrow> (\<Squnion>i. F i\<cdot>(Y i)) = (\<Squnion>i. F i)\<cdot>(\<Squnion>i. Y i)"
   by (simp add: contlub_cfun_fun contlub_cfun_arg diag_lub)
@@ -256,7 +256,7 @@ lemma strictI: "f\<cdot>x = \<bottom> \<Longrightarrow> f\<cdot>\<bottom> = \<bo
   apply (rule minimal [THEN monofun_cfun_arg])
   done
 
-text \<open>type @{typ "'a \<rightarrow> 'b"} is chain complete\<close>
+text \<open>type \<^typ>\<open>'a \<rightarrow> 'b\<close> is chain complete\<close>
 
 lemma lub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
   by (simp add: lub_cfun lub_fun ch2ch_lambda)
@@ -264,7 +264,7 @@ lemma lub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<
 
 subsection \<open>Continuity simplification procedure\<close>
 
-text \<open>cont2cont lemma for @{term Rep_cfun}\<close>
+text \<open>cont2cont lemma for \<^term>\<open>Rep_cfun\<close>\<close>
 
 lemma cont2cont_APP [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
@@ -279,7 +279,7 @@ qed
 
 text \<open>
   Two specific lemmas for the combination of LCF and HOL terms.
-  These lemmas are needed in theories that use types like @{typ "'a \<rightarrow> 'b \<Rightarrow> 'c"}.
+  These lemmas are needed in theories that use types like \<^typ>\<open>'a \<rightarrow> 'b \<Rightarrow> 'c\<close>.
 \<close>
 
 lemma cont_APP_app [simp]: "cont f \<Longrightarrow> cont g \<Longrightarrow> cont (\<lambda>x. ((f x)\<cdot>(g x)) s)"
@@ -289,14 +289,14 @@ lemma cont_APP_app_app [simp]: "cont f \<Longrightarrow> cont g \<Longrightarrow
   by (rule cont_APP_app [THEN cont2cont_fun])
 
 
-text \<open>cont2mono Lemma for @{term "\<lambda>x. LAM y. c1(x)(y)"}\<close>
+text \<open>cont2mono Lemma for \<^term>\<open>\<lambda>x. LAM y. c1(x)(y)\<close>\<close>
 
 lemma cont2mono_LAM:
   "\<lbrakk>\<And>x. cont (\<lambda>y. f x y); \<And>y. monofun (\<lambda>x. f x y)\<rbrakk>
     \<Longrightarrow> monofun (\<lambda>x. \<Lambda> y. f x y)"
   by (simp add: monofun_def cfun_below_iff)
 
-text \<open>cont2cont Lemma for @{term "\<lambda>x. LAM y. f x y"}\<close>
+text \<open>cont2cont Lemma for \<^term>\<open>\<lambda>x. LAM y. f x y\<close>\<close>
 
 text \<open>
   Not suitable as a cont2cont rule, because on nested lambdas
@@ -332,7 +332,7 @@ lemma cont2cont_LAM_discrete [simp, cont2cont]:
 
 subsection \<open>Miscellaneous\<close>
 
-text \<open>Monotonicity of @{term Abs_cfun}\<close>
+text \<open>Monotonicity of \<^term>\<open>Abs_cfun\<close>\<close>
 
 lemma monofun_LAM: "cont f \<Longrightarrow> cont g \<Longrightarrow> (\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (\<Lambda> x. f x) \<sqsubseteq> (\<Lambda> x. g x)"
   by (simp add: cfun_below_iff)
@@ -435,8 +435,8 @@ lemma cfcomp_strict [simp]: "\<bottom> oo f = \<bottom>"
 text \<open>
   Show that interpretation of (pcpo, \<open>_\<rightarrow>_\<close>) is a category.
   \<^item> The class of objects is interpretation of syntactical class pcpo.
-  \<^item> The class of arrows  between objects @{typ 'a} and @{typ 'b} is interpret. of @{typ "'a \<rightarrow> 'b"}.
-  \<^item> The identity arrow is interpretation of @{term ID}.
+  \<^item> The class of arrows  between objects \<^typ>\<open>'a\<close> and \<^typ>\<open>'b\<close> is interpret. of \<^typ>\<open>'a \<rightarrow> 'b\<close>.
+  \<^item> The identity arrow is interpretation of \<^term>\<open>ID\<close>.
   \<^item> The composition of f and g is interpretation of \<open>oo\<close>.
 \<close>
 

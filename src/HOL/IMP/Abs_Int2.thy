@@ -85,13 +85,11 @@ fun inv_aval' :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarro
  (let (a1,a2) = inv_plus' a (aval'' e1 S) (aval'' e2 S)
   in inv_aval' e1 a1 (inv_aval' e2 a2 S))"
 
-text\<open>The test for @{const bot} in the @{const V}-case is important: @{const
-bot} indicates that a variable has no possible values, i.e.\ that the current
+text\<open>The test for \<^const>\<open>bot\<close> in the \<^const>\<open>V\<close>-case is important: \<^const>\<open>bot\<close> indicates that a variable has no possible values, i.e.\ that the current
 program point is unreachable. But then the abstract state should collapse to
-@{const None}. Put differently, we maintain the invariant that in an abstract
-state of the form @{term"Some s"}, all variables are mapped to non-@{const
-bot} values. Otherwise the (pointwise) sup of two abstract states, one of
-which contains @{const bot} values, may produce too large a result, thus
+\<^const>\<open>None\<close>. Put differently, we maintain the invariant that in an abstract
+state of the form \<^term>\<open>Some s\<close>, all variables are mapped to non-\<^const>\<open>bot\<close> values. Otherwise the (pointwise) sup of two abstract states, one of
+which contains \<^const>\<open>bot\<close> values, may produce too large a result, thus
 making the analysis less precise.\<close>
 
 

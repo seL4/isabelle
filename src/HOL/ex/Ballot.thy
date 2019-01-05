@@ -140,7 +140,7 @@ qed
 lemma all_countings: "all_countings a b = (a + b) choose a"
   unfolding all_countings_set by (simp add: n_subsets)
 
-subsection \<open>Facts About @{term valid_countings}\<close>
+subsection \<open>Facts About \<^term>\<open>valid_countings\<close>\<close>
 
 subsubsection \<open>Non-Recursive Cases\<close>
 
@@ -255,7 +255,7 @@ lemma valid_countings_eq[code]:
   "valid_countings a b = (if a + b = 0 then 1 else ((a - b) * ((a + b) choose a)) div (a + b))"
   by (simp add: valid_countings[symmetric] valid_countings_a_0)
 
-subsection \<open>Relation Between @{term valid_countings} and @{term all_countings}\<close>
+subsection \<open>Relation Between \<^term>\<open>valid_countings\<close> and \<^term>\<open>all_countings\<close>\<close>
 
 lemma main_nat: "(a + b) * valid_countings a b = (a - b) * all_countings a b"
   unfolding valid_countings all_countings ..

@@ -87,7 +87,7 @@ writing \<open>f.simps(2)\<close>, whole sublists by writing \<open>f.simps(2-4)
 
 We show a number of proofs of Cantor's theorem that a function from a set to
 its powerset cannot be surjective, illustrating various features of Isar. The
-constant @{const surj} is predefined.
+constant \<^const>\<open>surj\<close> is predefined.
 \<close>
 
 lemma "\<not> surj(f :: 'a \<Rightarrow> 'a set)"
@@ -107,13 +107,13 @@ rule, in the above case for \<open>\<not>\<close>:
 \mbox{@{thm (prem 1) notI}}}
 {\mbox{@{thm (concl) notI}}}
 \]
-In order to prove @{prop"~ P"}, assume \<open>P\<close> and show \<open>False\<close>.
+In order to prove \<^prop>\<open>~ P\<close>, assume \<open>P\<close> and show \<open>False\<close>.
 Thus we may assume \mbox{\noquotes{@{prop [source] "surj f"}}}. The proof shows that names of propositions
 may be (single!) digits --- meaningful names are hard to invent and are often
 not necessary. Both \isacom{have} steps are obvious. The second one introduces
-the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
+the diagonal set \<^term>\<open>{x. x \<notin> f x}\<close>, the key idea in the proof.
 If you wonder why \<open>2\<close> directly implies \<open>False\<close>: from \<open>2\<close>
-it follows that @{prop"a \<notin> f a \<longleftrightarrow> a \<in> f a"}.
+it follows that \<^prop>\<open>a \<notin> f a \<longleftrightarrow> a \<in> f a\<close>.
 
 \subsection{\indexed{\<open>this\<close>}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{hence}}{hence} and \indexed{\isacom{thus}}{thus}}
 
@@ -206,7 +206,7 @@ text\<open>
 \begin{warn}
 Note the hyphen after the \isacom{proof} command.
 It is the null method that does nothing to the goal. Leaving it out would be asking
-Isabelle to try some suitable introduction rule on the goal @{const False} --- but
+Isabelle to try some suitable introduction rule on the goal \<^const>\<open>False\<close> --- but
 there is no such rule and \isacom{proof} would fail.
 \end{warn}
 In the \isacom{have} step the assumption \noquotes{@{prop[source]"surj f"}} is now
@@ -232,7 +232,7 @@ default. The patterns are phrased in terms of \isacom{show} but work for
 
 We start with two forms of \concept{case analysis}:
 starting from a formula \<open>P\<close> we have the two cases \<open>P\<close> and
-@{prop"~P"}, and starting from a fact @{prop"P \<or> Q"}
+\<^prop>\<open>~P\<close>, and starting from a fact \<^prop>\<open>P \<or> Q\<close>
 we have the two cases \<open>P\<close> and \<open>Q\<close>:
 \<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
@@ -458,7 +458,7 @@ The ``\<open>...\<close>'' and ``\<open>.\<close>'' deserve some explanation:
 \begin{description}
 \item[``\<open>...\<close>''] is literally three dots. It is the name of an unknown that Isar
 automatically instantiates with the right-hand side of the previous equation.
-In general, if \<open>this\<close> is the theorem @{term "p t\<^sub>1 t\<^sub>2"} then ``\<open>...\<close>''
+In general, if \<open>this\<close> is the theorem \<^term>\<open>p t\<^sub>1 t\<^sub>2\<close> then ``\<open>...\<close>''
 stands for \<open>t\<^sub>2\<close>.
 \item[``\<open>.\<close>''] (a single dot) is a proof method that solves a goal by one of the
 assumptions. This works here because the result of \isakeyword{finally}
@@ -490,7 +490,7 @@ When the first \isakeyword{also} in a chain is encountered, Isabelle sets
 \<open>calculation := this\<close>. In each subsequent \isakeyword{also} step,
 Isabelle composes the theorems \<open>calculation\<close> and \<open>this\<close> (i.e.\ the two previous
 (in)equalities) using some predefined set of rules including transitivity
-of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but also mixed rules like @{prop"\<lbrakk> x \<le> y; y < z \<rbrakk> \<Longrightarrow> x < z"}.
+of \<open>=\<close>, \<open>\<le>\<close> and \<open><\<close> but also mixed rules like \<^prop>\<open>\<lbrakk> x \<le> y; y < z \<rbrakk> \<Longrightarrow> x < z\<close>.
 The result of this composition is assigned to \<open>calculation\<close>. Consider
 \begin{quote}
 \isakeyword{have} \<open>"t\<^sub>1 \<le> t\<^sub>2"\<close> \isasymproof\\
@@ -678,7 +678,7 @@ text\<open>
 Hint: There are predefined functions @{const_typ take} and @{const_typ drop}
 such that \<open>take k [x\<^sub>1,\<dots>] = [x\<^sub>1,\<dots>,x\<^sub>k]\<close> and
 \<open>drop k [x\<^sub>1,\<dots>] = [x\<^bsub>k+1\<^esub>,\<dots>]\<close>. Let sledgehammer find and apply
-the relevant @{const take} and @{const drop} lemmas for you.
+the relevant \<^const>\<open>take\<close> and \<^const>\<open>drop\<close> lemmas for you.
 \endexercise
 
 
@@ -688,8 +688,8 @@ the relevant @{const take} and @{const drop} lemmas for you.
 \index{case analysis|(}
 
 We have seen case analysis on formulas. Now we want to distinguish
-which form some term takes: is it \<open>0\<close> or of the form @{term"Suc n"},
-is it @{term"[]"} or of the form @{term"x#xs"}, etc. Here is a typical example
+which form some term takes: is it \<open>0\<close> or of the form \<^term>\<open>Suc n\<close>,
+is it \<^term>\<open>[]\<close> or of the form \<^term>\<open>x#xs\<close>, etc. Here is a typical example
 proof by case analysis on the form of \<open>xs\<close>:
 \<close>
 
@@ -703,8 +703,8 @@ next
 qed
 
 text\<open>\index{cases@\<open>cases\<close>|(}Function \<open>tl\<close> (''tail'') is defined by @{thm list.sel(2)} and
-@{thm list.sel(3)}. Note that the result type of @{const length} is @{typ nat}
-and @{prop"0 - 1 = (0::nat)"}.
+@{thm list.sel(3)}. Note that the result type of \<^const>\<open>length\<close> is \<^typ>\<open>nat\<close>
+and \<^prop>\<open>0 - 1 = (0::nat)\<close>.
 
 This proof pattern works for any term \<open>t\<close> whose type is a datatype.
 The goal has to be proved for each constructor \<open>C\<close>:
@@ -742,7 +742,7 @@ into the proof of the claim.
 
 We illustrate structural induction with an example based on natural numbers:
 the sum (\<open>\<Sum>\<close>) of the first \<open>n\<close> natural numbers
-(\<open>{0..n::nat}\<close>) is equal to \mbox{@{term"n*(n+1) div 2::nat"}}.
+(\<open>{0..n::nat}\<close>) is equal to \mbox{\<^term>\<open>n*(n+1) div 2::nat\<close>}.
 Never mind the details, just focus on the pattern:
 \<close>
 
@@ -769,7 +769,7 @@ qed
 
 text\<open>The first line introduces an abbreviation \<open>?P n\<close> for the goal.
 Pattern matching \<open>?P n\<close> with the goal instantiates \<open>?P\<close> to the
-function @{term"\<lambda>n. \<Sum>{0..n::nat} = n*(n+1) div 2"}.  Now the proposition to
+function \<^term>\<open>\<lambda>n. \<Sum>{0..n::nat} = n*(n+1) div 2\<close>.  Now the proposition to
 be proved in the base case can be written as \<open>?P 0\<close>, the induction
 hypothesis as \<open>?P n\<close>, and the conclusion of the induction step as
 \<open>?P(Suc n)\<close>.
@@ -790,7 +790,7 @@ text\<open>
 The unknown \<open>?case\<close>\index{case?@\<open>?case\<close>|(} is set in each case to the required
 claim, i.e., \<open>?P 0\<close> and \mbox{\<open>?P(Suc n)\<close>} in the above proof,
 without requiring the user to define a \<open>?P\<close>. The general
-pattern for induction over @{typ nat} is shown on the left-hand side:
+pattern for induction over \<^typ>\<open>nat\<close> is shown on the left-hand side:
 \<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
@@ -920,7 +920,7 @@ fun evn :: "nat \<Rightarrow> bool" where
 "evn (Suc 0) = False" |
 "evn (Suc(Suc n)) = evn n"
 
-text\<open>We recast the proof of @{prop"ev n \<Longrightarrow> evn n"} in Isar. The
+text\<open>We recast the proof of \<^prop>\<open>ev n \<Longrightarrow> evn n\<close> in Isar. The
 left column shows the actual proof text, the right column shows
 the implicit effect of the two \isacom{case} commands:\<close>text_raw\<open>
 \begin{tabular}{@ {}l@ {\qquad}l@ {}}
@@ -962,8 +962,8 @@ The proof resembles structural induction, but the induction rule is given
 explicitly and the names of the cases are the names of the rules in the
 inductive definition.
 Let us examine the two assumptions named @{thm[source]evSS}:
-@{prop "ev n"} is the premise of rule @{thm[source]evSS}, which we may assume
-because we are in the case where that rule was used; @{prop"evn n"}
+\<^prop>\<open>ev n\<close> is the premise of rule @{thm[source]evSS}, which we may assume
+because we are in the case where that rule was used; \<^prop>\<open>evn n\<close>
 is the induction hypothesis.
 \begin{warn}
 Because each \isacom{case} command introduces a list of assumptions
@@ -1063,11 +1063,11 @@ This is where the indexing of fact lists comes in handy, e.g.,
 Rule inversion is case analysis of which rule could have been used to
 derive some fact. The name \conceptnoidx{rule inversion} emphasizes that we are
 reasoning backwards: by which rules could some given fact have been proved?
-For the inductive definition of @{const ev}, rule inversion can be summarized
+For the inductive definition of \<^const>\<open>ev\<close>, rule inversion can be summarized
 like this:
 @{prop[display]"ev n \<Longrightarrow> n = 0 \<or> (\<exists>k. n = Suc(Suc k) \<and> ev k)"}
 The realisation in Isabelle is a case analysis.
-A simple example is the proof that @{prop"ev n \<Longrightarrow> ev (n - 2)"}. We
+A simple example is the proof that \<^prop>\<open>ev n \<Longrightarrow> ev (n - 2)\<close>. We
 already went through the details informally in \autoref{sec:Logic:even}. This
 is the Isar proof:
 \<close>
@@ -1090,16 +1090,16 @@ text\<open>The key point here is that a case analysis over some inductively
 defined predicate is triggered by piping the given fact
 (here: \isacom{from}~\<open>this\<close>) into a proof by \<open>cases\<close>.
 Let us examine the assumptions available in each case. In case \<open>ev0\<close>
-we have \<open>n = 0\<close> and in case \<open>evSS\<close> we have @{prop"n = Suc(Suc k)"}
-and @{prop"ev k"}. In each case the assumptions are available under the name
+we have \<open>n = 0\<close> and in case \<open>evSS\<close> we have \<^prop>\<open>n = Suc(Suc k)\<close>
+and \<^prop>\<open>ev k\<close>. In each case the assumptions are available under the name
 of the case; there is no fine-grained naming schema like there is for induction.
 
 Sometimes some rules could not have been used to derive the given fact
 because constructors clash. As an extreme example consider
-rule inversion applied to @{prop"ev(Suc 0)"}: neither rule \<open>ev0\<close> nor
-rule \<open>evSS\<close> can yield @{prop"ev(Suc 0)"} because \<open>Suc 0\<close> unifies
-neither with \<open>0\<close> nor with @{term"Suc(Suc n)"}. Impossible cases do not
-have to be proved. Hence we can prove anything from @{prop"ev(Suc 0)"}:
+rule inversion applied to \<^prop>\<open>ev(Suc 0)\<close>: neither rule \<open>ev0\<close> nor
+rule \<open>evSS\<close> can yield \<^prop>\<open>ev(Suc 0)\<close> because \<open>Suc 0\<close> unifies
+neither with \<open>0\<close> nor with \<^term>\<open>Suc(Suc n)\<close>. Impossible cases do not
+have to be proved. Hence we can prove anything from \<^prop>\<open>ev(Suc 0)\<close>:
 \<close>
 (*<*)
 notepad begin fix P
@@ -1109,7 +1109,7 @@ notepad begin fix P
 end
 (*>*)
 
-text\<open>That is, @{prop"ev(Suc 0)"} is simply not provable:\<close>
+text\<open>That is, \<^prop>\<open>ev(Suc 0)\<close> is simply not provable:\<close>
 
 lemma "\<not> ev(Suc 0)"
 proof
@@ -1117,7 +1117,7 @@ proof
 qed
 
 text\<open>Normally not all cases will be impossible. As a simple exercise,
-prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
+prove that \mbox{\<^prop>\<open>\<not> ev(Suc(Suc(Suc 0)))\<close>.}
 
 \subsection{Advanced Rule Induction}
 \label{sec:advanced-rule-induction}
@@ -1174,10 +1174,10 @@ We only need to deal with one case because the @{thm[source] ev0} case is imposs
 The form of the \<open>IH\<close> shows us that internally the lemma was expanded as explained
 above: \noquotes{@{prop[source]"ev x \<Longrightarrow> x = Suc m \<Longrightarrow> \<not> ev m"}}.
 \item
-The goal @{prop"\<not> ev (Suc n)"} may surprise. The expanded version of the lemma
-would suggest that we have a \isacom{fix} \<open>m\<close> \isacom{assume} @{prop"Suc(Suc n) = Suc m"}
-and need to show @{prop"\<not> ev m"}. What happened is that Isabelle immediately
-simplified @{prop"Suc(Suc n) = Suc m"} to @{prop"Suc n = m"} and could then eliminate
+The goal \<^prop>\<open>\<not> ev (Suc n)\<close> may surprise. The expanded version of the lemma
+would suggest that we have a \isacom{fix} \<open>m\<close> \isacom{assume} \<^prop>\<open>Suc(Suc n) = Suc m\<close>
+and need to show \<^prop>\<open>\<not> ev m\<close>. What happened is that Isabelle immediately
+simplified \<^prop>\<open>Suc(Suc n) = Suc m\<close> to \<^prop>\<open>Suc n = m\<close> and could then eliminate
 \<open>m\<close>. Beware of such nice surprises with this advanced form of induction.
 \end{itemize}
 \begin{warn}
@@ -1208,32 +1208,32 @@ text\<open>
 \endexercise
 
 \begin{exercise}
-Give a structured proof of @{prop "\<not> ev(Suc(Suc(Suc 0)))"}
+Give a structured proof of \<^prop>\<open>\<not> ev(Suc(Suc(Suc 0)))\<close>
 by rule inversions. If there are no cases to be proved you can close
 a proof immediately with \isacom{qed}.
 \end{exercise}
 
 \begin{exercise}
 Recall predicate \<open>star\<close> from \autoref{sec:star} and \<open>iter\<close>
-from Exercise~\ref{exe:iter}. Prove @{prop "iter r n x y \<Longrightarrow> star r x y"}
+from Exercise~\ref{exe:iter}. Prove \<^prop>\<open>iter r n x y \<Longrightarrow> star r x y\<close>
 in a structured style; do not just sledgehammer each case of the
 required induction.
 \end{exercise}
 
 \begin{exercise}
-Define a recursive function \<open>elems ::\<close> @{typ"'a list \<Rightarrow> 'a set"}
-and prove @{prop "x \<in> elems xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> elems ys"}.
+Define a recursive function \<open>elems ::\<close> \<^typ>\<open>'a list \<Rightarrow> 'a set\<close>
+and prove \<^prop>\<open>x \<in> elems xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> elems ys\<close>.
 \end{exercise}
 
 \begin{exercise}
 Extend Exercise~\ref{exe:cfg} with a function that checks if some
 \mbox{\<open>alpha list\<close>} is a balanced
 string of parentheses. More precisely, define a \mbox{recursive} function
-\<open>balanced :: nat \<Rightarrow> alpha list \<Rightarrow> bool\<close> such that @{term"balanced n w"}
+\<open>balanced :: nat \<Rightarrow> alpha list \<Rightarrow> bool\<close> such that \<^term>\<open>balanced n w\<close>
 is true iff (informally) \<open>S (a\<^sup>n @ w)\<close>. Formally, prove that
-@{prop "balanced n w \<longleftrightarrow> S (replicate n a @ w)"} where
-@{const replicate} \<open>::\<close> @{typ"nat \<Rightarrow> 'a \<Rightarrow> 'a list"} is predefined
-and @{term"replicate n x"} yields the list \<open>[x, \<dots>, x]\<close> of length \<open>n\<close>.
+\<^prop>\<open>balanced n w \<longleftrightarrow> S (replicate n a @ w)\<close> where
+\<^const>\<open>replicate\<close> \<open>::\<close> \<^typ>\<open>nat \<Rightarrow> 'a \<Rightarrow> 'a list\<close> is predefined
+and \<^term>\<open>replicate n x\<close> yields the list \<open>[x, \<dots>, x]\<close> of length \<open>n\<close>.
 \end{exercise}
 \<close>
 

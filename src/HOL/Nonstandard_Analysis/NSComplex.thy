@@ -189,7 +189,7 @@ lemma hcomplex_diff_eq_eq [simp]: "x - y = z \<longleftrightarrow> x = z + y"
   by (rule diff_eq_eq)
 
 
-subsection \<open>Embedding Properties for @{term hcomplex_of_hypreal} Map\<close>
+subsection \<open>Embedding Properties for \<^term>\<open>hcomplex_of_hypreal\<close> Map\<close>
 
 lemma hRe_hcomplex_of_hypreal [simp]: "\<And>z. hRe (hcomplex_of_hypreal z) = z"
   by transfer (rule Re_complex_of_real)
@@ -315,7 +315,7 @@ lemma hcomplex_mult_hcnj: "\<And>z. z * hcnj z = hcomplex_of_hypreal ((hRe z)\<^
   by transfer (rule complex_mult_cnj)
 
 
-subsection \<open>More Theorems about the Function @{term hcmod}\<close>
+subsection \<open>More Theorems about the Function \<^term>\<open>hcmod\<close>\<close>
 
 lemma hcmod_hcomplex_of_hypreal_of_nat [simp]:
   "hcmod (hcomplex_of_hypreal (hypreal_of_nat n)) = hypreal_of_nat n"
@@ -376,7 +376,7 @@ lemma hcpow_zero_zero: "r pow n = 0 \<Longrightarrow> r = 0"
   by (blast intro: ccontr dest: hcpow_not_zero)
 
 
-subsection \<open>The Function @{term hsgn}\<close>
+subsection \<open>The Function \<^term>\<open>hsgn\<close>\<close>
 
 lemma hsgn_zero [simp]: "hsgn 0 = 0"
   by transfer (rule sgn_zero)
@@ -556,7 +556,7 @@ lemma hExp_add: "\<And>a b. hExp (a + b) = hExp a * hExp b"
   by transfer (rule exp_add)
 
 
-subsection \<open>@{term hcomplex_of_complex}: the Injection from type @{typ complex} to to @{typ hcomplex}\<close>
+subsection \<open>\<^term>\<open>hcomplex_of_complex\<close>: the Injection from type \<^typ>\<open>complex\<close> to to \<^typ>\<open>hcomplex\<close>\<close>
 
 lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex \<i>"
   by (rule iii_def)

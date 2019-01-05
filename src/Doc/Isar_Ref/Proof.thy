@@ -46,11 +46,11 @@ text \<open>
     @{command_def "notepad"} & : & \<open>local_theory \<rightarrow> proof(state)\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command notepad} @'begin'
     ;
     @@{command end}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "notepad"}~@{keyword "begin"} opens a proof state without any
   goal statement. This allows to experiment with Isar, without producing any
@@ -157,7 +157,7 @@ text \<open>
   reflexivity rule. Thus, exporting some result \<open>x \<equiv> t \<turnstile> \<phi>[x]\<close> yields \<open>\<turnstile>
   \<phi>[t]\<close>.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command fix} @{syntax vars}
     ;
     (@@{command assume} | @@{command presume}) concl prems @{syntax for_fixes}
@@ -168,7 +168,7 @@ text \<open>
     ;
     @@{command define} @{syntax vars} @'where'
       (@{syntax props} + @'and') @{syntax for_fixes}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "fix"}~\<open>x\<close> introduces a local variable \<open>x\<close> that is \<^emph>\<open>arbitrary,
   but fixed\<close>.
@@ -236,9 +236,9 @@ text \<open>
   during the input process just after type checking. Also note that @{command
   "define"} does not support polymorphism.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command let} ((@{syntax term} + @'and') '=' @{syntax term} + @'and')
-  \<close>}
+  \<close>
 
   The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
   @{syntax prop_pat} (see \secref{sec:term-decls}).
@@ -288,14 +288,14 @@ text \<open>
   the most recently established facts, but only \<^emph>\<open>before\<close> issuing a follow-up
   claim.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command note} (@{syntax thmdef}? @{syntax thms} + @'and')
     ;
     (@@{command from} | @@{command with} | @@{command using} | @@{command unfolding})
       (@{syntax thms} + @'and')
     ;
     @{method use} @{syntax thms} @'in' @{syntax method}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "note"}~\<open>a = b\<^sub>1 \<dots> b\<^sub>n\<close> recalls existing facts \<open>b\<^sub>1, \<dots>, b\<^sub>n\<close>,
   binding the result as \<open>a\<close>. Note that attributes may be involved as well,
@@ -395,7 +395,7 @@ text \<open>
   disjunction of eliminated parameters and assumptions, cf.\
   \secref{sec:obtain}).
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command proposition} | @@{command schematic_goal})
       (long_statement | short_statement)
@@ -422,7 +422,7 @@ text \<open>
     ;
     @{syntax_def obtain_case}: @{syntax vars} @'where'
       (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> @{command "lemma"}~\<open>a: \<phi>\<close> enters proof mode with \<open>\<phi>\<close> as main goal,
   eventually resulting in some fact \<open>\<turnstile> \<phi>\<close> to be put back into the target
@@ -541,11 +541,11 @@ text \<open>
     @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~\<open>calculation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command also} | @@{command finally}) ('(' @{syntax thms} ')')?
     ;
     @@{attribute trans} (() | 'add' | 'del')
-  \<close>}
+  \<close>
 
   \<^descr> @{command "also"}~\<open>(a\<^sub>1 \<dots> a\<^sub>n)\<close> maintains the auxiliary @{fact
   calculation} register as follows. The first occurrence of @{command "also"}
@@ -605,12 +605,12 @@ text \<open>
   precedence of method combinators is \<^verbatim>\<open>|\<close> \<^verbatim>\<open>;\<close> \<^verbatim>\<open>,\<close> \<^verbatim>\<open>[]\<close> \<^verbatim>\<open>+\<close> \<^verbatim>\<open>?\<close> (from low
   to high).
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def method}:
       (@{syntax name} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
     ;
     methods: (@{syntax name} @{syntax args} | @{syntax method}) + (',' | ';' | '|')
-  \<close>}
+  \<close>
 
   Regular Isar proof methods do \<^emph>\<open>not\<close> admit direct goal addressing, but refer
   to the first subgoal or to all subgoals uniformly. Nonetheless, the
@@ -626,7 +626,7 @@ text \<open>
   Structural composition ``\<open>m\<^sub>1\<close>\<^verbatim>\<open>;\<close>~\<open>m\<^sub>2\<close>'' means that method \<open>m\<^sub>1\<close> is
   applied with restriction to the first subgoal, then \<open>m\<^sub>2\<close> is applied
   consecutively with restriction to each subgoal that has newly emerged due to
-  \<open>m\<^sub>1\<close>. This is analogous to the tactic combinator @{ML_op THEN_ALL_NEW} in
+  \<open>m\<^sub>1\<close>. This is analogous to the tactic combinator \<^ML_op>\<open>THEN_ALL_NEW\<close> in
   Isabelle/ML, see also @{cite "isabelle-implementation"}. For example, \<open>(rule
   r; blast)\<close> applies rule \<open>r\<close> and then solves all new subgoals by \<open>blast\<close>.
 
@@ -641,10 +641,10 @@ text \<open>
   as explicit argument to the individual tactic being involved. Here ``\<open>[!]\<close>''
   refers to all goals, and ``\<open>[n-]\<close>'' to all goals starting from \<open>n\<close>.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def goal_spec}:
       '[' (@{syntax nat} '-' @{syntax nat} | @{syntax nat} '-' | @{syntax nat} | '!' ) ']'
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -693,7 +693,7 @@ text \<open>
   connective involved. There is no separate default terminal method. Any
   remaining goals are always solved by assumption in the very last step.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command proof} method?
     ;
     @@{command qed} method?
@@ -701,7 +701,7 @@ text \<open>
     @@{command "by"} method method?
     ;
     (@@{command "."} | @@{command ".."} | @@{command sorry})
-  \<close>}
+  \<close>
 
   \<^descr> @{command "proof"}~\<open>m\<^sub>1\<close> refines the goal by proof method \<open>m\<^sub>1\<close>; facts for
   forward chaining are passed if so indicated by \<open>proof(chain)\<close> mode.
@@ -779,7 +779,7 @@ text \<open>
     @{attribute_def "where"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method goal_cases} (@{syntax name}*)
     ;
     @@{method fact} @{syntax thms}?
@@ -799,7 +799,7 @@ text \<open>
     @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? @{syntax for_fixes}
     ;
     @@{attribute "where"} @{syntax named_insts} @{syntax for_fixes}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "print_rules"} prints rules declared via attributes @{attribute
   (Pure) intro}, @{attribute (Pure) elim}, @{attribute (Pure) dest} of
@@ -908,16 +908,14 @@ text \<open>
     @{command_def "method_setup"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
-  \<close>}
+  \<close>
 
   \<^descr> @{command "method_setup"}~\<open>name = text description\<close> defines a proof method
   in the current context. The given \<open>text\<close> has to be an ML expression of type
-  @{ML_type "(Proof.context -> Proof.method) context_parser"}, cf.\ basic
-  parsers defined in structure @{ML_structure Args} and @{ML_structure
-  Attrib}. There are also combinators like @{ML METHOD} and @{ML
-  SIMPLE_METHOD} to turn certain tactic forms into official proof methods; the
+  \<^ML_type>\<open>(Proof.context -> Proof.method) context_parser\<close>, cf.\ basic
+  parsers defined in structure \<^ML_structure>\<open>Args\<close> and \<^ML_structure>\<open>Attrib\<close>. There are also combinators like \<^ML>\<open>METHOD\<close> and \<^ML>\<open>SIMPLE_METHOD\<close> to turn certain tactic forms into official proof methods; the
   primed versions refer to tactics with explicit goal addressing.
 
   Here are some example method definitions:
@@ -996,7 +994,7 @@ text \<open>
   versions of rules that have been derived manually become ready to use in
   advanced case analysis later.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command case} @{syntax thmdecl}? (name | '(' name (('_' | @{syntax name}) *) ')')
     ;
     @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) *) ']' ) ? ) +)
@@ -1006,7 +1004,7 @@ text \<open>
     @@{attribute params} ((@{syntax name} * ) + @'and')
     ;
     @@{attribute consumes} @{syntax int}?
-  \<close>}
+  \<close>
 
   \<^descr> @{command "case"}~\<open>a: (c x\<^sub>1 \<dots> x\<^sub>m)\<close> invokes a named local context \<open>c:
   x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m\<close>, as provided by an appropriate proof method (such
@@ -1095,7 +1093,7 @@ text \<open>
   Method @{method induction} differs from @{method induct} only in the names
   of the facts in the local context invoked by the @{command "case"} command.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method cases} ('(' 'no_simp' ')')? \<newline>
       (@{syntax insts} * @'and') rule?
     ;
@@ -1114,7 +1112,7 @@ text \<open>
     arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
     ;
     taking: 'taking' ':' @{syntax insts}
-  \<close>}
+  \<close>
 
   \<^descr> @{method cases}~\<open>insts R\<close> applies method @{method rule} with an
   appropriate case distinction theorem, instantiated to the subjects \<open>insts\<close>.
@@ -1274,7 +1272,7 @@ text \<open>
     @{attribute_def coinduct} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute cases} spec
     ;
     @@{attribute induct} spec
@@ -1283,7 +1281,7 @@ text \<open>
     ;
 
     spec: (('type' | 'pred' | 'set') ':' @{syntax name}) | 'del'
-  \<close>}
+  \<close>
 
   \<^descr> @{command "print_induct_rules"} prints cases and induct rules for
   predicates (or sets) and types of the current context.
@@ -1335,7 +1333,7 @@ text \<open>
   below. In particular, the logic of elimination and case splitting is
   delegated to an Isar proof, which often involves automated tools.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command consider} @{syntax obtain_clauses}
     ;
     @@{command obtain} @{syntax par_name}? @{syntax vars} \<newline>
@@ -1346,7 +1344,7 @@ text \<open>
     prems: (@'if' (@{syntax props'} + @'and'))?
     ;
     @@{command guess} @{syntax vars}
-  \<close>}
+  \<close>
 
   \<^descr> @{command consider}~\<open>(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x | (b)
   \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots>\<close> states a rule for case splitting

@@ -41,9 +41,9 @@ text \<open>
     @{command_def "help"}\<open>\<^sup>*\<close> & : & \<open>any \<rightarrow>\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command help} (@{syntax name} * )
-  \<close>}
+  \<close>
 
   \<^descr> @{command "print_commands"} prints all outer syntax keywords
   and commands.
@@ -107,7 +107,7 @@ text \<open>
     @{syntax_def type_var} & = & \<^verbatim>\<open>?\<close>\<open>type_ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>type_ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
     @{syntax_def string} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
     @{syntax_def altstring} & = & \<^verbatim>\<open>`\<close> \<open>\<dots>\<close> \<^verbatim>\<open>`\<close> \\
-    @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
+    @{syntax_def cartouche} & = & \<^verbatim>\<open>\<open>\<close> \<open>\<dots>\<close> \<^verbatim>\<open>\<close>\<close> \\
     @{syntax_def verbatim} & = & \<^verbatim>\<open>{*\<close> \<open>\<dots>\<close> \<^verbatim>\<open>*}\<close> \\[1ex]
 
     \<open>letter\<close> & = & \<open>latin  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|  greek  |\<close> \\
@@ -129,8 +129,7 @@ text \<open>
   \end{center}
 
   A @{syntax_ref term_var} or @{syntax_ref type_var} describes an unknown,
-  which is internally a pair of base name and index (ML type @{ML_type
-  indexname}). These components are either separated by a dot as in \<open>?x.1\<close> or
+  which is internally a pair of base name and index (ML type \<^ML_type>\<open>indexname\<close>). These components are either separated by a dot as in \<open>?x.1\<close> or
   \<open>?x7.3\<close> or run together as in \<open>?x1\<close>. The latter form is possible if the base
   name does not end with digits. If the index is 0, it may be dropped
   altogether: \<open>?x\<close> and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the same unknown, with
@@ -147,7 +146,7 @@ text \<open>
   is no way to escape ``\<^verbatim>\<open>*}\<close>''. Cartouches do not have this limitation.
 
   A @{syntax_ref cartouche} consists of arbitrary text, with properly balanced
-  blocks of ``@{verbatim "\<open>"}~\<open>\<dots>\<close>~@{verbatim "\<close>"}''. Note that the rendering
+  blocks of ``\<^verbatim>\<open>\<open>\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>\<close>\<close>''. Note that the rendering
   of cartouche delimiters is usually like this: ``\<open>\<open> \<dots> \<close>\<close>''.
 
   Source comments take the form \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> and may be nested: the text is
@@ -181,12 +180,12 @@ text \<open>
   theorems etc.\ Quoted strings provide an escape for non-identifier names or
   those ruled out by outer syntax keywords (e.g.\ quoted \<^verbatim>\<open>"let"\<close>).
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def name}: @{syntax short_ident} | @{syntax long_ident} |
       @{syntax sym_ident} | @{syntax nat} | @{syntax string}
     ;
     @{syntax_def par_name}: '(' @{syntax name} ')'
-  \<close>}
+  \<close>
 
   A @{syntax_def system_name} is like @{syntax name}, but it excludes
   white-space characters and needs to conform to file-name notation. Name
@@ -202,11 +201,11 @@ text \<open>
   floating point numbers. These are combined as @{syntax int} and @{syntax
   real} as follows.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def int}: @{syntax nat} | '-' @{syntax nat}
     ;
     @{syntax_def real}: @{syntax float} | @{syntax int}
-  \<close>}
+  \<close>
 
   Note that there is an overlap with the category @{syntax name}, which also
   includes @{syntax nat}.
@@ -223,11 +222,11 @@ text \<open>
   plain identifiers in the outer language may be used as inner language
   content without delimiters.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def embedded}: @{syntax cartouche} | @{syntax string} |
       @{syntax short_ident} | @{syntax long_ident} | @{syntax sym_ident} |
       @{syntax term_var} | @{syntax type_ident} | @{syntax type_var} | @{syntax nat}
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -239,9 +238,9 @@ text \<open>
   convenience, any of the smaller text unit that conforms to @{syntax name} is
   admitted as well.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def text}: @{syntax embedded} | @{syntax verbatim}
-  \<close>}
+  \<close>
 
   Typical uses are document markup commands, like \<^theory_text>\<open>chapter\<close>, \<^theory_text>\<open>section\<close> etc.
   (\secref{sec:markup}).
@@ -284,13 +283,13 @@ text \<open>
   to the intersection of these classes. The syntax of type arities is given
   directly at the outer level.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax name} + ','))?
     ;
     @{syntax_def sort}: @{syntax embedded}
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -308,49 +307,49 @@ text \<open>
   these have not been superseded by commands or other keywords already (such
   as \<^verbatim>\<open>=\<close> or \<^verbatim>\<open>+\<close>).
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def type}: @{syntax embedded}
     ;
     @{syntax_def term}: @{syntax embedded}
     ;
     @{syntax_def prop}: @{syntax embedded}
-  \<close>}
+  \<close>
 
   Positional instantiations are specified as a sequence of terms, or the
   placeholder ``\<open>_\<close>'' (underscore), which means to skip a position.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def inst}: '_' | @{syntax term}
     ;
     @{syntax_def insts}: (@{syntax inst} *)
-  \<close>}
+  \<close>
 
   Named instantiations are specified as pairs of assignments \<open>v = t\<close>, which
   refer to schematic variables in some theorem that is instantiated. Both type
   and terms instantiations are admitted, and distinguished by the usual syntax
   of variable names.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def named_inst}: variable '=' (type | term)
     ;
     @{syntax_def named_insts}: (named_inst @'and' +)
     ;
     variable: @{syntax name} | @{syntax term_var} | @{syntax type_ident} | @{syntax type_var}
-  \<close>}
+  \<close>
 
   Type declarations and definitions usually refer to @{syntax typespec} on the
   left-hand side. This models basic type constructor application at the outer
   syntax level. Note that only plain postfix notation is available here, but
   no infixes.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def typespec}:
       (() | @{syntax type_ident} | '(' ( @{syntax type_ident} + ',' ) ')') @{syntax name}
     ;
     @{syntax_def typespec_sorts}:
       (() | (@{syntax type_ident} ('::' @{syntax sort})?) |
         '(' ( (@{syntax type_ident} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -362,11 +361,11 @@ text \<open>
   patterns of the form ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>''. This works both for @{syntax
   term} and @{syntax prop}.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def term_pat}: '(' (@'is' @{syntax term} +) ')'
     ;
     @{syntax_def prop_pat}: '(' (@'is' @{syntax prop} +) ')'
-  \<close>}
+  \<close>
 
   \<^medskip>
   Declarations of local variables \<open>x :: \<tau>\<close> and logical propositions \<open>a : \<phi>\<close>
@@ -376,7 +375,7 @@ text \<open>
   references of current facts). In any case, Isar proof elements usually admit
   to introduce multiple such items simultaneously.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def vars}:
       (((@{syntax name} +) ('::' @{syntax type})? |
         @{syntax name} ('::' @{syntax type})? @{syntax mixfix}) + @'and')
@@ -384,7 +383,7 @@ text \<open>
     @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax prop_pat}? +)
     ;
     @{syntax_def props'}: (@{syntax prop} @{syntax prop_pat}? +)
-  \<close>}
+  \<close>
 
   The treatment of multiple declarations corresponds to the complementary
   focus of @{syntax vars} versus @{syntax props}. In ``\<open>x\<^sub>1 \<dots> x\<^sub>n :: \<tau>\<close>'' the
@@ -407,7 +406,7 @@ text \<open>
   @{syntax atom} refers to any atomic entity, including any @{syntax keyword}
   conforming to @{syntax sym_ident}.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def atom}: @{syntax name} | @{syntax type_ident} |
       @{syntax type_var} | @{syntax term_var} | @{syntax nat} | @{syntax float} |
       @{syntax keyword} | @{syntax cartouche}
@@ -417,7 +416,7 @@ text \<open>
     @{syntax_def args}: arg *
     ;
     @{syntax_def attributes}: '[' (@{syntax name} @{syntax args} * ',') ']'
-  \<close>}
+  \<close>
 
   Theorem specifications come in several flavors: @{syntax axmdecl} and
   @{syntax thmdecl} usually refer to axioms, assumptions or results of goal
@@ -447,7 +446,7 @@ text \<open>
   context will persist. This form of in-place declarations is particularly
   useful with commands like @{command "declare"} and @{command "using"}.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def axmdecl}: @{syntax name} @{syntax attributes}? ':'
     ;
     @{syntax_def thmbind}:
@@ -465,7 +464,7 @@ text \<open>
     @{syntax_def thms}: @{syntax thm} +
     ;
     selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -481,7 +480,7 @@ text \<open>
   cases: each with its own scope of inferred types for free variables.
 
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def for_fixes}: (@'for' @{syntax vars})?
     ;
     @{syntax_def multi_specs}: (@{syntax structured_spec} + '|')
@@ -492,7 +491,7 @@ text \<open>
     @{syntax_def spec_prems}: (@'if' ((@{syntax prop}+) + @'and'))?
     ;
     @{syntax_def specification}: @{syntax vars} @'where' @{syntax multi_specs}
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -513,7 +512,7 @@ text \<open>
     @{command_def "print_term_bindings"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command print_theory} |
       @@{command print_definitions} |
       @@{command print_methods} |
@@ -534,7 +533,7 @@ text \<open>
     @@{command thm_deps} @{syntax thmrefs}
     ;
     @@{command unused_thms} ((@{syntax name} +) '-' (@{syntax name} * ))?
-  \<close>}
+  \<close>
 
   These commands print certain parts of the theory and proof context. Note
   that there are some further ones available, such as for the set of rules

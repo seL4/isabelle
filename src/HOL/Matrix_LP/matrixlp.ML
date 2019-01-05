@@ -17,7 +17,7 @@ val compute_thms = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_case_list" "C
   "SparseMatrix.sorted_sp_simps"
   "ComputeNumeral.natnorm"}; (*"ComputeNumeral.number_norm"*)
 
-val computer = PCompute.make Compute.SML @{theory} compute_thms []
+val computer = PCompute.make Compute.SML \<^theory> compute_thms []
 
 fun matrix_compute c = hd (PCompute.rewrite computer [c])
 

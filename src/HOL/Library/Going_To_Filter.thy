@@ -12,11 +12,11 @@ theory Going_To_Filter
 begin
 
 definition going_to_within :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a set \<Rightarrow> 'a filter"
-  ("(_)/ going'_to (_)/ within (_)" [1000,60,60] 60) where
+  (\<open>(_)/ going'_to (_)/ within (_)\<close> [1000,60,60] 60) where
   "f going_to F within A = inf (filtercomap f F) (principal A)"
 
 abbreviation going_to :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter"
-    (infix "going'_to" 60)
+    (infix \<open>going'_to\<close> 60)
     where "f going_to F \<equiv> f going_to F within UNIV"
 
 text \<open>

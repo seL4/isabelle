@@ -32,8 +32,8 @@ fun primrec_eq_err lthy s eq =
 
 fun unquantify t =
   let
-    val (vs, Ts) = split_list (strip_qnt_vars @{const_name Pure.all} t);
-    val body = strip_qnt_body @{const_name Pure.all} t;
+    val (vs, Ts) = split_list (strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t);
+    val body = strip_qnt_body \<^const_name>\<open>Pure.all\<close> t;
     val (vs', _) = fold_map Name.variant vs (Name.make_context (fold_aterms
       (fn Free (v, _) => insert (op =) v | _ => I) body []))
   in (curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body) end;
@@ -151,7 +151,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
       (case AList.lookup (op =) eqns cname of
           NONE => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
-              (fnames', fnss', (Const (@{const_name undefined}, dummyT))::fns))
+              (fnames', fnss', (Const (\<^const_name>\<open>undefined\<close>, dummyT))::fns))
         | SOME (ls, cargs', rs, rhs, eq) =>
             let
               val recs = filter (Old_Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
@@ -189,7 +189,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
   case AList.lookup (op =) fns i of
      NONE =>
        let
-         val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
+         val dummy_fns = map (fn (_, cargs) => Const (\<^const_name>\<open>undefined\<close>,
            replicate (length cargs + length (filter Old_Datatype_Aux.is_rec_type cargs))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
@@ -307,7 +307,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
       curry (List.take o swap) (length fvars) |> map (Thm.cterm_of lthy');
     val invs' = (case invs of
         NONE => map (fn (i, _) =>
-          Abs ("x", fastype_of (snd (nth defs' i)), @{term True})) descr
+          Abs ("x", fastype_of (snd (nth defs' i)), \<^term>\<open>True\<close>)) descr
       | SOME invs' => map (prep_term lthy') invs');
     val inst = (map (#1 o dest_Var) fvars ~~ cfs) @
       (map #1 pvars ~~ map (Thm.cterm_of lthy') invs') @
@@ -391,17 +391,17 @@ end;
 val freshness_context = Parse.reserved "freshness_context";
 val invariant = Parse.reserved "invariant";
 
-fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- @{keyword ":"}) scan;
+fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- \<^keyword>\<open>:\<close>) scan;
 
-val parser1 = (freshness_context -- @{keyword ":"}) |-- unless_flag Parse.term >> SOME;
-val parser2 = (invariant -- @{keyword ":"}) |--
+val parser1 = (freshness_context -- \<^keyword>\<open>:\<close>) |-- unless_flag Parse.term >> SOME;
+val parser2 = (invariant -- \<^keyword>\<open>:\<close>) |--
     (Scan.repeat1 (unless_flag Parse.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
 val options =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (parser2 --| @{keyword ")"})) (NONE, NONE);
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (parser2 --| \<^keyword>\<open>)\<close>)) (NONE, NONE);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword nominal_primrec}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>nominal_primrec\<close>
     "define primitive recursive functions on nominal datatypes"
     (options -- Parse.vars -- Parse.for_fixes -- Parse_Spec.where_multi_specs
       >> (fn ((((invs, fctxt), vars), params), specs) =>

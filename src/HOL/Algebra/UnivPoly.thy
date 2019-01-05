@@ -68,7 +68,7 @@ definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
    coeff = (\<lambda>p\<in>up R. \<lambda>n. p n)\<rparr>"
 
 text \<open>
-  Properties of the set of polynomials @{term up}.
+  Properties of the set of polynomials \<^term>\<open>up\<close>.
 \<close>
 
 lemma mem_upI [intro]:
@@ -246,7 +246,7 @@ subsection \<open>Polynomials Form a Ring.\<close>
 context UP_ring
 begin
 
-text \<open>Operations are closed over @{term P}.\<close>
+text \<open>Operations are closed over \<^term>\<open>P\<close>.\<close>
 
 lemma UP_mult_closed [simp]:
   "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<otimes>\<^bsub>P\<^esub> q \<in> carrier P" by (simp add: UP_def up_mult_closed)
@@ -498,7 +498,7 @@ lemma UP_smult_assoc2:
 end
 
 text \<open>
-  Interpretation of lemmas from @{term algebra}.
+  Interpretation of lemmas from \<^term>\<open>algebra\<close>.
 \<close>
 
 lemma (in cring) cring:
@@ -639,7 +639,7 @@ next
 qed
 
 text\<open>The following corollary follows from lemmas @{thm "monom_one_Suc"}
-  and @{thm "monom_one_Suc2"}, and is trivial in @{term UP_cring}\<close>
+  and @{thm "monom_one_Suc2"}, and is trivial in \<^term>\<open>UP_cring\<close>\<close>
 
 corollary monom_one_comm: shows "monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k"
   unfolding monom_one_Suc [symmetric] monom_one_Suc2 [symmetric] ..
@@ -950,7 +950,7 @@ qed
 
 end
 
-text\<open>The following lemmas also can be lifted to @{term UP_ring}.\<close>
+text\<open>The following lemmas also can be lifted to \<^term>\<open>UP_ring\<close>.\<close>
 
 context UP_ring
 begin
@@ -1073,7 +1073,7 @@ theorem UP_domain:
 end
 
 text \<open>
-  Interpretation of theorems from @{term domain}.
+  Interpretation of theorems from \<^term>\<open>domain\<close>.
 \<close>
 
 sublocale UP_domain < "domain" P
@@ -1202,7 +1202,7 @@ locale UP_univ_prop = UP_pre_univ_prop +
   assumes indet_img_carrier [simp, intro]: "s \<in> carrier S"
   defines Eval_def: "Eval == eval R S h s"
 
-text\<open>JE: I have moved the following lemma from Ring.thy and lifted then to the locale @{term ring_hom_ring} from @{term ring_hom_cring}.\<close>
+text\<open>JE: I have moved the following lemma from Ring.thy and lifted then to the locale \<^term>\<open>ring_hom_ring\<close> from \<^term>\<open>ring_hom_cring\<close>.\<close>
 text\<open>JE: I was considering using it in \<open>eval_ring_hom\<close>, but that property does not hold for non commutative rings, so
   maybe it is not that necessary.\<close>
 
@@ -1306,7 +1306,7 @@ lemma (in UP_pre_univ_prop) eval_const:
 text \<open>Further properties of the evaluation homomorphism.\<close>
 
 text \<open>The following proof is complicated by the fact that in arbitrary
-  rings one might have @{term "one R = zero R"}.\<close>
+  rings one might have \<^term>\<open>one R = zero R\<close>.\<close>
 
 (* TODO: simplify by cases "one R = zero R" *)
 
@@ -1818,8 +1818,7 @@ lemma INTEG_id_eval:
 
 text \<open>
   Interpretation now enables to import all theorems and lemmas
-  valid in the context of homomorphisms between @{term INTEG} and @{term
-  "UP INTEG"} globally.
+  valid in the context of homomorphisms between \<^term>\<open>INTEG\<close> and \<^term>\<open>UP INTEG\<close> globally.
 \<close>
 
 interpretation INTEG: UP_pre_univ_prop INTEG INTEG id "UP INTEG"

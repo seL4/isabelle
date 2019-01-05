@@ -36,7 +36,7 @@ text \<open>
   \<^smallskip>
   The CTL path operators are more interesting; they are based on an arbitrary,
   but fixed model \<open>\<M>\<close>, which is simply a transition relation over states
-  @{typ 'a}.
+  \<^typ>\<open>'a\<close>.
 \<close>
 
 axiomatization \<M> :: "('a \<times> 'a) set"
@@ -115,8 +115,8 @@ lemma gfp_lfp': "- gfp f = lfp (\<lambda>s::'a set. - (f (- s)))"
   by (simp add: lfp_gfp)
 
 text \<open>
-  In order to give dual fixed point representations of @{term "\<^bold>A\<^bold>F p"} and
-  @{term "\<^bold>A\<^bold>G p"}:
+  In order to give dual fixed point representations of \<^term>\<open>\<^bold>A\<^bold>F p\<close> and
+  \<^term>\<open>\<^bold>A\<^bold>G p\<close>:
 \<close>
 
 lemma AF_lfp: "\<^bold>A\<^bold>F p = lfp (\<lambda>s. p \<union> \<^bold>A\<^bold>X s)"
@@ -144,10 +144,9 @@ proof -
 qed
 
 text \<open>
-  From the greatest fixed point definition of @{term "\<^bold>A\<^bold>G p"}, we derive as
-  a consequence of the Knaster-Tarski theorem on the one hand that @{term
-  "\<^bold>A\<^bold>G p"} is a fixed point of the monotonic function
-  @{term "\<lambda>s. p \<inter> \<^bold>A\<^bold>X s"}.
+  From the greatest fixed point definition of \<^term>\<open>\<^bold>A\<^bold>G p\<close>, we derive as
+  a consequence of the Knaster-Tarski theorem on the one hand that \<^term>\<open>\<^bold>A\<^bold>G p\<close> is a fixed point of the monotonic function
+  \<^term>\<open>\<lambda>s. p \<inter> \<^bold>A\<^bold>X s\<close>.
 \<close>
 
 lemma AG_fp: "\<^bold>A\<^bold>G p = p \<inter> \<^bold>A\<^bold>X \<^bold>A\<^bold>G p"
@@ -175,10 +174,9 @@ qed
 
 text \<open>
   On the other hand, we have from the Knaster-Tarski fixed point theorem that
-  any other post-fixed point of @{term "\<lambda>s. p \<inter> \<^bold>A\<^bold>X s"} is smaller than
-  @{term "\<^bold>A\<^bold>G p"}. A post-fixed point is a set of states \<open>q\<close> such that @{term
-  "q \<subseteq> p \<inter> \<^bold>A\<^bold>X q"}. This leads to the following co-induction principle for
-  @{term "\<^bold>A\<^bold>G p"}.
+  any other post-fixed point of \<^term>\<open>\<lambda>s. p \<inter> \<^bold>A\<^bold>X s\<close> is smaller than
+  \<^term>\<open>\<^bold>A\<^bold>G p\<close>. A post-fixed point is a set of states \<open>q\<close> such that \<^term>\<open>q \<subseteq> p \<inter> \<^bold>A\<^bold>X q\<close>. This leads to the following co-induction principle for
+  \<^term>\<open>\<^bold>A\<^bold>G p\<close>.
 \<close>
 
 lemma AG_I: "q \<subseteq> p \<inter> \<^bold>A\<^bold>X q \<Longrightarrow> q \<subseteq> \<^bold>A\<^bold>G p"
@@ -200,7 +198,7 @@ lemma AG_mono: "p \<subseteq> q \<Longrightarrow> \<^bold>A\<^bold>G p \<subsete
   by (simp only: AG_gfp, rule gfp_mono) auto
 
 text \<open>
-  The formula @{term "AG p"} implies @{term "AX p"} (we use substitution of
+  The formula \<^term>\<open>AG p\<close> implies \<^term>\<open>AX p\<close> (we use substitution of
   \<open>\<subseteq>\<close> with monotonicity).
 \<close>
 
@@ -233,7 +231,7 @@ text \<open>
   \<^smallskip>
   We now give an alternative characterization of the \<open>\<^bold>A\<^bold>G\<close> operator, which
   describes the \<open>\<^bold>A\<^bold>G\<close> operator in an ``operational'' way by tree induction:
-  In a state holds @{term "AG p"} iff in that state holds \<open>p\<close>, and in all
+  In a state holds \<^term>\<open>AG p\<close> iff in that state holds \<open>p\<close>, and in all
   reachable states \<open>s\<close> follows from the fact that \<open>p\<close> holds in \<open>s\<close>, that \<open>p\<close>
   also holds in all successor states of \<open>s\<close>. We use the co-induction principle
   @{thm [source] AG_I} to establish this in a purely algebraic manner.

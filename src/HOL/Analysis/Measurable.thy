@@ -70,7 +70,7 @@ method_setup%important measurable = \<open> Scan.lift (Scan.succeed (METHOD o Me
 simproc_setup%important measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
 
 setup \<open>
-  Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>measurable\<close>, Measurable.get_all)
 \<close>
 
 declare

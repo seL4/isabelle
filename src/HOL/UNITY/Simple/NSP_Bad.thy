@@ -88,7 +88,7 @@ apply auto
 done
 
 
-subsection\<open>Inductive Proofs about @{term ns_public}\<close>
+subsection\<open>Inductive Proofs about \<^term>\<open>ns_public\<close>\<close>
 
 lemma ns_constrainsI:
      "(!!act s s'. [| act \<in> {Id, Fake, NS1, NS2, NS3};

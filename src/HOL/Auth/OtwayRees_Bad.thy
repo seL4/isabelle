@@ -67,7 +67,7 @@ inductive_set otway :: "event list set"
 
  | OR4:  \<comment> \<open>Bob receives the Server's (?) message and compares the Nonces with
              those in the message he previously sent the Server.
-             Need @{term "B \<noteq> Server"} because we allow messages to self.\<close>
+             Need \<^term>\<open>B \<noteq> Server\<close> because we allow messages to self.\<close>
          "[| evs4 \<in> otway;  B \<noteq> Server;
              Says B Server \<lbrace>Nonce NA, Agent A, Agent B, X', Nonce NB,
                              Crypt (shrK B) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
@@ -131,7 +131,7 @@ lemmas OR2_parts_knows_Spy =
     OR2_analz_knows_Spy [THEN analz_into_parts]
 
 
-text\<open>Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (spies evs)\<close> imply that
 NOBODY sends messages containing X!\<close>
 
 text\<open>Spy never sees a good agent's shared key!\<close>
@@ -208,7 +208,7 @@ done
 
 text\<open>Crucial secrecy property: Spy does not see the keys sent in msg OR3
     Does not in itself guarantee security: an attack could violate
-    the premises, e.g. by having @{term "A=Spy"}\<close>
+    the premises, e.g. by having \<^term>\<open>A=Spy\<close>\<close>
 lemma secrecy_lemma:
  "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
   ==> Says Server B
@@ -239,7 +239,7 @@ by (blast dest: Says_Server_message_form secrecy_lemma)
 subsection\<open>Attempting to prove stronger properties\<close>
 
 text\<open>Only OR1 can have caused such a part of a message to appear. The premise
-  @{term "A \<noteq> B"} prevents OR2's similar-looking cryptogram from being picked 
+  \<^term>\<open>A \<noteq> B\<close> prevents OR2's similar-looking cryptogram from being picked 
   up. Original Otway-Rees doesn't need it.\<close>
 lemma Crypt_imp_OR1 [rule_format]:
      "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
@@ -252,7 +252,7 @@ by (erule otway.induct, force,
 
 text\<open>Crucial property: If the encrypted message appears, and A has used NA
   to start a run, then it originated with the Server!
-  The premise @{term "A \<noteq> B"} allows use of \<open>Crypt_imp_OR1\<close>\<close>
+  The premise \<^term>\<open>A \<noteq> B\<close> allows use of \<open>Crypt_imp_OR1\<close>\<close>
 text\<open>Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.\<close>
 lemma "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]

@@ -15,7 +15,7 @@ abbreviation sorted :: "'a::linorder list \<Rightarrow> bool" where
 
 lemmas sorted_wrt_Cons = sorted_wrt.simps(2)
 
-text \<open>The definition of @{const sorted_wrt} relates each element to all the elements after it.
+text \<open>The definition of \<^const>\<open>sorted_wrt\<close> relates each element to all the elements after it.
 This causes a blowup of the formulas. Thus we simplify matters by only comparing adjacent elements.\<close>
 
 declare
@@ -49,7 +49,7 @@ by(rule sorted_mid_iff)
 
 lemmas sorted_lems = sorted_mid_iff' sorted_mid_iff2 sorted_cons' sorted_snoc'
 
-text\<open>Splay trees need two additional @{const sorted} lemmas:\<close>
+text\<open>Splay trees need two additional \<^const>\<open>sorted\<close> lemmas:\<close>
 
 lemma sorted_snoc_le:
   "ASSUMPTION(sorted(xs @ [x])) \<Longrightarrow> x \<le> y \<Longrightarrow> sorted (xs @ [y])"

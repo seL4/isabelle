@@ -1320,7 +1320,7 @@ apply (erule sr.induct)
 apply auto
 done
 
-text\<open>@{term step2_integrity} also is a reliability theorem\<close>
+text\<open>\<^term>\<open>step2_integrity\<close> also is a reliability theorem\<close>
 lemma Says_Server_message_form: 
      "\<lbrakk> Says Server A \<lbrace>Pk, Certificate\<rbrace> \<in> set evs;  
          evs \<in> sr \<rbrakk>                   
@@ -1334,9 +1334,9 @@ done
 (*cannot be made useful to A in form of a Gets event*)
 
 text\<open>
-  step4integrity is @{term Outpts_A_Card_form_4}
+  step4integrity is \<^term>\<open>Outpts_A_Card_form_4\<close>
 
-  step7integrity is @{term Outpts_B_Card_form_7}
+  step7integrity is \<^term>\<open>Outpts_B_Card_form_7\<close>
 \<close>
 
 lemma step8_integrity: 
@@ -1351,9 +1351,9 @@ apply auto
 done
 
 
-text\<open>step9integrity is @{term Inputs_A_Card_form_9}
+text\<open>step9integrity is \<^term>\<open>Inputs_A_Card_form_9\<close>
 
-        step10integrity is @{term Outpts_A_Card_form_10}.
+        step10integrity is \<^term>\<open>Outpts_A_Card_form_10\<close>.
 \<close>
 
 lemma step11_integrity: 

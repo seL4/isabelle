@@ -36,7 +36,7 @@ operator.
 datatype integer_op = Number int | UnaryMinus | Plus
 
 text \<open>
-Now the type @{typ "integer_op gterm"} denotes the ground 
+Now the type \<^typ>\<open>integer_op gterm\<close> denotes the ground 
 terms built over those symbols.
 
 The type constructor \<open>gterm\<close> can be generalized to a function 
@@ -54,7 +54,7 @@ defined set a fixed number of times, typically once or twice.
 A universal quantifier in the premise of the introduction rule 
 expresses that every element of \<open>args\<close> belongs
 to our inductively defined set: is a ground term 
-over~\<open>F\<close>.  The function @{term set} denotes the set of elements in a given 
+over~\<open>F\<close>.  The function \<^term>\<open>set\<close> denotes the set of elements in a given 
 list. 
 \<close>
 
@@ -67,7 +67,7 @@ step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> gterms F;  f \<in> F\
 
 text \<open>
 To demonstrate a proof from this definition, let us 
-show that the function @{term gterms}
+show that the function \<^term>\<open>gterms\<close>
 is \textbf{monotone}.  We shall need this concept shortly.
 \<close>
 
@@ -86,7 +86,7 @@ Intuitively, this theorem says that
 enlarging the set of function symbols enlarges the set of ground 
 terms. The proof is a trivial rule induction.
 First we use the \<open>clarify\<close> method to assume the existence of an element of
-@{term "gterms F"}.  (We could have used \<open>intro subsetI\<close>.)  We then
+\<^term>\<open>gterms F\<close>.  (We could have used \<open>intro subsetI\<close>.)  We then
 apply rule induction. Here is the resulting subgoal:
 @{subgoals[display,indent=0]}
 The assumptions state that \<open>f\<close> belongs 
@@ -138,11 +138,11 @@ An inductive definition may refer to the
 inductively defined  set through an arbitrary monotone function.  To
 demonstrate this powerful feature, let us
 change the  inductive definition above, replacing the
-quantifier by a use of the function @{term lists}. This
+quantifier by a use of the function \<^term>\<open>lists\<close>. This
 function, from the Isabelle theory of lists, is analogous to the
-function @{term gterms} declared above: if \<open>A\<close> is a set then
-@{term "lists A"} is the set of lists whose elements belong to
-@{term A}.  
+function \<^term>\<open>gterms\<close> declared above: if \<open>A\<close> is a set then
+\<^term>\<open>lists A\<close> is the set of lists whose elements belong to
+\<^term>\<open>A\<close>.  
 
 In the inductive definition of well-formed terms, examine the one
 introduction rule.  The first premise states that \<open>args\<close> belongs to
@@ -161,7 +161,7 @@ monos lists_mono
 
 text \<open>
 We cite the theorem \<open>lists_mono\<close> to justify 
-using the function @{term lists}.%
+using the function \<^term>\<open>lists\<close>.%
 \footnote{This particular theorem is installed by default already, but we
 include the \isakeyword{monos} declaration in order to illustrate its syntax.}
 @{named_thms [display,indent=0] lists_mono [no_vars] (lists_mono)}
@@ -177,8 +177,8 @@ introduction rule cannot invalidate previous applications, allowing the
 construction process to converge.
 The following pair of rules do not constitute an inductive definition:
 \begin{trivlist}
-\item @{term "0 \<in> even"}
-\item @{term "n \<notin> even \<Longrightarrow> (Suc n) \<in> even"}
+\item \<^term>\<open>0 \<in> even\<close>
+\item \<^term>\<open>n \<notin> even \<Longrightarrow> (Suc n) \<in> even\<close>
 \end{trivlist}
 Showing that 4 is even using these rules requires showing that 3 is not
 even.  It is far from trivial to show that this set of rules
@@ -187,9 +187,9 @@ characterizes the even numbers.
 Even with its use of the function \isa{lists}, the premise of our
 introduction rule is positive:
 @{thm [display,indent=0] (prem 1) step [no_vars]}
-To apply the rule we construct a list @{term args} of previously
+To apply the rule we construct a list \<^term>\<open>args\<close> of previously
 constructed well-formed terms.  We obtain a
-new term, @{term "Apply f args"}.  Because @{term lists} is monotone,
+new term, \<^term>\<open>Apply f args\<close>.  Because \<^term>\<open>lists\<close> is monotone,
 applications of the rule remain valid as new terms are constructed.
 Further lists of well-formed
 terms become available and none are taken away.%
@@ -216,7 +216,7 @@ apply (erule well_formed_gterm.induct)
 (*>*)
 txt \<open>
 The \<open>clarify\<close> method gives
-us an element of @{term "well_formed_gterm arity"} on which to perform 
+us an element of \<^term>\<open>well_formed_gterm arity\<close> on which to perform 
 induction.  The resulting subgoal can be proved automatically:
 @{subgoals[display,indent=0]}
 This proof resembles the one given in
@@ -238,16 +238,16 @@ txt \<open>
 The proof script is virtually identical,
 but the subgoal after applying induction may be surprising:
 @{subgoals[display,indent=0,margin=65]}
-The induction hypothesis contains an application of @{term lists}.  Using a
+The induction hypothesis contains an application of \<^term>\<open>lists\<close>.  Using a
 monotone function in the inductive definition always has this effect.  The
 subgoal may look uninviting, but fortunately 
-@{term lists} distributes over intersection:
+\<^term>\<open>lists\<close> distributes over intersection:
 @{named_thms [display,indent=0] lists_Int_eq [no_vars] (lists_Int_eq)}
 Thanks to this default simplification rule, the induction hypothesis 
 is quickly replaced by its two parts:
 \begin{trivlist}
-\item @{term "args \<in> lists (well_formed_gterm' arity)"}
-\item @{term "args \<in> lists (well_formed_gterm arity)"}
+\item \<^term>\<open>args \<in> lists (well_formed_gterm' arity)\<close>
+\item \<^term>\<open>args \<in> lists (well_formed_gterm arity)\<close>
 \end{trivlist}
 Invoking the rule \<open>well_formed_gterm.step\<close> completes the proof.  The
 call to \<open>auto\<close> does all this work.
@@ -265,12 +265,12 @@ subsection\<open>Another Example of Rule Inversion\<close>
 
 text \<open>
 \index{rule inversion|(}%
-Does @{term gterms} distribute over intersection?  We have proved that this
+Does \<^term>\<open>gterms\<close> distribute over intersection?  We have proved that this
 function is monotone, so \<open>mono_Int\<close> gives one of the inclusions.  The
-opposite inclusion asserts that if @{term t} is a ground term over both of the
+opposite inclusion asserts that if \<^term>\<open>t\<close> is a ground term over both of the
 sets
-@{term F} and~@{term G} then it is also a ground term over their intersection,
-@{term "F \<inter> G"}.
+\<^term>\<open>F\<close> and~\<^term>\<open>G\<close> then it is also a ground term over their intersection,
+\<^term>\<open>F \<inter> G\<close>.
 \<close>
 
 lemma gterms_IntI:
@@ -278,7 +278,7 @@ lemma gterms_IntI:
 (*<*)oops(*>*)
 text \<open>
 Attempting this proof, we get the assumption 
-@{term "Apply f args \<in> gterms G"}, which cannot be broken down. 
+\<^term>\<open>Apply f args \<in> gterms G\<close>, which cannot be broken down. 
 It looks like a job for rule inversion:\cmmdx{inductive\protect\_cases}
 \<close>
 
@@ -287,10 +287,10 @@ inductive_cases gterm_Apply_elim [elim!]: "Apply f args \<in> gterms F"
 text \<open>
 Here is the result.
 @{named_thms [display,indent=0,margin=50] gterm_Apply_elim [no_vars] (gterm_Apply_elim)}
-This rule replaces an assumption about @{term "Apply f args"} by 
-assumptions about @{term f} and~@{term args}.  
+This rule replaces an assumption about \<^term>\<open>Apply f args\<close> by 
+assumptions about \<^term>\<open>f\<close> and~\<^term>\<open>args\<close>.  
 No cases are discarded (there was only one to begin
-with) but the rule applies specifically to the pattern @{term "Apply f args"}.
+with) but the rule applies specifically to the pattern \<^term>\<open>Apply f args\<close>.
 It can be applied repeatedly as an elimination rule without looping, so we
 have given the \<open>elim!\<close> attribute. 
 
@@ -308,14 +308,14 @@ apply (erule gterms.induct)
 (*>*)
 txt \<open>
 The proof begins with rule induction over the definition of
-@{term gterms}, which leaves a single subgoal:  
+\<^term>\<open>gterms\<close>, which leaves a single subgoal:  
 @{subgoals[display,indent=0,margin=65]}
-To prove this, we assume @{term "Apply f args \<in> gterms G"}.  Rule inversion,
+To prove this, we assume \<^term>\<open>Apply f args \<in> gterms G\<close>.  Rule inversion,
 in the form of \<open>gterm_Apply_elim\<close>, infers
-that every element of @{term args} belongs to 
-@{term "gterms G"}; hence (by the induction hypothesis) it belongs
-to @{term "gterms (F \<inter> G)"}.  Rule inversion also yields
-@{term "f \<in> G"} and hence @{term "f \<in> F \<inter> G"}. 
+that every element of \<^term>\<open>args\<close> belongs to 
+\<^term>\<open>gterms G\<close>; hence (by the induction hypothesis) it belongs
+to \<^term>\<open>gterms (F \<inter> G)\<close>.  Rule inversion also yields
+\<^term>\<open>f \<in> G\<close> and hence \<^term>\<open>f \<in> F \<inter> G\<close>. 
 All of this reasoning is done by \<open>blast\<close>.
 
 \smallskip

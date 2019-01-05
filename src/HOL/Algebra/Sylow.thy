@@ -204,7 +204,7 @@ end
 
 subsection \<open>Equal Cardinalities of \<open>M\<close> and the Set of Cosets\<close>
 
-text \<open>Injections between @{term M} and @{term "rcosets\<^bsub>G\<^esub> H"} show that
+text \<open>Injections between \<^term>\<open>M\<close> and \<^term>\<open>rcosets\<^bsub>G\<^esub> H\<close> show that
  their cardinalities are equal.\<close>
 
 lemma ElemClassEquiv: "\<lbrakk>equiv A r; C \<in> A // r\<rbrakk> \<Longrightarrow> \<forall>x \<in> C. \<forall>y \<in> C. (x, y) \<in> r"
@@ -339,8 +339,8 @@ proof -
 qed
 
 text \<open>Needed because the locale's automatic definition refers to
-  @{term "semigroup G"} and @{term "group_axioms G"} rather than
-  simply to @{term "group G"}.\<close>
+  \<^term>\<open>semigroup G\<close> and \<^term>\<open>group_axioms G\<close> rather than
+  simply to \<^term>\<open>group G\<close>.\<close>
 lemma sylow_eq: "sylow G p a m \<longleftrightarrow> group G \<and> sylow_axioms G p a m"
   by (simp add: sylow_def group_def)
 

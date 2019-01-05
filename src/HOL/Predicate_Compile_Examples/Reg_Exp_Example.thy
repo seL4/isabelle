@@ -106,7 +106,7 @@ setup \<open>
 setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
-   limited_types = [(@{typ Sym}, 0), (@{typ "Sym list"}, 2), (@{typ RE}, 6)],
+   limited_types = [(\<^typ>\<open>Sym\<close>, 0), (\<^typ>\<open>Sym list\<close>, 2), (\<^typ>\<open>RE\<close>, 6)],
    limited_predicates = [(["repIntPa"], 2), (["repP"], 2), (["subP"], 0),
     (["accepts", "acceptsaux", "seqSplit", "seqSplita", "seqSplitaux", "seqSplitb"], 25)],
    replacing =

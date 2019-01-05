@@ -8,7 +8,7 @@ theory Permutation
 imports Multiset
 begin
 
-inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  ("_ <~~> _"  [50, 50] 50)  (* FIXME proper infix, without ambiguity!? *)
+inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (\<open>_ <~~> _\<close>  [50, 50] 50)  (* FIXME proper infix, without ambiguity!? *)
 where
   Nil [intro!]: "[] <~~> []"
 | swap [intro!]: "y # x # l <~~> x # y # l"

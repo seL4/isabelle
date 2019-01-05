@@ -210,8 +210,8 @@ unfolding match_Some_def by simp_all
 
 setup \<open>
   Fixrec.add_matchers
-    [ (@{const_name None}, @{const_name match_None}),
-      (@{const_name Some}, @{const_name match_Some}) ]
+    [ (\<^const_name>\<open>None\<close>, \<^const_name>\<open>match_None\<close>),
+      (\<^const_name>\<open>Some\<close>, \<^const_name>\<open>match_Some\<close>) ]
 \<close>
 
 subsection \<open>Option type is a predomain\<close>
@@ -286,7 +286,7 @@ unfolding isodefl'_def liftemb_option_def liftprj_option_def liftdefl_eq
 by (simp add: cfcomp1 u_map_map encode_option_option_map)
 
 setup \<open>
-  Domain_Take_Proofs.add_rec_type (@{type_name "option"}, [true])
+  Domain_Take_Proofs.add_rec_type (\<^type_name>\<open>option\<close>, [true])
 \<close>
 
 end

@@ -408,7 +408,7 @@ lemma "Ball A P \<longrightarrow> Bex A P"
 nitpick [expect = genuine]
 oops
 
-subsubsection \<open>@{const undefined}\<close>
+subsubsection \<open>\<^const>\<open>undefined\<close>\<close>
 
 lemma "undefined"
 nitpick [expect = genuine]
@@ -426,7 +426,7 @@ lemma "undefined undefined"
 nitpick [expect = genuine]
 oops
 
-subsubsection \<open>@{const The}\<close>
+subsubsection \<open>\<^const>\<open>The\<close>\<close>
 
 lemma "The P"
 nitpick [expect = genuine]
@@ -448,7 +448,7 @@ lemma "Ex P \<longrightarrow> P (The P)"
 nitpick [expect = genuine]
 oops
 
-subsubsection \<open>@{const Eps}\<close>
+subsubsection \<open>\<^const>\<open>Eps\<close>\<close>
 
 lemma "Eps P"
 nitpick [expect = genuine]
@@ -525,7 +525,7 @@ oops
 
 subsubsection \<open>Subtypes (typedef), typedecl\<close>
 
-text \<open>A completely unspecified non-empty subset of @{typ "'a"}:\<close>
+text \<open>A completely unspecified non-empty subset of \<^typ>\<open>'a\<close>:\<close>
 
 definition "myTdef = insert (undefined::'a) (undefined::'a set)"
 

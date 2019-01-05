@@ -18,7 +18,7 @@ definition FF :: "int program" where
 definition GG :: "int program" where
     "GG = mk_total_program (UNIV, {range (\<lambda>x. (x, 2*x))}, UNIV)"
 
-subsubsection \<open>Calculating @{term "wens_set FF (atLeast k)"}\<close>
+subsubsection \<open>Calculating \<^term>\<open>wens_set FF (atLeast k)\<close>\<close>
 
 lemma Domain_actFF: "Domain (range (\<lambda>x::int. (x, x + 1))) = UNIV"
 by force
@@ -62,7 +62,7 @@ apply (rule_tac x="nat (k-xa)" in range_eqI)
 apply (simp add: wens_single_finite_FF)
 done
 
-subsubsection \<open>Proving @{term "FF \<in> UNIV leadsTo atLeast (k::int)"}\<close>
+subsubsection \<open>Proving \<^term>\<open>FF \<in> UNIV leadsTo atLeast (k::int)\<close>\<close>
 
 lemma atLeast_ensures: "FF \<in> atLeast (k - 1) ensures atLeast (k::int)"
 apply (simp add: Progress.wens_FF [symmetric] wens_ensures)

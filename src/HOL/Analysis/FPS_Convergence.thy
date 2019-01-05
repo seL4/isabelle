@@ -17,7 +17,7 @@ begin
 subsection%unimportant \<open>Balls with extended real radius\<close>
 
 text \<open>
-  The following is a variant of @{const ball} that also allows an infinite radius.
+  The following is a variant of \<^const>\<open>ball\<close> that also allows an infinite radius.
 \<close>
 definition eball :: "'a :: metric_space \<Rightarrow> ereal \<Rightarrow> 'a set" where
   "eball z r = {z'. ereal (dist z z') < r}"

@@ -315,7 +315,7 @@ fun apply_binding thy prob_name orig_parent_fmla target_fmla bindings =
                 then should still be able to handle formulas like
                 (! X, X. F).*)
               if x = bound_var andalso
-                 fst (dest_Const t1) = @{const_name All} then
+                 fst (dest_Const t1) = \<^const_name>\<open>All\<close> then
                   (*Body might contain free variables, so bind them using "var_ctxt".
                     this involves replacing instances of Free with instances of Bound
                     at the right index.*)
@@ -413,7 +413,7 @@ fun apply_binding thy prob_name orig_parent_fmla target_fmla bindings =
       end
 
     (*FIXME currently assuming that we're only ever given a single binding each time this is called*)
-    val _ = @{assert} (length bindings' = 1)
+    val _ = \<^assert> (length bindings' = 1)
 
   in
     fold safe_instantiate_bound bindings' ([], HOLogic.dest_Trueprop orig_parent_fmla)
@@ -450,8 +450,8 @@ fun remove_polarity strict formula =
   case try HOLogic.dest_eq formula of
       NONE => if strict then raise (UNPOLARISED formula)
               else (formula, true)
-    | SOME (x, p as @{term True}) => (x, true)
-    | SOME (x, p as @{term False}) => (x, false)
+    | SOME (x, p as \<^term>\<open>True\<close>) => (x, true)
+    | SOME (x, p as \<^term>\<open>False\<close>) => (x, false)
     | SOME (x, _) =>
         if strict then raise (UNPOLARISED formula)
         else (formula, true)
@@ -459,17 +459,17 @@ fun remove_polarity strict formula =
 (*flattens a formula wrt associative operators*)
 fun flatten formula_kind formula =
   let
-    fun is_conj (Const (@{const_name HOL.conj}, _) $ _ $ _) = true
+    fun is_conj (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _) = true
       | is_conj _ = false
-    fun is_disj (Const (@{const_name HOL.disj}, _) $ _ $ _) = true
+    fun is_disj (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _) = true
       | is_disj _ = false
-    fun is_iff (Const (@{const_name HOL.eq}, ty) $ _ $ _) =
+    fun is_iff (Const (\<^const_name>\<open>HOL.eq\<close>, ty) $ _ $ _) =
           ty = ([HOLogic.boolT, HOLogic.boolT] ---> HOLogic.boolT)
       | is_iff _ = false
 
     fun flatten' formula acc =
       case formula of
-          Const (@{const_name HOL.conj}, _) $ t1 $ t2 =>
+          Const (\<^const_name>\<open>HOL.conj\<close>, _) $ t1 $ t2 =>
             (case formula_kind of
                  Conjunctive _ =>
                    let
@@ -479,7 +479,7 @@ fun flatten formula_kind formula =
                        if is_conj t2 then flatten' t2 left else (t2 :: left)
                    end
                | _ => formula :: acc)
-        | Const (@{const_name HOL.disj}, _) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ t1 $ t2 =>
             (case formula_kind of
                  Disjunctive _ =>
                    let
@@ -489,7 +489,7 @@ fun flatten formula_kind formula =
                        if is_disj t2 then flatten' t2 left else (t2 :: left)
                    end
                | _ => formula :: acc)
-        | Const (@{const_name HOL.eq}, ty) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>HOL.eq\<close>, ty) $ t1 $ t2 =>
             if ty = ([HOLogic.boolT, HOLogic.boolT] ---> HOLogic.boolT) then
               case formula_kind of
                    Biimplicational _ =>
@@ -601,7 +601,7 @@ fun inference_at_node thy (prob_name : TPTP_Problem_Name.problem_name)
 
       fun build_inference_info rule_name parent_infos =
         let
-          val _ = @{assert} (not (null parent_infos))
+          val _ = \<^assert> (not (null parent_infos))
 
           (*hypothesis formulas (with bindings already
             instantiated during the proof-transformation
@@ -1316,8 +1316,8 @@ fun mk_bind_ax prob_name node t =
 
 (*Extract the constant name, type, and its definition*)
 fun get_defn_components
-  (Const (@{const_name HOL.Trueprop}, _) $
-    (Const (@{const_name HOL.eq}, _) $
+  (Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $
+    (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
       Const (name, ty) $ t)) = ((name, ty), t)
 
 
@@ -1446,31 +1446,31 @@ fun preprocess_splits prob_name thy fms : theory * formula_meaning list =
        - expands iff (and doesn't recur)*)
     fun transform_fmla i fmla_t =
       case fmla_t of
-          Const (@{const_name "HOL.All"}, ty) $ Abs (s, ty', t') =>
+          Const (\<^const_name>\<open>HOL.All\<close>, ty) $ Abs (s, ty', t') =>
             let
               val (i', fmla_ts) = transform_fmla i t'
             in
               if i' > i then
                 (i' + 1,
                  map (fn t =>
-                  Const (@{const_name "HOL.All"}, ty) $ Abs (s, ty', t))
+                  Const (\<^const_name>\<open>HOL.All\<close>, ty) $ Abs (s, ty', t))
                 fmla_ts)
               else (i, [fmla_t])
             end
-        | Const (@{const_name "HOL.Ex"}, ty) $ Abs (s, ty', t') =>
+        | Const (\<^const_name>\<open>HOL.Ex\<close>, ty) $ Abs (s, ty', t') =>
             if loose_bvar (t', 0) then
               (i, [fmla_t])
             else transform_fmla (i + 1) t'
-        | @{term HOL.Not} $ (@{term HOL.Not} $ t') =>
+        | \<^term>\<open>HOL.Not\<close> $ (\<^term>\<open>HOL.Not\<close> $ t') =>
             transform_fmla (i + 1) t'
-        | @{term HOL.conj} $ t1 $ t2 =>
+        | \<^term>\<open>HOL.conj\<close> $ t1 $ t2 =>
             let
               val (i1, fmla_t1s) = transform_fmla (i + 1) t1
               val (i2, fmla_t2s) = transform_fmla (i + 1) t2
             in
               (i1 + i2 - i, fmla_t1s @ fmla_t2s)
             end
-        | Const (@{const_name HOL.eq}, ty) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>HOL.eq\<close>, ty) $ t1 $ t2 =>
             let
               val (T1, (T2, res)) =
                 dest_funT ty
@@ -1500,7 +1500,7 @@ fun preprocess_splits prob_name thy fms : theory * formula_meaning list =
          (node_name,
           {role = TPTP_Syntax.Role_Plain,
            fmla =
-             HOLogic.mk_eq (target_fmla, @{term False}) (*polarise*)
+             HOLogic.mk_eq (target_fmla, \<^term>\<open>False\<close>) (*polarise*)
              |> HOLogic.mk_Trueprop,
            source_inf_opt =
              SOME (TPTP_Proof.Inference (split_preprocessingK, [], [TPTP_Proof.Parent split_node_name]))})
@@ -1586,7 +1586,7 @@ fun drop_repeated_quantification thy (fms : formula_meaning list) : theory * for
     fun remove_repeated_quantification seen t =
       case t of
           (*NOTE we're assuming that variables having the same name, have the same type throughout*)
-          Const (@{const_name "HOL.All"}, ty) $ Abs (s, ty', t') =>
+          Const (\<^const_name>\<open>HOL.All\<close>, ty) $ Abs (s, ty', t') =>
             let
               val (seen_so_far, seen') =
                 case AList.lookup (op =) seen s of
@@ -1598,7 +1598,7 @@ fun drop_repeated_quantification thy (fms : formula_meaning list) : theory * for
                     NONE => raise DROP_REPEATED_QUANTIFICATION
                   | SOME n =>
                       if n > seen_so_far then pre_final_t
-                      else Const (@{const_name "HOL.All"}, ty) $ Abs (s, ty', pre_final_t)
+                      else Const (\<^const_name>\<open>HOL.All\<close>, ty) $ Abs (s, ty', pre_final_t)
             in (final_t, final_seen) end
         | _ => (t, seen)
 

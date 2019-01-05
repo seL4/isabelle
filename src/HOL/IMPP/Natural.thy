@@ -112,7 +112,7 @@ done
 lemma evaln_evalc: "<c,s> -n-> t ==> <c,s> -c-> t"
 apply (erule evaln.induct)
 apply (tactic \<open>
-  ALLGOALS (resolve_tac @{context} @{thms evalc.intros} THEN_ALL_NEW assume_tac @{context})
+  ALLGOALS (resolve_tac \<^context> @{thms evalc.intros} THEN_ALL_NEW assume_tac \<^context>)
 \<close>)
 done
 
@@ -139,12 +139,12 @@ done
 
 lemma evalc_evaln: "<c,s> -c-> t \<Longrightarrow> \<exists>n. <c,s> -n-> t"
 apply (erule evalc.induct)
-apply (tactic \<open>ALLGOALS (REPEAT o eresolve_tac @{context} [exE])\<close>)
-apply (tactic \<open>TRYALL (EVERY' [dresolve_tac @{context} @{thms evaln_max2}, assume_tac @{context},
-  REPEAT o eresolve_tac @{context} [exE, conjE]])\<close>)
+apply (tactic \<open>ALLGOALS (REPEAT o eresolve_tac \<^context> [exE])\<close>)
+apply (tactic \<open>TRYALL (EVERY' [dresolve_tac \<^context> @{thms evaln_max2}, assume_tac \<^context>,
+  REPEAT o eresolve_tac \<^context> [exE, conjE]])\<close>)
 apply (tactic
-  \<open>ALLGOALS (resolve_tac @{context} [exI] THEN'
-    resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW assume_tac @{context})\<close>)
+  \<open>ALLGOALS (resolve_tac \<^context> [exI] THEN'
+    resolve_tac \<^context> @{thms evaln.intros} THEN_ALL_NEW assume_tac \<^context>)\<close>)
 done
 
 lemma eval_eq: "<c,s> -c-> t = (\<exists>n. <c,s> -n-> t)"

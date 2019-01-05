@@ -50,13 +50,13 @@ apply (simp (no_asm) add: triple_valid_def2 triple_valid2_def2)
 apply (rule iffI)
 apply  fast
 apply clarify
-apply (tactic "smp_tac @{context} 3 1")
+apply (tactic "smp_tac \<^context> 3 1")
 apply (case_tac "normal s")
 apply  clarsimp
 apply  (elim conjE impE)
 apply    blast
 
-apply    (tactic "smp_tac @{context} 2 1")
+apply    (tactic "smp_tac \<^context> 2 1")
 apply    (drule evaln_eval)
 apply    (drule (1) eval_type_sound [THEN conjunct1],simp, assumption+)
 apply    simp
@@ -84,7 +84,7 @@ lemma Methd_triple_valid2_SucI:
 "\<lbrakk>G\<Turnstile>n\<Colon>{Normal P} body G C sig-\<succ>{Q}\<rbrakk> 
   \<Longrightarrow> G\<Turnstile>Suc n\<Colon>{Normal P} Methd C sig-\<succ> {Q}"
 apply (simp (no_asm_use) add: triple_valid2_def2)
-apply (intro strip, tactic "smp_tac @{context} 3 1", clarify)
+apply (intro strip, tactic "smp_tac \<^context> 3 1", clarify)
 apply (erule wt_elim_cases, erule da_elim_cases, erule evaln_elim_cases)
 apply (unfold body_def Let_def)
 apply (clarsimp simp add: inj_term_simps)
@@ -400,14 +400,14 @@ next
       from valid_A conf wt da eval P con
       have "Q v s1 Z"
         apply (simp add: ax_valids2_def triple_valid2_def2)
-        apply (tactic "smp_tac @{context} 3 1")
+        apply (tactic "smp_tac \<^context> 3 1")
         apply clarify
-        apply (tactic "smp_tac @{context} 1 1")
+        apply (tactic "smp_tac \<^context> 1 1")
         apply (erule allE,erule allE, erule mp)
         apply (intro strip)
-        apply (tactic "smp_tac @{context} 3 1")
-        apply (tactic "smp_tac @{context} 2 1")
-        apply (tactic "smp_tac @{context} 1 1")
+        apply (tactic "smp_tac \<^context> 3 1")
+        apply (tactic "smp_tac \<^context> 2 1")
+        apply (tactic "smp_tac \<^context> 1 1")
         by blast
       moreover have "s1\<Colon>\<preceq>(G, L)"
       proof (cases "normal s0")
@@ -1995,9 +1995,9 @@ next
     proof -
         \<comment> \<open>From the given hypothesises \<open>valid_e\<close> and \<open>valid_c\<close> 
            we can only reach the state after unfolding the loop once, i.e. 
-           @{term "P \<diamondsuit> s2 Z"}, where @{term s2} is the state after executing
-           @{term c}. To gain validity of the further execution of while, to
-           finally get @{term "(P'\<leftarrow>=False\<down>=\<diamondsuit>) \<diamondsuit> s3 Z"} we have to get 
+           \<^term>\<open>P \<diamondsuit> s2 Z\<close>, where \<^term>\<open>s2\<close> is the state after executing
+           \<^term>\<open>c\<close>. To gain validity of the further execution of while, to
+           finally get \<^term>\<open>(P'\<leftarrow>=False\<down>=\<diamondsuit>) \<diamondsuit> s3 Z\<close> we have to get 
            a hypothesis about the subsequent unfoldings (the whole loop again),
            too. We can achieve this, by performing induction on the 
            evaluation relation, with all
@@ -2064,7 +2064,7 @@ next
                           (abupd (absorb (Cont l')) s2') \<diamondsuit> s3'"
                   apply (simp only: True if_True eqs)
                   apply (elim conjE)
-                  apply (tactic "smp_tac @{context} 3 1")
+                  apply (tactic "smp_tac \<^context> 3 1")
                   apply fast
                   done
                 from eval_e

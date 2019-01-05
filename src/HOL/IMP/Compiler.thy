@@ -9,8 +9,8 @@ subsection "List setup"
 
 text \<open>
   In the following, we use the length of lists as integers 
-  instead of natural numbers. Instead of converting @{typ nat}
-  to @{typ int} explicitly, we tell Isabelle to coerce @{typ nat}
+  instead of natural numbers. Instead of converting \<^typ>\<open>nat\<close>
+  to \<^typ>\<open>int\<close> explicitly, we tell Isabelle to coerce \<^typ>\<open>nat\<close>
   automatically when necessary.
 \<close>
 declare [[coercion_enabled]] 
@@ -18,7 +18,7 @@ declare [[coercion "int :: nat \<Rightarrow> int"]]
 
 text \<open>
   Similarly, we will want to access the ith element of a list, 
-  where @{term i} is an @{typ int}.
+  where \<^term>\<open>i\<close> is an \<^typ>\<open>int\<close>.
 \<close>
 fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
 "(x # xs) !! i = (if i = 0 then x else xs !! (i - 1))"
@@ -32,7 +32,7 @@ lemma inth_append [simp]:
   (xs @ ys) !! i = (if i < size xs then xs !! i else ys !! (i - size xs))"
 by (induction xs arbitrary: i) (auto simp: algebra_simps)
 
-text\<open>We hide coercion @{const int} applied to @{const length}:\<close>
+text\<open>We hide coercion \<^const>\<open>int\<close> applied to \<^const>\<open>length\<close>:\<close>
 
 abbreviation (output)
   "isize xs == int (length xs)"
@@ -123,7 +123,7 @@ lemma exec_appendL:
   by (induction rule: exec_induct) (blast intro: star.step exec1_appendL)+
 
 text\<open>Now we specialise the above lemmas to enable automatic proofs of
-@{prop "P \<turnstile> c \<rightarrow>* c'"} where \<open>P\<close> is a mixture of concrete instructions and
+\<^prop>\<open>P \<turnstile> c \<rightarrow>* c'\<close> where \<open>P\<close> is a mixture of concrete instructions and
 pieces of code that we already know how they execute (by induction), combined
 by \<open>@\<close> and \<open>#\<close>. Backward jumps are not supported.
 The details should be skipped on a first reading.

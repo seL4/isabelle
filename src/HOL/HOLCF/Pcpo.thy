@@ -155,11 +155,11 @@ text \<open>Old "UU" syntax:\<close>
 syntax UU :: logic
 translations "UU" \<rightharpoonup> "CONST bottom"
 
-text \<open>Simproc to rewrite @{term "\<bottom> = x"} to @{term "x = \<bottom>"}.\<close>
+text \<open>Simproc to rewrite \<^term>\<open>\<bottom> = x\<close> to \<^term>\<open>x = \<bottom>\<close>.\<close>
 setup \<open>Reorient_Proc.add (fn Const(\<^const_name>\<open>bottom\<close>, _) => true | _ => false)\<close>
 simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc
 
-text \<open>useful lemmas about @{term \<bottom>}\<close>
+text \<open>useful lemmas about \<^term>\<open>\<bottom>\<close>\<close>
 
 lemma below_bottom_iff [simp]: "x \<sqsubseteq> \<bottom> \<longleftrightarrow> x = \<bottom>"
   by (simp add: po_eq_conv)

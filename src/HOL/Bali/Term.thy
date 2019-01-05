@@ -144,7 +144,7 @@ datatype var
         = LVar lname \<comment> \<open>local variable (incl. parameters)\<close>
         | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
                      \<comment> \<open>class field\<close>
-                     \<comment> \<open>@{term "{accC,statDeclC,stat}e..fn"}\<close>
+                     \<comment> \<open>\<^term>\<open>{accC,statDeclC,stat}e..fn\<close>\<close>
                      \<comment> \<open>\<open>accC\<close>: accessing class (static class were\<close>
                      \<comment> \<open>the code is declared. Annotation only needed for\<close>
                      \<comment> \<open>evaluation to check accessibility)\<close>
@@ -154,7 +154,7 @@ datatype var
                      \<comment> \<open>\<open>fn\<close>: field name\<close>
         | AVar expr expr ("_.[_]"[90,10   ]90)
                      \<comment> \<open>array component\<close>
-                     \<comment> \<open>@{term "e1.[e2]"}: e1 array reference; e2 index\<close>
+                     \<comment> \<open>\<^term>\<open>e1.[e2]\<close>: e1 array reference; e2 index\<close>
         | InsInitV stmt var 
                      \<comment> \<open>insertion of initialization before evaluation\<close>
                      \<comment> \<open>of var (technical term for smallstep semantics.)\<close>
@@ -178,7 +178,7 @@ and expr
         | Call qtname ref_ty inv_mode expr mname "(ty list)" "(expr list)"  
             ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85) 
                     \<comment> \<open>method call\<close> 
-                    \<comment> \<open>@{term "{accC,statT,mode}e\<cdot>mn({pTs}args)"} "\<close>
+                    \<comment> \<open>\<^term>\<open>{accC,statT,mode}e\<cdot>mn({pTs}args)\<close> "\<close>
                     \<comment> \<open>\<open>accC\<close>: accessing class (static class were\<close>
                     \<comment> \<open>the call code is declared. Annotation only needed for\<close>
                     \<comment> \<open>evaluation to check accessibility)\<close>
@@ -207,7 +207,7 @@ and  stmt
         | Jmp jump              \<comment> \<open>break, continue, return\<close>
         | Throw expr
         | TryC  stmt qtname vname stmt ("Try _ Catch'(_ _') _"  [79,99,80,79]70)
-             \<comment> \<open>@{term "Try c1 Catch(C vn) c2"}\<close> 
+             \<comment> \<open>\<^term>\<open>Try c1 Catch(C vn) c2\<close>\<close> 
              \<comment> \<open>\<open>c1\<close>: block were exception may be thrown\<close>
              \<comment> \<open>\<open>C\<close>:  execption class to catch\<close>
              \<comment> \<open>\<open>vn\<close>: local name for exception used in \<open>c2\<close>\<close>
@@ -264,7 +264,7 @@ definition
   is_stmt :: "term \<Rightarrow> bool"
   where "is_stmt t = (\<exists>c. t=In1r c)"
 
-ML \<open>ML_Thms.bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def})\<close>
+ML \<open>ML_Thms.bind_thms ("is_stmt_rews", sum3_instantiate \<^context> @{thm is_stmt_def})\<close>
 
 declare is_stmt_rews [simp]
 
@@ -469,7 +469,7 @@ definition
   need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
   "need_second_arg binop v1 = (\<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
                                  (binop=CondOr  \<and> the_Bool v1)))"
-text \<open>@{term CondAnd} and @{term CondOr} only evalulate the second argument
+text \<open>\<^term>\<open>CondAnd\<close> and \<^term>\<open>CondOr\<close> only evalulate the second argument
  if the value isn't already determined by the first argument\<close>
 
 lemma need_second_arg_CondAnd [simp]: "need_second_arg CondAnd (Bool b) = b" 

@@ -25,8 +25,7 @@ text \<open>
   giving its name, its type, 
   and a set of defining recursive equations.
   If we leave out the type, the most general type will be
-  inferred, which can sometimes lead to surprises: Since both @{term
-  "1::nat"} and \<open>+\<close> are overloaded, we would end up
+  inferred, which can sometimes lead to surprises: Since both \<^term>\<open>1::nat\<close> and \<open>+\<close> are overloaded, we would end up
   with \<open>fib :: nat \<Rightarrow> 'a::{one,plus}\<close>.
 \<close>
 
@@ -88,13 +87,13 @@ text \<open>
   Isabelle provides customized induction rules for recursive
   functions. These rules follow the recursive structure of the
   definition. Here is the rule @{thm [source] sep.induct} arising from the
-  above definition of @{const sep}:
+  above definition of \<^const>\<open>sep\<close>:
 
   @{thm [display] sep.induct}
   
   We have a step case for list with at least two elements, and two
   base cases for the zero- and the one-element list. Here is a simple
-  proof about @{const sep} and @{const map}
+  proof about \<^const>\<open>sep\<close> and \<^const>\<open>map\<close>
 \<close>
 
 lemma "map f (sep x ys) = sep (f x) (map f ys)"
@@ -219,7 +218,7 @@ text \<open>
   implicitly refers to the last function definition.
 
   The \<open>relation\<close> method takes a relation of
-  type @{typ "('a \<times> 'a) set"}, where @{typ "'a"} is the argument type of
+  type \<^typ>\<open>('a \<times> 'a) set\<close>, where \<^typ>\<open>'a\<close> is the argument type of
   the function. If the function has multiple curried arguments, then
   these are packed together into a tuple, as it happened in the above
   example.
@@ -259,8 +258,7 @@ text \<open>
   This corresponds to a nested
   loop where one index counts up and the other down. Termination can
   be proved using a lexicographic combination of two measures, namely
-  the value of \<open>N\<close> and the above difference. The @{const
-  "measures"} combinator generalizes \<open>measure\<close> by taking a
+  the value of \<open>N\<close> and the above difference. The \<^const>\<open>measures\<close> combinator generalizes \<open>measure\<close> by taking a
   list of measure functions.  
 \<close>
 
@@ -368,7 +366,7 @@ by pat_completeness auto
 text \<open>
   To eliminate the mutual dependencies, Isabelle internally
   creates a single function operating on the sum
-  type @{typ "nat + nat"}. Then, @{const even} and @{const odd} are
+  type \<^typ>\<open>nat + nat\<close>. Then, \<^const>\<open>even\<close> and \<^const>\<open>odd\<close> are
   defined as projections. Consequently, termination has to be proved
   simultaneously for both functions, by specifying a measure on the
   sum type: 
@@ -390,7 +388,7 @@ text \<open>
   generally requires simultaneous induction. The induction rule @{thm [source] "even_odd.induct"}
   generated from the above definition reflects this.
 
-  Let us prove something about @{const even} and @{const odd}:
+  Let us prove something about \<^const>\<open>even\<close> and \<^const>\<open>odd\<close>:
 \<close>
 
 lemma even_odd_mod2:
@@ -405,7 +403,7 @@ apply (induct n and n rule: even_odd.induct)
 
 text \<open>
   We get four subgoals, which correspond to the clauses in the
-  definition of @{const even} and @{const odd}:
+  definition of \<^const>\<open>even\<close> and \<^const>\<open>odd\<close>:
   @{subgoals[display,indent=0]}
   Simplification solves the first two goals, leaving us with two
   statements about the \<open>mod\<close> operation to prove:
@@ -428,7 +426,7 @@ text \<open>
   In proofs like this, the simultaneous induction is really essential:
   Even if we are just interested in one of the results, the other
   one is necessary to strengthen the induction hypothesis. If we leave
-  out the statement about @{const odd} and just write @{term True} instead,
+  out the statement about \<^const>\<open>odd\<close> and just write \<^term>\<open>True\<close> instead,
   the same proof fails:
 \<close>
 
@@ -471,7 +469,7 @@ text \<open>
   @{thm[display] list_to_option.elims}
 
   \noindent
-  This lets us eliminate an assumption of the form @{prop "list_to_option xs = y"} and replace it
+  This lets us eliminate an assumption of the form \<^prop>\<open>list_to_option xs = y\<close> and replace it
   with the two cases, e.g.:
 \<close>
 
@@ -488,7 +486,7 @@ qed
 text \<open>
   Sometimes it is convenient to derive specialized versions of the \<open>elim\<close> rules above and
   keep them around as facts explicitly. For example, it is natural to show that if 
-  @{prop "list_to_option xs = Some y"}, then @{term xs} must be a singleton. The command 
+  \<^prop>\<open>list_to_option xs = Some y\<close>, then \<^term>\<open>xs\<close> must be a singleton. The command 
   \cmd{fun\_cases} derives such facts automatically, by instantiating and simplifying the general 
   elimination rules given some pattern:
 \<close>
@@ -511,15 +509,15 @@ text \<open>
   Up to now, we used pattern matching only on datatypes, and the
   patterns were always disjoint and complete, and if they weren't,
   they were made disjoint automatically like in the definition of
-  @{const "sep"} in \S\ref{patmatch}.
+  \<^const>\<open>sep\<close> in \S\ref{patmatch}.
 
   This automatic splitting can significantly increase the number of
   equations involved, and this is not always desirable. The following
   example shows the problem:
   
   Suppose we are modeling incomplete knowledge about the world by a
-  three-valued datatype, which has values @{term "T"}, @{term "F"}
-  and @{term "X"} for true, false and uncertain propositions, respectively. 
+  three-valued datatype, which has values \<^term>\<open>T\<close>, \<^term>\<open>F\<close>
+  and \<^term>\<open>X\<close> for true, false and uncertain propositions, respectively. 
 \<close>
 
 datatype P3 = T | F | X
@@ -538,7 +536,7 @@ where
 text \<open>
   This definition is useful, because the equations can directly be used
   as simplification rules. But the patterns overlap: For example,
-  the expression @{term "And T T"} is matched by both the first and
+  the expression \<^term>\<open>And T T\<close> is matched by both the first and
   the second equation. By default, Isabelle makes the patterns disjoint by
   splitting them up, producing instances:
 \<close>
@@ -553,14 +551,14 @@ text \<open>
 
   \begin{enumerate}
   \item If the datatype has many constructors, there can be an
-  explosion of equations. For @{const "And"}, we get seven instead of
+  explosion of equations. For \<^const>\<open>And\<close>, we get seven instead of
   five equations, which can be tolerated, but this is just a small
   example.
 
   \item Since splitting makes the equations \qt{less general}, they
-  do not always match in rewriting. While the term @{term "And x F"}
-  can be simplified to @{term "F"} with the original equations, a
-  (manual) case split on @{term "x"} is now necessary.
+  do not always match in rewriting. While the term \<^term>\<open>And x F\<close>
+  can be simplified to \<^term>\<open>F\<close> with the original equations, a
+  (manual) case split on \<^term>\<open>x\<close> is now necessary.
 
   \item The splitting also concerns the induction rule @{thm [source]
   "And.induct"}. Instead of five premises it now has seven, which
@@ -573,8 +571,8 @@ text \<open>
   If we do not want the automatic splitting, we can switch it off by
   leaving out the \cmd{sequential} option. However, we will have to
   prove that our pattern matching is consistent\footnote{This prevents
-  us from defining something like @{term "f x = True"} and @{term "f x
-  = False"} simultaneously.}:
+  us from defining something like \<^term>\<open>f x = True\<close> and \<^term>\<open>f x
+  = False\<close> simultaneously.}:
 \<close>
 
 function And2 :: "P3 \<Rightarrow> P3 \<Rightarrow> P3"
@@ -592,11 +590,11 @@ text \<open>
   @{subgoals[display,indent=0]}\vspace{-1.2em}\hspace{3cm}\vdots\vspace{1.2em}
 
   The first subgoal expresses the completeness of the patterns. It has
-  the form of an elimination rule and states that every @{term x} of
+  the form of an elimination rule and states that every \<^term>\<open>x\<close> of
   the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
-@{term "(\<exists>p. x = (T, p)) \<or> (\<exists>p. x = (p, T)) \<or> (\<exists>p. x = (p, F)) \<or>
-  (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}, and you can use the method \<open>atomize_elim\<close> to get that form instead.}. If the patterns just involve
+\<^term>\<open>(\<exists>p. x = (T, p)) \<or> (\<exists>p. x = (p, T)) \<or> (\<exists>p. x = (p, F)) \<or>
+  (\<exists>p. x = (F, p)) \<or> (x = (X, X))\<close>, and you can use the method \<open>atomize_elim\<close> to get that form instead.}. If the patterns just involve
   datatypes, we can solve it with the \<open>pat_completeness\<close>
   method:
 \<close>
@@ -640,8 +638,8 @@ text \<open>
   This kind of matching is again justified by the proof of pattern
   completeness and compatibility. 
   The proof obligation for pattern completeness states that every natural number is
-  either @{term "0::nat"}, @{term "1::nat"} or @{term "n +
-  (2::nat)"}:
+  either \<^term>\<open>0::nat\<close>, \<^term>\<open>1::nat\<close> or \<^term>\<open>n +
+  (2::nat)\<close>:
 
   @{subgoals[display,indent=0,goals_limit=1]}
 
@@ -746,8 +744,8 @@ termination by (relation "{}") simp
 section \<open>Partiality\<close>
 
 text \<open>
-  In HOL, all functions are total. A function @{term "f"} applied to
-  @{term "x"} always has the value @{term "f x"}, and there is no notion
+  In HOL, all functions are total. A function \<^term>\<open>f\<close> applied to
+  \<^term>\<open>x\<close> always has the value \<^term>\<open>f x\<close>, and there is no notion
   of undefinedness. 
   This is why we have to do termination
   proofs when defining functions: The proof justifies that the
@@ -772,8 +770,8 @@ text \<open>
 subsection \<open>Domain predicates\<close>
 
 text \<open>
-  The trick is that Isabelle has not only defined the function @{const findzero}, but also
-  a predicate @{term "findzero_dom"} that characterizes the values where the function
+  The trick is that Isabelle has not only defined the function \<^const>\<open>findzero\<close>, but also
+  a predicate \<^term>\<open>findzero_dom\<close> that characterizes the values where the function
   terminates: the \emph{domain} of the function. If we treat a
   partial function just as a total function with an additional domain
   predicate, we can derive simplification and
@@ -793,14 +791,14 @@ text \<open>
 text \<open>
   Remember that all we
   are doing here is use some tricks to make a total function appear
-  as if it was partial. We can still write the term @{term "findzero
-  (\<lambda>x. 1) 0"} and like any other term of type @{typ nat} it is equal
+  as if it was partial. We can still write the term \<^term>\<open>findzero
+  (\<lambda>x. 1) 0\<close> and like any other term of type \<^typ>\<open>nat\<close> it is equal
   to some natural number, although we might not be able to find out
   which one. The function is \emph{underdefined}.
 
   But it is defined enough to prove something interesting about it. We
-  can prove that if @{term "findzero f n"}
-  terminates, it indeed returns a zero of @{term f}:
+  can prove that if \<^term>\<open>findzero f n\<close>
+  terminates, it indeed returns a zero of \<^term>\<open>f\<close>:
 \<close>
 
 lemma findzero_zero: "findzero_dom (f, n) \<Longrightarrow> f (findzero f n) = 0"
@@ -815,9 +813,8 @@ text \<open>\noindent This gives the following subgoals:
   @{subgoals[display,indent=0]}
 
   \noindent The hypothesis in our lemma was used to satisfy the first premise in
-  the induction rule. However, we also get @{term
-  "findzero_dom (f, n)"} as a local assumption in the induction step. This
-  allows unfolding @{term "findzero f n"} using the \<open>psimps\<close>
+  the induction rule. However, we also get \<^term>\<open>findzero_dom (f, n)\<close> as a local assumption in the induction step. This
+  allows unfolding \<^term>\<open>findzero f n\<close> using the \<open>psimps\<close>
   rule, and the rest is trivial.
 \<close>
 apply (simp add: findzero.psimps)
@@ -829,7 +826,7 @@ text \<open>
   complicated proof written in Isar. It is verbose enough to show how
   partiality comes into play: From the partial induction, we get an
   additional domain condition hypothesis. Observe how this condition
-  is applied when calls to @{term findzero} are unfolded.
+  is applied when calls to \<^term>\<open>findzero\<close> are unfolded.
 \<close>
 
 text_raw \<open>
@@ -876,7 +873,7 @@ text \<open>
   Now that we have proved some interesting properties about our
   function, we should turn to the domain predicate and see if it is
   actually true for some values. Otherwise we would have just proved
-  lemmas with @{term False} as a premise.
+  lemmas with \<^term>\<open>False\<close> as a premise.
 
   Essentially, we need some introduction rules for \<open>findzero_dom\<close>. The function package can prove such domain
   introduction rules automatically. But since they are not used very
@@ -912,7 +909,7 @@ text \<open>
 
   Figure \ref{findzero_term} gives a detailed Isar proof of the fact
   that \<open>findzero\<close> terminates if there is a zero which is greater
-  or equal to @{term n}. First we derive two useful rules which will
+  or equal to \<^term>\<open>n\<close>. First we derive two useful rules which will
   solve the base case and the step case of the induction. The
   induction is then straightforward, except for the unusual induction
   principle.
@@ -983,28 +980,27 @@ text \<open>
 
   @{abbrev[display] findzero_dom}
 
-  The domain predicate is the \emph{accessible part} of a relation @{const
-  findzero_rel}, which was also created internally by the function
-  package. @{const findzero_rel} is just a normal
+  The domain predicate is the \emph{accessible part} of a relation \<^const>\<open>findzero_rel\<close>, which was also created internally by the function
+  package. \<^const>\<open>findzero_rel\<close> is just a normal
   inductive predicate, so we can inspect its definition by
   looking at the introduction rules @{thm [source] findzero_rel.intros}.
   In our case there is just a single rule:
 
   @{thm[display] findzero_rel.intros}
 
-  The predicate @{const findzero_rel}
+  The predicate \<^const>\<open>findzero_rel\<close>
   describes the \emph{recursion relation} of the function
   definition. The recursion relation is a binary relation on
   the arguments of the function that relates each argument to its
   recursive calls. In general, there is one introduction rule for each
   recursive call.
 
-  The predicate @{term "Wellfounded.accp findzero_rel"} is the accessible part of
+  The predicate \<^term>\<open>Wellfounded.accp findzero_rel\<close> is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
   be reached in a finite number of steps (cf.~its definition in \<open>Wellfounded.thy\<close>).
 
   Since the domain predicate is just an abbreviation, you can use
-  lemmas for @{const Wellfounded.accp} and @{const findzero_rel} directly. Some
+  lemmas for \<^const>\<open>Wellfounded.accp\<close> and \<^const>\<open>findzero_rel\<close> directly. Some
   lemmas which are occasionally useful are @{thm [source] accpI}, @{thm [source]
   accp_downward}, and of course the introduction and elimination rules
   for the recursion relation @{thm [source] "findzero_rel.intros"} and @{thm
@@ -1041,7 +1037,7 @@ text \<open>
 
   @{subgoals[display]}
 
-  Of course this statement is true, since we know that @{const nz} is
+  Of course this statement is true, since we know that \<^const>\<open>nz\<close> is
   the zero function. And in fact we have no problem proving this
   property by induction.
 \<close>
@@ -1051,7 +1047,7 @@ lemma nz_is_zero: "nz_dom n \<Longrightarrow> nz n = 0"
 
 text \<open>
   We formulate this as a partial correctness lemma with the condition
-  @{term "nz_dom n"}. This allows us to prove it with the \<open>pinduct\<close> rule before we have proved termination. With this lemma,
+  \<^term>\<open>nz_dom n\<close>. This allows us to prove it with the \<open>pinduct\<close> rule before we have proved termination. With this lemma,
   the termination proof works as expected:
 \<close>
 
@@ -1111,8 +1107,7 @@ section \<open>Higher-Order Recursion\<close>
 
 text \<open>
   Higher-order recursion occurs when recursive calls
-  are passed as arguments to higher-order combinators such as @{const
-  map}, @{term filter} etc.
+  are passed as arguments to higher-order combinators such as \<^const>\<open>map\<close>, \<^term>\<open>filter\<close> etc.
   As an example, imagine a datatype of n-ary trees:
 \<close>
 
@@ -1122,7 +1117,7 @@ datatype 'a tree =
 
 
 text \<open>\noindent We can define a function which swaps the left and right subtrees recursively, using the 
-  list functions @{const rev} and @{const map}:\<close>
+  list functions \<^const>\<open>rev\<close> and \<^const>\<open>map\<close>:\<close>
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree"
 where
@@ -1139,39 +1134,37 @@ termination proof
   As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
   the arguments of the recursive calls when mirror is given as an
-  argument to @{const map}? Isabelle gives us the
+  argument to \<^const>\<open>map\<close>? Isabelle gives us the
   subgoals
 
   @{subgoals[display,indent=0]} 
 
-  So the system seems to know that @{const map} only
-  applies the recursive call @{term "mirror"} to elements
-  of @{term "l"}, which is essential for the termination proof.
+  So the system seems to know that \<^const>\<open>map\<close> only
+  applies the recursive call \<^term>\<open>mirror\<close> to elements
+  of \<^term>\<open>l\<close>, which is essential for the termination proof.
 
-  This knowledge about @{const map} is encoded in so-called congruence rules,
+  This knowledge about \<^const>\<open>map\<close> is encoded in so-called congruence rules,
   which are special theorems known to the \cmd{function} command. The
-  rule for @{const map} is
+  rule for \<^const>\<open>map\<close> is
 
   @{thm[display] map_cong}
 
-  You can read this in the following way: Two applications of @{const
-  map} are equal, if the list arguments are equal and the functions
+  You can read this in the following way: Two applications of \<^const>\<open>map\<close> are equal, if the list arguments are equal and the functions
   coincide on the elements of the list. This means that for the value 
-  @{term "map f l"} we only have to know how @{term f} behaves on
-  the elements of @{term l}.
+  \<^term>\<open>map f l\<close> we only have to know how \<^term>\<open>f\<close> behaves on
+  the elements of \<^term>\<open>l\<close>.
 
   Usually, one such congruence rule is
   needed for each higher-order construct that is used when defining
-  new functions. In fact, even basic functions like @{const
-  If} and @{const Let} are handled by this mechanism. The congruence
-  rule for @{const If} states that the \<open>then\<close> branch is only
+  new functions. In fact, even basic functions like \<^const>\<open>If\<close> and \<^const>\<open>Let\<close> are handled by this mechanism. The congruence
+  rule for \<^const>\<open>If\<close> states that the \<open>then\<close> branch is only
   relevant if the condition is true, and the \<open>else\<close> branch only if it
   is false:
 
   @{thm[display] if_cong}
   
   Congruence rules can be added to the
-  function package by giving them the @{term fundef_cong} attribute.
+  function package by giving them the \<^term>\<open>fundef_cong\<close> attribute.
 
   The constructs that are predefined in Isabelle, usually
   come with the respective congruence rules.

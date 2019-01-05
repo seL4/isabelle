@@ -188,8 +188,8 @@ fun define_isos (spec : (binding * mixfix * (typ * typ)) list) =
     Domain_Isomorphism.domain_isomorphism (map prep spec)
   end
 
-fun pcpo_arg lazy = if lazy then @{sort cpo} else @{sort pcpo}
-fun rep_arg lazy = if lazy then @{sort predomain} else @{sort "domain"}
+fun pcpo_arg lazy = if lazy then \<^sort>\<open>cpo\<close> else \<^sort>\<open>pcpo\<close>
+fun rep_arg lazy = if lazy then \<^sort>\<open>predomain\<close> else \<^sort>\<open>domain\<close>
 
 fun read_sort thy (SOME s) = Syntax.read_sort_global thy s
   | read_sort thy NONE = Sign.defaultS thy
@@ -228,9 +228,9 @@ val add_new_domain_cmd =
 (** outer syntax **)
 
 val dest_decl : (bool * binding option * string) parser =
-  @{keyword "("} |-- Scan.optional (@{keyword "lazy"} >> K true) false --
-    (Parse.binding >> SOME) -- (@{keyword "::"} |-- Parse.typ)  --| @{keyword ")"} >> Scan.triple1
-    || @{keyword "("} |-- @{keyword "lazy"} |-- Parse.typ --| @{keyword ")"}
+  \<^keyword>\<open>(\<close> |-- Scan.optional (\<^keyword>\<open>lazy\<close> >> K true) false --
+    (Parse.binding >> SOME) -- (\<^keyword>\<open>::\<close> |-- Parse.typ)  --| \<^keyword>\<open>)\<close> >> Scan.triple1
+    || \<^keyword>\<open>(\<close> |-- \<^keyword>\<open>lazy\<close> |-- Parse.typ --| \<^keyword>\<open>)\<close>
     >> (fn t => (true, NONE, t))
     || Parse.typ >> (fn t => (false, NONE, t))
 
@@ -239,10 +239,10 @@ val cons_decl =
 
 val domain_decl =
   (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix) --
-    (@{keyword "="} |-- Parse.enum1 "|" cons_decl)
+    (\<^keyword>\<open>=\<close> |-- Parse.enum1 "|" cons_decl)
 
 val domains_decl =
-  Scan.optional (@{keyword "("} |-- (@{keyword "unsafe"} >> K true) --| @{keyword ")"}) false --
+  Scan.optional (\<^keyword>\<open>(\<close> |-- (\<^keyword>\<open>unsafe\<close> >> K true) --| \<^keyword>\<open>)\<close>) false --
     Parse.and_list1 domain_decl
 
 fun mk_domain
@@ -261,7 +261,7 @@ fun mk_domain
   end
 
 val _ =
-  Outer_Syntax.command @{command_keyword domain} "define recursive domains (HOLCF)"
+  Outer_Syntax.command \<^command_keyword>\<open>domain\<close> "define recursive domains (HOLCF)"
     (domains_decl >> (Toplevel.theory o mk_domain))
 
 end

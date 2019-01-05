@@ -22,7 +22,7 @@ datatype x = X (a: int) (b: int)
 
 lemma "\<lparr> a = 1, b = 2 \<rparr> = X 1 2" ..
 
-local_setup \<open>Datatype_Records.mk_update_defs @{type_name x}\<close>
+local_setup \<open>Datatype_Records.mk_update_defs \<^type_name>\<open>x\<close>\<close>
 
 lemma "(X 1 2) \<lparr> b := 3 \<rparr> = X 1 3"
   by (simp add: datatype_record_update)

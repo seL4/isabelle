@@ -53,10 +53,10 @@ type pcpo_info =
 
 (* building terms *)
 
-fun adm_const T = Const (@{const_name adm}, (T --> HOLogic.boolT) --> HOLogic.boolT)
+fun adm_const T = Const (\<^const_name>\<open>adm\<close>, (T --> HOLogic.boolT) --> HOLogic.boolT)
 fun mk_adm (x, T, P) = adm_const T $ absfree (x, T) P
 
-fun below_const T = Const (@{const_name below}, T --> T --> HOLogic.boolT)
+fun below_const T = Const (\<^const_name>\<open>below\<close>, T --> T --> HOLogic.boolT)
 
 (* proving class instances *)
 
@@ -75,7 +75,7 @@ fun prove_cpo
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
     fun tac ctxt = resolve_tac ctxt [@{thm typedef_cpo} OF cpo_thms] 1
-    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) tac thy
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, \<^sort>\<open>cpo\<close>) tac thy
     (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy) cpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF cpo_thms')
@@ -115,7 +115,7 @@ fun prove_pcpo
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
     fun tac ctxt = resolve_tac ctxt [@{thm typedef_pcpo} OF pcpo_thms] 1
-    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) tac thy
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, \<^sort>\<open>pcpo\<close>) tac thy
     val pcpo_thms' = map (Thm.transfer thy) pcpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF pcpo_thms')
     val Rep_strict = make @{thm typedef_Rep_strict}
@@ -174,7 +174,7 @@ fun add_podef typ set opt_bindings tac thy =
     val below_eqn = Logic.mk_equals (below_const newT,
       Abs ("x", newT, Abs ("y", newT, below_const oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))))
     val ((_, (_, below_ldef)), lthy) = thy
-      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort po})
+      |> Class.instantiation ([full_tname], lhs_tfrees, \<^sort>\<open>po\<close>)
       |> Specification.definition NONE [] []
           ((Binding.prefix_name "below_" (Thm.def_binding name), []), below_eqn)
     val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy)
@@ -227,7 +227,7 @@ fun prepare_pcpodef
     val (newT, oldT, set) = prepare prep_term name typ raw_set thy
 
     val goal_bottom_mem =
-      HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (@{const_name bottom}, oldT), set))
+      HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (\<^const_name>\<open>bottom\<close>, oldT), set))
 
     val goal_admissible =
       HOLogic.mk_Trueprop (mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)))
@@ -322,9 +322,9 @@ local
 
 fun cpodef pcpo =
   (Parse.type_args_constrained -- Parse.binding) -- Parse.opt_mixfix --
-  (@{keyword "="} |-- Parse.term) --
+  (\<^keyword>\<open>=\<close> |-- Parse.term) --
   Scan.option
-    (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
+    (\<^keyword>\<open>morphisms\<close> |-- Parse.!!! (Parse.binding -- Parse.binding))
   >> (fn ((((args, t), mx), A), morphs) =>
       Toplevel.theory_to_proof
         ((if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
@@ -333,12 +333,12 @@ fun cpodef pcpo =
 in
 
 val _ =
-  Outer_Syntax.command @{command_keyword pcpodef}
+  Outer_Syntax.command \<^command_keyword>\<open>pcpodef\<close>
     "HOLCF type definition (requires admissibility proof)"
     (cpodef true)
 
 val _ =
-  Outer_Syntax.command @{command_keyword cpodef}
+  Outer_Syntax.command \<^command_keyword>\<open>cpodef\<close>
     "HOLCF type definition (requires admissibility proof)"
     (cpodef false)
 

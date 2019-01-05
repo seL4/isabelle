@@ -20,14 +20,14 @@ definition example_2 :: "int list"
 ML \<open>
 local
 
-  val term_of_int_list = HOLogic.mk_list @{typ int}
-    o map (HOLogic.mk_number @{typ int} o @{code integer_of_int});
+  val term_of_int_list = HOLogic.mk_list \<^typ>\<open>int\<close>
+    o map (HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int});
 
-  fun raw_sort (ctxt, ct, ks) = Thm.mk_binop @{cterm "Pure.eq :: int list \<Rightarrow> int list \<Rightarrow> prop"}
+  fun raw_sort (ctxt, ct, ks) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: int list \<Rightarrow> int list \<Rightarrow> prop\<close>
     ct (Thm.cterm_of ctxt (term_of_int_list ks));
 
   val (_, sort_oracle) = Context.>>> (Context.map_theory_result
-    (Thm.add_oracle (@{binding sort}, raw_sort)));
+    (Thm.add_oracle (\<^binding>\<open>sort\<close>, raw_sort)));
 
 in
 
@@ -43,22 +43,22 @@ end
 
 declare [[code_timing]]
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "sort int_abs_reversed example_1"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>sort int_abs_reversed example_1\<close>\<close>
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "quicksort int_abs_reversed example_1"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>quicksort int_abs_reversed example_1\<close>\<close>
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "mergesort int_abs_reversed example_1"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>mergesort int_abs_reversed example_1\<close>\<close>
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "sort int_abs_reversed example_2"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>sort int_abs_reversed example_2\<close>\<close>
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "quicksort int_abs_reversed example_2"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>quicksort int_abs_reversed example_2\<close>\<close>
 
-ML_val \<open>sort_int_abs_reversed_conv @{context}
-  @{cterm "mergesort int_abs_reversed example_2"}\<close>
+ML_val \<open>sort_int_abs_reversed_conv \<^context>
+  \<^cterm>\<open>mergesort int_abs_reversed example_2\<close>\<close>
 
 end

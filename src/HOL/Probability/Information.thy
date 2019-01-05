@@ -32,7 +32,7 @@ locale information_space = prob_space +
 context information_space
 begin
 
-text \<open>Introduce some simplification rules for logarithm of base @{term b}.\<close>
+text \<open>Introduce some simplification rules for logarithm of base \<^term>\<open>b\<close>.\<close>
 
 lemma log_neg_const:
   assumes "x \<le> 0"

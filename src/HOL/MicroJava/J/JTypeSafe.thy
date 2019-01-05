@@ -138,7 +138,7 @@ apply( clarsimp)
 apply( drule (3) Call_lemma)
 apply( clarsimp simp add: wf_java_mdecl_def)
 apply( erule_tac V = "method sig x = y" for sig x y in thin_rl)
-apply( drule spec, erule impE,  erule_tac [2] notE impE, tactic "assume_tac @{context} 2")
+apply( drule spec, erule impE,  erule_tac [2] notE impE, tactic "assume_tac \<^context> 2")
 apply(  rule conformsI)
 apply(   erule conforms_heapD)
 apply(  rule lconf_ext)
@@ -156,10 +156,10 @@ apply( rule conjI)
 apply(  fast intro: hext_trans)
 apply( rule conjI)
 apply(  rule_tac [2] impI)
-apply(  erule_tac [2] notE impE, tactic "assume_tac @{context} 2")
+apply(  erule_tac [2] notE impE, tactic "assume_tac \<^context> 2")
 apply(  frule_tac [2] conf_widen)
-apply(    tactic "assume_tac @{context} 4")
-apply(   tactic "assume_tac @{context} 2")
+apply(    tactic "assume_tac \<^context> 4")
+apply(   tactic "assume_tac \<^context> 2")
 prefer 2
 apply(  fast elim!: widen_trans)
 apply (rule conforms_xcpt_change)
@@ -200,10 +200,10 @@ apply( unfold c_hupd_def)
 
 \<comment> \<open>several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??\<close>
 apply( simp_all)
-apply( tactic "ALLGOALS (REPEAT o resolve_tac @{context} [impI, allI])")
-apply( tactic \<open>ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context})))\<close>)
-apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac @{context} [conjE]), REPEAT o hyp_subst_tac @{context}])")
+apply( tactic "ALLGOALS (REPEAT o resolve_tac \<^context> [impI, allI])")
+apply( tactic \<open>ALLGOALS (eresolve_tac \<^context> [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
+  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of \<^theory_context>\<open>Conform\<close>) \<^context>)))\<close>)
+apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac \<^context> [conjE]), REPEAT o hyp_subst_tac \<^context>])")
 
 \<comment> \<open>Level 7\<close>
 \<comment> \<open>15 NewC\<close>
@@ -228,8 +228,8 @@ defer 1
 apply( erule conf_litval)
 
 \<comment> \<open>13 BinOp\<close>
-apply (tactic "forward_hyp_tac @{context}")
-apply (tactic "forward_hyp_tac @{context}")
+apply (tactic "forward_hyp_tac \<^context>")
+apply (tactic "forward_hyp_tac \<^context>")
 apply( rule conjI, erule (1) hext_trans)
 apply( erule conjI)
 apply( clarsimp)
@@ -241,14 +241,14 @@ apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
 \<comment> \<open>for FAss\<close>
-apply( tactic \<open>EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (eresolve_tac @{context} [conjE]), hyp_subst_tac @{context}] 3\<close>)
+apply( tactic \<open>EVERY'[eresolve_tac \<^context> [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
+       THEN_ALL_NEW (full_simp_tac \<^context>), REPEAT o (eresolve_tac \<^context> [conjE]), hyp_subst_tac \<^context>] 3\<close>)
 
 \<comment> \<open>for if\<close>
-apply( tactic \<open>(Induct_Tacs.case_tac @{context} "the_Bool v" [] NONE THEN_ALL_NEW
-  (asm_full_simp_tac @{context})) 7\<close>)
+apply( tactic \<open>(Induct_Tacs.case_tac \<^context> "the_Bool v" [] NONE THEN_ALL_NEW
+  (asm_full_simp_tac \<^context>)) 7\<close>)
 
-apply (tactic "forward_hyp_tac @{context}")
+apply (tactic "forward_hyp_tac \<^context>")
 
 \<comment> \<open>11+1 if\<close>
 prefer 7
@@ -277,8 +277,8 @@ apply (rule conjI)
 
 \<comment> \<open>7 LAss\<close>
 apply (fold fun_upd_def)
-apply( tactic \<open>(eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-                 THEN_ALL_NEW (full_simp_tac @{context})) 1\<close>)
+apply( tactic \<open>(eresolve_tac \<^context> [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
+                 THEN_ALL_NEW (full_simp_tac \<^context>)) 1\<close>)
 apply (intro strip)
 apply (case_tac E)
 apply (simp)
@@ -296,7 +296,7 @@ apply(erule_tac V = "a \<longrightarrow> b" for a b in thin_rl)
 apply(drule (1) ty_expr_ty_exprs_wt_stmt.Loop)
 apply(force elim: hext_trans)
 
-apply (tactic "forward_hyp_tac @{context}")
+apply (tactic "forward_hyp_tac \<^context>")
 
 \<comment> \<open>4 Cond\<close>
 prefer 4
@@ -319,7 +319,7 @@ apply (subgoal_tac "(np a' x1, aa, ba) ::\<preceq> (G, lT)")
 apply( case_tac "x2")
   \<comment> \<open>x2 = None\<close>
   apply (simp)
-  apply (tactic "forward_hyp_tac @{context}", clarify)
+  apply (tactic "forward_hyp_tac \<^context>", clarify)
   apply( drule eval_no_xcpt)
   apply( erule FAss_type_sound, rule HOL.refl, assumption+)
   \<comment> \<open>x2 = Some a\<close>
@@ -327,7 +327,7 @@ apply( case_tac "x2")
   apply(  fast intro: hext_trans)
 
 
-apply( tactic "prune_params_tac @{context}")
+apply( tactic "prune_params_tac \<^context>")
 \<comment> \<open>Level 52\<close>
 
 \<comment> \<open>1 Call\<close>

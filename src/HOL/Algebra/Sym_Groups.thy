@@ -317,7 +317,7 @@ qed
 
 subsection \<open>Unsolvability of Symmetric Groups\<close>
 
-text \<open>We show that symmetric groups (@{term\<open>sym_group n\<close>}) are unsolvable for @{term\<open>n \<ge> 5\<close>}.\<close>
+text \<open>We show that symmetric groups (\<^term>\<open>sym_group n\<close>) are unsolvable for \<^term>\<open>n \<ge> 5\<close>.\<close>
 
 abbreviation three_cycles :: "nat \<Rightarrow> (nat \<Rightarrow> nat) set"
   where "three_cycles n \<equiv>

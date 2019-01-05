@@ -37,8 +37,8 @@ ML_file "Tools/primrec_package.ML"
 ML \<open>
 structure Lfp =
   struct
-  val oper      = @{const lfp}
-  val bnd_mono  = @{const bnd_mono}
+  val oper      = \<^const>\<open>lfp\<close>
+  val bnd_mono  = \<^const>\<open>bnd_mono\<close>
   val bnd_monoI = @{thm bnd_monoI}
   val subs      = @{thm def_lfp_subset}
   val Tarski    = @{thm def_lfp_unfold}
@@ -47,8 +47,8 @@ structure Lfp =
 
 structure Standard_Prod =
   struct
-  val sigma     = @{const Sigma}
-  val pair      = @{const Pair}
+  val sigma     = \<^const>\<open>Sigma\<close>
+  val pair      = \<^const>\<open>Pair\<close>
   val split_name = \<^const_name>\<open>split\<close>
   val pair_iff  = @{thm Pair_iff}
   val split_eq  = @{thm split}
@@ -61,10 +61,10 @@ structure Standard_CP = CartProd_Fun (Standard_Prod);
 
 structure Standard_Sum =
   struct
-  val sum       = @{const sum}
-  val inl       = @{const Inl}
-  val inr       = @{const Inr}
-  val elim      = @{const case}
+  val sum       = \<^const>\<open>sum\<close>
+  val inl       = \<^const>\<open>Inl\<close>
+  val inr       = \<^const>\<open>Inr\<close>
+  val elim      = \<^const>\<open>case\<close>
   val case_inl  = @{thm case_Inl}
   val case_inr  = @{thm case_Inr}
   val inl_iff   = @{thm Inl_iff}
@@ -84,8 +84,8 @@ structure Ind_Package =
 
 structure Gfp =
   struct
-  val oper      = @{const gfp}
-  val bnd_mono  = @{const bnd_mono}
+  val oper      = \<^const>\<open>gfp\<close>
+  val bnd_mono  = \<^const>\<open>bnd_mono\<close>
   val bnd_monoI = @{thm bnd_monoI}
   val subs      = @{thm def_gfp_subset}
   val Tarski    = @{thm def_gfp_unfold}
@@ -94,8 +94,8 @@ structure Gfp =
 
 structure Quine_Prod =
   struct
-  val sigma     = @{const QSigma}
-  val pair      = @{const QPair}
+  val sigma     = \<^const>\<open>QSigma\<close>
+  val pair      = \<^const>\<open>QPair\<close>
   val split_name = \<^const_name>\<open>qsplit\<close>
   val pair_iff  = @{thm QPair_iff}
   val split_eq  = @{thm qsplit}
@@ -108,10 +108,10 @@ structure Quine_CP = CartProd_Fun (Quine_Prod);
 
 structure Quine_Sum =
   struct
-  val sum       = @{const qsum}
-  val inl       = @{const QInl}
-  val inr       = @{const QInr}
-  val elim      = @{const qcase}
+  val sum       = \<^const>\<open>qsum\<close>
+  val inl       = \<^const>\<open>QInl\<close>
+  val inr       = \<^const>\<open>QInr\<close>
+  val elim      = \<^const>\<open>qcase\<close>
   val case_inl  = @{thm qcase_QInl}
   val case_inr  = @{thm qcase_QInr}
   val inl_iff   = @{thm QInl_iff}

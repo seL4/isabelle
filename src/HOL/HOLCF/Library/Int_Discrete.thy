@@ -8,7 +8,7 @@ theory Int_Discrete
 imports HOLCF
 begin
 
-text \<open>Discrete cpo instance for @{typ int}.\<close>
+text \<open>Discrete cpo instance for \<^typ>\<open>int\<close>.\<close>
 
 instantiation int :: discrete_cpo
 begin

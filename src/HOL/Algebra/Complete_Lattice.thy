@@ -1153,8 +1153,8 @@ next
   fix B
   assume "B \<subseteq> carrier ?L"
   then have "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
-    txt \<open>@{term "\<Inter> B"} is not the infimum of @{term B}:
-      @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! \<close>
+    txt \<open>\<^term>\<open>\<Inter> B\<close> is not the infimum of \<^term>\<open>B\<close>:
+      \<^term>\<open>\<Inter> {} = UNIV\<close> which is in general bigger than \<^term>\<open>A\<close>! \<close>
     by (fastforce intro!: greatest_LowerI simp: Lower_def)
   then show "\<exists>i. greatest ?L i (Lower ?L B)" ..
 qed

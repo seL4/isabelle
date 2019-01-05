@@ -136,7 +136,7 @@ lemma inst_up_pcpo: "\<bottom> = Ibottom"
 
 subsection \<open>Continuity of \emph{Iup} and \emph{Ifup}\<close>
 
-text \<open>continuity for @{term Iup}\<close>
+text \<open>continuity for \<^term>\<open>Iup\<close>\<close>
 
 lemma cont_Iup: "cont Iup"
   apply (rule contI)
@@ -144,7 +144,7 @@ lemma cont_Iup: "cont Iup"
   apply (erule cpo_lubI)
   done
 
-text \<open>continuity for @{term Ifup}\<close>
+text \<open>continuity for \<^term>\<open>Ifup\<close>\<close>
 
 lemma cont_Ifup1: "cont (\<lambda>f. Ifup f x)"
   by (induct x) simp_all
@@ -189,7 +189,7 @@ translations
   "case l of (XCONST up :: 'a)\<cdot>x \<Rightarrow> t" \<rightharpoonup> "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
   "\<Lambda>(XCONST up\<cdot>x). t" \<rightleftharpoons> "CONST fup\<cdot>(\<Lambda> x. t)"
 
-text \<open>continuous versions of lemmas for @{typ "('a)u"}\<close>
+text \<open>continuous versions of lemmas for \<^typ>\<open>('a)u\<close>\<close>
 
 lemma Exh_Up: "z = \<bottom> \<or> (\<exists>x. z = up\<cdot>x)"
   by (induct z) (simp add: inst_up_pcpo, simp add: up_def cont_Iup)

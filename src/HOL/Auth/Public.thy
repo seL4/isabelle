@@ -56,7 +56,7 @@ abbreviation
 
 
 text\<open>By freeness of agents, no two agents have the same key.  Since
-  @{term "True\<noteq>False"}, no agent has identical signing and encryption keys\<close>
+  \<^term>\<open>True\<noteq>False\<close>, no agent has identical signing and encryption keys\<close>
 specification (publicKey)
   injective_publicKey:
     "publicKey b A = publicKey c A' ==> b=c \<and> A=A'"
@@ -77,7 +77,7 @@ lemmas publicKey_neq_privateKey = privateKey_neq_publicKey [THEN not_sym]
 declare publicKey_neq_privateKey [iff]
 
 
-subsection\<open>Basic properties of @{term pubK} and @{term priK}\<close>
+subsection\<open>Basic properties of \<^term>\<open>pubK\<close> and \<^term>\<open>priK\<close>\<close>
 
 lemma publicKey_inject [iff]: "(publicKey b A = publicKey c A') = (b=c \<and> A=A')"
 by (blast dest!: injective_publicKey) 
@@ -224,9 +224,9 @@ primrec initState where
 end
 
 
-text\<open>These lemmas allow reasoning about @{term "used evs"} rather than
-   @{term "knows Spy evs"}, which is useful when there are private Notes. 
-   Because they depend upon the definition of @{term initState}, they cannot
+text\<open>These lemmas allow reasoning about \<^term>\<open>used evs\<close> rather than
+   \<^term>\<open>knows Spy evs\<close>, which is useful when there are private Notes. 
+   Because they depend upon the definition of \<^term>\<open>initState\<close>, they cannot
    be moved up.\<close>
 
 lemma used_parts_subset_parts [rule_format]:
@@ -251,7 +251,7 @@ lemma MPair_used [elim!]:
 by (blast dest: MPair_used_D) 
 
 
-text\<open>Rewrites should not refer to  @{term "initState(Friend i)"} because
+text\<open>Rewrites should not refer to  \<^term>\<open>initState(Friend i)\<close> because
   that expression is not in normal form.\<close>
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
@@ -293,7 +293,7 @@ lemmas neq_shrK = shrK_neq [THEN not_sym]
 declare neq_shrK [simp]
 
 
-subsection\<open>Function @{term spies}\<close>
+subsection\<open>Function \<^term>\<open>spies\<close>\<close>
 
 lemma not_SignatureE [elim!]: "b \<noteq> Signature \<Longrightarrow> b = Encryption"
   by (cases b, auto) 
@@ -374,7 +374,7 @@ apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, fast)
 done
 
-subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
+subsection\<open>Specialized Rewriting for Theorems About \<^term>\<open>analz\<close> and Image\<close>
 
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
 by blast
@@ -407,7 +407,7 @@ struct
 
 val analz_image_freshK_ss =
   simpset_of
-   (@{context} delsimps [image_insert, image_Un]
+   (\<^context> delsimps [image_insert, image_Un]
     delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
     addsimps @{thms analz_image_freshK_simps})
 

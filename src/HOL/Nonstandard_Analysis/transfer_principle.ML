@@ -34,7 +34,7 @@ structure Data = Generic_Data
     consts = Library.merge (op =) (consts1, consts2)};
 );
 
-fun unstar_typ (Type (@{type_name star}, [t])) = unstar_typ t
+fun unstar_typ (Type (\<^type_name>\<open>star\<close>, [t])) = unstar_typ t
   | unstar_typ (Type (a, Ts)) = Type (a, map unstar_typ Ts)
   | unstar_typ T = T
 
@@ -54,12 +54,12 @@ local exception MATCH
 in
 fun transfer_star_tac ctxt =
   let
-    fun thm_of (Const (@{const_name Ifun}, _) $ t $ u) = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
-      | thm_of (Const (@{const_name star_of}, _) $ _) = @{thm star_of_def}
-      | thm_of (Const (@{const_name star_n}, _) $ _) = @{thm Pure.reflexive}
+    fun thm_of (Const (\<^const_name>\<open>Ifun\<close>, _) $ t $ u) = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
+      | thm_of (Const (\<^const_name>\<open>star_of\<close>, _) $ _) = @{thm star_of_def}
+      | thm_of (Const (\<^const_name>\<open>star_n\<close>, _) $ _) = @{thm Pure.reflexive}
       | thm_of _ = raise MATCH;
 
-    fun thm_of_goal (Const (@{const_name Pure.eq}, _) $ t $ (Const (@{const_name star_n}, _) $ _)) =
+    fun thm_of_goal (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ (Const (\<^const_name>\<open>star_n\<close>, _) $ _)) =
           thm_of t
       | thm_of_goal _ = raise MATCH;
   in
@@ -125,11 +125,11 @@ fun add_const c = Context.theory_map (Data.map
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding transfer_intro} (Attrib.add_del intro_add intro_del)
+   (Attrib.setup \<^binding>\<open>transfer_intro\<close> (Attrib.add_del intro_add intro_del)
       "declaration of transfer introduction rule" #>
-    Attrib.setup @{binding transfer_unfold} (Attrib.add_del unfold_add unfold_del)
+    Attrib.setup \<^binding>\<open>transfer_unfold\<close> (Attrib.add_del unfold_add unfold_del)
       "declaration of transfer unfolding rule" #>
-    Attrib.setup @{binding transfer_refold} (Attrib.add_del refold_add refold_del)
+    Attrib.setup \<^binding>\<open>transfer_refold\<close> (Attrib.add_del refold_add refold_del)
       "declaration of transfer refolding rule")
 
 end;

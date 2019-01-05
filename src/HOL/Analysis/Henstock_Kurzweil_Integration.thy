@@ -490,7 +490,7 @@ lemma has_integral_mult_left:
   shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) S"
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
-text\<open>The case analysis eliminates the condition @{term "f integrable_on S"} at the cost
+text\<open>The case analysis eliminates the condition \<^term>\<open>f integrable_on S\<close> at the cost
      of the type class constraint \<open>division_ring\<close>\<close>
 corollary integral_mult_left [simp]:
   fixes c:: "'a::{real_normed_algebra,division_ring}"

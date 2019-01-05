@@ -30,7 +30,7 @@ fun del_list :: "'a::linorder \<Rightarrow> ('a*'b)list \<Rightarrow> ('a*'b)lis
 "del_list x ((a,b)#ps) = (if x = a then ps else (a,b) # del_list x ps)"
 
 
-subsection \<open>Lemmas for @{const map_of}\<close>
+subsection \<open>Lemmas for \<^const>\<open>map_of\<close>\<close>
 
 lemma map_of_ins_list: "map_of (upd_list x y ps) = (map_of ps)(x := Some y)"
 by(induction ps) auto
@@ -61,7 +61,7 @@ lemmas map_of_sorteds = map_of_sorted_Cons map_of_sorted_snoc
 lemmas map_of_simps = sorted_lems map_of_append map_of_sorteds
 
 
-subsection \<open>Lemmas for @{const upd_list}\<close>
+subsection \<open>Lemmas for \<^const>\<open>upd_list\<close>\<close>
 
 lemma sorted_upd_list: "sorted1 ps \<Longrightarrow> sorted1 (upd_list x y ps)"
 apply(induction ps)
@@ -89,7 +89,7 @@ by (auto simp: upd_list_sorted)
 
 lemmas upd_list_simps = sorted_lems upd_list_sorted1 upd_list_sorted2
 
-text\<open>Splay trees need two additional @{const upd_list} lemmas:\<close>
+text\<open>Splay trees need two additional \<^const>\<open>upd_list\<close> lemmas:\<close>
 
 lemma upd_list_Cons:
   "sorted1 ((x,y) # xs) \<Longrightarrow> upd_list x y xs = (x,y) # xs"
@@ -100,7 +100,7 @@ lemma upd_list_snoc:
 by(induction xs) (auto simp add: sorted_mid_iff2)
 
 
-subsection \<open>Lemmas for @{const del_list}\<close>
+subsection \<open>Lemmas for \<^const>\<open>del_list\<close>\<close>
 
 lemma sorted_del_list: "sorted1 ps \<Longrightarrow> sorted1 (del_list x ps)"
 apply(induction ps)
@@ -153,7 +153,7 @@ lemmas del_list_simps = sorted_lems
   del_list_sorted4
   del_list_sorted5
 
-text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
+text\<open>Splay trees need two additional \<^const>\<open>del_list\<close> lemmas:\<close>
 
 lemma del_list_notin_Cons: "sorted (x # map fst xs) \<Longrightarrow> del_list x xs = xs"
 by(induction xs)(fastforce simp: sorted_wrt_Cons)+

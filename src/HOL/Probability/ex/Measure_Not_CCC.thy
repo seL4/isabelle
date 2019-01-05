@@ -16,8 +16,8 @@ text \<open>
   of all countable and co-countable real sets. We also define $\mathbb{R}$ to be the discrete
   measurable space on the reals.
 
-  Now, the diagonal predicate @{term "\<lambda>x y. x = y"} is $\mathbb{R}$-$\mathbb{B}^\mathbb{C}$-measurable,
-  but @{term "\<lambda>(x, y). x = y"} is not $(\mathbb{R} \times \mathbb{C})$-$\mathbb{B}$-measurable.
+  Now, the diagonal predicate \<^term>\<open>\<lambda>x y. x = y\<close> is $\mathbb{R}$-$\mathbb{B}^\mathbb{C}$-measurable,
+  but \<^term>\<open>\<lambda>(x, y). x = y\<close> is not $(\mathbb{R} \times \mathbb{C})$-$\mathbb{B}$-measurable.
 \<close>
 
 definition COCOUNT :: "real measure" where

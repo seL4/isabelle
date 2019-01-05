@@ -80,7 +80,7 @@ subsection \<open>Classic Isabelle/HOL example\<close>
 
 text \<open>
   The following treatment of Cantor's Theorem follows the classic example from
-  the early 1990s, e.g.\ see the file @{verbatim "92/HOL/ex/set.ML"} in
+  the early 1990s, e.g.\ see the file \<^verbatim>\<open>92/HOL/ex/set.ML\<close> in
   Isabelle92 or @{cite \<open>\S18.7\<close> "paulson-isa-book"}. The old tactic scripts
   synthesize key information of the proof by refinement of schematic goal
   states. In contrast, the Isar proof needs to say explicitly what is proven.

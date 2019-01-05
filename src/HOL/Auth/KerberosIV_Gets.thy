@@ -260,7 +260,7 @@ lemma Gets_imp_knows:
      "\<lbrakk> Gets B X \<in> set evs; evs \<in> kerbIV_gets \<rbrakk>  \<Longrightarrow> X \<in> knows B evs"
 by (metis Gets_imp_knows_Spy Gets_imp_knows_agents)
 
-subsection\<open>Lemmas about @{term authKeys}\<close>
+subsection\<open>Lemmas about \<^term>\<open>authKeys\<close>\<close>
 
 lemma authKeys_empty: "authKeys [] = {}"
 by (simp add: authKeys_def)
@@ -717,7 +717,7 @@ apply (force dest!: Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Decrypt, THEN
 txt\<open>Besides, since authKa originated with Kas anyway...\<close>
 apply (clarify, drule K3_imp_K2, assumption, assumption)
 apply (clarify, drule Says_Kas_message_form, assumption)
-txt\<open>...it cannot be a shared key*. Therefore @{term servK_authentic} applies. 
+txt\<open>...it cannot be a shared key*. Therefore \<^term>\<open>servK_authentic\<close> applies. 
      Contradition: Tgs used authK as a servkey, 
      while Kas used it as an authkey\<close>
 apply (blast dest: servK_authentic Says_Tgs_message_form)
@@ -868,7 +868,7 @@ apply blast
 done
 
 
-subsection\<open>Lemmas About the Predicate @{term AKcryptSK}\<close>
+subsection\<open>Lemmas About the Predicate \<^term>\<open>AKcryptSK\<close>\<close>
 
 lemma not_AKcryptSK_Nil [iff]: "\<not> AKcryptSK authK servK []"
 by (simp add: AKcryptSK_def)
@@ -1212,10 +1212,10 @@ apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)
 apply (rule_tac [10] impI)+
   \<comment> \<open>The Oops1 case is unusual: must simplify
-    @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
+    \<^term>\<open>Authkey \<notin> analz (spies (ev#evs))\<close>, not letting
    \<open>analz_mono_contra\<close> weaken it to
-   @{term "Authkey \<notin> analz (spies evs)"},
-  for we then conclude @{term "authK \<noteq> authKa"}.\<close>
+   \<^term>\<open>Authkey \<notin> analz (spies evs)\<close>,
+  for we then conclude \<^term>\<open>authK \<noteq> authKa\<close>.\<close>
 apply analz_mono_contra
 apply (frule_tac [11] Oops_range_spies2)
 apply (frule_tac [10] Oops_range_spies1)

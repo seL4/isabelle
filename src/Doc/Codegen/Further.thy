@@ -30,7 +30,7 @@ text \<open>
   arbitrary ML code as well.
 
   A typical example for @{command code_reflect} can be found in the
-  @{theory HOL.Predicate} theory.
+  \<^theory>\<open>HOL.Predicate\<close> theory.
 \<close>
 
 
@@ -188,7 +188,7 @@ global_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow
 text \<open>
   \noindent This amends the interpretation morphisms such that
   occurrences of the foundational term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
-  are folded to a newly defined constant @{const funpows}.
+  are folded to a newly defined constant \<^const>\<open>funpows\<close>.
 
   After this setup procedure, code generation can continue as usual:
 \<close>

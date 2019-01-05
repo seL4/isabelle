@@ -768,27 +768,27 @@ apply(unfold Collector_def Mutator_def)
 apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs Mut_init_def)
-apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
+apply(tactic  \<open>TRYALL (interfree_aux_tac \<^context>)\<close>)
 \<comment> \<open>32 subgoals left\<close>
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 \<comment> \<open>20 subgoals left\<close>
-apply(tactic\<open>TRYALL (clarify_tac @{context})\<close>)
+apply(tactic\<open>TRYALL (clarify_tac \<^context>)\<close>)
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
-apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
+apply(tactic \<open>TRYALL (eresolve_tac \<^context> [disjE])\<close>)
 apply simp_all
-apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
-    resolve_tac @{context} [subset_trans],
-    eresolve_tac @{context} @{thms Graph3},
-    force_tac @{context},
-    assume_tac @{context}])\<close>)
-apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
-    eresolve_tac @{context} [subset_trans],
-    resolve_tac @{context} @{thms Graph9},
-    force_tac @{context}])\<close>)
-apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI1],
-    eresolve_tac @{context} @{thms psubset_subset_trans},
-    resolve_tac @{context} @{thms Graph9},
-    force_tac @{context}])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI2],
+    resolve_tac \<^context> [subset_trans],
+    eresolve_tac \<^context> @{thms Graph3},
+    force_tac \<^context>,
+    assume_tac \<^context>])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI2],
+    eresolve_tac \<^context> [subset_trans],
+    resolve_tac \<^context> @{thms Graph9},
+    force_tac \<^context>])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI1],
+    eresolve_tac \<^context> @{thms psubset_subset_trans},
+    resolve_tac \<^context> @{thms Graph9},
+    force_tac \<^context>])\<close>)
 done
 
 subsubsection \<open>Interference freedom Mutator-Collector\<close>
@@ -799,10 +799,10 @@ apply(unfold Collector_def Mutator_def)
 apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs Mut_init_def)
-apply(tactic  \<open>TRYALL (interfree_aux_tac @{context})\<close>)
+apply(tactic  \<open>TRYALL (interfree_aux_tac \<^context>)\<close>)
 \<comment> \<open>64 subgoals left\<close>
 apply(simp_all add:nth_list_update Invariants Append_to_free0)+
-apply(tactic\<open>TRYALL (clarify_tac @{context})\<close>)
+apply(tactic\<open>TRYALL (clarify_tac \<^context>)\<close>)
 \<comment> \<open>4 subgoals left\<close>
 apply force
 apply(simp add:Append_to_free2)

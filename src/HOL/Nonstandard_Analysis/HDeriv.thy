@@ -228,7 +228,7 @@ lemma NSDERIV_cmult_Id [simp]: "NSDERIV ((*) c) x :> c"
 
 lemma NSDERIV_inverse:
   fixes x :: "'a::real_normed_field"
-  assumes "x \<noteq> 0" \<comment> \<open>can't get rid of @{term "x \<noteq> 0"} because it isn't continuous at zero\<close>
+  assumes "x \<noteq> 0" \<comment> \<open>can't get rid of \<^term>\<open>x \<noteq> 0\<close> because it isn't continuous at zero\<close>
   shows "NSDERIV (\<lambda>x. inverse x) x :> - (inverse x ^ Suc (Suc 0))"
 proof -
   {

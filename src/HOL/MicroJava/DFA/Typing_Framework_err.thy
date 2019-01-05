@@ -161,8 +161,8 @@ done
 text \<open>
   There used to be a condition here that each instruction must have a
   successor. This is not needed any more, because the definition of
-  @{term error} trivially ensures that there is a successor for
-  the critical case where @{term app} does not hold. 
+  \<^term>\<open>error\<close> trivially ensures that there is a successor for
+  the critical case where \<^term>\<open>app\<close> does not hold. 
 \<close>
 lemma wt_err_imp_wt_app_eff:
   assumes wt: "wt_err_step r (err_step (size ts) app step) ts"

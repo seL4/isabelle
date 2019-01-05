@@ -13,7 +13,7 @@ theory Stream
 begin
 
 codatatype (sset: 'a) stream =
-  SCons (shd: 'a) (stl: "'a stream") (infixr "##" 65)
+  SCons (shd: 'a) (stl: "'a stream") (infixr \<open>##\<close> 65)
 for
   map: smap
   rel: stream_all2
@@ -44,7 +44,7 @@ lemma smap_ctr: "smap f s = x ## s' \<longleftrightarrow> f (shd s) = x \<and> s
 
 subsection \<open>prepend list to stream\<close>
 
-primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infixr "@-" 65) where
+primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infixr \<open>@-\<close> 65) where
   "shift [] s = s"
 | "shift (x # xs) s = x ## shift xs s"
 
@@ -136,7 +136,7 @@ lemma streams_UNIV[simp]: "streams UNIV = UNIV"
 
 subsection \<open>nth, take, drop for streams\<close>
 
-primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
+primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl \<open>!!\<close> 100) where
   "s !! 0 = shd s"
 | "s !! Suc n = stl s !! n"
 

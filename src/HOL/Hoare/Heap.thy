@@ -60,11 +60,11 @@ subsection "Non-repeating paths"
 definition distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
   where "distPath h x as y \<longleftrightarrow> Path h x as y \<and> distinct as"
 
-text\<open>The term @{term"distPath h x as y"} expresses the fact that a
-non-repeating path @{term as} connects location @{term x} to location
-@{term y} by means of the @{term h} field. In the case where \<open>x
-= y\<close>, and there is a cycle from @{term x} to itself, @{term as} can
-be both @{term "[]"} and the non-repeating list of nodes in the
+text\<open>The term \<^term>\<open>distPath h x as y\<close> expresses the fact that a
+non-repeating path \<^term>\<open>as\<close> connects location \<^term>\<open>x\<close> to location
+\<^term>\<open>y\<close> by means of the \<^term>\<open>h\<close> field. In the case where \<open>x
+= y\<close>, and there is a cycle from \<^term>\<open>x\<close> to itself, \<^term>\<open>as\<close> can
+be both \<^term>\<open>[]\<close> and the non-repeating list of nodes in the
 cycle.\<close>
 
 lemma neq_dP: "p \<noteq> q \<Longrightarrow> Path h p Ps q \<Longrightarrow> distinct Ps \<Longrightarrow>

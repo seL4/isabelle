@@ -97,8 +97,8 @@ lemma starfun_pow2: "\<And>N. ( *f* (\<lambda>n. X n ^ m)) N = ( *f* X) N pow hy
 lemma starfun_pow3: "\<And>R. ( *f* (\<lambda>r. r ^ n)) R = R pow hypnat_of_nat n"
   by transfer (rule refl)
 
-text \<open>The @{term hypreal_of_hypnat} function as a nonstandard extension of
-  @{term real_of_nat}.\<close>
+text \<open>The \<^term>\<open>hypreal_of_hypnat\<close> function as a nonstandard extension of
+  \<^term>\<open>real_of_nat\<close>.\<close>
 lemma starfunNat_real_of_nat: "( *f* real) = hypreal_of_hypnat"
   by transfer (simp add: fun_eq_iff)
 

@@ -149,7 +149,7 @@ text \<open>lubs are unique\<close>
 lemma is_lub_unique: "S <<| x \<Longrightarrow> S <<| y \<Longrightarrow> x = y"
   unfolding is_lub_def is_ub_def by (blast intro: below_antisym)
 
-text \<open>technical lemmas about @{term lub} and @{term is_lub}\<close>
+text \<open>technical lemmas about \<^term>\<open>lub\<close> and \<^term>\<open>is_lub\<close>\<close>
 
 lemma is_lub_lub: "M <<| x \<Longrightarrow> M <<| lub M"
   unfolding lub_def by (rule theI [OF _ is_lub_unique])

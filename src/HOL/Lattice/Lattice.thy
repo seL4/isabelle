@@ -319,8 +319,8 @@ text \<open>
   Given a structure with binary operations \<open>\<sqinter>\<close> and \<open>\<squnion>\<close>
   such that (A), (C), and (AB) hold (cf.\
   \S\ref{sec:lattice-algebra}).  This structure represents a lattice,
-  if the relation @{term "x \<sqsubseteq> y"} is defined as @{term "x \<sqinter> y = x"}
-  (alternatively as @{term "x \<squnion> y = y"}).  Furthermore, infimum and
+  if the relation \<^term>\<open>x \<sqsubseteq> y\<close> is defined as \<^term>\<open>x \<sqinter> y = x\<close>
+  (alternatively as \<^term>\<open>x \<squnion> y = y\<close>).  Furthermore, infimum and
   supremum with respect to this ordering coincide with the original
   \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations.
 \<close>
@@ -331,7 +331,7 @@ subsection \<open>Example instances\<close>
 subsubsection \<open>Linear orders\<close>
 
 text \<open>
-  Linear orders with @{term minimum} and @{term maximum} operations
+  Linear orders with \<^term>\<open>minimum\<close> and \<^term>\<open>maximum\<close> operations
   are a (degenerate) example of lattice structures.
 \<close>
 
@@ -368,8 +368,7 @@ proof
 qed
 
 text \<open>
-  The lattice operations on linear orders indeed coincide with @{term
-  minimum} and @{term maximum}.
+  The lattice operations on linear orders indeed coincide with \<^term>\<open>minimum\<close> and \<^term>\<open>maximum\<close>.
 \<close>
 
 theorem meet_mimimum: "x \<sqinter> y = minimum x y"
@@ -578,8 +577,8 @@ qed
 
 text \<open>
   \medskip A semi-morphisms is a function \<open>f\<close> that preserves the
-  lattice operations in the following manner: @{term "f (x \<sqinter> y) \<sqsubseteq> f x
-  \<sqinter> f y"} and @{term "f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"}, respectively.  Any of
+  lattice operations in the following manner: \<^term>\<open>f (x \<sqinter> y) \<sqsubseteq> f x
+  \<sqinter> f y\<close> and \<^term>\<open>f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)\<close>, respectively.  Any of
   these properties is equivalent with monotonicity.
 \<close>
 

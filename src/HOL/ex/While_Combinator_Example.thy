@@ -9,7 +9,7 @@ theory While_Combinator_Example
 imports "HOL-Library.While_Combinator"
 begin
 
-text \<open>Computation of the @{term lfp} on finite sets via 
+text \<open>Computation of the \<^term>\<open>lfp\<close> on finite sets via 
   iteration.\<close>
 
 theorem lfp_conv_while:

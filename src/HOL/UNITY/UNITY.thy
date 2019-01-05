@@ -283,7 +283,7 @@ subsubsection\<open>invariant\<close>
 lemma invariantI: "[| Init F \<subseteq> A;  F \<in> stable A |] ==> F \<in> invariant A"
 by (simp add: invariant_def)
 
-text\<open>Could also say @{term "invariant A \<inter> invariant B \<subseteq> invariant(A \<inter> B)"}\<close>
+text\<open>Could also say \<^term>\<open>invariant A \<inter> invariant B \<subseteq> invariant(A \<inter> B)\<close>\<close>
 lemma invariant_Int:
      "[| F \<in> invariant A;  F \<in> invariant B |] ==> F \<in> invariant (A \<inter> B)"
 by (auto simp add: invariant_def stable_Int)

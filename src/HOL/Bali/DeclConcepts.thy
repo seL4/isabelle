@@ -800,10 +800,10 @@ where
                      \<and> (G\<turnstile>cls \<preceq>\<^sub>C accclass \<or> is_static membr)) 
     | Public    \<Rightarrow> True)"
 text \<open>
-The subcondition of the @{term "Protected"} case: 
-@{term "G\<turnstile>accclass \<prec>\<^sub>C declclass membr"} could also be relaxed to:
-@{term "G\<turnstile>accclass \<preceq>\<^sub>C declclass membr"} since in case both classes are the
-same the other condition @{term "(pid (declclass membr) = pid accclass)"}
+The subcondition of the \<^term>\<open>Protected\<close> case: 
+\<^term>\<open>G\<turnstile>accclass \<prec>\<^sub>C declclass membr\<close> could also be relaxed to:
+\<^term>\<open>G\<turnstile>accclass \<preceq>\<^sub>C declclass membr\<close> since in case both classes are the
+same the other condition \<^term>\<open>(pid (declclass membr) = pid accclass)\<close>
 holds anyway.
 \<close> 
 
@@ -1422,7 +1422,7 @@ definition
                           subcls_mthds 
                ++ 
                table_of (map (\<lambda>(s,m). (s,C,m)) (methods c)))"
-text \<open>@{term "methd G C"}: methods of a class C (statically visible from C), 
+text \<open>\<^term>\<open>methd G C\<close>: methods of a class C (statically visible from C), 
      with inheritance and hiding cf. 8.4.6;
      Overriding is captured by \<open>dynmethd\<close>.
      Every new method with the same signature coalesces the
@@ -1432,15 +1432,15 @@ definition
   accmethd :: "prog \<Rightarrow> qtname \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
   "accmethd G S C =
     filter_tab (\<lambda>sig m. G\<turnstile>method sig m of C accessible_from S) (methd G C)"
-text \<open>@{term "accmethd G S C"}: only those methods of @{term "methd G C"}, 
+text \<open>\<^term>\<open>accmethd G S C\<close>: only those methods of \<^term>\<open>methd G C\<close>, 
         accessible from S\<close>
 
 text \<open>Note the class component in the accessibility filter. The class where
-    method @{term m} is declared (@{term declC}) isn't necessarily accessible 
-    from the current scope @{term S}. The method can be made accessible 
+    method \<^term>\<open>m\<close> is declared (\<^term>\<open>declC\<close>) isn't necessarily accessible 
+    from the current scope \<^term>\<open>S\<close>. The method can be made accessible 
     through inheritance, too.
-    So we must test accessibility of method @{term m} of class @{term C} 
-    (not @{term "declclass m"})\<close>
+    So we must test accessibility of method \<^term>\<open>m\<close> of class \<^term>\<open>C\<close> 
+    (not \<^term>\<open>declclass m\<close>)\<close>
 
 definition
   dynmethd :: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
@@ -1461,11 +1461,11 @@ definition
                 )
           else None))"
 
-text \<open>@{term "dynmethd G statC dynC"}: dynamic method lookup of a reference 
-        with dynamic class @{term dynC} and static class @{term statC}\<close>
-text \<open>Note some kind of duality between @{term methd} and @{term dynmethd} 
-        in the @{term class_rec} arguments. Whereas @{term methd} filters the 
-        subclass methods (to get only the inherited ones), @{term dynmethd} 
+text \<open>\<^term>\<open>dynmethd G statC dynC\<close>: dynamic method lookup of a reference 
+        with dynamic class \<^term>\<open>dynC\<close> and static class \<^term>\<open>statC\<close>\<close>
+text \<open>Note some kind of duality between \<^term>\<open>methd\<close> and \<^term>\<open>dynmethd\<close> 
+        in the \<^term>\<open>class_rec\<close> arguments. Whereas \<^term>\<open>methd\<close> filters the 
+        subclass methods (to get only the inherited ones), \<^term>\<open>dynmethd\<close> 
         filters the new methods (to get only those methods which actually
         override the methods of the static class)\<close>
 
@@ -1475,14 +1475,14 @@ definition
     (\<lambda>sig. if imethds G I sig \<noteq> {}
            then methd G dynC sig
            else dynmethd G Object dynC sig)"
-text \<open>@{term "dynimethd G I dynC"}: dynamic method lookup of a reference with 
+text \<open>\<^term>\<open>dynimethd G I dynC\<close>: dynamic method lookup of a reference with 
         dynamic class dynC and static interface type I\<close>
 text \<open>
    When calling an interface method, we must distinguish if the method signature
    was defined in the interface or if it must be an Object method in the other
    case. If it was an interface method we search the class hierarchy
    starting at the dynamic class of the object up to Object to find the 
-   first matching method (@{term methd}). Since all interface methods have 
+   first matching method (\<^term>\<open>methd\<close>). Since all interface methods have 
    public access the method can't be coalesced due to some odd visibility 
    effects like in case of dynmethd. The method will be inherited or 
    overridden in all classes from the first class implementing the interface 
@@ -1497,7 +1497,7 @@ definition
     | IfaceT I     \<Rightarrow> dynimethd G I      dynC
     | ClassT statC \<Rightarrow> dynmethd  G statC  dynC
     | ArrayT ty    \<Rightarrow> dynmethd  G Object dynC)"
-text \<open>@{term "dynlookup G statT dynC"}: dynamic lookup of a method within the 
+text \<open>\<^term>\<open>dynlookup G statT dynC\<close>: dynamic lookup of a method within the 
     static reference type statT and the dynamic class dynC. 
     In a wellformd context statT will not be NullT and in case
     statT is an array type, dynC=Object\<close>
@@ -1506,7 +1506,7 @@ definition
   fields :: "prog \<Rightarrow> qtname \<Rightarrow> ((vname \<times> qtname) \<times> field) list" where
   "fields G C =
     class_rec G C [] (\<lambda>C c ts. map (\<lambda>(n,t). ((n,C),t)) (cfields c) @ ts)"
-text \<open>@{term "fields G C"} 
+text \<open>\<^term>\<open>fields G C\<close> 
      list of fields of a class, including all the fields of the superclasses
      (private, inherited and hidden ones) not only the accessible ones
      (an instance of a object allocates all these fields\<close>
@@ -1517,15 +1517,15 @@ definition
     (let field_tab = table_of((map (\<lambda>((n,d),f).(n,(d,f)))) (fields G C))
       in filter_tab (\<lambda>n (declC,f). G\<turnstile> (declC,fdecl (n,f)) of C accessible_from S)
                     field_tab)"
-text  \<open>@{term "accfield G C S"}: fields of a class @{term C} which are 
+text  \<open>\<^term>\<open>accfield G C S\<close>: fields of a class \<^term>\<open>C\<close> which are 
          accessible from scope of class
-         @{term S} with inheritance and hiding, cf. 8.3\<close>
+         \<^term>\<open>S\<close> with inheritance and hiding, cf. 8.3\<close>
 text \<open>note the class component in the accessibility filter (see also 
-        @{term methd}).
-   The class declaring field @{term f} (@{term declC}) isn't necessarily 
-   accessible from scope @{term S}. The field can be made visible through 
-   inheritance, too. So we must test accessibility of field @{term f} of class 
-   @{term C} (not @{term "declclass f"})\<close> 
+        \<^term>\<open>methd\<close>).
+   The class declaring field \<^term>\<open>f\<close> (\<^term>\<open>declC\<close>) isn't necessarily 
+   accessible from scope \<^term>\<open>S\<close>. The field can be made visible through 
+   inheritance, too. So we must test accessibility of field \<^term>\<open>f\<close> of class 
+   \<^term>\<open>C\<close> (not \<^term>\<open>declclass f\<close>)\<close> 
 
 definition
   is_methd :: "prog \<Rightarrow> qtname  \<Rightarrow> sig \<Rightarrow> bool"

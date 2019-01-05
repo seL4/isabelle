@@ -29,7 +29,7 @@ let
       val (vTs', _) = fold_map frugal vTs [];
     in Logic.list_all (vTs', map_types (K dummyT) body) end;
 in
-  Term_Style.setup @{binding frugal_sorts}
+  Term_Style.setup \<^binding>\<open>frugal_sorts\<close>
     (Scan.succeed (K frugal_sorts))
 end
 \<close>

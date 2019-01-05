@@ -105,7 +105,7 @@ lemma "A \<noteq> Server \<Longrightarrow> \<exists>evs \<in> ns_shared.
 *)
 
 
-subsection\<open>Inductive proofs about @{term ns_shared}\<close>
+subsection\<open>Inductive proofs about \<^term>\<open>ns_shared\<close>\<close>
 
 subsubsection\<open>Forwarding lemmas, to aid simplification\<close>
 
@@ -120,8 +120,8 @@ lemma Oops_parts_spies:
             \<Longrightarrow> K \<in> parts (spies evs)"
 by blast
 
-text\<open>Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that NOBODY
-    sends messages containing @{term X}\<close>
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (spies evs)\<close> imply that NOBODY
+    sends messages containing \<^term>\<open>X\<close>\<close>
 
 text\<open>Spy never sees another agent's shared key! (unless it's bad at start)\<close>
 lemma Spy_see_shrK [simp]:
@@ -311,8 +311,8 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Says B A (Crypt K (Nonce NB)) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply (analz_mono_contra, simp_all, blast)
-txt\<open>NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
-    @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"}\<close> 
+txt\<open>NS2: contradiction from the assumptions \<^term>\<open>Key K \<notin> used evs2\<close> and
+    \<^term>\<open>Crypt K (Nonce NB) \<in> parts (spies evs2)\<close>\<close> 
 apply (force dest!: Crypt_imp_keysFor)
 txt\<open>NS4\<close>
 apply (metis B_trusts_NS3 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst unique_session_keys)
@@ -502,7 +502,7 @@ apply blast
 apply (simp_all add: takeWhile_tail)
 txt\<open>NS3 remains by pure coincidence!\<close>
 apply (force dest!: A_trusts_NS2 Says_Server_message_form)
-txt\<open>NS5 is the non-trivial case and cannot be solved as in @{term B_Issues_A}! because NB is not fresh. We need @{term A_trusts_NS5}, proved for this very purpose\<close>
+txt\<open>NS5 is the non-trivial case and cannot be solved as in \<^term>\<open>B_Issues_A\<close>! because NB is not fresh. We need \<^term>\<open>A_trusts_NS5\<close>, proved for this very purpose\<close>
 apply (blast dest: A_trusts_NS5 parts_spies_takeWhile_mono [THEN subsetD]
         parts_spies_evs_revD2 [THEN subsetD])
 done

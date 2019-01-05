@@ -17,7 +17,7 @@ section\<open>Progress Sets\<close>
 
 theory ProgressSets imports Transformers begin
 
-subsection \<open>Complete Lattices and the Operator @{term cl}\<close>
+subsection \<open>Complete Lattices and the Operator \<^term>\<open>cl\<close>\<close>
 
 definition lattice :: "'a set set => bool" where
    \<comment> \<open>Meier calls them closure sets, but they are just complete lattices\<close>
@@ -59,8 +59,8 @@ lemma Int_in_lattice: "[|x\<in>L; y\<in>L; lattice L|] ==> x\<inter>y \<in> L"
 lemma lattice_stable: "lattice {X. F \<in> stable X}"
 by (simp add: lattice_def stable_def constrains_def, blast)
 
-text\<open>The next three results state that @{term "cl L r"} is the minimal
- element of @{term L} that includes @{term r}.\<close>
+text\<open>The next three results state that \<^term>\<open>cl L r\<close> is the minimal
+ element of \<^term>\<open>L\<close> that includes \<^term>\<open>r\<close>.\<close>
 lemma cl_in_lattice: "lattice L ==> cl L r \<in> L"
   by (simp add: lattice_def cl_def)
 
@@ -131,7 +131,7 @@ by (simp add: cl_ident_iff [symmetric] equalityI subset_cl)
 
 subsection \<open>Progress Sets and the Main Lemma\<close>
 text\<open>A progress set satisfies certain closure conditions and is a 
-simple way of including the set @{term "wens_set F B"}.\<close>
+simple way of including the set \<^term>\<open>wens_set F B\<close>.\<close>
 
 definition closed :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "closed F T B L == \<forall>M. \<forall>act \<in> Acts F. B\<subseteq>M & T\<inter>M \<in> L -->
@@ -146,12 +146,12 @@ lemma closedD:
     ==> T \<inter> (B \<union> wp act M) \<in> L" 
 by (simp add: closed_def) 
 
-text\<open>Note: the formalization below replaces Meier's @{term q} by @{term B}
-and @{term m} by @{term X}.\<close>
+text\<open>Note: the formalization below replaces Meier's \<^term>\<open>q\<close> by \<^term>\<open>B\<close>
+and \<^term>\<open>m\<close> by \<^term>\<open>X\<close>.\<close>
 
 text\<open>Part of the proof of the claim at the bottom of page 97.  It's
 proved separately because the argument requires a generalization over
-all @{term "act \<in> Acts F"}.\<close>
+all \<^term>\<open>act \<in> Acts F\<close>.\<close>
 lemma lattice_awp_lemma:
   assumes TXC:  "T\<inter>X \<in> C" \<comment> \<open>induction hypothesis in theorem below\<close>
       and BsubX:  "B \<subseteq> X"   \<comment> \<open>holds in inductive step\<close>
@@ -240,15 +240,15 @@ proof -
 qed
 
 text\<open>Proved on page 96 of Meier's thesis.  The special case when
-   @{term "T=UNIV"} states that every progress set for the program @{term F}
-   and set @{term B} includes the set @{term "wens_set F B"}.\<close>
+   \<^term>\<open>T=UNIV\<close> states that every progress set for the program \<^term>\<open>F\<close>
+   and set \<^term>\<open>B\<close> includes the set \<^term>\<open>wens_set F B\<close>.\<close>
 lemma progress_set_lemma:
      "[|C \<in> progress_set F T B; r \<in> wens_set F B; F \<in> stable T|] ==> T\<inter>r \<in> C"
 apply (simp add: progress_set_def, clarify) 
 apply (erule wens_set.induct) 
   txt\<open>Base\<close>
   apply (simp add: Int_in_lattice) 
- txt\<open>The difficult @{term wens} case\<close>
+ txt\<open>The difficult \<^term>\<open>wens\<close> case\<close>
  apply (simp add: progress_induction_step) 
 txt\<open>Disjunctive case\<close>
 apply (subgoal_tac "(\<Union>U\<in>W. T \<inter> U) \<in> C") 
@@ -436,7 +436,7 @@ proof -
   thus ?thesis by simp
 qed
 
-text\<open>The ``Decoupling via @{term G'} Union Theorem''\<close>
+text\<open>The ``Decoupling via \<^term>\<open>G'\<close> Union Theorem''\<close>
 theorem decoupling_via_aux:
   assumes leadsTo: "F \<in> A leadsTo B"
       and prog: "{X. G' \<in> stable X} \<in> progress_set F UNIV B"
@@ -455,7 +455,7 @@ qed
 
 subsection\<open>Composition Theorems Based on Monotonicity and Commutativity\<close>
 
-subsubsection\<open>Commutativity of @{term "cl L"} and assignment.\<close>
+subsubsection\<open>Commutativity of \<^term>\<open>cl L\<close> and assignment.\<close>
 definition commutes :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "commutes F T B L ==
        \<forall>M. \<forall>act \<in> Acts F. B \<subseteq> M --> 
@@ -496,7 +496,7 @@ by (rule progress_set_Union [OF leadsTo _ Fstable subset_refl BL Gco],
 
 
 
-text\<open>Possibly move to Relation.thy, after @{term single_valued}\<close>
+text\<open>Possibly move to Relation.thy, after \<^term>\<open>single_valued\<close>\<close>
 definition funof :: "[('a*'b)set, 'a] => 'b" where
    "funof r == (\<lambda>x. THE y. (x,y) \<in> r)"
 

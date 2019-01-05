@@ -182,10 +182,10 @@ fun propagate_sure_bounds safe names g =
 
 exception Load of string;
 
-val empty_spvec = @{term "Nil :: real spvec"};
-fun cons_spvec x xs = @{term "Cons :: nat * real => real spvec => real spvec"} $ x $ xs;
-val empty_spmat = @{term "Nil :: real spmat"};
-fun cons_spmat x xs = @{term "Cons :: nat * real spvec => real spmat => real spmat"} $ x $ xs;
+val empty_spvec = \<^term>\<open>Nil :: real spvec\<close>;
+fun cons_spvec x xs = \<^term>\<open>Cons :: nat * real => real spvec => real spvec\<close> $ x $ xs;
+val empty_spmat = \<^term>\<open>Nil :: real spmat\<close>;
+fun cons_spmat x xs = \<^term>\<open>Cons :: nat * real spvec => real spmat => real spmat\<close> $ x $ xs;
 
 fun calcr safe_propagation xlen names prec A b =
     let
@@ -276,8 +276,8 @@ fun calcr safe_propagation xlen names prec A b =
                     val b1 = Inttab.lookup r1 index
                     val b2 = Inttab.lookup r2 index
                 in
-                    (add_row_entry r12_1 index @{term "lbound :: real => real"} ((names index)^"l") b1, 
-                     add_row_entry r12_2 index @{term "ubound :: real => real"} ((names index)^"u") b2)
+                    (add_row_entry r12_1 index \<^term>\<open>lbound :: real => real\<close> ((names index)^"l") b1, 
+                     add_row_entry r12_2 index \<^term>\<open>ubound :: real => real\<close> ((names index)^"u") b2)
                 end
 
         val (r1, r2) = abs_estimate xlen r1 r2

@@ -21,12 +21,12 @@ by blast
 text\<open>Collapses redundant cases in the huge protocol proofs\<close>
 lemmas disj_simps = disj_comms disj_left_absorb disj_assoc 
 
-text\<open>Effective with assumptions like @{term "K \<notin> range pubK"} and 
-   @{term "K \<notin> invKey`range pubK"}\<close>
+text\<open>Effective with assumptions like \<^term>\<open>K \<notin> range pubK\<close> and 
+   \<^term>\<open>K \<notin> invKey`range pubK\<close>\<close>
 lemma notin_image_iff: "(y \<notin> f`I) = (\<forall>i\<in>I. f i \<noteq> y)"
 by blast
 
-text\<open>Effective with the assumption @{term "KK \<subseteq> - (range(invKey o pubK))"}\<close>
+text\<open>Effective with the assumption \<^term>\<open>KK \<subseteq> - (range(invKey o pubK))\<close>\<close>
 lemma disjoint_image_iff: "(A \<subseteq> - (f`I)) = (\<forall>i\<in>I. f i \<notin> A)"
 by blast
 
@@ -263,7 +263,7 @@ by (intro equalityI parts_UN_subset1 parts_UN_subset2)
 
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of
-  @{term "parts(G\<union>H)"} in the assumption.\<close>
+  \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
 declare parts_Un [THEN equalityD1, THEN subsetD, THEN UnE, elim!]
 
 

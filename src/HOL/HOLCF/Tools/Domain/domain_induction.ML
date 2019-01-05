@@ -41,13 +41,13 @@ let
   val {take_consts, take_Suc_thms, deflation_take_thms, ...} = take_info
   val deflation_thms = Domain_Take_Proofs.get_deflation_thms thy
 
-  val n = Free ("n", @{typ nat})
-  val n' = @{const Suc} $ n
+  val n = Free ("n", \<^typ>\<open>nat\<close>)
+  val n' = \<^const>\<open>Suc\<close> $ n
 
   local
     val newTs = map (#absT o #iso_info) constr_infos
     val subs = newTs ~~ map (fn t => t $ n) take_consts
-    fun is_ID (Const (c, _)) = (c = @{const_name ID})
+    fun is_ID (Const (c, _)) = (c = \<^const_name>\<open>ID\<close>)
       | is_ID _              = false
   in
     fun map_of_arg thy v T =

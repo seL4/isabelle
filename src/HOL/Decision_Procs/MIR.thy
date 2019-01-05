@@ -5575,98 +5575,98 @@ val mk_Bound = @{code Bound} o @{code nat_of_integer};
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (=) vs t
      of NONE => error "Variable not found in the list!"
       | SOME n => mk_Bound n)
-  | num_of_term vs @{term "of_int (0::int)"} = mk_C 0
-  | num_of_term vs @{term "of_int (1::int)"} = mk_C 1
-  | num_of_term vs @{term "0::real"} = mk_C 0
-  | num_of_term vs @{term "1::real"} = mk_C 1
-  | num_of_term vs @{term "- 1::real"} = mk_C (~ 1)
+  | num_of_term vs \<^term>\<open>of_int (0::int)\<close> = mk_C 0
+  | num_of_term vs \<^term>\<open>of_int (1::int)\<close> = mk_C 1
+  | num_of_term vs \<^term>\<open>0::real\<close> = mk_C 0
+  | num_of_term vs \<^term>\<open>1::real\<close> = mk_C 1
+  | num_of_term vs \<^term>\<open>- 1::real\<close> = mk_C (~ 1)
   | num_of_term vs (Bound i) = mk_Bound i
-  | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
-  | num_of_term vs (@{term "(+) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+  | num_of_term vs (\<^term>\<open>uminus :: real \<Rightarrow> real\<close> $ t') = @{code Neg} (num_of_term vs t')
+  | num_of_term vs (\<^term>\<open>(+) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "(-) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+  | num_of_term vs (\<^term>\<open>(-) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "(*) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+  | num_of_term vs (\<^term>\<open>(*) :: real \<Rightarrow> real \<Rightarrow> real\<close> $ t1 $ t2) =
       (case (num_of_term vs t1)
        of @{code C} i => @{code Mul} (i, num_of_term vs t2)
         | _ => error "num_of_term: unsupported Multiplication")
-  | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t')) =
+  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>numeral :: _ \<Rightarrow> int\<close> $ t')) =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t')) =
+  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t')) =
       mk_C (~ (HOLogic.dest_numeral t'))
-  | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
+  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>floor :: real \<Rightarrow> int\<close> $ t')) =
       @{code Floor} (num_of_term vs t')
-  | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ t')) =
+  | num_of_term vs (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>ceiling :: real \<Rightarrow> int\<close> $ t')) =
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
-  | num_of_term vs (@{term "numeral :: _ \<Rightarrow> real"} $ t') =
+  | num_of_term vs (\<^term>\<open>numeral :: _ \<Rightarrow> real\<close> $ t') =
       mk_C (HOLogic.dest_numeral t')
-  | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> real"} $ t') =
+  | num_of_term vs (\<^term>\<open>- numeral :: _ \<Rightarrow> real\<close> $ t') =
       mk_C (~ (HOLogic.dest_numeral t'))
-  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term \<^context> t);
 
-fun fm_of_term vs @{term True} = @{code T}
-  | fm_of_term vs @{term False} = @{code F}
-  | fm_of_term vs (@{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+fun fm_of_term vs \<^term>\<open>True\<close> = @{code T}
+  | fm_of_term vs \<^term>\<open>False\<close> = @{code F}
+  | fm_of_term vs (\<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
       @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (@{term "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
       @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (@{term "(=) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (@{term "(rdvd)"} $ (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
+  | fm_of_term vs (\<^term>\<open>(rdvd)\<close> $ (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>numeral :: _ \<Rightarrow> int\<close> $ t1)) $ t2) =
       mk_Dvd (HOLogic.dest_numeral t1, num_of_term vs t2)
-  | fm_of_term vs (@{term "(rdvd)"} $ (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
+  | fm_of_term vs (\<^term>\<open>(rdvd)\<close> $ (\<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>- numeral :: _ \<Rightarrow> int\<close> $ t1)) $ t2) =
       mk_Dvd (~ (HOLogic.dest_numeral t1), num_of_term vs t2)
-  | fm_of_term vs (@{term "(=) :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>(=) :: bool \<Rightarrow> bool \<Rightarrow> bool\<close> $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term HOL.conj} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>HOL.conj\<close> $ t1 $ t2) =
       @{code And} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term HOL.disj} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>HOL.disj\<close> $ t1 $ t2) =
       @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term HOL.implies} $ t1 $ t2) =
+  | fm_of_term vs (\<^term>\<open>HOL.implies\<close> $ t1 $ t2) =
       @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term "Not"} $ t') =
+  | fm_of_term vs (\<^term>\<open>Not\<close> $ t') =
       @{code NOT} (fm_of_term vs t')
-  | fm_of_term vs (Const (@{const_name Ex}, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (xn, xT, p)) =
       @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
-  | fm_of_term vs (Const (@{const_name All}, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs (Const (\<^const_name>\<open>All\<close>, _) $ Abs (xn, xT, p)) =
       @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
-  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
+  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term \<^context> t);
 
-fun term_of_num vs (@{code C} i) = @{term "of_int :: int \<Rightarrow> real"} $
+fun term_of_num vs (@{code C} i) = \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $
       HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
   | term_of_num vs (@{code Bound} n) =
       let
         val m = @{code integer_of_nat} n;
       in fst (the (find_first (fn (_, q) => m = q) vs)) end
   | term_of_num vs (@{code Neg} (@{code Floor} (@{code Neg} t'))) =
-      @{term "of_int :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ term_of_num vs t')
-  | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
-  | term_of_num vs (@{code Add} (t1, t2)) = @{term "(+) :: real \<Rightarrow> real \<Rightarrow> real"} $
+      \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>ceiling :: real \<Rightarrow> int\<close> $ term_of_num vs t')
+  | term_of_num vs (@{code Neg} t') = \<^term>\<open>uminus :: real \<Rightarrow> real\<close> $ term_of_num vs t'
+  | term_of_num vs (@{code Add} (t1, t2)) = \<^term>\<open>(+) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "(-) :: real \<Rightarrow> real \<Rightarrow> real"} $
+  | term_of_num vs (@{code Sub} (t1, t2)) = \<^term>\<open>(-) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Mul} (i, t2)) = @{term "(*) :: real \<Rightarrow> real \<Rightarrow> real"} $
+  | term_of_num vs (@{code Mul} (i, t2)) = \<^term>\<open>(*) :: real \<Rightarrow> real \<Rightarrow> real\<close> $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
-  | term_of_num vs (@{code Floor} t) = @{term "of_int :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ term_of_num vs t)
+  | term_of_num vs (@{code Floor} t) = \<^term>\<open>of_int :: int \<Rightarrow> real\<close> $ (\<^term>\<open>floor :: real \<Rightarrow> int\<close> $ term_of_num vs t)
   | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
   | term_of_num vs (@{code CF} (c, t, s)) = term_of_num vs (@{code Add} (@{code Mul} (c, @{code Floor} t), s));
 
-fun term_of_fm vs @{code T} = @{term True}
-  | term_of_fm vs @{code F} = @{term False}
+fun term_of_fm vs @{code T} = \<^term>\<open>True\<close>
+  | term_of_fm vs @{code F} = \<^term>\<open>False\<close>
   | term_of_fm vs (@{code Lt} t) =
-      @{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+      \<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
   | term_of_fm vs (@{code Le} t) =
-      @{term "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+      \<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
   | term_of_fm vs (@{code Gt} t) =
-      @{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ @{term "0::real"} $ term_of_num vs t
+      \<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ \<^term>\<open>0::real\<close> $ term_of_num vs t
   | term_of_fm vs (@{code Ge} t) =
-      @{term "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"} $ @{term "0::real"} $ term_of_num vs t
+      \<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ \<^term>\<open>0::real\<close> $ term_of_num vs t
   | term_of_fm vs (@{code Eq} t) =
-      @{term "(=) :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+      \<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ term_of_num vs t $ \<^term>\<open>0::real\<close>
   | term_of_fm vs (@{code NEq} t) =
       term_of_fm vs (@{code NOT} (@{code Eq} t))
   | term_of_fm vs (@{code Dvd} (i, t)) =
-      @{term "(rdvd)"} $ term_of_num vs (@{code C} i) $ term_of_num vs t
+      \<^term>\<open>(rdvd)\<close> $ term_of_num vs (@{code C} i) $ term_of_num vs t
   | term_of_fm vs (@{code NDvd} (i, t)) =
       term_of_fm vs (@{code NOT} (@{code Dvd} (i, t)))
   | term_of_fm vs (@{code NOT} t') =
@@ -5678,7 +5678,7 @@ fun term_of_fm vs @{code T} = @{term True}
   | term_of_fm vs (@{code Imp}  (t1, t2)) =
       HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Iff} (t1, t2)) =
-      @{term "(=) :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm vs t1 $ term_of_fm vs t2;
+      \<^term>\<open>(=) :: bool \<Rightarrow> bool \<Rightarrow> bool\<close> $ term_of_fm vs t1 $ term_of_fm vs t2;
 
 in
   fn (ctxt, t) =>

@@ -17,8 +17,8 @@ section\<open>Predicate Transformers\<close>
 
 theory Transformers imports Comp begin
 
-subsection\<open>Defining the Predicate Transformers @{term wp},
-   @{term awp} and  @{term wens}\<close>
+subsection\<open>Defining the Predicate Transformers \<^term>\<open>wp\<close>,
+   \<^term>\<open>awp\<close> and  \<^term>\<open>wens\<close>\<close>
 
 definition wp :: "[('a*'a) set, 'a set] => 'a set" where  
     \<comment> \<open>Dijkstra's weakest-precondition operator (for an individual command)\<close>
@@ -88,7 +88,7 @@ done
 lemma wens_Id [simp]: "wens F Id B = B"
 by (simp add: wens_def gfp_def wp_def awp_def, blast)
 
-text\<open>These two theorems justify the claim that @{term wens} returns the
+text\<open>These two theorems justify the claim that \<^term>\<open>wens\<close> returns the
 weakest assertion satisfying the ensures property\<close>
 lemma ensures_imp_wens: "F \<in> A ensures B ==> \<exists>act \<in> Acts F. A \<subseteq> wens F act B"
 apply (simp add: wens_def ensures_def transient_def, clarify) 
@@ -125,7 +125,7 @@ by (simp add: wens_def gfp_def wp_def awp_def constrains_def, blast)
       slow!\<close>
 
 text\<open>Assertion (7): 4.18 in the thesis.  NOTE that many of these results
-hold for an arbitrary action.  We often do not require @{term "act \<in> Acts F"}\<close>
+hold for an arbitrary action.  We often do not require \<^term>\<open>act \<in> Acts F\<close>\<close>
 lemma stable_wens: "F \<in> stable A ==> F \<in> stable (wens F act A)"
 apply (simp add: stable_def)
 apply (drule constrains_Un [OF Diff_wens_constrains [of F act A]]) 
@@ -144,7 +144,7 @@ apply (simp add: wp_def awp_def, blast)
 done
 
 text\<open>Assertion (8): 4.21 in the thesis. Here we indeed require
-      @{term "act \<in> Acts F"}\<close>
+      \<^term>\<open>act \<in> Acts F\<close>\<close>
 lemma wens_Int_eq:
       "[|T-B \<subseteq> awp F T; act \<in> Acts F|]
        ==> T \<inter> wens F act B = T \<inter> wens F act (T\<inter>B)"
@@ -202,9 +202,9 @@ text\<open>Assertion (9): 4.27 in the thesis.\<close>
 lemma leadsTo_iff_wens_set: "(F \<in> A leadsTo B) = (\<exists>C \<in> wens_set F B. A \<subseteq> C)"
 by (blast intro: leadsTo_imp_wens_set leadsTo_weaken_L wens_set_imp_leadsTo) 
 
-text\<open>This is the result that requires the definition of @{term wens_set} to
-  require @{term W} to be non-empty in the Unio case, for otherwise we should
-  always have @{term "{} \<in> wens_set F B"}.\<close>
+text\<open>This is the result that requires the definition of \<^term>\<open>wens_set\<close> to
+  require \<^term>\<open>W\<close> to be non-empty in the Unio case, for otherwise we should
+  always have \<^term>\<open>{} \<in> wens_set F B\<close>.\<close>
 lemma wens_set_imp_subset: "A \<in> wens_set F B ==> B \<subseteq> A"
 apply (erule wens_set.induct) 
   apply (blast intro: wens_weakening [THEN subsetD])+
@@ -299,7 +299,7 @@ apply (blast intro: wens_set_imp_leadsTo [THEN leadsTo_weaken_L])
 done
 
 
-subsection \<open>The Set @{term "wens_set F B"} for a Single-Assignment Program\<close>
+subsection \<open>The Set \<^term>\<open>wens_set F B\<close> for a Single-Assignment Program\<close>
 text\<open>Thesis Section 4.3.3\<close>
 
 text\<open>We start by proving laws about single-assignment programs\<close>
@@ -332,7 +332,7 @@ lemma wens_single_eq:
 by (simp add: wens_def gfp_def wp_def, blast)
 
 
-text\<open>Next, we express the @{term "wens_set"} for single-assignment programs\<close>
+text\<open>Next, we express the \<^term>\<open>wens_set\<close> for single-assignment programs\<close>
 
 definition wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set" where  
     "wens_single_finite act B k == \<Union>i \<in> atMost k. (wp act ^^ i) B"

@@ -28,9 +28,9 @@ val neq_to_eq_False = @{thm neq_to_eq_False};
 
 datatype direction = Left | Right;
 
-fun treeT T = Type (@{type_name tree}, [T]);
+fun treeT T = Type (\<^type_name>\<open>tree\<close>, [T]);
 
-fun mk_tree' e T n [] = Const (@{const_name Tip}, treeT T)
+fun mk_tree' e T n [] = Const (\<^const_name>\<open>Tip\<close>, treeT T)
   | mk_tree' e T n xs =
      let
        val m = (n - 1) div 2;
@@ -38,20 +38,20 @@ fun mk_tree' e T n [] = Const (@{const_name Tip}, treeT T)
        val l = mk_tree' e T m xsl;
        val r = mk_tree' e T (n-(m+1)) xsr;
      in
-       Const (@{const_name Node}, treeT T --> T --> HOLogic.boolT--> treeT T --> treeT T) $
-         l $ e x $ @{term False} $ r
+       Const (\<^const_name>\<open>Node\<close>, treeT T --> T --> HOLogic.boolT--> treeT T --> treeT T) $
+         l $ e x $ \<^term>\<open>False\<close> $ r
      end
 
 fun mk_tree e T xs = mk_tree' e T (length xs) xs;
 
-fun dest_tree (Const (@{const_name Tip}, _)) = []
-  | dest_tree (Const (@{const_name Node}, _) $ l $ e $ _ $ r) = dest_tree l @ e :: dest_tree r
+fun dest_tree (Const (\<^const_name>\<open>Tip\<close>, _)) = []
+  | dest_tree (Const (\<^const_name>\<open>Node\<close>, _) $ l $ e $ _ $ r) = dest_tree l @ e :: dest_tree r
   | dest_tree t = raise TERM ("dest_tree", [t]);
 
 
 
-fun lin_find_tree e (Const (@{const_name Tip}, _)) = NONE
-  | lin_find_tree e (Const (@{const_name Node}, _) $ l $ x $ _ $ r) =
+fun lin_find_tree e (Const (\<^const_name>\<open>Tip\<close>, _)) = NONE
+  | lin_find_tree e (Const (\<^const_name>\<open>Node\<close>, _) $ l $ x $ _ $ r) =
       if e aconv x
       then SOME []
       else
@@ -63,8 +63,8 @@ fun lin_find_tree e (Const (@{const_name Tip}, _)) = NONE
             | NONE => NONE))
   | lin_find_tree e t = raise TERM ("find_tree: input not a tree", [t])
 
-fun bin_find_tree order e (Const (@{const_name Tip}, _)) = NONE
-  | bin_find_tree order e (Const (@{const_name Node}, _) $ l $ x $ _ $ r) =
+fun bin_find_tree order e (Const (\<^const_name>\<open>Tip\<close>, _)) = NONE
+  | bin_find_tree order e (Const (\<^const_name>\<open>Node\<close>, _) $ l $ x $ _ $ r) =
       (case order (e, x) of
         EQUAL => SOME []
       | LESS => Option.map (cons Left) (bin_find_tree order e l)
@@ -293,7 +293,7 @@ local
     in (dest_TVar (Thm.typ_of alpha), #1 (dest_Var (Thm.term_of ct))) end;
 in
 
-fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
+fun subtractProver ctxt (Const (\<^const_name>\<open>Tip\<close>, T)) ct dist_thm =
       let
         val ct' = dist_thm |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
         val [alphaI] = #2 (dest_Type T);
@@ -302,7 +302,7 @@ fun subtractProver ctxt (Const (@{const_name Tip}, T)) ct dist_thm =
           ([(alpha, Thm.ctyp_of ctxt alphaI)],
            [((v, treeT alphaI), ct')]) @{thm subtract_Tip}
       end
-  | subtractProver ctxt (Const (@{const_name Node}, nT) $ l $ x $ d $ r) ct dist_thm =
+  | subtractProver ctxt (Const (\<^const_name>\<open>Node\<close>, nT) $ l $ x $ d $ r) ct dist_thm =
       let
         val ct' = dist_thm |> Thm.cprop_of |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
         val (_, [cl, _, _, cr]) = Drule.strip_comb ct;
@@ -342,8 +342,8 @@ fun neq_x_y ctxt x y name =
 
 fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
     (case goal of
-      Const (@{const_name Trueprop}, _) $
-          (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ x $ y)) =>
+      Const (\<^const_name>\<open>Trueprop\<close>, _) $
+          (Const (\<^const_name>\<open>Not\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ x $ y)) =>
         (case get_fst_success (neq_x_y ctxt x y) names of
           SOME neq => resolve_tac ctxt [neq] i
         | NONE => no_tac)
@@ -353,11 +353,11 @@ fun distinctFieldSolver names =
   mk_solver "distinctFieldSolver" (distinctTree_tac names);
 
 fun distinct_simproc names =
-  Simplifier.make_simproc @{context} "DistinctTreeProver.distinct_simproc"
-   {lhss = [@{term "x = y"}],
+  Simplifier.make_simproc \<^context> "DistinctTreeProver.distinct_simproc"
+   {lhss = [\<^term>\<open>x = y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name HOL.eq}, _) $ x $ y =>
+        Const (\<^const_name>\<open>HOL.eq\<close>, _) $ x $ y =>
           Option.map (fn neq => @{thm neq_to_eq_False} OF [neq])
             (get_fst_success (neq_x_y ctxt x y) names)
       | _ => NONE)};

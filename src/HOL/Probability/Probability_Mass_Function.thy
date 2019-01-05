@@ -1568,7 +1568,7 @@ lemma rel_pmf_bindI:
      (auto simp add: pmf.rel_map intro: pmf.rel_mono[THEN le_funD, THEN le_funD, THEN le_boolD, THEN mp, OF _ pq] fg)
 
 text \<open>
-  Proof that @{const rel_pmf} preserves orders.
+  Proof that \<^const>\<open>rel_pmf\<close> preserves orders.
   Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism,
   Theoretical Computer Science 12(1):19--37, 1980,
   \<^url>\<open>https://doi.org/10.1016/0304-3975(80)90003-1\<close>

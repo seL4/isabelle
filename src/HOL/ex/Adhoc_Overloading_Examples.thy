@@ -82,7 +82,7 @@ term "vars (Var 1)" (*which yields: "term_vars (Var 1)"*)
 subsection \<open>Adhoc Overloading inside Locales\<close>
 
 text \<open>As example we use permutations that are parametrized over an
-atom type @{typ "'a"}.\<close>
+atom type \<^typ>\<open>'a\<close>.\<close>
 
 definition perms :: "('a \<Rightarrow> 'a) set" where
   "perms = {f. bij f \<and> finite {x. f x \<noteq> x}}"
@@ -178,7 +178,7 @@ convenient infix syntax.\<close>
 
 consts PERMUTE :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "\<bullet>" 75)
 
-text \<open>Then we add a locale for types @{typ 'b} that support
+text \<open>Then we add a locale for types \<^typ>\<open>'b\<close> that support
 appliciation of permutations.\<close>
 locale permute =
   fixes permute :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b"

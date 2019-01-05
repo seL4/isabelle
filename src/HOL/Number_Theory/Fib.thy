@@ -42,7 +42,7 @@ subsection \<open>More efficient code\<close>
 
 text \<open>
   The naive approach is very inefficient since the branching recursion leads to many
-  values of @{term fib} being computed multiple times. We can avoid this by ``remembering''
+  values of \<^term>\<open>fib\<close> being computed multiple times. We can avoid this by ``remembering''
   the last two values in the sequence, yielding a tail-recursive version.
   This is far from optimal (it takes roughly $O(n\cdot M(n))$ time where $M(n)$ is the
   time required to multiply two $n$-bit integers), but much better than the naive version,

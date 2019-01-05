@@ -51,8 +51,8 @@ definition init_locs     :: "cname => mname => state => state" where
  "init_locs C m s \<equiv> s (| locals := locals s ++ 
                          init_vars (map_of (lcl (the (method C m)))) |)"
 
-text \<open>The first parameter of @{term set_locs} is of type @{typ state} 
-        rather than @{typ locals} in order to keep @{typ locals} private.\<close>
+text \<open>The first parameter of \<^term>\<open>set_locs\<close> is of type \<^typ>\<open>state\<close> 
+        rather than \<^typ>\<open>locals\<close> in order to keep \<^typ>\<open>locals\<close> private.\<close>
 definition set_locs :: "state => state => state" where
  "set_locs s s' \<equiv> s' (| locals := locals s |)"
 

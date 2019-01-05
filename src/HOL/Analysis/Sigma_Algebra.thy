@@ -1637,7 +1637,7 @@ lemma space_empty_iff: "space N = {} \<longleftrightarrow> sets N = {{}}"
   by (metis Pow_empty Sup_bot_conv(1) cSup_singleton empty_iff
             sets.sigma_sets_eq sets.space_closed sigma_sets_top subset_singletonD)
 
-subsubsection \<open>Constructing simple @{typ "'a measure"}\<close>
+subsubsection \<open>Constructing simple \<^typ>\<open>'a measure\<close>\<close>
 
 proposition emeasure_measure_of:
   assumes M: "M = measure_of \<Omega> A \<mu>"

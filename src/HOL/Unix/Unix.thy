@@ -82,20 +82,19 @@ record att =
   others :: perms
 
 text \<open>
-  For plain files @{term Readable} and @{term Writable} specify read and write
+  For plain files \<^term>\<open>Readable\<close> and \<^term>\<open>Writable\<close> specify read and write
   access to the actual content, i.e.\ the string of text stored here. For
-  directories @{term Readable} determines if the set of entry names may be
-  accessed, and @{term Writable} controls the ability to create or delete any
+  directories \<^term>\<open>Readable\<close> determines if the set of entry names may be
+  accessed, and \<^term>\<open>Writable\<close> controls the ability to create or delete any
   entries (both plain files or sub-directories).
 
-  As another simplification, we ignore the @{term Executable} permission
+  As another simplification, we ignore the \<^term>\<open>Executable\<close> permission
   altogether. In reality it would indicate executable plain files (also known
   as ``binaries''), or control actual lookup of directory entries (recall that
-  mere directory browsing is controlled via @{term Readable}). Note that the
+  mere directory browsing is controlled via \<^term>\<open>Readable\<close>). Note that the
   latter means that in order to perform any file-system operation whatsoever,
-  all directories encountered on the path would have to grant @{term
-  Executable}. We ignore this detail and pretend that all directories give
-  @{term Executable} permission to anybody.
+  all directories encountered on the path would have to grant \<^term>\<open>Executable\<close>. We ignore this detail and pretend that all directories give
+  \<^term>\<open>Executable\<close> permission to anybody.
 \<close>
 
 
@@ -103,9 +102,9 @@ subsection \<open>Files\<close>
 
 text \<open>
   In order to model the general tree structure of a Unix file-system we use
-  the arbitrarily branching datatype @{typ "('a, 'b, 'c) env"} from the
+  the arbitrarily branching datatype \<^typ>\<open>('a, 'b, 'c) env\<close> from the
   standard library of Isabelle/HOL @{cite "Bauer-et-al:2002:HOL-Library"}.
-  This type provides constructors @{term Val} and @{term Env} as follows:
+  This type provides constructors \<^term>\<open>Val\<close> and \<^term>\<open>Env\<close> as follows:
 
   \<^medskip>
   {\def\isastyleminor{\isastyle}
@@ -115,19 +114,18 @@ text \<open>
   \end{tabular}}
   \<^medskip>
 
-  Here the parameter @{typ 'a} refers to plain values occurring at leaf
-  positions, parameter @{typ 'b} to information kept with inner branch nodes,
-  and parameter @{typ 'c} to the branching type of the tree structure. For our
-  purpose we use the type instance with @{typ "att \<times> string"} (representing
-  plain files), @{typ att} (for attributes of directory nodes), and @{typ
-  name} (for the index type of directory nodes).
+  Here the parameter \<^typ>\<open>'a\<close> refers to plain values occurring at leaf
+  positions, parameter \<^typ>\<open>'b\<close> to information kept with inner branch nodes,
+  and parameter \<^typ>\<open>'c\<close> to the branching type of the tree structure. For our
+  purpose we use the type instance with \<^typ>\<open>att \<times> string\<close> (representing
+  plain files), \<^typ>\<open>att\<close> (for attributes of directory nodes), and \<^typ>\<open>name\<close> (for the index type of directory nodes).
 \<close>
 
 type_synonym "file" = "(att \<times> string, att, name) env"
 
 text \<open>
   \<^medskip>
-  The HOL library also provides @{term lookup} and @{term update} operations
+  The HOL library also provides \<^term>\<open>lookup\<close> and \<^term>\<open>update\<close> operations
   for general tree structures with the subsequent primitive recursive
   characterizations.
 
@@ -147,7 +145,7 @@ text \<open>
   without further notice.
 
   \<^bigskip>
-  Apparently, the elements of type @{typ "file"} contain an @{typ att}
+  Apparently, the elements of type \<^typ>\<open>file\<close> contain an \<^typ>\<open>att\<close>
   component in either case. We now define a few auxiliary operations to
   manipulate this field uniformly, following the conventions for record types
   in Isabelle/HOL @{cite "Nipkow-et-al:2000:HOL"}.
@@ -203,8 +201,8 @@ subsection \<open>Accessing file-systems\<close>
 
 text \<open>
   The main internal file-system operation is access of a file by a user,
-  requesting a certain set of permissions. The resulting @{typ "file option"}
-  indicates if a file had been present at the corresponding @{typ path} and if
+  requesting a certain set of permissions. The resulting \<^typ>\<open>file option\<close>
+  indicates if a file had been present at the corresponding \<^typ>\<open>path\<close> and if
   access was granted according to the permissions recorded within the
   file-system.
 
@@ -228,14 +226,13 @@ text \<open>
   \<^medskip>
   Successful access to a certain file is the main prerequisite for
   system-calls to be applicable (cf.\ \secref{sec:unix-trans}). Any
-  modification of the file-system is then performed using the basic @{term
-  update} operation.
+  modification of the file-system is then performed using the basic \<^term>\<open>update\<close> operation.
 
   \<^medskip>
-  We see that @{term access} is just a wrapper for the basic @{term lookup}
+  We see that \<^term>\<open>access\<close> is just a wrapper for the basic \<^term>\<open>lookup\<close>
   function, with additional checking of attributes. Subsequently we establish
-  a few auxiliary facts that stem from the primitive @{term lookup} used
-  within @{term access}.
+  a few auxiliary facts that stem from the primitive \<^term>\<open>lookup\<close> used
+  within \<^term>\<open>access\<close>.
 \<close>
 
 lemma access_empty_lookup: "access root path uid {} = lookup root path"
@@ -289,10 +286,10 @@ datatype operation =
   | Readdir uid "name set" path
 
 text \<open>
-  The @{typ uid} field of an operation corresponds to the \<^emph>\<open>effective user id\<close>
+  The \<^typ>\<open>uid\<close> field of an operation corresponds to the \<^emph>\<open>effective user id\<close>
   of the underlying process, although our model never mentions processes
   explicitly. The other parameters are provided as arguments by the caller;
-  the @{term path} one is common to all kinds of system-calls.
+  the \<^term>\<open>path\<close> one is common to all kinds of system-calls.
 \<close>
 
 primrec uid_of :: "operation \<Rightarrow> uid"
@@ -320,7 +317,7 @@ primrec path_of :: "operation \<Rightarrow> path"
 text \<open>
   \<^medskip>
   Note that we have omitted explicit \<open>Open\<close> and \<open>Close\<close> operations, pretending
-  that @{term Read} and @{term Write} would already take care of this behind
+  that \<^term>\<open>Read\<close> and \<^term>\<open>Write\<close> would already take care of this behind
   the scenes. Thus we have basically treated actual sequences of real
   system-calls \<open>open\<close>--\<open>read\<close>/\<open>write\<close>--\<open>close\<close> as atomic.
 
@@ -399,7 +396,7 @@ subsection \<open>Basic properties of single transitions \label{sec:unix-single-
 
 text \<open>
   The transition system \<open>root \<midarrow>x\<rightarrow> root'\<close> defined above determines a unique
-  result @{term root'} from given @{term root} and @{term x} (this is holds
+  result \<^term>\<open>root'\<close> from given \<^term>\<open>root\<close> and \<^term>\<open>x\<close> (this is holds
   rather trivially, since there is even only one clause for each operation).
   This uniqueness statement will simplify our subsequent development to some
   extent, since we only have to reason about a partial function rather than a
@@ -532,10 +529,9 @@ qed
 
 text \<open>
   \<^medskip>
-  The following fact shows how an invariant @{term Q} of single transitions
-  with property @{term P} may be transferred to iterated transitions. The
-  proof is rather obvious by rule induction over the definition of @{term
-  "root \<Midarrow>xs\<Rightarrow> root'"}.
+  The following fact shows how an invariant \<^term>\<open>Q\<close> of single transitions
+  with property \<^term>\<open>P\<close> may be transferred to iterated transitions. The
+  proof is rather obvious by rule induction over the definition of \<^term>\<open>root \<Midarrow>xs\<Rightarrow> root'\<close>.
 \<close>
 
 lemma transitions_invariant:
@@ -653,16 +649,16 @@ lemmas eval = access_def init_def
 theorem "u \<in> users \<Longrightarrow> can_exec (init users)
     [Mkdir u perms [u, name]]"
   apply (rule can_exec_cons)
-    \<comment> \<open>back-chain @{term can_exec} (of @{term [source] Cons})\<close>
+    \<comment> \<open>back-chain \<^term>\<open>can_exec\<close> (of @{term [source] Cons})\<close>
   apply (rule mkdir)
-    \<comment> \<open>back-chain @{term Mkdir}\<close>
+    \<comment> \<open>back-chain \<^term>\<open>Mkdir\<close>\<close>
   apply (force simp add: eval)+
-    \<comment> \<open>solve preconditions of @{term Mkdir}\<close>
+    \<comment> \<open>solve preconditions of \<^term>\<open>Mkdir\<close>\<close>
   apply (simp add: eval)
     \<comment> \<open>peek at resulting dir (optional)\<close>
   txt \<open>@{subgoals [display]}\<close>
   apply (rule can_exec_nil)
-    \<comment> \<open>back-chain @{term can_exec} (of @{term [source] Nil})\<close>
+    \<comment> \<open>back-chain \<^term>\<open>can_exec\<close> (of @{term [source] Nil})\<close>
   done
 
 text \<open>
@@ -758,13 +754,13 @@ proof -
 qed
 
 text \<open>
-  Here @{prop "P x"} refers to the restriction on file-system operations that
+  Here \<^prop>\<open>P x\<close> refers to the restriction on file-system operations that
   are admitted after having reached the critical configuration; according to
-  the problem specification this will become @{prop "uid_of x = user\<^sub>1"} later
-  on. Furthermore, @{term y} refers to the operations we claim to be
-  impossible to perform afterwards, we will take @{term Rmdir} later. Moreover
-  @{term Q} is a suitable (auxiliary) invariant over the file-system; choosing
-  @{term Q} adequately is very important to make the proof work (see
+  the problem specification this will become \<^prop>\<open>uid_of x = user\<^sub>1\<close> later
+  on. Furthermore, \<^term>\<open>y\<close> refers to the operations we claim to be
+  impossible to perform afterwards, we will take \<^term>\<open>Rmdir\<close> later. Moreover
+  \<^term>\<open>Q\<close> is a suitable (auxiliary) invariant over the file-system; choosing
+  \<^term>\<open>Q\<close> adequately is very important to make the proof work (see
   \secref{sec:unix-inv-lemmas}).
 \<close>
 
@@ -804,8 +800,8 @@ definition
 definition "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
 
 text \<open>
-  The @{term bogus} operations are the ones that lead into the uncouth
-  situation; @{term bogus_path} is the key position within the file-system
+  The \<^term>\<open>bogus\<close> operations are the ones that lead into the uncouth
+  situation; \<^term>\<open>bogus_path\<close> is the key position within the file-system
   where things go awry.
 \<close>
 
@@ -814,9 +810,9 @@ subsection \<open>Invariance lemmas \label{sec:unix-inv-lemmas}\<close>
 
 text \<open>
   The following invariant over the root file-system describes the bogus
-  situation in an abstract manner: located at a certain @{term path} within
+  situation in an abstract manner: located at a certain \<^term>\<open>path\<close> within
   the file-system is a non-empty directory that is neither owned nor writable
-  by @{term user\<^sub>1}.
+  by \<^term>\<open>user\<^sub>1\<close>.
 \<close>
 
 definition
@@ -831,14 +827,13 @@ text \<open>
   will now establish the three key lemmas required to yield the final result.
 
     \<^enum> The invariant is sufficiently strong to entail the pathological case
-    that @{term user\<^sub>1} is unable to remove the (owned) directory at @{term
-    "[user\<^sub>1, name\<^sub>1]"}.
+    that \<^term>\<open>user\<^sub>1\<close> is unable to remove the (owned) directory at \<^term>\<open>[user\<^sub>1, name\<^sub>1]\<close>.
 
-    \<^enum> The invariant does hold after having executed the @{term bogus} list of
+    \<^enum> The invariant does hold after having executed the \<^term>\<open>bogus\<close> list of
     operations (starting with an initial file-system configuration).
 
     \<^enum> The invariant is preserved by any file-system operation performed by
-    @{term user\<^sub>1} alone, without any help by other users.
+    \<^term>\<open>user\<^sub>1\<close> alone, without any help by other users.
 
   As the invariant appears both as assumptions and conclusions in the course
   of proof, its formulation is rather critical for the whole development to
@@ -885,9 +880,8 @@ lemma
 text \<open>
   \<^medskip>
   At last we are left with the main effort to show that the ``bogosity''
-  invariant is preserved by any file-system operation performed by @{term
-  user\<^sub>1} alone. Note that this holds for any @{term path} given, the
-  particular @{term bogus_path} is not required here.
+  invariant is preserved by any file-system operation performed by \<^term>\<open>user\<^sub>1\<close> alone. Note that this holds for any \<^term>\<open>path\<close> given, the
+  particular \<^term>\<open>bogus_path\<close> is not required here.
 \<close>
 
 lemma preserve_invariant:

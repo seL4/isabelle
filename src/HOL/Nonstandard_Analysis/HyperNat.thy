@@ -165,7 +165,7 @@ lemma Nats_diff [simp]: "a \<in> Nats \<Longrightarrow> b \<in> Nats \<Longright
   by (simp add: Nats_eq_Standard)
 
 
-subsection \<open>Infinite Hypernatural Numbers -- @{term HNatInfinite}\<close>
+subsection \<open>Infinite Hypernatural Numbers -- \<^term>\<open>HNatInfinite\<close>\<close>
 
 text \<open>The set of infinite hypernatural numbers.\<close>
 definition HNatInfinite :: "hypnat set"
@@ -306,7 +306,7 @@ lemma hypnat_one_less_hypnat_omega [simp]: "1 < whn"
 
 subsubsection \<open>Alternative characterization of the set of infinite hypernaturals\<close>
 
-text \<open>@{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}\<close>
+text \<open>\<^term>\<open>HNatInfinite = {N. \<forall>n \<in> Nats. n < N}\<close>\<close>
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
@@ -326,7 +326,7 @@ lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
   done
 
 
-subsubsection \<open>Alternative Characterization of @{term HNatInfinite} using Free Ultrafilter\<close>
+subsubsection \<open>Alternative Characterization of \<^term>\<open>HNatInfinite\<close> using Free Ultrafilter\<close>
 
 lemma HNatInfinite_FreeUltrafilterNat:
   "star_n X \<in> HNatInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < X n) \<U>"

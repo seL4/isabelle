@@ -383,7 +383,7 @@ val linearize_proof =
         fun inline_assumption assumption assumption_id
             (VeriT_Node {id, rule, prems, proof_ctxt, concl, bounds}) =
           mk_node id rule (remove_assumption_id assumption_id prems) proof_ctxt
-            (@{const Pure.imp} $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
+            (\<^const>\<open>Pure.imp\<close> $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
         fun find_input_steps_and_inline [] = []
           | find_input_steps_and_inline
               (VeriT_Node {id = id', rule, prems, concl, bounds, ...} :: steps) =

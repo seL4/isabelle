@@ -37,10 +37,10 @@ subsection \<open>Generic congruences\<close>
 context unique_euclidean_semiring
 begin
 
-definition cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(1[_ = _] '(()mod _'))")
+definition cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ = _] '(()mod _'))\<close>)
   where "cong b c a \<longleftrightarrow> b mod a = c mod a"
   
-abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(1[_ \<noteq> _] '(()mod _'))")
+abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ \<noteq> _] '(()mod _'))\<close>)
   where "notcong b c a \<equiv> \<not> cong b c a"
 
 lemma cong_refl [simp]:
@@ -254,7 +254,7 @@ lemma cong_cong_prod_coprime:
     (auto intro!: coprime_cong_mult prod_coprime_right)
 
 
-subsection \<open>Congruences on @{typ nat} and @{typ int}\<close>
+subsection \<open>Congruences on \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close>\<close>
 
 lemma cong_int_iff:
   "[int m = int q] (mod int n) \<longleftrightarrow> [m = q] (mod n)"

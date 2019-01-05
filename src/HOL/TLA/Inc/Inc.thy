@@ -170,9 +170,9 @@ lemma g1_leadsto_a1:
     \<longrightarrow> (pc1 = #g \<leadsto> pc1 = #a)"
   apply (rule SF1)
     apply (tactic
-      \<open>action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
+      \<open>action_simp_tac (\<^context> addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
    apply (tactic
-      \<open>action_simp_tac (@{context} addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1\<close>)
+      \<open>action_simp_tac (\<^context> addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1\<close>)
   (* reduce \<turnstile> \<box>A \<longrightarrow> \<diamond>Enabled B  to  \<turnstile> A \<longrightarrow> Enabled B *)
   apply (auto intro!: InitDmd_gen [temp_use] N1_enabled_at_g [temp_use]
     dest!: STL2_gen [temp_use] simp: Init_def)
@@ -191,8 +191,8 @@ lemma g2_leadsto_a2:
   "\<turnstile> \<box>[(N1 \<or> N2) \<and> \<not>beta1]_(x,y,sem,pc1,pc2) \<and> SF(N2)_(x,y,sem,pc1,pc2) \<and> \<box>#True  
     \<longrightarrow> (pc2 = #g \<leadsto> pc2 = #a)"
   apply (rule SF1)
-  apply (tactic \<open>action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
-  apply (tactic \<open>action_simp_tac (@{context} addsimps @{thm angle_def} :: @{thms Psi_defs})
+  apply (tactic \<open>action_simp_tac (\<^context> addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
+  apply (tactic \<open>action_simp_tac (\<^context> addsimps @{thm angle_def} :: @{thms Psi_defs})
     [] [] 1\<close>)
   apply (auto intro!: InitDmd_gen [temp_use] N2_enabled_at_g [temp_use]
     dest!: STL2_gen [temp_use] simp add: Init_def)
@@ -211,9 +211,9 @@ lemma b2_leadsto_g2:
     \<longrightarrow> (pc2 = #b \<leadsto> pc2 = #g)"
   apply (rule SF1)
     apply (tactic
-      \<open>action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
+      \<open>action_simp_tac (\<^context> addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
    apply (tactic
-     \<open>action_simp_tac (@{context} addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1\<close>)
+     \<open>action_simp_tac (\<^context> addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1\<close>)
   apply (auto intro!: InitDmd_gen [temp_use] N2_enabled_at_b [temp_use]
     dest!: STL2_gen [temp_use] simp: Init_def)
   done
@@ -253,9 +253,9 @@ lemma a1_leadsto_b1:
          \<and> SF(N1)_(x,y,sem,pc1,pc2) \<and> \<box> SF(N2)_(x,y,sem,pc1,pc2)   
          \<longrightarrow> (pc1 = #a \<leadsto> pc1 = #b)"
   apply (rule SF1)
-  apply (tactic \<open>action_simp_tac (@{context} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
+  apply (tactic \<open>action_simp_tac (\<^context> addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1\<close>)
   apply (tactic
-    \<open>action_simp_tac (@{context} addsimps (@{thm angle_def} :: @{thms Psi_defs})) [] [] 1\<close>)
+    \<open>action_simp_tac (\<^context> addsimps (@{thm angle_def} :: @{thms Psi_defs})) [] [] 1\<close>)
   apply (clarsimp intro!: N1_enabled_at_both_a [THEN DmdImpl [temp_use]])
   apply (auto intro!: BoxDmd2_simple [temp_use] N2_live [temp_use]
     simp: split_box_conj more_temp_simps)

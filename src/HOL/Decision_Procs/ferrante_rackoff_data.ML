@@ -120,7 +120,7 @@ in
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding ferrack}
+    (Attrib.setup \<^binding>\<open>ferrack\<close>
       ((keyword minfN |-- thms)
        -- (keyword pinfN |-- thms)
        -- (keyword nmiN |-- thms)

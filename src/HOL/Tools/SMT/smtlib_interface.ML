@@ -46,12 +46,12 @@ val setup_builtins =
     (\<^typ>\<open>bool\<close>, K (SOME ("Bool", [])), K (K NONE)),
     (\<^typ>\<open>int\<close>, K (SOME ("Int", [])), int_num)] #>
   fold (SMT_Builtin.add_builtin_fun' smtlibC) [
-    (@{const True}, "true"),
-    (@{const False}, "false"),
-    (@{const Not}, "not"),
-    (@{const HOL.conj}, "and"),
-    (@{const HOL.disj}, "or"),
-    (@{const HOL.implies}, "=>"),
+    (\<^const>\<open>True\<close>, "true"),
+    (\<^const>\<open>False\<close>, "false"),
+    (\<^const>\<open>Not\<close>, "not"),
+    (\<^const>\<open>HOL.conj\<close>, "and"),
+    (\<^const>\<open>HOL.disj\<close>, "or"),
+    (\<^const>\<open>HOL.implies\<close>, "=>"),
     (@{const HOL.eq ('a)}, "="),
     (@{const If ('a)}, "ite"),
     (@{const less (int)}, "<"),

@@ -19,7 +19,7 @@ text\<open>Provability of Hoare triples in the proof system for total
 correctness is written \<open>\<turnstile>\<^sub>t {P}c{Q}\<close> and defined
 inductively. The rules for \<open>\<turnstile>\<^sub>t\<close> differ from those for
 \<open>\<turnstile>\<close> only in the one place where nontermination can arise: the
-@{term While}-rule.\<close>
+\<^term>\<open>While\<close>-rule.\<close>
 
 inductive
   hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
@@ -42,7 +42,7 @@ While:
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
-text\<open>The @{term While}-rule is like the one for partial correctness but it
+text\<open>The \<^term>\<open>While\<close>-rule is like the one for partial correctness but it
 requires additionally that with every execution of the loop body some measure
 relation @{term[source]"T :: state \<Rightarrow> nat \<Rightarrow> bool"} decreases.
 The following functional version is more intuitive:\<close>
@@ -133,7 +133,7 @@ apply auto
 done
 
 
-text\<open>Now we define the number of iterations @{term "WHILE b DO c"} needs to
+text\<open>Now we define the number of iterations \<^term>\<open>WHILE b DO c\<close> needs to
 terminate when started in state \<open>s\<close>. Because this is a truly partial
 function, we define it as an (inductive) relation first:\<close>
 
@@ -150,7 +150,7 @@ next
   case Its_Suc thus ?case by(metis Its.cases big_step_determ)
 qed
 
-text\<open>For all terminating loops, @{const Its} yields a result:\<close>
+text\<open>For all terminating loops, \<^const>\<open>Its\<close> yields a result:\<close>
 
 lemma WHILE_Its: "(WHILE b DO c,s) \<Rightarrow> t \<Longrightarrow> \<exists>n. Its b c s n"
 proof(induction "WHILE b DO c" s t rule: big_step_induct)
@@ -199,7 +199,7 @@ next
 qed
 
 
-text\<open>\noindent In the @{term While}-case, @{const Its} provides the obvious
+text\<open>\noindent In the \<^term>\<open>While\<close>-case, \<^const>\<open>Its\<close> provides the obvious
 termination argument.
 
 The actual completeness theorem follows directly, in the same manner

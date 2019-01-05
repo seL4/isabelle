@@ -29,8 +29,8 @@ ML_val \<open>
   val prf = Proofterm.proof_of body;
 
   (*clean output*)
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of @{context} false thm);
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of @{context} true thm);
+  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> false thm);
+  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> true thm);
 
   (*all theorems used in the graph of nested proofs*)
   val all_thms =
@@ -41,7 +41,7 @@ ML_val \<open>
 text \<open>
   The result refers to various basic facts of Isabelle/HOL: @{thm [source]
   HOL.impI}, @{thm [source] HOL.conjE}, @{thm [source] HOL.conjI} etc. The
-  combinator @{ML Proofterm.fold_body_thms} recursively explores the graph of
+  combinator \<^ML>\<open>Proofterm.fold_body_thms\<close> recursively explores the graph of
   the proofs of all theorems being used here.
 
   \<^medskip>
@@ -50,8 +50,8 @@ text \<open>
 \<close>
 
 ML_val \<open>
-  val thy = @{theory};
-  val ctxt = @{context};
+  val thy = \<^theory>;
+  val ctxt = \<^context>;
   val prf =
     Proof_Syntax.read_proof thy true false
       "impI \<cdot> _ \<cdot> _ \<bullet> \
@@ -60,7 +60,7 @@ ML_val \<open>
       \       (\<^bold>\<lambda>(H: _) Ha: _. conjI \<cdot> _ \<cdot> _ \<bullet> Ha \<bullet> H))";
   val thm =
     prf
-    |> Reconstruct.reconstruct_proof ctxt @{prop "A \<and> B \<longrightarrow> B \<and> A"}
+    |> Reconstruct.reconstruct_proof ctxt \<^prop>\<open>A \<and> B \<longrightarrow> B \<and> A\<close>
     |> Proof_Checker.thm_of_proof thy
     |> Drule.export_without_context;
 \<close>

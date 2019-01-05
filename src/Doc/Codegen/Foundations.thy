@@ -119,7 +119,7 @@ text \<open>
   Pre- and postprocessor can be setup to transfer between
   expressions suitable for logical reasoning and expressions 
   suitable for execution.  As example, take list membership; logically
-  it is expressed as @{term "x \<in> set xs"}.  But for execution
+  it is expressed as \<^term>\<open>x \<in> set xs\<close>.  But for execution
   the intermediate set is not desirable.  Hence the following
   specification:
 \<close>
@@ -144,7 +144,7 @@ text \<open>
   \emph{Function transformers} provide a very general
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
-  its type change.  The @{term "0::nat"} / @{const Suc} pattern
+  its type change.  The \<^term>\<open>0::nat\<close> / \<^const>\<open>Suc\<close> pattern
   used in theory \<open>Code_Abstract_Nat\<close> (see \secref{abstract_nat})
   uses this interface.
 
@@ -195,8 +195,8 @@ text %quotetypewriter \<open>
 \<close>
 
 text \<open>
-  \noindent You may note that the equality test @{term "xs = []"} has
-  been replaced by the predicate @{term "List.null xs"}.  This is due
+  \noindent You may note that the equality test \<^term>\<open>xs = []\<close> has
+  been replaced by the predicate \<^term>\<open>List.null xs\<close>.  This is due
   to the default setup of the \qn{preprocessor}.
 
   This possibility to select arbitrary code equations is the key
@@ -218,8 +218,7 @@ text \<open>
 code_thms %quote dequeue
 
 text \<open>
-  \noindent This prints a table with the code equations for @{const
-  dequeue}, including \emph{all} code equations those equations depend
+  \noindent This prints a table with the code equations for \<^const>\<open>dequeue\<close>, including \emph{all} code equations those equations depend
   on recursively.  These dependencies themselves can be visualized using
   the @{command_def code_deps} command.
 \<close>
@@ -242,7 +241,7 @@ primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow
 
 text \<open>
   \noindent During preprocessing, the membership test is rewritten,
-  resulting in @{const List.member}, which itself performs an explicit
+  resulting in \<^const>\<open>List.member\<close>, which itself performs an explicit
   equality check, as can be seen in the corresponding \<open>SML\<close> code:
 \<close>
 
@@ -253,11 +252,10 @@ text %quotetypewriter \<open>
 text \<open>
   \noindent Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces an
-  explicit class @{class equal} with a corresponding operation @{const
-  HOL.equal} such that @{thm equal [no_vars]}.  The preprocessing
-  framework does the rest by propagating the @{class equal} constraints
+  explicit class \<^class>\<open>equal\<close> with a corresponding operation \<^const>\<open>HOL.equal\<close> such that @{thm equal [no_vars]}.  The preprocessing
+  framework does the rest by propagating the \<^class>\<open>equal\<close> constraints
   through all dependent code equations.  For datatypes, instances of
-  @{class equal} are implicitly derived when possible.  For other types,
+  \<^class>\<open>equal\<close> are implicitly derived when possible.  For other types,
   you may instantiate \<open>equal\<close> manually like any other type class.
 \<close>
 
@@ -281,7 +279,7 @@ lemma %quote strict_dequeue_AQueue [code]:
 
 text \<open>
   \noindent In the corresponding code, there is no equation
-  for the pattern @{term "AQueue [] []"}:
+  for the pattern \<^term>\<open>AQueue [] []\<close>:
 \<close>
 
 text %quotetypewriter \<open>
@@ -307,10 +305,9 @@ lemma %quote strict_dequeue'_AQueue [code]:
   by (simp_all add: strict_dequeue'_def split: list.splits)
 
 text \<open>
-  Observe that on the right hand side of the definition of @{const
-  "strict_dequeue'"}, the unspecified constant @{const empty_queue} occurs.
-  An attempt to generate code for @{const strict_dequeue'} would
-  make the code generator complain that @{const empty_queue} has
+  Observe that on the right hand side of the definition of \<^const>\<open>strict_dequeue'\<close>, the unspecified constant \<^const>\<open>empty_queue\<close> occurs.
+  An attempt to generate code for \<^const>\<open>strict_dequeue'\<close> would
+  make the code generator complain that \<^const>\<open>empty_queue\<close> has
   no associated code equations.  In most situations unimplemented
   constants indeed indicated a broken program; however such
   constants can also be thought of as function definitions which always fail,
@@ -339,7 +336,7 @@ text \<open>
 declare %quote [[code abort: undefined]]
 
 text \<open>
-  \noindent -- hence @{const undefined} can always be used in such
+  \noindent -- hence \<^const>\<open>undefined\<close> can always be used in such
   situations.
 \<close>
 

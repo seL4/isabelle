@@ -25,31 +25,31 @@ ML \<open>
 
 subsection \<open>Examples\<close>
 
-ML \<open>val thy1 = @{theory}\<close>
+ML \<open>val thy1 = \<^theory>\<close>
 
 lemma ex: "A \<longrightarrow> A" ..
 
 ML_val \<open>
-  val xml = export_proof @{context} @{thm ex};
+  val xml = export_proof \<^context> @{thm ex};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof @{context} @{thm de_Morgan};
+  val xml = export_proof \<^context> @{thm de_Morgan};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof @{context} @{thm Drinker's_Principle};
+  val xml = export_proof \<^context> @{thm Drinker's_Principle};
   val thm = import_proof thy1 xml;
 \<close>
 
 text \<open>Some fairly large proof:\<close>
 
 ML_val \<open>
-  val xml = export_proof @{context} @{thm abs_less_iff};
+  val xml = export_proof \<^context> @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
-  @{assert} (size (YXML.string_of_body xml) > 1000000);
+  \<^assert> (size (YXML.string_of_body xml) > 1000000);
 \<close>
 
 end

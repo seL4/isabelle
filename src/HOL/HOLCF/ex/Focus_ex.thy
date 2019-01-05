@@ -178,7 +178,7 @@ apply simp
 done
 
 lemma lemma3: "def_g g \<longrightarrow> is_g g"
-apply (tactic \<open>simp_tac (put_simpset HOL_ss @{context}
+apply (tactic \<open>simp_tac (put_simpset HOL_ss \<^context>
   addsimps [@{thm def_g_def}, @{thm lemma1}, @{thm lemma2}]) 1\<close>)
 apply (rule impI)
 apply (erule exE)
@@ -203,7 +203,7 @@ apply simp
 done
 
 lemma lemma4: "is_g g \<longrightarrow> def_g g"
-apply (tactic \<open>simp_tac (put_simpset HOL_ss @{context}
+apply (tactic \<open>simp_tac (put_simpset HOL_ss \<^context>
   delsimps (@{thms HOL.ex_simps} @ @{thms HOL.all_simps})
   addsimps [@{thm lemma1}, @{thm lemma2}, @{thm def_g_def}]) 1\<close>)
 apply (rule impI)

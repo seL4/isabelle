@@ -77,7 +77,7 @@ allow infinite paths. Orthogonally, the nodes in the first and third types have
 finitely many direct subtrees, whereas those of the second and fourth may have
 infinite branching.
 
-The package is part of @{theory Main}. Additional functionality is provided by
+The package is part of \<^theory>\<open>Main\<close>. Additional functionality is provided by
 the theory \<^file>\<open>~~/src/HOL/Library/BNF_Axiomatization.thy\<close>.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
@@ -180,10 +180,10 @@ All their constructors are nullary:
 
 text \<open>
 \noindent
-@{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
+\<^const>\<open>Truue\<close>, \<^const>\<open>Faalse\<close>, and \<^const>\<open>Perhaaps\<close> have the type \<^typ>\<open>trool\<close>.
 
 Polymorphic types are possible, such as the following option type, modeled after
-its homologue from the @{theory HOL.Option} theory:
+its homologue from the \<^theory>\<open>HOL.Option\<close> theory:
 \<close>
 
 (*<*)
@@ -231,7 +231,7 @@ Natural numbers are the simplest example of a recursive type:
 text \<open>
 \noindent
 Lists were shown in the introduction. Terminated lists are a variant that
-stores a value of type @{typ 'b} at the very end:
+stores a value of type \<^typ>\<open>'b\<close> at the very end:
 \<close>
 
     datatype (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
@@ -269,7 +269,7 @@ subsubsection \<open>Nested Recursion
 text \<open>
 \emph{Nested recursion} occurs when recursive occurrences of a type appear under
 a type constructor. The introduction showed some examples of trees with nesting
-through lists. A more complex example, that reuses our @{type option} type,
+through lists. A more complex example, that reuses our \<^type>\<open>option\<close> type,
 follows:
 \<close>
 
@@ -297,7 +297,7 @@ datatypes defined in terms of~\<open>\<Rightarrow>\<close>:
 
 text \<open>
 \noindent
-The following definition of @{typ 'a}-branching trees is legal:
+The following definition of \<^typ>\<open>'a\<close>-branching trees is legal:
 \<close>
 
     datatype 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
@@ -314,9 +314,9 @@ text \<open>
 In general, type constructors \<open>('a\<^sub>1, \<dots>, 'a\<^sub>m) t\<close>
 allow recursion on a subset of their type arguments \<open>'a\<^sub>1\<close>, \ldots,
 \<open>'a\<^sub>m\<close>. These type arguments are called \emph{live}; the remaining
-type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
-@{typ "('a, 'b) fun_copy"}, the type variable @{typ 'a} is dead and
-@{typ 'b} is live.
+type arguments are called \emph{dead}. In \<^typ>\<open>'a \<Rightarrow> 'b\<close> and
+\<^typ>\<open>('a, 'b) fun_copy\<close>, the type variable \<^typ>\<open>'a\<close> is dead and
+\<^typ>\<open>'b\<close> is live.
 
 Type constructors must be registered as BNFs to have live arguments. This is
 done automatically for datatypes and codatatypes introduced by the
@@ -403,24 +403,24 @@ Relator: &
 
 \medskip
 
-The discriminator @{const null} and the selectors @{const hd} and @{const tl}
+The discriminator \<^const>\<open>null\<close> and the selectors \<^const>\<open>hd\<close> and \<^const>\<open>tl\<close>
 are characterized by the following conditional equations:
 %
 \[@{thm list.collapse(1)[of xs, no_vars]}
   \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
 %
 For two-constructor datatypes, a single discriminator constant is sufficient.
-The discriminator associated with @{const Cons} is simply
-@{term "\<lambda>xs. \<not> null xs"}.
+The discriminator associated with \<^const>\<open>Cons\<close> is simply
+\<^term>\<open>\<lambda>xs. \<not> null xs\<close>.
 
 The \keyw{where} clause at the end of the command specifies a default value for
 selectors applied to constructors on which they are not a priori specified.
 In the example, it is used to ensure that the tail of the empty list is itself
 (instead of being left unspecified).
 
-Because @{const Nil} is nullary, it is also possible to use
-@{term "\<lambda>xs. xs = Nil"} as a discriminator. This is the default behavior
-if we omit the identifier @{const null} and the associated colon. Some users
+Because \<^const>\<open>Nil\<close> is nullary, it is also possible to use
+\<^term>\<open>\<lambda>xs. xs = Nil\<close> as a discriminator. This is the default behavior
+if we omit the identifier \<^const>\<open>null\<close> and the associated colon. Some users
 argue against this, because the mixture of constructors and selectors in the
 characteristic theorems can lead Isabelle's automation to switch between the
 constructor and the destructor view in surprising ways.
@@ -469,7 +469,7 @@ text \<open>
   @{command_def "datatype"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command datatype} target? @{syntax dt_options}? @{syntax dt_spec}
   ;
   @{syntax_def dt_options}: '(' ((@{syntax plugins} | 'discs_sels') + ',') ')'
@@ -480,7 +480,7 @@ text \<open>
      @{syntax map_rel_pred}? (@'where' (prop + '|'))? + @'and')
   ;
   @{syntax_def map_rel_pred}: @'for' ((('map' | 'rel' | 'pred') ':' name) +)
-\<close>}
+\<close>
 
 \medskip
 
@@ -516,18 +516,18 @@ Each proposition must be an equation of the form
 The left-hand sides of the datatype equations specify the name of the type to
 define, its type parameters, and additional information:
 
-@{rail \<open>
+\<^rail>\<open>
   @{syntax_def dt_name}: @{syntax tyargs}? name mixfix?
   ;
   @{syntax_def tyargs}: typefree | '(' (('dead' | name ':')? typefree + ',') ')'
-\<close>}
+\<close>
 
 \medskip
 
 \noindent
 The syntactic entity \synt{name} denotes an identifier, \synt{mixfix} denotes
 the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
-variable (@{typ 'a}, @{typ 'b}, \ldots) @{cite "isabelle-isar-ref"}.
+variable (\<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, \ldots) @{cite "isabelle-isar-ref"}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (\<open>set\<^sub>1_t\<close>, \ldots, \<open>set\<^sub>m_t\<close>). Type
@@ -541,9 +541,9 @@ type argument.
 Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
-@{rail \<open>
+\<^rail>\<open>
   @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) mixfix?
-\<close>}
+\<close>
 
 \medskip
 
@@ -555,9 +555,9 @@ can be supplied at the front. If discriminators are enabled (cf.\ the
 \<open>\<lambda>x. x = C\<^sub>j\<close> for nullary constructors and
 \<open>t.is_C\<^sub>j\<close> otherwise.
 
-@{rail \<open>
+\<^rail>\<open>
   @{syntax_def dt_ctor_arg}: type | '(' name ':' type ')'
-\<close>}
+\<close>
 
 \medskip
 
@@ -580,9 +580,9 @@ text \<open>
   @{command_def "datatype_compat"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command datatype_compat} (name +)
-\<close>}
+\<close>
 
 \medskip
 
@@ -595,7 +595,7 @@ old-style datatypes and invokes the old-style plugins. For example:
 
 text \<open>\blankline\<close>
 
-    ML \<open>Old_Datatype_Data.get_info @{theory} @{type_name even_nat}\<close>
+    ML \<open>Old_Datatype_Data.get_info \<^theory> \<^type_name>\<open>even_nat\<close>\<close>
 
 text \<open>
 The syntactic entity \synt{name} denotes an identifier @{cite "isabelle-isar-ref"}.
@@ -712,7 +712,7 @@ subsubsection \<open>Free Constructor Theorems
 text \<open>
 The free constructor theorems are partitioned in three subgroups. The first
 subgroup of properties is concerned with the constructors. They are listed below
-for @{typ "'a list"}:
+for \<^typ>\<open>'a list\<close>:
 
 \begin{indentblock}
 \begin{description}
@@ -803,14 +803,14 @@ The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 @{thm list.collapse(2)[no_vars]} \\
 The \<open>[simp]\<close> attribute is exceptionally omitted for datatypes equipped
 with a single nullary constructor, because a property of the form
-@{prop "x = C"} is not suitable as a simplification rule.
+\<^prop>\<open>x = C\<close> is not suitable as a simplification rule.
 
 \item[\<open>t.\<close>\hthm{distinct_disc} \<open>[dest]\<close>\rm:] ~ \\
-These properties are missing for @{typ "'a list"} because there is only one
+These properties are missing for \<^typ>\<open>'a list\<close> because there is only one
 proper discriminator. If the datatype had been introduced with a second
-discriminator called @{const nonnull}, they would have read as follows: \\[\jot]
-@{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
-@{prop "nonnull list \<Longrightarrow> \<not> null list"}
+discriminator called \<^const>\<open>nonnull\<close>, they would have read as follows: \\[\jot]
+\<^prop>\<open>null list \<Longrightarrow> \<not> nonnull list\<close> \\
+\<^prop>\<open>nonnull list \<Longrightarrow> \<not> null list\<close>
 
 \item[\<open>t.\<close>\hthm{exhaust_disc} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 @{thm list.exhaust_disc[no_vars]}
@@ -851,7 +851,7 @@ subsubsection \<open>Functorial Theorems
 
 text \<open>
 The functorial theorems are generated for type constructors with at least
-one live type argument (e.g., @{typ "'a list"}). They are partitioned in two
+one live type argument (e.g., \<^typ>\<open>'a list\<close>). They are partitioned in two
 subgroups. The first subgroup consists of properties involving the
 constructors or the destructors and either a set function, the map function,
 the predicator, or the relator:
@@ -867,7 +867,7 @@ This property is generated by the \<open>transfer\<close> plugin
 %(Section~\ref{ssec:transfer}).
 
 \item[\<open>t.\<close>\hthm{sel_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
-This property is missing for @{typ "'a list"} because there is no common
+This property is missing for \<^typ>\<open>'a list\<close> because there is no common
 selector to all constructors. \\
 The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}).
@@ -1182,10 +1182,10 @@ explained in Section~\ref{sssec:primrec-nested-as-mutual-recursion}, or using
 induction rule can be obtained by applying the \<open>[unfolded
 all_mem_range]\<close> attribute on \<open>t.induct\<close>.
 
-\item \emph{The @{const size} function has a slightly different definition.}
+\item \emph{The \<^const>\<open>size\<close> function has a slightly different definition.}
 The new function returns \<open>1\<close> instead of \<open>0\<close> for some nonrecursive
 constructors. This departure from the old behavior made it possible to implement
-@{const size} in terms of the generic function \<open>t.size_t\<close>. Moreover,
+\<^const>\<open>size\<close> in terms of the generic function \<open>t.size_t\<close>. Moreover,
 the new function considers nested occurrences of a value, in the nested
 recursive case. The old behavior can be obtained by disabling the \<open>size\<close>
 plugin (Section~\ref{sec:selecting-plugins}) and instantiating the
@@ -1381,7 +1381,7 @@ subsubsection \<open>Nested Recursion
 text \<open>
 In a departure from the old datatype package, nested recursion is normally
 handled via the map functions of the nesting type constructors. For example,
-recursive calls are lifted to lists using @{const map}:
+recursive calls are lifted to lists using \<^const>\<open>map\<close>:
 \<close>
 
 (*<*)
@@ -1397,7 +1397,7 @@ text \<open>
 \noindent
 The next example features recursion through the \<open>option\<close> type. Although
 \<open>option\<close> is not a new-style datatype, it is registered as a BNF with the
-map function @{const map_option}:
+map function \<^const>\<open>map_option\<close>:
 \<close>
 
     primrec (*<*)(in early) (*>*)sum_btree :: "('a::{zero,plus}) btree \<Rightarrow> 'a" where
@@ -1435,7 +1435,7 @@ text \<open>\blankline\<close>
 text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
-@{term "(\<circ>)"} are necessary. The examples below illustrate the case where
+\<^term>\<open>(\<circ>)\<close> are necessary. The examples below illustrate the case where
 $n = 2$:
 \<close>
 
@@ -1532,7 +1532,7 @@ text \<open>
 %
 %  * higher-order approach, considering nesting as nesting, is more
 %    compositional -- e.g. we saw how we could reuse an existing polymorphic
-%    at or the_default, whereas @{const ats\<^sub>f\<^sub>f} is much more specific
+%    at or the_default, whereas \<^const>\<open>ats\<^sub>f\<^sub>f\<close> is much more specific
 %
 %  * but:
 %     * is perhaps less intuitive, because it requires higher-order thinking
@@ -1540,7 +1540,7 @@ text \<open>
 %       mutually recursive version might be nicer
 %     * is somewhat indirect -- must apply a map first, then compute a result
 %       (cannot mix)
-%     * the auxiliary functions like @{const ats\<^sub>f\<^sub>f} are sometimes useful in own right
+%     * the auxiliary functions like \<^const>\<open>ats\<^sub>f\<^sub>f\<close> are sometimes useful in own right
 %
 %  * impact on automation unclear
 %
@@ -1561,14 +1561,14 @@ text \<open>
   @{command_def "primrec"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command primrec} target? @{syntax pr_options}? fixes \<newline>
   @'where' (@{syntax pr_equation} + '|')
   ;
   @{syntax_def pr_options}: '(' ((@{syntax plugins} | 'nonexhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pr_equation}: thmdecl? prop
-\<close>}
+\<close>
 
 \medskip
 
@@ -1617,7 +1617,7 @@ subsection \<open>Generated Theorems
 
 text \<open>
 The @{command primrec} command generates the following properties (listed
-for @{const tfold}):
+for \<^const>\<open>tfold\<close>):
 
 \begin{indentblock}
 \begin{description}
@@ -1816,8 +1816,8 @@ Here is an example with many constructors:
 
 text \<open>
 \noindent
-Notice that the @{const cont} selector is associated with both @{const Skip}
-and @{const Action}.
+Notice that the \<^const>\<open>cont\<close> selector is associated with both \<^const>\<open>Skip\<close>
+and \<^const>\<open>Action\<close>.
 \<close>
 
 
@@ -1863,9 +1863,9 @@ text \<open>
   @{command_def "codatatype"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command codatatype} target? @{syntax dt_options}? @{syntax dt_spec}
-\<close>}
+\<close>
 
 \medskip
 
@@ -1927,7 +1927,7 @@ subsubsection \<open>Coinductive Theorems
   \label{sssec:coinductive-theorems}\<close>
 
 text \<open>
-The coinductive theorems are listed below for @{typ "'a llist"}:
+The coinductive theorems are listed below for \<^typ>\<open>'a llist\<close>:
 
 \begin{indentblock}
 \begin{description}
@@ -2206,7 +2206,7 @@ subsubsection \<open>Nested Corecursion
   \label{sssec:primcorec-nested-corecursion}\<close>
 
 text \<open>
-The next pair of examples generalize the @{const literate} and @{const siterate}
+The next pair of examples generalize the \<^const>\<open>literate\<close> and \<^const>\<open>siterate\<close>
 functions (Section~\ref{sssec:primcorec-nested-corecursion}) to possibly
 infinite trees in which subnodes are organized either as a lazy list (\<open>tree\<^sub>i\<^sub>i\<close>) or as a finite set (\<open>tree\<^sub>i\<^sub>s\<close>). They rely on the map functions of
 the nesting type constructors to lift the corecursive calls:
@@ -2224,9 +2224,9 @@ text \<open>
 \noindent
 Both examples follow the usual format for constructor arguments associated
 with nested recursive occurrences of the datatype. Consider
-@{const iterate\<^sub>i\<^sub>i}. The term @{term "g x"} constructs an @{typ "'a llist"}
-value, which is turned into an @{typ "'a tree\<^sub>i\<^sub>i llist"} value using
-@{const lmap}.
+\<^const>\<open>iterate\<^sub>i\<^sub>i\<close>. The term \<^term>\<open>g x\<close> constructs an \<^typ>\<open>'a llist\<close>
+value, which is turned into an \<^typ>\<open>'a tree\<^sub>i\<^sub>i llist\<close> value using
+\<^const>\<open>lmap\<close>.
 
 This format may sometimes feel artificial. The following function constructs
 a tree with a single, infinite branch from a stream:
@@ -2288,7 +2288,7 @@ text \<open>\blankline\<close>
 text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
-@{term "(\<circ>)"} are necessary. The examples below illustrate the case where
+\<^term>\<open>(\<circ>)\<close> are necessary. The examples below illustrate the case where
 $n = 2$:
 \<close>
 
@@ -2361,8 +2361,8 @@ subsubsection \<open>Constructor View
 text \<open>
 The constructor view is similar to the code view, but there is one separate
 conditional equation per constructor rather than a single unconditional
-equation. Examples that rely on a single constructor, such as @{const literate}
-and @{const siterate}, are identical in both styles.
+equation. Examples that rely on a single constructor, such as \<^const>\<open>literate\<close>
+and \<^const>\<open>siterate\<close>, are identical in both styles.
 
 Here is an example where there is a difference:
 \<close>
@@ -2374,15 +2374,15 @@ Here is an example where there is a difference:
 
 text \<open>
 \noindent
-With the constructor view, we must distinguish between the @{const LNil} and
-the @{const LCons} case. The condition for @{const LCons} is
-left implicit, as the negation of that for @{const LNil}.
+With the constructor view, we must distinguish between the \<^const>\<open>LNil\<close> and
+the \<^const>\<open>LCons\<close> case. The condition for \<^const>\<open>LCons\<close> is
+left implicit, as the negation of that for \<^const>\<open>LNil\<close>.
 
 For this example, the constructor view is slightly more involved than the
 code equation. Recall the code view version presented in
 Section~\ref{sssec:primcorec-simple-corecursion}.
 % TODO: \[{thm code_view.lapp.code}\]
-The constructor view requires us to analyze the second argument (@{term ys}).
+The constructor view requires us to analyze the second argument (\<^term>\<open>ys\<close>).
 The code equation generated from the constructor view also suffers from this.
 % TODO: \[{thm lapp.code}\]
 
@@ -2407,14 +2407,14 @@ constructor view:
 
 text \<open>
 \noindent
-Since there is no sequentiality, we can apply the equation for @{const Choice}
-without having first to discharge @{term "n mod (4::int) \<noteq> 0"},
-@{term "n mod (4::int) \<noteq> 1"}, and
-@{term "n mod (4::int) \<noteq> 2"}.
+Since there is no sequentiality, we can apply the equation for \<^const>\<open>Choice\<close>
+without having first to discharge \<^term>\<open>n mod (4::int) \<noteq> 0\<close>,
+\<^term>\<open>n mod (4::int) \<noteq> 1\<close>, and
+\<^term>\<open>n mod (4::int) \<noteq> 2\<close>.
 The price to pay for this elegance is that we must discharge exclusiveness proof
 obligations, one for each pair of conditions
-@{term "(n mod (4::int) = i, n mod (4::int) = j)"}
-with @{term "i < j"}. If we prefer not to discharge any obligations, we can
+\<^term>\<open>(n mod (4::int) = i, n mod (4::int) = j)\<close>
+with \<^term>\<open>i < j\<close>. If we prefer not to discharge any obligations, we can
 enable the \<open>sequential\<close> option. This pushes the problem to the users of
 the generated properties.
 %Here are more examples to conclude:
@@ -2455,8 +2455,8 @@ text \<open>\blankline\<close>
 
 text \<open>
 \noindent
-The first formula in the @{const literate} specification indicates which
-constructor to choose. For @{const siterate} and @{const every_snd}, no such
+The first formula in the \<^const>\<open>literate\<close> specification indicates which
+constructor to choose. For \<^const>\<open>siterate\<close> and \<^const>\<open>every_snd\<close>, no such
 formula is necessary, since the type has only one constructor. The last two
 formulas are equations specifying the value of the result for the relevant
 selectors. Corecursive calls appear directly to the right of the equal sign.
@@ -2514,8 +2514,7 @@ constructors:
 
 text \<open>
 \noindent
-Using the \<open>of\<close> keyword, different equations are specified for @{const
-cont} depending on which constructor is selected.
+Using the \<open>of\<close> keyword, different equations are specified for \<^const>\<open>cont\<close> depending on which constructor is selected.
 
 Here are more examples to conclude:
 \<close>
@@ -2550,14 +2549,14 @@ text \<open>
   @{command_def "primcorecursive"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
     @{syntax pcr_options}? fixes @'where' (@{syntax pcr_formula} + '|')
   ;
   @{syntax_def pcr_options}: '(' ((@{syntax plugins} | 'sequential' | 'exhaustive' | 'transfer') + ',') ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
-\<close>}
+\<close>
 
 \medskip
 
@@ -2610,7 +2609,7 @@ subsection \<open>Generated Theorems
 
 text \<open>
 The @{command primcorec} and @{command primcorecursive} commands generate the
-following properties (listed for @{const literate}):
+following properties (listed for \<^const>\<open>literate\<close>):
 
 \begin{indentblock}
 \begin{description}
@@ -2640,12 +2639,12 @@ The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
 \item[\<open>f.\<close>\hthm{exclude}\rm:] ~ \\
-These properties are missing for @{const literate} because no exclusiveness
+These properties are missing for \<^const>\<open>literate\<close> because no exclusiveness
 proof obligations arose. In general, the properties correspond to the
 discharged proof obligations.
 
 \item[\<open>f.\<close>\hthm{exhaust}\rm:] ~ \\
-This property is missing for @{const literate} because no exhaustiveness
+This property is missing for \<^const>\<open>literate\<close> because no exhaustiveness
 proof obligation arose. In general, the property correspond to the discharged
 proof obligation.
 
@@ -2734,7 +2733,7 @@ Bounded natural functors (BNFs) are a semantic criterion for where
 An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
 and an infinite cardinal bound that satisfy certain properties.
-For example, @{typ "'a llist"} is a unary BNF.
+For example, \<^typ>\<open>'a llist\<close> is a unary BNF.
 Its predicator \<open>llist_all ::
   ('a \<Rightarrow> bool) \<Rightarrow>
   'a llist \<Rightarrow> bool\<close>
@@ -2745,7 +2744,7 @@ Similarly, its relator \<open>llist_all2 ::
   'a llist \<Rightarrow> 'b llist \<Rightarrow> bool\<close>
 extends binary predicates over elements to binary predicates over parallel
 lazy lists. The cardinal bound limits the number of elements returned by the
-set function; it may not depend on the cardinality of @{typ 'a}.
+set function; it may not depend on the cardinality of \<^typ>\<open>'a\<close>.
 
 The type constructors introduced by @{command datatype} and
 @{command codatatype} are automatically registered as BNFs. In addition, a
@@ -2765,8 +2764,8 @@ The example below shows how to register a type as a BNF using the @{command bnf}
 command. Some of the proof obligations are best viewed with the theory
 \<^file>\<open>~~/src/HOL/Library/Cardinal_Notations.thy\<close> imported.
 
-The type is simply a copy of the function space @{typ "'d \<Rightarrow> 'a"}, where @{typ 'a}
-is live and @{typ 'd} is dead. We introduce it together with its map function,
+The type is simply a copy of the function space \<^typ>\<open>'d \<Rightarrow> 'a\<close>, where \<^typ>\<open>'a\<close>
+is live and \<^typ>\<open>'d\<close> is dead. We introduce it together with its map function,
 set function, predicator, and relator.
 \<close>
 
@@ -2870,7 +2869,7 @@ registration, some of which feature custom witnesses.
 
 For many typedefs, lifting the BNF structure from the raw type to the abstract
 type can be done uniformly. This is the task of the @{command lift_bnf} command.
-Using @{command lift_bnf}, the above registration of @{typ "('d, 'a) fn"} as a
+Using @{command lift_bnf}, the above registration of \<^typ>\<open>('d, 'a) fn\<close> as a
 BNF becomes much shorter:
 \<close>
 
@@ -2885,7 +2884,7 @@ BNF becomes much shorter:
 (*>*)
 
 text \<open>
-For type copies (@{command typedef}s with @{term UNIV} as the representing set),
+For type copies (@{command typedef}s with \<^term>\<open>UNIV\<close> as the representing set),
 the proof obligations are so simple that they can be
 discharged automatically, yielding another command, @{command copy_bnf}, which
 does not emit any proof obligations:
@@ -2925,7 +2924,7 @@ text \<open>
 The @{command lift_bnf} command requires us to prove that the set of nonempty lists
 is closed under the map function and the zip function. The latter only
 occurs implicitly in the goal, in form of the variable
-@{term "zs :: ('a \<times> 'b) list"}.
+\<^term>\<open>zs :: ('a \<times> 'b) list\<close>.
 \<close>
 
     lift_bnf (*<*)(no_warn_wits) (*>*)'a nonempty_list
@@ -2946,8 +2945,8 @@ The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
 command below introduces a type \<open>('a, 'b, 'c) F\<close>, three set constants,
 a map function, a predicator, a relator, and a nonemptiness witness that depends only on
-@{typ 'a}. The type \<open>'a \<Rightarrow> ('a, 'b, 'c) F\<close> of the witness can be read
-as an implication: Given a witness for @{typ 'a}, we can construct a witness for
+\<^typ>\<open>'a\<close>. The type \<open>'a \<Rightarrow> ('a, 'b, 'c) F\<close> of the witness can be read
+as an implication: Given a witness for \<^typ>\<open>'a\<close>, we can construct a witness for
 \<open>('a, 'b, 'c) F\<close>. The BNF properties are postulated as axioms.
 \<close>
 
@@ -2971,12 +2970,12 @@ text \<open>
   @{command_def "bnf"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command bnf} target? (name ':')? type \<newline>
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)? \<newline>
     ('pred:' term)? @{syntax plugins}?
-\<close>}
+\<close>
 
 \medskip
 
@@ -3004,7 +3003,7 @@ text \<open>
   @{command_def "lift_bnf"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command lift_bnf} target? lb_options? \<newline>
     @{syntax tyargs} name wit_terms?  \<newline>
     ('via' thm)? @{syntax map_rel_pred}?
@@ -3012,15 +3011,14 @@ text \<open>
   @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits') + ',') ')'
   ;
   @{syntax_def wit_terms}: '[' 'wits' ':' terms ']'
-\<close>}
+\<close>
 \medskip
 
 \noindent
 The @{command lift_bnf} command registers as a BNF an existing type (the
 \emph{abstract type}) that was defined as a subtype of a BNF (the \emph{raw
 type}) using the @{command typedef} command. To achieve this, it lifts the BNF
-structure on the raw type to the abstract type following a @{term
-type_definition} theorem. The theorem is usually inferred from the type, but can
+structure on the raw type to the abstract type following a \<^term>\<open>type_definition\<close> theorem. The theorem is usually inferred from the type, but can
 also be explicitly supplied by means of the optional \<open>via\<close> clause. In
 addition, custom names for the set functions, the map function, the predicator, and the relator,
 as well as nonemptiness witnesses can be specified.
@@ -3040,15 +3038,15 @@ text \<open>
   @{command_def "copy_bnf"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command copy_bnf} target? ('(' @{syntax plugins} ')')? \<newline>
     @{syntax tyargs} name ('via' thm)? @{syntax map_rel_pred}?
-\<close>}
+\<close>
 \medskip
 
 \noindent
 The @{command copy_bnf} command performs the same lifting as @{command lift_bnf}
-for type copies (@{command typedef}s with @{term UNIV} as the representing set),
+for type copies (@{command typedef}s with \<^term>\<open>UNIV\<close> as the representing set),
 without requiring the user to discharge any proof obligations or provide
 nonemptiness witnesses.
 \<close>
@@ -3061,13 +3059,13 @@ text \<open>
   @{command_def "bnf_axiomatization"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command bnf_axiomatization} target? ('(' @{syntax plugins} ')')? \<newline>
     @{syntax tyargs}? name @{syntax wit_types}? \<newline>
     mixfix? @{syntax map_rel_pred}?
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
-\<close>}
+\<close>
 
 \medskip
 
@@ -3078,7 +3076,7 @@ these constants as axioms.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
-(@{typ 'a}, @{typ 'b}, \ldots), \synt{mixfix} denotes the usual parenthesized
+(\<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, \ldots), \synt{mixfix} denotes the usual parenthesized
 mixfix notation, and \synt{types} denotes a space-separated list of types
 @{cite "isabelle-isar-ref"}.
 
@@ -3107,9 +3105,9 @@ text \<open>
   @{command_def "print_bnfs"} & : & \<open>local_theory \<rightarrow>\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command print_bnfs}
-\<close>}
+\<close>
 \<close>
 
 
@@ -3147,13 +3145,13 @@ text \<open>
   @{command_def "free_constructors"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command free_constructors} target? @{syntax dt_options} \<newline>
     name 'for' (@{syntax fc_ctor} + '|') \<newline>
   (@'where' (prop + '|'))?
   ;
   @{syntax_def fc_ctor}: (name ':')? term (name * )
-\<close>}
+\<close>
 
 \medskip
 
@@ -3188,10 +3186,10 @@ text \<open>
   @{command_def "simps_of_case"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command simps_of_case} target? (name ':')? \<newline>
     (thm + ) (@'splits' ':' (thm + ))?
-\<close>}
+\<close>
 
 \medskip
 
@@ -3227,10 +3225,10 @@ text \<open>
   @{command_def "case_of_simps"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command case_of_simps} target? (name ':')? \<newline>
     (thm + )
-\<close>}
+\<close>
 
 \medskip
 
@@ -3334,7 +3332,7 @@ text \<open>
 For each datatype \<open>t\<close>, the \hthm{size} plugin generates a generic size
 function \<open>t.size_t\<close> as well as a specific instance
 \<open>size :: t \<Rightarrow> nat\<close> belonging to the \<open>size\<close> type class. The
-\keyw{fun} command relies on @{const size} to prove termination of recursive
+\keyw{fun} command relies on \<^const>\<open>size\<close> to prove termination of recursive
 functions on datatypes.
 
 The plugin derives the following properties:
@@ -3356,9 +3354,9 @@ The plugin derives the following properties:
 @{thm list.size_gen_o_map[no_vars]}
 
 \item[\<open>t.\<close>\hthm{size_neq}\rm:] ~ \\
-This property is missing for @{typ "'a list"}. If the @{term size} function
+This property is missing for \<^typ>\<open>'a list\<close>. If the \<^term>\<open>size\<close> function
 always evaluates to a non-zero value, this theorem has the form
-@{prop "\<not> size x = 0"}.
+\<^prop>\<open>\<not> size x = 0\<close>.
 
 \end{description}
 \end{indentblock}
@@ -3371,8 +3369,8 @@ If the recursion is through a non-datatype \<open>u\<close> with type arguments
 \<open>'a\<^sub>1, \<dots>, 'a\<^sub>m\<close>, by default \<open>u\<close> values are given a size of 0. This
 can be improved upon by registering a custom size function of type
 \<open>('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat\<close> using
-the ML function @{ML BNF_LFP_Size.register_size} or
-@{ML BNF_LFP_Size.register_size_global}. See theory
+the ML function \<^ML>\<open>BNF_LFP_Size.register_size\<close> or
+\<^ML>\<open>BNF_LFP_Size.register_size_global\<close>. See theory
 \<^file>\<open>~~/src/HOL/Library/Multiset.thy\<close> for an example.
 \<close>
 

@@ -36,9 +36,9 @@ class euclidean_space = real_inner +
 syntax "_type_dimension" :: "type \<Rightarrow> nat"  ("(1DIM/(1'(_')))")
 translations "DIM('a)" \<rightharpoonup> "CONST card (CONST Basis :: 'a set)"
 typed_print_translation \<open>
-  [(@{const_syntax card},
-    fn ctxt => fn _ => fn [Const (@{const_syntax Basis}, Type (@{type_name set}, [T]))] =>
-      Syntax.const @{syntax_const "_type_dimension"} $ Syntax_Phases.term_of_typ ctxt T)]
+  [(\<^const_syntax>\<open>card\<close>,
+    fn ctxt => fn _ => fn [Const (\<^const_syntax>\<open>Basis\<close>, Type (\<^type_name>\<open>set\<close>, [T]))] =>
+      Syntax.const \<^syntax_const>\<open>_type_dimension\<close> $ Syntax_Phases.term_of_typ ctxt T)]
 \<close>
 
 lemma (in euclidean_space) norm_Basis[simp]: "u \<in> Basis \<Longrightarrow> norm u = 1"
@@ -234,7 +234,7 @@ qed
 
 subsection \<open>Class instances\<close>
 
-subsubsection%unimportant \<open>Type @{typ real}\<close>
+subsubsection%unimportant \<open>Type \<^typ>\<open>real\<close>\<close>
 
 instantiation real :: euclidean_space
 begin
@@ -250,7 +250,7 @@ end
 lemma DIM_real[simp]: "DIM(real) = 1"
   by simp
 
-subsubsection%unimportant \<open>Type @{typ complex}\<close>
+subsubsection%unimportant \<open>Type \<^typ>\<open>complex\<close>\<close>
 
 instantiation complex :: euclidean_space
 begin
@@ -271,7 +271,7 @@ lemma complex_Basis_1 [iff]: "(1::complex) \<in> Basis"
 lemma complex_Basis_i [iff]: "\<i> \<in> Basis"
   by (simp add: Basis_complex_def)
 
-subsubsection%unimportant \<open>Type @{typ "'a \<times> 'b"}\<close>
+subsubsection%unimportant \<open>Type \<^typ>\<open>'a \<times> 'b\<close>\<close>
 
 instantiation prod :: (real_inner, real_inner) real_inner
 begin

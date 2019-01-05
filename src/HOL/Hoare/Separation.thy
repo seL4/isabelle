@@ -61,24 +61,24 @@ fun free_tr(t as Free _) = t $ Syntax.free "H"
 \<^cancel>\<open>| free_tr((list as Free("List",_))$ p $ ps) = list $ Syntax.free "H" $ p $ ps\<close>
   | free_tr t = t
 
-fun emp_tr [] = Syntax.const @{const_syntax is_empty} $ Syntax.free "H"
+fun emp_tr [] = Syntax.const \<^const_syntax>\<open>is_empty\<close> $ Syntax.free "H"
   | emp_tr ts = raise TERM ("emp_tr", ts);
-fun singl_tr [p, q] = Syntax.const @{const_syntax singl} $ Syntax.free "H" $ p $ q
+fun singl_tr [p, q] = Syntax.const \<^const_syntax>\<open>singl\<close> $ Syntax.free "H" $ p $ q
   | singl_tr ts = raise TERM ("singl_tr", ts);
-fun star_tr [P,Q] = Syntax.const @{const_syntax star} $
+fun star_tr [P,Q] = Syntax.const \<^const_syntax>\<open>star\<close> $
       absfree ("H", dummyT) (free_tr P) $ absfree ("H", dummyT) (free_tr Q) $
       Syntax.free "H"
   | star_tr ts = raise TERM ("star_tr", ts);
-fun wand_tr [P, Q] = Syntax.const @{const_syntax wand} $
+fun wand_tr [P, Q] = Syntax.const \<^const_syntax>\<open>wand\<close> $
       absfree ("H", dummyT) P $ absfree ("H", dummyT) Q $ Syntax.free "H"
   | wand_tr ts = raise TERM ("wand_tr", ts);
 \<close>
 
 parse_translation \<open>
- [(@{syntax_const "_emp"}, K emp_tr),
-  (@{syntax_const "_singl"}, K singl_tr),
-  (@{syntax_const "_star"}, K star_tr),
-  (@{syntax_const "_wand"}, K wand_tr)]
+ [(\<^syntax_const>\<open>_emp\<close>, K emp_tr),
+  (\<^syntax_const>\<open>_singl\<close>, K singl_tr),
+  (\<^syntax_const>\<open>_star\<close>, K star_tr),
+  (\<^syntax_const>\<open>_wand\<close>, K wand_tr)]
 \<close>
 
 text\<open>Now it looks much better:\<close>
@@ -110,24 +110,24 @@ fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
 \<^cancel>\<open>| strip (Abs(_,_,((list as Const("List",_))$ Bound 0 $ p $ ps))) = list$p$ps\<close>
   | strip (Abs(_,_,(t as Const("_var",_) $ Var _) $ Bound 0)) = t
   | strip (Abs(_,_,P)) = P
-  | strip (Const(@{const_syntax is_empty},_)) = Syntax.const @{syntax_const "_emp"}
+  | strip (Const(\<^const_syntax>\<open>is_empty\<close>,_)) = Syntax.const \<^syntax_const>\<open>_emp\<close>
   | strip t = t;
 
 in
 
-fun is_empty_tr' [_] = Syntax.const @{syntax_const "_emp"}
-fun singl_tr' [_,p,q] = Syntax.const @{syntax_const "_singl"} $ p $ q
-fun star_tr' [P,Q,_] = Syntax.const @{syntax_const "_star"} $ strip P $ strip Q
-fun wand_tr' [P,Q,_] = Syntax.const @{syntax_const "_wand"} $ strip P $ strip Q
+fun is_empty_tr' [_] = Syntax.const \<^syntax_const>\<open>_emp\<close>
+fun singl_tr' [_,p,q] = Syntax.const \<^syntax_const>\<open>_singl\<close> $ p $ q
+fun star_tr' [P,Q,_] = Syntax.const \<^syntax_const>\<open>_star\<close> $ strip P $ strip Q
+fun wand_tr' [P,Q,_] = Syntax.const \<^syntax_const>\<open>_wand\<close> $ strip P $ strip Q
 
 end
 \<close>
 
 print_translation \<open>
- [(@{const_syntax is_empty}, K is_empty_tr'),
-  (@{const_syntax singl}, K singl_tr'),
-  (@{const_syntax star}, K star_tr'),
-  (@{const_syntax wand}, K wand_tr')]
+ [(\<^const_syntax>\<open>is_empty\<close>, K is_empty_tr'),
+  (\<^const_syntax>\<open>singl\<close>, K singl_tr'),
+  (\<^const_syntax>\<open>star\<close>, K star_tr'),
+  (\<^const_syntax>\<open>wand\<close>, K wand_tr')]
 \<close>
 
 text\<open>Now the intermediate proof states are also readable:\<close>

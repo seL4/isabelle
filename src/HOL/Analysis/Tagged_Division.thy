@@ -41,7 +41,7 @@ lemma wf_finite_segments:
   apply (simp add: trans_wf_iff wf_iff_acyclic_if_finite converse_def assms)
   using acyclic_def assms irrefl_def trans_Restr by fastforce
 
-text\<open>For creating values between @{term u} and @{term v}.\<close>
+text\<open>For creating values between \<^term>\<open>u\<close> and \<^term>\<open>v\<close>.\<close>
 lemma scaling_mono:
   fixes u::"'a::linordered_field"
   assumes "u \<le> v" "0 \<le> r" "r \<le> s"
@@ -1289,8 +1289,8 @@ qed
 subsection%important \<open>Functions closed on boxes: morphisms from boxes to monoids\<close>
 
 text \<open>This auxiliary structure is used to sum up over the elements of a division. Main theorem is
-  \<open>operative_division\<close>. Instances for the monoid are @{typ "'a option"}, @{typ real}, and
-  @{typ bool}.\<close>
+  \<open>operative_division\<close>. Instances for the monoid are \<^typ>\<open>'a option\<close>, \<^typ>\<open>real\<close>, and
+  \<^typ>\<open>bool\<close>.\<close>
 
 paragraph%important \<open>Using additivity of lifted function to encode definedness.\<close>
 text%important \<open>%whitespace\<close>
@@ -2351,7 +2351,7 @@ proof%unimportant -
       for m n \<comment> \<open>The symmetry argument requires a single HOL formula\<close>
     proof (rule linorder_wlog [where a=m and b=n], intro allI impI)
       fix v w m and n::nat
-      assume "m \<le> n" \<comment> \<open>WLOG we can assume @{term"m \<le> n"}, when the first disjunct becomes impossible\<close>
+      assume "m \<le> n" \<comment> \<open>WLOG we can assume \<^term>\<open>m \<le> n\<close>, when the first disjunct becomes impossible\<close>
       have "?K0(n,w) \<subseteq> ?K0(m,v) \<or> interior(?K0(m,v)) \<inter> interior(?K0(n,w)) = {}"
         apply (simp add: subset_box disjoint_interval)
         apply (rule ccontr)

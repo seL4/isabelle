@@ -10,7 +10,7 @@ end
 structure Cooper_Tac: COOPER_TAC =
 struct
 
-val cooper_ss = simpset_of @{context};
+val cooper_ss = simpset_of \<^context>;
 
 fun prepare_for_linz q fm =
   let
@@ -26,7 +26,7 @@ fun prepare_for_linz q fm =
     val np = length ps
     val (fm',np) = List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (List.foldr HOLogic.mk_imp c rhs, np) ps
-    val (vs, _) = List.partition (fn t => q orelse (type_of t) = @{typ nat})
+    val (vs, _) = List.partition (fn t => q orelse (type_of t) = \<^typ>\<open>nat\<close>)
       (Misc_Legacy.term_frees fm' @ Misc_Legacy.term_vars fm');
     val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
@@ -53,7 +53,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
           div_by_1 mod_by_1 div_by_Suc_0 mod_by_Suc_0
           Suc_eq_plus1}
       addsimps @{thms ac_simps}
-      addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
+      addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>]
     val simpset0 =
       put_simpset HOL_basic_ss ctxt
       addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1 simp_thms}
@@ -84,7 +84,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     (* The result of the quantifier elimination *)
     val (th, tac) =
       (case Thm.prop_of pre_thm of
-        Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
+        Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t1) $ _ =>
           let
             val pth = linzqe_oracle (ctxt, Envir.eta_long [] t1)
           in

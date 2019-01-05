@@ -3113,8 +3113,8 @@ definition linked_paths :: "bool \<Rightarrow> (real \<Rightarrow> 'a) \<Rightar
         (if atends then pathstart h = pathstart g \<and> pathfinish h = pathfinish g
                    else pathfinish g = pathstart g \<and> pathfinish h = pathstart h)"
 
-text\<open>This formulation covers two cases: @{term g} and @{term h} share their
-      start and end points; @{term g} and @{term h} both loop upon themselves.\<close>
+text\<open>This formulation covers two cases: \<^term>\<open>g\<close> and \<^term>\<open>h\<close> share their
+      start and end points; \<^term>\<open>g\<close> and \<^term>\<open>h\<close> both loop upon themselves.\<close>
 lemma contour_integral_nearby:
   assumes os: "open S" and p: "path p" "path_image p \<subseteq> S"
   shows "\<exists>d. 0 < d \<and>
@@ -6360,7 +6360,7 @@ theorem holomorphic_power_series:
       and w: "w \<in> ball z r"
     shows "((\<lambda>n. (deriv ^^ n) f z / (fact n) * (w - z)^n) sums f w)"
 proof -
-  \<comment> \<open>Replacing @{term r} and the original (weak) premises with stronger ones\<close>
+  \<comment> \<open>Replacing \<^term>\<open>r\<close> and the original (weak) premises with stronger ones\<close>
   obtain r where "r > 0" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
   proof
     have "cball z ((r + dist w z) / 2) \<subseteq> ball z r"
@@ -7274,7 +7274,7 @@ proof -
   qed
 qed
 
-text\<open>This version has @{term"polynomial_function \<gamma>"} as an additional assumption.\<close>
+text\<open>This version has \<^term>\<open>polynomial_function \<gamma>\<close> as an additional assumption.\<close>
 lemma Cauchy_integral_formula_global_weak:
   assumes "open U" and holf: "f holomorphic_on U"
         and z: "z \<in> U" and \<gamma>: "polynomial_function \<gamma>"

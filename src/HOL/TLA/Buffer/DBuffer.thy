@@ -59,7 +59,7 @@ lemma DB_step_simulation: "\<turnstile> [DBNext]_(inp,mid,out,q1,q2) \<longright
   apply (rule square_simulation)
    apply clarsimp
   apply (tactic
-    \<open>action_simp_tac (@{context} addsimps (@{thm hd_append} :: @{thms db_defs})) [] [] 1\<close>)
+    \<open>action_simp_tac (\<^context> addsimps (@{thm hd_append} :: @{thms db_defs})) [] [] 1\<close>)
   done
 
 

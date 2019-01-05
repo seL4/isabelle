@@ -80,7 +80,7 @@ where
 
 text \<open>
   This yields \<open>f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)\<close>.  Concerning \<open>c\<^sub>1\<close> and \<open>c\<^sub>2\<close>
-  restricted to @{typ nat}, see note above on \<open>(\<lesssim>)\<close>.
+  restricted to \<^typ>\<open>nat\<close>, see note above on \<open>(\<lesssim>)\<close>.
 \<close>
 
 lemma equiv_funI:
@@ -162,7 +162,7 @@ text \<open>
   it occurs on the \emph{right} hand side of the \<open>(>)\<close>.  The reason
   is that the situation is dual to the definition of \<open>O\<close>: the definition
   works since \<open>c\<close> may become arbitrary small.  Since this is not possible
-  within @{term \<nat>}, we push the coefficient to the left hand side instead such
+  within \<^term>\<open>\<nat>\<close>, we push the coefficient to the left hand side instead such
   that it may become arbitrary big instead.
 \<close>
 
@@ -291,7 +291,7 @@ text \<open>
   has to be added yet.
 \<close>
 
-text \<open>@{prop "(\<lambda>n. f n + k) \<cong> f"}\<close>
+text \<open>\<^prop>\<open>(\<lambda>n. f n + k) \<cong> f\<close>\<close>
 
 lemma equiv_fun_mono_const:
   assumes "mono f" and "\<exists>n. f n > 0"
@@ -384,7 +384,7 @@ qed
 (*lemma
   "Discrete.log \<prec> Discrete.sqrt"
 proof (rule less_fun_strongI)*)
-text \<open>@{prop "Discrete.log \<prec> Discrete.sqrt"}\<close>
+text \<open>\<^prop>\<open>Discrete.log \<prec> Discrete.sqrt\<close>\<close>
 
 lemma
   "Discrete.sqrt \<prec> id"
@@ -418,6 +418,6 @@ lemma
 (*lemma 
   "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"
 proof (rule less_fun_strongI)*)
-text \<open>@{prop "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"}\<close>
+text \<open>\<^prop>\<open>(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)\<close>\<close>
 
 end

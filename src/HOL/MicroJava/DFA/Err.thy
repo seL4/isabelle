@@ -302,8 +302,8 @@ apply fast
 done 
 
 text \<open>
-  If @{term "AS = {}"} the thm collapses to
-  @{prop "order r & closed {Err} f & Err +_f Err = Err"}
+  If \<^term>\<open>AS = {}\<close> the thm collapses to
+  \<^prop>\<open>order r & closed {Err} f & Err +_f Err = Err\<close>
   which may not hold 
 \<close>
 lemma err_semilat_UnionI:

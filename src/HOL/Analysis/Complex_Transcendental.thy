@@ -89,7 +89,7 @@ lemma holomorphic_on_exp' [holomorphic_intros]:
 
 subsection\<open>Euler and de Moivre formulas\<close>
 
-text\<open>The sine series times @{term i}\<close>
+text\<open>The sine series times \<^term>\<open>i\<close>\<close>
 lemma sin_i_eq: "(\<lambda>n. (\<i> * sin_coeff n) * z^n) sums (\<i> * sin z)"
 proof -
   have "(\<lambda>n. \<i> * sin_coeff n *\<^sub>R z^n) sums (\<i> * sin z)"
@@ -883,7 +883,7 @@ proof -
 qed
 
 text\<open>This function returns the angle of a complex number from its representation in polar coordinates.
-Due to periodicity, its range is arbitrary. @{term Arg2pi} follows HOL Light in adopting the interval \<open>[0,2\<pi>)\<close>.
+Due to periodicity, its range is arbitrary. \<^term>\<open>Arg2pi\<close> follows HOL Light in adopting the interval \<open>[0,2\<pi>)\<close>.
 But we have the same periodicity issue with logarithms, and it is usual to adopt the same interval
 for the complex logarithm and argument functions. Further on down, we shall define both functions for the interval \<open>(-\<pi>,\<pi>]\<close>.
 The present version is provided for compatibility.\<close>

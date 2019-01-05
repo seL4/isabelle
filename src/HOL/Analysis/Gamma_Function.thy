@@ -20,7 +20,7 @@ text \<open>
 
   Based on the Gamma function, we also prove the Weierstraß product form of the
   sin function and, based on this, the solution of the Basel problem (the
-  sum over all @{term "1 / (n::nat)^2"}.
+  sum over all \<^term>\<open>1 / (n::nat)^2\<close>.
 \<close>
 
 lemma pochhammer_eq_0_imp_nonpos_Int:
@@ -2073,7 +2073,7 @@ proof -
   let ?h = "\<lambda>z::complex. (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
   define h where [abs_def]: "h z = (if z \<in> \<int> then 0 else ?h z)" for z :: complex
 
-  \<comment> \<open>@{term g} is periodic with period 1.\<close>
+  \<comment> \<open>\<^term>\<open>g\<close> is periodic with period 1.\<close>
   interpret g: periodic_fun_simple' g
   proof
     fix z :: complex
@@ -2093,7 +2093,7 @@ proof -
     qed (simp add: g_def)
   qed
 
-  \<comment> \<open>@{term g} is entire.\<close>
+  \<comment> \<open>\<^term>\<open>g\<close> is entire.\<close>
   have g_g' [derivative_intros]: "(g has_field_derivative (h z * g z)) (at z)" for z :: complex
   proof (cases "z \<in> \<int>")
     let ?h' = "\<lambda>z. Beta z (1 - z) * ((Digamma z - Digamma (1 - z)) * sin (z * of_real pi) +

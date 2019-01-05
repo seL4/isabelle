@@ -34,14 +34,14 @@ corresponding right-hand side, induces a wellfounded relation.
 
 The HOL library formalizes
 some of the theory of wellfounded relations. For example
-@{prop"wf r"}\index{*wf|bold} means that relation @{term[show_types]"r::('a*'a)set"} is
+\<^prop>\<open>wf r\<close>\index{*wf|bold} means that relation @{term[show_types]"r::('a*'a)set"} is
 wellfounded.
 Finally we should mention that HOL already provides the mother of all
 inductions, \textbf{wellfounded
 induction}\indexbold{induction!wellfounded}\index{wellfounded
 induction|see{induction, wellfounded}} (@{thm[source]wf_induct}):
 @{thm[display]wf_induct[no_vars]}
-where @{term"wf r"} means that the relation @{term r} is wellfounded
+where \<^term>\<open>wf r\<close> means that the relation \<^term>\<open>r\<close> is wellfounded
 
 \<close>
 

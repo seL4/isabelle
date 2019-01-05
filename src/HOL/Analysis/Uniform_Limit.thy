@@ -406,9 +406,9 @@ subsection%unimportant \<open>Structural introduction rules\<close>
 
 named_theorems uniform_limit_intros "introduction rules for uniform_limit"
 setup \<open>
-  Global_Theory.add_thms_dynamic (@{binding uniform_limit_eq_intros},
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>uniform_limit_eq_intros\<close>,
     fn context =>
-      Named_Theorems.get (Context.proof_of context) @{named_theorems uniform_limit_intros}
+      Named_Theorems.get (Context.proof_of context) \<^named_theorems>\<open>uniform_limit_intros\<close>
       |> map_filter (try (fn thm => @{thm uniform_limit_eq_rhs} OF [thm])))
 \<close>
 

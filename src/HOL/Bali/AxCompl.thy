@@ -719,7 +719,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE)
         show "Y' = \<diamondsuit> \<and> G\<turnstile>Norm s \<midarrow>l\<bullet> While(e) c\<rightarrow> s'"
         proof -
           from asm obtain v t where 
-            \<comment> \<open>@{term "Z'"} gets instantiated with @{term "Norm s"}\<close>  
+            \<comment> \<open>\<^term>\<open>Z'\<close> gets instantiated with \<^term>\<open>Norm s\<close>\<close>  
             unroll: "(Norm s, t) \<in> (unroll G l e c)\<^sup>*" and
             eval_e: "G\<turnstile>t \<midarrow>e-\<succ>v\<rightarrow> s'" and
             normal_termination: "normal s' \<longrightarrow> \<not> the_Bool v" and
@@ -1369,8 +1369,8 @@ lemma nesting_lemma' [rule_format (no_asm)]:
 using finU uA
 apply -
 apply (induct_tac "n")
-apply  (tactic "ALLGOALS (clarsimp_tac @{context})")
-apply  (tactic \<open>dresolve_tac @{context} [Thm.permute_prems 0 1 @{thm card_seteq}] 1\<close>)
+apply  (tactic "ALLGOALS (clarsimp_tac \<^context>)")
+apply  (tactic \<open>dresolve_tac \<^context> [Thm.permute_prems 0 1 @{thm card_seteq}] 1\<close>)
 apply    simp
 apply   (erule finite_imageI)
 apply  (simp add: MGF_asm ax_derivs_asm)

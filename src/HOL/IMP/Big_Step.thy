@@ -86,8 +86,8 @@ text \<open>
 
 subsection "Rule inversion"
 
-text\<open>What can we deduce from @{prop "(SKIP,s) \<Rightarrow> t"} ?
-That @{prop "s = t"}. This is how we can automatically prove it:\<close>
+text\<open>What can we deduce from \<^prop>\<open>(SKIP,s) \<Rightarrow> t\<close> ?
+That \<^prop>\<open>s = t\<close>. This is how we can automatically prove it:\<close>
 
 inductive_cases SkipE[elim!]: "(SKIP,s) \<Rightarrow> t"
 thm SkipE
@@ -188,10 +188,10 @@ proof -
       case WhileTrue
       from \<open>bval b s\<close> \<open>(?w, s) \<Rightarrow> t\<close> obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
-      \<comment> \<open>now we can build a derivation tree for the @{text IF}\<close>
+      \<comment> \<open>now we can build a derivation tree for the \<^text>\<open>IF\<close>\<close>
       \<comment> \<open>first, the body of the True-branch:\<close>
       hence "(c;; ?w, s) \<Rightarrow> t" by (rule Seq)
-      \<comment> \<open>then the whole @{text IF}\<close>
+      \<comment> \<open>then the whole \<^text>\<open>IF\<close>\<close>
       with \<open>bval b s\<close> show ?thesis by (rule IfTrue)
     qed
   qed
@@ -209,7 +209,7 @@ proof -
       \<comment> \<open>and for this, only the Seq-rule is applicable:\<close>
       from \<open>(c;; ?w, s) \<Rightarrow> t\<close> obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
-      \<comment> \<open>with this information, we can build a derivation tree for @{text WHILE}\<close>
+      \<comment> \<open>with this information, we can build a derivation tree for \<^text>\<open>WHILE\<close>\<close>
       with \<open>bval b s\<close> show ?thesis by (rule WhileTrue)
     qed
   qed
@@ -267,11 +267,11 @@ text_raw\<open>\snip{BigStepDetLong}{0}{2}{%\<close>
 theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
-  \<comment> \<open>the only interesting case, @{text WhileTrue}:\<close>
+  \<comment> \<open>the only interesting case, \<^text>\<open>WhileTrue\<close>:\<close>
   fix b c s s\<^sub>1 t t'
   \<comment> \<open>The assumptions of the rule:\<close>
   assume "bval b s" and "(c,s) \<Rightarrow> s\<^sub>1" and "(WHILE b DO c,s\<^sub>1) \<Rightarrow> t"
-  \<comment> \<open>Ind.Hyp; note the @{text"\<And>"} because of arbitrary:\<close>
+  \<comment> \<open>Ind.Hyp; note the \<^text>\<open>\<And>\<close> because of arbitrary:\<close>
   assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s\<^sub>1"
   assume IHw: "\<And>t'. (WHILE b DO c,s\<^sub>1) \<Rightarrow> t' \<Longrightarrow> t' = t"
   \<comment> \<open>Premise of implication:\<close>

@@ -42,17 +42,17 @@ text \<open>
 syntax "_vec_type" :: "type \<Rightarrow> type \<Rightarrow> type" (infixl "^" 15)
 parse_translation \<open>
   let
-    fun vec t u = Syntax.const @{type_syntax vec} $ t $ u;
+    fun vec t u = Syntax.const \<^type_syntax>\<open>vec\<close> $ t $ u;
     fun finite_vec_tr [t, u] =
       (case Term_Position.strip_positions u of
         v as Free (x, _) =>
           if Lexicon.is_tid x then
-            vec t (Syntax.const @{syntax_const "_ofsort"} $ v $
-              Syntax.const @{class_syntax finite})
+            vec t (Syntax.const \<^syntax_const>\<open>_ofsort\<close> $ v $
+              Syntax.const \<^class_syntax>\<open>finite\<close>)
           else vec t u
       | _ => vec t u)
   in
-    [(@{syntax_const "_vec_type"}, K finite_vec_tr)]
+    [(\<^syntax_const>\<open>_vec_type\<close>, K finite_vec_tr)]
   end
 \<close>
 
@@ -800,12 +800,12 @@ hide_fact (open) sum_cong_aux
 method_setup vector = \<open>
 let
   val ss1 =
-    simpset_of (put_simpset HOL_basic_ss @{context}
+    simpset_of (put_simpset HOL_basic_ss \<^context>
       addsimps [@{thm sum.distrib} RS sym,
       @{thm sum_subtractf} RS sym, @{thm sum_distrib_left},
       @{thm sum_distrib_right}, @{thm sum_negf} RS sym])
   val ss2 =
-    simpset_of (@{context} addsimps
+    simpset_of (\<^context> addsimps
              [@{thm plus_vec_def}, @{thm times_vec_def},
               @{thm minus_vec_def}, @{thm uminus_vec_def},
               @{thm one_vec_def}, @{thm zero_vec_def}, @{thm vec_def},
@@ -1006,7 +1006,7 @@ lemma linear_vec [simp]: "linear vec"
 
 subsection%important \<open>Matrix operations\<close>
 
-text\<open>Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"}\<close>
+text\<open>Matrix notation. NB: an MxN matrix is of type \<^typ>\<open>'a^'n^'m\<close>, not \<^typ>\<open>'a^'m^'n\<close>\<close>
 
 definition%important map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
   "map_matrix f x = (\<chi> i j. f (x $ i $ j))"

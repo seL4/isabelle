@@ -92,7 +92,7 @@ fun mk_const_expansion ectxt basis c =
     thm OF [get_basis_wf_thm basis, mk_expansion_level_eq_thm basis]
   end
 
-fun dest_eventually (Const (@{const_name "Filter.eventually"}, _) $ p $ f) = (p, f)
+fun dest_eventually (Const (\<^const_name>\<open>Filter.eventually\<close>, _) $ p $ f) = (p, f)
   | dest_eventually t = raise TERM ("dest_eventually", [t])
 
 fun dest_binop (f $ a $ b) = (f, a, b)
@@ -113,12 +113,12 @@ fun transfer_bounds eq_thm (Exact thm) =
         (Option.map (apsnd (fn thm => @{thm transfer_lower_bound} OF [thm, eq_thm])) lb,
          Option.map (apsnd (fn thm => @{thm transfer_upper_bound} OF [thm, eq_thm])) ub)
 
-fun dest_le (@{term "(<=) :: real => _"} $ l $ r) = (l, r)
+fun dest_le (\<^term>\<open>(<=) :: real => _\<close> $ l $ r) = (l, r)
   | dest_le t = raise TERM ("dest_le", [t])
 
 fun abconv (t, t') = Envir.beta_eta_contract t aconv Envir.beta_eta_contract t'
 
-val realT = @{typ "Real.real"}
+val realT = \<^typ>\<open>Real.real\<close>
 
 fun check_bounds e (Exact thm) = let val _ = check_expansion e thm in Exact thm end
   | check_bounds e (Bounds bnds) =
@@ -167,7 +167,7 @@ fun get_basis_size basis = length (get_basis_list basis)
 fun trim_expansion_while_pos ectxt (thm, basis) =
   let
     val n = get_basis_size basis
-    val es = SOME (replicate n @{term "0 :: real"})
+    val es = SOME (replicate n \<^term>\<open>0 :: real\<close>)
   in
     trim_expansion_while_greater false es false NONE ectxt (thm, basis)
   end
@@ -189,7 +189,7 @@ fun get_expanded_fun_bounds_aux f (_, thm) =
     val t = thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> dest_comb |> fst |> dest_comb |> snd
   in
     case Envir.eta_long [] t of
-      Abs (x, T, @{term "(<=) :: real => _"} $ lhs $ rhs) => Abs (x, T, f (lhs, rhs))
+      Abs (x, T, \<^term>\<open>(<=) :: real => _\<close> $ lhs $ rhs) => Abs (x, T, f (lhs, rhs))
     | _ => raise THM ("get_expanded_fun_bounds", 0, [thm])
   end
 
@@ -235,7 +235,7 @@ fun find_smaller_expansion ectxt (thm1, thm2, basis) =
           (thm1, mk_refl_thm ectxt (get_expanded_fun thm1), eq_thm RS @{thm eventually_eq_imp_le})
 
 fun find_greater_expansion ectxt (thm1, thm2, basis) =
-      case compare_expansions ectxt (@{print} (thm1, thm2, basis)) of
+      case compare_expansions ectxt (\<^print> (thm1, thm2, basis)) of
         (LESS, less_thm, _, thm2) =>
           (thm2, less_thm RS @{thm eventually_less_imp_le}, mk_refl_thm ectxt (get_expanded_fun thm2))
       | (GREATER, gt_thm, thm1, _) =>
@@ -264,9 +264,9 @@ fun powr_bounds_thm n = List.nth (powr_bounds_thms, n)
 
 fun mk_nonstrict_thm [thm1, thm2] sgn_thm = (
       case Thm.concl_of sgn_thm |> HOLogic.dest_Trueprop of
-        Const (@{const_name "Filter.eventually"}, _) $ t $ _ => (
+        Const (\<^const_name>\<open>Filter.eventually\<close>, _) $ t $ _ => (
           case Envir.eta_long [] t of
-            Abs (_, _, Const (@{const_name "HOL.eq"}, _) $ _ $ _) => sgn_thm RS thm1
+            Abs (_, _, Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => sgn_thm RS thm1
           | _ => sgn_thm RS thm2)
       | _ => sgn_thm RS thm2)
   | mk_nonstrict_thm _ _ = raise Match    
@@ -398,10 +398,10 @@ fun divide_expansion ectxt basis thm1 thm2 =
 
 fun forget_trimmedness_sign trimmed_thm =
   case Thm.concl_of trimmed_thm |> HOLogic.dest_Trueprop of
-    Const (@{const_name Multiseries_Expansion.trimmed}, _) $ _ => trimmed_thm
-  | Const (@{const_name Multiseries_Expansion.trimmed_pos}, _) $ _ =>
+    Const (\<^const_name>\<open>Multiseries_Expansion.trimmed\<close>, _) $ _ => trimmed_thm
+  | Const (\<^const_name>\<open>Multiseries_Expansion.trimmed_pos\<close>, _) $ _ =>
       trimmed_thm RS @{thm trimmed_pos_imp_trimmed}
-  | Const (@{const_name Multiseries_Expansion.trimmed_neg}, _) $ _ =>
+  | Const (\<^const_name>\<open>Multiseries_Expansion.trimmed_neg\<close>, _) $ _ =>
       trimmed_thm RS @{thm trimmed_neg_imp_trimmed}
   | _ => raise THM ("forget_trimmedness_sign", 0, [trimmed_thm])
 
@@ -428,10 +428,10 @@ fun inverse_expansion_bounds ectxt basis (Exact thm) =
 
 fun trimmed_thm_to_inverse_sgn_thm basis thm trimmed_thm =
   case trimmed_thm |> Thm.concl_of |> HOLogic.dest_Trueprop of
-    Const (@{const_name "Multiseries_Expansion.trimmed_pos"}, _) $ _ =>
+    Const (\<^const_name>\<open>Multiseries_Expansion.trimmed_pos\<close>, _) $ _ =>
       @{thm pos_imp_inverse_pos[eventuallized, OF expands_to_imp_eventually_pos]} OF
         [get_basis_wf_thm basis, thm, trimmed_thm]
-  | Const (@{const_name "Multiseries_Expansion.trimmed_neg"}, _) $ _ =>
+  | Const (\<^const_name>\<open>Multiseries_Expansion.trimmed_neg\<close>, _) $ _ =>
       @{thm neg_imp_inverse_neg[eventuallized, OF expands_to_imp_eventually_neg]} OF
         [get_basis_wf_thm basis, thm, trimmed_thm]
   | _ => raise THM ("trimmed_thm_to_inverse_sgn_thm", 0, [trimmed_thm])
@@ -565,7 +565,7 @@ fun abs_expansion_bounds ectxt basis (Exact thm) = Exact (abs_expansion ectxt ba
         | ((true, _), (_, true)) => (
             case find_greater_expansion ectxt (minus lthm, uthm, basis) of
               (u'_thm, le_thm1, le_thm2) =>
-                (mk_const_expansion ectxt basis @{term "0::real"}, u'_thm,
+                (mk_const_expansion ectxt basis \<^term>\<open>0::real\<close>, u'_thm,
                   @{thm indet_abs_bounds[eventuallized]} OF 
                     [mk_nonpos_thm lsgn_thm, mk_nonneg_thm usgn_thm, 
                        in_bounds_thm, le_thm1, le_thm2]))
@@ -623,7 +623,7 @@ fun powr_expansion_bounds_right ectxt basis
   end
 
 fun compare_expansion_to_1 ectxt (thm, basis) =
-  prove_asymptotic_relation ectxt (thm, const_expansion ectxt basis @{term "1 :: real"}, basis)
+  prove_asymptotic_relation ectxt (thm, const_expansion ectxt basis \<^term>\<open>1 :: real\<close>, basis)
 
 fun powr_expansion_bounds_left ectxt basis
       thm1 ((l2_thm, l2_le_thm), (u2_thm, u2_ge_thm)) =
@@ -795,7 +795,7 @@ fun powr_nat_expansion_bounds ectxt basis bnds1 bnds2 =
                         | _ =>
                             let
                               val (uthm'', le_u'_thm1, le_u'_thm2) = find_greater_expansion ectxt 
-                                (uthm', const_expansion ectxt basis @{term "1::real"}, basis)
+                                (uthm', const_expansion ectxt basis \<^term>\<open>1::real\<close>, basis)
                             in
                               (uthm'', do_transfer 4
                                [mk_nonneg_thm l1_sgn_thm, ge_thm1, le_thm', le_u'_thm1, le_u'_thm2])
@@ -865,7 +865,7 @@ fun floor_expansion_bounds ectxt (bnds, basis) =
         fun mk_lb (exp_thm, le_thm) =
           let
             val exp_thm' = @{thm expands_to_minus} OF
-              [wf_thm, exp_thm, const_expansion ectxt basis @{term "1::real"}]
+              [wf_thm, exp_thm, const_expansion ectxt basis \<^term>\<open>1::real\<close>]
             val le_thm = @{thm rfloor_bound(1)} OF [le_thm]
           in
             (exp_thm', le_thm)
@@ -883,7 +883,7 @@ fun ceiling_expansion_bounds ectxt (bnds, basis) =
         fun mk_ub (exp_thm, le_thm) =
           let
             val exp_thm' = @{thm expands_to_add} OF
-              [wf_thm, exp_thm, const_expansion ectxt basis @{term "1::real"}]
+              [wf_thm, exp_thm, const_expansion ectxt basis \<^term>\<open>1::real\<close>]
             val le_thm = @{thm rceil_bound(2)} OF [le_thm]
           in
             (exp_thm', le_thm)
@@ -903,7 +903,7 @@ fun natmod_expansion_bounds _ (Bounds (NONE, NONE), _, _) = Bounds (NONE, NONE)
       get_expanded_fun_bounds) (bnds1, bnds2)
     val ge_lower_thm = @{thm natmod_trivial_lower_bound} OF [f, g]
     fun minus1 thm = @{thm expands_to_minus} OF
-          [get_basis_wf_thm basis, thm, const_expansion ectxt basis @{term "1::real"}]
+          [get_basis_wf_thm basis, thm, const_expansion ectxt basis \<^term>\<open>1::real\<close>]
     fun find_upper uthm1 le1_thm u_nonneg_thm =
       let
         val upper1 = (uthm1, @{thm natmod_upper_bound'} OF [g, u_nonneg_thm, le1_thm])
@@ -1200,19 +1200,19 @@ fun sgn_expansion_bounds ectxt (Exact thm, basis) =
         val (lower, upper) = apply2 (Option.map aux) bnds
         fun get_bound_exp (SOME (thm, _)) = SOME (get_expansion thm)
           | get_bound_exp _ = NONE
-        fun is_const (SOME (Const (@{const_name "Multiseries_Expansion.const_expansion"}, _) $ c'),
+        fun is_const (SOME (Const (\<^const_name>\<open>Multiseries_Expansion.const_expansion\<close>, _) $ c'),
               c) = c aconv c'
           | is_const _ = false
         fun aconv' (SOME a, SOME b) = a aconv b
           | aconv' _ = false
       in
-        if is_const (get_bound_exp lower, @{term "\<lambda>x::real. 1 :: real"}) then
+        if is_const (get_bound_exp lower, \<^term>\<open>\<lambda>x::real. 1 :: real\<close>) then
           let
             val SOME (lthm, ge_thm) = lower
           in
             Exact (@{thm eventually_sgn_ge_1D} OF [ge_thm, lthm])
           end
-        else if is_const (get_bound_exp upper, @{term "\<lambda>x::real. -1 :: real"}) then
+        else if is_const (get_bound_exp upper, \<^term>\<open>\<lambda>x::real. -1 :: real\<close>) then
           let
             val SOME (uthm, le_thm) = upper
           in
@@ -1720,7 +1720,7 @@ val concl_of' = Thm.concl_of #> HOLogic.dest_Trueprop
 
 fun lim_eq ectxt (l1, l2) = (l1 aconv l2) orelse
   case (l1, l2) of
-    (Const (@{const_name nhds}, _) $ a, Const (@{const_name nhds}, _) $ b) => (
+    (Const (\<^const_name>\<open>nhds\<close>, _) $ a, Const (\<^const_name>\<open>nhds\<close>, _) $ b) => (
       case try_prove_real_eq false ectxt (a, b) of
         SOME _ => true
       | _ => false)

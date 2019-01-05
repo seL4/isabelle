@@ -10,7 +10,7 @@ begin
 text \<open>The \<open>Radix_Sort\<close> locale provides a sorting function \<open>radix_sort\<close> that sorts
 lists of lists. It is parameterized by a sorting function \<open>sort1 f\<close> that also sorts
 lists of lists, but only w.r.t. the column selected by \<open>f\<close>.
-Working with lists, \<open>f\<close> is instantiated with @{term"\<lambda>xs. xs ! n"} to select the \<open>n\<close>-th element.
+Working with lists, \<open>f\<close> is instantiated with \<^term>\<open>\<lambda>xs. xs ! n\<close> to select the \<open>n\<close>-th element.
 A more efficient implementation would sort lists of arrays because arrays support
 constant time access to every element.\<close>
 

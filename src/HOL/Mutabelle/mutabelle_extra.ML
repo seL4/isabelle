@@ -124,7 +124,7 @@ fun invoke_quickcheck change_options thy t =
             | SOME _ => (GenuineCex, Quickcheck.timings_of result)
           end) ()
   handle Timeout.TIMEOUT _ =>
-         (Timeout, [("timelimit", Real.floor (Options.default_real @{system_option auto_time_limit}))])
+         (Timeout, [("timelimit", Real.floor (Options.default_real \<^system_option>\<open>auto_time_limit\<close>))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options)
@@ -209,22 +209,22 @@ val nitpick_mtd = ("nitpick", invoke_nitpick)
 
 (* filtering forbidden theorems and mutants *)
 
-val comms = [@{const_name HOL.eq}, @{const_name HOL.disj}, @{const_name HOL.conj}]
+val comms = [\<^const_name>\<open>HOL.eq\<close>, \<^const_name>\<open>HOL.disj\<close>, \<^const_name>\<open>HOL.conj\<close>]
 
 val forbidden =
  [(* (@{const_name "power"}, "'a"), *)
   (*(@{const_name induct_equal}, "'a"),
   (@{const_name induct_implies}, "'a"),
   (@{const_name induct_conj}, "'a"),*)
-  (@{const_name "undefined"}, "'a"),
-  (@{const_name "default"}, "'a"),
-  (@{const_name "Pure.dummy_pattern"}, "'a::{}"),
-  (@{const_name "HOL.simp_implies"}, "prop => prop => prop"),
-  (@{const_name "bot_fun_inst.bot_fun"}, "'a"),
-  (@{const_name "top_fun_inst.top_fun"}, "'a"),
-  (@{const_name "Pure.term"}, "'a"),
-  (@{const_name "top_class.top"}, "'a"),
-  (@{const_name "Quotient.Quot_True"}, "'a")(*,
+  (\<^const_name>\<open>undefined\<close>, "'a"),
+  (\<^const_name>\<open>default\<close>, "'a"),
+  (\<^const_name>\<open>Pure.dummy_pattern\<close>, "'a::{}"),
+  (\<^const_name>\<open>HOL.simp_implies\<close>, "prop => prop => prop"),
+  (\<^const_name>\<open>bot_fun_inst.bot_fun\<close>, "'a"),
+  (\<^const_name>\<open>top_fun_inst.top_fun\<close>, "'a"),
+  (\<^const_name>\<open>Pure.term\<close>, "'a"),
+  (\<^const_name>\<open>top_class.top\<close>, "'a"),
+  (\<^const_name>\<open>Quotient.Quot_True\<close>, "'a")(*,
   (@{const_name "uminus"}, "'a"),
   (@{const_name "Nat.size"}, "'a"),
   (@{const_name "Groups.abs"}, "'a") *)]
@@ -233,7 +233,7 @@ val forbidden_thms =
  ["finite_intvl_succ_class",
   "nibble"]
 
-val forbidden_consts = [@{const_name Pure.type}]
+val forbidden_consts = [\<^const_name>\<open>Pure.type\<close>]
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (Thm.prop_of th) [] in
@@ -247,54 +247,54 @@ fun is_forbidden_theorem (s, th) =
   end
 
 val forbidden_mutant_constnames =
-[@{const_name HOL.induct_equal},
- @{const_name HOL.induct_implies},
- @{const_name HOL.induct_conj},
- @{const_name HOL.induct_forall},
- @{const_name undefined},
- @{const_name default},
- @{const_name Pure.dummy_pattern},
- @{const_name "HOL.simp_implies"},
- @{const_name "bot_fun_inst.bot_fun"},
- @{const_name "top_fun_inst.top_fun"},
- @{const_name "Pure.term"},
- @{const_name "top_class.top"},
+[\<^const_name>\<open>HOL.induct_equal\<close>,
+ \<^const_name>\<open>HOL.induct_implies\<close>,
+ \<^const_name>\<open>HOL.induct_conj\<close>,
+ \<^const_name>\<open>HOL.induct_forall\<close>,
+ \<^const_name>\<open>undefined\<close>,
+ \<^const_name>\<open>default\<close>,
+ \<^const_name>\<open>Pure.dummy_pattern\<close>,
+ \<^const_name>\<open>HOL.simp_implies\<close>,
+ \<^const_name>\<open>bot_fun_inst.bot_fun\<close>,
+ \<^const_name>\<open>top_fun_inst.top_fun\<close>,
+ \<^const_name>\<open>Pure.term\<close>,
+ \<^const_name>\<open>top_class.top\<close>,
  (*@{const_name "HOL.equal"},*)
- @{const_name "Quotient.Quot_True"},
- @{const_name "equal_fun_inst.equal_fun"},
- @{const_name "equal_bool_inst.equal_bool"},
- @{const_name "ord_fun_inst.less_eq_fun"},
- @{const_name "ord_fun_inst.less_fun"},
- @{const_name Meson.skolem},
- @{const_name ATP.fequal},
- @{const_name ATP.fEx},
- @{const_name enum_prod_inst.enum_all_prod},
- @{const_name enum_prod_inst.enum_ex_prod},
- @{const_name Quickcheck_Random.catch_match},
- @{const_name Quickcheck_Exhaustive.unknown},
- @{const_name Num.Bit0}, @{const_name Num.Bit1}
+ \<^const_name>\<open>Quotient.Quot_True\<close>,
+ \<^const_name>\<open>equal_fun_inst.equal_fun\<close>,
+ \<^const_name>\<open>equal_bool_inst.equal_bool\<close>,
+ \<^const_name>\<open>ord_fun_inst.less_eq_fun\<close>,
+ \<^const_name>\<open>ord_fun_inst.less_fun\<close>,
+ \<^const_name>\<open>Meson.skolem\<close>,
+ \<^const_name>\<open>ATP.fequal\<close>,
+ \<^const_name>\<open>ATP.fEx\<close>,
+ \<^const_name>\<open>enum_prod_inst.enum_all_prod\<close>,
+ \<^const_name>\<open>enum_prod_inst.enum_ex_prod\<close>,
+ \<^const_name>\<open>Quickcheck_Random.catch_match\<close>,
+ \<^const_name>\<open>Quickcheck_Exhaustive.unknown\<close>,
+ \<^const_name>\<open>Num.Bit0\<close>, \<^const_name>\<open>Num.Bit1\<close>
  (*@{const_name Pure.imp}, @{const_name Pure.eq}*)]
 
 val forbidden_mutant_consts =
   [
-   (@{const_name "Groups.zero_class.zero"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Groups.one_class.one"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Groups.plus_class.plus"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Groups.minus_class.minus"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Groups.times_class.times"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Lattices.inf_class.inf"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Lattices.sup_class.sup"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Orderings.bot_class.bot"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Orderings.ord_class.min"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Orderings.ord_class.max"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Rings.modulo"}, @{typ "prop => prop => prop"}),
-   (@{const_name Rings.divide}, @{typ "prop => prop => prop"}),
-   (@{const_name "GCD.gcd_class.gcd"}, @{typ "prop => prop => prop"}),
-   (@{const_name "GCD.gcd_class.lcm"}, @{typ "prop => prop => prop"}),
-   (@{const_name "Orderings.bot_class.bot"}, @{typ "bool => prop"}),
-   (@{const_name "Groups.one_class.one"}, @{typ "bool => prop"}),
-   (@{const_name "Groups.zero_class.zero"},@{typ "bool => prop"}),
-   (@{const_name "equal_class.equal"},@{typ "bool => bool => bool"})]
+   (\<^const_name>\<open>Groups.zero_class.zero\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Groups.one_class.one\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Groups.plus_class.plus\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Groups.minus_class.minus\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Groups.times_class.times\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Lattices.inf_class.inf\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Lattices.sup_class.sup\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Orderings.bot_class.bot\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Orderings.ord_class.min\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Orderings.ord_class.max\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Rings.modulo\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Rings.divide\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>GCD.gcd_class.gcd\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>GCD.gcd_class.lcm\<close>, \<^typ>\<open>prop => prop => prop\<close>),
+   (\<^const_name>\<open>Orderings.bot_class.bot\<close>, \<^typ>\<open>bool => prop\<close>),
+   (\<^const_name>\<open>Groups.one_class.one\<close>, \<^typ>\<open>bool => prop\<close>),
+   (\<^const_name>\<open>Groups.zero_class.zero\<close>,\<^typ>\<open>bool => prop\<close>),
+   (\<^const_name>\<open>equal_class.equal\<close>,\<^typ>\<open>bool => bool => bool\<close>)]
 
 fun is_forbidden_mutant t =
   let

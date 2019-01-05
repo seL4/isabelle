@@ -32,7 +32,7 @@ done
 old_rep_datatype "\<bottom>::'a lift" Def
   by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
-text \<open>@{term bottom} and @{term Def}\<close>
+text \<open>\<^term>\<open>bottom\<close> and \<^term>\<open>Def\<close>\<close>
 
 lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
   by (cases x) simp_all
@@ -41,7 +41,7 @@ lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longri
   by (cases x) simp_all
 
 text \<open>
-  For @{term "x ~= \<bottom>"} in assumptions \<open>defined\<close> replaces \<open>x\<close> by \<open>Def a\<close> in conclusion.\<close>
+  For \<^term>\<open>x ~= \<bottom>\<close> in assumptions \<open>defined\<close> replaces \<open>x\<close> by \<open>Def a\<close> in conclusion.\<close>
 
 method_setup defined = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD'
@@ -70,7 +70,7 @@ proof
     by (induct x) auto
 qed
 
-subsection \<open>Continuity of @{const case_lift}\<close>
+subsection \<open>Continuity of \<^const>\<open>case_lift\<close>\<close>
 
 lemma case_lift_eq: "case_lift \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
 apply (induct x, unfold lift.case)

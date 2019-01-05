@@ -33,25 +33,25 @@ text \<open>
 
     \<^item> Powers with constant natural exponent
 
-    \<^item> @{term exp}, @{term ln}, @{term log}, @{term sqrt}, @{term "root k"} (for a constant k)
+    \<^item> \<^term>\<open>exp\<close>, \<^term>\<open>ln\<close>, \<^term>\<open>log\<close>, \<^term>\<open>sqrt\<close>, \<^term>\<open>root k\<close> (for a constant k)
   
-    \<^item> @{term sin}, @{term cos}, @{term tan} at finite points
+    \<^item> \<^term>\<open>sin\<close>, \<^term>\<open>cos\<close>, \<^term>\<open>tan\<close> at finite points
 
-    \<^item> @{term sinh}, @{term cosh}, @{term tanh}
+    \<^item> \<^term>\<open>sinh\<close>, \<^term>\<open>cosh\<close>, \<^term>\<open>tanh\<close>
 
-    \<^item> @{term min}, @{term max}, @{term abs}
+    \<^item> \<^term>\<open>min\<close>, \<^term>\<open>max\<close>, \<^term>\<open>abs\<close>
 
   Additionally, the following operations are supported in a `best effort' fashion using asymptotic
   upper/lower bounds:
 
     \<^item> Powers with variable natural exponent
 
-    \<^item> @{term sin} and @{term cos} at \<open>\<plusminus>\<infinity>\<close>
+    \<^item> \<^term>\<open>sin\<close> and \<^term>\<open>cos\<close> at \<open>\<plusminus>\<infinity>\<close>
 
-    \<^item> @{term floor}, @{term ceiling}, @{term frac}, and \<open>mod\<close>
+    \<^item> \<^term>\<open>floor\<close>, \<^term>\<open>ceiling\<close>, \<^term>\<open>frac\<close>, and \<open>mod\<close>
 
-  Additionally, the @{term arctan} function is partially supported. The method may fail when
-  the argument to @{term arctan} contains functions of different order of growth.
+  Additionally, the \<^term>\<open>arctan\<close> function is partially supported. The method may fail when
+  the argument to \<^term>\<open>arctan\<close> contains functions of different order of growth.
 \<close>
 
 
@@ -62,20 +62,20 @@ text \<open>
     @{method_def (HOL) real_asymp} : \<open>method\<close>
   \]
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) real_asymp} opt? (@{syntax simpmod} * )
     ;
     opt: '(' ('verbose' | 'fallback' ) ')'
     ;
     @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | '!' | 'del') |
       'cong' (() | 'add' | 'del')) ':' @{syntax thms}
-  \<close>}
+  \<close>
 \<close>
 
 text \<open>
   The @{method real_asymp} method is a semi-automatic proof method for proving certain statements
   related to the asymptotic behaviour of real-valued functions. In the following, let \<open>f\<close> and \<open>g\<close>
-  be functions of type @{typ "real \<Rightarrow> real"} and \<open>F\<close> and \<open>G\<close> real filters.
+  be functions of type \<^typ>\<open>real \<Rightarrow> real\<close> and \<open>F\<close> and \<open>G\<close> real filters.
 
   The functions \<open>f\<close> and \<open>g\<close> can be built from the operations mentioned before and may contain free 
   variables. The filters \<open>F\<close> and \<open>G\<close> can be either \<open>\<plusminus>\<infinity>\<close> or a finite point in \<open>\<real>\<close>, possibly
@@ -83,13 +83,13 @@ text \<open>
 
   The class of statements that is supported by @{method real_asymp} then consists of:
 
-    \<^item> Limits, i.\,e.\ @{prop "filterlim f F G"}
+    \<^item> Limits, i.\,e.\ \<^prop>\<open>filterlim f F G\<close>
 
-    \<^item> Landau symbols, i.\,e.\ @{prop "f \<in> O[F](g)"} and analogously for \<^emph>\<open>o\<close>, \<open>\<Omega>\<close>, \<open>\<omega>\<close>, \<open>\<Theta>\<close>
+    \<^item> Landau symbols, i.\,e.\ \<^prop>\<open>f \<in> O[F](g)\<close> and analogously for \<^emph>\<open>o\<close>, \<open>\<Omega>\<close>, \<open>\<omega>\<close>, \<open>\<Theta>\<close>
 
-    \<^item> Asymptotic equivalence, i.\,e.\ @{prop "f \<sim>[F] g"}
+    \<^item> Asymptotic equivalence, i.\,e.\ \<^prop>\<open>f \<sim>[F] g\<close>
 
-    \<^item> Asymptotic inequalities, i.\,e.\ @{prop "eventually (\<lambda>x. f x \<le> g x) F"}
+    \<^item> Asymptotic inequalities, i.\,e.\ \<^prop>\<open>eventually (\<lambda>x. f x \<le> g x) F\<close>
 
   For typical problems arising in practice that do not contain free variables, @{method real_asymp}
   tends to succeed fully automatically within fractions of seconds, e.\,g.:
@@ -117,7 +117,7 @@ oops
 
 text \<open>
   Here, @{method real_asymp} outputs an error message stating that it could not determine the
-  sign of the free variable @{term "a :: real"}. In this case, the user must add the assumption
+  sign of the free variable \<^term>\<open>a :: real\<close>. In this case, the user must add the assumption
   \<open>a > 0\<close> and give it to @{method real_asymp}.
 \<close>
 lemma
@@ -133,7 +133,7 @@ text \<open>
 
   The same situation can also occur without free variables if the constant in question is a
   complicated expression that the simplifier does not know enough ebout,
-  e.\,g.\ @{term "pi - exp 1"}.
+  e.\,g.\ \<^term>\<open>pi - exp 1\<close>.
 
   In order to trace problems with sign determination, the \<open>(verbose)\<close> option can be passed to
   @{method real_asymp}. It will then print a detailed error message whenever it encounters
@@ -157,7 +157,7 @@ text \<open>
     @{command_def (HOL) real_expansion} & : & \<open>context \<rightarrow>\<close>
   \end{array}\]
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) real_limit} (limitopt*)
     ;
     @@{command (HOL) real_expansion} (expansionopt*)
@@ -168,23 +168,23 @@ text \<open>
         ('limit' ':' @{syntax term}) |
         ('terms' ':' @{syntax nat} ('(' 'strict' ')') ?) |
         ('facts' ':' @{syntax thms})
-  \<close>}
+  \<close>
 
     \<^descr>@{command real_limit} computes the limit of the given function \<open>f(x)\<close> for as \<open>x\<close> tends
     to the specified limit point. Additional facts can be provided with the \<open>facts\<close> option, 
     similarly to the @{command using} command with @{method real_asymp}. The limit point given
-    by the \<open>limit\<close> option must be one of the filters @{term "at_top"}, @{term "at_bot"}, 
-    @{term "at_left"}, or @{term "at_right"}. If no limit point is given, @{term "at_top"} is used
+    by the \<open>limit\<close> option must be one of the filters \<^term>\<open>at_top\<close>, \<^term>\<open>at_bot\<close>, 
+    \<^term>\<open>at_left\<close>, or \<^term>\<open>at_right\<close>. If no limit point is given, \<^term>\<open>at_top\<close> is used
     by default.
   
     \<^medskip>
     The output of @{command real_limit} can be \<open>\<infinity>\<close>, \<open>-\<infinity>\<close>, \<open>\<plusminus>\<infinity>\<close>, \<open>c\<close> (for some real constant \<open>c\<close>),
     \<open>0\<^sup>+\<close>, or \<open>0\<^sup>-\<close>. The \<open>+\<close> and \<open>-\<close> in the last case indicate whether the approach is from above
-    or from below (corresponding to @{term "at_right (0::real)"} and @{term "at_left (0::real)"}); 
+    or from below (corresponding to \<^term>\<open>at_right (0::real)\<close> and \<^term>\<open>at_left (0::real)\<close>); 
     for technical reasons, this information is currently not displayed if the limit is not 0.
   
     \<^medskip>
-    If the given function does not tend to a definite limit (e.\,g.\ @{term "sin x"} for \<open>x \<rightarrow> \<infinity>\<close>),
+    If the given function does not tend to a definite limit (e.\,g.\ \<^term>\<open>sin x\<close> for \<open>x \<rightarrow> \<infinity>\<close>),
     the command might nevertheless succeed to compute an asymptotic upper and/or lower bound and
     display the limits of these bounds instead.
 
@@ -204,7 +204,7 @@ text \<open>
   of their implementation -- finding a multiseries expansion and reading off the limit -- are the
   same as in the @{method real_asymp} method and therefore trustworthy, there is a small amount
   of unverified code involved in pre-processing and printing (e.\,g.\ for reducing all the
-  different options for the \<open>limit\<close> option to the @{term at_top} case).
+  different options for the \<open>limit\<close> option to the \<^term>\<open>at_top\<close> case).
 \<close>
 
 
@@ -219,7 +219,7 @@ text \<open>
     \<^descr>@{thm [source] real_asymp_reify_simps} specifies a list of (unconditional) equations that are 
      unfolded as a first step of @{method real_asymp} and the related commands. This can be used to 
      add support for operations that can be represented easily by other operations that are already
-     supported, such as @{term sinh}, which is equal to @{term "\<lambda>x. (exp x - exp (-x)) / 2"}.
+     supported, such as \<^term>\<open>sinh\<close>, which is equal to \<^term>\<open>\<lambda>x. (exp x - exp (-x)) / 2\<close>.
 
     \<^descr>@{thm [source] real_asymp_nat_reify} and @{thm [source] real_asymp_int_reify} is used to
      convert operations on natural numbers or integers to operations on real numbers. This enables
@@ -236,13 +236,13 @@ text \<open>
   The first step is to write an ML function that takes as arguments
     \<^item> the expansion context
     \<^item> the term \<open>t\<close> to expand (which will be of the form \<open>f(g\<^sub>1(x), \<dots>, g\<^sub>n(x))\<close>)
-    \<^item> a list of \<open>n\<close> theorems of the form @{prop "(g\<^sub>i expands_to G\<^sub>i) bs"}
+    \<^item> a list of \<open>n\<close> theorems of the form \<^prop>\<open>(g\<^sub>i expands_to G\<^sub>i) bs\<close>
     \<^item> the current basis \<open>bs\<close>
-  and returns a theorem of the form @{prop "(t expands_to F) bs'"} and a new basis \<open>bs'\<close> which 
+  and returns a theorem of the form \<^prop>\<open>(t expands_to F) bs'\<close> and a new basis \<open>bs'\<close> which 
   must be a superset of the original basis.
 
   This function must then be registered as a handler for the operation by proving a vacuous lemma
-  of the form @{prop "REAL_ASYMP_CUSTOM f"} (which is only used for tagging) and passing that
+  of the form \<^prop>\<open>REAL_ASYMP_CUSTOM f\<close> (which is only used for tagging) and passing that
   lemma and the expansion function to @{ML [source] Exp_Log_Expression.register_custom_from_thm}
   in a @{command local_setup} invocation.
 
@@ -253,7 +253,7 @@ text \<open>
   involving \<open>constructors\<close>.
 
   New constructors for this pattern matching can be registered by adding a theorem of the form
-  @{prop "REAL_ASYMP_EVAL_CONSTRUCTOR c"} to the fact collection
+  \<^prop>\<open>REAL_ASYMP_EVAL_CONSTRUCTOR c\<close> to the fact collection
   @{thm [source] exp_log_eval_constructor}, but this should be quite rare in practice.
 
   \<^medskip>

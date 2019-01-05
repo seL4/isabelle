@@ -21,8 +21,8 @@ end;
 structure StateFun: STATE_FUN =
 struct
 
-val lookupN = @{const_name StateFun.lookup};
-val updateN = @{const_name StateFun.update};
+val lookupN = \<^const_name>\<open>StateFun.lookup\<close>;
+val updateN = \<^const_name>\<open>StateFun.update\<close>;
 
 val sel_name = HOLogic.dest_string;
 
@@ -42,20 +42,20 @@ val conj2_False = @{thm conj2_False};
 val conj_True = @{thm conj_True};
 val conj_cong = @{thm conj_cong};
 
-fun isFalse (Const (@{const_name False}, _)) = true
+fun isFalse (Const (\<^const_name>\<open>False\<close>, _)) = true
   | isFalse _ = false;
 
-fun isTrue (Const (@{const_name True}, _)) = true
+fun isTrue (Const (\<^const_name>\<open>True\<close>, _)) = true
   | isTrue _ = false;
 
 in
 
 val lazy_conj_simproc =
-  Simplifier.make_simproc @{context} "lazy_conj_simp"
-   {lhss = [@{term "P & Q"}],
+  Simplifier.make_simproc \<^context> "lazy_conj_simp"
+   {lhss = [\<^term>\<open>P & Q\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name HOL.conj},_) $ P $ Q =>
+        Const (\<^const_name>\<open>HOL.conj\<close>,_) $ P $ Q =>
           let
             val P_P' = Simplifier.rewrite ctxt (Thm.cterm_of ctxt P);
             val P' = P_P' |> Thm.prop_of |> Logic.dest_equals |> #2;
@@ -84,7 +84,7 @@ fun string_eq_simp_tac ctxt =
 end;
 
 val lookup_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps (@{thms list.inject} @ @{thms char.inject}
       @ @{thms list.distinct} @ @{thms simp_thms}
       @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
@@ -94,7 +94,7 @@ val lookup_ss =
     |> fold Simplifier.add_cong @{thms block_conj_cong});
 
 val ex_lookup_ss =
-  simpset_of (put_simpset HOL_ss @{context} addsimps @{thms StateFun.ex_id});
+  simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms StateFun.ex_id});
 
 
 structure Data = Generic_Data
@@ -109,41 +109,41 @@ structure Data = Generic_Data
 val _ = Theory.setup (Context.theory_map (Data.put (lookup_ss, ex_lookup_ss, false)));
 
 val lookup_simproc =
-  Simplifier.make_simproc @{context} "lookup_simp"
-   {lhss = [@{term "lookup d n (update d' c m v s)"}],
+  Simplifier.make_simproc \<^context> "lookup_simp"
+   {lhss = [\<^term>\<open>lookup d n (update d' c m v s)\<close>],
     proc = fn _ => fn ctxt => fn ct =>
-      (case Thm.term_of ct of (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $
-                   (s as Const (@{const_name StateFun.update}, uT) $ _ $ _ $ _ $ _ $ _)) =>
+      (case Thm.term_of ct of (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT) $ destr $ n $
+                   (s as Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ _ $ _ $ _ $ _ $ _)) =>
         (let
           val (_::_::_::_::sT::_) = binder_types uT;
           val mi = Term.maxidx_of_term (Thm.term_of ct);
-          fun mk_upds (Const (@{const_name StateFun.update}, uT) $ d' $ c $ m $ v $ s) =
+          fun mk_upds (Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ d' $ c $ m $ v $ s) =
                 let
                   val (_ :: _ :: _ :: fT :: _ :: _) = binder_types uT;
                   val vT = domain_type fT;
                   val (s', cnt) = mk_upds s;
                   val (v', cnt') =
                     (case v of
-                      Const (@{const_name K_statefun}, KT) $ v'' =>
+                      Const (\<^const_name>\<open>K_statefun\<close>, KT) $ v'' =>
                         (case v'' of
-                          (Const (@{const_name StateFun.lookup}, _) $
-                            (d as (Const (@{const_name Fun.id}, _))) $ n' $ _) =>
+                          (Const (\<^const_name>\<open>StateFun.lookup\<close>, _) $
+                            (d as (Const (\<^const_name>\<open>Fun.id\<close>, _))) $ n' $ _) =>
                               if d aconv c andalso n aconv m andalso m aconv n'
                               then (v,cnt) (* Keep value so that
                                               lookup_update_id_same can fire *)
                               else
-                                (Const (@{const_name StateFun.K_statefun}, KT) $
+                                (Const (\<^const_name>\<open>StateFun.K_statefun\<close>, KT) $
                                   Var (("v", cnt), vT), cnt + 1)
                         | _ =>
-                          (Const (@{const_name StateFun.K_statefun}, KT) $
+                          (Const (\<^const_name>\<open>StateFun.K_statefun\<close>, KT) $
                             Var (("v", cnt), vT), cnt + 1))
                      | _ => (v, cnt));
-                in (Const (@{const_name StateFun.update}, uT) $ d' $ c $ m $ v' $ s', cnt') end
+                in (Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ d' $ c $ m $ v' $ s', cnt') end
             | mk_upds s = (Var (("s", mi + 1), sT), mi + 2);
 
           val ct =
             Thm.cterm_of ctxt
-              (Const (@{const_name StateFun.lookup}, lT) $ destr $ n $ fst (mk_upds s));
+              (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT) $ destr $ n $ fst (mk_upds s));
           val basic_ss = #1 (Data.get (Context.Proof ctxt));
           val ctxt' = ctxt |> Config.put simp_depth_limit 100 |> put_simpset basic_ss;
           val thm = Simplifier.rewrite ctxt' ct;
@@ -160,7 +160,7 @@ local
 
 val meta_ext = @{thm StateFun.meta_ext};
 val ss' =
-  simpset_of (put_simpset HOL_ss @{context} addsimps
+  simpset_of (put_simpset HOL_ss \<^context> addsimps
     (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
       @ @{thms list.distinct})
     addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
@@ -169,11 +169,11 @@ val ss' =
 in
 
 val update_simproc =
-  Simplifier.make_simproc @{context} "update_simp"
-   {lhss = [@{term "update d c n v s"}],
+  Simplifier.make_simproc \<^context> "update_simp"
+   {lhss = [\<^term>\<open>update d c n v s\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name StateFun.update}, uT) $ _ $ _ $ _ $ _ $ _ =>
+        Const (\<^const_name>\<open>StateFun.update\<close>, uT) $ _ $ _ $ _ $ _ $ _ =>
           let
             val (_ :: _ :: _ :: _ :: sT :: _) = binder_types uT;
               (*"('v => 'a1) => ('a2 => 'v) => 'n => ('a1 => 'a2) => ('n => 'v) => ('n => 'v)"*)
@@ -181,7 +181,7 @@ val update_simproc =
 
             fun mk_comp f fT g gT =
               let val T = domain_type fT --> range_type gT
-              in (Const (@{const_name Fun.comp}, gT --> fT --> T) $ g $ f, T) end;
+              in (Const (\<^const_name>\<open>Fun.comp\<close>, gT --> fT --> T) $ g $ f, T) end;
 
             fun mk_comps fs = foldl1 (fn ((f, fT), (g, gT)) => mk_comp g gT f fT) fs;
 
@@ -207,7 +207,7 @@ val update_simproc =
                 * updates again, the optimised term is constructed.
                 *)
             fun mk_updterm already
-                ((upd as Const (@{const_name StateFun.update}, uT)) $ d $ c $ n $ v $ s) =
+                ((upd as Const (\<^const_name>\<open>StateFun.update\<close>, uT)) $ d $ c $ n $ v $ s) =
                   let
                     fun rest already = mk_updterm already;
                     val (dT :: cT :: nT :: vT :: sT :: _) = binder_types uT;
@@ -234,7 +234,7 @@ val update_simproc =
                             val ((c', c'T), f', (d', d'T)) = merge_upds n comps';
                             val vT' = range_type d'T --> domain_type c'T;
                             val upd' =
-                              Const (@{const_name StateFun.update},
+                              Const (\<^const_name>\<open>StateFun.update\<close>,
                                 d'T --> c'T --> nT --> vT' --> sT --> sT);
                           in
                             (upd $ d $ c $ n $ kb $ trm, upd' $ d' $ c' $ n $ f' $ trm', kv :: vars,
@@ -274,8 +274,8 @@ fun is_selector thy T sel =
 in
 
 val ex_lookup_eq_simproc =
-  Simplifier.make_simproc @{context} "ex_lookup_eq_simproc"
-   {lhss = [@{term "Ex t"}],
+  Simplifier.make_simproc \<^context> "ex_lookup_eq_simproc"
+   {lhss = [\<^term>\<open>Ex t\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -294,7 +294,7 @@ val ex_lookup_eq_simproc =
             val x' = if not (Term.is_dependent x) then Bound 1 else raise TERM ("", [x]);
             val n' = if not (Term.is_dependent n) then Bound 2 else raise TERM ("", [n]);
             val sel' = lo $ d $ n' $ s;
-          in (Const (@{const_name HOL.eq}, Teq) $ sel' $ x', hd (binder_types Teq), nT, swap) end;
+          in (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ sel' $ x', hd (binder_types Teq), nT, swap) end;
 
         fun dest_state (s as Bound 0) = s
           | dest_state (s as (Const (sel, sT) $ Bound 0)) =
@@ -303,22 +303,22 @@ val ex_lookup_eq_simproc =
           | dest_state s = raise TERM ("StateFun.ex_lookup_eq_simproc: not a record slector", [s]);
 
         fun dest_sel_eq
-              (Const (@{const_name HOL.eq}, Teq) $
-                ((lo as (Const (@{const_name StateFun.lookup}, lT))) $ d $ n $ s) $ X) =
+              (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $
+                ((lo as (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT))) $ d $ n $ s) $ X) =
               (false, Teq, lT, lo, d, n, X, dest_state s)
           | dest_sel_eq
-              (Const (@{const_name HOL.eq}, Teq) $ X $
-                ((lo as (Const (@{const_name StateFun.lookup}, lT))) $ d $ n $ s)) =
+              (Const (\<^const_name>\<open>HOL.eq\<close>, Teq) $ X $
+                ((lo as (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT))) $ d $ n $ s)) =
               (true, Teq, lT, lo, d, n, X, dest_state s)
           | dest_sel_eq _ = raise TERM ("", []);
       in
         (case t of
-          Const (@{const_name Ex}, Tex) $ Abs (s, T, t) =>
+          Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, t) =>
             (let
               val (eq, eT, nT, swap) = mkeq (dest_sel_eq t) 0;
               val prop =
                 Logic.list_all ([("n", nT), ("x", eT)],
-                  Logic.mk_equals (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
+                  Logic.mk_equals (Const (\<^const_name>\<open>Ex\<close>, Tex) $ Abs (s, T, eq), \<^term>\<open>True\<close>));
               val thm = Drule.export_without_context (prove prop);
               val thm' = if swap then swap_ex_eq OF [thm] else thm
             in SOME thm' end handle TERM _ => NONE)
@@ -342,7 +342,7 @@ fun mkName (Type (T,args)) = implode (map mkName args) ^ mkUpper (Long_Name.base
 
 fun is_datatype thy = is_some o BNF_LFP_Compat.get_info thy [BNF_LFP_Compat.Keep_Nesting];
 
-fun mk_map @{type_name List.list} = Syntax.const @{const_name List.map}
+fun mk_map \<^type_name>\<open>List.list\<close> = Syntax.const \<^const_name>\<open>List.map\<close>
   | mk_map n = Syntax.const ("StateFun.map_" ^ Long_Name.base_name n);
 
 fun gen_constr_destr comp prfx thy (Type (T, [])) =
@@ -369,19 +369,19 @@ fun gen_constr_destr comp prfx thy (Type (T, [])) =
         Syntax.const (deco prfx (implode (map mkName argTs) ^ mkUpper (Long_Name.base_name T)))
   | gen_constr_destr thy _ _ T = raise (TYPE ("StateFun.gen_constr_destr", [T], []));
 
-val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const @{const_name Fun.comp} $ a $ b) "";
-val mk_destr = gen_constr_destr (fn a => fn b => Syntax.const @{const_name Fun.comp} $ b $ a) "the_";
+val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const \<^const_name>\<open>Fun.comp\<close> $ a $ b) "";
+val mk_destr = gen_constr_destr (fn a => fn b => Syntax.const \<^const_name>\<open>Fun.comp\<close> $ b $ a) "the_";
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding statefun_simp}
+    (Attrib.setup \<^binding>\<open>statefun_simp\<close>
       (Scan.succeed (Thm.declaration_attribute (fn thm => fn context =>
         let
           val ctxt = Context.proof_of context;
           val (lookup_ss, ex_lookup_ss, simprocs_active) = Data.get context;
           val (lookup_ss', ex_lookup_ss') =
             (case Thm.concl_of thm of
-              (_ $ ((Const (@{const_name Ex}, _) $ _))) =>
+              (_ $ ((Const (\<^const_name>\<open>Ex\<close>, _) $ _))) =>
                 (lookup_ss, simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
             | _ =>
                 (simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));

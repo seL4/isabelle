@@ -87,7 +87,7 @@ where
 text \<open>
   If the function is already strict in that argument, then the bottom
   pattern does not change the meaning of the function.  For example,
-  in the definition of @{term from_sinr_up}, the first equation is
+  in the definition of \<^term>\<open>from_sinr_up\<close>, the first equation is
   actually redundant, and could have been proven separately by
   \<open>fixrec_simp\<close>.
 \<close>
@@ -197,7 +197,7 @@ where
   [simp del]: "repeat\<cdot>x = lCons\<cdot>x\<cdot>(repeat\<cdot>x)"
 
 text \<open>
-  We can derive other non-looping simp rules for @{const repeat} by
+  We can derive other non-looping simp rules for \<^const>\<open>repeat\<close> by
   using the \<open>subst\<close> method with the \<open>repeat.simps\<close> rule.
 \<close>
 

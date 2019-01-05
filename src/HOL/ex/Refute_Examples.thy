@@ -15,8 +15,8 @@ refute_params [satsolver = "cdclite"]
 
 lemma "P \<and> Q"
 apply (rule conjI)
-refute [expect = genuine] 1  \<comment> \<open>refutes @{term "P"}\<close>
-refute [expect = genuine] 2  \<comment> \<open>refutes @{term "Q"}\<close>
+refute [expect = genuine] 1  \<comment> \<open>refutes \<^term>\<open>P\<close>\<close>
+refute [expect = genuine] 2  \<comment> \<open>refutes \<^term>\<open>Q\<close>\<close>
 refute [expect = genuine]    \<comment> \<open>equivalent to 'refute 1'\<close>
   \<comment> \<open>here 'refute 3' would cause an exception, since we only have 2 subgoals\<close>
 refute [maxsize = 5, expect = genuine]   \<comment> \<open>we can override parameters ...\<close>
@@ -472,7 +472,7 @@ by (auto simp add: someI)
 
 subsubsection \<open>Subtypes (typedef), typedecl\<close>
 
-text \<open>A completely unspecified non-empty subset of @{typ "'a"}:\<close>
+text \<open>A completely unspecified non-empty subset of \<^typ>\<open>'a\<close>:\<close>
 
 definition "myTdef = insert (undefined::'a) (undefined::'a set)"
 
@@ -704,8 +704,8 @@ oops
 
 lemma "P Suc"
 refute [maxsize = 3, expect = none]
-\<comment> \<open>@{term Suc} is a partial function (regardless of the size
-      of the model), hence @{term "P Suc"} is undefined and no
+\<comment> \<open>\<^term>\<open>Suc\<close> is a partial function (regardless of the size
+      of the model), hence \<^term>\<open>P Suc\<close> is undefined and no
       model will be found\<close>
 oops
 

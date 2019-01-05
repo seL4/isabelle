@@ -1224,7 +1224,7 @@ structure Trancl_Tac = Trancl_Tac
   val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
   val rtrancl_trans = @{thm rtrancl_trans};
 
-  fun decomp (@{const Trueprop} $ t) =
+  fun decomp (\<^const>\<open>Trueprop\<close> $ t) =
         let
           fun dec (Const (\<^const_name>\<open>Set.member\<close>, _) $ (Const (\<^const_name>\<open>Pair\<close>, _) $ a $ b) $ rel) =
               let
@@ -1249,7 +1249,7 @@ structure Tranclp_Tac = Trancl_Tac
   val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
   val rtrancl_trans = @{thm rtranclp_trans};
 
-  fun decomp (@{const Trueprop} $ t) =
+  fun decomp (\<^const>\<open>Trueprop\<close> $ t) =
         let
           fun dec (rel $ a $ b) =
             let

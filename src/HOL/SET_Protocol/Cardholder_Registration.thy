@@ -56,7 +56,7 @@ where
     2nd case: CR5, where KC3 encrypts NC3;
     3rd case: CR6, where KC2 encrypts NC3;
     4th case: CR6, where KC2 encrypts NonceCCA;
-    5th case: any use of @{term "priEK C"} (including CardSecret).
+    5th case: any use of \<^term>\<open>priEK C\<close> (including CardSecret).
     NB the only Nonces we need to keep secret are CardSecret and NonceCCA.
     But we can't prove \<open>Nonce_compromise\<close> unless the relation covers ALL
         nonces that the protocol keeps secret.\<close>
@@ -124,7 +124,7 @@ where
     - certificates pertain to the CA that C contacted (this is done by
       checking the signature).
    C generates a fresh symmetric key KC1.
-   The point of encrypting @{term "\<lbrace>Agent C, Nonce NC2, Hash (Pan(pan C))\<rbrace>"}
+   The point of encrypting \<^term>\<open>\<lbrace>Agent C, Nonce NC2, Hash (Pan(pan C))\<rbrace>\<close>
    is not clear.\<close>
 "[| evs3 \<in> set_cr;  C = Cardholder k;
     Nonce NC2 \<notin> used evs3;
@@ -141,7 +141,7 @@ where
 | SET_CR4:
     \<comment> \<open>RegFormRes:
     CA responds sending NC2 back with a new nonce NCA, after checking that
-     - the digital envelope is correctly encrypted by @{term "pubEK (CA i)"}
+     - the digital envelope is correctly encrypted by \<^term>\<open>pubEK (CA i)\<close>
      - the entire message is encrypted with the same key found inside the
        envelope (here, KC1)\<close>
 "[| evs4 \<in> set_cr;
@@ -186,8 +186,8 @@ where
    its signature certificate and the new cardholder signature
    certificate.  CA checks to have never certified the key proposed by C.
    NOTE: In Merchant Registration, the corresponding rule (4)
-   uses the "sign" primitive. The encryption below is actually @{term EncK}, 
-   which is just @{term "Crypt K (sign SK X)"}.\<close>
+   uses the "sign" primitive. The encryption below is actually \<^term>\<open>EncK\<close>, 
+   which is just \<^term>\<open>Crypt K (sign SK X)\<close>.\<close>
 
 | SET_CR6:
 "[| evs6 \<in> set_cr;
@@ -496,7 +496,7 @@ done
 
 
 text\<open>This holds because if (priEK (CA i)) appears in any traffic then it must
-  be known to the Spy, by @{term Spy_see_private_Key}\<close>
+  be known to the Spy, by \<^term>\<open>Spy_see_private_Key\<close>\<close>
 lemma cardSK_neq_priEK:
      "[|Key cardSK \<notin> analz (knows Spy evs);
         Key cardSK \<in> parts (knows Spy evs);
@@ -913,7 +913,7 @@ subsection\<open>Rewriting Rule for PANs\<close>
 text\<open>Lemma for message 6: either cardSK isn't a CA's private encryption key,
   or if it is then (because it appears in traffic) that CA is bad,
   and so the Spy knows that key already.  Either way, we can simplify
-  the expression @{term "analz (insert (Key cardSK) X)"}.\<close>
+  the expression \<^term>\<open>analz (insert (Key cardSK) X)\<close>.\<close>
 lemma msg6_cardSK_disj:
      "[|Gets A \<lbrace>Crypt K \<lbrace>c, n, k', Key cardSK, X\<rbrace>, Y\<rbrace>
           \<in> set evs;  evs \<in> set_cr |]
@@ -954,7 +954,7 @@ by (simp del: image_insert image_Un
 
 
 text\<open>Confidentiality of the PAN\@.  Maybe we could combine the statements of
-  this theorem with @{term analz_image_pan}, requiring a single induction but
+  this theorem with \<^term>\<open>analz_image_pan\<close>, requiring a single induction but
   a much more difficult proof.\<close>
 lemma pan_confidentiality:
      "[| Pan (pan C) \<in> analz(knows Spy evs); C \<noteq>Spy; evs \<in> set_cr|]

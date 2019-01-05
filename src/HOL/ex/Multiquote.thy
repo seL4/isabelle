@@ -19,20 +19,20 @@ syntax
 
 parse_translation \<open>
   let
-    fun antiquote_tr i (Const (@{syntax_const "_antiquote"}, _) $
-          (t as Const (@{syntax_const "_antiquote"}, _) $ _)) = skip_antiquote_tr i t
-      | antiquote_tr i (Const (@{syntax_const "_antiquote"}, _) $ t) =
+    fun antiquote_tr i (Const (\<^syntax_const>\<open>_antiquote\<close>, _) $
+          (t as Const (\<^syntax_const>\<open>_antiquote\<close>, _) $ _)) = skip_antiquote_tr i t
+      | antiquote_tr i (Const (\<^syntax_const>\<open>_antiquote\<close>, _) $ t) =
           antiquote_tr i t $ Bound i
       | antiquote_tr i (t $ u) = antiquote_tr i t $ antiquote_tr i u
       | antiquote_tr i (Abs (x, T, t)) = Abs (x, T, antiquote_tr (i + 1) t)
       | antiquote_tr _ a = a
-    and skip_antiquote_tr i ((c as Const (@{syntax_const "_antiquote"}, _)) $ t) =
+    and skip_antiquote_tr i ((c as Const (\<^syntax_const>\<open>_antiquote\<close>, _)) $ t) =
           c $ skip_antiquote_tr i t
       | skip_antiquote_tr i t = antiquote_tr i t;
 
     fun quote_tr [t] = Abs ("s", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [(@{syntax_const "_quote"}, K quote_tr)] end
+  in [(\<^syntax_const>\<open>_quote\<close>, K quote_tr)] end
 \<close>
 
 text \<open>basic examples\<close>

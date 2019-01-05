@@ -10,7 +10,7 @@ begin
     show "partial_order ((\<le>) :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
     txt \<open>\normalsize The second goal is shown by unfolding the
-      definition of @{term "partial_order.less"}.\<close>
+      definition of \<^term>\<open>partial_order.less\<close>.\<close>
     show "partial_order.less (\<le>) x y = (x < y)"
       unfolding partial_order.less_def [OF \<open>partial_order (\<le>)\<close>]
       by auto

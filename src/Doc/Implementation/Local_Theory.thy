@@ -98,21 +98,20 @@ text %mlref \<open>
     local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type local_theory} represents local theories. Although this is
-  merely an alias for @{ML_type Proof.context}, it is semantically a subtype
-  of the same: a @{ML_type local_theory} holds target information as special
-  context data. Subtyping means that any value \<open>lthy:\<close>~@{ML_type local_theory}
-  can be also used with operations on expecting a regular \<open>ctxt:\<close>~@{ML_type
-  Proof.context}.
+  \<^descr> Type \<^ML_type>\<open>local_theory\<close> represents local theories. Although this is
+  merely an alias for \<^ML_type>\<open>Proof.context\<close>, it is semantically a subtype
+  of the same: a \<^ML_type>\<open>local_theory\<close> holds target information as special
+  context data. Subtyping means that any value \<open>lthy:\<close>~\<^ML_type>\<open>local_theory\<close>
+  can be also used with operations on expecting a regular \<open>ctxt:\<close>~\<^ML_type>\<open>Proof.context\<close>.
 
-  \<^descr> @{ML Named_Target.init}~\<open>before_exit name thy\<close> initializes a local theory
+  \<^descr> \<^ML>\<open>Named_Target.init\<close>~\<open>before_exit name thy\<close> initializes a local theory
   derived from the given background theory. An empty name refers to a \<^emph>\<open>global
   theory\<close> context, and a non-empty name refers to a @{command locale} or
   @{command class} context (a fully-qualified internal name is expected here).
   This is useful for experimentation --- normally the Isar toplevel already
   takes care to initialize the local theory context.
 
-  \<^descr> @{ML Local_Theory.define}~\<open>((b, mx), (a, rhs)) lthy\<close> defines a local
+  \<^descr> \<^ML>\<open>Local_Theory.define\<close>~\<open>((b, mx), (a, rhs)) lthy\<close> defines a local
   entity according to the specification that is given relatively to the
   current \<open>lthy\<close> context. In particular the term of the RHS may refer to
   earlier local entities from the auxiliary context, or hypothetical
@@ -130,9 +129,8 @@ text %mlref \<open>
   plain declarations such as @{attribute simp}, while non-trivial rules like
   @{attribute simplified} are better avoided.
 
-  \<^descr> @{ML Local_Theory.note}~\<open>(a, ths) lthy\<close> is analogous to @{ML
-  Local_Theory.define}, but defines facts instead of terms. There is also a
-  slightly more general variant @{ML Local_Theory.notes} that defines several
+  \<^descr> \<^ML>\<open>Local_Theory.note\<close>~\<open>(a, ths) lthy\<close> is analogous to \<^ML>\<open>Local_Theory.define\<close>, but defines facts instead of terms. There is also a
+  slightly more general variant \<^ML>\<open>Local_Theory.notes\<close> that defines several
   facts (with attribute expressions) simultaneously.
 
   This is essentially the internal version of the @{command lemmas} command,

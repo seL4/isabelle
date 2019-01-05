@@ -43,7 +43,7 @@ structure Data = Generic_Data
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string
 
-val nominal_eqvt_debug = Attrib.setup_config_bool @{binding nominal_eqvt_debug} (K false);
+val nominal_eqvt_debug = Attrib.setup_config_bool \<^binding>\<open>nominal_eqvt_debug\<close> (K false);
 
 fun tactic ctxt (msg, tac) =
   if Config.get ctxt nominal_eqvt_debug
@@ -54,7 +54,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
   let
     val thy = Proof_Context.theory_of ctxt
     val T = fastype_of pi'
-    val mypifree = Thm.cterm_of ctxt (Const (@{const_name "rev"}, T --> T) $ pi')
+    val mypifree = Thm.cterm_of ctxt (Const (\<^const_name>\<open>rev\<close>, T --> T) $ pi')
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp"
   in
     EVERY1 [tactic ctxt ("iffI applied", resolve_tac ctxt @{thms iffI}),
@@ -70,7 +70,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   let
     val pi' = Var (pi, typi);
-    val lhs = Const (@{const_name "perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
+    val lhs = Const (\<^const_name>\<open>perm\<close>, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
     val ([goal_term, pi''], ctxt') = Variable.import_terms false
       [HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, concl)), pi'] ctxt
     val _ = writeln (Syntax.string_of_term ctxt' goal_term);
@@ -85,7 +85,7 @@ fun apply_pi trm (pi, typi) =
 let
   fun replace n ty =
   let 
-    val c  = Const (@{const_name "perm"}, typi --> ty --> ty) 
+    val c  = Const (\<^const_name>\<open>perm\<close>, typi --> ty --> ty) 
     val v1 = Var (pi, typi)
     val v2 = Var (n, ty)
   in
@@ -100,8 +100,8 @@ end
 fun get_pi t thy =
   let fun get_pi_aux s =
         (case s of
-          (Const (@{const_name "perm"} ,typrm) $
-             (Var (pi,typi as Type(@{type_name "list"}, [Type (@{type_name Product_Type.prod}, [Type (tyatm,[]),_])]))) $
+          (Const (\<^const_name>\<open>perm\<close> ,typrm) $
+             (Var (pi,typi as Type(\<^type_name>\<open>list\<close>, [Type (\<^type_name>\<open>Product_Type.prod\<close>, [Type (tyatm,[]),_])]))) $
                (Var (n,ty))) =>
              let
                 (* FIXME: this should be an operation the library *)
@@ -134,7 +134,7 @@ fun eqvt_add_del_aux flag orig_thm context =
     val thms_to_be_added =
       (case Thm.prop_of orig_thm of
         (* case: eqvt-lemma is of the implicational form *)
-        (Const(@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop},_) $ hyp) $ (Const (@{const_name Trueprop},_) $ concl)) =>
+        (Const(\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>,_) $ hyp) $ (Const (\<^const_name>\<open>Trueprop\<close>,_) $ concl)) =>
           let
             val (pi,typi) = get_pi concl thy
           in
@@ -146,8 +146,8 @@ fun eqvt_add_del_aux flag orig_thm context =
              else raise EQVT_FORM "Type Implication"
           end
        (* case: eqvt-lemma is of the equational form *)
-      | (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $
-            (Const (@{const_name "perm"},typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
+      | (Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
+            (Const (\<^const_name>\<open>perm\<close>,typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
            (if (apply_pi lhs (pi,typi)) = rhs
                then [orig_thm]
                else raise EQVT_FORM "Type Equality")
@@ -169,11 +169,11 @@ val eqvt_force_del  = Thm.declaration_attribute (Data.map o Thm.del_thm);
 val get_eqvt_thms = Context.Proof #> Data.get;
 
 val setup =
-  Attrib.setup @{binding eqvt} (Attrib.add_del eqvt_add eqvt_del) 
+  Attrib.setup \<^binding>\<open>eqvt\<close> (Attrib.add_del eqvt_add eqvt_del) 
    "equivariance theorem declaration" #>
-  Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
+  Attrib.setup \<^binding>\<open>eqvt_force\<close> (Attrib.add_del eqvt_force_add eqvt_force_del)
     "equivariance theorem declaration (without checking the form of the lemma)" #>
-  Global_Theory.add_thms_dynamic (@{binding eqvts}, Data.get);
+  Global_Theory.add_thms_dynamic (\<^binding>\<open>eqvts\<close>, Data.get);
 
 
 end;

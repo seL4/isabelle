@@ -76,52 +76,52 @@ translations
 print_translation \<open>
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ Syntax_Trans.quote_tr' \<^syntax_const>\<open>_antiquote\<close> t, ts)
       | quote_tr' _ _ = raise Match;
 
     fun annquote_tr' f (r :: t :: ts) =
-          Term.list_comb (f $ r $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ r $ Syntax_Trans.quote_tr' \<^syntax_const>\<open>_antiquote\<close> t, ts)
       | annquote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
+    val assert_tr' = quote_tr' (Syntax.const \<^syntax_const>\<open>_Assert\<close>);
 
-    fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
+    fun bexp_tr' name ((Const (\<^const_syntax>\<open>Collect\<close>, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
-    fun annbexp_tr' name (r :: (Const (@{const_syntax Collect}, _) $ t) :: ts) =
+    fun annbexp_tr' name (r :: (Const (\<^const_syntax>\<open>Collect\<close>, _) $ t) :: ts) =
           annquote_tr' (Syntax.const name) (r :: t :: ts)
       | annbexp_tr' _ _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax_Trans.update_name_tr' f)
+          quote_tr' (Syntax.const \<^syntax_const>\<open>_Assign\<close> $ Syntax_Trans.update_name_tr' f)
             (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
 
     fun annassign_tr' (r :: Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_AnnAssign"} $ r $ Syntax_Trans.update_name_tr' f)
+          quote_tr' (Syntax.const \<^syntax_const>\<open>_AnnAssign\<close> $ r $ Syntax_Trans.update_name_tr' f)
             (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | annassign_tr' _ = raise Match;
 
-    fun Parallel_PAR [(Const (@{const_syntax Cons}, _) $
-            (Const (@{const_syntax Pair}, _) $ (Const (@{const_syntax Some},_) $ t1 ) $ t2) $
-            Const (@{const_syntax Nil}, _))] = Syntax.const @{syntax_const "_prg"} $ t1 $ t2
-      | Parallel_PAR [(Const (@{const_syntax Cons}, _) $
-            (Const (@{const_syntax Pair}, _) $ (Const (@{const_syntax Some}, _) $ t1) $ t2) $ ts)] =
-          Syntax.const @{syntax_const "_prgs"} $ t1 $ t2 $ Parallel_PAR [ts]
+    fun Parallel_PAR [(Const (\<^const_syntax>\<open>Cons\<close>, _) $
+            (Const (\<^const_syntax>\<open>Pair\<close>, _) $ (Const (\<^const_syntax>\<open>Some\<close>,_) $ t1 ) $ t2) $
+            Const (\<^const_syntax>\<open>Nil\<close>, _))] = Syntax.const \<^syntax_const>\<open>_prg\<close> $ t1 $ t2
+      | Parallel_PAR [(Const (\<^const_syntax>\<open>Cons\<close>, _) $
+            (Const (\<^const_syntax>\<open>Pair\<close>, _) $ (Const (\<^const_syntax>\<open>Some\<close>, _) $ t1) $ t2) $ ts)] =
+          Syntax.const \<^syntax_const>\<open>_prgs\<close> $ t1 $ t2 $ Parallel_PAR [ts]
       | Parallel_PAR _ = raise Match;
 
-    fun Parallel_tr' ts = Syntax.const @{syntax_const "_PAR"} $ Parallel_PAR ts;
+    fun Parallel_tr' ts = Syntax.const \<^syntax_const>\<open>_PAR\<close> $ Parallel_PAR ts;
   in
-   [(@{const_syntax Collect}, K assert_tr'),
-    (@{const_syntax Basic}, K assign_tr'),
-    (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
-    (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While_inv"})),
-    (@{const_syntax AnnBasic}, K annassign_tr'),
-    (@{const_syntax AnnWhile}, K (annbexp_tr' @{syntax_const "_AnnWhile"})),
-    (@{const_syntax AnnAwait}, K (annbexp_tr' @{syntax_const "_AnnAwait"})),
-    (@{const_syntax AnnCond1}, K (annbexp_tr' @{syntax_const "_AnnCond1"})),
-    (@{const_syntax AnnCond2}, K (annbexp_tr' @{syntax_const "_AnnCond2"}))]
+   [(\<^const_syntax>\<open>Collect\<close>, K assert_tr'),
+    (\<^const_syntax>\<open>Basic\<close>, K assign_tr'),
+    (\<^const_syntax>\<open>Cond\<close>, K (bexp_tr' \<^syntax_const>\<open>_Cond\<close>)),
+    (\<^const_syntax>\<open>While\<close>, K (bexp_tr' \<^syntax_const>\<open>_While_inv\<close>)),
+    (\<^const_syntax>\<open>AnnBasic\<close>, K annassign_tr'),
+    (\<^const_syntax>\<open>AnnWhile\<close>, K (annbexp_tr' \<^syntax_const>\<open>_AnnWhile\<close>)),
+    (\<^const_syntax>\<open>AnnAwait\<close>, K (annbexp_tr' \<^syntax_const>\<open>_AnnAwait\<close>)),
+    (\<^const_syntax>\<open>AnnCond1\<close>, K (annbexp_tr' \<^syntax_const>\<open>_AnnCond1\<close>)),
+    (\<^const_syntax>\<open>AnnCond2\<close>, K (annbexp_tr' \<^syntax_const>\<open>_AnnCond2\<close>))]
   end
 \<close>
 

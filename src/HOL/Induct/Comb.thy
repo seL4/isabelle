@@ -127,7 +127,7 @@ apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_trans)+
 done
 
-text \<open>Counterexample to the diamond property for @{term "x \<rightarrow>\<^sup>1 y"}\<close>
+text \<open>Counterexample to the diamond property for \<^term>\<open>x \<rightarrow>\<^sup>1 y\<close>\<close>
 
 lemma not_diamond_contract: "~ diamond(contract)"
 by (unfold diamond_def, metis S_contractE contract.K) 
@@ -169,7 +169,7 @@ done
 
 text \<open>
   \<^medskip>
-  Equivalence of @{prop "p \<rightarrow> q"} and @{prop "p \<Rrightarrow> q"}.
+  Equivalence of \<^prop>\<open>p \<rightarrow> q\<close> and \<^prop>\<open>p \<Rrightarrow> q\<close>.
 \<close>
 
 lemma contract_subset_parcontract: "contract \<subseteq> parcontract"

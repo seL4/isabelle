@@ -167,7 +167,7 @@ qed
 end
 
 
-subsection\<open>@{term extend_set}: basic properties\<close>
+subsection\<open>\<^term>\<open>extend_set\<close>: basic properties\<close>
 
 lemma project_set_iff [iff]:
      "(x \<in> project_set h C) = (\<exists>y. h(x,y) \<in> C)"
@@ -215,7 +215,7 @@ apply (unfold extend_set_def)
 apply (auto simp add: split_extended_all)
 done
 
-subsection\<open>@{term project_set}: basic properties\<close>
+subsection\<open>\<^term>\<open>project_set\<close>: basic properties\<close>
 
 (*project_set is simply image!*)
 lemma project_set_eq: "project_set h C = f ` C"
@@ -262,7 +262,7 @@ lemma extend_set_subset_Compl_eq: "(extend_set h A \<subseteq> - extend_set h B)
   by (auto simp: extend_set_def)
 
 
-subsection\<open>@{term extend_act}\<close>
+subsection\<open>\<^term>\<open>extend_act\<close>\<close>
 
 (*Can't strengthen it to
   ((h(s,y), h(s',y')) \<in> extend_act h act) = ((s, s') \<in> act & y=y')

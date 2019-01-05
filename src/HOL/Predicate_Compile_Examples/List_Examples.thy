@@ -13,7 +13,7 @@ setup \<open>
 setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
-   limited_types = [(@{typ nat}, 2), (@{typ "nat list"}, 4)],
+   limited_types = [(\<^typ>\<open>nat\<close>, 2), (\<^typ>\<open>nat list\<close>, 4)],
    limited_predicates = [(["appendP"], 4), (["revP"], 4)],
    replacing =
      [(("appendP", "limited_appendP"), "quickcheck"),

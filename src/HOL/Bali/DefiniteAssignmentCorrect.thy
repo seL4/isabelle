@@ -260,9 +260,9 @@ to filter out any breaks in the state and to throw an error instead.
 
 To get an induction hypothesis which is strong enough to perform the
 proof, we can't just 
-assume @{term jumpNestingOk} for the empty set and conlcude, that no jump at 
+assume \<^term>\<open>jumpNestingOk\<close> for the empty set and conlcude, that no jump at 
 all will be in the resulting state,  because the set is altered by 
-the statements @{term Lab} and @{term While}. 
+the statements \<^term>\<open>Lab\<close> and \<^term>\<open>While\<close>. 
 
 The wellformedness of the program is used to enshure that for all
 classinitialisations and methods the nesting of jumps is wellformed, too.
@@ -296,9 +296,9 @@ proof -
   have "\<And> jmps T Env. \<lbrakk>?Jmp jmps s0; jumpNestingOk jmps t; Env\<turnstile>t\<Colon>T;prg Env=G\<rbrakk>
             \<Longrightarrow> ?Jmp jmps s1 \<and> ?Upd v s1" 
         (is "PROP ?Hyp t s0 s1 v")
-  \<comment> \<open>We need to abstract over @{term jmps} since @{term jmps} are extended
-        during analysis of @{term Lab}. Also we need to abstract over 
-        @{term T} and @{term Env} since they are altered in various
+  \<comment> \<open>We need to abstract over \<^term>\<open>jmps\<close> since \<^term>\<open>jmps\<close> are extended
+        during analysis of \<^term>\<open>Lab\<close>. Also we need to abstract over 
+        \<^term>\<open>T\<close> and \<^term>\<open>Env\<close> since they are altered in various
         typing judgements.\<close>    
   proof (induct)   
     case Abrupt thus ?case by simp 
@@ -1659,7 +1659,7 @@ proof -
   from eval normal show ?thesis
   proof (induct)
     case Abrupt thus ?case by simp 
-  next \<comment> \<open>For statements its trivial, since then @{term "assigns t = {}"}\<close>
+  next \<comment> \<open>For statements its trivial, since then \<^term>\<open>assigns t = {}\<close>\<close>
     case Skip show ?case by simp
   next
     case Expr show ?case by simp 

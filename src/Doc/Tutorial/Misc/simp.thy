@@ -17,7 +17,7 @@ simplification rules automatically!
 Nearly any theorem can become a simplification
 rule. The simplifier will try to transform it into an equation.  
 For example, the theorem
-@{prop"~P"} is turned into @{prop"P = False"}. The details
+\<^prop>\<open>~P\<close> is turned into \<^prop>\<open>P = False\<close>. The details
 are explained in \S\ref{sec:SimpHow}.
 
 The simplification attribute of theorems can be turned on and off:%
@@ -102,9 +102,9 @@ apply simp
 done
 
 text\<open>\noindent
-The second assumption simplifies to @{term"xs = []"}, which in turn
-simplifies the first assumption to @{term"zs = ys"}, thus reducing the
-conclusion to @{term"ys = ys"} and hence to @{term"True"}.
+The second assumption simplifies to \<^term>\<open>xs = []\<close>, which in turn
+simplifies the first assumption to \<^term>\<open>zs = ys\<close>, thus reducing the
+conclusion to \<^term>\<open>ys = ys\<close> and hence to \<^term>\<open>True\<close>.
 
 In some cases, using the assumptions can lead to nontermination:
 \<close>
@@ -113,7 +113,7 @@ lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
 
 txt\<open>\noindent
 An unmodified application of \<open>simp\<close> loops.  The culprit is the
-simplification rule @{term"f x = g (f (g x))"}, which is extracted from
+simplification rule \<^term>\<open>f x = g (f (g x))\<close>, which is extracted from
 the assumption.  (Isabelle notices certain simple forms of
 nontermination but not this one.)  The problem can be circumvented by
 telling the simplifier to ignore the assumptions:
@@ -207,7 +207,7 @@ text\<open>\index{simplification!of \isa{let}-expressions}\index{*let expression
 Proving a goal containing \isa{let}-expressions almost invariably requires the
 \<open>let\<close>-con\-structs to be expanded at some point. Since
 \<open>let\<close>\ldots\isa{=}\ldots\<open>in\<close>{\ldots} is just syntactic sugar for
-the predefined constant @{term"Let"}, expanding \<open>let\<close>-constructs
+the predefined constant \<^term>\<open>Let\<close>, expanding \<open>let\<close>-constructs
 means rewriting with \tdx{Let_def}:\<close>
 
 lemma "(let xs = [] in xs@ys@xs) = ys"
@@ -236,7 +236,7 @@ done
 text\<open>\noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
-@{term"(rev xs = []) = (xs = [])"}
+\<^term>\<open>(rev xs = []) = (xs = [])\<close>
 is present as well,
 the lemma below is proved by plain simplification:
 \<close>
@@ -247,9 +247,9 @@ by(simp)
 (*>*)
 text\<open>\noindent
 The conditional equation @{thm[source]hd_Cons_tl} above
-can simplify @{term"hd(rev xs) # tl(rev xs)"} to @{term"rev xs"}
-because the corresponding precondition @{term"rev xs ~= []"}
-simplifies to @{term"xs ~= []"}, which is exactly the local
+can simplify \<^term>\<open>hd(rev xs) # tl(rev xs)\<close> to \<^term>\<open>rev xs\<close>
+because the corresponding precondition \<^term>\<open>rev xs ~= []\<close>
+simplifies to \<^term>\<open>xs ~= []\<close>, which is exactly the local
 assumption of the subgoal.
 \<close>
 

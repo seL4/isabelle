@@ -58,24 +58,24 @@ translations
 print_translation \<open>
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ Syntax_Trans.quote_tr' \<^syntax_const>\<open>_antiquote\<close> t, ts)
       | quote_tr' _ _ = raise Match;
 
-    val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
+    val assert_tr' = quote_tr' (Syntax.const \<^syntax_const>\<open>_Assert\<close>);
 
-    fun bexp_tr' name ((Const (@{const_syntax Collect}, _) $ t) :: ts) =
+    fun bexp_tr' name ((Const (\<^const_syntax>\<open>Collect\<close>, _) $ t) :: ts) =
           quote_tr' (Syntax.const name) (t :: ts)
       | bexp_tr' _ _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax_Trans.update_name_tr' f)
+          quote_tr' (Syntax.const \<^syntax_const>\<open>_Assign\<close> $ Syntax_Trans.update_name_tr' f)
             (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-   [(@{const_syntax Collect}, K assert_tr'),
-    (@{const_syntax Basic}, K assign_tr'),
-    (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
-    (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While"}))]
+   [(\<^const_syntax>\<open>Collect\<close>, K assert_tr'),
+    (\<^const_syntax>\<open>Basic\<close>, K assign_tr'),
+    (\<^const_syntax>\<open>Cond\<close>, K (bexp_tr' \<^syntax_const>\<open>_Cond\<close>)),
+    (\<^const_syntax>\<open>While\<close>, K (bexp_tr' \<^syntax_const>\<open>_While\<close>))]
   end
 \<close>
 

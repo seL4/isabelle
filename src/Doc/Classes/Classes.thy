@@ -119,7 +119,7 @@ text \<open>
 subsection \<open>Class instantiation \label{sec:class_inst}\<close>
 
 text \<open>
-  The concrete type @{typ int} is made a @{class semigroup} instance
+  The concrete type \<^typ>\<open>int\<close> is made a \<^class>\<open>semigroup\<close> instance
   by providing a suitable definition for the class parameter \<open>(\<otimes>)\<close> and a proof for the specification of @{fact assoc}.  This is
   accomplished by the @{command instantiation} target:
 \<close>
@@ -149,11 +149,10 @@ text \<open>
   relevant primitive proof goals; typically it is the first method
   applied in an instantiation proof.
 
-  From now on, the type-checker will consider @{typ int} as a @{class
-  semigroup} automatically, i.e.\ any general results are immediately
+  From now on, the type-checker will consider \<^typ>\<open>int\<close> as a \<^class>\<open>semigroup\<close> automatically, i.e.\ any general results are immediately
   available on concrete instances.
 
-  \<^medskip> Another instance of @{class semigroup} yields the natural
+  \<^medskip> Another instance of \<^class>\<open>semigroup\<close> yields the natural
   numbers:
 \<close>
 
@@ -206,7 +205,7 @@ text \<open>
   \<^noindent> Associativity of product semigroups is established using
   the definition of \<open>(\<otimes>)\<close> on products and the hypothetical
   associativity of the type components; these hypotheses are
-  legitimate due to the @{class semigroup} constraints imposed on the
+  legitimate due to the \<^class>\<open>semigroup\<close> constraints imposed on the
   type components by the @{command instance} proposition.  Indeed,
   this pattern often occurs with parametric types and type classes.
 \<close>
@@ -216,7 +215,7 @@ subsection \<open>Subclassing\<close>
 
 text \<open>
   We define a subclass \<open>monoidl\<close> (a semigroup with a left-hand
-  neutral) by extending @{class semigroup} with one additional
+  neutral) by extending \<^class>\<open>semigroup\<close> with one additional
   parameter \<open>neutral\<close> together with its characteristic property:
 \<close>
 
@@ -388,7 +387,7 @@ next
 qed
 
 text \<open>
-  \<^noindent> Here the \qt{@{keyword "in"} @{class group}} target
+  \<^noindent> Here the \qt{@{keyword "in"} \<^class>\<open>group\<close>} target
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
   global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z ::
@@ -433,7 +432,7 @@ text \<open>
   functors that have a canonical interpretation as type classes.
   There is also the possibility of other interpretations.  For
   example, \<open>list\<close>s also form a monoid with \<open>append\<close> and
-  @{term "[]"} as operations, but it seems inappropriate to apply to
+  \<^term>\<open>[]\<close> as operations, but it seems inappropriate to apply to
   lists the same operations as for genuinely algebraic types.  In such
   a case, we can simply make a particular interpretation of monoids
   for lists:
@@ -469,7 +468,7 @@ qed intro_locales
 text \<open>
   \<^noindent> This pattern is also helpful to reuse abstract
   specifications on the \emph{same} type.  For example, think of a
-  class \<open>preorder\<close>; for type @{typ nat}, there are at least two
+  class \<open>preorder\<close>; for type \<^typ>\<open>nat\<close>, there are at least two
   possible instances: the natural order or the order induced by the
   divides relation.  But only one of these instances can be used for
   @{command instantiation}; using the locale behind the class \<open>preorder\<close>, it is still possible to utilise the same abstract

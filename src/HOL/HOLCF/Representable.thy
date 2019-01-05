@@ -64,14 +64,14 @@ proof
 qed
 
 text \<open>
-  Constants @{const liftemb} and @{const liftprj} imply class predomain.
+  Constants \<^const>\<open>liftemb\<close> and \<^const>\<open>liftprj\<close> imply class predomain.
 \<close>
 
 setup \<open>
   fold Sign.add_const_constraint
-  [(@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"}),
-   (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"}),
-   (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"})]
+  [(\<^const_name>\<open>liftemb\<close>, SOME \<^typ>\<open>'a::predomain u \<rightarrow> udom u\<close>),
+   (\<^const_name>\<open>liftprj\<close>, SOME \<^typ>\<open>udom u \<rightarrow> 'a::predomain u\<close>),
+   (\<^const_name>\<open>liftdefl\<close>, SOME \<^typ>\<open>'a::predomain itself \<Rightarrow> udom u defl\<close>)]
 \<close>
 
 interpretation predomain: pcpo_ep_pair liftemb liftprj

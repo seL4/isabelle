@@ -8,13 +8,13 @@ begin
 
 datatype parity = Even | Odd | Either
 
-text\<open>Instantiation of class @{class order} with type @{typ parity}:\<close>
+text\<open>Instantiation of class \<^class>\<open>order\<close> with type \<^typ>\<open>parity\<close>:\<close>
 
 instantiation parity :: order
 begin
 
 text\<open>First the definition of the interface function \<open>\<le>\<close>. Note that
-the header of the definition must refer to the ascii name @{const less_eq} of the
+the header of the definition must refer to the ascii name \<^const>\<open>less_eq\<close> of the
 constants as \<open>less_eq_parity\<close> and the definition is named \<open>less_eq_parity_def\<close>.  Inside the definition the symbolic names can be used.\<close>
 
 definition less_eq_parity where
@@ -46,7 +46,7 @@ qed
 
 end
 
-text\<open>Instantiation of class @{class semilattice_sup_top} with type @{typ parity}:\<close>
+text\<open>Instantiation of class \<^class>\<open>semilattice_sup_top\<close> with type \<^typ>\<open>parity\<close>:\<close>
 
 instantiation parity :: semilattice_sup_top
 begin
@@ -99,7 +99,7 @@ fun plus_parity :: "parity \<Rightarrow> parity \<Rightarrow> parity" where
 "plus_parity x Either  = Either"
 
 text\<open>First we instantiate the abstract value interface and prove that the
-functions on type @{typ parity} have all the necessary properties:\<close>
+functions on type \<^typ>\<open>parity\<close> have all the necessary properties:\<close>
 
 global_interpretation Val_semilattice
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity

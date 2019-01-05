@@ -14,7 +14,7 @@ simproc_setup less_False ("(x::'a::order) < y") = \<open>fn _ => fn ctxt => fn c
 
     fun prove_less_False ((less as Const(_,T)) $ r $ s) =
       let val prems = Simplifier.prems_of ctxt;
-          val le = Const (@{const_name less_eq}, T);
+          val le = Const (\<^const_name>\<open>less_eq\<close>, T);
           val t = HOLogic.mk_Trueprop(le $ s $ r);
       in case find_first (prp t) prems of
            NONE =>

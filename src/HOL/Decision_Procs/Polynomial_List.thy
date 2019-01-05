@@ -19,18 +19,18 @@ where
 subsection \<open>Arithmetic Operations on Polynomials\<close>
 
 text \<open>Addition\<close>
-primrec (in semiring_0) padd :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "+++" 65)
+primrec (in semiring_0) padd :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl \<open>+++\<close> 65)
 where
   padd_Nil: "[] +++ l2 = l2"
 | padd_Cons: "(h # t) +++ l2 = (if l2 = [] then h # t else (h + hd l2) # (t +++ tl l2))"
 
 text \<open>Multiplication by a constant\<close>
-primrec (in semiring_0) cmult :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "%*" 70) where
+primrec (in semiring_0) cmult :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl \<open>%*\<close> 70) where
   cmult_Nil: "c %* [] = []"
 | cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
 
 text \<open>Multiplication by a polynomial\<close>
-primrec (in semiring_0) pmult :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "***" 70)
+primrec (in semiring_0) pmult :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl \<open>***\<close> 70)
 where
   pmult_Nil: "[] *** l2 = []"
 | pmult_Cons: "(h # t) *** l2 = (if t = [] then h %* l2 else (h %* l2) +++ (0 # (t *** l2)))"
@@ -42,7 +42,7 @@ where
 | mulexp_Suc: "mulexp (Suc n) p q = p *** mulexp n p q"
 
 text \<open>Exponential\<close>
-primrec (in semiring_1) pexp :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list"  (infixl "%^" 80)
+primrec (in semiring_1) pexp :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list"  (infixl \<open>%^\<close> 80)
 where
   pexp_0: "p %^ 0 = [1]"
 | pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"
@@ -67,10 +67,10 @@ definition (in semiring_0) "nonconstant p \<longleftrightarrow> pnormal p \<and>
 
 text \<open>Other definitions.\<close>
 
-definition (in ring_1) poly_minus :: "'a list \<Rightarrow> 'a list" ("-- _" [80] 80)
+definition (in ring_1) poly_minus :: "'a list \<Rightarrow> 'a list" (\<open>-- _\<close> [80] 80)
   where "-- p = (- 1) %* p"
 
-definition (in semiring_0) divides :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl "divides" 70)
+definition (in semiring_0) divides :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl \<open>divides\<close> 70)
   where "p1 divides p2 \<longleftrightarrow> (\<exists>q. poly p2 = poly(p1 *** q))"
 
 lemma (in semiring_0) dividesI: "poly p2 = poly (p1 *** q) \<Longrightarrow> p1 divides p2"
@@ -226,7 +226,7 @@ lemma (in comm_semiring_1) poly_exp_add: "poly (p %^ (n + d)) x = poly (p %^ n *
   by (induct n) (auto simp add: poly_mult mult.assoc)
 
 
-subsection \<open>Key Property: if @{term "f a = 0"} then @{term "(x - a)"} divides @{term "p(x)"}.\<close>
+subsection \<open>Key Property: if \<^term>\<open>f a = 0\<close> then \<^term>\<open>(x - a)\<close> divides \<^term>\<open>p(x)\<close>.\<close>
 
 lemma (in comm_ring_1) lemma_poly_linear_rem: "\<exists>q r. h#t = [r] +++ [-a, 1] *** q"
 proof (induct t arbitrary: h)

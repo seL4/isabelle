@@ -8,10 +8,10 @@ text\<open>
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 @{term[display]"case xs of [] => [] | y#ys => y"}
-evaluates to @{term"[]"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if 
-@{term"xs"} is @{term"y#ys"}. (Since the result in both branches must be of
-the same type, it follows that @{term y} is of type @{typ"'a list"} and hence
-that @{term xs} is of type @{typ"'a list list"}.)
+evaluates to \<^term>\<open>[]\<close> if \<^term>\<open>xs\<close> is \<^term>\<open>[]\<close> and to \<^term>\<open>y\<close> if 
+\<^term>\<open>xs\<close> is \<^term>\<open>y#ys\<close>. (Since the result in both branches must be of
+the same type, it follows that \<^term>\<open>y\<close> is of type \<^typ>\<open>'a list\<close> and hence
+that \<^term>\<open>xs\<close> is of type \<^typ>\<open>'a list list\<close>.)
 
 In general, case expressions are of the form
 \[
@@ -21,7 +21,7 @@ In general, case expressions are of the form
 \end{array}
 \]
 Like in functional programming, patterns are expressions consisting of
-datatype constructors (e.g. @{term"[]"} and \<open>#\<close>)
+datatype constructors (e.g. \<^term>\<open>[]\<close> and \<open>#\<close>)
 and variables, including the wildcard ``\verb$_$''.
 Not all cases need to be covered and the order of cases matters.
 However, one is well-advised not to wallow in complex patterns because
@@ -76,10 +76,10 @@ simplification, so no special methods are provided for them.
   (\<open>case_tac\<close>) works for arbitrary terms, which need to be
   quoted if they are non-atomic. However, apart from \<open>\<And>\<close>-bound
   variables, the terms must not contain variables that are bound outside.
-  For example, given the goal @{prop"\<forall>xs. xs = [] \<or> (\<exists>y ys. xs = y#ys)"},
+  For example, given the goal \<^prop>\<open>\<forall>xs. xs = [] \<or> (\<exists>y ys. xs = y#ys)\<close>,
   \<open>case_tac xs\<close> will not work as expected because Isabelle interprets
-  the @{term xs} as a new free variable distinct from the bound
-  @{term xs} in the goal.
+  the \<^term>\<open>xs\<close> as a new free variable distinct from the bound
+  \<^term>\<open>xs\<close> in the goal.
 \end{warn}
 \<close>
 

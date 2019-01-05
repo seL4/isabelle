@@ -10,8 +10,7 @@ section \<open>Configuration options \label{sec:config}\<close>
 
 text \<open>
   Isabelle/Pure maintains a record of named configuration options within the
-  theory or proof context, with values of type @{ML_type bool}, @{ML_type
-  int}, @{ML_type real}, or @{ML_type string}. Tools may declare options in
+  theory or proof context, with values of type \<^ML_type>\<open>bool\<close>, \<^ML_type>\<open>int\<close>, \<^ML_type>\<open>real\<close>, or \<^ML_type>\<open>string\<close>. Tools may declare options in
   ML, and then refer to these values (relative to the context). Thus global
   reference variables are easily avoided. The user may change the value of a
   configuration option by means of an associated attribute of the same name.
@@ -33,18 +32,18 @@ text \<open>
     @{command_def "print_options"} & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command print_options} ('!'?)
     ;
     @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
-  \<close>}
+  \<close>
 
   \<^descr> @{command "print_options"} prints the available configuration options,
   with names, types, and current values; the ``\<open>!\<close>'' option indicates extra
   verbosity.
   
   \<^descr> \<open>name = value\<close> as an attribute expression modifies the named option, with
-  the syntax of the value depending on the option's type. For @{ML_type bool}
+  the syntax of the value depending on the option's type. For \<^ML_type>\<open>bool\<close>
   the default value is \<open>true\<close>. Any attempt to change a global option in a
   local context is ignored.
 \<close>
@@ -69,7 +68,7 @@ text \<open>
     @{method_def sleep} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thms}
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
@@ -78,7 +77,7 @@ text \<open>
     (@@{method intro} | @@{method elim}) @{syntax thms}?
     ;
     @@{method sleep} @{syntax real}
-  \<close>}
+  \<close>
 
   \<^descr> @{method unfold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{method fold}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> expand (or
   fold back) the given definitions throughout all goals; any chained facts
@@ -134,7 +133,7 @@ text \<open>
     @{attribute_def no_vars}\<open>\<^sup>*\<close> & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute tagged} @{syntax name} @{syntax name}
     ;
     @@{attribute untagged} @{syntax name}
@@ -144,7 +143,7 @@ text \<open>
     (@@{attribute unfolded} | @@{attribute folded}) @{syntax thms}
     ;
     @@{attribute rotated} @{syntax int}?
-  \<close>}
+  \<close>
 
   \<^descr> @{attribute tagged}~\<open>name value\<close> and @{attribute untagged}~\<open>name\<close> add and
   remove \<^emph>\<open>tags\<close> of some theorem. Tags may be any list of string pairs that
@@ -154,21 +153,21 @@ text \<open>
 
   \<^descr> @{attribute THEN}~\<open>a\<close> composes rules by resolution; it resolves with the
   first premise of \<open>a\<close> (an alternative position may be also specified). See
-  also @{ML_op "RS"} in @{cite "isabelle-implementation"}.
+  also \<^ML_op>\<open>RS\<close> in @{cite "isabelle-implementation"}.
   
   \<^descr> @{attribute unfolded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> and @{attribute folded}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>
   expand and fold back again the given definitions throughout a rule.
 
-  \<^descr> @{attribute abs_def} turns an equation of the form @{prop "f x y \<equiv> t"}
-  into @{prop "f \<equiv> \<lambda>x y. t"}, which ensures that @{method simp} steps always
+  \<^descr> @{attribute abs_def} turns an equation of the form \<^prop>\<open>f x y \<equiv> t\<close>
+  into \<^prop>\<open>f \<equiv> \<lambda>x y. t\<close>, which ensures that @{method simp} steps always
   expand it. This also works for object-logic equality.
 
   \<^descr> @{attribute rotated}~\<open>n\<close> rotate the premises of a theorem by \<open>n\<close> (default
   1).
 
   \<^descr> @{attribute (Pure) elim_format} turns a destruction rule into elimination
-  rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow>
-  PROP B"}.
+  rule format, by resolving with the rule \<^prop>\<open>PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow>
+  PROP B\<close>.
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides its own
   version of this operation.
@@ -187,11 +186,11 @@ text \<open>
     @{method_def split} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method subst} ('(' 'asm' ')')? \<newline> ('(' (@{syntax nat}+) ')')? @{syntax thm}
     ;
     @@{method split} @{syntax thms}
-  \<close>}
+  \<close>
 
   These methods provide low-level facilities for equational reasoning that are
   intended for specialized applications only. Normally, single step
@@ -269,7 +268,7 @@ text \<open>
   \end{tabular}
   \<^medskip>
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{method simp} | @@{method simp_all}) opt? (@{syntax simpmod} * )
     ;
 
@@ -278,7 +277,7 @@ text \<open>
     @{syntax_def simpmod}: ('add' | 'del' | 'flip' | 'only' |
       'split' (() | '!' | 'del') | 'cong' (() | 'add' | 'del'))
     ':' @{syntax thms}
-  \<close>}
+  \<close>
 
   \<^descr> @{method simp} invokes the Simplifier on the first subgoal, after
   inserting chained facts as additional goal premises; further rule
@@ -355,19 +354,19 @@ if the original theorem was not present.
   \hline
   Isar method & ML tactic & behavior \\\hline
 
-  \<open>(simp (no_asm))\<close> & @{ML simp_tac} & assumptions are ignored completely
+  \<open>(simp (no_asm))\<close> & \<^ML>\<open>simp_tac\<close> & assumptions are ignored completely
   \\\hline
 
-  \<open>(simp (no_asm_simp))\<close> & @{ML asm_simp_tac} & assumptions are used in the
+  \<open>(simp (no_asm_simp))\<close> & \<^ML>\<open>asm_simp_tac\<close> & assumptions are used in the
   simplification of the conclusion but are not themselves simplified \\\hline
 
-  \<open>(simp (no_asm_use))\<close> & @{ML full_simp_tac} & assumptions are simplified but
+  \<open>(simp (no_asm_use))\<close> & \<^ML>\<open>full_simp_tac\<close> & assumptions are simplified but
   are not used in the simplification of each other or the conclusion \\\hline
 
-  \<open>(simp)\<close> & @{ML asm_full_simp_tac} & assumptions are used in the
+  \<open>(simp)\<close> & \<^ML>\<open>asm_full_simp_tac\<close> & assumptions are used in the
   simplification of the conclusion and to simplify other assumptions \\\hline
 
-  \<open>(simp (asm_lr))\<close> & @{ML asm_lr_simp_tac} & compatibility mode: an
+  \<open>(simp (asm_lr))\<close> & \<^ML>\<open>asm_lr_simp_tac\<close> & compatibility mode: an
   assumption is only used for simplifying assumptions which are to the right
   of it \\\hline
 
@@ -377,7 +376,7 @@ if the original theorem was not present.
   \<^medskip>
   In Isabelle/Pure, proof methods @{method (Pure) simp} and @{method (Pure)
   simp_all} only know about meta-equality \<open>\<equiv>\<close>. Any new object-logic needs to
-  re-define these methods via @{ML Simplifier.method_setup} in ML:
+  re-define these methods via \<^ML>\<open>Simplifier.method_setup\<close> in ML:
   Isabelle/FOL or Isabelle/HOL may serve as blue-prints.
 \<close>
 
@@ -386,14 +385,14 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   We consider basic algebraic simplifications in Isabelle/HOL. The rather
-  trivial goal @{prop "0 + (x + 0) = x + 0 + 0"} looks like a good candidate
+  trivial goal \<^prop>\<open>0 + (x + 0) = x + 0 + 0\<close> looks like a good candidate
   to be solved by a single call of @{method simp}:
 \<close>
 
 lemma "0 + (x + 0) = x + 0 + 0" apply simp? oops
 
 text \<open>
-  The above attempt \<^emph>\<open>fails\<close>, because @{term "0"} and @{term "(+)"} in the
+  The above attempt \<^emph>\<open>fails\<close>, because \<^term>\<open>0\<close> and \<^term>\<open>(+)\<close> in the
   HOL library are declared as generic type class operations, without stating
   any algebraic laws yet. More specific types are required to get access to
   certain standard simplifications of the theory context, e.g.\ like this:\<close>
@@ -418,8 +417,8 @@ text \<open>
   the subsequent method invocation. Both too little or too much information
   can make simplification fail, for different reasons.
 
-  In the next example the malicious assumption @{prop "\<And>x::nat. f x = g (f (g
-  x))"} does not contribute to solve the problem, but makes the default
+  In the next example the malicious assumption \<^prop>\<open>\<And>x::nat. f x = g (f (g
+  x))\<close> does not contribute to solve the problem, but makes the default
   @{method simp} method loop: the rewrite rule \<open>f ?x \<equiv> g (f (g ?x))\<close> extracted
   from the assumption does not terminate. The Simplifier notices certain
   simple forms of nontermination, but not this one. The problem can be solved
@@ -453,14 +452,14 @@ text \<open>
   \<^medskip>
   Because assumptions may simplify each other, there can be very subtle cases
   of nontermination. For example, the regular @{method simp} method applied to
-  @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y \<Longrightarrow> Q"} gives rise to the infinite
+  \<^prop>\<open>P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y \<Longrightarrow> Q\<close> gives rise to the infinite
   reduction sequence
   \[
   \<open>P (f x)\<close> \stackrel{\<open>f x \<equiv> f y\<close>}{\longmapsto}
   \<open>P (f y)\<close> \stackrel{\<open>y \<equiv> x\<close>}{\longmapsto}
   \<open>P (f x)\<close> \stackrel{\<open>f x \<equiv> f y\<close>}{\longmapsto} \cdots
   \]
-  whereas applying the same to @{prop "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q"}
+  whereas applying the same to \<^prop>\<open>y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q\<close>
   terminates (without solving the goal):
 \<close>
 
@@ -484,12 +483,12 @@ text \<open>
     @{command_def "print_simpset"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{attribute simp} | @@{attribute cong}) (() | 'add' | 'del') |
     @@{attribute split} (() | '!' | 'del')
     ;
     @@{command print_simpset} ('!'?)
-  \<close>}
+  \<close>
 
   \<^descr> @{attribute simp} declares rewrite rules, by adding or deleting them from
   the simpset within the theory or proof context. Rewrite rules are theorems
@@ -692,7 +691,7 @@ text \<open>
 
 lemma "(b \<bullet> c) \<bullet> a = xxx"
   apply (simp only: AC_rules)
-  txt \<open>@{subgoals}\<close>
+  txt \<open>\<^subgoals>\<close>
   oops
 
 lemma "(b \<bullet> c) \<bullet> a = a \<bullet> (b \<bullet> c)" by (simp only: AC_rules)
@@ -732,14 +731,14 @@ text \<open>
   \end{tabular}
   \<^medskip>
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute simp_trace_new} ('interactive')? \<newline>
       ('mode' '=' ('full' | 'normal'))? \<newline>
       ('depth' '=' @{syntax nat})?
     ;
 
     @@{attribute simp_break} (@{syntax term}*)
-  \<close>}
+  \<close>
 
   These attributes and configurations options control various aspects of
   Simplifier tracing and debugging.
@@ -802,22 +801,21 @@ text \<open>
     simproc & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
       @{syntax text};
 
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
-  \<close>}
+  \<close>
 
   \<^descr> @{command "simproc_setup"} defines a named simplification procedure that
   is invoked by the Simplifier whenever any of the given term patterns match
   the current redex. The implementation, which is provided as ML source text,
   needs to be of type
-  @{ML_type "morphism -> Proof.context -> cterm -> thm option"}, where the
-  @{ML_type cterm} represents the current redex \<open>r\<close> and the result is supposed
-  to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a generalized version), or @{ML
-  NONE} to indicate failure. The @{ML_type Proof.context} argument holds the
-  full context of the current Simplifier invocation. The @{ML_type morphism}
+  \<^ML_type>\<open>morphism -> Proof.context -> cterm -> thm option\<close>, where the
+  \<^ML_type>\<open>cterm\<close> represents the current redex \<open>r\<close> and the result is supposed
+  to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a generalized version), or \<^ML>\<open>NONE\<close> to indicate failure. The \<^ML_type>\<open>Proof.context\<close> argument holds the
+  full context of the current Simplifier invocation. The \<^ML_type>\<open>morphism\<close>
   informs about the difference of the original compilation context wrt.\ the
   one of the actual application later on.
 
@@ -880,11 +878,11 @@ text \<open>
   its conclusion, as in \<open>Suc ?m < ?n \<Longrightarrow> ?m < ?n\<close>, the default strategy could
   loop. % FIXME !??
 
-    \<^descr> @{ML Simplifier.set_subgoaler}~\<open>tac ctxt\<close> sets the subgoaler of the
+    \<^descr> \<^ML>\<open>Simplifier.set_subgoaler\<close>~\<open>tac ctxt\<close> sets the subgoaler of the
     context to \<open>tac\<close>. The tactic will be applied to the context of the running
     Simplifier instance.
 
-    \<^descr> @{ML Simplifier.prems_of}~\<open>ctxt\<close> retrieves the current set of premises
+    \<^descr> \<^ML>\<open>Simplifier.prems_of\<close>~\<open>ctxt\<close> retrieves the current set of premises
     from the context. This may be non-empty only if the Simplifier has been
     told to utilize local assumptions in the first place (cf.\ the options in
     \secref{sec:simp-meth}).
@@ -918,12 +916,11 @@ text \<open>
   \end{mldecls}
 
   A solver is a tactic that attempts to solve a subgoal after simplification.
-  Its core functionality is to prove trivial subgoals such as @{prop "True"}
+  Its core functionality is to prove trivial subgoals such as \<^prop>\<open>True\<close>
   and \<open>t = t\<close>, but object-logics might be more ambitious. For example,
   Isabelle/HOL performs a restricted version of linear arithmetic here.
 
-  Solvers are packaged up in abstract type @{ML_type solver}, with @{ML
-  Simplifier.mk_solver} as the only operation to create a solver.
+  Solvers are packaged up in abstract type \<^ML_type>\<open>solver\<close>, with \<^ML>\<open>Simplifier.mk_solver\<close> as the only operation to create a solver.
 
   \<^medskip>
   Rewriting does not instantiate unknowns. For example, rewriting alone cannot
@@ -943,7 +940,7 @@ text \<open>
   Note that in this way the overall tactic is not totally safe: it may
   instantiate unknowns that appear also in other subgoals.
 
-  \<^descr> @{ML Simplifier.mk_solver}~\<open>name tac\<close> turns \<open>tac\<close> into a solver; the
+  \<^descr> \<^ML>\<open>Simplifier.mk_solver\<close>~\<open>name tac\<close> turns \<open>tac\<close> into a solver; the
   \<open>name\<close> is only attached as a comment and has no further significance.
 
   \<^descr> \<open>ctxt setSSolver solver\<close> installs \<open>solver\<close> as the safe solver of \<open>ctxt\<close>.
@@ -960,11 +957,11 @@ text \<open>
   \<^medskip>
   The solver tactic is invoked with the context of the running Simplifier.
   Further operations may be used to retrieve relevant information, such as the
-  list of local Simplifier premises via @{ML Simplifier.prems_of} --- this
+  list of local Simplifier premises via \<^ML>\<open>Simplifier.prems_of\<close> --- this
   list may be non-empty only if the Simplifier runs in a mode that utilizes
   local assumptions (see also \secref{sec:simp-meth}). The solver is also
   presented the full goal including its assumptions in any case. Thus it can
-  use these (e.g.\ by calling @{ML assume_tac}), even if the Simplifier proper
+  use these (e.g.\ by calling \<^ML>\<open>assume_tac\<close>), even if the Simplifier proper
   happens to ignore local premises at the moment.
 
   \<^medskip>
@@ -1027,16 +1024,16 @@ text \<open>
     \<^descr> \<open>ctxt delloop name\<close> deletes the looper tactic that was associated with
     \<open>name\<close> from \<open>ctxt\<close>.
 
-    \<^descr> @{ML Splitter.add_split}~\<open>thm ctxt\<close> adds split tactic
+    \<^descr> \<^ML>\<open>Splitter.add_split\<close>~\<open>thm ctxt\<close> adds split tactic
     for \<open>thm\<close> as additional looper tactic of \<open>ctxt\<close>
     (overwriting previous split tactic for the same constant).
 
-    \<^descr> @{ML Splitter.add_split_bang}~\<open>thm ctxt\<close> adds aggressive
+    \<^descr> \<^ML>\<open>Splitter.add_split_bang\<close>~\<open>thm ctxt\<close> adds aggressive
     (see \S\ref{sec:simp-meth})
     split tactic for \<open>thm\<close> as additional looper tactic of \<open>ctxt\<close>
     (overwriting previous split tactic for the same constant).
 
-    \<^descr> @{ML Splitter.del_split}~\<open>thm ctxt\<close> deletes the split tactic
+    \<^descr> \<^ML>\<open>Splitter.del_split\<close>~\<open>thm ctxt\<close> deletes the split tactic
     corresponding to \<open>thm\<close> from the looper tactics of \<open>ctxt\<close>.
 
   The splitter replaces applications of a given function; the right-hand side
@@ -1046,17 +1043,16 @@ text \<open>
   @{text [display] "?P (if ?Q ?x ?y) \<longleftrightarrow> (?Q \<longrightarrow> ?P ?x) \<and> (\<not> ?Q \<longrightarrow> ?P ?y)"}
 
   Another example is the elimination operator for Cartesian products (which
-  happens to be called @{const case_prod} in Isabelle/HOL:
+  happens to be called \<^const>\<open>case_prod\<close> in Isabelle/HOL:
 
   @{text [display] "?P (case_prod ?f ?p) \<longleftrightarrow> (\<forall>a b. ?p = (a, b) \<longrightarrow> ?P (f a b))"}
 
   For technical reasons, there is a distinction between case splitting in the
-  conclusion and in the premises of a subgoal. The former is done by @{ML
-  Splitter.split_tac} with rules like @{thm [source] if_split} or @{thm
+  conclusion and in the premises of a subgoal. The former is done by \<^ML>\<open>Splitter.split_tac\<close> with rules like @{thm [source] if_split} or @{thm
   [source] option.split}, which do not split the subgoal, while the latter is
-  done by @{ML Splitter.split_asm_tac} with rules like @{thm [source]
+  done by \<^ML>\<open>Splitter.split_asm_tac\<close> with rules like @{thm [source]
   if_split_asm} or @{thm [source] option.split_asm}, which split the subgoal.
-  The function @{ML Splitter.add_split} automatically takes care of which
+  The function \<^ML>\<open>Splitter.add_split\<close> automatically takes care of which
   tactic to call, analyzing the form of the rules given as argument; it is the
   same operation behind \<open>split\<close> attribute or method modifier syntax in the
   Isar source language.
@@ -1067,7 +1063,7 @@ text \<open>
   Isabelle/FOL/ZF.
 
   \begin{warn}
-  With @{ML Splitter.split_asm_tac} as looper component, the Simplifier may
+  With \<^ML>\<open>Splitter.split_asm_tac\<close> as looper component, the Simplifier may
   split subgoals! This might cause unexpected problems in tactic expressions
   that silently assume 0 or 1 subgoals after simplification.
   \end{warn}
@@ -1081,12 +1077,12 @@ text \<open>
     @{attribute_def simplified} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute simplified} opt? @{syntax thms}?
     ;
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
-  \<close>}
+  \<close>
 
   \<^descr> @{attribute simplified}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> causes a theorem to be simplified,
   either by exactly the specified rules \<open>a\<^sub>1, \<dots>, a\<^sub>n\<close>, or the implicit
@@ -1335,16 +1331,16 @@ text \<open>The proof tools of the Classical Reasoner depend on
     @{attribute_def swapped} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
     ;
     @@{attribute rule} 'del'
     ;
     @@{attribute iff} (((() | 'add') '?'?) | 'del')
-  \<close>}
+  \<close>
 
   \<^descr> @{command "print_claset"} prints the collection of rules
-  declared to the Classical Reasoner, i.e.\ the @{ML_type claset}
+  declared to the Classical Reasoner, i.e.\ the \<^ML_type>\<open>claset\<close>
   within the context.
 
   \<^descr> @{attribute intro}, @{attribute elim}, and @{attribute dest}
@@ -1401,9 +1397,9 @@ text \<open>
     @{method_def contradiction} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method rule} @{syntax thms}?
-  \<close>}
+  \<close>
 
   \<^descr> @{method rule} as offered by the Classical Reasoner is a
   refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
@@ -1438,7 +1434,7 @@ text \<open>
     @{method_def deepen} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method blast} @{syntax nat}? (@{syntax clamod} * )
     ;
     @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
@@ -1460,7 +1456,7 @@ text \<open>
       'split' (() | '!' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thms}
-  \<close>}
+  \<close>
 
   \<^descr> @{method blast} is a separate classical tableau prover that
   uses the same classical rule declarations as explained before.
@@ -1564,11 +1560,11 @@ text \<open>These proof methods may help in situations when the
     @{method_def clarsimp} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{method safe} | @@{method clarify}) (@{syntax clamod} * )
     ;
     @@{method clarsimp} (@{syntax clasimpmod} * )
-  \<close>}
+  \<close>
 
   \<^descr> @{method safe} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
@@ -1743,13 +1739,13 @@ text \<open>
   Generic tools may refer to the information provided by object-logic
   declarations internally.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command judgment} @{syntax name} '::' @{syntax type} @{syntax mixfix}?
     ;
     @@{attribute atomize} ('(' 'full' ')')?
     ;
     @@{attribute rule_format} ('(' 'noasm' ')')?
-  \<close>}
+  \<close>
 
   \<^descr> @{command "judgment"}~\<open>c :: \<sigma> (mx)\<close> declares constant
   \<open>c\<close> as the truth judgment of the current object-logic.  Its

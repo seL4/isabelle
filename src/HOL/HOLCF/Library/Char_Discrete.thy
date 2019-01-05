@@ -8,7 +8,7 @@ theory Char_Discrete
 imports HOLCF
 begin
 
-subsection \<open>Discrete cpo instance for @{typ char}.\<close>
+subsection \<open>Discrete cpo instance for \<^typ>\<open>char\<close>.\<close>
 
 instantiation char :: discrete_cpo
 begin

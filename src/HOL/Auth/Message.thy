@@ -223,7 +223,7 @@ text\<open>Added to simplify arguments to parts, analz and synth.
 
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of 
-  @{term "parts(G\<union>H)"} in the assumption.\<close>
+  \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
 lemmas in_parts_UnE = parts_Un [THEN equalityD1, THEN subsetD, THEN UnE] 
 declare in_parts_UnE [elim!]
 
@@ -469,8 +469,8 @@ by (intro equalityI lemma1 lemma2)
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
 but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently
-\<open>split_tac\<close> does not cope with patterns such as @{term"analz (insert
-(Crypt K X) H)"}\<close> 
+\<open>split_tac\<close> does not cope with patterns such as \<^term>\<open>analz (insert
+(Crypt K X) H)\<close>\<close> 
 lemma analz_Crypt_if [simp]:
      "analz (insert (Crypt K X) H) =                 
           (if (Key (invKey K) \<in> analz H)                 
@@ -580,7 +580,7 @@ lemma synth_mono: "G\<subseteq>H ==> synth(G) \<subseteq> synth(H)"
   by (auto, erule synth.induct, auto)  
 
 text\<open>NO \<open>Agent_synth\<close>, as any Agent name can be synthesized.  
-  The same holds for @{term Number}\<close>
+  The same holds for \<^term>\<open>Number\<close>\<close>
 
 inductive_simps synth_simps [iff]:
  "Nonce n \<in> synth H"
@@ -674,8 +674,8 @@ lemma Fake_parts_insert_in_Un:
       \<Longrightarrow> Z \<in> synth (analz H) \<union> parts H"
 by (metis Fake_parts_insert set_mp)
 
-text\<open>@{term H} is sometimes @{term"Key ` KK \<union> spies evs"}, so can't put 
-  @{term "G=H"}.\<close>
+text\<open>\<^term>\<open>H\<close> is sometimes \<^term>\<open>Key ` KK \<union> spies evs\<close>, so can't put 
+  \<^term>\<open>G=H\<close>.\<close>
 lemma Fake_analz_insert:
      "X\<in> synth (analz G) ==>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
@@ -876,7 +876,7 @@ fun spy_analz_tac ctxt i =
 \<close>
 
 text\<open>By default only \<open>o_apply\<close> is built-in.  But in the presence of
-eta-expansion this means that some terms displayed as @{term "f o g"} will be
+eta-expansion this means that some terms displayed as \<^term>\<open>f o g\<close> will be
 rewritten, and others will not!\<close>
 declare o_def [simp]
 

@@ -171,7 +171,7 @@ lemma Cut_prefixcl_nFinite [rule_format]: "\<not> Finite s \<longrightarrow> Cut
   apply (rule mp)
   prefer 2
   apply assumption
-  apply (tactic "thin_tac' @{context} 1 1")
+  apply (tactic "thin_tac' \<^context> 1 1")
   apply (rule_tac x = "s" in spec)
   apply (rule nat_less_induct)
   apply (intro strip)

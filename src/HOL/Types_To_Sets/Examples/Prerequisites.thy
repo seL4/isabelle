@@ -92,7 +92,7 @@ end
 
 ML \<open>
 val _ = Outer_Syntax.local_theory' \<^command_keyword>\<open>lemmas_with\<close> "note theorems with (the same) attributes"
-    (Parse.attribs --| @{keyword :} -- Parse_Spec.name_facts -- Parse.for_fixes
+    (Parse.attribs --| \<^keyword>\<open>:\<close> -- Parse_Spec.name_facts -- Parse.for_fixes
      >> (fn (((attrs),facts), fixes) =>
       #2 oo Specification.theorems_cmd Thm.theoremK
         (map (apsnd (map (apsnd (fn xs => attrs@xs)))) facts) fixes))

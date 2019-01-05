@@ -115,7 +115,7 @@ primrec freediscrim :: "freemsg \<Rightarrow> int" where
 | "freediscrim (CRYPT K X) = freediscrim X + 2"
 | "freediscrim (DECRYPT K X) = freediscrim X - 2"
 
-text\<open>This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}\<close>
+text\<open>This theorem helps us prove \<^term>\<open>Nonce N \<noteq> MPair X Y\<close>\<close>
 theorem msgrel_imp_eq_freediscrim:
      "U \<sim> V \<Longrightarrow> freediscrim U = freediscrim V"
   by (induct set: msgrel) auto
@@ -151,8 +151,8 @@ definition
        Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
 
 
-text\<open>Reduces equality of equivalence classes to the @{term msgrel} relation:
-  @{term "(msgrel `` {x} = msgrel `` {y}) = ((x,y) \<in> msgrel)"}\<close>
+text\<open>Reduces equality of equivalence classes to the \<^term>\<open>msgrel\<close> relation:
+  \<^term>\<open>(msgrel `` {x} = msgrel `` {y}) = ((x,y) \<in> msgrel)\<close>\<close>
 lemmas equiv_msgrel_iff = eq_equiv_class_iff [OF equiv_msgrel UNIV_I UNIV_I]
 
 declare equiv_msgrel_iff [simp]
@@ -227,7 +227,7 @@ lemma nonces_congruent: "freenonces respects msgrel"
 by (auto simp add: congruent_def msgrel_imp_eq_freenonces) 
 
 
-text\<open>Now prove the four equations for @{term nonces}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>nonces\<close>\<close>
 
 lemma nonces_Nonce [simp]: "nonces (Nonce N) = {N}"
 by (simp add: nonces_def Nonce_def 
@@ -261,7 +261,7 @@ definition
 lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
 by (auto simp add: congruent_def msgrel_imp_eqv_freeleft) 
 
-text\<open>Now prove the four equations for @{term left}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>left\<close>\<close>
 
 lemma left_Nonce [simp]: "left (Nonce N) = Nonce N"
 by (simp add: left_def Nonce_def 
@@ -295,7 +295,7 @@ definition
 lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
 by (auto simp add: congruent_def msgrel_imp_eqv_freeright) 
 
-text\<open>Now prove the four equations for @{term right}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>right\<close>\<close>
 
 lemma right_Nonce [simp]: "right (Nonce N) = Nonce N"
 by (simp add: right_def Nonce_def 
@@ -325,7 +325,7 @@ subsection\<open>Injectivity Properties of Some Constructors\<close>
 lemma NONCE_imp_eq: "NONCE m \<sim> NONCE n \<Longrightarrow> m = n"
 by (drule msgrel_imp_eq_freenonces, simp)
 
-text\<open>Can also be proved using the function @{term nonces}\<close>
+text\<open>Can also be proved using the function \<^term>\<open>nonces\<close>\<close>
 lemma Nonce_Nonce_eq [iff]: "(Nonce m = Nonce n) = (m = n)"
 by (auto simp add: Nonce_def msgrel_refl dest: NONCE_imp_eq)
 
@@ -430,7 +430,7 @@ definition
 lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
 by (auto simp add: congruent_def msgrel_imp_eq_freediscrim) 
 
-text\<open>Now prove the four equations for @{term discrim}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>discrim\<close>\<close>
 
 lemma discrim_Nonce [simp]: "discrim (Nonce N) = 0"
 by (simp add: discrim_def Nonce_def 

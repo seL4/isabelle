@@ -169,7 +169,7 @@ lemma confluent_beta_eta: "confluent (sup beta eta)"
 
 subsection \<open>Implicit definition of \<open>eta\<close>\<close>
 
-text \<open>@{term "Abs (lift s 0 \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s"}\<close>
+text \<open>\<^term>\<open>Abs (lift s 0 \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s\<close>\<close>
 
 lemma not_free_iff_lifted:
     "(\<not> free s i) = (\<exists>t. s = lift t i)"

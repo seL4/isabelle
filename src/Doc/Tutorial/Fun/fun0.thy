@@ -18,7 +18,7 @@ text\<open>\noindent
 This resembles ordinary functional programming languages. Note the obligatory
 \isacommand{where} and \isa{|}. Command \isacommand{fun} declares and
 defines the function in one go. Isabelle establishes termination automatically
-because @{const fib}'s argument decreases in every recursive call.
+because \<^const>\<open>fib\<close>'s argument decreases in every recursive call.
 
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:
@@ -53,9 +53,9 @@ fun sep1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 text\<open>\noindent
 To guarantee that the second equation can only be applied if the first
 one does not match, Isabelle internally replaces the second equation
-by the two possibilities that are left: @{prop"sep1 a [] = []"} and
-@{prop"sep1 a [x] = [x]"}.  Thus the functions @{const sep} and
-@{const sep1} are identical.
+by the two possibilities that are left: \<^prop>\<open>sep1 a [] = []\<close> and
+\<^prop>\<open>sep1 a [x] = [x]\<close>.  Thus the functions \<^const>\<open>sep\<close> and
+\<^const>\<open>sep1\<close> are identical.
 
 Because of its pattern matching syntax, \isacommand{fun} is also useful
 for the definition of non-recursive functions:
@@ -77,7 +77,7 @@ simplification rules.
 \subsection{Termination}
 
 Isabelle's automatic termination prover for \isacommand{fun} has a
-fixed notion of the \emph{size} (of type @{typ nat}) of an
+fixed notion of the \emph{size} (of type \<^typ>\<open>nat\<close>) of an
 argument. The size of a natural number is the number itself. The size
 of a list is its length. For the general case see \S\ref{sec:general-datatype}.
 A recursive function is accepted if \isacommand{fun} can
@@ -124,14 +124,14 @@ the recursive call inside the \<open>else\<close> branch, which is why programmi
 languages and our simplifier don't do that. Unfortunately the simplifier does
 something else that leads to the same problem: it splits 
 each \<open>if\<close>-expression unless its
-condition simplifies to @{term True} or @{term False}.  For
+condition simplifies to \<^term>\<open>True\<close> or \<^term>\<open>False\<close>.  For
 example, simplification reduces
 @{prop[display]"gcd m n = k"}
 in one step to
 @{prop[display]"(if n=0 then m else gcd n (m mod n)) = k"}
 where the condition cannot be reduced further, and splitting leads to
 @{prop[display]"(n=0 --> m=k) & (n ~= 0 --> gcd n (m mod n)=k)"}
-Since the recursive call @{term"gcd n (m mod n)"} is no longer protected by
+Since the recursive call \<^term>\<open>gcd n (m mod n)\<close> is no longer protected by
 an \<open>if\<close>, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
@@ -143,7 +143,7 @@ approach: you will often have to invoke the rule explicitly when
 \<open>if\<close> is involved.
 
 If possible, the definition should be given by pattern matching on the left
-rather than \<open>if\<close> on the right. In the case of @{term gcd} the
+rather than \<open>if\<close> on the right. In the case of \<^term>\<open>gcd\<close> the
 following alternative definition suggests itself:
 \<close>
 
@@ -153,11 +153,11 @@ fun gcd1 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 text\<open>\noindent
 The order of equations is important: it hides the side condition
-@{prop"n ~= (0::nat)"}.  Unfortunately, not all conditionals can be
+\<^prop>\<open>n ~= (0::nat)\<close>.  Unfortunately, not all conditionals can be
 expressed by pattern matching.
 
 A simple alternative is to replace \<open>if\<close> by \<open>case\<close>, 
-which is also available for @{typ bool} and is not split automatically:
+which is also available for \<^typ>\<open>bool\<close> and is not split automatically:
 \<close>
 
 fun gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
@@ -168,7 +168,7 @@ This is probably the neatest solution next to pattern matching, and it is
 always available.
 
 A final alternative is to replace the offending simplification rules by
-derived conditional ones. For @{term gcd} it means we have to prove
+derived conditional ones. For \<^term>\<open>gcd\<close> it means we have to prove
 these lemmas:
 \<close>
 
@@ -181,7 +181,7 @@ apply(simp)
 done
 
 text\<open>\noindent
-Simplification terminates for these proofs because the condition of the \<open>if\<close> simplifies to @{term True} or @{term False}.
+Simplification terminates for these proofs because the condition of the \<open>if\<close> simplifies to \<^term>\<open>True\<close> or \<^term>\<open>False\<close>.
 Now we can disable the original simplification rule:
 \<close>
 
@@ -205,22 +205,22 @@ recursion pattern of the particular function $f$. We call this
 requires you to prove for each \isacommand{fun} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example
-involving the predefined @{term"map"} functional on lists:
+involving the predefined \<^term>\<open>map\<close> functional on lists:
 \<close>
 
 lemma "map f (sep x xs) = sep (f x) (map f xs)"
 
 txt\<open>\noindent
-Note that @{term"map f xs"}
-is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
-this lemma by recursion induction over @{term"sep"}:
+Note that \<^term>\<open>map f xs\<close>
+is the result of applying \<^term>\<open>f\<close> to all elements of \<^term>\<open>xs\<close>. We prove
+this lemma by recursion induction over \<^term>\<open>sep\<close>:
 \<close>
 
 apply(induct_tac x xs rule: sep.induct)
 
 txt\<open>\noindent
 The resulting proof state has three subgoals corresponding to the three
-clauses for @{term"sep"}:
+clauses for \<^term>\<open>sep\<close>:
 @{subgoals[display,indent=0]}
 The rest is pure simplification:
 \<close>
@@ -229,7 +229,7 @@ apply simp_all
 done
 
 text\<open>\noindent The proof goes smoothly because the induction rule
-follows the recursion of @{const sep}.  Try proving the above lemma by
+follows the recursion of \<^const>\<open>sep\<close>.  Try proving the above lemma by
 structural induction, and you find that you need an additional case
 distinction.
 
@@ -247,10 +247,10 @@ induction rules do not mention $f$ at all. Here is @{thm[source]sep.induct}:
 ~~{\isasymAnd}a~x~y~zs.~P~a~(y~\#~zs)~{\isasymLongrightarrow}~P~a~(x~\#~y~\#~zs){\isasymrbrakk}\isanewline
 {\isasymLongrightarrow}~P~u~v%
 \end{isabelle}
-It merely says that in order to prove a property @{term"P"} of @{term"u"} and
-@{term"v"} you need to prove it for the three cases where @{term"v"} is the
+It merely says that in order to prove a property \<^term>\<open>P\<close> of \<^term>\<open>u\<close> and
+\<^term>\<open>v\<close> you need to prove it for the three cases where \<^term>\<open>v\<close> is the
 empty list, the singleton list, and the list with at least two elements.
-The final case has an induction hypothesis:  you may assume that @{term"P"}
+The final case has an induction hypothesis:  you may assume that \<^term>\<open>P\<close>
 holds for the tail of that list.
 \index{induction!recursion|)}
 \index{recursion induction|)}

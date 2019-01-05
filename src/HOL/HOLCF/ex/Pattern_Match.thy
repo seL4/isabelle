@@ -131,8 +131,8 @@ translations
 parse_translation \<open>
 (* rewrite (_pat x) => (succeed) *)
 (* rewrite (_variable x t) => (Abs_cfun (%x. t)) *)
- [(@{syntax_const "_pat"}, fn _ => fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
-  Syntax_Trans.mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})]
+ [(\<^syntax_const>\<open>_pat\<close>, fn _ => fn _ => Syntax.const \<^const_syntax>\<open>Fixrec.succeed\<close>),
+  Syntax_Trans.mk_binder_tr (\<^syntax_const>\<open>_variable\<close>, \<^const_syntax>\<open>Abs_cfun\<close>)]
 \<close>
 
 text \<open>Printing Case expressions\<close>
@@ -142,29 +142,29 @@ syntax
 
 print_translation \<open>
   let
-    fun dest_LAM (Const (@{const_syntax Rep_cfun},_) $ Const (@{const_syntax unit_when},_) $ t) =
-          (Syntax.const @{syntax_const "_noargs"}, t)
-    |   dest_LAM (Const (@{const_syntax Rep_cfun},_) $ Const (@{const_syntax csplit},_) $ t) =
+    fun dest_LAM (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>unit_when\<close>,_) $ t) =
+          (Syntax.const \<^syntax_const>\<open>_noargs\<close>, t)
+    |   dest_LAM (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>csplit\<close>,_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
             val (v2, t2) = dest_LAM t1;
-          in (Syntax.const @{syntax_const "_args"} $ v1 $ v2, t2) end
-    |   dest_LAM (Const (@{const_syntax Abs_cfun},_) $ t) =
+          in (Syntax.const \<^syntax_const>\<open>_args\<close> $ v1 $ v2, t2) end
+    |   dest_LAM (Const (\<^const_syntax>\<open>Abs_cfun\<close>,_) $ t) =
           let
             val abs =
               case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
             val (x, t') = Syntax_Trans.atomic_abs_tr' abs;
-          in (Syntax.const @{syntax_const "_variable"} $ x, t') end
+          in (Syntax.const \<^syntax_const>\<open>_variable\<close> $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
-    fun Case1_tr' [Const(@{const_syntax branch},_) $ p, r] =
+    fun Case1_tr' [Const(\<^const_syntax>\<open>branch\<close>,_) $ p, r] =
           let val (v, t) = dest_LAM r in
-            Syntax.const @{syntax_const "_Case1"} $
-              (Syntax.const @{syntax_const "_match"} $ p $ v) $ t
+            Syntax.const \<^syntax_const>\<open>_Case1\<close> $
+              (Syntax.const \<^syntax_const>\<open>_match\<close> $ p $ v) $ t
           end;
 
-  in [(@{const_syntax Rep_cfun}, K Case1_tr')] end
+  in [(\<^const_syntax>\<open>Rep_cfun\<close>, K Case1_tr')] end
 \<close>
 
 translations
@@ -382,7 +382,7 @@ val beta_rules =
   @{thms cont2cont_fst cont2cont_snd cont2cont_Pair};
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps (@{thms simp_thms} @ beta_rules));
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps (@{thms simp_thms} @ beta_rules));
 
 fun define_consts
     (specs : (binding * term * mixfix) list)
@@ -453,14 +453,14 @@ fun add_pattern_combinators
         val (U2, V2) = apsnd dest_matchT (dest_cfunT T2);
         val pat_typ = [T1, T2] --->
             (mk_prodT (U1, U2) ->> mk_matchT (mk_prodT (V1, V2)));
-        val pat_const = Const (@{const_name cpair_pat}, pat_typ);
+        val pat_const = Const (\<^const_name>\<open>cpair_pat\<close>, pat_typ);
       in
         pat_const $ p1 $ p2
       end;
     fun mk_tuple_pat [] = succeed_const HOLogic.unitT
       | mk_tuple_pat ps = foldr1 mk_pair_pat ps;
     fun branch_const (T,U,V) = 
-      Const (@{const_name branch},
+      Const (\<^const_name>\<open>branch\<close>,
         (T ->> mk_matchT U) --> (U ->> V) ->> T ->> mk_matchT V);
 
     (* define pattern combinators *)
@@ -475,7 +475,7 @@ fun add_pattern_combinators
               (map (K "'t") args)
               |> Old_Datatype_Prop.indexify_names
               |> Name.variant_list tns
-              |> map (fn t => TFree (t, @{sort pcpo}));
+              |> map (fn t => TFree (t, \<^sort>\<open>pcpo\<close>));
           val patNs = Old_Datatype_Prop.indexify_names (map (K "pat") args);
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);
@@ -500,7 +500,7 @@ fun add_pattern_combinators
     local
       fun syntax c = Lexicon.mark_const (fst (dest_Const c));
       fun app s (l, r) = Ast.mk_appl (Ast.Constant s) [l, r];
-      val capp = app @{const_syntax Rep_cfun};
+      val capp = app \<^const_syntax>\<open>Rep_cfun\<close>;
       val capps = Library.foldl capp
 
       fun app_var x = Ast.mk_appl (Ast.Constant "_variable") [x, Ast.Variable "rhs"];
@@ -533,7 +533,7 @@ fun add_pattern_combinators
     local
       val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
       val rn = singleton (Name.variant_list tns) "'r";
-      val R = TFree (rn, @{sort pcpo});
+      val R = TFree (rn, \<^sort>\<open>pcpo\<close>);
       fun pat_lhs (pat, args) =
         let
           val Ts = map snd args;
@@ -541,7 +541,7 @@ fun add_pattern_combinators
               (map (K "'t") args)
               |> Old_Datatype_Prop.indexify_names
               |> Name.variant_list (rn::tns)
-              |> map (fn t => TFree (t, @{sort pcpo}));
+              |> map (fn t => TFree (t, \<^sort>\<open>pcpo\<close>));
           val patNs = Old_Datatype_Prop.indexify_names (map (K "pat") args);
           val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
           val pats = map Free (patNs ~~ patTs);

@@ -23,7 +23,7 @@ open MaSh_Eval
 \<close>
 
 ML \<open>
-val params = Sledgehammer_Commands.default_params @{theory} []
+val params = Sledgehammer_Commands.default_params \<^theory> []
 val prob_dir = prefix ^ "mash_problems"
 \<close>
 
@@ -36,7 +36,7 @@ else
 
 ML \<open>
 if do_it then
-  evaluate_mash_suggestions @{context} params range (SOME prob_dir)
+  evaluate_mash_suggestions \<^context> params range (SOME prob_dir)
     [prefix ^ "mepo_suggestions",
      prefix ^ "mash_suggestions",
      prefix ^ "mash_prover_suggestions",

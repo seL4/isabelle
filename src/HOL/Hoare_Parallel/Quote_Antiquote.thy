@@ -12,9 +12,9 @@ translations
 
 parse_translation \<open>
   let
-    fun quote_tr [t] = Syntax_Trans.quote_tr @{syntax_const "_antiquote"} t
+    fun quote_tr [t] = Syntax_Trans.quote_tr \<^syntax_const>\<open>_antiquote\<close> t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [(@{syntax_const "_quote"}, K quote_tr)] end
+  in [(\<^syntax_const>\<open>_quote\<close>, K quote_tr)] end
 \<close>
 
 end

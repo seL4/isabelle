@@ -463,7 +463,7 @@ proof -
     by force
 qed
 
-text\<open>No need for @{term S} to be connected. But the nonconstant condition is stronger.\<close>
+text\<open>No need for \<^term>\<open>S\<close> to be connected. But the nonconstant condition is stronger.\<close>
 corollary%unimportant open_mapping_thm2:
   assumes holf: "f holomorphic_on S"
       and S: "open S"
@@ -505,8 +505,8 @@ using injective_not_constant subset_inj_on by blast
 
 subsection\<open>Maximum modulus principle\<close>
 
-text\<open>If @{term f} is holomorphic, then its norm (modulus) cannot exhibit a true local maximum that is
-   properly within the domain of @{term f}.\<close>
+text\<open>If \<^term>\<open>f\<close> is holomorphic, then its norm (modulus) cannot exhibit a true local maximum that is
+   properly within the domain of \<^term>\<open>f\<close>.\<close>
 
 proposition maximum_modulus_principle:
   assumes holf: "f holomorphic_on S"
@@ -3056,8 +3056,8 @@ lemma is_pole_basic':
   using is_pole_basic[of f A 0] assms by simp
 
 text \<open>The proposition 
-              @{term "\<exists>x. ((f::complex\<Rightarrow>complex) \<longlongrightarrow> x) (at z) \<or> is_pole f z"} 
-can be interpreted as the complex function @{term f} has a non-essential singularity at @{term z} 
+              \<^term>\<open>\<exists>x. ((f::complex\<Rightarrow>complex) \<longlongrightarrow> x) (at z) \<or> is_pole f z\<close> 
+can be interpreted as the complex function \<^term>\<open>f\<close> has a non-essential singularity at \<^term>\<open>z\<close> 
 (i.e. the singularity is either removable or a pole).\<close> 
 definition not_essential::"[complex \<Rightarrow> complex, complex] \<Rightarrow> bool" where
   "not_essential f z = (\<exists>x. f\<midarrow>z\<rightarrow>x \<or> is_pole f z)"
@@ -3140,8 +3140,8 @@ qed
 
 lemma holomorphic_factor_puncture:
   assumes f_iso:"isolated_singularity_at f z"   
-      and "not_essential f z" \<comment> \<open>@{term f} has either a removable singularity or a pole at @{term z}\<close>
-      and non_zero:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0" \<comment> \<open>@{term f} will not be constantly zero in a neighbour of @{term z}\<close>
+      and "not_essential f z" \<comment> \<open>\<^term>\<open>f\<close> has either a removable singularity or a pole at \<^term>\<open>z\<close>\<close>
+      and non_zero:"\<exists>\<^sub>Fw in (at z). f w\<noteq>0" \<comment> \<open>\<^term>\<open>f\<close> will not be constantly zero in a neighbour of \<^term>\<open>z\<close>\<close>
   shows "\<exists>!n::int. \<exists>g r. 0 < r \<and> g holomorphic_on cball z r \<and> g z\<noteq>0
           \<and> (\<forall>w\<in>cball z r-{z}. f w = g w * (w-z) powr n \<and> g w\<noteq>0)"
 proof -
@@ -4652,7 +4652,7 @@ subsection \<open>The argument principle\<close>
 
 theorem argument_principle:
   fixes f::"complex \<Rightarrow> complex" and poles s:: "complex set"
-  defines "pz \<equiv> {w. f w = 0 \<or> w \<in> poles}" \<comment> \<open>@{term "pz"} is the set of poles and zeros\<close>
+  defines "pz \<equiv> {w. f w = 0 \<or> w \<in> poles}" \<comment> \<open>\<^term>\<open>pz\<close> is the set of poles and zeros\<close>
   assumes "open s" and
           "connected s" and
           f_holo:"f holomorphic_on s-poles" and

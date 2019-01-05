@@ -168,7 +168,7 @@ instance u :: (profinite) bifinite
   by standard (rule profinite)
 
 text \<open>
-  Types @{typ "'a \<rightarrow> 'b"} and @{typ "'a u \<rightarrow>! 'b"} are isomorphic.
+  Types \<^typ>\<open>'a \<rightarrow> 'b\<close> and \<^typ>\<open>'a u \<rightarrow>! 'b\<close> are isomorphic.
 \<close>
 
 definition "encode_cfun = (\<Lambda> f. sfun_abs\<cdot>(fup\<cdot>f))"
@@ -198,7 +198,7 @@ proof
 qed
 
 text \<open>
-  Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
+  Types \<^typ>\<open>('a * 'b) u\<close> and \<^typ>\<open>'a u \<otimes> 'b u\<close> are isomorphic.
 \<close>
 
 definition "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"

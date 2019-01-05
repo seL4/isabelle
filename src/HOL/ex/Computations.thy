@@ -54,22 +54,22 @@ end
 declare [[ML_source_trace = false]]
   
 ML_val \<open>
-  comp_nat @{context} @{term "fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0"}
-  |> Syntax.string_of_term @{context}
+  comp_nat \<^context> \<^term>\<open>fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0\<close>
+  |> Syntax.string_of_term \<^context>
   |> writeln
 \<close>
   
 ML_val \<open>
-  comp_bool @{context} @{term "fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 < fib (Suc (Suc 0))"}
+  comp_bool \<^context> \<^term>\<open>fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 < fib (Suc (Suc 0))\<close>
 \<close>
 
 ML_val \<open>
-  comp_check @{context} @{cprop "fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 > fib (Suc (Suc 0))"}
+  comp_check \<^context> \<^cprop>\<open>fib (Suc (Suc (Suc 0)) * Suc (Suc (Suc 0))) + Suc 0 > fib (Suc (Suc 0))\<close>
 \<close>
   
 ML_val \<open>
-  comp_numeral @{context} @{term "Suc 42 + 7"}
-  |> Syntax.string_of_term @{context}
+  comp_numeral \<^context> \<^term>\<open>Suc 42 + 7\<close>
+  |> Syntax.string_of_term \<^context>
   |> writeln
 \<close>
 

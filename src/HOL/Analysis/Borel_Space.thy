@@ -1688,7 +1688,7 @@ lemma%unimportant borel_measurable_extreal_suminf[measurable (raw)]:
 
 subsection%important "Borel space on the extended non-negative reals"
 
-text \<open> @{type ennreal} is a topological monoid, so no rules for plus are required, also all order
+text \<open> \<^type>\<open>ennreal\<close> is a topological monoid, so no rules for plus are required, also all order
   statements are usually done on type classes. \<close>
 
 lemma%unimportant measurable_enn2ereal[measurable]: "enn2ereal \<in> borel \<rightarrow>\<^sub>M borel"

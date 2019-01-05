@@ -22,12 +22,12 @@ where
 | rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 text\<open>\noindent
-The function @{term rtc} is annotated with concrete syntax: instead of
-\<open>rtc r\<close> we can write @{term"r*"}. The actual definition
+The function \<^term>\<open>rtc\<close> is annotated with concrete syntax: instead of
+\<open>rtc r\<close> we can write \<^term>\<open>r*\<close>. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately given the
 \<open>iff\<close> attribute to increase automation. The
 second rule, @{thm[source]rtc_step}, says that we can always add one more
-@{term r}-step to the left. Although we could make @{thm[source]rtc_step} an
+\<^term>\<open>r\<close>-step to the left. Although we could make @{thm[source]rtc_step} an
 introduction rule, this is dangerous: the recursion in the second premise
 slows down and may even kill the automatic tactics.
 
@@ -44,7 +44,7 @@ by(blast intro: rtc_step)
 text\<open>\noindent
 Although the lemma itself is an unremarkable consequence of the basic rules,
 it has the advantage that it can be declared an introduction rule without the
-danger of killing the automatic tactics because @{term"r*"} occurs only in
+danger of killing the automatic tactics because \<^term>\<open>r*\<close> occurs only in
 the conclusion and not in the premise. Thus some proofs that would otherwise
 need @{thm[source]rtc_step} can now be found automatically. The proof also
 shows that \<open>blast\<close> is able to handle @{thm[source]rtc_step}. But
@@ -72,19 +72,19 @@ We have to abandon this proof attempt.
 To understand what is going on, let us look again at @{thm[source]rtc.induct}.
 In the above application of \<open>erule\<close>, the first premise of
 @{thm[source]rtc.induct} is unified with the first suitable assumption, which
-is @{term"(x,y) \<in> r*"} rather than @{term"(y,z) \<in> r*"}. Although that
+is \<^term>\<open>(x,y) \<in> r*\<close> rather than \<^term>\<open>(y,z) \<in> r*\<close>. Although that
 is what we want, it is merely due to the order in which the assumptions occur
 in the subgoal, which it is not good practice to rely on. As a result,
-\<open>?xb\<close> becomes @{term x}, \<open>?xa\<close> becomes
-@{term y} and \<open>?P\<close> becomes @{term"\<lambda>u v. (u,z) \<in> r*"}, thus
+\<open>?xb\<close> becomes \<^term>\<open>x\<close>, \<open>?xa\<close> becomes
+\<^term>\<open>y\<close> and \<open>?P\<close> becomes \<^term>\<open>\<lambda>u v. (u,z) \<in> r*\<close>, thus
 yielding the above subgoal. So what went wrong?
 
 When looking at the instantiation of \<open>?P\<close> we see that it does not
 depend on its second parameter at all. The reason is that in our original
-goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
-conclusion, but not @{term y}. Thus our induction statement is too
+goal, of the pair \<^term>\<open>(x,y)\<close> only \<^term>\<open>x\<close> appears also in the
+conclusion, but not \<^term>\<open>y\<close>. Thus our induction statement is too
 general. Fortunately, it can easily be specialized:
-transfer the additional premise @{prop"(y,z)\<in>r*"} into the conclusion:\<close>
+transfer the additional premise \<^prop>\<open>(y,z)\<in>r*\<close> into the conclusion:\<close>
 (*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
   "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r* \<longrightarrow> (x,z) \<in> r*"
@@ -114,9 +114,9 @@ apply(blast intro: rtc_step)
 done
 
 text\<open>
-Let us now prove that @{term"r*"} is really the reflexive transitive closure
-of @{term r}, i.e.\ the least reflexive and transitive
-relation containing @{term r}. The latter is easily formalized
+Let us now prove that \<^term>\<open>r*\<close> is really the reflexive transitive closure
+of \<^term>\<open>r\<close>, i.e.\ the least reflexive and transitive
+relation containing \<^term>\<open>r\<close>. The latter is easily formalized
 \<close>
 
 inductive_set
@@ -151,7 +151,7 @@ contains only two rules, and the single step rule is simpler than
 transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
 @{thm[source]rtc2.induct}. Since inductive proofs are hard enough
 anyway, we should always pick the simplest induction schema available.
-Hence @{term rtc} is the definition of choice.
+Hence \<^term>\<open>rtc\<close> is the definition of choice.
 \index{reflexive transitive closure!defining inductively|)}
 
 \begin{exercise}\label{ex:converse-rtc-step}
@@ -160,7 +160,7 @@ Show that the converse of @{thm[source]rtc_step} also holds:
 \end{exercise}
 \begin{exercise}
 Repeat the development of this section, but starting with a definition of
-@{term rtc} where @{thm[source]rtc_step} is replaced by its converse as shown
+\<^term>\<open>rtc\<close> where @{thm[source]rtc_step} is replaced by its converse as shown
 in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}
 \<close>

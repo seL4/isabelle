@@ -140,7 +140,7 @@ apply (blast dest: insert_map_eq_diff)
 done
 
 
-subsection\<open>The Operator @{term lift_set}\<close>
+subsection\<open>The Operator \<^term>\<open>lift_set\<close>\<close>
 
 lemma lift_set_empty [simp]: "lift_set i {} = {}"
 by (unfold lift_set_def, auto)

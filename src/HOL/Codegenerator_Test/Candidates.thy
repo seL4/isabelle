@@ -18,14 +18,14 @@ imports
   "HOL-ex.Records"
 begin
 
-text \<open>Drop technical stuff from @{theory HOL.Quickcheck_Narrowing} which is tailored towards Haskell\<close>
+text \<open>Drop technical stuff from \<^theory>\<open>HOL.Quickcheck_Narrowing\<close> which is tailored towards Haskell\<close>
 
 setup \<open>
 fn thy =>
 let
   val tycos = Sign.logical_types thy;
   val consts = map_filter (try (curry (Axclass.param_of_inst thy)
-    @{const_name "Quickcheck_Narrowing.partial_term_of"})) tycos;
+    \<^const_name>\<open>Quickcheck_Narrowing.partial_term_of\<close>)) tycos;
 in fold Code.declare_unimplemented_global consts thy end
 \<close>
 

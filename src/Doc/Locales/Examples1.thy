@@ -18,9 +18,9 @@ text \<open>
   interpretations in proofs, in
   Section~\ref{sec:local-interpretation}.
 
-  As an example, consider the type of integers @{typ int}.  The
-  relation @{term "(\<le>)"} is a total order over @{typ int}.  We start
-  with the interpretation that @{term "(\<le>)"} is a partial order.  The
+  As an example, consider the type of integers \<^typ>\<open>int\<close>.  The
+  relation \<^term>\<open>(\<le>)\<close> is a total order over \<^typ>\<open>int\<close>.  We start
+  with the interpretation that \<^term>\<open>(\<le>)\<close> is a partial order.  The
   facilities of the interpretation command are explored gradually in
   three versions.
 \<close>
@@ -32,8 +32,8 @@ subsection \<open>First Version: Replacement of Parameters Only
 text \<open>
   The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
-  \<open>partial_order\<close> is replaced by @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow>
-  bool"} and the locale instance is interpreted in the current
+  \<open>partial_order\<close> is replaced by \<^term>\<open>(\<le>) :: int \<Rightarrow> int \<Rightarrow>
+  bool\<close> and the locale instance is interpreted in the current
   theory.\<close>
 
   interpretation %visible int: partial_order "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -55,8 +55,7 @@ txt \<open>\normalsize
 
 text \<open>The effect of the command is that instances of all
   conclusions of the locale are available in the theory, where names
-  are prefixed by the qualifier.  For example, transitivity for @{typ
-  int} is named @{thm [source] int.trans} and is the following
+  are prefixed by the qualifier.  For example, transitivity for \<^typ>\<open>int\<close> is named @{thm [source] int.trans} and is the following
   theorem:
   @{thm [display, indent=2] int.trans}
   It is not possible to reference this theorem simply as \<open>trans\<close>.  This prevents unwanted hiding of existing theorems of the
@@ -72,14 +71,14 @@ text \<open>Not only does the above interpretation qualify theorem names.
   the interpretation of the definition, which is \<open>partial_order.less (\<le>)\<close>.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since @{term "(\<le>)"} is polymorphic, for \<open>partial_order.less (\<le>)\<close> a
+\footnote{Since \<^term>\<open>(\<le>)\<close> is polymorphic, for \<open>partial_order.less (\<le>)\<close> a
   more general type will be inferred than for \<open>int.less\<close> which
-  is over type @{typ int}.}
+  is over type \<^typ>\<open>int\<close>.}
   The former is preferred on output, as for example in the theorem
   @{thm [source] int.less_le_trans}: @{thm [display, indent=2]
   int.less_le_trans}
   Both notations for the strict order are not satisfactory.  The
-  constant @{term "(<)"} is the strict order for @{typ int}.
+  constant \<^term>\<open>(<)\<close> is the strict order for \<^typ>\<open>int\<close>.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the

@@ -442,7 +442,7 @@ abbreviation
   spies_max :: "event list => msg set" where
   "spies_max evs == knows_max Spy evs"
 
-subsubsection\<open>basic facts about @{term knows_max}\<close>
+subsubsection\<open>basic facts about \<^term>\<open>knows_max\<close>\<close>
 
 lemma spies_max_spies [iff]: "spies_max evs = spies evs"
 by (induct evs, auto simp: knows_max_def split: event.splits)

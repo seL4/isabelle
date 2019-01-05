@@ -233,7 +233,7 @@ lemma effect_returnE [effect_elims]:
 definition raise :: "String.literal \<Rightarrow> 'a Heap" \<comment> \<open>the literal is just decoration\<close>
   where "raise s = Heap (\<lambda>_. None)"
 
-code_datatype raise \<comment> \<open>avoid @{const "Heap"} formally\<close>
+code_datatype raise \<comment> \<open>avoid \<^const>\<open>Heap\<close> formally\<close>
 
 lemma execute_raise [execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
@@ -455,8 +455,8 @@ lemma fixp_induct_heap:
   unfolding effect_def execute.simps
   by blast
 
-declaration \<open>Partial_Function.init "heap" @{term heap.fixp_fun}
-  @{term heap.mono_body} @{thm heap.fixp_rule_uc} @{thm heap.fixp_induct_uc}
+declaration \<open>Partial_Function.init "heap" \<^term>\<open>heap.fixp_fun\<close>
+  \<^term>\<open>heap.mono_body\<close> @{thm heap.fixp_rule_uc} @{thm heap.fixp_induct_uc}
   (SOME @{thm fixp_induct_heap})\<close>
 
 
@@ -633,14 +633,14 @@ open Code_Thingol;
 
 val imp_program =
   let
-    val is_bind = curry (=) @{const_name bind};
-    val is_return = curry (=) @{const_name return};
+    val is_bind = curry (=) \<^const_name>\<open>bind\<close>;
+    val is_return = curry (=) \<^const_name>\<open>return\<close>;
     val dummy_name = "";
     val dummy_case_term = IVar NONE;
     (*assumption: dummy values are not relevant for serialization*)
-    val unitT = @{type_name unit} `%% [];
+    val unitT = \<^type_name>\<open>unit\<close> `%% [];
     val unitt =
-      IConst { sym = Code_Symbol.Constant @{const_name Unity}, typargs = [], dicts = [], dom = [],
+      IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Unity\<close>, typargs = [], dicts = [], dom = [],
         annotation = NONE };
     fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =

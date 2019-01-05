@@ -85,10 +85,10 @@ instance ref :: (type) heap ..
 text \<open>Syntactic convenience\<close>
 
 setup \<open>
-  Sign.add_const_constraint (@{const_name Array}, SOME @{typ "nat \<Rightarrow> 'a::heap array"})
-  #> Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::heap ref"})
-  #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a::heap array \<Rightarrow> nat"})
-  #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a::heap ref \<Rightarrow> nat"})
+  Sign.add_const_constraint (\<^const_name>\<open>Array\<close>, SOME \<^typ>\<open>nat \<Rightarrow> 'a::heap array\<close>)
+  #> Sign.add_const_constraint (\<^const_name>\<open>Ref\<close>, SOME \<^typ>\<open>nat \<Rightarrow> 'a::heap ref\<close>)
+  #> Sign.add_const_constraint (\<^const_name>\<open>addr_of_array\<close>, SOME \<^typ>\<open>'a::heap array \<Rightarrow> nat\<close>)
+  #> Sign.add_const_constraint (\<^const_name>\<open>addr_of_ref\<close>, SOME \<^typ>\<open>'a::heap ref \<Rightarrow> nat\<close>)
 \<close>
 
 hide_const (open) empty

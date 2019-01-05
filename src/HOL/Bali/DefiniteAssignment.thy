@@ -60,7 +60,7 @@ where
                                              jumpNestingOkS jmps c2)"
 | "jumpNestingOkS jmps (l\<bullet> While(e) c) = jumpNestingOkS ({Cont l} \<union> jmps) c"
 \<comment> \<open>The label of the while loop only handles continue jumps. Breaks are only
-     handled by @{term Lab}\<close>
+     handled by \<^term>\<open>Lab\<close>\<close>
 | "jumpNestingOkS jmps (Jmp j) = (j \<in> jmps)"
 | "jumpNestingOkS jmps (Throw e) = True"
 | "jumpNestingOkS jmps (Try c1 Catch(C vn) c2) = (jumpNestingOkS jmps c1 \<and> 
@@ -70,7 +70,7 @@ where
 | "jumpNestingOkS jmps (Init C) = True" 
  \<comment> \<open>wellformedness of the program must enshure that for all initializers 
       jumpNestingOkS {} holds\<close> 
-\<comment> \<open>Dummy analysis for intermediate smallstep term @{term  FinA}\<close>
+\<comment> \<open>Dummy analysis for intermediate smallstep term \<^term>\<open>FinA\<close>\<close>
 | "jumpNestingOkS jmps (FinA a c) = False"
 
 
@@ -141,7 +141,7 @@ where
 | "assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) 
                             = (assignsE objRef) \<union> (assignsEs args)"
 \<comment> \<open>Only dummy analysis for intermediate expressions  
-      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee}\<close>
+      \<^term>\<open>Methd\<close>, \<^term>\<open>Body\<close>, \<^term>\<open>InsInitE\<close> and \<^term>\<open>Callee\<close>\<close>
 | "assignsE (Methd C sig)   = {}" 
 | "assignsE (Body  C s)     = {}"   
 | "assignsE (InsInitE s e)  = {}"  
@@ -218,7 +218,7 @@ where
                                                        | Some v \<Rightarrow> constVal e2)))"
 \<comment> \<open>Note that \<open>constVal (Cond b e1 e2)\<close> is stricter as it could be.
      It requires that all tree expressions are constant even if we can decide
-     which branch to choose, provided the constant value of @{term b}\<close>
+     which branch to choose, provided the constant value of \<^term>\<open>b\<close>\<close>
 | "constVal (Call accC statT mode objRef mn pTs args) = None"
 | "constVal (Methd C sig)   = None" 
 | "constVal (Body  C s)     = None"   
@@ -278,7 +278,7 @@ subsection \<open>Main analysis for boolean expressions\<close>
 
 text \<open>Assigned local variables after evaluating the expression if it evaluates
 to a specific boolean value. If the expression cannot evaluate to a 
-@{term Boolean} value UNIV is returned. If we expect true/false the opposite 
+\<^term>\<open>Boolean\<close> value UNIV is returned. If we expect true/false the opposite 
 constant false/true will also lead to UNIV.\<close>
 primrec assigns_if :: "bool \<Rightarrow> expr \<Rightarrow> lname set"
 where
@@ -324,7 +324,7 @@ where
 | "assigns_if b ({accC,statT,mode}objRef\<cdot>mn({pTs}args))  
             = assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) "
 \<comment> \<open>Only dummy analysis for intermediate expressions  
-      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee}\<close>
+      \<^term>\<open>Methd\<close>, \<^term>\<open>Body\<close>, \<^term>\<open>InsInitE\<close> and \<^term>\<open>Callee\<close>\<close>
 | "assigns_if b (Methd C sig)   = {}" 
 | "assigns_if b (Body  C s)     = {}"   
 | "assigns_if b (InsInitE s e)  = {}"  
@@ -526,7 +526,7 @@ text \<open>
 In \<open>E\<turnstile> B \<guillemotright>t\<guillemotright> A\<close>,
 \<open>B\<close> denotes the ''assigned'' variables before evaluating term \<open>t\<close>,
 whereas \<open>A\<close> denotes the ''assigned'' variables after evaluating term \<open>t\<close>.
-The environment @{term E} is only needed for the conditional \<open>_ ? _ : _\<close>.
+The environment \<^term>\<open>E\<close> is only needed for the conditional \<open>_ ? _ : _\<close>.
 The definite assignment rules refer to the typing rules here to
 distinguish boolean and other expressions.
 \<close>
@@ -556,21 +556,21 @@ where
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A"
 
-\<comment> \<open>Note that @{term E} is not further used, because we take the specialized
+\<comment> \<open>Note that \<^term>\<open>E\<close> is not further used, because we take the specialized
      sets that also consider if the expression evaluates to true or false. 
-     Inside of @{term e} there is no {\tt break} or {\tt finally}, so the break
-     map of @{term E} will be the trivial one. So 
-     @{term "Env\<turnstile>B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E"} is just used to ensure the definite assignment in
-     expression @{term e}.
-     Notice the implicit analysis of a constant boolean expression @{term e}
-     in this rule. For example, if @{term e} is constantly @{term True} then 
-     @{term "assigns_if False e = UNIV"} and therefor @{term "nrm C2=UNIV"}.
-     So finally @{term "nrm A = nrm C1"}. For the break maps this trick 
+     Inside of \<^term>\<open>e\<close> there is no {\tt break} or {\tt finally}, so the break
+     map of \<^term>\<open>E\<close> will be the trivial one. So 
+     \<^term>\<open>Env\<turnstile>B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E\<close> is just used to ensure the definite assignment in
+     expression \<^term>\<open>e\<close>.
+     Notice the implicit analysis of a constant boolean expression \<^term>\<open>e\<close>
+     in this rule. For example, if \<^term>\<open>e\<close> is constantly \<^term>\<open>True\<close> then 
+     \<^term>\<open>assigns_if False e = UNIV\<close> and therefor \<^term>\<open>nrm C2=UNIV\<close>.
+     So finally \<^term>\<open>nrm A = nrm C1\<close>. For the break maps this trick 
      workd too, because the trival break map will map all labels to 
-     @{term UNIV}. In the example, if no break occurs in @{term c2} the break
-     maps will trivially map to @{term UNIV} and if a break occurs it will map
-     to @{term UNIV} too, because @{term "assigns_if False e = UNIV"}. So
-     in the intersection of the break maps the path @{term c2} will have no
+     \<^term>\<open>UNIV\<close>. In the example, if no break occurs in \<^term>\<open>c2\<close> the break
+     maps will trivially map to \<^term>\<open>UNIV\<close> and if a break occurs it will map
+     to \<^term>\<open>UNIV\<close> too, because \<^term>\<open>assigns_if False e = UNIV\<close>. So
+     in the intersection of the break maps the path \<^term>\<open>c2\<close> will have no
      contribution.\<close>
 
 | Loop: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; 
@@ -580,13 +580,13 @@ where
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
 \<comment> \<open>The \<open>Loop\<close> rule resembles some of the ideas of the \<open>If\<close> rule.
-     For the @{term "nrm A"} the set @{term "B \<union> assigns_if False e"} 
-     will be @{term UNIV} if the condition is constantly true. To normally exit
-     the while loop, we must consider the body @{term c} to be completed 
-     normally (@{term "nrm C"}) or with a break. But in this model, 
-     the label @{term l} of the loop
+     For the \<^term>\<open>nrm A\<close> the set \<^term>\<open>B \<union> assigns_if False e\<close> 
+     will be \<^term>\<open>UNIV\<close> if the condition is constantly true. To normally exit
+     the while loop, we must consider the body \<^term>\<open>c\<close> to be completed 
+     normally (\<^term>\<open>nrm C\<close>) or with a break. But in this model, 
+     the label \<^term>\<open>l\<close> of the loop
      only handles continue labels, not break labels. The break label will be
-     handled by an enclosing @{term Lab} statement. So we don't have to
+     handled by an enclosing \<^term>\<open>Lab\<close> statement. So we don't have to
      handle the breaks specially.\<close>
 
 | Jmp: "\<lbrakk>jump=Ret \<longrightarrow> Result \<in> B;
@@ -597,9 +597,9 @@ where
                   | Ret     \<Rightarrow> \<lambda> k. UNIV)\<rbrakk> 
         \<Longrightarrow> 
         Env\<turnstile> B \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A"
-\<comment> \<open>In case of a break to label @{term l} the corresponding break set is all
+\<comment> \<open>In case of a break to label \<^term>\<open>l\<close> the corresponding break set is all
      variables assigned before the break. The assigned variables for normal
-     completion of the @{term Jmp} is @{term UNIV}, because the statement will
+     completion of the \<^term>\<open>Jmp\<close> is \<^term>\<open>UNIV\<close>, because the statement will
      never complete normally. For continue and return the break map is the 
      trivial one. In case of a return we enshure that the result value is
      assigned.\<close>
@@ -619,25 +619,25 @@ where
           brk A = ((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) \<Rightarrow>\<inter> (brk C2)\<rbrakk>  
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A" 
-\<comment> \<open>The set of assigned variables before execution @{term c2} are the same
-     as before execution @{term c1}, because @{term c1} could throw an exception
-     and so we can't guarantee that any variable will be assigned in @{term c1}.
+\<comment> \<open>The set of assigned variables before execution \<^term>\<open>c2\<close> are the same
+     as before execution \<^term>\<open>c1\<close>, because \<^term>\<open>c1\<close> could throw an exception
+     and so we can't guarantee that any variable will be assigned in \<^term>\<open>c1\<close>.
      The \<open>Finally\<close> statement completes
-     normally if both @{term c1} and @{term c2} complete normally. If @{term c1}
-     completes abruptly with a break, then @{term c2} also will be executed 
+     normally if both \<^term>\<open>c1\<close> and \<^term>\<open>c2\<close> complete normally. If \<^term>\<open>c1\<close>
+     completes abruptly with a break, then \<^term>\<open>c2\<close> also will be executed 
      and may terminate normally or with a break. The overall break map then is
-     the intersection of the maps of both paths. If @{term c2} terminates 
-     normally we have to extend all break sets in @{term "brk C1"} with 
-     @{term "nrm C2"} (\<open>\<Rightarrow>\<union>\<^sub>\<forall>\<close>). If @{term c2} exits with a break this
+     the intersection of the maps of both paths. If \<^term>\<open>c2\<close> terminates 
+     normally we have to extend all break sets in \<^term>\<open>brk C1\<close> with 
+     \<^term>\<open>nrm C2\<close> (\<open>\<Rightarrow>\<union>\<^sub>\<forall>\<close>). If \<^term>\<open>c2\<close> exits with a break this
      break will appear in the overall result state. We don't know if 
-     @{term c1} completed normally or abruptly (maybe with an exception not only
-     a break) so @{term c1} has no contribution to the break map following this
+     \<^term>\<open>c1\<close> completed normally or abruptly (maybe with an exception not only
+     a break) so \<^term>\<open>c1\<close> has no contribution to the break map following this
      path.\<close>
 
 \<comment> \<open>Evaluation of expressions and the break sets of definite assignment:
      Thinking of a Java expression we assume that we can never have
      a break statement inside of a expression. So for all expressions the
-     break sets could be set to the trivial one: @{term "\<lambda> l. UNIV"}. 
+     break sets could be set to the trivial one: \<^term>\<open>\<lambda> l. UNIV\<close>. 
      But we can't
      trivially proof, that evaluating an expression will never result in a 
      break, allthough Java expressions allready syntactically don't allow
@@ -645,8 +645,8 @@ where
      statements which are inserted by the evaluation rules. So to proof the
      absence of a break we need to ensure, that the initialization statements
      will never end up in a break. In a wellfromed initialization statement, 
-     of course, were breaks are nested correctly inside of @{term Lab} 
-     or @{term Loop} statements evaluation of the whole initialization 
+     of course, were breaks are nested correctly inside of \<^term>\<open>Lab\<close> 
+     or \<^term>\<open>Loop\<close> statements evaluation of the whole initialization 
      statement will never result in a break, because this break will be 
      handled inside of the statement. But for simplicity we haven't added
      the analysis of the correct nesting of breaks in the typing judgments 
@@ -658,7 +658,7 @@ where
 | Init: "Env\<turnstile> B \<guillemotright>\<langle>Init C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
 \<comment> \<open>Wellformedness of a program will ensure, that every static initialiser 
      is definetly assigned and the jumps are nested correctly. The case here
-     for @{term Init} is just for convenience, to get a proper precondition 
+     for \<^term>\<open>Init\<close> is just for convenience, to get a proper precondition 
      for the induction hypothesis in various proofs, so that we don't have to
      expand the initialisation on every point where it is triggerred by the
      evaluation rules.\<close>   
@@ -710,7 +710,7 @@ where
              \<Longrightarrow> 
              Env\<turnstile> B \<guillemotright>\<langle>Acc (LVar vn)\<rangle>\<guillemotright> A"
 \<comment> \<open>To properly access a local variable we have to test the definite 
-     assignment here. The variable must occur in the set @{term B}\<close>
+     assignment here. The variable must occur in the set \<^term>\<open>B\<close>\<close>
 
 | Acc: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn;
          Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> A\<rbrakk>
@@ -747,21 +747,21 @@ where
          \<Longrightarrow>  
          Env\<turnstile> B \<guillemotright>\<langle>{accC,statT,mode}e\<cdot>mn({pTs}args)\<rangle>\<guillemotright> A"
 
-\<comment> \<open>The interplay of @{term Call}, @{term Methd} and @{term Body}:
-      Why rules for @{term Methd} and @{term Body} at all? Note that a
-      Java source program will not include bare  @{term Methd} or @{term Body}
+\<comment> \<open>The interplay of \<^term>\<open>Call\<close>, \<^term>\<open>Methd\<close> and \<^term>\<open>Body\<close>:
+      Why rules for \<^term>\<open>Methd\<close> and \<^term>\<open>Body\<close> at all? Note that a
+      Java source program will not include bare  \<^term>\<open>Methd\<close> or \<^term>\<open>Body\<close>
       terms. These terms are just introduced during evaluation. So definite
-      assignment of @{term Call} does not consider @{term Methd} or 
-      @{term Body} at all. So for definite assignment alone we could omit the
-      rules for @{term Methd} and @{term Body}. 
+      assignment of \<^term>\<open>Call\<close> does not consider \<^term>\<open>Methd\<close> or 
+      \<^term>\<open>Body\<close> at all. So for definite assignment alone we could omit the
+      rules for \<^term>\<open>Methd\<close> and \<^term>\<open>Body\<close>. 
       But since evaluation of the method invocation is
       split up into three rules we must ensure that we have enough information
-      about the call even in the @{term Body} term to make sure that we can
+      about the call even in the \<^term>\<open>Body\<close> term to make sure that we can
       proof type safety. Also we must be able transport this information 
-      from @{term Call} to @{term Methd} and then further to @{term Body} 
-      during evaluation to establish the definite assignment of @{term Methd}
-      during evaluation of @{term Call}, and of @{term Body} during evaluation
-      of @{term Methd}. This is necessary since definite assignment will be
+      from \<^term>\<open>Call\<close> to \<^term>\<open>Methd\<close> and then further to \<^term>\<open>Body\<close> 
+      during evaluation to establish the definite assignment of \<^term>\<open>Methd\<close>
+      during evaluation of \<^term>\<open>Call\<close>, and of \<^term>\<open>Body\<close> during evaluation
+      of \<^term>\<open>Methd\<close>. This is necessary since definite assignment will be
       a precondition for each induction hypothesis coming out of the evaluation
       rules, and therefor we have to establish the definite assignment of the
       sub-evaluation during the type-safety proof. Note that well-typedness is
@@ -777,8 +777,8 @@ where
           nrm A = B; brk A = (\<lambda> l. UNIV)\<rbrakk>
          \<Longrightarrow>
          Env\<turnstile> B \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A"
-\<comment> \<open>Note that @{term A} is not correlated to  @{term C}. If the body
-      statement returns abruptly with return, evaluation of  @{term Body}
+\<comment> \<open>Note that \<^term>\<open>A\<close> is not correlated to  \<^term>\<open>C\<close>. If the body
+      statement returns abruptly with return, evaluation of  \<^term>\<open>Body\<close>
       will absorb this return and complete normally. So we cannot trivially
       get the assigned variables of the body statement since it has not 
       completed normally or with a break.
@@ -786,8 +786,8 @@ where
       is set with this rule. But if the body completes abruptly with a return
       we can't guarantee that the result variable is set here, since 
       definite assignment only talks about normal completion and breaks. So
-      for a return the @{term Jump} rule ensures that the result variable is
-      set and then this information must be carried over to the @{term Body}
+      for a return the \<^term>\<open>Jump\<close> rule ensures that the result variable is
+      set and then this information must be carried over to the \<^term>\<open>Body\<close>
       rule by the conformance predicate of the state.\<close>
 | LVar: "Env\<turnstile> B \<guillemotright>\<langle>LVar vn\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
 

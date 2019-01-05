@@ -82,8 +82,8 @@ subsection "Theorems for floating point functions implementing the horner scheme
 
 text \<open>
 
-Here @{term_type "f :: nat \<Rightarrow> nat"} is the sequence defining the Taylor series, the coefficients are
-all alternating and reciprocs. We use @{term G} and @{term F} to describe the computation of @{term f}.
+Here \<^term_type>\<open>f :: nat \<Rightarrow> nat\<close> is the sequence defining the Taylor series, the coefficients are
+all alternating and reciprocs. We use \<^term>\<open>G\<close> and \<^term>\<open>F\<close> to describe the computation of \<^term>\<open>f\<close>.
 
 \<close>
 
@@ -141,7 +141,7 @@ subsection \<open>Selectors for next even or odd number\<close>
 
 text \<open>
 The horner scheme computes alternating series. To get the upper and lower bounds we need to
-guarantee to access a even or odd member. To do this we use @{term get_odd} and @{term get_even}.
+guarantee to access a even or odd member. To do this we use \<^term>\<open>get_odd\<close> and \<^term>\<open>get_even\<close>.
 \<close>
 
 definition get_odd :: "nat \<Rightarrow> nat" where
@@ -463,7 +463,7 @@ subsection "Compute arcus tangens series"
 
 text \<open>
 As first step we implement the computation of the arcus tangens series. This is only valid in the range
-@{term "{-1 :: real .. 1}"}. This is used to compute \<pi> and then the entire arcus tangens.
+\<^term>\<open>{-1 :: real .. 1}\<close>. This is used to compute \<pi> and then the entire arcus tangens.
 \<close>
 
 fun ub_arctan_horner :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float"

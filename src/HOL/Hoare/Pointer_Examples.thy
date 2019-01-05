@@ -34,7 +34,7 @@ apply vcg_simp
   apply fastforce
   done
 
-text\<open>And now with ghost variables @{term ps} and @{term qs}. Even
+text\<open>And now with ghost variables \<^term>\<open>ps\<close> and \<^term>\<open>qs\<close>. Even
 ``more automatic''.\<close>
 
 lemma "VARS next p ps q qs r
@@ -113,7 +113,7 @@ subsection "Searching in a list"
 text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
 
-We start with a proof based on the @{term List} predicate. This means it only
+We start with a proof based on the \<^term>\<open>List\<close> predicate. This means it only
 works for acyclic lists.\<close>
 
 lemma "VARS tl p
@@ -128,7 +128,7 @@ apply vcg_simp
 apply clarsimp
 done
 
-text\<open>Using @{term Path} instead of @{term List} generalizes the correctness
+text\<open>Using \<^term>\<open>Path\<close> instead of \<^term>\<open>List\<close> generalizes the correctness
 statement to cyclic lists as well:\<close>
 
 lemma "VARS tl p
@@ -145,7 +145,7 @@ done
 
 text\<open>Now it dawns on us that we do not need the list witness at all --- it
 suffices to talk about reachability, i.e.\ we can use relations directly. The
-first version uses a relation on @{typ"'a ref"}:\<close>
+first version uses a relation on \<^typ>\<open>'a ref\<close>:\<close>
 
 lemma "VARS tl p
   {(p,X) \<in> {(Ref x,tl x) |x. True}\<^sup>*}
@@ -161,7 +161,7 @@ apply vcg_simp
 apply(fast elim:converse_rtranclE)
 done
 
-text\<open>Finally, a version based on a relation on type @{typ 'a}:\<close>
+text\<open>Finally, a version based on a relation on type \<^typ>\<open>'a\<close>:\<close>
 
 lemma "VARS tl p
   {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}\<^sup>*}
@@ -328,8 +328,7 @@ automated, but the runtime goes up drastically. In general it is
 usually more efficient to give the witness directly than to have it
 found by proof.
 
-Now we try a functional version of the abstraction relation @{term
-Path}. Since the result is not that convincing, we do not prove any of
+Now we try a functional version of the abstraction relation \<^term>\<open>Path\<close>. Since the result is not that convincing, we do not prove any of
 the lemmas.\<close>
 
 axiomatization
@@ -423,25 +422,24 @@ apply vcg_simp
 apply clarsimp
 done
 
-text\<open>In the beginning, we are able to assert @{term"distPath next
-root as root"}, with @{term"as"} set to @{term"[]"} or
-@{term"[r,a,b,c]"}. Note that @{term"Path next root as root"} would
+text\<open>In the beginning, we are able to assert \<^term>\<open>distPath next
+root as root\<close>, with \<^term>\<open>as\<close> set to \<^term>\<open>[]\<close> or
+\<^term>\<open>[r,a,b,c]\<close>. Note that \<^term>\<open>Path next root as root\<close> would
 additionally give us an infinite number of lists with the recurring
-sequence @{term"[r,a,b,c]"}.
+sequence \<^term>\<open>[r,a,b,c]\<close>.
 
 The precondition states that there exists a non-empty non-repeating
-path \mbox{@{term "r # Ps"}} from pointer @{term root} to itself, given that
-@{term root} points to location @{term r}. Pointers @{term p} and
-@{term q} are then set to @{term root} and the successor of @{term
-root} respectively. If @{term "q = root"}, we have circled the loop,
-otherwise we set the @{term next} pointer field of @{term q} to point
-to @{term p}, and shift @{term p} and @{term q} one step forward. The
-invariant thus states that @{term p} and @{term q} point to two
-disjoint lists @{term ps} and @{term qs}, such that @{term"Ps = rev ps
-@ qs"}. After the loop terminates, one
+path \mbox{\<^term>\<open>r # Ps\<close>} from pointer \<^term>\<open>root\<close> to itself, given that
+\<^term>\<open>root\<close> points to location \<^term>\<open>r\<close>. Pointers \<^term>\<open>p\<close> and
+\<^term>\<open>q\<close> are then set to \<^term>\<open>root\<close> and the successor of \<^term>\<open>root\<close> respectively. If \<^term>\<open>q = root\<close>, we have circled the loop,
+otherwise we set the \<^term>\<open>next\<close> pointer field of \<^term>\<open>q\<close> to point
+to \<^term>\<open>p\<close>, and shift \<^term>\<open>p\<close> and \<^term>\<open>q\<close> one step forward. The
+invariant thus states that \<^term>\<open>p\<close> and \<^term>\<open>q\<close> point to two
+disjoint lists \<^term>\<open>ps\<close> and \<^term>\<open>qs\<close>, such that \<^term>\<open>Ps = rev ps
+@ qs\<close>. After the loop terminates, one
 extra step is needed to close the loop. As expected, the postcondition
-states that the @{term distPath} from @{term root} to itself is now
-@{term "r # (rev Ps)"}.
+states that the \<^term>\<open>distPath\<close> from \<^term>\<open>root\<close> to itself is now
+\<^term>\<open>r # (rev Ps)\<close>.
 
 It may come as a surprise to the reader that the simple algorithm for
 acyclic list reversal, with modified annotations, works for cyclic

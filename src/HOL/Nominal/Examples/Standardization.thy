@@ -682,7 +682,7 @@ next
 qed
 
 text \<open>
-@{term NF} characterizes exactly the terms that are in normal form.
+\<^term>\<open>NF\<close> characterizes exactly the terms that are in normal form.
 \<close>
   
 lemma NF_eq: "NF t = (\<forall>t'. \<not> t \<rightarrow>\<^sub>\<beta> t')"

@@ -46,7 +46,7 @@ text \<open>
   These diagnostic commands assist interactive development by printing
   internal logical entities in a human-readable fashion.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command typ} @{syntax modes}? @{syntax type} ('::' @{syntax sort})?
     ;
     @@{command term} @{syntax modes}? @{syntax term}
@@ -60,7 +60,7 @@ text \<open>
     @@{command print_state} @{syntax modes}?
     ;
     @{syntax_def modes}: '(' (@{syntax name} + ) ')'
-  \<close>}
+  \<close>
 
   \<^descr> @{command "typ"}~\<open>\<tau>\<close> reads and prints a type expression according to the
   current context.
@@ -172,14 +172,14 @@ text \<open>
 
   \<^descr> @{attribute eta_contract} controls \<open>\<eta>\<close>-contracted printing of terms.
 
-  The \<open>\<eta>\<close>-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"}, provided \<open>x\<close> is not
-  free in \<open>f\<close>. It asserts \<^emph>\<open>extensionality\<close> of functions: @{prop "f \<equiv> g"} if
-  @{prop "f x \<equiv> g x"} for all \<open>x\<close>. Higher-order unification frequently puts
+  The \<open>\<eta>\<close>-contraction law asserts \<^prop>\<open>(\<lambda>x. f x) \<equiv> f\<close>, provided \<open>x\<close> is not
+  free in \<open>f\<close>. It asserts \<^emph>\<open>extensionality\<close> of functions: \<^prop>\<open>f \<equiv> g\<close> if
+  \<^prop>\<open>f x \<equiv> g x\<close> for all \<open>x\<close>. Higher-order unification frequently puts
   terms into a fully \<open>\<eta>\<close>-expanded form. For example, if \<open>F\<close> has type \<open>(\<tau> \<Rightarrow> \<tau>)
-  \<Rightarrow> \<tau>\<close> then its expanded form is @{term "\<lambda>h. F (\<lambda>x. h x)"}.
+  \<Rightarrow> \<tau>\<close> then its expanded form is \<^term>\<open>\<lambda>h. F (\<lambda>x. h x)\<close>.
 
   Enabling @{attribute eta_contract} makes Isabelle perform \<open>\<eta>\<close>-contractions
-  before printing, so that @{term "\<lambda>h. F (\<lambda>x. h x)"} appears simply as \<open>F\<close>.
+  before printing, so that \<^term>\<open>\<lambda>h. F (\<lambda>x. h x)\<close> appears simply as \<open>F\<close>.
 
   Note that the distinction between a term and its \<open>\<eta>\<close>-expanded form
   occasionally matters. While higher-order resolution and rewriting operate
@@ -229,12 +229,12 @@ text \<open>
   \secref{sec:print-diag}) take additional print modes as optional argument.
   The underlying ML operations are as follows.
 
-    \<^descr> @{ML "print_mode_value ()"} yields the list of currently active print
+    \<^descr> \<^ML>\<open>print_mode_value ()\<close> yields the list of currently active print
     mode names. This should be understood as symbolic representation of
     certain individual features for printing (with precedence from left to
     right).
 
-    \<^descr> @{ML Print_Mode.with_modes}~\<open>modes f x\<close> evaluates \<open>f x\<close> in an execution
+    \<^descr> \<^ML>\<open>Print_Mode.with_modes\<close>~\<open>modes f x\<close> evaluates \<open>f x\<close> in an execution
     context where the print mode is prepended by the given \<open>modes\<close>. This
     provides a thread-safe way to augment print modes. It is also monotonic in
     the set of mode names: it retains the default print mode that certain
@@ -277,7 +277,7 @@ text \<open>
   specify any context-free priority grammar, which is more general than the
   fixity declarations of ML and Prolog.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def mixfix}: '('
       (@{syntax template} prios? @{syntax nat}? |
         (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
@@ -289,7 +289,7 @@ text \<open>
     prios: '[' (@{syntax nat} + ',') ']'
     ;
     prio: '[' @{syntax nat} ']'
-  \<close>}
+  \<close>
 
   The mixfix \<open>template\<close> may include literal text, spacing, blocks, and
   arguments (denoted by ``\<open>_\<close>''); the special symbol ``\<^verbatim>\<open>\<index>\<close>'' (printed as
@@ -383,13 +383,13 @@ text \<open>
   Block properties allow more control over the details of pretty-printed
   output. The concrete syntax is defined as follows.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def "mixfix_properties"}: (entry *)
     ;
     entry: atom ('=' atom)?
     ;
     atom: @{syntax short_ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
-  \<close>}
+  \<close>
 
   Each @{syntax entry} is a name-value pair: if the value is omitted, it
   defaults to \<^verbatim>\<open>true\<close> (intended for Boolean properties). The following
@@ -503,7 +503,7 @@ text \<open>
   for explicit notation. This allows to add or delete mixfix annotations for
   of existing logical entities within the current context.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command type_notation} | @@{command no_type_notation}) @{syntax mode}? \<newline>
       (@{syntax name} @{syntax mixfix} + @'and')
     ;
@@ -511,7 +511,7 @@ text \<open>
       (@{syntax name} @{syntax mixfix} + @'and')
     ;
     @@{command write} @{syntax mode}? (@{syntax name} @{syntax mixfix} + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> @{command "type_notation"}~\<open>c (mx)\<close> associates mixfix syntax with an
   existing type constructor. The arity of the constructor is retrieved from
@@ -566,7 +566,7 @@ text \<open>
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & \<^verbatim>\<open>''\<close> \<open>\<dots>\<close> \<^verbatim>\<open>''\<close> \\
     @{syntax_def (inner) string_token} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
-    @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
+    @{syntax_def (inner) cartouche} & = & \<^verbatim>\<open>\<open>\<close> \<open>\<dots>\<close> \<^verbatim>\<open>\<close>\<close> \\
   \end{supertabular}
   \end{center}
 
@@ -738,7 +738,7 @@ text \<open>
   \<^descr> @{syntax_ref (inner) any} denotes any term.
 
   \<^descr> @{syntax_ref (inner) prop} denotes meta-level propositions, which are
-  terms of type @{typ prop}. The syntax of such formulae of the meta-logic is
+  terms of type \<^typ>\<open>prop\<close>. The syntax of such formulae of the meta-logic is
   carefully distinguished from usual conventions for object-logics. In
   particular, plain \<open>\<lambda>\<close>-term notation is \<^emph>\<open>not\<close> recognized as @{syntax (inner)
   prop}.
@@ -747,19 +747,19 @@ text \<open>
   embedded into regular @{syntax (inner) prop} by means of an explicit \<^verbatim>\<open>PROP\<close>
   token.
 
-  Terms of type @{typ prop} with non-constant head, e.g.\ a plain variable,
-  are printed in this form. Constants that yield type @{typ prop} are expected
+  Terms of type \<^typ>\<open>prop\<close> with non-constant head, e.g.\ a plain variable,
+  are printed in this form. Constants that yield type \<^typ>\<open>prop\<close> are expected
   to provide their own concrete syntax; otherwise the printed version will
   appear like @{syntax (inner) logic} and cannot be parsed again as @{syntax
   (inner) prop}.
 
   \<^descr> @{syntax_ref (inner) logic} denotes arbitrary terms of a logical type,
-  excluding type @{typ prop}. This is the main syntactic category of
+  excluding type \<^typ>\<open>prop\<close>. This is the main syntactic category of
   object-logic entities, covering plain \<open>\<lambda>\<close>-term notation (variables,
   abstraction, application), plus anything defined by the user.
 
   When specifying notation for logical entities, all logical types (excluding
-  @{typ prop}) are \<^emph>\<open>collapsed\<close> to this single category of @{syntax (inner)
+  \<^typ>\<open>prop\<close>) are \<^emph>\<open>collapsed\<close> to this single category of @{syntax (inner)
   logic}.
 
   \<^descr> @{syntax_ref (inner) index} denotes an optional index term for indexed
@@ -811,7 +811,7 @@ text \<open>
     by the type-checking phase.
 
     \<^descr> A bound ``\<open>_\<close>'' refers to a vacuous abstraction, where the body does not
-    refer to the binding introduced here. As in the term @{term "\<lambda>x _. x"},
+    refer to the binding introduced here. As in the term \<^term>\<open>\<lambda>x _. x\<close>,
     which is \<open>\<alpha>\<close>-equivalent to \<open>\<lambda>x y. x\<close>.
 
     \<^descr> A free ``\<open>_\<close>'' refers to an implicit outer binding. Higher definitional
@@ -969,7 +969,7 @@ text \<open>
 subsection \<open>Abstract syntax trees \label{sec:ast}\<close>
 
 text \<open>
-  The ML datatype @{ML_type Ast.ast} explicitly represents the intermediate
+  The ML datatype \<^ML_type>\<open>Ast.ast\<close> explicitly represents the intermediate
   AST format that is used for syntax rewriting (\secref{sec:syn-trans}). It is
   defined in ML as follows:
   @{verbatim [display]
@@ -995,7 +995,7 @@ text \<open>
   Nested application like \<^verbatim>\<open>(("_abs" x t) u)\<close> is also possible, but ASTs are
   definitely first-order: the syntax constant \<^verbatim>\<open>"_abs"\<close> does not bind the \<^verbatim>\<open>x\<close>
   in any way. Proper bindings are introduced in later stages of the term
-  syntax, where \<^verbatim>\<open>("_abs" x t)\<close> becomes an @{ML Abs} node and occurrences of
+  syntax, where \<^verbatim>\<open>("_abs" x t)\<close> becomes an \<^ML>\<open>Abs\<close> node and occurrences of
   \<^verbatim>\<open>x\<close> in \<^verbatim>\<open>t\<close> are replaced by bound variables (represented as de-Bruijn
   indices).
 \<close>
@@ -1005,21 +1005,20 @@ subsubsection \<open>AST constants versus variables\<close>
 
 text \<open>
   Depending on the situation --- input syntax, output syntax, translation
-  patterns --- the distinction of atomic ASTs as @{ML Ast.Constant} versus
-  @{ML Ast.Variable} serves slightly different purposes.
+  patterns --- the distinction of atomic ASTs as \<^ML>\<open>Ast.Constant\<close> versus
+  \<^ML>\<open>Ast.Variable\<close> serves slightly different purposes.
 
   Input syntax of a term such as \<open>f a b = c\<close> does not yet indicate the scopes
   of atomic entities \<open>f, a, b, c\<close>: they could be global constants or local
-  variables, even bound ones depending on the context of the term. @{ML
-  Ast.Variable} leaves this choice still open: later syntax layers (or
+  variables, even bound ones depending on the context of the term. \<^ML>\<open>Ast.Variable\<close> leaves this choice still open: later syntax layers (or
   translation functions) may capture such a variable to determine its role
   specifically, to make it a constant, bound variable, free variable etc. In
   contrast, syntax translations that introduce already known constants would
-  rather do it via @{ML Ast.Constant} to prevent accidental re-interpretation
+  rather do it via \<^ML>\<open>Ast.Constant\<close> to prevent accidental re-interpretation
   later on.
 
-  Output syntax turns term constants into @{ML Ast.Constant} and variables
-  (free or schematic) into @{ML Ast.Variable}. This information is precise
+  Output syntax turns term constants into \<^ML>\<open>Ast.Constant\<close> and variables
+  (free or schematic) into \<^ML>\<open>Ast.Variable\<close>. This information is precise
   when printing fully formal \<open>\<lambda>\<close>-terms.
 
   \<^medskip>
@@ -1049,7 +1048,7 @@ text \<open>
   not know about this later name resolution, there can be surprises in
   boundary cases.
 
-  \<^emph>\<open>Authentic syntax names\<close> for @{ML Ast.Constant} avoid this problem: the
+  \<^emph>\<open>Authentic syntax names\<close> for \<^ML>\<open>Ast.Constant\<close> avoid this problem: the
   fully-qualified constant name with a special prefix for its formal category
   (\<open>class\<close>, \<open>type\<close>, \<open>const\<close>, \<open>fixed\<close>) represents the information faithfully
   within the untyped AST format. Accidental overlap with free or bound
@@ -1095,7 +1094,7 @@ text \<open>
   @{command translations}) are required to turn resulting parse trees into
   proper representations of formal entities again.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command nonterminal} (@{syntax name} + @'and')
     ;
     (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (constdecl +)
@@ -1109,7 +1108,7 @@ text \<open>
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
     transpat: ('(' @{syntax name} ')')? @{syntax string}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "nonterminal"}~\<open>c\<close> declares a type constructor \<open>c\<close> (without
   arguments) to act as purely syntactic type: a nonterminal symbol of the
@@ -1179,10 +1178,8 @@ text \<open>
   applications within the term syntax, independently of the corresponding
   concrete syntax.
 
-  Atomic ASTs are distinguished as @{ML Ast.Constant} versus @{ML
-  Ast.Variable} as follows: a qualified name or syntax constant declared via
-  @{command syntax}, or parse tree head of concrete notation becomes @{ML
-  Ast.Constant}, anything else @{ML Ast.Variable}. Note that \<open>CONST\<close> and
+  Atomic ASTs are distinguished as \<^ML>\<open>Ast.Constant\<close> versus \<^ML>\<open>Ast.Variable\<close> as follows: a qualified name or syntax constant declared via
+  @{command syntax}, or parse tree head of concrete notation becomes \<^ML>\<open>Ast.Constant\<close>, anything else \<^ML>\<open>Ast.Variable\<close>. Note that \<open>CONST\<close> and
   \<open>XCONST\<close> within the term language (\secref{sec:pure-grammar}) allow to
   enforce treatment as constants.
 
@@ -1212,13 +1209,13 @@ text \<open>
   syntax} and @{command translations} are really need are as follows:
 
   \<^item> Iterated replacement via recursive @{command translations}. For example,
-  consider list enumeration @{term "[a, b, c, d]"} as defined in theory
-  @{theory HOL.List}.
+  consider list enumeration \<^term>\<open>[a, b, c, d]\<close> as defined in theory
+  \<^theory>\<open>HOL.List\<close>.
 
   \<^item> Change of binding status of variables: anything beyond the built-in
   @{keyword "binder"} mixfix annotation requires explicit syntax translations.
-  For example, consider the set comprehension syntax @{term "{x. P}"} as
-  defined in theory @{theory HOL.Set}.
+  For example, consider the set comprehension syntax \<^term>\<open>{x. P}\<close> as
+  defined in theory \<^theory>\<open>HOL.Set\<close>.
 \<close>
 
 
@@ -1235,22 +1232,22 @@ text \<open>
   instance of \<open>lhs\<close>; in this case the pattern \<open>lhs\<close> is said to match the
   object \<open>u\<close>. A redex matched by \<open>lhs\<close> may be replaced by the corresponding
   instance of \<open>rhs\<close>, thus \<^emph>\<open>rewriting\<close> the AST \<open>t\<close>. Matching requires some
-  notion of \<^emph>\<open>place-holders\<close> in rule patterns: @{ML Ast.Variable} serves this
+  notion of \<^emph>\<open>place-holders\<close> in rule patterns: \<^ML>\<open>Ast.Variable\<close> serves this
   purpose.
 
   More precisely, the matching of the object \<open>u\<close> against the pattern \<open>lhs\<close> is
   performed as follows:
 
-    \<^item> Objects of the form @{ML Ast.Variable}~\<open>x\<close> or @{ML Ast.Constant}~\<open>x\<close> are
-    matched by pattern @{ML Ast.Constant}~\<open>x\<close>. Thus all atomic ASTs in the
+    \<^item> Objects of the form \<^ML>\<open>Ast.Variable\<close>~\<open>x\<close> or \<^ML>\<open>Ast.Constant\<close>~\<open>x\<close> are
+    matched by pattern \<^ML>\<open>Ast.Constant\<close>~\<open>x\<close>. Thus all atomic ASTs in the
     object are treated as (potential) constants, and a successful match makes
     them actual constants even before name space resolution (see also
     \secref{sec:ast}).
 
-    \<^item> Object \<open>u\<close> is matched by pattern @{ML Ast.Variable}~\<open>x\<close>, binding \<open>x\<close> to
+    \<^item> Object \<open>u\<close> is matched by pattern \<^ML>\<open>Ast.Variable\<close>~\<open>x\<close>, binding \<open>x\<close> to
     \<open>u\<close>.
 
-    \<^item> Object @{ML Ast.Appl}~\<open>us\<close> is matched by @{ML Ast.Appl}~\<open>ts\<close> if \<open>us\<close> and
+    \<^item> Object \<^ML>\<open>Ast.Appl\<close>~\<open>us\<close> is matched by \<^ML>\<open>Ast.Appl\<close>~\<open>ts\<close> if \<open>us\<close> and
     \<open>ts\<close> have the same length and each corresponding subtree matches.
 
     \<^item> In every other case, matching fails.
@@ -1305,7 +1302,7 @@ text \<open>
   manipulations of inner syntax, at the expense of some complexity and
   obscurity in the implementation.
 
-  @{rail \<open>
+  \<^rail>\<open>
   ( @@{command parse_ast_translation} | @@{command parse_translation} |
     @@{command print_translation} | @@{command typed_print_translation} |
     @@{command print_ast_translation}) @{syntax text}
@@ -1314,7 +1311,7 @@ text \<open>
    @@{ML_antiquotation type_syntax} |
    @@{ML_antiquotation const_syntax} |
    @@{ML_antiquotation syntax_const}) embedded
-  \<close>}
+  \<close>
 
   \<^descr> @{command parse_translation} etc. declare syntax translation functions to
   the theory. Any of these commands have a single @{syntax text} argument that
@@ -1324,15 +1321,15 @@ text \<open>
   {\footnotesize
   \begin{tabular}{l}
   @{command parse_ast_translation} : \\
-  \quad @{ML_type "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"} \\
+  \quad \<^ML_type>\<open>(string * (Proof.context -> Ast.ast list -> Ast.ast)) list\<close> \\
   @{command parse_translation} : \\
-  \quad @{ML_type "(string * (Proof.context -> term list -> term)) list"} \\
+  \quad \<^ML_type>\<open>(string * (Proof.context -> term list -> term)) list\<close> \\
   @{command print_translation} : \\
-  \quad @{ML_type "(string * (Proof.context -> term list -> term)) list"} \\
+  \quad \<^ML_type>\<open>(string * (Proof.context -> term list -> term)) list\<close> \\
   @{command typed_print_translation} : \\
-  \quad @{ML_type "(string * (Proof.context -> typ -> term list -> term)) list"} \\
+  \quad \<^ML_type>\<open>(string * (Proof.context -> typ -> term list -> term)) list\<close> \\
   @{command print_ast_translation} : \\
-  \quad @{ML_type "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"} \\
+  \quad \<^ML_type>\<open>(string * (Proof.context -> Ast.ast list -> Ast.ast)) list\<close> \\
   \end{tabular}}
   \<^medskip>
 
@@ -1372,10 +1369,8 @@ text \<open>
   in ML.
 
   For AST translations, the arguments \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> are ASTs. A combination
-  has the form @{ML "Ast.Constant"}~\<open>c\<close> or @{ML "Ast.Appl"}~\<open>[\<close>@{ML
-  Ast.Constant}~\<open>c, x\<^sub>1, \<dots>, x\<^sub>n]\<close>. For term translations, the arguments are
-  terms and a combination has the form @{ML Const}~\<open>(c, \<tau>)\<close> or @{ML
-  Const}~\<open>(c, \<tau>) $ x\<^sub>1 $ \<dots> $ x\<^sub>n\<close>. Terms allow more sophisticated
+  has the form \<^ML>\<open>Ast.Constant\<close>~\<open>c\<close> or \<^ML>\<open>Ast.Appl\<close>~\<open>[\<close>\<^ML>\<open>Ast.Constant\<close>~\<open>c, x\<^sub>1, \<dots>, x\<^sub>n]\<close>. For term translations, the arguments are
+  terms and a combination has the form \<^ML>\<open>Const\<close>~\<open>(c, \<tau>)\<close> or \<^ML>\<open>Const\<close>~\<open>(c, \<tau>) $ x\<^sub>1 $ \<dots> $ x\<^sub>n\<close>. Terms allow more sophisticated
   transformations than ASTs do, typically involving abstractions and bound
   variables. \<^emph>\<open>Typed\<close> print translations may even peek at the type \<open>\<tau>\<close> of the
   constant they are invoked on, although some information might have been
@@ -1394,12 +1389,11 @@ text \<open>
     arguments that are partly still in internal form. The result again
     undergoes translation; therefore a print translation should not introduce
     as head the very constant that invoked it. The function may raise
-    exception @{ML Match} to indicate failure; in this event it has no effect.
+    exception \<^ML>\<open>Match\<close> to indicate failure; in this event it has no effect.
     Multiple functions associated with some syntactic name are tried in the
     order of declaration in the theory.
 
-  Only constant atoms --- constructor @{ML Ast.Constant} for ASTs and @{ML
-  Const} for terms --- can invoke translation functions. This means that parse
+  Only constant atoms --- constructor \<^ML>\<open>Ast.Constant\<close> for ASTs and \<^ML>\<open>Const\<close> for terms --- can invoke translation functions. This means that parse
   translations can only be associated with parse tree heads of concrete
   syntax, or syntactic constants introduced via other translations. For plain
   identifiers within the term language, the status of constant versus variable

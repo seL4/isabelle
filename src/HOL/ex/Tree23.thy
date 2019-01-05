@@ -207,11 +207,9 @@ lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
 lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
   by (auto elim!: bal_imp_full full_imp_bal)
 
-text \<open>The @{term "add0"} function either preserves the height of the
-tree, or increases it by one. The constructor returned by the @{term
-"add"} function determines which: A return value of the form @{term
-"Stay t"} indicates that the height will be the same. A value of the
-form @{term "Sprout l p r"} indicates an increase in height.\<close>
+text \<open>The \<^term>\<open>add0\<close> function either preserves the height of the
+tree, or increases it by one. The constructor returned by the \<^term>\<open>add\<close> function determines which: A return value of the form \<^term>\<open>Stay t\<close> indicates that the height will be the same. A value of the
+form \<^term>\<open>Sprout l p r\<close> indicates an increase in height.\<close>
 
 primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
 "gfull n (Stay t) \<longleftrightarrow> full n t" |
@@ -220,7 +218,7 @@ primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
 lemma gfull_add: "full n t \<Longrightarrow> gfull n (add k y t)"
 by (induct set: full, auto split: ord.split growth.split)
 
-text \<open>The @{term "add0"} operation preserves balance.\<close>
+text \<open>The \<^term>\<open>add0\<close> operation preserves balance.\<close>
 
 lemma bal_add0: "bal t \<Longrightarrow> bal (add0 k y t)"
 unfolding bal_iff_full add0_def
@@ -230,7 +228,7 @@ apply (cases "add k y t")
 apply (auto intro: full.intros)
 done
 
-text \<open>The @{term "add0"} operation preserves order.\<close>
+text \<open>The \<^term>\<open>add0\<close> operation preserves order.\<close>
 
 lemma ord_cases:
   fixes a b :: int obtains
@@ -279,7 +277,7 @@ done
 lemma ord0_add0: "ord0 t \<Longrightarrow> ord0 (add0 k y t)"
   by (simp add: ord0_def ord'_add0)
 
-text \<open>The @{term "del"} function preserves balance.\<close>
+text \<open>The \<^term>\<open>del\<close> function preserves balance.\<close>
 
 lemma del_extra_simps:
 "l \<noteq> Empty \<or> r \<noteq> Empty \<Longrightarrow>

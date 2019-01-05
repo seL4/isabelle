@@ -115,34 +115,32 @@ text \<open>
   \<^medskip>
   \begin{tabular}{lll}
   variant & example & ML categories \\\hline
-  lower-case & @{ML_text foo_bar} & values, types, record fields \\
-  capitalized & @{ML_text Foo_Bar} & datatype constructors, structures, functors \\
-  upper-case & @{ML_text FOO_BAR} & special values, exception constructors, signatures \\
+  lower-case & \<^ML_text>\<open>foo_bar\<close> & values, types, record fields \\
+  capitalized & \<^ML_text>\<open>Foo_Bar\<close> & datatype constructors, structures, functors \\
+  upper-case & \<^ML_text>\<open>FOO_BAR\<close> & special values, exception constructors, signatures \\
   \end{tabular}
   \<^medskip>
 
   For historical reasons, many capitalized names omit underscores, e.g.\
-  old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}. Genuine
+  old-style \<^ML_text>\<open>FooBar\<close> instead of \<^ML_text>\<open>Foo_Bar\<close>. Genuine
   mixed-case names are \<^emph>\<open>not\<close> used, because clear division of words is
   essential for readability.\<^footnote>\<open>Camel-case was invented to workaround the lack
   of underscore in some early non-ASCII character sets. Later it became
   habitual in some language communities that are now strong in numbers.\<close>
 
   A single (capital) character does not count as ``word'' in this respect:
-  some Isabelle/ML names are suffixed by extra markers like this: @{ML_text
-  foo_barT}.
+  some Isabelle/ML names are suffixed by extra markers like this: \<^ML_text>\<open>foo_barT\<close>.
 
-  Name variants are produced by adding 1--3 primes, e.g.\ @{ML_text foo'},
-  @{ML_text foo''}, or @{ML_text foo'''}, but not @{ML_text foo''''} or more.
-  Decimal digits scale better to larger numbers, e.g.\ @{ML_text foo0},
-  @{ML_text foo1}, @{ML_text foo42}.
+  Name variants are produced by adding 1--3 primes, e.g.\ \<^ML_text>\<open>foo'\<close>,
+  \<^ML_text>\<open>foo''\<close>, or \<^ML_text>\<open>foo'''\<close>, but not \<^ML_text>\<open>foo''''\<close> or more.
+  Decimal digits scale better to larger numbers, e.g.\ \<^ML_text>\<open>foo0\<close>,
+  \<^ML_text>\<open>foo1\<close>, \<^ML_text>\<open>foo42\<close>.
 \<close>
 
 paragraph \<open>Scopes.\<close>
 text \<open>
   Apart from very basic library modules, ML structures are not ``opened'', but
-  names are referenced with explicit qualification, as in @{ML
-  Syntax.string_of_term} for example. When devising names for structures and
+  names are referenced with explicit qualification, as in \<^ML>\<open>Syntax.string_of_term\<close> for example. When devising names for structures and
   their components it is important to aim at eye-catching compositions of both
   parts, because this is how they are seen in the sources and documentation.
   For the same reasons, aliases of well-known library functions should be
@@ -150,8 +148,8 @@ text \<open>
 
   Local names of function abstraction or case/let bindings are typically
   shorter, sometimes using only rudiments of ``words'', while still avoiding
-  cryptic shorthands. An auxiliary function called @{ML_text helper},
-  @{ML_text aux}, or @{ML_text f} is considered bad style.
+  cryptic shorthands. An auxiliary function called \<^ML_text>\<open>helper\<close>,
+  \<^ML_text>\<open>aux\<close>, or \<^ML_text>\<open>f\<close> is considered bad style.
 
   Example:
 
@@ -187,15 +185,13 @@ paragraph \<open>Specific conventions.\<close>
 text \<open>
   Here are some specific name forms that occur frequently in the sources.
 
-  \<^item> A function that maps @{ML_text foo} to @{ML_text bar} is called @{ML_text
-  foo_to_bar} or @{ML_text bar_of_foo} (never @{ML_text foo2bar}, nor
-  @{ML_text bar_from_foo}, nor @{ML_text bar_for_foo}, nor @{ML_text
-  bar4foo}).
+  \<^item> A function that maps \<^ML_text>\<open>foo\<close> to \<^ML_text>\<open>bar\<close> is called \<^ML_text>\<open>foo_to_bar\<close> or \<^ML_text>\<open>bar_of_foo\<close> (never \<^ML_text>\<open>foo2bar\<close>, nor
+  \<^ML_text>\<open>bar_from_foo\<close>, nor \<^ML_text>\<open>bar_for_foo\<close>, nor \<^ML_text>\<open>bar4foo\<close>).
 
-  \<^item> The name component @{ML_text legacy} means that the operation is about to
+  \<^item> The name component \<^ML_text>\<open>legacy\<close> means that the operation is about to
   be discontinued soon.
 
-  \<^item> The name component @{ML_text global} means that this works with the
+  \<^item> The name component \<^ML_text>\<open>global\<close> means that this works with the
   background theory instead of the regular local context
   (\secref{sec:context}), sometimes for historical reasons, sometimes due a
   genuine lack of locality of the concept involved, sometimes as a fall-back
@@ -207,58 +203,57 @@ text \<open>
   (\secref{sec:context} and \chref{ch:local-theory}) have firm naming
   conventions as follows:
 
-    \<^item> theories are called @{ML_text thy}, rarely @{ML_text theory}
-    (never @{ML_text thry})
+    \<^item> theories are called \<^ML_text>\<open>thy\<close>, rarely \<^ML_text>\<open>theory\<close>
+    (never \<^ML_text>\<open>thry\<close>)
 
-    \<^item> proof contexts are called @{ML_text ctxt}, rarely @{ML_text
-    context} (never @{ML_text ctx})
+    \<^item> proof contexts are called \<^ML_text>\<open>ctxt\<close>, rarely \<^ML_text>\<open>context\<close> (never \<^ML_text>\<open>ctx\<close>)
 
-    \<^item> generic contexts are called @{ML_text context}
+    \<^item> generic contexts are called \<^ML_text>\<open>context\<close>
 
-    \<^item> local theories are called @{ML_text lthy}, except for local
+    \<^item> local theories are called \<^ML_text>\<open>lthy\<close>, except for local
     theories that are treated as proof context (which is a semantic
     super-type)
 
   Variations with primed or decimal numbers are always possible, as well as
-  semantic prefixes like @{ML_text foo_thy} or @{ML_text bar_ctxt}, but the
+  semantic prefixes like \<^ML_text>\<open>foo_thy\<close> or \<^ML_text>\<open>bar_ctxt\<close>, but the
   base conventions above need to be preserved. This allows to emphasize their
   data flow via plain regular expressions in the text editor.
 
   \<^item> The main logical entities (\secref{ch:logic}) have established naming
   convention as follows:
 
-    \<^item> sorts are called @{ML_text S}
+    \<^item> sorts are called \<^ML_text>\<open>S\<close>
 
-    \<^item> types are called @{ML_text T}, @{ML_text U}, or @{ML_text ty} (never
-    @{ML_text t})
+    \<^item> types are called \<^ML_text>\<open>T\<close>, \<^ML_text>\<open>U\<close>, or \<^ML_text>\<open>ty\<close> (never
+    \<^ML_text>\<open>t\<close>)
 
-    \<^item> terms are called @{ML_text t}, @{ML_text u}, or @{ML_text tm} (never
-    @{ML_text trm})
+    \<^item> terms are called \<^ML_text>\<open>t\<close>, \<^ML_text>\<open>u\<close>, or \<^ML_text>\<open>tm\<close> (never
+    \<^ML_text>\<open>trm\<close>)
 
-    \<^item> certified types are called @{ML_text cT}, rarely @{ML_text T}, with
+    \<^item> certified types are called \<^ML_text>\<open>cT\<close>, rarely \<^ML_text>\<open>T\<close>, with
     variants as for types
 
-    \<^item> certified terms are called @{ML_text ct}, rarely @{ML_text t}, with
-    variants as for terms (never @{ML_text ctrm})
+    \<^item> certified terms are called \<^ML_text>\<open>ct\<close>, rarely \<^ML_text>\<open>t\<close>, with
+    variants as for terms (never \<^ML_text>\<open>ctrm\<close>)
 
-    \<^item> theorems are called @{ML_text th}, or @{ML_text thm}
+    \<^item> theorems are called \<^ML_text>\<open>th\<close>, or \<^ML_text>\<open>thm\<close>
 
   Proper semantic names override these conventions completely. For example,
-  the left-hand side of an equation (as a term) can be called @{ML_text lhs}
-  (not @{ML_text lhs_tm}). Or a term that is known to be a variable can be
-  called @{ML_text v} or @{ML_text x}.
+  the left-hand side of an equation (as a term) can be called \<^ML_text>\<open>lhs\<close>
+  (not \<^ML_text>\<open>lhs_tm\<close>). Or a term that is known to be a variable can be
+  called \<^ML_text>\<open>v\<close> or \<^ML_text>\<open>x\<close>.
 
   \<^item> Tactics (\secref{sec:tactics}) are sufficiently important to have specific
   naming conventions. The name of a basic tactic definition always has a
-  @{ML_text "_tac"} suffix, the subgoal index (if applicable) is always called
-  @{ML_text i}, and the goal state (if made explicit) is usually called
-  @{ML_text st} instead of the somewhat misleading @{ML_text thm}. Any other
+  \<^ML_text>\<open>_tac\<close> suffix, the subgoal index (if applicable) is always called
+  \<^ML_text>\<open>i\<close>, and the goal state (if made explicit) is usually called
+  \<^ML_text>\<open>st\<close> instead of the somewhat misleading \<^ML_text>\<open>thm\<close>. Any other
   arguments are given before the latter two, and the general context is given
   first. Example:
 
   @{verbatim [display] \<open>  fun my_tac ctxt arg1 arg2 i st = ...\<close>}
 
-  Note that the goal state @{ML_text st} above is rarely made explicit, if
+  Note that the goal state \<^ML_text>\<open>st\<close> above is rarely made explicit, if
   tactic combinators (tacticals) are used as usual.
 
   A tactic that requires a proof context needs to make that explicit as seen
@@ -314,16 +309,16 @@ text \<open>
     c);
 \<close>}
 
-  Some special infixes (e.g.\ @{ML_text "|>"}) work better at the start of the
+  Some special infixes (e.g.\ \<^ML_text>\<open>|>\<close>) work better at the start of the
   line, but punctuation is always at the end.
 
   Function application follows the tradition of \<open>\<lambda>\<close>-calculus, not informal
-  mathematics. For example: @{ML_text "f a b"} for a curried function, or
-  @{ML_text "g (a, b)"} for a tupled function. Note that the space between
-  @{ML_text g} and the pair @{ML_text "(a, b)"} follows the important
-  principle of \<^emph>\<open>compositionality\<close>: the layout of @{ML_text "g p"} does not
-  change when @{ML_text "p"} is refined to the concrete pair @{ML_text "(a,
-  b)"}.
+  mathematics. For example: \<^ML_text>\<open>f a b\<close> for a curried function, or
+  \<^ML_text>\<open>g (a, b)\<close> for a tupled function. Note that the space between
+  \<^ML_text>\<open>g\<close> and the pair \<^ML_text>\<open>(a, b)\<close> follows the important
+  principle of \<^emph>\<open>compositionality\<close>: the layout of \<^ML_text>\<open>g p\<close> does not
+  change when \<^ML_text>\<open>p\<close> is refined to the concrete pair \<^ML_text>\<open>(a,
+  b)\<close>.
 \<close>
 
 paragraph \<open>Indentation\<close>
@@ -372,13 +367,13 @@ text \<open>
 
 paragraph \<open>Complex expressions\<close>
 text \<open>
-  that consist of multi-clausal function definitions, @{ML_text handle},
-  @{ML_text case}, @{ML_text let} (and combinations) require special
+  that consist of multi-clausal function definitions, \<^ML_text>\<open>handle\<close>,
+  \<^ML_text>\<open>case\<close>, \<^ML_text>\<open>let\<close> (and combinations) require special
   attention. The syntax of Standard ML is quite ambitious and admits a lot of
   variance that can distort the meaning of the text.
 
-  Multiple clauses of @{ML_text fun}, @{ML_text fn}, @{ML_text handle},
-  @{ML_text case} get extra indentation to indicate the nesting clearly.
+  Multiple clauses of \<^ML_text>\<open>fun\<close>, \<^ML_text>\<open>fn\<close>, \<^ML_text>\<open>handle\<close>,
+  \<^ML_text>\<open>case\<close> get extra indentation to indicate the nesting clearly.
   Example:
 
   @{verbatim [display]
@@ -397,7 +392,7 @@ text \<open>
     | foo p2 =
     expr2\<close>}
 
-  Body expressions consisting of @{ML_text case} or @{ML_text let} require
+  Body expressions consisting of \<^ML_text>\<open>case\<close> or \<^ML_text>\<open>let\<close> require
   care to maintain compositionality, to prevent loss of logical indentation
   where it is especially important to see the structure of the text. Example:
 
@@ -428,14 +423,14 @@ text \<open>
       ...
     end\<close>}
 
-  Extra parentheses around @{ML_text case} expressions are optional, but help
+  Extra parentheses around \<^ML_text>\<open>case\<close> expressions are optional, but help
   to analyse the nesting based on character matching in the text editor.
 
   \<^medskip>
   There are two main exceptions to the overall principle of compositionality
   in the layout of complex expressions.
 
-  \<^enum> @{ML_text "if"} expressions are iterated as if ML had multi-branch
+  \<^enum> \<^ML_text>\<open>if\<close> expressions are iterated as if ML had multi-branch
   conditionals, e.g.
 
   @{verbatim [display]
@@ -445,7 +440,7 @@ text \<open>
   else if b2 then e2
   else e3\<close>}
 
-  \<^enum> @{ML_text fn} abstractions are often layed-out as if they would lack any
+  \<^enum> \<^ML_text>\<open>fn\<close> abstractions are often layed-out as if they would lack any
   structure by themselves. This traditional form is motivated by the
   possibility to shift function arguments back and forth wrt.\ additional
   combinators. Example:
@@ -456,12 +451,12 @@ text \<open>
   fun foo x y = fold (fn z =>
     expr)\<close>}
 
-  Here the visual appearance is that of three arguments @{ML_text x},
-  @{ML_text y}, @{ML_text z} in a row.
+  Here the visual appearance is that of three arguments \<^ML_text>\<open>x\<close>,
+  \<^ML_text>\<open>y\<close>, \<^ML_text>\<open>z\<close> in a row.
 
 
   Such weakly structured layout should be use with great care. Here are some
-  counter-examples involving @{ML_text let} expressions:
+  counter-examples involving \<^ML_text>\<open>let\<close> expressions:
 
   @{verbatim [display]
 \<open>  (* WRONG *)
@@ -537,7 +532,7 @@ text \<open>
   more commands that refer to ML source, such as @{command_ref setup} or
   @{command_ref declaration}. Even more fine-grained embedding of ML into Isar
   is encountered in the proof method @{method_ref tactic}, which refines the
-  pending goal state via a given expression of type @{ML_type tactic}.
+  pending goal state via a given expression of type \<^ML_type>\<open>tactic\<close>.
 \<close>
 
 text %mlex \<open>
@@ -552,8 +547,7 @@ ML \<open>
 \<close>
 
 text \<open>
-  Here the ML environment is already managed by Isabelle, i.e.\ the @{ML
-  factorial} function is not yet accessible in the preceding paragraph, nor in
+  Here the ML environment is already managed by Isabelle, i.e.\ the \<^ML>\<open>factorial\<close> function is not yet accessible in the preceding paragraph, nor in
   a different theory that is independent from the current one in the import
   hierarchy.
 
@@ -589,8 +583,7 @@ text \<open>
   Two further ML commands are useful in certain situations: @{command_ref
   ML_val} and @{command_ref ML_command} are \<^emph>\<open>diagnostic\<close> in the sense that
   there is no effect on the underlying environment, and can thus be used
-  anywhere. The examples below produce long strings of digits by invoking @{ML
-  factorial}: @{command ML_val} takes care of printing the ML toplevel result,
+  anywhere. The examples below produce long strings of digits by invoking \<^ML>\<open>factorial\<close>: @{command ML_val} takes care of printing the ML toplevel result,
   but @{command ML_command} is silent so we produce an explicit output
   message.
 \<close>
@@ -624,19 +617,19 @@ text %mlref \<open>
   @{index_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
 
-    \<^descr> @{ML "Context.the_generic_context ()"} refers to the theory context of
+    \<^descr> \<^ML>\<open>Context.the_generic_context ()\<close> refers to the theory context of
     the ML toplevel --- at compile time. ML code needs to take care to refer to
-    @{ML "Context.the_generic_context ()"} correctly. Recall that evaluation
+    \<^ML>\<open>Context.the_generic_context ()\<close> correctly. Recall that evaluation
     of a function body is delayed until actual run-time.
 
-    \<^descr> @{ML "Context.>>"}~\<open>f\<close> applies context transformation \<open>f\<close> to the implicit
+    \<^descr> \<^ML>\<open>Context.>>\<close>~\<open>f\<close> applies context transformation \<open>f\<close> to the implicit
     context of the ML toplevel.
 
-    \<^descr> @{ML ML_Thms.bind_thms}~\<open>(name, thms)\<close> stores a list of theorems produced
+    \<^descr> \<^ML>\<open>ML_Thms.bind_thms\<close>~\<open>(name, thms)\<close> stores a list of theorems produced
     in ML both in the (global) theory context and the ML toplevel, associating
     it with the provided name.
 
-    \<^descr> @{ML ML_Thms.bind_thm} is similar to @{ML ML_Thms.bind_thms} but refers to
+    \<^descr> \<^ML>\<open>ML_Thms.bind_thm\<close> is similar to \<^ML>\<open>ML_Thms.bind_thms\<close> but refers to
     a singleton fact.
 
   It is important to note that the above functions are really restricted to
@@ -654,9 +647,9 @@ text \<open>
   \<^emph>\<open>ML antiquotation\<close>. The standard token language of ML is augmented by
   special syntactic entities of the following form:
 
-  @{rail \<open>
+  \<^rail>\<open>
   @{syntax_def antiquote}: '@{' name args '}'
-  \<close>}
+  \<close>
 
   Here @{syntax name} and @{syntax args} are outer syntax categories, as
   defined in @{cite "isabelle-isar-ref"}.
@@ -692,11 +685,11 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "print"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation make_string}
   ;
   @@{ML_antiquotation print} embedded?
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{make_string}\<close> inlines a function to print arbitrary values similar to
   the ML toplevel. The result is compiler dependent and may fall back on "?"
@@ -705,7 +698,7 @@ text %mlantiq \<open>
 
   \<^descr> \<open>@{print f}\<close> uses the ML function \<open>f: string -> unit\<close> to output the result
   of \<open>@{make_string}\<close> above, together with the source position of the
-  antiquotation. The default output function is @{ML writeln}.
+  antiquotation. The default output function is \<^ML>\<open>writeln\<close>.
 \<close>
 
 text %mlex \<open>
@@ -717,10 +710,10 @@ ML_val \<open>
   val x = 42;
   val y = true;
 
-  writeln (@{make_string} {x = x, y = y});
+  writeln (\<^make_string> {x = x, y = y});
 
-  @{print} {x = x, y = y};
-  @{print tracing} {x = x, y = y};
+  \<^print> {x = x, y = y};
+  \<^print>\<open>tracing\<close> {x = x, y = y};
 \<close>
 
 
@@ -865,23 +858,23 @@ text %mlref \<open>
   @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
   \end{mldecls}
 
-  \<^descr> @{ML fold}~\<open>f\<close> lifts the parametrized update function \<open>f\<close> to a list of
+  \<^descr> \<^ML>\<open>fold\<close>~\<open>f\<close> lifts the parametrized update function \<open>f\<close> to a list of
   parameters.
 
-  \<^descr> @{ML fold_rev}~\<open>f\<close> is similar to @{ML fold}~\<open>f\<close>, but works inside-out, as
+  \<^descr> \<^ML>\<open>fold_rev\<close>~\<open>f\<close> is similar to \<^ML>\<open>fold\<close>~\<open>f\<close>, but works inside-out, as
   if the list would be reversed.
 
-  \<^descr> @{ML fold_map}~\<open>f\<close> lifts the parametrized update function \<open>f\<close> (with
+  \<^descr> \<^ML>\<open>fold_map\<close>~\<open>f\<close> lifts the parametrized update function \<open>f\<close> (with
   side-result) to a list of parameters and cumulative side-results.
 
 
   \begin{warn}
   The literature on functional programming provides a confusing multitude of
   combinators called \<open>foldl\<close>, \<open>foldr\<close> etc. SML97 provides its own variations
-  as @{ML List.foldl} and @{ML List.foldr}, while the classic Isabelle library
-  also has the historic @{ML Library.foldl} and @{ML Library.foldr}. To avoid
+  as \<^ML>\<open>List.foldl\<close> and \<^ML>\<open>List.foldr\<close>, while the classic Isabelle library
+  also has the historic \<^ML>\<open>Library.foldl\<close> and \<^ML>\<open>Library.foldr\<close>. To avoid
   unnecessary complication, all these historical versions should be ignored,
-  and the canonical @{ML fold} (or @{ML fold_rev}) used exclusively.
+  and the canonical \<^ML>\<open>fold\<close> (or \<^ML>\<open>fold_rev\<close>) used exclusively.
   \end{warn}
 \<close>
 
@@ -897,12 +890,11 @@ ML_val \<open>
     |> fold (Buffer.add o string_of_int) (0 upto 9)
     |> Buffer.content;
 
-  @{assert} (s = "digits: 0123456789");
+  \<^assert> (s = "digits: 0123456789");
 \<close>
 
 text \<open>
-  Note how @{ML "fold (Buffer.add o string_of_int)"} above saves an extra @{ML
-  "map"} over the given list. This kind of peephole optimization reduces both
+  Note how \<^ML>\<open>fold (Buffer.add o string_of_int)\<close> above saves an extra \<^ML>\<open>map\<close> over the given list. This kind of peephole optimization reduces both
   the code size and the tree structures in memory (``deforestation''), but it
   requires some practice to read and write fluently.
 
@@ -931,28 +923,26 @@ ML \<open>
 \<close>
 
 text \<open>
-  The slowness of @{ML slow_content} is due to the @{ML implode} of the
+  The slowness of \<^ML>\<open>slow_content\<close> is due to the \<^ML>\<open>implode\<close> of the
   recursive results, because it copies previously produced strings again and
   again.
 
-  The incremental @{ML add_content} avoids this by operating on a buffer that
-  is passed through in a linear fashion. Using @{ML_text "#>"} and contraction
+  The incremental \<^ML>\<open>add_content\<close> avoids this by operating on a buffer that
+  is passed through in a linear fashion. Using \<^ML_text>\<open>#>\<close> and contraction
   over the actual buffer argument saves some additional boiler-plate. Of
-  course, the two @{ML "Buffer.add"} invocations with concatenated strings
+  course, the two \<^ML>\<open>Buffer.add\<close> invocations with concatenated strings
   could have been split into smaller parts, but this would have obfuscated the
   source without making a big difference in performance. Here we have done
   some peephole-optimization for the sake of readability.
 
-  Another benefit of @{ML add_content} is its ``open'' form as a function on
+  Another benefit of \<^ML>\<open>add_content\<close> is its ``open'' form as a function on
   buffers that can be continued in further linear transformations, folding
-  etc. Thus it is more compositional than the naive @{ML slow_content}. As
+  etc. Thus it is more compositional than the naive \<^ML>\<open>slow_content\<close>. As
   realistic example, compare the old-style
-  @{ML "Term.maxidx_of_term: term -> int"} with the newer @{ML
-  "Term.maxidx_term: term -> int -> int"} in Isabelle/Pure.
+  \<^ML>\<open>Term.maxidx_of_term: term -> int\<close> with the newer \<^ML>\<open>Term.maxidx_term: term -> int -> int\<close> in Isabelle/Pure.
 
-  Note that @{ML fast_content} above is only defined as example. In many
-  practical situations, it is customary to provide the incremental @{ML
-  add_content} only and leave the initialization and termination to the
+  Note that \<^ML>\<open>fast_content\<close> above is only defined as example. In many
+  practical situations, it is customary to provide the incremental \<^ML>\<open>add_content\<close> only and leave the initialization and termination to the
   concrete application to the user.
 \<close>
 
@@ -985,10 +975,10 @@ text %mlref \<open>
   @{index_ML error: "string -> 'a"} % FIXME Output.error_message (!?) \\
   \end{mldecls}
 
-  \<^descr> @{ML writeln}~\<open>text\<close> outputs \<open>text\<close> as regular message. This is the
+  \<^descr> \<^ML>\<open>writeln\<close>~\<open>text\<close> outputs \<open>text\<close> as regular message. This is the
   primary message output operation of Isabelle and should be used by default.
 
-  \<^descr> @{ML tracing}~\<open>text\<close> outputs \<open>text\<close> as special tracing message, indicating
+  \<^descr> \<^ML>\<open>tracing\<close>~\<open>text\<close> outputs \<open>text\<close> as special tracing message, indicating
   potential high-volume output to the front-end (hundreds or thousands of
   messages issued by a single command). The idea is to allow the
   user-interface to downgrade the quality of message display to achieve higher
@@ -998,27 +988,26 @@ text %mlref \<open>
   e.g.\ switch to a different output window. So this channel should not be
   used for regular output.
 
-  \<^descr> @{ML warning}~\<open>text\<close> outputs \<open>text\<close> as warning, which typically means some
+  \<^descr> \<^ML>\<open>warning\<close>~\<open>text\<close> outputs \<open>text\<close> as warning, which typically means some
   extra emphasis on the front-end side (color highlighting, icons, etc.).
 
-  \<^descr> @{ML error}~\<open>text\<close> raises exception @{ML ERROR}~\<open>text\<close> and thus lets the
+  \<^descr> \<^ML>\<open>error\<close>~\<open>text\<close> raises exception \<^ML>\<open>ERROR\<close>~\<open>text\<close> and thus lets the
   Isar toplevel print \<open>text\<close> on the error channel, which typically means some
   extra emphasis on the front-end side (color highlighting, icons, etc.).
 
   This assumes that the exception is not handled before the command
-  terminates. Handling exception @{ML ERROR}~\<open>text\<close> is a perfectly legal
+  terminates. Handling exception \<^ML>\<open>ERROR\<close>~\<open>text\<close> is a perfectly legal
   alternative: it means that the error is absorbed without any message output.
 
   \begin{warn}
-  The actual error channel is accessed via @{ML Output.error_message}, but
+  The actual error channel is accessed via \<^ML>\<open>Output.error_message\<close>, but
   this is normally not used directly in user code.
   \end{warn}
 
 
   \begin{warn}
   Regular Isabelle/ML code should output messages exclusively by the official
-  channels. Using raw I/O on \<^emph>\<open>stdout\<close> or \<^emph>\<open>stderr\<close> instead (e.g.\ via @{ML
-  TextIO.output}) is apt to cause problems in the presence of parallel and
+  channels. Using raw I/O on \<^emph>\<open>stdout\<close> or \<^emph>\<open>stderr\<close> instead (e.g.\ via \<^ML>\<open>TextIO.output\<close>) is apt to cause problems in the presence of parallel and
   asynchronous processing of Isabelle theories. Such raw output might be
   displayed by the front-end in some system console log, with a low chance
   that the user will ever see it. Moreover, as a genuine side-effect on global
@@ -1029,7 +1018,7 @@ text %mlref \<open>
   \begin{warn}
   The message channels should be used in a message-oriented manner. This means
   that multi-line output that logically belongs together is issued by a single
-  invocation of @{ML writeln} etc.\ with the functional concatenation of all
+  invocation of \<^ML>\<open>writeln\<close> etc.\ with the functional concatenation of all
   message constituents.
   \end{warn}
 \<close>
@@ -1081,11 +1070,11 @@ paragraph \<open>Regular user errors.\<close>
 text \<open>
   These are meant to provide informative feedback about malformed input etc.
 
-  The \<^emph>\<open>error\<close> function raises the corresponding @{ML ERROR} exception, with a
-  plain text message as argument. @{ML ERROR} exceptions can be handled
+  The \<^emph>\<open>error\<close> function raises the corresponding \<^ML>\<open>ERROR\<close> exception, with a
+  plain text message as argument. \<^ML>\<open>ERROR\<close> exceptions can be handled
   internally, in order to be ignored, turned into other exceptions, or
   cascaded by appending messages. If the corresponding Isabelle/Isar command
-  terminates with an @{ML ERROR} exception state, the system will print the
+  terminates with an \<^ML>\<open>ERROR\<close> exception state, the system will print the
   result on the error channel (see \secref{sec:message-channels}).
 
   It is considered bad style to refer to internal function names or values in
@@ -1109,7 +1098,7 @@ text \<open>
   purpose is to determine quickly what has happened where. Traditionally, the
   (short) exception message would include the name of an ML function, although
   this is no longer necessary, because the ML runtime system attaches detailed
-  source position stemming from the corresponding @{ML_text raise} keyword.
+  source position stemming from the corresponding \<^ML_text>\<open>raise\<close> keyword.
 
   \<^medskip>
   User modules can always introduce their own custom exceptions locally, e.g.\
@@ -1123,7 +1112,7 @@ paragraph \<open>Interrupts.\<close>
 text \<open>
   These indicate arbitrary system events: both the ML runtime system and the
   Isabelle/ML infrastructure signal various exceptional situations by raising
-  the special @{ML Exn.Interrupt} exception in user code.
+  the special \<^ML>\<open>Exn.Interrupt\<close> exception in user code.
 
   This is the one and only way that physical events can intrude an Isabelle/ML
   program. Such an interrupt can mean out-of-memory, stack overflow, timeout,
@@ -1160,32 +1149,32 @@ text %mlref \<open>
   @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
-  \<^descr> @{ML try}~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via the
+  \<^descr> \<^ML>\<open>try\<close>~\<open>f x\<close> makes the partiality of evaluating \<open>f x\<close> explicit via the
   option datatype. Interrupts are \<^emph>\<open>not\<close> handled here, i.e.\ this form serves
-  as safe replacement for the \<^emph>\<open>unsafe\<close> version @{ML_text "(SOME"}~\<open>f
-  x\<close>~@{ML_text "handle _ => NONE)"} that is occasionally seen in books about
+  as safe replacement for the \<^emph>\<open>unsafe\<close> version \<^ML_text>\<open>(SOME\<close>~\<open>f
+  x\<close>~\<^ML_text>\<open>handle _ => NONE)\<close> that is occasionally seen in books about
   SML97, but not in Isabelle/ML.
 
-  \<^descr> @{ML can} is similar to @{ML try} with more abstract result.
+  \<^descr> \<^ML>\<open>can\<close> is similar to \<^ML>\<open>try\<close> with more abstract result.
 
-  \<^descr> @{ML ERROR}~\<open>msg\<close> represents user errors; this exception is normally
-  raised indirectly via the @{ML error} function (see
+  \<^descr> \<^ML>\<open>ERROR\<close>~\<open>msg\<close> represents user errors; this exception is normally
+  raised indirectly via the \<^ML>\<open>error\<close> function (see
   \secref{sec:message-channels}).
 
-  \<^descr> @{ML Fail}~\<open>msg\<close> represents general program failures.
+  \<^descr> \<^ML>\<open>Fail\<close>~\<open>msg\<close> represents general program failures.
 
-  \<^descr> @{ML Exn.is_interrupt} identifies interrupts robustly, without mentioning
+  \<^descr> \<^ML>\<open>Exn.is_interrupt\<close> identifies interrupts robustly, without mentioning
   concrete exception constructors in user code. Handled interrupts need to be
   re-raised promptly!
 
-  \<^descr> @{ML Exn.reraise}~\<open>exn\<close> raises exception \<open>exn\<close> while preserving its implicit
+  \<^descr> \<^ML>\<open>Exn.reraise\<close>~\<open>exn\<close> raises exception \<open>exn\<close> while preserving its implicit
   position information (if possible, depending on the ML platform).
 
-  \<^descr> @{ML Runtime.exn_trace}~@{ML_text "(fn () =>"}~\<open>e\<close>@{ML_text ")"} evaluates
+  \<^descr> \<^ML>\<open>Runtime.exn_trace\<close>~\<^ML_text>\<open>(fn () =>\<close>~\<open>e\<close>\<^ML_text>\<open>)\<close> evaluates
   expression \<open>e\<close> while printing a full trace of its stack of nested exceptions
   (if possible, depending on the ML platform).
 
-  Inserting @{ML Runtime.exn_trace} into ML code temporarily is useful for
+  Inserting \<^ML>\<open>Runtime.exn_trace\<close> into ML code temporarily is useful for
   debugging, but not suitable for production code.
 \<close>
 
@@ -1195,16 +1184,15 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "undefined"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  \<^descr> \<open>@{assert}\<close> inlines a function @{ML_type "bool -> unit"} that raises @{ML
-  Fail} if the argument is @{ML false}. Due to inlining the source position of
+  \<^descr> \<open>@{assert}\<close> inlines a function \<^ML_type>\<open>bool -> unit\<close> that raises \<^ML>\<open>Fail\<close> if the argument is \<^ML>\<open>false\<close>. Due to inlining the source position of
   failed assertions is included in the error output.
 
-  \<^descr> \<open>@{undefined}\<close> inlines @{verbatim raise}~@{ML Match}, i.e.\ the ML program
+  \<^descr> \<open>@{undefined}\<close> inlines \<^verbatim>\<open>raise\<close>~\<^ML>\<open>Match\<close>, i.e.\ the ML program
   behaves as in some function application of an undefined case.
 \<close>
 
 text %mlex \<open>
-  The ML function @{ML undefined} is defined in \<^file>\<open>~~/src/Pure/library.ML\<close>
+  The ML function \<^ML>\<open>undefined\<close> is defined in \<^file>\<open>~~/src/Pure/library.ML\<close>
   as follows:
 \<close>
 
@@ -1216,7 +1204,7 @@ text \<open>
   instead:
 \<close>
 
-ML \<open>fun undefined _ = @{undefined}\<close>
+ML \<open>fun undefined _ = \<^undefined>\<close>
 
 text \<open>
   \<^medskip>
@@ -1284,33 +1272,30 @@ text %mlref \<open>
   @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "Symbol.symbol"} represents individual Isabelle symbols.
+  \<^descr> Type \<^ML_type>\<open>Symbol.symbol\<close> represents individual Isabelle symbols.
 
-  \<^descr> @{ML "Symbol.explode"}~\<open>str\<close> produces a symbol list from the packed form.
-  This function supersedes @{ML "String.explode"} for virtually all purposes
+  \<^descr> \<^ML>\<open>Symbol.explode\<close>~\<open>str\<close> produces a symbol list from the packed form.
+  This function supersedes \<^ML>\<open>String.explode\<close> for virtually all purposes
   of manipulating text in Isabelle!\<^footnote>\<open>The runtime overhead for exploded strings
   is mainly that of the list structure: individual symbols that happen to be a
   singleton string do not require extra memory in Poly/ML.\<close>
 
-  \<^descr> @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
-  "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard symbols
+  \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>, \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
   according to fixed syntactic conventions of Isabelle, cf.\ @{cite
   "isabelle-isar-ref"}.
 
-  \<^descr> Type @{ML_type "Symbol.sym"} is a concrete datatype that represents the
-  different kinds of symbols explicitly, with constructors @{ML
-  "Symbol.Char"}, @{ML "Symbol.UTF8"}, @{ML "Symbol.Sym"}, @{ML
-  "Symbol.Control"}, @{ML "Symbol.Malformed"}.
+  \<^descr> Type \<^ML_type>\<open>Symbol.sym\<close> is a concrete datatype that represents the
+  different kinds of symbols explicitly, with constructors \<^ML>\<open>Symbol.Char\<close>, \<^ML>\<open>Symbol.UTF8\<close>, \<^ML>\<open>Symbol.Sym\<close>, \<^ML>\<open>Symbol.Control\<close>, \<^ML>\<open>Symbol.Malformed\<close>.
 
-  \<^descr> @{ML "Symbol.decode"} converts the string representation of a symbol into
+  \<^descr> \<^ML>\<open>Symbol.decode\<close> converts the string representation of a symbol into
   the datatype version.
 \<close>
 
 paragraph \<open>Historical note.\<close>
 text \<open>
-  In the original SML90 standard the primitive ML type @{ML_type char} did not
-  exists, and @{ML_text "explode: string -> string list"} produced a list of
-  singleton strings like @{ML "raw_explode: string -> string list"} in
+  In the original SML90 standard the primitive ML type \<^ML_type>\<open>char\<close> did not
+  exists, and \<^ML_text>\<open>explode: string -> string list\<close> produced a list of
+  singleton strings like \<^ML>\<open>raw_explode: string -> string list\<close> in
   Isabelle/ML today. When SML97 came out, Isabelle did not adopt its somewhat
   anachronistic 8-bit or 16-bit characters, but the idea of exploding a string
   into a list of small strings was extended to ``symbols'' as explained above.
@@ -1327,8 +1312,7 @@ text \<open>
   of its operations simply do not fit with important Isabelle/ML conventions
   (like ``canonical argument order'', see
   \secref{sec:canonical-argument-order}), others cause problems with the
-  parallel evaluation model of Isabelle/ML (such as @{ML TextIO.print} or @{ML
-  OS.Process.system}).
+  parallel evaluation model of Isabelle/ML (such as \<^ML>\<open>TextIO.print\<close> or \<^ML>\<open>OS.Process.system\<close>).
 
   Subsequently we give a brief overview of important operations on basic ML
   data types.
@@ -1342,7 +1326,7 @@ text %mlref \<open>
   @{index_ML_type char} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type char} is \<^emph>\<open>not\<close> used. The smallest textual unit in Isabelle
+  \<^descr> Type \<^ML_type>\<open>char\<close> is \<^emph>\<open>not\<close> used. The smallest textual unit in Isabelle
   is represented as a ``symbol'' (see \secref{sec:symbols}).
 \<close>
 
@@ -1354,7 +1338,7 @@ text %mlref \<open>
   @{index_ML_type string} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type string} represents immutable vectors of 8-bit characters.
+  \<^descr> Type \<^ML_type>\<open>string\<close> represents immutable vectors of 8-bit characters.
   There are operations in SML to convert back and forth to actual byte
   vectors, which are seldom used.
 
@@ -1362,11 +1346,10 @@ text %mlref \<open>
   Isabelle-specific purposes with the following implicit substructures packed
   into the string content:
 
-    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}), with @{ML
-    Symbol.explode} as key operation;
+    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}), with \<^ML>\<open>Symbol.explode\<close> as key operation;
   
     \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}), with
-    @{ML YXML.parse_body} as key operation.
+    \<^ML>\<open>YXML.parse_body\<close> as key operation.
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
   ``\<^verbatim>\<open>\<alpha>\<close>'' natively, \<^emph>\<open>without\<close> escaping the backslash. This is a consequence
@@ -1382,8 +1365,8 @@ text %mlex \<open>
 ML_val \<open>
   val s = "\<A>";
 
-  @{assert} (length (Symbol.explode s) = 1);
-  @{assert} (size s = 4);
+  \<^assert> (length (Symbol.explode s) = 1);
+  \<^assert> (size s = 4);
 \<close>
 
 text \<open>
@@ -1403,13 +1386,13 @@ text %mlref \<open>
   @{index_ML_type int} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type int} represents regular mathematical integers, which are
+  \<^descr> Type \<^ML_type>\<open>int\<close> represents regular mathematical integers, which are
   \<^emph>\<open>unbounded\<close>. Overflow is treated properly, but should never happen in
   practice.\<^footnote>\<open>The size limit for integer bit patterns in memory is 64\,MB for
   32-bit Poly/ML, and much higher for 64-bit systems.\<close>
 
-  Structure @{ML_structure IntInf} of SML97 is obsolete and superseded by
-  @{ML_structure Int}. Structure @{ML_structure Integer} in
+  Structure \<^ML_structure>\<open>IntInf\<close> of SML97 is obsolete and superseded by
+  \<^ML_structure>\<open>Int\<close>. Structure \<^ML_structure>\<open>Integer\<close> in
   \<^file>\<open>~~/src/Pure/General/integer.ML\<close> provides some additional operations.
 \<close>
 
@@ -1421,7 +1404,7 @@ text %mlref \<open>
   @{index_ML_type Rat.rat} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Rat.rat} represents rational numbers, based on the
+  \<^descr> Type \<^ML_type>\<open>Rat.rat\<close> represents rational numbers, based on the
   unbounded integers of Poly/ML.
 
   Literal rationals may be written with special antiquotation syntax
@@ -1441,11 +1424,11 @@ text %mlref \<open>
   @{index_ML seconds: "real -> Time.time"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Time.time} represents time abstractly according to the
+  \<^descr> Type \<^ML_type>\<open>Time.time\<close> represents time abstractly according to the
   SML97 basis library definition. This is adequate for internal ML operations,
   but awkward in concrete time specifications.
 
-  \<^descr> @{ML seconds}~\<open>s\<close> turns the concrete scalar \<open>s\<close> (measured in seconds) into
+  \<^descr> \<^ML>\<open>seconds\<close>~\<open>s\<close> turns the concrete scalar \<open>s\<close> (measured in seconds) into
   an abstract time value. Floating point numbers are easy to use as
   configuration options in the context (see \secref{sec:config-options}) or
   system options that are maintained externally.
@@ -1467,8 +1450,8 @@ text %mlref \<open>
 \<close>
 
 text \<open>
-  Apart from @{ML Option.map} most other operations defined in structure
-  @{ML_structure Option} are alien to Isabelle/ML and never used. The
+  Apart from \<^ML>\<open>Option.map\<close> most other operations defined in structure
+  \<^ML_structure>\<open>Option\<close> are alien to Isabelle/ML and never used. The
   operations shown above are defined in \<^file>\<open>~~/src/Pure/General/basics.ML\<close>.
 \<close>
 
@@ -1490,29 +1473,29 @@ text %mlref \<open>
   @{index_ML update: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
   \end{mldecls}
 
-  \<^descr> @{ML cons}~\<open>x xs\<close> evaluates to \<open>x :: xs\<close>.
+  \<^descr> \<^ML>\<open>cons\<close>~\<open>x xs\<close> evaluates to \<open>x :: xs\<close>.
 
   Tupled infix operators are a historical accident in Standard ML. The curried
-  @{ML cons} amends this, but it should be only used when partial application
+  \<^ML>\<open>cons\<close> amends this, but it should be only used when partial application
   is required.
 
-  \<^descr> @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat lists as a
+  \<^descr> \<^ML>\<open>member\<close>, \<^ML>\<open>insert\<close>, \<^ML>\<open>remove\<close>, \<^ML>\<open>update\<close> treat lists as a
   set-like container that maintains the order of elements. See
   \<^file>\<open>~~/src/Pure/library.ML\<close> for the full specifications (written in ML).
-  There are some further derived operations like @{ML union} or @{ML inter}.
+  There are some further derived operations like \<^ML>\<open>union\<close> or \<^ML>\<open>inter\<close>.
 
-  Note that @{ML insert} is conservative about elements that are already a
-  @{ML member} of the list, while @{ML update} ensures that the latest entry
+  Note that \<^ML>\<open>insert\<close> is conservative about elements that are already a
+  \<^ML>\<open>member\<close> of the list, while \<^ML>\<open>update\<close> ensures that the latest entry
   is always put in front. The latter discipline is often more appropriate in
   declarations of context data (\secref{sec:context-data}) that are issued by
   the user in Isar source: later declarations take precedence over earlier
   ones. \<close>
 
 text %mlex \<open>
-  Using canonical @{ML fold} together with @{ML cons} (or similar standard
+  Using canonical \<^ML>\<open>fold\<close> together with \<^ML>\<open>cons\<close> (or similar standard
   operations) alternates the orientation of data. The is quite natural and
-  should not be altered forcible by inserting extra applications of @{ML rev}.
-  The alternative @{ML fold_rev} can be used in the few situations, where
+  should not be altered forcible by inserting extra applications of \<^ML>\<open>rev\<close>.
+  The alternative \<^ML>\<open>fold_rev\<close> can be used in the few situations, where
   alternation should be prevented.
 \<close>
 
@@ -1520,10 +1503,10 @@ ML_val \<open>
   val items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   val list1 = fold cons items [];
-  @{assert} (list1 = rev items);
+  \<^assert> (list1 = rev items);
 
   val list2 = fold_rev cons items [];
-  @{assert} (list2 = items);
+  \<^assert> (list2 = items);
 \<close>
 
 text \<open>
@@ -1537,11 +1520,10 @@ ML_val \<open>
 
 text \<open>
   Here the first list is treated conservatively: only the new elements from
-  the second list are inserted. The inside-out order of insertion via @{ML
-  fold_rev} attempts to preserve the order of elements in the result.
+  the second list are inserted. The inside-out order of insertion via \<^ML>\<open>fold_rev\<close> attempts to preserve the order of elements in the result.
 
   This way of merging lists is typical for context data
-  (\secref{sec:context-data}). See also @{ML merge} as defined in
+  (\secref{sec:context-data}). See also \<^ML>\<open>merge\<close> as defined in
   \<^file>\<open>~~/src/Pure/library.ML\<close>.
 \<close>
 
@@ -1562,7 +1544,7 @@ text \<open>
   @{index_ML AList.update: "('a * 'a -> bool) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list"} \\
   \end{mldecls}
 
-  \<^descr> @{ML AList.lookup}, @{ML AList.defined}, @{ML AList.update} implement the
+  \<^descr> \<^ML>\<open>AList.lookup\<close>, \<^ML>\<open>AList.defined\<close>, \<^ML>\<open>AList.update\<close> implement the
   main ``framework operations'' for mappings in Isabelle/ML, following
   standard conventions for their names and types.
 
@@ -1570,7 +1552,7 @@ text \<open>
   via an explicit option element. There is no choice to raise an exception,
   without changing the name to something like \<open>the_element\<close> or \<open>get\<close>.
 
-  The \<open>defined\<close> operation is essentially a contraction of @{ML is_some} and
+  The \<open>defined\<close> operation is essentially a contraction of \<^ML>\<open>is_some\<close> and
   \<^verbatim>\<open>lookup\<close>, but this is sufficiently frequent to justify its independent
   existence. This also gives the implementation some opportunity for peep-hole
   optimization.
@@ -1600,15 +1582,15 @@ text \<open>
   are notorious for causing problems. In a highly parallel system, both
   correctness \<^emph>\<open>and\<close> performance are easily degraded when using mutable data.
 
-  The unwieldy name of @{ML Unsynchronized.ref} for the constructor for
+  The unwieldy name of \<^ML>\<open>Unsynchronized.ref\<close> for the constructor for
   references in Isabelle/ML emphasizes the inconveniences caused by
-  mutability. Existing operations @{ML "!"} and @{ML_op ":="} are unchanged,
+  mutability. Existing operations \<^ML>\<open>!\<close> and \<^ML_op>\<open>:=\<close> are unchanged,
   but should be used with special precautions, say in a strictly local
   situation that is guaranteed to be restricted to sequential evaluation ---
   now and in the future.
 
   \begin{warn}
-  Never @{ML_text "open Unsynchronized"}, not even in a local scope!
+  Never \<^ML_text>\<open>open Unsynchronized\<close>, not even in a local scope!
   Pretending that mutable state is no problem is a very bad idea.
   \end{warn}
 \<close>
@@ -1746,10 +1728,10 @@ text %mlref \<open>
   @{index_ML serial_string: "unit -> string"} \\
   \end{mldecls}
 
-  \<^descr> @{ML File.tmp_path}~\<open>path\<close> relocates the base component of \<open>path\<close> into the
+  \<^descr> \<^ML>\<open>File.tmp_path\<close>~\<open>path\<close> relocates the base component of \<open>path\<close> into the
   unique temporary directory of the running Isabelle/ML process.
 
-  \<^descr> @{ML serial_string}~\<open>()\<close> creates a new serial number that is unique over
+  \<^descr> \<^ML>\<open>serial_string\<close>~\<open>()\<close> creates a new serial number that is unique over
   the runtime of the Isabelle/ML process.
 \<close>
 
@@ -1760,7 +1742,7 @@ text %mlex \<open>
 ML_val \<open>
   val tmp1 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
   val tmp2 = File.tmp_path (Path.basic ("foo" ^ serial_string ()));
-  @{assert} (tmp1 <> tmp2);
+  \<^assert> (tmp1 <> tmp2);
 \<close>
 
 
@@ -1790,21 +1772,21 @@ text %mlref \<open>
   ('a -> ('b * 'a) option) -> 'b"} \\
   \end{mldecls}
 
-    \<^descr> Type @{ML_type "'a Synchronized.var"} represents synchronized variables
-    with state of type @{ML_type 'a}.
+    \<^descr> Type \<^ML_type>\<open>'a Synchronized.var\<close> represents synchronized variables
+    with state of type \<^ML_type>\<open>'a\<close>.
 
-    \<^descr> @{ML Synchronized.var}~\<open>name x\<close> creates a synchronized variable that is
+    \<^descr> \<^ML>\<open>Synchronized.var\<close>~\<open>name x\<close> creates a synchronized variable that is
     initialized with value \<open>x\<close>. The \<open>name\<close> is used for tracing.
 
-    \<^descr> @{ML Synchronized.guarded_access}~\<open>var f\<close> lets the function \<open>f\<close> operate
+    \<^descr> \<^ML>\<open>Synchronized.guarded_access\<close>~\<open>var f\<close> lets the function \<open>f\<close> operate
     within a critical section on the state \<open>x\<close> as follows: if \<open>f x\<close> produces
-    @{ML NONE}, it continues to wait on the internal condition variable,
+    \<^ML>\<open>NONE\<close>, it continues to wait on the internal condition variable,
     expecting that some other thread will eventually change the content in a
-    suitable manner; if \<open>f x\<close> produces @{ML SOME}~\<open>(y, x')\<close> it is satisfied and
+    suitable manner; if \<open>f x\<close> produces \<^ML>\<open>SOME\<close>~\<open>(y, x')\<close> it is satisfied and
     assigns the new state value \<open>x'\<close>, broadcasts a signal to all waiting threads
     on the associated condition variable, and returns the result \<open>y\<close>.
 
-  There are some further variants of the @{ML Synchronized.guarded_access}
+  There are some further variants of the \<^ML>\<open>Synchronized.guarded_access\<close>
   combinator, see \<^file>\<open>~~/src/Pure/Concurrent/synchronized.ML\<close> for details.
 \<close>
 
@@ -1826,7 +1808,7 @@ ML_val \<open>
 
   val a = next ();
   val b = next ();
-  @{assert} (a <> b);
+  \<^assert> (a <> b);
 \<close>
 
 text \<open>
@@ -1892,29 +1874,28 @@ text %mlref \<open>
   @{index_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "'a Exn.result"} represents the disjoint sum of ML results
-  explicitly, with constructor @{ML Exn.Res} for regular values and @{ML
-  "Exn.Exn"} for exceptions.
+  \<^descr> Type \<^ML_type>\<open>'a Exn.result\<close> represents the disjoint sum of ML results
+  explicitly, with constructor \<^ML>\<open>Exn.Res\<close> for regular values and \<^ML>\<open>Exn.Exn\<close> for exceptions.
 
-  \<^descr> @{ML Exn.capture}~\<open>f x\<close> manages the evaluation of \<open>f x\<close> such that
-  exceptions are made explicit as @{ML "Exn.Exn"}. Note that this includes
+  \<^descr> \<^ML>\<open>Exn.capture\<close>~\<open>f x\<close> manages the evaluation of \<open>f x\<close> such that
+  exceptions are made explicit as \<^ML>\<open>Exn.Exn\<close>. Note that this includes
   physical interrupts (see also \secref{sec:exceptions}), so the same
   precautions apply to user code: interrupts must not be absorbed
   accidentally!
 
-  \<^descr> @{ML Exn.interruptible_capture} is similar to @{ML Exn.capture}, but
+  \<^descr> \<^ML>\<open>Exn.interruptible_capture\<close> is similar to \<^ML>\<open>Exn.capture\<close>, but
   interrupts are immediately re-raised as required for user code.
 
-  \<^descr> @{ML Exn.release}~\<open>result\<close> releases the original runtime result, exposing
+  \<^descr> \<^ML>\<open>Exn.release\<close>~\<open>result\<close> releases the original runtime result, exposing
   its regular value or raising the reified exception.
 
-  \<^descr> @{ML Par_Exn.release_all}~\<open>results\<close> combines results that were produced
+  \<^descr> \<^ML>\<open>Par_Exn.release_all\<close>~\<open>results\<close> combines results that were produced
   independently (e.g.\ by parallel evaluation). If all results are regular
   values, that list is returned. Otherwise, the collection of all exceptions
   is raised, wrapped-up as collective parallel exception. Note that the latter
   prevents access to individual exceptions by conventional \<^verbatim>\<open>handle\<close> of ML.
 
-  \<^descr> @{ML Par_Exn.release_first} is similar to @{ML Par_Exn.release_all}, but
+  \<^descr> \<^ML>\<open>Par_Exn.release_first\<close> is similar to \<^ML>\<open>Par_Exn.release_all\<close>, but
   only the first (meaningful) exception that has occurred in the original
   evaluation process is raised again, the others are ignored. That single
   exception may get handled by conventional means in ML.
@@ -1944,23 +1925,23 @@ text %mlref \<open>
   @{index_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Par_List.map}~\<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> is like @{ML "map"}~\<open>f [x\<^sub>1, \<dots>,
+  \<^descr> \<^ML>\<open>Par_List.map\<close>~\<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> is like \<^ML>\<open>map\<close>~\<open>f [x\<^sub>1, \<dots>,
   x\<^sub>n]\<close>, but the evaluation of \<open>f x\<^sub>i\<close> for \<open>i = 1, \<dots>, n\<close> is performed in
   parallel.
 
   An exception in any \<open>f x\<^sub>i\<close> cancels the overall evaluation process. The
-  final result is produced via @{ML Par_Exn.release_first} as explained above,
+  final result is produced via \<^ML>\<open>Par_Exn.release_first\<close> as explained above,
   which means the first program exception that happened to occur in the
   parallel evaluation is propagated, and all other failures are ignored.
 
-  \<^descr> @{ML Par_List.get_some}~\<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> produces some \<open>f x\<^sub>i\<close> that is of
+  \<^descr> \<^ML>\<open>Par_List.get_some\<close>~\<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> produces some \<open>f x\<^sub>i\<close> that is of
   the form \<open>SOME y\<^sub>i\<close>, if that exists, otherwise \<open>NONE\<close>. Thus it is similar to
-  @{ML Library.get_first}, but subject to a non-deterministic parallel choice
+  \<^ML>\<open>Library.get_first\<close>, but subject to a non-deterministic parallel choice
   process. The first successful result cancels the overall evaluation process;
-  other exceptions are propagated as for @{ML Par_List.map}.
+  other exceptions are propagated as for \<^ML>\<open>Par_List.map\<close>.
 
   This generic parallel choice combinator is the basis for derived forms, such
-  as @{ML Par_List.find_some}, @{ML Par_List.exists}, @{ML Par_List.forall}.
+  as \<^ML>\<open>Par_List.find_some\<close>, \<^ML>\<open>Par_List.exists\<close>, \<^ML>\<open>Par_List.forall\<close>.
 \<close>
 
 text %mlex \<open>
@@ -2010,18 +1991,18 @@ text %mlref \<open>
   @{index_ML Lazy.force: "'a lazy -> 'a"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "'a lazy"} represents lazy values over type \<^verbatim>\<open>'a\<close>.
+  \<^descr> Type \<^ML_type>\<open>'a lazy\<close> represents lazy values over type \<^verbatim>\<open>'a\<close>.
 
-  \<^descr> @{ML Lazy.lazy}~\<open>(fn () => e)\<close> wraps the unevaluated expression \<open>e\<close> as
+  \<^descr> \<^ML>\<open>Lazy.lazy\<close>~\<open>(fn () => e)\<close> wraps the unevaluated expression \<open>e\<close> as
   unfinished lazy value.
 
-  \<^descr> @{ML Lazy.value}~\<open>a\<close> wraps the value \<open>a\<close> as finished lazy value. When
+  \<^descr> \<^ML>\<open>Lazy.value\<close>~\<open>a\<close> wraps the value \<open>a\<close> as finished lazy value. When
   forced, it returns \<open>a\<close> without any further evaluation.
 
   There is very low overhead for this proforma wrapping of strict values as
   lazy values.
 
-  \<^descr> @{ML Lazy.force}~\<open>x\<close> produces the result of the lazy value in a
+  \<^descr> \<^ML>\<open>Lazy.force\<close>~\<open>x\<close> produces the result of the lazy value in a
   thread-safe manner as explained above. Thus it may cause the current thread
   to wait on a pending evaluation attempt by another thread.
 \<close>
@@ -2098,33 +2079,32 @@ text %mlref \<open>
   @{index_ML Future.fulfill: "'a future -> 'a -> unit"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "'a future"} represents future values over type \<^verbatim>\<open>'a\<close>.
+  \<^descr> Type \<^ML_type>\<open>'a future\<close> represents future values over type \<^verbatim>\<open>'a\<close>.
 
-  \<^descr> @{ML Future.fork}~\<open>(fn () => e)\<close> registers the unevaluated expression \<open>e\<close>
+  \<^descr> \<^ML>\<open>Future.fork\<close>~\<open>(fn () => e)\<close> registers the unevaluated expression \<open>e\<close>
   as unfinished future value, to be evaluated eventually on the parallel
-  worker-thread farm. This is a shorthand for @{ML Future.forks} below, with
+  worker-thread farm. This is a shorthand for \<^ML>\<open>Future.forks\<close> below, with
   default parameters and a single expression.
 
-  \<^descr> @{ML Future.forks}~\<open>params exprs\<close> is the general interface to fork several
+  \<^descr> \<^ML>\<open>Future.forks\<close>~\<open>params exprs\<close> is the general interface to fork several
   futures simultaneously. The \<open>params\<close> consist of the following fields:
 
-    \<^item> \<open>name : string\<close> (default @{ML "\"\""}) specifies a common name for the
+    \<^item> \<open>name : string\<close> (default \<^ML>\<open>""\<close>) specifies a common name for the
     tasks of the forked futures, which serves diagnostic purposes.
 
-    \<^item> \<open>group : Future.group option\<close> (default @{ML NONE}) specifies an optional
-    task group for the forked futures. @{ML NONE} means that a new sub-group
+    \<^item> \<open>group : Future.group option\<close> (default \<^ML>\<open>NONE\<close>) specifies an optional
+    task group for the forked futures. \<^ML>\<open>NONE\<close> means that a new sub-group
     of the current worker-thread task context is created. If this is not a
     worker thread, the group will be a new root in the group hierarchy.
 
-    \<^item> \<open>deps : Future.task list\<close> (default @{ML "[]"}) specifies dependencies on
+    \<^item> \<open>deps : Future.task list\<close> (default \<^ML>\<open>[]\<close>) specifies dependencies on
     other future tasks, i.e.\ the adjacency relation in the global task queue.
     Dependencies on already finished tasks are ignored.
 
-    \<^item> \<open>pri : int\<close> (default @{ML 0}) specifies a priority within the task
+    \<^item> \<open>pri : int\<close> (default \<^ML>\<open>0\<close>) specifies a priority within the task
     queue.
 
-    Typically there is only little deviation from the default priority @{ML
-    0}. As a rule of thumb, @{ML "~1"} means ``low priority" and @{ML 1} means
+    Typically there is only little deviation from the default priority \<^ML>\<open>0\<close>. As a rule of thumb, \<^ML>\<open>~1\<close> means ``low priority" and \<^ML>\<open>1\<close> means
     ``high priority''.
 
     Note that the task priority only affects the position in the queue, not
@@ -2133,7 +2113,7 @@ text %mlref \<open>
     Higher priority tasks that are queued later need to wait until this (or
     another) worker thread becomes free again.
 
-    \<^item> \<open>interrupts : bool\<close> (default @{ML true}) tells whether the worker thread
+    \<^item> \<open>interrupts : bool\<close> (default \<^ML>\<open>true\<close>) tells whether the worker thread
     that processes the corresponding task is initially put into interruptible
     state. This state may change again while running, by modifying the thread
     attributes.
@@ -2142,7 +2122,7 @@ text %mlref \<open>
     the responsibility of the programmer that this special state is retained
     only briefly.
 
-  \<^descr> @{ML Future.join}~\<open>x\<close> retrieves the value of an already finished future,
+  \<^descr> \<^ML>\<open>Future.join\<close>~\<open>x\<close> retrieves the value of an already finished future,
   which may lead to an exception, according to the result of its previous
   evaluation.
 
@@ -2164,8 +2144,8 @@ text %mlref \<open>
   explicitly when forked (see \<open>deps\<close> above). Thus the evaluation can work from
   the bottom up, without join conflicts and wait states.
 
-  \<^descr> @{ML Future.joins}~\<open>xs\<close> joins the given list of futures simultaneously,
-  which is more efficient than @{ML "map Future.join"}~\<open>xs\<close>.
+  \<^descr> \<^ML>\<open>Future.joins\<close>~\<open>xs\<close> joins the given list of futures simultaneously,
+  which is more efficient than \<^ML>\<open>map Future.join\<close>~\<open>xs\<close>.
 
   Based on the dependency graph of tasks, the current thread takes over the
   responsibility to evaluate future expressions that are required for the main
@@ -2173,23 +2153,22 @@ text %mlref \<open>
   presently evaluated on other threads only happens as last resort, when no
   other unfinished futures are left over.
 
-  \<^descr> @{ML Future.value}~\<open>a\<close> wraps the value \<open>a\<close> as finished future value,
+  \<^descr> \<^ML>\<open>Future.value\<close>~\<open>a\<close> wraps the value \<open>a\<close> as finished future value,
   bypassing the worker-thread farm. When joined, it returns \<open>a\<close> without any
   further evaluation.
 
   There is very low overhead for this proforma wrapping of strict values as
   futures.
 
-  \<^descr> @{ML Future.map}~\<open>f x\<close> is a fast-path implementation of @{ML
-  Future.fork}~\<open>(fn () => f (\<close>@{ML Future.join}~\<open>x))\<close>, which avoids the full
+  \<^descr> \<^ML>\<open>Future.map\<close>~\<open>f x\<close> is a fast-path implementation of \<^ML>\<open>Future.fork\<close>~\<open>(fn () => f (\<close>\<^ML>\<open>Future.join\<close>~\<open>x))\<close>, which avoids the full
   overhead of the task queue and worker-thread farm as far as possible. The
   function \<open>f\<close> is supposed to be some trivial post-processing or projection of
   the future result.
 
-  \<^descr> @{ML Future.cancel}~\<open>x\<close> cancels the task group of the given future, using
-  @{ML Future.cancel_group} below.
+  \<^descr> \<^ML>\<open>Future.cancel\<close>~\<open>x\<close> cancels the task group of the given future, using
+  \<^ML>\<open>Future.cancel_group\<close> below.
 
-  \<^descr> @{ML Future.cancel_group}~\<open>group\<close> cancels all tasks of the given task
+  \<^descr> \<^ML>\<open>Future.cancel_group\<close>~\<open>group\<close> cancels all tasks of the given task
   group for all time. Threads that are presently processing a task of the
   given group are interrupted: it may take some time until they are actually
   terminated. Tasks that are queued but not yet processed are dequeued and
@@ -2197,10 +2176,10 @@ text %mlref \<open>
   any further attempt to fork a future that belongs to it will yield a
   canceled result as well.
 
-  \<^descr> @{ML Future.promise}~\<open>abort\<close> registers a passive future with the given
+  \<^descr> \<^ML>\<open>Future.promise\<close>~\<open>abort\<close> registers a passive future with the given
   \<open>abort\<close> operation: it is invoked when the future task group is canceled.
 
-  \<^descr> @{ML Future.fulfill}~\<open>x a\<close> finishes the passive future \<open>x\<close> by the given
+  \<^descr> \<^ML>\<open>Future.fulfill\<close>~\<open>x a\<close> finishes the passive future \<open>x\<close> by the given
   value \<open>a\<close>. If the promise has already been canceled, the attempt to fulfill
   it causes an exception.
 \<close>

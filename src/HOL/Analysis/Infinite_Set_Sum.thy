@@ -128,7 +128,7 @@ translations
 
 print_translation \<open>
 let
-  fun sum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
+  fun sum_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
         if x <> y then raise Match
         else
           let
@@ -136,10 +136,10 @@ let
             val t' = subst_bound (x', t);
             val P' = subst_bound (x', P);
           in
-            Syntax.const @{syntax_const "_qinfsetsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
+            Syntax.const \<^syntax_const>\<open>_qinfsetsum\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
           end
     | sum_tr' _ = raise Match;
-in [(@{const_syntax infsetsum}, K sum_tr')] end
+in [(\<^const_syntax>\<open>infsetsum\<close>, K sum_tr')] end
 \<close>
 
 

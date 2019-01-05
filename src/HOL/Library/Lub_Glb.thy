@@ -10,10 +10,10 @@ begin
 
 text \<open>Thanks to suggestions by James Margetson\<close>
 
-definition setle :: "'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"  (infixl "*<=" 70)
+definition setle :: "'a set \<Rightarrow> 'a::ord \<Rightarrow> bool"  (infixl \<open>*<=\<close> 70)
   where "S *<= x = (\<forall>y\<in>S. y \<le> x)"
 
-definition setge :: "'a::ord \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "<=*" 70)
+definition setge :: "'a::ord \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl \<open><=*\<close> 70)
   where "x <=* S = (\<forall>y\<in>S. x \<le> y)"
 
 

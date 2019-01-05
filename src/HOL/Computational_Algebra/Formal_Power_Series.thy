@@ -4533,7 +4533,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-text \<open>Connection to @{const "fps_exp"} over the complex numbers --- Euler and de Moivre.\<close>
+text \<open>Connection to \<^const>\<open>fps_exp\<close> over the complex numbers --- Euler and de Moivre.\<close>
 
 lemma fps_exp_ii_sin_cos: "fps_exp (\<i> * c) = fps_cos c + fps_const \<i> * fps_sin c"
   (is "?l = ?r")

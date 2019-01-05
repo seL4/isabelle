@@ -2410,7 +2410,7 @@ lemma%important has_bochner_integral_distr:
     has_bochner_integral M (\<lambda>x. f (g x)) x \<Longrightarrow> has_bochner_integral (distr M N g) f x"
   by%unimportant (simp add: has_bochner_integral_iff integrable_distr_eq integral_distr)
 
-subsection%important \<open>Lebesgue integration on @{const count_space}\<close>
+subsection%important \<open>Lebesgue integration on \<^const>\<open>count_space\<close>\<close>
 
 lemma%unimportant integrable_count_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach,second_countable_topology}"
@@ -2515,7 +2515,7 @@ lemma%important integrable_point_measure_finite:
   apply (auto simp: AE_count_space integrable_count_space)
   done
 
-subsection%important \<open>Lebesgue integration on @{const null_measure}\<close>
+subsection%important \<open>Lebesgue integration on \<^const>\<open>null_measure\<close>\<close>
 
 lemma%unimportant has_bochner_integral_null_measure_iff[iff]:
   "has_bochner_integral (null_measure M) f 0 \<longleftrightarrow> f \<in> borel_measurable M"

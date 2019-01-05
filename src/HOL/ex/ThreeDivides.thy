@@ -57,7 +57,7 @@ holds. In the next section we specialise this theorem to apply
 directly to the decimal expansion of the natural numbers.\<close>
 
 text \<open>Here we show that the first statement in the informal proof is
-true for all natural numbers. Note we are using @{term "D i"} to
+true for all natural numbers. Note we are using \<^term>\<open>D i\<close> to
 denote the $i$'th element in a sequence of numbers.\<close>
 
 lemma digit_diff_split:
@@ -103,7 +103,7 @@ qed
 
 text \<open>
 We now present the final theorem of this section. For any
-sequence of numbers (defined by a function @{term "D :: (nat\<Rightarrow>nat)"}),
+sequence of numbers (defined by a function \<^term>\<open>D :: (nat\<Rightarrow>nat)\<close>),
 we show that 3 divides the expansive sum $\sum{(D\;x)*10^x}$ over $x$
 if and only if 3 divides the sum of the individual numbers
 $\sum{D\;x}$. 
@@ -115,7 +115,7 @@ proof
   have mono: "(\<Sum>x<nd. D x) \<le> (\<Sum>x<nd. D x * 10^x)"
     by (rule sum_mono) simp
   txt \<open>This lets us form the term
-         @{term "(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)"}\<close>
+         \<^term>\<open>(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)\<close>\<close>
 
   {
     assume "3 dvd (\<Sum>x<nd. D x)"

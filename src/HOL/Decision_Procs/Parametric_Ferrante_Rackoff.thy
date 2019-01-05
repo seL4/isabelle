@@ -3923,7 +3923,7 @@ oracle frpar_oracle =
 let
 
 fun binopT T = T --> T --> T;
-fun relT T = T --> T --> @{typ bool};
+fun relT T = T --> T --> \<^typ>\<open>bool\<close>;
 
 val mk_C = @{code C} o apply2 @{code int_of_integer};
 val mk_poly_Bound = @{code poly.Bound} o @{code nat_of_integer};
@@ -3934,7 +3934,7 @@ val dest_num = snd o HOLogic.dest_number;
 fun try_dest_num t = SOME ((snd o HOLogic.dest_number) t)
   handle TERM _ => NONE;
 
-fun dest_nat (t as Const (@{const_name Suc}, _)) = HOLogic.dest_nat t
+fun dest_nat (t as Const (\<^const_name>\<open>Suc\<close>, _)) = HOLogic.dest_nat t
   | dest_nat t = dest_num t;
 
 fun the_index ts t =
@@ -3942,58 +3942,58 @@ fun the_index ts t =
     val k = find_index (fn t' => t aconv t') ts;
   in if k < 0 then raise General.Subscript else k end;
 
-fun num_of_term ps (Const (@{const_name Groups.uminus}, _) $ t) =
+fun num_of_term ps (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ t) =
       @{code poly.Neg} (num_of_term ps t)
-  | num_of_term ps (Const (@{const_name Groups.plus}, _) $ a $ b) =
+  | num_of_term ps (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b) =
       @{code poly.Add} (num_of_term ps a, num_of_term ps b)
-  | num_of_term ps (Const (@{const_name Groups.minus}, _) $ a $ b) =
+  | num_of_term ps (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b) =
       @{code poly.Sub} (num_of_term ps a, num_of_term ps b)
-  | num_of_term ps (Const (@{const_name Groups.times}, _) $ a $ b) =
+  | num_of_term ps (Const (\<^const_name>\<open>Groups.times\<close>, _) $ a $ b) =
       @{code poly.Mul} (num_of_term ps a, num_of_term ps b)
-  | num_of_term ps (Const (@{const_name Power.power}, _) $ a $ n) =
+  | num_of_term ps (Const (\<^const_name>\<open>Power.power\<close>, _) $ a $ n) =
       @{code poly.Pw} (num_of_term ps a, @{code nat_of_integer} (dest_nat n))
-  | num_of_term ps (Const (@{const_name Rings.divide}, _) $ a $ b) =
+  | num_of_term ps (Const (\<^const_name>\<open>Rings.divide\<close>, _) $ a $ b) =
       mk_C (dest_num a, dest_num b)
   | num_of_term ps t =
       (case try_dest_num t of
         SOME k => mk_C (k, 1)
       | NONE => mk_poly_Bound (the_index ps t));
 
-fun tm_of_term fs ps (Const(@{const_name Groups.uminus}, _) $ t) =
+fun tm_of_term fs ps (Const(\<^const_name>\<open>Groups.uminus\<close>, _) $ t) =
       @{code Neg} (tm_of_term fs ps t)
-  | tm_of_term fs ps (Const(@{const_name Groups.plus}, _) $ a $ b) =
+  | tm_of_term fs ps (Const(\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b) =
       @{code Add} (tm_of_term fs ps a, tm_of_term fs ps b)
-  | tm_of_term fs ps (Const(@{const_name Groups.minus}, _) $ a $ b) =
+  | tm_of_term fs ps (Const(\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b) =
       @{code Sub} (tm_of_term fs ps a, tm_of_term fs ps b)
-  | tm_of_term fs ps (Const(@{const_name Groups.times}, _) $ a $ b) =
+  | tm_of_term fs ps (Const(\<^const_name>\<open>Groups.times\<close>, _) $ a $ b) =
       @{code Mul} (num_of_term ps a, tm_of_term fs ps b)
   | tm_of_term fs ps t = (@{code CP} (num_of_term ps t)
       handle TERM _ => mk_Bound (the_index fs t)
         | General.Subscript => mk_Bound (the_index fs t));
 
-fun fm_of_term fs ps @{term True} = @{code T}
-  | fm_of_term fs ps @{term False} = @{code F}
-  | fm_of_term fs ps (Const (@{const_name Not}, _) $ p) =
+fun fm_of_term fs ps \<^term>\<open>True\<close> = @{code T}
+  | fm_of_term fs ps \<^term>\<open>False\<close> = @{code F}
+  | fm_of_term fs ps (Const (\<^const_name>\<open>Not\<close>, _) $ p) =
       @{code NOT} (fm_of_term fs ps p)
-  | fm_of_term fs ps (Const (@{const_name HOL.conj}, _) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ p $ q) =
       @{code And} (fm_of_term fs ps p, fm_of_term fs ps q)
-  | fm_of_term fs ps (Const (@{const_name HOL.disj}, _) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ p $ q) =
       @{code Or} (fm_of_term fs ps p, fm_of_term fs ps q)
-  | fm_of_term fs ps (Const (@{const_name HOL.implies}, _) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>HOL.implies\<close>, _) $ p $ q) =
       @{code Imp} (fm_of_term fs ps p, fm_of_term fs ps q)
-  | fm_of_term fs ps (@{term HOL.iff} $ p $ q) =
+  | fm_of_term fs ps (\<^term>\<open>HOL.iff\<close> $ p $ q) =
       @{code Iff} (fm_of_term fs ps p, fm_of_term fs ps q)
-  | fm_of_term fs ps (Const (@{const_name HOL.eq}, T) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>HOL.eq\<close>, T) $ p $ q) =
       @{code Eq} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
-  | fm_of_term fs ps (Const (@{const_name Orderings.less}, _) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>Orderings.less\<close>, _) $ p $ q) =
       @{code Lt} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
-  | fm_of_term fs ps (Const (@{const_name Orderings.less_eq}, _) $ p $ q) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>Orderings.less_eq\<close>, _) $ p $ q) =
       @{code Le} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
-  | fm_of_term fs ps (Const (@{const_name Ex}, _) $ Abs (abs as (_, xT, _))) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (abs as (_, xT, _))) =
       let
         val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
       in @{code E} (fm_of_term (Free (xn', xT) :: fs) ps p') end
-  | fm_of_term fs ps (Const (@{const_name All},_) $ Abs (abs as (_, xT, _))) =
+  | fm_of_term fs ps (Const (\<^const_name>\<open>All\<close>,_) $ Abs (abs as (_, xT, _))) =
       let
         val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
       in @{code A} (fm_of_term (Free (xn', xT) :: fs) ps p') end
@@ -4004,22 +4004,22 @@ fun term_of_num T ps (@{code poly.C} (a, b)) =
         val (c, d) = apply2 (@{code integer_of_int}) (a, b)
       in
         (if d = 1 then HOLogic.mk_number T c
-        else if d = 0 then Const (@{const_name Groups.zero}, T)
+        else if d = 0 then Const (\<^const_name>\<open>Groups.zero\<close>, T)
         else
-          Const (@{const_name Rings.divide}, binopT T) $
+          Const (\<^const_name>\<open>Rings.divide\<close>, binopT T) $
             HOLogic.mk_number T c $ HOLogic.mk_number T d)
       end
   | term_of_num T ps (@{code poly.Bound} i) = nth ps (@{code integer_of_nat} i)
   | term_of_num T ps (@{code poly.Add} (a, b)) =
-      Const (@{const_name Groups.plus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+      Const (\<^const_name>\<open>Groups.plus\<close>, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Mul} (a, b)) =
-      Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+      Const (\<^const_name>\<open>Groups.times\<close>, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Sub} (a, b)) =
-      Const (@{const_name Groups.minus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+      Const (\<^const_name>\<open>Groups.minus\<close>, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Neg} a) =
-      Const (@{const_name Groups.uminus}, T --> T) $ term_of_num T ps a
+      Const (\<^const_name>\<open>Groups.uminus\<close>, T --> T) $ term_of_num T ps a
   | term_of_num T ps (@{code poly.Pw} (a, n)) =
-      Const (@{const_name Power.power}, T --> @{typ nat} --> T) $
+      Const (\<^const_name>\<open>Power.power\<close>, T --> \<^typ>\<open>nat\<close> --> T) $
         term_of_num T ps a $ HOLogic.mk_number HOLogic.natT (@{code integer_of_nat} n)
   | term_of_num T ps (@{code poly.CN} (c, n, p)) =
       term_of_num T ps (@{code poly.Add} (c, @{code poly.Mul} (@{code poly.Bound} n, p)));
@@ -4027,40 +4027,40 @@ fun term_of_num T ps (@{code poly.C} (a, b)) =
 fun term_of_tm T fs ps (@{code CP} p) = term_of_num T ps p
   | term_of_tm T fs ps (@{code Bound} i) = nth fs (@{code integer_of_nat} i)
   | term_of_tm T fs ps (@{code Add} (a, b)) =
-      Const (@{const_name Groups.plus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
+      Const (\<^const_name>\<open>Groups.plus\<close>, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
   | term_of_tm T fs ps (@{code Mul} (a, b)) =
-      Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_tm T fs ps b
+      Const (\<^const_name>\<open>Groups.times\<close>, binopT T) $ term_of_num T ps a $ term_of_tm T fs ps b
   | term_of_tm T fs ps (@{code Sub} (a, b)) =
-      Const (@{const_name Groups.minus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
+      Const (\<^const_name>\<open>Groups.minus\<close>, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
   | term_of_tm T fs ps (@{code Neg} a) =
-      Const (@{const_name Groups.uminus}, T --> T) $ term_of_tm T fs ps a
+      Const (\<^const_name>\<open>Groups.uminus\<close>, T --> T) $ term_of_tm T fs ps a
   | term_of_tm T fs ps (@{code CNP} (n, c, p)) =
       term_of_tm T fs ps (@{code Add} (@{code Mul} (c, @{code Bound} n), p));
 
-fun term_of_fm T fs ps @{code T} = @{term True}
-  | term_of_fm T fs ps @{code F} = @{term False}
-  | term_of_fm T fs ps (@{code NOT} p) = @{term Not} $ term_of_fm T fs ps p
+fun term_of_fm T fs ps @{code T} = \<^term>\<open>True\<close>
+  | term_of_fm T fs ps @{code F} = \<^term>\<open>False\<close>
+  | term_of_fm T fs ps (@{code NOT} p) = \<^term>\<open>Not\<close> $ term_of_fm T fs ps p
   | term_of_fm T fs ps (@{code And} (p, q)) =
-      @{term HOL.conj} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+      \<^term>\<open>HOL.conj\<close> $ term_of_fm T fs ps p $ term_of_fm T fs ps q
   | term_of_fm T fs ps (@{code Or} (p, q)) =
-      @{term HOL.disj} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+      \<^term>\<open>HOL.disj\<close> $ term_of_fm T fs ps p $ term_of_fm T fs ps q
   | term_of_fm T fs ps (@{code Imp} (p, q)) =
-      @{term HOL.implies} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+      \<^term>\<open>HOL.implies\<close> $ term_of_fm T fs ps p $ term_of_fm T fs ps q
   | term_of_fm T fs ps (@{code Iff} (p, q)) =
-      @{term HOL.iff} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+      \<^term>\<open>HOL.iff\<close> $ term_of_fm T fs ps p $ term_of_fm T fs ps q
   | term_of_fm T fs ps (@{code Lt} p) =
-      Const (@{const_name Orderings.less}, relT T) $
-        term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+      Const (\<^const_name>\<open>Orderings.less\<close>, relT T) $
+        term_of_tm T fs ps p $ Const (\<^const_name>\<open>Groups.zero\<close>, T)
   | term_of_fm T fs ps (@{code Le} p) =
-      Const (@{const_name Orderings.less_eq}, relT T) $
-        term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+      Const (\<^const_name>\<open>Orderings.less_eq\<close>, relT T) $
+        term_of_tm T fs ps p $ Const (\<^const_name>\<open>Groups.zero\<close>, T)
   | term_of_fm T fs ps (@{code Eq} p) =
-      Const (@{const_name HOL.eq}, relT T) $
-        term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+      Const (\<^const_name>\<open>HOL.eq\<close>, relT T) $
+        term_of_tm T fs ps p $ Const (\<^const_name>\<open>Groups.zero\<close>, T)
   | term_of_fm T fs ps (@{code NEq} p) =
-      @{term Not} $
-        (Const (@{const_name HOL.eq}, relT T) $
-          term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T))
+      \<^term>\<open>Not\<close> $
+        (Const (\<^const_name>\<open>HOL.eq\<close>, relT T) $
+          term_of_tm T fs ps p $ Const (\<^const_name>\<open>Groups.zero\<close>, T))
   | term_of_fm T fs ps _ = error "term_of_fm: quantifiers";
 
 fun frpar_procedure alternative T ps fm =

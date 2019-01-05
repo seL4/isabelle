@@ -10,7 +10,7 @@ begin
 
 subsection \<open>A Free Ultrafilter over the Naturals\<close>
 
-definition FreeUltrafilterNat :: "nat filter"  ("\<U>")
+definition FreeUltrafilterNat :: "nat filter"  (\<open>\<U>\<close>)
   where "\<U> = (SOME U. freeultrafilter U)"
 
 lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
@@ -53,7 +53,7 @@ lemma ex_star_eq: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>X. P (star_
   apply auto
   done
 
-text \<open>Proving that @{term starrel} is an equivalence relation.\<close>
+text \<open>Proving that \<^term>\<open>starrel\<close> is an equivalence relation.\<close>
 
 lemma starrel_iff [iff]: "(X, Y) \<in> starrel \<longleftrightarrow> eventually (\<lambda>n. X n = Y n) \<U>"
   by (simp add: starrel_def)
@@ -81,7 +81,7 @@ lemma transfer_start: "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarr
   by (simp add: FreeUltrafilterNat.proper)
 
 text \<open>Standard principles that play a central role in the transfer tactic.\<close>
-definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("(_ \<star>/ _)" [300, 301] 300)
+definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" (\<open>(_ \<star>/ _)\<close> [300, 301] 300)
   where "Ifun f \<equiv>
     \<lambda>x. Abs_star (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
 
@@ -168,8 +168,8 @@ subsection \<open>Standard elements\<close>
 definition Standard :: "'a star set"
   where "Standard = range star_of"
 
-text \<open>Transfer tactic should remove occurrences of @{term star_of}.\<close>
-setup \<open>Transfer_Principle.add_const @{const_name star_of}\<close>
+text \<open>Transfer tactic should remove occurrences of \<^term>\<open>star_of\<close>.\<close>
+setup \<open>Transfer_Principle.add_const \<^const_name>\<open>star_of\<close>\<close>
 
 lemma star_of_inject: "star_of x = star_of y \<longleftrightarrow> x = y"
   by transfer (rule refl)
@@ -180,8 +180,8 @@ lemma Standard_star_of [simp]: "star_of x \<in> Standard"
 
 subsection \<open>Internal functions\<close>
 
-text \<open>Transfer tactic should remove occurrences of @{term Ifun}.\<close>
-setup \<open>Transfer_Principle.add_const @{const_name Ifun}\<close>
+text \<open>Transfer tactic should remove occurrences of \<^term>\<open>Ifun\<close>.\<close>
+setup \<open>Transfer_Principle.add_const \<^const_name>\<open>Ifun\<close>\<close>
 
 lemma Ifun_star_of [simp]: "star_of f \<star> star_of x = star_of (f x)"
   by transfer (rule refl)
@@ -192,10 +192,10 @@ lemma Standard_Ifun [simp]: "f \<in> Standard \<Longrightarrow> x \<in> Standard
 
 text \<open>Nonstandard extensions of functions.\<close>
 
-definition starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"  ("*f* _" [80] 80)
+definition starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"  (\<open>*f* _\<close> [80] 80)
   where "starfun f \<equiv> \<lambda>x. star_of f \<star> x"
 
-definition starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> 'c star"  ("*f2* _" [80] 80)
+definition starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> 'c star"  (\<open>*f2* _\<close> [80] 80)
   where "starfun2 f \<equiv> \<lambda>x y. star_of f \<star> x \<star> y"
 
 declare starfun_def [transfer_unfold]
@@ -273,16 +273,16 @@ lemma unstar_star_n: "unstar (star_n P) \<longleftrightarrow> eventually P \<U>"
 lemma unstar_star_of [simp]: "unstar (star_of p) = p"
   by (simp add: unstar_def star_of_inject)
 
-text \<open>Transfer tactic should remove occurrences of @{term unstar}.\<close>
-setup \<open>Transfer_Principle.add_const @{const_name unstar}\<close>
+text \<open>Transfer tactic should remove occurrences of \<^term>\<open>unstar\<close>.\<close>
+setup \<open>Transfer_Principle.add_const \<^const_name>\<open>unstar\<close>\<close>
 
 lemma transfer_unstar [transfer_intro]: "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> eventually P \<U>"
   by (simp only: unstar_star_n)
 
-definition starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"  ("*p* _" [80] 80)
+definition starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"  (\<open>*p* _\<close> [80] 80)
   where "*p* P = (\<lambda>x. unstar (star_of P \<star> x))"
 
-definition starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"  ("*p2* _" [80] 80)
+definition starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"  (\<open>*p2* _\<close> [80] 80)
   where "*p2* P = (\<lambda>x y. unstar (star_of P \<star> x \<star> y))"
 
 declare starP_def [transfer_unfold]
@@ -309,8 +309,8 @@ definition Iset :: "'a set star \<Rightarrow> 'a star set"
 lemma Iset_star_n: "(star_n X \<in> Iset (star_n A)) = (eventually (\<lambda>n. X n \<in> A n) \<U>)"
   by (simp add: Iset_def starP2_star_n)
 
-text \<open>Transfer tactic should remove occurrences of @{term Iset}.\<close>
-setup \<open>Transfer_Principle.add_const @{const_name Iset}\<close>
+text \<open>Transfer tactic should remove occurrences of \<^term>\<open>Iset\<close>.\<close>
+setup \<open>Transfer_Principle.add_const \<^const_name>\<open>Iset\<close>\<close>
 
 lemma transfer_mem [transfer_intro]:
   "x \<equiv> star_n X \<Longrightarrow> a \<equiv> Iset (star_n A) \<Longrightarrow> x \<in> a \<equiv> eventually (\<lambda>n. X n \<in> A n) \<U>"
@@ -341,7 +341,7 @@ lemma transfer_Iset [transfer_intro]: "a \<equiv> star_n A \<Longrightarrow> Ise
 
 text \<open>Nonstandard extensions of sets.\<close>
 
-definition starset :: "'a set \<Rightarrow> 'a star set" ("*s* _" [80] 80)
+definition starset :: "'a set \<Rightarrow> 'a star set" (\<open>*s* _\<close> [80] 80)
   where "starset A = Iset (star_of A)"
 
 declare starset_def [transfer_unfold]
@@ -515,7 +515,7 @@ lemmas Standard_simps [simp] =
   Standard_abs   Standard_mod
 
 
-text \<open>@{term star_of} preserves class operations.\<close>
+text \<open>\<^term>\<open>star_of\<close> preserves class operations.\<close>
 
 lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
   by transfer (rule refl)
@@ -542,7 +542,7 @@ lemma star_of_abs: "star_of \<bar>x\<bar> = \<bar>star_of x\<bar>"
   by transfer (rule refl)
 
 
-text \<open>@{term star_of} preserves numerals.\<close>
+text \<open>\<^term>\<open>star_of\<close> preserves numerals.\<close>
 
 lemma star_of_zero: "star_of 0 = 0"
   by transfer (rule refl)
@@ -551,7 +551,7 @@ lemma star_of_one: "star_of 1 = 1"
   by transfer (rule refl)
 
 
-text \<open>@{term star_of} preserves orderings.\<close>
+text \<open>\<^term>\<open>star_of\<close> preserves orderings.\<close>
 
 lemma star_of_less: "(star_of x < star_of y) = (x < y)"
 by transfer (rule refl)

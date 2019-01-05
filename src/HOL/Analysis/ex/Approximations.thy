@@ -447,7 +447,7 @@ qed
 subsubsection \<open>Machin-like formulae for pi\<close>
 
 text \<open>
-  We first define a small proof method that can prove Machin-like formulae for @{term "pi"}
+  We first define a small proof method that can prove Machin-like formulae for \<^term>\<open>pi\<close>
   automatically. Unfortunately, this takes far too much time for larger formulae because
   the numbers involved become too large.
 \<close>
@@ -476,14 +476,14 @@ ML \<open>
       val ctxt' = ctxt addsimps @{thms arctan_double' arctan_add_small}
     in
       case Thm.term_of ct of
-        Const (@{const_name MACHIN_TAG}, _) $ _ $
-          (Const (@{const_name "Transcendental.arctan"}, _) $ _) =>
+        Const (\<^const_name>\<open>MACHIN_TAG\<close>, _) $ _ $
+          (Const (\<^const_name>\<open>Transcendental.arctan\<close>, _) $ _) =>
           Simplifier.rewrite ctxt' ct
       |
-        Const (@{const_name MACHIN_TAG}, _) $ _ $
-          (Const (@{const_name "Groups.plus"}, _) $
-            (Const (@{const_name "Transcendental.arctan"}, _) $ _) $
-            (Const (@{const_name "Transcendental.arctan"}, _) $ _)) =>
+        Const (\<^const_name>\<open>MACHIN_TAG\<close>, _) $ _ $
+          (Const (\<^const_name>\<open>Groups.plus\<close>, _) $
+            (Const (\<^const_name>\<open>Transcendental.arctan\<close>, _) $ _) $
+            (Const (\<^const_name>\<open>Transcendental.arctan\<close>, _) $ _)) =>
           Simplifier.rewrite ctxt' ct
       | _ => raise CTERM ("machin_conv", [ct])
     end
@@ -520,8 +520,8 @@ subsubsection \<open>Simple approximation of pi\<close>
 
 text \<open>
   We can use the simple Machin formula and the Taylor series expansion of the arctangent
-  to approximate pi. For a given even natural number $n$, we expand @{term "arctan (1/5)"}
-  to $3n$ summands and @{term "arctan (1/239)"} to $n$ summands. This gives us at least
+  to approximate pi. For a given even natural number $n$, we expand \<^term>\<open>arctan (1/5)\<close>
+  to $3n$ summands and \<^term>\<open>arctan (1/239)\<close> to $n$ summands. This gives us at least
   $13n-2$ bits of precision.
 \<close>
 

@@ -21,11 +21,11 @@ syntax
 
 parse_translation
   \<open>[Syntax_Trans.quote_antiquote_tr
-    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]\<close>
+    \<^syntax_const>\<open>_Expr\<close> \<^const_syntax>\<open>var\<close> \<^const_syntax>\<open>Expr\<close>]\<close>
 
 print_translation
   \<open>[Syntax_Trans.quote_antiquote_tr'
-    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]\<close>
+    \<^syntax_const>\<open>_Expr\<close> \<^const_syntax>\<open>var\<close> \<^const_syntax>\<open>Expr\<close>]\<close>
 
 term "EXPR (a + b + c)"
 term "EXPR (a + b + c + VAR x + VAR y + 1)"

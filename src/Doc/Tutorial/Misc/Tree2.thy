@@ -3,9 +3,9 @@ theory Tree2 imports Tree begin
 (*>*)
 
 text\<open>\noindent In Exercise~\ref{ex:Tree} we defined a function
-@{term"flatten"} from trees to lists. The straightforward version of
-@{term"flatten"} is based on \<open>@\<close> and is thus, like @{term"rev"},
-quadratic. A linear time version of @{term"flatten"} again reqires an extra
+\<^term>\<open>flatten\<close> from trees to lists. The straightforward version of
+\<^term>\<open>flatten\<close> is based on \<open>@\<close> and is thus, like \<^term>\<open>rev\<close>,
+quadratic. A linear time version of \<^term>\<open>flatten\<close> again reqires an extra
 argument, the accumulator. Define\<close>
 (*<*)primrec(*>*)flatten2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list"(*<*)where
 "flatten2 Tip xs = xs" |

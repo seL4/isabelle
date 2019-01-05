@@ -69,7 +69,7 @@ by(auto simp: ins_list_sorted)
 
 lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
 
-text\<open>Splay trees need two additional @{const ins_list} lemmas:\<close>
+text\<open>Splay trees need two additional \<^const>\<open>ins_list\<close> lemmas:\<close>
 
 lemma ins_list_Cons: "sorted (x # xs) \<Longrightarrow> ins_list x xs = x # xs"
 by (induction xs) auto
@@ -135,7 +135,7 @@ lemmas del_list_simps = sorted_lems
   del_list_sorted4
   del_list_sorted5
 
-text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
+text\<open>Splay trees need two additional \<^const>\<open>del_list\<close> lemmas:\<close>
 
 lemma del_list_notin_Cons: "sorted (x # xs) \<Longrightarrow> del_list x xs = xs"
 by(induction xs)(fastforce simp: sorted_Cons_iff)+

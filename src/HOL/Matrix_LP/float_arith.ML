@@ -203,10 +203,10 @@ fun approx_decstr_by_bin n decstr =
     approx_dec_by_bin n (q,r)
   end
 
-fun mk_float (a, b) = @{term "float"} $
+fun mk_float (a, b) = \<^term>\<open>float\<close> $
   HOLogic.mk_prod (apply2 (HOLogic.mk_number HOLogic.intT) (a, b));
 
-fun dest_float (Const (@{const_name float}, _) $ (Const (@{const_name Pair}, _) $ a $ b)) =
+fun dest_float (Const (\<^const_name>\<open>float\<close>, _) $ (Const (\<^const_name>\<open>Pair\<close>, _) $ a $ b)) =
       apply2 (snd o HOLogic.dest_number) (a, b)
   | dest_float t = ((snd o HOLogic.dest_number) t, 0);
 

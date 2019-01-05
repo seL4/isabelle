@@ -23,9 +23,9 @@ Local Typedef Rule (LT)
 
 (** BEGINNING OF THE CRITICAL CODE **)
 
-fun dest_typedef (Const (@{const_name Ex}, _) $ Abs (_, _,
-      (Const (@{const_name Ex}, _) $ Abs (_, Abs_type,
-      (Const (@{const_name type_definition}, _)) $ Bound 1 $ Bound 0 $ set)))) =
+fun dest_typedef (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _,
+      (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, Abs_type,
+      (Const (\<^const_name>\<open>type_definition\<close>, _)) $ Bound 1 $ Bound 0 $ set)))) =
     (Abs_type, set)
    | dest_typedef t = raise TERM ("dest_typedef", [t]);
 
@@ -71,14 +71,14 @@ fun cancel_type_definition_cterm thm =
 (** END OF THE CRITICAL CODE **)
 
 val (_, cancel_type_definition_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding cancel_type_definition}, cancel_type_definition_cterm)));
+  (Thm.add_oracle (\<^binding>\<open>cancel_type_definition\<close>, cancel_type_definition_cterm)));
 
 fun cancel_type_definition thm =
   Drule.implies_elim_list (cancel_type_definition_oracle thm) (map Thm.assume (Thm.chyps_of thm));
 
 val cancel_type_definition_attr = Thm.rule_attribute [] (K cancel_type_definition);
 
-val _ = Context.>> (Context.map_theory (Attrib.setup @{binding cancel_type_definition}
+val _ = Context.>> (Context.map_theory (Attrib.setup \<^binding>\<open>cancel_type_definition\<close>
   (Scan.succeed cancel_type_definition_attr) "cancel a local type definition"));
 
 end;

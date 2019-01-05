@@ -29,8 +29,8 @@ and      'a bexp = Less "'a aexp" "'a aexp"
 text\<open>\noindent
 Type \<open>aexp\<close> is similar to \<open>expr\<close> in \S\ref{sec:ExprCompiler},
 except that we have added an \<open>IF\<close> constructor,
-fixed the values to be of type @{typ"nat"} and declared the two binary
-operations \<open>Sum\<close> and @{term"Diff"}.  Boolean
+fixed the values to be of type \<^typ>\<open>nat\<close> and declared the two binary
+operations \<open>Sum\<close> and \<^term>\<open>Diff\<close>.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:
 \<close>
@@ -51,11 +51,11 @@ primrec evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat
 text\<open>\noindent
 
 Both take an expression and an environment (a mapping from variables
-@{typ"'a"} to values @{typ"nat"}) and return its arithmetic/boolean
+\<^typ>\<open>'a\<close> to values \<^typ>\<open>nat\<close>) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions
 that operate on them. Hence they need to be defined in a single
 \isacommand{primrec} section. Notice the \isakeyword{and} separating
-the declarations of @{const evala} and @{const evalb}. Their defining
+the declarations of \<^const>\<open>evala\<close> and \<^const>\<open>evalb\<close>. Their defining
 equations need not be split into two groups;
 the empty line is purely for readability.
 
@@ -78,8 +78,8 @@ primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow
 text\<open>\noindent
 Their first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
-result, the type of variables in the expression may change from @{typ"'a"}
-to @{typ"'b"}. Note that there are only arithmetic and no boolean variables.
+result, the type of variables in the expression may change from \<^typ>\<open>'a\<close>
+to \<^typ>\<open>'b\<close>. Note that there are only arithmetic and no boolean variables.
 
 Now we can prove a fundamental theorem about the interaction between
 evaluation and substitution: applying a substitution $s$ to an expression $a$
@@ -111,13 +111,13 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \end{isabelle}
 
 \begin{exercise}
-  Define a function \<open>norma\<close> of type @{typ"'a aexp => 'a aexp"} that
-  replaces @{term"IF"}s with complex boolean conditions by nested
-  @{term"IF"}s; it should eliminate the constructors
-  @{term"And"} and @{term"Neg"}, leaving only @{term"Less"}.
+  Define a function \<open>norma\<close> of type \<^typ>\<open>'a aexp => 'a aexp\<close> that
+  replaces \<^term>\<open>IF\<close>s with complex boolean conditions by nested
+  \<^term>\<open>IF\<close>s; it should eliminate the constructors
+  \<^term>\<open>And\<close> and \<^term>\<open>Neg\<close>, leaving only \<^term>\<open>Less\<close>.
   Prove that \<open>norma\<close>
   preserves the value of an expression and that the result of \<open>norma\<close>
-  is really normal, i.e.\ no more @{term"And"}s and @{term"Neg"}s occur in
+  is really normal, i.e.\ no more \<^term>\<open>And\<close>s and \<^term>\<open>Neg\<close>s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex} and read the discussion
   of type annotations following lemma \<open>subst_id\<close> below).
 \end{exercise}

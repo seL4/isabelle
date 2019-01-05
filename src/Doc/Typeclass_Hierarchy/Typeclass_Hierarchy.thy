@@ -39,8 +39,8 @@ text \<open>
   always have been numerical types, which form an inclusion chain:
   
   \begin{center}
-    @{typ nat} \<open>\<sqsubset>\<close> @{typ int} \<open>\<sqsubset>\<close> @{typ rat}
-      \<open>\<sqsubset>\<close> @{typ real} \<open>\<sqsubset>\<close> @{typ complex}
+    \<^typ>\<open>nat\<close> \<open>\<sqsubset>\<close> \<^typ>\<open>int\<close> \<open>\<sqsubset>\<close> \<^typ>\<open>rat\<close>
+      \<open>\<sqsubset>\<close> \<^typ>\<open>real\<close> \<open>\<sqsubset>\<close> \<^typ>\<open>complex\<close>
   \end{center}
 
   \noindent The inclusion \<open>\<sqsubset>\<close> means that any value of the numerical
@@ -57,15 +57,15 @@ text \<open>
   of numerical types into them:
 
   \begin{center}\begin{tabular}{lccc}
-    @{term of_nat} \<open>::\<close>  & @{typ nat}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::semiring_1"} \\
+    \<^term>\<open>of_nat\<close> \<open>::\<close>  & \<^typ>\<open>nat\<close>  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::semiring_1"} \\
                                  & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
-    @{term of_int} \<open>::\<close>  & @{typ int}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::ring_1"} \\
+    \<^term>\<open>of_int\<close> \<open>::\<close>  & \<^typ>\<open>int\<close>  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::ring_1"} \\
                                  & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
-    @{term of_rat} \<open>::\<close>  & @{typ rat}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::field_char_0"} \\
+    \<^term>\<open>of_rat\<close> \<open>::\<close>  & \<^typ>\<open>rat\<close>  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::field_char_0"} \\
                                  & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
-    @{term of_real} \<open>::\<close> & @{typ real} & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::real_algebra_1"} \\
+    \<^term>\<open>of_real\<close> \<open>::\<close> & \<^typ>\<open>real\<close> & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::real_algebra_1"} \\
                                  & \<open>\<sqinter>\<close> \\
-                                 & @{typ complex}
+                                 & \<^typ>\<open>complex\<close>
   \end{tabular}\end{center}
 
   \noindent \<open>d \<leftarrow> c\<close> means that \<open>c\<close> is subclass of \<open>d\<close>.
@@ -101,10 +101,10 @@ text \<open>
 
     \<^item> Parameters are fixed over the whole type class
       hierarchy and cannot be refined in specific situations:
-      think of integral domains with a predicate @{term is_unit};
+      think of integral domains with a predicate \<^term>\<open>is_unit\<close>;
       for natural numbers, this degenerates to the much simpler
       @{term [source] "HOL.equal (1::nat)"} but facts
-      refer to @{term is_unit} nonetheless.
+      refer to \<^term>\<open>is_unit\<close> nonetheless.
 
     \<^item> Type classes are not apt for meta-theory.  There
       is no practically usable way to express that the units
@@ -135,13 +135,13 @@ text \<open>
   classes, ie. classes with operations but with no axioms,
   most notably:
 
-    \<^item> @{command class} @{class plus} with @{term [source] "(a::'a::plus) + b"}
+    \<^item> @{command class} \<^class>\<open>plus\<close> with @{term [source] "(a::'a::plus) + b"}
 
-    \<^item> @{command class} @{class zero} with @{term [source] "0::'a::zero"}
+    \<^item> @{command class} \<^class>\<open>zero\<close> with @{term [source] "0::'a::zero"}
 
-    \<^item> @{command class} @{class times} with @{term [source] "(a::'a::times) * b"}
+    \<^item> @{command class} \<^class>\<open>times\<close> with @{term [source] "(a::'a::times) * b"}
 
-    \<^item> @{command class} @{class one} with @{term [source] "1::'a::one"}
+    \<^item> @{command class} \<^class>\<open>one\<close> with @{term [source] "1::'a::one"}
 
   \noindent Before the introduction of the @{command class} statement in
   Isabelle @{cite "Haftmann-Wenzel:2006:classes"} it was impossible
@@ -159,7 +159,7 @@ text \<open>
       exotic examples.
 
     \<^item> Type classes might share operations but not necessarily
-      axioms on them, e.g. @{term gcd} (see \secref{sec:gcd}).
+      axioms on them, e.g. \<^term>\<open>gcd\<close> (see \secref{sec:gcd}).
       Hence their common base is a syntactic type class.
 
   \noindent However syntactic type classes should only be used with striking
@@ -169,7 +169,7 @@ text \<open>
   (see \secref{sec:numerals}):  @{lemma "2 + 2 = 4" by simp} is
   provable without further ado, and this also meets the typical
   expectation towards a numeral notation;  in more ancient releases
-  numerals were purely syntactic and @{prop "2 + 2 = 4"} was
+  numerals were purely syntactic and \<^prop>\<open>2 + 2 = 4\<close> was
   not provable without particular type constraints.
 \<close>
 
@@ -183,13 +183,13 @@ text \<open>
   In {Isabelle/HOL}, this is accomplished using the following
   abstract setup:
 
-    \<^item> A @{locale semigroup} introduces an abstract binary
+    \<^item> A \<^locale>\<open>semigroup\<close> introduces an abstract binary
       associative operation.
 
-    \<^item> A @{locale monoid} is an extension of @{locale semigroup}
+    \<^item> A \<^locale>\<open>monoid\<close> is an extension of \<^locale>\<open>semigroup\<close>
       with a neutral element.
 
-    \<^item> Both @{locale semigroup} and @{locale monoid} provide
+    \<^item> Both \<^locale>\<open>semigroup\<close> and \<^locale>\<open>monoid\<close> provide
       dedicated syntax for their operations \<open>(\<^bold>*, \<^bold>1)\<close>.
       This syntax is not visible on the global theory level
       but only for abstract reasoning inside the respective
@@ -199,19 +199,19 @@ text \<open>
       syntactic type classes \secref{sec:syntactic-type-class}
       using the following classes:
 
-        \<^item> @{command class} @{class semigroup_mult} = @{class times}
+        \<^item> @{command class} \<^class>\<open>semigroup_mult\<close> = \<^class>\<open>times\<close>
 
-        \<^item> @{command class} @{class monoid_mult} = @{class one} + @{class semigroup_mult}
+        \<^item> @{command class} \<^class>\<open>monoid_mult\<close> = \<^class>\<open>one\<close> + \<^class>\<open>semigroup_mult\<close>
 
-        \<^item> @{command class} @{class semigroup_add} = @{class plus}
+        \<^item> @{command class} \<^class>\<open>semigroup_add\<close> = \<^class>\<open>plus\<close>
 
-        \<^item> @{command class} @{class monoid_add} = @{class zero} + @{class semigroup_add}
+        \<^item> @{command class} \<^class>\<open>monoid_add\<close> = \<^class>\<open>zero\<close> + \<^class>\<open>semigroup_add\<close>
 
-      Locales @{locale semigroup} and @{locale monoid} are
+      Locales \<^locale>\<open>semigroup\<close> and \<^locale>\<open>monoid\<close> are
       interpreted (using @{command sublocale}) into their
       corresponding type classes, with prefixes \<open>add\<close>
-      and \<open>mult\<close>; hence facts derived in @{locale semigroup}
-      and @{locale monoid} are propagated simultaneously to
+      and \<open>mult\<close>; hence facts derived in \<^locale>\<open>semigroup\<close>
+      and \<^locale>\<open>monoid\<close> are propagated simultaneously to
       \<^emph>\<open>both\<close> using a consistent naming policy, ie.
 
         \<^item> @{fact semigroup.assoc}: @{thm (frugal_sorts) semigroup.assoc [all, no_vars]}
@@ -226,7 +226,7 @@ text \<open>
 
         \<^item> @{fact add.right_neutral}: @{thm (frugal_sorts) add.right_neutral [all, no_vars]}
 
-    \<^item> Note that the syntax in @{locale semigroup} and @{locale monoid}
+    \<^item> Note that the syntax in \<^locale>\<open>semigroup\<close> and \<^locale>\<open>monoid\<close>
       is bold; this avoids clashes when writing properties
       inside one of these locales in presence of that global
       concrete type class syntax.
@@ -236,18 +236,18 @@ text \<open>
   designation \<^emph>\<open>abelian\<close> is quite standard concerning
   (semi)groups, but not for monoids}:
 
-    \<^item> Locales @{locale abel_semigroup} and @{locale comm_monoid}
+    \<^item> Locales \<^locale>\<open>abel_semigroup\<close> and \<^locale>\<open>comm_monoid\<close>
       add commutativity as property.
 
     \<^item> Concrete syntax emerges through
 
-        \<^item> @{command class} @{class ab_semigroup_add} = @{class semigroup_add}
+        \<^item> @{command class} \<^class>\<open>ab_semigroup_add\<close> = \<^class>\<open>semigroup_add\<close>
 
-        \<^item> @{command class} @{class ab_semigroup_mult} = @{class semigroup_mult}
+        \<^item> @{command class} \<^class>\<open>ab_semigroup_mult\<close> = \<^class>\<open>semigroup_mult\<close>
 
-        \<^item> @{command class} @{class comm_monoid_add} = @{class zero} + @{class ab_semigroup_add}
+        \<^item> @{command class} \<^class>\<open>comm_monoid_add\<close> = \<^class>\<open>zero\<close> + \<^class>\<open>ab_semigroup_add\<close>
 
-        \<^item> @{command class} @{class comm_monoid_mult} = @{class one} + @{class ab_semigroup_mult}
+        \<^item> @{command class} \<^class>\<open>comm_monoid_mult\<close> = \<^class>\<open>one\<close> + \<^class>\<open>ab_semigroup_mult\<close>
   
       and corresponding interpretation of the locales above, yielding
 
@@ -271,7 +271,7 @@ text \<open>
   are declared as members.  Due to interpretation, also
   @{fact mult.assoc}, @{fact mult.commute} and @{fact mult.left_commute}
   are also members of @{fact ac_simps}, as any corresponding facts
-  stemming from interpretation of @{locale abel_semigroup}.
+  stemming from interpretation of \<^locale>\<open>abel_semigroup\<close>.
   Hence adding @{fact ac_simps} to the simplification rules for
   a single method call uses all associativity and commutativity
   rules known by means of interpretation.
@@ -284,32 +284,32 @@ text \<open>
   The hierarchy for inverse group operations takes into account
   that there are weaker algebraic structures with only a partially
   inverse operation.  E. g. the natural numbers have bounded
-  subtraction @{term "m - (n::nat)"} which is only an inverse
-  operation if @{term "m \<ge> (n::nat)"};  unary minus \<open>-\<close>
+  subtraction \<^term>\<open>m - (n::nat)\<close> which is only an inverse
+  operation if \<^term>\<open>m \<ge> (n::nat)\<close>;  unary minus \<open>-\<close>
   is pointless on the natural numbers.
 
   Hence for both additive and multiplicative notation there
   are syntactic classes for inverse operations, both unary
   and binary:
 
-    \<^item> @{command class} @{class minus} with @{term [source] "(a::'a::minus) - b"}
+    \<^item> @{command class} \<^class>\<open>minus\<close> with @{term [source] "(a::'a::minus) - b"}
 
-    \<^item> @{command class} @{class uminus} with @{term [source] "- a::'a::uminus"}
+    \<^item> @{command class} \<^class>\<open>uminus\<close> with @{term [source] "- a::'a::uminus"}
 
-    \<^item> @{command class} @{class divide} with @{term [source] "(a::'a::divide) div b"}
+    \<^item> @{command class} \<^class>\<open>divide\<close> with @{term [source] "(a::'a::divide) div b"}
 
-    \<^item> @{command class} @{class inverse} = @{class divide} with @{term [source] "inverse a::'a::inverse"}
+    \<^item> @{command class} \<^class>\<open>inverse\<close> = \<^class>\<open>divide\<close> with @{term [source] "inverse a::'a::inverse"}
         \\ and @{term [source] "(a::'a::inverse) / b"}
 
-  \noindent Here @{class inverse} specializes the ``partial'' syntax
+  \noindent Here \<^class>\<open>inverse\<close> specializes the ``partial'' syntax
   @{term [source] "a div b"} to the more specific
   @{term [source] "a / b"}. 
 
   Semantic properties are added by
 
-    \<^item> @{command class} @{class cancel_ab_semigroup_add} = @{class ab_semigroup_add} + @{class minus}
+    \<^item> @{command class} \<^class>\<open>cancel_ab_semigroup_add\<close> = \<^class>\<open>ab_semigroup_add\<close> + \<^class>\<open>minus\<close>
 
-    \<^item> @{command class} @{class cancel_comm_monoid_add} = @{class cancel_ab_semigroup_add} + @{class comm_monoid_add}
+    \<^item> @{command class} \<^class>\<open>cancel_comm_monoid_add\<close> = \<^class>\<open>cancel_ab_semigroup_add\<close> + \<^class>\<open>comm_monoid_add\<close>
 
   \noindent which specify a minimal binary partially inverse operation as
 
@@ -323,16 +323,16 @@ text \<open>
 
   \noindent The total inverse operation is established as follows:
 
-    \<^item> Locale @{locale group} extends the abstract hierarchy with
+    \<^item> Locale \<^locale>\<open>group\<close> extends the abstract hierarchy with
       the inverse operation.
 
     \<^item> The concrete additive inverse operation emerges through
 
-      \<^item> @{command class} @{class group_add} = @{class minus} + @{class uminus} + @{class monoid_add} (in @{theory HOL.Groups}) \\
+      \<^item> @{command class} \<^class>\<open>group_add\<close> = \<^class>\<open>minus\<close> + \<^class>\<open>uminus\<close> + \<^class>\<open>monoid_add\<close> (in \<^theory>\<open>HOL.Groups\<close>) \\
 
-      \<^item> @{command class} @{class ab_group_add} = @{class minus} + @{class uminus} + @{class comm_monoid_add} (in @{theory HOL.Groups})
+      \<^item> @{command class} \<^class>\<open>ab_group_add\<close> = \<^class>\<open>minus\<close> + \<^class>\<open>uminus\<close> + \<^class>\<open>comm_monoid_add\<close> (in \<^theory>\<open>HOL.Groups\<close>)
 
-      and corresponding interpretation of locale @{locale group}, yielding e.g.
+      and corresponding interpretation of locale \<^locale>\<open>group\<close>, yielding e.g.
 
       \<^item> @{fact group.left_inverse}: @{thm (frugal_sorts) group.left_inverse [all, no_vars]}
 

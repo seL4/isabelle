@@ -108,15 +108,15 @@ fun get_basis_list' (SSng i) = [#head i]
 fun get_basis_list SEmpty = []
   | get_basis_list (SNE basis) = get_basis_list' basis
 
-val get_basis_term = HOLogic.mk_list @{typ "real => real"} o get_basis_list
+val get_basis_term = HOLogic.mk_list \<^typ>\<open>real => real\<close> o get_basis_list
 
 fun extract_basis_list thm =
   let
     val basis =
       case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name "is_expansion"}, _) $ _ $ basis => basis
-      | Const (@{const_name "expands_to"}, _) $ _ $ _ $ basis => basis
-      | Const (@{const_name "basis_wf"}, _) $ basis => basis
+        Const (\<^const_name>\<open>is_expansion\<close>, _) $ _ $ basis => basis
+      | Const (\<^const_name>\<open>expands_to\<close>, _) $ _ $ _ $ basis => basis
+      | Const (\<^const_name>\<open>basis_wf\<close>, _) $ basis => basis
       | _ => raise THM ("get_basis", 1, [thm])
   in
     HOLogic.dest_list basis |> map Envir.eta_contract
@@ -154,7 +154,7 @@ fun check_basis' (basis as (SSng {head, wf_thm})) =
           raise BASIS ("Head mismatch", SNE basis')
         val _ = if eq_list abconv (HOLogic.dest_list ln_basis, get_basis_list' basis) 
           then () else raise BASIS ("Incorrect basis in ln_thm", SNE basis')
-        val _ = if abconv (ln_fun, @{term "\<lambda>(f::real\<Rightarrow>real) x. ln (f x)"} $ head) then () else
+        val _ = if abconv (ln_fun, \<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. ln (f x)\<close> $ head) then () else
           raise BASIS ("Wrong function in ln_expansion", SNE basis')
         val _ = if abconv (ln_exp, trimmed_thm |> concl_of' |> dest_arg) then () else
           raise BASIS ("Wrong expansion in trimmed_thm", SNE basis')
@@ -191,7 +191,7 @@ fun mk_lifting bs basis =
                combine_lifts (mk_lifting_aux (b :: bs) basis')
                  (get_basis_wf_thm basis RS @{thm is_lifting_lift}))
     val bs' = get_basis_list basis
-    fun err () = raise TERM ("mk_lifting", map (HOLogic.mk_list @{typ "real => real"}) [bs, bs'])
+    fun err () = raise TERM ("mk_lifting", map (HOLogic.mk_list \<^typ>\<open>real => real\<close>) [bs, bs'])
   in
     if subset (op aconv) (bs, bs') then
       mk_lifting_aux bs basis handle Match => err ()
@@ -223,7 +223,7 @@ fun lift_modification (SNE basis) (SNE new_tail) = SNE (lift_modification' basis
 fun insert_ln' (SSng {wf_thm, head}) = 
       let
         val head' = Envir.eta_contract
-          (Abs ("x", @{typ real}, @{term "ln :: real \<Rightarrow> real"} $ (betapply (head, Bound 0))))
+          (Abs ("x", \<^typ>\<open>real\<close>, \<^term>\<open>ln :: real \<Rightarrow> real\<close> $ (betapply (head, Bound 0))))
         val info1 = {wf_thm = wf_thm RS @{thm basis_wf_insert_ln(2)}, head = head}
         val info2 = {wf_thm = wf_thm RS @{thm basis_wf_insert_ln(1)}, head = head'}
         val ln_thm = wf_thm RS @{thm expands_to_insert_ln}
@@ -237,6 +237,6 @@ fun insert_ln SEmpty = raise BASIS ("Empty basis", SEmpty)
   | insert_ln (SNE basis) = check_basis (SNE (insert_ln' basis))
 
 val default_basis = 
-  SNE (SSng {head = @{term "\<lambda>x::real. x"}, wf_thm = @{thm default_basis_wf}})
+  SNE (SSng {head = \<^term>\<open>\<lambda>x::real. x\<close>, wf_thm = @{thm default_basis_wf}})
 
 end

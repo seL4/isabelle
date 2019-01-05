@@ -152,12 +152,12 @@ done
 lemma slen_fscons_eq_rev:
         "(#x < enat (Suc (Suc n))) = (\<forall>a y. x \<noteq> a~> y \<or> #y < enat (Suc n))"
 apply (simp add: fscons_def2 slen_scons_eq_rev)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
-apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs \<^context> addSEs @{thms DefE}) 1\<close>)
 apply (erule contrapos_np)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done

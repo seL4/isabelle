@@ -217,7 +217,7 @@ text\<open>Added to simplify arguments to parts, analz and synth.
 
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of
-  @{term "parts(G\<union>H)"} in the assumption.\<close>
+  \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
 lemmas in_parts_UnE = parts_Un [THEN equalityD1, THEN subsetD, THEN UnE]
 declare in_parts_UnE [elim!]
 
@@ -461,8 +461,8 @@ by (intro equalityI lemma1 lemma2)
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
 but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently
-\<open>split_tac\<close> does not cope with patterns such as @{term"analz (insert
-(Crypt K X) H)"}\<close>
+\<open>split_tac\<close> does not cope with patterns such as \<^term>\<open>analz (insert
+(Crypt K X) H)\<close>\<close>
 lemma analz_Crypt_if [simp]:
      "analz (insert (Crypt K X) H) =
           (if (Key (invKey K) \<in> analz H)
@@ -576,7 +576,7 @@ lemma synth_mono: "G\<subseteq>H ==> synth(G) \<subseteq> synth(H)"
   by (auto, erule synth.induct, auto)
 
 text\<open>NO \<open>Agent_synth\<close>, as any Agent name can be synthesized.
-  The same holds for @{term Number}\<close>
+  The same holds for \<^term>\<open>Number\<close>\<close>
 inductive_cases Nonce_synth [elim!]: "Nonce n \<in> synth H"
 inductive_cases Key_synth   [elim!]: "Key K \<in> synth H"
 inductive_cases Hash_synth  [elim!]: "Hash X \<in> synth H"

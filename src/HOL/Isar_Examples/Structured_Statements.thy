@@ -152,9 +152,9 @@ next
 
   have C
   proof -
-    show ?thesis when "A x" (is ?A) for x :: 'a  \<comment> \<open>abstract @{term x}\<close>
+    show ?thesis when "A x" (is ?A) for x :: 'a  \<comment> \<open>abstract \<^term>\<open>x\<close>\<close>
       using that \<proof>
-    show "?A a"  \<comment> \<open>concrete @{term a}\<close>
+    show "?A a"  \<comment> \<open>concrete \<^term>\<open>a\<close>\<close>
       \<proof>
   qed
 end

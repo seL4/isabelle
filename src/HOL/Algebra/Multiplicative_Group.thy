@@ -187,25 +187,25 @@ text\<open>
   We analyze the reduced form $a/d = m/n$ for any of those fractions.
   We want to know how many fractions $m/n$ have the reduced form denominator $d$.
   The condition $1 \leq m \leq n$ is equivalent to the condition $1 \leq a \leq d$.
-  Therefore we want to know how many $a$ with $1 \leq a \leq d$ exist, s.t. @{term "gcd a d = 1"}.
-  This number is exactly @{term "phi' d"}.
+  Therefore we want to know how many $a$ with $1 \leq a \leq d$ exist, s.t. \<^term>\<open>gcd a d = 1\<close>.
+  This number is exactly \<^term>\<open>phi' d\<close>.
 
   Finally, by counting the fractions $m/n$ according to their reduced form denominator,
   we get: @{term [display] "(\<Sum>d | d dvd n . phi' d) = n"}.
   To formalize this proof in Isabelle, we analyze for an arbitrary divisor $d$ of $n$
   \begin{itemize}
-    \item the set of reduced form numerators @{term "{a. (1::nat) \<le> a \<and> a \<le> d \<and> coprime a d}"}
+    \item the set of reduced form numerators \<^term>\<open>{a. (1::nat) \<le> a \<and> a \<le> d \<and> coprime a d}\<close>
     \item the set of numerators $m$, for which $m/n$ has the reduced form denominator $d$,
-      i.e. the set @{term "{m \<in> {1::nat .. n}. n div gcd m n = d}"}
+      i.e. the set \<^term>\<open>{m \<in> {1::nat .. n}. n div gcd m n = d}\<close>
   \end{itemize}
-  We show that @{term "\<lambda>a. a*n div d"} with the inverse @{term "\<lambda>a. a div gcd a n"} is
+  We show that \<^term>\<open>\<lambda>a. a*n div d\<close> with the inverse \<^term>\<open>\<lambda>a. a div gcd a n\<close> is
   a bijection between theses sets, thus yielding the equality
   @{term [display] "phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"}
   This gives us
   @{term [display] "(\<Sum>d | d dvd n . phi' d)
           = card (\<Union>d \<in> {d. d dvd n}. {m \<in> {1 .. n}. n div gcd m n = d})"}
   and by showing
-  @{term "(\<Union>d \<in> {d. d dvd n}. {m \<in> {1::nat .. n}. n div gcd m n = d}) \<supseteq> {1 .. n}"}
+  \<^term>\<open>(\<Union>d \<in> {d. d dvd n}. {m \<in> {1::nat .. n}. n div gcd m n = d}) \<supseteq> {1 .. n}\<close>
   (this is our counting argument) the thesis follows.
 \<close>
 lemma sum_phi'_factors:

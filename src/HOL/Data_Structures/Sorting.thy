@@ -374,7 +374,7 @@ done
 
 subsection "Insertion Sort w.r.t. Keys and Stability"
 
-text \<open>Note that @{const insort_key} is already defined in theory @{theory HOL.List}.
+text \<open>Note that \<^const>\<open>insort_key\<close> is already defined in theory \<^theory>\<open>HOL.List\<close>.
 Thus some of the lemmas are already present as well.\<close>
 
 fun isort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list" where

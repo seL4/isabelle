@@ -51,8 +51,8 @@ local
 
   val setup_builtins =
     SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const times (int)}, "*") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3div}, "div") #>
-    SMT_Builtin.add_builtin_fun' smtlib_z3C (@{const z3mod}, "mod")
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^const>\<open>z3div\<close>, "div") #>
+    SMT_Builtin.add_builtin_fun' smtlib_z3C (\<^const>\<open>z3mod\<close>, "mod")
 in
 
 val _ = Theory.setup (Context.theory_map (
@@ -116,13 +116,13 @@ fun mk_builtin_num _ i \<^typ>\<open>int\<close> = SOME (Numeral.mk_cnumber \<^c
   | mk_builtin_num ctxt i T =
       chained_mk_builtin_num ctxt (get_mk_builtins ctxt) i T
 
-val mk_true = Thm.cterm_of \<^context> (@{const Not} $ @{const False})
-val mk_false = Thm.cterm_of \<^context> @{const False}
-val mk_not = Thm.apply (Thm.cterm_of \<^context> @{const Not})
-val mk_implies = Thm.mk_binop (Thm.cterm_of \<^context> @{const HOL.implies})
+val mk_true = Thm.cterm_of \<^context> (\<^const>\<open>Not\<close> $ \<^const>\<open>False\<close>)
+val mk_false = Thm.cterm_of \<^context> \<^const>\<open>False\<close>
+val mk_not = Thm.apply (Thm.cterm_of \<^context> \<^const>\<open>Not\<close>)
+val mk_implies = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>HOL.implies\<close>)
 val mk_iff = Thm.mk_binop (Thm.cterm_of \<^context> @{const HOL.eq (bool)})
-val conj = Thm.cterm_of \<^context> @{const HOL.conj}
-val disj = Thm.cterm_of \<^context> @{const HOL.disj}
+val conj = Thm.cterm_of \<^context> \<^const>\<open>HOL.conj\<close>
+val disj = Thm.cterm_of \<^context> \<^const>\<open>HOL.disj\<close>
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
@@ -148,8 +148,8 @@ val add = Thm.cterm_of \<^context> @{const plus (int)}
 val int0 = Numeral.mk_cnumber \<^ctyp>\<open>int\<close> 0
 val mk_sub = Thm.mk_binop (Thm.cterm_of \<^context> @{const minus (int)})
 val mk_mul = Thm.mk_binop (Thm.cterm_of \<^context> @{const times (int)})
-val mk_div = Thm.mk_binop (Thm.cterm_of \<^context> @{const z3div})
-val mk_mod = Thm.mk_binop (Thm.cterm_of \<^context> @{const z3mod})
+val mk_div = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>z3div\<close>)
+val mk_mod = Thm.mk_binop (Thm.cterm_of \<^context> \<^const>\<open>z3mod\<close>)
 val mk_lt = Thm.mk_binop (Thm.cterm_of \<^context> @{const less (int)})
 val mk_le = Thm.mk_binop (Thm.cterm_of \<^context> @{const less_eq (int)})
 

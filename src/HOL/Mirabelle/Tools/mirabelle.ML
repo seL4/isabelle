@@ -42,10 +42,10 @@ struct
 
 (* Mirabelle configuration *)
 
-val logfile = Attrib.setup_config_string @{binding mirabelle_logfile} (K "")
-val timeout = Attrib.setup_config_int @{binding mirabelle_timeout} (K 30)
-val start_line = Attrib.setup_config_int @{binding mirabelle_start_line} (K 0)
-val end_line = Attrib.setup_config_int @{binding mirabelle_end_line} (K ~1)
+val logfile = Attrib.setup_config_string \<^binding>\<open>mirabelle_logfile\<close> (K "")
+val timeout = Attrib.setup_config_int \<^binding>\<open>mirabelle_timeout\<close> (K 30)
+val start_line = Attrib.setup_config_int \<^binding>\<open>mirabelle_start_line\<close> (K 0)
+val end_line = Attrib.setup_config_int \<^binding>\<open>mirabelle_end_line\<close> (K ~1)
 
 
 (* Mirabelle core *)

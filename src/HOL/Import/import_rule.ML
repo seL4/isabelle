@@ -214,7 +214,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val th2 = meta_mp nonempty td_th
     val c =
       case Thm.concl_of th2 of
-        _ $ (Const(@{const_name Ex},_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
+        _ $ (Const(\<^const_name>\<open>Ex\<close>,_) $ Abs(_,_,Const(\<^const_name>\<open>Set.member\<close>,_) $ _ $ c)) => c
       | _ => error "type_introduction: bad type definition theorem"
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
@@ -357,9 +357,9 @@ fun process_line str tstate =
       | process tstate (#"1", [th]) = getth th tstate |>> conj1 |-> setth
       | process tstate (#"2", [th]) = getth th tstate |>> conj2 |-> setth
       | process tstate (#"H", [t]) =
-          gettm t tstate |>> Thm.apply @{cterm Trueprop} |>> Thm.trivial |-> setth
+          gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Thm.trivial |-> setth
       | process tstate (#"A", [_, t]) =
-          gettm t tstate |>> Thm.apply @{cterm Trueprop} |>> Skip_Proof.make_thm_cterm |-> setth
+          gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Skip_Proof.make_thm_cterm |-> setth
       | process tstate (#"C", [th1, th2]) =
           getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => comb t1 t2) |-> setth
       | process tstate (#"T", [th1, th2]) =
@@ -413,7 +413,7 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (Thm.global_ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
+          setty (Thm.global_ctyp_of thy (TFree ("'" ^ (transl_qm n), \<^sort>\<open>type\<close>))) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
             (fn tys => Thm.global_ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
@@ -442,7 +442,7 @@ fun process_line str tstate =
 fun process_file path thy =
   (thy, init_state) |> File.fold_lines process_line path |> fst
 
-val _ = Outer_Syntax.command @{command_keyword import_file}
+val _ = Outer_Syntax.command \<^command_keyword>\<open>import_file\<close>
   "import a recorded proof file"
   (Parse.path >> (fn name => Toplevel.theory (fn thy => process_file (Path.explode name) thy)))
 

@@ -227,8 +227,8 @@ qed
 
 subsection "Welltypings"
 text \<open>
-  We show welltypings of the methods @{term append_name} in class @{term list_name}, 
-  and @{term makelist_name} in class @{term test_name}:
+  We show welltypings of the methods \<^term>\<open>append_name\<close> in class \<^term>\<open>list_name\<close>, 
+  and \<^term>\<open>makelist_name\<close> in class \<^term>\<open>test_name\<close>:
 \<close>
 lemmas eff_simps [simp] = eff_def norm_eff_def xcpt_eff_def
 declare appInvoke [simp del]

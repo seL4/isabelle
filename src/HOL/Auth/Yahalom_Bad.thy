@@ -106,7 +106,7 @@ lemmas YM4_parts_knows_Spy =
        YM4_analz_knows_Spy [THEN analz_into_parts]
 
 
-text\<open>Theorems of the form @{term "X \<notin> parts (knows Spy evs)"} imply 
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (knows Spy evs)\<close> imply 
             that NOBODY sends messages containing X!\<close>
 
 text\<open>Spy never sees a good agent's shared key!\<close>
@@ -334,9 +334,9 @@ apply (analz_mono_contra, simp_all)
 txt\<open>Fake\<close>
 apply blast
 txt\<open>YM3: by \<open>new_keys_not_used\<close>, the message
-   @{term "Crypt K (Nonce NB)"} could not exist\<close>
+   \<^term>\<open>Crypt K (Nonce NB)\<close> could not exist\<close>
 apply (force dest!: Crypt_imp_keysFor)
-txt\<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message?
+txt\<open>YM4: was \<^term>\<open>Crypt K (Nonce NB)\<close> the very last message?
     If not, use the induction hypothesis\<close>
 apply (simp add: ex_disj_distrib)
 txt\<open>yes: apply unicity of session keys\<close>

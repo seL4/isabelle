@@ -13,7 +13,7 @@ primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
 "mirror (Node l x r) = Node (mirror r) x (mirror l)"(*>*)
 
 text\<open>\noindent
-Define a function @{term"mirror"} that mirrors a binary tree
+Define a function \<^term>\<open>mirror\<close> that mirrors a binary tree
 by swapping subtrees recursively. Prove
 \<close>
 
@@ -28,7 +28,7 @@ primrec flatten :: "'a tree => 'a list" where
 (*>*)
 
 text\<open>\noindent
-Define a function @{term"flatten"} that flattens a tree into a list
+Define a function \<^term>\<open>flatten\<close> that flattens a tree into a list
 by traversing it in infix order. Prove
 \<close>
 

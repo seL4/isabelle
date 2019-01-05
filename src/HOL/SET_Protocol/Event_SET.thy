@@ -89,7 +89,7 @@ lemma knows_Spy_Says [simp]:
 by auto
 
 text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
+      on whether \<^term>\<open>A=Spy\<close> and whether \<^term>\<open>A\<in>bad\<close>\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -130,7 +130,7 @@ lemmas knows_Spy_partsEs =
      parts.Body [elim_format]
 
 
-subsection\<open>The Function @{term used}\<close>
+subsection\<open>The Function \<^term>\<open>used\<close>\<close>
 
 lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) \<subseteq> used evs"
 apply (induct_tac "evs")
@@ -168,10 +168,10 @@ declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
 
-text\<open>For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) \<longrightarrow> P"}
+text\<open>For proving theorems of the form \<^term>\<open>X \<notin> analz (knows Spy evs) \<longrightarrow> P\<close>
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
-  it will omit complicated reasoning about @{term analz}.\<close>
+  it will omit complicated reasoning about \<^term>\<open>analz\<close>.\<close>
 
 lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]

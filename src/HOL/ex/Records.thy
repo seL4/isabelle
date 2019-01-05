@@ -198,7 +198,7 @@ definition foo10 :: nat
 subsubsection \<open>Non-coercive structural subtyping\<close>
 
 text \<open>
- Term @{term foo11} has type @{typ cpoint}, not type @{typ point} ---
+ Term \<^term>\<open>foo11\<close> has type \<^typ>\<open>cpoint\<close>, not type \<^typ>\<open>point\<close> ---
  Great!
 \<close>
 
@@ -215,7 +215,7 @@ record point' =
   ypos' :: nat
 
 text \<open>
-  \noindent May not apply @{term getX} to @{term [source] "(| xpos' =
+  \noindent May not apply \<^term>\<open>getX\<close> to @{term [source] "(| xpos' =
   2, ypos' = 0 |)"} -- type error.
 \<close>
 
@@ -245,49 +245,49 @@ resulting goal with the standard record simplification rules. A
 (generalized) predicate on the record is passed as parameter that
 decides whether or how `deep' to split the record. It can peek on the
 subterm starting at the quantified occurrence of the record (including
-the quantifier). The value @{ML "0"} indicates no split, a value
-greater @{ML "0"} splits up to the given bound of record extension and
-finally the value @{ML "~1"} completely splits the record.
+the quantifier). The value \<^ML>\<open>0\<close> indicates no split, a value
+greater \<^ML>\<open>0\<close> splits up to the given bound of record extension and
+finally the value \<^ML>\<open>~1\<close> completely splits the record.
 @{ML [source] "Record.split_simp_tac"} additionally takes a list of
 equations for simplification and can also split fixed record variables.
 
 \<close>
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss @{context}
+  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
     addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply simp
   done
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
+  apply (tactic \<open>Record.split_simp_tac \<^context> [] (K ~1) 1\<close>)
   apply simp
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss @{context}
+  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
     addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply simp
   done
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
+  apply (tactic \<open>Record.split_simp_tac \<^context> [] (K ~1) 1\<close>)
   apply simp
   done
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss @{context}
+  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
     addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply auto
   done
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
+  apply (tactic \<open>Record.split_simp_tac \<^context> [] (K ~1) 1\<close>)
   apply auto
   done
 
 lemma "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
+  apply (tactic \<open>Record.split_simp_tac \<^context> [] (K ~1) 1\<close>)
   apply auto
   done
 
@@ -298,7 +298,7 @@ proof -
     assume pre: "P (xpos r)"
     then have "\<exists>x. P x"
       apply -
-      apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
+      apply (tactic \<open>Record.split_simp_tac \<^context> [] (K ~1) 1\<close>)
       apply auto
       done
   }
@@ -309,7 +309,7 @@ text \<open>The effect of simproc @{ML [source] Record.ex_sel_eq_simproc} is
   illustrated by the following lemma.\<close>
 
 lemma "\<exists>r. xpos r = x"
-  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss @{context}
+  apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
     addsimprocs [Record.ex_sel_eq_simproc]) 1\<close>)
   done
 

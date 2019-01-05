@@ -192,28 +192,28 @@ fun abstract_bin abs f t t1 t2 = abstract_sub t (abs t1 ##>> abs t2 #>> f)
 fun abstract_ter abs f t t1 t2 t3 =
   abstract_sub t (abs t1 ##>> abs t2 ##>> abs t3 #>> (Scan.triple1 #> f))
 
-fun abstract_lit (@{const HOL.Not} $ t) = abstract_term t #>> HOLogic.mk_not
+fun abstract_lit (\<^const>\<open>HOL.Not\<close> $ t) = abstract_term t #>> HOLogic.mk_not
   | abstract_lit t = abstract_term t
 
-fun abstract_not abs (t as @{const HOL.Not} $ t1) =
+fun abstract_not abs (t as \<^const>\<open>HOL.Not\<close> $ t1) =
       abstract_sub t (abs t1 #>> HOLogic.mk_not)
   | abstract_not _ t = abstract_lit t
 
-fun abstract_conj (t as @{const HOL.conj} $ t1 $ t2) =
+fun abstract_conj (t as \<^const>\<open>HOL.conj\<close> $ t1 $ t2) =
       abstract_bin abstract_conj HOLogic.mk_conj t t1 t2
   | abstract_conj t = abstract_lit t
 
-fun abstract_disj (t as @{const HOL.disj} $ t1 $ t2) =
+fun abstract_disj (t as \<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
       abstract_bin abstract_disj HOLogic.mk_disj t t1 t2
   | abstract_disj t = abstract_lit t
 
 fun abstract_prop (t as (c as @{const If (bool)}) $ t1 $ t2 $ t3) =
       abstract_ter abstract_prop (fn (t1, t2, t3) => c $ t1 $ t2 $ t3) t t1 t2 t3
-  | abstract_prop (t as @{const HOL.disj} $ t1 $ t2) =
+  | abstract_prop (t as \<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_disj t t1 t2
-  | abstract_prop (t as @{const HOL.conj} $ t1 $ t2) =
+  | abstract_prop (t as \<^const>\<open>HOL.conj\<close> $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_conj t t1 t2
-  | abstract_prop (t as @{const HOL.implies} $ t1 $ t2) =
+  | abstract_prop (t as \<^const>\<open>HOL.implies\<close> $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_imp t t1 t2
   | abstract_prop (t as \<^term>\<open>HOL.eq :: bool => _\<close> $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_eq t t1 t2
@@ -227,8 +227,8 @@ fun abstract_arith ctxt u =
           abstract_sub t (abs t' #>> (fn u' => c $ Abs (s, T, u')))
       | abs (t as (c as Const (\<^const_name>\<open>If\<close>, _)) $ t1 $ t2 $ t3) =
           abstract_ter abs (fn (t1, t2, t3) => c $ t1 $ t2 $ t3) t t1 t2 t3
-      | abs (t as @{const HOL.Not} $ t1) = abstract_sub t (abs t1 #>> HOLogic.mk_not)
-      | abs (t as @{const HOL.disj} $ t1 $ t2) =
+      | abs (t as \<^const>\<open>HOL.Not\<close> $ t1) = abstract_sub t (abs t1 #>> HOLogic.mk_not)
+      | abs (t as \<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> HOLogic.mk_disj)
       | abs (t as (c as Const (\<^const_name>\<open>uminus_class.uminus\<close>, _)) $ t1) =
           abstract_sub t (abs t1 #>> (fn u => c $ u))
@@ -256,10 +256,10 @@ fun abstract_arith ctxt u =
             | (NONE, _) => abstract_term t cx))
   in abs u end
 
-fun abstract_unit (t as (@{const HOL.Not} $ (@{const HOL.disj} $ t1 $ t2))) =
+fun abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ (\<^const>\<open>HOL.disj\<close> $ t1 $ t2))) =
       abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
         HOLogic.mk_not o HOLogic.mk_disj)
-  | abstract_unit (t as (@{const HOL.disj} $ t1 $ t2)) =
+  | abstract_unit (t as (\<^const>\<open>HOL.disj\<close> $ t1 $ t2)) =
       abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
         HOLogic.mk_disj)
   | abstract_unit (t as (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
@@ -267,12 +267,12 @@ fun abstract_unit (t as (@{const HOL.Not} $ (@{const HOL.disj} $ t1 $ t2))) =
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq)
       else abstract_lit t
-  | abstract_unit (t as (@{const HOL.Not} $ Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
+  | abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
       if fastype_of t1 = \<^typ>\<open>bool\<close> then
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq #>> HOLogic.mk_not)
       else abstract_lit t
-  | abstract_unit (t as (@{const HOL.Not} $ t1)) =
+  | abstract_unit (t as (\<^const>\<open>HOL.Not\<close> $ t1)) =
       abstract_sub t (abstract_unit t1 #>> HOLogic.mk_not)
   | abstract_unit t = abstract_lit t
 

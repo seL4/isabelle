@@ -17,8 +17,8 @@ open ATP_Theory_Export
 
 ML \<open>
 val do_it = false (* switch to "true" to generate the files *)
-val ctxt = @{context}
-val thy = @{theory Complex_Main}
+val ctxt = \<^context>
+val thy = \<^theory>\<open>Complex_Main\<close>
 val infer_policy = (* Unchecked_Inferences *) No_Inferences
 \<close>
 

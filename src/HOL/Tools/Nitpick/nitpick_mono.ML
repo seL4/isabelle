@@ -829,10 +829,10 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                            " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
                            " : _?");
        case t of
-         @{const False} => (bool_M, accum ||> add_comp_frame (A Fls) Leq frame)
+         \<^const>\<open>False\<close> => (bool_M, accum ||> add_comp_frame (A Fls) Leq frame)
        | Const (\<^const_name>\<open>None\<close>, T) =>
          (mtype_for T, accum ||> add_comp_frame (A Fls) Leq frame)
-       | @{const True} => (bool_M, accum ||> add_comp_frame (A Tru) Leq frame)
+       | \<^const>\<open>True\<close> => (bool_M, accum ||> add_comp_frame (A Tru) Leq frame)
        | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ Bound 0 $ t2 =>
          (* hack to exploit symmetry of equality when typing "insert" *)
          (if t2 = Bound 0 then do_term \<^term>\<open>True\<close>
@@ -850,9 +850,9 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
             | \<^const_name>\<open>Ex\<close> =>
               let val set_T = domain_type T in
                 do_term (Abs (Name.uu, set_T,
-                              @{const Not} $ (HOLogic.mk_eq
+                              \<^const>\<open>Not\<close> $ (HOLogic.mk_eq
                                   (Abs (Name.uu, domain_type set_T,
-                                        @{const False}),
+                                        \<^const>\<open>False\<close>),
                                    Bound 0)))) accum
               end
             | \<^const_name>\<open>HOL.eq\<close> => do_equals T accum
@@ -971,10 +971,10 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                         val (M', accum) =
                           do_term t' (accum |>> push_bound (V x) T M)
                       in (MFun (M, V x, M'), accum |>> pop_bound) end))
-         | @{const Not} $ t1 => do_connect imp_spec t1 @{const False} accum
-         | @{const conj} $ t1 $ t2 => do_connect conj_spec t1 t2 accum
-         | @{const disj} $ t1 $ t2 => do_connect disj_spec t1 t2 accum
-         | @{const implies} $ t1 $ t2 => do_connect imp_spec t1 t2 accum
+         | \<^const>\<open>Not\<close> $ t1 => do_connect imp_spec t1 \<^const>\<open>False\<close> accum
+         | \<^const>\<open>conj\<close> $ t1 $ t2 => do_connect conj_spec t1 t2 accum
+         | \<^const>\<open>disj\<close> $ t1 $ t2 => do_connect disj_spec t1 t2 accum
+         | \<^const>\<open>implies\<close> $ t1 $ t2 => do_connect imp_spec t1 t2 accum
          | Const (\<^const_name>\<open>Let\<close>, _) $ t1 $ t2 =>
            do_term (betapply (t2, t1)) accum
          | t1 $ t2 =>
@@ -1060,7 +1060,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
           Const (s as \<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
         | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 => do_equals t1 t2
-        | @{const Trueprop} $ t1 => do_formula sn t1 accum
+        | \<^const>\<open>Trueprop\<close> $ t1 => do_formula sn t1 accum
         | Const (s as \<^const_name>\<open>All\<close>, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
         | Const (s as \<^const_name>\<open>Ex\<close>, T0) $ (t1 as Abs (_, T1, t1')) =>
@@ -1068,19 +1068,19 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
              Plus => do_quantifier s T1 t1'
            | Minus =>
              (* FIXME: Needed? *)
-             do_term (@{const Not}
+             do_term (\<^const>\<open>Not\<close>
                       $ (HOLogic.eq_const (domain_type T0) $ t1
-                         $ Abs (Name.uu, T1, @{const False}))) accum)
+                         $ Abs (Name.uu, T1, \<^const>\<open>False\<close>))) accum)
         | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 => do_equals t1 t2
         | Const (\<^const_name>\<open>Let\<close>, _) $ t1 $ t2 =>
           do_formula sn (betapply (t2, t1)) accum
-        | @{const Pure.conjunction} $ t1 $ t2 =>
+        | \<^const>\<open>Pure.conjunction\<close> $ t1 $ t2 =>
           do_connect meta_conj_spec false t1 t2 accum
-        | @{const Pure.imp} $ t1 $ t2 => do_connect meta_imp_spec true t1 t2 accum
-        | @{const Not} $ t1 => do_connect imp_spec true t1 @{const False} accum
-        | @{const conj} $ t1 $ t2 => do_connect conj_spec false t1 t2 accum
-        | @{const disj} $ t1 $ t2 => do_connect disj_spec false t1 t2 accum
-        | @{const implies} $ t1 $ t2 => do_connect imp_spec true t1 t2 accum
+        | \<^const>\<open>Pure.imp\<close> $ t1 $ t2 => do_connect meta_imp_spec true t1 t2 accum
+        | \<^const>\<open>Not\<close> $ t1 => do_connect imp_spec true t1 \<^const>\<open>False\<close> accum
+        | \<^const>\<open>conj\<close> $ t1 $ t2 => do_connect conj_spec false t1 t2 accum
+        | \<^const>\<open>disj\<close> $ t1 $ t2 => do_connect disj_spec false t1 t2 accum
+        | \<^const>\<open>implies\<close> $ t1 $ t2 => do_connect imp_spec true t1 t2 accum
         | _ => do_term t accum
       end
       |> tap (fn (gamma, _) =>
@@ -1123,17 +1123,17 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...} : mdata)
       and do_formula t accum =
         case t of
           Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
-        | @{const Trueprop} $ t1 => do_formula t1 accum
+        | \<^const>\<open>Trueprop\<close> $ t1 => do_formula t1 accum
         | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 =>
           consider_general_equals mdata true t1 t2 accum
-        | @{const Pure.imp} $ t1 $ t2 => do_implies t1 t2 accum
-        | @{const Pure.conjunction} $ t1 $ t2 =>
+        | \<^const>\<open>Pure.imp\<close> $ t1 $ t2 => do_implies t1 t2 accum
+        | \<^const>\<open>Pure.conjunction\<close> $ t1 $ t2 =>
           fold (do_formula) [t1, t2] accum
         | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
         | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 =>
           consider_general_equals mdata true t1 t2 accum
-        | @{const conj} $ t1 $ t2 => fold (do_formula) [t1, t2] accum
-        | @{const implies} $ t1 $ t2 => do_implies t1 t2 accum
+        | \<^const>\<open>conj\<close> $ t1 $ t2 => fold (do_formula) [t1, t2] accum
+        | \<^const>\<open>implies\<close> $ t1 $ t2 => do_implies t1 t2 accum
         | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
                            \do_formula", [t])
     in do_formula t end

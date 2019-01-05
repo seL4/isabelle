@@ -68,7 +68,7 @@ lemma listall_cong [cong, extraction_expand]:
   by (unfold listall_def) simp
 
 text \<open>
-@{term "listsp"} is equivalent to @{term "listall"}, but cannot be
+\<^term>\<open>listsp\<close> is equivalent to \<^term>\<open>listall\<close>, but cannot be
 used for program extraction.
 \<close>
 
@@ -186,7 +186,7 @@ lemma lift_NF: "NF t \<Longrightarrow> NF (lift t i)"
   done
 
 text \<open>
-@{term NF} characterizes exactly the terms that are in normal form.
+\<^term>\<open>NF\<close> characterizes exactly the terms that are in normal form.
 \<close>
   
 lemma NF_eq: "NF t = (\<forall>t'. \<not> t \<rightarrow>\<^sub>\<beta> t')"

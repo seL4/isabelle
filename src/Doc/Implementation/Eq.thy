@@ -43,12 +43,12 @@ text \<open>
   same reasoning schemes as theorems that can be composed like object-level
   rules as explained in \secref{sec:obj-rules}.
 
-  For example, @{ML Thm.symmetric} as Pure inference is an ML function that
+  For example, \<^ML>\<open>Thm.symmetric\<close> as Pure inference is an ML function that
   maps a theorem \<open>th\<close> stating \<open>t \<equiv> u\<close> to one stating \<open>u \<equiv> t\<close>. In contrast,
   @{thm [source] Pure.symmetric} as Pure theorem expresses the same reasoning
   in declarative form. If used like \<open>th [THEN Pure.symmetric]\<close> in Isar source
   notation, it achieves a similar effect as the ML inference function,
-  although the rule attribute @{attribute THEN} or ML operator @{ML "op RS"}
+  although the rule attribute @{attribute THEN} or ML operator \<^ML>\<open>op RS\<close>
   involve the full machinery of higher-order unification (modulo
   \<open>\<beta>\<eta>\<close>-conversion) and lifting of \<open>\<And>/\<Longrightarrow>\<close> contexts.
 \<close>
@@ -99,21 +99,21 @@ text %mlref \<open>
   @{index_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
   \end{mldecls}
 
-  \<^descr> @{ML rewrite_rule}~\<open>ctxt rules thm\<close> rewrites the whole theorem by the
+  \<^descr> \<^ML>\<open>rewrite_rule\<close>~\<open>ctxt rules thm\<close> rewrites the whole theorem by the
   given rules.
 
-  \<^descr> @{ML rewrite_goals_rule}~\<open>ctxt rules thm\<close> rewrites the outer premises of
+  \<^descr> \<^ML>\<open>rewrite_goals_rule\<close>~\<open>ctxt rules thm\<close> rewrites the outer premises of
   the given theorem. Interpreting the same as a goal state
   (\secref{sec:tactical-goals}) it means to rewrite all subgoals (in the same
-  manner as @{ML rewrite_goals_tac}).
+  manner as \<^ML>\<open>rewrite_goals_tac\<close>).
 
-  \<^descr> @{ML rewrite_goal_tac}~\<open>ctxt rules i\<close> rewrites subgoal \<open>i\<close> by the given
+  \<^descr> \<^ML>\<open>rewrite_goal_tac\<close>~\<open>ctxt rules i\<close> rewrites subgoal \<open>i\<close> by the given
   rewrite rules.
 
-  \<^descr> @{ML rewrite_goals_tac}~\<open>ctxt rules\<close> rewrites all subgoals by the given
+  \<^descr> \<^ML>\<open>rewrite_goals_tac\<close>~\<open>ctxt rules\<close> rewrites all subgoals by the given
   rewrite rules.
 
-  \<^descr> @{ML fold_goals_tac}~\<open>ctxt rules\<close> essentially uses @{ML rewrite_goals_tac}
+  \<^descr> \<^ML>\<open>fold_goals_tac\<close>~\<open>ctxt rules\<close> essentially uses \<^ML>\<open>rewrite_goals_tac\<close>
   with the symmetric form of each member of \<open>rules\<close>, re-ordered to fold longer
   expression first. This supports to idea to fold primitive definitions that
   appear in expended form in the proof state.

@@ -9,8 +9,7 @@ theory Orders imports Main begin
 subsection \<open>Ordered structures\<close>
 
 text \<open>
-  We define several classes of ordered structures over some type @{typ
-  'a} with relation \<open>\<sqsubseteq> :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>.  For a
+  We define several classes of ordered structures over some type \<^typ>\<open>'a\<close> with relation \<open>\<sqsubseteq> :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>.  For a
   \emph{quasi-order} that relation is required to be reflexive and
   transitive, for a \emph{partial order} it also has to be
   anti-symmetric, while for a \emph{linear order} all elements are
@@ -65,7 +64,7 @@ lemma dual_leq [iff?]: "(dual x \<sqsubseteq> dual y) = (y \<sqsubseteq> x)"
   by (simp add: leq_dual_def)
 
 text \<open>
-  \medskip Functions @{term dual} and @{term undual} are inverse to
+  \medskip Functions \<^term>\<open>dual\<close> and \<^term>\<open>undual\<close> are inverse to
   each other; this entails the following fundamental properties.
 \<close>
 
@@ -79,7 +78,7 @@ lemma dual_undual_id [simp]: "dual o undual = id"
   by (rule ext) simp
 
 text \<open>
-  \medskip Since @{term dual} (and @{term undual}) are both injective
+  \medskip Since \<^term>\<open>dual\<close> (and \<^term>\<open>undual\<close>) are both injective
   and surjective, the basic logical connectives (equality,
   quantification etc.) are transferred as follows.
 \<close>

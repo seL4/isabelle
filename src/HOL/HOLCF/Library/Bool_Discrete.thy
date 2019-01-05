@@ -8,7 +8,7 @@ theory Bool_Discrete
 imports HOLCF
 begin
 
-text \<open>Discrete cpo instance for @{typ bool}.\<close>
+text \<open>Discrete cpo instance for \<^typ>\<open>bool\<close>.\<close>
 
 instantiation bool :: discrete_cpo
 begin

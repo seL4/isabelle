@@ -65,14 +65,14 @@ type constr_info =
 (************************** miscellaneous functions ***************************)
 
 val simple_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms})
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms simp_thms})
 
 val beta_rules =
   @{thms beta_cfun cont_id cont_const cont2cont_APP cont2cont_LAM'} @
   @{thms cont2cont_fst cont2cont_snd cont2cont_Pair}
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps (@{thms simp_thms} @ beta_rules))
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps (@{thms simp_thms} @ beta_rules))
 
 fun define_consts
     (specs : (binding * term * mixfix) list)
@@ -196,8 +196,8 @@ fun add_constructors
 
     (* prove exhaustiveness of constructors *)
     local
-      fun arg2typ n (true,  _) = (n+1, mk_upT (TVar (("'a", n), @{sort cpo})))
-        | arg2typ n (false, _) = (n+1, TVar (("'a", n), @{sort pcpo}))
+      fun arg2typ n (true,  _) = (n+1, mk_upT (TVar (("'a", n), \<^sort>\<open>cpo\<close>)))
+        | arg2typ n (false, _) = (n+1, TVar (("'a", n), \<^sort>\<open>pcpo\<close>))
       fun args2typ n [] = (n, oneT)
         | args2typ n [arg] = arg2typ n arg
         | args2typ n (arg::args) =
@@ -408,7 +408,7 @@ fun add_case_combinator
 
     (* calculate function arguments of case combinator *)
     val tns = map fst (Term.add_tfreesT lhsT [])
-    val resultT = TFree (singleton (Name.variant_list tns) "'t", @{sort pcpo})
+    val resultT = TFree (singleton (Name.variant_list tns) "'t", \<^sort>\<open>pcpo\<close>)
     fun fTs T = map (fn (_, args) => map snd args -->> T) spec
     val fns = Old_Datatype_Prop.indexify_names (map (K "f") spec)
     val fs = map Free (fns ~~ fTs resultT)
@@ -456,26 +456,26 @@ fun add_case_combinator
       fun argvars n args = map_index (argvar n) args
       fun app s (l, r) = Ast.mk_appl (Ast.Constant s) [l, r]
       val cabs = app "_cabs"
-      val capp = app @{const_syntax Rep_cfun}
+      val capp = app \<^const_syntax>\<open>Rep_cfun\<close>
       val capps = Library.foldl capp
       fun con1 authentic n (con, args) =
           Library.foldl capp (c_ast authentic con, argvars n args)
       fun con1_constraint authentic n (con, args) =
           Library.foldl capp
             (Ast.Appl
-              [Ast.Constant @{syntax_const "_constrain"}, c_ast authentic con,
+              [Ast.Constant \<^syntax_const>\<open>_constrain\<close>, c_ast authentic con,
                 Ast.Variable ("'a" ^ string_of_int n)],
              argvars n args)
       fun case1 constraint authentic (n, c) =
-        app @{syntax_const "_case1"}
+        app \<^syntax_const>\<open>_case1\<close>
           ((if constraint then con1_constraint else con1) authentic n c, expvar n)
       fun arg1 (n, (_, args)) = List.foldr cabs (expvar n) (argvars n args)
-      fun when1 n (m, c) = if n = m then arg1 (n, c) else Ast.Constant @{const_syntax bottom}
+      fun when1 n (m, c) = if n = m then arg1 (n, c) else Ast.Constant \<^const_syntax>\<open>bottom\<close>
       val case_constant = Ast.Constant (syntax (case_const dummyT))
       fun case_trans constraint authentic =
           (app "_case_syntax"
             (Ast.Variable "x",
-             foldr1 (app @{syntax_const "_case2"}) (map_index (case1 constraint authentic) spec)),
+             foldr1 (app \<^syntax_const>\<open>_case2\<close>) (map_index (case1 constraint authentic) spec)),
            capp (capps (case_constant, map_index arg1 spec), Ast.Variable "x"))
       fun one_abscon_trans authentic (n, c) =
           (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
@@ -690,7 +690,7 @@ fun add_discriminators
       fun dis_fun i (j, (_, args)) =
         let
           val (vs, _) = get_vars args
-          val tr = if i = j then @{term TT} else @{term FF}
+          val tr = if i = j then \<^term>\<open>TT\<close> else \<^term>\<open>FF\<close>
         in
           big_lambdas vs tr
         end
@@ -724,7 +724,7 @@ fun add_discriminators
         let
           val (vs, nonlazy) = get_vars args
           val lhs = dis ` list_ccomb (con, vs)
-          val rhs = if i = j then @{term TT} else @{term FF}
+          val rhs = if i = j then \<^term>\<open>TT\<close> else \<^term>\<open>FF\<close>
           val assms = map (mk_trp o mk_defined) nonlazy
           val concl = mk_trp (mk_eq (lhs, rhs))
           val goal = Logic.list_implies (assms, concl)
@@ -775,7 +775,7 @@ fun add_match_combinators
       let
         val ts : string list = map fst (Term.add_tfreesT lhsT [])
         val t : string = singleton (Name.variant_list ts) "'t"
-      in TFree (t, @{sort pcpo}) end
+      in TFree (t, \<^sort>\<open>pcpo\<close>) end
 
     (* define match combinators *)
     local

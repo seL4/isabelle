@@ -150,7 +150,7 @@ lemma NSLIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow>\<^sub
   by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 
 
-subsubsection \<open>Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ}\<close>
+subsubsection \<open>Equivalence of \<^term>\<open>LIMSEQ\<close> and \<^term>\<open>NSLIMSEQ\<close>\<close>
 
 lemma LIMSEQ_NSLIMSEQ:
   assumes X: "X \<longlonglongrightarrow> L"
@@ -199,7 +199,7 @@ theorem LIMSEQ_NSLIMSEQ_iff: "f \<longlonglongrightarrow> L \<longleftrightarrow
   by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
 
 
-subsubsection \<open>Derived theorems about @{term NSLIMSEQ}\<close>
+subsubsection \<open>Derived theorems about \<^term>\<open>NSLIMSEQ\<close>\<close>
 
 text \<open>We prove the NS version from the standard one, since the NS proof
   seems more complicated than the standard one above!\<close>
@@ -477,8 +477,7 @@ lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent X"
 
 subsection \<open>Power Sequences\<close>
 
-text \<open>The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
-  "x<1"}.  Proof will use (NS) Cauchy equivalence for convergence and
+text \<open>The sequence \<^term>\<open>x^n\<close> tends to 0 if \<^term>\<open>0\<le>x\<close> and \<^term>\<open>x<1\<close>.  Proof will use (NS) Cauchy equivalence for convergence and
   also fact that bounded and monotonic sequence converges.\<close>
 
 text \<open>We now use NS criterion to bring proof of theorem through.\<close>

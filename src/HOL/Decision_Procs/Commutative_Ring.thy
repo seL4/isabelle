@@ -649,21 +649,21 @@ lemma in_carrier_trivial: "cring_class.in_carrier l"
   by (induct l) (simp_all add: cring_class.in_carrier_def carrier_class)
 
 ML \<open>
-val term_of_nat = HOLogic.mk_number @{typ nat} o @{code integer_of_nat};
+val term_of_nat = HOLogic.mk_number \<^typ>\<open>nat\<close> o @{code integer_of_nat};
 
-val term_of_int = HOLogic.mk_number @{typ int} o @{code integer_of_int};
+val term_of_int = HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int};
 
-fun term_of_pol (@{code Pc} k) = @{term Pc} $ term_of_int k
-  | term_of_pol (@{code Pinj} (n, p)) = @{term Pinj} $ term_of_nat n $ term_of_pol p
-  | term_of_pol (@{code PX} (p, n, q)) = @{term PX} $ term_of_pol p $ term_of_nat n $ term_of_pol q;
+fun term_of_pol (@{code Pc} k) = \<^term>\<open>Pc\<close> $ term_of_int k
+  | term_of_pol (@{code Pinj} (n, p)) = \<^term>\<open>Pinj\<close> $ term_of_nat n $ term_of_pol p
+  | term_of_pol (@{code PX} (p, n, q)) = \<^term>\<open>PX\<close> $ term_of_pol p $ term_of_nat n $ term_of_pol q;
 
 local
 
-fun pol (ctxt, ct, t) = Thm.mk_binop @{cterm "Pure.eq :: pol \<Rightarrow> pol \<Rightarrow> prop"}
+fun pol (ctxt, ct, t) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: pol \<Rightarrow> pol \<Rightarrow> prop\<close>
   ct (Thm.cterm_of ctxt t);
 
 val (_, raw_pol_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding pnsubstl}, pol)));
+  (Thm.add_oracle (\<^binding>\<open>pnsubstl\<close>, pol)));
 
 fun pol_oracle ctxt ct t = raw_pol_oracle (ctxt, ct, t);
 
@@ -742,57 +742,57 @@ fun get_ring_simps ctxt optcT t =
        in (map tr ths1, map tr ths2, map tr ths3, map tr ths4, tr th5, tr th) end
    | NONE => error "get_ring_simps: lookup failed");
 
-fun ring_struct (Const (@{const_name Ring.ring.add}, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (@{const_name Ring.a_minus}, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (@{const_name Group.monoid.mult}, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (@{const_name Ring.a_inv}, _) $ R $ _) = SOME R
-  | ring_struct (Const (@{const_name Group.pow}, _) $ R $ _ $ _) = SOME R
-  | ring_struct (Const (@{const_name Ring.ring.zero}, _) $ R) = SOME R
-  | ring_struct (Const (@{const_name Group.monoid.one}, _) $ R) = SOME R
-  | ring_struct (Const (@{const_name Algebra_Aux.of_integer}, _) $ R $ _) = SOME R
+fun ring_struct (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ R $ _ $ _) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ R $ _ $ _) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ R $ _ $ _) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ R $ _) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Group.pow\<close>, _) $ R $ _ $ _) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ R) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ R) = SOME R
+  | ring_struct (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ R $ _) = SOME R
   | ring_struct _ = NONE;
 
-fun reif_polex vs (Const (@{const_name Ring.ring.add}, _) $ _ $ a $ b) =
-      @{const Add} $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (@{const_name Ring.a_minus}, _) $ _ $ a $ b) =
-      @{const Sub} $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (@{const_name Group.monoid.mult}, _) $ _ $ a $ b) =
-      @{const Mul} $ reif_polex vs a $ reif_polex vs b
-  | reif_polex vs (Const (@{const_name Ring.a_inv}, _) $ _ $ a) =
-      @{const Neg} $ reif_polex vs a
-  | reif_polex vs (Const (@{const_name Group.pow}, _) $ _ $ a $ n) =
-      @{const Pow} $ reif_polex vs a $ n
+fun reif_polex vs (Const (\<^const_name>\<open>Ring.ring.add\<close>, _) $ _ $ a $ b) =
+      \<^const>\<open>Add\<close> $ reif_polex vs a $ reif_polex vs b
+  | reif_polex vs (Const (\<^const_name>\<open>Ring.a_minus\<close>, _) $ _ $ a $ b) =
+      \<^const>\<open>Sub\<close> $ reif_polex vs a $ reif_polex vs b
+  | reif_polex vs (Const (\<^const_name>\<open>Group.monoid.mult\<close>, _) $ _ $ a $ b) =
+      \<^const>\<open>Mul\<close> $ reif_polex vs a $ reif_polex vs b
+  | reif_polex vs (Const (\<^const_name>\<open>Ring.a_inv\<close>, _) $ _ $ a) =
+      \<^const>\<open>Neg\<close> $ reif_polex vs a
+  | reif_polex vs (Const (\<^const_name>\<open>Group.pow\<close>, _) $ _ $ a $ n) =
+      \<^const>\<open>Pow\<close> $ reif_polex vs a $ n
   | reif_polex vs (Free x) =
-      @{const Var} $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_polex vs (Const (@{const_name Ring.ring.zero}, _) $ _) =
-      @{term "Const 0"}
-  | reif_polex vs (Const (@{const_name Group.monoid.one}, _) $ _) =
-      @{term "Const 1"}
-  | reif_polex vs (Const (@{const_name Algebra_Aux.of_integer}, _) $ _ $ n) =
-      @{const Const} $ n
+      \<^const>\<open>Var\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
+  | reif_polex vs (Const (\<^const_name>\<open>Ring.ring.zero\<close>, _) $ _) =
+      \<^term>\<open>Const 0\<close>
+  | reif_polex vs (Const (\<^const_name>\<open>Group.monoid.one\<close>, _) $ _) =
+      \<^term>\<open>Const 1\<close>
+  | reif_polex vs (Const (\<^const_name>\<open>Algebra_Aux.of_integer\<close>, _) $ _ $ n) =
+      \<^const>\<open>Const\<close> $ n
   | reif_polex _ _ = error "reif_polex: bad expression";
 
-fun reif_polex' vs (Const (@{const_name Groups.plus}, _) $ a $ b) =
-      @{const Add} $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (@{const_name Groups.minus}, _) $ a $ b) =
-      @{const Sub} $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (@{const_name Groups.times}, _) $ a $ b) =
-      @{const Mul} $ reif_polex' vs a $ reif_polex' vs b
-  | reif_polex' vs (Const (@{const_name Groups.uminus}, _) $ a) =
-      @{const Neg} $ reif_polex' vs a
-  | reif_polex' vs (Const (@{const_name Power.power}, _) $ a $ n) =
-      @{const Pow} $ reif_polex' vs a $ n
+fun reif_polex' vs (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b) =
+      \<^const>\<open>Add\<close> $ reif_polex' vs a $ reif_polex' vs b
+  | reif_polex' vs (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b) =
+      \<^const>\<open>Sub\<close> $ reif_polex' vs a $ reif_polex' vs b
+  | reif_polex' vs (Const (\<^const_name>\<open>Groups.times\<close>, _) $ a $ b) =
+      \<^const>\<open>Mul\<close> $ reif_polex' vs a $ reif_polex' vs b
+  | reif_polex' vs (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ a) =
+      \<^const>\<open>Neg\<close> $ reif_polex' vs a
+  | reif_polex' vs (Const (\<^const_name>\<open>Power.power\<close>, _) $ a $ n) =
+      \<^const>\<open>Pow\<close> $ reif_polex' vs a $ n
   | reif_polex' vs (Free x) =
-      @{const Var} $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
-  | reif_polex' vs (Const (@{const_name numeral}, _) $ b) =
-      @{const Const} $ (@{const numeral (int)} $ b)
-  | reif_polex' vs (Const (@{const_name zero_class.zero}, _)) = @{term "Const 0"}
-  | reif_polex' vs (Const (@{const_name one_class.one}, _)) = @{term "Const 1"}
+      \<^const>\<open>Var\<close> $ HOLogic.mk_number HOLogic.natT (find_index (equal x) vs)
+  | reif_polex' vs (Const (\<^const_name>\<open>numeral\<close>, _) $ b) =
+      \<^const>\<open>Const\<close> $ (@{const numeral (int)} $ b)
+  | reif_polex' vs (Const (\<^const_name>\<open>zero_class.zero\<close>, _)) = \<^term>\<open>Const 0\<close>
+  | reif_polex' vs (Const (\<^const_name>\<open>one_class.one\<close>, _)) = \<^term>\<open>Const 1\<close>
   | reif_polex' vs t = error "reif_polex: bad expression";
 
 fun head_conv (_, _, _, _, head_simp, _) ys =
   (case strip_app ys of
-     (@{const_name Cons}, [y, xs]) => inst [] [y, xs] head_simp);
+     (\<^const_name>\<open>Cons\<close>, [y, xs]) => inst [] [y, xs] head_simp);
 
 fun Ipol_conv (rls as
       ([Ipol_simps_1, Ipol_simps_2, Ipol_simps_3,
@@ -803,17 +803,17 @@ fun Ipol_conv (rls as
     val drop_conv_a = drop_conv a;
 
     fun conv l p = (case strip_app p of
-        (@{const_name Pc}, [c]) => (case strip_numeral c of
-            (@{const_name zero_class.zero}, _) => inst [] [l] Ipol_simps_4
-          | (@{const_name one_class.one}, _) => inst [] [l] Ipol_simps_5
-          | (@{const_name numeral}, [m]) => inst [] [l, m] Ipol_simps_6
-          | (@{const_name uminus}, [m]) => inst [] [l, m] Ipol_simps_7
+        (\<^const_name>\<open>Pc\<close>, [c]) => (case strip_numeral c of
+            (\<^const_name>\<open>zero_class.zero\<close>, _) => inst [] [l] Ipol_simps_4
+          | (\<^const_name>\<open>one_class.one\<close>, _) => inst [] [l] Ipol_simps_5
+          | (\<^const_name>\<open>numeral\<close>, [m]) => inst [] [l, m] Ipol_simps_6
+          | (\<^const_name>\<open>uminus\<close>, [m]) => inst [] [l, m] Ipol_simps_7
           | _ => inst [] [l, c] Ipol_simps_1)
-      | (@{const_name Pinj}, [i, P]) =>
+      | (\<^const_name>\<open>Pinj\<close>, [i, P]) =>
           transitive'
             (inst [] [l, i, P] Ipol_simps_2)
             (cong2' conv (args2 drop_conv_a) Thm.reflexive)
-      | (@{const_name PX}, [P, x, Q]) =>
+      | (\<^const_name>\<open>PX\<close>, [P, x, Q]) =>
           transitive'
             (inst [] [l, P, x, Q] Ipol_simps_3)
             (cong2
@@ -833,32 +833,32 @@ fun Ipolex_conv (rls as
     val drop_conv_a = drop_conv a;
 
     fun conv l r = (case strip_app r of
-        (@{const_name Var}, [n]) =>
+        (\<^const_name>\<open>Var\<close>, [n]) =>
           transitive'
             (inst [] [l, n] Ipolex_Var)
             (cong1' (head_conv rls) (args2 drop_conv_a))
-      | (@{const_name Const}, [i]) => (case strip_app i of
-            (@{const_name zero_class.zero}, _) => inst [] [l] Ipolex_Const_0
-          | (@{const_name one_class.one}, _) => inst [] [l] Ipolex_Const_1
-          | (@{const_name numeral}, [m]) => inst [] [l, m] Ipolex_Const_numeral
+      | (\<^const_name>\<open>Const\<close>, [i]) => (case strip_app i of
+            (\<^const_name>\<open>zero_class.zero\<close>, _) => inst [] [l] Ipolex_Const_0
+          | (\<^const_name>\<open>one_class.one\<close>, _) => inst [] [l] Ipolex_Const_1
+          | (\<^const_name>\<open>numeral\<close>, [m]) => inst [] [l, m] Ipolex_Const_numeral
           | _ => inst [] [l, i] Ipolex_Const)
-      | (@{const_name Add}, [P, Q]) =>
+      | (\<^const_name>\<open>Add\<close>, [P, Q]) =>
           transitive'
             (inst [] [l, P, Q] Ipolex_Add)
             (cong2 (args2 conv) (args2 conv))
-      | (@{const_name Sub}, [P, Q]) =>
+      | (\<^const_name>\<open>Sub\<close>, [P, Q]) =>
           transitive'
             (inst [] [l, P, Q] Ipolex_Sub)
             (cong2 (args2 conv) (args2 conv))
-      | (@{const_name Mul}, [P, Q]) =>
+      | (\<^const_name>\<open>Mul\<close>, [P, Q]) =>
           transitive'
             (inst [] [l, P, Q] Ipolex_Mul)
             (cong2 (args2 conv) (args2 conv))
-      | (@{const_name Pow}, [P, n]) =>
+      | (\<^const_name>\<open>Pow\<close>, [P, n]) =>
           transitive'
             (inst [] [l, P, n] Ipolex_Pow)
             (cong2 (args2 conv) Thm.reflexive)
-      | (@{const_name Neg}, [P]) =>
+      | (\<^const_name>\<open>Neg\<close>, [P]) =>
           transitive'
             (inst [] [l, P] Ipolex_Neg)
             (cong1 (args2 conv)))
@@ -868,9 +868,9 @@ fun Ipolex_polex_list_conv (rls as
       (_, _,
        [Ipolex_polex_list_Nil, Ipolex_polex_list_Cons], _, _, _)) l pps =
   (case strip_app pps of
-     (@{const_name Nil}, []) => inst [] [l] Ipolex_polex_list_Nil
-   | (@{const_name Cons}, [p, pps']) => (case strip_app p of
-       (@{const_name Pair}, [P, Q]) =>
+     (\<^const_name>\<open>Nil\<close>, []) => inst [] [l] Ipolex_polex_list_Nil
+   | (\<^const_name>\<open>Cons\<close>, [p, pps']) => (case strip_app p of
+       (\<^const_name>\<open>Pair\<close>, [P, Q]) =>
          transitive'
            (inst [] [l, P, Q, pps'] Ipolex_polex_list_Cons)
            (cong2
@@ -892,9 +892,9 @@ fun mk_in_carrier ctxt R prems xs =
     val props = map fst (Facts.props (Proof_Context.facts_of ctxt)) @ maps dest_conj prems;
     val ths = map (fn p as (x, _) =>
       (case find_first
-         ((fn Const (@{const_name Trueprop}, _) $
-                (Const (@{const_name Set.member}, _) $
-                   Free (y, _) $ (Const (@{const_name carrier}, _) $ S)) =>
+         ((fn Const (\<^const_name>\<open>Trueprop\<close>, _) $
+                (Const (\<^const_name>\<open>Set.member\<close>, _) $
+                   Free (y, _) $ (Const (\<^const_name>\<open>carrier\<close>, _) $ S)) =>
                 x = y andalso R aconv S
             | _ => false) o Thm.prop_of) props of
          SOME th => th
@@ -906,13 +906,13 @@ fun mk_in_carrier ctxt R prems xs =
   end;
 
 fun mk_ring T =
-  Const (@{const_name cring_class_ops},
-    Type (@{type_name partial_object_ext}, [T,
-      Type (@{type_name monoid_ext}, [T,
-        Type (@{type_name ring_ext}, [T, @{typ unit}])])]));
+  Const (\<^const_name>\<open>cring_class_ops\<close>,
+    Type (\<^type_name>\<open>partial_object_ext\<close>, [T,
+      Type (\<^type_name>\<open>monoid_ext\<close>, [T,
+        Type (\<^type_name>\<open>ring_ext\<close>, [T, \<^typ>\<open>unit\<close>])])]));
 
-val iterations = @{cterm "1000::nat"};
-val Trueprop_cong = Thm.combination (Thm.reflexive @{cterm Trueprop});
+val iterations = \<^cterm>\<open>1000::nat\<close>;
+val Trueprop_cong = Thm.combination (Thm.reflexive \<^cterm>\<open>Trueprop\<close>);
 
 fun commutative_ring_conv ctxt prems eqs ct =
   let
@@ -926,7 +926,7 @@ fun commutative_ring_conv ctxt prems eqs ct =
       | NONE => (mk_ring T, SOME cT, @{thm in_carrier_trivial}, reif_polex' xs));
     val rls as (_, _, _, _, _, norm_subst_correct) = get_ring_simps ctxt optcT R;
     val cxs = Thm.cterm_of ctxt (HOLogic.mk_list T (map Free xs));
-    val ceqs = Thm.cterm_of ctxt (HOLogic.mk_list @{typ "polex * polex"}
+    val ceqs = Thm.cterm_of ctxt (HOLogic.mk_list \<^typ>\<open>polex * polex\<close>
       (map (HOLogic.mk_prod o apply2 reif) eqs'));
     val cp = Thm.cterm_of ctxt (reif (Thm.term_of ct));
     val prem = Thm.equal_elim
@@ -960,7 +960,7 @@ begin
 local_setup \<open>
 Local_Theory.declaration {syntax = false, pervasive = false}
   (fn phi => Ring_Tac.Ring_Simps.map (Ring_Tac.insert_rules Ring_Tac.eq_ring_simps
-    (Morphism.term phi @{term R},
+    (Morphism.term phi \<^term>\<open>R\<close>,
      (Morphism.fact phi @{thms Ipol.simps [meta] Ipol_Pc [meta]},
       Morphism.fact phi @{thms Ipolex.simps [meta] Ipolex_Const [meta]},
       Morphism.fact phi @{thms Ipolex_polex_list.simps [meta]},

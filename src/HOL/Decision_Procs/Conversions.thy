@@ -79,8 +79,8 @@ fun args2 conv ct = conv (Thm.dest_arg1 ct) (Thm.dest_arg ct);
 
 ML \<open>
 fun strip_numeral ct = (case strip_app ct of
-    (@{const_name uminus}, [n]) => (case strip_app n of
-      (@{const_name numeral}, [b]) => (@{const_name uminus}, [b])
+    (\<^const_name>\<open>uminus\<close>, [n]) => (case strip_app n of
+      (\<^const_name>\<open>numeral\<close>, [b]) => (\<^const_name>\<open>uminus\<close>, [b])
     | _ => ("", []))
   | x => x);
 \<close>
@@ -90,43 +90,43 @@ lemma nat_minus1_eq: "nat (- 1) = 0"
 
 ML \<open>
 fun nat_conv i = (case strip_app i of
-    (@{const_name zero_class.zero}, []) => @{thm nat_0 [meta]}
-  | (@{const_name one_class.one}, []) => @{thm nat_one_as_int [meta, symmetric]}
-  | (@{const_name numeral}, [b]) => inst [] [b] @{thm nat_numeral [meta]}
-  | (@{const_name uminus}, [b]) => (case strip_app b of
-      (@{const_name one_class.one}, []) => @{thm nat_minus1_eq [meta]}
-    | (@{const_name numeral}, [b']) => inst [] [b'] @{thm nat_neg_numeral [meta]}));
+    (\<^const_name>\<open>zero_class.zero\<close>, []) => @{thm nat_0 [meta]}
+  | (\<^const_name>\<open>one_class.one\<close>, []) => @{thm nat_one_as_int [meta, symmetric]}
+  | (\<^const_name>\<open>numeral\<close>, [b]) => inst [] [b] @{thm nat_numeral [meta]}
+  | (\<^const_name>\<open>uminus\<close>, [b]) => (case strip_app b of
+      (\<^const_name>\<open>one_class.one\<close>, []) => @{thm nat_minus1_eq [meta]}
+    | (\<^const_name>\<open>numeral\<close>, [b']) => inst [] [b'] @{thm nat_neg_numeral [meta]}));
 \<close>
 
 ML \<open>
 fun add_num_conv b b' = (case (strip_app b, strip_app b') of
-    ((@{const_name Num.One}, []), (@{const_name Num.One}, [])) =>
+    ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.One\<close>, [])) =>
       @{thm add_num_simps(1) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       inst [] [n] @{thm add_num_simps(2) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       transitive'
         (inst [] [n] @{thm add_num_simps(3) [meta]})
         (cong1 (args2 add_num_conv))
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm add_num_simps(4) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm add_num_simps(5) [meta]})
         (cong1 (args2 add_num_conv))
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm add_num_simps(6) [meta]})
         (cong1 (args2 add_num_conv))
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       transitive'
         (inst [] [m] @{thm add_num_simps(7) [meta]})
         (cong1 (args2 add_num_conv))
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm add_num_simps(8) [meta]})
         (cong1 (args2 add_num_conv))
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm add_num_simps(9) [meta]})
         (cong1 (cong2' add_num_conv (args2 add_num_conv) Thm.reflexive)));
@@ -134,12 +134,12 @@ fun add_num_conv b b' = (case (strip_app b, strip_app b') of
 
 ML \<open>
 fun BitM_conv m = (case strip_app m of
-    (@{const_name Num.One}, []) => @{thm BitM.simps(1) [meta]}
-  | (@{const_name Num.Bit0}, [n]) =>
+    (\<^const_name>\<open>Num.One\<close>, []) => @{thm BitM.simps(1) [meta]}
+  | (\<^const_name>\<open>Num.Bit0\<close>, [n]) =>
       transitive'
         (inst [] [n] @{thm BitM.simps(2) [meta]})
         (cong1 (args1 BitM_conv))
-  | (@{const_name Num.Bit1}, [n]) =>
+  | (\<^const_name>\<open>Num.Bit1\<close>, [n]) =>
       inst [] [n] @{thm BitM.simps(3) [meta]});
 \<close>
 
@@ -156,9 +156,9 @@ fun dbl_conv a =
   in
     fn n =>
       case strip_numeral n of
-        (@{const_name zero_class.zero}, []) => dbl_0_a
-      | (@{const_name numeral}, [k]) => inst [] [k] dbl_numeral_a
-      | (@{const_name uminus}, [k]) => inst [] [k] dbl_neg_numeral_a
+        (\<^const_name>\<open>zero_class.zero\<close>, []) => dbl_0_a
+      | (\<^const_name>\<open>numeral\<close>, [k]) => inst [] [k] dbl_numeral_a
+      | (\<^const_name>\<open>uminus\<close>, [k]) => inst [] [k] dbl_neg_numeral_a
   end;
 \<close>
 
@@ -175,9 +175,9 @@ fun dbl_inc_conv a =
   in
     fn n =>
       case strip_numeral n of
-        (@{const_name zero_class.zero}, []) => dbl_inc_0_a
-      | (@{const_name numeral}, [k]) => inst [] [k] dbl_inc_numeral_a
-      | (@{const_name uminus}, [k]) =>
+        (\<^const_name>\<open>zero_class.zero\<close>, []) => dbl_inc_0_a
+      | (\<^const_name>\<open>numeral\<close>, [k]) => inst [] [k] dbl_inc_numeral_a
+      | (\<^const_name>\<open>uminus\<close>, [k]) =>
           transitive'
             (inst [] [k] dbl_inc_neg_numeral_a)
             (cong1 (cong1 (args1 BitM_conv)))
@@ -197,9 +197,9 @@ fun dbl_dec_conv a =
   in
     fn n =>
       case strip_numeral n of
-        (@{const_name zero_class.zero}, []) => dbl_dec_0_a
-      | (@{const_name uminus}, [k]) => inst [] [k] dbl_dec_neg_numeral_a
-      | (@{const_name numeral}, [k]) =>
+        (\<^const_name>\<open>zero_class.zero\<close>, []) => dbl_dec_0_a
+      | (\<^const_name>\<open>uminus\<close>, [k]) => inst [] [k] dbl_dec_neg_numeral_a
+      | (\<^const_name>\<open>numeral\<close>, [k]) =>
           transitive'
             (inst [] [k] dbl_dec_numeral_a)
             (cong1 (args1 BitM_conv))
@@ -218,33 +218,33 @@ fun sub_conv a =
     val dbl_dec_conv_a = dbl_dec_conv a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name Num.One}, []), (@{const_name Num.One}, [])) =>
+        ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.One\<close>, [])) =>
           sub_One_One
-      | ((@{const_name Num.One}, []), (@{const_name Num.Bit0}, [l])) =>
+      | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit0\<close>, [l])) =>
           transitive'
             (inst [] [l] sub_One_Bit0)
             (cong1 (cong1 (args1 BitM_conv)))
-      | ((@{const_name Num.One}, []), (@{const_name Num.Bit1}, [l])) =>
+      | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit1\<close>, [l])) =>
           inst [] [l] sub_One_Bit1
-      | ((@{const_name Num.Bit0}, [k]), (@{const_name Num.One}, [])) =>
+      | ((\<^const_name>\<open>Num.Bit0\<close>, [k]), (\<^const_name>\<open>Num.One\<close>, [])) =>
           transitive'
             (inst [] [k] sub_Bit0_One)
             (cong1 (args1 BitM_conv))
-      | ((@{const_name Num.Bit1}, [k]), (@{const_name Num.One}, [])) =>
+      | ((\<^const_name>\<open>Num.Bit1\<close>, [k]), (\<^const_name>\<open>Num.One\<close>, [])) =>
           inst [] [k] sub_Bit1_One
-      | ((@{const_name Num.Bit0}, [k]), (@{const_name Num.Bit0}, [l])) =>
+      | ((\<^const_name>\<open>Num.Bit0\<close>, [k]), (\<^const_name>\<open>Num.Bit0\<close>, [l])) =>
           transitive'
             (inst [] [k, l] sub_Bit0_Bit0)
             (cong1' dbl_conv_a (args2 conv))
-      | ((@{const_name Num.Bit0}, [k]), (@{const_name Num.Bit1}, [l])) =>
+      | ((\<^const_name>\<open>Num.Bit0\<close>, [k]), (\<^const_name>\<open>Num.Bit1\<close>, [l])) =>
           transitive'
             (inst [] [k, l] sub_Bit0_Bit1)
             (cong1' dbl_dec_conv_a (args2 conv))
-      | ((@{const_name Num.Bit1}, [k]), (@{const_name Num.Bit0}, [l])) =>
+      | ((\<^const_name>\<open>Num.Bit1\<close>, [k]), (\<^const_name>\<open>Num.Bit0\<close>, [l])) =>
           transitive'
             (inst [] [k, l] sub_Bit1_Bit0)
             (cong1' dbl_inc_conv_a (args2 conv))
-      | ((@{const_name Num.Bit1}, [k]), (@{const_name Num.Bit1}, [l])) =>
+      | ((\<^const_name>\<open>Num.Bit1\<close>, [k]), (\<^const_name>\<open>Num.Bit1\<close>, [l])) =>
           transitive'
             (inst [] [k, l] sub_Bit1_Bit1)
             (cong1' dbl_conv_a (args2 conv)))
@@ -257,13 +257,13 @@ fun expand1 a =
   in
     fn n =>
       case Thm.term_of n of
-        Const (@{const_name one_class.one}, _) => numeral_1_eq_1_a
-      | Const (@{const_name uminus}, _) $ Const (@{const_name one_class.one}, _) =>
+        Const (\<^const_name>\<open>one_class.one\<close>, _) => numeral_1_eq_1_a
+      | Const (\<^const_name>\<open>uminus\<close>, _) $ Const (\<^const_name>\<open>one_class.one\<close>, _) =>
           Thm.combination (Thm.reflexive (Thm.dest_fun n)) numeral_1_eq_1_a
-      | Const (@{const_name zero_class.zero}, _) => Thm.reflexive n
-      | Const (@{const_name numeral}, _) $ _ => Thm.reflexive n
-      | Const (@{const_name uminus}, _) $
-          (Const (@{const_name numeral}, _) $ _) => Thm.reflexive n
+      | Const (\<^const_name>\<open>zero_class.zero\<close>, _) => Thm.reflexive n
+      | Const (\<^const_name>\<open>numeral\<close>, _) $ _ => Thm.reflexive n
+      | Const (\<^const_name>\<open>uminus\<close>, _) $
+          (Const (\<^const_name>\<open>numeral\<close>, _) $ _) => Thm.reflexive n
       | _ => err "expand1" n
   end;
 
@@ -272,10 +272,10 @@ fun norm1_eq a =
   in
     fn eq =>
       case Thm.term_of (Thm.rhs_of eq) of
-        Const (@{const_name Num.numeral}, _) $ Const (@{const_name Num.One}, _) =>
+        Const (\<^const_name>\<open>Num.numeral\<close>, _) $ Const (\<^const_name>\<open>Num.One\<close>, _) =>
           Thm.transitive eq numeral_1_eq_1_a
-      | Const (@{const_name uminus}, _) $
-          (Const (@{const_name Num.numeral}, _) $ Const (@{const_name Num.One}, _)) =>
+      | Const (\<^const_name>\<open>uminus\<close>, _) $
+          (Const (\<^const_name>\<open>Num.numeral\<close>, _) $ Const (\<^const_name>\<open>Num.One\<close>, _)) =>
             Thm.transitive eq
               (Thm.combination (Thm.reflexive (Thm.dest_fun (Thm.rhs_of eq)))
                  numeral_1_eq_1_a)
@@ -292,16 +292,16 @@ fun plus_conv f a =
     val expand1_a = expand1 a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name zero_class.zero}, []), _) => inst [] [n] add_0_a
-      | (_, (@{const_name zero_class.zero}, [])) => inst [] [m] add_0_right_a
-      | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), _) => inst [] [n] add_0_a
+      | (_, (\<^const_name>\<open>zero_class.zero\<close>, [])) => inst [] [m] add_0_right_a
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           transitive'
             (inst [] [m, n] numeral_plus_numeral_a)
             (cong1 (args2 add_num_conv))
       | _ => cong2'' (f conv) (expand1_a m) (expand1_a n))
   in f conv end;
 
-val nat_plus_conv = plus_conv I @{ctyp nat};
+val nat_plus_conv = plus_conv I \<^ctyp>\<open>nat\<close>;
 \<close>
 
 lemma neg_numeral_plus_neg_numeral:
@@ -321,15 +321,15 @@ fun plus_neg_conv a =
   in
     fn conv => fn m => fn n => 
       case (strip_numeral m, strip_numeral n) of
-        ((@{const_name Num.numeral}, [m]), (@{const_name uminus}, [n])) =>
+        ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] numeral_plus_neg_numeral_a)
             (sub_conv_a m n)
-      | ((@{const_name uminus}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] neg_numeral_plus_numeral_a)
             (sub_conv_a n m)
-      | ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           transitive'
             (inst [] [m, n] neg_numeral_plus_neg_numeral_a)
             (cong1 (cong1 (args2 add_num_conv)))
@@ -338,7 +338,7 @@ fun plus_neg_conv a =
 
 fun plus_conv' a = norm1_eq a oo plus_conv (plus_neg_conv a) a;
 
-val int_plus_conv = plus_conv' @{ctyp int};
+val int_plus_conv = plus_conv' \<^ctyp>\<open>int\<close>;
 \<close>
 
 lemma minus_one: "- 1 = - 1" by simp
@@ -354,13 +354,13 @@ fun uminus_conv a =
   in
     fn n =>
       case strip_app n of
-        (@{const_name zero_class.zero}, []) => minus_zero_a
-      | (@{const_name one_class.one}, []) => minus_one_a
-      | (@{const_name Num.numeral}, [m]) => inst [] [m] minus_numeral_a
-      | (@{const_name uminus}, [m]) => inst [] [m] minus_minus_a
+        (\<^const_name>\<open>zero_class.zero\<close>, []) => minus_zero_a
+      | (\<^const_name>\<open>one_class.one\<close>, []) => minus_one_a
+      | (\<^const_name>\<open>Num.numeral\<close>, [m]) => inst [] [m] minus_numeral_a
+      | (\<^const_name>\<open>uminus\<close>, [m]) => inst [] [m] minus_minus_a
   end;
 
-val int_neg_conv = uminus_conv @{ctyp int};
+val int_neg_conv = uminus_conv \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
@@ -377,44 +377,44 @@ fun minus_conv a =
     val norm1_eq_a = norm1_eq a;
 
     fun conv m n = (case (strip_numeral m, strip_numeral n) of
-        ((@{const_name zero_class.zero}, []), _) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), _) =>
           Thm.transitive (inst [] [n] diff_0_a) (uminus_conv_a n)
-      | (_, (@{const_name zero_class.zero}, [])) => inst [] [m] diff_0_right_a
-      | ((@{const_name Num.numeral}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | (_, (\<^const_name>\<open>zero_class.zero\<close>, [])) => inst [] [m] diff_0_right_a
+      | ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] numeral_minus_numeral_a)
             (sub_conv_a m n)
-      | ((@{const_name Num.numeral}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           transitive'
             (inst [] [m, n] numeral_minus_neg_numeral_a)
             (cong1 (args2 add_num_conv))
-      | ((@{const_name uminus}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           transitive'
             (inst [] [m, n] neg_numeral_minus_numeral_a)
             (cong1 (cong1 (args2 add_num_conv)))
-      | ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] neg_numeral_minus_neg_numeral_a)
             (sub_conv_a n m)
       | _ => cong2'' conv (expand1_a m) (expand1_a n))
   in norm1_eq_a oo conv end;
 
-val int_minus_conv = minus_conv @{ctyp int};
+val int_minus_conv = minus_conv \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
-val int_numeral = Thm.apply @{cterm "numeral :: num \<Rightarrow> int"};
+val int_numeral = Thm.apply \<^cterm>\<open>numeral :: num \<Rightarrow> int\<close>;
 
-val nat_minus_refl = Thm.reflexive @{cterm "minus :: nat \<Rightarrow> nat \<Rightarrow> nat"};
+val nat_minus_refl = Thm.reflexive \<^cterm>\<open>minus :: nat \<Rightarrow> nat \<Rightarrow> nat\<close>;
 
-val expand1_nat = expand1 @{ctyp nat};
+val expand1_nat = expand1 \<^ctyp>\<open>nat\<close>;
 
 fun nat_minus_conv m n = (case (strip_app m, strip_app n) of
-    ((@{const_name zero_class.zero}, []), _) =>
+    ((\<^const_name>\<open>zero_class.zero\<close>, []), _) =>
       inst [] [n] @{thm diff_0_eq_0 [meta]}
-  | (_, (@{const_name zero_class.zero}, [])) =>
+  | (_, (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
       inst [] [m] @{thm minus_nat.diff_0 [meta]}
-  | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+  | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm diff_nat_numeral [meta]})
         (cong1' nat_conv (args2 int_minus_conv))
@@ -423,23 +423,23 @@ fun nat_minus_conv m n = (case (strip_app m, strip_app n) of
 
 ML \<open>
 fun mult_num_conv m n = (case (strip_app m, strip_app n) of
-    (_, (@{const_name Num.One}, [])) =>
+    (_, (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm mult_num_simps(1) [meta]}
-  | ((@{const_name Num.One}, []), _) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), _) =>
       inst [] [n] @{thm mult_num_simps(2) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm mult_num_simps(3) [meta]})
         (cong1 (cong1 (args2 mult_num_conv)))
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit1}, [n'])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n'])) =>
       transitive'
         (inst [] [m, n'] @{thm mult_num_simps(4) [meta]})
         (cong1 (args2 mult_num_conv))
-  | ((@{const_name Num.Bit1}, [m']), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m']), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       transitive'
         (inst [] [m', n] @{thm mult_num_simps(5) [meta]})
         (cong1 (args2 mult_num_conv))
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       transitive'
         (inst [] [m, n] @{thm mult_num_simps(6) [meta]})
         (cong1 (cong2' add_num_conv
@@ -457,16 +457,16 @@ fun mult_conv f a =
     val norm1_eq_a = norm1_eq a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name zero_class.zero}, []), _) => inst [] [n] mult_zero_left_a
-      | (_, (@{const_name zero_class.zero}, [])) => inst [] [m] mult_zero_right_a
-      | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), _) => inst [] [n] mult_zero_left_a
+      | (_, (\<^const_name>\<open>zero_class.zero\<close>, [])) => inst [] [m] mult_zero_right_a
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           transitive'
             (inst [] [m, n] numeral_times_numeral_a)
             (cong1 (args2 mult_num_conv))
       | _ => cong2'' (f conv) (expand1_a m) (expand1_a n))
   in norm1_eq_a oo f conv end;
 
-val nat_mult_conv = mult_conv I @{ctyp nat};
+val nat_mult_conv = mult_conv I \<^ctyp>\<open>nat\<close>;
 \<close>
 
 ML \<open>
@@ -478,15 +478,15 @@ fun mult_neg_conv a =
   in
     fn conv => fn m => fn n =>
       case (strip_numeral m, strip_numeral n) of
-        ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+        ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           transitive'
             (inst [] [m, n] neg_numeral_times_neg_numeral_a)
             (cong1 (args2 mult_num_conv))
-      | ((@{const_name uminus}, [m]), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           transitive'
             (inst [] [m, n] neg_numeral_times_numeral_a)
             (cong1 (cong1 (args2 mult_num_conv)))
-      | ((@{const_name numeral}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           transitive'
             (inst [] [m, n] numeral_times_neg_numeral_a)
             (cong1 (cong1 (args2 mult_num_conv)))
@@ -495,30 +495,30 @@ fun mult_neg_conv a =
 
 fun mult_conv' a = mult_conv (mult_neg_conv a) a;
 
-val int_mult_conv = mult_conv' @{ctyp int};
+val int_mult_conv = mult_conv' \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
 fun eq_num_conv m n = (case (strip_app m, strip_app n) of
-    ((@{const_name Num.One}, []), (@{const_name Num.One}, [])) =>
+    ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.One\<close>, [])) =>
       @{thm eq_num_simps(1) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       inst [] [n] @{thm eq_num_simps(2) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       inst [] [n] @{thm eq_num_simps(3) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm eq_num_simps(4) [meta]}
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm eq_num_simps(5) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm eq_num_simps(6) [meta]})
         (eq_num_conv m n)
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       inst [] [m, n] @{thm eq_num_simps(7) [meta]}
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       inst [] [m, n] @{thm eq_num_simps(8) [meta]}
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm eq_num_simps(9) [meta]})
         (eq_num_conv m n));
@@ -536,20 +536,20 @@ fun eq_conv f a =
     val expand1_a = expand1 a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name zero_class.zero}, []), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           zero_eq_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>numeral\<close>, [n])) =>
           inst [] [n] zero_neq_numeral_a
-      | ((@{const_name numeral}, [m]), (@{const_name zero_class.zero}, [])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] numeral_neq_zero_a
-      | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] numeral_eq_iff_a)
             (eq_num_conv m n)
       | _ => cong2'' (f conv) (expand1_a m) (expand1_a n))
   in f conv end;
 
-val nat_eq_conv = eq_conv I @{ctyp nat};
+val nat_eq_conv = eq_conv I \<^ctyp>\<open>nat\<close>;
 \<close>
 
 ML \<open>
@@ -567,15 +567,15 @@ fun eq_neg_conv a =
   in
     fn conv => fn m => fn n => 
       case (strip_numeral m, strip_numeral n) of
-        ((@{const_name uminus}, [m]), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] neg_numeral_neq_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [n] zero_neq_neg_numeral_a
-      | ((@{const_name Num.numeral}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [m, n] numeral_neq_neg_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           inst [] [m, n] neg_numeral_neq_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] neg_numeral_eq_iff_a)
             (eq_num_conv m n)
@@ -584,54 +584,54 @@ fun eq_neg_conv a =
 
 fun eq_conv' a = eq_conv (eq_neg_conv a) a;
 
-val int_eq_conv = eq_conv' @{ctyp int};
+val int_eq_conv = eq_conv' \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
 fun le_num_conv m n = (case (strip_app m, strip_app n) of
-    ((@{const_name Num.One}, []), _) =>
+    ((\<^const_name>\<open>Num.One\<close>, []), _) =>
       inst [] [n] @{thm le_num_simps(1) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm le_num_simps(2) [meta]}
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.One}, [])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm le_num_simps(3) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm le_num_simps(4) [meta]})
         (le_num_conv m n)
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm le_num_simps(5) [meta]})
         (le_num_conv m n)
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm le_num_simps(6) [meta]})
         (le_num_conv m n)
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm le_num_simps(7) [meta]})
         (less_num_conv m n))
 
 and less_num_conv m n = (case (strip_app m, strip_app n) of
-    (_, (@{const_name Num.One}, [])) =>
+    (_, (\<^const_name>\<open>Num.One\<close>, [])) =>
       inst [] [m] @{thm less_num_simps(1) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       inst [] [n] @{thm less_num_simps(2) [meta]}
-  | ((@{const_name Num.One}, []), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.One\<close>, []), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       inst [] [n] @{thm less_num_simps(3) [meta]}
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm less_num_simps(4) [meta]})
         (less_num_conv m n)
-  | ((@{const_name Num.Bit0}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit0\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm less_num_simps(5) [meta]})
         (le_num_conv m n)
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit1}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit1\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm less_num_simps(6) [meta]})
         (less_num_conv m n)
-  | ((@{const_name Num.Bit1}, [m]), (@{const_name Num.Bit0}, [n])) =>
+  | ((\<^const_name>\<open>Num.Bit1\<close>, [m]), (\<^const_name>\<open>Num.Bit0\<close>, [n])) =>
       Thm.transitive
         (inst [] [m, n] @{thm less_num_simps(7) [meta]})
         (less_num_conv m n));
@@ -649,20 +649,20 @@ fun le_conv f a =
     val expand1_a = expand1 a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name zero_class.zero}, []), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           zero_le_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>numeral\<close>, [n])) =>
           inst [] [n] zero_le_numeral_a
-      | ((@{const_name numeral}, [m]), (@{const_name zero_class.zero}, [])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] not_numeral_le_zero_a
-      | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] numeral_le_iff_a)
             (le_num_conv m n)
       | _ => cong2'' (f conv) (expand1_a m) (expand1_a n))
   in f conv end;
 
-val nat_le_conv = le_conv I @{ctyp nat};
+val nat_le_conv = le_conv I \<^ctyp>\<open>nat\<close>;
 \<close>
 
 ML \<open>
@@ -680,15 +680,15 @@ fun le_neg_conv a =
   in
     fn conv => fn m => fn n => 
       case (strip_numeral m, strip_numeral n) of
-        ((@{const_name uminus}, [m]), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] neg_numeral_le_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [n] not_zero_le_neg_numeral_a
-      | ((@{const_name Num.numeral}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [m, n] not_numeral_le_neg_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           inst [] [m, n] neg_numeral_le_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] neg_numeral_le_iff_a)
             (le_num_conv n m)
@@ -697,7 +697,7 @@ fun le_neg_conv a =
 
 fun le_conv' a = le_conv (le_neg_conv a) a;
 
-val int_le_conv = le_conv' @{ctyp int};
+val int_le_conv = le_conv' \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
@@ -712,20 +712,20 @@ fun less_conv f a =
     val expand1_a = expand1 a;
 
     fun conv m n = (case (strip_app m, strip_app n) of
-        ((@{const_name zero_class.zero}, []), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           not_zero_less_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>numeral\<close>, [n])) =>
           inst [] [n] zero_less_numeral_a
-      | ((@{const_name numeral}, [m]), (@{const_name zero_class.zero}, [])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] not_numeral_less_zero_a
-      | ((@{const_name numeral}, [m]), (@{const_name numeral}, [n])) =>
+      | ((\<^const_name>\<open>numeral\<close>, [m]), (\<^const_name>\<open>numeral\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] numeral_less_iff_a)
             (less_num_conv m n)
       | _ => cong2'' (f conv) (expand1_a m) (expand1_a n))
   in f conv end;
 
-val nat_less_conv = less_conv I @{ctyp nat};
+val nat_less_conv = less_conv I \<^ctyp>\<open>nat\<close>;
 \<close>
 
 ML \<open>
@@ -743,15 +743,15 @@ fun less_neg_conv a =
   in
     fn conv => fn m => fn n => 
       case (strip_numeral m, strip_numeral n) of
-        ((@{const_name uminus}, [m]), (@{const_name zero_class.zero}, [])) =>
+        ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>zero_class.zero\<close>, [])) =>
           inst [] [m] neg_numeral_less_zero_a
-      | ((@{const_name zero_class.zero}, []), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>zero_class.zero\<close>, []), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [n] not_zero_less_neg_numeral_a
-      | ((@{const_name Num.numeral}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>Num.numeral\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           inst [] [m, n] not_numeral_less_neg_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name Num.numeral}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>Num.numeral\<close>, [n])) =>
           inst [] [m, n] neg_numeral_less_numeral_a
-      | ((@{const_name uminus}, [m]), (@{const_name uminus}, [n])) =>
+      | ((\<^const_name>\<open>uminus\<close>, [m]), (\<^const_name>\<open>uminus\<close>, [n])) =>
           Thm.transitive
             (inst [] [m, n] neg_numeral_less_iff_a)
             (less_num_conv n m)
@@ -760,7 +760,7 @@ fun less_neg_conv a =
 
 fun less_conv' a = less_conv (less_neg_conv a) a;
 
-val int_less_conv = less_conv' @{ctyp int};
+val int_less_conv = less_conv' \<^ctyp>\<open>int\<close>;
 \<close>
 
 ML \<open>
@@ -771,13 +771,13 @@ fun If_conv a =
   in
     fn p => fn x => fn y => fn ct =>
       case strip_app ct of
-        (@{const_name If}, [cb, cx, cy]) =>
+        (\<^const_name>\<open>If\<close>, [cb, cx, cy]) =>
           let
             val p_eq = p cb
             val eq = Thm.combination (Thm.reflexive (Thm.dest_fun (Thm.dest_fun2 ct))) p_eq
           in
             case Thm.term_of (Thm.rhs_of p_eq) of
-              Const (@{const_name True}, _) =>
+              Const (\<^const_name>\<open>True\<close>, _) =>
                 let
                   val x_eq = x cx;
                   val cx = Thm.rhs_of x_eq;
@@ -788,7 +788,7 @@ fun If_conv a =
                        (Thm.reflexive cy))
                     (inst [] [cx, cy] if_True)
                 end
-            | Const (@{const_name False}, _) =>
+            | Const (\<^const_name>\<open>False\<close>, _) =>
                 let
                   val y_eq = y cy;
                   val cy = Thm.rhs_of y_eq;
@@ -812,9 +812,9 @@ fun drop_conv a =
     val If_conv_a = If_conv (type_of_eqn drop_0_a);
 
     fun conv n ys = (case Thm.term_of n of
-        Const (@{const_name zero_class.zero}, _) => inst [] [ys] drop_0_a
+        Const (\<^const_name>\<open>zero_class.zero\<close>, _) => inst [] [ys] drop_0_a
       | _ => (case strip_app ys of
-          (@{const_name Cons}, [x, xs]) =>
+          (\<^const_name>\<open>Cons\<close>, [x, xs]) =>
             transitive'
               (inst [] [n, x, xs] drop_Cons_a)
               (If_conv_a (args2 nat_eq_conv)
@@ -830,7 +830,7 @@ fun nth_conv a =
     val If_conv_a = If_conv a;
 
     fun conv ys n = (case strip_app ys of
-        (@{const_name Cons}, [x, xs]) =>
+        (\<^const_name>\<open>Cons\<close>, [x, xs]) =>
           transitive'
             (inst [] [x, xs, n] nth_Cons_a)
             (If_conv_a (args2 nat_eq_conv)

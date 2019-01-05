@@ -58,7 +58,7 @@ lemma (in domain) euclidean_domainI:
   using assms by unfold_locales auto
 
 
-subsection \<open>Passing from @{term R} to @{term "mult_of R"} and vice-versa. \<close>
+subsection \<open>Passing from \<^term>\<open>R\<close> to \<^term>\<open>mult_of R\<close> and vice-versa. \<close>
 
 lemma divides_mult_imp_divides [simp]: "a divides\<^bsub>(mult_of R)\<^esub> b \<Longrightarrow> a divides\<^bsub>R\<^esub> b"
   unfolding factor_def by auto
@@ -194,8 +194,8 @@ lemma (in domain) properfactor_of_zero:
 subsection \<open>Irreducible\<close>
 
 text \<open>The following lemmas justify the need for a definition of irreducible specific to rings:
-      for @{term "irreducible R"}, we need to suppose we are not in a field (which is plausible,
-      but @{term "\<not> field R"} is an assumption we want to avoid; for @{term "irreducible (mult_of R)"}, zero
+      for \<^term>\<open>irreducible R\<close>, we need to suppose we are not in a field (which is plausible,
+      but \<^term>\<open>\<not> field R\<close> is an assumption we want to avoid; for \<^term>\<open>irreducible (mult_of R)\<close>, zero
       is allowed. \<close>
 
 lemma (in domain) zero_is_irreducible_mult:

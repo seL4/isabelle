@@ -62,12 +62,12 @@ where
   | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))"
 
 text\<open>\noindent
-Recall that @{term"hd"} and @{term"tl"}
+Recall that \<^term>\<open>hd\<close> and \<^term>\<open>tl\<close>
 return the first element and the remainder of a list.
 Because all functions are total, \cdx{hd} is defined even for the empty
 list, although we do not know what the result is. Thus our model of the
 machine always terminates properly, although the definition above does not
-tell us much about the result in situations where @{term"Apply"} was executed
+tell us much about the result in situations where \<^term>\<open>Apply\<close> was executed
 with fewer than two elements on the stack.
 
 The compiler is a function from expressions to a list of instructions. Its
@@ -92,7 +92,7 @@ This theorem needs to be generalized:
 theorem "\<forall>vs. exec (compile e) s vs = (value e s) # vs"
 
 txt\<open>\noindent
-It will be proved by induction on @{term"e"} followed by simplification.  
+It will be proved by induction on \<^term>\<open>e\<close> followed by simplification.  
 First, we must prove a lemma about executing the concatenation of two
 instruction sequences:
 \<close>
@@ -101,7 +101,7 @@ lemma exec_app[simp]:
   "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)" 
 
 txt\<open>\noindent
-This requires induction on @{term"xs"} and ordinary simplification for the
+This requires induction on \<^term>\<open>xs\<close> and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
 that contains two \<open>case\<close>-expressions over instructions. Thus we add
 automatic case splitting, which finishes the proof:
@@ -122,7 +122,7 @@ apply(induct_tac xs, simp_all split: instr.split)
 text\<open>\noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
-We could now go back and prove @{prop"exec (compile e) s [] = [value e s]"}
+We could now go back and prove \<^prop>\<open>exec (compile e) s [] = [value e s]\<close>
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.%

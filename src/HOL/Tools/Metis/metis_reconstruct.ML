@@ -222,10 +222,10 @@ fun resolve_inc_tyvars ctxt tha i thb =
       end
   end
 
-fun s_not (@{const Not} $ t) = t
+fun s_not (\<^const>\<open>Not\<close> $ t) = t
   | s_not t = HOLogic.mk_not t
-fun simp_not_not (@{const Trueprop} $ t) = @{const Trueprop} $ simp_not_not t
-  | simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
+fun simp_not_not (\<^const>\<open>Trueprop\<close> $ t) = \<^const>\<open>Trueprop\<close> $ simp_not_not t
+  | simp_not_not (\<^const>\<open>Not\<close> $ t) = s_not (simp_not_not t)
   | simp_not_not t = t
 
 val normalize_literal = simp_not_not o Envir.eta_contract

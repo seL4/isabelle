@@ -152,8 +152,8 @@ proof -
   note inj_inv = this
 
   txt \<open>
-    We now construct the possible inversions for @{term xs} when the payer is
-    @{term i}.
+    We now construct the possible inversions for \<^term>\<open>xs\<close> when the payer is
+    \<^term>\<open>i\<close>.
 \<close>
 
   define zs where "zs = map (\<lambda>p. if p \<in> {min i j<..max i j} then \<not> ys ! p else ys ! p) [0..<n]"

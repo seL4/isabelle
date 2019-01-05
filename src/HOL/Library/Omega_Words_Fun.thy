@@ -44,11 +44,11 @@ text \<open>
 \<close>
 
 definition
-  conc :: "['a list, 'a word] \<Rightarrow> 'a word"  (infixr "\<frown>" 65)
+  conc :: "['a list, 'a word] \<Rightarrow> 'a word"  (infixr \<open>\<frown>\<close> 65)
   where "w \<frown> x == \<lambda>n. if n < length w then w!n else x (n - length w)"
 
 definition
-  iter :: "'a list \<Rightarrow> 'a word"  ("(_\<^sup>\<omega>)" [1000])
+  iter :: "'a list \<Rightarrow> 'a word"  (\<open>(_\<^sup>\<omega>)\<close> [1000])
   where "iter w == if w = [] then undefined else (\<lambda>n. w!(n mod (length w)))"
 
 lemma conc_empty[simp]: "[] \<frown> w = w"
@@ -116,7 +116,7 @@ subsection \<open>Subsequence, Prefix, and Suffix\<close>
 definition suffix :: "[nat, 'a word] \<Rightarrow> 'a word"
   where "suffix k x \<equiv> \<lambda>n. x (k+n)"
 
-definition subsequence :: "'a word \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a list"  ("_ [_ \<rightarrow> _]" 900)
+definition subsequence :: "'a word \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a list"  (\<open>_ [_ \<rightarrow> _]\<close> 900)
   where "subsequence w i j \<equiv> map w [i..<j]"
 
 abbreviation prefix :: "nat \<Rightarrow> 'a word \<Rightarrow> 'a list"
@@ -287,7 +287,7 @@ qed
 
 subsection \<open>Prepending\<close>
 
-primrec build :: "'a \<Rightarrow> 'a word \<Rightarrow> 'a word"  (infixr "##" 65)
+primrec build :: "'a \<Rightarrow> 'a word \<Rightarrow> 'a word"  (infixr \<open>##\<close> 65)
   where "(a ## w) 0 = a" | "(a ## w) (Suc i) = w i"
 
 lemma build_eq[iff]: "a\<^sub>1 ## w\<^sub>1 = a\<^sub>2 ## w\<^sub>2 \<longleftrightarrow> a\<^sub>1 = a\<^sub>2 \<and> w\<^sub>1 = w\<^sub>2"

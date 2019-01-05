@@ -21,14 +21,14 @@ text\<open>\noindent
 which stands for ``\emph{A}lways in the \emph{F}uture'':
 on all infinite paths, at some point the formula holds.
 Formalizing the notion of an infinite path is easy
-in HOL: it is simply a function from @{typ nat} to @{typ state}.
+in HOL: it is simply a function from \<^typ>\<open>nat\<close> to \<^typ>\<open>state\<close>.
 \<close>
 
 definition Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set" where
 "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}"
 
 text\<open>\noindent
-This definition allows a succinct statement of the semantics of @{const AF}:
+This definition allows a succinct statement of the semantics of \<^const>\<open>AF\<close>:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
 presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
@@ -45,7 +45,7 @@ primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnsti
 "s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)"
 
 text\<open>\noindent
-Model checking @{const AF} involves a function which
+Model checking \<^const>\<open>AF\<close> involves a function which
 is just complicated enough to warrant a separate definition:
 \<close>
 
@@ -53,8 +53,8 @@ definition af :: "state set \<Rightarrow> state set \<Rightarrow> state set" whe
 "af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}"
 
 text\<open>\noindent
-Now we define @{term "mc(AF f)"} as the least set @{term T} that includes
-@{term"mc f"} and all states all of whose direct successors are in @{term T}:
+Now we define \<^term>\<open>mc(AF f)\<close> as the least set \<^term>\<open>T\<close> that includes
+\<^term>\<open>mc f\<close> and all states all of whose direct successors are in \<^term>\<open>T\<close>:
 \<close>
 (*<*)
 primrec mc :: "formula \<Rightarrow> state set" where
@@ -66,8 +66,8 @@ primrec mc :: "formula \<Rightarrow> state set" where
 "mc(AF f)    = lfp(af(mc f))"
 
 text\<open>\noindent
-Because @{const af} is monotone in its second argument (and also its first, but
-that is irrelevant), @{term"af A"} has a least fixed point:
+Because \<^const>\<open>af\<close> is monotone in its second argument (and also its first, but
+that is irrelevant), \<^term>\<open>af A\<close> has a least fixed point:
 \<close>
 
 lemma mono_af: "mono(af A)"
@@ -97,8 +97,8 @@ apply(subst lfp_unfold[OF mono_ef])
 by(blast)
 (*>*)
 text\<open>
-All we need to prove now is  @{prop"mc(AF f) = {s. s \<Turnstile> AF f}"}, which states
-that @{term mc} and \<open>\<Turnstile>\<close> agree for @{const AF}\@.
+All we need to prove now is  \<^prop>\<open>mc(AF f) = {s. s \<Turnstile> AF f}\<close>, which states
+that \<^term>\<open>mc\<close> and \<open>\<Turnstile>\<close> agree for \<^const>\<open>AF\<close>\@.
 This time we prove the two inclusions separately, starting
 with the easy one:
 \<close>
@@ -106,13 +106,13 @@ with the easy one:
 theorem AF_lemma1: "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}"
 
 txt\<open>\noindent
-In contrast to the analogous proof for @{const EF}, and just
+In contrast to the analogous proof for \<^const>\<open>EF\<close>, and just
 for a change, we do not use fixed point induction.  Park-induction,
 named after David Park, is weaker but sufficient for this proof:
 \begin{center}
 @{thm lfp_lowerbound[of _ "S",no_vars]} \hfill (@{thm[source]lfp_lowerbound})
 \end{center}
-The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
+The instance of the premise \<^prop>\<open>f S \<subseteq> S\<close> is proved pointwise,
 a decision that \isa{auto} takes for us:
 \<close>
 apply(rule lfp_lowerbound)
@@ -120,9 +120,9 @@ apply(auto simp add: af_def Paths_def)
 
 txt\<open>
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-In this remaining case, we set @{term t} to @{term"p(1::nat)"}.
+In this remaining case, we set \<^term>\<open>t\<close> to \<^term>\<open>p(1::nat)\<close>.
 The rest is automatic, which is surprising because it involves
-finding the instantiation @{term"\<lambda>i::nat. p(i+1)"}
+finding the instantiation \<^term>\<open>\<lambda>i::nat. p(i+1)\<close>
 for \<open>\<forall>p\<close>.
 \<close>
 
@@ -133,13 +133,13 @@ done
 
 text\<open>
 The opposite inclusion is proved by contradiction: if some state
-@{term s} is not in @{term"lfp(af A)"}, then we can construct an
-infinite @{term A}-avoiding path starting from~@{term s}. The reason is
-that by unfolding @{const lfp} we find that if @{term s} is not in
-@{term"lfp(af A)"}, then @{term s} is not in @{term A} and there is a
-direct successor of @{term s} that is again not in \mbox{@{term"lfp(af
-A)"}}. Iterating this argument yields the promised infinite
-@{term A}-avoiding path. Let us formalize this sketch.
+\<^term>\<open>s\<close> is not in \<^term>\<open>lfp(af A)\<close>, then we can construct an
+infinite \<^term>\<open>A\<close>-avoiding path starting from~\<^term>\<open>s\<close>. The reason is
+that by unfolding \<^const>\<open>lfp\<close> we find that if \<^term>\<open>s\<close> is not in
+\<^term>\<open>lfp(af A)\<close>, then \<^term>\<open>s\<close> is not in \<^term>\<open>A\<close> and there is a
+direct successor of \<^term>\<open>s\<close> that is again not in \mbox{\<^term>\<open>lfp(af
+A)\<close>}. Iterating this argument yields the promised infinite
+\<^term>\<open>A\<close>-avoiding path. Let us formalize this sketch.
 
 The one-step argument in the sketch above
 is proved by a variant of contraposition:
@@ -153,12 +153,12 @@ apply(simp add: af_def)
 done
 
 text\<open>\noindent
-We assume the negation of the conclusion and prove @{term"s \<in> lfp(af A)"}.
-Unfolding @{const lfp} once and
-simplifying with the definition of @{const af} finishes the proof.
+We assume the negation of the conclusion and prove \<^term>\<open>s \<in> lfp(af A)\<close>.
+Unfolding \<^const>\<open>lfp\<close> once and
+simplifying with the definition of \<^const>\<open>af\<close> finishes the proof.
 
 Now we iterate this process. The following construction of the desired
-path is parameterized by a predicate @{term Q} that should hold along the path:
+path is parameterized by a predicate \<^term>\<open>Q\<close> that should hold along the path:
 \<close>
 
 primrec path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> state)" where
@@ -166,15 +166,15 @@ primrec path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (n
 "path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)"
 
 text\<open>\noindent
-Element @{term"n+1::nat"} on this path is some arbitrary successor
-@{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that \<open>SOME t. R t\<close>
-is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
-course, such a @{term t} need not exist, but that is of no
-concern to us since we will only use @{const path} when a
-suitable @{term t} does exist.
+Element \<^term>\<open>n+1::nat\<close> on this path is some arbitrary successor
+\<^term>\<open>t\<close> of element \<^term>\<open>n\<close> such that \<^term>\<open>Q t\<close> holds.  Remember that \<open>SOME t. R t\<close>
+is some arbitrary but fixed \<^term>\<open>t\<close> such that \<^prop>\<open>R t\<close> holds (see \S\ref{sec:SOME}). Of
+course, such a \<^term>\<open>t\<close> need not exist, but that is of no
+concern to us since we will only use \<^const>\<open>path\<close> when a
+suitable \<^term>\<open>t\<close> does exist.
 
-Let us show that if each state @{term s} that satisfies @{term Q}
-has a successor that again satisfies @{term Q}, then there exists an infinite @{term Q}-path:
+Let us show that if each state \<^term>\<open>s\<close> that satisfies \<^term>\<open>Q\<close>
+has a successor that again satisfies \<^term>\<open>Q\<close>, then there exists an infinite \<^term>\<open>Q\<close>-path:
 \<close>
 
 lemma infinity_lemma:
@@ -183,7 +183,7 @@ lemma infinity_lemma:
 
 txt\<open>\noindent
 First we rephrase the conclusion slightly because we need to prove simultaneously
-both the path property and the fact that @{term Q} holds:
+both the path property and the fact that \<^term>\<open>Q\<close> holds:
 \<close>
 
 apply(subgoal_tac
@@ -196,7 +196,7 @@ From this proposition the original goal follows easily:
  apply(simp add: Paths_def, blast)
 
 txt\<open>\noindent
-The new subgoal is proved by providing the witness @{term "path s Q"} for @{term p}:
+The new subgoal is proved by providing the witness \<^term>\<open>path s Q\<close> for \<^term>\<open>p\<close>:
 \<close>
 
 apply(rule_tac x = "path s Q" in exI)
@@ -205,7 +205,7 @@ apply(clarsimp)
 txt\<open>\noindent
 After simplification and clarification, the subgoal has the following form:
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-It invites a proof by induction on @{term i}:
+It invites a proof by induction on \<^term>\<open>i\<close>:
 \<close>
 
 apply(induct_tac i)
@@ -214,14 +214,14 @@ apply(induct_tac i)
 txt\<open>\noindent
 After simplification, the base case boils down to
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t)\<in>M"}
-holds. However, we first have to show that such a @{term t} actually exists! This reasoning
+The conclusion looks exceedingly trivial: after all, \<^term>\<open>t\<close> is chosen such that \<^prop>\<open>(s,t)\<in>M\<close>
+holds. However, we first have to show that such a \<^term>\<open>t\<close> actually exists! This reasoning
 is embodied in the theorem @{thm[source]someI2_ex}:
 @{thm[display,eta_contract=false]someI2_ex}
 When we apply this theorem as an introduction rule, \<open>?P x\<close> becomes
-@{prop"(s, x) \<in> M \<and> Q x"} and \<open>?Q x\<close> becomes @{prop"(s,x) \<in> M"} and we have to prove
-two subgoals: @{prop"\<exists>a. (s, a) \<in> M \<and> Q a"}, which follows from the assumptions, and
-@{prop"(s, x) \<in> M \<and> Q x \<Longrightarrow> (s,x) \<in> M"}, which is trivial. Thus it is not surprising that
+\<^prop>\<open>(s, x) \<in> M \<and> Q x\<close> and \<open>?Q x\<close> becomes \<^prop>\<open>(s,x) \<in> M\<close> and we have to prove
+two subgoals: \<^prop>\<open>\<exists>a. (s, a) \<in> M \<and> Q a\<close>, which follows from the assumptions, and
+\<^prop>\<open>(s, x) \<in> M \<and> Q x \<Longrightarrow> (s,x) \<in> M\<close>, which is trivial. Thus it is not surprising that
 \<open>fast\<close> can prove the base case quickly:
 \<close>
 
@@ -253,14 +253,14 @@ apply(blast)
 done
 
 text\<open>
-Function @{const path} has fulfilled its purpose now and can be forgotten.
+Function \<^const>\<open>path\<close> has fulfilled its purpose now and can be forgotten.
 It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
 @{term[display]"rec_nat s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)"}
-is extensionally equal to @{term"path s Q"},
-where @{term rec_nat} is the predefined primitive recursor on @{typ nat}.
+is extensionally equal to \<^term>\<open>path s Q\<close>,
+where \<^term>\<open>rec_nat\<close> is the predefined primitive recursor on \<^typ>\<open>nat\<close>.
 \<close>
 (*<*)
 lemma
@@ -332,8 +332,8 @@ done
 text\<open>
 
 The language defined above is not quite CTL\@. The latter also includes an
-until-operator @{term"EU f g"} with semantics ``there \emph{E}xists a path
-where @{term f} is true \emph{U}ntil @{term g} becomes true''.  We need
+until-operator \<^term>\<open>EU f g\<close> with semantics ``there \emph{E}xists a path
+where \<^term>\<open>f\<close> is true \emph{U}ntil \<^term>\<open>g\<close> becomes true''.  We need
 an auxiliary function:
 \<close>
 
@@ -346,11 +346,11 @@ until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> sta
 "eusem A B \<equiv> {s. \<exists>p. until A B s p}"(*>*)
 
 text\<open>\noindent
-Expressing the semantics of @{term EU} is now straightforward:
+Expressing the semantics of \<^term>\<open>EU\<close> is now straightforward:
 @{prop[display]"s \<Turnstile> EU f g = (\<exists>p. until {t. t \<Turnstile> f} {t. t \<Turnstile> g} s p)"}
-Note that @{term EU} is not definable in terms of the other operators!
+Note that \<^term>\<open>EU\<close> is not definable in terms of the other operators!
 
-Model checking @{term EU} is again a least fixed point construction:
+Model checking \<^term>\<open>EU\<close> is again a least fixed point construction:
 @{text[display]"mc(EU f g) = lfp(\<lambda>T. mc g \<union> mc f \<inter> (M\<inverse> `` T))"}
 
 \begin{exercise}
@@ -438,11 +438,11 @@ done
 text\<open>Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
-implemented. Only @{const lfp} requires a little thought.  Fortunately, theory
+implemented. Only \<^const>\<open>lfp\<close> requires a little thought.  Fortunately, theory
 \<open>While_Combinator\<close> in the Library~@{cite "HOL-Library"} provides a
 theorem stating that in the case of finite sets and a monotone
-function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by
-iterated application of @{term F} to~@{term"{}"} until a fixed point is
+function~\<^term>\<open>F\<close>, the value of \mbox{\<^term>\<open>lfp F\<close>} can be computed by
+iterated application of \<^term>\<open>F\<close> to~\<^term>\<open>{}\<close> until a fixed point is
 reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \index{CTL|)}\<close>

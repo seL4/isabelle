@@ -17,8 +17,8 @@ fun h :: "nat \<Rightarrow> nat" where
 "h i = (if i = 3 then 2 else i)"
 
 text\<open>
-@{term"h 3 = 2"}
-@{term"h i  = i"}
+\<^term>\<open>h 3 = 2\<close>
+\<^term>\<open>h i  = i\<close>
 \<close>
 
 text\<open>

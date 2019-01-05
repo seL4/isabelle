@@ -5,7 +5,7 @@ begin
 
 text \<open>
   Coinduction proofs in Isabelle often lead to proof obligations with nested conjunctions and
-  existential quantifiers, e.g. @{prop "\<exists>x y. P x y \<and> (\<exists>z. Q x y z)"} .
+  existential quantifiers, e.g. \<^prop>\<open>\<exists>x y. P x y \<and> (\<exists>z. Q x y z)\<close> .
 
   The following tactic allows instantiating these existentials with a given list of witnesses.
 \<close>

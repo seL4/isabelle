@@ -37,7 +37,7 @@ qed
 
 lemmas onorm_componentwise_le = order_trans[OF onorm_componentwise]
 
-subsection%unimportant \<open>Intro rules for @{term bounded_linear}\<close>
+subsection%unimportant \<open>Intro rules for \<^term>\<open>bounded_linear\<close>\<close>
 
 named_theorems bounded_linear_intros
 
@@ -85,30 +85,30 @@ attribute_setup bounded_linear =
   \<open>Scan.succeed (Thm.declaration_attribute (fn thm =>
     fold (fn (r, s) => Named_Theorems.add_thm s (thm RS r))
       [
-        (@{thm bounded_linear.has_derivative}, @{named_theorems derivative_intros}),
-        (@{thm bounded_linear.tendsto}, @{named_theorems tendsto_intros}),
-        (@{thm bounded_linear.continuous}, @{named_theorems continuous_intros}),
-        (@{thm bounded_linear.continuous_on}, @{named_theorems continuous_intros}),
-        (@{thm bounded_linear.uniformly_continuous_on}, @{named_theorems continuous_intros}),
-        (@{thm bounded_linear_compose}, @{named_theorems bounded_linear_intros})
+        (@{thm bounded_linear.has_derivative}, \<^named_theorems>\<open>derivative_intros\<close>),
+        (@{thm bounded_linear.tendsto}, \<^named_theorems>\<open>tendsto_intros\<close>),
+        (@{thm bounded_linear.continuous}, \<^named_theorems>\<open>continuous_intros\<close>),
+        (@{thm bounded_linear.continuous_on}, \<^named_theorems>\<open>continuous_intros\<close>),
+        (@{thm bounded_linear.uniformly_continuous_on}, \<^named_theorems>\<open>continuous_intros\<close>),
+        (@{thm bounded_linear_compose}, \<^named_theorems>\<open>bounded_linear_intros\<close>)
       ]))\<close>
 
 attribute_setup bounded_bilinear =
   \<open>Scan.succeed (Thm.declaration_attribute (fn thm =>
     fold (fn (r, s) => Named_Theorems.add_thm s (thm RS r))
       [
-        (@{thm bounded_bilinear.FDERIV}, @{named_theorems derivative_intros}),
-        (@{thm bounded_bilinear.tendsto}, @{named_theorems tendsto_intros}),
-        (@{thm bounded_bilinear.continuous}, @{named_theorems continuous_intros}),
-        (@{thm bounded_bilinear.continuous_on}, @{named_theorems continuous_intros}),
+        (@{thm bounded_bilinear.FDERIV}, \<^named_theorems>\<open>derivative_intros\<close>),
+        (@{thm bounded_bilinear.tendsto}, \<^named_theorems>\<open>tendsto_intros\<close>),
+        (@{thm bounded_bilinear.continuous}, \<^named_theorems>\<open>continuous_intros\<close>),
+        (@{thm bounded_bilinear.continuous_on}, \<^named_theorems>\<open>continuous_intros\<close>),
         (@{thm bounded_linear_compose[OF bounded_bilinear.bounded_linear_left]},
-          @{named_theorems bounded_linear_intros}),
+          \<^named_theorems>\<open>bounded_linear_intros\<close>),
         (@{thm bounded_linear_compose[OF bounded_bilinear.bounded_linear_right]},
-          @{named_theorems bounded_linear_intros}),
+          \<^named_theorems>\<open>bounded_linear_intros\<close>),
         (@{thm bounded_linear.uniformly_continuous_on[OF bounded_bilinear.bounded_linear_left]},
-          @{named_theorems continuous_intros}),
+          \<^named_theorems>\<open>continuous_intros\<close>),
         (@{thm bounded_linear.uniformly_continuous_on[OF bounded_bilinear.bounded_linear_right]},
-          @{named_theorems continuous_intros})
+          \<^named_theorems>\<open>continuous_intros\<close>)
       ]))\<close>
 
 

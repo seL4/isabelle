@@ -5,7 +5,7 @@ theory Sum_of_Powers
 imports Complex_Main
 begin
 
-subsection \<open>Additions to @{theory HOL.Binomial} Theory\<close>
+subsection \<open>Additions to \<^theory>\<open>HOL.Binomial\<close> Theory\<close>
 
 lemma (in field_char_0) one_plus_of_nat_neq_zero [simp]:
   "1 + of_nat n \<noteq> 0"

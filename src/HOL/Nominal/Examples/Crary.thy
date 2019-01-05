@@ -957,7 +957,7 @@ qed
 
 text \<open>We leave soundness as an exercise - just like Crary in the ATS book :-) \\ 
  @{prop[mode=IfThen] "\<lbrakk>\<Gamma> \<turnstile> s \<Leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} \\
- @{prop "\<lbrakk>\<Gamma> \<turnstile> s \<leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} 
+ \<^prop>\<open>\<lbrakk>\<Gamma> \<turnstile> s \<leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T\<close> 
 \<close>
 
 end

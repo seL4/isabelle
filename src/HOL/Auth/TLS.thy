@@ -105,7 +105,7 @@ inductive_set tls :: "event list set"
          "[| evsf \<in> tls;  X \<in> synth (analz (spies evsf)) |]
           ==> Says Spy B X # evsf \<in> tls"
 
- | SpyKeys: \<comment> \<open>The spy may apply @{term PRF} and @{term sessionK}
+ | SpyKeys: \<comment> \<open>The spy may apply \<^term>\<open>PRF\<close> and \<^term>\<open>sessionK\<close>
                 to available nonces\<close>
          "[| evsSK \<in> tls;
              {Nonce NA, Nonce NB, Nonce M} \<subseteq> analz (spies evsSK) |]
@@ -118,7 +118,7 @@ inductive_set tls :: "event list set"
            It is uninterpreted but will be confirmed in the FINISHED messages.
            NA is CLIENT RANDOM, while SID is \<open>SESSION_ID\<close>.
            UNIX TIME is omitted because the protocol doesn't use it.
-           May assume @{term "NA \<notin> range PRF"} because CLIENT RANDOM is 
+           May assume \<^term>\<open>NA \<notin> range PRF\<close> because CLIENT RANDOM is 
            28 bytes while MASTER SECRET is 48 bytes\<close>
          "[| evsCH \<in> tls;  Nonce NA \<notin> used evsCH;  NA \<notin> range PRF |]
           ==> Says A B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>
@@ -142,7 +142,7 @@ inductive_set tls :: "event list set"
          \<comment> \<open>CLIENT KEY EXCHANGE (7.4.7).
            The client, A, chooses PMS, the PREMASTER SECRET.
            She encrypts PMS using the supplied KB, which ought to be pubK B.
-           We assume @{term "PMS \<notin> range PRF"} because a clash betweem the PMS
+           We assume \<^term>\<open>PMS \<notin> range PRF\<close> because a clash betweem the PMS
            and another MASTER SECRET is highly unlikely (even though
            both items have the same length, 48 bytes).
            The Note event records in the trace that she knows PMS
@@ -174,7 +174,7 @@ inductive_set tls :: "event list set"
           rule's applying when the Spy has satisfied the \<open>Says A B\<close> by
           repaying messages sent by the true client; in that case, the
           Spy does not know PMS and could not send ClientFinished.  One
-          could simply put @{term "A\<noteq>Spy"} into the rule, but one should not
+          could simply put \<^term>\<open>A\<noteq>Spy\<close> into the rule, but one should not
           expect the spy to be well-behaved.\<close>
          "[| evsCF \<in> tls;
              Says A  B \<lbrace>Agent A, Nonce NA, Number SID, Number PA\<rbrace>
@@ -265,7 +265,7 @@ inductive_set tls :: "event list set"
  | Oops:
          \<comment> \<open>The most plausible compromise is of an old session key.  Losing
            the MASTER SECRET or PREMASTER SECRET is more serious but
-           rather unlikely.  The assumption @{term "A\<noteq>Spy"} is essential: 
+           rather unlikely.  The assumption \<^term>\<open>A\<noteq>Spy\<close> is essential: 
            otherwise the Spy could learn session keys merely by 
            replaying messages!\<close>
          "[| evso \<in> tls;  A \<noteq> Spy;
@@ -558,7 +558,7 @@ done
 
 subsection\<open>Secrecy Theorems\<close>
 
-text\<open>Key compromise lemma needed to prove @{term analz_image_keys}.
+text\<open>Key compromise lemma needed to prove \<^term>\<open>analz_image_keys\<close>.
   No collection of keys can help the spy get new private keys.\<close>
 lemma analz_image_priK [rule_format]:
      "evs \<in> tls
@@ -688,7 +688,7 @@ txt\<open>ClientHello, ServerHello, ClientKeyExch: mostly freshness reasoning\<c
 apply (blast dest: Notes_Crypt_parts_spies)
 apply (blast dest: Notes_Crypt_parts_spies)
 apply (blast dest: Notes_Crypt_parts_spies)
-txt\<open>ClientAccepts and ServerAccepts: because @{term "PMS \<notin> range PRF"}\<close>
+txt\<open>ClientAccepts and ServerAccepts: because \<^term>\<open>PMS \<notin> range PRF\<close>\<close>
 apply force+
 done
 

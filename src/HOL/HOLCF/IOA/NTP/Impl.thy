@@ -102,8 +102,8 @@ declare split_paired_All [simp del]
 3) renname_ss unfolds transitions and the abstract channel *)
 
 ML \<open>
-val ss = simpset_of (@{context} addsimps @{thms "transitions"});
-val rename_ss = simpset_of (put_simpset ss @{context} addsimps @{thms unfold_renaming});
+val ss = simpset_of (\<^context> addsimps @{thms "transitions"});
+val rename_ss = simpset_of (put_simpset ss \<^context> addsimps @{thms unfold_renaming});
 
 fun tac ctxt =
   asm_simp_tac (put_simpset ss ctxt
@@ -131,34 +131,34 @@ apply (rule conjI)
 apply (simp add: Impl.inv1_def split del: if_split)
 apply (induct_tac a)
 
-apply (tactic "EVERY1[tac @{context}, tac @{context}, tac @{context}, tac @{context}]")
-apply (tactic "tac @{context} 1")
-apply (tactic "tac_ren @{context} 1")
+apply (tactic "EVERY1[tac \<^context>, tac \<^context>, tac \<^context>, tac \<^context>]")
+apply (tactic "tac \<^context> 1")
+apply (tactic "tac_ren \<^context> 1")
 
 txt \<open>5 + 1\<close>
 
-apply (tactic "tac @{context} 1")
-apply (tactic "tac_ren @{context} 1")
+apply (tactic "tac \<^context> 1")
+apply (tactic "tac_ren \<^context> 1")
 
 txt \<open>4 + 1\<close>
-apply (tactic \<open>EVERY1[tac @{context}, tac @{context}, tac @{context}, tac @{context}]\<close>)
+apply (tactic \<open>EVERY1[tac \<^context>, tac \<^context>, tac \<^context>, tac \<^context>]\<close>)
 
 
 txt \<open>Now the other half\<close>
 apply (simp add: Impl.inv1_def split del: if_split)
 apply (induct_tac a)
-apply (tactic "EVERY1 [tac @{context}, tac @{context}]")
+apply (tactic "EVERY1 [tac \<^context>, tac \<^context>]")
 
 txt \<open>detour 1\<close>
-apply (tactic "tac @{context} 1")
-apply (tactic "tac_ren @{context} 1")
+apply (tactic "tac \<^context> 1")
+apply (tactic "tac_ren \<^context> 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp (no_asm_simp) add: hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
   split: if_split)
 txt \<open>detour 2\<close>
-apply (tactic "tac @{context} 1")
-apply (tactic "tac_ren @{context} 1")
+apply (tactic "tac \<^context> 1")
+apply (tactic "tac_ren \<^context> 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp add: Impl.hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
@@ -183,8 +183,8 @@ apply hypsubst
 apply (rule countm_spurious_delm)
 apply (simp (no_asm))
 
-apply (tactic "EVERY1 [tac @{context}, tac @{context}, tac @{context},
-  tac @{context}, tac @{context}, tac @{context}]")
+apply (tactic "EVERY1 [tac \<^context>, tac \<^context>, tac \<^context>,
+  tac \<^context>, tac \<^context>, tac \<^context>]")
 
 done
 
@@ -203,34 +203,34 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt \<open>10 cases. First 4 are simple, since state doesn't change\<close>
 
-  ML_prf \<open>val tac2 = asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv2_def}])\<close>
+  ML_prf \<open>val tac2 = asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv2_def}])\<close>
 
   txt \<open>10 - 7\<close>
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
   txt \<open>6\<close>
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1\<close>)
 
   txt \<open>6 - 5\<close>
   apply (tactic "EVERY1 [tac2,tac2]")
 
   txt \<open>4\<close>
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv1_def}]
                                 (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1\<close>)
   apply (tactic "tac2 1")
 
   txt \<open>3\<close>
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv1_def}]
     (@{thm raw_inv1} RS @{thm invariantE})] 1\<close>)
 
   apply (tactic "tac2 1")
-  apply (tactic \<open>fold_goals_tac @{context} [rewrite_rule @{context} [@{thm Packet.hdr_def}]
+  apply (tactic \<open>fold_goals_tac \<^context> [rewrite_rule \<^context> [@{thm Packet.hdr_def}]
     (@{thm Impl.hdr_sum_def})]\<close>)
   apply arith
 
   txt \<open>2\<close>
   apply (tactic "tac2 1")
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct1] 1\<close>)
   apply (intro strip)
   apply (erule conjE)+
@@ -238,12 +238,12 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt \<open>1\<close>
   apply (tactic "tac2 1")
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv1_def}]
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct2] 1\<close>)
   apply (intro strip)
   apply (erule conjE)+
-  apply (tactic \<open>fold_goals_tac @{context}
-    [rewrite_rule @{context} [@{thm Packet.hdr_def}] (@{thm Impl.hdr_sum_def})]\<close>)
+  apply (tactic \<open>fold_goals_tac \<^context>
+    [rewrite_rule \<^context> [@{thm Packet.hdr_def}] (@{thm Impl.hdr_sum_def})]\<close>)
   apply simp
 
   done
@@ -260,13 +260,13 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
-  ML_prf \<open>val tac3 = asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv3_def}])\<close>
+  ML_prf \<open>val tac3 = asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv3_def}])\<close>
 
   txt \<open>10 - 8\<close>
 
   apply (tactic "EVERY1[tac3,tac3,tac3]")
 
-  apply (tactic "tac_ren @{context} 1")
+  apply (tactic "tac_ren \<^context> 1")
   apply (intro strip, (erule conjE)+)
   apply hypsubst
   apply (erule exE)
@@ -274,7 +274,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
 
   txt \<open>7\<close>
   apply (tactic "tac3 1")
-  apply (tactic "tac_ren @{context} 1")
+  apply (tactic "tac_ren \<^context> 1")
   apply force
 
   txt \<open>6 - 3\<close>
@@ -282,18 +282,18 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (tactic "EVERY1[tac3,tac3,tac3,tac3]")
 
   txt \<open>2\<close>
-  apply (tactic "asm_full_simp_tac (put_simpset ss @{context}) 1")
+  apply (tactic "asm_full_simp_tac (put_simpset ss \<^context>) 1")
   apply (simp (no_asm) add: inv3_def)
   apply (intro strip, (erule conjE)+)
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv2_def}]
     (@{thm raw_inv2} RS @{thm invariantE})] 1\<close>)
   apply simp
   apply (erule conjE)+
   apply (rule_tac j = "count (ssent (sen s)) (~sbit (sen s))" and
     k = "count (rsent (rec s)) (sbit (sen s))" in le_trans)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm inv1_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm inv1_def}]
                                 (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct2] 1\<close>)
   apply (simp add: hdr_sum_def Multiset.count_def)
   apply (rule add_le_mono)
@@ -308,7 +308,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (intro strip, (erule conjE)+)
   apply (rule imp_disjL [THEN iffD1])
   apply (rule impI)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv2_def}]
     (@{thm raw_inv2} RS @{thm invariantE})] 1\<close>)
   apply simp
   done
@@ -325,7 +325,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
-  ML_prf \<open>val tac4 =  asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv4_def}])\<close>
+  ML_prf \<open>val tac4 =  asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv4_def}])\<close>
 
   txt \<open>10 - 2\<close>
 
@@ -334,7 +334,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   txt \<open>2 b\<close>
 
   apply (intro strip, (erule conjE)+)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv2_def}]
                                (@{thm raw_inv2} RS @{thm invariantE})] 1\<close>)
   apply simp
 
@@ -342,9 +342,9 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (tactic "tac4 1")
   apply (intro strip, (erule conjE)+)
   apply (rule ccontr)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv2_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv2_def}]
                                (@{thm raw_inv2} RS @{thm invariantE})] 1\<close>)
-  apply (tactic \<open>forward_tac @{context} [rewrite_rule @{context} [@{thm Impl.inv3_def}]
+  apply (tactic \<open>forward_tac \<^context> [rewrite_rule \<^context> [@{thm Impl.inv3_def}]
                                (@{thm raw_inv3} RS @{thm invariantE})] 1\<close>)
   apply simp
   apply (rename_tac m, erule_tac x = "m" in allE)

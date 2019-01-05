@@ -4773,8 +4773,8 @@ subsection \<open>Reification and other technical details\<close>
 
 text \<open>
   The following is used by the automation in order to avoid writing terms like $x^2$ or $x^{-2}$
-  as @{term "\<lambda>x::real. x powr 2"} etc.\ but as the more agreeable @{term "\<lambda>x::real. x ^ 2"} or
-  @{term "\<lambda>x::real. inverse (x ^ 2)"}.
+  as \<^term>\<open>\<lambda>x::real. x powr 2\<close> etc.\ but as the more agreeable \<^term>\<open>\<lambda>x::real. x ^ 2\<close> or
+  \<^term>\<open>\<lambda>x::real. inverse (x ^ 2)\<close>.
 \<close>
 
 lemma intyness_0: "0 \<equiv> real 0"
@@ -4838,7 +4838,7 @@ lemmas [real_asymp_reify_simps] =
 
 
 text \<open>
-  This is needed in order to handle things like @{term "\<lambda>n. f n ^ n"}.
+  This is needed in order to handle things like \<^term>\<open>\<lambda>n. f n ^ n\<close>.
 \<close>
 definition powr_nat :: "real \<Rightarrow> real \<Rightarrow> real" where 
   "powr_nat x y = 

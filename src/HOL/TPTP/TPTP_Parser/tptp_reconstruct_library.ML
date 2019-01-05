@@ -100,7 +100,7 @@ enumerate 0 ["a", "b", "c"];
 fun list_diff l1 l2 =
   filter (fn x => forall (fn y => x <> y) l2) l1
 
-val _ = @{assert}
+val _ = \<^assert>
   (list_diff [1,2,3] [2,4] = [1, 3])
 
 (* [a,b] times_list [c,d] gives [[a,c,d], [b,c,d]] *)
@@ -179,13 +179,13 @@ in
   fun prefix_intersection_list l1 l2 = prefix_intersection_list' ([], []) l1 l2
 end;
 
-val _ = @{assert}
+val _ = \<^assert>
   (prefix_intersection_list [1,2,3,4,5] [1,3,5] = [1, 3, 5, 2, 4]);
 
-val _ = @{assert}
+val _ = \<^assert>
   (prefix_intersection_list [1,2,3,4,5] [] = [1,2,3,4,5]);
 
-val _ = @{assert}
+val _ = \<^assert>
   (prefix_intersection_list [] [1,3,5] = [])
 
 fun switch f y x = f x y
@@ -199,7 +199,7 @@ fun fold_options opt_list =
    opt_list
    [];
 
-val _ = @{assert}
+val _ = \<^assert>
   ([2,0,1] =
    fold_options [NONE, SOME 1, NONE, SOME 0, NONE, NONE, SOME 2]);
 
@@ -250,7 +250,7 @@ fun find_and_remove pred l =
   |> apsnd break_list
   |> (fn (xs, (y, ys)) => (y, xs @ ys))
 
-val _ = @{assert} (find_and_remove (curry (op =) 3) [0,1,2,3,4,5] = (3, [0,1,2,4,5]))
+val _ = \<^assert> (find_and_remove (curry (op =) 3) [0,1,2,3,4,5] = (3, [0,1,2,4,5]))
 
 
 (** Functions on terms **)
@@ -259,21 +259,21 @@ val _ = @{assert} (find_and_remove (curry (op =) 3) [0,1,2,3,4,5] = (3, [0,1,2,4
   and the body*)
 local
   (*Strip off HOL's All combinator if it's at the toplevel*)
-  fun try_dest_All (Const (@{const_name HOL.All}, _) $ t) = t
-    | try_dest_All (Const (@{const_name HOL.Trueprop}, _) $ t) = try_dest_All t
+  fun try_dest_All (Const (\<^const_name>\<open>HOL.All\<close>, _) $ t) = t
+    | try_dest_All (Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ t) = try_dest_All t
     | try_dest_All t = t
 
-  val _ = @{assert}
-    ((@{term "\<forall>x. (\<forall>y. P) = True"}
+  val _ = \<^assert>
+    ((\<^term>\<open>\<forall>x. (\<forall>y. P) = True\<close>
       |> try_dest_All
       |> Term.strip_abs_vars)
-     = [("x", @{typ "'a"})])
+     = [("x", \<^typ>\<open>'a\<close>)])
 
-  val _ = @{assert}
-    ((@{prop "\<forall>x. (\<forall>y. P) = True"}
+  val _ = \<^assert>
+    ((\<^prop>\<open>\<forall>x. (\<forall>y. P) = True\<close>
       |> try_dest_All
       |> Term.strip_abs_vars)
-     = [("x", @{typ "'a"})])
+     = [("x", \<^typ>\<open>'a\<close>)])
 
   fun strip_top_All_vars' once acc t =
     let
@@ -300,13 +300,13 @@ in
 val _ =
   let
     val answer =
-      ([("x", @{typ "'a"})],
-       HOLogic.all_const @{typ "'a"} $
-        (HOLogic.eq_const @{typ "'a"} $
-         Free ("x", @{typ "'a"})))
+      ([("x", \<^typ>\<open>'a\<close>)],
+       HOLogic.all_const \<^typ>\<open>'a\<close> $
+        (HOLogic.eq_const \<^typ>\<open>'a\<close> $
+         Free ("x", \<^typ>\<open>'a\<close>)))
   in
-    @{assert}
-      ((@{term "\<forall>x. All ((=) x)"}
+    \<^assert>
+      ((\<^term>\<open>\<forall>x. All ((=) x)\<close>
         |> strip_top_All_vars)
        = answer)
   end
@@ -754,7 +754,7 @@ fun TERMPRED
       val conc_results =
         TERMFUN (snd (*discard hypotheses*)
                  #> conc_pred_over_terms) i_opt st
-      val _ = @{assert} (length hyp_results = length conc_results)
+      val _ = \<^assert> (length hyp_results = length conc_results)
     in
       if null hyp_results then true
       else

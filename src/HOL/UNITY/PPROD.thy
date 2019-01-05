@@ -68,7 +68,7 @@ lemma PLam_transient:
     PLam I F \<in> transient A = (\<exists>i \<in> I. lift i (F i) \<in> transient A)"
 by (simp add: JN_transient PLam_def)
 
-text\<open>This holds because the @{term "F j"} cannot change @{term "lift_set i"}\<close>
+text\<open>This holds because the \<^term>\<open>F j\<close> cannot change \<^term>\<open>lift_set i\<close>\<close>
 lemma PLam_ensures:
      "[| i \<in> I;  F i \<in> (A \<times> UNIV) ensures (B \<times> UNIV);
          \<forall>j. F j \<in> preserves snd |]
@@ -114,7 +114,7 @@ by (simp add: PLam_def lift_preserves_snd_I)
 
 (*** guarantees properties ***)
 
-text\<open>This rule looks unsatisfactory because it refers to @{term lift}. 
+text\<open>This rule looks unsatisfactory because it refers to \<^term>\<open>lift\<close>. 
   One must use
   \<open>lift_guarantees_eq_lift_inv\<close> to rewrite the first subgoal and
   something like \<open>lift_preserves_sub\<close> to rewrite the third.  However

@@ -17,11 +17,11 @@ end;
 structure Approximation_Generator : APPROXIMATION_GENERATOR =
 struct
 
-val custom_seed = Attrib.setup_config_int @{binding quickcheck_approximation_custom_seed} (K ~1)
+val custom_seed = Attrib.setup_config_int \<^binding>\<open>quickcheck_approximation_custom_seed\<close> (K ~1)
 
-val precision = Attrib.setup_config_int @{binding quickcheck_approximation_precision} (K 30)
+val precision = Attrib.setup_config_int \<^binding>\<open>quickcheck_approximation_precision\<close> (K 30)
 
-val epsilon = Attrib.setup_config_real @{binding quickcheck_approximation_epsilon} (K 0.0)
+val epsilon = Attrib.setup_config_real \<^binding>\<open>quickcheck_approximation_epsilon\<close> (K 0.0)
 
 val random_float = @{code "random_class.random::_ \<Rightarrow> _ \<Rightarrow> (float \<times> (unit \<Rightarrow> term)) \<times> _"}
 
@@ -33,33 +33,33 @@ fun int_of_term t = snd (HOLogic.dest_number t) handle TERM _ => raise TERM ("in
 
 fun real_of_man_exp m e = Real.fromManExp {man = Real.fromInt m, exp = e}
 
-fun mapprox_float (@{term Float} $ m $ e) = real_of_man_exp (int_of_term m) (int_of_term e)
+fun mapprox_float (\<^term>\<open>Float\<close> $ m $ e) = real_of_man_exp (int_of_term m) (int_of_term e)
   | mapprox_float t = Real.fromInt (snd (HOLogic.dest_number t))
       handle TERM _ => raise TERM ("mapprox_float", [t]);
 
 (* TODO: define using compiled terms? *)
-fun mapprox_floatarith (@{term Add} $ a $ b) xs = mapprox_floatarith a xs + mapprox_floatarith b xs
-  | mapprox_floatarith (@{term Minus} $ a) xs = ~ (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Mult} $ a $ b) xs = mapprox_floatarith a xs * mapprox_floatarith b xs
-  | mapprox_floatarith (@{term Inverse} $ a) xs = 1.0 / mapprox_floatarith a xs
-  | mapprox_floatarith (@{term Cos} $ a) xs = Math.cos (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Arctan} $ a) xs = Math.atan (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Abs} $ a) xs = abs (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Max} $ a $ b) xs =
+fun mapprox_floatarith (\<^term>\<open>Add\<close> $ a $ b) xs = mapprox_floatarith a xs + mapprox_floatarith b xs
+  | mapprox_floatarith (\<^term>\<open>Minus\<close> $ a) xs = ~ (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Mult\<close> $ a $ b) xs = mapprox_floatarith a xs * mapprox_floatarith b xs
+  | mapprox_floatarith (\<^term>\<open>Inverse\<close> $ a) xs = 1.0 / mapprox_floatarith a xs
+  | mapprox_floatarith (\<^term>\<open>Cos\<close> $ a) xs = Math.cos (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Arctan\<close> $ a) xs = Math.atan (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Abs\<close> $ a) xs = abs (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Max\<close> $ a $ b) xs =
       Real.max (mapprox_floatarith a xs, mapprox_floatarith b xs)
-  | mapprox_floatarith (@{term Min} $ a $ b) xs =
+  | mapprox_floatarith (\<^term>\<open>Min\<close> $ a $ b) xs =
       Real.min (mapprox_floatarith a xs, mapprox_floatarith b xs)
-  | mapprox_floatarith @{term Pi} _ = Math.pi
-  | mapprox_floatarith (@{term Sqrt} $ a) xs = Math.sqrt (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Exp} $ a) xs = Math.exp (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Powr} $ a $ b) xs =
+  | mapprox_floatarith \<^term>\<open>Pi\<close> _ = Math.pi
+  | mapprox_floatarith (\<^term>\<open>Sqrt\<close> $ a) xs = Math.sqrt (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Exp\<close> $ a) xs = Math.exp (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Powr\<close> $ a $ b) xs =
       Math.pow (mapprox_floatarith a xs, mapprox_floatarith b xs)
-  | mapprox_floatarith (@{term Ln} $ a) xs = Math.ln (mapprox_floatarith a xs)
-  | mapprox_floatarith (@{term Power} $ a $ n) xs =
+  | mapprox_floatarith (\<^term>\<open>Ln\<close> $ a) xs = Math.ln (mapprox_floatarith a xs)
+  | mapprox_floatarith (\<^term>\<open>Power\<close> $ a $ n) xs =
       Math.pow (mapprox_floatarith a xs, Real.fromInt (nat_of_term n))
-  | mapprox_floatarith (@{term Floor} $ a) xs = Real.fromInt (floor (mapprox_floatarith a xs))
-  | mapprox_floatarith (@{term Var} $ n) xs = nth xs (nat_of_term n)
-  | mapprox_floatarith (@{term Num} $ m) _ = mapprox_float m
+  | mapprox_floatarith (\<^term>\<open>Floor\<close> $ a) xs = Real.fromInt (floor (mapprox_floatarith a xs))
+  | mapprox_floatarith (\<^term>\<open>Var\<close> $ n) xs = nth xs (nat_of_term n)
+  | mapprox_floatarith (\<^term>\<open>Num\<close> $ m) _ = mapprox_float m
   | mapprox_floatarith t _ = raise TERM ("mapprox_floatarith", [t])
 
 fun mapprox_atLeastAtMost eps x a b xs =
@@ -69,22 +69,22 @@ fun mapprox_atLeastAtMost eps x a b xs =
       mapprox_floatarith a xs + eps <= x' andalso x' + eps <= mapprox_floatarith b xs
     end
 
-fun mapprox_form eps (@{term Bound} $ x $ a $ b $ f) xs =
+fun mapprox_form eps (\<^term>\<open>Bound\<close> $ x $ a $ b $ f) xs =
     (not (mapprox_atLeastAtMost eps x a b xs)) orelse mapprox_form eps f xs
-| mapprox_form eps (@{term Assign} $ x $ a $ f) xs =
+| mapprox_form eps (\<^term>\<open>Assign\<close> $ x $ a $ f) xs =
     (Real.!= (mapprox_floatarith x xs, mapprox_floatarith a xs)) orelse mapprox_form eps f xs
-| mapprox_form eps (@{term Less} $ a $ b) xs = mapprox_floatarith a xs + eps < mapprox_floatarith b xs
-| mapprox_form eps (@{term LessEqual} $ a $ b) xs = mapprox_floatarith a xs + eps <= mapprox_floatarith b xs
-| mapprox_form eps (@{term AtLeastAtMost} $ x $ a $ b) xs = mapprox_atLeastAtMost eps x a b xs
-| mapprox_form eps (@{term Conj} $ f $ g) xs = mapprox_form eps f xs andalso mapprox_form eps g xs
-| mapprox_form eps (@{term Disj} $ f $ g) xs = mapprox_form eps f xs orelse mapprox_form eps g xs
+| mapprox_form eps (\<^term>\<open>Less\<close> $ a $ b) xs = mapprox_floatarith a xs + eps < mapprox_floatarith b xs
+| mapprox_form eps (\<^term>\<open>LessEqual\<close> $ a $ b) xs = mapprox_floatarith a xs + eps <= mapprox_floatarith b xs
+| mapprox_form eps (\<^term>\<open>AtLeastAtMost\<close> $ x $ a $ b) xs = mapprox_atLeastAtMost eps x a b xs
+| mapprox_form eps (\<^term>\<open>Conj\<close> $ f $ g) xs = mapprox_form eps f xs andalso mapprox_form eps g xs
+| mapprox_form eps (\<^term>\<open>Disj\<close> $ f $ g) xs = mapprox_form eps f xs orelse mapprox_form eps g xs
 | mapprox_form _ t _ = raise TERM ("mapprox_form", [t])
 
-fun dest_interpret_form (@{const "interpret_form"} $ b $ xs) = (b, xs)
+fun dest_interpret_form (\<^const>\<open>interpret_form\<close> $ b $ xs) = (b, xs)
   | dest_interpret_form t = raise TERM ("dest_interpret_form", [t])
 
-fun optionT t = Type (@{type_name "option"}, [t])
-fun mk_Some t = Const (@{const_name "Some"}, t --> optionT t)
+fun optionT t = Type (\<^type_name>\<open>option\<close>, [t])
+fun mk_Some t = Const (\<^const_name>\<open>Some\<close>, t --> optionT t)
 
 fun random_float_list size xs seed =
   fold (K (apsnd (random_float size) #-> (fn c => apfst (fn b => b::c)))) xs ([],seed)
@@ -92,7 +92,7 @@ fun random_float_list size xs seed =
 fun real_of_Float (@{code Float} (m, e)) =
     real_of_man_exp (@{code integer_of_int} m) (@{code integer_of_int} e)
 
-fun is_True @{term True} = true
+fun is_True \<^term>\<open>True\<close> = true
   | is_True _ = false
 
 val postproc_form_eqs =
@@ -126,12 +126,12 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
   let
     val (rs, seed') = random_float_list size xs seed
     fun mk_approx_form e ts =
-      @{const "approx_form"} $
-        HOLogic.mk_number @{typ nat} prec $
+      \<^const>\<open>approx_form\<close> $
+        HOLogic.mk_number \<^typ>\<open>nat\<close> prec $
         e $
-        (HOLogic.mk_list @{typ "(float * float) option"}
-          (map (fn t => mk_Some @{typ "float * float"} $ HOLogic.mk_prod (t, t)) ts)) $
-        @{term "[] :: nat list"}
+        (HOLogic.mk_list \<^typ>\<open>(float * float) option\<close>
+          (map (fn t => mk_Some \<^typ>\<open>float * float\<close> $ HOLogic.mk_prod (t, t)) ts)) $
+        \<^term>\<open>[] :: nat list\<close>
   in
     (if
       mapprox_form eps e (map (real_of_Float o fst) rs)
@@ -146,7 +146,7 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
         val ts' = map
           (AList.lookup op = (map dest_Free xs ~~ ts)
             #> the_default Term.dummy
-            #> curry op $ @{term "real_of_float::float\<Rightarrow>_"}
+            #> curry op $ \<^term>\<open>real_of_float::float\<Rightarrow>_\<close>
             #> conv_term ctxt (rewrite_with ctxt postproc_form_eqs))
           frees
       in
@@ -207,7 +207,7 @@ val test_goals =
   Quickcheck_Common.generator_test_goal_terms
     ("approximation", (fn _ => fn _ => false, approximation_generator))
 
-val active = Attrib.setup_config_bool @{binding quickcheck_approximation_active} (K false)
+val active = Attrib.setup_config_bool \<^binding>\<open>quickcheck_approximation_active\<close> (K false)
 
 val setup = Context.theory_map (Quickcheck.add_tester ("approximation", (active, test_goals)))
 

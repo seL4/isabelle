@@ -14,14 +14,14 @@ provides the standard logical constructs, in decreasing order of precedence:
 
 \mathit{form} & ::= &
   \<open>(form)\<close> ~\mid~
-  @{const True} ~\mid~
-  @{const False} ~\mid~
-  @{prop "term = term"}\\
- &\mid& @{prop"\<not> form"}\index{$HOL4@\isasymnot} ~\mid~
-  @{prop "form \<and> form"}\index{$HOL0@\isasymand} ~\mid~
-  @{prop "form \<or> form"}\index{$HOL1@\isasymor} ~\mid~
-  @{prop "form \<longrightarrow> form"}\index{$HOL2@\isasymlongrightarrow}\\
- &\mid& @{prop"\<forall>x. form"}\index{$HOL6@\isasymforall} ~\mid~  @{prop"\<exists>x. form"}\index{$HOL7@\isasymexists}
+  \<^const>\<open>True\<close> ~\mid~
+  \<^const>\<open>False\<close> ~\mid~
+  \<^prop>\<open>term = term\<close>\\
+ &\mid& \<^prop>\<open>\<not> form\<close>\index{$HOL4@\isasymnot} ~\mid~
+  \<^prop>\<open>form \<and> form\<close>\index{$HOL0@\isasymand} ~\mid~
+  \<^prop>\<open>form \<or> form\<close>\index{$HOL1@\isasymor} ~\mid~
+  \<^prop>\<open>form \<longrightarrow> form\<close>\index{$HOL2@\isasymlongrightarrow}\\
+ &\mid& \<^prop>\<open>\<forall>x. form\<close>\index{$HOL6@\isasymforall} ~\mid~  \<^prop>\<open>\<exists>x. form\<close>\index{$HOL7@\isasymexists}
 \end{array}
 \]
 Terms are the ones we have seen all along, built from constants, variables,
@@ -30,8 +30,8 @@ sugar like infix symbols, \<open>if\<close>, \<open>case\<close>, etc.
 \begin{warn}
 Remember that formulas are simply terms of type \<open>bool\<close>. Hence
 \<open>=\<close> also works for formulas. Beware that \<open>=\<close> has a higher
-precedence than the other logical operators. Hence @{prop"s = t \<and> A"} means
-\<open>(s = t) \<and> A\<close>, and @{prop"A\<and>B = B\<and>A"} means \<open>A \<and> (B = B) \<and> A\<close>.
+precedence than the other logical operators. Hence \<^prop>\<open>s = t \<and> A\<close> means
+\<open>(s = t) \<and> A\<close>, and \<^prop>\<open>A\<and>B = B\<and>A\<close> means \<open>A \<and> (B = B) \<and> A\<close>.
 Logical equivalence can also be written with
 \<open>\<longleftrightarrow>\<close> instead of \<open>=\<close>, where \<open>\<longleftrightarrow>\<close> has the same low
 precedence as \<open>\<longrightarrow>\<close>. Hence \<open>A \<and> B \<longleftrightarrow> B \<and> A\<close> really means
@@ -80,25 +80,25 @@ but the first one works better when using the theorem in further proofs.
 \section{Sets}
 \label{sec:Sets}
 
-Sets of elements of type @{typ 'a} have type @{typ"'a set"}\index{set@\<open>set\<close>}.
+Sets of elements of type \<^typ>\<open>'a\<close> have type \<^typ>\<open>'a set\<close>\index{set@\<open>set\<close>}.
 They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
-\item \indexed{@{term"{}"}}{$IMP042},\quad \<open>{e\<^sub>1,\<dots>,e\<^sub>n}\<close>
-\item @{prop"e \<in> A"}\index{$HOLSet0@\isasymin},\quad @{prop"A \<subseteq> B"}\index{$HOLSet2@\isasymsubseteq}
-\item @{term"A \<union> B"}\index{$HOLSet4@\isasymunion},\quad @{term"A \<inter> B"}\index{$HOLSet5@\isasyminter},\quad @{term"A - B"},\quad @{term"-A"}
+\item \indexed{\<^term>\<open>{}\<close>}{$IMP042},\quad \<open>{e\<^sub>1,\<dots>,e\<^sub>n}\<close>
+\item \<^prop>\<open>e \<in> A\<close>\index{$HOLSet0@\isasymin},\quad \<^prop>\<open>A \<subseteq> B\<close>\index{$HOLSet2@\isasymsubseteq}
+\item \<^term>\<open>A \<union> B\<close>\index{$HOLSet4@\isasymunion},\quad \<^term>\<open>A \<inter> B\<close>\index{$HOLSet5@\isasyminter},\quad \<^term>\<open>A - B\<close>,\quad \<^term>\<open>-A\<close>
 \end{itemize}
-(where @{term"A-B"} and \<open>-A\<close> are set difference and complement)
-and much more. @{const UNIV} is the set of all elements of some type.
+(where \<^term>\<open>A-B\<close> and \<open>-A\<close> are set difference and complement)
+and much more. \<^const>\<open>UNIV\<close> is the set of all elements of some type.
 Set comprehension\index{set comprehension} is written
-@{term"{x. P}"}\index{$IMP042@@{term"{x. P}"}} rather than \<open>{x | P}\<close>.
+\<^term>\<open>{x. P}\<close>\index{$IMP042@\<^term>\<open>{x. P}\<close>} rather than \<open>{x | P}\<close>.
 \begin{warn}
-In @{term"{x. P}"} the \<open>x\<close> must be a variable. Set comprehension
+In \<^term>\<open>{x. P}\<close> the \<open>x\<close> must be a variable. Set comprehension
 involving a proper term \<open>t\<close> must be written
 \noquotes{@{term[source] "{t | x y. P}"}}\index{$IMP042@\<open>{t |x. P}\<close>},
 where \<open>x y\<close> are those free variables in \<open>t\<close>
 that occur in \<open>P\<close>.
-This is just a shorthand for @{term"{v. \<exists>x y. v = t \<and> P}"}, where
-\<open>v\<close> is a new variable. For example, @{term"{x+y|x. x \<in> A}"}
+This is just a shorthand for \<^term>\<open>{v. \<exists>x y. v = t \<and> P}\<close>, where
+\<open>v\<close> is a new variable. For example, \<^term>\<open>{x+y|x. x \<in> A}\<close>
 is short for \noquotes{@{term[source]"{v. \<exists>x. v = x+y \<and> x \<in> A}"}}.
 \end{warn}
 
@@ -111,8 +111,8 @@ Here are the ASCII representations of the mathematical symbols:
 \<open>\<inter>\<close> & \texttt{\char`\\\char`\<inter>} & \texttt{Int}
 \end{tabular}
 \end{center}
-Sets also allow bounded quantifications @{prop"\<forall>x \<in> A. P"} and
-@{prop"\<exists>x \<in> A. P"}.
+Sets also allow bounded quantifications \<^prop>\<open>\<forall>x \<in> A. P\<close> and
+\<^prop>\<open>\<exists>x \<in> A. P\<close>.
 
 For the more ambitious, there are also \<open>\<Union>\<close>\index{$HOLSet6@\isasymUnion}
 and \<open>\<Inter>\<close>\index{$HOLSet7@\isasymInter}:
@@ -132,15 +132,15 @@ If \texttt{A} is \texttt{UNIV} you can write \ \texttt{UN x.~B} \ and \ \texttt{
 Some other frequently useful functions on sets are the following:
 \begin{center}
 \begin{tabular}{l@ {\quad}l}
-@{const_typ set}\index{set@@{const set}} & converts a list to the set of its elements\\
-@{const_typ finite}\index{finite@@{const finite}} & is true iff its argument is finite\\
-\noquotes{@{term[source] "card :: 'a set \<Rightarrow> nat"}}\index{card@@{const card}} & is the cardinality of a finite set\\
+@{const_typ set}\index{set@\<^const>\<open>set\<close>} & converts a list to the set of its elements\\
+@{const_typ finite}\index{finite@\<^const>\<open>finite\<close>} & is true iff its argument is finite\\
+\noquotes{@{term[source] "card :: 'a set \<Rightarrow> nat"}}\index{card@\<^const>\<open>card\<close>} & is the cardinality of a finite set\\
  & and is \<open>0\<close> for all infinite sets\\
-@{thm image_def}\index{$IMP042@@{term"f ` A"}} & is the image of a function over a set
+@{thm image_def}\index{$IMP042@\<^term>\<open>f ` A\<close>} & is the image of a function over a set
 \end{tabular}
 \end{center}
 See @{cite "Nipkow-Main"} for the wealth of further predefined functions in theory
-@{theory Main}.
+\<^theory>\<open>Main\<close>.
 
 
 \subsection*{Exercises}
@@ -152,15 +152,15 @@ Start from the data type of binary trees defined earlier:
 datatype 'a tree = Tip | Node "'a tree" 'a "'a tree"
 
 text\<open>
-Define a function \<open>set ::\<close> @{typ "'a tree \<Rightarrow> 'a set"}
+Define a function \<open>set ::\<close> \<^typ>\<open>'a tree \<Rightarrow> 'a set\<close>
 that returns the elements in a tree and a function
-\<open>ord ::\<close> @{typ "int tree \<Rightarrow> bool"}
-that tests if an @{typ "int tree"} is ordered.
+\<open>ord ::\<close> \<^typ>\<open>int tree \<Rightarrow> bool\<close>
+that tests if an \<^typ>\<open>int tree\<close> is ordered.
 
-Define a function \<open>ins\<close> that inserts an element into an ordered @{typ "int tree"}
+Define a function \<open>ins\<close> that inserts an element into an ordered \<^typ>\<open>int tree\<close>
 while maintaining the order of the tree. If the element is already in the tree, the
 same tree should be returned. Prove correctness of \<open>ins\<close>:
-@{prop "set(ins x t) = {x} \<union> set t"} and @{prop "ord t \<Longrightarrow> ord(ins i t)"}.
+\<^prop>\<open>set(ins x t) = {x} \<union> set t\<close> and \<^prop>\<open>ord t \<Longrightarrow> ord(ins i t)\<close>.
 \endexercise
 
 
@@ -266,8 +266,8 @@ to find all the relevant lemmas first. But that is precisely what
 In this case lemma @{thm[source]append_eq_conv_conj} alone suffices:
 @{thm[display] append_eq_conv_conj}
 We leave it to the reader to figure out why this lemma suffices to prove
-the above lemma, even without any knowledge of what the functions @{const take}
-and @{const drop} do. Keep in mind that the variables in the two lemmas
+the above lemma, even without any knowledge of what the functions \<^const>\<open>take\<close>
+and \<^const>\<open>drop\<close> do. Keep in mind that the variables in the two lemmas
 are independent of each other, despite the same names, and that you can
 substitute arbitrary values for the free variables in a lemma.
 
@@ -294,10 +294,10 @@ arithmetic formulas already, like the one above, by calling a weak but fast
 version of \<open>arith\<close>. Hence it is usually not necessary to invoke
 \<open>arith\<close> explicitly.
 
-The above example involves natural numbers, but integers (type @{typ int})
+The above example involves natural numbers, but integers (type \<^typ>\<open>int\<close>)
 and real numbers (type \<open>real\<close>) are supported as well. As are a number
-of further operators like @{const min} and @{const max}. On @{typ nat} and
-@{typ int}, \<open>arith\<close> can even prove theorems with quantifiers in them,
+of further operators like \<^const>\<open>min\<close> and \<^const>\<open>max\<close>. On \<^typ>\<open>nat\<close> and
+\<^typ>\<open>int\<close>, \<open>arith\<close> can even prove theorems with quantifiers in them,
 but we will not enlarge on that here.
 
 
@@ -320,7 +320,7 @@ Although automation is nice, it often fails, at least initially, and you need
 to find out why. When \<open>fastforce\<close> or \<open>blast\<close> simply fail, you have
 no clue why. At this point, the stepwise
 application of proof rules may be necessary. For example, if \<open>blast\<close>
-fails on @{prop"A \<and> B"}, you want to attack the two
+fails on \<^prop>\<open>A \<and> B\<close>, you want to attack the two
 conjuncts \<open>A\<close> and \<open>B\<close> separately. This can
 be achieved by applying \emph{conjunction introduction}
 \[ @{thm[mode=Rule,show_question_marks]conjI}\ \<open>conjI\<close>
@@ -346,8 +346,8 @@ the unknowns in the theorem \<open>th\<close> from left to right with the terms
 
 \item By unification. \conceptidx{Unification}{unification} is the process of making two
 terms syntactically equal by suitable instantiations of unknowns. For example,
-unifying \<open>?P \<and> ?Q\<close> with \mbox{@{prop"a=b \<and> False"}} instantiates
-\<open>?P\<close> with @{prop "a=b"} and \<open>?Q\<close> with @{prop False}.
+unifying \<open>?P \<and> ?Q\<close> with \mbox{\<^prop>\<open>a=b \<and> False\<close>} instantiates
+\<open>?P\<close> with \<^prop>\<open>a=b\<close> and \<open>?Q\<close> with \<^prop>\<open>False\<close>.
 \end{itemize}
 We need not instantiate all unknowns. If we want to skip a particular one we
 can write \<open>_\<close> instead, for example \<open>conjI[of _ "False"]\<close>.
@@ -419,7 +419,7 @@ that case \<open>blast\<close>, \<open>fastforce\<close> and (to a limited exten
 attribute should be used with care because it increases the search space and
 can lead to nontermination.  Sometimes it is better to use it only in
 specific calls of \<open>blast\<close> and friends. For example,
-@{thm[source] le_trans}, transitivity of \<open>\<le>\<close> on type @{typ nat},
+@{thm[source] le_trans}, transitivity of \<open>\<le>\<close> on type \<^typ>\<open>nat\<close>,
 is not an introduction rule by default because of the disastrous effect
 on the search space, but can be useful in specific situations:
 \<close>
@@ -436,7 +436,7 @@ Of course this is just an example and could be proved by \<open>arith\<close>, t
 Forward proof means deriving new theorems from old theorems. We have already
 seen a very simple form of forward proof: the \<open>of\<close> operator for
 instantiating unknowns in a theorem. The big brother of \<open>of\<close> is
-\indexed{\<open>OF\<close>}{OF} for applying one theorem to others. Given a theorem @{prop"A \<Longrightarrow> B"} called
+\indexed{\<open>OF\<close>}{OF} for applying one theorem to others. Given a theorem \<^prop>\<open>A \<Longrightarrow> B\<close> called
 \<open>r\<close> and a theorem \<open>A'\<close> called \<open>r'\<close>, the theorem \<open>r[OF r']\<close> is the result of applying \<open>r\<close> to \<open>r'\<close>, where \<open>r\<close> should be viewed as a function taking a theorem \<open>A\<close> and returning
 \<open>B\<close>.  More precisely, \<open>A\<close> and \<open>A'\<close> are unified, thus
 instantiating the unknowns in \<open>B\<close>, and the result is the instantiated
@@ -519,9 +519,9 @@ evSS:  (*<*)"ev n \<Longrightarrow> ev (Suc(Suc n))"(*>*)
 text_raw\<open>@{prop[source]"ev n \<Longrightarrow> ev (n + 2)"}\<close>
 
 text\<open>To get used to inductive definitions, we will first prove a few
-properties of @{const ev} informally before we descend to the Isabelle level.
+properties of \<^const>\<open>ev\<close> informally before we descend to the Isabelle level.
 
-How do we prove that some number is even, e.g., @{prop "ev 4"}? Simply by combining the defining rules for @{const ev}:
+How do we prove that some number is even, e.g., \<^prop>\<open>ev 4\<close>? Simply by combining the defining rules for \<^const>\<open>ev\<close>:
 \begin{quote}
 \<open>ev 0 \<Longrightarrow> ev (0 + 2) \<Longrightarrow> ev((0 + 2) + 2) = ev 4\<close>
 \end{quote}
@@ -537,54 +537,54 @@ fun evn :: "nat \<Rightarrow> bool" where
 "evn (Suc 0) = False" |
 "evn (Suc(Suc n)) = evn n"
 
-text\<open>We prove @{prop"ev m \<Longrightarrow> evn m"}.  That is, we
-assume @{prop"ev m"} and by induction on the form of its derivation
-prove @{prop"evn m"}. There are two cases corresponding to the two rules
-for @{const ev}:
+text\<open>We prove \<^prop>\<open>ev m \<Longrightarrow> evn m\<close>.  That is, we
+assume \<^prop>\<open>ev m\<close> and by induction on the form of its derivation
+prove \<^prop>\<open>evn m\<close>. There are two cases corresponding to the two rules
+for \<^const>\<open>ev\<close>:
 \begin{description}
 \item[Case @{thm[source]ev0}:]
- @{prop"ev m"} was derived by rule @{prop "ev 0"}: \\
- \<open>\<Longrightarrow>\<close> @{prop"m=(0::nat)"} \<open>\<Longrightarrow>\<close> \<open>evn m = evn 0 = True\<close>
+ \<^prop>\<open>ev m\<close> was derived by rule \<^prop>\<open>ev 0\<close>: \\
+ \<open>\<Longrightarrow>\<close> \<^prop>\<open>m=(0::nat)\<close> \<open>\<Longrightarrow>\<close> \<open>evn m = evn 0 = True\<close>
 \item[Case @{thm[source]evSS}:]
- @{prop"ev m"} was derived by rule @{prop "ev n \<Longrightarrow> ev(n+2)"}: \\
-\<open>\<Longrightarrow>\<close> @{prop"m=n+(2::nat)"} and by induction hypothesis @{prop"evn n"}\\
+ \<^prop>\<open>ev m\<close> was derived by rule \<^prop>\<open>ev n \<Longrightarrow> ev(n+2)\<close>: \\
+\<open>\<Longrightarrow>\<close> \<^prop>\<open>m=n+(2::nat)\<close> and by induction hypothesis \<^prop>\<open>evn n\<close>\\
 \<open>\<Longrightarrow>\<close> \<open>evn m = evn(n + 2) = evn n = True\<close>
 \end{description}
 
 What we have just seen is a special case of \concept{rule induction}.
 Rule induction applies to propositions of this form
 \begin{quote}
-@{prop "ev n \<Longrightarrow> P n"}
+\<^prop>\<open>ev n \<Longrightarrow> P n\<close>
 \end{quote}
-That is, we want to prove a property @{prop"P n"}
-for all even \<open>n\<close>. But if we assume @{prop"ev n"}, then there must be
+That is, we want to prove a property \<^prop>\<open>P n\<close>
+for all even \<open>n\<close>. But if we assume \<^prop>\<open>ev n\<close>, then there must be
 some derivation of this assumption using the two defining rules for
-@{const ev}. That is, we must prove
+\<^const>\<open>ev\<close>. That is, we must prove
 \begin{description}
-\item[Case @{thm[source]ev0}:] @{prop"P(0::nat)"}
-\item[Case @{thm[source]evSS}:] @{prop"\<lbrakk> ev n; P n \<rbrakk> \<Longrightarrow> P(n + 2::nat)"}
+\item[Case @{thm[source]ev0}:] \<^prop>\<open>P(0::nat)\<close>
+\item[Case @{thm[source]evSS}:] \<^prop>\<open>\<lbrakk> ev n; P n \<rbrakk> \<Longrightarrow> P(n + 2::nat)\<close>
 \end{description}
 The corresponding rule is called @{thm[source] ev.induct} and looks like this:
 \[
 \inferrule{
 \mbox{@{thm (prem 1) ev.induct[of "n"]}}\\
 \mbox{@{thm (prem 2) ev.induct}}\\
-\mbox{@{prop"!!n. \<lbrakk> ev n; P n \<rbrakk> \<Longrightarrow> P(n+2)"}}}
+\mbox{\<^prop>\<open>!!n. \<lbrakk> ev n; P n \<rbrakk> \<Longrightarrow> P(n+2)\<close>}}
 {\mbox{@{thm (concl) ev.induct[of "n"]}}}
 \]
-The first premise @{prop"ev n"} enforces that this rule can only be applied
+The first premise \<^prop>\<open>ev n\<close> enforces that this rule can only be applied
 in situations where we know that \<open>n\<close> is even.
 
-Note that in the induction step we may not just assume @{prop"P n"} but also
-\mbox{@{prop"ev n"}}, which is simply the premise of rule @{thm[source]
-evSS}.  Here is an example where the local assumption @{prop"ev n"} comes in
-handy: we prove @{prop"ev m \<Longrightarrow> ev(m - 2)"} by induction on @{prop"ev m"}.
-Case @{thm[source]ev0} requires us to prove @{prop"ev(0 - 2)"}, which follows
-from @{prop"ev 0"} because @{prop"0 - 2 = (0::nat)"} on type @{typ nat}. In
-case @{thm[source]evSS} we have \mbox{@{prop"m = n+(2::nat)"}} and may assume
-@{prop"ev n"}, which implies @{prop"ev (m - 2)"} because \<open>m - 2 = (n +
+Note that in the induction step we may not just assume \<^prop>\<open>P n\<close> but also
+\mbox{\<^prop>\<open>ev n\<close>}, which is simply the premise of rule @{thm[source]
+evSS}.  Here is an example where the local assumption \<^prop>\<open>ev n\<close> comes in
+handy: we prove \<^prop>\<open>ev m \<Longrightarrow> ev(m - 2)\<close> by induction on \<^prop>\<open>ev m\<close>.
+Case @{thm[source]ev0} requires us to prove \<^prop>\<open>ev(0 - 2)\<close>, which follows
+from \<^prop>\<open>ev 0\<close> because \<^prop>\<open>0 - 2 = (0::nat)\<close> on type \<^typ>\<open>nat\<close>. In
+case @{thm[source]evSS} we have \mbox{\<^prop>\<open>m = n+(2::nat)\<close>} and may assume
+\<^prop>\<open>ev n\<close>, which implies \<^prop>\<open>ev (m - 2)\<close> because \<open>m - 2 = (n +
 2) - 2 = n\<close>. We did not need the induction hypothesis at all for this proof (it
-is just a case analysis of which rule was used) but having @{prop"ev n"}
+is just a case analysis of which rule was used) but having \<^prop>\<open>ev n\<close>
 at our disposal in case @{thm[source]evSS} was essential.
 This case analysis of rules is also called ``rule inversion''
 and is discussed in more detail in \autoref{ch:Isar}.
@@ -592,12 +592,12 @@ and is discussed in more detail in \autoref{ch:Isar}.
 \subsubsection{In Isabelle}
 
 Let us now recast the above informal proofs in Isabelle. For a start,
-we use @{const Suc} terms instead of numerals in rule @{thm[source]evSS}:
+we use \<^const>\<open>Suc\<close> terms instead of numerals in rule @{thm[source]evSS}:
 @{thm[display] evSS}
 This avoids the difficulty of unifying \<open>n+2\<close> with some numeral,
 which is not automatic.
 
-The simplest way to prove @{prop"ev(Suc(Suc(Suc(Suc 0))))"} is in a forward
+The simplest way to prove \<^prop>\<open>ev(Suc(Suc(Suc(Suc 0))))\<close> is in a forward
 direction: \<open>evSS[OF evSS[OF ev0]]\<close> yields the theorem @{thm evSS[OF
 evSS[OF ev0]]}. Alternatively, you can also prove it as a lemma in backwards
 fashion. Although this is more verbose, it allows us to demonstrate how each
@@ -627,11 +627,11 @@ apply(induction rule: ev.induct)
 by(simp_all)
 
 text\<open>Both cases are automatic. Note that if there are multiple assumptions
-of the form @{prop"ev t"}, method \<open>induction\<close> will induct on the leftmost
+of the form \<^prop>\<open>ev t\<close>, method \<open>induction\<close> will induct on the leftmost
 one.
 
 As a bonus, we also prove the remaining direction of the equivalence of
-@{const ev} and @{const evn}:
+\<^const>\<open>ev\<close> and \<^const>\<open>evn\<close>:
 \<close>
 
 lemma "evn n \<Longrightarrow> ev n"
@@ -639,14 +639,14 @@ apply(induction n rule: evn.induct)
 
 txt\<open>This is a proof by computation induction on \<open>n\<close> (see
 \autoref{sec:recursive-funs}) that sets up three subgoals corresponding to
-the three equations for @{const evn}:
+the three equations for \<^const>\<open>evn\<close>:
 @{subgoals[display,indent=0]}
-The first and third subgoals follow with @{thm[source]ev0} and @{thm[source]evSS}, and the second subgoal is trivially true because @{prop"evn(Suc 0)"} is @{const False}:
+The first and third subgoals follow with @{thm[source]ev0} and @{thm[source]evSS}, and the second subgoal is trivially true because \<^prop>\<open>evn(Suc 0)\<close> is \<^const>\<open>False\<close>:
 \<close>
 
 by (simp_all add: ev0 evSS)
 
-text\<open>The rules for @{const ev} make perfect simplification and introduction
+text\<open>The rules for \<^const>\<open>ev\<close> make perfect simplification and introduction
 rules because their premises are always smaller than the conclusion. It
 makes sense to turn them into simplification and introduction rules
 permanently, to enhance proof automation. They are named @{thm[source] ev.intros}
@@ -668,8 +668,8 @@ negative information (which numbers are not even) directly. An inductive
 definition only expresses the positive information directly. The negative
 information, for example, that \<open>1\<close> is not even, has to be proved from
 it (by induction or rule inversion). On the other hand, rule induction is
-tailor-made for proving \mbox{@{prop"ev n \<Longrightarrow> P n"}} because it only asks you
-to prove the positive cases. In the proof of @{prop"evn n \<Longrightarrow> P n"} by
+tailor-made for proving \mbox{\<^prop>\<open>ev n \<Longrightarrow> P n\<close>} because it only asks you
+to prove the positive cases. In the proof of \<^prop>\<open>evn n \<Longrightarrow> P n\<close> by
 computation induction via @{thm[source]evn.induct}, we are also presented
 with the trivial negative cases. If you want the convenience of both
 rewriting and rule induction, you can make two definitions and show their
@@ -696,11 +696,11 @@ some of the semantics considered in the second part of the book.
 
 The reflexive transitive closure, called \<open>star\<close> below, is a function
 that maps a binary predicate to another binary predicate: if \<open>r\<close> is of
-type \<open>\<tau> \<Rightarrow> \<tau> \<Rightarrow> bool\<close> then @{term "star r"} is again of type \<open>\<tau> \<Rightarrow>
-\<tau> \<Rightarrow> bool\<close>, and @{prop"star r x y"} means that \<open>x\<close> and \<open>y\<close> are in
-the relation @{term"star r"}. Think @{term"r\<^sup>*"} when you see @{term"star
-r"}, because \<open>star r\<close> is meant to be the reflexive transitive closure.
-That is, @{prop"star r x y"} is meant to be true if from \<open>x\<close> we can
+type \<open>\<tau> \<Rightarrow> \<tau> \<Rightarrow> bool\<close> then \<^term>\<open>star r\<close> is again of type \<open>\<tau> \<Rightarrow>
+\<tau> \<Rightarrow> bool\<close>, and \<^prop>\<open>star r x y\<close> means that \<open>x\<close> and \<open>y\<close> are in
+the relation \<^term>\<open>star r\<close>. Think \<^term>\<open>r\<^sup>*\<close> when you see \<^term>\<open>star
+r\<close>, because \<open>star r\<close> is meant to be the reflexive transitive closure.
+That is, \<^prop>\<open>star r x y\<close> is meant to be true if from \<open>x\<close> we can
 reach \<open>y\<close> in finitely many \<open>r\<close> steps. This concept is naturally
 defined inductively:\<close>
 
@@ -708,16 +708,16 @@ inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<R
 refl:  "star r x x" |
 step:  "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
-text\<open>The base case @{thm[source] refl} is reflexivity: @{term "x=y"}. The
+text\<open>The base case @{thm[source] refl} is reflexivity: \<^term>\<open>x=y\<close>. The
 step case @{thm[source]step} combines an \<open>r\<close> step (from \<open>x\<close> to
-\<open>y\<close>) and a @{term"star r"} step (from \<open>y\<close> to \<open>z\<close>) into a
-@{term"star r"} step (from \<open>x\<close> to \<open>z\<close>).
+\<open>y\<close>) and a \<^term>\<open>star r\<close> step (from \<open>y\<close> to \<open>z\<close>) into a
+\<^term>\<open>star r\<close> step (from \<open>x\<close> to \<open>z\<close>).
 The ``\isacom{for}~\<open>r\<close>'' in the header is merely a hint to Isabelle
-that \<open>r\<close> is a fixed parameter of @{const star}, in contrast to the
-further parameters of @{const star}, which change. As a result, Isabelle
+that \<open>r\<close> is a fixed parameter of \<^const>\<open>star\<close>, in contrast to the
+further parameters of \<^const>\<open>star\<close>, which change. As a result, Isabelle
 generates a simpler induction rule.
 
-By definition @{term"star r"} is reflexive. It is also transitive, but we
+By definition \<^term>\<open>star r\<close> is reflexive. It is also transitive, but we
 need rule induction to prove that:\<close>
 
 lemma star_trans: "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
@@ -727,23 +727,23 @@ defer
 apply(rename_tac u x y)
 defer
 (*>*)
-txt\<open>The induction is over @{prop"star r x y"} (the first matching assumption)
-and we try to prove \mbox{@{prop"star r y z \<Longrightarrow> star r x z"}},
-which we abbreviate by @{prop"P x y"}. These are our two subgoals:
+txt\<open>The induction is over \<^prop>\<open>star r x y\<close> (the first matching assumption)
+and we try to prove \mbox{\<^prop>\<open>star r y z \<Longrightarrow> star r x z\<close>},
+which we abbreviate by \<^prop>\<open>P x y\<close>. These are our two subgoals:
 @{subgoals[display,indent=0]}
-The first one is @{prop"P x x"}, the result of case @{thm[source]refl},
+The first one is \<^prop>\<open>P x x\<close>, the result of case @{thm[source]refl},
 and it is trivial:\index{assumption@\<open>assumption\<close>}
 \<close>
 apply(assumption)
 txt\<open>Let us examine subgoal \<open>2\<close>, case @{thm[source] step}.
-Assumptions @{prop"r u x"} and \mbox{@{prop"star r x y"}}
+Assumptions \<^prop>\<open>r u x\<close> and \mbox{\<^prop>\<open>star r x y\<close>}
 are the premises of rule @{thm[source]step}.
-Assumption @{prop"star r y z \<Longrightarrow> star r x z"} is \mbox{@{prop"P x y"}},
-the IH coming from @{prop"star r x y"}. We have to prove @{prop"P u y"},
-which we do by assuming @{prop"star r y z"} and proving @{prop"star r u z"}.
-The proof itself is straightforward: from \mbox{@{prop"star r y z"}} the IH
-leads to @{prop"star r x z"} which, together with @{prop"r u x"},
-leads to \mbox{@{prop"star r u z"}} via rule @{thm[source]step}:
+Assumption \<^prop>\<open>star r y z \<Longrightarrow> star r x z\<close> is \mbox{\<^prop>\<open>P x y\<close>},
+the IH coming from \<^prop>\<open>star r x y\<close>. We have to prove \<^prop>\<open>P u y\<close>,
+which we do by assuming \<^prop>\<open>star r y z\<close> and proving \<^prop>\<open>star r u z\<close>.
+The proof itself is straightforward: from \mbox{\<^prop>\<open>star r y z\<close>} the IH
+leads to \<^prop>\<open>star r x z\<close> which, together with \<^prop>\<open>r u x\<close>,
+leads to \mbox{\<^prop>\<open>star r u z\<close>} via rule @{thm[source]step}:
 \<close>
 apply(metis step)
 done
@@ -764,14 +764,14 @@ separated by \<open>|\<close>. As usual, \<open>n\<close> can be 0.
 The corresponding rule induction principle
 \<open>I.induct\<close> applies to propositions of the form
 \begin{quote}
-@{prop "I x \<Longrightarrow> P x"}
+\<^prop>\<open>I x \<Longrightarrow> P x\<close>
 \end{quote}
 where \<open>P\<close> may itself be a chain of implications.
 \begin{warn}
 Rule induction is always on the leftmost premise of the goal.
 Hence \<open>I x\<close> must be the first premise.
 \end{warn}
-Proving @{prop "I x \<Longrightarrow> P x"} by rule induction means proving
+Proving \<^prop>\<open>I x \<Longrightarrow> P x\<close> by rule induction means proving
 for every rule of \<open>I\<close> that \<open>P\<close> is invariant:
 \begin{quote}
 \<open>\<lbrakk> I a\<^sub>1; P a\<^sub>1; \<dots>; I a\<^sub>n; P a\<^sub>n \<rbrakk> \<Longrightarrow> P a\<close>
@@ -791,14 +791,14 @@ transitive closure simplifies the induction rule.
 Formalize the following definition of palindromes
 \begin{itemize}
 \item The empty list and a singleton list are palindromes.
-\item If \<open>xs\<close> is a palindrome, so is @{term "a # xs @ [a]"}.
+\item If \<open>xs\<close> is a palindrome, so is \<^term>\<open>a # xs @ [a]\<close>.
 \end{itemize}
-as an inductive predicate \<open>palindrome ::\<close> @{typ "'a list \<Rightarrow> bool"}
-and prove that @{prop "rev xs = xs"} if \<open>xs\<close> is a palindrome.
+as an inductive predicate \<open>palindrome ::\<close> \<^typ>\<open>'a list \<Rightarrow> bool\<close>
+and prove that \<^prop>\<open>rev xs = xs\<close> if \<open>xs\<close> is a palindrome.
 \end{exercise}
 
 \exercise
-We could also have defined @{const star} as follows:
+We could also have defined \<^const>\<open>star\<close> as follows:
 \<close>
 
 inductive star' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
@@ -807,18 +807,18 @@ step': "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
 
 text\<open>
 The single \<open>r\<close> step is performed after rather than before the \<open>star'\<close>
-steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"} and
-@{prop "star r x y \<Longrightarrow> star' r x y"}. You may need lemmas.
+steps. Prove \<^prop>\<open>star' r x y \<Longrightarrow> star r x y\<close> and
+\<^prop>\<open>star r x y \<Longrightarrow> star' r x y\<close>. You may need lemmas.
 Note that rule induction fails
 if the assumption about the inductive predicate is not the first assumption.
 \endexercise
 
 \begin{exercise}\label{exe:iter}
-Analogous to @{const star}, give an inductive definition of the \<open>n\<close>-fold iteration
-of a relation \<open>r\<close>: @{term "iter r n x y"} should hold if there are \<open>x\<^sub>0\<close>, \dots, \<open>x\<^sub>n\<close>
-such that @{prop"x = x\<^sub>0"}, @{prop"x\<^sub>n = y"} and \<open>r x\<^bsub>i\<^esub> x\<^bsub>i+1\<^esub>\<close> for
-all @{prop"i < n"}. Correct and prove the following claim:
-@{prop"star r x y \<Longrightarrow> iter r n x y"}.
+Analogous to \<^const>\<open>star\<close>, give an inductive definition of the \<open>n\<close>-fold iteration
+of a relation \<open>r\<close>: \<^term>\<open>iter r n x y\<close> should hold if there are \<open>x\<^sub>0\<close>, \dots, \<open>x\<^sub>n\<close>
+such that \<^prop>\<open>x = x\<^sub>0\<close>, \<^prop>\<open>x\<^sub>n = y\<close> and \<open>r x\<^bsub>i\<^esub> x\<^bsub>i+1\<^esub>\<close> for
+all \<^prop>\<open>i < n\<close>. Correct and prove the following claim:
+\<^prop>\<open>star r x y \<Longrightarrow> iter r n x y\<close>.
 \end{exercise}
 
 \begin{exercise}\label{exe:cfg}
@@ -826,7 +826,7 @@ A context-free grammar can be seen as an inductive definition where each
 nonterminal $A$ is an inductively defined predicate on lists of terminal
 symbols: $A(w)$ means that $w$ is in the language generated by $A$.
 For example, the production $S \to a S b$ can be viewed as the implication
-@{prop"S w \<Longrightarrow> S (a # w @ [b])"} where \<open>a\<close> and \<open>b\<close> are terminal symbols,
+\<^prop>\<open>S w \<Longrightarrow> S (a # w @ [b])\<close> where \<open>a\<close> and \<open>b\<close> are terminal symbols,
 i.e., elements of some alphabet. The alphabet can be defined like this:
 \isacom{datatype} \<open>alpha = a | b | \<dots>\<close>
 
@@ -840,8 +840,8 @@ T &\to& \varepsilon \quad\mid\quad TaTb
 as two inductive predicates.
 If you think of \<open>a\<close> and \<open>b\<close> as ``\<open>(\<close>'' and  ``\<open>)\<close>'',
 the grammar defines strings of balanced parentheses.
-Prove @{prop"T w \<Longrightarrow> S w"} and \mbox{@{prop "S w \<Longrightarrow> T w"}} separately and conclude
-@{prop "S w = T w"}.
+Prove \<^prop>\<open>T w \<Longrightarrow> S w\<close> and \mbox{\<^prop>\<open>S w \<Longrightarrow> T w\<close>} separately and conclude
+\<^prop>\<open>S w = T w\<close>.
 \end{exercise}
 
 \ifsem
@@ -851,8 +851,8 @@ In \autoref{sec:AExp} we defined a recursive evaluation function
 Define an inductive evaluation predicate
 \<open>aval_rel :: aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool\<close>
 and prove that it agrees with the recursive function:
-@{prop "aval_rel a s v \<Longrightarrow> aval a s = v"}, 
-@{prop "aval a s = v \<Longrightarrow> aval_rel a s v"} and thus
+\<^prop>\<open>aval_rel a s v \<Longrightarrow> aval a s = v\<close>, 
+\<^prop>\<open>aval a s = v \<Longrightarrow> aval_rel a s v\<close> and thus
 \noquotes{@{prop [source] "aval_rel a s v \<longleftrightarrow> aval a s = v"}}.
 \end{exercise}
 

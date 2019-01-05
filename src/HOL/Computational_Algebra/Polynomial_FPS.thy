@@ -163,11 +163,11 @@ lemmas reify_fps_atom =
 text \<open>
   The following simproc can reduce the equality of two polynomial FPSs two equality of the
   respective polynomials. A polynomial FPS is one that only has finitely many non-zero 
-  coefficients and can therefore be written as @{term "fps_of_poly p"} for some 
+  coefficients and can therefore be written as \<^term>\<open>fps_of_poly p\<close> for some 
   polynomial \<open>p\<close>.
   
   This may sound trivial, but it covers a number of annoying side conditions like 
-  @{term "1 + fps_X \<noteq> 0"} that would otherwise not be solved automatically.
+  \<^term>\<open>1 + fps_X \<noteq> 0\<close> that would otherwise not be solved automatically.
 \<close>
 
 ML \<open>
@@ -200,21 +200,21 @@ fun reify_conv ct =
     val bin = Conv.binop_conv reify_conv
   in
     case Thm.term_of ct of
-      (Const (@{const_name "fps_of_poly"}, _) $ _) => ct |> Conv.all_conv
-    | (Const (@{const_name "Groups.plus"}, _) $ _ $ _) => ct |> (
+      (Const (\<^const_name>\<open>fps_of_poly\<close>, _) $ _) => ct |> Conv.all_conv
+    | (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ _ $ _) => ct |> (
         bin then_conv rewr @{thms fps_of_poly_add [symmetric]})
-    | (Const (@{const_name "Groups.uminus"}, _) $ _) => ct |> (
+    | (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ _) => ct |> (
         un then_conv rewr @{thms fps_of_poly_uminus [symmetric]})
-    | (Const (@{const_name "Groups.minus"}, _) $ _ $ _) => ct |> (
+    | (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ _ $ _) => ct |> (
         bin then_conv rewr @{thms fps_of_poly_diff [symmetric]})
-    | (Const (@{const_name "Groups.times"}, _) $ _ $ _) => ct |> (
+    | (Const (\<^const_name>\<open>Groups.times\<close>, _) $ _ $ _) => ct |> (
         bin then_conv rewr @{thms fps_of_poly_mult [symmetric]})
-    | (Const (@{const_name "Rings.divide"}, _) $ _ $ (Const (@{const_name "Num.numeral"}, _) $ _))
+    | (Const (\<^const_name>\<open>Rings.divide\<close>, _) $ _ $ (Const (\<^const_name>\<open>Num.numeral\<close>, _) $ _))
         => ct |> (Conv.fun_conv (Conv.arg_conv reify_conv)
              then_conv rewr @{thms fps_of_poly_divide_numeral [symmetric]})
-    | (Const (@{const_name "Power.power"}, _) $ Const (@{const_name "fps_X"},_) $ _) => ct |> (
+    | (Const (\<^const_name>\<open>Power.power\<close>, _) $ Const (\<^const_name>\<open>fps_X\<close>,_) $ _) => ct |> (
         rewr @{thms fps_of_poly_monom' [symmetric]}) 
-    | (Const (@{const_name "Power.power"}, _) $ _ $ _) => ct |> (
+    | (Const (\<^const_name>\<open>Power.power\<close>, _) $ _ $ _) => ct |> (
         Conv.fun_conv (Conv.arg_conv reify_conv) 
         then_conv rewr @{thms fps_of_poly_power [symmetric]})
     | _ => ct |> (
@@ -224,7 +224,7 @@ fun reify_conv ct =
 
 fun eq_conv ct =
   case Thm.term_of ct of
-    (Const (@{const_name "HOL.eq"}, _) $ _ $ _) => ct |> (
+    (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => ct |> (
       Conv.binop_conv reify_conv
       then_conv Conv.rewr_conv @{thm fps_of_poly_eq_iff[THEN eq_reflection]})
   | _ => raise CTERM ("poly_fps_eq_conv", [ct])

@@ -196,7 +196,7 @@ fun declare_type (config : config) (thf_type, (type_name, arity)) ty_map thy =
       val binding = mk_binding config type_name
       val final_fqn = Sign.full_name thy binding
       val tyargs =
-        List.tabulate (arity, rpair @{sort type} o prefix "'" o string_of_int)
+        List.tabulate (arity, rpair \<^sort>\<open>type\<close> o prefix "'" o string_of_int)
       val (_, thy') =
         Typedecl.typedecl_global {final = true} (mk_binding config type_name, tyargs, NoSyn) thy
       val typ_map_entry = (thf_type, (final_fqn, arity))
@@ -254,7 +254,7 @@ fun fmlatype_to_type (Atom (THF_Atom_term tm)) = termtype_to_type tm
         Atom_type (str, tys) => Atom_type (str, tys @ [fmlatype_to_type tm2]))
 
 fun tfree_name_of_var_type str = "'" ^ Name.desymbolize (SOME false) str
-fun tfree_of_var_type str = TFree (tfree_name_of_var_type str, @{sort type})
+fun tfree_of_var_type str = TFree (tfree_name_of_var_type str, \<^sort>\<open>type\<close>)
 
 fun interpret_type config thy type_map thf_ty =
   let
@@ -273,11 +273,11 @@ fun interpret_type config thy type_map thf_ty =
   in
     case thf_ty of
        Prod_type (thf_ty1, thf_ty2) =>
-         Type (@{type_name prod},
+         Type (\<^type_name>\<open>prod\<close>,
           [interpret_type config thy type_map thf_ty1,
            interpret_type config thy type_map thf_ty2])
      | Fn_type (thf_ty1, thf_ty2) =>
-         Type (@{type_name fun},
+         Type (\<^type_name>\<open>fun\<close>,
           [interpret_type config thy type_map thf_ty1,
            interpret_type config thy type_map thf_ty2])
      | Atom_type (str, thf_tys) =>
@@ -286,7 +286,7 @@ fun interpret_type config thy type_map thf_ty =
      | Var_type str => tfree_of_var_type str
      | Defined_type tptp_base_type =>
          (case tptp_base_type of
-            Type_Ind => @{typ ind}
+            Type_Ind => \<^typ>\<open>ind\<close>
           | Type_Bool => HOLogic.boolT
           | Type_Type => raise MISINTERPRET_TYPE ("No type interpretation", thf_ty)
           (*FIXME these types are currently unsupported, so they're treated as
@@ -399,17 +399,16 @@ fun interpret_symbol config const_map symb tyargs thy =
         | And => HOLogic.conj
         | Iff => HOLogic.eq_const HOLogic.boolT
         | If => HOLogic.imp
-        | Fi => @{term "\<lambda> x. \<lambda> y. y \<longrightarrow> x"}
+        | Fi => \<^term>\<open>\<lambda> x. \<lambda> y. y \<longrightarrow> x\<close>
         | Xor =>
-            @{term
-              "\<lambda> x. \<lambda> y. \<not> (x \<longleftrightarrow> y)"}
-        | Nor => @{term "\<lambda> x. \<lambda> y. \<not> (x \<or> y)"}
-        | Nand => @{term "\<lambda> x. \<lambda> y. \<not> (x \<and> y)"}
+            \<^term>\<open>\<lambda> x. \<lambda> y. \<not> (x \<longleftrightarrow> y)\<close>
+        | Nor => \<^term>\<open>\<lambda> x. \<lambda> y. \<not> (x \<or> y)\<close>
+        | Nand => \<^term>\<open>\<lambda> x. \<lambda> y. \<not> (x \<and> y)\<close>
         | Not => HOLogic.Not
         | Op_Forall => HOLogic.all_const dummyT
         | Op_Exists => HOLogic.exists_const dummyT
-        | True => @{term "True"}
-        | False => @{term "False"}
+        | True => \<^term>\<open>True\<close>
+        | False => \<^term>\<open>False\<close>
         )
    | TypeSymbol _ =>
        raise MISINTERPRET_SYMBOL
@@ -429,7 +428,7 @@ fun mapply' (args, thy) f =
 (*As above, but for products*)
 fun mtimes thy =
   fold (fn x => fn y =>
-    Sign.mk_const thy (@{const_name Pair}, [dummyT, dummyT]) $ y $ x)
+    Sign.mk_const thy (\<^const_name>\<open>Pair\<close>, [dummyT, dummyT]) $ y $ x)
 
 fun mtimes' (args, thy) f =
   let
@@ -485,11 +484,11 @@ fun add_interp_symbols_to_thy config type_map thy =
   end
 
 (*Next batch of functions give info about Isabelle/HOL types*)
-fun is_fun (Type (@{type_name fun}, _)) = true
+fun is_fun (Type (\<^type_name>\<open>fun\<close>, _)) = true
   | is_fun _ = false
-fun is_prod (Type (@{type_name prod}, _)) = true
+fun is_prod (Type (\<^type_name>\<open>prod\<close>, _)) = true
   | is_prod _ = false
-fun dom_type (Type (@{type_name fun}, [ty1, _])) = ty1
+fun dom_type (Type (\<^type_name>\<open>fun\<close>, [ty1, _])) = ty1
 fun is_prod_typed thy config symb =
   let
     fun symb_type const_name =
@@ -600,7 +599,7 @@ fun interpret_term formula_level config language const_map var_types type_map tp
         val ([t1, t2], thy'') =
           fold_map (interpret_term formula_level config language const_map var_types type_map)
            [tptp_t1, tptp_t2] thy'
-      in (mk_n_fun 3 @{const_name If} $ t_fmla $ t1 $ t2, thy'') end
+      in (mk_n_fun 3 \<^const_name>\<open>If\<close> $ t_fmla $ t1 $ t2, thy'') end
   | Term_Num (number_kind, num) =>
       let
         (*FIXME hack*)
@@ -718,7 +717,7 @@ and interpret_formula config language const_map var_types type_map tptp_fmla thy
             let val (t, thy') =
               interpret_formula config language const_map var_types type_map
                (Quant (Lambda, bindings, tptp_formula)) thy
-            in (Const (@{const_name The}, dummyT) $ t, thy') end
+            in (Const (\<^const_name>\<open>The\<close>, dummyT) $ t, thy') end
         | Dep_Prod =>
             raise MISINTERPRET_FORMULA ("Unsupported", tptp_fmla)
         | Dep_Sum =>
@@ -968,7 +967,7 @@ fun import_file cautious path_prefixes file_name type_map const_map thy =
   in TPTP_Data.map (cons ((prob_name, result))) thy' end
 
 val _ =
-  Outer_Syntax.command @{command_keyword import_tptp} "import TPTP problem"
+  Outer_Syntax.command \<^command_keyword>\<open>import_tptp\<close> "import TPTP problem"
     (Parse.path >> (fn name =>
       Toplevel.theory (fn thy =>
         let val path = Path.explode name

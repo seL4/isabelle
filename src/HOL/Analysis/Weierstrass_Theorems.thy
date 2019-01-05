@@ -436,7 +436,7 @@ proof%unimportant -
     by blast
 qed
 
-text\<open>Non-trivial case, with @{term A} and @{term B} both non-empty\<close>
+text\<open>Non-trivial case, with \<^term>\<open>A\<close> and \<^term>\<open>B\<close> both non-empty\<close>
 lemma%unimportant (in function_ring_on) two_special:
   assumes A: "closed A" "A \<subseteq> S" "a \<in> A"
       and B: "closed B" "B \<subseteq> S" "b \<in> B"
@@ -565,7 +565,7 @@ next
     done
 qed
 
-text\<open>The special case where @{term f} is non-negative and @{term"e<1/3"}\<close>
+text\<open>The special case where \<^term>\<open>f\<close> is non-negative and \<^term>\<open>e<1/3\<close>\<close>
 lemma%important (in function_ring_on) Stone_Weierstrass_special:
   assumes f: "continuous_on S f" and fpos: "\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0"
       and e: "0 < e" "e < 1/3"

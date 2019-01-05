@@ -17,7 +17,7 @@ text\<open>\label{sec:ind-var-in-prems}
 Often we have assumed that the theorem to be proved is already in a form
 that is amenable to induction, but sometimes it isn't.
 Here is an example.
-Since @{term"hd"} and @{term"last"} return the first and last element of a
+Since \<^term>\<open>hd\<close> and \<^term>\<open>last\<close> return the first and last element of a
 non-empty list, this lemma looks easy to prove:
 \<close>
 
@@ -35,11 +35,11 @@ Simplification reduces the base case to this:
 \begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
 \end{isabelle}
-We cannot prove this equality because we do not know what @{term hd} and
-@{term last} return when applied to @{term"[]"}.
+We cannot prove this equality because we do not know what \<^term>\<open>hd\<close> and
+\<^term>\<open>last\<close> return when applied to \<^term>\<open>[]\<close>.
 
 We should not have ignored the warning. Because the induction
-formula is only the conclusion, induction does not affect the occurrence of @{term xs} in the premises.  
+formula is only the conclusion, induction does not affect the occurrence of \<^term>\<open>xs\<close> in the premises.  
 Thus the case that should have been trivial
 becomes unprovable. Fortunately, the solution is easy:\footnote{A similar
 heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
@@ -122,7 +122,7 @@ recursive function that could furnish a more appropriate
 induction schema. In such cases a general-purpose induction schema can
 be helpful. We show how to apply such induction schemas by an example.
 
-Structural induction on @{typ"nat"} is
+Structural induction on \<^typ>\<open>nat\<close> is
 usually known as mathematical induction. There is also \textbf{complete}
 \index{induction!complete}%
 induction, where you prove $P(n)$ under the assumption that $P(m)$
@@ -145,15 +145,15 @@ you assume some well-known theorems so that you can quickly demonstrate some
 point about methodology.  If your example turns into a substantial proof
 development, you should replace axioms by theorems.
 \end{warn}\noindent
-The axiom for @{term"f"} implies @{prop"n <= f n"}, which can
-be proved by induction on \mbox{@{term"f n"}}. Following the recipe outlined
+The axiom for \<^term>\<open>f\<close> implies \<^prop>\<open>n <= f n\<close>, which can
+be proved by induction on \mbox{\<^term>\<open>f n\<close>}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
 \<close>
 
 lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i"
 
 txt\<open>\noindent
-To perform induction on @{term k} using @{thm[source]nat_less_induct}, we use
+To perform induction on \<^term>\<open>k\<close> using @{thm[source]nat_less_induct}, we use
 the same general induction method as for recursion induction (see
 \S\ref{sec:fun-induction}):
 \<close>
@@ -164,7 +164,7 @@ txt\<open>\noindent
 We get the following proof state:
 @{subgoals[display,indent=0,margin=65]}
 After stripping the \<open>\<forall>i\<close>, the proof continues with a case
-distinction on @{term"i"}. The case @{prop"i = (0::nat)"} is trivial and we focus on
+distinction on \<^term>\<open>i\<close>. The case \<^prop>\<open>i = (0::nat)\<close> is trivial and we focus on
 the other case:
 \<close>
 
@@ -185,16 +185,16 @@ If you find the last step puzzling, here are the two lemmas it employs:
 \rulename{le_less_trans}
 \end{isabelle}
 %
-The proof goes like this (writing @{term"j"} instead of @{typ"nat"}).
-Since @{prop"i = Suc j"} it suffices to show
-\hbox{@{prop"j < f(Suc j)"}},
+The proof goes like this (writing \<^term>\<open>j\<close> instead of \<^typ>\<open>nat\<close>).
+Since \<^prop>\<open>i = Suc j\<close> it suffices to show
+\hbox{\<^prop>\<open>j < f(Suc j)\<close>},
 by @{thm[source]Suc_leI}\@.  This is
-proved as follows. From @{thm[source]f_ax} we have @{prop"f (f j) < f (Suc j)"}
-(1) which implies @{prop"f j <= f (f j)"} by the induction hypothesis.
-Using (1) once more we obtain @{prop"f j < f(Suc j)"} (2) by the transitivity
+proved as follows. From @{thm[source]f_ax} we have \<^prop>\<open>f (f j) < f (Suc j)\<close>
+(1) which implies \<^prop>\<open>f j <= f (f j)\<close> by the induction hypothesis.
+Using (1) once more we obtain \<^prop>\<open>f j < f(Suc j)\<close> (2) by the transitivity
 rule @{thm[source]le_less_trans}.
-Using the induction hypothesis once more we obtain @{prop"j <= f j"}
-which, together with (2) yields @{prop"j < f (Suc j)"} (again by
+Using the induction hypothesis once more we obtain \<^prop>\<open>j <= f j\<close>
+which, together with (2) yields \<^prop>\<open>j < f (Suc j)\<close> (again by
 @{thm[source]le_less_trans}).
 
 This last step shows both the power and the danger of automatic proofs.  They
@@ -202,7 +202,7 @@ will usually not tell you how the proof goes, because it can be hard to
 translate the internal proof into a human-readable format.  Automatic
 proofs are easy to write but hard to read and understand.
 
-The desired result, @{prop"i <= f i"}, follows from @{thm[source]f_incr_lem}:
+The desired result, \<^prop>\<open>i <= f i\<close>, follows from @{thm[source]f_incr_lem}:
 \<close>
 
 lemmas f_incr = f_incr_lem[rule_format, OF refl]
@@ -217,7 +217,7 @@ lemma f_incr[rule_format, OF refl]: "\<forall>i. k = f i \<longrightarrow> i \<l
 
 text\<open>
 \begin{exercise}
-From the axiom and lemma for @{term"f"}, show that @{term"f"} is the
+From the axiom and lemma for \<^term>\<open>f\<close>, show that \<^term>\<open>f\<close> is the
 identity function.
 \end{exercise}
 
@@ -234,7 +234,7 @@ induction on the length of a list\indexbold{*length_induct}
 @{thm[display]length_induct[no_vars]}
 which is a special case of @{thm[source]measure_induct}
 @{thm[display]measure_induct[no_vars]}
-where @{term f} may be any function into type @{typ nat}.
+where \<^term>\<open>f\<close> may be any function into type \<^typ>\<open>nat\<close>.
 \<close>
 
 subsection\<open>Derivation of New Induction Schemas\<close>
@@ -244,7 +244,7 @@ text\<open>\label{sec:derive-ind}
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how, using the example
 of @{thm[source]nat_less_induct}. Assume we only have structural induction
-available for @{typ"nat"} and want to derive complete induction.  We
+available for \<^typ>\<open>nat\<close> and want to derive complete induction.  We
 must generalize the statement as shown:
 \<close>
 
@@ -252,9 +252,9 @@ lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Lon
 apply(induct_tac n)
 
 txt\<open>\noindent
-The base case is vacuously true. For the induction step (@{prop"m <
-Suc n"}) we distinguish two cases: case @{prop"m < n"} is true by induction
-hypothesis and case @{prop"m = n"} follows from the assumption, again using
+The base case is vacuously true. For the induction step (\<^prop>\<open>m <
+Suc n\<close>) we distinguish two cases: case \<^prop>\<open>m < n\<close> is true by induction
+hypothesis and case \<^prop>\<open>m = n\<close> follows from the assumption, again using
 the induction hypothesis:
 \<close>
  apply(blast)
@@ -266,8 +266,8 @@ The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 
 Now it is straightforward to derive the original version of
 @{thm[source]nat_less_induct} by manipulating the conclusion of the above
-lemma: instantiate @{term"n"} by @{term"Suc n"} and @{term"m"} by @{term"n"}
-and remove the trivial condition @{prop"n < Suc n"}. Fortunately, this
+lemma: instantiate \<^term>\<open>n\<close> by \<^term>\<open>Suc n\<close> and \<^term>\<open>m\<close> by \<^term>\<open>n\<close>
+and remove the trivial condition \<^prop>\<open>n < Suc n\<close>. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:
 \<close>
@@ -279,7 +279,7 @@ text\<open>
 HOL already provides the mother of
 all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
 example theorem @{thm[source]nat_less_induct} is
-a special case of @{thm[source]wf_induct} where @{term r} is \<open><\<close> on
-@{typ nat}. The details can be found in theory \isa{Wellfounded_Recursion}.
+a special case of @{thm[source]wf_induct} where \<^term>\<open>r\<close> is \<open><\<close> on
+\<^typ>\<open>nat\<close>. The details can be found in theory \isa{Wellfounded_Recursion}.
 \<close>
 (*<*)end(*>*)

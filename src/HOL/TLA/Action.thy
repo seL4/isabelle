@@ -114,7 +114,7 @@ val action_rewrite = int_rewrite
 
 fun action_use ctxt th =
     case Thm.concl_of th of
-      Const _ $ (Const (@{const_name Valid}, _) $ _) =>
+      Const _ $ (Const (\<^const_name>\<open>Valid\<close>, _) $ _) =>
               (flatten (action_unlift ctxt th) handle THM _ => th)
     | _ => th;
 \<close>

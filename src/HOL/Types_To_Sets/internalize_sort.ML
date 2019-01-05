@@ -62,7 +62,7 @@ fun internalize_sort_attr tvar =
   Thm.rule_attribute [] (fn context => fn thm =>
     (snd (internalize_sort (Thm.ctyp_of (Context.proof_of context) tvar) thm)));
 
-val _ = Context.>> (Context.map_theory (Attrib.setup @{binding internalize_sort}
+val _ = Context.>> (Context.map_theory (Attrib.setup \<^binding>\<open>internalize_sort\<close>
   (tvar >> internalize_sort_attr) "internalize a sort"));
 
 end;

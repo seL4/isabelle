@@ -163,7 +163,7 @@ apply (rule_tac [2]
                                   [THEN respond.Cons, THEN respond.Cons]],
                      THEN recur.RA4, THEN recur.RA4])
 apply basic_possibility
-apply (tactic "DEPTH_SOLVE (swap_res_tac @{context} [refl, conjI, disjCI] 1)")
+apply (tactic "DEPTH_SOLVE (swap_res_tac \<^context> [refl, conjI, disjCI] 1)")
 done
 
 
@@ -396,8 +396,8 @@ txt\<open>Base case of respond\<close>
 apply blast
 txt\<open>Inductive step of respond\<close>
 apply (intro allI conjI impI, simp_all)
-txt\<open>by unicity, either @{term "B=Aa"} or @{term "B=A'"}, a contradiction
-     if @{term "B \<in> bad"}\<close>   
+txt\<open>by unicity, either \<^term>\<open>B=Aa\<close> or \<^term>\<open>B=A'\<close>, a contradiction
+     if \<^term>\<open>B \<in> bad\<close>\<close>   
 apply (blast dest: unique_session_keys respond_certificate)
 apply (blast dest!: respond_certificate)
 apply (blast dest!: resp_analz_insert)

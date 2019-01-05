@@ -9,7 +9,7 @@ imports "../J/SystemClasses" JVMExec
 begin
 
 text \<open>
-  Since the types @{typ cnam}, \<open>vnam\<close>, and \<open>mname\<close> are 
+  Since the types \<^typ>\<open>cnam\<close>, \<open>vnam\<close>, and \<open>mname\<close> are 
   anonymous, we describe distinctness of names in the example by axioms:
 \<close>
 axiomatization list_nam test_nam :: cnam

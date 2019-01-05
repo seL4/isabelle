@@ -5,9 +5,9 @@ begin
 
 text \<open>
   The following attribute and ML function lift a given theorem of the form
-    @{prop "\<forall>x. A x \<longrightarrow> B x \<longrightarrow> C x"}
+    \<^prop>\<open>\<forall>x. A x \<longrightarrow> B x \<longrightarrow> C x\<close>
   to
-    @{prop "eventually A F \<Longrightarrow> eventually B F \<Longrightarrow> eventually C F"} .
+    \<^prop>\<open>eventually A F \<Longrightarrow> eventually B F \<Longrightarrow> eventually C F\<close> .
 \<close>
 
 ML \<open>
@@ -19,12 +19,12 @@ end
 structure Eventuallize : EVENTUALLIZE =
 struct
 
-fun dest_All (Const (@{const_name "HOL.All"}, _) $ Abs (x, T, t)) = (x, T, t)
-  | dest_All (Const (@{const_name "HOL.All"}, T) $ f) =
+fun dest_All (Const (\<^const_name>\<open>HOL.All\<close>, _) $ Abs (x, T, t)) = (x, T, t)
+  | dest_All (Const (\<^const_name>\<open>HOL.All\<close>, T) $ f) =
       ("x", T |> dest_funT |> fst |> dest_funT |> fst, f $ Bound 0)
   | dest_All t = raise TERM ("dest_All", [t])
 
-fun strip_imp (@{term "(\<longrightarrow>)"} $ a $ b) = apfst (cons a) (strip_imp b)
+fun strip_imp (\<^term>\<open>(\<longrightarrow>)\<close> $ a $ b) = apfst (cons a) (strip_imp b)
   | strip_imp t = ([], t)
 
 fun eventuallize ctxt thm n =

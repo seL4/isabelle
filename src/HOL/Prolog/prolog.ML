@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-Options.default_put_bool @{system_option show_main_goal} true;
+Options.default_put_bool \<^system_option>\<open>show_main_goal\<close> true;
 
 structure Prolog =
 struct
@@ -10,17 +10,17 @@ struct
 exception not_HOHH;
 
 fun isD t = case t of
-    Const(@{const_name Trueprop},_)$t     => isD t
-  | Const(@{const_name HOL.conj}  ,_)$l$r     => isD l andalso isD r
-  | Const(@{const_name HOL.implies},_)$l$r     => isG l andalso isD r
-  | Const(@{const_name Pure.imp},_)$l$r     => isG l andalso isD r
-  | Const(@{const_name All},_)$Abs(s,_,t) => isD t
-  | Const(@{const_name Pure.all},_)$Abs(s,_,t) => isD t
-  | Const(@{const_name HOL.disj},_)$_$_       => false
-  | Const(@{const_name Ex} ,_)$_          => false
-  | Const(@{const_name Not},_)$_          => false
-  | Const(@{const_name True},_)           => false
-  | Const(@{const_name False},_)          => false
+    Const(\<^const_name>\<open>Trueprop\<close>,_)$t     => isD t
+  | Const(\<^const_name>\<open>HOL.conj\<close>  ,_)$l$r     => isD l andalso isD r
+  | Const(\<^const_name>\<open>HOL.implies\<close>,_)$l$r     => isG l andalso isD r
+  | Const(\<^const_name>\<open>Pure.imp\<close>,_)$l$r     => isG l andalso isD r
+  | Const(\<^const_name>\<open>All\<close>,_)$Abs(s,_,t) => isD t
+  | Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(s,_,t) => isD t
+  | Const(\<^const_name>\<open>HOL.disj\<close>,_)$_$_       => false
+  | Const(\<^const_name>\<open>Ex\<close> ,_)$_          => false
+  | Const(\<^const_name>\<open>Not\<close>,_)$_          => false
+  | Const(\<^const_name>\<open>True\<close>,_)           => false
+  | Const(\<^const_name>\<open>False\<close>,_)          => false
   | l $ r                     => isD l
   | Const _ (* rigid atom *)  => true
   | Bound _ (* rigid atom *)  => true
@@ -29,17 +29,17 @@ fun isD t = case t of
             anything else *)  => false
 and
     isG t = case t of
-    Const(@{const_name Trueprop},_)$t     => isG t
-  | Const(@{const_name HOL.conj}  ,_)$l$r     => isG l andalso isG r
-  | Const(@{const_name HOL.disj}  ,_)$l$r     => isG l andalso isG r
-  | Const(@{const_name HOL.implies},_)$l$r     => isD l andalso isG r
-  | Const(@{const_name Pure.imp},_)$l$r     => isD l andalso isG r
-  | Const(@{const_name All},_)$Abs(_,_,t) => isG t
-  | Const(@{const_name Pure.all},_)$Abs(_,_,t) => isG t
-  | Const(@{const_name Ex} ,_)$Abs(_,_,t) => isG t
-  | Const(@{const_name True},_)           => true
-  | Const(@{const_name Not},_)$_          => false
-  | Const(@{const_name False},_)          => false
+    Const(\<^const_name>\<open>Trueprop\<close>,_)$t     => isG t
+  | Const(\<^const_name>\<open>HOL.conj\<close>  ,_)$l$r     => isG l andalso isG r
+  | Const(\<^const_name>\<open>HOL.disj\<close>  ,_)$l$r     => isG l andalso isG r
+  | Const(\<^const_name>\<open>HOL.implies\<close>,_)$l$r     => isD l andalso isG r
+  | Const(\<^const_name>\<open>Pure.imp\<close>,_)$l$r     => isD l andalso isG r
+  | Const(\<^const_name>\<open>All\<close>,_)$Abs(_,_,t) => isG t
+  | Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(_,_,t) => isG t
+  | Const(\<^const_name>\<open>Ex\<close> ,_)$Abs(_,_,t) => isG t
+  | Const(\<^const_name>\<open>True\<close>,_)           => true
+  | Const(\<^const_name>\<open>Not\<close>,_)$_          => false
+  | Const(\<^const_name>\<open>False\<close>,_)          => false
   | _ (* atom *)              => true;
 
 val check_HOHH_tac1 = PRIMITIVE (fn thm =>
@@ -52,17 +52,17 @@ fun check_HOHH thm  = (if isD (Thm.concl_of thm) andalso forall isG (Thm.prems_o
 fun atomizeD ctxt thm =
   let
     fun at  thm = case Thm.concl_of thm of
-      _$(Const(@{const_name All} ,_)$Abs(s,_,_))=>
+      _$(Const(\<^const_name>\<open>All\<close> ,_)$Abs(s,_,_))=>
         let val s' = if s="P" then "PP" else s in
           at(thm RS (Rule_Insts.read_instantiate ctxt [((("x", 0), Position.none), s')] [s'] spec))
         end
-    | _$(Const(@{const_name HOL.conj},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-    | _$(Const(@{const_name HOL.implies},_)$_$_)     => at(thm RS mp)
+    | _$(Const(\<^const_name>\<open>HOL.conj\<close>,_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+    | _$(Const(\<^const_name>\<open>HOL.implies\<close>,_)$_$_)     => at(thm RS mp)
     | _                             => [thm]
   in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
-  (empty_simpset @{context} |> Simplifier.set_mksimps (mksimps mksimps_pairs))
+  (empty_simpset \<^context> |> Simplifier.set_mksimps (mksimps mksimps_pairs))
   addsimps [
         @{thm all_conj_distrib}, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)
         @{thm imp_conjL} RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)
@@ -76,8 +76,8 @@ val atomize_ss =
   -- is nice, but cannot instantiate unknowns in the assumptions *)
 fun hyp_resolve_tac ctxt = SUBGOAL (fn (subgoal, i) =>
   let
-        fun ap (Const(@{const_name All},_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
-        |   ap (Const(@{const_name HOL.implies},_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
+        fun ap (Const(\<^const_name>\<open>All\<close>,_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
+        |   ap (Const(\<^const_name>\<open>HOL.implies\<close>,_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
         |   ap t                          =                         (0,false,t);
 (*
         fun rep_goal (Const (@{const_name Pure.all},_)$Abs (_,_,t)) = rep_goal t

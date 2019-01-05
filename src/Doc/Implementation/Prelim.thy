@@ -116,22 +116,22 @@ text %mlref \<open>
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type theory} represents theory contexts.
+  \<^descr> Type \<^ML_type>\<open>theory\<close> represents theory contexts.
 
-  \<^descr> @{ML "Context.eq_thy"}~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> check strict identity of two
+  \<^descr> \<^ML>\<open>Context.eq_thy\<close>~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> check strict identity of two
   theories.
 
-  \<^descr> @{ML "Context.subthy"}~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> compares theories according to the
+  \<^descr> \<^ML>\<open>Context.subthy\<close>~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> compares theories according to the
   intrinsic graph structure of the construction. This sub-theory relation is a
   nominal approximation of inclusion (\<open>\<subseteq>\<close>) of the corresponding content
   (according to the semantics of the ML modules that implement the data).
 
-  \<^descr> @{ML "Theory.begin_theory"}~\<open>name parents\<close> constructs a new theory based
+  \<^descr> \<^ML>\<open>Theory.begin_theory\<close>~\<open>name parents\<close> constructs a new theory based
   on the given parents. This ML function is normally not invoked directly.
 
-  \<^descr> @{ML "Theory.parents_of"}~\<open>thy\<close> returns the direct ancestors of \<open>thy\<close>.
+  \<^descr> \<^ML>\<open>Theory.parents_of\<close>~\<open>thy\<close> returns the direct ancestors of \<open>thy\<close>.
 
-  \<^descr> @{ML "Theory.ancestors_of"}~\<open>thy\<close> returns all ancestors of \<open>thy\<close> (not
+  \<^descr> \<^ML>\<open>Theory.ancestors_of\<close>~\<open>thy\<close> returns all ancestors of \<open>thy\<close> (not
   including \<open>thy\<close> itself).
 \<close>
 
@@ -141,11 +141,11 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "theory_context"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation theory} embedded?
   ;
   @@{ML_antiquotation theory_context} embedded
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{theory}\<close> refers to the background theory of the current context --- as
   abstract value.
@@ -154,8 +154,7 @@ text %mlantiq \<open>
   background theory of the current context --- as abstract value.
 
   \<^descr> \<open>@{theory_context A}\<close> is similar to \<open>@{theory A}\<close>, but presents the result
-  as initial @{ML_type Proof.context} (see also @{ML
-  Proof_Context.init_global}).
+  as initial \<^ML_type>\<open>Proof.context\<close> (see also \<^ML>\<open>Proof_Context.init_global\<close>).
 \<close>
 
 
@@ -194,15 +193,15 @@ text %mlref \<open>
   @{index_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Proof.context} represents proof contexts.
+  \<^descr> Type \<^ML_type>\<open>Proof.context\<close> represents proof contexts.
 
-  \<^descr> @{ML Proof_Context.init_global}~\<open>thy\<close> produces a proof context derived
+  \<^descr> \<^ML>\<open>Proof_Context.init_global\<close>~\<open>thy\<close> produces a proof context derived
   from \<open>thy\<close>, initializing all data.
 
-  \<^descr> @{ML Proof_Context.theory_of}~\<open>ctxt\<close> selects the background theory from
+  \<^descr> \<^ML>\<open>Proof_Context.theory_of\<close>~\<open>ctxt\<close> selects the background theory from
   \<open>ctxt\<close>.
 
-  \<^descr> @{ML Proof_Context.transfer}~\<open>thy ctxt\<close> promotes the background theory of
+  \<^descr> \<^ML>\<open>Proof_Context.transfer\<close>~\<open>thy ctxt\<close> promotes the background theory of
   \<open>ctxt\<close> to the super theory \<open>thy\<close>.
 \<close>
 
@@ -242,15 +241,14 @@ text %mlref \<open>
   @{index_ML Context.proof_of: "Context.generic -> Proof.context"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Context.generic} is the direct sum of @{ML_type "theory"}
-  and @{ML_type "Proof.context"}, with the datatype constructors @{ML
-  "Context.Theory"} and @{ML "Context.Proof"}.
+  \<^descr> Type \<^ML_type>\<open>Context.generic\<close> is the direct sum of \<^ML_type>\<open>theory\<close>
+  and \<^ML_type>\<open>Proof.context\<close>, with the datatype constructors \<^ML>\<open>Context.Theory\<close> and \<^ML>\<open>Context.Proof\<close>.
 
-  \<^descr> @{ML Context.theory_of}~\<open>context\<close> always produces a theory from the
-  generic \<open>context\<close>, using @{ML "Proof_Context.theory_of"} as required.
+  \<^descr> \<^ML>\<open>Context.theory_of\<close>~\<open>context\<close> always produces a theory from the
+  generic \<open>context\<close>, using \<^ML>\<open>Proof_Context.theory_of\<close> as required.
 
-  \<^descr> @{ML Context.proof_of}~\<open>context\<close> always produces a proof context from the
-  generic \<open>context\<close>, using @{ML "Proof_Context.init_global"} as required (note
+  \<^descr> \<^ML>\<open>Context.proof_of\<close>~\<open>context\<close> always produces a proof context from the
+  generic \<open>context\<close>, using \<^ML>\<open>Proof_Context.init_global\<close> as required (note
   that this re-initializes the context data with each invocation).
 \<close>
 
@@ -282,7 +280,7 @@ text \<open>declarations need to implement the following ML signature:
 
   Implementing \<open>merge\<close> can be tricky. The general idea is that \<open>merge (data\<^sub>1,
   data\<^sub>2)\<close> inserts those parts of \<open>data\<^sub>2\<close> into \<open>data\<^sub>1\<close> that are not yet
-  present, while keeping the general order of things. The @{ML Library.merge}
+  present, while keeping the general order of things. The \<^ML>\<open>Library.merge\<close>
   function on plain lists may serve as canonical template.
 
   Particularly note that shared parts of the data must not be duplicated by
@@ -342,15 +340,14 @@ text %mlref \<open>
   @{index_ML_functor Generic_Data} \\
   \end{mldecls}
 
-  \<^descr> @{ML_functor Theory_Data}\<open>(spec)\<close> declares data for type @{ML_type theory}
+  \<^descr> \<^ML_functor>\<open>Theory_Data\<close>\<open>(spec)\<close> declares data for type \<^ML_type>\<open>theory\<close>
   according to the specification provided as argument structure. The resulting
   structure provides data init and access operations as described above.
 
-  \<^descr> @{ML_functor Proof_Data}\<open>(spec)\<close> is analogous to @{ML_functor Theory_Data}
-  for type @{ML_type Proof.context}.
+  \<^descr> \<^ML_functor>\<open>Proof_Data\<close>\<open>(spec)\<close> is analogous to \<^ML_functor>\<open>Theory_Data\<close>
+  for type \<^ML_type>\<open>Proof.context\<close>.
 
-  \<^descr> @{ML_functor Generic_Data}\<open>(spec)\<close> is analogous to @{ML_functor
-  Theory_Data} for type @{ML_type Context.generic}. \<close>
+  \<^descr> \<^ML_functor>\<open>Generic_Data\<close>\<open>(spec)\<close> is analogous to \<^ML_functor>\<open>Theory_Data\<close> for type \<^ML_type>\<open>Context.generic\<close>. \<close>
 
 text %mlex \<open>
   The following artificial example demonstrates theory data: we maintain a set
@@ -397,32 +394,29 @@ ML \<open>
 \<close>
 
 text \<open>
-  Type @{ML_type "term Ord_List.T"} is used for reasonably efficient
+  Type \<^ML_type>\<open>term Ord_List.T\<close> is used for reasonably efficient
   representation of a set of terms: all operations are linear in the number of
   stored elements. Here we assume that users of this module do not care about
   the declaration order, since that data structure forces its own arrangement
   of elements.
 
-  Observe how the @{ML_text merge} operation joins the data slots of the two
-  constituents: @{ML Ord_List.union} prevents duplication of common data from
+  Observe how the \<^ML_text>\<open>merge\<close> operation joins the data slots of the two
+  constituents: \<^ML>\<open>Ord_List.union\<close> prevents duplication of common data from
   different branches, thus avoiding the danger of exponential blowup. Plain
   list append etc.\ must never be used for theory data merges!
 
   \<^medskip>
   Our intended invariant is achieved as follows:
 
-    \<^enum> @{ML Wellformed_Terms.add} only admits terms that have passed the @{ML
-    Sign.cert_term} check of the given theory at that point.
+    \<^enum> \<^ML>\<open>Wellformed_Terms.add\<close> only admits terms that have passed the \<^ML>\<open>Sign.cert_term\<close> check of the given theory at that point.
   
-    \<^enum> Wellformedness in the sense of @{ML Sign.cert_term} is monotonic wrt.\
+    \<^enum> Wellformedness in the sense of \<^ML>\<open>Sign.cert_term\<close> is monotonic wrt.\
     the sub-theory relation. So our data can move upwards in the hierarchy
     (via extension or merges), and maintain wellformedness without further
     checks.
 
-  Note that all basic operations of the inference kernel (which includes @{ML
-  Sign.cert_term}) observe this monotonicity principle, but other user-space
-  tools don't. For example, fully-featured type-inference via @{ML
-  Syntax.check_term} (cf.\ \secref{sec:term-check}) is not necessarily
+  Note that all basic operations of the inference kernel (which includes \<^ML>\<open>Sign.cert_term\<close>) observe this monotonicity principle, but other user-space
+  tools don't. For example, fully-featured type-inference via \<^ML>\<open>Syntax.check_term\<close> (cf.\ \secref{sec:term-check}) is not necessarily
   monotonic wrt.\ the background theory, since constraints of term constants
   can be modified by later declarations, for example.
 
@@ -496,62 +490,61 @@ text %mlref \<open>
   string Config.T"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Config.get}~\<open>ctxt config\<close> gets the value of \<open>config\<close> in the given
+  \<^descr> \<^ML>\<open>Config.get\<close>~\<open>ctxt config\<close> gets the value of \<open>config\<close> in the given
   context.
 
-  \<^descr> @{ML Config.map}~\<open>config f ctxt\<close> updates the context by updating the value
+  \<^descr> \<^ML>\<open>Config.map\<close>~\<open>config f ctxt\<close> updates the context by updating the value
   of \<open>config\<close>.
 
-  \<^descr> \<open>config =\<close>~@{ML Attrib.setup_config_bool}~\<open>name default\<close> creates a named
-  configuration option of type @{ML_type bool}, with the given \<open>default\<close>
+  \<^descr> \<open>config =\<close>~\<^ML>\<open>Attrib.setup_config_bool\<close>~\<open>name default\<close> creates a named
+  configuration option of type \<^ML_type>\<open>bool\<close>, with the given \<open>default\<close>
   depending on the application context. The resulting \<open>config\<close> can be used to
   get/map its value in a given context. There is an implicit update of the
   background theory that registers the option as attribute with some concrete
   syntax.
 
-  \<^descr> @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
-  Attrib.config_string} work like @{ML Attrib.config_bool}, but for types
-  @{ML_type int} and @{ML_type string}, respectively.
+  \<^descr> \<^ML>\<open>Attrib.config_int\<close>, \<^ML>\<open>Attrib.config_real\<close>, and \<^ML>\<open>Attrib.config_string\<close> work like \<^ML>\<open>Attrib.config_bool\<close>, but for types
+  \<^ML_type>\<open>int\<close> and \<^ML_type>\<open>string\<close>, respectively.
 \<close>
 
 text %mlex \<open>
   The following example shows how to declare and use a Boolean configuration
-  option called \<open>my_flag\<close> with constant default value @{ML false}.
+  option called \<open>my_flag\<close> with constant default value \<^ML>\<open>false\<close>.
 \<close>
 
 ML \<open>
   val my_flag =
-    Attrib.setup_config_bool @{binding my_flag} (K false)
+    Attrib.setup_config_bool \<^binding>\<open>my_flag\<close> (K false)
 \<close>
 
 text \<open>
   Now the user can refer to @{attribute my_flag} in declarations, while ML
-  tools can retrieve the current value from the context via @{ML Config.get}.
+  tools can retrieve the current value from the context via \<^ML>\<open>Config.get\<close>.
 \<close>
 
-ML_val \<open>@{assert} (Config.get @{context} my_flag = false)\<close>
+ML_val \<open>\<^assert> (Config.get \<^context> my_flag = false)\<close>
 
 declare [[my_flag = true]]
 
-ML_val \<open>@{assert} (Config.get @{context} my_flag = true)\<close>
+ML_val \<open>\<^assert> (Config.get \<^context> my_flag = true)\<close>
 
 notepad
 begin
   {
     note [[my_flag = false]]
-    ML_val \<open>@{assert} (Config.get @{context} my_flag = false)\<close>
+    ML_val \<open>\<^assert> (Config.get \<^context> my_flag = false)\<close>
   }
-  ML_val \<open>@{assert} (Config.get @{context} my_flag = true)\<close>
+  ML_val \<open>\<^assert> (Config.get \<^context> my_flag = true)\<close>
 end
 
 text \<open>
-  Here is another example involving ML type @{ML_type real} (floating-point
+  Here is another example involving ML type \<^ML_type>\<open>real\<close> (floating-point
   numbers).
 \<close>
 
 ML \<open>
   val airspeed_velocity =
-    Attrib.setup_config_real @{binding airspeed_velocity} (K 0.0)
+    Attrib.setup_config_real \<^binding>\<open>airspeed_velocity\<close> (K 0.0)
 \<close>
 
 declare [[airspeed_velocity = 10]]
@@ -630,43 +623,43 @@ text %mlref \<open>
   @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Name.internal}~\<open>name\<close> produces an internal name by adding one
+  \<^descr> \<^ML>\<open>Name.internal\<close>~\<open>name\<close> produces an internal name by adding one
   underscore.
 
-  \<^descr> @{ML Name.skolem}~\<open>name\<close> produces a Skolem name by adding two underscores.
+  \<^descr> \<^ML>\<open>Name.skolem\<close>~\<open>name\<close> produces a Skolem name by adding two underscores.
 
-  \<^descr> Type @{ML_type Name.context} represents the context of already used names;
-  the initial value is @{ML "Name.context"}.
+  \<^descr> Type \<^ML_type>\<open>Name.context\<close> represents the context of already used names;
+  the initial value is \<^ML>\<open>Name.context\<close>.
 
-  \<^descr> @{ML Name.declare}~\<open>name\<close> enters a used name into the context.
+  \<^descr> \<^ML>\<open>Name.declare\<close>~\<open>name\<close> enters a used name into the context.
 
-  \<^descr> @{ML Name.invent}~\<open>context name n\<close> produces \<open>n\<close> fresh names derived from
+  \<^descr> \<^ML>\<open>Name.invent\<close>~\<open>context name n\<close> produces \<open>n\<close> fresh names derived from
   \<open>name\<close>.
 
-  \<^descr> @{ML Name.variant}~\<open>name context\<close> produces a fresh variant of \<open>name\<close>; the
+  \<^descr> \<^ML>\<open>Name.variant\<close>~\<open>name context\<close> produces a fresh variant of \<open>name\<close>; the
   result is declared to the context.
 
-  \<^descr> @{ML Variable.names_of}~\<open>ctxt\<close> retrieves the context of declared type and
+  \<^descr> \<^ML>\<open>Variable.names_of\<close>~\<open>ctxt\<close> retrieves the context of declared type and
   term variable names. Projecting a proof context down to a primitive name
   context is occasionally useful when invoking lower-level operations. Regular
   management of ``fresh variables'' is done by suitable operations of
-  structure @{ML_structure Variable}, which is also able to provide an
+  structure \<^ML_structure>\<open>Variable\<close>, which is also able to provide an
   official status of ``locally fixed variable'' within the logical environment
   (cf.\ \secref{sec:variables}).
 \<close>
 
 text %mlex \<open>
   The following simple examples demonstrate how to produce fresh names from
-  the initial @{ML Name.context}.
+  the initial \<^ML>\<open>Name.context\<close>.
 \<close>
 
 ML_val \<open>
   val list1 = Name.invent Name.context "a" 5;
-  @{assert} (list1 = ["a", "b", "c", "d", "e"]);
+  \<^assert> (list1 = ["a", "b", "c", "d", "e"]);
 
   val list2 =
     #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] Name.context);
-  @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
+  \<^assert> (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
 \<close>
 
 text \<open>
@@ -677,14 +670,14 @@ experiment fixes a b c :: 'a
 begin
 
 ML_val \<open>
-  val names = Variable.names_of @{context};
+  val names = Variable.names_of \<^context>;
 
   val list1 = Name.invent names "a" 5;
-  @{assert} (list1 = ["d", "e", "f", "g", "h"]);
+  \<^assert> (list1 = ["d", "e", "f", "g", "h"]);
 
   val list2 =
     #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] names);
-  @{assert} (list2 = ["x", "xa", "aa", "ab", "'aa", "'ab"]);
+  \<^assert> (list2 = ["x", "xa", "aa", "ab", "'aa", "'ab"]);
 \<close>
 
 end
@@ -726,8 +719,8 @@ text %mlref \<open>
   @{index_ML_type indexname: "string * int"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type indexname} represents indexed names. This is an
-  abbreviation for @{ML_type "string * int"}. The second component is usually
+  \<^descr> Type \<^ML_type>\<open>indexname\<close> represents indexed names. This is an
+  abbreviation for \<^ML_type>\<open>string * int\<close>. The second component is usually
   non-negative, except for situations where \<open>(x, -1)\<close> is used to inject basic
   names into this type. Other negative indexes should not be used.
 \<close>
@@ -765,13 +758,13 @@ text %mlref \<open>
   @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Long_Name.base_name}~\<open>name\<close> returns the base name of a long name.
+  \<^descr> \<^ML>\<open>Long_Name.base_name\<close>~\<open>name\<close> returns the base name of a long name.
 
-  \<^descr> @{ML Long_Name.qualifier}~\<open>name\<close> returns the qualifier of a long name.
+  \<^descr> \<^ML>\<open>Long_Name.qualifier\<close>~\<open>name\<close> returns the qualifier of a long name.
 
-  \<^descr> @{ML Long_Name.append}~\<open>name\<^sub>1 name\<^sub>2\<close> appends two long names.
+  \<^descr> \<^ML>\<open>Long_Name.append\<close>~\<open>name\<^sub>1 name\<^sub>2\<close> appends two long names.
 
-  \<^descr> @{ML Long_Name.implode}~\<open>names\<close> and @{ML Long_Name.explode}~\<open>name\<close> convert
+  \<^descr> \<^ML>\<open>Long_Name.implode\<close>~\<open>names\<close> and \<^ML>\<open>Long_Name.explode\<close>~\<open>name\<close> convert
   between the packed string representation and the explicit list form of long
   names.
 \<close>
@@ -860,75 +853,74 @@ text %mlref \<open>
   @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
-  \<^descr> Type @{ML_type binding} represents the abstract concept of name bindings.
+  \<^descr> Type \<^ML_type>\<open>binding\<close> represents the abstract concept of name bindings.
 
-  \<^descr> @{ML Binding.empty} is the empty binding.
+  \<^descr> \<^ML>\<open>Binding.empty\<close> is the empty binding.
 
-  \<^descr> @{ML Binding.name}~\<open>name\<close> produces a binding with base name \<open>name\<close>. Note
+  \<^descr> \<^ML>\<open>Binding.name\<close>~\<open>name\<close> produces a binding with base name \<open>name\<close>. Note
   that this lacks proper source position information; see also the ML
   antiquotation @{ML_antiquotation binding}.
 
-  \<^descr> @{ML Binding.qualify}~\<open>mandatory name binding\<close> prefixes qualifier \<open>name\<close>
+  \<^descr> \<^ML>\<open>Binding.qualify\<close>~\<open>mandatory name binding\<close> prefixes qualifier \<open>name\<close>
   to \<open>binding\<close>. The \<open>mandatory\<close> flag tells if this name component always needs
   to be given in name space accesses --- this is mostly \<open>false\<close> in practice.
   Note that this part of qualification is typically used in derived
   specification mechanisms.
 
-  \<^descr> @{ML Binding.prefix} is similar to @{ML Binding.qualify}, but affects the
+  \<^descr> \<^ML>\<open>Binding.prefix\<close> is similar to \<^ML>\<open>Binding.qualify\<close>, but affects the
   system prefix. This part of extra qualification is typically used in the
   infrastructure for modular specifications, notably ``local theory targets''
   (see also \chref{ch:local-theory}).
 
-  \<^descr> @{ML Binding.concealed}~\<open>binding\<close> indicates that the binding shall refer
+  \<^descr> \<^ML>\<open>Binding.concealed\<close>~\<open>binding\<close> indicates that the binding shall refer
   to an entity that serves foundational purposes only. This flag helps to mark
   implementation details of specification mechanism etc. Other tools should
-  not depend on the particulars of concealed entities (cf.\ @{ML
-  Name_Space.is_concealed}).
+  not depend on the particulars of concealed entities (cf.\ \<^ML>\<open>Name_Space.is_concealed\<close>).
 
-  \<^descr> @{ML Binding.print}~\<open>binding\<close> produces a string representation for
+  \<^descr> \<^ML>\<open>Binding.print\<close>~\<open>binding\<close> produces a string representation for
   human-readable output, together with some formal markup that might get used
   in GUI front-ends, for example.
 
-  \<^descr> Type @{ML_type Name_Space.naming} represents the abstract concept of a
+  \<^descr> Type \<^ML_type>\<open>Name_Space.naming\<close> represents the abstract concept of a
   naming policy.
 
-  \<^descr> @{ML Name_Space.global_naming} is the default naming policy: it is global
+  \<^descr> \<^ML>\<open>Name_Space.global_naming\<close> is the default naming policy: it is global
   and lacks any path prefix. In a regular theory context this is augmented by
   a path prefix consisting of the theory name.
 
-  \<^descr> @{ML Name_Space.add_path}~\<open>path naming\<close> augments the naming policy by
+  \<^descr> \<^ML>\<open>Name_Space.add_path\<close>~\<open>path naming\<close> augments the naming policy by
   extending its path component.
 
-  \<^descr> @{ML Name_Space.full_name}~\<open>naming binding\<close> turns a name binding (usually
+  \<^descr> \<^ML>\<open>Name_Space.full_name\<close>~\<open>naming binding\<close> turns a name binding (usually
   a basic name) into the fully qualified internal name, according to the given
   naming policy.
 
-  \<^descr> Type @{ML_type Name_Space.T} represents name spaces.
+  \<^descr> Type \<^ML_type>\<open>Name_Space.T\<close> represents name spaces.
 
-  \<^descr> @{ML Name_Space.empty}~\<open>kind\<close> and @{ML Name_Space.merge}~\<open>(space\<^sub>1,
+  \<^descr> \<^ML>\<open>Name_Space.empty\<close>~\<open>kind\<close> and \<^ML>\<open>Name_Space.merge\<close>~\<open>(space\<^sub>1,
   space\<^sub>2)\<close> are the canonical operations for maintaining name spaces according
   to theory data management (\secref{sec:context-data}); \<open>kind\<close> is a formal
   comment to characterize the purpose of a name space.
 
-  \<^descr> @{ML Name_Space.declare}~\<open>context strict binding space\<close> enters a name
+  \<^descr> \<^ML>\<open>Name_Space.declare\<close>~\<open>context strict binding space\<close> enters a name
   binding as fully qualified internal name into the name space, using the
   naming of the context.
 
-  \<^descr> @{ML Name_Space.intern}~\<open>space name\<close> internalizes a (partially qualified)
+  \<^descr> \<^ML>\<open>Name_Space.intern\<close>~\<open>space name\<close> internalizes a (partially qualified)
   external name.
 
   This operation is mostly for parsing! Note that fully qualified names
-  stemming from declarations are produced via @{ML "Name_Space.full_name"} and
-  @{ML "Name_Space.declare"} (or their derivatives for @{ML_type theory} and
-  @{ML_type Proof.context}).
+  stemming from declarations are produced via \<^ML>\<open>Name_Space.full_name\<close> and
+  \<^ML>\<open>Name_Space.declare\<close> (or their derivatives for \<^ML_type>\<open>theory\<close> and
+  \<^ML_type>\<open>Proof.context\<close>).
 
-  \<^descr> @{ML Name_Space.extern}~\<open>ctxt space name\<close> externalizes a (fully qualified)
+  \<^descr> \<^ML>\<open>Name_Space.extern\<close>~\<open>ctxt space name\<close> externalizes a (fully qualified)
   internal name.
 
   This operation is mostly for printing! User code should not rely on the
   precise result too much.
 
-  \<^descr> @{ML Name_Space.is_concealed}~\<open>space name\<close> indicates whether \<open>name\<close> refers
+  \<^descr> \<^ML>\<open>Name_Space.is_concealed\<close>~\<open>space name\<close> indicates whether \<open>name\<close> refers
   to a strictly private entity that other tools are supposed to ignore!
 \<close>
 
@@ -937,13 +929,13 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "binding"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation binding} embedded
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{binding name}\<close> produces a binding with base name \<open>name\<close> and the source
   position taken from the concrete syntax of this antiquotation. In many
-  situations this is more appropriate than the more basic @{ML Binding.name}
+  situations this is more appropriate than the more basic \<^ML>\<open>Binding.name\<close>
   function.
 \<close>
 
@@ -952,7 +944,7 @@ text %mlex \<open>
   inlined into the text:
 \<close>
 
-ML_val \<open>Binding.pos_of @{binding here}\<close>
+ML_val \<open>Binding.pos_of \<^binding>\<open>here\<close>\<close>
 
 text \<open>
   \<^medskip>
@@ -961,7 +953,7 @@ text \<open>
 
 ML_command
   \<open>writeln
-    ("Look here" ^ Position.here (Binding.pos_of @{binding here}))\<close>
+    ("Look here" ^ Position.here (Binding.pos_of \<^binding>\<open>here\<close>))\<close>
 
 text \<open>
   This illustrates a key virtue of formalized bindings as opposed to raw
@@ -973,6 +965,6 @@ text \<open>
   occasionally useful for experimentation and diagnostic purposes:
 \<close>
 
-ML_command \<open>warning ("Look here" ^ Position.here @{here})\<close>
+ML_command \<open>warning ("Look here" ^ Position.here \<^here>)\<close>
 
 end

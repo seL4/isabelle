@@ -137,7 +137,7 @@ lemma sp\<^sub>\<mu>_rel_map_map[unfolded vimage2p_def, simp]:
 by (tactic \<open>
   let
     val ks = 1 upto 2;
-    val ctxt = @{context};
+    val ctxt = \<^context>;
   in
     BNF_Tactics.unfold_thms_tac ctxt
       @{thms sp\<^sub>\<mu>.rel_compp sp\<^sub>\<mu>.rel_conversep sp\<^sub>\<mu>.rel_Grp vimage2p_Grp} THEN

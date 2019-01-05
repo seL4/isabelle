@@ -47,12 +47,12 @@ text \<open>
   Note that formal comments (\secref{sec:comments}) are similar to markup
   commands, but have a different status within Isabelle/Isar syntax.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
       @@{command subsubsection} | @@{command paragraph} | @@{command subparagraph})
       @{syntax text} ';'? |
     (@@{command text} | @@{command txt} | @@{command text_raw}) @{syntax text}
-  \<close>}
+  \<close>
 
     \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
     section headings within the theory source. This works in any context, even
@@ -147,7 +147,7 @@ text \<open>
 
   \begingroup
   \def\isasymcontrolstart{\isatt{\isacharbackslash\isacharless\isacharcircum}}
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def antiquotation}:
       '@{' antiquotation_body '}' |
       '\<controlstart>' @{syntax_ref name} '>' @{syntax_ref cartouche} |
@@ -157,14 +157,14 @@ text \<open>
     ;
     option: @{syntax name} | @{syntax name} '=' @{syntax name}
     ;
-  \<close>}
+  \<close>
   \endgroup
 
   Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source comments
   \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> nor verbatim text \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>.
 
   %% FIXME less monolithic presentation, move to individual sections!?
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def antiquotation_body}:
       (@@{antiquotation text} | @@{antiquotation cartouche} | @@{antiquotation theory_text})
         options @{syntax text} |
@@ -210,7 +210,7 @@ text \<open>
     style: (@{syntax name} +)
     ;
     @@{command print_antiquotations} ('!'?)
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{text s}\<close> prints uninterpreted source text \<open>s\<close>, i.e.\ inner syntax. This
   is particularly useful to print portions of text according to the Isabelle
@@ -472,11 +472,11 @@ text \<open>
   Each Isabelle/Isar command may be decorated by additional presentation tags,
   to indicate some modification in the way it is printed in the document.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def tags}: ( tag * )
     ;
     tag: '%' (@{syntax short_ident} | @{syntax string})
-  \<close>}
+  \<close>
 
   Some tags are pre-declared for certain classes of commands, serving as
   default markup if no tags are given in the text:
@@ -523,9 +523,9 @@ text \<open>
     @{antiquotation_def "rail"} & : & \<open>antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     'rail' @{syntax text}
-  \<close>}
+  \<close>
 
   The @{antiquotation rail} antiquotation allows to include syntax diagrams
   into Isabelle documents. {\LaTeX} requires the style file
@@ -537,7 +537,7 @@ text \<open>
 
   \begingroup
   \def\isasymnewline{\isatt{\isacharbackslash\isacharless newline\isachargreater}}
-  @{rail \<open>
+  \<^rail>\<open>
   rule? + ';'
   ;
   rule: ((identifier | @{syntax antiquotation}) ':')? body
@@ -549,7 +549,7 @@ text \<open>
   atom: '(' body? ')' | identifier |
     '@'? (string | @{syntax antiquotation}) |
     '\<newline>'
-  \<close>}
+  \<close>
   \endgroup
 
   The lexical syntax of \<open>identifier\<close> coincides with that of @{syntax
@@ -563,59 +563,59 @@ text \<open>
 
   \<^item> Empty \<^verbatim>\<open>()\<close>
 
-  @{rail \<open>()\<close>}
+  \<^rail>\<open>()\<close>
 
   \<^item> Nonterminal \<^verbatim>\<open>A\<close>
 
-  @{rail \<open>A\<close>}
+  \<^rail>\<open>A\<close>
 
   \<^item> Nonterminal via Isabelle antiquotation \<^verbatim>\<open>@{syntax method}\<close>
 
-  @{rail \<open>@{syntax method}\<close>}
+  \<^rail>\<open>@{syntax method}\<close>
 
   \<^item> Terminal \<^verbatim>\<open>'xyz'\<close>
 
-  @{rail \<open>'xyz'\<close>}
+  \<^rail>\<open>'xyz'\<close>
 
   \<^item> Terminal in keyword style \<^verbatim>\<open>@'xyz'\<close>
 
-  @{rail \<open>@'xyz'\<close>}
+  \<^rail>\<open>@'xyz'\<close>
 
   \<^item> Terminal via Isabelle antiquotation \<^verbatim>\<open>@@{method rule}\<close>
 
-  @{rail \<open>@@{method rule}\<close>}
+  \<^rail>\<open>@@{method rule}\<close>
 
   \<^item> Concatenation \<^verbatim>\<open>A B C\<close>
 
-  @{rail \<open>A B C\<close>}
+  \<^rail>\<open>A B C\<close>
 
   \<^item> Newline inside concatenation \<^verbatim>\<open>A B C \<newline> D E F\<close>
 
-  @{rail \<open>A B C \<newline> D E F\<close>}
+  \<^rail>\<open>A B C \<newline> D E F\<close>
 
   \<^item> Variants \<^verbatim>\<open>A | B | C\<close>
 
-  @{rail \<open>A | B | C\<close>}
+  \<^rail>\<open>A | B | C\<close>
 
   \<^item> Option \<^verbatim>\<open>A ?\<close>
 
-  @{rail \<open>A ?\<close>}
+  \<^rail>\<open>A ?\<close>
 
   \<^item> Repetition \<^verbatim>\<open>A *\<close>
 
-  @{rail \<open>A *\<close>}
+  \<^rail>\<open>A *\<close>
 
   \<^item> Repetition with separator \<^verbatim>\<open>A * sep\<close>
 
-  @{rail \<open>A * sep\<close>}
+  \<^rail>\<open>A * sep\<close>
 
   \<^item> Strict repetition \<^verbatim>\<open>A +\<close>
 
-  @{rail \<open>A +\<close>}
+  \<^rail>\<open>A +\<close>
 
   \<^item> Strict repetition with separator \<^verbatim>\<open>A + sep\<close>
 
-  @{rail \<open>A + sep\<close>}
+  \<^rail>\<open>A + sep\<close>
 \<close>
 
 end

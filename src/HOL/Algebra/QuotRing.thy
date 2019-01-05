@@ -16,7 +16,7 @@ definition rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Right
   where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 
-text \<open>@{const "rcoset_mult"} fulfils the properties required by congruences\<close>
+text \<open>\<^const>\<open>rcoset_mult\<close> fulfils the properties required by congruences\<close>
 lemma (in ideal) rcoset_mult_add:
   assumes "x \<in> carrier R" "y \<in> carrier R"
   shows "[mod I:] (I +> x) \<Otimes> (I +> y) = I +> (x \<otimes> y)"
@@ -179,7 +179,7 @@ proof -
     then have Jcarr: "J = carrier R"
       using I_maximal IinJ additive_subgroup.a_subset idealJ ideal_def by blast
 
-    \<comment> \<open>Calculating an inverse for @{term "a"}\<close>
+    \<comment> \<open>Calculating an inverse for \<^term>\<open>a\<close>\<close>
     from one_closed[folded Jcarr]
     obtain r i where rcarr: "r \<in> carrier R"
       and iI: "i \<in> I" and one: "\<one> = r \<otimes> a \<oplus> i" 

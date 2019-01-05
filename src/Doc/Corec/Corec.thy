@@ -34,7 +34,7 @@ This tutorial presents a definitional package for functions beyond
 primitive corecursion. It describes @{command corec} and related commands:\
 @{command corecursive}, @{command friend_of_corec}, and @{command coinduction_upto}.
 It also covers the @{method corec_unique} proof method.
-The package is not part of @{theory Main}; it is located in
+The package is not part of \<^theory>\<open>Main\<close>; it is located in
 \<^file>\<open>~~/src/HOL/Library/BNF_Corec.thy\<close>.
 
 The @{command corec} command generalizes \keyw{primcorec} in three main
@@ -149,7 +149,7 @@ text \<open>
 \noindent
 Pointwise sum meets the friendliness criterion. We register it as a friend using
 the @{command friend_of_corec} command. The command requires us to give a
-specification of @{const ssum} where a constructor (@{const SCons}) occurs at
+specification of \<^const>\<open>ssum\<close> where a constructor (\<^const>\<open>SCons\<close>) occurs at
 the outermost position on the right-hand side. Here, we can simply reuse the
 \keyw{primcorec} specification above:
 \<close>
@@ -171,7 +171,7 @@ The latter replaces equality relations by their relator terms according to the
 @{thm [source] relator_eq} theorem collection before it invokes
 @{method transfer_prover}.
 
-After registering @{const ssum} as a friend, we can use it in the corecursive
+After registering \<^const>\<open>ssum\<close> as a friend, we can use it in the corecursive
 call context, either inside or outside the constructor guard:
 \<close>
 
@@ -204,7 +204,7 @@ text \<open>
 The parametricity subgoal is given to \<open>transfer_prover_eq\<close>
 (Section~\ref{ssec:transfer-prover-eq}).
 
-The @{const sprod} and @{const sexp} functions provide shuffle product and
+The \<^const>\<open>sprod\<close> and \<^const>\<open>sexp\<close> functions provide shuffle product and
 exponentiation on streams. We can use them to define the stream of factorial
 numbers in two different ways:
 \<close>
@@ -230,7 +230,7 @@ text \<open>
 \noindent
 In general, the arguments may be any bounded natural functor (BNF)
 @{cite "isabelle-datatypes"}, with the restriction that the target codatatype
-(@{typ "nat stream"}) may occur only in a \emph{live} position of the BNF. For
+(\<^typ>\<open>nat stream\<close>) may occur only in a \emph{live} position of the BNF. For
 this reason, the following function, on unbounded sets, cannot be registered as
 a friend:
 \<close>
@@ -252,7 +252,7 @@ of finitely branching Rose trees of potentially infinite depth:
       Node (lab: 'a) (sub: "'a tree list")
 
 text \<open>
-We first define the pointwise sum of two trees analogously to @{const ssum}:
+We first define the pointwise sum of two trees analogously to \<^const>\<open>ssum\<close>:
 \<close>
 
     corec (friend) tsum :: "('a :: plus) tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
@@ -261,13 +261,13 @@ We first define the pointwise sum of two trees analogously to @{const ssum}:
 
 text \<open>
 \noindent
-Here, @{const map} is the standard map function on lists, and @{const zip}
-converts two parallel lists into a list of pairs. The @{const tsum} function is
+Here, \<^const>\<open>map\<close> is the standard map function on lists, and \<^const>\<open>zip\<close>
+converts two parallel lists into a list of pairs. The \<^const>\<open>tsum\<close> function is
 primitively corecursive. Instead of @{command corec} \<open>(friend)\<close>, we could
 also have used \keyw{primcorec} and @{command friend_of_corec}, as we did for
-@{const ssum}.
+\<^const>\<open>ssum\<close>.
 
-Once @{const tsum} is registered as friendly, we can use it in the corecursive
+Once \<^const>\<open>tsum\<close> is registered as friendly, we can use it in the corecursive
 call context of another function:
 \<close>
 
@@ -280,7 +280,7 @@ All the syntactic convenience provided by \keyw{primcorec} is also supported by
 @{command corec}, @{command corecursive}, and @{command friend_of_corec}. In
 particular, nesting through the function type can be expressed using
 \<open>\<lambda>\<close>-abstractions and function applications rather than through composition
-(@{term "(\<circ>)"}, the map function for \<open>\<Rightarrow>\<close>). For example:
+(\<^term>\<open>(\<circ>)\<close>, the map function for \<open>\<Rightarrow>\<close>). For example:
 \<close>
 
     codatatype 'a language =
@@ -322,7 +322,7 @@ computation before producing a constructor. With mixed recursion--corecursion, a
 finite number of unguarded recursive calls perform this calculation before
 reaching a guarded corecursive call. Intuitively, the unguarded recursive call
 can be unfolded to arbitrary finite depth, ultimately yielding a purely
-corecursive definition. An example is the @{term primes} function from Di
+corecursive definition. An example is the \<^term>\<open>primes\<close> function from Di
 Gianantonio and Miculan @{cite "di-gianantonio-miculan-2003"}:
 \<close>
 
@@ -343,15 +343,15 @@ text \<open>
 The @{command corecursive} command is a variant of @{command corec} that allows
 us to specify a termination argument for any unguarded self-call.
 
-When called with \<open>m = 1\<close> and \<open>n = 2\<close>, the @{const primes}
+When called with \<open>m = 1\<close> and \<open>n = 2\<close>, the \<^const>\<open>primes\<close>
 function computes the stream of prime numbers. The unguarded call in the
-\<open>else\<close> branch increments @{term n} until it is coprime to the first
-argument @{term m} (i.e., the greatest common divisor of @{term m} and
-@{term n} is \<open>1\<close>).
+\<open>else\<close> branch increments \<^term>\<open>n\<close> until it is coprime to the first
+argument \<^term>\<open>m\<close> (i.e., the greatest common divisor of \<^term>\<open>m\<close> and
+\<^term>\<open>n\<close> is \<open>1\<close>).
 
-For any positive integers @{term m} and @{term n}, the numbers @{term m} and
+For any positive integers \<^term>\<open>m\<close> and \<^term>\<open>n\<close>, the numbers \<^term>\<open>m\<close> and
 \<open>m * n + 1\<close> are coprime, yielding an upper bound on the number of times
-@{term n} is increased. Hence, the function will take the \<open>else\<close> branch at
+\<^term>\<open>n\<close> is increased. Hence, the function will take the \<open>else\<close> branch at
 most finitely often before taking the then branch and producing one constructor.
 There is a slight complication when \<open>m = 0 \<and> n > 1\<close>: Without the first
 disjunct in the \<open>if\<close> condition, the function could stall. (This corner
@@ -410,7 +410,7 @@ principle that matches primitively corecursive functions. For nonprimitive
 specifications, our package provides the more advanced proof principle of
 \emph{coinduction up to congruence}---or simply \emph{coinduction up-to}.
 
-The structural coinduction principle for @{typ "'a stream"}, called
+The structural coinduction principle for \<^typ>\<open>'a stream\<close>, called
 @{thm [source] stream.coinduct}, is as follows:
 %
 \begin{indentblock}
@@ -421,9 +421,9 @@ Coinduction allows us to prove an equality \<open>l = r\<close> on streams by
 providing a relation \<open>R\<close> that relates \<open>l\<close> and \<open>r\<close> (first
 premise) and that constitutes a bisimulation (second premise). Streams that are
 related by a bisimulation cannot be distinguished by taking observations (via
-the selectors @{const shd} and @{const stl}); hence they must be equal.
+the selectors \<^const>\<open>shd\<close> and \<^const>\<open>stl\<close>); hence they must be equal.
 
-The coinduction up-to principle after registering @{const sskew} as friendly is
+The coinduction up-to principle after registering \<^const>\<open>sskew\<close> as friendly is
 available as @{thm [source] sskew.coinduct} and as one of the components of
 the theorem collection @{thm [source] stream.coinduct_upto}:
 %
@@ -432,10 +432,10 @@ the theorem collection @{thm [source] stream.coinduct_upto}:
 \end{indentblock}
 %
 This rule is almost identical to structural coinduction, except that the
-corecursive application of @{term R} is generalized to
-@{term "stream.v5.congclp R"}.
+corecursive application of \<^term>\<open>R\<close> is generalized to
+\<^term>\<open>stream.v5.congclp R\<close>.
 
-The @{const stream.v5.congclp} predicate is equipped with the following
+The \<^const>\<open>stream.v5.congclp\<close> predicate is equipped with the following
 introduction rules:
 
 \begin{indentblock}
@@ -471,9 +471,9 @@ introduction rules:
 The introduction rules are also available as
 @{thm [source] sskew.cong_intros}.
 
-Notice that there is no introduction rule corresponding to @{const sexp},
-because @{const sexp} has a more restrictive result type than @{const sskew}
-(@{typ "nat stream"} vs. @{typ "('a :: {plus,times}) stream"}.
+Notice that there is no introduction rule corresponding to \<^const>\<open>sexp\<close>,
+because \<^const>\<open>sexp\<close> has a more restrictive result type than \<^const>\<open>sskew\<close>
+(\<^typ>\<open>nat stream\<close> vs. \<^typ>\<open>('a :: {plus,times}) stream\<close>.
 
 The version numbers, here \<open>v5\<close>, distinguish the different congruence
 closures generated for a given codatatype as more friends are registered. As
@@ -486,10 +486,10 @@ rules. A technically subtle point is to make Isabelle choose the right rules in
 most situations. For this purpose, the package maintains the collection
 @{thm [source] stream.coinduct_upto} of coinduction principles ordered by
 increasing generality, which works well with Isabelle's philosophy of applying
-the first rule that matches. For example, after registering @{const ssum} as a
-friend, proving the equality @{term "l = r"} on @{typ "nat stream"} might
-require coinduction principle for @{term "nat stream"}, which is up to
-@{const ssum}.
+the first rule that matches. For example, after registering \<^const>\<open>ssum\<close> as a
+friend, proving the equality \<^term>\<open>l = r\<close> on \<^typ>\<open>nat stream\<close> might
+require coinduction principle for \<^term>\<open>nat stream\<close>, which is up to
+\<^const>\<open>ssum\<close>.
 
 The collection @{thm [source] stream.coinduct_upto} is guaranteed to be complete
 and up to date with respect to the type instances of definitions considered so
@@ -523,18 +523,18 @@ At this point, @{thm [source] tllist.coinduct_upto} contains three variants of t
 coinduction principles:
 %
 \begin{itemize}
-\item @{typ "('a, int) tllist"} up to @{const TNil}, @{const TCons}, and
-  @{const square_terminal};
-\item @{typ "(nat, 'b) tllist"} up to @{const TNil}, @{const TCons}, and
-  @{const square_elems};
-\item @{typ "('a, 'b) tllist"} up to @{const TNil} and @{const TCons}.
+\item \<^typ>\<open>('a, int) tllist\<close> up to \<^const>\<open>TNil\<close>, \<^const>\<open>TCons\<close>, and
+  \<^const>\<open>square_terminal\<close>;
+\item \<^typ>\<open>(nat, 'b) tllist\<close> up to \<^const>\<open>TNil\<close>, \<^const>\<open>TCons\<close>, and
+  \<^const>\<open>square_elems\<close>;
+\item \<^typ>\<open>('a, 'b) tllist\<close> up to \<^const>\<open>TNil\<close> and \<^const>\<open>TCons\<close>.
 \end{itemize}
 %
 The following variant is missing:
 %
 \begin{itemize}
-\item @{typ "(nat, int) tllist"} up to @{const TNil}, @{const TCons},
-  @{const square_elems}, and @{const square_terminal}.
+\item \<^typ>\<open>(nat, int) tllist\<close> up to \<^const>\<open>TNil\<close>, \<^const>\<open>TCons\<close>,
+  \<^const>\<open>square_elems\<close>, and \<^const>\<open>square_terminal\<close>.
 \end{itemize}
 %
 To generate it without having to define a new function with @{command corec},
@@ -569,23 +569,23 @@ corecursive definition is the unique solution to a fixpoint equation.
 
 The @{command corec}, @{command corecursive}, and @{command friend_of_corec}
 commands generate a property \<open>f.unique\<close> about the function of interest
-@{term f} that can be used to prove that any function that satisfies
-@{term f}'s corecursive specification must be equal to~@{term f}. For example:
+\<^term>\<open>f\<close> that can be used to prove that any function that satisfies
+\<^term>\<open>f\<close>'s corecursive specification must be equal to~\<^term>\<open>f\<close>. For example:
 \[@{thm ssum.unique[no_vars]}\]
 
 The uniqueness principles are not restricted to functions defined using
 @{command corec} or @{command corecursive} or registered with
-@{command friend_of_corec}. Suppose @{term "t x"} is an arbitrary term
-depending on @{term x}. The @{method corec_unique} proof method, provided by our
+@{command friend_of_corec}. Suppose \<^term>\<open>t x\<close> is an arbitrary term
+depending on \<^term>\<open>x\<close>. The @{method corec_unique} proof method, provided by our
 tool, transforms subgoals of the form
-\[@{term "(\<forall>x. f x = H x f) \<Longrightarrow> f x = t x"}\]
+\[\<^term>\<open>(\<forall>x. f x = H x f) \<Longrightarrow> f x = t x\<close>\]
 into
-\[@{term "\<forall>x. t x = H x t"}\]
-The higher-order functional @{term H} must be such that @{term "f x = H x f"}
+\[\<^term>\<open>\<forall>x. t x = H x t\<close>\]
+The higher-order functional \<^term>\<open>H\<close> must be such that \<^term>\<open>f x = H x f\<close>
 would be a valid @{command corec} specification, but without nested self-calls
 or unguarded (recursive) calls. Thus, @{method corec_unique} proves uniqueness
-of @{term t} with respect to the given corecursive equation regardless of how
-@{term t} was defined. For example:
+of \<^term>\<open>t\<close> with respect to the given corecursive equation regardless of how
+\<^term>\<open>t\<close> was defined. For example:
 \<close>
 
     lemma
@@ -625,12 +625,12 @@ text \<open>
   @{command_def "corecursive"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   (@@{command corec} | @@{command corecursive}) target? \<newline>
     @{syntax cr_options}? fix @'where' prop
   ;
   @{syntax_def cr_options}: '(' ((@{syntax plugins} | 'friend' | 'transfer') + ',') ')'
-\<close>}
+\<close>
 
 \medskip
 
@@ -677,12 +677,12 @@ text \<open>
   @{command_def "friend_of_corec"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command friend_of_corec} target? \<newline>
     @{syntax foc_options}? fix @'where' prop
   ;
   @{syntax_def foc_options}: '(' ((@{syntax plugins} | 'transfer') + ',') ')'
-\<close>}
+\<close>
 
 \medskip
 
@@ -720,9 +720,9 @@ text \<open>
   @{command_def "coinduction_upto"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
-@{rail \<open>
+\<^rail>\<open>
   @@{command coinduction_upto} target? name ':' type
-\<close>}
+\<close>
 
 \medskip
 
@@ -774,9 +774,9 @@ subsection \<open>\keyw{corec} and \keyw{corecursive}
   \label{ssec:corec-and-corecursive-theorems}\<close>
 
 text \<open>
-For a function @{term f} over codatatype \<open>t\<close>, the @{command corec} and
+For a function \<^term>\<open>f\<close> over codatatype \<open>t\<close>, the @{command corec} and
 @{command corecursive} commands generate the following properties (listed for
-@{const sexp}, cf. Section~\ref{ssec:simple-corecursion}):
+\<^const>\<open>sexp\<close>, cf. Section~\ref{ssec:simple-corecursion}):
 
 \begin{indentblock}
 \begin{description}
@@ -799,7 +799,7 @@ This property is not generated for mixed recursive--corecursive definitions.
 
 \item[\<open>f.\<close>\hthm{inner_induct}\rm:] ~ \\
 This property is only generated for mixed recursive--corecursive definitions.
-For @{const primes} (Section~\ref{ssec:mixed-recursion-corecursion}, it reads as
+For \<^const>\<open>primes\<close> (Section~\ref{ssec:mixed-recursion-corecursion}, it reads as
 follows: \\[\jot]
 @{thm primes.inner_induct[no_vars]}
 
@@ -892,7 +892,7 @@ subsection \<open>\textit{transfer_prover_eq}
 
 text \<open>
 The @{method transfer_prover_eq} proof method replaces the equality relation
-@{term "(=)"} with compound relator expressions according to
+\<^term>\<open>(=)\<close> with compound relator expressions according to
 @{thm [source] relator_eq} before calling @{method transfer_prover} on the
 current subgoal. It tends to work better than plain @{method transfer_prover} on
 the parametricity proof obligations of @{command corecursive} and
@@ -917,7 +917,7 @@ obligations dischared by the user or the @{method transfer_prover_eq} method, bu
 this derivation fails if in the arguments of a higher-order constant a type variable
 occurs on both sides of the function type constructor. The required naturality
 theorem can then be declared with @{attribute friend_of_corec_simps}. See
-@{file "~~/src/HOL/Corec_Examples/Tests/Iterate_GPV.thy"} for an example.
+\<^file>\<open>~~/src/HOL/Corec_Examples/Tests/Iterate_GPV.thy\<close> for an example.
 \<close>
 
 

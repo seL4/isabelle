@@ -13,9 +13,9 @@ we consider a simple modal logic called propositional dynamic
 logic (PDL)\@.  We then proceed to the temporal logic CTL, which is
 used in many real
 model checkers. In each case we give both a traditional semantics (\<open>\<Turnstile>\<close>) and a
-recursive function @{term mc} that maps a formula into the set of all states of
+recursive function \<^term>\<open>mc\<close> that maps a formula into the set of all states of
 the system where the formula is valid. If the system has a finite number of
-states, @{term mc} is directly executable: it is a model checker, albeit an
+states, \<^term>\<open>mc\<close> is directly executable: it is a model checker, albeit an
 inefficient one. The main proof obligation is to show that the semantics
 and the model checker agree.
 
@@ -62,9 +62,9 @@ text\<open>\noindent
 Command \commdx{typedecl} merely declares a new type but without
 defining it (see \S\ref{sec:typedecl}). Thus we know nothing
 about the type other than its existence. That is exactly what we need
-because @{typ state} really is an implicit parameter of our model.  Of
-course it would have been more generic to make @{typ state} a type
-parameter of everything but declaring @{typ state} globally as above
+because \<^typ>\<open>state\<close> really is an implicit parameter of our model.  Of
+course it would have been more generic to make \<^typ>\<open>state\<close> a type
+parameter of everything but declaring \<^typ>\<open>state\<close> globally as above
 reduces clutter.  Similarly we declare an arbitrary but fixed
 transition system, i.e.\ a relation between states:
 \<close>

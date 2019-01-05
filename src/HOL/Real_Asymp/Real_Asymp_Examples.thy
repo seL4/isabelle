@@ -231,12 +231,12 @@ proof -
 qed
 
 
-text \<open>@{url "http://math.stackexchange.com/questions/625574"}\<close>
+text \<open>\<^url>\<open>http://math.stackexchange.com/questions/625574\<close>\<close>
 lemma "(\<lambda>x::real. (1 - 1/2 * x^2 - cos (x / (1 - x^2))) / x^4) \<midarrow>0\<rightarrow> 23/24"
   by real_asymp
 
 
-text \<open>@{url "http://math.stackexchange.com/questions/122967"}\<close>
+text \<open>\<^url>\<open>http://math.stackexchange.com/questions/122967\<close>\<close>
 
 real_limit "\<lambda>x. (x + 1) powr (1 + 1 / x) - x powr (1 + 1 / (x + a))"
 
@@ -270,11 +270,11 @@ lemma "(\<lambda>x. ((a powr x - x * ln a) / (b powr x - x * ln b)) powr (1 / x 
 end
 
 
-text \<open>@{url "http://math.stackexchange.com/questions/547538"}\<close>
+text \<open>\<^url>\<open>http://math.stackexchange.com/questions/547538\<close>\<close>
 lemma "(\<lambda>x::real. ((x+4) powr (3/2) + exp x - 9) / x) \<midarrow>0\<rightarrow> 4"
   by real_asymp
 
-text \<open>@{url "https://www.freemathhelp.com/forum/threads/93513"}\<close>
+text \<open>\<^url>\<open>https://www.freemathhelp.com/forum/threads/93513\<close>\<close>
 lemma "((\<lambda>x::real. ((3 powr x + 4 powr x) / 4) powr (1/x)) \<longlongrightarrow> 4) at_top"
   by real_asymp
     
@@ -282,7 +282,7 @@ lemma "((\<lambda>x::real. x powr (3/2) * (sqrt (x + 1) + sqrt (x - 1) - 2 * sqr
   by real_asymp
 
 
-text \<open>@{url "https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/limcondirectory/LimitConstant.html"}\<close>
+text \<open>\<^url>\<open>https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/limcondirectory/LimitConstant.html\<close>\<close>
 lemma  "(\<lambda>x::real. (cos (2*x) - 1) / (cos x - 1)) \<midarrow>0\<rightarrow> 4"
   by real_asymp
 
@@ -294,7 +294,7 @@ text \<open>@url{"https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/liminfdir
 lemma "filterlim (\<lambda>x::real. (3 powr x + 3 powr (2*x)) powr (1/x)) (nhds 9) at_top"
   using powr_def[of 3 "2::real"] by real_asymp
 
-text \<open>@{url "https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/lhopitaldirectory/LHopital.html"}\<close>
+text \<open>\<^url>\<open>https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/lhopitaldirectory/LHopital.html\<close>\<close>
 lemma "filterlim (\<lambda>x::real. (x^2 - 1) / (x^2 + 3*x - 4)) (nhds (2/5)) (at 1)"
   by real_asymp
     
@@ -375,7 +375,7 @@ lemma "filterlim (\<lambda>x::real. x powr (x powr x)) (at_right 0) (at_right 0)
   by (real_asymp (verbose))
 
 
-text \<open>@{url "http://calculus.nipissingu.ca/problems/limit_problems.html"}\<close>
+text \<open>\<^url>\<open>http://calculus.nipissingu.ca/problems/limit_problems.html\<close>\<close>
 lemma "((\<lambda>x::real. (x^2 - 1) / \<bar>x - 1\<bar>) \<longlongrightarrow> -2) (at_left 1)"
       "((\<lambda>x::real. (x^2 - 1) / \<bar>x - 1\<bar>) \<longlongrightarrow> 2) (at_right 1)"
   by real_asymp+
@@ -385,27 +385,27 @@ lemma "((\<lambda>x::real. (root 3 x - 1) / \<bar>sqrt x - 1\<bar>) \<longlongri
   by real_asymp+
 
 
-text \<open>@{url "https://math.stackexchange.com/questions/547538"}\<close>
+text \<open>\<^url>\<open>https://math.stackexchange.com/questions/547538\<close>\<close>
 
 lemma "(\<lambda>x::real. ((x + 4) powr (3/2) + exp x - 9) / x) \<midarrow>0\<rightarrow> 4"
   by real_asymp
 
-text \<open>@{url "https://math.stackexchange.com/questions/625574"}\<close>
+text \<open>\<^url>\<open>https://math.stackexchange.com/questions/625574\<close>\<close>
 lemma "(\<lambda>x::real. (1 - x^2 / 2 - cos (x / (1 - x^2))) / x^4) \<midarrow>0\<rightarrow> 23/24"
   by real_asymp
 
-text \<open>@{url "https://www.mapleprimes.com/questions/151308-A-Hard-Limit-Question"}\<close>
+text \<open>\<^url>\<open>https://www.mapleprimes.com/questions/151308-A-Hard-Limit-Question\<close>\<close>
 lemma "(\<lambda>x::real. x / (x - 1) - 1 / ln x) \<midarrow>1\<rightarrow> 1 / 2"
   by real_asymp
 
-text \<open>@{url "https://www.freemathhelp.com/forum/threads/93513-two-extremely-difficult-limit-problems"}\<close>
+text \<open>\<^url>\<open>https://www.freemathhelp.com/forum/threads/93513-two-extremely-difficult-limit-problems\<close>\<close>
 lemma "((\<lambda>x::real. ((3 powr x + 4 powr x) / 4) powr (1/x)) \<longlongrightarrow> 4) at_top"
   by real_asymp
 
 lemma "((\<lambda>x::real. x powr 1.5 * (sqrt (x + 1) + sqrt (x - 1) - 2 * sqrt x)) \<longlongrightarrow> -1/4) at_top"
   by real_asymp
 
-text \<open>@{url "https://math.stackexchange.com/questions/1390833"}\<close>
+text \<open>\<^url>\<open>https://math.stackexchange.com/questions/1390833\<close>\<close>
 context
   fixes a b :: real
   assumes ab: "a + b > 0" "a + b = 1"

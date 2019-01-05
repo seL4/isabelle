@@ -67,10 +67,10 @@ structure Data = Generic_Data
 );
 
 val debug =
-  Attrib.setup_config_bool @{binding measurable_debug} (K false)
+  Attrib.setup_config_bool \<^binding>\<open>measurable_debug\<close> (K false)
 
 val split =
-  Attrib.setup_config_bool @{binding measurable_split} (K true)
+  Attrib.setup_config_bool \<^binding>\<open>measurable_split\<close> (K true)
 
 fun map_data f1 f2 f3 f4
   {measurable_thms = t1,    dest_thms = t2,    cong_thms = t3,    preprocessors = t4 } =
@@ -130,15 +130,15 @@ fun nth_hol_goal thm i =
 
 fun dest_measurable_fun t =
   (case t of
-    (Const (@{const_name "Set.member"}, _) $ f $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => f
+    (Const (\<^const_name>\<open>Set.member\<close>, _) $ f $ (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) => f
   | _ => raise (TERM ("not a measurability predicate", [t])))
 
 fun not_measurable_prop n thm =
   if length (Thm.prems_of thm) < n then false
   else
     (case nth_hol_goal thm n of
-      (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "sets"}, _) $ _)) => false
-    | (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => false
+      (Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $ (Const (\<^const_name>\<open>sets\<close>, _) $ _)) => false
+    | (Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $ (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) => false
     | _ => true)
     handle TERM _ => true;
 
@@ -149,7 +149,7 @@ fun indep (Bound i) t b = i < b orelse t <= i
 
 fun cnt_prefixes ctxt (Abs (n, T, t)) =
     let
-      fun is_countable ty = Sign.of_sort (Proof_Context.theory_of ctxt) (ty, @{sort countable})
+      fun is_countable ty = Sign.of_sort (Proof_Context.theory_of ctxt) (ty, \<^sort>\<open>countable\<close>)
       fun cnt_walk (Abs (ns, T, t)) Ts =
           map (fn (t', t'') => (Abs (ns, T, t'), t'')) (cnt_walk t (T::Ts))
         | cnt_walk (f $ g) Ts = let
@@ -219,12 +219,12 @@ fun measurable_tac ctxt facts =
 
     val (thms, ctxt) = prepare_facts ctxt facts
 
-    fun is_sets_eq (Const (@{const_name "HOL.eq"}, _) $
-          (Const (@{const_name "sets"}, _) $ _) $
-          (Const (@{const_name "sets"}, _) $ _)) = true
-      | is_sets_eq (Const (@{const_name "HOL.eq"}, _) $
-          (Const (@{const_name "measurable"}, _) $ _ $ _) $
-          (Const (@{const_name "measurable"}, _) $ _ $ _)) = true
+    fun is_sets_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
+          (Const (\<^const_name>\<open>sets\<close>, _) $ _) $
+          (Const (\<^const_name>\<open>sets\<close>, _) $ _)) = true
+      | is_sets_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
+          (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _) $
+          (Const (\<^const_name>\<open>measurable\<close>, _) $ _ $ _)) = true
       | is_sets_eq _ = false
 
     val cong_thms = get_cong (Context.Proof ctxt) @

@@ -119,7 +119,7 @@ where
  | "freediscrim (CRYPT K X) = freediscrim X + 2"
  | "freediscrim (DECRYPT K X) = freediscrim X - 2"
 
-text\<open>This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}\<close>
+text\<open>This theorem helps us prove \<^term>\<open>Nonce N \<noteq> MPair X Y\<close>\<close>
 theorem msgrel_imp_eq_freediscrim:
   assumes a: "U \<sim> V"
   shows "freediscrim U = freediscrim V"
@@ -173,7 +173,7 @@ is
   "freenonces"
 by (rule msgrel_imp_eq_freenonces)
 
-text\<open>Now prove the four equations for @{term nonces}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>nonces\<close>\<close>
 
 lemma nonces_Nonce [simp]:
   shows "nonces (Nonce N) = {N}"
@@ -223,7 +223,7 @@ is
   "freeright"
 by (rule msgrel_imp_eqv_freeright)
 
-text\<open>Now prove the four equations for @{term right}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>right\<close>\<close>
 
 lemma right_Nonce [simp]:
   shows "right (Nonce N) = Nonce N"
@@ -243,7 +243,7 @@ lemma right_Decrypt [simp]:
 
 subsection\<open>Injectivity Properties of Some Constructors\<close>
 
-text\<open>Can also be proved using the function @{term nonces}\<close>
+text\<open>Can also be proved using the function \<^term>\<open>nonces\<close>\<close>
 lemma Nonce_Nonce_eq [iff]:
   shows "(Nonce m = Nonce n) = (m = n)"
 proof
@@ -328,7 +328,7 @@ is
   "freediscrim"
 by (rule msgrel_imp_eq_freediscrim)
 
-text\<open>Now prove the four equations for @{term discrim}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>discrim\<close>\<close>
 
 lemma discrim_Nonce [simp]:
   shows "discrim (Nonce N) = 0"

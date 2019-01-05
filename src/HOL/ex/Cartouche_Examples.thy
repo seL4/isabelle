@@ -34,7 +34,7 @@ begin
     [OF \<open>x = y\<close>]}.\<close>
 
   have \<open>x = y\<close>
-    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)
+    by (tactic \<open>resolve_tac \<^context> @{thms \<open>x = y\<close>} 1\<close>)
       \<comment> \<open>more cartouches involving ML\<close>
 end
 
@@ -42,7 +42,7 @@ end
 subsection \<open>Outer syntax: cartouche within command syntax\<close>
 
 ML \<open>
-  Outer_Syntax.command @{command_keyword cartouche} ""
+  Outer_Syntax.command \<^command_keyword>\<open>cartouche\<close> ""
     (Parse.cartouche >> (fn s =>
       Toplevel.keep (fn _ => writeln s)))
 \<close>
@@ -61,17 +61,17 @@ ML \<open>
           if Symbol.is_ascii s then ord s
           else if s = "\<newline>" then 10
           else error ("String literal contains illegal symbol: " ^ quote s ^ Position.here pos);
-      in list_comb (Syntax.const @{const_syntax Char}, String_Syntax.mk_bits_syntax 8 c) end;
+      in list_comb (Syntax.const \<^const_syntax>\<open>Char\<close>, String_Syntax.mk_bits_syntax 8 c) end;
 
-    fun mk_string [] = Const (@{const_syntax Nil}, @{typ string})
+    fun mk_string [] = Const (\<^const_syntax>\<open>Nil\<close>, \<^typ>\<open>string\<close>)
       | mk_string (s :: ss) =
-          Syntax.const @{const_syntax Cons} $ mk_char s $ mk_string ss;
+          Syntax.const \<^const_syntax>\<open>Cons\<close> $ mk_char s $ mk_string ss;
 
   in
     fun string_tr content args =
       let fun err () = raise TERM ("string_tr", args) in
         (case args of
-          [(c as Const (@{syntax_const "_constrain"}, _)) $ Free (s, _) $ p] =>
+          [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ Free (s, _) $ p] =>
             (case Term_Position.decode_position p of
               SOME (pos, _) => c $ mk_string (content (s, pos)) $ p
             | NONE => err ())
@@ -83,7 +83,7 @@ ML \<open>
 syntax "_cartouche_string" :: \<open>cartouche_position \<Rightarrow> string\<close>  ("_")
 
 parse_translation \<open>
-  [(@{syntax_const "_cartouche_string"},
+  [(\<^syntax_const>\<open>_cartouche_string\<close>,
     K (string_tr (Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
 \<close>
 
@@ -100,7 +100,7 @@ subsubsection \<open>Nested quotes\<close>
 syntax "_string_string" :: \<open>string_position \<Rightarrow> string\<close>  ("_")
 
 parse_translation \<open>
-  [(@{syntax_const "_string_string"}, K (string_tr Lexicon.explode_string))]
+  [(\<^syntax_const>\<open>_string_string\<close>, K (string_tr Lexicon.explode_string))]
 \<close>
 
 term \<open>""\<close>
@@ -113,16 +113,15 @@ term \<open>"\001\010\100"\<close>
 subsubsection \<open>Further nesting: antiquotations\<close>
 
 ML \<open>
-  @{term \<open>""\<close>};
-  @{term \<open>"abc"\<close>};
-  @{term \<open>"abc" @ "xyz"\<close>};
-  @{term \<open>"\<newline>"\<close>};
-  @{term \<open>"\001\010\100"\<close>};
+  \<^term>\<open>""\<close>;
+  \<^term>\<open>"abc"\<close>;
+  \<^term>\<open>"abc" @ "xyz"\<close>;
+  \<^term>\<open>"\<newline>"\<close>;
+  \<^term>\<open>"\001\010\100"\<close>;
 \<close>
 
 text \<open>
-  @{ML
-    \<open>
+  \<^ML>\<open>
       (
         @{term \<open>""\<close>};
         @{term \<open>"abc"\<close>};
@@ -131,7 +130,6 @@ text \<open>
         @{term \<open>"\001\010\100"\<close>}
       )
     \<close>
-  }
 \<close>
 
 
@@ -139,15 +137,14 @@ subsubsection \<open>Uniform nesting of sub-languages: document source, ML, term
 
 ML \<open>
   Outer_Syntax.command
-    @{command_keyword text_cartouche} ""
+    \<^command_keyword>\<open>text_cartouche\<close> ""
     (Parse.opt_target -- Parse.input Parse.cartouche
       >> Pure_Syn.document_command {markdown = true})
 \<close>
 
 text_cartouche
 \<open>
-  @{ML
-    \<open>
+  \<^ML>\<open>
       (
         @{term \<open>""\<close>};
         @{term \<open>"abc"\<close>};
@@ -156,7 +153,6 @@ text_cartouche
         @{term \<open>"\001\010\100"\<close>}
       )
     \<close>
-  }
 \<close>
 
 
@@ -192,17 +188,17 @@ method_setup ml_tactic = \<open>
 \<close>
 
 lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
-  apply (ml_tactic \<open>resolve_tac @{context} @{thms impI} 1\<close>)
-  apply (ml_tactic \<open>eresolve_tac @{context} @{thms conjE} 1\<close>)
-  apply (ml_tactic \<open>resolve_tac @{context} @{thms conjI} 1\<close>)
-  apply (ml_tactic \<open>ALLGOALS (assume_tac @{context})\<close>)
+  apply (ml_tactic \<open>resolve_tac \<^context> @{thms impI} 1\<close>)
+  apply (ml_tactic \<open>eresolve_tac \<^context> @{thms conjE} 1\<close>)
+  apply (ml_tactic \<open>resolve_tac \<^context> @{thms conjI} 1\<close>)
+  apply (ml_tactic \<open>ALLGOALS (assume_tac \<^context>)\<close>)
   done
 
 lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)
 
 ML \<open>@{lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>
 
-text \<open>@{ML \<open>@{lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>}\<close>
+text \<open>\<^ML>\<open>@{lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>\<close>
 
 
 subsubsection \<open>Implicit version: method with special name "cartouche" (dynamic!)\<close>
@@ -213,17 +209,17 @@ method_setup "cartouche" = \<open>
 \<close>
 
 lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
-  apply \<open>resolve_tac @{context} @{thms impI} 1\<close>
-  apply \<open>eresolve_tac @{context} @{thms conjE} 1\<close>
-  apply \<open>resolve_tac @{context} @{thms conjI} 1\<close>
-  apply \<open>ALLGOALS (assume_tac @{context})\<close>
+  apply \<open>resolve_tac \<^context> @{thms impI} 1\<close>
+  apply \<open>eresolve_tac \<^context> @{thms conjE} 1\<close>
+  apply \<open>resolve_tac \<^context> @{thms conjI} 1\<close>
+  apply \<open>ALLGOALS (assume_tac \<^context>)\<close>
   done
 
 lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
-  by (\<open>resolve_tac @{context} @{thms impI} 1\<close>,
-    \<open>eresolve_tac @{context} @{thms conjE} 1\<close>,
-    \<open>resolve_tac @{context} @{thms conjI} 1\<close>,
-    \<open>assume_tac @{context} 1\<close>+)
+  by (\<open>resolve_tac \<^context> @{thms impI} 1\<close>,
+    \<open>eresolve_tac \<^context> @{thms conjE} 1\<close>,
+    \<open>resolve_tac \<^context> @{thms conjI} 1\<close>,
+    \<open>assume_tac \<^context> 1\<close>+)
 
 
 subsection \<open>ML syntax\<close>

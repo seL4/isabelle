@@ -25,7 +25,7 @@ text \<open>
   this compiler are described in detail in
   @{cite "Berghofer-Bulwahn-Haftmann:2009:TPHOL"}.
 
-  Consider the simple predicate @{const append} given by these two
+  Consider the simple predicate \<^const>\<open>append\<close> given by these two
   introduction rules:
 \<close>
 
@@ -49,7 +49,7 @@ text \<open>
   output. Modes are similar to types, but use the notation \<open>i\<close>
   for input and \<open>o\<close> for output.
  
-  For @{term "append"}, the compiler can infer the following modes:
+  For \<^term>\<open>append\<close>, the compiler can infer the following modes:
   \begin{itemize}
     \item \<open>i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool\<close>
     \item \<open>i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool\<close>
@@ -203,8 +203,7 @@ text \<open>
   predicate could be inferred that are not disambiguated by the
   pattern of the set comprehension.  To disambiguate the modes for the
   arguments of a predicate, you can state the modes explicitly in the
-  @{command "values"} command.  Consider the simple predicate @{term
-  "succ"}:
+  @{command "values"} command.  Consider the simple predicate \<^term>\<open>succ\<close>:
 \<close>
 
 inductive %quote succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
@@ -243,14 +242,13 @@ text \<open>
   (if append [Suc 0, 2] ys zs then Some ys else None)\<close>}
 
   \item If you know that the execution returns only one value (it is
-    deterministic), then you can use the combinator @{term
-    "Predicate.the"}, e.g., a functional concatenation of lists is
+    deterministic), then you can use the combinator \<^term>\<open>Predicate.the\<close>, e.g., a functional concatenation of lists is
     defined with
 
     @{term [display] "functional_concat xs ys = Predicate.the (append_i_i_o xs ys)"}
 
     Note that if the evaluation does not return a unique value, it
-    raises a run-time error @{term "not_unique"}.
+    raises a run-time error \<^term>\<open>not_unique\<close>.
 
   \end{itemize}
 \<close>

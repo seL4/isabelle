@@ -107,7 +107,7 @@ text \<open>To avoid redundancy and to reduce the number of rules, there is only
  (e.g. see the rules below for \<open>LVar\<close>, \<open>FVar\<close> and \<open>AVar\<close>). 
  So evaluation of a variable must capture both possible further uses: 
  read (rule \<open>Acc\<close>) or write (rule \<open>Ass\<close>) to the variable. 
- Therefor a variable evaluates to a special value @{term vvar}, which is 
+ Therefor a variable evaluates to a special value \<^term>\<open>vvar\<close>, which is 
  a pair, consisting of the current value (for later read access) and an update 
  function (for later write access). Because
  during assignment to an array variable an exception may occur if the types
@@ -542,9 +542,9 @@ where
 
   \<comment> \<open>cf. 14.10, 14.10.1\<close>
   
-  \<comment> \<open>A continue jump from the while body @{term c} is handled by 
+  \<comment> \<open>A continue jump from the while body \<^term>\<open>c\<close> is handled by 
      this rule. If a continue jump with the proper label was invoked inside 
-     @{term c} this label (Cont l) is deleted out of the abrupt component of 
+     \<^term>\<open>c\<close> this label (Cont l) is deleted out of the abrupt component of 
      the state before the iterative evaluation of the while statement.
      A break jump is handled by the Lab Statement \<open>Lab l (while\<dots>)\<close>.\<close>
 | Loop: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
@@ -654,19 +654,19 @@ where
                             G\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<rightarrow> s2"
 
 
-\<comment> \<open>The interplay of  @{term Call}, @{term Methd} and @{term Body}:
+\<comment> \<open>The interplay of  \<^term>\<open>Call\<close>, \<^term>\<open>Methd\<close> and \<^term>\<open>Body\<close>:
       Method invocation is split up into these three rules:
       \begin{itemize}
-      \item [@{term Call}] Calculates the target address and evaluates the
+      \item [\<^term>\<open>Call\<close>] Calculates the target address and evaluates the
                            arguments of the method, and then performs dynamic
                            or static lookup of the method, corresponding to the
-                           call mode. Then the @{term Methd} rule is evaluated
+                           call mode. Then the \<^term>\<open>Methd\<close> rule is evaluated
                            on the calculated declaration class of the method
                            invocation.
-      \item [@{term Methd}] A syntactic bridge for the folded method body.
+      \item [\<^term>\<open>Methd\<close>] A syntactic bridge for the folded method body.
                             It is used by the axiomatic semantics to add the
                             proper hypothesis for recursive calls of the method.
-      \item [@{term Body}] An extra syntactic entity for the unfolded method
+      \item [\<^term>\<open>Body\<close>] An extra syntactic entity for the unfolded method
                            body was introduced to properly trigger class 
                            initialisation. Without class initialisation we 
                            could just evaluate the body statement. 
@@ -680,8 +680,8 @@ where
     G\<turnstile>s3' \<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ>v\<rightarrow> s4\<rbrakk>
    \<Longrightarrow>
        G\<turnstile>Norm s0 \<midarrow>{accC,statT,mode}e\<cdot>mn({pTs}args)-\<succ>v\<rightarrow> (restore_lvars s2 s4)"
-\<comment> \<open>The accessibility check is after @{term init_lvars}, to keep it simple. 
-   @{term init_lvars} already tests for the absence of a null-pointer 
+\<comment> \<open>The accessibility check is after \<^term>\<open>init_lvars\<close>, to keep it simple. 
+   \<^term>\<open>init_lvars\<close> already tests for the absence of a null-pointer 
    reference in case of an instance method invocation.\<close>
 
 | Methd:        "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
@@ -695,7 +695,7 @@ where
            G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)
               \<rightarrow>abupd (absorb Ret) s3"
   \<comment> \<open>cf. 14.15, 12.4.1\<close>
-  \<comment> \<open>We filter out a break/continue in @{term s2}, so that we can proof 
+  \<comment> \<open>We filter out a break/continue in \<^term>\<open>s2\<close>, so that we can proof 
      definite assignment
      correct, without the need of conformance of the state. By this the
      different parts of the typesafety proof can be disentangled a little.\<close>
@@ -710,8 +710,8 @@ where
           (v,s2') = fvar statDeclC stat fn a s2;
           s3 = check_field_access G accC statDeclC fn stat a s2' \<rbrakk> \<Longrightarrow>
           G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<rightarrow> s3"
- \<comment> \<open>The accessibility check is after @{term fvar}, to keep it simple. 
-    @{term fvar} already tests for the absence of a null-pointer reference 
+ \<comment> \<open>The accessibility check is after \<^term>\<open>fvar\<close>, to keep it simple. 
+    \<^term>\<open>fvar\<close> already tests for the absence of a null-pointer reference 
     in case of an instance field\<close>
 
   \<comment> \<open>cf. 15.12.1, 15.25.1\<close>
@@ -834,8 +834,8 @@ done
 text \<open>The following simplification procedures set up the proper injections of
  terms and their corresponding values in the evaluation relation:
  E.g. an expression 
- (injection @{term In1l} into terms) always evaluates to ordinary values 
- (injection @{term In1} into generalised values @{term vals}). 
+ (injection \<^term>\<open>In1l\<close> into terms) always evaluates to ordinary values 
+ (injection \<^term>\<open>In1\<close> into generalised values \<^term>\<open>vals\<close>). 
 \<close>
 
 lemma eval_expr_eq: "G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s') = (\<exists>v. w=In1 v \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<rightarrow> s')"
@@ -875,7 +875,7 @@ simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (
     | _ => SOME (mk_meta_eq @{thm eval_stmt_eq}))\<close>
 
 ML \<open>
-ML_Thms.bind_thms ("AbruptIs", sum3_instantiate @{context} @{thm eval.Abrupt})
+ML_Thms.bind_thms ("AbruptIs", sum3_instantiate \<^context> @{thm eval.Abrupt})
 \<close>
 
 declare halloc.Abrupt [intro!] eval.Abrupt [intro!]  AbruptIs [intro!]
@@ -949,7 +949,7 @@ done
 simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name None}, _)) $ _) $ _  $ _ $ _) => NONE
+      (_ $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ (Const (\<^const_name>\<open>None\<close>, _)) $ _) $ _  $ _ $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_no_abrupt}))
 \<close>
 
@@ -969,7 +969,7 @@ done
 simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<rightarrow> (w,s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some}, _) $ _)$ _)) => NONE
+      (_ $ _ $ _ $ _ $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ (Const (\<^const_name>\<open>Some\<close>, _) $ _)$ _)) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_abrupt}))
 \<close>
 
@@ -1157,7 +1157,7 @@ lemma unique_eval [rule_format (no_asm)]:
   "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w, s') \<Longrightarrow> (\<forall>w' s''. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w', s'') \<longrightarrow> w' = w \<and> s'' = s')"
 apply (erule eval_induct)
 apply (tactic \<open>ALLGOALS (EVERY'
-      [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}])\<close>)
+      [strip_tac \<^context>, rotate_tac ~1, eresolve_tac \<^context> @{thms eval_elim_cases}])\<close>)
 (* 31 subgoals *)
 prefer 28 (* Try *) 
 apply (simp (no_asm_use) only: split: if_split_asm)

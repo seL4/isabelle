@@ -17,10 +17,10 @@ datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list"
 text\<open>\noindent
 Note that we need to quote \<open>term\<close> on the left to avoid confusion with
 the Isabelle command \isacommand{term}.
-Parameter @{typ"'v"} is the type of variables and @{typ"'f"} the type of
+Parameter \<^typ>\<open>'v\<close> is the type of variables and \<^typ>\<open>'f\<close> the type of
 function symbols.
-A mathematical term like $f(x,g(y))$ becomes @{term"App f [Var x, App g
-  [Var y]]"}, where @{term f}, @{term g}, @{term x}, @{term y} are
+A mathematical term like $f(x,g(y))$ becomes \<^term>\<open>App f [Var x, App g
+  [Var y]]\<close>, where \<^term>\<open>f\<close>, \<^term>\<open>g\<close>, \<^term>\<open>x\<close>, \<^term>\<open>y\<close> are
 suitable values, e.g.\ numbers or strings.
 
 What complicates the definition of \<open>term\<close> is the nested occurrence of
@@ -71,8 +71,8 @@ apply(induct_tac t and ts rule: subst.induct substs.induct, simp_all)
 done
 
 text\<open>\noindent
-Note that @{term Var} is the identity substitution because by definition it
-leaves variables unchanged: @{prop"subst Var (Var x) = Var x"}. Note also
+Note that \<^term>\<open>Var\<close> is the identity substitution because by definition it
+leaves variables unchanged: \<^prop>\<open>subst Var (Var x) = Var x\<close>. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
 parameters \<open>('v,'f)\<close>. As a result, induction would fail
@@ -87,16 +87,16 @@ strengthen it, and prove it. (Note: \<open>\<circ>\<close> is function compositi
 its definition is found in theorem @{thm[source]o_def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}
-  Define a function @{term trev} of type @{typ"('v,'f)term => ('v,'f)term"}
+  Define a function \<^term>\<open>trev\<close> of type \<^typ>\<open>('v,'f)term => ('v,'f)term\<close>
 that recursively reverses the order of arguments of all function symbols in a
-  term. Prove that @{prop"trev(trev t) = t"}.
+  term. Prove that \<^prop>\<open>trev(trev t) = t\<close>.
 \end{exercise}
 
 The experienced functional programmer may feel that our definition of
-@{term subst} is too complicated in that @{const substs} is
-unnecessary. The @{term App}-case can be defined directly as
+\<^term>\<open>subst\<close> is too complicated in that \<^const>\<open>substs\<close> is
+unnecessary. The \<^term>\<open>App\<close>-case can be defined directly as
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
-where @{term"map"} is the standard list function such that
+where \<^term>\<open>map\<close> is the standard list function such that
 \<open>map f [x1,...,xn] = [f x1,...,f xn]\<close>. This is true, but Isabelle
 insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:
@@ -140,9 +140,8 @@ simplification rule:
 
 declare subst_App [simp del]
 
-text\<open>\noindent The advantage is that now we have replaced @{const
-substs} by @{const map}, we can profit from the large number of
-pre-proved lemmas about @{const map}.  Unfortunately, inductive proofs
+text\<open>\noindent The advantage is that now we have replaced \<^const>\<open>substs\<close> by \<^const>\<open>map\<close>, we can profit from the large number of
+pre-proved lemmas about \<^const>\<open>map\<close>.  Unfortunately, inductive proofs
 about type \<open>term\<close> are still awkward because they expect a
 conjunction. One could derive a new induction principle as well (see
 \S\ref{sec:derive-ind}), but simpler is to stop using

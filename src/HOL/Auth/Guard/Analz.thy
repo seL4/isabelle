@@ -7,8 +7,8 @@ section\<open>Decomposition of Analz into two parts\<close>
 
 theory Analz imports Extensions begin
 
-text\<open>decomposition of @{term analz} into two parts: 
-      @{term pparts} (for pairs) and analz of @{term kparts}\<close>
+text\<open>decomposition of \<^term>\<open>analz\<close> into two parts: 
+      \<^term>\<open>pparts\<close> (for pairs) and analz of \<^term>\<open>kparts\<close>\<close>
 
 subsection\<open>messages that do not contribute to analz\<close>
 
@@ -20,7 +20,7 @@ where
 | Fst [dest]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair X |] ==> X \<in> pparts H"
 | Snd [dest]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; is_MPair Y |] ==> Y \<in> pparts H"
 
-subsection\<open>basic facts about @{term pparts}\<close>
+subsection\<open>basic facts about \<^term>\<open>pparts\<close>\<close>
 
 lemma pparts_is_MPair [dest]: "X \<in> pparts H \<Longrightarrow> is_MPair X"
 by (erule pparts.induct, auto)
@@ -98,13 +98,13 @@ lemmas pparts_insert_substI = pparts_insert_eq [THEN ssubst]
 lemma in_pparts: "Y \<in> pparts H \<Longrightarrow> \<exists>X. X \<in> H \<and> Y \<in> pparts {X}"
 by (erule pparts.induct, auto)
 
-subsection\<open>facts about @{term pparts} and @{term parts}\<close>
+subsection\<open>facts about \<^term>\<open>pparts\<close> and \<^term>\<open>parts\<close>\<close>
 
 lemma pparts_no_Nonce [dest]: "[| X \<in> pparts {Y}; Nonce n \<notin> parts {Y} |]
 ==> Nonce n \<notin> parts {X}"
 by (erule pparts.induct, simp_all)
 
-subsection\<open>facts about @{term pparts} and @{term analz}\<close>
+subsection\<open>facts about \<^term>\<open>pparts\<close> and \<^term>\<open>analz\<close>\<close>
 
 lemma pparts_analz: "X \<in> pparts H \<Longrightarrow> X \<in> analz H"
 by (erule pparts.induct, auto)
@@ -122,7 +122,7 @@ where
 | Fst [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair X |] ==> X \<in> kparts H"
 | Snd [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair Y |] ==> Y \<in> kparts H"
 
-subsection\<open>basic facts about @{term kparts}\<close>
+subsection\<open>basic facts about \<^term>\<open>kparts\<close>\<close>
 
 lemma kparts_not_MPair [dest]: "X \<in> kparts H \<Longrightarrow> not_MPair X"
 by (erule kparts.induct, auto)
@@ -195,7 +195,7 @@ by (erule kparts.induct, auto dest: in_pparts)
 lemma kparts_has_no_pair [iff]: "has_no_pair (kparts H)"
 by auto
 
-subsection\<open>facts about @{term kparts} and @{term parts}\<close>
+subsection\<open>facts about \<^term>\<open>kparts\<close> and \<^term>\<open>parts\<close>\<close>
 
 lemma kparts_no_Nonce [dest]: "[| X \<in> kparts {Y}; Nonce n \<notin> parts {Y} |]
 ==> Nonce n \<notin> parts {X}"
@@ -212,7 +212,7 @@ lemma Crypt_kparts_Nonce_parts [dest]: "[| Crypt K Y \<in> kparts {Z};
 Nonce n \<in> parts {Y} |] ==> Nonce n \<in> parts {Z}"
 by auto
 
-subsection\<open>facts about @{term kparts} and @{term analz}\<close>
+subsection\<open>facts about \<^term>\<open>kparts\<close> and \<^term>\<open>analz\<close>\<close>
 
 lemma kparts_analz: "X \<in> kparts H \<Longrightarrow> X \<in> analz H"
 by (erule kparts.induct, auto dest: pparts_analz)

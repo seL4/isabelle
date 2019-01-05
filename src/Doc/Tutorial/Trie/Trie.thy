@@ -5,8 +5,8 @@ text\<open>
 To minimize running time, each node of a trie should contain an array that maps
 letters to subtries. We have chosen a
 representation where the subtries are held in an association list, i.e.\ a
-list of (letter,trie) pairs.  Abstracting over the alphabet @{typ"'a"} and the
-values @{typ"'v"} we define a trie as follows:
+list of (letter,trie) pairs.  Abstracting over the alphabet \<^typ>\<open>'a\<close> and the
+values \<^typ>\<open>'v\<close> we define a trie as follows:
 \<close>
 
 datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list"
@@ -49,7 +49,7 @@ primrec lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option" wh
 
 text\<open>
 As a first simple property we prove that looking up a string in the empty
-trie @{term"Trie None []"} always returns @{const None}. The proof merely
+trie \<^term>\<open>Trie None []\<close> always returns \<^const>\<open>None\<close>. The proof merely
 distinguishes the two cases whether the search string is empty or not:
 \<close>
 
@@ -72,13 +72,13 @@ primrec update:: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarro
 
 text\<open>\noindent
 The base case is obvious. In the recursive case the subtrie
-@{term tt} associated with the first letter @{term a} is extracted,
+\<^term>\<open>tt\<close> associated with the first letter \<^term>\<open>a\<close> is extracted,
 recursively updated, and then placed in front of the association list.
-The old subtrie associated with @{term a} is still in the association list
-but no longer accessible via @{const assoc}. Clearly, there is room here for
+The old subtrie associated with \<^term>\<open>a\<close> is still in the association list
+but no longer accessible via \<^const>\<open>assoc\<close>. Clearly, there is room here for
 optimizations!
 
-Before we start on any proofs about @{const update} we tell the simplifier to
+Before we start on any proofs about \<^const>\<open>update\<close> we tell the simplifier to
 expand all \<open>let\<close>s and to split all \<open>case\<close>-constructs over
 options:
 \<close>
@@ -87,23 +87,23 @@ declare Let_def[simp] option.split[split]
 
 text\<open>\noindent
 The reason becomes clear when looking (probably after a failed proof
-attempt) at the body of @{const update}: it contains both
+attempt) at the body of \<^const>\<open>update\<close>: it contains both
 \<open>let\<close> and a case distinction over type \<open>option\<close>.
 
-Our main goal is to prove the correct interaction of @{const update} and
-@{const lookup}:
+Our main goal is to prove the correct interaction of \<^const>\<open>update\<close> and
+\<^const>\<open>lookup\<close>:
 \<close>
 
 theorem "\<forall>t v bs. lookup (update t as v) bs =
                     (if as=bs then Some v else lookup t bs)"
 
 txt\<open>\noindent
-Our plan is to induct on @{term as}; hence the remaining variables are
+Our plan is to induct on \<^term>\<open>as\<close>; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
-@{term as} or @{term bs} is required. The choice of @{term as} is 
-guided by the intuition that simplification of @{const lookup} might be easier
-if @{const update} has already been simplified, which can only happen if
-@{term as} is instantiated.
+\<^term>\<open>as\<close> or \<^term>\<open>bs\<close> is required. The choice of \<^term>\<open>as\<close> is 
+guided by the intuition that simplification of \<^const>\<open>lookup\<close> might be easier
+if \<^const>\<open>update\<close> has already been simplified, which can only happen if
+\<^term>\<open>as\<close> is instantiated.
 The start of the proof is conventional:
 \<close>
 apply(induct_tac as, auto)
@@ -115,7 +115,7 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 ~2.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
 ~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs
 \end{isabelle}
-Clearly, if we want to make headway we have to instantiate @{term bs} as
+Clearly, if we want to make headway we have to instantiate \<^term>\<open>bs\<close> as
 well now. It turns out that instead of induction, case distinction
 suffices:
 \<close>
@@ -133,11 +133,11 @@ This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the intermediate
 proof states are invisible, and we rely on the (possibly brittle) magic of
 \<open>auto\<close> (\<open>simp_all\<close> will not do --- try it) to split the subgoals
-of the induction up in such a way that case distinction on @{term bs} makes
+of the induction up in such a way that case distinction on \<^term>\<open>bs\<close> makes
 sense and solves the proof. 
 
 \begin{exercise}
-  Modify @{const update} (and its type) such that it allows both insertion and
+  Modify \<^const>\<open>update\<close> (and its type) such that it allows both insertion and
   deletion of entries with a single function.  Prove the corresponding version 
   of the main theorem above.
   Optimize your function such that it shrinks tries after
@@ -145,17 +145,17 @@ sense and solves the proof.
 \end{exercise}
 
 \begin{exercise}
-  Write an improved version of @{const update} that does not suffer from the
+  Write an improved version of \<^const>\<open>update\<close> that does not suffer from the
   space leak (pointed out above) caused by not deleting overwritten entries
   from the association list. Prove the main theorem for your improved
-  @{const update}.
+  \<^const>\<open>update\<close>.
 \end{exercise}
 
 \begin{exercise}
   Conceptually, each node contains a mapping from letters to optional
   subtries. Above we have implemented this by means of an association
-  list. Replay the development replacing @{typ "('a * ('a,'v)trie)list"}
-  with @{typ"'a \<Rightarrow> ('a,'v)trie option"}.
+  list. Replay the development replacing \<^typ>\<open>('a * ('a,'v)trie)list\<close>
+  with \<^typ>\<open>'a \<Rightarrow> ('a,'v)trie option\<close>.
 \end{exercise}
 
 \<close>

@@ -371,7 +371,7 @@ txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 
 applying @text{someI} automatically instantiates
-@{term f} to @{term "\<lambda>x. SOME y. P x y"}
+\<^term>\<open>f\<close> to \<^term>\<open>\<lambda>x. SOME y. P x y\<close>
 \<close>
 
 by (rule someI)

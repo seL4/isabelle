@@ -202,7 +202,7 @@ apply blast
 done
 
 
-subsection\<open>Crucial Secrecy Property: Spy Does Not See Key @{term KAB}\<close>
+subsection\<open>Crucial Secrecy Property: Spy Does Not See Key \<^term>\<open>KAB\<close>\<close>
 
 lemma secrecy_lemma:
      "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom\<rbrakk>
@@ -234,11 +234,11 @@ by (blast dest: secrecy_lemma Says_Server_message_form)
 
 text\<open>This form is an immediate consequence of the previous result.  It is
 similar to the assertions established by other methods.  It is equivalent
-to the previous result in that the Spy already has @{term analz} and
-@{term synth} at his disposal.  However, the conclusion
-@{term "Key K \<notin> knows Spy evs"} appears not to be inductive: all the cases
+to the previous result in that the Spy already has \<^term>\<open>analz\<close> and
+\<^term>\<open>synth\<close> at his disposal.  However, the conclusion
+\<^term>\<open>Key K \<notin> knows Spy evs\<close> appears not to be inductive: all the cases
 other than Fake are trivial, while Fake requires
-@{term "Key K \<notin> analz (knows Spy evs)"}.\<close>
+\<^term>\<open>Key K \<notin> analz (knows Spy evs)\<close>.\<close>
 lemma Spy_not_know_encrypted_key:
      "\<lbrakk>Says Server A
             \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
@@ -371,11 +371,11 @@ by (blast dest!: A_trusts_YM3 YM3_auth_B_to_A_lemma)
 
 subsection\<open>Authenticating A to B\<close>
 
-text\<open>using the certificate @{term "Crypt K (Nonce NB)"}\<close>
+text\<open>using the certificate \<^term>\<open>Crypt K (Nonce NB)\<close>\<close>
 
 text\<open>Assuming the session key is secure, if both certificates are present then
   A has said NB.  We can't be sure about the rest of A's message, but only
-  NB matters for freshness.  Note that @{term "Key K \<notin> analz (knows Spy evs)"}
+  NB matters for freshness.  Note that \<^term>\<open>Key K \<notin> analz (knows Spy evs)\<close>
   must be the FIRST antecedent of the induction formula.\<close>
 
 text\<open>This lemma allows a use of \<open>unique_session_keys\<close> in the next proof,
@@ -401,9 +401,9 @@ apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
   subgoal \<comment> \<open>Fake\<close> by blast
-  subgoal \<comment> \<open>YM3 because the message @{term "Crypt K (Nonce NB)"} could not exist\<close>
+  subgoal \<comment> \<open>YM3 because the message \<^term>\<open>Crypt K (Nonce NB)\<close> could not exist\<close>
     by (force dest!: Crypt_imp_keysFor)
-  subgoal \<comment> \<open>YM4: was @{term "Crypt K (Nonce NB)"} the very last message? If not, use the induction hypothesis,
+  subgoal \<comment> \<open>YM4: was \<^term>\<open>Crypt K (Nonce NB)\<close> the very last message? If not, use the induction hypothesis,
              otherwise by unicity of session keys\<close>
     by (blast dest!: B_trusts_YM4_shrK dest: secure_unique_session_keys)
 done

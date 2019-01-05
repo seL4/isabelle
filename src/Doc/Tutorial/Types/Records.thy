@@ -45,9 +45,9 @@ record point =
   Ycoord :: int
 
 text \<open>\noindent
-  Records of type @{typ point} have two fields named @{const Xcoord}
-  and @{const Ycoord}, both of type~@{typ int}.  We now define a
-  constant of type @{typ point}:
+  Records of type \<^typ>\<open>point\<close> have two fields named \<^const>\<open>Xcoord\<close>
+  and \<^const>\<open>Ycoord\<close>, both of type~\<^typ>\<open>int\<close>.  We now define a
+  constant of type \<^typ>\<open>point\<close>:
 \<close>
 
 definition pt1 :: point where
@@ -65,8 +65,7 @@ definition pt2 :: "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>" where
 
 text \<open>
   For each field, there is a \emph{selector}\index{selector!record}
-  function of the same name.  For example, if \<open>p\<close> has type @{typ
-  point} then \<open>Xcoord p\<close> denotes the value of the \<open>Xcoord\<close> field of~\<open>p\<close>.  Expressions involving field selection
+  function of the same name.  For example, if \<open>p\<close> has type \<^typ>\<open>point\<close> then \<open>Xcoord p\<close> denotes the value of the \<open>Xcoord\<close> field of~\<open>p\<close>.  Expressions involving field selection
   of explicit records are simplified automatically:
 \<close>
 
@@ -75,8 +74,8 @@ lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b\<rparr> = a"
 
 text \<open>
   The \emph{update}\index{update!record} operation is functional.  For
-  example, @{term "p\<lparr>Xcoord := 0\<rparr>"} is a record whose @{const Xcoord}
-  value is zero and whose @{const Ycoord} value is copied from~\<open>p\<close>.  Updates of explicit records are also simplified automatically:
+  example, \<^term>\<open>p\<lparr>Xcoord := 0\<rparr>\<close> is a record whose \<^const>\<open>Xcoord\<close>
+  value is zero and whose \<^const>\<open>Ycoord\<close> value is copied from~\<open>p\<close>.  Updates of explicit records are also simplified automatically:
 \<close>
 
 lemma "\<lparr>Xcoord = a, Ycoord = b\<rparr>\<lparr>Xcoord := 0\<rparr> =
@@ -87,7 +86,7 @@ text \<open>
   \begin{warn}
   Field names are declared as constants and can no longer be used as
   variables.  It would be unwise, for example, to call the fields of
-  type @{typ point} simply \<open>x\<close> and~\<open>y\<close>.
+  type \<^typ>\<open>point\<close> simply \<open>x\<close> and~\<open>y\<close>.
   \end{warn}
 \<close>
 
@@ -107,7 +106,7 @@ record cpoint = point +
   col :: colour
 
 text \<open>\noindent
-  The fields of this new type are @{const Xcoord}, \<open>Ycoord\<close> and
+  The fields of this new type are \<^const>\<open>Xcoord\<close>, \<open>Ycoord\<close> and
   \<open>col\<close>, in that order.
 \<close>
 
@@ -116,14 +115,13 @@ definition cpt1 :: cpoint where
 
 text \<open>
   We can define generic operations that work on arbitrary
-  instances of a record scheme, e.g.\ covering @{typ point}, @{typ
-  cpoint}, and any further extensions.  Every record structure has an
+  instances of a record scheme, e.g.\ covering \<^typ>\<open>point\<close>, \<^typ>\<open>cpoint\<close>, and any further extensions.  Every record structure has an
   implicit pseudo-field, \cdx{more}, that keeps the extension as an
   explicit value.  Its type is declared as completely
-  polymorphic:~@{typ 'a}.  When a fixed record value is expressed
+  polymorphic:~\<^typ>\<open>'a\<close>.  When a fixed record value is expressed
   using just its standard fields, the value of \<open>more\<close> is
   implicitly set to \<open>()\<close>, the empty tuple, which has type
-  @{typ unit}.  Within the record brackets, you can refer to the
+  \<^typ>\<open>unit\<close>.  Within the record brackets, you can refer to the
   \<open>more\<close> field by writing ``\<open>\<dots>\<close>'' (three dots):
 \<close>
 
@@ -131,7 +129,7 @@ lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
   by simp
 
 text \<open>
-  This lemma applies to any record whose first two fields are \<open>Xcoord\<close> and~@{const Ycoord}.  Note that \<open>\<lparr>Xcoord = a, Ycoord
+  This lemma applies to any record whose first two fields are \<open>Xcoord\<close> and~\<^const>\<open>Ycoord\<close>.  Note that \<open>\<lparr>Xcoord = a, Ycoord
   = b, \<dots> = ()\<rparr>\<close> is exactly the same as \<open>\<lparr>Xcoord = a, Ycoord
   = b\<rparr>\<close>.  Selectors and updates are always polymorphic wrt.\ the
   \<open>more\<close> part of a record scheme, its value is just ignored (for
@@ -145,30 +143,27 @@ lemma "point.more cpt1 = \<lparr>col = Green\<rparr>"
   by (simp add: cpt1_def)
 
 text \<open>\noindent
-  We see that the colour part attached to this @{typ point} is a
+  We see that the colour part attached to this \<^typ>\<open>point\<close> is a
   rudimentary record in its own right, namely \<open>\<lparr>col =
   Green\<rparr>\<close>.  In order to select or update \<open>col\<close>, this fragment
   needs to be put back into the context of the parent type scheme, say
-  as \<open>more\<close> part of another @{typ point}.
+  as \<open>more\<close> part of another \<^typ>\<open>point\<close>.
 
   To define generic operations, we need to know a bit more about
-  records.  Our definition of @{typ point} above has generated two
+  records.  Our definition of \<^typ>\<open>point\<close> above has generated two
   type abbreviations:
 
   \medskip
   \begin{tabular}{l}
-  @{typ point}~\<open>=\<close>~\<open>\<lparr>Xcoord :: int, Ycoord :: int\<rparr>\<close> \\
-  @{typ "'a point_scheme"}~\<open>=\<close>~\<open>\<lparr>Xcoord :: int, Ycoord :: int, \<dots> :: 'a\<rparr>\<close> \\
+  \<^typ>\<open>point\<close>~\<open>=\<close>~\<open>\<lparr>Xcoord :: int, Ycoord :: int\<rparr>\<close> \\
+  \<^typ>\<open>'a point_scheme\<close>~\<open>=\<close>~\<open>\<lparr>Xcoord :: int, Ycoord :: int, \<dots> :: 'a\<rparr>\<close> \\
   \end{tabular}
   \medskip
   
 \noindent
-  Type @{typ point} is for fixed records having exactly the two fields
-  @{const Xcoord} and~\<open>Ycoord\<close>, while the polymorphic type @{typ
-  "'a point_scheme"} comprises all possible extensions to those two
-  fields.  Note that @{typ "unit point_scheme"} coincides with @{typ
-  point}, and @{typ "\<lparr>col :: colour\<rparr> point_scheme"} with @{typ
-  cpoint}.
+  Type \<^typ>\<open>point\<close> is for fixed records having exactly the two fields
+  \<^const>\<open>Xcoord\<close> and~\<open>Ycoord\<close>, while the polymorphic type \<^typ>\<open>'a point_scheme\<close> comprises all possible extensions to those two
+  fields.  Note that \<^typ>\<open>unit point_scheme\<close> coincides with \<^typ>\<open>point\<close>, and \<^typ>\<open>\<lparr>col :: colour\<rparr> point_scheme\<close> with \<^typ>\<open>cpoint\<close>.
 
   In the following example we define two operations --- methods, if we
   regard records as objects --- to get and set any point's \<open>Xcoord\<close> field.
@@ -181,9 +176,9 @@ definition setX :: "'a point_scheme \<Rightarrow> int \<Rightarrow> 'a point_sch
 
 text \<open>
   Here is a generic method that modifies a point, incrementing its
-  @{const Xcoord} field.  The \<open>Ycoord\<close> and \<open>more\<close> fields
+  \<^const>\<open>Xcoord\<close> field.  The \<open>Ycoord\<close> and \<open>more\<close> fields
   are copied across.  It works for any record type scheme derived from
-  @{typ point} (including @{typ cpoint} etc.):
+  \<^typ>\<open>point\<close> (including \<^typ>\<open>cpoint\<close> etc.):
 \<close>
 
 definition incX :: "'a point_scheme \<Rightarrow> 'a point_scheme" where
@@ -192,7 +187,7 @@ definition incX :: "'a point_scheme \<Rightarrow> 'a point_scheme" where
 
 text \<open>
   Generic theorems can be proved about generic methods.  This trivial
-  lemma relates @{const incX} to \<open>getX\<close> and \<open>setX\<close>:
+  lemma relates \<^const>\<open>incX\<close> to \<open>getX\<close> and \<open>setX\<close>:
 \<close>
 
 lemma "incX r = setX r (getX r + 1)"
@@ -224,7 +219,7 @@ lemma "(\<lparr>Xcoord = a, Ycoord = b\<rparr> = \<lparr>Xcoord = a', Ycoord = b
 
 text \<open>
   The following equality is similar, but generic, in that \<open>r\<close>
-  can be any instance of @{typ "'a point_scheme"}:
+  can be any instance of \<^typ>\<open>'a point_scheme\<close>:
 \<close>
 
 lemma "r\<lparr>Xcoord := a, Ycoord := b\<rparr> = r\<lparr>Ycoord := b, Xcoord := a\<rparr>"
@@ -264,7 +259,7 @@ lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrighta
 text \<open>\noindent
   Here the simplifier can do nothing, since general record equality is
   not eliminated automatically.  One way to proceed is by an explicit
-  forward step that applies the selector @{const Xcoord} to both sides
+  forward step that applies the selector \<^const>\<open>Xcoord\<close> to both sides
   of the assumed record equality:
 \<close>
 
@@ -313,9 +308,8 @@ subsection \<open>Extending and Truncating Records\<close>
 text \<open>
   Each record declaration introduces a number of derived operations to
   refer collectively to a record's fields and to convert between fixed
-  record types.  They can, for instance, convert between types @{typ
-  point} and @{typ cpoint}.  We can add a colour to a point or convert
-  a @{typ cpoint} to a @{typ point} by forgetting its colour.
+  record types.  They can, for instance, convert between types \<^typ>\<open>point\<close> and \<^typ>\<open>cpoint\<close>.  We can add a colour to a point or convert
+  a \<^typ>\<open>cpoint\<close> to a \<^typ>\<open>point\<close> by forgetting its colour.
 
   \begin{itemize}
 
@@ -340,13 +334,12 @@ text \<open>
   definitions, which are \emph{not} unfolded by default, are made
   available by the collective name of \<open>defs\<close> (\<open>point.defs\<close>, \<open>cpoint.defs\<close>, etc.).
   For example, here are the versions of those functions generated for
-  record @{typ point}.  We omit \<open>point.fields\<close>, which happens to
+  record \<^typ>\<open>point\<close>.  We omit \<open>point.fields\<close>, which happens to
   be the same as \<open>point.make\<close>.
 
   @{thm [display, indent = 0, margin = 65] point.make_def [no_vars]
   point.extend_def [no_vars] point.truncate_def [no_vars]}
-  Contrast those with the corresponding functions for record @{typ
-  cpoint}.  Observe \<open>cpoint.fields\<close> in particular.
+  Contrast those with the corresponding functions for record \<^typ>\<open>cpoint\<close>.  Observe \<open>cpoint.fields\<close> in particular.
   @{thm [display, indent = 0, margin = 65] cpoint.make_def [no_vars]
   cpoint.fields_def [no_vars] cpoint.extend_def [no_vars]
   cpoint.truncate_def [no_vars]}
@@ -361,10 +354,10 @@ definition cpt2 :: cpoint where
 "cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
 
 text \<open>
-  The coloured points @{const cpt1} and \<open>cpt2\<close> are equal.  The
+  The coloured points \<^const>\<open>cpt1\<close> and \<open>cpt2\<close> are equal.  The
   proof is trivial, by unfolding all the definitions.  We deliberately
   omit the definition of~\<open>pt1\<close> in order to reveal the underlying
-  comparison on type @{typ point}.
+  comparison on type \<^typ>\<open>point\<close>.
 \<close>
 
 lemma "cpt1 = cpt2"
@@ -383,7 +376,7 @@ lemma "point.truncate cpt2 = pt1"
 
 text \<open>
   \begin{exercise}
-  Extend record @{typ cpoint} to have a further field, \<open>intensity\<close>, of type~@{typ nat}.  Experiment with generic operations
+  Extend record \<^typ>\<open>cpoint\<close> to have a further field, \<open>intensity\<close>, of type~\<^typ>\<open>nat\<close>.  Experiment with generic operations
   (using polymorphic selectors and updates) and explicit coercions
   (using \<open>extend\<close>, \<open>truncate\<close> etc.) among the three record
   types.

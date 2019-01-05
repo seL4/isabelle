@@ -7,8 +7,8 @@ theory HeapSyntaxAbort imports Hoare_Logic_Abort Heap begin
 
 subsection "Field access and update"
 
-text\<open>Heap update \<open>p^.h := e\<close> is now guarded against @{term p}
-being Null. However, @{term p} may still be illegal,
+text\<open>Heap update \<open>p^.h := e\<close> is now guarded against \<^term>\<open>p\<close>
+being Null. However, \<^term>\<open>p\<close> may still be illegal,
 e.g. uninitialized or dangling. To guard against that, one needs a
 more detailed model of the heap where allocated and free addresses are
 distinguished, e.g. by making the heap a map, or by carrying the set

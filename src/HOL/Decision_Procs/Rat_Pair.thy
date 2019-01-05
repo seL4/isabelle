@@ -10,10 +10,10 @@ begin
 
 type_synonym Num = "int \<times> int"
 
-abbreviation Num0_syn :: Num  ("0\<^sub>N")
+abbreviation Num0_syn :: Num  (\<open>0\<^sub>N\<close>)
   where "0\<^sub>N \<equiv> (0, 0)"
 
-abbreviation Numi_syn :: "int \<Rightarrow> Num"  ("'((_)')\<^sub>N")
+abbreviation Numi_syn :: "int \<Rightarrow> Num"  (\<open>'((_)')\<^sub>N\<close>)
   where "(i)\<^sub>N \<equiv> (i, 1)"
 
 definition isnormNum :: "Num \<Rightarrow> bool"
@@ -78,29 +78,29 @@ qed
 
 text \<open>Arithmetic over Num\<close>
 
-definition Nadd :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl "+\<^sub>N" 60)
+definition Nadd :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl \<open>+\<^sub>N\<close> 60)
 where
   "Nadd = (\<lambda>(a, b) (a', b').
     if a = 0 \<or> b = 0 then normNum (a', b')
     else if a' = 0 \<or> b' = 0 then normNum (a, b)
     else normNum (a * b' + b * a', b * b'))"
 
-definition Nmul :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl "*\<^sub>N" 60)
+definition Nmul :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl \<open>*\<^sub>N\<close> 60)
 where
   "Nmul = (\<lambda>(a, b) (a', b').
     let g = gcd (a * a') (b * b')
     in (a * a' div g, b * b' div g))"
 
-definition Nneg :: "Num \<Rightarrow> Num" ("~\<^sub>N")
+definition Nneg :: "Num \<Rightarrow> Num" (\<open>~\<^sub>N\<close>)
   where "Nneg = (\<lambda>(a, b). (- a, b))"
 
-definition Nsub :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl "-\<^sub>N" 60)
+definition Nsub :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl \<open>-\<^sub>N\<close> 60)
   where "Nsub = (\<lambda>a b. a +\<^sub>N ~\<^sub>N b)"
 
 definition Ninv :: "Num \<Rightarrow> Num"
   where "Ninv = (\<lambda>(a, b). if a < 0 then (- b, \<bar>a\<bar>) else (b, a))"
 
-definition Ndiv :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl "\<div>\<^sub>N" 60)
+definition Ndiv :: "Num \<Rightarrow> Num \<Rightarrow> Num"  (infixl \<open>\<div>\<^sub>N\<close> 60)
   where "Ndiv = (\<lambda>a b. a *\<^sub>N Ninv b)"
 
 lemma Nneg_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (~\<^sub>N x)"
@@ -151,22 +151,22 @@ lemma isnormNum_int[simp]: "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" 
 
 text \<open>Relations over Num\<close>
 
-definition Nlt0:: "Num \<Rightarrow> bool"  ("0>\<^sub>N")
+definition Nlt0:: "Num \<Rightarrow> bool"  (\<open>0>\<^sub>N\<close>)
   where "Nlt0 = (\<lambda>(a, b). a < 0)"
 
-definition Nle0:: "Num \<Rightarrow> bool"  ("0\<ge>\<^sub>N")
+definition Nle0:: "Num \<Rightarrow> bool"  (\<open>0\<ge>\<^sub>N\<close>)
   where "Nle0 = (\<lambda>(a, b). a \<le> 0)"
 
-definition Ngt0:: "Num \<Rightarrow> bool"  ("0<\<^sub>N")
+definition Ngt0:: "Num \<Rightarrow> bool"  (\<open>0<\<^sub>N\<close>)
   where "Ngt0 = (\<lambda>(a, b). a > 0)"
 
-definition Nge0:: "Num \<Rightarrow> bool"  ("0\<le>\<^sub>N")
+definition Nge0:: "Num \<Rightarrow> bool"  (\<open>0\<le>\<^sub>N\<close>)
   where "Nge0 = (\<lambda>(a, b). a \<ge> 0)"
 
-definition Nlt :: "Num \<Rightarrow> Num \<Rightarrow> bool"  (infix "<\<^sub>N" 55)
+definition Nlt :: "Num \<Rightarrow> Num \<Rightarrow> bool"  (infix \<open><\<^sub>N\<close> 55)
   where "Nlt = (\<lambda>a b. 0>\<^sub>N (a -\<^sub>N b))"
 
-definition Nle :: "Num \<Rightarrow> Num \<Rightarrow> bool"  (infix "\<le>\<^sub>N" 55)
+definition Nle :: "Num \<Rightarrow> Num \<Rightarrow> bool"  (infix \<open>\<le>\<^sub>N\<close> 55)
   where "Nle = (\<lambda>a b. 0\<ge>\<^sub>N (a -\<^sub>N b))"
 
 definition "INum = (\<lambda>(a, b). of_int a / of_int b)"

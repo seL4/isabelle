@@ -329,8 +329,8 @@ unfolding match_Cons_def by simp_all
 
 setup \<open>
   Fixrec.add_matchers
-    [ (@{const_name Nil}, @{const_name match_Nil}),
-      (@{const_name Cons}, @{const_name match_Cons}) ]
+    [ (\<^const_name>\<open>Nil\<close>, \<^const_name>\<open>match_Nil\<close>),
+      (\<^const_name>\<open>Cons\<close>, \<^const_name>\<open>match_Cons\<close>) ]
 \<close>
 
 end

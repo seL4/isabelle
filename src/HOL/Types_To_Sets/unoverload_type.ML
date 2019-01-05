@@ -56,7 +56,7 @@ fun unoverload_type context xs = fold (unoverload_single_type context) xs
 
 fun unoverload_type_attr xs = Thm.rule_attribute [] (fn context => unoverload_type context xs)
 
-val _ = Context.>> (Context.map_theory (Attrib.setup @{binding unoverload_type}
+val _ = Context.>> (Context.map_theory (Attrib.setup \<^binding>\<open>unoverload_type\<close>
   (Scan.lift (Scan.repeat Args.var) >> unoverload_type_attr)
     "internalize and unoverload type class parameters"))
 

@@ -228,7 +228,7 @@ lemmas [simp] = app_def xcpt_app_def
 
 text \<open>
 \medskip
-simp rules for @{term app}
+simp rules for \<^term>\<open>app\<close>
 \<close>
 lemma appNone[simp]: "app i G maxs rT pc et None = True" by simp
 

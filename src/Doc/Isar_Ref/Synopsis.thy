@@ -552,7 +552,7 @@ thm nat.induct
 
 text \<open>
   The object-logic is embedded into the Pure framework via an implicit
-  derivability judgment @{term "Trueprop :: bool \<Rightarrow> prop"}.
+  derivability judgment \<^term>\<open>Trueprop :: bool \<Rightarrow> prop\<close>.
 
   Thus any HOL formulae appears atomic to the Pure framework, while
   the rule structure outlines the corresponding proof pattern.
@@ -754,7 +754,7 @@ next
     show "B\<^sub>2 x" \<proof>
   qed
 
-  txt \<open>The compound rule premise @{prop "\<And>x. B\<^sub>1 x \<Longrightarrow> B\<^sub>2 x"} is better
+  txt \<open>The compound rule premise \<^prop>\<open>\<And>x. B\<^sub>1 x \<Longrightarrow> B\<^sub>2 x\<close> is better
     addressed via @{command fix}~/ @{command assume}~/ @{command show}
     in the nested proof body.\<close>
 end
@@ -1080,8 +1080,8 @@ end
 subsection \<open>Obtaining local contexts\<close>
 
 text \<open>A single ``case'' branch may be inlined into Isar proof text
-  via @{command obtain}.  This proves @{prop "(\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow>
-  thesis"} on the spot, and augments the context afterwards.\<close>
+  via @{command obtain}.  This proves \<^prop>\<open>(\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow>
+  thesis\<close> on the spot, and augments the context afterwards.\<close>
 
 notepad
 begin
@@ -1090,7 +1090,7 @@ begin
   obtain x where "B x" \<proof>
   note \<open>B x\<close>
 
-  txt \<open>Conclusions from this context may not mention @{term x} again!\<close>
+  txt \<open>Conclusions from this context may not mention \<^term>\<open>x\<close> again!\<close>
   {
     obtain x where "B x" \<proof>
     from \<open>B x\<close> have C \<proof>

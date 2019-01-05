@@ -97,8 +97,8 @@ lemma wt_jvm_prog_impl_wt_instr:
       simp, simp, simp add: wf_mdecl_def wt_method_def)
 
 text \<open>
-  We could leave out the check @{term "pc' < max_pc"} in the 
-  definition of @{term wt_instr} in the context of @{term wt_method}.
+  We could leave out the check \<^term>\<open>pc' < max_pc\<close> in the 
+  definition of \<^term>\<open>wt_instr\<close> in the context of \<^term>\<open>wt_method\<close>.
 \<close>
 lemma wt_instr_def2:
   "\<lbrakk> wt_jvm_prog G Phi; is_class G C;

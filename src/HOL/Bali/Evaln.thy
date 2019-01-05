@@ -9,21 +9,21 @@ theory Evaln imports TypeSafe begin
 
 
 text \<open>
-Variant of @{term eval} relation with counter for bounded recursive depth. 
-In principal @{term evaln} could replace @{term eval}.
+Variant of \<^term>\<open>eval\<close> relation with counter for bounded recursive depth. 
+In principal \<^term>\<open>evaln\<close> could replace \<^term>\<open>eval\<close>.
 
-Validity of the axiomatic semantics builds on @{term evaln}. 
+Validity of the axiomatic semantics builds on \<^term>\<open>evaln\<close>. 
 For recursive method calls the axiomatic semantics rule assumes the method ok 
 to derive a proof for the body. To prove the method rule sound we need to 
 perform induction on the recursion depth. 
 For the completeness proof of the axiomatic semantics the notion of the most
 general formula is used. The most general formula right now builds on the 
-ordinary evaluation relation @{term eval}. 
-So sometimes we have to switch between @{term evaln} and @{term eval} and vice 
+ordinary evaluation relation \<^term>\<open>eval\<close>. 
+So sometimes we have to switch between \<^term>\<open>evaln\<close> and \<^term>\<open>eval\<close> and vice 
 versa. To make
-this switch easy @{term evaln} also does all the technical accessibility tests 
-@{term check_field_access} and @{term check_method_access} like @{term eval}. 
-If it would omit them @{term evaln} and @{term eval} would only be equivalent 
+this switch easy \<^term>\<open>evaln\<close> also does all the technical accessibility tests 
+\<^term>\<open>check_field_access\<close> and \<^term>\<open>check_method_access\<close> like \<^term>\<open>eval\<close>. 
+If it would omit them \<^term>\<open>evaln\<close> and \<^term>\<open>eval\<close> would only be equivalent 
 for welltyped, and definitely assigned terms.
 \<close>
 
@@ -252,8 +252,8 @@ done
 text \<open>The following simplification procedures set up the proper injections of
  terms and their corresponding values in the evaluation relation:
  E.g. an expression 
- (injection @{term In1l} into terms) always evaluates to ordinary values 
- (injection @{term In1} into generalised values @{term vals}). 
+ (injection \<^term>\<open>In1l\<close> into terms) always evaluates to ordinary values 
+ (injection \<^term>\<open>In1\<close> into generalised values \<^term>\<open>vals\<close>). 
 \<close>
 
 lemma evaln_expr_eq: "G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s') = (\<exists>v. w=In1 v \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<midarrow>n\<rightarrow> s')"
@@ -292,7 +292,7 @@ simproc_setup evaln_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm evaln_stmt_eq}))\<close>
 
-ML \<open>ML_Thms.bind_thms ("evaln_AbruptIs", sum3_instantiate @{context} @{thm evaln.Abrupt})\<close>
+ML \<open>ML_Thms.bind_thms ("evaln_AbruptIs", sum3_instantiate \<^context> @{thm evaln.Abrupt})\<close>
 declare evaln_AbruptIs [intro!]
 
 lemma evaln_Callee: "G\<turnstile>Norm s\<midarrow>In1l (Callee l e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -358,7 +358,7 @@ done
 simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      (_ $ _ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some},_) $ _)$ _))
+      (_ $ _ $ _ $ _ $ _ $ _ $ (Const (\<^const_name>\<open>Pair\<close>, _) $ (Const (\<^const_name>\<open>Some\<close>,_) $ _)$ _))
         => NONE
     | _ => SOME (mk_meta_eq @{thm evaln_abrupt}))
 \<close>
@@ -448,10 +448,10 @@ done
 lemma evaln_nonstrict [rule_format (no_asm), elim]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w, s') \<Longrightarrow> \<forall>m. n\<le>m \<longrightarrow> G\<turnstile>s \<midarrow>t\<succ>\<midarrow>m\<rightarrow> (w, s')"
 apply (erule evaln.induct)
-apply (tactic \<open>ALLGOALS (EVERY' [strip_tac @{context},
-  TRY o eresolve_tac @{context} @{thms Suc_le_D_lemma},
-  REPEAT o smp_tac @{context} 1, 
-  resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW TRY o assume_tac @{context}])\<close>)
+apply (tactic \<open>ALLGOALS (EVERY' [strip_tac \<^context>,
+  TRY o eresolve_tac \<^context> @{thms Suc_le_D_lemma},
+  REPEAT o smp_tac \<^context> 1, 
+  resolve_tac \<^context> @{thms evaln.intros} THEN_ALL_NEW TRY o assume_tac \<^context>])\<close>)
 (* 3 subgoals *)
 apply (auto split del: if_split)
 done

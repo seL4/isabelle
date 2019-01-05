@@ -200,9 +200,9 @@ fun neq_x_y ctxt x y =
 
 fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case goal of
-    Const (@{const_name Trueprop}, _) $
-      (Const (@{const_name Not}, _) $
-        (Const (@{const_name HOL.eq}, _) $ (x as Free _) $ (y as Free _))) =>
+    Const (\<^const_name>\<open>Trueprop\<close>, _) $
+      (Const (\<^const_name>\<open>Not\<close>, _) $
+        (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (x as Free _) $ (y as Free _))) =>
       (case neq_x_y ctxt x y of
         SOME neq => resolve_tac ctxt [neq] i
       | NONE => no_tac)
@@ -211,11 +211,11 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
 val distinctNameSolver = mk_solver "distinctNameSolver" distinctTree_tac;
 
 val distinct_simproc =
-  Simplifier.make_simproc @{context} "StateSpace.distinct_simproc"
-   {lhss = [@{term "x = y"}],
+  Simplifier.make_simproc \<^context> "StateSpace.distinct_simproc"
+   {lhss = [\<^term>\<open>x = y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name HOL.eq},_) $ (x as Free _) $ (y as Free _) =>
+        Const (\<^const_name>\<open>HOL.eq\<close>,_) $ (x as Free _) $ (y as Free _) =>
           Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
             (neq_x_y ctxt x y)
       | _ => NONE)};
@@ -272,7 +272,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
     val assume =
       ((Binding.name dist_thm_name, [attr]),
         [(HOLogic.Trueprop $
-          (Const (@{const_name all_distinct}, Type (@{type_name tree}, [nameT]) --> HOLogic.boolT) $
+          (Const (\<^const_name>\<open>all_distinct\<close>, Type (\<^type_name>\<open>tree\<close>, [nameT]) --> HOLogic.boolT) $
             DistinctTreeProver.mk_tree (fn n => Free (n, nameT)) nameT
               (sort fast_string_ord all_comps)), [])]);
   in
@@ -562,12 +562,12 @@ in
 fun gen_lookup_tr ctxt s n =
   (case get_comp (Context.Proof ctxt) n of
     SOME (T, _) =>
-      Syntax.const @{const_name StateFun.lookup} $
+      Syntax.const \<^const_name>\<open>StateFun.lookup\<close> $
         Syntax.free (project_name T) $ Syntax.free n $ s
   | NONE =>
       if get_silent (Context.Proof ctxt)
-      then Syntax.const @{const_name StateFun.lookup} $
-        Syntax.const @{const_syntax undefined} $ Syntax.free n $ s
+      then Syntax.const \<^const_name>\<open>StateFun.lookup\<close> $
+        Syntax.const \<^const_syntax>\<open>undefined\<close> $ Syntax.free n $ s
       else raise TERM ("StateSpace.gen_lookup_tr: component " ^ quote n ^ " not defined", []));
 
 fun lookup_tr ctxt [s, x] =
@@ -588,19 +588,19 @@ fun lookup_tr' ctxt [_ $ Free (prj, _), n as (_ $ Free (name, _)), s] =
 
 fun gen_update_tr id ctxt n v s =
   let
-    fun pname T = if id then @{const_name Fun.id} else project_name T;
-    fun iname T = if id then @{const_name Fun.id} else inject_name T;
+    fun pname T = if id then \<^const_name>\<open>Fun.id\<close> else project_name T;
+    fun iname T = if id then \<^const_name>\<open>Fun.id\<close> else inject_name T;
   in
     (case get_comp (Context.Proof ctxt) n of
       SOME (T, _) =>
-        Syntax.const @{const_name StateFun.update} $
+        Syntax.const \<^const_name>\<open>StateFun.update\<close> $
           Syntax.free (pname T) $ Syntax.free (iname T) $
-          Syntax.free n $ (Syntax.const @{const_name K_statefun} $ v) $ s
+          Syntax.free n $ (Syntax.const \<^const_name>\<open>K_statefun\<close> $ v) $ s
     | NONE =>
         if get_silent (Context.Proof ctxt) then
-          Syntax.const @{const_name StateFun.update} $
-            Syntax.const @{const_syntax undefined} $ Syntax.const @{const_syntax undefined} $
-            Syntax.free n $ (Syntax.const @{const_name K_statefun} $ v) $ s
+          Syntax.const \<^const_name>\<open>StateFun.update\<close> $
+            Syntax.const \<^const_syntax>\<open>undefined\<close> $ Syntax.const \<^const_syntax>\<open>undefined\<close> $
+            Syntax.free n $ (Syntax.const \<^const_name>\<open>K_statefun\<close> $ v) $ s
        else raise TERM ("StateSpace.gen_update_tr: component " ^ n ^ " not defined", []))
    end;
 
@@ -611,7 +611,7 @@ fun update_tr ctxt [s, x, v] =
 
 fun update_tr' ctxt
         [_ $ Free (prj, _), _ $ Free (inj, _), n as (_ $ Free (name, _)), (Const (k, _) $ v), s] =
-      if Long_Name.base_name k = Long_Name.base_name @{const_name K_statefun} then
+      if Long_Name.base_name k = Long_Name.base_name \<^const_name>\<open>K_statefun\<close> then
         (case get_comp (Context.Proof ctxt) name of
           SOME (T, _) =>
             if inj = inject_name T andalso prj = project_name T then
@@ -630,15 +630,15 @@ local
 
 val type_insts =
   Parse.typ >> single ||
-  @{keyword "("} |-- Parse.!!! (Parse.list1 Parse.typ --| @{keyword ")"})
+  \<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 Parse.typ --| \<^keyword>\<open>)\<close>)
 
-val comp = Parse.name -- (@{keyword "::"} |-- Parse.!!! Parse.typ);
+val comp = Parse.name -- (\<^keyword>\<open>::\<close> |-- Parse.!!! Parse.typ);
 fun plus1_unless test scan =
-  scan ::: Scan.repeat (@{keyword "+"} |-- Scan.unless test (Parse.!!! scan));
+  scan ::: Scan.repeat (\<^keyword>\<open>+\<close> |-- Scan.unless test (Parse.!!! scan));
 
-val mapsto = @{keyword "="};
+val mapsto = \<^keyword>\<open>=\<close>;
 val rename = Parse.name -- (mapsto |-- Parse.name);
-val renames = Scan.optional (@{keyword "["} |-- Parse.!!! (Parse.list1 rename --| @{keyword "]"})) [];
+val renames = Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.!!! (Parse.list1 rename --| \<^keyword>\<open>]\<close>)) [];
 
 val parent =
   Parse_Spec.locale_prefix --
@@ -649,12 +649,12 @@ in
 
 val statespace_decl =
   Parse.type_args -- Parse.name --
-    (@{keyword "="} |--
+    (\<^keyword>\<open>=\<close> |--
       ((Scan.repeat1 comp >> pair []) ||
         (plus1_unless comp parent --
-          Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 comp)) [])));
+          Scan.optional (\<^keyword>\<open>+\<close> |-- Parse.!!! (Scan.repeat1 comp)) [])));
 val _ =
-  Outer_Syntax.command @{command_keyword statespace} "define state-space as locale context"
+  Outer_Syntax.command \<^command_keyword>\<open>statespace\<close> "define state-space as locale context"
     (statespace_decl >> (fn ((args, name), (parents, comps)) =>
       Toplevel.theory (define_statespace args name parents comps)));
 

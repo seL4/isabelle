@@ -151,15 +151,15 @@ let
   fun of_set compfuns (Type ("fun", [T, _])) =
     case body_type (Predicate_Compile_Aux.mk_monadT compfuns T) of
       Type ("Quickcheck_Exhaustive.three_valued", _) => 
-        Const(@{const_name neg_cps_of_set}, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
-    | Type ("Predicate.pred", _) => Const(@{const_name pred_of_set}, HOLogic.mk_setT T --> Predicate_Compile_Aux.mk_monadT compfuns T)
-    | _ => Const(@{const_name pos_cps_of_set}, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
+        Const(\<^const_name>\<open>neg_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
+    | Type ("Predicate.pred", _) => Const(\<^const_name>\<open>pred_of_set\<close>, HOLogic.mk_setT T --> Predicate_Compile_Aux.mk_monadT compfuns T)
+    | _ => Const(\<^const_name>\<open>pos_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
   fun member compfuns (U as Type ("fun", [T, _])) =
     (absdummy T (absdummy (HOLogic.mk_setT T) (Predicate_Compile_Aux.mk_if compfuns
-      (Const (@{const_name "Set.member"}, T --> HOLogic.mk_setT T --> @{typ bool}) $ Bound 1 $ Bound 0))))
+      (Const (\<^const_name>\<open>Set.member\<close>, T --> HOLogic.mk_setT T --> \<^typ>\<open>bool\<close>) $ Bound 1 $ Bound 0))))
  
 in
-  Core_Data.force_modes_and_compilations @{const_name Set.member}
+  Core_Data.force_modes_and_compilations \<^const_name>\<open>Set.member\<close>
     [(oi, (of_set, false)), (ii, (member, false))]
 end
 \<close>
@@ -186,7 +186,7 @@ lemmas [code_pred_intro] = synth.intros[folded synth'_def]
 
 code_pred [generator_cps] synth' unfolding synth'_def by (rule synth.cases) fastforce+
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name analz}, @{const_name knows}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>analz\<close>, \<^const_name>\<open>knows\<close>]\<close>
 declare ListMem_iff[symmetric, code_pred_inline]
 declare [[quickcheck_timing]]
 

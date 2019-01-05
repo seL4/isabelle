@@ -25,7 +25,7 @@ definition agt :: "key => agent" where
 lemma agt_shrK [simp]: "agt (shrK A) = A"
 by (simp add: agt_def)
 
-subsubsection\<open>basic facts about @{term initState}\<close>
+subsubsection\<open>basic facts about \<^term>\<open>initState\<close>\<close>
 
 lemma no_Crypt_in_parts_init [simp]: "Crypt K X \<notin> parts (initState A)"
 by (cases A, auto simp: initState.simps)

@@ -10,7 +10,7 @@ theory Real_Asymp_Approx
 begin
 
 text \<open>
-  For large enough constants (such as @{term "exp (exp 10000 :: real)"}), the 
+  For large enough constants (such as \<^term>\<open>exp (exp 10000 :: real)\<close>), the 
   @{method approximation} method can require a huge amount of time and memory, effectively not
   terminating and causing the entire prover environment to crash.
 
@@ -32,20 +32,20 @@ structure Real_Asymp_Approx : REAL_ASYMP_APPROX =
 struct
 
 val real_asymp_approx =
-  Attrib.setup_config_bool @{binding real_asymp_approx} (K true)
+  Attrib.setup_config_bool \<^binding>\<open>real_asymp_approx\<close> (K true)
 
 val nan = Real.fromInt 0 / Real.fromInt 0
 fun clamp n = if n < 0 then 0 else n
 
-fun eval_nat (@{term "(+) :: nat => _"} $ a $ b) = bin (op +) (a, b)
-  | eval_nat (@{term "(-) :: nat => _"} $ a $ b) = bin (clamp o op -) (a, b)
-  | eval_nat (@{term "(*) :: nat => _"} $ a $ b) = bin (op *) (a, b)
-  | eval_nat (@{term "(div) :: nat => _"} $ a $ b) = bin Int.div (a, b)
-  | eval_nat (@{term "(^) :: nat => _"} $ a $ b) = bin (fn (a,b) => Integer.pow a b) (a, b)
-  | eval_nat (t as (@{term "numeral :: _ => nat"} $ _)) = snd (HOLogic.dest_number t)
-  | eval_nat (@{term "0 :: nat"}) = 0
-  | eval_nat (@{term "1 :: nat"}) = 1
-  | eval_nat (@{term "Nat.Suc"} $ a) = un (fn n => n + 1) a
+fun eval_nat (\<^term>\<open>(+) :: nat => _\<close> $ a $ b) = bin (op +) (a, b)
+  | eval_nat (\<^term>\<open>(-) :: nat => _\<close> $ a $ b) = bin (clamp o op -) (a, b)
+  | eval_nat (\<^term>\<open>(*) :: nat => _\<close> $ a $ b) = bin (op *) (a, b)
+  | eval_nat (\<^term>\<open>(div) :: nat => _\<close> $ a $ b) = bin Int.div (a, b)
+  | eval_nat (\<^term>\<open>(^) :: nat => _\<close> $ a $ b) = bin (fn (a,b) => Integer.pow a b) (a, b)
+  | eval_nat (t as (\<^term>\<open>numeral :: _ => nat\<close> $ _)) = snd (HOLogic.dest_number t)
+  | eval_nat (\<^term>\<open>0 :: nat\<close>) = 0
+  | eval_nat (\<^term>\<open>1 :: nat\<close>) = 1
+  | eval_nat (\<^term>\<open>Nat.Suc\<close> $ a) = un (fn n => n + 1) a
   | eval_nat _ = ~1
 and un f a =
       let
@@ -63,19 +63,19 @@ and bin f (a, b) =
 fun sgn n =
   if n < Real.fromInt 0 then Real.fromInt (~1) else Real.fromInt 1
 
-fun eval (@{term "(+) :: real => _"} $ a $ b) = eval a + eval b
-  | eval (@{term "(-) :: real => _"} $ a $ b) = eval a - eval b
-  | eval (@{term "(*) :: real => _"} $ a $ b) = eval a * eval b
-  | eval (@{term "(/) :: real => _"} $ a $ b) =
+fun eval (\<^term>\<open>(+) :: real => _\<close> $ a $ b) = eval a + eval b
+  | eval (\<^term>\<open>(-) :: real => _\<close> $ a $ b) = eval a - eval b
+  | eval (\<^term>\<open>(*) :: real => _\<close> $ a $ b) = eval a * eval b
+  | eval (\<^term>\<open>(/) :: real => _\<close> $ a $ b) =
       let val a = eval a; val b = eval b in
         if Real.==(b, Real.fromInt 0) then nan else a / b
       end
-  | eval (@{term "inverse :: real => _"} $ a) = Real.fromInt 1 / eval a
-  | eval (@{term "uminus :: real => _"} $ a) = Real.~ (eval a)
-  | eval (@{term "exp :: real => _"} $ a) = Math.exp (eval a)
-  | eval (@{term "ln :: real => _"} $ a) =
+  | eval (\<^term>\<open>inverse :: real => _\<close> $ a) = Real.fromInt 1 / eval a
+  | eval (\<^term>\<open>uminus :: real => _\<close> $ a) = Real.~ (eval a)
+  | eval (\<^term>\<open>exp :: real => _\<close> $ a) = Math.exp (eval a)
+  | eval (\<^term>\<open>ln :: real => _\<close> $ a) =
       let val a = eval a in if a > Real.fromInt 0 then Math.ln a else nan end
-  | eval (@{term "(powr) :: real => _"} $ a $ b) =
+  | eval (\<^term>\<open>(powr) :: real => _\<close> $ a $ b) =
       let
         val a = eval a; val b = eval b
       in
@@ -86,7 +86,7 @@ fun eval (@{term "(+) :: real => _"} $ a $ b) = eval a + eval b
         else 
           Math.pow (a, b)
       end
-  | eval (@{term "(^) :: real => _"} $ a $ b) =
+  | eval (\<^term>\<open>(^) :: real => _\<close> $ a $ b) =
       let
         fun powr x y = 
           if not (Real.isFinite x) orelse y < 0 then
@@ -98,13 +98,13 @@ fun eval (@{term "(+) :: real => _"} $ a $ b) = eval a + eval b
       in
         powr (eval a) (eval_nat b)
       end
-  | eval (@{term "root :: nat => real => _"} $ n $ a) =
+  | eval (\<^term>\<open>root :: nat => real => _\<close> $ n $ a) =
       let val a = eval a; val n = eval_nat n in
         if n = 0 then Real.fromInt 0
           else sgn a * Math.pow (Real.abs a, Real.fromInt 1 / Real.fromInt n) end
-  | eval (@{term "sqrt :: real => _"} $ a) =
+  | eval (\<^term>\<open>sqrt :: real => _\<close> $ a) =
       let val a = eval a in sgn a * Math.sqrt (abs a) end
-  | eval (@{term "log :: real => _"} $ a $ b) =
+  | eval (\<^term>\<open>log :: real => _\<close> $ a $ b) =
       let
         val (a, b) = apply2 eval (a, b)
       in
@@ -113,10 +113,10 @@ fun eval (@{term "(+) :: real => _"} $ a $ b) = eval a + eval b
         else
           nan
       end
-  | eval (t as (@{term "numeral :: _ => real"} $ _)) =
+  | eval (t as (\<^term>\<open>numeral :: _ => real\<close> $ _)) =
       Real.fromInt (snd (HOLogic.dest_number t))
-  | eval (@{term "0 :: real"}) = Real.fromInt 0
-  | eval (@{term "1 :: real"}) = Real.fromInt 1
+  | eval (\<^term>\<open>0 :: real\<close>) = Real.fromInt 0
+  | eval (\<^term>\<open>1 :: real\<close>) = Real.fromInt 1
   | eval _ = nan
 
 fun sign_oracle_tac ctxt i =
@@ -125,13 +125,13 @@ fun sign_oracle_tac ctxt i =
       let
         val b =
           case HOLogic.dest_Trueprop (Thm.term_of concl) of
-            @{term "(<) :: real \<Rightarrow> _"} $ lhs $ rhs =>
+            \<^term>\<open>(<) :: real \<Rightarrow> _\<close> $ lhs $ rhs =>
               let
                 val (x, y) = apply2 eval (lhs, rhs)
               in
                 Real.isFinite x andalso Real.isFinite y andalso x < y
               end
-          | @{term "HOL.Not"} $ (@{term "(=) :: real \<Rightarrow> _"} $ lhs $ rhs) =>
+          | \<^term>\<open>HOL.Not\<close> $ (\<^term>\<open>(=) :: real \<Rightarrow> _\<close> $ lhs $ rhs) =>
               let
                 val (x, y) = apply2 eval (lhs, rhs)
               in
@@ -154,7 +154,7 @@ end
 setup \<open>
   Context.theory_map (
     Multiseries_Expansion.register_sign_oracle
-      (@{binding approximation_tac}, Real_Asymp_Approx.sign_oracle_tac))
+      (\<^binding>\<open>approximation_tac\<close>, Real_Asymp_Approx.sign_oracle_tac))
 \<close>
 
 lemma "filterlim (\<lambda>n. (1 + (2 / 3 :: real) ^ (n + 1)) ^ 2 ^ n / 2 powr (4 / 3) ^ (n - 1))

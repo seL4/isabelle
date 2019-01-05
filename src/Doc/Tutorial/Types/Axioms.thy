@@ -13,28 +13,27 @@ covered in this tutorial; but see @{cite "Nipkow-TYPES02"}.%
 
 subsubsection \<open>Semigroups\<close>
 
-text\<open>We specify \emph{semigroups} as subclass of @{class plus}:\<close>
+text\<open>We specify \emph{semigroups} as subclass of \<^class>\<open>plus\<close>:\<close>
 
 class semigroup = plus +
   assumes assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
 
 text \<open>\noindent This @{command class} specification requires that
-all instances of @{class semigroup} obey @{fact "assoc:"}~@{prop
+all instances of \<^class>\<open>semigroup\<close> obey @{fact "assoc:"}~@{prop
 [source] "\<And>x y z :: 'a::semigroup. (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"}.
 
 We can use this class axiom to derive further abstract theorems
-relative to class @{class semigroup}:\<close>
+relative to class \<^class>\<open>semigroup\<close>:\<close>
 
 lemma assoc_left:
   fixes x y z :: "'a::semigroup"
   shows "x \<oplus> (y \<oplus> z) = (x \<oplus> y) \<oplus> z"
   using assoc by (rule sym)
 
-text \<open>\noindent The @{class semigroup} constraint on type @{typ
-"'a"} restricts instantiations of @{typ "'a"} to types of class
-@{class semigroup} and during the proof enables us to use the fact
+text \<open>\noindent The \<^class>\<open>semigroup\<close> constraint on type \<^typ>\<open>'a\<close> restricts instantiations of \<^typ>\<open>'a\<close> to types of class
+\<^class>\<open>semigroup\<close> and during the proof enables us to use the fact
 @{fact assoc} whose type parameter is itself constrained to class
-@{class semigroup}.  The main advantage of classes is that theorems
+\<^class>\<open>semigroup\<close>.  The main advantage of classes is that theorems
 can be proved in the abstract and freely reused for each instance.
 
 On instantiation, we have to give a proof that the given operations
@@ -69,7 +68,7 @@ instance proof
 
 txt \<open>\noindent Associativity of product semigroups is established
 using the hypothetical associativity @{fact assoc} of the type
-components, which holds due to the @{class semigroup} constraints
+components, which holds due to the \<^class>\<open>semigroup\<close> constraints
 imposed on the type components by the @{command instance} proposition.
 Indeed, this pattern often occurs with parametric types and type
 classes.\<close>
@@ -81,7 +80,7 @@ end
 subsubsection \<open>Monoids\<close>
 
 text \<open>We define a subclass \<open>monoidl\<close> (a semigroup with a
-left-hand neutral) by extending @{class semigroup} with one additional
+left-hand neutral) by extending \<^class>\<open>semigroup\<close> with one additional
 parameter \<open>neutral\<close> together with its property:\<close>
 
 class monoidl = semigroup +
@@ -133,7 +132,7 @@ specification:\<close>
 class monoid = monoidl +
   assumes neutr: "x \<oplus> \<zero> = x"
 
-text \<open>\noindent Corresponding instances for @{typ nat} and products
+text \<open>\noindent Corresponding instances for \<^typ>\<open>nat\<close> and products
 are left as an exercise to the reader.\<close>
 
 subsubsection \<open>Groups\<close>
@@ -223,7 +222,7 @@ being defined (as shown for axiom @{thm[source]refl} above). These
 constraints are always carried around and Isabelle takes care that
 they are never lost, unless the type variable is instantiated with a
 type that has been shown to belong to that class. Thus you may be able
-to prove @{prop False} from your axioms, but Isabelle will remind you
+to prove \<^prop>\<open>False\<close> from your axioms, but Isabelle will remind you
 that this theorem has the hidden hypothesis that the class is
 non-empty.
 
@@ -235,9 +234,8 @@ know this need not worry us.\<close>
 subsubsection\<open>Syntactic Classes and Predefined Overloading\<close>
 
 text \<open>In our algebra example, we have started with a \emph{syntactic
-class} @{class plus} which only specifies operations but no axioms; it
-would have been also possible to start immediately with class @{class
-semigroup}, specifying the \<open>\<oplus>\<close> operation and associativity at
+class} \<^class>\<open>plus\<close> which only specifies operations but no axioms; it
+would have been also possible to start immediately with class \<^class>\<open>semigroup\<close>, specifying the \<open>\<oplus>\<close> operation and associativity at
 the same time.
 
 Which approach is more appropriate depends.  Usually it is more
@@ -253,7 +251,7 @@ Table~\ref{tab:overloading} in the appendix.  Section
 \emph{with} axioms.
 
 Further note that classes may contain axioms but \emph{no} operations.
-An example is class @{class finite} from theory @{theory "HOL.Finite_Set"}
+An example is class \<^class>\<open>finite\<close> from theory \<^theory>\<open>HOL.Finite_Set\<close>
 which specifies a type to be finite: @{lemma [source] "finite (UNIV :: 'a::finite
 set)" by (fact finite_UNIV)}.\<close>
 

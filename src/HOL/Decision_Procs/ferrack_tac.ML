@@ -12,7 +12,7 @@ struct
 
 val ferrack_ss = let val ths = [@{thm of_int_eq_iff}, @{thm of_int_less_iff}, 
                                 @{thm of_int_le_iff}]
-             in @{context} delsimps ths addsimps (map (fn th => th RS sym) ths)
+             in \<^context> delsimps ths addsimps (map (fn th => th RS sym) ths)
              end |> simpset_of;
 
 val binarith = @{thms arith_simps}
@@ -63,7 +63,7 @@ fun linr_tac ctxt q =
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac ctxt i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case Thm.prop_of pre_thm of
-        Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
+        Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t1) $ _ =>
     let val pth = linr_oracle (ctxt, Envir.eta_long [] t1)
     in 
        ((pth RS iffD2) RS pre_thm,

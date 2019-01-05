@@ -6,7 +6,7 @@ text\<open>\noindent
 HOL already has a predefined theory of lists called \<open>List\<close> ---
 \<open>ToyList\<close> is merely a small fragment of it chosen as an example.
 To avoid some ambiguities caused by defining lists twice, we manipulate
-the concrete syntax and name space of theory @{theory Main} as follows.
+the concrete syntax and name space of theory \<^theory>\<open>Main\<close> as follows.
 \<close>
 
 no_notation Nil ("[]") and Cons (infixr "#" 65) and append (infixr "@" 65)
@@ -22,17 +22,17 @@ The datatype\index{datatype@\isacommand {datatype} (command)}
 constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
-type @{typ"bool list"}, namely the list with the elements @{term"True"} and
-@{term"False"}. Because this notation quickly becomes unwieldy, the
+type \<^typ>\<open>bool list\<close>, namely the list with the elements \<^term>\<open>True\<close> and
+\<^term>\<open>False\<close>. Because this notation quickly becomes unwieldy, the
 datatype declaration is annotated with an alternative syntax: instead of
 @{term[source]Nil} and \isa{Cons x xs} we can write
-@{term"[]"}\index{$HOL2list@\isa{[]}|bold} and
-@{term"x # xs"}\index{$HOL2list@\isa{\#}|bold}. In fact, this
+\<^term>\<open>[]\<close>\index{$HOL2list@\isa{[]}|bold} and
+\<^term>\<open>x # xs\<close>\index{$HOL2list@\isa{\#}|bold}. In fact, this
 alternative syntax is the familiar one.  Thus the list \isa{Cons True
-(Cons False Nil)} becomes @{term"True # False # []"}. The annotation
+(Cons False Nil)} becomes \<^term>\<open>True # False # []\<close>. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
 means that \<open>#\<close> associates to
-the right: the term @{term"x # y # z"} is read as \<open>x # (y # z)\<close>
+the right: the term \<^term>\<open>x # y # z\<close> is read as \<open>x # (y # z)\<close>
 and not as \<open>(x # y) # z\<close>.
 The \<open>65\<close> is the priority of the infix \<open>#\<close>.
 
@@ -64,12 +64,12 @@ The equations must be separated by \<open>|\<close>.
 %
 Function \<open>app\<close> is annotated with concrete syntax. Instead of the
 prefix syntax \<open>app xs ys\<close> the infix
-@{term"xs @ ys"}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
+\<^term>\<open>xs @ ys\<close>\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form.
 
 \index{*rev (constant)|(}\index{append function|(}
-The equations for \<open>app\<close> and @{term"rev"} hardly need comments:
-\<open>app\<close> appends two lists and @{term"rev"} reverses a list.  The
+The equations for \<open>app\<close> and \<^term>\<open>rev\<close> hardly need comments:
+\<open>app\<close> appends two lists and \<^term>\<open>rev\<close> reverses a list.  The
 keyword \commdx{primrec} indicates that the recursion is
 of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
@@ -115,18 +115,18 @@ Comments\index{comment} must be in enclosed in \texttt{(* }and\texttt{ *)}.
 Assuming you have processed the declarations and definitions of
 \texttt{ToyList} presented so far, you may want to test your
 functions by running them. For example, what is the value of
-@{term"rev(True#False#[])"}? Command
+\<^term>\<open>rev(True#False#[])\<close>? Command
 \<close>
 
 value "rev (True # False # [])"
 
-text\<open>\noindent yields the correct result @{term"False # True # []"}.
+text\<open>\noindent yields the correct result \<^term>\<open>False # True # []\<close>.
 But we can go beyond mere functional programming and evaluate terms with
 variables in them, executing functions symbolically:\<close>
 
 value "rev (a # b # c # [])"
 
-text\<open>\noindent yields @{term"c # b # a # []"}.
+text\<open>\noindent yields \<^term>\<open>c # b # a # []\<close>.
 
 \section{An Introductory Proof}
 \label{sec:intro-proof}
@@ -149,13 +149,13 @@ txt\<open>\index{theorem@\isacommand {theorem} (command)|bold}%
 This \isacommand{theorem} command does several things:
 \begin{itemize}
 \item
-It establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"}.
+It establishes a new theorem to be proved, namely \<^prop>\<open>rev(rev xs) = xs\<close>.
 \item
 It gives that theorem the name \<open>rev_rev\<close>, for later reference.
 \item
 It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
-simplification will replace occurrences of @{term"rev(rev xs)"} by
-@{term"xs"}.
+simplification will replace occurrences of \<^term>\<open>rev(rev xs)\<close> by
+\<^term>\<open>xs\<close>.
 \end{itemize}
 The name and the simplification attribute are optional.
 Isabelle's response is to print the initial proof state consisting
@@ -176,16 +176,16 @@ main goal. (If you always want to see the main goal as well,
 set the flag \isa{Proof.show_main_goal}\index{*show_main_goal (flag)}
 --- this flag used to be set by default.)
 
-Let us now get back to @{prop"rev(rev xs) = xs"}. Properties of recursively
+Let us now get back to \<^prop>\<open>rev(rev xs) = xs\<close>. Properties of recursively
 defined functions are best established by induction. In this case there is
-nothing obvious except induction on @{term"xs"}:
+nothing obvious except induction on \<^term>\<open>xs\<close>:
 \<close>
 
 apply(induct_tac xs)
 
 txt\<open>\noindent\index{*induct_tac (method)}%
-This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
-@{term"tac"} stands for \textbf{tactic},\index{tactics}
+This tells Isabelle to perform induction on variable \<^term>\<open>xs\<close>. The suffix
+\<^term>\<open>tac\<close> stands for \textbf{tactic},\index{tactics}
 a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (@{term[source]Nil}) and the induction step
@@ -204,8 +204,8 @@ are the local assumptions for this subgoal and {\it
   conclusion}\index{conclusion!of subgoal} is the actual proposition to be proved. 
 Typical proof steps
 that add new assumptions are induction and case distinction. In our example
-the only assumption is the induction hypothesis @{term"rev (rev list) =
-  list"}, where @{term"list"} is a variable name chosen by Isabelle. If there
+the only assumption is the induction hypothesis \<^term>\<open>rev (rev list) =
+  list\<close>, where \<^term>\<open>list\<close> is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.
@@ -219,7 +219,7 @@ txt\<open>\noindent
 This command tells Isabelle to apply a proof strategy called
 \<open>auto\<close> to all subgoals. Essentially, \<open>auto\<close> tries to
 simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
-to the equation @{prop"rev [] = []"}) and disappears; the simplified version
+to the equation \<^prop>\<open>rev [] = []\<close>) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 @{subgoals[display,indent=0,margin=70]}
 In order to simplify this subgoal further, a lemma suggests itself.
@@ -243,9 +243,9 @@ txt\<open>\noindent The keywords \commdx{theorem} and
 the importance we attach to a proposition.  Therefore we use the words
 \emph{theorem} and \emph{lemma} pretty much interchangeably, too.
 
-There are two variables that we could induct on: @{term"xs"} and
-@{term"ys"}. Because \<open>@\<close> is defined by recursion on
-the first argument, @{term"xs"} is the correct one:
+There are two variables that we could induct on: \<^term>\<open>xs\<close> and
+\<^term>\<open>ys\<close>. Because \<open>@\<close> is defined by recursion on
+the first argument, \<^term>\<open>xs\<close> is the correct one:
 \<close>
 
 apply(induct_tac xs)
@@ -293,7 +293,7 @@ if it is obvious from the context that the proof is finished.
 % Instead of \isacommand{apply} followed by a dot, you can simply write
 % \isacommand{by}\indexbold{by}, which we do most of the time.
 Notice that in lemma @{thm[source]app_Nil2},
-as printed out after the final \isacommand{done}, the free variable @{term"xs"} has been
+as printed out after the final \isacommand{done}, the free variable \<^term>\<open>xs\<close> has been
 replaced by the unknown \<open>?xs\<close>, just as explained in
 \S\ref{sec:variables}.
 

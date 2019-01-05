@@ -152,7 +152,7 @@ where
 | PReqS:
       \<comment> \<open>SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
           We could specify the equation
-          @{term "PIReqSigned = \<lbrace> PIDualSigned, OIDualSigned \<rbrace>"}, since the
+          \<^term>\<open>PIReqSigned = \<lbrace> PIDualSigned, OIDualSigned \<rbrace>\<close>, since the
           Formal Desc. gives PIHead the same format in the unsigned case.
           However, there's little point, as P treats the signed and 
           unsigned cases differently.\<close>
@@ -431,8 +431,8 @@ lemma parts_image_priEK:
         evs \<in> set_pur|] ==> priEK C \<in> KK | C \<in> bad"
 by auto
 
-text\<open>trivial proof because @{term"priEK C"} never appears even in
-  @{term "parts evs"}.\<close>
+text\<open>trivial proof because \<^term>\<open>priEK C\<close> never appears even in
+  \<^term>\<open>parts evs\<close>.\<close>
 lemma analz_image_priEK:
      "evs \<in> set_pur ==>
           (Key (priEK C) \<in> analz (Key`KK \<union> (knows Spy evs))) =
@@ -734,7 +734,7 @@ lemma M_Notes_PG:
         evs \<in> set_pur|] ==> \<exists>j. P = PG j"
 by (erule rev_mp, erule set_pur.induct, simp_all)
 
-text\<open>If we trust M, then @{term LID_M} determines his choice of P
+text\<open>If we trust M, then \<^term>\<open>LID_M\<close> determines his choice of P
       (Payment Gateway)\<close>
 lemma goodM_gives_correct_PG:
      "[| MsgPInitRes = 
@@ -820,9 +820,9 @@ text\<open>When M receives AuthRes, he knows that P signed it, including
   (Although the spec has SIGNED and UNSIGNED forms of AuthRes, they
    send the same message to M.)  The conclusion is weak: M is existentially
   quantified! That is because Authorization Response does not refer to M, while
-  the digital envelope weakens the link between @{term MsgAuthRes} and
-  @{term"priSK M"}.  Changing the precondition to refer to 
-  @{term "Crypt K (sign SK M)"} requires assuming @{term K} to be secure, since
+  the digital envelope weakens the link between \<^term>\<open>MsgAuthRes\<close> and
+  \<^term>\<open>priSK M\<close>.  Changing the precondition to refer to 
+  \<^term>\<open>Crypt K (sign SK M)\<close> requires assuming \<^term>\<open>K\<close> to be secure, since
   otherwise the Spy could create that message.\<close>
 theorem M_verifies_AuthRes:
   "[| MsgAuthRes = \<lbrace>\<lbrace>Number LID_M, Number XID, Number PurchAmt\<rbrace>, 
@@ -868,7 +868,7 @@ apply (blast dest: Gets_imp_Says Says_C_PInitRes)
 done
 
 
-text\<open>Unicity of @{term LID_M} between Merchant and Cardholder notes\<close>
+text\<open>Unicity of \<^term>\<open>LID_M\<close> between Merchant and Cardholder notes\<close>
 lemma unique_LID_M:
      "[|Notes (Merchant i) \<lbrace>Number LID_M, Agent P, Trans\<rbrace> \<in> set evs;
         Notes C \<lbrace>Number LID_M, Agent M, Agent C, Number OD,
@@ -881,7 +881,7 @@ apply (erule set_pur.induct, simp_all)
 apply (force dest!: Notes_imp_parts_subset_used)
 done
 
-text\<open>Unicity of @{term LID_M}, for two Merchant Notes events\<close>
+text\<open>Unicity of \<^term>\<open>LID_M\<close>, for two Merchant Notes events\<close>
 lemma unique_LID_M2:
      "[|Notes M \<lbrace>Number LID_M, Trans\<rbrace> \<in> set evs;
         Notes M \<lbrace>Number LID_M, Trans'\<rbrace> \<in> set evs;
@@ -893,7 +893,7 @@ apply (force dest!: Notes_imp_parts_subset_used)
 done
 
 text\<open>Lemma needed below: for the case that
-  if PRes is present, then @{term LID_M} has been used.\<close>
+  if PRes is present, then \<^term>\<open>LID_M\<close> has been used.\<close>
 lemma signed_imp_used:
      "[| Crypt (priSK M) (Hash X) \<in> parts (knows Spy evs);
          M \<notin> bad;  evs \<in> set_pur|] ==> parts {X} \<subseteq> used evs"
@@ -1051,8 +1051,8 @@ done
 
 text\<open>When P sees a dual signature, he knows that it originated with C.
   and was intended for M. This guarantee isn't useful to M, who never gets
-  PIData. I don't see how to link @{term "PG j"} and \<open>LID_M\<close> without
-  assuming @{term "M \<notin> bad"}.\<close>
+  PIData. I don't see how to link \<^term>\<open>PG j\<close> and \<open>LID_M\<close> without
+  assuming \<^term>\<open>M \<notin> bad\<close>.\<close>
 theorem P_verifies_Signed_PReq:
      "[| MsgDualSign = \<lbrace>Hash PIData, HOIData\<rbrace>;
          PIData = \<lbrace>PIHead, PANData\<rbrace>;
@@ -1128,7 +1128,7 @@ done
 text\<open>When P receives an AuthReq and a dual signature, he knows that C and M
   agree on the essential details.  PurchAmt however is never sent by M to
   P; instead C and M both send 
-     @{term "HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace>"}
+     \<^term>\<open>HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace>\<close>
   and P compares the two copies of HOD.
 
   Agreement can't be proved for some things, including the symmetric keys

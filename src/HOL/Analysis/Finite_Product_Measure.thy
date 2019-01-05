@@ -15,7 +15,7 @@ lemma%unimportant PiE_choice: "(\<exists>f\<in>Pi\<^sub>E I F. \<forall>i\<in>I.
 lemma%unimportant case_prod_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-subsubsection%unimportant \<open>More about Function restricted by @{const extensional}\<close>
+subsubsection%unimportant \<open>More about Function restricted by \<^const>\<open>extensional\<close>\<close>
 
 definition
   "merge I J = (\<lambda>(x, y) i. if i \<in> I then x i else if i \<in> J then y i else undefined)"

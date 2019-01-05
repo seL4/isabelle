@@ -74,7 +74,7 @@ text %mlref \<open>
   (term * term list) list list -> Proof.context -> Proof.state"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Proof.state} represents Isar proof states. This is a
+  \<^descr> Type \<^ML_type>\<open>Proof.state\<close> represents Isar proof states. This is a
   block-structured configuration with proof context, linguistic mode, and
   optional goal. The latter consists of goal context, goal facts
   (``\<open>using\<close>''), and tactical goal state (see \secref{sec:tactical-goals}).
@@ -83,8 +83,7 @@ text %mlref \<open>
   some parts of the tactical goal --- how exactly is defined by the proof
   method that is applied in that situation.
 
-  \<^descr> @{ML Proof.assert_forward}, @{ML Proof.assert_chain}, @{ML
-  Proof.assert_backward} are partial identity functions that fail unless a
+  \<^descr> \<^ML>\<open>Proof.assert_forward\<close>, \<^ML>\<open>Proof.assert_chain\<close>, \<^ML>\<open>Proof.assert_backward\<close> are partial identity functions that fail unless a
   certain linguistic mode is active, namely ``\<open>proof(state)\<close>'',
   ``\<open>proof(chain)\<close>'', ``\<open>proof(prove)\<close>'', respectively (using the terminology
   of @{cite "isabelle-isar-ref"}).
@@ -92,22 +91,21 @@ text %mlref \<open>
   It is advisable study the implementations of existing proof commands for
   suitable modes to be asserted.
 
-  \<^descr> @{ML Proof.simple_goal}~\<open>state\<close> returns the structured Isar goal (if
+  \<^descr> \<^ML>\<open>Proof.simple_goal\<close>~\<open>state\<close> returns the structured Isar goal (if
   available) in the form seen by ``simple'' methods (like @{method simp} or
   @{method blast}). The Isar goal facts are already inserted as premises into
-  the subgoals, which are presented individually as in @{ML Proof.goal}.
+  the subgoals, which are presented individually as in \<^ML>\<open>Proof.goal\<close>.
 
-  \<^descr> @{ML Proof.goal}~\<open>state\<close> returns the structured Isar goal (if available)
+  \<^descr> \<^ML>\<open>Proof.goal\<close>~\<open>state\<close> returns the structured Isar goal (if available)
   in the form seen by regular methods (like @{method rule}). The auxiliary
   internal encoding of Pure conjunctions is split into individual subgoals as
   usual.
 
-  \<^descr> @{ML Proof.raw_goal}~\<open>state\<close> returns the structured Isar goal (if
+  \<^descr> \<^ML>\<open>Proof.raw_goal\<close>~\<open>state\<close> returns the structured Isar goal (if
   available) in the raw internal form seen by ``raw'' methods (like @{method
-  induct}). This form is rarely appropriate for diagnostic tools; @{ML
-  Proof.simple_goal} or @{ML Proof.goal} should be used in most situations.
+  induct}). This form is rarely appropriate for diagnostic tools; \<^ML>\<open>Proof.simple_goal\<close> or \<^ML>\<open>Proof.goal\<close> should be used in most situations.
 
-  \<^descr> @{ML Proof.theorem}~\<open>before_qed after_qed statement ctxt\<close> initializes a
+  \<^descr> \<^ML>\<open>Proof.theorem\<close>~\<open>before_qed after_qed statement ctxt\<close> initializes a
   toplevel Isar proof state within a given context.
 
   The optional \<open>before_qed\<close> method is applied at the end of the proof, just
@@ -115,9 +113,8 @@ text %mlref \<open>
 
   The \<open>after_qed\<close> continuation receives the extracted result in order to apply
   it to the final context in a suitable way (e.g.\ storing named facts). Note
-  that at this generic level the target context is specified as @{ML_type
-  Proof.context}, but the usual wrapping of toplevel proofs into command
-  transactions will provide a @{ML_type local_theory} here
+  that at this generic level the target context is specified as \<^ML_type>\<open>Proof.context\<close>, but the usual wrapping of toplevel proofs into command
+  transactions will provide a \<^ML_type>\<open>local_theory\<close> here
   (\chref{ch:local-theory}). This affects the way how results are stored.
 
   The \<open>statement\<close> is given as a nested list of terms, each associated with
@@ -148,7 +145,7 @@ begin
   have A and B and C
     ML_val
      \<open>val n = Thm.nprems_of (#goal @{Isar.goal});
-      @{assert} (n = 3);\<close>
+      \<^assert> (n = 3);\<close>
     sorry
 end
 
@@ -285,30 +282,28 @@ text %mlref \<open>
   string -> theory -> theory"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Proof.method} represents proof methods as abstract type.
+  \<^descr> Type \<^ML_type>\<open>Proof.method\<close> represents proof methods as abstract type.
 
-  \<^descr> @{ML CONTEXT_METHOD}~\<open>(fn facts => context_tactic)\<close> wraps \<open>context_tactic\<close>
+  \<^descr> \<^ML>\<open>CONTEXT_METHOD\<close>~\<open>(fn facts => context_tactic)\<close> wraps \<open>context_tactic\<close>
   depending on goal facts as a general proof method that may change the proof
-  context dynamically. A typical operation is @{ML
-  Proof_Context.update_cases}, which is wrapped up as combinator @{index_ML
+  context dynamically. A typical operation is \<^ML>\<open>Proof_Context.update_cases\<close>, which is wrapped up as combinator @{index_ML
   CONTEXT_CASES} for convenience.
 
-  \<^descr> @{ML METHOD}~\<open>(fn facts => tactic)\<close> wraps \<open>tactic\<close> depending on goal facts
+  \<^descr> \<^ML>\<open>METHOD\<close>~\<open>(fn facts => tactic)\<close> wraps \<open>tactic\<close> depending on goal facts
   as regular proof method; the goal context is passed via method syntax.
 
-  \<^descr> @{ML SIMPLE_METHOD}~\<open>tactic\<close> wraps a tactic that addresses all subgoals
+  \<^descr> \<^ML>\<open>SIMPLE_METHOD\<close>~\<open>tactic\<close> wraps a tactic that addresses all subgoals
   uniformly as simple proof method. Goal facts are already inserted into all
   subgoals before \<open>tactic\<close> is applied.
 
-  \<^descr> @{ML SIMPLE_METHOD'}~\<open>tactic\<close> wraps a tactic that addresses a specific
+  \<^descr> \<^ML>\<open>SIMPLE_METHOD'\<close>~\<open>tactic\<close> wraps a tactic that addresses a specific
   subgoal as simple proof method that operates on subgoal 1. Goal facts are
   inserted into the subgoal then the \<open>tactic\<close> is applied.
 
-  \<^descr> @{ML Method.insert_tac}~\<open>ctxt facts i\<close> inserts \<open>facts\<close> into subgoal \<open>i\<close>.
-  This is convenient to reproduce part of the @{ML SIMPLE_METHOD} or @{ML
-  SIMPLE_METHOD'} wrapping within regular @{ML METHOD}, for example.
+  \<^descr> \<^ML>\<open>Method.insert_tac\<close>~\<open>ctxt facts i\<close> inserts \<open>facts\<close> into subgoal \<open>i\<close>.
+  This is convenient to reproduce part of the \<^ML>\<open>SIMPLE_METHOD\<close> or \<^ML>\<open>SIMPLE_METHOD'\<close> wrapping within regular \<^ML>\<open>METHOD\<close>, for example.
 
-  \<^descr> @{ML Method.setup}~\<open>name parser description\<close> provides the functionality of
+  \<^descr> \<^ML>\<open>Method.setup\<close>~\<open>name parser description\<close> provides the functionality of
   the Isar command @{command method_setup} as ML function.
 \<close>
 
@@ -319,8 +314,8 @@ text %mlex \<open>
   \<^medskip>
   The following toy examples illustrate how the goal facts and state are
   passed to proof methods. The predefined proof method called ``@{method
-  tactic}'' wraps ML source of type @{ML_type tactic} (abstracted over
-  @{ML_text facts}). This allows immediate experimentation without parsing of
+  tactic}'' wraps ML source of type \<^ML_type>\<open>tactic\<close> (abstracted over
+  \<^ML_text>\<open>facts\<close>). This allows immediate experimentation without parsing of
   concrete syntax.
 \<close>
 
@@ -330,16 +325,16 @@ begin
   assume a: A and b: B
 
   have "A \<and> B"
-    apply (tactic \<open>resolve_tac @{context} @{thms conjI} 1\<close>)
-    using a apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
-    using b apply (tactic \<open>resolve_tac @{context} facts 1\<close>)
+    apply (tactic \<open>resolve_tac \<^context> @{thms conjI} 1\<close>)
+    using a apply (tactic \<open>resolve_tac \<^context> facts 1\<close>)
+    using b apply (tactic \<open>resolve_tac \<^context> facts 1\<close>)
     done
 
   have "A \<and> B"
     using a and b
     ML_val \<open>@{Isar.goal}\<close>
-    apply (tactic \<open>Method.insert_tac @{context} facts 1\<close>)
-    apply (tactic \<open>(resolve_tac @{context} @{thms conjI} THEN_ALL_NEW assume_tac @{context}) 1\<close>)
+    apply (tactic \<open>Method.insert_tac \<^context> facts 1\<close>)
+    apply (tactic \<open>(resolve_tac \<^context> @{thms conjI} THEN_ALL_NEW assume_tac \<^context>) 1\<close>)
     done
 end
 
@@ -361,14 +356,14 @@ text \<open>
   passes-through the proof context at the end of parsing, but it is not used
   in this example.
 
-  The @{ML Attrib.thms} parser produces a list of theorems from the usual Isar
+  The \<^ML>\<open>Attrib.thms\<close> parser produces a list of theorems from the usual Isar
   syntax involving attribute expressions etc.\ (syntax category @{syntax
-  thms}) @{cite "isabelle-isar-ref"}. The resulting @{ML_text thms} are
-  added to @{ML HOL_basic_ss} which already contains the basic Simplifier
+  thms}) @{cite "isabelle-isar-ref"}. The resulting \<^ML_text>\<open>thms\<close> are
+  added to \<^ML>\<open>HOL_basic_ss\<close> which already contains the basic Simplifier
   setup for HOL.
 
-  The tactic @{ML asm_full_simp_tac} is the one that is also used in method
-  @{method simp} by default. The extra wrapping by the @{ML CHANGED} tactical
+  The tactic \<^ML>\<open>asm_full_simp_tac\<close> is the one that is also used in method
+  @{method simp} by default. The extra wrapping by the \<^ML>\<open>CHANGED\<close> tactical
   ensures progress of simplification: identical goal states are filtered out
   explicitly to make the raw tactic conform to standard Isar method behaviour.
 
@@ -422,7 +417,7 @@ text \<open>
 method_setup my_simp' =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
     let
-      val my_simps = Named_Theorems.get ctxt @{named_theorems my_simp}
+      val my_simps = Named_Theorems.get ctxt \<^named_theorems>\<open>my_simp\<close>
     in
       SIMPLE_METHOD' (fn i =>
         CHANGED (asm_full_simp_tac
@@ -447,8 +442,7 @@ end
 text \<open>
   \<^medskip>
   The @{method my_simp} variants defined above are ``simple'' methods, i.e.\
-  the goal facts are merely inserted as goal premises by the @{ML
-  SIMPLE_METHOD'} or @{ML SIMPLE_METHOD} wrapper. For proof methods that are
+  the goal facts are merely inserted as goal premises by the \<^ML>\<open>SIMPLE_METHOD'\<close> or \<^ML>\<open>SIMPLE_METHOD\<close> wrapper. For proof methods that are
   similar to the standard collection of @{method simp}, @{method blast},
   @{method fast}, @{method auto} there is little more that can be done.
 
@@ -461,7 +455,7 @@ text \<open>
 
   \<^medskip>
   The technical treatment of rules from the context requires further
-  attention. Above we rebuild a fresh @{ML_type simpset} from the arguments
+  attention. Above we rebuild a fresh \<^ML_type>\<open>simpset\<close> from the arguments
   and \<^emph>\<open>all\<close> rules retrieved from the context on every invocation of the
   method. This does not scale to really large collections of rules, which
   easily emerges in the context of a big theory library, for example.
@@ -471,7 +465,7 @@ text \<open>
   retrieval. More realistic applications require efficient index-structures
   that organize theorems in a customized manner, such as a discrimination net
   that is indexed by the left-hand sides of rewrite rules. For variations on
-  the Simplifier, re-use of the existing type @{ML_type simpset} is adequate,
+  the Simplifier, re-use of the existing type \<^ML_type>\<open>simpset\<close> is adequate,
   but scalability would require it be maintained statically within the context
   data, not dynamically on each tool invocation.
 \<close>
@@ -510,23 +504,23 @@ text %mlref \<open>
   string -> theory -> theory"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type attribute} represents attributes as concrete type alias.
+  \<^descr> Type \<^ML_type>\<open>attribute\<close> represents attributes as concrete type alias.
 
-  \<^descr> @{ML Thm.rule_attribute}~\<open>thms (fn context => rule)\<close> wraps a
-  context-dependent rule (mapping on @{ML_type thm}) as attribute.
+  \<^descr> \<^ML>\<open>Thm.rule_attribute\<close>~\<open>thms (fn context => rule)\<close> wraps a
+  context-dependent rule (mapping on \<^ML_type>\<open>thm\<close>) as attribute.
 
   The \<open>thms\<close> are additional parameters: when forming an abstract closure, the
   system may provide dummy facts that are propagated according to strict
   evaluation discipline. In that case, \<open>rule\<close> is bypassed.
 
-  \<^descr> @{ML Thm.declaration_attribute}~\<open>(fn thm => decl)\<close> wraps a
-  theorem-dependent declaration (mapping on @{ML_type Context.generic}) as
+  \<^descr> \<^ML>\<open>Thm.declaration_attribute\<close>~\<open>(fn thm => decl)\<close> wraps a
+  theorem-dependent declaration (mapping on \<^ML_type>\<open>Context.generic\<close>) as
   attribute.
 
   When forming an abstract closure, the system may provide a dummy fact as
   \<open>thm\<close>. In that case, \<open>decl\<close> is bypassed.
 
-  \<^descr> @{ML Attrib.setup}~\<open>name parser description\<close> provides the functionality of
+  \<^descr> \<^ML>\<open>Attrib.setup\<close>~\<open>name parser description\<close> provides the functionality of
   the Isar command @{command attribute_setup} as ML function.
 \<close>
 
@@ -535,13 +529,12 @@ text %mlantiq \<open>
   @{ML_antiquotation_def attributes} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation attributes} attributes
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{attributes [\<dots>]}\<close> embeds attribute source representation into the ML
-  text, which is particularly useful with declarations like @{ML
-  Local_Theory.note}. Attribute names are internalized at compile time, but
+  text, which is particularly useful with declarations like \<^ML>\<open>Local_Theory.note\<close>. Attribute names are internalized at compile time, but
   the source is unevaluated. This means attributes with formal arguments
   (types, terms, theorems) may be subject to odd effects of dynamic scoping!
 \<close>

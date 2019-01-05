@@ -5153,7 +5153,7 @@ text\<open>But is the premise really necessary? Need to generalise @{thm euclide
 lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
   by (metis (no_types) member_le_L2_set euclidean_dist_l2 finite_Basis)
 
-text\<open>But is the premise @{term \<open>i \<in> Basis\<close>} really necessary?\<close>
+text\<open>But is the premise \<^term>\<open>i \<in> Basis\<close> really necessary?\<close>
 lemma open_preimage_inner:
   assumes "open S" "i \<in> Basis"
     shows "open {x. x \<bullet> i \<in> S}"

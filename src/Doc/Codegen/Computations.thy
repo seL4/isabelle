@@ -80,7 +80,7 @@ text \<open>
       placeholder for its corresponding type in ML under code generation.
 
     \<^item> Then the corresponding computation is an ML function of type
-      @{ML_type "Proof.context -> term -> 'ml"}
+      \<^ML_type>\<open>Proof.context -> term -> 'ml\<close>
       partially implementing the morphism \<open>\<Phi> :: \<tau> \<rightarrow> T\<close> for all
       \<^emph>\<open>input terms\<close> consisting only of input constants and applications.
 
@@ -154,7 +154,7 @@ text \<open>
 
       Hence the functional argument accepts the following parameters
 
-        \<^item> A postprocessor function @{ML_type "term -> term"}.
+        \<^item> A postprocessor function \<^ML_type>\<open>term -> term\<close>.
 
         \<^item> The resulting value as optional argument.
 
@@ -165,7 +165,7 @@ text \<open>
 \<close>
 
 ML_val %quotetypewriter \<open>
-  comp_nat @{context} @{term "sum_list [Suc 0, Suc (Suc 0)] * Suc (Suc 0)"}
+  comp_nat \<^context> \<^term>\<open>sum_list [Suc 0, Suc (Suc 0)] * Suc (Suc 0)\<close>
 \<close>
 
 text \<open>
@@ -193,7 +193,7 @@ ML %quotetypewriter \<open>
     (fn post => post o HOLogic.mk_nat o int_of_nat o the);
 
   val comp_nat_list = @{computation "nat list"}
-    (fn post => post o HOLogic.mk_list @{typ nat} o
+    (fn post => post o HOLogic.mk_list \<^typ>\<open>nat\<close> o
       map (HOLogic.mk_nat o int_of_nat) o the);
 
   end
@@ -272,11 +272,11 @@ text \<open>
 ML %quotetypewriter \<open>
   local
 
-  fun raw_dvd (b, ct) = Thm.mk_binop @{cterm "Pure.eq :: bool \<Rightarrow> bool \<Rightarrow> prop"}
-    ct (if b then @{cterm True} else @{cterm False});
+  fun raw_dvd (b, ct) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: bool \<Rightarrow> bool \<Rightarrow> prop\<close>
+    ct (if b then \<^cterm>\<open>True\<close> else \<^cterm>\<open>False\<close>);
 
   val (_, dvd_oracle) = Context.>>> (Context.map_theory_result
-    (Thm.add_oracle (@{binding dvd}, raw_dvd)));
+    (Thm.add_oracle (\<^binding>\<open>dvd\<close>, raw_dvd)));
 
   in
 
@@ -293,7 +293,7 @@ ML %quotetypewriter \<open>
 
 text \<open>
     \<^item> Antiquotation @{ML_antiquotation computation_conv} basically yields
-      a conversion of type @{ML_type "Proof.context -> cterm -> thm"}
+      a conversion of type \<^ML_type>\<open>Proof.context -> cterm -> thm\<close>
       (see further @{cite "isabelle-implementation"}).
 
     \<^item> The antiquotation expects one functional argument to bridge the
@@ -311,8 +311,8 @@ text \<open>
 \<close> (*<*)
 
 (*>*) ML_val %quotetypewriter \<open>
-  conv_dvd @{context} @{cterm "7 dvd ( 62437867527846782 :: int)"};
-  conv_dvd @{context} @{cterm "7 dvd (-62437867527846783 :: int)"};
+  conv_dvd \<^context> \<^cterm>\<open>7 dvd ( 62437867527846782 :: int)\<close>;
+  conv_dvd \<^context> \<^cterm>\<open>7 dvd (-62437867527846783 :: int)\<close>;
 \<close>
 
 text \<open>
@@ -341,7 +341,7 @@ ML %quotetypewriter \<open>
 
   fun integer_of_int (@{code int_of_integer} k) = k
 
-  val cterm_of_int = Thm.cterm_of @{context} o HOLogic.mk_numeral o integer_of_int;
+  val cterm_of_int = Thm.cterm_of \<^context> o HOLogic.mk_numeral o integer_of_int;
 
   val divisor = Thm.dest_arg o Thm.dest_arg;
 
@@ -366,8 +366,8 @@ ML %quotetypewriter \<open>
 \<close>
 
 ML_val %quotetypewriter \<open>
-  conv_div @{context}
-    @{cterm "46782454343499999992777742432342242323423425 div (7 :: int)"}
+  conv_div \<^context>
+    \<^cterm>\<open>46782454343499999992777742432342242323423425 div (7 :: int)\<close>
 \<close>
 
 text \<open>
@@ -388,7 +388,7 @@ subsection \<open>Computations using the \<open>computation_check\<close> antiqu
 text \<open>
   The \<open>computation_check\<close> antiquotation is convenient if
   only a positive checking of propositions is desired, because then
-  the result type is fixed (@{typ prop}) and all the technical
+  the result type is fixed (\<^typ>\<open>prop\<close>) and all the technical
   matter concerning postprocessing and oracles is done in the framework
   once and for all:
 \<close>
@@ -402,17 +402,17 @@ ML %quotetypewriter \<open>
 \<close>
 
 text \<open>
-  \noindent The HOL judgement @{term Trueprop} embeds an expression
-  of type @{typ bool} into @{typ prop}.
+  \noindent The HOL judgement \<^term>\<open>Trueprop\<close> embeds an expression
+  of type \<^typ>\<open>bool\<close> into \<^typ>\<open>prop\<close>.
 \<close>
 
 ML_val %quotetypewriter \<open>
-  check_nat @{context} @{cprop "less (Suc (Suc 0)) (Suc (Suc (Suc 0)))"}
+  check_nat \<^context> \<^cprop>\<open>less (Suc (Suc 0)) (Suc (Suc (Suc 0)))\<close>
 \<close>
 
 text \<open>
   \noindent Note that such computations can only \<^emph>\<open>check\<close>
-  for @{typ prop}s to hold but not \<^emph>\<open>decide\<close>.
+  for \<^typ>\<open>prop\<close>s to hold but not \<^emph>\<open>decide\<close>.
 \<close>
 
 
@@ -436,7 +436,7 @@ text \<open>
   naively: the compilation pattern for computations fails whenever
   target-language literals are involved; since various
   common code generator setups (see \secref{sec:common_adaptation})
-  implement @{typ nat} and @{typ int} by target-language literals,
+  implement \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close> by target-language literals,
   this problem manifests whenever numeric types are involved.
   In practice, this is circumvented with a dedicated preprocessor
   setup for literals (see also \secref{sec:input_constants_pitfalls}).
@@ -446,7 +446,7 @@ text \<open>
   too much detail:
 \<close>
 
-paragraph \<open>An example for @{typ nat}\<close>
+paragraph \<open>An example for \<^typ>\<open>nat\<close>\<close>
 
 ML %quotetypewriter \<open>
   val check_nat = @{computation_check terms:
@@ -456,10 +456,10 @@ ML %quotetypewriter \<open>
 \<close>
 
 ML_val %quotetypewriter \<open>
-  check_nat @{context} @{cprop "even (Suc 0 + 1 + 2 + 3 + 4 + 5)"}
+  check_nat \<^context> \<^cprop>\<open>even (Suc 0 + 1 + 2 + 3 + 4 + 5)\<close>
 \<close>
   
-paragraph \<open>An example for @{typ int}\<close>
+paragraph \<open>An example for \<^typ>\<open>int\<close>\<close>
 
 ML %quotetypewriter \<open>
   val check_int = @{computation_check terms:
@@ -469,10 +469,10 @@ ML %quotetypewriter \<open>
 \<close>
 
 ML_val %quotetypewriter \<open>
-  check_int @{context} @{cprop "even ((0::int) + 1 + 2 + 3 + -1 + -2 + -3)"}
+  check_int \<^context> \<^cprop>\<open>even ((0::int) + 1 + 2 + 3 + -1 + -2 + -3)\<close>
 \<close>
   
-paragraph \<open>An example for @{typ String.literal}\<close>
+paragraph \<open>An example for \<^typ>\<open>String.literal\<close>\<close>
 
 definition %quote is_cap_letter :: "String.literal \<Rightarrow> bool"
   where "is_cap_letter s \<longleftrightarrow> (case String.asciis_of_literal s
@@ -485,7 +485,7 @@ definition %quote is_cap_letter :: "String.literal \<Rightarrow> bool"
 \<close>
 
 ML_val %quotetypewriter \<open>
-  check_literal @{context} @{cprop "is_cap_letter (STR ''Q'')"}
+  check_literal \<^context> \<^cprop>\<open>is_cap_letter (STR ''Q'')\<close>
 \<close>
 
   
@@ -500,7 +500,7 @@ text \<open>
 
   One option is to hardcode using code antiquotations (see \secref{sec:code_antiq}).
   Another option is to use pre-existing infrastructure in HOL:
-  @{ML "Reification.conv"} and @{ML "Reification.tac"}.
+  \<^ML>\<open>Reification.conv\<close> and \<^ML>\<open>Reification.tac\<close>.
 
   A simplistic example:
 \<close>
@@ -518,23 +518,23 @@ where
 | "interp (Neg f) vs \<longleftrightarrow> \<not> interp f vs"
 
 text \<open>
-  \noindent The datatype @{type form_ord} represents formulae whose semantics is given by
-  @{const interp}.  Note that values are represented by variable indices (@{typ nat})
-  whose concrete values are given in list @{term vs}.
+  \noindent The datatype \<^type>\<open>form_ord\<close> represents formulae whose semantics is given by
+  \<^const>\<open>interp\<close>.  Note that values are represented by variable indices (\<^typ>\<open>nat\<close>)
+  whose concrete values are given in list \<^term>\<open>vs\<close>.
 \<close>
 
 ML %quotetypewriter (*<*) \<open>\<close>
 lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> interp (And (Less (Suc 0) (Suc (Suc 0))) (Less (Suc 0) 0)) [z, x, y]"
 ML_prf %quotetypewriter
 (*>*) \<open>val thm =
-  Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"}\<close> (*<*)
-by (tactic \<open>ALLGOALS (resolve_tac @{context} [thm])\<close>)
+  Reification.conv \<^context> @{thms interp.simps} \<^cterm>\<open>x < y \<and> x < z\<close>\<close> (*<*)
+by (tactic \<open>ALLGOALS (resolve_tac \<^context> [thm])\<close>)
 (*>*) 
 
 text \<open>
-  \noindent By virtue of @{fact interp.simps}, @{ML "Reification.conv"} provides a conversion
+  \noindent By virtue of @{fact interp.simps}, \<^ML>\<open>Reification.conv\<close> provides a conversion
   which, for this concrete example, yields @{thm thm [no_vars]}.  Note that the argument
-  to @{const interp} does not contain any free variables and can thus be evaluated
+  to \<^const>\<open>interp\<close> does not contain any free variables and can thus be evaluated
   using evaluation.
 
   A less meager example can be found in the AFP, session \<open>Regular-Sets\<close>,

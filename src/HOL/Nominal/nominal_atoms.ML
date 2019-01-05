@@ -86,7 +86,7 @@ fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T));
 
 fun mk_Cons x xs =
   let val T = fastype_of x
-  in Const (@{const_name Cons}, T --> HOLogic.listT T --> HOLogic.listT T) $ x $ xs end;
+  in Const (\<^const_name>\<open>Cons\<close>, T --> HOLogic.listT T --> HOLogic.listT T) $ x $ xs end;
 
 fun add_thms_string args = Global_Theory.add_thms ((map o apfst o apfst) Binding.name args);
 fun add_thmss_string args = Global_Theory.add_thmss ((map o apfst o apfst) Binding.name args);
@@ -99,20 +99,20 @@ fun create_nom_typedecls ak_names thy =
     
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
-          let val dt = ((Binding.name ak, [], NoSyn), [(Binding.name ak, [@{typ nat}], NoSyn)])
+          let val dt = ((Binding.name ak, [], NoSyn), [(Binding.name ak, [\<^typ>\<open>nat\<close>], NoSyn)])
               val (dt_names, thy1) = BNF_LFP_Compat.add_datatype [BNF_LFP_Compat.Kill_Type_Args] [dt] thy;
             
               val injects = maps (#inject o BNF_LFP_Compat.the_info thy1 []) dt_names;
               val ak_type = Type (Sign.intern_type thy1 ak,[])
               val ak_sign = Sign.intern_const thy1 ak 
               
-              val inj_type = @{typ nat} --> ak_type
-              val inj_on_type = inj_type --> @{typ "nat set"} --> @{typ bool}
+              val inj_type = \<^typ>\<open>nat\<close> --> ak_type
+              val inj_on_type = inj_type --> \<^typ>\<open>nat set\<close> --> \<^typ>\<open>bool\<close>
 
               (* first statement *)
               val stmnt1 = HOLogic.mk_Trueprop 
-                  (Const (@{const_name "inj_on"},inj_on_type) $ 
-                         Const (ak_sign,inj_type) $ HOLogic.mk_UNIV @{typ nat})
+                  (Const (\<^const_name>\<open>inj_on\<close>,inj_on_type) $ 
+                         Const (ak_sign,inj_type) $ HOLogic.mk_UNIV \<^typ>\<open>nat\<close>)
 
               val simp1 = @{thm inj_on_def} :: injects;
               
@@ -128,7 +128,7 @@ fun create_nom_typedecls ak_names thy =
               (* second statement *)
               val y = Free ("y",ak_type)  
               val stmnt2 = HOLogic.mk_Trueprop
-                  (HOLogic.mk_exists ("x",@{typ nat},HOLogic.mk_eq (y,Const (ak_sign,inj_type) $ Bound 0)))
+                  (HOLogic.mk_exists ("x",\<^typ>\<open>nat\<close>,HOLogic.mk_eq (y,Const (ak_sign,inj_type) $ Bound 0)))
 
               val proof2 = fn {prems, context = ctxt} =>
                 Induct_Tacs.case_tac ctxt "y" [] NONE 1 THEN
@@ -142,7 +142,7 @@ fun create_nom_typedecls ak_names thy =
   
               val stmnt3 = HOLogic.mk_Trueprop
                            (HOLogic.mk_not
-                              (Const (@{const_name finite}, HOLogic.mk_setT ak_type --> HOLogic.boolT) $
+                              (Const (\<^const_name>\<open>finite\<close>, HOLogic.mk_setT ak_type --> HOLogic.boolT) $
                                   HOLogic.mk_UNIV ak_type))
              
               val simp2 = [@{thm image_def},@{thm bex_UNIV}]@inject_thm
@@ -179,9 +179,9 @@ fun create_nom_typedecls ak_names thy =
         val b = Free ("b", T);
         val c = Free ("c", T);
         val ab = Free ("ab", HOLogic.mk_prodT (T, T))
-        val cif = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
+        val cif = Const (\<^const_name>\<open>If\<close>, HOLogic.boolT --> T --> T --> T);
         val cswap_akname = Const (full_swap_name, swapT);
-        val cswap = Const (@{const_name Nominal.swap}, swapT)
+        val cswap = Const (\<^const_name>\<open>Nominal.swap\<close>, swapT)
 
         val name = swap_name ^ "_def";
         val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -215,7 +215,7 @@ fun create_nom_typedecls ak_names thy =
         val xs = Free ("xs", mk_permT T);
         val a  = Free ("a", T) ;
 
-        val cnil  = Const (@{const_name Nil}, mk_permT T);
+        val cnil  = Const (\<^const_name>\<open>Nil\<close>, mk_permT T);
         
         val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq (prm $ cnil $ a, a));
 
@@ -245,7 +245,7 @@ fun create_nom_typedecls ak_names thy =
           val perm_def_name = ak_name ^ "_prm_" ^ ak_name';
           val pi = Free ("pi", mk_permT T);
           val a  = Free ("a", T');
-          val cperm = Const (@{const_name Nominal.perm}, mk_permT T --> T' --> T');
+          val cperm = Const (\<^const_name>\<open>Nominal.perm\<close>, mk_permT T --> T' --> T');
           val thy'' = Sign.add_path "rec" thy'
           val cperm_def = Const (Sign.full_bname thy'' perm_def_name, mk_permT T --> T' --> T');
           val thy''' = Sign.parent_path thy'';
@@ -265,7 +265,7 @@ fun create_nom_typedecls ak_names thy =
       let
         val ak_name_qu = Sign.full_bname thy5 (ak_name);
         val i_type = Type(ak_name_qu,[]);
-        val cat = Const (@{const_name Nominal.at}, Term.itselfT i_type --> HOLogic.boolT);
+        val cat = Const (\<^const_name>\<open>Nominal.at\<close>, Term.itselfT i_type --> HOLogic.boolT);
         val at_type = Logic.mk_type i_type;
         fun proof ctxt =
           simp_tac (put_simpset HOL_ss ctxt
@@ -290,14 +290,14 @@ fun create_nom_typedecls ak_names thy =
      val (pt_ax_classes,thy7) =  fold_map (fn (ak_name, T) => fn thy =>
       let 
           val cl_name = "pt_"^ak_name;
-          val ty = TFree("'a", @{sort type});
+          val ty = TFree("'a", \<^sort>\<open>type\<close>);
           val x   = Free ("x", ty);
           val pi1 = Free ("pi1", mk_permT T);
           val pi2 = Free ("pi2", mk_permT T);
-          val cperm = Const (@{const_name Nominal.perm}, mk_permT T --> ty --> ty);
-          val cnil  = Const (@{const_name Nil}, mk_permT T);
-          val cappend = Const (@{const_name append}, mk_permT T --> mk_permT T --> mk_permT T);
-          val cprm_eq = Const (@{const_name Nominal.prm_eq}, mk_permT T --> mk_permT T --> HOLogic.boolT);
+          val cperm = Const (\<^const_name>\<open>Nominal.perm\<close>, mk_permT T --> ty --> ty);
+          val cnil  = Const (\<^const_name>\<open>Nil\<close>, mk_permT T);
+          val cappend = Const (\<^const_name>\<open>append\<close>, mk_permT T --> mk_permT T --> mk_permT T);
+          val cprm_eq = Const (\<^const_name>\<open>Nominal.prm_eq\<close>, mk_permT T --> mk_permT T --> HOLogic.boolT);
           (* nil axiom *)
           val axiom1 = HOLogic.mk_Trueprop (HOLogic.mk_eq 
                        (cperm $ cnil $ x, x));
@@ -309,7 +309,7 @@ fun create_nom_typedecls ak_names thy =
                        (HOLogic.mk_Trueprop (cprm_eq $ pi1 $ pi2),
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
-          Axclass.define_class (Binding.name cl_name, @{sort type}) []
+          Axclass.define_class (Binding.name cl_name, \<^sort>\<open>type\<close>) []
                 [((Binding.name (cl_name ^ "1"), [Simplifier.simp_add]), [axiom1]),
                  ((Binding.name (cl_name ^ "2"), []), [axiom2]),                           
                  ((Binding.name (cl_name ^ "3"), []), [axiom3])] thy
@@ -327,7 +327,7 @@ fun create_nom_typedecls ak_names thy =
         val i_type1 = TFree("'x",[pt_name_qu]);
         val i_type2 = Type(ak_name_qu,[]);
         val cpt =
-          Const (@{const_name Nominal.pt}, (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+          Const (\<^const_name>\<open>Nominal.pt\<close>, (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
         val pt_type = Logic.mk_type i_type1;
         val at_type = Logic.mk_type i_type2;
         fun proof ctxt =
@@ -350,10 +350,10 @@ fun create_nom_typedecls ak_names thy =
        let 
           val cl_name = "fs_"^ak_name;
           val pt_name = Sign.full_bname thy ("pt_"^ak_name);
-          val ty = TFree("'a",@{sort type});
+          val ty = TFree("'a",\<^sort>\<open>type\<close>);
           val x   = Free ("x", ty);
-          val csupp    = Const (@{const_name Nominal.supp}, ty --> HOLogic.mk_setT T);
-          val cfinite  = Const (@{const_name finite}, HOLogic.mk_setT T --> HOLogic.boolT)
+          val csupp    = Const (\<^const_name>\<open>Nominal.supp\<close>, ty --> HOLogic.mk_setT T);
+          val cfinite  = Const (\<^const_name>\<open>finite\<close>, HOLogic.mk_setT T --> HOLogic.boolT)
           
           val axiom1   = HOLogic.mk_Trueprop (cfinite $ (csupp $ x));
 
@@ -373,7 +373,7 @@ fun create_nom_typedecls ak_names thy =
          val fs_name_qu = Sign.full_bname thy11 ("fs_"^ak_name);
          val i_type1 = TFree("'x",[fs_name_qu]);
          val i_type2 = Type(ak_name_qu,[]);
-         val cfs = Const (@{const_name Nominal.fs},
+         val cfs = Const (\<^const_name>\<open>Nominal.fs\<close>,
                                  (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
          val fs_type = Logic.mk_type i_type1;
          val at_type = Logic.mk_type i_type2;
@@ -395,19 +395,19 @@ fun create_nom_typedecls ak_names thy =
          fold_map (fn (ak_name', T') => fn thy' =>
              let
                val cl_name = "cp_"^ak_name^"_"^ak_name';
-               val ty = TFree("'a",@{sort type});
+               val ty = TFree("'a",\<^sort>\<open>type\<close>);
                val x   = Free ("x", ty);
                val pi1 = Free ("pi1", mk_permT T);
                val pi2 = Free ("pi2", mk_permT T');                  
-               val cperm1 = Const (@{const_name Nominal.perm}, mk_permT T  --> ty --> ty);
-               val cperm2 = Const (@{const_name Nominal.perm}, mk_permT T' --> ty --> ty);
-               val cperm3 = Const (@{const_name Nominal.perm}, mk_permT T  --> mk_permT T' --> mk_permT T');
+               val cperm1 = Const (\<^const_name>\<open>Nominal.perm\<close>, mk_permT T  --> ty --> ty);
+               val cperm2 = Const (\<^const_name>\<open>Nominal.perm\<close>, mk_permT T' --> ty --> ty);
+               val cperm3 = Const (\<^const_name>\<open>Nominal.perm\<close>, mk_permT T  --> mk_permT T' --> mk_permT T');
 
                val ax1   = HOLogic.mk_Trueprop 
                            (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
                in  
-                 Axclass.define_class (Binding.name cl_name, @{sort type}) []
+                 Axclass.define_class (Binding.name cl_name, \<^sort>\<open>type\<close>) []
                    [((Binding.name (cl_name ^ "1"), []), [ax1])] thy'  
                end) ak_names_types thy) ak_names_types thy12;
 
@@ -423,7 +423,7 @@ fun create_nom_typedecls ak_names thy =
              val i_type0 = TFree("'a",[cp_name_qu]);
              val i_type1 = Type(ak_name_qu,[]);
              val i_type2 = Type(ak_name_qu',[]);
-             val ccp = Const (@{const_name Nominal.cp},
+             val ccp = Const (\<^const_name>\<open>Nominal.cp\<close>,
                              (Term.itselfT i_type0)-->(Term.itselfT i_type1)-->
                                                       (Term.itselfT i_type2)-->HOLogic.boolT);
              val at_type  = Logic.mk_type i_type1;
@@ -460,7 +460,7 @@ fun create_nom_typedecls ak_names thy =
                  val ak_name_qu' = Sign.full_bname thy' ak_name';
                  val i_type1 = Type(ak_name_qu,[]);
                  val i_type2 = Type(ak_name_qu',[]);
-                 val cdj = Const (@{const_name Nominal.disjoint},
+                 val cdj = Const (\<^const_name>\<open>Nominal.disjoint\<close>,
                            (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
                  val at_type  = Logic.mk_type i_type1;
                  val at_type' = Logic.mk_type i_type2;
@@ -555,14 +555,14 @@ fun create_nom_typedecls ak_names thy =
           val pt_thm_unit  = pt_unit_inst;
        in
         thy
-        |> Axclass.prove_arity (@{type_name fun},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
-        |> Axclass.prove_arity (@{type_name set},[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
-        |> Axclass.prove_arity (@{type_name noption},[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
-        |> Axclass.prove_arity (@{type_name option},[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
-        |> Axclass.prove_arity (@{type_name list},[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
-        |> Axclass.prove_arity (@{type_name prod},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
-        |> Axclass.prove_arity (@{type_name nprod},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_nprod)
-        |> Axclass.prove_arity (@{type_name unit},[],[cls_name]) (pt_proof pt_thm_unit)
+        |> Axclass.prove_arity (\<^type_name>\<open>fun\<close>,[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
+        |> Axclass.prove_arity (\<^type_name>\<open>set\<close>,[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
+        |> Axclass.prove_arity (\<^type_name>\<open>noption\<close>,[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> Axclass.prove_arity (\<^type_name>\<open>option\<close>,[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
+        |> Axclass.prove_arity (\<^type_name>\<open>list\<close>,[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
+        |> Axclass.prove_arity (\<^type_name>\<open>prod\<close>,[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> Axclass.prove_arity (\<^type_name>\<open>nprod\<close>,[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_nprod)
+        |> Axclass.prove_arity (\<^type_name>\<open>unit\<close>,[],[cls_name]) (pt_proof pt_thm_unit)
      end) ak_names thy13; 
 
        (********  fs_<ak> class instances  ********)
@@ -622,11 +622,11 @@ fun create_nom_typedecls ak_names thy =
           val fs_thm_optn  = fs_inst RS fs_option_inst;
         in 
          thy
-         |> Axclass.prove_arity (@{type_name unit},[],[cls_name]) (fs_proof fs_thm_unit) 
-         |> Axclass.prove_arity (@{type_name prod},[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
-         |> Axclass.prove_arity (@{type_name nprod},[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_nprod)
-         |> Axclass.prove_arity (@{type_name list},[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
-         |> Axclass.prove_arity (@{type_name option},[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
+         |> Axclass.prove_arity (\<^type_name>\<open>unit\<close>,[],[cls_name]) (fs_proof fs_thm_unit) 
+         |> Axclass.prove_arity (\<^type_name>\<open>prod\<close>,[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
+         |> Axclass.prove_arity (\<^type_name>\<open>nprod\<close>,[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_nprod)
+         |> Axclass.prove_arity (\<^type_name>\<open>list\<close>,[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
+         |> Axclass.prove_arity (\<^type_name>\<open>option\<close>,[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
         end) ak_names thy20;
 
        (********  cp_<ak>_<ai> class instances  ********)
@@ -706,13 +706,13 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_set = cp_inst RS cp_set_inst;
         in
          thy'
-         |> Axclass.prove_arity (@{type_name unit},[],[cls_name]) (cp_proof cp_thm_unit)
-         |> Axclass.prove_arity (@{type_name Product_Type.prod}, [[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
-         |> Axclass.prove_arity (@{type_name list},[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
-         |> Axclass.prove_arity (@{type_name fun},[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
-         |> Axclass.prove_arity (@{type_name option},[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
-         |> Axclass.prove_arity (@{type_name noption},[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
-         |> Axclass.prove_arity (@{type_name set},[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
+         |> Axclass.prove_arity (\<^type_name>\<open>unit\<close>,[],[cls_name]) (cp_proof cp_thm_unit)
+         |> Axclass.prove_arity (\<^type_name>\<open>Product_Type.prod\<close>, [[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> Axclass.prove_arity (\<^type_name>\<open>list\<close>,[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
+         |> Axclass.prove_arity (\<^type_name>\<open>fun\<close>,[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
+         |> Axclass.prove_arity (\<^type_name>\<open>option\<close>,[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
+         |> Axclass.prove_arity (\<^type_name>\<open>noption\<close>,[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> Axclass.prove_arity (\<^type_name>\<open>set\<close>,[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
         end) ak_names thy) ak_names thy25;
 
      (* show that discrete nominal types are permutation types, finitely     *)
@@ -759,18 +759,18 @@ fun create_nom_typedecls ak_names thy =
 
         in
          thy26
-         |> discrete_pt_inst @{type_name nat} @{thm perm_nat_def}
-         |> discrete_fs_inst @{type_name nat} @{thm perm_nat_def}
-         |> discrete_cp_inst @{type_name nat} @{thm perm_nat_def}
-         |> discrete_pt_inst @{type_name bool} @{thm perm_bool_def}
-         |> discrete_fs_inst @{type_name bool} @{thm perm_bool_def}
-         |> discrete_cp_inst @{type_name bool} @{thm perm_bool_def}
-         |> discrete_pt_inst @{type_name int} @{thm perm_int_def}
-         |> discrete_fs_inst @{type_name int} @{thm perm_int_def}
-         |> discrete_cp_inst @{type_name int} @{thm perm_int_def}
-         |> discrete_pt_inst @{type_name char} @{thm perm_char_def}
-         |> discrete_fs_inst @{type_name char} @{thm perm_char_def}
-         |> discrete_cp_inst @{type_name char} @{thm perm_char_def}
+         |> discrete_pt_inst \<^type_name>\<open>nat\<close> @{thm perm_nat_def}
+         |> discrete_fs_inst \<^type_name>\<open>nat\<close> @{thm perm_nat_def}
+         |> discrete_cp_inst \<^type_name>\<open>nat\<close> @{thm perm_nat_def}
+         |> discrete_pt_inst \<^type_name>\<open>bool\<close> @{thm perm_bool_def}
+         |> discrete_fs_inst \<^type_name>\<open>bool\<close> @{thm perm_bool_def}
+         |> discrete_cp_inst \<^type_name>\<open>bool\<close> @{thm perm_bool_def}
+         |> discrete_pt_inst \<^type_name>\<open>int\<close> @{thm perm_int_def}
+         |> discrete_fs_inst \<^type_name>\<open>int\<close> @{thm perm_int_def}
+         |> discrete_cp_inst \<^type_name>\<open>int\<close> @{thm perm_int_def}
+         |> discrete_pt_inst \<^type_name>\<open>char\<close> @{thm perm_char_def}
+         |> discrete_fs_inst \<^type_name>\<open>char\<close> @{thm perm_char_def}
+         |> discrete_cp_inst \<^type_name>\<open>char\<close> @{thm perm_char_def}
         end;
 
 
@@ -1027,7 +1027,7 @@ fun create_nom_typedecls ak_names thy =
 (* syntax und parsing *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword atom_decl} "declare new kinds of atoms"
+  Outer_Syntax.command \<^command_keyword>\<open>atom_decl\<close> "declare new kinds of atoms"
     (Scan.repeat1 Parse.name >> (Toplevel.theory o create_nom_typedecls));
 
 end;

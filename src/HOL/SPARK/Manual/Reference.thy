@@ -23,9 +23,9 @@ text \<open>
 \label{sec:spark-commands}
 This section describes the syntax and effect of each of the commands provided
 by HOL-\SPARK{}.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_open' name ('(' name ')')?
-\<close>}
+\<close>
 Opens a new \SPARK{} verification environment and loads a \texttt{*.siv} file with VCs.
 Alternatively, \texttt{*.vcg} files can be loaded using \isa{\isacommand{spark\_open\_vcg}}.
 The corresponding \texttt{*.fdl} and \texttt{*.rls}
@@ -38,9 +38,9 @@ Since the full package name currently cannot be determined from the files genera
 format \texttt{$p_1$\_\_$\ldots$\_\_$p_n$}. When working with projects consisting of several
 packages, this is necessary in order for the verification environment to be able to map proof
 functions and types defined in Isabelle to their \SPARK{} counterparts.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_proof_functions' ((name '=' term)+)
-\<close>}
+\<close>
 Associates a proof function with the given name to a term. The name should be the full name
 of the proof function as it appears in the \texttt{*.fdl} file, including the package prefix.
 This command can be used both inside and outside a verification environment. The latter
@@ -48,11 +48,11 @@ variant is useful for introducing proof functions that are shared by several pro
 or packages, whereas the former allows the given term to refer to the types generated
 by \isa{\isacommand{spark\_open}} for record or enumeration types specified in the
 \texttt{*.fdl} file.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_types' ((name '=' type (mapping?))+)
   ;
   mapping: '('((name '=' name)+',')')'
-\<close>}
+\<close>
 Associates a \SPARK{} type with the given name with an Isabelle type. This command can
 only be used outside a verification environment. The given type must be either a record
 or a datatype, where the names of fields or constructors must either match those of the
@@ -64,24 +64,24 @@ procedures or packages. First, the types required by the proof functions can be 
 using Isabelle's commands for defining records or datatypes. Having introduced the
 types, the proof functions can be defined in Isabelle. Finally, both the proof
 functions and the types can be associated with their \SPARK{} counterparts.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_status' (('(proved)' | '(unproved)')?)
-\<close>}
+\<close>
 Outputs the variables declared in the \texttt{*.fdl} file, the rules declared in
 the \texttt{*.rls} file, and all VCs, together with their status (proved, unproved).
 The output can be restricted to the proved or unproved VCs by giving the corresponding
 option to the command.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_vc' name
-\<close>}
+\<close>
 Initiates the proof of the VC with the given name. Similar to the standard
 \isa{\isacommand{lemma}} or \isa{\isacommand{theorem}} commands, this command
 must be followed by a sequence of proof commands. The command introduces the
 hypotheses \texttt{H1} \dots \texttt{H$n$}, as well as the identifiers
 \texttt{?C1} \dots \texttt{?C$m$} corresponding to the conclusions of the VC.
-@{rail \<open>
+\<^rail>\<open>
   @'spark_end' '(incomplete)'?
-\<close>}
+\<close>
 Closes the current verification environment. Unless the \texttt{incomplete}
 option is given, all VCs must have been proved,
 otherwise the command issues an error message. As a side effect, the command
@@ -101,7 +101,7 @@ Isabelle.
 subsection \<open>Integers\<close>
 
 text \<open>
-The FDL type \texttt{integer} is modelled by the Isabelle type @{typ int}.
+The FDL type \texttt{integer} is modelled by the Isabelle type \<^typ>\<open>int\<close>.
 While the FDL \texttt{mod} operator behaves in the same way as its Isabelle
 counterpart, this is not the case for the \texttt{div} operator. As has already
 been mentioned in \secref{sec:proving-vcs}, the \texttt{div} operator of \SPARK{}
@@ -146,7 +146,7 @@ of \<open>sdiv\<close>, in particular those describing the relationship with the
 \end{figure}
 The bitwise logical operators of \SPARK{} and FDL are modelled by the operators
 \<open>AND\<close>, \<open>OR\<close> and \<open>XOR\<close> from Isabelle's \<open>Word\<close> library,
-all of which have type @{typ "int \<Rightarrow> int \<Rightarrow> int"}. A list of properties of these
+all of which have type \<^typ>\<open>int \<Rightarrow> int \<Rightarrow> int\<close>. A list of properties of these
 operators that are useful in proofs about \SPARK{} programs are shown in
 \figref{fig:bitwise}
 \<close>
@@ -163,7 +163,7 @@ is modelled by the Isabelle datatype
 \normalsize
 \isacommand{datatype}\ $t$\ =\ $e_1$\ $\mid$\ $e_2$\ $\mid$\ \dots\ $\mid$\ $e_n$
 \end{isabelle}
-The HOL-\SPARK{} environment defines a type class @{class spark_enum} that captures
+The HOL-\SPARK{} environment defines a type class \<^class>\<open>spark_enum\<close> that captures
 the characteristic properties of all enumeration types. It provides the following
 polymorphic functions and constants for all types \<open>'a\<close> of this type class:
 \begin{flushleft}
@@ -174,14 +174,14 @@ polymorphic functions and constants for all types \<open>'a\<close> of this type
 @{term_type [mode=my_constrain] first_el} \\
 @{term_type [mode=my_constrain] last_el}
 \end{flushleft}
-In addition, @{class spark_enum} is a subclass of the @{class linorder} type class,
+In addition, \<^class>\<open>spark_enum\<close> is a subclass of the \<^class>\<open>linorder\<close> type class,
 which allows the comparison operators \<open><\<close> and \<open>\<le>\<close> to be used on
 enumeration types. The polymorphic operations shown above enjoy a number of
 generic properties that hold for all enumeration types. These properties are
 listed in \figref{fig:enum-generic-properties}.
 Moreover, \figref{fig:enum-specific-properties} shows a list of properties
 that are specific to each enumeration type $t$, such as the characteristic
-equations for @{term val} and @{term pos}.
+equations for \<^term>\<open>val\<close> and \<^term>\<open>pos\<close>.
 \begin{figure}[t]
 \begin{center}
 \small

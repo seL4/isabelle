@@ -19,16 +19,15 @@ While simplifying the conclusion $Q$
 of $P \Imp Q$, it is legal to use the assumption $P$.
 For $\Imp$ this policy is hardwired, but 
 contextual information can also be made available for other
-operators. For example, @{prop"xs = [] --> xs@xs = xs"} simplifies to @{term
-True} because we may use @{prop"xs = []"} when simplifying @{prop"xs@xs =
-xs"}. The generation of contextual information during simplification is
+operators. For example, \<^prop>\<open>xs = [] --> xs@xs = xs\<close> simplifies to \<^term>\<open>True\<close> because we may use \<^prop>\<open>xs = []\<close> when simplifying \<^prop>\<open>xs@xs =
+xs\<close>. The generation of contextual information during simplification is
 controlled by so-called \bfindex{congruence rules}. This is the one for
 \<open>\<longrightarrow>\<close>:
 @{thm[display]imp_cong[no_vars]}
 It should be read as follows:
-In order to simplify @{prop"P-->Q"} to @{prop"P'-->Q'"},
-simplify @{prop P} to @{prop P'}
-and assume @{prop"P'"} when simplifying @{prop Q} to @{prop"Q'"}.
+In order to simplify \<^prop>\<open>P-->Q\<close> to \<^prop>\<open>P'-->Q'\<close>,
+simplify \<^prop>\<open>P\<close> to \<^prop>\<open>P'\<close>
+and assume \<^prop>\<open>P'\<close> when simplifying \<^prop>\<open>Q\<close> to \<^prop>\<open>Q'\<close>.
 
 Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
@@ -70,16 +69,16 @@ text\<open>
 \index{rewrite rules!permutative|bold}%
 An equation is a \textbf{permutative rewrite rule} if the left-hand
 side and right-hand side are the same up to renaming of variables.  The most
-common permutative rule is commutativity: @{prop"x+y = y+x"}.  Other examples
-include @{prop"(x-y)-z = (x-z)-y"} in arithmetic and @{prop"insert x (insert
-y A) = insert y (insert x A)"} for sets. Such rules are problematic because
+common permutative rule is commutativity: \<^prop>\<open>x+y = y+x\<close>.  Other examples
+include \<^prop>\<open>(x-y)-z = (x-z)-y\<close> in arithmetic and \<^prop>\<open>insert x (insert
+y A) = insert y (insert x A)\<close> for sets. Such rules are problematic because
 once they apply, they can be used forever. The simplifier is aware of this
 danger and treats permutative rules by means of a special strategy, called
 \bfindex{ordered rewriting}: a permutative rewrite
 rule is only applied if the term becomes smaller with respect to a fixed
 lexicographic ordering on terms. For example, commutativity rewrites
-@{term"b+a"} to @{term"a+b"}, but then stops because @{term"a+b"} is strictly
-smaller than @{term"b+a"}.  Permutative rewrite rules can be turned into
+\<^term>\<open>b+a\<close> to \<^term>\<open>a+b\<close>, but then stops because \<^term>\<open>a+b\<close> is strictly
+smaller than \<^term>\<open>b+a\<close>.  Permutative rewrite rules can be turned into
 simplification rules in the usual manner via the \<open>simp\<close> attribute; the
 simplifier recognizes their special status automatically.
 
@@ -140,7 +139,7 @@ If the left-hand side is not a higher-order pattern, all is not lost.
 The simplifier will still try to apply the rule provided it
 matches directly: without much $\lambda$-calculus hocus
 pocus.  For example, \<open>(?f ?x \<in> range ?f) = True\<close> rewrites
-@{term"g a \<in> range g"} to @{const True}, but will fail to match
+\<^term>\<open>g a \<in> range g\<close> to \<^const>\<open>True\<close>, but will fail to match
 \<open>g(h b) \<in> range(\<lambda>x. g(h x))\<close>.  However, you can
 eliminate the offending subterms --- those that are not patterns ---
 by adding new variables and conditions.
@@ -160,9 +159,9 @@ subsubsection\<open>The Preprocessor\<close>
 text\<open>\label{sec:simp-preprocessor}
 When a theorem is declared a simplification rule, it need not be a
 conditional equation already.  The simplifier will turn it into a set of
-conditional equations automatically.  For example, @{prop"f x =
-g x & h x = k x"} becomes the two separate
-simplification rules @{prop"f x = g x"} and @{prop"h x = k x"}. In
+conditional equations automatically.  For example, \<^prop>\<open>f x =
+g x & h x = k x\<close> becomes the two separate
+simplification rules \<^prop>\<open>f x = g x\<close> and \<^prop>\<open>h x = k x\<close>. In
 general, the input theorem is converted as follows:
 \begin{eqnarray}
 \neg P &\mapsto& P = \hbox{\isa{False}} \nonumber\\
@@ -176,10 +175,10 @@ P \land Q &\mapsto& P,\ Q \nonumber\\
 Once this conversion process is finished, all remaining non-equations
 $P$ are turned into trivial equations $P =\isa{True}$.
 For example, the formula 
-\begin{center}@{prop"(p \<longrightarrow> t=u \<and> ~r) \<and> s"}\end{center}
+\begin{center}\<^prop>\<open>(p \<longrightarrow> t=u \<and> ~r) \<and> s\<close>\end{center}
 is converted into the three rules
 \begin{center}
-@{prop"p \<Longrightarrow> t = u"},\quad  @{prop"p \<Longrightarrow> r = False"},\quad  @{prop"s = True"}.
+\<^prop>\<open>p \<Longrightarrow> t = u\<close>,\quad  \<^prop>\<open>p \<Longrightarrow> r = False\<close>,\quad  \<^prop>\<open>s = True\<close>.
 \end{center}
 \index{simplification rule|)}
 \index{simplification|)}

@@ -15,8 +15,8 @@ val dest_set =
   let
     fun h acc ct =
       (case Thm.term_of ct of
-        Const (@{const_name Orderings.bot}, _) => acc
-      | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct));
+        Const (\<^const_name>\<open>Orderings.bot\<close>, _) => acc
+      | Const (\<^const_name>\<open>insert\<close>, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct));
   in h [] end;
 
 fun prove_finite cT u =
@@ -34,7 +34,7 @@ fun simp_rule ctxt =
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
   (case Thm.term_of ep of
-    Const (@{const_name Ex}, _) $ _ =>
+    Const (\<^const_name>\<open>Ex\<close>, _) $ _ =>
       let
         val p = Thm.dest_arg ep
         val ths =
@@ -53,10 +53,10 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
 
         val qe =
           (case (Thm.term_of L, Thm.term_of U) of
-            (Const (@{const_name Orderings.bot}, _),_) =>
+            (Const (\<^const_name>\<open>Orderings.bot\<close>, _),_) =>
               let val (neU, fU) = proveneF U
               in simp_rule ctxt (Thm.transitive ths (dlo_qeth_nolb OF [neU, fU])) end
-          | (_, Const (@{const_name Orderings.bot}, _)) =>
+          | (_, Const (\<^const_name>\<open>Orderings.bot\<close>, _)) =>
               let val (neL,fL) = proveneF L
               in simp_rule ctxt (Thm.transitive ths (dlo_qeth_noub OF [neL, fL])) end
           | _ =>
@@ -71,30 +71,30 @@ val all_conjuncts =
   let
     fun h acc ct =
       (case Thm.term_of ct of
-        @{term HOL.conj} $ _ $ _ => h (h acc (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
+        \<^term>\<open>HOL.conj\<close> $ _ $ _ => h (h acc (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
       | _ => ct :: acc)
   in h [] end;
 
 fun conjuncts ct =
   (case Thm.term_of ct of
-    @{term HOL.conj} $ _ $ _ => Thm.dest_arg1 ct :: conjuncts (Thm.dest_arg ct)
+    \<^term>\<open>HOL.conj\<close> $ _ $ _ => Thm.dest_arg1 ct :: conjuncts (Thm.dest_arg ct)
   | _ => [ct]);
 
 fun fold1 f = foldr1 (uncurry f);  (* FIXME !? *)
 
 val list_conj =
-  fold1 (fn c => fn c' => Thm.apply (Thm.apply @{cterm HOL.conj} c) c');
+  fold1 (fn c => fn c' => Thm.apply (Thm.apply \<^cterm>\<open>HOL.conj\<close> c) c');
 
 fun mk_conj_tab th =
   let
     fun h acc th =
       (case Thm.prop_of th of
-        @{term "Trueprop"} $ (@{term HOL.conj} $ p $ q) =>
+        \<^term>\<open>Trueprop\<close> $ (\<^term>\<open>HOL.conj\<close> $ p $ q) =>
           h (h acc (th RS conjunct2)) (th RS conjunct1)
-      | @{term "Trueprop"} $ p => (p, th) :: acc)
+      | \<^term>\<open>Trueprop\<close> $ p => (p, th) :: acc)
   in fold (Termtab.insert Thm.eq_thm) (h [] th) Termtab.empty end;
 
-fun is_conj (@{term HOL.conj}$_$_) = true
+fun is_conj (\<^term>\<open>HOL.conj\<close>$_$_) = true
   | is_conj _ = false;
 
 fun prove_conj tab cjs =
@@ -122,7 +122,7 @@ fun contains x ct =
 
 fun is_eqx x eq =
   (case Thm.term_of eq of
-    Const (@{const_name HOL.eq}, _) $ l $ r =>
+    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ l $ r =>
       l aconv Thm.term_of x orelse r aconv Thm.term_of x
   | _ => false);
 
@@ -130,11 +130,11 @@ local
 
 fun proc ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name Ex}, _) $ Abs (xn, _, _) =>
+    Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (xn, _, _) =>
       let
         val e = Thm.dest_fun ct
         val (x,p) = Thm.dest_abs (SOME xn) (Thm.dest_arg ct)
-        val Pp = Thm.apply @{cterm Trueprop} p
+        val Pp = Thm.apply \<^cterm>\<open>Trueprop\<close> p
         val (eqs,neqs) = List.partition (is_eqx x) (all_conjuncts p)
       in
         (case eqs of
@@ -145,8 +145,8 @@ fun proc ctxt ct =
               case ndx of
                 [] => NONE
               | _ =>
-                conj_aci_rule (Thm.mk_binop @{cterm "(\<equiv>) :: prop => _"} Pp
-                  (Thm.apply @{cterm Trueprop} (list_conj (ndx @ dx))))
+                conj_aci_rule (Thm.mk_binop \<^cterm>\<open>(\<equiv>) :: prop => _\<close> Pp
+                  (Thm.apply \<^cterm>\<open>Trueprop\<close> (list_conj (ndx @ dx))))
                 |> Thm.abstract_rule xn x
                 |> Drule.arg_cong_rule e
                 |> Conv.fconv_rule
@@ -156,8 +156,8 @@ fun proc ctxt ct =
                 |> SOME
             end
         | _ =>
-            conj_aci_rule (Thm.mk_binop @{cterm "(\<equiv>) :: prop => _"} Pp
-              (Thm.apply @{cterm Trueprop} (list_conj (eqs @ neqs))))
+            conj_aci_rule (Thm.mk_binop \<^cterm>\<open>(\<equiv>) :: prop => _\<close> Pp
+              (Thm.apply \<^cterm>\<open>Trueprop\<close> (list_conj (eqs @ neqs))))
             |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e
             |> Conv.fconv_rule
                 (Conv.arg_conv
@@ -170,8 +170,8 @@ fun proc ctxt ct =
 in
 
 val reduce_ex_simproc =
-  Simplifier.make_simproc @{context} "reduce_ex_simproc"
-    {lhss = [@{term "\<exists>x. P x"}], proc = K proc};
+  Simplifier.make_simproc \<^context> "reduce_ex_simproc"
+    {lhss = [\<^term>\<open>\<exists>x. P x\<close>], proc = K proc};
 
 end;
 
@@ -196,19 +196,19 @@ val grab_atom_bop =
   let
     fun h bounds tm =
       (case Thm.term_of tm of
-        Const (@{const_name HOL.eq}, T) $ _ $ _ =>
+        Const (\<^const_name>\<open>HOL.eq\<close>, T) $ _ $ _ =>
           if domain_type T = HOLogic.boolT then find_args bounds tm
           else Thm.dest_fun2 tm
-      | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)
-      | Const (@{const_name All}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-      | Const (@{const_name Pure.all}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-      | Const (@{const_name Ex}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-      | Const (@{const_name HOL.conj}, _) $ _ $ _ => find_args bounds tm
-      | Const (@{const_name HOL.disj}, _) $ _ $ _ => find_args bounds tm
-      | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
-      | Const (@{const_name Pure.imp}, _) $ _ $ _ => find_args bounds tm
-      | Const (@{const_name Pure.eq}, _) $ _ $ _ => find_args bounds tm
-      | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)
+      | Const (\<^const_name>\<open>Not\<close>, _) $ _ => h bounds (Thm.dest_arg tm)
+      | Const (\<^const_name>\<open>All\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
+      | Const (\<^const_name>\<open>Pure.all\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
+      | Const (\<^const_name>\<open>Ex\<close>, _) $ _ => find_body bounds (Thm.dest_arg tm)
+      | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ => find_args bounds tm
+      | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ $ _ => find_args bounds tm
+      | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ => find_args bounds tm
+      | Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ _ => find_args bounds tm
+      | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ => find_args bounds tm
+      | Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => h bounds (Thm.dest_arg tm)
       | _ => Thm.dest_fun2 tm)
     and find_args bounds tm =
       (h bounds (Thm.dest_arg tm) handle CTERM _ => h bounds (Thm.dest_arg1 tm))

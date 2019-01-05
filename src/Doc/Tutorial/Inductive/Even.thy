@@ -29,7 +29,7 @@ text \<open>
 An inductive definition consists of introduction rules.  The first one
 above states that 0 is even; the second states that if $n$ is even, then so
 is~$n+2$.  Given this declaration, Isabelle generates a fixed point
-definition for @{term even} and proves theorems about it,
+definition for \<^term>\<open>even\<close> and proves theorems about it,
 thus following the definitional approach (see {\S}\ref{sec:definitional}).
 These theorems
 include the introduction rules specified in the declaration, an elimination
@@ -85,23 +85,23 @@ subsection\<open>Rule Induction \label{sec:rule-induction}\<close>
 text \<open>
 \index{rule induction|(}%
 From the definition of the set
-@{term even}, Isabelle has
+\<^term>\<open>even\<close>, Isabelle has
 generated an induction rule:
 @{named_thms [display,indent=0,margin=40] even.induct [no_vars] (even.induct)}
-A property @{term P} holds for every even number provided it
+A property \<^term>\<open>P\<close> holds for every even number provided it
 holds for~\<open>0\<close> and is closed under the operation
-\isa{Suc(Suc \(\cdot\))}.  Then @{term P} is closed under the introduction
-rules for @{term even}, which is the least set closed under those rules. 
+\isa{Suc(Suc \(\cdot\))}.  Then \<^term>\<open>P\<close> is closed under the introduction
+rules for \<^term>\<open>even\<close>, which is the least set closed under those rules. 
 This type of inductive argument is called \textbf{rule induction}. 
 
-Apart from the double application of @{term Suc}, the induction rule above
+Apart from the double application of \<^term>\<open>Suc\<close>, the induction rule above
 resembles the familiar mathematical induction, which indeed is an instance
 of rule induction; the natural numbers can be defined inductively to be
-the least set containing \<open>0\<close> and closed under~@{term Suc}.
+the least set containing \<open>0\<close> and closed under~\<^term>\<open>Suc\<close>.
 
 Induction is the usual way of proving a property of the elements of an
 inductively defined set.  Let us prove that all members of the set
-@{term even} are multiples of two.
+\<^term>\<open>even\<close> are multiples of two.
 \<close>
 
 lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
@@ -126,14 +126,14 @@ apply clarify
 txt \<open>
 @{subgoals[display,indent=0]}
 To conclude, we tell Isabelle that the desired value is
-@{term "Suc k"}.  With this hint, the subgoal falls to \<open>simp\<close>.
+\<^term>\<open>Suc k\<close>.  With this hint, the subgoal falls to \<open>simp\<close>.
 \<close>
 apply (rule_tac x = "Suc k" in exI, simp)
 (*<*)done(*>*)
 
 text \<open>
 Combining the previous two results yields our objective, the
-equivalence relating @{term even} and \<open>dvd\<close>. 
+equivalence relating \<^term>\<open>even\<close> and \<open>dvd\<close>. 
 %
 %we don't want [iff]: discuss?
 \<close>
@@ -161,7 +161,7 @@ lemma "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"
 apply (erule even.induct)
 (*>*)
 txt \<open>
-Rule induction finds no occurrences of @{term "Suc(Suc n)"} in the
+Rule induction finds no occurrences of \<^term>\<open>Suc(Suc n)\<close> in the
 conclusion, which it therefore leaves unchanged.  (Look at
 \<open>even.induct\<close> to see why this happens.)  We have these subgoals:
 @{subgoals[display,indent=0]}
@@ -185,8 +185,8 @@ txt \<open>
 This lemma is trivially inductive.  Here are the subgoals:
 @{subgoals[display,indent=0]}
 The first is trivial because \<open>0 - 2\<close> simplifies to \<open>0\<close>, which is
-even.  The second is trivial too: @{term "Suc (Suc n) - 2"} simplifies to
-@{term n}, matching the assumption.%
+even.  The second is trivial too: \<^term>\<open>Suc (Suc n) - 2\<close> simplifies to
+\<^term>\<open>n\<close>, matching the assumption.%
 \index{rule induction|)}  %the sequel isn't really about induction
 
 \medskip
@@ -216,21 +216,21 @@ semantics.  It can be highly effective when it is applied
 automatically.  Let us look at how rule inversion is done in
 Isabelle/HOL\@.
 
-Recall that @{term even} is the minimal set closed under these two rules:
+Recall that \<^term>\<open>even\<close> is the minimal set closed under these two rules:
 @{thm [display,indent=0] even.intros [no_vars]}
-Minimality means that @{term even} contains only the elements that these
-rules force it to contain.  If we are told that @{term a}
+Minimality means that \<^term>\<open>even\<close> contains only the elements that these
+rules force it to contain.  If we are told that \<^term>\<open>a\<close>
 belongs to
-@{term even} then there are only two possibilities.  Either @{term a} is \<open>0\<close>
-or else @{term a} has the form @{term "Suc(Suc n)"}, for some suitable @{term n}
+\<^term>\<open>even\<close> then there are only two possibilities.  Either \<^term>\<open>a\<close> is \<open>0\<close>
+or else \<^term>\<open>a\<close> has the form \<^term>\<open>Suc(Suc n)\<close>, for some suitable \<^term>\<open>n\<close>
 that belongs to
-@{term even}.  That is the gist of the @{term cases} rule, which Isabelle proves
+\<^term>\<open>even\<close>.  That is the gist of the \<^term>\<open>cases\<close> rule, which Isabelle proves
 for us when it accepts an inductive definition:
 @{named_thms [display,indent=0,margin=40] even.cases [no_vars] (even.cases)}
 This general rule is less useful than instances of it for
-specific patterns.  For example, if @{term a} has the form
-@{term "Suc(Suc n)"} then the first case becomes irrelevant, while the second
-case tells us that @{term n} belongs to @{term even}.  Isabelle will generate
+specific patterns.  For example, if \<^term>\<open>a\<close> has the form
+\<^term>\<open>Suc(Suc n)\<close> then the first case becomes irrelevant, while the second
+case tells us that \<^term>\<open>n\<close> belongs to \<^term>\<open>even\<close>.  Isabelle will generate
 this instance for us:
 \<close>
 
@@ -242,7 +242,7 @@ the \<open>cases\<close> rule for the supplied pattern and gives it the supplied
 @{named_thms [display,indent=0] Suc_Suc_cases [no_vars] (Suc_Suc_cases)}
 Applying this as an elimination rule yields one case where \<open>even.cases\<close>
 would yield two.  Rule inversion works well when the conclusions of the
-introduction rules involve datatype constructors like @{term Suc} and \<open>#\<close>
+introduction rules involve datatype constructors like \<^term>\<open>Suc\<close> and \<open>#\<close>
 (list ``cons''); freeness reasoning discards all but one or two cases.
 
 In the \isacommand{inductive\_cases} command we supplied an
@@ -250,8 +250,8 @@ attribute, \<open>elim!\<close>,
 \index{elim"!@\isa {elim"!} (attribute)}%
 indicating that this elimination rule can be
 applied aggressively.  The original
-@{term cases} rule would loop if used in that manner because the
-pattern~@{term a} matches everything.
+\<^term>\<open>cases\<close> rule would loop if used in that manner because the
+pattern~\<^term>\<open>a\<close> matches everything.
 
 The rule \<open>Suc_Suc_cases\<close> is equivalent to the following implication:
 @{term [display,indent=0] "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"}

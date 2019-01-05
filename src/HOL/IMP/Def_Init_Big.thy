@@ -33,7 +33,7 @@ lemmas big_step_induct = big_step.induct[split_format(complete)]
 subsection "Soundness wrt Big Steps"
 
 text\<open>Note the special form of the induction because one of the arguments
-of the inductive predicate is not a variable but the term @{term"Some s"}:\<close>
+of the inductive predicate is not a variable but the term \<^term>\<open>Some s\<close>:\<close>
 
 theorem Sound:
   "\<lbrakk> (c,Some s) \<Rightarrow> s';  D A c A';  A \<subseteq> dom s \<rbrakk>

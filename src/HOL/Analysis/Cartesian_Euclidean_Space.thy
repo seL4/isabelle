@@ -813,7 +813,7 @@ lemma%important differential_zero_maxmin_cart:
     vector_cart[of "\<lambda>j. frechet_derivative f (at x) j $ k"]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis jacobian_def matrix_def)
 
-subsection%unimportant \<open>Lemmas for working on @{typ "real^1"}\<close>
+subsection%unimportant \<open>Lemmas for working on \<^typ>\<open>real^1\<close>\<close>
 
 lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
   by (metis (full_types) num1_eq_iff)
@@ -1083,7 +1083,7 @@ lemma%unimportant rank_mul_le_left:
   shows "rank(A ** B) \<le> rank A"
   by (metis matrix_transpose_mul rank_mul_le_right rank_transpose)
 
-subsection%unimportant\<open>Routine results connecting the types @{typ "real^1"} and @{typ real}\<close>
+subsection%unimportant\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
 
 lemma vector_one_nth [simp]:
   fixes x :: "'a^1" shows "vec (x $ 1) = x"

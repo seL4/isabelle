@@ -625,7 +625,7 @@ next
 qed
 
 text \<open>
-  Since @{term H} is nonempty, it contains some element @{term x}.  Since
+  Since \<^term>\<open>H\<close> is nonempty, it contains some element \<^term>\<open>x\<close>.  Since
   it is closed under inverse, it contains \<open>inv x\<close>.  Since
   it is closed under product, it contains \<open>x \<otimes> inv x = \<one>\<close>.
 \<close>
@@ -1021,8 +1021,8 @@ corollary (in group) DirProd_iso_trans :
   using DirProd_iso_set_trans assms unfolding is_iso_def by blast
 
 
-text\<open>Basis for homomorphism proofs: we assume two groups @{term G} and
-  @{term H}, with a homomorphism @{term h} between them\<close>
+text\<open>Basis for homomorphism proofs: we assume two groups \<^term>\<open>G\<close> and
+  \<^term>\<open>H\<close>, with a homomorphism \<^term>\<open>h\<close> between them\<close>
 locale group_hom = G?: group G + H?: group H for G (structure) and H (structure) +
   fixes h
   assumes homh: "h \<in> hom G H"

@@ -466,7 +466,7 @@ proof
   qed
 qed
 
-subsubsection \<open>Total order \<open><=\<close> on @{typ int}\<close>
+subsubsection \<open>Total order \<open><=\<close> on \<^typ>\<open>int\<close>\<close>
 
 interpretation int: dpo "(<=) :: [int, int] => bool"
   rewrites "(dpo.less (<=) (x::int) y) = (x < y)"
@@ -522,7 +522,7 @@ thm int.meet_distr text \<open>from ddlat\<close>
 thm int.less_total text \<open>from dlo\<close>
 
 
-subsubsection \<open>Total order \<open><=\<close> on @{typ nat}\<close>
+subsubsection \<open>Total order \<open><=\<close> on \<^typ>\<open>nat\<close>\<close>
 
 interpretation nat: dpo "(<=) :: [nat, nat] => bool"
   rewrites "dpo.less (<=) (x::nat) y = (x < y)"
@@ -573,7 +573,7 @@ thm nat.meet_distr text \<open>from ddlat\<close>
 thm nat.less_total text \<open>from ldo\<close>
 
 
-subsubsection \<open>Lattice \<open>dvd\<close> on @{typ nat}\<close>
+subsubsection \<open>Lattice \<open>dvd\<close> on \<^typ>\<open>nat\<close>\<close>
 
 interpretation nat_dvd: dpo "(dvd) :: [nat, nat] => bool"
   rewrites "dpo.less (dvd) (x::nat) y = (x dvd y & x ~= y)"

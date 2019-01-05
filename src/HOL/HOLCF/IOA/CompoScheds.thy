@@ -277,7 +277,7 @@ fun mkex_induct_tac ctxt sch exA exB =
       @{thms Filter_def Forall_def sforall_def mkex_def stutter_def},
     asm_full_simp_tac ctxt,
     SELECT_GOAL
-      (safe_tac (Context.raw_transfer (Proof_Context.theory_of ctxt) @{theory_context Fun})),
+      (safe_tac (Context.raw_transfer (Proof_Context.theory_of ctxt) \<^theory_context>\<open>Fun\<close>)),
     Seq_case_simp_tac ctxt exA,
     Seq_case_simp_tac ctxt exB,
     asm_full_simp_tac ctxt,

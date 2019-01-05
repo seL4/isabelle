@@ -96,8 +96,8 @@ fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (Plus a\<^sub>1 a\<^sub>2) = plus (asimp a\<^sub>1) (asimp a\<^sub>2)"
 text_raw\<open>}%endsnip\<close>
 
-text\<open>Note that in @{const asimp_const} the optimized constructor was
-inlined. Making it a separate function @{const plus} improves modularity of
+text\<open>Note that in \<^const>\<open>asimp_const\<close> the optimized constructor was
+inlined. Making it a separate function \<^const>\<open>plus\<close> improves modularity of
 the code and the proofs.\<close>
 
 value "asimp (Plus (Plus (N 0) (N 0)) (Plus (V ''x'') (N 0)))"

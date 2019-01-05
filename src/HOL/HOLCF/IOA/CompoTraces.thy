@@ -448,7 +448,7 @@ lemma FilterAmksch_is_schA:
   apply (rule_tac x = "schA" in spec)
   apply (rule_tac x = "schB" in spec)
   apply (rule_tac x = "tr" in spec)
-  apply (tactic "thin_tac' @{context} 5 1")
+  apply (tactic "thin_tac' \<^context> 5 1")
   apply (rule nat_less_induct)
   apply (rule allI)+
   apply (rename_tac tr schB schA)
@@ -458,7 +458,7 @@ lemma FilterAmksch_is_schA:
   apply (case_tac "Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) tr")
 
   apply (rule seq_take_lemma [THEN iffD2, THEN spec])
-  apply (tactic "thin_tac' @{context} 5 1")
+  apply (tactic "thin_tac' \<^context> 5 1")
 
 
   apply (case_tac "Finite tr")
@@ -666,7 +666,7 @@ lemma FilterBmksch_is_schB:
   apply (rule_tac x = "schA" in spec)
   apply (rule_tac x = "schB" in spec)
   apply (rule_tac x = "tr" in spec)
-  apply (tactic "thin_tac' @{context} 5 1")
+  apply (tactic "thin_tac' \<^context> 5 1")
   apply (rule nat_less_induct)
   apply (rule allI)+
   apply (rename_tac tr schB schA)
@@ -676,7 +676,7 @@ lemma FilterBmksch_is_schB:
   apply (case_tac "Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) tr")
 
   apply (rule seq_take_lemma [THEN iffD2, THEN spec])
-  apply (tactic "thin_tac' @{context} 5 1")
+  apply (tactic "thin_tac' \<^context> 5 1")
 
   apply (case_tac "Finite tr")
 

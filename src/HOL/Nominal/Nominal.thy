@@ -17,7 +17,7 @@ type_synonym
 
 (* polymorphic constants for permutation and swapping *)
 consts 
-  perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr "\<bullet>" 80)
+  perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr \<open>\<bullet>\<close> 80)
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
 
 (* a "private" copy of the option type used in the abstraction function *)
@@ -187,7 +187,7 @@ lemma perm_string:
 section \<open>permutation equality\<close>
 (*==============================*)
 
-definition prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool" (" _ \<triangleq> _ " [80,80] 80) where
+definition prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool" (\<open> _ \<triangleq> _ \<close> [80,80] 80) where
   "pi1 \<triangleq> pi2 \<longleftrightarrow> (\<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a)"
 
 section \<open>Support, Freshness and Supports\<close>
@@ -195,10 +195,10 @@ section \<open>Support, Freshness and Supports\<close>
 definition supp :: "'a \<Rightarrow> ('x set)" where  
    "supp x = {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
 
-definition fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp> _" [80,80] 80) where
+definition fresh :: "'x \<Rightarrow> 'a \<Rightarrow> bool" (\<open>_ \<sharp> _\<close> [80,80] 80) where
    "a \<sharp> x \<longleftrightarrow> a \<notin> supp x"
 
-definition supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80) where
+definition supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>supports\<close> 80) where
    "S supports x \<longleftrightarrow> (\<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x))"
 
 (* lemmas about supp *)
@@ -386,7 +386,7 @@ lemma fresh_prodD:
   by (simp_all add: fresh_prod)
 
 ML \<open>
-  val mksimps_pairs = (@{const_name Nominal.fresh}, @{thms fresh_prodD}) :: mksimps_pairs;
+  val mksimps_pairs = (\<^const_name>\<open>Nominal.fresh\<close>, @{thms fresh_prodD}) :: mksimps_pairs;
 \<close>
 declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
@@ -2414,7 +2414,7 @@ section \<open>generalisation of freshness to lists and sets of atoms\<close>
 (*================================================================*)
  
 consts
-  fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp>* _" [100,100] 100)
+  fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" (\<open>_ \<sharp>* _\<close> [100,100] 100)
 
 overloading fresh_star_set \<equiv> "fresh_star :: 'b set \<Rightarrow> 'a \<Rightarrow> bool"
 begin
@@ -2951,7 +2951,7 @@ lemma pt_abs_fun_inst:
   shows "pt TYPE('x\<Rightarrow>('a noption)) TYPE('x)"
   by (rule pt_fun_inst[OF at_pt_inst[OF at],OF pt_noption_inst[OF pt],OF at])
 
-definition abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" ("[_]._" [100,100] 100) where 
+definition abs_fun :: "'x\<Rightarrow>'a\<Rightarrow>('x\<Rightarrow>('a noption))" (\<open>[_]._\<close> [100,100] 100) where 
   "[a].x \<equiv> (\<lambda>b. (if b=a then nSome(x) else (if b\<sharp>x then nSome([(a,b)]\<bullet>x) else nNone)))"
 
 (* FIXME: should be called perm_if and placed close to the definition of permutations on bools *)
@@ -3385,7 +3385,7 @@ inductive_set ABS_set :: "('x\<Rightarrow>('a noption)) set"
 
 definition "ABS = ABS_set"
 
-typedef ('x, 'a) ABS ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000) =
+typedef ('x, 'a) ABS (\<open>\<guillemotleft>_\<guillemotright>_\<close> [1000,1000] 1000) =
     "ABS::('x\<Rightarrow>('a noption)) set"
   morphisms Rep_ABS Abs_ABS
   unfolding ABS_def

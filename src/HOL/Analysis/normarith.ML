@@ -16,17 +16,17 @@ struct
  open Conv;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case Thm.term_of t of
-   Const(@{const_name divide}, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
- | Const(@{const_name inverse}, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
+   Const(\<^const_name>\<open>divide\<close>, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(\<^const_name>\<open>inverse\<close>, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
  | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
  fun augment_norm b t acc = case Thm.term_of t of
-     Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
+     Const(\<^const_name>\<open>norm\<close>, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
    | _ => acc
  fun find_normedterms t acc = case Thm.term_of t of
-    @{term "(+) :: real => _"}$_$_ =>
+    \<^term>\<open>(+) :: real => _\<close>$_$_ =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
-      | @{term "(*) :: real => _"}$_$_ =>
+      | \<^term>\<open>(*) :: real => _\<close>$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
             augment_norm (dest_ratconst (Thm.dest_arg1 t) >= @0)
                       (Thm.dest_arg t) acc
@@ -51,13 +51,13 @@ struct
 *)
 
 fun vector_lincomb t = case Thm.term_of t of
-   Const(@{const_name plus}, _) $ _ $ _ =>
+   Const(\<^const_name>\<open>plus\<close>, _) $ _ $ _ =>
     cterm_lincomb_add (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(@{const_name minus}, _) $ _ $ _ =>
+ | Const(\<^const_name>\<open>minus\<close>, _) $ _ $ _ =>
     cterm_lincomb_sub (vector_lincomb (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(@{const_name scaleR}, _)$_$_ =>
+ | Const(\<^const_name>\<open>scaleR\<close>, _)$_$_ =>
     cterm_lincomb_cmul (dest_ratconst (Thm.dest_arg1 t)) (vector_lincomb (Thm.dest_arg t))
- | Const(@{const_name uminus}, _)$_ =>
+ | Const(\<^const_name>\<open>uminus\<close>, _)$_ =>
      cterm_lincomb_neg (vector_lincomb (Thm.dest_arg t))
 (* FIXME: how should we handle numerals?
  | Const(@ {const_name vec},_)$_ =>
@@ -82,8 +82,8 @@ fun vector_lincomb t = case Thm.term_of t of
    | SOME _ => fns) ts []
 
 fun replacenegnorms cv t = case Thm.term_of t of
-  @{term "(+) :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
-| @{term "(*) :: real => _"}$_$_ =>
+  \<^term>\<open>(+) :: real => _\<close>$_$_ => binop_conv (replacenegnorms cv) t
+| \<^term>\<open>(*) :: real => _\<close>$_$_ =>
     if dest_ratconst (Thm.dest_arg1 t) < @0 then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*
@@ -148,10 +148,10 @@ fun match_mp PQ P = P RS PQ;
 fun cterm_of_rat x =
 let val (a, b) = Rat.dest x
 in
- if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
-  else Thm.apply (Thm.apply @{cterm "(/) :: real => _"}
-                   (Numeral.mk_cnumber @{ctyp "real"} a))
-        (Numeral.mk_cnumber @{ctyp "real"} b)
+ if b = 1 then Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a
+  else Thm.apply (Thm.apply \<^cterm>\<open>(/) :: real => _\<close>
+                   (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> a))
+        (Numeral.mk_cnumber \<^ctyp>\<open>real\<close> b)
 end;
 
 fun norm_cmul_rule c th = Thm.instantiate' [] [SOME (cterm_of_rat c)] (th RS @{thm norm_cmul_rule_thm});
@@ -164,7 +164,7 @@ fun inequality_canon_rule ctxt =
   (* FIXME : Should be computed statically!! *)
   val real_poly_conv =
     Semiring_Normalizer.semiring_normalize_wrapper ctxt
-     (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+     (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
  in
   fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv
     arg_conv (Numeral_Simprocs.field_comp_conv ctxt then_conv real_poly_conv)))
@@ -190,9 +190,9 @@ end;
  val apply_pthd = try_conv (rewr_conv @{thm pth_d});
 
 fun headvector t = case t of
-  Const(@{const_name plus}, _)$
-   (Const(@{const_name scaleR}, _)$_$v)$_ => v
- | Const(@{const_name scaleR}, _)$_$v => v
+  Const(\<^const_name>\<open>plus\<close>, _)$
+   (Const(\<^const_name>\<open>scaleR\<close>, _)$_$v)$_ => v
+ | Const(\<^const_name>\<open>scaleR\<close>, _)$_$v => v
  | _ => error "headvector: non-canonical term"
 
 fun vector_cmul_conv ctxt ct =
@@ -204,7 +204,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
   (apply_pth8 ctxt ct
    handle CTERM _ =>
     (case Thm.term_of ct of
-     Const(@{const_name plus},_)$lt$rt =>
+     Const(\<^const_name>\<open>plus\<close>,_)$lt$rt =>
       let
        val l = headvector lt
        val r = headvector rt
@@ -220,7 +220,7 @@ fun vector_add_conv ctxt ct = apply_pth7 ct
      | _ => Thm.reflexive ct))
 
 fun vector_canon_conv ctxt ct = case Thm.term_of ct of
- Const(@{const_name plus},_)$_$_ =>
+ Const(\<^const_name>\<open>plus\<close>,_)$_$_ =>
   let
    val ((p,l),r) = Thm.dest_comb ct |>> Thm.dest_comb
    val lth = vector_canon_conv ctxt l
@@ -228,16 +228,16 @@ fun vector_canon_conv ctxt ct = case Thm.term_of ct of
    val th = Drule.binop_cong_rule p lth rth
   in fconv_rule (arg_conv (vector_add_conv ctxt)) th end
 
-| Const(@{const_name scaleR}, _)$_$_ =>
+| Const(\<^const_name>\<open>scaleR\<close>, _)$_$_ =>
   let
    val (p,r) = Thm.dest_comb ct
    val rth = Drule.arg_cong_rule p (vector_canon_conv ctxt r)
   in fconv_rule (arg_conv (apply_pth4 else_conv (vector_cmul_conv ctxt))) rth
   end
 
-| Const(@{const_name minus},_)$_$_ => (apply_pth2 then_conv (vector_canon_conv ctxt)) ct
+| Const(\<^const_name>\<open>minus\<close>,_)$_$_ => (apply_pth2 then_conv (vector_canon_conv ctxt)) ct
 
-| Const(@{const_name uminus},_)$_ => (apply_pth3 then_conv (vector_canon_conv ctxt)) ct
+| Const(\<^const_name>\<open>uminus\<close>,_)$_ => (apply_pth3 then_conv (vector_canon_conv ctxt)) ct
 
 (* FIXME
 | Const(@{const_name vec},_)$n =>
@@ -249,7 +249,7 @@ fun vector_canon_conv ctxt ct = case Thm.term_of ct of
 | _ => apply_pth1 ct
 
 fun norm_canon_conv ctxt ct = case Thm.term_of ct of
-  Const(@{const_name norm},_)$_ => arg_conv (vector_canon_conv ctxt) ct
+  Const(\<^const_name>\<open>norm\<close>,_)$_ => arg_conv (vector_canon_conv ctxt) ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
 
 fun int_flip v eq =
@@ -267,7 +267,7 @@ local
    (* FIXME: Should be computed statically!!*)
    val real_poly_conv =
       Semiring_Normalizer.semiring_normalize_wrapper ctxt
-       (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+       (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>))
    val sources = map (Thm.dest_arg o Thm.dest_arg1 o concl) nubs
    val rawdests = fold_rev (find_normedterms o Thm.dest_arg o concl) (ges @ gts) []
    val _ = if not (forall fst rawdests) then error "real_vector_combo_prover: Sanity check"
@@ -347,13 +347,13 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Thm.instantiate' ty tms)
   fun mk_norm t =
     let val T = Thm.typ_of_cterm t
-    in Thm.apply (Thm.cterm_of ctxt' (Const (@{const_name norm}, T --> @{typ real}))) t end
+    in Thm.apply (Thm.cterm_of ctxt' (Const (\<^const_name>\<open>norm\<close>, T --> \<^typ>\<open>real\<close>))) t end
   fun mk_equals l r =
     let
       val T = Thm.typ_of_cterm l
-      val eq = Thm.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT))
+      val eq = Thm.cterm_of ctxt (Const (\<^const_name>\<open>Pure.eq\<close>, T --> T --> propT))
     in Thm.apply (Thm.apply eq l) r end
-  val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Thm.cterm_of ctxt' (Free(n,@{typ real}))))) lctab fxns
+  val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Thm.cterm_of ctxt' (Free(n,\<^typ>\<open>real\<close>))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))
   val ges' =
@@ -380,7 +380,7 @@ local
   let
    val real_poly_neg_conv = #neg
        (Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) Thm.term_ord)
+        (the (Semiring_Normalizer.match ctxt \<^cterm>\<open>(0::real) + 1\<close>)) Thm.term_ord)
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv (real_poly_neg_conv ctxt))) th2::acc
   end
@@ -401,7 +401,7 @@ end;
   let
    val ctxt' = Variable.declare_term (Thm.term_of ct) ctxt
    val th = init_conv ctxt' ct
-  in Thm.equal_elim (Drule.arg_cong_rule @{cterm Trueprop} (Thm.symmetric th))
+  in Thm.equal_elim (Drule.arg_cong_rule \<^cterm>\<open>Trueprop\<close> (Thm.symmetric th))
                 (pure ctxt' (Thm.rhs_of th))
  end
 

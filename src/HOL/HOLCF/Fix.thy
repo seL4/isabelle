@@ -46,7 +46,7 @@ subsection \<open>Least fixed point operator\<close>
 definition "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
   where "fix = (\<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 
-text \<open>Binder syntax for @{term fix}\<close>
+text \<open>Binder syntax for \<^term>\<open>fix\<close>\<close>
 
 abbreviation fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "\<mu> " 10)
   where "fix_syn (\<lambda>x. f x) \<equiv> fix\<cdot>(\<Lambda> x. f x)"
@@ -54,9 +54,9 @@ abbreviation fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "\<mu>
 notation (ASCII)
   fix_syn  (binder "FIX " 10)
 
-text \<open>Properties of @{term fix}\<close>
+text \<open>Properties of \<^term>\<open>fix\<close>\<close>
 
-text \<open>direct connection between @{term fix} and iteration\<close>
+text \<open>direct connection between \<^term>\<open>fix\<close> and iteration\<close>
 
 lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
   by (simp add: fix_def)
@@ -114,7 +114,7 @@ lemma fix_eq4: "f = fix\<cdot>F \<Longrightarrow> f = F\<cdot>f"
 lemma fix_eq5: "f = fix\<cdot>F \<Longrightarrow> f\<cdot>x = F\<cdot>f\<cdot>x"
   by (erule fix_eq4 [THEN cfun_fun_cong])
 
-text \<open>strictness of @{term fix}\<close>
+text \<open>strictness of \<^term>\<open>fix\<close>\<close>
 
 lemma fix_bottom_iff: "fix\<cdot>F = \<bottom> \<longleftrightarrow> F\<cdot>\<bottom> = \<bottom>"
   apply (rule iffI)
@@ -129,7 +129,7 @@ lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F =
 lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
   by (simp add: fix_bottom_iff)
 
-text \<open>@{term fix} applied to identity and constant functions\<close>
+text \<open>\<^term>\<open>fix\<close> applied to identity and constant functions\<close>
 
 lemma fix_id: "(\<mu> x. x) = \<bottom>"
   by (simp add: fix_strict)

@@ -61,7 +61,7 @@ apply (simp add: cfun_below_iff ep_pair.e_p_below)
 done
 
 text \<open>
-  Types @{typ "'a list u"}. and @{typ "'a u slist"} are isomorphic.
+  Types \<^typ>\<open>'a list u\<close>. and \<^typ>\<open>'a u slist\<close> are isomorphic.
 \<close>
 
 fixrec encode_list_u where
@@ -168,7 +168,7 @@ apply (simp add: slist_map'_slist_map' u_emb_bottom)
 done
 
 setup \<open>
-  Domain_Take_Proofs.add_rec_type (@{type_name "list"}, [true])
+  Domain_Take_Proofs.add_rec_type (\<^type_name>\<open>list\<close>, [true])
 \<close>
 
 end

@@ -13,7 +13,7 @@ parent theory \<open>Compiler\<close>. This here shows the second direction.
 
 subsection \<open>Definitions\<close>
 
-text \<open>Execution in @{term n} steps for simpler induction\<close>
+text \<open>Execution in \<^term>\<open>n\<close> steps for simpler induction\<close>
 primrec 
   exec_n :: "instr list \<Rightarrow> config \<Rightarrow> nat \<Rightarrow> config \<Rightarrow> bool" 
   ("_/ \<turnstile> (_ \<rightarrow>^_/ _)" [65,0,1000,55] 55)
@@ -21,7 +21,7 @@ where
   "P \<turnstile> c \<rightarrow>^0 c' = (c'=c)" |
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"
 
-text \<open>The possible successor PCs of an instruction at position @{term n}\<close>
+text \<open>The possible successor PCs of an instruction at position \<^term>\<open>n\<close>\<close>
 text_raw\<open>\snip{isuccsdef}{0}{1}{%\<close>
 definition isuccs :: "instr \<Rightarrow> int \<Rightarrow> int set" where
 "isuccs i n = (case i of
@@ -40,7 +40,7 @@ definition exits :: "instr list \<Rightarrow> int set" where
 "exits P = succs P 0 - {0..< size P}"
 
   
-subsection \<open>Basic properties of @{term exec_n}\<close>
+subsection \<open>Basic properties of \<^term>\<open>exec_n\<close>\<close>
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
@@ -89,7 +89,7 @@ lemma exec_n_end:
 lemmas exec_n_simps = exec_n_step exec_n_end
 
 
-subsection \<open>Basic properties of @{term succs}\<close>
+subsection \<open>Basic properties of \<^term>\<open>succs\<close>\<close>
 
 lemma succs_simps [simp]: 
   "succs [ADD] n = {n + 1}"
@@ -334,7 +334,7 @@ lemma exec_n_drop_right:
   
 
 text \<open>
-  Dropping the left context of a potentially incomplete execution of @{term c}.
+  Dropping the left context of a potentially incomplete execution of \<^term>\<open>c\<close>.
 \<close>
 
 lemma exec1_drop_left:

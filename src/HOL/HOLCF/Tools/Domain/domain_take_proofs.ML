@@ -107,8 +107,8 @@ type take_induct_info =
   }
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}])
+  simpset_of (put_simpset HOL_basic_ss \<^context>
+    addsimps @{thms simp_thms} addsimprocs [\<^simproc>\<open>beta_cfun_proc\<close>])
 
 (******************************************************************************)
 (******************************** theory data *********************************)
@@ -127,15 +127,15 @@ fun add_rec_type (tname, bs) =
     Rec_Data.map (Symtab.insert (K true) (tname, bs))
 
 fun add_deflation_thm thm =
-    Context.theory_map (Named_Theorems.add_thm @{named_theorems domain_deflation} thm)
+    Context.theory_map (Named_Theorems.add_thm \<^named_theorems>\<open>domain_deflation\<close> thm)
 
 val get_rec_tab = Rec_Data.get
 fun get_deflation_thms thy =
-  rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_deflation})
+  rev (Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>domain_deflation\<close>)
 
-val map_ID_add = Named_Theorems.add @{named_theorems domain_map_ID}
+val map_ID_add = Named_Theorems.add \<^named_theorems>\<open>domain_map_ID\<close>
 fun get_map_ID_thms thy =
-  rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_map_ID})
+  rev (Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>domain_map_ID\<close>)
 
 
 (******************************************************************************)
@@ -149,7 +149,7 @@ infix -->>
 infix 9 `
 
 fun mk_deflation t =
-  Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>deflation\<close>, Term.fastype_of t --> boolT) $ t
 
 fun mk_eqs (t, u) = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
 
@@ -272,7 +272,7 @@ fun define_take_functions
     (* prove take_0 lemmas *)
     fun prove_take_0 ((take_const, dbind), (lhsT, _)) thy =
       let
-        val lhs = take_const $ @{term "0::nat"}
+        val lhs = take_const $ \<^term>\<open>0::nat\<close>
         val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT))
         val rules = take_defs @ @{thms iterate_0 fst_strict snd_strict}
         fun tac ctxt = simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules) 1
@@ -289,7 +289,7 @@ fun define_take_functions
     fun prove_take_Suc
           (((take_const, rep_abs), dbind), (_, rhsT)) thy =
       let
-        val lhs = take_const $ (@{term Suc} $ n)
+        val lhs = take_const $ (\<^term>\<open>Suc\<close> $ n)
         val body = map_of_typ thy (newTs ~~ take_is) rhsT
         val rhs = mk_cfcomp2 (rep_abs, body)
         val goal = mk_eqs (lhs, rhs)
@@ -434,9 +434,9 @@ fun prove_finite_take_induct
         val iso_locale_thms = map iso_locale iso_infos
         val decisive_abs_rep_thms =
             map (fn x => @{thm decisive_abs_rep} OF [x]) iso_locale_thms
-        val n = Free ("n", @{typ nat})
+        val n = Free ("n", \<^typ>\<open>nat\<close>)
         fun mk_decisive t =
-            Const (@{const_name decisive}, fastype_of t --> boolT) $ t
+            Const (\<^const_name>\<open>decisive\<close>, fastype_of t --> boolT) $ t
         fun f take_const = mk_decisive (take_const $ n)
         val goal = mk_trp (foldr1 mk_conj (map f take_consts))
         val rules0 = @{thm decisive_bottom} :: take_0_thms
@@ -529,7 +529,7 @@ fun add_lub_take_theorems
 
     (* test for finiteness of domain definitions *)
     local
-      val types = [@{type_name ssum}, @{type_name sprod}]
+      val types = [\<^type_name>\<open>ssum\<close>, \<^type_name>\<open>sprod\<close>]
       fun finite d T = if member (op =) absTs T then d else finite' d T
       and finite' d (Type (c, Ts)) =
           let val d' = d andalso member (op =) types c

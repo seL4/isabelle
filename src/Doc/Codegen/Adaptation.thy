@@ -127,10 +127,9 @@ text \<open>
       \secref{sec:adaptation_mechanisms})
 
     \item Such parametrisations can involve references to a
-      target-specific standard \<open>library\<close> (e.g. using the \<open>Haskell\<close> @{verbatim Maybe} type instead of the \<open>HOL\<close>
-      @{type "option"} type); if such are used, the corresponding
-      identifiers (in our example, @{verbatim Maybe}, @{verbatim
-      Nothing} and @{verbatim Just}) also have to be considered \<open>reserved\<close>.
+      target-specific standard \<open>library\<close> (e.g. using the \<open>Haskell\<close> \<^verbatim>\<open>Maybe\<close> type instead of the \<open>HOL\<close>
+      \<^type>\<open>option\<close> type); if such are used, the corresponding
+      identifiers (in our example, \<^verbatim>\<open>Maybe\<close>, \<^verbatim>\<open>Nothing\<close> and \<^verbatim>\<open>Just\<close>) also have to be considered \<open>reserved\<close>.
 
     \item Even more, the user can enrich the library of the
       target-language by providing code snippets (\qt{\<open>includes\<close>}) which are prepended to any generated code (see
@@ -147,7 +146,7 @@ text \<open>
 subsection \<open>Common adaptation applications \label{sec:common_adaptation}\<close>
 
 text \<open>
-  The @{theory Main} theory of Isabelle/HOL already provides a code
+  The \<^theory>\<open>Main\<close> theory of Isabelle/HOL already provides a code
   generator setup which should be suitable for most applications.
   Common extensions and modifications are available by certain
   theories in \<^dir>\<open>~~/src/HOL/Library\<close>; beside being useful in
@@ -156,22 +155,21 @@ text \<open>
 
   \begin{description}
 
-    \item[@{theory "HOL.Code_Numeral"}] provides additional numeric
-       types @{typ integer} and @{typ natural} isomorphic to types
-       @{typ int} and @{typ nat} respectively.  Type @{typ integer}
-       is mapped to target-language built-in integers; @{typ natural}
-       is implemented as abstract type over @{typ integer}.
+    \item[\<^theory>\<open>HOL.Code_Numeral\<close>] provides additional numeric
+       types \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close> isomorphic to types
+       \<^typ>\<open>int\<close> and \<^typ>\<open>nat\<close> respectively.  Type \<^typ>\<open>integer\<close>
+       is mapped to target-language built-in integers; \<^typ>\<open>natural\<close>
+       is implemented as abstract type over \<^typ>\<open>integer\<close>.
        Useful for code setups which involve e.g.~indexing
        of target-language arrays.  Part of \<open>HOL-Main\<close>.
 
-    \item[@{theory "HOL.String"}] provides an additional datatype @{typ
-       String.literal} which is isomorphic to lists of 7-bit (ASCII) characters;
-       @{typ String.literal}s are mapped to target-language strings.
+    \item[\<^theory>\<open>HOL.String\<close>] provides an additional datatype \<^typ>\<open>String.literal\<close> which is isomorphic to lists of 7-bit (ASCII) characters;
+       \<^typ>\<open>String.literal\<close>s are mapped to target-language strings.
 
-       Literal values of type @{typ String.literal} can be written
+       Literal values of type \<^typ>\<open>String.literal\<close> can be written
        as \<open>STR ''\<dots>''\<close> for sequences of printable characters and
        \<open>STR 0x\<dots>\<close> for one single ASCII code point given
-       as hexadecimal numeral; @{typ String.literal} supports concatenation
+       as hexadecimal numeral; \<^typ>\<open>String.literal\<close> supports concatenation
        \<open>\<dots> + \<dots>\<close> for all standard target languages.
 
        Note that the particular notion of \qt{string} is target-language
@@ -181,37 +179,36 @@ text \<open>
        like verifying parsing algorithms require a dedicated
        target-language specific model.
 
-       Nevertheless @{typ String.literal}s can be analyzed; the core operations
-       for this are @{term_type String.asciis_of_literal} and
-       @{term_type String.literal_of_asciis} which are implemented
-       in a target-language-specific way; particularly @{const String.asciis_of_literal}
+       Nevertheless \<^typ>\<open>String.literal\<close>s can be analyzed; the core operations
+       for this are \<^term_type>\<open>String.asciis_of_literal\<close> and
+       \<^term_type>\<open>String.literal_of_asciis\<close> which are implemented
+       in a target-language-specific way; particularly \<^const>\<open>String.asciis_of_literal\<close>
        checks its argument at runtime to make sure that it does
        not contain non-ASCII-characters, to safeguard consistency.
-       On top of these, more abstract conversions like @{term_type
-       String.explode} and @{term_type String.implode}
+       On top of these, more abstract conversions like \<^term_type>\<open>String.explode\<close> and \<^term_type>\<open>String.implode\<close>
        are implemented.
        
        Part of \<open>HOL-Main\<close>.
 
-    \item[\<open>Code_Target_Int\<close>] implements type @{typ int}
-       by @{typ integer} and thus by target-language built-in integers.
+    \item[\<open>Code_Target_Int\<close>] implements type \<^typ>\<open>int\<close>
+       by \<^typ>\<open>integer\<close> and thus by target-language built-in integers.
 
     \item[\<open>Code_Binary_Nat\<close>] implements type
-       @{typ nat} using a binary rather than a linear representation,
+       \<^typ>\<open>nat\<close> using a binary rather than a linear representation,
        which yields a considerable speedup for computations.
-       Pattern matching with @{term "0::nat"} / @{const "Suc"} is eliminated
+       Pattern matching with \<^term>\<open>0::nat\<close> / \<^const>\<open>Suc\<close> is eliminated
        by a preprocessor.\label{abstract_nat}
 
-    \item[\<open>Code_Target_Nat\<close>] implements type @{typ nat}
-       by @{typ integer} and thus by target-language built-in integers.
-       Pattern matching with @{term "0::nat"} / @{const "Suc"} is eliminated
+    \item[\<open>Code_Target_Nat\<close>] implements type \<^typ>\<open>nat\<close>
+       by \<^typ>\<open>integer\<close> and thus by target-language built-in integers.
+       Pattern matching with \<^term>\<open>0::nat\<close> / \<^const>\<open>Suc\<close> is eliminated
        by a preprocessor.
 
     \item[\<open>Code_Target_Numeral\<close>] is a convenience theory
        containing both \<open>Code_Target_Nat\<close> and
        \<open>Code_Target_Int\<close>.
 
-    \item[@{theory "HOL-Library.IArray"}] provides a type @{typ "'a iarray"}
+    \item[\<^theory>\<open>HOL-Library.IArray\<close>] provides a type \<^typ>\<open>'a iarray\<close>
        isomorphic to lists but implemented by (effectively immutable)
        arrays \emph{in SML only}.
 
@@ -245,9 +242,7 @@ text \<open>
   distinguished entities with have nothing to do with the SML-built-in
   notion of \qt{bool}.  This results in less readable code;
   additionally, eager evaluation may cause programs to loop or break
-  which would perfectly terminate when the existing SML @{verbatim
-  "bool"} would be used.  To map the HOL @{typ bool} on SML @{verbatim
-  "bool"}, we may use \qn{custom serialisations}:
+  which would perfectly terminate when the existing SML \<^verbatim>\<open>bool\<close> would be used.  To map the HOL \<^typ>\<open>bool\<close> on SML \<^verbatim>\<open>bool\<close>, we may use \qn{custom serialisations}:
 \<close>
 
 code_printing %quotett
@@ -263,7 +258,7 @@ text \<open>
   custom serialisation starts with a target language identifier
   followed by an expression, which during code serialisation is
   inserted whenever the type constructor would occur.  Each
-  ``@{verbatim "_"}'' in a serialisation expression is treated as a
+  ``\<^verbatim>\<open>_\<close>'' in a serialisation expression is treated as a
   placeholder for the constant's or the type constructor's arguments.
 \<close>
 
@@ -300,7 +295,7 @@ code_reserved %quote "\<SMLdummy>" bool true false andalso
 
 text \<open>
   \noindent Next, we try to map HOL pairs to SML pairs, using the
-  infix ``@{verbatim "*"}'' type constructor and parentheses:
+  infix ``\<^verbatim>\<open>*\<close>'' type constructor and parentheses:
 \<close>
 (*<*)
 code_printing %invisible
@@ -312,11 +307,11 @@ code_printing %quotett
 | constant Pair \<rightharpoonup> (SML) "!((_),/ (_))"
 
 text \<open>
-  \noindent The initial bang ``@{verbatim "!"}'' tells the serialiser
+  \noindent The initial bang ``\<^verbatim>\<open>!\<close>'' tells the serialiser
   never to put parentheses around the whole expression (they are
   already present), while the parentheses around argument place
   holders tell not to put parentheses around the arguments.  The slash
-  ``@{verbatim "/"}'' (followed by arbitrary white space) inserts a
+  ``\<^verbatim>\<open>/\<close>'' (followed by arbitrary white space) inserts a
   space which may be used as a break if necessary during pretty
   printing.
 
@@ -326,9 +321,9 @@ text \<open>
   serialisations are completely axiomatic.
 
   A further noteworthy detail is that any special character in a
-  custom serialisation may be quoted using ``@{verbatim "'"}''; thus,
-  in ``@{verbatim "fn '_ => _"}'' the first ``@{verbatim "_"}'' is a
-  proper underscore while the second ``@{verbatim "_"}'' is a
+  custom serialisation may be quoted using ``\<^verbatim>\<open>'\<close>''; thus,
+  in ``\<^verbatim>\<open>fn '_ => _\<close>'' the first ``\<^verbatim>\<open>_\<close>'' is a
+  proper underscore while the second ``\<^verbatim>\<open>_\<close>'' is a
   placeholder.
 \<close>
 
@@ -337,8 +332,8 @@ subsection \<open>\<open>Haskell\<close> serialisation\<close>
 
 text \<open>
   For convenience, the default \<open>HOL\<close> setup for \<open>Haskell\<close>
-  maps the @{class equal} class to its counterpart in \<open>Haskell\<close>,
-  giving custom serialisations for the class @{class equal}
+  maps the \<^class>\<open>equal\<close> class to its counterpart in \<open>Haskell\<close>,
+  giving custom serialisations for the class \<^class>\<open>equal\<close>
   and its operation @{const [source] HOL.equal}.
 \<close>
 
@@ -348,7 +343,7 @@ code_printing %quotett
 
 text \<open>
   \noindent A problem now occurs whenever a type which is an instance
-  of @{class equal} in \<open>HOL\<close> is mapped on a \<open>Haskell\<close>-built-in type which is also an instance of \<open>Haskell\<close>
+  of \<^class>\<open>equal\<close> in \<open>HOL\<close> is mapped on a \<open>Haskell\<close>-built-in type which is also an instance of \<open>Haskell\<close>
   \<open>Eq\<close>:
 \<close>
 

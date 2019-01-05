@@ -898,7 +898,7 @@ done
 
 declare member_is_static_simp [simp]
 declare wt.Skip [rule del] wt.Init [rule del]
-ML \<open>ML_Thms.bind_thms ("wt_intros", map (rewrite_rule @{context} @{thms id_def}) @{thms wt.intros})\<close>
+ML \<open>ML_Thms.bind_thms ("wt_intros", map (rewrite_rule \<^context> @{thms id_def}) @{thms wt.intros})\<close>
 lemmas wtIs = wt_Call wt_Super wt_FVar wt_StatRef wt_intros
 lemmas daIs = assigned.select_convs da_Skip da_NewC da_Lit da_Super da.intros
 
@@ -1192,8 +1192,8 @@ declare BaseCl_def [simp] ExtCl_def [simp] Ext_foo_def [simp]
         Base_foo_defs  [simp]
 
 ML \<open>ML_Thms.bind_thms ("eval_intros", map 
-        (simplify (@{context} delsimps @{thms Skip_eq} addsimps @{thms lvar_def}) o 
-         rewrite_rule @{context} [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros})\<close>
+        (simplify (\<^context> delsimps @{thms Skip_eq} addsimps @{thms lvar_def}) o 
+         rewrite_rule \<^context> [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros})\<close>
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros
 
 axiomatization

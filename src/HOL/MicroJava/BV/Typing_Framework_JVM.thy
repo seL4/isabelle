@@ -17,7 +17,7 @@ definition opt_states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarr
   "opt_states G maxs maxr \<equiv> opt (\<Union>{list n (types G) |n. n \<le> maxs} \<times> list maxr (err (types G)))"
 
 
-subsection \<open>Executability of @{term check_bounded}\<close>
+subsection \<open>Executability of \<^term>\<open>check_bounded\<close>\<close>
 
 primrec list_all'_rec :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> bool"
 where

@@ -229,7 +229,7 @@ lemma approx_unique_complex:
      "[| r \<in> SComplex; s \<in> SComplex; r \<approx> x; s \<approx> x|] ==> r = s"
 by (blast intro: SComplex_approx_iff [THEN iffD1] approx_trans2)
 
-subsection \<open>Properties of @{term hRe}, @{term hIm} and @{term HComplex}\<close>
+subsection \<open>Properties of \<^term>\<open>hRe\<close>, \<^term>\<open>hIm\<close> and \<^term>\<open>HComplex\<close>\<close>
 
 
 lemma abs_hRe_le_hcmod: "\<And>x. \<bar>hRe x\<bar> \<le> hcmod x"

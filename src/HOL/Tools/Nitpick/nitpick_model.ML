@@ -333,8 +333,8 @@ fun format_fun T' T1 T2 t =
         else raise TYPE ("Nitpick_Model.format_fun.do_term", [T, T'], [])
   in if T1' = T1 andalso T2' = T2 then t else do_fun T1' T2' T1 T2 t end
 
-fun truth_const_sort_key @{const True} = "0"
-  | truth_const_sort_key @{const False} = "2"
+fun truth_const_sort_key \<^const>\<open>True\<close> = "0"
+  | truth_const_sort_key \<^const>\<open>False\<close> = "2"
   | truth_const_sort_key _ = "1"
 
 fun mk_tuple (Type (\<^type_name>\<open>prod\<close>, [T1, T2])) ts =
@@ -411,14 +411,14 @@ and reconstruct_term maybe_opt unfold pool
               empty_const
           | aux ((t1, t2) :: zs) =
             aux zs
-            |> t2 <> @{const False}
+            |> t2 <> \<^const>\<open>False\<close>
                ? curry (op $)
                        (insert_const
-                        $ (t1 |> t2 <> @{const True}
+                        $ (t1 |> t2 <> \<^const>\<open>True\<close>
                                  ? curry (op $)
                                          (Const (maybe_name, T --> T))))
       in
-        if forall (fn (_, t) => t <> @{const True} andalso t <> @{const False})
+        if forall (fn (_, t) => t <> \<^const>\<open>True\<close> andalso t <> \<^const>\<open>False\<close>)
                   tps then
           Const (unknown, set_T)
         else
@@ -516,7 +516,7 @@ and reconstruct_term maybe_opt unfold pool
       | term_for_atom seen \<^typ>\<open>prop\<close> _ j k =
         HOLogic.mk_Trueprop (term_for_atom seen bool_T bool_T j k)
       | term_for_atom _ \<^typ>\<open>bool\<close> _ j _ =
-        if j = 0 then @{const False} else @{const True}
+        if j = 0 then \<^const>\<open>False\<close> else \<^const>\<open>True\<close>
       | term_for_atom seen T _ j k =
         if T = nat_T then
           HOLogic.mk_number nat_T j

@@ -19,63 +19,63 @@ structure Real_Asymp_Diag : REAL_ASYMP_DIAG = struct
 open Lazy_Eval
 open Multiseries_Expansion
 
-fun pretty_limit _ (Const (@{const_name "at_top"}, _)) = Pretty.str "\<infinity>"
-  | pretty_limit _ (Const (@{const_name "at_bot"}, _)) = Pretty.str "-\<infinity>"
-  | pretty_limit _ (Const (@{const_name "at_infinity"}, _)) = Pretty.str "\<plusminus>\<infinity>"
-  | pretty_limit ctxt (Const (@{const_name "at_within"}, _) $ c $ 
-        (Const (@{const_name "greaterThan"}, _) $ _)) = 
+fun pretty_limit _ (Const (\<^const_name>\<open>at_top\<close>, _)) = Pretty.str "\<infinity>"
+  | pretty_limit _ (Const (\<^const_name>\<open>at_bot\<close>, _)) = Pretty.str "-\<infinity>"
+  | pretty_limit _ (Const (\<^const_name>\<open>at_infinity\<close>, _)) = Pretty.str "\<plusminus>\<infinity>"
+  | pretty_limit ctxt (Const (\<^const_name>\<open>at_within\<close>, _) $ c $ 
+        (Const (\<^const_name>\<open>greaterThan\<close>, _) $ _)) = 
       Pretty.block [Syntax.pretty_term ctxt c, Pretty.str "\<^sup>+"]
-  | pretty_limit ctxt (Const (@{const_name "at_within"}, _) $ c $ 
-        (Const (@{const_name "lessThan"}, _) $ _)) = 
+  | pretty_limit ctxt (Const (\<^const_name>\<open>at_within\<close>, _) $ c $ 
+        (Const (\<^const_name>\<open>lessThan\<close>, _) $ _)) = 
       Pretty.block [Syntax.pretty_term ctxt c, Pretty.str "\<^sup>-"]
-  | pretty_limit ctxt (Const (@{const_name "at_within"}, _) $ c $ Const ("UNIV", _)) = 
+  | pretty_limit ctxt (Const (\<^const_name>\<open>at_within\<close>, _) $ c $ Const ("UNIV", _)) = 
       Syntax.pretty_term ctxt c
-  | pretty_limit ctxt (Const (@{const_name "nhds"}, _) $ c) =
+  | pretty_limit ctxt (Const (\<^const_name>\<open>nhds\<close>, _) $ c) =
       Syntax.pretty_term ctxt c
   | pretty_limit _ t = raise TERM ("pretty_limit", [t])
 
 fun reduce_to_at_top flt t = Envir.beta_eta_contract (
     case flt of
-      @{term "at_top :: real filter"} => t
-    | @{term "at_bot :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (-x)"}, t)
-    | @{term "at_left 0 :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (-inverse x)"}, t)
-    | @{term "at_right 0 :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (inverse x)"}, t)
-    | @{term "at_within :: real => _"} $ c $ (@{term "greaterThan :: real \<Rightarrow> _"} $ c') =>
+      \<^term>\<open>at_top :: real filter\<close> => t
+    | \<^term>\<open>at_bot :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (-x)\<close>, t)
+    | \<^term>\<open>at_left 0 :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (-inverse x)\<close>, t)
+    | \<^term>\<open>at_right 0 :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (inverse x)\<close>, t)
+    | \<^term>\<open>at_within :: real => _\<close> $ c $ (\<^term>\<open>greaterThan :: real \<Rightarrow> _\<close> $ c') =>
         if c aconv c' then
-          Term.betapply (Term.betapply (@{term "%(f::real\<Rightarrow>real) c x. f (c + inverse x)"}, t), c)
+          Term.betapply (Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) c x. f (c + inverse x)\<close>, t), c)
         else
           raise TERM ("Unsupported filter for real_limit", [flt])
-    | @{term "at_within :: real => _"} $ c $ (@{term "lessThan :: real \<Rightarrow> _"} $ c') =>
+    | \<^term>\<open>at_within :: real => _\<close> $ c $ (\<^term>\<open>lessThan :: real \<Rightarrow> _\<close> $ c') =>
         if c aconv c' then
-          Term.betapply (Term.betapply (@{term "%(f::real\<Rightarrow>real) c x. f (c - inverse x)"}, t), c)
+          Term.betapply (Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) c x. f (c - inverse x)\<close>, t), c)
         else
           raise TERM ("Unsupported filter for real_limit", [flt])
     | _ =>
         raise TERM ("Unsupported filter for real_limit", [flt]))
 
-fun mk_uminus (@{term "uminus :: real => real"} $ c) = c
-  | mk_uminus c = Term.betapply (@{term "uminus :: real => real"}, c)
+fun mk_uminus (\<^term>\<open>uminus :: real => real\<close> $ c) = c
+  | mk_uminus c = Term.betapply (\<^term>\<open>uminus :: real => real\<close>, c)
 
 fun transfer_expansion_from_at_top' flt t = Envir.beta_eta_contract (
     case flt of
-      @{term "at_top :: real filter"} => t
-    | @{term "at_bot :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (-x)"}, t)
-    | @{term "at_left 0 :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (-inverse x)"}, t)
-    | @{term "at_right 0 :: real filter"} =>
-        Term.betapply (@{term "%(f::real\<Rightarrow>real) x. f (inverse x)"}, t)
-    | @{term "at_within :: real => _"} $ c $ (@{term "greaterThan :: real \<Rightarrow> _"} $ c') =>
+      \<^term>\<open>at_top :: real filter\<close> => t
+    | \<^term>\<open>at_bot :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (-x)\<close>, t)
+    | \<^term>\<open>at_left 0 :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (-inverse x)\<close>, t)
+    | \<^term>\<open>at_right 0 :: real filter\<close> =>
+        Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) x. f (inverse x)\<close>, t)
+    | \<^term>\<open>at_within :: real => _\<close> $ c $ (\<^term>\<open>greaterThan :: real \<Rightarrow> _\<close> $ c') =>
         if c aconv c' then
-          Term.betapply (Term.betapply (@{term "%(f::real\<Rightarrow>real) c x. f (inverse (x - c))"}, t), c)
+          Term.betapply (Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) c x. f (inverse (x - c))\<close>, t), c)
         else
           raise TERM ("Unsupported filter for real_limit", [flt])
-    | @{term "at_within :: real => _"} $ c $ (@{term "lessThan :: real \<Rightarrow> _"} $ c') =>
+    | \<^term>\<open>at_within :: real => _\<close> $ c $ (\<^term>\<open>lessThan :: real \<Rightarrow> _\<close> $ c') =>
         if c aconv c' then
-          Term.betapply (Term.betapply (@{term "%(f::real\<Rightarrow>real) c x. f (inverse (c - x))"}, t), c)
+          Term.betapply (Term.betapply (\<^term>\<open>%(f::real\<Rightarrow>real) c x. f (inverse (c - x))\<close>, t), c)
         else
           raise TERM ("Unsupported filter for real_limit", [flt])
     | _ =>
@@ -84,31 +84,31 @@ fun transfer_expansion_from_at_top' flt t = Envir.beta_eta_contract (
 
 fun transfer_expansion_from_at_top flt =
   let
-    fun go idx (t as (@{term "(powr) :: real => _"} $ 
-                 (@{term "inverse :: real \<Rightarrow> _"} $ Bound n) $ e)) =
+    fun go idx (t as (\<^term>\<open>(powr) :: real => _\<close> $ 
+                 (\<^term>\<open>inverse :: real \<Rightarrow> _\<close> $ Bound n) $ e)) =
           if n = idx then
-            Envir.beta_eta_contract (@{term "(powr) :: real => _"} $ Bound n $ mk_uminus e)
+            Envir.beta_eta_contract (\<^term>\<open>(powr) :: real => _\<close> $ Bound n $ mk_uminus e)
           else
             t
-      | go idx (t as (@{term "(powr) :: real => _"} $ (@{term "uminus :: real \<Rightarrow> real"} $
-              (@{term "inverse :: real \<Rightarrow> _"} $ Bound n)) $ e)) =
+      | go idx (t as (\<^term>\<open>(powr) :: real => _\<close> $ (\<^term>\<open>uminus :: real \<Rightarrow> real\<close> $
+              (\<^term>\<open>inverse :: real \<Rightarrow> _\<close> $ Bound n)) $ e)) =
           if n = idx then
-            Envir.beta_eta_contract (@{term "(powr) :: real => _"} $
+            Envir.beta_eta_contract (\<^term>\<open>(powr) :: real => _\<close> $
               (mk_uminus (Bound n)) $ mk_uminus e)
           else
             t
-      | go idx (t as (@{term "(powr) :: real => _"} $ (@{term "inverse :: real \<Rightarrow> _"} $ 
-              (@{term "(-) :: real \<Rightarrow> _"} $ Bound n $ c)) $ e)) =
+      | go idx (t as (\<^term>\<open>(powr) :: real => _\<close> $ (\<^term>\<open>inverse :: real \<Rightarrow> _\<close> $ 
+              (\<^term>\<open>(-) :: real \<Rightarrow> _\<close> $ Bound n $ c)) $ e)) =
           if n = idx then
-            Envir.beta_eta_contract (@{term "(powr) :: real => _"} $
-              (@{term "(-) :: real => _"} $ Bound n $ c) $ mk_uminus e)
+            Envir.beta_eta_contract (\<^term>\<open>(powr) :: real => _\<close> $
+              (\<^term>\<open>(-) :: real => _\<close> $ Bound n $ c) $ mk_uminus e)
           else
             t
-      | go idx (t as (@{term "(powr) :: real => _"} $ (@{term "inverse :: real \<Rightarrow> _"} $ 
-              (@{term "(-) :: real \<Rightarrow> _"} $ c $ Bound n)) $ e)) =
+      | go idx (t as (\<^term>\<open>(powr) :: real => _\<close> $ (\<^term>\<open>inverse :: real \<Rightarrow> _\<close> $ 
+              (\<^term>\<open>(-) :: real \<Rightarrow> _\<close> $ c $ Bound n)) $ e)) =
           if n = idx then
-            Envir.beta_eta_contract (@{term "(powr) :: real => _"} $
-              (@{term "(-) :: real => _"} $ c $ Bound n) $ mk_uminus e)
+            Envir.beta_eta_contract (\<^term>\<open>(powr) :: real => _\<close> $
+              (\<^term>\<open>(-) :: real => _\<close> $ c $ Bound n) $ mk_uminus e)
           else
             t
       | go idx (s $ t) = go idx s $ go idx t
@@ -145,15 +145,15 @@ val limit_cmd =
   gen_limit 
     (fn ctxt => 
       Syntax.parse_term ctxt 
-      #> Type.constraint @{typ "real => real"} 
+      #> Type.constraint \<^typ>\<open>real => real\<close> 
       #> Syntax.check_term ctxt)
     (fn ctxt => fn flt =>
         case flt of
-          NONE => @{term "at_top :: real filter"}
+          NONE => \<^term>\<open>at_top :: real filter\<close>
         | SOME flt =>
             flt
             |> Syntax.parse_term ctxt
-            |> Type.constraint @{typ "real filter"}
+            |> Type.constraint \<^typ>\<open>real filter\<close>
             |> Syntax.check_term ctxt)
     (fn ctxt => flat o flat o map (map (Proof_Context.get_fact ctxt o fst)))
     (fn ctxt => pretty_limit_result ctxt #> Pretty.writeln)
@@ -181,7 +181,7 @@ fun gen_expansion prep_term prep_flt prep_facts res ctxt facts (n, strict) t flt
       case error of
         NONE => exp
       | SOME err =>
-          Term.betapply (Term.betapply (@{term "expansion_with_remainder_term"}, exp), err)
+          Term.betapply (Term.betapply (\<^term>\<open>expansion_with_remainder_term\<close>, exp), err)
   in
     res ctxt (t, basis)
   end
@@ -194,15 +194,15 @@ val expansion_cmd =
   gen_expansion
     (fn ctxt => 
       Syntax.parse_term ctxt 
-      #> Type.constraint @{typ "real => real"} 
+      #> Type.constraint \<^typ>\<open>real => real\<close> 
       #> Syntax.check_term ctxt)
     (fn ctxt => fn flt =>
         case flt of
-          NONE => @{term "at_top :: real filter"}
+          NONE => \<^term>\<open>at_top :: real filter\<close>
         | SOME flt =>
             flt
             |> Syntax.parse_term ctxt
-            |> Type.constraint @{typ "real filter"}
+            |> Type.constraint \<^typ>\<open>real filter\<close>
             |> Syntax.check_term ctxt)
     (fn ctxt => flat o flat o map (map (Proof_Context.get_fact ctxt o fst)))
     (fn ctxt => fn (exp, basis) =>
@@ -246,7 +246,7 @@ val dflt_expansion_opts = {limit = NONE, facts = [], terms = (3, false)}
 in
 
 val _ =
-  Outer_Syntax.command @{command_keyword real_limit}
+  Outer_Syntax.command \<^command_keyword>\<open>real_limit\<close>
     "semi-automatically compute limits of real functions"
     ((Parse.term -- parse_opts limit_opts dflt_limit_opts) >>
     (fn (t, {limit = flt, facts = thms}) => 
@@ -254,7 +254,7 @@ val _ =
         Real_Asymp_Diag.limit_cmd (Toplevel.context_of state) thms t flt))))
 
 val _ =
-  Outer_Syntax.command @{command_keyword real_expansion}
+  Outer_Syntax.command \<^command_keyword>\<open>real_expansion\<close>
     "semi-automatically compute expansions of real functions"
     (Parse.term -- parse_opts expansion_opts dflt_expansion_opts >> 
     (fn (t, {limit = flt, terms = n_strict, facts = thms}) => 

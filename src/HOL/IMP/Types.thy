@@ -2,7 +2,7 @@ section "A Typed Language"
 
 theory Types imports Star Complex_Main begin
 
-text \<open>We build on @{theory Complex_Main} instead of @{theory Main} to access
+text \<open>We build on \<^theory>\<open>Complex_Main\<close> instead of \<^theory>\<open>Main\<close> to access
 the real numbers.\<close>
 
 subsection "Arithmetic Expressions"

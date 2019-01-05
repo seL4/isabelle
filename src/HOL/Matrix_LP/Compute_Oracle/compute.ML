@@ -340,7 +340,7 @@ fun add_shyps shyps tab = fold (fn h => fn tab => Sorttab.update (h, ()) tab) sh
 fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1 Sorttab.empty))
 
 val (_, export_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding compute}, fn (thy, hyps, shyps, prop) =>
+  (Thm.add_oracle (\<^binding>\<open>compute\<close>, fn (thy, hyps, shyps, prop) =>
     let
         val shyptab = add_shyps shyps Sorttab.empty
         fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
@@ -435,7 +435,7 @@ let
              val (encoding, a) = remove_types encoding a
              val (encoding, b) = remove_types encoding b
              val (eq, encoding) =
-              Encode.insert (Const (@{const_name Pure.eq}, ty --> ty --> @{typ "prop"})) encoding 
+              Encode.insert (Const (\<^const_name>\<open>Pure.eq\<close>, ty --> ty --> \<^typ>\<open>prop\<close>)) encoding 
          in
              (encoding, EqPrem (a, b, ty, eq))
          end handle TERM _ => let val (encoding, t) = remove_types encoding t in (encoding, Prem t) end)
@@ -582,7 +582,7 @@ in
             case match_aterms varsubst b' a' of
                 NONE => 
                 let
-                    fun mk s = Syntax.string_of_term_global @{theory Pure}
+                    fun mk s = Syntax.string_of_term_global \<^theory>\<open>Pure\<close>
                       (infer_types (naming_of computer) (encoding_of computer) ty s)
                     val left = "computed left side: "^(mk a')
                     val right = "computed right side: "^(mk b')
@@ -631,7 +631,7 @@ let
     val varsubst = varsubst_of_theorem th
     val encoding = encoding_of computer
     val naming = naming_of computer
-    fun infer t = infer_types naming encoding @{typ "prop"} t
+    fun infer t = infer_types naming encoding \<^typ>\<open>prop\<close> t
     fun run t = infer (runprog (prog_of computer) (apply_subst true varsubst t))
     fun runprem p = run (prem2term p)
     val prop = Logic.list_implies (map runprem (prems_of_theorem th), run (concl_of_theorem th))

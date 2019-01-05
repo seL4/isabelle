@@ -98,7 +98,7 @@ text \<open>
   B\<close>, for each premise \<open>\<M> R t\<close> in an introduction rule. The default rule
   declarations of Isabelle/HOL already take care of most common situations.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
       @{syntax vars} @{syntax for_fixes} \<newline>
@@ -107,7 +107,7 @@ text \<open>
     @@{command print_inductives} ('!'?)
     ;
     @@{attribute (HOL) mono} (() | 'add' | 'del')
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "inductive"} and @{command (HOL) "coinductive"} define
   (co)inductive predicates from the introduction rules.
@@ -188,15 +188,15 @@ text \<open>
   \<^item> De Morgan style equations for reasoning about the ``polarity'' of
   expressions, e.g.
   \[
-  @{prop "\<not> \<not> P \<longleftrightarrow> P"} \qquad\qquad
-  @{prop "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"}
+  \<^prop>\<open>\<not> \<not> P \<longleftrightarrow> P\<close> \qquad\qquad
+  \<^prop>\<open>\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q\<close>
   \]
 
   \<^item> Equations for reducing complex operators to more primitive ones whose
   monotonicity can easily be proved, e.g.
   \[
-  @{prop "(P \<longrightarrow> Q) \<longleftrightarrow> \<not> P \<or> Q"} \qquad\qquad
-  @{prop "Ball A P \<equiv> \<forall>x. x \<in> A \<longrightarrow> P x"}
+  \<^prop>\<open>(P \<longrightarrow> Q) \<longleftrightarrow> \<not> P \<or> Q\<close> \qquad\qquad
+  \<^prop>\<open>Ball A P \<equiv> \<forall>x. x \<in> A \<longrightarrow> P x\<close>
   \]
 \<close>
 
@@ -255,7 +255,7 @@ text \<open>
     @{command_def (HOL) "fun_cases"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) primrec} @{syntax specification}
     ;
     (@@{command (HOL) fun} | @@{command (HOL) function}) opts? @{syntax specification}
@@ -265,7 +265,7 @@ text \<open>
     @@{command (HOL) termination} @{syntax term}?
     ;
     @@{command (HOL) fun_cases} (@{syntax thmdecl}? @{syntax prop} + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "primrec"} defines primitive recursive functions over
   datatypes (see also @{command_ref (HOL) datatype}). The given \<open>equations\<close>
@@ -380,13 +380,13 @@ where
 
 text \<open>
   Since the value of an expression depends on the value of its variables, the
-  functions @{const evala} and @{const evalb} take an additional parameter, an
+  functions \<^const>\<open>evala\<close> and \<^const>\<open>evalb\<close> take an additional parameter, an
   \<^emph>\<open>environment\<close> that maps variables to their values.
 
   \<^medskip>
   Substitution on expressions can be defined similarly. The mapping \<open>f\<close> of
-  type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted canonically on the
-  types @{typ "'a aexp"} and @{typ "'a bexp"}, respectively.
+  type \<^typ>\<open>'a \<Rightarrow> 'a aexp\<close> given as a parameter is lifted canonically on the
+  types \<^typ>\<open>'a aexp\<close> and \<^typ>\<open>'a bexp\<close>, respectively.
 \<close>
 
 primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
@@ -403,8 +403,8 @@ where
 
 text \<open>
   In textbooks about semantics one often finds substitution theorems, which
-  express the relationship between substitution and evaluation. For @{typ "'a
-  aexp"} and @{typ "'a bexp"}, we can prove such a theorem by mutual
+  express the relationship between substitution and evaluation. For \<^typ>\<open>'a
+  aexp\<close> and \<^typ>\<open>'a bexp\<close>, we can prove such a theorem by mutual
   induction, followed by simplification.
 \<close>
 
@@ -429,8 +429,8 @@ text \<open>Functions on datatypes with nested recursion are also defined
 datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
 
 text \<open>
-  A substitution function on type @{typ "('a, 'b) term"} can be defined as
-  follows, by working simultaneously on @{typ "('a, 'b) term list"}:
+  A substitution function on type \<^typ>\<open>('a, 'b) term\<close> can be defined as
+  follows, by working simultaneously on \<^typ>\<open>('a, 'b) term list\<close>:
 \<close>
 
 primrec subst_term :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term \<Rightarrow> ('a, 'b) term" and
@@ -443,7 +443,7 @@ where
 
 text \<open>
   The recursion scheme follows the structure of the unfolded definition of
-  type @{typ "('a, 'b) term"}. To prove properties of this substitution
+  type \<^typ>\<open>('a, 'b) term\<close>. To prove properties of this substitution
   function, mutual induction is needed:
 \<close>
 
@@ -470,10 +470,10 @@ where
 
 text \<open>
   Note that all occurrences of functions such as \<open>ts\<close> above must be applied to
-  an argument. In particular, @{term "map_tree f \<circ> ts"} is not allowed here.
+  an argument. In particular, \<^term>\<open>map_tree f \<circ> ts\<close> is not allowed here.
 
   \<^medskip>
-  Here is a simple composition lemma for @{term map_tree}:
+  Here is a simple composition lemma for \<^term>\<open>map_tree\<close>:
 \<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
@@ -492,7 +492,7 @@ text \<open>
     @{method_def (HOL) induction_schema} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) relation} @{syntax term}
     ;
     @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
@@ -502,7 +502,7 @@ text \<open>
     @@{method (HOL) induction_schema}
     ;
     orders: ( 'max' | 'min' | 'ms' ) *
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) pat_completeness} is a specialized method to solve goals
   regarding the completeness of pattern matching, as required by the @{command
@@ -551,10 +551,10 @@ text \<open>
     @{attribute_def (HOL) "partial_function_mono"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) partial_function} '(' @{syntax name} ')'
       @{syntax specification}
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "partial_function"}~\<open>(mode)\<close> defines recursive functions
   based on fixpoints in complete partial orders. No termination proof is
@@ -576,22 +576,20 @@ text \<open>
   command, which directly corresponds to a complete partial order on the
   result type. By default, the following modes are defined:
 
-    \<^descr> \<open>option\<close> defines functions that map into the @{type option} type. Here,
-    the value @{term None} is used to model a non-terminating computation.
-    Monotonicity requires that if @{term None} is returned by a recursive
-    call, then the overall result must also be @{term None}. This is best
-    achieved through the use of the monadic operator @{const "Option.bind"}.
+    \<^descr> \<open>option\<close> defines functions that map into the \<^type>\<open>option\<close> type. Here,
+    the value \<^term>\<open>None\<close> is used to model a non-terminating computation.
+    Monotonicity requires that if \<^term>\<open>None\<close> is returned by a recursive
+    call, then the overall result must also be \<^term>\<open>None\<close>. This is best
+    achieved through the use of the monadic operator \<^const>\<open>Option.bind\<close>.
 
     \<^descr> \<open>tailrec\<close> defines functions with an arbitrary result type and uses the
-    slightly degenerated partial order where @{term "undefined"} is the bottom
-    element. Now, monotonicity requires that if @{term undefined} is returned
-    by a recursive call, then the overall result must also be @{term
-    undefined}. In practice, this is only satisfied when each recursive call
+    slightly degenerated partial order where \<^term>\<open>undefined\<close> is the bottom
+    element. Now, monotonicity requires that if \<^term>\<open>undefined\<close> is returned
+    by a recursive call, then the overall result must also be \<^term>\<open>undefined\<close>. In practice, this is only satisfied when each recursive call
     is a tail call, whose result is directly returned. Thus, this mode of
     operation allows the definition of arbitrary tail-recursive functions.
 
-  Experienced users may define new modes by instantiating the locale @{const
-  "partial_function_definitions"} appropriately.
+  Experienced users may define new modes by instantiating the locale \<^const>\<open>partial_function_definitions\<close> appropriately.
 
   \<^descr> @{attribute (HOL) partial_function_mono} declares rules for use in the
   internal monotonicity proofs of partial function definitions.
@@ -609,7 +607,7 @@ text \<open>
   mostly obsolete; @{command (HOL) "function"} or @{command (HOL) "fun"}
   should be used instead.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) recdef} ('(' @'permissive' ')')? \<newline>
       @{syntax name} @{syntax term} (@{syntax prop} +) hints?
     ;
@@ -617,7 +615,7 @@ text \<open>
     ;
     recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf')
       (() | 'add' | 'del') ':' @{syntax thms}) | @{syntax clasimpmod}
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "recdef"} defines general well-founded recursive functions
   (using the TFL package). The ``\<open>(permissive)\<close>'' option tells TFL to recover
@@ -639,10 +637,10 @@ text \<open>
     @{attribute_def (HOL) recdef_wf} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
       @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -662,10 +660,10 @@ text \<open>
   For examples see \<^file>\<open>~~/src/HOL/ex/Adhoc_Overloading_Examples.thy\<close> and
   \<^file>\<open>~~/src/HOL/Library/Monad_Syntax.thy\<close>.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
       (@{syntax name} (@{syntax term} + ) + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> @{command "adhoc_overloading"}~\<open>c v\<^sub>1 ... v\<^sub>n\<close> associates variants with an
   existing constant.
@@ -688,12 +686,12 @@ text \<open>
     @{command_def (HOL) "specification"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) specification} '(' (decl +) ')' \<newline>
       (@{syntax thmdecl}? @{syntax prop} +)
     ;
     decl: (@{syntax name} ':')? @{syntax term} ('(' @'overloaded' ')')?
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "specification"}~\<open>decls \<phi>\<close> sets up a goal stating the
   existence of terms with the properties specified to hold for the constants
@@ -715,14 +713,14 @@ text \<open>
     @{command_def (HOL) "old_rep_datatype"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) old_rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
 
     spec: @{syntax typespec_sorts} @{syntax mixfix}? '=' (cons + '|')
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "old_rep_datatype"} represents existing types as
   old-style datatypes.
@@ -744,7 +742,7 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   We define a type of finite sequences, with slightly different names than the
-  existing @{typ "'a list"} that is already in @{theory Main}:
+  existing \<^typ>\<open>'a list\<close> that is already in \<^theory>\<open>Main\<close>:
 \<close>
 
 (*<*)experiment begin(*>*)
@@ -851,7 +849,7 @@ text \<open>
     @{command_def (HOL) "print_record"} & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) record} @{syntax "overloaded"}? @{syntax typespec_sorts} '=' \<newline>
       (@{syntax type} '+')? (constdecl +)
     ;
@@ -860,7 +858,7 @@ text \<open>
     @@{command (HOL) print_record} modes? @{syntax typespec_sorts}
     ;
     modes: '(' (@{syntax name} +) ')'
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "record"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1 \<dots> c\<^sub>n :: \<sigma>\<^sub>n\<close>
   defines extensible record type \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close>, derived from the optional
@@ -981,8 +979,8 @@ text \<open>
   internal simplification procedure, which is also part of the standard
   Simplifier setup.
 
-  \<^enum> Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv> x = x'
-  \<and> y = y'"} are declared to the Simplifier and Classical Reasoner as
+  \<^enum> Inject equations of a form analogous to \<^prop>\<open>(x, y) = (x', y') \<equiv> x = x'
+  \<and> y = y'\<close> are declared to the Simplifier and Classical Reasoner as
   @{attribute iff} rules. These rules are available as \<open>t.iffs\<close>.
 
   \<^enum> The introduction rule for record equality analogous to \<open>x r = x r' \<Longrightarrow> y r =
@@ -1019,14 +1017,14 @@ text \<open>
 
   A type definition identifies a new type with a non-empty subset of an
   existing type. More precisely, the new type is defined by exhibiting an
-  existing type \<open>\<tau>\<close>, a set \<open>A :: \<tau> set\<close>, and proving @{prop "\<exists>x. x \<in> A"}. Thus
+  existing type \<open>\<tau>\<close>, a set \<open>A :: \<tau> set\<close>, and proving \<^prop>\<open>\<exists>x. x \<in> A\<close>. Thus
   \<open>A\<close> is a non-empty subset of \<open>\<tau>\<close>, and the new type denotes this subset. New
   functions are postulated that establish an isomorphism between the new type
   and the subset. In general, the type \<open>\<tau>\<close> may involve type variables \<open>\<alpha>\<^sub>1, \<dots>,
   \<alpha>\<^sub>n\<close> which means that the type definition produces a type constructor \<open>(\<alpha>\<^sub>1,
   \<dots>, \<alpha>\<^sub>n) t\<close> depending on those type arguments.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) typedef} @{syntax "overloaded"}? abs_type '=' rep_set
     ;
     @{syntax_def "overloaded"}: ('(' @'overloaded' ')')
@@ -1034,7 +1032,7 @@ text \<open>
     abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
     rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
-  \<close>}
+  \<close>
 
   To understand the concept of type definition better, we need to recount its
   somewhat complex history. The HOL logic goes back to the ``Simple Theory of
@@ -1098,7 +1096,7 @@ text \<open>
   specification allows to provide alternative names.
 
   The logical characterization of @{command typedef} uses the predicate of
-  locale @{const type_definition} that is defined in Isabelle/HOL. Various
+  locale \<^const>\<open>type_definition\<close> that is defined in Isabelle/HOL. Various
   basic consequences of that are instantiated accordingly, re-using the locale
   facts with names derived from the new type constructor. Thus the generic
   theorem @{thm type_definition.Rep} is turned into the specific \<open>Rep_t\<close>, for
@@ -1160,9 +1158,9 @@ text \<open>
     @{command_def (HOL) "functor"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) functor} (@{syntax name} ':')? @{syntax term}
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "functor"}~\<open>prefix: m\<close> allows to prove and register
   properties about the functorial structure of type constructors. These
@@ -1205,7 +1203,7 @@ text \<open>
     @{command_def (HOL) "quotient_type"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>\\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) quotient_type} @{syntax "overloaded"}? \<newline>
       @{syntax typespec} @{syntax mixfix}? '=' quot_type \<newline>
       quot_morphisms? quot_parametric?
@@ -1215,7 +1213,7 @@ text \<open>
     quot_morphisms: @'morphisms' @{syntax name} @{syntax name}
     ;
     quot_parametric: @'parametric' @{syntax thm}
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "quotient_type"} defines a new quotient type \<open>\<tau>\<close>. The
   injection from a quotient type to a raw type is called \<open>rep_\<tau>\<close>, its inverse
@@ -1243,7 +1241,7 @@ text \<open>
   The Lifting package allows users to lift terms of the raw type to the
   abstract type, which is a necessary step in building a library for an
   abstract type. Lifting defines a new constant by combining coercion
-  functions (@{term Abs} and @{term Rep}) with the raw term. It also proves an
+  functions (\<^term>\<open>Abs\<close> and \<^term>\<open>Rep\<close>) with the raw term. It also proves an
   appropriate transfer rule for the Transfer (\secref{sec:transfer}) package
   and, if possible, an equation for the code generator.
 
@@ -1271,7 +1269,7 @@ text \<open>
     @{attribute_def (HOL) "lifting_restore"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) setup_lifting} @{syntax thm} @{syntax thm}? \<newline>
       (@'parametric' @{syntax thm})?
     ;
@@ -1285,20 +1283,19 @@ text \<open>
     ;
     @@{attribute (HOL) lifting_restore}
       @{syntax thm} (@{syntax thm} @{syntax thm})?
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "setup_lifting"} Sets up the Lifting package to work with
   a user-defined type. The command supports two modes.
 
     \<^enum> The first one is a low-level mode when the user must provide as a first
-    argument of @{command (HOL) "setup_lifting"} a quotient theorem @{term
-    "Quotient R Abs Rep T"}. The package configures a transfer rule for
+    argument of @{command (HOL) "setup_lifting"} a quotient theorem \<^term>\<open>Quotient R Abs Rep T\<close>. The package configures a transfer rule for
     equality, a domain transfer rules and sets up the @{command_def (HOL)
     "lift_definition"} command to work with the abstract type. An optional
-    theorem @{term "reflp R"}, which certifies that the equivalence relation R
+    theorem \<^term>\<open>reflp R\<close>, which certifies that the equivalence relation R
     is total, can be provided as a second argument. This allows the package to
     generate stronger transfer rules. And finally, the parametricity theorem
-    for @{term R} can be provided as a third argument. This allows the package
+    for \<^term>\<open>R\<close> can be provided as a third argument. This allows the package
     to generate a stronger transfer rule for equality.
 
     Users generally will not prove the \<open>Quotient\<close> theorem manually for new
@@ -1306,9 +1303,9 @@ text \<open>
 
     \<^enum> When a new subtype is defined by @{command (HOL) typedef}, @{command
     (HOL) "lift_definition"} can be used in its second mode, where only the
-    @{term type_definition} theorem @{term "type_definition Rep Abs A"} is
+    \<^term>\<open>type_definition\<close> theorem \<^term>\<open>type_definition Rep Abs A\<close> is
     used as an argument of the command. The command internally proves the
-    corresponding @{term Quotient} theorem and registers it with @{command
+    corresponding \<^term>\<open>Quotient\<close> theorem and registers it with @{command
     (HOL) setup_lifting} using its first mode.
 
   For quotients, the command @{command (HOL) quotient_type} can be used. The
@@ -1350,12 +1347,12 @@ text \<open>
 
   \<^medskip>
   Integration with [@{attribute code} abstract]: For subtypes (e.g.\
-  corresponding to a datatype invariant, such as @{typ "'a dlist"}), @{command
+  corresponding to a datatype invariant, such as \<^typ>\<open>'a dlist\<close>), @{command
   (HOL) "lift_definition"} uses a code certificate theorem \<open>f.rep_eq\<close> as a
   code equation. Because of the limitation of the code generator, \<open>f.rep_eq\<close>
   cannot be used as a code equation if the subtype occurs inside the result
-  type rather than at the top level (e.g.\ function returning @{typ "'a dlist
-  option"} vs. @{typ "'a dlist"}).
+  type rather than at the top level (e.g.\ function returning \<^typ>\<open>'a dlist
+  option\<close> vs. \<^typ>\<open>'a dlist\<close>).
 
   In this case, an extension of @{command (HOL) "lift_definition"} can be
   invoked by specifying the flag \<open>code_dt\<close>. This extension enables code
@@ -1365,8 +1362,8 @@ text \<open>
     \<^descr> \<open>\<tau>\<close> is a type variable
 
     \<^descr> \<open>\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>\<close>, where \<open>\<kappa>\<close> is an abstract type constructor and \<open>\<tau>\<^sub>1 \<dots>
-    \<tau>\<^sub>n\<close> do not contain abstract types (i.e.\ @{typ "int dlist"} is allowed
-    whereas @{typ "int dlist dlist"} not)
+    \<tau>\<^sub>n\<close> do not contain abstract types (i.e.\ \<^typ>\<open>int dlist\<close> is allowed
+    whereas \<^typ>\<open>int dlist dlist\<close> not)
 
     \<^descr> \<open>\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>\<close>, \<open>\<kappa>\<close> is a type constructor that was defined as a
     (co)datatype whose constructor argument types do not contain either
@@ -1403,23 +1400,22 @@ text \<open>
   \<^descr> @{command (HOL) "print_quotients"} prints stored quotient theorems.
 
   \<^descr> @{attribute (HOL) quot_map} registers a quotient map theorem, a theorem
-  showing how to ``lift'' quotients over type constructors. E.g.\ @{term
-  "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image Rep)
-  (rel_set T)"}. For examples see \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or
+  showing how to ``lift'' quotients over type constructors. E.g.\ \<^term>\<open>Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image Rep)
+  (rel_set T)\<close>. For examples see \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or
   \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property is proved automatically if the
   involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) relator_eq_onp} registers a theorem that shows that a
-  relator applied to an equality restricted by a predicate @{term P} (i.e.\
-  @{term "eq_onp P"}) is equal to a predicator applied to the @{term P}. The
-  combinator @{const eq_onp} is used for internal encoding of proper subtypes.
+  relator applied to an equality restricted by a predicate \<^term>\<open>P\<close> (i.e.\
+  \<^term>\<open>eq_onp P\<close>) is equal to a predicator applied to the \<^term>\<open>P\<close>. The
+  combinator \<^const>\<open>eq_onp\<close> is used for internal encoding of proper subtypes.
   Such theorems allows the package to hide \<open>eq_onp\<close> from a user in a
   user-readable form of a respectfulness theorem. For examples see
   \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
   is proved automatically if the involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) "relator_mono"} registers a property describing a
-  monotonicity of a relator. E.g.\ @{prop "A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B"}.
+  monotonicity of a relator. E.g.\ \<^prop>\<open>A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B\<close>.
   This property is needed for proving a stronger transfer rule in
   @{command_def (HOL) "lift_definition"} when a parametricity theorem for the
   raw term is specified and also for the reflexivity prover. For examples see
@@ -1451,7 +1447,7 @@ text \<open>
   and thus sets up lifting for an abstract type \<open>\<tau>\<close> (that is defined by
   \<open>Quotient_thm\<close>). Optional theorems \<open>pcr_def\<close> and \<open>pcr_cr_eq_thm\<close> can be
   specified to register the parametrized correspondence relation for \<open>\<tau>\<close>.
-  E.g.\ for @{typ "'a dlist"}, \<open>pcr_def\<close> is \<open>pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
+  E.g.\ for \<^typ>\<open>'a dlist\<close>, \<open>pcr_def\<close> is \<open>pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
   cr_dlist\<close> and \<open>pcr_cr_eq_thm\<close> is \<open>pcr_dlist (=) = (=)\<close>. This attribute
   is rather used for low-level manipulation with set-up of the Lifting package
   because using of the bundle \<open>\<tau>.lifting\<close> together with the commands @{command
@@ -1555,15 +1551,15 @@ text \<open>
   quantifiers are transferred.
 
   \<^descr> @{attribute (HOL) relator_eq} attribute collects identity laws for
-  relators of various type constructors, e.g. @{term "rel_set (=) = (=)"}.
+  relators of various type constructors, e.g. \<^term>\<open>rel_set (=) = (=)\<close>.
   The @{method (HOL) transfer} method uses these lemmas to infer
   transfer rules for non-polymorphic constants on the fly. For examples see
   \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
   is proved automatically if the involved type is BNF without dead variables.
 
   \<^descr> @{attribute_def (HOL) "relator_domain"} attribute collects rules
-  describing domains of relators by predicators. E.g.\ @{term "Domainp
-  (rel_set T) = (\<lambda>A. Ball A (Domainp T))"}. This allows the package to lift
+  describing domains of relators by predicators. E.g.\ \<^term>\<open>Domainp
+  (rel_set T) = (\<lambda>A. Ball A (Domainp T))\<close>. This allows the package to lift
   transfer domain rules through type constructors. For examples see
   \<^file>\<open>~~/src/HOL/Lifting_Set.thy\<close> or \<^file>\<open>~~/src/HOL/Lifting.thy\<close>. This property
   is proved automatically if the involved type is BNF without dead variables.
@@ -1597,7 +1593,7 @@ text \<open>
     @{attribute_def (HOL) "quot_preserve"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
     @{syntax term} 'is' @{syntax term}
     ;
@@ -1606,7 +1602,7 @@ text \<open>
     @@{method (HOL) lifting} @{syntax thms}?
     ;
     @@{method (HOL) lifting_setup} @{syntax thms}?
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "quotient_definition"} defines a constant on the quotient
   type.
@@ -1665,8 +1661,8 @@ text \<open>
   container types. Given a polymorphic type that serves as a container, a map
   function defined for this container using @{command (HOL) "functor"} and a
   relation map defined for for the container type, the quotient extension
-  theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3 (rel_map R) (map
-  Abs) (map Rep)"}. Quotient extension theorems are stored in a database and
+  theorem should be \<^term>\<open>Quotient3 R Abs Rep \<Longrightarrow> Quotient3 (rel_map R) (map
+  Abs) (map Rep)\<close>. Quotient extension theorems are stored in a database and
   are used all the steps of lifting theorems.
 \<close>
 
@@ -1688,7 +1684,7 @@ text \<open>
     @{command_def (HOL) "sledgehammer_params"} & : & \<open>theory \<rightarrow> theory\<close>
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) try}
     ;
 
@@ -1704,7 +1700,7 @@ text \<open>
     args: ( @{syntax name} '=' value + ',' )
     ;
     facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thms} ) + ) ? ')'
-  \<close>} % FIXME check args "value"
+  \<close> % FIXME check args "value"
 
   \<^descr> @{command (HOL) "solve_direct"} checks whether the current subgoals can be
   solved directly by an existing theorem. Duplicate lemmas can be detected in
@@ -1747,7 +1743,7 @@ text \<open>
     @{command_def (HOL) "find_unused_assms"} & : & \<open>context \<rightarrow>\<close>
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) value} ( '[' @{syntax name} ']' )? modes? @{syntax term}
     ;
 
@@ -1771,7 +1767,7 @@ text \<open>
     modes: '(' (@{syntax name} +) ')'
     ;
     args: ( @{syntax name} '=' value + ',' )
-  \<close>} % FIXME check "value"
+  \<close> % FIXME check "value"
 
   \<^descr> @{command (HOL) "value"}~\<open>t\<close> evaluates and prints a term; optionally
   \<open>modes\<close> can be specified, which are appended to the current print mode; see
@@ -1859,62 +1855,54 @@ text \<open>
   Using the following type classes, the testers generate values and convert
   them back into Isabelle terms for displaying counterexamples.
 
-    \<^descr>[\<open>exhaustive\<close>] The parameters of the type classes @{class exhaustive} and
-    @{class full_exhaustive} implement the testing. They take a testing
-    function as a parameter, which takes a value of type @{typ "'a"} and
+    \<^descr>[\<open>exhaustive\<close>] The parameters of the type classes \<^class>\<open>exhaustive\<close> and
+    \<^class>\<open>full_exhaustive\<close> implement the testing. They take a testing
+    function as a parameter, which takes a value of type \<^typ>\<open>'a\<close> and
     optionally produces a counterexample, and a size parameter for the test
-    values. In @{class full_exhaustive}, the testing function parameter
-    additionally expects a lazy term reconstruction in the type @{typ
-    Code_Evaluation.term} of the tested value.
+    values. In \<^class>\<open>full_exhaustive\<close>, the testing function parameter
+    additionally expects a lazy term reconstruction in the type \<^typ>\<open>Code_Evaluation.term\<close> of the tested value.
 
     The canonical implementation for \<open>exhaustive\<close> testers calls the given
     testing function on all values up to the given size and stops as soon as a
     counterexample is found.
 
-    \<^descr>[\<open>random\<close>] The operation @{const Quickcheck_Random.random} of the type
-    class @{class random} generates a pseudo-random value of the given size
-    and a lazy term reconstruction of the value in the type @{typ
-    Code_Evaluation.term}. A pseudo-randomness generator is defined in theory
-    @{theory HOL.Random}.
+    \<^descr>[\<open>random\<close>] The operation \<^const>\<open>Quickcheck_Random.random\<close> of the type
+    class \<^class>\<open>random\<close> generates a pseudo-random value of the given size
+    and a lazy term reconstruction of the value in the type \<^typ>\<open>Code_Evaluation.term\<close>. A pseudo-randomness generator is defined in theory
+    \<^theory>\<open>HOL.Random\<close>.
 
     \<^descr>[\<open>narrowing\<close>] implements Haskell's Lazy Smallcheck @{cite
-    "runciman-naylor-lindblad"} using the type classes @{class narrowing} and
-    @{class partial_term_of}. Variables in the current goal are initially
+    "runciman-naylor-lindblad"} using the type classes \<^class>\<open>narrowing\<close> and
+    \<^class>\<open>partial_term_of\<close>. Variables in the current goal are initially
     represented as symbolic variables. If the execution of the goal tries to
     evaluate one of them, the test engine replaces it with refinements
-    provided by @{const narrowing}. Narrowing views every value as a
-    sum-of-products which is expressed using the operations @{const
-    Quickcheck_Narrowing.cons} (embedding a value), @{const
-    Quickcheck_Narrowing.apply} (product) and @{const
-    Quickcheck_Narrowing.sum} (sum). The refinement should enable further
+    provided by \<^const>\<open>narrowing\<close>. Narrowing views every value as a
+    sum-of-products which is expressed using the operations \<^const>\<open>Quickcheck_Narrowing.cons\<close> (embedding a value), \<^const>\<open>Quickcheck_Narrowing.apply\<close> (product) and \<^const>\<open>Quickcheck_Narrowing.sum\<close> (sum). The refinement should enable further
     evaluation of the goal.
 
-    For example, @{const narrowing} for the list type @{typ "'a :: narrowing list"}
+    For example, \<^const>\<open>narrowing\<close> for the list type \<^typ>\<open>'a :: narrowing list\<close>
     can be recursively defined as
-    @{term "Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
+    \<^term>\<open>Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
               (Quickcheck_Narrowing.apply
                 (Quickcheck_Narrowing.apply
                   (Quickcheck_Narrowing.cons (#))
                   narrowing)
-                narrowing)"}.
-    If a symbolic variable of type @{typ "_ list"} is evaluated, it is
-    replaced by (i)~the empty list @{term "[]"} and (ii)~by a non-empty list
+                narrowing)\<close>.
+    If a symbolic variable of type \<^typ>\<open>_ list\<close> is evaluated, it is
+    replaced by (i)~the empty list \<^term>\<open>[]\<close> and (ii)~by a non-empty list
     whose head and tail can then be recursively refined if needed.
 
-    To reconstruct counterexamples, the operation @{const partial_term_of}
-    transforms \<open>narrowing\<close>'s deep representation of terms to the type @{typ
-    Code_Evaluation.term}. The deep representation models symbolic variables
-    as @{const Quickcheck_Narrowing.Narrowing_variable}, which are normally
-    converted to @{const Code_Evaluation.Free}, and refined values as @{term
-    "Quickcheck_Narrowing.Narrowing_constructor i args"}, where @{term "i ::
-    integer"} denotes the index in the sum of refinements. In the above
-    example for lists, @{term "0"} corresponds to @{term "[]"} and @{term "1"}
-    to @{term "(#)"}.
+    To reconstruct counterexamples, the operation \<^const>\<open>partial_term_of\<close>
+    transforms \<open>narrowing\<close>'s deep representation of terms to the type \<^typ>\<open>Code_Evaluation.term\<close>. The deep representation models symbolic variables
+    as \<^const>\<open>Quickcheck_Narrowing.Narrowing_variable\<close>, which are normally
+    converted to \<^const>\<open>Code_Evaluation.Free\<close>, and refined values as \<^term>\<open>Quickcheck_Narrowing.Narrowing_constructor i args\<close>, where \<^term>\<open>i ::
+    integer\<close> denotes the index in the sum of refinements. In the above
+    example for lists, \<^term>\<open>0\<close> corresponds to \<^term>\<open>[]\<close> and \<^term>\<open>1\<close>
+    to \<^term>\<open>(#)\<close>.
 
-    The command @{command (HOL) "code_datatype"} sets up @{const
-    partial_term_of} such that the @{term "i"}-th refinement is interpreted as
-    the @{term "i"}-th constructor, but it does not ensures consistency with
-    @{const narrowing}.
+    The command @{command (HOL) "code_datatype"} sets up \<^const>\<open>partial_term_of\<close> such that the \<^term>\<open>i\<close>-th refinement is interpreted as
+    the \<^term>\<open>i\<close>-th constructor, but it does not ensures consistency with
+    \<^const>\<open>narrowing\<close>.
 
   \<^descr> @{command (HOL) "quickcheck_params"} changes @{command (HOL) "quickcheck"}
   configuration options persistently.
@@ -1953,7 +1941,7 @@ text \<open>
   called \<^emph>\<open>coercions\<close>. Type inference will add them as necessary when parsing
   a term. See @{cite "traytel-berghofer-nipkow-2011"} for details.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute (HOL) coercion} (@{syntax term})
     ;
     @@{attribute (HOL) coercion_delete} (@{syntax term})
@@ -1961,7 +1949,7 @@ text \<open>
     @@{attribute (HOL) coercion_map} (@{syntax term})
     ;
     @@{attribute (HOL) coercion_args} (@{syntax const}) (('+' | '0' | '-')+)
-  \<close>}
+  \<close>
 
   \<^descr> @{attribute (HOL) "coercion"}~\<open>f\<close> registers a new coercion function \<open>f ::
   \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2\<close> where \<open>\<sigma>\<^sub>1\<close> and \<open>\<sigma>\<^sub>2\<close> are type constructors without arguments.
@@ -1997,7 +1985,7 @@ text \<open>
   the definition of syntatic constructs (usually extralogical, i.e., processed
   and stripped during type inference), that should not be destroyed by the
   insertion of coercions (see, for example, the setup for the case syntax in
-  @{theory HOL.Ctr_Sugar}).
+  \<^theory>\<open>HOL.Ctr_Sugar\<close>).
 
   \<^descr> @{attribute (HOL) "coercion_enabled"} enables the coercion inference
   algorithm.
@@ -2036,9 +2024,9 @@ text \<open>
     @{method_def (HOL) iprover} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) iprover} (@{syntax rulemod} *)
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) iprover} performs intuitionistic proof search, depending on
   specifically declared rules from the context, or given as explicit
@@ -2063,13 +2051,13 @@ text \<open>
     @{method_def (HOL) "metis"} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) meson} @{syntax thms}?
     ;
     @@{method (HOL) metis}
       ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
       @{syntax thms}?
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) meson} implements Loveland's model elimination procedure
   @{cite "loveland-78"}. See \<^file>\<open>~~/src/HOL/ex/Meson_Test.thy\<close> for examples.
@@ -2091,13 +2079,13 @@ text \<open>
     @{attribute_def (HOL) algebra} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) algebra}
       ('add' ':' @{syntax thms})?
       ('del' ':' @{syntax thms})?
     ;
     @@{attribute (HOL) algebra} (() | 'add' | 'del')
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) algebra} performs algebraic reasoning via Gr\"obner bases,
   see also @{cite "Chaieb-Wenzel:2007"} and @{cite \<open>\S3.2\<close> "Chaieb-thesis"}.
@@ -2168,9 +2156,9 @@ text \<open>
     @{method_def (HOL) "coherent"} & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) coherent} @{syntax thms}?
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent Logic\<close> @{cite
   "Bezem-Coquand:2005"}, which covers applications in confluence theory,
@@ -2193,7 +2181,7 @@ text \<open>
     @{command_def (HOL) "inductive_cases"}\<open>\<^sup>*\<close> & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{method (HOL) case_tac} @{syntax goal_spec}? @{syntax term} rule?
     ;
     @@{method (HOL) induct_tac} @{syntax goal_spec}? (@{syntax insts} * @'and') rule?
@@ -2203,7 +2191,7 @@ text \<open>
     @@{command (HOL) inductive_cases} (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
     ;
     rule: 'rule' ':' @{syntax thm}
-  \<close>}
+  \<close>
 
   \<^descr> @{method (HOL) case_tac} and @{method (HOL) induct_tac} admit to reason
   about inductive types. Rules are selected according to the declarations by
@@ -2219,7 +2207,7 @@ text \<open>
   object-logic conclusion of the subgoal being addressed.
 
   \<^descr> @{method (HOL) ind_cases} and @{command (HOL) "inductive_cases"} provide
-  an interface to the internal @{ML_text mk_cases} operation. Rules are
+  an interface to the internal \<^ML_text>\<open>mk_cases\<close> operation. Rules are
   simplified in an unrestricted forward manner.
 
   While @{method (HOL) ind_cases} is a proof method to apply the result
@@ -2238,9 +2226,9 @@ text \<open>
     @{attribute_def (HOL) split_format}\<open>\<^sup>*\<close> & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute (HOL) split_format} ('(' 'complete' ')')?
-  \<close>}
+  \<close>
 
   \<^descr> @{attribute (HOL) split_format}\ \<open>(complete)\<close> causes arguments in function
   applications to be represented canonically according to their tuple type
@@ -2292,7 +2280,7 @@ text \<open>
     @{command_def (HOL) "code_pred"} & : & \<open>theory \<rightarrow> proof(prove)\<close>
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (HOL) export_code} ( @'open' ) ? ( constexpr + ) \<newline>
        ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
         ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
@@ -2381,7 +2369,7 @@ text \<open>
         (@'and' ((const ':' modes @'and') +))?))
     ;
     modes: mode @'as' const
-  \<close>}
+  \<close>
 
   \<^descr> @{command (HOL) "export_code"} generates code for a given list of
   constants in the specified target language(s). If no serialization

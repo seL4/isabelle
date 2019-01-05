@@ -14,7 +14,7 @@ definition valuesum :: "('a, 'b :: ab_group_add) mapping \<Rightarrow> 'b" where
   "valuesum m = (\<Sum>k \<in> Mapping.keys m. the (Mapping.lookup m k))"
 
 text \<open>
-  Not that instead of defining @{term valuesum} with choice, we define it
+  Not that instead of defining \<^term>\<open>valuesum\<close> with choice, we define it
   directly and derive a description involving choice afterwards:
 \<close>
 
@@ -58,7 +58,7 @@ lemma valuesum_choice:
 
 text \<open>
   Given \<open>valuesum_rec\<close> as initial description, we stepwise refine it to something executable;
-  first, we formally insert the constructor @{term Mapping} and split the one equation into two,
+  first, we formally insert the constructor \<^term>\<open>Mapping\<close> and split the one equation into two,
   where the second one provides the necessary context:
 \<close>
 
@@ -72,7 +72,7 @@ text \<open>
   As a side effect the precondition disappears (but note this has nothing to do with choice!).
   The first equation deals with the uncritical empty case and can already be used for code generation.
 
-  Using \<open>valuesum_choice\<close>, we are able to prove an executable version of @{term valuesum}:
+  Using \<open>valuesum_choice\<close>, we are able to prove an executable version of \<^term>\<open>valuesum\<close>:
 \<close>
 
 lemma valuesum_rec_exec [code]:

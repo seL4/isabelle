@@ -47,7 +47,7 @@ fun lfilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a llist \<Rightarrow> 'a 
 value [code] "lhd (lfilter odd llist)"
 
 definition lfilter_test :: "nat llist \<Rightarrow> _" where "lfilter_test xs = lhd (lfilter even xs)"
-  \<comment> \<open>Filtering @{term llist} for @{term even} fails because only the datatype is lazy, not the
+  \<comment> \<open>Filtering \<^term>\<open>llist\<close> for \<^term>\<open>even\<close> fails because only the datatype is lazy, not the
   filter function itself.\<close>
 ML_val \<open> (@{code lfilter_test} @{code llist}; raise Fail "Failure expected") handle Match => () \<close>
 

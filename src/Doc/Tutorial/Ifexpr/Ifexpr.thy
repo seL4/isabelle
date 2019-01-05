@@ -22,17 +22,17 @@ datatype boolex = Const bool | Var nat | Neg boolex
                 | And boolex boolex
 
 text\<open>\noindent
-The two constants are represented by @{term"Const True"} and
-@{term"Const False"}. Variables are represented by terms of the form
-@{term"Var n"}, where @{term"n"} is a natural number (type @{typ"nat"}).
+The two constants are represented by \<^term>\<open>Const True\<close> and
+\<^term>\<open>Const False\<close>. Variables are represented by terms of the form
+\<^term>\<open>Var n\<close>, where \<^term>\<open>n\<close> is a natural number (type \<^typ>\<open>nat\<close>).
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
-@{term"And (Var 0) (Neg(Var 1))"}.
+\<^term>\<open>And (Var 0) (Neg(Var 1))\<close>.
 
 \subsubsection{The Value of a Boolean Expression}
 
 The value of a boolean expression depends on the value of its variables.
 Hence the function \<open>value\<close> takes an additional parameter, an
-\emph{environment} of type @{typ"nat => bool"}, which maps variables to their
+\emph{environment} of type \<^typ>\<open>nat => bool\<close>, which maps variables to their
 values:
 \<close>
 
@@ -47,14 +47,14 @@ text\<open>\noindent
 
 An alternative and often more efficient (because in a certain sense
 canonical) representation are so-called \emph{If-expressions} built up
-from constants (@{term"CIF"}), variables (@{term"VIF"}) and conditionals
-(@{term"IF"}):
+from constants (\<^term>\<open>CIF\<close>), variables (\<^term>\<open>VIF\<close>) and conditionals
+(\<^term>\<open>IF\<close>):
 \<close>
 
 datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex
 
 text\<open>\noindent
-The evaluation of If-expressions proceeds as for @{typ"boolex"}:
+The evaluation of If-expressions proceeds as for \<^typ>\<open>boolex\<close>:
 \<close>
 
 primrec valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool" where
@@ -66,9 +66,9 @@ primrec valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool
 text\<open>
 \subsubsection{Converting Boolean and If-Expressions}
 
-The type @{typ"boolex"} is close to the customary representation of logical
-formulae, whereas @{typ"ifex"} is designed for efficiency. It is easy to
-translate from @{typ"boolex"} into @{typ"ifex"}:
+The type \<^typ>\<open>boolex\<close> is close to the customary representation of logical
+formulae, whereas \<^typ>\<open>ifex\<close> is designed for efficiency. It is easy to
+translate from \<^typ>\<open>boolex\<close> into \<^typ>\<open>ifex\<close>:
 \<close>
 
 primrec bool2if :: "boolex \<Rightarrow> ifex" where
@@ -78,7 +78,7 @@ primrec bool2if :: "boolex \<Rightarrow> ifex" where
 "bool2if (And b c) = IF (bool2if b) (bool2if c) (CIF False)"
 
 text\<open>\noindent
-At last, we have something we can verify: that @{term"bool2if"} preserves the
+At last, we have something we can verify: that \<^term>\<open>bool2if\<close> preserves the
 value of its argument:
 \<close>
 
@@ -97,10 +97,10 @@ In fact, all proofs in this case study look exactly like this. Hence we do
 not show them below.
 
 More interesting is the transformation of If-expressions into a normal form
-where the first argument of @{term"IF"} cannot be another @{term"IF"} but
+where the first argument of \<^term>\<open>IF\<close> cannot be another \<^term>\<open>IF\<close> but
 must be a constant or variable. Such a normal form can be computed by
-repeatedly replacing a subterm of the form @{term"IF (IF b x y) z u"} by
-@{term"IF b (IF x z u) (IF y z u)"}, which has the same value. The following
+repeatedly replacing a subterm of the form \<^term>\<open>IF (IF b x y) z u\<close> by
+\<^term>\<open>IF b (IF x z u) (IF y z u)\<close>, which has the same value. The following
 primitive recursive functions perform this task:
 \<close>
 
@@ -124,7 +124,7 @@ theorem "valif (norm b) env = valif b env"(*<*)oops(*>*)
 
 text\<open>\noindent
 The proof is canonical, provided we first show the following simplification
-lemma, which also helps to understand what @{term"normif"} does:
+lemma, which also helps to understand what \<^term>\<open>normif\<close> does:
 \<close>
 
 lemma [simp]:
@@ -141,7 +141,7 @@ text\<open>\noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
 of the theorem shown above because of the \<open>[simp]\<close> attribute.
 
-But how can we be sure that @{term"norm"} really produces a normal form in
+But how can we be sure that \<^term>\<open>norm\<close> really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:
 \<close>
 
@@ -152,8 +152,8 @@ primrec normal :: "ifex \<Rightarrow> bool" where
      (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))"
 
 text\<open>\noindent
-Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
-normality of @{term"normif"}:
+Now we prove \<^term>\<open>normal(norm b)\<close>. Of course, this requires a lemma about
+normality of \<^term>\<open>normif\<close>:
 \<close>
 
 lemma [simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)"
@@ -174,8 +174,8 @@ can provide the clue.  The necessity of universal quantification
 \S\ref{sec:InductionHeuristics}
 
 \begin{exercise}
-  We strengthen the definition of a @{const normal} If-expression as follows:
-  the first argument of all @{term IF}s must be a variable. Adapt the above
+  We strengthen the definition of a \<^const>\<open>normal\<close> If-expression as follows:
+  the first argument of all \<^term>\<open>IF\<close>s must be a variable. Adapt the above
   development to this changed requirement. (Hint: you may need to formulate
   some of the goals as implications (\<open>\<longrightarrow>\<close>) rather than
   equalities (\<open>=\<close>).)

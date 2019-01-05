@@ -178,7 +178,7 @@ qed
 
 subsubsection "The Standard Typing System"
 
-text\<open>The predicate @{prop"l \<turnstile> c"} is nicely intuitive and executable. The
+text\<open>The predicate \<^prop>\<open>l \<turnstile> c\<close> is nicely intuitive and executable. The
 standard formulation, however, is slightly different, replacing the maximum
 computation by an antimonotonicity rule. We introduce the standard system now
 and show the equivalence with our formulation.\<close>

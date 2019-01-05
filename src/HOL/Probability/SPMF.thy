@@ -50,7 +50,7 @@ using ennreal_Sup[of "f ` A"] by auto
 lemma ennreal_lt_0: "x < 0 \<Longrightarrow> ennreal x = 0"
 by(simp add: ennreal_eq_0_iff)
 
-subsubsection \<open>More about @{typ "'a option"}\<close>
+subsubsection \<open>More about \<^typ>\<open>'a option\<close>\<close>
 
 lemma None_in_map_option_image [simp]: "None \<in> map_option f ` A \<longleftrightarrow> None \<in> A"
 by auto
@@ -764,7 +764,7 @@ by(rule rel_pmf.intros[where pq="return_pmf (x, y)"])(simp_all)
 context includes lifting_syntax
 begin
 
-text \<open>We do not yet have a relator for @{typ "'a measure"}, so we combine @{const measure} and @{const measure_pmf}\<close>
+text \<open>We do not yet have a relator for \<^typ>\<open>'a measure\<close>, so we combine \<^const>\<open>measure\<close> and \<^const>\<open>measure_pmf\<close>\<close>
 lemma measure_pmf_parametric:
   "(rel_pmf A ===> rel_pred A ===> (=)) (\<lambda>p. measure (measure_pmf p)) (\<lambda>q. measure (measure_pmf q))"
 proof(rule rel_funI)+
@@ -786,7 +786,7 @@ done
 
 end
 
-subsection \<open>From @{typ "'a pmf"} to @{typ "'a spmf"}\<close>
+subsection \<open>From \<^typ>\<open>'a pmf\<close> to \<^typ>\<open>'a spmf\<close>\<close>
 
 definition spmf_of_pmf :: "'a pmf \<Rightarrow> 'a spmf"
 where "spmf_of_pmf = map_pmf Some"
@@ -984,7 +984,7 @@ by(rule spmf_eqI)(simp add: zero_ereal_def[symmetric])
 subsection \<open>Ordering on spmfs\<close>
 
 text \<open>
-  @{const rel_pmf} does not preserve a ccpo structure. Counterexample by Saheb-Djahromi:
+  \<^const>\<open>rel_pmf\<close> does not preserve a ccpo structure. Counterexample by Saheb-Djahromi:
   Take prefix order over \<open>bool llist\<close> and
   the set \<open>range (\<lambda>n :: nat. uniform (llist_n n))\<close> where \<open>llist_n\<close> is the set
   of all \<open>llist\<close>s of length \<open>n\<close> and \<open>uniform\<close> returns a uniform distribution over
@@ -1223,13 +1223,13 @@ by(auto intro!: nn_integral_mono split: split_indicator dest: ord_spmf_eq_leD si
 lemma ord_spmf_eqD_measure_spmf: "ord_spmf (=) p q \<Longrightarrow> measure_spmf p \<le> measure_spmf q"
   by (subst le_measure) (auto simp: ord_spmf_eqD_emeasure)
 
-subsection \<open>CCPO structure for the flat ccpo @{term "ord_option (=)"}\<close>
+subsection \<open>CCPO structure for the flat ccpo \<^term>\<open>ord_option (=)\<close>\<close>
 
 context fixes Y :: "'a spmf set" begin
 
 definition lub_spmf :: "'a spmf"
 where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p \<in> Y. ennreal (spmf p x)))"
-  \<comment> \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close>
+  \<comment> \<open>We go through \<^typ>\<open>ennreal\<close> to have a sensible definition even if \<^term>\<open>Y\<close> is empty.\<close>
 
 lemma lub_spmf_empty [simp]: "SPMF.lub_spmf {} = return_pmf None"
 by(simp add: SPMF.lub_spmf_def bot_ereal_def)
@@ -1285,7 +1285,7 @@ apply(fastforce simp add: AE_measure_pmf_iff intro!: nn_integral_mono_AE)
 done
 
 text \<open>
-  Chains on @{typ "'a spmf"} maintain countable support.
+  Chains on \<^typ>\<open>'a spmf\<close> maintain countable support.
   Thanks to Johannes Hölzl for the proof idea.
 \<close>
 lemma spmf_chain_countable: "countable (\<Union>p\<in>Y. set_spmf p)"
@@ -1528,8 +1528,8 @@ interpretation spmf: partial_function_definitions "ord_spmf (=)" "lub_spmf"
   rewrites "lub_spmf {} \<equiv> return_pmf None"
 by(rule partial_function_definitions_spmf) simp
 
-declaration \<open>Partial_Function.init "spmf" @{term spmf.fixp_fun}
-  @{term spmf.mono_body} @{thm spmf.fixp_rule_uc} @{thm spmf.fixp_induct_uc}
+declaration \<open>Partial_Function.init "spmf" \<^term>\<open>spmf.fixp_fun\<close>
+  \<^term>\<open>spmf.mono_body\<close> @{thm spmf.fixp_rule_uc} @{thm spmf.fixp_induct_uc}
   NONE\<close>
 
 declare spmf.leq_refl[simp]
@@ -1698,7 +1698,7 @@ by(rule mcontI mono2mono_ennreal monotone_spmf cont_ennreal_spmf)+
 lemma nn_integral_map_spmf [simp]: "nn_integral (measure_spmf (map_spmf f p)) g = nn_integral (measure_spmf p) (g \<circ> f)"
 by(auto 4 3 simp add: measure_spmf_def nn_integral_distr nn_integral_restrict_space intro: nn_integral_cong split: split_indicator)
 
-subsubsection \<open>Admissibility of @{term rel_spmf}\<close>
+subsubsection \<open>Admissibility of \<^term>\<open>rel_spmf\<close>\<close>
 
 lemma rel_spmf_measureD:
   assumes "rel_spmf R p q"
@@ -1973,7 +1973,7 @@ by(cases "finite A")(auto simp add: spmf_of_set_def nn_integral_pmf_of_set card_
 lemma integral_spmf_of_set: "integral\<^sup>L (measure_spmf (spmf_of_set A)) f = sum f A / card A"
 by(clarsimp simp add: spmf_of_set_def integral_pmf_of_set card_gt_0_iff simp del: spmf_of_pmf_pmf_of_set)
 
-notepad begin \<comment> \<open>@{const pmf_of_set} is not fully parametric.\<close>
+notepad begin \<comment> \<open>\<^const>\<open>pmf_of_set\<close> is not fully parametric.\<close>
   define R :: "nat \<Rightarrow> nat \<Rightarrow> bool" where "R x y \<longleftrightarrow> (x \<noteq> 0 \<longrightarrow> y = 0)" for x y
   define A :: "nat set" where "A = {0, 1}"
   define B :: "nat set" where "B = {0, 1, 2}"

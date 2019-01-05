@@ -34,7 +34,7 @@ lemma xor3_simps:
 
 text \<open>Breaking up word equalities into equalities on their
   bit lists. Equalities are generated and manipulated in the
-  reverse order to @{const to_bl}.\<close>
+  reverse order to \<^const>\<open>to_bl\<close>.\<close>
 
 lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
   by simp
@@ -368,7 +368,7 @@ lemma word_sless_rbl:
    apply auto
   done
 
-text \<open>Lemmas for unpacking @{term "rev (to_bl n)"} for numerals n and also
+text \<open>Lemmas for unpacking \<^term>\<open>rev (to_bl n)\<close> for numerals n and also
   for irreducible values and expressions.\<close>
 
 lemma rev_bin_to_bl_simps:
@@ -413,22 +413,22 @@ ML \<open>
 structure Word_Bitwise_Tac =
 struct
 
-val word_ss = simpset_of @{theory_context Word};
+val word_ss = simpset_of \<^theory_context>\<open>Word\<close>;
 
 fun mk_nat_clist ns =
-  fold_rev (Thm.mk_binop @{cterm "Cons :: nat \<Rightarrow> _"})
-    ns @{cterm "[] :: nat list"};
+  fold_rev (Thm.mk_binop \<^cterm>\<open>Cons :: nat \<Rightarrow> _\<close>)
+    ns \<^cterm>\<open>[] :: nat list\<close>;
 
 fun upt_conv ctxt ct =
   case Thm.term_of ct of
-    (@{const upt} $ n $ m) =>
+    (\<^const>\<open>upt\<close> $ n $ m) =>
       let
         val (i, j) = apply2 (snd o HOLogic.dest_number) (n, m);
-        val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
+        val ns = map (Numeral.mk_cnumber \<^ctyp>\<open>nat\<close>) (i upto (j - 1))
           |> mk_nat_clist;
         val prop =
-          Thm.mk_binop @{cterm "(=) :: nat list \<Rightarrow> _"} ct ns
-          |> Thm.apply @{cterm Trueprop};
+          Thm.mk_binop \<^cterm>\<open>(=) :: nat list \<Rightarrow> _\<close> ct ns
+          |> Thm.apply \<^cterm>\<open>Trueprop\<close>;
       in
         try (fn () =>
           Goal.prove_internal ctxt [] prop
@@ -438,18 +438,18 @@ fun upt_conv ctxt ct =
   | _ => NONE;
 
 val expand_upt_simproc =
-  Simplifier.make_simproc @{context} "expand_upt"
-   {lhss = [@{term "upt x y"}], proc = K upt_conv};
+  Simplifier.make_simproc \<^context> "expand_upt"
+   {lhss = [\<^term>\<open>upt x y\<close>], proc = K upt_conv};
 
 fun word_len_simproc_fn ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name len_of}, _) $ t =>
+    Const (\<^const_name>\<open>len_of\<close>, _) $ t =>
      (let
         val T = fastype_of t |> dest_Type |> snd |> the_single
-        val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
+        val n = Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> (Word_Lib.dest_binT T);
         val prop =
-          Thm.mk_binop @{cterm "(=) :: nat \<Rightarrow> _"} ct n
-          |> Thm.apply @{cterm Trueprop};
+          Thm.mk_binop \<^cterm>\<open>(=) :: nat \<Rightarrow> _\<close> ct n
+          |> Thm.apply \<^cterm>\<open>Trueprop\<close>;
       in
         Goal.prove_internal ctxt [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
         |> mk_meta_eq |> SOME
@@ -457,8 +457,8 @@ fun word_len_simproc_fn ctxt ct =
   | _ => NONE);
 
 val word_len_simproc =
-  Simplifier.make_simproc @{context} "word_len"
-   {lhss = [@{term "len_of x"}], proc = K word_len_simproc_fn};
+  Simplifier.make_simproc \<^context> "word_len"
+   {lhss = [\<^term>\<open>len_of x\<close>], proc = K word_len_simproc_fn};
 
 (* convert 5 or nat 5 to Suc 4 when n_sucs = 1, Suc (Suc 4) when n_sucs = 2,
    or just 5 (discarding nat) when n_sucs = 0 *)
@@ -467,10 +467,10 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
   let
     val (f $ arg) = Thm.term_of ct;
     val n =
-      (case arg of @{term nat} $ n => n | n => n)
+      (case arg of \<^term>\<open>nat\<close> $ n => n | n => n)
       |> HOLogic.dest_number |> snd;
     val (i, j) = if n > n_sucs then (n_sucs, n - n_sucs) else (n, 0);
-    val arg' = funpow i HOLogic.mk_Suc (HOLogic.mk_number @{typ nat} j);
+    val arg' = funpow i HOLogic.mk_Suc (HOLogic.mk_number \<^typ>\<open>nat\<close> j);
     val _ = if arg = arg' then raise TERM ("", []) else ();
     fun propfn g =
       HOLogic.mk_eq (g arg, g arg')
@@ -485,30 +485,30 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
   end handle TERM _ => NONE;
 
 fun nat_get_Suc_simproc n_sucs ts =
-  Simplifier.make_simproc @{context} "nat_get_Suc"
-   {lhss = map (fn t => t $ @{term "n :: nat"}) ts,
+  Simplifier.make_simproc \<^context> "nat_get_Suc"
+   {lhss = map (fn t => t $ \<^term>\<open>n :: nat\<close>) ts,
     proc = K (nat_get_Suc_simproc_fn n_sucs)};
 
 val no_split_ss =
-  simpset_of (put_simpset HOL_ss @{context}
+  simpset_of (put_simpset HOL_ss \<^context>
     |> Splitter.del_split @{thm if_split});
 
 val expand_word_eq_sss =
-  (simpset_of (put_simpset HOL_basic_ss @{context} addsimps
+  (simpset_of (put_simpset HOL_basic_ss \<^context> addsimps
        @{thms word_eq_rbl_eq word_le_rbl word_less_rbl word_sle_rbl word_sless_rbl}),
   map simpset_of [
-   put_simpset no_split_ss @{context} addsimps
+   put_simpset no_split_ss \<^context> addsimps
     @{thms rbl_word_plus rbl_word_and rbl_word_or rbl_word_not
                                 rbl_word_neg bl_word_sub rbl_word_xor
                                 rbl_word_cat rbl_word_slice rbl_word_scast
                                 rbl_word_ucast rbl_shiftl rbl_shiftr rbl_sshiftr
                                 rbl_word_if},
-   put_simpset no_split_ss @{context} addsimps
+   put_simpset no_split_ss \<^context> addsimps
     @{thms to_bl_numeral to_bl_neg_numeral to_bl_0 rbl_word_1},
-   put_simpset no_split_ss @{context} addsimps
+   put_simpset no_split_ss \<^context> addsimps
     @{thms rev_rev_ident rev_replicate rev_map to_bl_upt word_size}
           addsimprocs [word_len_simproc],
-   put_simpset no_split_ss @{context} addsimps
+   put_simpset no_split_ss \<^context> addsimps
     @{thms list.simps split_conv replicate.simps list.map
                                 zip_Cons_Cons zip_Nil drop_Suc_Cons drop_0 drop_Nil
                                 foldr.simps map2_Cons map2_Nil takefill_Suc_Cons
@@ -518,11 +518,11 @@ val expand_word_eq_sss =
                                 rev_bl_order_simps}
           addsimprocs [expand_upt_simproc,
                        nat_get_Suc_simproc 4
-                         [@{term replicate}, @{term "takefill x"},
-                          @{term drop}, @{term "bin_to_bl"},
-                          @{term "takefill_last x"},
-                          @{term "drop_nonempty x"}]],
-    put_simpset no_split_ss @{context} addsimps @{thms xor3_simps carry_simps if_bool_simps}
+                         [\<^term>\<open>replicate\<close>, \<^term>\<open>takefill x\<close>,
+                          \<^term>\<open>drop\<close>, \<^term>\<open>bin_to_bl\<close>,
+                          \<^term>\<open>takefill_last x\<close>,
+                          \<^term>\<open>drop_nonempty x\<close>]],
+    put_simpset no_split_ss \<^context> addsimps @{thms xor3_simps carry_simps if_bool_simps}
   ])
 
 fun tac ctxt =

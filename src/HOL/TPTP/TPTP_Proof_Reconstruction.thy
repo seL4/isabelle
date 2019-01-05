@@ -53,12 +53,12 @@ begin
 section "Setup"
 
 ML \<open>
-  val tptp_unexceptional_reconstruction = Attrib.setup_config_bool @{binding tptp_unexceptional_reconstruction} (K false)
+  val tptp_unexceptional_reconstruction = Attrib.setup_config_bool \<^binding>\<open>tptp_unexceptional_reconstruction\<close> (K false)
   fun unexceptional_reconstruction ctxt = Config.get ctxt tptp_unexceptional_reconstruction
-  val tptp_informative_failure = Attrib.setup_config_bool @{binding tptp_informative_failure} (K false)
+  val tptp_informative_failure = Attrib.setup_config_bool \<^binding>\<open>tptp_informative_failure\<close> (K false)
   fun informative_failure ctxt = Config.get ctxt tptp_informative_failure
-  val tptp_trace_reconstruction = Attrib.setup_config_bool @{binding tptp_trace_reconstruction} (K false)
-  val tptp_max_term_size = Attrib.setup_config_int @{binding tptp_max_term_size} (K 0) (*0=infinity*)
+  val tptp_trace_reconstruction = Attrib.setup_config_bool \<^binding>\<open>tptp_trace_reconstruction\<close> (K false)
+  val tptp_max_term_size = Attrib.setup_config_int \<^binding>\<open>tptp_max_term_size\<close> (K 0) (*0=infinity*)
 
   fun exceeds_tptp_max_term_size ctxt size =
     let
@@ -545,7 +545,7 @@ ML \<open>
 (*FIXME LHS should be constant. Currently allow variables for testing. Probably should still allow Vars (but not Frees) since they'll act as intermediate values*)
 fun conc_is_skolem_def t =
   case t of
-      Const (@{const_name HOL.eq}, _) $ t' $ (Const (@{const_name Hilbert_Choice.Eps}, _) $ _) =>
+      Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ _) =>
       let
         val (h, args) =
           strip_comb t'
@@ -555,18 +555,18 @@ fun conc_is_skolem_def t =
           is_Free h orelse
           is_Var h orelse
           (is_Const h
-           andalso (get_const_name h <> get_const_name @{term HOL.Ex})
-           andalso (get_const_name h <> get_const_name @{term HOL.All})
-           andalso (h <> @{term Hilbert_Choice.Eps})
-           andalso (h <> @{term HOL.conj})
-           andalso (h <> @{term HOL.disj})
-           andalso (h <> @{term HOL.eq})
-           andalso (h <> @{term HOL.implies})
-           andalso (h <> @{term HOL.The})
-           andalso (h <> @{term HOL.Ex1})
-           andalso (h <> @{term HOL.Not})
-           andalso (h <> @{term HOL.iff})
-           andalso (h <> @{term HOL.not_equal}))
+           andalso (get_const_name h <> get_const_name \<^term>\<open>HOL.Ex\<close>)
+           andalso (get_const_name h <> get_const_name \<^term>\<open>HOL.All\<close>)
+           andalso (h <> \<^term>\<open>Hilbert_Choice.Eps\<close>)
+           andalso (h <> \<^term>\<open>HOL.conj\<close>)
+           andalso (h <> \<^term>\<open>HOL.disj\<close>)
+           andalso (h <> \<^term>\<open>HOL.eq\<close>)
+           andalso (h <> \<^term>\<open>HOL.implies\<close>)
+           andalso (h <> \<^term>\<open>HOL.The\<close>)
+           andalso (h <> \<^term>\<open>HOL.Ex1\<close>)
+           andalso (h <> \<^term>\<open>HOL.Not\<close>)
+           andalso (h <> \<^term>\<open>HOL.iff\<close>)
+           andalso (h <> \<^term>\<open>HOL.not_equal\<close>))
         val args_property =
           fold (fn t => fn b =>
            b andalso is_Free t) args true
@@ -580,24 +580,24 @@ ML \<open>
 (*Hack used to detect if a Skolem definition, with an LHS Var, has had the LHS instantiated into an unacceptable term.*)
 fun conc_is_bad_skolem_def t =
   case t of
-      Const (@{const_name HOL.eq}, _) $ t' $ (Const (@{const_name Hilbert_Choice.Eps}, _) $ _) =>
+      Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ _) =>
       let
         val (h, args) = strip_comb t'
         val get_const_name = dest_Const #> fst
         val const_h_test =
           if is_Const h then
-            (get_const_name h = get_const_name @{term HOL.Ex})
-             orelse (get_const_name h = get_const_name @{term HOL.All})
-             orelse (h = @{term Hilbert_Choice.Eps})
-             orelse (h = @{term HOL.conj})
-             orelse (h = @{term HOL.disj})
-             orelse (h = @{term HOL.eq})
-             orelse (h = @{term HOL.implies})
-             orelse (h = @{term HOL.The})
-             orelse (h = @{term HOL.Ex1})
-             orelse (h = @{term HOL.Not})
-             orelse (h = @{term HOL.iff})
-             orelse (h = @{term HOL.not_equal})
+            (get_const_name h = get_const_name \<^term>\<open>HOL.Ex\<close>)
+             orelse (get_const_name h = get_const_name \<^term>\<open>HOL.All\<close>)
+             orelse (h = \<^term>\<open>Hilbert_Choice.Eps\<close>)
+             orelse (h = \<^term>\<open>HOL.conj\<close>)
+             orelse (h = \<^term>\<open>HOL.disj\<close>)
+             orelse (h = \<^term>\<open>HOL.eq\<close>)
+             orelse (h = \<^term>\<open>HOL.implies\<close>)
+             orelse (h = \<^term>\<open>HOL.The\<close>)
+             orelse (h = \<^term>\<open>HOL.Ex1\<close>)
+             orelse (h = \<^term>\<open>HOL.Not\<close>)
+             orelse (h = \<^term>\<open>HOL.iff\<close>)
+             orelse (h = \<^term>\<open>HOL.not_equal\<close>)
           else true
         val h_property =
           not (is_Free h) andalso
@@ -621,7 +621,7 @@ fun get_skolem_conc t =
       |> try_dest_Trueprop
   in
     case t' of
-        Const (@{const_name HOL.eq}, _) $ t' $ (Const (@{const_name Hilbert_Choice.Eps}, _) $ _) => SOME t'
+        Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ _) => SOME t'
       | _ => NONE
   end
 
@@ -706,7 +706,7 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
 
     fun skolem_const_info_of t =
       case t of
-          Const (@{const_name HOL.Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ t' $ (Const (@{const_name Hilbert_Choice.Eps}, _) $ _)) =>
+          Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ _)) =>
           head_of t'
           |> strip_abs_body (*since in general might have a skolem term, so we want to rip out the prefixing lambdas to get to the constant (which should be at head position)*)
           |> head_of
@@ -761,7 +761,7 @@ the skolem definition is being built (with a Var in the LHS), and the other subg
   there's no need to use this expensive matching.*)
 fun find_skolem_term ctxt consts_candidate arity = fn st =>
   let
-    val _ = @{assert} (arity > 0)
+    val _ = \<^assert> (arity > 0)
 
     val gls =
       Thm.prop_of st
@@ -822,14 +822,14 @@ fun instantiate_skols ctxt consts_candidates i = fn st =>
 
     fun skolem_const_info_of t =
       case t of
-          Const (@{const_name HOL.Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ lhs $ (Const (@{const_name Hilbert_Choice.Eps}, _) $ rhs)) =>
+          Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ (Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) $ rhs)) =>
           let
             (*the parameters we will concern ourselves with*)
             val params' =
               Term.add_frees lhs []
               |> distinct (op =)
             (*check to make sure that params' <= params*)
-            val _ = @{assert} (forall (member (op =) params) params')
+            val _ = \<^assert> (forall (member (op =) params) params')
             val skolem_const_ty =
               let
                 val (skolem_const_prety, no_params) =
@@ -837,7 +837,7 @@ fun instantiate_skols ctxt consts_candidates i = fn st =>
                   |> apfst (dest_Var #> snd) (*head of lhs consists of a logical variable. we just want its type.*)
                   |> apsnd length
 
-                val _ = @{assert} (length params = no_params)
+                val _ = \<^assert> (length params = no_params)
 
                 (*get value type of a function type after n arguments have been supplied*)
                 fun get_val_ty n ty =
@@ -988,35 +988,35 @@ ML \<open>
 (*n-ary decomposition. Code is based on the n-ary arg_cong generator*)
 fun extuni_dec_n ctxt arity =
   let
-    val _ = @{assert} (arity > 0)
+    val _ = \<^assert> (arity > 0)
     val is =
       1 upto arity
       |> map Int.toString
-    val arg_tys = map (fn i => TFree ("arg" ^ i ^ "_ty", @{sort type})) is
-    val res_ty = TFree ("res" ^ "_ty", @{sort type})
+    val arg_tys = map (fn i => TFree ("arg" ^ i ^ "_ty", \<^sort>\<open>type\<close>)) is
+    val res_ty = TFree ("res" ^ "_ty", \<^sort>\<open>type\<close>)
     val f_ty = arg_tys ---> res_ty
     val f = Free ("f", f_ty)
     val xs = map (fn i =>
-      Free ("x" ^ i, TFree ("arg" ^ i ^ "_ty", @{sort type}))) is
+      Free ("x" ^ i, TFree ("arg" ^ i ^ "_ty", \<^sort>\<open>type\<close>))) is
     (*FIXME DRY principle*)
     val ys = map (fn i =>
-      Free ("y" ^ i, TFree ("arg" ^ i ^ "_ty", @{sort type}))) is
+      Free ("y" ^ i, TFree ("arg" ^ i ^ "_ty", \<^sort>\<open>type\<close>))) is
 
     val hyp_lhs = list_comb (f, xs)
     val hyp_rhs = list_comb (f, ys)
     val hyp_eq =
       HOLogic.eq_const res_ty $ hyp_lhs $ hyp_rhs
     val hyp =
-      HOLogic.eq_const HOLogic.boolT $ hyp_eq $ @{term False}
+      HOLogic.eq_const HOLogic.boolT $ hyp_eq $ \<^term>\<open>False\<close>
       |> HOLogic.mk_Trueprop
     fun conc_eq i =
       let
-        val ty = TFree ("arg" ^ i ^ "_ty", @{sort type})
+        val ty = TFree ("arg" ^ i ^ "_ty", \<^sort>\<open>type\<close>)
         val x = Free ("x" ^ i, ty)
         val y = Free ("y" ^ i, ty)
         val eq = HOLogic.eq_const ty $ x $ y
       in
-        HOLogic.eq_const HOLogic.boolT $ eq $ @{term False}
+        HOLogic.eq_const HOLogic.boolT $ eq $ \<^term>\<open>False\<close>
       end
 
     val conc_disjs = map conc_eq is
@@ -1180,7 +1180,7 @@ stage, together with splitting.
 
 ML \<open>
 (*Conjunctive counterparts to Term.disjuncts_aux and Term.disjuncts*)
-fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs =
+fun conjuncts_aux (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ t $ t') conjs =
      conjuncts_aux t (conjuncts_aux t' conjs)
   | conjuncts_aux t conjs = t :: conjs
 
@@ -1188,7 +1188,7 @@ fun conjuncts t = conjuncts_aux t []
 
 (*HOL equivalent of Logic.strip_horn*)
 local
-  fun imp_strip_horn' acc (Const (@{const_name HOL.implies}, _) $ A $ B) =
+  fun imp_strip_horn' acc (Const (\<^const_name>\<open>HOL.implies\<close>, _) $ A $ B) =
         imp_strip_horn' (A :: acc) B
     | imp_strip_horn' acc t = (acc, t)
 in
@@ -1220,7 +1220,7 @@ fun standard_cnf_type ctxt i : thm -> (TPTP_Reconstruct.formula_kind * int * boo
         |> fst
 
     (*hypothesis clause should be singleton*)
-    val _ = @{assert} (length hypos = 1)
+    val _ = \<^assert> (length hypos = 1)
 
     val (t, pol) = the_single hypos
       |> try_dest_Trueprop
@@ -1229,7 +1229,7 @@ fun standard_cnf_type ctxt i : thm -> (TPTP_Reconstruct.formula_kind * int * boo
       |> TPTP_Reconstruct.remove_polarity true
 
     (*literal is negative*)
-    val _ = @{assert} (not pol)
+    val _ = \<^assert> (not pol)
 
     val (antes, conc) = imp_strip_horn t
 
@@ -1261,7 +1261,7 @@ ML \<open>
   validate it*)
 fun mk_standard_cnf ctxt kind arity =
   let
-    val _ = @{assert} (arity > 0)
+    val _ = \<^assert> (arity > 0)
     val vars =
       1 upto (arity + 1)
       |> map (fn i => Free ("x" ^ Int.toString i, HOLogic.boolT))
@@ -1272,8 +1272,8 @@ fun mk_standard_cnf ctxt kind arity =
     val conc =
       fold
        (curry HOLogic.mk_conj)
-       (map (fn var => HOLogic.mk_eq (var, @{term True})) antecedents)
-       (HOLogic.mk_eq (consequent, @{term False}))
+       (map (fn var => HOLogic.mk_eq (var, \<^term>\<open>True\<close>)) antecedents)
+       (HOLogic.mk_eq (consequent, \<^term>\<open>False\<close>))
 
     val pre_hyp =
       case kind of
@@ -1286,7 +1286,7 @@ fun mk_standard_cnf ctxt kind arity =
         | TPTP_Reconstruct.Implicational NONE =>
             fold (curry HOLogic.mk_imp) antecedents consequent
 
-    val hyp = HOLogic.mk_eq (pre_hyp, @{term False})
+    val hyp = HOLogic.mk_eq (pre_hyp, \<^term>\<open>False\<close>)
 
     val t =
       Logic.mk_implies (HOLogic.mk_Trueprop  hyp, HOLogic.mk_Trueprop conc)
@@ -1431,16 +1431,16 @@ fun loop_can_feature loop_feats l =
   can_feature (LoopOnce loop_feats) l orelse
   can_feature (InnerLoopOnce loop_feats) l;
 
-@{assert} (can_feature ConstsDiff [StripQuantifiers, ConstsDiff]);
+\<^assert> (can_feature ConstsDiff [StripQuantifiers, ConstsDiff]);
 
-@{assert}
+\<^assert>
   (can_feature (CleanUp [RemoveHypothesesFromSkolemDefs])
     [CleanUp [RemoveHypothesesFromSkolemDefs, RemoveDuplicates]]);
 
-@{assert}
+\<^assert>
   (can_feature (Loop []) [Loop [Existential_Var]]);
 
-@{assert}
+\<^assert>
   (not (can_feature (Loop []) [InnerLoopOnce [Existential_Var]]));
 \<close>
 
@@ -1464,7 +1464,7 @@ fun get_loop_feats (feats : feature list) =
     else raise NO_LOOP_FEATS
   end;
 
-@{assert}
+\<^assert>
   (get_loop_feats [Loop [King_Cong, Break_Hypotheses, Existential_Free, Existential_Var, Universal]] =
    [King_Cong, Break_Hypotheses, Existential_Free, Existential_Var, Universal])
 \<close>
@@ -1505,7 +1505,7 @@ fun which_skolem_concs_used ctxt = fn st =>
   in
     scrubup_tac st
     |> break_seq
-    |> tap (fn (_, rest) => @{assert} (null (Seq.list_of rest)))
+    |> tap (fn (_, rest) => \<^assert> (null (Seq.list_of rest)))
     |> fst
     |> TERMFUN (snd (*discard hypotheses*)
                  #> get_skolem_conc_const) NONE
@@ -1556,7 +1556,7 @@ fun extcnf_forall_special_pos_tac ctxt =
 
     val tacs =
       map (fn t_s =>  (* FIXME proper context!? *)
-       Rule_Insts.eres_inst_tac @{context} [((("x", 0), Position.none), t_s)] [] @{thm allE}
+       Rule_Insts.eres_inst_tac \<^context> [((("x", 0), Position.none), t_s)] [] @{thm allE}
        THEN' assume_tac ctxt)
   in
     (TRY o eresolve_tac ctxt @{thms forall_pos_lift})
@@ -1651,20 +1651,20 @@ FIXME Building this into the loop instead.. maybe not the ideal choice
   end
 
 val interpreted_consts =
-  [@{const_name HOL.All}, @{const_name HOL.Ex},
-   @{const_name Hilbert_Choice.Eps},
-   @{const_name HOL.conj},
-   @{const_name HOL.disj},
-   @{const_name HOL.eq},
-   @{const_name HOL.implies},
-   @{const_name HOL.The},
-   @{const_name HOL.Ex1},
-   @{const_name HOL.Not},
+  [\<^const_name>\<open>HOL.All\<close>, \<^const_name>\<open>HOL.Ex\<close>,
+   \<^const_name>\<open>Hilbert_Choice.Eps\<close>,
+   \<^const_name>\<open>HOL.conj\<close>,
+   \<^const_name>\<open>HOL.disj\<close>,
+   \<^const_name>\<open>HOL.eq\<close>,
+   \<^const_name>\<open>HOL.implies\<close>,
+   \<^const_name>\<open>HOL.The\<close>,
+   \<^const_name>\<open>HOL.Ex1\<close>,
+   \<^const_name>\<open>HOL.Not\<close>,
    (* @{const_name HOL.iff}, *) (*FIXME do these exist?*)
    (* @{const_name HOL.not_equal}, *)
-   @{const_name HOL.False},
-   @{const_name HOL.True},
-   @{const_name Pure.imp}]
+   \<^const_name>\<open>HOL.False\<close>,
+   \<^const_name>\<open>HOL.True\<close>,
+   \<^const_name>\<open>Pure.imp\<close>]
 
 fun strip_qtfrs_tac ctxt =
   REPEAT_DETERM (HEADGOAL (resolve_tac ctxt @{thms allI}))
@@ -1779,8 +1779,8 @@ fun remove_redundant_quantification_in_lit ctxt i = fn st =>
         if length hyp_clauses > 1 then no_tac st
         else
           let
-            fun literal_content (Const (@{const_name HOL.eq}, _) $ lhs $ (rhs as @{term True})) = SOME (lhs, rhs)
-              | literal_content (Const (@{const_name HOL.eq}, _) $ lhs $ (rhs as @{term False})) = SOME (lhs, rhs)
+            fun literal_content (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ (rhs as \<^term>\<open>True\<close>)) = SOME (lhs, rhs)
+              | literal_content (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ (rhs as \<^term>\<open>False\<close>)) = SOME (lhs, rhs)
               | literal_content t = NONE
 
             val hyp_clause =
@@ -2231,7 +2231,7 @@ ML \<open>
 fun leo2_on_load (pannot : TPTP_Reconstruct.proof_annotation) thy =
   let
     val ctxt = Proof_Context.init_global thy
-    val dud = ("", Binding.empty, @{term False})
+    val dud = ("", Binding.empty, \<^term>\<open>False\<close>)
     val pre_skolem_defs =
       nodes_by_inference (#meta pannot) "extcnf_forall_neg" @
        nodes_by_inference (#meta pannot) "extuni_func"

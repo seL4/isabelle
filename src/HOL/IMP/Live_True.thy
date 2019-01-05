@@ -116,8 +116,7 @@ proof(induction c arbitrary: X)
   thus ?case by (simp add: L.simps(5))
 qed auto
 
-text\<open>Make @{const L} executable by replacing @{const lfp} with the @{const
-while} combinator from theory @{theory "HOL-Library.While_Combinator"}. The @{const while}
+text\<open>Make \<^const>\<open>L\<close> executable by replacing \<^const>\<open>lfp\<close> with the \<^const>\<open>while\<close> combinator from theory \<^theory>\<open>HOL-Library.While_Combinator\<close>. The \<^const>\<open>while\<close>
 combinator obeys the recursion equation
 @{thm[display] While_Combinator.while_unfold[no_vars]}
 and is thus executable.\<close>
@@ -167,7 +166,7 @@ fun iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarr
 "iter f 0 p d = d" |
 "iter f (Suc n) p d = (if f p = p then p else iter f n (f p) d)"
 
-text\<open>A version of @{const L} with a bounded number of iterations (here: 2)
+text\<open>A version of \<^const>\<open>L\<close> with a bounded number of iterations (here: 2)
 in the WHILE case:\<close>
 
 fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
@@ -177,7 +176,7 @@ fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb (IF b THEN c\<^sub>1 ELSE c\<^sub>2) X = vars b \<union> Lb c\<^sub>1 X \<union> Lb c\<^sub>2 X" |
 "Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> rvars c \<union> X)"
 
-text\<open>@{const Lb} (and @{const iter}) is not monotone!\<close>
+text\<open>\<^const>\<open>Lb\<close> (and \<^const>\<open>iter\<close>) is not monotone!\<close>
 lemma "let w = WHILE Bc False DO (''x'' ::= V ''y'';; ''z'' ::= V ''x'')
   in \<not> (Lb w {''z''} \<subseteq> Lb w {''y'',''z''})"
 by eval

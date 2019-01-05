@@ -233,9 +233,9 @@ lemma "\<exists>Q. (\<forall>p q. R(q :- p) => R(Q p q)) \<and> Q (t | s) (s | t
 
 (* disjunction in atom: *)
 lemma "(\<forall>P. g P :- (P => b \<or> a)) => g(a \<or> b)"
-  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
-  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
-  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
+  apply (tactic "step_tac (put_claset HOL_cs \<^context>) 1")
+  apply (tactic "step_tac (put_claset HOL_cs \<^context>) 1")
+  apply (tactic "step_tac (put_claset HOL_cs \<^context>) 1")
    prefer 2
    apply fast
   apply fast

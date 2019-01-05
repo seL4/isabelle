@@ -469,7 +469,7 @@ subsection \<open>Radius of convergence\<close>
 
 text \<open>
   The radius of convergence of a power series. This value always exists, ranges from
-  @{term "0::ereal"} to @{term "\<infinity>::ereal"}, and the power series is guaranteed to converge for
+  \<^term>\<open>0::ereal\<close> to \<^term>\<open>\<infinity>::ereal\<close>, and the power series is guaranteed to converge for
   all inputs with a norm that is smaller than that radius and to diverge for all inputs with a
   norm that is greater.
 \<close>

@@ -335,7 +335,7 @@ proof (intro borel_measurable_euclidean_space[where 'c='b, THEN iffD2] ballI)
     by (simp add: ac_simps)
 qed
 
-subsection \<open>Equivalence Lebesgue integral on @{const lborel} and HK-integral\<close>
+subsection \<open>Equivalence Lebesgue integral on \<^const>\<open>lborel\<close> and HK-integral\<close>
 
 lemma has_integral_measure_lborel:
   fixes A :: "'a::euclidean_space set"

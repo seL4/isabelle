@@ -703,14 +703,14 @@ fun adjust_type_enc (THF (Polymorphic, hologic)) (Native (order, poly, level)) =
 
 fun is_lambda_free t =
   (case t of
-    @{const Not} $ t1 => is_lambda_free t1
+    \<^const>\<open>Not\<close> $ t1 => is_lambda_free t1
   | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
   | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_lambda_free t1
   | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
   | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_lambda_free t1
-  | @{const HOL.conj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | @{const HOL.disj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | @{const HOL.implies} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+  | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+  | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
+  | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
   | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
     is_lambda_free t1 andalso is_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
@@ -722,16 +722,16 @@ fun simple_translate_lambdas do_lambdas ctxt t =
     let
       fun trans Ts t =
         (case t of
-          @{const Not} $ t1 => @{const Not} $ trans Ts t1
+          \<^const>\<open>Not\<close> $ t1 => \<^const>\<open>Not\<close> $ trans Ts t1
         | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
         | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
         | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
         | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as \<^const>\<open>HOL.conj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as \<^const>\<open>HOL.disj\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
         | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _]))) $ t1 $ t2 =>
           t0 $ trans Ts t1 $ trans Ts t2
         | _ =>
@@ -1197,17 +1197,17 @@ fun iformula_of_prop ctxt type_enc iff_for_eq =
       do_formula bs pos1 t1 ##>> do_formula bs pos2 t2 #>> uncurry (mk_aconn c)
     and do_formula bs pos t =
       (case t of
-        @{const Trueprop} $ t1 => do_formula bs pos t1
-      | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
+        \<^const>\<open>Trueprop\<close> $ t1 => do_formula bs pos t1
+      | \<^const>\<open>Not\<close> $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
       | Const (\<^const_name>\<open>All\<close>, _) $ Abs (s, T, t') => do_quant bs AForall pos s T t'
       | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (s, T, t') => do_quant bs AExists pos s T t'
       | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
-      | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
-      | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
-      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies (Option.map not pos) t1 pos t2
+      | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
+      | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
+      | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 => do_conn bs AImplies (Option.map not pos) t1 pos t2
       | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
         if iff_for_eq then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
       | _ => do_term bs t)
@@ -1264,7 +1264,7 @@ fun presimp_prop ctxt type_enc t =
       |> presimplify_term ctxt
       |> HOLogic.dest_Trueprop
   end
-  handle TERM _ => @{const True}
+  handle TERM _ => \<^const>\<open>True\<close>
 
 (* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "=" for technical
    reasons. *)
@@ -1847,9 +1847,9 @@ val pull_and_reorder_definitions =
         end
   in List.partition (curry (op =) Definition o #role) #>> reorder [] #> op @ end
 
-fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_prop (@{const Pure.imp} $ t $ \<^prop>\<open>False\<close>) = t
-  | s_not_prop t = @{const Pure.imp} $ t $ \<^prop>\<open>False\<close>
+fun s_not_prop (\<^const>\<open>Trueprop\<close> $ t) = \<^const>\<open>Trueprop\<close> $ s_not t
+  | s_not_prop (\<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>) = t
+  | s_not_prop t = \<^const>\<open>Pure.imp\<close> $ t $ \<^prop>\<open>False\<close>
 
 fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
   let

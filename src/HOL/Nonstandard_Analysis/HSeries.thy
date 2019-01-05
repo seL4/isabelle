@@ -26,11 +26,11 @@ definition NSsuminf :: "(nat \<Rightarrow> real) \<Rightarrow> real"
 lemma sumhr_app: "sumhr (M, N, f) = ( *f2* (\<lambda>m n. sum f {m..<n})) M N"
   by (simp add: sumhr_def)
 
-text \<open>Base case in definition of @{term sumr}.\<close>
+text \<open>Base case in definition of \<^term>\<open>sumr\<close>.\<close>
 lemma sumhr_zero [simp]: "\<And>m. sumhr (m, 0, f) = 0"
   unfolding sumhr_app by transfer simp
 
-text \<open>Recursive case in definition of @{term sumr}.\<close>
+text \<open>Recursive case in definition of \<^term>\<open>sumr\<close>.\<close>
 lemma sumhr_if:
   "\<And>m n. sumhr (m, n + 1, f) = (if n + 1 \<le> m then 0 else sumhr (m, n, f) + ( *f* f) n)"
   unfolding sumhr_app by transfer simp
@@ -87,7 +87,7 @@ lemma sumhr_shift_bounds:
 subsection \<open>Nonstandard Sums\<close>
 
 text \<open>Infinite sums are obtained by summing to some infinite hypernatural
-  (such as @{term whn}).\<close>
+  (such as \<^term>\<open>whn\<close>).\<close>
 lemma sumhr_hypreal_of_hypnat_omega: "sumhr (0, whn, \<lambda>i. 1) = hypreal_of_hypnat whn"
   by (simp add: sumhr_const)
 

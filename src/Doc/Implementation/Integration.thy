@@ -44,20 +44,19 @@ text %mlref \<open>
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Toplevel.state} represents Isar toplevel states, which are
+  \<^descr> Type \<^ML_type>\<open>Toplevel.state\<close> represents Isar toplevel states, which are
   normally manipulated through the concept of toplevel transitions only
   (\secref{sec:toplevel-transition}).
 
-  \<^descr> @{ML Toplevel.UNDEF} is raised for undefined toplevel operations. Many
-  operations work only partially for certain cases, since @{ML_type
-  Toplevel.state} is a sum type.
+  \<^descr> \<^ML>\<open>Toplevel.UNDEF\<close> is raised for undefined toplevel operations. Many
+  operations work only partially for certain cases, since \<^ML_type>\<open>Toplevel.state\<close> is a sum type.
 
-  \<^descr> @{ML Toplevel.is_toplevel}~\<open>state\<close> checks for an empty toplevel state.
+  \<^descr> \<^ML>\<open>Toplevel.is_toplevel\<close>~\<open>state\<close> checks for an empty toplevel state.
 
-  \<^descr> @{ML Toplevel.theory_of}~\<open>state\<close> selects the background theory of \<open>state\<close>,
-  it raises @{ML Toplevel.UNDEF} for an empty toplevel state.
+  \<^descr> \<^ML>\<open>Toplevel.theory_of\<close>~\<open>state\<close> selects the background theory of \<open>state\<close>,
+  it raises \<^ML>\<open>Toplevel.UNDEF\<close> for an empty toplevel state.
 
-  \<^descr> @{ML Toplevel.proof_of}~\<open>state\<close> selects the Isar proof state if available,
+  \<^descr> \<^ML>\<open>Toplevel.proof_of\<close>~\<open>state\<close> selects the Isar proof state if available,
   otherwise it raises an error.
 \<close>
 
@@ -110,23 +109,23 @@ text %mlref \<open>
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Toplevel.keep}~\<open>tr\<close> adjoins a diagnostic function.
+  \<^descr> \<^ML>\<open>Toplevel.keep\<close>~\<open>tr\<close> adjoins a diagnostic function.
 
-  \<^descr> @{ML Toplevel.theory}~\<open>tr\<close> adjoins a theory transformer.
+  \<^descr> \<^ML>\<open>Toplevel.theory\<close>~\<open>tr\<close> adjoins a theory transformer.
 
-  \<^descr> @{ML Toplevel.theory_to_proof}~\<open>tr\<close> adjoins a global goal function, which
+  \<^descr> \<^ML>\<open>Toplevel.theory_to_proof\<close>~\<open>tr\<close> adjoins a global goal function, which
   turns a theory into a proof state. The theory may be changed before entering
   the proof; the generic Isar goal setup includes an \<^verbatim>\<open>after_qed\<close> argument
   that specifies how to apply the proven result to the enclosing context, when
   the proof is finished.
 
-  \<^descr> @{ML Toplevel.proof}~\<open>tr\<close> adjoins a deterministic proof command, with a
+  \<^descr> \<^ML>\<open>Toplevel.proof\<close>~\<open>tr\<close> adjoins a deterministic proof command, with a
   singleton result.
 
-  \<^descr> @{ML Toplevel.proofs}~\<open>tr\<close> adjoins a general proof command, with zero or
+  \<^descr> \<^ML>\<open>Toplevel.proofs\<close>~\<open>tr\<close> adjoins a general proof command, with zero or
   more result states (represented as a lazy list).
 
-  \<^descr> @{ML Toplevel.end_proof}~\<open>tr\<close> adjoins a concluding proof command, that
+  \<^descr> \<^ML>\<open>Toplevel.end_proof\<close>~\<open>tr\<close> adjoins a concluding proof command, that
   returns the resulting theory, after applying the resulting facts to the
   target context.
 \<close>
@@ -157,17 +156,17 @@ text %mlref \<open>
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
-  \<^descr> @{ML use_thy}~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the
+  \<^descr> \<^ML>\<open>use_thy\<close>~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the
   external file store; outdated ancestors are reloaded on demand.
 
-  \<^descr> @{ML Thy_Info.get_theory}~\<open>A\<close> retrieves the theory value presently
+  \<^descr> \<^ML>\<open>Thy_Info.get_theory\<close>~\<open>A\<close> retrieves the theory value presently
   associated with name \<open>A\<close>. Note that the result might be outdated wrt.\ the
   file-system content.
 
-  \<^descr> @{ML Thy_Info.remove_thy}~\<open>A\<close> deletes theory \<open>A\<close> and all descendants from
+  \<^descr> \<^ML>\<open>Thy_Info.remove_thy\<close>~\<open>A\<close> deletes theory \<open>A\<close> and all descendants from
   the theory database.
 
-  \<^descr> @{ML Thy_Info.register_thy}~\<open>text thy\<close> registers an existing theory value
+  \<^descr> \<^ML>\<open>Thy_Info.register_thy\<close>~\<open>text thy\<close> registers an existing theory value
   with the theory loader database and updates source version information
   according to the file store.
 \<close>

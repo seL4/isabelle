@@ -87,7 +87,7 @@ setup \<open>
 setup \<open>Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
     limit_globally = NONE,
-    limited_types = [(@{typ nat}, 1), (@{typ "type"}, 1), (@{typ dB}, 1), (@{typ "type list"}, 1)],
+    limited_types = [(\<^typ>\<open>nat\<close>, 1), (\<^typ>\<open>type\<close>, 1), (\<^typ>\<open>dB\<close>, 1), (\<^typ>\<open>type list\<close>, 1)],
     limited_predicates = [(["typing"], 2), (["nthel1"], 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
                  (("nthel1", "limited_nthel1"), "lim_typing")],

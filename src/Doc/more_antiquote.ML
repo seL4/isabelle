@@ -10,7 +10,7 @@ struct
 (* class specifications *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_pretty @{binding class_spec} (Scan.lift Args.name)
+  Theory.setup (Thy_Output.antiquotation_pretty \<^binding>\<open>class_spec\<close> (Scan.lift Args.name)
     (fn ctxt => fn s =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -27,7 +27,7 @@ fun no_vars ctxt thm =
   in thm end;
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_pretty @{binding code_thms} Args.term
+  Theory.setup (Thy_Output.antiquotation_pretty \<^binding>\<open>code_thms\<close> Args.term
     (fn ctxt => fn raw_const =>
       let
         val thy = Proof_Context.theory_of ctxt;

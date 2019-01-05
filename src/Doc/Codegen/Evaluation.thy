@@ -12,8 +12,8 @@ text \<open>
   Recalling \secref{sec:principle}, code generation turns a system of
   equations into a program with the \emph{same} equational semantics.
   As a consequence, this program can be used as a \emph{rewrite
-  engine} for terms: rewriting a term @{term "t"} using a program to a
-  term @{term "t'"} yields the theorems @{prop "t \<equiv> t'"}.  This
+  engine} for terms: rewriting a term \<^term>\<open>t\<close> using a program to a
+  term \<^term>\<open>t'\<close> yields the theorems \<^prop>\<open>t \<equiv> t'\<close>.  This
   application of code generation in the following is referred to as
   \emph{evaluation}.
 \<close>
@@ -158,10 +158,10 @@ text \<open>
   \begin{tabular}{l||c|c|c}
     & \<open>simp\<close> & \<open>nbe\<close> & \<open>code\<close> \tabularnewline \hline \hline
     interactive evaluation & @{command value} \<open>[simp]\<close> & @{command value} \<open>[nbe]\<close> & @{command value} \<open>[code]\<close> \tabularnewline
-    plain evaluation & & & \ttsize@{ML "Code_Evaluation.dynamic_value"} \tabularnewline \hline
+    plain evaluation & & & \ttsize\<^ML>\<open>Code_Evaluation.dynamic_value\<close> \tabularnewline \hline
     evaluation method & @{method code_simp} & @{method normalization} & @{method eval} \tabularnewline
-    property conversion & & & \ttsize@{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \hline
-    conversion & \ttsize@{ML "Code_Simp.dynamic_conv"} & \ttsize@{ML "Nbe.dynamic_conv"}
+    property conversion & & & \ttsize\<^ML>\<open>Code_Runtime.dynamic_holds_conv\<close> \tabularnewline \hline
+    conversion & \ttsize\<^ML>\<open>Code_Simp.dynamic_conv\<close> & \ttsize\<^ML>\<open>Nbe.dynamic_conv\<close>
   \end{tabular}
 \<close>
 
@@ -181,8 +181,8 @@ subsubsection \<open>Static evaluation using \<open>simp\<close> and \<open>nbe\
   
 text \<open>
   For \<open>simp\<close> and \<open>nbe\<close> static evaluation can be achieved using 
-  @{ML Code_Simp.static_conv} and @{ML Nbe.static_conv}.
-  Note that @{ML Nbe.static_conv} by its very nature
+  \<^ML>\<open>Code_Simp.static_conv\<close> and \<^ML>\<open>Nbe.static_conv\<close>.
+  Note that \<^ML>\<open>Nbe.static_conv\<close> by its very nature
   requires an invocation of the ML compiler for every call,
   which can produce significant overhead.
 \<close>

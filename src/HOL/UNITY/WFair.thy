@@ -36,8 +36,8 @@ definition
 
   \<comment> \<open>This definition specifies conditional fairness.  The rest of the theory
       is generic to all forms of fairness.  To get weak fairness, conjoin
-      the inclusion below with @{term "A \<subseteq> Domain act"}, which specifies 
-      that the action is enabled over all of @{term A}.\<close>
+      the inclusion below with \<^term>\<open>A \<subseteq> Domain act\<close>, which specifies 
+      that the action is enabled over all of \<^term>\<open>A\<close>.\<close>
   transient :: "'a set => 'a program set" where
     "transient A == {F. \<exists>act\<in>Acts F. act``A \<subseteq> -A}"
 
@@ -64,7 +64,7 @@ definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl "leadsTo" 60)
     "A leadsTo B == {F. (A,B) \<in> leads F}"
   
 definition wlt :: "['a program, 'a set] => 'a set" where
-     \<comment> \<open>predicate transformer: the largest set that leads to @{term B}\<close>
+     \<comment> \<open>predicate transformer: the largest set that leads to \<^term>\<open>B\<close>\<close>
     "wlt F B == \<Union>{A. F \<in> A leadsTo B}"
 
 notation leadsTo  (infixl "\<longmapsto>" 60)

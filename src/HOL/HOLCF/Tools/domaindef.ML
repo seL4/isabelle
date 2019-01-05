@@ -48,28 +48,28 @@ type rep_info =
 
 (* building types and terms *)
 
-val udomT = @{typ udom}
-val deflT = @{typ "udom defl"}
-val udeflT = @{typ "udom u defl"}
-fun emb_const T = Const (@{const_name emb}, T ->> udomT)
-fun prj_const T = Const (@{const_name prj}, udomT ->> T)
-fun defl_const T = Const (@{const_name defl}, Term.itselfT T --> deflT)
-fun liftemb_const T = Const (@{const_name liftemb}, mk_upT T ->> mk_upT udomT)
-fun liftprj_const T = Const (@{const_name liftprj}, mk_upT udomT ->> mk_upT T)
-fun liftdefl_const T = Const (@{const_name liftdefl}, Term.itselfT T --> udeflT)
+val udomT = \<^typ>\<open>udom\<close>
+val deflT = \<^typ>\<open>udom defl\<close>
+val udeflT = \<^typ>\<open>udom u defl\<close>
+fun emb_const T = Const (\<^const_name>\<open>emb\<close>, T ->> udomT)
+fun prj_const T = Const (\<^const_name>\<open>prj\<close>, udomT ->> T)
+fun defl_const T = Const (\<^const_name>\<open>defl\<close>, Term.itselfT T --> deflT)
+fun liftemb_const T = Const (\<^const_name>\<open>liftemb\<close>, mk_upT T ->> mk_upT udomT)
+fun liftprj_const T = Const (\<^const_name>\<open>liftprj\<close>, mk_upT udomT ->> mk_upT T)
+fun liftdefl_const T = Const (\<^const_name>\<open>liftdefl\<close>, Term.itselfT T --> udeflT)
 
 fun mk_u_map t =
   let
     val (T, U) = dest_cfunT (fastype_of t)
     val u_map_type = (T ->> U) ->> (mk_upT T ->> mk_upT U)
-    val u_map_const = Const (@{const_name u_map}, u_map_type)
+    val u_map_const = Const (\<^const_name>\<open>u_map\<close>, u_map_type)
   in
     mk_capply (u_map_const, t)
   end
 
 fun mk_cast (t, x) =
   capply_const (udomT, udomT)
-  $ (capply_const (deflT, udomT ->> udomT) $ @{term "cast :: udom defl -> udom -> udom"} $ t)
+  $ (capply_const (deflT, udomT ->> udomT) $ \<^term>\<open>cast :: udom defl -> udom -> udom\<close> $ t)
   $ x
 
 (* manipulating theorems *)
@@ -92,7 +92,7 @@ fun gen_add_domaindef
     val tmp_ctxt = tmp_ctxt |> Variable.declare_constraints defl
 
     val deflT = Term.fastype_of defl
-    val _ = if deflT = @{typ "udom defl"} then ()
+    val _ = if deflT = \<^typ>\<open>udom defl\<close> then ()
             else error ("Not type defl: " ^ quote (Syntax.string_of_typ tmp_ctxt deflT))
 
     (*lhs*)
@@ -101,7 +101,7 @@ fun gen_add_domaindef
     val newT = Type (full_tname, map TFree lhs_tfrees)
 
     (*set*)
-    val set = @{term "defl_set :: udom defl => udom set"} $ defl
+    val set = \<^term>\<open>defl_set :: udom defl => udom set\<close> $ defl
 
     (*pcpodef*)
     fun tac1 ctxt = resolve_tac ctxt @{thms defl_set_bottom} 1
@@ -124,7 +124,7 @@ fun gen_add_domaindef
     val liftdefl_eqn =
       Logic.mk_equals (liftdefl_const newT,
         Abs ("t", Term.itselfT newT,
-          mk_capply (@{const liftdefl_of}, defl_const newT $ Logic.mk_type newT)))
+          mk_capply (\<^const>\<open>liftdefl_of\<close>, defl_const newT $ Logic.mk_type newT)))
 
     val name_def = Thm.def_binding tname
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])
@@ -136,7 +136,7 @@ fun gen_add_domaindef
 
     (*instantiate class rep*)
     val lthy = thy
-      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort domain})
+      |> Class.instantiation ([full_tname], lhs_tfrees, \<^sort>\<open>domain\<close>)
     val ((_, (_, emb_ldef)), lthy) =
         Specification.definition NONE [] [] (emb_bind, emb_eqn) lthy
     val ((_, (_, prj_ldef)), lthy) =
@@ -196,11 +196,11 @@ fun domaindef_cmd ((b, raw_args, mx), A, morphs) thy =
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.command @{command_keyword domaindef} "HOLCF definition of domains from deflations"
+  Outer_Syntax.command \<^command_keyword>\<open>domaindef\<close> "HOLCF definition of domains from deflations"
     ((Parse.type_args_constrained -- Parse.binding) --
-      Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
+      Parse.opt_mixfix -- (\<^keyword>\<open>=\<close> |-- Parse.term) --
       Scan.option
-        (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) >>
+        (\<^keyword>\<open>morphisms\<close> |-- Parse.!!! (Parse.binding -- Parse.binding)) >>
      (fn (((((args, t)), mx), A), morphs) =>
       Toplevel.theory (domaindef_cmd ((t, args, mx), A, SOME (Typedef.make_morphisms t morphs)))));
 

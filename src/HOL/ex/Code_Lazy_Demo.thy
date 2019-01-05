@@ -6,7 +6,7 @@ theory Code_Lazy_Demo imports
   "HOL-Library.RBT_Impl"
 begin
 
-text \<open>This theory demonstrates the use of the @{theory "HOL-Library.Code_Lazy"} theory.\<close>
+text \<open>This theory demonstrates the use of the \<^theory>\<open>HOL-Library.Code_Lazy\<close> theory.\<close>
 
 section \<open>Streams\<close>
 
@@ -93,7 +93,7 @@ definition find_min :: "('a :: linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) 
   (case rbt_iterator rbt of \<^bold>\<lbrakk>\<^bold>\<rbrakk> \<Rightarrow> None 
    | kv ### _ \<Rightarrow> Some kv)"
 
-value "find_min tree" \<comment> \<open>Observe that @{const rbt_iterator} is evaluated only for going down 
+value "find_min tree" \<comment> \<open>Observe that \<^const>\<open>rbt_iterator\<close> is evaluated only for going down 
   to the first leaf, not for the whole tree (as seen by the ticks).\<close>
 
 text \<open>With strict lists, the whole tree is converted into a list.\<close>
@@ -132,7 +132,7 @@ termination by lexicographic_order
 
 value [code] "mk_tree 10"
 value [code] "let t = mk_tree 10; _ = subtree [True, True, False, False] t in t"
-  \<comment> \<open>Since @{const mk_tree} shares the two subtrees of a node thanks to the let binding,
+  \<comment> \<open>Since \<^const>\<open>mk_tree\<close> shares the two subtrees of a node thanks to the let binding,
       digging into one subtree spreads to the whole tree.\<close>
 value [code] "let t = mk_tree 3; _ = subtree [True, True, False, False] t in t"
 
@@ -142,7 +142,7 @@ lemma mk_tree_Suc_debug [code]: \<comment> \<open>Make the evaluation visible wi
   by simp
 
 value [code] "mk_tree 10"
-  \<comment> \<open>The recursive call to @{const mk_tree} is not guarded by a lazy constructor,
+  \<comment> \<open>The recursive call to \<^const>\<open>mk_tree\<close> is not guarded by a lazy constructor,
       so all the suspensions are built up immediately.\<close>
 
 lemma mk_tree_Suc [code]: "mk_tree (Suc n) = mk_tree n \<triangle> mk_tree n"

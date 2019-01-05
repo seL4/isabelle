@@ -44,8 +44,8 @@ where
       set_of l \<inter> set_of r = {} \<and>
       all_distinct l \<and> all_distinct r)"
 
-text \<open>Given a binary tree @{term "t"} for which 
-@{const all_distinct} holds, given two different nodes contained in the tree,
+text \<open>Given a binary tree \<^term>\<open>t\<close> for which 
+\<^const>\<open>all_distinct\<close> holds, given two different nodes contained in the tree,
 we want to write a ML function that generates a logarithmic
 certificate that the content of the nodes is distinct. We use the
 following lemmas to achieve this.\<close> 
@@ -85,16 +85,16 @@ subsection \<open>Containment of Trees\<close>
 
 text \<open>When deriving a state space from other ones, we create a new
 name tree which contains all the names of the parent state spaces and
-assume the predicate @{const all_distinct}. We then prove that the new
+assume the predicate \<^const>\<open>all_distinct\<close>. We then prove that the new
 locale interprets all parent locales. Hence we have to show that the
 new distinctness assumption on all names implies the distinctness
 assumptions of the parent locales. This proof is implemented in ML. We
 do this efficiently by defining a kind of containment check of trees
 by ``subtraction''.  We subtract the parent tree from the new tree. If
-this succeeds we know that @{const all_distinct} of the new tree
-implies @{const all_distinct} of the parent tree.  The resulting
-certificate is of the order @{term "n * log(m)"} where @{term "n"} is
-the size of the (smaller) parent tree and @{term "m"} the size of the
+this succeeds we know that \<^const>\<open>all_distinct\<close> of the new tree
+implies \<^const>\<open>all_distinct\<close> of the parent tree.  The resulting
+certificate is of the order \<^term>\<open>n * log(m)\<close> where \<^term>\<open>n\<close> is
+the size of the (smaller) parent tree and \<^term>\<open>m\<close> the size of the
 (bigger) new tree.\<close>
 
 

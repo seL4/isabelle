@@ -102,39 +102,39 @@ fun add_typ_def tyname absname repname th thy =
   end
 
 val _ = Theory.setup
-  (Attrib.setup @{binding import_const}
+  (Attrib.setup \<^binding>\<open>import_const\<close>
     (Scan.lift Parse.name --
-      Scan.option (Scan.lift @{keyword ":"} |-- Args.const {proper = true, strict = false}) >>
+      Scan.option (Scan.lift \<^keyword>\<open>:\<close> |-- Args.const {proper = true, strict = false}) >>
       (fn (s1, s2) => Thm.declaration_attribute
         (fn th => Context.mapping (add_const_def s1 th s2) I)))
   "declare a theorem as an equality that maps the given constant")
 
 val _ = Theory.setup
-  (Attrib.setup @{binding import_type}
+  (Attrib.setup \<^binding>\<open>import_type\<close>
     (Scan.lift (Parse.name -- Parse.name -- Parse.name) >>
       (fn ((tyname, absname), repname) => Thm.declaration_attribute
         (fn th => Context.mapping (add_typ_def tyname absname repname th) I)))
   "declare a type_definition theorem as a map for an imported type with abs and rep")
 
 val _ =
-  Outer_Syntax.command @{command_keyword import_type_map}
+  Outer_Syntax.command \<^command_keyword>\<open>import_type_map\<close>
     "map external type name to existing Isabelle/HOL type name"
-    ((Parse.name --| @{keyword ":"}) -- Parse.type_const >>
+    ((Parse.name --| \<^keyword>\<open>:\<close>) -- Parse.type_const >>
       (fn (ty_name1, ty_name2) => Toplevel.theory (add_typ_map_cmd ty_name1 ty_name2)))
 
 val _ =
-  Outer_Syntax.command @{command_keyword import_const_map}
+  Outer_Syntax.command \<^command_keyword>\<open>import_const_map\<close>
     "map external const name to existing Isabelle/HOL const name"
-    ((Parse.name --| @{keyword ":"}) -- Parse.const >>
+    ((Parse.name --| \<^keyword>\<open>:\<close>) -- Parse.const >>
       (fn (cname1, cname2) => Toplevel.theory (add_const_map_cmd cname1 cname2)))
 
 (* Initial type and constant maps, for types and constants that are not
    defined, which means their definitions do not appear in the proof dump *)
 val _ = Theory.setup
-  (add_typ_map "bool" @{type_name bool} #>
-  add_typ_map "fun" @{type_name fun} #>
-  add_typ_map "ind" @{type_name ind} #>
-  add_const_map "=" @{const_name HOL.eq} #>
-  add_const_map "@" @{const_name "Eps"})
+  (add_typ_map "bool" \<^type_name>\<open>bool\<close> #>
+  add_typ_map "fun" \<^type_name>\<open>fun\<close> #>
+  add_typ_map "ind" \<^type_name>\<open>ind\<close> #>
+  add_const_map "=" \<^const_name>\<open>HOL.eq\<close> #>
+  add_const_map "@" \<^const_name>\<open>Eps\<close>)
 
 end

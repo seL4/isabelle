@@ -56,8 +56,7 @@ lemma %quote [code]:
   by (simp_all add: fib_step_def)
 
 text \<open>
-  \noindent What remains is to implement @{const fib} by @{const
-  fib_step} as follows:
+  \noindent What remains is to implement \<^const>\<open>fib\<close> by \<^const>\<open>fib_step\<close> as follows:
 \<close>
 
 lemma %quote [code]:
@@ -110,7 +109,7 @@ definition %quote AQueue :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a queu
 code_datatype %quote AQueue
 
 text \<open>
-  \noindent Here we define a \qt{constructor} @{const "AQueue"} which
+  \noindent Here we define a \qt{constructor} \<^const>\<open>AQueue\<close> which
   is defined in terms of \<open>Queue\<close> and interprets its arguments
   according to what the \emph{content} of an amortised queue is supposed
   to be.
@@ -147,7 +146,7 @@ text \<open>
   \noindent It is good style, although no absolute requirement, to
   provide code equations for the original artefacts of the implemented
   type, if possible; in our case, these are the datatype constructor
-  @{const Queue} and the case combinator @{const case_queue}:
+  \<^const>\<open>Queue\<close> and the case combinator \<^const>\<open>case_queue\<close>:
 \<close>
 
 lemma %quote Queue_AQueue [code]:
@@ -168,10 +167,10 @@ text %quotetypewriter \<open>
 
 text \<open>
   The same techniques can also be applied to types which are not
-  specified as datatypes, e.g.~type @{typ int} is originally specified
+  specified as datatypes, e.g.~type \<^typ>\<open>int\<close> is originally specified
   as quotient type by means of @{command_def typedef}, but for code
   generation constants allowing construction of binary numeral values
-  are used as constructors for @{typ int}.
+  are used as constructors for \<^typ>\<open>int\<close>.
 
   This approach however fails if the representation of a type demands
   invariants; this issue is discussed in the next section.
@@ -183,20 +182,20 @@ subsection \<open>Datatype refinement involving invariants \label{sec:invariant}
 text \<open>
   Datatype representation involving invariants require a dedicated
   setup for the type and its primitive operations.  As a running
-  example, we implement a type @{typ "'a dlist"} of lists consisting
+  example, we implement a type \<^typ>\<open>'a dlist\<close> of lists consisting
   of distinct elements.
 
-  The specification of @{typ "'a dlist"} itself can be found in theory
-  @{theory "HOL-Library.Dlist"}.
+  The specification of \<^typ>\<open>'a dlist\<close> itself can be found in theory
+  \<^theory>\<open>HOL-Library.Dlist\<close>.
 
   The first step is to decide on which representation the abstract
-  type (in our example @{typ "'a dlist"}) should be implemented.
-  Here we choose @{typ "'a list"}.  Then a conversion from the concrete
+  type (in our example \<^typ>\<open>'a dlist\<close>) should be implemented.
+  Here we choose \<^typ>\<open>'a list\<close>.  Then a conversion from the concrete
   type to the abstract type must be specified, here:
 \<close>
 
 text %quote \<open>
-  @{term_type Dlist}
+  \<^term_type>\<open>Dlist\<close>
 \<close>
 
 text \<open>
@@ -205,7 +204,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{term_type list_of_dlist}
+  \<^term_type>\<open>list_of_dlist\<close>
 \<close>
 
 text \<open>
@@ -219,19 +218,19 @@ lemma %quote [code abstype]:
 
 text \<open>
   \noindent Note that so far the invariant on representations
-  (@{term_type distinct}) has never been mentioned explicitly:
+  (\<^term_type>\<open>distinct\<close>) has never been mentioned explicitly:
   the invariant is only referred to implicitly: all values in
-  set @{term "{xs. list_of_dlist (Dlist xs) = xs}"} are invariant,
-  and in our example this is exactly @{term "{xs. distinct xs}"}.
+  set \<^term>\<open>{xs. list_of_dlist (Dlist xs) = xs}\<close> are invariant,
+  and in our example this is exactly \<^term>\<open>{xs. distinct xs}\<close>.
   
-  The primitive operations on @{typ "'a dlist"} are specified
-  indirectly using the projection @{const list_of_dlist}.  For
-  the empty \<open>dlist\<close>, @{const Dlist.empty}, we finally want
+  The primitive operations on \<^typ>\<open>'a dlist\<close> are specified
+  indirectly using the projection \<^const>\<open>list_of_dlist\<close>.  For
+  the empty \<open>dlist\<close>, \<^const>\<open>Dlist.empty\<close>, we finally want
   the code equation
 \<close>
 
 text %quote \<open>
-  @{term "Dlist.empty = Dlist []"}
+  \<^term>\<open>Dlist.empty = Dlist []\<close>
 \<close>
 
 text \<open>
@@ -244,7 +243,7 @@ lemma %quote [code]:
 
 text \<open>
   \noindent This equation logically encodes both the desired code
-  equation and that the expression @{const Dlist} is applied to obeys
+  equation and that the expression \<^const>\<open>Dlist\<close> is applied to obeys
   the implicit invariant.  Equations for insertion and removal are
   similar:
 \<close>
@@ -270,9 +269,9 @@ text \<open>
   for the meta theory of datatype refinement involving invariants.
 
   Typical data structures implemented by representations involving
-  invariants are available in the library, theory @{theory "HOL-Library.Mapping"}
-  specifies key-value-mappings (type @{typ "('a, 'b) mapping"});
-  these can be implemented by red-black-trees (theory @{theory "HOL-Library.RBT"}).
+  invariants are available in the library, theory \<^theory>\<open>HOL-Library.Mapping\<close>
+  specifies key-value-mappings (type \<^typ>\<open>('a, 'b) mapping\<close>);
+  these can be implemented by red-black-trees (theory \<^theory>\<open>HOL-Library.RBT\<close>).
 \<close>
 
 end

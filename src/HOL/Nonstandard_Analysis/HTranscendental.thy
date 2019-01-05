@@ -592,7 +592,7 @@ lemma NSLIMSEQ_sin_cos_pi:
 by (insert NSLIMSEQ_mult [OF NSLIMSEQ_sin_pi NSLIMSEQ_cos_one], simp)
 
 
-text\<open>A familiar approximation to @{term "cos x"} when @{term x} is small\<close>
+text\<open>A familiar approximation to \<^term>\<open>cos x\<close> when \<^term>\<open>x\<close> is small\<close>
 
 lemma STAR_cos_Infinitesimal_approx:
   fixes x :: "'a::{real_normed_field,banach} star"

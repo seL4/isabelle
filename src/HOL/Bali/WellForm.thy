@@ -812,8 +812,8 @@ proof -
 qed
 
 text \<open>Compare this lemma about static  
-overriding @{term "G \<turnstile>new overrides\<^sub>S old"} with the definition of 
-dynamic overriding @{term "G \<turnstile>new overrides old"}. 
+overriding \<^term>\<open>G \<turnstile>new overrides\<^sub>S old\<close> with the definition of 
+dynamic overriding \<^term>\<open>G \<turnstile>new overrides old\<close>. 
 Conforming result types and restrictions on the access modifiers of the old 
 and the new method are not part of the predicate for static overriding. But
 they are enshured in a wellfromed program.  Dynamic overriding has 
@@ -2058,7 +2058,7 @@ instance member.
 The following table gives an overview of the current framework. We assume
 to have a reference with static type statT and a dynamic class dynC. Between
 both of these types the widening relation holds 
-@{term "G\<turnstile>Class dynC\<preceq> statT"}. Unfortunately this ordinary widening relation 
+\<^term>\<open>G\<turnstile>Class dynC\<preceq> statT\<close>. Unfortunately this ordinary widening relation 
 isn't enough to describe the valid lookup classes, since we must cope the
 special cases of arrays and interfaces,too. If we statically expect an array or
 inteface we may lookup a field or a method in Object which isn't covered in 
@@ -2077,7 +2077,7 @@ methods at all, we have to lookup methods in the base class Object.
 
 The limitation to classes in the field column is artificial  and comes out
 of the typing rule for the field access (see rule \<open>FVar\<close> in the 
-welltyping relation @{term "wt"} in theory WellType). 
+welltyping relation \<^term>\<open>wt\<close> in theory WellType). 
 I stems out of the fact, that Object
 indeed has no non private fields. So interfaces and arrays can actually
 have no fields at all and a field access would be senseless. (In Java

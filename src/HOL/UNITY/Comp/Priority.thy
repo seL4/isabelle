@@ -254,8 +254,8 @@ done
 
 
 text\<open>We have proved all (relevant) theorems given in the paper.  We didn't
-assume any thing about the relation @{term r}.  It is not necessary that
-@{term r} be a priority relation as assumed in the original proof.  It
+assume any thing about the relation \<^term>\<open>r\<close>.  It is not necessary that
+\<^term>\<open>r\<close> be a priority relation as assumed in the original proof.  It
 suffices that we start from a state which is finite and acyclic.\<close>
 
 

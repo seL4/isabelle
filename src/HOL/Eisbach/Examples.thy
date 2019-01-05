@@ -231,9 +231,8 @@ lemma
 text \<open>
   Eisbach_Tools provides the curry and uncurry attributes. This is useful
   when the number of premises of a thm isn't known statically. The pattern
-  @{term "P \<Longrightarrow> Q"} matches P against the major premise of a thm, and Q is the
-  rest of the premises with the conclusion. If we first uncurry, then @{term
-  "P \<Longrightarrow> Q"} will match P with the conjunction of all the premises, and Q with
+  \<^term>\<open>P \<Longrightarrow> Q\<close> matches P against the major premise of a thm, and Q is the
+  rest of the premises with the conclusion. If we first uncurry, then \<^term>\<open>P \<Longrightarrow> Q\<close> will match P with the conjunction of all the premises, and Q with
   the final conclusion of the rule.
 \<close>
 

@@ -38,13 +38,13 @@ val may_use_binary_ints =
   let
     fun aux def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
-      | aux def (@{const Pure.imp} $ t1 $ t2) = aux false t1 andalso aux def t2
+      | aux def (\<^const>\<open>Pure.imp\<close> $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
-      | aux def (@{const HOL.implies} $ t1 $ t2) = aux false t1 andalso aux def t2
+      | aux def (\<^const>\<open>HOL.implies\<close> $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (t1 $ t2) = aux def t1 andalso aux def t2
       | aux def (t as Const (s, _)) =
-        (not def orelse t <> @{const Suc}) andalso
+        (not def orelse t <> \<^const>\<open>Suc\<close>) andalso
         not (member (op =)
                [\<^const_name>\<open>Abs_Frac\<close>, \<^const_name>\<open>Rep_Frac\<close>,
                 \<^const_name>\<open>nat_gcd\<close>, \<^const_name>\<open>nat_lcm\<close>,
@@ -143,7 +143,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       | _ => exists_subterm (curry (op =) (Var z)) t' ? insert (op =) T
     fun box_var_in_def new_Ts old_Ts t (z as (_, T)) =
       case t of
-        @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
+        \<^const>\<open>Trueprop\<close> $ t1 => box_var_in_def new_Ts old_Ts t1 z
       | Const (s0, _) $ t1 $ _ =>
         if s0 = \<^const_name>\<open>Pure.eq\<close> orelse s0 = \<^const_name>\<open>HOL.eq\<close> then
           let
@@ -190,30 +190,30 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
       | Const (s0 as \<^const_name>\<open>Pure.eq\<close>, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
-      | @{const Pure.imp} $ t1 $ t2 =>
-        @{const Pure.imp} $ do_term new_Ts old_Ts (flip_polarity polar) t1
+      | \<^const>\<open>Pure.imp\<close> $ t1 $ t2 =>
+        \<^const>\<open>Pure.imp\<close> $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const Pure.conjunction} $ t1 $ t2 =>
-        @{const Pure.conjunction} $ do_term new_Ts old_Ts polar t1
+      | \<^const>\<open>Pure.conjunction\<close> $ t1 $ t2 =>
+        \<^const>\<open>Pure.conjunction\<close> $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const Trueprop} $ t1 =>
-        @{const Trueprop} $ do_term new_Ts old_Ts polar t1
-      | @{const Not} $ t1 =>
-        @{const Not} $ do_term new_Ts old_Ts (flip_polarity polar) t1
+      | \<^const>\<open>Trueprop\<close> $ t1 =>
+        \<^const>\<open>Trueprop\<close> $ do_term new_Ts old_Ts polar t1
+      | \<^const>\<open>Not\<close> $ t1 =>
+        \<^const>\<open>Not\<close> $ do_term new_Ts old_Ts (flip_polarity polar) t1
       | Const (s0 as \<^const_name>\<open>All\<close>, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
       | Const (s0 as \<^const_name>\<open>Ex\<close>, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
       | Const (s0 as \<^const_name>\<open>HOL.eq\<close>, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
-      | @{const HOL.conj} $ t1 $ t2 =>
-        @{const HOL.conj} $ do_term new_Ts old_Ts polar t1
+      | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 =>
+        \<^const>\<open>HOL.conj\<close> $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const HOL.disj} $ t1 $ t2 =>
-        @{const HOL.disj} $ do_term new_Ts old_Ts polar t1
+      | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 =>
+        \<^const>\<open>HOL.disj\<close> $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const HOL.implies} $ t1 $ t2 =>
-        @{const HOL.implies} $ do_term new_Ts old_Ts (flip_polarity polar) t1
+      | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 =>
+        \<^const>\<open>HOL.implies\<close> $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
       | Const (x as (s, T)) =>
         if is_descr s then
@@ -335,11 +335,11 @@ fun pull_out_universal_constrs hol_ctxt def t =
       case t of
         (t0 as Const (\<^const_name>\<open>Pure.eq\<close>, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
-      | (t0 as @{const Pure.imp}) $ t1 $ t2 =>
+      | (t0 as \<^const>\<open>Pure.imp\<close>) $ t1 $ t2 =>
         if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
       | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
-      | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
+      | (t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2 =>
         do_eq_or_imp Ts false def t0 t1 t2 seen
       | Abs (s, T, t') =>
         let val (t', seen) = do_term (T :: Ts) def t' [] seen in
@@ -402,11 +402,11 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
                     | _ => I) t (K 0)
     fun aux Ts careful ((t0 as Const (\<^const_name>\<open>Pure.eq\<close>, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
-      | aux Ts careful ((t0 as @{const Pure.imp}) $ t1 $ t2) =
+      | aux Ts careful ((t0 as \<^const>\<open>Pure.imp\<close>) $ t1 $ t2) =
         t0 $ aux Ts false t1 $ aux Ts careful t2
       | aux Ts careful ((t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
-      | aux Ts careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
+      | aux Ts careful ((t0 as \<^const>\<open>HOL.implies\<close>) $ t1 $ t2) =
         t0 $ aux Ts false t1 $ aux Ts careful t2
       | aux Ts careful (Abs (s, T, t')) = Abs (s, T, aux (T :: Ts) careful t')
       | aux Ts careful (t1 $ t2) = aux Ts careful t1 $ aux Ts careful t2
@@ -417,13 +417,13 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
           raise SAME ()
         else if axiom andalso is_Var t2 andalso
                 num_occs_of_var (dest_Var t2) = 1 then
-          @{const True}
+          \<^const>\<open>True\<close>
         else case strip_comb t2 of
           (* The first case is not as general as it could be. *)
           (Const (\<^const_name>\<open>PairBox\<close>, _),
                   [Const (\<^const_name>\<open>fst\<close>, _) $ Var z1,
                    Const (\<^const_name>\<open>snd\<close>, _) $ Var z2]) =>
-          if z1 = z2 andalso num_occs_of_var z1 = 2 then @{const True}
+          if z1 = z2 andalso num_occs_of_var z1 = 2 then \<^const>\<open>True\<close>
           else raise SAME ()
         | (Const (x as (s, T)), args) =>
           let
@@ -454,25 +454,25 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
 
 (** Destruction of universal and existential equalities **)
 
-fun curry_assms (@{const Pure.imp} $ (@{const Trueprop}
-                                   $ (@{const HOL.conj} $ t1 $ t2)) $ t3) =
+fun curry_assms (\<^const>\<open>Pure.imp\<close> $ (\<^const>\<open>Trueprop\<close>
+                                   $ (\<^const>\<open>HOL.conj\<close> $ t1 $ t2)) $ t3) =
     curry_assms (Logic.list_implies ([t1, t2] |> map HOLogic.mk_Trueprop, t3))
-  | curry_assms (@{const Pure.imp} $ t1 $ t2) =
-    @{const Pure.imp} $ curry_assms t1 $ curry_assms t2
+  | curry_assms (\<^const>\<open>Pure.imp\<close> $ t1 $ t2) =
+    \<^const>\<open>Pure.imp\<close> $ curry_assms t1 $ curry_assms t2
   | curry_assms t = t
 
 val destroy_universal_equalities =
   let
     fun aux prems zs t =
       case t of
-        @{const Pure.imp} $ t1 $ t2 => aux_implies prems zs t1 t2
+        \<^const>\<open>Pure.imp\<close> $ t1 $ t2 => aux_implies prems zs t1 t2
       | _ => Logic.list_implies (rev prems, t)
     and aux_implies prems zs t1 t2 =
       case t1 of
         Const (\<^const_name>\<open>Pure.eq\<close>, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Var z $ t') =>
+      | \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Var z $ t') =>
         aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ Var z) =>
+      | \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ Var z) =>
         aux_eq prems zs z t' t1 t2
       | _ => aux (t1 :: prems) (Term.add_vars t1 zs) t2
     and aux_eq prems zs z t' t1 t2 =
@@ -528,7 +528,7 @@ fun destroy_existential_equalities ({ctxt, ...} : hol_context) =
     fun kill [] [] ts = foldr1 s_conj ts
       | kill (s :: ss) (T :: Ts) ts =
         (case find_bound_assign ctxt (length ss) [] ts of
-           SOME (_, []) => @{const True}
+           SOME (_, []) => \<^const>\<open>True\<close>
          | SOME (arg_t, ts) =>
            kill ss Ts (map (subst_one_bound (length ss)
                                 (incr_bv (~1, length ss + 1, arg_t))) ts)
@@ -592,26 +592,26 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
         case t of
           Const (s0 as \<^const_name>\<open>Pure.all\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
-        | @{const Pure.imp} $ t1 $ t2 =>
-          @{const Pure.imp} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+        | \<^const>\<open>Pure.imp\<close> $ t1 $ t2 =>
+          \<^const>\<open>Pure.imp\<close> $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
-        | @{const Pure.conjunction} $ t1 $ t2 =>
-          @{const Pure.conjunction} $ aux ss Ts js skolemizable polar t1
+        | \<^const>\<open>Pure.conjunction\<close> $ t1 $ t2 =>
+          \<^const>\<open>Pure.conjunction\<close> $ aux ss Ts js skolemizable polar t1
           $ aux ss Ts js skolemizable polar t2
-        | @{const Trueprop} $ t1 =>
-          @{const Trueprop} $ aux ss Ts js skolemizable polar t1
-        | @{const Not} $ t1 =>
-          @{const Not} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+        | \<^const>\<open>Trueprop\<close> $ t1 =>
+          \<^const>\<open>Trueprop\<close> $ aux ss Ts js skolemizable polar t1
+        | \<^const>\<open>Not\<close> $ t1 =>
+          \<^const>\<open>Not\<close> $ aux ss Ts js skolemizable (flip_polarity polar) t1
         | Const (s0 as \<^const_name>\<open>All\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | Const (s0 as \<^const_name>\<open>Ex\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
-        | @{const HOL.conj} $ t1 $ t2 =>
+        | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 =>
           s_conj (apply2 (aux ss Ts js skolemizable polar) (t1, t2))
-        | @{const HOL.disj} $ t1 $ t2 =>
+        | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 =>
           s_disj (apply2 (aux ss Ts js skolemizable polar) (t1, t2))
-        | @{const HOL.implies} $ t1 $ t2 =>
-          @{const HOL.implies} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+        | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 =>
+          \<^const>\<open>HOL.implies\<close> $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
         | (t0 as Const (\<^const_name>\<open>Let\<close>, _)) $ t1 $ t2 =>
           t0 $ t1 $ aux ss Ts js skolemizable polar t2
@@ -622,8 +622,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
             let
               val gfp = (fixpoint_kind_of_const thy def_tables x = Gfp)
               val (pref, connective) =
-                if gfp then (lbfp_prefix, @{const HOL.disj})
-                else (ubfp_prefix, @{const HOL.conj})
+                if gfp then (lbfp_prefix, \<^const>\<open>HOL.disj\<close>)
+                else (ubfp_prefix, \<^const>\<open>HOL.conj\<close>)
               fun pos () = unrolled_inductive_pred_const hol_ctxt gfp x
                            |> aux ss Ts js skolemizable polar
               fun neg () = Const (pref ^ s, T)
@@ -653,8 +653,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
 
 (** Function specialization **)
 
-fun params_in_equation (@{const Pure.imp} $ _ $ t2) = params_in_equation t2
-  | params_in_equation (@{const Trueprop} $ t1) = params_in_equation t1
+fun params_in_equation (\<^const>\<open>Pure.imp\<close> $ _ $ t2) = params_in_equation t2
+  | params_in_equation (\<^const>\<open>Trueprop\<close> $ t1) = params_in_equation t1
   | params_in_equation (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ _) =
     snd (strip_comb t1)
   | params_in_equation _ = []
@@ -866,7 +866,7 @@ fun defined_free_by_assumption t =
   in
     case t of
       Const (\<^const_name>\<open>Pure.eq\<close>, _) $ (u as Free _) $ def => do_equals u def
-    | @{const Trueprop}
+    | \<^const>\<open>Trueprop\<close>
       $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (u as Free _) $ def) =>
       do_equals u def
     | _ => NONE
@@ -917,7 +917,7 @@ fun axioms_for_term
     and add_def_axiom depth = add_axiom fst apfst true depth
     and add_nondef_axiom depth = add_axiom snd apsnd false depth
     and add_maybe_def_axiom depth t =
-      (if head_of t <> @{const Pure.imp} then add_def_axiom
+      (if head_of t <> \<^const>\<open>Pure.imp\<close> then add_def_axiom
        else add_nondef_axiom) depth t
     and add_eq_axiom depth t =
       (if is_constr_pattern_formula ctxt t then add_def_axiom
@@ -1104,10 +1104,10 @@ fun distribute_quantifiers t =
   case t of
     (t0 as Const (\<^const_name>\<open>All\<close>, T0)) $ Abs (s, T1, t1) =>
     (case t1 of
-       (t10 as @{const HOL.conj}) $ t11 $ t12 =>
+       (t10 as \<^const>\<open>HOL.conj\<close>) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
-     | (t10 as @{const Not}) $ t11 =>
+     | (t10 as \<^const>\<open>Not\<close>) $ t11 =>
        t10 $ distribute_quantifiers (Const (\<^const_name>\<open>Ex\<close>, T0)
                                      $ Abs (s, T1, t11))
      | t1 =>
@@ -1117,14 +1117,14 @@ fun distribute_quantifiers t =
          t0 $ Abs (s, T1, distribute_quantifiers t1))
   | (t0 as Const (\<^const_name>\<open>Ex\<close>, T0)) $ Abs (s, T1, t1) =>
     (case distribute_quantifiers t1 of
-       (t10 as @{const HOL.disj}) $ t11 $ t12 =>
+       (t10 as \<^const>\<open>HOL.disj\<close>) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
-     | (t10 as @{const HOL.implies}) $ t11 $ t12 =>
+     | (t10 as \<^const>\<open>HOL.implies\<close>) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (Const (\<^const_name>\<open>All\<close>, T0)
                                      $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
-     | (t10 as @{const Not}) $ t11 =>
+     | (t10 as \<^const>\<open>Not\<close>) $ t11 =>
        t10 $ distribute_quantifiers (Const (\<^const_name>\<open>All\<close>, T0)
                                      $ Abs (s, T1, t11))
      | t1 =>

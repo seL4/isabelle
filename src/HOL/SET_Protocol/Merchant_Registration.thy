@@ -13,7 +13,7 @@ begin
 text\<open>Copmpared with Cardholder Reigstration, \<open>KeyCryptKey\<close> is not
   needed: no session key encrypts another.  Instead we
   prove the "key compromise" theorems for sets KK that contain no private
-  encryption keys (@{term "priEK C"}).\<close>
+  encryption keys (\<^term>\<open>priEK C\<close>).\<close>
 
 
 inductive_set
@@ -383,7 +383,7 @@ subsection\<open>Primary Goals of Merchant Registration\<close>
 subsubsection\<open>The merchant's certificates really were created by the CA,
 provided the CA is uncompromised\<close>
 
-text\<open>The assumption @{term "CA i \<noteq> RCA"} is required: step 2 uses 
+text\<open>The assumption \<^term>\<open>CA i \<noteq> RCA\<close> is required: step 2 uses 
   certificates of the same form.\<close>
 lemma certificate_merSK_valid_lemma [intro]:
      "[|Crypt (priSK (CA i)) \<lbrace>Agent M, Key merSK, onlySig\<rbrace>

@@ -15,7 +15,7 @@ subsection\<open>Constant Definitions\<close>
 text\<open>\label{sec:ConstDefinitions}\indexbold{definitions}%
 Nonrecursive definitions can be made with the \commdx{definition}
 command, for example \<open>nand\<close> and \<open>xor\<close> gates
-(based on type @{typ gate} above):
+(based on type \<^typ>\<open>gate\<close> above):
 \<close>
 
 definition nand :: gate where "nand A B \<equiv> \<not>(A \<and> B)"

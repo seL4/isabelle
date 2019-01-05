@@ -72,7 +72,7 @@ definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
                \<Rightarrow> Node (Node l x (lv-1) t2) a (lva+1)
                     (split (Node t3 b (if sngl t1 then lva else lva+1) t4)))))"
 
-text\<open>In the paper, the last case of @{const adjust} is expressed with the help of an
+text\<open>In the paper, the last case of \<^const>\<open>adjust\<close> is expressed with the help of an
 incorrect auxiliary function \texttt{nlvl}.
 
 Function \<open>split_max\<close> below is called \texttt{dellrg} in the paper.

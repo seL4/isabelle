@@ -205,7 +205,7 @@ fun rewrite ctxt thms ct =
 
 fun preproc_term_conv ctxt = 
   let
-    val thms = Named_Theorems.get ctxt @{named_theorems "real_asymp_reify_simps"}
+    val thms = Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_reify_simps\<close>
     val thms = map (fn thm => thm RS @{thm HOL.eq_reflection}) thms
   in
     rewrite ctxt thms
@@ -215,7 +215,7 @@ fun register_custom' binding pat expand context =
   let
     val n = pat |> fastype_of |> strip_type |> fst |> length
     val maxidx = Term.maxidx_of_term pat
-    val vars = map (fn i => Var ((Name.uu_, maxidx + i), @{typ real})) (1 upto n)
+    val vars = map (fn i => Var ((Name.uu_, maxidx + i), \<^typ>\<open>real\<close>)) (1 upto n)
     val net_pat = Library.foldl betapply (pat, vars)
     val {name_table = tbl, net = net} = Custom_Funs.get context
     val entry' = {pat = pat, net_pat = net_pat, expand = expand}
@@ -255,79 +255,79 @@ fun expr_to_term e =
     fun expr_to_term' (ConstExpr c) = c
       | expr_to_term' X = Bound 0
       | expr_to_term' (Add (a, b)) = 
-          @{term "(+) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>(+) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Mult (a, b)) = 
-          @{term "(*) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>(*) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Minus (a, b)) = 
-          @{term "(-) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>(-) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Div (a, b)) = 
-          @{term "(/) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>(/) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Uminus a) = 
-          @{term "uminus :: real => _"} $ expr_to_term' a
+          \<^term>\<open>uminus :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Inverse a) = 
-          @{term "inverse :: real => _"} $ expr_to_term' a
+          \<^term>\<open>inverse :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Ln a) = 
-          @{term "ln :: real => _"} $ expr_to_term' a
+          \<^term>\<open>ln :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Exp a) = 
-          @{term "exp :: real => _"} $ expr_to_term' a
+          \<^term>\<open>exp :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Powr (a,b)) = 
-          @{term "(powr) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>(powr) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Powr_Nat (a,b)) = 
-          @{term "powr_nat :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>powr_nat :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (LnPowr (a,b)) = 
-          @{term "ln :: real => _"} $ 
-            (@{term "(powr) :: real => _"} $ expr_to_term' a $ expr_to_term' b)
+          \<^term>\<open>ln :: real => _\<close> $ 
+            (\<^term>\<open>(powr) :: real => _\<close> $ expr_to_term' a $ expr_to_term' b)
       | expr_to_term' (ExpLn a) = 
-          @{term "exp :: real => _"} $ (@{term "ln :: real => _"} $ expr_to_term' a)
+          \<^term>\<open>exp :: real => _\<close> $ (\<^term>\<open>ln :: real => _\<close> $ expr_to_term' a)
       | expr_to_term' (Powr' (a,b)) = 
-          @{term "(powr) :: real => _"} $ expr_to_term' a $ b
+          \<^term>\<open>(powr) :: real => _\<close> $ expr_to_term' a $ b
       | expr_to_term' (Power (a,b)) = 
-          @{term "(^) :: real => _"} $ expr_to_term' a $ b
+          \<^term>\<open>(^) :: real => _\<close> $ expr_to_term' a $ b
       | expr_to_term' (Floor a) =
-          @{term Multiseries_Expansion.rfloor} $ expr_to_term' a
+          \<^term>\<open>Multiseries_Expansion.rfloor\<close> $ expr_to_term' a
       | expr_to_term' (Ceiling a) =
-          @{term Multiseries_Expansion.rceil} $ expr_to_term' a
+          \<^term>\<open>Multiseries_Expansion.rceil\<close> $ expr_to_term' a
       | expr_to_term' (Frac a) =
-          @{term "Archimedean_Field.frac :: real \<Rightarrow> real"} $ expr_to_term' a
+          \<^term>\<open>Archimedean_Field.frac :: real \<Rightarrow> real\<close> $ expr_to_term' a
       | expr_to_term' (NatMod (a,b)) = 
-          @{term "Multiseries_Expansion.rnatmod"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>Multiseries_Expansion.rnatmod\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Root (a,b)) = 
-          @{term "root :: nat \<Rightarrow> real \<Rightarrow> _"} $ b $ expr_to_term' a
+          \<^term>\<open>root :: nat \<Rightarrow> real \<Rightarrow> _\<close> $ b $ expr_to_term' a
       | expr_to_term' (Sin a) = 
-          @{term "sin :: real => _"} $ expr_to_term' a
+          \<^term>\<open>sin :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (ArcTan a) = 
-          @{term "arctan :: real => _"} $ expr_to_term' a
+          \<^term>\<open>arctan :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Cos a) = 
-          @{term "cos :: real => _"} $ expr_to_term' a
+          \<^term>\<open>cos :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Absolute a) = 
-          @{term "abs :: real => _"} $ expr_to_term' a
+          \<^term>\<open>abs :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Sgn a) =
-          @{term "sgn :: real => _"} $ expr_to_term' a
+          \<^term>\<open>sgn :: real => _\<close> $ expr_to_term' a
       | expr_to_term' (Min (a,b)) = 
-          @{term "min :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>min :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Max (a,b)) = 
-          @{term "max :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          \<^term>\<open>max :: real => _\<close> $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Custom (_, t, args)) = Envir.beta_eta_contract (
           fold (fn e => fn t => betapply (t, expr_to_term' e )) args t)
   in
-    Abs ("x", @{typ "real"}, expr_to_term' e)
+    Abs ("x", \<^typ>\<open>real\<close>, expr_to_term' e)
   end
 
 fun reify_custom ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = Envir.beta_eta_contract t
-    val t' = Envir.beta_eta_contract (Term.abs ("x", @{typ real}) t)
+    val t' = Envir.beta_eta_contract (Term.abs ("x", \<^typ>\<open>real\<close>) t)
     val {net, ...} = Custom_Funs.get (Context.Proof ctxt)
-    val entries = Item_Net.retrieve_matching net (Term.subst_bound (Free ("x", @{typ real}), t))
+    val entries = Item_Net.retrieve_matching net (Term.subst_bound (Free ("x", \<^typ>\<open>real\<close>), t))
     fun go {pat, name, ...} =
       let
         val n = pat |> fastype_of |> strip_type |> fst |> length
         val maxidx = Term.maxidx_of_term t'
         val vs = map (fn i => (Name.uu_, maxidx + i)) (1 upto n)
-        val args = map (fn v => Var (v, @{typ "real => real"}) $ Bound 0) vs
+        val args = map (fn v => Var (v, \<^typ>\<open>real => real\<close>) $ Bound 0) vs
         val pat' = 
-          Envir.beta_eta_contract (Term.abs ("x", @{typ "real"}) 
+          Envir.beta_eta_contract (Term.abs ("x", \<^typ>\<open>real\<close>) 
             (Library.foldl betapply (pat, args)))
         val (T_insts, insts) = Pattern.match thy (pat', t') (Vartab.empty, Vartab.empty)
         fun map_option _ [] acc = SOME (rev acc)
@@ -347,58 +347,58 @@ fun reify_custom ctxt t =
 fun reify_aux ctxt t' t =
   let
     fun is_const t =
-      fastype_of (Abs ("x", @{typ real}, t)) = @{typ "real \<Rightarrow> real"} 
+      fastype_of (Abs ("x", \<^typ>\<open>real\<close>, t)) = \<^typ>\<open>real \<Rightarrow> real\<close> 
         andalso not (exists_subterm (fn t => t = Bound 0) t)
     fun is_const' t = not (exists_subterm (fn t => t = Bound 0) t)
-    fun reify'' (@{term "(+) :: real => _"} $ s $ t) =
+    fun reify'' (\<^term>\<open>(+) :: real => _\<close> $ s $ t) =
           Add (reify' s, reify' t)
-      | reify'' (@{term "(-) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(-) :: real => _\<close> $ s $ t) =
           Minus (reify' s, reify' t)
-      | reify'' (@{term "(*) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(*) :: real => _\<close> $ s $ t) =
           Mult (reify' s, reify' t)
-      | reify'' (@{term "(/) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(/) :: real => _\<close> $ s $ t) =
           Div (reify' s, reify' t)
-      | reify'' (@{term "uminus :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>uminus :: real => _\<close> $ s) =
           Uminus (reify' s)
-      | reify'' (@{term "inverse :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>inverse :: real => _\<close> $ s) =
           Inverse (reify' s)
-      | reify'' (@{term "ln :: real => _"} $ (@{term "(powr) :: real => _"} $ s $ t)) =
+      | reify'' (\<^term>\<open>ln :: real => _\<close> $ (\<^term>\<open>(powr) :: real => _\<close> $ s $ t)) =
           LnPowr (reify' s, reify' t)
-      | reify'' (@{term "exp :: real => _"} $ (@{term "ln :: real => _"} $ s)) =
+      | reify'' (\<^term>\<open>exp :: real => _\<close> $ (\<^term>\<open>ln :: real => _\<close> $ s)) =
           ExpLn (reify' s)
-      | reify'' (@{term "ln :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>ln :: real => _\<close> $ s) =
           Ln (reify' s)
-      | reify'' (@{term "exp :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>exp :: real => _\<close> $ s) =
           Exp (reify' s)
-      | reify'' (@{term "(powr) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(powr) :: real => _\<close> $ s $ t) =
           (if is_const t then Powr' (reify' s, t) else Powr (reify' s, reify' t))
-      | reify'' (@{term "powr_nat :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>powr_nat :: real => _\<close> $ s $ t) =
           Powr_Nat (reify' s, reify' t)
-      | reify'' (@{term "(^) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(^) :: real => _\<close> $ s $ t) =
           (if is_const' t then Power (reify' s, t) else raise TERM ("reify", [t']))
-      | reify'' (@{term "root"} $ s $ t) =
+      | reify'' (\<^term>\<open>root\<close> $ s $ t) =
           (if is_const' s then Root (reify' t, s) else raise TERM ("reify", [t']))
-      | reify'' (@{term "abs :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>abs :: real => _\<close> $ s) =
           Absolute (reify' s)
-      | reify'' (@{term "sgn :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>sgn :: real => _\<close> $ s) =
           Sgn (reify' s)
-      | reify'' (@{term "min :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>min :: real => _\<close> $ s $ t) =
           Min (reify' s, reify' t)
-      | reify'' (@{term "max :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>max :: real => _\<close> $ s $ t) =
           Max (reify' s, reify' t)
-      | reify'' (@{term "Multiseries_Expansion.rfloor"} $ s) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rfloor\<close> $ s) =
           Floor (reify' s)
-      | reify'' (@{term "Multiseries_Expansion.rceil"} $ s) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rceil\<close> $ s) =
           Ceiling (reify' s)
-      | reify'' (@{term "Archimedean_Field.frac :: real \<Rightarrow> real"} $ s) =
+      | reify'' (\<^term>\<open>Archimedean_Field.frac :: real \<Rightarrow> real\<close> $ s) =
           Frac (reify' s)
-      | reify'' (@{term "Multiseries_Expansion.rnatmod"} $ s $ t) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rnatmod\<close> $ s $ t) =
           NatMod (reify' s, reify' t)
-      | reify'' (@{term "sin :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>sin :: real => _\<close> $ s) =
           Sin (reify' s)
-      | reify'' (@{term "arctan :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>arctan :: real => _\<close> $ s) =
           ArcTan (reify' s)
-      | reify'' (@{term "cos :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>cos :: real => _\<close> $ s) =
           Cos (reify' s)
       | reify'' (Bound 0) = X
       | reify'' t = 
@@ -413,7 +413,7 @@ fun reify_aux ctxt t' t =
     and reify' t = if is_const t then ConstExpr t else reify'' t
   in
     case Envir.eta_long [] t of 
-      Abs (_, @{typ real}, t'') => reify' t''
+      Abs (_, \<^typ>\<open>real\<close>, t'') => reify' t''
     | _ => raise TERM ("reify", [t])
   end
 
@@ -428,52 +428,52 @@ fun reify ctxt t =
 fun reify_simple_aux ctxt t' t =
   let
     fun is_const t =
-      fastype_of (Abs ("x", @{typ real}, t)) = @{typ "real \<Rightarrow> real"} 
+      fastype_of (Abs ("x", \<^typ>\<open>real\<close>, t)) = \<^typ>\<open>real \<Rightarrow> real\<close> 
         andalso not (exists_subterm (fn t => t = Bound 0) t)
     fun is_const' t = not (exists_subterm (fn t => t = Bound 0) t)
-    fun reify'' (@{term "(+) :: real => _"} $ s $ t) =
+    fun reify'' (\<^term>\<open>(+) :: real => _\<close> $ s $ t) =
           Add (reify'' s, reify'' t)
-      | reify'' (@{term "(-) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(-) :: real => _\<close> $ s $ t) =
           Minus (reify'' s, reify'' t)
-      | reify'' (@{term "(*) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(*) :: real => _\<close> $ s $ t) =
           Mult (reify'' s, reify'' t)
-      | reify'' (@{term "(/) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(/) :: real => _\<close> $ s $ t) =
           Div (reify'' s, reify'' t)
-      | reify'' (@{term "uminus :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>uminus :: real => _\<close> $ s) =
           Uminus (reify'' s)
-      | reify'' (@{term "inverse :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>inverse :: real => _\<close> $ s) =
           Inverse (reify'' s)
-      | reify'' (@{term "ln :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>ln :: real => _\<close> $ s) =
           Ln (reify'' s)
-      | reify'' (@{term "exp :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>exp :: real => _\<close> $ s) =
           Exp (reify'' s)
-      | reify'' (@{term "(powr) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(powr) :: real => _\<close> $ s $ t) =
           Powr (reify'' s, reify'' t)
-      | reify'' (@{term "powr_nat :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>powr_nat :: real => _\<close> $ s $ t) =
           Powr_Nat (reify'' s, reify'' t)
-      | reify'' (@{term "(^) :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>(^) :: real => _\<close> $ s $ t) =
           (if is_const' t then Power (reify'' s, t) else raise TERM ("reify", [t']))
-      | reify'' (@{term "root"} $ s $ t) =
+      | reify'' (\<^term>\<open>root\<close> $ s $ t) =
           (if is_const' s then Root (reify'' t, s) else raise TERM ("reify", [t']))
-      | reify'' (@{term "abs :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>abs :: real => _\<close> $ s) =
           Absolute (reify'' s)
-      | reify'' (@{term "sgn :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>sgn :: real => _\<close> $ s) =
           Sgn (reify'' s)
-      | reify'' (@{term "min :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>min :: real => _\<close> $ s $ t) =
           Min (reify'' s, reify'' t)
-      | reify'' (@{term "max :: real => _"} $ s $ t) =
+      | reify'' (\<^term>\<open>max :: real => _\<close> $ s $ t) =
           Max (reify'' s, reify'' t)
-      | reify'' (@{term "Multiseries_Expansion.rfloor"} $ s) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rfloor\<close> $ s) =
           Floor (reify'' s)
-      | reify'' (@{term "Multiseries_Expansion.rceil"} $ s) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rceil\<close> $ s) =
           Ceiling (reify'' s)
-      | reify'' (@{term "Archimedean_Field.frac :: real \<Rightarrow> real"} $ s) =
+      | reify'' (\<^term>\<open>Archimedean_Field.frac :: real \<Rightarrow> real\<close> $ s) =
           Frac (reify'' s)
-      | reify'' (@{term "Multiseries_Expansion.rnatmod"} $ s $ t) =
+      | reify'' (\<^term>\<open>Multiseries_Expansion.rnatmod\<close> $ s $ t) =
           NatMod (reify'' s, reify'' t)
-      | reify'' (@{term "sin :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>sin :: real => _\<close> $ s) =
           Sin (reify'' s)
-      | reify'' (@{term "cos :: real => _"} $ s) =
+      | reify'' (\<^term>\<open>cos :: real => _\<close> $ s) =
           Cos (reify'' s)
       | reify'' (Bound 0) = X
       | reify'' t = 
@@ -490,7 +490,7 @@ fun reify_simple_aux ctxt t' t =
             | NONE => raise TERM ("reify", [t'])
   in
     case Envir.eta_long [] t of 
-      Abs (_, @{typ real}, t'') => reify'' t''
+      Abs (_, \<^typ>\<open>real\<close>, t'') => reify'' t''
     | _ => raise TERM ("reify", [t])
   end
 
@@ -503,17 +503,17 @@ fun reify_simple ctxt t =
   end
 
 fun simple_print_const (Free (x, _)) = x
-  | simple_print_const (@{term "uminus :: real => real"} $ a) =
+  | simple_print_const (\<^term>\<open>uminus :: real => real\<close> $ a) =
       "(-" ^ simple_print_const a ^ ")"
-  | simple_print_const (@{term "(+) :: real => _"} $ a $ b) =
+  | simple_print_const (\<^term>\<open>(+) :: real => _\<close> $ a $ b) =
       "(" ^ simple_print_const a ^ "+" ^ simple_print_const b ^ ")"
-  | simple_print_const (@{term "(-) :: real => _"} $ a $ b) =
+  | simple_print_const (\<^term>\<open>(-) :: real => _\<close> $ a $ b) =
       "(" ^ simple_print_const a ^ "-" ^ simple_print_const b ^ ")"
-  | simple_print_const (@{term "(*) :: real => _"} $ a $ b) =
+  | simple_print_const (\<^term>\<open>(*) :: real => _\<close> $ a $ b) =
       "(" ^ simple_print_const a ^ "*" ^ simple_print_const b ^ ")"
-  | simple_print_const (@{term "inverse :: real => _"} $ a) =
+  | simple_print_const (\<^term>\<open>inverse :: real => _\<close> $ a) =
       "(1 / " ^ simple_print_const a ^ ")"
-  | simple_print_const (@{term "(/) :: real => _"} $ a $ b) =
+  | simple_print_const (\<^term>\<open>(/) :: real => _\<close> $ a $ b) =
       "(" ^ simple_print_const a ^ "/" ^ simple_print_const b ^ ")"
   | simple_print_const t = Int.toString (snd (HOLogic.dest_number t))
 
@@ -529,7 +529,7 @@ fun to_mathematica (Add (a, b)) = "(" ^ to_mathematica a ^ " + " ^ to_mathematic
   | to_mathematica (ExpLn a) = "Exp[Ln[" ^ to_mathematica a ^ "]]"
   | to_mathematica (Power (a, b)) = "(" ^ to_mathematica a ^ " ^ " ^
        to_mathematica (ConstExpr b) ^ ")"
-  | to_mathematica (Root (a, @{term "2::real"})) = "Sqrt[" ^ to_mathematica a ^ "]"
+  | to_mathematica (Root (a, \<^term>\<open>2::real\<close>)) = "Sqrt[" ^ to_mathematica a ^ "]"
   | to_mathematica (Root (a, b)) = "Surd[" ^ to_mathematica a ^ ", " ^
        to_mathematica (ConstExpr b) ^ "]"
   | to_mathematica (Uminus a) = "(-" ^ to_mathematica a ^ ")"
@@ -562,7 +562,7 @@ fun to_maple (Add (a, b)) = "(" ^ to_maple a ^ " + " ^ to_maple b ^ ")"
   | to_maple (ExpLn a) = "ln(exp(" ^ to_maple a ^ "))"
   | to_maple (Power (a, b)) = "(" ^ to_maple a ^ " ^ " ^
        to_maple (ConstExpr b) ^ ")"
-  | to_maple (Root (a, @{term "2::real"})) = "sqrt(" ^ to_maple a ^ ")"
+  | to_maple (Root (a, \<^term>\<open>2::real\<close>)) = "sqrt(" ^ to_maple a ^ ")"
   | to_maple (Root (a, b)) = "root(" ^ to_maple a ^ ", " ^
        to_maple (ConstExpr b) ^ ")"
   | to_maple (Uminus a) = "(-" ^ to_maple a ^ ")"
@@ -594,7 +594,7 @@ fun to_maxima (Add (a, b)) = "(" ^ to_maxima a ^ " + " ^ to_maxima b ^ ")"
   | to_maxima (LnPowr (a, b)) = "log(" ^ to_maxima a ^ " ^ " ^ to_maxima b ^ ")"
   | to_maxima (Power (a, b)) = "(" ^ to_maxima a ^ " ^ " ^
        to_maxima (ConstExpr b) ^ ")"
-  | to_maxima (Root (a, @{term "2::real"})) = "sqrt(" ^ to_maxima a ^ ")"
+  | to_maxima (Root (a, \<^term>\<open>2::real\<close>)) = "sqrt(" ^ to_maxima a ^ ")"
   | to_maxima (Root (a, b)) = to_maxima a ^ "^(1/" ^
        to_maxima (ConstExpr b) ^ ")"
   | to_maxima (Uminus a) = "(-" ^ to_maxima a ^ ")"
@@ -626,7 +626,7 @@ fun to_sympy (Add (a, b)) = "(" ^ to_sympy a ^ " + " ^ to_sympy b ^ ")"
   | to_sympy (LnPowr (a, b)) = "log(" ^ to_sympy a ^ " ** " ^ to_sympy b ^ ")"
   | to_sympy (Power (a, b)) = "(" ^ to_sympy a ^ " ** " ^
        to_sympy (ConstExpr b) ^ ")"
-  | to_sympy (Root (a, @{term "2::real"})) = "sqrt(" ^ to_sympy a ^ ")"
+  | to_sympy (Root (a, \<^term>\<open>2::real\<close>)) = "sqrt(" ^ to_sympy a ^ ")"
   | to_sympy (Root (a, b)) = "root(" ^ to_sympy a ^ ", " ^ to_sympy (ConstExpr b) ^ ")"
   | to_sympy (Uminus a) = "(-" ^ to_sympy a ^ ")"
   | to_sympy (Inverse a) = "(1/(" ^ to_sympy a ^ "))"
@@ -657,7 +657,7 @@ fun to_sage (Add (a, b)) = "(" ^ to_sage a ^ " + " ^ to_sage b ^ ")"
   | to_sage (LnPowr (a, b)) = "log(" ^ to_sage a ^ " ^ " ^ to_sage b ^ ")"
   | to_sage (Power (a, b)) = "(" ^ to_sage a ^ " ^ " ^
        to_sage (ConstExpr b) ^ ")"
-  | to_sage (Root (a, @{term "2::real"})) = "sqrt(" ^ to_sage a ^ ")"
+  | to_sage (Root (a, \<^term>\<open>2::real\<close>)) = "sqrt(" ^ to_sage a ^ ")"
   | to_sage (Root (a, b)) = to_sage a ^ "^(1/" ^ to_sage (ConstExpr b) ^ ")"
   | to_sage (Uminus a) = "(-" ^ to_sage a ^ ")"
   | to_sage (Inverse a) = "(1/(" ^ to_sage a ^ "))"

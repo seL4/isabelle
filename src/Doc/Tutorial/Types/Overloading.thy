@@ -27,7 +27,7 @@ begin
 
 text \<open>\noindent Command \isacommand{instantiation} opens a local
 theory context.  Here we can now instantiate @{const [source] plus} on
-@{typ nat}:\<close>
+\<^typ>\<open>nat\<close>:\<close>
 
 primrec plus_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
     "(0::nat) \<oplus> n = n"
@@ -51,13 +51,13 @@ The instantiation is finished by an explicit\<close>
 
 end
 
-text \<open>\noindent From now on, terms like @{term "Suc (m \<oplus> 2)"} are
+text \<open>\noindent From now on, terms like \<^term>\<open>Suc (m \<oplus> 2)\<close> are
 legal.\<close>
 
 instantiation prod :: (plus, plus) plus
 begin
 
-text \<open>\noindent Here we instantiate the product type @{type prod} to
+text \<open>\noindent Here we instantiate the product type \<^type>\<open>prod\<close> to
 class @{class [source] plus}, given that its type arguments are of
 class @{class [source] plus}:\<close>
 

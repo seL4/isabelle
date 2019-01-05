@@ -38,7 +38,7 @@ proof
   assume "\<exists>f::nat \<Rightarrow> real. surj f"
   then obtain f :: "nat \<Rightarrow> real" where "surj f" ..
 
-  txt \<open>First we construct a sequence of nested intervals, ignoring @{term "range f"}.\<close>
+  txt \<open>First we construct a sequence of nested intervals, ignoring \<^term>\<open>range f\<close>.\<close>
 
   have "a < b \<Longrightarrow> \<exists>ka kb. ka < kb \<and> {ka..kb} \<subseteq> {a..b} \<and> c \<notin> {ka..kb}" for a b c :: real
     by (auto simp add: not_le cong: conj_cong)

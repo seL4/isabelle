@@ -384,7 +384,7 @@ lemma type_finite_dimensional_vector_space_pair_on_with:
 end
 
 
-subsection \<open>Transfer from type-based @{theory HOL.Modules} and @{theory HOL.Vector_Spaces}\<close>
+subsection \<open>Transfer from type-based \<^theory>\<open>HOL.Modules\<close> and \<^theory>\<open>HOL.Vector_Spaces\<close>\<close>
 
 lemmas [transfer_rule] = right_total_fun_eq_transfer
   and [transfer_rule del] = vimage_parametric

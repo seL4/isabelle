@@ -149,7 +149,7 @@ fun apply_sign_oracles ctxt tac =
   let
     val oracles = get_sign_oracles (Context.Proof ctxt)
     fun tac' {context = ctxt, concl, ...} =
-      if Thm.term_of concl = @{term "HOL.Trueprop HOL.False"} then
+      if Thm.term_of concl = \<^term>\<open>HOL.Trueprop HOL.False\<close> then
         no_tac
       else
         FIRST (map (fn tac => HEADGOAL (snd tac ctxt)) oracles)
@@ -178,7 +178,7 @@ fun get_expanded_fun thm = thm |> concl_of' |> dest_fun |> dest_fun |> dest_arg
 datatype intyness = Nat of thm | Neg_Nat of thm | No_Nat
 
 fun get_intyness ctxt ct =
-  if Thm.typ_of_cterm ct = @{typ Real.real} then
+  if Thm.typ_of_cterm ct = \<^typ>\<open>Real.real\<close> then
     let
       val ctxt' = put_simpset HOL_basic_ss ctxt addsimps @{thms intyness_simps}
       val conv = 
@@ -187,12 +187,12 @@ fun get_intyness ctxt ct =
         | flip _ = No_Nat
       fun get_intyness' ct =
         case Thm.term_of ct of
-          @{term "0::real"} => Nat @{thm intyness_0}
-        | @{term "1::real"} => Nat @{thm intyness_1}
-        | Const (@{const_name numeral}, _) $ _ => 
+          \<^term>\<open>0::real\<close> => Nat @{thm intyness_0}
+        | \<^term>\<open>1::real\<close> => Nat @{thm intyness_1}
+        | Const (\<^const_name>\<open>numeral\<close>, _) $ _ => 
             Nat (Thm.reflexive (Thm.dest_arg ct) RS @{thm intyness_numeral})
-        | Const (@{const_name uminus}, _) $ _ => flip (get_intyness' (Thm.dest_arg ct))
-        | Const (@{const_name of_nat}, _) $ _ => 
+        | Const (\<^const_name>\<open>uminus\<close>, _) $ _ => flip (get_intyness' (Thm.dest_arg ct))
+        | Const (\<^const_name>\<open>of_nat\<close>, _) $ _ => 
             Nat (Thm.reflexive (Thm.dest_arg ct) RS @{thm intyness_of_nat})
         | _ => No_Nat
       val thm = conv ct
@@ -229,40 +229,40 @@ fun get_parity ct =
     val get_num = Thm.dest_arg o Thm.dest_arg
   in
     case Thm.term_of ct of
-      Const (@{const_name Groups.zero}, _) => Even (inst @{thm even_zero} [])
-    | Const (@{const_name Groups.one}, _) => Odd (inst @{thm odd_one} [])
-    | Const (@{const_name Num.numeral_class.numeral}, _) $ @{term "Num.One"} =>
+      Const (\<^const_name>\<open>Groups.zero\<close>, _) => Even (inst @{thm even_zero} [])
+    | Const (\<^const_name>\<open>Groups.one\<close>, _) => Odd (inst @{thm odd_one} [])
+    | Const (\<^const_name>\<open>Num.numeral_class.numeral\<close>, _) $ \<^term>\<open>Num.One\<close> =>
         Odd (inst @{thm odd_Numeral1} [])
-    | Const (@{const_name Num.numeral_class.numeral}, _) $ (@{term "Num.Bit0"} $ _) =>
+    | Const (\<^const_name>\<open>Num.numeral_class.numeral\<close>, _) $ (\<^term>\<open>Num.Bit0\<close> $ _) =>
         Even (inst @{thm even_numeral} [get_num ct])
-    | Const (@{const_name Num.numeral_class.numeral}, _) $ (@{term "Num.Bit1"} $ _) =>
+    | Const (\<^const_name>\<open>Num.numeral_class.numeral\<close>, _) $ (\<^term>\<open>Num.Bit1\<close> $ _) =>
         Odd (inst @{thm odd_numeral} [get_num ct])
-    | Const (@{const_name Groups.uminus}, _) $ _ => (
+    | Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ _ => (
         case get_parity (Thm.dest_arg ct) of
           Even thm => Even (@{thm even_uminusI} OF [thm])
         | Odd thm => Odd (@{thm odd_uminusI} OF [thm])
         | _ => Unknown_Parity)
-    | Const (@{const_name Groups.plus}, _) $ _ $ _ => (
+    | Const (\<^const_name>\<open>Groups.plus\<close>, _) $ _ $ _ => (
         case apply2 get_parity (Thm.dest_binop ct) of
           (Even thm1, Even thm2) => Even (@{thm even_addI(1)} OF [thm1, thm2])
         | (Odd thm1, Odd thm2) => Even (@{thm even_addI(2)} OF [thm1, thm2])
         | (Even thm1, Odd thm2) => Odd (@{thm odd_addI(1)} OF [thm1, thm2])
         | (Odd thm1, Even thm2) => Odd (@{thm odd_addI(2)} OF [thm1, thm2])
         | _ => Unknown_Parity)
-    | Const (@{const_name Groups.minus}, _) $ _ $ _ => (
+    | Const (\<^const_name>\<open>Groups.minus\<close>, _) $ _ $ _ => (
         case apply2 get_parity (Thm.dest_binop ct) of
           (Even thm1, Even thm2) => Even (@{thm even_diffI(1)} OF [thm1, thm2])
         | (Odd thm1, Odd thm2) => Even (@{thm even_diffI(2)} OF [thm1, thm2])
         | (Even thm1, Odd thm2) => Odd (@{thm odd_diffI(1)} OF [thm1, thm2])
         | (Odd thm1, Even thm2) => Odd (@{thm odd_diffI(2)} OF [thm1, thm2])
         | _ => Unknown_Parity)
-    | Const (@{const_name Groups.times}, _) $ _ $ _ => (
+    | Const (\<^const_name>\<open>Groups.times\<close>, _) $ _ $ _ => (
         case apply2 get_parity (Thm.dest_binop ct) of
           (Even thm1, _) => Even (@{thm even_multI(1)} OF [thm1])
         | (_, Even thm2) => Even (@{thm even_multI(2)} OF [thm2])
         | (Odd thm1, Odd thm2) => Odd (@{thm odd_multI} OF [thm1, thm2])
         | _ => Unknown_Parity)
-    | Const (@{const_name Power.power}, _) $ _ $ _ =>
+    | Const (\<^const_name>\<open>Power.power\<close>, _) $ _ $ _ =>
         let
           val (a, n) = Thm.dest_binop ct
         in
@@ -295,9 +295,9 @@ datatype zeroness = IsZero | IsNonZero | IsPos | IsNeg
 (* Returns the leading coefficient of the given expansion. This coefficient is a multiseries. *)
 fun try_get_coeff expr =
   case expr of
-    Const (@{const_name MS}, _) $ (
-      Const (@{const_name MSLCons}, _) $ (
-        Const (@{const_name Pair}, _) $ c $ _) $ _) $ _ =>
+    Const (\<^const_name>\<open>MS\<close>, _) $ (
+      Const (\<^const_name>\<open>MSLCons\<close>, _) $ (
+        Const (\<^const_name>\<open>Pair\<close>, _) $ c $ _) $ _) $ _ =>
       SOME c
   | _ => NONE
 
@@ -318,15 +318,15 @@ fun get_exponent expr =
 
 (* Returns the list of exponents of the leading term *)
 fun get_exponents exp =
-  if fastype_of exp = @{typ real} then
+  if fastype_of exp = \<^typ>\<open>real\<close> then
     []
   else
     get_exponent exp :: get_exponents (get_coeff exp)
 
 (* Returns the function that the expansion corresponds to *)
 fun get_eval expr =
-  if fastype_of expr = @{typ real} then
-    Abs ("x", @{typ real}, expr)
+  if fastype_of expr = \<^typ>\<open>real\<close> then
+    Abs ("x", \<^typ>\<open>real\<close>, expr)
   else
     expr |> dest_comb |> snd
 
@@ -337,7 +337,7 @@ fun ev_zeroness_oracle ectxt t =
   let
     val ctxt = Lazy_Eval.get_ctxt ectxt
     val goal = 
-      betapply (@{term "\<lambda>f::real \<Rightarrow> real. eventually (\<lambda>x. f x = 0) at_top"}, t)
+      betapply (\<^term>\<open>\<lambda>f::real \<Rightarrow> real. eventually (\<lambda>x. f x = 0) at_top\<close>, t)
       |> HOLogic.mk_Trueprop
     fun tac {context = ctxt, ...} =
       HEADGOAL (Method.insert_tac ctxt (get_facts ectxt))
@@ -362,21 +362,21 @@ datatype trim_mode = Simple_Trim | Pos_Trim | Neg_Trim | Sgn_Trim
 fun zeroness_oracle fail mode ectxt exp = 
   let
     val ctxt = Lazy_Eval.get_ctxt ectxt
-    val eq = (exp, @{term "0::real"}) |> HOLogic.mk_eq
+    val eq = (exp, \<^term>\<open>0::real\<close>) |> HOLogic.mk_eq
     val goal1 = (IsZero, eq |> HOLogic.mk_Trueprop)
     val goal2 = 
       case mode of
         SOME Pos_Trim => 
-          (IsPos, @{term "(<) (0::real)"} $ exp |> HOLogic.mk_Trueprop)
+          (IsPos, \<^term>\<open>(<) (0::real)\<close> $ exp |> HOLogic.mk_Trueprop)
       | SOME Sgn_Trim => 
-          (IsPos, @{term "(<) (0::real)"} $ exp |> HOLogic.mk_Trueprop)
+          (IsPos, \<^term>\<open>(<) (0::real)\<close> $ exp |> HOLogic.mk_Trueprop)
       | SOME Neg_Trim => 
-          (IsNeg, betapply (@{term "\<lambda>x. x < (0::real)"}, exp) |> HOLogic.mk_Trueprop)
+          (IsNeg, betapply (\<^term>\<open>\<lambda>x. x < (0::real)\<close>, exp) |> HOLogic.mk_Trueprop)
       | _ =>
           (IsNonZero, eq |> HOLogic.mk_not |> HOLogic.mk_Trueprop)
     val goals =
       (if mode = SOME Sgn_Trim then 
-         [(IsNeg, betapply (@{term "\<lambda>x. x < (0::real)"}, exp) |> HOLogic.mk_Trueprop)] 
+         [(IsNeg, betapply (\<^term>\<open>\<lambda>x. x < (0::real)\<close>, exp) |> HOLogic.mk_Trueprop)] 
        else 
          [])
     val goals = goal2 :: goals
@@ -420,7 +420,7 @@ fun zeroness_oracle fail mode ectxt exp =
 
 (* Tries to prove a given equality of real numbers. *)
 fun try_prove_real_eq fail ectxt (lhs, rhs) =
-  case zeroness_oracle false NONE ectxt (@{term "(-) :: real => _"} $ lhs $ rhs) of
+  case zeroness_oracle false NONE ectxt (\<^term>\<open>(-) :: real => _\<close> $ lhs $ rhs) of
     (IsZero, SOME thm) => SOME (thm RS @{thm real_eqI})
   | _ => 
     if not fail then NONE else
@@ -443,14 +443,14 @@ fun try_prove_real_eq fail ectxt (lhs, rhs) =
 (* Tries to prove a given eventual equality of real functions. *)
 fun try_prove_ev_eq ectxt (f, g) =
   let
-    val t = Envir.beta_eta_contract (@{term "\<lambda>(f::real=>real) g x. f x - g x"} $ f $ g)
+    val t = Envir.beta_eta_contract (\<^term>\<open>\<lambda>(f::real=>real) g x. f x - g x\<close> $ f $ g)
   in
     Option.map (fn thm => thm RS @{thm eventually_diff_zero_imp_eq}) (ev_zeroness_oracle ectxt t)
   end
 
-fun real_less a b = @{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ a $ b
-fun real_eq a b = @{term "(=) :: real \<Rightarrow> real \<Rightarrow> bool"} $ a $ b
-fun real_neq a b = @{term "(\<noteq>) :: real \<Rightarrow> real \<Rightarrow> bool"} $ a $ b
+fun real_less a b = \<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ a $ b
+fun real_eq a b = \<^term>\<open>(=) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ a $ b
+fun real_neq a b = \<^term>\<open>(\<noteq>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ a $ b
 
 (* The hook that is called by the Lazy_Eval module whenever two real numbers have to be compared *)
 fun real_sgn_hook ({pctxt = ctxt, facts, verbose, ...}) t =
@@ -470,10 +470,10 @@ fun real_sgn_hook ({pctxt = ctxt, facts, verbose, ...}) t =
       | prove_first _ _ _ = raise Match
   in
     case t of
-      @{term "(=) :: real => _"} $ a $ @{term "0 :: real"} =>
+      \<^term>\<open>(=) :: real => _\<close> $ a $ \<^term>\<open>0 :: real\<close> =>
         let
           val goals =
-            map (fn c => HOLogic.mk_Trueprop (c a @{term "0 :: real"})) [real_neq, real_eq]
+            map (fn c => HOLogic.mk_Trueprop (c a \<^term>\<open>0 :: real\<close>)) [real_neq, real_eq]
           fun err () = 
             let
               val facts' = Net.content facts
@@ -487,7 +487,7 @@ fun real_sgn_hook ({pctxt = ctxt, facts, verbose, ...}) t =
         in
           prove_first err goals @{thms Eq_FalseI Eq_TrueI}
         end
-    | Const (@{const_name COMPARE}, _) $ a $ b =>
+    | Const (\<^const_name>\<open>COMPARE\<close>, _) $ a $ b =>
         let
           val goals = map HOLogic.mk_Trueprop [real_less a b, real_less b a, real_eq a b]
           fun err () = 
@@ -513,7 +513,7 @@ fun real_sgn_hook ({pctxt = ctxt, facts, verbose, ...}) t =
 *)
 fun get_constructors ctxt =
   let
-    val thms = Named_Theorems.get ctxt @{named_theorems exp_log_eval_constructor}
+    val thms = Named_Theorems.get ctxt \<^named_theorems>\<open>exp_log_eval_constructor\<close>
     fun go _ [] acc = rev acc
       | go f (x :: xs) acc =
           case f x of
@@ -522,8 +522,8 @@ fun get_constructors ctxt =
     fun map_option f xs = go f xs []
     fun dest_constructor thm =
       case Thm.concl_of thm of
-        Const (@{const_name HOL.Trueprop}, _) $
-            (Const (@{const_name REAL_ASYMP_EVAL_CONSTRUCTOR}, _) $ Const (c, T)) =>
+        Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $
+            (Const (\<^const_name>\<open>REAL_ASYMP_EVAL_CONSTRUCTOR\<close>, _) $ Const (c, T)) =>
           SOME (c, length (fst (strip_type T)))
      | _ => NONE
   in
@@ -535,7 +535,7 @@ fun get_constructors ctxt =
 *)
 fun mk_eval_ctxt ctxt =
   let
-    val eval_eqs = (Named_Theorems.get ctxt @{named_theorems real_asymp_eval_eqs})
+    val eval_eqs = (Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_eval_eqs\<close>)
     val constructors = get_constructors ctxt
   in
     Lazy_Eval.mk_eval_ctxt ctxt constructors eval_eqs
@@ -547,9 +547,9 @@ val exp_pat =
   let
     val anypat = AnyPat ("_", 0)
   in
-    ConsPat (@{const_name MS}, 
-      [ConsPat (@{const_name MSLCons}, 
-         [ConsPat (@{const_name Pair}, [anypat, anypat]), anypat]), anypat])
+    ConsPat (\<^const_name>\<open>MS\<close>, 
+      [ConsPat (\<^const_name>\<open>MSLCons\<close>, 
+         [ConsPat (\<^const_name>\<open>Pair\<close>, [anypat, anypat]), anypat]), anypat])
   end
 
 (*
@@ -565,10 +565,10 @@ fun whnf_expansion ectxt thm =
     val exp' = eq_thm |> Thm.concl_of |> Logic.dest_equals |> snd
   in
     case exp' of
-      Const (@{const_name MS}, _) $ (Const (@{const_name MSLCons}, _) $ 
-        (Const (@{const_name Pair}, _) $ c $ _) $ _) $ _ =>
+      Const (\<^const_name>\<open>MS\<close>, _) $ (Const (\<^const_name>\<open>MSLCons\<close>, _) $ 
+        (Const (\<^const_name>\<open>Pair\<close>, _) $ c $ _) $ _) $ _ =>
           (SOME c, @{thm expands_to_meta_eq_cong} OF [thm, eq_thm], eq_thm)
-    | Const (@{const_name MS}, _) $ Const (@{const_name MSLNil}, _) $ _ =>
+    | Const (\<^const_name>\<open>MS\<close>, _) $ Const (\<^const_name>\<open>MSLNil\<close>, _) $ _ =>
         (NONE, @{thm expands_to_meta_eq_cong} OF [thm, eq_thm], eq_thm)
     | _ => raise TERM ("whnf_expansion", [exp'])
   end
@@ -580,8 +580,8 @@ fun try_lift_function ectxt (thm, SEmpty) _ = (NONE, thm)
       let
         val f = get_expanded_fun thm
         val T = fastype_of c
-        val t = Const (@{const_name eval}, T --> @{typ "real \<Rightarrow> real"}) $ c
-        val t = Term.betapply (Term.betapply (@{term "\<lambda>(f::real\<Rightarrow>real) g x. f x - g x"}, f), t)
+        val t = Const (\<^const_name>\<open>eval\<close>, T --> \<^typ>\<open>real \<Rightarrow> real\<close>) $ c
+        val t = Term.betapply (Term.betapply (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) g x. f x - g x\<close>, f), t)
       in
         case ev_zeroness_oracle ectxt t of
           NONE => (NONE, thm)
@@ -597,7 +597,7 @@ fun try_lift_function ectxt (thm, SEmpty) _ = (NONE, thm)
 
 (* Turns an expansion theorem into an expansion theorem for the leading coefficient. *)
 fun expands_to_hd thm = thm RS
-  (if fastype_of (get_expansion thm) = @{typ "real ms"} then 
+  (if fastype_of (get_expansion thm) = \<^typ>\<open>real ms\<close> then 
      @{thm expands_to_hd'}
    else 
      @{thm expands_to_hd})
@@ -622,9 +622,9 @@ fun simplify_trimmed_expansion ectxt (thm, trimmed_thm) =
     val eq_thm = Simplifier.rewrite ctxt (Thm.cterm_of ctxt exp)
     val trimmed_cong_thm =
       case trimmed_thm |> concl_of' |> dest_fun of
-        Const (@{const_name trimmed}, _) => @{thm trimmed_eq_cong}
-      | Const (@{const_name trimmed_pos}, _) => @{thm trimmed_pos_eq_cong}
-      | Const (@{const_name trimmed_neg}, _) => @{thm trimmed_neg_eq_cong}
+        Const (\<^const_name>\<open>trimmed\<close>, _) => @{thm trimmed_eq_cong}
+      | Const (\<^const_name>\<open>trimmed_pos\<close>, _) => @{thm trimmed_pos_eq_cong}
+      | Const (\<^const_name>\<open>trimmed_neg\<close>, _) => @{thm trimmed_neg_eq_cong}
       | _ => raise THM ("simplify_trimmed_expansion", 2, [thm, trimmed_thm])
   in
     (@{thm expands_to_meta_eq_cong} OF [thm, eq_thm], 
@@ -643,7 +643,7 @@ fun retrim_expansion ectxt (thm, basis) =
     case c of
       NONE => (thm, eq_thm)
     | SOME c =>
-      if fastype_of c = @{typ real} then 
+      if fastype_of c = \<^typ>\<open>real\<close> then 
         (thm, eq_thm) 
       else
         let
@@ -671,9 +671,9 @@ fun try_drop_leading_term_ex fail ectxt thm =
   let
     val exp = get_expansion thm
   in
-    if fastype_of exp = @{typ real} then
+    if fastype_of exp = \<^typ>\<open>real\<close> then
       NONE
-    else if fastype_of (get_coeff exp) = @{typ real} then
+    else if fastype_of (get_coeff exp) = \<^typ>\<open>real\<close> then
       case zeroness_oracle fail (SOME Simple_Trim) ectxt (get_coeff exp) of
         (IsZero, SOME zero_thm) => SOME (@{thm drop_zero_ms'} OF [zero_thm, thm])
       | _ => NONE
@@ -681,7 +681,7 @@ fun try_drop_leading_term_ex fail ectxt thm =
       let
         val c = get_coeff exp
         val T = fastype_of c
-        val t = Const (@{const_name eval}, T --> @{typ "real \<Rightarrow> real"}) $ c
+        val t = Const (\<^const_name>\<open>eval\<close>, T --> \<^typ>\<open>real \<Rightarrow> real\<close>) $ c
       in
         case ev_zeroness_oracle ectxt t of
           SOME zero_thm => SOME (@{thm expands_to_drop_zero} OF [zero_thm, thm])
@@ -701,7 +701,7 @@ fun try_drop_leading_term ectxt thm =
         val exp = get_expansion thm
         val c = get_coeff exp
         val t = 
-          if fastype_of c = @{typ real} then c else c |> dest_arg
+          if fastype_of c = \<^typ>\<open>real\<close> then c else c |> dest_arg
         val t = simplify_term' (get_facts ectxt) ctxt t
         val _ =
           if #verbose (#ctxt ectxt) then
@@ -727,7 +727,7 @@ datatype trim_result =
 
 fun cstrip_assms ct =
   case Thm.term_of ct of
-    @{term "(==>)"} $ _ $ _ => cstrip_assms (snd (Thm.dest_implies ct))
+    \<^term>\<open>(==>)\<close> $ _ $ _ => cstrip_assms (snd (Thm.dest_implies ct))
   | _ => ct
 
 (*
@@ -787,9 +787,9 @@ fun trim_expansion_while_greater strict es fail mode ectxt (thm, basis) =
       let
         val c = the c
         val T = fastype_of c
-        val t = Const (@{const_name eval}, T --> @{typ "real \<Rightarrow> real"}) $ c
+        val t = Const (\<^const_name>\<open>eval\<close>, T --> \<^typ>\<open>real \<Rightarrow> real\<close>) $ c
       in
-        if T = @{typ real} then (
+        if T = \<^typ>\<open>real\<close> then (
           case zeroness_oracle fail mode ectxt c of
             (IsZero, SOME zero_thm) => 
               trim_expansion_while_greater strict es fail mode ectxt
@@ -826,7 +826,7 @@ fun trim_expansion_while_greater strict es fail mode ectxt (thm, basis) =
                 | (_, NONE) => (thm, Trimmed (nz, NONE), thms)
               end
       end
-    val minus = @{term "(-) :: real => real => real"}
+    val minus = \<^term>\<open>(-) :: real => real => real\<close>
   in
     case (c, es) of
       (NONE, _) => (thm, Trimmed (IsZero, NONE), [])
@@ -842,7 +842,7 @@ fun trim_expansion_while_greater strict es fail mode ectxt (thm, basis) =
               | NONE => do_trim NONE |> @{apply 3(3)} (fn thms => (IsPos, pos_thm) :: thms))
           | (IsNeg, SOME neg_thm) => (thm, Aborted LESS, [(IsNeg, neg_thm)])
           | (IsZero, SOME zero_thm) =>
-              if not strict andalso fastype_of c = @{typ real} then
+              if not strict andalso fastype_of c = \<^typ>\<open>real\<close> then
                 (thm, Aborted EQUAL, [(IsZero, zero_thm)])
               else (
                 case try_drop_leading_term_ex false ectxt thm of
@@ -868,7 +868,7 @@ fun trim_expansion fail mode ectxt (thm, basis) =
   Determines the sign of an expansion that has already been trimmed.
 *)
 fun determine_trimmed_sgn ectxt exp =
-  if fastype_of exp = @{typ real} then
+  if fastype_of exp = \<^typ>\<open>real\<close> then
     (case zeroness_oracle true (SOME Sgn_Trim) ectxt exp of
        (IsPos, SOME thm) => (IsPos, thm RS @{thm trimmed_pos_realI})
      | (IsNeg, SOME thm) => (IsNeg, thm RS @{thm trimmed_neg_realI})
@@ -884,8 +884,8 @@ fun determine_trimmed_sgn ectxt exp =
     end
 
 fun mk_compare_expansions_const T =
-      Const (@{const_name compare_expansions}, 
-        T --> T --> @{typ "cmp_result \<times> real \<times> real"})
+      Const (\<^const_name>\<open>compare_expansions\<close>, 
+        T --> T --> \<^typ>\<open>cmp_result \<times> real \<times> real\<close>)
 
 datatype comparison_result =
   Cmp_Dominated of order * thm list * zeroness * trimmed_thm * expansion_thm * expansion_thm 
@@ -900,13 +900,13 @@ fun compare_expansions' _ (thm1, thm2, SEmpty) = Cmp_Asymp_Equiv (thm1, thm2)
       | IsNeg => @{thm lift_trimmed_neg}
       | _ => raise TERM ("Unexpected zeroness result in compare_expansions'", [])
     val (e1, e2) = apply2 (get_expansion #> get_exponent) (thm1, thm2)
-    val e = @{term "(-) :: real => _"} $ e1 $ e2
+    val e = \<^term>\<open>(-) :: real => _\<close> $ e1 $ e2
     fun trim thm = trim_expansion true (SOME Sgn_Trim) ectxt (thm, basis)
     val try_drop = Option.map (whnf_expansion ectxt #> #2) o try_drop_leading_term_ex false ectxt
     fun handle_result ord zeroness trimmed_thm thm1 thm2 =
       let
         val (e1, e2) = apply2 (get_expansion #> get_exponent) (thm1, thm2)
-        val e = @{term "(-) :: real => _"} $ e1 $ e2
+        val e = \<^term>\<open>(-) :: real => _\<close> $ e1 $ e2
         val mode = if ord = LESS then Neg_Trim else Pos_Trim
       in
         case zeroness_oracle true (SOME mode) ectxt e of
@@ -975,15 +975,15 @@ fun prove_compare_expansions ord [thm] = (
       @{thm compare_expansions_same_exp} OF [thm, prove_compare_expansions ord thms]
   | prove_compare_expansions _ [] = raise Match
 
-val ev_zero_pos_thm = Eventuallize.eventuallize @{context}
+val ev_zero_pos_thm = Eventuallize.eventuallize \<^context>
   @{lemma "\<forall>x::real. f x = 0 \<longrightarrow> g x > 0 \<longrightarrow> f x < g x" by auto} NONE
   OF @{thms _ expands_to_imp_eventually_pos}
 
-val ev_zero_neg_thm = Eventuallize.eventuallize @{context}
+val ev_zero_neg_thm = Eventuallize.eventuallize \<^context>
   @{lemma "\<forall>x::real. f x = 0 \<longrightarrow> g x < 0 \<longrightarrow> f x > g x" by auto} NONE
   OF @{thms _ expands_to_imp_eventually_neg}
 
-val ev_zero_zero_thm = Eventuallize.eventuallize @{context}
+val ev_zero_zero_thm = Eventuallize.eventuallize \<^context>
   @{lemma "\<forall>x::real. f x = 0 \<longrightarrow> g x = 0 \<longrightarrow> f x = g x" by auto} NONE
 
 fun compare_expansions_trivial ectxt (thm1, thm2, basis) =
@@ -1065,7 +1065,7 @@ fun raise_trimming_error ectxt thm =
   let
     val ctxt = get_ctxt ectxt
     fun lead_coeff exp =
-      if fastype_of exp = @{typ real} then exp else lead_coeff (get_coeff exp)
+      if fastype_of exp = \<^typ>\<open>real\<close> then exp else lead_coeff (get_coeff exp)
     val c = lead_coeff (get_expansion thm)
     fun err () =
       let
@@ -1108,7 +1108,7 @@ fun ln_expansion _ _ _ SEmpty = raise TERM ("ln_expansion: empty basis", [])
     val e = trailing_exponent (get_expansion thm) basis
     fun ln_expansion_aux trimmed_thm zero_thm thm basis =
       let
-        val t = betapply (@{term "\<lambda>(f::real \<Rightarrow> real) x. f x - 1 :: real"}, get_expanded_fun thm)
+        val t = betapply (\<^term>\<open>\<lambda>(f::real \<Rightarrow> real) x. f x - 1 :: real\<close>, get_expanded_fun thm)
       in
         case ev_zeroness_oracle ectxt t of
           NONE => ln_expansion_aux' trimmed_thm zero_thm thm basis
@@ -1132,7 +1132,7 @@ fun ln_expansion _ _ _ SEmpty = raise TERM ("ln_expansion: empty basis", [])
                 (IsZero, SOME thm) =>
                   @{thm expands_to_ln_to_expands_to_ln_eval [OF expands_to_ln_aux_0]} OF [thm,c_thm]
               | _ => 
-                case try_prove_real_eq false ectxt (e, @{term "1::real"}) of
+                case try_prove_real_eq false ectxt (e, \<^term>\<open>1::real\<close>) of
                   SOME thm => 
                     @{thm expands_to_ln_to_expands_to_ln_eval [OF expands_to_ln_aux_1]}
                       OF [thm, wf_thm, c_thm, ln_thm]
@@ -1197,7 +1197,7 @@ fun adjust_exp_basis basis basis' ln_smallo_thm =
 fun insert_exp _ _ _ _ _ SEmpty = raise TERM ("insert_exp", [])
   | insert_exp t ln_thm ln_smallo_thm ln_trimmed_thm lim_thm (SNE basis) =
       let
-        val head = Envir.beta_eta_contract (@{term "\<lambda>(f::real\<Rightarrow>real) x. exp (f x)"} $ t)
+        val head = Envir.beta_eta_contract (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. exp (f x)\<close> $ t)
         val ln_smallo_thm = ln_smallo_thm RS @{thm ln_smallo_ln_exp}
         val wf_thm = @{thm basis_wf_manyI} OF [lim_thm, ln_smallo_thm, get_basis_wf_thm' basis]
         val basis' = SNE (SCons ({wf_thm = wf_thm, head = head}, 
@@ -1224,7 +1224,7 @@ fun exp_expansion _ thm SEmpty = (thm RS @{thm expands_to_exp_real}, SEmpty)
             val ln =
               Option.map (fn x => (#ln_thm x, #trimmed_thm x)) (get_ln_info basis)
             val ln = Option.map (fn (x, y) => retrim_pos_expansion ectxt (x, basis, y)) ln
-            val es' = @{term "0::real"} :: (
+            val es' = \<^term>\<open>0::real\<close> :: (
               case ln of
                 NONE => []
               | SOME (ln_thm, _, _) => get_exponents (get_expansion ln_thm))
@@ -1257,7 +1257,7 @@ and exp_expansion' _ (thm, _, _) _ SEmpty = (thm RS @{thm expands_to_exp_real}, 
               @{thms expands_to_exp_insert_neg}
               |> map (fn thm' => thm' OF [thm, wf_thm, trimmed_thm, ln_smallo_thm])
             val ln_smallo_thm = ln_smallo_thm RS @{thm basis_wf_insert_exp_uminus}
-            val f' = Envir.beta_eta_contract (@{term "\<lambda>(f::real\<Rightarrow>real) x. -f x"} $ f)
+            val f' = Envir.beta_eta_contract (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. -f x\<close> $ f)
             val basis' = insert_exp f' ln_thm' ln_smallo_thm ln_trimmed_thm lim_thm basis
           in
             (thm', basis')
@@ -1335,7 +1335,7 @@ and exp_expansion' _ (thm, _, _) _ SEmpty = (thm RS @{thm expands_to_exp_real}, 
             | NONE => raise TERM ("TODO blargh", [])
           val c =
             case (thm, ln_thm) |> apply2 (get_expansion #> get_lead_coeff) of
-              (c1, c2) => @{term "(/) :: real => _"} $ c1 $ c2
+              (c1, c2) => \<^term>\<open>(/) :: real => _\<close> $ c1 $ c2
           val c = Thm.cterm_of (get_ctxt ectxt) c
           
           val thm' = 
@@ -1518,8 +1518,8 @@ fun check_expansion e thm =
     thm 
   else
 (* TODO Remove Debugging stuff *)
-let val _ = @{print} e
-val _ = @{print} (get_expanded_fun thm)
+let val _ = \<^print> e
+val _ = \<^print> (get_expanded_fun thm)
 in
     raise TERM ("check_expansion", [Thm.concl_of thm, expr_to_term e])
 end
@@ -1539,7 +1539,7 @@ val max_expansion =
 fun zero_expansion basis =
   @{thm expands_to_zero} OF [get_basis_wf_thm basis, mk_expansion_level_eq_thm basis]
 
-fun const_expansion _ basis @{term "0 :: real"} = zero_expansion basis
+fun const_expansion _ basis \<^term>\<open>0 :: real\<close> = zero_expansion basis
   | const_expansion ectxt basis t =
   let
     val ctxt = get_ctxt ectxt
@@ -1581,13 +1581,13 @@ fun root_expansion ectxt (thm, n, basis) =
           @{thm expands_to_root_neg} OF [nz_thm, trimmed_thm, get_basis_wf_thm basis, thm]
       | _ => raise TERM ("Unexpected zeroness result in root_expansion", [])
   in
-    case prove @{term "\<lambda>n::nat. n = 0"} of
+    case prove \<^term>\<open>\<lambda>n::nat. n = 0\<close> of
       SOME zero_thm =>
         @{thm expands_to_0th_root} OF
           [zero_thm, get_basis_wf_thm basis, mk_expansion_level_eq_thm basis, 
              Thm.reflexive (Thm.cterm_of ctxt (get_expanded_fun thm))]
     | NONE =>
-        case prove @{term "\<lambda>n::nat. n > 0"} of
+        case prove \<^term>\<open>\<lambda>n::nat. n > 0\<close> of
           NONE => err ()
         | SOME nz_thm =>
             case ev_zeroness_oracle ectxt (get_expanded_fun thm) of
@@ -1917,14 +1917,14 @@ datatype limit =
  | Finite_Limit of term
  | Infinite_Limit of bool option
 
-fun is_empty_expansion (Const (@{const_name MS}, _) $ Const (@{const_name MSLNil}, _) $ _) = true
+fun is_empty_expansion (Const (\<^const_name>\<open>MS\<close>, _) $ Const (\<^const_name>\<open>MSLNil\<close>, _) $ _) = true
   | is_empty_expansion _ = false
 
 fun limit_of_expansion_aux ectxt basis thm =
   let
     val n = length (get_basis_list basis)
     val (thm, res, e_thms) =
-      trim_expansion_while_greater false (SOME (replicate n @{term "0::real"})) true
+      trim_expansion_while_greater false (SOME (replicate n \<^term>\<open>0::real\<close>)) true
         (SOME Simple_Trim) ectxt (thm, basis)
     val trimmed_thm = case res of Trimmed (_, trimmed_thm) => trimmed_thm | _ => NONE
     val res = case res of Trimmed _ => GREATER | Aborted res => res
@@ -1934,7 +1934,7 @@ fun limit_of_expansion_aux ectxt basis thm =
     fun go thm _ _ [] = (
           case zeroness_oracle false (SOME Simple_Trim) ectxt (get_expansion thm) of
             (IsZero, _) => (Zero_Limit NONE, @{thm expands_to_real_imp_filterlim} OF [thm])
-          | _ => (Finite_Limit @{term "0::real"}, @{thm expands_to_real_imp_filterlim} OF [thm]))
+          | _ => (Finite_Limit \<^term>\<open>0::real\<close>, @{thm expands_to_real_imp_filterlim} OF [thm]))
       | go thm _ basis ((IsNeg, neg_thm) :: _) = (Zero_Limit NONE,
           @{thm expands_to_neg_exponent_imp_filterlim} OF
             [thm, get_basis_wf_thm basis, neg_thm RS @{thm compare_reals_diff_sgnD(1)}])
@@ -2010,7 +2010,7 @@ fun prove_at_infinity ectxt (thm, basis) =
     fun err () = raise TERM ("prove_at_infinity", [get_expanded_fun thm])
     val (thm, _, SOME trimmed_thm) = trim_expansion true (SOME Simple_Trim) ectxt (thm, basis)
     fun go basis thm trimmed_thm =
-      if fastype_of (get_expansion thm) = @{typ "real"} then
+      if fastype_of (get_expansion thm) = \<^typ>\<open>real\<close> then
         err ()
       else
         case zeroness_oracle true (SOME Pos_Trim) ectxt (get_exponent (get_expansion thm)) of
@@ -2035,7 +2035,7 @@ fun prove_at_top_at_bot mode ectxt (thm, basis) =
     val trimmed_thm' = trimmed_thm RS
       (if mode = Pos_Trim then @{thm trimmed_pos_imp_trimmed} else @{thm trimmed_neg_imp_trimmed})
     fun go basis thm trimmed_thm =
-      if fastype_of (get_expansion thm) = @{typ "real"} then
+      if fastype_of (get_expansion thm) = \<^typ>\<open>real\<close> then
         err ()
       else
         case zeroness_oracle true (SOME Pos_Trim) ectxt (get_exponent (get_expansion thm)) of
@@ -2077,7 +2077,7 @@ fun prove_at_aux mode ectxt (thm, basis) =
     fun err () = raise TERM (s, [get_expanded_fun thm])
     val (thm, _, SOME trimmed_thm) = trim_expansion true (SOME mode) ectxt (thm, basis)
     fun go basis thm =
-      if fastype_of (get_expansion thm) = @{typ "real"} then
+      if fastype_of (get_expansion thm) = \<^typ>\<open>real\<close> then
         err ()
       else
         case zeroness_oracle true (SOME Neg_Trim) ectxt (get_exponent (get_expansion thm)) of
@@ -2103,7 +2103,7 @@ fun prove_nhds ectxt (thm, basis) =
   let
     fun simplify (a, b, c) = (a, simplify_expansion ectxt b, c)
     fun go thm basis =
-      if fastype_of (get_expansion thm) = @{typ "real"} then
+      if fastype_of (get_expansion thm) = \<^typ>\<open>real\<close> then
         @{thm expands_to_real_imp_filterlim} OF [thm]
       else
         case whnf_expansion ectxt thm |> simplify of
@@ -2129,8 +2129,8 @@ fun prove_equivalent theta ectxt (thm1, thm2, basis) =
   let
     val ((thm1, _, SOME trimmed_thm1), (thm2, _, SOME trimmed_thm2)) =
       apply2 (trim_expansion true (SOME Simple_Trim) ectxt) ((thm1, basis), (thm2, basis))
-    val pat = ConsPat (@{const_name Pair}, [ConsPat (@{const_name Lazy_Eval.cmp_result.EQ}, []), 
-                ConsPat (@{const_name Pair}, [AnyPat ("_", 0), AnyPat ("_", 0)])])
+    val pat = ConsPat (\<^const_name>\<open>Pair\<close>, [ConsPat (\<^const_name>\<open>Lazy_Eval.cmp_result.EQ\<close>, []), 
+                ConsPat (\<^const_name>\<open>Pair\<close>, [AnyPat ("_", 0), AnyPat ("_", 0)])])
     val (exp1, exp2) = apply2 get_expansion (thm1, thm2)
     val T = fastype_of exp1
     val t = mk_compare_expansions_const T $ exp1 $ exp2
@@ -2157,7 +2157,7 @@ val prove_asymp_equiv = prove_equivalent false
 fun print_trimming_error s ectxt exp =
   let
     val c = get_coeff exp
-    val t = if fastype_of c = @{typ real} then c else get_eval c
+    val t = if fastype_of c = \<^typ>\<open>real\<close> then c else get_eval c
   in
     if #verbose (#ctxt ectxt) then
       let
@@ -2233,18 +2233,18 @@ fun prove_eventually_nonzero ectxt (thm, basis) =
 fun extract_terms (n, strict) ectxt basis t =
   let
     val bs = get_basis_list basis
-    fun mk_constfun c = (Abs ("x", @{typ real}, c))
-    val const_0 = mk_constfun @{term "0 :: real"}
-    val const_1 = mk_constfun @{term "1 :: real"}
-    fun uminus t = Term.betapply (@{term "\<lambda>(f::real\<Rightarrow>real) x. -f x"}, t)
+    fun mk_constfun c = (Abs ("x", \<^typ>\<open>real\<close>, c))
+    val const_0 = mk_constfun \<^term>\<open>0 :: real\<close>
+    val const_1 = mk_constfun \<^term>\<open>1 :: real\<close>
+    fun uminus t = Term.betapply (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. -f x\<close>, t)
     fun betapply2 a b c = Term.betapply (Term.betapply (a, b), c)
 
     fun mk_sum' [] acc = acc
       | mk_sum' ((t, sgn) :: ts) acc = mk_sum' ts (
           if sgn then
-            betapply2 @{term "%(f::real=>real) g x. f x - g x"} acc t
+            betapply2 \<^term>\<open>%(f::real=>real) g x. f x - g x\<close> acc t
           else
-            betapply2 @{term "%(f::real=>real) g x. f x + g x"} acc t)
+            betapply2 \<^term>\<open>%(f::real=>real) g x. f x + g x\<close> acc t)
     fun mk_sum [] = const_0
       | mk_sum ((t, sgn) :: ts) = mk_sum' ts (if sgn then uminus t else t) 
 
@@ -2253,41 +2253,41 @@ fun extract_terms (n, strict) ectxt basis t =
         const_0
       else if b aconv const_0 then
         const_0
-      else if a aconv @{term "\<lambda>_::real. 1 :: real"} then
+      else if a aconv \<^term>\<open>\<lambda>_::real. 1 :: real\<close> then
         b
-      else if b aconv @{term "\<lambda>_::real. 1 :: real"} then
+      else if b aconv \<^term>\<open>\<lambda>_::real. 1 :: real\<close> then
         a
-      else if a aconv @{term "\<lambda>_::real. -1 :: real"} then
-        Term.betapply (@{term "\<lambda>(f::real\<Rightarrow>real) x. -f x"}, b)
-      else if b aconv @{term "\<lambda>_::real. -1 :: real"} then
-        Term.betapply (@{term "\<lambda>(f::real\<Rightarrow>real) x. -f x"}, a)
+      else if a aconv \<^term>\<open>\<lambda>_::real. -1 :: real\<close> then
+        Term.betapply (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. -f x\<close>, b)
+      else if b aconv \<^term>\<open>\<lambda>_::real. -1 :: real\<close> then
+        Term.betapply (\<^term>\<open>\<lambda>(f::real\<Rightarrow>real) x. -f x\<close>, a)
       else
-        Abs ("x", @{typ real}, @{term "(*) :: real => _"} $
+        Abs ("x", \<^typ>\<open>real\<close>, \<^term>\<open>(*) :: real => _\<close> $
           (Term.betapply (a, Bound 0)) $ (Term.betapply (b, Bound 0)))
 
     fun mk_powr b e =
-      if e = @{term "0 :: real"} then
+      if e = \<^term>\<open>0 :: real\<close> then
         const_1
       else
         let
           val n = HOLogic.dest_number e |> snd
         in
           if n >= 0 then
-            Term.betapply (Term.betapply (@{term "%(b::real=>real) e x. b x ^ e"}, b),
-              HOLogic.mk_number @{typ nat} n)
+            Term.betapply (Term.betapply (\<^term>\<open>%(b::real=>real) e x. b x ^ e\<close>, b),
+              HOLogic.mk_number \<^typ>\<open>nat\<close> n)
           else
-            Term.betapply (Term.betapply (@{term "%(b::real=>real) e x. b x powr e"}, b), e)
+            Term.betapply (Term.betapply (\<^term>\<open>%(b::real=>real) e x. b x powr e\<close>, b), e)
         end
       handle TERM _ =>
-        Term.betapply (Term.betapply (@{term "%(b::real=>real) e x. b x powr e"}, b), e)
+        Term.betapply (Term.betapply (\<^term>\<open>%(b::real=>real) e x. b x powr e\<close>, b), e)
 
     fun mk_scale_elem b e acc =
       let
         val e = simplify_term ectxt e
       in
-        if e = @{term "0 :: real"} then
+        if e = \<^term>\<open>0 :: real\<close> then
           acc
-        else if e = @{term "1 :: real"} then
+        else if e = \<^term>\<open>1 :: real\<close> then
           mk_mult acc b
         else
           mk_mult acc (mk_powr b e)
@@ -2300,10 +2300,10 @@ fun extract_terms (n, strict) ectxt basis t =
 
     fun mk_summand c es =
       let
-        val es = mk_scale_elems bs es @{term "\<lambda>_::real. 1 :: real"}
+        val es = mk_scale_elems bs es \<^term>\<open>\<lambda>_::real. 1 :: real\<close>
       in
         case c of
-          Const (@{const_name uminus}, _) $ c => ((c, true), es)
+          Const (\<^const_name>\<open>uminus\<close>, _) $ c => ((c, true), es)
         | _ => ((c, false), es)
       end
 
@@ -2312,21 +2312,21 @@ fun extract_terms (n, strict) ectxt basis t =
           let
             val c = simplify_term ectxt t
           in
-            if strict andalso c = @{term "0 :: real"} then
+            if strict andalso c = \<^term>\<open>0 :: real\<close> then
               (acc, n)
             else
               (mk_summand c (rev es) :: acc, n - 1)
           end
       | go m es t acc n =
           case Lazy_Eval.whnf ectxt t |> fst of
-            Const (@{const_name MS}, _) $ cs $ _ =>
+            Const (\<^const_name>\<open>MS\<close>, _) $ cs $ _ =>
               go' m es (simplify_term ectxt cs) acc n
           | _ => raise TERM("extract_terms", [t])
     and go' _ _ _ acc 0 = (acc, 0)
       | go' m es cs acc n =
           case Lazy_Eval.whnf ectxt cs |> fst of
-            Const (@{const_name MSLNil}, _) => (acc, n)
-          | Const (@{const_name MSLCons}, _) $ c $ cs => (
+            Const (\<^const_name>\<open>MSLNil\<close>, _) => (acc, n)
+          | Const (\<^const_name>\<open>MSLCons\<close>, _) $ c $ cs => (
               case Lazy_Eval.whnf ectxt c |> fst |> HOLogic.dest_prod of
                 (c, e) =>
                   case go (m - 1) (e :: es) c acc n of
@@ -2336,7 +2336,7 @@ fun extract_terms (n, strict) ectxt basis t =
     val (summands, error) =
       if remaining = 0 then (rev (tl summands), SOME (snd (hd summands))) else (rev summands, NONE)
     val summands = map (fn ((c, sgn), es) => (mk_mult (mk_constfun c) es, sgn)) summands
-    val error = Option.map (fn err => Term.betapply (@{term "\<lambda>f::real\<Rightarrow>real. O(f)"}, err)) error
+    val error = Option.map (fn err => Term.betapply (\<^term>\<open>\<lambda>f::real\<Rightarrow>real. O(f)\<close>, err)) error
     val expansion = mk_sum summands 
   in
     (expansion, error)

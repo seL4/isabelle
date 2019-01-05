@@ -9,7 +9,7 @@ begin
 
 section \<open>The Ring of Integers\<close>
 
-subsection \<open>Some properties of @{typ int}\<close>
+subsection \<open>Some properties of \<^typ>\<open>int\<close>\<close>
 
 lemma dvds_eq_abseq:
   fixes k :: int
@@ -146,7 +146,7 @@ proof -
 qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
 
 
-text \<open>Removal of occurrences of @{term UNIV} in interpretation result
+text \<open>Removal of occurrences of \<^term>\<open>UNIV\<close> in interpretation result
   --- experimental.\<close>
 
 lemma UNIV:

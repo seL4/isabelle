@@ -127,7 +127,7 @@ lemmas OR2_parts_knows_Spy =
   some reason proofs work without them!*)
 
 
-text\<open>Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (spies evs)\<close> imply that
 NOBODY sends messages containing X!\<close>
 
 text\<open>Spy never sees a good agent's shared key!\<close>
@@ -146,7 +146,7 @@ lemma Spy_see_shrK_D [dest!]:
 by (blast dest: Spy_see_shrK)
 
 
-subsection\<open>Towards Secrecy: Proofs Involving @{term analz}\<close>
+subsection\<open>Towards Secrecy: Proofs Involving \<^term>\<open>analz\<close>\<close>
 
 (*Describes the form of K and NA when the Server sends this message.  Also
   for Oops case.*)
@@ -287,7 +287,7 @@ by (blast intro!: NA_Crypt_imp_Server_msg)
 
 text\<open>Crucial secrecy property: Spy does not see the keys sent in msg OR3
     Does not in itself guarantee security: an attack could violate
-    the premises, e.g. by having @{term "A=Spy"}\<close>
+    the premises, e.g. by having \<^term>\<open>A=Spy\<close>\<close>
 lemma secrecy_lemma:
  "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> otway\<rbrakk>
   \<Longrightarrow> Says Server B
@@ -319,11 +319,11 @@ by (blast dest: Says_Server_message_form secrecy_lemma)
 
 text\<open>This form is an immediate consequence of the previous result.  It is 
 similar to the assertions established by other methods.  It is equivalent
-to the previous result in that the Spy already has @{term analz} and
-@{term synth} at his disposal.  However, the conclusion 
-@{term "Key K \<notin> knows Spy evs"} appears not to be inductive: all the cases
+to the previous result in that the Spy already has \<^term>\<open>analz\<close> and
+\<^term>\<open>synth\<close> at his disposal.  However, the conclusion 
+\<^term>\<open>Key K \<notin> knows Spy evs\<close> appears not to be inductive: all the cases
 other than Fake are trivial, while Fake requires 
-@{term "Key K \<notin> analz (knows Spy evs)"}.\<close>
+\<^term>\<open>Key K \<notin> analz (knows Spy evs)\<close>.\<close>
 lemma Spy_not_know_encrypted_key:
      "\<lbrakk>Says Server B
           \<lbrace>NA, Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,

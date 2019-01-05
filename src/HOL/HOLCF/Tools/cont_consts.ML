@@ -29,7 +29,7 @@ fun trans_rules name2 name1 n mx =
     [Syntax.Parse_Print_Rule
       (Ast.mk_appl (Ast.Constant name2) (map Ast.Variable vnames),
         fold (fn a => fn t =>
-            Ast.mk_appl (Ast.Constant @{const_syntax Rep_cfun}) [t, Ast.Variable a])
+            Ast.mk_appl (Ast.Constant \<^const_syntax>\<open>Rep_cfun\<close>) [t, Ast.Variable a])
           vnames (Ast.Constant name1))] @
     (case mx of
       Infix _ => [extra_parse_rule]
@@ -57,7 +57,7 @@ fun transform thy (c, T, mx) =
       trans_rules (syntax c2) (syntax c1) n mx)
   end
 
-fun cfun_arity (Type (n, [_, T])) = if n = @{type_name cfun} then 1 + cfun_arity T else 0
+fun cfun_arity (Type (n, [_, T])) = if n = \<^type_name>\<open>cfun\<close> then 1 + cfun_arity T else 0
   | cfun_arity _ = 0
 
 fun is_contconst (_, _, NoSyn) = false

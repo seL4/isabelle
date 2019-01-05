@@ -59,7 +59,7 @@ definition
  DO ( N 2 ::= Plus (!(N 2)) (!(!(N 0)));
       N 0 ::= Plus (!(N 0)) (N 1) )"
 
-text \<open>To show the first n variables in a @{typ "nat \<Rightarrow> nat"} state:\<close>
+text \<open>To show the first n variables in a \<^typ>\<open>nat \<Rightarrow> nat\<close> state:\<close>
 definition 
   "list t n = map t [0 ..< n]"
 

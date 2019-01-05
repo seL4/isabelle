@@ -20,8 +20,8 @@ definition "required_symbols _ = (primes_upto, 0 :: nat, Suc, 1 :: nat,
 
 ML \<open>
 local
-  val ctxt = @{context};
-  val consts = [@{const_name required_symbols}];
+  val ctxt = \<^context>;
+  val consts = [\<^const_name>\<open>required_symbols\<close>];
 in
   val simp = Code_Simp.static_conv
     { ctxt = ctxt, consts = consts, simpset = NONE };
@@ -31,23 +31,23 @@ end;
 \<close>
 
 ML_val \<open>
-  simp @{context} @{cterm "primes_upto 100"}
+  simp \<^context> \<^cterm>\<open>primes_upto 100\<close>
 \<close>
 
 ML_val \<open>
-  simp @{context} @{cterm "primes_upto 200"}
+  simp \<^context> \<^cterm>\<open>primes_upto 200\<close>
 \<close>
 
 ML_val \<open>
-  nbe @{context} @{cterm "primes_upto 200"}
+  nbe \<^context> \<^cterm>\<open>primes_upto 200\<close>
 \<close>
 
 ML_val \<open>
-  nbe @{context} @{cterm "primes_upto 400"}
+  nbe \<^context> \<^cterm>\<open>primes_upto 400\<close>
 \<close>
 
 ML_val \<open>
-  nbe @{context} @{cterm "primes_upto 600"}
+  nbe \<^context> \<^cterm>\<open>primes_upto 600\<close>
 \<close>
 
 end

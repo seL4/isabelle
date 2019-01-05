@@ -63,11 +63,11 @@ fun read_tptp_file thy postproc file_name =
 
 (** Nitpick **)
 
-fun aptrueprop f ((t0 as @{const Trueprop}) $ t1) = t0 $ f t1
+fun aptrueprop f ((t0 as \<^const>\<open>Trueprop\<close>) $ t1) = t0 $ f t1
   | aptrueprop f t = f t
 
-fun is_legitimate_tptp_def (@{const Trueprop} $ t) = is_legitimate_tptp_def t
-  | is_legitimate_tptp_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+fun is_legitimate_tptp_def (\<^const>\<open>Trueprop\<close> $ t) = is_legitimate_tptp_def t
+  | is_legitimate_tptp_def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
     (is_Const t orelse is_Free t) andalso not (exists_subterm (curry (op =) t) u)
   | is_legitimate_tptp_def _ = false
 
@@ -102,7 +102,7 @@ fun nitpick_tptp_file thy timeout file_name =
     val subst = []
   in
     Nitpick.pick_nits_in_term state params Nitpick.TPTP i n step subst defs nondefs
-      (case conjs of conj :: _ => conj | [] => @{prop True});
+      (case conjs of conj :: _ => conj | [] => \<^prop>\<open>True\<close>);
     ()
   end
 
@@ -124,7 +124,7 @@ fun refute_tptp_file thy timeout file_name =
        ("maxvars", "100000")]
   in
     Refute.refute_term ctxt params (defs @ nondefs)
-      (case conjs of conj :: _ => conj | [] => @{prop True})
+      (case conjs of conj :: _ => conj | [] => \<^prop>\<open>True\<close>)
     |> print_szs_of_outcome (not (null conjs))
   end
 
@@ -148,9 +148,9 @@ fun SOLVE_TIMEOUT seconds name tac st =
 
 fun nitpick_finite_oracle_tac ctxt timeout i th =
   let
-    fun is_safe (Type (@{type_name fun}, Ts)) = forall is_safe Ts
-      | is_safe @{typ prop} = true
-      | is_safe @{typ bool} = true
+    fun is_safe (Type (\<^type_name>\<open>fun\<close>, Ts)) = forall is_safe Ts
+      | is_safe \<^typ>\<open>prop\<close> = true
+      | is_safe \<^typ>\<open>bool\<close> = true
       | is_safe _ = false
 
     val conj = Thm.term_of (Thm.cprem_of th i)
@@ -187,7 +187,7 @@ fun atp_tac ctxt completeness override_params timeout assms prover =
     val assm_ths0 = map (Skip_Proof.make_thm thy) assms
     val ((assm_name, _), ctxt) = ctxt
       |> Config.put Sledgehammer_Prover_ATP.atp_completish (if completeness > 0 then 3 else 0)
-      |> Local_Theory.note ((@{binding thms}, []), assm_ths0)
+      |> Local_Theory.note ((\<^binding>\<open>thms\<close>, []), assm_ths0)
 
     fun ref_of th = (Facts.named (Thm.derivation_name th), [])
     val ref_of_assms = (Facts.named assm_name, [])
@@ -260,7 +260,7 @@ fun freeze_problem_consts thy =
   end
 
 fun make_conj (defs, nondefs) conjs =
-  Logic.list_implies (rev defs @ rev nondefs, case conjs of conj :: _ => conj | [] => @{prop False})
+  Logic.list_implies (rev defs @ rev nondefs, case conjs of conj :: _ => conj | [] => \<^prop>\<open>False\<close>)
 
 fun print_szs_of_success conjs success =
   writeln ("% SZS status " ^

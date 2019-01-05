@@ -17,14 +17,14 @@ number of bits to calculate. In the proposition to prove an arbitrary amount of
 variables can be used, but each one need to be bounded by an upper and lower
 bound.
 
-To specify the bounds either @{term "l\<^sub>1 \<le> x \<and> x \<le> u\<^sub>1"},
-@{term "x \<in> { l\<^sub>1 .. u\<^sub>1 }"} or @{term "x = bnd"} can be used. Where the
+To specify the bounds either \<^term>\<open>l\<^sub>1 \<le> x \<and> x \<le> u\<^sub>1\<close>,
+\<^term>\<open>x \<in> { l\<^sub>1 .. u\<^sub>1 }\<close> or \<^term>\<open>x = bnd\<close> can be used. Where the
 bound specification are again arithmetic formulas containing variables. They can
 be connected using either meta level or HOL equivalence.
 
 To use interval splitting add for each variable whos interval should be splitted
 to the "splitting:" parameter. The parameter specifies how often each interval
-should be divided, e.g. when x = 16 is specified, there will be @{term "65536 = 2^16"}
+should be divided, e.g. when x = 16 is specified, there will be \<^term>\<open>65536 = 2^16\<close>
 intervals to be calculated.
 
 To use taylor series expansion specify the variable to derive. You need to

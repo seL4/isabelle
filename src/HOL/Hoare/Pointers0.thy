@@ -263,7 +263,7 @@ subsection "Searching in a list"
 text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
 
-We start with a proof based on the @{term List} predicate. This means it only
+We start with a proof based on the \<^term>\<open>List\<close> predicate. This means it only
 works for acyclic lists.\<close>
 
 lemma "VARS tl p
@@ -281,7 +281,7 @@ apply vcg_simp
 apply clarsimp
 done
 
-text\<open>Using @{term Path} instead of @{term List} generalizes the correctness
+text\<open>Using \<^term>\<open>Path\<close> instead of \<^term>\<open>List\<close> generalizes the correctness
 statement to cyclic lists as well:\<close>
 
 lemma "VARS tl p

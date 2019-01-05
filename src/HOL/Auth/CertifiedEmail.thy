@@ -55,8 +55,8 @@ inductive_set certified_mail :: "event list set"
                  Number cleartext, Nonce q, S2TTP\<rbrace> # evs1 
         \<in> certified_mail"
 
-| CM2: \<comment> \<open>The recipient records @{term S2TTP} while transmitting it and her
-     password to @{term TTP} over an SSL channel.\<close>
+| CM2: \<comment> \<open>The recipient records \<^term>\<open>S2TTP\<close> while transmitting it and her
+     password to \<^term>\<open>TTP\<close> over an SSL channel.\<close>
  "[|evs2 \<in> certified_mail;
     Gets R \<lbrace>Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
              Nonce q, S2TTP\<rbrace> \<in> set evs2;
@@ -66,10 +66,10 @@ inductive_set certified_mail :: "event list set"
    Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, Key(RPwd R), hr\<rbrace> # evs2
       \<in> certified_mail"
 
-| CM3: \<comment> \<open>@{term TTP} simultaneously reveals the key to the recipient and gives
+| CM3: \<comment> \<open>\<^term>\<open>TTP\<close> simultaneously reveals the key to the recipient and gives
          a receipt to the sender.  The SSL channel does not authenticate 
-         the client (@{term R}), but @{term TTP} accepts the message only 
-         if the given password is that of the claimed sender, @{term R}.
+         the client (\<^term>\<open>R\<close>), but \<^term>\<open>TTP\<close> accepts the message only 
+         if the given password is that of the claimed sender, \<^term>\<open>R\<close>.
          He replies over the established SSL channel.\<close>
  "[|evs3 \<in> certified_mail;
     Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, Key(RPwd R), hr\<rbrace> \<in> set evs3;
@@ -137,9 +137,9 @@ apply (erule certified_mail.induct)
 apply (synth_analz_mono_contra, simp_all, blast+)
 done 
 
-text\<open>Cannot strengthen the first disjunct to @{term "R\<noteq>Spy"} because
+text\<open>Cannot strengthen the first disjunct to \<^term>\<open>R\<noteq>Spy\<close> because
 the fakessl rule allows Spy to spoof the sender's name.  Maybe can
-strengthen the second disjunct with @{term "R\<noteq>Spy"}.\<close>
+strengthen the second disjunct with \<^term>\<open>R\<noteq>Spy\<close>.\<close>
 lemma hr_form:
  "[|Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, pwd, hr\<rbrace> \<in> set evs;
     evs \<in> certified_mail|]
@@ -177,8 +177,8 @@ lemma Spy_dont_know_TTPKey_analz [simp]:
      "evs \<in> certified_mail ==> Key (privateKey b TTP) \<notin> analz(spies evs)"
 by auto
 
-text\<open>Thus, prove any goal that assumes that @{term Spy} knows a private key
-belonging to @{term TTP}\<close>
+text\<open>Thus, prove any goal that assumes that \<^term>\<open>Spy\<close> knows a private key
+belonging to \<^term>\<open>TTP\<close>\<close>
 declare Spy_dont_know_TTPKey_parts [THEN [2] rev_notE, elim!]
 
 
@@ -269,8 +269,8 @@ lemma analz_insert_freshK:
       (K = KAB | Key K \<in> analz (spies evs))"
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 
-text\<open>@{term S2TTP} must have originated from a valid sender
-    provided @{term K} is secure.  Proof is surprisingly hard.\<close>
+text\<open>\<^term>\<open>S2TTP\<close> must have originated from a valid sender
+    provided \<^term>\<open>K\<close> is secure.  Proof is surprisingly hard.\<close>
 
 lemma Notes_SSL_imp_used:
      "[|Notes B \<lbrace>Agent A, Agent B, X\<rbrace> \<in> set evs|] ==> X \<in> used evs"
@@ -340,9 +340,9 @@ apply (force dest!: keysFor_parts_insert)
 done
 
 
-text\<open>Less easy to prove @{term "m'=m"}.  Maybe needs a separate unicity
-theorem for ciphertexts of the form @{term "Crypt K (Number m)"}, 
-where @{term K} is secure.\<close>
+text\<open>Less easy to prove \<^term>\<open>m'=m\<close>.  Maybe needs a separate unicity
+theorem for ciphertexts of the form \<^term>\<open>Crypt K (Number m)\<close>, 
+where \<^term>\<open>K\<close> is secure.\<close>
 lemma Key_unique_lemma [rule_format]:
      "evs \<in> certified_mail ==>
        Key K \<notin> analz (spies evs) \<longrightarrow>
@@ -387,7 +387,7 @@ by (rule Key_unique_lemma, assumption+)
 subsection\<open>The Guarantees for Sender and Recipient\<close>
 
 text\<open>A Sender's guarantee:
-      If Spy gets the key then @{term R} is bad and @{term S} moreover
+      If Spy gets the key then \<^term>\<open>R\<close> is bad and \<^term>\<open>S\<close> moreover
       gets his return receipt (and therefore has no grounds for complaint).\<close>
 theorem S_fairness_bad_R:
       "[|Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO, 
@@ -427,8 +427,8 @@ theorem Spy_not_see_encrypted_key:
 by (blast dest: S_fairness_bad_R) 
 
 
-text\<open>Agent @{term R}, who may be the Spy, doesn't receive the key
- until @{term S} has access to the return receipt.\<close> 
+text\<open>Agent \<^term>\<open>R\<close>, who may be the Spy, doesn't receive the key
+ until \<^term>\<open>S\<close> has access to the return receipt.\<close> 
 theorem S_guarantee:
      "[|Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO, 
                     Number cleartext, Nonce q, S2TTP\<rbrace> \<in> set evs;
@@ -447,9 +447,9 @@ apply (blast dest: Notes_SSL_imp_used S2TTP_sender Key_unique S_fairness_bad_R)
 done
 
 
-text\<open>If @{term R} sends message 2, and a delivery certificate exists, 
- then @{term R} receives the necessary key.  This result is also important
- to @{term S}, as it confirms the validity of the return receipt.\<close>
+text\<open>If \<^term>\<open>R\<close> sends message 2, and a delivery certificate exists, 
+ then \<^term>\<open>R\<close> receives the necessary key.  This result is also important
+ to \<^term>\<open>S\<close>, as it confirms the validity of the return receipt.\<close>
 theorem RR_validity:
   "[|Crypt (priSK TTP) S2TTP \<in> used evs;
      S2TTP = Crypt (pubEK TTP)

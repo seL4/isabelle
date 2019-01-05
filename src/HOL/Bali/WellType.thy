@@ -305,10 +305,10 @@ where
 
 | Init: "\<lbrakk>is_class (prg E) C\<rbrakk> \<Longrightarrow>
                                          E,dt\<Turnstile>Init C\<Colon>\<surd>"
-  \<comment> \<open>@{term Init} is created on the fly during evaluation (see Eval.thy). 
-     The class isn't necessarily accessible from the points @{term Init} 
-     is called. Therefor we only demand @{term is_class} and not 
-     @{term is_acc_class} here.\<close>
+  \<comment> \<open>\<^term>\<open>Init\<close> is created on the fly during evaluation (see Eval.thy). 
+     The class isn't necessarily accessible from the points \<^term>\<open>Init\<close> 
+     is called. Therefor we only demand \<^term>\<open>is_class\<close> and not 
+     \<^term>\<open>is_acc_class\<close> here.\<close>
 
 \<comment> \<open>well-typed expressions\<close>
 
@@ -376,12 +376,12 @@ where
           methd (prg E) C sig = Some m;
           E,dt\<Turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-T\<rbrakk> \<Longrightarrow>
                                          E,dt\<Turnstile>Methd C sig\<Colon>-T"
- \<comment> \<open>The class @{term C} is the dynamic class of the method call 
+ \<comment> \<open>The class \<^term>\<open>C\<close> is the dynamic class of the method call 
     (cf. Eval.thy). 
     It hasn't got to be directly accessible from the current package 
-    @{term "(pkg E)"}. 
+    \<^term>\<open>(pkg E)\<close>. 
     Only the static class must be accessible (enshured indirectly by 
-    @{term Call}). 
+    \<^term>\<open>Call\<close>). 
     Note that l is just a dummy value. It is only used in the smallstep 
     semantics. To proof typesafety directly for the smallstep semantics 
     we would have to assume conformance of l here!\<close>
@@ -391,12 +391,12 @@ where
           (lcl E) Result = Some T;
           is_type (prg E) T\<rbrakk> \<Longrightarrow>
                                          E,dt\<Turnstile>Body D blk\<Colon>-T"
-\<comment> \<open>The class @{term D} implementing the method must not directly be 
-     accessible  from the current package @{term "(pkg E)"}, but can also 
-     be indirectly accessible due to inheritance (enshured in @{term Call})
+\<comment> \<open>The class \<^term>\<open>D\<close> implementing the method must not directly be 
+     accessible  from the current package \<^term>\<open>(pkg E)\<close>, but can also 
+     be indirectly accessible due to inheritance (enshured in \<^term>\<open>Call\<close>)
     The result type hasn't got to be accessible in Java! (If it is not 
     accessible you can only assign it to Object).
-    For dummy value l see rule @{term Methd}.\<close>
+    For dummy value l see rule \<^term>\<open>Methd\<close>.\<close>
 
 \<comment> \<open>well-typed variables\<close>
 
@@ -587,8 +587,8 @@ done
 
 \<comment> \<open>In the special syntax to distinguish the typing judgements for expressions, 
      statements, variables and expression lists the kind of term corresponds
-     to the kind of type in the end e.g. An statement (injection @{term In3} 
-    into terms, always has type void (injection @{term Inl} into the generalised
+     to the kind of type in the end e.g. An statement (injection \<^term>\<open>In3\<close> 
+    into terms, always has type void (injection \<^term>\<open>Inl\<close> into the generalised
     types. The following simplification procedures establish these kinds of
     correlation.\<close>
 
@@ -656,12 +656,12 @@ apply (safe del: disjE)
 (* 17 subgoals *)
 apply (tactic \<open>ALLGOALS (fn i =>
   if i = 11 then EVERY'
-   [Rule_Insts.thin_tac @{context} "E,dt\<Turnstile>e0\<Colon>-PrimT Boolean" [(@{binding E}, NONE, NoSyn)],
-    Rule_Insts.thin_tac @{context} "E,dt\<Turnstile>e1\<Colon>-T1" [(@{binding E}, NONE, NoSyn), (@{binding T1}, NONE, NoSyn)],
-    Rule_Insts.thin_tac @{context} "E,dt\<Turnstile>e2\<Colon>-T2" [(@{binding E}, NONE, NoSyn), (@{binding T2}, NONE, NoSyn)]] i
-  else Rule_Insts.thin_tac @{context} "All P" [(@{binding P}, NONE, NoSyn)] i)\<close>)
+   [Rule_Insts.thin_tac \<^context> "E,dt\<Turnstile>e0\<Colon>-PrimT Boolean" [(\<^binding>\<open>E\<close>, NONE, NoSyn)],
+    Rule_Insts.thin_tac \<^context> "E,dt\<Turnstile>e1\<Colon>-T1" [(\<^binding>\<open>E\<close>, NONE, NoSyn), (\<^binding>\<open>T1\<close>, NONE, NoSyn)],
+    Rule_Insts.thin_tac \<^context> "E,dt\<Turnstile>e2\<Colon>-T2" [(\<^binding>\<open>E\<close>, NONE, NoSyn), (\<^binding>\<open>T2\<close>, NONE, NoSyn)]] i
+  else Rule_Insts.thin_tac \<^context> "All P" [(\<^binding>\<open>P\<close>, NONE, NoSyn)] i)\<close>)
 (*apply (safe del: disjE elim!: wt_elim_cases)*)
-apply (tactic \<open>ALLGOALS (eresolve_tac @{context} @{thms wt_elim_cases})\<close>)
+apply (tactic \<open>ALLGOALS (eresolve_tac \<^context> @{thms wt_elim_cases})\<close>)
 apply (simp_all (no_asm_use) split del: if_split_asm)
 apply (erule_tac [12] V = "All P" for P in thin_rl) (* Call *)
 apply (blast del: equalityCE dest: sym [THEN trans])+

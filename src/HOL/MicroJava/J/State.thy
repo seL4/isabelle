@@ -154,7 +154,7 @@ done
 lemma c_hupd_fst [simp]: "fst (c_hupd h (x, s)) = x"
 by (simp add: c_hupd_def split_beta)
 
-text \<open>Naive implementation for @{term "new_Addr"} by exhaustive search\<close>
+text \<open>Naive implementation for \<^term>\<open>new_Addr\<close> by exhaustive search\<close>
 
 definition gen_new_Addr :: "aheap => nat \<Rightarrow> loc \<times> val option" where
   "gen_new_Addr h n \<equiv> 

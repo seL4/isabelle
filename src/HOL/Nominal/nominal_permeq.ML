@@ -93,15 +93,15 @@ fun perm_simproc_app' ctxt ct =
     (* constant or when (f x) is a permuation with two or more arguments     *)
     fun applicable_app t =
           (case (strip_comb t) of
-              (Const (@{const_name Nominal.perm},_),ts) => (length ts) >= 2
+              (Const (\<^const_name>\<open>Nominal.perm\<close>,_),ts) => (length ts) >= 2
             | (Const _,_) => false
             | _ => true)
   in
     case redex of
         (* case pi o (f x) == (pi o f) (pi o x)          *)
-        (Const(@{const_name Nominal.perm},
-          Type(@{type_name fun},
-            [Type(@{type_name list}, [Type(@{type_name prod},[Type(n,_),_])]),_])) $ pi $ (f $ x)) =>
+        (Const(\<^const_name>\<open>Nominal.perm\<close>,
+          Type(\<^type_name>\<open>fun\<close>,
+            [Type(\<^type_name>\<open>list\<close>, [Type(\<^type_name>\<open>prod\<close>,[Type(n,_),_])]),_])) $ pi $ (f $ x)) =>
             (if (applicable_app f) then
               let
                 val name = Long_Name.base_name n
@@ -113,8 +113,8 @@ fun perm_simproc_app' ctxt ct =
   end
 
 val perm_simproc_app =
-  Simplifier.make_simproc @{context} "perm_simproc_app"
-   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_app'}
+  Simplifier.make_simproc \<^context> "perm_simproc_app"
+   {lhss = [\<^term>\<open>Nominal.perm pi x\<close>], proc = K perm_simproc_app'}
 
 (* a simproc that deals with permutation instances in front of functions  *)
 fun perm_simproc_fun' ctxt ct =
@@ -123,20 +123,20 @@ fun perm_simproc_fun' ctxt ct =
      fun applicable_fun t =
        (case (strip_comb t) of
           (Abs _ ,[]) => true
-        | (Const (@{const_name Nominal.perm},_),_) => false
+        | (Const (\<^const_name>\<open>Nominal.perm\<close>,_),_) => false
         | (Const _, _) => true
         | _ => false)
    in
      case redex of
        (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)
-       (Const(@{const_name Nominal.perm},_) $ pi $ f)  =>
+       (Const(\<^const_name>\<open>Nominal.perm\<close>,_) $ pi $ f)  =>
           (if applicable_fun f then SOME perm_fun_def else NONE)
       | _ => NONE
    end
 
 val perm_simproc_fun =
-  Simplifier.make_simproc @{context} "perm_simproc_fun"
-   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_fun'}
+  Simplifier.make_simproc \<^context> "perm_simproc_fun"
+   {lhss = [\<^term>\<open>Nominal.perm pi x\<close>], proc = K perm_simproc_fun'}
 
 (* function for simplyfying permutations          *)
 (* stac contains the simplifiation tactic that is *)
@@ -190,9 +190,9 @@ val eqvt_asm_full_simp_tac_i = eqvt_simp_tac_gen_i asm_full_simp_tac
 
 fun perm_compose_simproc' ctxt ct =
   (case Thm.term_of ct of
-     (Const (@{const_name Nominal.perm}, Type (@{type_name fun}, [Type (@{type_name list},
-       [Type (@{type_name Product_Type.prod}, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const (@{const_name Nominal.perm},
-         Type (@{type_name fun}, [Type (@{type_name list}, [Type (@{type_name Product_Type.prod}, [U as Type (uname,_),_])]),_])) $
+     (Const (\<^const_name>\<open>Nominal.perm\<close>, Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>list\<close>,
+       [Type (\<^type_name>\<open>Product_Type.prod\<close>, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const (\<^const_name>\<open>Nominal.perm\<close>,
+         Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>list\<close>, [Type (\<^type_name>\<open>Product_Type.prod\<close>, [U as Type (uname,_),_])]),_])) $
           pi2 $ t)) =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -217,8 +217,8 @@ fun perm_compose_simproc' ctxt ct =
   | _ => NONE);
 
 val perm_compose_simproc =
-  Simplifier.make_simproc @{context} "perm_compose"
-   {lhss = [@{term "Nominal.perm pi1 (Nominal.perm pi2 t)"}],
+  Simplifier.make_simproc \<^context> "perm_compose"
+   {lhss = [\<^term>\<open>Nominal.perm pi1 (Nominal.perm pi2 t)\<close>],
     proc = K perm_compose_simproc'}
 
 fun perm_compose_tac ctxt i =
@@ -297,7 +297,7 @@ fun finite_guess_tac_i tactical ctxt i st =
     let val goal = nth (cprems_of st) (i - 1)
     in
       case Envir.eta_contract (Logic.strip_assums_concl (Thm.term_of goal)) of
-          _ $ (Const (@{const_name finite}, _) $ (Const (@{const_name Nominal.supp}, T) $ x)) =>
+          _ $ (Const (\<^const_name>\<open>finite\<close>, _) $ (Const (\<^const_name>\<open>Nominal.supp\<close>, T) $ x)) =>
           let
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
@@ -306,7 +306,7 @@ fun finite_guess_tac_i tactical ctxt i st =
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
               vs HOLogic.unit;
             val s' = fold_rev Term.abs ps
-              (Const (@{const_name Nominal.supp}, fastype_of1 (Ts, s) -->
+              (Const (\<^const_name>\<open>Nominal.supp\<close>, fastype_of1 (Ts, s) -->
                 Term.range_type T) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
@@ -341,7 +341,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
         val ctxt2 = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
       case Logic.strip_assums_concl (Thm.term_of goal) of
-          _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) =>
+          _ $ (Const (\<^const_name>\<open>Nominal.fresh\<close>, Type ("fun", [T, _])) $ _ $ t) =>
           let
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
@@ -351,7 +351,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
               vs HOLogic.unit;
             val s' =
               fold_rev Term.abs ps
-                (Const (@{const_name Nominal.supp}, fastype_of1 (Ts, s) --> HOLogic.mk_setT T) $ s);
+                (Const (\<^const_name>\<open>Nominal.supp\<close>, fastype_of1 (Ts, s) --> HOLogic.mk_setT T) $ s);
             val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (Thm.prems_of supports_fresh_rule'));

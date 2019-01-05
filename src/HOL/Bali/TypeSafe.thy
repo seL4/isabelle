@@ -115,12 +115,12 @@ where
     | Inr Ts \<Rightarrow> list_all2 (conf G s) (the_In3 v) Ts)"
 
 text \<open>
- With @{term rconf} we describe the conformance of the result value of a term.
+ With \<^term>\<open>rconf\<close> we describe the conformance of the result value of a term.
  This definition gets rather complicated because of the relations between the
  injections of the different terms, types and values. The main case distinction
  is between single values and value lists. In case of value lists, every 
  value has to conform to its type. For single values we have to do a further
- case distinction, between values of variables @{term "\<exists>var. t=In2 var" } and
+ case distinction, between values of variables \<^term>\<open>\<exists>var. t=In2 var\<close> and
  ordinary values. Values of variables are modelled as pairs consisting of the
  current value and an update function which will perform an assignment to the
  variable. This stems form the decision, that we only have one evaluation rule
@@ -129,7 +129,7 @@ text \<open>
  variable-values must ensure that both the current value and an update will 
  conform to the type. With the introduction of definite assignment of local
  variables we have to do another case distinction. For the notion of conformance
- local variables are allowed to be @{term None}, since the definedness is not 
+ local variables are allowed to be \<^term>\<open>None\<close>, since the definedness is not 
  ensured by conformance but by definite assignment. Field and array variables 
  must contain a value. 
 \<close>
@@ -1899,14 +1899,14 @@ proof -
       with wt show ?thesis
         by simp
     qed
-    \<comment> \<open>Note that we don't have to show that @{term b} really is a boolean 
-          value. With @{term the_Bool} we enforce to get a value of boolean 
+    \<comment> \<open>Note that we don't have to show that \<^term>\<open>b\<close> really is a boolean 
+          value. With \<^term>\<open>the_Bool\<close> we enforce to get a value of boolean 
           type. So execution will be type safe, even if b would be
           a string, for example. We might not expect such a behaviour to be
           called type safe. To remedy the situation we would have to change
           the evaulation rule, so that it only has a type safe evaluation if
           we actually get a boolean value for the condition. That b is actually
-          a boolean value is part of @{term hyp_e}. See also Loop\<close>
+          a boolean value is part of \<^term>\<open>hyp_e\<close>. See also Loop\<close>
   next
     case (Loop s0 e b s1 c s2 l s3 L accC T A)
     note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>

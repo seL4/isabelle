@@ -16,32 +16,32 @@ HOL is a typed logic whose type system resembles that of functional
 programming languages. Thus there are
 \begin{description}
 \item[base types,] 
-in particular @{typ bool}, the type of truth values,
-@{typ nat}, the type of natural numbers ($\mathbb{N}$), and \indexed{@{typ int}}{int},
+in particular \<^typ>\<open>bool\<close>, the type of truth values,
+\<^typ>\<open>nat\<close>, the type of natural numbers ($\mathbb{N}$), and \indexed{\<^typ>\<open>int\<close>}{int},
 the type of mathematical integers ($\mathbb{Z}$).
 \item[type constructors,]
  in particular \<open>list\<close>, the type of
 lists, and \<open>set\<close>, the type of sets. Type constructors are written
 postfix, i.e., after their arguments. For example,
-@{typ "nat list"} is the type of lists whose elements are natural numbers.
+\<^typ>\<open>nat list\<close> is the type of lists whose elements are natural numbers.
 \item[function types,]
 denoted by \<open>\<Rightarrow>\<close>.
 \item[type variables,]
-  denoted by @{typ 'a}, @{typ 'b}, etc., like in ML\@.
+  denoted by \<^typ>\<open>'a\<close>, \<^typ>\<open>'b\<close>, etc., like in ML\@.
 \end{description}
-Note that @{typ"'a \<Rightarrow> 'b list"} means \noquotes{@{typ[source]"'a \<Rightarrow> ('b list)"}},
-not @{typ"('a \<Rightarrow> 'b) list"}: postfix type constructors have precedence
+Note that \<^typ>\<open>'a \<Rightarrow> 'b list\<close> means \noquotes{@{typ[source]"'a \<Rightarrow> ('b list)"}},
+not \<^typ>\<open>('a \<Rightarrow> 'b) list\<close>: postfix type constructors have precedence
 over \<open>\<Rightarrow>\<close>.
 
 \conceptidx{Terms}{term} are formed as in functional programming by
 applying functions to arguments. If \<open>f\<close> is a function of type
 \<open>\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2\<close> and \<open>t\<close> is a term of type
-\<open>\<tau>\<^sub>1\<close> then @{term"f t"} is a term of type \<open>\<tau>\<^sub>2\<close>. We write \<open>t :: \<tau>\<close> to mean that term \<open>t\<close> has type \<open>\<tau>\<close>.
+\<open>\<tau>\<^sub>1\<close> then \<^term>\<open>f t\<close> is a term of type \<open>\<tau>\<^sub>2\<close>. We write \<open>t :: \<tau>\<close> to mean that term \<open>t\<close> has type \<open>\<tau>\<close>.
 
 \begin{warn}
 There are many predefined infix symbols like \<open>+\<close> and \<open>\<le>\<close>.
-The name of the corresponding binary function is @{term"(+)"},
-not just \<open>+\<close>. That is, @{term"x + y"} is nice surface syntax
+The name of the corresponding binary function is \<^term>\<open>(+)\<close>,
+not just \<open>+\<close>. That is, \<^term>\<open>x + y\<close> is nice surface syntax
 (``syntactic sugar'') for \noquotes{@{term[source]"(+) x y"}}.
 \end{warn}
 
@@ -56,18 +56,18 @@ The above three constructs must always be enclosed in parentheses
 if they occur inside other constructs.
 \end{warn}
 Terms may also contain \<open>\<lambda>\<close>-abstractions. For example,
-@{term "\<lambda>x. x"} is the identity function.
+\<^term>\<open>\<lambda>x. x\<close> is the identity function.
 
 \conceptidx{Formulas}{formula} are terms of type \<open>bool\<close>.
-There are the basic constants @{term True} and @{term False} and
+There are the basic constants \<^term>\<open>True\<close> and \<^term>\<open>False\<close> and
 the usual logical connectives (in decreasing order of precedence):
 \<open>\<not>\<close>, \<open>\<and>\<close>, \<open>\<or>\<close>, \<open>\<longrightarrow>\<close>.
 
 \conceptidx{Equality}{equality} is available in the form of the infix function \<open>=\<close>
-of type @{typ "'a \<Rightarrow> 'a \<Rightarrow> bool"}. It also works for formulas, where
+of type \<^typ>\<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close>. It also works for formulas, where
 it means ``if and only if''.
 
-\conceptidx{Quantifiers}{quantifier} are written @{prop"\<forall>x. P"} and @{prop"\<exists>x. P"}.
+\conceptidx{Quantifiers}{quantifier} are written \<^prop>\<open>\<forall>x. P\<close> and \<^prop>\<open>\<exists>x. P\<close>.
 
 Isabelle automatically computes the type of each variable in a term. This is
 called \concept{type inference}.  Despite type inference, it is sometimes
@@ -117,7 +117,7 @@ automatically visible. Each theory \<open>T\<close> must
 reside in a \concept{theory file} named \<open>T.thy\<close>.
 
 \begin{warn}
-HOL contains a theory @{theory Main}\index{Main@@{theory Main}}, the union of all the basic
+HOL contains a theory \<^theory>\<open>Main\<close>\index{Main@\<^theory>\<open>Main\<close>}, the union of all the basic
 predefined theories like arithmetic, lists, sets, etc.
 Unless you know what you are doing, always include \<open>Main\<close>
 as a direct or indirect parent of all your theories.

@@ -10,7 +10,7 @@ begin
 
 section \<open>Definition of Linked Lists\<close>
 
-setup \<open>Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::type ref"})\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>Ref\<close>, SOME \<^typ>\<open>nat \<Rightarrow> 'a::type ref\<close>)\<close>
 datatype 'a node = Empty | Node 'a "'a node ref"
 
 primrec

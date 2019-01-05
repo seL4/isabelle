@@ -80,7 +80,7 @@ lemma monofun_pair: "x1 \<sqsubseteq> x2 \<Longrightarrow> y1 \<sqsubseteq> y2 \
 lemma ch2ch_Pair [simp]: "chain X \<Longrightarrow> chain Y \<Longrightarrow> chain (\<lambda>i. (X i, Y i))"
   by (rule chainI, simp add: chainE)
 
-text \<open>@{term fst} and @{term snd} are monotone\<close>
+text \<open>\<^term>\<open>fst\<close> and \<^term>\<open>snd\<close> are monotone\<close>
 
 lemma fst_monofun: "x \<sqsubseteq> y \<Longrightarrow> fst x \<sqsubseteq> fst y"
   by (simp add: below_prod_def)

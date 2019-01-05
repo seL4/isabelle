@@ -12,8 +12,8 @@ text \<open>This theory presents two methods: reify and reflection\<close>
 
 text \<open>
 Consider an HOL type \<open>\<sigma>\<close>, the structure of which is not recongnisable
-on the theory level.  This is the case of @{typ bool}, arithmetical terms such as @{typ int},
-@{typ real} etc \dots  In order to implement a simplification on terms of type \<open>\<sigma>\<close> we
+on the theory level.  This is the case of \<^typ>\<open>bool\<close>, arithmetical terms such as \<^typ>\<open>int\<close>,
+\<^typ>\<open>real\<close> etc \dots  In order to implement a simplification on terms of type \<open>\<sigma>\<close> we
 often need its structure.  Traditionnaly such simplifications are written in ML,
 proofs are synthesized.
 
@@ -35,12 +35,12 @@ subgoal.
 The method \<open>reflection\<close> uses \<open>reify\<close> and has a very similar signature:
 \<open>reflection corr_thm eqs (t)\<close>.  Here again \<open>eqs\<close> and \<open>(t)\<close>
 are as described above and \<open>corr_thm\<close> is a theorem proving
-@{prop "I vs (f t) = I vs t"}.  We assume that \<open>I\<close> is the interpretation
+\<^prop>\<open>I vs (f t) = I vs t\<close>.  We assume that \<open>I\<close> is the interpretation
 and \<open>f\<close> is some useful and executable simplification of type \<open>\<tau> \<Rightarrow> \<tau>\<close>.
-The method \<open>reflection\<close> applies reification and hence the theorem @{prop "t = I xs s"}
-and hence using \<open>corr_thm\<close> derives @{prop "t = I xs (f s)"}.  It then uses
-normalization by equational rewriting to prove @{prop "f s = s'"} which almost finishes
-the proof of @{prop "t = t'"} where @{prop "I xs s' = t'"}.
+The method \<open>reflection\<close> applies reification and hence the theorem \<^prop>\<open>t = I xs s\<close>
+and hence using \<open>corr_thm\<close> derives \<^prop>\<open>t = I xs (f s)\<close>.  It then uses
+normalization by equational rewriting to prove \<^prop>\<open>f s = s'\<close> which almost finishes
+the proof of \<^prop>\<open>t = t'\<close> where \<^prop>\<open>I xs s' = t'\<close>.
 \<close>
 
 text \<open>Example 1 : Propositional formulae and NNF.\<close>
@@ -81,7 +81,7 @@ lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
   apply (reify Ifm.simps)
 oops
 
-text \<open>Method \<open>reify\<close> maps a @{typ bool} to an @{typ fm}.  For this it needs the 
+text \<open>Method \<open>reify\<close> maps a \<^typ>\<open>bool\<close> to an \<^typ>\<open>fm\<close>.  For this it needs the 
 semantics of \<open>fm\<close>, i.e.\ the rewrite rules in \<open>Ifm.simps\<close>.\<close>
 
 text \<open>You can also just pick up a subterm to reify.\<close>
@@ -115,12 +115,12 @@ where
 | "nnf (NOT (NOT p)) = nnf p"
 | "nnf (NOT p) = NOT p"
 
-text \<open>The correctness theorem of @{const nnf}: it preserves the semantics of @{typ fm}\<close>
+text \<open>The correctness theorem of \<^const>\<open>nnf\<close>: it preserves the semantics of \<^typ>\<open>fm\<close>\<close>
 lemma nnf [reflection]:
   "Ifm (nnf p) vs = Ifm p vs"
   by (induct p rule: nnf.induct) auto
 
-text \<open>Now let's perform NNF using our @{const nnf} function defined above.  First to the
+text \<open>Now let's perform NNF using our \<^const>\<open>nnf\<close> function defined above.  First to the
   whole subgoal.\<close>
 lemma "A \<noteq> B \<and> (B \<longrightarrow> A \<noteq> (B \<or> C \<and> (B \<longrightarrow> A \<or> D))) \<longrightarrow> A \<or> B \<and> D"
   apply (reflection Ifm.simps)
@@ -199,7 +199,7 @@ lemma "1 * (2 * x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs' ("1 * (2 * x + (y::nat) + 0 + 1)"))
 oops
 
-text \<open>Okay, let's try reflection. Some simplifications on @{typ num} follow. You can
+text \<open>Okay, let's try reflection. Some simplifications on \<^typ>\<open>num\<close> follow. You can
   skim until the main theorem \<open>linum\<close>.\<close>
   
 fun lin_add :: "num \<Rightarrow> num \<Rightarrow> num"

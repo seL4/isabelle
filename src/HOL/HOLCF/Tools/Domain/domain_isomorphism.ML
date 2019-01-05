@@ -34,10 +34,10 @@ structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
 struct
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}])
+  simpset_of (put_simpset HOL_basic_ss \<^context>
+    addsimps @{thms simp_thms} addsimprocs [\<^simproc>\<open>beta_cfun_proc\<close>])
 
-fun is_cpo thy T = Sign.of_sort thy (T, @{sort cpo})
+fun is_cpo thy T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
 
 
 (******************************************************************************)
@@ -49,36 +49,36 @@ open HOLCF_Library
 infixr 6 ->>
 infixr -->>
 
-val udomT = @{typ udom}
-val deflT = @{typ "udom defl"}
-val udeflT = @{typ "udom u defl"}
+val udomT = \<^typ>\<open>udom\<close>
+val deflT = \<^typ>\<open>udom defl\<close>
+val udeflT = \<^typ>\<open>udom u defl\<close>
 
 fun mk_DEFL T =
-  Const (@{const_name defl}, Term.itselfT T --> deflT) $ Logic.mk_type T
+  Const (\<^const_name>\<open>defl\<close>, Term.itselfT T --> deflT) $ Logic.mk_type T
 
-fun dest_DEFL (Const (@{const_name defl}, _) $ t) = Logic.dest_type t
+fun dest_DEFL (Const (\<^const_name>\<open>defl\<close>, _) $ t) = Logic.dest_type t
   | dest_DEFL t = raise TERM ("dest_DEFL", [t])
 
 fun mk_LIFTDEFL T =
-  Const (@{const_name liftdefl}, Term.itselfT T --> udeflT) $ Logic.mk_type T
+  Const (\<^const_name>\<open>liftdefl\<close>, Term.itselfT T --> udeflT) $ Logic.mk_type T
 
-fun dest_LIFTDEFL (Const (@{const_name liftdefl}, _) $ t) = Logic.dest_type t
+fun dest_LIFTDEFL (Const (\<^const_name>\<open>liftdefl\<close>, _) $ t) = Logic.dest_type t
   | dest_LIFTDEFL t = raise TERM ("dest_LIFTDEFL", [t])
 
-fun mk_u_defl t = mk_capply (@{const "u_defl"}, t)
+fun mk_u_defl t = mk_capply (\<^const>\<open>u_defl\<close>, t)
 
-fun emb_const T = Const (@{const_name emb}, T ->> udomT)
-fun prj_const T = Const (@{const_name prj}, udomT ->> T)
+fun emb_const T = Const (\<^const_name>\<open>emb\<close>, T ->> udomT)
+fun prj_const T = Const (\<^const_name>\<open>prj\<close>, udomT ->> T)
 fun coerce_const (T, U) = mk_cfcomp (prj_const U, emb_const T)
 
 fun isodefl_const T =
-  Const (@{const_name isodefl}, (T ->> T) --> deflT --> HOLogic.boolT)
+  Const (\<^const_name>\<open>isodefl\<close>, (T ->> T) --> deflT --> HOLogic.boolT)
 
 fun isodefl'_const T =
-  Const (@{const_name isodefl'}, (T ->> T) --> udeflT --> HOLogic.boolT)
+  Const (\<^const_name>\<open>isodefl'\<close>, (T ->> T) --> udeflT --> HOLogic.boolT)
 
 fun mk_deflation t =
-  Const (@{const_name deflation}, Term.fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>deflation\<close>, Term.fastype_of t --> boolT) $ t
 
 (* splits a cterm into the right and lefthand sides of equality *)
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
@@ -121,9 +121,9 @@ fun add_fixdefs
     (* convert parameters to lambda abstractions *)
     fun mk_eqn (lhs, rhs) =
         case lhs of
-          Const (@{const_name Rep_cfun}, _) $ f $ (x as Free _) =>
+          Const (\<^const_name>\<open>Rep_cfun\<close>, _) $ f $ (x as Free _) =>
             mk_eqn (f, big_lambda x rhs)
-        | f $ Const (@{const_name Pure.type}, T) =>
+        | f $ Const (\<^const_name>\<open>Pure.type\<close>, T) =>
             mk_eqn (f, Abs ("t", T, rhs))
         | Const _ => Logic.mk_equals (lhs, rhs)
         | _ => raise TERM ("lhs not of correct form", [lhs, rhs])
@@ -150,7 +150,7 @@ fun add_fixdefs
     val cont_thm =
       let
         val prop = mk_trp (mk_cont functional)
-        val rules = Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems cont2cont}
+        val rules = Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>cont2cont\<close>
         fun tac ctxt = REPEAT_ALL_NEW (match_tac ctxt (rev rules)) 1
       in
         Goal.prove_global thy [] [] prop (tac o #context)
@@ -188,7 +188,7 @@ fun defl_of_typ
     (T : typ) : term =
   let
     val defl_simps =
-      Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
+      Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>domain_defl_simps\<close>
     val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) (rev defl_simps)
     val rules' = map (apfst mk_DEFL) tab1 @ map (apfst mk_LIFTDEFL) tab2
     fun proc1 t =
@@ -405,14 +405,14 @@ fun gen_domain_isomorphism
     val tmp_thy =
       let
         fun arity (vs, tbind, _, _, _) =
-          (Sign.full_name thy tbind, map the_sort vs, @{sort "domain"})
+          (Sign.full_name thy tbind, map the_sort vs, \<^sort>\<open>domain\<close>)
       in
         fold Axclass.arity_axiomatization (map arity doms) tmp_thy
       end
 
     (* check bifiniteness of right-hand sides *)
     fun check_rhs (_, _, _, rhs, _) =
-      if Sign.of_sort tmp_thy (rhs, @{sort "domain"}) then ()
+      if Sign.of_sort tmp_thy (rhs, \<^sort>\<open>domain\<close>) then ()
       else error ("Type not of sort domain: " ^
         quote (Syntax.string_of_typ_global tmp_thy rhs))
     val _ = map check_rhs doms
@@ -502,7 +502,7 @@ fun gen_domain_isomorphism
           Domaindef.add_domaindef spec defl NONE thy
         (* declare domain_defl_simps rules *)
         val thy =
-          Context.theory_map (Named_Theorems.add_thm @{named_theorems domain_defl_simps} DEFL) thy
+          Context.theory_map (Named_Theorems.add_thm \<^named_theorems>\<open>domain_defl_simps\<close> DEFL) thy
       in
         (DEFL, thy)
       end
@@ -513,7 +513,7 @@ fun gen_domain_isomorphism
       let
         val goal = mk_eqs (mk_DEFL lhsT, mk_DEFL rhsT)
         val DEFL_simps =
-          Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_defl_simps}
+          Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>domain_defl_simps\<close>
         fun tac ctxt =
           rewrite_goals_tac ctxt (map mk_meta_eq (rev DEFL_simps))
           THEN TRY (resolve_tac ctxt defl_unfold_thms 1)
@@ -618,7 +618,7 @@ fun gen_domain_isomorphism
         val isodefl_rules =
           @{thms conjI isodefl_ID_DEFL isodefl_LIFTDEFL}
           @ isodefl_abs_rep_thms
-          @ rev (Named_Theorems.get (Proof_Context.init_global thy) @{named_theorems domain_isodefl})
+          @ rev (Named_Theorems.get (Proof_Context.init_global thy) \<^named_theorems>\<open>domain_isodefl\<close>)
       in
         Goal.prove_global thy [] assms goal (fn {prems, context = ctxt} =>
          EVERY
@@ -642,7 +642,7 @@ fun gen_domain_isomorphism
       (Global_Theory.add_thms o map (Thm.no_attributes o apsnd Drule.zero_var_indexes))
         (conjuncts isodefl_binds isodefl_thm)
     val thy =
-      fold (Context.theory_map o Named_Theorems.add_thm @{named_theorems domain_isodefl})
+      fold (Context.theory_map o Named_Theorems.add_thm \<^named_theorems>\<open>domain_isodefl\<close>)
         isodefl_thms thy
 
     (* prove map_ID theorems *)
@@ -650,7 +650,7 @@ fun gen_domain_isomorphism
         (((map_const, (lhsT, _)), DEFL_thm), isodefl_thm) =
       let
         val Ts = snd (dest_Type lhsT)
-        fun is_cpo T = Sign.of_sort thy (T, @{sort cpo})
+        fun is_cpo T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
         val lhs = list_ccomb (map_const, map mk_ID (filter is_cpo Ts))
         val goal = mk_eqs (lhs, mk_ID lhsT)
         fun tac ctxt = EVERY
@@ -680,7 +680,7 @@ fun gen_domain_isomorphism
     val lub_take_lemma =
       let
         val lhs = mk_tuple (map mk_lub take_consts)
-        fun is_cpo T = Sign.of_sort thy (T, @{sort cpo})
+        fun is_cpo T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
         fun mk_map_ID (map_const, (lhsT, _)) =
           list_ccomb (map_const, map mk_ID (filter is_cpo (snd (dest_Type lhsT))))
         val rhs = mk_tuple (map mk_map_ID (map_consts ~~ dom_eqns))
@@ -746,8 +746,8 @@ local
 val parse_domain_iso :
     (string list * binding * mixfix * string * (binding * binding) option)
       parser =
-  (Parse.type_args -- Parse.binding -- Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) --
-    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)))
+  (Parse.type_args -- Parse.binding -- Parse.opt_mixfix -- (\<^keyword>\<open>=\<close> |-- Parse.typ) --
+    Scan.option (\<^keyword>\<open>morphisms\<close> |-- Parse.!!! (Parse.binding -- Parse.binding)))
     >> (fn ((((vs, t), mx), rhs), morphs) => (vs, t, mx, rhs, morphs))
 
 val parse_domain_isos = Parse.and_list1 parse_domain_iso
@@ -755,7 +755,7 @@ val parse_domain_isos = Parse.and_list1 parse_domain_iso
 in
 
 val _ =
-  Outer_Syntax.command @{command_keyword domain_isomorphism} "define domain isomorphisms (HOLCF)"
+  Outer_Syntax.command \<^command_keyword>\<open>domain_isomorphism\<close> "define domain isomorphisms (HOLCF)"
     (parse_domain_isos >> (Toplevel.theory o domain_isomorphism_cmd))
 
 end

@@ -120,43 +120,43 @@ text %mlref \<open>
   @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type class} represents type classes.
+  \<^descr> Type \<^ML_type>\<open>class\<close> represents type classes.
 
-  \<^descr> Type @{ML_type sort} represents sorts, i.e.\ finite intersections of
-  classes. The empty list @{ML "[]: sort"} refers to the empty class
+  \<^descr> Type \<^ML_type>\<open>sort\<close> represents sorts, i.e.\ finite intersections of
+  classes. The empty list \<^ML>\<open>[]: sort\<close> refers to the empty class
   intersection, i.e.\ the ``full sort''.
 
-  \<^descr> Type @{ML_type arity} represents type arities. A triple \<open>(\<kappa>, \<^vec>s, s)
+  \<^descr> Type \<^ML_type>\<open>arity\<close> represents type arities. A triple \<open>(\<kappa>, \<^vec>s, s)
   : arity\<close> represents \<open>\<kappa> :: (\<^vec>s)s\<close> as described above.
 
-  \<^descr> Type @{ML_type typ} represents types; this is a datatype with constructors
-  @{ML TFree}, @{ML TVar}, @{ML Type}.
+  \<^descr> Type \<^ML_type>\<open>typ\<close> represents types; this is a datatype with constructors
+  \<^ML>\<open>TFree\<close>, \<^ML>\<open>TVar\<close>, \<^ML>\<open>Type\<close>.
 
-  \<^descr> @{ML Term.map_atyps}~\<open>f \<tau>\<close> applies the mapping \<open>f\<close> to all atomic types
-  (@{ML TFree}, @{ML TVar}) occurring in \<open>\<tau>\<close>.
+  \<^descr> \<^ML>\<open>Term.map_atyps\<close>~\<open>f \<tau>\<close> applies the mapping \<open>f\<close> to all atomic types
+  (\<^ML>\<open>TFree\<close>, \<^ML>\<open>TVar\<close>) occurring in \<open>\<tau>\<close>.
 
-  \<^descr> @{ML Term.fold_atyps}~\<open>f \<tau>\<close> iterates the operation \<open>f\<close> over all
-  occurrences of atomic types (@{ML TFree}, @{ML TVar}) in \<open>\<tau>\<close>; the type
+  \<^descr> \<^ML>\<open>Term.fold_atyps\<close>~\<open>f \<tau>\<close> iterates the operation \<open>f\<close> over all
+  occurrences of atomic types (\<^ML>\<open>TFree\<close>, \<^ML>\<open>TVar\<close>) in \<open>\<tau>\<close>; the type
   structure is traversed from left to right.
 
-  \<^descr> @{ML Sign.subsort}~\<open>thy (s\<^sub>1, s\<^sub>2)\<close> tests the subsort relation \<open>s\<^sub>1 \<subseteq>
+  \<^descr> \<^ML>\<open>Sign.subsort\<close>~\<open>thy (s\<^sub>1, s\<^sub>2)\<close> tests the subsort relation \<open>s\<^sub>1 \<subseteq>
   s\<^sub>2\<close>.
 
-  \<^descr> @{ML Sign.of_sort}~\<open>thy (\<tau>, s)\<close> tests whether type \<open>\<tau>\<close> is of sort \<open>s\<close>.
+  \<^descr> \<^ML>\<open>Sign.of_sort\<close>~\<open>thy (\<tau>, s)\<close> tests whether type \<open>\<tau>\<close> is of sort \<open>s\<close>.
 
-  \<^descr> @{ML Sign.add_type}~\<open>ctxt (\<kappa>, k, mx)\<close> declares a new type constructors \<open>\<kappa>\<close>
+  \<^descr> \<^ML>\<open>Sign.add_type\<close>~\<open>ctxt (\<kappa>, k, mx)\<close> declares a new type constructors \<open>\<kappa>\<close>
   with \<open>k\<close> arguments and optional mixfix syntax.
 
-  \<^descr> @{ML Sign.add_type_abbrev}~\<open>ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)\<close> defines a new type
+  \<^descr> \<^ML>\<open>Sign.add_type_abbrev\<close>~\<open>ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)\<close> defines a new type
   abbreviation \<open>(\<^vec>\<alpha>)\<kappa> = \<tau>\<close>.
 
-  \<^descr> @{ML Sign.primitive_class}~\<open>(c, [c\<^sub>1, \<dots>, c\<^sub>n])\<close> declares a new class \<open>c\<close>,
+  \<^descr> \<^ML>\<open>Sign.primitive_class\<close>~\<open>(c, [c\<^sub>1, \<dots>, c\<^sub>n])\<close> declares a new class \<open>c\<close>,
   together with class relations \<open>c \<subseteq> c\<^sub>i\<close>, for \<open>i = 1, \<dots>, n\<close>.
 
-  \<^descr> @{ML Sign.primitive_classrel}~\<open>(c\<^sub>1, c\<^sub>2)\<close> declares the class relation
+  \<^descr> \<^ML>\<open>Sign.primitive_classrel\<close>~\<open>(c\<^sub>1, c\<^sub>2)\<close> declares the class relation
   \<open>c\<^sub>1 \<subseteq> c\<^sub>2\<close>.
 
-  \<^descr> @{ML Sign.primitive_arity}~\<open>(\<kappa>, \<^vec>s, s)\<close> declares the arity \<open>\<kappa> ::
+  \<^descr> \<^ML>\<open>Sign.primitive_arity\<close>~\<open>(\<kappa>, \<^vec>s, s)\<close> declares the arity \<open>\<kappa> ::
   (\<^vec>s)s\<close>.
 \<close>
 
@@ -170,7 +170,7 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "typ"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation class} embedded
   ;
   @@{ML_antiquotation sort} sort
@@ -180,25 +180,25 @@ text %mlantiq \<open>
    @@{ML_antiquotation nonterminal}) embedded
   ;
   @@{ML_antiquotation typ} type
-  \<close>}
+  \<close>
 
-  \<^descr> \<open>@{class c}\<close> inlines the internalized class \<open>c\<close> --- as @{ML_type string}
+  \<^descr> \<open>@{class c}\<close> inlines the internalized class \<open>c\<close> --- as \<^ML_type>\<open>string\<close>
   literal.
 
-  \<^descr> \<open>@{sort s}\<close> inlines the internalized sort \<open>s\<close> --- as @{ML_type "string
-  list"} literal.
+  \<^descr> \<open>@{sort s}\<close> inlines the internalized sort \<open>s\<close> --- as \<^ML_type>\<open>string
+  list\<close> literal.
 
   \<^descr> \<open>@{type_name c}\<close> inlines the internalized type constructor \<open>c\<close> --- as
-  @{ML_type string} literal.
+  \<^ML_type>\<open>string\<close> literal.
 
   \<^descr> \<open>@{type_abbrev c}\<close> inlines the internalized type abbreviation \<open>c\<close> --- as
-  @{ML_type string} literal.
+  \<^ML_type>\<open>string\<close> literal.
 
   \<^descr> \<open>@{nonterminal c}\<close> inlines the internalized syntactic type~/ grammar
-  nonterminal \<open>c\<close> --- as @{ML_type string} literal.
+  nonterminal \<open>c\<close> --- as \<^ML_type>\<open>string\<close> literal.
 
   \<^descr> \<open>@{typ \<tau>}\<close> inlines the internalized type \<open>\<tau>\<close> --- as constructor term for
-  datatype @{ML_type typ}.
+  datatype \<^ML_type>\<open>typ\<close>.
 \<close>
 
 
@@ -333,50 +333,49 @@ text %mlref \<open>
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type term} represents de-Bruijn terms, with comments in
+  \<^descr> Type \<^ML_type>\<open>term\<close> represents de-Bruijn terms, with comments in
   abstractions, and explicitly named free variables and constants; this is a
   datatype with constructors @{index_ML Bound}, @{index_ML Free}, @{index_ML
   Var}, @{index_ML Const}, @{index_ML Abs}, @{index_ML_op "$"}.
 
-  \<^descr> \<open>t\<close>~@{ML_text aconv}~\<open>u\<close> checks \<open>\<alpha>\<close>-equivalence of two terms. This is the
-  basic equality relation on type @{ML_type term}; raw datatype equality
+  \<^descr> \<open>t\<close>~\<^ML_text>\<open>aconv\<close>~\<open>u\<close> checks \<open>\<alpha>\<close>-equivalence of two terms. This is the
+  basic equality relation on type \<^ML_type>\<open>term\<close>; raw datatype equality
   should only be used for operations related to parsing or printing!
 
-  \<^descr> @{ML Term.map_types}~\<open>f t\<close> applies the mapping \<open>f\<close> to all types occurring
+  \<^descr> \<^ML>\<open>Term.map_types\<close>~\<open>f t\<close> applies the mapping \<open>f\<close> to all types occurring
   in \<open>t\<close>.
 
-  \<^descr> @{ML Term.fold_types}~\<open>f t\<close> iterates the operation \<open>f\<close> over all
+  \<^descr> \<^ML>\<open>Term.fold_types\<close>~\<open>f t\<close> iterates the operation \<open>f\<close> over all
   occurrences of types in \<open>t\<close>; the term structure is traversed from left to
   right.
 
-  \<^descr> @{ML Term.map_aterms}~\<open>f t\<close> applies the mapping \<open>f\<close> to all atomic terms
-  (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML Const}) occurring in \<open>t\<close>.
+  \<^descr> \<^ML>\<open>Term.map_aterms\<close>~\<open>f t\<close> applies the mapping \<open>f\<close> to all atomic terms
+  (\<^ML>\<open>Bound\<close>, \<^ML>\<open>Free\<close>, \<^ML>\<open>Var\<close>, \<^ML>\<open>Const\<close>) occurring in \<open>t\<close>.
 
-  \<^descr> @{ML Term.fold_aterms}~\<open>f t\<close> iterates the operation \<open>f\<close> over all
-  occurrences of atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
-  Const}) in \<open>t\<close>; the term structure is traversed from left to right.
+  \<^descr> \<^ML>\<open>Term.fold_aterms\<close>~\<open>f t\<close> iterates the operation \<open>f\<close> over all
+  occurrences of atomic terms (\<^ML>\<open>Bound\<close>, \<^ML>\<open>Free\<close>, \<^ML>\<open>Var\<close>, \<^ML>\<open>Const\<close>) in \<open>t\<close>; the term structure is traversed from left to right.
 
-  \<^descr> @{ML fastype_of}~\<open>t\<close> determines the type of a well-typed term. This
+  \<^descr> \<^ML>\<open>fastype_of\<close>~\<open>t\<close> determines the type of a well-typed term. This
   operation is relatively slow, despite the omission of any sanity checks.
 
-  \<^descr> @{ML lambda}~\<open>a b\<close> produces an abstraction \<open>\<lambda>a. b\<close>, where occurrences of
+  \<^descr> \<^ML>\<open>lambda\<close>~\<open>a b\<close> produces an abstraction \<open>\<lambda>a. b\<close>, where occurrences of
   the atomic term \<open>a\<close> in the body \<open>b\<close> are replaced by bound variables.
 
-  \<^descr> @{ML betapply}~\<open>(t, u)\<close> produces an application \<open>t u\<close>, with topmost
+  \<^descr> \<^ML>\<open>betapply\<close>~\<open>(t, u)\<close> produces an application \<open>t u\<close>, with topmost
   \<open>\<beta>\<close>-conversion if \<open>t\<close> is an abstraction.
 
-  \<^descr> @{ML incr_boundvars}~\<open>j\<close> increments a term's dangling bound variables by
+  \<^descr> \<^ML>\<open>incr_boundvars\<close>~\<open>j\<close> increments a term's dangling bound variables by
   the offset \<open>j\<close>. This is required when moving a subterm into a context where
   it is enclosed by a different number of abstractions. Bound variables with a
   matching abstraction are unaffected.
 
-  \<^descr> @{ML Sign.declare_const}~\<open>ctxt ((c, \<sigma>), mx)\<close> declares a new constant \<open>c ::
+  \<^descr> \<^ML>\<open>Sign.declare_const\<close>~\<open>ctxt ((c, \<sigma>), mx)\<close> declares a new constant \<open>c ::
   \<sigma>\<close> with optional mixfix syntax.
 
-  \<^descr> @{ML Sign.add_abbrev}~\<open>print_mode (c, t)\<close> introduces a new term
+  \<^descr> \<^ML>\<open>Sign.add_abbrev\<close>~\<open>print_mode (c, t)\<close> introduces a new term
   abbreviation \<open>c \<equiv> t\<close>.
 
-  \<^descr> @{ML Sign.const_typargs}~\<open>thy (c, \<tau>)\<close> and @{ML Sign.const_instance}~\<open>thy
+  \<^descr> \<^ML>\<open>Sign.const_typargs\<close>~\<open>thy (c, \<tau>)\<close> and \<^ML>\<open>Sign.const_instance\<close>~\<open>thy
   (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])\<close> convert between two representations of polymorphic
   constants: full type instance vs.\ compact type arguments form.
 \<close>
@@ -390,7 +389,7 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "prop"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   (@@{ML_antiquotation const_name} |
    @@{ML_antiquotation const_abbrev}) embedded
   ;
@@ -399,23 +398,22 @@ text %mlantiq \<open>
   @@{ML_antiquotation term} term
   ;
   @@{ML_antiquotation prop} prop
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{const_name c}\<close> inlines the internalized logical constant name \<open>c\<close> ---
-  as @{ML_type string} literal.
+  as \<^ML_type>\<open>string\<close> literal.
 
   \<^descr> \<open>@{const_abbrev c}\<close> inlines the internalized abbreviated constant name \<open>c\<close>
-  --- as @{ML_type string} literal.
+  --- as \<^ML_type>\<open>string\<close> literal.
 
   \<^descr> \<open>@{const c(\<^vec>\<tau>)}\<close> inlines the internalized constant \<open>c\<close> with precise
-  type instantiation in the sense of @{ML Sign.const_instance} --- as @{ML
-  Const} constructor term for datatype @{ML_type term}.
+  type instantiation in the sense of \<^ML>\<open>Sign.const_instance\<close> --- as \<^ML>\<open>Const\<close> constructor term for datatype \<^ML_type>\<open>term\<close>.
 
   \<^descr> \<open>@{term t}\<close> inlines the internalized term \<open>t\<close> --- as constructor term for
-  datatype @{ML_type term}.
+  datatype \<^ML_type>\<open>term\<close>.
 
   \<^descr> \<open>@{prop \<phi>}\<close> inlines the internalized proposition \<open>\<phi>\<close> --- as constructor
-  term for datatype @{ML_type term}.
+  term for datatype \<^ML_type>\<open>term\<close>.
 \<close>
 
 
@@ -601,84 +599,82 @@ text %mlref \<open>
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Thm.peek_status}~\<open>thm\<close> informs about the current status of the
+  \<^descr> \<^ML>\<open>Thm.peek_status\<close>~\<open>thm\<close> informs about the current status of the
   derivation object behind the given theorem. This is a snapshot of a
   potentially ongoing (parallel) evaluation of proofs. The three Boolean
   values indicate the following: \<^verbatim>\<open>oracle\<close> if the finished part contains some
   oracle invocation; \<^verbatim>\<open>unfinished\<close> if some future proofs are still pending;
   \<^verbatim>\<open>failed\<close> if some future proof has failed, rendering the theorem invalid!
 
-  \<^descr> @{ML Logic.all}~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
+  \<^descr> \<^ML>\<open>Logic.all\<close>~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
   occurrences of the atomic term \<open>a\<close> in the body proposition \<open>B\<close> are replaced
-  by bound variables. (See also @{ML lambda} on terms.)
+  by bound variables. (See also \<^ML>\<open>lambda\<close> on terms.)
 
-  \<^descr> @{ML Logic.mk_implies}~\<open>(A, B)\<close> produces a Pure implication \<open>A \<Longrightarrow> B\<close>.
+  \<^descr> \<^ML>\<open>Logic.mk_implies\<close>~\<open>(A, B)\<close> produces a Pure implication \<open>A \<Longrightarrow> B\<close>.
 
-  \<^descr> Types @{ML_type ctyp} and @{ML_type cterm} represent certified types and
+  \<^descr> Types \<^ML_type>\<open>ctyp\<close> and \<^ML_type>\<open>cterm\<close> represent certified types and
   terms, respectively. These are abstract datatypes that guarantee that its
   values have passed the full well-formedness (and well-typedness) checks,
   relative to the declarations of type constructors, constants etc.\ in the
-  background theory. The abstract types @{ML_type ctyp} and @{ML_type cterm}
+  background theory. The abstract types \<^ML_type>\<open>ctyp\<close> and \<^ML_type>\<open>cterm\<close>
   are part of the same inference kernel that is mainly responsible for
-  @{ML_type thm}. Thus syntactic operations on @{ML_type ctyp} and @{ML_type
-  cterm} are located in the @{ML_structure Thm} module, even though theorems
+  \<^ML_type>\<open>thm\<close>. Thus syntactic operations on \<^ML_type>\<open>ctyp\<close> and \<^ML_type>\<open>cterm\<close> are located in the \<^ML_structure>\<open>Thm\<close> module, even though theorems
   are not yet involved at that stage.
 
-  \<^descr> @{ML Thm.ctyp_of}~\<open>ctxt \<tau>\<close> and @{ML Thm.cterm_of}~\<open>ctxt t\<close> explicitly
+  \<^descr> \<^ML>\<open>Thm.ctyp_of\<close>~\<open>ctxt \<tau>\<close> and \<^ML>\<open>Thm.cterm_of\<close>~\<open>ctxt t\<close> explicitly
   check types and terms, respectively. This also involves some basic
   normalizations, such expansion of type and term abbreviations from the
   underlying theory context. Full re-certification is relatively slow and
   should be avoided in tight reasoning loops.
 
-  \<^descr> @{ML Thm.apply}, @{ML Thm.lambda}, @{ML Thm.all}, @{ML Drule.mk_implies}
+  \<^descr> \<^ML>\<open>Thm.apply\<close>, \<^ML>\<open>Thm.lambda\<close>, \<^ML>\<open>Thm.all\<close>, \<^ML>\<open>Drule.mk_implies\<close>
   etc.\ compose certified terms (or propositions) incrementally. This is
-  equivalent to @{ML Thm.cterm_of} after unchecked @{ML_op "$"}, @{ML lambda},
-  @{ML Logic.all}, @{ML Logic.mk_implies} etc., but there can be a big
+  equivalent to \<^ML>\<open>Thm.cterm_of\<close> after unchecked \<^ML_op>\<open>$\<close>, \<^ML>\<open>lambda\<close>,
+  \<^ML>\<open>Logic.all\<close>, \<^ML>\<open>Logic.mk_implies\<close> etc., but there can be a big
   difference in performance when large existing entities are composed by a few
   extra constructions on top. There are separate operations to decompose
   certified terms and theorems to produce certified terms again.
 
-  \<^descr> Type @{ML_type thm} represents proven propositions. This is an abstract
+  \<^descr> Type \<^ML_type>\<open>thm\<close> represents proven propositions. This is an abstract
   datatype that guarantees that its values have been constructed by basic
-  principles of the @{ML_structure Thm} module. Every @{ML_type thm} value
+  principles of the \<^ML_structure>\<open>Thm\<close> module. Every \<^ML_type>\<open>thm\<close> value
   refers its background theory, cf.\ \secref{sec:context-theory}.
 
-  \<^descr> @{ML Thm.transfer}~\<open>thy thm\<close> transfers the given theorem to a \<^emph>\<open>larger\<close>
+  \<^descr> \<^ML>\<open>Thm.transfer\<close>~\<open>thy thm\<close> transfers the given theorem to a \<^emph>\<open>larger\<close>
   theory, see also \secref{sec:context}. This formal adjustment of the
   background context has no logical significance, but is occasionally required
   for formal reasons, e.g.\ when theorems that are imported from more basic
   theories are used in the current situation.
 
-  \<^descr> @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML Thm.forall_elim}, @{ML
-  Thm.implies_intr}, and @{ML Thm.implies_elim} correspond to the primitive
+  \<^descr> \<^ML>\<open>Thm.assume\<close>, \<^ML>\<open>Thm.forall_intr\<close>, \<^ML>\<open>Thm.forall_elim\<close>, \<^ML>\<open>Thm.implies_intr\<close>, and \<^ML>\<open>Thm.implies_elim\<close> correspond to the primitive
   inferences of \figref{fig:prim-rules}.
 
-  \<^descr> @{ML Thm.generalize}~\<open>(\<^vec>\<alpha>, \<^vec>x)\<close> corresponds to the
+  \<^descr> \<^ML>\<open>Thm.generalize\<close>~\<open>(\<^vec>\<alpha>, \<^vec>x)\<close> corresponds to the
   \<open>generalize\<close> rules of \figref{fig:subst-rules}. Here collections of type and
   term variables are generalized simultaneously, specified by the given basic
   names.
 
-  \<^descr> @{ML Thm.instantiate}~\<open>(\<^vec>\<alpha>\<^sub>s, \<^vec>x\<^sub>\<tau>)\<close> corresponds to the
+  \<^descr> \<^ML>\<open>Thm.instantiate\<close>~\<open>(\<^vec>\<alpha>\<^sub>s, \<^vec>x\<^sub>\<tau>)\<close> corresponds to the
   \<open>instantiate\<close> rules of \figref{fig:subst-rules}. Type variables are
   substituted before term variables. Note that the types in \<open>\<^vec>x\<^sub>\<tau>\<close> refer
   to the instantiated versions.
 
-  \<^descr> @{ML Thm.add_axiom}~\<open>ctxt (name, A)\<close> declares an arbitrary proposition as
+  \<^descr> \<^ML>\<open>Thm.add_axiom\<close>~\<open>ctxt (name, A)\<close> declares an arbitrary proposition as
   axiom, and retrieves it as a theorem from the resulting theory, cf.\ \<open>axiom\<close>
   in \figref{fig:prim-rules}. Note that the low-level representation in the
   axiom table may differ slightly from the returned theorem.
 
-  \<^descr> @{ML Thm.add_oracle}~\<open>(binding, oracle)\<close> produces a named oracle rule,
+  \<^descr> \<^ML>\<open>Thm.add_oracle\<close>~\<open>(binding, oracle)\<close> produces a named oracle rule,
   essentially generating arbitrary axioms on the fly, cf.\ \<open>axiom\<close> in
   \figref{fig:prim-rules}.
 
-  \<^descr> @{ML Thm.add_def}~\<open>ctxt unchecked overloaded (name, c \<^vec>x \<equiv> t)\<close>
+  \<^descr> \<^ML>\<open>Thm.add_def\<close>~\<open>ctxt unchecked overloaded (name, c \<^vec>x \<equiv> t)\<close>
   states a definitional axiom for an existing constant \<open>c\<close>. Dependencies are
-  recorded via @{ML Theory.add_deps}, unless the \<open>unchecked\<close> option is set.
+  recorded via \<^ML>\<open>Theory.add_deps\<close>, unless the \<open>unchecked\<close> option is set.
   Note that the low-level representation in the axiom table may differ
   slightly from the returned theorem.
 
-  \<^descr> @{ML Theory.add_deps}~\<open>ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>\<close> declares dependencies of
+  \<^descr> \<^ML>\<open>Theory.add_deps\<close>~\<open>ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>\<close> declares dependencies of
   a named specification for constant \<open>c\<^sub>\<tau>\<close>, relative to existing
   specifications for constants \<open>\<^vec>d\<^sub>\<sigma>\<close>. This also works for type
   constructors.
@@ -694,7 +690,7 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "lemma"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
   @@{ML_antiquotation ctyp} typ
   ;
   @@{ML_antiquotation cterm} term
@@ -707,23 +703,23 @@ text %mlantiq \<open>
   ;
   @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @'by' method method?
-  \<close>}
+  \<close>
 
   \<^descr> \<open>@{ctyp \<tau>}\<close> produces a certified type wrt.\ the current background theory
-  --- as abstract value of type @{ML_type ctyp}.
+  --- as abstract value of type \<^ML_type>\<open>ctyp\<close>.
 
   \<^descr> \<open>@{cterm t}\<close> and \<open>@{cprop \<phi>}\<close> produce a certified term wrt.\ the current
-  background theory --- as abstract value of type @{ML_type cterm}.
+  background theory --- as abstract value of type \<^ML_type>\<open>cterm\<close>.
 
   \<^descr> \<open>@{thm a}\<close> produces a singleton fact --- as abstract value of type
-  @{ML_type thm}.
+  \<^ML_type>\<open>thm\<close>.
 
   \<^descr> \<open>@{thms a}\<close> produces a general fact --- as abstract value of type
-  @{ML_type "thm list"}.
+  \<^ML_type>\<open>thm list\<close>.
 
   \<^descr> \<open>@{lemma \<phi> by meth}\<close> produces a fact that is proven on the spot according
   to the minimal proof, which imitates a terminal Isar proof. The result is an
-  abstract value of type @{ML_type thm} or @{ML_type "thm list"}, depending on
+  abstract value of type \<^ML_type>\<open>thm\<close> or \<^ML_type>\<open>thm list\<close>, depending on
   the number of propositions given here.
 
   The internal derivation object lacks a proper theorem name, but it is
@@ -800,17 +796,17 @@ text %mlref \<open>
   @{index_ML Logic.dest_type: "term -> typ"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Conjunction.intr} derives \<open>A &&& B\<close> from \<open>A\<close> and \<open>B\<close>.
+  \<^descr> \<^ML>\<open>Conjunction.intr\<close> derives \<open>A &&& B\<close> from \<open>A\<close> and \<open>B\<close>.
 
-  \<^descr> @{ML Conjunction.elim} derives \<open>A\<close> and \<open>B\<close> from \<open>A &&& B\<close>.
+  \<^descr> \<^ML>\<open>Conjunction.elim\<close> derives \<open>A\<close> and \<open>B\<close> from \<open>A &&& B\<close>.
 
-  \<^descr> @{ML Drule.mk_term} derives \<open>TERM t\<close>.
+  \<^descr> \<^ML>\<open>Drule.mk_term\<close> derives \<open>TERM t\<close>.
 
-  \<^descr> @{ML Drule.dest_term} recovers term \<open>t\<close> from \<open>TERM t\<close>.
+  \<^descr> \<^ML>\<open>Drule.dest_term\<close> recovers term \<open>t\<close> from \<open>TERM t\<close>.
 
-  \<^descr> @{ML Logic.mk_type}~\<open>\<tau>\<close> produces the term \<open>TYPE(\<tau>)\<close>.
+  \<^descr> \<^ML>\<open>Logic.mk_type\<close>~\<open>\<tau>\<close> produces the term \<open>TYPE(\<tau>)\<close>.
 
-  \<^descr> @{ML Logic.dest_type}~\<open>TYPE(\<tau>)\<close> recovers the type \<open>\<tau>\<close>.
+  \<^descr> \<^ML>\<open>Logic.dest_type\<close>~\<open>TYPE(\<tau>)\<close> recovers the type \<open>\<tau>\<close>.
 \<close>
 
 
@@ -846,17 +842,16 @@ text %mlref \<open>
   @{index_ML Thm.strip_shyps: "thm -> thm"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Thm.extra_shyps}~\<open>thm\<close> determines the extraneous sort hypotheses of
+  \<^descr> \<^ML>\<open>Thm.extra_shyps\<close>~\<open>thm\<close> determines the extraneous sort hypotheses of
   the given theorem, i.e.\ the sorts that are not present within type
   variables of the statement.
 
-  \<^descr> @{ML Thm.strip_shyps}~\<open>thm\<close> removes any extraneous sort hypotheses that
+  \<^descr> \<^ML>\<open>Thm.strip_shyps\<close>~\<open>thm\<close> removes any extraneous sort hypotheses that
   can be witnessed from the type signature.
 \<close>
 
 text %mlex \<open>
-  The following artificial example demonstrates the derivation of @{prop
-  False} with a pending sort hypothesis involving a logically empty sort.
+  The following artificial example demonstrates the derivation of \<^prop>\<open>False\<close> with a pending sort hypothesis involving a logically empty sort.
 \<close>
 
 class empty =
@@ -865,7 +860,7 @@ class empty =
 theorem (in empty) false: False
   using bad by blast
 
-ML_val \<open>@{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])\<close>
+ML_val \<open>\<^assert> (Thm.extra_shyps @{thm false} = [\<^sort>\<open>empty\<close>])\<close>
 
 text \<open>
   Thanks to the inference kernel managing sort hypothesis according to their
@@ -951,7 +946,7 @@ text %mlref \<open>
   @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Simplifier.norm_hhf}~\<open>ctxt thm\<close> normalizes the given theorem
+  \<^descr> \<^ML>\<open>Simplifier.norm_hhf\<close>~\<open>ctxt thm\<close> normalizes the given theorem
   according to the canonical form specified above. This is occasionally
   helpful to repair some low-level tools that do not handle Hereditary Harrop
   Formulae properly.
@@ -1032,7 +1027,7 @@ text %mlref \<open>
   \<^descr> \<open>rule\<^sub>1 RSN (i, rule\<^sub>2)\<close> resolves the conclusion of \<open>rule\<^sub>1\<close> with the
   \<open>i\<close>-th premise of \<open>rule\<^sub>2\<close>, according to the @{inference resolution}
   principle explained above. Unless there is precisely one resolvent it raises
-  exception @{ML THM}.
+  exception \<^ML>\<open>THM\<close>.
 
   This corresponds to the rule attribute @{attribute THEN} in Isar source
   language.
@@ -1044,7 +1039,7 @@ text %mlref \<open>
   with the \<open>i\<close>-th premise of \<open>rule\<^sub>2\<close>, accumulating multiple results in one
   big list. Note that such strict enumerations of higher-order unifications
   can be inefficient compared to the lazy variant seen in elementary tactics
-  like @{ML resolve_tac}.
+  like \<^ML>\<open>resolve_tac\<close>.
 
   \<^descr> \<open>rules\<^sub>1 RL rules\<^sub>2\<close> abbreviates \<open>rules\<^sub>1 RLN (1, rules\<^sub>2)\<close>.
 
@@ -1196,32 +1191,32 @@ text %mlref \<open>
   @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type proof} represents proof terms; this is a datatype with
+  \<^descr> Type \<^ML_type>\<open>proof\<close> represents proof terms; this is a datatype with
   constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_op "%"},
   @{index_ML_op "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
   Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML Promise}, @{index_ML
   PThm} as explained above. %FIXME OfClass (!?)
 
-  \<^descr> Type @{ML_type proof_body} represents the nested proof information of a
+  \<^descr> Type \<^ML_type>\<open>proof_body\<close> represents the nested proof information of a
   named theorem, consisting of a digest of oracles and named theorem over some
   proof term. The digest only covers the directly visible part of the proof:
   in order to get the full information, the implicit graph of nested theorems
-  needs to be traversed (e.g.\ using @{ML Proofterm.fold_body_thms}).
+  needs to be traversed (e.g.\ using \<^ML>\<open>Proofterm.fold_body_thms\<close>).
 
-  \<^descr> @{ML Thm.proof_of}~\<open>thm\<close> and @{ML Thm.proof_body_of}~\<open>thm\<close> produce the
+  \<^descr> \<^ML>\<open>Thm.proof_of\<close>~\<open>thm\<close> and \<^ML>\<open>Thm.proof_body_of\<close>~\<open>thm\<close> produce the
   proof term or proof body (with digest of oracles and theorems) from a given
   theorem. Note that this involves a full join of internal futures that
   fulfill pending proof promises, and thus disrupts the natural bottom-up
   construction of proofs by introducing dynamic ad-hoc dependencies. Parallel
   performance may suffer by inspecting proof terms at run-time.
 
-  \<^descr> @{ML Proofterm.proofs} specifies the detail of proof recording within
-  @{ML_type thm} values produced by the inference kernel: @{ML 0} records only
-  the names of oracles, @{ML 1} records oracle names and propositions, @{ML 2}
+  \<^descr> \<^ML>\<open>Proofterm.proofs\<close> specifies the detail of proof recording within
+  \<^ML_type>\<open>thm\<close> values produced by the inference kernel: \<^ML>\<open>0\<close> records only
+  the names of oracles, \<^ML>\<open>1\<close> records oracle names and propositions, \<^ML>\<open>2\<close>
   additionally records full proof terms. Officially named theorems that
   contribute to a result are recorded in any case.
 
-  \<^descr> @{ML Reconstruct.reconstruct_proof}~\<open>ctxt prop prf\<close> turns the implicit
+  \<^descr> \<^ML>\<open>Reconstruct.reconstruct_proof\<close>~\<open>ctxt prop prf\<close> turns the implicit
   proof term \<open>prf\<close> into a full proof of the given proposition.
 
   Reconstruction may fail if \<open>prf\<close> is not a proof of \<open>prop\<close>, or if it does not
@@ -1229,21 +1224,21 @@ text %mlref \<open>
   for proofs that are constructed manually, but not for those produced
   automatically by the inference kernel.
 
-  \<^descr> @{ML Reconstruct.expand_proof}~\<open>ctxt [thm\<^sub>1, \<dots>, thm\<^sub>n] prf\<close> expands and
+  \<^descr> \<^ML>\<open>Reconstruct.expand_proof\<close>~\<open>ctxt [thm\<^sub>1, \<dots>, thm\<^sub>n] prf\<close> expands and
   reconstructs the proofs of all specified theorems, with the given (full)
   proof. Theorems that are not unique specified via their name may be
   disambiguated by giving their proposition.
 
-  \<^descr> @{ML Proof_Checker.thm_of_proof}~\<open>thy prf\<close> turns the given (full) proof
+  \<^descr> \<^ML>\<open>Proof_Checker.thm_of_proof\<close>~\<open>thy prf\<close> turns the given (full) proof
   into a theorem, by replaying it using only primitive rules of the inference
   kernel.
 
-  \<^descr> @{ML Proof_Syntax.read_proof}~\<open>thy b\<^sub>1 b\<^sub>2 s\<close> reads in a proof term. The
+  \<^descr> \<^ML>\<open>Proof_Syntax.read_proof\<close>~\<open>thy b\<^sub>1 b\<^sub>2 s\<close> reads in a proof term. The
   Boolean flags indicate the use of sort and type information. Usually, typing
   information is left implicit and is inferred during proof reconstruction.
   %FIXME eliminate flags!?
 
-  \<^descr> @{ML Proof_Syntax.pretty_proof}~\<open>ctxt prf\<close> pretty-prints the given proof
+  \<^descr> \<^ML>\<open>Proof_Syntax.pretty_proof\<close>~\<open>ctxt prf\<close> pretty-prints the given proof
   term.
 \<close>
 

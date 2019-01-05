@@ -135,7 +135,7 @@ text \<open>Nonstandard version.\<close>
 lemma NSCDERIV_pow: "NSDERIV (\<lambda>x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))"
   by (metis CDERIV_pow NSDERIV_DERIV_iff One_nat_def)
 
-text \<open>Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero.\<close>
+text \<open>Can't relax the premise \<^term>\<open>x \<noteq> 0\<close>: it isn't continuous at zero.\<close>
 lemma NSCDERIV_inverse: "x \<noteq> 0 \<Longrightarrow> NSDERIV (\<lambda>x. inverse x) x :> - (inverse x)\<^sup>2"
   for x :: complex
   unfolding numeral_2_eq_2 by (rule NSDERIV_inverse)
@@ -145,7 +145,7 @@ lemma CDERIV_inverse: "x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. inverse
   unfolding numeral_2_eq_2 by (rule DERIV_inverse)
 
 
-subsection \<open>Derivative of Reciprocals (Function @{term inverse})\<close>
+subsection \<open>Derivative of Reciprocals (Function \<^term>\<open>inverse\<close>)\<close>
 
 lemma CDERIV_inverse_fun:
   "DERIV f x :> d \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. inverse (f x)) x :> - (d * inverse ((f x)\<^sup>2))"

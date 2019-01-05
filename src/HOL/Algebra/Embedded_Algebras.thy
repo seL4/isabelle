@@ -361,7 +361,7 @@ corollary Span_mem_iff_length_version:
   using Span_eq_combine_set_length_version[OF assms] by blast
 
 
-subsection \<open>Span as the minimal subgroup that contains @{term"K <#> (set Us)"}\<close>
+subsection \<open>Span as the minimal subgroup that contains \<^term>\<open>K <#> (set Us)\<close>\<close>
 
 text \<open>Now we show the link between Span and Group.generate\<close>
 

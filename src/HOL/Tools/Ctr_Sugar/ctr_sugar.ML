@@ -299,11 +299,11 @@ val name_of_ctr = name_of_const "constructor" body_type;
 
 fun name_of_disc t =
   (case head_of t of
-    Abs (_, _, @{const Not} $ (t' $ Bound 0)) =>
+    Abs (_, _, \<^const>\<open>Not\<close> $ (t' $ Bound 0)) =>
     Long_Name.map_base_name (prefix not_prefix) (name_of_disc t')
   | Abs (_, _, Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t') =>
     Long_Name.map_base_name (prefix is_prefix) (name_of_disc t')
-  | Abs (_, _, @{const Not} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t')) =>
+  | Abs (_, _, \<^const>\<open>Not\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t')) =>
     Long_Name.map_base_name (prefix (not_prefix ^ is_prefix)) (name_of_disc t')
   | t' => name_of_const "discriminator" (perhaps (try domain_type)) t');
 
@@ -1033,7 +1033,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
               val disc_eq_case_thms =
                 let
-                  fun const_of_bool b = if b then @{const True} else @{const False};
+                  fun const_of_bool b = if b then \<^const>\<open>True\<close> else \<^const>\<open>False\<close>;
                   fun mk_case_args n = map_index (fn (k, argTs) =>
                     fold_rev Term.absdummy argTs (const_of_bool (n = k))) ctr_Tss;
                   val goals = map_index (fn (n, udisc) =>

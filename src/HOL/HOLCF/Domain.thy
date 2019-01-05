@@ -84,12 +84,12 @@ text \<open>Temporarily relax type constraints.\<close>
 
 setup \<open>
   fold Sign.add_const_constraint
-  [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
-  , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
-  , (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::pcpo"})
-  , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom u defl"})
-  , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom u"})
-  , (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::pcpo u"}) ]
+  [ (\<^const_name>\<open>defl\<close>, SOME \<^typ>\<open>'a::pcpo itself \<Rightarrow> udom defl\<close>)
+  , (\<^const_name>\<open>emb\<close>, SOME \<^typ>\<open>'a::pcpo \<rightarrow> udom\<close>)
+  , (\<^const_name>\<open>prj\<close>, SOME \<^typ>\<open>udom \<rightarrow> 'a::pcpo\<close>)
+  , (\<^const_name>\<open>liftdefl\<close>, SOME \<^typ>\<open>'a::pcpo itself \<Rightarrow> udom u defl\<close>)
+  , (\<^const_name>\<open>liftemb\<close>, SOME \<^typ>\<open>'a::pcpo u \<rightarrow> udom u\<close>)
+  , (\<^const_name>\<open>liftprj\<close>, SOME \<^typ>\<open>udom u \<rightarrow> 'a::pcpo u\<close>) ]
 \<close>
 
 lemma typedef_domain_class:
@@ -142,12 +142,12 @@ text \<open>Restore original typing constraints.\<close>
 
 setup \<open>
   fold Sign.add_const_constraint
-   [(@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"}),
-    (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"}),
-    (@{const_name prj}, SOME @{typ "udom \<rightarrow> 'a::domain"}),
-    (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"}),
-    (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"}),
-    (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"})]
+   [(\<^const_name>\<open>defl\<close>, SOME \<^typ>\<open>'a::domain itself \<Rightarrow> udom defl\<close>),
+    (\<^const_name>\<open>emb\<close>, SOME \<^typ>\<open>'a::domain \<rightarrow> udom\<close>),
+    (\<^const_name>\<open>prj\<close>, SOME \<^typ>\<open>udom \<rightarrow> 'a::domain\<close>),
+    (\<^const_name>\<open>liftdefl\<close>, SOME \<^typ>\<open>'a::predomain itself \<Rightarrow> udom u defl\<close>),
+    (\<^const_name>\<open>liftemb\<close>, SOME \<^typ>\<open>'a::predomain u \<rightarrow> udom u\<close>),
+    (\<^const_name>\<open>liftprj\<close>, SOME \<^typ>\<open>udom u \<rightarrow> 'a::predomain u\<close>)]
 \<close>
 
 ML_file "Tools/domaindef.ML"

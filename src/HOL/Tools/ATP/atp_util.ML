@@ -264,39 +264,39 @@ fun s_not (Const (\<^const_name>\<open>All\<close>, T) $ Abs (s, T', t')) =
     Const (\<^const_name>\<open>Ex\<close>, T) $ Abs (s, T', s_not t')
   | s_not (Const (\<^const_name>\<open>Ex\<close>, T) $ Abs (s, T', t')) =
     Const (\<^const_name>\<open>All\<close>, T) $ Abs (s, T', s_not t')
-  | s_not (@{const HOL.implies} $ t1 $ t2) = @{const HOL.conj} $ t1 $ s_not t2
-  | s_not (@{const HOL.conj} $ t1 $ t2) =
-    @{const HOL.disj} $ s_not t1 $ s_not t2
-  | s_not (@{const HOL.disj} $ t1 $ t2) =
-    @{const HOL.conj} $ s_not t1 $ s_not t2
-  | s_not (@{const False}) = @{const True}
-  | s_not (@{const True}) = @{const False}
-  | s_not (@{const Not} $ t) = t
-  | s_not t = @{const Not} $ t
+  | s_not (\<^const>\<open>HOL.implies\<close> $ t1 $ t2) = \<^const>\<open>HOL.conj\<close> $ t1 $ s_not t2
+  | s_not (\<^const>\<open>HOL.conj\<close> $ t1 $ t2) =
+    \<^const>\<open>HOL.disj\<close> $ s_not t1 $ s_not t2
+  | s_not (\<^const>\<open>HOL.disj\<close> $ t1 $ t2) =
+    \<^const>\<open>HOL.conj\<close> $ s_not t1 $ s_not t2
+  | s_not (\<^const>\<open>False\<close>) = \<^const>\<open>True\<close>
+  | s_not (\<^const>\<open>True\<close>) = \<^const>\<open>False\<close>
+  | s_not (\<^const>\<open>Not\<close> $ t) = t
+  | s_not t = \<^const>\<open>Not\<close> $ t
 
-fun s_conj (@{const True}, t2) = t2
-  | s_conj (t1, @{const True}) = t1
-  | s_conj (@{const False}, _) = @{const False}
-  | s_conj (_, @{const False}) = @{const False}
+fun s_conj (\<^const>\<open>True\<close>, t2) = t2
+  | s_conj (t1, \<^const>\<open>True\<close>) = t1
+  | s_conj (\<^const>\<open>False\<close>, _) = \<^const>\<open>False\<close>
+  | s_conj (_, \<^const>\<open>False\<close>) = \<^const>\<open>False\<close>
   | s_conj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_conj (t1, t2)
 
-fun s_disj (@{const False}, t2) = t2
-  | s_disj (t1, @{const False}) = t1
-  | s_disj (@{const True}, _) = @{const True}
-  | s_disj (_, @{const True}) = @{const True}
+fun s_disj (\<^const>\<open>False\<close>, t2) = t2
+  | s_disj (t1, \<^const>\<open>False\<close>) = t1
+  | s_disj (\<^const>\<open>True\<close>, _) = \<^const>\<open>True\<close>
+  | s_disj (_, \<^const>\<open>True\<close>) = \<^const>\<open>True\<close>
   | s_disj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_disj (t1, t2)
 
-fun s_imp (@{const True}, t2) = t2
-  | s_imp (t1, @{const False}) = s_not t1
-  | s_imp (@{const False}, _) = @{const True}
-  | s_imp (_, @{const True}) = @{const True}
+fun s_imp (\<^const>\<open>True\<close>, t2) = t2
+  | s_imp (t1, \<^const>\<open>False\<close>) = s_not t1
+  | s_imp (\<^const>\<open>False\<close>, _) = \<^const>\<open>True\<close>
+  | s_imp (_, \<^const>\<open>True\<close>) = \<^const>\<open>True\<close>
   | s_imp p = HOLogic.mk_imp p
 
-fun s_iff (@{const True}, t2) = t2
-  | s_iff (t1, @{const True}) = t1
-  | s_iff (@{const False}, t2) = s_not t2
-  | s_iff (t1, @{const False}) = s_not t1
-  | s_iff (t1, t2) = if t1 aconv t2 then @{const True} else HOLogic.eq_const HOLogic.boolT $ t1 $ t2
+fun s_iff (\<^const>\<open>True\<close>, t2) = t2
+  | s_iff (t1, \<^const>\<open>True\<close>) = t1
+  | s_iff (\<^const>\<open>False\<close>, t2) = s_not t2
+  | s_iff (t1, \<^const>\<open>False\<close>) = s_not t1
+  | s_iff (t1, t2) = if t1 aconv t2 then \<^const>\<open>True\<close> else HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
 fun close_form t =
   fold (fn ((s, i), T) => fn t' =>
@@ -352,11 +352,11 @@ fun abs_extensionalize_term ctxt t =
 
 fun unextensionalize_def t =
   case t of
-    @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) =>
+    \<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) =>
     (case strip_comb lhs of
        (c as Const (_, T), args) =>
        if forall is_Var args andalso not (has_duplicates (op =) args) then
-         @{const Trueprop}
+         \<^const>\<open>Trueprop\<close>
          $ (Const (\<^const_name>\<open>HOL.eq\<close>, T --> T --> \<^typ>\<open>bool\<close>)
             $ c $ fold_rev lambda args rhs)
        else
@@ -370,8 +370,8 @@ fun unextensionalize_def t =
    "Meson_Clausify".) *)
 fun transform_elim_prop t =
   case Logic.strip_imp_concl t of
-    @{const Trueprop} $ Var (z, \<^typ>\<open>bool\<close>) =>
-    subst_Vars [(z, @{const False})] t
+    \<^const>\<open>Trueprop\<close> $ Var (z, \<^typ>\<open>bool\<close>) =>
+    subst_Vars [(z, \<^const>\<open>False\<close>)] t
   | Var (z, \<^typ>\<open>prop\<close>) => subst_Vars [(z, \<^prop>\<open>False\<close>)] t
   | _ => t
 

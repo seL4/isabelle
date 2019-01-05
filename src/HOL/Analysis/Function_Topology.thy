@@ -17,7 +17,7 @@ space along the other coordinates. This is the coarsest topology for which the p
 to each factor is continuous.
 
 To form a product of objects in Isabelle/HOL, all these objects should be subsets of a common type
-'a. The product is then @{term "Pi\<^sub>E I X"}, the set of elements from \<open>'i\<close> to \<open>'a\<close> such that the \<open>i\<close>-th
+'a. The product is then \<^term>\<open>Pi\<^sub>E I X\<close>, the set of elements from \<open>'i\<close> to \<open>'a\<close> such that the \<open>i\<close>-th
 coordinate belongs to \<open>X i\<close> for all \<open>i \<in> I\<close>.
 
 Hence, to form a product of topological spaces, all these spaces should be subsets of a common type.

@@ -125,7 +125,7 @@ proof -
     with assms [unfolded wf_eq_minimal, THEN spec, of ?Q]
       obtain x where "x \<in> Field p" and "x \<notin> Field m" and
       min: "\<forall>y. (y, x) \<in> p \<longrightarrow> y \<notin> ?Q" by blast
-    txt \<open>Add @{term x} as topmost element to @{term m}.\<close>
+    txt \<open>Add \<^term>\<open>x\<close> as topmost element to \<^term>\<open>m\<close>.\<close>
     let ?s = "{(y, x) | y. y \<in> Field m}"
     let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)" by (auto simp: Field_def)

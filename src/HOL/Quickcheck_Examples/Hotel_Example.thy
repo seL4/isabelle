@@ -91,9 +91,9 @@ by (auto simp add: initk_def)
 lemmas issued_simps[code] = issued_nil issued.simps(2)
 
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Set.member},
-  @{const_name "issued"}, @{const_name "cards"}, @{const_name "isin"},
-  @{const_name Collect}, @{const_name insert}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>Set.member\<close>,
+  \<^const_name>\<open>issued\<close>, \<^const_name>\<open>cards\<close>, \<^const_name>\<open>isin\<close>,
+  \<^const_name>\<open>Collect\<close>, \<^const_name>\<open>insert\<close>]\<close>
 ML_val \<open>Core_Data.force_modes_and_compilations\<close>
 
 fun find_first :: "('a => 'b option) => 'a list => 'b option"
@@ -135,14 +135,14 @@ let
   fun of_set compfuns (Type ("fun", [T, _])) =
     case body_type (Predicate_Compile_Aux.mk_monadT compfuns T) of
       Type ("Quickcheck_Exhaustive.three_valued", _) => 
-        Const(@{const_name neg_cps_of_set}, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
-    | _ => Const(@{const_name pos_cps_of_set}, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
+        Const(\<^const_name>\<open>neg_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
+    | _ => Const(\<^const_name>\<open>pos_cps_of_set\<close>, HOLogic.mk_setT T --> (Predicate_Compile_Aux.mk_monadT compfuns T))
   fun member compfuns (U as Type ("fun", [T, _])) =
     (absdummy T (absdummy (HOLogic.mk_setT T) (Predicate_Compile_Aux.mk_if compfuns
-      (Const (@{const_name "Set.member"}, T --> HOLogic.mk_setT T --> @{typ bool}) $ Bound 1 $ Bound 0))))
+      (Const (\<^const_name>\<open>Set.member\<close>, T --> HOLogic.mk_setT T --> \<^typ>\<open>bool\<close>) $ Bound 1 $ Bound 0))))
  
 in
-  Core_Data.force_modes_and_compilations @{const_name Set.member}
+  Core_Data.force_modes_and_compilations \<^const_name>\<open>Set.member\<close>
     [(oi, (of_set, false)), (ii, (member, false))]
 end
 \<close>

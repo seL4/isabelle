@@ -8,10 +8,10 @@ theory Fin_Map
   imports "HOL-Analysis.Finite_Product_Measure" "HOL-Library.Finite_Map"
 begin
 
-text \<open>The @{type fmap} type can be instantiated to @{class polish_space}, needed for the proof of
-  projective limit. @{const extensional} functions are used for the representation in order to
-  stay close to the developments of (finite) products @{const Pi\<^sub>E} and their sigma-algebra
-  @{const Pi\<^sub>M}.\<close>
+text \<open>The \<^type>\<open>fmap\<close> type can be instantiated to \<^class>\<open>polish_space\<close>, needed for the proof of
+  projective limit. \<^const>\<open>extensional\<close> functions are used for the representation in order to
+  stay close to the developments of (finite) products \<^const>\<open>Pi\<^sub>E\<close> and their sigma-algebra
+  \<^const>\<open>Pi\<^sub>M\<close>.\<close>
 
 type_notation fmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21)
 
@@ -83,7 +83,7 @@ qed
 
 subsection \<open>Product set of Finite Maps\<close>
 
-text \<open>This is @{term Pi} for Finite Maps, most of this is copied\<close>
+text \<open>This is \<^term>\<open>Pi\<close> for Finite Maps, most of this is copied\<close>
 
 definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> ('i \<Rightarrow>\<^sub>F 'a) set" where
   "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^sub>F i \<in> A i) } "
@@ -93,7 +93,7 @@ syntax
 translations
   "\<Pi>' x\<in>A. B" == "CONST Pi' A (\<lambda>x. B)"
 
-subsubsection\<open>Basic Properties of @{term Pi'}\<close>
+subsubsection\<open>Basic Properties of \<^term>\<open>Pi'\<close>\<close>
 
 lemma Pi'_I[intro!]: "domain f = A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> f \<in> Pi' A B"
   by (simp add: Pi'_def)

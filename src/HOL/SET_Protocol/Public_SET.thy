@@ -31,7 +31,7 @@ abbreviation "priEK A == invKey (pubEK A)"
 abbreviation "priSK A == invKey (pubSK A)"
 
 text\<open>By freeness of agents, no two agents have the same key. Since
- @{term "True\<noteq>False"}, no agent has the same signing and encryption keys.\<close>
+ \<^term>\<open>True\<noteq>False\<close>, no agent has the same signing and encryption keys.\<close>
 
 specification (publicKey)
   injective_publicKey:
@@ -367,7 +367,7 @@ method_setup basic_possibility = \<open>
     "for proving possibility theorems"
 
 
-subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
+subsection\<open>Specialized Rewriting for Theorems About \<^term>\<open>analz\<close> and Image\<close>
 
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
 by blast
@@ -411,7 +411,7 @@ lemma def_abbrev_simp_function:
           keysFor (insert A X) = keysFor (insert B X)"
 by auto
 
-subsubsection\<open>Special Simplification Rules for @{term signCert}\<close>
+subsubsection\<open>Special Simplification Rules for \<^term>\<open>signCert\<close>\<close>
 
 text\<open>Avoids duplicating X and its components!\<close>
 lemma parts_insert_signCert:
@@ -428,7 +428,7 @@ by (simp add: signCert_def insert_commute [of X])
 lemma keysFor_insert_signCert: "keysFor (insert (signCert K X) H) = keysFor H"
 by (simp add: signCert_def)
 
-text\<open>Controlled rewrite rules for @{term signCert}, just the definitions
+text\<open>Controlled rewrite rules for \<^term>\<open>signCert\<close>, just the definitions
   of the others. Encryption primitives are just expanded, despite their huge
   redundancy!\<close>
 lemmas abbrev_simps [simp] =
@@ -477,7 +477,7 @@ lemma EXcrypt_partsE:
 by (unfold EXcrypt_def, blast)
 
 
-subsection\<open>Lemmas to Simplify Expressions Involving @{term analz}\<close>
+subsection\<open>Lemmas to Simplify Expressions Involving \<^term>\<open>analz\<close>\<close>
 
 lemma analz_knows_absorb:
      "Key K \<in> analz (knows Spy evs)  
@@ -511,7 +511,7 @@ lemma in_parts_Says_imp_used:
      "[|Key K \<in> parts {X}; Says A B X \<in> set evs|] ==> Key K \<in> used evs"
 by (blast intro: parts_trans dest!: Says_imp_knows_Spy [THEN parts.Inj])
 
-text\<open>A useful rewrite rule with @{term analz_image_keys_simps}\<close>
+text\<open>A useful rewrite rule with \<^term>\<open>analz_image_keys_simps\<close>\<close>
 lemma Crypt_notin_image_Key: "Crypt K X \<notin> Key ` KK"
 by auto
 

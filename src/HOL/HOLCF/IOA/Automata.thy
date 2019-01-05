@@ -316,7 +316,7 @@ lemma input_enabled_par:
   "compatible A B \<Longrightarrow> input_enabled A \<Longrightarrow> input_enabled B \<Longrightarrow> input_enabled (A \<parallel> B)"
   apply (unfold input_enabled_def)
   apply (simp add: Let_def inputs_of_par trans_of_par)
-  apply (tactic "safe_tac (Context.raw_transfer @{theory} @{theory_context Fun})")
+  apply (tactic "safe_tac (Context.raw_transfer \<^theory> \<^theory_context>\<open>Fun\<close>)")
   apply (simp add: inp_is_act)
   prefer 2
   apply (simp add: inp_is_act)

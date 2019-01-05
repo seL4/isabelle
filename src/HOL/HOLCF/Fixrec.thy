@@ -233,15 +233,15 @@ method_setup fixrec_simp = \<open>
 
 setup \<open>
   Fixrec.add_matchers
-    [ (@{const_name up}, @{const_name match_up}),
-      (@{const_name sinl}, @{const_name match_sinl}),
-      (@{const_name sinr}, @{const_name match_sinr}),
-      (@{const_name spair}, @{const_name match_spair}),
-      (@{const_name Pair}, @{const_name match_Pair}),
-      (@{const_name ONE}, @{const_name match_ONE}),
-      (@{const_name TT}, @{const_name match_TT}),
-      (@{const_name FF}, @{const_name match_FF}),
-      (@{const_name bottom}, @{const_name match_bottom}) ]
+    [ (\<^const_name>\<open>up\<close>, \<^const_name>\<open>match_up\<close>),
+      (\<^const_name>\<open>sinl\<close>, \<^const_name>\<open>match_sinl\<close>),
+      (\<^const_name>\<open>sinr\<close>, \<^const_name>\<open>match_sinr\<close>),
+      (\<^const_name>\<open>spair\<close>, \<^const_name>\<open>match_spair\<close>),
+      (\<^const_name>\<open>Pair\<close>, \<^const_name>\<open>match_Pair\<close>),
+      (\<^const_name>\<open>ONE\<close>, \<^const_name>\<open>match_ONE\<close>),
+      (\<^const_name>\<open>TT\<close>, \<^const_name>\<open>match_TT\<close>),
+      (\<^const_name>\<open>FF\<close>, \<^const_name>\<open>match_FF\<close>),
+      (\<^const_name>\<open>bottom\<close>, \<^const_name>\<open>match_bottom\<close>) ]
 \<close>
 
 hide_const (open) succeed fail run

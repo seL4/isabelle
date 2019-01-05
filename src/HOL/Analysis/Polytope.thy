@@ -3072,7 +3072,7 @@ qed
 
 subsection\<open>Simplexes\<close>
 
-text\<open>The notion of n-simplex for integer @{term"n \<ge> -1"}\<close>
+text\<open>The notion of n-simplex for integer \<^term>\<open>n \<ge> -1\<close>\<close>
 definition simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
   where "n simplex S \<equiv> \<exists>C. \<not> affine_dependent C \<and> int(card C) = n + 1 \<and> S = convex hull C"
 

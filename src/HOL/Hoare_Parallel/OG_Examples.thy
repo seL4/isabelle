@@ -170,10 +170,10 @@ apply oghoare
 \<comment> \<open>35 vc\<close>
 apply simp_all
 \<comment> \<open>16 vc\<close>
-apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
+apply(tactic \<open>ALLGOALS (clarify_tac \<^context>)\<close>)
 \<comment> \<open>11 vc\<close>
 apply simp_all
-apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
+apply(tactic \<open>ALLGOALS (clarify_tac \<^context>)\<close>)
 \<comment> \<open>10 subgoals left\<close>
 apply(erule less_SucE)
  apply simp
@@ -430,13 +430,13 @@ lemma Producer_consumer:
  \<lbrace> \<forall>k<length a. (a ! k)=(\<acute>b ! k)\<rbrace>"
 apply oghoare
 \<comment> \<open>138 vc\<close>
-apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
+apply(tactic \<open>ALLGOALS (clarify_tac \<^context>)\<close>)
 \<comment> \<open>112 subgoals left\<close>
 apply(simp_all (no_asm))
 \<comment> \<open>43 subgoals left\<close>
-apply(tactic \<open>ALLGOALS (conjI_Tac @{context} (K all_tac))\<close>)
+apply(tactic \<open>ALLGOALS (conjI_Tac \<^context> (K all_tac))\<close>)
 \<comment> \<open>419 subgoals left\<close>
-apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
+apply(tactic \<open>ALLGOALS (clarify_tac \<^context>)\<close>)
 \<comment> \<open>99 subgoals left\<close>
 apply(simp_all only:length_0_conv [THEN sym])
 \<comment> \<open>20 subgoals left\<close>
@@ -535,7 +535,7 @@ lemma Example_2: "0<n \<Longrightarrow>
  \<lbrace>\<acute>x=n\<rbrace>"
 apply oghoare
 apply (simp_all cong del: sum.cong_strong)
-apply (tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
+apply (tactic \<open>ALLGOALS (clarify_tac \<^context>)\<close>)
 apply (simp_all cong del: sum.cong_strong)
    apply(erule (1) Example2_lemma2)
   apply(erule (1) Example2_lemma2)

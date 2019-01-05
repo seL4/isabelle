@@ -8,8 +8,8 @@ begin
 
 subsubsection "Orderings"
 
-text\<open>The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
-defined in @{theory Main}, more precisely in theories @{theory HOL.Orderings} and @{theory HOL.Lattices}.
+text\<open>The basic type classes \<^class>\<open>order\<close>, \<^class>\<open>semilattice_sup\<close> and \<^class>\<open>order_top\<close> are
+defined in \<^theory>\<open>Main\<close>, more precisely in theories \<^theory>\<open>HOL.Orderings\<close> and \<^theory>\<open>HOL.Lattices\<close>.
 If you view this theory with jedit, just click on the names to get there.\<close>
 
 class semilattice_sup_top = semilattice_sup + order_top
@@ -164,8 +164,8 @@ and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
 text\<open>The for-clause (here and elsewhere) only serves the purpose of fixing
-the name of the type parameter @{typ 'av} which would otherwise be renamed to
-@{typ 'a}.\<close>
+the name of the type parameter \<^typ>\<open>'av\<close> which would otherwise be renamed to
+\<^typ>\<open>'a\<close>.\<close>
 
 locale Abs_Int_fun = Val_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
@@ -354,10 +354,10 @@ assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
 text\<open>The predicates \<open>top_on_ty a X\<close> that follow describe that any abstract
-state in \<open>a\<close> maps all variables in \<open>X\<close> to @{term \<top>}.
+state in \<open>a\<close> maps all variables in \<open>X\<close> to \<^term>\<open>\<top>\<close>.
 This is an important invariant for the termination proof where we argue that only
 the finitely many variables in the program change. That the others do not change
-follows because they remain @{term \<top>}.\<close>
+follows because they remain \<^term>\<open>\<top>\<close>.\<close>
 
 fun top_on_st :: "'av st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>s") where
 "top_on_st S X = (\<forall>x\<in>X. S x = \<top>)"

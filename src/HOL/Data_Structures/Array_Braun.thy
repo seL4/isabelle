@@ -51,7 +51,7 @@ by auto arith
 declare upt_Suc[simp del]
 
 
-paragraph \<open>@{const lookup1}\<close>
+paragraph \<open>\<^const>\<open>lookup1\<close>\<close>
 
 lemma nth_list_lookup1: "\<lbrakk>braun t; i < size t\<rbrakk> \<Longrightarrow> list t ! i = lookup1 t (i+1)"
 proof(induction t arbitrary: i)
@@ -66,7 +66,7 @@ lemma list_eq_map_lookup1: "braun t \<Longrightarrow> list t = map (lookup1 t) [
 by(auto simp add: list_eq_iff_nth_eq size_list nth_list_lookup1)
 
 
-paragraph \<open>@{const update1}\<close>
+paragraph \<open>\<^const>\<open>update1\<close>\<close>
 
 lemma size_update1: "\<lbrakk> braun t;  n \<in> {1.. size t} \<rbrakk> \<Longrightarrow> size(update1 n x t) = size t"
 proof(induction t arbitrary: n)
@@ -118,7 +118,7 @@ next
 qed
 
 
-paragraph \<open>@{const adds}\<close>
+paragraph \<open>\<^const>\<open>adds\<close>\<close>
 
 lemma splice_last: shows
   "size ys \<le> size xs \<Longrightarrow> splice (xs @ [x]) ys = splice xs ys @ [x]"
@@ -192,7 +192,7 @@ fun del_hi :: "nat \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 subsubsection "Functional Correctness"
 
 
-paragraph \<open>@{const add_lo}\<close>
+paragraph \<open>\<^const>\<open>add_lo\<close>\<close>
 
 lemma list_add_lo: "braun t \<Longrightarrow> list (add_lo a t) = a # list t"
 by(induction t arbitrary: a) auto
@@ -201,7 +201,7 @@ lemma braun_add_lo: "braun t \<Longrightarrow> braun(add_lo x t)"
 by(induction t arbitrary: x) (auto simp add: list_add_lo simp flip: size_list)
 
 
-paragraph \<open>@{const del_lo}\<close>
+paragraph \<open>\<^const>\<open>del_lo\<close>\<close>
 
 lemma list_merge: "braun (Node l x r) \<Longrightarrow> list(merge l r) = splice (list l) (list r)"
 by (induction l r rule: merge.induct) auto
@@ -216,7 +216,7 @@ lemma braun_del_lo: "braun t \<Longrightarrow> braun(del_lo t)"
 by (cases t) (simp_all add: braun_merge)
 
 
-paragraph \<open>@{const del_hi}\<close>
+paragraph \<open>\<^const>\<open>del_hi\<close>\<close>
 
 lemma list_Nil_iff: "list t = [] \<longleftrightarrow> t = Leaf"
 by(cases t) simp_all

@@ -33,22 +33,20 @@ text \<open>
 section \<open>A polymorphic heap inside a monad\<close>
 
 text \<open>
-  Heaps (@{type heap}) can be populated by values of class @{class
-  heap}; HOL's default types are already instantiated to class @{class
-  heap}.  Class @{class heap} is a subclass of @{class countable};  see
-  theory \<open>Countable\<close> for ways to instantiate types as @{class countable}.
+  Heaps (\<^type>\<open>heap\<close>) can be populated by values of class \<^class>\<open>heap\<close>; HOL's default types are already instantiated to class \<^class>\<open>heap\<close>.  Class \<^class>\<open>heap\<close> is a subclass of \<^class>\<open>countable\<close>;  see
+  theory \<open>Countable\<close> for ways to instantiate types as \<^class>\<open>countable\<close>.
 
-  The heap is wrapped up in a monad @{typ "'a Heap"} by means of the
+  The heap is wrapped up in a monad \<^typ>\<open>'a Heap\<close> by means of the
   following specification:
 
   \begin{quote}
-    @{datatype Heap}
+    \<^datatype>\<open>Heap\<close>
   \end{quote}
 
   Unwrapping of this monad type happens through
 
   \begin{quote}
-    @{term_type execute} \\
+    \<^term_type>\<open>execute\<close> \\
     @{thm execute.simps [no_vars]}
   \end{quote}
 
@@ -66,31 +64,30 @@ text \<open>
   Monadic expression involve the usual combinators:
 
   \begin{quote}
-    @{term_type return} \\
-    @{term_type bind} \\
-    @{term_type raise}
+    \<^term_type>\<open>return\<close> \\
+    \<^term_type>\<open>bind\<close> \\
+    \<^term_type>\<open>raise\<close>
   \end{quote}
 
-  This is also associated with nice monad do-syntax.  The @{typ
-  string} argument to @{const raise} is just a codified comment.
+  This is also associated with nice monad do-syntax.  The \<^typ>\<open>string\<close> argument to \<^const>\<open>raise\<close> is just a codified comment.
 
   Among a couple of generic combinators the following is helpful for
   establishing invariants:
 
   \begin{quote}
-    @{term_type assert} \\
+    \<^term_type>\<open>assert\<close> \\
     @{thm assert_def [no_vars]}
   \end{quote}
 \<close>
 
 
-section \<open>Relational reasoning about @{type Heap} expressions\<close>
+section \<open>Relational reasoning about \<^type>\<open>Heap\<close> expressions\<close>
 
 text \<open>
   To establish correctness of imperative programs, predicate
 
   \begin{quote}
-    @{term_type effect}
+    \<^term_type>\<open>effect\<close>
   \end{quote}
 
   provides a simple relational calculus.  Primitive rules are \<open>effectI\<close> and \<open>effectE\<close>, rules appropriate for reasoning about
@@ -101,13 +98,13 @@ text \<open>
   on the heap at all;  reasoning then can be easier using predicate
 
   \begin{quote}
-    @{term_type success}
+    \<^term_type>\<open>success\<close>
   \end{quote}
 
-  Introduction rules for @{const success} are available in the
+  Introduction rules for \<^const>\<open>success\<close> are available in the
   \<open>success_intro\<close> fact collection.
 
-  @{const execute}, @{const effect}, @{const success} and @{const bind}
+  \<^const>\<open>execute\<close>, \<^const>\<open>effect\<close>, \<^const>\<open>success\<close> and \<^const>\<open>bind\<close>
   are related by rules \<open>execute_bind_success\<close>, \<open>success_bind_executeI\<close>, \<open>success_bind_effectI\<close>, \<open>effect_bindI\<close>, \<open>effect_bindE\<close> and \<open>execute_bind_eq_SomeI\<close>.
 \<close>
 
@@ -141,27 +138,27 @@ text \<open>
   Heap operations:
 
   \begin{quote}
-    @{term_type Array.alloc} \\
-    @{term_type Array.present} \\
-    @{term_type Array.get} \\
-    @{term_type Array.set} \\
-    @{term_type Array.length} \\
-    @{term_type Array.update} \\
-    @{term_type Array.noteq}
+    \<^term_type>\<open>Array.alloc\<close> \\
+    \<^term_type>\<open>Array.present\<close> \\
+    \<^term_type>\<open>Array.get\<close> \\
+    \<^term_type>\<open>Array.set\<close> \\
+    \<^term_type>\<open>Array.length\<close> \\
+    \<^term_type>\<open>Array.update\<close> \\
+    \<^term_type>\<open>Array.noteq\<close>
   \end{quote}
 
   Monad operations:
 
   \begin{quote}
-    @{term_type Array.new} \\
-    @{term_type Array.of_list} \\
-    @{term_type Array.make} \\
-    @{term_type Array.len} \\
-    @{term_type Array.nth} \\
-    @{term_type Array.upd} \\
-    @{term_type Array.map_entry} \\
-    @{term_type Array.swap} \\
-    @{term_type Array.freeze}
+    \<^term_type>\<open>Array.new\<close> \\
+    \<^term_type>\<open>Array.of_list\<close> \\
+    \<^term_type>\<open>Array.make\<close> \\
+    \<^term_type>\<open>Array.len\<close> \\
+    \<^term_type>\<open>Array.nth\<close> \\
+    \<^term_type>\<open>Array.upd\<close> \\
+    \<^term_type>\<open>Array.map_entry\<close> \\
+    \<^term_type>\<open>Array.swap\<close> \\
+    \<^term_type>\<open>Array.freeze\<close>
   \end{quote}
 \<close>
 
@@ -171,20 +168,20 @@ text \<open>
   Heap operations:
 
   \begin{quote}
-    @{term_type Ref.alloc} \\
-    @{term_type Ref.present} \\
-    @{term_type Ref.get} \\
-    @{term_type Ref.set} \\
-    @{term_type Ref.noteq}
+    \<^term_type>\<open>Ref.alloc\<close> \\
+    \<^term_type>\<open>Ref.present\<close> \\
+    \<^term_type>\<open>Ref.get\<close> \\
+    \<^term_type>\<open>Ref.set\<close> \\
+    \<^term_type>\<open>Ref.noteq\<close>
   \end{quote}
 
   Monad operations:
 
   \begin{quote}
-    @{term_type Ref.ref} \\
-    @{term_type Ref.lookup} \\
-    @{term_type Ref.update} \\
-    @{term_type Ref.change}
+    \<^term_type>\<open>Ref.ref\<close> \\
+    \<^term_type>\<open>Ref.lookup\<close> \\
+    \<^term_type>\<open>Ref.update\<close> \\
+    \<^term_type>\<open>Ref.change\<close>
   \end{quote}
 \<close>
 

@@ -120,7 +120,7 @@ fun unoverload_impl cconst thm =
 (** END OF THE CRITICAL CODE **)
 
 val (_, unoverload_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding unoverload},
+  (Thm.add_oracle (\<^binding>\<open>unoverload\<close>,
   fn (const, thm) => unoverload_impl const  thm)));
 
 fun unoverload const thm = unoverload_oracle (const, thm);
@@ -134,7 +134,7 @@ val const = Args.context -- Args.term  >>
     then error ("The term is not a constant: " ^ Syntax.string_of_term ctxt tm)
     else tm |> Logic.varify_types_global |> Thm.cterm_of ctxt);
 
-val _ = Context.>> (Context.map_theory (Attrib.setup @{binding unoverload}
+val _ = Context.>> (Context.map_theory (Attrib.setup \<^binding>\<open>unoverload\<close>
   (const >> unoverload_attr) "unoverload an uninterpreted constant"));
 
 end;

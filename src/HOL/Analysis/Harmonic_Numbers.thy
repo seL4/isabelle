@@ -13,7 +13,7 @@ begin
 
 text \<open>
   The definition of the Harmonic Numbers and the Euler-Mascheroni constant.
-  Also provides a reasonably accurate approximation of @{term "ln 2 :: real"}
+  Also provides a reasonably accurate approximation of \<^term>\<open>ln 2 :: real\<close>
   and the Euler-Mascheroni constant.
 \<close>
 
@@ -515,7 +515,7 @@ lemma euler_mascheroni_bounds':
 
 
 text \<open>
-  Approximation of @{term "ln 2"}. The lower bound is accurate to about 0.03; the upper
+  Approximation of \<^term>\<open>ln 2\<close>. The lower bound is accurate to about 0.03; the upper
   bound is accurate to about 0.0015.
 \<close>
 lemma ln2_ge_two_thirds: "2/3 \<le> ln (2::real)"

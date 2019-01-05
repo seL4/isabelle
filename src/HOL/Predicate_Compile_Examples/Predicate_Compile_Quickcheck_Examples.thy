@@ -295,8 +295,7 @@ definition "scalar_product v w = (\<Sum> (x, y)\<leftarrow>zip v w. x * y)"
 definition mv :: "('a :: semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   where [simp]: "mv M v = map (scalar_product v) M"
 text \<open>
-  This defines the matrix vector multiplication. To work properly @{term
-"matrix M m n \<and> length v = n"} must hold.
+  This defines the matrix vector multiplication. To work properly \<^term>\<open>matrix M m n \<and> length v = n\<close> must hold.
 \<close>
 
 subsection "Compressed matrix"

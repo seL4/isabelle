@@ -57,7 +57,7 @@ lemma ch2ch_fun: "chain S \<Longrightarrow> chain (\<lambda>i. S i x)"
 lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
   by (simp add: chain_def below_fun_def)
 
-text \<open>Type @{typ "'a::type \<Rightarrow> 'b::cpo"} is chain complete\<close>
+text \<open>Type \<^typ>\<open>'a::type \<Rightarrow> 'b::cpo\<close> is chain complete\<close>
 
 lemma is_lub_lambda: "(\<And>x. range (\<lambda>i. Y i x) <<| f x) \<Longrightarrow> range Y <<| f"
   by (simp add: is_lub_def is_ub_def below_fun_def)

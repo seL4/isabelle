@@ -633,7 +633,7 @@ lemma t_get_min_rest_bound:
   shows "t_get_min_rest ts \<le> log 2 (size (mset_heap ts) + 1)"
 using assms t_get_min_rest_bound_aux unfolding invar_def by blast
 
-text\<open>Note that although the definition of function @{const rev} has quadratic complexity,
+text\<open>Note that although the definition of function \<^const>\<open>rev\<close> has quadratic complexity,
 it can and is implemented (via suitable code lemmas) as a linear time function.
 Thus the following definition is justified:\<close>
 

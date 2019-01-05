@@ -338,10 +338,10 @@ proof (vcg)
             proof (rule allI, rule impI)
               fix x
               assume a: "x \<in> R \<and> \<not> m x"
-              \<comment> \<open>First, a disjunction on @{term"p^.r"} used later in the proof\<close>
+              \<comment> \<open>First, a disjunction on \<^term>\<open>p^.r\<close> used later in the proof\<close>
               have pDisj:"p^.r = Null \<or> (p^.r \<noteq> Null \<and> p^.r^.m)" using poI1 poI2 
                 by auto
-              \<comment> \<open>@{term x} belongs to the left hand side of @{thm[source] subset}:\<close>
+              \<comment> \<open>\<^term>\<open>x\<close> belongs to the left hand side of @{thm[source] subset}:\<close>
               have incl: "x \<in> ?Ra\<^sup>*``addrs ?A" using  a i4 by (simp only:reachable_def, clarsimp)
               have excl: "x \<notin> ?Rb\<^sup>*`` addrs ?T" using pDisj ifB1 a by (auto simp add:addrs_def)
               \<comment> \<open>And therefore also belongs to the right hand side of @{thm[source]subset},\<close>
@@ -354,14 +354,14 @@ proof (vcg)
             from i5 have poI5: "\<forall>x. m x \<longrightarrow> x \<in> R" .
             moreover
 
-            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
+            \<comment> \<open>If it is not on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields are unchanged\<close>
             from i7 i6 ifB2 
             have poI6: "\<forall>x. x \<notin> set stack_tl \<longrightarrow> (r(p \<rightarrow> t)) x = iR x \<and> l x = iL x" 
               by(auto simp: addr_p_eq stack_eq fun_upd_apply)
 
             moreover
 
-            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
+            \<comment> \<open>If it is on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields can be reconstructed\<close>
             from p_notin_stack_tl i7 have poI7: "stkOk c l (r(p \<rightarrow> t)) iL iR p stack_tl"
               by (clarsimp simp:stack_eq addr_p_eq)
 
@@ -454,13 +454,13 @@ proof (vcg)
             have "?swI5" .
             moreover
 
-            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
+            \<comment> \<open>If it is not on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields are unchanged\<close>
             from i6 stack_eq
             have "?swI6"
               by clarsimp           
             moreover
 
-            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
+            \<comment> \<open>If it is on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields can be reconstructed\<close>
             from stackDist i7 nifB2 
             have "?swI7"
               by (clarsimp simp:addr_p_eq stack_eq)
@@ -552,13 +552,13 @@ proof (vcg)
               by (auto simp:addrs_def i3 reachable_def addr_t_eq fun_upd_apply intro:self_reachable)
             moreover
             
-            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
+            \<comment> \<open>If it is not on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields are unchanged\<close>
             from i6 
             have "?puI6"
               by (simp add:new_stack_eq)
             moreover
 
-            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
+            \<comment> \<open>If it is on the stack, then its \<^term>\<open>l\<close> and \<^term>\<open>r\<close> fields can be reconstructed\<close>
             from stackDist i6 t_notin_stack i7
             have "?puI7" by (clarsimp simp:addr_t_eq new_stack_eq)
 

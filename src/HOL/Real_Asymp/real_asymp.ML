@@ -14,13 +14,13 @@ fun prove_limit_at_top ectxt f filter =
     val basis = Asymptotic_Basis.default_basis
     val prover =
       case filter of
-        Const (@{const_name "Topological_Spaces.nhds"}, _) $ _ => SOME Exp.prove_nhds
-      | @{term "at (0 :: real)"} => SOME Exp.prove_at_0
-      | @{term "at_left (0 :: real)"} => SOME Exp.prove_at_left_0
-      | @{term "at_right (0 :: real)"} => SOME Exp.prove_at_right_0
-      | @{term "at_infinity :: real filter"} => SOME Exp.prove_at_infinity
-      | @{term "at_top :: real filter"} => SOME Exp.prove_at_top
-      | @{term "at_bot :: real filter"} => SOME Exp.prove_at_bot
+        Const (\<^const_name>\<open>Topological_Spaces.nhds\<close>, _) $ _ => SOME Exp.prove_nhds
+      | \<^term>\<open>at (0 :: real)\<close> => SOME Exp.prove_at_0
+      | \<^term>\<open>at_left (0 :: real)\<close> => SOME Exp.prove_at_left_0
+      | \<^term>\<open>at_right (0 :: real)\<close> => SOME Exp.prove_at_right_0
+      | \<^term>\<open>at_infinity :: real filter\<close> => SOME Exp.prove_at_infinity
+      | \<^term>\<open>at_top :: real filter\<close> => SOME Exp.prove_at_top
+      | \<^term>\<open>at_bot :: real filter\<close> => SOME Exp.prove_at_bot
       | _ => NONE
     val lim_thm = Option.map (fn prover => prover ectxt (Exp.expand_term ectxt f basis)) prover
   in
@@ -34,11 +34,11 @@ fun prove_limit_at_top ectxt f filter =
 
 fun prove_eventually_at_top ectxt p =
   case Envir.eta_long [] p of
-    Abs (x, @{typ Real.real}, Const (rel, _) $ f $ g) => ((
+    Abs (x, \<^typ>\<open>Real.real\<close>, Const (rel, _) $ f $ g) => ((
       let
-        val (f, g) = apply2 (fn t => Abs (x, @{typ Real.real}, t)) (f, g)
-        val _ = if rel = @{const_name "Orderings.less"} 
-                    orelse rel = @{const_name "Orderings.less_eq"} then ()
+        val (f, g) = apply2 (fn t => Abs (x, \<^typ>\<open>Real.real\<close>, t)) (f, g)
+        val _ = if rel = \<^const_name>\<open>Orderings.less\<close> 
+                    orelse rel = \<^const_name>\<open>Orderings.less_eq\<close> then ()
                   else raise TERM ("prove_eventually_at_top", [p])
         val ctxt = get_ctxt ectxt
         val basis = Asymptotic_Basis.default_basis
@@ -58,10 +58,10 @@ fun prove_landau ectxt l f g =
     val ([thm1, thm2], basis) = Exp.expand_terms ectxt [f, g] basis
     val prover =
       case l' of
-        @{const_name smallo} => Exp.prove_smallo
-      | @{const_name bigo} => Exp.prove_bigo
-      | @{const_name bigtheta} => Exp.prove_bigtheta
-      | @{const_name asymp_equiv} => Exp.prove_asymp_equiv
+        \<^const_name>\<open>smallo\<close> => Exp.prove_smallo
+      | \<^const_name>\<open>bigo\<close> => Exp.prove_bigo
+      | \<^const_name>\<open>bigtheta\<close> => Exp.prove_bigtheta
+      | \<^const_name>\<open>asymp_equiv\<close> => Exp.prove_asymp_equiv
       | _ => raise TERM ("prove_landau", [f, g])
   in
     HEADGOAL (resolve_tac ctxt [prover ectxt (thm1, thm2, basis)])
@@ -95,9 +95,9 @@ fun preproc_exp_log_natintfun_conv ctxt =
     fun conv (x, ctxt) =
       let
         val thms1 =
-           Named_Theorems.get ctxt @{named_theorems real_asymp_nat_reify}
+           Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_nat_reify\<close>
         val thms2 =
-           Named_Theorems.get ctxt @{named_theorems real_asymp_int_reify}
+           Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_int_reify\<close>
         val ctxt' = put_simpset HOL_basic_ss ctxt addsimps (thms1 @ thms2)
       in
         repeat'_conv (
@@ -117,14 +117,14 @@ fun preproc_tac ctxt =
         val conv = preproc_exp_log_natintfun_conv ctxt
         val conv =
           case Thm.term_of goal of
-            @{term "HOL.Trueprop"} $ t => (case t of
-              Const (@{const_name Filter.filterlim}, _) $ _ $ _ $ _ =>
+            \<^term>\<open>HOL.Trueprop\<close> $ t => (case t of
+              Const (\<^const_name>\<open>Filter.filterlim\<close>, _) $ _ $ _ $ _ =>
                 Conv.fun_conv (Conv.fun_conv (Conv.arg_conv conv))
-            | Const (@{const_name Filter.eventually}, _) $ _ $ _ =>
+            | Const (\<^const_name>\<open>Filter.eventually\<close>, _) $ _ $ _ =>
                 Conv.fun_conv (Conv.arg_conv conv)
-            | Const (@{const_name Set.member}, _) $ _ $ (_ $ _ $ _) =>
+            | Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $ (_ $ _ $ _) =>
                 Conv.combination_conv (Conv.arg_conv conv) (Conv.arg_conv conv)
-            | Const (@{const_name Landau_Symbols.asymp_equiv}, _) $ _ $ _ $ _ =>
+            | Const (\<^const_name>\<open>Landau_Symbols.asymp_equiv\<close>, _) $ _ $ _ $ _ =>
                 Conv.combination_conv (Conv.fun_conv (Conv.arg_conv conv)) conv
             | _ => Conv.all_conv)
           | _ => Conv.all_conv
@@ -145,13 +145,13 @@ datatype ('a, 'b) sum = Inl of 'a | Inr of 'b
 
 fun prove_eventually ectxt p filter =
   case filter of
-    @{term "Filter.at_top :: real filter"} => (prove_eventually_at_top ectxt p
+    \<^term>\<open>Filter.at_top :: real filter\<close> => (prove_eventually_at_top ectxt p
       handle TERM _ => no_tac | THM _ => no_tac)
   | _ => HEADGOAL (CONVERSION (Conv.rewrs_conv eventually_substs) 
          THEN' tac' (#verbose (#ctxt ectxt)) (Inr ectxt))
 and prove_limit ectxt f filter filter' =
   case filter' of
-    @{term "Filter.at_top :: real filter"} => (prove_limit_at_top ectxt f filter 
+    \<^term>\<open>Filter.at_top :: real filter\<close> => (prove_limit_at_top ectxt f filter 
       handle TERM _ => no_tac | THM _ => no_tac)
   | _ => HEADGOAL (CONVERSION (Conv.rewrs_conv filterlim_substs) 
          THEN' tac' (#verbose (#ctxt ectxt)) (Inr ectxt))
@@ -168,15 +168,15 @@ and tac' verbose ctxt_or_ectxt =
           | Inr ectxt => ectxt
       in
         case Thm.term_of goal of
-          @{term "HOL.Trueprop"} $ t => ((case t of
-            @{term "Filter.filterlim :: (real \<Rightarrow> real) \<Rightarrow> _"} $ f $ filter $ filter' =>
+          \<^term>\<open>HOL.Trueprop\<close> $ t => ((case t of
+            \<^term>\<open>Filter.filterlim :: (real \<Rightarrow> real) \<Rightarrow> _\<close> $ f $ filter $ filter' =>
               (prove_limit ectxt f filter filter' handle TERM _ => no_tac | THM _ => no_tac)
-          | @{term "Filter.eventually :: (real \<Rightarrow> bool) \<Rightarrow> _"} $ p $ filter =>
+          | \<^term>\<open>Filter.eventually :: (real \<Rightarrow> bool) \<Rightarrow> _\<close> $ p $ filter =>
               (prove_eventually ectxt p filter handle TERM _ => no_tac | THM _ => no_tac)
-          | @{term "Set.member :: (real => real) => _"} $ f $ 
-              (l $ @{term "at_top :: real filter"} $ g) =>
+          | \<^term>\<open>Set.member :: (real => real) => _\<close> $ f $ 
+              (l $ \<^term>\<open>at_top :: real filter\<close> $ g) =>
                 (prove_landau ectxt l f g handle TERM _ => no_tac | THM _ => no_tac)
-          | (l as @{term "Landau_Symbols.asymp_equiv :: (real\<Rightarrow>real)\<Rightarrow>_"}) $ f $ _ $ g =>
+          | (l as \<^term>\<open>Landau_Symbols.asymp_equiv :: (real\<Rightarrow>real)\<Rightarrow>_\<close>) $ f $ _ $ g =>
               (prove_landau ectxt l f g handle TERM _ => no_tac | THM _ => no_tac)
           | _ => no_tac) THEN distinct_subgoals_tac)
         | _ => no_tac

@@ -25,7 +25,7 @@ text "Unary minus works as for decimal numerals"
 lemma "- 0x0A = - 10" by (rule refl)
 
 text \<open>
-  Hex and bin numerals are printed as decimal: @{term "0b10"}
+  Hex and bin numerals are printed as decimal: \<^term>\<open>0b10\<close>
 \<close>
 term "0b10"
 term "0x0A"

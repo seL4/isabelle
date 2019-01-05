@@ -168,8 +168,8 @@ definition
        Abs_Exp (\<Union>Us \<in> listset (map Rep_Exp Xs). exprel `` {FNCALL F Us})"
 
 
-text\<open>Reduces equality of equivalence classes to the @{term exprel} relation:
-  @{term "(exprel `` {x} = exprel `` {y}) = ((x,y) \<in> exprel)"}\<close>
+text\<open>Reduces equality of equivalence classes to the \<^term>\<open>exprel\<close> relation:
+  \<^term>\<open>(exprel `` {x} = exprel `` {y}) = ((x,y) \<in> exprel)\<close>\<close>
 lemmas equiv_exprel_iff = eq_equiv_class_iff [OF equiv_exprel UNIV_I UNIV_I]
 
 declare equiv_exprel_iff [simp]
@@ -237,8 +237,8 @@ proof -
 qed
 
 text\<open>It is not clear what to do with FnCall: it's argument is an abstraction
-of an @{typ "exp list"}. Is it just Nil or Cons? What seems to work best is to
-regard an @{typ "exp list"} as a @{term "listrel exprel"} equivalence class\<close>
+of an \<^typ>\<open>exp list\<close>. Is it just Nil or Cons? What seems to work best is to
+regard an \<^typ>\<open>exp list\<close> as a \<^term>\<open>listrel exprel\<close> equivalence class\<close>
 
 text\<open>This theorem is easily proved but never used. There's no obvious way
 even to state the analogous result, \<open>FnCall_Cons\<close>.\<close>
@@ -288,13 +288,13 @@ definition
 lemma vars_respects: "freevars respects exprel"
 by (auto simp add: congruent_def exprel_imp_eq_freevars) 
 
-text\<open>The extension of the function @{term vars} to lists\<close>
+text\<open>The extension of the function \<^term>\<open>vars\<close> to lists\<close>
 primrec vars_list :: "exp list \<Rightarrow> nat set" where
   "vars_list []    = {}"
 | "vars_list(E#Es) = vars E \<union> vars_list Es"
 
 
-text\<open>Now prove the three equations for @{term vars}\<close>
+text\<open>Now prove the three equations for \<^term>\<open>vars\<close>\<close>
 
 lemma vars_Variable [simp]: "vars (Var N) = {N}"
 by (simp add: vars_def Var_def 
@@ -325,7 +325,7 @@ subsection\<open>Injectivity Properties of Some Constructors\<close>
 lemma VAR_imp_eq: "VAR m \<sim> VAR n \<Longrightarrow> m = n"
 by (drule exprel_imp_eq_freevars, simp)
 
-text\<open>Can also be proved using the function @{term vars}\<close>
+text\<open>Can also be proved using the function \<^term>\<open>vars\<close>\<close>
 lemma Var_Var_eq [iff]: "(Var m = Var n) = (m = n)"
 by (auto simp add: Var_def exprel_refl dest: VAR_imp_eq)
 
@@ -344,7 +344,7 @@ apply (auto simp add: FnCall Var_def)
 apply (drule exprel_imp_eq_freediscrim, simp)
 done
 
-subsection\<open>Injectivity of @{term FnCall}\<close>
+subsection\<open>Injectivity of \<^term>\<open>FnCall\<close>\<close>
 
 definition
   "fun" :: "exp \<Rightarrow> nat" where
@@ -400,7 +400,7 @@ definition
 lemma discrim_respects: "(\<lambda>U. {freediscrim U}) respects exprel"
 by (auto simp add: congruent_def exprel_imp_eq_freediscrim) 
 
-text\<open>Now prove the four equations for @{term discrim}\<close>
+text\<open>Now prove the four equations for \<^term>\<open>discrim\<close>\<close>
 
 lemma discrim_Var [simp]: "discrim (Var N) = 0"
 by (simp add: discrim_def Var_def 

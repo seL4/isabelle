@@ -56,9 +56,9 @@ syntax ("" output)
                  ("{_} // _ // {_}" [0,55,0] 50)
 
 ML_file "hoare_syntax.ML"
-parse_translation \<open>[(@{syntax_const "_hoare_abort_vars"}, K Hoare_Syntax.hoare_vars_tr)]\<close>
+parse_translation \<open>[(\<^syntax_const>\<open>_hoare_abort_vars\<close>, K Hoare_Syntax.hoare_vars_tr)]\<close>
 print_translation
-  \<open>[(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare_abort"}))]\<close>
+  \<open>[(\<^const_syntax>\<open>Valid\<close>, K (Hoare_Syntax.spec_tr' \<^syntax_const>\<open>_hoare_abort\<close>))]\<close>
 
 
 section \<open>The proof rules\<close>

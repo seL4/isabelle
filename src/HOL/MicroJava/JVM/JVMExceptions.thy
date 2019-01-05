@@ -48,7 +48,7 @@ text \<open>
 
 text \<open>
   Only program counters that are mentioned in the exception table
-  can be returned by @{term match_exception_table}:
+  can be returned by \<^term>\<open>match_exception_table\<close>:
 \<close>
 lemma match_exception_table_in_et:
   "match_exception_table G C pc et = Some pc' \<Longrightarrow> \<exists>e \<in> set et. pc' = fst (snd (snd e))"

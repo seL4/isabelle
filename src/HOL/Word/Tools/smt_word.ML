@@ -23,16 +23,16 @@ fun smtlib_logic ts =
 local
   val smtlibC = SMTLIB_Interface.smtlibC
 
-  val wordT = @{typ "'a::len word"}
+  val wordT = \<^typ>\<open>'a::len word\<close>
 
   fun index1 s i = "(_ " ^ s ^ " " ^ string_of_int i ^ ")"
   fun index2 s i j = "(_ " ^ s ^ " " ^ string_of_int i ^ " " ^ string_of_int j ^ ")"
 
-  fun word_typ (Type (@{type_name word}, [T])) =
+  fun word_typ (Type (\<^type_name>\<open>word\<close>, [T])) =
       Option.map (rpair [] o index1 "BitVec") (try dest_binT T)
     | word_typ _ = NONE
 
-  fun word_num (Type (@{type_name word}, [T])) k =
+  fun word_num (Type (\<^type_name>\<open>word\<close>, [T])) k =
         Option.map (index1 ("bv" ^ string_of_int k)) (try dest_binT T)
     | word_num _ _ = NONE
 
@@ -49,7 +49,7 @@ local
     let val (m, _) = Term.dest_Const t
     in SMT_Builtin.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
 
-  val mk_nat = HOLogic.mk_number @{typ nat}
+  val mk_nat = HOLogic.mk_number \<^typ>\<open>nat\<close>
 
   fun mk_shift c [t, u] = Const c $ t $ mk_nat (snd (HOLogic.dest_number u))
     | mk_shift c ts = raise TERM ("bad arguments", Const c :: ts)
@@ -100,32 +100,32 @@ in
 val setup_builtins =
   SMT_Builtin.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
   fold (add_word_fun if_fixed_all) [
-    (@{term "uminus :: 'a::len word \<Rightarrow> _"}, "bvneg"),
-    (@{term "plus :: 'a::len word \<Rightarrow> _"}, "bvadd"),
-    (@{term "minus :: 'a::len word \<Rightarrow> _"}, "bvsub"),
-    (@{term "times :: 'a::len word \<Rightarrow> _"}, "bvmul"),
-    (@{term "bitNOT :: 'a::len word \<Rightarrow> _"}, "bvnot"),
-    (@{term "bitAND :: 'a::len word \<Rightarrow> _"}, "bvand"),
-    (@{term "bitOR :: 'a::len word \<Rightarrow> _"}, "bvor"),
-    (@{term "bitXOR :: 'a::len word \<Rightarrow> _"}, "bvxor"),
-    (@{term "word_cat :: 'a::len word \<Rightarrow> _"}, "concat") ] #>
+    (\<^term>\<open>uminus :: 'a::len word \<Rightarrow> _\<close>, "bvneg"),
+    (\<^term>\<open>plus :: 'a::len word \<Rightarrow> _\<close>, "bvadd"),
+    (\<^term>\<open>minus :: 'a::len word \<Rightarrow> _\<close>, "bvsub"),
+    (\<^term>\<open>times :: 'a::len word \<Rightarrow> _\<close>, "bvmul"),
+    (\<^term>\<open>bitNOT :: 'a::len word \<Rightarrow> _\<close>, "bvnot"),
+    (\<^term>\<open>bitAND :: 'a::len word \<Rightarrow> _\<close>, "bvand"),
+    (\<^term>\<open>bitOR :: 'a::len word \<Rightarrow> _\<close>, "bvor"),
+    (\<^term>\<open>bitXOR :: 'a::len word \<Rightarrow> _\<close>, "bvxor"),
+    (\<^term>\<open>word_cat :: 'a::len word \<Rightarrow> _\<close>, "concat") ] #>
   fold (add_word_fun shift) [
-    (@{term "shiftl :: 'a::len word \<Rightarrow> _ "}, "bvshl"),
-    (@{term "shiftr :: 'a::len word \<Rightarrow> _"}, "bvlshr"),
-    (@{term "sshiftr :: 'a::len word \<Rightarrow> _"}, "bvashr") ] #>
+    (\<^term>\<open>shiftl :: 'a::len word \<Rightarrow> _ \<close>, "bvshl"),
+    (\<^term>\<open>shiftr :: 'a::len word \<Rightarrow> _\<close>, "bvlshr"),
+    (\<^term>\<open>sshiftr :: 'a::len word \<Rightarrow> _\<close>, "bvashr") ] #>
   add_word_fun extract
-    (@{term "slice :: _ \<Rightarrow> 'a::len word \<Rightarrow> _"}, "extract") #>
+    (\<^term>\<open>slice :: _ \<Rightarrow> 'a::len word \<Rightarrow> _\<close>, "extract") #>
   fold (add_word_fun extend) [
-    (@{term "ucast :: 'a::len word \<Rightarrow> _"}, "zero_extend"),
-    (@{term "scast :: 'a::len word \<Rightarrow> _"}, "sign_extend") ] #>
+    (\<^term>\<open>ucast :: 'a::len word \<Rightarrow> _\<close>, "zero_extend"),
+    (\<^term>\<open>scast :: 'a::len word \<Rightarrow> _\<close>, "sign_extend") ] #>
   fold (add_word_fun rotate) [
-    (@{term word_rotl}, "rotate_left"),
-    (@{term word_rotr}, "rotate_right") ] #>
+    (\<^term>\<open>word_rotl\<close>, "rotate_left"),
+    (\<^term>\<open>word_rotr\<close>, "rotate_right") ] #>
   fold (add_word_fun if_fixed_args) [
-    (@{term "less :: 'a::len word \<Rightarrow> _"}, "bvult"),
-    (@{term "less_eq :: 'a::len word \<Rightarrow> _"}, "bvule"),
-    (@{term word_sless}, "bvslt"),
-    (@{term word_sle}, "bvsle") ]
+    (\<^term>\<open>less :: 'a::len word \<Rightarrow> _\<close>, "bvult"),
+    (\<^term>\<open>less_eq :: 'a::len word \<Rightarrow> _\<close>, "bvule"),
+    (\<^term>\<open>word_sless\<close>, "bvslt"),
+    (\<^term>\<open>word_sle\<close>, "bvsle") ]
 
 end
 

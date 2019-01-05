@@ -257,10 +257,10 @@ method uses_test\<^sub>1 uses uses_test\<^sub>1_uses = (rule uses_test\<^sub>1_u
 
 lemma assumes A shows A by (uses_test\<^sub>1 uses_test\<^sub>1_uses: assms)
 
-ML \<open>test_internal_fact @{context} "uses_test\<^sub>1_uses"\<close>
+ML \<open>test_internal_fact \<^context> "uses_test\<^sub>1_uses"\<close>
 
-ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1_uses"\<close>
-ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1.uses_test\<^sub>1_uses"\<close>
+ML \<open>test_internal_fact \<^context> "Tests.uses_test\<^sub>1_uses"\<close>
+ML \<open>test_internal_fact \<^context> "Tests.uses_test\<^sub>1.uses_test\<^sub>1_uses"\<close>
 
 subsection \<open>Basic fact passing\<close>
 
@@ -422,7 +422,7 @@ structure Data = Generic_Data
 );
 \<close>
 
-local_setup \<open>Local_Theory.add_thms_dynamic (@{binding test_dyn}, Data.get)\<close>
+local_setup \<open>Local_Theory.add_thms_dynamic (\<^binding>\<open>test_dyn\<close>, Data.get)\<close>
 
 setup \<open>Context.theory_map (Data.put @{thms TrueI})\<close>
 
@@ -530,7 +530,7 @@ method_setup test_method' = \<open>
   Args.term -- Args.term --
   (Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms) >>
     (fn ((x, y), r) => fn ctxt =>
-      Method_Closure.apply_method ctxt @{method test_method} [x, y] [r] [] ctxt)
+      Method_Closure.apply_method ctxt \<^method>\<open>test_method\<close> [x, y] [r] [] ctxt)
 \<close>
 
 lemma

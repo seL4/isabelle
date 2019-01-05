@@ -62,8 +62,8 @@ text (in partial_order) \<open>The parameter of this locale is~\<open>le\<close>
 
   Isabelle recognises unbound names as free variables.  In locale
   assumptions, these are implicitly universally quantified.  That is,
-  @{term "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"} in fact means
-  @{term "\<And>x y z. \<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"}.
+  \<^term>\<open>\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z\<close> in fact means
+  \<^term>\<open>\<And>x y z. \<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z\<close>.
 
   Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
@@ -71,7 +71,7 @@ text (in partial_order) \<open>The parameter of this locale is~\<open>le\<close>
   and assumptions of locale $n$; the variation \isakeyword{print\_locale!}~$n$
   additionally outputs the conclusions that are stored in the locale.
   We may inspect the new locale
-  by issuing \isakeyword{print\_locale!} @{term partial_order}.  The output
+  by issuing \isakeyword{print\_locale!} \<^term>\<open>partial_order\<close>.  The output
   is the following list of context elements.
 \begin{small}
 \begin{alltt}
@@ -88,9 +88,8 @@ text (in partial_order) \<open>The parameter of this locale is~\<open>le\<close>
 
   This differs from the declaration.  The assumptions have turned into
   conclusions, denoted by the keyword \isakeyword{notes}.  Also,
-  there is only one assumption, namely @{term "partial_order le"}.
-  The locale declaration has introduced the predicate @{term
-  partial_order} to the theory.  This predicate is the
+  there is only one assumption, namely \<^term>\<open>partial_order le\<close>.
+  The locale declaration has introduced the predicate \<^term>\<open>partial_order\<close> to the theory.  This predicate is the
   \emph{locale predicate}.  Its definition may be inspected by
   issuing \isakeyword{thm} @{thm [source] partial_order_def}.
   @{thm [display, indent=2] partial_order_def}
@@ -150,7 +149,7 @@ text (in partial_order) \<open>The strict order \<open>less\<close> with infix
   defined in terms of the locale parameter~\<open>le\<close> and the general
   equality of the object logic we work in.  The definition generates a
   \emph{foundational constant}
-  @{term partial_order.less} with definition @{thm [source]
+  \<^term>\<open>partial_order.less\<close> with definition @{thm [source]
   partial_order.less_def}:
   @{thm [display, indent=2] partial_order.less_def}
   At the same time, the locale is extended by syntax transformations
@@ -659,7 +658,7 @@ text \<open>
   Consider the locale hierarchy from Figure~\ref{fig:lattices}(a).
   Total orders are lattices, although this is not reflected here, and
   definitions, theorems and other conclusions
-  from @{term lattice} are not available in @{term total_order}.  To
+  from \<^term>\<open>lattice\<close> are not available in \<^term>\<open>total_order\<close>.  To
   obtain the situation in Figure~\ref{fig:lattices}(b), it is
   sufficient to add the conclusions of the latter locale to the former.
   The \isakeyword{sublocale} command does exactly this.

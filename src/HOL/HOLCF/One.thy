@@ -16,7 +16,7 @@ translations
 definition ONE :: "one"
   where "ONE \<equiv> Def ()"
 
-text \<open>Exhaustion and Elimination for type @{typ one}\<close>
+text \<open>Exhaustion and Elimination for type \<^typ>\<open>one\<close>\<close>
 
 lemma Exh_one: "t = \<bottom> \<or> t = ONE"
   by (induct t) (simp_all add: ONE_def)
@@ -49,7 +49,7 @@ lemma one_neq_iffs [simp]:
 lemma compact_ONE: "compact ONE"
   by (rule compact_chfin)
 
-text \<open>Case analysis function for type @{typ one}\<close>
+text \<open>Case analysis function for type \<^typ>\<open>one\<close>\<close>
 
 definition one_case :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a"
   where "one_case = (\<Lambda> a x. seq\<cdot>x\<cdot>a)"

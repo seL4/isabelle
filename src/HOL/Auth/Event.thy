@@ -72,8 +72,8 @@ where
                         Says A B X \<Rightarrow> parts {X} \<union> used evs
                       | Gets A X   \<Rightarrow> used evs
                       | Notes A X  \<Rightarrow> parts {X} \<union> used evs)"
-    \<comment> \<open>The case for @{term Gets} seems anomalous, but @{term Gets} always
-        follows @{term Says} in real protocols.  Seems difficult to change.
+    \<comment> \<open>The case for \<^term>\<open>Gets\<close> seems anomalous, but \<^term>\<open>Gets\<close> always
+        follows \<^term>\<open>Says\<close> in real protocols.  Seems difficult to change.
         See \<open>Gets_correct\<close> in theory \<open>Guard/Extensions.thy\<close>.\<close>
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
@@ -87,7 +87,7 @@ apply (auto split: event.split)
 done
 
 
-subsection\<open>Function @{term knows}\<close>
+subsection\<open>Function \<^term>\<open>knows\<close>\<close>
 
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
@@ -99,7 +99,7 @@ lemma knows_Spy_Says [simp]:
 by simp
 
 text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
+      on whether \<^term>\<open>A=Spy\<close> and whether \<^term>\<open>A\<in>bad\<close>\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -236,10 +236,10 @@ declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
 
-text\<open>For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) \<longrightarrow> P"}
+text\<open>For proving theorems of the form \<^term>\<open>X \<notin> analz (knows Spy evs) \<longrightarrow> P\<close>
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
-  it will omit complicated reasoning about @{term analz}.\<close>
+  it will omit complicated reasoning about \<^term>\<open>analz\<close>.\<close>
 
 lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]

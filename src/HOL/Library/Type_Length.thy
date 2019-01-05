@@ -17,7 +17,7 @@ text \<open>
 class len0 =
   fixes len_of :: "'a itself \<Rightarrow> nat"
 
-syntax "_type_length" :: "type \<Rightarrow> nat" ("(1LENGTH/(1'(_')))")
+syntax "_type_length" :: "type \<Rightarrow> nat" (\<open>(1LENGTH/(1'(_')))\<close>)
 
 translations "LENGTH('a)" \<rightharpoonup>
   "CONST len_of (CONST Pure.type :: 'a itself)"

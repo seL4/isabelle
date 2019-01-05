@@ -36,7 +36,7 @@ where (* FIXME base names *)
 
 declare subst_Var [simp del]
 
-text \<open>Optimized versions of @{term subst} and @{term lift}.\<close>
+text \<open>Optimized versions of \<^term>\<open>subst\<close> and \<^term>\<open>lift\<close>.\<close>
 
 primrec
   liftn :: "[nat, dB, nat] => dB"

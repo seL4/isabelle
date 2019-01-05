@@ -107,40 +107,40 @@ text %mlref \<open>
   ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Variable.add_fixes}~\<open>xs ctxt\<close> fixes term variables \<open>xs\<close>, returning
+  \<^descr> \<^ML>\<open>Variable.add_fixes\<close>~\<open>xs ctxt\<close> fixes term variables \<open>xs\<close>, returning
   the resulting internal names. By default, the internal representation
   coincides with the external one, which also means that the given variables
   must not be fixed already. There is a different policy within a local proof
   body: the given names are just hints for newly invented Skolem variables.
 
-  \<^descr> @{ML Variable.variant_fixes} is similar to @{ML Variable.add_fixes}, but
+  \<^descr> \<^ML>\<open>Variable.variant_fixes\<close> is similar to \<^ML>\<open>Variable.add_fixes\<close>, but
   always produces fresh variants of the given names.
 
-  \<^descr> @{ML Variable.declare_term}~\<open>t ctxt\<close> declares term \<open>t\<close> to belong to the
+  \<^descr> \<^ML>\<open>Variable.declare_term\<close>~\<open>t ctxt\<close> declares term \<open>t\<close> to belong to the
   context. This automatically fixes new type variables, but not term
   variables. Syntactic constraints for type and term variables are declared
   uniformly, though.
 
-  \<^descr> @{ML Variable.declare_constraints}~\<open>t ctxt\<close> declares syntactic constraints
+  \<^descr> \<^ML>\<open>Variable.declare_constraints\<close>~\<open>t ctxt\<close> declares syntactic constraints
   from term \<open>t\<close>, without making it part of the context yet.
 
-  \<^descr> @{ML Variable.export}~\<open>inner outer thms\<close> generalizes fixed type and term
+  \<^descr> \<^ML>\<open>Variable.export\<close>~\<open>inner outer thms\<close> generalizes fixed type and term
   variables in \<open>thms\<close> according to the difference of the \<open>inner\<close> and \<open>outer\<close>
   context, following the principles sketched above.
 
-  \<^descr> @{ML Variable.polymorphic}~\<open>ctxt ts\<close> generalizes type variables in \<open>ts\<close> as
+  \<^descr> \<^ML>\<open>Variable.polymorphic\<close>~\<open>ctxt ts\<close> generalizes type variables in \<open>ts\<close> as
   far as possible, even those occurring in fixed term variables. The default
   policy of type-inference is to fix newly introduced type variables, which is
-  essentially reversed with @{ML Variable.polymorphic}: here the given terms
+  essentially reversed with \<^ML>\<open>Variable.polymorphic\<close>: here the given terms
   are detached from the context as far as possible.
 
-  \<^descr> @{ML Variable.import}~\<open>open thms ctxt\<close> invents fixed type and term
+  \<^descr> \<^ML>\<open>Variable.import\<close>~\<open>open thms ctxt\<close> invents fixed type and term
   variables for the schematic ones occurring in \<open>thms\<close>. The \<open>open\<close> flag
   indicates whether the fixed names should be accessible to the user,
   otherwise newly introduced names are marked as ``internal''
   (\secref{sec:names}).
 
-  \<^descr> @{ML Variable.focus}~\<open>bindings B\<close> decomposes the outermost \<open>\<And>\<close> prefix of
+  \<^descr> \<^ML>\<open>Variable.focus\<close>~\<open>bindings B\<close> decomposes the outermost \<open>\<And>\<close> prefix of
   proposition \<open>B\<close>, using the given name bindings.
 \<close>
 
@@ -151,7 +151,7 @@ text %mlex \<open>
 
 ML_val \<open>
   (*static compile-time context -- for testing only*)
-  val ctxt0 = @{context};
+  val ctxt0 = \<^context>;
 
   (*locally fixed parameters -- no type assignment yet*)
   val ([x, y], ctxt1) = ctxt0 |> Variable.add_fixes ["x", "y"];
@@ -177,7 +177,7 @@ text \<open>
 \<close>
 
 ML_val \<open>
-  val ctxt0 = @{context};
+  val ctxt0 = \<^context>;
   val ([x1, x2, x3], ctxt1) =
     ctxt0 |> Variable.variant_fixes ["x", "x", "x"];
 \<close>
@@ -192,7 +192,7 @@ text \<open>
 notepad
 begin
   ML_prf %"ML"
-   \<open>val ctxt0 = @{context};
+   \<open>val ctxt0 = \<^context>;
 
     val ([x1], ctxt1) = ctxt0 |> Variable.add_fixes ["x"];
     val ([x2], ctxt2) = ctxt1 |> Variable.add_fixes ["x"];
@@ -203,7 +203,7 @@ begin
 end
 
 text \<open>
-  In this situation @{ML Variable.add_fixes} and @{ML Variable.variant_fixes}
+  In this situation \<^ML>\<open>Variable.add_fixes\<close> and \<^ML>\<open>Variable.variant_fixes\<close>
   are very similar, but identical name proposals given in a row are only
   accepted by the second version.
 \<close>
@@ -273,41 +273,39 @@ text %mlref \<open>
   @{index_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type Assumption.export} represents arbitrary export rules, which
-  is any function of type @{ML_type "bool -> cterm list -> thm -> thm"}, where
-  the @{ML_type "bool"} indicates goal mode, and the @{ML_type "cterm list"}
+  \<^descr> Type \<^ML_type>\<open>Assumption.export\<close> represents arbitrary export rules, which
+  is any function of type \<^ML_type>\<open>bool -> cterm list -> thm -> thm\<close>, where
+  the \<^ML_type>\<open>bool\<close> indicates goal mode, and the \<^ML_type>\<open>cterm list\<close>
   the collection of assumptions to be discharged simultaneously.
 
-  \<^descr> @{ML Assumption.assume}~\<open>ctxt A\<close> turns proposition \<open>A\<close> into a primitive
+  \<^descr> \<^ML>\<open>Assumption.assume\<close>~\<open>ctxt A\<close> turns proposition \<open>A\<close> into a primitive
   assumption \<open>A \<turnstile> A'\<close>, where the conclusion \<open>A'\<close> is in HHF normal form.
 
-  \<^descr> @{ML Assumption.add_assms}~\<open>r As\<close> augments the context by assumptions \<open>As\<close>
+  \<^descr> \<^ML>\<open>Assumption.add_assms\<close>~\<open>r As\<close> augments the context by assumptions \<open>As\<close>
   with export rule \<open>r\<close>. The resulting facts are hypothetical theorems as
-  produced by the raw @{ML Assumption.assume}.
+  produced by the raw \<^ML>\<open>Assumption.assume\<close>.
 
-  \<^descr> @{ML Assumption.add_assumes}~\<open>As\<close> is a special case of @{ML
-  Assumption.add_assms} where the export rule performs \<open>\<Longrightarrow>\<hyphen>intro\<close> or
+  \<^descr> \<^ML>\<open>Assumption.add_assumes\<close>~\<open>As\<close> is a special case of \<^ML>\<open>Assumption.add_assms\<close> where the export rule performs \<open>\<Longrightarrow>\<hyphen>intro\<close> or
   \<open>#\<Longrightarrow>\<hyphen>intro\<close>, depending on goal mode.
 
-  \<^descr> @{ML Assumption.export}~\<open>is_goal inner outer thm\<close> exports result \<open>thm\<close>
+  \<^descr> \<^ML>\<open>Assumption.export\<close>~\<open>is_goal inner outer thm\<close> exports result \<open>thm\<close>
   from the the \<open>inner\<close> context back into the \<open>outer\<close> one; \<open>is_goal = true\<close>
   means this is a goal context. The result is in HHF normal form. Note that
-  @{ML "Proof_Context.export"} combines @{ML "Variable.export"} and @{ML
-  "Assumption.export"} in the canonical way.
+  \<^ML>\<open>Proof_Context.export\<close> combines \<^ML>\<open>Variable.export\<close> and \<^ML>\<open>Assumption.export\<close> in the canonical way.
 \<close>
 
 text %mlex \<open>
   The following example demonstrates how rules can be derived by building up a
   context of assumptions first, and exporting some local fact afterwards. We
-  refer to @{theory Pure} equality here for testing purposes.
+  refer to \<^theory>\<open>Pure\<close> equality here for testing purposes.
 \<close>
 
 ML_val \<open>
   (*static compile-time context -- for testing only*)
-  val ctxt0 = @{context};
+  val ctxt0 = \<^context>;
 
   val ([eq], ctxt1) =
-    ctxt0 |> Assumption.add_assumes [@{cprop "x \<equiv> y"}];
+    ctxt0 |> Assumption.add_assumes [\<^cprop>\<open>x \<equiv> y\<close>];
   val eq' = Thm.symmetric eq;
 
   (*back to original context -- discharges assumption*)
@@ -317,8 +315,8 @@ ML_val \<open>
 text \<open>
   Note that the variables of the resulting rule are not generalized. This
   would have required to fix them properly in the context beforehand, and
-  export wrt.\ variables afterwards (cf.\ @{ML Variable.export} or the
-  combined @{ML "Proof_Context.export"}).
+  export wrt.\ variables afterwards (cf.\ \<^ML>\<open>Variable.export\<close> or the
+  combined \<^ML>\<open>Proof_Context.export\<close>).
 \<close>
 
 
@@ -389,46 +387,45 @@ text %mlref \<open>
   Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
-  \<^descr> @{ML SUBPROOF}~\<open>tac ctxt i\<close> decomposes the structure of the specified
+  \<^descr> \<^ML>\<open>SUBPROOF\<close>~\<open>tac ctxt i\<close> decomposes the structure of the specified
   sub-goal, producing an extended context and a reduced goal, which needs to
   be solved by the given tactic. All schematic parameters of the goal are
   imported into the context as fixed ones, which may not be instantiated in
   the sub-proof.
 
-  \<^descr> @{ML Subgoal.FOCUS}, @{ML Subgoal.FOCUS_PREMS}, and @{ML
-  Subgoal.FOCUS_PARAMS} are similar to @{ML SUBPROOF}, but are slightly more
+  \<^descr> \<^ML>\<open>Subgoal.FOCUS\<close>, \<^ML>\<open>Subgoal.FOCUS_PREMS\<close>, and \<^ML>\<open>Subgoal.FOCUS_PARAMS\<close> are similar to \<^ML>\<open>SUBPROOF\<close>, but are slightly more
   flexible: only the specified parts of the subgoal are imported into the
   context, and the body tactic may introduce new subgoals and schematic
   variables.
 
-  \<^descr> @{ML Subgoal.focus}, @{ML Subgoal.focus_prems}, @{ML Subgoal.focus_params}
+  \<^descr> \<^ML>\<open>Subgoal.focus\<close>, \<^ML>\<open>Subgoal.focus_prems\<close>, \<^ML>\<open>Subgoal.focus_params\<close>
   extract the focus information from a goal state in the same way as the
   corresponding tacticals above. This is occasionally useful to experiment
   without writing actual tactics yet.
 
-  \<^descr> @{ML Goal.prove}~\<open>ctxt xs As C tac\<close> states goal \<open>C\<close> in the context
+  \<^descr> \<^ML>\<open>Goal.prove\<close>~\<open>ctxt xs As C tac\<close> states goal \<open>C\<close> in the context
   augmented by fixed variables \<open>xs\<close> and assumptions \<open>As\<close>, and applies tactic
   \<open>tac\<close> to solve it. The latter may depend on the local assumptions being
   presented as facts. The result is in HHF normal form.
 
-  \<^descr> @{ML Goal.prove_common}~\<open>ctxt fork_pri\<close> is the common form to state and
-  prove a simultaneous goal statement, where @{ML Goal.prove} is a convenient
+  \<^descr> \<^ML>\<open>Goal.prove_common\<close>~\<open>ctxt fork_pri\<close> is the common form to state and
+  prove a simultaneous goal statement, where \<^ML>\<open>Goal.prove\<close> is a convenient
   shorthand that is most frequently used in applications.
 
   The given list of simultaneous conclusions is encoded in the goal state by
-  means of Pure conjunction: @{ML Goal.conjunction_tac} will turn this into a
+  means of Pure conjunction: \<^ML>\<open>Goal.conjunction_tac\<close> will turn this into a
   collection of individual subgoals, but note that the original multi-goal
   state is usually required for advanced induction.
 
   It is possible to provide an optional priority for a forked proof, typically
-  @{ML "SOME ~1"}, while @{ML NONE} means the proof is immediate (sequential)
-  as for @{ML Goal.prove}. Note that a forked proof does not exhibit any
+  \<^ML>\<open>SOME ~1\<close>, while \<^ML>\<open>NONE\<close> means the proof is immediate (sequential)
+  as for \<^ML>\<open>Goal.prove\<close>. Note that a forked proof does not exhibit any
   failures in the usual way via exceptions in ML, but accumulates error
   situations under the execution id of the running transaction. Thus the
   system is able to expose error messages ultimately to the end-user, even
   though the subsequent ML code misses them.
 
-  \<^descr> @{ML Obtain.result}~\<open>tac thms ctxt\<close> eliminates the given facts using a
+  \<^descr> \<^ML>\<open>Obtain.result\<close>~\<open>tac thms ctxt\<close> eliminates the given facts using a
   tactic, which results in additional fixed variables and assumptions in the
   context. Final results need to be exported explicitly.
 \<close>
@@ -446,7 +443,7 @@ begin
     ML_val
      \<open>val {goal, context = goal_ctxt, ...} = @{Isar.goal};
       val (focus as {params, asms, concl, ...}, goal') =
-        Subgoal.focus goal_ctxt 1 (SOME [@{binding x}]) goal;
+        Subgoal.focus goal_ctxt 1 (SOME [\<^binding>\<open>x\<close>]) goal;
       val [A, B] = #prems focus;
       val [(_, x)] = #params focus;\<close>
     sorry
@@ -455,7 +452,7 @@ end
 text \<open>
   \<^medskip>
   The next example demonstrates forward-elimination in a local context, using
-  @{ML Obtain.result}.
+  \<^ML>\<open>Obtain.result\<close>.
 \<close>
 
 notepad
@@ -463,7 +460,7 @@ begin
   assume ex: "\<exists>x. B x"
 
   ML_prf %"ML"
-   \<open>val ctxt0 = @{context};
+   \<open>val ctxt0 = \<^context>;
     val (([(_, x)], [B]), ctxt1) = ctxt0
       |> Obtain.result (fn _ => eresolve_tac ctxt0 @{thms exE} 1) [@{thm ex}];\<close>
   ML_prf %"ML"

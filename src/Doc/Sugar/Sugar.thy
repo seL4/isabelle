@@ -55,15 +55,15 @@ typically in \texttt{root.tex}. For a start, you should
 
 \subsection{Logic}
 
-The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as @{prop"\<not>(\<exists>x. P x)"}.
+The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as \<^prop>\<open>\<not>(\<exists>x. P x)\<close>.
 
 The predefined constructs \<open>if\<close>, \<open>let\<close> and
 \<open>case\<close> are set in sans serif font to distinguish them from
 other functions. This improves readability:
 \begin{itemize}
-\item @{term"if b then e\<^sub>1 else e\<^sub>2"} instead of \<open>if b then e\<^sub>1 else e\<^sub>2\<close>.
-\item @{term"let x = e\<^sub>1 in e\<^sub>2"} instead of \<open>let x = e\<^sub>1 in e\<^sub>2\<close>.
-\item @{term"case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2"} instead of\\
+\item \<^term>\<open>if b then e\<^sub>1 else e\<^sub>2\<close> instead of \<open>if b then e\<^sub>1 else e\<^sub>2\<close>.
+\item \<^term>\<open>let x = e\<^sub>1 in e\<^sub>2\<close> instead of \<open>let x = e\<^sub>1 in e\<^sub>2\<close>.
+\item \<^term>\<open>case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2\<close> instead of\\
       \<open>case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2\<close>.
 \end{itemize}
 
@@ -72,11 +72,11 @@ other functions. This improves readability:
 Although set syntax in HOL is already close to
 standard, we provide a few further improvements:
 \begin{itemize}
-\item @{term"{x. P}"} instead of \<open>{x. P}\<close>.
-\item @{term"{}"} instead of \<open>{}\<close>, where
- @{term"{}"} is also input syntax.
-\item @{term"insert a (insert b (insert c M))"} instead of \<open>insert a (insert b (insert c M))\<close>.
-\item @{term"card A"} instead of \<open>card A\<close>.
+\item \<^term>\<open>{x. P}\<close> instead of \<open>{x. P}\<close>.
+\item \<^term>\<open>{}\<close> instead of \<open>{}\<close>, where
+ \<^term>\<open>{}\<close> is also input syntax.
+\item \<^term>\<open>insert a (insert b (insert c M))\<close> instead of \<open>insert a (insert b (insert c M))\<close>.
+\item \<^term>\<open>card A\<close> instead of \<open>card A\<close>.
 \end{itemize}
 
 
@@ -84,16 +84,16 @@ standard, we provide a few further improvements:
 
 If lists are used heavily, the following notations increase readability:
 \begin{itemize}
-\item @{term"x # xs"} instead of \<open>x # xs\<close>,
-      where @{term"x # xs"} is also input syntax.
-\item @{term"length xs"} instead of \<open>length xs\<close>.
-\item @{term"nth xs n"} instead of \<open>nth xs n\<close>,
+\item \<^term>\<open>x # xs\<close> instead of \<open>x # xs\<close>,
+      where \<^term>\<open>x # xs\<close> is also input syntax.
+\item \<^term>\<open>length xs\<close> instead of \<open>length xs\<close>.
+\item \<^term>\<open>nth xs n\<close> instead of \<open>nth xs n\<close>,
       the $n$th element of \<open>xs\<close>.
 
 \item Human readers are good at converting automatically from lists to
 sets. Hence \texttt{OptionalSugar} contains syntax for suppressing the
-conversion function @{const set}: for example, @{prop[source]"x \<in> set xs"}
-becomes @{prop"x \<in> set xs"}.
+conversion function \<^const>\<open>set\<close>: for example, @{prop[source]"x \<in> set xs"}
+becomes \<^prop>\<open>x \<in> set xs\<close>.
 
 \item The \<open>@\<close> operation associates implicitly to the right,
 which leads to unpleasant line breaks if the term is too long for one
@@ -108,12 +108,12 @@ line breaking behaviour:
 \subsection{Numbers}
 
 Coercions between numeric types are alien to mathematicians who
-consider, for example, @{typ nat} as a subset of @{typ int}.
+consider, for example, \<^typ>\<open>nat\<close> as a subset of \<^typ>\<open>int\<close>.
 \texttt{OptionalSugar} contains syntax for suppressing numeric coercions such
-as @{const int} \<open>::\<close> @{typ"nat \<Rightarrow> int"}. For example,
-@{term[source]"int 5"} is printed as @{term "int 5"}. Embeddings of types
-@{typ nat}, @{typ int}, @{typ real} are covered; non-injective coercions such
-as @{const nat} \<open>::\<close> @{typ"int \<Rightarrow> nat"} are not and should not be
+as \<^const>\<open>int\<close> \<open>::\<close> \<^typ>\<open>nat \<Rightarrow> int\<close>. For example,
+@{term[source]"int 5"} is printed as \<^term>\<open>int 5\<close>. Embeddings of types
+\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, \<^typ>\<open>real\<close> are covered; non-injective coercions such
+as \<^const>\<open>nat\<close> \<open>::\<close> \<^typ>\<open>int \<Rightarrow> nat\<close> are not and should not be
 hidden.
 
 
@@ -123,7 +123,7 @@ Instead of
 \verb!@!\verb!{const myconst}! \verb!@!\verb!{text "::"}! \verb!@!\verb!{typeof myconst}!,
 you can write \verb!@!\verb!{const_typ myconst}! using the new antiquotation
 \texttt{const\_typ} defined in \texttt{LaTeXsugar}. For example,
-\verb!@!\verb!{const_typ length}! produces @{const_typ length} (see below for how to suppress
+\verb!@!\verb!{const_typ length}! produces \<^const_typ>\<open>length\<close> (see below for how to suppress
 the question mark).
 This works both for genuine constants and for variables fixed in some context,
 especially in a locale.
@@ -131,9 +131,9 @@ especially in a locale.
 
 \section{Printing theorems}
 
-The @{prop "P \<Longrightarrow> Q \<Longrightarrow> R"} syntax is a bit idiosyncratic. If you would like
+The \<^prop>\<open>P \<Longrightarrow> Q \<Longrightarrow> R\<close> syntax is a bit idiosyncratic. If you would like
 to avoid it, you can easily print the premises as a conjunction:
-@{prop "P \<and> Q \<Longrightarrow> R"}. See \texttt{OptionalSugar} for the required ``code''.
+\<^prop>\<open>P \<and> Q \<Longrightarrow> R\<close>. See \texttt{OptionalSugar} for the required ``code''.
 
 \subsection{Question marks}
 
@@ -372,18 +372,18 @@ in \S\ref{sec:styles}.
 \subsection{Patterns}
 
 
-In \S\ref{sec:varnames} we shows how to create patterns containing ``@{term DUMMY}''.
+In \S\ref{sec:varnames} we shows how to create patterns containing ``\<^term>\<open>DUMMY\<close>''.
 You can drive this game even further and extend the syntax of let
-bindings such that certain functions like @{term fst}, @{term hd}, 
+bindings such that certain functions like \<^term>\<open>fst\<close>, \<^term>\<open>hd\<close>, 
 etc.\ are printed as patterns. \texttt{OptionalSugar} provides the following:
 
 \begin{center}
 \begin{tabular}{l@ {~~produced by~~}l}
-@{term "let x = fst p in t"} & \verb!@!\verb!{term "let x = fst p in t"}!\\
-@{term "let x = snd p in t"} & \verb!@!\verb!{term "let x = snd p in t"}!\\
-@{term "let x = hd xs in t"} & \verb!@!\verb!{term "let x = hd xs in t"}!\\
-@{term "let x = tl xs in t"} & \verb!@!\verb!{term "let x = tl xs in t"}!\\
-@{term "let x = the y in t"} & \verb!@!\verb!{term "let x = the y in t"}!\\
+\<^term>\<open>let x = fst p in t\<close> & \verb!@!\verb!{term "let x = fst p in t"}!\\
+\<^term>\<open>let x = snd p in t\<close> & \verb!@!\verb!{term "let x = snd p in t"}!\\
+\<^term>\<open>let x = hd xs in t\<close> & \verb!@!\verb!{term "let x = hd xs in t"}!\\
+\<^term>\<open>let x = tl xs in t\<close> & \verb!@!\verb!{term "let x = tl xs in t"}!\\
+\<^term>\<open>let x = the y in t\<close> & \verb!@!\verb!{term "let x = the y in t"}!\\
 \end{tabular}
 \end{center}
 
@@ -449,7 +449,7 @@ Beware that any options must be placed \emph{before} the style, as in this examp
 
 Further use cases can be found in \S\ref{sec:yourself}.
 If you are not afraid of ML, you may also define your own styles.
-Have a look at module @{ML_structure Term_Style}.
+Have a look at module \<^ML_structure>\<open>Term_Style\<close>.
 
 
 \section {Proofs}

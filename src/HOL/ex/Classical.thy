@@ -428,7 +428,7 @@ JAR 29: 3-4 (2002), pages 253-275\<close>
 lemma "(\<forall>x y z. R(x,y) \<and> R(y,z) \<longrightarrow> R(x,z)) \<and>
        (\<forall>x. \<exists>y. R(x,y)) \<longrightarrow>
        \<not> (\<forall>x. P x = (\<forall>y. R(x,y) \<longrightarrow> \<not> P y))"
-by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
+by (tactic\<open>Meson.safe_best_meson_tac \<^context> 1\<close>)
     \<comment> \<open>In contrast, \<open>meson\<close> is SLOW: 7.6s on griffon\<close>
 
 
@@ -722,7 +722,7 @@ lemma "(\<forall>x. wolf x \<longrightarrow> animal x) \<and> (\<exists>x. wolf 
        (\<forall>x y. bird x \<and> snail y \<longrightarrow> \<not>eats x y) \<and>
        (\<forall>x. (caterpillar x \<or> snail x) \<longrightarrow> (\<exists>y. plant y \<and> eats x y))
        \<longrightarrow> (\<exists>x y. animal x \<and> animal y \<and> (\<exists>z. grain z \<and> eats y z \<and> eats x y))"
-by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
+by (tactic\<open>Meson.safe_best_meson_tac \<^context> 1\<close>)
     \<comment> \<open>Nearly twice as fast as \<open>meson\<close>,
         which performs iterative deepening rather than best-first search\<close>
 

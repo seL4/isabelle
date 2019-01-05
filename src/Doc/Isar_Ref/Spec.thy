@@ -57,7 +57,7 @@ text \<open>
   does not belong to a local theory target. No further commands may follow
   such a global @{command (global) "end"}.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command theory} @{syntax system_name}
       @'imports' (@{syntax system_name} +) \<newline>
       keywords? abbrevs? @'begin'
@@ -71,7 +71,7 @@ text \<open>
     @@{command thy_deps} (thy_bounds thy_bounds?)?
     ;
     thy_bounds: @{syntax name} | '(' (@{syntax name} + @'|') ')'
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>theory A imports B\<^sub>1 \<dots> B\<^sub>n begin\<close> starts a new theory \<open>A\<close> based on the
   merge of existing theories \<open>B\<^sub>1 \<dots> B\<^sub>n\<close>. Due to the possibility to import
@@ -82,9 +82,9 @@ text \<open>
   processed.
 
   Empty imports are only allowed in the bootstrap process of the special
-  theory @{theory Pure}, which is the start of any other formal development
+  theory \<^theory>\<open>Pure\<close>, which is the start of any other formal development
   based on Isabelle. Regular user theories usually refer to some more complex
-  entry point, such as theory @{theory Main} in Isabelle/HOL.
+  entry point, such as theory \<^theory>\<open>Main\<close> in Isabelle/HOL.
 
   The @{keyword_def "keywords"} specification declares outer syntax
   (\chref{ch:outer-syntax}) that is introduced in this theory later on (rare
@@ -138,13 +138,13 @@ text \<open>
   contexts may be nested within other targets, like \<^theory_text>\<open>locale\<close>, \<^theory_text>\<open>class\<close>,
   \<^theory_text>\<open>instantiation\<close>, \<^theory_text>\<open>overloading\<close>.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command context} @{syntax name} @'begin'
     ;
     @@{command context} @{syntax_ref "includes"}? (@{syntax context_elem} * ) @'begin'
     ;
     @{syntax_def target}: '(' @'in' @{syntax name} ')'
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>context c begin\<close> opens a named context, by recommencing an existing
   locale or class \<open>c\<close>. Note that locale and class definitions allow to include
@@ -228,7 +228,7 @@ text \<open>
   which is in contrast to locales and locale interpretation
   (\secref{sec:locale}).
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command bundle} @{syntax name}
       ( '=' @{syntax thms} @{syntax for_fixes} | @'begin')
     ;
@@ -237,7 +237,7 @@ text \<open>
     (@@{command include} | @@{command including}) (@{syntax name}+)
     ;
     @{syntax_def "includes"}: @'includes' (@{syntax name}+)
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
   context. The RHS is similar to the one of the \<^theory_text>\<open>declare\<close> command. Bundles
@@ -299,7 +299,7 @@ text \<open>
   rewrite system on abstract syntax. The second form is called
   ``abbreviation''.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command definition} decl? definition
     ;
     @@{command abbreviation} @{syntax mode}? decl? abbreviation
@@ -312,7 +312,7 @@ text \<open>
       @{syntax spec_prems} @{syntax for_fixes}
     ;
     abbreviation: @{syntax prop} @{syntax for_fixes}
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>definition c where eq\<close> produces an internal definition \<open>c \<equiv> t\<close> according
   to the specification given as \<open>eq\<close>, which is then turned into a proven fact.
@@ -355,12 +355,12 @@ text \<open>
     @{command_def "axiomatization"} & : & \<open>theory \<rightarrow> theory\<close> & (axiomatic!) \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command axiomatization} @{syntax vars}? (@'where' axiomatization)?
     ;
     axiomatization: (@{syntax thmdecl} @{syntax prop} + @'and')
       @{syntax spec_prems} @{syntax for_fixes}
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants
   simultaneously and states axiomatic properties for these. The constants are
@@ -399,15 +399,14 @@ text \<open>
   important special case: it consists of a theorem which is applied to the
   context by means of an attribute.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command declaration} | @@{command syntax_declaration})
       ('(' @'pervasive' ')')? \<newline> @{syntax text}
     ;
     @@{command declare} (@{syntax thms} + @'and')
-  \<close>}
+  \<close>
 
-  \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type @{ML_type
-  declaration}, to the current local theory under construction. In later
+  \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type \<^ML_type>\<open>declaration\<close>, to the current local theory under construction. In later
   application contexts, the function is transformed according to the morphisms
   being involved in the interpretation hierarchy.
 
@@ -457,7 +456,7 @@ text \<open>
   locales. The context consists of the declaration elements from the locale
   instances. Redundant locale instances are omitted according to roundup.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
     instance: (qualifier ':')? @{syntax name} (pos_insts | named_insts) \<newline>
@@ -470,7 +469,7 @@ text \<open>
     named_insts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
     ;
     rewrites: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
-  \<close>}
+  \<close>
 
   A locale instance consists of a reference to a locale and either positional
   or named parameter instantiations optionally followed by rewrites clauses.
@@ -514,7 +513,7 @@ text \<open>
 
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command locale} @{syntax name} ('=' @{syntax locale})? @'begin'?
     ;
     @@{command experiment} (@{syntax context_elem}*) @'begin'
@@ -532,7 +531,7 @@ text \<open>
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
       @'notes' (@{syntax thmdef}? @{syntax thms} + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>locale loc = import + body\<close> defines a new locale \<open>loc\<close> as a context
   consisting of a certain view of existing locales (\<open>import\<close>) plus some
@@ -650,7 +649,7 @@ text \<open>
   bodies (\<^theory_text>\<open>interpret\<close>), into global theories (\<^theory_text>\<open>global_interpretation\<close>) and
   into locales (\<^theory_text>\<open>sublocale\<close>).
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command interpretation} @{syntax locale_expr}
     ;
     @@{command interpret} @{syntax locale_expr}
@@ -667,7 +666,7 @@ text \<open>
 
     definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
-  \<close>}
+  \<close>
 
   The core of each interpretation command is a locale expression \<open>expr\<close>; the
   command generates proof obligations for the instantiated specifications.
@@ -819,7 +818,7 @@ text \<open>
   classes (notably type-inference). See @{cite "isabelle-classes"} for a short
   tutorial.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command class} class_spec @'begin'?
     ;
     class_spec: @{syntax name} '='
@@ -836,7 +835,7 @@ text \<open>
     @@{command class_deps} (class_bounds class_bounds?)?
     ;
     class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>class c = superclasses + body\<close> defines a new class \<open>c\<close>, inheriting from
   \<open>superclasses\<close>. This introduces a locale \<open>c\<close> with import of all locales
@@ -997,13 +996,13 @@ text \<open>
     @{command_def "overloading"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
     ;
     @@{command overloading} ( spec + ) @'begin'
     ;
     spec: @{syntax name} ( '\<equiv>' | '==' ) @{syntax term} ( '(' @'unchecked' ')' )?
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>consts c :: \<sigma>\<close> declares constant \<open>c\<close> to have any instance of type scheme
   \<open>\<sigma>\<close>. The optional mixfix annotations may attach concrete syntax to the
@@ -1074,7 +1073,7 @@ text \<open>
     @{attribute_def ML_exception_debugger} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command SML_file} |
       @@{command SML_file_debug} |
       @@{command SML_file_no_debug} |
@@ -1087,7 +1086,7 @@ text \<open>
       @@{command local_setup}) @{syntax text}
     ;
     @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>SML_file name\<close> reads and evaluates the given Standard ML file. Top-level
   SML bindings are stored within the (global or local) theory context; the
@@ -1097,8 +1096,7 @@ text \<open>
   the regular Isabelle/ML environment.
 
   \<^descr> \<^theory_text>\<open>ML_file name\<close> reads and evaluates the given ML file. The current theory
-  context is passed down to the ML toplevel and may be modified, using @{ML
-  "Context.>>"} or derived ML commands. Top-level ML bindings are stored
+  context is passed down to the ML toplevel and may be modified, using \<^ML>\<open>Context.>>\<close> or derived ML commands. Top-level ML bindings are stored
   within the (global or local) theory context.
 
   \<^descr> \<^theory_text>\<open>SML_file_debug\<close>, \<^theory_text>\<open>SML_file_no_debug\<close>, \<^theory_text>\<open>ML_file_debug\<close>, and
@@ -1125,19 +1123,19 @@ text \<open>
   at the ML toplevel, but \<^theory_text>\<open>ML_command\<close> is silent.
 
   \<^descr> \<^theory_text>\<open>setup "text"\<close> changes the current theory context by applying \<open>text\<close>,
-  which refers to an ML expression of type @{ML_type "theory -> theory"}. This
+  which refers to an ML expression of type \<^ML_type>\<open>theory -> theory\<close>. This
   enables to initialize any object-logic specific tools and packages written
   in ML, for example.
 
   \<^descr> \<^theory_text>\<open>local_setup\<close> is similar to \<^theory_text>\<open>setup\<close> for a local theory context, and an
-  ML expression of type @{ML_type "local_theory -> local_theory"}. This allows
+  ML expression of type \<^ML_type>\<open>local_theory -> local_theory\<close>. This allows
   to invoke local theory specification packages without going through concrete
   outer syntax, for example.
 
   \<^descr> \<^theory_text>\<open>attribute_setup name = "text" description\<close> defines an attribute in the
   current context. The given \<open>text\<close> has to be an ML expression of type
-  @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
-  structure @{ML_structure Args} and @{ML_structure Attrib}.
+  \<^ML_type>\<open>attribute context_parser\<close>, cf.\ basic parsers defined in
+  structure \<^ML_structure>\<open>Args\<close> and \<^ML_structure>\<open>Attrib\<close>.
 
   In principle, attributes can operate both on a given theorem and the
   implicit context, although in practice only one is modified and the other
@@ -1179,7 +1177,7 @@ text \<open>
   should print a detailed stack trace on exceptions. The result is dependent
   on various ML compiler optimizations. The boundary for the exception trace
   is the current Isar command transactions: it is occasionally better to
-  insert the combinator @{ML Runtime.exn_trace} into ML code for debugging
+  insert the combinator \<^ML>\<open>Runtime.exn_trace\<close> into ML code for debugging
   @{cite "isabelle-implementation"}, closer to the point where it actually
   happens.
 
@@ -1197,12 +1195,11 @@ text \<open>
     @{command_def "external_file"} & : & \<open>any \<rightarrow> any\<close> \\
   \end{matharray}
 
-  @{rail \<open>@@{command external_file} @{syntax name} ';'?\<close>}
+  \<^rail>\<open>@@{command external_file} @{syntax name} ';'?\<close>
 
   \<^descr> \<^theory_text>\<open>external_file name\<close> declares the formal dependency on the given file
   name, such that the Isabelle build process knows about it (see also @{cite
-  "isabelle-system"}). The file can be read e.g.\ in Isabelle/ML via @{ML
-  File.read}, without specific management by the Prover IDE.
+  "isabelle-system"}). The file can be read e.g.\ in Isabelle/ML via \<^ML>\<open>File.read\<close>, without specific management by the Prover IDE.
 \<close>
 
 
@@ -1216,9 +1213,9 @@ text \<open>
     @{command_def "default_sort"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command default_sort} @{syntax sort}
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>default_sort s\<close> makes sort \<open>s\<close> the new default sort for any type
   variable that is given explicitly in the text, but lacks a sort constraint
@@ -1226,7 +1223,7 @@ text \<open>
   not affected.
 
   Usually the default sort is only changed when defining a new object-logic.
-  For example, the default sort in Isabelle/HOL is @{class type}, the class of
+  For example, the default sort in Isabelle/HOL is \<^class>\<open>type\<close>, the class of
   all HOL types.
 
   When merging theories, the default sorts of the parents are logically
@@ -1242,11 +1239,11 @@ text \<open>
     @{command_def "typedecl"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command type_synonym} (@{syntax typespec} '=' @{syntax type} @{syntax mixfix}?)
     ;
     @@{command typedecl} @{syntax typespec} @{syntax mixfix}?
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>type_synonym (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>\<close> introduces a \<^emph>\<open>type synonym\<close> \<open>(\<alpha>\<^sub>1, \<dots>,
   \<alpha>\<^sub>n) t\<close> for the existing type \<open>\<tau>\<close>. Unlike the semantic type definitions in
@@ -1280,12 +1277,12 @@ text \<open>
     @{command_def "named_theorems"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command lemmas} (@{syntax thmdef}? @{syntax thms} + @'and')
       @{syntax for_fixes}
     ;
     @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>lemmas a = b\<^sub>1 \<dots> b\<^sub>n\<close>~@{keyword_def "for"}~\<open>x\<^sub>1 \<dots> x\<^sub>m\<close> evaluates given
   facts (with attributes) in the current context, which may be augmented by
@@ -1321,13 +1318,13 @@ text \<open>
   asserted, and records within the internal derivation object how presumed
   theorems depend on unproven suppositions.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command oracle} @{syntax name} '=' @{syntax text}
-  \<close>}
+  \<close>
 
   \<^descr> \<^theory_text>\<open>oracle name = "text"\<close> turns the given ML expression \<open>text\<close> of type
-  @{ML_text "'a -> cterm"} into an ML function of type @{ML_text "'a -> thm"},
-  which is bound to the global identifier @{ML_text name}. This acts like an
+  \<^ML_text>\<open>'a -> cterm\<close> into an ML function of type \<^ML_text>\<open>'a -> thm\<close>,
+  which is bound to the global identifier \<^ML_text>\<open>name\<close>. This acts like an
   infinitary specification of axioms! Invoking the oracle only works within
   the scope of the resulting theory.
 
@@ -1349,12 +1346,12 @@ text \<open>
     @{command_def "hide_fact"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@{command alias} | @{command type_alias}) @{syntax name} '=' @{syntax name}
     ;
     (@{command hide_class} | @{command hide_type} |
       @{command hide_const} | @{command hide_fact}) ('(' @'open' ')')? (@{syntax name} + )
-  \<close>}
+  \<close>
 
   Isabelle organizes any kind of name declarations (of types, constants,
   theorems etc.) by separate hierarchically structured name spaces. Normally

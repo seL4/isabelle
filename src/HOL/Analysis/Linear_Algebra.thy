@@ -35,7 +35,7 @@ subsection%unimportant \<open>More interesting properties of the norm\<close>
 
 notation inner (infix "\<bullet>" 70)
 
-text\<open>Equality of vectors in terms of @{term "(\<bullet>)"} products.\<close>
+text\<open>Equality of vectors in terms of \<^term>\<open>(\<bullet>)\<close> products.\<close>
 
 lemma linear_componentwise:
   fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"

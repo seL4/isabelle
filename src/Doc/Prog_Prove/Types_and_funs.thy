@@ -53,7 +53,7 @@ with case expressions\index{case expression}\index{case expression@\<open>case .
 \end{quote}
 Case expressions must be enclosed in parentheses.
 
-As an example of a datatype beyond @{typ nat} and \<open>list\<close>, consider binary trees:
+As an example of a datatype beyond \<^typ>\<open>nat\<close> and \<open>list\<close>, consider binary trees:
 \<close>
 
 datatype 'a tree = Tip | Node  "'a tree"  'a  "'a tree"
@@ -75,11 +75,11 @@ The induction step contains two induction hypotheses, one for each subtree.
 An application of \<open>auto\<close> finishes the proof.
 
 A very simple but also very useful datatype is the predefined
-@{datatype[display] option}\index{option@\<open>option\<close>}\index{None@@{const None}}\index{Some@@{const Some}}
-Its sole purpose is to add a new element @{const None} to an existing
-type @{typ 'a}. To make sure that @{const None} is distinct from all the
-elements of @{typ 'a}, you wrap them up in @{const Some} and call
-the new type @{typ"'a option"}. A typical application is a lookup function
+@{datatype[display] option}\index{option@\<open>option\<close>}\index{None@\<^const>\<open>None\<close>}\index{Some@\<^const>\<open>Some\<close>}
+Its sole purpose is to add a new element \<^const>\<open>None\<close> to an existing
+type \<^typ>\<open>'a\<close>. To make sure that \<^const>\<open>None\<close> is distinct from all the
+elements of \<^typ>\<open>'a\<close>, you wrap them up in \<^const>\<open>Some\<close> and call
+the new type \<^typ>\<open>'a option\<close>. A typical application is a lookup function
 on a list of key-value pairs, often called an association list:
 \<close>
 (*<*)
@@ -93,8 +93,8 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 text\<open>
 Note that \<open>\<tau>\<^sub>1 * \<tau>\<^sub>2\<close> is the type of pairs, also written \<open>\<tau>\<^sub>1 \<times> \<tau>\<^sub>2\<close>.
 Pairs can be taken apart either by pattern matching (as above) or with the
-projection functions @{const fst} and @{const snd}: @{thm fst_conv[of x y]} and @{thm snd_conv[of x y]}.
-Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
+projection functions \<^const>\<open>fst\<close> and \<^const>\<open>snd\<close>: @{thm fst_conv[of x y]} and @{thm snd_conv[of x y]}.
+Tuples are simulated by pairs nested to the right: \<^term>\<open>(a,b,c)\<close>
 is short for \<open>(a, (b, c))\<close> and \<open>\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3\<close> is short for
 \<open>\<tau>\<^sub>1 \<times> (\<tau>\<^sub>2 \<times> \<tau>\<^sub>3)\<close>.
 
@@ -117,10 +117,10 @@ Abbreviations are similar to definitions:
 abbreviation sq' :: "nat \<Rightarrow> nat" where
 "sq' n \<equiv> n * n"
 
-text\<open>The key difference is that @{const sq'} is only syntactic sugar:
-after parsing, @{term"sq' t"} is replaced by \mbox{@{term"t*t"}};
-before printing, every occurrence of @{term"u*u"} is replaced by
-\mbox{@{term"sq' u"}}.  Internally, @{const sq'} does not exist.
+text\<open>The key difference is that \<^const>\<open>sq'\<close> is only syntactic sugar:
+after parsing, \<^term>\<open>sq' t\<close> is replaced by \mbox{\<^term>\<open>t*t\<close>};
+before printing, every occurrence of \<^term>\<open>u*u\<close> is replaced by
+\mbox{\<^term>\<open>sq' u\<close>}.  Internally, \<^const>\<open>sq'\<close> does not exist.
 This is the
 advantage of abbreviations over definitions: definitions need to be expanded
 explicitly (\autoref{sec:rewr-defs}) whereas abbreviations are already
@@ -138,8 +138,8 @@ over datatype constructors. The order of equations matters, as in
 functional programming languages. However, all HOL functions must be
 total. This simplifies the logic --- terms are always defined --- but means
 that recursive functions must terminate. Otherwise one could define a
-function @{prop"f n = f n + (1::nat)"} and conclude \mbox{@{prop"(0::nat) = 1"}} by
-subtracting @{term"f n"} on both sides.
+function \<^prop>\<open>f n = f n + (1::nat)\<close> and conclude \mbox{\<^prop>\<open>(0::nat) = 1\<close>} by
+subtracting \<^term>\<open>f n\<close> on both sides.
 
 Isabelle's automatic termination checker requires that the arguments of
 recursive calls on the right-hand side must be strictly smaller than the
@@ -159,7 +159,7 @@ fun div2 :: "nat \<Rightarrow> nat" where
 "div2 (Suc 0) = 0" |
 "div2 (Suc(Suc n)) = Suc(div2 n)"
 
-text\<open>does not just define @{const div2} but also proves a
+text\<open>does not just define \<^const>\<open>div2\<close> but also proves a
 customized induction rule:
 \[
 \inferrule{
@@ -214,28 +214,28 @@ except in its name, and is applicable independently of \<open>f\<close>.
 
 \begin{exercise}
 Starting from the type \<open>'a tree\<close> defined in the text, define
-a function \<open>contents ::\<close> @{typ "'a tree \<Rightarrow> 'a list"}
+a function \<open>contents ::\<close> \<^typ>\<open>'a tree \<Rightarrow> 'a list\<close>
 that collects all values in a tree in a list, in any order,
 without removing duplicates.
-Then define a function \<open>sum_tree ::\<close> @{typ "nat tree \<Rightarrow> nat"}
+Then define a function \<open>sum_tree ::\<close> \<^typ>\<open>nat tree \<Rightarrow> nat\<close>
 that sums up all values in a tree of natural numbers
-and prove @{prop "sum_tree t = sum_list(contents t)"}
-(where @{const sum_list} is predefined).
+and prove \<^prop>\<open>sum_tree t = sum_list(contents t)\<close>
+(where \<^const>\<open>sum_list\<close> is predefined).
 \end{exercise}
 
 \begin{exercise}
 Define a new type \<open>'a tree2\<close> of binary trees where values are also
 stored in the leaves of the tree.  Also reformulate the
-@{const mirror} function accordingly. Define two functions
+\<^const>\<open>mirror\<close> function accordingly. Define two functions
 \<open>pre_order\<close> and \<open>post_order\<close> of type \<open>'a tree2 \<Rightarrow> 'a list\<close>
 that traverse a tree and collect all stored values in the respective order in
-a list. Prove @{prop "pre_order (mirror t) = rev (post_order t)"}.
+a list. Prove \<^prop>\<open>pre_order (mirror t) = rev (post_order t)\<close>.
 \end{exercise}
 
 \begin{exercise}
-Define a function \<open>intersperse ::\<close> @{typ "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"}
+Define a function \<open>intersperse ::\<close> \<^typ>\<open>'a \<Rightarrow> 'a list \<Rightarrow> 'a list\<close>
 such that \<open>intersperse a [x\<^sub>1, ..., x\<^sub>n] = [x\<^sub>1, a, x\<^sub>2, a, ..., a, x\<^sub>n]\<close>.
-Now prove that @{prop "map f (intersperse a xs) = intersperse (f a) (map f xs)"}.
+Now prove that \<^prop>\<open>map f (intersperse a xs) = intersperse (f a) (map f xs)\<close>.
 \end{exercise}
 
 
@@ -254,10 +254,10 @@ The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
 
-Function @{const rev} has quadratic worst-case running time
+Function \<^const>\<open>rev\<close> has quadratic worst-case running time
 because it calls append for each element of the list and
 append is linear in its first argument.  A linear time version of
-@{const rev} requires an extra argument where the result is accumulated
+\<^const>\<open>rev\<close> requires an extra argument where the result is accumulated
 gradually, using only~\<open>#\<close>:
 \<close>
 (*<*)
@@ -268,13 +268,13 @@ fun itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "itrev []        ys = ys" |
 "itrev (x#xs) ys = itrev xs (x#ys)"
 
-text\<open>The behaviour of @{const itrev} is simple: it reverses
+text\<open>The behaviour of \<^const>\<open>itrev\<close> is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and it returns that second argument when the first one becomes
-empty. Note that @{const itrev} is tail-recursive: it can be
+empty. Note that \<^const>\<open>itrev\<close> is tail-recursive: it can be
 compiled into a loop; no stack is necessary for executing it.
 
-Naturally, we would like to show that @{const itrev} does indeed reverse
+Naturally, we would like to show that \<^const>\<open>itrev\<close> does indeed reverse
 its first argument provided the second one is empty:
 \<close>
 
@@ -291,20 +291,20 @@ Unfortunately, this attempt does not prove
 the induction step:
 @{subgoals[display,margin=70]}
 The induction hypothesis is too weak.  The fixed
-argument,~@{term"[]"}, prevents it from rewriting the conclusion.  
+argument,~\<^term>\<open>[]\<close>, prevents it from rewriting the conclusion.  
 This example suggests a heuristic:
 \begin{quote}
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this naively: @{prop"itrev xs ys = rev xs"} is
+Of course one cannot do this naively: \<^prop>\<open>itrev xs ys = rev xs\<close> is
 just not true.  The correct generalization is
 \<close>
 (*<*)oops(*>*)
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induction xs, auto)(*>*)
 txt\<open>
-If \<open>ys\<close> is replaced by @{term"[]"}, the right-hand side simplifies to
-@{term"rev xs"}, as required.
+If \<open>ys\<close> is replaced by \<^term>\<open>[]\<close>, the right-hand side simplifies to
+\<^term>\<open>rev xs\<close>, as required.
 In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
@@ -316,7 +316,7 @@ The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that the \<open>ys\<close>
 in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
-@{term"a # ys"} instead of \<open>ys\<close>. Hence we prove the theorem
+\<^term>\<open>a # ys\<close> instead of \<open>ys\<close>. Hence we prove the theorem
 for all \<open>ys\<close> instead of a fixed one. We can instruct induction
 to perform this generalization for us by adding \<open>arbitrary: ys\<close>\index{arbitrary@\<open>arbitrary:\<close>}.
 \<close>
@@ -350,11 +350,11 @@ those that change in recursive calls.
 \subsection*{Exercises}
 
 \begin{exercise}
-Write a tail-recursive variant of the \<open>add\<close> function on @{typ nat}:
-@{term "itadd :: nat \<Rightarrow> nat \<Rightarrow> nat"}.
+Write a tail-recursive variant of the \<open>add\<close> function on \<^typ>\<open>nat\<close>:
+\<^term>\<open>itadd :: nat \<Rightarrow> nat \<Rightarrow> nat\<close>.
 Tail-recursive means that in the recursive case, \<open>itadd\<close> needs to call
-itself directly: \mbox{@{term"itadd (Suc m) n"}} \<open>= itadd \<dots>\<close>.
-Prove @{prop "itadd m n = add m n"}.
+itself directly: \mbox{\<^term>\<open>itadd (Suc m) n\<close>} \<open>= itadd \<dots>\<close>.
+Prove \<^prop>\<open>itadd m n = add m n\<close>.
 \end{exercise}
 
 
@@ -377,13 +377,13 @@ The idea of simplification is best explained by an example. Given the
 simplification rules
 \[
 \begin{array}{rcl@ {\quad}l}
-@{term"0 + n::nat"} &\<open>=\<close>& \<open>n\<close> & (1) \\
-@{term"(Suc m) + n"} &\<open>=\<close>& @{term"Suc (m + n)"} & (2) \\
+\<^term>\<open>0 + n::nat\<close> &\<open>=\<close>& \<open>n\<close> & (1) \\
+\<^term>\<open>(Suc m) + n\<close> &\<open>=\<close>& \<^term>\<open>Suc (m + n)\<close> & (2) \\
 \<open>(Suc m \<le> Suc n)\<close> &\<open>=\<close>& \<open>(m \<le> n)\<close> & (3)\\
-\<open>(0 \<le> m)\<close> &\<open>=\<close>& @{const True} & (4)
+\<open>(0 \<le> m)\<close> &\<open>=\<close>& \<^const>\<open>True\<close> & (4)
 \end{array}
 \]
-the formula @{prop"0 + Suc 0 \<le> Suc 0 + x"} is simplified to @{const True}
+the formula \<^prop>\<open>0 + Suc 0 \<le> Suc 0 + x\<close> is simplified to \<^const>\<open>True\<close>
 as follows:
 \[
 \begin{array}{r@ {}c@ {}l@ {\quad}l}
@@ -391,7 +391,7 @@ as follows:
 \<open>(Suc 0\<close>     & \leq & \<open>Suc 0 + x)\<close>  & \stackrel{(2)}{=} \\
 \<open>(Suc 0\<close>     & \leq & \<open>Suc (0 + x))\<close> & \stackrel{(3)}{=} \\
 \<open>(0\<close>         & \leq & \<open>0 + x)\<close>      & \stackrel{(4)}{=} \\[1ex]
- & @{const True}
+ & \<^const>\<open>True\<close>
 \end{array}
 \]
 Simplification is often also called \concept{rewriting}
@@ -406,10 +406,10 @@ simplification rules: \isacom{datatype} the distinctness and injectivity
 rules, \isacom{fun} the defining equations. Definitions are not declared
 as simplification rules automatically! Nearly any theorem can become a
 simplification rule. The simplifier will try to transform it into an
-equation. For example, the theorem @{prop"\<not> P"} is turned into @{prop"P = False"}.
+equation. For example, the theorem \<^prop>\<open>\<not> P\<close> is turned into \<^prop>\<open>P = False\<close>.
 
-Only equations that really simplify, like @{prop"rev (rev xs) = xs"} and
-@{prop"xs @ [] = xs"}, should be declared as simplification
+Only equations that really simplify, like \<^prop>\<open>rev (rev xs) = xs\<close> and
+\<^prop>\<open>xs @ [] = xs\<close>, should be declared as simplification
 rules. Equations that may be counterproductive as simplification rules
 should only be used in specific proof steps (see \autoref{sec:simp} below).
 Distributivity laws, for example, alter the structure of terms
@@ -421,17 +421,17 @@ Simplification rules can be conditional.  Before applying such a rule, the
 simplifier will first try to prove the preconditions, again by
 simplification. For example, given the simplification rules
 \begin{quote}
-@{prop"p(0::nat) = True"}\\
-@{prop"p(x) \<Longrightarrow> f(x) = g(x)"},
+\<^prop>\<open>p(0::nat) = True\<close>\\
+\<^prop>\<open>p(x) \<Longrightarrow> f(x) = g(x)\<close>,
 \end{quote}
-the term @{term"f(0::nat)"} simplifies to @{term"g(0::nat)"}
-but @{term"f(1::nat)"} does not simplify because @{prop"p(1::nat)"}
+the term \<^term>\<open>f(0::nat)\<close> simplifies to \<^term>\<open>g(0::nat)\<close>
+but \<^term>\<open>f(1::nat)\<close> does not simplify because \<^prop>\<open>p(1::nat)\<close>
 is not provable.
 
 \subsection{Termination}
 
-Simplification can run forever, for example if both @{prop"f x = g x"} and
-@{prop"g(x) = f(x)"} are simplification rules. It is the user's
+Simplification can run forever, for example if both \<^prop>\<open>f x = g x\<close> and
+\<^prop>\<open>g(x) = f(x)\<close> are simplification rules. It is the user's
 responsibility not to include simplification rules that can lead to
 nontermination, either on their own or in combination with other
 simplification rules. The right-hand side of a simplification rule should
@@ -443,15 +443,15 @@ When conditional simplification rules are applied, their preconditions are
 proved first. Hence all preconditions need to be
 simpler than the left-hand side of the conclusion. For example
 \begin{quote}
-@{prop "n < m \<Longrightarrow> (n < Suc m) = True"}
+\<^prop>\<open>n < m \<Longrightarrow> (n < Suc m) = True\<close>
 \end{quote}
-is suitable as a simplification rule: both @{prop"n<m"} and @{const True}
-are simpler than \mbox{@{prop"n < Suc m"}}. But
+is suitable as a simplification rule: both \<^prop>\<open>n<m\<close> and \<^const>\<open>True\<close>
+are simpler than \mbox{\<^prop>\<open>n < Suc m\<close>}. But
 \begin{quote}
-@{prop "Suc n < m \<Longrightarrow> (n < m) = True"}
+\<^prop>\<open>Suc n < m \<Longrightarrow> (n < m) = True\<close>
 \end{quote}
-leads to nontermination: when trying to rewrite @{prop"n<m"} to @{const True}
-one first has to prove \mbox{@{prop"Suc n < m"}}, which can be rewritten to @{const True} provided @{prop"Suc(Suc n) < m"}, \emph{ad infinitum}.
+leads to nontermination: when trying to rewrite \<^prop>\<open>n<m\<close> to \<^const>\<open>True\<close>
+one first has to prove \mbox{\<^prop>\<open>Suc n < m\<close>}, which can be rewritten to \<^const>\<open>True\<close> provided \<^prop>\<open>Suc(Suc n) < m\<close>, \emph{ad infinitum}.
 
 \subsection{The \indexed{\<open>simp\<close>}{simp} Proof Method}
 \label{sec:simp}
@@ -514,14 +514,14 @@ making @{thm[source] Let_def} a simplification rule.
 Goals containing if-expressions are automatically split into two cases by
 \<open>simp\<close> using the rule
 \begin{quote}
-@{prop"P(if A then s else t) = ((A \<longrightarrow> P(s)) \<and> (~A \<longrightarrow> P(t)))"}
+\<^prop>\<open>P(if A then s else t) = ((A \<longrightarrow> P(s)) \<and> (~A \<longrightarrow> P(t)))\<close>
 \end{quote}
 For example, \<open>simp\<close> can prove
 \begin{quote}
-@{prop"(A \<and> B) = (if A then B else False)"}
+\<^prop>\<open>(A \<and> B) = (if A then B else False)\<close>
 \end{quote}
-because both @{prop"A \<longrightarrow> (A & B) = B"} and @{prop"~A \<longrightarrow> (A & B) = False"}
-simplify to @{const True}.
+because both \<^prop>\<open>A \<longrightarrow> (A & B) = B\<close> and \<^prop>\<open>~A \<longrightarrow> (A & B) = False\<close>
+simplify to \<^const>\<open>True\<close>.
 
 We can split case-expressions similarly. For \<open>nat\<close> the rule looks like this:
 @{prop[display,margin=65,indent=4]"P(case e of 0 \<Rightarrow> a | Suc n \<Rightarrow> b n) = ((e = 0 \<longrightarrow> P a) \<and> (\<forall>n. e = Suc n \<longrightarrow> P(b n)))"}
@@ -540,14 +540,14 @@ Splitting if or case-expressions in the assumptions requires
 \ifsem\else
 \subsection{Rewriting \<open>let\<close> and Numerals}
 
-Let-expressions (@{term "let x = s in t"}) can be expanded explicitly with the simplification rule
+Let-expressions (\<^term>\<open>let x = s in t\<close>) can be expanded explicitly with the simplification rule
 @{thm[source] Let_def}. The simplifier will not expand \<open>let\<close>s automatically in many cases.
 
-Numerals of type @{typ nat} can be converted to @{const Suc} terms with the simplification rule
+Numerals of type \<^typ>\<open>nat\<close> can be converted to \<^const>\<open>Suc\<close> terms with the simplification rule
 @{thm[source] numeral_eq_Suc}. This is required, for example, when a function that is defined
-by pattern matching with @{const Suc} is applied to a numeral: if \<open>f\<close> is defined by
+by pattern matching with \<^const>\<open>Suc\<close> is applied to a numeral: if \<open>f\<close> is defined by
 \<open>f 0 = ...\<close> and  \<open>f (Suc n) = ...\<close>, the simplifier cannot simplify \<open>f 2\<close> unless
-\<open>2\<close> is converted to @{term "Suc(Suc 0)"} (via @{thm[source] numeral_eq_Suc}).
+\<open>2\<close> is converted to \<^term>\<open>Suc(Suc 0)\<close> (via @{thm[source] numeral_eq_Suc}).
 \fi
 
 \subsection*{Exercises}
@@ -569,7 +569,7 @@ fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
 text \<open>
 Find an equation expressing the size of a tree after exploding it
 (\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
-of @{term "nodes t"} and \<open>n\<close>. Prove your equation.
+of \<^term>\<open>nodes t\<close> and \<open>n\<close>. Prove your equation.
 You may use the usual arithmetic operators, including the exponentiation
 operator ``\<open>^\<close>''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
 
@@ -578,7 +578,7 @@ takes care of common algebraic properties of the arithmetic operators.
 \endexercise
 
 \exercise
-Define arithmetic expressions in one variable over integers (type @{typ int})
+Define arithmetic expressions in one variable over integers (type \<^typ>\<open>int\<close>)
 as a data type:
 \<close>
 
@@ -586,18 +586,18 @@ datatype exp = Var | Const int | Add exp exp | Mult exp exp
 
 text\<open>
 Define a function \noquotes{@{term [source]"eval :: exp \<Rightarrow> int \<Rightarrow> int"}}
-such that @{term"eval e x"} evaluates \<open>e\<close> at the value
+such that \<^term>\<open>eval e x\<close> evaluates \<open>e\<close> at the value
 \<open>x\<close>.
 
 A polynomial can be represented as a list of coefficients, starting with
-the constant. For example, @{term "[4, 2, -1, 3::int]"} represents the
+the constant. For example, \<^term>\<open>[4, 2, -1, 3::int]\<close> represents the
 polynomial $4 + 2x - x^2 + 3x^3$.
 Define a function \noquotes{@{term [source] "evalp :: int list \<Rightarrow> int \<Rightarrow> int"}}
 that evaluates a polynomial at the given value.
 Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list"}}
 that transforms an expression into a polynomial. This may require auxiliary
 functions. Prove that \<open>coeffs\<close> preserves the value of the expression:
-\mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
+\mbox{\<^prop>\<open>evalp (coeffs e) x = eval e x\<close>.}
 Hint: consider the hint in Exercise~\ref{exe:tree0}.
 \endexercise
 \<close>

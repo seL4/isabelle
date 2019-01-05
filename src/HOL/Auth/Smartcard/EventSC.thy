@@ -95,9 +95,9 @@ primrec
                   | C_Gets C X   => used evs
                   | Outpts C A X  => parts{X} \<union> (used evs)
                   | A_Gets A X   => used evs)"
-    \<comment> \<open>@{term Gets} always follows @{term Says} in real protocols. 
-       Likewise, @{term C_Gets} will always have to follow @{term Inputs}
-       and @{term A_Gets} will always have to follow @{term Outpts}\<close>
+    \<comment> \<open>\<^term>\<open>Gets\<close> always follows \<^term>\<open>Says\<close> in real protocols. 
+       Likewise, \<^term>\<open>C_Gets\<close> will always have to follow \<^term>\<open>Inputs\<close>
+       and \<^term>\<open>A_Gets\<close> will always have to follow \<^term>\<open>Outpts\<close>\<close>
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
 apply (induct_tac evs)
@@ -116,7 +116,7 @@ apply (auto split: event.split)
 done
 
 
-subsection\<open>Function @{term knows}\<close>
+subsection\<open>Function \<^term>\<open>knows\<close>\<close>
 
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
@@ -128,7 +128,7 @@ lemma knows_Spy_Says [simp]:
 by simp
 
 text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
+      on whether \<^term>\<open>A=Spy\<close> and whether \<^term>\<open>A\<in>bad\<close>\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"

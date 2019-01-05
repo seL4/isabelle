@@ -242,7 +242,7 @@ text\<open>Added to simplify arguments to parts, analz and synth.
 
 
 text\<open>This allows \<open>blast\<close> to simplify occurrences of 
-  @{term "parts(G\<union>H)"} in the assumption.\<close>
+  \<^term>\<open>parts(G\<union>H)\<close> in the assumption.\<close>
 lemmas in_parts_UnE = parts_Un [THEN equalityD1, THEN subsetD, THEN UnE] 
 declare in_parts_UnE [elim!]
 
@@ -484,8 +484,8 @@ by (intro equalityI lemma1 lemma2)
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
 but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently
-\<open>split_tac\<close> does not cope with patterns such as @{term"analz (insert
-(Crypt K X) H)"}\<close> 
+\<open>split_tac\<close> does not cope with patterns such as \<^term>\<open>analz (insert
+(Crypt K X) H)\<close>\<close> 
 lemma analz_Crypt_if [simp]:
      "analz (insert (Crypt K X) H) =                 
           (if (Key (invKey K) \<in> analz H)                 
@@ -621,7 +621,7 @@ done
 text \<open>
 The set includes all agent names.  Nonces and keys are assumed to be
 unguessable, so none are included beyond those already in~$H$.   Two
-elements of @{term "synth H"} can be combined, and an element can be encrypted
+elements of \<^term>\<open>synth H\<close> can be combined, and an element can be encrypted
 using a key present in~$H$.
 
 Like \<open>analz\<close>, this set operator is monotone and idempotent.  It also
@@ -636,12 +636,12 @@ inductive_cases Nonce_synth [elim!]: "Nonce n \<in> synth H"
 text \<open>
 \noindent
 The resulting elimination rule replaces every assumption of the form
-@{term "Nonce n \<in> synth H"} by @{term "Nonce n \<in> H"},
+\<^term>\<open>Nonce n \<in> synth H\<close> by \<^term>\<open>Nonce n \<in> H\<close>,
 expressing that a nonce cannot be guessed.  
 
 A third operator, \<open>parts\<close>, is useful for stating correctness
 properties.  The set
-@{term "parts H"} consists of the components of elements of~$H$.  This set
+\<^term>\<open>parts H\<close> consists of the components of elements of~$H$.  This set
 includes~\<open>H\<close> and is closed under the projections from a compound
 message to its immediate parts. 
 Its definition resembles that of \<open>analz\<close> except in the rule
@@ -728,7 +728,7 @@ lemma parts_insert_subset_Un: "X \<in> G \<Longrightarrow> parts(insert X H) \<s
 by (rule subset_trans [OF parts_mono parts_Un_subset2], blast)
 
 text\<open>More specifically for Fake.  Very occasionally we could do with a version
-  of the form  @{term"parts{X} \<subseteq> synth (analz H) \<union> parts H"}\<close>
+  of the form  \<^term>\<open>parts{X} \<subseteq> synth (analz H) \<union> parts H\<close>\<close>
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) \<Longrightarrow>
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
@@ -742,8 +742,8 @@ lemma Fake_parts_insert_in_Un:
       ==> Z \<in>  synth (analz H) \<union> parts H"
 by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
 
-text\<open>@{term H} is sometimes @{term"Key ` KK \<union> spies evs"}, so can't put 
-  @{term "G=H"}.\<close>
+text\<open>\<^term>\<open>H\<close> is sometimes \<^term>\<open>Key ` KK \<union> spies evs\<close>, so can't put 
+  \<^term>\<open>G=H\<close>.\<close>
 lemma Fake_analz_insert:
      "X \<in> synth (analz G) \<Longrightarrow>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
@@ -857,7 +857,7 @@ fun spy_analz_tac ctxt i =
 \<close>
 
 text\<open>By default only \<open>o_apply\<close> is built-in.  But in the presence of
-eta-expansion this means that some terms displayed as @{term "f o g"} will be
+eta-expansion this means that some terms displayed as \<^term>\<open>f o g\<close> will be
 rewritten, and others will not!\<close>
 declare o_def [simp]
 

@@ -23,15 +23,15 @@ translations
 
 parse_translation
 \<open>
- [(@{syntax_const "_statespace_lookup"}, StateSpace.lookup_tr),
-  (@{syntax_const "_statespace_update"}, StateSpace.update_tr)]
+ [(\<^syntax_const>\<open>_statespace_lookup\<close>, StateSpace.lookup_tr),
+  (\<^syntax_const>\<open>_statespace_update\<close>, StateSpace.update_tr)]
 \<close>
 
 
 print_translation
 \<open>
- [(@{const_syntax lookup}, StateSpace.lookup_tr'),
-  (@{const_syntax update}, StateSpace.update_tr')]
+ [(\<^const_syntax>\<open>lookup\<close>, StateSpace.lookup_tr'),
+  (\<^const_syntax>\<open>update\<close>, StateSpace.update_tr')]
 \<close>
 
 end

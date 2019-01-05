@@ -28,9 +28,9 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
 \isadxboldpos{\isasymle}{$HOL2arithrel} and
-\isadxboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = (0::nat)"} if
-@{prop"m<n"}. There is even a least number operation
-\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 0 < n) = Suc 0"}.
+\isadxboldpos{<}{$HOL2arithrel}. As usual, \<^prop>\<open>m-n = (0::nat)\<close> if
+\<^prop>\<open>m<n\<close>. There is even a least number operation
+\sdx{LEAST}\@.  For example, \<^prop>\<open>(LEAST n. 0 < n) = Suc 0\<close>.
 \begin{warn}\index{overloading}
   The constants \cdx{0} and \cdx{1} and the operations
   \isadxboldpos{+}{$HOL2arithfun}, \isadxboldpos{-}{$HOL2arithfun},
@@ -40,15 +40,15 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
   not just for natural numbers but for other types as well.
   For example, given the goal \<open>x + 0 = x\<close>, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
-  that @{term x} is of some arbitrary type where \<open>0\<close> and \<open>+\<close> are
+  that \<^term>\<open>x\<close> is of some arbitrary type where \<open>0\<close> and \<open>+\<close> are
   declared. As a consequence, you will be unable to prove the
   goal. To alert you to such pitfalls, Isabelle flags numerals without a
-  fixed type in its output: @{prop"x+0 = x"}. (In the absence of a numeral,
+  fixed type in its output: \<^prop>\<open>x+0 = x\<close>. (In the absence of a numeral,
   it may take you some time to realize what has happened if \pgmenu{Show
   Types} is not set).  In this particular example, you need to include
   an explicit type constraint, for example \<open>x+0 = (x::nat)\<close>. If there
-  is enough contextual information this may not be necessary: @{prop"Suc x =
-  x"} automatically implies \<open>x::nat\<close> because @{term Suc} is not
+  is enough contextual information this may not be necessary: \<^prop>\<open>Suc x =
+  x\<close> automatically implies \<open>x::nat\<close> because \<^term>\<open>Suc\<close> is not
   overloaded.
 
   For details on overloading see \S\ref{sec:overloading}.
@@ -58,16 +58,16 @@ The arithmetic operations \isadxboldpos{+}{$HOL2arithfun},
 \begin{warn}
   The symbols \isadxboldpos{>}{$HOL2arithrel} and
   \isadxboldpos{\isasymge}{$HOL2arithrel} are merely syntax: \<open>x > y\<close>
-  stands for @{prop"y < x"} and similary for \<open>\<ge>\<close> and
+  stands for \<^prop>\<open>y < x\<close> and similary for \<open>\<ge>\<close> and
   \<open>\<le>\<close>.
 \end{warn}
 \begin{warn}
-  Constant \<open>1::nat\<close> is defined to equal @{term"Suc 0"}. This definition
+  Constant \<open>1::nat\<close> is defined to equal \<^term>\<open>Suc 0\<close>. This definition
   (see \S\ref{sec:ConstDefinitions}) is unfolded automatically by some
   tactics (like \<open>auto\<close>, \<open>simp\<close> and \<open>arith\<close>) but not by
   others (especially the single step tactics in Chapter~\ref{chap:rules}).
   If you need the full set of numerals, see~\S\ref{sec:numerals}.
-  \emph{Novices are advised to stick to @{term"0::nat"} and @{term Suc}.}
+  \emph{Novices are advised to stick to \<^term>\<open>0::nat\<close> and \<^term>\<open>Suc\<close>.}
 \end{warn}
 
 Both \<open>auto\<close> and \<open>simp\<close>
@@ -93,14 +93,14 @@ Such formulas may involve the usual logical connectives (\<open>\<not>\<close>,
 \<open>\<and>\<close>, \<open>\<or>\<close>, \<open>\<longrightarrow>\<close>, \<open>=\<close>,
 \<open>\<forall>\<close>, \<open>\<exists>\<close>), the relations \<open>=\<close>,
 \<open>\<le>\<close> and \<open><\<close>, and the operations \<open>+\<close>, \<open>-\<close>,
-@{term min} and @{term max}.  For example,\<close>
+\<^term>\<open>min\<close> and \<^term>\<open>max\<close>.  For example,\<close>
 
 lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))"
 apply(arith)
 (*<*)done(*>*)
 
 text\<open>\noindent
-succeeds because @{term"k*k"} can be treated as atomic. In contrast,
+succeeds because \<^term>\<open>k*k\<close> can be treated as atomic. In contrast,
 \<close>
 
 lemma "n*n = n+1 \<Longrightarrow> n=0"

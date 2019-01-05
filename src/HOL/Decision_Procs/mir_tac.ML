@@ -11,7 +11,7 @@ structure Mir_Tac: MIR_TAC =
 struct
 
 val mir_ss = 
-  simpset_of (@{context} delsimps [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}] 
+  simpset_of (\<^context> delsimps [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}] 
                addsimps @{thms "iff_real_of_int"});
 
 val nT = HOLogic.natT;
@@ -75,7 +75,7 @@ fun mir_tac ctxt q =
                                   @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},
                                   @{thm "Suc_eq_plus1"}]
                         addsimps @{thms add.assoc add.commute add.left_commute}
-                        addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
+                        addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>]
     val simpset0 = put_simpset HOL_basic_ss ctxt
       addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1}
       addsimps comp_ths
@@ -105,7 +105,7 @@ fun mir_tac ctxt q =
     (* The result of the quantifier elimination *)
     val (th, tac) =
       case Thm.prop_of pre_thm of
-        Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
+        Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t1) $ _ =>
     let
       val pth = mirfr_oracle (ctxt, Envir.eta_long [] t1)
     in 

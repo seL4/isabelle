@@ -239,7 +239,7 @@ struct
 
 val analz_image_freshK_ss =
   simpset_of
-   (@{context} delsimps [image_insert, image_Un]
+   (\<^context> delsimps [image_insert, image_Un]
       delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
       addsimps @{thms analz_image_freshK_simps})
 

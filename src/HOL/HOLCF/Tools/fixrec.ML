@@ -34,12 +34,12 @@ fun fixrec_err s = error ("fixrec definition error:\n" ^ s)
 
 local
 
-fun binder_cfun (Type(@{type_name cfun},[T, U])) = T :: binder_cfun U
-  | binder_cfun (Type(@{type_name "fun"},[T, U])) = T :: binder_cfun U
+fun binder_cfun (Type(\<^type_name>\<open>cfun\<close>,[T, U])) = T :: binder_cfun U
+  | binder_cfun (Type(\<^type_name>\<open>fun\<close>,[T, U])) = T :: binder_cfun U
   | binder_cfun _   =  []
 
-fun body_cfun (Type(@{type_name cfun},[_, U])) = body_cfun U
-  | body_cfun (Type(@{type_name "fun"},[_, U])) = body_cfun U
+fun body_cfun (Type(\<^type_name>\<open>cfun\<close>,[_, U])) = body_cfun U
+  | body_cfun (Type(\<^type_name>\<open>fun\<close>,[_, U])) = body_cfun U
   | body_cfun T   =  T
 
 in
@@ -59,24 +59,24 @@ val mk_trp = HOLogic.mk_Trueprop
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t)
 
 (* similar to Thm.head_of, but for continuous application *)
-fun chead_of (Const(@{const_name Rep_cfun},_)$f$_) = chead_of f
+fun chead_of (Const(\<^const_name>\<open>Rep_cfun\<close>,_)$f$_) = chead_of f
   | chead_of u = u
 
 infix 1 === val (op ===) = HOLogic.mk_eq
 
 fun mk_mplus (t, u) =
   let val mT = Term.fastype_of t
-  in Const(@{const_name Fixrec.mplus}, mT ->> mT ->> mT) ` t ` u end
+  in Const(\<^const_name>\<open>Fixrec.mplus\<close>, mT ->> mT ->> mT) ` t ` u end
 
 fun mk_run t =
   let
     val mT = Term.fastype_of t
     val T = dest_matchT mT
-    val run = Const(@{const_name Fixrec.run}, mT ->> T)
+    val run = Const(\<^const_name>\<open>Fixrec.run\<close>, mT ->> T)
   in
     case t of
-      Const(@{const_name Rep_cfun}, _) $
-        Const(@{const_name Fixrec.succeed}, _) $ u => u
+      Const(\<^const_name>\<open>Rep_cfun\<close>, _) $
+        Const(\<^const_name>\<open>Fixrec.succeed\<close>, _) $ u => u
     | _ => run ` t
   end
 
@@ -130,7 +130,7 @@ fun add_fixdefs
           "or simp rules are configured for all non-HOLCF constants.\n" ^
           "The error occurred for the goal statement:\n" ^
           Syntax.string_of_term lthy prop)
-        val rules = Named_Theorems.get lthy @{named_theorems cont2cont}
+        val rules = Named_Theorems.get lthy \<^named_theorems>\<open>cont2cont\<close>
         val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac lthy (rev rules)))
         val slow_tac = SOLVED' (simp_tac lthy)
         val tac = fast_tac 1 ORELSE slow_tac 1 ORELSE err
@@ -219,7 +219,7 @@ fun compile_pat match_name pat rhs taken =
     (* compiles a monadic term for a constructor pattern *)
     and comp_con T p rhs vs taken =
       case p of
-        Const(@{const_name Rep_cfun},_) $ f $ x =>
+        Const(\<^const_name>\<open>Rep_cfun\<close>,_) $ f $ x =>
           let val (rhs', v, taken') = comp_pat x rhs taken
           in comp_con T f rhs' (v::vs) taken' end
       | f $ x =>
@@ -243,7 +243,7 @@ fun compile_pat match_name pat rhs taken =
 (* returns (constant, (vars, matcher)) *)
 fun compile_lhs match_name pat rhs vs taken =
   case pat of
-    Const(@{const_name Rep_cfun}, _) $ f $ x =>
+    Const(\<^const_name>\<open>Rep_cfun\<close>, _) $ f $ x =>
       let val (rhs', v, taken') = compile_pat match_name x rhs taken
       in compile_lhs match_name f rhs' (v::vs) taken' end
   | Free(_,_) => (pat, (vs, rhs))
@@ -388,18 +388,18 @@ end (* local *)
 (*************************************************************************)
 
 val opt_thm_name' : (bool * Attrib.binding) parser =
-  @{keyword "("} -- @{keyword "unchecked"} -- @{keyword ")"} >> K (true, Binding.empty_atts)
+  \<^keyword>\<open>(\<close> -- \<^keyword>\<open>unchecked\<close> -- \<^keyword>\<open>)\<close> >> K (true, Binding.empty_atts)
     || Parse_Spec.opt_thm_name ":" >> pair false
 
 val spec' : (bool * (Attrib.binding * string)) parser =
   opt_thm_name' -- Parse.prop >> (fn ((a, b), c) => (a, (b, c)))
 
 val multi_specs' : (bool * (Attrib.binding * string)) list parser =
-  let val unexpected = Scan.ahead (Parse.name || @{keyword "["} || @{keyword "("})
-  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! @{keyword "|"})) end
+  let val unexpected = Scan.ahead (Parse.name || \<^keyword>\<open>[\<close> || \<^keyword>\<open>(\<close>)
+  in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! \<^keyword>\<open>|\<close>)) end
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword fixrec} "define recursive functions (HOLCF)"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>fixrec\<close> "define recursive functions (HOLCF)"
     (Parse.vars -- (Parse.where_ |-- Parse.!!! multi_specs')
       >> (fn (vars, specs) => add_fixrec_cmd vars specs))
 

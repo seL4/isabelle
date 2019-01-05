@@ -206,7 +206,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 lemma (in group) coset_join2:
   assumes "x \<in> carrier G" "subgroup H G" "x \<in> H"
   shows "H #> x = H" using assms
-  \<comment> \<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
+  \<comment> \<open>Alternative proof is to put \<^term>\<open>x=\<one>\<close> in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in group) coset_join3:
@@ -934,8 +934,8 @@ proof -
     by (simp add: FactGroup_def group.inv_equality)
 qed
 
-text\<open>The coset map is a homomorphism from @{term G} to the quotient group
-  @{term "G Mod H"}\<close>
+text\<open>The coset map is a homomorphism from \<^term>\<open>G\<close> to the quotient group
+  \<^term>\<open>G Mod H\<close>\<close>
 lemma (in normal) r_coset_hom_Mod:
   "(\<lambda>a. H #> a) \<in> hom G (G Mod H)"
   by (auto simp add: FactGroup_def RCOSETS_def Pi_def hom_def rcos_sum)
@@ -1041,7 +1041,7 @@ proof (simp add: inj_on_def, clarify)
   show "X=X'" by (rule equalityI) (simp_all add: FactGroup_subset h gX)
 qed
 
-text\<open>If the homomorphism @{term h} is onto @{term H}, then so is the
+text\<open>If the homomorphism \<^term>\<open>h\<close> is onto \<^term>\<open>H\<close>, then so is the
 homomorphism from the quotient group\<close>
 lemma (in group_hom) FactGroup_onto:
   assumes h: "h ` carrier G = carrier H"
@@ -1066,8 +1066,8 @@ proof
 qed
 
 
-text\<open>If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
- quotient group @{term "G Mod (kernel G H h)"} is isomorphic to @{term H}.\<close>
+text\<open>If \<^term>\<open>h\<close> is a homomorphism from \<^term>\<open>G\<close> onto \<^term>\<open>H\<close>, then the
+ quotient group \<^term>\<open>G Mod (kernel G H h)\<close> is isomorphic to \<^term>\<open>H\<close>.\<close>
 theorem (in group_hom) FactGroup_iso_set:
   "h ` carrier G = carrier H
    \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> iso (G Mod (kernel G H h)) H"

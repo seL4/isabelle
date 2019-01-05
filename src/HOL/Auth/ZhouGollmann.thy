@@ -117,8 +117,8 @@ lemma Gets_imp_knows_Spy:
 by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 
 
-text\<open>Lets us replace proofs about @{term "used evs"} by simpler proofs 
-about @{term "parts (spies evs)"}.\<close>
+text\<open>Lets us replace proofs about \<^term>\<open>used evs\<close> by simpler proofs 
+about \<^term>\<open>parts (spies evs)\<close>.\<close>
 lemma Crypt_used_imp_spies:
      "[| Crypt K X \<in> used evs; evs \<in> zg |]
       ==> Crypt K X \<in> parts (spies evs)"
@@ -158,10 +158,10 @@ lemma Spy_analz_priK [simp]:
 by auto 
 
 
-subsection\<open>About NRO: Validity for @{term B}\<close>
+subsection\<open>About NRO: Validity for \<^term>\<open>B\<close>\<close>
 
-text\<open>Below we prove that if @{term NRO} exists then @{term A} definitely
-sent it, provided @{term A} is not broken.\<close>
+text\<open>Below we prove that if \<^term>\<open>NRO\<close> exists then \<^term>\<open>A\<close> definitely
+sent it, provided \<^term>\<open>A\<close> is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma NRO_validity_good:
@@ -182,7 +182,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text\<open>Holds also for @{term "A = Spy"}!\<close>
+text\<open>Holds also for \<^term>\<open>A = Spy\<close>!\<close>
 theorem NRO_validity:
      "[|Gets B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs;
         NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>;
@@ -191,17 +191,17 @@ theorem NRO_validity:
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule NRO_sender, auto)
-txt\<open>We are left with the case where the sender is @{term Spy} and not
-  equal to @{term A}, because @{term "A \<notin> bad"}. 
+txt\<open>We are left with the case where the sender is \<^term>\<open>Spy\<close> and not
+  equal to \<^term>\<open>A\<close>, because \<^term>\<open>A \<notin> bad\<close>. 
   Thus theorem \<open>NRO_validity_good\<close> applies.\<close>
 apply (blast dest: NRO_validity_good [OF refl])
 done
 
 
-subsection\<open>About NRR: Validity for @{term A}\<close>
+subsection\<open>About NRR: Validity for \<^term>\<open>A\<close>\<close>
 
-text\<open>Below we prove that if @{term NRR} exists then @{term B} definitely
-sent it, provided @{term B} is not broken.\<close>
+text\<open>Below we prove that if \<^term>\<open>NRR\<close> exists then \<^term>\<open>B\<close> definitely
+sent it, provided \<^term>\<open>B\<close> is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma NRR_validity_good:
@@ -222,7 +222,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text\<open>Holds also for @{term "B = Spy"}!\<close>
+text\<open>Holds also for \<^term>\<open>B = Spy\<close>!\<close>
 theorem NRR_validity:
      "[|Says B' A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs;
         NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
@@ -230,16 +230,16 @@ theorem NRR_validity:
     ==> Says B A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs"
 apply clarify 
 apply (frule NRR_sender, auto)
-txt\<open>We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
-  i.e. @{term "B \<notin> bad"}, when we can apply \<open>NRR_validity_good\<close>.\<close>
+txt\<open>We are left with the case where \<^term>\<open>B' = Spy\<close> and  \<^term>\<open>B' \<noteq> B\<close>,
+  i.e. \<^term>\<open>B \<notin> bad\<close>, when we can apply \<open>NRR_validity_good\<close>.\<close>
  apply (blast dest: NRR_validity_good [OF refl])
 done
 
 
-subsection\<open>Proofs About @{term sub_K}\<close>
+subsection\<open>Proofs About \<^term>\<open>sub_K\<close>\<close>
 
-text\<open>Below we prove that if @{term sub_K} exists then @{term A} definitely
-sent it, provided @{term A} is not broken.\<close>
+text\<open>Below we prove that if \<^term>\<open>sub_K\<close> exists then \<^term>\<open>A\<close> definitely
+sent it, provided \<^term>\<open>A\<close> is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma sub_K_validity_good:
@@ -262,7 +262,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text\<open>Holds also for @{term "A = Spy"}!\<close>
+text\<open>Holds also for \<^term>\<open>A = Spy\<close>!\<close>
 theorem sub_K_validity:
      "[|Gets TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs;
         sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
@@ -271,19 +271,19 @@ theorem sub_K_validity:
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule sub_K_sender, auto)
-txt\<open>We are left with the case where the sender is @{term Spy} and not
-  equal to @{term A}, because @{term "A \<notin> bad"}. 
+txt\<open>We are left with the case where the sender is \<^term>\<open>Spy\<close> and not
+  equal to \<^term>\<open>A\<close>, because \<^term>\<open>A \<notin> bad\<close>. 
   Thus theorem \<open>sub_K_validity_good\<close> applies.\<close>
 apply (blast dest: sub_K_validity_good [OF refl])
 done
 
 
 
-subsection\<open>Proofs About @{term con_K}\<close>
+subsection\<open>Proofs About \<^term>\<open>con_K\<close>\<close>
 
-text\<open>Below we prove that if @{term con_K} exists, then @{term TTP} has it,
-and therefore @{term A} and @{term B}) can get it too.  Moreover, we know
-that @{term A} sent @{term sub_K}\<close>
+text\<open>Below we prove that if \<^term>\<open>con_K\<close> exists, then \<^term>\<open>TTP\<close> has it,
+and therefore \<^term>\<open>A\<close> and \<^term>\<open>B\<close>) can get it too.  Moreover, we know
+that \<^term>\<open>A\<close> sent \<^term>\<open>sub_K\<close>\<close>
 
 lemma con_K_validity:
      "[|con_K \<in> used evs;
@@ -302,9 +302,9 @@ txt\<open>ZG2\<close>
 apply (blast dest: parts_cut)
 done
 
-text\<open>If @{term TTP} holds @{term con_K} then @{term A} sent
- @{term sub_K}.  We assume that @{term A} is not broken.  Importantly, nothing
-  needs to be assumed about the form of @{term con_K}!\<close>
+text\<open>If \<^term>\<open>TTP\<close> holds \<^term>\<open>con_K\<close> then \<^term>\<open>A\<close> sent
+ \<^term>\<open>sub_K\<close>.  We assume that \<^term>\<open>A\<close> is not broken.  Importantly, nothing
+  needs to be assumed about the form of \<^term>\<open>con_K\<close>!\<close>
 lemma Notes_TTP_imp_Says_A:
      "[|Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K, con_K\<rbrace>
            \<in> set evs;
@@ -320,8 +320,8 @@ apply clarify
 apply (rule sub_K_validity, auto) 
 done
 
-text\<open>If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
-   assume that @{term A} is not broken.\<close>
+text\<open>If \<^term>\<open>con_K\<close> exists, then \<^term>\<open>A\<close> sent \<^term>\<open>sub_K\<close>.  We again
+   assume that \<^term>\<open>A\<close> is not broken.\<close>
 theorem B_sub_K_validity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP) \<lbrace>Number f_con, Agent A, Agent B,
@@ -334,11 +334,11 @@ by (blast dest: con_K_validity Notes_TTP_imp_Says_A)
 
 subsection\<open>Proving fairness\<close>
 
-text\<open>Cannot prove that, if @{term B} has NRO, then  @{term A} has her NRR.
-It would appear that @{term B} has a small advantage, though it is
-useless to win disputes: @{term B} needs to present @{term con_K} as well.\<close>
+text\<open>Cannot prove that, if \<^term>\<open>B\<close> has NRO, then  \<^term>\<open>A\<close> has her NRR.
+It would appear that \<^term>\<open>B\<close> has a small advantage, though it is
+useless to win disputes: \<^term>\<open>B\<close> needs to present \<^term>\<open>con_K\<close> as well.\<close>
 
-text\<open>Strange: unicity of the label protects @{term A}?\<close>
+text\<open>Strange: unicity of the label protects \<^term>\<open>A\<close>?\<close>
 lemma A_unicity: 
      "[|NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M\<rbrace>;
         NRO \<in> parts (spies evs);
@@ -356,7 +356,7 @@ apply (blast dest: parts.Body)
 done
 
 
-text\<open>Fairness lemma: if @{term sub_K} exists, then @{term A} holds 
+text\<open>Fairness lemma: if \<^term>\<open>sub_K\<close> exists, then \<^term>\<open>A\<close> holds 
 NRR.  Relies on unicity of labels.\<close>
 lemma sub_K_implies_NRR:
      "[| NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M\<rbrace>;
@@ -393,9 +393,9 @@ apply (blast dest: parts.Body)
 done
 
 
-text\<open>Fairness for @{term A}: if @{term con_K} and @{term NRO} exist, 
-then @{term A} holds NRR.  @{term A} must be uncompromised, but there is no
-assumption about @{term B}.\<close>
+text\<open>Fairness for \<^term>\<open>A\<close>: if \<^term>\<open>con_K\<close> and \<^term>\<open>NRO\<close> exist, 
+then \<^term>\<open>A\<close> holds NRR.  \<^term>\<open>A\<close> must be uncompromised, but there is no
+assumption about \<^term>\<open>B\<close>.\<close>
 theorem A_fairness_NRO:
      "[|con_K \<in> used evs;
         NRO \<in> parts (spies evs);
@@ -422,9 +422,8 @@ apply (blast intro: sub_K_implies_NRR [OF refl]
              dest: Gets_imp_knows_Spy [THEN parts.Inj])
 done
 
-text\<open>Fairness for @{term B}: NRR exists at all, then @{term B} holds NRO.
-@{term B} must be uncompromised, but there is no assumption about @{term
-A}.\<close>
+text\<open>Fairness for \<^term>\<open>B\<close>: NRR exists at all, then \<^term>\<open>B\<close> holds NRO.
+\<^term>\<open>B\<close> must be uncompromised, but there is no assumption about \<^term>\<open>A\<close>.\<close>
 theorem B_fairness_NRR:
      "[|NRR \<in> used evs;
         NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
@@ -442,8 +441,8 @@ apply (blast dest: parts_cut)
 done
 
 
-text\<open>If @{term con_K} exists at all, then @{term B} can get it, by \<open>con_K_validity\<close>.  Cannot conclude that also NRO is available to @{term B},
-because if @{term A} were unfair, @{term A} could build message 3 without
+text\<open>If \<^term>\<open>con_K\<close> exists at all, then \<^term>\<open>B\<close> can get it, by \<open>con_K_validity\<close>.  Cannot conclude that also NRO is available to \<^term>\<open>B\<close>,
+because if \<^term>\<open>A\<close> were unfair, \<^term>\<open>A\<close> could build message 3 without
 building message 1, which contains NRO.\<close>
 
 end

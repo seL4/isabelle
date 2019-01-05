@@ -36,8 +36,8 @@ where
 
 text\<open>\noindent
 The first three equations should be self-explanatory. The temporal formula
-@{term"AX f"} means that @{term f} is true in \emph{A}ll ne\emph{X}t states whereas
-@{term"EF f"} means that there \emph{E}xists some \emph{F}uture state in which @{term f} is
+\<^term>\<open>AX f\<close> means that \<^term>\<open>f\<close> is true in \emph{A}ll ne\emph{X}t states whereas
+\<^term>\<open>EF f\<close> means that there \emph{E}xists some \emph{F}uture state in which \<^term>\<open>f\<close> is
 true. The future is expressed via \<open>\<^sup>*\<close>, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
@@ -53,17 +53,17 @@ primrec mc :: "formula \<Rightarrow> state set" where
 "mc(EF f)    = lfp(\<lambda>T. mc f \<union> (M\<inverse> `` T))"
 
 text\<open>\noindent
-Only the equation for @{term EF} deserves some comments. Remember that the
+Only the equation for \<^term>\<open>EF\<close> deserves some comments. Remember that the
 postfix \<open>\<inverse>\<close> and the infix \<open>``\<close> are predefined and denote the
 converse of a relation and the image of a set under a relation.  Thus
-@{term "M\<inverse> `` T"} is the set of all predecessors of @{term T} and the least
-fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
-@{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
-find it hard to see that @{term"mc(EF f)"} contains exactly those states from
-which there is a path to a state where @{term f} is true, do not worry --- this
+\<^term>\<open>M\<inverse> `` T\<close> is the set of all predecessors of \<^term>\<open>T\<close> and the least
+fixed point (\<^term>\<open>lfp\<close>) of \<^term>\<open>\<lambda>T. mc f \<union> M\<inverse> `` T\<close> is the least set
+\<^term>\<open>T\<close> containing \<^term>\<open>mc f\<close> and all predecessors of \<^term>\<open>T\<close>. If you
+find it hard to see that \<^term>\<open>mc(EF f)\<close> contains exactly those states from
+which there is a path to a state where \<^term>\<open>f\<close> is true, do not worry --- this
 will be proved in a moment.
 
-First we prove monotonicity of the function inside @{term lfp}
+First we prove monotonicity of the function inside \<^term>\<open>lfp\<close>
 in order to make sure it really has a least fixed point.
 \<close>
 
@@ -92,7 +92,7 @@ apply(rule equalityI)
 txt\<open>\noindent
 Simplification leaves us with the following first subgoal
 @{subgoals[display,indent=0,goals_limit=1]}
-which is proved by @{term lfp}-induction:
+which is proved by \<^term>\<open>lfp\<close>-induction:
 \<close>
 
  apply(erule lfp_induct_set)
@@ -123,15 +123,15 @@ apply(simp, clarify)
 txt\<open>\noindent
 After simplification and clarification we are left with
 @{subgoals[display,indent=0,goals_limit=1]}
-This goal is proved by induction on @{term"(s,t)\<in>M\<^sup>*"}. But since the model
-checker works backwards (from @{term t} to @{term s}), we cannot use the
+This goal is proved by induction on \<^term>\<open>(s,t)\<in>M\<^sup>*\<close>. But since the model
+checker works backwards (from \<^term>\<open>t\<close> to \<^term>\<open>s\<close>), we cannot use the
 induction theorem @{thm[source]rtrancl_induct}: it works in the
 forward direction. Fortunately the converse induction theorem
 @{thm[source]converse_rtrancl_induct} already exists:
 @{thm[display,margin=60]converse_rtrancl_induct[no_vars]}
-It says that if @{prop"(a,b)\<in>r\<^sup>*"} and we know @{prop"P b"} then we can infer
-@{prop"P a"} provided each step backwards from a predecessor @{term z} of
-@{term b} preserves @{term P}.
+It says that if \<^prop>\<open>(a,b)\<in>r\<^sup>*\<close> and we know \<^prop>\<open>P b\<close> then we can infer
+\<^prop>\<open>P a\<close> provided each step backwards from a predecessor \<^term>\<open>z\<close> of
+\<^term>\<open>b\<close> preserves \<^term>\<open>P\<close>.
 \<close>
 
 apply(erule converse_rtrancl_induct)
@@ -139,7 +139,7 @@ apply(erule converse_rtrancl_induct)
 txt\<open>\noindent
 The base case
 @{subgoals[display,indent=0,goals_limit=1]}
-is solved by unrolling @{term lfp} once
+is solved by unrolling \<^term>\<open>lfp\<close> once
 \<close>
 
  apply(subst lfp_unfold[OF mono_ef])
@@ -171,15 +171,15 @@ done
 
 text\<open>
 \begin{exercise}
-@{term AX} has a dual operator @{term EN} 
+\<^term>\<open>AX\<close> has a dual operator \<^term>\<open>EN\<close> 
 (``there exists a next state such that'')%
 \footnote{We cannot use the customary \<open>EX\<close>: it is reserved
 as the \textsc{ascii}-equivalent of \<open>\<exists>\<close>.}
 with the intended semantics
 @{prop[display]"(s \<Turnstile> EN f) = (\<exists>t. (s,t) \<in> M \<and> t \<Turnstile> f)"}
-Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
+Fortunately, \<^term>\<open>EN f\<close> can already be expressed as a PDL formula. How?
 
-Show that the semantics for @{term EF} satisfies the following recursion equation:
+Show that the semantics for \<^term>\<open>EF\<close> satisfies the following recursion equation:
 @{prop[display]"(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> EN(EF f))"}
 \end{exercise}
 \index{PDL|)}

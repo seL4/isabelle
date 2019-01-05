@@ -49,7 +49,7 @@ subsection \<open>Maximal filter = Ultrafilter\<close>
 
 text \<open>
    A filter \<open>F\<close> is an ultrafilter iff it is a maximal filter,
-   i.e. whenever \<open>G\<close> is a filter and @{prop "F \<subseteq> G"} then @{prop "F = G"}
+   i.e. whenever \<open>G\<close> is a filter and \<^prop>\<open>F \<subseteq> G\<close> then \<^prop>\<open>F = G\<close>
 \<close>
 
 text \<open>

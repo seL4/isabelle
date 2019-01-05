@@ -25,12 +25,12 @@ in \S\ref{sec:intro-proof} we find
 \begin{itemize}
 \item \<open>@\<close> is recursive in
 the first argument
-\item @{term xs}  occurs only as the first argument of
+\item \<^term>\<open>xs\<close>  occurs only as the first argument of
 \<open>@\<close>
-\item both @{term ys} and @{term zs} occur at least once as
+\item both \<^term>\<open>ys\<close> and \<^term>\<open>zs\<close> occur at least once as
 the second argument of \<open>@\<close>
 \end{itemize}
-Hence it is natural to perform induction on~@{term xs}.
+Hence it is natural to perform induction on~\<^term>\<open>xs\<close>.
 
 The key heuristic, and the main point of this section, is to
 \emph{generalize the goal before induction}.
@@ -41,7 +41,7 @@ step to go through. Let us illustrate the idea with an example.
 Function \cdx{rev} has quadratic worst-case running time
 because it calls function \<open>@\<close> for each element of the list and
 \<open>@\<close> is linear in its first argument.  A linear time version of
-@{term"rev"} reqires an extra argument where the result is accumulated
+\<^term>\<open>rev\<close> reqires an extra argument where the result is accumulated
 gradually, using only~\<open>#\<close>:
 \<close>
 
@@ -53,10 +53,10 @@ text\<open>\noindent
 The behaviour of \cdx{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and returning that second argument when the first one becomes
-empty. Note that @{term"itrev"} is tail-recursive: it can be
+empty. Note that \<^term>\<open>itrev\<close> is tail-recursive: it can be
 compiled into a loop.
 
-Naturally, we would like to show that @{term"itrev"} does indeed reverse
+Naturally, we would like to show that \<^term>\<open>itrev\<close> does indeed reverse
 its first argument provided the second one is empty:
 \<close>
 
@@ -73,33 +73,33 @@ Unfortunately, this attempt does not prove
 the induction step:
 @{subgoals[display,indent=0,margin=70]}
 The induction hypothesis is too weak.  The fixed
-argument,~@{term"[]"}, prevents it from rewriting the conclusion.  
+argument,~\<^term>\<open>[]\<close>, prevents it from rewriting the conclusion.  
 This example suggests a heuristic:
 \begin{quote}\index{generalizing induction formulae}%
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this na\"{\i}vely: @{term"itrev xs ys = rev xs"} is
+Of course one cannot do this na\"{\i}vely: \<^term>\<open>itrev xs ys = rev xs\<close> is
 just not true.  The correct generalization is
 \<close>
 (*<*)oops(*>*)
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induct_tac xs, simp_all)(*>*)
 txt\<open>\noindent
-If @{term"ys"} is replaced by @{term"[]"}, the right-hand side simplifies to
-@{term"rev xs"}, as required.
+If \<^term>\<open>ys\<close> is replaced by \<^term>\<open>[]\<close>, the right-hand side simplifies to
+\<^term>\<open>rev xs\<close>, as required.
 
 In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
-Although we now have two variables, only @{term"xs"} is suitable for
+Although we now have two variables, only \<^term>\<open>xs\<close> is suitable for
 induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 @{subgoals[display,indent=0,goals_limit=1]}
 The induction hypothesis is still too weak, but this time it takes no
-intuition to generalize: the problem is that @{term"ys"} is fixed throughout
+intuition to generalize: the problem is that \<^term>\<open>ys\<close> is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
-@{term"a # ys"} instead of @{term"ys"}. Hence we prove the theorem
-for all @{term"ys"} instead of a fixed one:
+\<^term>\<open>a # ys\<close> instead of \<^term>\<open>ys\<close>. Hence we prove the theorem
+for all \<^term>\<open>ys\<close> instead of a fixed one:
 \<close>
 (*<*)oops(*>*)
 lemma "\<forall>ys. itrev xs ys = rev xs @ ys"
@@ -108,7 +108,7 @@ by(induct_tac xs, simp_all)
 (*>*)
 
 text\<open>\noindent
-This time induction on @{term"xs"} followed by simplification succeeds. This
+This time induction on \<^term>\<open>xs\<close> followed by simplification succeeds. This
 leads to another heuristic for generalization:
 \begin{quote}
 \emph{Generalize goals for induction by universally quantifying all free
@@ -121,16 +121,16 @@ matters in some cases. The variables that should be quantified are typically
 those that change in recursive calls.
 
 A final point worth mentioning is the orientation of the equation we just
-proved: the more complex notion (@{const itrev}) is on the left-hand
-side, the simpler one (@{term rev}) on the right-hand side. This constitutes
+proved: the more complex notion (\<^const>\<open>itrev\<close>) is on the left-hand
+side, the simpler one (\<^term>\<open>rev\<close>) on the right-hand side. This constitutes
 another, albeit weak heuristic that is not restricted to induction:
 \begin{quote}
   \emph{The right-hand side of an equation should (in some sense) be simpler
     than the left-hand side.}
 \end{quote}
 This heuristic is tricky to apply because it is not obvious that
-@{term"rev xs @ ys"} is simpler than @{term"itrev xs ys"}. But see what
-happens if you try to prove @{prop"rev xs @ ys = itrev xs ys"}!
+\<^term>\<open>rev xs @ ys\<close> is simpler than \<^term>\<open>itrev xs ys\<close>. But see what
+happens if you try to prove \<^prop>\<open>rev xs @ ys = itrev xs ys\<close>!
 
 If you have tried these heuristics and still find your
 induction does not go through, and no obvious lemma suggests itself, you may

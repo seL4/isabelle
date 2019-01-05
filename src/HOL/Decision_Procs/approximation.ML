@@ -15,11 +15,11 @@ struct
 
 fun reorder_bounds_tac ctxt prems i =
   let
-    fun variable_of_bound (Const (@{const_name Trueprop}, _) $
-                           (Const (@{const_name Set.member}, _) $
+    fun variable_of_bound (Const (\<^const_name>\<open>Trueprop\<close>, _) $
+                           (Const (\<^const_name>\<open>Set.member\<close>, _) $
                             Free (name, _) $ _)) = name
-      | variable_of_bound (Const (@{const_name Trueprop}, _) $
-                           (Const (@{const_name HOL.eq}, _) $
+      | variable_of_bound (Const (\<^const_name>\<open>Trueprop\<close>, _) $
+                           (Const (\<^const_name>\<open>HOL.eq\<close>, _) $
                             Free (name, _) $ _)) = name
       | variable_of_bound t = raise TERM ("variable_of_bound", [t])
 
@@ -58,8 +58,8 @@ fun gen_eval_tac conv ctxt =
 fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
     fun lookup_splitting (Free (name, _)) =
         (case AList.lookup (op =) splitting name
-          of SOME s => HOLogic.mk_number @{typ nat} s
-           | NONE => @{term "0 :: nat"})
+          of SOME s => HOLogic.mk_number \<^typ>\<open>nat\<close> s
+           | NONE => \<^term>\<open>0 :: nat\<close>)
       | lookup_splitting t = raise TERM ("lookup_splitting", [t])
     val vs = nth (Thm.prems_of st) (i - 1)
              |> Logic.strip_imp_concl
@@ -67,23 +67,23 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
              |> Term.strip_comb |> snd |> List.last
              |> HOLogic.dest_list
     val p = prec
-            |> HOLogic.mk_number @{typ nat}
+            |> HOLogic.mk_number \<^typ>\<open>nat\<close>
             |> Thm.cterm_of ctxt
   in case taylor
   of NONE => let
        val n = vs |> length
-               |> HOLogic.mk_number @{typ nat}
+               |> HOLogic.mk_number \<^typ>\<open>nat\<close>
                |> Thm.cterm_of ctxt
        val s = vs
                |> map lookup_splitting
-               |> HOLogic.mk_list @{typ nat}
+               |> HOLogic.mk_list \<^typ>\<open>nat\<close>
                |> Thm.cterm_of ctxt
      in
-       (resolve_tac ctxt [Thm.instantiate ([], [((("n", 0), @{typ nat}), n),
-                                   ((("prec", 0), @{typ nat}), p),
-                                   ((("ss", 0), @{typ "nat list"}), s)])
+       (resolve_tac ctxt [Thm.instantiate ([], [((("n", 0), \<^typ>\<open>nat\<close>), n),
+                                   ((("prec", 0), \<^typ>\<open>nat\<close>), p),
+                                   ((("ss", 0), \<^typ>\<open>nat list\<close>), s)])
             @{thm approx_form}] i
-        THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
+        THEN simp_tac (put_simpset (simpset_of \<^context>) ctxt) i) st
      end
 
    | SOME t =>
@@ -91,51 +91,51 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
      then raise (TERM ("More than one variable used for taylor series expansion", [Thm.prop_of st]))
      else let
        val t = t
-            |> HOLogic.mk_number @{typ nat}
+            |> HOLogic.mk_number \<^typ>\<open>nat\<close>
             |> Thm.cterm_of ctxt
        val s = vs |> map lookup_splitting |> hd
             |> Thm.cterm_of ctxt
      in
-       resolve_tac ctxt [Thm.instantiate ([], [((("s", 0), @{typ nat}), s),
-                                   ((("t", 0), @{typ nat}), t),
-                                   ((("prec", 0), @{typ nat}), p)])
+       resolve_tac ctxt [Thm.instantiate ([], [((("s", 0), \<^typ>\<open>nat\<close>), s),
+                                   ((("t", 0), \<^typ>\<open>nat\<close>), t),
+                                   ((("prec", 0), \<^typ>\<open>nat\<close>), p)])
             @{thm approx_tse_form}] i st
      end
   end
 
-fun calculated_subterms (@{const Trueprop} $ t) = calculated_subterms t
-  | calculated_subterms (@{const HOL.implies} $ _ $ t) = calculated_subterms t
-  | calculated_subterms (@{term "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
-  | calculated_subterms (@{term "(<) :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
-  | calculated_subterms (@{term "(\<in>) :: real \<Rightarrow> real set \<Rightarrow> bool"} $ t1 $
-                         (@{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ t2 $ t3)) = [t1, t2, t3]
+fun calculated_subterms (\<^const>\<open>Trueprop\<close> $ t) = calculated_subterms t
+  | calculated_subterms (\<^const>\<open>HOL.implies\<close> $ _ $ t) = calculated_subterms t
+  | calculated_subterms (\<^term>\<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) = [t1, t2]
+  | calculated_subterms (\<^term>\<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close> $ t1 $ t2) = [t1, t2]
+  | calculated_subterms (\<^term>\<open>(\<in>) :: real \<Rightarrow> real set \<Rightarrow> bool\<close> $ t1 $
+                         (\<^term>\<open>atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set\<close> $ t2 $ t3)) = [t1, t2, t3]
   | calculated_subterms t = raise TERM ("calculated_subterms", [t])
 
-fun dest_interpret_form (@{const "interpret_form"} $ b $ xs) = (b, xs)
+fun dest_interpret_form (\<^const>\<open>interpret_form\<close> $ b $ xs) = (b, xs)
   | dest_interpret_form t = raise TERM ("dest_interpret_form", [t])
 
-fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
+fun dest_interpret (\<^const>\<open>interpret_floatarith\<close> $ b $ xs) = (b, xs)
   | dest_interpret t = raise TERM ("dest_interpret", [t])
 
-fun dest_interpret_env (@{const "interpret_form"} $ _ $ xs) = xs
-  | dest_interpret_env (@{const "interpret_floatarith"} $ _ $ xs) = xs
+fun dest_interpret_env (\<^const>\<open>interpret_form\<close> $ _ $ xs) = xs
+  | dest_interpret_env (\<^const>\<open>interpret_floatarith\<close> $ _ $ xs) = xs
   | dest_interpret_env t = raise TERM ("dest_interpret_env", [t])
 
-fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+fun dest_float (\<^const>\<open>Float\<close> $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
   | dest_float t = raise TERM ("dest_float", [t])
 
 
-fun dest_ivl (Const (@{const_name "Some"}, _) $
-              (Const (@{const_name Pair}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
-  | dest_ivl (Const (@{const_name "None"}, _)) = NONE
+fun dest_ivl (Const (\<^const_name>\<open>Some\<close>, _) $
+              (Const (\<^const_name>\<open>Pair\<close>, _) $ u $ l)) = SOME (dest_float u, dest_float l)
+  | dest_ivl (Const (\<^const_name>\<open>None\<close>, _)) = NONE
   | dest_ivl t = raise TERM ("dest_result", [t])
 
-fun mk_approx' prec t = (@{const "approx'"}
-                       $ HOLogic.mk_number @{typ nat} prec
-                       $ t $ @{term "[] :: (float * float) option list"})
+fun mk_approx' prec t = (\<^const>\<open>approx'\<close>
+                       $ HOLogic.mk_number \<^typ>\<open>nat\<close> prec
+                       $ t $ \<^term>\<open>[] :: (float * float) option list\<close>)
 
-fun mk_approx_form_eval prec t xs = (@{const "approx_form_eval"}
-                       $ HOLogic.mk_number @{typ nat} prec
+fun mk_approx_form_eval prec t xs = (\<^const>\<open>approx_form_eval\<close>
+                       $ HOLogic.mk_number \<^typ>\<open>nat\<close> prec
                        $ t $ xs)
 
 fun float2_float10 prec round_down (m, e) = (
@@ -170,21 +170,21 @@ fun float2_float10 prec round_down (m, e) = (
 fun mk_result prec (SOME (l, u)) =
   (let
     fun mk_float10 rnd x = (let val (m, e) = float2_float10 prec rnd x
-                       in if e = 0 then HOLogic.mk_number @{typ real} m
-                     else if e = 1 then @{term "divide :: real \<Rightarrow> real \<Rightarrow> real"} $
-                                        HOLogic.mk_number @{typ real} m $
-                                        @{term "10"}
-                                   else @{term "divide :: real \<Rightarrow> real \<Rightarrow> real"} $
-                                        HOLogic.mk_number @{typ real} m $
-                                        (@{term "power 10 :: nat \<Rightarrow> real"} $
-                                         HOLogic.mk_number @{typ nat} (~e)) end)
-    in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ mk_float10 true l $ mk_float10 false u end)
-  | mk_result _ NONE = @{term "UNIV :: real set"}
+                       in if e = 0 then HOLogic.mk_number \<^typ>\<open>real\<close> m
+                     else if e = 1 then \<^term>\<open>divide :: real \<Rightarrow> real \<Rightarrow> real\<close> $
+                                        HOLogic.mk_number \<^typ>\<open>real\<close> m $
+                                        \<^term>\<open>10\<close>
+                                   else \<^term>\<open>divide :: real \<Rightarrow> real \<Rightarrow> real\<close> $
+                                        HOLogic.mk_number \<^typ>\<open>real\<close> m $
+                                        (\<^term>\<open>power 10 :: nat \<Rightarrow> real\<close> $
+                                         HOLogic.mk_number \<^typ>\<open>nat\<close> (~e)) end)
+    in \<^term>\<open>atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set\<close> $ mk_float10 true l $ mk_float10 false u end)
+  | mk_result _ NONE = \<^term>\<open>UNIV :: real set\<close>
 
 fun realify t =
   let
     val t = Logic.varify_global t
-    val m = map (fn (name, _) => (name, @{typ real})) (Term.add_tvars t [])
+    val m = map (fn (name, _) => (name, \<^typ>\<open>real\<close>)) (Term.add_tvars t [])
     val t = Term.subst_TVars m t
   in t end
 
@@ -197,7 +197,7 @@ fun apply_tactic ctxt term tactic =
 fun preproc_form_conv ctxt =
   Simplifier.rewrite
    (put_simpset HOL_basic_ss ctxt addsimps
-     (Named_Theorems.get ctxt @{named_theorems approximation_preproc}))
+     (Named_Theorems.get ctxt \<^named_theorems>\<open>approximation_preproc\<close>))
 
 fun reify_form_conv ctxt ct =
   let
@@ -241,12 +241,12 @@ fun approx_form prec ctxt t =
          |> HOLogic.dest_Trueprop
          |> dest_interpret_form
          |> (fn (data, xs) =>
-            mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
-              (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
+            mk_approx_form_eval prec data (HOLogic.mk_list \<^typ>\<open>(float * float) option\<close>
+              (map (fn _ => \<^term>\<open>None :: (float * float) option\<close>) (HOLogic.dest_list xs)))
          |> approximate ctxt
          |> HOLogic.dest_list
          |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
-         |> map (fn (elem, s) => @{term "(\<in>) :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
+         |> map (fn (elem, s) => \<^term>\<open>(\<in>) :: real \<Rightarrow> real set \<Rightarrow> bool\<close> $ elem $ mk_result prec (dest_ivl s))
          |> foldr1 HOLogic.mk_conj))
 
 fun approx_arith prec ctxt t = realify t
@@ -261,8 +261,8 @@ fun approx_arith prec ctxt t = realify t
      |> mk_result prec
 
 fun approx prec ctxt t =
-  if type_of t = @{typ prop} then approx_form prec ctxt t
-  else if type_of t = @{typ bool} then approx_form prec ctxt (@{const Trueprop} $ t)
+  if type_of t = \<^typ>\<open>prop\<close> then approx_form prec ctxt t
+  else if type_of t = \<^typ>\<open>bool\<close> then approx_form prec ctxt (\<^const>\<open>Trueprop\<close> $ t)
   else approx_arith prec ctxt t
 
 fun approximate_cmd modes raw_t state =
@@ -279,10 +279,10 @@ fun approximate_cmd modes raw_t state =
   end |> Pretty.writeln;
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) [];
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) [];
 
 val _ =
-  Outer_Syntax.command @{command_keyword approximate} "print approximation of term"
+  Outer_Syntax.command \<^command_keyword>\<open>approximate\<close> "print approximation of term"
     (opt_modes -- Parse.term
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 

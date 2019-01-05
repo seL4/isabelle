@@ -49,7 +49,7 @@ nominal_datatype trm =
 text \<open>To be polite to the eye, some more familiar notation is introduced. 
   Because of the change in the order of arguments, one needs to use 
   translation rules, instead of syntax annotations at the term-constructors
-  as given above for @{term "Arrow"}.\<close>
+  as given above for \<^term>\<open>Arrow\<close>.\<close>
 
 abbreviation
   Forall_syn :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"  ("(3\<forall>_<:_./ _)" [0, 0, 10] 10) 
@@ -66,12 +66,12 @@ abbreviation
 where
   "\<lambda>X<:T. t \<equiv> trm.TAbs X t T"
 
-text \<open>Again there are numerous facts that are proved automatically for @{typ "ty"} 
-  and @{typ "trm"}: for example that the set of free variables, i.e.~the \<open>support\<close>, 
+text \<open>Again there are numerous facts that are proved automatically for \<^typ>\<open>ty\<close> 
+  and \<^typ>\<open>trm\<close>: for example that the set of free variables, i.e.~the \<open>support\<close>, 
   is finite. However note that nominal-datatype declarations do \emph{not} define 
   ``classical" constructor-based datatypes, but rather define $\alpha$-equivalence 
-  classes---we can for example show that $\alpha$-equivalent @{typ "ty"}s 
-  and @{typ "trm"}s are equal:\<close>
+  classes---we can for example show that $\alpha$-equivalent \<^typ>\<open>ty\<close>s 
+  and \<^typ>\<open>trm\<close>s are equal:\<close>
 
 lemma alpha_illustration:
   shows "(\<forall>X<:T. Tvar X) = (\<forall>Y<:T. Tvar Y)"
@@ -218,11 +218,11 @@ apply(simp only: fresh_ty_dom_cons)
 apply(auto simp add: fresh_prod fresh_list_cons tyvrs_fresh) 
 done
 
-text \<open>Not all lists of type @{typ "env"} are well-formed. One condition
-  requires that in @{term "TVarB X S#\<Gamma>"} all free variables of @{term "S"} must be 
-  in the @{term "ty_dom"} of @{term "\<Gamma>"}, that is @{term "S"} must be \<open>closed\<close> 
-  in @{term "\<Gamma>"}. The set of free variables of @{term "S"} is the 
-  \<open>support\<close> of @{term "S"}.\<close>
+text \<open>Not all lists of type \<^typ>\<open>env\<close> are well-formed. One condition
+  requires that in \<^term>\<open>TVarB X S#\<Gamma>\<close> all free variables of \<^term>\<open>S\<close> must be 
+  in the \<^term>\<open>ty_dom\<close> of \<^term>\<open>\<Gamma>\<close>, that is \<^term>\<open>S\<close> must be \<open>closed\<close> 
+  in \<^term>\<open>\<Gamma>\<close>. The set of free variables of \<^term>\<open>S\<close> is the 
+  \<open>support\<close> of \<^term>\<open>S\<close>.\<close>
 
 definition "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" ("_ closed'_in _" [100,100] 100) where
   "S closed_in \<Gamma> \<equiv> (supp S)\<subseteq>(ty_dom \<Gamma>)"
@@ -594,7 +594,7 @@ section \<open>Subtyping-Relation\<close>
 
 text \<open>The definition for the subtyping-relation follows quite closely what is written 
   in the POPLmark-paper, except for the premises dealing with well-formed contexts and 
-  the freshness constraint @{term "X\<sharp>\<Gamma>"} in the \<open>S_Forall\<close>-rule. (The freshness
+  the freshness constraint \<^term>\<open>X\<sharp>\<Gamma>\<close> in the \<open>S_Forall\<close>-rule. (The freshness
   constraint is specific to the \emph{nominal approach}. Note, however, that the constraint
   does \emph{not} make the subtyping-relation ``partial"\ldots because we work over
   $\alpha$-equivalence classes.)\<close>
@@ -846,28 +846,28 @@ The POPLmark-paper says the following:
 \begin{quote}
 \begin{lemma}[Transitivity and Narrowing] \
 \begin{enumerate}
-\item If @{term "\<Gamma> \<turnstile> S<:Q"} and @{term "\<Gamma> \<turnstile> Q<:T"}, then @{term "\<Gamma> \<turnstile> S<:T"}.
-\item If \<open>\<Gamma>,X<:Q,\<Delta> \<turnstile> M<:N\<close> and @{term "\<Gamma> \<turnstile> P<:Q"} then \<open>\<Gamma>,X<:P,\<Delta> \<turnstile> M<:N\<close>.
+\item If \<^term>\<open>\<Gamma> \<turnstile> S<:Q\<close> and \<^term>\<open>\<Gamma> \<turnstile> Q<:T\<close>, then \<^term>\<open>\<Gamma> \<turnstile> S<:T\<close>.
+\item If \<open>\<Gamma>,X<:Q,\<Delta> \<turnstile> M<:N\<close> and \<^term>\<open>\<Gamma> \<turnstile> P<:Q\<close> then \<open>\<Gamma>,X<:P,\<Delta> \<turnstile> M<:N\<close>.
 \end{enumerate}
 \end{lemma}
 
 The two parts are proved simultaneously, by induction on the size
-of @{term "Q"}.  The argument for part (2) assumes that part (1) has 
-been established already for the @{term "Q"} in question; part (1) uses 
-part (2) only for strictly smaller @{term "Q"}.
+of \<^term>\<open>Q\<close>.  The argument for part (2) assumes that part (1) has 
+been established already for the \<^term>\<open>Q\<close> in question; part (1) uses 
+part (2) only for strictly smaller \<^term>\<open>Q\<close>.
 \end{quote}
 
-For the induction on the size of @{term "Q"}, we use the induction-rule 
+For the induction on the size of \<^term>\<open>Q\<close>, we use the induction-rule 
 \<open>measure_induct_rule\<close>:
 
 \begin{center}
 @{thm measure_induct_rule[of "size_ty",no_vars]}
 \end{center}
 
-That means in order to show a property @{term "P a"} for all @{term "a"}, 
-the induct-rule requires to prove that for all @{term x} @{term "P x"} holds using the 
-assumption that for all @{term y} whose size is strictly smaller than 
-that of @{term x} the property @{term "P y"} holds.\<close>
+That means in order to show a property \<^term>\<open>P a\<close> for all \<^term>\<open>a\<close>, 
+the induct-rule requires to prove that for all \<^term>\<open>x\<close> \<^term>\<open>P x\<close> holds using the 
+assumption that for all \<^term>\<open>y\<close> whose size is strictly smaller than 
+that of \<^term>\<open>x\<close> the property \<^term>\<open>P y\<close> holds.\<close>
 
 lemma 
   shows subtype_transitivity: "\<Gamma>\<turnstile>S<:Q \<Longrightarrow> \<Gamma>\<turnstile>Q<:T \<Longrightarrow> \<Gamma>\<turnstile>S<:T" 

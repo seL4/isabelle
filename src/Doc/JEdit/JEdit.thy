@@ -164,11 +164,10 @@ text \<open>
 
   Regular jEdit options are accessible via the dialogs \<^emph>\<open>Utilities~/ Global
   Options\<close> or \<^emph>\<open>Plugins~/ Plugin Options\<close>, with a second chance to flip the
-  two within the central options dialog. Changes are stored in @{path
-  "$JEDIT_SETTINGS/properties"} and @{path "$JEDIT_SETTINGS/keymaps"}.
+  two within the central options dialog. Changes are stored in \<^path>\<open>$JEDIT_SETTINGS/properties\<close> and \<^path>\<open>$JEDIT_SETTINGS/keymaps\<close>.
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
-  in @{path "$ISABELLE_HOME_USER/etc/preferences"}, independently of
+  in \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close>, independently of
   other jEdit properties. See also @{cite "isabelle-system"}, especially the
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
@@ -190,8 +189,8 @@ text \<open>
 
   \<^medskip>
   Options are usually loaded on startup and saved on shutdown of
-  Isabelle/jEdit. Editing the generated @{path "$JEDIT_SETTINGS/properties"}
-  or @{path "$ISABELLE_HOME_USER/etc/preferences"} manually while the
+  Isabelle/jEdit. Editing the generated \<^path>\<open>$JEDIT_SETTINGS/properties\<close>
+  or \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close> manually while the
   application is running may cause surprise due to lost updates!
 \<close>
 
@@ -487,7 +486,7 @@ text \<open>
   physically via Unicode glyphs, in order to show ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for
   example. This symbol interpretation is specified by the Isabelle system
   distribution in \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and may be augmented by the
-  user in @{path "$ISABELLE_HOME_USER/etc/symbols"}.
+  user in \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close>.
 
   The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
@@ -1151,10 +1150,10 @@ text \<open>
   or proof context matching all of given criteria in the \<^emph>\<open>Find\<close> text field. A
   single criterion has the following syntax:
 
-  @{rail \<open>
+  \<^rail>\<open>
     ('-'?) ('name' ':' @{syntax name} | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
-  \<close>}
+  \<close>
 
   See also the Isar command @{command_ref find_theorems} in @{cite
   "isabelle-isar-ref"}.
@@ -1168,10 +1167,10 @@ text \<open>
   meets all of the given criteria in the \<^emph>\<open>Find\<close> text field. A single
   criterion has the following syntax:
 
-  @{rail \<open>
+  \<^rail>\<open>
     ('-'?)
       ('name' ':' @{syntax name} | 'strict' ':' @{syntax type} | @{syntax type})
-  \<close>}
+  \<close>
 
   See also the Isar command @{command_ref find_consts} in @{cite
   "isabelle-isar-ref"}.
@@ -1359,8 +1358,7 @@ subsubsection \<open>Isabelle symbols\<close>
 
 text \<open>
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
-  determined statically from \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and @{path
-  "$ISABELLE_HOME_USER/etc/symbols"} for each symbol specification as follows:
+  determined statically from \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close> for each symbol specification as follows:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -1671,8 +1669,7 @@ text \<open>
   dictionary, taken from the colon-separated list in the settings variable
   @{setting_def JORTHO_DICTIONARIES}. There are jEdit actions to specify local
   updates to a dictionary, by including or excluding words. The result of
-  permanent dictionary updates is stored in the directory @{path
-  "$ISABELLE_HOME_USER/dictionaries"}, in a separate file for each dictionary.
+  permanent dictionary updates is stored in the directory \<^path>\<open>$ISABELLE_HOME_USER/dictionaries\<close>, in a separate file for each dictionary.
 
   \<^item> @{system_option_def spell_checker_include} specifies a comma-separated
   list of markup elements that delimit words in the source that is subject to
@@ -2008,7 +2005,7 @@ text \<open>
   (like @{command SML_file}).
 
   The context for Isabelle/ML is optional, it may evaluate to a value of type
-  @{ML_type theory}, @{ML_type Proof.context}, or @{ML_type Context.generic}.
+  \<^ML_type>\<open>theory\<close>, \<^ML_type>\<open>Proof.context\<close>, or \<^ML_type>\<open>Context.generic\<close>.
   Thus the given ML expression (with its antiquotations) may be subject to the
   intended dynamic run-time context, instead of the static compile-time
   context.
@@ -2088,15 +2085,13 @@ text \<open>
   compliant.
 
   Under normal circumstances, prover output always works via managed message
-  channels (corresponding to @{ML writeln}, @{ML warning}, @{ML
-  Output.error_message} in Isabelle/ML), which are displayed by regular means
+  channels (corresponding to \<^ML>\<open>writeln\<close>, \<^ML>\<open>warning\<close>, \<^ML>\<open>Output.error_message\<close> in Isabelle/ML), which are displayed by regular means
   within the document model (\secref{sec:output}). Unhandled Isabelle/ML
-  exceptions are printed by the system via @{ML Output.error_message}.
+  exceptions are printed by the system via \<^ML>\<open>Output.error_message\<close>.
 
   \<^item> \<^emph>\<open>Syslog\<close> shows system messages that might be relevant to diagnose
   problems with the startup or shutdown phase of the prover process; this also
-  includes raw output on \<^verbatim>\<open>stderr\<close>. Isabelle/ML also provides an explicit @{ML
-  Output.system_message} operation, which is occasionally useful for
+  includes raw output on \<^verbatim>\<open>stderr\<close>. Isabelle/ML also provides an explicit \<^ML>\<open>Output.system_message\<close> operation, which is occasionally useful for
   diagnostic purposes within the system infrastructure itself.
 
   A limited amount of syslog messages are buffered, independently of the

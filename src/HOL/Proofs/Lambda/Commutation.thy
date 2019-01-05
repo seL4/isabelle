@@ -129,9 +129,9 @@ subsection \<open>Church-Rosser\<close>
 
 lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (unfold square_def commute_def diamond_def Church_Rosser_def)
-  apply (tactic \<open>safe_tac (put_claset HOL_cs @{context})\<close>)
+  apply (tactic \<open>safe_tac (put_claset HOL_cs \<^context>)\<close>)
    apply (tactic \<open>
-     blast_tac (put_claset HOL_cs @{context} addIs
+     blast_tac (put_claset HOL_cs \<^context> addIs
        [@{thm sup_ge2} RS @{thm rtranclp_mono} RS @{thm predicate2D} RS @{thm rtranclp_trans},
         @{thm rtranclp_converseI}, @{thm conversepI},
         @{thm sup_ge1} RS @{thm rtranclp_mono} RS @{thm predicate2D}]) 1\<close>)

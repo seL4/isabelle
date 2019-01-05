@@ -178,18 +178,18 @@ fun add_pconsts_in_term thy =
     and do_formula t =
       (case t of
         Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t') => do_formula t'
-      | @{const Pure.imp} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | \<^const>\<open>Pure.imp\<close> $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (\<^const_name>\<open>Pure.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
-      | @{const Trueprop} $ t1 => do_formula t1
-      | @{const False} => I
-      | @{const True} => I
-      | @{const Not} $ t1 => do_formula t1
+      | \<^const>\<open>Trueprop\<close> $ t1 => do_formula t1
+      | \<^const>\<open>False\<close> => I
+      | \<^const>\<open>True\<close> => I
+      | \<^const>\<open>Not\<close> $ t1 => do_formula t1
       | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => do_formula t'
       | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => do_formula t'
-      | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
-      | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
-      | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | \<^const>\<open>HOL.conj\<close> $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | \<^const>\<open>HOL.disj\<close> $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | \<^const>\<open>HOL.implies\<close> $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | Const (\<^const_name>\<open>If\<close>, Type (_, [_, Type (_, [T, _])])) $ t1 $ t2 $ t3 =>

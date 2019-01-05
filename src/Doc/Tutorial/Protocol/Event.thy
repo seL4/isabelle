@@ -73,9 +73,9 @@ where
                         Says A B X \<Rightarrow> parts {X} \<union> used evs
                       | Gets A X   \<Rightarrow> used evs
                       | Notes A X  \<Rightarrow> parts {X} \<union> used evs)"
-    \<comment> \<open>The case for @{term Gets} seems anomalous, but @{term Gets} always
-        follows @{term Says} in real protocols.  Seems difficult to change.
-        See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}.\<close>
+    \<comment> \<open>The case for \<^term>\<open>Gets\<close> seems anomalous, but \<^term>\<open>Gets\<close> always
+        follows \<^term>\<open>Says\<close> in real protocols.  Seems difficult to change.
+        See \<^text>\<open>Gets_correct\<close> in theory \<^text>\<open>Guard/Extensions.thy\<close>.\<close>
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
 apply (induct_tac evs)
@@ -88,7 +88,7 @@ apply (auto split: event.split)
 done
 
 
-subsection\<open>Function @{term knows}\<close>
+subsection\<open>Function \<^term>\<open>knows\<close>\<close>
 
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
@@ -100,7 +100,7 @@ lemma knows_Spy_Says [simp]:
 by simp
 
 text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
+      on whether \<^term>\<open>A=Spy\<close> and whether \<^term>\<open>A\<in>bad\<close>\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -246,10 +246,10 @@ declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
 
-text\<open>For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) \<longrightarrow> P"}
+text\<open>For proving theorems of the form \<^term>\<open>X \<notin> analz (knows Spy evs) \<longrightarrow> P\<close>
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
-  it will omit complicated reasoning about @{term analz}.\<close>
+  it will omit complicated reasoning about \<^term>\<open>analz\<close>.\<close>
 
 lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]
@@ -358,14 +358,14 @@ we want to make it explicit) and an agent's storing a fact.
 
 Sometimes the protocol requires an agent to generate a new nonce. The
 probability that a 20-byte random number has appeared before is effectively
-zero.  To formalize this important property, the set @{term "used evs"}
+zero.  To formalize this important property, the set \<^term>\<open>used evs\<close>
 denotes the set of all items mentioned in the trace~\<open>evs\<close>.
 The function \<open>used\<close> has a straightforward
 recursive definition.  Here is the case for \<open>Says\<close> event:
 @{thm [display,indent=5] used_Says [no_vars]}
 
 The function \<open>knows\<close> formalizes an agent's knowledge.  Mostly we only
-care about the spy's knowledge, and @{term "knows Spy evs"} is the set of items
+care about the spy's knowledge, and \<^term>\<open>knows Spy evs\<close> is the set of items
 available to the spy in the trace~\<open>evs\<close>.  Already in the empty trace,
 the spy starts with some secrets at his disposal, such as the private keys
 of compromised users.  After each \<open>Says\<close> event, the spy learns the
@@ -374,9 +374,9 @@ message that was sent:
 Combinations of functions express other important
 sets of messages derived from~\<open>evs\<close>:
 \begin{itemize}
-\item @{term "analz (knows Spy evs)"} is everything that the spy could
+\item \<^term>\<open>analz (knows Spy evs)\<close> is everything that the spy could
 learn by decryption
-\item @{term "synth (analz (knows Spy evs))"} is everything that the spy
+\item \<^term>\<open>synth (analz (knows Spy evs))\<close> is everything that the spy
 could generate
 \end{itemize}
 \<close>

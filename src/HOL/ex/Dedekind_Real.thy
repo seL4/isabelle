@@ -170,7 +170,7 @@ next
   thus ?thesis .
 qed
 
-text \<open>preal lemmas instantiated to @{term "Rep_preal X"}\<close>
+text \<open>preal lemmas instantiated to \<^term>\<open>Rep_preal X\<close>\<close>
 
 lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
 thm preal_Ex_mem
@@ -356,7 +356,7 @@ done
 
 text\<open>Multiplication of two positive reals gives a positive real.\<close>
 
-text\<open>Lemmas for proving positive reals multiplication set in @{typ preal}\<close>
+text\<open>Lemmas for proving positive reals multiplication set in \<^typ>\<open>preal\<close>\<close>
 
 text\<open>Part 1 of Dedekind sections definition\<close>
 lemma mult_set_not_empty:
@@ -921,8 +921,8 @@ done
 
 subsection\<open>Subtraction for Positive Reals\<close>
 
-text\<open>Gleason prop. 9-3.5(iv), page 123: proving @{prop "A < B ==> \<exists>D. A + D =
-B"}. We define the claimed @{term D} and show that it is a positive real\<close>
+text\<open>Gleason prop. 9-3.5(iv), page 123: proving \<^prop>\<open>A < B ==> \<exists>D. A + D =
+B\<close>. We define the claimed \<^term>\<open>D\<close> and show that it is a positive real\<close>
 
 text\<open>Part 1 of Dedekind sections definition\<close>
 lemma diff_set_not_empty:
@@ -986,7 +986,7 @@ apply (force simp add: diff_set_def)
 done
 
 
-text\<open>proving that @{term "R + D \<le> S"}\<close>
+text\<open>proving that \<^term>\<open>R + D \<le> S\<close>\<close>
 
 lemma less_add_left_lemma:
   assumes Rless: "R < S"
@@ -1011,7 +1011,7 @@ apply (auto simp add: Bex_def preal_le_def mem_Rep_preal_add_iff
 apply (blast intro: less_add_left_lemma) 
 done
 
-subsection\<open>proving that @{term "S \<le> R + D"} --- trickier\<close>
+subsection\<open>proving that \<^term>\<open>S \<le> R + D\<close> --- trickier\<close>
 
 lemma lemma_sum_mem_Rep_preal_ex:
      "x \<in> Rep_preal S ==> \<exists>e. 0 < e & x + e \<in> Rep_preal S"
@@ -1105,7 +1105,7 @@ proof
 qed
 
 
-subsection\<open>Completeness of type @{typ preal}\<close>
+subsection\<open>Completeness of type \<^typ>\<open>preal\<close>\<close>
 
 text\<open>Prove that supremum is a cut\<close>
 
@@ -1265,8 +1265,8 @@ apply (auto simp add: equiv_def refl_on_def sym_def trans_def realrel_def)
 apply (blast dest: preal_trans_lemma) 
 done
 
-text\<open>Reduces equality of equivalence classes to the @{term realrel} relation:
-  @{term "(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)"}\<close>
+text\<open>Reduces equality of equivalence classes to the \<^term>\<open>realrel\<close> relation:
+  \<^term>\<open>(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)\<close>\<close>
 lemmas equiv_realrel_iff = 
        eq_equiv_class_iff [OF equiv_realrel UNIV_I UNIV_I]
 
@@ -1583,7 +1583,7 @@ proof
     by (simp only: real_sgn_def)
 qed
 
-text\<open>The function @{term real_of_preal} requires many proofs, but it seems
+text\<open>The function \<^term>\<open>real_of_preal\<close> requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
 positive reals.\<close>
 

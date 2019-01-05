@@ -16,7 +16,7 @@ fixes vars :: "'a \<Rightarrow> vname set"
 
 text\<open>This defines a type class ``vars'' with a single
 function of (coincidentally) the same name. Then we define two separated
-instances of the class, one for @{typ aexp} and one for @{typ bexp}:\<close>
+instances of the class, one for \<^typ>\<open>aexp\<close> and one for \<^typ>\<open>bexp\<close>:\<close>
 
 instantiation aexp :: vars
 begin

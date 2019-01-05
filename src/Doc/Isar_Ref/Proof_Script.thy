@@ -36,7 +36,7 @@ text \<open>
     @{command_def "back"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command supply} (@{syntax thmdef}? @{syntax thms} + @'and')
     ;
     ( @@{command apply} | @@{command apply_end} ) @{syntax method}
@@ -44,7 +44,7 @@ text \<open>
     @@{command defer} @{syntax nat}?
     ;
     @@{command prefer} @{syntax nat}
-  \<close>}
+  \<close>
 
   \<^descr> @{command "supply"} supports fact definitions during goal refinement: it
   is similar to @{command "note"}, but it operates in backwards mode and does
@@ -92,13 +92,13 @@ text \<open>
     @{command_def "subgoal"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command subgoal} @{syntax thmbind}? prems? params?
     ;
     prems: @'premises' @{syntax thmbind}?
     ;
     params: @'for' '\<dots>'? (('_' | @{syntax name})+)
-  \<close>}
+  \<close>
 
   \<^descr> @{command "subgoal"} allows to impose some structure on backward
   refinements, to avoid proof scripts degenerating into long of @{command
@@ -219,7 +219,7 @@ text \<open>
     @{method_def raw_tactic}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
       @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
     (@{syntax named_insts} @{syntax for_fixes} @'in' @{syntax thm} | @{syntax thms} )
@@ -233,14 +233,13 @@ text \<open>
     @@{method rotate_tac} @{syntax goal_spec}? @{syntax int}?
     ;
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
-  \<close>}
+  \<close>
 
   \<^descr> @{method rule_tac} etc. do resolution of rules with explicit
-  instantiation. This works the same way as the ML tactics @{ML
-  Rule_Insts.res_inst_tac} etc.\ (see @{cite "isabelle-implementation"}).
+  instantiation. This works the same way as the ML tactics \<^ML>\<open>Rule_Insts.res_inst_tac\<close> etc.\ (see @{cite "isabelle-implementation"}).
 
   Multiple rules may be only given if there is no instantiation; then @{method
-  rule_tac} is the same as @{ML resolve_tac} in ML (see @{cite
+  rule_tac} is the same as \<^ML>\<open>resolve_tac\<close> in ML (see @{cite
   "isabelle-implementation"}).
 
   \<^descr> @{method cut_tac} inserts facts into the proof state as assumption of a
@@ -267,8 +266,8 @@ text \<open>
   \<open>n\<close> is negative; the default value is 1.
 
   \<^descr> @{method tactic}~\<open>text\<close> produces a proof method from any ML text of type
-  @{ML_type tactic}. Apart from the usual ML environment and the current proof
-  context, the ML code may refer to the locally bound values @{ML_text facts},
+  \<^ML_type>\<open>tactic\<close>. Apart from the usual ML environment and the current proof
+  context, the ML code may refer to the locally bound values \<^ML_text>\<open>facts\<close>,
   which indicates any current facts used for forward-chaining.
 
   \<^descr> @{method raw_tactic} is similar to @{method tactic}, but presents the goal

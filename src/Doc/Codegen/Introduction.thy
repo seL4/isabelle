@@ -186,8 +186,7 @@ text %quotetypewriter \<open>
 \<close>
 
 text \<open>
-  \noindent Note the parameters with trailing underscore (@{verbatim
-  "A_"}), which are the dictionary parameters.
+  \noindent Note the parameters with trailing underscore (\<^verbatim>\<open>A_\<close>), which are the dictionary parameters.
 \<close>
 
 

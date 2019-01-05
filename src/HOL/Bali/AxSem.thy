@@ -660,18 +660,18 @@ qed "ax_thin";
 lemma ax_thin [rule_format (no_asm)]: 
   "G,(A'::'a triple set)|\<turnstile>(ts::'a triple set) \<Longrightarrow> \<forall>A. A' \<subseteq> A \<longrightarrow> G,A|\<turnstile>ts"
 apply (erule ax_derivs.induct)
-apply                (tactic "ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1])")
+apply                (tactic "ALLGOALS (EVERY'[clarify_tac \<^context>, REPEAT o smp_tac \<^context> 1])")
 apply                (rule ax_derivs.empty)
 apply               (erule (1) ax_derivs.insert)
 apply              (fast intro: ax_derivs.asm)
 (*apply           (fast intro: ax_derivs.cut) *)
 apply            (fast intro: ax_derivs.weaken)
-apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac @{context} 3 1",clarify,
-  tactic "smp_tac @{context} 1 1",rule exI, rule exI, erule (1) conjI) 
+apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac \<^context> 3 1",clarify,
+  tactic "smp_tac \<^context> 1 1",rule exI, rule exI, erule (1) conjI) 
 (* 37 subgoals *)
 prefer 18 (* Methd *)
 apply (rule ax_derivs.Methd, drule spec, erule mp, fast) 
-apply (tactic \<open>TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros}))\<close>)
+apply (tactic \<open>TRYALL (resolve_tac \<^context> ((funpow 5 tl) @{thms ax_derivs.intros}))\<close>)
 apply auto
 done
 
@@ -690,21 +690,21 @@ lemma weaken:
  "G,(A::'a triple set)|\<turnstile>(ts'::'a triple set) \<Longrightarrow> \<forall>ts. ts \<subseteq> ts' \<longrightarrow> G,A|\<turnstile>ts"
 apply (erule ax_derivs.induct)
 (*42 subgoals*)
-apply       (tactic "ALLGOALS (strip_tac @{context})")
-apply       (tactic \<open>ALLGOALS(REPEAT o (EVERY'[dresolve_tac @{context} @{thms subset_singletonD},
-         eresolve_tac @{context} [disjE],
-         fast_tac (@{context} addSIs @{thms ax_derivs.empty})]))\<close>)
-apply       (tactic "TRYALL (hyp_subst_tac @{context})")
+apply       (tactic "ALLGOALS (strip_tac \<^context>)")
+apply       (tactic \<open>ALLGOALS(REPEAT o (EVERY'[dresolve_tac \<^context> @{thms subset_singletonD},
+         eresolve_tac \<^context> [disjE],
+         fast_tac (\<^context> addSIs @{thms ax_derivs.empty})]))\<close>)
+apply       (tactic "TRYALL (hyp_subst_tac \<^context>)")
 apply       (simp, rule ax_derivs.empty)
 apply      (drule subset_insertD)
 apply      (blast intro: ax_derivs.insert)
 apply     (fast intro: ax_derivs.asm)
 (*apply  (blast intro: ax_derivs.cut) *)
 apply   (fast intro: ax_derivs.weaken)
-apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac @{context} 3 1", blast(* unused *))
+apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac \<^context> 3 1", blast(* unused *))
 (*37 subgoals*)
-apply (tactic \<open>TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros})
-                   THEN_ALL_NEW fast_tac @{context})\<close>)
+apply (tactic \<open>TRYALL (resolve_tac \<^context> ((funpow 5 tl) @{thms ax_derivs.intros})
+                   THEN_ALL_NEW fast_tac \<^context>)\<close>)
 (*1 subgoal*)
 apply (clarsimp simp add: subset_mtriples_iff)
 apply (rule ax_derivs.Methd)
@@ -719,11 +719,11 @@ oops (* dead end, Methd is to blame *)
 subsubsection "rules derived from conseq"
 
 text \<open>In the following rules we often have to give some type annotations like:
- @{term "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}"}.
+ \<^term>\<open>G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}\<close>.
 Given only the term above without annotations, Isabelle would infer a more 
 general type were we could have 
-different types of auxiliary variables in the assumption set (@{term A}) and 
-in the triple itself (@{term P} and @{term Q}). But 
+different types of auxiliary variables in the assumption set (\<^term>\<open>A\<close>) and 
+in the triple itself (\<^term>\<open>P\<close> and \<^term>\<open>Q\<close>). But 
 \<open>ax_derivs.Methd\<close> enforces the same type in the inductive definition of
 the derivation. So we have to restrict the types to be able to apply the
 rules. 
@@ -1007,7 +1007,7 @@ apply (erule mp [THEN conseq12])
 apply  (auto simp add: type_ok_def)
 done
 
-ML \<open>ML_Thms.bind_thms ("ax_Abrupts", sum3_instantiate @{context} @{thm ax_derivs.Abrupt})\<close>
+ML \<open>ML_Thms.bind_thms ("ax_Abrupts", sum3_instantiate \<^context> @{thm ax_derivs.Abrupt})\<close>
 declare ax_Abrupts [intro!]
 
 lemmas ax_Normal_cases = ax_cases [of _ _ _ normal]

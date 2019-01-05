@@ -8,7 +8,7 @@ theory Nat_Discrete
 imports HOLCF
 begin
 
-text \<open>Discrete cpo instance for @{typ nat}.\<close>
+text \<open>Discrete cpo instance for \<^typ>\<open>nat\<close>.\<close>
 
 instantiation nat :: discrete_cpo
 begin

@@ -219,12 +219,12 @@ lemma
   shows "\<And>a b :: nat. P ((a + 1) * (b + 1))"
   apply (tactic \<open>
     let
-      val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+      val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
       (* Note that the pattern order is reversed *)
       val pat = [
-        Rewrite.For [(x, SOME @{typ nat})],
+        Rewrite.For [(x, SOME \<^typ>\<open>nat\<close>)],
         Rewrite.In,
-        Rewrite.Term (@{const plus(nat)} $ Free (x, @{typ nat}) $ @{term "1 :: nat"}, [])]
+        Rewrite.Term (@{const plus(nat)} $ Free (x, \<^typ>\<open>nat\<close>) $ \<^term>\<open>1 :: nat\<close>, [])]
       val to = NONE
     in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
   \<close>)
@@ -236,14 +236,14 @@ lemma
   shows "Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. b + a))"
   apply (tactic \<open>
     let
-      val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+      val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
       val pat = [
         Rewrite.Concl,
         Rewrite.In,
-        Rewrite.Term (Free ("Q", (@{typ "int"} --> TVar (("'b",0), [])) --> @{typ bool})
-          $ Abs ("x", @{typ int}, Rewrite.mk_hole 1 (@{typ int} --> TVar (("'b",0), [])) $ Bound 0), [(x, @{typ int})]),
+        Rewrite.Term (Free ("Q", (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) --> \<^typ>\<open>bool\<close>)
+          $ Abs ("x", \<^typ>\<open>int\<close>, Rewrite.mk_hole 1 (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) $ Bound 0), [(x, \<^typ>\<open>int\<close>)]),
         Rewrite.In,
-        Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
+        Rewrite.Term (@{const plus(int)} $ Free (x, \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
         ]
       val to = NONE
     in CCONVERSION (Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute}) 1 end
@@ -253,15 +253,15 @@ lemma
 
 (* There is also conversion-like rewrite function: *)
 ML \<open>
-  val ct = @{cprop "Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. b + a))"}
-  val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+  val ct = \<^cprop>\<open>Q (\<lambda>b :: int. P (\<lambda>a. a + b) (\<lambda>a. b + a))\<close>
+  val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
   val pat = [
     Rewrite.Concl,
     Rewrite.In,
-    Rewrite.Term (Free ("Q", (@{typ "int"} --> TVar (("'b",0), [])) --> @{typ bool})
-      $ Abs ("x", @{typ int}, Rewrite.mk_hole 1 (@{typ int} --> TVar (("'b",0), [])) $ Bound 0), [(x, @{typ int})]),
+    Rewrite.Term (Free ("Q", (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) --> \<^typ>\<open>bool\<close>)
+      $ Abs ("x", \<^typ>\<open>int\<close>, Rewrite.mk_hole 1 (\<^typ>\<open>int\<close> --> TVar (("'b",0), [])) $ Bound 0), [(x, \<^typ>\<open>int\<close>)]),
     Rewrite.In,
-    Rewrite.Term (@{const plus(int)} $ Free (x, @{typ int}) $ Var (("c", 0), @{typ int}), [])
+    Rewrite.Term (@{const plus(int)} $ Free (x, \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
     ]
   val to = NONE
   val th = Rewrite.rewrite_conv ctxt (pat, to) @{thms add.commute} ct
@@ -270,11 +270,11 @@ ML \<open>
 section \<open>Regression tests\<close>
 
 ML \<open>
-  val ct = @{cterm "(\<lambda>b :: int. (\<lambda>a. b + a))"}
-  val (x, ctxt) = yield_singleton Variable.add_fixes "x" @{context}
+  val ct = \<^cterm>\<open>(\<lambda>b :: int. (\<lambda>a. b + a))\<close>
+  val (x, ctxt) = yield_singleton Variable.add_fixes "x" \<^context>
   val pat = [
     Rewrite.In,
-    Rewrite.Term (@{const plus(int)} $ Var (("c", 0), @{typ int}) $ Var (("c", 0), @{typ int}), [])
+    Rewrite.Term (@{const plus(int)} $ Var (("c", 0), \<^typ>\<open>int\<close>) $ Var (("c", 0), \<^typ>\<open>int\<close>), [])
     ]
   val to = NONE
   val _ =
@@ -284,7 +284,7 @@ ML \<open>
 \<close>
 
 ML \<open>
-  Rewrite.params_pconv (Conv.all_conv |> K |> K) @{context} (Vartab.empty, []) @{cterm "\<And>x. PROP A"}
+  Rewrite.params_pconv (Conv.all_conv |> K |> K) \<^context> (Vartab.empty, []) \<^cterm>\<open>\<And>x. PROP A\<close>
 \<close>
 
 lemma

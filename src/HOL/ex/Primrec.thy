@@ -76,7 +76,7 @@ lemma ack_less_ack_Suc1 [iff]: "ack i j < ack (Suc i) j"
 by (blast intro: ack_less_mono2 less_le_trans)
 
 
-text \<open>PROPERTY A 4'? Extra lemma needed for @{term CONSTANT} case, constant functions\<close>
+text \<open>PROPERTY A 4'? Extra lemma needed for \<^term>\<open>CONSTANT\<close> case, constant functions\<close>
 
 lemma less_ack1 [iff]: "i < ack i j"
 apply (induct i)
@@ -91,8 +91,7 @@ lemma ack_1 [simp]: "ack (Suc 0) j = j + 2"
 by (induct j) simp_all
 
 
-text \<open>PROPERTY A 9.  The unary \<open>1\<close> and \<open>2\<close> in @{term
-  ack} is essential for the rewriting.\<close>
+text \<open>PROPERTY A 9.  The unary \<open>1\<close> and \<open>2\<close> in \<^term>\<open>ack\<close> is essential for the rewriting.\<close>
 
 lemma ack_2 [simp]: "ack (Suc (Suc 0)) j = 2 * j + 3"
 by (induct j) simp_all
@@ -170,7 +169,7 @@ primrec hd0 :: "nat list => nat" where
 "hd0 (m # ms) = m"
 
 
-text \<open>Inductive definition of the set of primitive recursive functions of type @{typ "nat list => nat"}.\<close>
+text \<open>Inductive definition of the set of primitive recursive functions of type \<^typ>\<open>nat list => nat\<close>.\<close>
 
 definition SC :: "nat list => nat" where
 "SC l = Suc (hd0 l)"
@@ -191,7 +190,7 @@ where
     (case l of
       [] => 0
     | x # l' => rec_nat (f l') (\<lambda>y r. g (r # y # l')) x)"
-  \<comment> \<open>Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}!\<close>
+  \<comment> \<open>Note that \<^term>\<open>g\<close> is applied first to \<^term>\<open>PREC f g y\<close> and then to \<^term>\<open>y\<close>!\<close>
 
 inductive PRIMREC :: "(nat list => nat) => bool" where
 SC: "PRIMREC SC" |
@@ -241,7 +240,7 @@ apply (blast intro: less_le_trans le_add2)
 done
 
 
-text \<open>@{term COMP} case\<close>
+text \<open>\<^term>\<open>COMP\<close> case\<close>
 
 lemma COMP_map_aux: "\<forall>f \<in> set fs. PRIMREC f \<and> (\<exists>kf. \<forall>l. f l < ack kf (sum_list l))
   ==> \<exists>k. \<forall>l. sum_list (map (\<lambda>f. f l) fs) < ack k (sum_list l)"
@@ -262,7 +261,7 @@ apply (meson ack_less_mono2 ack_nest_bound less_trans)
 done
 
 
-text \<open>@{term PREC} case\<close>
+text \<open>\<^term>\<open>PREC\<close> case\<close>
 
 lemma PREC_case_aux:
   "\<forall>l. f l + sum_list l < ack kf (sum_list l) ==>

@@ -266,8 +266,8 @@ subsubsection "Tests"
 definition "step_up_ivl n = ((\<lambda>C. C \<nabla> step_ivl \<top> C)^^n)"
 definition "step_down_ivl n = ((\<lambda>C. C \<triangle> step_ivl \<top> C)^^n)"
 
-text\<open>For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
-the loop took to execute. In contrast, @{const AI_wn_ivl} converges in a
+text\<open>For \<^const>\<open>test3_ivl\<close>, \<^const>\<open>AI_ivl\<close> needed as many iterations as
+the loop took to execute. In contrast, \<^const>\<open>AI_wn_ivl\<close> converges in a
 constant number of steps:\<close>
 
 value "show_acom (step_up_ivl 1 (bot test3_ivl))"
@@ -322,9 +322,9 @@ lemma top_on_acom_narrow:
 by(auto simp add: narrow_acom_def top_on_acom_def)(metis top_on_opt_narrow in_set_zipE)
 
 text\<open>The assumptions for widening and narrowing differ because during
-narrowing we have the invariant @{prop"y \<le> x"} (where \<open>y\<close> is the next
+narrowing we have the invariant \<^prop>\<open>y \<le> x\<close> (where \<open>y\<close> is the next
 iterate), but during widening there is no such invariant, there we only have
-that not yet @{prop"y \<le> x"}. This complicates the termination proof for
+that not yet \<^prop>\<open>y \<le> x\<close>. This complicates the termination proof for
 widening.\<close>
 
 locale Measure_wn = Measure1 where m=m
@@ -584,7 +584,7 @@ done
 
 subsubsection "Counterexamples"
 
-text\<open>Widening is increasing by assumption, but @{prop"x \<le> f x"} is not an invariant of widening.
+text\<open>Widening is increasing by assumption, but \<^prop>\<open>x \<le> f x\<close> is not an invariant of widening.
 It can already be lost after the first step:\<close>
 
 lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"

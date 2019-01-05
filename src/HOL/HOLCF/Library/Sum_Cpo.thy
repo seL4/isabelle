@@ -248,8 +248,8 @@ unfolding match_Inr_def by simp_all
 
 setup \<open>
   Fixrec.add_matchers
-    [ (@{const_name Inl}, @{const_name match_Inl}),
-      (@{const_name Inr}, @{const_name match_Inr}) ]
+    [ (\<^const_name>\<open>Inl\<close>, \<^const_name>\<open>match_Inl\<close>),
+      (\<^const_name>\<open>Inr\<close>, \<^const_name>\<open>match_Inr\<close>) ]
 \<close>
 
 subsection \<open>Disjoint sum is a predomain\<close>
@@ -366,7 +366,7 @@ apply (simp add: ssum_map_map u_emb_bottom)
 done
 
 setup \<open>
-  Domain_Take_Proofs.add_rec_type (@{type_name "sum"}, [true, true])
+  Domain_Take_Proofs.add_rec_type (\<^type_name>\<open>sum\<close>, [true, true])
 \<close>
 
 end

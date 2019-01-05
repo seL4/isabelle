@@ -19,8 +19,8 @@ takes formulas of type bool with free variables, and returns a list of testing f
 \<close>
 
 ML \<open>
-val SOME testers = Quickcheck.mk_batch_validator @{context}
-  [@{term "x = (1 :: nat)"}, @{term "x = (0 :: nat)"}, @{term "x <= (5 :: nat)"}, @{term "0 \<le> (x :: nat)"}]
+val SOME testers = Quickcheck.mk_batch_validator \<^context>
+  [\<^term>\<open>x = (1 :: nat)\<close>, \<^term>\<open>x = (0 :: nat)\<close>, \<^term>\<open>x <= (5 :: nat)\<close>, \<^term>\<open>0 \<le> (x :: nat)\<close>]
 \<close>
 
 text \<open>

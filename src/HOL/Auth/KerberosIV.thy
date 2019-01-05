@@ -292,7 +292,7 @@ done
 lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 
 
-subsection\<open>Lemmas about @{term authKeys}\<close>
+subsection\<open>Lemmas about \<^term>\<open>authKeys\<close>\<close>
 
 lemma authKeys_empty: "authKeys [] = {}"
 apply (unfold authKeys_def)
@@ -1006,7 +1006,7 @@ apply blast
 done
 
 
-subsection\<open>Lemmas About the Predicate @{term AKcryptSK}\<close>
+subsection\<open>Lemmas About the Predicate \<^term>\<open>AKcryptSK\<close>\<close>
 
 lemma not_AKcryptSK_Nil [iff]: "\<not> AKcryptSK authK servK []"
 by (simp add: AKcryptSK_def)
@@ -1344,10 +1344,10 @@ apply (erule rev_mp)
 apply (erule kerbIV.induct)
 apply (rule_tac [9] impI)+
   \<comment> \<open>The Oops1 case is unusual: must simplify
-    @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
+    \<^term>\<open>Authkey \<notin> analz (spies (ev#evs))\<close>, not letting
    \<open>analz_mono_contra\<close> weaken it to
-   @{term "Authkey \<notin> analz (spies evs)"},
-  for we then conclude @{term "authK \<noteq> authKa"}.\<close>
+   \<^term>\<open>Authkey \<notin> analz (spies evs)\<close>,
+  for we then conclude \<^term>\<open>authK \<noteq> authKa\<close>.\<close>
 apply analz_mono_contra
 apply (frule_tac [10] Oops_range_spies2)
 apply (frule_tac [9] Oops_range_spies1)

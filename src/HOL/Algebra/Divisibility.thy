@@ -1909,7 +1909,7 @@ proof (elim irreducibleE, intro primeI)
 qed
 
 
-\<comment> \<open>A version using @{const factors}, more complicated\<close>
+\<comment> \<open>A version using \<^const>\<open>factors\<close>, more complicated\<close>
 lemma (in factorial_monoid) factors_irreducible_prime:
   assumes pirr: "irreducible G p" and pcarr: "p \<in> carrier G"
   shows "prime G p"

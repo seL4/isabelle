@@ -99,7 +99,7 @@ lemma compact_with_transfer[transfer_rule]:
   by blast
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a set \<Rightarrow> bool"})\<close>
+  (\<^const_name>\<open>open\<close>, SOME \<^typ>\<open>'a set \<Rightarrow> bool\<close>)\<close>
 
 text\<open>The aforementioned development can be automated. The main part is already automated
      by the transfer_prover.\<close>
@@ -153,7 +153,7 @@ proof -
 qed
 
 setup \<open>Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
+  (\<^const_name>\<open>open\<close>, SOME \<^typ>\<open>'a::topological_space set \<Rightarrow> bool\<close>)\<close>
 
 text\<open>The Final Result. We can compare the type-based and the set-based statement.\<close>
 thm compact_imp_closed compact_imp_closed_set_based

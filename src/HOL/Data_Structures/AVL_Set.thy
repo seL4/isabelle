@@ -492,7 +492,7 @@ proof (induction n rule: fib.induct)
   thus ?case using assms by (cases n) (auto simp: eval_nat_numeral)
 qed (insert assms, auto)
 
-text \<open>An exponential lower bound for @{const fib}:\<close>
+text \<open>An exponential lower bound for \<^const>\<open>fib\<close>:\<close>
 
 lemma fib_lowerbound:
   defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
@@ -534,8 +534,8 @@ proof -
   finally show ?thesis .
 qed
 
-text \<open>The height of an AVL tree is most @{term "(1/log 2 \<phi>)"} \<open>\<approx> 1.44\<close> times worse
-than @{term "log 2 (size1 t)"}:\<close>
+text \<open>The height of an AVL tree is most \<^term>\<open>(1/log 2 \<phi>)\<close> \<open>\<approx> 1.44\<close> times worse
+than \<^term>\<open>log 2 (size1 t)\<close>:\<close>
 
 lemma  avl_height_upperbound:
   defines "\<phi> \<equiv> (1 + sqrt 5) / 2"

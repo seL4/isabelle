@@ -108,7 +108,7 @@ lemma NSLIM_self: "(\<lambda>x. x) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S a"
   by (simp add: NSLIM_def)
 
 
-subsubsection \<open>Equivalence of @{term filterlim} and @{term NSLIM}\<close>
+subsubsection \<open>Equivalence of \<^term>\<open>filterlim\<close> and \<^term>\<open>NSLIM\<close>\<close>
 
 lemma LIM_NSLIM:
   assumes f: "f \<midarrow>a\<rightarrow> L"

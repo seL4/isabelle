@@ -10,7 +10,7 @@ subsection \<open>More Lifting from Groups to Abelian Groups\<close>
 
 subsubsection \<open>Definitions\<close>
 
-text \<open>Hiding \<open><+>\<close> from @{theory HOL.Sum_Type} until I come
+text \<open>Hiding \<open><+>\<close> from \<^theory>\<open>HOL.Sum_Type\<close> until I come
   up with better syntax here\<close>
 
 no_notation Sum_Type.Plus (infixr "<+>" 65)
@@ -503,8 +503,8 @@ lemma (in abelian_subgroup) a_inv_FactGroup:
 by (rule normal.inv_FactGroup [OF a_normal,
     folded A_FactGroup_def A_SET_INV_def, simplified monoid_record_simps])
 
-text\<open>The coset map is a homomorphism from @{term G} to the quotient group
-  @{term "G Mod H"}\<close>
+text\<open>The coset map is a homomorphism from \<^term>\<open>G\<close> to the quotient group
+  \<^term>\<open>G Mod H\<close>\<close>
 lemma (in abelian_subgroup) a_r_coset_hom_A_Mod:
   "(\<lambda>a. H +> a) \<in> hom (add_monoid G) (G A_Mod H)"
 by (rule normal.r_coset_hom_Mod [OF a_normal,
@@ -611,7 +611,7 @@ lemma (in abelian_group_hom) A_FactGroup_inj_on:
 by (rule group_hom.FactGroup_inj_on[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
-text\<open>If the homomorphism @{term h} is onto @{term H}, then so is the
+text\<open>If the homomorphism \<^term>\<open>h\<close> is onto \<^term>\<open>H\<close>, then so is the
 homomorphism from the quotient group\<close>
 lemma (in abelian_group_hom) A_FactGroup_onto:
   assumes h: "h ` carrier G = carrier H"
@@ -619,8 +619,8 @@ lemma (in abelian_group_hom) A_FactGroup_onto:
 by (rule group_hom.FactGroup_onto[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps]) (rule h)
 
-text\<open>If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
- quotient group @{term "G Mod (kernel G H h)"} is isomorphic to @{term H}.\<close>
+text\<open>If \<^term>\<open>h\<close> is a homomorphism from \<^term>\<open>G\<close> onto \<^term>\<open>H\<close>, then the
+ quotient group \<^term>\<open>G Mod (kernel G H h)\<close> is isomorphic to \<^term>\<open>H\<close>.\<close>
 theorem (in abelian_group_hom) A_FactGroup_iso_set:
   "h ` carrier G = carrier H
    \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> iso (G A_Mod (a_kernel G H h)) (add_monoid H)"

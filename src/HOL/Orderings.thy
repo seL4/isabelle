@@ -512,7 +512,7 @@ val _ =
 fun struct_tac ((s, ops), thms) ctxt facts =
   let
     val [eq, le, less] = ops;
-    fun decomp thy (@{const Trueprop} $ t) =
+    fun decomp thy (\<^const>\<open>Trueprop\<close> $ t) =
           let
             fun excluded t =
               (* exclude numeric types: linear arithmetic subsumes transitivity *)

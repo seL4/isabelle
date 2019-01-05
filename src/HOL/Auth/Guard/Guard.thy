@@ -21,7 +21,7 @@ where
 | Crypt [intro]: "X \<in> guard n Ks \<Longrightarrow> Crypt K X \<in> guard n Ks"
 | Pair [intro]: "[| X \<in> guard n Ks; Y \<in> guard n Ks |] ==> \<lbrace>X,Y\<rbrace> \<in> guard n Ks"
 
-subsection\<open>basic facts about @{term guard}\<close>
+subsection\<open>basic facts about \<^term>\<open>guard\<close>\<close>
 
 lemma Key_is_guard [iff]: "Key K \<in> guard n Ks"
 by auto
@@ -73,7 +73,7 @@ subsection\<open>guarded sets\<close>
 definition Guard :: "nat \<Rightarrow> key set \<Rightarrow> msg set \<Rightarrow> bool" where
 "Guard n Ks H \<equiv> \<forall>X. X \<in> H \<longrightarrow> X \<in> guard n Ks"
 
-subsection\<open>basic facts about @{term Guard}\<close>
+subsection\<open>basic facts about \<^term>\<open>Guard\<close>\<close>
 
 lemma Guard_empty [iff]: "Guard n Ks {}"
 by (simp add: Guard_def)
@@ -178,7 +178,7 @@ where
 | "crypt_nb \<lbrace>X,Y\<rbrace> = crypt_nb X + crypt_nb Y"
 | "crypt_nb X = 0" (* otherwise *)
 
-subsection\<open>basic facts about @{term crypt_nb}\<close>
+subsection\<open>basic facts about \<^term>\<open>crypt_nb\<close>\<close>
 
 lemma non_empty_crypt_msg: "Crypt K Y \<in> parts {X} \<Longrightarrow> crypt_nb X \<noteq> 0"
 by (induct X, simp_all, safe, simp_all)
@@ -190,7 +190,7 @@ where
   "cnb [] = 0"
 | "cnb (X#l) = crypt_nb X + cnb l"
 
-subsection\<open>basic facts about @{term cnb}\<close>
+subsection\<open>basic facts about \<^term>\<open>cnb\<close>\<close>
 
 lemma cnb_app [simp]: "cnb (l @ l') = cnb l + cnb l'"
 by (induct l, auto)
@@ -241,7 +241,7 @@ definition decrypt' :: "msg list => key => msg => msg list" where
 
 declare decrypt'_def [simp]
 
-subsection\<open>basic facts about @{term decrypt'}\<close>
+subsection\<open>basic facts about \<^term>\<open>decrypt'\<close>\<close>
 
 lemma decrypt_minus: "decrypt (set l) K Y <= set (decrypt' l K Y)"
 by (induct l, auto)

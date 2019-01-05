@@ -1152,7 +1152,7 @@ lemma fset_eq_induct:
   by (lifting list_eq2.induct[simplified list_eq2_equiv[symmetric]])
 
 ML \<open>
-fun dest_fsetT (Type (@{type_name fset}, [T])) = T
+fun dest_fsetT (Type (\<^type_name>\<open>fset\<close>, [T])) = T
   | dest_fsetT T = raise TYPE ("dest_fsetT: fset type expected", [T], []);
 \<close>
 

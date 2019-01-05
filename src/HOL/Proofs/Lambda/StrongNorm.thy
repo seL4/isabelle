@@ -36,7 +36,7 @@ lemma lifts_IT: "listsp IT ts \<Longrightarrow> listsp IT (map (\<lambda>t. lift
 
 lemma subst_Var_IT: "IT r \<Longrightarrow> IT (r[Var i/j])"
   apply (induct arbitrary: i j set: IT)
-    txt \<open>Case @{term Var}:\<close>
+    txt \<open>Case \<^term>\<open>Var\<close>:\<close>
     apply (simp (no_asm) add: subst_Var)
     apply
     ((rule conjI impI)+,
@@ -47,12 +47,12 @@ lemma subst_Var_IT: "IT r \<Longrightarrow> IT (r[Var i/j])"
       rule listsp.Cons,
       fast,
       assumption)+
-   txt \<open>Case @{term Lambda}:\<close>
+   txt \<open>Case \<^term>\<open>Lambda\<close>:\<close>
    apply atomize
    apply simp
    apply (rule IT.Lambda)
    apply fast
-  txt \<open>Case @{term Beta}:\<close>
+  txt \<open>Case \<^term>\<open>Beta\<close>:\<close>
   apply atomize
   apply (simp (no_asm_use) add: subst_subst [symmetric])
   apply (rule IT.Beta)

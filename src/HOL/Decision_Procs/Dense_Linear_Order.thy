@@ -716,13 +716,13 @@ let
   fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
   fun generic_whatis phi =
     let
-      val [lt, le] = map (Morphism.term phi) [@{term "(\<sqsubset>)"}, @{term "(\<sqsubseteq>)"}]
+      val [lt, le] = map (Morphism.term phi) [\<^term>\<open>(\<sqsubset>)\<close>, \<^term>\<open>(\<sqsubseteq>)\<close>]
       fun h x t =
         case Thm.term_of t of
-          Const(@{const_name HOL.eq}, _)$y$z =>
+          Const(\<^const_name>\<open>HOL.eq\<close>, _)$y$z =>
             if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Eq
             else Ferrante_Rackoff_Data.Nox
-       | @{term "Not"}$(Const(@{const_name HOL.eq}, _)$y$z) =>
+       | \<^term>\<open>Not\<close>$(Const(\<^const_name>\<open>HOL.eq\<close>, _)$y$z) =>
             if Thm.term_of x aconv y then Ferrante_Rackoff_Data.NEq
             else Ferrante_Rackoff_Data.Nox
        | b$y$z => if Term.could_unify (b, lt) then
@@ -901,19 +901,19 @@ let
 
 fun dest_frac ct =
   case Thm.term_of ct of
-    Const (@{const_name Rings.divide},_) $ a $ b=>
+    Const (\<^const_name>\<open>Rings.divide\<close>,_) $ a $ b=>
       Rat.make (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-  | Const(@{const_name inverse}, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
+  | Const(\<^const_name>\<open>inverse\<close>, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
   | t => Rat.of_int (snd (HOLogic.dest_number t))
 
 fun whatis x ct = case Thm.term_of ct of
-  Const(@{const_name Groups.plus}, _)$(Const(@{const_name Groups.times},_)$_$y)$_ =>
+  Const(\<^const_name>\<open>Groups.plus\<close>, _)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$_$y)$_ =>
      if y aconv Thm.term_of x then ("c*x+t",[(funpow 2 Thm.dest_arg1) ct, Thm.dest_arg ct])
      else ("Nox",[])
-| Const(@{const_name Groups.plus}, _)$y$_ =>
+| Const(\<^const_name>\<open>Groups.plus\<close>, _)$y$_ =>
      if y aconv Thm.term_of x then ("x+t",[Thm.dest_arg ct])
      else ("Nox",[])
-| Const(@{const_name Groups.times}, _)$_$y =>
+| Const(\<^const_name>\<open>Groups.times\<close>, _)$_$y =>
      if y aconv Thm.term_of x then ("c*x",[Thm.dest_arg1 ct])
      else ("Nox",[])
 | t => if t aconv Thm.term_of x then ("x",[]) else ("Nox",[]);
@@ -921,7 +921,7 @@ fun whatis x ct = case Thm.term_of ct of
 fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
    case Thm.term_of ct of
-   Const(@{const_name Orderings.less},_)$_$Const(@{const_name Groups.zero},_) =>
+   Const(\<^const_name>\<open>Orderings.less\<close>,_)$_$Const(\<^const_name>\<open>Groups.zero\<close>,_) =>
     (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -930,7 +930,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply @{cterm "Trueprop"}
+               (Thm.apply \<^cterm>\<open>Trueprop\<close>
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -953,7 +953,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply @{cterm "Trueprop"}
+               (Thm.apply \<^cterm>\<open>Trueprop\<close>
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -964,18 +964,18 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
     | _ => Thm.reflexive ct)
 
 
-|  Const(@{const_name Orderings.less_eq},_)$_$Const(@{const_name Groups.zero},_) =>
+|  Const(\<^const_name>\<open>Orderings.less_eq\<close>,_)$_$Const(\<^const_name>\<open>Groups.zero\<close>,_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
         val T = Thm.typ_of_cterm x
         val cT = Thm.ctyp_of_cterm x
         val cr = dest_frac c
-        val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
+        val clt = Thm.cterm_of ctxt (Const (\<^const_name>\<open>ord_class.less\<close>, T --> T --> \<^typ>\<open>bool\<close>))
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply @{cterm "Trueprop"}
+               (Thm.apply \<^cterm>\<open>Trueprop\<close>
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -996,11 +996,11 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val T = Thm.typ_of_cterm x
         val cT = Thm.ctyp_of_cterm x
         val cr = dest_frac c
-        val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
+        val clt = Thm.cterm_of ctxt (Const (\<^const_name>\<open>ord_class.less\<close>, T --> T --> \<^typ>\<open>bool\<close>))
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply @{cterm "Trueprop"}
+               (Thm.apply \<^cterm>\<open>Trueprop\<close>
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -1010,7 +1010,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
       in rth end
     | _ => Thm.reflexive ct)
 
-|  Const(@{const_name HOL.eq},_)$_$Const(@{const_name Groups.zero},_) =>
+|  Const(\<^const_name>\<open>HOL.eq\<close>,_)$_$Const(\<^const_name>\<open>Groups.zero\<close>,_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -1019,8 +1019,8 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite ctxt
-            (Thm.apply @{cterm "Trueprop"}
-             (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
+            (Thm.apply \<^cterm>\<open>Trueprop\<close>
+             (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim
                  (Thm.instantiate' [SOME T] (map SOME [c,x,t]) @{thm nz_prod_sum_eq}) cth
@@ -1041,8 +1041,8 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite ctxt
-            (Thm.apply @{cterm "Trueprop"}
-             (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
+            (Thm.apply \<^cterm>\<open>Trueprop\<close>
+             (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val rth = Thm.implies_elim
                  (Thm.instantiate' [SOME T] (map SOME [c,x]) @{thm nz_prod_eq}) cth
@@ -1053,10 +1053,10 @@ local
   val less_iff_diff_less_0 = mk_meta_eq @{thm "less_iff_diff_less_0"}
   val le_iff_diff_le_0 = mk_meta_eq @{thm "le_iff_diff_le_0"}
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
-  val ss = simpset_of @{context}
+  val ss = simpset_of \<^context>
 in
 fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
-  Const(@{const_name Orderings.less},_)$a$b =>
+  Const(\<^const_name>\<open>Orderings.less\<close>,_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = Thm.ctyp_of_cterm ca
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
@@ -1065,7 +1065,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
               (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier_ord vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
-| Const(@{const_name Orderings.less_eq},_)$a$b =>
+| Const(\<^const_name>\<open>Orderings.less_eq\<close>,_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = Thm.ctyp_of_cterm ca
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
@@ -1075,7 +1075,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 
-| Const(@{const_name HOL.eq},_)$a$b =>
+| Const(\<^const_name>\<open>HOL.eq\<close>,_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = Thm.ctyp_of_cterm ca
        val th = Thm.instantiate' [SOME T] [SOME ca, SOME cb] eq_iff_diff_eq_0
@@ -1084,7 +1084,7 @@ fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
               (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier_ord vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
-| @{term "Not"} $(Const(@{const_name HOL.eq},_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
+| \<^term>\<open>Not\<close> $(Const(\<^const_name>\<open>HOL.eq\<close>,_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
 | _ => Thm.reflexive ct
 end;
 
@@ -1092,17 +1092,17 @@ fun classfield_whatis phi =
  let
   fun h x t =
    case Thm.term_of t of
-     Const(@{const_name HOL.eq}, _)$y$z =>
+     Const(\<^const_name>\<open>HOL.eq\<close>, _)$y$z =>
       if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Eq
       else Ferrante_Rackoff_Data.Nox
-   | @{term "Not"}$(Const(@{const_name HOL.eq}, _)$y$z) =>
+   | \<^term>\<open>Not\<close>$(Const(\<^const_name>\<open>HOL.eq\<close>, _)$y$z) =>
       if Thm.term_of x aconv y then Ferrante_Rackoff_Data.NEq
       else Ferrante_Rackoff_Data.Nox
-   | Const(@{const_name Orderings.less},_)$y$z =>
+   | Const(\<^const_name>\<open>Orderings.less\<close>,_)$y$z =>
        if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Lt
        else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Gt
        else Ferrante_Rackoff_Data.Nox
-   | Const (@{const_name Orderings.less_eq},_)$y$z =>
+   | Const (\<^const_name>\<open>Orderings.less_eq\<close>,_)$y$z =>
        if Thm.term_of x aconv y then Ferrante_Rackoff_Data.Le
        else if Thm.term_of x aconv z then Ferrante_Rackoff_Data.Ge
        else Ferrante_Rackoff_Data.Nox

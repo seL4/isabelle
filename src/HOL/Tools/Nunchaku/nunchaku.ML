@@ -131,7 +131,7 @@ fun str_of_mode Auto_Try = "Auto_Try"
 
 fun none_true assigns = forall (curry (op <>) (SOME true) o snd) assigns;
 
-fun has_lonely_bool_var (@{const Pure.conjunction} $ (@{const Trueprop} $ Free _) $ _) = true
+fun has_lonely_bool_var (\<^const>\<open>Pure.conjunction\<close> $ (\<^const>\<open>Trueprop\<close> $ Free _) $ _) = true
   | has_lonely_bool_var _ = false;
 
 val syntactic_sorts =

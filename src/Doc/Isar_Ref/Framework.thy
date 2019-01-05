@@ -359,7 +359,7 @@ text \<open>
   Multiple parameters and premises are represented by repeating these
   connectives in a right-associative manner.
 
-  Thanks to the Pure theorem @{prop "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"} the
+  Thanks to the Pure theorem \<^prop>\<open>(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)\<close> the
   connectives \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> commute. So we may assume w.l.o.g.\ that rule
   statements always observe the normal form where quantifiers are pulled in
   front of implications at each level of nesting. This means that any Pure
@@ -372,14 +372,14 @@ text \<open>
   For example, the \<open>\<inter>\<close>-introduction rule encountered before is represented as
   a Pure theorem as follows:
   \[
-  \<open>IntI:\<close>~@{prop "x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A \<inter> B"}
+  \<open>IntI:\<close>~\<^prop>\<open>x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A \<inter> B\<close>
   \]
 
   This is a plain Horn clause, since no further nesting on the left is
   involved. The general \<open>\<Inter>\<close>-introduction corresponds to a Hereditary Harrop
   Formula with one additional level of nesting:
   \[
-  \<open>InterI:\<close>~@{prop "(\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A) \<Longrightarrow> x \<in> \<Inter>\<A>"}
+  \<open>InterI:\<close>~\<^prop>\<open>(\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A) \<Longrightarrow> x \<in> \<Inter>\<A>\<close>
   \]
 
   \<^medskip>
@@ -740,7 +740,7 @@ text \<open>
   A simple statement consists of named propositions. The full form admits
   local context elements followed by the actual conclusions, such as ``\<^theory_text>\<open>fixes
   x assumes A x shows B x\<close>''. The final result emerges as a Pure rule after
-  discharging the context: @{prop "\<And>x. A x \<Longrightarrow> B x"}.
+  discharging the context: \<^prop>\<open>\<And>x. A x \<Longrightarrow> B x\<close>.
 
   The \<^theory_text>\<open>obtains\<close> variant is another abbreviation defined below; unlike
   \<^theory_text>\<open>obtain\<close> (cf.\ \secref{sec:framework-context}) there may be several
@@ -974,7 +974,7 @@ text \<open>
   "Bauer-Wenzel:2001"}.
 
   The generic calculational mechanism is based on the observation that rules
-  such as \<open>trans:\<close>~@{prop "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"} proceed from the premises
+  such as \<open>trans:\<close>~\<^prop>\<open>x = y \<Longrightarrow> y = z \<Longrightarrow> x = z\<close> proceed from the premises
   towards the conclusion in a deterministic fashion. Thus we may reason in
   forward mode, feeding intermediate results into rules selected from the
   context. The course of reasoning is organized by maintaining a secondary
@@ -1021,7 +1021,7 @@ text \<open>
   exact correspondence is dependent on the transitivity rules being involved.
 
   \<^medskip>
-  Symmetry rules such as @{prop "x = y \<Longrightarrow> y = x"} are like transitivities with
+  Symmetry rules such as \<^prop>\<open>x = y \<Longrightarrow> y = x\<close> are like transitivities with
   only one premise. Isar maintains a separate rule collection declared via the
   @{attribute sym} attribute, to be used in fact expressions ``\<open>a
   [symmetric]\<close>'', or single-step proofs ``\<^theory_text>\<open>assume "x = y" then have "y = x"

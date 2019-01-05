@@ -90,7 +90,7 @@ lemma Reals_eq_Standard: "(\<real> :: hypreal set) = Standard"
   by (simp add: Reals_def Standard_def)
 
 
-subsection \<open>Injection from @{typ hypreal}\<close>
+subsection \<open>Injection from \<^typ>\<open>hypreal\<close>\<close>
 
 definition of_hypreal :: "hypreal \<Rightarrow> 'a::real_algebra_1 star"
   where [transfer_unfold]: "of_hypreal = *f* of_real"
@@ -133,7 +133,7 @@ lemma of_hypreal_eq_0_iff [simp]: "\<And>x. (of_hypreal x = 0) = (x = 0)"
   by transfer (rule of_real_eq_0_iff)
 
 
-subsection \<open>Properties of @{term starrel}\<close>
+subsection \<open>Properties of \<^term>\<open>starrel\<close>\<close>
 
 lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
   by (simp add: starrel_def)
@@ -145,7 +145,7 @@ declare Abs_star_inject [simp] Abs_star_inverse [simp]
 declare equiv_starrel [THEN eq_equiv_class_iff, simp]
 
 
-subsection \<open>@{term hypreal_of_real}: the Injection from @{typ real} to @{typ hypreal}\<close>
+subsection \<open>\<^term>\<open>hypreal_of_real\<close>: the Injection from \<^typ>\<open>real\<close> to \<^typ>\<open>hypreal\<close>\<close>
 
 lemma inj_star_of: "inj star_of"
   by (rule inj_onI) simp
@@ -160,7 +160,7 @@ lemma Rep_star_star_n: "X \<in> Rep_star (star_n X)"
   by simp
 
 
-subsection \<open>Properties of @{term star_n}\<close>
+subsection \<open>Properties of \<^term>\<open>star_n\<close>\<close>
 
 lemma star_n_add: "star_n X + star_n Y = star_n (\<lambda>n. X n + Y n)"
   by (simp only: star_add_def starfun2_star_n)
@@ -199,7 +199,7 @@ lemma hypreal_omega_gt_zero [simp]: "0 < \<omega>"
 subsection \<open>Existence of Infinite Hyperreal Number\<close>
 
 text \<open>Existence of infinite number not corresponding to any real number.
-  Use assumption that member @{term \<U>} is not finite.\<close>
+  Use assumption that member \<^term>\<open>\<U>\<close> is not finite.\<close>
 
 text \<open>A few lemmas first.\<close>
 
@@ -286,7 +286,7 @@ declaration \<open>
   #> Lin_Arith.add_simps [@{thm star_of_zero}, @{thm star_of_one},
       @{thm star_of_numeral}, @{thm star_of_add},
       @{thm star_of_minus}, @{thm star_of_diff}, @{thm star_of_mult}]
-  #> Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, @{typ "real \<Rightarrow> hypreal"}))
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>StarDef.star_of\<close>, \<^typ>\<open>real \<Rightarrow> hypreal\<close>))
 \<close>
 
 simproc_setup fast_arith_hypreal ("(m::hypreal) < n" | "(m::hypreal) \<le> n" | "(m::hypreal) = n") =
@@ -432,7 +432,7 @@ lemma hrabs_hyperpow_two [simp]:
 lemma hyperpow_two_hrabs [simp]: "\<bar>x::'a::linordered_idom star\<bar> pow 2 = x pow 2"
   by (simp add: hyperpow_hrabs)
 
-text \<open>The precondition could be weakened to @{term "0\<le>x"}.\<close>
+text \<open>The precondition could be weakened to \<^term>\<open>0\<le>x\<close>.\<close>
 lemma hypreal_mult_less_mono: "u < v \<Longrightarrow> x < y \<Longrightarrow> 0 < v \<Longrightarrow> 0 < x \<Longrightarrow> u * x < v * y"
   for u v x y :: hypreal
   by (simp add: mult_strict_mono order_less_imp_le)

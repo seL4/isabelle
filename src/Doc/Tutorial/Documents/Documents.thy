@@ -52,11 +52,11 @@ text \<open>
   The keyword \isakeyword{infixl} seen above specifies an
   infix operator that is nested to the \emph{left}: in iterated
   applications the more complex expression appears on the left-hand
-  side, and @{term "A [+] B [+] C"} stands for \<open>(A [+] B) [+]
+  side, and \<^term>\<open>A [+] B [+] C\<close> stands for \<open>(A [+] B) [+]
   C\<close>.  Similarly, \isakeyword{infixr} means nesting to the
-  \emph{right}, reading @{term "A [+] B [+] C"} as \<open>A [+] (B
+  \emph{right}, reading \<^term>\<open>A [+] B [+] C\<close> as \<open>A [+] (B
   [+] C)\<close>.  A \emph{non-oriented} declaration via \isakeyword{infix}
-  would render @{term "A [+] B [+] C"} illegal, but demand explicit
+  would render \<^term>\<open>A [+] B [+] C\<close> illegal, but demand explicit
   parentheses to indicate the intended grouping.
 
   The string @{text [source] "[+]"} in our annotation refers to the
@@ -127,7 +127,7 @@ text \<open>
   {\small\noindent \<^verbatim>\<open>\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>\<close>}
 
   \medskip
-  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>"} 
+  \noindent is recognized as the term \<^term>\<open>\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>\<close> 
   by Isabelle.
 
   Replacing our previous definition of \<open>xor\<close> by the
@@ -195,9 +195,8 @@ text \<open>
   \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
   \verb,\,\verb,<pounds>,, \verb,\,\verb,<yen>,, and \verb,$,.  Recall
-  that a constructor like \<open>Euro\<close> actually is a function @{typ
-  "nat \<Rightarrow> currency"}.  The expression \<open>Euro 10\<close> will be
-  printed as @{term "\<euro> 10"}; only the head of the application is
+  that a constructor like \<open>Euro\<close> actually is a function \<^typ>\<open>nat \<Rightarrow> currency\<close>.  The expression \<open>Euro 10\<close> will be
+  printed as \<^term>\<open>\<euro> 10\<close>; only the head of the application is
   subject to our concrete syntax.  This rather simple form already
   achieves conformance with notational standards of the European
   Commission.
@@ -222,15 +221,15 @@ simple mechanism for syntactic macros.
 A typical use of abbreviations is to introduce relational notation for
 membership in a set of pairs, replacing \<open>(x, y) \<in> sim\<close> by
 \<open>x \<approx> y\<close>. We assume that a constant \<open>sim\<close> of type
-@{typ"('a \<times> 'a) set"} has been introduced at this point.\<close>
+\<^typ>\<open>('a \<times> 'a) set\<close> has been introduced at this point.\<close>
 (*<*)consts sim :: "('a \<times> 'a) set"(*>*)
 abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
 where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
 
 text \<open>\noindent The given meta-equality is used as a rewrite rule
-after parsing (replacing \mbox{@{prop"x \<approx> y"}} by \<open>(x,y) \<in>
+after parsing (replacing \mbox{\<^prop>\<open>x \<approx> y\<close>} by \<open>(x,y) \<in>
 sim\<close>) and before printing (turning \<open>(x,y) \<in> sim\<close> back into
-\mbox{@{prop"x \<approx> y"}}). The name of the dummy constant \<open>sim2\<close>
+\mbox{\<^prop>\<open>x \<approx> y\<close>}). The name of the dummy constant \<open>sim2\<close>
 does not matter, as long as it is unique.
 
 Another common application of abbreviations is to
@@ -284,8 +283,7 @@ text_raw \<open>\begin{quotation}\<close>
 
 text \<open>
   The following datatype definition of \<open>'a bintree\<close> models
-  binary trees with nodes being decorated by elements of type @{typ
-  'a}.
+  binary trees with nodes being decorated by elements of type \<^typ>\<open>'a\<close>.
 \<close>
 
 datatype 'a bintree =
@@ -529,7 +527,7 @@ text \<open>
   for types, terms, or theorems as in the formal part of a theory.
 
   \medskip This sentence demonstrates quotations and antiquotations:
-  @{term "%x y. x"} is a well-typed term.
+  \<^term>\<open>%x y. x\<close> is a well-typed term.
 
   \medskip\noindent The output above was produced as follows:
   \begin{ttbox}

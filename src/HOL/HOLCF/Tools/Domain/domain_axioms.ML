@@ -103,7 +103,7 @@ fun add_axioms
     (* axiomatize type constructor arities *)
     fun thy_arity (_, _, (lhsT, _)) =
         let val (dname, tvars) = dest_Type lhsT
-        in (dname, map (snd o dest_TFree) tvars, @{sort pcpo}) end
+        in (dname, map (snd o dest_TFree) tvars, \<^sort>\<open>pcpo\<close>) end
     val thy = fold (Axclass.arity_axiomatization o thy_arity) dom_eqns thy
 
     (* declare and axiomatize abs/rep *)

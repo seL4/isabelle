@@ -276,7 +276,7 @@ unfolding minus_int_def
 by (descending) (auto intro: int_induct2)
   
 
-text \<open>Magnitide of an Integer, as a Natural Number: @{term nat}\<close>
+text \<open>Magnitide of an Integer, as a Natural Number: \<^term>\<open>nat\<close>\<close>
 
 definition
   "int_to_nat_raw \<equiv> \<lambda>(x, y).x - (y::nat)"

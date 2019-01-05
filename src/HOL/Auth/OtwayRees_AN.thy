@@ -59,7 +59,7 @@ inductive_set otway :: "event list set"
 
  | OR4:  \<comment> \<open>Bob receives the Server's (?) message and compares the Nonces with
              those in the message he previously sent the Server.
-             Need @{term "B \<noteq> Server"} because we allow messages to self.\<close>
+             Need \<^term>\<open>B \<noteq> Server\<close> because we allow messages to self.\<close>
          "[| evs4 \<in> otway;  B \<noteq> Server;
              Says B Server \<lbrace>Agent A, Agent B, Nonce NA, Nonce NB\<rbrace> \<in>set evs4;
              Gets B \<lbrace>X, Crypt(shrK B)\<lbrace>Nonce NB,Agent A,Agent B,Key K\<rbrace>\<rbrace>
@@ -109,7 +109,7 @@ lemma OR4_analz_knows_Spy:
 by blast
 
 
-text\<open>Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that
+text\<open>Theorems of the form \<^term>\<open>X \<notin> parts (spies evs)\<close> imply that
 NOBODY sends messages containing X!\<close>
 
 text\<open>Spy never sees a good agent's shared key!\<close>
@@ -219,7 +219,7 @@ by (blast intro!: NA_Crypt_imp_Server_msg)
 
 text\<open>Crucial secrecy property: Spy does not see the keys sent in msg OR3
     Does not in itself guarantee security: an attack could violate
-    the premises, e.g. by having @{term "A=Spy"}\<close>
+    the premises, e.g. by having \<^term>\<open>A=Spy\<close>\<close>
 lemma secrecy_lemma:
      "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
       ==> Says Server B

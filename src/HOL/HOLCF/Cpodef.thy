@@ -131,7 +131,7 @@ qed
 
 subsubsection \<open>Continuity of \emph{Rep} and \emph{Abs}\<close>
 
-text \<open>For any sub-cpo, the @{term Rep} function is continuous.\<close>
+text \<open>For any sub-cpo, the \<^term>\<open>Rep\<close> function is continuous.\<close>
 
 theorem typedef_cont_Rep:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
@@ -148,7 +148,7 @@ theorem typedef_cont_Rep:
   done
 
 text \<open>
-  For a sub-cpo, we can make the @{term Abs} function continuous
+  For a sub-cpo, we can make the \<^term>\<open>Abs\<close> function continuous
   only if we restrict its domain to the defining subset by
   composing it with another continuous function.
 \<close>
@@ -205,7 +205,7 @@ theorem typedef_pcpo_generic:
 
 text \<open>
   As a special case, a subtype of a pcpo has a least element
-  if the defining subset contains @{term \<bottom>}.
+  if the defining subset contains \<^term>\<open>\<bottom>\<close>.
 \<close>
 
 theorem typedef_pcpo:
@@ -220,8 +220,8 @@ theorem typedef_pcpo:
 subsubsection \<open>Strictness of \emph{Rep} and \emph{Abs}\<close>
 
 text \<open>
-  For a sub-pcpo where @{term \<bottom>} is a member of the defining
-  subset, @{term Rep} and @{term Abs} are both strict.
+  For a sub-pcpo where \<^term>\<open>\<bottom>\<close> is a member of the defining
+  subset, \<^term>\<open>Rep\<close> and \<^term>\<open>Abs\<close> are both strict.
 \<close>
 
 theorem typedef_Abs_strict:

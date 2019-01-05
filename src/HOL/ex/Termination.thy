@@ -10,7 +10,7 @@ imports Main "HOL-Library.Multiset"
 begin
 
 subsection \<open>Manually giving termination relations using \<open>relation\<close> and
-@{term measure}\<close>
+\<^term>\<open>measure\<close>\<close>
 
 function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where

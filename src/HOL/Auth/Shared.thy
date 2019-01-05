@@ -55,7 +55,7 @@ text\<open>Now cancel the \<open>dest\<close> attribute given to
  \<open>analz.Decrypt\<close> in its declaration.\<close>
 declare analz.Decrypt [rule del]
 
-text\<open>Rewrites should not refer to  @{term "initState(Friend i)"} because
+text\<open>Rewrites should not refer to  \<^term>\<open>initState(Friend i)\<close> because
   that expression is not in normal form.\<close>
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
@@ -153,13 +153,13 @@ apply (rule someI, blast)
 done
 
 text\<open>Unlike the corresponding property of nonces, we cannot prove
-    @{term "finite KK ==> \<exists>K. K \<notin> KK \<and> Key K \<notin> used evs"}.
+    \<^term>\<open>finite KK ==> \<exists>K. K \<notin> KK \<and> Key K \<notin> used evs\<close>.
     We have infinitely many agents and there is nothing to stop their
     long-term keys from exhausting all the natural numbers.  Instead,
     possibility theorems must assume the existence of a few keys.\<close>
 
 
-subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
+subsection\<open>Specialized Rewriting for Theorems About \<^term>\<open>analz\<close> and Image\<close>
 
 lemma subset_Compl_range: "A \<subseteq> - (range shrK) \<Longrightarrow> shrK x \<notin> A"
 by blast
@@ -218,7 +218,7 @@ fun basic_possibility_tac ctxt =
 
 val analz_image_freshK_ss =
   simpset_of
-   (@{context} delsimps [image_insert, image_Un]
+   (\<^context> delsimps [image_insert, image_Un]
       delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
       addsimps @{thms analz_image_freshK_simps})
 

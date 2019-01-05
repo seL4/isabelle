@@ -276,7 +276,7 @@ definition
   greatest :: "[_, 'a, 'a set] => bool"
   where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L \<and> g \<in> A \<and> (\<forall>x\<in>A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
-text (in weak_partial_order) \<open>Could weaken these to @{term "l \<in> carrier L \<and> l .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}.\<close>
+text (in weak_partial_order) \<open>Could weaken these to \<^term>\<open>l \<in> carrier L \<and> l .\<in> A\<close> and \<^term>\<open>g \<in> carrier L \<and> g .\<in> A\<close>.\<close>
 
 lemma least_dual [simp]:
   "least (inv_gorder L) x A = greatest L x A"
@@ -311,8 +311,8 @@ lemma (in weak_partial_order) least_cong:
 abbreviation is_lub :: "[_, 'a, 'a set] => bool"
 where "is_lub L x A \<equiv> least L x (Upper L A)"
 
-text (in weak_partial_order) \<open>@{const least} is not congruent in the second parameter for
-  @{term "A {.=} A'"}\<close>
+text (in weak_partial_order) \<open>\<^const>\<open>least\<close> is not congruent in the second parameter for
+  \<^term>\<open>A {.=} A'\<close>\<close>
 
 lemma (in weak_partial_order) least_Upper_cong_l:
   assumes "x .= x'"
@@ -370,8 +370,8 @@ lemma (in weak_partial_order) greatest_cong:
 abbreviation is_glb :: "[_, 'a, 'a set] => bool"
 where "is_glb L x A \<equiv> greatest L x (Lower L A)"
 
-text (in weak_partial_order) \<open>@{const greatest} is not congruent in the second parameter for
-  @{term "A {.=} A'"} \<close>
+text (in weak_partial_order) \<open>\<^const>\<open>greatest\<close> is not congruent in the second parameter for
+  \<^term>\<open>A {.=} A'\<close> \<close>
 
 lemma (in weak_partial_order) greatest_Lower_cong_l:
   assumes "x .= x'"

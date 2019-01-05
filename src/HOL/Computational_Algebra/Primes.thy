@@ -42,7 +42,7 @@ theory Primes
 imports Euclidean_Algorithm
 begin
 
-subsection \<open>Primes on @{typ nat} and @{typ int}\<close>
+subsection \<open>Primes on \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close>\<close>
 
 lemma Suc_0_not_prime_nat [simp]: "\<not> prime (Suc 0)"
   using not_prime_1 [where ?'a = nat] by simp

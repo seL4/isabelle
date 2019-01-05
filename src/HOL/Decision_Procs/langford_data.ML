@@ -90,7 +90,7 @@ in
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding langford}
+    (Attrib.setup \<^binding>\<open>langford\<close>
       ((keyword qeN |-- thms) --
        (keyword gatherN |-- thms) --
        (keyword atomsN |-- terms) >> (fn ((qes, gs), atoms) =>
@@ -108,6 +108,6 @@ end;
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding langfordsimp} (Attrib.add_del add_simp del_simp) "Langford simpset");
+    (Attrib.setup \<^binding>\<open>langfordsimp\<close> (Attrib.add_del add_simp del_simp) "Langford simpset");
 
 end;

@@ -195,7 +195,7 @@ fun mk_term_of [] = \<^term>\<open>None :: (unit \<Rightarrow> yxml_of_term) opt
         val T = fastype_of tuple
       in
         \<^term>\<open>Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option\<close> $
-          (absdummy \<^typ>\<open>unit\<close> (@{const yxml_string_of_term} $
+          (absdummy \<^typ>\<open>unit\<close> (\<^const>\<open>yxml_string_of_term\<close> $
             (Const (\<^const_name>\<open>Code_Evaluation.term_of\<close>, T --> \<^typ>\<open>term\<close>) $ tuple)))
       end
 

@@ -185,16 +185,15 @@ by (rule thms_excluded_middle [THEN thms.MP, THEN thms.MP], auto)
 subsection\<open>Completeness -- lemmas for reducing the set of assumptions\<close>
 
 text \<open>
-  For the case @{prop "hyps p t - insert #v Y |- p"} we also have @{prop
-  "hyps p t - {#v} \<subseteq> hyps p (t-{v})"}.
+  For the case \<^prop>\<open>hyps p t - insert #v Y |- p\<close> we also have \<^prop>\<open>hyps p t - {#v} \<subseteq> hyps p (t-{v})\<close>.
 \<close>
 
 lemma hyps_Diff: "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})"
 by (induct p) auto
 
 text \<open>
-  For the case @{prop "hyps p t - insert (#v -> Fls) Y |- p"} we also have
-  @{prop "hyps p t-{#v->Fls} \<subseteq> hyps p (insert v t)"}.
+  For the case \<^prop>\<open>hyps p t - insert (#v -> Fls) Y |- p\<close> we also have
+  \<^prop>\<open>hyps p t-{#v->Fls} \<subseteq> hyps p (insert v t)\<close>.
 \<close>
 
 lemma hyps_insert: "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})"
@@ -209,8 +208,8 @@ lemma insert_Diff_subset2: "insert a (B-{c}) - D <= insert a (B-insert c D)"
 by fast
 
 text \<open>
-  The set @{term "hyps p t"} is finite, and elements have the form
-  @{term "#v"} or @{term "#v->Fls"}.
+  The set \<^term>\<open>hyps p t\<close> is finite, and elements have the form
+  \<^term>\<open>#v\<close> or \<^term>\<open>#v->Fls\<close>.
 \<close>
 
 lemma hyps_finite: "finite(hyps p t)"
@@ -226,7 +225,7 @@ lemma Diff_weaken_left: "A \<subseteq> C \<Longrightarrow> A - B |- p \<Longrigh
 subsubsection \<open>Completeness theorem\<close>
 
 text \<open>
-  Induction on the finite set of assumptions @{term "hyps p t0"}.  We
+  Induction on the finite set of assumptions \<^term>\<open>hyps p t0\<close>.  We
   may repeatedly subtract assumptions until none are left!
 \<close>
 

@@ -33,9 +33,9 @@ fun mk_all (x, t) = HOLogic.all_const (fastype_of x) $ Term.lambda x t
 
 (*** Basic HOLCF concepts ***)
 
-fun mk_bottom T = Const (@{const_name bottom}, T)
+fun mk_bottom T = Const (\<^const_name>\<open>bottom\<close>, T)
 
-fun below_const T = Const (@{const_name below}, [T, T] ---> boolT)
+fun below_const T = Const (\<^const_name>\<open>below\<close>, [T, T] ---> boolT)
 fun mk_below (t, u) = below_const (fastype_of t) $ t $ u
 
 fun mk_undef t = mk_eq (t, mk_bottom (fastype_of t))
@@ -43,24 +43,24 @@ fun mk_undef t = mk_eq (t, mk_bottom (fastype_of t))
 fun mk_defined t = mk_not (mk_undef t)
 
 fun mk_adm t =
-  Const (@{const_name adm}, fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>adm\<close>, fastype_of t --> boolT) $ t
 
 fun mk_compact t =
-  Const (@{const_name compact}, fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>compact\<close>, fastype_of t --> boolT) $ t
 
 fun mk_cont t =
-  Const (@{const_name cont}, fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>cont\<close>, fastype_of t --> boolT) $ t
 
 fun mk_chain t =
-  Const (@{const_name chain}, Term.fastype_of t --> boolT) $ t
+  Const (\<^const_name>\<open>chain\<close>, Term.fastype_of t --> boolT) $ t
 
 fun mk_lub t =
   let
     val T = Term.range_type (Term.fastype_of t)
-    val lub_const = Const (@{const_name lub}, mk_setT T --> T)
-    val UNIV_const = @{term "UNIV :: nat set"}
+    val lub_const = Const (\<^const_name>\<open>lub\<close>, mk_setT T --> T)
+    val UNIV_const = \<^term>\<open>UNIV :: nat set\<close>
     val image_type = (natT --> T) --> mk_setT natT --> mk_setT T
-    val image_const = Const (@{const_name image}, image_type)
+    val image_const = Const (\<^const_name>\<open>image\<close>, image_type)
   in
     lub_const $ (image_const $ t $ UNIV_const)
   end
@@ -68,19 +68,19 @@ fun mk_lub t =
 
 (*** Continuous function space ***)
 
-fun mk_cfunT (T, U) = Type(@{type_name cfun}, [T, U])
+fun mk_cfunT (T, U) = Type(\<^type_name>\<open>cfun\<close>, [T, U])
 
 val (op ->>) = mk_cfunT
 val (op -->>) = Library.foldr mk_cfunT
 
-fun dest_cfunT (Type(@{type_name cfun}, [T, U])) = (T, U)
+fun dest_cfunT (Type(\<^type_name>\<open>cfun\<close>, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], [])
 
 fun capply_const (S, T) =
-  Const(@{const_name Rep_cfun}, (S ->> T) --> (S --> T))
+  Const(\<^const_name>\<open>Rep_cfun\<close>, (S ->> T) --> (S --> T))
 
 fun cabs_const (S, T) =
-  Const(@{const_name Abs_cfun}, (S --> T) --> (S ->> T))
+  Const(\<^const_name>\<open>Abs_cfun\<close>, (S --> T) --> (S ->> T))
 
 fun mk_cabs t =
   let val T = fastype_of t
@@ -101,7 +101,7 @@ fun big_lambdas [] rhs = rhs
 fun mk_capply (t, u) =
   let val (S, T) =
     case fastype_of t of
-        Type(@{type_name cfun}, [S, T]) => (S, T)
+        Type(\<^type_name>\<open>cfun\<close>, [S, T]) => (S, T)
       | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u])
   in capply_const (S, T) $ t $ u end
 
@@ -109,10 +109,10 @@ val (op `) = mk_capply
 
 val list_ccomb : term * term list -> term = Library.foldl mk_capply
 
-fun mk_ID T = Const (@{const_name ID}, T ->> T)
+fun mk_ID T = Const (\<^const_name>\<open>ID\<close>, T ->> T)
 
 fun cfcomp_const (T, U, V) =
-  Const (@{const_name cfcomp}, (U ->> V) ->> (T ->> U) ->> (T ->> V))
+  Const (\<^const_name>\<open>cfcomp\<close>, (U ->> V) ->> (T ->> U) ->> (T ->> V))
 
 fun mk_cfcomp (f, g) =
   let
@@ -124,7 +124,7 @@ fun mk_cfcomp (f, g) =
     else raise TYPE ("mk_cfcomp", [U, U'], [f, g])
   end
 
-fun strictify_const T = Const (@{const_name strictify}, T ->> T)
+fun strictify_const T = Const (\<^const_name>\<open>strictify\<close>, T ->> T)
 fun mk_strictify t = strictify_const (fastype_of t) ` t
 
 fun mk_strict t =
@@ -154,17 +154,17 @@ fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
 
 (*** Lifted cpo type ***)
 
-fun mk_upT T = Type(@{type_name "u"}, [T])
+fun mk_upT T = Type(\<^type_name>\<open>u\<close>, [T])
 
-fun dest_upT (Type(@{type_name "u"}, [T])) = T
+fun dest_upT (Type(\<^type_name>\<open>u\<close>, [T])) = T
   | dest_upT T = raise TYPE ("dest_upT", [T], [])
 
-fun up_const T = Const(@{const_name up}, T ->> mk_upT T)
+fun up_const T = Const(\<^const_name>\<open>up\<close>, T ->> mk_upT T)
 
 fun mk_up t = up_const (fastype_of t) ` t
 
 fun fup_const (T, U) =
-  Const(@{const_name fup}, (T ->> U) ->> mk_upT T ->> U)
+  Const(\<^const_name>\<open>fup\<close>, (T ->> U) ->> mk_upT T ->> U)
 
 fun mk_fup t = fup_const (dest_cfunT (fastype_of t)) ` t
 
@@ -173,39 +173,39 @@ fun from_up T = fup_const (T, T) ` mk_ID T
 
 (*** Lifted unit type ***)
 
-val oneT = @{typ "one"}
+val oneT = \<^typ>\<open>one\<close>
 
-fun one_case_const T = Const (@{const_name one_case}, T ->> oneT ->> T)
+fun one_case_const T = Const (\<^const_name>\<open>one_case\<close>, T ->> oneT ->> T)
 fun mk_one_case t = one_case_const (fastype_of t) ` t
 
 
 (*** Strict product type ***)
 
-fun mk_sprodT (T, U) = Type(@{type_name sprod}, [T, U])
+fun mk_sprodT (T, U) = Type(\<^type_name>\<open>sprod\<close>, [T, U])
 
-fun dest_sprodT (Type(@{type_name sprod}, [T, U])) = (T, U)
+fun dest_sprodT (Type(\<^type_name>\<open>sprod\<close>, [T, U])) = (T, U)
   | dest_sprodT T = raise TYPE ("dest_sprodT", [T], [])
 
 fun spair_const (T, U) =
-  Const(@{const_name spair}, T ->> U ->> mk_sprodT (T, U))
+  Const(\<^const_name>\<open>spair\<close>, T ->> U ->> mk_sprodT (T, U))
 
 (* builds the expression (:t, u:) *)
 fun mk_spair (t, u) =
   spair_const (fastype_of t, fastype_of u) ` t ` u
 
 (* builds the expression (:t1,t2,..,tn:) *)
-fun mk_stuple [] = @{term "ONE"}
+fun mk_stuple [] = \<^term>\<open>ONE\<close>
   | mk_stuple (t::[]) = t
   | mk_stuple (t::ts) = mk_spair (t, mk_stuple ts)
 
 fun sfst_const (T, U) =
-  Const(@{const_name sfst}, mk_sprodT (T, U) ->> T)
+  Const(\<^const_name>\<open>sfst\<close>, mk_sprodT (T, U) ->> T)
 
 fun ssnd_const (T, U) =
-  Const(@{const_name ssnd}, mk_sprodT (T, U) ->> U)
+  Const(\<^const_name>\<open>ssnd\<close>, mk_sprodT (T, U) ->> U)
 
 fun ssplit_const (T, U, V) =
-  Const (@{const_name ssplit}, (T ->> U ->> V) ->> mk_sprodT (T, U) ->> V)
+  Const (\<^const_name>\<open>ssplit\<close>, (T ->> U ->> V) ->> mk_sprodT (T, U) ->> V)
 
 fun mk_ssplit t =
   let val (T, (U, V)) = apsnd dest_cfunT (dest_cfunT (fastype_of t))
@@ -214,13 +214,13 @@ fun mk_ssplit t =
 
 (*** Strict sum type ***)
 
-fun mk_ssumT (T, U) = Type(@{type_name ssum}, [T, U])
+fun mk_ssumT (T, U) = Type(\<^type_name>\<open>ssum\<close>, [T, U])
 
-fun dest_ssumT (Type(@{type_name ssum}, [T, U])) = (T, U)
+fun dest_ssumT (Type(\<^type_name>\<open>ssum\<close>, [T, U])) = (T, U)
   | dest_ssumT T = raise TYPE ("dest_ssumT", [T], [])
 
-fun sinl_const (T, U) = Const(@{const_name sinl}, T ->> mk_ssumT (T, U))
-fun sinr_const (T, U) = Const(@{const_name sinr}, U ->> mk_ssumT (T, U))
+fun sinl_const (T, U) = Const(\<^const_name>\<open>sinl\<close>, T ->> mk_ssumT (T, U))
+fun sinr_const (T, U) = Const(\<^const_name>\<open>sinr\<close>, U ->> mk_ssumT (T, U))
 
 (* builds the list [sinl(t1), sinl(sinr(t2)), ... sinr(...sinr(tn))] *)
 fun mk_sinjects ts =
@@ -241,7 +241,7 @@ fun mk_sinjects ts =
   end
 
 fun sscase_const (T, U, V) =
-  Const(@{const_name sscase},
+  Const(\<^const_name>\<open>sscase\<close>,
     (T ->> V) ->> (U ->> V) ->> mk_ssumT (T, U) ->> V)
 
 fun mk_sscase (t, u) =
@@ -258,30 +258,30 @@ fun from_sinr (T, U) =
 
 (*** pattern match monad type ***)
 
-fun mk_matchT T = Type (@{type_name "match"}, [T])
+fun mk_matchT T = Type (\<^type_name>\<open>match\<close>, [T])
 
-fun dest_matchT (Type(@{type_name "match"}, [T])) = T
+fun dest_matchT (Type(\<^type_name>\<open>match\<close>, [T])) = T
   | dest_matchT T = raise TYPE ("dest_matchT", [T], [])
 
-fun mk_fail T = Const (@{const_name "Fixrec.fail"}, mk_matchT T)
+fun mk_fail T = Const (\<^const_name>\<open>Fixrec.fail\<close>, mk_matchT T)
 
-fun succeed_const T = Const (@{const_name "Fixrec.succeed"}, T ->> mk_matchT T)
+fun succeed_const T = Const (\<^const_name>\<open>Fixrec.succeed\<close>, T ->> mk_matchT T)
 fun mk_succeed t = succeed_const (fastype_of t) ` t
 
 
 (*** lifted boolean type ***)
 
-val trT = @{typ "tr"}
+val trT = \<^typ>\<open>tr\<close>
 
 
 (*** theory of fixed points ***)
 
 fun mk_fix t =
   let val (T, _) = dest_cfunT (fastype_of t)
-  in mk_capply (Const(@{const_name fix}, (T ->> T) ->> T), t) end
+  in mk_capply (Const(\<^const_name>\<open>fix\<close>, (T ->> T) ->> T), t) end
 
 fun iterate_const T =
-  Const (@{const_name iterate}, natT --> (T ->> T) ->> (T ->> T))
+  Const (\<^const_name>\<open>iterate\<close>, natT --> (T ->> T) ->> (T ->> T))
 
 fun mk_iterate (n, f) =
   let val (T, _) = dest_cfunT (Term.fastype_of f)

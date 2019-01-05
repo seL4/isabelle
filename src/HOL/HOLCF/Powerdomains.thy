@@ -204,9 +204,9 @@ lemmas [domain_deflation] =
 
 setup \<open>
   fold Domain_Take_Proofs.add_rec_type
-    [(@{type_name "upper_pd"}, [true]),
-     (@{type_name "lower_pd"}, [true]),
-     (@{type_name "convex_pd"}, [true])]
+    [(\<^type_name>\<open>upper_pd\<close>, [true]),
+     (\<^type_name>\<open>lower_pd\<close>, [true]),
+     (\<^type_name>\<open>convex_pd\<close>, [true])]
 \<close>
 
 end

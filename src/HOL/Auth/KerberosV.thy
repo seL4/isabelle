@@ -243,7 +243,7 @@ done
 lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 
 
-subsection\<open>Lemmas about @{term authKeys}\<close>
+subsection\<open>Lemmas about \<^term>\<open>authKeys\<close>\<close>
 
 lemma authKeys_empty: "authKeys [] = {}"
   by (simp add: authKeys_def)
@@ -749,7 +749,7 @@ apply (frule_tac [5] Says_ticket_parts, simp_all)
 apply blast+
 done
 
-subsection\<open>Lemmas About the Predicate @{term AKcryptSK}\<close>
+subsection\<open>Lemmas About the Predicate \<^term>\<open>AKcryptSK\<close>\<close>
 
 lemma not_AKcryptSK_Nil [iff]: "\<not> AKcryptSK authK servK []"
 apply (simp add: AKcryptSK_def)
@@ -1063,10 +1063,10 @@ apply (erule rev_mp)
 apply (erule kerbV.induct)
 apply (rule_tac [9] impI)+
   \<comment> \<open>The Oops1 case is unusual: must simplify
-    @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
+    \<^term>\<open>Authkey \<notin> analz (spies (ev#evs))\<close>, not letting
    \<open>analz_mono_contra\<close> weaken it to
-   @{term "Authkey \<notin> analz (spies evs)"},
-  for we then conclude @{term "authK \<noteq> authKa"}.\<close>
+   \<^term>\<open>Authkey \<notin> analz (spies evs)\<close>,
+  for we then conclude \<^term>\<open>authK \<noteq> authKa\<close>.\<close>
 apply analz_mono_contra
 apply (frule_tac [10] Oops_range_spies2)
 apply (frule_tac [9] Oops_range_spies1)
@@ -1415,7 +1415,7 @@ apply (drule Says_imp_knows_Spy [THEN parts.Inj, THEN parts.Fst])
 apply (frule servK_authentic_ter, blast, assumption+)
 apply (drule parts_spies_takeWhile_mono [THEN subsetD])
 apply (drule parts_spies_evs_revD2 [THEN subsetD])
-txt\<open>@{term Says_K5} closes the proof in version IV because it is clear which 
+txt\<open>\<^term>\<open>Says_K5\<close> closes the proof in version IV because it is clear which 
 servTicket an authenticator appears with in msg 5. In version V an authenticator can appear with any item that the spy could replace the servTicket with\<close>
 apply (frule Says_K5, blast)
 txt\<open>We need to state that an honest agent wouldn't send the wrong timestamp

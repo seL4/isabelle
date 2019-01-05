@@ -40,11 +40,11 @@ fun mk_perm_bool ctxt pi th =
   th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names =
-  Simplifier.make_simproc @{context} "perm_bool"
-   {lhss = [@{term "perm pi x"}],
+  Simplifier.make_simproc \<^context> "perm_bool"
+   {lhss = [\<^term>\<open>perm pi x\<close>],
     proc = fn _ => fn _ => fn ct =>
       (case Thm.term_of ct of
-        Const (@{const_name Nominal.perm}, _) $ _ $ t =>
+        Const (\<^const_name>\<open>Nominal.perm\<close>, _) $ _ $ t =>
           if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
           then SOME perm_bool else NONE
       | _ => NONE)};
@@ -73,14 +73,14 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
   | add_binders thy i (Abs (_, _, t)) bs = add_binders thy (i + 1) t bs
   | add_binders thy i _ bs = bs;
 
-fun split_conj f names (Const (@{const_name HOL.conj}, _) $ p $ q) _ = (case head_of p of
+fun split_conj f names (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ p $ q) _ = (case head_of p of
       Const (name, _) =>
         if member (op =) names name then SOME (f p q) else NONE
     | _ => NONE)
   | split_conj _ _ _ _ = NONE;
 
 fun strip_all [] t = t
-  | strip_all (_ :: xs) (Const (@{const_name All}, _) $ Abs (s, T, t)) = strip_all xs t;
+  | strip_all (_ :: xs) (Const (\<^const_name>\<open>All\<close>, _) $ Abs (s, T, t)) = strip_all xs t;
 
 (*********************************************************************)
 (* maps  R ... & (ALL pi_1 ... pi_n z. P z (pi_1 o ... o pi_n o t))  *)
@@ -91,17 +91,17 @@ fun strip_all [] t = t
 (* where "id" protects the subformula from simplification            *)
 (*********************************************************************)
 
-fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
+fun inst_conj_all names ps pis (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ p $ q) _ =
       (case head_of p of
          Const (name, _) =>
            if member (op =) names name then SOME (HOLogic.mk_conj (p,
-             Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
+             Const (\<^const_name>\<open>Fun.id\<close>, HOLogic.boolT --> HOLogic.boolT) $
                (subst_bounds (pis, strip_all pis q))))
            else NONE
        | _ => NONE)
   | inst_conj_all names ps pis t u =
       if member (op aconv) ps (head_of u) then
-        SOME (Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
+        SOME (Const (\<^const_name>\<open>Fun.id\<close>, HOLogic.boolT --> HOLogic.boolT) $
           (subst_bounds (pis, strip_all pis t)))
       else NONE
   | inst_conj_all _ _ _ _ _ = NONE;
@@ -199,7 +199,7 @@ fun prove_strong_ind s avoids ctxt =
       end) (Logic.strip_imp_prems raw_induct' ~~ avoids');
 
     val atomTs = distinct op = (maps (map snd o #2) prems);
-    val ind_sort = if null atomTs then @{sort type}
+    val ind_sort = if null atomTs then \<^sort>\<open>type\<close>
       else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn T => Sign.intern_class thy
         ("fs_" ^ Long_Name.base_name (fst (dest_Type T)))) atomTs));
     val (fs_ctxt_tyname, _) = Name.variant "'n" (Variable.names_of ctxt');
@@ -276,7 +276,7 @@ fun prove_strong_ind s avoids ctxt =
       ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
     val eqvt_ss = simpset_of (put_simpset HOL_basic_ss (Proof_Context.init_global thy)
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
-      addsimprocs [mk_perm_bool_simproc [@{const_name Fun.id}],
+      addsimprocs [mk_perm_bool_simproc [\<^const_name>\<open>Fun.id\<close>],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun]);
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
@@ -292,7 +292,7 @@ fun prove_strong_ind s avoids ctxt =
         (** protect terms to avoid that fresh_prod interferes with  **)
         (** pairs used in introduction rules of inductive predicate **)
         fun protect t =
-          let val T = fastype_of t in Const (@{const_name Fun.id}, T --> T) $ t end;
+          let val T = fastype_of t in Const (\<^const_name>\<open>Fun.id\<close>, T --> T) $ t end;
         val p = foldr1 HOLogic.mk_prod (map protect ts @ freshs1);
         val ex = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop
             (HOLogic.exists_const T $ Abs ("x", T,
@@ -336,7 +336,7 @@ fun prove_strong_ind s avoids ctxt =
                  fun concat_perm pi1 pi2 =
                    let val T = fastype_of pi1
                    in if T = fastype_of pi2 then
-                       Const (@{const_name append}, T --> T --> T) $ pi1 $ pi2
+                       Const (\<^const_name>\<open>append\<close>, T --> T --> T) $ pi1 $ pi2
                      else pi2
                    end;
                  val pis'' = fold (concat_perm #> map) pis' pis;
@@ -678,16 +678,16 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword nominal_inductive}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>nominal_inductive\<close>
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes"
-    (Parse.name -- Scan.optional (@{keyword "avoids"} |-- Parse.and_list1 (Parse.name --
-      (@{keyword ":"} |-- Scan.repeat1 Parse.name))) [] >> (fn (name, avoids) =>
+    (Parse.name -- Scan.optional (\<^keyword>\<open>avoids\<close> |-- Parse.and_list1 (Parse.name --
+      (\<^keyword>\<open>:\<close> |-- Scan.repeat1 Parse.name))) [] >> (fn (name, avoids) =>
         prove_strong_ind name avoids));
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword equivariance}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>equivariance\<close>
     "prove equivariance for inductive predicate involving nominal datatypes"
-    (Parse.name -- Scan.optional (@{keyword "["} |-- Parse.list1 Parse.name --| @{keyword "]"}) [] >>
+    (Parse.name -- Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.list1 Parse.name --| \<^keyword>\<open>]\<close>) [] >>
       (fn (name, atoms) => prove_eqvt name atoms));
 
 end

@@ -55,7 +55,7 @@ proof -
 qed
 
 text \<open>
-  The type for emeasure spaces is already defined in @{theory "HOL-Analysis.Sigma_Algebra"}, as it
+  The type for emeasure spaces is already defined in \<^theory>\<open>HOL-Analysis.Sigma_Algebra\<close>, as it
   is also used to represent sigma algebras (with an arbitrary emeasure).
 \<close>
 
@@ -91,11 +91,11 @@ lemma suminf_binaryset_eq:
   shows "f {} = 0 \<Longrightarrow> (\<Sum>n. f (binaryset A B n)) = f A + f B"
   by (metis binaryset_sums sums_unique)
 
-subsection%unimportant \<open>Properties of a premeasure @{term \<mu>}\<close>
+subsection%unimportant \<open>Properties of a premeasure \<^term>\<open>\<mu>\<close>\<close>
 
 text \<open>
-  The definitions for @{const positive} and @{const countably_additive} should be here, by they are
-  necessary to define @{typ "'a measure"} in @{theory "HOL-Analysis.Sigma_Algebra"}.
+  The definitions for \<^const>\<open>positive\<close> and \<^const>\<open>countably_additive\<close> should be here, by they are
+  necessary to define \<^typ>\<open>'a measure\<close> in \<^theory>\<open>HOL-Analysis.Sigma_Algebra\<close>.
 \<close>
 
 definition subadditive where
@@ -442,7 +442,7 @@ lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
   using empty_continuous_imp_continuous_from_below[OF f fin] cont
   by blast
 
-subsection%unimportant \<open>Properties of @{const emeasure}\<close>
+subsection%unimportant \<open>Properties of \<^const>\<open>emeasure\<close>\<close>
 
 lemma emeasure_positive: "positive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
@@ -1385,7 +1385,7 @@ proof -
   then show ?thesis using that by blast
 qed
 
-subsection \<open>Measure space induced by distribution of @{const measurable}-functions\<close>
+subsection \<open>Measure space induced by distribution of \<^const>\<open>measurable\<close>-functions\<close>
 
 definition%important distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
 "distr M N f =
@@ -2071,7 +2071,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>
+subsection \<open>Measure spaces with \<^term>\<open>emeasure M (space M) < \<infinity>\<close>\<close>
 
 locale%important finite_measure = sigma_finite_measure M for M +
   assumes finite_emeasure_space: "emeasure M (space M) \<noteq> top"
@@ -2830,7 +2830,7 @@ proof -
 qed
 
 text%important \<open>
-  Define a lexicographical order on @{type measure}, in the order space, sets and measure. The parts
+  Define a lexicographical order on \<^type>\<open>measure\<close>, in the order space, sets and measure. The parts
   of the lexicographical order are point-wise ordered.
 \<close>
 
