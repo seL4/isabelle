@@ -674,7 +674,106 @@ text \<open>
 \<open>ISABELLE_TOOL_JAVA_OPTIONS="-Xms4g -Xmx32g -Xss16m"
 ML_OPTIONS="--minheap 4G --maxheap 32G"
 \<close>}
+\<close>
 
+
+section \<open>Update theory sources based on PIDE markup \label{sec:tool-update}\<close>
+
+text \<open>
+  The @{tool_def "update"} tool updates theory sources based on markup that is
+  produced from a running PIDE session (similar to @{tool dump}
+  \secref{sec:tool-dump}). Its command-line usage is: @{verbatim [display]
+\<open>Usage: isabelle update [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -B NAME      include session NAME and all descendants
+    -D DIR       include session directory and select its sessions
+    -R           operate on requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
+    -a           select all sessions
+    -d DIR       include session directory
+    -g NAME      select session group NAME
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for logic image
+    -u OPT       overide update option: shortcut for "-o update_OPT"
+    -v           verbose
+    -x NAME      exclude session NAME and all descendants
+
+  Update theory sources based on PIDE markup.\<close>}
+
+  \<^medskip> Options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> and the
+  remaining command-line arguments specify sessions as in @{tool build}
+  (\secref{sec:tool-build}) or @{tool dump} (\secref{sec:tool-dump}).
+
+  \<^medskip> Options \<^verbatim>\<open>-l\<close> and \<^verbatim>\<open>-s\<close> specify the underlying logic image is in @{tool
+  dump} (\secref{sec:tool-dump}).
+
+  \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
+
+  \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
+  (\secref{sec:tool-build}). Option \<^verbatim>\<open>-u\<close> refers to specific \<^verbatim>\<open>update\<close>
+  options, by relying on naming convention: ``\<^verbatim>\<open>-u\<close>~\<open>OPT\<close>'' is a shortcut for
+  ``\<^verbatim>\<open>-o\<close>~\<^verbatim>\<open>update_\<close>\<open>OPT\<close>''.
+
+  \<^medskip> The following update options are supported:
+
+    \<^item> @{system_option update_inner_syntax_cartouches} to update inner syntax
+    (types, terms, etc.)~to use cartouches, instead of double-quoted strings
+    or atomic identifiers. For example, ``\<^theory_text>\<open>lemma \<doublequote>x =
+    x\<doublequote>\<close>'' is replaced by ``\<^theory_text>\<open>lemma \<open>x = x\<close>\<close>'', and ``\<^theory_text>\<open>fix x\<close>''
+    is replaced by ``\<^theory_text>\<open>fix \<open>x\<close>\<close>''.
+
+    \<^item> @{system_option update_mixfix_cartouches} to update mixfix templates to
+    use cartouches instead of double-quoted strings. For example, ``\<^theory_text>\<open>(infixl
+    \<doublequote>+\<doublequote> 65)\<close>'' is replaced by ``\<^theory_text>\<open>(infixl \<open>+\<close>
+    65)\<close>''.
+
+    \<^item> @{system_option update_control_cartouches} to update antiquotations to
+    use the compact form with control symbol and cartouche argument. For
+    example, ``\<open>@{term \<doublequote>x + y\<doublequote>}\<close>'' is replaced by
+    ``\<open>\<^term>\<open>x + y\<close>\<close>'' (the control symbol is literally \<^verbatim>\<open>\<^term>\<close>.)
+
+  It is also possible to produce custom updates in Isabelle/ML, by reporting
+  \<^ML>\<open>Markup.update\<close> with the precise source position and a replacement
+  text. This operation should be made conditional on specific system options,
+  similar to the ones above. Searching the above option names in ML sources of
+  \<^dir>\<open>$ISABELLE_HOME/src/Pure\<close> provides some examples.
+
+  Different update options can be in conflict by producing overlapping edits:
+  this may require to run @{tool update} multiple times, but it is often
+  better to enable particular update options separately and commit the changes
+  one-by-one.
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Update some cartouche notation in all theory sources required for session
+  \<^verbatim>\<open>HOL-Analysis\<close>:
+
+  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l Pure HOL-Analysis\<close>}
+
+  \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close> ---
+  its image is taken as starting point and its sources are not touched:
+
+  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Analysis -B HOL-Analysis\<close>}
+
+  \<^smallskip> This two-stage approach reduces resource requirements of the running PIDE
+  session: a base image like \<^verbatim>\<open>HOL-Analysis\<close> (or \<^verbatim>\<open>HOL\<close>, \<^verbatim>\<open>HOL-Library\<close>) is
+  more compact than importing all required theory (and ML) source files from
+  \<^verbatim>\<open>Pure\<close>.
+
+  \<^smallskip> Update sessions that build on \<^verbatim>\<open>HOL-Proofs\<close>, which need to be run
+  separately with special options as follows:
+
+  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
+  -o record_proofs=2 -o parallel_proofs=0\<close>}
+
+  \<^smallskip> See also the end of \secref{sec:tool-dump} for hints on increasing
+  Isabelle/ML heap sizes for very big PIDE processes that include many
+  sessions, notably from the Archive of Formal Proofs.
 \<close>
 
 end
