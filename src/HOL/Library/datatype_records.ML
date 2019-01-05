@@ -278,7 +278,7 @@ fun field_update_tr ctxt (Const (\<^syntax_const>\<open>_datatype_field_update\<
           NONE => raise Fail ("not a valid record field: " ^ name)
         | SOME s => Const (s, dummyT) $ Abs (Name.uu_, dummyT, arg)
       end
-  | field_update_tr _ t = raise TERM ("field_update_tr", [\<^print> t]);
+  | field_update_tr _ t = raise TERM ("field_update_tr", [t]);
 
 fun field_updates_tr ctxt (Const (\<^syntax_const>\<open>_datatype_field_updates\<close>, _) $ t $ u) =
       field_update_tr ctxt t :: field_updates_tr ctxt u
