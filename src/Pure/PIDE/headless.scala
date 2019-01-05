@@ -110,7 +110,7 @@ object Headless
             (already_committed /: dep_theories)({ case (committed, name) =>
               def parents_committed: Boolean =
                 version.nodes(name).header.imports.forall({ case (parent, _) =>
-                  Sessions.is_pure(parent.theory) || committed.isDefinedAt(parent)
+                  resources.session_base.loaded_theory(parent) || committed.isDefinedAt(parent)
                 })
               if (!committed.isDefinedAt(name) && parents_committed &&
                   state.node_consolidated(version, name))
