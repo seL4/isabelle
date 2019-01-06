@@ -769,7 +769,7 @@ text \<open>
   separately with special options as follows:
 
   @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
-  -o record_proofs=2 -o parallel_proofs=0\<close>}
+  -o record_proofs=2\<close>}
 
   \<^smallskip> See also the end of \secref{sec:tool-dump} for hints on increasing
   Isabelle/ML heap sizes for very big PIDE processes that include many
