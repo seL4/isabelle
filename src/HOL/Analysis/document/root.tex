@@ -9,6 +9,11 @@
 \usepackage[only,bigsqcap]{stmaryrd}
 \usepackage{pdfsetup}
 
+\usepackage{tocloft}
+\setlength{\cftsubsecnumwidth}{3em}
+\cftsetpnumwidth{2em}
+\cftsetrmarg{3em}
+
 \urlstyle{rm}
 \isabellestyle{literalunderscore}
 \pagestyle{myheadings}
@@ -21,7 +26,7 @@
 \tableofcontents
 
 \begin{center}
-  \includegraphics[width=\linewidth]{session_graph}
+  \includegraphics[height=\textheight]{session_graph}
 \end{center}
 
 \newpage
