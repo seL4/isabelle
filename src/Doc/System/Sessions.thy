@@ -721,8 +721,8 @@ text \<open>
     \<^item> @{system_option update_inner_syntax_cartouches} to update inner syntax
     (types, terms, etc.)~to use cartouches, instead of double-quoted strings
     or atomic identifiers. For example, ``\<^theory_text>\<open>lemma \<doublequote>x =
-    x\<doublequote>\<close>'' is replaced by ``\<^theory_text>\<open>lemma \<open>x = x\<close>\<close>'', and ``\<^theory_text>\<open>fix x\<close>''
-    is replaced by ``\<^theory_text>\<open>fix \<open>x\<close>\<close>''.
+    x\<doublequote>\<close>'' is replaced by ``\<^theory_text>\<open>lemma \<open>x = x\<close>\<close>'', and ``\<^theory_text>\<open>assume
+    A\<close>'' is replaced by ``\<^theory_text>\<open>assume \<open>A\<close>\<close>''.
 
     \<^item> @{system_option update_mixfix_cartouches} to update mixfix templates to
     use cartouches instead of double-quoted strings. For example, ``\<^theory_text>\<open>(infixl
