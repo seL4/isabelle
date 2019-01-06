@@ -123,11 +123,11 @@ ML \<open>
 text \<open>
   \<^ML>\<open>
       (
-        @{term \<open>""\<close>};
-        @{term \<open>"abc"\<close>};
-        @{term \<open>"abc" @ "xyz"\<close>};
-        @{term \<open>"\<newline>"\<close>};
-        @{term \<open>"\001\010\100"\<close>}
+        \<^term>\<open>""\<close>;
+        \<^term>\<open>"abc"\<close>;
+        \<^term>\<open>"abc" @ "xyz"\<close>;
+        \<^term>\<open>"\<newline>"\<close>;
+        \<^term>\<open>"\001\010\100"\<close>
       )
     \<close>
 \<close>
@@ -146,11 +146,11 @@ text_cartouche
 \<open>
   \<^ML>\<open>
       (
-        @{term \<open>""\<close>};
-        @{term \<open>"abc"\<close>};
-        @{term \<open>"abc" @ "xyz"\<close>};
-        @{term \<open>"\<newline>"\<close>};
-        @{term \<open>"\001\010\100"\<close>}
+        \<^term>\<open>""\<close>;
+        \<^term>\<open>"abc"\<close>;
+        \<^term>\<open>"abc" @ "xyz"\<close>;
+        \<^term>\<open>"\<newline>"\<close>;
+        \<^term>\<open>"\001\010\100"\<close>
       )
     \<close>
 \<close>
