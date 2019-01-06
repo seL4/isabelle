@@ -183,7 +183,9 @@ qed
 
 subsection \<open>Bilinear functions\<close>
 
-definition%important "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
+definition%important
+bilinear :: "('a::real_vector \<Rightarrow> 'b::real_vector \<Rightarrow> 'c::real_vector) \<Rightarrow> bool" where
+"bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
 lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
   by (simp add: bilinear_def linear_iff)
@@ -239,7 +241,8 @@ qed
 
 subsection \<open>Adjoints\<close>
 
-definition%important "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
+definition%important adjoint :: "(('a::real_inner) \<Rightarrow> ('b::real_inner)) \<Rightarrow> 'b \<Rightarrow> 'a" where
+"adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
 lemma adjoint_unique:
   assumes "\<forall>x y. inner (f x) y = inner x (g y)"

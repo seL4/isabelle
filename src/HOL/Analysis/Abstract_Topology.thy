@@ -13,7 +13,8 @@ begin
 
 subsection \<open>General notion of a topology as a value\<close>
 
-definition%important "istopology L \<longleftrightarrow>
+definition%important istopology :: "('a set \<Rightarrow> bool) \<Rightarrow> bool" where
+"istopology L \<longleftrightarrow>
   L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union>K))"
 
 typedef%important 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
@@ -113,7 +114,8 @@ lemma openin_Int_Inter:
 
 subsubsection \<open>Closed sets\<close>
 
-definition%important "closedin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> openin U (topspace U - S)"
+definition%important closedin :: "'a topology \<Rightarrow> 'a set \<Rightarrow> bool" where
+"closedin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> openin U (topspace U - S)"
 
 lemma closedin_subset: "closedin U S \<Longrightarrow> S \<subseteq> topspace U"
   by (metis closedin_def)
@@ -230,7 +232,8 @@ lemma subtopology_eq_discrete_topology_sing:
 
 subsection \<open>Subspace topology\<close>
 
-definition%important "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
+definition%important subtopology :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a topology" where
+"subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
 
 lemma istopology_subtopology: "istopology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
   (is "istopology ?L")

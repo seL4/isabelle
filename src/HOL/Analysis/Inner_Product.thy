@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section \<open>Inner Product Spaces and the Gradient Derivative\<close>
+section \<open>Inner Product Spaces and Gradient Derivative\<close>
 
 theory Inner_Product
 imports Complex_Main
