@@ -8,6 +8,6 @@ theory Predicate_Compile_Quickcheck
   imports Predicate_Compile_Alternative_Defs
 begin
 
-ML_file "../Tools/Predicate_Compile/predicate_compile_quickcheck.ML"
+ML_file \<open>../Tools/Predicate_Compile/predicate_compile_quickcheck.ML\<close>
 
 end

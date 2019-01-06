@@ -988,7 +988,7 @@ lemma diff_strict_right_mono: "a < b \<Longrightarrow> a - c < b - c"
 
 end
 
-ML_file "Tools/group_cancel.ML"
+ML_file \<open>Tools/group_cancel.ML\<close>
 
 simproc_setup group_cancel_add ("a + b::'a::ab_group_add") =
   \<open>fn phi => fn ss => try Group_Cancel.cancel_add_conv\<close>

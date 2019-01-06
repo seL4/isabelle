@@ -11,11 +11,11 @@ begin
 
 subsection \<open>ATP problems and proofs\<close>
 
-ML_file "Tools/ATP/atp_util.ML"
-ML_file "Tools/ATP/atp_problem.ML"
-ML_file "Tools/ATP/atp_proof.ML"
-ML_file "Tools/ATP/atp_proof_redirect.ML"
-ML_file "Tools/ATP/atp_satallax.ML"
+ML_file \<open>Tools/ATP/atp_util.ML\<close>
+ML_file \<open>Tools/ATP/atp_problem.ML\<close>
+ML_file \<open>Tools/ATP/atp_proof.ML\<close>
+ML_file \<open>Tools/ATP/atp_proof_redirect.ML\<close>
+ML_file \<open>Tools/ATP/atp_satallax.ML\<close>
 
 
 subsection \<open>Higher-order reasoning helpers\<close>
@@ -146,12 +146,12 @@ lemmas waldmeister_fol = boolean_equality boolean_comm
 
 subsection \<open>Basic connection between ATPs and HOL\<close>
 
-ML_file "Tools/lambda_lifting.ML"
-ML_file "Tools/monomorph.ML"
-ML_file "Tools/ATP/atp_problem_generate.ML"
-ML_file "Tools/ATP/atp_proof_reconstruct.ML"
-ML_file "Tools/ATP/atp_systems.ML"
-ML_file "Tools/ATP/atp_waldmeister.ML"
+ML_file \<open>Tools/lambda_lifting.ML\<close>
+ML_file \<open>Tools/monomorph.ML\<close>
+ML_file \<open>Tools/ATP/atp_problem_generate.ML\<close>
+ML_file \<open>Tools/ATP/atp_proof_reconstruct.ML\<close>
+ML_file \<open>Tools/ATP/atp_systems.ML\<close>
+ML_file \<open>Tools/ATP/atp_waldmeister.ML\<close>
 
 hide_fact (open) waldmeister_fol boolean_equality boolean_comm
 

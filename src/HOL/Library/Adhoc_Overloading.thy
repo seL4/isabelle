@@ -10,6 +10,6 @@ theory Adhoc_Overloading
   keywords "adhoc_overloading" "no_adhoc_overloading" :: thy_decl
 begin
 
-ML_file "adhoc_overloading.ML"
+ML_file \<open>adhoc_overloading.ML\<close>
 
 end

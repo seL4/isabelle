@@ -552,22 +552,22 @@ lemma right_total_UNIV_transfer:
 
 subsection \<open>ML setup\<close>
 
-ML_file "Tools/Lifting/lifting_util.ML"
+ML_file \<open>Tools/Lifting/lifting_util.ML\<close>
 
 named_theorems relator_eq_onp
   "theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate"
-ML_file "Tools/Lifting/lifting_info.ML"
+ML_file \<open>Tools/Lifting/lifting_info.ML\<close>
 
 (* setup for the function type *)
 declare fun_quotient[quot_map]
 declare fun_mono[relator_mono]
 lemmas [relator_distr] = pos_fun_distr neg_fun_distr1 neg_fun_distr2
 
-ML_file "Tools/Lifting/lifting_bnf.ML"
-ML_file "Tools/Lifting/lifting_term.ML"
-ML_file "Tools/Lifting/lifting_def.ML"
-ML_file "Tools/Lifting/lifting_setup.ML"
-ML_file "Tools/Lifting/lifting_def_code_dt.ML"
+ML_file \<open>Tools/Lifting/lifting_bnf.ML\<close>
+ML_file \<open>Tools/Lifting/lifting_term.ML\<close>
+ML_file \<open>Tools/Lifting/lifting_def.ML\<close>
+ML_file \<open>Tools/Lifting/lifting_setup.ML\<close>
+ML_file \<open>Tools/Lifting/lifting_def_code_dt.ML\<close>
 
 lemma pred_prod_beta: "pred_prod P Q xy \<longleftrightarrow> P (fst xy) \<and> Q (snd xy)"
 by(cases xy) simp

@@ -10,9 +10,9 @@ theory Sum_of_Squares
 imports Complex_Main
 begin
 
-ML_file "positivstellensatz.ML"
-ML_file "Sum_of_Squares/sum_of_squares.ML"
-ML_file "Sum_of_Squares/positivstellensatz_tools.ML"
-ML_file "Sum_of_Squares/sos_wrapper.ML"
+ML_file \<open>positivstellensatz.ML\<close>
+ML_file \<open>Sum_of_Squares/sum_of_squares.ML\<close>
+ML_file \<open>Sum_of_Squares/positivstellensatz_tools.ML\<close>
+ML_file \<open>Sum_of_Squares/sos_wrapper.ML\<close>
 
 end

@@ -230,7 +230,7 @@ end
 
 
 
-ML_file "Tools/Transfer/transfer.ML"
+ML_file \<open>Tools/Transfer/transfer.ML\<close>
 declare refl [transfer_rule]
 
 hide_const (open) Rel
@@ -362,8 +362,8 @@ lemma if_conn:
   "(if \<not> P then t else e) = (if P then e else t)"
 by auto
 
-ML_file "Tools/Transfer/transfer_bnf.ML"
-ML_file "Tools/BNF/bnf_fp_rec_sugar_transfer.ML"
+ML_file \<open>Tools/Transfer/transfer_bnf.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_rec_sugar_transfer.ML\<close>
 
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]

@@ -129,7 +129,7 @@ lemmas arithmetic_simps =
   mult_1_left
   mult_1_right
 
-ML_file "normarith.ML"
+ML_file \<open>normarith.ML\<close>
 
 method_setup%important norm = \<open>
   Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)

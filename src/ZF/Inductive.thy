@@ -27,12 +27,12 @@ lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"
 
 lemma refl_thin: "!!P. a = a ==> P ==> P" .
 
-ML_file "ind_syntax.ML"
-ML_file "Tools/ind_cases.ML"
-ML_file "Tools/cartprod.ML"
-ML_file "Tools/inductive_package.ML"
-ML_file "Tools/induct_tacs.ML"
-ML_file "Tools/primrec_package.ML"
+ML_file \<open>ind_syntax.ML\<close>
+ML_file \<open>Tools/ind_cases.ML\<close>
+ML_file \<open>Tools/cartprod.ML\<close>
+ML_file \<open>Tools/inductive_package.ML\<close>
+ML_file \<open>Tools/induct_tacs.ML\<close>
+ML_file \<open>Tools/primrec_package.ML\<close>
 
 ML \<open>
 structure Lfp =

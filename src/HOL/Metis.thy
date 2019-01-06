@@ -10,7 +10,7 @@ theory Metis
 imports ATP
 begin
 
-ML_file "~~/src/Tools/Metis/metis.ML"
+ML_file \<open>~~/src/Tools/Metis/metis.ML\<close>
 
 
 subsection \<open>Literal selection and lambda-lifting helpers\<close>
@@ -38,9 +38,9 @@ unfolding lambda_def by assumption
 
 subsection \<open>Metis package\<close>
 
-ML_file "Tools/Metis/metis_generate.ML"
-ML_file "Tools/Metis/metis_reconstruct.ML"
-ML_file "Tools/Metis/metis_tactic.ML"
+ML_file \<open>Tools/Metis/metis_generate.ML\<close>
+ML_file \<open>Tools/Metis/metis_reconstruct.ML\<close>
+ML_file \<open>Tools/Metis/metis_tactic.ML\<close>
 
 hide_const (open) select fFalse fTrue fNot fComp fconj fdisj fimplies fAll fEx fequal lambda
 hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select select_FalseI

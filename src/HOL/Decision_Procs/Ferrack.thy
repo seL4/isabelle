@@ -2546,7 +2546,7 @@ in fn (ctxt, t) =>
 end
 \<close>
 
-ML_file "ferrack_tac.ML"
+ML_file \<open>ferrack_tac.ML\<close>
 
 method_setup rferrack = \<open>
   Scan.lift (Args.mode "no_quantify") >>

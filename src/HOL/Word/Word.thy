@@ -4502,8 +4502,8 @@ lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
 
 declare bin_to_bl_def [simp]
 
-ML_file "Tools/word_lib.ML"
-ML_file "Tools/smt_word.ML"
+ML_file \<open>Tools/word_lib.ML\<close>
+ML_file \<open>Tools/smt_word.ML\<close>
 
 hide_const (open) Word
 

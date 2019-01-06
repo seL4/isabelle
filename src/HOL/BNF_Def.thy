@@ -272,9 +272,9 @@ lemma rel_fun_Collect_case_prodD:
 lemma eq_onp_mono_iff: "eq_onp P \<le> eq_onp Q \<longleftrightarrow> P \<le> Q"
   unfolding eq_onp_def by auto
 
-ML_file "Tools/BNF/bnf_util.ML"
-ML_file "Tools/BNF/bnf_tactics.ML"
-ML_file "Tools/BNF/bnf_def_tactics.ML"
-ML_file "Tools/BNF/bnf_def.ML"
+ML_file \<open>Tools/BNF/bnf_util.ML\<close>
+ML_file \<open>Tools/BNF/bnf_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_def_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_def.ML\<close>
 
 end

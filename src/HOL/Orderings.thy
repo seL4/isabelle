@@ -9,8 +9,8 @@ imports HOL
 keywords "print_orders" :: diag
 begin
 
-ML_file "~~/src/Provers/order.ML"
-ML_file "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
+ML_file \<open>~~/src/Provers/order.ML\<close>
+ML_file \<open>~~/src/Provers/quasi.ML\<close>  (* FIXME unused? *)
 
 subsection \<open>Abstract ordering\<close>
 

@@ -292,7 +292,7 @@ text \<open>Numeral syntax.\<close>
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
-ML_file "Tools/numeral.ML"
+ML_file \<open>Tools/numeral.ML\<close>
 
 parse_translation \<open>
   let

@@ -3,7 +3,7 @@ imports ZF
 begin
 
 (*<*)
-ML_file "../antiquote_setup.ML"
+ML_file \<open>../antiquote_setup.ML\<close>
 (*>*)
 
 chapter \<open>Some Isar language elements\<close>

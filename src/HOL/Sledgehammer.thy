@@ -16,23 +16,23 @@ begin
 lemma size_ne_size_imp_ne: "size x \<noteq> size y \<Longrightarrow> x \<noteq> y"
   by (erule contrapos_nn) (rule arg_cong)
 
-ML_file "Tools/Sledgehammer/async_manager_legacy.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_util.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_proof_methods.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar_annotate.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar_proof.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar_preplay.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar_compress.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar_minimize.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_prover.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_prover_atp.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_prover_smt.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_prover_minimize.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_mepo.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_mash.ML"
-ML_file "Tools/Sledgehammer/sledgehammer.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_commands.ML"
+ML_file \<open>Tools/Sledgehammer/async_manager_legacy.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_util.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_fact.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_proof_methods.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_annotate.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_proof.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_preplay.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_compress.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_minimize.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_isar.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_prover.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_atp.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_smt.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_minimize.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_mepo.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_mash.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_commands.ML\<close>
 
 end

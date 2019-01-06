@@ -21,7 +21,7 @@ text \<open>
   evaluates it for some arguments.
 \<close>
 
-SML_file "factorial.sml"
+SML_file \<open>factorial.sml\<close>
 
 text \<open>
   The subsequent example illustrates the use of multiple \<^theory_text>\<open>SML_file\<close> commands
@@ -30,8 +30,8 @@ text \<open>
   independently of the Isabelle/ML environment.
 \<close>
 
-SML_file "Example.sig"
-SML_file "Example.sml"
+SML_file \<open>Example.sig\<close>
+SML_file \<open>Example.sml\<close>
 
 
 text \<open>

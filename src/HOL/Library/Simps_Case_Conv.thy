@@ -8,6 +8,6 @@ imports Case_Converter
   abbrevs "simps_of_case" "case_of_simps" = ""
 begin
 
-ML_file "simps_case_conv.ML"
+ML_file \<open>simps_case_conv.ML\<close>
 
 end

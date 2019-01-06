@@ -7,8 +7,8 @@ imports
   "HOL-Library.IArray"
 begin
 
-ML_file "../antiquote_setup.ML"
-ML_file "../more_antiquote.ML"
+ML_file \<open>../antiquote_setup.ML\<close>
+ML_file \<open>../more_antiquote.ML\<close>
 
 no_syntax (output)
   "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)

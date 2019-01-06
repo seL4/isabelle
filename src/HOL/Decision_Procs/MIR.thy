@@ -5696,7 +5696,7 @@ lemmas iff_real_of_int = of_int_eq_iff [where 'a = real, symmetric]
                          of_int_less_iff [where 'a = real, symmetric]
                          of_int_le_iff [where 'a = real, symmetric]
 
-ML_file "mir_tac.ML"
+ML_file \<open>mir_tac.ML\<close>
 
 method_setup mir = \<open>
   Scan.lift (Args.mode "no_quantify") >>

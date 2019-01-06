@@ -1762,9 +1762,9 @@ end
 text \<open>Interlude: basic tool support for algebraic and arithmetic calculations\<close>
 
 named_theorems arith "arith facts -- only ground formulas"
-ML_file "Tools/arith_data.ML"
+ML_file \<open>Tools/arith_data.ML\<close>
 
-ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
+ML_file \<open>~~/src/Provers/Arith/cancel_div_mod.ML\<close>
 
 ML \<open>
 structure Cancel_Div_Mod_Ring = Cancel_Div_Mod

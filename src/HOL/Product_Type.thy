@@ -738,7 +738,7 @@ definition internal_case_prod :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Right
 lemma internal_case_prod_conv: "internal_case_prod c (a, b) = c a b"
   by (simp only: internal_case_prod_def case_prod_conv)
 
-ML_file "Tools/split_rule.ML"
+ML_file \<open>Tools/split_rule.ML\<close>
 
 hide_const internal_case_prod
 
@@ -1263,7 +1263,7 @@ qed
 
 subsection \<open>Simproc for rewriting a set comprehension into a pointfree expression\<close>
 
-ML_file "Tools/set_comprehension_pointfree.ML"
+ML_file \<open>Tools/set_comprehension_pointfree.ML\<close>
 
 setup \<open>
   Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs
@@ -1309,7 +1309,7 @@ simproc_setup Collect_mem ("Collect t") = \<open>
     | _ => NONE)
 \<close>
 
-ML_file "Tools/inductive_set.ML"
+ML_file \<open>Tools/inductive_set.ML\<close>
 
 
 subsection \<open>Legacy theorem bindings and duplicates\<close>

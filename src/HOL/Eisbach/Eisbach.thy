@@ -15,10 +15,10 @@ keywords
   "uses"
 begin
 
-ML_file "parse_tools.ML"
-ML_file "method_closure.ML"
-ML_file "eisbach_rule_insts.ML"
-ML_file "match_method.ML"
+ML_file \<open>parse_tools.ML\<close>
+ML_file \<open>method_closure.ML\<close>
+ML_file \<open>eisbach_rule_insts.ML\<close>
+ML_file \<open>match_method.ML\<close>
 
 
 method solves methods m = (m; fail)

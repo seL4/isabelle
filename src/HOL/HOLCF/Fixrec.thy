@@ -224,8 +224,8 @@ by simp
 
 subsection \<open>Initializing the fixrec package\<close>
 
-ML_file "Tools/holcf_library.ML"
-ML_file "Tools/fixrec.ML"
+ML_file \<open>Tools/holcf_library.ML\<close>
+ML_file \<open>Tools/fixrec.ML\<close>
 
 method_setup fixrec_simp = \<open>
   Scan.succeed (SIMPLE_METHOD' o Fixrec.fixrec_simp_tac)

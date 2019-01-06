@@ -9,7 +9,7 @@ imports Main
 keywords "values_prolog" :: diag
 begin
 
-ML_file "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
+ML_file \<open>~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML\<close>
 
 section \<open>Setup for Numerals\<close>
 

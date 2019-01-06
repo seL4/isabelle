@@ -9,8 +9,8 @@ imports Groebner_Basis Set_Interval
 keywords "try0" :: diag
 begin
 
-ML_file "Tools/Qelim/qelim.ML"
-ML_file "Tools/Qelim/cooper_procedure.ML"
+ML_file \<open>Tools/Qelim/qelim.ML\<close>
+ML_file \<open>Tools/Qelim/cooper_procedure.ML\<close>
 
 subsection\<open>The \<open>-\<infinity>\<close> and \<open>+\<infinity>\<close> Properties\<close>
 
@@ -390,7 +390,7 @@ theorem conj_le_cong:
   "\<lbrakk>x = x'; 0 \<le> x' \<Longrightarrow> P = P'\<rbrakk> \<Longrightarrow> (0 \<le> (x::int) \<and> P) = (0 \<le> x' \<and> P')"
   by (simp cong: conj_cong)
 
-ML_file "Tools/Qelim/cooper.ML"
+ML_file \<open>Tools/Qelim/cooper.ML\<close>
 
 method_setup presburger = \<open>
   let
@@ -505,6 +505,6 @@ lemma even_mod_4_div_2:
 
 subsection \<open>Try0\<close>
 
-ML_file "Tools/try0.ML"
+ML_file \<open>Tools/try0.ML\<close>
 
 end

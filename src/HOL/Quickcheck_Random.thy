@@ -209,8 +209,8 @@ lemma random_aux_rec:
 
 subsection \<open>Deriving random generators for datatypes\<close>
 
-ML_file "Tools/Quickcheck/quickcheck_common.ML"
-ML_file "Tools/Quickcheck/random_generators.ML"
+ML_file \<open>Tools/Quickcheck/quickcheck_common.ML\<close>
+ML_file \<open>Tools/Quickcheck/random_generators.ML\<close>
 
 
 subsection \<open>Code setup\<close>

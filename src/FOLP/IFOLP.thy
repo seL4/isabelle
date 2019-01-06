@@ -9,7 +9,7 @@ theory IFOLP
 imports Pure
 begin
 
-ML_file "~~/src/Tools/misc_legacy.ML"
+ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 
 setup Pure_Thy.old_appl_syntax_setup
 
@@ -605,7 +605,7 @@ schematic_goal rev_cut_eq:
 
 lemma thin_refl: "!!X. [|p:x=x; PROP W|] ==> PROP W" .
 
-ML_file "hypsubst.ML"
+ML_file \<open>hypsubst.ML\<close>
 
 ML \<open>
 structure Hypsubst = Hypsubst
@@ -627,7 +627,7 @@ structure Hypsubst = Hypsubst
 open Hypsubst;
 \<close>
 
-ML_file "intprover.ML"
+ML_file \<open>intprover.ML\<close>
 
 
 (*** Rewrite rules ***)

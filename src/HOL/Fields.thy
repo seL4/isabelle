@@ -57,8 +57,8 @@ end
 
 text \<open>Setup for linear arithmetic prover\<close>
 
-ML_file "~~/src/Provers/Arith/fast_lin_arith.ML"
-ML_file "Tools/lin_arith.ML"
+ML_file \<open>~~/src/Provers/Arith/fast_lin_arith.ML\<close>
+ML_file \<open>Tools/lin_arith.ML\<close>
 setup \<open>Lin_Arith.global_setup\<close>
 declaration \<open>K Lin_Arith.setup\<close>
 

@@ -7,13 +7,13 @@ Steven Obua's evaluator.
 theory Compute_Oracle imports HOL.HOL
 begin
 
-ML_file "am.ML"
-ML_file "am_compiler.ML"
-ML_file "am_interpreter.ML"
-ML_file "am_ghc.ML"
-ML_file "am_sml.ML"
-ML_file "report.ML"
-ML_file "compute.ML"
-ML_file "linker.ML"
+ML_file \<open>am.ML\<close>
+ML_file \<open>am_compiler.ML\<close>
+ML_file \<open>am_interpreter.ML\<close>
+ML_file \<open>am_ghc.ML\<close>
+ML_file \<open>am_sml.ML\<close>
+ML_file \<open>report.ML\<close>
+ML_file \<open>compute.ML\<close>
+ML_file \<open>linker.ML\<close>
 
 end

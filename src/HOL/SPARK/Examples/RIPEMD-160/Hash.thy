@@ -8,7 +8,7 @@ theory Hash
 imports RMD_Specification
 begin
 
-spark_open "rmd/hash"
+spark_open \<open>rmd/hash\<close>
 
 abbreviation from_chain :: "chain \<Rightarrow> RMD.chain" where
   "from_chain c \<equiv> (

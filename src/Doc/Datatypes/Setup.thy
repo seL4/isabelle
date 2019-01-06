@@ -2,6 +2,6 @@ theory Setup
 imports Main
 begin
 
-ML_file "../antiquote_setup.ML"
+ML_file \<open>../antiquote_setup.ML\<close>
 
 end

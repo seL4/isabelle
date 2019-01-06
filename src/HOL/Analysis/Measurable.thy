@@ -46,7 +46,7 @@ lemma pred_sets1: "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> f \<in> m
 lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> pred M (\<lambda>x. f x \<in> A)"
   by (rule measurable_compose[where f=f and N=N]) (auto simp: pred_def Int_def[symmetric])
 
-ML_file "measurable.ML"
+ML_file \<open>measurable.ML\<close>
 
 attribute_setup measurable = \<open>
   Scan.lift (

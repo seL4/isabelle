@@ -45,7 +45,7 @@ axiomatization
 
 section \<open>Setup\<close>
 
-ML_file "boogie.ML"
+ML_file \<open>boogie.ML\<close>
 
 
 
@@ -55,22 +55,22 @@ declare [[smt_oracle = false]]
 declare [[smt_read_only_certificates = true]]
 
 
-external_file "Boogie_Max.certs"
+external_file \<open>Boogie_Max.certs\<close>
 declare [[smt_certificates = "Boogie_Max.certs"]]
 
-boogie_file Boogie_Max
+boogie_file \<open>Boogie_Max\<close>
 
 
-external_file "Boogie_Dijkstra.certs"
+external_file \<open>Boogie_Dijkstra.certs\<close>
 declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
 
-boogie_file Boogie_Dijkstra
+boogie_file \<open>Boogie_Dijkstra\<close>
 
 
 declare [[z3_extensions = true]]
-external_file "VCC_Max.certs"
+external_file \<open>VCC_Max.certs\<close>
 declare [[smt_certificates = "VCC_Max.certs"]]
 
-boogie_file VCC_Max
+boogie_file \<open>VCC_Max\<close>
 
 end

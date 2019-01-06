@@ -2,8 +2,8 @@ theory Setup
 imports Main
 begin
 
-ML_file "../antiquote_setup.ML"
-ML_file "../more_antiquote.ML"
+ML_file \<open>../antiquote_setup.ML\<close>
+ML_file \<open>../more_antiquote.ML\<close>
 
 declare [[default_code_width = 74]]
 

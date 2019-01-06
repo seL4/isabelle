@@ -142,6 +142,6 @@ where "yxml_string_of_term = yxml_string_of_body \<circ> xml_of_term"
 
 subsection \<open>Test engine and drivers\<close>
 
-ML_file "code_test.ML"
+ML_file \<open>code_test.ML\<close>
 
 end

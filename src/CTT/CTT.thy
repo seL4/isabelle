@@ -9,7 +9,7 @@ begin
 
 section \<open>Constructive Type Theory: axiomatic basis\<close>
 
-ML_file "~~/src/Provers/typedsimp.ML"
+ML_file \<open>~~/src/Provers/typedsimp.ML\<close>
 setup Pure_Thy.old_appl_syntax_setup
 
 typedecl i
@@ -455,7 +455,7 @@ method_setup NE = \<open>
 method_setup pc = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths))\<close>
 method_setup add_mp = \<open>Scan.succeed (SIMPLE_METHOD' o add_mp_tac)\<close>
 
-ML_file "rew.ML"
+ML_file \<open>rew.ML\<close>
 method_setup rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths))\<close>
 method_setup hyp_rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths))\<close>
 

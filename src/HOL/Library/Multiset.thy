@@ -969,7 +969,7 @@ lemma mset_subset_add_iff2:
   unfolding subset_mset_def repeat_mset_iterate_add
   by (simp add: iterate_add_eq_add_iff2 mset_subseteq_add_iff2[unfolded repeat_mset_iterate_add])
 
-ML_file "multiset_simprocs.ML"
+ML_file \<open>multiset_simprocs.ML\<close>
 
 lemma add_mset_replicate_mset_safe[cancelation_simproc_pre]: \<open>NO_MATCH {#} M \<Longrightarrow> add_mset a M = {#a#} + M\<close>
   by simp

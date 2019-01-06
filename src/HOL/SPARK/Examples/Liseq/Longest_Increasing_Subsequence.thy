@@ -541,7 +541,7 @@ spark_proof_functions
 
 text \<open>The verification conditions\<close>
 
-spark_open "liseq/liseq_length"
+spark_open \<open>liseq/liseq_length\<close>
 
 spark_vc procedure_liseq_length_5
   by (simp_all add: liseq_singleton liseq'_singleton)

@@ -9,8 +9,8 @@ theory Dense_Linear_Order
 imports Main
 begin
 
-ML_file "langford_data.ML"
-ML_file "ferrante_rackoff_data.ML"
+ML_file \<open>langford_data.ML\<close>
+ML_file \<open>ferrante_rackoff_data.ML\<close>
 
 context linorder
 begin
@@ -424,7 +424,7 @@ lemma ex_distrib[no_atp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\
 
 lemmas dnf_simps[no_atp] = weak_dnf_simps nnf_simps ex_distrib
 
-ML_file "langford.ML"
+ML_file \<open>langford.ML\<close>
 method_setup dlo = \<open>
   Scan.succeed (SIMPLE_METHOD' o Langford.dlo_tac)
 \<close> "Langford's algorithm for quantifier elimination in dense linear orders"
@@ -746,7 +746,7 @@ end
 
 end
 
-ML_file "ferrante_rackoff.ML"
+ML_file \<open>ferrante_rackoff.ML\<close>
 
 method_setup ferrack = \<open>
   Scan.succeed (SIMPLE_METHOD' o FerranteRackoff.dlo_tac)

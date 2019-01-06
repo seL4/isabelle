@@ -7,7 +7,7 @@ theory Modal0
 imports LK0
 begin
 
-ML_file "modal.ML"
+ML_file \<open>modal.ML\<close>
 
 consts
   box           :: "o\<Rightarrow>o"       ("[]_" [50] 50)

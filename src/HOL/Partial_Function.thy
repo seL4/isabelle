@@ -10,7 +10,7 @@ theory Partial_Function
 begin
 
 named_theorems partial_function_mono "monotonicity rules for partial function definitions"
-ML_file "Tools/Function/partial_function.ML"
+ML_file \<open>Tools/Function/partial_function.ML\<close>
 
 lemma (in ccpo) in_chain_finite:
   assumes "Complete_Partial_Order.chain (\<le>) A" "finite A" "A \<noteq> {}"

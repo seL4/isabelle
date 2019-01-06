@@ -227,7 +227,7 @@ setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm delay_lazy_cong})\<clos
 
 subsection \<open>Implementation\<close>
 
-ML_file "code_lazy.ML"
+ML_file \<open>code_lazy.ML\<close>
 
 setup \<open>
   Code_Preproc.add_functrans ("lazy_datatype", Code_Lazy.transform_code_eqs)

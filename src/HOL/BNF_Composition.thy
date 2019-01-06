@@ -178,9 +178,9 @@ bnf ID: 'a
 lemma type_definition_id_bnf_UNIV: "type_definition id_bnf id_bnf UNIV"
   unfolding id_bnf_def by unfold_locales auto
 
-ML_file "Tools/BNF/bnf_comp_tactics.ML"
-ML_file "Tools/BNF/bnf_comp.ML"
-ML_file "Tools/BNF/bnf_lift.ML"
+ML_file \<open>Tools/BNF/bnf_comp_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_comp.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lift.ML\<close>
 
 hide_fact
   DEADID.inj_map DEADID.inj_map_strong DEADID.map_comp DEADID.map_cong DEADID.map_cong0

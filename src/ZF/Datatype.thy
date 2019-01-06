@@ -10,7 +10,7 @@ imports Inductive Univ QUniv
 keywords "datatype" "codatatype" :: thy_decl
 begin
 
-ML_file "Tools/datatype_package.ML"
+ML_file \<open>Tools/datatype_package.ML\<close>
 
 ML \<open>
 (*Typechecking rules for most datatypes involving univ*)

@@ -29,16 +29,16 @@ definition The_unsafe :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" where
 definition rmember :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" where
   "rmember A x \<longleftrightarrow> x \<in> A"
 
-ML_file "Tools/Nunchaku/nunchaku_util.ML"
-ML_file "Tools/Nunchaku/nunchaku_collect.ML"
-ML_file "Tools/Nunchaku/nunchaku_problem.ML"
-ML_file "Tools/Nunchaku/nunchaku_translate.ML"
-ML_file "Tools/Nunchaku/nunchaku_model.ML"
-ML_file "Tools/Nunchaku/nunchaku_reconstruct.ML"
-ML_file "Tools/Nunchaku/nunchaku_display.ML"
-ML_file "Tools/Nunchaku/nunchaku_tool.ML"
-ML_file "Tools/Nunchaku/nunchaku.ML"
-ML_file "Tools/Nunchaku/nunchaku_commands.ML"
+ML_file \<open>Tools/Nunchaku/nunchaku_util.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_collect.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_problem.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_translate.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_model.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_reconstruct.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_display.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_tool.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku.ML\<close>
+ML_file \<open>Tools/Nunchaku/nunchaku_commands.ML\<close>
 
 hide_const (open) unreachable The_unsafe rmember
 

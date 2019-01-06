@@ -8,7 +8,7 @@ theory ATP_Theory_Export
 imports Complex_Main
 begin
 
-ML_file "atp_theory_export.ML"
+ML_file \<open>atp_theory_export.ML\<close>
 
 ML \<open>
 open ATP_Problem

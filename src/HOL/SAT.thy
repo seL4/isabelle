@@ -11,10 +11,10 @@ theory SAT
 imports Argo
 begin
 
-ML_file "Tools/prop_logic.ML"
-ML_file "Tools/sat_solver.ML"
-ML_file "Tools/sat.ML"
-ML_file "Tools/Argo/argo_sat_solver.ML"
+ML_file \<open>Tools/prop_logic.ML\<close>
+ML_file \<open>Tools/sat_solver.ML\<close>
+ML_file \<open>Tools/sat.ML\<close>
+ML_file \<open>Tools/Argo/argo_sat_solver.ML\<close>
 
 method_setup sat = \<open>Scan.succeed (SIMPLE_METHOD' o SAT.sat_tac)\<close>
   "SAT solver"

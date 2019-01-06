@@ -1635,7 +1635,7 @@ lemma approximation_preproc_nat[approximation_preproc]:
   "n \<in> {m .. l} \<longleftrightarrow> real n \<in> {real m .. real l}"
   by (simp_all add: real_div_nat_eq_floor_of_divide minus_div_mult_eq_mod [symmetric])
 
-ML_file "approximation.ML"
+ML_file \<open>approximation.ML\<close>
 
 method_setup approximation = \<open>
   let
@@ -1667,7 +1667,7 @@ lemma approximation_preproc_push_neg[approximation_preproc]:
     "\<not> \<not> q \<longleftrightarrow> q"
   by auto
 
-ML_file "approximation_generator.ML"
+ML_file \<open>approximation_generator.ML\<close>
 setup "Approximation_Generator.setup"
 
 end

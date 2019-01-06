@@ -14,7 +14,7 @@ keywords
   "refute_params" :: thy_decl
 begin
 
-ML_file "refute.ML"
+ML_file \<open>refute.ML\<close>
 
 refute_params
  [itself = 1,

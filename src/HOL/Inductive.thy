@@ -413,7 +413,7 @@ lemma imp_conj_iff: "((P \<longrightarrow> Q) \<and> P) = (P \<and> Q)"
 lemma meta_fun_cong: "P \<equiv> Q \<Longrightarrow> P a \<equiv> Q a"
   by auto
 
-ML_file "Tools/inductive.ML"
+ML_file \<open>Tools/inductive.ML\<close>
 
 lemmas [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
@@ -514,14 +514,14 @@ subsection \<open>Inductive datatypes and primitive recursion\<close>
 
 text \<open>Package setup.\<close>
 
-ML_file "Tools/Old_Datatype/old_datatype_aux.ML"
-ML_file "Tools/Old_Datatype/old_datatype_prop.ML"
-ML_file "Tools/Old_Datatype/old_datatype_data.ML"
-ML_file "Tools/Old_Datatype/old_rep_datatype.ML"
-ML_file "Tools/Old_Datatype/old_datatype_codegen.ML"
-ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
-ML_file "Tools/Old_Datatype/old_primrec.ML"
-ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
+ML_file \<open>Tools/Old_Datatype/old_datatype_aux.ML\<close>
+ML_file \<open>Tools/Old_Datatype/old_datatype_prop.ML\<close>
+ML_file \<open>Tools/Old_Datatype/old_datatype_data.ML\<close>
+ML_file \<open>Tools/Old_Datatype/old_rep_datatype.ML\<close>
+ML_file \<open>Tools/Old_Datatype/old_datatype_codegen.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_rec_sugar_util.ML\<close>
+ML_file \<open>Tools/Old_Datatype/old_primrec.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp_rec_sugar.ML\<close>
 
 text \<open>Lambda-abstractions with pattern matching:\<close>
 syntax (ASCII)

@@ -6,7 +6,7 @@ theory Base
 imports Main
 begin
 
-ML_file "~~/src/Doc/antiquote_setup.ML"
+ML_file \<open>~~/src/Doc/antiquote_setup.ML\<close>
 
 ML\<open>
 fun get_split_rule ctxt target =

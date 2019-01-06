@@ -8,7 +8,7 @@ section\<open>Ordered Pairs\<close>
 theory pair imports upair
 begin
 
-ML_file "simpdata.ML"
+ML_file \<open>simpdata.ML\<close>
 
 setup \<open>
   map_theory_simpset

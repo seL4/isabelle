@@ -8,7 +8,7 @@ theory Round
 imports RMD_Specification
 begin
 
-spark_open "rmd/round"
+spark_open \<open>rmd/round\<close>
 
 abbreviation from_chain :: "chain \<Rightarrow> RMD.chain" where
   "from_chain c \<equiv> (

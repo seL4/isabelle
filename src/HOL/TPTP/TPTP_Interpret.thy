@@ -12,6 +12,6 @@ begin
 
 typedecl ind
 
-ML_file "TPTP_Parser/tptp_interpret.ML"
+ML_file \<open>TPTP_Parser/tptp_interpret.ML\<close>
 
 end

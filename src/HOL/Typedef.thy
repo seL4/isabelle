@@ -108,6 +108,6 @@ qed
 
 end
 
-ML_file "Tools/typedef.ML"
+ML_file \<open>Tools/typedef.ML\<close>
 
 end

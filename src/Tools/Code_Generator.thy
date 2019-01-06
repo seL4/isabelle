@@ -16,17 +16,17 @@ keywords
     :: quasi_command
 begin
 
-ML_file "~~/src/Tools/cache_io.ML"
-ML_file "~~/src/Tools/Code/code_preproc.ML"
-ML_file "~~/src/Tools/Code/code_symbol.ML"
-ML_file "~~/src/Tools/Code/code_thingol.ML"
-ML_file "~~/src/Tools/Code/code_simp.ML"
-ML_file "~~/src/Tools/Code/code_printer.ML"
-ML_file "~~/src/Tools/Code/code_target.ML"
-ML_file "~~/src/Tools/Code/code_namespace.ML"
-ML_file "~~/src/Tools/Code/code_ml.ML"
-ML_file "~~/src/Tools/Code/code_haskell.ML"
-ML_file "~~/src/Tools/Code/code_scala.ML"
+ML_file \<open>~~/src/Tools/cache_io.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_preproc.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_symbol.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_thingol.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_simp.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_printer.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_target.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_namespace.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_ml.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_haskell.ML\<close>
+ML_file \<open>~~/src/Tools/Code/code_scala.ML\<close>
 
 code_datatype "TYPE('a::{})"
 
@@ -55,8 +55,8 @@ next
     by rule (rule holds)+
 qed  
 
-ML_file "~~/src/Tools/Code/code_runtime.ML"
-ML_file "~~/src/Tools/nbe.ML"
+ML_file \<open>~~/src/Tools/Code/code_runtime.ML\<close>
+ML_file \<open>~~/src/Tools/nbe.ML\<close>
 
 hide_const (open) holds
 

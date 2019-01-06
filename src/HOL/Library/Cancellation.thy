@@ -76,9 +76,9 @@ lemma iterate_add_diff_add_eq2:
 
 subsection \<open>Simproc Set-Up\<close>
 
-ML_file "Cancellation/cancel.ML"
-ML_file "Cancellation/cancel_data.ML"
-ML_file "Cancellation/cancel_simprocs.ML"
+ML_file \<open>Cancellation/cancel.ML\<close>
+ML_file \<open>Cancellation/cancel_data.ML\<close>
+ML_file \<open>Cancellation/cancel_simprocs.ML\<close>
 
 end
 

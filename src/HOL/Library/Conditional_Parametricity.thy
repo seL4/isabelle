@@ -43,6 +43,6 @@ lemma Rel_match_app:
 
 end
 
-ML_file "conditional_parametricity.ML"
+ML_file \<open>conditional_parametricity.ML\<close>
 
 end

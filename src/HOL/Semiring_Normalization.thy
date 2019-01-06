@@ -67,7 +67,7 @@ qed
 
 text \<open>Semiring normalization proper\<close>
 
-ML_file "Tools/semiring_normalizer.ML"
+ML_file \<open>Tools/semiring_normalizer.ML\<close>
 
 context comm_semiring_1
 begin

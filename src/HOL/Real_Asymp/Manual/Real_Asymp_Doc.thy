@@ -3,7 +3,7 @@ theory Real_Asymp_Doc
   imports "HOL-Real_Asymp.Real_Asymp"
 begin
 
-ML_file "~~/src/Doc/antiquote_setup.ML"
+ML_file \<open>~~/src/Doc/antiquote_setup.ML\<close>
 (*>*)
 
 section \<open>Introduction\<close>

@@ -11,8 +11,8 @@ imports Complex_Main "HOL-Library.Refute"
   "~/repos/afp/thys/Abstract-Rewriting/Abstract_Rewriting"*)
 begin
 
-ML_file "mutabelle.ML"
-ML_file "mutabelle_extra.ML"
+ML_file \<open>mutabelle.ML\<close>
+ML_file \<open>mutabelle_extra.ML\<close>
 
 
 section \<open>configuration\<close>

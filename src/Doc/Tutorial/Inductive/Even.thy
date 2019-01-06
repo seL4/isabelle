@@ -1,5 +1,5 @@
 (*<*)theory Even imports Main begin
-ML_file "../../antiquote_setup.ML" 
+ML_file \<open>../../antiquote_setup.ML\<close> 
 (*>*)
 
 section\<open>The Set of Even Numbers\<close>

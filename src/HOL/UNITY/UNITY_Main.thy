@@ -9,7 +9,7 @@ theory UNITY_Main
 imports Detects PPROD Follows ProgressSets
 begin
 
-ML_file "UNITY_tactics.ML"
+ML_file \<open>UNITY_tactics.ML\<close>
 
 method_setup safety = \<open>
     Scan.succeed (SIMPLE_METHOD' o constrains_tac)\<close>

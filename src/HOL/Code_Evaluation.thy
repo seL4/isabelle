@@ -94,11 +94,11 @@ code_printing
 | constant Abs \<rightharpoonup> (Eval) "Term.Abs/ ((_), (_), (_))"
 | constant Free \<rightharpoonup> (Eval) "Term.Free/ ((_), (_))"
 
-ML_file "Tools/code_evaluation.ML"
+ML_file \<open>Tools/code_evaluation.ML\<close>
 
 code_reserved Eval Code_Evaluation
 
-ML_file "~~/src/HOL/Tools/value_command.ML"
+ML_file \<open>~~/src/HOL/Tools/value_command.ML\<close>
 
 
 subsection \<open>Dedicated \<open>term_of\<close> instances\<close>
@@ -141,7 +141,7 @@ code_reserved Eval HOLogic
 
 subsection \<open>Generic reification\<close>
 
-ML_file "~~/src/HOL/Tools/reification.ML"
+ML_file \<open>~~/src/HOL/Tools/reification.ML\<close>
 
 
 subsection \<open>Diagnostic\<close>

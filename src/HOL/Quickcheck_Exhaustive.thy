@@ -705,14 +705,14 @@ axiomatization unknown :: 'a
 
 notation (output) unknown  ("?")
 
-ML_file "Tools/Quickcheck/exhaustive_generators.ML"
+ML_file \<open>Tools/Quickcheck/exhaustive_generators.ML\<close>
 
 declare [[quickcheck_batch_tester = exhaustive]]
 
 
 subsection \<open>Defining generators for abstract types\<close>
 
-ML_file "Tools/Quickcheck/abstract_generators.ML"
+ML_file \<open>Tools/Quickcheck/abstract_generators.ML\<close>
 
 hide_fact (open) orelse_def
 no_notation orelse  (infixr "orelse" 55)

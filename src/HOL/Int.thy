@@ -1081,7 +1081,7 @@ subsection \<open>Setting up simplification procedures\<close>
 lemmas of_int_simps =
   of_int_0 of_int_1 of_int_add of_int_mult
 
-ML_file "Tools/int_arith.ML"
+ML_file \<open>Tools/int_arith.ML\<close>
 declaration \<open>K Int_Arith.setup\<close>
 
 simproc_setup fast_arith

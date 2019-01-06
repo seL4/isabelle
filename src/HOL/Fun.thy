@@ -886,7 +886,7 @@ simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
 
 subsubsection \<open>Functorial structure of types\<close>
 
-ML_file "Tools/functor.ML"
+ML_file \<open>Tools/functor.ML\<close>
 
 functor map_fun: map_fun
   by (simp_all add: fun_eq_iff)

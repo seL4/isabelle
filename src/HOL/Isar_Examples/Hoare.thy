@@ -401,7 +401,7 @@ lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
 
 lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
 
-ML_file "~~/src/HOL/Hoare/hoare_tac.ML"
+ML_file \<open>~~/src/HOL/Hoare/hoare_tac.ML\<close>
 
 method_setup hoare =
   \<open>Scan.succeed (fn ctxt =>
