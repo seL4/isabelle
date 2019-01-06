@@ -715,58 +715,21 @@ lemma is_interval_minus_translation'[simp]:
   using is_interval_translation[of "-c" X]
   by (metis image_cong uminus_add_conv_diff)
 
-lemma compact_lemma:
-  fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
-  assumes "bounded (range f)"
-  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r.
-    strict_mono r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
-  by (rule compact_lemma_general[where unproj="\<lambda>e. \<Sum>i\<in>Basis. e i *\<^sub>R i"])
-     (auto intro!: assms bounded_linear_inner_left bounded_linear_image
-       simp: euclidean_representation)
 
-instance%important euclidean_space \<subseteq> heine_borel
-proof%unimportant
-  fix f :: "nat \<Rightarrow> 'a"
-  assume f: "bounded (range f)"
-  then obtain l::'a and r where r: "strict_mono r"
-    and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
-    using compact_lemma [OF f] by blast
-  {
-    fix e::real
-    assume "e > 0"
-    hence "e / real_of_nat DIM('a) > 0" by (simp add: DIM_positive)
-    with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
-      by simp
-    moreover
-    {
-      fix n
-      assume n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))"
-      have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
-        apply (subst euclidean_dist_l2)
-        using zero_le_dist
-        apply (rule L2_set_le_sum)
-        done
-      also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
-        apply (rule sum_strict_mono)
-        using n
-        apply auto
-        done
-      finally have "dist (f (r n)) l < e"
-        by auto
-    }
-    ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
-      by (rule eventually_mono)
-  }
-  then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
-    unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
-    by auto
-qed
+subsection%unimportant \<open>Bounded Projections\<close>
 
-instance euclidean_space \<subseteq> banach ..
+lemma bounded_inner_imp_bdd_above:
+  assumes "bounded s"
+    shows "bdd_above ((\<lambda>x. x \<bullet> a) ` s)"
+by (simp add: assms bounded_imp_bdd_above bounded_linear_image bounded_linear_inner_left)
+
+lemma bounded_inner_imp_bdd_below:
+  assumes "bounded s"
+    shows "bdd_below ((\<lambda>x. x \<bullet> a) ` s)"
+by (simp add: assms bounded_imp_bdd_below bounded_linear_image bounded_linear_inner_left)
 
 
-subsubsection%unimportant \<open>Structural rules for pointwise continuity\<close>
+subsection%unimportant \<open>Structural rules for pointwise continuity\<close>
 
 lemma continuous_infnorm[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
@@ -779,7 +742,7 @@ lemma continuous_inner[continuous_intros]:
   using assms unfolding continuous_def by (rule tendsto_inner)
 
 
-subsubsection%unimportant \<open>Structural rules for setwise continuity\<close>
+subsection%unimportant \<open>Structural rules for setwise continuity\<close>
 
 lemma continuous_on_infnorm[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
@@ -793,9 +756,7 @@ lemma continuous_on_inner[continuous_intros]:
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
 
-subsection%unimportant \<open>Intervals\<close>
-
-text \<open>Openness of halfspaces.\<close>
+subsection \<open>Openness of halfspaces.\<close>
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
   by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
@@ -809,7 +770,19 @@ lemma open_halfspace_component_lt: "open {x::'a::euclidean_space. x\<bullet>i < 
 lemma open_halfspace_component_gt: "open {x::'a::euclidean_space. x\<bullet>i > a}"
   by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
 
-text \<open>This gives a simple derivation of limit component bounds.\<close>
+lemma eucl_less_eq_halfspaces:
+  fixes a :: "'a::euclidean_space"
+  shows "{x. x <e a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
+        "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
+  by (auto simp: eucl_less_def)
+
+lemma open_Collect_eucl_less[simp, intro]:
+  fixes a :: "'a::euclidean_space"
+  shows "open {x. x <e a}" "open {x. a <e x}"
+  by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
+
+
+subsection \<open>Limit Component Bounds\<close>
 
 lemma open_box[intro]: "open (box a b)"
 proof -
@@ -819,40 +792,6 @@ proof -
     by (auto simp: box_def inner_commute)
   finally show ?thesis .
 qed
-
-instance euclidean_space \<subseteq> second_countable_topology
-proof
-  define a where "a f = (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
-  then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f"
-    by simp
-  define b where "b f = (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
-  then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f"
-    by simp
-  define B where "B = (\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^sub>E (\<rat> \<times> \<rat>))"
-
-  have "Ball B open" by (simp add: B_def open_box)
-  moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"
-  proof safe
-    fix A::"'a set"
-    assume "open A"
-    show "\<exists>B'\<subseteq>B. \<Union>B' = A"
-      apply (rule exI[of _ "{b\<in>B. b \<subseteq> A}"])
-      apply (subst (3) open_UNION_box[OF \<open>open A\<close>])
-      apply (auto simp: a b B_def)
-      done
-  qed
-  ultimately
-  have "topological_basis B"
-    unfolding topological_basis_def by blast
-  moreover
-  have "countable B"
-    unfolding B_def
-    by (intro countable_image countable_PiE finite_Basis countable_SIGMA countable_rat)
-  ultimately show "\<exists>B::'a set set. countable B \<and> open = generate_topology B"
-    by (blast intro: topological_basis_imp_subbasis)
-qed
-
-instance euclidean_space \<subseteq> polish_space ..
 
 lemma closed_cbox[intro]:
   fixes a b :: "'a::euclidean_space"
@@ -938,12 +877,6 @@ lemma not_interval_UNIV2 [simp]:
   fixes a :: "'a::euclidean_space"
   shows "UNIV \<noteq> cbox a b" "UNIV \<noteq> box a b"
   using bounded_box[of a b] bounded_cbox[of a b] by force+
-
-lemma compact_cbox [simp]:
-  fixes a :: "'a::euclidean_space"
-  shows "compact (cbox a b)"
-  using bounded_closed_imp_seq_compact[of "cbox a b"] using bounded_cbox[of a b]
-  by (auto simp: compact_eq_seq_compact_metric)
 
 lemma box_midpoint:
   fixes a :: "'a::euclidean_space"
@@ -1107,16 +1040,259 @@ lemma Int_interval_mixed_eq_empty:
   unfolding closure_box[OF assms, symmetric]
   unfolding open_Int_closure_eq_empty[OF open_box] ..
 
-lemma eucl_less_eq_halfspaces:
-  fixes a :: "'a::euclidean_space"
-  shows "{x. x <e a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
-        "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
-  by (auto simp: eucl_less_def)
+subsection \<open>Class Instances\<close>
 
-lemma open_Collect_eucl_less[simp, intro]:
+lemma compact_lemma:
+  fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
+  assumes "bounded (range f)"
+  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r.
+    strict_mono r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+  by (rule compact_lemma_general[where unproj="\<lambda>e. \<Sum>i\<in>Basis. e i *\<^sub>R i"])
+     (auto intro!: assms bounded_linear_inner_left bounded_linear_image
+       simp: euclidean_representation)
+
+instance%important euclidean_space \<subseteq> heine_borel
+proof%unimportant
+  fix f :: "nat \<Rightarrow> 'a"
+  assume f: "bounded (range f)"
+  then obtain l::'a and r where r: "strict_mono r"
+    and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
+    using compact_lemma [OF f] by blast
+  {
+    fix e::real
+    assume "e > 0"
+    hence "e / real_of_nat DIM('a) > 0" by (simp add: DIM_positive)
+    with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
+      by simp
+    moreover
+    {
+      fix n
+      assume n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))"
+      have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
+        apply (subst euclidean_dist_l2)
+        using zero_le_dist
+        apply (rule L2_set_le_sum)
+        done
+      also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
+        apply (rule sum_strict_mono)
+        using n
+        apply auto
+        done
+      finally have "dist (f (r n)) l < e"
+        by auto
+    }
+    ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
+      by (rule eventually_mono)
+  }
+  then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
+    unfolding o_def tendsto_iff by simp
+  with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
+    by auto
+qed
+
+instance%important euclidean_space \<subseteq> banach ..
+
+instance euclidean_space \<subseteq> second_countable_topology
+proof
+  define a where "a f = (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
+  then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f"
+    by simp
+  define b where "b f = (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
+  then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f"
+    by simp
+  define B where "B = (\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^sub>E (\<rat> \<times> \<rat>))"
+
+  have "Ball B open" by (simp add: B_def open_box)
+  moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"
+  proof safe
+    fix A::"'a set"
+    assume "open A"
+    show "\<exists>B'\<subseteq>B. \<Union>B' = A"
+      apply (rule exI[of _ "{b\<in>B. b \<subseteq> A}"])
+      apply (subst (3) open_UNION_box[OF \<open>open A\<close>])
+      apply (auto simp: a b B_def)
+      done
+  qed
+  ultimately
+  have "topological_basis B"
+    unfolding topological_basis_def by blast
+  moreover
+  have "countable B"
+    unfolding B_def
+    by (intro countable_image countable_PiE finite_Basis countable_SIGMA countable_rat)
+  ultimately show "\<exists>B::'a set set. countable B \<and> open = generate_topology B"
+    by (blast intro: topological_basis_imp_subbasis)
+qed
+
+instance euclidean_space \<subseteq> polish_space ..
+
+
+subsection \<open>Compact Boxes\<close>
+
+lemma compact_cbox [simp]:
   fixes a :: "'a::euclidean_space"
-  shows "open {x. x <e a}" "open {x. a <e x}"
-  by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
+  shows "compact (cbox a b)"
+  using bounded_closed_imp_seq_compact[of "cbox a b"] using bounded_cbox[of a b]
+  by (auto simp: compact_eq_seq_compact_metric)
+
+proposition is_interval_compact:
+   "is_interval S \<and> compact S \<longleftrightarrow> (\<exists>a b. S = cbox a b)"   (is "?lhs = ?rhs")
+proof (cases "S = {}")
+  case True
+  with empty_as_interval show ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof
+    assume L: ?lhs
+    then have "is_interval S" "compact S" by auto
+    define a where "a \<equiv> \<Sum>i\<in>Basis. (INF x\<in>S. x \<bullet> i) *\<^sub>R i"
+    define b where "b \<equiv> \<Sum>i\<in>Basis. (SUP x\<in>S. x \<bullet> i) *\<^sub>R i"
+    have 1: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> (INF x\<in>S. x \<bullet> i) \<le> x \<bullet> i"
+      by (simp add: cInf_lower bounded_inner_imp_bdd_below compact_imp_bounded L)
+    have 2: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)"
+      by (simp add: cSup_upper bounded_inner_imp_bdd_above compact_imp_bounded L)
+    have 3: "x \<in> S" if inf: "\<And>i. i \<in> Basis \<Longrightarrow> (INF x\<in>S. x \<bullet> i) \<le> x \<bullet> i"
+                   and sup: "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)" for x
+    proof (rule mem_box_componentwiseI [OF \<open>is_interval S\<close>])
+      fix i::'a
+      assume i: "i \<in> Basis"
+      have cont: "continuous_on S (\<lambda>x. x \<bullet> i)"
+        by (intro continuous_intros)
+      obtain a where "a \<in> S" and a: "\<And>y. y\<in>S \<Longrightarrow> a \<bullet> i \<le> y \<bullet> i"
+        using continuous_attains_inf [OF \<open>compact S\<close> False cont] by blast
+      obtain b where "b \<in> S" and b: "\<And>y. y\<in>S \<Longrightarrow> y \<bullet> i \<le> b \<bullet> i"
+        using continuous_attains_sup [OF \<open>compact S\<close> False cont] by blast
+      have "a \<bullet> i \<le> (INF x\<in>S. x \<bullet> i)"
+        by (simp add: False a cINF_greatest)
+      also have "\<dots> \<le> x \<bullet> i"
+        by (simp add: i inf)
+      finally have ai: "a \<bullet> i \<le> x \<bullet> i" .
+      have "x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)"
+        by (simp add: i sup)
+      also have "(SUP x\<in>S. x \<bullet> i) \<le> b \<bullet> i"
+        by (simp add: False b cSUP_least)
+      finally have bi: "x \<bullet> i \<le> b \<bullet> i" .
+      show "x \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` S"
+        apply (rule_tac x="\<Sum>j\<in>Basis. (if j = i then x \<bullet> i else a \<bullet> j) *\<^sub>R j" in image_eqI)
+        apply (simp add: i)
+        apply (rule mem_is_intervalI [OF \<open>is_interval S\<close> \<open>a \<in> S\<close> \<open>b \<in> S\<close>])
+        using i ai bi apply force
+        done
+    qed
+    have "S = cbox a b"
+      by (auto simp: a_def b_def mem_box intro: 1 2 3)
+    then show ?rhs
+      by blast
+  next
+    assume R: ?rhs
+    then show ?lhs
+      using compact_cbox is_interval_cbox by blast
+  qed
+qed
+
+
+subsection%unimportant\<open>Relating linear images to open/closed/interior/closure\<close>
+
+proposition open_surjective_linear_image:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
+  assumes "open A" "linear f" "surj f"
+    shows "open(f ` A)"
+unfolding open_dist
+proof clarify
+  fix x
+  assume "x \<in> A"
+  have "bounded (inv f ` Basis)"
+    by (simp add: finite_imp_bounded)
+  with bounded_pos obtain B where "B > 0" and B: "\<And>x. x \<in> inv f ` Basis \<Longrightarrow> norm x \<le> B"
+    by metis
+  obtain e where "e > 0" and e: "\<And>z. dist z x < e \<Longrightarrow> z \<in> A"
+    by (metis open_dist \<open>x \<in> A\<close> \<open>open A\<close>)
+  define \<delta> where "\<delta> \<equiv> e / B / DIM('b)"
+  show "\<exists>e>0. \<forall>y. dist y (f x) < e \<longrightarrow> y \<in> f ` A"
+  proof (intro exI conjI)
+    show "\<delta> > 0"
+      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def divide_simps)
+    have "y \<in> f ` A" if "dist y (f x) * (B * real DIM('b)) < e" for y
+    proof -
+      define u where "u \<equiv> y - f x"
+      show ?thesis
+      proof (rule image_eqI)
+        show "y = f (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i))"
+          apply (simp add: linear_add linear_sum linear.scaleR \<open>linear f\<close> surj_f_inv_f \<open>surj f\<close>)
+          apply (simp add: euclidean_representation u_def)
+          done
+        have "dist (x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i)) x \<le> (\<Sum>i\<in>Basis. norm ((u \<bullet> i) *\<^sub>R inv f i))"
+          by (simp add: dist_norm sum_norm_le)
+        also have "... = (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar> * norm (inv f i))"
+          by simp
+        also have "... \<le> (\<Sum>i\<in>Basis. \<bar>u \<bullet> i\<bar>) * B"
+          by (simp add: B sum_distrib_right sum_mono mult_left_mono)
+        also have "... \<le> DIM('b) * dist y (f x) * B"
+          apply (rule mult_right_mono [OF sum_bounded_above])
+          using \<open>0 < B\<close> by (auto simp: Basis_le_norm dist_norm u_def)
+        also have "... < e"
+          by (metis mult.commute mult.left_commute that)
+        finally show "x + (\<Sum>i\<in>Basis. (u \<bullet> i) *\<^sub>R inv f i) \<in> A"
+          by (rule e)
+      qed
+    qed
+    then show "\<forall>y. dist y (f x) < \<delta> \<longrightarrow> y \<in> f ` A"
+      using \<open>e > 0\<close> \<open>B > 0\<close>
+      by (auto simp: \<delta>_def divide_simps mult_less_0_iff)
+  qed
+qed
+
+corollary open_bijective_linear_image_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "bij f"
+    shows "open(f ` A) \<longleftrightarrow> open A"
+proof
+  assume "open(f ` A)"
+  then have "open(f -` (f ` A))"
+    using assms by (force simp: linear_continuous_at linear_conv_bounded_linear continuous_open_vimage)
+  then show "open A"
+    by (simp add: assms bij_is_inj inj_vimage_image_eq)
+next
+  assume "open A"
+  then show "open(f ` A)"
+    by (simp add: assms bij_is_surj open_surjective_linear_image)
+qed
+
+corollary interior_bijective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "bij f"
+  shows "interior (f ` S) = f ` interior S"  (is "?lhs = ?rhs")
+proof safe
+  fix x
+  assume x: "x \<in> ?lhs"
+  then obtain T where "open T" and "x \<in> T" and "T \<subseteq> f ` S"
+    by (metis interiorE)
+  then show "x \<in> ?rhs"
+    by (metis (no_types, hide_lams) assms subsetD interior_maximal open_bijective_linear_image_eq subset_image_iff)
+next
+  fix x
+  assume x: "x \<in> interior S"
+  then show "f x \<in> interior (f ` S)"
+    by (meson assms imageI image_mono interiorI interior_subset open_bijective_linear_image_eq open_interior)
+qed
+
+lemma interior_injective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  assumes "linear f" "inj f"
+   shows "interior(f ` S) = f ` (interior S)"
+  by (simp add: linear_injective_imp_surjective assms bijI interior_bijective_linear_image)
+
+lemma interior_surjective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  assumes "linear f" "surj f"
+   shows "interior(f ` S) = f ` (interior S)"
+  by (simp add: assms interior_injective_linear_image linear_surjective_imp_injective)
+
+lemma interior_negations:
+  fixes S :: "'a::euclidean_space set"
+  shows "interior(uminus ` S) = image uminus (interior S)"
+  by (simp add: bij_uminus interior_bijective_linear_image linear_uminus)
 
 no_notation
   eucl_less (infix "<e" 50)

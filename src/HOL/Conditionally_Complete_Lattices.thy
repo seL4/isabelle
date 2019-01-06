@@ -481,6 +481,36 @@ lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{co
 lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
   by (auto intro!: cInf_eq_non_empty intro: dense_ge_bounded)
 
+lemma Inf_insert_finite:
+  fixes S :: "'a::conditionally_complete_linorder set"
+  shows "finite S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
+  by (simp add: cInf_eq_Min)
+
+lemma Sup_insert_finite:
+  fixes S :: "'a::conditionally_complete_linorder set"
+  shows "finite S \<Longrightarrow> Sup (insert x S) = (if S = {} then x else max x (Sup S))"
+  by (simp add: cSup_insert sup_max)
+
+lemma finite_imp_less_Inf:
+  fixes a :: "'a::conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; x \<in> X; \<And>x. x\<in>X \<Longrightarrow> a < x\<rbrakk> \<Longrightarrow> a < Inf X"
+  by (induction X rule: finite_induct) (simp_all add: cInf_eq_Min Inf_insert_finite)
+
+lemma finite_less_Inf_iff:
+  fixes a :: "'a :: conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; X \<noteq> {}\<rbrakk> \<Longrightarrow> a < Inf X \<longleftrightarrow> (\<forall>x \<in> X. a < x)"
+  by (auto simp: cInf_eq_Min)
+
+lemma finite_imp_Sup_less:
+  fixes a :: "'a::conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; x \<in> X; \<And>x. x\<in>X \<Longrightarrow> a > x\<rbrakk> \<Longrightarrow> a > Sup X"
+  by (induction X rule: finite_induct) (simp_all add: cSup_eq_Max Sup_insert_finite)
+
+lemma finite_Sup_less_iff:
+  fixes a :: "'a :: conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; X \<noteq> {}\<rbrakk> \<Longrightarrow> a > Sup X \<longleftrightarrow> (\<forall>x \<in> X. a > x)"
+  by (auto simp: cSup_eq_Max)
+
 class linear_continuum = conditionally_complete_linorder + dense_linorder +
   assumes UNIV_not_singleton: "\<exists>a b::'a. a \<noteq> b"
 begin

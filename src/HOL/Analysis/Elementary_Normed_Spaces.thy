@@ -136,6 +136,296 @@ next
   qed
 qed
 
+subsection \<open>Limit Points\<close>
+
+lemma islimpt_ball:
+  fixes x y :: "'a::{real_normed_vector,perfect_space}"
+  shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  show ?rhs if ?lhs
+  proof
+    {
+      assume "e \<le> 0"
+      then have *: "ball x e = {}"
+        using ball_eq_empty[of x e] by auto
+      have False using \<open>?lhs\<close>
+        unfolding * using islimpt_EMPTY[of y] by auto
+    }
+    then show "e > 0" by (metis not_less)
+    show "y \<in> cball x e"
+      using closed_cball[of x e] islimpt_subset[of y "ball x e" "cball x e"]
+        ball_subset_cball[of x e] \<open>?lhs\<close>
+      unfolding closed_limpt by auto
+  qed
+  show ?lhs if ?rhs
+  proof -
+    from that have "e > 0" by auto
+    {
+      fix d :: real
+      assume "d > 0"
+      have "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+      proof (cases "d \<le> dist x y")
+        case True
+        then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+        proof (cases "x = y")
+          case True
+          then have False
+            using \<open>d \<le> dist x y\<close> \<open>d>0\<close> by auto
+          then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            by auto
+        next
+          case False
+          have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
+            norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
+            unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
+            by auto
+          also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
+            using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
+            unfolding scaleR_minus_left scaleR_one
+            by (auto simp: norm_minus_commute)
+          also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
+            unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
+            unfolding distrib_right using \<open>x\<noteq>y\<close>  by auto
+          also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
+            by (auto simp: dist_norm)
+          finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
+            by auto
+          moreover
+          have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
+            using \<open>x\<noteq>y\<close>[unfolded dist_nz] \<open>d>0\<close> unfolding scaleR_eq_0_iff
+            by (auto simp: dist_commute)
+          moreover
+          have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d"
+            unfolding dist_norm
+            apply simp
+            unfolding norm_minus_cancel
+            using \<open>d > 0\<close> \<open>x\<noteq>y\<close>[unfolded dist_nz] dist_commute[of x y]
+            unfolding dist_norm
+            apply auto
+            done
+          ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            apply (rule_tac x = "y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI)
+            apply auto
+            done
+        qed
+      next
+        case False
+        then have "d > dist x y" by auto
+        show "\<exists>x' \<in> ball x e. x' \<noteq> y \<and> dist x' y < d"
+        proof (cases "x = y")
+          case True
+          obtain z where **: "z \<noteq> y" "dist z y < min e d"
+            using perfect_choose_dist[of "min e d" y]
+            using \<open>d > 0\<close> \<open>e>0\<close> by auto
+          show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            unfolding \<open>x = y\<close>
+            using \<open>z \<noteq> y\<close> **
+            apply (rule_tac x=z in bexI)
+            apply (auto simp: dist_commute)
+            done
+        next
+          case False
+          then show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+            using \<open>d>0\<close> \<open>d > dist x y\<close> \<open>?rhs\<close>
+            apply (rule_tac x=x in bexI, auto)
+            done
+        qed
+      qed
+    }
+    then show ?thesis
+      unfolding mem_cball islimpt_approachable mem_ball by auto
+  qed
+qed
+
+lemma closure_ball_lemma:
+  fixes x y :: "'a::real_normed_vector"
+  assumes "x \<noteq> y"
+  shows "y islimpt ball x (dist x y)"
+proof (rule islimptI)
+  fix T
+  assume "y \<in> T" "open T"
+  then obtain r where "0 < r" "\<forall>z. dist z y < r \<longrightarrow> z \<in> T"
+    unfolding open_dist by fast
+  (* choose point between x and y, within distance r of y. *)
+  define k where "k = min 1 (r / (2 * dist x y))"
+  define z where "z = y + scaleR k (x - y)"
+  have z_def2: "z = x + scaleR (1 - k) (y - x)"
+    unfolding z_def by (simp add: algebra_simps)
+  have "dist z y < r"
+    unfolding z_def k_def using \<open>0 < r\<close>
+    by (simp add: dist_norm min_def)
+  then have "z \<in> T"
+    using \<open>\<forall>z. dist z y < r \<longrightarrow> z \<in> T\<close> by simp
+  have "dist x z < dist x y"
+    unfolding z_def2 dist_norm
+    apply (simp add: norm_minus_commute)
+    apply (simp only: dist_norm [symmetric])
+    apply (subgoal_tac "\<bar>1 - k\<bar> * dist x y < 1 * dist x y", simp)
+    apply (rule mult_strict_right_mono)
+    apply (simp add: k_def \<open>0 < r\<close> \<open>x \<noteq> y\<close>)
+    apply (simp add: \<open>x \<noteq> y\<close>)
+    done
+  then have "z \<in> ball x (dist x y)"
+    by simp
+  have "z \<noteq> y"
+    unfolding z_def k_def using \<open>x \<noteq> y\<close> \<open>0 < r\<close>
+    by (simp add: min_def)
+  show "\<exists>z\<in>ball x (dist x y). z \<in> T \<and> z \<noteq> y"
+    using \<open>z \<in> ball x (dist x y)\<close> \<open>z \<in> T\<close> \<open>z \<noteq> y\<close>
+    by fast
+qed
+
+
+subsection \<open>Balls and Spheres in Normed Spaces\<close>
+
+lemma mem_ball_0 [simp]: "x \<in> ball 0 e \<longleftrightarrow> norm x < e"
+  for x :: "'a::real_normed_vector"
+  by (simp add: dist_norm)
+
+lemma mem_cball_0 [simp]: "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
+  for x :: "'a::real_normed_vector"
+  by (simp add: dist_norm)
+
+lemma closure_ball [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "0 < e \<Longrightarrow> closure (ball x e) = cball x e"
+  apply (rule equalityI)
+  apply (rule closure_minimal)
+  apply (rule ball_subset_cball)
+  apply (rule closed_cball)
+  apply (rule subsetI, rename_tac y)
+  apply (simp add: le_less [where 'a=real])
+  apply (erule disjE)
+  apply (rule subsetD [OF closure_subset], simp)
+  apply (simp add: closure_def, clarify)
+  apply (rule closure_ball_lemma)
+  apply simp
+  done
+
+lemma mem_sphere_0 [simp]: "x \<in> sphere 0 e \<longleftrightarrow> norm x = e"
+  for x :: "'a::real_normed_vector"
+  by (simp add: dist_norm)
+
+(* In a trivial vector space, this fails for e = 0. *)
+lemma interior_cball [simp]:
+  fixes x :: "'a::{real_normed_vector, perfect_space}"
+  shows "interior (cball x e) = ball x e"
+proof (cases "e \<ge> 0")
+  case False note cs = this
+  from cs have null: "ball x e = {}"
+    using ball_empty[of e x] by auto
+  moreover
+  have "cball x e = {}"
+  proof (rule equals0I)
+    fix y
+    assume "y \<in> cball x e"
+    then show False
+      by (metis ball_eq_empty null cs dist_eq_0_iff dist_le_zero_iff empty_subsetI mem_cball
+          subset_antisym subset_ball)
+  qed
+  then have "interior (cball x e) = {}"
+    using interior_empty by auto
+  ultimately show ?thesis by blast
+next
+  case True note cs = this
+  have "ball x e \<subseteq> cball x e"
+    using ball_subset_cball by auto
+  moreover
+  {
+    fix S y
+    assume as: "S \<subseteq> cball x e" "open S" "y\<in>S"
+    then obtain d where "d>0" and d: "\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S"
+      unfolding open_dist by blast
+    then obtain xa where xa_y: "xa \<noteq> y" and xa: "dist xa y < d"
+      using perfect_choose_dist [of d] by auto
+    have "xa \<in> S"
+      using d[THEN spec[where x = xa]]
+      using xa by (auto simp: dist_commute)
+    then have xa_cball: "xa \<in> cball x e"
+      using as(1) by auto
+    then have "y \<in> ball x e"
+    proof (cases "x = y")
+      case True
+      then have "e > 0" using cs order.order_iff_strict xa_cball xa_y by fastforce
+      then show "y \<in> ball x e"
+        using \<open>x = y \<close> by simp
+    next
+      case False
+      have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) y < d"
+        unfolding dist_norm
+        using \<open>d>0\<close> norm_ge_zero[of "y - x"] \<open>x \<noteq> y\<close> by auto
+      then have *: "y + (d / 2 / dist y x) *\<^sub>R (y - x) \<in> cball x e"
+        using d as(1)[unfolded subset_eq] by blast
+      have "y - x \<noteq> 0" using \<open>x \<noteq> y\<close> by auto
+      hence **:"d / (2 * norm (y - x)) > 0"
+        unfolding zero_less_norm_iff[symmetric] using \<open>d>0\<close> by auto
+      have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) x =
+        norm (y + (d / (2 * norm (y - x))) *\<^sub>R y - (d / (2 * norm (y - x))) *\<^sub>R x - x)"
+        by (auto simp: dist_norm algebra_simps)
+      also have "\<dots> = norm ((1 + d / (2 * norm (y - x))) *\<^sub>R (y - x))"
+        by (auto simp: algebra_simps)
+      also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)"
+        using ** by auto
+      also have "\<dots> = (dist y x) + d/2"
+        using ** by (auto simp: distrib_right dist_norm)
+      finally have "e \<ge> dist x y +d/2"
+        using *[unfolded mem_cball] by (auto simp: dist_commute)
+      then show "y \<in> ball x e"
+        unfolding mem_ball using \<open>d>0\<close> by auto
+    qed
+  }
+  then have "\<forall>S \<subseteq> cball x e. open S \<longrightarrow> S \<subseteq> ball x e"
+    by auto
+  ultimately show ?thesis
+    using interior_unique[of "ball x e" "cball x e"]
+    using open_ball[of x e]
+    by auto
+qed
+
+lemma frontier_ball [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "0 < e \<Longrightarrow> frontier (ball a e) = sphere a e"
+  by (force simp: frontier_def)
+
+lemma frontier_cball [simp]:
+  fixes a :: "'a::{real_normed_vector, perfect_space}"
+  shows "frontier (cball a e) = sphere a e"
+  by (force simp: frontier_def)
+
+corollary compact_sphere [simp]:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "compact (sphere a r)"
+using compact_frontier [of "cball a r"] by simp
+
+corollary bounded_sphere [simp]:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "bounded (sphere a r)"
+by (simp add: compact_imp_bounded)
+
+corollary closed_sphere  [simp]:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "closed (sphere a r)"
+by (simp add: compact_imp_closed)
+
+lemma image_add_ball [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "(+) b ` ball a r = ball (a+b) r"
+apply (intro equalityI subsetI)
+apply (force simp: dist_norm)
+apply (rule_tac x="x-b" in image_eqI)
+apply (auto simp: dist_norm algebra_simps)
+done
+
+lemma image_add_cball [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "(+) b ` cball a r = cball (a+b) r"
+apply (intro equalityI subsetI)
+apply (force simp: dist_norm)
+apply (rule_tac x="x-b" in image_eqI)
+apply (auto simp: dist_norm algebra_simps)
+done
+
 
 subsection%unimportant \<open>Various Lemmas on Normed Algebras\<close>
 
@@ -180,6 +470,14 @@ lemma trivial_limit_at_infinity:
   apply (cut_tac islimpt_UNIV [of "0::'a", unfolded islimpt_def])
   apply (drule_tac x=UNIV in spec, simp)
   done
+
+lemma at_within_ball_bot_iff:
+  fixes x y :: "'a::{real_normed_vector,perfect_space}"
+  shows "at x within ball y r = bot \<longleftrightarrow> (r=0 \<or> x \<notin> cball y r)"
+  unfolding trivial_limit_within 
+  apply (auto simp add:trivial_limit_within islimpt_ball )
+  by (metis le_less_trans less_eq_real_def zero_le_dist)
+
 
 subsection \<open>Limits\<close>
 
@@ -326,6 +624,19 @@ qed simp
 
 subsection \<open>Boundedness\<close>
 
+lemma continuous_on_closure_norm_le:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "continuous_on (closure s) f"
+    and "\<forall>y \<in> s. norm(f y) \<le> b"
+    and "x \<in> (closure s)"
+  shows "norm (f x) \<le> b"
+proof -
+  have *: "f ` s \<subseteq> cball 0 b"
+    using assms(2)[unfolded mem_cball_0[symmetric]] by auto
+  show ?thesis
+    by (meson "*" assms(1) assms(3) closed_cball image_closure_subset image_subset_iff mem_cball_0)
+qed
+
 lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x \<le> b)"
   apply (simp add: bounded_iff)
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + \<bar>y\<bar> \<and> (x \<le> y \<longrightarrow> x \<le> 1 + \<bar>y\<bar>)")
@@ -463,6 +774,33 @@ corollary cobounded_imp_unbounded:
     shows "bounded (- S) \<Longrightarrow> \<not> bounded S"
   using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
 
+subsection%unimportant\<open>Relations among convergence and absolute convergence for power series\<close>
+
+lemma summable_imp_bounded:
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
+  shows "summable f \<Longrightarrow> bounded (range f)"
+by (frule summable_LIMSEQ_zero) (simp add: convergent_imp_bounded)
+
+lemma summable_imp_sums_bounded:
+   "summable f \<Longrightarrow> bounded (range (\<lambda>n. sum f {..<n}))"
+by (auto simp: summable_def sums_def dest: convergent_imp_bounded)
+
+lemma power_series_conv_imp_absconv_weak:
+  fixes a:: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}" and w :: 'a
+  assumes sum: "summable (\<lambda>n. a n * z ^ n)" and no: "norm w < norm z"
+    shows "summable (\<lambda>n. of_real(norm(a n)) * w ^ n)"
+proof -
+  obtain M where M: "\<And>x. norm (a x * z ^ x) \<le> M"
+    using summable_imp_bounded [OF sum] by (force simp: bounded_iff)
+  then have *: "summable (\<lambda>n. norm (a n) * norm w ^ n)"
+    by (rule_tac M=M in Abel_lemma) (auto simp: norm_mult norm_power intro: no)
+  show ?thesis
+    apply (rule series_comparison_complex [of "(\<lambda>n. of_real(norm(a n) * norm w ^ n))"])
+    apply (simp only: summable_complex_of_real *)
+    apply (auto simp: norm_mult norm_power)
+    done
+qed
+
 
 subsection \<open>Normed spaces with the Heine-Borel property\<close>
 
@@ -491,6 +829,193 @@ next
   then show "\<exists>N. \<forall>n\<ge>N. K \<subseteq> S \<inter> cball 0 (real n)"
     by (metis of_nat_le_iff Int_subset_iff \<open>K \<subseteq> S\<close> real_arch_simple subset_cball subset_trans)
 qed auto
+
+subsection \<open>Intersecting chains of compact sets and the Baire property\<close>
+
+proposition bounded_closed_chain:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "B \<in> \<F>" "bounded B" and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> closed S" and "{} \<notin> \<F>"
+      and chain: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    shows "\<Inter>\<F> \<noteq> {}"
+proof -
+  have "B \<inter> \<Inter>\<F> \<noteq> {}"
+  proof (rule compact_imp_fip)
+    show "compact B" "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      by (simp_all add: assms compact_eq_bounded_closed)
+    show "\<lbrakk>finite \<G>; \<G> \<subseteq> \<F>\<rbrakk> \<Longrightarrow> B \<inter> \<Inter>\<G> \<noteq> {}" for \<G>
+    proof (induction \<G> rule: finite_induct)
+      case empty
+      with assms show ?case by force
+    next
+      case (insert U \<G>)
+      then have "U \<in> \<F>" and ne: "B \<inter> \<Inter>\<G> \<noteq> {}" by auto
+      then consider "B \<subseteq> U" | "U \<subseteq> B"
+          using \<open>B \<in> \<F>\<close> chain by blast
+        then show ?case
+        proof cases
+          case 1
+          then show ?thesis
+            using Int_left_commute ne by auto
+        next
+          case 2
+          have "U \<noteq> {}"
+            using \<open>U \<in> \<F>\<close> \<open>{} \<notin> \<F>\<close> by blast
+          moreover
+          have False if "\<And>x. x \<in> U \<Longrightarrow> \<exists>Y\<in>\<G>. x \<notin> Y"
+          proof -
+            have "\<And>x. x \<in> U \<Longrightarrow> \<exists>Y\<in>\<G>. Y \<subseteq> U"
+              by (metis chain contra_subsetD insert.prems insert_subset that)
+            then obtain Y where "Y \<in> \<G>" "Y \<subseteq> U"
+              by (metis all_not_in_conv \<open>U \<noteq> {}\<close>)
+            moreover obtain x where "x \<in> \<Inter>\<G>"
+              by (metis Int_emptyI ne)
+            ultimately show ?thesis
+              by (metis Inf_lower subset_eq that)
+          qed
+          with 2 show ?thesis
+            by blast
+        qed
+      qed
+  qed
+  then show ?thesis by blast
+qed
+
+corollary compact_chain:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" "{} \<notin> \<F>"
+          "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    shows "\<Inter> \<F> \<noteq> {}"
+proof (cases "\<F> = {}")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  show ?thesis
+    by (metis False all_not_in_conv assms compact_imp_bounded compact_imp_closed bounded_closed_chain)
+qed
+
+lemma compact_nest:
+  fixes F :: "'a::linorder \<Rightarrow> 'b::heine_borel set"
+  assumes F: "\<And>n. compact(F n)" "\<And>n. F n \<noteq> {}" and mono: "\<And>m n. m \<le> n \<Longrightarrow> F n \<subseteq> F m"
+  shows "\<Inter>range F \<noteq> {}"
+proof -
+  have *: "\<And>S T. S \<in> range F \<and> T \<in> range F \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
+    by (metis mono image_iff le_cases)
+  show ?thesis
+    apply (rule compact_chain [OF _ _ *])
+    using F apply (blast intro: dest: *)+
+    done
+qed
+
+text\<open>The Baire property of dense sets\<close>
+theorem Baire:
+  fixes S::"'a::{real_normed_vector,heine_borel} set"
+  assumes "closed S" "countable \<G>"
+      and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (subtopology euclidean S) T \<and> S \<subseteq> closure T"
+ shows "S \<subseteq> closure(\<Inter>\<G>)"
+proof (cases "\<G> = {}")
+  case True
+  then show ?thesis
+    using closure_subset by auto
+next
+  let ?g = "from_nat_into \<G>"
+  case False
+  then have gin: "?g n \<in> \<G>" for n
+    by (simp add: from_nat_into)
+  show ?thesis
+  proof (clarsimp simp: closure_approachable)
+    fix x and e::real
+    assume "x \<in> S" "0 < e"
+    obtain TF where opeF: "\<And>n. openin (subtopology euclidean S) (TF n)"
+               and ne: "\<And>n. TF n \<noteq> {}"
+               and subg: "\<And>n. S \<inter> closure(TF n) \<subseteq> ?g n"
+               and subball: "\<And>n. closure(TF n) \<subseteq> ball x e"
+               and decr: "\<And>n. TF(Suc n) \<subseteq> TF n"
+    proof -
+      have *: "\<exists>Y. (openin (subtopology euclidean S) Y \<and> Y \<noteq> {} \<and>
+                   S \<inter> closure Y \<subseteq> ?g n \<and> closure Y \<subseteq> ball x e) \<and> Y \<subseteq> U"
+        if opeU: "openin (subtopology euclidean S) U" and "U \<noteq> {}" and cloU: "closure U \<subseteq> ball x e" for U n
+      proof -
+        obtain T where T: "open T" "U = T \<inter> S"
+          using \<open>openin (subtopology euclidean S) U\<close> by (auto simp: openin_subtopology)
+        with \<open>U \<noteq> {}\<close> have "T \<inter> closure (?g n) \<noteq> {}"
+          using gin ope by fastforce
+        then have "T \<inter> ?g n \<noteq> {}"
+          using \<open>open T\<close> open_Int_closure_eq_empty by blast
+        then obtain y where "y \<in> U" "y \<in> ?g n"
+          using T ope [of "?g n", OF gin] by (blast dest:  openin_imp_subset)
+        moreover have "openin (subtopology euclidean S) (U \<inter> ?g n)"
+          using gin ope opeU by blast
+        ultimately obtain d where U: "U \<inter> ?g n \<subseteq> S" and "d > 0" and d: "ball y d \<inter> S \<subseteq> U \<inter> ?g n"
+          by (force simp: openin_contains_ball)
+        show ?thesis
+        proof (intro exI conjI)
+          show "openin (subtopology euclidean S) (S \<inter> ball y (d/2))"
+            by (simp add: openin_open_Int)
+          show "S \<inter> ball y (d/2) \<noteq> {}"
+            using \<open>0 < d\<close> \<open>y \<in> U\<close> opeU openin_imp_subset by fastforce
+          have "S \<inter> closure (S \<inter> ball y (d/2)) \<subseteq> S \<inter> closure (ball y (d/2))"
+            using closure_mono by blast
+          also have "... \<subseteq> ?g n"
+            using \<open>d > 0\<close> d by force
+          finally show "S \<inter> closure (S \<inter> ball y (d/2)) \<subseteq> ?g n" .
+          have "closure (S \<inter> ball y (d/2)) \<subseteq> S \<inter> ball y d"
+          proof -
+            have "closure (ball y (d/2)) \<subseteq> ball y d"
+              using \<open>d > 0\<close> by auto
+            then have "closure (S \<inter> ball y (d/2)) \<subseteq> ball y d"
+              by (meson closure_mono inf.cobounded2 subset_trans)
+            then show ?thesis
+              by (simp add: \<open>closed S\<close> closure_minimal)
+          qed
+          also have "...  \<subseteq> ball x e"
+            using cloU closure_subset d by blast
+          finally show "closure (S \<inter> ball y (d/2)) \<subseteq> ball x e" .
+          show "S \<inter> ball y (d/2) \<subseteq> U"
+            using ball_divide_subset_numeral d by blast
+        qed
+      qed
+      let ?\<Phi> = "\<lambda>n X. openin (subtopology euclidean S) X \<and> X \<noteq> {} \<and>
+                      S \<inter> closure X \<subseteq> ?g n \<and> closure X \<subseteq> ball x e"
+      have "closure (S \<inter> ball x (e / 2)) \<subseteq> closure(ball x (e/2))"
+        by (simp add: closure_mono)
+      also have "...  \<subseteq> ball x e"
+        using \<open>e > 0\<close> by auto
+      finally have "closure (S \<inter> ball x (e / 2)) \<subseteq> ball x e" .
+      moreover have"openin (subtopology euclidean S) (S \<inter> ball x (e / 2))" "S \<inter> ball x (e / 2) \<noteq> {}"
+        using \<open>0 < e\<close> \<open>x \<in> S\<close> by auto
+      ultimately obtain Y where Y: "?\<Phi> 0 Y \<and> Y \<subseteq> S \<inter> ball x (e / 2)"
+            using * [of "S \<inter> ball x (e/2)" 0] by metis
+      show thesis
+      proof (rule exE [OF dependent_nat_choice [of ?\<Phi> "\<lambda>n X Y. Y \<subseteq> X"]])
+        show "\<exists>x. ?\<Phi> 0 x"
+          using Y by auto
+        show "\<exists>Y. ?\<Phi> (Suc n) Y \<and> Y \<subseteq> X" if "?\<Phi> n X" for X n
+          using that by (blast intro: *)
+      qed (use that in metis)
+    qed
+    have "(\<Inter>n. S \<inter> closure (TF n)) \<noteq> {}"
+    proof (rule compact_nest)
+      show "\<And>n. compact (S \<inter> closure (TF n))"
+        by (metis closed_closure subball bounded_subset_ballI compact_eq_bounded_closed closed_Int_compact [OF \<open>closed S\<close>])
+      show "\<And>n. S \<inter> closure (TF n) \<noteq> {}"
+        by (metis Int_absorb1 opeF \<open>closed S\<close> closure_eq_empty closure_minimal ne openin_imp_subset)
+      show "\<And>m n. m \<le> n \<Longrightarrow> S \<inter> closure (TF n) \<subseteq> S \<inter> closure (TF m)"
+        by (meson closure_mono decr dual_order.refl inf_mono lift_Suc_antimono_le)
+    qed
+    moreover have "(\<Inter>n. S \<inter> closure (TF n)) \<subseteq> {y \<in> \<Inter>\<G>. dist y x < e}"
+    proof (clarsimp, intro conjI)
+      fix y
+      assume "y \<in> S" and y: "\<forall>n. y \<in> closure (TF n)"
+      then show "\<forall>T\<in>\<G>. y \<in> T"
+        by (metis Int_iff from_nat_into_surj [OF \<open>countable \<G>\<close>] set_mp subg)
+      show "dist y x < e"
+        by (metis y dist_commute mem_ball subball subsetCE)
+    qed
+    ultimately show "\<exists>y \<in> \<Inter>\<G>. dist y x < e"
+      by auto
+  qed
+qed
 
 
 subsection \<open>Continuity\<close>
