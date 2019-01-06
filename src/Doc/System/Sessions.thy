@@ -734,6 +734,10 @@ text \<open>
     example, ``\<open>@{term \<doublequote>x + y\<doublequote>}\<close>'' is replaced by
     ``\<open>\<^term>\<open>x + y\<close>\<close>'' (the control symbol is literally \<^verbatim>\<open>\<^term>\<close>.)
 
+    \<^item> @{system_option update_path_cartouches} to update file-system paths to
+    use cartouches: this depends on language markup provided by semantic
+    processing of parsed input.
+
   It is also possible to produce custom updates in Isabelle/ML, by reporting
   \<^ML>\<open>Markup.update\<close> with the precise source position and a replacement
   text. This operation should be made conditional on specific system options,

@@ -288,6 +288,9 @@ option update_mixfix_cartouches : bool = false
 option update_control_cartouches : bool = false
   -- "update antiquotations to use control symbol with cartouche argument"
 
+option update_path_cartouches : bool = false
+  -- "update file-system paths to use cartouches"
+
 
 section "Build Database"
 
