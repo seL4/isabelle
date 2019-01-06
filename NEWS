@@ -166,7 +166,7 @@ external compiler is applied.
 
 * The command-line tool "isabelle update" uses Isabelle/PIDE in
 batch-mode to update theory sources based on semantic markup produced in
-Isabelle/ML. Actual updates depend on system options that may be enable
+Isabelle/ML. Actual updates depend on system options that may be enabled
 via "-u OPT" (for "update_OPT"), see also $ISABELLE_HOME/etc/options
 section "Theory update". Theory sessions are specified as in "isabelle
 dump".
