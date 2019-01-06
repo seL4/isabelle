@@ -6,11 +6,11 @@ theory Numeral_Simprocs
 imports Divides
 begin
 
-ML_file "~~/src/Provers/Arith/assoc_fold.ML"
-ML_file "~~/src/Provers/Arith/cancel_numerals.ML"
-ML_file "~~/src/Provers/Arith/combine_numerals.ML"
-ML_file "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-ML_file "~~/src/Provers/Arith/extract_common_term.ML"
+ML_file \<open>~~/src/Provers/Arith/assoc_fold.ML\<close>
+ML_file \<open>~~/src/Provers/Arith/cancel_numerals.ML\<close>
+ML_file \<open>~~/src/Provers/Arith/combine_numerals.ML\<close>
+ML_file \<open>~~/src/Provers/Arith/cancel_numeral_factor.ML\<close>
+ML_file \<open>~~/src/Provers/Arith/extract_common_term.ML\<close>
 
 lemmas semiring_norm =
   Let_def arith_simps diff_nat_numeral rel_simps
@@ -103,7 +103,7 @@ lemma numeral_times_minus_swap:
   fixes x:: "'a::comm_ring_1" shows  "numeral w * -x = x * - numeral w"
   by (simp add: mult.commute)
 
-ML_file "Tools/numeral_simprocs.ML"
+ML_file \<open>Tools/numeral_simprocs.ML\<close>
 
 simproc_setup semiring_assoc_fold
   ("(a::'a::comm_semiring_1_cancel) * b") =
@@ -213,7 +213,7 @@ simproc_setup divide_cancel_factor
   |"(l::'a::field) / (m * n)") =
   \<open>fn phi => Numeral_Simprocs.divide_cancel_factor\<close>
 
-ML_file "Tools/nat_numeral_simprocs.ML"
+ML_file \<open>Tools/nat_numeral_simprocs.ML\<close>
 
 simproc_setup nat_combine_numerals
   ("(i::nat) + j" | "Suc (i + j)") =

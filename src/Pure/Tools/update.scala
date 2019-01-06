@@ -31,10 +31,18 @@ object Update
         session_dirs = dirs ::: select_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
+    val path_cartouches = dump_options.bool("update_path_cartouches")
+
     def update_xml(xml: XML.Body): XML.Body =
       xml flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
           if (markup.name == Markup.UPDATE) update_xml(body1) else update_xml(body2)
+        case XML.Elem(Markup.Language(Markup.Language.PATH, _, _, _), body)
+        if path_cartouches =>
+          Token.read_embedded(Keyword.Keywords.empty, XML.content(body)) match {
+            case Some(tok) => List(XML.Text(Symbol.cartouche(tok.content)))
+            case None => update_xml(body)
+          }
         case XML.Elem(_, body) => update_xml(body)
         case t => List(t)
       }
@@ -48,7 +56,7 @@ object Update
           for ((node_name, node) <- snapshot.nodes) {
             val xml =
               snapshot.state.markup_to_XML(snapshot.version, node_name,
-                Text.Range.full, Markup.Elements(Markup.UPDATE))
+                Text.Range.full, Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
 
             val source1 = Symbol.encode(XML.content(update_xml(xml)))
             if (source1 != Symbol.encode(node.source)) {

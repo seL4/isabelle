@@ -201,12 +201,12 @@ end
 
 named_theorems friend_of_corec_simps
 
-ML_file "../Tools/BNF/bnf_gfp_grec_tactics.ML"
-ML_file "../Tools/BNF/bnf_gfp_grec.ML"
-ML_file "../Tools/BNF/bnf_gfp_grec_sugar_util.ML"
-ML_file "../Tools/BNF/bnf_gfp_grec_sugar_tactics.ML"
-ML_file "../Tools/BNF/bnf_gfp_grec_sugar.ML"
-ML_file "../Tools/BNF/bnf_gfp_grec_unique_sugar.ML"
+ML_file \<open>../Tools/BNF/bnf_gfp_grec_tactics.ML\<close>
+ML_file \<open>../Tools/BNF/bnf_gfp_grec.ML\<close>
+ML_file \<open>../Tools/BNF/bnf_gfp_grec_sugar_util.ML\<close>
+ML_file \<open>../Tools/BNF/bnf_gfp_grec_sugar_tactics.ML\<close>
+ML_file \<open>../Tools/BNF/bnf_gfp_grec_sugar.ML\<close>
+ML_file \<open>../Tools/BNF/bnf_gfp_grec_unique_sugar.ML\<close>
 
 method_setup transfer_prover_eq = \<open>
   Scan.succeed (SIMPLE_METHOD' o BNF_GFP_Grec_Tactics.transfer_prover_eq_tac)

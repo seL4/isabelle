@@ -196,11 +196,11 @@ lemmas all_mem_range = all_mem_range1 all_mem_range2 all_mem_range3 all_mem_rang
 lemma pred_fun_True_id: "NO_MATCH id p \<Longrightarrow> pred_fun (\<lambda>x. True) p f = pred_fun (\<lambda>x. True) id (p \<circ> f)"
   unfolding fun.pred_map unfolding comp_def id_def ..
 
-ML_file "Tools/BNF/bnf_lfp_util.ML"
-ML_file "Tools/BNF/bnf_lfp_tactics.ML"
-ML_file "Tools/BNF/bnf_lfp.ML"
-ML_file "Tools/BNF/bnf_lfp_compat.ML"
-ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
-ML_file "Tools/BNF/bnf_lfp_size.ML"
+ML_file \<open>Tools/BNF/bnf_lfp_util.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp_compat.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp_rec_sugar_more.ML\<close>
+ML_file \<open>Tools/BNF/bnf_lfp_size.ML\<close>
 
 end

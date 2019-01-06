@@ -98,8 +98,8 @@ schematic_goal swap:
   apply assumption
   done
 
-ML_file "classical.ML"      (* Patched because matching won't instantiate proof *)
-ML_file "simp.ML"           (* Patched because matching won't instantiate proof *)
+ML_file \<open>classical.ML\<close>      (* Patched because matching won't instantiate proof *)
+ML_file \<open>simp.ML\<close>           (* Patched because matching won't instantiate proof *)
 
 ML \<open>
 structure Cla = Classical
@@ -138,6 +138,6 @@ schematic_goal cla_rews:
   apply (tactic \<open>ALLGOALS (Cla.fast_tac \<^context> FOLP_cs)\<close>)
   done
 
-ML_file "simpdata.ML"
+ML_file \<open>simpdata.ML\<close>
 
 end

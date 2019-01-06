@@ -279,6 +279,6 @@ theorem typedef_flat:
 
 subsection \<open>HOLCF type definition package\<close>
 
-ML_file "Tools/cpodef.ML"
+ML_file \<open>Tools/cpodef.ML\<close>
 
 end

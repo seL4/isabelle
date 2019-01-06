@@ -77,25 +77,25 @@ definition in_rel_def[simp]: "in_rel R x y \<equiv> (x, y) \<in> R"
 lemma wf_in_rel: "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-ML_file "Tools/Function/function_core.ML"
-ML_file "Tools/Function/mutual.ML"
-ML_file "Tools/Function/pattern_split.ML"
-ML_file "Tools/Function/relation.ML"
-ML_file "Tools/Function/function_elims.ML"
+ML_file \<open>Tools/Function/function_core.ML\<close>
+ML_file \<open>Tools/Function/mutual.ML\<close>
+ML_file \<open>Tools/Function/pattern_split.ML\<close>
+ML_file \<open>Tools/Function/relation.ML\<close>
+ML_file \<open>Tools/Function/function_elims.ML\<close>
 
 method_setup relation = \<open>
   Args.term >> (fn t => fn ctxt => SIMPLE_METHOD' (Function_Relation.relation_infer_tac ctxt t))
 \<close> "prove termination using a user-specified wellfounded relation"
 
-ML_file "Tools/Function/function.ML"
-ML_file "Tools/Function/pat_completeness.ML"
+ML_file \<open>Tools/Function/function.ML\<close>
+ML_file \<open>Tools/Function/pat_completeness.ML\<close>
 
 method_setup pat_completeness = \<open>
   Scan.succeed (SIMPLE_METHOD' o Pat_Completeness.pat_completeness_tac)
 \<close> "prove completeness of (co)datatype patterns"
 
-ML_file "Tools/Function/fun.ML"
-ML_file "Tools/Function/induction_schema.ML"
+ML_file \<open>Tools/Function/fun.ML\<close>
+ML_file \<open>Tools/Function/induction_schema.ML\<close>
 
 method_setup induction_schema = \<open>
   Scan.succeed (Method.CONTEXT_TACTIC oo Induction_Schema.induction_schema_tac)
@@ -108,7 +108,7 @@ inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
   where is_measure_trivial: "is_measure f"
 
 named_theorems measure_function "rules that guide the heuristic generation of measure functions"
-ML_file "Tools/Function/measure_functions.ML"
+ML_file \<open>Tools/Function/measure_functions.ML\<close>
 
 lemma measure_size[measure_function]: "is_measure size"
   by (rule is_measure_trivial)
@@ -119,7 +119,7 @@ lemma measure_fst[measure_function]: "is_measure f \<Longrightarrow> is_measure 
 lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
   by (rule is_measure_trivial)
 
-ML_file "Tools/Function/lexicographic_order.ML"
+ML_file \<open>Tools/Function/lexicographic_order.ML\<close>
 
 method_setup lexicographic_order = \<open>
   Method.sections clasimp_modifiers >>
@@ -290,10 +290,10 @@ lemma nat_descend_induct [case_names base descend]:
 
 subsection \<open>Tool setup\<close>
 
-ML_file "Tools/Function/termination.ML"
-ML_file "Tools/Function/scnp_solve.ML"
-ML_file "Tools/Function/scnp_reconstruct.ML"
-ML_file "Tools/Function/fun_cases.ML"
+ML_file \<open>Tools/Function/termination.ML\<close>
+ML_file \<open>Tools/Function/scnp_solve.ML\<close>
+ML_file \<open>Tools/Function/scnp_reconstruct.ML\<close>
+ML_file \<open>Tools/Function/fun_cases.ML\<close>
 
 ML_val \<comment> \<open>setup inactive\<close>
 \<open>

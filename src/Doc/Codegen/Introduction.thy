@@ -69,7 +69,7 @@ lemma %invisible dequeue_nonempty_Nil [simp]:
 text \<open>\noindent Then we can generate code e.g.~for \<open>SML\<close> as follows:\<close>
 
 export_code %quote empty dequeue enqueue in SML
-  module_name Example file "$ISABELLE_TMP/example.ML"
+  module_name Example file \<open>$ISABELLE_TMP/example.ML\<close>
 
 text \<open>\noindent resulting in the following code:\<close>
 
@@ -90,7 +90,7 @@ text \<open>
 \<close>
 
 export_code %quote empty dequeue enqueue in Haskell
-  module_name Example file "$ISABELLE_TMP/examples/"
+  module_name Example file \<open>$ISABELLE_TMP/examples/\<close>
 
 text \<open>
   \noindent This is the corresponding code:

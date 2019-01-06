@@ -287,12 +287,12 @@ lemma convol_transfer:
 lemma Let_const: "Let x (\<lambda>_. c) = c"
   unfolding Let_def ..
 
-ML_file "Tools/BNF/bnf_fp_util_tactics.ML"
-ML_file "Tools/BNF/bnf_fp_util.ML"
-ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
-ML_file "Tools/BNF/bnf_fp_def_sugar.ML"
-ML_file "Tools/BNF/bnf_fp_n2m_tactics.ML"
-ML_file "Tools/BNF/bnf_fp_n2m.ML"
-ML_file "Tools/BNF/bnf_fp_n2m_sugar.ML"
+ML_file \<open>Tools/BNF/bnf_fp_util_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_util.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_def_sugar_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_def_sugar.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_n2m_tactics.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_n2m.ML\<close>
+ML_file \<open>Tools/BNF/bnf_fp_n2m_sugar.ML\<close>
 
 end

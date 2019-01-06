@@ -150,7 +150,7 @@ setup \<open>
     (\<^const_name>\<open>liftprj\<close>, SOME \<^typ>\<open>udom u \<rightarrow> 'a::predomain u\<close>)]
 \<close>
 
-ML_file "Tools/domaindef.ML"
+ML_file \<open>Tools/domaindef.ML\<close>
 
 subsection \<open>Isomorphic deflations\<close>
 
@@ -319,9 +319,9 @@ subsection \<open>Setting up the domain package\<close>
 named_theorems domain_defl_simps "theorems like DEFL('a t) = t_defl$DEFL('a)"
   and domain_isodefl "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
 
-ML_file "Tools/Domain/domain_isomorphism.ML"
-ML_file "Tools/Domain/domain_axioms.ML"
-ML_file "Tools/Domain/domain.ML"
+ML_file \<open>Tools/Domain/domain_isomorphism.ML\<close>
+ML_file \<open>Tools/Domain/domain_axioms.ML\<close>
+ML_file \<open>Tools/Domain/domain.ML\<close>
 
 lemmas [domain_defl_simps] =
   DEFL_cfun DEFL_sfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u

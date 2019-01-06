@@ -8,7 +8,7 @@ theory Realizers
 imports Main
 begin
 
-ML_file "~~/src/HOL/Tools/datatype_realizer.ML"
-ML_file "~~/src/HOL/Tools/inductive_realizer.ML"
+ML_file \<open>~~/src/HOL/Tools/datatype_realizer.ML\<close>
+ML_file \<open>~~/src/HOL/Tools/inductive_realizer.ML\<close>
 
 end

@@ -75,9 +75,9 @@ declare [[
   tptp_informative_failure = true
 ]]
 
-ML_file "TPTP_Parser/tptp_reconstruct_library.ML"
+ML_file \<open>TPTP_Parser/tptp_reconstruct_library.ML\<close>
 ML "open TPTP_Reconstruct_Library"
-ML_file "TPTP_Parser/tptp_reconstruct.ML"
+ML_file \<open>TPTP_Parser/tptp_reconstruct.ML\<close>
 
 (*FIXME fudge*)
 declare [[

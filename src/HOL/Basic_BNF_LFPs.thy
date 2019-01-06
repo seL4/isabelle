@@ -102,7 +102,7 @@ lemma isl_transfer: "rel_fun (rel_sum A B) (=) isl isl"
 lemma rel_prod_sel: "rel_prod R1 R2 p q = (R1 (fst p) (fst q) \<and> R2 (snd p) (snd q))"
   by (force simp: rel_prod.simps elim: rel_prod.cases)
 
-ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
+ML_file \<open>Tools/BNF/bnf_lfp_basic_sugar.ML\<close>
 
 declare prod.size [no_atp]
 

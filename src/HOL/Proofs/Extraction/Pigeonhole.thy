@@ -206,7 +206,7 @@ text \<open>
   @{thm [display] pigeonhole_slow_def}
   The program for searching for an element in an array is
   @{thm [display,eta_contract=false] search_def}
-  The correctness statement for @{term "pigeonhole"} is
+  The correctness statement for \<^term>\<open>pigeonhole\<close> is
   @{thm [display] pigeonhole_correctness [no_vars]}
 
   In order to analyze the speed of the above programs,

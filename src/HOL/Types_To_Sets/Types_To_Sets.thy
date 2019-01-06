@@ -16,13 +16,13 @@ begin
 subsection \<open>Rules\<close>
 
 text\<open>The following file implements the Local Typedef Rule (LT) and extends the logic by the rule.\<close>
-ML_file "local_typedef.ML"
+ML_file \<open>local_typedef.ML\<close>
 
 text\<open>The following file implements the Unoverloading Rule (UO) and extends the logic by the rule.\<close>
-ML_file "unoverloading.ML"
+ML_file \<open>unoverloading.ML\<close>
 
 text\<open>The following file implements a derived rule that internalizes type class annotations.\<close>
-ML_file "internalize_sort.ML"
+ML_file \<open>internalize_sort.ML\<close>
 
 text\<open>The following file provides some automation to unoverload and internalize the parameters o
   the sort constraints of a type variable.\<close>

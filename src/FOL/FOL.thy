@@ -9,9 +9,9 @@ imports IFOL
 keywords "print_claset" "print_induct_rules" :: diag
 begin
 
-ML_file "~~/src/Provers/classical.ML"
-ML_file "~~/src/Provers/blast.ML"
-ML_file "~~/src/Provers/clasimp.ML"
+ML_file \<open>~~/src/Provers/classical.ML\<close>
+ML_file \<open>~~/src/Provers/blast.ML\<close>
+ML_file \<open>~~/src/Provers/clasimp.ML\<close>
 
 
 subsection \<open>The classical axiom\<close>
@@ -335,7 +335,7 @@ lemmas cla_simps =
   not_imp not_all not_ex cases_simp cla_simps_misc
 
 
-ML_file "simpdata.ML"
+ML_file \<open>simpdata.ML\<close>
 
 simproc_setup defined_Ex (\<open>\<exists>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_ex\<close>
 simproc_setup defined_All (\<open>\<forall>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_all\<close>
@@ -361,7 +361,7 @@ setup \<open>
   Simplifier.method_setup Splitter.split_modifiers
 \<close>
 
-ML_file "~~/src/Tools/eqsubst.ML"
+ML_file \<open>~~/src/Tools/eqsubst.ML\<close>
 
 
 subsection \<open>Other simple lemmas\<close>
@@ -429,7 +429,7 @@ lemmas induct_rulify_fallback =
 
 text \<open>Method setup.\<close>
 
-ML_file "~~/src/Tools/induct.ML"
+ML_file \<open>~~/src/Tools/induct.ML\<close>
 ML \<open>
   structure Induct = Induct
   (
@@ -447,7 +447,7 @@ declare case_split [cases type: o]
 
 end
 
-ML_file "~~/src/Tools/case_product.ML"
+ML_file \<open>~~/src/Tools/case_product.ML\<close>
 
 
 hide_const (open) eq

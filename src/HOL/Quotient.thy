@@ -636,7 +636,7 @@ named_theorems quot_equiv "equivalence relation theorems"
   and quot_preserve "preservation theorems"
   and id_simps "identity simp rules for maps"
   and quot_thm "quotient theorems"
-ML_file "Tools/Quotient/quotient_info.ML"
+ML_file \<open>Tools/Quotient/quotient_info.ML\<close>
 
 declare [[mapQ3 "fun" = (rel_fun, fun_quotient3)]]
 
@@ -657,15 +657,15 @@ lemmas [id_simps] =
   vimage_id
 
 text \<open>Translation functions for the lifting process.\<close>
-ML_file "Tools/Quotient/quotient_term.ML"
+ML_file \<open>Tools/Quotient/quotient_term.ML\<close>
 
 
 text \<open>Definitions of the quotient types.\<close>
-ML_file "Tools/Quotient/quotient_type.ML"
+ML_file \<open>Tools/Quotient/quotient_type.ML\<close>
 
 
 text \<open>Definitions for quotient constants.\<close>
-ML_file "Tools/Quotient/quotient_def.ML"
+ML_file \<open>Tools/Quotient/quotient_def.ML\<close>
 
 
 text \<open>
@@ -692,7 +692,7 @@ context includes lifting_syntax
 begin
 
 text \<open>Tactics for proving the lifted theorems\<close>
-ML_file "Tools/Quotient/quotient_tacs.ML"
+ML_file \<open>Tools/Quotient/quotient_tacs.ML\<close>
 
 end
 

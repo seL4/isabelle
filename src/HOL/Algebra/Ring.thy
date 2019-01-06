@@ -418,7 +418,7 @@ text \<open>Setup algebra method:
   compute distributive normal form in locale contexts\<close>
 
 
-ML_file "ringsimp.ML"
+ML_file \<open>ringsimp.ML\<close>
 
 attribute_setup algebra = \<open>
   Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon || Scan.succeed true)

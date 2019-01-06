@@ -33,7 +33,7 @@ lemma PFalse:
   by auto
 
 named_theorems algebra "pre-simplification rules for algebraic methods"
-ML_file "Tools/groebner.ML"
+ML_file \<open>Tools/groebner.ML\<close>
 
 method_setup algebra = \<open>
   let

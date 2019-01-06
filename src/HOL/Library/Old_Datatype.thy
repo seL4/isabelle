@@ -508,6 +508,6 @@ text \<open>hides popular names\<close>
 hide_type (open) node item
 hide_const (open) Push Node Atom Leaf Numb Lim Split Case
 
-ML_file "~~/src/HOL/Tools/Old_Datatype/old_datatype.ML"
+ML_file \<open>~~/src/HOL/Tools/Old_Datatype/old_datatype.ML\<close>
 
 end

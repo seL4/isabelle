@@ -8,13 +8,13 @@ theory Mirabelle_Test
 imports Main Mirabelle
 begin
 
-ML_file "Tools/mirabelle_arith.ML"
-ML_file "Tools/mirabelle_metis.ML"
-ML_file "Tools/mirabelle_quickcheck.ML"
-ML_file "Tools/mirabelle_refute.ML"
-ML_file "Tools/mirabelle_sledgehammer.ML"
-ML_file "Tools/mirabelle_sledgehammer_filter.ML"
-ML_file "Tools/mirabelle_try0.ML"
+ML_file \<open>Tools/mirabelle_arith.ML\<close>
+ML_file \<open>Tools/mirabelle_metis.ML\<close>
+ML_file \<open>Tools/mirabelle_quickcheck.ML\<close>
+ML_file \<open>Tools/mirabelle_refute.ML\<close>
+ML_file \<open>Tools/mirabelle_sledgehammer.ML\<close>
+ML_file \<open>Tools/mirabelle_sledgehammer_filter.ML\<close>
+ML_file \<open>Tools/mirabelle_try0.ML\<close>
 
 text \<open>
   Only perform type-checking of the actions,

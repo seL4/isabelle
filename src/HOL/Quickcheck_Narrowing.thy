@@ -192,9 +192,9 @@ hide_const (open) Constant eval_cfun Abs_cfun Rep_cfun
 
 subsubsection \<open>Setting up the counterexample generator\<close>
 
-external_file "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs"
-external_file "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs"
-ML_file "Tools/Quickcheck/narrowing_generators.ML"
+external_file \<open>~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs\<close>
+external_file \<open>~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs\<close>
+ML_file \<open>Tools/Quickcheck/narrowing_generators.ML\<close>
 
 definition narrowing_dummy_partial_term_of :: "('a :: partial_term_of) itself => narrowing_term => term"
 where
@@ -318,7 +318,7 @@ code_printing constant "Code_Evaluation.term_of :: integer \<Rightarrow> term" \
 
 subsection \<open>The \<open>find_unused_assms\<close> command\<close>
 
-ML_file "Tools/Quickcheck/find_unused_assms.ML"
+ML_file \<open>Tools/Quickcheck/find_unused_assms.ML\<close>
 
 subsection \<open>Closing up\<close>
 

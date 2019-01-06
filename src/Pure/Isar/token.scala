@@ -156,6 +156,15 @@ object Token
   val newline: Token = explode(Keyword.Keywords.empty, "\n").head
 
 
+  /* embedded */
+
+  def read_embedded(keywords: Keyword.Keywords, inp: CharSequence): Option[Token] =
+    explode(keywords, inp) match {
+      case List(tok) if tok.is_embedded => Some(tok)
+      case _ => None
+    }
+
+
   /* names */
 
   def read_name(keywords: Keyword.Keywords, inp: CharSequence): Option[Token] =

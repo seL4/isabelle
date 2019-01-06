@@ -195,9 +195,9 @@ lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 subsection \<open>Meson package\<close>
 
-ML_file "Tools/Meson/meson.ML"
-ML_file "Tools/Meson/meson_clausify.ML"
-ML_file "Tools/Meson/meson_tactic.ML"
+ML_file \<open>Tools/Meson/meson.ML\<close>
+ML_file \<open>Tools/Meson/meson_clausify.ML\<close>
+ML_file \<open>Tools/Meson/meson_tactic.ML\<close>
 
 hide_const (open) COMBI COMBK COMBB COMBC COMBS skolem
 hide_fact (open) not_conjD not_disjD not_notD not_allD not_exD imp_to_disjD

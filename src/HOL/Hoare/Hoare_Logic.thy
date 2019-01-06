@@ -53,7 +53,7 @@ syntax ("" output)
  "_hoare"      :: "['a assn,'a com,'a assn] => bool"
                  ("{_} // _ // {_}" [0,55,0] 50)
 
-ML_file "hoare_syntax.ML"
+ML_file \<open>hoare_syntax.ML\<close>
 parse_translation \<open>[(\<^syntax_const>\<open>_hoare_vars\<close>, K Hoare_Syntax.hoare_vars_tr)]\<close>
 print_translation \<open>[(\<^const_syntax>\<open>Valid\<close>, K (Hoare_Syntax.spec_tr' \<^syntax_const>\<open>_hoare\<close>))]\<close>
 
@@ -93,7 +93,7 @@ lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
 lemmas AbortRule = SkipRule  \<comment> \<open>dummy version\<close>
-ML_file "hoare_tac.ML"
+ML_file \<open>hoare_tac.ML\<close>
 
 method_setup vcg = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac)))\<close>

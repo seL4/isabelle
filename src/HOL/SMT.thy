@@ -286,35 +286,35 @@ lemma verit_eq_transitive:
 
 subsection \<open>Setup\<close>
 
-ML_file "Tools/SMT/smt_util.ML"
-ML_file "Tools/SMT/smt_failure.ML"
-ML_file "Tools/SMT/smt_config.ML"
-ML_file "Tools/SMT/smt_builtin.ML"
-ML_file "Tools/SMT/smt_datatypes.ML"
-ML_file "Tools/SMT/smt_normalize.ML"
-ML_file "Tools/SMT/smt_translate.ML"
-ML_file "Tools/SMT/smtlib.ML"
-ML_file "Tools/SMT/smtlib_interface.ML"
-ML_file "Tools/SMT/smtlib_proof.ML"
-ML_file "Tools/SMT/smtlib_isar.ML"
-ML_file "Tools/SMT/z3_proof.ML"
-ML_file "Tools/SMT/z3_isar.ML"
-ML_file "Tools/SMT/smt_solver.ML"
-ML_file "Tools/SMT/cvc4_interface.ML"
-ML_file "Tools/SMT/cvc4_proof_parse.ML"
-ML_file "Tools/SMT/verit_proof.ML"
-ML_file "Tools/SMT/verit_isar.ML"
-ML_file "Tools/SMT/verit_proof_parse.ML"
-ML_file "Tools/SMT/conj_disj_perm.ML"
-ML_file "Tools/SMT/smt_replay_methods.ML"
-ML_file "Tools/SMT/smt_replay.ML"
-ML_file "Tools/SMT/z3_interface.ML"
-ML_file "Tools/SMT/z3_replay_rules.ML"
-ML_file "Tools/SMT/z3_replay_methods.ML"
-ML_file "Tools/SMT/z3_replay.ML"
-ML_file "Tools/SMT/verit_replay_methods.ML"
-ML_file "Tools/SMT/verit_replay.ML"
-ML_file "Tools/SMT/smt_systems.ML"
+ML_file \<open>Tools/SMT/smt_util.ML\<close>
+ML_file \<open>Tools/SMT/smt_failure.ML\<close>
+ML_file \<open>Tools/SMT/smt_config.ML\<close>
+ML_file \<open>Tools/SMT/smt_builtin.ML\<close>
+ML_file \<open>Tools/SMT/smt_datatypes.ML\<close>
+ML_file \<open>Tools/SMT/smt_normalize.ML\<close>
+ML_file \<open>Tools/SMT/smt_translate.ML\<close>
+ML_file \<open>Tools/SMT/smtlib.ML\<close>
+ML_file \<open>Tools/SMT/smtlib_interface.ML\<close>
+ML_file \<open>Tools/SMT/smtlib_proof.ML\<close>
+ML_file \<open>Tools/SMT/smtlib_isar.ML\<close>
+ML_file \<open>Tools/SMT/z3_proof.ML\<close>
+ML_file \<open>Tools/SMT/z3_isar.ML\<close>
+ML_file \<open>Tools/SMT/smt_solver.ML\<close>
+ML_file \<open>Tools/SMT/cvc4_interface.ML\<close>
+ML_file \<open>Tools/SMT/cvc4_proof_parse.ML\<close>
+ML_file \<open>Tools/SMT/verit_proof.ML\<close>
+ML_file \<open>Tools/SMT/verit_isar.ML\<close>
+ML_file \<open>Tools/SMT/verit_proof_parse.ML\<close>
+ML_file \<open>Tools/SMT/conj_disj_perm.ML\<close>
+ML_file \<open>Tools/SMT/smt_replay_methods.ML\<close>
+ML_file \<open>Tools/SMT/smt_replay.ML\<close>
+ML_file \<open>Tools/SMT/z3_interface.ML\<close>
+ML_file \<open>Tools/SMT/z3_replay_rules.ML\<close>
+ML_file \<open>Tools/SMT/z3_replay_methods.ML\<close>
+ML_file \<open>Tools/SMT/z3_replay.ML\<close>
+ML_file \<open>Tools/SMT/verit_replay_methods.ML\<close>
+ML_file \<open>Tools/SMT/verit_replay.ML\<close>
+ML_file \<open>Tools/SMT/smt_systems.ML\<close>
 
 method_setup smt = \<open>
   Scan.optional Attrib.thms [] >>

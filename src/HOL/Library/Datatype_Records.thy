@@ -82,7 +82,7 @@ syntax (ASCII)
 
 named_theorems datatype_record_update
 
-ML_file "datatype_records.ML"
+ML_file \<open>datatype_records.ML\<close>
 setup \<open>Datatype_Records.setup\<close>
 
 end

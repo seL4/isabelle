@@ -8,7 +8,7 @@ theory MaSh_Export_Base
 imports Main
 begin
 
-ML_file "mash_export.ML"
+ML_file \<open>mash_export.ML\<close>
 
 sledgehammer_params
   [provers = spass, max_facts = 32, strict, dont_slice, type_enc = mono_native,

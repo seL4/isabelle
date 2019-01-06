@@ -2527,7 +2527,7 @@ in
 end
 \<close>
 
-ML_file "cooper_tac.ML"
+ML_file \<open>cooper_tac.ML\<close>
 
 method_setup cooper = \<open>
   Scan.lift (Args.mode "no_quantify") >>

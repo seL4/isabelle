@@ -3561,7 +3561,7 @@ by (simp add:perm_int_def)
 
 (*******************************************************)
 (* Setup of the theorem attributes eqvt and eqvt_force *)
-ML_file "nominal_thmdecls.ML"
+ML_file \<open>nominal_thmdecls.ML\<close>
 setup "NominalThmDecls.setup"
 
 lemmas [eqvt] = 
@@ -3597,11 +3597,11 @@ lemmas [eqvt_force] = numeral_nat_eqvt numeral_int_eqvt neg_numeral_int_eqvt
 (***************************************)
 (* setup for the individial atom-kinds *)
 (* and nominal datatypes               *)
-ML_file "nominal_atoms.ML"
+ML_file \<open>nominal_atoms.ML\<close>
 
 (************************************************************)
 (* various tactics for analysing permutations, supports etc *)
-ML_file "nominal_permeq.ML"
+ML_file \<open>nominal_permeq.ML\<close>
 
 method_setup perm_simp =
   \<open>NominalPermeq.perm_simp_meth\<close>
@@ -3645,7 +3645,7 @@ method_setup fresh_guess_debug =
 
 (*****************************************************************)
 (* tactics for generating fresh names and simplifying fresh_funs *)
-ML_file "nominal_fresh_fun.ML"
+ML_file \<open>nominal_fresh_fun.ML\<close>
 
 method_setup generate_fresh = \<open>
   Args.type_name {proper = true, strict = true} >>
@@ -3663,20 +3663,20 @@ method_setup fresh_fun_simp = \<open>
 lemma allE_Nil: assumes "\<forall>x. P x" obtains "P []"
   using assms ..
 
-ML_file "nominal_datatype.ML"
+ML_file \<open>nominal_datatype.ML\<close>
 
 (******************************************************)
 (* primitive recursive functions on nominal datatypes *)
-ML_file "nominal_primrec.ML"
+ML_file \<open>nominal_primrec.ML\<close>
 
 (****************************************************)
 (* inductive definition involving nominal datatypes *)
-ML_file "nominal_inductive.ML"
-ML_file "nominal_inductive2.ML"
+ML_file \<open>nominal_inductive.ML\<close>
+ML_file \<open>nominal_inductive2.ML\<close>
 
 (*****************************************)
 (* setup for induction principles method *)
-ML_file "nominal_induct.ML"
+ML_file \<open>nominal_induct.ML\<close>
 method_setup nominal_induct =
   \<open>NominalInduct.nominal_induct_method\<close>
   \<open>nominal induction\<close>

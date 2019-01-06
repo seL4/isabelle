@@ -18,6 +18,6 @@ lemma missing_pattern_match_code [code_unfold]:
   "missing_pattern_match = Code.abort"
   unfolding missing_pattern_match_def Code.abort_def ..
 
-ML_file "case_converter.ML"
+ML_file \<open>case_converter.ML\<close>
 
 end

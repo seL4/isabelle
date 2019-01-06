@@ -117,7 +117,7 @@ syntax
   "_Int" :: "num_token => i"  (\<open>#_\<close> 1000)
   "_Neg_Int" :: "num_token => i"  (\<open>#-_\<close> 1000)
 
-ML_file "Tools/numeral_syntax.ML"
+ML_file \<open>Tools/numeral_syntax.ML\<close>
 
 
 declare bin.intros [simp,TC]
@@ -698,7 +698,7 @@ lemma le_add_iff2: "(i$*u $+ m $\<le> j$*u $+ n) \<longleftrightarrow> (m $\<le>
   apply (simp add: zadd_ac)
   done
 
-ML_file "int_arith.ML"
+ML_file \<open>int_arith.ML\<close>
 
 subsection \<open>examples:\<close>
 

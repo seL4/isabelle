@@ -57,7 +57,7 @@ lemma tfl_disjE: "P \<or> Q \<Longrightarrow> P \<longrightarrow> R \<Longrighta
 lemma tfl_exE: "\<exists>x. P x \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q \<Longrightarrow> Q"
   by blast
 
-ML_file "old_recdef.ML"
+ML_file \<open>old_recdef.ML\<close>
 
 
 subsection \<open>Rule setup\<close>

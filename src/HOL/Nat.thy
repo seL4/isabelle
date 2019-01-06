@@ -1930,7 +1930,7 @@ lemma subst_equals:
   shows "u = s"
   using assms(2,1) by (rule trans)
 
-ML_file "Tools/nat_arith.ML"
+ML_file \<open>Tools/nat_arith.ML\<close>
 
 simproc_setup nateq_cancel_sums
   ("(l::nat) + m = n" | "(l::nat) = m + n" | "Suc m = n" | "m = Suc n") =

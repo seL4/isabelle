@@ -630,6 +630,6 @@ lemma subtract_Tip: "subtract Tip t = Some t"
 text \<open>Now we have all the theorems in place that are needed for the
 certificate generating ML functions.\<close>
 
-ML_file "distinct_tree_prover.ML"
+ML_file \<open>distinct_tree_prover.ML\<close>
 
 end

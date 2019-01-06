@@ -27,7 +27,7 @@ declare [[coercion_args case_cons - -]]
 declare [[coercion_args case_abs -]]
 declare [[coercion_args case_elem - +]]
 
-ML_file "Tools/Ctr_Sugar/case_translation.ML"
+ML_file \<open>Tools/Ctr_Sugar/case_translation.ML\<close>
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
   by (erule iffI) (erule contrapos_pn)
@@ -37,13 +37,13 @@ lemma iff_contradict:
   "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
   by blast+
 
-ML_file "Tools/Ctr_Sugar/ctr_sugar_util.ML"
-ML_file "Tools/Ctr_Sugar/ctr_sugar_tactics.ML"
-ML_file "Tools/Ctr_Sugar/ctr_sugar_code.ML"
-ML_file "Tools/Ctr_Sugar/ctr_sugar.ML"
+ML_file \<open>Tools/Ctr_Sugar/ctr_sugar_util.ML\<close>
+ML_file \<open>Tools/Ctr_Sugar/ctr_sugar_tactics.ML\<close>
+ML_file \<open>Tools/Ctr_Sugar/ctr_sugar_code.ML\<close>
+ML_file \<open>Tools/Ctr_Sugar/ctr_sugar.ML\<close>
 
 text \<open>Coinduction method that avoids some boilerplate compared with coinduct.\<close>
 
-ML_file "Tools/coinduction.ML"
+ML_file \<open>Tools/coinduction.ML\<close>
 
 end

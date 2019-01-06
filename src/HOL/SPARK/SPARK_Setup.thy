@@ -15,8 +15,8 @@ keywords
   "spark_status" :: diag
 begin
 
-ML_file "Tools/fdl_lexer.ML"
-ML_file "Tools/fdl_parser.ML"
+ML_file \<open>Tools/fdl_lexer.ML\<close>
+ML_file \<open>Tools/fdl_parser.ML\<close>
 
 text \<open>
 SPARK version of div, see section 4.4.1.1 of SPARK Proof Manual
@@ -181,7 +181,7 @@ lemma interval_expand:
 
 text \<open>Load the package\<close>
 
-ML_file "Tools/spark_vcs.ML"
-ML_file "Tools/spark_commands.ML"
+ML_file \<open>Tools/spark_vcs.ML\<close>
+ML_file \<open>Tools/spark_commands.ML\<close>
 
 end

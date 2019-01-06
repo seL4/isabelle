@@ -8,7 +8,7 @@ theory Reflection
 imports Main
 begin
 
-ML_file "~~/src/HOL/Tools/reflection.ML"
+ML_file \<open>~~/src/HOL/Tools/reflection.ML\<close>
 
 method_setup reify = \<open>
   Attrib.thms --

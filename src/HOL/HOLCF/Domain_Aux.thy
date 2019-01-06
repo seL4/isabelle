@@ -355,10 +355,10 @@ subsection \<open>ML setup\<close>
 named_theorems domain_deflation "theorems like deflation a ==> deflation (foo_map$a)"
   and domain_map_ID "theorems like foo_map$ID = ID"
 
-ML_file "Tools/Domain/domain_take_proofs.ML"
-ML_file "Tools/cont_consts.ML"
-ML_file "Tools/cont_proc.ML"
-ML_file "Tools/Domain/domain_constructors.ML"
-ML_file "Tools/Domain/domain_induction.ML"
+ML_file \<open>Tools/Domain/domain_take_proofs.ML\<close>
+ML_file \<open>Tools/cont_consts.ML\<close>
+ML_file \<open>Tools/cont_proc.ML\<close>
+ML_file \<open>Tools/Domain/domain_constructors.ML\<close>
+ML_file \<open>Tools/Domain/domain_induction.ML\<close>
 
 end

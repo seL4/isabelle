@@ -693,7 +693,7 @@ lemma inf_compl_bot_right [simp]: "inf x (inf y (- x)) = bot"
 
 end
 
-ML_file "Tools/boolean_algebra_cancel.ML"
+ML_file \<open>Tools/boolean_algebra_cancel.ML\<close>
 
 simproc_setup boolean_algebra_cancel_sup ("sup a b::'a::boolean_algebra") =
   \<open>fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_sup_conv\<close>

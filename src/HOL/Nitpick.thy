@@ -201,21 +201,21 @@ definition wf_wfrec' :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> '
 definition wfrec' ::  "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
   "wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x else THE y. wfrec_rel R (\<lambda>f x. F (cut f R x) x) x y"
 
-ML_file "Tools/Nitpick/kodkod.ML"
-ML_file "Tools/Nitpick/kodkod_sat.ML"
-ML_file "Tools/Nitpick/nitpick_util.ML"
-ML_file "Tools/Nitpick/nitpick_hol.ML"
-ML_file "Tools/Nitpick/nitpick_mono.ML"
-ML_file "Tools/Nitpick/nitpick_preproc.ML"
-ML_file "Tools/Nitpick/nitpick_scope.ML"
-ML_file "Tools/Nitpick/nitpick_peephole.ML"
-ML_file "Tools/Nitpick/nitpick_rep.ML"
-ML_file "Tools/Nitpick/nitpick_nut.ML"
-ML_file "Tools/Nitpick/nitpick_kodkod.ML"
-ML_file "Tools/Nitpick/nitpick_model.ML"
-ML_file "Tools/Nitpick/nitpick.ML"
-ML_file "Tools/Nitpick/nitpick_commands.ML"
-ML_file "Tools/Nitpick/nitpick_tests.ML"
+ML_file \<open>Tools/Nitpick/kodkod.ML\<close>
+ML_file \<open>Tools/Nitpick/kodkod_sat.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_util.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_hol.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_mono.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_preproc.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_scope.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_peephole.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_rep.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_nut.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_kodkod.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_model.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_commands.ML\<close>
+ML_file \<open>Tools/Nitpick/nitpick_tests.ML\<close>
 
 setup \<open>
   Nitpick_HOL.register_ersatz_global

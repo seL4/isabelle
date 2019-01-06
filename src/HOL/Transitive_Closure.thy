@@ -12,7 +12,7 @@ theory Transitive_Closure
     and "^=" = "\<^sup>=" "\<^sup>=\<^sup>="
 begin
 
-ML_file "~~/src/Provers/trancl.ML"
+ML_file \<open>~~/src/Provers/trancl.ML\<close>
 
 text \<open>
   \<open>rtrancl\<close> is reflexive/transitive closure,

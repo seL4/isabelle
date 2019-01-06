@@ -200,7 +200,7 @@ type_synonym string = "char list"
 syntax
   "_String" :: "str_position \<Rightarrow> string"    ("_")
 
-ML_file "Tools/string_syntax.ML"
+ML_file \<open>Tools/string_syntax.ML\<close>
 
 instantiation char :: enum
 begin
@@ -458,7 +458,7 @@ syntax
   "_Literal" :: "str_position \<Rightarrow> String.literal"   ("STR _")
   "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("STR _")
 
-ML_file "Tools/literal.ML"
+ML_file \<open>Tools/literal.ML\<close>
 
 
 subsubsection \<open>Operations\<close>

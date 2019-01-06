@@ -12,26 +12,26 @@ keywords
   "quickcheck_params" :: thy_decl
 begin
 
-ML_file "~~/src/Tools/misc_legacy.ML"
-ML_file "~~/src/Tools/try.ML"
-ML_file "~~/src/Tools/quickcheck.ML"
-ML_file "~~/src/Tools/solve_direct.ML"
-ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
-ML_file "~~/src/Tools/IsaPlanner/isand.ML"
-ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
-ML_file "~~/src/Provers/hypsubst.ML"
-ML_file "~~/src/Provers/splitter.ML"
-ML_file "~~/src/Provers/classical.ML"
-ML_file "~~/src/Provers/blast.ML"
-ML_file "~~/src/Provers/clasimp.ML"
-ML_file "~~/src/Tools/eqsubst.ML"
-ML_file "~~/src/Provers/quantifier1.ML"
-ML_file "~~/src/Tools/atomize_elim.ML"
-ML_file "~~/src/Tools/cong_tac.ML"
-ML_file "~~/src/Tools/intuitionistic.ML" setup \<open>Intuitionistic.method_setup \<^binding>\<open>iprover\<close>\<close>
-ML_file "~~/src/Tools/project_rule.ML"
-ML_file "~~/src/Tools/subtyping.ML"
-ML_file "~~/src/Tools/case_product.ML"
+ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
+ML_file \<open>~~/src/Tools/try.ML\<close>
+ML_file \<open>~~/src/Tools/quickcheck.ML\<close>
+ML_file \<open>~~/src/Tools/solve_direct.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
+ML_file \<open>~~/src/Provers/hypsubst.ML\<close>
+ML_file \<open>~~/src/Provers/splitter.ML\<close>
+ML_file \<open>~~/src/Provers/classical.ML\<close>
+ML_file \<open>~~/src/Provers/blast.ML\<close>
+ML_file \<open>~~/src/Provers/clasimp.ML\<close>
+ML_file \<open>~~/src/Tools/eqsubst.ML\<close>
+ML_file \<open>~~/src/Provers/quantifier1.ML\<close>
+ML_file \<open>~~/src/Tools/atomize_elim.ML\<close>
+ML_file \<open>~~/src/Tools/cong_tac.ML\<close>
+ML_file \<open>~~/src/Tools/intuitionistic.ML\<close> setup \<open>Intuitionistic.method_setup \<^binding>\<open>iprover\<close>\<close>
+ML_file \<open>~~/src/Tools/project_rule.ML\<close>
+ML_file \<open>~~/src/Tools/subtyping.ML\<close>
+ML_file \<open>~~/src/Tools/case_product.ML\<close>
 
 
 ML \<open>Plugin_Name.declare_setup \<^binding>\<open>extraction\<close>\<close>
@@ -776,7 +776,7 @@ lemma atomize_elimL[atomize_elim]: "(\<And>B. (A \<Longrightarrow> B) \<Longrigh
 
 subsection \<open>Package setup\<close>
 
-ML_file "Tools/hologic.ML"
+ML_file \<open>Tools/hologic.ML\<close>
 
 
 subsubsection \<open>Sledgehammer setup\<close>
@@ -1202,7 +1202,7 @@ lemma all_comm: "(\<forall>x y. P x y) = (\<forall>y x. P x y)"
 lemma ex_comm: "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
   by blast
 
-ML_file "Tools/simpdata.ML"
+ML_file \<open>Tools/simpdata.ML\<close>
 ML \<open>open Simpdata\<close>
 
 setup \<open>
@@ -1484,7 +1484,7 @@ lemma induct_trueI: "induct_true"
 
 text \<open>Method setup.\<close>
 
-ML_file "~~/src/Tools/induct.ML"
+ML_file \<open>~~/src/Tools/induct.ML\<close>
 ML \<open>
 structure Induct = Induct
 (
@@ -1499,7 +1499,7 @@ structure Induct = Induct
 )
 \<close>
 
-ML_file "~~/src/Tools/induction.ML"
+ML_file \<open>~~/src/Tools/induction.ML\<close>
 
 declaration \<open>
   fn _ => Induct.map_simpset (fn ss => ss
@@ -1584,12 +1584,12 @@ lemma [induct_simp]: "x = x \<longleftrightarrow> True"
 
 end
 
-ML_file "~~/src/Tools/induct_tacs.ML"
+ML_file \<open>~~/src/Tools/induct_tacs.ML\<close>
 
 
 subsubsection \<open>Coherent logic\<close>
 
-ML_file "~~/src/Tools/coherent.ML"
+ML_file \<open>~~/src/Tools/coherent.ML\<close>
 ML \<open>
 structure Coherent = Coherent
 (
@@ -1735,7 +1735,7 @@ val sym = @{thm sym}
 val trans = @{thm trans}
 \<close>
 
-ML_file "Tools/cnf.ML"
+ML_file \<open>Tools/cnf.ML\<close>
 
 
 section \<open>\<open>NO_MATCH\<close> simproc\<close>

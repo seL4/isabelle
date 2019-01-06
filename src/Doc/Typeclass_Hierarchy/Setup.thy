@@ -2,8 +2,8 @@ theory Setup
 imports Complex_Main "HOL-Library.Multiset" "HOL-Library.Lattice_Syntax"
 begin
 
-ML_file "../antiquote_setup.ML"
-ML_file "../more_antiquote.ML"
+ML_file \<open>../antiquote_setup.ML\<close>
+ML_file \<open>../more_antiquote.ML\<close>
 
 attribute_setup all =
   \<open>Scan.succeed (Thm.rule_attribute [] (K Drule.forall_intr_vars))\<close>

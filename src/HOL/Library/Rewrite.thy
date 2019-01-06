@@ -30,7 +30,7 @@ lemma imp_cong_eq:
    apply (drule Pure.equal_elim_rule1 Pure.equal_elim_rule2; assumption)+
   done
 
-ML_file "cconv.ML"
-ML_file "rewrite.ML"
+ML_file \<open>cconv.ML\<close>
+ML_file \<open>rewrite.ML\<close>
 
 end

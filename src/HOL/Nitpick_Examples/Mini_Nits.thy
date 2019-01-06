@@ -11,7 +11,7 @@ theory Mini_Nits
 imports Main
 begin
 
-ML_file "minipick.ML"
+ML_file \<open>minipick.ML\<close>
 
 nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1,
   total_consts = smart]

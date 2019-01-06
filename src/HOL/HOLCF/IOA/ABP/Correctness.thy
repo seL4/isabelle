@@ -8,7 +8,7 @@ theory Correctness
 imports IOA.IOA Env Impl Impl_finite
 begin
 
-ML_file "Check.ML"
+ML_file \<open>Check.ML\<close>
 
 primrec reduce :: "'a list => 'a list"
 where

@@ -8,7 +8,7 @@ theory HOHH
 imports HOL.HOL
 begin
 
-ML_file "prolog.ML"
+ML_file \<open>prolog.ML\<close>
 
 method_setup ptac =
   \<open>Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms))\<close>

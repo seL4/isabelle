@@ -8,13 +8,13 @@ theory TPTP_Parser
 imports Pure
 begin
 
-ML_file "TPTP_Parser/ml_yacc_lib.ML" (*generated from ML-Yacc's lib*)
+ML_file \<open>TPTP_Parser/ml_yacc_lib.ML\<close> (*generated from ML-Yacc's lib*)
 
-ML_file "TPTP_Parser/tptp_syntax.ML"
-ML_file "TPTP_Parser/tptp_lexyacc.ML" (*generated from tptp.lex and tptp.yacc*)
-ML_file "TPTP_Parser/tptp_parser.ML"
-ML_file "TPTP_Parser/tptp_problem_name.ML"
-ML_file "TPTP_Parser/tptp_proof.ML"
+ML_file \<open>TPTP_Parser/tptp_syntax.ML\<close>
+ML_file \<open>TPTP_Parser/tptp_lexyacc.ML\<close> (*generated from tptp.lex and tptp.yacc*)
+ML_file \<open>TPTP_Parser/tptp_parser.ML\<close>
+ML_file \<open>TPTP_Parser/tptp_problem_name.ML\<close>
+ML_file \<open>TPTP_Parser/tptp_proof.ML\<close>
 
 text \<open>The TPTP parser was generated using ML-Yacc, and needs the
 ML-Yacc library to operate.  This library is included with the parser,

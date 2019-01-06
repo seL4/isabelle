@@ -734,16 +734,18 @@ text \<open>
     example, ``\<open>@{term \<doublequote>x + y\<doublequote>}\<close>'' is replaced by
     ``\<open>\<^term>\<open>x + y\<close>\<close>'' (the control symbol is literally \<^verbatim>\<open>\<^term>\<close>.)
 
+    \<^item> @{system_option update_path_cartouches} to update file-system paths to
+    use cartouches: this depends on language markup provided by semantic
+    processing of parsed input.
+
   It is also possible to produce custom updates in Isabelle/ML, by reporting
   \<^ML>\<open>Markup.update\<close> with the precise source position and a replacement
   text. This operation should be made conditional on specific system options,
   similar to the ones above. Searching the above option names in ML sources of
   \<^dir>\<open>$ISABELLE_HOME/src/Pure\<close> provides some examples.
 
-  Different update options can be in conflict by producing overlapping edits:
-  this may require to run @{tool update} multiple times, but it is often
-  better to enable particular update options separately and commit the changes
-  one-by-one.
+  Updates can be in conflict by producing nested or overlapping edits: this
+  may require to run @{tool update} multiple times.
 \<close>
 
 
@@ -769,7 +771,7 @@ text \<open>
   separately with special options as follows:
 
   @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Proofs -B HOL-Proofs
-  -o record_proofs=2 -o parallel_proofs=0\<close>}
+  -o record_proofs=2\<close>}
 
   \<^smallskip> See also the end of \secref{sec:tool-dump} for hints on increasing
   Isabelle/ML heap sizes for very big PIDE processes that include many

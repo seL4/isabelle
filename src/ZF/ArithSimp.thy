@@ -9,9 +9,9 @@ theory ArithSimp
 imports Arith
 begin
 
-ML_file "~~/src/Provers/Arith/cancel_numerals.ML"
-ML_file "~~/src/Provers/Arith/combine_numerals.ML"
-ML_file "arith_data.ML"
+ML_file \<open>~~/src/Provers/Arith/cancel_numerals.ML\<close>
+ML_file \<open>~~/src/Provers/Arith/combine_numerals.ML\<close>
+ML_file \<open>arith_data.ML\<close>
 
 
 subsection\<open>Difference\<close>

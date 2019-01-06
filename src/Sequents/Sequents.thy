@@ -144,6 +144,6 @@ parse_translation \<open>[(\<^syntax_const>\<open>_Side\<close>, K side_tr)]\<cl
 
 subsection \<open>Proof tools\<close>
 
-ML_file "prover.ML"
+ML_file \<open>prover.ML\<close>
 
 end

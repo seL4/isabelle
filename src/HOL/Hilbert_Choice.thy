@@ -903,7 +903,7 @@ subsection \<open>Specification package -- Hilbertized version\<close>
 lemma exE_some: "Ex P \<Longrightarrow> c \<equiv> Eps P \<Longrightarrow> P c"
   by (simp only: someI_ex)
 
-ML_file "Tools/choice_specification.ML"
+ML_file \<open>Tools/choice_specification.ML\<close>
 
 subsection \<open>Complete Distributive Lattices -- Properties depending on Hilbert Choice\<close>
 

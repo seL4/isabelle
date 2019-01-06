@@ -9,16 +9,16 @@ imports Pure
 begin
 
 ML \<open>\<^assert> (not (can ML \<open>open RunCall\<close>))\<close>
-ML_file "~~/src/Tools/misc_legacy.ML"
-ML_file "~~/src/Provers/splitter.ML"
-ML_file "~~/src/Provers/hypsubst.ML"
-ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
-ML_file "~~/src/Tools/IsaPlanner/isand.ML"
-ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
-ML_file "~~/src/Provers/quantifier1.ML"
-ML_file "~~/src/Tools/intuitionistic.ML"
-ML_file "~~/src/Tools/project_rule.ML"
-ML_file "~~/src/Tools/atomize_elim.ML"
+ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
+ML_file \<open>~~/src/Provers/splitter.ML\<close>
+ML_file \<open>~~/src/Provers/hypsubst.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
+ML_file \<open>~~/src/Provers/quantifier1.ML\<close>
+ML_file \<open>~~/src/Tools/intuitionistic.ML\<close>
+ML_file \<open>~~/src/Tools/project_rule.ML\<close>
+ML_file \<open>~~/src/Tools/atomize_elim.ML\<close>
 
 
 subsection \<open>Syntax and axiomatic basis\<close>
@@ -582,7 +582,7 @@ structure Project_Rule = Project_Rule
 )
 \<close>
 
-ML_file "fologic.ML"
+ML_file \<open>fologic.ML\<close>
 
 lemma thin_refl: \<open>\<lbrakk>x = x; PROP W\<rbrakk> \<Longrightarrow> PROP W\<close> .
 
@@ -603,7 +603,7 @@ structure Hypsubst = Hypsubst
 open Hypsubst;
 \<close>
 
-ML_file "intprover.ML"
+ML_file \<open>intprover.ML\<close>
 
 
 subsection \<open>Intuitionistic Reasoning\<close>

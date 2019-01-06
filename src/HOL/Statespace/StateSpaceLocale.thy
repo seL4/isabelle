@@ -8,8 +8,8 @@ theory StateSpaceLocale imports StateFun
 keywords "statespace" :: thy_decl
 begin
 
-ML_file "state_space.ML"
-ML_file "state_fun.ML"
+ML_file \<open>state_space.ML\<close>
+ML_file \<open>state_fun.ML\<close>
 
 text \<open>For every type that is to be stored in a state space, an
 instance of this locale is imported in order convert the abstract and

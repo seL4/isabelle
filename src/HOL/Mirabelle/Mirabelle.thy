@@ -6,8 +6,8 @@ theory Mirabelle
 imports Main
 begin
 
-ML_file "Tools/mirabelle.ML"
-ML_file "../TPTP/sledgehammer_tactics.ML"
+ML_file \<open>Tools/mirabelle.ML\<close>
+ML_file \<open>../TPTP/sledgehammer_tactics.ML\<close>
 
 ML \<open>Toplevel.add_hook Mirabelle.step_hook\<close>
 

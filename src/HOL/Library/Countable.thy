@@ -200,7 +200,7 @@ end
 
 subsection \<open>Automatically proving countability of datatypes\<close>
 
-ML_file "../Tools/BNF/bnf_lfp_countable.ML"
+ML_file \<open>../Tools/BNF/bnf_lfp_countable.ML\<close>
 
 ML \<open>
 fun countable_datatype_tac ctxt st =

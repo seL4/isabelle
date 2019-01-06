@@ -8,7 +8,7 @@ theory MaSh_Eval
 imports MaSh_Export_Base
 begin
 
-ML_file "mash_eval.ML"
+ML_file \<open>mash_eval.ML\<close>
 
 sledgehammer_params
   [provers = e, max_facts = 64, strict, dont_slice, type_enc = poly_guards??,

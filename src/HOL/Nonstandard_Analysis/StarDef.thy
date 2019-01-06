@@ -99,7 +99,7 @@ definition star_of :: "'a \<Rightarrow> 'a star"
   where "star_of x \<equiv> star_n (\<lambda>n. x)"
 
 text \<open>Initialize transfer tactic.\<close>
-ML_file "transfer_principle.ML"
+ML_file \<open>transfer_principle.ML\<close>
 
 method_setup transfer =
   \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (Transfer_Principle.transfer_tac ctxt ths))\<close>
