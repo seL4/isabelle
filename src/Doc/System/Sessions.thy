@@ -740,10 +740,8 @@ text \<open>
   similar to the ones above. Searching the above option names in ML sources of
   \<^dir>\<open>$ISABELLE_HOME/src/Pure\<close> provides some examples.
 
-  Different update options can be in conflict by producing overlapping edits:
-  this may require to run @{tool update} multiple times, but it is often
-  better to enable particular update options separately and commit the changes
-  one-by-one.
+  Updates can be in conflict by producing nested or overlapping edits: this
+  may require to run @{tool update} multiple times.
 \<close>
 
 
