@@ -132,11 +132,6 @@ lemma openin_subset_trans:
     openin (subtopology euclidean T) S"
   by (auto simp: openin_open)
 
-lemma openin_Times:
-  "openin (subtopology euclidean S) S' \<Longrightarrow> openin (subtopology euclidean T) T' \<Longrightarrow>
-    openin (subtopology euclidean (S \<times> T)) (S' \<times> T')"
-  unfolding openin_open using open_Times by blast
-
 lemma closedin_compact:
    "\<lbrakk>compact S; closedin (subtopology euclidean S) T\<rbrakk> \<Longrightarrow> compact T"
 by (metis closedin_closed compact_Int_closed)
@@ -178,6 +173,22 @@ corollary infinite_openin:
   fixes S :: "'a :: t1_space set"
   shows "\<lbrakk>openin (subtopology euclidean U) S; x \<in> S; x islimpt U\<rbrakk> \<Longrightarrow> infinite S"
   by (clarsimp simp add: openin_open islimpt_eq_acc_point inf_commute)
+
+lemma closure_Int_ballI:
+  assumes "\<And>U. \<lbrakk>openin (subtopology euclidean S) U; U \<noteq> {}\<rbrakk> \<Longrightarrow> T \<inter> U \<noteq> {}"
+  shows "S \<subseteq> closure T"
+proof (clarsimp simp: closure_iff_nhds_not_empty)
+  fix x and A and V
+  assume "x \<in> S" "V \<subseteq> A" "open V" "x \<in> V" "T \<inter> A = {}"
+  then have "openin (subtopology euclidean S) (A \<inter> V \<inter> S)"
+    by (auto simp: openin_open intro!: exI[where x="V"])
+  moreover have "A \<inter> V \<inter> S \<noteq> {}" using \<open>x \<in> V\<close> \<open>V \<subseteq> A\<close> \<open>x \<in> S\<close>
+    by auto
+  ultimately have "T \<inter> (A \<inter> V \<inter> S) \<noteq> {}"
+    by (rule assms)
+  with \<open>T \<inter> A = {}\<close> show False by auto
+qed
+
 
 subsection \<open>Frontier\<close>
 
