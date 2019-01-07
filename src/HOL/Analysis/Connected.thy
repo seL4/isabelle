@@ -646,13 +646,13 @@ using assms unfolding homeomorphic_def homeomorphism_def by (metis connected_con
 subsection\<open>Various separability-type properties\<close>
 
 lemma univ_second_countable:
-  obtains \<B> :: "'a::euclidean_space set set"
+  obtains \<B> :: "'a::second_countable_topology set set"
   where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
        "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
 by (metis ex_countable_basis topological_basis_def)
 
 lemma subset_second_countable:
-  obtains \<B> :: "'a:: euclidean_space set set"
+  obtains \<B> :: "'a:: second_countable_topology set set"
     where "countable \<B>"
           "{} \<notin> \<B>"
           "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
@@ -729,10 +729,10 @@ proof -
 qed
 
 proposition separable:
-  fixes S :: "'a:: euclidean_space set"
+  fixes S :: "'a::{metric_space, second_countable_topology} set"
   obtains T where "countable T" "T \<subseteq> S" "S \<subseteq> closure T"
 proof -
-  obtain \<B> :: "'a:: euclidean_space set set"
+  obtain \<B> :: "'a set set"
     where "countable \<B>"
       and "{} \<notin> \<B>"
       and ope: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
@@ -775,7 +775,7 @@ proof -
 qed
 
 proposition Lindelof:
-  fixes \<F> :: "'a::euclidean_space set set"
+  fixes \<F> :: "'a::second_countable_topology set set"
   assumes \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> open S"
   obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
 proof -
@@ -806,7 +806,7 @@ proof -
 qed
 
 lemma Lindelof_openin:
-  fixes \<F> :: "'a::euclidean_space set set"
+  fixes \<F> :: "'a::second_countable_topology set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean U) S"
   obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
 proof -
@@ -824,7 +824,7 @@ proof -
 qed
 
 lemma countable_disjoint_open_subsets:
-  fixes \<F> :: "'a::euclidean_space set set"
+  fixes \<F> :: "'a::second_countable_topology set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> open S" and pw: "pairwise disjnt \<F>"
     shows "countable \<F>"
 proof -
@@ -837,7 +837,7 @@ proof -
 qed
 
 lemma countable_disjoint_nonempty_interior_subsets:
-  fixes \<F> :: "'a::euclidean_space set set"
+  fixes \<F> :: "'a::second_countable_topology set set"
   assumes pw: "pairwise disjnt \<F>" and int: "\<And>S. \<lbrakk>S \<in> \<F>; interior S = {}\<rbrakk> \<Longrightarrow> S = {}"
   shows "countable \<F>"
 proof (rule countable_image_inj_on)
