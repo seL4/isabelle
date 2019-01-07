@@ -10,7 +10,7 @@ section \<open>Convex Sets and Functions\<close>
 
 theory Convex_Euclidean_Space
 imports
-  Connected
+  Topology_Euclidean_Space
   "HOL-Library.Set_Algebras"
 begin
 

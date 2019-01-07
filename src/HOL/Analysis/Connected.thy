@@ -2,11 +2,11 @@
     Material split off from Topology_Euclidean_Space
 *)
 
-section \<open>Connected Components, Homeomorphisms, Baire property, etc\<close>
+section \<open>Connected Components\<close>
 
 theory Connected
   imports
-    Topology_Euclidean_Space
+    Abstract_Topology_2
 begin
 
 subsection%unimportant \<open>Connectedness\<close>
@@ -65,12 +65,6 @@ proof -
   then show ?thesis
     by (simp add: th0 th1)
 qed
-
-lemma connected_linear_image:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "linear f" and "connected s"
-  shows "connected (f ` s)"
-using connected_continuous_image assms linear_continuous_on linear_conv_bounded_linear by blast
 
 subsection \<open>Connected components, considered as a connectedness relation or a set\<close>
 
@@ -324,11 +318,6 @@ lemma joinable_components_eq:
 
 lemma closed_components: "\<lbrakk>closed s; c \<in> components s\<rbrakk> \<Longrightarrow> closed c"
   by (metis closed_connected_component components_iff)
-
-lemma compact_components:
-  fixes s :: "'a::heine_borel set"
-  shows "\<lbrakk>compact s; c \<in> components s\<rbrakk> \<Longrightarrow> compact c"
-by (meson bounded_subset closed_components in_components_subset compact_eq_bounded_closed)
 
 lemma components_nonoverlap:
     "\<lbrakk>c \<in> components s; c' \<in> components s\<rbrakk> \<Longrightarrow> (c \<inter> c' = {}) \<longleftrightarrow> (c \<noteq> c')"
@@ -722,38 +711,6 @@ next
     unfolding constant_on_def by blast
 qed
 
-lemma discrete_subset_disconnected:
-  fixes S :: "'a::topological_space set"
-  fixes t :: "'b::real_normed_vector set"
-  assumes conf: "continuous_on S f"
-      and no: "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
-   shows "f ` S \<subseteq> {y. connected_component_set (f ` S) y = {y}}"
-proof -
-  { fix x assume x: "x \<in> S"
-    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> S; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
-      using conf no [OF x] by auto
-    then have e2: "0 \<le> e / 2"
-      by simp
-    have "f y = f x" if "y \<in> S" and ccs: "f y \<in> connected_component_set (f ` S) (f x)" for y
-      apply (rule ccontr)
-      using connected_closed [of "connected_component_set (f ` S) (f x)"] \<open>e>0\<close>
-      apply (simp add: del: ex_simps)
-      apply (drule spec [where x="cball (f x) (e / 2)"])
-      apply (drule spec [where x="- ball(f x) e"])
-      apply (auto simp: dist_norm open_closed [symmetric] simp del: le_divide_eq_numeral1 dest!: connected_component_in)
-        apply (metis diff_self e2 ele norm_minus_commute norm_zero not_less)
-       using centre_in_cball connected_component_refl_eq e2 x apply blast
-      using ccs
-      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF \<open>y \<in> S\<close>])
-      done
-    moreover have "connected_component_set (f ` S) (f x) \<subseteq> f ` S"
-      by (auto simp: connected_component_in)
-    ultimately have "connected_component_set (f ` S) (f x) = {f x}"
-      by (auto simp: x)
-  }
-  with assms show ?thesis
-    by blast
-qed
 
 text\<open>This proof requires the existence of two separate values of the range type.\<close>
 lemma finite_range_constant_imp_connected:
@@ -780,53 +737,5 @@ proof -
   then show ?thesis
     by (simp add: connected_closedin_eq)
 qed
-
-lemma continuous_disconnected_range_constant_eq:
-      "(connected S \<longleftrightarrow>
-           (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-            \<forall>t. continuous_on S f \<and> f ` S \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
-            \<longrightarrow> f constant_on S))" (is ?thesis1)
-  and continuous_discrete_range_constant_eq:
-      "(connected S \<longleftrightarrow>
-         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-          continuous_on S f \<and>
-          (\<forall>x \<in> S. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> S \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
-          \<longrightarrow> f constant_on S))" (is ?thesis2)
-  and continuous_finite_range_constant_eq:
-      "(connected S \<longleftrightarrow>
-         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
-          continuous_on S f \<and> finite (f ` S)
-          \<longrightarrow> f constant_on S))" (is ?thesis3)
-proof -
-  have *: "\<And>s t u v. \<lbrakk>s \<Longrightarrow> t; t \<Longrightarrow> u; u \<Longrightarrow> v; v \<Longrightarrow> s\<rbrakk>
-    \<Longrightarrow> (s \<longleftrightarrow> t) \<and> (s \<longleftrightarrow> u) \<and> (s \<longleftrightarrow> v)"
-    by blast
-  have "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
-    apply (rule *)
-    using continuous_disconnected_range_constant apply metis
-    apply clarify
-    apply (frule discrete_subset_disconnected; blast)
-    apply (blast dest: finite_implies_discrete)
-    apply (blast intro!: finite_range_constant_imp_connected)
-    done
-  then show ?thesis1 ?thesis2 ?thesis3
-    by blast+
-qed
-
-lemma continuous_discrete_range_constant:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
-  assumes S: "connected S"
-      and "continuous_on S f"
-      and "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
-    shows "f constant_on S"
-  using continuous_discrete_range_constant_eq [THEN iffD1, OF S] assms by blast
-
-lemma continuous_finite_range_constant:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
-  assumes "connected S"
-      and "continuous_on S f"
-      and "finite (f ` S)"
-    shows "f constant_on S"
-  using assms continuous_finite_range_constant_eq  by blast
 
 end

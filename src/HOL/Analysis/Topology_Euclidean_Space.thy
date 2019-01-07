@@ -1954,7 +1954,7 @@ lemma diameter_cbox:
      simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
 
 
-subsection%unimportant\<open>Relating linear images to open/closed/interior/closure\<close>
+subsection%unimportant\<open>Relating linear images to open/closed/interior/closure/connected\<close>
 
 proposition open_surjective_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
@@ -2055,6 +2055,13 @@ lemma interior_negations:
   fixes S :: "'a::euclidean_space set"
   shows "interior(uminus ` S) = image uminus (interior S)"
   by (simp add: bij_uminus interior_bijective_linear_image linear_uminus)
+
+lemma connected_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "linear f" and "connected s"
+  shows "connected (f ` s)"
+using connected_continuous_image assms linear_continuous_on linear_conv_bounded_linear by blast
+
 
 subsection%unimportant \<open>"Isometry" (up to constant bounds) of Injective Linear Map\<close>
 

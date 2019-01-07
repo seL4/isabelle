@@ -6,7 +6,7 @@
 section%important \<open>Tagged divisions used for the Henstock-Kurzweil gauge integration\<close>
 (*FIXME move together with Henstock_Kurzweil_Integration.thy  *)
 theory Tagged_Division
-  imports Connected
+  imports Topology_Euclidean_Space
 begin
 
 term comm_monoid
