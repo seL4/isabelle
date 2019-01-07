@@ -5,7 +5,7 @@
 section%important \<open>Homeomorphism Theorems\<close>
 
 theory Homeomorphism
-imports Path_Connected
+imports Homotopy
 begin
 
 lemma%unimportant homeomorphic_spheres':
