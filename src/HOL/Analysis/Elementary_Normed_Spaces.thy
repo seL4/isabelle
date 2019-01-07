@@ -1573,6 +1573,36 @@ proposition homeomorphic_ball_UNIV:
   using assms homeomorphic_ball01_UNIV homeomorphic_balls(1) homeomorphic_trans zero_less_one by blast
 
 
+subsection%unimportant \<open>Discrete\<close>
+
+lemma finite_implies_discrete:
+  fixes S :: "'a::topological_space set"
+  assumes "finite (f ` S)"
+  shows "(\<forall>x \<in> S. \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x))"
+proof -
+  have "\<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)" if "x \<in> S" for x
+  proof (cases "f ` S - {f x} = {}")
+    case True
+    with zero_less_numeral show ?thesis
+      by (fastforce simp add: Set.image_subset_iff cong: conj_cong)
+  next
+    case False
+    then obtain z where z: "z \<in> S" "f z \<noteq> f x"
+      by blast
+    have finn: "finite {norm (z - f x) |z. z \<in> f ` S - {f x}}"
+      using assms by simp
+    then have *: "0 < Inf{norm(z - f x) | z. z \<in> f ` S - {f x}}"
+      apply (rule finite_imp_less_Inf)
+      using z apply force+
+      done
+    show ?thesis
+      by (force intro!: * cInf_le_finite [OF finn])
+  qed
+  with assms show ?thesis
+    by blast
+qed
+
+
 subsection%unimportant \<open>Completeness of "Isometry" (up to constant bounds)\<close>
 
 lemma cauchy_isometric:\<comment> \<open>TODO: rename lemma to \<open>Cauchy_isometric\<close>\<close>

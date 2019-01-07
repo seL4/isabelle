@@ -1586,6 +1586,313 @@ next
 qed
 
 
+subsection%unimportant\<open>Componentwise limits and continuity\<close>
+
+text\<open>But is the premise really necessary? Need to generalise @{thm euclidean_dist_l2}\<close>
+lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
+  by (metis (no_types) member_le_L2_set euclidean_dist_l2 finite_Basis)
+
+text\<open>But is the premise \<^term>\<open>i \<in> Basis\<close> really necessary?\<close>
+lemma open_preimage_inner:
+  assumes "open S" "i \<in> Basis"
+    shows "open {x. x \<bullet> i \<in> S}"
+proof (rule openI, simp)
+  fix x
+  assume x: "x \<bullet> i \<in> S"
+  with assms obtain e where "0 < e" and e: "ball (x \<bullet> i) e \<subseteq> S"
+    by (auto simp: open_contains_ball_eq)
+  have "\<exists>e>0. ball (y \<bullet> i) e \<subseteq> S" if dxy: "dist x y < e / 2" for y
+  proof (intro exI conjI)
+    have "dist (x \<bullet> i) (y \<bullet> i) < e / 2"
+      by (meson \<open>i \<in> Basis\<close> dual_order.trans Euclidean_dist_upper not_le that)
+    then have "dist (x \<bullet> i) z < e" if "dist (y \<bullet> i) z < e / 2" for z
+      by (metis dist_commute dist_triangle_half_l that)
+    then have "ball (y \<bullet> i) (e / 2) \<subseteq> ball (x \<bullet> i) e"
+      using mem_ball by blast
+      with e show "ball (y \<bullet> i) (e / 2) \<subseteq> S"
+        by (metis order_trans)
+  qed (simp add: \<open>0 < e\<close>)
+  then show "\<exists>e>0. ball x e \<subseteq> {s. s \<bullet> i \<in> S}"
+    by (metis (no_types, lifting) \<open>0 < e\<close> \<open>open S\<close> half_gt_zero_iff mem_Collect_eq mem_ball open_contains_ball_eq subsetI)
+qed
+
+proposition tendsto_componentwise_iff:
+  fixes f :: "_ \<Rightarrow> 'b::euclidean_space"
+  shows "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>i \<in> Basis. ((\<lambda>x. (f x \<bullet> i)) \<longlongrightarrow> (l \<bullet> i)) F)"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    unfolding tendsto_def
+    apply clarify
+    apply (drule_tac x="{s. s \<bullet> i \<in> S}" in spec)
+    apply (auto simp: open_preimage_inner)
+    done
+next
+  assume R: ?rhs
+  then have "\<And>e. e > 0 \<Longrightarrow> \<forall>i\<in>Basis. \<forall>\<^sub>F x in F. dist (f x \<bullet> i) (l \<bullet> i) < e"
+    unfolding tendsto_iff by blast
+  then have R': "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e"
+      by (simp add: eventually_ball_finite_distrib [symmetric])
+  show ?lhs
+  unfolding tendsto_iff
+  proof clarify
+    fix e::real
+    assume "0 < e"
+    have *: "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e"
+             if "\<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / real DIM('b)" for x
+    proof -
+      have "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis \<le> sum (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis"
+        by (simp add: L2_set_le_sum)
+      also have "... < DIM('b) * (e / real DIM('b))"
+        apply (rule sum_bounded_above_strict)
+        using that by auto
+      also have "... = e"
+        by (simp add: field_simps)
+      finally show "L2_set (\<lambda>i. dist (f x \<bullet> i) (l \<bullet> i)) Basis < e" .
+    qed
+    have "\<forall>\<^sub>F x in F. \<forall>i\<in>Basis. dist (f x \<bullet> i) (l \<bullet> i) < e / DIM('b)"
+      apply (rule R')
+      using \<open>0 < e\<close> by simp
+    then show "\<forall>\<^sub>F x in F. dist (f x) l < e"
+      apply (rule eventually_mono)
+      apply (subst euclidean_dist_l2)
+      using * by blast
+  qed
+qed
+
+
+corollary continuous_componentwise:
+   "continuous F f \<longleftrightarrow> (\<forall>i \<in> Basis. continuous F (\<lambda>x. (f x \<bullet> i)))"
+by (simp add: continuous_def tendsto_componentwise_iff [symmetric])
+
+corollary continuous_on_componentwise:
+  fixes S :: "'a :: t2_space set"
+  shows "continuous_on S f \<longleftrightarrow> (\<forall>i \<in> Basis. continuous_on S (\<lambda>x. (f x \<bullet> i)))"
+  apply (simp add: continuous_on_eq_continuous_within)
+  using continuous_componentwise by blast
+
+lemma linear_componentwise_iff:
+     "(linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. linear (\<lambda>x. f' x \<bullet> i))"
+  apply (auto simp: linear_iff inner_left_distrib)
+   apply (metis inner_left_distrib euclidean_eq_iff)
+  by (metis euclidean_eqI inner_scaleR_left)
+
+lemma bounded_linear_componentwise_iff:
+     "(bounded_linear f') \<longleftrightarrow> (\<forall>i\<in>Basis. bounded_linear (\<lambda>x. f' x \<bullet> i))"
+     (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (simp add: bounded_linear_inner_left_comp)
+next
+  assume ?rhs
+  then have "(\<forall>i\<in>Basis. \<exists>K. \<forall>x. \<bar>f' x \<bullet> i\<bar> \<le> norm x * K)" "linear f'"
+    by (auto simp: bounded_linear_def bounded_linear_axioms_def linear_componentwise_iff [symmetric] ball_conj_distrib)
+  then obtain F where F: "\<And>i x. i \<in> Basis \<Longrightarrow> \<bar>f' x \<bullet> i\<bar> \<le> norm x * F i"
+    by metis
+  have "norm (f' x) \<le> norm x * sum F Basis" for x
+  proof -
+    have "norm (f' x) \<le> (\<Sum>i\<in>Basis. \<bar>f' x \<bullet> i\<bar>)"
+      by (rule norm_le_l1)
+    also have "... \<le> (\<Sum>i\<in>Basis. norm x * F i)"
+      by (metis F sum_mono)
+    also have "... = norm x * sum F Basis"
+      by (simp add: sum_distrib_left)
+    finally show ?thesis .
+  qed
+  then show ?lhs
+    by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
+qed
+
+subsection%unimportant \<open>Continuous Extension\<close>
+
+definition clamp :: "'a::euclidean_space \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "clamp a b x = (if (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)
+    then (\<Sum>i\<in>Basis. (if x\<bullet>i < a\<bullet>i then a\<bullet>i else if x\<bullet>i \<le> b\<bullet>i then x\<bullet>i else b\<bullet>i) *\<^sub>R i)
+    else a)"
+
+lemma clamp_in_interval[simp]:
+  assumes "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
+  shows "clamp a b x \<in> cbox a b"
+  unfolding clamp_def
+  using box_ne_empty(1)[of a b] assms by (auto simp: cbox_def)
+
+lemma clamp_cancel_cbox[simp]:
+  fixes x a b :: "'a::euclidean_space"
+  assumes x: "x \<in> cbox a b"
+  shows "clamp a b x = x"
+  using assms
+  by (auto simp: clamp_def mem_box intro!: euclidean_eqI[where 'a='a])
+
+lemma clamp_empty_interval:
+  assumes "i \<in> Basis" "a \<bullet> i > b \<bullet> i"
+  shows "clamp a b = (\<lambda>_. a)"
+  using assms
+  by (force simp: clamp_def[abs_def] split: if_splits intro!: ext)
+
+lemma dist_clamps_le_dist_args:
+  fixes x :: "'a::euclidean_space"
+  shows "dist (clamp a b y) (clamp a b x) \<le> dist y x"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  then have "(\<Sum>i\<in>Basis. (dist (clamp a b y \<bullet> i) (clamp a b x \<bullet> i))\<^sup>2) \<le>
+    (\<Sum>i\<in>Basis. (dist (y \<bullet> i) (x \<bullet> i))\<^sup>2)"
+    by (auto intro!: sum_mono simp: clamp_def dist_real_def abs_le_square_iff[symmetric])
+  then show ?thesis
+    by (auto intro: real_sqrt_le_mono
+      simp: euclidean_dist_l2[where y=x] euclidean_dist_l2[where y="clamp a b x"] L2_set_def)
+qed (auto simp: clamp_def)
+
+lemma clamp_continuous_at:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+    and x :: 'a
+  assumes f_cont: "continuous_on (cbox a b) f"
+  shows "continuous (at x) (\<lambda>x. f (clamp a b x))"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  show ?thesis
+    unfolding continuous_at_eps_delta
+  proof safe
+    fix x :: 'a
+    fix e :: real
+    assume "e > 0"
+    moreover have "clamp a b x \<in> cbox a b"
+      by (simp add: clamp_in_interval le)
+    moreover note f_cont[simplified continuous_on_iff]
+    ultimately
+    obtain d where d: "0 < d"
+      "\<And>x'. x' \<in> cbox a b \<Longrightarrow> dist x' (clamp a b x) < d \<Longrightarrow> dist (f x') (f (clamp a b x)) < e"
+      by force
+    show "\<exists>d>0. \<forall>x'. dist x' x < d \<longrightarrow>
+      dist (f (clamp a b x')) (f (clamp a b x)) < e"
+      using le
+      by (auto intro!: d clamp_in_interval dist_clamps_le_dist_args[THEN le_less_trans])
+  qed
+qed (auto simp: clamp_empty_interval)
+
+lemma clamp_continuous_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+  assumes f_cont: "continuous_on (cbox a b) f"
+  shows "continuous_on S (\<lambda>x. f (clamp a b x))"
+  using assms
+  by (auto intro: continuous_at_imp_continuous_on clamp_continuous_at)
+
+lemma clamp_bounded:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::metric_space"
+  assumes bounded: "bounded (f ` (cbox a b))"
+  shows "bounded (range (\<lambda>x. f (clamp a b x)))"
+proof cases
+  assume le: "(\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  from bounded obtain c where f_bound: "\<forall>x\<in>f ` cbox a b. dist undefined x \<le> c"
+    by (auto simp: bounded_any_center[where a=undefined])
+  then show ?thesis
+    by (auto intro!: exI[where x=c] clamp_in_interval[OF le[rule_format]]
+        simp: bounded_any_center[where a=undefined])
+qed (auto simp: clamp_empty_interval image_def)
+
+
+definition ext_cont :: "('a::euclidean_space \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b"
+  where "ext_cont f a b = (\<lambda>x. f (clamp a b x))"
+
+lemma ext_cont_cancel_cbox[simp]:
+  fixes x a b :: "'a::euclidean_space"
+  assumes x: "x \<in> cbox a b"
+  shows "ext_cont f a b x = f x"
+  using assms
+  unfolding ext_cont_def
+  by (auto simp: clamp_def mem_box intro!: euclidean_eqI[where 'a='a] arg_cong[where f=f])
+
+lemma continuous_on_ext_cont[continuous_intros]:
+  "continuous_on (cbox a b) f \<Longrightarrow> continuous_on S (ext_cont f a b)"
+  by (auto intro!: clamp_continuous_on simp: ext_cont_def)
+
+
+subsection \<open>Separability\<close>
+
+lemma univ_second_countable_sequence:
+  obtains B :: "nat \<Rightarrow> 'a::euclidean_space set"
+    where "inj B" "\<And>n. open(B n)" "\<And>S. open S \<Longrightarrow> \<exists>k. S = \<Union>{B n |n. n \<in> k}"
+proof -
+  obtain \<B> :: "'a set set"
+  where "countable \<B>"
+    and opn: "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+    and Un: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+    using univ_second_countable by blast
+  have *: "infinite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
+    apply (rule Infinite_Set.range_inj_infinite)
+    apply (simp add: inj_on_def ball_eq_ball_iff)
+    done
+  have "infinite \<B>"
+  proof
+    assume "finite \<B>"
+    then have "finite (Union ` (Pow \<B>))"
+      by simp
+    then have "finite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
+      apply (rule rev_finite_subset)
+      by (metis (no_types, lifting) PowI image_eqI image_subset_iff Un [OF open_ball])
+    with * show False by simp
+  qed
+  obtain f :: "nat \<Rightarrow> 'a set" where "\<B> = range f" "inj f"
+    by (blast intro: countable_as_injective_image [OF \<open>countable \<B>\<close> \<open>infinite \<B>\<close>])
+  have *: "\<exists>k. S = \<Union>{f n |n. n \<in> k}" if "open S" for S
+    using Un [OF that]
+    apply clarify
+    apply (rule_tac x="f-`U" in exI)
+    using \<open>inj f\<close> \<open>\<B> = range f\<close> apply force
+    done
+  show ?thesis
+    apply (rule that [OF \<open>inj f\<close> _ *])
+    apply (auto simp: \<open>\<B> = range f\<close> opn)
+    done
+qed
+
+proposition separable:
+  fixes S :: "'a::{metric_space, second_countable_topology} set"
+  obtains T where "countable T" "T \<subseteq> S" "S \<subseteq> closure T"
+proof -
+  obtain \<B> :: "'a set set"
+    where "countable \<B>"
+      and "{} \<notin> \<B>"
+      and ope: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+      and if_ope: "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+    by (meson subset_second_countable)
+  then obtain f where f: "\<And>C. C \<in> \<B> \<Longrightarrow> f C \<in> C"
+    by (metis equals0I)
+  show ?thesis
+  proof
+    show "countable (f ` \<B>)"
+      by (simp add: \<open>countable \<B>\<close>)
+    show "f ` \<B> \<subseteq> S"
+      using ope f openin_imp_subset by blast
+    show "S \<subseteq> closure (f ` \<B>)"
+    proof (clarsimp simp: closure_approachable)
+      fix x and e::real
+      assume "x \<in> S" "0 < e"
+      have "openin (subtopology euclidean S) (S \<inter> ball x e)"
+        by (simp add: openin_Int_open)
+      with if_ope obtain \<U> where  \<U>: "\<U> \<subseteq> \<B>" "S \<inter> ball x e = \<Union>\<U>"
+        by meson
+      show "\<exists>C \<in> \<B>. dist (f C) x < e"
+      proof (cases "\<U> = {}")
+        case True
+        then show ?thesis
+          using \<open>0 < e\<close>  \<U> \<open>x \<in> S\<close> by auto
+      next
+        case False
+        then obtain C where "C \<in> \<U>" by blast
+        show ?thesis
+        proof
+          show "dist (f C) x < e"
+            by (metis Int_iff Union_iff \<U> \<open>C \<in> \<U>\<close> dist_commute f mem_ball subsetCE)
+          show "C \<in> \<B>"
+            using \<open>\<U> \<subseteq> \<B>\<close> \<open>C \<in> \<U>\<close> by blast
+        qed
+      qed
+    qed
+  qed
+qed
+
+
 subsection%unimportant \<open>Diameter\<close>
 
 lemma diameter_cball [simp]:

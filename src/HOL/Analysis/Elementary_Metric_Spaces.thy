@@ -85,6 +85,18 @@ lemma openin_Times:
     openin (subtopology euclidean (S \<times> T)) (S' \<times> T')"
   unfolding openin_open using open_Times by blast
 
+lemma closedin_compact:
+   "\<lbrakk>compact S; closedin (subtopology euclidean S) T\<rbrakk> \<Longrightarrow> compact T"
+by (metis closedin_closed compact_Int_closed)
+
+lemma closedin_compact_eq:
+  fixes S :: "'a::t2_space set"
+  shows
+   "compact S
+         \<Longrightarrow> (closedin (subtopology euclidean S) T \<longleftrightarrow>
+              compact T \<and> T \<subseteq> S)"
+by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
+
 
 subsubsection \<open>Closure\<close>
 
@@ -393,6 +405,310 @@ proof -
     by (metis hom homeomorphism_def)
   ultimately show ?thesis
     by (simp add: continuous_on_closed oo)
+qed
+
+subsubsection%unimportant \<open>Seperability\<close>
+
+lemma subset_second_countable:
+  obtains \<B> :: "'a:: second_countable_topology set set"
+    where "countable \<B>"
+          "{} \<notin> \<B>"
+          "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+          "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+proof -
+  obtain \<B> :: "'a set set"
+    where "countable \<B>"
+      and opeB: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
+      and \<B>:    "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+  proof -
+    obtain \<C> :: "'a set set"
+      where "countable \<C>" and ope: "\<And>C. C \<in> \<C> \<Longrightarrow> open C"
+        and \<C>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<C> \<and> S = \<Union>U"
+      by (metis univ_second_countable that)
+    show ?thesis
+    proof
+      show "countable ((\<lambda>C. S \<inter> C) ` \<C>)"
+        by (simp add: \<open>countable \<C>\<close>)
+      show "\<And>C. C \<in> (\<inter>) S ` \<C> \<Longrightarrow> openin (subtopology euclidean S) C"
+        using ope by auto
+      show "\<And>T. openin (subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>\<subseteq>(\<inter>) S ` \<C>. T = \<Union>\<U>"
+        by (metis \<C> image_mono inf_Sup openin_open)
+    qed
+  qed
+  show ?thesis
+  proof
+    show "countable (\<B> - {{}})"
+      using \<open>countable \<B>\<close> by blast
+    show "\<And>C. \<lbrakk>C \<in> \<B> - {{}}\<rbrakk> \<Longrightarrow> openin (subtopology euclidean S) C"
+      by (simp add: \<open>\<And>C. C \<in> \<B> \<Longrightarrow> openin (subtopology euclidean S) C\<close>)
+    show "\<exists>\<U>\<subseteq>\<B> - {{}}. T = \<Union>\<U>" if "openin (subtopology euclidean S) T" for T
+      using \<B> [OF that]
+      apply clarify
+      apply (rule_tac x="\<U> - {{}}" in exI, auto)
+        done
+  qed auto
+qed
+
+lemma Lindelof_openin:
+  fixes \<F> :: "'a::second_countable_topology set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean U) S"
+  obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+proof -
+  have "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>T. open T \<and> S = U \<inter> T"
+    using assms by (simp add: openin_open)
+  then obtain tf where tf: "\<And>S. S \<in> \<F> \<Longrightarrow> open (tf S) \<and> (S = U \<inter> tf S)"
+    by metis
+  have [simp]: "\<And>\<F>'. \<F>' \<subseteq> \<F> \<Longrightarrow> \<Union>\<F>' = U \<inter> \<Union>(tf ` \<F>')"
+    using tf by fastforce
+  obtain \<G> where "countable \<G> \<and> \<G> \<subseteq> tf ` \<F>" "\<Union>\<G> = \<Union>(tf ` \<F>)"
+    using tf by (force intro: Lindelof [of "tf ` \<F>"])
+  then obtain \<F>' where \<F>': "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+    by (clarsimp simp add: countable_subset_image)
+  then show ?thesis ..
+qed
+
+
+subsubsection%unimportant\<open>Closed Maps\<close>
+
+lemma continuous_imp_closed_map:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::t2_space"
+  assumes "closedin (subtopology euclidean S) U"
+          "continuous_on S f" "f ` S = T" "compact S"
+    shows "closedin (subtopology euclidean T) (f ` U)"
+  by (metis assms closedin_compact_eq compact_continuous_image continuous_on_subset subset_image_iff)
+
+lemma closed_map_restrict:
+  assumes cloU: "closedin (subtopology euclidean (S \<inter> f -` T')) U"
+    and cc: "\<And>U. closedin (subtopology euclidean S) U \<Longrightarrow> closedin (subtopology euclidean T) (f ` U)"
+    and "T' \<subseteq> T"
+  shows "closedin (subtopology euclidean T') (f ` U)"
+proof -
+  obtain V where "closed V" "U = S \<inter> f -` T' \<inter> V"
+    using cloU by (auto simp: closedin_closed)
+  with cc [of "S \<inter> V"] \<open>T' \<subseteq> T\<close> show ?thesis
+    by (fastforce simp add: closedin_closed)
+qed
+
+subsubsection%unimportant\<open>Open Maps\<close>
+
+lemma open_map_restrict:
+  assumes opeU: "openin (subtopology euclidean (S \<inter> f -` T')) U"
+    and oo: "\<And>U. openin (subtopology euclidean S) U \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
+    and "T' \<subseteq> T"
+  shows "openin (subtopology euclidean T') (f ` U)"
+proof -
+  obtain V where "open V" "U = S \<inter> f -` T' \<inter> V"
+    using opeU by (auto simp: openin_open)
+  with oo [of "S \<inter> V"] \<open>T' \<subseteq> T\<close> show ?thesis
+    by (fastforce simp add: openin_open)
+qed
+
+
+subsubsection%unimportant\<open>Quotient maps\<close>
+
+lemma quotient_map_imp_continuous_open:
+  assumes T: "f ` S \<subseteq> T"
+      and ope: "\<And>U. U \<subseteq> T
+              \<Longrightarrow> (openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+                   openin (subtopology euclidean T) U)"
+    shows "continuous_on S f"
+proof -
+  have [simp]: "S \<inter> f -` f ` S = S" by auto
+  show ?thesis
+    using ope [OF T]
+    apply (simp add: continuous_on_open)
+    by (meson ope openin_imp_subset openin_trans)
+qed
+
+lemma quotient_map_imp_continuous_closed:
+  assumes T: "f ` S \<subseteq> T"
+      and ope: "\<And>U. U \<subseteq> T
+                  \<Longrightarrow> (closedin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+                       closedin (subtopology euclidean T) U)"
+    shows "continuous_on S f"
+proof -
+  have [simp]: "S \<inter> f -` f ` S = S" by auto
+  show ?thesis
+    using ope [OF T]
+    apply (simp add: continuous_on_closed)
+    by (metis (no_types, lifting) ope closedin_imp_subset closedin_trans)
+qed
+
+lemma open_map_imp_quotient_map:
+  assumes contf: "continuous_on S f"
+      and T: "T \<subseteq> f ` S"
+      and ope: "\<And>T. openin (subtopology euclidean S) T
+                   \<Longrightarrow> openin (subtopology euclidean (f ` S)) (f ` T)"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` T) =
+           openin (subtopology euclidean (f ` S)) T"
+proof -
+  have "T = f ` (S \<inter> f -` T)"
+    using T by blast
+  then show ?thesis
+    using "ope" contf continuous_on_open by metis
+qed
+
+lemma closed_map_imp_quotient_map:
+  assumes contf: "continuous_on S f"
+      and T: "T \<subseteq> f ` S"
+      and ope: "\<And>T. closedin (subtopology euclidean S) T
+              \<Longrightarrow> closedin (subtopology euclidean (f ` S)) (f ` T)"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow>
+           openin (subtopology euclidean (f ` S)) T"
+          (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have *: "closedin (subtopology euclidean S) (S - (S \<inter> f -` T))"
+    using closedin_diff by fastforce
+  have [simp]: "(f ` S - f ` (S - (S \<inter> f -` T))) = T"
+    using T by blast
+  show ?rhs
+    using ope [OF *, unfolded closedin_def] by auto
+next
+  assume ?rhs
+  with contf show ?lhs
+    by (auto simp: continuous_on_open)
+qed
+
+lemma continuous_right_inverse_imp_quotient_map:
+  assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T"
+      and contg: "continuous_on T g" and img: "g ` T \<subseteq> S"
+      and fg [simp]: "\<And>y. y \<in> T \<Longrightarrow> f(g y) = y"
+      and U: "U \<subseteq> T"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+           openin (subtopology euclidean T) U"
+          (is "?lhs = ?rhs")
+proof -
+  have f: "\<And>Z. openin (subtopology euclidean (f ` S)) Z \<Longrightarrow>
+                openin (subtopology euclidean S) (S \<inter> f -` Z)"
+  and  g: "\<And>Z. openin (subtopology euclidean (g ` T)) Z \<Longrightarrow>
+                openin (subtopology euclidean T) (T \<inter> g -` Z)"
+    using contf contg by (auto simp: continuous_on_open)
+  show ?thesis
+  proof
+    have "T \<inter> g -` (g ` T \<inter> (S \<inter> f -` U)) = {x \<in> T. f (g x) \<in> U}"
+      using imf img by blast
+    also have "... = U"
+      using U by auto
+    finally have eq: "T \<inter> g -` (g ` T \<inter> (S \<inter> f -` U)) = U" .
+    assume ?lhs
+    then have *: "openin (subtopology euclidean (g ` T)) (g ` T \<inter> (S \<inter> f -` U))"
+      by (meson img openin_Int openin_subtopology_Int_subset openin_subtopology_self)
+    show ?rhs
+      using g [OF *] eq by auto
+  next
+    assume rhs: ?rhs
+    show ?lhs
+      by (metis f fg image_eqI image_subset_iff imf img openin_subopen openin_subtopology_self openin_trans rhs)
+  qed
+qed
+
+lemma continuous_left_inverse_imp_quotient_map:
+  assumes "continuous_on S f"
+      and "continuous_on (f ` S) g"
+      and  "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+      and "U \<subseteq> f ` S"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+           openin (subtopology euclidean (f ` S)) U"
+apply (rule continuous_right_inverse_imp_quotient_map)
+using assms apply force+
+done
+
+lemma continuous_imp_quotient_map:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::t2_space"
+  assumes "continuous_on S f" "f ` S = T" "compact S" "U \<subseteq> T"
+    shows "openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
+           openin (subtopology euclidean T) U"
+  by (metis (no_types, lifting) assms closed_map_imp_quotient_map continuous_imp_closed_map)
+
+subsubsection%unimportant\<open>Pasting functions together\<close>
+
+text\<open>on open sets\<close>
+
+lemma pasting_lemma:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes clo: "\<And>i. i \<in> I \<Longrightarrow> openin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+      and g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>j. j \<in> I \<and> x \<in> T j \<and> g x = f j x"
+    shows "continuous_on S g"
+proof (clarsimp simp: continuous_openin_preimage_eq)
+  fix U :: "'b set"
+  assume "open U"
+  have S: "\<And>i. i \<in> I \<Longrightarrow> (T i) \<subseteq> S"
+    using clo openin_imp_subset by blast
+  have *: "(S \<inter> g -` U) = (\<Union>i \<in> I. T i \<inter> f i -` U)"
+    using S f g by fastforce
+  show "openin (subtopology euclidean S) (S \<inter> g -` U)"
+    apply (subst *)
+    apply (rule openin_Union, clarify)
+    using \<open>open U\<close> clo cont continuous_openin_preimage_gen openin_trans by blast
+qed
+
+lemma pasting_lemma_exists:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes S: "S \<subseteq> (\<Union>i \<in> I. T i)"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> openin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+    obtains g where "continuous_on S g" "\<And>x i. \<lbrakk>i \<in> I; x \<in> S \<inter> T i\<rbrakk> \<Longrightarrow> g x = f i x"
+proof
+  show "continuous_on S (\<lambda>x. f (SOME i. i \<in> I \<and> x \<in> T i) x)"
+    apply (rule pasting_lemma [OF clo cont])
+     apply (blast intro: f)+
+    apply (metis (mono_tags, lifting) S UN_iff subsetCE someI)
+    done
+next
+  fix x i
+  assume "i \<in> I" "x \<in> S \<inter> T i"
+  then show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
+    by (metis (no_types, lifting) IntD2 IntI f someI_ex)
+qed
+
+text\<open>Likewise on closed sets, with a finiteness assumption\<close>
+
+lemma pasting_lemma_closed:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "finite I"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> closedin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+      and g: "\<And>x. x \<in> S \<Longrightarrow> \<exists>j. j \<in> I \<and> x \<in> T j \<and> g x = f j x"
+    shows "continuous_on S g"
+proof (clarsimp simp: continuous_closedin_preimage_eq)
+  fix U :: "'b set"
+  assume "closed U"
+  have S: "\<And>i. i \<in> I \<Longrightarrow> (T i) \<subseteq> S"
+    using clo closedin_imp_subset by blast
+  have *: "(S \<inter> g -` U) = (\<Union>i \<in> I. T i \<inter> f i -` U)"
+    using S f g by fastforce
+  show "closedin (subtopology euclidean S) (S \<inter> g -` U)"
+    apply (subst *)
+    apply (rule closedin_Union)
+    using \<open>finite I\<close> apply simp
+    apply (blast intro: \<open>closed U\<close> continuous_closedin_preimage cont clo closedin_trans)
+    done
+qed
+
+lemma pasting_lemma_exists_closed:
+  fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "finite I"
+      and S: "S \<subseteq> (\<Union>i \<in> I. T i)"
+      and clo: "\<And>i. i \<in> I \<Longrightarrow> closedin (subtopology euclidean S) (T i)"
+      and cont: "\<And>i. i \<in> I \<Longrightarrow> continuous_on (T i) (f i)"
+      and f: "\<And>i j x. \<lbrakk>i \<in> I; j \<in> I; x \<in> S \<inter> T i \<inter> T j\<rbrakk> \<Longrightarrow> f i x = f j x"
+    obtains g where "continuous_on S g" "\<And>x i. \<lbrakk>i \<in> I; x \<in> S \<inter> T i\<rbrakk> \<Longrightarrow> g x = f i x"
+proof
+  show "continuous_on S (\<lambda>x. f (SOME i. i \<in> I \<and> x \<in> T i) x)"
+    apply (rule pasting_lemma_closed [OF \<open>finite I\<close> clo cont])
+     apply (blast intro: f)+
+    apply (metis (mono_tags, lifting) S UN_iff subsetCE someI)
+    done
+next
+  fix x i
+  assume "i \<in> I" "x \<in> S \<inter> T i"
+  then show "f (SOME i. i \<in> I \<and> x \<in> T i) x = f i x"
+    by (metis (no_types, lifting) IntD2 IntI f someI_ex)
 qed
 
 
@@ -2225,6 +2541,62 @@ lemma banach_fix_type:
   shows "\<exists>!x. (f x = x)"
   using assms banach_fix[OF complete_UNIV UNIV_not_empty assms(1,2) subset_UNIV, of f]
   by auto
+
+
+subsection%unimportant\<open> Finite intersection property\<close>
+
+text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
+
+lemma closed_imp_fip:
+  fixes S :: "'a::heine_borel set"
+  assumes "closed S"
+      and T: "T \<in> \<F>" "bounded T"
+      and clof: "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      and none: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}"
+    shows "S \<inter> \<Inter>\<F> \<noteq> {}"
+proof -
+  have "compact (S \<inter> T)"
+    using \<open>closed S\<close> clof compact_eq_bounded_closed T by blast
+  then have "(S \<inter> T) \<inter> \<Inter>\<F> \<noteq> {}"
+    apply (rule compact_imp_fip)
+     apply (simp add: clof)
+    by (metis Int_assoc complete_lattice_class.Inf_insert finite_insert insert_subset none \<open>T \<in> \<F>\<close>)
+  then show ?thesis by blast
+qed
+
+lemma closed_imp_fip_compact:
+  fixes S :: "'a::heine_borel set"
+  shows
+   "\<lbrakk>closed S; \<And>T. T \<in> \<F> \<Longrightarrow> compact T;
+     \<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}\<rbrakk>
+        \<Longrightarrow> S \<inter> \<Inter>\<F> \<noteq> {}"
+by (metis Inf_greatest closed_imp_fip compact_eq_bounded_closed empty_subsetI finite.emptyI inf.orderE)
+
+lemma closed_fip_Heine_Borel:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "closed S" "T \<in> \<F>" "bounded T"
+      and "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      and "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> \<Inter>\<F>' \<noteq> {}"
+    shows "\<Inter>\<F> \<noteq> {}"
+proof -
+  have "UNIV \<inter> \<Inter>\<F> \<noteq> {}"
+    using assms closed_imp_fip [OF closed_UNIV] by auto
+  then show ?thesis by simp
+qed
+
+lemma compact_fip_Heine_Borel:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes clof: "\<And>T. T \<in> \<F> \<Longrightarrow> compact T"
+      and none: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> \<Inter>\<F>' \<noteq> {}"
+    shows "\<Inter>\<F> \<noteq> {}"
+by (metis InterI all_not_in_conv clof closed_fip_Heine_Borel compact_eq_bounded_closed none)
+
+lemma compact_sequence_with_limit:
+  fixes f :: "nat \<Rightarrow> 'a::heine_borel"
+  shows "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> compact (insert l (range f))"
+apply (simp add: compact_eq_bounded_closed, auto)
+apply (simp add: convergent_imp_bounded)
+by (simp add: closed_limpt islimpt_insert sequence_unique_limpt)
 
 
 subsection \<open>Properties of Balls and Spheres\<close>

@@ -9,6 +9,7 @@ section \<open>Elementary Topology\<close>
 theory Elementary_Topology
 imports
   "HOL-Library.Set_Idioms"
+  "HOL-Library.Disjoint_Sets"
   Product_Vector
 begin
 
@@ -463,12 +464,64 @@ proof -
   qed
 qed
 
+
 end
+
+lemma univ_second_countable:
+  obtains \<B> :: "'a::second_countable_topology set set"
+  where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+       "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+by (metis ex_countable_basis topological_basis_def)
+
+proposition Lindelof:
+  fixes \<F> :: "'a::second_countable_topology set set"
+  assumes \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> open S"
+  obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+proof -
+  obtain \<B> :: "'a set set"
+    where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+      and \<B>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+    using univ_second_countable by blast
+  define \<D> where "\<D> \<equiv> {S. S \<in> \<B> \<and> (\<exists>U. U \<in> \<F> \<and> S \<subseteq> U)}"
+  have "countable \<D>"
+    apply (rule countable_subset [OF _ \<open>countable \<B>\<close>])
+    apply (force simp: \<D>_def)
+    done
+  have "\<And>S. \<exists>U. S \<in> \<D> \<longrightarrow> U \<in> \<F> \<and> S \<subseteq> U"
+    by (simp add: \<D>_def)
+  then obtain G where G: "\<And>S. S \<in> \<D> \<longrightarrow> G S \<in> \<F> \<and> S \<subseteq> G S"
+    by metis
+  have "\<Union>\<F> \<subseteq> \<Union>\<D>"
+    unfolding \<D>_def by (blast dest: \<F> \<B>)
+  moreover have "\<Union>\<D> \<subseteq> \<Union>\<F>"
+    using \<D>_def by blast
+  ultimately have eq1: "\<Union>\<F> = \<Union>\<D>" ..
+  have eq2: "\<Union>\<D> = \<Union> (G ` \<D>)"
+    using G eq1 by auto
+  show ?thesis
+    apply (rule_tac \<F>' = "G ` \<D>" in that)
+    using G \<open>countable \<D>\<close>
+    by (auto simp: eq1 eq2)
+qed
+
+lemma countable_disjoint_open_subsets:
+  fixes \<F> :: "'a::second_countable_topology set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> open S" and pw: "pairwise disjnt \<F>"
+    shows "countable \<F>"
+proof -
+  obtain \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+    by (meson assms Lindelof)
+  with pw have "\<F> \<subseteq> insert {} \<F>'"
+    by (fastforce simp add: pairwise_def disjnt_iff)
+  then show ?thesis
+    by (simp add: \<open>countable \<F>'\<close> countable_subset)
+qed
 
 sublocale second_countable_topology <
   countable_basis "SOME B. countable B \<and> topological_basis B"
   using someI_ex[OF ex_countable_basis]
   by unfold_locales safe
+
 
 instance prod :: (second_countable_topology, second_countable_topology) second_countable_topology
 proof
@@ -593,6 +646,7 @@ proof -
   qed
   then show ?thesis using B(1) by auto
 qed
+
 
 subsection%important \<open>Polish spaces\<close>
 
@@ -966,6 +1020,20 @@ proof (rule interior_unique)
     by (auto simp: subset_eq less_le)
 qed auto
 
+lemma countable_disjoint_nonempty_interior_subsets:
+  fixes \<F> :: "'a::second_countable_topology set set"
+  assumes pw: "pairwise disjnt \<F>" and int: "\<And>S. \<lbrakk>S \<in> \<F>; interior S = {}\<rbrakk> \<Longrightarrow> S = {}"
+  shows "countable \<F>"
+proof (rule countable_image_inj_on)
+  have "disjoint (interior ` \<F>)"
+    using pw by (simp add: disjoint_image_subset interior_subset)
+  then show "countable (interior ` \<F>)"
+    by (auto intro: countable_disjoint_open_subsets)
+  show "inj_on interior \<F>"
+    using pw apply (clarsimp simp: inj_on_def pairwise_def)
+    apply (metis disjnt_def disjnt_subset1 inf.orderE int interior_subset)
+    done
+qed
 
 subsection \<open>Closure of a Set\<close>
 
@@ -2169,6 +2237,85 @@ proof (rule compactI)
   }
   ultimately show "\<exists>C'\<subseteq>C. finite C' \<and> s \<times> t \<subseteq> \<Union>C'"
     by (intro exI[of _ "(\<Union>x\<in>e. d x)"]) (auto simp: subset_eq)
+qed
+
+
+lemma tube_lemma:
+  assumes "compact K"
+  assumes "open W"
+  assumes "{x0} \<times> K \<subseteq> W"
+  shows "\<exists>X0. x0 \<in> X0 \<and> open X0 \<and> X0 \<times> K \<subseteq> W"
+proof -
+  {
+    fix y assume "y \<in> K"
+    then have "(x0, y) \<in> W" using assms by auto
+    with \<open>open W\<close>
+    have "\<exists>X0 Y. open X0 \<and> open Y \<and> x0 \<in> X0 \<and> y \<in> Y \<and> X0 \<times> Y \<subseteq> W"
+      by (rule open_prod_elim) blast
+  }
+  then obtain X0 Y where
+    *: "\<forall>y \<in> K. open (X0 y) \<and> open (Y y) \<and> x0 \<in> X0 y \<and> y \<in> Y y \<and> X0 y \<times> Y y \<subseteq> W"
+    by metis
+  from * have "\<forall>t\<in>Y ` K. open t" "K \<subseteq> \<Union>(Y ` K)" by auto
+  with \<open>compact K\<close> obtain CC where CC: "CC \<subseteq> Y ` K" "finite CC" "K \<subseteq> \<Union>CC"
+    by (meson compactE)
+  then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
+    by (force intro!: choice)
+  with * CC show ?thesis
+    by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"]) (* SLOW *)
+qed
+
+lemma continuous_on_prod_compactE:
+  fixes fx::"'a::topological_space \<times> 'b::topological_space \<Rightarrow> 'c::metric_space"
+    and e::real
+  assumes cont_fx: "continuous_on (U \<times> C) fx"
+  assumes "compact C"
+  assumes [intro]: "x0 \<in> U"
+  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
+  assumes "e > 0"
+  obtains X0 where "x0 \<in> X0" "open X0"
+    "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+proof -
+  define psi where "psi = (\<lambda>(x, t). dist (fx (x, t)) (fx (x0, t)))"
+  define W0 where "W0 = {(x, t) \<in> U \<times> C. psi (x, t) < e}"
+  have W0_eq: "W0 = psi -` {..<e} \<inter> U \<times> C"
+    by (auto simp: vimage_def W0_def)
+  have "open {..<e}" by simp
+  have "continuous_on (U \<times> C) psi"
+    by (auto intro!: continuous_intros simp: psi_def split_beta')
+  from this[unfolded continuous_on_open_invariant, rule_format, OF \<open>open {..<e}\<close>]
+  obtain W where W: "open W" "W \<inter> U \<times> C = W0 \<inter> U \<times> C"
+    unfolding W0_eq by blast
+  have "{x0} \<times> C \<subseteq> W \<inter> U \<times> C"
+    unfolding W
+    by (auto simp: W0_def psi_def \<open>0 < e\<close>)
+  then have "{x0} \<times> C \<subseteq> W" by blast
+  from tube_lemma[OF \<open>compact C\<close> \<open>open W\<close> this]
+  obtain X0 where X0: "x0 \<in> X0" "open X0" "X0 \<times> C \<subseteq> W"
+    by blast
+
+  have "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+  proof safe
+    fix x assume x: "x \<in> X0" "x \<in> U"
+    fix t assume t: "t \<in> C"
+    have "dist (fx (x, t)) (fx (x0, t)) = psi (x, t)"
+      by (auto simp: psi_def)
+    also
+    {
+      have "(x, t) \<in> X0 \<times> C"
+        using t x
+        by auto
+      also note \<open>\<dots> \<subseteq> W\<close>
+      finally have "(x, t) \<in> W" .
+      with t x have "(x, t) \<in> W \<inter> U \<times> C"
+        by blast
+      also note \<open>W \<inter> U \<times> C = W0 \<inter> U \<times> C\<close>
+      finally  have "psi (x, t) < e"
+        by (auto simp: W0_def)
+    }
+    finally show "dist (fx (x, t)) (fx (x0, t)) \<le> e" by simp
+  qed
+  from X0(1,2) this show ?thesis ..
 qed
 
 
