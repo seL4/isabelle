@@ -5272,7 +5272,7 @@ proof (rule ccontr)
       using \<open>S \<noteq> {}\<close> \<open>T \<noteq> {}\<close> by blast+
   qed
     then show False
-      by (metis Compl_disjoint Convex_Euclidean_Space.connected_UNIV compl_bot_eq compl_unique connected_closedD inf_sup_absorb sup_compl_top_left1 top.extremum_uniqueI)
+      by (metis Compl_disjoint connected_UNIV compl_bot_eq compl_unique connected_closedD inf_sup_absorb sup_compl_top_left1 top.extremum_uniqueI)
 qed
 
 

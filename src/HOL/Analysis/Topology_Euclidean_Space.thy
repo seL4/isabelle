@@ -263,6 +263,30 @@ proof -
   then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> e1 by auto
 qed
 
+lemma dim_cball:
+  assumes "e > 0"
+  shows "dim (cball (0 :: 'n::euclidean_space) e) = DIM('n)"
+proof -
+  {
+    fix x :: "'n::euclidean_space"
+    define y where "y = (e / norm x) *\<^sub>R x"
+    then have "y \<in> cball 0 e"
+      using assms by auto
+    moreover have *: "x = (norm x / e) *\<^sub>R y"
+      using y_def assms by simp
+    moreover from * have "x = (norm x/e) *\<^sub>R y"
+      by auto
+    ultimately have "x \<in> span (cball 0 e)"
+      using span_scale[of y "cball 0 e" "norm x/e"]
+        span_superset[of "cball 0 e"]
+      by (simp add: span_base)
+  }
+  then have "span (cball 0 e) = (UNIV :: 'n::euclidean_space set)"
+    by auto
+  then show ?thesis
+    using dim_span[of "cball (0 :: 'n::euclidean_space) e"] by (auto simp: dim_UNIV)
+qed
+
 
 subsection \<open>Boxes\<close>
 
@@ -828,6 +852,20 @@ qed
 lemma image_smult_cbox:"(\<lambda>x. m *\<^sub>R (x::_::euclidean_space)) ` cbox a b =
   (if cbox a b = {} then {} else if 0 \<le> m then cbox (m *\<^sub>R a) (m *\<^sub>R b) else cbox (m *\<^sub>R b) (m *\<^sub>R a))"
   using image_affinity_cbox[of m 0 a b] by auto
+
+lemma swap_continuous:
+  assumes "continuous_on (cbox (a,c) (b,d)) (\<lambda>(x,y). f x y)"
+    shows "continuous_on (cbox (c,a) (d,b)) (\<lambda>(x, y). f y x)"
+proof -
+  have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) \<circ> prod.swap"
+    by auto
+  then show ?thesis
+    apply (rule ssubst)
+    apply (rule continuous_on_compose)
+    apply (simp add: split_def)
+    apply (rule continuous_intros | simp add: assms)+
+    done
+qed
 
 
 subsection \<open>General Intervals\<close>
@@ -2134,9 +2172,6 @@ qed
 
 subsection%unimportant \<open>Some properties of a canonical subspace\<close>
 
-lemma subspace_substandard: "subspace {x::'a::euclidean_space. (\<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0)}"
-  by (auto simp: subspace_def inner_add_left)
-
 lemma closed_substandard: "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0}"
   (is "closed ?A")
 proof -
@@ -2147,45 +2182,6 @@ proof -
   also have "(\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0}) = ?A"
     by auto
   finally show "closed ?A" .
-qed
-
-lemma dim_substandard:
-  assumes d: "d \<subseteq> Basis"
-  shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
-proof (rule dim_unique)
-  from d show "d \<subseteq> ?A"
-    by (auto simp: inner_Basis)
-  from d show "independent d"
-    by (rule independent_mono [OF independent_Basis])
-  have "x \<in> span d" if "\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0" for x
-  proof -
-    have "finite d"
-      by (rule finite_subset [OF d finite_Basis])
-    then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
-      by (simp add: span_sum span_clauses)
-    also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
-      by (rule sum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp: that)
-    finally show "x \<in> span d"
-      by (simp only: euclidean_representation)
-  qed
-  then show "?A \<subseteq> span d" by auto
-qed simp
-
-text \<open>Hence closure and completeness of all subspaces.\<close>
-lemma ex_card:
-  assumes "n \<le> card A"
-  shows "\<exists>S\<subseteq>A. card S = n"
-proof (cases "finite A")
-  case True
-  from ex_bij_betw_nat_finite[OF this] obtain f where f: "bij_betw f {0..<card A} A" ..
-  moreover from f \<open>n \<le> card A\<close> have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
-    by (auto simp: bij_betw_def intro: subset_inj_on)
-  ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
-    by (auto simp: bij_betw_def card_image)
-  then show ?thesis by blast
-next
-  case False
-  with \<open>n \<le> card A\<close> show ?thesis by force
 qed
 
 lemma closed_subspace:

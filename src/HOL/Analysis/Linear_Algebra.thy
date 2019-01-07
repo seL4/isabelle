@@ -111,6 +111,49 @@ proof
   then show "x = y" by simp
 qed simp
 
+subsection \<open>Substandard Basis\<close>
+
+lemma ex_card:
+  assumes "n \<le> card A"
+  shows "\<exists>S\<subseteq>A. card S = n"
+proof (cases "finite A")
+  case True
+  from ex_bij_betw_nat_finite[OF this] obtain f where f: "bij_betw f {0..<card A} A" ..
+  moreover from f \<open>n \<le> card A\<close> have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
+    by (auto simp: bij_betw_def intro: subset_inj_on)
+  ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
+    by (auto simp: bij_betw_def card_image)
+  then show ?thesis by blast
+next
+  case False
+  with \<open>n \<le> card A\<close> show ?thesis by force
+qed
+
+lemma subspace_substandard: "subspace {x::'a::euclidean_space. (\<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0)}"
+  by (auto simp: subspace_def inner_add_left)
+
+lemma dim_substandard:
+  assumes d: "d \<subseteq> Basis"
+  shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
+proof (rule dim_unique)
+  from d show "d \<subseteq> ?A"
+    by (auto simp: inner_Basis)
+  from d show "independent d"
+    by (rule independent_mono [OF independent_Basis])
+  have "x \<in> span d" if "\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0" for x
+  proof -
+    have "finite d"
+      by (rule finite_subset [OF d finite_Basis])
+    then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
+      by (simp add: span_sum span_clauses)
+    also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
+      by (rule sum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp: that)
+    finally show "x \<in> span d"
+      by (simp only: euclidean_representation)
+  qed
+  then show "?A \<subseteq> span d" by auto
+qed simp
+
 
 subsection \<open>Orthogonality\<close>
 
@@ -857,6 +900,7 @@ lemma bilinear_eq_stdbasis:
     and fg: "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> f i j = g i j"
   shows "f = g"
   using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis]] fg by blast
+
 
 subsection \<open>Infinity norm\<close>
 
