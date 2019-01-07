@@ -1538,7 +1538,7 @@ lemma frontier_translation:
   by auto
 
 lemma sphere_translation:
-  fixes a :: "'n::euclidean_space"
+  fixes a :: "'n::real_normed_vector"
   shows "sphere (a+c) r = (+) a ` sphere c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
@@ -1546,7 +1546,7 @@ apply (auto simp: dist_norm algebra_simps)
 done
 
 lemma cball_translation:
-  fixes a :: "'n::euclidean_space"
+  fixes a :: "'n::real_normed_vector"
   shows "cball (a+c) r = (+) a ` cball c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
@@ -1554,7 +1554,7 @@ apply (auto simp: dist_norm algebra_simps)
 done
 
 lemma ball_translation:
-  fixes a :: "'n::euclidean_space"
+  fixes a :: "'n::real_normed_vector"
   shows "ball (a+c) r = (+) a ` ball c r"
 apply safe
 apply (rule_tac x="x-a" in image_eqI)
