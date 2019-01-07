@@ -5283,6 +5283,13 @@ lemma closest_point_lt:
   apply fastforce
   done
 
+lemma setdist_closest_point:
+    "\<lbrakk>closed S; S \<noteq> {}\<rbrakk> \<Longrightarrow> setdist {a} S = dist a (closest_point S a)"
+  apply (rule setdist_unique)
+  using closest_point_le
+  apply (auto simp: closest_point_in_set)
+  done
+
 lemma closest_point_lipschitz:
   assumes "convex S"
     and "closed S" "S \<noteq> {}"

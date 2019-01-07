@@ -1104,25 +1104,6 @@ lemma closed_interval_right:
   shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
   by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
-lemma continuous_le_on_closure:
-  fixes a::real
-  assumes f: "continuous_on (closure s) f"
-      and x: "x \<in> closure(s)"
-      and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
-    shows "f(x) \<le> a"
-    using image_closure_subset [OF f]
-  using image_closure_subset [OF f] closed_halfspace_le [of "1::real" a] assms
-  by force
-
-lemma continuous_ge_on_closure:
-  fixes a::real
-  assumes f: "continuous_on (closure s) f"
-      and x: "x \<in> closure(s)"
-      and xlo: "\<And>x. x \<in> s ==> f(x) \<ge> a"
-    shows "f(x) \<ge> a"
-  using image_closure_subset [OF f] closed_halfspace_ge [of a "1::real"] assms
-  by force
-
 
 subsection%unimportant\<open>Some more convenient intermediate-value theorem formulations\<close>
 
@@ -2258,6 +2239,108 @@ proof -
     by simp
 qed
 
+
+subsection \<open>Set Distance\<close>
+
+lemma setdist_compact_closed:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes S: "compact S" and T: "closed T"
+      and "S \<noteq> {}" "T \<noteq> {}"
+    shows "\<exists>x \<in> S. \<exists>y \<in> T. dist x y = setdist S T"
+proof -
+  have "(\<Union>x\<in> S. \<Union>y \<in> T. {x - y}) \<noteq> {}"
+    using assms by blast
+  then have "\<exists>x \<in> S. \<exists>y \<in> T. dist x y \<le> setdist S T"
+    apply (rule distance_attains_inf [where a=0, OF compact_closed_differences [OF S T]])
+    apply (simp add: dist_norm le_setdist_iff)
+    apply blast
+    done
+  then show ?thesis
+    by (blast intro!: antisym [OF _ setdist_le_dist] )
+qed
+
+lemma setdist_closed_compact:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes S: "closed S" and T: "compact T"
+      and "S \<noteq> {}" "T \<noteq> {}"
+    shows "\<exists>x \<in> S. \<exists>y \<in> T. dist x y = setdist S T"
+  using setdist_compact_closed [OF T S \<open>T \<noteq> {}\<close> \<open>S \<noteq> {}\<close>]
+  by (metis dist_commute setdist_sym)
+
+lemma setdist_eq_0_compact_closed:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes S: "compact S" and T: "closed T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> S \<inter> T \<noteq> {}"
+  apply (cases "S = {} \<or> T = {}", force)
+  using setdist_compact_closed [OF S T]
+  apply (force intro: setdist_eq_0I )
+  done
+
+corollary setdist_gt_0_compact_closed:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes S: "compact S" and T: "closed T"
+    shows "setdist S T > 0 \<longleftrightarrow> (S \<noteq> {} \<and> T \<noteq> {} \<and> S \<inter> T = {})"
+  using setdist_pos_le [of S T] setdist_eq_0_compact_closed [OF assms]
+  by linarith
+
+lemma setdist_eq_0_closed_compact:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes S: "closed S" and T: "compact T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> S \<inter> T \<noteq> {}"
+  using setdist_eq_0_compact_closed [OF T S]
+  by (metis Int_commute setdist_sym)
+
+lemma setdist_eq_0_bounded:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  assumes "bounded S \<or> bounded T"
+    shows "setdist S T = 0 \<longleftrightarrow> S = {} \<or> T = {} \<or> closure S \<inter> closure T \<noteq> {}"
+  apply (cases "S = {} \<or> T = {}", force)
+  using setdist_eq_0_compact_closed [of "closure S" "closure T"]
+        setdist_eq_0_closed_compact [of "closure S" "closure T"] assms
+  apply (force simp add:  bounded_closure compact_eq_bounded_closed)
+  done
+
+lemma setdist_eq_0_sing_1:
+    fixes S :: "'a::{heine_borel,real_normed_vector} set"
+    shows "setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> closure S"
+  by (auto simp: setdist_eq_0_bounded)
+
+lemma setdist_eq_0_sing_2:
+    fixes S :: "'a::{heine_borel,real_normed_vector} set"
+    shows "setdist S {x} = 0 \<longleftrightarrow> S = {} \<or> x \<in> closure S"
+  by (auto simp: setdist_eq_0_bounded)
+
+lemma setdist_neq_0_sing_1:
+    fixes S :: "'a::{heine_borel,real_normed_vector} set"
+    shows "\<lbrakk>setdist {x} S = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> S \<noteq> {} \<and> x \<notin> closure S"
+  by (auto simp: setdist_eq_0_sing_1)
+
+lemma setdist_neq_0_sing_2:
+    fixes S :: "'a::{heine_borel,real_normed_vector} set"
+    shows "\<lbrakk>setdist S {x} = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> S \<noteq> {} \<and> x \<notin> closure S"
+  by (auto simp: setdist_eq_0_sing_2)
+
+lemma setdist_sing_in_set:
+    fixes S :: "'a::{heine_borel,real_normed_vector} set"
+    shows "x \<in> S \<Longrightarrow> setdist {x} S = 0"
+  using closure_subset by (auto simp: setdist_eq_0_sing_1)
+
+lemma setdist_eq_0_closed:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  shows  "closed S \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
+by (simp add: setdist_eq_0_sing_1)
+
+lemma setdist_eq_0_closedin:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U\<rbrakk>
+         \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
+  by (auto simp: closedin_limpt setdist_eq_0_sing_1 closure_def)
+
+lemma setdist_gt_0_closedin:
+  fixes S :: "'a::{heine_borel,real_normed_vector} set"
+  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U; S \<noteq> {}; x \<notin> S\<rbrakk>
+         \<Longrightarrow> setdist {x} S > 0"
+  using less_eq_real_def setdist_eq_0_closedin by fastforce
 
 no_notation
   eucl_less (infix "<e" 50)

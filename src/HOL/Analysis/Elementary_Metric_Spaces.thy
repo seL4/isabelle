@@ -3176,7 +3176,7 @@ lemma continuous_on_real_range:
   unfolding continuous_on_iff dist_norm by simp
 
 lemma continuous_on_closed_Collect_le:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
+  fixes f g :: "'a::topological_space \<Rightarrow> real"
   assumes f: "continuous_on s f" and g: "continuous_on s g" and s: "closed s"
   shows "closed {x \<in> s. f x \<le> g x}"
 proof -
@@ -3187,5 +3187,157 @@ proof -
     by auto
   finally show ?thesis .
 qed
+
+lemma continuous_le_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
+    shows "f(x) \<le> a"
+  using image_closure_subset [OF f, where T=" {x. x \<le> a}" ] assms
+    continuous_on_closed_Collect_le[of "UNIV" "\<lambda>x. x" "\<lambda>x. a"]
+  by auto
+
+lemma continuous_ge_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<ge> a"
+    shows "f(x) \<ge> a"
+  using image_closure_subset [OF f, where T=" {x. a \<le> x}"] assms
+    continuous_on_closed_Collect_le[of "UNIV" "\<lambda>x. a" "\<lambda>x. x"]
+  by auto
+
+
+subsection\<open>The infimum of the distance between two sets\<close>
+
+definition%important setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
+  "setdist s t \<equiv>
+       (if s = {} \<or> t = {} then 0
+        else Inf {dist x y| x y. x \<in> s \<and> y \<in> t})"
+
+lemma setdist_empty1 [simp]: "setdist {} t = 0"
+  by (simp add: setdist_def)
+
+lemma setdist_empty2 [simp]: "setdist t {} = 0"
+  by (simp add: setdist_def)
+
+lemma setdist_pos_le [simp]: "0 \<le> setdist s t"
+  by (auto simp: setdist_def ex_in_conv [symmetric] intro: cInf_greatest)
+
+lemma le_setdistI:
+  assumes "s \<noteq> {}" "t \<noteq> {}" "\<And>x y. \<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> d \<le> dist x y"
+    shows "d \<le> setdist s t"
+  using assms
+  by (auto simp: setdist_def Set.ex_in_conv [symmetric] intro: cInf_greatest)
+
+lemma setdist_le_dist: "\<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> setdist s t \<le> dist x y"
+  unfolding setdist_def
+  by (auto intro!: bdd_belowI [where m=0] cInf_lower)
+
+lemma le_setdist_iff:
+        "d \<le> setdist s t \<longleftrightarrow>
+        (\<forall>x \<in> s. \<forall>y \<in> t. d \<le> dist x y) \<and> (s = {} \<or> t = {} \<longrightarrow> d \<le> 0)"
+  apply (cases "s = {} \<or> t = {}")
+  apply (force simp add: setdist_def)
+  apply (intro iffI conjI)
+  using setdist_le_dist apply fastforce
+  apply (auto simp: intro: le_setdistI)
+  done
+
+lemma setdist_ltE:
+  assumes "setdist s t < b" "s \<noteq> {}" "t \<noteq> {}"
+    obtains x y where "x \<in> s" "y \<in> t" "dist x y < b"
+using assms
+by (auto simp: not_le [symmetric] le_setdist_iff)
+
+lemma setdist_refl: "setdist s s = 0"
+  apply (cases "s = {}")
+  apply (force simp add: setdist_def)
+  apply (rule antisym [OF _ setdist_pos_le])
+  apply (metis all_not_in_conv dist_self setdist_le_dist)
+  done
+
+lemma setdist_sym: "setdist s t = setdist t s"
+  by (force simp: setdist_def dist_commute intro!: arg_cong [where f=Inf])
+
+lemma setdist_triangle: "setdist s t \<le> setdist s {a} + setdist {a} t"
+proof (cases "s = {} \<or> t = {}")
+  case True then show ?thesis
+    using setdist_pos_le by fastforce
+next
+  case False
+  have "\<And>x. x \<in> s \<Longrightarrow> setdist s t - dist x a \<le> setdist {a} t"
+    apply (rule le_setdistI, blast)
+    using False apply (fastforce intro: le_setdistI)
+    apply (simp add: algebra_simps)
+    apply (metis dist_commute dist_triangle3 order_trans [OF setdist_le_dist])
+    done
+  then have "setdist s t - setdist {a} t \<le> setdist s {a}"
+    using False by (fastforce intro: le_setdistI)
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
+lemma setdist_singletons [simp]: "setdist {x} {y} = dist x y"
+  by (simp add: setdist_def)
+
+lemma setdist_Lipschitz: "\<bar>setdist {x} s - setdist {y} s\<bar> \<le> dist x y"
+  apply (subst setdist_singletons [symmetric])
+  by (metis abs_diff_le_iff diff_le_eq setdist_triangle setdist_sym)
+
+lemma continuous_at_setdist [continuous_intros]: "continuous (at x) (\<lambda>y. (setdist {y} s))"
+  by (force simp: continuous_at_eps_delta dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
+
+lemma continuous_on_setdist [continuous_intros]: "continuous_on t (\<lambda>y. (setdist {y} s))"
+  by (metis continuous_at_setdist continuous_at_imp_continuous_on)
+
+lemma uniformly_continuous_on_setdist: "uniformly_continuous_on t (\<lambda>y. (setdist {y} s))"
+  by (force simp: uniformly_continuous_on_def dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
+
+lemma setdist_subset_right: "\<lbrakk>t \<noteq> {}; t \<subseteq> u\<rbrakk> \<Longrightarrow> setdist s u \<le> setdist s t"
+  apply (cases "s = {} \<or> u = {}", force)
+  apply (auto simp: setdist_def intro!: bdd_belowI [where m=0] cInf_superset_mono)
+  done
+
+lemma setdist_subset_left: "\<lbrakk>s \<noteq> {}; s \<subseteq> t\<rbrakk> \<Longrightarrow> setdist t u \<le> setdist s u"
+  by (metis setdist_subset_right setdist_sym)
+
+lemma setdist_closure_1 [simp]: "setdist (closure s) t = setdist s t"
+proof (cases "s = {} \<or> t = {}")
+  case True then show ?thesis by force
+next
+  case False
+  { fix y
+    assume "y \<in> t"
+    have "continuous_on (closure s) (\<lambda>a. dist a y)"
+      by (auto simp: continuous_intros dist_norm)
+    then have *: "\<And>x. x \<in> closure s \<Longrightarrow> setdist s t \<le> dist x y"
+      apply (rule continuous_ge_on_closure)
+      apply assumption
+      apply (blast intro: setdist_le_dist \<open>y \<in> t\<close> )
+      done
+  } note * = this
+  show ?thesis
+    apply (rule antisym)
+     using False closure_subset apply (blast intro: setdist_subset_left)
+    using False *
+    apply (force simp add: closure_eq_empty intro!: le_setdistI)
+    done
+qed
+
+lemma setdist_closure_2 [simp]: "setdist t (closure s) = setdist t s"
+by (metis setdist_closure_1 setdist_sym)
+
+lemma setdist_eq_0I: "\<lbrakk>x \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> setdist S T = 0"
+  by (metis antisym dist_self setdist_le_dist setdist_pos_le)
+
+lemma setdist_unique:
+  "\<lbrakk>a \<in> S; b \<in> T; \<And>x y. x \<in> S \<and> y \<in> T ==> dist a b \<le> dist x y\<rbrakk>
+   \<Longrightarrow> setdist S T = dist a b"
+  by (force simp add: setdist_le_dist le_setdist_iff intro: antisym)
+
+lemma setdist_le_sing: "x \<in> S ==> setdist S T \<le> setdist {x} T"
+  using setdist_subset_left by auto
 
 end
