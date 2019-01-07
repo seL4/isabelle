@@ -1022,6 +1022,14 @@ subsection \<open>Continuity\<close>
 
 subsubsection%unimportant \<open>Structural rules for uniform continuity\<close>
 
+lemma (in bounded_linear) uniformly_continuous_on[continuous_intros]:
+  fixes g :: "_::metric_space \<Rightarrow> _"
+  assumes "uniformly_continuous_on s g"
+  shows "uniformly_continuous_on s (\<lambda>x. f (g x))"
+  using assms unfolding uniformly_continuous_on_sequentially
+  unfolding dist_norm tendsto_norm_zero_iff diff[symmetric]
+  by (auto intro: tendsto_zero)
+
 lemma uniformly_continuous_on_dist[continuous_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "uniformly_continuous_on s f"
@@ -1118,5 +1126,514 @@ lemma linear_continuous_within:
 lemma linear_continuous_on:
   "bounded_linear f \<Longrightarrow> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
+
+subsection%unimportant \<open>Arithmetic Preserves Topological Properties\<close>
+
+lemma open_scaling[intro]:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "c \<noteq> 0"
+    and "open s"
+  shows "open((\<lambda>x. c *\<^sub>R x) ` s)"
+proof -
+  {
+    fix x
+    assume "x \<in> s"
+    then obtain e where "e>0"
+      and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
+      by auto
+    have "e * \<bar>c\<bar> > 0"
+      using assms(1)[unfolded zero_less_abs_iff[symmetric]] \<open>e>0\<close> by auto
+    moreover
+    {
+      fix y
+      assume "dist y (c *\<^sub>R x) < e * \<bar>c\<bar>"
+      then have "norm ((1 / c) *\<^sub>R y - x) < e"
+        unfolding dist_norm
+        using norm_scaleR[of c "(1 / c) *\<^sub>R y - x", unfolded scaleR_right_diff_distrib, unfolded scaleR_scaleR] assms(1)
+          assms(1)[unfolded zero_less_abs_iff[symmetric]] by (simp del:zero_less_abs_iff)
+      then have "y \<in> (*\<^sub>R) c ` s"
+        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "(*\<^sub>R) c"]
+        using e[THEN spec[where x="(1 / c) *\<^sub>R y"]]
+        using assms(1)
+        unfolding dist_norm scaleR_scaleR
+        by auto
+    }
+    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` s"
+      apply (rule_tac x="e * \<bar>c\<bar>" in exI, auto)
+      done
+  }
+  then show ?thesis unfolding open_dist by auto
+qed
+
+lemma minus_image_eq_vimage:
+  fixes A :: "'a::ab_group_add set"
+  shows "(\<lambda>x. - x) ` A = (\<lambda>x. - x) -` A"
+  by (auto intro!: image_eqI [where f="\<lambda>x. - x"])
+
+lemma open_negations:
+  fixes S :: "'a::real_normed_vector set"
+  shows "open S \<Longrightarrow> open ((\<lambda>x. - x) ` S)"
+  using open_scaling [of "- 1" S] by simp
+
+lemma open_translation:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open((\<lambda>x. a + x) ` S)"
+proof -
+  {
+    fix x
+    have "continuous (at x) (\<lambda>x. x - a)"
+      by (intro continuous_diff continuous_ident continuous_const)
+  }
+  moreover have "{x. x - a \<in> S} = (+) a ` S"
+    by force
+  ultimately show ?thesis
+    by (metis assms continuous_open_vimage vimage_def)
+qed
+
+lemma open_neg_translation:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "open s"
+  shows "open((\<lambda>x. a - x) ` s)"
+  using open_translation[OF open_negations[OF assms], of a]
+  by (auto simp: image_image)
+
+lemma open_affinity:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"  "c \<noteq> 0"
+  shows "open ((\<lambda>x. a + c *\<^sub>R x) ` S)"
+proof -
+  have *: "(\<lambda>x. a + c *\<^sub>R x) = (\<lambda>x. a + x) \<circ> (\<lambda>x. c *\<^sub>R x)"
+    unfolding o_def ..
+  have "(+) a ` (*\<^sub>R) c ` S = ((+) a \<circ> (*\<^sub>R) c) ` S"
+    by auto
+  then show ?thesis
+    using assms open_translation[of "(*\<^sub>R) c ` S" a]
+    unfolding *
+    by auto
+qed
+
+lemma interior_translation:
+  fixes S :: "'a::real_normed_vector set"
+  shows "interior ((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (interior S)"
+proof (rule set_eqI, rule)
+  fix x
+  assume "x \<in> interior ((+) a ` S)"
+  then obtain e where "e > 0" and e: "ball x e \<subseteq> (+) a ` S"
+    unfolding mem_interior by auto
+  then have "ball (x - a) e \<subseteq> S"
+    unfolding subset_eq Ball_def mem_ball dist_norm
+    by (auto simp: diff_diff_eq)
+  then show "x \<in> (+) a ` interior S"
+    unfolding image_iff
+    apply (rule_tac x="x - a" in bexI)
+    unfolding mem_interior
+    using \<open>e > 0\<close>
+    apply auto
+    done
+next
+  fix x
+  assume "x \<in> (+) a ` interior S"
+  then obtain y e where "e > 0" and e: "ball y e \<subseteq> S" and y: "x = a + y"
+    unfolding image_iff Bex_def mem_interior by auto
+  {
+    fix z
+    have *: "a + y - z = y + a - z" by auto
+    assume "z \<in> ball x e"
+    then have "z - a \<in> S"
+      using e[unfolded subset_eq, THEN bspec[where x="z - a"]]
+      unfolding mem_ball dist_norm y group_add_class.diff_diff_eq2 *
+      by auto
+    then have "z \<in> (+) a ` S"
+      unfolding image_iff by (auto intro!: bexI[where x="z - a"])
+  }
+  then have "ball x e \<subseteq> (+) a ` S"
+    unfolding subset_eq by auto
+  then show "x \<in> interior ((+) a ` S)"
+    unfolding mem_interior using \<open>e > 0\<close> by auto
+qed
+
+lemma compact_scaling:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "compact s"
+  shows "compact ((\<lambda>x. c *\<^sub>R x) ` s)"
+proof -
+  let ?f = "\<lambda>x. scaleR c x"
+  have *: "bounded_linear ?f" by (rule bounded_linear_scaleR_right)
+  show ?thesis
+    using compact_continuous_image[of s ?f] continuous_at_imp_continuous_on[of s ?f]
+    using linear_continuous_at[OF *] assms
+    by auto
+qed
+
+lemma compact_negations:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "compact s"
+  shows "compact ((\<lambda>x. - x) ` s)"
+  using compact_scaling [OF assms, of "- 1"] by auto
+
+lemma compact_sums:
+  fixes s t :: "'a::real_normed_vector set"
+  assumes "compact s"
+    and "compact t"
+  shows "compact {x + y | x y. x \<in> s \<and> y \<in> t}"
+proof -
+  have *: "{x + y | x y. x \<in> s \<and> y \<in> t} = (\<lambda>z. fst z + snd z) ` (s \<times> t)"
+    apply auto
+    unfolding image_iff
+    apply (rule_tac x="(xa, y)" in bexI)
+    apply auto
+    done
+  have "continuous_on (s \<times> t) (\<lambda>z. fst z + snd z)"
+    unfolding continuous_on by (rule ballI) (intro tendsto_intros)
+  then show ?thesis
+    unfolding * using compact_continuous_image compact_Times [OF assms] by auto
+qed
+
+lemma compact_differences:
+  fixes s t :: "'a::real_normed_vector set"
+  assumes "compact s"
+    and "compact t"
+  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
+proof-
+  have "{x - y | x y. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
+    apply auto
+    apply (rule_tac x= xa in exI, auto)
+    done
+  then show ?thesis
+    using compact_sums[OF assms(1) compact_negations[OF assms(2)]] by auto
+qed
+
+lemma compact_translation:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "compact s"
+  shows "compact ((\<lambda>x. a + x) ` s)"
+proof -
+  have "{x + y |x y. x \<in> s \<and> y \<in> {a}} = (\<lambda>x. a + x) ` s"
+    by auto
+  then show ?thesis
+    using compact_sums[OF assms compact_sing[of a]] by auto
+qed
+
+lemma compact_affinity:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "compact s"
+  shows "compact ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+proof -
+  have "(+) a ` (*\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s"
+    by auto
+  then show ?thesis
+    using compact_translation[OF compact_scaling[OF assms], of a c] by auto
+qed
+
+lemma closed_scaling:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. c *\<^sub>R x) ` S)"
+proof (cases "c = 0")
+  case True then show ?thesis
+    by (auto simp: image_constant_conv)
+next
+  case False
+  from assms have "closed ((\<lambda>x. inverse c *\<^sub>R x) -` S)"
+    by (simp add: continuous_closed_vimage)
+  also have "(\<lambda>x. inverse c *\<^sub>R x) -` S = (\<lambda>x. c *\<^sub>R x) ` S"
+    using \<open>c \<noteq> 0\<close> by (auto elim: image_eqI [rotated])
+  finally show ?thesis .
+qed
+
+lemma closed_negations:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. -x) ` S)"
+  using closed_scaling[OF assms, of "- 1"] by simp
+
+lemma compact_closed_sums:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "compact S" and "closed T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+proof -
+  let ?S = "{x + y |x y. x \<in> S \<and> y \<in> T}"
+  {
+    fix x l
+    assume as: "\<forall>n. x n \<in> ?S"  "(x \<longlongrightarrow> l) sequentially"
+    from as(1) obtain f where f: "\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> S"  "\<forall>n. snd (f n) \<in> T"
+      using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> S \<and> snd y \<in> T"] by auto
+    obtain l' r where "l'\<in>S" and r: "strict_mono r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) \<longlongrightarrow> l') sequentially"
+      using assms(1)[unfolded compact_def, THEN spec[where x="\<lambda> n. fst (f n)"]] using f(2) by auto
+    have "((\<lambda>n. snd (f (r n))) \<longlongrightarrow> l - l') sequentially"
+      using tendsto_diff[OF LIMSEQ_subseq_LIMSEQ[OF as(2) r] lr] and f(1)
+      unfolding o_def
+      by auto
+    then have "l - l' \<in> T"
+      using assms(2)[unfolded closed_sequential_limits,
+        THEN spec[where x="\<lambda> n. snd (f (r n))"],
+        THEN spec[where x="l - l'"]]
+      using f(3)
+      by auto
+    then have "l \<in> ?S"
+      using \<open>l' \<in> S\<close>
+      apply auto
+      apply (rule_tac x=l' in exI)
+      apply (rule_tac x="l - l'" in exI, auto)
+      done
+  }
+  moreover have "?S = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+    by force
+  ultimately show ?thesis
+    unfolding closed_sequential_limits
+    by (metis (no_types, lifting))
+qed
+
+lemma closed_compact_sums:
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "closed S" "compact T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+proof -
+  have "(\<Union>x\<in> T. \<Union>y \<in> S. {x + y}) = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
+    by auto
+  then show ?thesis
+    using compact_closed_sums[OF assms(2,1)] by simp
+qed
+
+lemma compact_closed_differences:
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "compact S" "closed T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+proof -
+  have "(\<Union>x\<in> S. \<Union>y \<in> uminus ` T. {x + y}) = (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+    by force
+  then show ?thesis
+    using compact_closed_sums[OF assms(1) closed_negations[OF assms(2)]] by auto
+qed
+
+lemma closed_compact_differences:
+  fixes S T :: "'a::real_normed_vector set"
+  assumes "closed S" "compact T"
+  shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x - y})"
+proof -
+  have "(\<Union>x\<in> S. \<Union>y \<in> uminus ` T. {x + y}) = {x - y |x y. x \<in> S \<and> y \<in> T}"
+    by auto
+ then show ?thesis
+  using closed_compact_sums[OF assms(1) compact_negations[OF assms(2)]] by simp
+qed
+
+lemma closed_translation:
+  fixes a :: "'a::real_normed_vector"
+  assumes "closed S"
+  shows "closed ((\<lambda>x. a + x) ` S)"
+proof -
+  have "(\<Union>x\<in> {a}. \<Union>y \<in> S. {x + y}) = ((+) a ` S)" by auto
+  then show ?thesis
+    using compact_closed_sums[OF compact_sing[of a] assms] by auto
+qed
+
+lemma closure_translation:
+  fixes a :: "'a::real_normed_vector"
+  shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
+proof -
+  have *: "(+) a ` (- s) = - (+) a ` s"
+    by (auto intro!: image_eqI[where x="x - a" for x])
+  show ?thesis
+    unfolding closure_interior translation_Compl
+    using interior_translation[of a "- s"]
+    unfolding *
+    by auto
+qed
+
+lemma frontier_translation:
+  fixes a :: "'a::real_normed_vector"
+  shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
+  unfolding frontier_def translation_diff interior_translation closure_translation
+  by auto
+
+lemma sphere_translation:
+  fixes a :: "'n::real_normed_vector"
+  shows "sphere (a+c) r = (+) a ` sphere c r"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+
+lemma cball_translation:
+  fixes a :: "'n::real_normed_vector"
+  shows "cball (a+c) r = (+) a ` cball c r"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+
+lemma ball_translation:
+  fixes a :: "'n::real_normed_vector"
+  shows "ball (a+c) r = (+) a ` ball c r"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+
+
+subsection%unimportant\<open>Homeomorphisms\<close>
+
+lemma homeomorphic_scaling:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "c \<noteq> 0"
+  shows "s homeomorphic ((\<lambda>x. c *\<^sub>R x) ` s)"
+  unfolding homeomorphic_minimal
+  apply (rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
+  apply (rule_tac x="\<lambda>x. (1 / c) *\<^sub>R x" in exI)
+  using assms
+  apply (auto simp: continuous_intros)
+  done
+
+lemma homeomorphic_translation:
+  fixes s :: "'a::real_normed_vector set"
+  shows "s homeomorphic ((\<lambda>x. a + x) ` s)"
+  unfolding homeomorphic_minimal
+  apply (rule_tac x="\<lambda>x. a + x" in exI)
+  apply (rule_tac x="\<lambda>x. -a + x" in exI)
+  using continuous_on_add [OF continuous_on_const continuous_on_id, of s a]
+    continuous_on_add [OF continuous_on_const continuous_on_id, of "plus a ` s" "- a"]
+  apply auto
+  done
+
+lemma homeomorphic_affinity:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "c \<noteq> 0"
+  shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+proof -
+  have *: "(+) a ` (*\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
+  show ?thesis
+    using homeomorphic_trans
+    using homeomorphic_scaling[OF assms, of s]
+    using homeomorphic_translation[of "(\<lambda>x. c *\<^sub>R x) ` s" a]
+    unfolding *
+    by auto
+qed
+
+lemma homeomorphic_balls:
+  fixes a b ::"'a::real_normed_vector"
+  assumes "0 < d"  "0 < e"
+  shows "(ball a d) homeomorphic  (ball b e)" (is ?th)
+    and "(cball a d) homeomorphic (cball b e)" (is ?cth)
+proof -
+  show ?th unfolding homeomorphic_minimal
+    apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
+    apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
+    using assms
+    apply (auto intro!: continuous_intros
+      simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
+    done
+  show ?cth unfolding homeomorphic_minimal
+    apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
+    apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
+    using assms
+    apply (auto intro!: continuous_intros
+      simp: dist_commute dist_norm pos_divide_le_eq mult_strict_left_mono)
+    done
+qed
+
+lemma homeomorphic_spheres:
+  fixes a b ::"'a::real_normed_vector"
+  assumes "0 < d"  "0 < e"
+  shows "(sphere a d) homeomorphic (sphere b e)"
+unfolding homeomorphic_minimal
+    apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
+    apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
+    using assms
+    apply (auto intro!: continuous_intros
+      simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
+    done
+
+lemma homeomorphic_ball01_UNIV:
+  "ball (0::'a::real_normed_vector) 1 homeomorphic (UNIV:: 'a set)"
+  (is "?B homeomorphic ?U")
+proof
+  have "x \<in> (\<lambda>z. z /\<^sub>R (1 - norm z)) ` ball 0 1" for x::'a
+    apply (rule_tac x="x /\<^sub>R (1 + norm x)" in image_eqI)
+     apply (auto simp: divide_simps)
+    using norm_ge_zero [of x] apply linarith+
+    done
+  then show "(\<lambda>z::'a. z /\<^sub>R (1 - norm z)) ` ?B = ?U"
+    by blast
+  have "x \<in> range (\<lambda>z. (1 / (1 + norm z)) *\<^sub>R z)" if "norm x < 1" for x::'a
+    apply (rule_tac x="x /\<^sub>R (1 - norm x)" in image_eqI)
+    using that apply (auto simp: divide_simps)
+    done
+  then show "(\<lambda>z::'a. z /\<^sub>R (1 + norm z)) ` ?U = ?B"
+    by (force simp: divide_simps dest: add_less_zeroD)
+  show "continuous_on (ball 0 1) (\<lambda>z. z /\<^sub>R (1 - norm z))"
+    by (rule continuous_intros | force)+
+  show "continuous_on UNIV (\<lambda>z. z /\<^sub>R (1 + norm z))"
+    apply (intro continuous_intros)
+    apply (metis le_add_same_cancel1 norm_ge_zero not_le zero_less_one)
+    done
+  show "\<And>x. x \<in> ball 0 1 \<Longrightarrow>
+         x /\<^sub>R (1 - norm x) /\<^sub>R (1 + norm (x /\<^sub>R (1 - norm x))) = x"
+    by (auto simp: divide_simps)
+  show "\<And>y. y /\<^sub>R (1 + norm y) /\<^sub>R (1 - norm (y /\<^sub>R (1 + norm y))) = y"
+    apply (auto simp: divide_simps)
+    apply (metis le_add_same_cancel1 norm_ge_zero not_le zero_less_one)
+    done
+qed
+
+proposition homeomorphic_ball_UNIV:
+  fixes a ::"'a::real_normed_vector"
+  assumes "0 < r" shows "ball a r homeomorphic (UNIV:: 'a set)"
+  using assms homeomorphic_ball01_UNIV homeomorphic_balls(1) homeomorphic_trans zero_less_one by blast
+
+
+subsection%unimportant \<open>Completeness of "Isometry" (up to constant bounds)\<close>
+
+lemma cauchy_isometric:\<comment> \<open>TODO: rename lemma to \<open>Cauchy_isometric\<close>\<close>
+  assumes e: "e > 0"
+    and s: "subspace s"
+    and f: "bounded_linear f"
+    and normf: "\<forall>x\<in>s. norm (f x) \<ge> e * norm x"
+    and xs: "\<forall>n. x n \<in> s"
+    and cf: "Cauchy (f \<circ> x)"
+  shows "Cauchy x"
+proof -
+  interpret f: bounded_linear f by fact
+  have "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" if "d > 0" for d :: real
+  proof -
+    from that obtain N where N: "\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
+      using cf[unfolded Cauchy_def o_def dist_norm, THEN spec[where x="e*d"]] e
+      by auto
+    have "norm (x n - x N) < d" if "n \<ge> N" for n
+    proof -
+      have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
+        using subspace_diff[OF s, of "x n" "x N"]
+        using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
+        using normf[THEN bspec[where x="x n - x N"]]
+        by auto
+      also have "norm (f (x n - x N)) < e * d"
+        using \<open>N \<le> n\<close> N unfolding f.diff[symmetric] by auto
+      finally show ?thesis
+        using \<open>e>0\<close> by simp
+    qed
+    then show ?thesis by auto
+  qed
+  then show ?thesis
+    by (simp add: Cauchy_altdef2 dist_norm)
+qed
+
+lemma complete_isometric_image:
+  assumes "0 < e"
+    and s: "subspace s"
+    and f: "bounded_linear f"
+    and normf: "\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)"
+    and cs: "complete s"
+  shows "complete (f ` s)"
+proof -
+  have "\<exists>l\<in>f ` s. (g \<longlongrightarrow> l) sequentially"
+    if as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g" for g
+  proof -
+    from that obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)"
+      using choice[of "\<lambda> n xa. xa \<in> s \<and> g n = f xa"] by auto
+    then have x: "\<forall>n. x n \<in> s" "\<forall>n. g n = f (x n)" by auto
+    then have "f \<circ> x = g" by (simp add: fun_eq_iff)
+    then obtain l where "l\<in>s" and l:"(x \<longlongrightarrow> l) sequentially"
+      using cs[unfolded complete_def, THEN spec[where x=x]]
+      using cauchy_isometric[OF \<open>0 < e\<close> s f normf] and cfg and x(1)
+      by auto
+    then show ?thesis
+      using linear_continuous_at[OF f, unfolded continuous_at_sequentially, THEN spec[where x=x], of l]
+      by (auto simp: \<open>f \<circ> x = g\<close>)
+  qed
+  then show ?thesis
+    unfolding complete_def by auto
+qed
+
 
 end

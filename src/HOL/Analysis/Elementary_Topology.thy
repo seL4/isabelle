@@ -19,6 +19,123 @@ lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T.
   using openI by auto
 
 
+subsubsection%unimportant \<open>Archimedean properties and useful consequences\<close>
+
+text\<open>Bernoulli's inequality\<close>
+proposition Bernoulli_inequality:
+  fixes x :: real
+  assumes "-1 \<le> x"
+    shows "1 + n * x \<le> (1 + x) ^ n"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
+    by (simp add: algebra_simps)
+  also have "... = (1 + x) * (1 + n*x)"
+    by (auto simp: power2_eq_square algebra_simps  of_nat_Suc)
+  also have "... \<le> (1 + x) ^ Suc n"
+    using Suc.hyps assms mult_left_mono by fastforce
+  finally show ?case .
+qed
+
+corollary Bernoulli_inequality_even:
+  fixes x :: real
+  assumes "even n"
+    shows "1 + n * x \<le> (1 + x) ^ n"
+proof (cases "-1 \<le> x \<or> n=0")
+  case True
+  then show ?thesis
+    by (auto simp: Bernoulli_inequality)
+next
+  case False
+  then have "real n \<ge> 1"
+    by simp
+  with False have "n * x \<le> -1"
+    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
+  then have "1 + n * x \<le> 0"
+    by auto
+  also have "... \<le> (1 + x) ^ n"
+    using assms
+    using zero_le_even_power by blast
+  finally show ?thesis .
+qed
+
+corollary real_arch_pow:
+  fixes x :: real
+  assumes x: "1 < x"
+  shows "\<exists>n. y < x^n"
+proof -
+  from x have x0: "x - 1 > 0"
+    by arith
+  from reals_Archimedean3[OF x0, rule_format, of y]
+  obtain n :: nat where n: "y < real n * (x - 1)" by metis
+  from x0 have x00: "x- 1 \<ge> -1" by arith
+  from Bernoulli_inequality[OF x00, of n] n
+  have "y < x^n" by auto
+  then show ?thesis by metis
+qed
+
+corollary real_arch_pow_inv:
+  fixes x y :: real
+  assumes y: "y > 0"
+    and x1: "x < 1"
+  shows "\<exists>n. x^n < y"
+proof (cases "x > 0")
+  case True
+  with x1 have ix: "1 < 1/x" by (simp add: field_simps)
+  from real_arch_pow[OF ix, of "1/y"]
+  obtain n where n: "1/y < (1/x)^n" by blast
+  then show ?thesis using y \<open>x > 0\<close>
+    by (auto simp add: field_simps)
+next
+  case False
+  with y x1 show ?thesis
+    by (metis less_le_trans not_less power_one_right)
+qed
+
+lemma forall_pos_mono:
+  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
+  by (metis real_arch_inverse)
+
+lemma forall_pos_mono_1:
+  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
+  apply (rule forall_pos_mono)
+  apply auto
+  apply (metis Suc_pred of_nat_Suc)
+  done
+
+subsubsection%unimportant \<open>Affine transformations of intervals\<close>
+
+lemma real_affinity_le: "0 < m \<Longrightarrow> m * x + c \<le> y \<longleftrightarrow> x \<le> inverse m * y + - (c / m)"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+lemma real_le_affinity: "0 < m \<Longrightarrow> y \<le> m * x + c \<longleftrightarrow> inverse m * y + - (c / m) \<le> x"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+lemma real_affinity_lt: "0 < m \<Longrightarrow> m * x + c < y \<longleftrightarrow> x < inverse m * y + - (c / m)"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+lemma real_lt_affinity: "0 < m \<Longrightarrow> y < m * x + c \<longleftrightarrow> inverse m * y + - (c / m) < x"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+lemma real_affinity_eq: "m \<noteq> 0 \<Longrightarrow> m * x + c = y \<longleftrightarrow> x = inverse m * y + - (c / m)"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+lemma real_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m * x + c  \<longleftrightarrow> inverse m * y + - (c / m) = x"
+  for m :: "'a::linordered_field"
+  by (simp add: field_simps)
+
+
+
 subsection \<open>Topological Basis\<close>
 
 context topological_space
@@ -1112,6 +1229,23 @@ lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually 
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
   by (simp add: filter_eq_iff)
 
+lemma Lim_topological:
+  "(f \<longlongrightarrow> l) net \<longleftrightarrow>
+    trivial_limit net \<or> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
+  unfolding tendsto_def trivial_limit_eq by auto
+
+lemma eventually_within_Un:
+  "eventually P (at x within (s \<union> t)) \<longleftrightarrow>
+    eventually P (at x within s) \<and> eventually P (at x within t)"
+  unfolding eventually_at_filter
+  by (auto elim!: eventually_rev_mp)
+
+lemma Lim_within_union:
+ "(f \<longlongrightarrow> l) (at x within (s \<union> t)) \<longleftrightarrow>
+  (f \<longlongrightarrow> l) (at x within s) \<and> (f \<longlongrightarrow> l) (at x within t)"
+  unfolding tendsto_def
+  by (auto simp: eventually_within_Un)
+
 
 subsection \<open>Limits\<close>
 
@@ -1971,6 +2105,73 @@ proposition Bolzano_Weierstrass_imp_seq_compact:
   by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
 
 
+subsection%unimportant \<open>Cartesian products\<close>
+
+lemma seq_compact_Times: "seq_compact s \<Longrightarrow> seq_compact t \<Longrightarrow> seq_compact (s \<times> t)"
+  unfolding seq_compact_def
+  apply clarify
+  apply (drule_tac x="fst \<circ> f" in spec)
+  apply (drule mp, simp add: mem_Times_iff)
+  apply (clarify, rename_tac l1 r1)
+  apply (drule_tac x="snd \<circ> f \<circ> r1" in spec)
+  apply (drule mp, simp add: mem_Times_iff)
+  apply (clarify, rename_tac l2 r2)
+  apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
+  apply (rule_tac x="r1 \<circ> r2" in exI)
+  apply (rule conjI, simp add: strict_mono_def)
+  apply (drule_tac f=r2 in LIMSEQ_subseq_LIMSEQ, assumption)
+  apply (drule (1) tendsto_Pair) back
+  apply (simp add: o_def)
+  done
+
+lemma compact_Times:
+  assumes "compact s" "compact t"
+  shows "compact (s \<times> t)"
+proof (rule compactI)
+  fix C
+  assume C: "\<forall>t\<in>C. open t" "s \<times> t \<subseteq> \<Union>C"
+  have "\<forall>x\<in>s. \<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
+  proof
+    fix x
+    assume "x \<in> s"
+    have "\<forall>y\<in>t. \<exists>a b c. c \<in> C \<and> open a \<and> open b \<and> x \<in> a \<and> y \<in> b \<and> a \<times> b \<subseteq> c" (is "\<forall>y\<in>t. ?P y")
+    proof
+      fix y
+      assume "y \<in> t"
+      with \<open>x \<in> s\<close> C obtain c where "c \<in> C" "(x, y) \<in> c" "open c" by auto
+      then show "?P y" by (auto elim!: open_prod_elim)
+    qed
+    then obtain a b c where b: "\<And>y. y \<in> t \<Longrightarrow> open (b y)"
+      and c: "\<And>y. y \<in> t \<Longrightarrow> c y \<in> C \<and> open (a y) \<and> open (b y) \<and> x \<in> a y \<and> y \<in> b y \<and> a y \<times> b y \<subseteq> c y"
+      by metis
+    then have "\<forall>y\<in>t. open (b y)" "t \<subseteq> (\<Union>y\<in>t. b y)" by auto
+    with compactE_image[OF \<open>compact t\<close>] obtain D where D: "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
+      by metis
+    moreover from D c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
+      by (fastforce simp: subset_eq)
+    ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
+      using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
+  qed
+  then obtain a d where a: "\<And>x. x\<in>s \<Longrightarrow> open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
+    and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>d x"
+    unfolding subset_eq UN_iff by metis
+  moreover
+  from compactE_image[OF \<open>compact s\<close> a]
+  obtain e where e: "e \<subseteq> s" "finite e" and s: "s \<subseteq> (\<Union>x\<in>e. a x)"
+    by auto
+  moreover
+  {
+    from s have "s \<times> t \<subseteq> (\<Union>x\<in>e. a x \<times> t)"
+      by auto
+    also have "\<dots> \<subseteq> (\<Union>x\<in>e. \<Union>d x)"
+      using d \<open>e \<subseteq> s\<close> by (intro UN_mono) auto
+    finally have "s \<times> t \<subseteq> (\<Union>x\<in>e. \<Union>d x)" .
+  }
+  ultimately show "\<exists>C'\<subseteq>C. finite C' \<and> s \<times> t \<subseteq> \<Union>C'"
+    by (intro exI[of _ "(\<Union>x\<in>e. d x)"]) (auto simp: subset_eq)
+qed
+
+
 subsection \<open>Continuity\<close>
 
 lemma continuous_at_imp_continuous_within:
@@ -2094,6 +2295,297 @@ proof (rule topological_tendstoI)
     using assms T_def by (auto simp: tendsto_def)
   then show "eventually (\<lambda>n. (f \<circ> x) n \<in> S) sequentially"
     using T_def by (auto elim!: eventually_mono)
+qed
+
+subsection \<open>Homeomorphisms\<close>
+
+definition%important "homeomorphism s t f g \<longleftrightarrow>
+  (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
+  (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
+
+lemma homeomorphismI [intro?]:
+  assumes "continuous_on S f" "continuous_on T g"
+          "f ` S \<subseteq> T" "g ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x" "\<And>y. y \<in> T \<Longrightarrow> f(g y) = y"
+    shows "homeomorphism S T f g"
+  using assms by (force simp: homeomorphism_def)
+
+lemma homeomorphism_translation:
+  fixes a :: "'a :: real_normed_vector"
+  shows "homeomorphism ((+) a ` S) S ((+) (- a)) ((+) a)"
+unfolding homeomorphism_def by (auto simp: algebra_simps continuous_intros)
+
+lemma homeomorphism_ident: "homeomorphism T T (\<lambda>a. a) (\<lambda>a. a)"
+  by (rule homeomorphismI) (auto simp: continuous_on_id)
+
+lemma homeomorphism_compose:
+  assumes "homeomorphism S T f g" "homeomorphism T U h k"
+    shows "homeomorphism S U (h o f) (g o k)"
+  using assms
+  unfolding homeomorphism_def
+  by (intro conjI ballI continuous_on_compose) (auto simp: image_comp [symmetric])
+
+lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism t S g f"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
+  by (force simp: homeomorphism_def)
+
+definition%important homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+    (infixr "homeomorphic" 60)
+  where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
+
+lemma homeomorphic_empty [iff]:
+     "S homeomorphic {} \<longleftrightarrow> S = {}" "{} homeomorphic S \<longleftrightarrow> S = {}"
+  by (auto simp: homeomorphic_def homeomorphism_def)
+
+lemma homeomorphic_refl: "s homeomorphic s"
+  unfolding homeomorphic_def homeomorphism_def
+  using continuous_on_id
+  apply (rule_tac x = "(\<lambda>x. x)" in exI)
+  apply (rule_tac x = "(\<lambda>x. x)" in exI)
+  apply blast
+  done
+
+lemma homeomorphic_sym: "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
+  unfolding homeomorphic_def homeomorphism_def
+  by blast
+
+lemma homeomorphic_trans [trans]:
+  assumes "S homeomorphic T"
+      and "T homeomorphic U"
+    shows "S homeomorphic U"
+  using assms
+  unfolding homeomorphic_def
+by (metis homeomorphism_compose)
+
+lemma homeomorphic_minimal:
+  "s homeomorphic t \<longleftrightarrow>
+    (\<exists>f g. (\<forall>x\<in>s. f(x) \<in> t \<and> (g(f(x)) = x)) \<and>
+           (\<forall>y\<in>t. g(y) \<in> s \<and> (f(g(y)) = y)) \<and>
+           continuous_on s f \<and> continuous_on t g)"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (fastforce simp: homeomorphic_def homeomorphism_def)
+next
+  assume ?rhs
+  then show ?lhs
+    apply clarify
+    unfolding homeomorphic_def homeomorphism_def
+    by (metis equalityI image_subset_iff subsetI)
+ qed
+
+lemma homeomorphicI [intro?]:
+   "\<lbrakk>f ` S = T; g ` T = S;
+     continuous_on S f; continuous_on T g;
+     \<And>x. x \<in> S \<Longrightarrow> g(f(x)) = x;
+     \<And>y. y \<in> T \<Longrightarrow> f(g(y)) = y\<rbrakk> \<Longrightarrow> S homeomorphic T"
+unfolding homeomorphic_def homeomorphism_def by metis
+
+lemma homeomorphism_of_subsets:
+   "\<lbrakk>homeomorphism S T f g; S' \<subseteq> S; T'' \<subseteq> T; f ` S' = T'\<rbrakk>
+    \<Longrightarrow> homeomorphism S' T' f g"
+apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+by (metis subsetD imageI)
+
+lemma homeomorphism_apply1: "\<lbrakk>homeomorphism S T f g; x \<in> S\<rbrakk> \<Longrightarrow> g(f x) = x"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_apply2: "\<lbrakk>homeomorphism S T f g; x \<in> T\<rbrakk> \<Longrightarrow> f(g x) = x"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_image1: "homeomorphism S T f g \<Longrightarrow> f ` S = T"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_image2: "homeomorphism S T f g \<Longrightarrow> g ` T = S"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_cont1: "homeomorphism S T f g \<Longrightarrow> continuous_on S f"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_cont2: "homeomorphism S T f g \<Longrightarrow> continuous_on T g"
+  by (simp add: homeomorphism_def)
+
+lemma continuous_on_no_limpt:
+   "(\<And>x. \<not> x islimpt S) \<Longrightarrow> continuous_on S f"
+  unfolding continuous_on_def
+  by (metis UNIV_I empty_iff eventually_at_topological islimptE open_UNIV tendsto_def trivial_limit_within)
+
+lemma continuous_on_finite:
+  fixes S :: "'a::t1_space set"
+  shows "finite S \<Longrightarrow> continuous_on S f"
+by (metis continuous_on_no_limpt islimpt_finite)
+
+lemma homeomorphic_finite:
+  fixes S :: "'a::t1_space set" and T :: "'b::t1_space set"
+  assumes "finite T"
+  shows "S homeomorphic T \<longleftrightarrow> finite S \<and> finite T \<and> card S = card T" (is "?lhs = ?rhs")
+proof
+  assume "S homeomorphic T"
+  with assms show ?rhs
+    apply (auto simp: homeomorphic_def homeomorphism_def)
+     apply (metis finite_imageI)
+    by (metis card_image_le finite_imageI le_antisym)
+next
+  assume R: ?rhs
+  with finite_same_card_bij obtain h where "bij_betw h S T"
+    by auto
+  with R show ?lhs
+    apply (auto simp: homeomorphic_def homeomorphism_def continuous_on_finite)
+    apply (rule_tac x=h in exI)
+    apply (rule_tac x="inv_into S h" in exI)
+    apply (auto simp:  bij_betw_inv_into_left bij_betw_inv_into_right bij_betw_imp_surj_on inv_into_into bij_betwE)
+    apply (metis bij_betw_def bij_betw_inv_into)
+    done
+qed
+
+text \<open>Relatively weak hypotheses if a set is compact.\<close>
+
+lemma homeomorphism_compact:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  assumes "compact s" "continuous_on s f"  "f ` s = t"  "inj_on f s"
+  shows "\<exists>g. homeomorphism s t f g"
+proof -
+  define g where "g x = (SOME y. y\<in>s \<and> f y = x)" for x
+  have g: "\<forall>x\<in>s. g (f x) = x"
+    using assms(3) assms(4)[unfolded inj_on_def] unfolding g_def by auto
+  {
+    fix y
+    assume "y \<in> t"
+    then obtain x where x:"f x = y" "x\<in>s"
+      using assms(3) by auto
+    then have "g (f x) = x" using g by auto
+    then have "f (g y) = y" unfolding x(1)[symmetric] by auto
+  }
+  then have g':"\<forall>x\<in>t. f (g x) = x" by auto
+  moreover
+  {
+    fix x
+    have "x\<in>s \<Longrightarrow> x \<in> g ` t"
+      using g[THEN bspec[where x=x]]
+      unfolding image_iff
+      using assms(3)
+      by (auto intro!: bexI[where x="f x"])
+    moreover
+    {
+      assume "x\<in>g ` t"
+      then obtain y where y:"y\<in>t" "g y = x" by auto
+      then obtain x' where x':"x'\<in>s" "f x' = y"
+        using assms(3) by auto
+      then have "x \<in> s"
+        unfolding g_def
+        using someI2[of "\<lambda>b. b\<in>s \<and> f b = y" x' "\<lambda>x. x\<in>s"]
+        unfolding y(2)[symmetric] and g_def
+        by auto
+    }
+    ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" ..
+  }
+  then have "g ` t = s" by auto
+  ultimately show ?thesis
+    unfolding homeomorphism_def homeomorphic_def
+    apply (rule_tac x=g in exI)
+    using g and assms(3) and continuous_on_inv[OF assms(2,1), of g, unfolded assms(3)] and assms(2)
+    apply auto
+    done
+qed
+
+lemma homeomorphic_compact:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  shows "compact s \<Longrightarrow> continuous_on s f \<Longrightarrow> (f ` s = t) \<Longrightarrow> inj_on f s \<Longrightarrow> s homeomorphic t"
+  unfolding homeomorphic_def by (metis homeomorphism_compact)
+
+text\<open>Preservation of topological properties.\<close>
+
+lemma homeomorphic_compactness: "s homeomorphic t \<Longrightarrow> (compact s \<longleftrightarrow> compact t)"
+  unfolding homeomorphic_def homeomorphism_def
+  by (metis compact_continuous_image)
+
+
+subsection%unimportant \<open>On Linorder Topologies\<close>
+
+lemma islimpt_greaterThanLessThan1:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows  "a islimpt {a<..<b}"
+proof (rule islimptI)
+  fix T
+  assume "open T" "a \<in> T"
+  from open_right[OF this \<open>a < b\<close>]
+  obtain c where c: "a < c" "{a..<c} \<subseteq> T" by auto
+  with assms dense[of a "min c b"]
+  show "\<exists>y\<in>{a<..<b}. y \<in> T \<and> y \<noteq> a"
+    by (metis atLeastLessThan_iff greaterThanLessThan_iff min_less_iff_conj
+      not_le order.strict_implies_order subset_eq)
+qed
+
+lemma islimpt_greaterThanLessThan2:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows  "b islimpt {a<..<b}"
+proof (rule islimptI)
+  fix T
+  assume "open T" "b \<in> T"
+  from open_left[OF this \<open>a < b\<close>]
+  obtain c where c: "c < b" "{c<..b} \<subseteq> T" by auto
+  with assms dense[of "max a c" b]
+  show "\<exists>y\<in>{a<..<b}. y \<in> T \<and> y \<noteq> b"
+    by (metis greaterThanAtMost_iff greaterThanLessThan_iff max_less_iff_conj
+      not_le order.strict_implies_order subset_eq)
+qed
+
+lemma closure_greaterThanLessThan[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  shows "a < b \<Longrightarrow> closure {a <..< b} = {a .. b}" (is "_ \<Longrightarrow> ?l = ?r")
+proof
+  have "?l \<subseteq> closure ?r"
+    by (rule closure_mono) auto
+  thus "closure {a<..<b} \<subseteq> {a..b}" by simp
+qed (auto simp: closure_def order.order_iff_strict islimpt_greaterThanLessThan1
+  islimpt_greaterThanLessThan2)
+
+lemma closure_greaterThan[simp]:
+  fixes a b::"'a::{no_top, linorder_topology, dense_order}"
+  shows "closure {a<..} = {a..}"
+proof -
+  from gt_ex obtain b where "a < b" by auto
+  hence "{a<..} = {a<..<b} \<union> {b..}" by auto
+  also have "closure \<dots> = {a..}" using \<open>a < b\<close> unfolding closure_Un
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closure_lessThan[simp]:
+  fixes b::"'a::{no_bot, linorder_topology, dense_order}"
+  shows "closure {..<b} = {..b}"
+proof -
+  from lt_ex obtain a where "a < b" by auto
+  hence "{..<b} = {a<..<b} \<union> {..a}" by auto
+  also have "closure \<dots> = {..b}" using \<open>a < b\<close> unfolding closure_Un
+    by auto
+  finally show ?thesis .
+qed
+
+lemma closure_atLeastLessThan[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows "closure {a ..< b} = {a .. b}"
+proof -
+  from assms have "{a ..< b} = {a} \<union> {a <..< b}" by auto
+  also have "closure \<dots> = {a .. b}" unfolding closure_Un
+    by (auto simp: assms less_imp_le)
+  finally show ?thesis .
+qed
+
+lemma closure_greaterThanAtMost[simp]:
+  fixes a b::"'a::{linorder_topology, dense_order}"
+  assumes "a < b"
+  shows "closure {a <.. b} = {a .. b}"
+proof -
+  from assms have "{a <.. b} = {b} \<union> {a <..< b}" by auto
+  also have "closure \<dots> = {a .. b}" unfolding closure_Un
+    by (auto simp: assms less_imp_le)
+  finally show ?thesis .
 qed
 
 

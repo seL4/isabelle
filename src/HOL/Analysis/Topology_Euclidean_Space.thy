@@ -31,6 +31,239 @@ proof -
 qed
 
 
+subsection%unimportant\<open>Balls in Euclidean Space\<close>
+
+lemma cball_subset_cball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "cball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r < 0"
+    (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+  proof (cases "r < 0")
+    case True
+    then show ?rhs by simp
+  next
+    case False
+    then have [simp]: "r \<ge> 0" by simp
+    have "norm (a - a') + r \<le> r'"
+    proof (cases "a = a'")
+      case True
+      then show ?thesis
+        using subsetD [where c = "a + r *\<^sub>R (SOME i. i \<in> Basis)", OF \<open>?lhs\<close>] subsetD [where c = a, OF \<open>?lhs\<close>]
+        by (force simp: SOME_Basis dist_norm)
+    next
+      case False
+      have "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = norm (a' - a - (r / norm (a - a')) *\<^sub>R (a - a'))"
+        by (simp add: algebra_simps)
+      also have "... = norm ((-1 - (r / norm (a - a'))) *\<^sub>R (a - a'))"
+        by (simp add: algebra_simps)
+      also from \<open>a \<noteq> a'\<close> have "... = \<bar>- norm (a - a') - r\<bar>"
+        by (simp add: abs_mult_pos field_simps)
+      finally have [simp]: "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = \<bar>norm (a - a') + r\<bar>"
+        by linarith
+      from \<open>a \<noteq> a'\<close> show ?thesis
+        using subsetD [where c = "a' + (1 + r / norm(a - a')) *\<^sub>R (a - a')", OF \<open>?lhs\<close>]
+        by (simp add: dist_norm scaleR_add_left)
+    qed
+    then show ?rhs
+      by (simp add: dist_norm)
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    by (auto simp: ball_def dist_norm)
+      (metis add.commute add_le_cancel_right dist_norm dist_triangle3 order_trans)
+qed
+
+lemma cball_subset_ball_iff: "cball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r < r' \<or> r < 0"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+  for a :: "'a::euclidean_space"
+proof
+  assume ?lhs
+  then show ?rhs
+  proof (cases "r < 0")
+    case True then
+    show ?rhs by simp
+  next
+    case False
+    then have [simp]: "r \<ge> 0" by simp
+    have "norm (a - a') + r < r'"
+    proof (cases "a = a'")
+      case True
+      then show ?thesis
+        using subsetD [where c = "a + r *\<^sub>R (SOME i. i \<in> Basis)", OF \<open>?lhs\<close>] subsetD [where c = a, OF \<open>?lhs\<close>]
+        by (force simp: SOME_Basis dist_norm)
+    next
+      case False
+      have False if "norm (a - a') + r \<ge> r'"
+      proof -
+        from that have "\<bar>r' - norm (a - a')\<bar> \<le> r"
+          by (simp split: abs_split)
+            (metis \<open>0 \<le> r\<close> \<open>?lhs\<close> centre_in_cball dist_commute dist_norm less_asym mem_ball subset_eq)
+        then show ?thesis
+          using subsetD [where c = "a + (r' / norm(a - a') - 1) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close>
+          by (simp add: dist_norm field_simps)
+            (simp add: diff_divide_distrib scaleR_left_diff_distrib)
+      qed
+      then show ?thesis by force
+    qed
+    then show ?rhs by (simp add: dist_norm)
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    by (auto simp: ball_def dist_norm)
+      (metis add.commute add_le_cancel_right dist_norm dist_triangle3 le_less_trans)
+qed
+
+lemma ball_subset_cball_iff: "ball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
+  (is "?lhs = ?rhs")
+  for a :: "'a::euclidean_space"
+proof (cases "r \<le> 0")
+  case True
+  then show ?thesis
+    using dist_not_less_zero less_le_trans by force
+next
+  case False
+  show ?thesis
+  proof
+    assume ?lhs
+    then have "(cball a r \<subseteq> cball a' r')"
+      by (metis False closed_cball closure_ball closure_closed closure_mono not_less)
+    with False show ?rhs
+      by (fastforce iff: cball_subset_cball_iff)
+  next
+    assume ?rhs
+    with False show ?lhs
+      using ball_subset_cball cball_subset_cball_iff by blast
+  qed
+qed
+
+lemma ball_subset_ball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "ball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
+        (is "?lhs = ?rhs")
+proof (cases "r \<le> 0")
+  case True then show ?thesis
+    using dist_not_less_zero less_le_trans by force
+next
+  case False show ?thesis
+  proof
+    assume ?lhs
+    then have "0 < r'"
+      by (metis (no_types) False \<open>?lhs\<close> centre_in_ball dist_norm le_less_trans mem_ball norm_ge_zero not_less set_mp)
+    then have "(cball a r \<subseteq> cball a' r')"
+      by (metis False\<open>?lhs\<close> closure_ball closure_mono not_less)
+    then show ?rhs
+      using False cball_subset_cball_iff by fastforce
+  next
+  assume ?rhs then show ?lhs
+    apply (auto simp: ball_def)
+    apply (metis add.commute add_le_cancel_right dist_commute dist_triangle_lt not_le order_trans)
+    using dist_not_less_zero order.strict_trans2 apply blast
+    done
+  qed
+qed
+
+
+lemma ball_eq_ball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "ball x d = ball y e \<longleftrightarrow> d \<le> 0 \<and> e \<le> 0 \<or> x=y \<and> d=e"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+  proof (cases "d \<le> 0 \<or> e \<le> 0")
+    case True
+      with \<open>?lhs\<close> show ?rhs
+        by safe (simp_all only: ball_eq_empty [of y e, symmetric] ball_eq_empty [of x d, symmetric])
+  next
+    case False
+    with \<open>?lhs\<close> show ?rhs
+      apply (auto simp: set_eq_subset ball_subset_ball_iff dist_norm norm_minus_commute algebra_simps)
+      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
+      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
+      done
+  qed
+next
+  assume ?rhs then show ?lhs
+    by (auto simp: set_eq_subset ball_subset_ball_iff)
+qed
+
+lemma cball_eq_cball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "cball x d = cball y e \<longleftrightarrow> d < 0 \<and> e < 0 \<or> x=y \<and> d=e"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+  proof (cases "d < 0 \<or> e < 0")
+    case True
+      with \<open>?lhs\<close> show ?rhs
+        by safe (simp_all only: cball_eq_empty [of y e, symmetric] cball_eq_empty [of x d, symmetric])
+  next
+    case False
+    with \<open>?lhs\<close> show ?rhs
+      apply (auto simp: set_eq_subset cball_subset_cball_iff dist_norm norm_minus_commute algebra_simps)
+      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
+      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
+      done
+  qed
+next
+  assume ?rhs then show ?lhs
+    by (auto simp: set_eq_subset cball_subset_cball_iff)
+qed
+
+lemma ball_eq_cball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "ball x d = cball y e \<longleftrightarrow> d \<le> 0 \<and> e < 0" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (auto simp: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
+    apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
+    apply (metis add_less_same_cancel1 dist_not_less_zero less_le_trans not_le)
+    using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
+    done
+next
+  assume ?rhs then show ?lhs by auto
+qed
+
+lemma cball_eq_ball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0"
+  using ball_eq_cball_iff by blast
+
+lemma finite_ball_avoid:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "finite X" "p \<in> S"
+  shows "\<exists>e>0. \<forall>w\<in>ball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
+proof -
+  obtain e1 where "0 < e1" and e1_b:"ball p e1 \<subseteq> S"
+    using open_contains_ball_eq[OF \<open>open S\<close>] assms by auto
+  obtain e2 where "0 < e2" and "\<forall>x\<in>X. x \<noteq> p \<longrightarrow> e2 \<le> dist p x"
+    using finite_set_avoid[OF \<open>finite X\<close>,of p] by auto
+  hence "\<forall>w\<in>ball p (min e1 e2). w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" using e1_b by auto
+  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> \<open>e1>0\<close>
+    apply (rule_tac x="min e1 e2" in exI)
+    by auto
+qed
+
+lemma finite_cball_avoid:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "finite X" "p \<in> S"
+  shows "\<exists>e>0. \<forall>w\<in>cball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
+proof -
+  obtain e1 where "e1>0" and e1: "\<forall>w\<in>ball p e1. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
+    using finite_ball_avoid[OF assms] by auto
+  define e2 where "e2 \<equiv> e1/2"
+  have "e2>0" and "e2 < e1" unfolding e2_def using \<open>e1>0\<close> by auto
+  then have "cball p e2 \<subseteq> ball p e1" by (subst cball_subset_ball_iff,auto)
+  then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> e1 by auto
+qed
+
+
 subsection \<open>Boxes\<close>
 
 abbreviation One :: "'a::euclidean_space"
@@ -537,6 +770,65 @@ proof -
     by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
+lemma image_affinity_cbox: fixes m::real
+  fixes a b c :: "'a::euclidean_space"
+  shows "(\<lambda>x. m *\<^sub>R x + c) ` cbox a b =
+    (if cbox a b = {} then {}
+     else (if 0 \<le> m then cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)
+     else cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c)))"
+proof (cases "m = 0")
+  case True
+  {
+    fix x
+    assume "\<forall>i\<in>Basis. x \<bullet> i \<le> c \<bullet> i" "\<forall>i\<in>Basis. c \<bullet> i \<le> x \<bullet> i"
+    then have "x = c"
+      by (simp add: dual_order.antisym euclidean_eqI)
+  }
+  moreover have "c \<in> cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)"
+    unfolding True by (auto simp: cbox_sing)
+  ultimately show ?thesis using True by (auto simp: cbox_def)
+next
+  case False
+  {
+    fix y
+    assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m > 0"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+      by (auto simp: inner_distrib)
+  }
+  moreover
+  {
+    fix y
+    assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m < 0"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i"
+      by (auto simp: mult_left_mono_neg inner_distrib)
+  }
+  moreover
+  {
+    fix y
+    assume "m > 0" and "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> y \<bullet> i" and "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
+      unfolding image_iff Bex_def mem_box
+      apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
+      apply (auto simp: pos_le_divide_eq pos_divide_le_eq mult.commute inner_distrib inner_diff_left)
+      done
+  }
+  moreover
+  {
+    fix y
+    assume "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i" "m < 0"
+    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
+      unfolding image_iff Bex_def mem_box
+      apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
+      apply (auto simp: neg_le_divide_eq neg_divide_le_eq mult.commute inner_distrib inner_diff_left)
+      done
+  }
+  ultimately show ?thesis using False by (auto simp: cbox_def)
+qed
+
+lemma image_smult_cbox:"(\<lambda>x. m *\<^sub>R (x::_::euclidean_space)) ` cbox a b =
+  (if cbox a b = {} then {} else if 0 \<le> m then cbox (m *\<^sub>R a) (m *\<^sub>R b) else cbox (m *\<^sub>R b) (m *\<^sub>R a))"
+  using image_affinity_cbox[of m 0 a b] by auto
+
 
 subsection \<open>General Intervals\<close>
 
@@ -756,7 +1048,8 @@ lemma continuous_on_inner[continuous_intros]:
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
 
-subsection \<open>Openness of halfspaces.\<close>
+
+subsection%unimportant \<open>Openness of halfspaces.\<close>
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
   by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
@@ -781,8 +1074,109 @@ lemma open_Collect_eucl_less[simp, intro]:
   shows "open {x. x <e a}" "open {x. a <e x}"
   by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
+subsection%unimportant \<open>Closure of halfspaces and hyperplanes\<close>
+
+lemma continuous_at_inner: "continuous (at x) (inner a)"
+  unfolding continuous_at by (intro tendsto_intros)
+
+lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_hyperplane: "closed {x. inner a x = b}"
+  by (simp add: closed_Collect_eq continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_halfspace_component_le: "closed {x::'a::euclidean_space. x\<bullet>i \<le> a}"
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_halfspace_component_ge: "closed {x::'a::euclidean_space. x\<bullet>i \<ge> a}"
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_interval_left:
+  fixes b :: "'a::euclidean_space"
+  shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma closed_interval_right:
+  fixes a :: "'a::euclidean_space"
+  shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+
+lemma continuous_le_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
+    shows "f(x) \<le> a"
+    using image_closure_subset [OF f]
+  using image_closure_subset [OF f] closed_halfspace_le [of "1::real" a] assms
+  by force
+
+lemma continuous_ge_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<ge> a"
+    shows "f(x) \<ge> a"
+  using image_closure_subset [OF f] closed_halfspace_ge [of a "1::real"] assms
+  by force
+
+
+subsection%unimportant\<open>Some more convenient intermediate-value theorem formulations\<close>
+
+lemma connected_ivt_hyperplane:
+  assumes "connected S" and xy: "x \<in> S" "y \<in> S" and b: "inner a x \<le> b" "b \<le> inner a y"
+  shows "\<exists>z \<in> S. inner a z = b"
+proof (rule ccontr)
+  assume as:"\<not> (\<exists>z\<in>S. inner a z = b)"
+  let ?A = "{x. inner a x < b}"
+  let ?B = "{x. inner a x > b}"
+  have "open ?A" "open ?B"
+    using open_halfspace_lt and open_halfspace_gt by auto
+  moreover have "?A \<inter> ?B = {}" by auto
+  moreover have "S \<subseteq> ?A \<union> ?B" using as by auto
+  ultimately show False
+    using \<open>connected S\<close>[unfolded connected_def not_ex,
+      THEN spec[where x="?A"], THEN spec[where x="?B"]]
+    using xy b by auto
+qed
+
+lemma connected_ivt_component:
+  fixes x::"'a::euclidean_space"
+  shows "connected S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>S.  z\<bullet>k = a)"
+  using connected_ivt_hyperplane[of S x y "k::'a" a]
+  by (auto simp: inner_commute)
+
 
 subsection \<open>Limit Component Bounds\<close>
+
+lemma Lim_component_le:
+  fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
+  assumes "(f \<longlongrightarrow> l) net"
+    and "\<not> (trivial_limit net)"
+    and "eventually (\<lambda>x. f(x)\<bullet>i \<le> b) net"
+  shows "l\<bullet>i \<le> b"
+  by (rule tendsto_le[OF assms(2) tendsto_const tendsto_inner[OF assms(1) tendsto_const] assms(3)])
+
+lemma Lim_component_ge:
+  fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
+  assumes "(f \<longlongrightarrow> l) net"
+    and "\<not> (trivial_limit net)"
+    and "eventually (\<lambda>x. b \<le> (f x)\<bullet>i) net"
+  shows "b \<le> l\<bullet>i"
+  by (rule tendsto_le[OF assms(2) tendsto_inner[OF assms(1) tendsto_const] tendsto_const assms(3)])
+
+lemma Lim_component_eq:
+  fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
+  assumes net: "(f \<longlongrightarrow> l) net" "\<not> trivial_limit net"
+    and ev:"eventually (\<lambda>x. f(x)\<bullet>i = b) net"
+  shows "l\<bullet>i = b"
+  using ev[unfolded order_eq_iff eventually_conj_iff]
+  using Lim_component_ge[OF net, of b i]
+  using Lim_component_le[OF net, of i b]
+  by auto
 
 lemma open_box[intro]: "open (box a b)"
 proof -
@@ -1192,6 +1586,67 @@ next
 qed
 
 
+subsection%unimportant \<open>Diameter\<close>
+
+lemma diameter_cball [simp]:
+  fixes a :: "'a::euclidean_space"
+  shows "diameter(cball a r) = (if r < 0 then 0 else 2*r)"
+proof -
+  have "diameter(cball a r) = 2*r" if "r \<ge> 0"
+  proof (rule order_antisym)
+    show "diameter (cball a r) \<le> 2*r"
+    proof (rule diameter_le)
+      fix x y assume "x \<in> cball a r" "y \<in> cball a r"
+      then have "norm (x - a) \<le> r" "norm (a - y) \<le> r"
+        by (auto simp: dist_norm norm_minus_commute)
+      then have "norm (x - y) \<le> r+r"
+        using norm_diff_triangle_le by blast
+      then show "norm (x - y) \<le> 2*r" by simp
+    qed (simp add: that)
+    have "2*r = dist (a + r *\<^sub>R (SOME i. i \<in> Basis)) (a - r *\<^sub>R (SOME i. i \<in> Basis))"
+      apply (simp add: dist_norm)
+      by (metis abs_of_nonneg mult.right_neutral norm_numeral norm_scaleR norm_some_Basis real_norm_def scaleR_2 that)
+    also have "... \<le> diameter (cball a r)"
+      apply (rule diameter_bounded_bound)
+      using that by (auto simp: dist_norm)
+    finally show "2*r \<le> diameter (cball a r)" .
+  qed
+  then show ?thesis by simp
+qed
+
+lemma diameter_ball [simp]:
+  fixes a :: "'a::euclidean_space"
+  shows "diameter(ball a r) = (if r < 0 then 0 else 2*r)"
+proof -
+  have "diameter(ball a r) = 2*r" if "r > 0"
+    by (metis bounded_ball diameter_closure closure_ball diameter_cball less_eq_real_def linorder_not_less that)
+  then show ?thesis
+    by (simp add: diameter_def)
+qed
+
+lemma diameter_closed_interval [simp]: "diameter {a..b} = (if b < a then 0 else b-a)"
+proof -
+  have "{a .. b} = cball ((a+b)/2) ((b-a)/2)"
+    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+  then show ?thesis
+    by simp
+qed
+
+lemma diameter_open_interval [simp]: "diameter {a<..<b} = (if b < a then 0 else b-a)"
+proof -
+  have "{a <..< b} = ball ((a+b)/2) ((b-a)/2)"
+    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+  then show ?thesis
+    by simp
+qed
+
+lemma diameter_cbox:
+  fixes a b::"'a::euclidean_space"
+  shows "(\<forall>i \<in> Basis. a \<bullet> i \<le> b \<bullet> i) \<Longrightarrow> diameter (cbox a b) = dist a b"
+  by (force simp: diameter_def intro!: cSup_eq_maximum L2_set_mono
+     simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
+
+
 subsection%unimportant\<open>Relating linear images to open/closed/interior/closure\<close>
 
 proposition open_surjective_linear_image:
@@ -1293,6 +1748,202 @@ lemma interior_negations:
   fixes S :: "'a::euclidean_space set"
   shows "interior(uminus ` S) = image uminus (interior S)"
   by (simp add: bij_uminus interior_bijective_linear_image linear_uminus)
+
+subsection%unimportant \<open>"Isometry" (up to constant bounds) of Injective Linear Map\<close>
+
+proposition injective_imp_isometric:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes s: "closed s" "subspace s"
+    and f: "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0"
+  shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm x"
+proof (cases "s \<subseteq> {0::'a}")
+  case True
+  have "norm x \<le> norm (f x)" if "x \<in> s" for x
+  proof -
+    from True that have "x = 0" by auto
+    then show ?thesis by simp
+  qed
+  then show ?thesis
+    by (auto intro!: exI[where x=1])
+next
+  case False
+  interpret f: bounded_linear f by fact
+  from False obtain a where a: "a \<noteq> 0" "a \<in> s"
+    by auto
+  from False have "s \<noteq> {}"
+    by auto
+  let ?S = "{f x| x. x \<in> s \<and> norm x = norm a}"
+  let ?S' = "{x::'a. x\<in>s \<and> norm x = norm a}"
+  let ?S'' = "{x::'a. norm x = norm a}"
+
+  have "?S'' = frontier (cball 0 (norm a))"
+    by (simp add: sphere_def dist_norm)
+  then have "compact ?S''" by (metis compact_cball compact_frontier)
+  moreover have "?S' = s \<inter> ?S''" by auto
+  ultimately have "compact ?S'"
+    using closed_Int_compact[of s ?S''] using s(1) by auto
+  moreover have *:"f ` ?S' = ?S" by auto
+  ultimately have "compact ?S"
+    using compact_continuous_image[OF linear_continuous_on[OF f(1)], of ?S'] by auto
+  then have "closed ?S"
+    using compact_imp_closed by auto
+  moreover from a have "?S \<noteq> {}" by auto
+  ultimately obtain b' where "b'\<in>?S" "\<forall>y\<in>?S. norm b' \<le> norm y"
+    using distance_attains_inf[of ?S 0] unfolding dist_0_norm by auto
+  then obtain b where "b\<in>s"
+    and ba: "norm b = norm a"
+    and b: "\<forall>x\<in>{x \<in> s. norm x = norm a}. norm (f b) \<le> norm (f x)"
+    unfolding *[symmetric] unfolding image_iff by auto
+
+  let ?e = "norm (f b) / norm b"
+  have "norm b > 0"
+    using ba and a and norm_ge_zero by auto
+  moreover have "norm (f b) > 0"
+    using f(2)[THEN bspec[where x=b], OF \<open>b\<in>s\<close>]
+    using \<open>norm b >0\<close> by simp
+  ultimately have "0 < norm (f b) / norm b" by simp
+  moreover
+  have "norm (f b) / norm b * norm x \<le> norm (f x)" if "x\<in>s" for x
+  proof (cases "x = 0")
+    case True
+    then show "norm (f b) / norm b * norm x \<le> norm (f x)"
+      by auto
+  next
+    case False
+    with \<open>a \<noteq> 0\<close> have *: "0 < norm a / norm x"
+      unfolding zero_less_norm_iff[symmetric] by simp
+    have "\<forall>x\<in>s. c *\<^sub>R x \<in> s" for c
+      using s[unfolded subspace_def] by simp
+    with \<open>x \<in> s\<close> \<open>x \<noteq> 0\<close> have "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}"
+      by simp
+    with \<open>x \<noteq> 0\<close> \<open>a \<noteq> 0\<close> show "norm (f b) / norm b * norm x \<le> norm (f x)"
+      using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
+      unfolding f.scaleR and ba
+      by (auto simp: mult.commute pos_le_divide_eq pos_divide_le_eq)
+  qed
+  ultimately show ?thesis by auto
+qed
+
+proposition closed_injective_image_subspace:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "subspace s" "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0" "closed s"
+  shows "closed(f ` s)"
+proof -
+  obtain e where "e > 0" and e: "\<forall>x\<in>s. e * norm x \<le> norm (f x)"
+    using injective_imp_isometric[OF assms(4,1,2,3)] by auto
+  show ?thesis
+    using complete_isometric_image[OF \<open>e>0\<close> assms(1,2) e] and assms(4)
+    unfolding complete_eq_closed[symmetric] by auto
+qed
+
+
+subsection%unimportant \<open>Some properties of a canonical subspace\<close>
+
+lemma subspace_substandard: "subspace {x::'a::euclidean_space. (\<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0)}"
+  by (auto simp: subspace_def inner_add_left)
+
+lemma closed_substandard: "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0}"
+  (is "closed ?A")
+proof -
+  let ?D = "{i\<in>Basis. P i}"
+  have "closed (\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0})"
+    by (simp add: closed_INT closed_Collect_eq continuous_on_inner
+        continuous_on_const continuous_on_id)
+  also have "(\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0}) = ?A"
+    by auto
+  finally show "closed ?A" .
+qed
+
+lemma dim_substandard:
+  assumes d: "d \<subseteq> Basis"
+  shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
+proof (rule dim_unique)
+  from d show "d \<subseteq> ?A"
+    by (auto simp: inner_Basis)
+  from d show "independent d"
+    by (rule independent_mono [OF independent_Basis])
+  have "x \<in> span d" if "\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0" for x
+  proof -
+    have "finite d"
+      by (rule finite_subset [OF d finite_Basis])
+    then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
+      by (simp add: span_sum span_clauses)
+    also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
+      by (rule sum.mono_neutral_cong_left [OF finite_Basis d]) (auto simp: that)
+    finally show "x \<in> span d"
+      by (simp only: euclidean_representation)
+  qed
+  then show "?A \<subseteq> span d" by auto
+qed simp
+
+text \<open>Hence closure and completeness of all subspaces.\<close>
+lemma ex_card:
+  assumes "n \<le> card A"
+  shows "\<exists>S\<subseteq>A. card S = n"
+proof (cases "finite A")
+  case True
+  from ex_bij_betw_nat_finite[OF this] obtain f where f: "bij_betw f {0..<card A} A" ..
+  moreover from f \<open>n \<le> card A\<close> have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
+    by (auto simp: bij_betw_def intro: subset_inj_on)
+  ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
+    by (auto simp: bij_betw_def card_image)
+  then show ?thesis by blast
+next
+  case False
+  with \<open>n \<le> card A\<close> show ?thesis by force
+qed
+
+lemma closed_subspace:
+  fixes s :: "'a::euclidean_space set"
+  assumes "subspace s"
+  shows "closed s"
+proof -
+  have "dim s \<le> card (Basis :: 'a set)"
+    using dim_subset_UNIV by auto
+  with ex_card[OF this] obtain d :: "'a set" where t: "card d = dim s" and d: "d \<subseteq> Basis"
+    by auto
+  let ?t = "{x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
+  have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s \<and>
+      inj_on f {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
+    using dim_substandard[of d] t d assms
+    by (intro subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]]) (auto simp: inner_Basis)
+  then obtain f where f:
+      "linear f"
+      "f ` {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s"
+      "inj_on f {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
+    by blast
+  interpret f: bounded_linear f
+    using f by (simp add: linear_conv_bounded_linear)
+  have "x \<in> ?t \<Longrightarrow> f x = 0 \<Longrightarrow> x = 0" for x
+    using f.zero d f(3)[THEN inj_onD, of x 0] by auto
+  moreover have "closed ?t" by (rule closed_substandard)
+  moreover have "subspace ?t" by (rule subspace_substandard)
+  ultimately show ?thesis
+    using closed_injective_image_subspace[of ?t f]
+    unfolding f(2) using f(1) unfolding linear_conv_bounded_linear by auto
+qed
+
+lemma complete_subspace: "subspace s \<Longrightarrow> complete s"
+  for s :: "'a::euclidean_space set"
+  using complete_eq_closed closed_subspace by auto
+
+lemma closed_span [iff]: "closed (span s)"
+  for s :: "'a::euclidean_space set"
+  by (simp add: closed_subspace subspace_span)
+
+lemma dim_closure [simp]: "dim (closure s) = dim s" (is "?dc = ?d")
+  for s :: "'a::euclidean_space set"
+proof -
+  have "?dc \<le> ?d"
+    using closure_minimal[OF span_superset, of s]
+    using closed_subspace[OF subspace_span, of s]
+    using dim_subset[of "closure s" "span s"]
+    by simp
+  then show ?thesis
+    using dim_subset[OF closure_subset, of s]
+    by simp
+qed
+
 
 no_notation
   eucl_less (infix "<e" 50)
