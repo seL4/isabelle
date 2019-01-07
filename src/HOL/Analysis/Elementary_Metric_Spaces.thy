@@ -2743,33 +2743,31 @@ apply (rule_tac x="e/2" in exI, force+)
   done
 
 lemma Times_in_interior_subtopology:
-  fixes U :: "('a::metric_space \<times> 'b::metric_space) set"
   assumes "(x, y) \<in> U" "openin (subtopology euclidean (S \<times> T)) U"
   obtains V W where "openin (subtopology euclidean S) V" "x \<in> V"
                     "openin (subtopology euclidean T) W" "y \<in> W" "(V \<times> W) \<subseteq> U"
 proof -
-  from assms obtain e where "e > 0" and "U \<subseteq> S \<times> T"
-    and e: "\<And>x' y'. \<lbrakk>x'\<in>S; y'\<in>T; dist (x', y') (x, y) < e\<rbrakk> \<Longrightarrow> (x', y') \<in> U"
-    by (force simp: openin_euclidean_subtopology_iff)
-  with assms have "x \<in> S" "y \<in> T"
-    by auto
+  from assms obtain E where "open E" "U = S \<times> T \<inter> E" "(x, y) \<in> E" "x \<in> S" "y \<in> T"
+    by (auto simp: openin_open)
+  from open_prod_elim[OF \<open>open E\<close> \<open>(x, y) \<in> E\<close>]
+  obtain E1 E2 where "open E1" "open E2" "(x, y) \<in> E1 \<times> E2" "E1 \<times> E2 \<subseteq> E"
+    by blast
   show ?thesis
   proof
-    show "openin (subtopology euclidean S) (ball x (e/2) \<inter> S)"
-      by (simp add: Int_commute openin_open_Int)
-    show "x \<in> ball x (e / 2) \<inter> S"
-      by (simp add: \<open>0 < e\<close> \<open>x \<in> S\<close>)
-    show "openin (subtopology euclidean T) (ball y (e/2) \<inter> T)"
-      by (simp add: Int_commute openin_open_Int)
-    show "y \<in> ball y (e / 2) \<inter> T"
-      by (simp add: \<open>0 < e\<close> \<open>y \<in> T\<close>)
-    show "(ball x (e / 2) \<inter> S) \<times> (ball y (e / 2) \<inter> T) \<subseteq> U"
-      by clarify (simp add: e dist_Pair_Pair \<open>0 < e\<close> dist_commute sqrt_sum_squares_half_less)
+    show "openin (subtopology euclidean S) (E1 \<inter> S)"
+      "openin (subtopology euclidean T) (E2 \<inter> T)"
+      using \<open>open E1\<close> \<open>open E2\<close>
+      by (auto simp: openin_open)
+    show "x \<in> E1 \<inter> S" "y \<in> E2 \<inter> T"
+      using \<open>(x, y) \<in> E1 \<times> E2\<close> \<open>x \<in> S\<close> \<open>y \<in> T\<close> by auto
+    show "(E1 \<inter> S) \<times> (E2 \<inter> T) \<subseteq> U"
+      using \<open>E1 \<times> E2 \<subseteq> E\<close> \<open>U = _\<close>
+      by (auto simp: )
   qed
 qed
 
 lemma openin_Times_eq:
-  fixes S :: "'a::metric_space set" and T :: "'b::metric_space set"
+  fixes S :: "'a::topological_space set" and T :: "'b::topological_space set"
   shows
     "openin (subtopology euclidean (S \<times> T)) (S' \<times> T') \<longleftrightarrow>
       S' = {} \<or> T' = {} \<or> openin (subtopology euclidean S) S' \<and> openin (subtopology euclidean T) T'"
@@ -2811,33 +2809,42 @@ lemma closedin_Times:
   unfolding closedin_closed using closed_Times by blast
 
 lemma Lim_transform_within_openin:
-  fixes a :: "'a::metric_space"
   assumes f: "(f \<longlongrightarrow> l) (at a within T)"
     and "openin (subtopology euclidean T) S" "a \<in> S"
     and eq: "\<And>x. \<lbrakk>x \<in> S; x \<noteq> a\<rbrakk> \<Longrightarrow> f x = g x"
   shows "(g \<longlongrightarrow> l) (at a within T)"
 proof -
-  obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "ball a \<epsilon> \<inter> T \<subseteq> S"
-    using assms by (force simp: openin_contains_ball)
-  then have "a \<in> ball a \<epsilon>"
-    by simp
-  show ?thesis
-    by (rule Lim_transform_within [OF f \<open>0 < \<epsilon>\<close> eq]) (use \<epsilon> in \<open>auto simp: dist_commute subset_iff\<close>)
+  have "\<forall>\<^sub>F x in at a within T. x \<in> T \<and> x \<noteq> a"
+    by (simp add: eventually_at_filter)
+  moreover
+  from \<open>openin _ _\<close> obtain U where "open U" "S = T \<inter> U"
+    by (auto simp: openin_open)
+  then have "a \<in> U" using \<open>a \<in> S\<close> by auto
+  from topological_tendstoD[OF tendsto_ident_at \<open>open U\<close> \<open>a \<in> U\<close>]
+  have "\<forall>\<^sub>F x in at a within T. x \<in> U" by auto
+  ultimately
+  have "\<forall>\<^sub>F x in at a within T. f x = g x"
+    by eventually_elim (auto simp: \<open>S = _\<close> eq)
+  then show ?thesis using f
+    by (rule Lim_transform_eventually)
 qed
 
 lemma closure_Int_ballI:
-  fixes S :: "'a :: metric_space set"
   assumes "\<And>U. \<lbrakk>openin (subtopology euclidean S) U; U \<noteq> {}\<rbrakk> \<Longrightarrow> T \<inter> U \<noteq> {}"
- shows "S \<subseteq> closure T"
-proof (clarsimp simp: closure_approachable dist_commute)
-  fix x and e::real
-  assume "x \<in> S" "0 < e"
-  with assms [of "S \<inter> ball x e"] show "\<exists>y\<in>T. dist x y < e"
-    by force
+  shows "S \<subseteq> closure T"
+proof (clarsimp simp: closure_iff_nhds_not_empty)
+  fix x and A and V
+  assume "x \<in> S" "V \<subseteq> A" "open V" "x \<in> V" "T \<inter> A = {}"
+  then have "openin (subtopology euclidean S) (A \<inter> V \<inter> S)"
+    by (auto simp: openin_open intro!: exI[where x="V"])
+  moreover have "A \<inter> V \<inter> S \<noteq> {}" using \<open>x \<in> V\<close> \<open>V \<subseteq> A\<close> \<open>x \<in> S\<close>
+    by auto
+  ultimately have "T \<inter> (A \<inter> V \<inter> S) \<noteq> {}"
+    by (rule assms)
+  with \<open>T \<inter> A = {}\<close> show False by auto
 qed
 
 lemma continuous_on_open_gen:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "f ` S \<subseteq> T"
     shows "continuous_on S f \<longleftrightarrow>
              (\<forall>U. openin (subtopology euclidean T) U
@@ -2846,38 +2853,32 @@ lemma continuous_on_open_gen:
 proof
   assume ?lhs
   then show ?rhs
-    apply (clarsimp simp: openin_euclidean_subtopology_iff continuous_on_iff)
-    by (metis assms image_subset_iff)
+    by (clarsimp simp add: continuous_openin_preimage_eq openin_open)
+      (metis Int_assoc assms image_subset_iff_subset_vimage inf.absorb_iff1)
 next
-  have ope: "openin (subtopology euclidean T) (ball y e \<inter> T)" for y e
-    by (simp add: Int_commute openin_open_Int)
   assume R [rule_format]: ?rhs
   show ?lhs
-  proof (clarsimp simp add: continuous_on_iff)
-    fix x and e::real
-    assume "x \<in> S" and "0 < e"
-    then have x: "x \<in> S \<inter> (f -` ball (f x) e \<inter> f -` T)"
-      using assms by auto
-    show "\<exists>d>0. \<forall>x'\<in>S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
-      using R [of "ball (f x) e \<inter> T"] x
-      by (fastforce simp add: ope openin_euclidean_subtopology_iff [of S] dist_commute)
+  proof (clarsimp simp add: continuous_openin_preimage_eq)
+    fix U::"'a set"
+    assume "open U"
+    then have "openin (subtopology euclidean S) (S \<inter> f -` (U \<inter> T))"
+      by (metis R inf_commute openin_open)
+    then show "openin (subtopology euclidean S) (S \<inter> f -` U)"
+      by (metis Int_assoc Int_commute assms image_subset_iff_subset_vimage inf.absorb_iff2 vimage_Int)
   qed
 qed
 
 lemma continuous_openin_preimage:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
-  shows
-   "\<lbrakk>continuous_on S f; f ` S \<subseteq> T; openin (subtopology euclidean T) U\<rbrakk>
+  "\<lbrakk>continuous_on S f; f ` S \<subseteq> T; openin (subtopology euclidean T) U\<rbrakk>
         \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` U)"
-by (simp add: continuous_on_open_gen)
+  by (simp add: continuous_on_open_gen)
 
 lemma continuous_on_closed_gen:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "f ` S \<subseteq> T"
-    shows "continuous_on S f \<longleftrightarrow>
+  shows "continuous_on S f \<longleftrightarrow>
              (\<forall>U. closedin (subtopology euclidean T) U
                   \<longrightarrow> closedin (subtopology euclidean S) (S \<inter> f -` U))"
-     (is "?lhs = ?rhs")
+    (is "?lhs = ?rhs")
 proof -
   have *: "U \<subseteq> T \<Longrightarrow> S \<inter> f -` (T - U) = S - (S \<inter> f -` U)" for U
     using assms by blast
@@ -2901,13 +2902,11 @@ proof -
 qed
 
 lemma continuous_closedin_preimage_gen:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "continuous_on S f" "f ` S \<subseteq> T" "closedin (subtopology euclidean T) U"
     shows "closedin (subtopology euclidean S) (S \<inter> f -` U)"
 using assms continuous_on_closed_gen by blast
 
 lemma continuous_transform_within_openin:
-  fixes a :: "'a::metric_space"
   assumes "continuous (at a within T) f"
     and "openin (subtopology euclidean T) S" "a \<in> S"
     and eq: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
