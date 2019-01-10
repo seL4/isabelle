@@ -70,6 +70,11 @@ precedence over goal/proof.
 
 *** HOL ***
 
+* Code generation: command 'export_code' without file keyword exports
+code as regular theory export, which can be materialized using tool
+'isabelle export'; to get generated code dumped into output, use
+'file ""'.  Minor INCOMPATIBILITY.
+
 * Simplified syntax setup for big operators under image. In rare
 situations, type conversions are not inserted implicitly any longer
 and need to be given explicitly. Auxiliary abbreviations INFIMUM,

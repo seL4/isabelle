@@ -133,8 +133,6 @@ definition products :: "nat set => nat set => nat set"
 where
   "products A B = {c. \<exists>a b. a \<in> A \<and> b \<in> B \<and> c = a * b}"
 
-export_code products in Haskell
-
-export_code union common_subsets products in Haskell
+export_code union common_subsets products checking SML
 
 end

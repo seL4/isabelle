@@ -11,7 +11,7 @@ sig
 
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
-  val export_code_for: Proof.context -> Path.T option -> string -> string -> int option -> Token.T list
+  val export_code_for: Proof.context -> Path.T option option -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
   val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
@@ -21,7 +21,7 @@ sig
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
 
   val export_code: Proof.context -> bool -> string list
-    -> (((string * string) * Path.T option) * Token.T list) list -> unit
+    -> (((string * string) * Path.T option option) * Token.T list) list -> unit
   val produce_code: Proof.context -> bool -> string list
     -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
   val present_code: Proof.context -> string list -> Code_Symbol.T list
@@ -162,6 +162,8 @@ type serializer = Token.T list
   -> Code_Symbol.T list
   -> pretty_modules * (Code_Symbol.T -> string option);
 
+val generatedN = "Generated_Code";
+
 fun flat_modules selects width (Singleton (_, p)) =
       Code_Printer.format selects width p
   | flat_modules selects width (Hierarchy code_modules) =
@@ -174,14 +176,25 @@ fun export_to_file root width (Singleton (_, p)) =
       map (fn (names, p) => File.write (Path.appends (root :: map Path.basic names)) (Code_Printer.format [] width p)) code_modules;
       ());
 
-fun export_result ctxt some_root width (pretty_code, _) =
-  case some_root of
-    NONE => (writeln (flat_modules [] width pretty_code); ())
-  | SOME relative_root =>
+fun export_to_exports thy width (Singleton (extension, p)) =
+      Export.export_raw thy (generatedN ^ "." ^ extension) [Code_Printer.format [] width p]
+  | export_to_exports thy width (Hierarchy code_modules) = (
+      map (fn (names, p) => Export.export_raw thy (Path.implode (Path.make names))
+        [Code_Printer.format [] width p]) code_modules;
+      ());
+
+fun export_result ctxt some_file width (pretty_code, _) =
+  (case some_file of
+    NONE =>
+      let
+        val thy = Proof_Context.theory_of ctxt
+      in export_to_exports thy width pretty_code end
+  | SOME NONE => writeln (flat_modules [] width pretty_code)
+  | SOME (SOME relative_root) =>
       let
         val root = File.full_path (Resources.master_directory (Proof_Context.theory_of ctxt)) relative_root;
         val _ = File.check_dir (Path.dir root);
-      in export_to_file root width pretty_code end;
+      in export_to_file root width pretty_code end);
 
 fun produce_result syms width (Singleton (_, p), deresolve) =
       ([([], Code_Printer.format [] width p)], map deresolve syms)
@@ -376,10 +389,8 @@ fun assert_module_name "" = error "Empty module name not allowed here"
 
 in
 
-val generatedN = "Generated_Code";
-
-fun export_code_for ctxt some_root target_name module_name some_width args =
-  export_result ctxt some_root (the_width ctxt some_width)
+fun export_code_for ctxt some_file target_name module_name some_width args =
+  export_result ctxt some_file (the_width ctxt some_width)
   ooo invoke_serializer ctxt target_name module_name args;
 
 fun produce_code_for ctxt target_name module_name some_width args =
@@ -404,7 +415,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
     fun ext_check p =
       let
         val destination = make_destination p;
-        val _ = export_result ctxt (SOME destination) 80
+        val _ = export_result ctxt (SOME (SOME destination)) 80
           (invoke_serializer ctxt target_name generatedN args program all_public syms)
         val cmd = make_command generatedN;
       in
@@ -469,14 +480,14 @@ fun prep_destination (s, pos) =
 fun export_code ctxt all_public cs seris =
   let
     val program = Code_Thingol.consts_program ctxt cs;
-    val _ = map (fn (((target_name, module_name), some_root), args) =>
-      export_code_for ctxt some_root target_name module_name NONE args program all_public (map Constant cs)) seris;
+    val _ = map (fn (((target_name, module_name), some_file), args) =>
+      export_code_for ctxt some_file target_name module_name NONE args program all_public (map Constant cs)) seris;
   in () end;
 
 fun export_code_cmd all_public raw_cs seris ctxt =
   export_code ctxt all_public
     (Code_Thingol.read_const_exprs ctxt raw_cs)
-    ((map o apfst o apsnd) prep_destination seris);
+    ((map o apfst o apsnd o Option.map) prep_destination seris);
 
 fun produce_code ctxt all_public cs target_name some_width some_module_name args =
   let
@@ -681,7 +692,7 @@ val code_expr_argsP = Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.args 
 fun code_expr_inP all_public raw_cs =
   Scan.repeat (\<^keyword>\<open>in\<close> |-- Parse.!!! (Parse.name
     -- Scan.optional (\<^keyword>\<open>module_name\<close> |-- Parse.name) ""
-    -- Scan.optional (\<^keyword>\<open>file\<close> |-- Parse.position Parse.path) ("", Position.none)
+    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.position Parse.path)
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 
