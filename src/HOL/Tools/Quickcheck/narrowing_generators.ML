@@ -236,12 +236,12 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
         fun mk_code_file module =
           let
             val (paths, base) = split_last module
-          in Path.appends (in_path :: map Path.basic (paths @ [base ^ ".hs"])) end;
-        val generatedN = Code_Target.generatedN
-        val includes = AList.delete (op =) [generatedN] code_modules
+          in Path.appends (in_path :: map Path.basic (paths @ [suffix ".hs" base])) end;
+        val generatedN_suffix = suffix ".hs" Code_Target.generatedN;
+        val includes = AList.delete (op =) [generatedN_suffix] code_modules
           |> (map o apfst) mk_code_file
-        val code = the (AList.lookup (op =) code_modules [generatedN])
-        val code_file = mk_code_file [generatedN]
+        val code = the (AList.lookup (op =) code_modules [generatedN_suffix])
+        val code_file = mk_code_file [Code_Target.generatedN]
         val narrowing_engine_file = mk_code_file ["Narrowing_Engine"]
         val main_file = mk_code_file ["Main"]
         val main =
@@ -249,9 +249,9 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
           "import System.IO;\n" ^
           "import System.Environment;\n" ^
           "import Narrowing_Engine;\n" ^
-          "import " ^ generatedN ^ " ;\n\n" ^
+          "import " ^ Code_Target.generatedN ^ " ;\n\n" ^
           "main = getArgs >>= \\[potential, size] -> " ^
-          "Narrowing_Engine.depthCheck (read potential) (read size) (" ^ generatedN ^
+          "Narrowing_Engine.depthCheck (read potential) (read size) (" ^ Code_Target.generatedN ^
           ".value ())\n\n}\n"
         val _ =
           map (uncurry File.write)
