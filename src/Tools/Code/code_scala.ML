@@ -402,7 +402,7 @@ fun scala_program_of_program ctxt case_insensitive module_name reserved identifi
   end;
 
 fun serialize_scala case_insensitive ctxt { module_name, reserved_syms, identifiers,
-    includes, class_syntax, tyco_syntax, const_syntax } exports program =
+    includes, class_syntax, tyco_syntax, const_syntax } program exports =
   let
 
     (* build program *)
@@ -438,11 +438,8 @@ fun serialize_scala case_insensitive ctxt { module_name, reserved_syms, identifi
       @ Code_Namespace.print_hierarchical {
         print_module = print_module, print_stmt = print_stmt,
         lift_markup = I } scala_program);
-    fun write width NONE = writeln o format [] width
-      | write width (SOME p) = File.write p o format [] width;
-    fun prepare syms width p = ([("", format syms width p)], try (deresolver []));
   in
-    Code_Target.serialization write prepare p
+    (Code_Target.Singleton ("scala", p), try (deresolver []))
   end;
 
 val serializer : Code_Target.serializer =

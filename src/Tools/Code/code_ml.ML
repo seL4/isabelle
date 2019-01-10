@@ -827,9 +827,9 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
       memorize_data = K I, modify_stmts = modify_stmts }
   end;
 
-fun serialize_ml print_ml_module print_ml_stmt ctxt
+fun serialize_ml print_ml_module print_ml_stmt ml_extension ctxt
     { module_name, reserved_syms, identifiers, includes,
-      class_syntax, tyco_syntax, const_syntax } exports program =
+      class_syntax, tyco_syntax, const_syntax } program exports =
   let
 
     (* build program *)
@@ -855,18 +855,15 @@ fun serialize_ml print_ml_module print_ml_stmt ctxt
       @ map snd (Code_Namespace.print_hierarchical {
         print_module = print_module, print_stmt = print_stmt,
         lift_markup = apsnd } ml_program));
-    fun write width NONE = writeln o format [] width
-      | write width (SOME p) = File.write p o format [] width;
-    fun prepare syms width p = ([("", format syms width p)], try (deresolver []));
   in
-    Code_Target.serialization write prepare p
+    (Code_Target.Singleton (ml_extension, p), try (deresolver []))
   end;
 
 val serializer_sml : Code_Target.serializer =
-  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_sml_module print_sml_stmt);
+  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_sml_module print_sml_stmt "ML");
 
 val serializer_ocaml : Code_Target.serializer =
-  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_ocaml_module print_ocaml_stmt);
+  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_ocaml_module print_ocaml_stmt "ocaml");
 
 
 (** Isar setup **)

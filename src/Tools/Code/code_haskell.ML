@@ -331,7 +331,7 @@ val prelude_import_unqualified_constr = [
 ];
 
 fun serialize_haskell module_prefix string_classes ctxt { module_name,
-    reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } exports program =
+    reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } program exports =
   let
 
     (* build program *)
@@ -357,9 +357,14 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
       deresolve (if string_classes then deriving_show else K false);
 
     (* print modules *)
-    fun print_module_frame module_name exports ps =
-      (module_name, Pretty.chunks2 (
-        concat [str "module",
+    fun module_names module_name =
+      let
+        val (xs, x) = split_last (Long_Name.explode module_name)
+      in xs @ [x ^ ".hs"] end
+    fun print_module_frame module_name header exports ps =
+      (module_names module_name, Pretty.chunks2 (
+        header
+        @ concat [str "module",
           case exports of
             SOME ps => Pretty.block [str module_name, enclose "(" ")" (commas ps)]
           | NONE => str module_name,
@@ -397,30 +402,14 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
           |> split_list
           |> apfst (map_filter I);
       in
-        print_module_frame module_name (SOME export_ps)
+        print_module_frame module_name [str language_pragma] (SOME export_ps)
           ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
       end;
 
-    (*serialization*)
-    fun write_module width (SOME destination) (module_name, content) =
-          let
-            val _ = File.check_dir destination;
-            val filepath = (Path.append destination o Path.ext "hs" o Path.explode o implode
-              o separate "/" o Long_Name.explode) module_name;
-            val _ = Isabelle_System.mkdirs (Path.dir filepath);
-          in
-            (File.write filepath o format [] width o Pretty.chunks2)
-              [str language_pragma, content]
-          end
-      | write_module width NONE (_, content) = writeln (format [] width content);
   in
-    Code_Target.serialization
-      (fn width => fn destination => K () o map (write_module width destination))
-      (fn present => fn width => rpair (try (deresolver ""))
-        o (map o apsnd) (format present width))
-      (map (fn (module_name, content) => print_module_frame module_name NONE [content]) includes
-        @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
-          ((flat o rev o Graph.strong_conn) haskell_program))
+    (Code_Target.Hierarchy (map (fn (module_name, content) => print_module_frame module_name [] NONE [content]) includes
+      @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
+        ((flat o rev o Graph.strong_conn) haskell_program)), try (deresolver ""))
   end;
 
 val serializer : Code_Target.serializer =

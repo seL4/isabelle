@@ -164,7 +164,9 @@ fun dynamic_value_strict ctxt t compiler =
       | SOME f => f)
     val debug = Config.get (Proof_Context.init_global thy) overlord
     val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
-    fun evaluate f = with_dir "Code_Test" (driver ctxt f) |> parse_result compiler
+    fun evaluate result =
+      with_dir "Code_Test" (driver ctxt ((apfst o map o apfst) Long_Name.implode result))
+      |> parse_result compiler
     fun evaluator program _ vs_ty deps =
       Exn.interruptible_capture evaluate
         (Code_Target.compilation_text ctxt target program deps true vs_ty)

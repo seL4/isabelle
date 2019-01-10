@@ -9,11 +9,13 @@ sig
   val cert_tyco: Proof.context -> string -> string
   val read_tyco: Proof.context -> string -> string
 
-  val export_code_for: Proof.context -> Path.T option -> string -> int option -> string -> Token.T list
+  datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
+
+  val export_code_for: Proof.context -> Path.T option -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
-  val produce_code_for: Proof.context -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string * string) list * string option list
-  val present_code_for: Proof.context -> string -> int option -> string -> Token.T list
+  val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
+    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
+  val present_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> string
   val check_code_for: Proof.context -> string -> bool -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
@@ -21,19 +23,19 @@ sig
   val export_code: Proof.context -> bool -> string list
     -> (((string * string) * Path.T option) * Token.T list) list -> unit
   val produce_code: Proof.context -> bool -> string list
-    -> string -> int option -> string -> Token.T list -> (string * string) list * string option list
+    -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
   val present_code: Proof.context -> string list -> Code_Symbol.T list
-    -> string -> int option -> string -> Token.T list -> string
+    -> string -> string -> int option -> Token.T list -> string
   val check_code: Proof.context -> bool -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
   val generatedN: string
   val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
-    -> (string * string) list * string
+    -> (string list * string) list * string
   val compilation_text': Proof.context -> string -> string option -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
-    -> ((string * string) list * string) * (Code_Symbol.T -> string option)
+    -> ((string list * string) list * string) * (Code_Symbol.T -> string option)
 
   type serializer
   type literals = Code_Printer.literals
@@ -43,11 +45,7 @@ sig
   val add_language: string * language -> theory -> theory
   val add_derived_target: string * ancestry -> theory -> theory
   val the_literals: Proof.context -> string -> literals
-  type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
-  val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (Code_Symbol.T list -> int -> 'a -> (string * string) list * (Code_Symbol.T -> string option))
-    -> 'a -> serialization
   val default_code_width: int Config.T
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
@@ -146,44 +144,54 @@ fun check_name is_module s =
   end;
 
 
-(** serializations and serializer **)
+(** serializers **)
 
-(* serialization: abstract nonsense to cover different destinies for generated code *)
-
-datatype destination = Export of Path.T option | Produce | Present of Code_Symbol.T list;
-type serialization = int -> destination -> ((string * string) list * (Code_Symbol.T -> string option)) option;
-
-fun serialization output _ content width (Export some_path) =
-      (output width some_path content; NONE)
-  | serialization _ string content width Produce =
-      string [] width content |> SOME
-  | serialization _ string content width (Present syms) =
-     string syms width content
-     |> (apfst o map o apsnd) Output.output
-     |> SOME;
-
-fun export some_path f = (f (Export some_path); ());
-fun produce f = the (f Produce);
-fun present syms f = space_implode "\n\n" (map snd (fst (the (f (Present syms)))));
-
-
-(* serializers: functions producing serializations *)
+datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
 type serializer = Token.T list
   -> Proof.context
   -> {
-    module_name: string,
     reserved_syms: string list,
     identifiers: Code_Printer.identifiers,
     includes: (string * Pretty.T) list,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
-    const_syntax: string -> Code_Printer.const_syntax option }
-  -> Code_Symbol.T list
+    const_syntax: string -> Code_Printer.const_syntax option,
+    module_name: string }
   -> Code_Thingol.program
-  -> serialization;
+  -> Code_Symbol.T list
+  -> pretty_modules * (Code_Symbol.T -> string option);
 
-  
+fun flat_modules selects width (Singleton (_, p)) =
+      Code_Printer.format selects width p
+  | flat_modules selects width (Hierarchy code_modules) =
+      space_implode "\n\n" (map (Code_Printer.format selects width o snd) code_modules);
+
+fun export_to_file root width (Singleton (_, p)) =
+      File.write root (Code_Printer.format [] width p)
+  | export_to_file root width (Hierarchy code_modules) = (
+      Isabelle_System.mkdirs root;
+      map (fn (names, p) => File.write (Path.appends (root :: map Path.basic names)) (Code_Printer.format [] width p)) code_modules;
+      ());
+
+fun export_result ctxt some_root width (pretty_code, _) =
+  case some_root of
+    NONE => (writeln (flat_modules [] width pretty_code); ())
+  | SOME relative_root =>
+      let
+        val root = File.full_path (Resources.master_directory (Proof_Context.theory_of ctxt)) relative_root;
+        val _ = File.check_dir (Path.dir root);
+      in export_to_file root width pretty_code end;
+
+fun produce_result syms width (Singleton (_, p), deresolve) =
+      ([([], Code_Printer.format [] width p)], map deresolve syms)
+  | produce_result syms width (Hierarchy code_modules, deresolve) =
+      ((map o apsnd) (Code_Printer.format [] width) code_modules, map deresolve syms);
+
+fun present_result selects width (pretty_code, _) =
+  flat_modules selects width pretty_code;
+
+
 (** theory data **)
 
 type language = {serializer: serializer, literals: literals,
@@ -232,7 +240,7 @@ fun join_ancestry thy target_name =
     val data = fold1 (fn data' => fn data => Code_Printer.merge_data (data, data')) datas;
   in (modify, (target, data)) end;
 
-  fun allocate_target target_name target thy =
+fun allocate_target target_name target thy =
   let
     val _ = if exists_target thy target_name
       then error ("Attempt to overwrite existing target " ^ quote target_name)
@@ -287,6 +295,10 @@ fun map_printings target_name =
 
 val default_code_width = Attrib.setup_config_int \<^binding>\<open>default_code_width\<close> (K 80);
 
+fun default_width ctxt = Config.get ctxt default_code_width;
+
+val the_width = the_default o default_width;
+
 
 (* montage *)
 
@@ -302,10 +314,11 @@ local
 fun activate_target ctxt target_name =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (modify, target_data) = join_ancestry thy target_name;
-  in (target_data, modify) end;
+    val (modify, (target, data)) = join_ancestry thy target_name;
+    val serializer = (#serializer o #language) target;
+  in { serializer = serializer, data = data, modify = modify } end;
 
-fun project_program ctxt syms_hidden syms1 program1 =
+fun project_program_for_syms ctxt syms_hidden syms1 program1 =
   let
     val syms2 = subtract (op =) syms_hidden syms1;
     val program2 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program1;
@@ -318,78 +331,70 @@ fun project_program ctxt syms_hidden syms1 program1 =
     val program3 = Code_Symbol.Graph.restrict (member (op =) syms3) program2;
   in program3 end;
 
-fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
-    printings module_name args proto_program syms =
+fun project_includes_for_syms syms includes =
+   let
+     fun select_include (name, (content, cs)) =
+       if null cs orelse exists (member (op =) syms) cs
+       then SOME (name, content) else NONE;
+  in map_filter select_include includes end;
+
+fun prepare_serializer ctxt target_name module_name args proto_program syms =
   let
-    val syms_hidden = Code_Symbol.symbols_of printings;
-    val program = project_program ctxt syms_hidden syms proto_program;
-    val syms_all = Code_Symbol.Graph.all_succs proto_program syms;
-    fun select_include (name, (content, syms)) =
-      if null syms orelse exists (member (op =) syms_all) syms
-      then SOME (name, content) else NONE;
-    val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
-  in
-    (serializer args ctxt {
-      module_name = module_name,
-      reserved_syms = reserved,
-      identifiers = identifiers,
+    val { serializer, data, modify } = activate_target ctxt target_name;
+    val printings = Code_Printer.the_printings data;
+    val _ = if module_name = "" then () else (check_name true module_name; ())
+    val hidden_syms = Code_Symbol.symbols_of printings;
+    val prepared_program = project_program_for_syms ctxt hidden_syms syms proto_program;
+    val prepared_syms = subtract (op =) hidden_syms syms;
+    val all_syms = Code_Symbol.Graph.all_succs proto_program syms;
+    val includes = project_includes_for_syms all_syms
+      (Code_Symbol.dest_module_data printings);
+    val prepared_serializer = serializer args ctxt {
+      reserved_syms = Code_Printer.the_reserved data,
+      identifiers = Code_Printer.the_identifiers data,
       includes = includes,
       const_syntax = Code_Symbol.lookup_constant_data printings,
       tyco_syntax = Code_Symbol.lookup_type_constructor_data printings,
-      class_syntax = Code_Symbol.lookup_type_class_data printings },
-      (subtract (op =) syms_hidden syms, program))
+      class_syntax = Code_Symbol.lookup_type_class_data printings,
+      module_name = module_name };
+  in
+    (prepared_serializer o modify, (prepared_program, prepared_syms))
   end;
 
-fun mount_serializer ctxt target_name some_width module_name args program syms =
+fun invoke_serializer ctxt target_name module_name args program all_public syms =
   let
-    val default_width = Config.get ctxt default_code_width;
-    val ((target, data), modify) = activate_target ctxt target_name;
-    val serializer = (#serializer o #language) target;
-    val (prepared_serializer, (prepared_syms, prepared_program)) =
-      prepare_serializer ctxt serializer
-        (Code_Printer.the_reserved data) (Code_Printer.the_identifiers data)
-        (Code_Printer.the_printings data)
-        module_name args (modify program) syms
-    val width = the_default default_width some_width;
-  in (fn program => fn syms => prepared_serializer syms program width, (prepared_syms, prepared_program)) end;
-
-fun invoke_serializer ctxt target_name some_width raw_module_name args program all_public syms =
-  let
-    val module_name = if raw_module_name = "" then ""
-      else (check_name true raw_module_name; raw_module_name)
-    val (mounted_serializer, (prepared_syms, prepared_program)) =
-      mount_serializer ctxt target_name some_width module_name args program syms;
+    val (prepared_serializer, (prepared_program, prepared_syms)) =
+      prepare_serializer ctxt target_name module_name args program syms;
+    val exports = if all_public then [] else prepared_syms;
   in
     Code_Preproc.timed_exec "serializing"
-      (fn () => mounted_serializer prepared_program (if all_public then [] else prepared_syms)) ctxt
+      (fn () => prepared_serializer prepared_program exports) ctxt
   end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
-val using_master_directory =
-  Option.map o File.full_path o Resources.master_directory o Proof_Context.theory_of;
-
 in
 
 val generatedN = "Generated_Code";
 
-fun export_code_for ctxt some_path target_name some_width module_name args =
-  export (using_master_directory ctxt some_path)
-  ooo invoke_serializer ctxt target_name some_width module_name args;
+fun export_code_for ctxt some_root target_name module_name some_width args =
+  export_result ctxt some_root (the_width ctxt some_width)
+  ooo invoke_serializer ctxt target_name module_name args;
 
-fun produce_code_for ctxt target_name some_width module_name args =
+fun produce_code_for ctxt target_name module_name some_width args =
   let
-    val serializer = invoke_serializer ctxt target_name some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer ctxt target_name (assert_module_name module_name) args;
   in fn program => fn all_public => fn syms =>
-    produce (serializer program all_public syms) |> apsnd (fn deresolve => map deresolve syms)
+    produce_result syms (the_width ctxt some_width)
+      (serializer program all_public syms)
   end;
 
-fun present_code_for ctxt target_name some_width module_name args =
+fun present_code_for ctxt target_name module_name some_width args =
   let
-    val serializer = invoke_serializer ctxt target_name some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer ctxt target_name (assert_module_name module_name) args;
   in fn program => fn (syms, selects) =>
-    present selects (serializer program false syms)
+    present_result selects (the_width ctxt some_width) (serializer program false syms)
   end;
 
 fun check_code_for ctxt target_name strict args program all_public syms =
@@ -399,8 +404,8 @@ fun check_code_for ctxt target_name strict args program all_public syms =
     fun ext_check p =
       let
         val destination = make_destination p;
-        val _ = export (SOME destination) (invoke_serializer ctxt target_name (SOME 80)
-          generatedN args program all_public syms);
+        val _ = export_result ctxt (SOME destination) 80
+          (invoke_serializer ctxt target_name generatedN args program all_public syms)
         val cmd = make_command generatedN;
       in
         if Isabelle_System.bash ("cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -415,7 +420,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
-fun dynamic_compilation_text mounted_serializer prepared_program syms all_public ((vs, ty), t) =
+fun dynamic_compilation_text prepared_serializer width prepared_program syms all_public ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
@@ -427,19 +432,21 @@ fun dynamic_compilation_text mounted_serializer prepared_program syms all_public
           Code_Thingol.Fun (((vs', ty'), [(([IVar (SOME "dummy")], t), (NONE, true))]), NONE))
       |> fold (curry (perhaps o try o
           Code_Symbol.Graph.add_edge) Code_Symbol.value) syms;
-    val (program_code, deresolve) =
-      produce (mounted_serializer program (if all_public then [] else [Code_Symbol.value]));
-    val value_name = the (deresolve Code_Symbol.value);
-  in ((program_code, value_name), deresolve) end;
+    val (pretty_code, deresolve) =
+      prepared_serializer program (if all_public then [] else [Code_Symbol.value]);
+    val (compilation_code, [SOME value_name]) =
+      produce_result [Code_Symbol.value] width (pretty_code, deresolve);
+  in ((compilation_code, value_name), deresolve) end;
 
 fun compilation_text' ctxt target_name some_module_name program syms =
   let
+    val width = default_width ctxt;
     val evaluation_args = the_evaluation_args ctxt target_name;
-    val (mounted_serializer, (_, prepared_program)) =
-      mount_serializer ctxt target_name NONE (the_default generatedN some_module_name) evaluation_args program syms;
+    val (prepared_serializer, (prepared_program, _)) =
+      prepare_serializer ctxt target_name (the_default generatedN some_module_name) evaluation_args program syms;
   in
     Code_Preproc.timed_exec "serializing"
-    (fn () => dynamic_compilation_text mounted_serializer prepared_program syms) ctxt
+      (fn () => dynamic_compilation_text prepared_serializer width prepared_program syms) ctxt
   end;
 
 fun compilation_text ctxt target_name program syms =
@@ -462,8 +469,8 @@ fun prep_destination (s, pos) =
 fun export_code ctxt all_public cs seris =
   let
     val program = Code_Thingol.consts_program ctxt cs;
-    val _ = map (fn (((target_name, module_name), some_path), args) =>
-      export_code_for ctxt some_path target_name NONE module_name args program all_public (map Constant cs)) seris;
+    val _ = map (fn (((target_name, module_name), some_root), args) =>
+      export_code_for ctxt some_root target_name module_name NONE args program all_public (map Constant cs)) seris;
   in () end;
 
 fun export_code_cmd all_public raw_cs seris ctxt =
@@ -523,11 +530,11 @@ val _ = Theory.setup
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
-    (fn ctxt => fn ((mk_cs, mk_stmtss), (target_name, some_width)) =>
+    (fn ctxt => fn ((read_constants, reads_statements), (target_name, some_width)) =>
       Latex.string
-        (present_code ctxt (mk_cs ctxt)
-          (maps (fn f => f ctxt) mk_stmtss)
-          target_name some_width "Example" [])));
+        (Latex.output_ascii (present_code ctxt (read_constants ctxt)
+          (maps (fn read_statements => read_statements ctxt) reads_statements)
+          target_name "Example" some_width []))));
 
 end;
 

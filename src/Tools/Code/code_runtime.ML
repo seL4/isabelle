@@ -437,7 +437,7 @@ fun runtime_code'' ctxt module_name program tycos consts =
     val thy = Proof_Context.theory_of ctxt;
     val (ml_modules, target_names) =
       Code_Target.produce_code_for ctxt
-        target NONE module_name [] program false (map Constant consts @ map Type_Constructor tycos);
+        target module_name NONE [] program false (map Constant consts @ map Type_Constructor tycos);
     val ml_code = space_implode "\n\n" (map snd ml_modules);
     val (consts', tycos') = chop (length consts) target_names;
     val consts_map = map2 (fn const =>
@@ -856,7 +856,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |-> (fn ([Const (const, _)], _) =>
     Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
-  #> tap (fn thy => Code_Target.produce_code (Proof_Context.init_global thy) false [const] target NONE Code_Target.generatedN []));
+  #> tap (fn thy => Code_Target.produce_code (Proof_Context.init_global thy) false [const] target Code_Target.generatedN NONE []));
 
 fun process_file filepath (definienda, thy) =
   let

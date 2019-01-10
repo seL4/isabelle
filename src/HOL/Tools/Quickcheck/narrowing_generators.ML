@@ -233,13 +233,17 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir
     fun run in_path =
       let
-        fun mk_code_file name = Path.append in_path (Path.basic (name ^ ".hs"))
+        fun mk_code_file module =
+          let
+            val (paths, base) = split_last module
+          in Path.appends (in_path :: map Path.basic (paths @ [base ^ ".hs"])) end;
         val generatedN = Code_Target.generatedN
-        val includes = AList.delete (op =) generatedN code_modules |> (map o apfst) mk_code_file
-        val code = the (AList.lookup (op =) code_modules generatedN)
-        val code_file = mk_code_file generatedN
-        val narrowing_engine_file = mk_code_file "Narrowing_Engine"
-        val main_file = mk_code_file "Main"
+        val includes = AList.delete (op =) [generatedN] code_modules
+          |> (map o apfst) mk_code_file
+        val code = the (AList.lookup (op =) code_modules [generatedN])
+        val code_file = mk_code_file [generatedN]
+        val narrowing_engine_file = mk_code_file ["Narrowing_Engine"]
+        val main_file = mk_code_file ["Main"]
         val main =
           "module Main where {\n\n" ^
           "import System.IO;\n" ^
