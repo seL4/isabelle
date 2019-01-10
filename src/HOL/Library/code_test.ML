@@ -492,11 +492,11 @@ fun mk_driver_ghc ctxt path modules value_name =
   let
     val driverN = "Main.hs"
 
-    fun mk_code_file name = Path.append path (Path.basic (name ^ ".hs"))
+    fun mk_code_file name = Path.append path (Path.basic name)
     val driver_path = Path.append path (Path.basic driverN)
     val driver =
       "module Main where {\n" ^
-      String.concat (map (fn module => "import qualified " ^ module ^ ";\n") modules) ^
+      String.concat (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
       "main = do {\n" ^
       "    let {\n" ^
       "      format_term Nothing = \"\";\n" ^
