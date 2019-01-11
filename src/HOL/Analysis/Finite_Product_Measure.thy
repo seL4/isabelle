@@ -120,7 +120,7 @@ lemma%important prod_emb_iff:
   "f \<in> prod_emb I M K X \<longleftrightarrow> f \<in> extensional I \<and> (restrict f K \<in> X) \<and> (\<forall>i\<in>I. f i \<in> space (M i))"
   unfolding%unimportant prod_emb_def PiE_def by auto
 
-lemma%unimportant (*FIX ME needs a name *)
+lemma%unimportant
   shows prod_emb_empty[simp]: "prod_emb M L K {} = {}"
     and prod_emb_Un[simp]: "prod_emb M L K (A \<union> B) = prod_emb M L K A \<union> prod_emb M L K B"
     and prod_emb_Int: "prod_emb M L K (A \<inter> B) = prod_emb M L K A \<inter> prod_emb M L K B"

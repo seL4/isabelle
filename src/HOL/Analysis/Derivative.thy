@@ -482,7 +482,7 @@ lemma frechet_derivative_within_cbox:
   by (metis Derivative.differentiableI frechet_derivative_unique_within_closed_interval frechet_derivative_works)
 
 
-subsection \<open>Derivatives of local minima and maxima are zero.\<close>
+subsection \<open>Derivatives of local minima and maxima are zero\<close>
 
 lemma has_derivative_local_min:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"

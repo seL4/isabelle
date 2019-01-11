@@ -3,7 +3,7 @@
     Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light); proofs reworked by LCP
 *)
 
-section%important \<open>Tagged divisions used for the Henstock-Kurzweil gauge integration\<close>
+section \<open>Tagged Divisions for Henstock-Kurzweil Integration\<close>
 (*FIXME move together with Henstock_Kurzweil_Integration.thy  *)
 theory Tagged_Division
   imports Topology_Euclidean_Space

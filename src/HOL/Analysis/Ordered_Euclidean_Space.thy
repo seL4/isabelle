@@ -1,3 +1,5 @@
+subsection%important \<open>Ordered Euclidean Space\<close>
+
 theory Ordered_Euclidean_Space
 imports
   Cartesian_Euclidean_Space
