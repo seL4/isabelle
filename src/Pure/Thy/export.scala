@@ -75,6 +75,15 @@ object Export
   {
     override def toString: String = compound_name(theory_name, name)
 
+    def uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
+    {
+      val (compressed, bytes) = body.join
+      if (compressed) bytes.uncompress(cache = cache) else bytes
+    }
+
+    def uncompressed_yxml(cache: XZ.Cache = XZ.cache()): XML.Body =
+      YXML.parse_body(UTF8.decode_permissive(uncompressed(cache = cache)))
+
     def write(db: SQL.Database)
     {
       val (compressed, bytes) = body.join
@@ -88,15 +97,6 @@ object Export
         stmt.execute()
       })
     }
-
-    def uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
-    {
-      val (compressed, bytes) = body.join
-      if (compressed) bytes.uncompress(cache = cache) else bytes
-    }
-
-    def uncompressed_yxml(cache: XZ.Cache = XZ.cache()): XML.Body =
-      YXML.parse_body(UTF8.decode_permissive(uncompressed(cache = cache)))
   }
 
   def make_regex(pattern: String): Regex =
