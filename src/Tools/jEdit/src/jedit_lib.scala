@@ -148,6 +148,9 @@ object JEdit_Lib
 
   def jedit_views(): Iterator[View] = jEdit.getViews().iterator
 
+  def jedit_view(view: View = null): View =
+    if (view == null) jEdit.getActiveView() else view
+
   def jedit_edit_panes(view: View): Iterator[EditPane] =
     if (view == null) Iterator.empty
     else view.getEditPanes().iterator.filter(_ != null)

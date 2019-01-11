@@ -13,6 +13,15 @@ import scala.util.matching.Regex
 
 object Export
 {
+  /* structured name */
+
+  val sep_char: Char = '/'
+  val sep: String = sep_char.toString
+
+  def explode_name(s: String): List[String] = space_explode(sep_char, s)
+  def implode_name(elems: Iterable[String]): String = elems.mkString(sep)
+
+
   /* SQL data model */
 
   object Data
@@ -73,7 +82,12 @@ object Export
     name: String,
     body: Future[(Boolean, Bytes)])
   {
-    override def toString: String = uncompressed().toString
+    override def toString: String = name
+
+    val name_elems: List[String] = explode_name(name)
+
+    def name_extends(elems: List[String]): Boolean =
+      name_elems.startsWith(elems) && name_elems != elems
 
     def text: String = uncompressed().text
 

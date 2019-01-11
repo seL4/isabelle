@@ -35,6 +35,7 @@ declare -a SOURCES=(
   "src/info_dockable.scala"
   "src/isabelle.scala"
   "src/isabelle_encoding.scala"
+  "src/isabelle_export.scala"
   "src/isabelle_options.scala"
   "src/isabelle_sidekick.scala"
   "src/jedit_bibtex.scala"

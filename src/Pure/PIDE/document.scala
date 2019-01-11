@@ -761,6 +761,13 @@ object Document
       }
     }
 
+    def node_exports(version: Version, node_name: Node.Name): Command.Exports =
+      Command.Exports.merge(
+        for {
+          command <- version.nodes(node_name).commands.iterator
+          st <- command_states(version, command).iterator
+        } yield st.exports)
+
     def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
     {
       val version = the_version(id)
@@ -1071,11 +1078,7 @@ object Document
            } yield (tree, pos)).toList
 
         lazy val exports: List[Export.Entry] =
-          Command.Exports.merge(
-            for {
-              command <- node.commands.iterator
-              st <- state.command_states(version, command).iterator
-            } yield st.exports).iterator.map(_._2).toList
+          state.node_exports(version, node_name).iterator.map(_._2).toList
 
         lazy val exports_map: Map[String, Export.Entry] =
           (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
