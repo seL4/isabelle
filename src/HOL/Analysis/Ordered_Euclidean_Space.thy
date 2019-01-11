@@ -6,7 +6,7 @@ imports
   "HOL-Library.Product_Order"
 begin
 
-subsection%important \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>
+text%important \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>
 
 class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_space +
   assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
