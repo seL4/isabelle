@@ -73,7 +73,9 @@ object Export
     name: String,
     body: Future[(Boolean, Bytes)])
   {
-    override def toString: String = compound_name(theory_name, name)
+    override def toString: String = uncompressed().toString
+
+    def text: String = uncompressed().text
 
     def uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
     {
