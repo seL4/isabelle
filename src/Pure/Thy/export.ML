@@ -15,14 +15,10 @@ struct
 
 fun check_name name =
   let
-    fun err () = error ("Bad export name " ^ quote name);
-    fun check_elem elem =
-      if member (op =) ["", ".", ".."] elem then err ()
-      else ignore (Path.basic elem handle ERROR _ => err ());
-
-    val elems = space_explode "/" name;
-    val _ = null elems andalso err ();
-    val _ = List.app check_elem elems;
+    val _ =
+      (case space_explode "/" name of
+        [] => error "Empty export name"
+      | elems => List.app Path.check_elem elems);
   in name end;
 
 fun gen_export compress thy name body =

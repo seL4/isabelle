@@ -7,6 +7,7 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 
 signature PATH =
 sig
+  val check_elem: string -> unit
   eqtype T
   val is_current: T -> bool
   val current: T
@@ -56,7 +57,9 @@ fun err_elem msg s = error (msg ^ " path element " ^ quote s);
 val illegal_elem = ["", "~", "~~", ".", ".."];
 val illegal_char = ["/", "\\", "$", ":", "\"", "'", "<", ">", "|", "?", "*"];
 
-val check_elem = tap (fn s =>
+in
+
+fun check_elem s =
   if member (op =) illegal_elem s then err_elem "Illegal" s
   else
     (s, ()) |-> fold_string (fn c => fn () =>
@@ -64,13 +67,11 @@ val check_elem = tap (fn s =>
         err_elem ("Illegal control character " ^ string_of_int (ord c) ^ " in") s
       else if member (op =) illegal_char c then
         err_elem ("Illegal character " ^ quote c ^ " in") s
-      else ()));
+      else ());
 
-in
-
-val root_elem = Root o check_elem;
-val basic_elem = Basic o check_elem;
-val variable_elem = Variable o check_elem;
+val root_elem = Root o tap check_elem;
+val basic_elem = Basic o tap check_elem;
+val variable_elem = Variable o tap check_elem;
 
 end;
 
