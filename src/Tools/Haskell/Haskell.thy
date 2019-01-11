@@ -1924,4 +1924,6 @@ server publish handle =
       return ()
 \<close>
 
+ML_command \<open>Generated_Files.export_files \<^theory>\<close>
+
 end

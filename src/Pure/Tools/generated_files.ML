@@ -9,6 +9,7 @@ sig
   val add_files: (Path.T * Position.T) * string -> theory -> theory
   val get_files: theory -> (Path.T * string) list
   val write_files: theory -> Path.T -> Path.T list
+  val export_files: theory -> Path.T list
   type file_type =
     {name: string, ext: string, make_comment: string -> string, make_string: string -> string}
   val file_type:
@@ -75,6 +76,9 @@ fun write_files thy dir =
       val _ = Isabelle_System.mkdirs (Path.dir path');
       val _ = File.generate path' text;
     in path end);
+
+fun export_files thy =
+  get_files thy |> map (fn (path, text) => (Export.export thy (Path.implode path) [text]; path));
 
 
 (* file types *)
