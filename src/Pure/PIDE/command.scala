@@ -79,6 +79,7 @@ object Command
 
   final class Exports private(private val rep: SortedMap[Long, Export.Entry])
   {
+    def is_empty: Boolean = rep.isEmpty
     def iterator: Iterator[Exports.Entry] = rep.iterator
 
     def + (entry: Exports.Entry): Exports =
