@@ -82,7 +82,7 @@ object Export
     name: String,
     body: Future[(Boolean, Bytes)])
   {
-    override def toString: String = uncompressed().toString
+    override def toString: String = name
 
     val name_elems: List[String] = explode_name(name)
 
