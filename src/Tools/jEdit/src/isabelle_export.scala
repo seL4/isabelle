@@ -38,16 +38,11 @@ object Isabelle_Export
 
   def explode_url(url: String, component: Component = null): Option[List[String]] =
   {
-    def bad: None.type =
-    {
-      if (component != null) vfs_error(component, url, "ioerror.badurl", url)
-      None
-    }
     Library.try_unprefix(vfs_prefix, url) match {
-      case Some(path) =>
-        val elems = Export.explode_name(path)
-        if (elems.exists(_.isEmpty)) bad else Some(elems)
-      case None => bad
+      case Some(path) => Some(Export.explode_name(path).filter(_.nonEmpty))
+      case None =>
+        if (component != null) vfs_error(component, url, "ioerror.badurl", url)
+        None
     }
   }
 
