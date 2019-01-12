@@ -50,6 +50,8 @@ object Isabelle_Export
 
   class VFS extends JEditVFS(vfs_name, vfs_caps)
   {
+    override def isMarkersFileSupported: Boolean = false
+
     override def constructPath(parent: String, path: String): String =
     {
       if (parent == vfs_prefix || parent.endsWith(Export.sep)) parent + path
