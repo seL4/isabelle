@@ -12,7 +12,9 @@ import isabelle._
 import java.awt.Component
 import java.io.InputStream
 
+import org.gjt.sp.jedit.{Buffer, View}
 import org.gjt.sp.jedit.io.{VFS => JEditVFS, VFSFile, VFSManager}
+import org.gjt.sp.jedit.bufferio.BufferLoadRequest
 
 
 object Isabelle_Export
@@ -87,6 +89,17 @@ object Isabelle_Export
                 }
               }).toArray
           }
+      }
+    }
+
+    override def _getFile(session: AnyRef, url: String, component: Component): VFSFile =
+    {
+      val parent = getParentOfPath(url)
+      if (parent == vfs_prefix) null
+      else {
+        val files = _listFiles(session, parent, component)
+        if (files == null) null
+        else files.find(_.getPath == url) getOrElse null
       }
     }
 
