@@ -59,7 +59,7 @@ object Isabelle_Export
       explode_url(url, component = component) match {
         case None => null
         case Some(elems) =>
-          val snapshot = PIDE.snapshot()
+          val snapshot = PIDE.session.await_stable_snapshot()
           val version = snapshot.version
           elems match {
             case Nil =>
@@ -96,7 +96,7 @@ object Isabelle_Export
       explode_url(url, component = if (ignore_errors) null else component) match {
         case None | Some(Nil) => Bytes.empty.stream()
         case Some(theory :: name_elems) =>
-          val snapshot = PIDE.snapshot()
+          val snapshot = PIDE.session.await_stable_snapshot()
           val version = snapshot.version
           val bytes =
             (for {
@@ -105,6 +105,7 @@ object Isabelle_Export
               (_, entry) <- snapshot.state.node_exports(version, node_name).iterator
               if entry.name_elems == name_elems
             } yield entry.uncompressed()).find(_ => true).getOrElse(Bytes.empty)
+
           bytes.stream()
       }
     }

@@ -9,6 +9,7 @@ package isabelle
 
 
 import scala.collection.immutable.Queue
+import scala.annotation.tailrec
 
 
 object Session
@@ -639,6 +640,16 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
     global_state.value.snapshot(name, pending_edits)
+
+  @tailrec final def await_stable_snapshot(): Document.Snapshot =
+  {
+    val snapshot = this.snapshot()
+    if (snapshot.is_outdated) {
+      Thread.sleep(output_delay.ms)
+      await_stable_snapshot()
+    }
+    else snapshot
+  }
 
   def start(start_prover: Prover.Receiver => Prover)
   {
