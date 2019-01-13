@@ -177,9 +177,9 @@ fun export_to_file root width (Singleton (_, p)) =
       ());
 
 fun export_to_exports thy width (Singleton (extension, p)) =
-      Export.export_raw thy (generatedN ^ "." ^ extension) [Code_Printer.format [] width p]
+      Export.export thy (generatedN ^ "." ^ extension) [Code_Printer.format [] width p]
   | export_to_exports thy width (Hierarchy code_modules) = (
-      map (fn (names, p) => Export.export_raw thy (Path.implode (Path.make names))
+      map (fn (names, p) => Export.export thy (Path.implode (Path.make names))
         [Code_Printer.format [] width p]) code_modules;
       ());
 
