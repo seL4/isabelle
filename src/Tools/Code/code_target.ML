@@ -701,10 +701,6 @@ fun code_expr_checkingP (all_public, raw_cs) =
     (Scan.repeat (Parse.name -- (Scan.optional (\<^keyword>\<open>?\<close> >> K false) true) -- code_expr_argsP)))
       >> (fn seri_args => check_code_cmd all_public raw_cs seri_args);
 
-val code_exprP =
-  (Scan.optional (\<^keyword>\<open>open\<close> >> K true) false -- Scan.repeat1 Parse.term)
-    :|-- (fn args => (code_expr_checkingP args || code_expr_inP args));
-
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close>
     "declare words as reserved for target language"
@@ -725,6 +721,8 @@ val _ =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>export_code\<close> "generate executable code for constants"
-    (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
+    (Scan.optional (\<^keyword>\<open>open\<close> >> K true) false -- Scan.repeat1 Parse.term
+      :|-- (fn args => (code_expr_checkingP args || code_expr_inP args))
+      >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
 
 end; (*struct*)
