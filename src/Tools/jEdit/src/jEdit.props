@@ -230,6 +230,7 @@ isabelle.newline.label=Newline with indentation of Isabelle keywords
 isabelle.newline.shortcut=ENTER
 isabelle.options.label=Isabelle options
 isabelle.preview.label=Show preview in browser
+isabelle-export-browser.label=Browse theory exports
 isabelle.reset-continuous-checking.label=Reset continuous checking
 isabelle.reset-font-size.label=Reset font size
 isabelle.reset-node-required.label=Reset node required

@@ -43,6 +43,10 @@ INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Action "isabelle-export-browser" points the File Browser to the theory
+exports of the current buffer. The directory view needs to be reloaded
+manually to follow ongoing document processing.
+
 * Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
 DejaVu" collection by default, which provides uniform rendering quality
 with the usual Isabelle symbols. Line spacing no longer needs to be

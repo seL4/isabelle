@@ -15,10 +15,13 @@ import java.io.InputStream
 import org.gjt.sp.jedit.{Buffer, View}
 import org.gjt.sp.jedit.io.{VFS => JEditVFS, VFSFile, VFSManager}
 import org.gjt.sp.jedit.bufferio.BufferLoadRequest
+import org.gjt.sp.jedit.browser.VFSBrowser
 
 
 object Isabelle_Export
 {
+  /* virtual file-system */
+
   val vfs_name = "isabelle-export"
   val vfs_caps =
     JEditVFS.READ_CAP |
@@ -124,5 +127,16 @@ object Isabelle_Export
           bytes.stream()
       }
     }
+  }
+
+
+  /* open browser */
+
+  def open_browser(view: View)
+  {
+    val theory =
+      try { PIDE.snapshot(view).node_name.theory }
+      catch { case ERROR(_) => "" }
+    VFSBrowser.browseDirectory(view, vfs_prefix + theory)
   }
 }

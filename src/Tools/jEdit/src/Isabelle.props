@@ -30,6 +30,7 @@ options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 #menu actions and dockables
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
+  isabelle-export-browser \
   isabelle.preview \
   isabelle.draft \
   - \
