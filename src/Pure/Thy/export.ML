@@ -8,10 +8,14 @@ signature EXPORT =
 sig
   val export: theory -> string -> string list -> unit
   val export_raw: theory -> string -> string list -> unit
+  val markup_text: theory -> string -> Markup.T * string
+  val information: theory -> string -> unit
 end;
 
 structure Export: EXPORT =
 struct
+
+(* export *)
 
 fun check_name name =
   let
@@ -31,5 +35,15 @@ fun gen_export compress thy name body =
 
 val export = gen_export true;
 val export_raw = gen_export false;
+
+
+(* information message *)
+
+fun markup_text thy s =
+  (Markup.theory_exports (Context.theory_long_name thy ^ (if s = "" then "" else "/" ^ s)),
+    "theory exports");
+
+fun information thy s =
+  Output.information ("See " ^ uncurry Markup.markup (markup_text thy s));
 
 end;

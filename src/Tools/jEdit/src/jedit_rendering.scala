@@ -118,14 +118,14 @@ object JEdit_Rendering
 
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
-      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
-      Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
-      Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
+      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.THEORY_EXPORTS,
+      Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM,
+      Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION,
-      Markup.CITATION, Markup.URL)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.THEORY_EXPORTS,
+      Markup.POSITION, Markup.CITATION)
 
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
@@ -248,6 +248,10 @@ class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, optio
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
             val link = PIDE.editor.hyperlink_url(name)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Theory_Exports(name), _))) =>
+            val link = PIDE.editor.hyperlink_theory_exports(name)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>

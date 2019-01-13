@@ -60,6 +60,7 @@ sig
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
+  val theory_exportsN: string val theory_exports: string -> T
   val markupN: string
   val consistentN: string
   val unbreakableN: string
@@ -373,6 +374,7 @@ val (citationN, citation) = markup_string "citation" nameN;
 val (pathN, path) = markup_string "path" nameN;
 val (urlN, url) = markup_string "url" nameN;
 val (docN, doc) = markup_string "doc" nameN;
+val (theory_exportsN, theory_exports) = markup_string "theory_exports" nameN;
 
 
 (* pretty printing *)

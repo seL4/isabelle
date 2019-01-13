@@ -196,6 +196,9 @@ object Markup
   val DOC = "doc"
   val Doc = new Markup_String(DOC, NAME)
 
+  val THEORY_EXPORTS = "theory_exports"
+  val Theory_Exports = new Markup_String(THEORY_EXPORTS, NAME)
+
 
   /* pretty printing */
 

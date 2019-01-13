@@ -198,6 +198,12 @@ class JEdit_Editor extends Editor[View]
           override def toString: String = "doc " + quote(name)
         })
 
+  def hyperlink_theory_exports(name: String): Hyperlink =
+    new Hyperlink {
+      def follow(view: View): Unit =
+        VFSBrowser.browseDirectory(view, Isabelle_Export.vfs_prefix + name)
+    }
+
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {
       override val external = true
