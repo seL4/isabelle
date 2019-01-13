@@ -689,22 +689,21 @@ fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse
 
 val code_expr_argsP = Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.args --| \<^keyword>\<open>)\<close>) [];
 
-fun code_expr_inP all_public raw_cs =
+fun code_expr_inP (all_public, raw_cs) =
   Scan.repeat (\<^keyword>\<open>in\<close> |-- Parse.!!! (Parse.name
     -- Scan.optional (\<^keyword>\<open>module_name\<close> |-- Parse.name) ""
     -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.position Parse.path)
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 
-fun code_expr_checkingP all_public raw_cs =
+fun code_expr_checkingP (all_public, raw_cs) =
   (\<^keyword>\<open>checking\<close> |-- Parse.!!!
-    (Scan.repeat (Parse.name -- ((\<^keyword>\<open>?\<close> |-- Scan.succeed false) || Scan.succeed true)
-    -- code_expr_argsP)))
+    (Scan.repeat (Parse.name -- (Scan.optional (\<^keyword>\<open>?\<close> >> K false) true) -- code_expr_argsP)))
       >> (fn seri_args => check_code_cmd all_public raw_cs seri_args);
 
-val code_exprP = (Scan.optional (\<^keyword>\<open>open\<close> |-- Scan.succeed true) false
-  -- Scan.repeat1 Parse.term)
-  :|-- (fn (all_public, raw_cs) => (code_expr_checkingP all_public raw_cs || code_expr_inP all_public raw_cs));
+val code_exprP =
+  (Scan.optional (\<^keyword>\<open>open\<close> >> K true) false -- Scan.repeat1 Parse.term)
+    :|-- (fn args => (code_expr_checkingP args || code_expr_inP args));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close>

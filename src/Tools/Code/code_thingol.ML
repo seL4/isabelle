@@ -957,9 +957,9 @@ fun read_const_exprs_internal ctxt =
       (case Syntax.parse_input ctxt (K NONE) (K Markup.empty) (SOME o Symbol_Pos.implode o #1) str of
         SOME "_" => ([], consts_of thy)
       | SOME s =>
-          if String.isSuffix "._" s
-          then ([], consts_of_select (this_theory (unsuffix "._" s)))
-          else ([Code.read_const thy str], [])
+          (case try (unsuffix "._") s of
+            SOME name => ([], consts_of_select (this_theory name))
+          | NONE => ([Code.read_const thy str], []))
       | NONE => ([Code.read_const thy str], []));
   in apply2 flat o split_list o map read_const_expr end;
 
