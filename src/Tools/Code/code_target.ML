@@ -176,11 +176,14 @@ fun export_to_file root width (Singleton (_, p)) =
       map (fn (names, p) => File.write (Path.appends (root :: map Path.basic names)) (Code_Printer.format [] width p)) code_modules;
       ());
 
+fun export_information thy name content =
+  (Export.export thy name [content]; Export.information thy "");
+
 fun export_to_exports thy width (Singleton (extension, p)) =
-      Export.export thy (generatedN ^ "." ^ extension) [Code_Printer.format [] width p]
+      export_information thy (generatedN ^ "." ^ extension) (Code_Printer.format [] width p)
   | export_to_exports thy width (Hierarchy code_modules) = (
-      map (fn (names, p) => Export.export thy (Path.implode (Path.make names))
-        [Code_Printer.format [] width p]) code_modules;
+      map (fn (names, p) => export_information thy (Path.implode (Path.make names))
+        (Code_Printer.format [] width p)) code_modules;
       ());
 
 fun export_result ctxt some_file width (pretty_code, _) =
