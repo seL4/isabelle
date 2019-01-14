@@ -13,7 +13,7 @@ text \<open>
   Originally from the Hurd/Coble measure theory development, translated by Lawrence Paulson.
 \<close>
 
-lemma%unimportant suminf_ennreal_2dimen:
+lemma suminf_ennreal_2dimen:
   fixes f:: "nat \<times> nat \<Rightarrow> ennreal"
   assumes "\<And>m. g m = (\<Sum>n. f (m,n))"
   shows "(\<Sum>i. f (prod_decode i)) = suminf g"
@@ -60,7 +60,7 @@ definition%important lambda_system :: "'a set \<Rightarrow> 'a set set \<Rightar
 where
   "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
 
-lemma%unimportant (in algebra) lambda_system_eq:
+lemma (in algebra) lambda_system_eq:
   "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (x \<inter> l) + f (x - l) = f x}"
 proof -
   have [simp]: "\<And>l x. l \<in> M \<Longrightarrow> x \<in> M \<Longrightarrow> (\<Omega> - l) \<inter> x = x - l"
@@ -69,13 +69,13 @@ proof -
     by (auto simp add: lambda_system_def) (metis Int_commute)+
 qed
 
-lemma%unimportant (in algebra) lambda_system_empty: "positive M f \<Longrightarrow> {} \<in> lambda_system \<Omega> M f"
+lemma (in algebra) lambda_system_empty: "positive M f \<Longrightarrow> {} \<in> lambda_system \<Omega> M f"
   by (auto simp add: positive_def lambda_system_eq)
 
-lemma%unimportant lambda_system_sets: "x \<in> lambda_system \<Omega> M f \<Longrightarrow> x \<in> M"
+lemma lambda_system_sets: "x \<in> lambda_system \<Omega> M f \<Longrightarrow> x \<in> M"
   by (simp add: lambda_system_def)
 
-lemma%unimportant (in algebra) lambda_system_Compl:
+lemma (in algebra) lambda_system_Compl:
   fixes f:: "'a set \<Rightarrow> ennreal"
   assumes x: "x \<in> lambda_system \<Omega> M f"
   shows "\<Omega> - x \<in> lambda_system \<Omega> M f"
@@ -88,7 +88,7 @@ proof -
     by (force simp add: lambda_system_def ac_simps)
 qed
 
-lemma%unimportant (in algebra) lambda_system_Int:
+lemma (in algebra) lambda_system_Int:
   fixes f:: "'a set \<Rightarrow> ennreal"
   assumes xl: "x \<in> lambda_system \<Omega> M f" and yl: "y \<in> lambda_system \<Omega> M f"
   shows "x \<inter> y \<in> lambda_system \<Omega> M f"
@@ -122,7 +122,7 @@ proof -
   qed
 qed
 
-lemma%unimportant (in algebra) lambda_system_Un:
+lemma (in algebra) lambda_system_Un:
   fixes f:: "'a set \<Rightarrow> ennreal"
   assumes xl: "x \<in> lambda_system \<Omega> M f" and yl: "y \<in> lambda_system \<Omega> M f"
   shows "x \<union> y \<in> lambda_system \<Omega> M f"
@@ -136,7 +136,7 @@ proof -
     by (metis lambda_system_Compl lambda_system_Int xl yl)
 qed
 
-lemma%unimportant (in algebra) lambda_system_algebra:
+lemma (in algebra) lambda_system_algebra:
   "positive M f \<Longrightarrow> algebra \<Omega> (lambda_system \<Omega> M f)"
   apply (auto simp add: algebra_iff_Un)
   apply (metis lambda_system_sets set_mp sets_into_space)
@@ -145,7 +145,7 @@ lemma%unimportant (in algebra) lambda_system_algebra:
   apply (metis lambda_system_Un)
   done
 
-lemma%unimportant (in algebra) lambda_system_strong_additive:
+lemma (in algebra) lambda_system_strong_additive:
   assumes z: "z \<in> M" and disj: "x \<inter> y = {}"
       and xl: "x \<in> lambda_system \<Omega> M f" and yl: "y \<in> lambda_system \<Omega> M f"
   shows "f (z \<inter> (x \<union> y)) = f (z \<inter> x) + f (z \<inter> y)"
@@ -160,7 +160,7 @@ proof -
     by (simp add: lambda_system_eq)
 qed
 
-lemma%unimportant (in algebra) lambda_system_additive: "additive (lambda_system \<Omega> M f) f"
+lemma (in algebra) lambda_system_additive: "additive (lambda_system \<Omega> M f) f"
 proof (auto simp add: additive_def)
   fix x and y
   assume disj: "x \<inter> y = {}"
@@ -171,13 +171,13 @@ proof (auto simp add: additive_def)
     by (simp add: Un)
 qed
 
-lemma%unimportant lambda_system_increasing: "increasing M f \<Longrightarrow> increasing (lambda_system \<Omega> M f) f"
+lemma lambda_system_increasing: "increasing M f \<Longrightarrow> increasing (lambda_system \<Omega> M f) f"
   by (simp add: increasing_def lambda_system_def)
 
-lemma%unimportant lambda_system_positive: "positive M f \<Longrightarrow> positive (lambda_system \<Omega> M f) f"
+lemma lambda_system_positive: "positive M f \<Longrightarrow> positive (lambda_system \<Omega> M f) f"
   by (simp add: positive_def lambda_system_def)
 
-lemma%unimportant (in algebra) lambda_system_strong_sum:
+lemma (in algebra) lambda_system_strong_sum:
   fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> ennreal"
   assumes f: "positive M f" and a: "a \<in> M"
       and A: "range A \<subseteq> lambda_system \<Omega> M f"
@@ -199,12 +199,12 @@ next
     by (simp add: atLeastLessThanSuc lambda_system_strong_additive [OF a 2 3 4])
 qed
 
-lemma%important (in sigma_algebra) lambda_system_caratheodory:
+proposition (in sigma_algebra) lambda_system_caratheodory:
   assumes oms: "outer_measure_space M f"
       and A: "range A \<subseteq> lambda_system \<Omega> M f"
       and disj: "disjoint_family A"
   shows  "(\<Union>i. A i) \<in> lambda_system \<Omega> M f \<and> (\<Sum>i. f (A i)) = f (\<Union>i. A i)"
-proof%unimportant -
+proof -
   have pos: "positive M f" and inc: "increasing M f"
    and csa: "countably_subadditive M f"
     by (metis oms outer_measure_space_def)+
@@ -274,11 +274,11 @@ proof%unimportant -
     by (simp add: lambda_system_eq sums_iff U_eq U_in)
 qed
 
-lemma%important (in sigma_algebra) caratheodory_lemma:
+proposition (in sigma_algebra) caratheodory_lemma:
   assumes oms: "outer_measure_space M f"
   defines "L \<equiv> lambda_system \<Omega> M f"
   shows "measure_space \<Omega> L f"
-proof%unimportant -
+proof -
   have pos: "positive M f"
     by (metis oms outer_measure_space_def)
   have alg: "algebra \<Omega> L"
@@ -301,7 +301,7 @@ definition%important outer_measure :: "'a set set \<Rightarrow> ('a set \<Righta
    "outer_measure M f X =
      (INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i)}. \<Sum>i. f (A i))"
 
-lemma%unimportant (in ring_of_sets) outer_measure_agrees:
+lemma (in ring_of_sets) outer_measure_agrees:
   assumes posf: "positive M f" and ca: "countably_additive M f" and s: "s \<in> M"
   shows "outer_measure M f s = f s"
   unfolding outer_measure_def
@@ -326,19 +326,19 @@ next
        (auto simp: disjoint_family_on_def)
 qed
 
-lemma%unimportant outer_measure_empty:
+lemma outer_measure_empty:
   "positive M f \<Longrightarrow> {} \<in> M \<Longrightarrow> outer_measure M f {} = 0"
   unfolding outer_measure_def
   by (intro antisym INF_lower2[of  "\<lambda>_. {}"]) (auto simp: disjoint_family_on_def positive_def)
 
-lemma%unimportant (in ring_of_sets) positive_outer_measure:
+lemma (in ring_of_sets) positive_outer_measure:
   assumes "positive M f" shows "positive (Pow \<Omega>) (outer_measure M f)"
   unfolding positive_def by (auto simp: assms outer_measure_empty)
 
-lemma%unimportant (in ring_of_sets) increasing_outer_measure: "increasing (Pow \<Omega>) (outer_measure M f)"
+lemma (in ring_of_sets) increasing_outer_measure: "increasing (Pow \<Omega>) (outer_measure M f)"
   by (force simp: increasing_def outer_measure_def intro!: INF_greatest intro: INF_lower)
 
-lemma%unimportant (in ring_of_sets) outer_measure_le:
+lemma (in ring_of_sets) outer_measure_le:
   assumes pos: "positive M f" and inc: "increasing M f" and A: "range A \<subseteq> M" and X: "X \<subseteq> (\<Union>i. A i)"
   shows "outer_measure M f X \<le> (\<Sum>i. f (A i))"
   unfolding outer_measure_def
@@ -351,11 +351,11 @@ proof (safe intro!: INF_lower2[of "disjointed A"] del: subsetI)
     by (blast intro!: suminf_le)
 qed (auto simp: X UN_disjointed_eq disjoint_family_disjointed)
 
-lemma%unimportant (in ring_of_sets) outer_measure_close:
+lemma (in ring_of_sets) outer_measure_close:
   "outer_measure M f X < e \<Longrightarrow> \<exists>A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>i. f (A i)) < e"
   unfolding outer_measure_def INF_less_iff by auto
 
-lemma%unimportant (in ring_of_sets) countably_subadditive_outer_measure:
+lemma (in ring_of_sets) countably_subadditive_outer_measure:
   assumes posf: "positive M f" and inc: "increasing M f"
   shows "countably_subadditive (Pow \<Omega>) (outer_measure M f)"
 proof (simp add: countably_subadditive_def, safe)
@@ -398,12 +398,12 @@ proof (simp add: countably_subadditive_def, safe)
   qed
 qed
 
-lemma%unimportant (in ring_of_sets) outer_measure_space_outer_measure:
+lemma (in ring_of_sets) outer_measure_space_outer_measure:
   "positive M f \<Longrightarrow> increasing M f \<Longrightarrow> outer_measure_space (Pow \<Omega>) (outer_measure M f)"
   by (simp add: outer_measure_space_def
     positive_outer_measure increasing_outer_measure countably_subadditive_outer_measure)
 
-lemma%unimportant (in ring_of_sets) algebra_subset_lambda_system:
+lemma (in ring_of_sets) algebra_subset_lambda_system:
   assumes posf: "positive M f" and inc: "increasing M f"
       and add: "additive M f"
   shows "M \<subseteq> lambda_system \<Omega> (Pow \<Omega>) (outer_measure M f)"
@@ -457,15 +457,15 @@ proof (auto dest: sets_into_space
     by (rule order_antisym)
 qed
 
-lemma%unimportant measure_down: "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
+lemma measure_down: "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
   by (auto simp add: measure_space_def positive_def countably_additive_def subset_eq)
 
 subsection%important \<open>Caratheodory's theorem\<close>
 
-theorem%important (in ring_of_sets) caratheodory':
+theorem (in ring_of_sets) caratheodory':
   assumes posf: "positive M f" and ca: "countably_additive M f"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ennreal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
-proof%unimportant -
+proof -
   have inc: "increasing M f"
     by (metis additive_increasing ca countably_additive_additive posf)
   let ?O = "outer_measure M f"
@@ -489,11 +489,11 @@ proof%unimportant -
     by (intro exI[of _ ?O]) auto
 qed
 
-lemma%important (in ring_of_sets) caratheodory_empty_continuous:
+lemma (in ring_of_sets) caratheodory_empty_continuous:
   assumes f: "positive M f" "additive M f" and fin: "\<And>A. A \<in> M \<Longrightarrow> f A \<noteq> \<infinity>"
   assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ennreal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
-proof%unimportant (intro caratheodory' empty_continuous_imp_countably_additive f)
+proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto
 qed (rule cont)
 
@@ -504,22 +504,22 @@ definition%important volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> e
   (f {} = 0) \<and> (\<forall>a\<in>M. 0 \<le> f a) \<and>
   (\<forall>C\<subseteq>M. disjoint C \<longrightarrow> finite C \<longrightarrow> \<Union>C \<in> M \<longrightarrow> f (\<Union>C) = (\<Sum>c\<in>C. f c))"
 
-lemma%unimportant volumeI:
+lemma volumeI:
   assumes "f {} = 0"
   assumes "\<And>a. a \<in> M \<Longrightarrow> 0 \<le> f a"
   assumes "\<And>C. C \<subseteq> M \<Longrightarrow> disjoint C \<Longrightarrow> finite C \<Longrightarrow> \<Union>C \<in> M \<Longrightarrow> f (\<Union>C) = (\<Sum>c\<in>C. f c)"
   shows "volume M f"
   using assms by (auto simp: volume_def)
 
-lemma%unimportant volume_positive:
+lemma volume_positive:
   "volume M f \<Longrightarrow> a \<in> M \<Longrightarrow> 0 \<le> f a"
   by (auto simp: volume_def)
 
-lemma%unimportant volume_empty:
+lemma volume_empty:
   "volume M f \<Longrightarrow> f {} = 0"
   by (auto simp: volume_def)
 
-lemma%unimportant volume_finite_additive:
+proposition volume_finite_additive:
   assumes "volume M f"
   assumes A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M" "disjoint_family_on A I" "finite I" "\<Union>(A ` I) \<in> M"
   shows "f (\<Union>(A ` I)) = (\<Sum>i\<in>I. f (A i))"
@@ -540,7 +540,7 @@ proof -
     by simp
 qed
 
-lemma%unimportant (in ring_of_sets) volume_additiveI:
+lemma (in ring_of_sets) volume_additiveI:
   assumes pos: "\<And>a. a \<in> M \<Longrightarrow> 0 \<le> \<mu> a"
   assumes [simp]: "\<mu> {} = 0"
   assumes add: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<inter> b = {} \<Longrightarrow> \<mu> (a \<union> b) = \<mu> a + \<mu> b"
@@ -557,10 +557,10 @@ proof (unfold volume_def, safe)
   qed simp
 qed fact+
 
-lemma%important (in semiring_of_sets) extend_volume:
+proposition (in semiring_of_sets) extend_volume:
   assumes "volume M \<mu>"
   shows "\<exists>\<mu>'. volume generated_ring \<mu>' \<and> (\<forall>a\<in>M. \<mu>' a = \<mu> a)"
-proof%unimportant -
+proof -
   let ?R = generated_ring
   have "\<forall>a\<in>?R. \<exists>m. \<exists>C\<subseteq>M. a = \<Union>C \<and> finite C \<and> disjoint C \<and> m = (\<Sum>c\<in>C. \<mu> c)"
     by (auto simp: generated_ring_def)
@@ -637,10 +637,10 @@ qed
 
 subsubsection%important \<open>Caratheodory on semirings\<close>
 
-theorem%important (in semiring_of_sets) caratheodory:
+theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"
   shows "\<exists>\<mu>' :: 'a set \<Rightarrow> ennreal. (\<forall>s \<in> M. \<mu>' s = \<mu> s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>'"
-proof%unimportant -
+proof -
   have "volume M \<mu>"
   proof (rule volumeI)
     { fix a assume "a \<in> M" then show "0 \<le> \<mu> a"
@@ -816,7 +816,7 @@ proof%unimportant -
     by (intro exI[of _ \<mu>']) (auto intro: generated_ringI_Basic)
 qed
 
-lemma%important extend_measure_caratheodory:
+lemma extend_measure_caratheodory:
   fixes G :: "'i \<Rightarrow> 'a set"
   assumes M: "M = extend_measure \<Omega> I G \<mu>"
   assumes "i \<in> I"
@@ -828,7 +828,7 @@ lemma%important extend_measure_caratheodory:
     (\<Union>i. G (A i)) = G j \<Longrightarrow> (\<Sum>n. \<mu> (A n)) = \<mu> j"
   shows "emeasure M (G i) = \<mu> i"
 
-proof%unimportant -
+proof -
   interpret semiring_of_sets \<Omega> "G ` I"
     by fact
   have "\<forall>g\<in>G`I. \<exists>i\<in>I. g = G i"
@@ -861,7 +861,7 @@ proof%unimportant -
   qed fact
 qed
 
-lemma%important extend_measure_caratheodory_pair:
+proposition extend_measure_caratheodory_pair:
   fixes G :: "'i \<Rightarrow> 'j \<Rightarrow> 'a set"
   assumes M: "M = extend_measure \<Omega> {(a, b). P a b} (\<lambda>(a, b). G a b) (\<lambda>(a, b). \<mu> a b)"
   assumes "P i j"
@@ -873,7 +873,7 @@ lemma%important extend_measure_caratheodory_pair:
     (\<And>n. P (A n) (B n)) \<Longrightarrow> P j k \<Longrightarrow> disjoint_family (\<lambda>n. G (A n) (B n)) \<Longrightarrow>
     (\<Union>i. G (A i) (B i)) = G j k \<Longrightarrow> (\<Sum>n. \<mu> (A n) (B n)) = \<mu> j k"
   shows "emeasure M (G i j) = \<mu> i j"
-proof%unimportant -
+proof -
   have "emeasure M ((\<lambda>(a, b). G a b) (i, j)) = (\<lambda>(a, b). \<mu> a b) (i, j)"
   proof (rule extend_measure_caratheodory[OF M])
     show "semiring_of_sets \<Omega> ((\<lambda>(a, b). G a b) ` {(a, b). P a b})"

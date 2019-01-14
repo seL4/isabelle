@@ -10,12 +10,12 @@ begin
 
 subsection%important \<open>The Brouwer reduction theorem\<close>
 
-theorem%important Brouwer_reduction_theorem_gen:
+theorem Brouwer_reduction_theorem_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "closed S" "\<phi> S"
       and \<phi>: "\<And>F. \<lbrakk>\<And>n. closed(F n); \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>range F)"
   obtains T where "T \<subseteq> S" "closed T" "\<phi> T" "\<And>U. \<lbrakk>U \<subseteq> S; closed U; \<phi> U\<rbrakk> \<Longrightarrow> \<not> (U \<subset> T)"
-proof%unimportant -
+proof -
   obtain B :: "nat \<Rightarrow> 'a set"
     where "inj B" "\<And>n. open(B n)" and open_cov: "\<And>S. open S \<Longrightarrow> \<exists>K. S = \<Union>(B ` K)"
       by (metis Setcompr_eq_image that univ_second_countable_sequence)
@@ -78,13 +78,13 @@ proof%unimportant -
   qed
 qed
 
-corollary%important Brouwer_reduction_theorem:
+corollary Brouwer_reduction_theorem:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" "\<phi> S" "S \<noteq> {}"
       and \<phi>: "\<And>F. \<lbrakk>\<And>n. compact(F n); \<And>n. F n \<noteq> {}; \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>range F)"
   obtains T where "T \<subseteq> S" "compact T" "T \<noteq> {}" "\<phi> T"
                   "\<And>U. \<lbrakk>U \<subseteq> S; closed U; U \<noteq> {}; \<phi> U\<rbrakk> \<Longrightarrow> \<not> (U \<subset> T)"
-proof%unimportant (rule Brouwer_reduction_theorem_gen [of S "\<lambda>T. T \<noteq> {} \<and> T \<subseteq> S \<and> \<phi> T"])
+proof (rule Brouwer_reduction_theorem_gen [of S "\<lambda>T. T \<noteq> {} \<and> T \<subseteq> S \<and> \<phi> T"])
   fix F
   assume cloF: "\<And>n. closed (F n)"
      and F: "\<And>n. F n \<noteq> {} \<and> F n \<subseteq> S \<and> \<phi> (F n)" and Fsub: "\<And>n. F (Suc n) \<subseteq> F n"
@@ -106,14 +106,14 @@ next
 qed (meson assms compact_imp_closed seq_compact_closed_subset seq_compact_eq_compact)+
 
 
-subsection%important\<open>Arcwise Connections\<close>(*FIX ME this subsection is empty(?) *)
+subsection%unimportant\<open>Arcwise Connections\<close>(*FIX ME this subsection is empty(?) *)
 
 subsection%important\<open>Density of points with dyadic rational coordinates\<close>
 
-proposition%important closure_dyadic_rationals:
+proposition closure_dyadic_rationals:
     "closure (\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>.
                    { \<Sum>i :: 'a :: euclidean_space \<in> Basis. (f i / 2^k) *\<^sub>R i }) = UNIV"
-proof%unimportant -
+proof -
   have "x \<in> closure (\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>. {\<Sum>i \<in> Basis. (f i / 2^k) *\<^sub>R i})" for x::'a
   proof (clarsimp simp: closure_approachable)
     fix e::real
@@ -151,9 +151,9 @@ proof%unimportant -
   then show ?thesis by auto
 qed
 
-corollary%important closure_rational_coordinates:
+corollary closure_rational_coordinates:
     "closure (\<Union>f \<in> Basis \<rightarrow> \<rat>. { \<Sum>i :: 'a :: euclidean_space \<in> Basis. f i *\<^sub>R i }) = UNIV"
-proof%unimportant -
+proof -
   have *: "(\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>. { \<Sum>i::'a \<in> Basis. (f i / 2^k) *\<^sub>R i })
            \<subseteq> (\<Union>f \<in> Basis \<rightarrow> \<rat>. { \<Sum>i \<in> Basis. f i *\<^sub>R i })"
   proof clarsimp
@@ -167,7 +167,7 @@ proof%unimportant -
     using closure_dyadic_rationals closure_mono [OF *] by blast
 qed
 
-lemma%unimportant closure_dyadic_rationals_in_convex_set:
+lemma closure_dyadic_rationals_in_convex_set:
    "\<lbrakk>convex S; interior S \<noteq> {}\<rbrakk>
         \<Longrightarrow> closure(S \<inter>
                     (\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>.
@@ -175,7 +175,7 @@ lemma%unimportant closure_dyadic_rationals_in_convex_set:
             closure S"
   by (simp add: closure_dyadic_rationals closure_convex_Int_superset)
 
-lemma%unimportant closure_rationals_in_convex_set:
+lemma closure_rationals_in_convex_set:
    "\<lbrakk>convex S; interior S \<noteq> {}\<rbrakk>
     \<Longrightarrow> closure(S \<inter> (\<Union>f \<in> Basis \<rightarrow> \<rat>. { \<Sum>i :: 'a :: euclidean_space \<in> Basis. f i *\<^sub>R i })) =
         closure S"
@@ -186,11 +186,11 @@ text\<open> Every path between distinct points contains an arc, and hence
 path connection is equivalent to arcwise connection for distinct points.
 The proof is based on Whyburn's "Topological Analysis".\<close>
 
-lemma%important closure_dyadic_rationals_in_convex_set_pos_1:
+lemma closure_dyadic_rationals_in_convex_set_pos_1:
   fixes S :: "real set"
   assumes "convex S" and intnz: "interior S \<noteq> {}" and pos: "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> x"
     shows "closure(S \<inter> (\<Union>k m. {of_nat m / 2^k})) = closure S"
-proof%unimportant -
+proof -
   have "\<exists>m. f 1/2^k = real m / 2^k" if "(f 1) / 2^k \<in> S" "f 1 \<in> \<int>" for k and f :: "real \<Rightarrow> real"
     using that by (force simp: Ints_def zero_le_divide_iff power_le_zero_eq dest: pos zero_le_imp_eq_int)
   then have "S \<inter> (\<Union>k m. {real m / 2^k}) = S \<inter>
@@ -201,13 +201,13 @@ proof%unimportant -
 qed
 
 
-definition%important dyadics :: "'a::field_char_0 set" where "dyadics \<equiv> \<Union>k m. {of_nat m / 2^k}"
+definition%unimportant dyadics :: "'a::field_char_0 set" where "dyadics \<equiv> \<Union>k m. {of_nat m / 2^k}"
 
-lemma%unimportant real_in_dyadics [simp]: "real m \<in> dyadics"
+lemma real_in_dyadics [simp]: "real m \<in> dyadics"
   apply (simp add: dyadics_def)
   by (metis divide_numeral_1 numeral_One power_0)
 
-lemma%unimportant nat_neq_4k1: "of_nat m \<noteq> (4 * of_nat k + 1) / (2 * 2^n :: 'a::field_char_0)"
+lemma nat_neq_4k1: "of_nat m \<noteq> (4 * of_nat k + 1) / (2 * 2^n :: 'a::field_char_0)"
 proof
   assume "of_nat m = (4 * of_nat k + 1) / (2 * 2^n :: 'a)"
   then have "of_nat (m * (2 * 2^n)) = (of_nat (Suc (4 * k)) :: 'a)"
@@ -220,8 +220,8 @@ proof
     by simp
 qed
 
-lemma%important nat_neq_4k3: "of_nat m \<noteq> (4 * of_nat k + 3) / (2 * 2^n :: 'a::field_char_0)"
-proof%unimportant
+lemma nat_neq_4k3: "of_nat m \<noteq> (4 * of_nat k + 3) / (2 * 2^n :: 'a::field_char_0)"
+proof
   assume "of_nat m = (4 * of_nat k + 3) / (2 * 2^n :: 'a)"
   then have "of_nat (m * (2 * 2^n)) = (of_nat (4 * k + 3) :: 'a)"
     by (simp add: divide_simps)
@@ -233,10 +233,10 @@ proof%unimportant
     by simp
 qed
 
-lemma%important iff_4k:
+lemma iff_4k:
   assumes "r = real k" "odd k"
     shows "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n') \<longleftrightarrow> m=m' \<and> n=n'"
-proof%unimportant -
+proof -
   { assume "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n')"
     then have "real ((4 * m + k) * (2 * 2 ^ n')) = real ((4 * m' + k) * (2 * 2^n))"
       using assms by (auto simp: field_simps)
@@ -253,8 +253,8 @@ proof%unimportant -
   then show ?thesis by blast
 qed
 
-lemma%important neq_4k1_k43: "(4 * real m + 1) / (2 * 2^n) \<noteq> (4 * real m' + 3) / (2 * 2 ^ n')"
-proof%unimportant
+lemma neq_4k1_k43: "(4 * real m + 1) / (2 * 2^n) \<noteq> (4 * real m' + 3) / (2 * 2 ^ n')"
+proof
   assume "(4 * real m + 1) / (2 * 2^n) = (4 * real m' + 3) / (2 * 2 ^ n')"
   then have "real (Suc (4 * m) * (2 * 2 ^ n')) = real ((4 * m' + 3) * (2 * 2^n))"
     by (auto simp: field_simps)
@@ -270,11 +270,11 @@ proof%unimportant
     using even_Suc by presburger
 qed
 
-lemma%important dyadic_413_cases:
+lemma dyadic_413_cases:
   obtains "(of_nat m::'a::field_char_0) / 2^k \<in> Nats"
   | m' k' where "k' < k" "(of_nat m:: 'a) / 2^k = of_nat (4*m' + 1) / 2^Suc k'"
   | m' k' where "k' < k" "(of_nat m:: 'a) / 2^k = of_nat (4*m' + 3) / 2^Suc k'"
-proof%unimportant (cases "m>0")
+proof (cases "m>0")
   case False
   then have "m=0" by simp
   with that show ?thesis by auto
@@ -323,11 +323,11 @@ next
 qed
 
 
-lemma%important dyadics_iff:
+lemma dyadics_iff:
    "(dyadics :: 'a::field_char_0 set) =
     Nats \<union> (\<Union>k m. {of_nat (4*m + 1) / 2^Suc k}) \<union> (\<Union>k m. {of_nat (4*m + 3) / 2^Suc k})"
            (is "_ = ?rhs")
-proof%unimportant
+proof
   show "dyadics \<subseteq> ?rhs"
     unfolding dyadics_def
     apply clarify
@@ -344,7 +344,7 @@ next
 qed
 
 
-function (domintros) dyad_rec :: "[nat \<Rightarrow> 'a, 'a\<Rightarrow>'a, 'a\<Rightarrow>'a, real] \<Rightarrow> 'a" where
+function%unimportant (domintros) dyad_rec :: "[nat \<Rightarrow> 'a, 'a\<Rightarrow>'a, 'a\<Rightarrow>'a, real] \<Rightarrow> 'a" where
     "dyad_rec b l r (real m) = b m"
   | "dyad_rec b l r ((4 * real m + 1) / 2 ^ (Suc n)) = l (dyad_rec b l r ((2*m + 1) / 2^n))"
   | "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
@@ -354,14 +354,14 @@ function (domintros) dyad_rec :: "[nat \<Rightarrow> 'a, 'a\<Rightarrow>'a, 'a\<
      apply (fastforce simp add: dyadics_iff Nats_def field_simps)+
   done
 
-lemma%unimportant dyadics_levels: "dyadics = (\<Union>K. \<Union>k<K. \<Union> m. {of_nat m / 2^k})"
+lemma dyadics_levels: "dyadics = (\<Union>K. \<Union>k<K. \<Union> m. {of_nat m / 2^k})"
   unfolding dyadics_def by auto
 
-lemma%important dyad_rec_level_termination:
+lemma dyad_rec_level_termination:
   assumes "k < K"
   shows "dyad_rec_dom(b, l, r, real m / 2^k)"
   using assms
-proof%unimportant (induction K arbitrary: k m)
+proof (induction K arbitrary: k m)
   case 0
   then show ?case by auto
 next
@@ -426,22 +426,22 @@ next
 qed
 
 
-lemma%unimportant dyad_rec_termination: "x \<in> dyadics \<Longrightarrow> dyad_rec_dom(b,l,r,x)"
+lemma dyad_rec_termination: "x \<in> dyadics \<Longrightarrow> dyad_rec_dom(b,l,r,x)"
   by (auto simp: dyadics_levels intro: dyad_rec_level_termination)
 
-lemma%unimportant dyad_rec_of_nat [simp]: "dyad_rec b l r (real m) = b m"
+lemma dyad_rec_of_nat [simp]: "dyad_rec b l r (real m) = b m"
   by (simp add: dyad_rec.psimps dyad_rec_termination)
 
-lemma%unimportant dyad_rec_41 [simp]: "dyad_rec b l r ((4 * real m + 1) / 2 ^ (Suc n)) = l (dyad_rec b l r ((2*m + 1) / 2^n))"
+lemma dyad_rec_41 [simp]: "dyad_rec b l r ((4 * real m + 1) / 2 ^ (Suc n)) = l (dyad_rec b l r ((2*m + 1) / 2^n))"
   apply (rule dyad_rec.psimps)
   by (metis dyad_rec_level_termination lessI add.commute of_nat_Suc of_nat_mult of_nat_numeral)
 
 
-lemma%unimportant dyad_rec_43 [simp]: "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
+lemma dyad_rec_43 [simp]: "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
   apply (rule dyad_rec.psimps)
   by (metis dyad_rec_level_termination lessI of_nat_add of_nat_mult of_nat_numeral)
 
-lemma%unimportant dyad_rec_41_times2:
+lemma dyad_rec_41_times2:
   assumes "n > 0"
     shows "dyad_rec b l r (2 * ((4 * real m + 1) / 2^Suc n)) = l (dyad_rec b l r (2 * (2 * real m + 1) / 2^n))"
 proof -
@@ -460,10 +460,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%important dyad_rec_43_times2:
+lemma dyad_rec_43_times2:
   assumes "n > 0"
     shows "dyad_rec b l r (2 * ((4 * real m + 3) / 2^Suc n)) = r (dyad_rec b l r (2 * (2 * real m + 1) / 2^n))"
-proof%unimportant -
+proof -
   obtain n' where n': "n = Suc n'"
     using assms not0_implies_Suc by blast
   have "dyad_rec b l r (2 * ((4 * real m + 3) / 2^Suc n)) = dyad_rec b l r ((2 * (4 * real m + 3)) / (2 * 2^n))"
@@ -479,22 +479,22 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-definition%important dyad_rec2
+definition%unimportant dyad_rec2
     where "dyad_rec2 u v lc rc x =
              dyad_rec (\<lambda>z. (u,v)) (\<lambda>(a,b). (a, lc a b (midpoint a b))) (\<lambda>(a,b). (rc a b (midpoint a b), b)) (2*x)"
 
-abbreviation leftrec where "leftrec u v lc rc x \<equiv> fst (dyad_rec2 u v lc rc x)"
-abbreviation rightrec where "rightrec u v lc rc x \<equiv> snd (dyad_rec2 u v lc rc x)"
+abbreviation%unimportant leftrec where "leftrec u v lc rc x \<equiv> fst (dyad_rec2 u v lc rc x)"
+abbreviation%unimportant rightrec where "rightrec u v lc rc x \<equiv> snd (dyad_rec2 u v lc rc x)"
 
-lemma%unimportant leftrec_base: "leftrec u v lc rc (real m / 2) = u"
+lemma leftrec_base: "leftrec u v lc rc (real m / 2) = u"
   by (simp add: dyad_rec2_def)
 
-lemma%unimportant leftrec_41: "n > 0 \<Longrightarrow> leftrec u v lc rc ((4 * real m + 1) / 2 ^ (Suc n)) = leftrec u v lc rc ((2 * real m + 1) / 2^n)"
+lemma leftrec_41: "n > 0 \<Longrightarrow> leftrec u v lc rc ((4 * real m + 1) / 2 ^ (Suc n)) = leftrec u v lc rc ((2 * real m + 1) / 2^n)"
   apply (simp only: dyad_rec2_def dyad_rec_41_times2)
   apply (simp add: case_prod_beta)
   done
 
-lemma%unimportant leftrec_43: "n > 0 \<Longrightarrow>
+lemma leftrec_43: "n > 0 \<Longrightarrow>
              leftrec u v lc rc ((4 * real m + 3) / 2 ^ (Suc n)) =
                  rc (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n))
                  (midpoint (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n)))"
@@ -502,10 +502,10 @@ lemma%unimportant leftrec_43: "n > 0 \<Longrightarrow>
   apply (simp add: case_prod_beta)
   done
 
-lemma%unimportant rightrec_base: "rightrec u v lc rc (real m / 2) = v"
+lemma rightrec_base: "rightrec u v lc rc (real m / 2) = v"
   by (simp add: dyad_rec2_def)
 
-lemma%unimportant rightrec_41: "n > 0 \<Longrightarrow>
+lemma rightrec_41: "n > 0 \<Longrightarrow>
              rightrec u v lc rc ((4 * real m + 1) / 2 ^ (Suc n)) =
                  lc (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n))
                  (midpoint (leftrec u v lc rc ((2 * real m + 1) / 2^n)) (rightrec u v lc rc ((2 * real m + 1) / 2^n)))"
@@ -513,24 +513,24 @@ lemma%unimportant rightrec_41: "n > 0 \<Longrightarrow>
   apply (simp add: case_prod_beta)
   done
 
-lemma%unimportant rightrec_43: "n > 0 \<Longrightarrow> rightrec u v lc rc ((4 * real m + 3) / 2 ^ (Suc n)) = rightrec u v lc rc ((2 * real m + 1) / 2^n)"
+lemma rightrec_43: "n > 0 \<Longrightarrow> rightrec u v lc rc ((4 * real m + 3) / 2 ^ (Suc n)) = rightrec u v lc rc ((2 * real m + 1) / 2^n)"
   apply (simp only: dyad_rec2_def dyad_rec_43_times2)
   apply (simp add: case_prod_beta)
   done
 
-lemma%unimportant dyadics_in_open_unit_interval:
+lemma dyadics_in_open_unit_interval:
    "{0<..<1} \<inter> (\<Union>k m. {real m / 2^k}) = (\<Union>k. \<Union>m \<in> {0<..<2^k}. {real m / 2^k})"
   by (auto simp: divide_simps)
 
 
 
-theorem%important homeomorphic_monotone_image_interval:
+theorem homeomorphic_monotone_image_interval:
   fixes f :: "real \<Rightarrow> 'a::{real_normed_vector,complete_space}"
   assumes cont_f: "continuous_on {0..1} f"
       and conn: "\<And>y. connected ({0..1} \<inter> f -` {y})"
       and f_1not0: "f 1 \<noteq> f 0"
     shows "(f ` {0..1}) homeomorphic {0..1::real}"
-proof%unimportant -
+proof -
   have "\<exists>c d. a \<le> c \<and> c \<le> m \<and> m \<le> d \<and> d \<le> b \<and>
               (\<forall>x \<in> {c..d}. f x = f m) \<and>
               (\<forall>x \<in> {a..<c}. (f x \<noteq> f m)) \<and>
@@ -1663,11 +1663,11 @@ proof%unimportant -
 qed
 
 
-theorem%important path_contains_arc:
+theorem path_contains_arc:
   fixes p :: "real \<Rightarrow> 'a::{complete_space,real_normed_vector}"
   assumes "path p" and a: "pathstart p = a" and b: "pathfinish p = b" and "a \<noteq> b"
   obtains q where "arc q" "path_image q \<subseteq> path_image p" "pathstart q = a" "pathfinish q = b"
-proof%unimportant -
+proof -
   have ucont_p: "uniformly_continuous_on {0..1} p"
     using \<open>path p\<close> unfolding path_def
     by (metis compact_Icc compact_uniformly_continuous)
@@ -1960,12 +1960,12 @@ proof%unimportant -
 qed
 
 
-corollary%important path_connected_arcwise:
+corollary path_connected_arcwise:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   shows "path_connected S \<longleftrightarrow>
          (\<forall>x \<in> S. \<forall>y \<in> S. x \<noteq> y \<longrightarrow> (\<exists>g. arc g \<and> path_image g \<subseteq> S \<and> pathstart g = x \<and> pathfinish g = y))"
         (is "?lhs = ?rhs")
-proof%unimportant (intro iffI impI ballI)
+proof (intro iffI impI ballI)
   fix x y
   assume "path_connected S" "x \<in> S" "y \<in> S" "x \<noteq> y"
   then obtain p where p: "path p" "path_image p \<subseteq> S" "pathstart p = x" "pathfinish p = y"
@@ -1991,23 +1991,23 @@ next
 qed
 
 
-corollary%important arc_connected_trans:
+corollary arc_connected_trans:
   fixes g :: "real \<Rightarrow> 'a::{complete_space,real_normed_vector}"
   assumes "arc g" "arc h" "pathfinish g = pathstart h" "pathstart g \<noteq> pathfinish h"
   obtains i where "arc i" "path_image i \<subseteq> path_image g \<union> path_image h"
                   "pathstart i = pathstart g" "pathfinish i = pathfinish h"
-  by%unimportant (metis (no_types, hide_lams) arc_imp_path assms path_contains_arc path_image_join path_join pathfinish_join pathstart_join)
+  by (metis (no_types, hide_lams) arc_imp_path assms path_contains_arc path_image_join path_join pathfinish_join pathstart_join)
 
 
 
 
 subsection%important\<open>Accessibility of frontier points\<close>
 
-lemma%important dense_accessible_frontier_points:
+lemma dense_accessible_frontier_points:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes "open S" and opeSV: "openin (subtopology euclidean (frontier S)) V" and "V \<noteq> {}"
   obtains g where "arc g" "g ` {0..<1} \<subseteq> S" "pathstart g \<in> S" "pathfinish g \<in> V"
-proof%unimportant -
+proof -
   obtain z where "z \<in> V"
     using \<open>V \<noteq> {}\<close> by auto
   then obtain r where "r > 0" and r: "ball z r \<inter> frontier S \<subseteq> V"
@@ -2098,12 +2098,12 @@ proof%unimportant -
 qed
 
 
-lemma%important dense_accessible_frontier_points_connected:
+lemma dense_accessible_frontier_points_connected:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes "open S" "connected S" "x \<in> S" "V \<noteq> {}"
       and ope: "openin (subtopology euclidean (frontier S)) V"
   obtains g where "arc g" "g ` {0..<1} \<subseteq> S" "pathstart g = x" "pathfinish g \<in> V"
-proof%unimportant -
+proof -
   have "V \<subseteq> frontier S"
     using ope openin_imp_subset by blast
   with \<open>open S\<close> \<open>x \<in> S\<close> have "x \<notin> V"
@@ -2133,14 +2133,14 @@ proof%unimportant -
     using h \<open>pathfinish g \<in> V\<close> by auto
 qed
 
-lemma%important dense_access_fp_aux:
+lemma dense_access_fp_aux:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes S: "open S" "connected S"
       and opeSU: "openin (subtopology euclidean (frontier S)) U"
       and opeSV: "openin (subtopology euclidean (frontier S)) V"
       and "V \<noteq> {}" "\<not> U \<subseteq> V"
   obtains g where "arc g" "pathstart g \<in> U" "pathfinish g \<in> V" "g ` {0<..<1} \<subseteq> S"
-proof%unimportant -
+proof -
   have "S \<noteq> {}"
     using opeSV \<open>V \<noteq> {}\<close> by (metis frontier_empty openin_subtopology_empty)
   then obtain x where "x \<in> S" by auto
@@ -2180,14 +2180,14 @@ proof%unimportant -
   qed
 qed
 
-lemma%important dense_accessible_frontier_point_pairs:
+lemma dense_accessible_frontier_point_pairs:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes S: "open S" "connected S"
       and opeSU: "openin (subtopology euclidean (frontier S)) U"
       and opeSV: "openin (subtopology euclidean (frontier S)) V"
       and "U \<noteq> {}" "V \<noteq> {}" "U \<noteq> V"
     obtains g where "arc g" "pathstart g \<in> U" "pathfinish g \<in> V" "g ` {0<..<1} \<subseteq> S"
-proof%unimportant -
+proof -
   consider "\<not> U \<subseteq> V" | "\<not> V \<subseteq> U"
     using \<open>U \<noteq> V\<close> by blast
   then show ?thesis

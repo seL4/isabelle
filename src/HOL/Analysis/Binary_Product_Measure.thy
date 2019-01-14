@@ -8,10 +8,10 @@ theory Binary_Product_Measure
 imports Nonnegative_Lebesgue_Integration
 begin
 
-lemma%unimportant Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B else {})"
+lemma Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B else {})"
   by auto
 
-lemma%unimportant rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
+lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
   by auto
 
 subsection%important "Binary products"
@@ -21,48 +21,48 @@ definition%important pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
       {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}
       (\<lambda>X. \<integral>\<^sup>+x. (\<integral>\<^sup>+y. indicator X (x,y) \<partial>B) \<partial>A)"
 
-lemma%important pair_measure_closed: "{a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B} \<subseteq> Pow (space A \<times> space B)"
-  using%unimportant sets.space_closed[of A] sets.space_closed[of B] by auto
+lemma pair_measure_closed: "{a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B} \<subseteq> Pow (space A \<times> space B)"
+  using sets.space_closed[of A] sets.space_closed[of B] by auto
 
-lemma%important space_pair_measure:
+lemma space_pair_measure:
   "space (A \<Otimes>\<^sub>M B) = space A \<times> space B"
   unfolding pair_measure_def using pair_measure_closed[of A B]
-  by%unimportant (rule space_measure_of)
+  by (rule space_measure_of)
 
-lemma%unimportant SIGMA_Collect_eq: "(SIGMA x:space M. {y\<in>space N. P x y}) = {x\<in>space (M \<Otimes>\<^sub>M N). P (fst x) (snd x)}"
+lemma SIGMA_Collect_eq: "(SIGMA x:space M. {y\<in>space N. P x y}) = {x\<in>space (M \<Otimes>\<^sub>M N). P (fst x) (snd x)}"
   by (auto simp: space_pair_measure)
 
-lemma%unimportant sets_pair_measure:
+lemma sets_pair_measure:
   "sets (A \<Otimes>\<^sub>M B) = sigma_sets (space A \<times> space B) {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
   unfolding pair_measure_def using pair_measure_closed[of A B]
   by (rule sets_measure_of)
 
-lemma%unimportant sets_pair_measure_cong[measurable_cong, cong]:
+lemma sets_pair_measure_cong[measurable_cong, cong]:
   "sets M1 = sets M1' \<Longrightarrow> sets M2 = sets M2' \<Longrightarrow> sets (M1 \<Otimes>\<^sub>M M2) = sets (M1' \<Otimes>\<^sub>M M2')"
   unfolding sets_pair_measure by (simp cong: sets_eq_imp_space_eq)
 
-lemma%unimportant pair_measureI[intro, simp, measurable]:
+lemma pair_measureI[intro, simp, measurable]:
   "x \<in> sets A \<Longrightarrow> y \<in> sets B \<Longrightarrow> x \<times> y \<in> sets (A \<Otimes>\<^sub>M B)"
   by (auto simp: sets_pair_measure)
 
-lemma%unimportant sets_Pair: "{x} \<in> sets M1 \<Longrightarrow> {y} \<in> sets M2 \<Longrightarrow> {(x, y)} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
+lemma sets_Pair: "{x} \<in> sets M1 \<Longrightarrow> {y} \<in> sets M2 \<Longrightarrow> {(x, y)} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
   using pair_measureI[of "{x}" M1 "{y}" M2] by simp
 
-lemma%unimportant measurable_pair_measureI:
+lemma measurable_pair_measureI:
   assumes 1: "f \<in> space M \<rightarrow> space M1 \<times> space M2"
   assumes 2: "\<And>A B. A \<in> sets M1 \<Longrightarrow> B \<in> sets M2 \<Longrightarrow> f -` (A \<times> B) \<inter> space M \<in> sets M"
   shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   unfolding pair_measure_def using 1 2
   by (intro measurable_measure_of) (auto dest: sets.sets_into_space)
 
-lemma%unimportant measurable_split_replace[measurable (raw)]:
+lemma measurable_split_replace[measurable (raw)]:
   "(\<lambda>x. f x (fst (g x)) (snd (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. case_prod (f x) (g x)) \<in> measurable M N"
   unfolding split_beta' .
 
-lemma%important measurable_Pair[measurable (raw)]:
+lemma measurable_Pair[measurable (raw)]:
   assumes f: "f \<in> measurable M M1" and g: "g \<in> measurable M M2"
   shows "(\<lambda>x. (f x, g x)) \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
-proof%unimportant (rule measurable_pair_measureI)
+proof (rule measurable_pair_measureI)
   show "(\<lambda>x. (f x, g x)) \<in> space M \<rightarrow> space M1 \<times> space M2"
     using f g by (auto simp: measurable_def)
   fix A B assume *: "A \<in> sets M1" "B \<in> sets M2"
@@ -73,59 +73,59 @@ proof%unimportant (rule measurable_pair_measureI)
   finally show "(\<lambda>x. (f x, g x)) -` (A \<times> B) \<inter> space M \<in> sets M" .
 qed
 
-lemma%unimportant measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otimes>\<^sub>M M2) M1"
+lemma measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otimes>\<^sub>M M2) M1"
   by (auto simp: fst_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
     measurable_def)
 
-lemma%unimportant measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otimes>\<^sub>M M2) M2"
+lemma measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otimes>\<^sub>M M2) M2"
   by (auto simp: snd_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
     measurable_def)
 
-lemma%unimportant measurable_Pair_compose_split[measurable_dest]:
+lemma measurable_Pair_compose_split[measurable_dest]:
   assumes f: "case_prod f \<in> measurable (M1 \<Otimes>\<^sub>M M2) N"
   assumes g: "g \<in> measurable M M1" and h: "h \<in> measurable M M2"
   shows "(\<lambda>x. f (g x) (h x)) \<in> measurable M N"
   using measurable_compose[OF measurable_Pair f, OF g h] by simp
 
-lemma%unimportant measurable_Pair1_compose[measurable_dest]:
+lemma measurable_Pair1_compose[measurable_dest]:
   assumes f: "(\<lambda>x. (f x, g x)) \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   assumes [measurable]: "h \<in> measurable N M"
   shows "(\<lambda>x. f (h x)) \<in> measurable N M1"
   using measurable_compose[OF f measurable_fst] by simp
 
-lemma%unimportant measurable_Pair2_compose[measurable_dest]:
+lemma measurable_Pair2_compose[measurable_dest]:
   assumes f: "(\<lambda>x. (f x, g x)) \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   assumes [measurable]: "h \<in> measurable N M"
   shows "(\<lambda>x. g (h x)) \<in> measurable N M2"
   using measurable_compose[OF f measurable_snd] by simp
 
-lemma%unimportant measurable_pair:
+lemma measurable_pair:
   assumes "(fst \<circ> f) \<in> measurable M M1" "(snd \<circ> f) \<in> measurable M M2"
   shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   using measurable_Pair[OF assms] by simp
 
-lemma%unimportant (*FIX ME needs a name *)
+lemma (*FIX ME needs a name *)
   assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^sub>M P)"
   shows measurable_fst': "(\<lambda>x. fst (f x)) \<in> measurable M N"
     and measurable_snd': "(\<lambda>x. snd (f x)) \<in> measurable M P"
   by simp_all
 
-lemma%unimportant (*FIX ME needs a name *)
+lemma (*FIX ME needs a name *)
   assumes f[measurable]: "f \<in> measurable M N"
   shows measurable_fst'': "(\<lambda>x. f (fst x)) \<in> measurable (M \<Otimes>\<^sub>M P) N"
     and measurable_snd'': "(\<lambda>x. f (snd x)) \<in> measurable (P \<Otimes>\<^sub>M M) N"
   by simp_all
 
-lemma%unimportant sets_pair_in_sets:
+lemma sets_pair_in_sets:
   assumes "\<And>a b. a \<in> sets A \<Longrightarrow> b \<in> sets B \<Longrightarrow> a \<times> b \<in> sets N"
   shows "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets N"
   unfolding sets_pair_measure
   by (intro sets.sigma_sets_subset') (auto intro!: assms)
 
-lemma%important  sets_pair_eq_sets_fst_snd:
+lemma  sets_pair_eq_sets_fst_snd:
   "sets (A \<Otimes>\<^sub>M B) = sets (Sup {vimage_algebra (space A \<times> space B) fst A, vimage_algebra (space A \<times> space B) snd B})"
     (is "?P = sets (Sup {?fst, ?snd})")
-proof%unimportant -
+proof -
   { fix a b assume ab: "a \<in> sets A" "b \<in> sets B"
     then have "a \<times> b = (fst -` a \<inter> (space A \<times> space B)) \<inter> (snd -` b \<inter> (space A \<times> space B))"
       by (auto dest: sets.sets_into_space)
@@ -157,29 +157,29 @@ proof%unimportant -
     done
 qed
 
-lemma%unimportant measurable_pair_iff:
+lemma measurable_pair_iff:
   "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2) \<longleftrightarrow> (fst \<circ> f) \<in> measurable M M1 \<and> (snd \<circ> f) \<in> measurable M M2"
   by (auto intro: measurable_pair[of f M M1 M2])
 
-lemma%unimportant  measurable_split_conv:
+lemma  measurable_split_conv:
   "(\<lambda>(x, y). f x y) \<in> measurable A B \<longleftrightarrow> (\<lambda>x. f (fst x) (snd x)) \<in> measurable A B"
   by (intro arg_cong2[where f="(\<in>)"]) auto
 
-lemma%unimportant measurable_pair_swap': "(\<lambda>(x,y). (y, x)) \<in> measurable (M1 \<Otimes>\<^sub>M M2) (M2 \<Otimes>\<^sub>M M1)"
+lemma measurable_pair_swap': "(\<lambda>(x,y). (y, x)) \<in> measurable (M1 \<Otimes>\<^sub>M M2) (M2 \<Otimes>\<^sub>M M1)"
   by (auto intro!: measurable_Pair simp: measurable_split_conv)
 
-lemma%unimportant  measurable_pair_swap:
+lemma  measurable_pair_swap:
   assumes f: "f \<in> measurable (M1 \<Otimes>\<^sub>M M2) M" shows "(\<lambda>(x,y). f (y, x)) \<in> measurable (M2 \<Otimes>\<^sub>M M1) M"
   using measurable_comp[OF measurable_Pair f] by (auto simp: measurable_split_conv comp_def)
 
-lemma%unimportant measurable_pair_swap_iff:
+lemma measurable_pair_swap_iff:
   "f \<in> measurable (M2 \<Otimes>\<^sub>M M1) M \<longleftrightarrow> (\<lambda>(x,y). f (y,x)) \<in> measurable (M1 \<Otimes>\<^sub>M M2) M"
   by (auto dest: measurable_pair_swap)
 
-lemma%unimportant measurable_Pair1': "x \<in> space M1 \<Longrightarrow> Pair x \<in> measurable M2 (M1 \<Otimes>\<^sub>M M2)"
+lemma measurable_Pair1': "x \<in> space M1 \<Longrightarrow> Pair x \<in> measurable M2 (M1 \<Otimes>\<^sub>M M2)"
   by simp
 
-lemma%unimportant sets_Pair1[measurable (raw)]:
+lemma sets_Pair1[measurable (raw)]:
   assumes A: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)" shows "Pair x -` A \<in> sets M2"
 proof -
   have "Pair x -` A = (if x \<in> space M1 then Pair x -` A \<inter> space M2 else {})"
@@ -189,10 +189,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%unimportant measurable_Pair2': "y \<in> space M2 \<Longrightarrow> (\<lambda>x. (x, y)) \<in> measurable M1 (M1 \<Otimes>\<^sub>M M2)"
+lemma measurable_Pair2': "y \<in> space M2 \<Longrightarrow> (\<lambda>x. (x, y)) \<in> measurable M1 (M1 \<Otimes>\<^sub>M M2)"
   by (auto intro!: measurable_Pair)
 
-lemma%unimportant sets_Pair2: assumes A: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)" shows "(\<lambda>x. (x, y)) -` A \<in> sets M1"
+lemma sets_Pair2: assumes A: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)" shows "(\<lambda>x. (x, y)) -` A \<in> sets M1"
 proof -
   have "(\<lambda>x. (x, y)) -` A = (if y \<in> space M2 then (\<lambda>x. (x, y)) -` A \<inter> space M1 else {})"
     using A[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
@@ -201,23 +201,23 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%unimportant measurable_Pair2:
+lemma measurable_Pair2:
   assumes f: "f \<in> measurable (M1 \<Otimes>\<^sub>M M2) M" and x: "x \<in> space M1"
   shows "(\<lambda>y. f (x, y)) \<in> measurable M2 M"
   using measurable_comp[OF measurable_Pair1' f, OF x]
   by (simp add: comp_def)
 
-lemma%unimportant measurable_Pair1:
+lemma measurable_Pair1:
   assumes f: "f \<in> measurable (M1 \<Otimes>\<^sub>M M2) M" and y: "y \<in> space M2"
   shows "(\<lambda>x. f (x, y)) \<in> measurable M1 M"
   using measurable_comp[OF measurable_Pair2' f, OF y]
   by (simp add: comp_def)
 
-lemma%unimportant Int_stable_pair_measure_generator: "Int_stable {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
+lemma Int_stable_pair_measure_generator: "Int_stable {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
   unfolding Int_stable_def
   by safe (auto simp add: times_Int_times)
 
-lemma%unimportant (in finite_measure) finite_measure_cut_measurable:
+lemma (in finite_measure) finite_measure_cut_measurable:
   assumes [measurable]: "Q \<in> sets (N \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N"
     (is "?s Q \<in> _")
@@ -239,7 +239,7 @@ next
     unfolding sets_pair_measure[symmetric] by simp
 qed (auto simp add: if_distrib Int_def[symmetric] intro!: measurable_If)
 
-lemma%unimportant (in sigma_finite_measure) measurable_emeasure_Pair:
+lemma (in sigma_finite_measure) measurable_emeasure_Pair:
   assumes Q: "Q \<in> sets (N \<Otimes>\<^sub>M M)" shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N" (is "?s Q \<in> _")
 proof -
   from sigma_finite_disjoint guess F . note F = this
@@ -279,7 +279,7 @@ proof -
     by auto
 qed
 
-lemma%unimportant (in sigma_finite_measure) measurable_emeasure[measurable (raw)]:
+lemma (in sigma_finite_measure) measurable_emeasure[measurable (raw)]:
   assumes space: "\<And>x. x \<in> space N \<Longrightarrow> A x \<subseteq> space M"
   assumes A: "{x\<in>space (N \<Otimes>\<^sub>M M). snd x \<in> A (fst x)} \<in> sets (N \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. emeasure M (A x)) \<in> borel_measurable N"
@@ -290,7 +290,7 @@ proof -
     by (auto cong: measurable_cong)
 qed
 
-lemma%unimportant (in sigma_finite_measure) emeasure_pair_measure:
+lemma (in sigma_finite_measure) emeasure_pair_measure:
   assumes "X \<in> sets (N \<Otimes>\<^sub>M M)"
   shows "emeasure (N \<Otimes>\<^sub>M M) X = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator X (x, y) \<partial>M \<partial>N)" (is "_ = ?\<mu> X")
 proof (rule emeasure_measure_of[OF pair_measure_def])
@@ -314,7 +314,7 @@ proof (rule emeasure_measure_of[OF pair_measure_def])
     using sets.space_closed[of N] sets.space_closed[of M] by auto
 qed fact
 
-lemma%unimportant (in sigma_finite_measure) emeasure_pair_measure_alt:
+lemma (in sigma_finite_measure) emeasure_pair_measure_alt:
   assumes X: "X \<in> sets (N \<Otimes>\<^sub>M M)"
   shows "emeasure (N  \<Otimes>\<^sub>M M) X = (\<integral>\<^sup>+x. emeasure M (Pair x -` X) \<partial>N)"
 proof -
@@ -324,10 +324,10 @@ proof -
     using X by (auto intro!: nn_integral_cong simp: emeasure_pair_measure sets_Pair1)
 qed
 
-lemma%important (in sigma_finite_measure) emeasure_pair_measure_Times:
+proposition (in sigma_finite_measure) emeasure_pair_measure_Times:
   assumes A: "A \<in> sets N" and B: "B \<in> sets M"
   shows "emeasure (N \<Otimes>\<^sub>M M) (A \<times> B) = emeasure N A * emeasure M B"
-proof%unimportant -
+proof -
   have "emeasure (N \<Otimes>\<^sub>M M) (A \<times> B) = (\<integral>\<^sup>+x. emeasure M B * indicator A x \<partial>N)"
     using A B by (auto intro!: nn_integral_cong simp: emeasure_pair_measure_alt)
   also have "\<dots> = emeasure M B * emeasure N A"
@@ -338,16 +338,16 @@ qed
 
 subsection%important \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
 
-locale%important pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
+locale%unimportant pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"
 
-lemma%unimportant (in pair_sigma_finite) measurable_emeasure_Pair1:
+lemma (in pair_sigma_finite) measurable_emeasure_Pair1:
   "Q \<in> sets (M1 \<Otimes>\<^sub>M M2) \<Longrightarrow> (\<lambda>x. emeasure M2 (Pair x -` Q)) \<in> borel_measurable M1"
   using M2.measurable_emeasure_Pair .
 
-lemma%important (in pair_sigma_finite) measurable_emeasure_Pair2:
+lemma (in pair_sigma_finite) measurable_emeasure_Pair2:
   assumes Q: "Q \<in> sets (M1 \<Otimes>\<^sub>M M2)" shows "(\<lambda>y. emeasure M1 ((\<lambda>x. (x, y)) -` Q)) \<in> borel_measurable M2"
-proof%unimportant -
+proof -
   have "(\<lambda>(x, y). (y, x)) -` Q \<inter> space (M2 \<Otimes>\<^sub>M M1) \<in> sets (M2 \<Otimes>\<^sub>M M1)"
     using Q measurable_pair_swap' by (auto intro: measurable_sets)
   note M1.measurable_emeasure_Pair[OF this]
@@ -356,11 +356,11 @@ proof%unimportant -
   ultimately show ?thesis by simp
 qed
 
-lemma%important (in pair_sigma_finite) sigma_finite_up_in_pair_measure_generator:
+proposition (in pair_sigma_finite) sigma_finite_up_in_pair_measure_generator:
   defines "E \<equiv> {A \<times> B | A B. A \<in> sets M1 \<and> B \<in> sets M2}"
   shows "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> E \<and> incseq F \<and> (\<Union>i. F i) = space M1 \<times> space M2 \<and>
     (\<forall>i. emeasure (M1 \<Otimes>\<^sub>M M2) (F i) \<noteq> \<infinity>)"
-proof%unimportant -
+proof -
   from M1.sigma_finite_incseq guess F1 . note F1 = this
   from M2.sigma_finite_incseq guess F2 . note F2 = this
   from F1 F2 have space: "space M1 = (\<Union>i. F1 i)" "space M2 = (\<Union>i. F2 i)" by auto
@@ -394,7 +394,7 @@ proof%unimportant -
   qed
 qed
 
-sublocale%important pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
+sublocale%unimportant pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
 proof
   from M1.sigma_finite_countable guess F1 ..
   moreover from M2.sigma_finite_countable guess F2 ..
@@ -404,7 +404,7 @@ proof
        (auto simp: M2.emeasure_pair_measure_Times space_pair_measure set_eq_iff subset_eq ennreal_mult_eq_top_iff)
 qed
 
-lemma%unimportant sigma_finite_pair_measure:
+lemma sigma_finite_pair_measure:
   assumes A: "sigma_finite_measure A" and B: "sigma_finite_measure B"
   shows "sigma_finite_measure (A \<Otimes>\<^sub>M B)"
 proof -
@@ -414,14 +414,14 @@ proof -
   show ?thesis ..
 qed
 
-lemma%unimportant sets_pair_swap:
+lemma sets_pair_swap:
   assumes "A \<in> sets (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<lambda>(x, y). (y, x)) -` A \<inter> space (M2 \<Otimes>\<^sub>M M1) \<in> sets (M2 \<Otimes>\<^sub>M M1)"
   using measurable_pair_swap' assms by (rule measurable_sets)
 
-lemma%important (in pair_sigma_finite) distr_pair_swap:
+lemma (in pair_sigma_finite) distr_pair_swap:
   "M1 \<Otimes>\<^sub>M M2 = distr (M2 \<Otimes>\<^sub>M M1) (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). (y, x))" (is "?P = ?D")
-proof%unimportant -
+proof -
   from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
   show ?thesis
@@ -446,11 +446,11 @@ proof%unimportant -
   qed
 qed
 
-lemma%unimportant (in pair_sigma_finite) emeasure_pair_measure_alt2:
+lemma (in pair_sigma_finite) emeasure_pair_measure_alt2:
   assumes A: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)"
   shows "emeasure (M1 \<Otimes>\<^sub>M M2) A = (\<integral>\<^sup>+y. emeasure M1 ((\<lambda>x. (x, y)) -` A) \<partial>M2)"
     (is "_ = ?\<nu> A")
-proof%unimportant -
+proof -
   have [simp]: "\<And>y. (Pair y -` ((\<lambda>(x, y). (y, x)) -` A \<inter> space (M2 \<Otimes>\<^sub>M M1))) = (\<lambda>x. (x, y)) -` A"
     using sets.sets_into_space[OF A] by (auto simp: space_pair_measure)
   show ?thesis using A
@@ -459,7 +459,7 @@ proof%unimportant -
                  M1.emeasure_pair_measure_alt emeasure_distr[OF measurable_pair_swap' A])
 qed
 
-lemma%unimportant (in pair_sigma_finite) AE_pair:
+lemma (in pair_sigma_finite) AE_pair:
   assumes "AE x in (M1 \<Otimes>\<^sub>M M2). Q x"
   shows "AE x in M1. (AE y in M2. Q (x, y))"
 proof -
@@ -485,11 +485,11 @@ proof -
   qed
 qed
 
-lemma%important (in pair_sigma_finite) AE_pair_measure:
+lemma (in pair_sigma_finite) AE_pair_measure:
   assumes "{x\<in>space (M1 \<Otimes>\<^sub>M M2). P x} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
   assumes ae: "AE x in M1. AE y in M2. P (x, y)"
   shows "AE x in M1 \<Otimes>\<^sub>M M2. P x"
-proof%unimportant (subst AE_iff_measurable[OF _ refl])
+proof (subst AE_iff_measurable[OF _ refl])
   show "{x\<in>space (M1 \<Otimes>\<^sub>M M2). \<not> P x} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
     by (rule sets.sets_Collect) fact
   then have "emeasure (M1 \<Otimes>\<^sub>M M2) {x \<in> space (M1 \<Otimes>\<^sub>M M2). \<not> P x} =
@@ -505,12 +505,12 @@ proof%unimportant (subst AE_iff_measurable[OF _ refl])
   finally show "emeasure (M1 \<Otimes>\<^sub>M M2) {x \<in> space (M1 \<Otimes>\<^sub>M M2). \<not> P x} = 0" by simp
 qed
 
-lemma%unimportant (in pair_sigma_finite) AE_pair_iff:
+lemma (in pair_sigma_finite) AE_pair_iff:
   "{x\<in>space (M1 \<Otimes>\<^sub>M M2). P (fst x) (snd x)} \<in> sets (M1 \<Otimes>\<^sub>M M2) \<Longrightarrow>
     (AE x in M1. AE y in M2. P x y) \<longleftrightarrow> (AE x in (M1 \<Otimes>\<^sub>M M2). P (fst x) (snd x))"
   using AE_pair[of "\<lambda>x. P (fst x) (snd x)"] AE_pair_measure[of "\<lambda>x. P (fst x) (snd x)"] by auto
 
-lemma%unimportant (in pair_sigma_finite) AE_commute:
+lemma (in pair_sigma_finite) AE_commute:
   assumes P: "{x\<in>space (M1 \<Otimes>\<^sub>M M2). P (fst x) (snd x)} \<in> sets (M1 \<Otimes>\<^sub>M M2)"
   shows "(AE x in M1. AE y in M2. P x y) \<longleftrightarrow> (AE y in M2. AE x in M1. P x y)"
 proof -
@@ -533,14 +533,14 @@ qed
 
 subsection%important "Fubinis theorem"
 
-lemma%unimportant measurable_compose_Pair1:
+lemma measurable_compose_Pair1:
   "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^sub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
   by simp
 
-lemma%unimportant (in sigma_finite_measure) borel_measurable_nn_integral_fst:
+lemma (in sigma_finite_measure) borel_measurable_nn_integral_fst:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. \<integral>\<^sup>+ y. f (x, y) \<partial>M) \<in> borel_measurable M1"
-using f proof%unimportant induct
+using f proof induct
   case (cong u v)
   then have "\<And>w x. w \<in> space M1 \<Longrightarrow> x \<in> space M \<Longrightarrow> u (w, x) = v (w, x)"
     by (auto simp: space_pair_measure)
@@ -561,7 +561,7 @@ qed (simp_all add: nn_integral_add nn_integral_cmult measurable_compose_Pair1
                    nn_integral_monotone_convergence_SUP incseq_def le_fun_def
               cong: measurable_cong)
 
-lemma%unimportant (in sigma_finite_measure) nn_integral_fst:
+lemma (in sigma_finite_measure) nn_integral_fst:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
   shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
   using f proof induct
@@ -575,14 +575,14 @@ qed (simp_all add: emeasure_pair_measure nn_integral_cmult nn_integral_add
                    borel_measurable_nn_integral_fst nn_integral_mono incseq_def le_fun_def
               cong: nn_integral_cong)
 
-lemma%unimportant (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:
+lemma (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:
   "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
   using borel_measurable_nn_integral_fst[of "case_prod f" N] by simp
 
-lemma%important (in pair_sigma_finite) nn_integral_snd:
+proposition (in pair_sigma_finite) nn_integral_snd:
   assumes f[measurable]: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M2) f"
-proof%unimportant -
+proof -
   note measurable_pair_swap[OF f]
   from M1.nn_integral_fst[OF this]
   have "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1))"
@@ -592,24 +592,24 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-lemma%important (in pair_sigma_finite) Fubini:
+theorem (in pair_sigma_finite) Fubini:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M2) \<partial>M1)"
   unfolding nn_integral_snd[OF assms] M2.nn_integral_fst[OF assms] ..
 
-lemma%important (in pair_sigma_finite) Fubini':
+theorem (in pair_sigma_finite) Fubini':
   assumes f: "case_prod f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f x y \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f x y \<partial>M2) \<partial>M1)"
   using Fubini[OF f] by simp
 
 subsection%important \<open>Products on counting spaces, densities and distributions\<close>
 
-lemma%important sigma_prod:
+proposition sigma_prod:
   assumes X_cover: "\<exists>E\<subseteq>A. countable E \<and> X = \<Union>E" and A: "A \<subseteq> Pow X"
   assumes Y_cover: "\<exists>E\<subseteq>B. countable E \<and> Y = \<Union>E" and B: "B \<subseteq> Pow Y"
   shows "sigma X A \<Otimes>\<^sub>M sigma Y B = sigma (X \<times> Y) {a \<times> b | a b. a \<in> A \<and> b \<in> B}"
     (is "?P = ?S")
-proof%unimportant (rule measure_eqI)
+proof (rule measure_eqI)
   have [simp]: "snd \<in> X \<times> Y \<rightarrow> Y" "fst \<in> X \<times> Y \<rightarrow> X"
     by auto
   let ?XY = "{{fst -` a \<inter> X \<times> Y | a. a \<in> A}, {snd -` b \<inter> X \<times> Y | b. b \<in> B}}"
@@ -662,7 +662,7 @@ next
     by (simp add: emeasure_pair_measure_alt emeasure_sigma)
 qed
 
-lemma%unimportant sigma_sets_pair_measure_generator_finite:
+lemma sigma_sets_pair_measure_generator_finite:
   assumes "finite A" and "finite B"
   shows "sigma_sets (A \<times> B) { a \<times> b | a b. a \<subseteq> A \<and> b \<subseteq> B} = Pow (A \<times> B)"
   (is "sigma_sets ?prod ?sets = _")
@@ -686,14 +686,14 @@ next
   show "a \<in> A" and "b \<in> B" by auto
 qed
 
-lemma%important sets_pair_eq:
+proposition  sets_pair_eq:
   assumes Ea: "Ea \<subseteq> Pow (space A)" "sets A = sigma_sets (space A) Ea"
     and Ca: "countable Ca" "Ca \<subseteq> Ea" "\<Union>Ca = space A"
     and Eb: "Eb \<subseteq> Pow (space B)" "sets B = sigma_sets (space B) Eb"
     and Cb: "countable Cb" "Cb \<subseteq> Eb" "\<Union>Cb = space B"
   shows "sets (A \<Otimes>\<^sub>M B) = sets (sigma (space A \<times> space B) { a \<times> b | a b. a \<in> Ea \<and> b \<in> Eb })"
     (is "_ = sets (sigma ?\<Omega> ?E)")
-proof%unimportant
+proof
   show "sets (sigma ?\<Omega> ?E) \<subseteq> sets (A \<Otimes>\<^sub>M B)"
     using Ea(1) Eb(1) by (subst sigma_le_sets) (auto simp: Ea(2) Eb(2))
   have "?E \<subseteq> Pow ?\<Omega>"
@@ -733,10 +733,10 @@ proof%unimportant
   finally show "sets (A \<Otimes>\<^sub>M B) \<subseteq> sets (sigma ?\<Omega> ?E)" .
 qed
 
-lemma%important borel_prod:
+proposition  borel_prod:
   "(borel \<Otimes>\<^sub>M borel) = (borel :: ('a::second_countable_topology \<times> 'b::second_countable_topology) measure)"
   (is "?P = ?B")
-proof%unimportant -
+proof -
   have "?B = sigma UNIV {A \<times> B | A B. open A \<and> open B}"
     by (rule second_countable_borel_measurable[OF open_prod_generated])
   also have "\<dots> = ?P"
@@ -745,10 +745,10 @@ proof%unimportant -
   finally show ?thesis ..
 qed
 
-lemma%important pair_measure_count_space:
+proposition pair_measure_count_space:
   assumes A: "finite A" and B: "finite B"
   shows "count_space A \<Otimes>\<^sub>M count_space B = count_space (A \<times> B)" (is "?P = ?C")
-proof%unimportant (rule measure_eqI)
+proof (rule measure_eqI)
   interpret A: finite_measure "count_space A" by (rule finite_measure_count_space) fact
   interpret B: finite_measure "count_space B" by (rule finite_measure_count_space) fact
   interpret P: pair_sigma_finite "count_space A" "count_space B" ..
@@ -776,14 +776,14 @@ proof%unimportant (rule measure_eqI)
 qed
 
 
-lemma%unimportant emeasure_prod_count_space:
+lemma emeasure_prod_count_space:
   assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M M)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
   shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator A (x, y) \<partial>?B \<partial>?A)"
   by (rule emeasure_measure_of[OF pair_measure_def])
      (auto simp: countably_additive_def positive_def suminf_indicator A
                  nn_integral_suminf[symmetric] dest: sets.sets_into_space)
 
-lemma%unimportant emeasure_prod_count_space_single[simp]: "emeasure (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) {x} = 1"
+lemma emeasure_prod_count_space_single[simp]: "emeasure (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) {x} = 1"
 proof -
   have [simp]: "\<And>a b x y. indicator {(a, b)} (x, y) = (indicator {a} x * indicator {b} y::ennreal)"
     by (auto split: split_indicator)
@@ -791,11 +791,11 @@ proof -
     by (cases x) (auto simp: emeasure_prod_count_space nn_integral_cmult sets_Pair)
 qed
 
-lemma%important emeasure_count_space_prod_eq:
+lemma emeasure_count_space_prod_eq:
   fixes A :: "('a \<times> 'b) set"
   assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M count_space UNIV)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
   shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
-proof%unimportant -
+proof -
   { fix A :: "('a \<times> 'b) set" assume "countable A"
     then have "emeasure (?A \<Otimes>\<^sub>M ?B) (\<Union>a\<in>A. {a}) = (\<integral>\<^sup>+a. emeasure (?A \<Otimes>\<^sub>M ?B) {a} \<partial>count_space A)"
       by (intro emeasure_UN_countable) (auto simp: sets_Pair disjoint_family_on_def)
@@ -822,7 +822,7 @@ proof%unimportant -
   qed
 qed
 
-lemma%unimportant nn_integral_count_space_prod_eq:
+lemma nn_integral_count_space_prod_eq:
   "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
     (is "nn_integral ?P f = _")
 proof cases
@@ -874,12 +874,12 @@ next
     by (simp add: top_unique)
 qed
 
-lemma%important pair_measure_density:
+theorem pair_measure_density:
   assumes f: "f \<in> borel_measurable M1"
   assumes g: "g \<in> borel_measurable M2"
   assumes "sigma_finite_measure M2" "sigma_finite_measure (density M2 g)"
   shows "density M1 f \<Otimes>\<^sub>M density M2 g = density (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x,y). f x * g y)" (is "?L = ?R")
-proof%unimportant (rule measure_eqI)
+proof (rule measure_eqI)
   interpret M2: sigma_finite_measure M2 by fact
   interpret D2: sigma_finite_measure "density M2 g" by fact
 
@@ -894,7 +894,7 @@ proof%unimportant (rule measure_eqI)
              cong: nn_integral_cong)
 qed simp
 
-lemma%unimportant sigma_finite_measure_distr:
+lemma sigma_finite_measure_distr:
   assumes "sigma_finite_measure (distr M N f)" and f: "f \<in> measurable M N"
   shows "sigma_finite_measure M"
 proof -
@@ -909,7 +909,7 @@ proof -
   qed
 qed
 
-lemma%unimportant pair_measure_distr:
+lemma pair_measure_distr:
   assumes f: "f \<in> measurable M S" and g: "g \<in> measurable N T"
   assumes "sigma_finite_measure (distr N T g)"
   shows "distr M S f \<Otimes>\<^sub>M distr N T g = distr (M \<Otimes>\<^sub>M N) (S \<Otimes>\<^sub>M T) (\<lambda>(x, y). (f x, g y))" (is "?P = ?D")
@@ -924,12 +924,12 @@ proof (rule measure_eqI)
              intro!: nn_integral_cong arg_cong[where f="emeasure N"])
 qed simp
 
-lemma%important pair_measure_eqI:
+lemma pair_measure_eqI:
   assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
   assumes sets: "sets (M1 \<Otimes>\<^sub>M M2) = sets M"
   assumes emeasure: "\<And>A B. A \<in> sets M1 \<Longrightarrow> B \<in> sets M2 \<Longrightarrow> emeasure M1 A * emeasure M2 B = emeasure M (A \<times> B)"
   shows "M1 \<Otimes>\<^sub>M M2 = M"
-proof%unimportant -
+proof -
   interpret M1: sigma_finite_measure M1 by fact
   interpret M2: sigma_finite_measure M2 by fact
   interpret pair_sigma_finite M1 M2 ..
@@ -959,11 +959,11 @@ proof%unimportant -
   qed
 qed
 
-lemma%important sets_pair_countable:
+lemma sets_pair_countable:
   assumes "countable S1" "countable S2"
   assumes M: "sets M = Pow S1" and N: "sets N = Pow S2"
   shows "sets (M \<Otimes>\<^sub>M N) = Pow (S1 \<times> S2)"
-proof%unimportant auto
+proof auto
   fix x a b assume x: "x \<in> sets (M \<Otimes>\<^sub>M N)" "(a, b) \<in> x"
   from sets.sets_into_space[OF x(1)] x(2)
     sets_eq_imp_space_eq[of N "count_space S2"] sets_eq_imp_space_eq[of M "count_space S1"] M N
@@ -980,10 +980,10 @@ next
   finally show "X \<in> sets (M \<Otimes>\<^sub>M N)" .
 qed
 
-lemma%important pair_measure_countable:
+lemma pair_measure_countable:
   assumes "countable S1" "countable S2"
   shows "count_space S1 \<Otimes>\<^sub>M count_space S2 = count_space (S1 \<times> S2)"
-proof%unimportant (rule pair_measure_eqI)
+proof (rule pair_measure_eqI)
   show "sigma_finite_measure (count_space S1)" "sigma_finite_measure (count_space S2)"
     using assms by (auto intro!: sigma_finite_measure_count_space_countable)
   show "sets (count_space S1 \<Otimes>\<^sub>M count_space S2) = sets (count_space (S1 \<times> S2))"
@@ -995,10 +995,10 @@ next
     by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff ennreal_mult_top ennreal_top_mult)
 qed
 
-lemma%important nn_integral_fst_count_space:
+proposition nn_integral_fst_count_space:
   "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
   (is "?lhs = ?rhs")
-proof%unimportant(cases)
+proof(cases)
   assume *: "countable {xy. f xy \<noteq> 0}"
   let ?A = "fst ` {xy. f xy \<noteq> 0}"
   let ?B = "snd ` {xy. f xy \<noteq> 0}"
@@ -1073,7 +1073,7 @@ next
   ultimately show ?thesis by simp
 qed
 
-lemma nn_integral_snd_count_space:
+proposition nn_integral_snd_count_space:
   "(\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
   (is "?lhs = ?rhs")
 proof -
@@ -1088,7 +1088,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%unimportant measurable_pair_measure_countable1:
+lemma measurable_pair_measure_countable1:
   assumes "countable A"
   and [measurable]: "\<And>x. x \<in> A \<Longrightarrow> (\<lambda>y. f (x, y)) \<in> measurable N K"
   shows "f \<in> measurable (count_space A \<Otimes>\<^sub>M N) K"
@@ -1097,11 +1097,11 @@ by(rule measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g
 
 subsection%important \<open>Product of Borel spaces\<close>
 
-lemma%important borel_Times:
+theorem borel_Times:
   fixes A :: "'a::topological_space set" and B :: "'b::topological_space set"
   assumes A: "A \<in> sets borel" and B: "B \<in> sets borel"
   shows "A \<times> B \<in> sets borel"
-proof%unimportant -
+proof -
   have "A \<times> B = (A\<times>UNIV) \<inter> (UNIV \<times> B)"
     by auto
   moreover
@@ -1146,7 +1146,7 @@ proof%unimportant -
     by auto
 qed
 
-lemma%unimportant finite_measure_pair_measure:
+lemma finite_measure_pair_measure:
   assumes "finite_measure M" "finite_measure N"
   shows "finite_measure (N  \<Otimes>\<^sub>M M)"
 proof (rule finite_measureI)
