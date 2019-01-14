@@ -177,7 +177,7 @@ fun export_to_file root width (Singleton (_, p)) =
       ());
 
 fun export_information thy name content =
-  (Export.export thy name [content]; Export.information thy "");
+  (Export.export thy name [content]; writeln (Export.message thy ""));
 
 fun export_to_exports thy width (Singleton (extension, p)) =
       export_information thy (generatedN ^ "." ^ extension) (Code_Printer.format [] width p)

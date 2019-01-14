@@ -8,8 +8,8 @@ signature EXPORT =
 sig
   val export: theory -> string -> string list -> unit
   val export_raw: theory -> string -> string list -> unit
-  val markup_text: theory -> string -> Markup.T * string
-  val information: theory -> string -> unit
+  val markup: theory -> string -> Markup.T
+  val message: theory -> string -> string
 end;
 
 structure Export: EXPORT =
@@ -39,11 +39,11 @@ val export_raw = gen_export false;
 
 (* information message *)
 
-fun markup_text thy s =
-  (Markup.theory_exports (Context.theory_long_name thy ^ (if s = "" then "" else "/" ^ s)),
-    "theory exports");
+fun markup thy s =
+  let val name = (Markup.nameN, Context.theory_long_name thy ^ (if s = "" then "" else "/" ^ s))
+  in Active.make_markup Markup.theory_exportsN {implicit = false, properties = [name]} end;
 
-fun information thy s =
-  Output.information ("See " ^ uncurry Markup.markup (markup_text thy s));
+fun message thy s =
+  "See " ^ Markup.markup (markup thy s) "theory exports";
 
 end;
