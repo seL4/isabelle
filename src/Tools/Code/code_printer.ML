@@ -124,19 +124,22 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-val str = Print_Mode.setmp [] Pretty.str;
+fun with_no_print_mode f = Print_Mode.setmp [] f;
+val str = with_no_print_mode Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
-val commas = Print_Mode.setmp [] Pretty.commas;
-fun enclose l r = Print_Mode.setmp [] (Pretty.enclose l r);
+val commas = with_no_print_mode Pretty.commas;
+fun enclose l r = with_no_print_mode (Pretty.enclose l r);
 val brackets = enclose "(" ")" o Pretty.breaks;
-fun enum sep l r = Print_Mode.setmp [] (Pretty.enum sep l r);
+fun enum sep l r = with_no_print_mode (Pretty.enum sep l r);
 fun enum_default default sep l r [] = str default
   | enum_default default sep l r xs = enum sep l r xs;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
-fun indent i = Print_Mode.setmp [] (Pretty.indent i);
+fun indent i = with_no_print_mode (Pretty.indent i);
 
-fun markup_stmt sym = Print_Mode.setmp [code_presentationN]
+fun with_presentation_marker f = Print_Mode.setmp [code_presentationN] f;
+
+fun markup_stmt sym = with_presentation_marker
   (Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]));
 
 fun filter_presentation [] tree =
@@ -159,7 +162,7 @@ fun filter_presentation [] tree =
       in snd (fold filter tree (true, Buffer.empty)) end;
 
 fun format presentation_names width =
-  Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
+  with_presentation_marker (Pretty.string_of_margin width)
   #> YXML.parse_body
   #> filter_presentation presentation_names
   #> Buffer.add "\n"
