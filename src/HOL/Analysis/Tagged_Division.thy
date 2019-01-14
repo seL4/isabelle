@@ -4,7 +4,7 @@
 *)
 
 section \<open>Tagged Divisions for Henstock-Kurzweil Integration\<close>
-(*FIXME move together with Henstock_Kurzweil_Integration.thy  *)
+
 theory Tagged_Division
   imports Topology_Euclidean_Space
 begin
