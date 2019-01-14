@@ -147,7 +147,7 @@ lemma cong [fundef_cong]:
   using g_h unfolding \<open>A = B\<close>
   by (induct B rule: infinite_finite_induct) auto
 
-lemma cong_strong [cong]:
+lemma cong_simp [cong]:
   "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> g x = h x \<rbrakk> \<Longrightarrow> F (\<lambda>x. g x) A = F (\<lambda>x. h x) B"
 by (rule cong) (simp_all add: simp_implies_def)
 

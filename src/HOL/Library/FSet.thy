@@ -755,7 +755,7 @@ lift_definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b fset \<Rightarrow> 
 
 lemmas cong[fundef_cong] = set.cong[Transfer.transferred]
 
-lemma cong_strong[cong]:
+lemma cong_simp[cong]:
   "\<lbrakk> A = B;  \<And>x. x |\<in>| B =simp=> g x = h x \<rbrakk> \<Longrightarrow> F g A = F h B"
 unfolding simp_implies_def by (auto cong: cong)
 
