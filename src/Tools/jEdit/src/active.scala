@@ -10,6 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.browser.VFSBrowser
 
 
 object Active
@@ -41,6 +42,12 @@ object Active
                   val graph =
                     Exn.capture { Graph_Display.decode_graph(body).transitive_reduction_acyclic }
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
+                }
+
+              case XML.Elem(Markup(Markup.THEORY_EXPORTS, props), _) =>
+                GUI_Thread.later {
+                  val name = Markup.Name.unapply(props) getOrElse ""
+                  VFSBrowser.browseDirectory(view, Isabelle_Export.vfs_prefix + name)
                 }
 
               case XML.Elem(Markup(Markup.JEDIT_ACTION, _), body) =>

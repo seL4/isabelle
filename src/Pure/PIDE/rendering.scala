@@ -178,7 +178,7 @@ object Rendering
   val citation_elements = Markup.Elements(Markup.CITATION)
 
   val active_elements =
-    Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
+    Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.THEORY_EXPORTS,
       Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
 
   val background_elements =
@@ -196,7 +196,7 @@ object Rendering
   val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
       Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
-      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.THEORY_EXPORTS,
+      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
       Markup.Elements(tooltip_descriptions.keySet)
 
@@ -595,9 +595,6 @@ abstract class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup.Url(name), _))) =>
             Some(info + (r0, true, XML.Text("URL " + quote(name))))
-
-          case (info, Text.Info(r0, XML.Elem(Markup.Theory_Exports(name), _))) =>
-            Some(info + (r0, true, XML.Text("theory exports " + quote(name))))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
