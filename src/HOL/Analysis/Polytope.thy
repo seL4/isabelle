@@ -935,6 +935,12 @@ lemma%important extreme_points_of_translation:
 using%unimportant extreme_point_of_translation_eq
 by%unimportant auto (metis (no_types, lifting) image_iff mem_Collect_eq minus_add_cancel)
 
+lemma%important extreme_points_of_translation_subtract:
+   "{x. x extreme_point_of (image (\<lambda>x. x - a) S)} =
+    (\<lambda>x. x - a) ` {x. x extreme_point_of S}"
+using%unimportant extreme_points_of_translation [of "- a" S]
+by%unimportant simp
+
 lemma%unimportant extreme_point_of_Int:
    "\<lbrakk>x extreme_point_of S; x extreme_point_of T\<rbrakk> \<Longrightarrow> x extreme_point_of (S \<inter> T)"
 by (simp add: extreme_point_of_def)
@@ -1206,13 +1212,13 @@ proof%unimportant
   proof
     fix a assume [simp]: "a \<in> S"
     have 1: "compact ((+) (- a) ` S)"
-      by (simp add: \<open>compact S\<close> compact_translation)
+      by (simp add: \<open>compact S\<close> compact_translation_subtract cong: image_cong_simp)
     have 2: "convex ((+) (- a) ` S)"
-      by (simp add: \<open>convex S\<close> convex_translation)
+      by (simp add: \<open>convex S\<close> compact_translation_subtract)
     show a_invex: "a \<in> convex hull {x. x extreme_point_of S}"
       using Krein_Milman_Minkowski_aux [OF refl 1 2]
             convex_hull_translation [of "-a"]
-      by (auto simp: extreme_points_of_translation translation_assoc)
+      by (auto simp: extreme_points_of_translation_subtract translation_assoc cong: image_cong_simp)
     qed
 next
   show "convex hull {x. x extreme_point_of S} \<subseteq> S"
@@ -2079,19 +2085,27 @@ next
         next
           case False
           then obtain h' where h': "h' \<in> F - {h}" by auto
-          define inff where "inff =
-            (INF j\<in>F - {h}.
-              if 0 < a j \<bullet> y - a j \<bullet> w
+          let ?body = "(\<lambda>j. if 0 < a j \<bullet> y - a j \<bullet> w
               then (b j - a j \<bullet> w) / (a j \<bullet> y - a j \<bullet> w)
-              else 1)"
-          have "0 < inff"
-            apply (simp add: inff_def)
-            apply (rule finite_imp_less_Inf)
-              using \<open>finite F\<close> apply blast
-             using h' apply blast
-            apply simp
-            using awlt apply (force simp: divide_simps)
-            done
+              else 1) ` (F - {h})"
+          define inff where "inff = Inf ?body"
+          from \<open>finite F\<close> have "finite ?body"
+            by blast
+          moreover from h' have "?body \<noteq> {}"
+            by blast
+          moreover have "j > 0" if "j \<in> ?body" for j
+          proof -
+            from that obtain x where "x \<in> F" and "x \<noteq> h" and *: "j =
+              (if 0 < a x \<bullet> y - a x \<bullet> w
+                then (b x - a x \<bullet> w) / (a x \<bullet> y - a x \<bullet> w) else 1)"
+              by blast
+            with awlt [of x] have "a x \<bullet> w < b x"
+              by simp
+            with * show ?thesis
+              by simp
+          qed
+          ultimately have "0 < inff"
+            by (simp_all add: finite_less_Inf_iff inff_def)
           moreover have "inff * (a j \<bullet> y - a j \<bullet> w) \<le> b j - a j \<bullet> w"
                         if "j \<in> F" "j \<noteq> h" for j
           proof (cases "a j \<bullet> w < a j \<bullet> y")

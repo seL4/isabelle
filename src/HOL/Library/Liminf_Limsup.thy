@@ -114,9 +114,11 @@ proof -
   have "\<And>P. eventually P F \<Longrightarrow> (SUP x \<in> {x. P x}. c) = c"
     using ntriv by (intro SUP_const) (auto simp: eventually_False *)
   then show ?thesis
-    unfolding Limsup_def using eventually_True
-    by (subst INF_cong[where D="\<lambda>x. c"])
-       (auto intro!: INF_const simp del: eventually_True)
+    apply (auto simp add: Limsup_def)
+    apply (rule INF_const)
+    apply auto
+    using eventually_True apply blast
+    done
 qed
 
 lemma Liminf_const:
@@ -127,9 +129,11 @@ proof -
   have "\<And>P. eventually P F \<Longrightarrow> (INF x \<in> {x. P x}. c) = c"
     using ntriv by (intro INF_const) (auto simp: eventually_False *)
   then show ?thesis
-    unfolding Liminf_def using eventually_True
-    by (subst SUP_cong[where D="\<lambda>x. c"])
-       (auto intro!: SUP_const simp del: eventually_True)
+    apply (auto simp add: Liminf_def)
+    apply (rule SUP_const)
+    apply auto
+    using eventually_True apply blast
+    done
 qed
 
 lemma Liminf_mono:
@@ -436,8 +440,8 @@ proof -
     by (subst continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (SUP P \<in> {P. eventually P F}. Inf (f ` (g ` Collect P)))"
-    by (intro SUP_cong refl continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto dest!: eventually_happens simp: F)
+    using * continuous_at_Inf_mono [OF am continuous_on_imp_continuous_within [OF c]]
+    by auto 
   finally show ?thesis by (auto simp: Liminf_def)
 qed
 
@@ -461,8 +465,8 @@ proof -
     by (subst continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (INF P \<in> {P. eventually P F}. Sup (f ` (g ` Collect P)))"
-    by (intro INF_cong refl continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto dest!: eventually_happens simp: F)
+    using * continuous_at_Sup_mono [OF am continuous_on_imp_continuous_within [OF c]]
+    by auto
   finally show ?thesis by (auto simp: Limsup_def)
 qed
 
@@ -485,8 +489,8 @@ proof -
     by (subst continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (SUP P \<in> {P. eventually P F}. Inf (f ` (g ` Collect P)))"
-    by (intro SUP_cong refl continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto dest!: eventually_happens simp: F)
+    using * continuous_at_Sup_antimono [OF am continuous_on_imp_continuous_within [OF c]]
+    by auto
   finally show ?thesis
     by (auto simp: Liminf_def)
 qed
@@ -511,8 +515,8 @@ proof -
     by (subst continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (INF P \<in> {P. eventually P F}. Sup (f ` (g ` Collect P)))"
-    by (intro INF_cong refl continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto dest!: eventually_happens simp: F)
+    using * continuous_at_Inf_antimono [OF am continuous_on_imp_continuous_within [OF c]]
+    by auto
   finally show ?thesis
     by (auto simp: Limsup_def)
 qed

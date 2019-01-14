@@ -2396,7 +2396,7 @@ next
     have "(INF i\<in>I. f i + g i) \<le> (INF i\<in>I. (INF j\<in>I. f i + g j))"
       using directed by (intro INF_greatest) (blast intro: INF_lower2)
     also have "\<dots> = (INF i\<in>I. f i + (INF i\<in>I. g i))"
-      using nonneg by (intro INF_cong refl INF_ereal_add_right \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
+      using nonneg \<open>I \<noteq> {}\<close> by (auto simp: INF_ereal_add_right)
     also have "\<dots> = (INF i\<in>I. f i) + (INF i\<in>I. g i)"
       using nonneg by (intro INF_ereal_add_left \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
     finally show "(INF i\<in>I. f i + g i) \<le> (INF i\<in>I. f i) + (INF i\<in>I. g i)" .
@@ -3691,7 +3691,7 @@ next
     then have "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) = (SUP i\<in>I. f i + (SUP i\<in>I. g i))"
       by (intro SUP_ereal_add_left[symmetric] \<open>I \<noteq> {}\<close>) auto
     also have "\<dots> = (SUP i\<in>I. (SUP j\<in>I. f i + g j))"
-      using nonneg(1) by (intro SUP_cong refl SUP_ereal_add_right[symmetric] \<open>I \<noteq> {}\<close>) auto
+      using nonneg(1) \<open>I \<noteq> {}\<close> by (simp add: SUP_ereal_add_right)
     also have "\<dots> \<le> (SUP i\<in>I. f i + g i)"
       using directed by (intro SUP_least) (blast intro: SUP_upper2)
     finally show "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) \<le> (SUP i\<in>I. f i + g i)" .
@@ -4228,7 +4228,7 @@ proof(intro iffI ballI)
   assume "?lhs" "x \<in> A"
   from \<open>x \<in> A\<close> have "f x \<le> (SUP x\<in>A. f x)" by(rule SUP_upper)
   with \<open>?lhs\<close> show "f x = 0" using nonneg \<open>x \<in> A\<close> by auto
-qed(simp cong: SUP_cong add: A)
+qed (simp add: A)
 
 lemma ereal_divide_le_posI:
   fixes x y z :: ereal

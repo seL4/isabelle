@@ -599,15 +599,33 @@ text \<open>Important examples\<close>
 context cancel_semigroup_add
 begin
 
-lemma inj_add_left [simp]: \<open>inj ((+) a)\<close>
-  by (rule injI) simp
+lemma inj_on_add [simp]:
+  "inj_on ((+) a) A"
+  by (rule inj_onI) simp
+
+lemma inj_add_left:
+  \<open>inj ((+) a)\<close>
+  by simp
+
+lemma inj_on_add' [simp]:
+  "inj_on (\<lambda>b. b + a) A"
+  by (rule inj_onI) simp
+
+lemma bij_betw_add [simp]:
+  "bij_betw ((+) a) A B \<longleftrightarrow> (+) a ` A = B"
+  by (simp add: bij_betw_def)
 
 end
 
 context ab_group_add
 begin
 
-lemma inj_diff_right [simp]: \<open>inj (\<lambda>b. b - a)\<close>
+lemma surj_plus [simp]:
+  "surj ((+) a)"
+  by (auto intro: range_eqI [of b "(+) a" "b - a" for b] simp add: algebra_simps)
+
+lemma inj_diff_right [simp]:
+  \<open>inj (\<lambda>b. b - a)\<close>
 proof -
   have \<open>inj ((+) (- a))\<close>
     by (fact inj_add_left)
@@ -615,6 +633,38 @@ proof -
     by (simp add: fun_eq_iff)
   finally show ?thesis .
 qed
+
+lemma surj_diff_right [simp]:
+  "surj (\<lambda>x. x - a)"
+  using surj_plus [of "- a"] by (simp cong: image_cong_simp)
+
+lemma translation_Compl:
+  "(+) a ` (- t) = - ((+) a ` t)"
+proof (rule set_eqI)
+  fix b
+  show "b \<in> (+) a ` (- t) \<longleftrightarrow> b \<in> - (+) a ` t"
+    by (auto simp: image_iff algebra_simps intro!: bexI [of _ "b - a"])
+qed
+
+lemma translation_subtract_Compl:
+  "(\<lambda>x. x - a) ` (- t) = - ((\<lambda>x. x - a) ` t)"
+  using translation_Compl [of "- a" t] by (simp cong: image_cong_simp)
+
+lemma translation_diff:
+  "(+) a ` (s - t) = ((+) a ` s) - ((+) a ` t)"
+  by auto
+
+lemma translation_subtract_diff:
+  "(\<lambda>x. x - a) ` (s - t) = ((\<lambda>x. x - a) ` s) - ((\<lambda>x. x - a) ` t)"
+  using translation_diff [of "- a"] by (simp cong: image_cong_simp)
+
+lemma translation_Int:
+  "(+) a ` (s \<inter> t) = ((+) a ` s) \<inter> ((+) a ` t)"
+  by auto
+
+lemma translation_subtract_Int:
+  "(\<lambda>x. x - a) ` (s \<inter> t) = ((\<lambda>x. x - a) ` s) \<inter> ((\<lambda>x. x - a) ` t)"
+  using translation_Int [of " -a"] by (simp cong: image_cong_simp)
 
 end
 

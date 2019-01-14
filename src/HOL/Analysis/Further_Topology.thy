@@ -1926,7 +1926,8 @@ proof (cases "DIM('a) = 1")
     then have "open ((h \<circ> f) ` ball a r)"
       by (simp add: image_comp \<open>\<And>x. k (h x) = x\<close> cong: image_cong)
     then show ?thesis
-      apply (simp add: image_comp [symmetric])
+      apply (simp only: image_comp [symmetric])
+
       apply (metis open_bijective_linear_image_eq \<open>linear h\<close> \<open>\<And>x. k (h x) = x\<close> \<open>range h = UNIV\<close> bijI inj_on_def)
       done
 next
@@ -2042,9 +2043,8 @@ proof -
   qed
   moreover
   have eq: "f ` U = h ` (k \<circ> f \<circ> h \<circ> k) ` U"
-    apply (auto simp: image_comp [symmetric])
-    apply (metis homkh \<open>U \<subseteq> S\<close> fim homeomorphism_image2 homeomorphism_of_subsets homhk imageI subset_UNIV)
-    by (metis \<open>U \<subseteq> S\<close> subsetD fim homeomorphism_def homhk image_eqI)
+    unfolding image_comp [symmetric] using \<open>U \<subseteq> S\<close> fim
+    by (metis homeomorphism_image2 homeomorphism_of_subsets homkh subset_image_iff)
   ultimately show ?thesis
     by (metis (no_types, hide_lams) homeomorphism_imp_open_map homhk image_comp open_openin subtopology_UNIV)
 qed
@@ -2159,11 +2159,16 @@ proof%unimportant -
       apply (clarsimp simp: inj_on_def)
       by (metis fim homeomorphism_apply1 homhk image_subset_iff inj_onD injf)
     ultimately have ope_hf: "openin (subtopology euclidean U) ((h \<circ> f) ` S)"
-      using invariance_of_domain_subspaces [OF ope \<open>subspace U\<close> \<open>subspace U\<close>] by auto
+      using invariance_of_domain_subspaces [OF ope \<open>subspace U\<close> \<open>subspace U\<close>] by blast
     have "(h \<circ> f) ` S \<subseteq> T"
       using fim homeomorphism_image1 homhk by fastforce
-    then show ?thesis
-      by (metis dim_openin \<open>dim T = dim V\<close> ope_hf \<open>subspace U\<close> \<open>S \<noteq> {}\<close> dim_subset image_is_empty not_le that)
+    then have "dim ((h \<circ> f) ` S) \<le> dim T"
+      by (rule dim_subset)
+    also have "dim ((h \<circ> f) ` S) = dim U"
+      using \<open>S \<noteq> {}\<close> \<open>subspace U\<close>
+      by (blast intro: dim_openin ope_hf)
+    finally show False
+      using \<open>dim V < dim U\<close> \<open>dim T = dim V\<close> by simp
   qed
   then show ?thesis
     using not_less by blast
@@ -2188,9 +2193,9 @@ next
     show "openin (subtopology euclidean ((+) (- a) ` U)) ((+) (- a) ` S)"
       by (metis ope homeomorphism_imp_open_map homeomorphism_translation translation_galois)
     show "subspace ((+) (- a) ` U)"
-      by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace \<open>affine U\<close>)
+      by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace_subtract \<open>affine U\<close> cong: image_cong_simp)
     show "subspace ((+) (- b) ` V)"
-      by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace \<open>affine V\<close>)
+      by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace_subtract \<open>affine V\<close> cong: image_cong_simp)
     show "dim ((+) (- b) ` V) \<le> dim ((+) (- a) ` U)"
       by (metis \<open>a \<in> U\<close> \<open>b \<in> V\<close> aff_dim_eq_dim affine_hull_eq aff of_nat_le_iff)
     show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
@@ -2219,9 +2224,9 @@ proof%unimportant -
     show "openin (subtopology euclidean ((+) (- a) ` U)) ((+) (- a) ` S)"
       by (metis ope homeomorphism_imp_open_map homeomorphism_translation translation_galois)
     show "subspace ((+) (- a) ` U)"
-      by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace \<open>affine U\<close>)
+      by (simp add: \<open>a \<in> U\<close> affine_diffs_subspace_subtract \<open>affine U\<close> cong: image_cong_simp)
     show "subspace ((+) (- b) ` V)"
-      by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace \<open>affine V\<close>)
+      by (simp add: \<open>b \<in> V\<close> affine_diffs_subspace_subtract \<open>affine V\<close> cong: image_cong_simp)
     show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
     show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
@@ -3474,7 +3479,6 @@ proof%unimportant (simp add: covering_space_def, intro conjI ballI)
           apply (intro conjI ballI eq1 continuous_on_exp [OF continuous_on_id])
              apply (auto simp: \<gamma>exp exp2n cont n)
            apply (simp add:  homeomorphism_apply1 [OF hom])
-          apply (simp add: image_comp [symmetric])
           using hom homeomorphism_apply1  apply (force simp: image_iff)
           done
       qed

@@ -231,8 +231,8 @@ next
       then obtain n where "x = ?gt n" ..
       with pg [of n] show "x \<in> {..<s}" by (cases "g n") auto
     qed
-    have "finite (range ?gt)"
-      by (simp add: finite_nat_iff_bounded rangeg)
+    from rangeg have "finite (range ?gt)"
+      by (simp add: finite_nat_iff_bounded)
     then obtain s' and n' where s': "s' = ?gt n'" and infeqs': "infinite {n. ?gt n = s'}"
       by (rule inf_img_fin_domE) (auto simp add: vimage_def intro: infinite_UNIV_nat)
     with pg [of n'] have less': "s'<s" by (cases "g n'") auto

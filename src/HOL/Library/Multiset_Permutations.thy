@@ -170,7 +170,7 @@ proof -
           (\<Prod>y\<in>set_mset (A+{#x#}). (if y = x then count A x + 1 else 1) * fact (count A y))"
     by (intro prod.cong) simp_all
   also have "\<dots> = (count A x + 1) * (\<Prod>y\<in>set_mset (A+{#x#}). fact (count A y))"
-    by (simp add: prod.distrib prod.delta)
+    by (simp add: prod.distrib)
   also have "(\<Prod>y\<in>set_mset (A+{#x#}). fact (count A y)) = (\<Prod>y\<in>set_mset A. fact (count A y))"
     by (intro prod.mono_neutral_right) (auto simp: not_in_iff)
   finally show ?thesis .
@@ -436,7 +436,11 @@ proof (cases "finite A")
                 (\<Union>y\<in>A. permutations_of_set_aux (y#acc) (A - {y}))"
         by (subst permutations_of_set_aux.simps) simp_all
       also have "\<dots> = (\<Union>y\<in>A. (\<lambda>xs. rev xs @ acc) ` (\<lambda>xs. y # xs) ` permutations_of_set (A - {y}))"
-        by (intro SUP_cong refl, subst psubset) (auto simp: image_image)
+        apply (rule arg_cong [of _ _ Union], rule image_cong)
+         apply (simp_all add: image_image)
+        apply (subst psubset)
+         apply auto
+        done
       also from False have "\<dots> = (\<lambda>xs. rev xs @ acc) ` permutations_of_set A"
         by (subst (2) permutations_of_set_nonempty) (simp_all add: image_UN)
       finally show ?thesis .
@@ -473,7 +477,7 @@ lemma permutations_of_set_aux_list_refine:
   by (induction acc xs rule: permutations_of_set_aux_list.induct)
      (subst permutations_of_set_aux_list.simps,
       subst permutations_of_set_aux.simps,
-      simp_all add: set_list_bind cong: SUP_cong)
+      simp_all add: set_list_bind)
 
 
 text \<open>

@@ -395,9 +395,8 @@ lemma%unimportant sets_PiM_eq_proj:
   apply auto []
   apply auto []
   apply simp
-  apply (subst SUP_cong[OF refl])
+  apply (subst arg_cong [of _ _ Sup, OF image_cong, OF refl])
   apply (rule sets_vimage_algebra2)
-  apply auto []
   apply (auto intro!: arg_cong2[where f=sigma_sets])
   done
 

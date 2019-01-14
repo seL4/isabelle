@@ -10,7 +10,7 @@
 section \<open>Rings\<close>
 
 theory Rings
-  imports Groups Set
+  imports Groups Set Fun
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
@@ -732,6 +732,17 @@ lemma dvd_div_eq_cancel:
 lemma dvd_div_eq_iff:
   "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> a div c = b div c \<longleftrightarrow> a = b"
   by (elim dvdE, cases "c = 0") simp_all
+
+lemma inj_on_mult:
+  "inj_on ((*) a) A" if "a \<noteq> 0"
+proof (rule inj_onI)
+  fix b c
+  assume "a * b = a * c"
+  then have "a * b div a = a * c div a"
+    by (simp only:)
+  with that show "b = c"
+    by simp
+qed
 
 end
 

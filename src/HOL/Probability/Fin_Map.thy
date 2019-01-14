@@ -1037,18 +1037,18 @@ proof
       show "\<forall>A\<in>E i. (\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P \<in> sets ?P"
       proof
         fix A assume A: "A \<in> E i"
-        then have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P = (\<Pi>' j\<in>I. if i = j then A else space (M j))"
+        from T have *: "\<exists>xs. length xs = card I
+          \<and> (\<forall>j\<in>I. (g)\<^sub>F j \<in> (if i = j then A else S j (xs ! T j)))"
+          if "domain g = I" and "\<forall>j\<in>I. (g)\<^sub>F j \<in> (if i = j then A else S j (f j))" for g f
+          using that by (auto intro!: exI [of _ "map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]"])
+        from A have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P = (\<Pi>' j\<in>I. if i = j then A else space (M j))"
           using E_closed \<open>i \<in> I\<close> by (auto simp: space_P Pi_iff subset_eq split: if_split_asm)
         also have "\<dots> = (\<Pi>' j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro Pi'_cong) (simp_all add: S_union)
+        also have "\<dots> = {g. domain g = I \<and> (\<exists>f. \<forall>j\<in>I. (g)\<^sub>F j \<in> (if i = j then A else S j (f j)))}"
+          by (rule set_eqI) (simp del: if_image_distrib add: Pi'_iff bchoice_iff)
         also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>' j\<in>I. if i = j then A else S j (xs ! T j))"
-          using T
-          apply (auto simp del: Union_iff)
-          apply (simp_all add: Pi'_iff bchoice_iff del: Union_iff)
-          apply (erule conjE exE)+
-          apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
-          apply (auto simp: bij_betw_def)
-          done
+          using * by (auto simp add: Pi'_iff split del: if_split)
         also have "\<dots> \<in> sets ?P"
         proof (safe intro!: sets.countable_UN)
           fix xs show "(\<Pi>' j\<in>I. if i = j then A else S j (xs ! T j)) \<in> sets ?P"

@@ -359,8 +359,7 @@ lemma wens_single_finite_Suc:
       "single_valued act
        ==> wens_single_finite act B (Suc k) =
            wens_single_finite act B k \<union> wp act (wens_single_finite act B k)"
-apply (simp add: wens_single_finite_def image_def 
-                 wp_UN_eq [OF _ atMost_nat_nonempty]) 
+apply (simp add: wens_single_finite_def wp_UN_eq [OF _ atMost_nat_nonempty])
 apply (force elim!: le_SucE)
 done
 

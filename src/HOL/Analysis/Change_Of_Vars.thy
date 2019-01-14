@@ -1049,7 +1049,8 @@ proof%unimportant -
             then show fsb: "f ` (S \<inter> ball x r) \<in> lmeasurable"
               by (simp add: image_comp o_def)
             have "?\<mu> (f ` (S \<inter> ball x r)) = ?\<mu> (?rfs) * r ^ CARD('n)"
-              using \<open>r > 0\<close> by (simp add: measure_translation measure_linear_image measurable_translation fsb field_simps)
+              using \<open>r > 0\<close> fsb
+              by (simp add: measure_linear_image measure_translation_subtract measurable_translation_subtract field_simps cong: image_cong_simp)
             also have "\<dots> \<le> (\<bar>det (matrix (f' x))\<bar> * unit_ball_vol (CARD('n)) + e * unit_ball_vol (CARD('n))) * r ^ CARD('n)"
             proof -
               have "?\<mu> (?rfs) < ?\<mu> (f' x ` ball 0 1) + e * unit_ball_vol (CARD('n))"

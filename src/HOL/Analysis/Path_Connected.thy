@@ -767,10 +767,7 @@ definition%important subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<R
 lemma path_image_subpath_gen:
   fixes g :: "_ \<Rightarrow> 'a::real_normed_vector"
   shows "path_image(subpath u v g) = g ` (closed_segment u v)"
-  apply (simp add: closed_segment_real_eq path_image_def subpath_def)
-  apply (subst o_def [of g, symmetric])
-  apply (simp add: image_comp [symmetric])
-  done
+  by (auto simp add: closed_segment_real_eq path_image_def subpath_def)
 
 lemma path_image_subpath:
   fixes g :: "real \<Rightarrow> 'a::real_normed_vector"

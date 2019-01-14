@@ -1713,7 +1713,7 @@ lemma quotient_map_compose:
   unfolding quotient_map_def
 proof (intro conjI allI impI)
   show "(g \<circ> f) ` topspace X = topspace X''"
-    using assms image_comp unfolding quotient_map_def by force
+    using assms by (simp only: image_comp [symmetric]) (simp add: quotient_map_def)
 next
   fix U''
   assume "U'' \<subseteq> topspace X''"

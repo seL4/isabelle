@@ -977,17 +977,27 @@ next
       proof -
         have DIM_complex[intro]: "2 \<le> DIM(complex)"  \<comment> \<open>should not be necessary!\<close>
           by simp
+        from lt1 have "f (inverse x) \<noteq> 0 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> cmod x < r \<Longrightarrow> 1 < cmod (f (inverse x))" for x
+          using one_less_inverse by force
+        then have **: "cmod (f (inverse x)) \<le> 1 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> cmod x < r \<Longrightarrow> f (inverse x) = 0" for x
+          by force
+        then have *: "(f \<circ> inverse) ` (ball 0 r - {0}) \<subseteq> {0} \<union> - ball 0 1"
+          by force
         have "continuous_on (inverse ` (ball 0 r - {0})) f"
           using continuous_on_subset holf holomorphic_on_imp_continuous_on by blast
         then have "connected ((f \<circ> inverse) ` (ball 0 r - {0}))"
           apply (intro connected_continuous_image continuous_intros)
           apply (force intro: connected_punctured_ball)+
           done
-        then have "\<lbrakk>w \<noteq> 0; cmod w < r\<rbrakk> \<Longrightarrow> f (inverse w) = 0" for w
-          apply (rule disjE [OF connected_closedD [where A = "{0}" and B = "- ball 0 1"]], auto)
-          apply (metis (mono_tags, hide_lams) not_less_iff_gr_or_eq one_less_inverse lt1 zero_less_norm_iff)
-          using False \<open>0 < r\<close> apply fastforce
-          by (metis (no_types, hide_lams) Compl_iff IntI comp_apply empty_iff image_eqI insert_Diff_single insert_iff mem_ball_0 not_less_iff_gr_or_eq one_less_inverse that(2) zero_less_norm_iff)
+        then have "{0} \<inter> (f \<circ> inverse) ` (ball 0 r - {0}) = {} \<or> - ball 0 1 \<inter> (f \<circ> inverse) ` (ball 0 r - {0}) = {}"
+          by (rule connected_closedD) (use * in auto)
+        then have "w \<noteq> 0 \<Longrightarrow> cmod w < r \<Longrightarrow> f (inverse w) = 0" for w
+          using fi0 **[of w] \<open>0 < r\<close>
+          apply (auto simp add: inf.commute [of "- ball 0 1"] Diff_eq [symmetric] image_subset_iff dest: less_imp_le)
+           apply fastforce
+          apply (drule bspec [of _ _ w])
+           apply (auto dest: less_imp_le)
+          done
         then show ?thesis
           apply (simp add: lim_at_infinity_0)
           apply (rule Lim_eventually)

@@ -1069,9 +1069,9 @@ lemma oone_ordIso_oexp:
   assumes "r =o oone" and s: "Well_order s"
   shows "r ^o s =o oone" (is "?L =o ?R")
 proof -
-  from assms obtain f where *: "\<forall>x\<in>Field r. \<forall>y\<in>Field r. x = y" and "f ` Field r = {()}"
+  from \<open>r =o oone\<close> obtain f where *: "\<forall>x\<in>Field r. \<forall>y\<in>Field r. x = y" and "f ` Field r = {()}"
     and r: "Well_order r"
-    unfolding ordIso_def oone_def by (auto simp: iso_def bij_betw_def inj_on_def)
+    unfolding ordIso_def oone_def by (auto simp add: iso_def [abs_def] bij_betw_def inj_on_def)
   then obtain x where "x \<in> Field r" by auto
   with * have Fr: "Field r = {x}" by auto
   interpret r: wo_rel r by unfold_locales (rule r)

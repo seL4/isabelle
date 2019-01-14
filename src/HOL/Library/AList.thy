@@ -82,7 +82,7 @@ lemma update_Some_unfold:
   by (simp add: update_conv' map_upd_Some_unfold)
 
 lemma image_update [simp]: "x \<notin> A \<Longrightarrow> map_of (update x y al) ` A = map_of al ` A"
-  by (simp add: update_conv')
+  by (auto simp add: update_conv')
 
 qualified definition updates ::
     "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"

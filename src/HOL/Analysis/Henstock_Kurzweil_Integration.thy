@@ -4825,7 +4825,7 @@ proof -
     show "(indicator ((+) c ` S) has_integral 0) (cbox a b)"
       using has_integral_affinity [OF *, of 1 "-c"]
             cbox_translation [of "c" "-c+a" "-c+b"]
-      by (simp add: eq add.commute)
+      by (simp add: eq) (simp add: ac_simps)
   qed
 qed
 

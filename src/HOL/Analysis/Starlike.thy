@@ -551,16 +551,25 @@ apply (simp add: assms open_segment_bound1)
 by (metis assms norm_minus_commute open_segment_bound1 open_segment_commute)
 
 lemma closure_open_segment [simp]:
-    fixes a :: "'a::euclidean_space"
-    shows "closure(open_segment a b) = (if a = b then {} else closed_segment a b)"
-proof -
-  have "closure ((\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1}) = (\<lambda>u. u *\<^sub>R (b - a)) ` closure {0<..<1}" if "a \<noteq> b"
-    apply (rule closure_injective_linear_image [symmetric])
-    apply (simp add:)
-    using that by (simp add: inj_on_def)
+  "closure (open_segment a b) = (if a = b then {} else closed_segment a b)"
+    for a :: "'a::euclidean_space"
+proof (cases "a = b")
+  case True
   then show ?thesis
-    by (simp add: segment_image_interval segment_eq_compose closure_greaterThanLessThan [symmetric]
-         closure_translation image_comp [symmetric] del: closure_greaterThanLessThan)
+    by simp
+next
+  case False
+  have "closure ((\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1}) = (\<lambda>u. u *\<^sub>R (b - a)) ` closure {0<..<1}"
+    apply (rule closure_injective_linear_image [symmetric])
+     apply (use False in \<open>auto intro!: injI\<close>)
+    done
+  then have "closure
+     ((\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0<..<1}) =
+    (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b) ` closure {0<..<1}"
+    using closure_translation [of a "((\<lambda>x. x *\<^sub>R b - x *\<^sub>R a) ` {0<..<1})"]
+    by (simp add: segment_eq_compose field_simps scaleR_diff_left scaleR_diff_right image_image)
+  then show ?thesis
+    by (simp add: segment_image_interval closure_greaterThanLessThan [symmetric] del: closure_greaterThanLessThan)
 qed
 
 lemma closed_open_segment_iff [simp]:
@@ -574,13 +583,14 @@ lemma compact_open_segment_iff [simp]:
 lemma convex_closed_segment [iff]: "convex (closed_segment a b)"
   unfolding segment_convex_hull by(rule convex_convex_hull)
 
-lemma convex_open_segment [iff]: "convex(open_segment a b)"
+lemma convex_open_segment [iff]: "convex (open_segment a b)"
 proof -
-  have "convex ((\<lambda>u. u *\<^sub>R (b-a)) ` {0<..<1})"
+  have "convex ((\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1})"
     by (rule convex_linear_image) auto
+  then have "convex ((+) a ` (\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1})"
+    by (rule convex_translation)
   then show ?thesis
-    apply (simp add: open_segment_image_interval segment_eq_compose)
-    by (metis image_comp convex_translation)
+    by (simp add: image_image open_segment_image_interval segment_eq_compose field_simps scaleR_diff_left scaleR_diff_right)
 qed
 
 lemmas convex_segment = convex_closed_segment convex_open_segment
@@ -1705,7 +1715,7 @@ proof -
         convex_translation[of S "-a"] assms
       by auto
     then have "rel_interior S \<noteq> {}"
-      using rel_interior_translation by auto
+      using rel_interior_translation [of "- a"] by simp
   }
   then show ?thesis
     using rel_interior_empty by auto
@@ -5568,11 +5578,11 @@ next
   show ?thesis
   proof (cases "c = 0")
     case True show ?thesis
-    apply (simp add: aff_dim_eq_dim [of c] affine_hull_span_gen [of c] \<open>c \<in> S\<close> hull_inc dim_eq_hyperplane
-                del: One_nat_def)
-    apply (rule ex_cong)
-    apply (metis (mono_tags) span_0 \<open>c = 0\<close> image_add_0 inner_zero_right mem_Collect_eq)
-    done
+      using span_zero [of S]
+        apply (simp add: aff_dim_eq_dim [of c] affine_hull_span_gen [of c] \<open>c \<in> S\<close> hull_inc dim_eq_hyperplane
+          del: One_nat_def)
+        apply (auto simp add: \<open>c = 0\<close>)
+        done
   next
     case False
     have xc_im: "x \<in> (+) c ` {y. a \<bullet> y = 0}" if "a \<bullet> x = a \<bullet> c" for a x
@@ -5598,7 +5608,7 @@ next
     qed
     show ?thesis
       apply (simp add: aff_dim_eq_dim [of c] affine_hull_span_gen [of c] \<open>c \<in> S\<close> hull_inc dim_eq_hyperplane
-                  del: One_nat_def, safe)
+                  del: One_nat_def cong: image_cong_simp, safe)
       apply (fastforce simp add: inner_distrib intro: xc_im)
       apply (force simp: intro!: 2)
       done
@@ -5625,7 +5635,8 @@ next
   show ?thesis using S
     apply (simp add: hull_redundant cong: aff_dim_affine_hull2)
     apply (simp add: affine_hull_insert_span_gen hull_inc)
-    by (force simp add:span_zero insert_commute [of a] hull_inc aff_dim_eq_dim [of x] dim_insert)
+    by (force simp add: span_zero insert_commute [of a] hull_inc aff_dim_eq_dim [of x] dim_insert
+      cong: image_cong_simp)
 qed
 
 lemma affine_dependent_choose:
@@ -5844,9 +5855,9 @@ lemma separating_hyperplane_set_point_inaff:
                 and "a \<noteq> 0" and "a \<bullet> z \<le> b"
                 and "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b"
 proof -
-from separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
+  from separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
   have "convex ((+) (- z) ` S)"
-    by (simp add: \<open>convex S\<close>)
+    using \<open>convex S\<close> by simp
   moreover have "(+) (- z) ` S \<noteq> {}"
     by (simp add: \<open>S \<noteq> {}\<close>)
   moreover have "0 \<notin> (+) (- z) ` S"
@@ -6351,10 +6362,10 @@ next
     by (metis add.left_commute c inner_right_distrib pth_d)
   ultimately have "{x + y |x y. x \<in> S \<and> a \<bullet> y = b} = ?U"
     by (fastforce simp: algebra_simps)
-  also have "... = (+) (c+c) ` UNIV"
-    by (simp add: affine_hyperplane_sums_eq_UNIV_0 [OF aff 0 dc adc])
+  also have "... = range ((+) (c + c))"
+    by (simp only: affine_hyperplane_sums_eq_UNIV_0 [OF aff 0 dc adc])
   also have "... = UNIV"
-    by (simp add: translation_UNIV)
+    by simp
   finally show ?thesis .
 qed
 
@@ -6382,17 +6393,17 @@ proposition aff_dim_sums_Int:
 proof -
   obtain a where a: "a \<in> S" "a \<in> T" using assms by force
   have aff: "affine ((+) (-a) ` S)"  "affine ((+) (-a) ` T)"
-    using assms by (auto simp: affine_translation [symmetric])
+    using affine_translation [symmetric, of "- a"] assms by (simp_all cong: image_cong_simp)
   have zero: "0 \<in> ((+) (-a) ` S)"  "0 \<in> ((+) (-a) ` T)"
     using a assms by auto
-  have [simp]: "{x + y |x y. x \<in> (+) (- a) ` S \<and> y \<in> (+) (- a) ` T} =
-        (+) (- 2 *\<^sub>R a) ` {x + y| x y. x \<in> S \<and> y \<in> T}"
+  have "{x + y |x y. x \<in> (+) (- a) ` S \<and> y \<in> (+) (- a) ` T} =
+      (+) (- 2 *\<^sub>R a) ` {x + y| x y. x \<in> S \<and> y \<in> T}"
     by (force simp: algebra_simps scaleR_2)
-  have [simp]: "(+) (- a) ` S \<inter> (+) (- a) ` T = (+) (- a) ` (S \<inter> T)"
+  moreover have "(+) (- a) ` S \<inter> (+) (- a) ` T = (+) (- a) ` (S \<inter> T)"
     by auto
-  show ?thesis
-    using aff_dim_sums_Int_0 [OF aff zero]
-    by (auto simp: aff_dim_translation_eq)
+  ultimately show ?thesis
+    using aff_dim_sums_Int_0 [OF aff zero] aff_dim_translation_eq
+    by (metis (lifting))
 qed
 
 lemma aff_dim_affine_Int_hyperplane:
@@ -6910,7 +6921,7 @@ proof -
         using \<open>0 < e\<close> inj_on_def by fastforce
     qed
     also have "... = aff_dim S"
-      using \<open>a \<in> S\<close> aff_dim_eq_dim hull_inc by force
+      using \<open>a \<in> S\<close> aff_dim_eq_dim hull_inc by (force cong: image_cong_simp)
     finally show "aff_dim T \<le> aff_dim S" .
   qed
 qed
@@ -7002,7 +7013,8 @@ next
   then have "subspace ((+) (- z) ` S)"
     by (meson IntD1 affine_diffs_subspace \<open>affine S\<close>)
   moreover have "int (dim ((+) (- z) ` T)) < int (dim ((+) (- z) ` S))"
-    using z less by (simp add: aff_dim_eq_dim [symmetric] hull_inc)
+thm aff_dim_eq_dim
+    using z less by (simp add: aff_dim_eq_dim_subtract [of z] hull_inc cong: image_cong_simp)
   ultimately have "closure(((+) (- z) ` S) - ((+) (- z) ` T)) = ((+) (- z) ` S)"
     by (simp add: dense_complement_subspace)
   then show ?thesis
@@ -7082,9 +7094,9 @@ next
     by (auto simp: subspace_imp_affine)
   obtain a' a'' where a': "a' \<in> span ((+) (- z) ` S)" and a: "a = a' + a''"
                   and "\<And>w. w \<in> span ((+) (- z) ` S) \<Longrightarrow> orthogonal a'' w"
-      using orthogonal_subspace_decomp_exists [of "(+) (- z) ` S" "a"] by metis
+    using orthogonal_subspace_decomp_exists [of "(+) (- z) ` S" "a"] by metis
   then have "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> (w-z) = 0"
-    by (simp add: imageI orthogonal_def span)
+    by (simp add: span_base orthogonal_def)
   then have a'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = (a - a') \<bullet> z"
     by (simp add: a inner_diff_right)
   then have ba'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = b - a' \<bullet> z"
@@ -7168,7 +7180,7 @@ proof -
     have 2: "{x - f a| x. x \<in> f ` T} = f ` {x - a| x. x \<in> T}"
       by (force simp: linear_diff [OF assms])
     have "aff_dim (f ` T) = int (dim {x - f a |x. x \<in> f ` T})"
-      by (simp add: \<open>a \<in> T\<close> hull_inc aff_dim_eq_dim [of "f a"] 1)
+      by (simp add: \<open>a \<in> T\<close> hull_inc aff_dim_eq_dim [of "f a"] 1 cong: image_cong_simp)
     also have "... = int (dim (f ` {x - a| x. x \<in> T}))"
       by (force simp: linear_diff [OF assms] 2)
     also have "... \<le> int (dim {x - a| x. x \<in> T})"
@@ -7211,7 +7223,7 @@ next
   case False
   with assms obtain a where "a \<in> S" "0 \<le> d" by auto
   with assms have ss: "subspace ((+) (- a) ` S)"
-    by (simp add: affine_diffs_subspace)
+    by (simp add: affine_diffs_subspace_subtract cong: image_cong_simp)
   have "nat d \<le> dim ((+) (- a) ` S)"
     by (metis aff_dim_subspace aff_dim_translation_eq dle nat_int nat_mono ss)
   then obtain T where "subspace T" and Tsb: "T \<subseteq> span ((+) (- a) ` S)"

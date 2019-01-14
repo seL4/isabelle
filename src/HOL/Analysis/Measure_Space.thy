@@ -2368,8 +2368,8 @@ proof (rule emeasure_measure_of_sigma)
         by (rule infinite_super[OF _ 1]) auto
       then have "infinite (\<Union>i. F i)"
         by auto
-
-      ultimately show ?thesis by auto
+      ultimately show ?thesis by (simp only:) simp
+         
     qed
   qed
 qed
@@ -2899,6 +2899,8 @@ proof -
       case (1 X)
       then have [measurable]: "\<And>i. X i \<in> sets A" and "disjoint_family X"
         by auto
+      have disjoint: "disjoint_family (\<lambda>i. X i \<inter> Y)" "disjoint_family (\<lambda>i. X i - Y)" for Y
+        by (auto intro: disjoint_family_on_bisimulation [OF \<open>disjoint_family X\<close>, simplified])
       have "(\<Sum>i. ?S (X i)) = (SUP Y\<in>sets A. \<Sum>i. ?d (X i) Y)"
       proof (rule ennreal_suminf_SUP_eq_directed)
         fix J :: "nat set" and a b assume "finite J" and [measurable]: "a \<in> sets A" "b \<in> sets A"
@@ -2966,10 +2968,13 @@ proof -
           done
       qed
       also have "\<dots> = ?S (\<Union>i. X i)"
-        unfolding UN_extend_simps(4)
-        by (auto simp add: suminf_add[symmetric] Diff_eq[symmetric] simp del: UN_simps
-                 intro!: SUP_cong arg_cong2[where f="(+)"] suminf_emeasure
-                         disjoint_family_on_bisimulation[OF \<open>disjoint_family X\<close>])
+        apply (simp only: UN_extend_simps(4))
+        apply (rule arg_cong [of _ _ Sup])
+        apply (rule image_cong)
+         apply (fact refl)
+        using disjoint
+        apply (auto simp add: suminf_add [symmetric] Diff_eq [symmetric] image_subset_iff suminf_emeasure simp del: UN_simps)
+        done
       finally show "(\<Sum>i. ?S (X i)) = ?S (\<Union>i. X i)" .
     qed
   qed (auto dest: sets.sets_into_space simp: positive_def intro!: SUP_const)
@@ -3250,7 +3255,7 @@ proof (rule emeasure_measure_of)
         by (safe intro!: bexI[of _ "i \<union> j"]) auto
     next
       show "(SUP P \<in> {P. finite P \<and> P \<subseteq> M}. \<Sum>n. ?\<mu> P (F n)) = (SUP P \<in> {P. finite P \<and> P \<subseteq> M}. ?\<mu> P (\<Union>(F ` UNIV)))"
-      proof (intro SUP_cong refl)
+      proof (intro arg_cong [of _ _ Sup] image_cong refl)
         fix i assume i: "i \<in> {P. finite P \<and> P \<subseteq> M}"
         show "(\<Sum>n. ?\<mu> i (F n)) = ?\<mu> i (\<Union>(F ` UNIV))"
         proof cases

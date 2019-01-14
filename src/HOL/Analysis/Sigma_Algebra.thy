@@ -258,9 +258,10 @@ proof -
     fix x i assume "x \<in> ?A' i" thus "x \<in> ?r"
       by (auto intro!: exI[of _ "from_nat i"])
   qed
-  have **: "range ?A' = range A"
-    using surj_from_nat
-    by (auto simp: image_comp [symmetric] intro!: imageI)
+  have "A ` range from_nat = range A"
+    using surj_from_nat by simp
+  then have **: "range ?A' = range A"
+    by (simp only: image_comp [symmetric])
   show ?thesis unfolding * ** ..
 qed
 
@@ -269,7 +270,7 @@ lemma (in sigma_algebra) countable_Union [intro]:
 proof cases
   assume "X \<noteq> {}"
   hence "\<Union>X = (\<Union>n. from_nat_into X n)"
-    using assms by (auto intro: from_nat_into) (metis from_nat_into_surj)
+    using assms by (auto cong del: SUP_cong)
   also have "\<dots> \<in> M" using assms
     by (auto intro!: countable_nat_UN) (metis \<open>X \<noteq> {}\<close> from_nat_into set_mp)
   finally show ?thesis .
@@ -501,11 +502,13 @@ qed
 lemma sigma_sets_top: "sp \<in> sigma_sets sp A"
   by (metis Diff_empty sigma_sets.Compl sigma_sets.Empty)
 
+lemma binary_in_sigma_sets:
+  "binary a b i \<in> sigma_sets sp A" if "a \<in> sigma_sets sp A" and "b \<in> sigma_sets sp A"
+  using that by (simp add: binary_def)
+
 lemma sigma_sets_Un:
-  "a \<in> sigma_sets sp A \<Longrightarrow> b \<in> sigma_sets sp A \<Longrightarrow> a \<union> b \<in> sigma_sets sp A"
-apply (simp add: Un_range_binary range_binary_eq)
-apply (rule Union, simp add: binary_def)
-done
+  "a \<union> b \<in> sigma_sets sp A" if "a \<in> sigma_sets sp A" and "b \<in> sigma_sets sp A"
+  using that by (simp add: Un_range_binary binary_in_sigma_sets Union)
 
 lemma sigma_sets_Inter:
   assumes Asb: "A \<subseteq> Pow sp"
@@ -540,14 +543,9 @@ proof -
 qed
 
 lemma sigma_sets_UNION:
-  "countable B \<Longrightarrow> (\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets X A) \<Longrightarrow> (\<Union>B) \<in> sigma_sets X A"
-  apply (cases "B = {}")
-  apply (simp add: sigma_sets.Empty)
+  "countable B \<Longrightarrow> (\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets X A) \<Longrightarrow> \<Union> B \<in> sigma_sets X A"
   using from_nat_into [of B] range_from_nat_into [of B] sigma_sets.Union [of "from_nat_into B" X A]
-  apply simp
-  apply auto
-  apply (metis Sup_bot_conv(1) Union_empty \<open>\<lbrakk>B \<noteq> {}; countable B\<rbrakk> \<Longrightarrow> range (from_nat_into B) = B\<close>)
-  done
+  by (cases "B = {}") (simp_all add: sigma_sets.Empty cong del: SUP_cong)
 
 lemma (in sigma_algebra) sigma_sets_eq:
      "sigma_sets \<Omega> M = M"
@@ -1203,7 +1201,7 @@ proof -
   have "disjoint_family ?f" unfolding disjoint_family_on_def
     using \<open>D \<in> M\<close>[THEN sets_into_space] \<open>D \<subseteq> E\<close> by auto
   ultimately have "\<Omega> - (D \<union> (\<Omega> - E)) \<in> M"
-    using sets by auto
+    using sets UN by auto
   also have "\<Omega> - (D \<union> (\<Omega> - E)) = E - D"
     using assms sets_into_space by auto
   finally show ?thesis .

@@ -12,21 +12,15 @@ begin
 (* TODO: Generalize theory to chain-complete partial orders *)
 
 lemma SUP_nat_binary:
-  "(SUP n::nat. if n = 0 then A else B) = (sup A B::'a::countable_complete_lattice)"
-  apply (auto intro!: antisym ccSUP_least)
-  apply (rule ccSUP_upper2[where i=0])
-  apply simp_all
-  apply (rule ccSUP_upper2[where i=1])
-  apply simp_all
+  "(sup A (SUP x\<in>Collect ((<) (0::nat)). B)) = (sup A B::'a::countable_complete_lattice)"
+  apply (subst image_constant)
+   apply auto
   done
 
 lemma INF_nat_binary:
-  "(INF n::nat. if n = 0 then A else B) = (inf A B::'a::countable_complete_lattice)"
-  apply (auto intro!: antisym ccINF_greatest)
-  apply (rule ccINF_lower2[where i=0])
-  apply simp_all
-  apply (rule ccINF_lower2[where i=1])
-  apply simp_all
+  "inf A (INF x\<in>Collect ((<) (0::nat)). B) = (inf A B::'a::countable_complete_lattice)"
+  apply (subst image_constant)
+   apply auto
   done
 
 text \<open>
@@ -48,15 +42,24 @@ lemma sup_continuousD: "sup_continuous F \<Longrightarrow> mono M \<Longrightarr
   by (auto simp: sup_continuous_def)
 
 lemma sup_continuous_mono:
-  assumes [simp]: "sup_continuous F" shows "mono F"
+  "mono F" if "sup_continuous F"
 proof
-  fix A B :: "'a" assume [simp]: "A \<le> B"
-  have "F B = F (SUP n::nat. if n = 0 then A else B)"
-    by (simp add: sup_absorb2 SUP_nat_binary)
-  also have "\<dots> = (SUP n::nat. if n = 0 then F A else F B)"
-    by (auto simp: sup_continuousD mono_def intro!: SUP_cong)
+  fix A B :: "'a"
+  assume "A \<le> B"
+  let ?f = "\<lambda>n::nat. if n = 0 then A else B"
+  from \<open>A \<le> B\<close> have "incseq ?f"
+    by (auto intro: monoI)
+  with \<open>sup_continuous F\<close> have *: "F (SUP i. ?f i) = (SUP i. F (?f i))"
+    by (auto dest: sup_continuousD)
+  thm this [simplified, simplified SUP_nat_binary]
+  from \<open>A \<le> B\<close> have "B = sup A B"
+    by (simp add: le_iff_sup)
+  then have "F B = F (sup A B)"
+    by simp
+  also have "\<dots> = sup (F A) (F B)"
+    using * by (simp add: if_distrib SUP_nat_binary cong del: SUP_cong)
   finally show "F A \<le> F B"
-    by (simp add: SUP_nat_binary le_iff_sup)
+    by (simp add: le_iff_sup)
 qed
 
 lemma [order_continuous_intros]:
@@ -214,15 +217,23 @@ lemma inf_continuousD: "inf_continuous F \<Longrightarrow> antimono M \<Longrigh
   by (auto simp: inf_continuous_def)
 
 lemma inf_continuous_mono:
-  assumes [simp]: "inf_continuous F" shows "mono F"
+  "mono F" if "inf_continuous F"
 proof
-  fix A B :: "'a" assume [simp]: "A \<le> B"
-  have "F A = F (INF n::nat. if n = 0 then B else A)"
-    by (simp add: inf_absorb2 INF_nat_binary)
-  also have "\<dots> = (INF n::nat. if n = 0 then F B else F A)"
-    by (auto simp: inf_continuousD antimono_def intro!: INF_cong)
+  fix A B :: "'a"
+  assume "A \<le> B"
+  let ?f = "\<lambda>n::nat. if n = 0 then B else A"
+  from \<open>A \<le> B\<close> have "decseq ?f"
+    by (auto intro: antimonoI)
+  with \<open>inf_continuous F\<close> have *: "F (INF i. ?f i) = (INF i. F (?f i))"
+    by (auto dest: inf_continuousD)
+  from \<open>A \<le> B\<close> have "A = inf B A"
+    by (simp add: inf.absorb_iff2)
+  then have "F A = F (inf B A)"
+    by simp
+  also have "\<dots> = inf (F B) (F A)"
+    using * by (simp add: if_distrib INF_nat_binary cong del: INF_cong)
   finally show "F A \<le> F B"
-    by (simp add: INF_nat_binary le_iff_inf inf_commute)
+    by (simp add: inf.absorb_iff2)
 qed
 
 lemma [order_continuous_intros]:

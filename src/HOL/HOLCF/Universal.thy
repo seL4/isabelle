@@ -620,24 +620,29 @@ apply (simp add: rank_leD)
 apply (erule cb_take_mono)
 done
 
-function
-  basis_emb :: "'a compact_basis \<Rightarrow> ubasis"
-where
-  "basis_emb x = (if x = compact_bot then 0 else
+function basis_emb :: "'a compact_basis \<Rightarrow> ubasis"
+  where "basis_emb x = (if x = compact_bot then 0 else
     node (place x) (basis_emb (sub x))
       (basis_emb ` {y. place y < place x \<and> x \<sqsubseteq> y}))"
-by auto
+  by simp_all
 
 termination basis_emb
-apply (relation "measure place", simp)
-apply (simp add: place_sub_less)
-apply simp
-done
+  by (relation "measure place") (simp_all add: place_sub_less)
 
 declare basis_emb.simps [simp del]
 
-lemma basis_emb_compact_bot [simp]: "basis_emb compact_bot = 0"
-by (simp add: basis_emb.simps)
+lemma basis_emb_compact_bot [simp]:
+  "basis_emb compact_bot = 0"
+  using basis_emb.simps [of compact_bot] by simp
+
+lemma basis_emb_rec:
+  "basis_emb x = node (place x) (basis_emb (sub x)) (basis_emb ` {y. place y < place x \<and> x \<sqsubseteq> y})"
+  if "x \<noteq> compact_bot"
+  using that basis_emb.simps [of x] by simp
+
+lemma basis_emb_eq_0_iff [simp]:
+  "basis_emb x = 0 \<longleftrightarrow> x = compact_bot"
+  by (cases "x = compact_bot") (simp_all add: basis_emb_rec)
 
 lemma fin1: "finite {y. place y < place x \<and> x \<sqsubseteq> y}"
 apply (subst Collect_conj_eq)
@@ -700,15 +705,12 @@ proof (induct "max (place x) (place y)" arbitrary: x y rule: less_induct)
 qed
 
 lemma inj_basis_emb: "inj basis_emb"
- apply (rule inj_onI)
- apply (case_tac "x = compact_bot")
-  apply (case_tac [!] "y = compact_bot")
-    apply simp
-   apply (simp add: basis_emb.simps)
-  apply (simp add: basis_emb.simps)
- apply (simp add: basis_emb.simps)
- apply (simp add: fin2 inj_eq [OF inj_place])
-done
+proof (rule injI)
+  fix x y
+  assume "basis_emb x = basis_emb y"
+  then show "x = y"
+    by (cases "x = compact_bot \<or> y = compact_bot") (auto simp add: basis_emb_rec fin2 place_eqD)
+qed
 
 definition
   basis_prj :: "ubasis \<Rightarrow> 'a compact_basis"

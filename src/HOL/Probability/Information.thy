@@ -1943,7 +1943,7 @@ proof -
   note fX = simple_function_compose[OF X, of f]
   from X have "\<H>(X) = \<H>(f\<circ>X) + \<H>(X|f\<circ>X)" by (rule entropy_partition)
   then show "\<H>(f \<circ> X) \<le> \<H>(X)"
-    by (auto intro: conditional_entropy_nonneg[OF X fX])
+    by (simp only: conditional_entropy_nonneg [OF X fX] le_add_same_cancel1)
 qed
 
 corollary (in information_space) entropy_of_inj:

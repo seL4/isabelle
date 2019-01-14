@@ -258,6 +258,7 @@ proof -
       have "g1 +++ g2 differentiable at (x / 2) within {0..1/2}"
         by (rule differentiable_subset [OF S [of "x/2"]] | use that in force)+
       then show "g1 +++ g2 \<circ> (*) (inverse 2) differentiable at x within {0..1}"
+        using image_affinity_atLeastAtMost_div [of 2 0 "0::real" 1]
         by (auto intro: differentiable_chain_within)
     qed (use that in \<open>auto simp: joinpaths_def\<close>)
   qed

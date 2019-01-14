@@ -37,7 +37,7 @@ lemma image_zet_rep: "A \<in> zet \<Longrightarrow> \<exists>z . g ` A = explode
   apply (rule_tac x="Repl z (g o (inv_into A f))" in exI)
   apply (simp add: explode_Repl_eq)
   apply (subgoal_tac "explode z = f ` A")
-  apply (simp_all add: image_comp [symmetric])
+  apply (simp_all add: image_image cong: image_cong_simp)
   done
 
 lemma zet_image_mem:
@@ -98,7 +98,7 @@ lemma explode_mem_zet: "explode z \<in> zet"
 lemma zimplode_zexplode: "zimplode (zexplode z) = z"
   apply (simp add: zimplode_def zexplode_def)
   apply (subst Abs_zet_inverse)
-  apply (auto simp add: explode_mem_zet implode_explode)
+  apply (auto simp add: explode_mem_zet)
   done  
 
 lemma zin_zexplode_eq: "zin x (zexplode A) = Elem x A"

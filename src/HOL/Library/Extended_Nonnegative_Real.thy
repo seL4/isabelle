@@ -1954,7 +1954,7 @@ next
     have "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) = (SUP i\<in>I. f i + (SUP i\<in>I. g i))"
       by (intro ennreal_SUP_add_left[symmetric] \<open>I \<noteq> {}\<close>)
     also have "\<dots> = (SUP i\<in>I. (SUP j\<in>I. f i + g j))"
-      by (intro SUP_cong refl ennreal_SUP_add_right \<open>I \<noteq> {}\<close>)
+      using \<open>I \<noteq> {}\<close> by (simp add: ennreal_SUP_add_right)
     also have "\<dots> \<le> (SUP i\<in>I. f i + g i)"
       using directed by (intro SUP_least) (blast intro: SUP_upper2)
     finally show "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) \<le> (SUP i\<in>I. f i + g i)" .

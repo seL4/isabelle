@@ -1104,16 +1104,24 @@ proof -
 qed
 
 lemma measurable_translation:
-   "S \<in> lmeasurable \<Longrightarrow> ((\<lambda>x. a + x) ` S) \<in> lmeasurable"
-  unfolding fmeasurable_def
-apply (auto intro: lebesgue_sets_translation)
-  using  emeasure_lebesgue_affine [of 1 a S]
-  by (auto simp: add.commute [of _ a])
+   "S \<in> lmeasurable \<Longrightarrow> ((+) a ` S) \<in> lmeasurable"
+  using emeasure_lebesgue_affine [of 1 a S]
+  apply (auto intro: lebesgue_sets_translation simp add: fmeasurable_def cong: image_cong_simp)
+  apply (simp add: ac_simps)
+  done
+
+lemma measurable_translation_subtract:
+   "S \<in> lmeasurable \<Longrightarrow> ((\<lambda>x. x - a) ` S) \<in> lmeasurable"
+  using measurable_translation [of S "- a"] by (simp cong: image_cong_simp)
 
 lemma measure_translation:
-   "measure lebesgue ((\<lambda>x. a + x) ` S) = measure lebesgue S"
-  using measure_lebesgue_affine [of 1 a S]
-  by (auto simp: add.commute [of _ a])
+  "measure lebesgue ((+) a ` S) = measure lebesgue S"
+  using measure_lebesgue_affine [of 1 a S] by (simp add: ac_simps cong: image_cong_simp)
+
+lemma measure_translation_subtract:
+  "measure lebesgue ((\<lambda>x. x - a) ` S) = measure lebesgue S"
+  using measure_translation [of "- a"] by (simp cong: image_cong_simp)
+
 
 subsection \<open>A nice lemma for negligibility proofs\<close>
 

@@ -25,13 +25,16 @@ lemma FP_Orig_weakest:
 by (simp add: FP_Orig_def stable_def, blast)
 
 lemma stable_FP_Int: "F \<in> stable (FP F \<inter> B)"
-apply (subgoal_tac "FP F Int B = (UN x:B. FP F Int {x}) ")
-prefer 2 apply blast
-apply (simp (no_asm_simp) add: Int_insert_right)
-apply (simp add: FP_def stable_def)
-apply (rule constrains_UN)
-apply (simp (no_asm))
-done
+proof -
+  have "F \<in> stable (\<Union>x\<in>B. FP F \<inter> {x})"
+    apply (simp only: Int_insert_right FP_def stable_def)
+    apply (rule constrains_UN)
+    apply simp
+    done
+  also have "(\<Union>x\<in>B. FP F \<inter> {x}) = FP F \<inter> B"
+    by simp
+  finally show ?thesis .
+qed
 
 lemma FP_equivalence: "FP F = FP_Orig F"
 apply (rule equalityI) 

@@ -105,7 +105,7 @@ proof -
   have 0: "0 \<in> interior(convex hull {a-z, b-z, c-z})"
     using assms convex_hull_translation [of "-z" "{a,b,c}"]
                 interior_translation [of "-z"]
-    by simp
+    by (simp cong: image_cong_simp)
   show ?thesis using wn_triangle2_0 [OF 0]
     by simp
 qed

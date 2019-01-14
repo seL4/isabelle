@@ -1215,8 +1215,7 @@ proof -
 qed
 
 lemma interior_translation:
-  fixes S :: "'a::real_normed_vector set"
-  shows "interior ((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (interior S)"
+  "interior ((+) a ` S) = (+) a ` (interior S)" for S :: "'a::real_normed_vector set"
 proof (rule set_eqI, rule)
   fix x
   assume "x \<in> interior ((+) a ` S)"
@@ -1253,6 +1252,11 @@ next
   then show "x \<in> interior ((+) a ` S)"
     unfolding mem_interior using \<open>e > 0\<close> by auto
 qed
+
+lemma interior_translation_subtract:
+  "interior ((\<lambda>x. x - a) ` S) = (\<lambda>x. x - a) ` interior S" for S :: "'a::real_normed_vector set"
+  using interior_translation [of "- a"] by (simp cong: image_cong_simp)
+
 
 lemma compact_scaling:
   fixes s :: "'a::real_normed_vector set"
@@ -1306,15 +1310,17 @@ proof-
 qed
 
 lemma compact_translation:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "compact s"
-  shows "compact ((\<lambda>x. a + x) ` s)"
+  "compact ((+) a ` s)" if "compact s" for s :: "'a::real_normed_vector set"
 proof -
   have "{x + y |x y. x \<in> s \<and> y \<in> {a}} = (\<lambda>x. a + x) ` s"
     by auto
   then show ?thesis
-    using compact_sums[OF assms compact_sing[of a]] by auto
+    using compact_sums [OF that compact_sing [of a]] by auto
 qed
+
+lemma compact_translation_subtract:
+  "compact ((\<lambda>x. x - a) ` s)" if "compact s" for s :: "'a::real_normed_vector set"
+  using that compact_translation [of s "- a"] by (simp cong: image_cong_simp)
 
 lemma compact_affinity:
   fixes s :: "'a::real_normed_vector set"
@@ -1420,48 +1426,62 @@ proof -
 qed
 
 lemma closed_translation:
-  fixes a :: "'a::real_normed_vector"
-  assumes "closed S"
-  shows "closed ((\<lambda>x. a + x) ` S)"
+  "closed ((+) a ` S)" if "closed S" for a :: "'a::real_normed_vector"
 proof -
   have "(\<Union>x\<in> {a}. \<Union>y \<in> S. {x + y}) = ((+) a ` S)" by auto
   then show ?thesis
-    using compact_closed_sums[OF compact_sing[of a] assms] by auto
+    using compact_closed_sums [OF compact_sing [of a] that] by auto
 qed
+
+lemma closed_translation_subtract:
+  "closed ((\<lambda>x. x - a) ` S)" if "closed S" for a :: "'a::real_normed_vector"
+  using that closed_translation [of S "- a"] by (simp cong: image_cong_simp)
 
 lemma closure_translation:
-  fixes a :: "'a::real_normed_vector"
-  shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
+  "closure ((+) a ` s) = (+) a ` closure s" for a :: "'a::real_normed_vector"
 proof -
   have *: "(+) a ` (- s) = - (+) a ` s"
-    by (auto intro!: image_eqI[where x="x - a" for x])
+    by (auto intro!: image_eqI [where x = "x - a" for x])
   show ?thesis
-    unfolding closure_interior translation_Compl
-    using interior_translation[of a "- s"]
-    unfolding *
-    by auto
+    using interior_translation [of a "- s", symmetric]
+    by (simp add: closure_interior translation_Compl *)
 qed
 
+lemma closure_translation_subtract:
+  "closure ((\<lambda>x. x - a) ` s) = (\<lambda>x. x - a) ` closure s" for a :: "'a::real_normed_vector"
+  using closure_translation [of "- a" s] by (simp cong: image_cong_simp)
+
 lemma frontier_translation:
-  fixes a :: "'a::real_normed_vector"
-  shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
-  unfolding frontier_def translation_diff interior_translation closure_translation
-  by auto
+  "frontier ((+) a ` s) = (+) a ` frontier s" for a :: "'a::real_normed_vector"
+  by (auto simp add: frontier_def translation_diff interior_translation closure_translation)
+
+lemma frontier_translation_subtract:
+  "frontier ((+) a ` s) = (+) a ` frontier s" for a :: "'a::real_normed_vector"
+  by (auto simp add: frontier_def translation_diff interior_translation closure_translation)
 
 lemma sphere_translation:
-  fixes a :: "'n::real_normed_vector"
-  shows "sphere (a+c) r = (+) a ` sphere c r"
-  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+  "sphere (a + c) r = (+) a ` sphere c r" for a :: "'n::real_normed_vector"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI [where x = "x - a" for x])
+
+lemma sphere_translation_subtract:
+  "sphere (c - a) r = (\<lambda>x. x - a) ` sphere c r" for a :: "'n::real_normed_vector"
+  using sphere_translation [of "- a" c] by (simp cong: image_cong_simp)
 
 lemma cball_translation:
-  fixes a :: "'n::real_normed_vector"
-  shows "cball (a+c) r = (+) a ` cball c r"
-  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+  "cball (a + c) r = (+) a ` cball c r" for a :: "'n::real_normed_vector"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI [where x = "x - a" for x])
+
+lemma cball_translation_subtract:
+  "cball (c - a) r = (\<lambda>x. x - a) ` cball c r" for a :: "'n::real_normed_vector"
+  using cball_translation [of "- a" c] by (simp cong: image_cong_simp)
 
 lemma ball_translation:
-  fixes a :: "'n::real_normed_vector"
-  shows "ball (a+c) r = (+) a ` ball c r"
-  by (auto simp: dist_norm algebra_simps intro!: image_eqI[where x="x - a" for x])
+  "ball (a + c) r = (+) a ` ball c r" for a :: "'n::real_normed_vector"
+  by (auto simp: dist_norm algebra_simps intro!: image_eqI [where x = "x - a" for x])
+
+lemma ball_translation_subtract:
+  "ball (c - a) r = (\<lambda>x. x - a) ` ball c r" for a :: "'n::real_normed_vector"
+  using ball_translation [of "- a" c] by (simp cong: image_cong_simp)
 
 
 subsection%unimportant\<open>Homeomorphisms\<close>

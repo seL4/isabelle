@@ -1170,17 +1170,15 @@ qed
 
 lemma starlike_negligible:
   assumes "closed S"
-      and eq1: "\<And>c x. \<lbrakk>(a + c *\<^sub>R x) \<in> S; 0 \<le> c; a + x \<in> S\<rbrakk> \<Longrightarrow> c = 1"
+      and eq1: "\<And>c x. (a + c *\<^sub>R x) \<in> S \<Longrightarrow> 0 \<le> c \<Longrightarrow> a + x \<in> S \<Longrightarrow> c = 1"
     shows "negligible S"
 proof -
   have "negligible ((+) (-a) ` S)"
   proof (subst negligible_on_intervals, intro allI)
     fix u v
     show "negligible ((+) (- a) ` S \<inter> cbox u v)"
-      unfolding negligible_iff_null_sets
-      apply (rule starlike_negligible_compact)
-       apply (simp add: assms closed_translation closed_Int_compact, clarify)
-      by (metis eq1 minus_add_cancel)
+      using \<open>closed S\<close> eq1 by (auto simp add: negligible_iff_null_sets field_simps
+        intro!: closed_translation_subtract starlike_negligible_compact cong: image_cong_simp)
   qed
   then show ?thesis
     by (rule negligible_translation_rev)
@@ -1478,7 +1476,7 @@ proof -
   have 3: "\<And>x. (\<lambda>k. indicat_real (\<Union>m\<le>k. S m) x) \<longlonglongrightarrow> (indicat_real (\<Union>n. S n) x)"
     by (force simp: indicator_def eventually_sequentially intro: Lim_eventually)
   have 4: "bounded (range (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))))"
-    by (simp add: 0 image_def)
+    by (simp add: 0)
   have *: "indicat_real (\<Union>n. S n) integrable_on UNIV \<and>
         (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))) \<longlonglongrightarrow> (integral UNIV (indicat_real (\<Union>n. S n)))"
     by (intro monotone_convergence_increasing 1 2 3 4)

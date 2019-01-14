@@ -64,12 +64,17 @@ subsection \<open>The set of integers is also infinite\<close>
 
 lemma infinite_int_iff_infinite_nat_abs: "infinite S \<longleftrightarrow> infinite ((nat \<circ> abs) ` S)"
   for S :: "int set"
-proof -
-  have "inj_on nat (abs ` A)" for A
+proof (unfold Not_eq_iff, rule iffI)
+  assume "finite ((nat \<circ> abs) ` S)"
+  then have "finite (nat ` (abs ` S))"
+    by (simp add: image_image cong: image_cong)
+  moreover have "inj_on nat (abs ` S)"
     by (rule inj_onI) auto
-  then show ?thesis
-    by (auto simp flip: image_comp dest: finite_image_absD finite_imageD)
-qed
+  ultimately have "finite (abs ` S)"
+    by (rule finite_imageD)
+  then show "finite S"
+    by (rule finite_image_absD)
+qed simp
 
 proposition infinite_int_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
   for S :: "int set"

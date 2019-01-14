@@ -551,13 +551,13 @@ corollary%important
 proof%unimportant -
   have 1: "compact ((+) (-a) ` S)" by (meson assms compact_translation)
   have 2: "0 \<in> rel_interior ((+) (-a) ` S)"
-    by (simp add: a rel_interior_translation)
+    using a rel_interior_translation [of "- a" S] by (simp cong: image_cong_simp)
   have 3: "open_segment 0 x \<subseteq> rel_interior ((+) (-a) ` S)" if "x \<in> ((+) (-a) ` S)" for x
   proof -
     have "x+a \<in> S" using that by auto
     then have "open_segment a (x+a) \<subseteq> rel_interior S" by (metis star)
-    then show ?thesis using open_segment_translation
-      using rel_interior_translation by fastforce
+    then show ?thesis using open_segment_translation [of a 0 x]
+      using rel_interior_translation [of "- a" S] by (fastforce simp add: ac_simps image_iff cong: image_cong_simp)
   qed
   have "S - rel_interior S homeomorphic ((+) (-a) ` S) - rel_interior ((+) (-a) ` S)"
     by (metis rel_interior_translation translation_diff homeomorphic_translation)
@@ -841,8 +841,8 @@ proof%unimportant -
     using assms by (auto simp: dist_norm norm_minus_commute divide_simps)
   also have "... homeomorphic p"
     apply (rule homeomorphic_punctured_affine_sphere_affine_01)
-    using assms
-    apply (auto simp: dist_norm norm_minus_commute affine_scaling affine_translation [symmetric] aff_dim_translation_eq inj)
+    using assms affine_translation [symmetric, of "- a"] aff_dim_translation_eq [of "- a"]
+         apply (auto simp: dist_norm norm_minus_commute affine_scaling inj)
     done
   finally show ?thesis .
 qed
@@ -931,16 +931,16 @@ next
   then have "dim ((+) (- a) ` S) = aff_dim ((+) (- a) ` S)"
     by (simp add: aff_dim_zero)
   also have "... < DIM('n)"
-    by (simp add: aff_dim_translation_eq assms)
+    by (simp add: aff_dim_translation_eq_subtract assms cong: image_cong_simp)
   finally have dd: "dim ((+) (- a) ` S) < DIM('n)"
     by linarith
-  obtain T where "subspace T" and Tsub: "T \<subseteq> {x. i \<bullet> x = 0}"
-             and dimT: "dim T = dim ((+) (- a) ` S)"
-    apply (rule choose_subspace_of_subspace [of "dim ((+) (- a) ` S)" "{x::'n. i \<bullet> x = 0}"])
-     apply (simp add: dim_hyperplane [OF \<open>i \<noteq> 0\<close>])
-     apply (metis DIM_positive Suc_pred dd not_le not_less_eq_eq)
-    apply (metis span_eq_iff subspace_hyperplane)
-    done
+  have span: "span {x. i \<bullet> x = 0} = {x. i \<bullet> x = 0}"
+    using span_eq_iff [symmetric, of "{x. i \<bullet> x = 0}"] subspace_hyperplane [of i] by simp
+  have "dim ((+) (- a) ` S) \<le> dim {x. i \<bullet> x = 0}"
+    using dd by (simp add: dim_hyperplane [OF \<open>i \<noteq> 0\<close>])
+  then obtain T where "subspace T" and Tsub: "T \<subseteq> {x. i \<bullet> x = 0}"
+    and dimT: "dim T = dim ((+) (- a) ` S)"
+    by (rule choose_subspace_of_subspace) (simp add: span)
   have "subspace (span ((+) (- a) ` S))"
     using subspace_span by blast
   then obtain h k where "linear h" "linear k"
@@ -974,23 +974,23 @@ next
     by (metis Diff_subset order_trans sphere_cball)
   have [simp]: "\<And>u. u \<in> S \<Longrightarrow> norm (g (h (u - a))) = 1"
     using gh_sub_sph [THEN subsetD] by (auto simp: o_def)
-  have ghcont: "continuous_on ((+) (- a) ` S) (\<lambda>x. g (h x))"
+  have ghcont: "continuous_on ((\<lambda>x. x - a) ` S) (\<lambda>x. g (h x))"
     apply (rule continuous_on_compose2 [OF homeomorphism_cont2 [OF fg] hcont], force)
     done
-  have kfcont: "continuous_on ((g \<circ> h \<circ> (+) (- a)) ` S) (\<lambda>x. k (f x))"
+  have kfcont: "continuous_on ((\<lambda>x. g (h (x - a))) ` S) (\<lambda>x. k (f x))"
     apply (rule continuous_on_compose2 [OF kcont])
     using homeomorphism_cont1 [OF fg] gh_sub_sph apply (force intro: continuous_on_subset, blast)
     done
   have "S homeomorphic (+) (- a) ` S"
-    by (simp add: homeomorphic_translation)
-  also have Shom: "\<dots> homeomorphic (g \<circ> h) ` (+) (- a) ` S"
-    apply (simp add: homeomorphic_def homeomorphism_def)
+    by (fact homeomorphic_translation)
+  also have "\<dots> homeomorphic (g \<circ> h) ` (+) (- a) ` S"
+    apply (simp add: homeomorphic_def homeomorphism_def cong: image_cong_simp)
     apply (rule_tac x="g \<circ> h" in exI)
     apply (rule_tac x="k \<circ> f" in exI)
-    apply (auto simp: ghcont kfcont span_base homeomorphism_apply2 [OF fg] image_comp)
-    apply (force simp: o_def homeomorphism_apply2 [OF fg] span_base)
+    apply (auto simp: ghcont kfcont span_base homeomorphism_apply2 [OF fg] image_comp cong: image_cong_simp)
     done
-  finally have Shom: "S homeomorphic (g \<circ> h) ` (+) (- a) ` S" .
+  finally have Shom: "S homeomorphic (\<lambda>x. g (h x)) ` (\<lambda>x. x - a) ` S"
+    by (simp cong: image_cong_simp)
   show ?thesis
     apply (rule_tac U = "ball 0 1 \<union> image (g o h) ((+) (- a) ` S)"
                 and T = "image (g o h) ((+) (- a) ` S)"
@@ -1000,7 +1000,7 @@ next
     apply force
     apply (simp add: closedin_closed)
     apply (rule_tac x="sphere 0 1" in exI)
-    apply (auto simp: Shom)
+     apply (auto simp: Shom cong: image_cong_simp)
     done
 qed
 

@@ -613,14 +613,17 @@ proof -
 qed
 
 lemma convex_translation:
-  assumes "convex S"
-  shows "convex ((\<lambda>x. a + x) ` S)"
+  "convex ((+) a ` S)" if "convex S"
 proof -
-  have "(\<Union> x\<in> {a}. \<Union>y \<in> S. {x + y}) = (\<lambda>x. a + x) ` S"
+  have "(\<Union> x\<in> {a}. \<Union>y \<in> S. {x + y}) = (+) a ` S"
     by auto
   then show ?thesis
-    using convex_sums[OF convex_singleton[of a] assms] by auto
+    using convex_sums [OF convex_singleton [of a] that] by auto
 qed
+
+lemma convex_translation_subtract:
+  "convex ((\<lambda>b. b - a) ` S)" if "convex S"
+  using convex_translation [of S "- a"] that by (simp cong: image_cong_simp)
 
 lemma convex_affinity:
   assumes "convex S"
@@ -1106,8 +1109,13 @@ proof (cases x y rule: linorder_cases)
   finally show ?thesis .
 qed (insert assms(2), simp_all)
 
-lemma convex_translation_eq [simp]: "convex ((\<lambda>x. a + x) ` s) \<longleftrightarrow> convex s"
+lemma convex_translation_eq [simp]:
+  "convex ((+) a ` s) \<longleftrightarrow> convex s"
   by (metis convex_translation translation_galois)
+
+lemma convex_translation_subtract_eq [simp]:
+  "convex ((\<lambda>b. b - a) ` s) \<longleftrightarrow> convex s"
+  using convex_translation_eq [of "- a"] by (simp cong: image_cong_simp)
 
 lemma convex_linear_image_eq [simp]:
     fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
@@ -1614,13 +1622,13 @@ proof -
 qed
 
 lemma affine_translation:
-  fixes a :: "'a::real_vector"
-  shows "affine S \<longleftrightarrow> affine ((\<lambda>x. a + x) ` S)"
-proof -
-  have "affine S \<Longrightarrow> affine ((\<lambda>x. a + x) ` S)"
-    using affine_translation_aux[of "-a" "((\<lambda>x. a + x) ` S)"]
-    using translation_assoc[of "-a" a S] by auto
-  then show ?thesis using affine_translation_aux by auto
+  "affine S \<longleftrightarrow> affine ((+) a ` S)" for a :: "'a::real_vector"
+proof
+  show "affine ((+) a ` S)" if "affine S"
+    using that translation_assoc [of "- a" a S]
+    by (auto intro: affine_translation_aux [of "- a" "((+) a ` S)"])
+  show "affine S" if "affine ((+) a ` S)"
+    using that by (rule affine_translation_aux)
 qed
 
 lemma parallel_is_affine:
@@ -1699,6 +1707,10 @@ proof -
     using assms exI[of "(\<lambda>x. x\<in>S \<and> -a+x = 0)" a] by auto
   ultimately show ?thesis using subspace_affine by auto
 qed
+
+lemma affine_diffs_subspace_subtract:
+  "subspace ((\<lambda>x. x - a) ` S)" if "affine S" "a \<in> S"
+  using that affine_diffs_subspace [of _ a] by simp
 
 lemma parallel_subspace_explicit:
   assumes "affine S"
@@ -3235,8 +3247,7 @@ proof -
 qed
 
 lemma aff_dim_translation_eq:
-  fixes a :: "'n::euclidean_space"
-  shows "aff_dim ((\<lambda>x. a + x) ` S) = aff_dim S"
+  "aff_dim ((+) a ` S) = aff_dim S" for a :: "'n::euclidean_space"
 proof -
   have "affine_parallel (affine hull S) (affine hull ((\<lambda>x. a + x) ` S))"
     unfolding affine_parallel_def
@@ -3247,6 +3258,10 @@ proof -
   then show ?thesis
     using aff_dim_parallel_eq[of S "(\<lambda>x. a + x) ` S"] by auto
 qed
+
+lemma aff_dim_translation_eq_subtract:
+  "aff_dim ((\<lambda>x. x - a) ` S) = aff_dim S" for a :: "'n::euclidean_space"
+  using aff_dim_translation_eq [of "- a"] by (simp cong: image_cong_simp)
 
 lemma aff_dim_affine:
   fixes S L :: "'n::euclidean_space set"
@@ -3306,16 +3321,20 @@ proof -
 qed
 
 lemma aff_dim_eq_dim:
-  fixes S :: "'n::euclidean_space set"
-  assumes "a \<in> affine hull S"
-  shows "aff_dim S = int (dim ((\<lambda>x. -a+x) ` S))"
+  "aff_dim S = int (dim ((+) (- a) ` S))" if "a \<in> affine hull S"
+    for S :: "'n::euclidean_space set"
 proof -
-  have "0 \<in> affine hull ((\<lambda>x. -a+x) ` S)"
+  have "0 \<in> affine hull (+) (- a) ` S"
     unfolding affine_hull_translation
-    using assms by (simp add: ab_group_add_class.ab_left_minus image_iff)
+    using that by (simp add: ac_simps)
   with aff_dim_zero show ?thesis
     by (metis aff_dim_translation_eq)
 qed
+
+lemma aff_dim_eq_dim_subtract:
+  "aff_dim S = int (dim ((\<lambda>x. x - a) ` S))" if "a \<in> affine hull S"
+    for S :: "'n::euclidean_space set"
+  using aff_dim_eq_dim [of a] that by (simp cong: image_cong_simp)
 
 lemma aff_dim_UNIV [simp]: "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
   using aff_dim_subspace[of "(UNIV :: 'n::euclidean_space set)"]

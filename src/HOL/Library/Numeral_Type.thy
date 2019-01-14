@@ -408,15 +408,22 @@ definition "(enum_class.enum :: 'a bit0 list) = map (Abs_bit0' \<circ> int) (upt
 definition "enum_class.enum_all P = (\<forall>b :: 'a bit0 \<in> set enum_class.enum. P b)"
 definition "enum_class.enum_ex P = (\<exists>b :: 'a bit0 \<in> set enum_class.enum. P b)"
 
-instance
-proof(intro_classes)
+instance proof
   show "distinct (enum_class.enum :: 'a bit0 list)"
     by (simp add: enum_bit0_def distinct_map inj_on_def Abs_bit0'_def Abs_bit0_inject)
 
-  show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum"
-    unfolding enum_bit0_def type_definition.Abs_image[OF type_definition_bit0, symmetric]
-    by (simp add: image_comp [symmetric] inj_on_Abs_bit0 card_image image_int_atLeastLessThan)
-      (auto intro!: image_cong[OF refl] simp add: Abs_bit0'_def)
+  let ?Abs = "Abs_bit0 :: _ \<Rightarrow> 'a bit0"
+  interpret type_definition Rep_bit0 ?Abs "{0..<2 * int CARD('a)}"
+    by (fact type_definition_bit0)
+  have "UNIV = ?Abs ` {0..<2 * int CARD('a)}"
+    by (simp add: Abs_image)
+  also have "\<dots> = ?Abs ` (int ` {0..<2 * CARD('a)})"
+    by (simp add: image_int_atLeastLessThan)
+  also have "\<dots> = (?Abs \<circ> int) ` {0..<2 * CARD('a)}"
+    by (simp add: image_image cong: image_cong)
+  also have "\<dots> = set enum_class.enum"
+    by (simp add: enum_bit0_def Abs_bit0'_def cong: image_cong_simp)
+  finally show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum" .
 
   fix P :: "'a bit0 \<Rightarrow> bool"
   show "enum_class.enum_all P = Ball UNIV P"
@@ -437,10 +444,17 @@ proof(intro_classes)
     by(simp only: Abs_bit1'_def zmod_int[symmetric] enum_bit1_def distinct_map Suc_eq_plus1 card_bit1 o_apply inj_on_def)
       (clarsimp simp add: Abs_bit1_inject)
 
-  show univ_eq: "(UNIV :: 'a bit1 set) = set enum_class.enum"
-    unfolding enum_bit1_def type_definition.Abs_image[OF type_definition_bit1, symmetric]
-    by(simp add: image_comp [symmetric] inj_on_Abs_bit1 card_image image_int_atLeastLessThan)
-      (auto intro!: image_cong[OF refl] simp add: Abs_bit1'_def)
+  let ?Abs = "Abs_bit1 :: _ \<Rightarrow> 'a bit1"
+  interpret type_definition Rep_bit1 ?Abs "{0..<1 + 2 * int CARD('a)}"
+    by (fact type_definition_bit1)
+  have "UNIV = ?Abs ` {0..<1 + 2 * int CARD('a)}"
+    by (simp add: Abs_image)
+  also have "\<dots> = ?Abs ` (int ` {0..<1 + 2 * CARD('a)})"
+    by (simp add: image_int_atLeastLessThan)
+  also have "\<dots> = (?Abs \<circ> int) ` {0..<1 + 2 * CARD('a)}"
+    by (simp add: image_image cong: image_cong)
+  finally show univ_eq: "(UNIV :: 'a bit1 set) = set enum_class.enum"
+    by (simp only: enum_bit1_def set_map set_upt) (simp add: Abs_bit1'_def cong: image_cong_simp)
 
   fix P :: "'a bit1 \<Rightarrow> bool"
   show "enum_class.enum_all P = Ball UNIV P"

@@ -220,13 +220,18 @@ proof%unimportant -
     also have "\<dots> = (INF K\<in>{K. K \<subseteq> B \<and> compact K}. M (space M) -  M K)"
       by (subst ennreal_SUP_const_minus) (auto simp: less_top[symmetric] inner)
     also have "\<dots> = (INF U\<in>{U. U \<subseteq> B \<and> compact U}. M (space M - U))"
-      by (rule INF_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
+      by (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> \<ge> (INF U\<in>{U. U \<subseteq> B \<and> closed U}. M (space M - U))"
       by (rule INF_superset_mono) (auto simp add: compact_imp_closed)
     also have "(INF U\<in>{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
         (INF U\<in>{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
-      unfolding INF_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
-        by (rule INF_cong) (auto simp add: sU Compl_eq_Diff_UNIV [symmetric, simp])
+      apply (rule arg_cong [of _ _ Inf])
+      using sU
+      apply (auto simp add: image_iff)
+      apply (rule exI [of _ "UNIV - y" for y])
+      apply safe
+        apply (auto simp add: double_diff)
+      done
     finally have
       "(INF U\<in>{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<le> emeasure M (space M - B)" .
     moreover have
@@ -239,10 +244,12 @@ proof%unimportant -
     also have "\<dots> = (SUP U\<in> {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
       unfolding outer by (subst ennreal_INF_const_minus) auto
     also have "\<dots> = (SUP U\<in>{U. B \<subseteq> U \<and> open U}. M (space M - U))"
-      by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
+      by (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> = (SUP K\<in>{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
       unfolding SUP_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
-        by (rule SUP_cong) (auto simp add: sU)
+      apply (rule arg_cong [of _ _ Sup])
+      using sU apply (auto intro!: imageI)
+      done
     also have "\<dots> = (SUP K\<in>{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
     proof (safe intro!: antisym SUP_least)
       fix K assume "closed K" "K \<subseteq> space M - B"

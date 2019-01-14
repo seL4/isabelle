@@ -349,14 +349,11 @@ lemma Limsup_at:
 lemma min_Liminf_at:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_linorder"
   shows "min (f x) (Liminf (at x) f) = (SUP e\<in>{0<..}. INF y\<in>ball x e. f y)"
-  unfolding inf_min[symmetric] Liminf_at
+  apply (simp add: inf_min [symmetric] Liminf_at)
   apply (subst inf_commute)
   apply (subst SUP_inf)
-  apply (intro SUP_cong[OF refl])
-  apply (cut_tac A="ball x xa - {x}" and B="{x}" and M=f in INF_union)
-  apply (drule sym)
   apply auto
-  apply (metis INF_absorb centre_in_ball)
+  apply (metis (no_types, lifting) INF_insert centre_in_ball greaterThan_iff image_cong inf_commute insert_Diff)
   done
 
 

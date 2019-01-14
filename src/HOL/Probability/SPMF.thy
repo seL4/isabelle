@@ -1350,7 +1350,7 @@ next
 
   have "(\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x)) \<partial>count_space UNIV) =
         (\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x) * indicator ?B x) \<partial>count_space UNIV)"
-    by(intro nn_integral_cong SUP_cong)(auto split: split_indicator simp add: spmf_eq_0_set_spmf)
+    by (intro nn_integral_cong arg_cong [of _ _ Sup]) (auto split: split_indicator simp add: spmf_eq_0_set_spmf)
   also have "\<dots> = (\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x)) \<partial>count_space ?B)"
     unfolding ennreal_indicator[symmetric] using False
     by(subst SUP_mult_right_ennreal[symmetric])(simp add: ennreal_indicator nn_integral_count_space_indicator)
@@ -1456,7 +1456,7 @@ proof -
     finally show "Complete_Partial_Order.chain (\<le>) ((\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y)" .
   qed simp
   also have "\<dots> = (SUP y\<in>Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>count_space UNIV)"
-    by(auto simp add: nn_integral_count_space_indicator set_lub_spmf spmf_eq_0_set_spmf split: split_indicator intro!: SUP_cong nn_integral_cong)
+    by(auto simp add: nn_integral_count_space_indicator set_lub_spmf spmf_eq_0_set_spmf split: split_indicator intro!: arg_cong [of _ _ Sup] image_cong nn_integral_cong)
   also have "\<dots> = ?rhs"
     by(auto simp add: nn_integral_indicator[symmetric] nn_integral_measure_spmf)
   finally show ?thesis .
@@ -1588,7 +1588,7 @@ proof(cases "Y = {}")
     also have "\<dots> = (SUP p\<in>Y. \<integral>\<^sup>+ x. ennreal (spmf p x * spmf (f x) i) \<partial>?M)"
       using Y chain' by(rule nn_integral_monotone_convergence_SUP_countable) simp
     also have "\<dots> = (SUP p\<in>Y. ennreal (spmf (bind_spmf p f) i))"
-      by(auto simp add: ennreal_spmf_bind nn_integral_measure_spmf nn_integral_count_space_indicator set_lub_spmf[OF chain] in_set_spmf_iff_spmf ennreal_mult intro!: SUP_cong nn_integral_cong split: split_indicator)
+      by(auto simp add: ennreal_spmf_bind nn_integral_measure_spmf nn_integral_count_space_indicator set_lub_spmf[OF chain] in_set_spmf_iff_spmf ennreal_mult intro!: arg_cong [of _ _ Sup] image_cong nn_integral_cong split: split_indicator)
     also have "\<dots> = ennreal (spmf ?rhs i)" using chain'' by(simp add: ennreal_spmf_lub_spmf Y)
     finally show "spmf ?lhs i = spmf ?rhs i" by simp
   qed

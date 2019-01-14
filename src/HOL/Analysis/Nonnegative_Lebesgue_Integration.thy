@@ -177,7 +177,7 @@ proof -
   have "?h ` space M \<subseteq> {0}" unfolding indicator_def by auto
   hence [simp, intro]: "finite (?h ` space M)" by (auto intro: finite_subset)
   have "?h -` {0} \<inter> space M = space M" by auto
-  thus ?thesis unfolding simple_function_def by auto
+  thus ?thesis unfolding simple_function_def by (auto simp add: image_constant_conv)
 qed
 
 lemma simple_function_cong:
@@ -220,7 +220,7 @@ lemma simple_function_compose[intro, simp]:
   unfolding simple_function_def
 proof safe
   show "finite ((g \<circ> f) ` space M)"
-    using assms unfolding simple_function_def by (auto simp: image_comp [symmetric])
+    using assms unfolding simple_function_def image_comp [symmetric] by auto
 next
   fix x assume "x \<in> space M"
   let ?G = "g -` {g (f x)} \<inter> (f`space M)"

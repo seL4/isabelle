@@ -1531,11 +1531,11 @@ proof%unimportant -
   then show ?thesis
     apply (rule **)
     subgoal
-      apply (simp add: abs_diff_le_iff field_simps Collect_conj_eq setcompr_eq_image[symmetric])
+      apply (simp add: abs_diff_le_iff field_simps Collect_conj_eq setcompr_eq_image [symmetric] cong: image_cong_simp)
       apply (rule equalityI)
       apply blast
       apply clarsimp
-      apply (rule_tac x="l \<inter> {x. c + e \<ge> x \<bullet> k}" in exI)
+      apply (rule_tac x="xa \<inter> {x. c + e \<ge> x \<bullet> k}" in exI)
       apply auto
       done
     by (simp add: interval_split k interval_doublesplit)

@@ -401,12 +401,13 @@ next
       from this have [simp]: "(\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> the (\<Sqinter>Y\<in>A. Some (f (the ` (Y - {None}))))"
         apply (simp add: Inf_option_def image_def Option.these_def)
         by (rule Inf_greatest, clarsimp)
-
       have [simp]: "the (\<Sqinter>Y\<in>A. Some (f (the ` (Y - {None})))) \<in> Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-        apply (simp add:  Option.these_def image_def)
-        apply (rule exI [of _ "(\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x}))"], simp)
-        by (simp add: Inf_option_def)
-
+        apply (auto simp add: Option.these_def)
+        apply (rule imageI)
+        apply auto
+        using \<open>\<And>Y. Y \<in> A \<Longrightarrow> Some (f (the ` (Y - {None}))) \<in> Y\<close> apply blast
+        apply (auto simp add: Some_INF [symmetric])
+        done
       have "(\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> \<Squnion>Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         by (rule Sup_upper2 [of "the (Inf ((\<lambda> Y . Some (f (the ` (Y - {None})) )) ` A))"], simp_all)
     }

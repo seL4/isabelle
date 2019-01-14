@@ -107,18 +107,45 @@ proof -
 qed
 
 lemma retraction:
-   "retraction S T r \<longleftrightarrow>
+  "retraction S T r \<longleftrightarrow>
     T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
-by (force simp: retraction_def)
+  by (force simp: retraction_def)
+
+lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+  assumes "retraction S T r"
+  obtains "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+proof (rule that)
+  from retraction [of S T r] assms
+  have "T \<subseteq> S" "continuous_on S r" "r ` S = T" and "\<forall>x \<in> T. r x = x"
+    by simp_all
+  then show "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r"
+    by simp_all
+  from \<open>\<forall>x \<in> T. r x = x\<close> have "r x = x" if "x \<in> T" for x
+    using that by simp
+  with \<open>r ` S = T\<close> show "r (r x) = r x" if "x \<in> S" for x
+    using that by auto
+qed
+
+lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+  assumes "T retract_of S"
+  obtains r where "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+proof -
+  from assms obtain r where "retraction S T r"
+    by (auto simp add: retract_of_def)
+  with that show thesis
+    by (auto elim: retractionE)
+qed
 
 lemma retract_of_imp_extensible:
   assumes "S retract_of T" and "continuous_on S f" and "f ` S \<subseteq> U"
   obtains g where "continuous_on T g" "g ` T \<subseteq> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-using assms
-apply (clarsimp simp add: retract_of_def retraction)
-apply (rule_tac g = "f \<circ> r" in that)
-apply (auto simp: continuous_on_compose2)
-done
+proof -
+  from \<open>S retract_of T\<close> obtain r where "retraction T S r"
+    by (auto simp add: retract_of_def)
+  show thesis
+    by (rule that [of "f \<circ> r"])
+      (use \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> U\<close> \<open>retraction T S r\<close> in \<open>auto simp: continuous_on_compose2 retraction\<close>)
+qed
 
 lemma idempotent_imp_retraction:
   assumes "continuous_on S f" and "f ` S \<subseteq> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
@@ -259,14 +286,12 @@ proof -
 qed
 
 lemma retraction_imp_quotient_map:
-   "retraction S T r
-    \<Longrightarrow> U \<subseteq> T
-            \<Longrightarrow> (openin (subtopology euclidean S) (S \<inter> r -` U) \<longleftrightarrow>
-                 openin (subtopology euclidean T) U)"
-apply (clarsimp simp add: retraction)
-apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
-apply (auto simp: elim: continuous_on_subset)
-done
+  "openin (subtopology euclidean S) (S \<inter> r -` U) \<longleftrightarrow> openin (subtopology euclidean T) U"
+  if retraction: "retraction S T r" and "U \<subseteq> T"
+  using retraction apply (rule retractionE)
+  apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
+  using \<open>U \<subseteq> T\<close> apply (auto elim: continuous_on_subset)
+  done
 
 lemma retract_of_locally_compact:
     fixes S :: "'a :: {heine_borel,real_normed_vector} set"
@@ -292,15 +317,15 @@ done
 
 lemma retract_of_locally_connected:
   assumes "locally connected T" "S retract_of T"
-    shows "locally connected S"
+  shows "locally connected S"
   using assms
-  by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_connected_quotient_image)
+  by (auto simp: idempotent_imp_retraction intro!: retraction_imp_quotient_map elim!: locally_connected_quotient_image retract_ofE)
 
 lemma retract_of_locally_path_connected:
   assumes "locally path_connected T" "S retract_of T"
-    shows "locally path_connected S"
+  shows "locally path_connected S"
   using assms
-  by (auto simp: retract_of_def retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image)
+  by (auto simp: idempotent_imp_retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image retract_ofE)
 
 text \<open>A few simple lemmas about deformation retracts\<close>
 
@@ -1741,7 +1766,7 @@ qed
 lemma swap_image:
   "Fun.swap i j f ` A = (if i \<in> A then (if j \<in> A then f ` A else f ` ((A - {i}) \<union> {j}))
                                   else (if j \<in> A then f ` ((A - {j}) \<union> {i}) else f ` A))"
-  by (auto simp: swap_def image_def) metis
+  by (auto simp: swap_def cong: image_cong_simp)
 
 lemmas swap_apply1 = swap_apply(1)
 lemmas swap_apply2 = swap_apply(2)
@@ -2273,16 +2298,18 @@ proof safe
       have "\<And>i. Suc ` {..< i} = {..< Suc i} - {0}"
         by (auto simp: image_iff Ball_def) arith
       then have upd_Suc: "\<And>i. i \<le> n \<Longrightarrow> (upd\<circ>Suc) ` {..< i} = upd ` {..< Suc i} - {n}"
-        using \<open>upd 0 = n\<close> upd_inj
-        by (auto simp: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
+        using \<open>upd 0 = n\<close> upd_inj by (auto simp add: image_iff less_Suc_eq_0_disj)
       have n_in_upd: "\<And>i. n \<in> upd ` {..< Suc i}"
         using \<open>upd 0 = n\<close> by auto
 
       define f' where "f' i j =
         (if j \<in> (upd\<circ>Suc)`{..< i} then Suc ((base(n := p)) j) else (base(n := p)) j)" for i j
-      { fix x i assume i[arith]: "i \<le> n" then have "enum (Suc i) x = f' i x"
-          unfolding f'_def enum_def using \<open>a n < p\<close> \<open>a = enum 0\<close> \<open>upd 0 = n\<close> \<open>a n = p - 1\<close>
-          by (simp add: upd_Suc enum_0 n_in_upd) }
+      { fix x i
+        assume i [arith]: "i \<le> n"
+        with upd_Suc have "(upd \<circ> Suc) ` {..<i} = upd ` {..<Suc i} - {n}" .
+        with \<open>a n < p\<close> \<open>a = enum 0\<close> \<open>upd 0 = n\<close> \<open>a n = p - 1\<close>
+        have "enum (Suc i) x = f' i x"
+          by (auto simp add: f'_def enum_def)  }
       then show "s - {a} = f' ` {.. n}"
         unfolding s_eq image_comp by (intro image_cong) auto
     qed
@@ -2435,14 +2462,14 @@ proof cases
     have b_enum: "b.enum = f'" unfolding f'_def b.enum_def[abs_def] ..
     with b.inj_enum have inj_f': "inj_on f' {.. n}" by simp
 
-    have [simp]: "\<And>j. j < n \<Longrightarrow> rot ` {..< j} = {0 <..< Suc j}"
-      by (auto simp: rot_def image_iff Ball_def)
-         arith
-
-    { fix j assume j: "j < n"
-      from j \<open>n \<noteq> 0\<close> have "f' j = enum (Suc j)"
-        by (auto simp: f'_def enum_def upd_inj in_upd_image image_comp[symmetric] fun_eq_iff) }
-    note f'_eq_enum = this
+    have f'_eq_enum: "f' j = enum (Suc j)" if "j < n" for j
+    proof -
+      from that have "rot ` {..< j} = {0 <..< Suc j}"
+        by (auto simp: rot_def image_Suc_lessThan cong: image_cong_simp)
+      with that \<open>n \<noteq> 0\<close> show ?thesis
+        by (simp only: f'_def enum_def fun_eq_iff image_comp [symmetric])
+          (auto simp add: upd_inj)
+    qed
     then have "enum ` Suc ` {..< n} = f' ` {..< n}"
       by (force simp: enum_inj)
     also have "Suc ` {..< n} = {.. n} - {0}"
@@ -3021,7 +3048,7 @@ proof -
   have "odd (card ?A)"
     using assms by (intro kuhn_combinatorial[of p n label]) auto
   then have "?A \<noteq> {}"
-    by fastforce
+    by (rule odd_card_imp_not_empty)
   then obtain s b u where "kuhn_simplex p n b u s" and rl: "?rl ` s = {..n}"
     by (auto elim: ksimplex.cases)
   interpret kuhn_simplex p n b u s by fact
@@ -3642,7 +3669,7 @@ proof -
       proof -
         have "k \<noteq> 0" "a + k *\<^sub>R x \<in> closure S"
           using k closure_translation [of "-a"]
-          by (auto simp: rel_frontier_def)
+          by (auto simp: rel_frontier_def cong: image_cong_simp)
         then have segsub: "open_segment a (a + k *\<^sub>R x) \<subseteq> rel_interior S"
           by (metis rel_interior_closure_convex_segment [OF \<open>convex S\<close> arelS])
         have "x \<noteq> 0" and xaffS: "a + x \<in> affine hull S"

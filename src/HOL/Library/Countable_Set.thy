@@ -334,16 +334,13 @@ lemma countable_all:
   using S[THEN subset_range_from_nat_into] by auto
 
 lemma finite_sequence_to_countable_set:
-   assumes "countable X" obtains F where "\<And>i. F i \<subseteq> X" "\<And>i. F i \<subseteq> F (Suc i)" "\<And>i. finite (F i)" "(\<Union>i. F i) = X"
-proof -  show thesis
+  assumes "countable X"
+  obtains F where "\<And>i. F i \<subseteq> X" "\<And>i. F i \<subseteq> F (Suc i)" "\<And>i. finite (F i)" "(\<Union>i. F i) = X"
+proof -
+  show thesis
     apply (rule that[of "\<lambda>i. if X = {} then {} else from_nat_into X ` {..i}"])
-    apply (auto simp: image_iff Ball_def intro: from_nat_into split: if_split_asm)
-  proof -
-    fix x n assume "x \<in> X" "\<forall>i m. m \<le> i \<longrightarrow> x \<noteq> from_nat_into X m"
-    with from_nat_into_surj[OF \<open>countable X\<close> \<open>x \<in> X\<close>]
-    show False
-      by auto
-  qed
+       apply (auto simp add: image_iff intro: from_nat_into split: if_splits)
+    using assms from_nat_into_surj by (fastforce cong: image_cong)
 qed
 
 lemma transfer_countable[transfer_rule]:

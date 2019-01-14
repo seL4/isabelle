@@ -167,12 +167,8 @@ lemma comp_ws_cdecl:
 
 
 lemma comp_wf_syscls: "wf_syscls (comp G) = wf_syscls G"
-  apply (simp add: wf_syscls_def comp_def compClass_def split_beta)
-  apply (simp add: image_comp)
-  apply (subgoal_tac "(Fun.comp fst (\<lambda>(C, cno::cname, fdls::fdecl list, jmdls).
-                      (C, cno, fdls, map (compMethod G C) jmdls))) = fst")
-   apply simp
-  apply (simp add: fun_eq_iff split_beta)
+  apply (simp add: wf_syscls_def comp_def compClass_def split_beta cong: image_cong_simp)
+  apply (simp add: image_comp cong: image_cong_simp)
   done
 
 

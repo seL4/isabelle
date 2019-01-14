@@ -950,7 +950,7 @@ proof-
      unfolding underS_def Field_def bij_betw_def by auto
      have fa: "f a \<in> Field s" using f[OF a] by auto
      have g: "g a = suc s (g ` underS r a)"
-     using r.worec_fixpoint[OF adm] unfolding g_def fun_eq_iff by simp
+       using r.worec_fixpoint[OF adm] unfolding g_def fun_eq_iff by blast
      have A0: "g ` underS r a \<subseteq> Field s"
      using IH1b by (metis IH2 image_subsetI in_mono under_Field)
      {fix a1 assume a1: "a1 \<in> underS r a"
