@@ -197,7 +197,7 @@ text \<open>
   code performing static evaluation (called a \<^emph>\<open>computation\<close>)
   is compiled once and for all such that later calls do not
   require any invocation of the code generator or the ML
-  compiler at all.  This topic deserved a dedicated chapter
+  compiler at all.  This topic deserves a dedicated chapter
   \secref{sec:computations}.
 \<close>
   
