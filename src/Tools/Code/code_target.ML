@@ -545,10 +545,11 @@ val _ = Theory.setup
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
     (fn ctxt => fn ((read_constants, reads_statements), (target_name, some_width)) =>
-      Latex.string
-        (Latex.output_ascii (present_code ctxt (read_constants ctxt)
-          (maps (fn read_statements => read_statements ctxt) reads_statements)
-          target_name "Example" some_width []))));
+       present_code ctxt (read_constants ctxt)
+         (maps (fn read_statements => read_statements ctxt) reads_statements)
+         target_name "Example" some_width []
+       |> trim_line
+       |> Thy_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
 
 end;
 

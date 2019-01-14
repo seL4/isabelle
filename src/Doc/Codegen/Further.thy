@@ -193,7 +193,7 @@ text \<open>
   After this setup procedure, code generation can continue as usual:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
 \<close>
 

@@ -31,17 +31,6 @@
 \newcommand{\quotebreak}{\\[1.2ex]}
 
 %% typewriter text
-\newenvironment{typewriter}{\renewcommand{\isastyletext}{}%
-\renewcommand{\isadigit}[1]{{##1}}%
-\parindent0pt%
-\makeatletter\isa@parindent0pt\makeatother%
-\isabellestyle{tt}\isastyle%
-\fontsize{9pt}{9pt}\selectfont}{}
-
-\isakeeptag{quotetypewriter}
-\renewcommand{\isatagquotetypewriter}{\begin{quote}\begin{typewriter}}
-\renewcommand{\endisatagquotetypewriter}{\end{typewriter}\end{quote}}
-
 \isakeeptag{quotett}
 \renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
 \renewcommand{\endisatagquotett}{\end{quote}}
@@ -70,6 +59,7 @@
 \renewcommand{\endisatagmlref}{\endgroup}
 
 \isabellestyle{it}
+\def\isastylett{\footnotesize\normalfont\ttfamily}
 
 
 %%% Local Variables: 

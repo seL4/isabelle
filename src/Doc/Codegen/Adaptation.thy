@@ -232,7 +232,7 @@ code_printing %invisible
 | constant HOL.conj \<rightharpoonup> (SML)
 | constant Not \<rightharpoonup> (SML)
 (*>*)
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts in_interval (SML)}
 \<close>
 
@@ -262,7 +262,7 @@ text \<open>
   placeholder for the constant's or the type constructor's arguments.
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts in_interval (SML)}
 \<close>
 
@@ -277,7 +277,7 @@ text \<open>
 code_printing %quotett
   constant HOL.conj \<rightharpoonup> (SML) infixl 1 "andalso"
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts in_interval (SML)}
 \<close>
 

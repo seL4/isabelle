@@ -588,14 +588,14 @@ definition %quote example :: int where
 text \<open>
   \<^noindent> This maps to Haskell as follows:
 \<close>
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts example (Haskell)}
 \<close>
 
 text \<open>
   \<^noindent> The code in SML has explicit dictionary passing:
 \<close>
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts example (SML)}
 \<close>
 
@@ -603,7 +603,7 @@ text %quotetypewriter \<open>
 text \<open>
   \<^noindent> In Scala, implicits are used as dictionaries:
 \<close>
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts example (Scala)}
 \<close>
 

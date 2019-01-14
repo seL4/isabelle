@@ -190,7 +190,7 @@ text \<open>
   is determined syntactically.  The resulting code:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts dequeue (consts) dequeue (Haskell)}
 \<close>
 
@@ -245,7 +245,7 @@ text \<open>
   equality check, as can be seen in the corresponding \<open>SML\<close> code:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts collect_duplicates (SML)}
 \<close>
 
@@ -282,7 +282,7 @@ text \<open>
   for the pattern \<^term>\<open>AQueue [] []\<close>:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
 \<close>
 
@@ -324,7 +324,7 @@ text \<open>
   exception at the appropriate position:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
 \<close>
 

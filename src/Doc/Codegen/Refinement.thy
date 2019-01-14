@@ -31,7 +31,7 @@ text \<open>
   to two recursive calls:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts fib (consts) fib (Haskell)}
 \<close>
 
@@ -68,7 +68,7 @@ text \<open>
   \noindent The resulting code shows only linear growth of runtime:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts fib (consts) fib fib_step (Haskell)}
 \<close>
 
@@ -161,7 +161,7 @@ text \<open>
   \noindent The resulting code looks as expected:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts empty enqueue dequeue Queue case_queue (SML)}
 \<close>
 
@@ -260,7 +260,7 @@ text \<open>
   \noindent Then the corresponding code is as follows:
 \<close>
 
-text %quotetypewriter \<open>
+text %quote \<open>
   @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
 \<close>
 

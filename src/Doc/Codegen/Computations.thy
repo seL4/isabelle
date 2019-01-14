@@ -16,7 +16,7 @@ text \<open>
 
 datatype %quote form = T | F | And form form | Or form form (*<*)
 
-(*>*) ML %quotetypewriter \<open>
+(*>*) ML %quote \<open>
   fun eval_form @{code T} = true
     | eval_form @{code F} = false
     | eval_form (@{code And} (p, q)) =
@@ -97,7 +97,7 @@ text \<open>
   The following example illustrates its basic usage:
 \<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   local
 
   fun int_of_nat @{code "0 :: nat"} = 0
@@ -164,7 +164,7 @@ text \<open>
   \noindent A simple application:
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   comp_nat \<^context> \<^term>\<open>sum_list [Suc 0, Suc (Suc 0)] * Suc (Suc 0)\<close>
 \<close>
 
@@ -177,7 +177,7 @@ text \<open>
   and for all:
 \<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   local
 
   fun int_of_nat @{code "0 :: nat"} = 0
@@ -269,7 +269,7 @@ text \<open>
   \secref{sec:literal_input}.}
 \<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   local
 
   fun raw_dvd (b, ct) = Thm.mk_binop \<^cterm>\<open>Pure.eq :: bool \<Rightarrow> bool \<Rightarrow> prop\<close>
@@ -310,7 +310,7 @@ text \<open>
     \<^item> Partiality makes the whole conversion fall back to reflexivity.
 \<close> (*<*)
 
-(*>*) ML_val %quotetypewriter \<open>
+(*>*) ML_val %quote \<open>
   conv_dvd \<^context> \<^cterm>\<open>7 dvd ( 62437867527846782 :: int)\<close>;
   conv_dvd \<^context> \<^cterm>\<open>7 dvd (-62437867527846783 :: int)\<close>;
 \<close>
@@ -336,7 +336,7 @@ lemma %quote positive_mult:
     Code_Target_Int.positive (r * s)"
   by simp
   
-ML %quotetypewriter \<open>
+ML %quote \<open>
   local
 
   fun integer_of_int (@{code int_of_integer} k) = k
@@ -365,7 +365,7 @@ ML %quotetypewriter \<open>
   end
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   conv_div \<^context>
     \<^cterm>\<open>46782454343499999992777742432342242323423425 div (7 :: int)\<close>
 \<close>
@@ -393,7 +393,7 @@ text \<open>
   once and for all:
 \<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   val check_nat = @{computation_check terms:
     Trueprop "less :: nat \<Rightarrow> nat \<Rightarrow> bool" "plus :: nat \<Rightarrow> nat \<Rightarrow> nat" 
     "times :: nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -406,7 +406,7 @@ text \<open>
   of type \<^typ>\<open>bool\<close> into \<^typ>\<open>prop\<close>.
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   check_nat \<^context> \<^cprop>\<open>less (Suc (Suc 0)) (Suc (Suc (Suc 0)))\<close>
 \<close>
 
@@ -448,27 +448,27 @@ text \<open>
 
 paragraph \<open>An example for \<^typ>\<open>nat\<close>\<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   val check_nat = @{computation_check terms:
     Trueprop "even :: nat \<Rightarrow> bool" "plus :: nat \<Rightarrow> nat \<Rightarrow> nat" 
     "0 :: nat" Suc "1 :: nat" "2 :: nat" "3 :: nat"
   }
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   check_nat \<^context> \<^cprop>\<open>even (Suc 0 + 1 + 2 + 3 + 4 + 5)\<close>
 \<close>
   
 paragraph \<open>An example for \<^typ>\<open>int\<close>\<close>
 
-ML %quotetypewriter \<open>
+ML %quote \<open>
   val check_int = @{computation_check terms:
     Trueprop "even :: int \<Rightarrow> bool" "plus :: int \<Rightarrow> int \<Rightarrow> int" 
     "0 :: int" "1 :: int" "2 :: int" "3 :: int" "-1 :: int"
   }
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   check_int \<^context> \<^cprop>\<open>even ((0::int) + 1 + 2 + 3 + -1 + -2 + -3)\<close>
 \<close>
   
@@ -478,13 +478,13 @@ definition %quote is_cap_letter :: "String.literal \<Rightarrow> bool"
   where "is_cap_letter s \<longleftrightarrow> (case String.asciis_of_literal s
     of [] \<Rightarrow> False | k # _ \<Rightarrow> 65 \<le> k \<and> k \<le> 90)" (*<*)
 
-(*>*) ML %quotetypewriter \<open>
+(*>*) ML %quote \<open>
   val check_literal = @{computation_check terms:
     Trueprop is_cap_letter datatypes: bool String.literal
   }
 \<close>
 
-ML_val %quotetypewriter \<open>
+ML_val %quote \<open>
   check_literal \<^context> \<^cprop>\<open>is_cap_letter (STR ''Q'')\<close>
 \<close>
 
@@ -523,13 +523,13 @@ text \<open>
   whose concrete values are given in list \<^term>\<open>vs\<close>.
 \<close>
 
-ML %quotetypewriter (*<*) \<open>\<close>
+ML %quote (*<*) \<open>\<close>
 lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> interp (And (Less (Suc 0) (Suc (Suc 0))) (Less (Suc 0) 0)) [z, x, y]"
-ML_prf %quotetypewriter
+ML_prf %quote
 (*>*) \<open>val thm =
   Reification.conv \<^context> @{thms interp.simps} \<^cterm>\<open>x < y \<and> x < z\<close>\<close> (*<*)
 by (tactic \<open>ALLGOALS (resolve_tac \<^context> [thm])\<close>)
-(*>*) 
+(*>*)
 
 text \<open>
   \noindent By virtue of @{fact interp.simps}, \<^ML>\<open>Reification.conv\<close> provides a conversion
