@@ -900,10 +900,6 @@ lemma nn_integral_cong_simp:
   "(\<And>x. x \<in> space M =simp=> u x = v x) \<Longrightarrow> integral\<^sup>N M u = integral\<^sup>N M v"
   by (auto intro: nn_integral_cong simp: simp_implies_def)
 
-lemma nn_integral_cong_strong:
-  "M = N \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> u x = v x) \<Longrightarrow> integral\<^sup>N M u = integral\<^sup>N N v"
-  by (auto intro: nn_integral_cong)
-
 lemma incseq_nn_integral:
   assumes "incseq f" shows "incseq (\<lambda>i. integral\<^sup>N M (f i))"
 proof -

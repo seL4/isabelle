@@ -501,7 +501,7 @@ text \<open>The code and the proof are originally due to Thomas Sewell (except r
 function list_fast_rec :: "'a tree list \<Rightarrow> 'a list" where
 "list_fast_rec ts = (if ts = [] then [] else
   let us = filter (\<lambda>t. t \<noteq> Leaf) ts
-  in map root_val us @ list_fast_rec (map left us @ map right us))"
+  in map value us @ list_fast_rec (map left us @ map right us))"
 by (pat_completeness, auto)
 
 lemma list_fast_rec_term: "\<lbrakk> ts \<noteq> []; us = filter (\<lambda>t. t \<noteq> \<langle>\<rangle>) ts \<rbrakk> \<Longrightarrow>
@@ -576,13 +576,13 @@ proof (induct xs arbitrary: k ts rule: measure_induct_rule[where f=length])
     case False
     with less.prems(2) have *:
       "\<forall>i < 2 ^ k. ts ! i \<noteq> Leaf
-         \<and> root_val (ts ! i) = xs ! i
+         \<and> value (ts ! i) = xs ! i
          \<and> braun_list (left (ts ! i)) (take_nths (i + 2 ^ k) (Suc k) xs)
          \<and> (\<forall>ys. ys = take_nths (i + 2 * 2 ^ k) (Suc k) xs
                  \<longrightarrow> braun_list (right (ts ! i)) ys)"
       by (auto simp: take_nths_empty hd_take_nths braun_list_not_Nil take_nths_take_nths
                      algebra_simps)
-    have 1: "map root_val ts = take (2 ^ k) xs"
+    have 1: "map value ts = take (2 ^ k) xs"
       using less.prems(1) False by (simp add: list_eq_iff_nth_eq *)
     have 2: "list_fast_rec (map left ts @ map right ts) = drop (2 ^ k) xs"
       using less.prems(1) False
