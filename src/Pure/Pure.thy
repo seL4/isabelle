@@ -22,6 +22,7 @@ keywords
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "external_file" "bibtex_file" :: thy_load
   and "generate_file" :: thy_decl
+  and "export_generated_files" :: diag
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
@@ -125,6 +126,26 @@ local
       (Parse.position Parse.path -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
         >> Generated_Files.generate_file_cmd);
 
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>export_generated_files\<close>
+      "export generated files from this or other theories"
+      (Scan.repeat Parse.name_position >> (fn names =>
+        Toplevel.keep (fn st =>
+          let
+            val ctxt = Toplevel.context_of st;
+            val thy = Toplevel.theory_of st;
+            val other_thys =
+              if null names then [thy]
+              else map (Theory.check {long = false} ctxt) names;
+            val paths = Generated_Files.export_files thy other_thys;
+          in
+            if not (null paths) then
+              (writeln (Export.message thy "");
+               writeln (cat_lines (paths |> map (fn (path, pos) =>
+                Markup.markup (Markup.entityN, Position.def_properties_of pos)
+                  (quote (Path.implode path))))))
+            else ()
+          end)));
 in end\<close>
 
 

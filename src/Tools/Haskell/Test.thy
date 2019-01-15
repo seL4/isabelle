@@ -14,7 +14,7 @@ ML \<open>
       val files = Generated_Files.write_files \<^theory>\<open>Haskell\<close> src_dir;
 
       val modules = files
-        |> map (Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
+        |> map (#1 #> Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
       val _ =
         GHC.new_project tmp_dir
           {name = "isabelle",
