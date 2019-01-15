@@ -153,6 +153,19 @@ lemma zero_less_card_finite [simp]: "0 < CARD('a::finite)"
 lemma one_le_card_finite [simp]: "Suc 0 \<le> CARD('a::finite)"
   by (simp add: less_Suc_eq_le [symmetric])
 
+
+class CARD_1 =
+  assumes CARD_1: "CARD ('a) = 1"
+begin
+
+subclass finite
+proof
+  from CARD_1 show "finite (UNIV :: 'a set)"
+    by (auto intro!: card_ge_0_finite)
+qed
+
+end
+
 text \<open>Class for cardinality "at least 2"\<close>
 
 class card2 = finite + 

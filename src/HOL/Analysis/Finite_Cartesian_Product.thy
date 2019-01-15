@@ -259,32 +259,20 @@ end
 
 text\<open>The ordering on one-dimensional vectors is linear.\<close>
 
-class cart_one =
-  assumes UNIV_one: "card (UNIV :: 'a set) = Suc 0"
-begin
-
-subclass finite
-proof
-  from UNIV_one show "finite (UNIV :: 'a set)"
-    by (auto intro!: card_ge_0_finite)
-qed
-
-end
-
 instance vec:: (order, finite) order
   by standard (auto simp: less_eq_vec_def less_vec_def vec_eq_iff
       intro: order.trans order.antisym order.strict_implies_order)
 
-instance vec :: (linorder, cart_one) linorder
+instance vec :: (linorder, CARD_1) linorder
 proof
   obtain a :: 'b where all: "\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a"
   proof -
-    have "card (UNIV :: 'b set) = Suc 0" by (rule UNIV_one)
+    have "CARD ('b) = 1" by (rule CARD_1)
     then obtain b :: 'b where "UNIV = {b}" by (auto iff: card_Suc_eq)
     then have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P b" by auto
     then show thesis by (auto intro: that)
   qed
-  fix x y :: "'a^'b::cart_one"
+  fix x y :: "'a^'b::CARD_1"
   note [simp] = less_eq_vec_def less_vec_def all vec_eq_iff field_simps
   show "x \<le> y \<or> y \<le> x" by auto
 qed
