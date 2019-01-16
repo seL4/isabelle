@@ -801,7 +801,7 @@ next
 qed
 
 
-subsection%important \<open>Component of the differential must be zero if it exists at a local
+text%important \<open>Component of the differential must be zero if it exists at a local
   maximum or minimum for that corresponding component\<close>
 
 lemma%important differential_zero_maxmin_cart:

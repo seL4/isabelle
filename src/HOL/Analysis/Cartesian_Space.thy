@@ -6,6 +6,8 @@
     Author:     Fabian Immler, TUM
 *)
 
+section "Linear Algebra on Finite Cartesian Products"
+
 theory Cartesian_Space
   imports
     Finite_Cartesian_Product Linear_Algebra
