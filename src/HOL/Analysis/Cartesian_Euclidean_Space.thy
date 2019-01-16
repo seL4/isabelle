@@ -952,10 +952,6 @@ lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<f
   apply (simp add: forall_3)
   done
 
-lemma bounded_linear_component_cart[intro]: "bounded_linear (\<lambda>x::real^'n. x $ k)"
-  apply (rule bounded_linear_intro[where K=1])
-  using component_le_norm_cart[of _ k] unfolding real_norm_def by auto
-
 lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"
   "cbox a b \<inter> {x. x$k \<ge> c} = {(\<chi> i. if i = k then max (a$k) c else a$i) .. b}"
@@ -967,6 +963,5 @@ lemma interval_split_cart:
 lemmas cartesian_euclidean_space_uniform_limit_intros[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF blinfun.bounded_linear_right]
   bounded_linear.uniform_limit[OF bounded_linear_vec_nth]
-  bounded_linear.uniform_limit[OF bounded_linear_component_cart]
 
 end

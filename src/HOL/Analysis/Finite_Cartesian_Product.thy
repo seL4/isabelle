@@ -626,7 +626,7 @@ lemma%unimportant norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> 
 lemma%unimportant norm_le_l1_cart: "norm x \<le> sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def L2_set_le_sum)
 
-lemma%unimportant bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
+lemma%unimportant bounded_linear_vec_nth[intro]: "bounded_linear (\<lambda>x. x $ i)"
 apply standard
 apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
