@@ -73,6 +73,7 @@ object Path
   val current: Path = new Path(Nil)
   val root: Path = new Path(List(Root("")))
   def named_root(s: String): Path = new Path(List(root_elem(s)))
+  def make(elems: List[String]): Path = new Path(elems.reverse.map(basic_elem(_)))
   def basic(s: String): Path = new Path(List(basic_elem(s)))
   def variable(s: String): Path = new Path(List(variable_elem(s)))
   val parent: Path = new Path(List(Parent))
