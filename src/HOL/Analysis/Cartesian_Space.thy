@@ -13,6 +13,8 @@ theory Cartesian_Space
     Finite_Cartesian_Product Linear_Algebra
 begin
 
+subsection \<open>Type @{typ \<open>'a ^ 'n\<close>} and fields as vector spaces\<close>
+
 definition%unimportant "cart_basis = {axis i 1 | i. i\<in>UNIV}"
 
 lemma%unimportant finite_cart_basis: "finite (cart_basis)" unfolding cart_basis_def
@@ -22,7 +24,7 @@ lemma%unimportant card_cart_basis: "card (cart_basis::('a::zero_neq_one^'i) set)
   unfolding cart_basis_def Setcompr_eq_image
   by (rule card_image) (auto simp: inj_on_def axis_eq_axis)
 
-interpretation vec: vector_space "(*s) "
+interpretation%important vec: vector_space "(*s) "
   by unfold_locales (vector algebra_simps)+
 
 lemma%unimportant independent_cart_basis:
@@ -450,8 +452,8 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-interpretation vector_space_over_itself: vector_space "(*) :: 'a::field => 'a => 'a"
-  by unfold_locales (simp_all add: algebra_simps)
+interpretation%important vector_space_over_itself: vector_space "(*) :: 'a::field \<Rightarrow> 'a \<Rightarrow> 'a"
+by unfold_locales (simp_all add: algebra_simps)
 
 lemmas [simp del] = vector_space_over_itself.scale_scale
 

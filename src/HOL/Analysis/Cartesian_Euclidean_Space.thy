@@ -264,7 +264,7 @@ proof%unimportant -
 qed
 
 
-subsection%important\<open>Some bounds on components etc. relative to operator norm\<close>
+subsection%important\<open>Bounds on components etc.\ relative to operator norm\<close>
 
 lemma%important norm_column_le_onorm:
   fixes A :: "real^'n^'m"
