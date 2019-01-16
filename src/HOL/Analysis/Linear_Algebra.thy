@@ -33,7 +33,7 @@ lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x \<in> (UNIV::'a::finit
 
 subsection%unimportant \<open>More interesting properties of the norm\<close>
 
-notation inner (infix "\<bullet>" 70)
+unbundle inner_syntax
 
 text\<open>Equality of vectors in terms of \<^term>\<open>(\<bullet>)\<close> products.\<close>
 

@@ -462,4 +462,12 @@ lemma GDERIV_norm:
 
 lemmas has_derivative_norm = GDERIV_norm [unfolded gderiv_def]
 
+bundle inner_syntax begin
+notation inner (infix "\<bullet>" 70)
+end
+
+bundle no_inner_syntax begin
+no_notation inner (infix "\<bullet>" 70)
+end
+
 end
