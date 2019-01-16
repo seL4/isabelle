@@ -462,4 +462,209 @@ interpretation vector_space_over_itself: finite_dimensional_vector_space
 lemma dimension_eq_1[code_unfold]: "vector_space_over_itself.dimension TYPE('a::field)= 1"
   unfolding vector_space_over_itself.dimension_def by simp
 
+
+lemma%unimportant dim_subset_UNIV_cart_gen:
+  fixes S :: "('a::field^'n) set"
+  shows "vec.dim S \<le> CARD('n)"
+  by (metis vec.dim_eq_full vec.dim_subset_UNIV vec.span_UNIV vec_dim_card)
+
+lemma%unimportant dim_subset_UNIV_cart:
+  fixes S :: "(real^'n) set"
+  shows "dim S \<le> CARD('n)"
+  using dim_subset_UNIV_cart_gen[of S] by (simp add: dim_vec_eq)
+
+text\<open>Two sometimes fruitful ways of looking at matrix-vector multiplication.\<close>
+
+lemma%important matrix_mult_dot: "A *v x = (\<chi> i. inner (A$i) x)"
+  by (simp add: matrix_vector_mult_def inner_vec_def)
+
+lemma%unimportant adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
+  apply (rule adjoint_unique)
+  apply (simp add: transpose_def inner_vec_def matrix_vector_mult_def
+    sum_distrib_right sum_distrib_left)
+  apply (subst sum.swap)
+  apply (simp add:  ac_simps)
+  done
+
+lemma%important matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
+  shows "matrix(adjoint f) = transpose(matrix f)"
+proof%unimportant -
+  have "matrix(adjoint f) = matrix(adjoint ((*v) (matrix f)))"
+    by (simp add: lf)
+  also have "\<dots> = transpose(matrix f)"
+    unfolding adjoint_matrix matrix_of_matrix_vector_mul
+    apply rule
+    done
+  finally show ?thesis .
+qed
+
+
+subsection%important\<open> Rank of a matrix\<close>
+
+text\<open>Equivalence of row and column rank is taken from George Mackiw's paper, Mathematics Magazine 1995, p. 285.\<close>
+
+lemma%unimportant matrix_vector_mult_in_columnspace_gen:
+  fixes A :: "'a::field^'n^'m"
+  shows "(A *v x) \<in> vec.span(columns A)"
+  apply (simp add: matrix_vector_column columns_def transpose_def column_def)
+  apply (intro vec.span_sum vec.span_scale)
+  apply (force intro: vec.span_base)
+  done
+
+lemma%unimportant matrix_vector_mult_in_columnspace:
+  fixes A :: "real^'n^'m"
+  shows "(A *v x) \<in> span(columns A)"
+  using matrix_vector_mult_in_columnspace_gen[of A x] by (simp add: span_vec_eq)
+
+lemma subspace_orthogonal_to_vector: "subspace {y. orthogonal x y}"
+  by (simp add: subspace_def orthogonal_clauses)
+
+lemma%important orthogonal_nullspace_rowspace:
+  fixes A :: "real^'n^'m"
+  assumes 0: "A *v x = 0" and y: "y \<in> span(rows A)"
+  shows "orthogonal x y"
+  using y
+proof%unimportant (induction rule: span_induct)
+  case base
+  then show ?case
+    by (simp add: subspace_orthogonal_to_vector)
+next
+  case (step v)
+  then obtain i where "v = row i A"
+    by (auto simp: rows_def)
+  with 0 show ?case
+    unfolding orthogonal_def inner_vec_def matrix_vector_mult_def row_def
+    by (simp add: mult.commute) (metis (no_types) vec_lambda_beta zero_index)
+qed
+
+lemma%unimportant nullspace_inter_rowspace:
+  fixes A :: "real^'n^'m"
+  shows "A *v x = 0 \<and> x \<in> span(rows A) \<longleftrightarrow> x = 0"
+  using orthogonal_nullspace_rowspace orthogonal_self span_zero matrix_vector_mult_0_right
+  by blast
+
+lemma%unimportant matrix_vector_mul_injective_on_rowspace:
+  fixes A :: "real^'n^'m"
+  shows "\<lbrakk>A *v x = A *v y; x \<in> span(rows A); y \<in> span(rows A)\<rbrakk> \<Longrightarrow> x = y"
+  using nullspace_inter_rowspace [of A "x-y"]
+  by (metis diff_eq_diff_eq diff_self matrix_vector_mult_diff_distrib span_diff)
+
+definition%important rank :: "'a::field^'n^'m=>nat"
+  where row_rank_def_gen: "rank A \<equiv> vec.dim(rows A)"
+
+lemma%important row_rank_def: "rank A = dim (rows A)" for A::"real^'n^'m"
+  by%unimportant (auto simp: row_rank_def_gen dim_vec_eq)
+
+lemma%important dim_rows_le_dim_columns:
+  fixes A :: "real^'n^'m"
+  shows "dim(rows A) \<le> dim(columns A)"
+proof%unimportant -
+  have "dim (span (rows A)) \<le> dim (span (columns A))"
+  proof -
+    obtain B where "independent B" "span(rows A) \<subseteq> span B"
+              and B: "B \<subseteq> span(rows A)""card B = dim (span(rows A))"
+      using basis_exists [of "span(rows A)"] by metis
+    with span_subspace have eq: "span B = span(rows A)"
+      by auto
+    then have inj: "inj_on ((*v) A) (span B)"
+      by (simp add: inj_on_def matrix_vector_mul_injective_on_rowspace)
+    then have ind: "independent ((*v) A ` B)"
+      by (rule linear_independent_injective_image [OF Finite_Cartesian_Product.matrix_vector_mul_linear \<open>independent B\<close>])
+    have "dim (span (rows A)) \<le> card ((*v) A ` B)"
+      unfolding B(2)[symmetric]
+      using inj
+      by (auto simp: card_image inj_on_subset span_superset)
+    also have "\<dots> \<le> dim (span (columns A))"
+      using _ ind
+      by (rule independent_card_le_dim) (auto intro!: matrix_vector_mult_in_columnspace)
+    finally show ?thesis .
+  qed
+  then show ?thesis
+    by (simp add: dim_span)
+qed
+
+lemma%unimportant column_rank_def:
+  fixes A :: "real^'n^'m"
+  shows "rank A = dim(columns A)"
+  unfolding row_rank_def
+  by (metis columns_transpose dim_rows_le_dim_columns le_antisym rows_transpose)
+
+lemma%unimportant rank_transpose:
+  fixes A :: "real^'n^'m"
+  shows "rank(transpose A) = rank A"
+  by (metis column_rank_def row_rank_def rows_transpose)
+
+lemma%unimportant matrix_vector_mult_basis:
+  fixes A :: "real^'n^'m"
+  shows "A *v (axis k 1) = column k A"
+  by (simp add: cart_eq_inner_axis column_def matrix_mult_dot)
+
+lemma%unimportant columns_image_basis:
+  fixes A :: "real^'n^'m"
+  shows "columns A = (*v) A ` (range (\<lambda>i. axis i 1))"
+  by (force simp: columns_def matrix_vector_mult_basis [symmetric])
+
+lemma%important rank_dim_range:
+  fixes A :: "real^'n^'m"
+  shows "rank A = dim(range (\<lambda>x. A *v x))"
+  unfolding column_rank_def
+proof%unimportant (rule span_eq_dim)
+  have "span (columns A) \<subseteq> span (range ((*v) A))" (is "?l \<subseteq> ?r")
+    by (simp add: columns_image_basis image_subsetI span_mono)
+  then show "?l = ?r"
+    by (metis (no_types, lifting) image_subset_iff matrix_vector_mult_in_columnspace
+        span_eq span_span)
+qed
+
+lemma%unimportant rank_bound:
+  fixes A :: "real^'n^'m"
+  shows "rank A \<le> min CARD('m) (CARD('n))"
+  by (metis (mono_tags, lifting) dim_subset_UNIV_cart min.bounded_iff
+      column_rank_def row_rank_def)
+
+lemma%unimportant full_rank_injective:
+  fixes A :: "real^'n^'m"
+  shows "rank A = CARD('n) \<longleftrightarrow> inj ((*v) A)"
+  by (simp add: matrix_left_invertible_injective [symmetric] matrix_left_invertible_span_rows row_rank_def
+      dim_eq_full [symmetric] card_cart_basis vec.dimension_def)
+
+lemma%unimportant full_rank_surjective:
+  fixes A :: "real^'n^'m"
+  shows "rank A = CARD('m) \<longleftrightarrow> surj ((*v) A)"
+  by (simp add: matrix_right_invertible_surjective [symmetric] left_invertible_transpose [symmetric]
+                matrix_left_invertible_injective full_rank_injective [symmetric] rank_transpose)
+
+lemma%unimportant rank_I: "rank(mat 1::real^'n^'n) = CARD('n)"
+  by (simp add: full_rank_injective inj_on_def)
+
+lemma%unimportant less_rank_noninjective:
+  fixes A :: "real^'n^'m"
+  shows "rank A < CARD('n) \<longleftrightarrow> \<not> inj ((*v) A)"
+using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
+
+lemma%unimportant matrix_nonfull_linear_equations_eq:
+  fixes A :: "real^'n^'m"
+  shows "(\<exists>x. (x \<noteq> 0) \<and> A *v x = 0) \<longleftrightarrow> rank A \<noteq> CARD('n)"
+  by (meson matrix_left_invertible_injective full_rank_injective matrix_left_invertible_ker)
+
+lemma%unimportant rank_eq_0: "rank A = 0 \<longleftrightarrow> A = 0" and rank_0 [simp]: "rank (0::real^'n^'m) = 0"
+  for A :: "real^'n^'m"
+  by (auto simp: rank_dim_range matrix_eq)
+
+lemma%important rank_mul_le_right:
+  fixes A :: "real^'n^'m" and B :: "real^'p^'n"
+  shows "rank(A ** B) \<le> rank B"
+proof%unimportant -
+  have "rank(A ** B) \<le> dim ((*v) A ` range ((*v) B))"
+    by (auto simp: rank_dim_range image_comp o_def matrix_vector_mul_assoc)
+  also have "\<dots> \<le> rank B"
+    by (simp add: rank_dim_range dim_image_le)
+  finally show ?thesis .
+qed
+
+lemma%unimportant rank_mul_le_left:
+  fixes A :: "real^'n^'m" and B :: "real^'p^'n"
+  shows "rank(A ** B) \<le> rank A"
+  by (metis matrix_transpose_mul rank_mul_le_right rank_transpose)
+
 end
