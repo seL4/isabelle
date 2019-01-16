@@ -52,6 +52,16 @@ proof
     using finite by (rule finite_imageI)
 qed
 
+instantiation num1 :: CARD_1
+begin
+
+instance
+proof
+  show "CARD(num1) = 1" by auto
+qed
+
+end
+
 instance bit0 :: (finite) card2
 proof
   show "finite (UNIV::'a bit0 set)"

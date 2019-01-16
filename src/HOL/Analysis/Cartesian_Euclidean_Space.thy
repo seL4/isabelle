@@ -873,16 +873,6 @@ lemma num1_eq1 [simp]:
   fixes a::num1 shows "a = 1"
   by (rule num1_eqI)
 
-instantiation num1 :: cart_one
-begin
-
-instance
-proof
-  show "CARD(1) = Suc 0" by auto
-qed
-
-end
-
 instantiation num1 :: linorder begin
 definition "a < b \<longleftrightarrow> Rep_num1 a < Rep_num1 b"
 definition "a \<le> b \<longleftrightarrow> Rep_num1 a \<le> Rep_num1 b"
