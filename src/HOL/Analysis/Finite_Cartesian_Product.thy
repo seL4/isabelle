@@ -1082,6 +1082,14 @@ lemma%unimportant matrix_transpose_mul:
     "transpose(A ** B) = transpose B ** transpose (A::'a::comm_semiring_1^_^_)"
   by (simp add: matrix_matrix_mult_def transpose_def vec_eq_iff mult.commute)
 
+lemma%unimportant matrix_mult_transpose_dot_column:
+  shows "transpose A ** A = (\<chi> i j. inner (column i A) (column j A))"
+  by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def column_def inner_vec_def)
+
+lemma%unimportant matrix_mult_transpose_dot_row:
+  shows "A ** transpose A = (\<chi> i j. inner (row i A) (row j A))"
+  by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def row_def inner_vec_def)
+
 lemma%unimportant matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
   shows "A = B \<longleftrightarrow>  (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
