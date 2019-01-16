@@ -6,7 +6,7 @@ section \<open>Traces, Determinant of square matrices and some properties\<close
 
 theory Determinants
 imports
-  Cartesian_Euclidean_Space
+  Cartesian_Space
   "HOL-Library.Permutations"
 begin
 
@@ -941,372 +941,6 @@ proof%unimportant -
     by auto
 qed
 
-subsection%important  \<open>Orthogonality of a transformation and matrix\<close>
-
-definition%important  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
-
-definition%important  "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
-  transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
-
-lemma%unimportant  orthogonal_transformation:
-  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v. norm (f v) = norm v)"
-  unfolding orthogonal_transformation_def
-  apply auto
-  apply (erule_tac x=v in allE)+
-  apply (simp add: norm_eq_sqrt_inner)
-  apply (simp add: dot_norm linear_add[symmetric])
-  done
-
-lemma%unimportant  orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
-  by (simp add: linear_iff orthogonal_transformation_def)
-
-lemma%unimportant  orthogonal_orthogonal_transformation:
-    "orthogonal_transformation f \<Longrightarrow> orthogonal (f x) (f y) \<longleftrightarrow> orthogonal x y"
-  by (simp add: orthogonal_def orthogonal_transformation_def)
-
-lemma%unimportant  orthogonal_transformation_compose:
-   "\<lbrakk>orthogonal_transformation f; orthogonal_transformation g\<rbrakk> \<Longrightarrow> orthogonal_transformation(f \<circ> g)"
-  by (auto simp: orthogonal_transformation_def linear_compose)
-
-lemma%unimportant  orthogonal_transformation_neg:
-  "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
-  by (auto simp: orthogonal_transformation_def dest: linear_compose_neg)
-
-lemma%unimportant  orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
-  by (simp add: linear_iff orthogonal_transformation_def)
-
-lemma%unimportant  orthogonal_transformation_linear:
-   "orthogonal_transformation f \<Longrightarrow> linear f"
-  by (simp add: orthogonal_transformation_def)
-
-lemma%unimportant  orthogonal_transformation_inj:
-  "orthogonal_transformation f \<Longrightarrow> inj f"
-  unfolding orthogonal_transformation_def inj_on_def
-  by (metis vector_eq)
-
-lemma%unimportant  orthogonal_transformation_surj:
-  "orthogonal_transformation f \<Longrightarrow> surj f"
-  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
-  by (simp add: linear_injective_imp_surjective orthogonal_transformation_inj orthogonal_transformation_linear)
-
-lemma%unimportant  orthogonal_transformation_bij:
-  "orthogonal_transformation f \<Longrightarrow> bij f"
-  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
-  by (simp add: bij_def orthogonal_transformation_inj orthogonal_transformation_surj)
-
-lemma%unimportant  orthogonal_transformation_inv:
-  "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
-  for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
-  by (metis (no_types, hide_lams) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
-
-lemma%unimportant  orthogonal_transformation_norm:
-  "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"
-  by (metis orthogonal_transformation)
-
-lemma%unimportant  orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1"
-  by (metis matrix_left_right_inverse orthogonal_matrix_def)
-
-lemma%unimportant  orthogonal_matrix_id: "orthogonal_matrix (mat 1 :: _^'n^'n)"
-  by (simp add: orthogonal_matrix_def)
-
-lemma%unimportant  orthogonal_matrix_mul:
-  fixes A :: "real ^'n^'n"
-  assumes  "orthogonal_matrix A" "orthogonal_matrix B"
-  shows "orthogonal_matrix(A ** B)"
-  using assms
-  by (simp add: orthogonal_matrix matrix_transpose_mul matrix_left_right_inverse matrix_mul_assoc)
-
-lemma%important  orthogonal_transformation_matrix:
-  fixes f:: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<longleftrightarrow> linear f \<and> orthogonal_matrix(matrix f)"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof%unimportant -
-  let ?mf = "matrix f"
-  let ?ot = "orthogonal_transformation f"
-  let ?U = "UNIV :: 'n set"
-  have fU: "finite ?U" by simp
-  let ?m1 = "mat 1 :: real ^'n^'n"
-  {
-    assume ot: ?ot
-    from ot have lf: "Vector_Spaces.linear (*s) (*s) f" and fd: "\<And>v w. f v \<bullet> f w = v \<bullet> w"
-      unfolding orthogonal_transformation_def orthogonal_matrix linear_def scalar_mult_eq_scaleR
-      by blast+
-    {
-      fix i j
-      let ?A = "transpose ?mf ** ?mf"
-      have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
-        "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
-        by simp_all
-      from fd[of "axis i 1" "axis j 1",
-        simplified matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
-      have "?A$i$j = ?m1 $ i $ j"
-        by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def
-            th0 sum.delta[OF fU] mat_def axis_def)
-    }
-    then have "orthogonal_matrix ?mf"
-      unfolding orthogonal_matrix
-      by vector
-    with lf have ?rhs
-      unfolding linear_def scalar_mult_eq_scaleR
-      by blast
-  }
-  moreover
-  {
-    assume lf: "Vector_Spaces.linear (*s) (*s) f" and om: "orthogonal_matrix ?mf"
-    from lf om have ?lhs
-      unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
-      apply (simp only: matrix_works[OF lf, symmetric] dot_matrix_vector_mul)
-      apply (simp add: dot_matrix_product linear_def scalar_mult_eq_scaleR)
-      done
-  }
-  ultimately show ?thesis
-    by (auto simp: linear_def scalar_mult_eq_scaleR)
-qed
-
-lemma%important  det_orthogonal_matrix:
-  fixes Q:: "'a::linordered_idom^'n^'n"
-  assumes oQ: "orthogonal_matrix Q"
-  shows "det Q = 1 \<or> det Q = - 1"
-proof%unimportant -
-  have "Q ** transpose Q = mat 1"
-    by (metis oQ orthogonal_matrix_def)
-  then have "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)"
-    by simp
-  then have "det Q * det Q = 1"
-    by (simp add: det_mul)
-  then show ?thesis
-    by (simp add: square_eq_1_iff)
-qed
-
-lemma%important  orthogonal_transformation_det [simp]:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
-  using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
-
-
-subsection%important  \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
-
-lemma%important  scaling_linear:
-  fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
-  assumes f0: "f 0 = 0"
-    and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
-  shows "linear f"
-proof%unimportant -
-  {
-    fix v w
-    have "norm (f x) = c * norm x" for x
-      by (metis dist_0_norm f0 fd)
-    then have "f v \<bullet> f w = c\<^sup>2 * (v \<bullet> w)"
-      unfolding dot_norm_neg dist_norm[symmetric]
-      by (simp add: fd power2_eq_square field_simps)
-  }
-  then show ?thesis
-    unfolding linear_iff vector_eq[where 'a="'a"] scalar_mult_eq_scaleR
-    by (simp add: inner_add field_simps)
-qed
-
-lemma%unimportant  isometry_linear:
-  "f (0::'a::real_inner) = (0::'a) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
-  by (rule scaling_linear[where c=1]) simp_all
-
-text \<open>Hence another formulation of orthogonal transformation\<close>
-
-lemma%important  orthogonal_transformation_isometry:
-  "orthogonal_transformation f \<longleftrightarrow> f(0::'a::real_inner) = (0::'a) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
-  unfolding orthogonal_transformation
-  apply (auto simp: linear_0 isometry_linear)
-   apply (metis (no_types, hide_lams) dist_norm linear_diff)
-  by (metis dist_0_norm)
-
-
-lemma%unimportant  image_orthogonal_transformation_ball:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "orthogonal_transformation f"
-  shows "f ` ball x r = ball (f x) r"
-proof (intro equalityI subsetI)
-  fix y assume "y \<in> f ` ball x r"
-  with assms show "y \<in> ball (f x) r"
-    by (auto simp: orthogonal_transformation_isometry)
-next
-  fix y assume y: "y \<in> ball (f x) r"
-  then obtain z where z: "y = f z"
-    using assms orthogonal_transformation_surj by blast
-  with y assms show "y \<in> f ` ball x r"
-    by (auto simp: orthogonal_transformation_isometry)
-qed
-
-lemma%unimportant  image_orthogonal_transformation_cball:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "orthogonal_transformation f"
-  shows "f ` cball x r = cball (f x) r"
-proof (intro equalityI subsetI)
-  fix y assume "y \<in> f ` cball x r"
-  with assms show "y \<in> cball (f x) r"
-    by (auto simp: orthogonal_transformation_isometry)
-next
-  fix y assume y: "y \<in> cball (f x) r"
-  then obtain z where z: "y = f z"
-    using assms orthogonal_transformation_surj by blast
-  with y assms show "y \<in> f ` cball x r"
-    by (auto simp: orthogonal_transformation_isometry)
-qed
-
-subsection%important \<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
-
-lemma%unimportant  orthogonal_matrix_transpose [simp]:
-     "orthogonal_matrix(transpose A) \<longleftrightarrow> orthogonal_matrix A"
-  by (auto simp: orthogonal_matrix_def)
-
-lemma%unimportant  orthogonal_matrix_orthonormal_columns:
-  fixes A :: "real^'n^'n"
-  shows "orthogonal_matrix A \<longleftrightarrow>
-          (\<forall>i. norm(column i A) = 1) \<and>
-          (\<forall>i j. i \<noteq> j \<longrightarrow> orthogonal (column i A) (column j A))"
-  by (auto simp: orthogonal_matrix matrix_mult_transpose_dot_column vec_eq_iff mat_def norm_eq_1 orthogonal_def)
-
-lemma%unimportant  orthogonal_matrix_orthonormal_rows:
-  fixes A :: "real^'n^'n"
-  shows "orthogonal_matrix A \<longleftrightarrow>
-          (\<forall>i. norm(row i A) = 1) \<and>
-          (\<forall>i j. i \<noteq> j \<longrightarrow> orthogonal (row i A) (row j A))"
-  using orthogonal_matrix_orthonormal_columns [of "transpose A"] by simp
-
-lemma%important  orthogonal_matrix_exists_basis:
-  fixes a :: "real^'n"
-  assumes "norm a = 1"
-  obtains A where "orthogonal_matrix A" "A *v (axis k 1) = a"
-proof%unimportant -
-  obtain S where "a \<in> S" "pairwise orthogonal S" and noS: "\<And>x. x \<in> S \<Longrightarrow> norm x = 1"
-   and "independent S" "card S = CARD('n)" "span S = UNIV"
-    using vector_in_orthonormal_basis assms by force
-  then obtain f0 where "bij_betw f0 (UNIV::'n set) S"
-    by (metis finite_class.finite_UNIV finite_same_card_bij finiteI_independent)
-  then obtain f where f: "bij_betw f (UNIV::'n set) S" and a: "a = f k"
-    using bij_swap_iff [of k "inv f0 a" f0]
-    by (metis UNIV_I \<open>a \<in> S\<close> bij_betw_inv_into_right bij_betw_swap_iff swap_apply1)
-  show thesis
-  proof
-    have [simp]: "\<And>i. norm (f i) = 1"
-      using bij_betwE [OF \<open>bij_betw f UNIV S\<close>] by (blast intro: noS)
-    have [simp]: "\<And>i j. i \<noteq> j \<Longrightarrow> orthogonal (f i) (f j)"
-      using \<open>pairwise orthogonal S\<close> \<open>bij_betw f UNIV S\<close>
-      by (auto simp: pairwise_def bij_betw_def inj_on_def)
-    show "orthogonal_matrix (\<chi> i j. f j $ i)"
-      by (simp add: orthogonal_matrix_orthonormal_columns column_def)
-    show "(\<chi> i j. f j $ i) *v axis k 1 = a"
-      by (simp add: matrix_vector_mult_def axis_def a if_distrib cong: if_cong)
-  qed
-qed
-
-lemma%unimportant  orthogonal_transformation_exists_1:
-  fixes a b :: "real^'n"
-  assumes "norm a = 1" "norm b = 1"
-  obtains f where "orthogonal_transformation f" "f a = b"
-proof%unimportant -
-  obtain k::'n where True
-    by simp
-  obtain A B where AB: "orthogonal_matrix A" "orthogonal_matrix B" and eq: "A *v (axis k 1) = a" "B *v (axis k 1) = b"
-    using orthogonal_matrix_exists_basis assms by metis
-  let ?f = "\<lambda>x. (B ** transpose A) *v x"
-  show thesis
-  proof
-    show "orthogonal_transformation ?f"
-      by (subst orthogonal_transformation_matrix)
-        (auto simp: AB orthogonal_matrix_mul)
-  next
-    show "?f a = b"
-      using \<open>orthogonal_matrix A\<close> unfolding orthogonal_matrix_def
-      by (metis eq matrix_mul_rid matrix_vector_mul_assoc)
-  qed
-qed
-
-lemma%important  orthogonal_transformation_exists:
-  fixes a b :: "real^'n"
-  assumes "norm a = norm b"
-  obtains f where "orthogonal_transformation f" "f a = b"
-proof%unimportant (cases "a = 0 \<or> b = 0")
-  case True
-  with assms show ?thesis
-    using that by force
-next
-  case False
-  then obtain f where f: "orthogonal_transformation f" and eq: "f (a /\<^sub>R norm a) = (b /\<^sub>R norm b)"
-    by (auto intro: orthogonal_transformation_exists_1 [of "a /\<^sub>R norm a" "b /\<^sub>R norm b"])
-  show ?thesis
-  proof
-    interpret linear f
-      using f by (simp add: orthogonal_transformation_linear)
-    have "f a /\<^sub>R norm a = f (a /\<^sub>R norm a)"
-      by (simp add: scale)
-    also have "\<dots> = b /\<^sub>R norm a"
-      by (simp add: eq assms [symmetric])
-    finally show "f a = b"
-      using False by auto
-  qed (use f in auto)
-qed
-
-
-subsection%important  \<open>Can extend an isometry from unit sphere\<close>
-
-lemma%important  isometry_sphere_extend:
-  fixes f:: "'a::real_inner \<Rightarrow> 'a"
-  assumes f1: "\<And>x. norm x = 1 \<Longrightarrow> norm (f x) = 1"
-    and fd1: "\<And>x y. \<lbrakk>norm x = 1; norm y = 1\<rbrakk> \<Longrightarrow> dist (f x) (f y) = dist x y"
-  shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
-proof%unimportant -
-  {
-    fix x y x' y' u v u' v' :: "'a"
-    assume H: "x = norm x *\<^sub>R u" "y = norm y *\<^sub>R v"
-              "x' = norm x *\<^sub>R u'" "y' = norm y *\<^sub>R v'"
-      and J: "norm u = 1" "norm u' = 1" "norm v = 1" "norm v' = 1" "norm(u' - v') = norm(u - v)"
-    then have *: "u \<bullet> v = u' \<bullet> v' + v' \<bullet> u' - v \<bullet> u "
-      by (simp add: norm_eq norm_eq_1 inner_add inner_diff)
-    have "norm (norm x *\<^sub>R u' - norm y *\<^sub>R v') = norm (norm x *\<^sub>R u - norm y *\<^sub>R v)"
-      using J by (simp add: norm_eq norm_eq_1 inner_diff * field_simps)
-    then have "norm(x' - y') = norm(x - y)"
-      using H by metis
-  }
-  note norm_eq = this
-  let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (x /\<^sub>R norm x)"
-  have thfg: "?g x = f x" if "norm x = 1" for x
-    using that by auto
-  have thd: "dist (?g x) (?g y) = dist x y" for x y
-  proof (cases "x=0 \<or> y=0")
-    case False
-    show "dist (?g x) (?g y) = dist x y"
-      unfolding dist_norm
-    proof (rule norm_eq)
-      show "x = norm x *\<^sub>R (x /\<^sub>R norm x)" "y = norm y *\<^sub>R (y /\<^sub>R norm y)"
-           "norm (f (x /\<^sub>R norm x)) = 1" "norm (f (y /\<^sub>R norm y)) = 1"
-        using False f1 by auto
-    qed (use False in \<open>auto simp: field_simps intro: f1 fd1[unfolded dist_norm]\<close>)
-  qed (auto simp: f1)
-  show ?thesis
-    unfolding orthogonal_transformation_isometry
-    by (rule exI[where x= ?g]) (metis thfg thd)
-qed
-
-subsection%important  \<open>Rotation, reflection, rotoinversion\<close>
-
-definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
-definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
-
-lemma%important  orthogonal_rotation_or_rotoinversion:
-  fixes Q :: "'a::linordered_idom^'n^'n"
-  shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
-  by%unimportant (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
-
-text \<open>Explicit formulas for low dimensions\<close>
-
-lemma%unimportant  prod_neutral_const: "prod f {(1::nat)..1} = f 1"
-  by simp
-
-lemma%unimportant  prod_2: "prod f {(1::nat)..2} = f 1 * f 2"
-  by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
-
-lemma%unimportant  prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
-  by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
-
 lemma%unimportant  det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
   by (simp add: det_def sign_id)
 
@@ -1342,6 +976,36 @@ proof -
     by (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
 qed
 
+lemma%important  det_orthogonal_matrix:
+  fixes Q:: "'a::linordered_idom^'n^'n"
+  assumes oQ: "orthogonal_matrix Q"
+  shows "det Q = 1 \<or> det Q = - 1"
+proof%unimportant -
+  have "Q ** transpose Q = mat 1"
+    by (metis oQ orthogonal_matrix_def)
+  then have "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)"
+    by simp
+  then have "det Q * det Q = 1"
+    by (simp add: det_mul)
+  then show ?thesis
+    by (simp add: square_eq_1_iff)
+qed
+
+lemma%important  orthogonal_transformation_det [simp]:
+  fixes f :: "real^'n \<Rightarrow> real^'n"
+  shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
+  using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
+
+subsection%important  \<open>Rotation, reflection, rotoinversion\<close>
+
+definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
+definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
+
+lemma%important  orthogonal_rotation_or_rotoinversion:
+  fixes Q :: "'a::linordered_idom^'n^'n"
+  shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
+  by%unimportant (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
+
 text\<open> Slightly stronger results giving rotation, but only in two or more dimensions\<close>
 
 lemma%unimportant  rotation_matrix_exists_basis:
@@ -1360,8 +1024,10 @@ proof -
     then show ?thesis
       using \<open>A *v axis k 1 = a\<close> that by auto
   next
-    obtain j where "j \<noteq> k"
-      by (metis (full_types) 2 card_2_exists ex_card)
+    from ex_card[OF 2] obtain h i::'n where "h \<noteq> i"
+      by (auto simp add: eval_nat_numeral card_Suc_eq)
+    then obtain j where "j \<noteq> k"
+      by (metis (full_types))
     let ?TA = "transpose A"
     let ?A = "\<chi> i. if i = j then - 1 *\<^sub>R (?TA $ i) else ?TA $i"
     assume "rotoinversion_matrix A"

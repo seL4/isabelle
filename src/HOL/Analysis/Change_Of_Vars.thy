@@ -9,246 +9,42 @@ theory Change_Of_Vars
 
 begin
 
-subsection%important\<open>Induction on matrix row operations\<close>
+subsection%unimportant \<open>Orthogonal Transformation of Balls\<close>
 
-lemma%unimportant induct_matrix_row_operations:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap_cols: "\<And>A m n. \<lbrakk>P A; m \<noteq> n\<rbrakk> \<Longrightarrow> P(\<chi> i j. A $ i $ Fun.swap m n id j)"
-    and row_op: "\<And>A m n c. \<lbrakk>P A; m \<noteq> n\<rbrakk>
-                   \<Longrightarrow> P(\<chi> i. if i = m then row m A + c *\<^sub>R row n A else row i A)"
-  shows "P A"
-proof -
-  have "P A" if "(\<And>i j. \<lbrakk>j \<in> -K;  i \<noteq> j\<rbrakk> \<Longrightarrow> A$i$j = 0)" for A K
-  proof -
-    have "finite K"
-      by simp
-    then show ?thesis using that
-    proof (induction arbitrary: A rule: finite_induct)
-      case empty
-      with diagonal show ?case
-        by simp
-    next
-      case (insert k K)
-      note insertK = insert
-      have "P A" if kk: "A$k$k \<noteq> 0"
-        and 0: "\<And>i j. \<lbrakk>j \<in> - insert k K; i \<noteq> j\<rbrakk> \<Longrightarrow> A$i$j = 0"
-               "\<And>i. \<lbrakk>i \<in> -L; i \<noteq> k\<rbrakk> \<Longrightarrow> A$i$k = 0" for A L
-      proof -
-        have "finite L"
-          by simp
-        then show ?thesis using 0 kk
-        proof (induction arbitrary: A rule: finite_induct)
-          case (empty B)
-          show ?case
-          proof (rule insertK)
-            fix i j
-            assume "i \<in> - K" "j \<noteq> i"
-            show "B $ j $ i = 0"
-              using \<open>j \<noteq> i\<close> \<open>i \<in> - K\<close> empty
-              by (metis ComplD ComplI Compl_eq_Diff_UNIV Diff_empty UNIV_I insert_iff)
-          qed
-        next
-          case (insert l L B)
-          show ?case
-          proof (cases "k = l")
-            case True
-            with insert show ?thesis
-              by auto
-          next
-            case False
-            let ?C = "\<chi> i. if i = l then row l B - (B $ l $ k / B $ k $ k) *\<^sub>R row k B else row i B"
-            have 1: "\<lbrakk>j \<in> - insert k K; i \<noteq> j\<rbrakk> \<Longrightarrow> ?C $ i $ j = 0" for j i
-              by (auto simp: insert.prems(1) row_def)
-            have 2: "?C $ i $ k = 0"
-              if "i \<in> - L" "i \<noteq> k" for i
-            proof (cases "i=l")
-              case True
-              with that insert.prems show ?thesis
-                by (simp add: row_def)
-            next
-              case False
-              with that show ?thesis
-                by (simp add: insert.prems(2) row_def)
-            qed
-            have 3: "?C $ k $ k \<noteq> 0"
-              by (auto simp: insert.prems row_def \<open>k \<noteq> l\<close>)
-            have PC: "P ?C"
-              using insert.IH [OF 1 2 3] by auto
-            have eqB: "(\<chi> i. if i = l then row l ?C + (B $ l $ k / B $ k $ k) *\<^sub>R row k ?C else row i ?C) = B"
-              using \<open>k \<noteq> l\<close> by (simp add: vec_eq_iff row_def)
-            show ?thesis
-              using row_op [OF PC, of l k, where c = "B$l$k / B$k$k"] eqB \<open>k \<noteq> l\<close>
-              by (simp add: cong: if_cong)
-          qed
-        qed
-      qed
-      then have nonzero_hyp: "P A"
-        if kk: "A$k$k \<noteq> 0" and zeroes: "\<And>i j. j \<in> - insert k K \<and> i\<noteq>j \<Longrightarrow> A$i$j = 0" for A
-        by (auto simp: intro!: kk zeroes)
-      show ?case
-      proof (cases "row k A = 0")
-        case True
-        with zero_row show ?thesis by auto
-      next
-        case False
-        then obtain l where l: "A$k$l \<noteq> 0"
-          by (auto simp: row_def zero_vec_def vec_eq_iff)
-        show ?thesis
-        proof (cases "k = l")
-          case True
-          with l nonzero_hyp insert.prems show ?thesis
-            by blast
-        next
-          case False
-          have *: "A $ i $ Fun.swap k l id j = 0" if "j \<noteq> k" "j \<notin> K" "i \<noteq> j" for i j
-            using False l insert.prems that
-            by (auto simp: swap_def insert split: if_split_asm)
-          have "P (\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j)"
-            by (rule swap_cols [OF nonzero_hyp False]) (auto simp: l *)
-          moreover
-          have "(\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j) = A"
-            by (metis (no_types, lifting) id_apply o_apply swap_id_idempotent vec_lambda_unique vec_lambda_unique)
-          ultimately show ?thesis
-            by simp
-        qed
-      qed
-    qed
-  qed
-  then show ?thesis
-    by blast
+lemma%unimportant image_orthogonal_transformation_ball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` ball x r = ball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` ball x r"
+  with assms show "y \<in> ball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> ball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` ball x r"
+    by (auto simp: orthogonal_transformation_isometry)
 qed
 
-lemma%unimportant induct_matrix_elementary:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
-    and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
-    and idplus: "\<And>m n c. m \<noteq> n \<Longrightarrow> P(\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j))"
-  shows "P A"
-proof -
-  have swap: "P (\<chi> i j. A $ i $ Fun.swap m n id j)"  (is "P ?C")
-    if "P A" "m \<noteq> n" for A m n
-  proof -
-    have "A ** (\<chi> i j. mat 1 $ i $ Fun.swap m n id j) = ?C"
-      by (simp add: matrix_matrix_mult_def mat_def vec_eq_iff if_distrib sum.delta_remove)
-    then show ?thesis
-      using mult swap1 that by metis
-  qed
-  have row: "P (\<chi> i. if i = m then row m A + c *\<^sub>R row n A else row i A)"  (is "P ?C")
-    if "P A" "m \<noteq> n" for A m n c
-  proof -
-    let ?B = "\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j)"
-    have "?B ** A = ?C"
-      using \<open>m \<noteq> n\<close> unfolding matrix_matrix_mult_def row_def of_bool_def
-      by (auto simp: vec_eq_iff if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
-    then show ?thesis
-      by (rule subst) (auto simp: that mult idplus)
-  qed
-  show ?thesis
-    by (rule induct_matrix_row_operations [OF zero_row diagonal swap row])
+lemma%unimportant  image_orthogonal_transformation_cball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` cball x r = cball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` cball x r"
+  with assms show "y \<in> cball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> cball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` cball x r"
+    by (auto simp: orthogonal_transformation_isometry)
 qed
 
-lemma%unimportant induct_matrix_elementary_alt:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
-    and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
-    and idplus: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j))"
-  shows "P A"
-proof -
-  have *: "P (\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j))"
-    if "m \<noteq> n" for m n c
-  proof (cases "c = 0")
-    case True
-    with diagonal show ?thesis by auto
-  next
-    case False
-    then have eq: "(\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j)) =
-                      (\<chi> i j. if i = j then (if j = n then inverse c else 1) else 0) **
-                      (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)) **
-                      (\<chi> i j. if i = j then if j = n then c else 1 else 0)"
-      using \<open>m \<noteq> n\<close>
-      apply (simp add: matrix_matrix_mult_def vec_eq_iff of_bool_def if_distrib [of "\<lambda>x. y * x" for y] cong: if_cong)
-      apply (simp add: if_if_eq_conj sum.neutral conj_commute cong: conj_cong)
-      done
-    show ?thesis
-      apply (subst eq)
-      apply (intro mult idplus that)
-       apply (auto intro: diagonal)
-      done
-  qed
-  show ?thesis
-    by (rule induct_matrix_elementary) (auto intro: assms *)
-qed
 
-lemma%unimportant matrix_vector_mult_matrix_matrix_mult_compose:
-  "(*v) (A ** B) = (*v) A \<circ> (*v) B"
-  by (auto simp: matrix_vector_mul_assoc)
-
-lemma%unimportant induct_linear_elementary:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  assumes "linear f"
-    and comp: "\<And>f g. \<lbrakk>linear f; linear g; P f; P g\<rbrakk> \<Longrightarrow> P(f \<circ> g)"
-    and zeroes: "\<And>f i. \<lbrakk>linear f; \<And>x. (f x) $ i = 0\<rbrakk> \<Longrightarrow> P f"
-    and const: "\<And>c. P(\<lambda>x. \<chi> i. c i * x$i)"
-    and swap: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. x $ Fun.swap m n id i)"
-    and idplus: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i)"
-  shows "P f"
-proof -
-  have "P ((*v) A)" for A
-  proof (rule induct_matrix_elementary_alt)
-    fix A B
-    assume "P ((*v) A)" and "P ((*v) B)"
-    then show "P ((*v) (A ** B))"
-      by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose matrix_vector_mul_linear
-          intro!: comp)
-  next
-    fix A :: "real^'n^'n" and i
-    assume "row i A = 0"
-    show "P ((*v) A)"
-      using matrix_vector_mul_linear
-      by (rule zeroes[where i=i])
-        (metis \<open>row i A = 0\<close> inner_zero_left matrix_vector_mul_component row_def vec_lambda_eta)
-  next
-    fix A :: "real^'n^'n"
-    assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"
-    have "A $ i $ i * x $ i = (\<Sum>j\<in>UNIV. A $ i $ j * x $ j)" for x and i :: "'n"
-      by (simp add: 0 comm_monoid_add_class.sum.remove [where x=i])
-    then have "(\<lambda>x. \<chi> i. A $ i $ i * x $ i) = ((*v) A)"
-      by (auto simp: 0 matrix_vector_mult_def)
-    then show "P ((*v) A)"
-      using const [of "\<lambda>i. A $ i $ i"] by simp
-  next
-    fix m n :: "'n"
-    assume "m \<noteq> n"
-    have eq: "(\<Sum>j\<in>UNIV. if i = Fun.swap m n id j then x $ j else 0) =
-              (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
-      for i and x :: "real^'n"
-      unfolding swap_def by (rule sum.cong) auto
-    have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = ((*v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
-      by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"
-      by (simp add: mat_def matrix_vector_mult_def)
-  next
-    fix m n :: "'n"
-    assume "m \<noteq> n"
-    then have "x $ m + x $ n = (\<Sum>j\<in>UNIV. of_bool (j = n \<or> m = j) * x $ j)" for x :: "real^'n"
-      by (auto simp: of_bool_def if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
-    then have "(\<lambda>x::real^'n. \<chi> i. if i = m then x $ m + x $ n else x $ i) =
-               ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
-      unfolding matrix_vector_mult_def of_bool_def
-      by (auto simp: vec_eq_iff if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    then show "P ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
-      using idplus [OF \<open>m \<noteq> n\<close>] by simp
-  qed
-  then show ?thesis
-    by (metis \<open>linear f\<close> matrix_vector_mul)
-qed
-
+subsection \<open>Measurable Shear and Stretch\<close>
 
 proposition%important
   fixes a :: "real^'n"
