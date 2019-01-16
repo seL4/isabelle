@@ -76,7 +76,8 @@ text \<open>
     ;
     document_files: @'document_files' ('(' dir ')')? (@{syntax embedded}+)
     ;
-    export_files: @'export_files' ('(' dir ')')? (@{syntax embedded}+)
+    export_files: @'export_files' ('(' dir ')')? ('[' nat ']')? \<newline>
+      (@{syntax embedded}+)
   \<close>
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
@@ -143,11 +144,14 @@ text \<open>
   original directory hierarchy of \<open>base_dir\<close>. The default \<open>base_dir\<close> is
   \<^verbatim>\<open>document\<close> within the session root directory.
 
-  \<^descr> \isakeyword{export_files}~\<open>(\<close>\isakeyword{in}~\<open>target_dir) patterns\<close> writes
-  theory exports to the file-system: the \<open>target_dir\<close> specification is
-  relative to the session root directory; its default is \<^verbatim>\<open>export\<close>. Exports
-  are selected via \<open>patterns\<close> as in @{tool_ref export}
-  (\secref{sec:tool-export}).
+  \<^descr> \isakeyword{export_files}~\<open>(\<close>\isakeyword{in}~\<open>target_dir) [number]
+  patterns\<close> writes theory exports to the file-system: the \<open>target_dir\<close>
+  specification is relative to the session root directory; its default is
+  \<^verbatim>\<open>export\<close>. Exports are selected via \<open>patterns\<close> as in @{tool_ref export}
+  (\secref{sec:tool-export}). The number given in brackets (default: 0)
+  specifies elements that should be pruned from each name: it allows to reduce
+  the resulting directory hierarchy at the danger of overwriting files due to
+  loss of uniqueness.
 \<close>
 
 
@@ -563,6 +567,7 @@ text \<open>
     -l           list exports
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p NUM       prune path of exported files by NUM elements
     -s           system build mode for session image
     -x PATTERN   extract files matching pattern (e.g.\ "*:**" for all)
 
@@ -594,6 +599,10 @@ text \<open>
   Option \<^verbatim>\<open>-O\<close> specifies an alternative output directory for option \<^verbatim>\<open>-x\<close>: the
   default is \<^verbatim>\<open>export\<close> within the current directory. Each theory creates its
   own sub-directory hierarchy, using the session-qualified theory name.
+
+  Option \<^verbatim>\<open>-p\<close> specifies the number of elements that should be pruned from
+  each name: it allows to reduce the resulting directory hierarchy at the
+  danger of overwriting files due to loss of uniqueness.
 \<close>
 
 

@@ -515,7 +515,7 @@ object Sessions
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
     document_files: List[(Path, Path)],
-    export_files: List[(Path, List[String])],
+    export_files: List[(Path, Int, List[String])],
     meta_digest: SHA1.Digest)
   {
     def deps: List[String] = parent.toList ::: imports
@@ -568,7 +568,7 @@ object Sessions
         entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
       val export_files =
-        entry.export_files.map({ case (dir, pats) => (Path.explode(dir), pats) })
+        entry.export_files.map({ case (dir, prune, pats) => (Path.explode(dir), prune, pats) })
 
       val meta_digest =
         SHA1.digest((name, chapter, entry.parent, entry.options, entry.imports,
@@ -831,7 +831,7 @@ object Sessions
     imports: List[String],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_files: List[(String, String)],
-    export_files: List[(String, List[String])]) extends Entry
+    export_files: List[(String, Int, List[String])]) extends Entry
   {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
@@ -870,9 +870,11 @@ object Sessions
         $$$(DOCUMENT_FILES) ~!
           ((in_path | success("document")) ~ rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
+      val prune = $$$("[") ~! (nat ~ $$$("]")) ^^ { case _ ~ (x ~ _) => x } | success(0)
+
       val export_files =
-        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ rep1(embedded)) ^^
-          { case _ ~ (x ~ y) => (x, y) }
+        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ prune ~ rep1(embedded)) ^^
+          { case _ ~ (x ~ y ~ z) => (x, y, z) }
 
       command(SESSION) ~!
         (position(session_name) ~
