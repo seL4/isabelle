@@ -14,6 +14,7 @@ sig
   val root: T
   val named_root: string -> T
   val parent: T
+  val make: string list -> T
   val basic: string -> T
   val variable: string -> T
   val has_parent: T -> bool
@@ -22,7 +23,6 @@ sig
   val starts_basic: T -> bool
   val append: T -> T -> T
   val appends: T list -> T
-  val make: string list -> T
   val implode: T -> string
   val explode: string -> T
   val decode: T XML.Decode.T
@@ -88,6 +88,7 @@ fun is_current (Path []) = true
 val current = Path [];
 val root = Path [Root ""];
 fun named_root s = Path [root_elem s];
+val make = Path o rev o map basic_elem;
 fun basic s = Path [basic_elem s];
 fun variable s = Path [variable_elem s];
 val parent = Path [Parent];
@@ -117,7 +118,6 @@ fun apply (y as Root _) _ = [y]
 
 fun append (Path xs) (Path ys) = Path (fold_rev apply ys xs);
 fun appends paths = Library.foldl (uncurry append) (current, paths);
-val make = appends o map basic;
 
 fun norm elems = fold_rev apply elems [];
 

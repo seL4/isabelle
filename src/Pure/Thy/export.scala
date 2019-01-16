@@ -259,6 +259,7 @@ object Export
     session_name: String,
     export_dir: Path,
     progress: Progress = No_Progress,
+    export_prune: Int = 0,
     export_list: Boolean = false,
     export_patterns: List[String] = Nil,
     export_prefix: String = "")
@@ -287,7 +288,13 @@ object Export
             name <- group.map(_._2).sorted
             entry <- read_entry(db, session_name, theory_name, name)
           } {
-            val path = export_dir + Path.basic(theory_name) + Path.explode(name)
+            val elems = theory_name :: space_explode('/', name)
+            val path =
+              if (elems.length < export_prune + 1) {
+                error("Cannot prune path by " + export_prune + " element(s): " + Path.make(elems))
+              }
+              else export_dir + Path.make(elems.drop(export_prune))
+
             progress.echo(export_prefix + "export " + path)
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
@@ -311,6 +318,7 @@ object Export
     var export_list = false
     var no_build = false
     var options = Options.init()
+    var export_prune = 0
     var system_mode = false
     var export_patterns: List[String] = Nil
 
@@ -323,6 +331,7 @@ Usage: isabelle export [OPTIONS] SESSION
     -l           list exports
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p NUM       prune path of exported files by NUM elements
     -s           system build mode for session image
     -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
 
@@ -338,6 +347,7 @@ Usage: isabelle export [OPTIONS] SESSION
       "l" -> (_ => export_list = true),
       "n" -> (_ => no_build = true),
       "o:" -> (arg => options = options + arg),
+      "p:" -> (arg => export_prune = Value.Int.parse(arg)),
       "s" -> (_ => system_mode = true),
       "x:" -> (arg => export_patterns ::= arg))
 
@@ -366,7 +376,7 @@ Usage: isabelle export [OPTIONS] SESSION
     /* export files */
 
     val store = Sessions.store(options, system_mode)
-    export_files(store, session_name, export_dir, progress = progress,
+    export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
       export_list = export_list, export_patterns = export_patterns)
   })
 }

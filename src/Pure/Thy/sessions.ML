@@ -35,9 +35,13 @@ val document_files =
     Parse.!!! (Scan.optional in_path ("document", Position.none)
       -- Scan.repeat1 (Parse.position Parse.path));
 
+val prune =
+  Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.nat --| Parse.$$$ "]")) 0;
+
 val export_files =
   Parse.$$$ "export_files" |--
-    Parse.!!! (Scan.optional in_path ("export", Position.none) -- Scan.repeat1 Parse.embedded);
+    Parse.!!!
+      (Scan.optional in_path ("export", Position.none) -- prune -- Scan.repeat1 Parse.embedded);
 
 in
 
@@ -95,7 +99,7 @@ val command_parser =
             in () end);
 
         val _ =
-          export_files |> List.app (fn (export_dir, _) =>
+          export_files |> List.app (fn ((export_dir, _), _) =>
             ignore (Resources.check_path ctxt session_dir export_dir));
       in () end));
 
