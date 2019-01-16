@@ -45,12 +45,60 @@ lemma card_bit1 [simp]: "CARD('a bit1) = Suc (2 * CARD('a::finite))"
   unfolding type_definition.card [OF type_definition_bit1]
   by simp
 
+subsection \<open>@{typ num1}\<close>
+
 instance num1 :: finite
 proof
   show "finite (UNIV::num1 set)"
     unfolding type_definition.univ [OF type_definition_num1]
     using finite by (rule finite_imageI)
 qed
+
+instantiation num1 :: CARD_1
+begin
+
+instance
+proof
+  show "CARD(num1) = 1" by auto
+qed
+
+end
+
+lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
+  by (induct x, induct y) simp
+
+instantiation num1 :: "{comm_ring,comm_monoid_mult,numeral}"
+begin
+
+instance
+  by standard (simp_all add: num1_eq_iff)
+
+end
+
+lemma num1_eqI:
+  fixes a::num1 shows "a = b"
+by(simp add: num1_eq_iff)
+
+lemma num1_eq1 [simp]:
+  fixes a::num1 shows "a = 1"
+  by (rule num1_eqI)
+
+lemma forall_1[simp]: "(\<forall>i::num1. P i) \<longleftrightarrow> P 1"
+  by (metis (full_types) num1_eq_iff)
+
+lemma ex_1[simp]: "(\<exists>x::num1. P x) \<longleftrightarrow> P 1"
+  by auto (metis (full_types) num1_eq_iff)
+
+instantiation num1 :: linorder begin
+definition "a < b \<longleftrightarrow> Rep_num1 a < Rep_num1 b"
+definition "a \<le> b \<longleftrightarrow> Rep_num1 a \<le> Rep_num1 b"
+instance
+  by intro_classes (auto simp: less_eq_num1_def less_num1_def intro: num1_eqI)
+end
+
+instance num1 :: wellorder
+  by intro_classes (auto simp: less_eq_num1_def less_num1_def)
+
 
 instance bit0 :: (finite) card2
 proof
@@ -184,17 +232,6 @@ text \<open>
   Unfortunately \<open>ring_1\<close> instance is not possible for
   \<^typ>\<open>num1\<close>, since 0 and 1 are not distinct.
 \<close>
-
-instantiation num1 :: "{comm_ring,comm_monoid_mult,numeral}"
-begin
-
-lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
-  by (induct x, induct y) simp
-
-instance
-  by standard (simp_all add: num1_eq_iff)
-
-end
 
 instantiation
   bit0 and bit1 :: (finite) "{zero,one,plus,times,uminus,minus}"
@@ -350,8 +387,7 @@ definition "enum_class.enum_all P = P (1 :: num1)"
 definition "enum_class.enum_ex P = P (1 :: num1)"
 instance
   by intro_classes
-     (auto simp add: enum_num1_def enum_all_num1_def enum_ex_num1_def num1_eq_iff Ball_def,
-      (metis (full_types) num1_eq_iff)+)
+     (auto simp add: enum_num1_def enum_all_num1_def enum_ex_num1_def num1_eq_iff Ball_def)
 end
 
 instantiation num0 and num1 :: card_UNIV begin

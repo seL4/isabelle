@@ -7,9 +7,9 @@ Generated source files for other languages: with antiquotations, without Isabell
 signature GENERATED_FILES =
 sig
   val add_files: (Path.T * Position.T) * string -> theory -> theory
-  val get_files: theory -> (Path.T * string) list
-  val write_files: theory -> Path.T -> Path.T list
-  val export_files: theory -> Path.T list
+  val get_files: theory -> {path: Path.T, pos: Position.T, text: string} list
+  val write_files: theory -> Path.T -> (Path.T * Position.T) list
+  val export_files: theory -> theory list -> (Path.T * Position.T) list
   type file_type =
     {name: string, ext: string, make_comment: string -> string, make_string: string -> string}
   val file_type:
@@ -67,18 +67,21 @@ fun add_files ((path0, pos), text) =
       | NONE => (path, (pos, text)) :: files))
   end;
 
-val get_files = map (apsnd #2) o rev o #1 o Data.get;
+val get_files =
+  map (fn (path, (pos, text)) => {path = path, pos = pos, text = text}) o rev o #1 o Data.get;
 
 fun write_files thy dir =
-  get_files thy |> map (fn (path, text) =>
+  get_files thy |> map (fn {path, pos, text} =>
     let
       val path' = Path.expand (Path.append dir path);
       val _ = Isabelle_System.mkdirs (Path.dir path');
       val _ = File.generate path' text;
-    in path end);
+    in (path, pos) end);
 
-fun export_files thy =
-  get_files thy |> map (fn (path, text) => (Export.export thy (Path.implode path) [text]; path));
+fun export_files thy other_thys =
+  other_thys |> maps (fn other_thy =>
+    get_files other_thy |> map (fn {path, pos, text} =>
+      (Export.export thy (Path.implode path) [text]; (path, pos))));
 
 
 (* file types *)

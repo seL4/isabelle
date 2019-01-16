@@ -335,9 +335,10 @@ object Build
       Isabelle_System.rm_tree(export_tmp_dir)
 
       if (result1.ok) {
-        for ((dir, pats) <- info.export_files) {
+        for ((dir, prune, pats) <- info.export_files) {
           Export.export_files(store, name, info.dir + dir,
             progress = if (verbose) progress else No_Progress,
+            export_prune = prune,
             export_patterns = pats,
             export_prefix = name + ": ")
         }

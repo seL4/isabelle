@@ -7489,7 +7489,7 @@ lemma integral_component_eq_cart[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> real^'m"
   assumes "f integrable_on s"
   shows "integral s (\<lambda>x. f x $ k) = integral s f $ k"
-  using integral_linear[OF assms(1) bounded_linear_component_cart,unfolded o_def] .
+  using integral_linear[OF assms(1) bounded_linear_vec_nth,unfolded o_def] .
 
 lemma content_closed_interval:
   fixes a :: "'a::ordered_euclidean_space"
