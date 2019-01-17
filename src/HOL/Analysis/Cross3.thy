@@ -7,7 +7,7 @@ Ported from HOL Light
 section\<open>Vector Cross Products in 3 Dimensions\<close>
 
 theory "Cross3"
-  imports Determinants
+  imports Determinants Cartesian_Euclidean_Space
 begin
 
 context includes no_Set_Product_syntax 

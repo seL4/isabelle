@@ -1,5 +1,20 @@
 theory Analysis
-imports
+  imports
+  (* Linear Algebra *)
+  Convex
+  Determinants
+  (* Topology *)
+  Connected
+  (* Functional Analysis *)
+  Elementary_Normed_Spaces
+  Norm_Arith
+  (* Vector Analysis *)
+  Convex_Euclidean_Space
+  (* Measure and Integration Theory *)
+  Ball_Volume
+  Integral_Test
+  Improper_Integral
+  (* Unsorted *)
   Lebesgue_Integral_Substitution
   Improper_Integral
   Embed_Measure

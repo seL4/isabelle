@@ -9,258 +9,51 @@ theory Change_Of_Vars
 
 begin
 
-subsection%important\<open>Induction on matrix row operations\<close>
-(*FIX move first 3 lemmas of subsection to linear algebra, contain technical tools on matrix operations.
-Keep the rest of the subsection contents in this theory but rename the subsection, they refer
-to lebesgue measure
-*)
-lemma induct_matrix_row_operations:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap_cols: "\<And>A m n. \<lbrakk>P A; m \<noteq> n\<rbrakk> \<Longrightarrow> P(\<chi> i j. A $ i $ Fun.swap m n id j)"
-    and row_op: "\<And>A m n c. \<lbrakk>P A; m \<noteq> n\<rbrakk>
-                   \<Longrightarrow> P(\<chi> i. if i = m then row m A + c *\<^sub>R row n A else row i A)"
-  shows "P A"
-proof -
-  have "P A" if "(\<And>i j. \<lbrakk>j \<in> -K;  i \<noteq> j\<rbrakk> \<Longrightarrow> A$i$j = 0)" for A K
-  proof -
-    have "finite K"
-      by simp
-    then show ?thesis using that
-    proof (induction arbitrary: A rule: finite_induct)
-      case empty
-      with diagonal show ?case
-        by simp
-    next
-      case (insert k K)
-      note insertK = insert
-      have "P A" if kk: "A$k$k \<noteq> 0"
-        and 0: "\<And>i j. \<lbrakk>j \<in> - insert k K; i \<noteq> j\<rbrakk> \<Longrightarrow> A$i$j = 0"
-               "\<And>i. \<lbrakk>i \<in> -L; i \<noteq> k\<rbrakk> \<Longrightarrow> A$i$k = 0" for A L
-      proof -
-        have "finite L"
-          by simp
-        then show ?thesis using 0 kk
-        proof (induction arbitrary: A rule: finite_induct)
-          case (empty B)
-          show ?case
-          proof (rule insertK)
-            fix i j
-            assume "i \<in> - K" "j \<noteq> i"
-            show "B $ j $ i = 0"
-              using \<open>j \<noteq> i\<close> \<open>i \<in> - K\<close> empty
-              by (metis ComplD ComplI Compl_eq_Diff_UNIV Diff_empty UNIV_I insert_iff)
-          qed
-        next
-          case (insert l L B)
-          show ?case
-          proof (cases "k = l")
-            case True
-            with insert show ?thesis
-              by auto
-          next
-            case False
-            let ?C = "\<chi> i. if i = l then row l B - (B $ l $ k / B $ k $ k) *\<^sub>R row k B else row i B"
-            have 1: "\<lbrakk>j \<in> - insert k K; i \<noteq> j\<rbrakk> \<Longrightarrow> ?C $ i $ j = 0" for j i
-              by (auto simp: insert.prems(1) row_def)
-            have 2: "?C $ i $ k = 0"
-              if "i \<in> - L" "i \<noteq> k" for i
-            proof (cases "i=l")
-              case True
-              with that insert.prems show ?thesis
-                by (simp add: row_def)
-            next
-              case False
-              with that show ?thesis
-                by (simp add: insert.prems(2) row_def)
-            qed
-            have 3: "?C $ k $ k \<noteq> 0"
-              by (auto simp: insert.prems row_def \<open>k \<noteq> l\<close>)
-            have PC: "P ?C"
-              using insert.IH [OF 1 2 3] by auto
-            have eqB: "(\<chi> i. if i = l then row l ?C + (B $ l $ k / B $ k $ k) *\<^sub>R row k ?C else row i ?C) = B"
-              using \<open>k \<noteq> l\<close> by (simp add: vec_eq_iff row_def)
-            show ?thesis
-              using row_op [OF PC, of l k, where c = "B$l$k / B$k$k"] eqB \<open>k \<noteq> l\<close>
-              by (simp add: cong: if_cong)
-          qed
-        qed
-      qed
-      then have nonzero_hyp: "P A"
-        if kk: "A$k$k \<noteq> 0" and zeroes: "\<And>i j. j \<in> - insert k K \<and> i\<noteq>j \<Longrightarrow> A$i$j = 0" for A
-        by (auto simp: intro!: kk zeroes)
-      show ?case
-      proof (cases "row k A = 0")
-        case True
-        with zero_row show ?thesis by auto
-      next
-        case False
-        then obtain l where l: "A$k$l \<noteq> 0"
-          by (auto simp: row_def zero_vec_def vec_eq_iff)
-        show ?thesis
-        proof (cases "k = l")
-          case True
-          with l nonzero_hyp insert.prems show ?thesis
-            by blast
-        next
-          case False
-          have *: "A $ i $ Fun.swap k l id j = 0" if "j \<noteq> k" "j \<notin> K" "i \<noteq> j" for i j
-            using False l insert.prems that
-            by (auto simp: swap_def insert split: if_split_asm)
-          have "P (\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j)"
-            by (rule swap_cols [OF nonzero_hyp False]) (auto simp: l *)
-          moreover
-          have "(\<chi> i j. (\<chi> i j. A $ i $ Fun.swap k l id j) $ i $ Fun.swap k l id j) = A"
-            by (metis (no_types, lifting) id_apply o_apply swap_id_idempotent vec_lambda_unique vec_lambda_unique)
-          ultimately show ?thesis
-            by simp
-        qed
-      qed
-    qed
-  qed
-  then show ?thesis
-    by blast
+subsection%unimportant \<open>Orthogonal Transformation of Balls\<close>
+
+lemma%unimportant image_orthogonal_transformation_ball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` ball x r = ball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` ball x r"
+  with assms show "y \<in> ball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> ball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` ball x r"
+    by (auto simp: orthogonal_transformation_isometry)
 qed
 
-lemma induct_matrix_elementary:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
-    and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
-    and idplus: "\<And>m n c. m \<noteq> n \<Longrightarrow> P(\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j))"
-  shows "P A"
-proof -
-  have swap: "P (\<chi> i j. A $ i $ Fun.swap m n id j)"  (is "P ?C")
-    if "P A" "m \<noteq> n" for A m n
-  proof -
-    have "A ** (\<chi> i j. mat 1 $ i $ Fun.swap m n id j) = ?C"
-      by (simp add: matrix_matrix_mult_def mat_def vec_eq_iff if_distrib sum.delta_remove)
-    then show ?thesis
-      using mult swap1 that by metis
-  qed
-  have row: "P (\<chi> i. if i = m then row m A + c *\<^sub>R row n A else row i A)"  (is "P ?C")
-    if "P A" "m \<noteq> n" for A m n c
-  proof -
-    let ?B = "\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j)"
-    have "?B ** A = ?C"
-      using \<open>m \<noteq> n\<close> unfolding matrix_matrix_mult_def row_def of_bool_def
-      by (auto simp: vec_eq_iff if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
-    then show ?thesis
-      by (rule subst) (auto simp: that mult idplus)
-  qed
-  show ?thesis
-    by (rule induct_matrix_row_operations [OF zero_row diagonal swap row])
-qed
-
-lemma induct_matrix_elementary_alt:
-  fixes P :: "real^'n^'n \<Rightarrow> bool"
-  assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
-    and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
-    and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
-    and swap1: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. mat 1 $ i $ Fun.swap m n id j)"
-    and idplus: "\<And>m n. m \<noteq> n \<Longrightarrow> P(\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j))"
-  shows "P A"
-proof -
-  have *: "P (\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j))"
-    if "m \<noteq> n" for m n c
-  proof (cases "c = 0")
-    case True
-    with diagonal show ?thesis by auto
-  next
-    case False
-    then have eq: "(\<chi> i j. if i = m \<and> j = n then c else of_bool (i = j)) =
-                      (\<chi> i j. if i = j then (if j = n then inverse c else 1) else 0) **
-                      (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)) **
-                      (\<chi> i j. if i = j then if j = n then c else 1 else 0)"
-      using \<open>m \<noteq> n\<close>
-      apply (simp add: matrix_matrix_mult_def vec_eq_iff of_bool_def if_distrib [of "\<lambda>x. y * x" for y] cong: if_cong)
-      apply (simp add: if_if_eq_conj sum.neutral conj_commute cong: conj_cong)
-      done
-    show ?thesis
-      apply (subst eq)
-      apply (intro mult idplus that)
-       apply (auto intro: diagonal)
-      done
-  qed
-  show ?thesis
-    by (rule induct_matrix_elementary) (auto intro: assms *)
-qed
-
-lemma matrix_vector_mult_matrix_matrix_mult_compose:
-  "(*v) (A ** B) = (*v) A \<circ> (*v) B"
-  by (auto simp: matrix_vector_mul_assoc)
-
-lemma induct_linear_elementary:
-  fixes f :: "real^'n \<Rightarrow> real^'n"
-  assumes "linear f"
-    and comp: "\<And>f g. \<lbrakk>linear f; linear g; P f; P g\<rbrakk> \<Longrightarrow> P(f \<circ> g)"
-    and zeroes: "\<And>f i. \<lbrakk>linear f; \<And>x. (f x) $ i = 0\<rbrakk> \<Longrightarrow> P f"
-    and const: "\<And>c. P(\<lambda>x. \<chi> i. c i * x$i)"
-    and swap: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. x $ Fun.swap m n id i)"
-    and idplus: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i)"
-  shows "P f"
-proof -
-  have "P ((*v) A)" for A
-  proof (rule induct_matrix_elementary_alt)
-    fix A B
-    assume "P ((*v) A)" and "P ((*v) B)"
-    then show "P ((*v) (A ** B))"
-      by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose matrix_vector_mul_linear
-          intro!: comp)
-  next
-    fix A :: "real^'n^'n" and i
-    assume "row i A = 0"
-    show "P ((*v) A)"
-      using matrix_vector_mul_linear
-      by (rule zeroes[where i=i])
-        (metis \<open>row i A = 0\<close> inner_zero_left matrix_vector_mul_component row_def vec_lambda_eta)
-  next
-    fix A :: "real^'n^'n"
-    assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"
-    have "A $ i $ i * x $ i = (\<Sum>j\<in>UNIV. A $ i $ j * x $ j)" for x and i :: "'n"
-      by (simp add: 0 comm_monoid_add_class.sum.remove [where x=i])
-    then have "(\<lambda>x. \<chi> i. A $ i $ i * x $ i) = ((*v) A)"
-      by (auto simp: 0 matrix_vector_mult_def)
-    then show "P ((*v) A)"
-      using const [of "\<lambda>i. A $ i $ i"] by simp
-  next
-    fix m n :: "'n"
-    assume "m \<noteq> n"
-    have eq: "(\<Sum>j\<in>UNIV. if i = Fun.swap m n id j then x $ j else 0) =
-              (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
-      for i and x :: "real^'n"
-      unfolding swap_def by (rule sum.cong) auto
-    have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = ((*v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
-      by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"
-      by (simp add: mat_def matrix_vector_mult_def)
-  next
-    fix m n :: "'n"
-    assume "m \<noteq> n"
-    then have "x $ m + x $ n = (\<Sum>j\<in>UNIV. of_bool (j = n \<or> m = j) * x $ j)" for x :: "real^'n"
-      by (auto simp: of_bool_def if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
-    then have "(\<lambda>x::real^'n. \<chi> i. if i = m then x $ m + x $ n else x $ i) =
-               ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
-      unfolding matrix_vector_mult_def of_bool_def
-      by (auto simp: vec_eq_iff if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    then show "P ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
-      using idplus [OF \<open>m \<noteq> n\<close>] by simp
-  qed
-  then show ?thesis
-    by (metis \<open>linear f\<close> matrix_vector_mul)
+lemma%unimportant  image_orthogonal_transformation_cball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` cball x r = cball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` cball x r"
+  with assms show "y \<in> cball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> cball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` cball x r"
+    by (auto simp: orthogonal_transformation_isometry)
 qed
 
 
-proposition (*FIX needs name *)
+subsection \<open>Measurable Shear and Stretch\<close>
+
+proposition%important
   fixes a :: "real^'n"
   assumes "m \<noteq> n" and ab_ne: "cbox a b \<noteq> {}" and an: "0 \<le> a$n"
   shows measurable_shear_interval: "(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i) ` (cbox a b) \<in> lmeasurable"
        (is  "?f ` _ \<in> _")
    and measure_shear_interval: "measure lebesgue ((\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i) ` cbox a b)
                = measure lebesgue (cbox a b)" (is "?Q")
-proof -
+proof%unimportant -
   have lin: "linear ?f"
     by (rule linearI) (auto simp: plus_vec_def scaleR_vec_def algebra_simps)
   show fab: "?f ` cbox a b \<in> lmeasurable"
@@ -362,13 +155,13 @@ proof -
 qed
 
 
-proposition (*FIX needs name *)
+proposition%important
   fixes S :: "(real^'n) set"
   assumes "S \<in> lmeasurable"
   shows measurable_stretch: "((\<lambda>x. \<chi> k. m k * x$k) ` S) \<in> lmeasurable" (is  "?f ` S \<in> _")
     and measure_stretch: "measure lebesgue ((\<lambda>x. \<chi> k. m k * x$k) ` S) = \<bar>prod m UNIV\<bar> * measure lebesgue S"
     (is "?MEQ")
-proof -
+proof%unimportant -
   have "(?f ` S) \<in> lmeasurable \<and> ?MEQ"
   proof (cases "\<forall>k. m k \<noteq> 0")
     case True
@@ -466,12 +259,12 @@ proof -
 qed
 
 
-proposition (*FIX needs name *)
+proposition%important
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes "linear f" "S \<in> lmeasurable"
   shows measurable_linear_image: "(f ` S) \<in> lmeasurable"
     and measure_linear_image: "measure lebesgue (f ` S) = \<bar>det (matrix f)\<bar> * measure lebesgue S" (is "?Q f S")
-proof -
+proof%unimportant -
   have "\<forall>S \<in> lmeasurable. (f ` S) \<in> lmeasurable \<and> ?Q f S"
   proof (rule induct_linear_elementary [OF \<open>linear f\<close>]; intro ballI)
     fix f g and S :: "(real,'n) vec set"
@@ -614,7 +407,7 @@ proof -
 qed
 
 
-lemma (* needs name *)
+lemma%unimportant
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes f: "orthogonal_transformation f" and S: "S \<in> lmeasurable"
   shows measurable_orthogonal_image: "f ` S \<in> lmeasurable"
@@ -637,10 +430,10 @@ inductive%important fsigma :: "'a::topological_space set \<Rightarrow> bool" whe
 inductive%important gdelta :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
 
-proposition fsigma_Union_compact:
+lemma%important fsigma_Union_compact:
   fixes S :: "'a::{real_normed_vector,heine_borel} set"
   shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV))"
-proof safe
+proof%unimportant safe
   assume "fsigma S"
   then obtain F :: "nat \<Rightarrow> 'a set" where F: "range F \<subseteq> Collect closed" "S = \<Union>(F ` UNIV)"
     by (meson fsigma.cases image_subsetI mem_Collect_eq)
@@ -671,7 +464,7 @@ next
     by (simp add: compact_imp_closed fsigma.intros image_subset_iff)
 qed
 
-lemma gdelta_imp_fsigma: "gdelta S \<Longrightarrow> fsigma (- S)"
+lemma%unimportant gdelta_imp_fsigma: "gdelta S \<Longrightarrow> fsigma (- S)"
 proof (induction rule: gdelta.induct)
   case (1 F)
   have "- \<Inter>(F ` UNIV) = (\<Union>i. -(F i))"
@@ -680,7 +473,7 @@ proof (induction rule: gdelta.induct)
     by (simp add: fsigma.intros closed_Compl 1)
 qed
 
-lemma fsigma_imp_gdelta: "fsigma S \<Longrightarrow> gdelta (- S)"
+lemma%unimportant fsigma_imp_gdelta: "fsigma S \<Longrightarrow> gdelta (- S)"
 proof (induction rule: fsigma.induct)
   case (1 F)
   have "- \<Union>(F ` UNIV) = (\<Inter>i. -(F i))"
@@ -689,11 +482,11 @@ proof (induction rule: fsigma.induct)
     by (simp add: 1 gdelta.intros open_closed)
 qed
 
-lemma gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
+lemma%unimportant gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
   using fsigma_imp_gdelta gdelta_imp_fsigma by force
 
 text\<open>A Lebesgue set is almost an \<open>F_sigma\<close> or \<open>G_delta\<close>.\<close>
-lemma lebesgue_set_almost_fsigma:
+lemma%unimportant lebesgue_set_almost_fsigma:
   assumes "S \<in> sets lebesgue"
   obtains C T where "fsigma C" "negligible T" "C \<union> T = S" "disjnt C T"
 proof -
@@ -728,7 +521,7 @@ proof -
   qed
 qed
 
-lemma lebesgue_set_almost_gdelta:
+lemma%unimportant lebesgue_set_almost_gdelta:
   assumes "S \<in> sets lebesgue"
   obtains C T where "gdelta C" "negligible T" "S \<union> T = C" "disjnt S T"
 proof -
@@ -746,12 +539,12 @@ proof -
 qed
 
 
-proposition measure_semicontinuous_with_hausdist_explicit:
+proposition%important measure_semicontinuous_with_hausdist_explicit:
   assumes "bounded S" and neg: "negligible(frontier S)" and "e > 0"
   obtains d where "d > 0"
                   "\<And>T. \<lbrakk>T \<in> lmeasurable; \<And>y. y \<in> T \<Longrightarrow> \<exists>x. x \<in> S \<and> dist x y < d\<rbrakk>
                         \<Longrightarrow> measure lebesgue T < measure lebesgue S + e"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   with that \<open>e > 0\<close> show ?thesis by force
 next
@@ -815,10 +608,10 @@ next
   qed
 qed
 
-proposition lebesgue_regular_inner:
+proposition%important lebesgue_regular_inner:
  assumes "S \<in> sets lebesgue"
  obtains K C where "negligible K" "\<And>n::nat. compact(C n)" "S = (\<Union>n. C n) \<union> K"
-proof -
+proof%unimportant -
   have "\<exists>T. closed T \<and> T \<subseteq> S \<and> (S - T) \<in> lmeasurable \<and> measure lebesgue (S - T) < (1/2)^n" for n
     using sets_lebesgue_inner_closed assms
     by (metis sets_lebesgue_inner_closed zero_less_divide_1_iff zero_less_numeral zero_less_power)
@@ -868,7 +661,7 @@ proof -
 qed
 
 
-lemma sets_lebesgue_continuous_image:
+lemma%unimportant sets_lebesgue_continuous_image:
   assumes T: "T \<in> sets lebesgue" and contf: "continuous_on S f"
     and negim: "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible(f ` T)" and "T \<subseteq> S"
  shows "f ` T \<in> sets lebesgue"
@@ -893,7 +686,7 @@ proof -
     by (simp add: Teq image_Un image_Union)
 qed
 
-lemma differentiable_image_in_sets_lebesgue:
+lemma%unimportant differentiable_image_in_sets_lebesgue:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes S: "S \<in> sets lebesgue" and dim: "DIM('m) \<le> DIM('n)" and f: "f differentiable_on S"
   shows "f`S \<in> sets lebesgue"
@@ -905,7 +698,7 @@ proof (rule sets_lebesgue_continuous_image [OF S])
     by (auto simp: intro!: negligible_differentiable_image_negligible [OF dim])
 qed auto
 
-lemma sets_lebesgue_on_continuous_image:
+lemma%unimportant sets_lebesgue_on_continuous_image:
   assumes S: "S \<in> sets lebesgue" and X: "X \<in> sets (lebesgue_on S)" and contf: "continuous_on S f"
     and negim: "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible(f ` T)"
   shows "f ` X \<in> sets (lebesgue_on (f ` S))"
@@ -920,7 +713,7 @@ proof -
     by (auto simp: sets_restrict_space_iff)
 qed
 
-lemma differentiable_image_in_sets_lebesgue_on:
+lemma%unimportant differentiable_image_in_sets_lebesgue_on:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes S: "S \<in> sets lebesgue" and X: "X \<in> sets (lebesgue_on S)" and dim: "DIM('m) \<le> DIM('n)"
        and f: "f differentiable_on S"
@@ -934,7 +727,7 @@ proof (rule sets_lebesgue_on_continuous_image [OF S X])
 qed
 
 
-proposition (*FIX needs name *)
+proposition%important
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> lmeasurable"
   and deriv: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
@@ -944,7 +737,7 @@ proposition (*FIX needs name *)
        "f ` S \<in> lmeasurable"
     and measure_bounded_differentiable_image:
        "measure lebesgue (f ` S) \<le> B * measure lebesgue S" (is "?M")
-proof -
+proof%unimportant -
   have "f ` S \<in> lmeasurable \<and> measure lebesgue (f ` S) \<le> B * measure lebesgue S"
   proof (cases "B < 0")
     case True
@@ -1170,13 +963,13 @@ proof -
   then show "f ` S \<in> lmeasurable" ?M by blast+
 qed
 
-proposition (*FIX needs name *)
+lemma%important
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> lmeasurable"
     and deriv: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
     and int: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on S"
   shows m_diff_image_weak: "f ` S \<in> lmeasurable \<and> measure lebesgue (f ` S) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
-proof -
+proof%unimportant -
   let ?\<mu> = "measure lebesgue"
   have aint_S: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on S"
     using int unfolding absolutely_integrable_on_def by auto
@@ -1368,7 +1161,7 @@ proof -
 qed
 
 
-theorem (*FIX needs name *)
+theorem%important
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> sets lebesgue"
     and deriv: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
@@ -1376,7 +1169,7 @@ theorem (*FIX needs name *)
   shows measurable_differentiable_image: "f ` S \<in> lmeasurable"
     and measure_differentiable_image:
        "measure lebesgue (f ` S) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)" (is "?M")
-proof -
+proof%unimportant -
   let ?I = "\<lambda>n::nat. cbox (vec (-n)) (vec n) \<inter> S"
   let ?\<mu> = "measure lebesgue"
   have "x \<in> cbox (vec (- real (nat \<lceil>norm x\<rceil>))) (vec (real (nat \<lceil>norm x\<rceil>)))" for x :: "real^'n::_"
@@ -1421,7 +1214,7 @@ proof -
 qed
 
 
-lemma borel_measurable_simple_function_limit_increasing:
+lemma%unimportant borel_measurable_simple_function_limit_increasing:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   shows "(f \<in> borel_measurable lebesgue \<and> (\<forall>x. 0 \<le> f x)) \<longleftrightarrow>
          (\<exists>g. (\<forall>n x. 0 \<le> g n x \<and> g n x \<le> f x) \<and> (\<forall>n x. g n x \<le> (g(Suc n) x)) \<and>
@@ -1620,7 +1413,7 @@ qed
 
 subsection%important\<open>Borel measurable Jacobian determinant\<close>
 
-lemma lemma_partial_derivatives0:
+lemma%unimportant lemma_partial_derivatives0:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" and lim0: "((\<lambda>x. f x /\<^sub>R norm x) \<longlongrightarrow> 0) (at 0 within S)"
     and lb: "\<And>v. v \<noteq> 0 \<Longrightarrow> (\<exists>k>0. \<forall>e>0. \<exists>x. x \<in> S - {0} \<and> norm x < e \<and> k * norm x \<le> \<bar>v \<bullet> x\<bar>)"
@@ -1693,7 +1486,7 @@ proof -
         mem_Collect_eq module_hom_zero span_base span_raw_def)
 qed
 
-lemma lemma_partial_derivatives:
+lemma%unimportant lemma_partial_derivatives:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" and lim: "((\<lambda>x. f (x - a) /\<^sub>R norm (x - a)) \<longlongrightarrow> 0) (at a within S)"
     and lb: "\<And>v. v \<noteq> 0 \<Longrightarrow> (\<exists>k>0.  \<forall>e>0. \<exists>x \<in> S - {a}. norm(a - x) < e \<and> k * norm(a - x) \<le> \<bar>v \<bullet> (x - a)\<bar>)"
@@ -1711,12 +1504,12 @@ proof -
 qed
 
 
-proposition borel_measurable_partial_derivatives:
+proposition%important borel_measurable_partial_derivatives:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n"
   assumes S: "S \<in> sets lebesgue"
     and f: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
   shows "(\<lambda>x. (matrix(f' x)$m$n)) \<in> borel_measurable (lebesgue_on S)"
-proof -
+proof%unimportant -
   have contf: "continuous_on S f"
     using continuous_on_eq_continuous_within f has_derivative_continuous by blast
   have "{x \<in> S.  (matrix (f' x)$m$n) \<le> b} \<in> sets lebesgue" for b
@@ -2302,7 +2095,7 @@ proof -
 qed
 
 
-theorem borel_measurable_det_Jacobian:
+theorem%important borel_measurable_det_Jacobian:
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> sets lebesgue" and f: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
   shows "(\<lambda>x. det(matrix(f' x))) \<in> borel_measurable (lebesgue_on S)"
@@ -2316,7 +2109,7 @@ lemma%important borel_measurable_lebesgue_on_preimage_borel:
   assumes "S \<in> sets lebesgue"
   shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
          (\<forall>T. T \<in> sets borel \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets lebesgue)"
-proof -
+proof%unimportant -
   have "{x. (if x \<in> S then f x else 0) \<in> T} \<in> sets lebesgue \<longleftrightarrow> {x \<in> S. f x \<in> T} \<in> sets lebesgue"
          if "T \<in> sets borel" for T
     proof (cases "0 \<in> T")
@@ -2338,7 +2131,7 @@ proof -
       by blast
 qed
 
-lemma sets_lebesgue_almost_borel:
+lemma%unimportant sets_lebesgue_almost_borel:
   assumes "S \<in> sets lebesgue"
   obtains B N where "B \<in> sets borel" "negligible N" "B \<union> N = S"
 proof -
@@ -2348,7 +2141,7 @@ proof -
     by (metis negligible_iff_null_sets negligible_subset null_sets_completionI that)
 qed
 
-lemma double_lebesgue_sets:
+lemma%unimportant double_lebesgue_sets:
  assumes S: "S \<in> sets lebesgue" and T: "T \<in> sets lebesgue" and fim: "f ` S \<subseteq> T"
  shows "(\<forall>U. U \<in> sets lebesgue \<and> U \<subseteq> T \<longrightarrow> {x \<in> S. f x \<in> U} \<in> sets lebesgue) \<longleftrightarrow>
           f \<in> borel_measurable (lebesgue_on S) \<and>
@@ -2393,7 +2186,7 @@ qed
 
 subsection%important\<open>Simplest case of Sard's theorem (we don't need continuity of derivative)\<close>
 
-lemma Sard_lemma00:
+lemma%important Sard_lemma00:
   fixes P :: "'b::euclidean_space set"
   assumes "a \<ge> 0" and a: "a *\<^sub>R i \<noteq> 0" and i: "i \<in> Basis"
     and P: "P \<subseteq> {x. a *\<^sub>R i \<bullet> x = 0}"
@@ -2401,7 +2194,7 @@ lemma Sard_lemma00:
  obtains S where "S \<in> lmeasurable"
             and "{z. norm z \<le> m \<and> (\<exists>t \<in> P. norm(z - t) \<le> e)} \<subseteq> S"
             and "measure lebesgue S \<le> (2 * e) * (2 * m) ^ (DIM('b) - 1)"
-proof -
+proof%unimportant -
   have "a > 0"
     using assms by simp
   let ?v = "(\<Sum>j\<in>Basis. (if j = i then e else m) *\<^sub>R j)"
@@ -2429,7 +2222,7 @@ proof -
 qed
 
 text\<open>As above, but reorienting the vector (HOL Light's @text{GEOM\_BASIS\_MULTIPLE\_TAC})\<close>
-lemma Sard_lemma0:
+lemma%unimportant Sard_lemma0:
   fixes P :: "(real^'n::{finite,wellorder}) set"
   assumes "a \<noteq> 0"
     and P: "P \<subseteq> {x. a \<bullet> x = 0}" and "0 \<le> m" "0 \<le> e"
@@ -2489,13 +2282,13 @@ proof -
 qed
 
 text\<open>As above, but translating the sets (HOL Light's @text{GEN\_GEOM\_ORIGIN\_TAC})\<close>
-lemma Sard_lemma1:
+lemma%important Sard_lemma1:
   fixes P :: "(real^'n::{finite,wellorder}) set"
    assumes P: "dim P < CARD('n)" and "0 \<le> m" "0 \<le> e"
  obtains S where "S \<in> lmeasurable"
             and "{z. norm(z - w) \<le> m \<and> (\<exists>t \<in> P. norm(z - w - t) \<le> e)} \<subseteq> S"
             and "measure lebesgue S \<le> (2 * e) * (2 * m) ^ (CARD('n) - 1)"
-proof -
+proof%unimportant -
   obtain a where "a \<noteq> 0" "P \<subseteq> {x. a \<bullet> x = 0}"
     using lowdim_subset_hyperplane [of P] P span_base by auto
   then obtain S where S: "S \<in> lmeasurable"
@@ -2513,7 +2306,7 @@ proof -
   qed
 qed
 
-lemma Sard_lemma2:
+lemma%important Sard_lemma2:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n::{finite,wellorder}"
   assumes mlen: "CARD('m) \<le> CARD('n)" (is "?m \<le> ?n")
     and "B > 0" "bounded S"
@@ -2521,7 +2314,7 @@ lemma Sard_lemma2:
     and rank: "\<And>x. x \<in> S \<Longrightarrow> rank(matrix(f' x)) < CARD('n)"
     and B: "\<And>x. x \<in> S \<Longrightarrow> onorm(f' x) \<le> B"
   shows "negligible(f ` S)"
-proof -
+proof%unimportant -
   have lin_f': "\<And>x. x \<in> S \<Longrightarrow> linear(f' x)"
     using derS has_derivative_linear by blast
   show ?thesis
@@ -2728,13 +2521,13 @@ proof -
 qed
 
 
-theorem baby_Sard:
+theorem%important baby_Sard:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n::{finite,wellorder}"
   assumes mlen: "CARD('m) \<le> CARD('n)"
     and der: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
     and rank: "\<And>x. x \<in> S \<Longrightarrow> rank(matrix(f' x)) < CARD('n)"
   shows "negligible(f ` S)"
-proof -
+proof%unimportant -
   let ?U = "\<lambda>n. {x \<in> S. norm(x) \<le> n \<and> onorm(f' x) \<le> real n}"
   have "\<And>x. x \<in> S \<Longrightarrow> \<exists>n. norm x \<le> real n \<and> onorm (f' x) \<le> real n"
     by (meson linear order_trans real_arch_simple)
@@ -2756,7 +2549,7 @@ qed
 
 subsection%important\<open>A one-way version of change-of-variables not assuming injectivity. \<close>
 
-lemma integral_on_image_ubound_weak:
+lemma%important integral_on_image_ubound_weak:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real"
   assumes S: "S \<in> sets lebesgue"
       and f: "f \<in> borel_measurable (lebesgue_on (g ` S))"
@@ -2767,7 +2560,7 @@ lemma integral_on_image_ubound_weak:
     shows "f integrable_on (g ` S) \<and>
            integral (g ` S) f \<le> integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x))"
          (is "_ \<and> _ \<le> ?b")
-proof -
+proof%unimportant -
   let ?D = "\<lambda>x. \<bar>det (matrix (g' x))\<bar>"
   have cont_g: "continuous_on S g"
     using der_g has_derivative_continuous_on by blast
@@ -2945,14 +2738,14 @@ proof -
 qed
 
 
-lemma integral_on_image_ubound_nonneg:
+lemma%important integral_on_image_ubound_nonneg:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real"
   assumes nonneg_fg: "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f(g x)"
       and der_g:   "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
       and intS: "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x)) integrable_on S"
   shows "f integrable_on (g ` S) \<and> integral (g ` S) f \<le> integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x))"
          (is "_ \<and> _ \<le> ?b")
-proof -
+proof%unimportant -
   let ?D = "\<lambda>x. det (matrix (g' x))"
   define S' where "S' \<equiv> {x \<in> S. ?D x * f(g x) \<noteq> 0}"
   then have der_gS': "\<And>x. x \<in> S' \<Longrightarrow> (g has_derivative g' x) (at x within S')"
@@ -3075,7 +2868,7 @@ proof -
 qed
 
 
-proposition absolutely_integrable_on_image_real:
+lemma%unimportant absolutely_integrable_on_image_real:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and intS: "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x)) absolutely_integrable_on S"
@@ -3150,7 +2943,7 @@ proof -
 qed
 
 
-proposition absolutely_integrable_on_image:
+proposition%important absolutely_integrable_on_image:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and intS: "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S"
@@ -3158,7 +2951,7 @@ proposition absolutely_integrable_on_image:
   apply (rule absolutely_integrable_componentwise [OF absolutely_integrable_on_image_real [OF der_g]])
   using%unimportant absolutely_integrable_component [OF intS]  by%unimportant auto
 
-proposition integral_on_image_ubound:
+proposition%important integral_on_image_ubound:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes"\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f(g x)"
     and "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
@@ -3172,7 +2965,7 @@ subsection%important\<open>Change-of-variables theorem\<close>
 text\<open>The classic change-of-variables theorem. We have two versions with quite general hypotheses,
 the first that the transforming function has a continuous inverse, the second that the base set is
 Lebesgue measurable.\<close>
-lemma cov_invertible_nonneg_le:
+lemma%unimportant cov_invertible_nonneg_le:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and der_h: "\<And>y. y \<in> T \<Longrightarrow> (h has_derivative h' y) (at y within T)"
@@ -3243,7 +3036,7 @@ proof -
 qed
 
 
-lemma cov_invertible_nonneg_eq:
+lemma%unimportant cov_invertible_nonneg_eq:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
       and "\<And>y. y \<in> T \<Longrightarrow> (h has_derivative h' y) (at y within T)"
@@ -3256,7 +3049,7 @@ lemma cov_invertible_nonneg_eq:
   by (simp add: has_integral_iff) (meson eq_iff)
 
 
-lemma cov_invertible_real:
+lemma%unimportant cov_invertible_real:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
       and der_h: "\<And>y. y \<in> T \<Longrightarrow> (h has_derivative h' y) (at y within T)"
@@ -3422,7 +3215,7 @@ proof -
 qed
 
 
-lemma cv_inv_version3:
+lemma%unimportant cv_inv_version3:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and der_h: "\<And>y. y \<in> T \<Longrightarrow> (h has_derivative h' y) (at y within T)"
@@ -3448,7 +3241,7 @@ proof -
 qed
 
 
-lemma cv_inv_version4:
+lemma%unimportant cv_inv_version4:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S) \<and> invertible(matrix(g' x))"
     and hg: "\<And>x. x \<in> S \<Longrightarrow> continuous_on (g ` S) h \<and> h(g x) = x"
@@ -3473,7 +3266,7 @@ proof -
 qed
 
 
-proposition has_absolute_integral_change_of_variables_invertible:
+proposition%important has_absolute_integral_change_of_variables_invertible:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
       and hg: "\<And>x. x \<in> S \<Longrightarrow> h(g x) = x"
@@ -3481,7 +3274,7 @@ proposition has_absolute_integral_change_of_variables_invertible:
   shows "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S \<and> integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) = b \<longleftrightarrow>
          f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
     (is "?lhs = ?rhs")
-proof -
+proof%unimportant -
   let ?S = "{x \<in> S. invertible (matrix (g' x))}" and ?D = "\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)"
   have *: "?D absolutely_integrable_on ?S \<and> integral ?S ?D = b
            \<longleftrightarrow> f absolutely_integrable_on (g ` ?S) \<and> integral (g ` ?S) f = b"
@@ -3517,7 +3310,7 @@ qed
 
 
 
-proposition has_absolute_integral_change_of_variables_compact:
+lemma%unimportant has_absolute_integral_change_of_variables_compact:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "compact S"
       and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
@@ -3535,7 +3328,7 @@ proof -
 qed
 
 
-lemma has_absolute_integral_change_of_variables_compact_family:
+lemma%unimportant has_absolute_integral_change_of_variables_compact_family:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes compact: "\<And>n::nat. compact (F n)"
       and der_g: "\<And>x. x \<in> (\<Union>n. F n) \<Longrightarrow> (g has_derivative g' x) (at x within (\<Union>n. F n))"
@@ -3714,7 +3507,7 @@ proof -
 qed
 
 
-proposition has_absolute_integral_change_of_variables:
+proposition%important has_absolute_integral_change_of_variables:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes S: "S \<in> sets lebesgue"
     and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
@@ -3722,7 +3515,7 @@ proposition has_absolute_integral_change_of_variables:
   shows "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S \<and>
            integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) = b
      \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
-proof -
+proof%unimportant -
   obtain C N where "fsigma C" "negligible N" and CNS: "C \<union> N = S" and "disjnt C N"
     using lebesgue_set_almost_fsigma [OF S] .
   then obtain F :: "nat \<Rightarrow> (real^'m::_) set"
@@ -3776,16 +3569,16 @@ proof -
 qed
 
 
-corollary absolutely_integrable_change_of_variables:
+corollary%important absolutely_integrable_change_of_variables:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "S \<in> sets lebesgue"
     and "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and "inj_on g S"
   shows "f absolutely_integrable_on (g ` S)
      \<longleftrightarrow> (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S"
-  using assms has_absolute_integral_change_of_variables by blast
+  using%unimportant assms has_absolute_integral_change_of_variables by%unimportant blast
 
-corollary integral_change_of_variables:
+corollary%important integral_change_of_variables:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes S: "S \<in> sets lebesgue"
     and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
@@ -3793,10 +3586,10 @@ corollary integral_change_of_variables:
     and disj: "(f absolutely_integrable_on (g ` S) \<or>
         (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S)"
   shows "integral (g ` S) f = integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x))"
-  using has_absolute_integral_change_of_variables [OF S der_g inj] disj
-  by blast
+  using%unimportant has_absolute_integral_change_of_variables [OF S der_g inj] disj
+  by%unimportant blast
 
-lemma has_absolute_integral_change_of_variables_1:
+lemma%unimportant has_absolute_integral_change_of_variables_1:
   fixes f :: "real \<Rightarrow> real^'n::{finite,wellorder}" and g :: "real \<Rightarrow> real"
   assumes S: "S \<in> sets lebesgue"
     and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_vector_derivative g' x) (at x within S)"
@@ -3835,19 +3628,19 @@ proof -
 qed
 
 
-corollary absolutely_integrable_change_of_variables_1:
+corollary%important absolutely_integrable_change_of_variables_1:
   fixes f :: "real \<Rightarrow> real^'n::{finite,wellorder}" and g :: "real \<Rightarrow> real"
   assumes S: "S \<in> sets lebesgue"
     and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_vector_derivative g' x) (at x within S)"
     and inj: "inj_on g S"
   shows "(f absolutely_integrable_on g ` S \<longleftrightarrow>
              (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S)"
-  using has_absolute_integral_change_of_variables_1 [OF assms] by auto
+  using%unimportant has_absolute_integral_change_of_variables_1 [OF assms] by%unimportant auto
 
 
 subsection%important\<open>Change of variables for integrals: special case of linear function\<close>
 
-lemma has_absolute_integral_change_of_variables_linear:
+lemma%unimportant has_absolute_integral_change_of_variables_linear:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "linear g"
   shows "(\<lambda>x. \<bar>det (matrix g)\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S \<and>
@@ -3872,14 +3665,14 @@ next
   qed (use h in auto)
 qed
 
-lemma absolutely_integrable_change_of_variables_linear:
+lemma%unimportant absolutely_integrable_change_of_variables_linear:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "linear g"
   shows "(\<lambda>x. \<bar>det (matrix g)\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S
      \<longleftrightarrow> f absolutely_integrable_on (g ` S)"
   using assms has_absolute_integral_change_of_variables_linear by blast
 
-lemma absolutely_integrable_on_linear_image:
+lemma%unimportant absolutely_integrable_on_linear_image:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "linear g"
   shows "f absolutely_integrable_on (g ` S)
@@ -3887,12 +3680,12 @@ lemma absolutely_integrable_on_linear_image:
   unfolding assms absolutely_integrable_change_of_variables_linear [OF assms, symmetric] absolutely_integrable_on_scaleR_iff
   by (auto simp: set_integrable_def)
 
-lemma integral_change_of_variables_linear:
+lemma%important integral_change_of_variables_linear:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
   assumes "linear g"
       and "f absolutely_integrable_on (g ` S) \<or> (f \<circ> g) absolutely_integrable_on S"
     shows "integral (g ` S) f = \<bar>det (matrix g)\<bar> *\<^sub>R integral S (f \<circ> g)"
-proof -
+proof%unimportant -
   have "((\<lambda>x. \<bar>det (matrix g)\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S) \<or> (f absolutely_integrable_on g ` S)"
     using absolutely_integrable_on_linear_image assms by blast
   moreover
@@ -3906,18 +3699,18 @@ qed
 
 subsection%important\<open>Change of variable for measure\<close>
 
-lemma has_measure_differentiable_image:
+lemma%unimportant has_measure_differentiable_image:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes "S \<in> sets lebesgue"
       and "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
       and "inj_on f S"
   shows "f ` S \<in> lmeasurable \<and> measure lebesgue (f ` S) = m
      \<longleftrightarrow> ((\<lambda>x. \<bar>det (matrix (f' x))\<bar>) has_integral m) S"
-  using has_absolute_integral_change_of_variables [OF assms, of "\<lambda>x. (1::real^1)" "vec m"]
-  unfolding absolutely_integrable_on_1_iff integral_on_1_eq integrable_on_1_iff absolutely_integrable_on_def
-  by (auto simp: has_integral_iff lmeasurable_iff_integrable_on lmeasure_integral)
+  using%unimportant has_absolute_integral_change_of_variables [OF assms, of "\<lambda>x. (1::real^1)" "vec m"]
+  unfolding%unimportant absolutely_integrable_on_1_iff integral_on_1_eq integrable_on_1_iff absolutely_integrable_on_def
+  by%unimportant (auto simp: has_integral_iff lmeasurable_iff_integrable_on lmeasure_integral)
 
-lemma measurable_differentiable_image_eq:
+lemma%unimportant measurable_differentiable_image_eq:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes "S \<in> sets lebesgue"
       and "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
@@ -3926,23 +3719,23 @@ lemma measurable_differentiable_image_eq:
   using has_measure_differentiable_image [OF assms]
   by blast
 
-lemma measurable_differentiable_image_alt:
+lemma%important measurable_differentiable_image_alt:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes "S \<in> sets lebesgue"
     and "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
     and "inj_on f S"
   shows "f ` S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on S"
-  using measurable_differentiable_image_eq [OF assms]
-  by (simp only: absolutely_integrable_on_iff_nonneg)
+  using%unimportant measurable_differentiable_image_eq [OF assms]
+  by%unimportant (simp only: absolutely_integrable_on_iff_nonneg)
 
-lemma measure_differentiable_image_eq:
+lemma%important measure_differentiable_image_eq:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> sets lebesgue"
     and der_f: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
     and inj: "inj_on f S"
     and intS: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on S"
   shows "measure lebesgue (f ` S) = integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
-  using measurable_differentiable_image_eq [OF S der_f inj]
+  using%unimportant measurable_differentiable_image_eq [OF S der_f inj]
         assms has_measure_differentiable_image by%unimportant blast
 
 end
