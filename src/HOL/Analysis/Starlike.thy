@@ -5,12 +5,13 @@
    Author:     Armin Heller, TU Muenchen
    Author:     Johannes Hoelzl, TU Muenchen
 *)
-
-section \<open>Line Segments\<close>
+chapter \<open>Unsorted\<close>
 
 theory Starlike
 imports Convex_Euclidean_Space
 begin
+
+section \<open>Line Segments\<close>
 
 subsection \<open>Midpoint\<close>
 

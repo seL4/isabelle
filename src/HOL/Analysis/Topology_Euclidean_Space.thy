@@ -4,7 +4,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>Elementary Topology in Euclidean Space\<close>
+chapter \<open>Vector Analysis\<close>
 
 theory Topology_Euclidean_Space
   imports
@@ -12,6 +12,8 @@ theory Topology_Euclidean_Space
     Linear_Algebra
     Norm_Arith
 begin
+
+section \<open>Elementary Topology in Euclidean Space\<close>
 
 lemma euclidean_dist_l2:
   fixes x y :: "'a :: euclidean_space"

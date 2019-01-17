@@ -4,12 +4,14 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>Elementary Metric Spaces\<close>
+chapter \<open>Functional Analysis\<close>
 
 theory Elementary_Metric_Spaces
   imports
     Abstract_Topology_2
 begin
+
+section \<open>Elementary Metric Spaces\<close>
 
 subsection \<open>Open and closed balls\<close>
 

@@ -2,11 +2,13 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>L2 Norm\<close>
+chapter \<open>Linear Algebra\<close>
 
 theory L2_Norm
 imports Complex_Main
 begin
+
+section \<open>L2 Norm\<close>
 
 definition%important L2_set :: "('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> real" where
 "L2_set f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"

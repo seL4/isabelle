@@ -5,7 +5,7 @@
     translated by Lawrence Paulson.
 *)
 
-section \<open>Sigma Algebra\<close>
+chapter \<open>Measure and Integration Theory\<close>
 
 theory Sigma_Algebra
 imports
@@ -16,6 +16,9 @@ imports
   "HOL-Library.Extended_Nonnegative_Real"
   "HOL-Library.Disjoint_Sets"
 begin
+
+
+section \<open>Sigma Algebra\<close>
 
 text \<open>Sigma algebras are an elementary concept in measure
   theory. To measure --- that is to integrate --- functions, we first have

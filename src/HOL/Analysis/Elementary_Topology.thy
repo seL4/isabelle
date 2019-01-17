@@ -4,7 +4,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>Elementary Topology\<close>
+chapter \<open>Topology\<close>
 
 theory Elementary_Topology
 imports
@@ -13,6 +13,8 @@ imports
   Product_Vector
 begin
 
+
+section \<open>Elementary Topology\<close>
 
 subsection \<open>TODO: move?\<close>
 
