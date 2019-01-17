@@ -28,11 +28,11 @@ lemma equiintegrable_on_subset: "\<lbrakk>F equiintegrable_on I; G \<subseteq> F
   unfolding equiintegrable_on_def Ball_def
   by (erule conj_forward imp_forward all_forward ex_forward | blast)+
 
-lemma equiintegrable_on_Un:
+lemma%important equiintegrable_on_Un:
   assumes "F equiintegrable_on I" "G equiintegrable_on I"
   shows "(F \<union> G) equiintegrable_on I"
   unfolding equiintegrable_on_def
-proof (intro conjI impI allI)
+proof%unimportant (intro conjI impI allI)
   show "\<forall>f\<in>F \<union> G. f integrable_on I"
     using assms unfolding equiintegrable_on_def by blast
   show "\<exists>\<gamma>. gauge \<gamma> \<and>
@@ -76,12 +76,12 @@ lemma equiintegrable_on_null [simp]:
 
 text\<open> Main limit theorem for an equiintegrable sequence.\<close>
 
-theorem equiintegrable_limit:
+theorem%important equiintegrable_limit:
   fixes g :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   assumes feq: "range f equiintegrable_on cbox a b"
       and to_g: "\<And>x. x \<in> cbox a b \<Longrightarrow> (\<lambda>n. f n x) \<longlonglongrightarrow> g x"
     shows "g integrable_on cbox a b \<and> (\<lambda>n. integral (cbox a b) (f n)) \<longlonglongrightarrow> integral (cbox a b) g"
-proof -
+proof%unimportant -
   have "Cauchy (\<lambda>n. integral(cbox a b) (f n))"
   proof (clarsimp simp add: Cauchy_def)
     fix e::real
@@ -151,10 +151,10 @@ proof -
 qed
 
 
-lemma equiintegrable_reflect:
+lemma%important equiintegrable_reflect:
   assumes "F equiintegrable_on cbox a b"
   shows "(\<lambda>f. f \<circ> uminus) ` F equiintegrable_on cbox (-b) (-a)"
-proof -
+proof%unimportant -
   have "\<exists>\<gamma>. gauge \<gamma> \<and>
             (\<forall>f \<D>. f \<in> (\<lambda>f. f \<circ> uminus) ` F \<and> \<D> tagged_division_of cbox (- b) (- a) \<and> \<gamma> fine \<D> \<longrightarrow>
                    norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral (cbox (- b) (- a)) f) < e)"
@@ -246,13 +246,13 @@ next
 qed
 
 
-lemma content_division_lemma1:
+lemma%important content_division_lemma1:
   assumes div: "\<D> division_of S" and S: "S \<subseteq> cbox a b" and i: "i \<in> Basis"
       and mt: "\<And>K. K \<in> \<D> \<Longrightarrow> content K \<noteq> 0"
       and disj: "(\<forall>K \<in> \<D>. K \<inter> {x. x \<bullet> i = a \<bullet> i} \<noteq> {}) \<or> (\<forall>K \<in> \<D>. K \<inter> {x. x \<bullet> i = b \<bullet> i} \<noteq> {})"
    shows "(b \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
           \<le> content(cbox a b)"   (is "?lhs \<le> ?rhs")
-proof -
+proof%unimportant -
   have "finite \<D>"
     using div by blast
   define extend where
@@ -409,13 +409,13 @@ proof -
 qed
 
 
-proposition sum_content_area_over_thin_division:
+proposition%important sum_content_area_over_thin_division:
   assumes div: "\<D> division_of S" and S: "S \<subseteq> cbox a b" and i: "i \<in> Basis"
     and "a \<bullet> i \<le> c" "c \<le> b \<bullet> i"
     and nonmt: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<inter> {x. x \<bullet> i = c} \<noteq> {}"
   shows "(b \<bullet> i - a \<bullet> i) * (\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
           \<le> 2 * content(cbox a b)"
-proof (cases "content(cbox a b) = 0")
+proof%unimportant (cases "content(cbox a b) = 0")
   case True
   have "(\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) = 0"
     using S div by (force intro!: sum.neutral content_0_subset [OF True])
@@ -609,7 +609,7 @@ qed
 
 
 
-proposition bounded_equiintegral_over_thin_tagged_partial_division:
+proposition%important bounded_equiintegral_over_thin_tagged_partial_division:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F" and "0 < \<epsilon>"
       and norm_f: "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm(h x) \<le> norm(f x)"
@@ -617,7 +617,7 @@ proposition bounded_equiintegral_over_thin_tagged_partial_division:
              "\<And>c i S h. \<lbrakk>c \<in> cbox a b; i \<in> Basis; S tagged_partial_division_of cbox a b;
                          \<gamma> fine S; h \<in> F; \<And>x K. (x,K) \<in> S \<Longrightarrow> (K \<inter> {x. x \<bullet> i = c \<bullet> i} \<noteq> {})\<rbrakk>
                         \<Longrightarrow> (\<Sum>(x,K) \<in> S. norm (integral K h)) < \<epsilon>"
-proof (cases "content(cbox a b) = 0")
+proof%unimportant (cases "content(cbox a b) = 0")
   case True
   show ?thesis
   proof
@@ -813,13 +813,13 @@ qed
 
 
 
-proposition equiintegrable_halfspace_restrictions_le:
+proposition%important equiintegrable_halfspace_restrictions_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F"
     and norm_f: "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm(h x) \<le> norm(f x)"
   shows "(\<Union>i \<in> Basis. \<Union>c. \<Union>h \<in> F. {(\<lambda>x. if x \<bullet> i \<le> c then h x else 0)})
          equiintegrable_on cbox a b"
-proof (cases "content(cbox a b) = 0")
+proof%unimportant (cases "content(cbox a b) = 0")
   case True
   then show ?thesis by simp
 next
@@ -1172,13 +1172,13 @@ qed
 
 
 
-corollary equiintegrable_halfspace_restrictions_ge:
+corollary%important equiintegrable_halfspace_restrictions_ge:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F"
     and norm_f: "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm(h x) \<le> norm(f x)"
   shows "(\<Union>i \<in> Basis. \<Union>c. \<Union>h \<in> F. {(\<lambda>x. if x \<bullet> i \<ge> c then h x else 0)})
          equiintegrable_on cbox a b"
-proof -
+proof%unimportant -
   have *: "(\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>(\<lambda>f. f \<circ> uminus) ` F. {\<lambda>x. if x \<bullet> i \<le> c then h x else 0})
            equiintegrable_on  cbox (- b) (- a)"
   proof (rule equiintegrable_halfspace_restrictions_le)
@@ -1203,11 +1203,11 @@ proof -
 qed
 
 
-proposition equiintegrable_closed_interval_restrictions:
+proposition%important equiintegrable_closed_interval_restrictions:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "f integrable_on cbox a b"
   shows "(\<Union>c d. {(\<lambda>x. if x \<in> cbox c d then f x else 0)}) equiintegrable_on cbox a b"
-proof -
+proof%unimportant -
   let ?g = "\<lambda>B c d x. if \<forall>i\<in>B. c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i then f x else 0"
   have *: "insert f (\<Union>c d. {?g B c d}) equiintegrable_on cbox a b" if "B \<subseteq> Basis" for B
   proof -
@@ -1266,14 +1266,14 @@ qed
 
 subsection%important\<open>Continuity of the indefinite integral\<close>
 
-proposition indefinite_integral_continuous:
+proposition%important indefinite_integral_continuous:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes int_f: "f integrable_on cbox a b"
       and c: "c \<in> cbox a b" and d: "d \<in> cbox a b" "0 < \<epsilon>"
   obtains \<delta> where "0 < \<delta>"
               "\<And>c' d'. \<lbrakk>c' \<in> cbox a b; d' \<in> cbox a b; norm(c' - c) \<le> \<delta>; norm(d' - d) \<le> \<delta>\<rbrakk>
                         \<Longrightarrow> norm(integral(cbox c' d') f - integral(cbox c d) f) < \<epsilon>"
-proof -
+proof%unimportant -
   { assume "\<exists>c' d'. c' \<in> cbox a b \<and> d' \<in> cbox a b \<and> norm(c' - c) \<le> \<delta> \<and> norm(d' - d) \<le> \<delta> \<and>
                     norm(integral(cbox c' d') f - integral(cbox c d) f) \<ge> \<epsilon>"
                     (is "\<exists>c' d'. ?\<Phi> c' d' \<delta>") if "0 < \<delta>" for \<delta>
@@ -1358,11 +1358,11 @@ proof -
     by (meson not_le that)
 qed
 
-corollary indefinite_integral_uniformly_continuous:
+corollary%important indefinite_integral_uniformly_continuous:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "f integrable_on cbox a b"
   shows "uniformly_continuous_on (cbox (Pair a a) (Pair b b)) (\<lambda>y. integral (cbox (fst y) (snd y)) f)"
-proof -
+proof%unimportant -
   show ?thesis
   proof (rule compact_uniformly_continuous, clarsimp simp add: continuous_on_iff)
     fix c d and \<epsilon>::real
@@ -1383,11 +1383,11 @@ proof -
 qed
 
 
-corollary bounded_integrals_over_subintervals:
+corollary%important bounded_integrals_over_subintervals:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "f integrable_on cbox a b"
   shows "bounded {integral (cbox c d) f |c d. cbox c d \<subseteq> cbox a b}"
-proof -
+proof%unimportant -
   have "bounded ((\<lambda>y. integral (cbox (fst y) (snd y)) f) ` cbox (a, a) (b, b))"
        (is "bounded ?I")
     by (blast intro: bounded_cbox bounded_uniformly_continuous_image indefinite_integral_uniformly_continuous [OF assms])
@@ -1414,7 +1414,7 @@ Hake's theorem implies that if the integrals over subintervals have a limit, the
 We only need to assume that the integrals are bounded, and we get absolute integrability,
 but we also need a (rather weak) bound assumption on the function.\<close>
 
-theorem absolutely_integrable_improper:
+theorem%important absolutely_integrable_improper:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'N::euclidean_space"
   assumes int_f: "\<And>c d. cbox c d \<subseteq> box a b \<Longrightarrow> f integrable_on cbox c d"
       and bo: "bounded {integral (cbox c d) f |c d. cbox c d \<subseteq> box a b}"
@@ -1422,7 +1422,7 @@ theorem absolutely_integrable_improper:
           \<Longrightarrow> \<exists>g. g absolutely_integrable_on cbox a b \<and>
                   ((\<forall>x \<in> cbox a b. f x \<bullet> i \<le> g x) \<or> (\<forall>x \<in> cbox a b. f x \<bullet> i \<ge> g x))"
       shows "f absolutely_integrable_on cbox a b"
-proof (cases "content(cbox a b) = 0")
+proof%unimportant (cases "content(cbox a b) = 0")
   case True
   then show ?thesis
     by auto

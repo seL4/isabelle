@@ -6,7 +6,7 @@ section \<open>Traces, Determinant of square matrices and some properties\<close
 
 theory Determinants
 imports
-  Cartesian_Euclidean_Space
+  Cartesian_Space
   "HOL-Library.Permutations"
 begin
 
@@ -976,6 +976,36 @@ proof -
     by (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
 qed
 
+lemma%important  det_orthogonal_matrix:
+  fixes Q:: "'a::linordered_idom^'n^'n"
+  assumes oQ: "orthogonal_matrix Q"
+  shows "det Q = 1 \<or> det Q = - 1"
+proof%unimportant -
+  have "Q ** transpose Q = mat 1"
+    by (metis oQ orthogonal_matrix_def)
+  then have "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)"
+    by simp
+  then have "det Q * det Q = 1"
+    by (simp add: det_mul)
+  then show ?thesis
+    by (simp add: square_eq_1_iff)
+qed
+
+lemma%important  orthogonal_transformation_det [simp]:
+  fixes f :: "real^'n \<Rightarrow> real^'n"
+  shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
+  using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
+
+subsection%important  \<open>Rotation, reflection, rotoinversion\<close>
+
+definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
+definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
+
+lemma%important  orthogonal_rotation_or_rotoinversion:
+  fixes Q :: "'a::linordered_idom^'n^'n"
+  shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
+  by%unimportant (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
+
 text\<open> Slightly stronger results giving rotation, but only in two or more dimensions\<close>
 
 lemma%unimportant  rotation_matrix_exists_basis:
@@ -994,8 +1024,10 @@ proof -
     then show ?thesis
       using \<open>A *v axis k 1 = a\<close> that by auto
   next
-    obtain j where "j \<noteq> k"
-      by (metis (full_types) 2 card_2_exists ex_card)
+    from ex_card[OF 2] obtain h i::'n where "h \<noteq> i"
+      by (auto simp add: eval_nat_numeral card_Suc_eq)
+    then obtain j where "j \<noteq> k"
+      by (metis (full_types))
     let ?TA = "transpose A"
     let ?A = "\<chi> i. if i = j then - 1 *\<^sub>R (?TA $ i) else ?TA $i"
     assume "rotoinversion_matrix A"

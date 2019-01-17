@@ -30,14 +30,14 @@ lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a, b) (u, v))"
   apply (rule, rule continuous_interval_bij)
   done
 
-lemma in_interval_interval_bij:
+lemma%important in_interval_interval_bij:
   fixes a b u v x :: "'a::euclidean_space"
   assumes "x \<in> cbox a b"
     and "cbox u v \<noteq> {}"
   shows "interval_bij (a, b) (u, v) x \<in> cbox u v"
   apply (simp only: interval_bij_def split_conv mem_box inner_sum_left_Basis cong: ball_cong)
   apply safe
-proof -
+proof%unimportant -
   fix i :: 'a
   assume i: "i \<in> Basis"
   have "cbox a b \<noteq> {}"
@@ -89,7 +89,7 @@ lemma infnorm_eq_1_imp:
   shows "\<bar>x$1\<bar> \<le> 1" and "\<bar>x$2\<bar> \<le> 1"
   using assms unfolding infnorm_eq_1_2 by auto
 
-proposition fashoda_unit:
+lemma%important fashoda_unit:
   fixes f g :: "real \<Rightarrow> real^2"
   assumes "f ` {-1 .. 1} \<subseteq> cbox (-1) 1"
     and "g ` {-1 .. 1} \<subseteq> cbox (-1) 1"
@@ -99,7 +99,7 @@ proposition fashoda_unit:
     and "f 1$1 = 1" "g (- 1) $2 = -1"
     and "g 1 $2 = 1"
   shows "\<exists>s\<in>{-1 .. 1}. \<exists>t\<in>{-1 .. 1}. f s = g t"
-proof (rule ccontr)
+proof%unimportant (rule ccontr)
   assume "\<not> ?thesis"
   note as = this[unfolded bex_simps,rule_format]
   define sqprojection
@@ -256,7 +256,7 @@ proof (rule ccontr)
   qed 
 qed
 
-proposition fashoda_unit_path:
+lemma%important fashoda_unit_path:
   fixes f g :: "real \<Rightarrow> real^2"
   assumes "path f"
     and "path g"
@@ -267,7 +267,7 @@ proposition fashoda_unit_path:
     and "(pathstart g)$2 = -1"
     and "(pathfinish g)$2 = 1"
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
-proof -
+proof%unimportant -
   note assms=assms[unfolded path_def pathstart_def pathfinish_def path_image_def]
   define iscale where [abs_def]: "iscale z = inverse 2 *\<^sub>R (z + 1)" for z :: real
   have isc: "iscale ` {- 1..1} \<subseteq> {0..1}"
@@ -312,7 +312,7 @@ proof -
     done
 qed
 
-theorem fashoda:
+lemma%important fashoda:
   fixes b :: "real^2"
   assumes "path f"
     and "path g"
@@ -323,7 +323,7 @@ theorem fashoda:
     and "(pathstart g)$2 = a$2"
     and "(pathfinish g)$2 = b$2"
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
-proof -
+proof%unimportant -
   fix P Q S
   presume "P \<or> Q \<or> S" "P \<Longrightarrow> thesis" and "Q \<Longrightarrow> thesis" and "S \<Longrightarrow> thesis"
   then show thesis
@@ -632,7 +632,7 @@ qed
 
 subsection%important \<open>Useful Fashoda corollary pointed out to me by Tom Hales\<close>(*FIXME change title? *)
 
-corollary fashoda_interlace:
+lemma%important fashoda_interlace:
   fixes a :: "real^2"
   assumes "path f"
     and "path g"
@@ -646,7 +646,7 @@ corollary fashoda_interlace:
     and "(pathstart g)$1 < (pathfinish f)$1"
     and "(pathfinish f)$1 < (pathfinish g)$1"
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
-proof -
+proof%unimportant -
   have "cbox a b \<noteq> {}"
     using path_image_nonempty[of f] using assms(3) by auto
   note ab=this[unfolded interval_eq_empty_cart not_ex forall_2 not_less]

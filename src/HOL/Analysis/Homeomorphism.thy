@@ -8,7 +8,7 @@ theory Homeomorphism
 imports Homotopy
 begin
 
-lemma homeomorphic_spheres':
+lemma%unimportant homeomorphic_spheres':
   fixes a ::"'a::euclidean_space" and b ::"'b::euclidean_space"
   assumes "0 < \<delta>" and dimeq: "DIM('a) = DIM('b)"
   shows "(sphere a \<delta>) homeomorphic (sphere b \<delta>)"
@@ -28,7 +28,7 @@ proof -
     done
 qed
 
-lemma homeomorphic_spheres_gen:
+lemma%unimportant homeomorphic_spheres_gen:
     fixes a :: "'a::euclidean_space" and b :: "'b::euclidean_space"
   assumes "0 < r" "0 < s" "DIM('a::euclidean_space) = DIM('b::euclidean_space)"
   shows "(sphere a r homeomorphic sphere b s)"
@@ -38,7 +38,7 @@ lemma homeomorphic_spheres_gen:
 
 subsection%important \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
 
-proposition ray_to_rel_frontier:
+proposition%important ray_to_rel_frontier:
   fixes a :: "'a::real_inner"
   assumes "bounded S"
       and a: "a \<in> rel_interior S"
@@ -46,7 +46,7 @@ proposition ray_to_rel_frontier:
       and "l \<noteq> 0"
   obtains d where "0 < d" "(a + d *\<^sub>R l) \<in> rel_frontier S"
            "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (a + e *\<^sub>R l) \<in> rel_interior S"
-proof -
+proof%unimportant -
   have aaff: "a \<in> affine hull S"
     by (meson a hull_subset rel_interior_subset rev_subsetD)
   let ?D = "{d. 0 < d \<and> a + d *\<^sub>R l \<notin> rel_interior S}"
@@ -139,14 +139,14 @@ proof -
     by (rule that [OF \<open>0 < d\<close> infront inint])
 qed
 
-corollary ray_to_frontier:
+corollary%important ray_to_frontier:
   fixes a :: "'a::euclidean_space"
   assumes "bounded S"
       and a: "a \<in> interior S"
       and "l \<noteq> 0"
   obtains d where "0 < d" "(a + d *\<^sub>R l) \<in> frontier S"
            "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (a + e *\<^sub>R l) \<in> interior S"
-proof -
+proof%unimportant -
   have "interior S = rel_interior S"
     using a rel_interior_nonempty_interior by auto
   then have "a \<in> rel_interior S"
@@ -158,7 +158,7 @@ proof -
 qed
 
 
-lemma segment_to_rel_frontier_aux:
+lemma%unimportant segment_to_rel_frontier_aux:
   fixes x :: "'a::euclidean_space"
   assumes "convex S" "bounded S" and x: "x \<in> rel_interior S" and y: "y \<in> S" and xy: "x \<noteq> y"
   obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
@@ -198,7 +198,7 @@ proof -
   qed
 qed
 
-lemma segment_to_rel_frontier:
+lemma%unimportant segment_to_rel_frontier:
   fixes x :: "'a::euclidean_space"
   assumes S: "convex S" "bounded S" and x: "x \<in> rel_interior S"
       and y: "y \<in> S" and xy: "\<not>(x = y \<and> S = {x})"
@@ -216,11 +216,11 @@ next
     using segment_to_rel_frontier_aux [OF S x y] that by blast
 qed
 
-proposition rel_frontier_not_sing:
+proposition%important rel_frontier_not_sing:
   fixes a :: "'a::euclidean_space"
   assumes "bounded S"
     shows "rel_frontier S \<noteq> {a}"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True  then show ?thesis  by simp
 next
   case False
@@ -278,7 +278,7 @@ next
   qed
 qed
 
-proposition (*FIXME needs name *)
+proposition%important
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 0: "0 \<in> rel_interior S"
       and star: "\<And>x. x \<in> S \<Longrightarrow> open_segment 0 x \<subseteq> rel_interior S"
@@ -288,7 +288,7 @@ proposition (*FIXME needs name *)
       and starlike_compact_projective2_0:
             "S homeomorphic cball 0 1 \<inter> affine hull S"
             (is "S homeomorphic ?CBALL")
-proof -
+proof%unimportant -
   have starI: "(u *\<^sub>R x) \<in> rel_interior S" if "x \<in> S" "0 \<le> u" "u < 1" for x u
   proof (cases "x=0 \<or> u=0")
     case True with 0 show ?thesis by force
@@ -540,7 +540,7 @@ proof -
     done
 qed
 
-corollary (* FIXME needs name *)
+corollary%important
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and a: "a \<in> rel_interior S"
       and star: "\<And>x. x \<in> S \<Longrightarrow> open_segment a x \<subseteq> rel_interior S"
@@ -548,7 +548,7 @@ corollary (* FIXME needs name *)
             "S - rel_interior S homeomorphic sphere a 1 \<inter> affine hull S"
       and starlike_compact_projective2:
             "S homeomorphic cball a 1 \<inter> affine hull S"
-proof -
+proof%unimportant -
   have 1: "compact ((+) (-a) ` S)" by (meson assms compact_translation)
   have 2: "0 \<in> rel_interior ((+) (-a) ` S)"
     using a rel_interior_translation [of "- a" S] by (simp cong: image_cong_simp)
@@ -580,12 +580,12 @@ proof -
   finally show "S homeomorphic cball a 1 \<inter> affine hull S" .
 qed
 
-corollary starlike_compact_projective_special:
+corollary%important starlike_compact_projective_special:
   assumes "compact S"
     and cb01: "cball (0::'a::euclidean_space) 1 \<subseteq> S"
     and scale: "\<And>x u. \<lbrakk>x \<in> S; 0 \<le> u; u < 1\<rbrakk> \<Longrightarrow> u *\<^sub>R x \<in> S - frontier S"
   shows "S homeomorphic (cball (0::'a::euclidean_space) 1)"
-proof -
+proof%unimportant -
   have "ball 0 1 \<subseteq> interior S"
     using cb01 interior_cball interior_mono by blast
   then have 0: "0 \<in> rel_interior S"
@@ -604,13 +604,13 @@ proof -
     using starlike_compact_projective2_0 [OF \<open>compact S\<close> 0 star] by simp
 qed
 
-lemma homeomorphic_convex_lemma:
+lemma%important homeomorphic_convex_lemma:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "convex S" "compact S" "convex T" "compact T"
       and affeq: "aff_dim S = aff_dim T"
     shows "(S - rel_interior S) homeomorphic (T - rel_interior T) \<and>
            S homeomorphic T"
-proof (cases "rel_interior S = {} \<or> rel_interior T = {}")
+proof%unimportant (cases "rel_interior S = {} \<or> rel_interior T = {}")
   case True
     then show ?thesis
       by (metis Diff_empty affeq \<open>convex S\<close> \<open>convex T\<close> aff_dim_empty homeomorphic_empty rel_interior_eq_empty aff_dim_empty)
@@ -708,7 +708,7 @@ next
     using 1 2 by blast
 qed
 
-lemma homeomorphic_convex_compact_sets:
+lemma%unimportant homeomorphic_convex_compact_sets:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "convex S" "compact S" "convex T" "compact T"
       and affeq: "aff_dim S = aff_dim T"
@@ -716,7 +716,7 @@ lemma homeomorphic_convex_compact_sets:
 using homeomorphic_convex_lemma [OF assms] assms
 by (auto simp: rel_frontier_def)
 
-lemma homeomorphic_rel_frontiers_convex_bounded_sets:
+lemma%unimportant homeomorphic_rel_frontiers_convex_bounded_sets:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "convex S" "bounded S" "convex T" "bounded T"
       and affeq: "aff_dim S = aff_dim T"
@@ -729,7 +729,7 @@ subsection%important\<open>Homeomorphisms between punctured spheres and affine s
 text\<open>Including the famous stereoscopic projection of the 3-D sphere to the complex plane\<close>
 
 text\<open>The special case with centre 0 and radius 1\<close>
-lemma homeomorphic_punctured_affine_sphere_affine_01:
+lemma%unimportant homeomorphic_punctured_affine_sphere_affine_01:
   assumes "b \<in> sphere 0 1" "affine T" "0 \<in> T" "b \<in> T" "affine p"
       and affT: "aff_dim T = aff_dim p + 1"
     shows "(sphere 0 1 \<inter> T) - {b} homeomorphic p"
@@ -823,12 +823,12 @@ proof -
   finally show ?thesis .
 qed
 
-theorem homeomorphic_punctured_affine_sphere_affine:
+theorem%important homeomorphic_punctured_affine_sphere_affine:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" "b \<in> sphere a r" "affine T" "a \<in> T" "b \<in> T" "affine p"
       and aff: "aff_dim T = aff_dim p + 1"
     shows "(sphere a r \<inter> T) - {b} homeomorphic p"
-proof -
+proof%unimportant -
   have "a \<noteq> b" using assms by auto
   then have inj: "inj (\<lambda>x::'a. x /\<^sub>R norm (a - b))"
     by (simp add: inj_on_def)
@@ -847,14 +847,14 @@ proof -
   finally show ?thesis .
 qed
 
-corollary homeomorphic_punctured_sphere_affine:
+corollary%important homeomorphic_punctured_sphere_affine:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" and b: "b \<in> sphere a r"
       and "affine T" and affS: "aff_dim T + 1 = DIM('a)"
     shows "(sphere a r - {b}) homeomorphic T"
   using%unimportant homeomorphic_punctured_affine_sphere_affine [of r b a UNIV T] assms by%unimportant auto
 
-corollary homeomorphic_punctured_sphere_hyperplane:
+corollary%important homeomorphic_punctured_sphere_hyperplane:
   fixes a :: "'a :: euclidean_space"
   assumes "0 < r" and b: "b \<in> sphere a r"
       and "c \<noteq> 0"
@@ -864,12 +864,12 @@ using assms
 apply (auto simp: affine_hyperplane of_nat_diff)
 done
 
-proposition homeomorphic_punctured_sphere_affine_gen:
+proposition%important homeomorphic_punctured_sphere_affine_gen:
   fixes a :: "'a :: euclidean_space"
   assumes "convex S" "bounded S" and a: "a \<in> rel_frontier S"
       and "affine T" and affS: "aff_dim S = aff_dim T + 1"
     shows "rel_frontier S - {a} homeomorphic T"
-proof -
+proof%unimportant -
   obtain U :: "'a set" where "affine U" "convex U" and affdS: "aff_dim U = aff_dim S"
     using choose_affine_subset [OF affine_UNIV aff_dim_geq]
     by (meson aff_dim_affine_hull affine_affine_hull affine_imp_convex)
@@ -912,13 +912,13 @@ text\<open> When dealing with AR, ANR and ANR later, it's useful to know that ev
   is homeomorphic to a closed subset of a convex set, and
   if the set is locally compact we can take the convex set to be the universe.\<close>
 
-proposition homeomorphic_closedin_convex:
+proposition%important homeomorphic_closedin_convex:
   fixes S :: "'m::euclidean_space set"
   assumes "aff_dim S < DIM('n)"
   obtains U and T :: "'n::euclidean_space set"
      where "convex U" "U \<noteq> {}" "closedin (subtopology euclidean U) T"
            "S homeomorphic T"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True then show ?thesis
     by (rule_tac U=UNIV and T="{}" in that) auto
 next
@@ -1009,11 +1009,11 @@ subsection%important\<open>Locally compact sets in an open set\<close>
 text\<open> Locally compact sets are closed in an open set and are homeomorphic
   to an absolutely closed set if we have one more dimension to play with.\<close>
 
-lemma locally_compact_open_Int_closure:
+lemma%important locally_compact_open_Int_closure:
   fixes S :: "'a :: metric_space set"
   assumes "locally compact S"
   obtains T where "open T" "S = T \<inter> closure S"
-proof -
+proof%unimportant -
   have "\<forall>x\<in>S. \<exists>T v u. u = S \<inter> T \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> S \<and> open T \<and> compact v"
     by (metis assms locally_compact openin_open)
   then obtain t v where
@@ -1048,14 +1048,14 @@ proof -
 qed
 
 
-lemma locally_compact_closedin_open:
+lemma%unimportant locally_compact_closedin_open:
     fixes S :: "'a :: metric_space set"
     assumes "locally compact S"
     obtains T where "open T" "closedin (subtopology euclidean T) S"
   by (metis locally_compact_open_Int_closure [OF assms] closed_closure closedin_closed_Int)
 
 
-lemma locally_compact_homeomorphism_projection_closed:
+lemma%unimportant locally_compact_homeomorphism_projection_closed:
   assumes "locally compact S"
   obtains T and f :: "'a \<Rightarrow> 'a :: euclidean_space \<times> 'b :: euclidean_space"
     where "closed T" "homeomorphism S T f fst"
@@ -1108,14 +1108,14 @@ next
       done
 qed
 
-lemma locally_compact_closed_Int_open:
+lemma%unimportant locally_compact_closed_Int_open:
   fixes S :: "'a :: euclidean_space set"
   shows
     "locally compact S \<longleftrightarrow> (\<exists>U u. closed U \<and> open u \<and> S = U \<inter> u)"
 by (metis closed_closure closed_imp_locally_compact inf_commute locally_compact_Int locally_compact_open_Int_closure open_imp_locally_compact)
 
 
-lemma lowerdim_embeddings:
+lemma%unimportant lowerdim_embeddings:
   assumes  "DIM('a) < DIM('b)"
   obtains f :: "'a::euclidean_space*real \<Rightarrow> 'b::euclidean_space" 
       and g :: "'b \<Rightarrow> 'a*real"
@@ -1161,11 +1161,11 @@ proof -
   qed
 qed
 
-proposition locally_compact_homeomorphic_closed:
+proposition%important locally_compact_homeomorphic_closed:
   fixes S :: "'a::euclidean_space set"
   assumes "locally compact S" and dimlt: "DIM('a) < DIM('b)"
   obtains T :: "'b::euclidean_space set" where "closed T" "S homeomorphic T"
-proof -
+proof%unimportant -
   obtain U:: "('a*real)set" and h
     where "closed U" and homU: "homeomorphism S U h fst"
     using locally_compact_homeomorphism_projection_closed assms by metis
@@ -1191,13 +1191,13 @@ proof -
 qed
 
 
-lemma homeomorphic_convex_compact_lemma:
+lemma%important homeomorphic_convex_compact_lemma:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S"
     and "compact S"
     and "cball 0 1 \<subseteq> S"
   shows "S homeomorphic (cball (0::'a) 1)"
-proof (rule starlike_compact_projective_special[OF assms(2-3)])
+proof%unimportant (rule starlike_compact_projective_special[OF assms(2-3)])
   fix x u
   assume "x \<in> S" and "0 \<le> u" and "u < (1::real)"
   have "open (ball (u *\<^sub>R x) (1 - u))"
@@ -1223,7 +1223,7 @@ proof (rule starlike_compact_projective_special[OF assms(2-3)])
     using frontier_def and interior_subset by auto
 qed
 
-proposition homeomorphic_convex_compact_cball:
+proposition%important homeomorphic_convex_compact_cball:
   fixes e :: real
     and S :: "'a::euclidean_space set"
   assumes "convex S"
@@ -1231,7 +1231,7 @@ proposition homeomorphic_convex_compact_cball:
     and "interior S \<noteq> {}"
     and "e > 0"
   shows "S homeomorphic (cball (b::'a) e)"
-proof -
+proof%unimportant -
   obtain a where "a \<in> interior S"
     using assms(3) by auto
   then obtain d where "d > 0" and d: "cball a d \<subseteq> S"
@@ -1259,7 +1259,7 @@ proof -
     done
 qed
 
-corollary homeomorphic_convex_compact:
+corollary%important homeomorphic_convex_compact:
   fixes S :: "'a::euclidean_space set"
     and T :: "'a set"
   assumes "convex S" "compact S" "interior S \<noteq> {}"
@@ -1268,7 +1268,7 @@ corollary homeomorphic_convex_compact:
   using assms
   by (meson zero_less_one homeomorphic_trans homeomorphic_convex_compact_cball homeomorphic_sym)
 
-subsection\<open>Covering spaces and lifting results for them\<close>
+subsection%important\<open>Covering spaces and lifting results for them\<close>
 
 definition%important covering_space
            :: "'a::topological_space set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
@@ -1281,19 +1281,19 @@ definition%important covering_space
                         pairwise disjnt v \<and>
                         (\<forall>u \<in> v. \<exists>q. homeomorphism u T p q)))"
 
-lemma covering_space_imp_continuous: "covering_space c p S \<Longrightarrow> continuous_on c p"
+lemma%unimportant covering_space_imp_continuous: "covering_space c p S \<Longrightarrow> continuous_on c p"
   by (simp add: covering_space_def)
 
-lemma covering_space_imp_surjective: "covering_space c p S \<Longrightarrow> p ` c = S"
+lemma%unimportant covering_space_imp_surjective: "covering_space c p S \<Longrightarrow> p ` c = S"
   by (simp add: covering_space_def)
 
-lemma homeomorphism_imp_covering_space: "homeomorphism S T f g \<Longrightarrow> covering_space S f T"
+lemma%unimportant homeomorphism_imp_covering_space: "homeomorphism S T f g \<Longrightarrow> covering_space S f T"
   apply (simp add: homeomorphism_def covering_space_def, clarify)
   apply (rule_tac x=T in exI, simp)
   apply (rule_tac x="{S}" in exI, auto)
   done
 
-lemma covering_space_local_homeomorphism:
+lemma%unimportant covering_space_local_homeomorphism:
   assumes "covering_space c p S" "x \<in> c"
   obtains T u q where "x \<in> T" "openin (subtopology euclidean c) T"
                       "p x \<in> u" "openin (subtopology euclidean S) u"
@@ -1304,13 +1304,13 @@ apply (simp add: covering_space_def, clarify)
   by (metis IntI UnionE vimage_eq) 
 
 
-lemma covering_space_local_homeomorphism_alt:
+lemma%important covering_space_local_homeomorphism_alt:
   assumes p: "covering_space c p S" and "y \<in> S"
   obtains x T U q where "p x = y"
                         "x \<in> T" "openin (subtopology euclidean c) T"
                         "y \<in> U" "openin (subtopology euclidean S) U"
                           "homeomorphism T U p q"
-proof -
+proof%unimportant -
   obtain x where "p x = y" "x \<in> c"
     using assms covering_space_imp_surjective by blast
   show ?thesis
@@ -1318,11 +1318,11 @@ proof -
     using that \<open>p x = y\<close> by blast
 qed
 
-proposition covering_space_open_map:
+proposition%important covering_space_open_map:
   fixes S :: "'a :: metric_space set" and T :: "'b :: metric_space set"
   assumes p: "covering_space c p S" and T: "openin (subtopology euclidean c) T"
     shows "openin (subtopology euclidean S) (p ` T)"
-proof -
+proof%unimportant -
   have pce: "p ` c = S"
    and covs:
        "\<And>x. x \<in> S \<Longrightarrow>
@@ -1368,7 +1368,7 @@ proof -
   with openin_subopen show ?thesis by blast
 qed
 
-lemma covering_space_lift_unique_gen:
+lemma%important covering_space_lift_unique_gen:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   fixes g1 :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes cov: "covering_space c p S"
@@ -1380,7 +1380,7 @@ lemma covering_space_lift_unique_gen:
       and fg2: "\<And>x. x \<in> T \<Longrightarrow> f x = p(g2 x)"
       and u_compt: "U \<in> components T" and "a \<in> U" "x \<in> U"
     shows "g1 x = g2 x"
-proof -
+proof%unimportant -
   have "U \<subseteq> T" by (rule in_components_subset [OF u_compt])
   define G12 where "G12 \<equiv> {x \<in> U. g1 x - g2 x = 0}"
   have "connected U" by (rule in_components_connected [OF u_compt])
@@ -1427,7 +1427,7 @@ proof -
     using \<open>x \<in> U\<close> by force
 qed
 
-proposition covering_space_lift_unique:
+proposition%important covering_space_lift_unique:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   fixes g1 :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "covering_space c p S"
@@ -1437,10 +1437,10 @@ proposition covering_space_lift_unique:
           "continuous_on T g2"  "g2 ` T \<subseteq> c"  "\<And>x. x \<in> T \<Longrightarrow> f x = p(g2 x)"
           "connected T"  "a \<in> T"   "x \<in> T"
    shows "g1 x = g2 x"
-  using covering_space_lift_unique_gen [of c p S] in_components_self assms ex_in_conv
-  by blast
+  using%unimportant covering_space_lift_unique_gen [of c p S] in_components_self assms ex_in_conv
+  by%unimportant blast
 
-lemma covering_space_locally:
+lemma%unimportant covering_space_locally:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes loc: "locally \<phi> C" and cov: "covering_space C p S"
       and pim: "\<And>T. \<lbrakk>T \<subseteq> C; \<phi> T\<rbrakk> \<Longrightarrow> \<psi>(p ` T)"
@@ -1456,14 +1456,14 @@ proof -
 qed
 
 
-proposition covering_space_locally_eq:
+proposition%important covering_space_locally_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes cov: "covering_space C p S"
       and pim: "\<And>T. \<lbrakk>T \<subseteq> C; \<phi> T\<rbrakk> \<Longrightarrow> \<psi>(p ` T)"
       and qim: "\<And>q U. \<lbrakk>U \<subseteq> S; continuous_on U q; \<psi> U\<rbrakk> \<Longrightarrow> \<phi>(q ` U)"
     shows "locally \<psi> S \<longleftrightarrow> locally \<phi> C"
          (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume L: ?lhs
   show ?rhs
   proof (rule locallyI)
@@ -1518,7 +1518,7 @@ next
     using cov covering_space_locally pim by blast
 qed
 
-lemma covering_space_locally_compact_eq:
+lemma%unimportant covering_space_locally_compact_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
   shows "locally compact S \<longleftrightarrow> locally compact C"
@@ -1526,7 +1526,7 @@ lemma covering_space_locally_compact_eq:
    apply (meson assms compact_continuous_image continuous_on_subset covering_space_imp_continuous)
   using compact_continuous_image by blast
 
-lemma covering_space_locally_connected_eq:
+lemma%unimportant covering_space_locally_connected_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
     shows "locally connected S \<longleftrightarrow> locally connected C"
@@ -1534,7 +1534,7 @@ lemma covering_space_locally_connected_eq:
    apply (meson connected_continuous_image assms continuous_on_subset covering_space_imp_continuous)
   using connected_continuous_image by blast
 
-lemma covering_space_locally_path_connected_eq:
+lemma%unimportant covering_space_locally_path_connected_eq:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "covering_space C p S"
     shows "locally path_connected S \<longleftrightarrow> locally path_connected C"
@@ -1543,26 +1543,26 @@ lemma covering_space_locally_path_connected_eq:
   using path_connected_continuous_image by blast
 
 
-lemma covering_space_locally_compact:
+lemma%unimportant covering_space_locally_compact:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "locally compact C" "covering_space C p S"
   shows "locally compact S"
   using assms covering_space_locally_compact_eq by blast
 
 
-lemma covering_space_locally_connected:
+lemma%unimportant covering_space_locally_connected:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "locally connected C" "covering_space C p S"
   shows "locally connected S"
   using assms covering_space_locally_connected_eq by blast
 
-lemma covering_space_locally_path_connected:
+lemma%unimportant covering_space_locally_path_connected:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "locally path_connected C" "covering_space C p S"
   shows "locally path_connected S"
   using assms covering_space_locally_path_connected_eq by blast
 
-proposition covering_space_lift_homotopy:
+proposition%important covering_space_lift_homotopy:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and h :: "real \<times> 'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S"
@@ -1574,7 +1574,7 @@ proposition covering_space_lift_homotopy:
                     "k ` ({0..1} \<times> U) \<subseteq> C"
                     "\<And>y. y \<in> U \<Longrightarrow> k(0, y) = f y"
                     "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> h z = p(k z)"
-proof -
+proof%unimportant -
   have "\<exists>V k. openin (subtopology euclidean U) V \<and> y \<in> V \<and>
               continuous_on ({0..1} \<times> V) k \<and> k ` ({0..1} \<times> V) \<subseteq> C \<and>
               (\<forall>z \<in> V. k(0, z) = f z) \<and> (\<forall>z \<in> {0..1} \<times> V. h z = p(k z))"
@@ -1912,7 +1912,7 @@ proof -
   qed (auto simp: contk)
 qed
 
-corollary covering_space_lift_homotopy_alt:
+corollary%important covering_space_lift_homotopy_alt:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and h :: "'c::real_normed_vector \<times> real \<Rightarrow> 'b"
   assumes cov: "covering_space C p S"
@@ -1924,7 +1924,7 @@ corollary covering_space_lift_homotopy_alt:
                   "k ` (U \<times> {0..1}) \<subseteq> C"
                   "\<And>y. y \<in> U \<Longrightarrow> k(y, 0) = f y"
                   "\<And>z. z \<in> U \<times> {0..1} \<Longrightarrow> h z = p(k z)"
-proof -
+proof%unimportant -
   have "continuous_on ({0..1} \<times> U) (h \<circ> (\<lambda>z. (snd z, fst z)))"
     by (intro continuous_intros continuous_on_subset [OF conth]) auto
   then obtain k where contk: "continuous_on ({0..1} \<times> U) k"
@@ -1940,7 +1940,7 @@ proof -
     done
 qed
 
-corollary covering_space_lift_homotopic_function:
+corollary%important covering_space_lift_homotopic_function:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" and g:: "'c::real_normed_vector \<Rightarrow> 'a"
   assumes cov: "covering_space C p S"
       and contg: "continuous_on U g"
@@ -1948,7 +1948,7 @@ corollary covering_space_lift_homotopic_function:
       and pgeq: "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
       and hom: "homotopic_with (\<lambda>x. True) U S f f'"
     obtains g' where "continuous_on U g'" "image g' U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g' y) = f' y"
-proof -
+proof%unimportant -
   obtain h where conth: "continuous_on ({0..1::real} \<times> U) h"
              and him: "h ` ({0..1} \<times> U) \<subseteq> S"
              and h0:  "\<And>x. h(0, x) = f x"
@@ -1972,12 +1972,12 @@ proof -
   qed
 qed
 
-corollary covering_space_lift_inessential_function:
+corollary%important covering_space_lift_inessential_function:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" and U :: "'c::real_normed_vector set"
   assumes cov: "covering_space C p S"
       and hom: "homotopic_with (\<lambda>x. True) U S f (\<lambda>x. a)"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-proof (cases "U = {}")
+proof%unimportant (cases "U = {}")
   case True
   then show ?thesis
     using that continuous_on_empty by blast
@@ -1997,14 +1997,14 @@ qed
 
 subsection%important\<open> Lifting of general functions to covering space\<close>
 
-proposition covering_space_lift_path_strong:
+proposition%important covering_space_lift_path_strong:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S" and "a \<in> C"
       and "path g" and pag: "path_image g \<subseteq> S" and pas: "pathstart g = p a"
     obtains h where "path h" "path_image h \<subseteq> C" "pathstart h = a"
                 and "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = g t"
-proof -
+proof%unimportant -
   obtain k:: "real \<times> 'c \<Rightarrow> 'a"
     where contk: "continuous_on ({0..1} \<times> {undefined}) k"
       and kim: "k ` ({0..1} \<times> {undefined}) \<subseteq> C"
@@ -2033,11 +2033,11 @@ proof -
   qed
 qed
 
-corollary covering_space_lift_path:
+corollary%important covering_space_lift_path:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes cov: "covering_space C p S" and "path g" and pig: "path_image g \<subseteq> S"
   obtains h where "path h" "path_image h \<subseteq> C" "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h t) = g t"
-proof -
+proof%unimportant -
   obtain a where "a \<in> C" "pathstart g = p a"
     by (metis pig cov covering_space_imp_surjective imageE pathstart_in_path_image subsetCE)
   show ?thesis
@@ -2046,7 +2046,7 @@ proof -
 qed
 
   
-proposition covering_space_lift_homotopic_paths:
+proposition%important covering_space_lift_homotopic_paths:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes cov: "covering_space C p S"
       and "path g1" and pig1: "path_image g1 \<subseteq> S"
@@ -2056,7 +2056,7 @@ proposition covering_space_lift_homotopic_paths:
       and "path h2" and pih2: "path_image h2 \<subseteq> C" and ph2: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h2 t) = g2 t"
       and h1h2: "pathstart h1 = pathstart h2"
     shows "homotopic_paths C h1 h2"
-proof -
+proof%unimportant -
   obtain h :: "real \<times> real \<Rightarrow> 'b"
      where conth: "continuous_on ({0..1} \<times> {0..1}) h"
        and him: "h ` ({0..1} \<times> {0..1}) \<subseteq> S"
@@ -2117,7 +2117,7 @@ proof -
 qed
 
 
-corollary covering_space_monodromy:
+corollary%important covering_space_monodromy:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes cov: "covering_space C p S"
       and "path g1" and pig1: "path_image g1 \<subseteq> S"
@@ -2131,7 +2131,7 @@ corollary covering_space_monodromy:
   by%unimportant blast
 
 
-corollary covering_space_lift_homotopic_path:
+corollary%important covering_space_lift_homotopic_path:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes cov: "covering_space C p S"
       and hom: "homotopic_paths S f f'"
@@ -2140,7 +2140,7 @@ corollary covering_space_lift_homotopic_path:
       and pgeq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(g t) = f t"
   obtains g' where "path g'" "path_image g' \<subseteq> C"
                    "pathstart g' = a" "pathfinish g' = b" "\<And>t. t \<in> {0..1} \<Longrightarrow> p(g' t) = f' t"
-proof (rule covering_space_lift_path_strong [OF cov, of a f'])
+proof%unimportant (rule covering_space_lift_path_strong [OF cov, of a f'])
   show "a \<in> C"
     using a pig by auto
   show "path f'" "path_image f' \<subseteq> S"
@@ -2150,7 +2150,7 @@ proof (rule covering_space_lift_path_strong [OF cov, of a f'])
 qed (metis (mono_tags, lifting) assms cov covering_space_monodromy hom homotopic_paths_imp_path homotopic_paths_imp_subset pgeq pig)
 
 
-proposition covering_space_lift_general:
+proposition%important covering_space_lift_general:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S" and "a \<in> C" "z \<in> U"
@@ -2162,7 +2162,7 @@ proposition covering_space_lift_general:
                              pathstart q = a \<and> pathfinish q = a \<and>
                              homotopic_paths S (f \<circ> r) (p \<circ> q)"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-proof -
+proof%unimportant -
   have *: "\<exists>g h. path g \<and> path_image g \<subseteq> U \<and>
                  pathstart g = z \<and> pathfinish g = y \<and>
                  path h \<and> path_image h \<subseteq> C \<and> pathstart h = a \<and>
@@ -2405,7 +2405,7 @@ proof -
 qed
 
 
-corollary covering_space_lift_stronger:
+corollary%important covering_space_lift_stronger:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S" "a \<in> C" "z \<in> U"
@@ -2415,7 +2415,7 @@ corollary covering_space_lift_stronger:
       and hom: "\<And>r. \<lbrakk>path r; path_image r \<subseteq> U; pathstart r = z; pathfinish r = z\<rbrakk>
                      \<Longrightarrow> \<exists>b. homotopic_paths S (f \<circ> r) (linepath b b)"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-proof (rule covering_space_lift_general [OF cov U contf fim feq])
+proof%unimportant (rule covering_space_lift_general [OF cov U contf fim feq])
   fix r
   assume "path r" "path_image r \<subseteq> U" "pathstart r = z" "pathfinish r = z"
   then obtain b where b: "homotopic_paths S (f \<circ> r) (linepath b b)"
@@ -2432,7 +2432,7 @@ proof (rule covering_space_lift_general [OF cov U contf fim feq])
     by (force simp: \<open>a \<in> C\<close>)
 qed auto
 
-corollary covering_space_lift_strong:
+corollary%important covering_space_lift_strong:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S" "a \<in> C" "z \<in> U"
@@ -2440,7 +2440,7 @@ corollary covering_space_lift_strong:
       and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
       and feq: "f z = p a"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C" "g z = a" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-proof (rule covering_space_lift_stronger [OF cov _ lpcU contf fim feq])
+proof%unimportant (rule covering_space_lift_stronger [OF cov _ lpcU contf fim feq])
   show "path_connected U"
     using scU simply_connected_eq_contractible_loop_some by blast
   fix r
@@ -2453,14 +2453,14 @@ proof (rule covering_space_lift_stronger [OF cov _ lpcU contf fim feq])
     by blast
 qed blast
 
-corollary covering_space_lift:
+corollary%important covering_space_lift:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
   assumes cov: "covering_space C p S"
       and U: "simply_connected U"  "locally path_connected U"
       and contf: "continuous_on U f" and fim: "f ` U \<subseteq> S"
     obtains g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-proof (cases "U = {}")
+proof%unimportant (cases "U = {}")
   case True
   with that show ?thesis by auto
 next
