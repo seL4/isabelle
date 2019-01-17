@@ -45,7 +45,7 @@ lemma%unimportant box_vec_eq_empty [simp]:
         "box (vec a) (vec b) = {} \<longleftrightarrow> box a b = {}"
   by (auto simp: Basis_vec_def mem_box box_eq_empty inner_axis)
 
-subsection%important\<open>Closures and interiors of halfspaces\<close>
+subsection\<open>Closures and interiors of halfspaces\<close>
 
 lemma%important interior_halfspace_le [simp]:
   assumes "a \<noteq> 0"
@@ -190,7 +190,7 @@ lemma%unimportant
   by (simp_all add: linear_continuous_at linear_continuous_on)
 
 
-subsection%important\<open>Bounds on components etc.\ relative to operator norm\<close>
+subsection\<open>Bounds on components etc.\ relative to operator norm\<close>
 
 lemma%important norm_column_le_onorm:
   fixes A :: "real^'n^'m"
@@ -527,7 +527,7 @@ proof%unimportant -
     unfolding Collect_all_eq by (simp add: closed_INT)
 qed
 
-subsection%important "Convex Euclidean Space"
+subsection "Convex Euclidean Space"
 
 lemma%unimportant Cart_1:"(1::real^'n) = \<Sum>Basis"
   using const_vector_cart[of 1] by (simp add: one_vec_def)
@@ -563,7 +563,7 @@ proof%unimportant -
 qed
 
 
-subsection%important "Derivative"
+subsection "Derivative"
 
 definition%important "jacobian f net = matrix(frechet_derivative f net)"
 

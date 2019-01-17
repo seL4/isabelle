@@ -6,7 +6,7 @@ theory Polytope
 imports Cartesian_Euclidean_Space
 begin
 
-subsection%important \<open>Faces of a (usually convex) set\<close>
+subsection \<open>Faces of a (usually convex) set\<close>
 
 definition%important face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
   where
@@ -641,7 +641,7 @@ lemma%unimportant face_of_halfspace_ge:
          F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<ge> b}"
 using face_of_halfspace_le [of F "-a" "-b"] by simp
 
-subsection%important\<open>Exposed faces\<close>
+subsection\<open>Exposed faces\<close>
 
 text\<open>That is, faces that are intersection with supporting hyperplane\<close>
 
@@ -874,7 +874,7 @@ next
     unfolding exposed_face_of_def by blast
 qed
 
-subsection%important\<open>Extreme points of a set: its singleton faces\<close>
+subsection\<open>Extreme points of a set: its singleton faces\<close>
 
 definition%important extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
                                (infixr "(extreme'_point'_of)" 50)
@@ -974,7 +974,7 @@ using face_of_convex_hulls [of "insert a S" "{a}"]
 apply (auto simp: face_of_singleton hull_same)
 done
 
-subsection%important\<open>Facets\<close>
+subsection\<open>Facets\<close>
 
 definition%important facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
                     (infixr "(facet'_of)" 50)
@@ -1020,7 +1020,7 @@ lemma%unimportant facet_of_halfspace_ge:
     "F facet_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
 using facet_of_halfspace_le [of F "-a" "-b"] by simp
 
-subsection%important \<open>Edges: faces of affine dimension 1\<close>
+subsection \<open>Edges: faces of affine dimension 1\<close>
 
 definition%important edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
   where "e edge_of S \<longleftrightarrow> e face_of S \<and> aff_dim e = 1"
@@ -1029,7 +1029,7 @@ lemma%unimportant edge_of_imp_subset:
    "S edge_of T \<Longrightarrow> S \<subseteq> T"
 by (simp add: edge_of_def face_of_imp_subset)
 
-subsection%important\<open>Existence of extreme points\<close>
+subsection\<open>Existence of extreme points\<close>
 
 lemma%important different_norm_3_collinear_points:
   fixes a :: "'a::euclidean_space"
@@ -1105,7 +1105,7 @@ proof%unimportant -
     done
 qed
 
-subsection%important\<open>Krein-Milman, the weaker form\<close>
+subsection\<open>Krein-Milman, the weaker form\<close>
 
 proposition%important Krein_Milman:
   fixes S :: "'a::euclidean_space set"
@@ -1231,7 +1231,7 @@ next
 qed
 
 
-subsection%important\<open>Applying it to convex hulls of explicitly indicated finite sets\<close>
+subsection\<open>Applying it to convex hulls of explicitly indicated finite sets\<close>
 
 lemma%important Krein_Milman_polytope:
   fixes S :: "'a::euclidean_space set"
@@ -1599,7 +1599,7 @@ next
   finally show "?rhs \<subseteq> ?lhs" .
 qed
 
-subsection%important\<open>Polytopes\<close>
+subsection\<open>Polytopes\<close>
 
 definition%important polytope where
  "polytope S \<equiv> \<exists>v. finite v \<and> S = convex hull v"
@@ -1694,7 +1694,7 @@ proof%unimportant -
 qed
 
 
-subsection%important\<open>Polyhedra\<close>
+subsection\<open>Polyhedra\<close>
 
 definition%important polyhedron where
  "polyhedron S \<equiv>
@@ -1787,7 +1787,7 @@ lemma%unimportant polyhedron_affine_hull:
 by (simp add: affine_imp_polyhedron)
 
 
-subsection%important\<open>Canonical polyhedron representation making facial structure explicit\<close>
+subsection\<open>Canonical polyhedron representation making facial structure explicit\<close>
 
 lemma%important polyhedron_Int_affine:
   fixes S :: "'a :: euclidean_space set"
@@ -2689,7 +2689,7 @@ lemma%unimportant polyhedron_negations:
   by (subst polyhedron_linear_image_eq)
     (auto simp: bij_uminus intro!: linear_uminus)
 
-subsection%important\<open>Relation between polytopes and polyhedra\<close>
+subsection\<open>Relation between polytopes and polyhedra\<close>
 
 lemma%important polytope_eq_bounded_polyhedron:
   fixes S :: "'a :: euclidean_space set"
@@ -2755,7 +2755,7 @@ lemma%unimportant polyhedron_convex_hull:
 by (simp add: polytope_convex_hull polytope_imp_polyhedron)
 
 
-subsection%important\<open>Relative and absolute frontier of a polytope\<close>
+subsection\<open>Relative and absolute frontier of a polytope\<close>
 
 lemma rel_boundary_of_convex_hull:
     fixes S :: "'a::euclidean_space set"
@@ -3208,7 +3208,7 @@ proof -
   qed (use C in auto)
 qed
 
-subsection%important \<open>Simplicial complexes and triangulations\<close>
+subsection \<open>Simplicial complexes and triangulations\<close>
 
 definition%important simplicial_complex where
  "simplicial_complex \<C> \<equiv>
@@ -3226,7 +3226,7 @@ definition%important triangulation where
                 \<longrightarrow> (T \<inter> T') face_of T \<and> (T \<inter> T') face_of T')"
 
 
-subsection%important\<open>Refining a cell complex to a simplicial complex\<close>
+subsection\<open>Refining a cell complex to a simplicial complex\<close>
 
 lemma%important convex_hull_insert_Int_eq:
   fixes z :: "'a :: euclidean_space"
@@ -3894,7 +3894,7 @@ proof%unimportant -
   qed
 qed
 
-subsection%important\<open>Some results on cell division with full-dimensional cells only\<close>
+subsection\<open>Some results on cell division with full-dimensional cells only\<close>
 
 lemma%important convex_Union_fulldim_cells:
   assumes "finite \<S>" and clo: "\<And>C. C \<in> \<S> \<Longrightarrow> closed C" and con: "\<And>C. C \<in> \<S> \<Longrightarrow> convex C"

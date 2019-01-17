@@ -14,7 +14,7 @@ lemma Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B 
 lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
   by auto
 
-subsection%important "Binary products"
+subsection "Binary products"
 
 definition%important pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
   "A \<Otimes>\<^sub>M B = measure_of (space A \<times> space B)
@@ -336,7 +336,7 @@ proof -
     by (simp add: ac_simps)
 qed
 
-subsection%important \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
+subsection \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
 
 locale%unimportant pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"
@@ -531,7 +531,7 @@ proof -
     done
 qed
 
-subsection%important "Fubinis theorem"
+subsection "Fubinis theorem"
 
 lemma measurable_compose_Pair1:
   "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^sub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
@@ -602,7 +602,7 @@ theorem (in pair_sigma_finite) Fubini':
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f x y \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f x y \<partial>M2) \<partial>M1)"
   using Fubini[OF f] by simp
 
-subsection%important \<open>Products on counting spaces, densities and distributions\<close>
+subsection \<open>Products on counting spaces, densities and distributions\<close>
 
 proposition sigma_prod:
   assumes X_cover: "\<exists>E\<subseteq>A. countable E \<and> X = \<Union>E" and A: "A \<subseteq> Pow X"
@@ -1095,7 +1095,7 @@ lemma measurable_pair_measure_countable1:
 using _ _ assms(1)
 by(rule measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g=fst and I=A, simplified])simp_all
 
-subsection%important \<open>Product of Borel spaces\<close>
+subsection \<open>Product of Borel spaces\<close>
 
 theorem borel_Times:
   fixes A :: "'a::topological_space set" and B :: "'b::topological_space set"

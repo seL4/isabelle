@@ -109,9 +109,9 @@ lemma merge_vimage:
   "I \<inter> J = {} \<Longrightarrow> merge I J -` Pi\<^sub>E (I \<union> J) E = Pi I E \<times> Pi J E"
   by (auto simp: restrict_Pi_cancel PiE_def)
 
-subsection%important \<open>Finite product spaces\<close>
+subsection \<open>Finite product spaces\<close>
 
-subsubsection%important \<open>Products\<close>
+subsubsection \<open>Products\<close>
 
 definition%important prod_emb where
   "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (\<Pi>\<^sub>E i\<in>I. space (M i))"

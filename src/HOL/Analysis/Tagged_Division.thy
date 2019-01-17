@@ -55,7 +55,7 @@ proof -
     by (simp add: field_simps)
 qed
 
-subsection%important \<open>Some useful lemmas about intervals\<close>
+subsection \<open>Some useful lemmas about intervals\<close>
 
 lemma interior_subset_union_intervals:
   assumes "i = cbox a b"
@@ -130,7 +130,7 @@ lemma interval_split:
 lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> cbox a b \<noteq> {}"
   by (simp add: box_ne_empty)
 
-subsection%important \<open>Bounds on intervals where they exist\<close>
+subsection \<open>Bounds on intervals where they exist\<close>
 
 definition%important interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x\<in>s. x\<bullet>i) *\<^sub>R i)"
@@ -192,7 +192,7 @@ proof-
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed
 
-subsection%important \<open>The notion of a gauge --- simply an open set containing the point\<close>
+subsection \<open>The notion of a gauge --- simply an open set containing the point\<close>
 
 definition%important "gauge \<gamma> \<longleftrightarrow> (\<forall>x. x \<in> \<gamma> x \<and> open (\<gamma> x))"
 
@@ -242,14 +242,14 @@ lemma gauge_existence_lemma:
   "(\<forall>x. \<exists>d :: real. p x \<longrightarrow> 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. p x \<longrightarrow> q d x)"
   by (metis zero_less_one)
 
-subsection%important \<open>Attempt a systematic general set of "offset" results for components\<close>
+subsection \<open>Attempt a systematic general set of "offset" results for components\<close>
 (*FIXME Restructure, the subsection consists only of 1 lemma *)
 lemma gauge_modify:
   assumes "(\<forall>S. open S \<longrightarrow> open {x. f(x) \<in> S})" "gauge d"
   shows "gauge (\<lambda>x. {y. f y \<in> d (f x)})"
   using assms unfolding gauge_def by force
 
-subsection%important \<open>Divisions\<close>
+subsection \<open>Divisions\<close>
 
 definition%important division_of (infixl "division'_of" 40)
 where
@@ -995,7 +995,7 @@ proof (rule_tac[!] division_ofI)
   }
 qed
 
-subsection%important \<open>Tagged (partial) divisions\<close>
+subsection \<open>Tagged (partial) divisions\<close>
 
 definition%important tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
@@ -1286,7 +1286,7 @@ proof -
 qed
 
 
-subsection%important \<open>Functions closed on boxes: morphisms from boxes to monoids\<close>
+subsection \<open>Functions closed on boxes: morphisms from boxes to monoids\<close>
 
 text \<open>This auxiliary structure is used to sum up over the elements of a division. Main theorem is
   \<open>operative_division\<close>. Instances for the monoid are \<^typ>\<open>'a option\<close>, \<^typ>\<open>real\<close>, and
@@ -1828,7 +1828,7 @@ qed
 qed
 
 
-subsection%important \<open>Special case of additivity we need for the FTC\<close>
+subsection \<open>Special case of additivity we need for the FTC\<close>
 (*fix add explanation here *)
 lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
@@ -1856,7 +1856,7 @@ proof -
 qed
 
 
-subsection%important \<open>Fine-ness of a partition w.r.t. a gauge\<close>
+subsection \<open>Fine-ness of a partition w.r.t. a gauge\<close>
 
 definition%important fine  (infixr "fine" 46)
   where "d fine s \<longleftrightarrow> (\<forall>(x,k) \<in> s. k \<subseteq> d x)"
@@ -1887,7 +1887,7 @@ lemma fine_Union: "(\<And>p. p \<in> ps \<Longrightarrow> d fine p) \<Longrighta
 lemma fine_subset: "p \<subseteq> q \<Longrightarrow> d fine q \<Longrightarrow> d fine p"
   unfolding fine_def by blast
 
-subsection%important \<open>Some basic combining lemmas\<close>
+subsection \<open>Some basic combining lemmas\<close>
 
 lemma tagged_division_Union_exists:
   assumes "finite I"
@@ -1914,7 +1914,7 @@ lemma division_of_closed:
   shows "s division_of i \<Longrightarrow> closed i"
   unfolding division_of_def by fastforce
 (* FIXME structure here, do not have one lemma in each subsection *)
-subsection%important \<open>General bisection principle for intervals; might be useful elsewhere\<close>
+subsection \<open>General bisection principle for intervals; might be useful elsewhere\<close>
 (* FIXME  move? *)
 lemma interval_bisection_step:
   fixes type :: "'a::euclidean_space"
@@ -2180,7 +2180,7 @@ proof -
 qed
 
 
-subsection%important \<open>Cousin's lemma\<close>
+subsection \<open>Cousin's lemma\<close>
 
 lemma fine_division_exists: (*FIXME rename(?) *)
   fixes a b :: "'a::euclidean_space"
@@ -2226,7 +2226,7 @@ lemma fine_division_exists_real:
   obtains p where "p tagged_division_of {a .. b}" "g fine p"
   by (metis assms box_real(2) fine_division_exists)
 
-subsection%important \<open>A technical lemma about "refinement" of division\<close>
+subsection \<open>A technical lemma about "refinement" of division\<close>
 
 lemma tagged_division_finer:
   fixes p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"
@@ -2301,7 +2301,7 @@ proof -
   with ptag that show ?thesis by auto
 qed
 
-subsubsection%important \<open>Covering lemma\<close>
+subsubsection \<open>Covering lemma\<close>
 
 text\<open> Some technical lemmas used in the approximation results that follow. Proof of the covering
   lemma is an obvious multidimensional generalization of Lemma 3, p65 of Swartz's
@@ -2571,7 +2571,7 @@ proof -
     qed
 qed
 
-subsection%important \<open>Division filter\<close>
+subsection \<open>Division filter\<close>
 
 text \<open>Divisions over all gauges towards finer divisions.\<close>
 

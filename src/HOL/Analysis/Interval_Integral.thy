@@ -37,7 +37,7 @@ lemma open_einterval[simp]: "open (einterval a b)"
 lemma borel_einterval[measurable]: "einterval a b \<in> sets borel"
   unfolding einterval_def by measurable
 
-subsection%important \<open>Approximating a (possibly infinite) interval\<close>
+subsection \<open>Approximating a (possibly infinite) interval\<close>
 
 lemma filterlim_sup1: "(LIM x F. f x :> G1) \<Longrightarrow> (LIM x F. f x :> (sup G1 G2))"
  unfolding filterlim_def by (auto intro: le_supI1)
@@ -151,7 +151,7 @@ syntax
 translations
   "LBINT x=a..b. f" == "CONST interval_lebesgue_integral CONST lborel a b (\<lambda>x. f)"
 
-subsection%important\<open>Basic properties of integration over an interval\<close>
+subsection\<open>Basic properties of integration over an interval\<close>
 
 lemma interval_lebesgue_integral_cong:
   "a \<le> b \<Longrightarrow> (\<And>x. x \<in> einterval a b \<Longrightarrow> f x = g x) \<Longrightarrow> einterval a b \<in> sets M \<Longrightarrow>
@@ -303,7 +303,7 @@ proposition interval_integrable_to_infinity_eq: "(interval_lebesgue_integrable M
   (set_integrable M {a<..} f)"
   unfolding%unimportant interval_lebesgue_integrable_def by auto
 
-subsection%important\<open>Basic properties of integration over an interval wrt lebesgue measure\<close>
+subsection\<open>Basic properties of integration over an interval wrt lebesgue measure\<close>
 
 lemma interval_integral_zero [simp]:
   fixes a b :: ereal
@@ -476,7 +476,7 @@ lemma interval_integral_eq_integral':
   by (subst interval_lebesgue_integral_le_eq, simp) (rule set_borel_integral_eq_integral)
 
 
-subsection%important\<open>General limit approximation arguments\<close>
+subsection\<open>General limit approximation arguments\<close>
 
 proposition interval_integral_Icc_approx_nonneg:
   fixes a b :: ereal
@@ -571,7 +571,7 @@ proof -
     by (simp add: interval_lebesgue_integral_le_eq[symmetric] interval_integral_Icc less_imp_le)
 qed
 
-subsection%important\<open>A slightly stronger Fundamental Theorem of Calculus\<close>
+subsection\<open>A slightly stronger Fundamental Theorem of Calculus\<close>
 
 text\<open>Three versions: first, for finite intervals, and then two versions for
     arbitrary intervals.\<close>
@@ -781,7 +781,7 @@ proof -
   qed
 qed
 
-subsection%important\<open>The substitution theorem\<close>
+subsection\<open>The substitution theorem\<close>
 
 text\<open>Once again, three versions: first, for finite intervals, and then two versions for
     arbitrary intervals.\<close>

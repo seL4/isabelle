@@ -297,7 +297,7 @@ next
 qed
 
 
-subsection%important  \<open>Orthogonality of a transformation\<close>
+subsection  \<open>Orthogonality of a transformation\<close>
 
 definition%important  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 

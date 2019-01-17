@@ -6,7 +6,7 @@ theory Weierstrass_Theorems
 imports Uniform_Limit Path_Connected Derivative
 begin
 
-subsection%important \<open>Bernstein polynomials\<close>
+subsection \<open>Bernstein polynomials\<close>
 
 definition%important Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
   "Bernstein n k x \<equiv> of_nat (n choose k) * x ^ k * (1 - x) ^ (n - k)"
@@ -65,7 +65,7 @@ proof%unimportant -
     by auto
 qed
 
-subsection%important \<open>Explicit Bernstein version of the 1D Weierstrass approximation theorem\<close>
+subsection \<open>Explicit Bernstein version of the 1D Weierstrass approximation theorem\<close>
 
 lemma%important Bernstein_Weierstrass:
   fixes f :: "real \<Rightarrow> real"
@@ -167,7 +167,7 @@ proof%unimportant -
 qed
 
 
-subsection%important \<open>General Stone-Weierstrass theorem\<close>
+subsection \<open>General Stone-Weierstrass theorem\<close>
 
 text\<open>Source:
 Bruno Brosowski and Frank Deutsch.
@@ -782,7 +782,7 @@ proof%unimportant -
 qed
 
 
-subsection%important \<open>Polynomial functions\<close>
+subsection \<open>Polynomial functions\<close>
 
 inductive real_polynomial_function :: "('a::real_normed_vector \<Rightarrow> real) \<Rightarrow> bool" where
     linear: "bounded_linear f \<Longrightarrow> real_polynomial_function f"
@@ -983,7 +983,7 @@ next
     by (simp add: euclidean_representation_sum_fun)
 qed
 
-subsection%important \<open>Stone-Weierstrass theorem for polynomial functions\<close>
+subsection \<open>Stone-Weierstrass theorem for polynomial functions\<close>
 
 text\<open>First, we need to show that they are continous, differentiable and separable.\<close>
 
@@ -1175,7 +1175,7 @@ proof%unimportant -
 qed
 
 
-subsection%important\<open>Polynomial functions as paths\<close>
+subsection\<open>Polynomial functions as paths\<close>
 
 text\<open>One application is to pick a smooth approximation to a path,
 or just pick a smooth path anyway in an open connected set\<close>

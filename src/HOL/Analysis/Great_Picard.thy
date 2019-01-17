@@ -374,7 +374,7 @@ proof -
 qed
 
   
-subsection%important\<open>The Little Picard Theorem\<close>
+subsection\<open>The Little Picard Theorem\<close>
 
 proposition Landau_Picard:
   obtains R
@@ -614,7 +614,7 @@ proof -
 qed
 
 
-subsection%important\<open>The Arzelà--Ascoli theorem\<close>
+subsection\<open>The Arzelà--Ascoli theorem\<close>
 
 lemma subsequence_diagonalization_lemma:
   fixes P :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
@@ -788,7 +788,7 @@ qed
 
 
 
-subsubsection%important\<open>Montel's theorem\<close>
+subsubsection\<open>Montel's theorem\<close>
 
 text\<open>a sequence of holomorphic functions uniformly bounded
 on compact subsets of an open set S has a subsequence that converges to a
@@ -993,7 +993,7 @@ qed
 
 
 
-subsection%important\<open>Some simple but useful cases of Hurwitz's theorem\<close>
+subsection\<open>Some simple but useful cases of Hurwitz's theorem\<close>
 
 proposition Hurwitz_no_zeros:
   assumes S: "open S" "connected S"
@@ -1229,7 +1229,7 @@ qed
 
 
 
-subsection%important\<open>The Great Picard theorem\<close>
+subsection\<open>The Great Picard theorem\<close>
 
 lemma GPicard1:
   assumes S: "open S" "connected S" and "w \<in> S" "0 < r" "Y \<subseteq> X"

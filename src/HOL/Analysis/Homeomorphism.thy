@@ -36,7 +36,7 @@ lemma homeomorphic_spheres_gen:
   using assms  apply auto
   done
 
-subsection%important \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
+subsection \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
 
 proposition ray_to_rel_frontier:
   fixes a :: "'a::real_inner"
@@ -725,7 +725,7 @@ using assms homeomorphic_convex_lemma [of "closure S" "closure T"]
 by (simp add: rel_frontier_def convex_rel_interior_closure)
 
 
-subsection%important\<open>Homeomorphisms between punctured spheres and affine sets\<close>
+subsection\<open>Homeomorphisms between punctured spheres and affine sets\<close>
 text\<open>Including the famous stereoscopic projection of the 3-D sphere to the complex plane\<close>
 
 text\<open>The special case with centre 0 and radius 1\<close>
@@ -1004,7 +1004,7 @@ next
     done
 qed
 
-subsection%important\<open>Locally compact sets in an open set\<close>
+subsection\<open>Locally compact sets in an open set\<close>
 
 text\<open> Locally compact sets are closed in an open set and are homeomorphic
   to an absolutely closed set if we have one more dimension to play with.\<close>
@@ -1995,7 +1995,7 @@ next
     done
 qed
 
-subsection%important\<open> Lifting of general functions to covering space\<close>
+subsection\<open> Lifting of general functions to covering space\<close>
 
 proposition covering_space_lift_path_strong:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"

@@ -501,7 +501,7 @@ proof%unimportant -
 qed
 
 
-subsection%important\<open> Rank of a matrix\<close>
+subsection\<open> Rank of a matrix\<close>
 
 text\<open>Equivalence of row and column rank is taken from George Mackiw's paper, Mathematics Magazine 1995, p. 285.\<close>
 
@@ -942,7 +942,7 @@ lemma%unimportant  prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
 
-subsection%important  \<open>Orthogonality of a matrix\<close>
+subsection  \<open>Orthogonality of a matrix\<close>
 
 definition%important  "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
   transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
@@ -1008,7 +1008,7 @@ proof%unimportant -
 qed
 
 
-subsection%important \<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
+subsection \<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
 
 lemma%unimportant  orthogonal_matrix_transpose [simp]:
      "orthogonal_matrix(transpose A) \<longleftrightarrow> orthogonal_matrix A"
@@ -1103,7 +1103,7 @@ next
 qed
 
 
-subsection%important  \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
+subsection  \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
 
 lemma%important  scaling_linear:
   fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
@@ -1138,7 +1138,7 @@ lemma%important  orthogonal_transformation_isometry:
   by (metis dist_0_norm)
 
 
-subsection%important  \<open>Can extend an isometry from unit sphere\<close>
+subsection  \<open>Can extend an isometry from unit sphere\<close>
 
 lemma%important  isometry_sphere_extend:
   fixes f:: "'a::real_inner \<Rightarrow> 'a"
@@ -1178,7 +1178,7 @@ proof%unimportant -
     by (rule exI[where x= ?g]) (metis thfg thd)
 qed
 
-subsection%important\<open>Induction on matrix row operations\<close>
+subsection\<open>Induction on matrix row operations\<close>
 
 lemma%unimportant induct_matrix_row_operations:
   fixes P :: "real^'n^'n \<Rightarrow> bool"

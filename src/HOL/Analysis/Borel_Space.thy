@@ -294,7 +294,7 @@ proof-
   ultimately show ?thesis using that by blast
 qed
 
-subsection%important \<open>Generic Borel spaces\<close>
+subsection \<open>Generic Borel spaces\<close>
 
 definition%important (in topological_space) borel :: "'a measure" where
   "borel = sigma UNIV {S. open S}"
@@ -669,7 +669,7 @@ proof -
     unfolding eq by (rule borel_measurable_continuous_on[OF H]) auto
 qed
 
-subsection%important \<open>Borel spaces on order topologies\<close>
+subsection \<open>Borel spaces on order topologies\<close>
 
 lemma [measurable]:
   fixes a b :: "'a::linorder_topology"
@@ -970,7 +970,7 @@ proof -
   with u show ?thesis by (simp cong: measurable_cong)
 qed
 
-subsection%important \<open>Borel spaces on topological monoids\<close>
+subsection \<open>Borel spaces on topological monoids\<close>
 
 lemma borel_measurable_add[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, topological_monoid_add}"
@@ -994,7 +994,7 @@ lemma borel_measurable_suminf_order[measurable (raw)]:
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
-subsection%important \<open>Borel spaces on Euclidean spaces\<close>
+subsection \<open>Borel spaces on Euclidean spaces\<close>
 
 lemma borel_measurable_inner[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_inner}"
@@ -1329,7 +1329,7 @@ proof safe
     by (subst borel_measurable_iff_halfspace_le) auto
 qed auto
 
-subsection%important "Borel measurable operators"
+subsection "Borel measurable operators"
 
 lemma borel_measurable_norm[measurable]: "norm \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
@@ -1525,7 +1525,7 @@ lemma powr_real_measurable [measurable]:
 lemma measurable_of_bool[measurable]: "of_bool \<in> count_space UNIV \<rightarrow>\<^sub>M borel"
   by simp
 
-subsection%important "Borel space on the extended reals"
+subsection "Borel space on the extended reals"
 
 lemma borel_measurable_ereal[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M"
@@ -1686,7 +1686,7 @@ lemma borel_measurable_extreal_suminf[measurable (raw)]:
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
-subsection%important "Borel space on the extended non-negative reals"
+subsection "Borel space on the extended non-negative reals"
 
 text \<open> \<^type>\<open>ennreal\<close> is a topological monoid, so no rules for plus are required, also all order
   statements are usually done on type classes. \<close>
@@ -1760,7 +1760,7 @@ end
 
 hide_const (open) is_borel
 
-subsection%important \<open>LIMSEQ is borel measurable\<close>
+subsection \<open>LIMSEQ is borel measurable\<close>
 
 lemma borel_measurable_LIMSEQ_real:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"

@@ -234,7 +234,7 @@ next
   qed
 qed
 
-subsection%important\<open>Vitali covering theorem\<close>
+subsection\<open>Vitali covering theorem\<close>
 
 lemma%unimportant Vitali_covering_lemma_cballs:
   fixes a :: "'a \<Rightarrow> 'b::euclidean_space"

@@ -8,7 +8,7 @@ theory Arcwise_Connected
 imports Path_Connected Ordered_Euclidean_Space "HOL-Computational_Algebra.Primes"
 begin
 
-subsection%important \<open>The Brouwer reduction theorem\<close>
+subsection \<open>The Brouwer reduction theorem\<close>
 
 theorem Brouwer_reduction_theorem_gen:
   fixes S :: "'a::euclidean_space set"
@@ -108,7 +108,7 @@ qed (meson assms compact_imp_closed seq_compact_closed_subset seq_compact_eq_com
 
 subsection%unimportant\<open>Arcwise Connections\<close>(*FIX ME this subsection is empty(?) *)
 
-subsection%important\<open>Density of points with dyadic rational coordinates\<close>
+subsection\<open>Density of points with dyadic rational coordinates\<close>
 
 proposition closure_dyadic_rationals:
     "closure (\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>.
@@ -2001,7 +2001,7 @@ corollary arc_connected_trans:
 
 
 
-subsection%important\<open>Accessibility of frontier points\<close>
+subsection\<open>Accessibility of frontier points\<close>
 
 lemma dense_accessible_frontier_points:
   fixes S :: "'a::{complete_space,real_normed_vector} set"

@@ -10,7 +10,7 @@ imports
   "HOL-Library.Permutations"
 begin
 
-subsection%important  \<open>Trace\<close>
+subsection  \<open>Trace\<close>
 
 definition%important  trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
   where "trace A = sum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
@@ -33,7 +33,7 @@ lemma%important  trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = t
   apply (simp add: mult.commute)
   done
 
-subsubsection%important  \<open>Definition of determinant\<close>
+subsubsection  \<open>Definition of determinant\<close>
 
 definition%important  det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
@@ -712,7 +712,7 @@ proof%unimportant -
 qed
 
 
-subsection%important \<open>Relation to invertibility\<close>
+subsection \<open>Relation to invertibility\<close>
 
 lemma%important  invertible_det_nz:
   fixes A::"'a::{field}^'n^'n"
@@ -776,7 +776,7 @@ lemma%unimportant  det_eq_0_rank:
   using invertible_det_nz [of A]
   by (auto simp: matrix_left_invertible_injective invertible_left_inverse less_rank_noninjective)
 
-subsubsection%important  \<open>Invertibility of matrices and corresponding linear functions\<close>
+subsubsection  \<open>Invertibility of matrices and corresponding linear functions\<close>
 
 lemma%important  matrix_left_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
@@ -861,7 +861,7 @@ lemma%unimportant  invertible_eq_bij:
       vec.linear_injective_left_inverse vec.linear_surjective_right_inverse)
 
 
-subsection%important \<open>Cramer's rule\<close>
+subsection \<open>Cramer's rule\<close>
 
 lemma%important  cramer_lemma_transpose:
   fixes A:: "'a::{field}^'n^'n"
@@ -996,7 +996,7 @@ lemma%important  orthogonal_transformation_det [simp]:
   shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
   using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
 
-subsection%important  \<open>Rotation, reflection, rotoinversion\<close>
+subsection  \<open>Rotation, reflection, rotoinversion\<close>
 
 definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
 definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"

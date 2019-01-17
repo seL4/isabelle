@@ -2201,7 +2201,7 @@ proof -
   then show ?thesis using \<open>strict_mono r\<close> by auto
 qed
 
-subsection%important \<open>Restricted measure spaces\<close>
+subsection \<open>Restricted measure spaces\<close>
 
 lemma integrable_restrict_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2252,7 +2252,7 @@ proof -
   thus ?thesis by simp
 qed
 
-subsection%important \<open>Measure spaces with an associated density\<close>
+subsection \<open>Measure spaces with an associated density\<close>
 
 lemma integrable_density:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and g :: "'a \<Rightarrow> real"
@@ -2338,7 +2338,7 @@ lemma has_bochner_integral_density:
     has_bochner_integral M (\<lambda>x. g x *\<^sub>R f x) x \<Longrightarrow> has_bochner_integral (density M g) f x"
   by (simp add: has_bochner_integral_iff integrable_density integral_density)
 
-subsection%important \<open>Distributions\<close>
+subsection \<open>Distributions\<close>
 
 lemma integrable_distr_eq:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2410,7 +2410,7 @@ lemma has_bochner_integral_distr:
     has_bochner_integral M (\<lambda>x. f (g x)) x \<Longrightarrow> has_bochner_integral (distr M N g) f x"
   by (simp add: has_bochner_integral_iff integrable_distr_eq integral_distr)
 
-subsection%important \<open>Lebesgue integration on \<^const>\<open>count_space\<close>\<close>
+subsection \<open>Lebesgue integration on \<^const>\<open>count_space\<close>\<close>
 
 lemma integrable_count_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach,second_countable_topology}"
@@ -2497,7 +2497,7 @@ lemma has_bochner_integral_count_space_nat:
   shows "has_bochner_integral (count_space UNIV) f x \<Longrightarrow> f sums x"
   unfolding has_bochner_integral_iff by (auto intro!: sums_integral_count_space_nat)
 
-subsection%important \<open>Point measure\<close>
+subsection \<open>Point measure\<close>
 
 lemma lebesgue_integral_point_measure_finite:
   fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2515,7 +2515,7 @@ proposition integrable_point_measure_finite:
   apply (auto simp: AE_count_space integrable_count_space)
   done
 
-subsection%important \<open>Lebesgue integration on \<^const>\<open>null_measure\<close>\<close>
+subsection \<open>Lebesgue integration on \<^const>\<open>null_measure\<close>\<close>
 
 lemma has_bochner_integral_null_measure_iff[iff]:
   "has_bochner_integral (null_measure M) f 0 \<longleftrightarrow> f \<in> borel_measurable M"
@@ -2529,7 +2529,7 @@ lemma integral_null_measure[simp]: "integral\<^sup>L (null_measure M) f = 0"
   by (cases "integrable (null_measure M) f")
      (auto simp add: not_integrable_integral_eq has_bochner_integral_integral_eq)
 
-subsection%important \<open>Legacy lemmas for the real-valued Lebesgue integral\<close>
+subsection \<open>Legacy lemmas for the real-valued Lebesgue integral\<close>
 theorem real_lebesgue_integral_def:
   assumes f[measurable]: "integrable M f"
   shows "integral\<^sup>L M f = enn2real (\<integral>\<^sup>+x. f x \<partial>M) - enn2real (\<integral>\<^sup>+x. ennreal (- f x) \<partial>M)"
@@ -2839,7 +2839,7 @@ proof -
     by (auto simp: _has_bochner_integral_iff)
 qed
 
-subsection%important \<open>Product measure\<close>
+subsection \<open>Product measure\<close>
 
 lemma (in sigma_finite_measure) borel_measurable_lebesgue_integrable[measurable (raw)]:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"

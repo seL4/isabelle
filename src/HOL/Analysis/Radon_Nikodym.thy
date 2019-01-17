@@ -163,7 +163,7 @@ proof%unimportant -
   qed measurable
 qed
 
-subsection%important "Absolutely continuous"
+subsection "Absolutely continuous"
 
 definition%important absolutely_continuous :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
   "absolutely_continuous M N \<longleftrightarrow> null_sets M \<subseteq> null_sets N"
@@ -198,7 +198,7 @@ proof%unimportant -
   qed
 qed
 
-subsection%important "Existence of the Radon-Nikodym derivative"
+subsection "Existence of the Radon-Nikodym derivative"
 
 lemma%important
  (in finite_measure) Radon_Nikodym_finite_measure:
@@ -607,7 +607,7 @@ proof -
     by (auto intro!: bexI[of _ "\<lambda>x. h x * f x"] simp: density_density_eq)
 qed
 
-subsection%important \<open>Uniqueness of densities\<close>
+subsection \<open>Uniqueness of densities\<close>
 
 lemma%important finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
@@ -887,7 +887,7 @@ lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
   by (subst sigma_finite_iff_density_finite')
      (auto simp: max_def intro!: measurable_If)
 
-subsection%important \<open>Radon-Nikodym derivative\<close>
+subsection \<open>Radon-Nikodym derivative\<close>
 
 definition%important RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ennreal" where
   "RN_deriv M N =

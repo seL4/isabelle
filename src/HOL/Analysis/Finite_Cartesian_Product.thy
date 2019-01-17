@@ -68,7 +68,7 @@ lemma vec_lambda_unique: "(\<forall>i. f$i = g i) \<longleftrightarrow> vec_lamb
 lemma vec_lambda_eta [simp]: "(\<chi> i. (g$i)) = g"
   by (simp add: vec_eq_iff)
 
-subsection%important \<open>Cardinality of vectors\<close>
+subsection \<open>Cardinality of vectors\<close>
 
 instance vec :: (finite, finite) finite
 proof
@@ -292,7 +292,7 @@ definition scalar_product :: "'a :: semiring_1 ^ 'n \<Rightarrow> 'a ^ 'n \<Righ
   "scalar_product v w = (\<Sum> i \<in> UNIV. v $ i * w $ i)"
 
 
-subsection%important \<open>Real vector space\<close>
+subsection \<open>Real vector space\<close>
 
 instantiation%unimportant vec :: (real_vector, finite) real_vector
 begin
@@ -308,7 +308,7 @@ instance%unimportant
 end
 
 
-subsection%important \<open>Topological space\<close>
+subsection \<open>Topological space\<close>
 
 instantiation%unimportant vec :: (topological_space, finite) topological_space
 begin
@@ -430,7 +430,7 @@ proof
 qed
 
 
-subsection%important \<open>Metric space\<close>
+subsection \<open>Metric space\<close>
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
 instantiation%unimportant vec :: (metric_space, finite) dist
@@ -570,7 +570,7 @@ proof
 qed
 
 
-subsection%important \<open>Normed vector space\<close>
+subsection \<open>Normed vector space\<close>
 
 instantiation%unimportant vec :: (real_normed_vector, finite) real_normed_vector
 begin
@@ -636,7 +636,7 @@ done
 instance vec :: (banach, finite) banach ..
 
 
-subsection%important \<open>Inner product space\<close>
+subsection \<open>Inner product space\<close>
 
 instantiation%unimportant vec :: (real_inner, finite) real_inner
 begin
@@ -668,7 +668,7 @@ qed
 end
 
 
-subsection%important \<open>Euclidean space\<close>
+subsection \<open>Euclidean space\<close>
 
 text \<open>Vectors pointing along a single axis.\<close>
 
@@ -992,7 +992,7 @@ lemma linear_vec [simp]: "linear vec"
   apply (auto )
   by unfold_locales (vector algebra_simps)+
 
-subsection%important \<open>Matrix operations\<close>
+subsection \<open>Matrix operations\<close>
 
 text\<open>Matrix notation. NB: an MxN matrix is of type \<^typ>\<open>'a^'n^'m\<close>, not \<^typ>\<open>'a^'m^'n\<close>\<close>
 
@@ -1202,7 +1202,7 @@ lemma%unimportant matrix_vector_column:
   "(A::'a::comm_semiring_1^'n^_) *v x = sum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult.commute)
 
-subsection%important\<open>Inverse matrices  (not necessarily square)\<close>
+subsection\<open>Inverse matrices  (not necessarily square)\<close>
 
 definition%important
   "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"

@@ -49,12 +49,12 @@ proof -
     by (simp add: suminf_eq_SUP)
 qed
 
-subsection%important \<open>Characterizations of Measures\<close>
+subsection \<open>Characterizations of Measures\<close>
 
 definition%important outer_measure_space where
   "outer_measure_space M f \<longleftrightarrow> positive M f \<and> increasing M f \<and> countably_subadditive M f"
 
-subsubsection%important \<open>Lambda Systems\<close>
+subsubsection \<open>Lambda Systems\<close>
 
 definition%important lambda_system :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set set"
 where
@@ -460,7 +460,7 @@ qed
 lemma measure_down: "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
   by (auto simp add: measure_space_def positive_def countably_additive_def subset_eq)
 
-subsection%important \<open>Caratheodory's theorem\<close>
+subsection \<open>Caratheodory's theorem\<close>
 
 theorem (in ring_of_sets) caratheodory':
   assumes posf: "positive M f" and ca: "countably_additive M f"
@@ -497,7 +497,7 @@ proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto
 qed (rule cont)
 
-subsection%important \<open>Volumes\<close>
+subsection \<open>Volumes\<close>
 
 definition%important volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
   "volume M f \<longleftrightarrow>
@@ -635,7 +635,7 @@ proof -
   qed
 qed
 
-subsubsection%important \<open>Caratheodory on semirings\<close>
+subsubsection \<open>Caratheodory on semirings\<close>
 
 theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"

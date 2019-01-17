@@ -421,7 +421,7 @@ proof -
     by (simp add: measure_linear_image \<open>linear f\<close> S f)
 qed
 
-subsection%important\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
+subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
 
 (*https://en.wikipedia.org/wiki/F\<sigma>_set*)
 inductive%important fsigma :: "'a::topological_space set \<Rightarrow> bool" where
@@ -1411,7 +1411,7 @@ next
     by (blast intro: order_trans)
 qed
 
-subsection%important\<open>Borel measurable Jacobian determinant\<close>
+subsection\<open>Borel measurable Jacobian determinant\<close>
 
 lemma%unimportant lemma_partial_derivatives0:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2184,7 +2184,7 @@ next
 qed
 
 
-subsection%important\<open>Simplest case of Sard's theorem (we don't need continuity of derivative)\<close>
+subsection\<open>Simplest case of Sard's theorem (we don't need continuity of derivative)\<close>
 
 lemma%important Sard_lemma00:
   fixes P :: "'b::euclidean_space set"
@@ -2547,7 +2547,7 @@ proof%unimportant -
 qed
 
 
-subsection%important\<open>A one-way version of change-of-variables not assuming injectivity. \<close>
+subsection\<open>A one-way version of change-of-variables not assuming injectivity. \<close>
 
 lemma%important integral_on_image_ubound_weak:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real"
@@ -2960,7 +2960,7 @@ proposition%important integral_on_image_ubound:
   using%unimportant integral_on_image_ubound_nonneg [OF assms] by%unimportant simp
 
 
-subsection%important\<open>Change-of-variables theorem\<close>
+subsection\<open>Change-of-variables theorem\<close>
 
 text\<open>The classic change-of-variables theorem. We have two versions with quite general hypotheses,
 the first that the transforming function has a continuous inverse, the second that the base set is
@@ -3638,7 +3638,7 @@ corollary%important absolutely_integrable_change_of_variables_1:
   using%unimportant has_absolute_integral_change_of_variables_1 [OF assms] by%unimportant auto
 
 
-subsection%important\<open>Change of variables for integrals: special case of linear function\<close>
+subsection\<open>Change of variables for integrals: special case of linear function\<close>
 
 lemma%unimportant has_absolute_integral_change_of_variables_linear:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
@@ -3697,7 +3697,7 @@ proof%unimportant -
     by blast
 qed
 
-subsection%important\<open>Change of variable for measure\<close>
+subsection\<open>Change of variable for measure\<close>
 
 lemma%unimportant has_measure_differentiable_image:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"

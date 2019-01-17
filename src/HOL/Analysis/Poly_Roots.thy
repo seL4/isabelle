@@ -8,7 +8,7 @@ theory Poly_Roots
 imports Complex_Main
 begin
 
-subsection%important\<open>Basics about polynomial functions: extremal behaviour and root counts\<close>
+subsection\<open>Basics about polynomial functions: extremal behaviour and root counts\<close>
 
 lemma%important sub_polyfun:
   fixes x :: "'a::{comm_ring,monoid_mult}"

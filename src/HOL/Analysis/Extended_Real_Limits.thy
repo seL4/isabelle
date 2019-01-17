@@ -357,7 +357,7 @@ lemma min_Liminf_at:
   done
 
 
-subsection%important \<open>Extended-Real.thy\<close> (*FIX ME change title *)
+subsection \<open>Extended-Real.thy\<close> (*FIX ME change title *)
 
 lemma sum_constant_ereal:
   fixes a::ereal
@@ -391,7 +391,7 @@ proof -
 qed
 
 
-subsubsection%important \<open>Continuity of addition\<close>
+subsubsection \<open>Continuity of addition\<close>
 
 text \<open>The next few lemmas remove an unnecessary assumption in \<open>tendsto_add_ereal\<close>, culminating
 in \<open>tendsto_add_ereal_general\<close> which essentially says that the addition
@@ -522,7 +522,7 @@ next
   then show ?thesis using tendsto_add_ereal_MInf MInf f g by (metis ereal_MInfty_eq_plus)
 qed
 
-subsubsection%important \<open>Continuity of multiplication\<close>
+subsubsection \<open>Continuity of multiplication\<close>
 
 text \<open>In the same way as for addition, we prove that the multiplication is continuous on
 ereal times ereal, except at \<open>(\<infinity>, 0)\<close> and \<open>(-\<infinity>, 0)\<close> and \<open>(0, \<infinity>)\<close> and \<open>(0, -\<infinity>)\<close>,
@@ -659,7 +659,7 @@ lemma tendsto_cmult_ereal_general [tendsto_intros]:
 by (cases "c = 0", auto simp add: assms tendsto_mult_ereal)
 
 
-subsubsection%important \<open>Continuity of division\<close>
+subsubsection \<open>Continuity of division\<close>
 
 lemma tendsto_inverse_ereal_PInf:
   fixes u::"_ \<Rightarrow> ereal"
@@ -762,7 +762,7 @@ proof -
 qed
 
 
-subsubsection%important \<open>Further limits\<close>
+subsubsection \<open>Further limits\<close>
 
 text \<open>The assumptions of @{thm tendsto_diff_ereal} are too strong, we weaken them here.\<close>
 
@@ -958,7 +958,7 @@ lemma ereal_minus_real_tendsto_MInf [tendsto_intros]:
 by (subst uminus_ereal.simps(1)[symmetric], intro tendsto_intros)
 
 
-subsection%important \<open>Extended-Nonnegative-Real.thy\<close> (*FIX title *)
+subsection \<open>Extended-Nonnegative-Real.thy\<close> (*FIX title *)
 
 lemma tendsto_diff_ennreal_general [tendsto_intros]:
   fixes u v::"'a \<Rightarrow> ennreal"
@@ -987,7 +987,7 @@ proof -
 qed
 
 
-subsection%important \<open>monoset\<close> (*FIX ME title *)
+subsection \<open>monoset\<close> (*FIX ME title *)
 
 definition (in order) mono_set:
   "mono_set S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
@@ -1759,7 +1759,7 @@ proof (transfer, clarsimp)
     by (auto simp: * ereal_diff_positive max.absorb2 liminf_SUP_INF[symmetric] limsup_INF_SUP[symmetric] ereal_liminf_limsup_minus)
 qed
 
-subsection%important "Relate extended reals and the indicator function"
+subsection "Relate extended reals and the indicator function"
 
 lemma ereal_indicator_le_0: "(indicator S x::ereal) \<le> 0 \<longleftrightarrow> x \<notin> S"
   by (auto split: split_indicator simp: one_ereal_def)

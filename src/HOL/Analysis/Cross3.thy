@@ -33,7 +33,7 @@ end
 
 unbundle cross3_syntax
 
-subsection%important\<open> Basic lemmas\<close>
+subsection\<open> Basic lemmas\<close>
 
 lemmas cross3_simps = cross3_def inner_vec_def sum_3 det_3 vec_eq_iff vector_def algebra_simps
 
@@ -168,7 +168,7 @@ lemma  bilinear_cross: "bilinear(\<times>)"
   apply (simp add: cross_mult_left)
   done
 
-subsection%important   \<open>Preservation by rotation, or other orthogonal transformation up to sign\<close>
+subsection   \<open>Preservation by rotation, or other orthogonal transformation up to sign\<close>
 
 lemma  cross_matrix_mult: "transpose A *v ((A *v x) \<times> (A *v y)) = det A *\<^sub>R (x \<times> y)"
   apply (simp add: vec_eq_iff   )
@@ -208,7 +208,7 @@ lemma  cross_linear_image:
            \<Longrightarrow> (f x) \<times> (f y) = f(x \<times> y)"
   by (simp add: cross_orthogonal_transformation orthogonal_transformation)
 
-subsection%important \<open>Continuity\<close>
+subsection \<open>Continuity\<close>
 
 lemma  continuous_cross: "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (f x) \<times> (g x))"
   apply (subst continuous_componentwise)

@@ -4,7 +4,7 @@ theory "Improper_Integral"
   imports Equivalence_Lebesgue_Henstock_Integration
 begin
 
-subsection%important \<open>Equiintegrability\<close>
+subsection \<open>Equiintegrability\<close>
 
 text\<open>The definition here only really makes sense for an elementary set. 
      We just use compact intervals in applications below.\<close>
@@ -226,7 +226,7 @@ proof -
     by auto 
 qed
 
-subsection%important\<open>Subinterval restrictions for equiintegrable families\<close>
+subsection\<open>Subinterval restrictions for equiintegrable families\<close>
 
 text\<open>First, some technical lemmas about minimizing a "flat" part of a sum over a division.\<close>
 
@@ -1264,7 +1264,7 @@ qed
   
 
 
-subsection%important\<open>Continuity of the indefinite integral\<close>
+subsection\<open>Continuity of the indefinite integral\<close>
 
 proposition indefinite_integral_continuous:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"

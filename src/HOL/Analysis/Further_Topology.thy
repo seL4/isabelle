@@ -6,7 +6,7 @@ theory Further_Topology
   imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope Complex_Transcendental
 begin
 
-subsection%important\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
+subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
 
 lemma spheremap_lemma1:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
@@ -377,7 +377,7 @@ qed
 
 
 
-subsection%important\<open> Some technical lemmas about extending maps from cell complexes\<close>
+subsection\<open> Some technical lemmas about extending maps from cell complexes\<close>
 
 lemma extending_maps_Union_aux:
   assumes fin: "finite \<F>"
@@ -991,7 +991,7 @@ qed
 
 
 
-subsection%important\<open> Special cases and corollaries involving spheres\<close>
+subsection\<open> Special cases and corollaries involving spheres\<close>
 
 lemma disjnt_Diff1: "X \<subseteq> Y' \<Longrightarrow> disjnt (X - Y) (X' - Y')"
   by (auto simp: disjnt_def)
@@ -1140,7 +1140,7 @@ proof -
     by (rule_tac K="K \<inter> T" and g=g in that) (auto simp: disjnt_iff Diff_Int contg)
 qed
 
-subsection%important\<open>Extending maps to spheres\<close>
+subsection\<open>Extending maps to spheres\<close>
 
 (*Up to extend_map_affine_to_sphere_cofinite_gen*)
 
@@ -1892,7 +1892,7 @@ proof -
     done
 qed
 
-subsection%important\<open> Invariance of domain and corollaries\<close>
+subsection\<open> Invariance of domain and corollaries\<close>
 
 lemma invariance_of_domain_ball:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
@@ -2742,7 +2742,7 @@ next
     using clopen [of S] False  by simp
 qed
 
-subsection%important\<open>Dimension-based conditions for various homeomorphisms\<close>
+subsection\<open>Dimension-based conditions for various homeomorphisms\<close>
 
 lemma homeomorphic_subspaces_eq:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
@@ -2819,7 +2819,7 @@ proof -
   qed
 qed
 
-subsection%important\<open>more invariance of domain\<close>(*FIX ME title? *)
+subsection\<open>more invariance of domain\<close>(*FIX ME title? *)
 
 proposition invariance_of_domain_sphere_affine_set_gen:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -3114,7 +3114,7 @@ proof -
 qed
 
 
-subsection%important\<open>The power, squaring and exponential functions as covering maps\<close>
+subsection\<open>The power, squaring and exponential functions as covering maps\<close>
 
 proposition covering_space_power_punctured_plane:
   assumes "0 < n"
@@ -3487,7 +3487,7 @@ proof (simp add: covering_space_def, intro conjI ballI)
 qed
 
 
-subsection%important\<open>Hence the Borsukian results about mappings into circles\<close>(*FIX ME title *)
+subsection\<open>Hence the Borsukian results about mappings into circles\<close>(*FIX ME title *)
 
 lemma inessential_eq_continuous_logarithm:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
@@ -3637,7 +3637,7 @@ proof -
     by (simp add: *)
 qed
 
-subsection%important\<open>Upper and lower hemicontinuous functions\<close>
+subsection\<open>Upper and lower hemicontinuous functions\<close>
 
 text\<open>And relation in the case of preimage map to open and closed maps, and fact that upper and lower
 hemicontinuity together imply continuity in the sense of the Hausdorff metric (at points where the
@@ -3840,7 +3840,7 @@ proof -
 qed
 
 
-subsection%important\<open>Complex logs exist on various "well-behaved" sets\<close>
+subsection\<open>Complex logs exist on various "well-behaved" sets\<close>
 
 lemma continuous_logarithm_on_contractible:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
@@ -3909,7 +3909,7 @@ proof -
 qed
 
 
-subsection%important\<open>Another simple case where sphere maps are nullhomotopic\<close>
+subsection\<open>Another simple case where sphere maps are nullhomotopic\<close>
 
 lemma inessential_spheremap_2_aux:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
@@ -3975,7 +3975,7 @@ next
 qed
 
 
-subsection%important\<open>Holomorphic logarithms and square roots\<close>
+subsection\<open>Holomorphic logarithms and square roots\<close>
 
 lemma contractible_imp_holomorphic_log:
   assumes holf: "f holomorphic_on S"
@@ -4189,7 +4189,7 @@ proof -
 qed
 
 
-subsection%important\<open>The "Borsukian" property of sets\<close>
+subsection\<open>The "Borsukian" property of sets\<close>
 
 text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to \<open>[S\<^sup>1]\<close>''
  while Whyburn uses ``property b''. It's closely related to unicoherence.\<close>
@@ -4807,7 +4807,7 @@ proof -
 qed
 
 
-subsection%important\<open>Unicoherence (closed)\<close>
+subsection\<open>Unicoherence (closed)\<close>
 
 definition%important unicoherent where
   "unicoherent U \<equiv>
@@ -5051,7 +5051,7 @@ proof
 qed
 
 
-subsection%important\<open>Several common variants of unicoherence\<close>
+subsection\<open>Several common variants of unicoherence\<close>
 
 lemma connected_frontier_simple:
   fixes S :: "'a :: euclidean_space set"
@@ -5104,7 +5104,7 @@ next
 qed
 
 
-subsection%important\<open>Some separation results\<close>
+subsection\<open>Some separation results\<close>
 
 lemma separation_by_component_closed_pointwise:
   fixes S :: "'a :: euclidean_space set"

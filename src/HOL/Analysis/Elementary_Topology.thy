@@ -650,7 +650,7 @@ proof -
 qed
 
 
-subsection%important \<open>Polish spaces\<close>
+subsection \<open>Polish spaces\<close>
 
 text \<open>Textbooks define Polish spaces as completely metrizable.
   We assume the topology to be complete for a given metric.\<close>

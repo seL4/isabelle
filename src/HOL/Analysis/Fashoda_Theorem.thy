@@ -8,7 +8,7 @@ theory Fashoda_Theorem
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
-subsection%important \<open>Bijections between intervals\<close>
+subsection \<open>Bijections between intervals\<close>
 
 definition%important interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
   where "interval_bij =
@@ -70,7 +70,7 @@ lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \
   using assms by (intro interval_bij_bij) (auto simp: Basis_vec_def inner_axis)
 
 
-subsection%important \<open>Fashoda meet theorem\<close>
+subsection \<open>Fashoda meet theorem\<close>
 
 lemma infnorm_2:
   fixes x :: "real^2"
@@ -630,7 +630,7 @@ proof -
 qed
 
 
-subsection%important \<open>Useful Fashoda corollary pointed out to me by Tom Hales\<close>(*FIXME change title? *)
+subsection \<open>Useful Fashoda corollary pointed out to me by Tom Hales\<close>(*FIXME change title? *)
 
 corollary fashoda_interlace:
   fixes a :: "real^2"
