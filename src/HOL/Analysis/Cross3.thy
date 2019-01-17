@@ -79,14 +79,14 @@ lemma  right_diff_distrib: "x \<times> (y - z) = x \<times> y - x \<times> z" fo
 
 hide_fact (open) left_diff_distrib right_diff_distrib
 
-lemma%important  Jacobi: "x \<times> (y \<times> z) + y \<times> (z \<times> x) + z \<times> (x \<times> y) = 0" for x::"real^3"
+proposition Jacobi: "x \<times> (y \<times> z) + y \<times> (z \<times> x) + z \<times> (x \<times> y) = 0" for x::"real^3"
   by%unimportant (simp add: cross3_simps)
 
-lemma%important  Lagrange: "x \<times> (y \<times> z) = (x \<bullet> z) *\<^sub>R y - (x \<bullet> y) *\<^sub>R z"
+proposition  Lagrange: "x \<times> (y \<times> z) = (x \<bullet> z) *\<^sub>R y - (x \<bullet> y) *\<^sub>R z"
   by%unimportant (simp add: cross3_simps) (metis (full_types) exhaust_3)
 
-lemma  cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
-  by (simp add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
+proposition  cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
+  by%unimportant (simp add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
 
 lemma  cross_components:
    "(x \<times> y)$1 = x$2 * y$3 - y$2 * x$3" "(x \<times> y)$2 = x$3 * y$1 - y$3 * x$1" "(x \<times> y)$3 = x$1 * y$2 - y$1 * x$2"
@@ -126,15 +126,15 @@ lemma  dot_cross_det: "x \<bullet> (y \<times> z) = det(vector[x,y,z])"
 lemma  cross_cross_det: "(w \<times> x) \<times> (y \<times> z) = det(vector[w,x,z]) *\<^sub>R y - det(vector[w,x,y]) *\<^sub>R z"
   using exhaust_3 by (force simp add: cross3_simps) 
 
-lemma%important  dot_cross: "(w \<times> x) \<bullet> (y \<times> z) = (w \<bullet> y) * (x \<bullet> z) - (w \<bullet> z) * (x \<bullet> y)"
+proposition  dot_cross: "(w \<times> x) \<bullet> (y \<times> z) = (w \<bullet> y) * (x \<bullet> z) - (w \<bullet> z) * (x \<bullet> y)"
   by%unimportant (force simp add: cross3_simps) 
 
-lemma  norm_cross: "(norm (x \<times> y))\<^sup>2 = (norm x)\<^sup>2 * (norm y)\<^sup>2 - (x \<bullet> y)\<^sup>2"
+proposition  norm_cross: "(norm (x \<times> y))\<^sup>2 = (norm x)\<^sup>2 * (norm y)\<^sup>2 - (x \<bullet> y)\<^sup>2"
   unfolding power2_norm_eq_inner power_mult_distrib
   by (simp add: cross3_simps power2_eq_square)
 
-lemma%important  cross_eq_0: "x \<times> y = 0 \<longleftrightarrow> collinear{0,x,y}"
-proof%unimportant -
+lemma  cross_eq_0: "x \<times> y = 0 \<longleftrightarrow> collinear{0,x,y}"
+proof -
   have "x \<times> y = 0 \<longleftrightarrow> norm (x \<times> y) = 0"
     by simp
   also have "... \<longleftrightarrow> (norm x * norm y)\<^sup>2 = (x \<bullet> y)\<^sup>2"
@@ -175,10 +175,10 @@ lemma  cross_matrix_mult: "transpose A *v ((A *v x) \<times> (A *v y)) = det A *
   apply (simp add: vector_matrix_mult_def matrix_vector_mult_def forall_3 cross3_simps)
   done
 
-lemma%important  cross_orthogonal_matrix:
+lemma  cross_orthogonal_matrix:
   assumes "orthogonal_matrix A"
   shows "(A *v x) \<times> (A *v y) = det A *\<^sub>R (A *v (x \<times> y))"
-proof%unimportant -
+proof -
   have "mat 1 = transpose (A ** transpose A)"
     by (metis (no_types) assms orthogonal_matrix_def transpose_mat)
   then show ?thesis
@@ -191,10 +191,10 @@ lemma  cross_rotation_matrix: "rotation_matrix A \<Longrightarrow> (A *v x) \<ti
 lemma  cross_rotoinversion_matrix: "rotoinversion_matrix A \<Longrightarrow> (A *v x) \<times> (A *v y) = - A *v (x \<times> y)"
   by (simp add: rotoinversion_matrix_def cross_orthogonal_matrix scaleR_matrix_vector_assoc)
 
-lemma%important  cross_orthogonal_transformation:
+lemma  cross_orthogonal_transformation:
   assumes "orthogonal_transformation f"
   shows   "(f x) \<times> (f y) = det(matrix f) *\<^sub>R f(x \<times> y)"
-proof%unimportant -
+proof -
   have orth: "orthogonal_matrix (matrix f)"
     using assms orthogonal_transformation_matrix by blast
   have "matrix f *v z = f z" for z
@@ -208,7 +208,7 @@ lemma  cross_linear_image:
            \<Longrightarrow> (f x) \<times> (f y) = f(x \<times> y)"
   by (simp add: cross_orthogonal_transformation orthogonal_transformation)
 
-subsection%unimportant \<open>Continuity\<close>
+subsection%important \<open>Continuity\<close>
 
 lemma  continuous_cross: "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (f x) \<times> (g x))"
   apply (subst continuous_componentwise)
