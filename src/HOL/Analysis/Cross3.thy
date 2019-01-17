@@ -80,13 +80,13 @@ lemma  right_diff_distrib: "x \<times> (y - z) = x \<times> y - x \<times> z" fo
 hide_fact (open) left_diff_distrib right_diff_distrib
 
 proposition Jacobi: "x \<times> (y \<times> z) + y \<times> (z \<times> x) + z \<times> (x \<times> y) = 0" for x::"real^3"
-  by%unimportant (simp add: cross3_simps)
+  by (simp add: cross3_simps)
 
-proposition  Lagrange: "x \<times> (y \<times> z) = (x \<bullet> z) *\<^sub>R y - (x \<bullet> y) *\<^sub>R z"
-  by%unimportant (simp add: cross3_simps) (metis (full_types) exhaust_3)
+proposition Lagrange: "x \<times> (y \<times> z) = (x \<bullet> z) *\<^sub>R y - (x \<bullet> y) *\<^sub>R z"
+  by (simp add: cross3_simps) (metis (full_types) exhaust_3)
 
-proposition  cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
-  by%unimportant (simp add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
+proposition cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
+  by (simp add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
 
 lemma  cross_components:
    "(x \<times> y)$1 = x$2 * y$3 - y$2 * x$3" "(x \<times> y)$2 = x$3 * y$1 - y$3 * x$1" "(x \<times> y)$3 = x$1 * y$2 - y$1 * x$2"
@@ -127,7 +127,7 @@ lemma  cross_cross_det: "(w \<times> x) \<times> (y \<times> z) = det(vector[w,x
   using exhaust_3 by (force simp add: cross3_simps) 
 
 proposition  dot_cross: "(w \<times> x) \<bullet> (y \<times> z) = (w \<bullet> y) * (x \<bullet> z) - (w \<bullet> z) * (x \<bullet> y)"
-  by%unimportant (force simp add: cross3_simps) 
+  by (force simp add: cross3_simps)
 
 proposition  norm_cross: "(norm (x \<times> y))\<^sup>2 = (norm x)\<^sup>2 * (norm y)\<^sup>2 - (x \<bullet> y)\<^sup>2"
   unfolding power2_norm_eq_inner power_mult_distrib
