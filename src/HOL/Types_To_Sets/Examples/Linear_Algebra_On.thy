@@ -804,7 +804,7 @@ context includes lifting_syntax
 interpretation local_typedef_module_pair S1 scale1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
 
 lemmas_with [var_simplified explicit_ab_group_add,
-  unoverload_type 'e 'b,
+    unoverload_type 'e 'f,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_module_pair_on_with,
   untransferred,
   var_simplified implicit_ab_group_add]:
@@ -849,7 +849,7 @@ context includes lifting_syntax
 interpretation local_typedef_vector_space_pair S1 scale1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
 
 lemmas_with [var_simplified explicit_ab_group_add,
-    unoverload_type 'e 'b,
+    unoverload_type 'e 'f,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_vector_space_pair_on_with,
   folded lt1.dim_S_def lt2.dim_S_def,
   untransferred,
@@ -967,7 +967,7 @@ context includes lifting_syntax
 interpretation local_typedef_finite_dimensional_vector_space_pair_1 S1 scale1 Basis1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
 
 lemmas_with [var_simplified explicit_ab_group_add,
-    unoverload_type 'e 'b,
+    unoverload_type 'e 'f,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_finite_dimensional_vector_space_pair_1_on_with,
   folded lt1.dim_S_def lt2.dim_S_def,
   untransferred,
@@ -999,7 +999,7 @@ context includes lifting_syntax
 interpretation local_typedef_finite_dimensional_vector_space_pair S1 scale1 Basis1 "TYPE('s)" S2 scale2 Basis2 "TYPE('t)" by unfold_locales fact+
 
 lemmas_with [var_simplified explicit_ab_group_add,
-    unoverload_type 'e 'b,
+    unoverload_type 'e 'f,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_finite_dimensional_vector_space_pair_on_with,
   folded lt1.dim_S_def lt2.dim_S_def,
   untransferred,
