@@ -111,14 +111,6 @@ lemma merge_vimage:
 
 subsection \<open>Finite product spaces\<close>
 
-<<<<<<< local
-subsubsection \<open>Products\<close>
-
-||||||| base
-subsubsection%important \<open>Products\<close>
-
-=======
->>>>>>> other
 definition%important prod_emb where
   "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (\<Pi>\<^sub>E i\<in>I. space (M i))"
 
