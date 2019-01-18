@@ -2,7 +2,7 @@
    Some material by Jose Divasón, Tim Makarios and L C Paulson
 *)
 
-section%important \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space\<close>
+section%important \<open>Finite Cartesian Products of Euclidean Spaces\<close>
 
 theory Cartesian_Euclidean_Space
 imports Cartesian_Space Derivative

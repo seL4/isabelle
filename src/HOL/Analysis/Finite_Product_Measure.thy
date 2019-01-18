@@ -15,7 +15,7 @@ lemma%unimportant PiE_choice: "(\<exists>f\<in>Pi\<^sub>E I F. \<forall>i\<in>I.
 lemma%unimportant case_prod_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-subsubsection%unimportant \<open>More about Function restricted by \<^const>\<open>extensional\<close>\<close>
+subsection%unimportant \<open>More about Function restricted by \<^const>\<open>extensional\<close>\<close>
 
 definition
   "merge I J = (\<lambda>(x, y) i. if i \<in> I then x i else if i \<in> J then y i else undefined)"
@@ -110,8 +110,6 @@ lemma merge_vimage:
   by (auto simp: restrict_Pi_cancel PiE_def)
 
 subsection%important \<open>Finite product spaces\<close>
-
-subsubsection%important \<open>Products\<close>
 
 definition%important prod_emb where
   "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (\<Pi>\<^sub>E i\<in>I. space (M i))"
