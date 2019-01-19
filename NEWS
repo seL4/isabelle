@@ -81,6 +81,10 @@ ROOT, or browsed in Isabelle/jEdit via the "isabelle-export:"
 file-system. To get generated code dumped into output, use "file \<open>\<close>".
 Minor INCOMPATIBILITY.
 
+* Code generation for Haskell: code includes for Haskell must contain
+proper module frame, nothing is added magically any longer.
+INCOMPATIBILITY.
+
 * Simplified syntax setup for big operators under image. In rare
 situations, type conversions are not inserted implicitly any longer
 and need to be given explicitly. Auxiliary abbreviations INFIMUM,

@@ -15,6 +15,8 @@ setup \<open>Code_Target.add_derived_target ("Haskell_Quickcheck", [(Code_Haskel
 
 code_printing
   code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) \<open>
+module Typerep(Typerep(..)) where
+
 data Typerep = Typerep String [Typerep]
 \<close> for type_constructor typerep constant Typerep.Typerep
 | type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"

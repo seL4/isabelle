@@ -379,9 +379,10 @@ text \<open>
   "code_printing"} command:
 \<close>
 
-code_printing %quotett
-  code_module "Errno" \<rightharpoonup> (Haskell)
-    \<open>errno i = error ("Error number: " ++ show i)\<close>
+code_printing %quotett code_module "Errno" \<rightharpoonup> (Haskell)
+ \<open>module Errno(errno) where
+
+  errno i = error ("Error number: " ++ show i)\<close>
 
 code_reserved %quotett Haskell Errno
 
@@ -393,4 +394,3 @@ text \<open>
 \<close>
 
 end
-

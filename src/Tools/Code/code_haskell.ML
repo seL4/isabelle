@@ -407,7 +407,7 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
       end;
 
   in
-    (Code_Target.Hierarchy (map (fn (module_name, content) => print_module_frame module_name [] NONE [content]) includes
+    (Code_Target.Hierarchy (map (fn (module_name, content) => ([module_name ^ ".hs"], content)) includes
       @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
         ((flat o rev o Graph.strong_conn) haskell_program)), try (deresolver ""))
   end;

@@ -165,10 +165,12 @@ code_reserved OCaml Lazy Termify_Lazy
 
 
 code_printing
-  code_module Lazy \<rightharpoonup> (Haskell) 
-\<open>newtype Lazy a = Lazy a;
-delay f = Lazy (f ());
-force (Lazy x) = x;\<close> for type_constructor lazy constant delay force
+  code_module Lazy \<rightharpoonup> (Haskell) \<open>
+module Lazy(Lazy, delay, force) where
+
+newtype Lazy a = Lazy a
+delay f = Lazy (f ())
+force (Lazy x) = x\<close> for type_constructor lazy constant delay force
 | type_constructor lazy \<rightharpoonup> (Haskell) "Lazy.Lazy _"
 | constant delay \<rightharpoonup> (Haskell) "Lazy.delay"
 | constant force \<rightharpoonup> (Haskell) "Lazy.force"

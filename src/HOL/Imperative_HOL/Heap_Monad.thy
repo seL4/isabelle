@@ -536,37 +536,34 @@ subsubsection \<open>Haskell\<close>
 text \<open>Adaption layer\<close>
 
 code_printing code_module "Heap" \<rightharpoonup> (Haskell)
-\<open>import qualified Control.Monad;
-import qualified Control.Monad.ST;
-import qualified Data.STRef;
-import qualified Data.Array.ST;
+\<open>
+module Heap(ST, RealWorld, STRef, newSTRef, readSTRef, writeSTRef,
+  STArray, newArray, newListArray, newFunArray, lengthArray, readArray, writeArray) where
 
-type RealWorld = Control.Monad.ST.RealWorld;
-type ST s a = Control.Monad.ST.ST s a;
-type STRef s a = Data.STRef.STRef s a;
-type STArray s a = Data.Array.ST.STArray s Integer a;
+import Control.Monad(liftM)
+import Control.Monad.ST(RealWorld, ST)
+import Data.STRef(STRef, newSTRef, readSTRef, writeSTRef)
+import qualified Data.Array.ST
 
-newSTRef = Data.STRef.newSTRef;
-readSTRef = Data.STRef.readSTRef;
-writeSTRef = Data.STRef.writeSTRef;
+type STArray s a = Data.Array.ST.STArray s Integer a
 
-newArray :: Integer -> a -> ST s (STArray s a);
-newArray k = Data.Array.ST.newArray (0, k - 1);
+newArray :: Integer -> a -> ST s (STArray s a)
+newArray k = Data.Array.ST.newArray (0, k - 1)
 
-newListArray :: [a] -> ST s (STArray s a);
-newListArray xs = Data.Array.ST.newListArray (0, (fromInteger . toInteger . length) xs - 1) xs;
+newListArray :: [a] -> ST s (STArray s a)
+newListArray xs = Data.Array.ST.newListArray (0, (fromInteger . toInteger . length) xs - 1) xs
 
-newFunArray :: Integer -> (Integer -> a) -> ST s (STArray s a);
-newFunArray k f = Data.Array.ST.newListArray (0, k - 1) (map f [0..k-1]);
+newFunArray :: Integer -> (Integer -> a) -> ST s (STArray s a)
+newFunArray k f = Data.Array.ST.newListArray (0, k - 1) (map f [0..k-1])
 
-lengthArray :: STArray s a -> ST s Integer;
-lengthArray a = Control.Monad.liftM (\(_, l) -> l + 1) (Data.Array.ST.getBounds a);
+lengthArray :: STArray s a -> ST s Integer
+lengthArray a = liftM (\(_, l) -> l + 1) (Data.Array.ST.getBounds a)
 
-readArray :: STArray s a -> Integer -> ST s a;
-readArray = Data.Array.ST.readArray;
+readArray :: STArray s a -> Integer -> ST s a
+readArray = Data.Array.ST.readArray
 
-writeArray :: STArray s a -> Integer -> a -> ST s ();
-writeArray = Data.Array.ST.writeArray;\<close>
+writeArray :: STArray s a -> Integer -> a -> ST s ()
+writeArray = Data.Array.ST.writeArray\<close>
 
 code_reserved Haskell Heap
 

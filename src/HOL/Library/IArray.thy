@@ -194,6 +194,8 @@ text \<open>We map \<^typ>\<open>'a iarray\<close>s in Isabelle/HOL to \<open>Da
 
 code_printing
   code_module "IArray" \<rightharpoonup> (Haskell) \<open>
+module IArray(IArray, tabulate, of_list, sub, length) where {
+
   import Prelude (Bool(True, False), not, Maybe(Nothing, Just),
     Integer, (+), (-), (<), fromInteger, toInteger, map, seq, (.));
   import qualified Prelude;
@@ -213,8 +215,9 @@ code_printing
   sub (IArray v, i) = v `Data.Array.Base.unsafeAt` fromInteger i;
 
   length :: IArray e -> Integer;
-  length (IArray v) = toInteger (Data.Ix.rangeSize (Data.Array.IArray.bounds v));\<close>
-  for type_constructor iarray constant IArray IArray.tabulate IArray.sub' IArray.length'
+  length (IArray v) = toInteger (Data.Ix.rangeSize (Data.Array.IArray.bounds v));
+
+}\<close> for type_constructor iarray constant IArray IArray.tabulate IArray.sub' IArray.length'
 
 code_reserved Haskell IArray_Impl
 
