@@ -97,11 +97,11 @@ lemma mod_abs_eq_div_nat:
 
 lemma zdiv_int:
   "int (a div b) = int a div int b"
-  by (simp add: divide_int_def sgn_1_pos)
+  by (simp add: divide_int_def)
 
 lemma zmod_int:
   "int (a mod b) = int a mod int b"
-  by (simp add: modulo_int_def sgn_1_pos)
+  by (simp add: modulo_int_def)
 
 lemma div_sgn_abs_cancel:
   fixes k l v :: int
@@ -167,54 +167,40 @@ lemma div_noneq_sgn_abs:
   using assms
   by (simp only: divide_int_def [of k l], auto simp add: not_less zdiv_int)
   
-text\<open>Basic laws about division and remainder\<close>
-
-lemma pos_mod_conj: "(0::int) < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b"
-  using eucl_rel_int [of a b]
-  by (auto simp add: eucl_rel_int_iff prod_eq_iff)
-
-lemmas pos_mod_sign = pos_mod_conj [THEN conjunct1]
-   and pos_mod_bound = pos_mod_conj [THEN conjunct2]
-
-lemma neg_mod_conj: "b < (0::int) \<Longrightarrow> a mod b \<le> 0 \<and> b < a mod b"
-  using eucl_rel_int [of a b]
-  by (auto simp add: eucl_rel_int_iff prod_eq_iff)
-
-lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
-   and neg_mod_bound [simp] = neg_mod_conj [THEN conjunct2]
-
 
 subsubsection \<open>General Properties of div and mod\<close>
 
 lemma div_pos_pos_trivial [simp]:
   "k div l = 0" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (auto intro!: div_int_unique [of _ _ _ k] simp add: eucl_rel_int_iff)
-
-lemma div_neg_neg_trivial [simp]:
-  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (auto intro!: div_int_unique [of _ _ _ k] simp add: eucl_rel_int_iff)
-
-lemma div_pos_neg_trivial: "[| (0::int) < a;  a+b \<le> 0 |] ==> a div b = -1"
-apply (rule div_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
-
-(*There is no div_neg_pos_trivial because  0 div b = 0 would supersede it*)
+  using that by (simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
 
 lemma mod_pos_pos_trivial [simp]:
   "k mod l = k" if "k \<ge> 0" and "k < l" for k l :: int
-  using that by (auto intro!: mod_int_unique [of _ _ 0] simp add: eucl_rel_int_iff)
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
+
+lemma div_neg_neg_trivial [simp]:
+  "k div l = 0" if "k \<le> 0" and "l < k" for k l :: int
+  using that by (cases "k = 0") (simp, simp add: unique_euclidean_semiring_class.div_eq_0_iff division_segment_int_def)
 
 lemma mod_neg_neg_trivial [simp]:
   "k mod l = k" if "k \<le> 0" and "l < k" for k l :: int
-  using that by (auto intro!: mod_int_unique [of _ _ 0] simp add: eucl_rel_int_iff)
+  using that by (simp add: mod_eq_self_iff_div_eq_0)
 
-lemma mod_pos_neg_trivial: "[| (0::int) < a;  a+b \<le> 0 |] ==> a mod b = a+b"
-apply (rule_tac q = "-1" in mod_int_unique)
-apply (auto simp add: eucl_rel_int_iff)
-done
+lemma div_pos_neg_trivial:
+  "k div l = - 1" if "0 < k" and "k + l \<le> 0" for k l :: int
+  apply (rule div_int_unique [of _ _ _ "k + l"])
+  apply (use that in \<open>auto simp add: eucl_rel_int_iff\<close>)
+  done
 
-text\<open>There is no \<open>mod_neg_pos_trivial\<close>.\<close>
+lemma mod_pos_neg_trivial:
+  "k mod l = k + l" if "0 < k" and "k + l \<le> 0" for k l :: int
+  apply (rule mod_int_unique [of _ _ "- 1"])
+  apply (use that in \<open>auto simp add: eucl_rel_int_iff\<close>)
+  done
+
+text \<open>There is neither \<open>div_neg_pos_trivial\<close> nor \<open>mod_neg_pos_trivial\<close>
+  because \<^term>\<open>0 div l = 0\<close> would supersede it.\<close>
+
 
 
 subsubsection \<open>Laws for div and mod with Unary Minus\<close>
@@ -343,15 +329,6 @@ proof (rule zdiv_mono2_neg_lemma)
   show "b * (a div b) + a mod b = b' * (a div b') + a mod b'"
     by simp
 qed (use assms in auto)
-
-
-subsubsection \<open>More Algebraic Laws for div and mod\<close>
-
-lemma zmod_eq_0_iff: "(m mod d = 0) = (\<exists>q::int. m = d*q)"
-  by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
-
-(* REVISIT: should this be generalized to all semiring_div types? *)
-lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 
 subsubsection \<open>Proving  \<^term>\<open>a div (b * c) = (a div b) div c\<close>\<close>
@@ -697,7 +674,7 @@ lemma mod_int_pos_iff:
 proof (cases "l > 0")
   case False
   then show ?thesis 
-    by (simp add: dvd_eq_mod_eq_0) (use neg_mod_conj [of l k] in \<open>auto simp add: le_less not_less\<close>)
+    by (simp add: dvd_eq_mod_eq_0) (use neg_mod_sign [of l k] in \<open>auto simp add: le_less not_less\<close>)
 qed auto
 
 text \<open>Simplify expressions in which div and mod combine numerical constants\<close>
@@ -1340,5 +1317,18 @@ lemma mod_geq: "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
 
 lemma mod_eq_0D: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: nat
   using that by (auto simp add: mod_eq_0_iff_dvd)
+
+lemma pos_mod_conj: "0 < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b" for a b :: int
+  by simp
+
+lemma neg_mod_conj: "b < 0 \<Longrightarrow> a mod b \<le> 0 \<and> b < a mod b" for a b :: int
+  by simp
+
+lemma zmod_eq_0_iff: "m mod d = 0 \<longleftrightarrow> (\<exists>q. m = d * q)" for m d :: int
+  by (auto simp add: mod_eq_0_iff_dvd)
+
+(* REVISIT: should this be generalized to all semiring_div types? *)
+lemma zmod_eq_0D [dest!]: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: int
+  using that by auto
 
 end

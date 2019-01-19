@@ -125,6 +125,18 @@ lemma unit_imp_mod_eq_0:
   "a mod b = 0" if "is_unit b"
   using that by (simp add: mod_eq_0_iff_dvd unit_imp_dvd)
 
+lemma mod_eq_self_iff_div_eq_0:
+  "a mod b = a \<longleftrightarrow> a div b = 0" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  with div_mult_mod_eq [of a b] show ?Q
+    by auto
+next
+  assume ?Q
+  with div_mult_mod_eq [of a b] show ?P
+    by simp
+qed
+
 lemma coprime_mod_left_iff [simp]:
   "coprime (a mod b) b \<longleftrightarrow> coprime a b" if "b \<noteq> 0"
   by (rule; rule coprimeI)
@@ -1646,11 +1658,28 @@ lemma pos_mod_bound [simp]:
   "k mod l < l" if "l > 0" for k l :: int
 proof -
   obtain m and s where "k = sgn s * int m"
-    by (blast intro: int_sgnE elim: that)
+    by (rule int_sgnE)
   moreover from that obtain n where "l = sgn 1 * int n"
-    by (cases l) auto
+    by (cases l) simp_all
+  moreover from this that have "n > 0"
+    by simp
   ultimately show ?thesis
-    using that by (simp only: modulo_int_unfold)
+    by (simp only: modulo_int_unfold)
+      (simp add: mod_greater_zero_iff_not_dvd)
+qed
+
+lemma neg_mod_bound [simp]:
+  "l < k mod l" if "l < 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
+    by (cases l) simp_all
+  moreover define n where "n = Suc q"
+  then have "Suc q = n"
+    by simp
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold)
       (simp add: mod_greater_zero_iff_not_dvd)
 qed
 
@@ -1658,11 +1687,27 @@ lemma pos_mod_sign [simp]:
   "0 \<le> k mod l" if "l > 0" for k l :: int
 proof -
   obtain m and s where "k = sgn s * int m"
-    by (blast intro: int_sgnE elim: that)
+    by (rule int_sgnE)
   moreover from that obtain n where "l = sgn 1 * int n"
     by (cases l) auto
+  moreover from this that have "n > 0"
+    by simp
   ultimately show ?thesis
-    using that by (simp only: modulo_int_unfold) simp
+    by (simp only: modulo_int_unfold) simp
+qed
+
+lemma neg_mod_sign [simp]:
+  "k mod l \<le> 0" if "l < 0" for k l :: int
+proof -
+  obtain m and s where "k = sgn s * int m"
+    by (rule int_sgnE)
+  moreover from that obtain q where "l = sgn (- 1) * int (Suc q)"
+    by (cases l) simp_all
+  moreover define n where "n = Suc q"
+  then have "Suc q = n"
+    by simp
+  ultimately show ?thesis
+    by (simp only: modulo_int_unfold) simp
 qed
 
 
