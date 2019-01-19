@@ -161,7 +161,7 @@ object Isabelle_Cronjob
     options: String = "",
     args: String = "",
     afp: Boolean = false,
-    slow: Boolean = false,
+    bulky: Boolean = false,
     more_hosts: List[String] = Nil,
     detect: SQL.Source = "",
     active: Boolean = true)
@@ -177,7 +177,7 @@ object Isabelle_Cronjob
       (if (detect == "") "" else " AND " + SQL.enclose(detect))
 
     def profile: Build_Status.Profile =
-      Build_Status.Profile(description, history = history, afp = afp, slow = slow, sql = sql)
+      Build_Status.Profile(description, history = history, afp = afp, bulky = bulky, sql = sql)
 
     def pick(
       options: Options,
@@ -216,7 +216,7 @@ object Isabelle_Cronjob
   val remote_builds_old: List[Remote_Build] =
     List(
       Remote_Build("AFP", "lxbroy7",
-          args = "-N -X slow",
+          args = "-N -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
       Remote_Build("Poly/ML 5.7 Linux", "lxbroy8",
@@ -315,7 +315,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc" +
             " -e ISABELLE_SMLNJ=/home/smlnj/bin/sml",
-          args = "-N -X slow",
+          args = "-N -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
       }
@@ -329,9 +329,9 @@ object Isabelle_Cronjob
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
           ssh_host = "10.155.208.96", ssh_permissive = true,
           options = "-m64 -M6 -U30000 -s10 -t AFP",
-          args = "-g slow",
+          args = "-g large -g slow",
           afp = true,
-          slow = true,
+          bulky = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
   def remote_build_history(rev: String, afp_rev: Option[String], i: Int, r: Remote_Build)

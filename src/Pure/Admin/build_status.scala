@@ -22,7 +22,7 @@ object Build_Status
   /* data profiles */
 
   sealed case class Profile(
-    description: String, history: Int = 0, afp: Boolean = false, slow: Boolean = false, sql: String)
+    description: String, history: Int = 0, afp: Boolean = false, bulky: Boolean = false, sql: String)
   {
     def days(options: Options): Int = options.int("build_log_history") max history
 
@@ -319,7 +319,8 @@ object Build_Status
                   Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
               }
 
-            if ((!afp || chapter == "AFP") && (!profile.slow || groups.contains("slow"))) {
+            if ((!afp || chapter == "AFP") &&
+                (!profile.bulky || groups.contains(AFP.groups_bulky.toSet))) {
               data_entries += (data_name -> (sessions + (session_name -> session)))
             }
           }

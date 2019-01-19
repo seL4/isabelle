@@ -11,6 +11,13 @@ object AFP
 {
   val repos_source = "https://bitbucket.org/isa-afp/afp-devel"
 
+  val groups: Map[String, String] =
+    Map("large" -> "full 64-bit memory model or word arithmetic required",
+      "slow" -> "CPU time much higher than 60min (on mid-range hardware)",
+      "very_slow" -> "elapsed time of many hours (on high-end hardware)")
+
+  def groups_bulky: List[String] = List("large", "slow")
+
   def init(options: Options, base_dir: Path = Path.explode("$AFP_BASE")): AFP =
     new AFP(options, base_dir)
 
