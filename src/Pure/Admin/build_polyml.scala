@@ -249,7 +249,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Options are:
     -M DIR       msys root directory (for Windows)
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
-    -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
+    -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
   Build Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS (e.g. --without-gmp).
@@ -284,7 +284,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 Usage: isabelle build_polyml_component [OPTIONS] TARGET
 
   Options are:
-    -s DIR       sha1 sources, see https://bitbucket.org/isabelle_project/sha1
+    -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
   Make skeleton for Poly/ML component in directory TARGET.
 """,

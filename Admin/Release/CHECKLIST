@@ -45,7 +45,7 @@ Checklist for official releases
 
 - diff NEWS wrt. last official release, which is read-only;
 
-- update https://bitbucket.org/isabelle_project/isabelle-website
+- update https://isabelle.sketis.net/repos/isabelle-website
 
 - check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
 
@@ -94,14 +94,6 @@ Packaging
 
   https://hub.docker.com/r/makarius/isabelle
   https://docs.docker.com/docker-cloud/builds/push-images
-
-
-Final release stage
-===================
-
-- various .hg/hgrc files:
-  default = http://bitbucket.org/isabelle_project/isabelle-release
-  default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
 
 
 Post-release
