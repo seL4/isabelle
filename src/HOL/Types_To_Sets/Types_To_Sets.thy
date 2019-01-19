@@ -11,6 +11,7 @@ text \<open>This theory extends Isabelle/HOL's logic by two new inference rules
 
 theory Types_To_Sets
   imports Main
+  keywords "unoverload_definition" :: thy_decl
 begin
 
 subsection \<open>Rules\<close>
@@ -24,8 +25,13 @@ ML_file \<open>unoverloading.ML\<close>
 text\<open>The following file implements a derived rule that internalizes type class annotations.\<close>
 ML_file \<open>internalize_sort.ML\<close>
 
-text\<open>The following file provides some automation to unoverload and internalize the parameters o
+text\<open>The following file provides some automation to unoverload and internalize the parameters of
   the sort constraints of a type variable.\<close>
 ML_file \<open>unoverload_type.ML\<close>
+
+text \<open>The following file provides automation to define unoverloaded constants from overloaded
+  definitions.\<close>
+named_theorems unoverload_def
+ML_file \<open>unoverload_def.ML\<close>
 
 end

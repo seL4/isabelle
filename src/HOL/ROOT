@@ -957,6 +957,7 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Prerequisites"
     "Examples/Finite"
     "Examples/T2_Spaces"
+    "Examples/Unoverload_Def"
     "Examples/Linear_Algebra_On"
 
 session HOLCF (main timing) in HOLCF = HOL +
