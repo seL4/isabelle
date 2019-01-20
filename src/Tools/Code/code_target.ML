@@ -513,50 +513,6 @@ fun check_code_cmd all_public raw_cs seris ctxt =
   check_code ctxt all_public
     (Code_Thingol.read_const_exprs ctxt raw_cs) seris;
 
-val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
-  (\<^keyword>\<open>constant\<close>, \<^keyword>\<open>type_constructor\<close>, \<^keyword>\<open>type_class\<close>,
-    \<^keyword>\<open>class_relation\<close>, \<^keyword>\<open>class_instance\<close>, \<^keyword>\<open>code_module\<close>);
-
-local
-
-val parse_const_terms = Scan.repeat1 Args.term
-  >> (fn ts => fn ctxt => map (Code.check_const (Proof_Context.theory_of ctxt)) ts);
-
-fun parse_names keyword parse internalize mark_symbol =
-  Scan.lift (keyword --| Args.colon) |-- Scan.repeat1 parse
-  >> (fn xs => fn ctxt => map (mark_symbol o internalize ctxt) xs);
-
-val parse_consts = parse_names constantK Args.term
-  (Code.check_const o Proof_Context.theory_of) Constant;
-
-val parse_types = parse_names type_constructorK (Scan.lift Args.name)
-  (Sign.intern_type o Proof_Context.theory_of) Type_Constructor;
-
-val parse_classes = parse_names type_classK (Scan.lift Args.name)
-  (Sign.intern_class o Proof_Context.theory_of) Type_Class;
-
-val parse_instances = parse_names class_instanceK (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
-  (fn ctxt => fn (raw_tyco, raw_class) =>
-    let
-      val thy = Proof_Context.theory_of ctxt;
-    in (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class) end) Class_Instance;
-
-in
-
-val _ = Theory.setup
-  (Thy_Output.antiquotation_raw \<^binding>\<open>code_stmts\<close>
-    (parse_const_terms --
-      Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
-      -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
-    (fn ctxt => fn ((read_constants, reads_statements), (target_name, some_width)) =>
-       present_code ctxt (read_constants ctxt)
-         (maps (fn read_statements => read_statements ctxt) reads_statements)
-         target_name "Example" some_width []
-       |> trim_line
-       |> Thy_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
-
-end;
-
 
 (** serializer configuration **)
 
@@ -650,6 +606,10 @@ fun parse_args f args =
 
 (** Isar setup **)
 
+val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
+  (\<^keyword>\<open>constant\<close>, \<^keyword>\<open>type_constructor\<close>, \<^keyword>\<open>type_class\<close>,
+    \<^keyword>\<open>class_relation\<close>, \<^keyword>\<open>class_instance\<close>, \<^keyword>\<open>code_module\<close>);
+
 local
 
 val parse_constants = constantK |-- Scan.repeat1 Parse.term >> map Constant;
@@ -662,12 +622,8 @@ val parse_class_relations = class_relationK |-- Scan.repeat1 parse_classrel_iden
 
 val parse_instances = class_instanceK |-- Scan.repeat1 parse_inst_ident >> map Class_Instance;
 
-in
-
-val parse_symbols = Scan.repeat1 (parse_constants || parse_type_constructors || parse_classes
-  || parse_class_relations || parse_instances) >> flat;
-
-end;
+val parse_simple_symbols = Scan.repeats1 (parse_constants || parse_type_constructors || parse_classes
+  || parse_class_relations || parse_instances);
 
 fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
   parse_keyword |-- Parse.!!! (parse_isa --| (\<^keyword>\<open>\<rightharpoonup>\<close> || \<^keyword>\<open>=>\<close>)
@@ -685,7 +641,7 @@ fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_
   || parse_single_symbol_pragma class_instanceK parse_inst_ident parse_inst
     >> Class_Instance
   || parse_single_symbol_pragma code_moduleK Parse.name parse_module
-    >> Code_Symbol.Module;
+    >> Module;
 
 fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   Parse.enum1 "|" (Parse.group (fn () => "code symbol pragma")
@@ -705,6 +661,8 @@ fun code_expr_checkingP (all_public, raw_cs) =
     (Scan.repeat (Parse.name -- (Scan.optional (\<^keyword>\<open>?\<close> >> K false) true) -- code_expr_argsP)))
       >> (fn seri_args => check_code_cmd all_public raw_cs seri_args);
 
+in
+
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close>
     "declare words as reserved for target language"
@@ -720,7 +678,7 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_printing\<close> "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
-      (Parse.text -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_symbols) [])
+      (Parse.text -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_simple_symbols) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =
@@ -728,5 +686,44 @@ val _ =
     (Scan.optional (\<^keyword>\<open>open\<close> >> K true) false -- Scan.repeat1 Parse.term
       :|-- (fn args => (code_expr_checkingP args || code_expr_inP args))
       >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
+
+end;
+
+local
+
+val parse_const_terms = Args.theory -- Scan.repeat1 Args.term
+  >> uncurry (fn thy => map (Code.check_const thy));
+
+fun parse_symbols keyword parse internalize mark_symbol =
+  Scan.lift (keyword --| Args.colon) |-- Args.theory -- Scan.repeat1 parse
+  >> uncurry (fn thy => map (mark_symbol o internalize thy));
+
+val parse_consts = parse_symbols constantK Args.term
+  Code.check_const Constant;
+
+val parse_types = parse_symbols type_constructorK (Scan.lift Args.name)
+  Sign.intern_type Type_Constructor;
+
+val parse_classes = parse_symbols type_classK (Scan.lift Args.name)
+  Sign.intern_class Type_Class;
+
+val parse_instances = parse_symbols class_instanceK (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
+  (fn thy => fn (raw_tyco, raw_class) =>
+    (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class)) Class_Instance;
+
+in
+
+val _ = Theory.setup
+  (Thy_Output.antiquotation_raw \<^binding>\<open>code_stmts\<close>
+    (parse_const_terms --
+      Scan.repeats (parse_consts || parse_types || parse_classes || parse_instances)
+      -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
+    (fn ctxt => fn ((consts, symbols), (target_name, some_width)) =>
+       present_code ctxt consts symbols
+         target_name "Example" some_width []
+       |> trim_line
+       |> Thy_Output.verbatim (Config.put Document_Antiquotation.thy_output_display true ctxt)));
+
+end;
 
 end; (*struct*)
