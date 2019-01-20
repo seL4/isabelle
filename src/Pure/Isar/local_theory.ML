@@ -78,6 +78,9 @@ sig
     operations -> local_theory -> Binding.scope * local_theory
   val open_target: local_theory -> Binding.scope * local_theory
   val close_target: local_theory -> local_theory
+  val subtarget: (local_theory -> local_theory) -> local_theory -> local_theory
+  val subtarget_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
+    local_theory -> 'b * local_theory
 end;
 
 structure Local_Theory: LOCAL_THEORY =
@@ -394,5 +397,24 @@ fun close_target lthy =
     val _ = assert_not_bottom lthy;
     val ({after_close, ...} :: rest) = Data.get lthy;
   in lthy |> Data.put rest |> reset |> after_close end;
+
+fun subtarget g lthy =
+  lthy
+  |> open_target
+  |> snd
+  |> g
+  |> close_target;
+
+fun subtarget_result f g lthy =
+  let
+    val (x, inner_lthy) =
+      open_target lthy
+      |> snd
+      |> g
+    val lthy' =
+      inner_lthy
+      |> close_target;
+    val phi = Proof_Context.export_morphism inner_lthy lthy'
+  in (f phi x, lthy') end;
 
 end;

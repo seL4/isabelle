@@ -55,23 +55,14 @@ fun augment_with_def prep_term ((name, atts), ((b, mx), raw_rhs)) lthy =
     val lthy' = Variable.declare_term rhs lthy;
     val ((_, (_, def)), lthy'') =
       Local_Theory.define ((b, mx), ((Thm.def_binding_optional b name, atts), rhs)) lthy';
-  in (def, lthy'') end;
+  in (Thm.symmetric def, lthy'') end;
 
-fun augment_with_defs _ [] _ ctxt = ([], ctxt)
+fun augment_with_defs _ [] _ = pair []
       (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
-  | augment_with_defs prep_term raw_defs deps lthy =
-      let
-        val (_, inner_lthy) =
-          Local_Theory.open_target lthy
-          ||> fold Locale.activate_declarations deps;
-        val (inner_defs, inner_lthy') =
-          fold_map (augment_with_def prep_term) raw_defs inner_lthy;
-        val lthy' =
-          inner_lthy'
-          |> Local_Theory.close_target;
-        val def_eqns =
-          map (singleton (Proof_Context.export inner_lthy' lthy') o Thm.symmetric) inner_defs
-      in (def_eqns, lthy') end;
+  | augment_with_defs prep_term raw_defs deps =
+      Local_Theory.subtarget_result Morphism.fact
+        (fold Locale.activate_declarations deps
+         #> fold_map (augment_with_def prep_term) raw_defs);
 
 fun prep_interpretation prep_expr prep_term
   expression raw_defs initial_ctxt =
