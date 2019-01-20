@@ -85,6 +85,9 @@ Minor INCOMPATIBILITY.
 proper module frame, nothing is added magically any longer.
 INCOMPATIBILITY.
 
+* Code generation: slightly more conventional syntax for
+'code_stmts' antiquotation.  Minor INCOMPATIBILITY.
+
 * Simplified syntax setup for big operators under image. In rare
 situations, type conversions are not inserted implicitly any longer
 and need to be given explicitly. Auxiliary abbreviations INFIMUM,

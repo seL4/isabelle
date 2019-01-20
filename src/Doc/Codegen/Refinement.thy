@@ -32,7 +32,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts fib (consts) fib (Haskell)}
+  @{code_stmts fib constant: fib (Haskell)}
 \<close>
 
 text \<open>
@@ -69,7 +69,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts fib (consts) fib fib_step (Haskell)}
+  @{code_stmts fib constant: fib fib_step (Haskell)}
 \<close>
 
 

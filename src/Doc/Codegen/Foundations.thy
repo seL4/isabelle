@@ -191,7 +191,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts dequeue (consts) dequeue (Haskell)}
+  @{code_stmts dequeue constant: dequeue (Haskell)}
 \<close>
 
 text \<open>
@@ -283,7 +283,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}
+  @{code_stmts strict_dequeue constant: strict_dequeue (Haskell)}
 \<close>
 
 text \<open>
@@ -325,7 +325,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}
+  @{code_stmts strict_dequeue' constant: empty_queue strict_dequeue' (Haskell)}
 \<close>
 
 text \<open>

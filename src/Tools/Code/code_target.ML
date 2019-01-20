@@ -513,25 +513,29 @@ fun check_code_cmd all_public raw_cs seris ctxt =
   check_code ctxt all_public
     (Code_Thingol.read_const_exprs ctxt raw_cs) seris;
 
+val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
+  (\<^keyword>\<open>constant\<close>, \<^keyword>\<open>type_constructor\<close>, \<^keyword>\<open>type_class\<close>,
+    \<^keyword>\<open>class_relation\<close>, \<^keyword>\<open>class_instance\<close>, \<^keyword>\<open>code_module\<close>);
+
 local
 
 val parse_const_terms = Scan.repeat1 Args.term
   >> (fn ts => fn ctxt => map (Code.check_const (Proof_Context.theory_of ctxt)) ts);
 
-fun parse_names category parse internalize mark_symbol =
-  Scan.lift (Args.parens (Args.$$$ category)) |-- Scan.repeat1 parse
+fun parse_names keyword parse internalize mark_symbol =
+  Scan.lift (keyword --| Args.colon) |-- Scan.repeat1 parse
   >> (fn xs => fn ctxt => map (mark_symbol o internalize ctxt) xs);
 
-val parse_consts = parse_names "consts" Args.term
+val parse_consts = parse_names constantK Args.term
   (Code.check_const o Proof_Context.theory_of) Constant;
 
-val parse_types = parse_names "types" (Scan.lift Args.name)
+val parse_types = parse_names type_constructorK (Scan.lift Args.name)
   (Sign.intern_type o Proof_Context.theory_of) Type_Constructor;
 
-val parse_classes = parse_names "classes" (Scan.lift Args.name)
+val parse_classes = parse_names type_classK (Scan.lift Args.name)
   (Sign.intern_class o Proof_Context.theory_of) Type_Class;
 
-val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
+val parse_instances = parse_names class_instanceK (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
   (fn ctxt => fn (raw_tyco, raw_class) =>
     let
       val thy = Proof_Context.theory_of ctxt;
@@ -645,10 +649,6 @@ fun parse_args f args =
 
 
 (** Isar setup **)
-
-val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
-  (\<^keyword>\<open>constant\<close>, \<^keyword>\<open>type_constructor\<close>, \<^keyword>\<open>type_class\<close>,
-    \<^keyword>\<open>class_relation\<close>, \<^keyword>\<open>class_instance\<close>, \<^keyword>\<open>code_module\<close>);
 
 local
 

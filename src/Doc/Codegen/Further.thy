@@ -194,7 +194,7 @@ text \<open>
 \<close>
 
 text %quote \<open>
-  @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
+  @{code_stmts funpows constant: Nat.funpow funpows (Haskell)}
 \<close>
 
 
