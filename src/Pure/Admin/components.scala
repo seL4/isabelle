@@ -73,7 +73,8 @@ object Components
   def purge(dir: Path, platform: Platform.Family.Value)
   {
     def purge_platforms(platforms: String*): Set[String] =
-      platforms.flatMap(name => List("x86-" + name, "x86_64-" + name)).toSet + "ppc-darwin"
+      platforms.flatMap(name => List("x86-" + name, "x86_64_32-" + name, "x86_64-" + name)).toSet +
+      "ppc-darwin"
     val purge_set =
       platform match {
         case Platform.Family.linux => purge_platforms("darwin", "cygwin", "windows")
