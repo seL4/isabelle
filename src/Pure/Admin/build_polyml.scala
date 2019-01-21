@@ -7,58 +7,33 @@ Build Poly/ML from sources.
 package isabelle
 
 
+import scala.util.matching.Regex
+
+
 object Build_PolyML
 {
   /** platform-specific build **/
 
   sealed case class Platform_Info(
     options: List[String] = Nil,
-    options_multilib: List[String] = Nil,
     setup: String = "",
-    copy_files: List[String] = Nil)
-  {
-    def platform_options(arch_64: Boolean): List[String] =
-      if (!arch_64 && Isabelle_System.getenv("ISABELLE_PLATFORM64") == "x86_64-linux")
-        options_multilib
-      else options
-  }
+    copy_files: List[String] = Nil,
+    ldd_pattern: Option[(String, Regex)] = None)
 
   private val platform_info = Map(
-    "x86-linux" ->
+    "linux" ->
       Platform_Info(
-        options_multilib =
-          List("--build=i386", "CFLAGS=-m32 -O3", "CXXFLAGS=-m32 -O3", "CCASFLAGS=-m32",
-            "LDFLAGS=-Wl,-rpath,_DUMMY_", "--without-gmp"),
-        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
-    "x86_64-linux" ->
-      Platform_Info(
-        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_")),
-    "x86-darwin" ->
-      Platform_Info(
-        options =
-          List("--build=i686-darwin", "CFLAGS=-arch i686 -O3 -I../libffi/include",
-            "CXXFLAGS=-arch i686 -O3 -I../libffi/include", "CCASFLAGS=-arch i686 -O3",
-            "LDFLAGS=-segprot POLY rwx rwx -L/usr/local/lib32"),
-        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
-    "x86_64-darwin" ->
+        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_"),
+        ldd_pattern = Some(("ldd", """\s*libgmp.*=>\s*(\S+).*""".r))),
+    "darwin" ->
       Platform_Info(
         options =
           List("--build=x86_64-darwin", "CFLAGS=-arch x86_64 -O3 -I../libffi/include",
             "CXXFLAGS=-arch x86_64 -O3 -I../libffi/include", "CCASFLAGS=-arch x86_64",
             "LDFLAGS=-segprot POLY rwx rwx"),
-        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin"),
-    "x86-windows" ->
-      Platform_Info(
-        options =
-          List("--host=i686-w32-mingw32", "CPPFLAGS=-I/mingw32/include", "--disable-windows-gui"),
-        setup =
-          """PATH=/usr/bin:/bin:/mingw32/bin
-            export CONFIG_SITE=/etc/config.site""",
-        copy_files =
-          List("$MSYS/mingw32/bin/libgcc_s_dw2-1.dll",
-            "$MSYS/mingw32/bin/libgmp-10.dll",
-            "$MSYS/mingw32/bin/libstdc++-6.dll")),
-    "x86_64-windows" ->
+        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
+        ldd_pattern = Some(("otool -L", """\s*(\S+lib(?:polyml|gmp).*dylib).*""".r))),
+    "windows" ->
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
@@ -81,13 +56,16 @@ object Build_PolyML
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
       error("Bad Poly/ML root directory: " + root)
 
-    val platform =
-      (if (arch_64) "x86_64" else "x86") +
-      (if (Platform.is_windows) "-windows" else if (Platform.is_macos) "-darwin" else "-linux")
+    val platform_arch = if (arch_64) "x86_64" else "x86_64_32"
+    val platform_os =
+      if (Platform.is_windows) "windows" else if (Platform.is_macos) "darwin" else "linux"
+
+    val platform = platform_arch + "-" + platform_os
+    val platform_64 = "x86_64-" + platform_os
 
     val info =
-      platform_info.get(platform) getOrElse
-        error("Bad platform identifier: " + quote(platform))
+      platform_info.get(platform_os) getOrElse
+        error("Bad OS platform: " + quote(platform_os))
 
     val settings =
       msys_root match {
@@ -117,7 +95,7 @@ object Build_PolyML
 
     val configure_options =
       List("--disable-shared", "--enable-intinf-as-int", "--with-gmp") :::
-        info.platform_options(arch_64) ::: options
+        info.options ::: options ::: (if (arch_64) Nil else List("--enable-compact32bit"))
 
     bash(root,
       info.setup + "\n" +
@@ -132,11 +110,7 @@ object Build_PolyML
 
     val ldd_files =
     {
-      val ldd_pattern =
-        if (Platform.is_linux) Some(("ldd", """\s*libgmp.*=>\s*(\S+).*""".r))
-        else if (Platform.is_macos) Some(("otool -L", """\s*(\S+lib(?:polyml|gmp).*dylib).*""".r))
-        else None
-      ldd_pattern match {
+      info.ldd_pattern match {
         case Some((ldd, pattern)) =>
           val lines = bash(root, ldd + " target/bin/poly").check.out_lines
           for { line <- lines; List(lib) <- pattern.unapplySeq(line) } yield lib
@@ -150,9 +124,9 @@ object Build_PolyML
     val sha1_files =
       if (sha1_root.isDefined) {
         val dir1 = sha1_root.get
-        bash(dir1, "./build " + platform, redirect = true, echo = true).check
+        bash(dir1, "./build " + platform_64, redirect = true, echo = true).check
 
-        val dir2 = dir1 + Path.explode(platform)
+        val dir2 = dir1 + Path.explode(platform_64)
         File.read_dir(dir2).map(entry => dir2.implode + "/" + entry)
       }
       else Nil
@@ -248,7 +222,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
     -M DIR       msys root directory (for Windows)
-    -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
+    -m ARCH      processor architecture (32=x86_64_32, 64=x86_64, default: 32)
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
   Build Poly/ML in the ROOT directory of its sources, with additional
@@ -257,7 +231,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
           "M:" -> (arg => msys_root = Some(Path.explode(arg))),
           "m:" ->
             {
-              case "32" | "x86" => arch_64 = false
+              case "32" | "x86_64_32" => arch_64 = false
               case "64" | "x86_64" => arch_64 = true
               case bad => error("Bad processor architecture: " + quote(bad))
             },

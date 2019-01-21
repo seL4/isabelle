@@ -2,68 +2,16 @@
 
 POLYML_HOME="$COMPONENT"
 
-
-# platform preference
+ML_PLATFORM="${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_PLATFORM64}}"
 
 if grep "ML_system_64.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
 then
-  ML_SYSTEM_64="true"
+  ML_OPTIONS="--minheap 1000"
 else
-  ML_SYSTEM_64="false"
+  ML_PLATFORM="${ML_PLATFORM/x86_64/x86_64_32}"
+  ML_OPTIONS="--minheap 500"
 fi
 
-case "${ISABELLE_PLATFORM_FAMILY}:${ML_SYSTEM_64}" in
-  windows:true)
-    PLATFORMS="x86_64-windows x86-windows"
-    ;;
-  windows:*)
-    PLATFORMS="x86-windows x86_64-windows"
-    ;;
-  *:true)
-    PLATFORMS="$ISABELLE_PLATFORM64 $ISABELLE_PLATFORM32"
-    ;;
-  *)
-    PLATFORMS="$ISABELLE_PLATFORM32 $ISABELLE_PLATFORM64"
-    ;;
-esac
-
-
-# check executable
-
-unset ML_HOME
-
-for PLATFORM in $PLATFORMS
-do
-  if [ -z "$ML_HOME" ]
-  then
-    if "$POLYML_HOME/$PLATFORM/poly" -v </dev/null >/dev/null 2>/dev/null
-    then
-
-      # ML settings
-
-      ML_SYSTEM=polyml-5.7.1
-      ML_PLATFORM="$PLATFORM"
-      ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-      ML_SOURCES="$POLYML_HOME/src"
-
-      case "$ML_PLATFORM" in
-        x86_64-windows)
-          ML_OPTIONS="--minheap 1000 --codepage utf8"
-          ;;
-        x86-windows)
-          ML_OPTIONS="--minheap 500 --codepage utf8"
-          ;;
-        x86_64-*)
-          ML_OPTIONS="--minheap 1000"
-          ;;
-        *)
-          ML_OPTIONS="--minheap 500"
-          ;;
-      esac
-
-    fi
-  fi
-done
-
-unset PLATFORM
-unset PLATFORMS
+ML_SYSTEM=polyml-5.7.1
+ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+ML_SOURCES="$POLYML_HOME/src"
