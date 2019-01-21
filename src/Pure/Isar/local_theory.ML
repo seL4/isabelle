@@ -23,7 +23,6 @@ signature LOCAL_THEORY =
 sig
   type operations
   val assert: local_theory -> local_theory
-  val reset: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: local_theory -> local_theory
   val mark_brittle: local_theory -> local_theory
@@ -83,7 +82,13 @@ sig
     local_theory -> 'b * local_theory
 end;
 
-structure Local_Theory: LOCAL_THEORY =
+signature PRIVATE_LOCAL_THEORY =
+sig
+  include LOCAL_THEORY
+  val reset: local_theory -> local_theory
+end
+
+structure Local_Theory: PRIVATE_LOCAL_THEORY =
 struct
 
 (** local theory data **)

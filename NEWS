@@ -134,6 +134,11 @@ retrieved with the "isabelle export" command-line tool like this:
 
 *** ML ***
 
+* Local_Theory.reset is no longer available in user space. Regular
+definitional packages should use balanced blocks of
+Local_Theory.open_target versus Local_Theory.close_target instead,
+or the Local_Theory.subtarget(_result) combinator. Rare INCOMPATIBILITY.
+
 * Original PolyML.pointerEq is retained as a convenience for tools that
 don't use Isabelle/ML (where this is called "pointer_eq").
 
