@@ -1,12 +1,13 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation of Poly/ML 5.7.1 (http://www.polyml.org) is based on the
-source distribution from https://github.com/polyml/polyml/commits/fixes-5.7.1
-up to commit b3d1ff33a4b4.
+This compilation of Poly/ML (https://www.polyml.org) is based on the
+repository version
+https://github.com/polyml/polyml/commit/0a6ebca445fc (master).
 
-The Isabelle repository provides the administrative tool "build_polyml",
-which can be used in the polyml component directory as follows.
+The Isabelle repository provides the administrative tool
+"build_polyml", which can be used in the polyml component directory as
+follows.
 
 * Linux:
 
@@ -38,14 +39,7 @@ will be placed in /usr/local).
   $ curl https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz | xz -dc | tar xf -
   $ cd gmp-6.1.2
 
-* build x86-darwin:
-
-  $ make distclean
-  $ env ABI=32 ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)" --libdir=/usr/local/lib32
-  $ make && make check
-  $ sudo make install
-
-* build x86_64-darwin:
+* build:
 
   $ make distclean
   $ ./configure --enable-cxx --build=core2-apple-darwin"$(uname -r)"
@@ -54,4 +48,4 @@ will be placed in /usr/local).
 
 
         Makarius
-        28-Jul-2018
+        21-Jan-2019
