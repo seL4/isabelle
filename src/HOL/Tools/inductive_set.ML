@@ -11,17 +11,17 @@ sig
   val to_pred_att: thm list -> attribute
   val to_pred : thm list -> Context.generic -> thm -> thm
   val pred_set_conv_att: attribute
-  val add_inductive_i:
-    Inductive.inductive_flags ->
+  val add_inductive:
+    Inductive.flags ->
     ((binding * typ) * mixfix) list ->
     (string * typ) list ->
     (Attrib.binding * term) list -> thm list ->
-    local_theory -> Inductive.inductive_result * local_theory
-  val add_inductive: bool -> bool ->
+    local_theory -> Inductive.result * local_theory
+  val add_inductive_cmd: bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> (Facts.ref * Token.src list) list ->
-    local_theory -> Inductive.inductive_result * local_theory
+    local_theory -> Inductive.result * local_theory
   val mono_add: attribute
   val mono_del: attribute
 end;
@@ -518,8 +518,8 @@ fun add_ind_set_def
      lthy4)
   end;
 
-val add_inductive_i = Inductive.gen_add_inductive_i add_ind_set_def;
 val add_inductive = Inductive.gen_add_inductive add_ind_set_def;
+val add_inductive_cmd = Inductive.gen_add_inductive_cmd add_ind_set_def;
 
 fun mono_att att =
   Thm.declaration_attribute (fn thm => fn context =>

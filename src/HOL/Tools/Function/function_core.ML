@@ -440,7 +440,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
     val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
       lthy
       |> Proof_Context.concealed
-      |> Inductive.add_inductive_i
+      |> Inductive.add_inductive
           {quiet_mode = true,
             verbose = ! trace,
             alt_name = Binding.empty,

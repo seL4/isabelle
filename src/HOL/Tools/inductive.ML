@@ -18,15 +18,15 @@ Features:
   Pj, Pk are two of the predicates being defined in mutual recursion
 *)
 
-signature BASIC_INDUCTIVE =
+signature INDUCTIVE =
 sig
-  type inductive_result =
+  type result =
     {preds: term list, elims: thm list, raw_induct: thm,
      induct: thm, inducts: thm list, intrs: thm list, eqs: thm list}
-  val transform_result: morphism -> inductive_result -> inductive_result
-  type inductive_info = {names: string list, coind: bool} * inductive_result
-  val the_inductive: Proof.context -> term -> inductive_info
-  val the_inductive_global: Proof.context -> string -> inductive_info
+  val transform_result: morphism -> result -> result
+  type info = {names: string list, coind: bool} * result
+  val the_inductive: Proof.context -> term -> info
+  val the_inductive_global: Proof.context -> string -> info
   val print_inductives: bool -> Proof.context -> unit
   val get_monos: Proof.context -> thm list
   val mono_add: attribute
@@ -35,62 +35,58 @@ sig
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
   val rulify: Proof.context -> thm -> thm
-  val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
+  val inductive_cases: (Attrib.binding * term list) list -> local_theory ->
     (string * thm list) list * local_theory
-  val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
+  val inductive_cases_cmd: (Attrib.binding * string list) list -> local_theory ->
     (string * thm list) list * local_theory
   val ind_cases_rules: Proof.context ->
     string list -> (binding * string option * mixfix) list -> thm list
-  val inductive_simps: (Attrib.binding * string list) list -> local_theory ->
+  val inductive_simps: (Attrib.binding * term list) list -> local_theory ->
     (string * thm list) list * local_theory
-  val inductive_simps_i: (Attrib.binding * term list) list -> local_theory ->
+  val inductive_simps_cmd: (Attrib.binding * string list) list -> local_theory ->
     (string * thm list) list * local_theory
-  type inductive_flags =
+  type flags =
     {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
       no_elim: bool, no_ind: bool, skip_mono: bool}
-  val add_inductive_i:
-    inductive_flags -> ((binding * typ) * mixfix) list ->
+  val add_inductive:
+    flags -> ((binding * typ) * mixfix) list ->
     (string * typ) list -> (Attrib.binding * term) list -> thm list -> local_theory ->
-    inductive_result * local_theory
-  val add_inductive: bool -> bool ->
+    result * local_theory
+  val add_inductive_global:
+    flags -> ((binding * typ) * mixfix) list ->
+    (string * typ) list -> (Attrib.binding * term) list -> thm list -> theory ->
+    result * theory
+  val add_inductive_cmd: bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd ->
     (Facts.ref * Token.src list) list ->
-    local_theory -> inductive_result * local_theory
-  val add_inductive_global: inductive_flags ->
-    ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
-    thm list -> theory -> inductive_result * theory
+    local_theory -> result * local_theory
   val arities_of: thm -> (string * int) list
   val params_of: thm -> term list
   val partition_rules: thm -> thm list -> (string * thm list) list
   val partition_rules': thm -> (thm * 'a) list -> (string * (thm * 'a) list) list
   val unpartition_rules: thm list -> (string * 'a list) list -> 'a list
   val infer_intro_vars: theory -> thm -> int -> thm list -> term list list
-end;
-
-signature INDUCTIVE =
-sig
-  include BASIC_INDUCTIVE
   val inductive_internals: bool Config.T
   val select_disj_tac: Proof.context -> int -> int -> int -> tactic
   type add_ind_def =
-    inductive_flags ->
+    flags ->
     term list -> (Attrib.binding * term) list -> thm list ->
     term list -> (binding * mixfix) list ->
-    local_theory -> inductive_result * local_theory
+    local_theory -> result * local_theory
   val declare_rules: binding -> bool -> bool -> string list -> term list ->
     thm list -> binding list -> Token.src list list -> (thm * string list * int) list ->
     thm list -> thm -> local_theory -> thm list * thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
-  val gen_add_inductive_i: add_ind_def -> inductive_flags ->
+  val gen_add_inductive: add_ind_def -> flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
-    thm list -> local_theory -> inductive_result * local_theory
-  val gen_add_inductive: add_ind_def -> bool -> bool ->
+    thm list -> local_theory -> result * local_theory
+  val gen_add_inductive_cmd: add_ind_def -> bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> (Facts.ref * Token.src list) list ->
-    local_theory -> inductive_result * local_theory
+    local_theory -> result * local_theory
   val gen_ind_decl: add_ind_def -> bool -> (local_theory -> local_theory) parser
 end;
 
@@ -187,7 +183,7 @@ fun select_disj_tac ctxt =
 
 (** context data **)
 
-type inductive_result =
+type result =
   {preds: term list, elims: thm list, raw_induct: thm,
    induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
 
@@ -201,7 +197,7 @@ fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs,
     induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs}
   end;
 
-type inductive_info = {names: string list, coind: bool} * inductive_result;
+type info = {names: string list, coind: bool} * result;
 
 val empty_infos =
   Item_Net.init (op = o apply2 (#names o fst)) (#preds o snd)
@@ -211,7 +207,7 @@ val empty_equations =
     (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);
 
 datatype data = Data of
- {infos: inductive_info Item_Net.T,
+ {infos: info Item_Net.T,
   monos: thm list,
   equations: thm Item_Net.T};
 
@@ -624,8 +620,8 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
         args thmss;
   in lthy |> Local_Theory.notes facts end;
 
-val inductive_cases = gen_inductive_cases Attrib.check_src Syntax.read_prop;
-val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
+val inductive_cases = gen_inductive_cases (K I) Syntax.check_prop;
+val inductive_cases_cmd = gen_inductive_cases Attrib.check_src Syntax.read_prop;
 
 
 (* ind_cases *)
@@ -682,8 +678,8 @@ fun gen_inductive_simps prep_att prep_prop args lthy =
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
   in lthy |> Local_Theory.notes facts end;
 
-val inductive_simps = gen_inductive_simps Attrib.check_src Syntax.read_prop;
-val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
+val inductive_simps = gen_inductive_simps (K I) Syntax.check_prop;
+val inductive_simps_cmd = gen_inductive_simps Attrib.check_src Syntax.read_prop;
 
 
 (* prove induction rule *)
@@ -1089,15 +1085,15 @@ fun declare_rules rec_binding coind no_ind cnames
         end;
   in (intrs', elims', eqs', induct', inducts, lthy4) end;
 
-type inductive_flags =
+type flags =
   {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
     no_elim: bool, no_ind: bool, skip_mono: bool};
 
 type add_ind_def =
-  inductive_flags ->
+  flags ->
   term list -> (Attrib.binding * term) list -> thm list ->
   term list -> (binding * mixfix) list ->
-  local_theory -> inductive_result * local_theory;
+  local_theory -> result * local_theory;
 
 fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono}
     cs intros monos params cnames_syn lthy =
@@ -1159,7 +1155,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
 
 (* external interfaces *)
 
-fun gen_add_inductive_i mk_def
+fun gen_add_inductive mk_def
     flags cnames_syn pnames spec monos lthy =
   let
 
@@ -1212,7 +1208,7 @@ fun gen_add_inductive_i mk_def
     ||> fold (snd oo Local_Theory.abbrev Syntax.mode_default) abbrevs
   end;
 
-fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
+fun gen_add_inductive_cmd mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos lthy =
   let
     val ((vars, intrs), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
@@ -1224,18 +1220,18 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
       coind = coind, no_elim = false, no_ind = false, skip_mono = false};
   in
     lthy
-    |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
+    |> gen_add_inductive mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
   end;
 
-val add_inductive_i = gen_add_inductive_i add_ind_def;
 val add_inductive = gen_add_inductive add_ind_def;
+val add_inductive_cmd = gen_add_inductive_cmd add_ind_def;
 
 fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
   let
     val name = Sign.full_name thy (fst (fst (hd cnames_syn)));
     val ctxt' = thy
       |> Named_Target.theory_init
-      |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
+      |> add_inductive flags cnames_syn pnames pre_intros monos |> snd
       |> Local_Theory.exit;
     val info = #2 (the_inductive_global ctxt' name);
   in (info, Proof_Context.theory_of ctxt') end;
@@ -1305,7 +1301,7 @@ fun gen_ind_decl mk_def coind =
   Scan.optional Parse_Spec.where_multi_specs [] --
   Scan.optional (\<^keyword>\<open>monos\<close> |-- Parse.!!! Parse.thms1) []
   >> (fn (((preds, params), specs), monos) =>
-      (snd o gen_add_inductive mk_def true coind preds params specs monos));
+      (snd o gen_add_inductive_cmd mk_def true coind preds params specs monos));
 
 val ind_decl = gen_ind_decl add_ind_def;
 
@@ -1320,12 +1316,12 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>inductive_cases\<close>
     "create simplified instances of elimination rules"
-    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_cases));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_cases_cmd));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>inductive_simps\<close>
     "create simplification rules for inductive predicates"
-    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_simps));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_simps_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_inductives\<close>
