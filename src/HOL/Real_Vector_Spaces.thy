@@ -322,7 +322,7 @@ text \<open>Every real algebra has characteristic zero.\<close>
 instance real_algebra_1 < ring_char_0
 proof
   from inj_of_real inj_of_nat have "inj (of_real \<circ> of_nat)"
-    by (rule inj_comp)
+    by (rule inj_compose)
   then show "inj (of_nat :: nat \<Rightarrow> 'a)"
     by (simp add: comp_def)
 qed

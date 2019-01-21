@@ -783,4 +783,7 @@ lemma top_eq:  "\<lbrakk> t \<in> carrier L; \<And> x. x \<in> carrier L \<Longr
 
 end
 
+hide_const (open) Lattice.inf
+hide_const (open) Lattice.sup
+
 end

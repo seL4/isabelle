@@ -2127,8 +2127,10 @@ proof -
   proof -
     have "r0 n \<ge> n" using \<open>strict_mono r0\<close> by (simp add: seq_suble)
     have "(1/2::real)^(r0 n) \<le> (1/2)^n" by (rule power_decreasing[OF \<open>r0 n \<ge> n\<close>], auto)
-    then have "(\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^n" using r0(2) less_le_trans by auto
-    then have "(\<integral>x. norm(u (r n) x) \<partial>M) < (1/2)^n" unfolding r_def by auto
+    then have "(\<integral>x. norm(u (r0 (Suc n)) x) \<partial>M) < (1/2)^n" 
+      using r0(2) less_le_trans by blast
+    then have "(\<integral>x. norm(u (r n) x) \<partial>M) < (1/2)^n" 
+      unfolding r_def by auto
     moreover have "(\<integral>\<^sup>+x. norm(u (r n) x) \<partial>M) = (\<integral>x. norm(u (r n) x) \<partial>M)"
       by (rule nn_integral_eq_integral, auto simp add: integrable_norm[OF assms(1)[of "r n"]])
     ultimately show ?thesis by (auto intro: ennreal_lessI)

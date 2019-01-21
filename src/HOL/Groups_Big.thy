@@ -503,6 +503,26 @@ lemma same_carrierI:
   shows "F g A = F h B"
   using assms same_carrier [of C A B] by simp
 
+lemma eq_general:
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> \<exists>!x. x \<in> A \<and> h x = y" and A: "\<And>x. x \<in> A \<Longrightarrow> h x \<in> B \<and> \<gamma>(h x) = \<phi> x"
+  shows "F \<phi> A = F \<gamma> B"
+proof -
+  have eq: "B = h ` A"
+    by (auto dest: assms)
+  have h: "inj_on h A"
+    using assms by (blast intro: inj_onI)
+  have "F \<phi> A = F (\<gamma> \<circ> h) A"
+    using A by auto
+  also have "\<dots> = F \<gamma> B"
+    by (simp add: eq reindex h)
+  finally show ?thesis .
+qed
+
+lemma eq_general_inverses:
+  assumes B: "\<And>y. y \<in> B \<Longrightarrow> k y \<in> A \<and> h(k y) = y" and A: "\<And>x. x \<in> A \<Longrightarrow> h x \<in> B \<and> k(h x) = x \<and> \<gamma>(h x) = \<phi> x"
+  shows "F \<phi> A = F \<gamma> B"
+  by (rule eq_general [where h=h]) (force intro: dest: A B)+
+
 end
 
 

@@ -781,18 +781,13 @@ definition
     {h. h \<in> carrier G \<rightarrow> carrier H \<and>
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
-
-(* NEW ========================================================================== *)
-lemma hom_trans:
+lemma hom_compose:
   "\<lbrakk> f \<in> hom G H; g \<in> hom H I \<rbrakk> \<Longrightarrow> g \<circ> f \<in> hom G I"
   unfolding hom_def by (auto simp add: Pi_iff)
-(* ============================================================================== *)
 
-(* NEW ============================================================================ *)
 lemma (in group) hom_restrict:
   assumes "h \<in> hom G H" and "\<And>g. g \<in> carrier G \<Longrightarrow> h g = t g" shows "t \<in> hom G H"
   using assms unfolding hom_def by (auto simp add: Pi_iff)
-(* ============================================================================== *)
 
 lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"

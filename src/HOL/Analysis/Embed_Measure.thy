@@ -149,7 +149,7 @@ lemma embed_measure_comp:
   assumes [simp]: "inj f" "inj g"
   shows "embed_measure (embed_measure M f) g = embed_measure M (g \<circ> f)"
 proof-
-  have [simp]: "inj (\<lambda>x. g (f x))" by (subst o_def[symmetric]) (auto intro: inj_comp)
+  have [simp]: "inj (\<lambda>x. g (f x))" by (subst o_def[symmetric]) (auto intro: inj_compose)
   note measurable_embed_measure2[measurable]
   have "embed_measure (embed_measure M f) g =
             distr M (embed_measure (embed_measure M f) g) (g \<circ> f)"
@@ -158,7 +158,7 @@ proof-
   also have "... = embed_measure M (g \<circ> f)"
       by (subst (3) embed_measure_eq_distr, simp add: o_def, rule distr_cong)
          (auto simp: sets_embed_measure o_def image_image[symmetric]
-               intro: inj_comp cong: distr_cong)
+               intro: inj_compose cong: distr_cong)
   finally show ?thesis .
 qed
 

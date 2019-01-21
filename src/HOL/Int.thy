@@ -1441,7 +1441,7 @@ lemma zmult_eq_1_iff: "m * n = 1 \<longleftrightarrow> (m = 1 \<and> n = 1) \<or
    apply auto
   done
 
-lemma infinite_UNIV_int: "\<not> finite (UNIV::int set)"
+lemma infinite_UNIV_int [simp]: "\<not> finite (UNIV::int set)"
 proof
   assume "finite (UNIV::int set)"
   moreover have "inj (\<lambda>i::int. 2 * i)"

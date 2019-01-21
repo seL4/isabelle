@@ -220,7 +220,8 @@ proof -
   have the_elem_hom: "(\<lambda>x. the_elem (f ` x)) \<in> hom (G Mod H) (image_group f G)"
     using weak_group_morphism_is_iso[OF assms] by (simp add: iso_def)
   have hom: "(\<lambda>x. the_elem (f ` x)) \<circ> (#>) H \<in> hom G (image_group f G)"
-    using hom_trans[OF H.r_coset_hom_Mod the_elem_hom] by simp
+    using hom_compose[OF H.r_coset_hom_Mod the_elem_hom]
+    using Group.hom_compose H.r_coset_hom_Mod the_elem_hom by blast
   have restrict: "\<And>a. a \<in> carrier G \<Longrightarrow> ((\<lambda>x. the_elem (f ` x)) \<circ> (#>) H) a = f a"
     using weak_group_morphism_range[OF assms] by auto
   show ?thesis

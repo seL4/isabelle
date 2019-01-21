@@ -1515,7 +1515,7 @@ lemma inj_fn[simp]:
   assumes "inj f"
   shows "inj (f^^n)"
 proof (induction n)
-  case Suc thus ?case using inj_comp[OF assms Suc.IH] by (simp del: comp_apply)
+  case Suc thus ?case using inj_compose[OF assms Suc.IH] by (simp del: comp_apply)
 qed simp
 
 lemma surj_fn[simp]:

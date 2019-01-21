@@ -1302,7 +1302,7 @@ proof
   moreover have "inj (inv fset_of_list)"
     using fset_of_list_surj by (rule surj_imp_inj_inv)
   ultimately have "inj (to_nat \<circ> inv fset_of_list)"
-    by (rule inj_comp)
+    by (rule inj_compose)
   thus "\<exists>to_nat::'a fset \<Rightarrow> nat. inj to_nat"
     by auto
 qed

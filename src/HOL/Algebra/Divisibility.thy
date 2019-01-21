@@ -1991,7 +1991,7 @@ definition somegcd :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<
 definition somelcm :: "('a,_) monoid_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
   where "somelcm G a b = (SOME x. x \<in> carrier G \<and> x lcmof\<^bsub>G\<^esub> a b)"
 
-definition "SomeGcd G A = inf (division_rel G) A"
+definition "SomeGcd G A = Lattice.inf (division_rel G) A"
 
 
 locale gcd_condition_monoid = comm_monoid_cancel +

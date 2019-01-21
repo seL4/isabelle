@@ -1770,7 +1770,6 @@ lemma swap_image:
 
 lemmas swap_apply1 = swap_apply(1)
 lemmas swap_apply2 = swap_apply(2)
-lemmas Zero_notin_Suc = zero_notin_Suc_image
 
 lemma pointwise_minimal_pointwise_maximal:
   fixes s :: "(nat \<Rightarrow> nat) set"
@@ -2273,7 +2272,7 @@ proof safe
     then have "a = enum 0"
       using \<open>a \<in> s\<close> na by (subst enum_0_bot) (auto simp: le_less intro!: less[of a _ n])
     then have s_eq: "s - {a} = enum ` Suc ` {.. n}"
-      using s_eq by (simp add: atMost_Suc_eq_insert_0 insert_ident Zero_notin_Suc in_enum_image subset_eq)
+      using s_eq by (simp add: atMost_Suc_eq_insert_0 insert_ident zero_notin_Suc_image in_enum_image subset_eq)
     then have "enum 1 \<in> s - {a}"
       by auto
     then have "upd 0 = n"

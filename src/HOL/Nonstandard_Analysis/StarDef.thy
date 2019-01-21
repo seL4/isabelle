@@ -914,7 +914,7 @@ proof
   have "inj (star_of :: 'a \<Rightarrow> 'a star)"
     by (rule injI) simp
   then have "inj (star_of \<circ> of_nat :: nat \<Rightarrow> 'a star)"
-    using inj_of_nat by (rule inj_comp)
+    using inj_of_nat by (rule inj_compose)
   then show "inj (of_nat :: nat \<Rightarrow> 'a star)"
     by (simp add: comp_def)
 qed

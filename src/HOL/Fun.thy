@@ -181,7 +181,7 @@ lemma inj_on_cong: "(\<And>a. a \<in> A \<Longrightarrow> f a = g a) \<Longright
 lemma inj_on_strict_subset: "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
   unfolding inj_on_def by blast
 
-lemma inj_comp: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
+lemma inj_compose: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
   by (simp add: inj_def)
 
 lemma inj_fun: "inj f \<Longrightarrow> inj (\<lambda>x y. f x)"

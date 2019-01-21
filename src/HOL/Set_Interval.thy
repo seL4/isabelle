@@ -683,7 +683,7 @@ text \<open>The following proof is convenient in induction proofs where
 new elements get indices at the beginning. So it is used to transform
 \<^term>\<open>{..<Suc n}\<close> to \<^term>\<open>0::nat\<close> and \<^term>\<open>{..< n}\<close>.\<close>
 
-lemma zero_notin_Suc_image: "0 \<notin> Suc ` A"
+lemma zero_notin_Suc_image [simp]: "0 \<notin> Suc ` A"
   by auto
 
 lemma lessThan_Suc_eq_insert_0: "{..<Suc n} = insert 0 (Suc ` {..<n})"

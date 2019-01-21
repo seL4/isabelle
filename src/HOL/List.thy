@@ -1517,7 +1517,7 @@ next
     also have "\<dots> = Suc(card(Suc ` ?S))" using fin
       by (simp add: card_image)
     also have "\<dots> = card ?S'" using eq fin
-      by (simp add:card_insert_if) (simp add:image_def)
+      by (simp add:card_insert_if) 
     finally show ?thesis .
   next
     assume "\<not> p x"

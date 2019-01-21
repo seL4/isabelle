@@ -501,6 +501,14 @@ next
     done
 qed
 
+lemma power_decreasing_iff [simp]: "\<lbrakk>0 < b; b < 1\<rbrakk> \<Longrightarrow> b ^ m \<le> b ^ n \<longleftrightarrow> n \<le> m"
+  using power_strict_decreasing [of m n b]
+  by (auto intro: power_decreasing ccontr)
+
+lemma power_strict_decreasing_iff [simp]: "\<lbrakk>0 < b; b < 1\<rbrakk> \<Longrightarrow> b ^ m < b ^ n \<longleftrightarrow> n < m"
+  using power_decreasing_iff [of b m n] unfolding le_less
+  by (auto dest: power_strict_decreasing le_neq_implies_less)
+
 lemma power_Suc_less_one: "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a ^ Suc n < 1"
   using power_strict_decreasing [of 0 "Suc n" a] by simp
 

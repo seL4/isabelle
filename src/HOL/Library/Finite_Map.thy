@@ -1406,7 +1406,7 @@ proof
   moreover have "inj (inv fmap_of_list)"
     using fmap_of_list_surj by (rule surj_imp_inj_inv)
   ultimately have "inj (to_nat \<circ> inv fmap_of_list)"
-    by (rule inj_comp)
+    by (rule inj_compose)
   thus "\<exists>to_nat::('a, 'b) fmap \<Rightarrow> nat. inj to_nat"
     by auto
 qed
