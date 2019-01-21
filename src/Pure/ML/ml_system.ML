@@ -9,6 +9,7 @@ sig
   val name: string
   val platform: string
   val platform_is_windows: bool
+  val platform_is_64: bool
   val platform_path: string -> string
   val standard_path: string -> string
 end;
@@ -19,6 +20,7 @@ struct
 val SOME name = OS.Process.getEnv "ML_SYSTEM";
 val SOME platform = OS.Process.getEnv "ML_PLATFORM";
 val platform_is_windows = String.isSuffix "windows" platform;
+val platform_is_64 = String.isPrefix "x86_64-" platform;
 
 val platform_path =
   if platform_is_windows then
