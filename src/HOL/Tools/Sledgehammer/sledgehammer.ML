@@ -302,7 +302,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss, found_proof = found_proof}
-            val learn = mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
+            val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover params mode writeln_result only learn
           in
             if mode = Auto_Try then

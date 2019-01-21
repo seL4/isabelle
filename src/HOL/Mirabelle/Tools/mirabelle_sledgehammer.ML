@@ -308,9 +308,9 @@ fun get_prover_name thy args =
     | NONE => default_prover_name ())
   end
 
-fun get_prover ctxt name params goal all_facts =
+fun get_prover ctxt name params goal =
   let
-    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
+    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (Thm.prop_of goal)
   in
     Sledgehammer_Prover_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal learn name
   end
@@ -429,7 +429,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
                      Sledgehammer.string_of_factss factss
                      |> writeln)
-        val prover = get_prover ctxt prover_name params goal facts
+        val prover = get_prover ctxt prover_name params goal
         val problem =
           {comment = "", state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss, found_proof = I}
