@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section%important \<open>Borel Space\<close>
+section \<open>Borel Space\<close>
 
 theory Borel_Space
 imports
@@ -17,7 +17,7 @@ lemma sets_Collect_eventually_sequentially[measurable]:
 lemma topological_basis_trivial: "topological_basis {A. open A}"
   by (auto simp: topological_basis_def)
 
-lemma%important open_prod_generated: "open = generate_topology {A \<times> B | A B. open A \<and> open B}"
+proposition open_prod_generated: "open = generate_topology {A \<times> B | A B. open A \<and> open B}"
 proof -
   have "{A \<times> B :: ('a \<times> 'b) set | A B. open A \<and> open B} = ((\<lambda>(a, b). a \<times> b) ` ({A. open A} \<times> {A. open A}))"
     by auto
@@ -509,7 +509,7 @@ lemma borel_eq_sigmaI5:
   shows "borel = sigma UNIV (range (\<lambda>(i, j). F i j))"
   using assms by (intro borel_eq_sigmaI1[where X="range G" and F="(\<lambda>(i, j). F i j)"]) auto
 
-lemma second_countable_borel_measurable:
+theorem second_countable_borel_measurable:
   fixes X :: "'a::second_countable_topology set set"
   assumes eq: "open = generate_topology X"
   shows "borel = sigma UNIV X"
@@ -569,7 +569,7 @@ next
   finally show "x \<in> sigma_sets UNIV (Collect open)" by simp
 qed simp_all
 
-lemma borel_eq_countable_basis:
+proposition borel_eq_countable_basis:
   fixes B::"'a::topological_space set set"
   assumes "countable B"
   assumes "topological_basis B"

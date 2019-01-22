@@ -2301,7 +2301,7 @@ proof -
   with ptag that show ?thesis by auto
 qed
 
-subsubsection \<open>Covering lemma\<close>
+subsubsection%important \<open>Covering lemma\<close>
 
 text\<open> Some technical lemmas used in the approximation results that follow. Proof of the covering
   lemma is an obvious multidimensional generalization of Lemma 3, p65 of Swartz's

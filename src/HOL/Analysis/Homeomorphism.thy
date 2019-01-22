@@ -2,7 +2,7 @@
     Author: LC Paulson (ported from HOL Light)
 *)
 
-section%important \<open>Homeomorphism Theorems\<close>
+section \<open>Homeomorphism Theorems\<close>
 
 theory Homeomorphism
 imports Homotopy

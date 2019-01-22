@@ -1,4 +1,4 @@
-section%important \<open>The Great Picard Theorem and its Applications\<close>
+section \<open>The Great Picard Theorem and its Applications\<close>
 
 text\<open>Ported from HOL Light (cauchy.ml) by L C Paulson, 2017\<close>
 
@@ -376,7 +376,7 @@ qed
   
 subsection\<open>The Little Picard Theorem\<close>
 
-proposition Landau_Picard:
+theorem Landau_Picard:
   obtains R
     where "\<And>z. 0 < R z"
           "\<And>f. \<lbrakk>f holomorphic_on cball 0 (R(f 0));
@@ -788,7 +788,7 @@ qed
 
 
 
-subsubsection\<open>Montel's theorem\<close>
+subsubsection%important\<open>Montel's theorem\<close>
 
 text\<open>a sequence of holomorphic functions uniformly bounded
 on compact subsets of an open set S has a subsequence that converges to a

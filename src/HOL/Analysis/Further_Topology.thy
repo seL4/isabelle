@@ -1,4 +1,4 @@
-section%important \<open>Extending Continous Maps, Invariance of Domain, etc\<close> (*FIX rename? *)
+section \<open>Extending Continous Maps, Invariance of Domain, etc\<close> (*FIX rename? *)
 
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 

@@ -1,4 +1,4 @@
-section%important \<open>Continuity of the indefinite integral; improper integral theorem\<close>
+section \<open>Continuity of the indefinite integral; improper integral theorem\<close>
 
 theory "Improper_Integral"
   imports Equivalence_Lebesgue_Henstock_Integration

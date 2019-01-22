@@ -5,7 +5,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-section%important \<open>Limits on the Extended Real Number Line\<close> (* TO FIX: perhaps put all Nonstandard Analysis related
+section \<open>Limits on the Extended Real Number Line\<close> (* TO FIX: perhaps put all Nonstandard Analysis related
 topics together? *)
 
 theory Extended_Real_Limits
@@ -391,7 +391,7 @@ proof -
 qed
 
 
-subsubsection \<open>Continuity of addition\<close>
+subsubsection%important \<open>Continuity of addition\<close>
 
 text \<open>The next few lemmas remove an unnecessary assumption in \<open>tendsto_add_ereal\<close>, culminating
 in \<open>tendsto_add_ereal_general\<close> which essentially says that the addition
@@ -522,7 +522,7 @@ next
   then show ?thesis using tendsto_add_ereal_MInf MInf f g by (metis ereal_MInfty_eq_plus)
 qed
 
-subsubsection \<open>Continuity of multiplication\<close>
+subsubsection%important \<open>Continuity of multiplication\<close>
 
 text \<open>In the same way as for addition, we prove that the multiplication is continuous on
 ereal times ereal, except at \<open>(\<infinity>, 0)\<close> and \<open>(-\<infinity>, 0)\<close> and \<open>(0, \<infinity>)\<close> and \<open>(0, -\<infinity>)\<close>,
@@ -659,7 +659,7 @@ lemma tendsto_cmult_ereal_general [tendsto_intros]:
 by (cases "c = 0", auto simp add: assms tendsto_mult_ereal)
 
 
-subsubsection \<open>Continuity of division\<close>
+subsubsection%important \<open>Continuity of division\<close>
 
 lemma tendsto_inverse_ereal_PInf:
   fixes u::"_ \<Rightarrow> ereal"

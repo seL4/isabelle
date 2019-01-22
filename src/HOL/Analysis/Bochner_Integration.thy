@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section%important \<open>Bochner Integration for Vector-Valued Functions\<close>
+section \<open>Bochner Integration for Vector-Valued Functions\<close>
 
 theory Bochner_Integration
   imports Finite_Product_Measure

@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section%important \<open>Caratheodory Extension Theorem\<close>
+section \<open>Caratheodory Extension Theorem\<close>
 
 theory Caratheodory
 imports Measure_Space
@@ -54,7 +54,7 @@ subsection \<open>Characterizations of Measures\<close>
 definition%important outer_measure_space where
   "outer_measure_space M f \<longleftrightarrow> positive M f \<and> increasing M f \<and> countably_subadditive M f"
 
-subsubsection \<open>Lambda Systems\<close>
+subsubsection%important \<open>Lambda Systems\<close>
 
 definition%important lambda_system :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set set"
 where
@@ -635,7 +635,7 @@ proof -
   qed
 qed
 
-subsubsection \<open>Caratheodory on semirings\<close>
+subsubsection%important \<open>Caratheodory on semirings\<close>
 
 theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"
