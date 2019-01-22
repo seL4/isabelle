@@ -359,7 +359,7 @@ theorem continuity_set_conv_imp_weak_conv:
 proof -
   interpret real_distribution M by simp
   show ?thesis
-    by (auto intro!: * simp: frontier_real_Iic isCont_cdf emeasure_eq_measure weak_conv_m_def weak_conv_def cdf_def2)
+    by (auto intro!: * simp: frontier_real_atMost isCont_cdf emeasure_eq_measure weak_conv_m_def weak_conv_def cdf_def2)
 qed
 
 theorem integral_cts_step_conv_imp_weak_conv:

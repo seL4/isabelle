@@ -1,4 +1,4 @@
-(*  
+(*
   Title:    HOL/Analysis/Infinite_Set_Sum.thy
   Author:   Manuel Eberl, TU München
 
@@ -22,12 +22,12 @@ proof (intro equalityI subsetI)
   finally show "X \<in> sets M" .
 next
   fix X assume "X \<in> sets M"
-  from sets.sets_into_space[OF this] and assms 
+  from sets.sets_into_space[OF this] and assms
     show "X \<in> Pow A" by simp
 qed
 
 lemma measure_eqI_countable':
-  assumes spaces: "space M = A" "space N = A" 
+  assumes spaces: "space M = A" "space N = A"
   assumes sets: "\<And>x. x \<in> A \<Longrightarrow> {x} \<in> sets M" "\<And>x. x \<in> A \<Longrightarrow> {x} \<in> sets N"
   assumes A: "countable A"
   assumes eq: "\<And>a. a \<in> A \<Longrightarrow> emeasure M {a} = emeasure N {a}"
@@ -39,32 +39,19 @@ proof (rule measure_eqI_countable)
     by (intro sets_eq_countable assms)
 qed fact+
 
-lemma PiE_singleton: 
-  assumes "f \<in> extensional A"
-  shows   "PiE A (\<lambda>x. {f x}) = {f}"
-proof -
-  {
-    fix g assume "g \<in> PiE A (\<lambda>x. {f x})"
-    hence "g x = f x" for x
-      using assms by (cases "x \<in> A") (auto simp: extensional_def)
-    hence "g = f" by (simp add: fun_eq_iff)
-  }
-  thus ?thesis using assms by (auto simp: extensional_def)
-qed
-
 lemma count_space_PiM_finite:
   fixes B :: "'a \<Rightarrow> 'b set"
   assumes "finite A" "\<And>i. countable (B i)"
   shows   "PiM A (\<lambda>i. count_space (B i)) = count_space (PiE A B)"
 proof (rule measure_eqI_countable')
-  show "space (PiM A (\<lambda>i. count_space (B i))) = PiE A B" 
+  show "space (PiM A (\<lambda>i. count_space (B i))) = PiE A B"
     by (simp add: space_PiM)
   show "space (count_space (PiE A B)) = PiE A B" by simp
 next
   fix f assume f: "f \<in> PiE A B"
   hence "PiE A (\<lambda>x. {f x}) \<in> sets (Pi\<^sub>M A (\<lambda>i. count_space (B i)))"
     by (intro sets_PiM_I_finite assms) auto
-  also from f have "PiE A (\<lambda>x. {f x}) = {f}" 
+  also from f have "PiE A (\<lambda>x. {f x}) = {f}"
     by (intro PiE_singleton) (auto simp: PiE_def)
   finally show "{f} \<in> sets (Pi\<^sub>M A (\<lambda>i. count_space (B i)))" .
 next
@@ -74,7 +61,7 @@ next
   fix f assume f: "f \<in> PiE A B"
   hence "{f} = PiE A (\<lambda>x. {f x})"
     by (intro PiE_singleton [symmetric]) (auto simp: PiE_def)
-  also have "emeasure (Pi\<^sub>M A (\<lambda>i. count_space (B i))) \<dots> = 
+  also have "emeasure (Pi\<^sub>M A (\<lambda>i. count_space (B i))) \<dots> =
                (\<Prod>i\<in>A. emeasure (count_space (B i)) {f i})"
     using f assms by (subst emeasure_PiM) auto
   also have "\<dots> = (\<Prod>i\<in>A. 1)"
@@ -88,7 +75,7 @@ qed (simp_all add: countable_PiE assms)
 
 
 definition%important abs_summable_on ::
-    "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool" 
+    "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
     (infix "abs'_summable'_on" 50)
  where
    "f abs_summable_on A \<longleftrightarrow> integrable (count_space A) f"
@@ -100,28 +87,28 @@ definition%important infsetsum ::
    "infsetsum f A = lebesgue_integral (count_space A) f"
 
 syntax (ASCII)
-  "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(3INFSETSUM _:_./ _)" [0, 51, 10] 10)
 syntax
-  "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_\<in>_./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>ai\<in>A. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) A"
 
 syntax (ASCII)
-  "_uinfsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  "_uinfsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(3INFSETSUM _:_./ _)" [0, 51, 10] 10)
 syntax
-  "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}" 
+  "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_./ _)" [0, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>ai. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) (CONST UNIV)"
 
 syntax (ASCII)
-  "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}" 
+  "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
   ("(3INFSETSUM _ |/ _./ _)" [0, 0, 10] 10)
 syntax
-  "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}" 
+  "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_ | (_)./ _)" [0, 0, 10] 10)
 translations
   "\<Sum>\<^sub>ax|P. t" => "CONST infsetsum (\<lambda>x. t) {x. P}"
@@ -156,7 +143,7 @@ proof -
     by (rule restrict_count_space_subset [symmetric]) fact+
   also have "integrable \<dots> f \<longleftrightarrow> set_integrable (count_space B) A f"
     by (simp add: integrable_restrict_space set_integrable_def)
-  finally show ?thesis 
+  finally show ?thesis
     unfolding abs_summable_on_def set_integrable_def .
 qed
 
@@ -164,12 +151,12 @@ lemma abs_summable_on_altdef: "f abs_summable_on A \<longleftrightarrow> set_int
   unfolding abs_summable_on_def set_integrable_def
   by (metis (no_types) inf_top.right_neutral integrable_restrict_space restrict_count_space sets_UNIV)
 
-lemma abs_summable_on_altdef': 
+lemma abs_summable_on_altdef':
   "A \<subseteq> B \<Longrightarrow> f abs_summable_on A \<longleftrightarrow> set_integrable (count_space B) A f"
   unfolding abs_summable_on_def set_integrable_def
   by (metis (no_types) Pow_iff abs_summable_on_def inf.orderE integrable_restrict_space restrict_count_space_subset set_integrable_def sets_count_space space_count_space)
 
-lemma abs_summable_on_norm_iff [simp]: 
+lemma abs_summable_on_norm_iff [simp]:
   "(\<lambda>x. norm (f x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on A"
   by (simp add: abs_summable_on_def integrable_norm_iff)
 
@@ -183,8 +170,8 @@ lemma abs_summable_on_comparison_test:
   assumes "g abs_summable_on A"
   assumes "\<And>x. x \<in> A \<Longrightarrow> norm (f x) \<le> norm (g x)"
   shows   "f abs_summable_on A"
-  using assms Bochner_Integration.integrable_bound[of "count_space A" g f] 
-  unfolding abs_summable_on_def by (auto simp: AE_count_space)  
+  using assms Bochner_Integration.integrable_bound[of "count_space A" g f]
+  unfolding abs_summable_on_def by (auto simp: AE_count_space)
 
 lemma abs_summable_on_comparison_test':
   assumes "g abs_summable_on A"
@@ -220,7 +207,7 @@ lemma abs_summable_on_nat_iff:
   "f abs_summable_on (A :: nat set) \<longleftrightarrow> summable (\<lambda>n. if n \<in> A then norm (f n) else 0)"
 proof -
   have "f abs_summable_on A \<longleftrightarrow> summable (\<lambda>x. norm (if x \<in> A then f x else 0))"
-    by (subst abs_summable_on_restrict'[of _ UNIV]) 
+    by (subst abs_summable_on_restrict'[of _ UNIV])
        (simp_all add: abs_summable_on_def integrable_count_space_nat_iff)
   also have "(\<lambda>x. norm (if x \<in> A then f x else 0)) = (\<lambda>x. if x \<in> A then norm (f x) else 0)"
     by auto
@@ -277,7 +264,7 @@ next
     show "f abs_summable_on insert x A" by simp
 qed
 
-lemma abs_summable_sum: 
+lemma abs_summable_sum:
   assumes "\<And>x. x \<in> A \<Longrightarrow> f x abs_summable_on B"
   shows   "(\<lambda>y. \<Sum>x\<in>A. f x y) abs_summable_on B"
   using assms unfolding abs_summable_on_def by (intro Bochner_Integration.integrable_sum)
@@ -305,7 +292,7 @@ proof -
   have *: "count_space B = distr (count_space A) (count_space B) g"
     by (rule distr_bij_count_space [symmetric]) fact
   show ?thesis unfolding abs_summable_on_def
-    by (subst *, subst integrable_distr_eq[of _ _ "count_space B"]) 
+    by (subst *, subst integrable_distr_eq[of _ _ "count_space B"])
        (insert assms, auto simp: bij_betw_def)
 qed
 
@@ -314,7 +301,7 @@ lemma abs_summable_on_reindex:
   shows   "f abs_summable_on (g ` A)"
 proof -
   define g' where "g' = inv_into A g"
-  from assms have "(\<lambda>x. f (g x)) abs_summable_on (g' ` g ` A)" 
+  from assms have "(\<lambda>x. f (g x)) abs_summable_on (g' ` g ` A)"
     by (rule abs_summable_on_subset) (auto simp: g'_def inv_into_into)
   also have "?this \<longleftrightarrow> (\<lambda>x. f (g (g' x))) abs_summable_on (g ` A)" unfolding g'_def
     by (intro abs_summable_on_reindex_bij_betw [symmetric] inj_on_imp_bij_betw inj_on_inv_into) auto
@@ -323,7 +310,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma abs_summable_on_reindex_iff: 
+lemma abs_summable_on_reindex_iff:
   "inj_on g A \<Longrightarrow> (\<lambda>x. f (g x)) abs_summable_on A \<longleftrightarrow> f abs_summable_on (g ` A)"
   by (intro abs_summable_on_reindex_bij_betw inj_on_imp_bij_betw)
 
@@ -465,9 +452,9 @@ lemma Re_infsetsum: "f abs_summable_on A \<Longrightarrow> Re (infsetsum f A) = 
 lemma Im_infsetsum: "f abs_summable_on A \<Longrightarrow> Im (infsetsum f A) = (\<Sum>\<^sub>ax\<in>A. Im (f x))"
   by (simp add: infsetsum_def abs_summable_on_def)
 
-lemma infsetsum_of_real: 
-  shows "infsetsum (\<lambda>x. of_real (f x) 
-           :: 'a :: {real_normed_algebra_1,banach,second_countable_topology,real_inner}) A = 
+lemma infsetsum_of_real:
+  shows "infsetsum (\<lambda>x. of_real (f x)
+           :: 'a :: {real_normed_algebra_1,banach,second_countable_topology,real_inner}) A =
              of_real (infsetsum f A)"
   unfolding infsetsum_def
   by (rule integral_bounded_linear'[OF bounded_linear_of_real bounded_linear_inner_left[of 1]]) auto
@@ -475,7 +462,7 @@ lemma infsetsum_of_real:
 lemma infsetsum_finite [simp]: "finite A \<Longrightarrow> infsetsum f A = (\<Sum>x\<in>A. f x)"
   by (simp add: infsetsum_def lebesgue_integral_count_space_finite)
 
-lemma infsetsum_nat: 
+lemma infsetsum_nat:
   assumes "f abs_summable_on A"
   shows   "infsetsum f A = (\<Sum>n. if n \<in> A then f n else 0)"
 proof -
@@ -487,7 +474,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma infsetsum_nat': 
+lemma infsetsum_nat':
   assumes "f abs_summable_on UNIV"
   shows   "infsetsum f UNIV = (\<Sum>n. f n)"
   using assms by (subst infsetsum_nat) auto
@@ -539,7 +526,7 @@ proof -
     by (intro infsetsum_Un_disjoint abs_summable_on_subset[OF assms]) auto
   also have "infsetsum f (B - A \<inter> B) = infsetsum f B - infsetsum f (A \<inter> B)"
     by (intro infsetsum_Diff abs_summable_on_subset[OF assms]) auto
-  finally show ?thesis 
+  finally show ?thesis
     by (simp add: algebra_simps)
 qed
 
@@ -550,8 +537,8 @@ proof -
   have *: "count_space B = distr (count_space A) (count_space B) g"
     by (rule distr_bij_count_space [symmetric]) fact
   show ?thesis unfolding infsetsum_def
-    by (subst *, subst integral_distr[of _ _ "count_space B"]) 
-       (insert assms, auto simp: bij_betw_def)    
+    by (subst *, subst integral_distr[of _ _ "count_space B"])
+       (insert assms, auto simp: bij_betw_def)
 qed
 
 theorem infsetsum_reindex:
@@ -615,7 +602,7 @@ theorem infsetsum_Sigma:
   shows   "infsetsum f (Sigma A B) = infsetsum (\<lambda>x. infsetsum (\<lambda>y. f (x, y)) (B x)) A"
 proof -
   define B' where "B' = (\<Union>i\<in>A. B i)"
-  have [simp]: "countable B'" 
+  have [simp]: "countable B'"
     unfolding B'_def by (intro countable_UN assms)
   interpret pair_sigma_finite "count_space A" "count_space B'"
     by (intro pair_sigma_finite.intro sigma_finite_measure_count_space_countable) fact+
@@ -627,7 +614,7 @@ proof -
     by (intro Bochner_Integration.integrable_cong)
        (auto simp: pair_measure_countable indicator_def split: if_splits)
   finally have integrable: \<dots> .
-  
+
   have "infsetsum (\<lambda>x. infsetsum (\<lambda>y. f (x, y)) (B x)) A =
           (\<integral>x. infsetsum (\<lambda>y. f (x, y)) (B x) \<partial>count_space A)"
     unfolding infsetsum_def by simp
@@ -635,9 +622,9 @@ proof -
   proof (rule Bochner_Integration.integral_cong [OF refl])
     show "\<And>x. x \<in> space (count_space A) \<Longrightarrow>
          (\<Sum>\<^sub>ay\<in>B x. f (x, y)) = LINT y|count_space B'. indicat_real (B x) y *\<^sub>R f (x, y)"
-      using infsetsum_altdef'[of _ B'] 
+      using infsetsum_altdef'[of _ B']
       unfolding set_lebesgue_integral_def B'_def
-      by auto 
+      by auto
   qed
   also have "\<dots> = (\<integral>(x,y). indicator (B x) y *\<^sub>R f (x, y) \<partial>(count_space A \<Otimes>\<^sub>M count_space B'))"
     by (subst integral_fst [OF integrable]) auto
@@ -695,12 +682,12 @@ qed
 
 theorem abs_summable_on_Sigma_iff:
   assumes [simp]: "countable A" and "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
-  shows   "f abs_summable_on Sigma A B \<longleftrightarrow> 
+  shows   "f abs_summable_on Sigma A B \<longleftrightarrow>
              (\<forall>x\<in>A. (\<lambda>y. f (x, y)) abs_summable_on B x) \<and>
              ((\<lambda>x. infsetsum (\<lambda>y. norm (f (x, y))) (B x)) abs_summable_on A)"
 proof safe
   define B' where "B' = (\<Union>x\<in>A. B x)"
-  have [simp]: "countable B'" 
+  have [simp]: "countable B'"
     unfolding B'_def using assms by auto
   interpret pair_sigma_finite "count_space A" "count_space B'"
     by (intro pair_sigma_finite.intro sigma_finite_measure_count_space_countable) fact+
@@ -714,12 +701,12 @@ proof safe
       by (subst abs_summable_on_altdef' [symmetric]) (auto simp: B'_def)
     also have "count_space (A \<times> B') = count_space A \<Otimes>\<^sub>M count_space B'"
       by (simp add: pair_measure_countable)
-    finally have "integrable (count_space A) 
-                    (\<lambda>x. lebesgue_integral (count_space B') 
+    finally have "integrable (count_space A)
+                    (\<lambda>x. lebesgue_integral (count_space B')
                       (\<lambda>y. indicator (Sigma A B) (x, y) *\<^sub>R norm (f (x, y))))"
       unfolding set_integrable_def by (rule integrable_fst')
     also have "?this \<longleftrightarrow> integrable (count_space A)
-                    (\<lambda>x. lebesgue_integral (count_space B') 
+                    (\<lambda>x. lebesgue_integral (count_space B')
                       (\<lambda>y. indicator (B x) y *\<^sub>R norm (f (x, y))))"
       by (intro integrable_cong refl) (simp_all add: indicator_def)
     also have "\<dots> \<longleftrightarrow> integrable (count_space A) (\<lambda>x. infsetsum (\<lambda>y. norm (f (x, y))) (B x))"
@@ -749,11 +736,11 @@ proof safe
         fix x assume x: "x \<in> A"
         with * have "(\<lambda>y. f (x, y)) abs_summable_on B x"
           by blast
-        also have "?this \<longleftrightarrow> integrable (count_space B') 
+        also have "?this \<longleftrightarrow> integrable (count_space B')
                       (\<lambda>y. indicator (B x) y *\<^sub>R f (x, y))"
           unfolding set_integrable_def [symmetric]
          using x by (intro abs_summable_on_altdef') (auto simp: B'_def)
-        also have "(\<lambda>y. indicator (B x) y *\<^sub>R f (x, y)) = 
+        also have "(\<lambda>y. indicator (B x) y *\<^sub>R f (x, y)) =
                      (\<lambda>y. indicator (Sigma A B) (x, y) *\<^sub>R f (x, y))"
           using x by (auto simp: indicator_def)
         finally have "integrable (count_space B')
@@ -805,7 +792,7 @@ proof -
   also have "\<dots> = PiM A (count_space \<circ> B')"
     unfolding o_def using finite by (intro count_space_PiM_finite [symmetric]) simp_all
   also have "(\<integral>g. (\<Prod>x\<in>A. f x (g x)) \<partial>\<dots>) = (\<Prod>x\<in>A. infsetsum (f x) (B' x))"
-    by (subst product_integral_prod) 
+    by (subst product_integral_prod)
        (insert summable finite, simp_all add: infsetsum_def B'_def abs_summable_on_def)
   also have "\<dots> = (\<Prod>x\<in>A. infsetsum (f x) (B x))"
     by (intro prod.cong refl) (simp_all add: B'_def)
@@ -813,44 +800,44 @@ proof -
 qed
 
 lemma infsetsum_uminus: "infsetsum (\<lambda>x. -f x) A = -infsetsum f A"
-  unfolding infsetsum_def abs_summable_on_def 
+  unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_minus)
 
 lemma infsetsum_add:
   assumes "f abs_summable_on A" and "g abs_summable_on A"
   shows   "infsetsum (\<lambda>x. f x + g x) A = infsetsum f A + infsetsum g A"
-  using assms unfolding infsetsum_def abs_summable_on_def 
+  using assms unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_add)
 
 lemma infsetsum_diff:
   assumes "f abs_summable_on A" and "g abs_summable_on A"
   shows   "infsetsum (\<lambda>x. f x - g x) A = infsetsum f A - infsetsum g A"
-  using assms unfolding infsetsum_def abs_summable_on_def 
+  using assms unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_diff)
 
 lemma infsetsum_scaleR_left:
   assumes "c \<noteq> 0 \<Longrightarrow> f abs_summable_on A"
   shows   "infsetsum (\<lambda>x. f x *\<^sub>R c) A = infsetsum f A *\<^sub>R c"
-  using assms unfolding infsetsum_def abs_summable_on_def 
+  using assms unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_scaleR_left)
 
 lemma infsetsum_scaleR_right:
   "infsetsum (\<lambda>x. c *\<^sub>R f x) A = c *\<^sub>R infsetsum f A"
-  unfolding infsetsum_def abs_summable_on_def 
+  unfolding infsetsum_def abs_summable_on_def
   by (subst Bochner_Integration.integral_scaleR_right) auto
 
 lemma infsetsum_cmult_left:
   fixes f :: "'a \<Rightarrow> 'b :: {banach, real_normed_algebra, second_countable_topology}"
   assumes "c \<noteq> 0 \<Longrightarrow> f abs_summable_on A"
   shows   "infsetsum (\<lambda>x. f x * c) A = infsetsum f A * c"
-  using assms unfolding infsetsum_def abs_summable_on_def 
+  using assms unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_mult_left)
 
 lemma infsetsum_cmult_right:
   fixes f :: "'a \<Rightarrow> 'b :: {banach, real_normed_algebra, second_countable_topology}"
   assumes "c \<noteq> 0 \<Longrightarrow> f abs_summable_on A"
   shows   "infsetsum (\<lambda>x. c * f x) A = c * infsetsum f A"
-  using assms unfolding infsetsum_def abs_summable_on_def 
+  using assms unfolding infsetsum_def abs_summable_on_def
   by (rule Bochner_Integration.integral_mult_right)
 
 lemma infsetsum_cdiv:

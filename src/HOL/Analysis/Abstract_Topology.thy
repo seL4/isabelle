@@ -24,6 +24,9 @@ typedef%important 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
 lemma istopology_openin[intro]: "istopology(openin U)"
   using openin[of U] by blast
 
+lemma istopology_open: "istopology open"
+  by (auto simp: istopology_def)
+
 lemma topology_inverse': "istopology U \<Longrightarrow> openin (topology U) = U"
   using topology_inverse[unfolded mem_Collect_eq] .
 
@@ -290,6 +293,10 @@ lemma openin_relative_to: "(openin X relative_to S) = openin (subtopology X S)"
 lemma topspace_subtopology: "topspace (subtopology U V) = topspace U \<inter> V"
   by (auto simp: topspace_def openin_subtopology)
 
+lemma topspace_subtopology_subset:
+   "S \<subseteq> topspace X \<Longrightarrow> topspace(subtopology X S) = S"
+  by (simp add: inf.absorb_iff2 topspace_subtopology)
+
 lemma closedin_subtopology: "closedin (subtopology U V) S \<longleftrightarrow> (\<exists>T. closedin U T \<and> S = T \<inter> V)"
   unfolding closedin_def topspace_subtopology
   by (auto simp: openin_subtopology)
@@ -351,6 +358,10 @@ lemma subtopology_topspace[simp]: "subtopology U (topspace U) = U"
 lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
+lemma subtopology_restrict:
+   "subtopology X (topspace X \<inter> S) = subtopology X S"
+  by (metis subtopology_subtopology subtopology_topspace)
+
 lemma openin_subtopology_empty:
    "openin (subtopology U {}) S \<longleftrightarrow> S = {}"
 by (metis Int_empty_right openin_empty openin_subtopology)
@@ -395,11 +406,13 @@ by (simp add: closedin_subtopology) blast
 
 subsection \<open>The standard Euclidean topology\<close>
 
-definition%important euclidean :: "'a::topological_space topology"
-  where "euclidean = topology open"
+abbreviation%important euclidean :: "'a::topological_space topology"
+  where "euclidean \<equiv> topology open"
+
+abbreviation top_of_set :: "'a::topological_space set \<Rightarrow> 'a topology"
+  where "top_of_set \<equiv> subtopology (topology open)"
 
 lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
-  unfolding euclidean_def
   apply (rule cong[where x=S and y=S])
   apply (rule topology_inverse[symmetric])
   apply (auto simp: istopology_def)
@@ -425,19 +438,6 @@ subsubsection\<open>The most basic facts about the usual topology and metric on 
 
 abbreviation euclideanreal :: "real topology"
   where "euclideanreal \<equiv> topology open"
-
-lemma real_openin [simp]: "openin euclideanreal S = open S"
-  by (simp add: euclidean_def open_openin)
-
-lemma topspace_euclideanreal [simp]: "topspace euclideanreal = UNIV"
-  using openin_subset open_UNIV real_openin by blast
-
-lemma topspace_euclideanreal_subtopology [simp]:
-   "topspace (subtopology euclideanreal S) = S"
-  by (simp add: topspace_subtopology)
-
-lemma real_closedin [simp]: "closedin euclideanreal S = closed S"
-  by (simp add: closed_closedin euclidean_def)
 
 subsection \<open>Basic "localization" results are handy for connectedness.\<close>
 
@@ -569,7 +569,7 @@ text \<open>These "transitivity" results are handy too\<close>
 lemma openin_trans[trans]:
   "openin (subtopology euclidean T) S \<Longrightarrow> openin (subtopology euclidean U) T \<Longrightarrow>
     openin (subtopology euclidean U) S"
-  unfolding open_openin openin_open by blast
+  by (metis openin_Int_open openin_open)
 
 lemma openin_open_trans: "openin (subtopology euclidean T) S \<Longrightarrow> open T \<Longrightarrow> open S"
   by (auto simp: openin_open intro: openin_trans)
@@ -1435,9 +1435,6 @@ proof -
     by (auto simp: frontier_of_closures)
 qed
 
-lemma continuous_map_id [simp]: "continuous_map X X id"
-  unfolding continuous_map_def  using openin_subopen topspace_def by fastforce
-
 lemma topology_finer_continuous_id:
   "topspace X = topspace Y \<Longrightarrow> ((\<forall>S. openin X S \<longrightarrow> openin Y S) \<longleftrightarrow> continuous_map Y X id)"
   unfolding continuous_map_def
@@ -1540,6 +1537,16 @@ lemma continuous_map_from_discrete_topology [simp]:
 
 lemma continuous_map_iff_continuous_real [simp]: "continuous_map (subtopology euclideanreal S) euclideanreal g = continuous_on S g"
   by (force simp: continuous_map openin_subtopology continuous_on_open_invariant)
+
+lemma continuous_map_id [simp]: "continuous_map X X id"
+  unfolding continuous_map_def  using openin_subopen topspace_def by fastforce
+
+declare continuous_map_id [unfolded id_def, simp]
+
+lemma continuous_map_id_subt [simp]: "continuous_map (subtopology X S) X id"
+  by (simp add: continuous_map_from_subtopology)
+
+declare continuous_map_id_subt [unfolded id_def, simp]
 
 
 subsection\<open>Open and closed maps (not a priori assumed continuous)\<close>

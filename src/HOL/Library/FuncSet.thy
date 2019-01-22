@@ -534,6 +534,49 @@ proof -
     by auto
 qed
 
+lemma PiE_singleton: 
+  assumes "f \<in> extensional A"
+  shows   "PiE A (\<lambda>x. {f x}) = {f}"
+proof -
+  {
+    fix g assume "g \<in> PiE A (\<lambda>x. {f x})"
+    hence "g x = f x" for x
+      using assms by (cases "x \<in> A") (auto simp: extensional_def)
+    hence "g = f" by (simp add: fun_eq_iff)
+  }
+  thus ?thesis using assms by (auto simp: extensional_def)
+qed
+
+lemma PiE_eq_singleton: "(\<Pi>\<^sub>E i\<in>I. S i) = {\<lambda>i\<in>I. f i} \<longleftrightarrow> (\<forall>i\<in>I. S i = {f i})"
+  by (metis (mono_tags, lifting) PiE_eq PiE_singleton insert_not_empty restrict_apply' restrict_extensional)
+
+lemma all_PiE_elements:
+   "(\<forall>z \<in> PiE I S. \<forall>i \<in> I. P i (z i)) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. \<forall>x \<in> S i. P i x)" (is "?lhs = ?rhs")
+proof (cases "PiE I S = {}")
+  case False
+  then obtain f where f: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> S i"
+    by fastforce
+  show ?thesis
+  proof
+    assume L: ?lhs
+    have "P i x"
+      if "i \<in> I" "x \<in> S i" for i x
+    proof -
+      have "(\<lambda>j \<in> I. if j=i then x else f j) \<in> PiE I S"
+        by (simp add: f that(2))
+      then have "P i ((\<lambda>j \<in> I. if j=i then x else f j) i)"
+        using L that(1) by blast
+      with that show ?thesis
+        by simp
+    qed
+    then show ?rhs
+      by (simp add: False)
+  qed fastforce
+qed simp
+
+lemma PiE_ext: "\<lbrakk>x \<in> PiE k s; y \<in> PiE k s; \<And>i. i \<in> k \<Longrightarrow> x i = y i\<rbrakk> \<Longrightarrow> x = y"
+  by (metis ext PiE_E)
+
 
 subsubsection \<open>Injective Extensional Function Spaces\<close>
 
