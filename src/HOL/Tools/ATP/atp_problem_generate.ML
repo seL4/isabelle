@@ -162,7 +162,7 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
-fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _)) = false
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Predicate_Free, _, _)) = false
   | is_type_enc_full_higher_order (Native (Higher_Order _, _, _)) = true
   | is_type_enc_full_higher_order _ = false
 fun is_type_enc_higher_order (Native (Higher_Order _, _, _)) = true
@@ -671,8 +671,8 @@ fun type_enc_of_string strictness s =
         | _ => raise Same.SAME))
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
-fun min_hologic THF_Lambda_Free _ = THF_Lambda_Free
-  | min_hologic _ THF_Lambda_Free = THF_Lambda_Free
+fun min_hologic THF_Predicate_Free _ = THF_Predicate_Free
+  | min_hologic _ THF_Predicate_Free = THF_Predicate_Free
   | min_hologic THF_Without_Choice _ = THF_Without_Choice
   | min_hologic _ THF_Without_Choice = THF_Without_Choice
   | min_hologic _ _ = THF_With_Choice
@@ -2614,7 +2614,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
       else
         Sufficient_App_Op_And_Predicator
     val lam_trans =
-      if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
+      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
       else lam_trans
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
