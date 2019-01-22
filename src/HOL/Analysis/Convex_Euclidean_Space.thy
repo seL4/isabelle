@@ -521,7 +521,7 @@ proof -
     using mem_rel_interior_ball[of "x - e *\<^sub>R (x - c)" S] \<open>e > 0\<close> by auto
 qed
 
-lemma interior_real_semiline:
+lemma interior_real_atLeast [simp]:
   fixes a :: real
   shows "interior {a..} = {a<..}"
 proof -
@@ -561,7 +561,7 @@ proof-
   finally show ?thesis using \<open>x \<in> {c..d}\<close> by auto
 qed
 
-lemma interior_real_semiline':
+lemma interior_real_atMost [simp]:
   fixes a :: real
   shows "interior {..a} = {..<a}"
 proof -
@@ -592,27 +592,36 @@ lemma interior_atLeastAtMost_real [simp]: "interior {a..b} = {a<..<b :: real}"
 proof-
   have "{a..b} = {a..} \<inter> {..b}" by auto
   also have "interior \<dots> = {a<..} \<inter> {..<b}"
-    by (simp add: interior_real_semiline interior_real_semiline')
+    by (simp add: interior_real_atLeast interior_real_atMost)
   also have "\<dots> = {a<..<b}" by auto
   finally show ?thesis .
 qed
 
 lemma interior_atLeastLessThan [simp]:
   fixes a::real shows "interior {a..<b} = {a<..<b}"
-  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost_real interior_Int interior_interior interior_real_semiline)
+  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost_real interior_Int interior_interior interior_real_atLeast)
 
 lemma interior_lessThanAtMost [simp]:
   fixes a::real shows "interior {a<..b} = {a<..<b}"
   by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost_real interior_Int
-            interior_interior interior_real_semiline)
+            interior_interior interior_real_atLeast)
 
 lemma interior_greaterThanLessThan_real [simp]: "interior {a<..<b} = {a<..<b :: real}"
   by (metis interior_atLeastAtMost_real interior_interior)
 
-lemma frontier_real_Iic [simp]:
+lemma frontier_real_atMost [simp]:
   fixes a :: real
   shows "frontier {..a} = {a}"
-  unfolding frontier_def by (auto simp: interior_real_semiline')
+  unfolding frontier_def by (auto simp: interior_real_atMost)
+
+lemma frontier_real_atLeast [simp]: "frontier {a..} = {a::real}"
+  by (auto simp: frontier_def)
+
+lemma frontier_real_greaterThan [simp]: "frontier {a<..} = {a::real}"
+  by (auto simp: interior_open frontier_def)
+
+lemma frontier_real_lessThan [simp]: "frontier {..<a} = {a::real}"
+  by (auto simp: interior_open frontier_def)
 
 lemma rel_interior_real_box [simp]:
   fixes a b :: real
@@ -634,7 +643,7 @@ lemma rel_interior_real_semiline [simp]:
 proof -
   have *: "{a<..} \<noteq> {}"
     unfolding set_eq_iff by (auto intro!: exI[of _ "a + 1"])
-  then show ?thesis using interior_real_semiline interior_rel_interior_gen[of "{a..}"]
+  then show ?thesis using interior_real_atLeast interior_rel_interior_gen[of "{a..}"]
     by (auto split: if_split_asm)
 qed
 

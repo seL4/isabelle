@@ -268,8 +268,7 @@ definition%important continuous_on_topo::"'a topology \<Rightarrow> 'b topology 
 
 lemma continuous_on_continuous_on_topo:
   "continuous_on s f \<longleftrightarrow> continuous_on_topo (subtopology euclidean s) euclidean f"
-  unfolding continuous_on_open_invariant openin_open vimage_def continuous_on_topo_def
-topspace_euclidean_subtopology open_openin topspace_euclidean by fast
+  by (auto simp: continuous_on_topo_def Int_commute continuous_openin_preimage_eq)
 
 lemma continuous_on_topo_UNIV:
   "continuous_on UNIV f \<longleftrightarrow> continuous_on_topo euclidean euclidean f"
@@ -843,8 +842,8 @@ proof -
   have **: "finite {i. X i \<noteq> UNIV}"
     unfolding X_def V_def J_def using assms(1) by auto
   have "open (Pi\<^sub>E UNIV X)"
-    unfolding open_fun_def apply (rule product_topology_basis)
-    using * ** unfolding open_openin topspace_euclidean by auto
+    unfolding open_fun_def 
+    by (simp_all add: * ** product_topology_basis)
   moreover have "Pi\<^sub>E UNIV X = {f. \<forall>i\<in>I. f (x i) \<in> U i}"
     apply (auto simp add: PiE_iff) unfolding X_def V_def J_def
     proof (auto)
@@ -995,7 +994,7 @@ proof
       using \<open>open U \<and> x \<in> U\<close> unfolding open_fun_def by auto
     with product_topology_open_contains_basis[OF this]
     have "\<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV} \<and> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<subseteq> U"
-      unfolding topspace_euclidean open_openin by simp
+      by simp
     then obtain X where H: "x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i)"
                            "\<And>i. open (X i)"
                            "finite {i. X i \<noteq> UNIV}"
@@ -1064,7 +1063,7 @@ proof -
       unfolding open_fun_def by auto
     with product_topology_open_contains_basis[OF this \<open>x \<in> U\<close>]
     have "\<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV} \<and> (\<Pi>\<^sub>E i\<in>UNIV. X i) \<subseteq> U"
-      unfolding topspace_euclidean open_openin by simp
+      by simp
     then obtain X where H: "x \<in> (\<Pi>\<^sub>E i\<in>UNIV. X i)"
                            "\<And>i. open (X i)"
                            "finite {i. X i \<noteq> UNIV}"
@@ -1104,8 +1103,7 @@ proof -
     show "open U"
       using \<open>U \<in> K\<close> unfolding open_fun_def K_def apply (auto)
       apply (rule product_topology_basis)
-      using \<open>\<And>V. V \<in> B2 \<Longrightarrow> open V\<close> open_UNIV unfolding topspace_euclidean open_openin[symmetric]
-      by auto
+      using \<open>\<And>V. V \<in> B2 \<Longrightarrow> open V\<close> open_UNIV by auto
   qed
 
   show ?thesis using i ii iii by auto
@@ -1155,7 +1153,7 @@ proof -
                 = blinfun_apply-`{g::('a\<Rightarrow>'b). \<forall>i\<in>I. g (x i) \<in> U i} \<inter> UNIV"
     by auto
   ultimately show ?thesis
-    unfolding strong_operator_topology_def open_openin apply (subst openin_pullback_topology) by auto
+    unfolding strong_operator_topology_def by (subst openin_pullback_topology) auto
 qed
 
 lemma strong_operator_topology_continuous_evaluation:
