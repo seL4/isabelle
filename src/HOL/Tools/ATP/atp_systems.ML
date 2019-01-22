@@ -354,7 +354,7 @@ val e_par = (e_parN, fn () => e_par_config)
 
 (* Ehoh *)
 
-val ehoh_thf0 = THF (Monomorphic, THF_Lambda_Free)
+val ehoh_thf0 = THF (Monomorphic, THF_Predicate_Free)
 
 val ehoh_config : atp_config =
   {exec = fn _ => (["E_HOME"], ["eprover"]),
@@ -443,7 +443,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 
 (* Leo-III *)
 
-(* include choice? Disabled now since its disabled for satallax as well. *)
+(* Include choice? Disabled now since it's disabled for Satallax as well. *)
 val leo3_thf1 = THF (Polymorphic, THF_Without_Choice)
 
 val leo3_config : atp_config =
@@ -627,7 +627,9 @@ val z3_tptp_config : atp_config =
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 
-(* Zipperposition*)
+(* Zipperposition *)
+
+val zipperposition_thf1 = THF (Polymorphic, THF_Predicate_Free)
 
 val zipperposition_config : atp_config =
   {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
@@ -639,7 +641,7 @@ val zipperposition_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((100, ""), TFF Polymorphic, "poly_native", liftingN, false), ""))],
+     [(1.0, (((100, ""), zipperposition_thf1, "poly_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
