@@ -749,5 +749,6 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
 end;
 
 end;
-
+(* FIXME
 structure Local_Theory : LOCAL_THEORY = struct open Local_Theory; end;
+*)
