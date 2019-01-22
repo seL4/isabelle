@@ -69,7 +69,7 @@ proof-
             by (simp only: u'v' max_absorb2 min_absorb1)
                (intro continuous_on_subset[OF contg'], insert u'v', auto)
         have "\<And>x. x \<in> {u'..v'} \<Longrightarrow> (g has_real_derivative g' x) (at x within {u'..v'})"
-           using asm by (intro has_field_derivative_subset[OF derivg] set_mp[OF \<open>{u'..v'} \<subseteq> {a..b}\<close>]) auto
+           using asm by (intro has_field_derivative_subset[OF derivg] subsetD[OF \<open>{u'..v'} \<subseteq> {a..b}\<close>]) auto
         hence B: "\<And>x. min u' v' \<le> x \<Longrightarrow> x \<le> max u' v' \<Longrightarrow>
                       (g has_vector_derivative g' x) (at x within {min u' v'..max u' v'})"
             by (simp only: u'v' max_absorb2 min_absorb1)

@@ -2849,7 +2849,7 @@ next
         using "2.prems"(8) that
         apply blast
         apply (metis Diff_iff Diff_insert2 contra_subsetD pg(4) that)
-        by (meson DiffD2 cp(4) set_rev_mp subset_insertI that)
+        by (meson DiffD2 cp(4) rev_subsetD subset_insertI that)
       have "winding_number g' p' = winding_number g p'
           + winding_number (pg +++ cp +++ reversepath pg) p'" unfolding g'_def
         apply (subst winding_number_join)

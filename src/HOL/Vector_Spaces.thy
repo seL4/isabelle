@@ -817,7 +817,7 @@ proof -
     by (simp add: vs1.extend_basis_superset[OF i] vs1.span_mono)
   then show "x \<in> range (construct B f)"
     using f2 x by (metis (no_types) construct_basis[OF i, of _ f]
-        vs1.span_extend_basis[OF i] set_mp span_image spans_image)
+        vs1.span_extend_basis[OF i] subsetD span_image spans_image)
 qed
 
 lemma range_construct_eq_span:

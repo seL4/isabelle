@@ -275,7 +275,7 @@ proof cases
   hence "\<Union>X = (\<Union>n. from_nat_into X n)"
     using assms by (auto cong del: SUP_cong)
   also have "\<dots> \<in> M" using assms
-    by (auto intro!: countable_nat_UN) (metis \<open>X \<noteq> {}\<close> from_nat_into set_mp)
+    by (auto intro!: countable_nat_UN) (metis \<open>X \<noteq> {}\<close> from_nat_into subsetD)
   finally show ?thesis .
 qed simp
 

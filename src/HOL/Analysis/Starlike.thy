@@ -1588,7 +1588,7 @@ proof -
       apply (rule sum.cong)
       using \<open>i \<in> D\<close> \<open>finite D\<close> sum.delta'[of D i "(\<lambda>k. inverse (2 * real (card D)))"]
         d1 assms(2)
-      by (auto simp: inner_Basis set_rev_mp[OF _ assms(2)])
+      by (auto simp: inner_Basis rev_subsetD[OF _ assms(2)])
   }
   note ** = this
   show ?thesis

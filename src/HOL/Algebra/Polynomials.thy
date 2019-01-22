@@ -413,7 +413,7 @@ proof -
         using A(2-3) subringE(2)[OF K] by auto
       hence "set (map2 (\<oplus>) p1 p2') \<subseteq> K"
         using A(1) subringE(7)[OF K]
-        by (induct p1) (auto, metis set_ConsD set_mp set_zip_leftD set_zip_rightD)
+        by (induct p1) (auto, metis set_ConsD subsetD set_zip_leftD set_zip_rightD)
       thus ?thesis
         unfolding p2'_def using normalize_gives_polynomial A(3) by simp
     qed }

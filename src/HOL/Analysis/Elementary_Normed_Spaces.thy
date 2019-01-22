@@ -1009,7 +1009,7 @@ next
       fix y
       assume "y \<in> S" and y: "\<forall>n. y \<in> closure (TF n)"
       then show "\<forall>T\<in>\<G>. y \<in> T"
-        by (metis Int_iff from_nat_into_surj [OF \<open>countable \<G>\<close>] set_mp subg)
+        by (metis Int_iff from_nat_into_surj [OF \<open>countable \<G>\<close>] subsetD subg)
       show "dist y x < e"
         by (metis y dist_commute mem_ball subball subsetCE)
     qed

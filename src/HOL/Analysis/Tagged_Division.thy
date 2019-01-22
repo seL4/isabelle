@@ -914,7 +914,7 @@ proof -
       have "interior m \<inter> interior (\<Union>p) = {}"
       proof (rule Int_interior_Union_intervals)
         show "\<And>T. T\<in>p \<Longrightarrow> interior m \<inter> interior T = {}"
-          by (metis DiffD1 DiffD2 that r1(1) r1(7) set_rev_mp)
+          by (metis DiffD1 DiffD2 that r1(1) r1(7) rev_subsetD)
       qed (use divp in auto)
       then show "interior S \<inter> interior m = {}"
         unfolding divp by auto

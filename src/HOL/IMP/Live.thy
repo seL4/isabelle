@@ -87,13 +87,13 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
-    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
-  thus ?case by(metis WhileFalse.prems L_While_X big_step.WhileFalse set_mp)
+    by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
+  thus ?case by(metis WhileFalse.prems L_While_X big_step.WhileFalse subsetD)
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
-    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+    by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   have "s1 = t1 on L c (L ?w X)" using L_While_pfp WhileTrue.prems
     by (blast)
   from WhileTrue.IH(1)[OF this] obtain t2 where
@@ -151,14 +151,14 @@ next
   thus ?case using \<open>~bval b t\<close> by auto
 next
   case (WhileFalse b s c)
-  hence "~ bval b t" by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  hence "~ bval b t" by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   thus ?case
-    by simp (metis L_While_X WhileFalse.prems big_step.WhileFalse set_mp)
+    by simp (metis L_While_X WhileFalse.prems big_step.WhileFalse subsetD)
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
-    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+    by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   have "s1 = t1 on L c (L ?w X)"
     using L_While_pfp WhileTrue.prems by blast
   from WhileTrue.IH(1)[OF this] obtain t2 where
@@ -237,15 +237,15 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
-    by auto (metis L_While_vars bval_eq_if_eq_on_vars set_rev_mp)
+    by auto (metis L_While_vars bval_eq_if_eq_on_vars rev_subsetD)
   thus ?case using WhileFalse
-    by auto (metis L_While_X big_step.WhileFalse set_mp)
+    by auto (metis L_While_X big_step.WhileFalse subsetD)
 next
   case (WhileTrue b s1 bc' s2 s3 w X t1)
   then obtain c' where w: "w = WHILE b DO c'"
     and bc': "bc' = bury c' (L (WHILE b DO c') X)" by auto
   from \<open>bval b s1\<close> WhileTrue.prems w have "bval b t1"
-    by auto (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+    by auto (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   note IH = WhileTrue.hyps(3,5)
   have "s1 = t1 on L c' (L w X)"
     using L_While_pfp WhileTrue.prems w by blast

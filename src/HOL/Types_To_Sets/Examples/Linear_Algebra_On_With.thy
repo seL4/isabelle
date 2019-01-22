@@ -22,7 +22,7 @@ proof (intro rel_funI)
   assume transfer_rules[transfer_rule]: "(A ===> A ===> A) p p'" "A z z'" "((=) ===> A ===> A) s s'" "rel_set A X X'"
   have "Domainp A z" using \<open>A z z'\<close> by force
   have *: "t \<subseteq> X \<Longrightarrow> (\<forall>x\<in>t. Domainp A x)" for t
-    by (meson Domainp.DomainI \<open>rel_set A X X'\<close> rel_setD1 set_mp)
+    by (meson Domainp.DomainI \<open>rel_set A X X'\<close> rel_setD1 subsetD)
   note swt=sum_with_transfer[OF assms(1,2,2), THEN rel_funD, THEN rel_funD, THEN rel_funD, THEN rel_funD, OF transfer_rules(1,2)]
   have DsI: "Domainp A (sum_with p z r t)" if "\<And>x. x \<in> t \<Longrightarrow> Domainp A (r x)" "t \<subseteq> Collect (Domainp A)" for r t
   proof cases
@@ -59,7 +59,7 @@ proof (intro rel_funI)
   fix p p' z z' X X' and s s'::"'c \<Rightarrow> _"
   assume [transfer_rule]: "(A ===> A ===> A) p p'" "A z z'" "((=) ===> A ===> A) s s'" "rel_set A X X'"
   have *: "t \<subseteq> X \<Longrightarrow> (\<forall>x\<in>t. Domainp A x)" for t
-    by (meson Domainp.DomainI \<open>rel_set A X X'\<close> rel_setD1 set_mp)
+    by (meson Domainp.DomainI \<open>rel_set A X X'\<close> rel_setD1 subsetD)
   show "(\<exists>t u. finite t \<and> t \<subseteq> X \<and> sum_with p z (\<lambda>v. s (u v) v) t = z \<and> (\<exists>v\<in>t. u v \<noteq> 0)) =
     (\<exists>t u. finite t \<and> t \<subseteq> X' \<and> sum_with p' z' (\<lambda>v. s' (u v) v) t = z' \<and> (\<exists>v\<in>t. u v \<noteq> 0))"
     apply (transfer_prover_start, transfer_step+)

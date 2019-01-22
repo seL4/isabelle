@@ -1094,7 +1094,7 @@ proof -
     show "range S' \<subseteq> Collect open"
       using S
       apply (auto simp add: from_nat_into countable_basis_proj S'_def)
-      apply (metis UNIV_not_empty Union_empty from_nat_into set_mp topological_basis_open[OF basis_proj] basis_proj_def)
+      apply (metis UNIV_not_empty Union_empty from_nat_into subsetD topological_basis_open[OF basis_proj] basis_proj_def)
       done
     show "Collect open \<subseteq> Pow (space borel)" by simp
     show "sets borel = sigma_sets (space borel) (Collect open)"
@@ -1322,7 +1322,7 @@ lemma mapmeasure_PiM:
   unfolding mapmeasure_def
 proof (subst emeasure_distr, subst measurable_cong_sets[OF s2 refl], rule fm_measurable)
   have "X \<subseteq> space (Pi\<^sub>M J (\<lambda>_. N))" using assms by (simp add: sets.sets_into_space)
-  from assms inj_on_fm[of "\<lambda>_. N"] set_mp[OF this] have "fm -` fm ` X \<inter> space (Pi\<^sub>M J (\<lambda>_. N)) = X"
+  from assms inj_on_fm[of "\<lambda>_. N"] subsetD[OF this] have "fm -` fm ` X \<inter> space (Pi\<^sub>M J (\<lambda>_. N)) = X"
     by (auto simp: vimage_image_eq inj_on_def)
   thus "emeasure M X = emeasure M (fm -` fm ` X \<inter> space M)" using s1
     by simp

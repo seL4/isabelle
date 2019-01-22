@@ -438,7 +438,7 @@ lemma nn_cond_exp_nested_subalg:
 proof (rule nn_cond_exp_charact, auto)
   interpret G: sigma_finite_subalgebra M G by (rule nested_subalg_is_sigma_finite[OF assms(1) assms(2)])
   fix A assume [measurable]: "A \<in> sets F"
-  then have [measurable]: "A \<in> sets G" using assms(2) by (meson set_mp subalgebra_def)
+  then have [measurable]: "A \<in> sets G" using assms(2) by (meson subsetD subalgebra_def)
 
   have "set_nn_integral M A (nn_cond_exp M G f) = (\<integral>\<^sup>+ x. indicator A x * nn_cond_exp M G f x\<partial>M)"
     by (metis (no_types) mult.commute)
@@ -1032,7 +1032,7 @@ proof (rule real_cond_exp_charact)
   show "integrable M (real_cond_exp M G f)" by (auto simp add: assms G.real_cond_exp_int(1))
 
   fix A assume [measurable]: "A \<in> sets F"
-  then have [measurable]: "A \<in> sets G" using assms(2) by (meson set_mp subalgebra_def)
+  then have [measurable]: "A \<in> sets G" using assms(2) by (meson subsetD subalgebra_def)
   have "set_lebesgue_integral M A (real_cond_exp M G f) = set_lebesgue_integral M A f"
     by (rule G.real_cond_exp_intA[symmetric], auto simp add: assms(3))
   also have "... = set_lebesgue_integral M A (real_cond_exp M F f)"
@@ -1046,7 +1046,7 @@ lemma real_cond_exp_sum [intro, simp]:
   shows "AE x in M. real_cond_exp M F (\<lambda>x. \<Sum>i\<in>I. f i x) x = (\<Sum>i\<in>I. real_cond_exp M F (f i) x)"
 proof (rule real_cond_exp_charact)
   fix A assume [measurable]: "A \<in> sets F"
-  then have A_meas [measurable]: "A \<in> sets M" by (meson set_mp subalg subalgebra_def)
+  then have A_meas [measurable]: "A \<in> sets M" by (meson subsetD subalg subalgebra_def)
   have *: "integrable M (\<lambda>x. indicator A x * f i x)" for i
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(1)] by auto
   have **: "integrable M (\<lambda>x. indicator A x * real_cond_exp M F (f i) x)" for i

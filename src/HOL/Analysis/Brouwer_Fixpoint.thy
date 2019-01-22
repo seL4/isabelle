@@ -3720,7 +3720,7 @@ proof -
           by (auto simp: algebra_simps)
         have "x \<in> T" "x \<noteq> a" using that by auto
         then have axa: "a + (x - a) \<in> affine hull S"
-           by (metis (no_types) add.commute affS diff_add_cancel set_rev_mp)
+           by (metis (no_types) add.commute affS diff_add_cancel rev_subsetD)
         then have "\<not> dd (x - a) \<le> 0 \<and> a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
           using \<open>x \<noteq> a\<close> dd1 by fastforce
         with \<open>x \<noteq> a\<close> show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<noteq> a"

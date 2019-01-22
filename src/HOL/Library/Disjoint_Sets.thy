@@ -58,6 +58,49 @@ proof (safe intro!: disjointI del: equalityI)
     by (auto simp flip: INT_Int_distrib)
 qed
 
+lemma diff_Union_pairwise_disjoint:
+  assumes "pairwise disjnt \<A>" "\<B> \<subseteq> \<A>"
+  shows "\<Union>\<A> - \<Union>\<B> = \<Union>(\<A> - \<B>)"
+proof -
+  have "False"
+    if x: "x \<in> A" "x \<in> B" and AB: "A \<in> \<A>" "A \<notin> \<B>" "B \<in> \<B>" for x A B
+  proof -
+    have "A \<inter> B = {}"
+      using assms disjointD AB by blast
+  with x show ?thesis
+    by blast
+  qed
+  then show ?thesis by auto
+qed
+
+lemma Int_Union_pairwise_disjoint:
+  assumes "pairwise disjnt (\<A> \<union> \<B>)"
+  shows "\<Union>\<A> \<inter> \<Union>\<B> = \<Union>(\<A> \<inter> \<B>)"
+proof -
+  have "False"
+    if x: "x \<in> A" "x \<in> B" and AB: "A \<in> \<A>" "A \<notin> \<B>" "B \<in> \<B>" for x A B
+  proof -
+    have "A \<inter> B = {}"
+      using assms disjointD AB by blast
+  with x show ?thesis
+    by blast
+  qed
+  then show ?thesis by auto
+qed
+
+lemma psubset_Union_pairwise_disjoint:
+  assumes \<B>: "pairwise disjnt \<B>" and "\<A> \<subset> \<B> - {{}}"
+  shows "\<Union>\<A> \<subset> \<Union>\<B>"
+  unfolding psubset_eq
+proof
+  show "\<Union>\<A> \<subseteq> \<Union>\<B>"
+    using assms by blast
+  have "\<A> \<subseteq> \<B>" "\<Union>(\<B> - \<A> \<inter> (\<B> - {{}})) \<noteq> {}"
+    using assms by blast+
+  then show "\<Union>\<A> \<noteq> \<Union>\<B>"
+    using diff_Union_pairwise_disjoint [OF \<B>] by blast
+qed
+
 subsubsection "Family of Disjoint Sets"
 
 definition disjoint_family_on :: "('i \<Rightarrow> 'a set) \<Rightarrow> 'i set \<Rightarrow> bool" where

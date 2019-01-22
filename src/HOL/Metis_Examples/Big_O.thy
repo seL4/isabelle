@@ -314,7 +314,7 @@ lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
 by (metis bigo_mult bigo_refl set_times_mono3 subset_trans)
 
 lemma bigo_mult3: "f \<in> O(h) \<Longrightarrow> g \<in> O(j) \<Longrightarrow> f * g \<in> O(h * j)"
-by (metis bigo_mult set_rev_mp set_times_intro)
+by (metis bigo_mult rev_subsetD set_times_intro)
 
 lemma bigo_mult4 [intro]:"f \<in> k +o O(h) \<Longrightarrow> g * f \<in> (g * k) +o O(g * h)"
 by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)

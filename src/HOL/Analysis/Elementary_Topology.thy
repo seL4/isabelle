@@ -1763,7 +1763,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
     by auto
   moreover
   have ev_Z: "\<And>z. z \<in> Z \<Longrightarrow> eventually (\<lambda>x. x \<in> z) F"
-    unfolding Z_def by (auto elim: eventually_mono intro: set_mp[OF closure_subset])
+    unfolding Z_def by (auto elim: eventually_mono intro: subsetD[OF closure_subset])
   have "(\<forall>B \<subseteq> Z. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {})"
   proof (intro allI impI)
     fix B assume "finite B" "B \<subseteq> Z"

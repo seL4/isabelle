@@ -78,7 +78,7 @@ inductive_set
 lemma parts_mono: "G \<subseteq> H ==> parts(G) \<subseteq> parts(H)"
 apply auto
 apply (erule parts.induct)
-   apply (metis parts.Inj set_rev_mp)
+   apply (metis parts.Inj rev_subsetD)
   apply (metis parts.Fst)
  apply (metis parts.Snd)
 by (metis parts.Body)

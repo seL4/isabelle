@@ -52,7 +52,7 @@ lemma chain_subset_extension_on_Union:
   shows "extension_on (Field (\<Union>R)) (\<Union>R) p"
   using assms
   by (simp add: chain_subset_def extension_on_def)
-     (metis (no_types) mono_Field set_mp)
+     (metis (no_types) mono_Field subsetD)
 
 lemma downset_on_empty [simp]: "downset_on {} p"
   by (auto simp: downset_on_def)

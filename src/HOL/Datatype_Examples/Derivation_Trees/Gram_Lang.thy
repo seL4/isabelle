@@ -40,7 +40,7 @@ lemma inFr_mono:
 assumes "inFr ns tr t" and "ns \<subseteq> ns'"
 shows "inFr ns' tr t"
 using assms apply(induct arbitrary: ns' rule: inFr.induct)
-using Base Ind by (metis inFr.simps set_mp)+
+using Base Ind by (metis inFr.simps subsetD)+
 
 lemma inFr_Ind_minus:
 assumes "inFr ns1 tr1 t" and "Inr tr1 \<in> cont tr"
@@ -111,7 +111,7 @@ lemma inItr_mono:
 assumes "inItr ns tr n" and "ns \<subseteq> ns'"
 shows "inItr ns' tr n"
 using assms apply(induct arbitrary: ns' rule: inItr.induct)
-using Base Ind by (metis inItr.simps set_mp)+
+using Base Ind by (metis inItr.simps subsetD)+
 
 
 (* The subtree relation *)
@@ -137,7 +137,7 @@ lemma subtr_mono:
 assumes "subtr ns tr1 tr2" and "ns \<subseteq> ns'"
 shows "subtr ns' tr1 tr2"
 using assms apply(induct arbitrary: ns' rule: subtr.induct)
-using Refl Step by (metis subtr.simps set_mp)+
+using Refl Step by (metis subtr.simps subsetD)+
 
 lemma subtr_trans_Un:
 assumes "subtr ns12 tr1 tr2" and "subtr ns23 tr2 tr3"
@@ -188,7 +188,7 @@ lemma subtr2_mono:
 assumes "subtr2 ns tr1 tr2" and "ns \<subseteq> ns'"
 shows "subtr2 ns' tr1 tr2"
 using assms apply(induct arbitrary: ns' rule: subtr2.induct)
-using Refl Step by (metis subtr2.simps set_mp)+
+using Refl Step by (metis subtr2.simps subsetD)+
 
 lemma subtr2_trans_Un:
 assumes "subtr2 ns12 tr1 tr2" and "subtr2 ns23 tr2 tr3"

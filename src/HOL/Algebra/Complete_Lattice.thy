@@ -127,7 +127,7 @@ proof (rule weak_complete_latticeI)
   have "least L b (Upper L A)"
   proof (rule least_UpperI)
     show "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> b"
-      by (meson L Lower_memI Upper_memD b_inf_B greatest_le set_mp)
+      by (meson L Lower_memI Upper_memD b_inf_B greatest_le subsetD)
     show "\<And>y. y \<in> Upper L A \<Longrightarrow> b \<sqsubseteq> y"
       by (meson B_L b_inf_B greatest_Lower_below)
   qed (use bcarr L in auto)
@@ -589,7 +589,7 @@ proof (rule complete_latticeI)
   have "least L b (Upper L A)"
   proof (rule least_UpperI)
     show "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> b"
-      by (meson L Lower_memI Upper_memD b_inf_B greatest_le set_rev_mp)
+      by (meson L Lower_memI Upper_memD b_inf_B greatest_le rev_subsetD)
     show "\<And>y. y \<in> Upper L A \<Longrightarrow> b \<sqsubseteq> y"
       by (auto elim: greatest_Lower_below [OF b_inf_B])
   qed (use L bcarr in auto)
@@ -692,7 +692,7 @@ proof -
           show 1: "\<Squnion>\<^bsub>L\<^esub>A \<in> carrier L"
             by (meson L.at_least_at_most_closed L.sup_closed subset_trans *)
           show "a \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
-            by (meson "*" False L.at_least_at_most_closed L.at_least_at_most_lower L.le_trans L.sup_upper 1 all_not_in_conv assms(2) set_mp subset_trans)
+            by (meson "*" False L.at_least_at_most_closed L.at_least_at_most_lower L.le_trans L.sup_upper 1 all_not_in_conv assms(2) subsetD subset_trans)
           show "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> b"
           proof (rule L.sup_least)
             show "A \<subseteq> carrier L" "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> b"
@@ -723,7 +723,7 @@ proof -
           show "a \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
             by (meson "*" L.at_least_at_most_closed L.at_least_at_most_lower L.inf_greatest assms(2) subsetD subset_trans)
           show "\<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> b"
-            by (meson * 1 False L.at_least_at_most_closed L.at_least_at_most_upper L.inf_lower L.le_trans all_not_in_conv assms(3) set_mp subset_trans)
+            by (meson * 1 False L.at_least_at_most_closed L.at_least_at_most_upper L.inf_lower L.le_trans all_not_in_conv assms(3) subsetD subset_trans)
         qed
       qed
     qed
@@ -814,7 +814,7 @@ proof -
         have "LFP\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>?L'\<^esub> x"
         proof (rule L'.LFP_lowerbound, simp_all)
           show "x \<in> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
-            using x by (auto simp add: Upper_def A AL L.at_least_at_most_member L.sup_least set_rev_mp)    
+            using x by (auto simp add: Upper_def A AL L.at_least_at_most_member L.sup_least rev_subsetD)    
           with x show "f x \<sqsubseteq>\<^bsub>L\<^esub> x"
             by (simp add: Upper_def) (meson L.at_least_at_most_closed L.use_fps L.weak_refl subsetD f_top_chain imageI)
         qed
@@ -884,7 +884,7 @@ proof -
             moreover have "\<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> y"
               by (simp add: AL L.inf_lower c)
             ultimately show "f (\<Sqinter>\<^bsub>L\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> y"
-              by (meson AL L.inf_closed L.le_trans c pf_w set_rev_mp w)
+              by (meson AL L.inf_closed L.le_trans c pf_w rev_subsetD w)
           qed
           thus ?thesis
             by (meson AL L.inf_closed L.le_trans assms(3) b(1) b(2) fx use_iso2 w)

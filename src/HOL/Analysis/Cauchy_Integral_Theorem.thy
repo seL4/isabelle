@@ -3068,7 +3068,7 @@ proof -
     then have contfb: "continuous_on (ball z d) f"
       using contf continuous_on_subset by blast
     obtain h where "\<forall>y\<in>ball z d. (h has_field_derivative f y) (at y within ball z d)"
-      by (metis holomorphic_convex_primitive [OF convex_ball k contfb fcd] d interior_subset Diff_iff set_mp)
+      by (metis holomorphic_convex_primitive [OF convex_ball k contfb fcd] d interior_subset Diff_iff subsetD)
     then have "\<forall>y\<in>ball z d. (h has_field_derivative f y) (at y within s)"
       by (metis open_ball at_within_open d os subsetCE)
     then have "\<exists>h. (\<forall>y. cmod (y - z) < d \<longrightarrow> (h has_field_derivative f y) (at y within s))"

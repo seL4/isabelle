@@ -154,7 +154,7 @@ next
   proof
     assume ?lhs
     then have "0 < r'"
-      by (metis (no_types) False \<open>?lhs\<close> centre_in_ball dist_norm le_less_trans mem_ball norm_ge_zero not_less set_mp)
+      by (metis (no_types) False \<open>?lhs\<close> centre_in_ball dist_norm le_less_trans mem_ball norm_ge_zero not_less subsetD)
     then have "(cball a r \<subseteq> cball a' r')"
       by (metis False\<open>?lhs\<close> closure_ball closure_mono not_less)
     then show ?rhs

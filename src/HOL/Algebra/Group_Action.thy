@@ -902,7 +902,7 @@ proof -
   hence "\<phi>: H \<rightarrow> carrier (BijGroup E)"
     by (simp add: BijGroup_def bij_prop0 subset_eq)
   thus "\<phi>: H \<rightarrow> carrier (BijGroup E) \<and> (\<forall>x \<in> H. \<forall>y \<in> H. \<phi> (x \<otimes> y) = \<phi> x \<otimes>\<^bsub>BijGroup E\<^esub> \<phi> y)"
-    by (simp add: S0  group_hom group_hom.hom_mult set_rev_mp)
+    by (simp add: S0  group_hom group_hom.hom_mult rev_subsetD)
 qed
 
 theorem (in group_action) induced_action:

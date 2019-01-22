@@ -2851,7 +2851,7 @@ proof -
        and cc: "connected_component (- frontier s) x y"
     have "connected_component_set (- frontier s) x \<inter> frontier s \<noteq> {}"
       apply (rule connected_Int_frontier, simp)
-      apply (metis IntI cc connected_component_in connected_component_refl empty_iff interiorE mem_Collect_eq set_rev_mp x)
+      apply (metis IntI cc connected_component_in connected_component_refl empty_iff interiorE mem_Collect_eq rev_subsetD x)
       using  y cc
       by blast
     then have "bounded (connected_component_set (- frontier s) x)"

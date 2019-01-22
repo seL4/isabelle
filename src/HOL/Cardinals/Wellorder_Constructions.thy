@@ -481,7 +481,7 @@ proof(rule ccontr, auto)
   have bb: "b \<in> Field r" using bA unfolding underS_def Field_def by auto
   assume "\<forall>a\<in>A.  b \<notin> under a"
   hence 0: "\<forall>a \<in> A. a \<in> underS b" using A bA unfolding underS_def
-  by simp (metis (lifting) bb max2_def max2_greater mem_Collect_eq under_def set_rev_mp)
+  by simp (metis (lifting) bb max2_def max2_greater mem_Collect_eq under_def rev_subsetD)
   have "(suc A, b) \<in> r" apply(rule suc_least[OF A bb]) using 0 unfolding underS_def by auto
   thus False using bA unfolding underS_def by simp (metis ANTISYM antisymD)
 qed

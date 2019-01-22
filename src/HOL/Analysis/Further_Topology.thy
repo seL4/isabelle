@@ -4738,7 +4738,7 @@ next
       fix T
       assume "connected T" and TB: "T \<subseteq> - frontier B" and "a \<in> T" and "b \<in> T"
       have "a \<notin> B"
-        by (metis A_def B_def ComplD \<open>a \<in> A\<close> assms(1) closed_open connected_component_subset in_closure_connected_component set_mp)
+        by (metis A_def B_def ComplD \<open>a \<in> A\<close> assms(1) closed_open connected_component_subset in_closure_connected_component subsetD)
       have "T \<inter> B \<noteq> {}"
         using \<open>b \<in> B\<close> \<open>b \<in> T\<close> by blast
       moreover have "T - B \<noteq> {}"

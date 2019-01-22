@@ -814,7 +814,7 @@ next
             with x0notzero zField have SUPP: "SUPP f0 = SUPP g0 \<union> {z}" unfolding support_def by auto
             from g0z have f0z: "f0(z := r.zero) = g0" unfolding f0_def fun_upd_upd by auto
             have f0: "f0 \<in> F" using x0min g0(1)
-              Func_elim[OF set_mp[OF subset_trans[OF F(1)[unfolded FinFunc_def] Int_lower1]] zField]
+              Func_elim[OF subsetD[OF subset_trans[OF F(1)[unfolded FinFunc_def] Int_lower1]] zField]
               unfolding f0_def r.isMinim_def G_def by (force simp: fun_upd_idem)
             from g0(1) maxF(1) have maxf0: "s.maxim (SUPP f0) = z" unfolding SUPP G_def
               by (intro s.maxim_equality) (auto simp: s.isMaxim_def)
@@ -1409,7 +1409,7 @@ proof -
       from f \<open>t \<noteq> {}\<close> False have *: "Field r \<noteq> {}" "Field s \<noteq> {}" "Field t \<noteq> {}"
         unfolding Field_def embed_def under_def bij_betw_def by auto
       with f obtain x where "s.zero = f x" "x \<in> Field r" unfolding embed_def bij_betw_def
-        using embed_in_Field[OF r.WELL f] s.zero_under set_mp[OF under_Field[of r]] by blast
+        using embed_in_Field[OF r.WELL f] s.zero_under subsetD[OF under_Field[of r]] by blast
       with f have fz: "f r.zero = s.zero" and inj: "inj_on f (Field r)" and compat: "compat r s f"
         unfolding embed_iff_compat_inj_on_ofilter[OF r s] compat_def
         by (fastforce intro: s.leq_zero_imp)+

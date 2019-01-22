@@ -665,6 +665,13 @@ lemma subtopology_eq_discrete_topology_gen:
    "S \<inter> X derived_set_of S = {} \<Longrightarrow> subtopology X S = discrete_topology(topspace X \<inter> S)"
   by (metis Int_lower1 derived_set_of_restrict inf_assoc inf_bot_right subtopology_eq_discrete_topology_eq subtopology_subtopology subtopology_topspace)
 
+lemma subtopology_discrete_topology [simp]: "subtopology (discrete_topology U) S = discrete_topology(U \<inter> S)"
+proof -
+  have "(\<lambda>T. \<exists>Sa. T = Sa \<inter> S \<and> Sa \<subseteq> U) = (\<lambda>Sa. Sa \<subseteq> U \<and> Sa \<subseteq> S)"
+    by force
+  then show ?thesis
+    by (simp add: subtopology_def) (simp add: discrete_topology_def)
+qed
 lemma openin_Int_derived_set_of_subset:
    "openin X S \<Longrightarrow> S \<inter> X derived_set_of T \<subseteq> X derived_set_of (S \<inter> T)"
   by (auto simp: derived_set_of_def)

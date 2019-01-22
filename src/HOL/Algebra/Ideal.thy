@@ -481,7 +481,7 @@ proof
   qed
 next
   show "I <+> J \<subseteq> Idl (I \<union> J)"
-    by (auto simp: set_add_defs genideal_def additive_subgroup.a_closed ideal_def set_mp)
+    by (auto simp: set_add_defs genideal_def additive_subgroup.a_closed ideal_def subsetD)
 qed
 
 subsection \<open>Properties of Principal Ideals\<close>

@@ -184,10 +184,10 @@ next
     by(fastforce simp: strip_eq_Seq step_def post_def last_append annos_ne)
 next
   case IfTrue thus ?case apply(auto simp: strip_eq_If step_def post_def)
-    by (metis (lifting,full_types) mem_Collect_eq set_mp)
+    by (metis (lifting,full_types) mem_Collect_eq subsetD)
 next
   case IfFalse thus ?case apply(auto simp: strip_eq_If step_def post_def)
-    by (metis (lifting,full_types) mem_Collect_eq set_mp)
+    by (metis (lifting,full_types) mem_Collect_eq subsetD)
 next
   case (WhileTrue b s1 c' s2 s3)
   from WhileTrue.prems(1) obtain I P C' Q where "C = {I} WHILE b DO {P} C' {Q}" "strip C' = c'"

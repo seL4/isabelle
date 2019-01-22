@@ -154,7 +154,7 @@ by (metis mem_Collect_eq image_eqI subsetD)
 lemma
   "(\<lambda>x. f (f x)) ` ((\<lambda>x. Suc(f x)) ` {x. even x}) \<subseteq> A \<Longrightarrow>
    (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)"
-by (metis mem_Collect_eq imageI set_rev_mp)
+by (metis mem_Collect_eq imageI rev_subsetD)
 
 lemma "f \<in> (\<lambda>u v. b \<times> u \<times> v) ` A \<Longrightarrow> \<forall>u v. P (b \<times> u \<times> v) \<Longrightarrow> P(f y)"
 by (metis (lifting) imageE)

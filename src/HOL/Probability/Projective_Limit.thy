@@ -260,7 +260,7 @@ proof (rule emeasure_lim)
     have "\<mu>G (Z n) - \<mu>G (Y n) = \<mu>G (Z n - Y n)"
       using J J_mono K_sets \<open>n \<ge> 1\<close>
       by (simp only: emeasure_eq_measure Z_def)
-         (auto dest!: bspec[where x=n] intro!: measure_Diff[symmetric] set_mp[OF K_B]
+         (auto dest!: bspec[where x=n] intro!: measure_Diff[symmetric] subsetD[OF K_B]
                intro!: arg_cong[where f=ennreal]
                simp: extensional_restrict emeasure_eq_measure prod_emb_iff sets_P space_P
                      ennreal_minus measure_nonneg)

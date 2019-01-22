@@ -1643,7 +1643,7 @@ proof(rule ccontr, auto)
   unfolding wo_rel_def by (metis card_order_on_well_order_on cr)+
   have L: "isLimOrd r" using ir cr by (metis card_order_infinite_isLimOrd)
   have AsBs: "(\<Union>i \<in> Field r. As (succ r i)) \<subseteq> B"
-  using AsB L apply safe by (metis "0" UN_I set_mp wo_rel.isLimOrd_succ)
+  using AsB L apply safe by (metis "0" UN_I subsetD wo_rel.isLimOrd_succ)
   assume As_s: "\<forall>i\<in>Field r. As (succ r i) \<noteq> As i"
   have 1: "\<forall>i j. (i,j) \<in> r \<and> i \<noteq> j \<longrightarrow> As i \<subset> As j"
   proof safe

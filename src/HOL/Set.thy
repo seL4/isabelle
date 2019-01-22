@@ -462,18 +462,18 @@ lemma subsetD [elim, intro?]: "A \<subseteq> B \<Longrightarrow> c \<in> A \<Lon
   by (simp add: less_eq_set_def le_fun_def)
   \<comment> \<open>Rule in Modus Ponens style.\<close>
 
-lemma rev_subsetD [intro?]: "c \<in> A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> c \<in> B"
+lemma rev_subsetD [intro?,no_atp]: "c \<in> A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> c \<in> B"
   \<comment> \<open>The same, with reversed premises for use with @{method erule} -- cf. @{thm rev_mp}.\<close>
   by (rule subsetD)
 
-lemma subsetCE [elim]: "A \<subseteq> B \<Longrightarrow> (c \<notin> A \<Longrightarrow> P) \<Longrightarrow> (c \<in> B \<Longrightarrow> P) \<Longrightarrow> P"
+lemma subsetCE [elim,no_atp]: "A \<subseteq> B \<Longrightarrow> (c \<notin> A \<Longrightarrow> P) \<Longrightarrow> (c \<in> B \<Longrightarrow> P) \<Longrightarrow> P"
   \<comment> \<open>Classical elimination rule.\<close>
   by (auto simp add: less_eq_set_def le_fun_def)
 
 lemma subset_eq: "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
   by blast
 
-lemma contra_subsetD: "A \<subseteq> B \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<notin> A"
+lemma contra_subsetD [no_atp]: "A \<subseteq> B \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<notin> A"
   by blast
 
 lemma subset_refl: "A \<subseteq> A"
@@ -482,12 +482,6 @@ lemma subset_refl: "A \<subseteq> A"
 lemma subset_trans: "A \<subseteq> B \<Longrightarrow> B \<subseteq> C \<Longrightarrow> A \<subseteq> C"
   by (fact order_trans)
 
-lemma set_rev_mp: "x \<in> A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> x \<in> B"
-  by (rule subsetD)
-
-lemma set_mp: "A \<subseteq> B \<Longrightarrow> x \<in> A \<Longrightarrow> x \<in> B"
-  by (rule subsetD)
-
 lemma subset_not_subset_eq [code]: "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
   by (fact less_le_not_le)
 
@@ -495,7 +489,7 @@ lemma eq_mem_trans: "a = b \<Longrightarrow> b \<in> A \<Longrightarrow> a \<in>
   by simp
 
 lemmas basic_trans_rules [trans] =
-  order_trans_rules set_rev_mp set_mp eq_mem_trans
+  order_trans_rules rev_subsetD subsetD eq_mem_trans
 
 
 subsubsection \<open>Equality\<close>
@@ -1947,6 +1941,8 @@ qed
 hide_const (open) member not_member
 
 lemmas equalityI = subset_antisym
+lemmas set_mp = subsetD
+lemmas set_rev_mp = rev_subsetD
 
 ML \<open>
 val Ball_def = @{thm Ball_def}

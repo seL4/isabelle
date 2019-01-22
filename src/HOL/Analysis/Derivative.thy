@@ -1400,7 +1400,7 @@ proof -
     apply auto
     done
   moreover have "f (g y) = y" if "y \<in> interior (f ` S)" for y
-    by (metis gf imageE interiorE set_mp that)
+    by (metis gf imageE interiorE subsetD that)
   ultimately show ?thesis using assms
     by (metis has_derivative_inverse_basic_x open_interior)
 qed
@@ -2740,7 +2740,7 @@ proof -
     using f' g' closure_subset[of T] closure_subset[of S]
     unfolding has_derivative_within_If_eq
     by (intro conjI bl tendsto_If_within_closures x_in)
-      (auto simp: has_derivative_within inverse_eq_divide connect connect' set_mp)
+      (auto simp: has_derivative_within inverse_eq_divide connect connect' subsetD)
 qed
 
 lemma has_vector_derivative_If_within_closures:

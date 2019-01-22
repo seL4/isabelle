@@ -2696,7 +2696,7 @@ proof -
         by (auto simp: closure_sequential)
       from continuous_on_tendsto_compose[OF cont_h xs(1)] xs(2) Y
       have hx: "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> h x"
-        by (auto simp: set_mp extension)
+        by (auto simp: subsetD extension)
       then have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x"
         using \<open>x \<notin> X\<close> not_eventuallyD xs(2)
         by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at xs)

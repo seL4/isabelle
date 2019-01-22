@@ -2470,7 +2470,7 @@ proof -
     then have *: "openin ?SS (F y t) \<and> path_connected (G y t) \<and> y \<in> F y t \<and> F y t \<subseteq> G y t \<and> G y t \<subseteq> t"
       using 1 \<open>y \<in> t\<close> by presburger
     have "G y t \<subseteq> path_component_set t y"
-      using * path_component_maximal set_rev_mp by blast
+      using * path_component_maximal rev_subsetD by blast
     then have "\<exists>A. openin ?SS A \<and> y \<in> A \<and> A \<subseteq> path_component_set t x"
       by (metis "*" \<open>G y t \<subseteq> path_component_set t y\<close> dual_order.trans path_component_eq y)
   }

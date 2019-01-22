@@ -139,7 +139,7 @@ qed
 lemma (in algebra) lambda_system_algebra:
   "positive M f \<Longrightarrow> algebra \<Omega> (lambda_system \<Omega> M f)"
   apply (auto simp add: algebra_iff_Un)
-  apply (metis lambda_system_sets set_mp sets_into_space)
+  apply (metis lambda_system_sets subsetD sets_into_space)
   apply (metis lambda_system_empty)
   apply (metis lambda_system_Compl)
   apply (metis lambda_system_Un)

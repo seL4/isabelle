@@ -88,13 +88,13 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
-    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+    by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   thus ?case using WhileFalse.prems L_While_X[of X b c] by auto
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from \<open>bval b s1\<close> WhileTrue.prems have "bval b t1"
-    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+    by (metis L_While_vars bval_eq_if_eq_on_vars subsetD)
   have "s1 = t1 on L c (L ?w X)" using  L_While_pfp WhileTrue.prems
     by (blast)
   from WhileTrue.IH(1)[OF this] obtain t2 where
