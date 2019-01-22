@@ -2614,7 +2614,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
       else
         Sufficient_App_Op_And_Predicator
     val lam_trans =
-      if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
+      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
       else lam_trans
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
