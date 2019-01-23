@@ -16,6 +16,8 @@ sig
     string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val theory_map: (local_theory -> local_theory) -> theory -> theory
+  val theory_map_result: (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory) ->
+    theory -> 'b * theory
   val begin: xstring * Position.T -> theory -> local_theory
   val exit: local_theory -> theory
   val switch: (xstring * Position.T) option -> Context.generic ->
@@ -135,7 +137,9 @@ fun init ident thy =
 
 val theory_init = init "";
 
-fun theory_map f = theory_init #> f #> Local_Theory.exit_global;
+fun theory_map g = theory_init #> g #> Local_Theory.exit_global;
+
+fun theory_map_result f g = theory_init #> g #> Local_Theory.exit_result_global f;
 
 
 (* toplevel interaction *)
