@@ -2,19 +2,19 @@
    Some material by Jose Divasón, Tim Makarios and L C Paulson
 *)
 
-section%important \<open>Finite Cartesian Products of Euclidean Spaces\<close>
+section \<open>Finite Cartesian Products of Euclidean Spaces\<close>
 
 theory Cartesian_Euclidean_Space
 imports Cartesian_Space Derivative
 begin
 
-lemma%unimportant subspace_special_hyperplane: "subspace {x. x $ k = 0}"
+lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
   by (simp add: subspace_def)
 
-lemma%important sum_mult_product:
+lemma sum_mult_product:
   "sum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
   unfolding sum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
-proof%unimportant (rule sum.cong, simp, rule sum.reindex_cong)
+proof (rule sum.cong, simp, rule sum.reindex_cong)
   fix i
   show "inj_on (\<lambda>j. j + i * B) {..<B}" by (auto intro!: inj_onI)
   show "{i * B..<i * B + B} = (\<lambda>j. j + i * B) ` {..<B}"
@@ -25,32 +25,32 @@ proof%unimportant (rule sum.cong, simp, rule sum.reindex_cong)
   qed simp
 qed simp
 
-lemma%unimportant interval_cbox_cart: "{a::real^'n..b} = cbox a b"
+lemma interval_cbox_cart: "{a::real^'n..b} = cbox a b"
   by (auto simp add: less_eq_vec_def mem_box Basis_vec_def inner_axis)
 
-lemma%unimportant differentiable_vec:
+lemma differentiable_vec:
   fixes S :: "'a::euclidean_space set"
   shows "vec differentiable_on S"
   by (simp add: linear_linear bounded_linear_imp_differentiable_on)
 
-lemma%unimportant continuous_vec [continuous_intros]:
+lemma continuous_vec [continuous_intros]:
   fixes x :: "'a::euclidean_space"
   shows "isCont vec x"
   apply (clarsimp simp add: continuous_def LIM_def dist_vec_def L2_set_def)
   apply (rule_tac x="r / sqrt (real CARD('b))" in exI)
   by (simp add: mult.commute pos_less_divide_eq real_sqrt_mult)
 
-lemma%unimportant box_vec_eq_empty [simp]:
+lemma box_vec_eq_empty [simp]:
   shows "cbox (vec a) (vec b) = {} \<longleftrightarrow> cbox a b = {}"
         "box (vec a) (vec b) = {} \<longleftrightarrow> box a b = {}"
   by (auto simp: Basis_vec_def mem_box box_eq_empty inner_axis)
 
 subsection\<open>Closures and interiors of halfspaces\<close>
 
-lemma%important interior_halfspace_le [simp]:
+lemma interior_halfspace_le [simp]:
   assumes "a \<noteq> 0"
     shows "interior {x. a \<bullet> x \<le> b} = {x. a \<bullet> x < b}"
-proof%unimportant -
+proof -
   have *: "a \<bullet> x < b" if x: "x \<in> S" and S: "S \<subseteq> {x. a \<bullet> x \<le> b}" and "open S" for S x
   proof -
     obtain e where "e>0" and e: "cball x e \<subseteq> S"
@@ -70,15 +70,15 @@ proof%unimportant -
     by (rule interior_unique) (auto simp: open_halfspace_lt *)
 qed
 
-lemma%unimportant interior_halfspace_ge [simp]:
+lemma interior_halfspace_ge [simp]:
    "a \<noteq> 0 \<Longrightarrow> interior {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x > b}"
 using interior_halfspace_le [of "-a" "-b"] by simp
 
-lemma%important interior_halfspace_component_le [simp]:
+lemma interior_halfspace_component_le [simp]:
      "interior {x. x$k \<le> a} = {x :: (real^'n). x$k < a}" (is "?LE")
   and interior_halfspace_component_ge [simp]:
      "interior {x. x$k \<ge> a} = {x :: (real^'n). x$k > a}" (is "?GE")
-proof%unimportant -
+proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
   moreover have "axis k (1::real) \<bullet> x = x$k" for x
@@ -88,7 +88,7 @@ proof%unimportant -
           interior_halfspace_ge [of "axis k (1::real)" a] by auto
 qed
 
-lemma%unimportant closure_halfspace_lt [simp]:
+lemma closure_halfspace_lt [simp]:
   assumes "a \<noteq> 0"
     shows "closure {x. a \<bullet> x < b} = {x. a \<bullet> x \<le> b}"
 proof -
@@ -99,15 +99,15 @@ proof -
     by (force simp: closure_interior)
 qed
 
-lemma%unimportant closure_halfspace_gt [simp]:
+lemma closure_halfspace_gt [simp]:
    "a \<noteq> 0 \<Longrightarrow> closure {x. a \<bullet> x > b} = {x. a \<bullet> x \<ge> b}"
 using closure_halfspace_lt [of "-a" "-b"] by simp
 
-lemma%important closure_halfspace_component_lt [simp]:
+lemma closure_halfspace_component_lt [simp]:
      "closure {x. x$k < a} = {x :: (real^'n). x$k \<le> a}" (is "?LE")
   and closure_halfspace_component_gt [simp]:
      "closure {x. x$k > a} = {x :: (real^'n). x$k \<ge> a}" (is "?GE")
-proof%unimportant -
+proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
   moreover have "axis k (1::real) \<bullet> x = x$k" for x
@@ -117,17 +117,17 @@ proof%unimportant -
           closure_halfspace_gt [of "axis k (1::real)" a] by auto
 qed
 
-lemma%unimportant interior_hyperplane [simp]:
+lemma interior_hyperplane [simp]:
   assumes "a \<noteq> 0"
     shows "interior {x. a \<bullet> x = b} = {}"
-proof%unimportant -
+proof -
   have [simp]: "{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}"
     by (force simp:)
   then show ?thesis
     by (auto simp: assms)
 qed
 
-lemma%unimportant frontier_halfspace_le:
+lemma frontier_halfspace_le:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0"
     shows "frontier {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
 proof (cases "a = 0")
@@ -137,7 +137,7 @@ next
     by (force simp: frontier_def closed_halfspace_le)
 qed
 
-lemma%unimportant frontier_halfspace_ge:
+lemma frontier_halfspace_ge:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0"
     shows "frontier {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x = b}"
 proof (cases "a = 0")
@@ -147,7 +147,7 @@ next
     by (force simp: frontier_def closed_halfspace_ge)
 qed
 
-lemma%unimportant frontier_halfspace_lt:
+lemma frontier_halfspace_lt:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0"
     shows "frontier {x. a \<bullet> x < b} = {x. a \<bullet> x = b}"
 proof (cases "a = 0")
@@ -157,19 +157,19 @@ next
     by (force simp: frontier_def interior_open open_halfspace_lt)
 qed
 
-lemma%important frontier_halfspace_gt:
+lemma frontier_halfspace_gt:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0"
     shows "frontier {x. a \<bullet> x > b} = {x. a \<bullet> x = b}"
-proof%unimportant (cases "a = 0")
+proof (cases "a = 0")
   case True with assms show ?thesis by simp
 next
   case False then show ?thesis
     by (force simp: frontier_def interior_open open_halfspace_gt)
 qed
 
-lemma%important interior_standard_hyperplane:
+lemma interior_standard_hyperplane:
    "interior {x :: (real^'n). x$k = a} = {}"
-proof%unimportant -
+proof -
   have "axis k (1::real) \<noteq> 0"
     by (simp add: axis_def vec_eq_iff)
   moreover have "axis k (1::real) \<bullet> x = x$k" for x
@@ -179,11 +179,11 @@ proof%unimportant -
     by force
 qed
 
-lemma%unimportant matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear ((*v) A)" for A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
+lemma matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear ((*v) A)" for A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
   using matrix_vector_mul_linear[of A]
   by (simp add: linear_conv_bounded_linear linear_matrix_vector_mul_eq)
 
-lemma%unimportant
+lemma
   fixes A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
   shows matrix_vector_mult_linear_continuous_at [continuous_intros]: "isCont ((*v) A) z"
     and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S ((*v) A)"
@@ -192,10 +192,10 @@ lemma%unimportant
 
 subsection\<open>Bounds on components etc.\ relative to operator norm\<close>
 
-lemma%important norm_column_le_onorm:
+lemma norm_column_le_onorm:
   fixes A :: "real^'n^'m"
   shows "norm(column i A) \<le> onorm((*v) A)"
-proof%unimportant -
+proof -
   have "norm (\<chi> j. A $ j $ i) \<le> norm (A *v axis i 1)"
     by (simp add: matrix_mult_dot cart_eq_inner_axis)
   also have "\<dots> \<le> onorm ((*v) A)"
@@ -205,10 +205,10 @@ proof%unimportant -
     unfolding column_def .
 qed
 
-lemma%important matrix_component_le_onorm:
+lemma matrix_component_le_onorm:
   fixes A :: "real^'n^'m"
   shows "\<bar>A $ i $ j\<bar> \<le> onorm((*v) A)"
-proof%unimportant -
+proof -
   have "\<bar>A $ i $ j\<bar> \<le> norm (\<chi> n. (A $ n $ j))"
     by (metis (full_types, lifting) component_le_norm_cart vec_lambda_beta)
   also have "\<dots> \<le> onorm ((*v) A)"
@@ -216,15 +216,15 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-lemma%unimportant component_le_onorm:
+lemma component_le_onorm:
   fixes f :: "real^'m \<Rightarrow> real^'n"
   shows "linear f \<Longrightarrow> \<bar>matrix f $ i $ j\<bar> \<le> onorm f"
   by (metis linear_matrix_vector_mul_eq matrix_component_le_onorm matrix_vector_mul)
 
-lemma%important onorm_le_matrix_component_sum:
+lemma onorm_le_matrix_component_sum:
   fixes A :: "real^'n^'m"
   shows "onorm((*v) A) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>)"
-proof%unimportant (rule onorm_le)
+proof (rule onorm_le)
   fix x
   have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
     by (rule norm_le_l1_cart)
@@ -243,11 +243,11 @@ proof%unimportant (rule onorm_le)
     by (simp add: sum_distrib_right)
 qed
 
-lemma%important onorm_le_matrix_component:
+lemma onorm_le_matrix_component:
   fixes A :: "real^'n^'m"
   assumes "\<And>i j. abs(A$i$j) \<le> B"
   shows "onorm((*v) A) \<le> real (CARD('m)) * real (CARD('n)) * B"
-proof%unimportant (rule onorm_le)
+proof (rule onorm_le)
   fix x :: "real^'n::_"
   have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
     by (rule norm_le_l1_cart)
@@ -268,16 +268,16 @@ proof%unimportant (rule onorm_le)
 qed
 
 
-lemma%unimportant rational_approximation:
+lemma rational_approximation:
   assumes "e > 0"
   obtains r::real where "r \<in> \<rat>" "\<bar>r - x\<bar> < e"
   using Rats_dense_in_real [of "x - e/2" "x + e/2"] assms by auto
 
-lemma%important matrix_rational_approximation:
+proposition matrix_rational_approximation:
   fixes A :: "real^'n^'m"
   assumes "e > 0"
   obtains B where "\<And>i j. B$i$j \<in> \<rat>" "onorm(\<lambda>x. (A - B) *v x) < e"
-proof%unimportant -
+proof -
   have "\<forall>i j. \<exists>q \<in> \<rat>. \<bar>q - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
     using assms by (force intro: rational_approximation [of "e / (2 * CARD('m) * CARD('n))"])
   then obtain B where B: "\<And>i j. B$i$j \<in> \<rat>" and Bclo: "\<And>i j. \<bar>B$i$j - A $ i $ j\<bar> < e / (2 * CARD('m) * CARD('n))"
@@ -294,30 +294,30 @@ proof%unimportant -
   qed (use B in auto)
 qed
 
-lemma%unimportant vector_sub_project_orthogonal_cart: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
+lemma vector_sub_project_orthogonal_cart: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
   unfolding inner_simps scalar_mult_eq_scaleR by auto
 
-lemma%unimportant infnorm_cart:"infnorm (x::real^'n) = Sup {\<bar>x$i\<bar> |i. i\<in>UNIV}"
+lemma infnorm_cart:"infnorm (x::real^'n) = Sup {\<bar>x$i\<bar> |i. i\<in>UNIV}"
   by (simp add: infnorm_def inner_axis Basis_vec_def) (metis (lifting) inner_axis real_inner_1_right)
 
-lemma%unimportant component_le_infnorm_cart: "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"
+lemma component_le_infnorm_cart: "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"
   using Basis_le_infnorm[of "axis i 1" x]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis)
 
-lemma%unimportant continuous_component[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $ i)"
+lemma continuous_component[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $ i)"
   unfolding continuous_def by (rule tendsto_vec_nth)
 
-lemma%unimportant continuous_on_component[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $ i)"
+lemma continuous_on_component[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $ i)"
   unfolding continuous_on_def by (fast intro: tendsto_vec_nth)
 
-lemma%unimportant continuous_on_vec_lambda[continuous_intros]:
+lemma continuous_on_vec_lambda[continuous_intros]:
   "(\<And>i. continuous_on S (f i)) \<Longrightarrow> continuous_on S (\<lambda>x. \<chi> i. f i x)"
   unfolding continuous_on_def by (auto intro: tendsto_vec_lambda)
 
-lemma%unimportant closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
+lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
   by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
-lemma%unimportant bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
+lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
   unfolding bounded_def
   apply clarify
   apply (rule_tac x="x $ i" in exI)
@@ -326,13 +326,13 @@ lemma%unimportant bounded_component_cart: "bounded s \<Longrightarrow> bounded (
   apply (rule order_trans [OF dist_vec_nth_le], simp)
   done
 
-lemma%important compact_lemma_cart:
+lemma compact_lemma_cart:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n"
   assumes f: "bounded (range f)"
   shows "\<exists>l r. strict_mono r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
     (is "?th d")
-proof%unimportant -
+proof -
   have "\<forall>d' \<subseteq> d. ?th d'"
     by (rule compact_lemma_general[where unproj=vec_lambda])
       (auto intro!: f bounded_component_cart simp: vec_lambda_eta)
@@ -368,19 +368,19 @@ proof
   with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially" by auto
 qed
 
-lemma%unimportant interval_cart:
+lemma interval_cart:
   fixes a :: "real^'n"
   shows "box a b = {x::real^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}"
     and "cbox a b = {x::real^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
   by (auto simp add: set_eq_iff less_vec_def less_eq_vec_def mem_box Basis_vec_def inner_axis)
 
-lemma%unimportant mem_box_cart:
+lemma mem_box_cart:
   fixes a :: "real^'n"
   shows "x \<in> box a b \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
     and "x \<in> cbox a b \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
   using interval_cart[of a b] by (auto simp add: set_eq_iff less_vec_def less_eq_vec_def)
 
-lemma%unimportant interval_eq_empty_cart:
+lemma interval_eq_empty_cart:
   fixes a :: "real^'n"
   shows "(box a b = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1)
     and "(cbox a b = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
@@ -416,14 +416,14 @@ proof -
   ultimately show ?th2 by blast
 qed
 
-lemma%unimportant interval_ne_empty_cart:
+lemma interval_ne_empty_cart:
   fixes a :: "real^'n"
   shows "cbox a b \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i \<le> b$i)"
     and "box a b \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i < b$i)"
   unfolding interval_eq_empty_cart[of a b] by (auto simp add: not_less not_le)
     (* BH: Why doesn't just "auto" work here? *)
 
-lemma%unimportant subset_interval_imp_cart:
+lemma subset_interval_imp_cart:
   fixes a :: "real^'n"
   shows "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> cbox c d \<subseteq> cbox a b"
     and "(\<forall>i. a$i < c$i \<and> d$i < b$i) \<Longrightarrow> cbox c d \<subseteq> box a b"
@@ -432,13 +432,13 @@ lemma%unimportant subset_interval_imp_cart:
   unfolding subset_eq[unfolded Ball_def] unfolding mem_box_cart
   by (auto intro: order_trans less_le_trans le_less_trans less_imp_le) (* BH: Why doesn't just "auto" work here? *)
 
-lemma%unimportant interval_sing:
+lemma interval_sing:
   fixes a :: "'a::linorder^'n"
   shows "{a .. a} = {a} \<and> {a<..<a} = {}"
   apply (auto simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
   done
 
-lemma%unimportant subset_interval_cart:
+lemma subset_interval_cart:
   fixes a :: "real^'n"
   shows "cbox c d \<subseteq> cbox a b \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th1)
     and "cbox c d \<subseteq> box a b \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i < c$i \<and> d$i < b$i)" (is ?th2)
@@ -446,7 +446,7 @@ lemma%unimportant subset_interval_cart:
     and "box c d \<subseteq> box a b \<longleftrightarrow> (\<forall>i. c$i < d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th4)
   using subset_box[of c d a b] by (simp_all add: Basis_vec_def inner_axis)
 
-lemma%unimportant disjoint_interval_cart:
+lemma disjoint_interval_cart:
   fixes a::"real^'n"
   shows "cbox a b \<inter> cbox c d = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i < c$i \<or> b$i < c$i \<or> d$i < a$i))" (is ?th1)
     and "cbox a b \<inter> box c d = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th2)
@@ -454,53 +454,53 @@ lemma%unimportant disjoint_interval_cart:
     and "box a b \<inter> box c d = {} \<longleftrightarrow> (\<exists>i. (b$i \<le> a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th4)
   using disjoint_interval[of a b c d] by (simp_all add: Basis_vec_def inner_axis)
 
-lemma%unimportant Int_interval_cart:
+lemma Int_interval_cart:
   fixes a :: "real^'n"
   shows "cbox a b \<inter> cbox c d =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding Int_interval
   by (auto simp: mem_box less_eq_vec_def)
     (auto simp: Basis_vec_def inner_axis)
 
-lemma%unimportant closed_interval_left_cart:
+lemma closed_interval_left_cart:
   fixes b :: "real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
   by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
-lemma%unimportant closed_interval_right_cart:
+lemma closed_interval_right_cart:
   fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
   by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
-lemma%unimportant is_interval_cart:
+lemma is_interval_cart:
   "is_interval (s::(real^'n) set) \<longleftrightarrow>
     (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i))) \<longrightarrow> x \<in> s)"
   by (simp add: is_interval_def Ball_def Basis_vec_def inner_axis imp_ex)
 
-lemma%unimportant closed_halfspace_component_le_cart: "closed {x::real^'n. x$i \<le> a}"
+lemma closed_halfspace_component_le_cart: "closed {x::real^'n. x$i \<le> a}"
   by (simp add: closed_Collect_le continuous_on_component)
 
-lemma%unimportant closed_halfspace_component_ge_cart: "closed {x::real^'n. x$i \<ge> a}"
+lemma closed_halfspace_component_ge_cart: "closed {x::real^'n. x$i \<ge> a}"
   by (simp add: closed_Collect_le continuous_on_component)
 
-lemma%unimportant open_halfspace_component_lt_cart: "open {x::real^'n. x$i < a}"
+lemma open_halfspace_component_lt_cart: "open {x::real^'n. x$i < a}"
   by (simp add: open_Collect_less continuous_on_component)
 
-lemma%unimportant open_halfspace_component_gt_cart: "open {x::real^'n. x$i  > a}"
+lemma open_halfspace_component_gt_cart: "open {x::real^'n. x$i  > a}"
   by (simp add: open_Collect_less continuous_on_component)
 
-lemma%unimportant Lim_component_le_cart:
+lemma Lim_component_le_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f \<longlongrightarrow> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f x $i \<le> b) net"
   shows "l$i \<le> b"
   by (rule tendsto_le[OF assms(2) tendsto_const tendsto_vec_nth, OF assms(1, 3)])
 
-lemma%unimportant Lim_component_ge_cart:
+lemma Lim_component_ge_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
   assumes "(f \<longlongrightarrow> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
   shows "b \<le> l$i"
   by (rule tendsto_le[OF assms(2) tendsto_vec_nth tendsto_const, OF assms(1, 3)])
 
-lemma%unimportant Lim_component_eq_cart:
+lemma Lim_component_eq_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
   assumes net: "(f \<longlongrightarrow> l) net" "\<not> trivial_limit net" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
   shows "l$i = b"
@@ -508,18 +508,18 @@ lemma%unimportant Lim_component_eq_cart:
     Lim_component_ge_cart[OF net, of b i] and
     Lim_component_le_cart[OF net, of i b] by auto
 
-lemma%unimportant connected_ivt_component_cart:
+lemma connected_ivt_component_cart:
   fixes x :: "real^'n"
   shows "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
   using connected_ivt_hyperplane[of s x y "axis k 1" a]
   by (auto simp add: inner_axis inner_commute)
 
-lemma%unimportant subspace_substandard_cart: "vec.subspace {x. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
+lemma subspace_substandard_cart: "vec.subspace {x. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
   unfolding vec.subspace_def by auto
 
-lemma%important closed_substandard_cart:
+lemma closed_substandard_cart:
   "closed {x::'a::real_normed_vector ^ 'n. \<forall>i. P i \<longrightarrow> x$i = 0}"
-proof%unimportant -
+proof -
   { fix i::'n
     have "closed {x::'a ^ 'n. P i \<longrightarrow> x$i = 0}"
       by (cases "P i") (simp_all add: closed_Collect_eq continuous_on_const continuous_on_id continuous_on_component) }
@@ -529,32 +529,32 @@ qed
 
 subsection "Convex Euclidean Space"
 
-lemma%unimportant Cart_1:"(1::real^'n) = \<Sum>Basis"
+lemma Cart_1:"(1::real^'n) = \<Sum>Basis"
   using const_vector_cart[of 1] by (simp add: one_vec_def)
 
 declare vector_add_ldistrib[simp] vector_ssub_ldistrib[simp] vector_smult_assoc[simp] vector_smult_rneg[simp]
 declare vector_sadd_rdistrib[simp] vector_sub_rdistrib[simp]
 
-lemmas%unimportant vector_component_simps = vector_minus_component vector_smult_component vector_add_component less_eq_vec_def vec_lambda_beta vector_uminus_component
+lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component less_eq_vec_def vec_lambda_beta vector_uminus_component
 
-lemma%unimportant convex_box_cart:
+lemma convex_box_cart:
   assumes "\<And>i. convex {x. P i x}"
   shows "convex {x. \<forall>i. P i (x$i)}"
   using assms unfolding convex_def by auto
 
-lemma%unimportant convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
+lemma convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
   by (rule convex_box_cart) (simp add: atLeast_def[symmetric])
 
-lemma%unimportant unit_interval_convex_hull_cart:
+lemma unit_interval_convex_hull_cart:
   "cbox (0::real^'n) 1 = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}"
   unfolding Cart_1 unit_interval_convex_hull[where 'a="real^'n"] box_real[symmetric]
   by (rule arg_cong[where f="\<lambda>x. convex hull x"]) (simp add: Basis_vec_def inner_axis)
 
-lemma%important cube_convex_hull_cart:
+proposition cube_convex_hull_cart:
   assumes "0 < d"
   obtains s::"(real^'n) set"
     where "finite s" "cbox (x - (\<chi> i. d)) (x + (\<chi> i. d)) = convex hull s"
-proof%unimportant -
+proof -
   from assms obtain s where "finite s"
     and "cbox (x - sum ((*\<^sub>R) d) Basis) (x + sum ((*\<^sub>R) d) Basis) = convex hull s"
     by (rule cube_convex_hull)
@@ -567,10 +567,10 @@ subsection "Derivative"
 
 definition%important "jacobian f net = matrix(frechet_derivative f net)"
 
-lemma%important jacobian_works:
+proposition jacobian_works:
   "(f::(real^'a) \<Rightarrow> (real^'b)) differentiable net \<longleftrightarrow>
     (f has_derivative (\<lambda>h. (jacobian f net) *v h)) net" (is "?lhs = ?rhs")
-proof%unimportant
+proof
   assume ?lhs then show ?rhs
     by (simp add: frechet_derivative_works has_derivative_linear jacobian_def)
 next
@@ -579,10 +579,10 @@ next
 qed
 
 
-text%important \<open>Component of the differential must be zero if it exists at a local
+text \<open>Component of the differential must be zero if it exists at a local
   maximum or minimum for that corresponding component\<close>
 
-lemma%important differential_zero_maxmin_cart:
+proposition differential_zero_maxmin_cart:
   fixes f::"real^'a \<Rightarrow> real^'b"
   assumes "0 < e" "((\<forall>y \<in> ball x e. (f y)$k \<le> (f x)$k) \<or> (\<forall>y\<in>ball x e. (f x)$k \<le> (f y)$k))"
     "f differentiable (at x)"
