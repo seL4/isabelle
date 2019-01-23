@@ -35,9 +35,10 @@ object Build_History
     {
       val windows_32 = "x86-windows"
       val windows_64 = "x86_64-windows"
+      val windows_64_32 = "x86_64_32-windows"
       val platform_32 = other_isabelle.getenv("ISABELLE_PLATFORM32")
       val platform_64 = other_isabelle.getenv("ISABELLE_PLATFORM64")
-      val platform_family = other_isabelle.getenv("ISABELLE_PLATFORM_FAMILY")
+      val platform_64_32 = platform_64.replace("x86_64-", "x86_64_32-")
 
       val polyml_home =
         try { Path.explode(other_isabelle.getenv("ML_HOME")).dir }
@@ -56,15 +57,15 @@ object Build_History
           if (check_dir(windows_64)) windows_64 else err(windows_64)
         }
         else if (Platform.is_windows && !arch_64) {
-          if (check_dir(windows_32)) windows_32
+          if (check_dir(windows_64_32)) windows_64_32
+          else if (check_dir(windows_32)) windows_32
           else platform_32  // x86-cygwin
         }
-        else {
-          val (platform, platform_name) =
-            if (arch_64) (platform_64, "x86_64-" + platform_family)
-            else (platform_32, "x86-" + platform_family)
-          if (check_dir(platform)) platform else err(platform_name)
+        else if (arch_64) {
+          if (check_dir(platform_64)) platform_64 else err(platform_64)
         }
+        else if (check_dir(platform_64_32)) platform_64_32
+        else platform_32
 
       val ml_options =
         "--minheap " + heap + (if (max_heap.isDefined) " --maxheap " + max_heap.get else "") +
