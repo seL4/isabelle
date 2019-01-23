@@ -57,8 +57,7 @@ object Build_PolyML
       error("Bad Poly/ML root directory: " + root)
 
     val platform_arch = if (arch_64) "x86_64" else "x86_64_32"
-    val platform_os =
-      if (Platform.is_windows) "windows" else if (Platform.is_macos) "darwin" else "linux"
+    val platform_os = Platform.os_name
 
     val platform = platform_arch + "-" + platform_os
     val platform_64 = "x86_64-" + platform_os

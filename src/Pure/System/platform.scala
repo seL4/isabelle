@@ -36,30 +36,23 @@ object Platform
 
   /* platform identifiers */
 
-  private val Linux = """Linux""".r
-  private val Darwin = """Mac OS X""".r
-  private val Windows = """Windows.*""".r
-
   private val X86 = """i.86|x86""".r
   private val X86_64 = """amd64|x86_64""".r
 
-  lazy val jvm_platform: String =
-  {
-    val arch =
-      System.getProperty("os.arch", "") match {
-        case X86() => "x86"
-        case X86_64() => "x86_64"
-        case _ => error("Failed to determine CPU architecture")
-      }
-    val os =
-      System.getProperty("os.name", "") match {
-        case Linux() => "linux"
-        case Darwin() => "darwin"
-        case Windows() => "windows"
-        case _ => error("Failed to determine operating system platform")
-      }
-    arch + "-" + os
-  }
+  def cpu_arch: String =
+    System.getProperty("os.arch", "") match {
+      case X86() => "x86"
+      case X86_64() => "x86_64"
+      case _ => error("Failed to determine CPU architecture")
+    }
+
+  def os_name: String =
+    family match {
+      case Family.macos => "darwin"
+      case _ => family.toString
+    }
+
+  lazy val jvm_platform: String = cpu_arch + "-" + os_name
 
 
   /* JVM version */
