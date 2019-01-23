@@ -1979,8 +1979,8 @@ and atp_term_of_iterm ctxt mono type_enc pos =
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
             if is_type_enc_higher_order type_enc then
-              AAbs (((name, native_atp_type_of_typ type_enc true 0 T), (* FIXME? why "true"? *)
-                     term Elsewhere tm), map (term Elsewhere) args)
+              AAbs (((name, native_atp_type_of_typ type_enc false 0 T), term Elsewhere tm),
+                map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
           | IApp _ => raise Fail "impossible \"IApp\"")
