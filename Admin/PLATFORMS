@@ -31,7 +31,7 @@ supported by the Isabelle distribution (and bundled tools), with the
 following base-line versions (which have been selected to be neither
 too old nor too new):
 
-  x86_64-linux      Ubuntu 12.04 LTS
+  x86_64-linux      Ubuntu 14.04 LTS
 
   x86_64-darwin     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
                     Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
