@@ -74,6 +74,9 @@ precedence over goal/proof.
 
 *** HOL ***
 
+* Slightly more conventional naming schema in structure Inductive.
+Minor INCOMPATIBILITY.
+
 * Code generation: command 'export_code' without file keyword exports
 code as regular theory export, which can be materialized using the
 command-line tool "isabelle export" or 'export_files' in the session
@@ -138,9 +141,6 @@ retrieved with the "isabelle export" command-line tool like this:
 definitional packages should use balanced blocks of
 Local_Theory.open_target versus Local_Theory.close_target instead,
 or the Local_Theory.subtarget(_result) combinator. Rare INCOMPATIBILITY.
-
-* Slightly more conventional naming schema in structure Inductive.
-Minor INCOMPATIBILITY.
 
 * Original PolyML.pointerEq is retained as a convenience for tools that
 don't use Isabelle/ML (where this is called "pointer_eq").
