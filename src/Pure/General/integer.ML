@@ -42,20 +42,7 @@ fun div_mod x y = IntInf.divMod (x, y);
 
 fun square x = x * x;
 
-fun pow k l =
-  let
-    fun pw 0 _ = 1
-      | pw 1 l = l
-      | pw k l =
-          let
-            val (k', r) = div_mod k 2;
-            val l' = pw k' (l * l);
-          in if r = 0 then l' else l' * l end;
-  in
-    if k < 0
-    then IntInf.pow (l, k)
-    else pw k l
-  end;
+fun pow k l = IntInf.pow (l, k);
 
 fun gcd x y = PolyML.IntInf.gcd (x, y);
 fun lcm x y = abs (PolyML.IntInf.lcm (x, y));
@@ -76,11 +63,4 @@ fun radicify base len k =
 fun eval_radix base ks =
   fold_rev (fn k => fn i => k + i * base) ks 0;
 
-end;
-
-(*slightly faster than Poly/ML 5.7.1 library implementation, notably on 32bit multicore*)
-structure IntInf =
-struct
-  open IntInf;
-  fun pow (i, n) = Integer.pow n i;
 end;
