@@ -58,32 +58,6 @@ qed
 
 subsection \<open>Properties involving finite and infinite sets\<close>
 
-(*3*)lemma inj_on_image_Pow:
-assumes "inj_on f A"
-shows "inj_on (image f) (Pow A)"
-unfolding Pow_def inj_on_def proof(clarsimp)
-  fix X Y assume *: "X \<le> A" and **: "Y \<le> A" and
-                 ***: "f ` X = f ` Y"
-  show "X = Y"
-  proof(auto)
-    fix x assume ****: "x \<in> X"
-    with *** obtain y where "y \<in> Y \<and> f x = f y" by blast
-    with **** * ** assms show "x \<in> Y"
-    unfolding inj_on_def by auto
-  next
-    fix y assume ****: "y \<in> Y"
-    with *** obtain x where "x \<in> X \<and> f x = f y" by atomize_elim force
-    with **** * ** assms show "y \<in> X"
-    unfolding inj_on_def by auto
-  qed
-qed
-
-(*2*)lemma bij_betw_image_Pow:
-assumes "bij_betw f A B"
-shows "bij_betw (image f) (Pow A) (Pow B)"
-using assms unfolding bij_betw_def
-by (auto simp add: inj_on_image_Pow image_Pow_surj)
-
 (* unused *)
 (*1*)lemma bij_betw_inv_into_RIGHT:
 assumes BIJ: "bij_betw f A A'" and SUB: "B' \<le> A'"
