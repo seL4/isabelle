@@ -2182,4 +2182,35 @@ proposition finite_image_absD: "finite (abs ` S) \<Longrightarrow> finite S"
   for S :: "'a::linordered_ring set"
   by (rule ccontr) (auto simp: abs_eq_iff vimage_def dest: inf_img_fin_dom)
 
+subsection \<open>The finite powerset operator\<close>
+
+definition Fpow :: "'a set \<Rightarrow> 'a set set"
+where "Fpow A \<equiv> {X. X \<subseteq> A \<and> finite X}"
+
+lemma Fpow_mono: "A \<subseteq> B \<Longrightarrow> Fpow A \<subseteq> Fpow B"
+unfolding Fpow_def by auto
+
+lemma empty_in_Fpow: "{} \<in> Fpow A"
+unfolding Fpow_def by auto
+
+lemma Fpow_not_empty: "Fpow A \<noteq> {}"
+using empty_in_Fpow by blast
+
+lemma Fpow_subset_Pow: "Fpow A \<subseteq> Pow A"
+unfolding Fpow_def by auto
+
+lemma Fpow_Pow_finite: "Fpow A = Pow A Int {A. finite A}"
+unfolding Fpow_def Pow_def by blast
+
+lemma inj_on_image_Fpow:
+  assumes "inj_on f A"
+  shows "inj_on (image f) (Fpow A)"
+  using assms Fpow_subset_Pow[of A] subset_inj_on[of "image f" "Pow A"]
+    inj_on_image_Pow by blast
+
+lemma image_Fpow_mono:
+  assumes "f ` A \<subseteq> B"
+  shows "(image f) ` (Fpow A) \<subseteq> Fpow B"
+  using assms by(unfold Fpow_def, auto)
+
 end

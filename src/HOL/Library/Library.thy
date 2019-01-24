@@ -23,6 +23,7 @@ imports
   Discrete
   Disjoint_Sets
   Dlist
+  Equipollence
   Extended
   Extended_Nat
   Extended_Nonnegative_Real

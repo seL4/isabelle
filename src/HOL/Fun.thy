@@ -292,6 +292,13 @@ proof (rule inj_onI)
    by (rule linorder_cases) (auto dest: assms simp: that)
 qed
 
+
+lemma inj_on_image_Pow: "inj_on f A \<Longrightarrow>inj_on (image f) (Pow A)"
+  unfolding Pow_def inj_on_def by blast
+
+lemma bij_betw_image_Pow: "bij_betw f A B \<Longrightarrow> bij_betw (image f) (Pow A) (Pow B)"
+  by (auto simp add: bij_betw_def inj_on_image_Pow image_Pow_surj)
+
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
   by auto
 

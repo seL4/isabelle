@@ -886,22 +886,7 @@ using assms assms lists_infinite_bij_betw[of "UNIV::'a set"]
 using lists_UNIV by auto
 
 
-subsection \<open>Cardinals versus the set-of-finite-sets operator\<close>
-
-definition Fpow :: "'a set \<Rightarrow> 'a set set"
-where "Fpow A \<equiv> {X. X \<le> A \<and> finite X}"
-
-lemma Fpow_mono: "A \<le> B \<Longrightarrow> Fpow A \<le> Fpow B"
-unfolding Fpow_def by auto
-
-lemma empty_in_Fpow: "{} \<in> Fpow A"
-unfolding Fpow_def by auto
-
-lemma Fpow_not_empty: "Fpow A \<noteq> {}"
-using empty_in_Fpow by blast
-
-lemma Fpow_subset_Pow: "Fpow A \<le> Pow A"
-unfolding Fpow_def by auto
+subsection \<open>Cardinals versus the finite powerset operator\<close>
 
 lemma card_of_Fpow[simp]: "|A| \<le>o |Fpow A|"
 proof-
@@ -913,20 +898,6 @@ qed
 
 lemma Card_order_Fpow: "Card_order r \<Longrightarrow> r \<le>o |Fpow(Field r) |"
 using card_of_Fpow card_of_Field_ordIso ordIso_ordLeq_trans ordIso_symmetric by blast
-
-lemma Fpow_Pow_finite: "Fpow A = Pow A Int {A. finite A}"
-unfolding Fpow_def Pow_def by blast
-
-lemma inj_on_image_Fpow:
-assumes "inj_on f A"
-shows "inj_on (image f) (Fpow A)"
-using assms Fpow_subset_Pow[of A] subset_inj_on[of "image f" "Pow A"]
-      inj_on_image_Pow by blast
-
-lemma image_Fpow_mono:
-assumes "f ` A \<le> B"
-shows "(image f) ` (Fpow A) \<le> Fpow B"
-using assms by(unfold Fpow_def, auto)
 
 lemma image_Fpow_surjective:
 assumes "f ` A = B"
