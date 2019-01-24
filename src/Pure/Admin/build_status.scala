@@ -260,7 +260,7 @@ object Build_Status
             val ml_platform = res.string(Build_Log.Settings.ML_PLATFORM)
             val data_name =
               profile.description +
-                (if (ml_platform.startsWith("x86_64")) ", 64bit" else "") +
+                (if (ml_platform.startsWith("x86_64-")) ", 64bit" else "") +
                 (if (threads == 1) "" else ", " + threads + " threads")
 
             res.get_string(Build_Log.Prop.build_host).foreach(host =>
