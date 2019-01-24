@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section%important \<open>Radon-Nikod{\'y}m Derivative\<close>
+section \<open>Radon-Nikod{\'y}m Derivative\<close>
 
 theory Radon_Nikodym
 imports Bochner_Integration
@@ -17,12 +17,12 @@ lemma
     and sets_diff_measure[simp]: "sets (diff_measure M N) = sets M"
   by (auto simp: diff_measure_def)
 
-lemma%important emeasure_diff_measure:
+lemma emeasure_diff_measure:
   assumes fin: "finite_measure M" "finite_measure N" and sets_eq: "sets M = sets N"
   assumes pos: "\<And>A. A \<in> sets M \<Longrightarrow> emeasure N A \<le> emeasure M A" and A: "A \<in> sets M"
   shows "emeasure (diff_measure M N) A = emeasure M A - emeasure N A" (is "_ = ?\<mu> A")
-  unfolding%unimportant diff_measure_def
-proof%unimportant (rule emeasure_measure_of_sigma)
+  unfolding diff_measure_def
+proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space M) (sets M)" ..
   show "positive (sets M) ?\<mu>"
     using pos by (simp add: positive_def)
@@ -48,7 +48,7 @@ text \<open>An equivalent characterization of sigma-finite spaces is the existen
 positive functions (or, still equivalently, the existence of a probability measure which is in
 the same measure class as the original measure).\<close>
 
-lemma (in sigma_finite_measure) obtain_positive_integrable_function:
+proposition (in sigma_finite_measure) obtain_positive_integrable_function:
   obtains f::"'a \<Rightarrow> real" where
     "f \<in> borel_measurable M"
     "\<And>x. f x > 0"
@@ -102,9 +102,9 @@ proof -
     by (meson that)
 qed
 
-lemma%important (in sigma_finite_measure) Ex_finite_integrable_function:
+lemma (in sigma_finite_measure) Ex_finite_integrable_function:
   "\<exists>h\<in>borel_measurable M. integral\<^sup>N M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>)"
-proof%unimportant -
+proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
     range[measurable]: "range A \<subseteq> sets M" and
     space: "(\<Union>i. A i) = space M" and
@@ -183,11 +183,11 @@ lemma absolutely_continuousD:
   "absolutely_continuous M N \<Longrightarrow> A \<in> sets M \<Longrightarrow> emeasure M A = 0 \<Longrightarrow> emeasure N A = 0"
   by (auto simp: absolutely_continuous_def null_sets_def)
 
-lemma%important absolutely_continuous_AE:
+lemma absolutely_continuous_AE:
   assumes sets_eq: "sets M' = sets M"
     and "absolutely_continuous M M'" "AE x in M. P x"
    shows "AE x in M'. P x"
-proof%unimportant -
+proof -
   from \<open>AE x in M. P x\<close> obtain N where N: "N \<in> null_sets M" "{x\<in>space M. \<not> P x} \<subseteq> N"
     unfolding eventually_ae_filter by auto
   show "AE x in M'. P x"
@@ -200,12 +200,12 @@ qed
 
 subsection "Existence of the Radon-Nikodym derivative"
 
-lemma%important
+proposition
  (in finite_measure) Radon_Nikodym_finite_measure:
   assumes "finite_measure N" and sets_eq[simp]: "sets N = sets M"
   assumes "absolutely_continuous M N"
   shows "\<exists>f \<in> borel_measurable M. density M f = N"
-proof%unimportant -
+proof -
   interpret N: finite_measure N by fact
   define G where "G = {g \<in> borel_measurable M. \<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A}"
   have [measurable_dest]: "f \<in> G \<Longrightarrow> f \<in> borel_measurable M"
@@ -384,11 +384,11 @@ proof%unimportant -
   qed auto
 qed
 
-lemma%important (in finite_measure) split_space_into_finite_sets_and_rest:
+lemma (in finite_measure) split_space_into_finite_sets_and_rest:
   assumes ac: "absolutely_continuous M N" and sets_eq[simp]: "sets N = sets M"
   shows "\<exists>B::nat\<Rightarrow>'a set. disjoint_family B \<and> range B \<subseteq> sets M \<and> (\<forall>i. N (B i) \<noteq> \<infinity>) \<and>
     (\<forall>A\<in>sets M. A \<inter> (\<Union>i. B i) = {} \<longrightarrow> (emeasure M A = 0 \<and> N A = 0) \<or> (emeasure M A > 0 \<and> N A = \<infinity>))"
-proof%unimportant -
+proof -
   let ?Q = "{Q\<in>sets M. N Q \<noteq> \<infinity>}"
   let ?a = "SUP Q\<in>?Q. emeasure M Q"
   have "{} \<in> ?Q" by auto
@@ -493,10 +493,10 @@ proof%unimportant -
   qed
 qed
 
-lemma%important (in finite_measure) Radon_Nikodym_finite_measure_infinite:
+proposition (in finite_measure) Radon_Nikodym_finite_measure_infinite:
   assumes "absolutely_continuous M N" and sets_eq: "sets N = sets M"
   shows "\<exists>f\<in>borel_measurable M. density M f = N"
-proof%unimportant -
+proof -
   from split_space_into_finite_sets_and_rest[OF assms]
   obtain Q :: "nat \<Rightarrow> 'a set"
     where Q: "disjoint_family Q" "range Q \<subseteq> sets M"
@@ -575,7 +575,7 @@ proof%unimportant -
   qed
 qed
 
-lemma (in sigma_finite_measure) Radon_Nikodym:
+theorem (in sigma_finite_measure) Radon_Nikodym:
   assumes ac: "absolutely_continuous M N" assumes sets_eq: "sets N = sets M"
   shows "\<exists>f \<in> borel_measurable M. density M f = N"
 proof -
@@ -609,12 +609,12 @@ qed
 
 subsection \<open>Uniqueness of densities\<close>
 
-lemma%important finite_density_unique:
+lemma finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
   and fin: "integral\<^sup>N M f \<noteq> \<infinity>"
   shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
-proof%unimportant (intro iffI ballI)
+proof (intro iffI ballI)
   fix A assume eq: "AE x in M. f x = g x"
   with borel show "density M f = density M g"
     by (auto intro: density_cong)
@@ -652,13 +652,13 @@ next
   show "AE x in M. f x = g x" by auto
 qed
 
-lemma%important (in finite_measure) density_unique_finite_measure:
+lemma (in finite_measure) density_unique_finite_measure:
   assumes borel: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
   assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> f' x"
   assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. f' x * indicator A x \<partial>M)"
     (is "\<And>A. A \<in> sets M \<Longrightarrow> ?P f A = ?P f' A")
   shows "AE x in M. f x = f' x"
-proof%unimportant -
+proof -
   let ?D = "\<lambda>f. density M f"
   let ?N = "\<lambda>A. ?P f A" and ?N' = "\<lambda>A. ?P f' A"
   let ?f = "\<lambda>A x. f x * indicator A x" and ?f' = "\<lambda>A x. f' x * indicator A x"
@@ -717,7 +717,7 @@ proof%unimportant -
   then show "AE x in M. f x = f' x" by auto
 qed
 
-lemma (in sigma_finite_measure) density_unique:
+proposition (in sigma_finite_measure) density_unique:
   assumes f: "f \<in> borel_measurable M"
   assumes f': "f' \<in> borel_measurable M"
   assumes density_eq: "density M f = density M f'"
@@ -764,11 +764,11 @@ lemma (in sigma_finite_measure) density_unique_iff:
   shows "density M f = density M f' \<longleftrightarrow> (AE x in M. f x = f' x)"
   using density_unique[OF assms] density_cong[OF f f'] by auto
 
-lemma%important sigma_finite_density_unique:
+lemma sigma_finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   and fin: "sigma_finite_measure (density M f)"
   shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
-proof%unimportant
+proof
   assume "AE x in M. f x = g x" with borel show "density M f = density M g"
     by (auto intro: density_cong)
 next
@@ -797,11 +797,11 @@ next
     done
 qed
 
-lemma%important (in sigma_finite_measure) sigma_finite_iff_density_finite':
+lemma (in sigma_finite_measure) sigma_finite_iff_density_finite':
   assumes f: "f \<in> borel_measurable M"
   shows "sigma_finite_measure (density M f) \<longleftrightarrow> (AE x in M. f x \<noteq> \<infinity>)"
     (is "sigma_finite_measure ?N \<longleftrightarrow> _")
-proof%unimportant
+proof
   assume "sigma_finite_measure ?N"
   then interpret N: sigma_finite_measure ?N .
   from N.Ex_finite_integrable_function obtain h where
@@ -895,10 +895,10 @@ definition%important RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarr
        then SOME f. f \<in> borel_measurable M \<and> density M f = N
        else (\<lambda>_. 0))"
 
-lemma%important RN_derivI:
+lemma RN_derivI:
   assumes "f \<in> borel_measurable M" "density M f = N"
   shows "density M (RN_deriv M N) = N"
-proof%unimportant -
+proof -
   have *: "\<exists>f. f \<in> borel_measurable M \<and> density M f = N"
     using assms by auto
   then have "density M (SOME f. f \<in> borel_measurable M \<and> density M f = N) = N"
@@ -925,11 +925,11 @@ lemma (in sigma_finite_measure) density_RN_deriv:
   "absolutely_continuous M N \<Longrightarrow> sets N = sets M \<Longrightarrow> density M (RN_deriv M N) = N"
   by (metis RN_derivI Radon_Nikodym)
 
-lemma%important (in sigma_finite_measure) RN_deriv_nn_integral:
+lemma (in sigma_finite_measure) RN_deriv_nn_integral:
   assumes N: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
   shows "integral\<^sup>N N f = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
-proof%unimportant -
+proof -
   have "integral\<^sup>N N f = integral\<^sup>N (density M (RN_deriv M N)) f"
     using N by (simp add: density_RN_deriv)
   also have "\<dots> = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
@@ -953,14 +953,14 @@ lemma RN_deriv_unique_sigma_finite:
   by (intro sigma_finite_density_unique[THEN iffD1] f borel_measurable_RN_deriv
             density_RN_deriv_density[symmetric])
 
-lemma%important (in sigma_finite_measure) RN_deriv_distr:
+lemma (in sigma_finite_measure) RN_deriv_distr:
   fixes T :: "'a \<Rightarrow> 'b"
   assumes T: "T \<in> measurable M M'" and T': "T' \<in> measurable M' M"
     and inv: "\<forall>x\<in>space M. T' (T x) = x"
   and ac[simp]: "absolutely_continuous (distr M M' T) (distr N M' T)"
   and N: "sets N = sets M"
   shows "AE x in M. RN_deriv (distr M M' T) (distr N M' T) (T x) = RN_deriv M N x"
-proof%unimportant (rule RN_deriv_unique)
+proof (rule RN_deriv_unique)
   have [simp]: "sets N = sets M" by fact
   note sets_eq_imp_space_eq[OF N, simp]
   have measurable_N[simp]: "\<And>M'. measurable N M' = measurable M M'" by (auto simp: measurable_def)
@@ -1012,23 +1012,23 @@ proof%unimportant (rule RN_deriv_unique)
     by (simp add: comp_def)
 qed
 
-lemma%important (in sigma_finite_measure) RN_deriv_finite:
+lemma (in sigma_finite_measure) RN_deriv_finite:
   assumes N: "sigma_finite_measure N" and ac: "absolutely_continuous M N" "sets N = sets M"
   shows "AE x in M. RN_deriv M N x \<noteq> \<infinity>"
-proof%unimportant -
+proof -
   interpret N: sigma_finite_measure N by fact
   from N show ?thesis
     using sigma_finite_iff_density_finite[OF borel_measurable_RN_deriv, of N] density_RN_deriv[OF ac]
     by simp
 qed
 
-lemma%important (in sigma_finite_measure) (* *FIX ME needs name*)
+lemma (in sigma_finite_measure) (* FIXME needs name*)
   assumes N: "sigma_finite_measure N" and ac: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>
       integrable M (\<lambda>x. enn2real (RN_deriv M N x) * f x)" (is ?integrable)
     and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. enn2real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
-proof%unimportant -
+proof -
   note ac(2)[simp] and sets_eq_imp_space_eq[OF ac(2), simp]
   interpret N: sigma_finite_measure N by fact
 
@@ -1054,14 +1054,14 @@ proof%unimportant -
     done
 qed
 
-lemma%important (in sigma_finite_measure) real_RN_deriv:
+proposition (in sigma_finite_measure) real_RN_deriv:
   assumes "finite_measure N"
   assumes ac: "absolutely_continuous M N" "sets N = sets M"
   obtains D where "D \<in> borel_measurable M"
     and "AE x in M. RN_deriv M N x = ennreal (D x)"
     and "AE x in N. 0 < D x"
     and "\<And>x. 0 \<le> D x"
-proof%unimportant
+proof
   interpret N: finite_measure N by fact
 
   note RN = borel_measurable_RN_deriv density_RN_deriv[OF ac]

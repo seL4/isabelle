@@ -1,4 +1,4 @@
-subsection \<open>Ordered Euclidean Space\<close>
+subsection \<open>Ordered Euclidean Space\<close> (* why not Section? *)
 
 theory Ordered_Euclidean_Space
 imports
@@ -6,7 +6,7 @@ imports
   "HOL-Library.Product_Order"
 begin
 
-text%important \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>
+text \<open>An ordering on euclidean spaces that will allow us to talk about intervals\<close>
 
 class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_space +
   assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
@@ -35,7 +35,7 @@ subclass distrib_lattice
   by standard (auto simp: eucl_inf eucl_sup sup_inf_distrib1 intro!: euclidean_eqI)
 
 subclass conditionally_complete_lattice
-proof%unimportant
+proof
   fix z::'a and X::"'a set"
   assume "X \<noteq> {}"
   hence "\<And>i. (\<lambda>x. x \<bullet> i) ` X \<noteq> {}" by simp
@@ -46,42 +46,42 @@ qed (force intro!: cInf_lower cSup_upper
       simp: bdd_below_def bdd_above_def preorder_class.bdd_below_def preorder_class.bdd_above_def
         eucl_Inf eucl_Sup eucl_le)+
 
-lemma%unimportant inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
+lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
   and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
   by (simp_all add: eucl_inf eucl_sup inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.delta
       cong: if_cong)
 
-lemma%unimportant inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x\<in>X. f x) \<bullet> i = (INF x\<in>X. f x \<bullet> i)"
+lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x\<in>X. f x) \<bullet> i = (INF x\<in>X. f x \<bullet> i)"
   and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x\<in>X. f x) \<bullet> i = (SUP x\<in>X. f x \<bullet> i)"
   using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: comp_def)
 
-lemma%unimportant abs_inner: "i \<in> Basis \<Longrightarrow> \<bar>x\<bar> \<bullet> i = \<bar>x \<bullet> i\<bar>"
+lemma abs_inner: "i \<in> Basis \<Longrightarrow> \<bar>x\<bar> \<bullet> i = \<bar>x \<bullet> i\<bar>"
   by (auto simp: eucl_abs)
 
-lemma%unimportant
+lemma
   abs_scaleR: "\<bar>a *\<^sub>R b\<bar> = \<bar>a\<bar> *\<^sub>R \<bar>b\<bar>"
   by (auto simp: eucl_abs abs_mult intro!: euclidean_eqI)
 
-lemma%unimportant interval_inner_leI:
+lemma interval_inner_leI:
   assumes "x \<in> {a .. b}" "0 \<le> i"
   shows "a\<bullet>i \<le> x\<bullet>i" "x\<bullet>i \<le> b\<bullet>i"
   using assms
   unfolding euclidean_inner[of a i] euclidean_inner[of x i] euclidean_inner[of b i]
   by (auto intro!: ordered_comm_monoid_add_class.sum_mono mult_right_mono simp: eucl_le)
 
-lemma%unimportant inner_nonneg_nonneg:
+lemma inner_nonneg_nonneg:
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a \<bullet> b"
   using interval_inner_leI[of a 0 a b]
   by auto
 
-lemma%unimportant inner_Basis_mono:
+lemma inner_Basis_mono:
   shows "a \<le> b \<Longrightarrow> c \<in> Basis  \<Longrightarrow> a \<bullet> c \<le> b \<bullet> c"
   by (simp add: eucl_le)
 
-lemma%unimportant Basis_nonneg[intro, simp]: "i \<in> Basis \<Longrightarrow> 0 \<le> i"
+lemma Basis_nonneg[intro, simp]: "i \<in> Basis \<Longrightarrow> 0 \<le> i"
   by (auto simp: eucl_le inner_Basis)
 
-lemma%unimportant Sup_eq_maximum_componentwise:
+lemma Sup_eq_maximum_componentwise:
   fixes s::"'a set"
   assumes i: "\<And>b. b \<in> Basis \<Longrightarrow> X \<bullet> b = i b \<bullet> b"
   assumes sup: "\<And>b x. b \<in> Basis \<Longrightarrow> x \<in> s \<Longrightarrow> x \<bullet> b \<le> X \<bullet> b"
@@ -91,7 +91,7 @@ lemma%unimportant Sup_eq_maximum_componentwise:
   unfolding eucl_Sup euclidean_representation_sum
   by (auto intro!: conditionally_complete_lattice_class.cSup_eq_maximum)
 
-lemma%unimportant Inf_eq_minimum_componentwise:
+lemma Inf_eq_minimum_componentwise:
   assumes i: "\<And>b. b \<in> Basis \<Longrightarrow> X \<bullet> b = i b \<bullet> b"
   assumes sup: "\<And>b x. b \<in> Basis \<Longrightarrow> x \<in> s \<Longrightarrow> X \<bullet> b \<le> x \<bullet> b"
   assumes i_s: "\<And>b. b \<in> Basis \<Longrightarrow> (i b \<bullet> b) \<in> (\<lambda>x. x \<bullet> b) ` s"
@@ -102,12 +102,11 @@ lemma%unimportant Inf_eq_minimum_componentwise:
 
 end
 
-lemma%important
-  compact_attains_Inf_componentwise:
+proposition  compact_attains_Inf_componentwise:
   fixes b::"'a::ordered_euclidean_space"
   assumes "b \<in> Basis" assumes "X \<noteq> {}" "compact X"
   obtains x where "x \<in> X" "x \<bullet> b = Inf X \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> x \<bullet> b \<le> y \<bullet> b"
-proof%unimportant atomize_elim
+proof atomize_elim
   let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
   from assms have "compact ?proj" "?proj \<noteq> {}"
     by (auto intro!: compact_continuous_image continuous_intros)
@@ -124,12 +123,12 @@ proof%unimportant atomize_elim
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
 qed
 
-lemma%important
+proposition
   compact_attains_Sup_componentwise:
   fixes b::"'a::ordered_euclidean_space"
   assumes "b \<in> Basis" assumes "X \<noteq> {}" "compact X"
   obtains x where "x \<in> X" "x \<bullet> b = Sup X \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> y \<bullet> b \<le> x \<bullet> b"
-proof%unimportant atomize_elim
+proof atomize_elim
   let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
   from assms have "compact ?proj" "?proj \<noteq> {}"
     by (auto intro!: compact_continuous_image continuous_intros)
@@ -146,19 +145,19 @@ proof%unimportant atomize_elim
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed
 
-lemma%unimportant (in order) atLeastatMost_empty'[simp]:
+lemma (in order) atLeastatMost_empty'[simp]:
   "(\<not> a \<le> b) \<Longrightarrow> {a..b} = {}"
   by (auto)
 
 instance real :: ordered_euclidean_space
   by standard auto
 
-lemma%unimportant in_Basis_prod_iff:
+lemma in_Basis_prod_iff:
   fixes i::"'a::euclidean_space*'b::euclidean_space"
   shows "i \<in> Basis \<longleftrightarrow> fst i = 0 \<and> snd i \<in> Basis \<or> snd i = 0 \<and> fst i \<in> Basis"
   by (cases i) (auto simp: Basis_prod_def)
 
-instantiation prod :: (abs, abs) abs
+instantiation%unimportant prod :: (abs, abs) abs
 begin
 
 definition "\<bar>x\<bar> = (\<bar>fst x\<bar>, \<bar>snd x\<bar>)"
@@ -176,52 +175,52 @@ instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_eucl
 
 text\<open>Instantiation for intervals on \<open>ordered_euclidean_space\<close>\<close>
 
-lemma%important
+proposition
   fixes a :: "'a::ordered_euclidean_space"
   shows cbox_interval: "cbox a b = {a..b}"
     and interval_cbox: "{a..b} = cbox a b"
     and eucl_le_atMost: "{x. \<forall>i\<in>Basis. x \<bullet> i <= a \<bullet> i} = {..a}"
     and eucl_le_atLeast: "{x. \<forall>i\<in>Basis. a \<bullet> i <= x \<bullet> i} = {a..}"
-    by%unimportant (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
+  by (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
 
-lemma%unimportant vec_nth_real_1_iff_cbox [simp]:
+lemma vec_nth_real_1_iff_cbox [simp]:
   fixes a b :: real
   shows "(\<lambda>x::real^1. x $ 1) ` S = {a..b} \<longleftrightarrow> S = cbox (vec a) (vec b)"
   by (metis interval_cbox vec_nth_1_iff_cbox)
 
-lemma%unimportant closed_eucl_atLeastAtMost[simp, intro]:
+lemma closed_eucl_atLeastAtMost[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..b}"
   by (simp add: cbox_interval[symmetric] closed_cbox)
 
-lemma%unimportant closed_eucl_atMost[simp, intro]:
+lemma closed_eucl_atMost[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {..a}"
   by (simp add: closed_interval_left eucl_le_atMost[symmetric])
 
-lemma%unimportant closed_eucl_atLeast[simp, intro]:
+lemma closed_eucl_atLeast[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..}"
   by (simp add: closed_interval_right eucl_le_atLeast[symmetric])
 
-lemma%unimportant bounded_closed_interval [simp]:
+lemma bounded_closed_interval [simp]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "bounded {a .. b}"
   using bounded_cbox[of a b]
   by (metis interval_cbox)
 
-lemma%unimportant convex_closed_interval [simp]:
+lemma convex_closed_interval [simp]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "convex {a .. b}"
   using convex_box[of a b]
   by (metis interval_cbox)
 
-lemma%unimportant image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a .. b} =
+lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a .. b} =
   (if {a .. b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a .. m *\<^sub>R b} else {m *\<^sub>R b .. m *\<^sub>R a})"
   using image_smult_cbox[of m a b]
   by (simp add: cbox_interval)
 
-lemma%unimportant [simp]:
+lemma [simp]:
   fixes a b::"'a::ordered_euclidean_space" and r s::real
   shows is_interval_io: "is_interval {..<r}"
     and is_interval_ic: "is_interval {..a}"
@@ -243,15 +242,15 @@ lemma path_connected_interval [simp]:
   shows "path_connected {a..b}"
   using is_interval_cc is_interval_path_connected by blast
 
-lemma%unimportant is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
+lemma is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
   by (auto simp: real_atLeastGreaterThan_eq)
 
-lemma%unimportant compact_interval [simp]:
+lemma compact_interval [simp]:
   fixes a b::"'a::ordered_euclidean_space"
   shows "compact {a .. b}"
   by (metis compact_cbox interval_cbox)
 
-lemma%unimportant homeomorphic_closed_intervals:
+lemma homeomorphic_closed_intervals:
   fixes a :: "'a::euclidean_space" and b and c :: "'a::euclidean_space" and d
   assumes "box a b \<noteq> {}" and "box c d \<noteq> {}"
     shows "(cbox a b) homeomorphic (cbox c d)"
@@ -259,7 +258,7 @@ apply (rule homeomorphic_convex_compact)
 using assms apply auto
 done
 
-lemma%unimportant homeomorphic_closed_intervals_real:
+lemma homeomorphic_closed_intervals_real:
   fixes a::real and b and c::real and d
   assumes "a<b" and "c<d"
   shows "{a..b} homeomorphic {c..d}"
@@ -268,10 +267,10 @@ lemma%unimportant homeomorphic_closed_intervals_real:
 no_notation
   eucl_less (infix "<e" 50)
 
-lemma%unimportant One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
+lemma One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
   by (auto intro: sum_nonneg)
 
-lemma%unimportant
+lemma
   fixes a b::"'a::ordered_euclidean_space"
   shows bdd_above_cbox[intro, simp]: "bdd_above (cbox a b)"
     and bdd_below_cbox[intro, simp]: "bdd_below (cbox a b)"
@@ -300,12 +299,12 @@ instance
 
 end
 
-lemma%unimportant ANR_interval [iff]:
+lemma ANR_interval [iff]:
     fixes a :: "'a::ordered_euclidean_space"
     shows "ANR{a..b}"
 by (simp add: interval_cbox)
 
-lemma%unimportant ENR_interval [iff]:
+lemma ENR_interval [iff]:
     fixes a :: "'a::ordered_euclidean_space"
     shows "ENR{a..b}"
   by (auto simp: interval_cbox)

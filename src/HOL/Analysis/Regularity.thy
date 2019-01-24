@@ -4,11 +4,12 @@
 
 section \<open>Regularity of Measures\<close>
 
-theory Regularity (* FIX suggestion to rename to e.g. RegularityMeasures  *)
+theory Regularity (* FIX suggestion to rename  e.g. RegularityMeasures and/ or move as
+this theory consists of 1 result only  *)
 imports Measure_Space Borel_Space
 begin
 
-lemma%important (*FIX needs name *)
+theorem (*FIX needs name *)
   fixes M::"'a::{second_countable_topology, complete_space} measure"
   assumes sb: "sets M = sets borel"
   assumes "emeasure M (space M) \<noteq> \<infinity>"
@@ -17,7 +18,7 @@ lemma%important (*FIX needs name *)
     (SUP K \<in> {K. K \<subseteq> B \<and> compact K}. emeasure M K)" (is "?inner B")
   and outer_regular: "emeasure M B =
     (INF U \<in> {U. B \<subseteq> U \<and> open U}. emeasure M U)" (is "?outer B")
-proof%unimportant -
+proof -
   have Us: "UNIV = space M" by (metis assms(1) sets_eq_imp_space_eq space_borel)
   hence sU: "space M = UNIV" by simp
   interpret finite_measure M by rule fact
