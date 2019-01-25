@@ -797,7 +797,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (* FIX ME needs name *)
+lemma
   fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, linorder_topology}"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
@@ -929,7 +929,7 @@ lemma borel_measurable_inf[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. inf (g x) (f x) :: 'b::{lattice, second_countable_topology, linorder_topology}) \<in> borel_measurable M"
   unfolding inf_min by measurable
 
-lemma [measurable (raw)]: (*FIXME needs name *)
+lemma [measurable (raw)]:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology}"
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows borel_measurable_liminf: "(\<lambda>x. liminf (\<lambda>i. f i x)) \<in> borel_measurable M"
@@ -1023,7 +1023,7 @@ lemma eucl_ivals[measurable]:
   unfolding box_oc box_co
   by (auto intro: borel_open borel_closed)
 
-lemma (*FIX ME this has no name *)
+lemma
   fixes i :: "'a::{second_countable_topology, real_inner}"
   shows hafspace_less_borel: "{x. a < x \<bullet> i} \<in> sets borel"
     and hafspace_greater_borel: "{x. x \<bullet> i < a} \<in> sets borel"
@@ -1551,7 +1551,7 @@ proof -
   with f H show ?thesis by simp
 qed
 
-lemma (*FIX ME needs a name *)
+lemma
   fixes f :: "'a \<Rightarrow> ereal" assumes f[measurable]: "f \<in> borel_measurable M"
   shows borel_measurable_ereal_abs[measurable(raw)]: "(\<lambda>x. \<bar>f x\<bar>) \<in> borel_measurable M"
     and borel_measurable_ereal_inverse[measurable(raw)]: "(\<lambda>x. inverse (f x) :: ereal) \<in> borel_measurable M"

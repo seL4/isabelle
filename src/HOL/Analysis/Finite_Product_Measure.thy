@@ -397,7 +397,7 @@ lemma sets_PiM_eq_proj:
   apply (auto intro!: arg_cong2[where f=sigma_sets])
   done
 
-lemma (*FIX ME needs name *)
+lemma
   shows space_PiM_empty: "space (Pi\<^sub>M {} M) = {\<lambda>k. undefined}"
     and sets_PiM_empty: "sets (Pi\<^sub>M {} M) = { {}, {\<lambda>k. undefined} }"
   by (simp_all add: space_PiM sets_PiM_single image_constant sigma_sets_empty_eq)

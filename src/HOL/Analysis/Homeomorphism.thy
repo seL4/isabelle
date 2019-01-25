@@ -278,7 +278,7 @@ next
   qed
 qed
 
-proposition (*FIXME needs name *)
+proposition
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 0: "0 \<in> rel_interior S"
       and star: "\<And>x. x \<in> S \<Longrightarrow> open_segment 0 x \<subseteq> rel_interior S"
@@ -540,7 +540,7 @@ proof -
     done
 qed
 
-corollary (* FIXME needs name *)
+corollary
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and a: "a \<in> rel_interior S"
       and star: "\<And>x. x \<in> S \<Longrightarrow> open_segment a x \<subseteq> rel_interior S"

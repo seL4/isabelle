@@ -9,7 +9,7 @@ this theory consists of 1 result only  *)
 imports Measure_Space Borel_Space
 begin
 
-theorem (*FIX needs name *)
+theorem
   fixes M::"'a::{second_countable_topology, complete_space} measure"
   assumes sb: "sets M = sets borel"
   assumes "emeasure M (space M) \<noteq> \<infinity>"

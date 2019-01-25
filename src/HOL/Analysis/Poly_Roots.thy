@@ -182,7 +182,7 @@ proof (induction n arbitrary: c)
    qed simp
 qed simp
 
-corollary (*FIX ME needs name *)
+corollary
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
   assumes "\<exists>k. k \<le> n \<and> c k \<noteq> 0"
     shows polyfun_rootbound_finite: "finite {z. (\<Sum>i\<le>n. c i * z^i) = 0}"

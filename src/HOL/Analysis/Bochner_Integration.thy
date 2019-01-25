@@ -1464,7 +1464,7 @@ lemma has_bochner_integral_discrete_difference:
   using integral_discrete_difference[of X M f g, OF assms]
   by (metis has_bochner_integral_iff)
 
-lemma (*FIX ME needs name *)
+lemma
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and w :: "'a \<Rightarrow> real"
   assumes "f \<in> borel_measurable M" "\<And>i. s i \<in> borel_measurable M" "integrable M w"
   assumes lim: "AE x in M. (\<lambda>i. s i x) \<longlonglongrightarrow> f x"
@@ -1697,7 +1697,7 @@ proof (safe intro!: nn_integral_eq_integral assms)
     by (simp_all add: * assms integral_nonneg_AE)
 qed
 
-lemma (* FIX ME needs name*)
+lemma
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes integrable[measurable]: "\<And>i. integrable M (f i)"
   and summable: "AE x in M. summable (\<lambda>i. norm (f i x))"
@@ -2327,7 +2327,7 @@ proof (rule integral_eq_cases)
   qed
 qed (simp add: f g integrable_density)
 
-lemma (*FIX ME needs name *)
+lemma
   fixes g :: "'a \<Rightarrow> real"
   assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "g \<in> borel_measurable M"
   shows integral_real_density: "integral\<^sup>L (density M f) g = (\<integral> x. f x * g x \<partial>M)"
@@ -2630,7 +2630,7 @@ proof -
     by (auto simp: real_integrable_def real_lebesgue_integral_def u)
 qed
 
-lemma (*FIX ME needs name *)
+lemma
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> real"
   assumes f: "\<And>i. integrable M (f i)" and mono: "AE x in M. mono (\<lambda>n. f n x)"
   and lim: "AE x in M. (\<lambda>i. f i x) \<longlonglongrightarrow> u x"
@@ -2810,7 +2810,7 @@ proof (rule tendsto_at_topI_sequentially)
   qed auto
 qed
 
-lemma (*FIX ME needs name *)
+lemma
   fixes f :: "real \<Rightarrow> real"
   assumes M: "sets M = sets borel"
   assumes nonneg: "AE x in M. 0 \<le> f x"
@@ -3154,7 +3154,7 @@ next
   qed
 qed
 
-lemma (in pair_sigma_finite) (* FIX ME needs name *)
+lemma (in pair_sigma_finite)
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
   assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) (case_prod f)"
   shows AE_integrable_fst: "AE x in M1. integrable M2 (\<lambda>y. f x y)" (is "?AE")
@@ -3162,7 +3162,7 @@ lemma (in pair_sigma_finite) (* FIX ME needs name *)
     and integral_fst: "(\<integral>x. (\<integral>y. f x y \<partial>M2) \<partial>M1) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). f x y)" (is "?EQ")
   using AE_integrable_fst'[OF f] integrable_fst'[OF f] integral_fst'[OF f] by auto
 
-lemma (in pair_sigma_finite) (* FIX ME needs name *)
+lemma (in pair_sigma_finite)
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
   assumes f[measurable]: "integrable (M1 \<Otimes>\<^sub>M M2) (case_prod f)"
   shows AE_integrable_snd: "AE y in M2. integrable M1 (\<lambda>x. f x y)" (is "?AE")

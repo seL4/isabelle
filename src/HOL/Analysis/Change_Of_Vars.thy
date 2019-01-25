@@ -963,12 +963,12 @@ proof -
   then show "f ` S \<in> lmeasurable" ?M by blast+
 qed
 
-lemma (*FIXME needs name? *)
+lemma m_diff_image_weak:
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> lmeasurable"
     and deriv: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
     and int: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) integrable_on S"
-  shows m_diff_image_weak: "f ` S \<in> lmeasurable \<and> measure lebesgue (f ` S) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
+  shows "f ` S \<in> lmeasurable \<and> measure lebesgue (f ` S) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
 proof -
   let ?\<mu> = "measure lebesgue"
   have aint_S: "(\<lambda>x. \<bar>det (matrix (f' x))\<bar>) absolutely_integrable_on S"
@@ -1161,7 +1161,7 @@ proof -
 qed
 
 
-theorem(* FIXME needs name? *)
+theorem
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes S: "S \<in> sets lebesgue"
     and deriv: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"

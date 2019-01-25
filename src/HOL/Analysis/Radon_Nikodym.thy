@@ -1022,7 +1022,7 @@ proof -
     by simp
 qed
 
-lemma (in sigma_finite_measure) (* FIXME needs name*)
+lemma (in sigma_finite_measure)
   assumes N: "sigma_finite_measure N" and ac: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>

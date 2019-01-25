@@ -104,13 +104,13 @@ lemma measurable_pair:
   shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   using measurable_Pair[OF assms] by simp
 
-lemma (*FIX ME needs a name *)
+lemma
   assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^sub>M P)"
   shows measurable_fst': "(\<lambda>x. fst (f x)) \<in> measurable M N"
     and measurable_snd': "(\<lambda>x. snd (f x)) \<in> measurable M P"
   by simp_all
 
-lemma (*FIX ME needs a name *)
+lemma
   assumes f[measurable]: "f \<in> measurable M N"
   shows measurable_fst'': "(\<lambda>x. f (fst x)) \<in> measurable (M \<Otimes>\<^sub>M P) N"
     and measurable_snd'': "(\<lambda>x. f (snd x)) \<in> measurable (P \<Otimes>\<^sub>M M) N"
