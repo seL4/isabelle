@@ -21,195 +21,7 @@ theory Brouwer_Fixpoint
     Continuous_Extension
 begin
 
-(* FIXME mv topology euclidean space *)
 subsection \<open>Retractions\<close>
-
-definition%important retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
-where "retraction S T r \<longleftrightarrow>
-  T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
-
-definition%important retract_of (infixl "retract'_of" 50) where
-"T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
-
-lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"
-  unfolding retraction_def by auto
-
-text \<open>Preservation of fixpoints under (more general notion of) retraction\<close>
-
-lemma invertible_fixpoint_property:
-  fixes S :: "'a::euclidean_space set"
-    and T :: "'b::euclidean_space set"
-  assumes contt: "continuous_on T i"
-    and "i ` T \<subseteq> S"
-    and contr: "continuous_on S r"
-    and "r ` S \<subseteq> T"
-    and ri: "\<And>y. y \<in> T \<Longrightarrow> r (i y) = y"
-    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
-    and contg: "continuous_on T g"
-    and "g ` T \<subseteq> T"
-  obtains y where "y \<in> T" and "g y = y"
-proof -
-  have "\<exists>x\<in>S. (i \<circ> g \<circ> r) x = x"
-  proof (rule FP)
-    show "continuous_on S (i \<circ> g \<circ> r)"
-      by (meson contt contr assms(4) contg assms(8) continuous_on_compose continuous_on_subset)
-    show "(i \<circ> g \<circ> r) ` S \<subseteq> S"
-      using assms(2,4,8) by force
-  qed
-  then obtain x where x: "x \<in> S" "(i \<circ> g \<circ> r) x = x" ..
-  then have *: "g (r x) \<in> T"
-    using assms(4,8) by auto
-  have "r ((i \<circ> g \<circ> r) x) = r x"
-    using x by auto
-  then show ?thesis
-    using "*" ri that by auto
-qed
-
-lemma homeomorphic_fixpoint_property:
-  fixes S :: "'a::euclidean_space set"
-    and T :: "'b::euclidean_space set"
-  assumes "S homeomorphic T"
-  shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
-         (\<forall>g. continuous_on T g \<and> g ` T \<subseteq> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
-         (is "?lhs = ?rhs")
-proof -
-  obtain r i where r:
-      "\<forall>x\<in>S. i (r x) = x" "r ` S = T" "continuous_on S r"
-      "\<forall>y\<in>T. r (i y) = y" "i ` T = S" "continuous_on T i"
-    using assms unfolding homeomorphic_def homeomorphism_def  by blast
-  show ?thesis
-  proof
-    assume ?lhs
-    with r show ?rhs
-      by (metis invertible_fixpoint_property[of T i S r] order_refl)
-  next
-    assume ?rhs
-    with r show ?lhs
-      by (metis invertible_fixpoint_property[of S r T i] order_refl)
-  qed
-qed
-
-lemma retract_fixpoint_property:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-    and S :: "'a set"
-  assumes "T retract_of S"
-    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
-    and contg: "continuous_on T g"
-    and "g ` T \<subseteq> T"
-  obtains y where "y \<in> T" and "g y = y"
-proof -
-  obtain h where "retraction S T h"
-    using assms(1) unfolding retract_of_def ..
-  then show ?thesis
-    unfolding retraction_def
-    using invertible_fixpoint_property[OF continuous_on_id _ _ _ _ FP]
-    by (metis assms(4) contg image_ident that)
-qed
-
-lemma retraction:
-  "retraction S T r \<longleftrightarrow>
-    T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
-  by (force simp: retraction_def)
-
-lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
-  assumes "retraction S T r"
-  obtains "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
-proof (rule that)
-  from retraction [of S T r] assms
-  have "T \<subseteq> S" "continuous_on S r" "r ` S = T" and "\<forall>x \<in> T. r x = x"
-    by simp_all
-  then show "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r"
-    by simp_all
-  from \<open>\<forall>x \<in> T. r x = x\<close> have "r x = x" if "x \<in> T" for x
-    using that by simp
-  with \<open>r ` S = T\<close> show "r (r x) = r x" if "x \<in> S" for x
-    using that by auto
-qed
-
-lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
-  assumes "T retract_of S"
-  obtains r where "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
-proof -
-  from assms obtain r where "retraction S T r"
-    by (auto simp add: retract_of_def)
-  with that show thesis
-    by (auto elim: retractionE)
-qed
-
-lemma retract_of_imp_extensible:
-  assumes "S retract_of T" and "continuous_on S f" and "f ` S \<subseteq> U"
-  obtains g where "continuous_on T g" "g ` T \<subseteq> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof -
-  from \<open>S retract_of T\<close> obtain r where "retraction T S r"
-    by (auto simp add: retract_of_def)
-  show thesis
-    by (rule that [of "f \<circ> r"])
-      (use \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> U\<close> \<open>retraction T S r\<close> in \<open>auto simp: continuous_on_compose2 retraction\<close>)
-qed
-
-lemma idempotent_imp_retraction:
-  assumes "continuous_on S f" and "f ` S \<subseteq> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
-    shows "retraction S (f ` S) f"
-by (simp add: assms retraction)
-
-lemma retraction_subset:
-  assumes "retraction S T r" and "T \<subseteq> s'" and "s' \<subseteq> S"
-  shows "retraction s' T r"
-  unfolding retraction_def
-  by (metis assms continuous_on_subset image_mono retraction)
-
-lemma retract_of_subset:
-  assumes "T retract_of S" and "T \<subseteq> s'" and "s' \<subseteq> S"
-    shows "T retract_of s'"
-by (meson assms retract_of_def retraction_subset)
-
-lemma retraction_refl [simp]: "retraction S S (\<lambda>x. x)"
-by (simp add: continuous_on_id retraction)
-
-lemma retract_of_refl [iff]: "S retract_of S"
-  unfolding retract_of_def retraction_def
-  using continuous_on_id by blast
-
-lemma retract_of_imp_subset:
-   "S retract_of T \<Longrightarrow> S \<subseteq> T"
-by (simp add: retract_of_def retraction_def)
-
-lemma retract_of_empty [simp]:
-     "({} retract_of S) \<longleftrightarrow> S = {}"  "(S retract_of {}) \<longleftrightarrow> S = {}"
-by (auto simp: retract_of_def retraction_def)
-
-lemma retract_of_singleton [iff]: "({x} retract_of S) \<longleftrightarrow> x \<in> S"
-  unfolding retract_of_def retraction_def by force
-
-lemma retraction_comp:
-   "\<lbrakk>retraction S T f; retraction T U g\<rbrakk>
-        \<Longrightarrow> retraction S U (g \<circ> f)"
-apply (auto simp: retraction_def intro: continuous_on_compose2)
-by blast
-
-lemma retract_of_trans [trans]:
-  assumes "S retract_of T" and "T retract_of U"
-    shows "S retract_of U"
-using assms by (auto simp: retract_of_def intro: retraction_comp)
-
-lemma closedin_retract:
-  fixes S :: "'a :: real_normed_vector set"
-  assumes "S retract_of T"
-    shows "closedin (subtopology euclidean T) S"
-proof -
-  obtain r where "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
-    using assms by (auto simp: retract_of_def retraction_def)
-  then have S: "S = {x \<in> T. (norm(r x - x)) = 0}" by auto
-  show ?thesis
-    apply (subst S)
-    apply (rule continuous_closedin_preimage_constant)
-    by (simp add: \<open>continuous_on T r\<close> continuous_on_diff continuous_on_id continuous_on_norm)
-qed
-
-lemma closedin_self [simp]:
-    fixes S :: "'a :: real_normed_vector set"
-    shows "closedin (subtopology euclidean S) S"
-  by (simp add: closedin_retract)
 
 lemma retract_of_contractible:
   assumes "contractible T" "S retract_of T"
@@ -222,19 +34,6 @@ apply (intro conjI continuous_intros continuous_on_compose)
 apply (erule continuous_on_subset | force)+
 done
 
-lemma retract_of_compact:
-     "\<lbrakk>compact T; S retract_of T\<rbrakk> \<Longrightarrow> compact S"
-  by (metis compact_continuous_image retract_of_def retraction)
-
-lemma retract_of_closed:
-    fixes S :: "'a :: real_normed_vector set"
-    shows "\<lbrakk>closed T; S retract_of T\<rbrakk> \<Longrightarrow> closed S"
-  by (metis closedin_retract closedin_closed_eq)
-
-lemma retract_of_connected:
-    "\<lbrakk>connected T; S retract_of T\<rbrakk> \<Longrightarrow> connected S"
-  by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
-
 lemma retract_of_path_connected:
     "\<lbrakk>path_connected T; S retract_of T\<rbrakk> \<Longrightarrow> path_connected S"
   by (metis path_connected_continuous_image retract_of_def retraction)
@@ -243,7 +42,7 @@ lemma retract_of_simply_connected:
     "\<lbrakk>simply_connected T; S retract_of T\<rbrakk> \<Longrightarrow> simply_connected S"
 apply (simp add: retract_of_def retraction_def, clarify)
 apply (rule simply_connected_retraction_gen)
-apply (force simp: continuous_on_id elim!: continuous_on_subset)+
+apply (force elim!: continuous_on_subset)+
 done
 
 lemma retract_of_homotopically_trivial:
@@ -297,14 +96,6 @@ lemma retract_of_locally_compact:
     fixes S :: "'a :: {heine_borel,real_normed_vector} set"
     shows  "\<lbrakk> locally compact S; T retract_of S\<rbrakk> \<Longrightarrow> locally compact T"
   by (metis locally_compact_closedin closedin_retract)
-
-lemma retract_of_Times:
-   "\<lbrakk>S retract_of s'; T retract_of t'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (s' \<times> t')"
-apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
-apply (rename_tac f g)
-apply (rule_tac x="\<lambda>z. ((f \<circ> fst) z, (g \<circ> snd) z)" in exI)
-apply (rule conjI continuous_intros | erule continuous_on_subset | force)+
-done
 
 lemma homotopic_into_retract:
    "\<lbrakk>f ` S \<subseteq> T; g ` S \<subseteq> T; T retract_of U; homotopic_with (\<lambda>x. True) S U f g\<rbrakk>
@@ -375,7 +166,7 @@ proof -
     by (simp add: \<open>a \<in> S\<close>)
   moreover have "homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
       using assms
-      by (auto simp: contractible_def continuous_on_const continuous_on_id homotopic_into_contractible image_subset_iff)
+      by (auto simp: contractible_def homotopic_into_contractible image_subset_iff)
   moreover have "(\<lambda>x. a) ` S \<subseteq> {a}"
     by (simp add: image_subsetI)
   ultimately show ?thesis
@@ -1787,32 +1578,6 @@ proof (induct s rule: finite_ne_induct)
   with * show "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. a \<le> x" "\<exists>a\<in>insert b s. \<forall>x\<in>insert b s. x \<le> a"
     using *[rule_format, of b u] *[rule_format, of b l] by (metis insert_iff order.trans)+
 qed auto
-
-(* FIXME mv *)
-lemma brouwer_compactness_lemma:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "compact s"
-    and "continuous_on s f"
-    and "\<not> (\<exists>x\<in>s. f x = 0)"
-  obtains d where "0 < d" and "\<forall>x\<in>s. d \<le> norm (f x)"
-proof (cases "s = {}")
-  case True
-  show thesis
-    by (rule that [of 1]) (auto simp: True)
-next
-  case False
-  have "continuous_on s (norm \<circ> f)"
-    by (rule continuous_intros continuous_on_norm assms(2))+
-  with False obtain x where x: "x \<in> s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
-    using continuous_attains_inf[OF assms(1), of "norm \<circ> f"]
-    unfolding o_def
-    by auto
-  have "(norm \<circ> f) x > 0"
-    using assms(3) and x(1)
-    by auto
-  then show ?thesis
-    by (rule that) (insert x(2), auto simp: o_def)
-qed
 
 lemma kuhn_labelling_lemma:
   fixes P Q :: "'a::euclidean_space \<Rightarrow> bool"

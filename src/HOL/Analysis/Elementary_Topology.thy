@@ -1558,6 +1558,31 @@ qed
 
 subsection \<open>Compactness\<close>
 
+lemma brouwer_compactness_lemma:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "compact s"
+    and "continuous_on s f"
+    and "\<not> (\<exists>x\<in>s. f x = 0)"
+  obtains d where "0 < d" and "\<forall>x\<in>s. d \<le> norm (f x)"
+proof (cases "s = {}")
+  case True
+  show thesis
+    by (rule that [of 1]) (auto simp: True)
+next
+  case False
+  have "continuous_on s (norm \<circ> f)"
+    by (rule continuous_intros continuous_on_norm assms(2))+
+  with False obtain x where x: "x \<in> s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
+    using continuous_attains_inf[OF assms(1), of "norm \<circ> f"]
+    unfolding o_def
+    by auto
+  have "(norm \<circ> f) x > 0"
+    using assms(3) and x(1)
+    by auto
+  then show ?thesis
+    by (rule that) (insert x(2), auto simp: o_def)
+qed
+
 subsubsection \<open>Bolzano-Weierstrass property\<close>
 
 proposition Heine_Borel_imp_Bolzano_Weierstrass:
