@@ -591,13 +591,12 @@ fun print_computation kind ctxt T =
 
 fun print_computation_check ctxt =
   print (fn { of_term_for_typ, ... } => fn prfx =>
-    space_implode " " [
+    enclose "(" ")" (space_implode " " [
       mount_computation_checkN,
       "(Context.proof_of (Context.the_generic_context ()))",
       Long_Name.implode [prfx, generated_computationN, covered_constsN],
       Long_Name.append prfx (of_term_for_typ \<^typ>\<open>prop\<close>)
-    ]) ctxt;
-
+    ])) ctxt;
 
 fun add_all_constrs ctxt (dT as Type (tyco, Ts)) =
   case Code.get_type (Proof_Context.theory_of ctxt) tyco of
