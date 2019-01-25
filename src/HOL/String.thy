@@ -648,14 +648,19 @@ code_printing
     and (Scala) infixl 7 "+"
 | constant String.literal_of_asciis \<rightharpoonup>
     (SML) "!(String.implode/ o map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
-    and (OCaml) "!(let ks = _ in let res = Bytes.create (List.length ks) in let rec imp i = function | [] -> res | k :: ks ->
-      let l = Big'_int.int'_of'_big'_int k in if 0 <= l && l < 128 then Bytes.set res i (Char.chr l) else failwith \"Non-ASCII character in literal\"; imp (i + 1) ks in imp 0 ks)"
+    and (OCaml) "!(let xs = _
+      and chr k =
+        let l = Big'_int.int'_of'_big'_int k
+          in if 0 <= l && l < 128
+          then Char.chr l
+          else failwith \"Non-ASCII character in literal\"
+      in String.init (List.length xs) (List.nth (List.map chr xs)))"
     and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
     and (Scala) "\"\"/ ++/ _.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\"))"
 | constant String.asciis_of_literal \<rightharpoonup>
     (SML) "!(map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end) /o String.explode)"
-    and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (Bytes.get s i) in
-      if k < 128 then Big'_int.big'_int'_of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (Bytes.length s - 1) [])"
+    and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (String.get s i) in
+      if k < 128 then Big'_int.big'_int'_of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (String.length s - 1) [])"
     and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
     and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; if (k < 128) BigInt(k) else sys.error(\"Non-ASCII character in literal\") }))"
 | class_instance String.literal :: equal \<rightharpoonup>
@@ -668,10 +673,10 @@ code_printing
 | constant "(\<le>) :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) <= _)"
     and (OCaml) "!((_ : string) <= _)"
+    and (Haskell) infix 4 "<="
     \<comment> \<open>Order operations for \<^typ>\<open>String.literal\<close> work in Haskell only
           if no type class instance needs to be generated, because String = [Char] in Haskell
           and \<^typ>\<open>char list\<close> need not have the same order as \<^typ>\<open>String.literal\<close>.\<close>
-    and (Haskell) infix 4 "<="
     and (Scala) infixl 4 "<="
     and (Eval) infixl 6 "<="
 | constant "(<) :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>

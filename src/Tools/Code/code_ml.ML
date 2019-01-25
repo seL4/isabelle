@@ -887,7 +887,7 @@ val _ = Theory.setup
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
       check = {env_var = "ISABELLE_OCAML",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
-        make_command = fn _ => "\"$ISABELLE_OCAML\" -w pu nums.cma ROOT.ocaml"},
+        make_command = fn _ => "\"$ISABELLE_OCAML\" -w pu -safe-string nums.cma ROOT.ocaml"},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))
