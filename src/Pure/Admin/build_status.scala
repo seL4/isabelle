@@ -320,7 +320,7 @@ object Build_Status
               }
 
             if ((!afp || chapter == "AFP") &&
-                (!profile.bulky || groups.contains(AFP.groups_bulky.toSet))) {
+                (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
               data_entries += (data_name -> (sessions + (session_name -> session)))
             }
           }
