@@ -2359,8 +2359,8 @@ lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Lon
 text \<open>Preservation of fixpoints under (more general notion of) retraction\<close>
 
 lemma invertible_fixpoint_property:
-  fixes S :: "'a::euclidean_space set"
-    and T :: "'b::euclidean_space set"
+  fixes S :: "'a::topological_space set"
+    and T :: "'b::topological_space set"
   assumes contt: "continuous_on T i"
     and "i ` T \<subseteq> S"
     and contr: "continuous_on S r"
@@ -2388,8 +2388,8 @@ proof -
 qed
 
 lemma homeomorphic_fixpoint_property:
-  fixes S :: "'a::euclidean_space set"
-    and T :: "'b::euclidean_space set"
+  fixes S :: "'a::topological_space set"
+    and T :: "'b::topological_space set"
   assumes "S homeomorphic T"
   shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
          (\<forall>g. continuous_on T g \<and> g ` T \<subseteq> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
@@ -2412,7 +2412,7 @@ proof -
 qed
 
 lemma retract_fixpoint_property:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
     and S :: "'a set"
   assumes "T retract_of S"
     and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
@@ -2515,26 +2515,28 @@ lemma retract_of_trans [trans]:
 using assms by (auto simp: retract_of_def intro: retraction_comp)
 
 lemma closedin_retract:
-  fixes S :: "'a :: real_normed_vector set"
+  fixes S :: "'a :: t2_space set"
   assumes "S retract_of T"
     shows "closedin (subtopology euclidean T) S"
 proof -
-  obtain r where "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
+  obtain r where r: "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
     using assms by (auto simp: retract_of_def retraction_def)
-  then have S: "S = {x \<in> T. (norm(r x - x)) = 0}" by auto
-  show ?thesis
-    apply (subst S)
-    apply (rule continuous_closedin_preimage_constant)
-    by (simp add: \<open>continuous_on T r\<close> continuous_on_diff continuous_on_norm)
+  have "S = {x\<in>T. x = r x}"
+    using r by auto
+  also have "\<dots> = T \<inter> ((\<lambda>x. (x, r x)) -` ({y. \<exists>x. y = (x, x)}))"
+    unfolding vimage_def mem_Times_iff fst_conv snd_conv
+    using r
+    by auto
+  also have "closedin (top_of_set T) \<dots>"
+    by (rule continuous_closedin_preimage) (auto intro!: closed_diagonal continuous_on_Pair r)
+  finally show ?thesis .
 qed
 
-lemma closedin_self [simp]:
-    fixes S :: "'a :: real_normed_vector set"
-    shows "closedin (subtopology euclidean S) S"
-  by (simp add: closedin_retract)
+lemma closedin_self [simp]: "closedin (subtopology euclidean S) S"
+  by simp
 
 lemma retract_of_closed:
-    fixes S :: "'a :: real_normed_vector set"
+    fixes S :: "'a :: t2_space set"
     shows "\<lbrakk>closed T; S retract_of T\<rbrakk> \<Longrightarrow> closed S"
   by (metis closedin_retract closedin_closed_eq)
 
