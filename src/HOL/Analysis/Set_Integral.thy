@@ -319,11 +319,11 @@ proof (rule integral_cong_AE)
     using ae by (auto simp: subset_eq split: split_indicator)
 qed (use assms in \<open>auto simp: set_borel_measurable_def\<close>)
 
-lemma%important set_borel_measurable_subset:
+proposition set_borel_measurable_subset:
   fixes f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
   assumes [measurable]: "set_borel_measurable M A f" "B \<in> sets M" and "B \<subseteq> A"
   shows "set_borel_measurable M B f"
-proof%unimportant-
+proof-
   have "set_borel_measurable M B (\<lambda>x. indicator A x *\<^sub>R f x)"
     using assms unfolding set_borel_measurable_def
     using borel_measurable_indicator borel_measurable_scaleR by blast 
@@ -360,13 +360,13 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%important set_integral_finite_Union:
+lemma set_integral_finite_Union:
   fixes f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
   assumes "finite I" "disjoint_family_on A I"
     and "\<And>i. i \<in> I \<Longrightarrow> set_integrable M (A i) f" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
   shows "(LINT x:(\<Union>i\<in>I. A i)|M. f x) = (\<Sum>i\<in>I. LINT x:A i|M. f x)"
   using assms
-proof%unimportant induction
+proof induction
   case (insert x F)
   then have "A x \<inter> \<Union>(A ` F) = {}"
     by (meson disjoint_family_on_insert)
@@ -410,7 +410,7 @@ proof (rule AE_I2)
 qed
 
 (* Proof from Royden Real Analysis, p. 91. *)
-lemma%important lebesgue_integral_countable_add:
+lemma lebesgue_integral_countable_add:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes meas[intro]: "\<And>i::nat. A i \<in> sets M"
     and disj: "\<And>i j. i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
@@ -639,7 +639,7 @@ proof (rule nn_integral_cong_AE, auto simp add: indicator_def)
     using * by auto
 qed
 
-lemma nn_integral_disjoint_family:
+proposition nn_integral_disjoint_family:
   assumes [measurable]: "f \<in> borel_measurable M" "\<And>(n::nat). B n \<in> sets M"
       and "disjoint_family B"
   shows "(\<integral>\<^sup>+x \<in> (\<Union>n. B n). f x \<partial>M) = (\<Sum>n. (\<integral>\<^sup>+x \<in> B n. f x \<partial>M))"
@@ -825,12 +825,12 @@ variations) are known as Scheffe lemma.
 The formalization is more painful as one should jump back and forth between reals and ereals and justify
 all the time positivity or integrability (thankfully, measurability is handled more or less automatically).\<close>
 
-lemma%important Scheffe_lemma1:
+proposition Scheffe_lemma1:
   assumes "\<And>n. integrable M (F n)" "integrable M f"
           "AE x in M. (\<lambda>n. F n x) \<longlonglongrightarrow> f x"
           "limsup (\<lambda>n. \<integral>\<^sup>+ x. norm(F n x) \<partial>M) \<le> (\<integral>\<^sup>+ x. norm(f x) \<partial>M)"
   shows "(\<lambda>n. \<integral>\<^sup>+ x. norm(F n x - f x) \<partial>M) \<longlonglongrightarrow> 0"
-proof%unimportant -
+proof -
   have [measurable]: "\<And>n. F n \<in> borel_measurable M" "f \<in> borel_measurable M"
     using assms(1) assms(2) by simp_all
   define G where "G = (\<lambda>n x. norm(f x) + norm(F n x) - norm(F n x - f x))"
@@ -921,26 +921,26 @@ proof%unimportant -
     by (rule tendsto_0_if_Limsup_eq_0_ennreal)
 qed
 
-lemma%important Scheffe_lemma2:
+proposition Scheffe_lemma2:
   fixes F::"nat \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes "\<And> n::nat. F n \<in> borel_measurable M" "integrable M f"
           "AE x in M. (\<lambda>n. F n x) \<longlonglongrightarrow> f x"
           "\<And>n. (\<integral>\<^sup>+ x. norm(F n x) \<partial>M) \<le> (\<integral>\<^sup>+ x. norm(f x) \<partial>M)"
   shows "(\<lambda>n. \<integral>\<^sup>+ x. norm(F n x - f x) \<partial>M) \<longlonglongrightarrow> 0"
-proof%unimportant (rule Scheffe_lemma1)
+proof (rule Scheffe_lemma1)
   fix n::nat
   have "(\<integral>\<^sup>+ x. norm(f x) \<partial>M) < \<infinity>" using assms(2) by (metis has_bochner_integral_implies_finite_norm integrable.cases)
   then have "(\<integral>\<^sup>+ x. norm(F n x) \<partial>M) < \<infinity>" using assms(4)[of n] by auto
   then show "integrable M (F n)" by (subst integrable_iff_bounded, simp add: assms(1)[of n])
 qed (auto simp add: assms Limsup_bounded)
 
-lemma%important tendsto_set_lebesgue_integral_at_right:
+lemma tendsto_set_lebesgue_integral_at_right:
   fixes a b :: real and f :: "real \<Rightarrow> 'a :: {banach,second_countable_topology}"
   assumes "a < b" and sets: "\<And>a'. a' \<in> {a<..b} \<Longrightarrow> {a'..b} \<in> sets M"
       and "set_integrable M {a<..b} f"
   shows   "((\<lambda>a'. set_lebesgue_integral M {a'..b} f) \<longlongrightarrow>
              set_lebesgue_integral M {a<..b} f) (at_right a)"
-proof%unimportant (rule tendsto_at_right_sequentially[OF assms(1)], goal_cases)
+proof (rule tendsto_at_right_sequentially[OF assms(1)], goal_cases)
   case (1 S)
   have eq: "(\<Union>n. {S n..b}) = {a<..b}"
   proof safe
@@ -961,13 +961,13 @@ text \<open>
   The next lemmas relate convergence of integrals over an interval to
   improper integrals.
 \<close>
-lemma%important tendsto_set_lebesgue_integral_at_left:
+lemma tendsto_set_lebesgue_integral_at_left:
   fixes a b :: real and f :: "real \<Rightarrow> 'a :: {banach,second_countable_topology}"
   assumes "a < b" and sets: "\<And>b'. b' \<in> {a..<b} \<Longrightarrow> {a..b'} \<in> sets M"
       and "set_integrable M {a..<b} f"
   shows   "((\<lambda>b'. set_lebesgue_integral M {a..b'} f) \<longlongrightarrow>
              set_lebesgue_integral M {a..<b} f) (at_left b)"
-proof%unimportant (rule tendsto_at_left_sequentially[OF assms(1)], goal_cases)
+proof (rule tendsto_at_left_sequentially[OF assms(1)], goal_cases)
   case (1 S)
   have eq: "(\<Union>n. {a..S n}) = {a..<b}"
   proof safe
@@ -983,12 +983,12 @@ proof%unimportant (rule tendsto_at_left_sequentially[OF assms(1)], goal_cases)
   with eq show ?case by simp
 qed
 
-lemma%important tendsto_set_lebesgue_integral_at_top:
+proposition tendsto_set_lebesgue_integral_at_top:
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
   assumes sets: "\<And>b. b \<ge> a \<Longrightarrow> {a..b} \<in> sets M"
       and int: "set_integrable M {a..} f"
   shows "((\<lambda>b. set_lebesgue_integral M {a..b} f) \<longlongrightarrow> set_lebesgue_integral M {a..} f) at_top"
-proof%unimportant (rule tendsto_at_topI_sequentially)
+proof (rule tendsto_at_topI_sequentially)
   fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
   show "(\<lambda>n. set_lebesgue_integral M {a..X n} f) \<longlonglongrightarrow> set_lebesgue_integral M {a..} f"
     unfolding set_lebesgue_integral_def
@@ -1020,12 +1020,12 @@ proof%unimportant (rule tendsto_at_topI_sequentially)
   qed
 qed
 
-lemma%important tendsto_set_lebesgue_integral_at_bot:
+proposition tendsto_set_lebesgue_integral_at_bot:
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
   assumes sets: "\<And>a. a \<le> b \<Longrightarrow> {a..b} \<in> sets M"
       and int: "set_integrable M {..b} f"
     shows "((\<lambda>a. set_lebesgue_integral M {a..b} f) \<longlongrightarrow> set_lebesgue_integral M {..b} f) at_bot"
-proof%unimportant (rule tendsto_at_botI_sequentially)
+proof (rule tendsto_at_botI_sequentially)
   fix X :: "nat \<Rightarrow> real" assume "filterlim X at_bot sequentially"
   show "(\<lambda>n. set_lebesgue_integral M {X n..b} f) \<longlonglongrightarrow> set_lebesgue_integral M {..b} f"
     unfolding set_lebesgue_integral_def

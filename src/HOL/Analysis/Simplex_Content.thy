@@ -5,7 +5,7 @@
    The content of an n-dimensional simplex, including the formula for the content of a
    triangle and Heron's formula.
 *)
-section%important \<open>Volume of a Simplex\<close>
+section \<open>Volume of a Simplex\<close>
 
 theory Simplex_Content
 imports Change_Of_Vars
@@ -28,13 +28,13 @@ lemma emeasure_std_simplex_aux_step:
   using assms sum_nonneg[of A x] unfolding S_def
   by (force simp: sum_delta_notmem algebra_simps)
 
-lemma%important emeasure_std_simplex_aux:
+lemma emeasure_std_simplex_aux:
   fixes t :: real
   assumes "finite (A :: 'a set)" "t \<ge> 0"
   shows   "emeasure (Pi\<^sub>M A (\<lambda>_. lborel)) 
              (S A t \<inter> space (Pi\<^sub>M A (\<lambda>_. lborel))) = t ^ card A / fact (card A)"
   using assms(1,2)
-proof%unimportant (induction arbitrary: t rule: finite_induct)
+proof (induction arbitrary: t rule: finite_induct)
   case (empty t)
   thus ?case by (simp add: PiM_empty S_def)
 next
@@ -112,18 +112,18 @@ proof -
   finally show ?thesis by (simp only: std_simplex)
 qed
 
-theorem%important content_std_simplex:
+theorem content_std_simplex:
   "measure lborel (convex hull (insert 0 Basis :: 'a :: euclidean_space set)) =
      1 / fact DIM('a)"
-  by%unimportant (simp add: measure_def emeasure_std_simplex)
+  by (simp add: measure_def emeasure_std_simplex)
 
 (* TODO: move to Change_of_Vars *)
-lemma%important measure_lebesgue_linear_transformation:
+proposition measure_lebesgue_linear_transformation:
   fixes A :: "(real ^ 'n :: {finite, wellorder}) set"
   fixes f :: "_ \<Rightarrow> real ^ 'n :: {finite, wellorder}"
   assumes "bounded A" "A \<in> sets lebesgue" "linear f"
   shows   "measure lebesgue (f ` A) = \<bar>det (matrix f)\<bar> * measure lebesgue A"
-proof%unimportant -
+proof -
   from assms have [intro]: "A \<in> lmeasurable"
     by (intro bounded_set_imp_lmeasurable) auto
   hence [intro]: "f ` A \<in> lmeasurable"
@@ -143,12 +143,12 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-theorem%important content_simplex:
+theorem content_simplex:
   fixes X :: "(real ^ 'n :: {finite, wellorder}) set" and f :: "'n :: _ \<Rightarrow> real ^ ('n :: _)"
   assumes "finite X" "card X = Suc CARD('n)" and x0: "x0 \<in> X" and bij: "bij_betw f UNIV (X - {x0})"
   defines "M \<equiv> (\<chi> i. \<chi> j. f j $ i - x0 $ i)"
   shows "content (convex hull X) = \<bar>det M\<bar> / fact (CARD('n))"
-proof%unimportant -
+proof -
   define g where "g = (\<lambda>x. M *v x)"
   have [simp]: "M *v axis i 1 = f i - x0" for i :: 'n
     by (simp add: M_def matrix_vector_mult_basis column_def vec_eq_iff)
@@ -184,11 +184,11 @@ proof%unimportant -
     using finite_imp_compact_convex_hull[OF \<open>finite X\<close>] by (auto dest: compact_imp_closed)
 qed
 
-theorem%important content_triangle:
+theorem content_triangle:
   fixes A B C :: "real ^ 2"
   shows "content (convex hull {A, B, C}) =
            \<bar>(C $ 1 - A $ 1) * (B $ 2 - A $ 2) - (B $ 1 - A $ 1) * (C $ 2 - A $ 2)\<bar> / 2"
-proof%unimportant -
+proof -
   define M :: "real ^ 2 ^ 2" where "M \<equiv> (\<chi> i. \<chi> j. (if j = 1 then B else C) $ i - A $ i)"
   define g where "g = (\<lambda>x. M *v x)"
   define std where "std = (convex hull insert 0 Basis :: (real ^ 2) set)"
@@ -228,12 +228,12 @@ proof%unimportant -
     by (auto dest!: compact_imp_closed simp: det_2 M_def)
 qed
 
-theorem%important heron:
+theorem heron:
   fixes A B C :: "real ^ 2"
   defines "a \<equiv> dist B C" and "b \<equiv> dist A C" and "c \<equiv> dist A B"
   defines "s \<equiv> (a + b + c) / 2"
   shows   "content (convex hull {A, B, C}) = sqrt (s * (s - a) * (s - b) * (s - c))"
-proof%unimportant -
+proof -
   have [simp]: "(UNIV :: 2 set) = {1, 2}"
     using exhaust_2 by auto
   have dist_eq: "dist (A :: real ^ 2) B ^ 2 = (A $ 1 - B $ 1) ^ 2 + (A $ 2 - B $ 2) ^ 2"
