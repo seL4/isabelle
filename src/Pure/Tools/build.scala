@@ -233,7 +233,8 @@ object Build
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
         def save_heap: String =
-          (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
+          (if (info.theories.isEmpty) ""
+           else """cond_timeit true "share_common_data" ML_Heap.share_common_data; """) +
             "ML_Heap.save_child " +
             ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
 
