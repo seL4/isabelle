@@ -3002,9 +3002,9 @@ allows to adjust large-scale tests (e.g. AFP) to overall hardware
 performance.
 
 * Property values in etc/symbols may contain spaces, if written with the
-replacement character "?" (Unicode point 0x2324). For example:
+replacement character "␣" (Unicode point 0x2324). For example:
 
-    \<star>  code: 0x0022c6  group: operator  font: Deja?Vu?Sans?Mono
+    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.
