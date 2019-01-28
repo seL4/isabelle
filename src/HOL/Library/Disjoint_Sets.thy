@@ -169,7 +169,7 @@ proof (intro ballI impI)
 qed
 
 lemma disjoint_UN:
-  assumes F: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)" and *: "disjoint_family_on (\<lambda>i. \<Union>F i) I"
+  assumes F: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)" and *: "disjoint_family_on (\<lambda>i. \<Union>(F i)) I"
   shows "disjoint (\<Union>i\<in>I. F i)"
 proof (safe intro!: disjointI del: equalityI)
   fix A B i j assume "A \<noteq> B" "A \<in> F i" "i \<in> I" "B \<in> F j" "j \<in> I"
@@ -179,7 +179,7 @@ proof (safe intro!: disjointI del: equalityI)
       by (auto dest: disjointD)
   next
     assume "i \<noteq> j"
-    with * \<open>i\<in>I\<close> \<open>j\<in>I\<close> have "(\<Union>F i) \<inter> (\<Union>F j) = {}"
+    with * \<open>i\<in>I\<close> \<open>j\<in>I\<close> have "(\<Union>(F i)) \<inter> (\<Union>(F j)) = {}"
       by (rule disjoint_family_onD)
     with \<open>A\<in>F i\<close> \<open>i\<in>I\<close> \<open>B\<in>F j\<close> \<open>j\<in>I\<close>
     show "A \<inter> B = {}"

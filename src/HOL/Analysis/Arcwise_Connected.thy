@@ -13,7 +13,7 @@ subsection \<open>The Brouwer reduction theorem\<close>
 theorem Brouwer_reduction_theorem_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "closed S" "\<phi> S"
-      and \<phi>: "\<And>F. \<lbrakk>\<And>n. closed(F n); \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>range F)"
+      and \<phi>: "\<And>F. \<lbrakk>\<And>n. closed(F n); \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>(range F))"
   obtains T where "T \<subseteq> S" "closed T" "\<phi> T" "\<And>U. \<lbrakk>U \<subseteq> S; closed U; \<phi> U\<rbrakk> \<Longrightarrow> \<not> (U \<subset> T)"
 proof -
   obtain B :: "nat \<Rightarrow> 'a set"
@@ -36,7 +36,7 @@ proof -
     by (induction n) (auto simp: assms ASuc dest!: someI_ex)
   show ?thesis
   proof
-    show "\<Inter>range A \<subseteq> S"
+    show "\<Inter>(range A) \<subseteq> S"
       using \<open>\<And>n. A n \<subseteq> S\<close> by blast
     show "closed (\<Inter>(A ` UNIV))"
       using clo by blast
@@ -81,7 +81,7 @@ qed
 corollary Brouwer_reduction_theorem:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" "\<phi> S" "S \<noteq> {}"
-      and \<phi>: "\<And>F. \<lbrakk>\<And>n. compact(F n); \<And>n. F n \<noteq> {}; \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>range F)"
+      and \<phi>: "\<And>F. \<lbrakk>\<And>n. compact(F n); \<And>n. F n \<noteq> {}; \<And>n. \<phi>(F n); \<And>n. F(Suc n) \<subseteq> F n\<rbrakk> \<Longrightarrow> \<phi>(\<Inter>(range F))"
   obtains T where "T \<subseteq> S" "compact T" "T \<noteq> {}" "\<phi> T"
                   "\<And>U. \<lbrakk>U \<subseteq> S; closed U; U \<noteq> {}; \<phi> U\<rbrakk> \<Longrightarrow> \<not> (U \<subset> T)"
 proof (rule Brouwer_reduction_theorem_gen [of S "\<lambda>T. T \<noteq> {} \<and> T \<subseteq> S \<and> \<phi> T"])

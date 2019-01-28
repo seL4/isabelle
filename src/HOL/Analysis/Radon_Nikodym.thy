@@ -837,7 +837,7 @@ next
     show "range (\<lambda>(i, j). A i \<inter> Q j) \<subseteq> sets (density M f)"
       using A_in_sets by auto
   next
-    have "\<Union>range (\<lambda>(i, j). A i \<inter> Q j) = (\<Union>i j. A i \<inter> Q j)"
+    have "\<Union>(range (\<lambda>(i, j). A i \<inter> Q j)) = (\<Union>i j. A i \<inter> Q j)"
       by auto
     also have "\<dots> = (\<Union>i. A i) \<inter> space M" using Q by auto
     also have "(\<Union>i. A i) = space M"
@@ -856,7 +856,7 @@ next
           using x real by (auto simp: A_def ennreal_of_nat_eq_real_of_nat intro!: exI[of _ "Suc n"])
       qed
     qed (auto simp: A_def)
-    finally show "\<Union>range (\<lambda>(i, j). A i \<inter> Q j) = space ?N" by simp
+    finally show "\<Union>(range (\<lambda>(i, j). A i \<inter> Q j)) = space ?N" by simp
   next
     fix X assume "X \<in> range (\<lambda>(i, j). A i \<inter> Q j)"
     then obtain i j where [simp]:"X = A i \<inter> Q j" by auto

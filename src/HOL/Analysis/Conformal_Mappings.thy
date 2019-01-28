@@ -457,7 +457,7 @@ proof -
     ultimately show ?thesis
       by (rule *)
   qed
-  then have "open (f ` \<Union>components U)"
+  then have "open (f ` \<Union>(components U))"
     by (metis (no_types, lifting) imageE image_Union open_Union)
   then show ?thesis
     by force

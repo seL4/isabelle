@@ -32,15 +32,15 @@ next
     show ?thesis
     proof(cases "x \<le> \<Squnion>A")
       case True
-      have "\<Squnion>insert x A \<le> \<Squnion>A" using chain
+      have "\<Squnion>(insert x A) \<le> \<Squnion>A" using chain
         by(rule ccpo_Sup_least)(auto simp add: True intro: ccpo_Sup_upper[OF chain'])
-      hence "\<Squnion>insert x A = \<Squnion>A"
+      hence "\<Squnion>(insert x A) = \<Squnion>A"
         by(rule antisym)(blast intro: ccpo_Sup_upper[OF chain] ccpo_Sup_least[OF chain'])
       with \<open>\<Squnion>A \<in> A\<close> show ?thesis by simp
     next
       case False
       with chainD[OF chain, of x "\<Squnion>A"] \<open>\<Squnion>A \<in> A\<close>
-      have "\<Squnion>insert x A = x"
+      have "\<Squnion>(insert x A) = x"
         by(auto intro: antisym ccpo_Sup_least[OF chain] order_trans[OF ccpo_Sup_upper[OF chain']] ccpo_Sup_upper[OF chain])
       thus ?thesis by simp
     qed

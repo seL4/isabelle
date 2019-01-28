@@ -26,7 +26,7 @@ datatype ('a, 'b) "term" =
 text \<open>The set of variables of a term might be computed as follows.\<close>
 fun term_vars :: "('a, 'b) term \<Rightarrow> 'b set" where
   "term_vars (Var x) = {x}" |
-  "term_vars (Fun f ts) = \<Union>set (map term_vars ts)"
+  "term_vars (Fun f ts) = \<Union>(set (map term_vars ts))"
 
 text \<open>However, also for \emph{rules} (i.e., pairs of terms) and term
 rewrite systems (i.e., sets of rules), the set of variables makes

@@ -529,7 +529,7 @@ proof (intro sigma_eqI sigma_sets_eqI)
     from ex_countable_basis obtain B :: "'a set set" where
       B:  "\<And>b. b \<in> B \<Longrightarrow> open b" "\<And>X. open X \<Longrightarrow> \<exists>b\<subseteq>B. (\<Union>b) = X" and "countable B"
       by (auto simp: topological_basis_def)
-    from B(2)[OF K] obtain m where m: "\<And>k. k \<in> K \<Longrightarrow> m k \<subseteq> B" "\<And>k. k \<in> K \<Longrightarrow> (\<Union>m k) = k"
+    from B(2)[OF K] obtain m where m: "\<And>k. k \<in> K \<Longrightarrow> m k \<subseteq> B" "\<And>k. k \<in> K \<Longrightarrow> \<Union>(m k) = k"
       by metis
     define U where "U = (\<Union>k\<in>K. m k)"
     with m have "countable U"

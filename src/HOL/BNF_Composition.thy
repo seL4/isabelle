@@ -75,7 +75,7 @@ lemma conj_subset_def: "A \<subseteq> {x. P x \<and> Q x} = (A \<subseteq> {x. P
 lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f x \<subseteq> X})"
   by blast
 
-lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
+lemma comp_set_bd_Union_o_collect: "|\<Union>(\<Union>((\<lambda>f. f x) ` X))| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
   by (unfold comp_apply collect_def) simp
 
 lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"

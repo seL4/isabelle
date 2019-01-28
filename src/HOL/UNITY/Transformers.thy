@@ -383,7 +383,7 @@ lemma wens_single_finite_Un_eq:
 by (simp add: wens_single_finite_Suc [symmetric]) 
 
 lemma wens_single_eq_Union:
-      "wens_single act B = \<Union>range (wens_single_finite act B)" 
+      "wens_single act B = \<Union>(range (wens_single_finite act B))" 
 by (simp add: wens_single_finite_def wens_single_def, blast) 
 
 lemma wens_single_finite_eq_Union:

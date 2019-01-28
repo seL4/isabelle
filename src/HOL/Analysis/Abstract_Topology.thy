@@ -3090,7 +3090,7 @@ next
   assume \<U>: "Ball \<U> (openin X) \<and> C \<subseteq> \<Union>\<U>"
   have "(\<forall>U\<in>insert (topspace X - C) \<U>. openin X U)"
     using XC \<U> by blast
-  moreover have "K \<subseteq> \<Union>insert (topspace X - C) \<U>"
+  moreover have "K \<subseteq> \<Union>(insert (topspace X - C) \<U>)"
     using \<U> XK compactin_subset_topspace by fastforce
   ultimately obtain \<F> where "finite \<F>" "\<F> \<subseteq> insert (topspace X - C) \<U>" "K \<subseteq> \<Union>\<F>"
     using assms unfolding compactin_def by metis

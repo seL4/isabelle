@@ -898,7 +898,7 @@ qed
 lemma compact_nest:
   fixes F :: "'a::linorder \<Rightarrow> 'b::heine_borel set"
   assumes F: "\<And>n. compact(F n)" "\<And>n. F n \<noteq> {}" and mono: "\<And>m n. m \<le> n \<Longrightarrow> F n \<subseteq> F m"
-  shows "\<Inter>range F \<noteq> {}"
+  shows "\<Inter>(range F) \<noteq> {}"
 proof -
   have *: "\<And>S T. S \<in> range F \<and> T \<in> range F \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
     by (metis mono image_iff le_cases)

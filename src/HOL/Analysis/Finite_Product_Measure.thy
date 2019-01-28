@@ -970,7 +970,7 @@ proof
 
   obtain F where F: "\<And>j. countable (F j)" "\<And>j f. f \<in> F j \<Longrightarrow> f \<in> sets (M j)"
     "\<And>j f. f \<in> F j \<Longrightarrow> emeasure (M j) f \<noteq> \<infinity>" and
-    in_space: "\<And>j. space (M j) = (\<Union>F j)"
+    in_space: "\<And>j. space (M j) = \<Union>(F j)"
     using sigma_finite_countable by (metis subset_eq)
   moreover have "(\<Union>(Pi\<^sub>E I ` Pi\<^sub>E I F)) = space (Pi\<^sub>M I M)"
     using in_space by (auto simp: space_PiM PiE_iff intro!: PiE_choice[THEN iffD2])

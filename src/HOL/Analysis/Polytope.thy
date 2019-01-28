@@ -468,28 +468,28 @@ proof (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le
       by (simp add: aff_dim_le_DIM)
   next
     case (Suc n)
-    have fs: "\<Inter>d (Suc n) face_of S"
+    have fs: "\<Inter>(d (Suc n)) face_of S"
       by (meson Suc.prems cfaI dn_le_Suc dn_notempty face_of_Inter subsetCE)
-    have condn: "convex (\<Inter>d n)"
+    have condn: "convex (\<Inter>(d n))"
       using Suc.prems nat_le_linear not_less_eq_eq
       by (blast intro: face_of_imp_convex cfaI convex_Inter dest: dn_le_Suc)
-    have fdn: "\<Inter>d (Suc n) face_of \<Inter>d n"
+    have fdn: "\<Inter>(d (Suc n)) face_of \<Inter>(d n)"
       by (metis (no_types, lifting) Inter_anti_mono Suc.prems dSuc cfaI dn_le_Suc dn_notempty face_of_Inter face_of_imp_subset face_of_subset subset_iff subset_insertI)
-    have ne: "\<Inter>d (Suc n) \<noteq> \<Inter>d n"
+    have ne: "\<Inter>(d (Suc n)) \<noteq> \<Inter>(d n)"
       by (metis (no_types, lifting) Suc.prems Suc_leD c complete_lattice_class.Inf_insert dSuc dn_le_Suc less_irrefl order.trans)
     have *: "\<And>m::int. \<And>d. \<And>d'::int. d < d' \<and> d' \<le> m - n \<Longrightarrow> d \<le> m - of_nat(n+1)"
       by arith
-    have "aff_dim (\<Inter>d (Suc n)) < aff_dim (\<Inter>d n)"
+    have "aff_dim (\<Inter>(d (Suc n))) < aff_dim (\<Inter>(d n))"
       by (rule face_of_aff_dim_lt [OF condn fdn ne])
-    moreover have "aff_dim (\<Inter>d n) \<le> int (DIM('a)) - int n"
+    moreover have "aff_dim (\<Inter>(d n)) \<le> int (DIM('a)) - int n"
       using Suc by auto
     ultimately
-    have "aff_dim (\<Inter>d (Suc n)) \<le> int (DIM('a)) - (n+1)" by arith
+    have "aff_dim (\<Inter>(d (Suc n))) \<le> int (DIM('a)) - (n+1)" by arith
     then show ?case by linarith
   qed
-  have "aff_dim (\<Inter>d (DIM('a) + 2)) \<le> -2"
+  have "aff_dim (\<Inter>(d (DIM('a) + 2))) \<le> -2"
       using aff_dim_le [OF order_refl] by simp
-  with aff_dim_geq [of "\<Inter>d (DIM('a) + 2)"] show ?thesis
+  with aff_dim_geq [of "\<Inter>(d (DIM('a) + 2))"] show ?thesis
     using order.trans by fastforce
 next
   case False

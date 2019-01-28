@@ -4866,7 +4866,7 @@ next
     let ?\<C> = "insert (U \<union> V) ((\<lambda>S. N - S) ` \<F>)"
     obtain \<D> where "\<D> \<subseteq> ?\<C>" "finite \<D>" "K \<subseteq> \<Union>\<D>"
     proof (rule compactE [OF \<open>compact K\<close>])
-      show "K \<subseteq> \<Union>insert (U \<union> V) ((-) N ` \<F>)"
+      show "K \<subseteq> \<Union>(insert (U \<union> V) ((-) N ` \<F>))"
         using \<open>K \<subseteq> N\<close> ABeq \<open>A \<subseteq> U\<close> \<open>B \<subseteq> V\<close> by auto
       show "\<And>B. B \<in> insert (U \<union> V) ((-) N ` \<F>) \<Longrightarrow> open B"
         by (auto simp:  \<open>open U\<close> \<open>open V\<close> open_Un \<open>open N\<close> cc compact_imp_closed open_Diff)
@@ -6818,7 +6818,7 @@ proof -
     by metis
   obtain K where K: "closed K" "U \<inter> K = S"
     using cin by (auto simp: closedin_closed)
-  have 1: "U \<subseteq> \<Union>insert (- K) (F ` \<C>)"
+  have 1: "U \<subseteq> \<Union>(insert (- K) (F ` \<C>))"
     by clarsimp (metis Int_iff Union_iff \<open>U \<inter> K = S\<close> \<open>S \<subseteq> \<Union>\<C>\<close> subsetD intF)
   have 2: "\<And>T. T \<in> insert (- K) (F ` \<C>) \<Longrightarrow> open T"
     using \<open>closed K\<close> by (auto simp: opF)

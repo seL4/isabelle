@@ -2248,7 +2248,7 @@ proof (rule compactI)
       using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
   qed
   then obtain a d where a: "\<And>x. x\<in>s \<Longrightarrow> open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
-    and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>d x"
+    and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>(d x)"
     unfolding subset_eq UN_iff by metis
   moreover
   from compactE_image[OF \<open>compact s\<close> a]
@@ -2258,9 +2258,9 @@ proof (rule compactI)
   {
     from s have "s \<times> t \<subseteq> (\<Union>x\<in>e. a x \<times> t)"
       by auto
-    also have "\<dots> \<subseteq> (\<Union>x\<in>e. \<Union>d x)"
+    also have "\<dots> \<subseteq> (\<Union>x\<in>e. \<Union>(d x))"
       using d \<open>e \<subseteq> s\<close> by (intro UN_mono) auto
-    finally have "s \<times> t \<subseteq> (\<Union>x\<in>e. \<Union>d x)" .
+    finally have "s \<times> t \<subseteq> (\<Union>x\<in>e. \<Union>(d x))" .
   }
   ultimately show "\<exists>C'\<subseteq>C. finite C' \<and> s \<times> t \<subseteq> \<Union>C'"
     by (intro exI[of _ "(\<Union>x\<in>e. d x)"]) (auto simp: subset_eq)

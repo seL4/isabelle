@@ -671,7 +671,7 @@ proof -
       let ?U = "\<lambda>j. U j \<inter> (if j = i then V else topspace(X j))"
       show ?case
       proof (intro exI conjI)
-        show "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> \<Inter>insert F \<F> = Pi\<^sub>E I ?U"
+        show "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> \<Inter>(insert F \<F>) = Pi\<^sub>E I ?U"
         using eq  PiE_mem \<open>i \<in> I\<close>  by (auto simp: \<open>F = {f. f i \<in> V}\<close>) fastforce
       next
         show "finite {i \<in> I. ?U i \<noteq> topspace (X i)}"

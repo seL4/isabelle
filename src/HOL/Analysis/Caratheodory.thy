@@ -550,7 +550,7 @@ proof (unfold volume_def, safe)
   then show "\<mu> (\<Union>C) = sum \<mu> C"
   proof (induct C)
     case (insert c C)
-    from insert(1,2,4,5) have "\<mu> (\<Union>insert c C) = \<mu> c + \<mu> (\<Union>C)"
+    from insert(1,2,4,5) have "\<mu> (\<Union>(insert c C)) = \<mu> c + \<mu> (\<Union>C)"
       by (auto intro!: add simp: disjoint_def)
     with insert show ?case
       by (simp add: disjoint_def)
@@ -712,7 +712,7 @@ proof -
       from A C' \<open>c \<in> C'\<close> have UN_eq: "(\<Union>i. A i) = c"
         by (auto simp: A_def)
 
-      have "\<forall>i::nat. \<exists>f::nat \<Rightarrow> 'a set. \<mu>_r (A i) = (\<Sum>j. \<mu>_r (f j)) \<and> disjoint_family f \<and> \<Union>range f = A i \<and> (\<forall>j. f j \<in> M)"
+      have "\<forall>i::nat. \<exists>f::nat \<Rightarrow> 'a set. \<mu>_r (A i) = (\<Sum>j. \<mu>_r (f j)) \<and> disjoint_family f \<and> \<Union>(range f) = A i \<and> (\<forall>j. f j \<in> M)"
         (is "\<forall>i. ?P i")
       proof
         fix i
@@ -735,7 +735,7 @@ proof -
         moreover
         have Ai_eq: "A i = (\<Union>x<card C. f x)"
           using f C Ai unfolding bij_betw_def by auto
-        then have "\<Union>range f = A i"
+        then have "\<Union>(range f) = A i"
           using f C Ai unfolding bij_betw_def
             by (auto simp add: f_def cong del: SUP_cong_simp)
         moreover

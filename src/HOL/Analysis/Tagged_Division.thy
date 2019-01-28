@@ -633,7 +633,7 @@ next
   qed
   obtain q where q: "\<And>x. x \<in> p \<Longrightarrow> q x division_of cbox a b" "\<And>x. x \<in> p \<Longrightarrow> x \<in> q x"
     using bchoice[OF div_cbox] by blast
-  have "q x division_of \<Union>q x" if x: "x \<in> p" for x
+  have "q x division_of \<Union>(q x)" if x: "x \<in> p" for x
     apply (rule division_ofI)
     using division_ofD[OF q(1)[OF x]] by auto
   then have di: "\<And>x. x \<in> p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
@@ -736,7 +736,7 @@ lemma division_of_Union:
   assumes "finite f"
     and "\<And>p. p \<in> f \<Longrightarrow> p division_of (\<Union>p)"
     and "\<And>k1 k2. k1 \<in> \<Union>f \<Longrightarrow> k2 \<in> \<Union>f \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
-  shows "\<Union>f division_of \<Union>\<Union>f"
+  shows "\<Union>f division_of \<Union>(\<Union>f)"
   using assms  by (auto intro!: division_ofI)
 
 lemma elementary_union_interval:
@@ -781,7 +781,7 @@ next
         by auto
       show "finite ?D"
         using "*" pdiv(1) q(1) by auto
-      have "\<Union>?D = (\<Union>x\<in>p. \<Union>insert (cbox a b) (q x))"
+      have "\<Union>?D = (\<Union>x\<in>p. \<Union>(insert (cbox a b) (q x)))"
         by auto
       also have "... = \<Union>{cbox a b \<union> t |t. t \<in> p}"
         using q(6) by auto
@@ -847,7 +847,7 @@ proof -
     from assms(2)[OF as(4)] obtain a b where x: "x = cbox a b" by blast
     have *: "\<Union>F = \<Union>p"
       using division_ofD[OF p] by auto
-    show "\<exists>p. p division_of \<Union>insert x F"
+    show "\<exists>p. p division_of \<Union>(insert x F)"
       using elementary_union_interval[OF p[unfolded *], of a b]
       unfolding Union_insert x * by metis
   qed (insert assms, auto)

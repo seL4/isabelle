@@ -15,10 +15,10 @@ begin
 subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class Inf =
-  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter> _" [900] 900)
+  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter>")
 
 class Sup =
-  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion> _" [900] 900)
+  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion>")
 
 syntax (ASCII)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
@@ -40,10 +40,10 @@ syntax
 
 translations
   "\<Sqinter>x y. f"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. f"
-  "\<Sqinter>x. f"     \<rightleftharpoons> "\<Sqinter>CONST range (\<lambda>x. f)"
+  "\<Sqinter>x. f"     \<rightleftharpoons> "\<Sqinter>(CONST range (\<lambda>x. f))"
   "\<Sqinter>x\<in>A. f"   \<rightleftharpoons> "CONST Inf ((\<lambda>x. f) ` A)"
   "\<Squnion>x y. f"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. f"
-  "\<Squnion>x. f"     \<rightleftharpoons> "\<Squnion>CONST range (\<lambda>x. f)"
+  "\<Squnion>x. f"     \<rightleftharpoons> "\<Squnion>(CONST range (\<lambda>x. f))"
   "\<Squnion>x\<in>A. f"   \<rightleftharpoons> "CONST Sup ((\<lambda>x. f) `  A)"
 
 context Inf
@@ -175,13 +175,13 @@ lemma Sup_le_iff: "\<Squnion>A \<le> b \<longleftrightarrow> (\<forall>a\<in>A. 
 lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<le> u \<longleftrightarrow> (\<forall>i\<in>A. f i \<le> u)"
   using Sup_le_iff [of "f ` A"] by simp
 
-lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
+lemma Inf_insert [simp]: "\<Sqinter>(insert a A) = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
 lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
   by (simp cong del: INF_cong_simp)
 
-lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+lemma Sup_insert [simp]: "\<Squnion>(insert a A) = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
 lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
@@ -779,7 +779,7 @@ end
 
 subsubsection \<open>Inter\<close>
 
-abbreviation Inter :: "'a set set \<Rightarrow> 'a set"  ("\<Inter> _" [900] 900)
+abbreviation Inter :: "'a set set \<Rightarrow> 'a set"  ("\<Inter>")
   where "\<Inter>S \<equiv> \<Sqinter>S"
 
 lemma Inter_eq: "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
@@ -860,7 +860,7 @@ syntax (latex output)
 
 translations
   "\<Inter>x y. f"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. f"
-  "\<Inter>x. f"    \<rightleftharpoons> "\<Inter>CONST range (\<lambda>x. f)"
+  "\<Inter>x. f"    \<rightleftharpoons> "\<Inter>(CONST range (\<lambda>x. f))"
   "\<Inter>x\<in>A. f"  \<rightleftharpoons> "CONST Inter ((\<lambda>x. f) ` A)"
 
 lemma INTER_eq: "(\<Inter>x\<in>A. B x) = {y. \<forall>x\<in>A. y \<in> B x}"
@@ -933,7 +933,7 @@ lemma vimage_INT: "f -` (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. f -` B x)"
 
 subsubsection \<open>Union\<close>
 
-abbreviation Union :: "'a set set \<Rightarrow> 'a set"  ("\<Union> _" [900] 900)
+abbreviation Union :: "'a set set \<Rightarrow> 'a set"  ("\<Union>")
   where "\<Union>S \<equiv> \<Squnion>S"
 
 lemma Union_eq: "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"
@@ -968,7 +968,7 @@ lemma Union_empty: "\<Union>{} = {}"
 lemma Union_UNIV: "\<Union>UNIV = UNIV"
   by (fact Sup_UNIV) (* already simp *)
 
-lemma Union_insert: "\<Union>insert a B = a \<union> \<Union>B"
+lemma Union_insert: "\<Union>(insert a B) = a \<union> \<Union>B"
   by (fact Sup_insert) (* already simp *)
 
 lemma Union_Un_distrib [simp]: "\<Union>(A \<union> B) = \<Union>A \<union> \<Union>B"
@@ -1017,7 +1017,7 @@ syntax (latex output)
 
 translations
   "\<Union>x y. f"   \<rightleftharpoons> "\<Union>x. \<Union>y. f"
-  "\<Union>x. f"     \<rightleftharpoons> "\<Union>CONST range (\<lambda>x. f)"
+  "\<Union>x. f"     \<rightleftharpoons> "\<Union>(CONST range (\<lambda>x. f))"
   "\<Union>x\<in>A. f"   \<rightleftharpoons> "CONST Union ((\<lambda>x. f) ` A)"
 
 text \<open>
@@ -1268,7 +1268,7 @@ lemma bij_betw_Pow:
 proof -
   from assms have "inj_on f A"
     by (rule bij_betw_imp_inj_on)
-  then have "inj_on f (\<Union>Pow A)"
+  then have "inj_on f (\<Union>(Pow A))"
     by simp
   then have "inj_on (image f) (Pow A)"
     by (rule inj_on_image)

@@ -655,11 +655,11 @@ next
         using contf apply (force simp: elim: continuous_on_subset)
         using contg apply (force simp: elim: continuous_on_subset)
         using fh gh insert.hyps pwX by fastforce
-    then show "continuous_on (\<Union>insert X \<F> - insert a C) (\<lambda>a. if a \<in> X then f a else g a)"
+    then show "continuous_on (\<Union>(insert X \<F>) - insert a C) (\<lambda>a. if a \<in> X then f a else g a)"
       by (blast intro: continuous_on_subset)
-    show "\<forall>x\<in>(\<Union>insert X \<F> - insert a C) \<inter> K. (if x \<in> X then f x else g x) = h x"
+    show "\<forall>x\<in>(\<Union>(insert X \<F>) - insert a C) \<inter> K. (if x \<in> X then f x else g x) = h x"
       using gh by (auto simp: fh)
-    show "(\<lambda>a. if a \<in> X then f a else g a) ` (\<Union>insert X \<F> - insert a C) \<subseteq> T"
+    show "(\<lambda>a. if a \<in> X then f a else g a) ` (\<Union>(insert X \<F>) - insert a C) \<subseteq> T"
       using fim gim by auto force
   qed
 qed

@@ -221,7 +221,7 @@ next
 qed
 
 lemma Union_orbits [simp]:
-  "\<Union>orbits f = affected f"
+  "\<Union>(orbits f) = affected f"
   by (auto simp add: orbits.simps intro: in_orbitsI in_orbit_affected)
 
 lemma finite_orbits [simp]:
