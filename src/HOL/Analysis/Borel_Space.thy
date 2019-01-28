@@ -576,9 +576,9 @@ proposition borel_eq_countable_basis:
   shows "borel = sigma UNIV B"
   unfolding borel_def
 proof (intro sigma_eqI sigma_sets_eqI, safe)
-  interpret countable_basis using assms by unfold_locales
+  interpret countable_basis "open" B using assms by (rule countable_basis_openI)
   fix X::"'a set" assume "open X"
-  from open_countable_basisE[OF this] guess B' . note B' = this
+  from open_countable_basisE[OF this] obtain B' where B': "B' \<subseteq> B" "X = \<Union> B'" .
   then show "X \<in> sigma_sets UNIV B"
     by (blast intro: sigma_sets_UNION \<open>countable B\<close> countable_subset)
 next

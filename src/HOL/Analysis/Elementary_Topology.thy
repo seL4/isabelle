@@ -270,26 +270,26 @@ qed (metis A B topological_basis_open open_Times)
 
 subsection \<open>Countable Basis\<close>
 
-locale%important countable_basis =
-  fixes B :: "'a::topological_space set set"
+locale%important countable_basis = topological_space p for p::"'a set \<Rightarrow> bool" +
+  fixes B :: "'a set set"
   assumes is_basis: "topological_basis B"
     and countable_basis: "countable B"
 begin
 
 lemma open_countable_basis_ex:
-  assumes "open X"
+  assumes "p X"
   shows "\<exists>B' \<subseteq> B. X = \<Union>B'"
   using assms countable_basis is_basis
   unfolding topological_basis_def by blast
 
 lemma open_countable_basisE:
-  assumes "open X"
+  assumes "p X"
   obtains B' where "B' \<subseteq> B" "X = \<Union>B'"
   using assms open_countable_basis_ex
   by atomize_elim simp
 
 lemma countable_dense_exists:
-  "\<exists>D::'a set. countable D \<and> (\<forall>X. open X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>d \<in> D. d \<in> X))"
+  "\<exists>D::'a set. countable D \<and> (\<forall>X. p X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>d \<in> D. d \<in> X))"
 proof -
   let ?f = "(\<lambda>B'. SOME x. x \<in> B')"
   have "countable (?f ` B)" using countable_basis by simp
@@ -299,10 +299,16 @@ qed
 
 lemma countable_dense_setE:
   obtains D :: "'a set"
-  where "countable D" "\<And>X. open X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d \<in> D. d \<in> X"
+  where "countable D" "\<And>X. p X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d \<in> D. d \<in> X"
   using countable_dense_exists by blast
 
 end
+
+lemma countable_basis_openI: "countable_basis open B"
+  if "countable B" "topological_basis B"
+  using that
+  by unfold_locales
+    (simp_all add: topological_basis topological_space.topological_basis topological_space_axioms)
 
 lemma (in first_countable_topology) first_countable_basisE:
   fixes x :: 'a
@@ -415,7 +421,7 @@ qed
 
 class second_countable_topology = topological_space +
   assumes ex_countable_subbasis:
-    "\<exists>B::'a::topological_space set set. countable B \<and> open = generate_topology B"
+    "\<exists>B::'a set set. countable B \<and> open = generate_topology B"
 begin
 
 lemma ex_countable_basis: "\<exists>B::'a set set. countable B \<and> topological_basis B"
@@ -460,8 +466,8 @@ proof -
       then have "(\<exists>B'\<subseteq>Inter ` {b. finite b \<and> b \<subseteq> B}. \<Union>B' = S)"
         unfolding subset_image_iff by blast }
     then show "topological_basis ?B"
-      unfolding topological_space_class.topological_basis_def
-      by (safe intro!: topological_space_class.open_Inter)
+      unfolding topological_basis_def
+      by (safe intro!: open_Inter)
          (simp_all add: B generate_topology.Basis subset_eq)
   qed
 qed
@@ -520,7 +526,7 @@ proof -
 qed
 
 sublocale second_countable_topology <
-  countable_basis "SOME B. countable B \<and> topological_basis B"
+  countable_basis "open" "SOME B. countable B \<and> topological_basis B"
   using someI_ex[OF ex_countable_basis]
   by unfold_locales safe
 
