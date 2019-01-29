@@ -137,17 +137,24 @@ next
   show "generate G { a } \<subseteq> { a [^] (k :: int) | k. k \<in> UNIV }"
   proof
     fix h assume "h \<in> generate G { a }" hence "\<exists>k :: int. h = a [^] k"
-    proof (induction, metis int_pow_0[of a], metis singletonD int_pow_1[OF assms])
-      case (inv h)
-      hence "inv h = a [^] ((- 1) :: int)"
-        using assms unfolding int_pow_def2 by simp
-      thus ?case
-        by blast 
+    proof (induction)
+      case one
+      then show ?case
+        using int_pow_0 [of G] by metis
     next
-      case eng thus ?case
+      case (incl h)
+      then show ?case
+        by (metis assms int_pow_1 singletonD)
+    next
+      case (inv h)
+      then show ?case
+        by (metis assms int_pow_1 int_pow_neg singletonD)
+    next
+      case (eng h1 h2)
+      then show ?case
         using assms by (metis int_pow_mult)
     qed
-    thus "h \<in> { a [^] (k :: int) | k. k \<in> UNIV }"
+    then show "h \<in> { a [^] (k :: int) | k. k \<in> UNIV }"
       by blast
   qed
 qed
@@ -435,5 +442,125 @@ qed
 lemma (in group_hom) exp_of_derived_img:
   assumes "K \<subseteq> carrier G" shows "(derived H ^^ n) (h ` K) = h ` ((derived G ^^ n) K)"
   using derived_img[OF G.exp_of_derived_in_carrier[OF assms]] by (induct n) (auto)
+
+
+subsection \<open>Generated subgroup of a group\<close>
+
+definition subgroup_generated :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> ('a, 'b) monoid_scheme"
+  where "subgroup_generated G S = G\<lparr>carrier := generate G (carrier G \<inter> S)\<rparr>"
+
+lemma carrier_subgroup_generated: "carrier (subgroup_generated G S) = generate G (carrier G \<inter> S)"
+  by (auto simp: subgroup_generated_def)
+
+lemma (in group) group_subgroup_generated [simp]: "group (subgroup_generated G S)"
+    unfolding subgroup_generated_def
+    by (simp add: generate_is_subgroup subgroup_imp_group)
+
+lemma (in group) abelian_subgroup_generated:
+  assumes "comm_group G"
+  shows "comm_group (subgroup_generated G S)" (is "comm_group ?GS")
+proof (rule group.group_comm_groupI)
+  show "Group.group ?GS"
+    by simp
+next
+  fix x y
+  assume "x \<in> carrier ?GS" "y \<in> carrier ?GS"
+  with assms show "x \<otimes>\<^bsub>?GS\<^esub> y = y \<otimes>\<^bsub>?GS\<^esub> x"
+    apply (simp add: subgroup_generated_def)
+    by (meson Int_lower1 comm_groupE(4) generate_in_carrier)
+qed
+
+lemma (in group) subgroup_of_subgroup_generated:
+  assumes "H \<subseteq> B" "subgroup H G"
+    shows "subgroup H (subgroup_generated G B)"
+proof unfold_locales
+  fix x
+  assume "x \<in> H"
+  with assms show "inv\<^bsub>subgroup_generated G B\<^esub> x \<in> H"
+    unfolding subgroup_generated_def
+    by (metis IntI Int_commute Int_lower2 generate.incl generate_is_subgroup m_inv_consistent subgroup_def subsetCE)
+next
+  show "H \<subseteq> carrier (subgroup_generated G B)"
+    using assms apply (auto simp: carrier_subgroup_generated)
+    by (metis Int_iff generate.incl inf.orderE subgroup.mem_carrier)
+qed (use assms in \<open>auto simp: subgroup_generated_def subgroup_def\<close>)
+
+lemma carrier_subgroup_generated_alt:
+  assumes "Group.group G" "S \<subseteq> carrier G"
+  shows "carrier (subgroup_generated G S) = \<Inter>{H. subgroup H G \<and> carrier G \<inter> S \<subseteq> H}"
+  using assms by (auto simp: group.generate_minimal subgroup_generated_def)
+
+lemma one_subgroup_generated [simp]: "\<one>\<^bsub>subgroup_generated G S\<^esub> = \<one>\<^bsub>G\<^esub>"
+  by (auto simp: subgroup_generated_def)
+
+lemma mult_subgroup_generated [simp]: "mult (subgroup_generated G S) = mult G"
+  by (auto simp: subgroup_generated_def)
+
+lemma (in group) inv_subgroup_generated [simp]:
+  assumes "f \<in> carrier (subgroup_generated G S)"
+  shows "inv\<^bsub>subgroup_generated G S\<^esub> f = inv f"
+proof (rule group.inv_equality)
+  show "Group.group (subgroup_generated G S)"
+    by simp
+  have [simp]: "f \<in> carrier G"
+    by (metis Int_lower1 assms carrier_subgroup_generated generate_in_carrier)
+  show "inv f \<otimes>\<^bsub>subgroup_generated G S\<^esub> f = \<one>\<^bsub>subgroup_generated G S\<^esub>"
+    by (simp add: assms)
+  show "f \<in> carrier (subgroup_generated G S)"
+    using assms by (simp add: generate.incl subgroup_generated_def)
+  show "inv f \<in> carrier (subgroup_generated G S)"
+    using assms by (simp add: subgroup_generated_def generate_m_inv_closed)
+qed
+
+lemma subgroup_generated_restrict [simp]:
+   "subgroup_generated G (carrier G \<inter> S) = subgroup_generated G S"
+  by (simp add: subgroup_generated_def)
+
+lemma (in subgroup) carrier_subgroup_generated_subgroup [simp]:
+  "carrier (subgroup_generated G H) = H"
+  by (auto simp: generate.incl carrier_subgroup_generated elim: generate.induct)
+
+
+lemma (in group) subgroup_subgroup_generated_iff:
+   "subgroup H (subgroup_generated G B) \<longleftrightarrow> subgroup H G \<and> H \<subseteq> carrier(subgroup_generated G B)"
+ (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  then have Hsub: "H \<subseteq> generate G (carrier G \<inter> B)"
+    by (simp add: subgroup_def subgroup_generated_def)
+  then have H: "H \<subseteq> carrier G" "H \<subseteq> carrier(subgroup_generated G B)"
+    unfolding carrier_subgroup_generated
+    using generate_incl by blast+
+  with Hsub have "subgroup H G"
+    by (metis Int_commute Int_lower2 L carrier_subgroup_generated generate_consistent
+        generate_is_subgroup inf.orderE subgroup.carrier_subgroup_generated_subgroup subgroup_generated_def)
+  with H show ?rhs
+    by blast
+next
+  assume ?rhs
+  then show ?lhs
+    by (simp add: generate_is_subgroup subgroup_generated_def subgroup_incl)
+qed
+
+
+lemma pow_subgroup_generated:
+   "pow (subgroup_generated G S) = (pow G :: 'a \<Rightarrow> nat \<Rightarrow> 'a)"
+proof -
+  have "x [^]\<^bsub>subgroup_generated G S\<^esub> n = x [^]\<^bsub>G\<^esub> n" for x and n::nat
+    by (induction n) auto
+  then show ?thesis
+    by force
+qed
+
+lemma (in group) int_pow_subgroup_generated:
+  fixes n::int
+  assumes "x \<in> carrier (subgroup_generated G S)"
+  shows "x [^]\<^bsub>subgroup_generated G S\<^esub> n = x [^]\<^bsub>G\<^esub> n"
+proof -
+  have "x [^] nat (- n) \<in> carrier (subgroup_generated G S)"
+    by (metis assms group.is_monoid group_subgroup_generated monoid.nat_pow_closed pow_subgroup_generated)
+  then show ?thesis
+    by (simp add: int_pow_def2 pow_subgroup_generated)
+qed
 
 end

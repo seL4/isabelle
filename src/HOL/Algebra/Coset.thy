@@ -38,6 +38,9 @@ abbreviation
   normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60) where
   "H \<lhd> G \<equiv> normal H G"
 
+lemma (in comm_group) subgroup_imp_normal: "subgroup A G \<Longrightarrow> A \<lhd> G"
+  by (simp add: normal_def normal_axioms_def is_group l_coset_def r_coset_def m_comm subgroup.mem_carrier)
+
 (*Next two lemmas contributed by Martin Baillon.*)
 
 lemma l_coset_eq_set_mult:
@@ -195,6 +198,17 @@ proof -
     by (simp add: subgroup_def)
   ultimately show ?thesis by blast
 qed
+
+lemma (in group_hom) inj_on_one_iff:
+   "inj_on h (carrier G) \<longleftrightarrow> (\<forall>x. x \<in> carrier G \<longrightarrow> h x = one H \<longrightarrow> x = one G)"
+using G.solve_equation G.subgroup_self by (force simp: inj_on_def)
+
+lemma inj_on_one_iff':
+   "\<lbrakk>h \<in> hom G H; group G; group H\<rbrakk> \<Longrightarrow> inj_on h (carrier G) \<longleftrightarrow> (\<forall>x. x \<in> carrier G \<longrightarrow> h x = one H \<longrightarrow> x = one G)"
+  using group_hom.inj_on_one_iff group_hom.intro group_hom_axioms.intro by blast
+
+lemma (in group_hom) iso_iff: "h \<in> iso G H \<longleftrightarrow> carrier H \<subseteq> h ` carrier G \<and> (\<forall>x\<in>carrier G. h x = \<one>\<^bsub>H\<^esub> \<longrightarrow> x = \<one>)"
+  by (auto simp: iso_def bij_betw_def inj_on_one_iff)
 
 lemma (in group) repr_independence:
   assumes "y \<in> H #> x" "x \<in> carrier G" "subgroup H G"

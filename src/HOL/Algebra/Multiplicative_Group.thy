@@ -433,7 +433,7 @@ proof
     fix b assume "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
     then obtain k :: nat where "b = a [^] k" by blast
     hence "b = a [^] (int k)"
-      using int_pow_def2 by auto
+      by (simp add: int_pow_int)
     thus "b \<in> generate G { a }"
       unfolding generate_pow[OF assms(2)] by blast
   qed
@@ -447,12 +447,12 @@ next
     proof (cases "k < 0")
       assume "\<not> k < 0"
       hence "b = a [^] (nat k)"
-        using k int_pow_def2 by auto
+        by (simp add: int_pow_def2 k)
       thus ?thesis by blast
     next
       assume "k < 0"
       hence b: "b = inv (a [^] (nat (- k)))"
-        using k int_pow_def2 by auto
+        using k int_pow_def2[of G] by auto
 
       obtain m where m: "ord a * m \<ge> nat (- k)"
         by (metis assms mult.left_neutral mult_le_mono1 ord_ge_1)
