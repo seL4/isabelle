@@ -20,7 +20,7 @@ object Build_JDK
 
   def detect_version(s: String): String =
   {
-    val Version_Dir_Entry = """^jdk-(\d+\+\d+)$""".r
+    val Version_Dir_Entry = """^jdk-([0-9.]+\+\d+)$""".r
     s match {
       case Version_Dir_Entry(version) => version
       case _ => error("Cannot detect JDK version from " + quote(s))
