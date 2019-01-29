@@ -864,7 +864,7 @@ lemma retraction:
     T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
   by (force simp: retraction_def)
 
-lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp -- less likely to loop\<close>
   assumes "retraction S T r"
   obtains "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
 proof (rule that)
@@ -879,7 +879,7 @@ proof (rule that)
     using that by auto
 qed
 
-lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp -- less likely to loop\<close>
   assumes "T retract_of S"
   obtains r where "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
 proof -
