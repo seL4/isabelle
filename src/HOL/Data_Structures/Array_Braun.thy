@@ -183,10 +183,10 @@ fun del_lo where
 fun del_hi :: "nat \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "del_hi n Leaf = Leaf" |
 "del_hi n (Node l x r) =
-	(if n = 1 then Leaf
-	 else if even n
-	     then Node (del_hi (n div 2) l) x r
-	     else Node l x (del_hi (n div 2) r))"
+  (if n = 1 then Leaf
+   else if even n
+       then Node (del_hi (n div 2) l) x r
+       else Node l x (del_hi (n div 2) r))"
 
 
 subsubsection "Functional Correctness"
