@@ -775,4 +775,224 @@ next
 qed
 
 
+subsection \<open>Retractions\<close>
+
+definition%important retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+where "retraction S T r \<longleftrightarrow>
+  T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
+
+definition%important retract_of (infixl "retract'_of" 50) where
+"T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
+
+lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"
+  unfolding retraction_def by auto
+
+text \<open>Preservation of fixpoints under (more general notion of) retraction\<close>
+
+lemma invertible_fixpoint_property:
+  fixes S :: "'a::topological_space set"
+    and T :: "'b::topological_space set"
+  assumes contt: "continuous_on T i"
+    and "i ` T \<subseteq> S"
+    and contr: "continuous_on S r"
+    and "r ` S \<subseteq> T"
+    and ri: "\<And>y. y \<in> T \<Longrightarrow> r (i y) = y"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and contg: "continuous_on T g"
+    and "g ` T \<subseteq> T"
+  obtains y where "y \<in> T" and "g y = y"
+proof -
+  have "\<exists>x\<in>S. (i \<circ> g \<circ> r) x = x"
+  proof (rule FP)
+    show "continuous_on S (i \<circ> g \<circ> r)"
+      by (meson contt contr assms(4) contg assms(8) continuous_on_compose continuous_on_subset)
+    show "(i \<circ> g \<circ> r) ` S \<subseteq> S"
+      using assms(2,4,8) by force
+  qed
+  then obtain x where x: "x \<in> S" "(i \<circ> g \<circ> r) x = x" ..
+  then have *: "g (r x) \<in> T"
+    using assms(4,8) by auto
+  have "r ((i \<circ> g \<circ> r) x) = r x"
+    using x by auto
+  then show ?thesis
+    using "*" ri that by auto
+qed
+
+lemma homeomorphic_fixpoint_property:
+  fixes S :: "'a::topological_space set"
+    and T :: "'b::topological_space set"
+  assumes "S homeomorphic T"
+  shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
+         (\<forall>g. continuous_on T g \<and> g ` T \<subseteq> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
+         (is "?lhs = ?rhs")
+proof -
+  obtain r i where r:
+      "\<forall>x\<in>S. i (r x) = x" "r ` S = T" "continuous_on S r"
+      "\<forall>y\<in>T. r (i y) = y" "i ` T = S" "continuous_on T i"
+    using assms unfolding homeomorphic_def homeomorphism_def  by blast
+  show ?thesis
+  proof
+    assume ?lhs
+    with r show ?rhs
+      by (metis invertible_fixpoint_property[of T i S r] order_refl)
+  next
+    assume ?rhs
+    with r show ?lhs
+      by (metis invertible_fixpoint_property[of S r T i] order_refl)
+  qed
+qed
+
+lemma retract_fixpoint_property:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+    and S :: "'a set"
+  assumes "T retract_of S"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and contg: "continuous_on T g"
+    and "g ` T \<subseteq> T"
+  obtains y where "y \<in> T" and "g y = y"
+proof -
+  obtain h where "retraction S T h"
+    using assms(1) unfolding retract_of_def ..
+  then show ?thesis
+    unfolding retraction_def
+    using invertible_fixpoint_property[OF continuous_on_id _ _ _ _ FP]
+    by (metis assms(4) contg image_ident that)
+qed
+
+lemma retraction:
+  "retraction S T r \<longleftrightarrow>
+    T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
+  by (force simp: retraction_def)
+
+lemma retractionE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+  assumes "retraction S T r"
+  obtains "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+proof (rule that)
+  from retraction [of S T r] assms
+  have "T \<subseteq> S" "continuous_on S r" "r ` S = T" and "\<forall>x \<in> T. r x = x"
+    by simp_all
+  then show "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r"
+    by simp_all
+  from \<open>\<forall>x \<in> T. r x = x\<close> have "r x = x" if "x \<in> T" for x
+    using that by simp
+  with \<open>r ` S = T\<close> show "r (r x) = r x" if "x \<in> S" for x
+    using that by auto
+qed
+
+lemma retract_ofE: \<comment> \<open>yields properties normalized wrt. simp – less likely to loop\<close>
+  assumes "T retract_of S"
+  obtains r where "T = r ` S" "r ` S \<subseteq> S" "continuous_on S r" "\<And>x. x \<in> S \<Longrightarrow> r (r x) = r x"
+proof -
+  from assms obtain r where "retraction S T r"
+    by (auto simp add: retract_of_def)
+  with that show thesis
+    by (auto elim: retractionE)
+qed
+
+lemma retract_of_imp_extensible:
+  assumes "S retract_of T" and "continuous_on S f" and "f ` S \<subseteq> U"
+  obtains g where "continuous_on T g" "g ` T \<subseteq> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
+proof -
+  from \<open>S retract_of T\<close> obtain r where "retraction T S r"
+    by (auto simp add: retract_of_def)
+  show thesis
+    by (rule that [of "f \<circ> r"])
+      (use \<open>continuous_on S f\<close> \<open>f ` S \<subseteq> U\<close> \<open>retraction T S r\<close> in \<open>auto simp: continuous_on_compose2 retraction\<close>)
+qed
+
+lemma idempotent_imp_retraction:
+  assumes "continuous_on S f" and "f ` S \<subseteq> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
+    shows "retraction S (f ` S) f"
+by (simp add: assms retraction)
+
+lemma retraction_subset:
+  assumes "retraction S T r" and "T \<subseteq> s'" and "s' \<subseteq> S"
+  shows "retraction s' T r"
+  unfolding retraction_def
+  by (metis assms continuous_on_subset image_mono retraction)
+
+lemma retract_of_subset:
+  assumes "T retract_of S" and "T \<subseteq> s'" and "s' \<subseteq> S"
+    shows "T retract_of s'"
+by (meson assms retract_of_def retraction_subset)
+
+lemma retraction_refl [simp]: "retraction S S (\<lambda>x. x)"
+by (simp add: retraction)
+
+lemma retract_of_refl [iff]: "S retract_of S"
+  unfolding retract_of_def retraction_def
+  using continuous_on_id by blast
+
+lemma retract_of_imp_subset:
+   "S retract_of T \<Longrightarrow> S \<subseteq> T"
+by (simp add: retract_of_def retraction_def)
+
+lemma retract_of_empty [simp]:
+     "({} retract_of S) \<longleftrightarrow> S = {}"  "(S retract_of {}) \<longleftrightarrow> S = {}"
+by (auto simp: retract_of_def retraction_def)
+
+lemma retract_of_singleton [iff]: "({x} retract_of S) \<longleftrightarrow> x \<in> S"
+  unfolding retract_of_def retraction_def by force
+
+lemma retraction_comp:
+   "\<lbrakk>retraction S T f; retraction T U g\<rbrakk>
+        \<Longrightarrow> retraction S U (g \<circ> f)"
+apply (auto simp: retraction_def intro: continuous_on_compose2)
+by blast
+
+lemma retract_of_trans [trans]:
+  assumes "S retract_of T" and "T retract_of U"
+    shows "S retract_of U"
+using assms by (auto simp: retract_of_def intro: retraction_comp)
+
+lemma closedin_retract:
+  fixes S :: "'a :: t2_space set"
+  assumes "S retract_of T"
+    shows "closedin (subtopology euclidean T) S"
+proof -
+  obtain r where r: "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
+    using assms by (auto simp: retract_of_def retraction_def)
+  have "S = {x\<in>T. x = r x}"
+    using r by auto
+  also have "\<dots> = T \<inter> ((\<lambda>x. (x, r x)) -` ({y. \<exists>x. y = (x, x)}))"
+    unfolding vimage_def mem_Times_iff fst_conv snd_conv
+    using r
+    by auto
+  also have "closedin (top_of_set T) \<dots>"
+    by (rule continuous_closedin_preimage) (auto intro!: closed_diagonal continuous_on_Pair r)
+  finally show ?thesis .
+qed
+
+lemma closedin_self [simp]: "closedin (subtopology euclidean S) S"
+  by simp
+
+lemma retract_of_closed:
+    fixes S :: "'a :: t2_space set"
+    shows "\<lbrakk>closed T; S retract_of T\<rbrakk> \<Longrightarrow> closed S"
+  by (metis closedin_retract closedin_closed_eq)
+
+lemma retract_of_compact:
+     "\<lbrakk>compact T; S retract_of T\<rbrakk> \<Longrightarrow> compact S"
+  by (metis compact_continuous_image retract_of_def retraction)
+
+lemma retract_of_connected:
+    "\<lbrakk>connected T; S retract_of T\<rbrakk> \<Longrightarrow> connected S"
+  by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
+
+lemma retraction_imp_quotient_map:
+  "openin (subtopology euclidean S) (S \<inter> r -` U) \<longleftrightarrow> openin (subtopology euclidean T) U"
+  if retraction: "retraction S T r" and "U \<subseteq> T"
+  using retraction apply (rule retractionE)
+  apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
+  using \<open>U \<subseteq> T\<close> apply (auto elim: continuous_on_subset)
+  done
+
+lemma retract_of_Times:
+   "\<lbrakk>S retract_of s'; T retract_of t'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (s' \<times> t')"
+apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
+apply (rename_tac f g)
+apply (rule_tac x="\<lambda>z. ((f \<circ> fst) z, (g \<circ> snd) z)" in exI)
+apply (rule conjI continuous_intros | erule continuous_on_subset | force)+
+done
+
 end
