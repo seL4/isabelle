@@ -12,9 +12,8 @@ import isabelle._
 import java.awt.Component
 import java.io.InputStream
 
-import org.gjt.sp.jedit.{Buffer, View}
-import org.gjt.sp.jedit.io.{VFS => JEditVFS, VFSFile, VFSManager}
-import org.gjt.sp.jedit.bufferio.BufferLoadRequest
+import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.io.VFSFile
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
@@ -22,45 +21,11 @@ object Isabelle_Export
 {
   /* virtual file-system */
 
-  val vfs_name = "isabelle-export"
-  val vfs_caps =
-    JEditVFS.READ_CAP |
-    JEditVFS.BROWSE_CAP |
-    JEditVFS.LOW_LATENCY_CAP |
-    JEditVFS.NON_AWT_SESSION_CAP
+  val vfs_prefix = "isabelle-export:"
 
-  val vfs_prefix = vfs_name + ":"
-
-  def vfs_error(component: Component, path: String, prop: String, args: AnyRef*): Unit =
-    VFSManager.error(component, path, prop, args.toArray)
-
-  def vfs_file(path: String, is_dir: Boolean = false, size: Long = 0L): VFSFile =
+  class VFS extends Isabelle_VFS(vfs_prefix,
+    read = true, browse = true, low_latency = true, non_awt_session = true)
   {
-    val name = Export.explode_name(path).lastOption getOrElse ""
-    val url = vfs_prefix + path
-    new VFSFile(name, url, url, if (is_dir) VFSFile.DIRECTORY else VFSFile.FILE, size, false)
-  }
-
-  def explode_url(url: String, component: Component = null): Option[List[String]] =
-  {
-    Library.try_unprefix(vfs_prefix, url) match {
-      case Some(path) => Some(Export.explode_name(path).filter(_.nonEmpty))
-      case None =>
-        if (component != null) vfs_error(component, url, "ioerror.badurl", url)
-        None
-    }
-  }
-
-  class VFS extends JEditVFS(vfs_name, vfs_caps)
-  {
-    override def isMarkersFileSupported: Boolean = false
-
-    override def constructPath(parent: String, path: String): String =
-    {
-      if (parent == vfs_prefix || parent.endsWith(Export.sep)) parent + path
-      else parent + Export.sep + path
-    }
-
     override def _listFiles(session: AnyRef, url: String, component: Component): Array[VFSFile] =
     {
       explode_url(url, component = component) match {
@@ -73,7 +38,7 @@ object Isabelle_Export
               (for {
                 (node_name, _) <- version.nodes.iterator
                 if !snapshot.state.node_exports(version, node_name).is_empty
-              } yield vfs_file(node_name.theory, is_dir = true)).toArray
+              } yield make_entry(node_name.theory, is_dir = true)).toArray
             case theory :: prefix =>
               val depth = prefix.length + 1
               val entries: List[(String, Option[Long])] =
@@ -89,8 +54,8 @@ object Isabelle_Export
                 }).toSet.toList
               (for ((path, file_size) <- entries.iterator) yield {
                 file_size match {
-                  case None => vfs_file(path, is_dir = true)
-                  case Some(size) => vfs_file(path, size = size)
+                  case None => make_entry(path, is_dir = true)
+                  case Some(size) => make_entry(path, size = size)
                 }
               }).toArray
           }

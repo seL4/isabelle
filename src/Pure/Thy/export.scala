@@ -13,13 +13,10 @@ import scala.util.matching.Regex
 
 object Export
 {
-  /* structured name */
+  /* name structure */
 
-  val sep_char: Char = '/'
-  val sep: String = sep_char.toString
-
-  def explode_name(s: String): List[String] = space_explode(sep_char, s)
-  def implode_name(elems: Iterable[String]): String = elems.mkString(sep)
+  def explode_name(s: String): List[String] = space_explode('/', s)
+  def implode_name(elems: Iterable[String]): String = elems.mkString("/")
 
 
   /* SQL data model */
