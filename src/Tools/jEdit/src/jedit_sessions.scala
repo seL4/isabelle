@@ -29,6 +29,9 @@ object JEdit_Sessions
 
   def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
 
+  def sessions_structure(options: Options, dirs: List[Path] = session_dirs()): Sessions.Structure =
+    Sessions.load_structure(session_options(options), dirs = dirs)
+
 
   /* raw logic info */
 
@@ -46,10 +49,7 @@ object JEdit_Sessions
     space_explode(':', Isabelle_System.getenv("JEDIT_INCLUDE_SESSIONS"))
 
   def logic_info(options: Options): Option[Sessions.Info] =
-    try {
-      Sessions.load_structure(session_options(options), dirs = session_dirs()).
-        get(logic_name(options))
-    }
+    try { sessions_structure(options).get(logic_name(options)) }
     catch { case ERROR(_) => None }
 
   def logic_root(options: Options): Position.T =
@@ -70,10 +70,9 @@ object JEdit_Sessions
 
     val session_list =
     {
-      val sessions_structure = Sessions.load_structure(options.value, dirs = session_dirs())
+      val sessions = sessions_structure(options.value)
       val (main_sessions, other_sessions) =
-        sessions_structure.imports_topological_order.
-          partition(name => sessions_structure(name).groups.contains("main"))
+        sessions.imports_topological_order.partition(name => sessions(name).groups.contains("main"))
       main_sessions.sorted ::: other_sessions.sorted
     }
 
