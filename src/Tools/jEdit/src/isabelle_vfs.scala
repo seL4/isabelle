@@ -37,10 +37,8 @@ class Isabelle_VFS(prefix: String,
 {
   /* URL structure */
 
-  def separator: Char = '/'
-
-  def explode_name(s: String): List[String] = space_explode(separator, s)
-  def implode_name(elems: Iterable[String]): String = elems.mkString(separator.toString)
+  def explode_name(s: String): List[String] = space_explode(getFileSeparator, s)
+  def implode_name(elems: Iterable[String]): String = elems.mkString(getFileSeparator.toString)
 
   def explode_url(url: String, component: Component = null): Option[List[String]] =
   {
@@ -56,8 +54,8 @@ class Isabelle_VFS(prefix: String,
   override def constructPath(parent: String, path: String): String =
   {
     if (parent == "") path
-    else if (parent(parent.length - 1) == separator || parent == prefix) parent + path
-    else parent + separator + path
+    else if (parent(parent.length - 1) == getFileSeparator || parent == prefix) parent + path
+    else parent + getFileSeparator + path
   }
 
 
