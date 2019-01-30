@@ -29,9 +29,11 @@ object Isabelle_Session
 
   val vfs_prefix = "isabelle-session:"
 
-  class Session_Entry(name: String, path: String)
+  class Session_Entry(name: String, path: String, marker: String)
     extends VFSFile(name, path, null, VFSFile.FILE, 0L, false)
   {
+    override def getPathMarker: String = marker
+
     override def getExtendedAttribute(att: String): String =
       if (att == JEdit_VFS.EA_SIZE) null
       else super.getExtendedAttribute(att)
@@ -61,7 +63,12 @@ object Isabelle_Session
                         case Some(path) => File.platform_path(path)
                         case None => null
                       }
-                    new Session_Entry(name, path)
+                    val marker =
+                      Position.Line.unapply(info.pos) match {
+                        case Some(line) => "+line:" + line
+                        case None => null
+                      }
+                    new Session_Entry(name, path, marker)
                   }).toArray
               }
             case _ => null

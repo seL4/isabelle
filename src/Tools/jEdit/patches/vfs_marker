@@ -1,0 +1,83 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java
+--- jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2018-04-09 01:57:42.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java	2019-01-30 22:18:22.534820468 +0100
+@@ -1204,6 +1204,7 @@
+ 		VFSFile[] selectedFiles = browserView.getSelectedFiles();
+ 
+ 		Buffer buffer = null;
++		String bufferMarker = null;
+ 
+ check_selected:
+ 		for (VFSFile file : selectedFiles)
+@@ -1253,7 +1254,10 @@
+ 				}
+ 
+ 				if (_buffer != null)
++				{
+ 					buffer = _buffer;
++					bufferMarker = file.getPathMarker();
++				}
+ 			}
+ 			// otherwise if a file is selected in OPEN_DIALOG or
+ 			// SAVE_DIALOG mode, just let the listener(s)
+@@ -1262,21 +1266,30 @@
+ 
+ 		if(buffer != null)
+ 		{
++			View gotoView = null;
++
+ 			switch(mode)
+ 			{
+ 			case M_OPEN:
+ 				view.setBuffer(buffer);
++				gotoView = view;
+ 				break;
+ 			case M_OPEN_NEW_VIEW:
+-				jEdit.newView(view,buffer,false);
++				gotoView = jEdit.newView(view,buffer,false);
+ 				break;
+ 			case M_OPEN_NEW_PLAIN_VIEW:
+-				jEdit.newView(view,buffer,true);
++				gotoView = jEdit.newView(view,buffer,true);
+ 				break;
+ 			case M_OPEN_NEW_SPLIT:
+ 				view.splitHorizontally().setBuffer(buffer);
++				gotoView = view;
+ 				break;
+ 			}
++
++			if (gotoView != null && bufferMarker != null)
++			{
++				jEdit.gotoMarker(gotoView, buffer, bufferMarker);
++			}
+ 		}
+ 
+ 		Object[] listeners = listenerList.getListenerList();
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java
+--- jEdit/org/gjt/sp/jedit/io/VFSFile.java	2018-04-09 01:57:13.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java	2019-01-30 21:55:19.531911500 +0100
+@@ -297,6 +297,12 @@
+ 		}
+ 	} //}}}
+ 
++	//{{{ getPathMarker() method (for jEdit.gotoMarker)
++	public String getPathMarker()
++	{
++		return null;
++	} //}}}
++
+ 	//{{{ getPath() method
+ 	public String getPath()
+ 	{
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/jEdit.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/jEdit.java
+--- jEdit/org/gjt/sp/jedit/jEdit.java	2018-04-09 01:56:22.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/jEdit.java	2019-01-30 21:56:00.171827173 +0100
+@@ -4479,7 +4479,7 @@
+ 	} //}}}
+ 
+ 	//{{{ gotoMarker() method
+-	private static void gotoMarker(final View view, final Buffer buffer,
++	public static void gotoMarker(final View view, final Buffer buffer,
+ 		final String marker)
+ 	{
+ 		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
