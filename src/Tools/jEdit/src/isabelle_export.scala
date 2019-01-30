@@ -26,7 +26,7 @@ object Isabelle_Export
   class VFS extends Isabelle_VFS(vfs_prefix,
     read = true, browse = true, low_latency = true, non_awt_session = true)
   {
-    override def _listFiles(session: AnyRef, url: String, component: Component): Array[VFSFile] =
+    override def _listFiles(vfs_session: AnyRef, url: String, component: Component): Array[VFSFile] =
     {
       explode_url(url, component = component) match {
         case None => null
@@ -62,19 +62,19 @@ object Isabelle_Export
       }
     }
 
-    override def _getFile(session: AnyRef, url: String, component: Component): VFSFile =
+    override def _getFile(vfs_session: AnyRef, url: String, component: Component): VFSFile =
     {
       val parent = getParentOfPath(url)
       if (parent == vfs_prefix) null
       else {
-        val files = _listFiles(session, parent, component)
+        val files = _listFiles(vfs_session, parent, component)
         if (files == null) null
         else files.find(_.getPath == url) getOrElse null
       }
     }
 
     override def _createInputStream(
-      session: AnyRef, url: String, ignore_errors: Boolean, component: Component): InputStream =
+      vfs_session: AnyRef, url: String, ignore_errors: Boolean, component: Component): InputStream =
     {
       explode_url(url, component = if (ignore_errors) null else component) match {
         case None | Some(Nil) => Bytes.empty.stream()
