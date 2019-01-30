@@ -44,8 +44,14 @@ INCOMPATIBILITY.
 *** Isabelle/jEdit Prover IDE ***
 
 * Action "isabelle-export-browser" points the File Browser to the theory
-exports of the current buffer. The directory view needs to be reloaded
-manually to follow ongoing document processing.
+exports of the current buffer, based on the "isabelle-export:" virtual
+file-system. The directory view needs to be reloaded manually to follow
+ongoing document processing.
+
+* Action "isabelle-session-browser" points the File Browser to session
+information, based on the "isabelle-session:" virtual file-system. Its
+entries are structured according to chapter / session names, the open
+operation is redirected to the session ROOT file.
 
 * Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
 DejaVu" collection by default, which provides uniform rendering quality
