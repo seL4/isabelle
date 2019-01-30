@@ -11,6 +11,9 @@
   <SERVICE NAME="isabelle-export" CLASS="org.gjt.sp.jedit.io.VFS">
     new isabelle.jedit.Isabelle_Export.VFS();
   </SERVICE>
+  <SERVICE NAME="isabelle-session" CLASS="org.gjt.sp.jedit.io.VFS">
+    new isabelle.jedit.Isabelle_Session.VFS();
+  </SERVICE>
   <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
     new isabelle.jedit.Isabelle_Sidekick_Default();
   </SERVICE>

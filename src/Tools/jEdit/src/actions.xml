@@ -172,6 +172,11 @@
 	    isabelle.jedit.Isabelle_Export.open_browser(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle-session-browser">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Session.open_browser(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.keymap-merge">
 	  <CODE>
 	    isabelle.jedit.Keymap_Merge.check_dialog(view);

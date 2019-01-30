@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 
-import scala.collection.SortedSet
+import scala.collection.{SortedSet, SortedMap}
 import scala.collection.mutable
 
 
@@ -22,6 +22,7 @@ object Sessions
   val root_name: String = "ROOT"
   val theory_name: String = "Pure.Sessions"
 
+  val UNSORTED = "Unsorted"
   val DRAFT = "Draft"
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
@@ -655,6 +656,11 @@ object Sessions
   {
     sessions_structure =>
 
+    lazy val chapters: SortedMap[String, List[Info]] =
+      (SortedMap.empty[String, List[Info]] /: build_graph.iterator)(
+        { case (chs, (_, (info, _))) =>
+            chs + (info.chapter -> (info :: chs.getOrElse(info.chapter, Nil))) })
+
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
 
@@ -912,7 +918,7 @@ object Sessions
 
   def read_root(options: Options, select: Boolean, path: Path): List[Info] =
   {
-    var entry_chapter = "Unsorted"
+    var entry_chapter = UNSORTED
     val infos = new mutable.ListBuffer[Info]
     parse_root(path).foreach {
       case Chapter(name) => entry_chapter = name
