@@ -69,4 +69,15 @@ class Isabelle_VFS(prefix: String,
     val url = prefix + path
     new VFSFile(entry, url, url, if (is_dir) VFSFile.DIRECTORY else VFSFile.FILE, size, false)
   }
+
+  override def _getFile(vfs_session: AnyRef, url: String, component: Component): VFSFile =
+  {
+    val parent = getParentOfPath(url)
+    if (parent == prefix) null
+    else {
+      val files = _listFiles(vfs_session, parent, component)
+      if (files == null) null
+      else files.find(_.getPath == url) getOrElse null
+    }
+  }
 }

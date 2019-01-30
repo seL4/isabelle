@@ -62,17 +62,6 @@ object Isabelle_Export
       }
     }
 
-    override def _getFile(vfs_session: AnyRef, url: String, component: Component): VFSFile =
-    {
-      val parent = getParentOfPath(url)
-      if (parent == vfs_prefix) null
-      else {
-        val files = _listFiles(vfs_session, parent, component)
-        if (files == null) null
-        else files.find(_.getPath == url) getOrElse null
-      }
-    }
-
     override def _createInputStream(
       vfs_session: AnyRef, url: String, ignore_errors: Boolean, component: Component): InputStream =
     {
