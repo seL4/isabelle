@@ -30,7 +30,7 @@ object Isabelle_Session
   val vfs_prefix = "isabelle-session:"
 
   class Session_Entry(name: String, path: String, marker: String)
-    extends VFSFile(name, path, null, VFSFile.FILE, 0L, false)
+    extends VFSFile(name, path, vfs_prefix + name, VFSFile.FILE, 0L, false)
   {
     override def getPathMarker: String = marker
 
