@@ -26,23 +26,23 @@ object PIDE
 {
   /* semantic document content */
 
-  def snapshot(view: View = null): Document.Snapshot = GUI_Thread.now
+  def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now
   {
     val buffer = JEdit_Lib.jedit_view(view).getBuffer
-    Document_Model.get(buffer) match {
-      case Some(model) => model.snapshot
-      case None => error("No document model for current buffer")
-    }
+    Document_Model.get(buffer).map(_.snapshot)
   }
 
-  def rendering(view: View = null): JEdit_Rendering = GUI_Thread.now
+  def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now
   {
     val text_area = JEdit_Lib.jedit_view(view).getTextArea
-    Document_View.get(text_area) match {
-      case Some(doc_view) => doc_view.get_rendering()
-      case None => error("No document view for current text area")
-    }
+    Document_View.get(text_area).map(_.get_rendering())
   }
+
+  def snapshot(view: View = null): Document.Snapshot =
+    maybe_snapshot(view) getOrElse error("No document model for current buffer")
+
+  def rendering(view: View = null): JEdit_Rendering =
+    maybe_rendering(view) getOrElse error("No document view for current text area")
 
 
   /* plugin instance */

@@ -99,9 +99,11 @@ object Isabelle_Export
 
   def open_browser(view: View)
   {
-    val theory =
-      try { PIDE.snapshot(view).node_name.theory }
-      catch { case ERROR(_) => "" }
-    VFSBrowser.browseDirectory(view, vfs_prefix + theory)
+    val path =
+      PIDE.maybe_snapshot(view) match {
+        case None => ""
+        case Some(snapshot) => snapshot.node_name.theory
+      }
+    VFSBrowser.browseDirectory(view, vfs_prefix + path)
   }
 }
