@@ -13,7 +13,7 @@ import java.awt.Component
 import java.io.InputStream
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.io.VFSFile
+import org.gjt.sp.jedit.io.{VFS => JEdit_VFS, VFSFile}
 import org.gjt.sp.jedit.browser.VFSBrowser
 
 
@@ -28,6 +28,14 @@ object Isabelle_Session
   /* virtual file-system */
 
   val vfs_prefix = "isabelle-session:"
+
+  class Session_Entry(name: String, path: String)
+    extends VFSFile(name, path, null, VFSFile.FILE, 0L, false)
+  {
+    override def getExtendedAttribute(att: String): String =
+      if (att == JEdit_VFS.EA_SIZE) null
+      else super.getExtendedAttribute(att)
+  }
 
   class VFS extends Isabelle_VFS(vfs_prefix,
     read = true, browse = true, low_latency = true, non_awt_session = true)
@@ -45,7 +53,16 @@ object Isabelle_Session
               sessions.chapters.get(chapter) match {
                 case None => null
                 case Some(infos) =>
-                  infos.map(info => make_entry(chapter + "/" + info.name, is_dir = true)).toArray
+                  infos.map(info =>
+                  {
+                    val name = chapter + "/" + info.name
+                    val path =
+                      Position.File.unapply(info.pos) match {
+                        case Some(path) => File.platform_path(path)
+                        case None => null
+                      }
+                    new Session_Entry(name, path)
+                  }).toArray
               }
             case _ => null
           }
