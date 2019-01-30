@@ -119,8 +119,7 @@ fun build_theories symbols bibtex_entries last_timing qualifier master_dir (opti
     val conds = filter_out (can getenv_strict) condition;
   in
     if null conds then
-      (if Options.bool options "checkpoint" then ML_Heap.share_common_data () else ();
-        Options.set_default options;
+      (Options.set_default options;
         Isabelle_Process.init_options ();
         Future.fork I;
         (Thy_Info.use_theories context qualifier master_dir

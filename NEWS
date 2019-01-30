@@ -261,6 +261,8 @@ ISABELLE_OPAM_ROOT.
 
 * Update to Java 11: the latest long-term support version of OpenJDK.
 
+* System option "checkpoint" has been discontinued: obsolete thanks to
+improved memory management in Poly/ML.
 
 
 New in Isabelle2018 (August 2018)

@@ -216,13 +216,6 @@ text \<open>
     manual adjustment (on the command-line or within personal settings or
     preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
 
-    \<^item> @{system_option_def "checkpoint"} helps to fine-tune the global heap
-    space management. This is relevant for big sessions that may exhaust the
-    small 32-bit address space of the ML process (which is used by default).
-    When the option is enabled for some \isakeyword{theories} block, a full
-    sharing stage of immutable values in memory happens \<^emph>\<open>before\<close> loading the
-    specified theories.
-
     \<^item> @{system_option_def "condition"} specifies a comma-separated list of
     process environment variables (or Isabelle settings) that are required for
     the subsequent theories to be processed. Conditions are considered

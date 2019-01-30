@@ -113,9 +113,6 @@ option process_output_limit : int = 100
 option process_output_tail : int = 40
   -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
-option checkpoint : bool = false
-  -- "checkpoint for theories during build process (heap compression)"
-
 option profiling : string = ""
   -- "ML profiling (possible values: time, allocations)"
 
