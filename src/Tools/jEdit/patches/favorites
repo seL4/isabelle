@@ -1,0 +1,13 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/FavoritesVFS.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/FavoritesVFS.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/io/FavoritesVFS.java	2018-04-09 01:57:13.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/FavoritesVFS.java	2019-01-31 21:48:47.418367799 +0100
+@@ -70,7 +70,8 @@
+ 	public VFSFile[] _listFiles(Object session, String url,
+ 		Component comp)
+ 	{
+-		return getFavorites();
++		if (url.equals(PROTOCOL + ':')) return getFavorites();
++		else return null;
+ 	} //}}}
+ 
+ 	//{{{ _getFile() method
