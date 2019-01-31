@@ -43,6 +43,10 @@ INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* The jEdit File Browser is more prominent in the default GUI layout of
+Isabelle/jEdit: various virtual file-systems provide access to Isabelle
+resources, notably via "favorites:" (or "Edit Favorites").
+
 * Action "isabelle-export-browser" points the File Browser to the theory
 exports of the current buffer, based on the "isabelle-export:" virtual
 file-system. The directory view needs to be reloaded manually to follow
