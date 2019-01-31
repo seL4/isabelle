@@ -251,8 +251,8 @@ fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
 
 (*function exponentiation: f (... (f x) ...) with n applications of f*)
-fun funpow (0 : int) _ = I
-  | funpow n f = f #> funpow (n - 1) f;
+fun funpow (0: int) _ x = x
+  | funpow n f x = funpow (n - 1) f (f x);
 
 fun funpow_yield (0 : int) _ x = ([], x)
   | funpow_yield n f x = x |> f ||>> funpow_yield (n - 1) f |>> op ::;
