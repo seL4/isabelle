@@ -1492,8 +1492,8 @@ proof -
 qed
 
 lemma affine_parallel_expl: "affine_parallel S T \<longleftrightarrow> (\<exists>a. \<forall>x. x \<in> S \<longleftrightarrow> a + x \<in> T)"
-  unfolding affine_parallel_def
-  using affine_parallel_expl_aux[of S _ T] by auto
+  by (auto simp add: affine_parallel_def)
+    (use affine_parallel_expl_aux [of S _ T] in blast)
 
 lemma affine_parallel_reflex: "affine_parallel S S"
   unfolding affine_parallel_def
@@ -1508,7 +1508,7 @@ proof -
   have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
   from B show ?thesis
     using translation_galois [of B a A]
-    unfolding affine_parallel_def by auto
+    unfolding affine_parallel_def by blast
 qed
 
 lemma affine_parallel_assoc:
@@ -1629,7 +1629,7 @@ lemma affine_diffs_subspace:
 proof -
   have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
   have "affine ((\<lambda>x. (-a)+x) ` S)"
-    using  affine_translation assms by auto
+    using affine_translation assms by blast
   moreover have "0 \<in> ((\<lambda>x. (-a)+x) ` S)"
     using assms exI[of "(\<lambda>x. x\<in>S \<and> -a+x = 0)" a] by auto
   ultimately show ?thesis using subspace_affine by auto
@@ -1781,7 +1781,7 @@ proof -
           using \<open>cone S\<close> \<open>c > 0\<close>
           unfolding cone_def image_def \<open>c > 0\<close> by auto
       }
-      ultimately have "((*\<^sub>R) c) ` S = S" by auto
+      ultimately have "((*\<^sub>R) c) ` S = S" by blast
     }
     then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ((*\<^sub>R) c) ` S = S)"
       using \<open>cone S\<close> cone_contains_0[of S] assms by auto

@@ -736,8 +736,7 @@ proof -
         have Ai_eq: "A i = (\<Union>x<card C. f x)"
           using f C Ai unfolding bij_betw_def by auto
         then have "\<Union>(range f) = A i"
-          using f C Ai unfolding bij_betw_def
-            by (auto simp add: f_def cong del: SUP_cong_simp)
+          using f by (auto simp add: f_def)
         moreover
         { have "(\<Sum>j. \<mu>_r (f j)) = (\<Sum>j. if j \<in> {..< card C} then \<mu>_r (f j) else 0)"
             using volume_empty[OF V(1)] by (auto intro!: arg_cong[where f=suminf] simp: f_def)

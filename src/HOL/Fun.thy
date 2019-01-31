@@ -314,7 +314,7 @@ lemma surjE: "surj f \<Longrightarrow> (\<And>x. y = f x \<Longrightarrow> C) \<
   by (simp add: surj_def) blast
 
 lemma comp_surj: "surj f \<Longrightarrow> surj g \<Longrightarrow> surj (g \<circ> f)"
-  by (simp add: image_comp [symmetric])
+  using image_comp [of g f UNIV] by simp
 
 lemma bij_betw_imageI: "inj_on f A \<Longrightarrow> f ` A = B \<Longrightarrow> bij_betw f A B"
   unfolding bij_betw_def by clarify
@@ -629,7 +629,7 @@ begin
 
 lemma surj_plus [simp]:
   "surj ((+) a)"
-  by (auto intro: range_eqI [of b "(+) a" "b - a" for b] simp add: algebra_simps)
+  by (auto intro!: range_eqI [of b "(+) a" "b - a" for b]) (simp add: algebra_simps)
 
 lemma inj_diff_right [simp]:
   \<open>inj (\<lambda>b. b - a)\<close>

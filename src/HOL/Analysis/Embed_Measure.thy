@@ -263,8 +263,6 @@ proof (rule pair_measure_eqI)
                 simp del: map_prod_simp
                 del: prod_fun_imageE) []
     apply auto []
-    apply (subst image_insert)
-    apply simp
     apply (subst (1 2 3 4 ) vimage_algebra_vimage_algebra_eq)
     apply (simp_all add: the_inv_into_in_Pi Pi_iff[of snd] Pi_iff[of fst] space_pair_measure)
     apply (simp_all add: Pi_iff[of snd] Pi_iff[of fst] the_inv_into_in_Pi vimage_algebra_vimage_algebra_eq

@@ -2495,14 +2495,15 @@ lemma homeomorphism_translation:
 unfolding homeomorphism_def by (auto simp: algebra_simps continuous_intros)
 
 lemma homeomorphism_ident: "homeomorphism T T (\<lambda>a. a) (\<lambda>a. a)"
-  by (rule homeomorphismI) (auto simp: continuous_on_id)
+  by (rule homeomorphismI) auto
 
 lemma homeomorphism_compose:
   assumes "homeomorphism S T f g" "homeomorphism T U h k"
     shows "homeomorphism S U (h o f) (g o k)"
   using assms
   unfolding homeomorphism_def
-  by (intro conjI ballI continuous_on_compose) (auto simp: image_comp [symmetric])
+  by (intro conjI ballI continuous_on_compose) (auto simp: image_iff)
+
 
 lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism t S g f"
   by (simp add: homeomorphism_def)

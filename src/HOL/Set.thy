@@ -930,11 +930,13 @@ lemma if_image_distrib [simp]:
   "(\<lambda>x. if P x then f x else g x) ` S = f ` (S \<inter> {x. P x}) \<union> g ` (S \<inter> {x. \<not> P x})"
   by auto
 
-lemma image_cong: "\<lbrakk> M = N;  \<And>x. x \<in> N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> f ` M = g ` N"
-by (simp add: image_def)
+lemma image_cong:
+  "f ` M = g ` N" if "M = N" "\<And>x. x \<in> N \<Longrightarrow> f x = g x"
+  using that by (simp add: image_def)
 
-lemma image_cong_simp: "\<lbrakk> M = N; \<And>x. x \<in> N =simp=> f x = g x\<rbrakk> \<Longrightarrow> f ` M = g ` N"
-by (simp add: image_def simp_implies_def)
+lemma image_cong_simp [cong]:
+  "f ` M = g ` N" if "M = N" "\<And>x. x \<in> N =simp=> f x = g x"
+  using that image_cong [of M N f g] by (simp add: simp_implies_def)
 
 lemma image_Int_subset: "f ` (A \<inter> B) \<subseteq> f ` A \<inter> f ` B"
   by blast

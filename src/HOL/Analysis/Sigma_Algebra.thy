@@ -446,12 +446,30 @@ lemma Int_range_binary: "a \<inter> b = (\<Inter>i::nat. binary a b i)"
   by (simp add: range_binary_eq cong del: INF_cong_simp)
 
 lemma sigma_algebra_iff2:
-     "sigma_algebra \<Omega> M \<longleftrightarrow>
-       M \<subseteq> Pow \<Omega> \<and>
-       {} \<in> M \<and> (\<forall>s \<in> M. \<Omega> - s \<in> M) \<and>
-       (\<forall>A. range A \<subseteq> M \<longrightarrow> (\<Union>i::nat. A i) \<in> M)"
-  by (auto simp add: range_binary_eq sigma_algebra_def sigma_algebra_axioms_def
-         algebra_iff_Un Un_range_binary)
+  "sigma_algebra \<Omega> M \<longleftrightarrow>
+    M \<subseteq> Pow \<Omega> \<and> {} \<in> M \<and> (\<forall>s \<in> M. \<Omega> - s \<in> M)
+    \<and> (\<forall>A. range A \<subseteq> M \<longrightarrow>(\<Union> i::nat. A i) \<in> M)" (is "?P \<longleftrightarrow> ?R \<and> ?S \<and> ?V \<and> ?W")
+proof
+  assume ?P
+  then interpret sigma_algebra \<Omega> M .
+  from space_closed show "?R \<and> ?S \<and> ?V \<and> ?W"
+    by auto
+next
+  assume "?R \<and> ?S \<and> ?V \<and> ?W"
+  then have ?R ?S ?V ?W
+    by simp_all
+  show ?P
+  proof (rule sigma_algebra.intro)
+    show "sigma_algebra_axioms M"
+      by standard (use \<open>?W\<close> in simp)
+    from \<open>?W\<close> have *: "range (binary a b) \<subseteq> M \<Longrightarrow> \<Union> (range (binary a b)) \<in> M" for a b
+      by auto
+    show "algebra \<Omega> M"
+      unfolding algebra_iff_Un using \<open>?R\<close> \<open>?S\<close> \<open>?V\<close> *
+      by (auto simp add: range_binary_eq)
+  qed
+qed
+
 
 subsubsection \<open>Initial Sigma Algebra\<close>
 
@@ -1204,7 +1222,7 @@ proof -
   have "disjoint_family ?f" unfolding disjoint_family_on_def
     using \<open>D \<in> M\<close>[THEN sets_into_space] \<open>D \<subseteq> E\<close> by auto
   ultimately have "\<Omega> - (D \<union> (\<Omega> - E)) \<in> M"
-    using sets UN by auto
+    using sets UN by auto fastforce
   also have "\<Omega> - (D \<union> (\<Omega> - E)) = E - D"
     using assms sets_into_space by auto
   finally show ?thesis .

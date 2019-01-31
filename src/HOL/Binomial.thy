@@ -1070,7 +1070,7 @@ proof -
   also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. (- 1) ^ (card I + 1))"
     using assms by (subst sum.Sigma) auto
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
-    by (rule sum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI simp add: split_beta)
+    by (rule sum.reindex_cong [where l = "\<lambda>(x, y). (y, x)"]) (auto intro: inj_onI)
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:\<Union>A. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). (- 1) ^ (card I + 1))"
     using assms
     by (auto intro!: sum.mono_neutral_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])

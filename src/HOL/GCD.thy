@@ -1030,12 +1030,11 @@ next
   also from x have "c * x dvd Lcm ((*) c ` A)"
     by (intro dvd_Lcm) auto
   finally have dvd: "c dvd Lcm ((*) c ` A)" .
-
-  have "Lcm A dvd Lcm ((*) c ` A) div c"
+  moreover have "Lcm A dvd Lcm ((*) c ` A) div c"
     by (intro Lcm_least dvd_mult_imp_div)
       (auto intro!: Lcm_least dvd_Lcm simp: mult.commute[of _ c])
-  then have "c * Lcm A dvd Lcm ((*) c ` A)"
-    by (subst (asm) dvd_div_iff_mult) (auto intro!: Lcm_least simp: mult_ac dvd)
+  ultimately have "c * Lcm A dvd Lcm ((*) c ` A)"
+    by auto
   also have "c * Lcm A = (normalize c * Lcm A) * unit_factor c"
     by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
   also have "\<dots> dvd Lcm ((*) c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm ((*) c ` A)"

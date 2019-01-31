@@ -1039,38 +1039,51 @@ qed
 lemma image_mult_atLeastAtMost_if:
   "(*) c ` {x .. y} =
     (if c > 0 then {c * x .. c * y} else if x \<le> y then {c * y .. c * x} else {})"
-proof -
-  consider "c < 0" "x \<le> y" | "c = 0" "x \<le> y" | "c > 0" "x \<le> y" | "x > y"
-    using local.antisym_conv3 local.leI by blast
+proof (cases "c = 0 \<or> x > y")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  then have "x \<le> y"
+    by auto
+  from False consider "c < 0"| "c > 0"
+    by (auto simp add: neq_iff)
   then show ?thesis
   proof cases
     case 1
-    have "(*) c ` {x .. y} = uminus ` (*) (- c) ` {x .. y}"
-      by (simp add: image_image)
-    also have "\<dots> = {c * y .. c * x}"
-      using \<open>c < 0\<close>
-      by simp
-    finally show ?thesis
-      using \<open>c < 0\<close> by auto
-  qed (auto simp: not_le local.mult_less_cancel_left_pos)
+    have "(*) c ` {x..y} = {c * y..c * x}"
+    proof (rule set_eqI)
+      fix d
+      from 1 have "inj (\<lambda>z. z / c)"
+        by (auto intro: injI)
+      then have "d \<in> (*) c ` {x..y} \<longleftrightarrow> d / c \<in> (\<lambda>z. z div c) ` (*) c ` {x..y}"
+        by (subst inj_image_mem_iff) simp_all
+      also have "\<dots> \<longleftrightarrow> d / c \<in> {x..y}"
+        using 1 by (simp add: image_image)
+      also have "\<dots> \<longleftrightarrow> d \<in> {c * y..c * x}"
+        by (auto simp add: field_simps 1)
+      finally show "d \<in> (*) c ` {x..y} \<longleftrightarrow> d \<in> {c * y..c * x}" .
+    qed
+    with \<open>x \<le> y\<close> show ?thesis
+      by auto
+  qed (simp add: mult_left_mono_neg)
 qed
 
 lemma image_mult_atLeastAtMost_if':
   "(\<lambda>x. x * c) ` {x..y} =
     (if x \<le> y then if c > 0 then {x * c .. y * c} else {y * c .. x * c} else {})"
-  by (subst mult.commute)
-    (simp add: image_mult_atLeastAtMost_if mult.commute mult_le_cancel_left_pos)
+  using image_mult_atLeastAtMost_if [of c x y] by (auto simp add: ac_simps)
 
 lemma image_affinity_atLeastAtMost:
-  "((\<lambda>x. m*x + c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {m*a + c .. m *b + c}
-            else {m*b + c .. m*a + c})"
+  "((\<lambda>x. m * x + c) ` {a..b}) = (if {a..b} = {} then {}
+            else if 0 \<le> m then {m * a + c .. m * b + c}
+            else {m * b + c .. m * a + c})"
 proof -
-  have "(\<lambda>x. m*x + c) = ((\<lambda>x. x + c) o (*) m)"
-    unfolding image_comp[symmetric]
-    by (simp add: o_def)
-  then show ?thesis
-    by (auto simp add: image_comp[symmetric] image_mult_atLeastAtMost_if mult_le_cancel_left)
+  have *: "(\<lambda>x. m * x + c) = ((\<lambda>x. x + c) \<circ> (*) m)"
+    by (simp add: fun_eq_iff)
+  show ?thesis by (simp only: * image_comp [symmetric] image_mult_atLeastAtMost_if)
+    (auto simp add: mult_le_cancel_left)
 qed
 
 lemma image_affinity_atLeastAtMost_diff:

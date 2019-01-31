@@ -3168,11 +3168,11 @@ next
   have dd: "dim ((+) (- a) ` S) = dim ((+) (- b) ` T)"
     using assms ab  by (simp add: aff_dim_eq_dim  [OF hull_inc] image_def)
   have "S homeomorphic ((+) (- a) ` S)"
-    by (simp add: homeomorphic_translation)
+    by (fact homeomorphic_translation)
   also have "\<dots> homeomorphic ((+) (- b) ` T)"
     by (rule homeomorphic_subspaces [OF ss dd])
   also have "\<dots> homeomorphic T"
-    using homeomorphic_sym homeomorphic_translation by auto
+    using homeomorphic_translation [of T "- b"] by (simp add: homeomorphic_sym [of T])
   finally show ?thesis .
 qed
 

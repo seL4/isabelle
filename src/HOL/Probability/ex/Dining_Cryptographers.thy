@@ -438,7 +438,7 @@ proof (rule mutual_information_eq_0_simple)
       by (auto simp: simple_function_def space_uniform_count_measure sets_uniform_count_measure)
     fix z assume "z \<in> payer ` space (uniform_count_measure dc_crypto)"
     then have "payer -` {z} \<inter> dc_crypto = {z} \<times> {xs. length xs = n}"
-      by (auto simp: dc_crypto payer_def space_uniform_count_measure)
+      by (auto simp: dc_crypto payer_def space_uniform_count_measure cong del: image_cong_simp)
     hence "card (payer -` {z} \<inter> dc_crypto) = 2^n"
       using card_lists_length_eq[where A="UNIV::bool set"]
       by (simp add: card_cartesian_product_singleton)

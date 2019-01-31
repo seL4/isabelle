@@ -1055,9 +1055,9 @@ next
         using B by blast
       show "(\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
         using A apply (rule SUP_upper2)
-        apply (simp add: F_def)
         apply (rule INF_greatest)
-        apply (auto simp add: * **)
+        using * **
+        apply (auto simp add: F_def)
         done
     qed
 
@@ -1066,8 +1066,11 @@ next
       proof (cases "x \<in> A")
         case True
         then show ?thesis
-          apply (rule INF_lower2, simp_all)
-          by (rule SUP_least, rule SUP_upper2, auto)
+          apply (rule INF_lower2)
+          apply (rule SUP_least)
+          apply (rule SUP_upper2)
+           apply auto
+          done
       next
         case False
         then show ?thesis by simp
@@ -1076,9 +1079,11 @@ next
     from this have "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Sqinter>x. \<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
       by (rule INF_greatest)
     also have "... = (\<Squnion>x. \<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>)"
-      by (simp add: INF_SUP)
+      by (simp only: INF_SUP)
     also have "... \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
-      by (rule SUP_least, simp add: ***)
+      apply (rule SUP_least)
+      using *** apply simp
+      done
     finally show ?thesis by simp
   qed
 qed
