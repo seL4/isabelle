@@ -534,8 +534,8 @@ begin
 sublocale sum: comm_monoid_set plus 0
   defines sum = sum.F ..
 
-abbreviation Sum ("\<Sum>_" [1000] 999)
-  where "\<Sum>A \<equiv> sum (\<lambda>x. x) A"
+abbreviation Sum ("\<Sum>")
+  where "\<Sum> \<equiv> sum (\<lambda>x. x)"
 
 end
 
