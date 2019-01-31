@@ -53,7 +53,7 @@ object Main
 
         if (!(settings_dir + Path.explode("perspective.xml")).is_file) {
           File.write(settings_dir + Path.explode("DockableWindowManager/perspective-view0.xml"),
-            """<DOCKING LEFT="vfs.browser" TOP="" RIGHT="isabelle-documentation" BOTTOM="" LEFT_POS="250" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />""")
+            """<DOCKING LEFT="isabelle-documentation" TOP="" RIGHT="isabelle-theories" BOTTOM="" LEFT_POS="250" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />""")
           File.write(settings_dir + Path.explode("perspective.xml"),
             """<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
