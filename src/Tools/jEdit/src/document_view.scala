@@ -196,7 +196,8 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
 
   /* text status overview left of scrollbar */
 
-  private val text_overview = new Text_Overview(this)
+  private val text_overview: Option[Text_Overview] =
+    if (PIDE.options.bool("jedit_text_overview")) Some(new Text_Overview(this)) else None
 
 
   /* main */
@@ -204,7 +205,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Raw_Edits =>
-        text_overview.invoke()
+        text_overview.foreach(_.invoke())
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
@@ -216,7 +217,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
               if (changed.assignment ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
-                text_overview.invoke()
+                text_overview.foreach(_.invoke())
 
               JEdit_Lib.invalidate(text_area)
             }
@@ -236,7 +237,9 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
-    text_area.addLeftOfScrollBar(text_overview); text_area.revalidate(); text_area.repaint()
+    text_overview.foreach(text_area.addLeftOfScrollBar(_))
+    text_area.revalidate()
+    text_area.repaint()
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.addStructureMatcher(_))
     session.raw_edits += main
@@ -251,8 +254,10 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea)
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.removeStructureMatcher(_))
-    text_overview.revoke(); text_area.removeLeftOfScrollBar(text_overview)
-    text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
+    text_overview.foreach(_.revoke())
+    text_overview.foreach(text_area.removeLeftOfScrollBar(_))
+    text_area.removeCaretListener(caret_listener)
+    delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
     rich_text_area.deactivate()

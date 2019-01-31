@@ -53,6 +53,9 @@ information, based on the "isabelle-session:" virtual file-system. Its
 entries are structured according to chapter / session names, the open
 operation is redirected to the session ROOT file.
 
+* System option "jedit_text_overview" allows to disable the text
+overview column.
+
 * Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
 DejaVu" collection by default, which provides uniform rendering quality
 with the usual Isabelle symbols. Line spacing no longer needs to be
