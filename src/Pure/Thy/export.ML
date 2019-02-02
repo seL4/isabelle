@@ -6,8 +6,8 @@ Manage theory exports: compressed blobs.
 
 signature EXPORT =
 sig
-  val export: theory -> string -> string list -> unit
-  val export_raw: theory -> string -> string list -> unit
+  val export: theory -> Path.T -> string list -> unit
+  val export_raw: theory -> Path.T -> string list -> unit
   val markup: theory -> string -> Markup.T
   val message: theory -> string -> string
 end;
@@ -17,20 +17,20 @@ struct
 
 (* export *)
 
-fun check_name name =
+fun check_name path =
   let
+    val name = Path.implode path;
     val _ =
-      (case space_explode "/" name of
-        [] => error "Empty export name"
-      | elems => List.app Path.check_elem elems);
+      if not (Path.is_current path) andalso Path.all_basic path then ()
+      else error ("Bad export name: " ^ quote name);
   in name end;
 
-fun gen_export compress thy name body =
+fun gen_export compress thy path body =
   (Output.try_protocol_message o Markup.export)
    {id = Position.get_id (Position.thread_data ()),
     serial = serial (),
     theory_name = Context.theory_long_name thy,
-    name = check_name name,
+    name = check_name path,
     compress = compress} body;
 
 val export = gen_export true;

@@ -7,7 +7,6 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 
 signature PATH =
 sig
-  val check_elem: string -> unit
   eqtype T
   val is_current: T -> bool
   val current: T
@@ -20,6 +19,7 @@ sig
   val has_parent: T -> bool
   val is_absolute: T -> bool
   val is_basic: T -> bool
+  val all_basic: T -> bool
   val starts_basic: T -> bool
   val append: T -> T -> T
   val appends: T list -> T
@@ -57,8 +57,6 @@ fun err_elem msg s = error (msg ^ " path element " ^ quote s);
 val illegal_elem = ["", "~", "~~", ".", ".."];
 val illegal_char = ["/", "\\", "$", ":", "\"", "'", "<", ">", "|", "?", "*"];
 
-in
-
 fun check_elem s =
   if member (op =) illegal_elem s then err_elem "Illegal" s
   else
@@ -68,6 +66,8 @@ fun check_elem s =
       else if member (op =) illegal_char c then
         err_elem ("Illegal character " ^ quote c ^ " in") s
       else ());
+
+in
 
 val root_elem = Root o tap check_elem;
 val basic_elem = Basic o tap check_elem;
@@ -102,6 +102,9 @@ fun is_absolute (Path xs) =
 
 fun is_basic (Path [Basic _]) = true
   | is_basic _ = false;
+
+fun all_basic (Path elems) =
+  forall (fn Basic _ => true | _ => false) elems;
 
 fun starts_basic (Path xs) =
   (case try List.last xs of

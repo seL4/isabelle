@@ -180,9 +180,10 @@ fun export_information thy name content =
   (Export.export thy name [content]; writeln (Export.message thy ""));
 
 fun export_to_exports thy width (Singleton (extension, p)) =
-      export_information thy (generatedN ^ "." ^ extension) (Code_Printer.format [] width p)
+      export_information thy (Path.basic (generatedN ^ "." ^ extension))
+        (Code_Printer.format [] width p)
   | export_to_exports thy width (Hierarchy code_modules) = (
-      map (fn (names, p) => export_information thy (Path.implode (Path.make names))
+      map (fn (names, p) => export_information thy (Path.make names)
         (Code_Printer.format [] width p)) code_modules;
       ());
 

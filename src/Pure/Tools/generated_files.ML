@@ -81,7 +81,7 @@ fun write_files thy dir =
 fun export_files thy other_thys =
   other_thys |> maps (fn other_thy =>
     get_files other_thy |> map (fn {path, pos, text} =>
-      (Export.export thy (Path.implode path) [text]; (path, pos))));
+      (Export.export thy path [text]; (path, pos))));
 
 
 (* file types *)

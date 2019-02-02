@@ -973,7 +973,7 @@ fun close incomplete thy =
              \because their proofs contain oracles:" proved'));
           val prv_path = Path.ext "prv" path;
           val _ =
-            Export.export thy (Path.implode prv_path)
+            Export.export thy prv_path
               [implode (map (fn (s, _) => snd (strip_number s) ^
                 " -- proved by " ^ Distribution.version ^ "\n") proved'')];
         in {pfuns = pfuns, type_map = type_map, env = NONE} end))
