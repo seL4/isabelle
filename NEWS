@@ -87,6 +87,9 @@ precedence over goal/proof.
 
 *** HOL ***
 
+* more material on residue rings in HOL-Number_Theory:
+Carmichael's function, primitive roots, more properties for "ord"
+
 * the functions \<Union>, \<Inter>, \<Squnion>, \<Sqinter>
 (not the corresponding binding operators) now have the same precedence
 as any other prefix function symbol.

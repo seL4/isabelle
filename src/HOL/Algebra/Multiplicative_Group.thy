@@ -136,7 +136,9 @@ lemma dvd_nat_bounds:
  shows "n > 0 \<and> n \<le> p"
  using assms by (simp add: dvd_pos_nat dvd_imp_le)
 
-(* Deviates from the definition given in the library in number theory *)
+(* TODO FIXME: This is the "totient" function from HOL-Number_Theory, but since part of
+   HOL-Number_Theory depends on HOL-Algebra.Multiplicative_Group, there would be a cyclic
+   dependency. *)
 definition phi' :: "nat => nat"
   where "phi' m = card {x. 1 \<le> x \<and> x \<le> m \<and> coprime x m}"
 

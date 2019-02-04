@@ -881,6 +881,21 @@ proof -
     by (simp_all add: div mod)
 qed
 
+lemma mod_double_modulus:
+  assumes "m > 0" "x \<ge> 0"
+  shows   "x mod (2 * m) = x mod m \<or> x mod (2 * m) = x mod m + m"
+proof (cases "x mod (2 * m) < m")
+  case True
+  thus ?thesis using assms using divmod_digit_0(2)[of m x] by auto
+next
+  case False
+  hence *: "x mod (2 * m) - m = x mod m"
+    using assms by (intro divmod_digit_1) auto
+  hence "x mod (2 * m) = x mod m + m"
+    by (subst * [symmetric], subst le_add_diff_inverse2) (use False in auto)
+  thus ?thesis by simp
+qed
+
 lemma fst_divmod:
   "fst (divmod m n) = numeral m div numeral n"
   by (simp add: divmod_def)

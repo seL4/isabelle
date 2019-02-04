@@ -1,5 +1,5 @@
 (*  Title:      HOL/Number_Theory/Pocklington.thy
-    Author:     Amine Chaieb
+    Author:     Amine Chaieb, Manuel Eberl
 *)
 
 section \<open>Pocklington's Theorem for Primes\<close>
@@ -270,7 +270,7 @@ proof-
 qed
 
 
-subsection \<open>Definition of the order of a number mod n (0 in non-coprime case)\<close>
+subsection \<open>Definition of the order of a number mod \<open>n\<close>\<close>
 
 definition "ord n a = (if coprime n a then Least (\<lambda>d. d > 0 \<and> [a ^d = 1] (mod n)) else 0)"
 
@@ -438,6 +438,425 @@ proof -
       by (metis cong_sym)
   qed
 qed
+
+lemma ord_not_coprime [simp]: "\<not>coprime n a \<Longrightarrow> ord n a = 0"
+  by (simp add: ord_def)
+
+lemma ord_1 [simp]: "ord 1 n = 1"
+proof -
+  have "(LEAST k. k > 0) = (1 :: nat)"
+    by (rule Least_equality) auto
+  thus ?thesis by (simp add: ord_def)
+qed
+
+lemma ord_1_right [simp]: "ord (n::nat) 1 = 1"
+  using ord_divides[of 1 1 n] by simp
+
+lemma ord_Suc_0_right [simp]: "ord (n::nat) (Suc 0) = 1"
+  using ord_divides[of 1 1 n] by simp
+
+lemma ord_0_nat [simp]: "ord 0 (n :: nat) = (if n = 1 then 1 else 0)"
+proof -
+  have "(LEAST k. k > 0) = (1 :: nat)"
+    by (rule Least_equality) auto
+  thus ?thesis by (auto simp: ord_def)
+qed
+
+lemma ord_0_right_nat [simp]: "ord (n :: nat) 0 = (if n = 1 then 1 else 0)"
+proof -
+  have "(LEAST k. k > 0) = (1 :: nat)"
+    by (rule Least_equality) auto
+  thus ?thesis by (auto simp: ord_def)
+qed
+
+lemma ord_divides': "[a ^ d = Suc 0] (mod n) = (ord n a dvd d)"
+  using ord_divides[of a d n] by simp
+
+lemma ord_Suc_0 [simp]: "ord (Suc 0) n = 1"
+  using ord_1[where 'a = nat] by (simp del: ord_1)
+
+lemma ord_mod [simp]: "ord n (k mod n) = ord n k"
+  by (cases "n = 0") (auto simp add: ord_def cong_def power_mod)
+
+lemma ord_gt_0_iff [simp]: "ord (n::nat) x > 0 \<longleftrightarrow> coprime n x"
+  using ord_eq_0[of n x] by auto
+
+lemma ord_eq_Suc_0_iff: "ord n (x::nat) = Suc 0 \<longleftrightarrow> [x = 1] (mod n)"
+  using ord_divides[of x 1 n] by (auto simp: ord_divides')
+
+lemma ord_cong:
+  assumes "[k1 = k2] (mod n)"
+  shows   "ord n k1 = ord n k2"
+proof -
+  have "ord n (k1 mod n) = ord n (k2 mod n)"
+    by (simp only: assms[unfolded cong_def])
+  thus ?thesis by simp
+qed
+
+lemma ord_nat_code [code_unfold]:
+  "ord n a =
+     (if n = 0 then if a = 1 then 1 else 0 else
+        if coprime n a then Min (Set.filter (\<lambda>k. [a ^ k = 1] (mod n)) {0<..n}) else 0)"
+proof (cases "coprime n a \<and> n > 0")
+  case True
+  define A where "A = {k\<in>{0<..n}. [a ^ k = 1] (mod n)}"
+  define k where "k = (LEAST k. k > 0 \<and> [a ^ k = 1] (mod n))"
+  have totient: "totient n \<in> A"
+    using euler_theorem[of a n] True
+    by (auto simp: A_def coprime_commute intro!: Nat.gr0I totient_le)
+  moreover have "finite A" by (auto simp: A_def)
+  ultimately have *: "Min A \<in> A" and "\<forall>y. y \<in> A \<longrightarrow> Min A \<le> y"
+    by (auto intro: Min_in)
+
+  have "k > 0 \<and> [a ^ k = 1] (mod n)"
+    unfolding k_def by (rule LeastI[of _ "totient n"]) (use totient in \<open>auto simp: A_def\<close>)
+  moreover have "k \<le> totient n"
+    unfolding k_def by (intro Least_le) (use totient in \<open>auto simp: A_def\<close>)
+  ultimately have "k \<in> A" using totient_le[of n] by (auto simp: A_def)
+  hence "Min A \<le> k" by (intro Min_le) (auto simp: \<open>finite A\<close>)
+  moreover from * have "k \<le> Min A"
+    unfolding k_def by (intro Least_le) (auto simp: A_def)
+  ultimately show ?thesis using True by (simp add: ord_def k_def A_def Set.filter_def)
+qed auto
+
+theorem ord_modulus_mult_coprime:
+  fixes x :: nat
+  assumes "coprime m n"
+  shows   "ord (m * n) x = lcm (ord m x) (ord n x)"
+proof (intro dvd_antisym)
+  have "[x ^ lcm (ord m x) (ord n x) = 1] (mod (m * n))"
+    using assms by (intro coprime_cong_mult_nat assms) (auto simp: ord_divides')
+  thus "ord (m * n) x dvd lcm (ord m x) (ord n x)"
+    by (simp add: ord_divides')
+next
+  show "lcm (ord m x) (ord n x) dvd ord (m * n) x"
+  proof (intro lcm_least)
+    show "ord m x dvd ord (m * n) x"
+      using cong_modulus_mult_nat[of "x ^ ord (m * n) x" 1 m n] assms
+      by (simp add: ord_divides')
+    show "ord n x dvd ord (m * n) x"
+      using cong_modulus_mult_nat[of "x ^ ord (m * n) x" 1 n m] assms
+      by (simp add: ord_divides' mult.commute)
+  qed
+qed
+
+corollary ord_modulus_prod_coprime:
+  assumes "finite A" "\<And>i j. i \<in> A \<Longrightarrow> j \<in> A \<Longrightarrow> i \<noteq> j \<Longrightarrow> coprime (f i) (f j)"
+  shows   "ord (\<Prod>i\<in>A. f i :: nat) x = (LCM i\<in>A. ord (f i) x)"
+  using assms by (induction A rule: finite_induct)
+                 (simp, simp, subst ord_modulus_mult_coprime, auto intro!: prod_coprime_right)
+
+lemma ord_power_aux:
+  fixes m x k a :: nat
+  defines "l \<equiv> ord m a"
+  shows   "ord m (a ^ k) * gcd k l = l"
+proof (rule dvd_antisym)
+  have "[a ^ lcm k l = 1] (mod m)"
+    unfolding ord_divides by (simp add: l_def)
+  also have "lcm k l = k * (l div gcd k l)"
+    by (simp add: lcm_nat_def div_mult_swap)
+  finally have "ord m (a ^ k) dvd l div gcd k l"
+    unfolding ord_divides [symmetric] by (simp add: power_mult [symmetric])
+  thus "ord m (a ^ k) * gcd k l dvd l"
+    by (cases "l = 0") (auto simp: dvd_div_iff_mult)
+
+  have "[(a ^ k) ^ ord m (a ^ k) = 1] (mod m)"
+    by (rule ord)
+  also have "(a ^ k) ^ ord m (a ^ k) = a ^ (k * ord m (a ^ k))"
+    by (simp add: power_mult)
+  finally have "ord m a dvd k * ord m (a ^ k)"
+    by (simp add: ord_divides')
+  hence "l dvd gcd (k * ord m (a ^ k)) (l * ord m (a ^ k))"
+    by (intro gcd_greatest dvd_triv_left) (auto simp: l_def ord_divides')
+  also have "gcd (k * ord m (a ^ k)) (l * ord m (a ^ k)) = ord m (a ^ k) * gcd k l"
+    by (subst gcd_mult_distrib_nat) (auto simp: mult_ac)
+  finally show "l dvd ord m (a ^ k) * gcd k l" .
+qed
+
+theorem ord_power: "coprime m a \<Longrightarrow> ord m (a ^ k :: nat) = ord m a div gcd k (ord m a)"
+  using ord_power_aux[of m a k] by (metis div_mult_self_is_m gcd_pos_nat ord_eq_0)
+
+lemma inj_power_mod:
+  assumes "coprime n (a :: nat)"
+  shows   "inj_on (\<lambda>k. a ^ k mod n) {..<ord n a}"
+proof
+  fix k l assume *: "k \<in> {..<ord n a}" "l \<in> {..<ord n a}" "a ^ k mod n = a ^ l mod n"
+  have "k = l" if "k < l" "l < ord n a" "[a ^ k = a ^ l] (mod n)" for k l
+  proof -
+    have "l = k + (l - k)" using that by simp
+    also have "a ^ \<dots> = a ^ k * a ^ (l - k)"
+      by (simp add: power_add)
+    also have "[\<dots> = a ^ l * a ^ (l - k)] (mod n)"
+      using that by (intro cong_mult) auto
+    finally have "[a ^ l * a ^ (l - k) = a ^ l * 1] (mod n)"
+      by (simp add: cong_sym_eq)
+    with assms have "[a ^ (l - k) = 1] (mod n)"
+      by (subst (asm) cong_mult_lcancel_nat) (auto simp: coprime_commute)
+    hence "ord n a dvd l - k"
+      by (simp add: ord_divides')
+    from dvd_imp_le[OF this] and \<open>l < ord n a\<close> have "l - k = 0"
+      by (cases "l - k = 0") auto
+    with \<open>k < l\<close> show "k = l" by simp
+  qed
+  from this[of k l] and this[of l k] and * show "k = l"
+    by (cases k l rule: linorder_cases) (auto simp: cong_def)
+qed
+
+lemma ord_eq_2_iff: "ord n (x :: nat) = 2 \<longleftrightarrow> [x \<noteq> 1] (mod n) \<and> [x\<^sup>2 = 1] (mod n)"
+proof
+  assume x: "[x \<noteq> 1] (mod n) \<and> [x\<^sup>2 = 1] (mod n)"
+  hence "coprime n x"
+    by (metis coprime_commute lucas_coprime_lemma zero_neq_numeral)
+  with x have "ord n x dvd 2" "ord n x \<noteq> 1" "ord n x > 0"
+    by (auto simp: ord_divides' ord_eq_Suc_0_iff)
+  thus "ord n x = 2" by (auto dest!: dvd_imp_le simp del: ord_gt_0_iff)
+qed (use ord_divides[of _ 2] ord_divides[of _ 1] in auto)
+
+lemma square_mod_8_eq_1_iff: "[x\<^sup>2 = 1] (mod 8) \<longleftrightarrow> odd (x :: nat)"
+proof -
+  have "[x\<^sup>2 = 1] (mod 8) \<longleftrightarrow> ((x mod 8)\<^sup>2 mod 8 = 1)"
+    by (simp add: power_mod cong_def)
+  also have "\<dots> \<longleftrightarrow> x mod 8 \<in> {1, 3, 5, 7}"
+  proof
+    assume x: "(x mod 8)\<^sup>2 mod 8 = 1"
+    have "x mod 8 \<in> {..<8}" by simp
+    also have "{..<8} = {0, 1, 2, 3, 4, 5, 6, 7::nat}"
+      by (simp add: lessThan_nat_numeral lessThan_Suc insert_commute)
+    finally have x_cases: "x mod 8 \<in> {0, 1, 2, 3, 4, 5, 6, 7}" .
+    from x have "x mod 8 \<notin> {0, 2, 4, 6}"
+      using x by (auto intro: Nat.gr0I)
+    with x_cases show "x mod 8 \<in> {1, 3, 5, 7}" by simp
+  qed auto
+  also have "\<dots> \<longleftrightarrow> odd (x mod 8)"
+    by (auto elim!: oddE)
+  also have "\<dots> \<longleftrightarrow> odd x"
+    by presburger
+  finally show ?thesis .
+qed
+
+lemma ord_twopow_aux:
+  assumes "k \<ge> 3" and "odd (x :: nat)"
+  shows   "[x ^ (2 ^ (k - 2)) = 1] (mod (2 ^ k))"
+  using assms(1)
+proof (induction k rule: dec_induct)
+  case base
+  from assms have "[x\<^sup>2 = 1] (mod 8)"
+    by (subst square_mod_8_eq_1_iff) auto
+  thus ?case by simp
+next
+  case (step k)
+  define k' where "k' = k - 2"
+  have k: "k = Suc (Suc k')"
+    using \<open>k \<ge> 3\<close> by (simp add: k'_def)
+  from \<open>k \<ge> 3\<close> have "2 * k \<ge> Suc k" by presburger
+
+  from \<open>odd x\<close> have "x > 0" by (intro Nat.gr0I) auto
+  from step.IH have "2 ^ k dvd (x ^ (2 ^ (k - 2)) - 1)"
+    by (rule cong_to_1_nat)
+  then obtain t where "x ^ (2 ^ (k - 2)) - 1 = t * 2 ^ k"
+    by auto
+  hence "x ^ (2 ^ (k - 2)) = t * 2 ^ k + 1"
+    by (metis \<open>0 < x\<close> add.commute add_diff_inverse_nat less_one neq0_conv power_eq_0_iff)
+  hence "(x ^ (2 ^ (k - 2))) ^ 2 = (t * 2 ^ k + 1) ^ 2"
+    by (rule arg_cong)
+  hence "[(x ^ (2 ^ (k - 2))) ^ 2 = (t * 2 ^ k + 1) ^ 2] (mod (2 ^ Suc k))"
+    by simp
+  also have "(x ^ (2 ^ (k - 2))) ^ 2 = x ^ (2 ^ (k - 1))"
+    by (simp_all add: power_even_eq[symmetric] power_mult k )
+  also have "(t * 2 ^ k + 1) ^ 2 = t\<^sup>2 * 2 ^ (2 * k) + t * 2 ^ Suc k + 1"
+    by (subst power2_eq_square)
+       (auto simp: algebra_simps k power2_eq_square[of t]
+                   power_even_eq[symmetric] power_add [symmetric])
+  also have "[\<dots> = 0 + 0 + 1] (mod 2 ^ Suc k)"
+    using \<open>2 * k \<ge> Suc k\<close>
+    by (intro cong_add)
+       (auto simp: cong_0_iff intro: dvd_mult[OF le_imp_power_dvd] simp del: power_Suc)
+  finally show ?case by simp
+qed
+
+lemma ord_twopow_3_5:
+  assumes "k \<ge> 3" "x mod 8 \<in> {3, 5 :: nat}"
+  shows   "ord (2 ^ k) x = 2 ^ (k - 2)"
+  using assms(1)
+proof (induction k rule: less_induct)
+  have "x mod 8 = 3 \<or> x mod 8 = 5" using assms by auto
+  hence "odd x" by presburger
+  case (less k)
+  from \<open>k \<ge> 3\<close> consider "k = 3" | "k = 4" | "k \<ge> 5" by force
+  thus ?case
+  proof cases
+    case 1
+    thus ?thesis using assms
+      by (auto simp: ord_eq_2_iff cong_def simp flip: power_mod[of x])
+  next
+    case 2
+    from assms have "x mod 8 = 3 \<or> x mod 8 = 5" by auto
+    hence x': "x mod 16 = 3 \<or> x mod 16 = 5 \<or> x mod 16 = 11 \<or> x mod 16 = 13"
+      using mod_double_modulus[of 8 x] by auto
+    hence "[x ^ 4 = 1] (mod 16)" using assms
+      by (auto simp: cong_def simp flip: power_mod[of x])
+    hence "ord 16 x dvd 2\<^sup>2" by (simp add: ord_divides')
+    then obtain l where l: "ord 16 x = 2 ^ l" "l \<le> 2"
+      by (subst (asm) divides_primepow_nat) auto
+
+    have "[x ^ 2 \<noteq> 1] (mod 16)"
+      using x' by (auto simp: cong_def simp flip: power_mod[of x])
+    hence "\<not>ord 16 x dvd 2" by (simp add: ord_divides')
+    with l have "l = 2"
+      using le_imp_power_dvd[of l 1 2] by (cases "l \<le> 1") auto
+    with l show ?thesis by (simp add: \<open>k = 4\<close>)
+  next
+    case 3
+    define k' where "k' = k - 2"
+    have k': "k' \<ge> 2" and [simp]: "k = Suc (Suc k')"
+      using 3 by (simp_all add: k'_def)
+    have IH: "ord (2 ^ k') x = 2 ^ (k' - 2)" "ord (2 ^ Suc k') x = 2 ^ (k' - 1)"
+      using less.IH[of k'] less.IH[of "Suc k'"] 3 by simp_all
+    from IH have cong: "[x ^ (2 ^ (k' - 2)) = 1] (mod (2 ^ k'))"
+      by (simp_all add: ord_divides')
+    have notcong: "[x ^ (2 ^ (k' - 2)) \<noteq> 1] (mod (2 ^ Suc k'))"
+    proof
+      assume "[x ^ (2 ^ (k' - 2)) = 1] (mod (2 ^ Suc k'))"
+      hence "ord (2 ^ Suc k') x dvd 2 ^ (k' - 2)"
+        by (simp add: ord_divides')
+      also have "ord (2 ^ Suc k') x = 2 ^ (k' - 1)"
+        using IH by simp
+      finally have "k' - 1 \<le> k' - 2"
+        by (rule power_dvd_imp_le) auto
+      with \<open>k' \<ge> 2\<close> show False by simp
+    qed
+
+    have "2 ^ k' + 1 < 2 ^ k' + (2 ^ k' :: nat)"
+      using one_less_power[of "2::nat" k'] k' by (intro add_strict_left_mono) auto
+    with cong notcong have cong': "x ^ (2 ^ (k' - 2)) mod 2 ^ Suc k' = 1 + 2 ^ k'"
+      using mod_double_modulus[of "2 ^ k'" "x ^ 2 ^ (k' - 2)"] k' by (auto simp: cong_def)
+
+    hence "x ^ (2 ^ (k' - 2)) mod 2 ^ k = 1 + 2 ^ k' \<or>
+           x ^ (2 ^ (k' - 2)) mod 2 ^ k = 1 + 2 ^ k' + 2 ^ Suc k'"
+      using mod_double_modulus[of "2 ^ Suc k'" "x ^ 2 ^ (k' - 2)"] by auto
+    hence eq: "[x ^ 2 ^ (k' - 1) = 1 + 2 ^ (k - 1)] (mod 2 ^ k)"
+    proof
+      assume *: "x ^ (2 ^ (k' - 2)) mod (2 ^ k) = 1 + 2 ^ k'"
+      have "[x ^ (2 ^ (k' - 2)) = x ^ (2 ^ (k' - 2)) mod 2 ^ k] (mod 2 ^ k)"
+        by simp
+      also have "[x ^ (2 ^ (k' - 2)) mod (2 ^ k) = 1 + 2 ^ k'] (mod 2 ^ k)"
+        by (subst *) auto
+      finally have "[(x ^ 2 ^ (k' - 2)) ^ 2 = (1 + 2 ^ k') ^ 2] (mod 2 ^ k)"
+        by (rule cong_pow)
+      hence "[x ^ 2 ^ Suc (k' - 2) = (1 + 2 ^ k') ^ 2] (mod 2 ^ k)"
+        by (simp add: power_mult [symmetric] power_Suc2 [symmetric] del: power_Suc)
+      also have "Suc (k' - 2) = k' - 1"
+        using k' by simp
+      also have "(1 + 2 ^ k' :: nat)\<^sup>2 = 1 + 2 ^ (k - 1) + 2 ^ (2 * k')"
+        by (subst power2_eq_square) (simp add: algebra_simps flip: power_add)
+      also have "(2 ^ k :: nat) dvd 2 ^ (2 * k')"
+        using k' by (intro le_imp_power_dvd) auto
+      hence "[1 + 2 ^ (k - 1) + 2 ^ (2 * k') = 1 + 2 ^ (k - 1) + (0 :: nat)] (mod 2 ^ k)"
+        by (intro cong_add) (auto simp: cong_0_iff)
+      finally show "[x ^ 2 ^ (k' - 1) = 1 + 2 ^ (k - 1)] (mod 2 ^ k)"
+        by simp
+    next
+      assume *: "x ^ (2 ^ (k' - 2)) mod 2 ^ k = 1 + 2 ^ k' + 2 ^ Suc k'"
+      have "[x ^ (2 ^ (k' - 2)) = x ^ (2 ^ (k' - 2)) mod 2 ^ k] (mod 2 ^ k)"
+        by simp
+      also have "[x ^ (2 ^ (k' - 2)) mod (2 ^ k) = 1 + 3 * 2 ^ k'] (mod 2 ^ k)"
+        by (subst *) auto
+      finally have "[(x ^ 2 ^ (k' - 2)) ^ 2 = (1 + 3 * 2 ^ k') ^ 2] (mod 2 ^ k)"
+        by (rule cong_pow)
+      hence "[x ^ 2 ^ Suc (k' - 2) = (1 + 3 * 2 ^ k') ^ 2] (mod 2 ^ k)"
+        by (simp add: power_mult [symmetric] power_Suc2 [symmetric] del: power_Suc)
+      also have "Suc (k' - 2) = k' - 1"
+        using k' by simp
+      also have "(1 + 3 * 2 ^ k' :: nat)\<^sup>2 = 1 + 2 ^ (k - 1) + 2 ^ k + 9 * 2 ^ (2 * k')"
+        by (subst power2_eq_square) (simp add: algebra_simps flip: power_add)
+      also have "(2 ^ k :: nat) dvd 9 * 2 ^ (2 * k')"
+        using k' by (intro dvd_mult le_imp_power_dvd) auto
+      hence "[1 + 2 ^ (k - 1) + 2 ^ k + 9 * 2 ^ (2 * k') = 1 + 2 ^ (k - 1) + 0 + (0 :: nat)]
+               (mod 2 ^ k)"
+        by (intro cong_add) (auto simp: cong_0_iff)
+      finally show "[x ^ 2 ^ (k' - 1) = 1 + 2 ^ (k - 1)] (mod 2 ^ k)"
+        by simp
+    qed
+
+    have notcong': "[x ^ 2 ^ (k - 3) \<noteq> 1] (mod 2 ^ k)"
+    proof
+      assume "[x ^ 2 ^ (k - 3) = 1] (mod 2 ^ k)"
+      hence "[x ^ 2 ^ (k' - 1) - x ^ 2 ^ (k' - 1) = 1 + 2 ^ (k - 1) - 1] (mod 2 ^ k)"
+        by (intro cong_diff_nat eq) auto
+      hence "[2 ^ (k - 1) = (0 :: nat)] (mod 2 ^ k)"
+        by (simp add: cong_sym_eq)
+      hence "2 ^ k dvd 2 ^ (k - 1)"
+        by (simp add: cong_0_iff)
+      hence "k \<le> k - 1"
+        by (rule power_dvd_imp_le) auto
+      thus False by simp
+    qed
+
+    have "[x ^ 2 ^ (k - 2) = 1] (mod 2 ^ k)"
+      using ord_twopow_aux[of k x] \<open>odd x\<close> \<open>k \<ge> 3\<close> by simp
+    hence "ord (2 ^ k) x dvd 2 ^ (k - 2)"
+      by (simp add: ord_divides')
+    then obtain l where l: "l \<le> k - 2" "ord (2 ^ k) x = 2 ^ l"
+      using divides_primepow_nat[of 2 "ord (2 ^ k) x" "k - 2"] by auto
+
+    from notcong' have "\<not>ord (2 ^ k) x dvd 2 ^ (k - 3)"
+      by (simp add: ord_divides')
+    with l have "l = k - 2"
+      using le_imp_power_dvd[of l "k - 3" 2] by (cases "l \<le> k - 3") auto
+    with l show ?thesis by simp
+  qed
+qed
+
+lemma ord_4_3 [simp]: "ord 4 (3::nat) = 2"
+proof -
+  have "[3 ^ 2 = (1 :: nat)] (mod 4)"
+    by (simp add: cong_def)
+  hence "ord 4 (3::nat) dvd 2"
+    by (subst (asm) ord_divides) auto
+  hence "ord 4 (3::nat) \<le> 2"
+    by (intro dvd_imp_le) auto
+  moreover have "ord 4 (3::nat) \<noteq> 1"
+    by (auto simp: ord_eq_Suc_0_iff cong_def)
+  moreover have "ord 4 (3::nat) \<noteq> 0"
+    by (auto simp: gcd_non_0_nat coprime_iff_gcd_eq_1)
+  ultimately show "ord 4 (3 :: nat) = 2"
+    by linarith
+qed
+
+lemma elements_with_ord_1: "n > 0 \<Longrightarrow> {x\<in>totatives n. ord n x = Suc 0} = {1}"
+  by (auto simp: ord_eq_Suc_0_iff cong_def totatives_less)
+
+lemma residue_prime_has_primroot:
+  fixes p :: nat
+  assumes "prime p"
+  shows "\<exists>a\<in>totatives p. ord p a = p - 1"
+proof -
+  from residue_prime_mult_group_has_gen[OF assms]
+    obtain a where a: "a \<in> {1..p-1}" "{1..p-1} = {a ^ i mod p |i. i \<in> UNIV}" by blast
+  from a have "coprime p a"
+    using a assms by (intro prime_imp_coprime) (auto dest: dvd_imp_le)
+  with a(1) have "a \<in> totatives p" by (auto simp: totatives_def coprime_commute)
+
+  have "p - 1 = card {1..p-1}" by simp
+  also have "{1..p-1} = {a ^ i mod p |i. i \<in> UNIV}" by fact
+  also have "{a ^ i mod p |i. i \<in> UNIV} = (\<lambda>i. a ^ i mod p) ` {..<ord p a}"
+  proof (intro equalityI subsetI)
+    fix x assume "x \<in> {a ^ i mod p |i. i \<in> UNIV}"
+    then obtain i where [simp]: "x = a ^ i mod p" by auto
+
+    have "[a ^ i = a ^ (i mod ord p a)] (mod p)"
+      using \<open>coprime p a\<close> by (subst order_divides_expdiff) auto
+    hence "\<exists>j. a ^ i mod p = a ^ j mod p \<and> j < ord p a"
+      using \<open>coprime p a\<close> by (intro exI[of _ "i mod ord p a"]) (auto simp: cong_def)
+    thus "x \<in> (\<lambda>i. a ^ i mod p) ` {..<ord p a}"
+      by auto
+  qed auto
+  also have "card \<dots> = ord p a"
+    using inj_power_mod[OF \<open>coprime p a\<close>] by (subst card_image) auto
+  finally show ?thesis using \<open>a \<in> totatives p\<close>
+    by auto
+qed
+
 
 
 subsection \<open>Another trivial primality characterization\<close>

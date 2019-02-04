@@ -62,6 +62,21 @@ lemma minus_one_in_totatives:
   shows "n - 1 \<in> totatives n"
   using assms coprime_diff_one_left_nat [of n] by (simp add: in_totatives_iff)
 
+lemma power_in_totatives:
+  assumes "m > 1" "coprime m g"
+  shows   "g ^ i mod m \<in> totatives m"
+proof -
+  have "\<not>m dvd g ^ i"
+  proof
+    assume "m dvd g ^ i"
+    hence "\<not>coprime m (g ^ i)"
+      using \<open>m > 1\<close> by (subst coprime_absorb_left) auto
+    with \<open>coprime m g\<close> show False by simp
+  qed
+  with assms show ?thesis
+    by (auto simp: totatives_def coprime_commute intro!: Nat.gr0I)
+qed
+
 lemma totatives_prime_power_Suc:
   assumes "prime p"
   shows   "totatives (p ^ Suc n) = {0<..p^Suc n} - (\<lambda>m. p * m) ` {0<..p^n}"
@@ -197,6 +212,18 @@ lemma totient_0_iff [simp]: "totient n = 0 \<longleftrightarrow> n = 0"
 
 lemma totient_gt_0_iff [simp]: "totient n > 0 \<longleftrightarrow> n > 0"
   by (auto intro: Nat.gr0I)
+
+lemma totient_gt_1:
+  assumes "n > 2"
+  shows   "totient n > 1"
+proof -
+  have "{1, n - 1} \<subseteq> totatives n"
+    using assms coprime_diff_one_left_nat[of n] by (auto simp: totatives_def)
+  hence "card {1, n - 1} \<le> card (totatives n)"
+    by (intro card_mono) auto
+  thus ?thesis using assms
+    by (simp add: totient_def)
+qed
 
 lemma card_gcd_eq_totient:
   "n > 0 \<Longrightarrow> d dvd n \<Longrightarrow> card {k\<in>{0<..n}. gcd k n = d} = totient (n div d)"

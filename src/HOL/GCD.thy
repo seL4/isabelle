@@ -682,6 +682,12 @@ proof-
     by simp
 qed
 
+lemma gcd_mono: "a dvd c \<Longrightarrow> b dvd d \<Longrightarrow> gcd a b dvd gcd c d"
+  by (simp add: gcd_dvdI1 gcd_dvdI2)
+
+lemma lcm_mono: "a dvd c \<Longrightarrow> b dvd d \<Longrightarrow> lcm a b dvd lcm c d"
+  by (simp add: dvd_lcmI1 dvd_lcmI2)
+
 lemma dvd_productE:
   assumes "p dvd a * b"
   obtains x y where "p = x * y" "x dvd a" "y dvd b"
@@ -1080,6 +1086,29 @@ lemma Gcd_singleton [simp]: "Gcd {a} = normalize a"
 
 lemma Gcd_2 [simp]: "Gcd {a, b} = gcd a b"
   by simp
+
+lemma Gcd_mono:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x dvd g x"
+  shows   "(GCD x\<in>A. f x) dvd (GCD x\<in>A. g x)"
+proof (intro Gcd_greatest, safe)
+  fix x assume "x \<in> A"
+  hence "(GCD x\<in>A. f x) dvd f x"
+    by (intro Gcd_dvd) auto
+  also have "f x dvd g x"
+    using \<open>x \<in> A\<close> assms by blast
+  finally show "(GCD x\<in>A. f x) dvd \<dots>" .
+qed
+
+lemma Lcm_mono:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x dvd g x"
+  shows   "(LCM x\<in>A. f x) dvd (LCM x\<in>A. g x)"
+proof (intro Lcm_least, safe)
+  fix x assume "x \<in> A"
+  hence "f x dvd g x" by (rule assms)
+  also have "g x dvd (LCM x\<in>A. g x)"
+    using \<open>x \<in> A\<close> by (intro dvd_Lcm) auto
+  finally show "f x dvd \<dots>" .
+qed
 
 end
 

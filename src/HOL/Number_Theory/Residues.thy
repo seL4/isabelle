@@ -398,7 +398,7 @@ lemma mod_nat_int_pow_eq:
   shows "a \<ge> 0 \<Longrightarrow> p \<ge> 0 \<Longrightarrow> (nat a ^ n) mod (nat p) = nat ((a ^ n) mod p)"
   by (simp add: int_one_le_iff_zero_less nat_mod_distrib order_less_imp_le nat_power_eq[symmetric])
 
-theorem residue_prime_mult_group_has_gen :
+theorem residue_prime_mult_group_has_gen:
  fixes p :: nat
  assumes prime_p : "prime p"
  shows "\<exists>a \<in> {1 .. p - 1}. {1 .. p - 1} = {a^i mod p|i . i \<in> UNIV}"
@@ -454,5 +454,53 @@ proof -
   moreover from a have "nat a \<in> {1 .. p - 1}" by force
   ultimately show ?thesis ..
 qed
+
+
+subsection \<open>Upper bound for the number of $n$-th roots\<close>
+
+lemma roots_mod_prime_bound:
+  fixes n c p :: nat
+  assumes "prime p" "n > 0"
+  defines "A \<equiv> {x\<in>{..<p}. [x ^ n = c] (mod p)}"
+  shows   "card A \<le> n"
+proof -
+  define R where "R = residue_ring (int p)"
+  term monom
+  from assms(1) interpret residues_prime p R
+    by unfold_locales (simp_all add: R_def)
+  interpret R: UP_domain R "UP R" by (unfold_locales)
+
+  let ?f = "UnivPoly.monom (UP R) \<one>\<^bsub>R\<^esub> n \<ominus>\<^bsub>(UP R)\<^esub> UnivPoly.monom (UP R) (int (c mod p)) 0"
+  have in_carrier: "int (c mod p) \<in> carrier R"
+    using prime_gt_1_nat[OF assms(1)] by (simp add: R_def residue_ring_def)
+  
+  have "deg R ?f = n"
+    using assms in_carrier by (simp add: R.deg_minus_eq)
+  hence f_not_zero: "?f \<noteq> \<zero>\<^bsub>UP R\<^esub>" using assms by (auto simp add : R.deg_nzero_nzero)
+  have roots_bound: "finite {a \<in> carrier R. UnivPoly.eval R R id a ?f = \<zero>\<^bsub>R\<^esub>} \<and>
+                     card {a \<in> carrier R. UnivPoly.eval R R id a ?f = \<zero>\<^bsub>R\<^esub>} \<le> deg R ?f"
+                    using finite in_carrier by (intro R.roots_bound[OF _ f_not_zero]) simp
+  have subs: "{x \<in> carrier R. x [^]\<^bsub>R\<^esub> n = int (c mod p)} \<subseteq>
+                {a \<in> carrier R. UnivPoly.eval R R id a ?f = \<zero>\<^bsub>R\<^esub>}"
+    using in_carrier by (auto simp: R.evalRR_simps)
+  then have "card {x \<in> carrier R. x [^]\<^bsub>R\<^esub> n = int (c mod p)} \<le>
+               card {a \<in> carrier R. UnivPoly.eval R R id a ?f = \<zero>\<^bsub>R\<^esub>}"
+    using finite by (intro card_mono) auto
+  also have "\<dots> \<le> n"
+    using \<open>deg R ?f = n\<close> roots_bound by linarith
+  also {
+    fix x assume "x \<in> carrier R"
+    hence "x [^]\<^bsub>R\<^esub> n = (x ^ n) mod (int p)"
+      by (subst pow_cong [symmetric]) (auto simp: R_def residue_ring_def)
+  }
+  hence "{x \<in> carrier R. x [^]\<^bsub>R\<^esub> n = int (c mod p)} = {x \<in> carrier R. [x ^ n = int c] (mod p)}"
+    by (fastforce simp: cong_def zmod_int)
+  also have "bij_betw int A {x \<in> carrier R. [x ^ n = int c] (mod p)}"
+    by (rule bij_betwI[of int _ _ nat])
+       (use cong_int_iff in \<open>force simp: R_def residue_ring_def A_def\<close>)+
+  from bij_betw_same_card[OF this] have "card {x \<in> carrier R. [x ^ n = int c] (mod p)} = card A" ..
+  finally show ?thesis .
+qed
+
 
 end

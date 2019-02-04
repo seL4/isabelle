@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2019: Manuel Eberl
+  Carmichael's function, primitive roots in residue rings, more properties
+  of the order in residue rings.
+
 * January 2019: Andreas Lochbihler
   New implementation for case_of_simps based on Code_Lazy's
   pattern matching elimination algorithm.

@@ -1290,6 +1290,11 @@ proof
   with assms show "normalize x = normalize y" by (simp add: prod_mset_prime_factorization)
 qed (rule prime_factorization_cong)
 
+lemma prime_factorization_eqI:
+  assumes "\<And>p. p \<in># P \<Longrightarrow> prime p" "prod_mset P = n"
+  shows   "prime_factorization n = P"
+  using prime_factorization_prod_mset_primes[of P] assms by simp
+
 lemma prime_factorization_mult:
   assumes "x \<noteq> 0" "y \<noteq> 0"
   shows   "prime_factorization (x * y) = prime_factorization x + prime_factorization y"
@@ -1541,6 +1546,40 @@ proof -
   with \<open>a \<noteq> 0\<close> have "normalize a = p ^ m"
     by (simp add: prod_mset_prime_factorization)
   with \<open>m \<le> n\<close> show thesis ..
+qed
+
+lemma divide_out_primepow_ex:
+  assumes "n \<noteq> 0" "\<exists>p\<in>prime_factors n. P p"
+  obtains p k n' where "P p" "prime p" "p dvd n" "\<not>p dvd n'" "k > 0" "n = p ^ k * n'"
+proof -
+  from assms obtain p where p: "P p" "prime p" "p dvd n"
+    by auto
+  define k where "k = multiplicity p n"
+  define n' where "n' = n div p ^ k"
+  have n': "n = p ^ k * n'" "\<not>p dvd n'"
+    using assms p multiplicity_decompose[of n p]
+    by (auto simp: n'_def k_def multiplicity_dvd)
+  from n' p have "k > 0" by (intro Nat.gr0I) auto
+  with n' p that[of p n' k] show ?thesis by auto
+qed
+
+lemma divide_out_primepow:
+  assumes "n \<noteq> 0" "\<not>is_unit n"
+  obtains p k n' where "prime p" "p dvd n" "\<not>p dvd n'" "k > 0" "n = p ^ k * n'"
+  using divide_out_primepow_ex[OF assms(1), of "\<lambda>_. True"] prime_divisor_exists[OF assms] assms
+        prime_factorsI by metis
+  
+lemma Ex_other_prime_factor:
+  assumes "n \<noteq> 0" and "\<not>(\<exists>k. normalize n = p ^ k)" "prime p"
+  shows   "\<exists>q\<in>prime_factors n. q \<noteq> p"
+proof (rule ccontr)
+  assume *: "\<not>(\<exists>q\<in>prime_factors n. q \<noteq> p)"
+  have "normalize n = (\<Prod>p\<in>prime_factors n. p ^ multiplicity p n)"
+    using assms(1) by (intro prod_prime_factors [symmetric]) auto
+  also from * have "\<dots> = (\<Prod>p\<in>{p}. p ^ multiplicity p n)"
+    using assms(3) by (intro prod.mono_neutral_left) (auto simp: prime_factors_multiplicity)
+  finally have "normalize n = p ^ multiplicity p n" by auto
+  with assms show False by auto
 qed
 
 
