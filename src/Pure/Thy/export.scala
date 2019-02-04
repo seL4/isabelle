@@ -301,7 +301,7 @@ object Export
             progress.echo(export_prefix + "export " + path)
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
-            if (entry.executable) File.executable(path)
+            File.set_executable(path, entry.executable)
           }
         }
       }
