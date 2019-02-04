@@ -7,6 +7,10 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * February 2019: Manuel Eberl
+  Exponentiation by squaring, used to implement "power" in monoid_mult and
+  fast modular exponentiation.
+
+* February 2019: Manuel Eberl
   Carmichael's function, primitive roots in residue rings, more properties
   of the order in residue rings.
 

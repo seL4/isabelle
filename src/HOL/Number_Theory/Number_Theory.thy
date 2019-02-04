@@ -6,6 +6,7 @@ imports
   Fib
   Residues
   Eratosthenes
+  Mod_Exp
   Quadratic_Reciprocity
   Pocklington
   Prime_Powers

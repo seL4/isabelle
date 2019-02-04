@@ -63,6 +63,7 @@ imports
   Perm
   Permutation
   Permutations
+  Power_By_Squaring
   Preorder
   Product_Plus
   Quadratic_Discriminant
