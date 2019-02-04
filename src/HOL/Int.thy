@@ -430,6 +430,14 @@ lemma of_int_min: "of_int (min x y) = min (of_int x) (of_int y)"
 
 end
 
+context division_ring
+begin
+
+lemmas mult_inverse_of_int_commute =
+  mult_commute_imp_mult_inverse_commute[OF mult_of_int_commute]
+
+end
+
 text \<open>Comparisons involving \<^term>\<open>of_int\<close>.\<close>
 
 lemma of_int_eq_numeral_iff [iff]: "of_int z = (numeral n :: 'a::ring_char_0) \<longleftrightarrow> z = numeral n"

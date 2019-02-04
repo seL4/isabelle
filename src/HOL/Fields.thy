@@ -305,6 +305,26 @@ lemma inverse_eq_iff_eq [simp]:
   "inverse a = inverse b \<longleftrightarrow> a = b"
   by (force dest!: inverse_eq_imp_eq)
 
+lemma mult_commute_imp_mult_inverse_commute:
+  assumes "y * x = x * y"
+  shows   "inverse y * x = x * inverse y"
+proof (cases "y=0")
+  case False
+  hence "x * inverse y = inverse y * y * x * inverse y"
+    by simp
+  also have "\<dots> = inverse y * (x * y * inverse y)"
+    by (simp add: mult.assoc assms)
+  finally show ?thesis by (simp add: mult.assoc False)
+qed simp
+
+lemmas mult_inverse_of_nat_commute =
+  mult_commute_imp_mult_inverse_commute[OF mult_of_nat_commute]
+
+lemma divide_divide_eq_left':
+  "(a / b) / c = a / (c * b)"
+  by (cases "b = 0 \<or> c = 0")
+     (auto simp: divide_inverse mult.assoc nonzero_inverse_mult_distrib)
+
 lemma add_divide_eq_if_simps [divide_simps]:
     "a + b / z = (if z = 0 then a else (a * z + b) / z)"
     "a / z + b = (if z = 0 then b else (a + b * z) / z)"

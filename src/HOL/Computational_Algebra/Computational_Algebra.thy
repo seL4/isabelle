@@ -5,7 +5,7 @@ theory Computational_Algebra
 imports
   Euclidean_Algorithm
   Factorial_Ring
-  Formal_Power_Series
+  Formal_Laurent_Series
   Fraction_Field
   Fundamental_Theorem_Algebra
   Group_Closure

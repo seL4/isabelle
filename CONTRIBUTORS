@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2019: Jeremy Sylvestre
+  Formal Laurent Series and overhaul of Formal power series.
+
 * February 2019: Manuel Eberl
   Exponentiation by squaring, used to implement "power" in monoid_mult and
   fast modular exponentiation.

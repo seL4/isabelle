@@ -105,6 +105,16 @@ qed
 lemma power_minus_mult: "0 < n \<Longrightarrow> a ^ (n - 1) * a = a ^ n"
   by (simp add: power_commutes split: nat_diff_split)
 
+lemma left_right_inverse_power:
+  assumes "x * y = 1"
+  shows   "x ^ n * y ^ n = 1"
+proof (induct n)
+  case (Suc n)
+  moreover have "x ^ Suc n * y ^ Suc n = x^n * (x * y) * y^n"
+    by (simp add: power_Suc2[symmetric] mult.assoc[symmetric])
+  ultimately show ?case by (simp add: assms)
+qed simp
+
 end
 
 context comm_monoid_mult

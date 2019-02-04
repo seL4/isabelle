@@ -87,6 +87,9 @@ precedence over goal/proof.
 
 *** HOL ***
 
+* Formal Laurent series and overhaul of Formal power series 
+in HOL-Computational_Algebra
+
 * exponentiation by squaring in HOL-Library; used for computing powers in monoid_mult and modular exponentiation in HOL-Number_Theory
 
 * more material on residue rings in HOL-Number_Theory:

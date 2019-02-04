@@ -301,6 +301,13 @@ lemma LeastI2_order:
 unfolding Least_def by (rule theI2)
   (blast intro: assms antisym)+
 
+lemma Least_ex1:
+  assumes   "\<exists>!x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<le> y)"
+  shows     Least1I: "P (Least P)" and Least1_le: "P z \<Longrightarrow> Least P \<le> z"
+  using     theI'[OF assms]
+  unfolding Least_def
+  by        auto
+
 text \<open>Greatest value operator\<close>
 
 definition Greatest :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "GREATEST " 10) where
