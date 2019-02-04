@@ -584,13 +584,29 @@ object Markup
       }
   }
 
+  val BUILD_SESSION_FINISHED = "build_session_finished"
+  val Build_Session_Finished: Properties.T = List((FUNCTION, BUILD_SESSION_FINISHED))
+
+  val PRINT_OPERATIONS = "print_operations"
+
+
+
+  /* export */
+
   val EXPORT = "export"
+
   object Export
   {
     sealed case class Args(
-      id: Option[String], serial: Long, theory_name: String, name: String, compress: Boolean)
+      id: Option[String],
+      serial: Long,
+      theory_name: String,
+      name: String,
+      executable: Boolean,
+      compress: Boolean)
 
     val THEORY_NAME = "theory_name"
+    val EXECUTABLE = "executable"
     val COMPRESS = "compress"
 
     def dest_inline(props: Properties.T): Option[(Args, Path)] =
@@ -600,9 +616,11 @@ object Markup
             (SERIAL, Value.Long(serial)),
             (THEORY_NAME, theory_name),
             (NAME, name),
+            (EXECUTABLE, Value.Boolean(executable)),
             (COMPRESS, Value.Boolean(compress)),
             (FILE, file)) if isabelle.Path.is_valid(file) =>
-          Some((Args(None, serial, theory_name, name, compress), isabelle.Path.explode(file)))
+          val args = Args(None, serial, theory_name, name, executable, compress)
+          Some((args, isabelle.Path.explode(file)))
         case _ => None
       }
 
@@ -614,16 +632,12 @@ object Markup
             (SERIAL, Value.Long(serial)),
             (THEORY_NAME, theory_name),
             (NAME, name),
+            (EXECUTABLE, Value.Boolean(executable)),
             (COMPRESS, Value.Boolean(compress))) =>
-          Some(Args(proper_string(id), serial, theory_name, name, compress))
+          Some(Args(proper_string(id), serial, theory_name, name, executable, compress))
         case _ => None
       }
   }
-
-  val BUILD_SESSION_FINISHED = "build_session_finished"
-  val Build_Session_Finished: Properties.T = List((FUNCTION, BUILD_SESSION_FINISHED))
-
-  val PRINT_OPERATIONS = "print_operations"
 
 
   /* debugger output */

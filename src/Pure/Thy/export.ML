@@ -6,8 +6,10 @@ Manage theory exports: compressed blobs.
 
 signature EXPORT =
 sig
+  type params = {theory: theory, path: Path.T, executable: bool, compress: bool}
+  val export_params: params -> string list -> unit
   val export: theory -> Path.T -> string list -> unit
-  val export_raw: theory -> Path.T -> string list -> unit
+  val export_executable: theory -> Path.T -> string list -> unit
   val markup: theory -> string -> Markup.T
   val message: theory -> string -> string
 end;
@@ -25,16 +27,22 @@ fun check_name path =
       else error ("Bad export name: " ^ quote name);
   in name end;
 
-fun gen_export compress thy path body =
+type params = {theory: theory, path: Path.T, executable: bool, compress: bool};
+
+fun export_params ({theory, path, executable, compress}: params) blob =
   (Output.try_protocol_message o Markup.export)
    {id = Position.get_id (Position.thread_data ()),
     serial = serial (),
-    theory_name = Context.theory_long_name thy,
+    theory_name = Context.theory_long_name theory,
     name = check_name path,
-    compress = compress} body;
+    executable = executable,
+    compress = compress} blob;
 
-val export = gen_export true;
-val export_raw = gen_export false;
+fun export theory path blob =
+  export_params {theory = theory, path = path, executable = false, compress = true} blob;
+
+fun export_executable theory path blob =
+  export_params {theory = theory, path = path, executable = true, compress = true} blob;
 
 
 (* information message *)

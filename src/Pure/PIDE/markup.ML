@@ -209,15 +209,20 @@ sig
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
   val theory_timing: Properties.entry
-  val exportN: string
-  type export_args =
-    {id: string option, serial: serial, theory_name: string, name: string, compress: bool}
-  val export: export_args -> Properties.T
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
   val build_session_finished: Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
+  val exportN: string
+  type export_args =
+   {id: string option,
+    serial: serial,
+    theory_name: string,
+    name: string,
+    executable: bool,
+    compress: bool}
+  val export: export_args -> Properties.T
   val debugger_state: string -> Properties.T
   val debugger_output: string -> Properties.T
   val simp_trace_panelN: string
@@ -663,13 +668,6 @@ val command_timing = (functionN, "command_timing");
 
 val theory_timing = (functionN, "theory_timing");
 
-val exportN = "export";
-type export_args =
-  {id: string option, serial: serial, theory_name: string, name: string, compress: bool}
-fun export ({id, serial, theory_name, name, compress}: export_args) =
-  [(functionN, exportN), (idN, the_default "" id), (serialN, Value.print_int serial),
-    ("theory_name", theory_name), (nameN, name), ("compress", Value.print_bool compress)];
-
 fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
@@ -679,6 +677,28 @@ val build_session_finished = [("function", "build_session_finished")];
 
 val print_operationsN = "print_operations";
 val print_operations = [(functionN, print_operationsN)];
+
+
+(* export *)
+
+val exportN = "export";
+
+type export_args =
+ {id: string option,
+  serial: serial,
+  theory_name: string,
+  name: string,
+  executable: bool,
+  compress: bool};
+
+fun export ({id, serial, theory_name, name, executable, compress}: export_args) =
+ [(functionN, exportN),
+  (idN, the_default "" id),
+  (serialN, Value.print_int serial),
+  ("theory_name", theory_name),
+  (nameN, name),
+  ("executable", Value.print_bool executable),
+  ("compress", Value.print_bool compress)];
 
 
 (* debugger *)

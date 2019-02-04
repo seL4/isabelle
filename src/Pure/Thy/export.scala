@@ -26,11 +26,13 @@ object Export
     val session_name = SQL.Column.string("session_name").make_primary_key
     val theory_name = SQL.Column.string("theory_name").make_primary_key
     val name = SQL.Column.string("name").make_primary_key
+    val executable = SQL.Column.bool("executable")
     val compressed = SQL.Column.bool("compressed")
     val body = SQL.Column.bytes("body")
 
     val table =
-      SQL.Table("isabelle_exports", List(session_name, theory_name, name, compressed, body))
+      SQL.Table("isabelle_exports",
+        List(session_name, theory_name, name, executable, compressed, body))
 
     def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       "WHERE " + Data.session_name.equal(session_name) +
@@ -77,6 +79,7 @@ object Export
     session_name: String,
     theory_name: String,
     name: String,
+    executable: Boolean,
     body: Future[(Boolean, Bytes)])
   {
     override def toString: String = name
@@ -105,8 +108,9 @@ object Export
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
-        stmt.bool(4) = compressed
-        stmt.bytes(5) = bytes
+        stmt.bool(4) = executable
+        stmt.bool(5) = compressed
+        stmt.bytes(6) = bytes
         stmt.execute()
       })
     }
@@ -140,7 +144,7 @@ object Export
   def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes,
     cache: XZ.Cache = XZ.cache()): Entry =
   {
-    Entry(session_name, args.theory_name, args.name,
+    Entry(session_name, args.theory_name, args.name, args.executable,
       if (args.compress) Future.fork(body.maybe_compress(cache = cache))
       else Future.value((false, body)))
   }
@@ -149,15 +153,16 @@ object Export
     : Option[Entry] =
   {
     val select =
-      Data.table.select(List(Data.compressed, Data.body),
+      Data.table.select(List(Data.executable, Data.compressed, Data.body),
         Data.where_equal(session_name, theory_name, name))
     db.using_statement(select)(stmt =>
     {
       val res = stmt.execute_query()
       if (res.next()) {
+        val executable = res.bool(Data.executable)
         val compressed = res.bool(Data.compressed)
         val body = res.bytes(Data.body)
-        Some(Entry(session_name, theory_name, name, Future.value(compressed, body)))
+        Some(Entry(session_name, theory_name, name, executable, Future.value(compressed, body)))
       }
       else None
     })
@@ -167,8 +172,9 @@ object Export
   {
     val path = dir + Path.basic(theory_name) + Path.explode(name)
     if (path.is_file) {
+      val executable = File.is_executable(path)
       val uncompressed = Bytes.read(path)
-      Some(Entry(session_name, theory_name, name, Future.value((false, uncompressed))))
+      Some(Entry(session_name, theory_name, name, executable, Future.value((false, uncompressed))))
     }
     else None
   }
@@ -295,6 +301,7 @@ object Export
             progress.echo(export_prefix + "export " + path)
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
+            if (entry.executable) File.executable(path)
           }
         }
       }
