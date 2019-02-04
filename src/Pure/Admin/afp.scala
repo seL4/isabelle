@@ -9,7 +9,7 @@ package isabelle
 
 object AFP
 {
-  val repos_source = "https://bitbucket.org/isa-afp/afp-devel"
+  val repos_source = "https://isabelle.sketis.net/repos/afp-devel"
 
   val groups: Map[String, String] =
     Map("large" -> "full 64-bit memory model or word arithmetic required",
