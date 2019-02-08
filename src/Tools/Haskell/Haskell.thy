@@ -626,6 +626,24 @@ comment3N :: String; comment3 :: T
 (comment3N, comment3) = markup_elem \<open>Markup.comment3N\<close>
 
 
+{- command status -}
+
+acceptedN, forkedN, joinedN, runningN, finishedN, failedN, canceledN,
+  initializedN, finalizedN, consolidatedN :: String
+accepted, forked, joined, running, finished, failed, canceled,
+  initialized, finalized, consolidated :: T
+(acceptedN, accepted) = markup_elem \<open>Markup.acceptedN\<close>
+(forkedN, forked) = markup_elem \<open>Markup.forkedN\<close>
+(joinedN, joined) = markup_elem \<open>Markup.joinedN\<close>
+(runningN, running) = markup_elem \<open>Markup.runningN\<close>
+(finishedN, finished) = markup_elem \<open>Markup.finishedN\<close>
+(failedN, failed) = markup_elem \<open>Markup.failedN\<close>
+(canceledN, canceled) = markup_elem \<open>Markup.canceledN\<close>
+(initializedN, initialized) = markup_elem \<open>Markup.initializedN\<close>
+(finalizedN, finalized) = markup_elem \<open>Markup.finalizedN\<close>
+(consolidatedN, consolidated) = markup_elem \<open>Markup.consolidatedN\<close>
+
+
 {- messages -}
 
 writelnN :: String; writeln :: T
