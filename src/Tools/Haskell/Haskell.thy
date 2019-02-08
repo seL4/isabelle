@@ -344,6 +344,10 @@ module Isabelle.Markup (
   verbatimN, verbatim, cartoucheN, cartouche, commentN, comment, comment1N, comment1,
   comment2N, comment2, comment3N, comment3,
 
+  acceptedN, accepted, forkedN, forked, joinedN, joined, runningN, running, finishedN, finished,
+  failedN, failed, canceledN, canceled, initializedN, initialized, finalizedN, finalized,
+  consolidatedN, consolidated,
+
   writelnN, writeln, stateN, state, informationN, information, tracingN, tracing,
   warningN, warning, legacyN, legacy, errorN, error, reportN, report, no_reportN, no_report,
 
