@@ -172,6 +172,17 @@ object Build_Fonts
   }
 
 
+  /* auto-hinting */
+  // see https://www.freetype.org/ttfautohint/doc/ttfautohint.html
+
+  def auto_hint(source: Path, target: Path)
+  {
+    Isabelle_System.bash("ttfautohint -i " +
+      File.bash_path(source) + " " + File.bash_path(target)).check
+  }
+
+
+
   /* build fonts */
 
   private def find_file(dirs: List[Path], name: String): Path =
@@ -220,24 +231,29 @@ object Build_Fonts
         val target_file = target_dir + target_names.ttf
 
         progress.echo("Font " + target_file.toString + " ...")
-        Fontforge.execute(
-          Fontforge.commands(
-            Fontforge.open(isabelle_file),
-            Fontforge.select(Range.isabelle_font),
-            Fontforge.copy,
-            Fontforge.close,
+        Isabelle_System.with_tmp_file("font", "ttf")(tmp_file =>
+        {
+          auto_hint(source_file, tmp_file)
 
-            Fontforge.open(source_file),
-            Fontforge.select(Range.base_font),
-            Fontforge.select_invert,
-            Fontforge.clear,
-            Fontforge.select(Range.isabelle_font),
-            Fontforge.paste,
+          Fontforge.execute(
+            Fontforge.commands(
+              Fontforge.open(isabelle_file),
+              Fontforge.select(Range.isabelle_font),
+              Fontforge.copy,
+              Fontforge.close,
 
-            target_names.set,
-            Fontforge.generate(target_file),
-            Fontforge.close)
-        ).check
+              Fontforge.open(tmp_file),
+              Fontforge.select(Range.base_font),
+              Fontforge.select_invert,
+              Fontforge.clear,
+              Fontforge.select(Range.isabelle_font),
+              Fontforge.paste,
+
+              target_names.set,
+              Fontforge.generate(target_file),
+              Fontforge.close)
+          ).check
+        })
 
         (target_file, index)
       }
