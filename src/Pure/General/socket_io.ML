@@ -16,6 +16,9 @@ end;
 structure Socket_IO: SOCKET_IO =
 struct
 
+fun close_permissive socket =
+  Socket.close socket handle OS.SysErr _ => ();
+
 fun make_streams socket =
   let
     val (host, port) = INetSock.fromAddr (Socket.Ctl.getSockName socket);
@@ -36,7 +39,7 @@ fun make_streams socket =
         setPos = NONE,
         endPos = NONE,
         verifyPos = NONE,
-        close = fn () => Socket.close socket,
+        close = fn () => close_permissive socket,
         ioDesc = NONE
       };
 
@@ -54,7 +57,7 @@ fun make_streams socket =
         setPos = NONE,
         endPos = NONE,
         verifyPos = NONE,
-        close = fn () => Socket.close socket,
+        close = fn () => close_permissive socket,
         ioDesc = NONE
       };
 
