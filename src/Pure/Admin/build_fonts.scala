@@ -19,6 +19,7 @@ object Build_Fonts
       (0x0400 to 0x04ff) ++  // Cyrillic
       (0x0600 to 0x06ff) ++  // Arabic
       Seq(
+        0x02dd,  // hungarumlaut
         0x2018,  // single quote
         0x2019,  // single quote
         0x201a,  // single quote
