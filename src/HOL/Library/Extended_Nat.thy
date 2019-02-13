@@ -522,6 +522,9 @@ qed
 
 subsection \<open>Cancellation simprocs\<close>
 
+lemma add_diff_cancel_enat[simp]: "x \<noteq> \<infinity> \<Longrightarrow> x + y - x = (y::enat)"
+by (metis add.commute add.right_neutral add_diff_assoc_enat idiff_self order_refl)
+
 lemma enat_add_left_cancel: "a + b = a + c \<longleftrightarrow> a = (\<infinity>::enat) \<or> b = c"
   unfolding plus_enat_def by (simp split: enat.split)
 
