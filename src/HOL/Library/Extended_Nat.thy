@@ -531,7 +531,7 @@ lemma enat_add_left_cancel_le: "a + b \<le> a + c \<longleftrightarrow> a = (\<i
 lemma enat_add_left_cancel_less: "a + b < a + c \<longleftrightarrow> a \<noteq> (\<infinity>::enat) \<and> b < c"
   unfolding plus_enat_def by (simp split: enat.split)
 
-lemma plus_eq_infty_iff_enat[simp]: "(m::enat) + n = \<infinity> \<longleftrightarrow> m=\<infinity> \<or> n=\<infinity>"
+lemma plus_eq_infty_iff_enat: "(m::enat) + n = \<infinity> \<longleftrightarrow> m=\<infinity> \<or> n=\<infinity>"
 using enat_add_left_cancel by fastforce
 
 ML \<open>
