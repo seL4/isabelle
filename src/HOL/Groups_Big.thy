@@ -848,12 +848,6 @@ next
   finally show ?case .
 qed
 
-lemma sum_diff1_ring:
-  fixes f :: "'b \<Rightarrow> 'a::ring"
-  assumes "finite A" "a \<in> A"
-  shows "sum f (A - {a}) = sum f A - (f a)"
-  unfolding sum.remove [OF assms] by auto
-
 lemma sum_product:
   fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   shows "sum f A * sum g B = (\<Sum>i\<in>A. \<Sum>j\<in>B. f i * g j)"

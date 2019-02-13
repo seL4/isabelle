@@ -1203,7 +1203,7 @@ proof -
         have c: "card (S - {x}) = card S - 1"
           by (simp add: Suc.prems(3) \<open>x \<in> S\<close>)
         have "sum u (S - {x}) = 1 - u x"
-          by (simp add: Suc.prems sum_diff1_ring \<open>x \<in> S\<close>)
+          by (simp add: Suc.prems sum_diff1 \<open>x \<in> S\<close>)
         with x have eq1: "inverse (1 - u x) * sum u (S - {x}) = 1"
           by auto
         have inV: "(\<Sum>y\<in>S - {x}. (inverse (1 - u x) * u y) *\<^sub>R y) \<in> V"
