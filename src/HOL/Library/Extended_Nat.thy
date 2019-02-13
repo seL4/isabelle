@@ -392,6 +392,9 @@ class linordered_semidom. However, enat is not in that class because
 it does not have the cancellation property. Would it be worthwhile to
 a generalize linordered_semidom to a new class that includes enat? *)
 
+lemma add_diff_assoc_enat: "z \<le> y \<Longrightarrow> x + (y - z) = x + y - (z::enat)"
+by(cases x)(auto simp add: diff_enat_def split: enat.split)
+
 lemma enat_ord_number [simp]:
   "(numeral m :: enat) \<le> numeral n \<longleftrightarrow> (numeral m :: nat) \<le> numeral n"
   "(numeral m :: enat) < numeral n \<longleftrightarrow> (numeral m :: nat) < numeral n"
@@ -527,6 +530,9 @@ lemma enat_add_left_cancel_le: "a + b \<le> a + c \<longleftrightarrow> a = (\<i
 
 lemma enat_add_left_cancel_less: "a + b < a + c \<longleftrightarrow> a \<noteq> (\<infinity>::enat) \<and> b < c"
   unfolding plus_enat_def by (simp split: enat.split)
+
+lemma plus_eq_infty_iff_enat[simp]: "(m::enat) + n = \<infinity> \<longleftrightarrow> m=\<infinity> \<or> n=\<infinity>"
+using enat_add_left_cancel by fastforce
 
 ML \<open>
 structure Cancel_Enat_Common =
