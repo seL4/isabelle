@@ -9,6 +9,9 @@ Support for RDF/XML representation, see also:
 package isabelle
 
 
+import java.net.URI
+
+
 object RDF
 {
   /* document */
@@ -49,4 +52,19 @@ object RDF
   def bag(items: List[XML.Body]): XML.Elem = collection(rdf("Bag"), items)
   def seq(items: List[XML.Body]): XML.Elem = collection(rdf("Seq"), items)
   def alt(items: List[XML.Body]): XML.Elem = collection(rdf("Alt"), items)
+
+
+  /* datatypes */
+
+  // see https://www.w3.org/TR/rdf11-concepts/#section-Datatypes
+  // see https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
+
+  def string(x: String): XML.Body = if (x.isEmpty) Nil else List(XML.Text(x))
+  def uri(x: URI): XML.Body = string(x.toString)
+  def bool(x: Boolean): XML.Body = string(x.toString)
+  def int(x: Int): XML.Body = string(Value.Int(x))
+  def long(x: Long): XML.Body = string(Value.Long(x))
+  def double(x: Double): XML.Body = string(Value.Double(x))
+  def seconds(x: Time): XML.Body = double(x.seconds)
+  def date_time_stamp(x: Date): XML.Body = string(Date.Format("uuuu-MM-dd'T'HH:mm:ss.SSSxxx")(x))
 }
