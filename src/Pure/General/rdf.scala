@@ -39,4 +39,14 @@ object RDF
 
   def description(subject: String, body: XML.Body, attributes: XML.Attributes = Nil): XML.Elem =
     XML.Elem(Markup(rdf("Description"), (rdf("about"), subject) :: attributes), body)
+
+
+  /* collections */
+
+  def collection(kind: String, items: List[XML.Body]): XML.Elem =
+    XML.elem(kind, items.map(item => XML.elem(rdf("li"), item)))
+
+  def bag(items: List[XML.Body]): XML.Elem = collection(rdf("Bag"), items)
+  def seq(items: List[XML.Body]): XML.Elem = collection(rdf("Seq"), items)
+  def alt(items: List[XML.Body]): XML.Elem = collection(rdf("Alt"), items)
 }
