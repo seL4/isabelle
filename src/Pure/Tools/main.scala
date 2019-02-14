@@ -55,8 +55,8 @@ object Main
           File.write(settings_dir + Path.explode("DockableWindowManager/perspective-view0.xml"),
             """<DOCKING LEFT="isabelle-documentation" TOP="" RIGHT="isabelle-theories" BOTTOM="" LEFT_POS="250" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />""")
           File.write(settings_dir + Path.explode("perspective.xml"),
-            """<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
+            XML.header +
+"""<!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
 <PERSPECTIVE>
 <VIEW PLAIN="FALSE">
 <GEOMETRY X="0" Y="35" WIDTH="1200" HEIGHT="850" EXT_STATE="0" />

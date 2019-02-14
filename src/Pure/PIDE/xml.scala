@@ -99,6 +99,8 @@ object XML
 
   /** string representation **/
 
+  val header: String = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+
   def output_char(c: Char, s: StringBuilder)
   {
     c match {

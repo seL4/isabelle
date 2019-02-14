@@ -122,7 +122,7 @@ fun trim_blanks trees =
 
 (** string representation **)
 
-val header = "<?xml version=\"1.0\"?>\n";
+val header = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
 
 
 (* escaped text *)
