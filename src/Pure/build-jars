@@ -65,6 +65,7 @@ declare -a SOURCES=(
   General/position.scala
   General/pretty.scala
   General/properties.scala
+  General/rdf.scala
   General/scan.scala
   General/sha1.scala
   General/sql.scala
