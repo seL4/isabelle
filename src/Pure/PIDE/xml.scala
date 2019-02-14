@@ -35,6 +35,23 @@ object XML
   def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
 
 
+  /* name space */
+
+  object Namespace
+  {
+    def apply(prefix: String, target: String): Namespace =
+      new Namespace(prefix, target)
+  }
+
+  final class Namespace private(prefix: String, target: String)
+  {
+    def apply(name: String): String = prefix + ":" + name
+    val attribute: XML.Attribute = ("xmlns:" + prefix, target)
+
+    override def toString: String = attribute.toString
+  }
+
+
   /* wrapped elements */
 
   val XML_ELEM = "xml_elem"
