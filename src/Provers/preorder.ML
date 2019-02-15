@@ -1,4 +1,4 @@
-(*  Title:      Provers/quasi.ML
+(*  Title:      src/Provers/preorder.ML
     Author:     Oliver Kutter, TU Muenchen
 
 Reasoner for simple transitivity and quasi orders.

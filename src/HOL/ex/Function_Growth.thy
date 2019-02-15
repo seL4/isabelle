@@ -279,7 +279,7 @@ proof -
   qed
 qed
 
-declare fun_order.antisym [intro?]
+declare fun_order.equiv_antisym [intro?]
 
 
 subsection \<open>Simple examples\<close>
