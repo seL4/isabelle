@@ -20,7 +20,7 @@ ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx2560m -Xss16m"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
-isabelle_scala_tools 'isabelle.Regular_Tools'
+isabelle_scala_tools 'isabelle.Tools'
 [ -d "$ISABELLE_HOME/Admin" ] && isabelle_scala_tools 'isabelle.Admin_Tools'
 
 isabelle_file_format 'isabelle.Bibtex$File_Format'

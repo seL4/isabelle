@@ -142,7 +142,7 @@ sealed case class Isabelle_Tool(name: String, description: String, body: List[St
 
 class Isabelle_Scala_Tools(val tools: Isabelle_Tool*)
 
-class Regular_Tools extends Isabelle_Scala_Tools(
+class Tools extends Isabelle_Scala_Tools(
   Build.isabelle_tool,
   Build_Docker.isabelle_tool,
   Doc.isabelle_tool,
