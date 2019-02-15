@@ -6,6 +6,14 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2019: Florian Haftmann
+  Clarified syntax and congruence rules for big operators on sets
+  involving the image operator.
+
+* January 2919: Florian Haftmann
+  Renovation of code generation, particularly proper strings for OCaml
+  end export into session data.
+
 * February 2019: Jeremy Sylvestre
   Formal Laurent Series and overhaul of Formal power series.
 
@@ -21,8 +29,11 @@ Contributions to this Isabelle version
   New implementation for case_of_simps based on Code_Lazy's
   pattern matching elimination algorithm.
 
+* December 2018: Florian Haftmann
+  Generic executable sorting algorithms based on executable comparators.
+
 * October 2018: Mathias Fleury
-  Proof reconstruction for the SMT solver veriT in the smt method
+  Proof reconstruction for the SMT solver veriT in the smt method.
 
 
 Contributions to Isabelle2018
