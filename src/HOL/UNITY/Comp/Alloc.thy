@@ -962,7 +962,7 @@ lemma rename_Client_Progress: "i \<in> I
           (INT h. {s. h \<le> (giv o sub i o client) s &
                             h pfixGe (ask o sub i o client) s}
                   LeadsTo {s. tokens h \<le> (tokens o rel o sub i o client) s})"
-  using image_cong_simp [cong del]
+  supply image_cong_simp [cong del]
   apply rename_client_map
   apply (simp add: Client_Progress [simplified o_def])
   done
