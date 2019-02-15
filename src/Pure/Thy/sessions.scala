@@ -573,7 +573,7 @@ object Sessions
 
       val meta_digest =
         SHA1.digest((name, chapter, entry.parent, entry.options, entry.imports,
-          entry.theories_no_position, conditions, entry.document_files, entry.export_files).toString)
+          entry.theories_no_position, conditions, entry.document_files).toString)
 
       Info(name, chapter, dir_selected, entry.pos, entry.groups,
         dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
