@@ -334,16 +334,8 @@ object Build
 
       Isabelle_System.rm_tree(export_tmp_dir)
 
-      if (result1.ok) {
-        for ((dir, prune, pats) <- info.export_files) {
-          Export.export_files(store, name, info.dir + dir,
-            progress = if (verbose) progress else No_Progress,
-            export_prune = prune,
-            export_patterns = pats,
-            export_prefix = name + ": ")
-        }
+      if (result1.ok)
         Present.finish(progress, store.browser_info, graph_file, info, name)
-      }
 
       graph_file.delete
 
@@ -405,6 +397,7 @@ object Build
     soft_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
+    export_files: Boolean = false,
     pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
@@ -640,8 +633,8 @@ object Build
 
                   val numa_node = numa_nodes.next(used_node(_))
                   val job =
-                    new Job(progress, name, info, deps, store, do_output,
-                      verbose, pide, numa_node, queue.command_timings(name))
+                    new Job(progress, name, info, deps, store, do_output, verbose, pide = pide,
+                      numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
@@ -671,6 +664,21 @@ object Build
       new Results(
         (for ((name, result) <- results0.iterator)
           yield (name, (result.process, result.info))).toMap)
+
+    if (export_files) {
+      for (name <- full_sessions.imports_selection(selection1).iterator if results(name).ok) {
+        val info = results.info(name)
+        if (info.export_files.nonEmpty) {
+          progress.echo("Exporting " + info.name + " ...")
+          for ((dir, prune, pats) <- info.export_files) {
+            Export.export_files(store, name, info.dir + dir,
+              progress = if (verbose) progress else No_Progress,
+              export_prune = prune,
+              export_patterns = pats)
+          }
+        }
+      }
+    }
 
     if (results.rc != 0 && (verbose || !no_build)) {
       val unfinished =
@@ -721,6 +729,7 @@ object Build
     var build_heap = false
     var clean_build = false
     var dirs: List[Path] = Nil
+    var export_files = false
     var fresh_build = false
     var session_groups: List[String] = Nil
     var max_jobs = 1
@@ -747,6 +756,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -b           build heap images
     -c           clean build
     -d DIR       include session directory
+    -e           export files from session specification into file-system
     -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
@@ -772,6 +782,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "b" -> (_ => build_heap = true),
       "c" -> (_ => clean_build = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "e" -> (_ => export_files = true),
       "f" -> (_ => fresh_build = true),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
       "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
@@ -814,6 +825,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           soft_build = soft_build,
           system_mode = system_mode,
           verbose = verbose,
+          export_files = export_files,
           pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,

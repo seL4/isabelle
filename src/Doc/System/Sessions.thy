@@ -145,13 +145,14 @@ text \<open>
   \<^verbatim>\<open>document\<close> within the session root directory.
 
   \<^descr> \isakeyword{export_files}~\<open>(\<close>\isakeyword{in}~\<open>target_dir) [number]
-  patterns\<close> writes theory exports to the file-system: the \<open>target_dir\<close>
-  specification is relative to the session root directory; its default is
-  \<^verbatim>\<open>export\<close>. Exports are selected via \<open>patterns\<close> as in @{tool_ref export}
-  (\secref{sec:tool-export}). The number given in brackets (default: 0)
-  specifies elements that should be pruned from each name: it allows to reduce
-  the resulting directory hierarchy at the danger of overwriting files due to
-  loss of uniqueness.
+  patterns\<close> specifies theory exports that may get written to the file-system,
+  e.g. via @{tool_ref build} with option \<^verbatim>\<open>-e\<close> (\secref{sec:tool-build}). The
+  \<open>target_dir\<close> specification is relative to the session root directory; its
+  default is \<^verbatim>\<open>export\<close>. Exports are selected via \<open>patterns\<close> as in @{tool_ref
+  export} (\secref{sec:tool-export}). The number given in brackets (default:
+  0) specifies elements that should be pruned from each name: it allows to
+  reduce the resulting directory hierarchy at the danger of overwriting files
+  due to loss of uniqueness.
 \<close>
 
 
@@ -288,6 +289,7 @@ text \<open>
     -b           build heap images
     -c           clean build
     -d DIR       include session directory
+    -e           export files from session specification into file-system
     -f           fresh build
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
@@ -372,6 +374,15 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-c\<close> cleans the selected sessions (all descendants wrt.\ the session
   parent or import graph) before performing the specified build operation.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-e\<close> executes the \isakeyword{export_files} directives from the ROOT
+  specification of all explicitly selected sessions: the status of the session
+  build database needs to be OK, but the session could have been built
+  earlier. Using \isakeyword{export_files}, a session may serve as abstract
+  interface for add-on build artefacts, but these are only materialized on
+  explicit request: without option \<^verbatim>\<open>-e\<close> there is no effect on the physical
+  file-system yet.
 
   \<^medskip>
   Option \<^verbatim>\<open>-f\<close> forces a fresh build of all selected sessions and their

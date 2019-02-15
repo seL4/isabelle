@@ -264,8 +264,7 @@ object Export
     progress: Progress = No_Progress,
     export_prune: Int = 0,
     export_list: Boolean = false,
-    export_patterns: List[String] = Nil,
-    export_prefix: String = "")
+    export_patterns: List[String] = Nil)
   {
     using(store.open_database(session_name))(db =>
     {
@@ -298,7 +297,7 @@ object Export
               }
               else export_dir + Path.make(elems.drop(export_prune))
 
-            progress.echo(export_prefix + "export " + path)
+            progress.echo("export " + path + (if (entry.executable) " (executable)" else ""))
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
             File.set_executable(path, entry.executable)
