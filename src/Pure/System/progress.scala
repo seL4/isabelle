@@ -28,7 +28,7 @@ class Progress
   def echo(msg: String) {}
   def echo_if(cond: Boolean, msg: String) { if (cond) echo(msg) }
   def theory(theory: Progress.Theory) {}
-  def nodes_status(nodes_status: Document_Status.Nodes_Status) {}
+  def nodes_status(snapshot: Document.Snapshot, nodes_status: Document_Status.Nodes_Status) {}
 
   def echo_warning(msg: String) { echo(Output.warning_text(msg)) }
   def echo_error_message(msg: String) { echo(Output.error_message_text(msg)) }

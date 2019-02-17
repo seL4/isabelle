@@ -267,10 +267,11 @@ object Server
       context.writeln(theory.message, entries ::: more.toList:_*)
     }
 
-    override def nodes_status(nodes_status: Document_Status.Nodes_Status)
+    override def nodes_status(
+      snapshot: Document.Snapshot, nodes_status: Document_Status.Nodes_Status)
     {
       val json =
-        for ((name, node_status) <- nodes_status.present)
+        for ((name, node_status) <- nodes_status.present(snapshot))
           yield name.json + ("status" -> nodes_status(name).json)
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }

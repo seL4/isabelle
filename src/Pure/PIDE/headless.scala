@@ -204,7 +204,7 @@ object Headless
       {
         val delay_nodes_status =
           Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
-            progress.nodes_status(use_theories_state.value.nodes_status)
+            progress.nodes_status(session.snapshot(), use_theories_state.value.nodes_status)
           }
 
         val delay_commit_clean =
@@ -239,7 +239,7 @@ object Headless
 
                     val theory_progress =
                       (for {
-                        (name, node_status) <- nodes_status1.present.iterator
+                        (name, node_status) <- nodes_status1.present(snapshot).iterator
                         if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
                         p1 = node_status.percentage
                         if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)

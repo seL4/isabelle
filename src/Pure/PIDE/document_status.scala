@@ -230,9 +230,12 @@ object Document_Status
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
-    def present: List[(Document.Node.Name, Node_Status)] =
-      for { name <- nodes.topological_order; node_status <- get(name) }
-        yield (name, node_status)
+    def present(snapshot: Document.Snapshot): List[(Document.Node.Name, Node_Status)] =
+      (for {
+        name <- nodes.topological_order.iterator
+        node_status <- get(name)
+        if !snapshot.version.nodes.is_suppressed(name)
+      } yield (name, node_status)).toList
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       rep.get(name) match {
@@ -258,10 +261,7 @@ object Document_Status
       val update_iterator =
         for {
           name <- domain.getOrElse(nodes1.domain).iterator
-          if !resources.is_hidden(name) &&
-              !resources.session_base.loaded_theory(name) &&
-              !nodes1.is_suppressed(name) &&
-              !nodes1(name).is_empty
+          if !resources.is_hidden(name) && !resources.session_base.loaded_theory(name)
           st = Document_Status.Node_Status.make(state, version, name)
           if !rep.isDefinedAt(name) || rep(name) != st
         } yield (name -> st)
