@@ -134,6 +134,7 @@ object Document_Status
       val consolidated = state.node_consolidated(version, name)
 
       Node_Status(
+        is_suppressed = version.nodes.is_suppressed(name),
         unprocessed = unprocessed,
         running = running,
         warned = warned,
@@ -148,6 +149,7 @@ object Document_Status
   }
 
   sealed case class Node_Status(
+    is_suppressed: Boolean,
     unprocessed: Int,
     running: Int,
     warned: Int,
@@ -230,11 +232,10 @@ object Document_Status
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
-    def present(snapshot: Document.Snapshot): List[(Document.Node.Name, Node_Status)] =
+    def present: List[(Document.Node.Name, Node_Status)] =
       (for {
         name <- nodes.topological_order.iterator
         node_status <- get(name)
-        if !snapshot.version.nodes.is_suppressed(name)
       } yield (name, node_status)).toList
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
