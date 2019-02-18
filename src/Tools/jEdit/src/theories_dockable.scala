@@ -150,7 +150,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
         paint_segment(0, size.width, background)
         nodes_status.get(node_name) match {
-          case Some(node_status) if node_status.total > 0 =>
+          case Some(node_status) =>
             val segments =
               List(
                 (node_status.unprocessed, PIDE.options.color_value("unprocessed1_color")),
@@ -165,7 +165,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
               last - w - 1
             })
 
-          case _ =>
+          case None =>
             paint_segment(0, size.width, PIDE.options.color_value("unprocessed1_color"))
         }
         super.paintComponent(gfx)
@@ -223,8 +223,10 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     nodes_status = nodes_status1
     if (nodes_status_changed) {
       status.listData =
-        (for { (name, node_status) <- nodes_status1.present.iterator if !node_status.is_suppressed }
-          yield name).toList
+        (for {
+          (name, node_status) <- nodes_status1.present.iterator
+          if !node_status.is_suppressed && node_status.total > 0
+        } yield name).toList
     }
   }
 
