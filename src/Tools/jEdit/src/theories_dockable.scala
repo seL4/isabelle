@@ -150,17 +150,17 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
         paint_segment(0, size.width, background)
         nodes_status.get(node_name) match {
-          case Some(st) if st.total > 0 =>
+          case Some(node_status) if node_status.total > 0 =>
             val segments =
               List(
-                (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
-                (st.running, PIDE.options.color_value("running_color")),
-                (st.warned, PIDE.options.color_value("warning_color")),
-                (st.failed, PIDE.options.color_value("error_color"))
+                (node_status.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+                (node_status.running, PIDE.options.color_value("running_color")),
+                (node_status.warned, PIDE.options.color_value("warning_color")),
+                (node_status.failed, PIDE.options.color_value("error_color"))
               ).filter(_._1 > 0)
 
             ((size.width - 2) /: segments)({ case (last, (n, color)) =>
-              val w = (n * ((size.width - 4) - segments.length) / st.total) max 4
+              val w = (n * ((size.width - 4) - segments.length) / node_status.total) max 4
               paint_segment(last - w, w, color)
               last - w - 1
             })
