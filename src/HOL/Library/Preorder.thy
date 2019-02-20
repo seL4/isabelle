@@ -57,10 +57,6 @@ lemma antisym_conv: "y \<le> x \<Longrightarrow> x \<le> y \<longleftrightarrow>
 
 end
 
-thm order_trans
-
-find_theorems "?i < ?j \<Longrightarrow> ?i \<le> ?j"
-
 ML_file \<open>~~/src/Provers/preorder.ML\<close>
 
 ML \<open>
