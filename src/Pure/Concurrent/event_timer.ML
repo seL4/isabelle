@@ -9,7 +9,8 @@ and should finish quickly without further ado.
 
 signature EVENT_TIMER =
 sig
-  eqtype request
+  type request
+  val eq_request: request * request -> bool
   val request: Time.time -> (unit -> unit) -> request
   val cancel: request -> bool
   val future: Time.time -> unit future
@@ -21,45 +22,50 @@ struct
 
 (* type request *)
 
-val request_counter = Counter.make ();
-datatype request = Request of int;
-fun new_request () = Request (request_counter ());
+val request_id = Counter.make ();
+
+datatype request = Request of {id: int, event: unit -> unit};
+
+fun new_request event = Request {id = request_id (), event = event};
+
+fun eq_request (Request {id = id1, ...}, Request {id = id2, ...}) = id1 = id2;
 
 
 (* type requests *)
 
 structure Requests = Table(type key = Time.time val ord = Time.compare);
-type requests = (request * (unit -> unit)) list Requests.table;
+type requests = request list Requests.table;
 
-fun add_request time entry (requests: requests) =
-  Requests.cons_list (time, entry) requests;
+fun add req_time req (requests: requests) =
+  Requests.cons_list (req_time, req) requests;
 
-fun del_request req (requests: requests) =
+fun del req (requests: requests) =
   let
-    val old_request =
-      requests |> Requests.get_first (fn (key, entries) =>
-        entries |> get_first (fn entry => if fst entry = req then SOME (key, entry) else NONE));
+    val old =
+      requests |> Requests.get_first (fn (key, reqs) =>
+        reqs |> get_first (fn req' =>
+          if eq_request (req', req) then SOME (key, req') else NONE));
   in
-    (case old_request of
+    (case old of
       NONE => (false, requests)
-    | SOME old => (true, Requests.remove_list (eq_fst op =) old requests))
+    | SOME req' => (true, Requests.remove_list eq_request req' requests))
   end;
 
-fun next_request_time (requests: requests) =
-  Option.map fst (Requests.min requests);
+fun next_time (requests: requests) =
+  Option.map #1 (Requests.min requests);
 
-fun next_request_event time (requests: requests) =
+fun next_event time (requests: requests) =
   (case Requests.min requests of
     NONE => NONE
-  | SOME (request_time, entries) =>
-      if time < request_time then NONE
+  | SOME (req_time, reqs) =>
+      if time < req_time then NONE
       else
         let
-          val (rest, (_, event)) = split_last entries;
+          val (reqs', Request {event, ...}) = split_last reqs;
           val requests' =
-            if null rest
-            then Requests.delete request_time requests
-            else Requests.update (request_time, rest) requests;
+            if null reqs'
+            then Requests.delete req_time requests
+            else Requests.update (req_time, reqs') requests;
         in SOME (event, requests') end);
 
 
@@ -89,9 +95,9 @@ val state = Synchronized.var "Event_Timer.state" normal_state;
 
 fun manager_loop () =
   if Synchronized.timed_access state
-    (fn State {requests, ...} => next_request_time requests)
+    (fn State {requests, ...} => next_time requests)
     (fn st as State {requests, status, manager} =>
-      (case next_request_event (Time.now ()) requests of
+      (case next_event (Time.now ()) requests of
         SOME (event, requests') =>
           let
             val _ = Exn.capture event ();
@@ -133,25 +139,24 @@ fun shutdown () =
 fun request time event =
   Synchronized.change_result state (fn State {requests, status, manager} =>
     let
-      val req = new_request ();
-      val requests' = add_request time (req, event) requests;
+      val req = new_request event;
+      val requests' = add time req requests;
       val manager' = manager_check manager;
     in (req, make_state (requests', status, manager')) end);
 
 fun cancel req =
   Synchronized.change_result state (fn State {requests, status, manager} =>
     let
-      val (canceled, requests') = del_request req requests;
+      val (canceled, requests') = del req requests;
       val manager' = manager_check manager;
     in (canceled, make_state (requests', status, manager')) end);
 
 val future = Thread_Attributes.uninterruptible (fn _ => fn time =>
   let
-    val req: request Single_Assignment.var = Single_Assignment.var "request";
+    val req: request Single_Assignment.var = Single_Assignment.var "req";
     fun abort () = ignore (cancel (Single_Assignment.await req));
     val promise: unit future = Future.promise_name "event_timer" abort;
     val _ = Single_Assignment.assign req (request time (Future.fulfill promise));
   in promise end);
 
 end;
-
