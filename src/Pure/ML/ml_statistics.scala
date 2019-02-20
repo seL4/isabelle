@@ -46,25 +46,30 @@ object ML_Statistics
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
 
   val GC_fields: Fields =
-    ("GCs", List("partial_GCs", "full_GCs"))
+    ("GCs", List("partial_GCs", "full_GCs", "share_passes"))
 
   val heap_fields: Fields =
     ("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
       "size_heap_free_last_full_GC", "size_heap_free_last_GC"))
+
+  val program_fields: Fields =
+    ("Program", List("size_code", "size_stacks"))
 
   val threads_fields: Fields =
     ("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
       "threads_wait_IO", "threads_wait_mutex", "threads_wait_signal"))
 
   val time_fields: Fields =
-    ("Time", List("time_CPU", "time_GC"))
+    ("Time", List("time_elapsed", "time_elapsed_GC", "time_CPU", "time_GC"))
 
   val speed_fields: Fields =
     ("Speed", List("speed_CPU", "speed_GC"))
 
+  private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
+
 
   val all_fields: List[Fields] =
-    List(tasks_fields, workers_fields, GC_fields, heap_fields, threads_fields,
+    List(tasks_fields, workers_fields, GC_fields, heap_fields, program_fields, threads_fields,
       time_fields, speed_fields)
 
   val main_fields: List[Fields] =
@@ -107,21 +112,20 @@ object ML_Statistics
         val speeds =
           (for {
             (key, value) <- props.iterator
-            a <- Library.try_unprefix("time", key)
-            b = "speed" + a if domain(b)
-          }
-          yield {
-            val (x0, y0, s0) = last_edge.getOrElse(a, (0.0, 0.0, 0.0))
+            key1 <- time_speed.get(key)
+            if domain(key1)
+          } yield {
+            val (x0, y0, s0) = last_edge.getOrElse(key, (0.0, 0.0, 0.0))
 
             val x1 = time
             val y1 = java.lang.Double.parseDouble(value)
             val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
 
             if (y1 > y0) {
-              last_edge += (a -> (x1, y1, s1))
-              (b, s1.toString)
+              last_edge += (key -> (x1, y1, s1))
+              (key1, s1.toString)
             }
-            else (b, s0.toString)
+            else (key1, s0.toString)
           }).toList
 
         val data =

@@ -290,6 +290,16 @@ ISABELLE_OPAM_ROOT.
 * System option "checkpoint" has been discontinued: obsolete thanks to
 improved memory management in Poly/ML.
 
+* Poly/ML 5.8 allows to use the native x86_64 platform without the full
+overhead of 64-bit values everywhere. This special x86_64_32 mode
+provides up to 16GB ML heap, while program code and stacks are allocated
+elsewhere. Thus approx. 5 times more memory is available for
+applications compared to old x86 mode (which is no longer used by
+Isabelle). The switch to the x86_64 CPU architecture also avoids
+compatibility problems with Linux and macOS, where 32-bit applications
+are gradually phased out.
+
+
 
 New in Isabelle2018 (August 2018)
 ---------------------------------

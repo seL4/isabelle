@@ -58,8 +58,8 @@ object Build_Status
     image_size: (Int, Int) = default_image_size)
   {
     val ml_statistics_domain =
-      Iterator(ML_Statistics.heap_fields, ML_Statistics.tasks_fields, ML_Statistics.workers_fields).
-        flatMap(_._2).toSet
+      Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
+        ML_Statistics.workers_fields).flatMap(_._2).toSet
 
     val data =
       read_data(options, progress = progress, profiles = profiles,
@@ -494,7 +494,8 @@ plot [] """ + range + " " +
                   List(gnuplot(plot_name("heap"), heap_plots, "[0:]"))
                  else Nil) :::
                 (if (session.ml_statistics.content.nonEmpty)
-                  List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields)) :::
+                  List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields),
+                    jfreechart(plot_name("program_chart"), ML_Statistics.program_fields)) :::
                   (if (session.threads > 1)
                     List(
                       jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields),

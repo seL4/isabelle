@@ -12,6 +12,6 @@ else
   ML_OPTIONS="--minheap 500"
 fi
 
-ML_SYSTEM=polyml-5.7.1
+ML_SYSTEM=polyml-5.8
 ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 ML_SOURCES="$POLYML_HOME/src"
