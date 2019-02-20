@@ -498,7 +498,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val delay = seconds (Options.default_real "editor_execution_delay");
 
       val _ = Future.cancel delay_request;
-      val delay_request' = Event_Timer.future (Time.now () + delay);
+      val delay_request' = Event_Timer.future {physical = true} (Time.now () + delay);
       val delay = Future.task_of delay_request';
 
       val parallel_prints' = parallel_prints

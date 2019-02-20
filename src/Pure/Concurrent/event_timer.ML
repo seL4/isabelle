@@ -11,9 +11,9 @@ signature EVENT_TIMER =
 sig
   type request
   val eq_request: request * request -> bool
-  val request: Time.time -> (unit -> unit) -> request
+  val request: {physical: bool} -> Time.time -> (unit -> unit) -> request
   val cancel: request -> bool
-  val future: Time.time -> unit future
+  val future: {physical: bool} -> Time.time -> unit future
   val shutdown: unit -> unit
 end;
 
@@ -23,18 +23,20 @@ struct
 (* type request *)
 
 datatype request =
-  Request of {id: int, time: Time.time, event: unit -> unit};
+  Request of {id: int, gc_start: Time.time option, time: Time.time, event: unit -> unit};
 
 val new_id = Counter.make ();
 
-fun new_request time event =
+fun new_request physical time event =
   Request {
     id = new_id (),
+    gc_start = if physical then NONE else SOME (ML_Heap.gc_now ()),
     time = time,
     event = event};
 
 fun eq_request (Request {id = id1, ...}, Request {id = id2, ...}) = id1 = id2;
 
+fun request_gc_start (Request {gc_start, ...}) = gc_start;
 fun request_time (Request {time, ...}) = time;
 fun request_event (Request {event, ...}) = event;
 
@@ -62,7 +64,7 @@ fun del req (requests: requests) =
 fun next_time (requests: requests) =
   Option.map #1 (Requests.min requests);
 
-fun next_event now (requests: requests) =
+fun next_event (now, gc_now) (requests: requests) =
   (case Requests.min requests of
     NONE => NONE
   | SOME (req_time, reqs) =>
@@ -74,7 +76,15 @@ fun next_event now (requests: requests) =
             if null reqs'
             then Requests.delete req_time requests
             else Requests.update (req_time, reqs') requests;
-        in SOME (request_event req, requests') end);
+          val req_time' =
+            (case request_gc_start req of
+              NONE => req_time
+            | SOME gc_start => request_time req + (gc_now - gc_start));
+        in
+          if now < req_time'
+          then (fn () => (), add req_time' req requests')
+          else (request_event req, requests')
+        end |> SOME);
 
 
 (* global state *)
@@ -105,7 +115,7 @@ fun manager_loop () =
   if Synchronized.timed_access state
     (fn State {requests, ...} => next_time requests)
     (fn st as State {requests, status, manager} =>
-      (case next_event (Time.now ()) requests of
+      (case next_event (Time.now (), ML_Heap.gc_now ()) requests of
         SOME (event, requests') =>
           let
             val _ = Exn.capture event ();
@@ -144,10 +154,10 @@ fun shutdown () =
 
 (* main operations *)
 
-fun request time event =
+fun request {physical} time event =
   Synchronized.change_result state (fn State {requests, status, manager} =>
     let
-      val req = new_request time event;
+      val req = new_request physical time event;
       val requests' = add time req requests;
       val manager' = manager_check manager;
     in (req, make_state (requests', status, manager')) end);
@@ -159,12 +169,13 @@ fun cancel req =
       val manager' = manager_check manager;
     in (canceled, make_state (requests', status, manager')) end);
 
-val future = Thread_Attributes.uninterruptible (fn _ => fn time =>
-  let
-    val req: request Single_Assignment.var = Single_Assignment.var "req";
-    fun abort () = ignore (cancel (Single_Assignment.await req));
-    val promise: unit future = Future.promise_name "event_timer" abort;
-    val _ = Single_Assignment.assign req (request time (Future.fulfill promise));
-  in promise end);
+fun future physical time =
+  Thread_Attributes.uninterruptible (fn _ => fn () =>
+    let
+      val req: request Single_Assignment.var = Single_Assignment.var "req";
+      fun abort () = ignore (cancel (Single_Assignment.await req));
+      val promise: unit future = Future.promise_name "event_timer" abort;
+      val _ = Single_Assignment.assign req (request physical time (Future.fulfill promise));
+    in promise end) ();
 
 end;

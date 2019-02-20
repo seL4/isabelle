@@ -483,7 +483,7 @@ fun fork_print execution_id deps (Print {name, delay, pri, exec_id, print_proces
   in
     (case delay of
       NONE => fork ()
-    | SOME d => ignore (Event_Timer.request (Time.now () + d) fork))
+    | SOME d => ignore (Event_Timer.request {physical = true} (Time.now () + d) fork))
   end;
 
 fun run_print execution_id (print as Print {exec_id, print_process, ...}) =
