@@ -48,17 +48,18 @@ fun del_request req (requests: requests) =
 fun next_request_time (requests: requests) =
   Option.map fst (Requests.min requests);
 
-fun next_request_event t0 (requests: requests) =
+fun next_request_event time (requests: requests) =
   (case Requests.min requests of
     NONE => NONE
-  | SOME (time, entries) =>
-      if t0 < time then NONE
+  | SOME (request_time, entries) =>
+      if time < request_time then NONE
       else
         let
           val (rest, (_, event)) = split_last entries;
           val requests' =
-            if null rest then Requests.delete time requests
-            else Requests.update (time, rest) requests;
+            if null rest
+            then Requests.delete request_time requests
+            else Requests.update (request_time, rest) requests;
         in SOME (event, requests') end);
 
 
