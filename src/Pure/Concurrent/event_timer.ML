@@ -22,13 +22,21 @@ struct
 
 (* type request *)
 
-val request_id = Counter.make ();
+datatype request =
+  Request of {id: int, time: Time.time, event: unit -> unit};
 
-datatype request = Request of {id: int, event: unit -> unit};
+val new_id = Counter.make ();
 
-fun new_request event = Request {id = request_id (), event = event};
+fun new_request time event =
+  Request {
+    id = new_id (),
+    time = time,
+    event = event};
 
 fun eq_request (Request {id = id1, ...}, Request {id = id2, ...}) = id1 = id2;
+
+fun request_time (Request {time, ...}) = time;
+fun request_event (Request {event, ...}) = event;
 
 
 (* type requests *)
@@ -54,19 +62,19 @@ fun del req (requests: requests) =
 fun next_time (requests: requests) =
   Option.map #1 (Requests.min requests);
 
-fun next_event time (requests: requests) =
+fun next_event now (requests: requests) =
   (case Requests.min requests of
     NONE => NONE
   | SOME (req_time, reqs) =>
-      if time < req_time then NONE
+      if now < req_time then NONE
       else
         let
-          val (reqs', Request {event, ...}) = split_last reqs;
+          val (reqs', req) = split_last reqs;
           val requests' =
             if null reqs'
             then Requests.delete req_time requests
             else Requests.update (req_time, reqs') requests;
-        in SOME (event, requests') end);
+        in SOME (request_event req, requests') end);
 
 
 (* global state *)
@@ -139,7 +147,7 @@ fun shutdown () =
 fun request time event =
   Synchronized.change_result state (fn State {requests, status, manager} =>
     let
-      val req = new_request event;
+      val req = new_request time event;
       val requests' = add time req requests;
       val manager' = manager_check manager;
     in (req, make_state (requests', status, manager')) end);
