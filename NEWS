@@ -104,6 +104,10 @@ as any other prefix function symbol.  Minor INCOMPATIBILITY.
 * Slightly more conventional naming schema in structure Inductive.
 Minor INCOMPATIBILITY.
 
+* Various _global variants of specification tools have been removed.
+Minor INCOMPATIBILITY, prefer combinators Named_Target.theory_map[_result]
+to lift specifications to the global theory level.
+
 * Code generation: command 'export_code' without file keyword exports
 code as regular theory export, which can be materialized using the
 command-line tools "isabelle export" or "isabelle build -e" (with

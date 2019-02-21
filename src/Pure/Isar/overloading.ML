@@ -15,6 +15,11 @@ sig
 
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
   val overloading_cmd: (string * string * bool) list -> theory -> local_theory
+  val theory_map: (string * (string * typ) * bool) list
+    -> (local_theory -> local_theory) -> theory -> theory
+  val theory_map_result: (string * (string * typ) * bool) list
+    -> (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory)
+    -> theory -> 'b * theory
 end;
 
 structure Overloading: OVERLOADING =
@@ -185,19 +190,19 @@ fun conclude lthy =
           commas_quote (map (Syntax.string_of_term lthy o Const o fst) overloading));
   in lthy end;
 
-fun gen_overloading prep_const raw_overloading thy =
+fun gen_overloading prep_const raw_overloading_spec thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
-    val overloading = raw_overloading |> map (fn (v, const, checked) =>
+    val _ = if null raw_overloading_spec then error "At least one parameter must be given" else ();
+    val overloading_spec = raw_overloading_spec |> map (fn (v, const, checked) =>
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
     |> Generic_Target.init
        {background_naming = Sign.naming_of thy,
         setup = Proof_Context.init_global
-          #> Data.put overloading
-          #> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
+          #> Data.put overloading_spec
+          #> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading_spec
           #> activate_improvable_syntax
           #> synchronize_syntax,
         conclude = conclude}
@@ -212,5 +217,10 @@ fun gen_overloading prep_const raw_overloading thy =
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;
+
+fun theory_map overloading_spec g =
+  overloading overloading_spec #> g #> Local_Theory.exit_global;
+fun theory_map_result overloading_spec f g =
+  overloading overloading_spec #> g #> Local_Theory.exit_result_global f;
 
 end;

@@ -12,6 +12,7 @@ sig
     Attrib.binding * term -> local_theory -> (term * thm) * local_theory
   val add_partial_function_cmd: string -> (binding * string option * mixfix) list ->
     Attrib.binding * string -> local_theory -> (term * thm) * local_theory
+  val transform_result: morphism -> term * thm -> term * thm
 end;
 
 structure Partial_Function: PARTIAL_FUNCTION =
@@ -218,6 +219,8 @@ fun mk_curried_induct args ctxt inst_rule =
 
 
 (*** partial_function definition ***)
+
+fun transform_result phi (t, thm) = (Morphism.term phi t, Morphism.thm phi thm);
 
 fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
   let

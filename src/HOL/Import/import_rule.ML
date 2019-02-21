@@ -223,9 +223,10 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
       Abs_name = Binding.name abs_name,
       type_definition_name = Binding.name ("type_definition_" ^ tycname)}
     val ((_, typedef_info), thy') =
-     Typedef.add_typedef_global {overloaded = false}
+     Named_Target.theory_map_result (apsnd o Typedef.transform_info)
+     (Typedef.add_typedef {overloaded = false}
        (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
-       (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1) thy
+       (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1)) thy
     val aty = #abs_type (#1 typedef_info)
     val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))

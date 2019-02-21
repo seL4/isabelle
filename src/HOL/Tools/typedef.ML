@@ -307,9 +307,8 @@ fun add_typedef overloaded typ set opt_bindings tac lthy =
   in typedef_result inhabited lthy' end;
 
 fun add_typedef_global overloaded typ set opt_bindings tac =
-  Named_Target.theory_init
-  #> add_typedef overloaded typ set opt_bindings tac
-  #> Local_Theory.exit_result_global (apsnd o transform_info);
+  Named_Target.theory_map_result (apsnd o transform_info)
+    (add_typedef overloaded typ set opt_bindings tac)
 
 
 (* typedef: proof interface *)

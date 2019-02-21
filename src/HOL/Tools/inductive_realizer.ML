@@ -352,13 +352,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
     (** realizability predicate **)
 
     val (ind_info, thy3') = thy2 |>
-      Inductive.add_inductive_global
+      Named_Target.theory_map_result Inductive.transform_result
+      (Inductive.add_inductive
         {quiet_mode = false, verbose = false, alt_name = Binding.empty, coind = false,
           no_elim = false, no_ind = false, skip_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Binding.name (Long_Name.base_name (name_of_thm intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify_global rintr)))
-             (rintrs ~~ maps snd rss)) [] ||>
+             (rintrs ~~ maps snd rss)) []) ||>
       Sign.root_path;
     val thy3 = fold (Global_Theory.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
 

@@ -535,12 +535,13 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
       thy3
       |> Sign.concealed
-      |> Inductive.add_inductive_global
+      |> Named_Target.theory_map_result Inductive.transform_result
+         (Inductive.add_inductive
           {quiet_mode = false, verbose = false, alt_name = Binding.name big_rep_name,
            coind = false, no_elim = true, no_ind = false, skip_mono = true}
           (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => (Binding.empty_atts, x)) intr_ts) []
+          [] (map (fn x => (Binding.empty_atts, x)) intr_ts) [])
       ||> Sign.restore_naming thy3;
 
     (**** Prove that representing set is closed under permutation ****)
@@ -582,7 +583,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn (((name, mx), tvs), (cname, U)) => fn thy =>
-          Typedef.add_typedef_global {overloaded = false}
+          Named_Target.theory_map_result (apsnd o Typedef.transform_info)
+          (Typedef.add_typedef {overloaded = false}
             (name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const (\<^const_name>\<open>Collect\<close>, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
@@ -590,7 +592,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
               resolve_tac ctxt [exI] 1 THEN
               resolve_tac ctxt [CollectI] 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac ctxt rep_intrs 1)) thy |> (fn ((_, r), thy) =>
+              (resolve_tac ctxt rep_intrs 1))) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT
             (TFree (singleton (Name.variant_list (map fst tvs)) "'a", \<^sort>\<open>type\<close>));
@@ -1523,12 +1525,12 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10
       |> Sign.concealed
-      |> Inductive.add_inductive_global
-          {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
+      |> Named_Target.theory_map_result Inductive.transform_result
+          (Inductive.add_inductive {quiet_mode = #quiet config, verbose = false, alt_name = Binding.name big_rec_name,
            coind = false, no_elim = false, no_ind = false, skip_mono = true}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Binding.empty_atts, x)) rec_intr_ts) []
+          (map (fn x => (Binding.empty_atts, x)) rec_intr_ts) [])
       ||> Global_Theory.hide_fact true (Long_Name.append (Sign.full_bname thy10 big_rec_name) "induct")
       ||> Sign.restore_naming thy10;
 

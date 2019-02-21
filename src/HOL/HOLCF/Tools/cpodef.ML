@@ -164,8 +164,10 @@ fun prepare prep_term name (tname, raw_args, _) raw_set thy =
 fun add_podef typ set opt_bindings tac thy =
   let
     val name = #1 typ
-    val ((full_tname, info as ({Rep_name, ...}, {type_definition, ...})), thy) = thy
-      |> Typedef.add_typedef_global {overloaded = false} typ set opt_bindings tac
+    val ((full_tname, info as ({Rep_name, ...}, {type_definition, ...})), thy) =
+      thy
+      |> Named_Target.theory_map_result (apsnd o Typedef.transform_info)
+           (Typedef.add_typedef {overloaded = false} typ set opt_bindings tac)
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT))

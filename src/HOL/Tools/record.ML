@@ -102,8 +102,9 @@ fun do_typedef overloaded raw_tyco repT raw_vs thy =
     val vs = map (Proof_Context.check_tfree ctxt) raw_vs;
   in
     thy
-    |> Typedef.add_typedef_global overloaded (raw_tyco, vs, NoSyn)
-        (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' [UNIV_witness] 1)
+    |> Named_Target.theory_map_result (apsnd o Typedef.transform_info)
+        (Typedef.add_typedef overloaded (raw_tyco, vs, NoSyn)
+          (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' [UNIV_witness] 1))
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 

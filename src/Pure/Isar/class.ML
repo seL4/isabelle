@@ -39,6 +39,9 @@ sig
     -> string list * (string * sort) list * sort
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
   val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
+  val theory_map_result: string list * (string * sort) list * sort
+    -> (morphism -> 'a -> 'b) -> (local_theory -> 'a * local_theory)
+    -> (Proof.context -> 'b -> tactic) -> theory -> 'b * theory
 
   (*subclasses*)
   val classrel: class * class -> theory -> Proof.state
@@ -748,6 +751,11 @@ fun prove_instantiation_exit_result f tac x lthy =
     |> prove_instantiation_exit (fn ctxt => tac ctxt y)
     |> pair y
   end;
+
+fun theory_map_result arities f g tac =
+  instantiation arities
+  #> g
+  #-> prove_instantiation_exit_result f tac;
 
 
 (* simplified instantiation interface with no class parameter *)
