@@ -116,6 +116,10 @@ object Build_Status
           "ml_timing_elapsed",
           "ml_timing_cpu",
           "ml_timing_gc",
+          "maximum_code",
+          "average_code",
+          "maximum_stack",
+          "average_stack",
           "maximum_heap",
           "average_heap",
           "stored_heap",
@@ -135,6 +139,10 @@ object Build_Status
             entry.ml_timing.elapsed.ms,
             entry.ml_timing.cpu.ms,
             entry.ml_timing.gc.ms,
+            entry.maximum_code,
+            entry.average_code,
+            entry.maximum_stack,
+            entry.average_stack,
             entry.maximum_heap,
             entry.average_heap,
             entry.stored_heap,
@@ -151,6 +159,10 @@ object Build_Status
     afp_version: String,
     timing: Timing,
     ml_timing: Timing,
+    maximum_code: Long,
+    average_code: Long,
+    maximum_stack: Long,
+    average_stack: Long,
     maximum_heap: Long,
     average_heap: Long,
     stored_heap: Long,
@@ -299,9 +311,13 @@ object Build_Status
                     Build_Log.Data.ml_timing_elapsed,
                     Build_Log.Data.ml_timing_cpu,
                     Build_Log.Data.ml_timing_gc),
-                maximum_heap = ml_stats.maximum_heap_size,
-                average_heap = ml_stats.average_heap_size,
-                stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)),
+                maximum_code = ml_stats.maximum(ML_Statistics.CODE_SIZE).toLong,
+                average_code = ml_stats.average(ML_Statistics.CODE_SIZE).toLong,
+                maximum_stack = ml_stats.maximum(ML_Statistics.STACK_SIZE).toLong,
+                average_stack = ml_stats.average(ML_Statistics.STACK_SIZE).toLong,
+                maximum_heap = ml_stats.maximum(ML_Statistics.HEAP_SIZE).toLong,
+                average_heap = ml_stats.average(ML_Statistics.HEAP_SIZE).toLong,
+                stored_heap = ML_Statistics.mem_scale(res.long(Build_Log.Data.heap_size)),
                 status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
                 errors =
                   Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors),
@@ -352,9 +368,6 @@ object Build_Status
   {
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
-
-    def print_heap(x: Long): Option[String] =
-      if (x == 0L) None else Some(x.toString + " M")
 
     HTML.write_document(target_dir, "index.html",
       List(HTML.title("Isabelle build status")),
@@ -409,7 +422,11 @@ object Build_Status
                       entry.timing.resources.minutes,
                       entry.ml_timing.elapsed.minutes,
                       entry.ml_timing.resources.minutes,
-                      entry.maximum_heap,
+                      entry.maximum_code,
+                      entry.maximum_code,
+                      entry.average_stack,
+                      entry.maximum_stack,
+                      entry.average_heap,
                       entry.average_heap,
                       entry.stored_heap).mkString(" "))))
 
@@ -530,11 +547,19 @@ plot [] """ + range + " " +
                     List(HTML.link(data_files(session.name).file_name, HTML.text("CSV"))),
                   HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
                   HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
-                print_heap(session.head.maximum_heap).map(s =>
+                ML_Statistics.mem_print(session.head.maximum_code).map(s =>
+                  HTML.text("maximum code:") -> HTML.text(s)).toList :::
+                ML_Statistics.mem_print(session.head.average_code).map(s =>
+                  HTML.text("average code:") -> HTML.text(s)).toList :::
+                ML_Statistics.mem_print(session.head.maximum_stack).map(s =>
+                  HTML.text("maximum stack:") -> HTML.text(s)).toList :::
+                ML_Statistics.mem_print(session.head.average_stack).map(s =>
+                  HTML.text("average stack:") -> HTML.text(s)).toList :::
+                ML_Statistics.mem_print(session.head.maximum_heap).map(s =>
                   HTML.text("maximum heap:") -> HTML.text(s)).toList :::
-                print_heap(session.head.average_heap).map(s =>
+                ML_Statistics.mem_print(session.head.average_heap).map(s =>
                   HTML.text("average heap:") -> HTML.text(s)).toList :::
-                print_heap(session.head.stored_heap).map(s =>
+                ML_Statistics.mem_print(session.head.stored_heap).map(s =>
                   HTML.text("stored heap:") -> HTML.text(s)).toList :::
                 proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::

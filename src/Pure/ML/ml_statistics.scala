@@ -25,12 +25,21 @@ object ML_Statistics
   def now(props: Properties.T): Double = Now.unapply(props).get
 
 
-  /* heap */
+  /* memory fields (mega bytes) */
 
+  def mem_print(x: Long): Option[String] =
+    if (x == 0L) None else Some(x.toString + " M")
+
+  def mem_scale(x: Long): Long = x / 1024 / 1024
+
+  def mem_field_scale(name: String, x: Double): Double =
+    if (heap_fields._2.contains(name) || program_fields._2.contains(name))
+      mem_scale(x.toLong).toDouble
+    else x
+
+  val CODE_SIZE = "size_code"
+  val STACK_SIZE = "size_stacks"
   val HEAP_SIZE = "size_heap"
-
-  def heap_scale(x: Long): Long = x / 1024 / 1024
-  def heap_scale(x: Double): Double = heap_scale(x.toLong).toLong
 
 
   /* standard fields */
@@ -134,7 +143,7 @@ object ML_Statistics
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = java.lang.Double.parseDouble(y) if z != 0.0
-            } yield { (x.intern, if (heap_fields._2.contains(x)) heap_scale(z) else z) })
+            } yield { (x.intern, mem_field_scale(x, z)) })
 
         result += ML_Statistics.Entry(time, data)
       }
@@ -173,19 +182,14 @@ final class ML_Statistics private(
     }
   }
 
-  def maximum_heap_size: Long = maximum(ML_Statistics.HEAP_SIZE).toLong
-  def average_heap_size: Long = average(ML_Statistics.HEAP_SIZE).toLong
-
 
   /* charts */
 
   def update_data(data: XYSeriesCollection, selected_fields: List[String])
   {
     data.removeAllSeries
-    for {
-      field <- selected_fields.iterator
-      series = new XYSeries(field)
-    } {
+    for (field <- selected_fields) {
+      val series = new XYSeries(field)
       content.foreach(entry => series.add(entry.time, entry.get(field)))
       data.addSeries(series)
     }
