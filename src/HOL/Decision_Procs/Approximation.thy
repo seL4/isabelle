@@ -1672,6 +1672,52 @@ setup "Approximation_Generator.setup"
 
 section "Avoid pollution of name space"
 
+bundle floatarith_notation begin
+
+notation Add ("Add")
+notation Minus ("Minus")
+notation Mult ("Mult")
+notation Inverse ("Inverse")
+notation Cos ("Cos")
+notation Arctan ("Arctan")
+notation Abs ("Abs")
+notation Max ("Max")
+notation Min ("Min")
+notation Pi ("Pi")
+notation Sqrt ("Sqrt")
+notation Exp ("Exp")
+notation Powr ("Powr")
+notation Ln ("Ln")
+notation Power ("Power")
+notation Floor ("Floor")
+notation Var ("Var")
+notation Num ("Num")
+
+end
+
+bundle no_floatarith_notation begin
+
+no_notation Add ("Add")
+no_notation Minus ("Minus")
+no_notation Mult ("Mult")
+no_notation Inverse ("Inverse")
+no_notation Cos ("Cos")
+no_notation Arctan ("Arctan")
+no_notation Abs ("Abs")
+no_notation Max ("Max")
+no_notation Min ("Min")
+no_notation Pi ("Pi")
+no_notation Sqrt ("Sqrt")
+no_notation Exp ("Exp")
+no_notation Powr ("Powr")
+no_notation Ln ("Ln")
+no_notation Power ("Power")
+no_notation Floor ("Floor")
+no_notation Var ("Var")
+no_notation Num ("Num")
+
+end
+
 hide_const (open)
   Add
   Minus
