@@ -52,19 +52,6 @@ object ML_Process
           fun subparagraph (_: string) = ();
           val ML_file = PolyML.use;
           """,
-          if (Isabelle_System.getenv("ML_SYSTEM") == "polyml-5.6")
-            """
-              structure FixedInt = IntInf;
-              structure RunCall =
-              struct
-                open RunCall
-                val loadWord: word * word -> word =
-                  run_call2 RuntimeCalls.POLY_SYS_load_word;
-                val storeWord: word * word * word -> unit =
-                  run_call3 RuntimeCalls.POLY_SYS_assign_word;
-              end;
-            """
-          else "",
           if (Platform.is_windows)
             "fun exit 0 = OS.Process.exit OS.Process.success" +
             " | exit 1 = OS.Process.exit OS.Process.failure" +
