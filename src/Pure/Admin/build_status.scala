@@ -483,12 +483,12 @@ plot [] """ + range + " " +
 
               val heap_plots =
                 List(
-                  """ using 1:6 smooth sbezier title "maximum heap (smooth)" """,
-                  """ using 1:6 smooth csplines title "maximum heap" """,
-                  """ using 1:7 smooth sbezier title "average heap (smooth)" """,
-                  """ using 1:7 smooth csplines title "average heap" """,
-                  """ using 1:8 smooth sbezier title "stored heap (smooth)" """,
-                  """ using 1:8 smooth csplines title "stored heap" """)
+                  """ using 1:6 smooth sbezier title "heap maximum (smooth)" """,
+                  """ using 1:6 smooth csplines title "heap maximum" """,
+                  """ using 1:7 smooth sbezier title "heap average (smooth)" """,
+                  """ using 1:7 smooth csplines title "heap average" """,
+                  """ using 1:8 smooth sbezier title "heap stored (smooth)" """,
+                  """ using 1:8 smooth csplines title "heap stored" """)
 
               def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
               {
@@ -548,19 +548,19 @@ plot [] """ + range + " " +
                   HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
                   HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
                 ML_Statistics.mem_print(session.head.maximum_code).map(s =>
-                  HTML.text("maximum code:") -> HTML.text(s)).toList :::
+                  HTML.text("code maximum:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.average_code).map(s =>
-                  HTML.text("average code:") -> HTML.text(s)).toList :::
+                  HTML.text("code average:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.maximum_stack).map(s =>
-                  HTML.text("maximum stack:") -> HTML.text(s)).toList :::
+                  HTML.text("stack maximum:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.average_stack).map(s =>
-                  HTML.text("average stack:") -> HTML.text(s)).toList :::
+                  HTML.text("stack average:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.maximum_heap).map(s =>
-                  HTML.text("maximum heap:") -> HTML.text(s)).toList :::
+                  HTML.text("heap maximum:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.average_heap).map(s =>
-                  HTML.text("average heap:") -> HTML.text(s)).toList :::
+                  HTML.text("heap average:") -> HTML.text(s)).toList :::
                 ML_Statistics.mem_print(session.head.stored_heap).map(s =>
-                  HTML.text("stored heap:") -> HTML.text(s)).toList :::
+                  HTML.text("heap stored:") -> HTML.text(s)).toList :::
                 proper_string(session.head.isabelle_version).map(s =>
                   HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
                 proper_string(session.head.afp_version).map(s =>
