@@ -1670,4 +1670,26 @@ lemma approximation_preproc_push_neg[approximation_preproc]:
 ML_file \<open>approximation_generator.ML\<close>
 setup "Approximation_Generator.setup"
 
+section "Avoid pollution of name space"
+
+hide_const (open)
+  Add
+  Minus
+  Mult
+  Inverse
+  Cos
+  Arctan
+  Abs
+  Max
+  Min
+  Pi
+  Sqrt
+  Exp
+  Powr
+  Ln
+  Power
+  Floor
+  Var
+  Num
+
 end
