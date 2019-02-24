@@ -1,4 +1,3 @@
-Only in MacOSX-trunk: build
 diff -ru MacOSX-trunk-r24891/build.properties MacOSX-trunk/build.properties
 --- MacOSX-trunk-r24891/build.properties	2018-10-20 11:45:32.632681780 +0200
 +++ MacOSX-trunk/build.properties	2018-10-20 13:11:21.039870008 +0200
