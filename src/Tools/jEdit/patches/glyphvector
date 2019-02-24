@@ -1,0 +1,14 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2018-04-09 01:57:24.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2019-02-24 12:32:09.336643045 +0100
+@@ -655,6 +655,10 @@
+ 		// instance to the char array.
+ 		font.layoutGlyphVector(frc, EMPTY_TEXT, 0, 0, flags);
+ 
++		if ((result.getLayoutFlags() & GlyphVector.FLAG_COMPLEX_GLYPHS) != 0) {
++			result = font.createGlyphVector(frc, new String(text, start, end - start));
++		}
++
+ 		return result;
+ 	} // }}}
+ 
