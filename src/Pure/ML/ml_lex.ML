@@ -34,6 +34,7 @@ sig
     token Antiquote.antiquote Symbol_Pos.scanner -> Input.source -> token Antiquote.antiquote list
   val read_source: Input.source -> token Antiquote.antiquote list
   val read_source_sml: Input.source -> token Antiquote.antiquote list
+  val read_symbols_sml: Symbol_Pos.T list -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -382,6 +383,8 @@ val read_source =
 val read_source_sml =
   read_source' {language = Markup.language_SML, symbols = false, opaque_warning = false}
     scan_sml_antiq;
+
+val read_symbols_sml = reader {opaque_warning = false} scan_sml_antiq;
 
 end;
 
