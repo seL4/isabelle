@@ -1,6 +1,6 @@
 diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
 --- 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2018-04-09 01:57:06.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2018-10-26 12:29:44.315185808 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2019-02-24 12:21:09.602678130 +0100
 @@ -126,6 +126,21 @@
  	static final Pattern winPattern = Pattern.compile(winPatternString);
  

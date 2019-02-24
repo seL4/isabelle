@@ -1,6 +1,6 @@
 diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSManager.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/VFSManager.java
 --- 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSManager.java	2018-04-09 01:57:13.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/VFSManager.java	2019-01-20 20:55:19.968888999 +0100
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/VFSManager.java	2019-02-24 12:21:25.986736893 +0100
 @@ -345,6 +345,18 @@
  
  				if(vfsUpdates.size() == 1)

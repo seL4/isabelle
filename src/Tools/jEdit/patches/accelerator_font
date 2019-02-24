@@ -1,6 +1,6 @@
 diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java
---- 5.5.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2018-12-01 15:51:30.320182833 +0100
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2018-12-01 15:51:49.028286932 +0100
+--- 5.5.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2018-04-09 01:58:07.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2019-02-24 12:19:52.134389619 +0100
 @@ -1172,7 +1172,7 @@
  				return new Font("Monospaced", Font.PLAIN, 12);
  			}

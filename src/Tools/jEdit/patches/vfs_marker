@@ -1,6 +1,6 @@
-diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java
---- jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2018-04-09 01:57:42.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java	2019-01-30 22:18:22.534820468 +0100
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2018-04-09 01:57:42.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/browser/VFSBrowser.java	2019-02-24 12:23:42.403199825 +0100
 @@ -1204,6 +1204,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
@@ -53,9 +53,9 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jEdit-patched/org/
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java
---- jEdit/org/gjt/sp/jedit/io/VFSFile.java	2018-04-09 01:57:13.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java	2019-01-30 21:55:19.531911500 +0100
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2018-04-09 01:57:13.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java	2019-02-24 12:23:42.403199825 +0100
 @@ -297,6 +297,12 @@
  		}
  	} //}}}
@@ -70,8 +70,8 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jEdit-patched/org/gjt/sp/j
  	public String getPath()
  	{
 diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/jEdit.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/jEdit.java
---- jEdit/org/gjt/sp/jedit/jEdit.java	2018-04-09 01:56:22.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/jEdit.java	2019-01-30 21:56:00.171827173 +0100
+--- 5.5.0/jEdit/org/gjt/sp/jedit/jEdit.java	2018-04-09 01:56:22.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/jEdit.java	2019-02-24 12:23:42.403199825 +0100
 @@ -4479,7 +4479,7 @@
  	} //}}}
  
