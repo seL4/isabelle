@@ -371,10 +371,11 @@ fun read_source' {language, symbols, opaque_warning} scan source =
       if Position.is_reported_range pos
       then Position.report pos (language (Input.is_delimited source))
       else ();
-    val syms =
-      Symbol_Pos.explode (Input.text_of source, pos)
-      |> not symbols ? maps (fn (s, p) => raw_explode s |> map (rpair p));
-  in reader {opaque_warning = opaque_warning} scan syms end;
+  in
+    Input.source_explode source
+    |> not symbols ? maps (fn (s, p) => raw_explode s |> map (rpair p))
+    |> reader {opaque_warning = opaque_warning} scan
+  end;
 
 val read_source =
   read_source' {language = Markup.language_ML, symbols = true, opaque_warning = true}
