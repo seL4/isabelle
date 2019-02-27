@@ -23,6 +23,7 @@ sig
   val output_markup: Markup.T -> string * string
   val buffer_body: XML.body -> Buffer.T -> Buffer.T
   val buffer: XML.tree -> Buffer.T -> Buffer.T
+  val chunks_of_body: XML.body -> string list
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val output_markup_elem: Markup.T -> (string * string) * string
@@ -78,6 +79,7 @@ and buffer (XML.Elem ((name, atts), ts)) =
       Buffer.add XYX
   | buffer (XML.Text s) = Buffer.add s
 
+fun chunks_of_body body = Buffer.empty |> buffer_body body |> Buffer.chunks;
 fun string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content;
 val string_of = string_of_body o single;
 

@@ -117,10 +117,10 @@ val _ =
 
             val _ =
               Output.protocol_message Markup.assign_update
-                [(new_id, assign_update) |>
+                ((new_id, assign_update) |>
                   let open XML.Encode
                   in pair int (list (pair int (list int))) end
-                  |> YXML.string_of_body];
+                  |> YXML.chunks_of_body);
           in Document.start_execution state' end)));
 
 val _ =
