@@ -176,7 +176,7 @@ object Headless
 
       val use_theories_state = Synchronized(Use_Theories_State())
 
-      def check_result(beyond_limit: Boolean = false)
+      def check_result_state(beyond_limit: Boolean = false)
       {
         val state = session.current_state()
         state.stable_tip_version match {
@@ -195,7 +195,7 @@ object Headless
             if (progress.stopped) use_theories_state.value.cancel_result
             else {
               check_count += 1
-              check_result(check_limit > 0 && check_count > check_limit)
+              check_result_state(check_limit > 0 && check_count > check_limit)
             }
           }
       }
@@ -250,7 +250,7 @@ object Headless
 
               theory_progress.foreach(progress.theory(_))
 
-              check_result()
+              check_result_state()
 
               if (commit.isDefined && commit_cleanup_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
