@@ -164,7 +164,7 @@ object Document_Status
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
-    def quasi_consolidated: Boolean = !finalized && terminated
+    def quasi_consolidated: Boolean = !is_suppressed && !finalized && terminated
 
     def percentage: Int =
       if (consolidated) 100
