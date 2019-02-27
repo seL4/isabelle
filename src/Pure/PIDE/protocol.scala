@@ -16,7 +16,12 @@ object Protocol
     def unapply(text: String): Option[(Document_ID.Version, Document.Assign_Update)] =
       try {
         import XML.Decode._
-        Some(pair(long, list(pair(long, list(long))))(Symbol.decode_yxml(text)))
+        def decode_upd(body: XML.Body): (Long, List[Long]) =
+          space_explode(',', string(body)).map(Value.Long.parse) match {
+            case a :: bs => (a, bs)
+            case _ => throw new XML.XML_Body(body)
+          }
+        Some(pair(long, list(decode_upd _))(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None

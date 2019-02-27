@@ -118,8 +118,11 @@ val _ =
             val _ =
               Output.protocol_message Markup.assign_update
                 ((new_id, assign_update) |>
-                  let open XML.Encode
-                  in pair int (list (pair int (list int))) end
+                  let
+                    open XML.Encode;
+                    fun encode_upd (a, bs) =
+                      string (space_implode "," (map Value.print_int (a :: bs)));
+                  in pair int (list encode_upd) end
                   |> YXML.chunks_of_body);
           in Document.start_execution state' end)));
 
