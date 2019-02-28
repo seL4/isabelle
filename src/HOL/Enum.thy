@@ -674,7 +674,7 @@ proof
   fix x :: finite_2 and A
   assume "x \<in> A"
   then show "\<Sqinter>A \<le> x" "x \<le> \<Squnion>A"
-    by(case_tac [!] x)(auto simp add: less_eq_finite_2_def less_finite_2_def Inf_finite_2_def Sup_finite_2_def)
+    by(cases x; auto simp add: less_eq_finite_2_def less_finite_2_def Inf_finite_2_def Sup_finite_2_def)+
 qed(auto simp add: less_eq_finite_2_def less_finite_2_def inf_finite_2_def sup_finite_2_def Inf_finite_2_def Sup_finite_2_def)
 end
 

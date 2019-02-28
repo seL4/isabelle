@@ -525,7 +525,7 @@ proof-
     moreover
     {fix d assume "d \<in> A <+> C"
      hence "g d \<in> B <+> C"  using 1
-     by(case_tac d, auto simp add: g_def)
+     by(cases d) (auto simp add: g_def)
     }
     ultimately show ?thesis unfolding inj_on_def by auto
   qed
@@ -645,12 +645,12 @@ proof-
   proof-
     {fix  c1 and c2 assume "?f c1 = ?f c2"
      hence "c1 = c2"
-     by(case_tac "c1", case_tac "c2", auto, case_tac "c2", auto)
+     by(cases c1; cases c2) auto
     }
     moreover
     {fix c assume "c \<in> A <+> A"
      hence "?f c \<in> A \<times> (UNIV::bool set)"
-     by(case_tac c, auto)
+     by(cases c) auto
     }
     moreover
     {fix a bl assume *: "(a,bl) \<in> A \<times> (UNIV::bool set)"
@@ -726,10 +726,10 @@ proof-
   have "bij_betw ?f UNIV {a1,a2}"
   proof-
     {fix bl1 and bl2 assume "?f  bl1 = ?f bl2"
-     hence "bl1 = bl2" using assms by (case_tac bl1, case_tac bl2, auto)
+     hence "bl1 = bl2" using assms by (cases bl1, cases bl2) auto
     }
     moreover
-    {fix bl have "?f bl \<in> {a1,a2}" by (case_tac bl, auto)
+    {fix bl have "?f bl \<in> {a1,a2}" by (cases bl) auto
     }
     moreover
     {fix a assume *: "a \<in> {a1,a2}"
@@ -1678,7 +1678,7 @@ proof -
     show "f = g"
     proof
       fix x from * have "fst (f x) = fst (g x) \<and> snd (f x) = snd (g x)"
-        by (case_tac "x \<in> A") (auto simp: Func_def fun_eq_iff split: if_splits)
+        by (cases "x \<in> A") (auto simp: Func_def fun_eq_iff split: if_splits)
       then show "f x = g x" by (subst (1 2) surjective_pairing) simp
     qed
   next

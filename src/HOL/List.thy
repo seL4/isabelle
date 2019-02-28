@@ -970,7 +970,7 @@ lemma append_eq_append_conv2: "(xs @ ys = zs @ ts) =
 proof (induct xs arbitrary: ys zs ts)
   case (Cons x xs)
   then show ?case
-    by (case_tac zs) auto
+    by (cases zs) auto
 qed fastforce
 
 lemma same_append_eq [iff, induct_simp]: "(xs @ ys = xs @ zs) = (ys = zs)"
@@ -1238,11 +1238,13 @@ lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
 lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
-proof  (induct xs arbitrary: ys)
-  case (Cons a xs)
-  then show ?case 
-    by (case_tac ys) auto
-qed force
+proof (induct xs arbitrary: ys)
+  case Nil
+  then show ?case by force
+next
+  case Cons
+  then show ?case by (cases ys) auto
+qed
 
 lemma inj_on_rev[iff]: "inj_on rev A"
 by(simp add:inj_on_def)
@@ -2043,16 +2045,22 @@ lemma nth_via_drop: "drop n xs = y#ys \<Longrightarrow> xs!n = y"
 lemma take_Suc_conv_app_nth:
   "i < length xs \<Longrightarrow> take (Suc i) xs = take i xs @ [xs!i]"
 proof (induct xs arbitrary: i)
-  case (Cons x xs) then show ?case
-    by (case_tac i, auto)
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases i) auto
+qed
 
 lemma Cons_nth_drop_Suc:
   "i < length xs \<Longrightarrow> (xs!i) # (drop (Suc i) xs) = drop i xs"
 proof (induct xs arbitrary: i)
-  case (Cons x xs) then show ?case
-    by (case_tac i, auto)
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases i) auto
+qed
 
 lemma length_take [simp]: "length (take n xs) = min (length xs) n"
   by (induct n arbitrary: xs) (auto, case_tac xs, auto)
@@ -2076,30 +2084,42 @@ lemma drop_append [simp]:
 
 lemma take_take [simp]: "take n (take m xs) = take (min n m) xs"
 proof (induct m arbitrary: xs n)
-  case (Suc m) then show ?case
-    by (case_tac xs; case_tac n; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs; cases n) simp_all
+qed
 
 lemma drop_drop [simp]: "drop n (drop m xs) = drop (n + m) xs"
 proof (induct m arbitrary: xs)
-  case (Suc m) then show ?case
-    by (case_tac xs; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs) simp_all
+qed
 
 lemma take_drop: "take n (drop m xs) = drop m (take (n + m) xs)"
 proof (induct m arbitrary: xs n)
-  case (Suc m) then show ?case
-    by (case_tac xs; case_tac n; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs; cases n) simp_all
+qed
 
 lemma drop_take: "drop n (take m xs) = take (m-n) (drop n xs)"
   by(induct xs arbitrary: m n)(auto simp: take_Cons drop_Cons split: nat.split)
 
 lemma append_take_drop_id [simp]: "take n xs @ drop n xs = xs"
 proof (induct n arbitrary: xs)
-  case (Suc n) then show ?case
-    by (case_tac xs; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs) simp_all
+qed
 
 lemma take_eq_Nil[simp]: "(take n xs = []) = (n = 0 \<or> xs = [])"
   by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
@@ -2109,27 +2129,39 @@ lemma drop_eq_Nil[simp]: "(drop n xs = []) = (length xs \<le> n)"
 
 lemma take_map: "take n (map f xs) = map f (take n xs)"
 proof (induct n arbitrary: xs)
-  case (Suc n) then show ?case
-    by (case_tac xs; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs) simp_all
+qed
 
 lemma drop_map: "drop n (map f xs) = map f (drop n xs)"
 proof (induct n arbitrary: xs)
-  case (Suc n) then show ?case
-    by (case_tac xs; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs) simp_all
+qed
 
 lemma rev_take: "rev (take i xs) = drop (length xs - i) (rev xs)"
 proof (induct xs arbitrary: i)
-  case (Cons x xs) then show ?case
-    by (case_tac i, auto)
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases i) auto
+qed
 
 lemma rev_drop: "rev (drop i xs) = take (length xs - i) (rev xs)"
 proof (induct xs arbitrary: i)
-  case (Cons x xs) then show ?case
-    by (case_tac i, auto)
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases i) auto
+qed
 
 lemma drop_rev: "drop n (rev xs) = rev (take (length xs - n) xs)"
   by (cases "length xs < n") (auto simp: rev_take)
@@ -2139,16 +2171,22 @@ lemma take_rev: "take n (rev xs) = rev (drop (length xs - n) xs)"
 
 lemma nth_take [simp]: "i < n ==> (take n xs)!i = xs!i"
 proof (induct xs arbitrary: i n)
-  case (Cons x xs) then show ?case
-    by (case_tac n; case_tac i; simp)
-qed auto
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases n; cases i) simp_all
+qed
 
 lemma nth_drop [simp]:
   "n \<le> length xs ==> (drop n xs)!i = xs!(n + i)"
 proof (induct n arbitrary: xs)
-  case (Suc n) then show ?case
-    by (case_tac xs; simp)
-qed auto
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs) simp_all
+qed
 
 lemma butlast_take:
   "n \<le> length xs ==> butlast (take n xs) = take (n - 1) xs"
@@ -2563,27 +2601,39 @@ lemma zip_replicate1: "zip (replicate n x) ys = map (Pair x) (take n ys)"
 
 lemma take_zip: "take n (zip xs ys) = zip (take n xs) (take n ys)"
 proof (induct n arbitrary: xs ys)
-  case (Suc n)
-  then show ?case
-    by (case_tac xs; case_tac ys; simp)
-qed simp
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs; cases ys) simp_all
+qed
 
 lemma drop_zip: "drop n (zip xs ys) = zip (drop n xs) (drop n ys)"
 proof (induct n arbitrary: xs ys)
-  case (Suc n)
-  then show ?case
-    by (case_tac xs; case_tac ys; simp)
-qed simp
+  case 0
+  then show ?case by simp
+next
+  case Suc
+  then show ?case by (cases xs; cases ys) simp_all
+qed
 
 lemma zip_takeWhile_fst: "zip (takeWhile P xs) ys = takeWhile (P \<circ> fst) (zip xs ys)"
 proof (induct xs arbitrary: ys)
-  case (Cons x xs) thus ?case by (cases ys) auto
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases ys) auto
+qed
 
 lemma zip_takeWhile_snd: "zip xs (takeWhile P ys) = takeWhile (P \<circ> snd) (zip xs ys)"
 proof (induct xs arbitrary: ys)
-  case (Cons x xs) thus ?case by (cases ys) auto
-qed simp
+  case Nil
+  then show ?case by simp
+next
+  case Cons
+  then show ?case by (cases ys) auto
+qed
 
 lemma set_zip_leftD: "(x,y)\<in> set (zip xs ys) \<Longrightarrow> x \<in> set xs"
   by (induct xs ys rule:list_induct2') auto
@@ -3652,11 +3702,18 @@ next
           using f_mono by (simp add: mono_iff_le_Suc)
       next
         have "?f' ` {0 ..< length (x1 # xs)} = f ` {Suc 0 ..< length (x1 # x2 # xs)}"
-          by safe (fastforce, rename_tac x, case_tac x, auto)
+          apply safe
+           apply fastforce
+          subgoal for \<dots> x by (cases x) auto
+          done
         also have "\<dots> = f ` {0 ..< length (x1 # x2 # xs)}"
         proof -
           have "f 0 = f (Suc 0)" using \<open>x1 = x2\<close> f_nth[of 0] by simp
-          then show ?thesis by safe (fastforce, rename_tac x, case_tac x, auto)
+          then show ?thesis
+            apply safe
+             apply fastforce
+            subgoal for \<dots> x by (cases x) auto
+            done
         qed
         also have "\<dots> = {0 ..< length ys}" by fact
         finally show  "?f' ` {0 ..< length (x1 # xs)} = {0 ..< length ys}" .
@@ -3682,16 +3739,17 @@ next
         then have "\<And>i. Suc 0 < f (Suc i)"
           using f_mono
           by (meson Suc_le_mono le0 less_le_trans monoD)
-        then have "\<And>i. Suc 0 \<noteq> f i" using \<open>f 0 = 0\<close>
-          by (case_tac i) fastforce+
+        then have "Suc 0 \<noteq> f i" for i using \<open>f 0 = 0\<close>
+          by (cases i) fastforce+
         then have "Suc 0 \<notin> f ` {0 ..< length (x1 # x2 # xs)}" by auto
         then show False using f_img \<open>2 \<le> length ys\<close> by auto
       qed
       obtain ys' where "ys = x1 # x2 # ys'"
         using \<open>2 \<le> length ys\<close> f_nth[of 0] f_nth[of 1]
         apply (cases ys)
-        apply (rename_tac [2] ys', case_tac [2] ys')
-        by (auto simp: \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close>)
+         apply (rename_tac [2] ys', case_tac [2] ys')
+          apply (auto simp: \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close>)
+        done
 
       define f' where "f' x = f (Suc x) - 1" for x
 

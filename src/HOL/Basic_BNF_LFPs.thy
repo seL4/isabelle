@@ -84,12 +84,12 @@ lemma isl_map_sum:
 lemma map_sum_sel:
   "isl s \<Longrightarrow> projl (map_sum f g s) = f (projl s)"
   "\<not> isl s \<Longrightarrow> projr (map_sum f g s) = g (projr s)"
-  by (case_tac [!] s) simp_all
+  by (cases s; simp)+
 
 lemma set_sum_sel:
   "isl s \<Longrightarrow> projl s \<in> setl s"
   "\<not> isl s \<Longrightarrow> projr s \<in> setr s"
-  by (case_tac [!] s) (auto intro: setl.intros setr.intros)
+  by (cases s; auto intro: setl.intros setr.intros)+
 
 lemma rel_sum_sel: "rel_sum R1 R2 a b = (isl a = isl b \<and>
   (isl a \<longrightarrow> isl b \<longrightarrow> R1 (projl a) (projl b)) \<and>

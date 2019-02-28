@@ -188,17 +188,17 @@ lemma map_sum_if_distrib_else:
   by simp_all
 
 lemma case_prod_app: "case_prod f x y = case_prod (\<lambda>l r. f l r y) x"
-  by (case_tac x) simp
+  by (cases x) simp
 
 lemma case_sum_map_sum: "case_sum l r (map_sum f g x) = case_sum (l \<circ> f) (r \<circ> g) x"
-  by (case_tac x) simp+
+  by (cases x) simp_all
 
 lemma case_sum_transfer:
   "rel_fun (rel_fun R T) (rel_fun (rel_fun S T) (rel_fun (rel_sum R S) T)) case_sum case_sum"
   unfolding rel_fun_def by (auto split: sum.splits)
 
 lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l r. h (f l) (g r)) x"
-  by (case_tac x) simp+
+  by (cases x) simp_all
 
 lemma case_prod_o_map_prod: "case_prod f \<circ> map_prod g1 g2 = case_prod (\<lambda>l r. f (g1 l) (g2 r))"
   unfolding comp_def by auto
