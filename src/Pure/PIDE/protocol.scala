@@ -283,6 +283,11 @@ trait Protocol
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
     edits: List[Document.Edit_Command], consolidate: List[Document.Node.Name])
   {
+    val consolidate_yxml =
+    {
+      import XML.Encode._
+      Symbol.encode_yxml(list(string)(consolidate.map(_.node)))
+    }
     val edits_yxml =
     {
       import XML.Encode._
@@ -303,22 +308,11 @@ trait Protocol
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(string, list(string))))(c.dest)) }))
-      def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
-      {
-        val (name, edit) = node_edit
-        pair(string, encode_edit(name))(name.node, edit)
-      })
-      Symbol.encode_yxml(encode_edits(edits))
+      edits.map({ case (name, edit) =>
+        Symbol.encode_yxml(pair(string, encode_edit(name))(name.node, edit)) })
     }
-
-    val consolidate_yxml =
-    {
-      import XML.Encode._
-      Symbol.encode_yxml(list(string)(consolidate.map(_.node)))
-    }
-
-    protocol_command(
-      "Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml, consolidate_yxml)
+    protocol_command("Document.update",
+      (Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml): _*)
   }
 
   def remove_versions(versions: List[Document.Version])

@@ -74,15 +74,18 @@ val _ =
 val _ =
   Isabelle_Process.protocol_command "Document.update"
     (Future.task_context "Document.update" (Future.new_group NONE)
-      (fn [old_id_string, new_id_string, edits_yxml, consolidate_yxml] =>
+      (fn old_id_string :: new_id_string :: consolidate_yxml :: edits_yxml =>
         Document.change_state (fn state =>
           let
             val old_id = Document_ID.parse old_id_string;
             val new_id = Document_ID.parse new_id_string;
+            val consolidate =
+              YXML.parse_body consolidate_yxml |>
+                let open XML.Decode in list string end;
             val edits =
-              YXML.parse_body edits_yxml |>
+              edits_yxml |> map (YXML.parse_body #>
                 let open XML.Decode in
-                  list (pair string
+                  pair string
                     (variant
                      [fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                       fn ([], a) =>
@@ -98,11 +101,8 @@ val _ =
                         in Document.Deps {master = master, header = header, errors = errors} end,
                       fn (a :: b, c) =>
                         Document.Perspective (bool_atom a, map int_atom b,
-                          list (pair int (pair string (list string))) c)]))
-                end;
-            val consolidate =
-              YXML.parse_body consolidate_yxml |>
-                let open XML.Decode in list string end;
+                          list (pair int (pair string (list string))) c)])
+                end);
 
             val _ = Execution.discontinue ();
 
