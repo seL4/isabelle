@@ -55,11 +55,11 @@ fun read_line stream =
 
 (* messages with multiple chunks (arbitrary content) *)
 
-fun make_header stream ns =
+fun make_header ns =
   [space_implode "," (map Value.print_int ns), "\n"];
 
 fun write_message stream chunks =
-  (write stream (make_header stream (map size chunks) @ chunks); flush stream);
+  (write stream (make_header (map size chunks) @ chunks); flush stream);
 
 fun parse_header line =
   map Value.parse_nat (space_explode "," line)
@@ -92,7 +92,7 @@ fun write_line_message stream msg =
     let val n = size msg in
       write stream
         ((if n > 100 orelse exists_string (fn s => s = "\n") msg
-          then make_header stream [n + 1] else []) @ [msg, "\n"]);
+          then make_header [n + 1] else []) @ [msg, "\n"]);
       flush stream
     end;
 
