@@ -64,6 +64,7 @@ sig
   val unparse: T -> string
   val print: T -> string
   val text_of: T -> string * string
+  val file_source: file -> Input.source
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
@@ -364,6 +365,12 @@ fun text_of tok =
 (** associated values **)
 
 (* inlined file content *)
+
+fun file_source (file: file) =
+  let
+    val text = cat_lines (#lines file);
+    val end_pos = fold Position.advance (Symbol.explode text) (#pos file);
+  in Input.source true text (Position.range (#pos file, end_pos)) end;
 
 fun get_files (Token (_, _, Value (SOME (Files files)))) = files
   | get_files _ = [];

@@ -31,6 +31,7 @@ sig
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
   val parse_files: string -> (theory -> Token.file list) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
+  val provide_file: Token.file -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val loaded_files_current: theory -> bool
   val check_path: Proof.context -> Path.T -> string * Position.T -> Path.T
@@ -214,6 +215,8 @@ fun provide (src_path, id) =
     if AList.defined (op =) provided src_path then
       error ("Duplicate use of source file: " ^ Path.print src_path)
     else (master_dir, imports, (src_path, id) :: provided));
+
+fun provide_file (file: Token.file) = provide (#src_path file, #digest file);
 
 fun provide_parse_files cmd =
   parse_files cmd >> (fn files => fn thy =>
