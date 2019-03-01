@@ -116,7 +116,8 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
   echo "    -p CMD       ML process command prefix (process policy)"
-  echo "    -s           system build mode for session image"
+  echo "    -s           system build mode for session image (system_heaps=true)"
+  echo "    -u           user build mode for session image (system_heaps=false)"
   echo
   echo "  Start jEdit with Isabelle plugin setup and open FILES"
   echo "  (default \"$USER_HOME/Scratch.thy\" or \":\" for empty buffer)."
@@ -150,12 +151,13 @@ JEDIT_INCLUDE_SESSIONS=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
-JEDIT_BUILD_MODE="normal"
+JEDIT_NO_BUILD=""
+JEDIT_BUILD_MODE="default"
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "A:BFD:J:R:S:bd:fi:j:l:m:np:s" OPT
+  while getopts "A:BFD:J:R:S:bd:fi:j:l:m:np:su" OPT
   do
     case "$OPT" in
       A)
@@ -210,13 +212,16 @@ function getoptions()
         fi
         ;;
       n)
-        JEDIT_BUILD_MODE="none"
+        JEDIT_NO_BUILD="true"
         ;;
       p)
         ML_PROCESS_POLICY="$OPTARG"
         ;;
       s)
         JEDIT_BUILD_MODE="system"
+        ;;
+      u)
+        JEDIT_BUILD_MODE="user"
         ;;
       \?)
         usage
@@ -425,7 +430,7 @@ popd >/dev/null
 if [ "$BUILD_ONLY" = false ]
 then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
-    JEDIT_LOGIC_FOCUS JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+    JEDIT_LOGIC_FOCUS JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"

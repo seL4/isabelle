@@ -395,7 +395,6 @@ object Build
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     soft_build: Boolean = false,
-    system_mode: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
     pide: Boolean = false,
@@ -410,7 +409,7 @@ object Build
   {
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
 
-    val store = Sessions.store(build_options, system_mode)
+    val store = Sessions.store(build_options)
 
     Isabelle_Fonts.init()
 
@@ -737,7 +736,6 @@ object Build
     var list_files = false
     var no_build = false
     var options = Options.init(opts = build_options)
-    var system_mode = false
     var verbose = false
     var exclude_sessions: List[String] = Nil
 
@@ -764,7 +762,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -l           list session source files
     -n           no build -- test dependencies only
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode: produce output in ISABELLE_HOME
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
@@ -790,7 +787,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "l" -> (_ => list_files = true),
       "n" -> (_ => no_build = true),
       "o:" -> (arg => options = options + arg),
-      "s" -> (_ => system_mode = true),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
 
@@ -823,7 +819,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           fresh_build = fresh_build,
           no_build = no_build,
           soft_build = soft_build,
-          system_mode = system_mode,
           verbose = verbose,
           export_files = export_files,
           pide = pide,
@@ -857,16 +852,15 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     progress: Progress = No_Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
-    system_mode: Boolean = false,
     strict: Boolean = false): Int =
   {
     val rc =
       if (build(options, build_heap = build_heap, no_build = true, dirs = dirs,
-          system_mode = system_mode, sessions = List(logic)).ok) 0
+          sessions = List(logic)).ok) 0
       else {
         progress.echo("Build started for Isabelle/" + logic + " ...")
         Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
-          system_mode = system_mode, sessions = List(logic)).rc
+          sessions = List(logic)).rc
       }
 
     if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc

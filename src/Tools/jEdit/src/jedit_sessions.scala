@@ -18,19 +18,28 @@ object JEdit_Sessions
 {
   /* session options */
 
-  def session_options(options: Options): Options =
-    Isabelle_System.getenv("JEDIT_ML_PROCESS_POLICY") match {
-      case "" => options
-      case s => options.string.update("ML_process_policy", s)
-    }
-
   def session_dirs(): List[Path] =
     Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
 
-  def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
+  def session_no_build(): Boolean =
+    Isabelle_System.getenv("JEDIT_NO_BUILD") == "true"
 
-  def session_system_mode(): Boolean =
-    session_build_mode() match { case "" | "system" => true case _ => false }
+  def session_options(options: Options): Options =
+  {
+    val options1 =
+      Isabelle_System.getenv("JEDIT_BUILD_MODE") match {
+        case "default" => options
+        case mode => options.bool.update("system_heaps", mode == "" | mode == "system")
+      }
+
+    val options2 =
+      Isabelle_System.getenv("JEDIT_ML_PROCESS_POLICY") match {
+        case "" => options1
+        case s => options1.string.update("ML_process_policy", s)
+      }
+
+    options2
+  }
 
   def sessions_structure(options: Options, dirs: List[Path] = session_dirs()): Sessions.Structure =
     Sessions.load_structure(session_options(options), dirs = dirs)
@@ -123,17 +132,18 @@ object JEdit_Sessions
     options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =
   {
     Build.build(session_options(options), progress = progress, build_heap = true,
-      no_build = no_build, system_mode = session_system_mode(),
-      dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,
+      no_build = no_build, dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,
       sessions = List(PIDE.resources.session_name)).rc
   }
 
-  def session_start(options: Options)
+  def session_start(options0: Options)
   {
-    Isabelle_Process.start(PIDE.session, session_options(options),
+    val options = session_options(options0)
+
+    Isabelle_Process.start(PIDE.session, options,
       sessions_structure = Some(PIDE.resources.session_base_info.sessions_structure),
       logic = PIDE.resources.session_name,
-      store = Some(Sessions.store(options, session_system_mode())),
+      store = Some(Sessions.store(options)),
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse,

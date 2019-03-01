@@ -29,7 +29,6 @@ object Server_Commands
       options: List[String] = Nil,
       dirs: List[String] = Nil,
       include_sessions: List[String] = Nil,
-      system_mode: Boolean = false,
       verbose: Boolean = false)
 
     def unapply(json: JSON.T): Option[Args] =
@@ -39,12 +38,11 @@ object Server_Commands
         options <- JSON.strings_default(json, "options")
         dirs <- JSON.strings_default(json, "dirs")
         include_sessions <- JSON.strings_default(json, "include_sessions")
-        system_mode <- JSON.bool_default(json, "system_mode")
         verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
         Args(session, preferences = preferences, options = options, dirs = dirs,
-          include_sessions = include_sessions, system_mode = system_mode, verbose = verbose)
+          include_sessions = include_sessions, verbose = verbose)
       }
 
     def command(args: Args, progress: Progress = No_Progress)
@@ -62,7 +60,6 @@ object Server_Commands
         Build.build(options,
           progress = progress,
           build_heap = true,
-          system_mode = args.system_mode,
           dirs = dirs,
           infos = base_info.infos,
           verbose = args.verbose,

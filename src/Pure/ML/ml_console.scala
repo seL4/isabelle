@@ -21,7 +21,6 @@ object ML_Console
       var no_build = false
       var options = Options.init()
       var raw_ml_system = false
-      var system_mode = false
 
       val getopts = Getopts("""
 Usage: isabelle console [OPTIONS]
@@ -34,7 +33,6 @@ Usage: isabelle console [OPTIONS]
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           bootstrap from raw Poly/ML
-    -s           system build mode for session image
 
   Build a logic session image and run the raw Isabelle ML process
   in interactive mode, with line editor ISABELLE_LINE_EDITOR=""" +
@@ -46,8 +44,7 @@ Usage: isabelle console [OPTIONS]
         "m:" -> (arg => modes = arg :: modes),
         "n" -> (arg => no_build = true),
         "o:" -> (arg => options = options + arg),
-        "r" -> (_ => raw_ml_system = true),
-        "s" -> (_ => system_mode = true))
+        "r" -> (_ => raw_ml_system = true))
 
       val more_args = getopts(args)
       if (!more_args.isEmpty) getopts.usage()
@@ -58,8 +55,7 @@ Usage: isabelle console [OPTIONS]
         val progress = new Console_Progress()
         val rc =
           progress.interrupt_handler {
-            Build.build_logic(options, logic, build_heap = true, progress = progress,
-              dirs = dirs, system_mode = system_mode)
+            Build.build_logic(options, logic, build_heap = true, progress = progress, dirs = dirs)
           }
         if (rc != 0) sys.exit(rc)
       }
@@ -69,7 +65,7 @@ Usage: isabelle console [OPTIONS]
         ML_Process(options, logic = logic, args = List("-i"), dirs = dirs, redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
           raw_ml_system = raw_ml_system,
-          store = Some(Sessions.store(options, system_mode)),
+          store = Some(Sessions.store(options)),
           session_base =
             if (raw_ml_system) None
             else Some(Sessions.base_info(

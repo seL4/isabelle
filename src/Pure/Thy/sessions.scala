@@ -1079,10 +1079,9 @@ object Sessions
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
   }
 
-  def store(options: Options, system_mode: Boolean = false): Store =
-    new Store(options, system_mode)
+  def store(options: Options): Store = new Store(options)
 
-  class Store private[Sessions](val options: Options, val system_mode: Boolean)
+  class Store private[Sessions](val options: Options)
   {
     override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
 
@@ -1092,15 +1091,17 @@ object Sessions
     val system_output_dir: Path = Path.explode("$ISABELLE_HEAPS_SYSTEM/$ML_IDENTIFIER")
     val user_output_dir: Path = Path.explode("$ISABELLE_HEAPS/$ML_IDENTIFIER")
 
+    def system_heaps: Boolean = options.bool("system_heaps")
+
     val output_dir: Path =
-      if (system_mode) system_output_dir else user_output_dir
+      if (system_heaps) system_output_dir else user_output_dir
 
     val input_dirs: List[Path] =
-      if (system_mode) List(system_output_dir)
+      if (system_heaps) List(system_output_dir)
       else List(user_output_dir, system_output_dir)
 
     val browser_info: Path =
-      if (system_mode) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
+      if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
 
@@ -1184,7 +1185,8 @@ object Sessions
 
       val del =
         for {
-          dir <- (if (system_mode) List(user_output_dir, system_output_dir) else List(user_output_dir))
+          dir <-
+            (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
           file <- List(heap(name), database(name), log(name), log_gz(name))
           path = dir + file if path.is_file
         } yield path.file.delete

@@ -20,7 +20,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     val start_time = Time.now()
     val results = progress.interrupt_handler {
       Build.build(
-        options = options,
+        options = options + "system_heaps",
         progress = progress,
         clean_build = clean,
         verbose = true,
@@ -28,7 +28,6 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         max_jobs = jobs,
         dirs = include,
         select_dirs = select,
-        system_mode = true,
         selection = selection)
     }
     val end_time = Time.now()

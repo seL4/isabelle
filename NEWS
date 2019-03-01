@@ -75,6 +75,11 @@ in Isabelle/Scala (e.g. see isabelle.Bibtex.File_Format), configured via
 the shell function "isabelle_file_format" in etc/settings (e.g. of an
 Isabelle component).
 
+* Command-line options "-s" and "-u" of "isabelle jedit" override the
+default for system option "system_heaps" that determines the heap
+storage directory for "isabelle build". Option "-n" is now clearly
+separated from option "-s".
+
 
 *** Isar ***
 
@@ -231,6 +236,11 @@ external compiler is applied.
 
 
 *** System ***
+
+* The system option "system_heaps" determines where to store the session
+image of "isabelle build" (and other tools using that internally).
+Former option "-s" is superseded by option "-o system_heaps".
+INCOMPATIBILITY in command-line syntax.
 
 * The command-line tool "isabelle update" uses Isabelle/PIDE in
 batch-mode to update theory sources based on semantic markup produced in

@@ -14,11 +14,10 @@ object Update
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
     Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, system_mode = system_mode, strict = true)
+      dirs = dirs ::: select_dirs, strict = true)
 
     val dump_options = Dump.make_options(options)
 
@@ -82,7 +81,6 @@ object Update
       var session_groups: List[String] = Nil
       var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
       var options = Options.init()
-      var system_mode = false
       var verbose = false
       var exclude_sessions: List[String] = Nil
 
@@ -99,7 +97,6 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -g NAME      select session group NAME
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode for logic image
     -u OPT       overide update option: shortcut for "-o update_OPT"
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -115,7 +112,6 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
       "l:" -> (arg => logic = arg),
       "o:" -> (arg => options = options + arg),
-      "s" -> (_ => system_mode = true),
       "u:" -> (arg => options = options + ("update_" + arg)),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))

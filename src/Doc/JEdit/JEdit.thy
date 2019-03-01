@@ -243,7 +243,8 @@ text \<open>
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -p CMD       ML process command prefix (process policy)
-    -s           system build mode for session image
+    -s           system build mode for session image (system_heaps=true)
+    -u           user build mode for session image (system_heaps=false)
 
   Start jEdit with Isabelle plugin setup and open FILES
   (default "$USER_HOME/Scratch.thy" or ":" for empty buffer).\<close>}
@@ -252,9 +253,10 @@ text \<open>
   for proof processing. Additional session root directories may be included
   via option \<^verbatim>\<open>-d\<close> to augment the session name space (see also @{cite
   "isabelle-system"}). By default, the specified image is checked and built on
-  demand. The \<^verbatim>\<open>-s\<close> option determines where to store the result session image
-  of @{tool build}. The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for
-  the selected session image.
+  demand, but option \<^verbatim>\<open>-n\<close> bypasses the implicit build process for the
+  selected session image. Options \<^verbatim>\<open>-s\<close> and \<^verbatim>\<open>-u\<close> override the default system
+  option @{system_option system_heaps}: this determines where to store the
+  session image of @{tool build}.
 
   The \<^verbatim>\<open>-R\<close> option builds an auxiliary logic image with all theories from
   other sessions that are not already present in its parent; it also opens the

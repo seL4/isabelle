@@ -40,7 +40,6 @@ object Server
       var logic = default_logic
       var modes: List[String] = Nil
       var options = Options.init()
-      var system_mode = false
       var verbose = false
 
       val getopts = Getopts("""
@@ -56,7 +55,6 @@ Usage: isabelle vscode_server [OPTIONS]
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode for session image
     -v           verbose logging
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
@@ -70,7 +68,6 @@ Usage: isabelle vscode_server [OPTIONS]
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg),
-        "s" -> (_ => system_mode = true),
         "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
@@ -82,7 +79,7 @@ Usage: isabelle vscode_server [OPTIONS]
         new Server(channel, options, session_name = logic, session_dirs = dirs,
           include_sessions = include_sessions, session_ancestor = logic_ancestor,
           session_requirements = logic_requirements, session_focus = logic_focus,
-          all_known = !logic_focus, modes = modes, system_mode = system_mode, log = log)
+          all_known = !logic_focus, modes = modes, log = log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -112,7 +109,6 @@ class Server(
   session_focus: Boolean = false,
   all_known: Boolean = false,
   modes: List[String] = Nil,
-  system_mode: Boolean = false,
   log: Logger = No_Logger)
 {
   server =>
@@ -279,8 +275,8 @@ class Server(
         val session_base = base_info.check_base
 
         def build(no_build: Boolean = false): Build.Results =
-          Build.build(options, build_heap = true, no_build = no_build, system_mode = system_mode,
-            dirs = session_dirs, infos = base_info.infos, sessions = List(base_info.session))
+          Build.build(options, build_heap = true, no_build = no_build, dirs = session_dirs,
+            infos = base_info.infos, sessions = List(base_info.session))
 
         if (!build(no_build = true).ok) {
           val start_msg = "Build started for Isabelle/" + base_info.session + " ..."

@@ -238,6 +238,13 @@ text \<open>
     \<^ML>\<open>profile_time\<close> and \<^verbatim>\<open>allocations\<close> for \<^ML>\<open>profile_allocations\<close>.
     Results appear near the bottom of the session log file.
 
+    \<^item> @{system_option_def "system_heaps"} determines the directories for
+    session heap images: \<^path>\<open>$ISABELLE_HEAPS\<close> is the user directory and
+    \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> the system directory (usually within the
+    Isabelle application). For \<^verbatim>\<open>system_heaps=false\<close>, heaps are stored in the
+    user directory and may be loaded from both directories. For
+    \<^verbatim>\<open>system_heaps=true\<close>, store and load happens only in the system directory.
+
   The @{tool_def options} tool prints Isabelle system options. Its
   command-line usage is:
   @{verbatim [display]
@@ -297,7 +304,6 @@ text \<open>
     -l           list session source files
     -n           no build -- test dependencies only
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode: produce output in ISABELLE_HOME
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
@@ -401,10 +407,6 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-N\<close> enables cyclic shuffling of NUMA CPU nodes. This may help
   performance tuning on Linux servers with separate CPU/memory modules.
-
-  \<^medskip>
-  Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that session images are
-  stored in \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> instead of \<^path>\<open>$ISABELLE_HEAPS\<close>.
 
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists
@@ -572,7 +574,6 @@ text \<open>
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NUM       prune path of exported files by NUM elements
-    -s           system build mode for session image
     -x PATTERN   extract files matching pattern (e.g.\ "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
@@ -584,9 +585,9 @@ text \<open>
 
   \<^medskip>
   The specified session is updated via @{tool build}
-  (\secref{sec:tool-build}), with the same options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-s\<close>. The
-  option \<^verbatim>\<open>-n\<close> suppresses the implicit build process: it means that a
-  potentially outdated session database is used!
+  (\secref{sec:tool-build}), with the same options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>. The option
+  \<^verbatim>\<open>-n\<close> suppresses the implicit build process: it means that a potentially
+  outdated session database is used!
 
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> lists all stored exports, with compound names
@@ -630,7 +631,6 @@ text \<open>
     -g NAME      select session group NAME
     -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode for logic image
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
@@ -645,8 +645,7 @@ text \<open>
 
   \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies a logic image for the underlying prover process:
   its theories are not processed again, and their PIDE session database is
-  excluded from the dump. Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close> when building
-  the logic image (\secref{sec:tool-build}).
+  excluded from the dump.
 
   \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
   (\secref{sec:tool-build}).
@@ -708,7 +707,6 @@ text \<open>
     -g NAME      select session group NAME
     -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s           system build mode for logic image
     -u OPT       overide update option: shortcut for "-o update_OPT"
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -719,8 +717,7 @@ text \<open>
   remaining command-line arguments specify sessions as in @{tool build}
   (\secref{sec:tool-build}) or @{tool dump} (\secref{sec:tool-dump}).
 
-  \<^medskip> Options \<^verbatim>\<open>-l\<close> and \<^verbatim>\<open>-s\<close> specify the underlying logic image is in @{tool
-  dump} (\secref{sec:tool-dump}).
+  \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies the underlying logic image.
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
 

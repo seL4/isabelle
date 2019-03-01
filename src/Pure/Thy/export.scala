@@ -322,7 +322,6 @@ object Export
     var no_build = false
     var options = Options.init()
     var export_prune = 0
-    var system_mode = false
     var export_patterns: List[String] = Nil
 
     val getopts = Getopts("""
@@ -335,7 +334,6 @@ Usage: isabelle export [OPTIONS] SESSION
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NUM       prune path of exported files by NUM elements
-    -s           system build mode for session image
     -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
@@ -351,7 +349,6 @@ Usage: isabelle export [OPTIONS] SESSION
       "n" -> (_ => no_build = true),
       "o:" -> (arg => options = options + arg),
       "p:" -> (arg => export_prune = Value.Int.parse(arg)),
-      "s" -> (_ => system_mode = true),
       "x:" -> (arg => export_patterns ::= arg))
 
     val more_args = getopts(args)
@@ -369,8 +366,7 @@ Usage: isabelle export [OPTIONS] SESSION
     if (!no_build) {
       val rc =
         progress.interrupt_handler {
-          Build.build_logic(options, session_name, progress = progress,
-            dirs = dirs, system_mode = system_mode)
+          Build.build_logic(options, session_name, progress = progress, dirs = dirs)
         }
       if (rc != 0) sys.exit(rc)
     }
@@ -378,7 +374,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
     /* export files */
 
-    val store = Sessions.store(options, system_mode)
+    val store = Sessions.store(options)
     export_files(store, session_name, export_dir, progress = progress, export_prune = export_prune,
       export_list = export_list, export_patterns = export_patterns)
   })

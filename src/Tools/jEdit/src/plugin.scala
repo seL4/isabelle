@@ -65,7 +65,8 @@ class Plugin extends EBPlugin
   /* options */
 
   private var _options: JEdit_Options = null
-  private def init_options(): Unit = _options = new JEdit_Options(Options.init())
+  private def init_options(): Unit =
+    _options = new JEdit_Options(Options.init())
   def options: JEdit_Options = _options
 
 

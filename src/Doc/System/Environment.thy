@@ -181,9 +181,10 @@ text \<open>
   used instead; its default is \<^path>\<open>$ISABELLE_HOME/browser_info\<close>.
 
   \<^descr>[@{setting_def ISABELLE_HEAPS}] is the directory where session heap images,
-  log files, and build databases are stored; its default is \<^path>\<open>$ISABELLE_HOME_USER/heaps\<close>. For ``system build mode'' (see
-  \secref{sec:tool-build}), @{setting_def ISABELLE_HEAPS_SYSTEM} is used
-  instead; its default is \<^path>\<open>$ISABELLE_HOME/heaps\<close>.
+  log files, and build databases are stored; its default is
+  \<^path>\<open>$ISABELLE_HOME_USER/heaps\<close>. If @{system_option system_heaps} is
+  \<^verbatim>\<open>true\<close>, @{setting_def ISABELLE_HEAPS_SYSTEM} is used instead; its default
+  is \<^path>\<open>$ISABELLE_HOME/heaps\<close>. See also \secref{sec:tool-build}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
@@ -410,7 +411,6 @@ text \<open>
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           bootstrap from raw Poly/ML
-    -s           system build mode for session image
 
   Build a logic session image and run the raw Isabelle ML process
   in interactive mode, with line editor ISABELLE_LINE_EDITOR.\<close>}
@@ -428,9 +428,6 @@ text \<open>
   \<^medskip>
   Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
   (\secref{sec:tool-process}).
-
-  Option \<^verbatim>\<open>-s\<close> has the same meaning as for @{tool build}
-  (\secref{sec:tool-build}).
 
   \<^medskip>
   The Isabelle/ML process is run through the line editor that is specified via

@@ -27,7 +27,7 @@ object Session_Build
 
     val options = PIDE.options.value
     try {
-      if (JEdit_Sessions.session_build_mode() == "none" ||
+      if (JEdit_Sessions.session_no_build ||
           JEdit_Sessions.session_build(options, no_build = true) == 0)
             JEdit_Sessions.session_start(options)
       else new Dialog(view)

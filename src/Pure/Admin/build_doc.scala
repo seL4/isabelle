@@ -19,7 +19,6 @@ object Build_Doc
     progress: Progress = No_Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
-    system_mode: Boolean = false,
     docs: List[String] = Nil): Int =
   {
     val sessions_structure = Sessions.load_structure(options)
@@ -44,7 +43,7 @@ object Build_Doc
 
     val res1 =
       Build.build(options, progress, requirements = true, build_heap = true,
-        max_jobs = max_jobs, system_mode = system_mode, sessions = sessions)
+        max_jobs = max_jobs, sessions = sessions)
     if (res1.ok) {
       Isabelle_System.with_tmp_dir("document_output")(output =>
         {
@@ -53,8 +52,7 @@ object Build_Doc
               options.bool.update("browser_info", false).
                 string.update("document", "pdf").
                 string.update("document_output", output.implode),
-              progress, clean_build = true, max_jobs = max_jobs, system_mode = system_mode,
-              sessions = sessions)
+              progress, clean_build = true, max_jobs = max_jobs, sessions = sessions)
           if (res2.ok) {
             val doc_dir = Path.explode("~~/doc")
             for (doc <- selected_docs) {
@@ -76,7 +74,7 @@ object Build_Doc
     {
       var all_docs = false
       var max_jobs = 1
-      var system_mode = false
+      var options = Options.init()
 
       val getopts =
         Getopts("""
@@ -85,24 +83,23 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
   Options are:
     -a           select all documentation sessions
     -j INT       maximum number of parallel jobs (default 1)
-    -s           system build mode
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
           "a" -> (_ => all_docs = true),
           "j:" -> (arg => max_jobs = Value.Int.parse(arg)),
-          "s" -> (_ => system_mode = true))
+          "o:" -> (arg => options = options + arg))
 
       val docs = getopts(args)
 
       if (!all_docs && docs.isEmpty) getopts.usage()
 
-      val options = Options.init()
       val progress = new Console_Progress()
       val rc =
         progress.interrupt_handler {
-          build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
+          build_doc(options, progress, all_docs, max_jobs, docs)
         }
       sys.exit(rc)
     })

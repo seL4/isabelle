@@ -655,7 +655,6 @@ text \<open>
   \quad~~\<open>options?: [string],\<close> \\
   \quad~~\<open>dirs?: [string],\<close> \\
   \quad~~\<open>include_sessions: [string],\<close> \\
-  \quad~~\<open>system_mode?: bool,\<close> \\
   \quad~~\<open>verbose?: bool}\<close> \\[2ex]
   \end{tabular}
 
@@ -722,10 +721,6 @@ text \<open>
   (\secref{sec:session-root}). It enables the \<^verbatim>\<open>use_theories\<close> command
   (\secref{sec:command-use-theories}) to refer to sources from other sessions
   in a robust manner, instead of relying on directory locations.
-
-  \<^medskip>
-  If \<open>system_mode\<close> is \<^verbatim>\<open>true\<close>, session images are stored in \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> instead of \<^path>\<open>$ISABELLE_HEAPS\<close>. See also
-  option \<^verbatim>\<open>-s\<close> in @{tool build} (\secref{sec:tool-build}).
 
   \<^medskip>
   The \<open>verbose\<close> field set to \<^verbatim>\<open>true\<close> yields extra verbosity. The effect is
