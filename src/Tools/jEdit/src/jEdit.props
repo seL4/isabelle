@@ -1,4 +1,5 @@
 #jEdit properties
+autoReloadDialog=false
 buffer.deepIndent=false
 buffer.encoding=UTF-8-Isabelle
 buffer.indentSize=2
