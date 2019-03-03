@@ -67,4 +67,16 @@ object RDF
   def double(x: Double): XML.Body = string(Value.Double(x))
   def seconds(x: Time): XML.Body = double(x.seconds)
   def date_time_stamp(x: Date): XML.Body = string(Date.Format("uuuu-MM-dd'T'HH:mm:ss.SSSxxx")(x))
+
+
+  /* predicates */
+
+  object Property  // binary relation with plain value
+  {
+    val title: String = dc("title")
+    val creator: String = dc("creator")
+    val contributor: String = dc("contributor")
+    val date: String = dc("date")
+    val description: String = dc("description")
+  }
 }
