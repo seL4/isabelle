@@ -12,8 +12,8 @@ subsection \<open>Groups and calculational reasoning\<close>
 
 text \<open>
   Groups over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>, inverse :: \<alpha> \<Rightarrow> \<alpha>)\<close> are
-  defined as an axiomatic type class as follows. Note that the parent class
-  \<open>times\<close> is provided by the basic HOL theory.
+  defined as an axiomatic type class as follows. Note that the parent classes
+  \<^class>\<open>times\<close>, \<^class>\<open>one\<close>, \<^class>\<open>inverse\<close> is provided by the basic HOL theory.
 \<close>
 
 class group = times + one + inverse +
