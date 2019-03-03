@@ -20,9 +20,23 @@ object Document_Structure
   { val length: Int = (0 /: body)(_ + _.length) }
   case class Atom(length: Int) extends Document
 
-  private def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
+  def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
     command.span.is_kind(keywords,
       kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
+
+  def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
+  {
+    command.span.name match {
+      case Thy_Header.CHAPTER => Some(0)
+      case Thy_Header.SECTION => Some(1)
+      case Thy_Header.SUBSECTION => Some(2)
+      case Thy_Header.SUBSUBSECTION => Some(3)
+      case Thy_Header.PARAGRAPH => Some(4)
+      case Thy_Header.SUBPARAGRAPH => Some(5)
+      case _ if is_theory_command(keywords, command) => Some(6)
+      case _ => None
+    }
+  }
 
 
 
@@ -137,19 +151,7 @@ object Document_Structure
   {
     override def name: String = command.span.name
     override def source: String = command.source
-    override def heading_level: Option[Int] =
-    {
-      name match {
-        case Thy_Header.CHAPTER => Some(0)
-        case Thy_Header.SECTION => Some(1)
-        case Thy_Header.SUBSECTION => Some(2)
-        case Thy_Header.SUBSUBSECTION => Some(3)
-        case Thy_Header.PARAGRAPH => Some(4)
-        case Thy_Header.SUBPARAGRAPH => Some(5)
-        case _ if is_theory_command(keywords, command) => Some(6)
-        case _ => None
-      }
-    }
+    override def heading_level: Option[Int] = Document_Structure.heading_level(keywords, command)
   }
 
   def parse_sections(
