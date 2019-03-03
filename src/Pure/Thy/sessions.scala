@@ -200,7 +200,7 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def used_theories_condition(default_options: Options, warning: String => Unit = _ => ())
+    def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
       : List[(Options, Document.Node.Name)] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
@@ -208,7 +208,8 @@ object Sessions
         session_name <- sessions_structure.build_topological_order
         (options, name) <- session_bases(session_name).used_theories
         if {
-          def warn(msg: String): Unit = warning("Skipping theory " + name + "  (" + msg + ")")
+          def warn(msg: String): Unit =
+            progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
           val conditions =
             space_explode(',', options.string("condition")).

@@ -87,12 +87,6 @@ object Dump
         uniform_session = true, loading_sessions = true)
   }
 
-  def used_theories(options: Options, deps: Sessions.Deps, progress: Progress = No_Progress)
-    : List[Document.Node.Name] =
-  {
-    deps.used_theories_condition(options, progress.echo_warning).map(_._2)
-  }
-
 
   /* session */
 
@@ -158,7 +152,7 @@ object Dump
 
     val session = resources.start_session(progress = progress)
     try {
-      val use_theories = used_theories(resources.options, deps).map(_.theory)
+      val use_theories = resources.used_theories(deps).map(_.theory)
       val use_theories_result =
         session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
 
