@@ -23,7 +23,7 @@ object Update
 
     val deps =
       Dump.dependencies(dump_options, progress = progress,
-        dirs = dirs, select_dirs = select_dirs, selection = selection)._1
+        dirs = dirs, select_dirs = select_dirs, selection = selection)
 
     val resources =
       Headless.Resources.make(dump_options, logic, progress = progress, log = log,

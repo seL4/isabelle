@@ -75,28 +75,22 @@ object Dump
 
   /* dependencies */
 
-  def used_theories(options: Options, deps: Sessions.Deps, progress: Progress = No_Progress)
-    : List[Document.Node.Name] =
-  {
-    deps.used_theories_condition(options, progress.echo_warning).map(_._2)
-  }
-
   def dependencies(
     options: Options,
     progress: Progress = No_Progress,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty)
-      : (Sessions.Deps, List[Document.Node.Name]) =
+    selection: Sessions.Selection = Sessions.Selection.empty): Sessions.Deps =
   {
-    val deps =
-      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(options, selection, progress = progress,
-          uniform_session = true, loading_sessions = true)
+    Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
+      selection_deps(options, selection, progress = progress,
+        uniform_session = true, loading_sessions = true)
+  }
 
-    val theories = used_theories(options, deps, progress = progress)
-
-    (deps, theories)
+  def used_theories(options: Options, deps: Sessions.Deps, progress: Progress = No_Progress)
+    : List[Document.Node.Name] =
+  {
+    deps.used_theories_condition(options, progress.echo_warning).map(_._2)
   }
 
 
@@ -218,7 +212,7 @@ object Dump
 
     val deps =
       dependencies(dump_options, progress = progress,
-        dirs = dirs, select_dirs = select_dirs, selection = selection)._1
+        dirs = dirs, select_dirs = select_dirs, selection = selection)
 
     val resources =
       Headless.Resources.make(dump_options, logic, progress = progress, log = log,
