@@ -24,8 +24,7 @@ object Document_Structure
     command.span.is_kind(keywords,
       kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
 
-  def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
-  {
+  def proper_heading_level(command: Command): Option[Int] =
     command.span.name match {
       case Thy_Header.CHAPTER => Some(0)
       case Thy_Header.SECTION => Some(1)
@@ -33,10 +32,12 @@ object Document_Structure
       case Thy_Header.SUBSUBSECTION => Some(3)
       case Thy_Header.PARAGRAPH => Some(4)
       case Thy_Header.SUBPARAGRAPH => Some(5)
-      case _ if is_theory_command(keywords, command) => Some(6)
       case _ => None
     }
-  }
+
+  def heading_level(keywords: Keyword.Keywords, command: Command): Option[Int] =
+    proper_heading_level(command) orElse
+      (if (is_theory_command(keywords, command)) Some(6) else None)
 
 
 
