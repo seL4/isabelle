@@ -189,7 +189,7 @@ object Document_Status
       state: Document.State,
       version: Document.Version,
       commands: Iterable[Command],
-      threshold: Double): Overall_Timing =
+      threshold: Double = 0.0): Overall_Timing =
     {
       var total = 0.0
       var command_timings = Map.empty[Command, Double]
@@ -203,13 +203,19 @@ object Document_Status
             case (timing, _) => timing
           })
         total += command_timing
-        if (command_timing >= threshold) command_timings += (command -> command_timing)
+        if (command_timing > 0.0 && command_timing >= threshold) {
+          command_timings += (command -> command_timing)
+        }
       }
       Overall_Timing(total, command_timings)
     }
   }
 
   sealed case class Overall_Timing(total: Double, command_timings: Map[Command, Double])
+  {
+    def command_timing(command: Command): Double =
+      command_timings.getOrElse(command, 0.0)
+  }
 
 
   /* nodes status */
