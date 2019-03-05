@@ -37,11 +37,10 @@ object RDF
   }
 
   def triples(args: List[Triple]): XML.Body =
-    args.groupBy(_.subject).toList.map(
-      { case (subject, ts) =>
-          val body = XML.newline :: ts.flatMap(t => List(t.property, XML.newline))
-          description(subject, body)
-      })
+    args.zipWithIndex.groupBy({ case (t, _) => t.subject }).iterator.map(_._2).
+      toList.sortBy(ps => ps.head._2).map(ps =>
+        description(ps.head._1.subject,
+          XML.newline :: ps.flatMap({ case (t, _) => List(t.property, XML.newline) })))
 
   def description(subject: String, body: XML.Body, attributes: XML.Attributes = Nil): XML.Elem =
     XML.Elem(Markup(rdf("Description"), (rdf("about"), subject) :: attributes), body)
