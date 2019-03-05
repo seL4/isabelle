@@ -6,7 +6,7 @@
 section \<open>Theory of the natural numbers: Peano's axioms, primitive recursion\<close>
 
 theory Nat
-imports FOL
+  imports FOL
 begin
 
 typedecl nat
@@ -14,17 +14,17 @@ instance nat :: \<open>term\<close> ..
 
 axiomatization
   Zero :: \<open>nat\<close>  (\<open>0\<close>) and
-  Suc :: \<open>nat => nat\<close> and
-  rec :: \<open>[nat, 'a, [nat, 'a] => 'a] => 'a\<close>
+  Suc :: \<open>nat \<Rightarrow> nat\<close> and
+  rec :: \<open>[nat, 'a, [nat, 'a] \<Rightarrow> 'a] \<Rightarrow> 'a\<close>
 where
-  induct: \<open>[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)\<close> and
-  Suc_inject: \<open>Suc(m)=Suc(n) ==> m=n\<close> and
-  Suc_neq_0: \<open>Suc(m)=0 ==> R\<close> and
+  induct: \<open>\<lbrakk>P(0); \<And>x. P(x) \<Longrightarrow> P(Suc(x))\<rbrakk> \<Longrightarrow> P(n)\<close> and
+  Suc_inject: \<open>Suc(m)=Suc(n) \<Longrightarrow> m=n\<close> and
+  Suc_neq_0: \<open>Suc(m)=0 \<Longrightarrow> R\<close> and
   rec_0: \<open>rec(0,a,f) = a\<close> and
   rec_Suc: \<open>rec(Suc(m), a, f) = f(m, rec(m,a,f))\<close>
 
-definition add :: \<open>[nat, nat] => nat\<close>  (infixl \<open>+\<close> 60)
-  where \<open>m + n == rec(m, n, %x y. Suc(y))\<close>
+definition add :: \<open>[nat, nat] \<Rightarrow> nat\<close>  (infixl \<open>+\<close> 60)
+  where \<open>m + n \<equiv> rec(m, n, \<lambda>x y. Suc(y))\<close>
 
 
 subsection \<open>Proofs about the natural numbers\<close>
@@ -76,7 +76,7 @@ apply simp_all
 done
 
 lemma
-  assumes prem: \<open>!!n. f(Suc(n)) = Suc(f(n))\<close>
+  assumes prem: \<open>\<And>n. f(Suc(n)) = Suc(f(n))\<close>
   shows \<open>f(i+j) = i+f(j)\<close>
 apply (rule_tac n = \<open>i\<close> in induct)
 apply simp

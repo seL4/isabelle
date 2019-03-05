@@ -2,17 +2,19 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
+section \<open>Theory of the natural numbers: Peano's axioms, primitive recursion\<close>
+
 theory Nat_Class
-imports FOL
+  imports FOL
 begin
 
 text \<open>
-  This is an abstract version of theory \<open>Nat\<close>. Instead of axiomatizing a
-  single type \<open>nat\<close> we define the class of all these types (up to
+  This is an abstract version of \<^file>\<open>Nat.thy\<close>. Instead of axiomatizing a
+  single type \<open>nat\<close>, it defines the class of all these types (up to
   isomorphism).
 
-  Note: The \<open>rec\<close> operator had to be made \<^emph>\<open>monomorphic\<close>, because class axioms
-  may not contain more than one type variable.
+  Note: The \<open>rec\<close> operator has been made \<^emph>\<open>monomorphic\<close>, because class
+  axioms cannot contain more than one type variable.
 \<close>
 
 class nat =
