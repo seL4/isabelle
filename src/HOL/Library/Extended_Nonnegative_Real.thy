@@ -109,7 +109,7 @@ lemma sup_continuous_SUP[order_continuous_intros]:
   fixes M :: "_ \<Rightarrow> _ \<Rightarrow> 'a::complete_lattice"
   assumes M: "\<And>i. i \<in> I \<Longrightarrow> sup_continuous (M i)"
   shows  "sup_continuous (SUP i\<in>I. M i)"
-  unfolding sup_continuous_def by (auto simp add: sup_continuousD[OF M] intro: SUP_commute)
+  unfolding sup_continuous_def by (auto simp add: sup_continuousD [OF M] image_comp intro: SUP_commute)
 
 lemma sup_continuous_apply_SUP[order_continuous_intros]:
   fixes M :: "_ \<Rightarrow> _ \<Rightarrow> 'a::complete_lattice"
@@ -1410,7 +1410,7 @@ lemma INF_ennreal_add_const:
   shows "(INF i. f i + c) = (INF i. f i) + c"
   using continuous_at_Inf_mono[of "\<lambda>x. x + c" "f`UNIV"]
   using continuous_add[of "at_right (Inf (range f))", of "\<lambda>x. x" "\<lambda>x. c"]
-  by (auto simp: mono_def)
+  by (auto simp: mono_def image_comp)
 
 lemma INF_ennreal_const_add:
   fixes f g :: "nat \<Rightarrow> ennreal"
@@ -1609,9 +1609,9 @@ proof (rule antisym)
   obtain M :: "nat \<Rightarrow> ennreal" where "incseq M" and M: "range M \<subseteq> g ` I" and eq: "(SUP i \<in> I. g i) = (SUP i. M i)"
     by auto
   have "f (SUP i \<in> I. g i) = (SUP i \<in> range M. f i)"
-    unfolding eq sup_continuousD[OF f \<open>mono M\<close>] by simp
+    unfolding eq sup_continuousD[OF f \<open>mono M\<close>] by (simp add: image_comp)
   also have "\<dots> \<le> (SUP i \<in> I. f (g i))"
-    by (insert M, drule SUP_subset_mono) auto
+    by (insert M, drule SUP_subset_mono) (auto simp add: image_comp)
   finally show "f (SUP i \<in> I. g i) \<le> (SUP i \<in> I. f (g i))" .
 qed
 

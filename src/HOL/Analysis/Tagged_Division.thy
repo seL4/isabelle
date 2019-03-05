@@ -170,10 +170,10 @@ lemma interval_upperbound_Times:
 proof-
   from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
   have "(\<Sum>i\<in>Basis. (SUP x\<in>A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x\<in>A. x \<bullet> i) *\<^sub>R i)"
-      by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
+      by (subst (2) fst_image_times') (simp del: fst_image_times add: image_comp inner_Pair_0)
   moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
   have "(\<Sum>i\<in>Basis. (SUP x\<in>A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x\<in>B. x \<bullet> i) *\<^sub>R i)"
-      by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
+      by (subst (2) snd_image_times') (simp del: snd_image_times add: image_comp inner_Pair_0)
   ultimately show ?thesis unfolding interval_upperbound_def
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed
@@ -184,10 +184,10 @@ lemma interval_lowerbound_Times:
 proof-
   from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
   have "(\<Sum>i\<in>Basis. (INF x\<in>A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x\<in>A. x \<bullet> i) *\<^sub>R i)"
-      by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
+      by (subst (2) fst_image_times') (simp del: fst_image_times add: image_comp inner_Pair_0)
   moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
   have "(\<Sum>i\<in>Basis. (INF x\<in>A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x\<in>B. x \<bullet> i) *\<^sub>R i)"
-      by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
+      by (subst (2) snd_image_times') (simp del: snd_image_times add: image_comp inner_Pair_0)
   ultimately show ?thesis unfolding interval_lowerbound_def
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed

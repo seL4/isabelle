@@ -1025,7 +1025,7 @@ proof (rule antisym)
     for f and B
     using that by (auto intro: SUP_upper2 INF_lower2)
   then show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
-    by (auto intro!: SUP_least INF_greatest)
+    by (auto intro!: SUP_least INF_greatest simp add: image_comp)
 next
   show "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
   proof (cases "{} \<in> A")
@@ -1103,10 +1103,10 @@ context complete_distrib_lattice
 begin
 
 lemma sup_INF: "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<squnion> f b)"
-  by (simp add: sup_Inf)
+  by (simp add: sup_Inf image_comp)
 
 lemma inf_SUP: "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
-  by (simp add: inf_Sup)
+  by (simp add: inf_Sup image_comp)
 
 lemma Inf_sup: "\<Sqinter>B \<squnion> a = (\<Sqinter>b\<in>B. b \<squnion> a)"
   by (simp add: sup_Inf sup_commute)
@@ -1175,7 +1175,7 @@ instance set :: (type) complete_boolean_algebra ..
 
 instantiation "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice
 begin
-instance by standard (simp add: le_fun_def INF_SUP_set)
+instance by standard (simp add: le_fun_def INF_SUP_set image_comp)
 end
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..

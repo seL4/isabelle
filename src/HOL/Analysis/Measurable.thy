@@ -432,7 +432,7 @@ proof -
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = lfp F"
-    by (subst sup_continuous_lfp) (auto intro: F)
+    by (subst sup_continuous_lfp) (auto intro: F simp: image_comp)
   finally show ?thesis .
 qed
 
@@ -455,7 +455,7 @@ proof -
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = gfp F"
-    by (subst inf_continuous_gfp) (auto intro: F)
+    by (subst inf_continuous_gfp) (auto intro: F simp: image_comp)
   finally show ?thesis .
 qed
 
@@ -478,7 +478,7 @@ proof -
   then have "(\<lambda>x. SUP i. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot s x) = lfp F s"
-    by (subst sup_continuous_lfp) (auto simp: F)
+    by (subst sup_continuous_lfp) (auto simp: F simp: image_comp)
   finally show ?thesis .
 qed
 
@@ -494,7 +494,7 @@ proof -
   then have "(\<lambda>x. INF i. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top s x) = gfp F s"
-    by (subst inf_continuous_gfp) (auto simp: F)
+    by (subst inf_continuous_gfp) (auto simp: F simp: image_comp)
   finally show ?thesis .
 qed
 

@@ -3571,7 +3571,7 @@ proof -
   moreover have "B ` {a \<in> I. k (B a) = (SUP x\<in>I. k (B x))} =  {a \<in> B ` I. k a = (SUP x\<in>I. k (B x))}"
     by auto
   ultimately show ?thesis
-    using assms by (auto simp: Sup_lexord_def Let_def)
+    using assms by (auto simp: Sup_lexord_def Let_def image_comp)
 qed
 
 lemma sets_SUP_cong:
@@ -3674,7 +3674,7 @@ qed
 
 lemma SUP_sigma_sigma:
   "M \<noteq> {} \<Longrightarrow> (\<And>m. m \<in> M \<Longrightarrow> f m \<subseteq> Pow \<Omega>) \<Longrightarrow> (SUP m\<in>M. sigma \<Omega> (f m)) = sigma \<Omega> (\<Union>m\<in>M. f m)"
-  using Sup_sigma[of "f`M" \<Omega>] by auto
+  using Sup_sigma[of "f`M" \<Omega>] by (auto simp: image_comp)
 
 lemma sets_vimage_Sup_eq:
   assumes *: "M \<noteq> {}" "f \<in> X \<rightarrow> Y" "\<And>m. m \<in> M \<Longrightarrow> space m = Y"

@@ -386,7 +386,7 @@ proof%unimportant -
         by (simp add: real)
     qed }
   ultimately show ?thesis
-    by (intro exI[of _ "\<lambda>i x. ennreal (f i x)"]) auto
+    by (intro exI [of _ "\<lambda>i x. ennreal (f i x)"]) (auto simp add: image_comp)
 qed
 
 lemma borel_measurable_implies_simple_function_sequence':
@@ -394,7 +394,8 @@ lemma borel_measurable_implies_simple_function_sequence':
   assumes u: "u \<in> borel_measurable M"
   obtains f where
     "\<And>i. simple_function M (f i)" "incseq f" "\<And>i x. f i x < top" "\<And>x. (SUP i. f i x) = u x"
-  using borel_measurable_implies_simple_function_sequence[OF u] by (auto simp: fun_eq_iff) blast
+  using borel_measurable_implies_simple_function_sequence [OF u]
+  by (metis SUP_apply)
 
 lemma%important simple_function_induct
     [consumes 1, case_names cong set mult add, induct set: simple_function]:
@@ -481,7 +482,7 @@ lemma%important borel_measurable_induct
 proof%unimportant (induct rule: borel_measurable_implies_simple_function_sequence')
   fix U assume U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i x. U i x < top" and sup: "\<And>x. (SUP i. U i x) = u x"
   have u_eq: "u = (SUP i. U i)"
-    using u sup by auto
+    using u by (auto simp add: image_comp sup)
 
   have not_inf: "\<And>x i. x \<in> space M \<Longrightarrow> U i x < top"
     using U by (auto simp: image_iff eq_commute)
@@ -1538,7 +1539,7 @@ proof -
     using N by auto
   from f show ?thesis
     apply induct
-    apply (simp_all add: nn_integral_add nn_integral_cmult nn_integral_monotone_convergence_SUP N)
+    apply (simp_all add: nn_integral_add nn_integral_cmult nn_integral_monotone_convergence_SUP N image_comp)
     apply (auto intro!: nn_integral_cong cong: nn_integral_cong simp: N(2)[symmetric])
     done
 qed
@@ -1667,7 +1668,7 @@ next
     by (subst nn_integral_cong[OF eq])
        (auto simp add: emeasure_distr intro!: nn_integral_indicator[symmetric] measurable_sets)
 qed (simp_all add: measurable_compose[OF T] T nn_integral_cmult nn_integral_add
-                   nn_integral_monotone_convergence_SUP le_fun_def incseq_def)
+                   nn_integral_monotone_convergence_SUP le_fun_def incseq_def image_comp)
 
 subsubsection%unimportant \<open>Counting space\<close>
 
@@ -2198,7 +2199,7 @@ next
   have eq: "AE x in M. f x * (SUP i. U i x) = (SUP i. f x * U i x)"
     by eventually_elim (simp add: SUP_mult_left_ennreal seq)
   from seq f show ?case
-    apply (simp add: nn_integral_monotone_convergence_SUP)
+    apply (simp add: nn_integral_monotone_convergence_SUP image_comp)
     apply (subst nn_integral_cong_AE[OF eq])
     apply (subst nn_integral_monotone_convergence_SUP_AE)
     apply (auto simp: incseq_def le_fun_def intro!: mult_left_mono)
@@ -2500,7 +2501,7 @@ next
 next
   case (seq U)
   thus ?case
-    by(simp add: nn_integral_monotone_convergence_SUP SUP_mult_left_ennreal)
+    by(simp add: nn_integral_monotone_convergence_SUP SUP_mult_left_ennreal image_comp)
 qed simp
 
 end

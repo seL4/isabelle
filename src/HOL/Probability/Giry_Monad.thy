@@ -880,7 +880,7 @@ next
   also have "\<dots> = (\<integral>\<^sup>+ x. (SUP i. F i x) \<partial>join M)"
     using seq by (intro nn_integral_monotone_convergence_SUP[symmetric] seq)
                  (simp_all add: M cong: measurable_cong_sets)
-  finally show ?case by (simp add: ac_simps)
+  finally show ?case by (simp add: ac_simps image_comp)
 qed
 
 lemma measurable_join1:

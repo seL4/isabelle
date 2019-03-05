@@ -45,7 +45,7 @@ qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_en
 
 lemma ennreal_SUP:
   "\<lbrakk> (SUP a\<in>A. ennreal (f a)) \<noteq> \<top>; A \<noteq> {} \<rbrakk> \<Longrightarrow> ennreal (SUP a\<in>A. f a) = (SUP a\<in>A. ennreal (f a))"
-using ennreal_Sup[of "f ` A"] by auto
+using ennreal_Sup[of "f ` A"] by (auto simp add: image_comp)
 
 lemma ennreal_lt_0: "x < 0 \<Longrightarrow> ennreal x = 0"
 by(simp add: ennreal_eq_0_iff)
@@ -1589,7 +1589,7 @@ proof(cases "Y = {}")
       using Y chain' by(rule nn_integral_monotone_convergence_SUP_countable) simp
     also have "\<dots> = (SUP p\<in>Y. ennreal (spmf (bind_spmf p f) i))"
       by(auto simp add: ennreal_spmf_bind nn_integral_measure_spmf nn_integral_count_space_indicator set_lub_spmf[OF chain] in_set_spmf_iff_spmf ennreal_mult intro!: arg_cong [of _ _ Sup] image_cong nn_integral_cong split: split_indicator)
-    also have "\<dots> = ennreal (spmf ?rhs i)" using chain'' by(simp add: ennreal_spmf_lub_spmf Y)
+    also have "\<dots> = ennreal (spmf ?rhs i)" using chain'' by(simp add: ennreal_spmf_lub_spmf Y image_comp)
     finally show "spmf ?lhs i = spmf ?rhs i" by simp
   qed
 qed simp
@@ -1620,14 +1620,14 @@ proof(cases "Y = {}")
       using chain by(rule chain_imageI)(rule monotone_bind_spmf2[OF g, THEN monotoneD])
 
     have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ y. (SUP p\<in>Y. ennreal (spmf x y * spmf (g y p) i)) \<partial>count_space (set_spmf x)"
-      by(simp add: ennreal_spmf_bind ennreal_spmf_lub_spmf[OF chain'] Y nn_integral_measure_spmf' SUP_mult_left_ennreal ennreal_mult)
+      by(simp add: ennreal_spmf_bind ennreal_spmf_lub_spmf[OF chain'] Y nn_integral_measure_spmf' SUP_mult_left_ennreal ennreal_mult image_comp)
     also have "\<dots> = (SUP p\<in>Y. \<integral>\<^sup>+ y. ennreal (spmf x y * spmf (g y p) i) \<partial>count_space (set_spmf x))"
       unfolding nn_integral_measure_spmf' using Y chain''
       by(rule nn_integral_monotone_convergence_SUP_countable) simp
     also have "\<dots> = (SUP p\<in>Y. ennreal (spmf (bind_spmf x (\<lambda>y. g y p)) i))"
       by(simp add: ennreal_spmf_bind nn_integral_measure_spmf' ennreal_mult)
     also have "\<dots> = ennreal (spmf ?rhs i)" using chain'''
-      by(auto simp add: ennreal_spmf_lub_spmf Y)
+      by(auto simp add: ennreal_spmf_lub_spmf Y image_comp)
     finally show "spmf ?lhs i = spmf ?rhs i" by simp
   qed
 qed simp

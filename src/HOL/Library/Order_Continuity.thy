@@ -68,7 +68,7 @@ lemma [order_continuous_intros]:
     and sup_continuous_apply: "sup_continuous (\<lambda>f. f x)"
     and sup_continuous_fun: "(\<And>s. sup_continuous (\<lambda>x. P x s)) \<Longrightarrow> sup_continuous P"
     and sup_continuous_If: "sup_continuous F \<Longrightarrow> sup_continuous G \<Longrightarrow> sup_continuous (\<lambda>f. if C then F f else G f)"
-  by (auto simp: sup_continuous_def)
+  by (auto simp: sup_continuous_def image_comp)
 
 lemma sup_continuous_compose:
   assumes f: "sup_continuous f" and g: "sup_continuous g"
@@ -242,7 +242,7 @@ lemma [order_continuous_intros]:
     and inf_continuous_apply: "inf_continuous (\<lambda>f. f x)"
     and inf_continuous_fun: "(\<And>s. inf_continuous (\<lambda>x. P x s)) \<Longrightarrow> inf_continuous P"
     and inf_continuous_If: "inf_continuous F \<Longrightarrow> inf_continuous G \<Longrightarrow> inf_continuous (\<lambda>f. if C then F f else G f)"
-  by (auto simp: inf_continuous_def)
+  by (auto simp: inf_continuous_def image_comp)
 
 lemma inf_continuous_inf[order_continuous_intros]:
   "inf_continuous f \<Longrightarrow> inf_continuous g \<Longrightarrow> inf_continuous (\<lambda>x. inf (f x) (g x))"
@@ -412,7 +412,8 @@ lemma cclfp_unfold:
   assumes "sup_continuous F" shows "cclfp F = F (cclfp F)"
 proof -
   have "cclfp F = (SUP i. F ((F ^^ i) bot))"
-    unfolding cclfp_def by (subst UNIV_nat_eq) auto
+    unfolding cclfp_def
+    by (subst UNIV_nat_eq) (simp add: image_comp)
   also have "\<dots> = F (cclfp F)"
     unfolding cclfp_def
     by (intro sup_continuousD[symmetric] assms mono_funpow sup_continuous_mono)

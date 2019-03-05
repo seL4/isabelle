@@ -678,7 +678,8 @@ lemma eSuc_Sup: "A \<noteq> {} \<Longrightarrow> eSuc (Sup A) = Sup (eSuc ` A)"
   by(auto simp add: Sup_enat_def eSuc_Max inj_on_def dest: finite_imageD)
 
 lemma sup_continuous_eSuc: "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. eSuc (f x))"
-  using  eSuc_Sup[of "_ ` UNIV"] by (auto simp: sup_continuous_def)
+  using eSuc_Sup [of "_ ` UNIV"] by (auto simp: sup_continuous_def image_comp)
+
 
 subsection \<open>Traditional theorem names\<close>
 

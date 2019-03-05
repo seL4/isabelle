@@ -53,7 +53,7 @@ lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i
 
 lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x\<in>X. f x) \<bullet> i = (INF x\<in>X. f x \<bullet> i)"
   and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x\<in>X. f x) \<bullet> i = (SUP x\<in>X. f x \<bullet> i)"
-  using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: comp_def)
+  using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: image_comp)
 
 lemma abs_inner: "i \<in> Basis \<Longrightarrow> \<bar>x\<bar> \<bullet> i = \<bar>x \<bullet> i\<bar>"
   by (auto simp: eucl_abs)

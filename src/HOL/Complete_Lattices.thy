@@ -49,7 +49,7 @@ translations
 context Inf
 begin
 
-lemma INF_image [simp]: " \<Sqinter>(g ` f ` A) = \<Sqinter>((g \<circ> f) ` A)"
+lemma INF_image: "\<Sqinter> (g ` f ` A) = \<Sqinter> ((g \<circ> f) ` A)"
   by (simp add: image_comp)
 
 lemma INF_identity_eq [simp]: "(\<Sqinter>x\<in>A. x) = \<Sqinter>A"
@@ -70,7 +70,7 @@ end
 context Sup
 begin
 
-lemma SUP_image [simp]: "\<Squnion>(g ` f ` A) = \<Squnion>((g \<circ> f) ` A)"
+lemma SUP_image: "\<Squnion> (g ` f ` A) = \<Squnion> ((g \<circ> f) ` A)"
 by(fact Inf.INF_image)
 
 lemma SUP_identity_eq [simp]: "(\<Squnion>x\<in>A. x) = \<Squnion>A"
@@ -677,10 +677,10 @@ instance
 end
 
 lemma INF_apply [simp]: "(\<Sqinter>y\<in>A. f y) x = (\<Sqinter>y\<in>A. f y x)"
-  using Inf_apply [of "f ` A"] by (simp add: comp_def)
+  by (simp add: image_comp)
 
 lemma SUP_apply [simp]: "(\<Squnion>y\<in>A. f y) x = (\<Squnion>y\<in>A. f y x)"
-  using Sup_apply [of "f ` A"] by (simp add: comp_def)
+  by (simp add: image_comp)
 
 subsection \<open>Complete lattice on unary and binary predicates\<close>
 

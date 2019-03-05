@@ -274,7 +274,7 @@ next
     also from sup have "... = \<integral>\<^sup>+x. (SUP i. F i (g x)) * ennreal (g' x) * indicator {a..b} x \<partial>lborel"
       by (subst mult.assoc, subst mult.commute, subst SUP_mult_left_ennreal)
          (auto split: split_indicator simp: derivg_nonneg mult_ac)
-    finally show ?case by simp
+    finally show ?case by (simp add: image_comp)
   qed
 qed
 

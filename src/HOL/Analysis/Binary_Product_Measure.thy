@@ -558,7 +558,7 @@ next
   from this measurable_emeasure_Pair[OF set] show ?case
     by (rule measurable_cong[THEN iffD1])
 qed (simp_all add: nn_integral_add nn_integral_cmult measurable_compose_Pair1
-                   nn_integral_monotone_convergence_SUP incseq_def le_fun_def
+                   nn_integral_monotone_convergence_SUP incseq_def le_fun_def image_comp
               cong: measurable_cong)
 
 lemma (in sigma_finite_measure) nn_integral_fst:
@@ -572,7 +572,7 @@ lemma (in sigma_finite_measure) nn_integral_fst:
     by (simp cong: nn_integral_cong)
 qed (simp_all add: emeasure_pair_measure nn_integral_cmult nn_integral_add
                    nn_integral_monotone_convergence_SUP measurable_compose_Pair1
-                   borel_measurable_nn_integral_fst nn_integral_mono incseq_def le_fun_def
+                   borel_measurable_nn_integral_fst nn_integral_mono incseq_def le_fun_def image_comp
               cong: nn_integral_cong)
 
 lemma (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:

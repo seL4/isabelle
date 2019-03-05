@@ -435,14 +435,16 @@ proof -
     qed }
   note * = this
 
-  have "f (Liminf F g) = (SUP P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
-    unfolding Liminf_def
-    by (subst continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto intro: eventually_True)
+  have "f (SUP P\<in>{P. eventually P F}. Inf (g ` Collect P)) =
+    Sup (f ` (\<lambda>P. Inf (g ` Collect P)) ` {P. eventually P F})"
+    using am continuous_on_imp_continuous_within [OF c]
+    by (rule continuous_at_Sup_mono) (auto intro: eventually_True)
+  then have "f (Liminf F g) = (SUP P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
+    by (simp add: Liminf_def image_comp)
   also have "\<dots> = (SUP P \<in> {P. eventually P F}. Inf (f ` (g ` Collect P)))"
     using * continuous_at_Inf_mono [OF am continuous_on_imp_continuous_within [OF c]]
     by auto 
-  finally show ?thesis by (auto simp: Liminf_def)
+  finally show ?thesis by (auto simp: Liminf_def image_comp)
 qed
 
 lemma Limsup_compose_continuous_mono:
@@ -460,14 +462,16 @@ proof -
     qed }
   note * = this
 
-  have "f (Limsup F g) = (INF P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
-    unfolding Limsup_def
-    by (subst continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto intro: eventually_True)
+  have "f (INF P\<in>{P. eventually P F}. Sup (g ` Collect P)) =
+    Inf (f ` (\<lambda>P. Sup (g ` Collect P)) ` {P. eventually P F})"
+    using am continuous_on_imp_continuous_within [OF c]
+    by (rule continuous_at_Inf_mono) (auto intro: eventually_True)
+  then have "f (Limsup F g) = (INF P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
+    by (simp add: Limsup_def image_comp)
   also have "\<dots> = (INF P \<in> {P. eventually P F}. Sup (f ` (g ` Collect P)))"
     using * continuous_at_Sup_mono [OF am continuous_on_imp_continuous_within [OF c]]
     by auto
-  finally show ?thesis by (auto simp: Limsup_def)
+  finally show ?thesis by (auto simp: Limsup_def image_comp)
 qed
 
 lemma Liminf_compose_continuous_antimono:
@@ -484,15 +488,18 @@ proof -
     with \<open>eventually P F\<close> F show False
       by auto
   qed
-  have "f (Limsup F g) = (SUP P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
-    unfolding Limsup_def
-    by (subst continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto intro: eventually_True)
+
+  have "f (INF P\<in>{P. eventually P F}. Sup (g ` Collect P)) =
+    Sup (f ` (\<lambda>P. Sup (g ` Collect P)) ` {P. eventually P F})"
+    using am continuous_on_imp_continuous_within [OF c]
+    by (rule continuous_at_Inf_antimono) (auto intro: eventually_True)
+  then have "f (Limsup F g) = (SUP P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
+    by (simp add: Limsup_def image_comp)
   also have "\<dots> = (SUP P \<in> {P. eventually P F}. Inf (f ` (g ` Collect P)))"
     using * continuous_at_Sup_antimono [OF am continuous_on_imp_continuous_within [OF c]]
     by auto
   finally show ?thesis
-    by (auto simp: Liminf_def)
+    by (auto simp: Liminf_def image_comp)
 qed
 
 lemma Limsup_compose_continuous_antimono:
@@ -510,15 +517,17 @@ proof -
     qed }
   note * = this
 
-  have "f (Liminf F g) = (INF P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
-    unfolding Liminf_def
-    by (subst continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
-       (auto intro: eventually_True)
+  have "f (SUP P\<in>{P. eventually P F}. Inf (g ` Collect P)) =
+    Inf (f ` (\<lambda>P. Inf (g ` Collect P)) ` {P. eventually P F})"
+    using am continuous_on_imp_continuous_within [OF c]
+    by (rule continuous_at_Sup_antimono) (auto intro: eventually_True)
+  then have "f (Liminf F g) = (INF P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
+    by (simp add: Liminf_def image_comp)
   also have "\<dots> = (INF P \<in> {P. eventually P F}. Sup (f ` (g ` Collect P)))"
     using * continuous_at_Inf_antimono [OF am continuous_on_imp_continuous_within [OF c]]
     by auto
   finally show ?thesis
-    by (auto simp: Limsup_def)
+    by (auto simp: Limsup_def image_comp)
 qed
 
 lemma Liminf_filtermap_le: "Liminf (filtermap f F) g \<le> Liminf F (\<lambda>x. g (f x))"

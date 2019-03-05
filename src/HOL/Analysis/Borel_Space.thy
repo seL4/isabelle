@@ -228,7 +228,7 @@ lemma closure_contains_Sup:
 proof -
   have "Inf (uminus ` S) \<in> closure (uminus ` S)"
       using assms by (intro closure_contains_Inf) auto
-  also have "Inf (uminus ` S) = -Sup S" by (simp add: Inf_real_def)
+  also have "Inf (uminus ` S) = -Sup S" by (simp add: Inf_real_def image_comp)
   also have "closure (uminus ` S) = uminus ` closure S"
       by (rule sym, intro closure_injective_linear_image) (auto intro: linearI)
   finally show ?thesis by auto
@@ -876,7 +876,7 @@ proof -
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> borel_measurable M"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = (SUP i. (F ^^ i) bot)"
-    by auto
+    by (auto simp add: image_comp)
   also have "(SUP i. (F ^^ i) bot) = lfp F"
     by (rule sup_continuous_lfp[symmetric]) fact
   finally show ?thesis .
@@ -893,7 +893,7 @@ proof -
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> borel_measurable M"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = (INF i. (F ^^ i) top)"
-    by auto
+    by (auto simp add: image_comp)
   also have "\<dots> = gfp F"
     by (rule inf_continuous_gfp[symmetric]) fact
   finally show ?thesis .

@@ -135,6 +135,9 @@ and not really well-formed congruence rules INF_cong*, SUP_cong*,
 are not used by default any longer.  INCOMPATIBILITY; consider using
 declare image_cong_simp [cong del] in extreme situations.
 
+* INF_image and SUP_image are no default simp rules any longer.
+INCOMPATIBILITY, prefer image_comp as simp rule if needed.
+
 * Simplified syntax setup for big operators under image. In rare
 situations, type conversions are not inserted implicitly any longer
 and need to be given explicitly. Auxiliary abbreviations INFIMUM,

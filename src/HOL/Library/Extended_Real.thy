@@ -41,7 +41,7 @@ lemma continuous_at_left_imp_sup_continuous:
   unfolding sup_continuous_def
 proof safe
   fix M :: "nat \<Rightarrow> 'a" assume "incseq M" then show "f (SUP i. M i) = (SUP i. f (M i))"
-    using continuous_at_Sup_mono[OF assms, of "range M"] by simp
+    using continuous_at_Sup_mono [OF assms, of "range M"] by (simp add: image_comp)
 qed
 
 lemma sup_continuous_at_left:
@@ -80,7 +80,7 @@ lemma continuous_at_right_imp_inf_continuous:
   unfolding inf_continuous_def
 proof safe
   fix M :: "nat \<Rightarrow> 'a" assume "decseq M" then show "f (INF i. M i) = (INF i. f (M i))"
-    using continuous_at_Inf_mono[OF assms, of "range M"] by simp
+    using continuous_at_Inf_mono [OF assms, of "range M"] by (simp add: image_comp)
 qed
 
 lemma inf_continuous_at_right:
@@ -2158,7 +2158,7 @@ proof (rule continuous_at_Sup_mono)
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
 lemma ereal_SUP: "\<bar>SUP a\<in>A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a\<in>A. f a) = (SUP a\<in>A. ereal (f a))"
-  using ereal_Sup[of "f`A"] by auto
+  by (simp add: ereal_Sup image_comp)
 
 lemma ereal_Inf:
   assumes *: "\<bar>INF a\<in>A. ereal a\<bar> \<noteq> \<infinity>"
@@ -2183,7 +2183,7 @@ proof (rule ereal_Inf)
 qed
 
 lemma ereal_INF: "\<bar>INF a\<in>A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a\<in>A. f a) = (INF a\<in>A. ereal (f a))"
-  using ereal_Inf[of "f`A"] by auto
+  by (simp add: ereal_Inf image_comp)
 
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
   by (auto intro!: SUP_eqI
@@ -2193,7 +2193,7 @@ lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
 lemma ereal_SUP_uminus_eq:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(SUP x\<in>S. uminus (f x)) = - (INF x\<in>S. f x)"
-  using ereal_Sup_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
+  using ereal_Sup_uminus_image_eq [of "f ` S"] by (simp add: image_comp)
 
 lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
   by (auto intro!: inj_onI)
@@ -2204,7 +2204,7 @@ lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S::ereal set) = - Sup S"
 lemma ereal_INF_uminus_eq:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(INF x\<in>S. - f x) = - (SUP x\<in>S. f x)"
-  using ereal_Inf_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
+  using ereal_Inf_uminus_image_eq [of "f ` S"] by (simp add: image_comp)
 
 lemma ereal_SUP_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -2297,7 +2297,8 @@ next
   case False
   then show ?thesis
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
-       (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
+      (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def add_mono \<open>I \<noteq> {}\<close>
+      \<open>c \<noteq> -\<infinity>\<close> image_comp)
 qed
 
 lemma SUP_ereal_add_right:
@@ -2370,7 +2371,8 @@ proof -
     unfolding INF_eq_minf using assms by (intro exI[of _ 0]) auto
   then show ?thesis
     by (subst continuous_at_Inf_mono[where f="\<lambda>x. x + c"])
-       (auto simp: mono_def add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close> continuous_at_imp_continuous_at_within continuous_at)
+       (auto simp: mono_def add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close> continuous_at_imp_continuous_at_within
+        continuous_at image_comp)
 qed
 
 lemma INF_ereal_add_right:
@@ -2464,7 +2466,7 @@ next
   case False
   then show ?thesis
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. c * x"])
-       (auto simp: mono_def continuous_at continuous_at_imp_continuous_at_within \<open>I \<noteq> {}\<close>
+       (auto simp: mono_def continuous_at continuous_at_imp_continuous_at_within \<open>I \<noteq> {}\<close> image_comp
              intro!: ereal_mult_left_mono c)
 qed
 
@@ -2626,7 +2628,8 @@ qed (simp add: mono_def)
 
 lemma ereal_of_enat_SUP:
   "A \<noteq> {} \<Longrightarrow> ereal_of_enat (SUP a\<in>A. f a) = (SUP a \<in> A. ereal_of_enat (f a))"
-  using ereal_of_enat_Sup[of "f`A"] by auto
+  by (simp add: ereal_of_enat_Sup image_comp)
+
 
 subsection "Limits on \<^typ>\<open>ereal\<close>"
 

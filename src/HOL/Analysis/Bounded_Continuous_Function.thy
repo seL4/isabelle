@@ -272,7 +272,7 @@ proof
     apply transfer
     by (rule trans[OF _ continuous_at_Sup_mono[symmetric]])
       (auto intro!: monoI mult_left_mono continuous_intros bounded_imp_bdd_above
-        simp: bounded_norm_comp bcontfun_def)
+        simp: bounded_norm_comp bcontfun_def image_comp)
 qed (auto simp: norm_bcontfun_def sgn_bcontfun_def)
 
 end

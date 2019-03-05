@@ -88,7 +88,7 @@ proof -
 
   define F where "F x = Inf {lim (?f n) |n. x < r n}" for x
   have F_eq: "ereal (F x) = (INF n\<in>{n. x < r n}. ereal (lim (?f n)))" for x
-    unfolding F_def by (subst ereal_Inf'[OF bdd_below nonempty]) (simp add: setcompr_eq_image)
+    unfolding F_def by (subst ereal_Inf'[OF bdd_below nonempty]) (simp add: setcompr_eq_image image_comp)
   have mono_F: "mono F"
     using nonempty by (auto intro!: cInf_superset_mono simp: F_def bdd_below mono_def)
   moreover have "\<And>x. continuous (at_right x) F"

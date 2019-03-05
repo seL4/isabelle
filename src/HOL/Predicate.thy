@@ -78,11 +78,11 @@ end
 
 lemma eval_INF [simp]:
   "eval (\<Sqinter>(f ` A)) = \<Sqinter>((eval \<circ> f) ` A)"
-  by simp
+  by (simp add: image_comp)
 
 lemma eval_SUP [simp]:
   "eval (\<Squnion>(f ` A)) = \<Squnion>((eval \<circ> f) ` A)"
-  by simp
+  by (simp add: image_comp)
 
 instantiation pred :: (type) complete_boolean_algebra
 begin
@@ -400,7 +400,7 @@ definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b 
 
 lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
-  by (auto simp add: map_def comp_def)
+  by (simp add: map_def comp_def image_comp)
 
 functor map: map
   by (rule ext, rule pred_eqI, auto)+

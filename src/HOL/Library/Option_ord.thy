@@ -277,11 +277,11 @@ lemma Some_Sup:
 
 lemma Some_INF:
   "Some (\<Sqinter>x\<in>A. f x) = (\<Sqinter>x\<in>A. Some (f x))"
-  using Some_Inf [of "f ` A"] by (simp add: comp_def)
+  by (simp add: Some_Inf image_comp)
 
 lemma Some_SUP:
   "A \<noteq> {} \<Longrightarrow> Some (\<Squnion>x\<in>A. f x) = (\<Squnion>x\<in>A. Some (f x))"
-  using Some_Sup [of "f ` A"] by (simp add: comp_def)
+  by (simp add: Some_Sup image_comp)
 
 lemma option_Inf_Sup: "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
   for A :: "('a::complete_distrib_lattice option) set set"
