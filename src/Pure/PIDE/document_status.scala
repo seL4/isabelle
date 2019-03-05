@@ -179,22 +179,22 @@ object Document_Status
   }
 
 
-  /* node timing */
+  /* overall timing */
 
-  object Node_Timing
+  object Overall_Timing
   {
-    val empty: Node_Timing = Node_Timing(0.0, Map.empty)
+    val empty: Overall_Timing = Overall_Timing(0.0, Map.empty)
 
     def make(
       state: Document.State,
       version: Document.Version,
-      node: Document.Node,
-      threshold: Double): Node_Timing =
+      commands: Iterable[Command],
+      threshold: Double = 0.0): Overall_Timing =
     {
       var total = 0.0
-      var commands = Map.empty[Command, Double]
+      var command_timings = Map.empty[Command, Double]
       for {
-        command <- node.commands.iterator
+        command <- commands.iterator
         st <- state.command_states(version, command)
       } {
         val command_timing =
@@ -203,13 +203,19 @@ object Document_Status
             case (timing, _) => timing
           })
         total += command_timing
-        if (command_timing >= threshold) commands += (command -> command_timing)
+        if (command_timing > 0.0 && command_timing >= threshold) {
+          command_timings += (command -> command_timing)
+        }
       }
-      Node_Timing(total, commands)
+      Overall_Timing(total, command_timings)
     }
   }
 
-  sealed case class Node_Timing(total: Double, commands: Map[Command, Double])
+  sealed case class Overall_Timing(total: Double, command_timings: Map[Command, Double])
+  {
+    def command_timing(command: Command): Double =
+      command_timings.getOrElse(command, 0.0)
+  }
 
 
   /* nodes status */

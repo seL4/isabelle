@@ -150,7 +150,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* component state -- owned by GUI thread */
 
-  private var nodes_timing = Map.empty[Document.Node.Name, Document_Status.Node_Timing]
+  private var nodes_timing = Map.empty[Document.Node.Name, Document_Status.Overall_Timing]
 
   private def make_entries(): List[Entry] =
   {
@@ -161,13 +161,13 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         case None => Document.Node.Name.empty
         case Some(doc_view) => doc_view.model.node_name
       }
-    val timing = nodes_timing.getOrElse(name, Document_Status.Node_Timing.empty)
+    val timing = nodes_timing.getOrElse(name, Document_Status.Overall_Timing.empty)
 
     val theories =
-      (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.commands.nonEmpty)
+      (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.command_timings.nonEmpty)
         yield Theory_Entry(node_name, node_timing.total, false)).sorted(Entry.Ordering)
     val commands =
-      (for ((command, command_timing) <- timing.commands.toList)
+      (for ((command, command_timing) <- timing.command_timings.toList)
         yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
@@ -191,8 +191,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
           if (PIDE.resources.session_base.loaded_theory(name)) timing1
           else {
             val node_timing =
-              Document_Status.Node_Timing.make(
-                snapshot.state, snapshot.version, node, timing_threshold)
+              Document_Status.Overall_Timing.make(
+                snapshot.state, snapshot.version, node.commands, threshold = timing_threshold)
             timing1 + (name -> node_timing)
           }
       })
