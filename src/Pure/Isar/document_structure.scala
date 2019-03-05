@@ -24,6 +24,9 @@ object Document_Structure
     command.span.is_kind(keywords,
       kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
 
+  def is_heading_command(command: Command): Boolean =
+    proper_heading_level(command).isDefined
+
   def proper_heading_level(command: Command): Option[Int] =
     command.span.name match {
       case Thy_Header.CHAPTER => Some(0)
