@@ -25,7 +25,7 @@ object Pretty
   def brk(width: Int, indent: Int = 0): XML.Tree =
     XML.Elem(Markup.Break(width, indent), spaces(width))
 
-  val fbrk: XML.Tree = XML.Text("\n")
+  val fbrk: XML.Tree = XML.newline
   def fbreaks(ts: List[XML.Tree]): XML.Body = Library.separate(fbrk, ts)
 
   val Separator: XML.Body = List(XML.elem(Markup.SEPARATOR, space), fbrk)

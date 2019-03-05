@@ -23,7 +23,7 @@ object Prover
     override def toString: String =
       XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
         args.map(s =>
-          List(XML.Text("\n"), XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
+          List(XML.newline, XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
   }
 
   class Output(val message: XML.Elem) extends Message

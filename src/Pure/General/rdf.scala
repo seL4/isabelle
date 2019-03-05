@@ -39,8 +39,7 @@ object RDF
   def triples(args: List[Triple]): XML.Body =
     args.groupBy(_.subject).toList.map(
       { case (subject, ts) =>
-          val nl = XML.Text("\n")
-          val body = nl :: ts.flatMap(t => List(t.property, nl))
+          val body = XML.newline :: ts.flatMap(t => List(t.property, XML.newline))
           description(subject, body)
       })
 
