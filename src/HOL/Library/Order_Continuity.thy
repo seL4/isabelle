@@ -51,7 +51,6 @@ proof
     by (auto intro: monoI)
   with \<open>sup_continuous F\<close> have *: "F (SUP i. ?f i) = (SUP i. F (?f i))"
     by (auto dest: sup_continuousD)
-  thm this [simplified, simplified SUP_nat_binary]
   from \<open>A \<le> B\<close> have "B = sup A B"
     by (simp add: le_iff_sup)
   then have "F B = F (sup A B)"
