@@ -329,7 +329,7 @@ directory individually.
 
       try {
         other_isabelle.bash(
-          "./bin/isabelle build_doc -a -s -j " + parallel_jobs, echo = true).check
+          "./bin/isabelle build_doc -a -o system_heaps -j " + parallel_jobs, echo = true).check
       }
       catch { case ERROR(_) => error("Failed to build documentation") }
 
@@ -689,7 +689,7 @@ rm -rf "${DIST_NAME}-old"
 
             other_isabelle.bash("bin/isabelle build -j " + parallel_jobs +
               " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-              " -s -c -a -d '~~/src/Benchmarks'", echo = true).check
+              " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
             other_isabelle.isabelle_home_user.file.delete
 
             execute(tmp_dir, "chmod -R a+r " + Bash.string(release.dist_name))
