@@ -44,32 +44,32 @@ qed auto
 
 subsection\<open>Limits in a topological space\<close>
 
-definition limit :: "'a topology \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" where
-  "limit X f l F \<equiv> l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> eventually (\<lambda>x. f x \<in> U) F)"
+definition limitin :: "'a topology \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" where
+  "limitin X f l F \<equiv> l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> eventually (\<lambda>x. f x \<in> U) F)"
 
-lemma limit_euclideanreal_iff [simp]: "limit euclideanreal f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
-  by (auto simp: limit_def tendsto_def)
+lemma limitin_euclideanreal_iff [simp]: "limitin euclideanreal f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
+  by (auto simp: limitin_def tendsto_def)
 
-lemma limit_in_topspace: "limit X f l F \<Longrightarrow> l \<in> topspace X"
-  by (simp add: limit_def)
+lemma limitin_topspace: "limitin X f l F \<Longrightarrow> l \<in> topspace X"
+  by (simp add: limitin_def)
 
-lemma limit_const: "limit X (\<lambda>a. l) l F \<longleftrightarrow> l \<in> topspace X"
-  by (simp add: limit_def)
+lemma limitin_const: "limitin X (\<lambda>a. l) l F \<longleftrightarrow> l \<in> topspace X"
+  by (simp add: limitin_def)
 
-lemma limit_real_const: "limit euclideanreal (\<lambda>a. l) l F"
-  by (simp add: limit_def)
+lemma limitin_real_const: "limitin euclideanreal (\<lambda>a. l) l F"
+  by (simp add: limitin_def)
 
-lemma limit_eventually:
-   "\<lbrakk>l \<in> topspace X; eventually (\<lambda>x. f x = l) F\<rbrakk> \<Longrightarrow> limit X f l F"
-  by (auto simp: limit_def eventually_mono)
+lemma limitin_eventually:
+   "\<lbrakk>l \<in> topspace X; eventually (\<lambda>x. f x = l) F\<rbrakk> \<Longrightarrow> limitin X f l F"
+  by (auto simp: limitin_def eventually_mono)
 
-lemma limit_subsequence:
-   "\<lbrakk>strict_mono r; limit X f l sequentially\<rbrakk> \<Longrightarrow> limit X (f \<circ> r) l sequentially"
-  unfolding limit_def using eventually_subseq by fastforce
+lemma limitin_subsequence:
+   "\<lbrakk>strict_mono r; limitin X f l sequentially\<rbrakk> \<Longrightarrow> limitin X (f \<circ> r) l sequentially"
+  unfolding limitin_def using eventually_subseq by fastforce
 
-lemma limit_subtopology:
-  "limit (subtopology X S) f l F
-   \<longleftrightarrow> l \<in> S \<and> eventually (\<lambda>a. f a \<in> S) F \<and> limit X f l F"  (is "?lhs = ?rhs")
+lemma limitin_subtopology:
+  "limitin (subtopology X S) f l F
+   \<longleftrightarrow> l \<in> S \<and> eventually (\<lambda>a. f a \<in> S) F \<and> limitin X f l F"  (is "?lhs = ?rhs")
 proof (cases "l \<in> S \<inter> topspace X")
   case True
   show ?thesis
@@ -77,84 +77,84 @@ proof (cases "l \<in> S \<inter> topspace X")
     assume L: ?lhs
     with True
     have "\<forall>\<^sub>F b in F. f b \<in> topspace X \<inter> S"
-      by (metis (no_types) limit_def openin_topspace topspace_subtopology)
+      by (metis (no_types) limitin_def openin_topspace topspace_subtopology)
     with L show ?rhs
-      apply (clarsimp simp add: limit_def eventually_mono topspace_subtopology openin_subtopology_alt)
+      apply (clarsimp simp add: limitin_def eventually_mono topspace_subtopology openin_subtopology_alt)
       apply (drule_tac x="S \<inter> U" in spec, force simp: elim: eventually_mono)
       done
   next
     assume ?rhs
     then show ?lhs
       using eventually_elim2
-      by (fastforce simp add: limit_def topspace_subtopology openin_subtopology_alt)
+      by (fastforce simp add: limitin_def topspace_subtopology openin_subtopology_alt)
   qed
-qed (auto simp: limit_def topspace_subtopology)
+qed (auto simp: limitin_def topspace_subtopology)
 
 
-lemma limit_sequentially:
-   "limit X S l sequentially \<longleftrightarrow>
+lemma limitin_sequentially:
+   "limitin X S l sequentially \<longleftrightarrow>
      l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> (\<exists>N. \<forall>n. N \<le> n \<longrightarrow> S n \<in> U))"
-  by (simp add: limit_def eventually_sequentially)
+  by (simp add: limitin_def eventually_sequentially)
 
-lemma limit_sequentially_offset:
-   "limit X f l sequentially \<Longrightarrow> limit X (\<lambda>i. f (i + k)) l sequentially"
-  unfolding limit_sequentially
+lemma limitin_sequentially_offset:
+   "limitin X f l sequentially \<Longrightarrow> limitin X (\<lambda>i. f (i + k)) l sequentially"
+  unfolding limitin_sequentially
   by (metis add.commute le_add2 order_trans)
 
-lemma limit_sequentially_offset_rev:
-  assumes "limit X (\<lambda>i. f (i + k)) l sequentially"
-  shows "limit X f l sequentially"
+lemma limitin_sequentially_offset_rev:
+  assumes "limitin X (\<lambda>i. f (i + k)) l sequentially"
+  shows "limitin X f l sequentially"
 proof -
   have "\<exists>N. \<forall>n\<ge>N. f n \<in> U" if U: "openin X U" "l \<in> U" for U
   proof -
     obtain N where "\<And>n. n\<ge>N \<Longrightarrow> f (n + k) \<in> U"
-      using assms U unfolding limit_sequentially by blast
+      using assms U unfolding limitin_sequentially by blast
     then have "\<forall>n\<ge>N+k. f n \<in> U"
       by (metis add_leD2 le_add_diff_inverse ordered_cancel_comm_monoid_diff_class.le_diff_conv2 add.commute)
     then show ?thesis ..
   qed
   with assms show ?thesis
-    unfolding limit_sequentially
+    unfolding limitin_sequentially
     by simp
 qed
 
-lemma limit_atin:
-   "limit Y f y (atin X x) \<longleftrightarrow>
+lemma limitin_atin:
+   "limitin Y f y (atin X x) \<longleftrightarrow>
         y \<in> topspace Y \<and>
         (x \<in> topspace X
         \<longrightarrow> (\<forall>V. openin Y V \<and> y \<in> V
                  \<longrightarrow> (\<exists>U. openin X U \<and> x \<in> U \<and> f ` (U - {x}) \<subseteq> V)))"
-  by (auto simp: limit_def eventually_atin image_subset_iff)
+  by (auto simp: limitin_def eventually_atin image_subset_iff)
 
-lemma limit_atin_self:
-   "limit Y f (f a) (atin X a) \<longleftrightarrow>
+lemma limitin_atin_self:
+   "limitin Y f (f a) (atin X a) \<longleftrightarrow>
         f a \<in> topspace Y \<and>
         (a \<in> topspace X
          \<longrightarrow> (\<forall>V. openin Y V \<and> f a \<in> V
                   \<longrightarrow> (\<exists>U. openin X U \<and> a \<in> U \<and> f ` U \<subseteq> V)))"
-  unfolding limit_atin by fastforce
+  unfolding limitin_atin by fastforce
 
-lemma limit_trivial:
-   "\<lbrakk>trivial_limit F; y \<in> topspace X\<rbrakk> \<Longrightarrow> limit X f y F"
-  by (simp add: limit_def)
+lemma limitin_trivial:
+   "\<lbrakk>trivial_limit F; y \<in> topspace X\<rbrakk> \<Longrightarrow> limitin X f y F"
+  by (simp add: limitin_def)
 
-lemma limit_transform_eventually:
-   "\<lbrakk>eventually (\<lambda>x. f x = g x) F; limit X f l F\<rbrakk> \<Longrightarrow> limit X g l F"
-  unfolding limit_def using eventually_elim2 by fastforce
+lemma limitin_transform_eventually:
+   "\<lbrakk>eventually (\<lambda>x. f x = g x) F; limitin X f l F\<rbrakk> \<Longrightarrow> limitin X g l F"
+  unfolding limitin_def using eventually_elim2 by fastforce
 
 lemma continuous_map_limit:
-  assumes "continuous_map X Y g" and f: "limit X f l F"
-  shows "limit Y (g \<circ> f) (g l) F"
+  assumes "continuous_map X Y g" and f: "limitin X f l F"
+  shows "limitin Y (g \<circ> f) (g l) F"
 proof -
   have "g l \<in> topspace Y"
-    by (meson assms continuous_map_def limit_in_topspace)
+    by (meson assms continuous_map_def limitin_topspace)
   moreover
   have "\<And>U. \<lbrakk>\<forall>V. openin X V \<and> l \<in> V \<longrightarrow> (\<forall>\<^sub>F x in F. f x \<in> V); openin Y U; g l \<in> U\<rbrakk>
             \<Longrightarrow> \<forall>\<^sub>F x in F. g (f x) \<in> U"
     using assms eventually_mono
-    by (fastforce simp: limit_def dest!: openin_continuous_map_preimage)
+    by (fastforce simp: limitin_def dest!: openin_continuous_map_preimage)
   ultimately show ?thesis
-    using f by (fastforce simp add: limit_def)
+    using f by (fastforce simp add: limitin_def)
 qed
 
 
@@ -171,9 +171,9 @@ lemma topcontinuous_at_atin:
    "topcontinuous_at X Y f x \<longleftrightarrow>
         x \<in> topspace X \<and>
         (\<forall>x \<in> topspace X. f x \<in> topspace Y) \<and>
-        limit Y f (f x) (atin X x)"
+        limitin Y f (f x) (atin X x)"
   unfolding topcontinuous_at_def
-  by (fastforce simp add: limit_atin)+
+  by (fastforce simp add: limitin_atin)+
 
 lemma continuous_map_eq_topcontinuous_at:
    "continuous_map X Y f \<longleftrightarrow> (\<forall>x \<in> topspace X. topcontinuous_at X Y f x)"
@@ -193,11 +193,11 @@ next
 qed
 
 lemma continuous_map_atin:
-   "continuous_map X Y f \<longleftrightarrow> (\<forall>x \<in> topspace X. limit Y f (f x) (atin X x))"
-  by (auto simp: limit_def topcontinuous_at_atin continuous_map_eq_topcontinuous_at)
+   "continuous_map X Y f \<longleftrightarrow> (\<forall>x \<in> topspace X. limitin Y f (f x) (atin X x))"
+  by (auto simp: limitin_def topcontinuous_at_atin continuous_map_eq_topcontinuous_at)
 
-lemma limit_continuous_map:
-   "\<lbrakk>continuous_map X Y f; a \<in> topspace X; f a = b\<rbrakk> \<Longrightarrow> limit Y f b (atin X a)"
+lemma limitin_continuous_map:
+   "\<lbrakk>continuous_map X Y f; a \<in> topspace X; f a = b\<rbrakk> \<Longrightarrow> limitin Y f b (atin X a)"
   by (auto simp: continuous_map_atin)
 
 
