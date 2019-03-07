@@ -242,6 +242,27 @@ lemma path_connected_interval [simp]:
   shows "path_connected {a..b}"
   using is_interval_cc is_interval_path_connected by blast
 
+lemma path_connected_Ioi[simp]: "path_connected {a<..}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ici[simp]: "path_connected {a..}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Iio[simp]: "path_connected {..<a}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Iic[simp]: "path_connected {..a}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ioo[simp]: "path_connected {a<..<b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ioc[simp]: "path_connected {a<..b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ico[simp]: "path_connected {a..<b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
 lemma is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
   by (auto simp: real_atLeastGreaterThan_eq)
 

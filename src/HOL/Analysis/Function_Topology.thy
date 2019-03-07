@@ -546,7 +546,7 @@ proof -
     done
 qed
 
-lemma topspace_product_topology:
+lemma topspace_product_topology [simp]:
   "topspace (product_topology T I) = (\<Pi>\<^sub>E i\<in>I. topspace(T i))"
 proof
   show "topspace (product_topology T I) \<subseteq> (\<Pi>\<^sub>E i\<in>I. topspace (T i))"
@@ -700,21 +700,101 @@ proof -
     by meson
 qed
 
+lemma closure_of_product_topology:
+  "(product_topology X I) closure_of (PiE I S) = PiE I (\<lambda>i. (X i) closure_of (S i))"
+proof -
+  have *: "(\<forall>T. f \<in> T \<and> openin (product_topology X I) T \<longrightarrow> (\<exists>y\<in>Pi\<^sub>E I S. y \<in> T))
+       \<longleftrightarrow> (\<forall>i \<in> I. \<forall>T. f i \<in> T \<and> openin (X i) T \<longrightarrow> S i \<inter> T \<noteq> {})"
+    (is "?lhs = ?rhs")
+    if top: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> topspace (X i)" and ext:  "f \<in> extensional I" for f
+  proof
+    assume L[rule_format]: ?lhs
+    show ?rhs
+    proof clarify
+      fix i T
+      assume "i \<in> I" "f i \<in> T" "openin (X i) T" "S i \<inter> T = {}"
+      then have "openin (product_topology X I) ((\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> {x. x i \<in> T})"
+        by (force simp: openin_product_topology intro: arbitrary_union_of_inc relative_to_inc finite_intersection_of_inc)
+      then show "False"
+        using L [of "topspace (product_topology X I) \<inter> {f. f i \<in> T}"] \<open>S i \<inter> T = {}\<close> \<open>f i \<in> T\<close> \<open>i \<in> I\<close>
+        by (auto simp: top ext PiE_iff)
+    qed
+  next
+    assume R [rule_format]: ?rhs
+    show ?lhs
+    proof (clarsimp simp: openin_product_topology union_of_def arbitrary_def)
+      fix \<U> U
+      assume
+        \<U>: "\<U> \<subseteq> Collect
+           (finite intersection_of (\<lambda>F. \<exists>i U. F = {x. x i \<in> U} \<and> i \<in> I \<and> openin (X i) U) relative_to
+            (\<Pi>\<^sub>E i\<in>I. topspace (X i)))" and
+        "f \<in> U" "U \<in> \<U>"
+      then have "(finite intersection_of (\<lambda>F. \<exists>i U. F = {x. x i \<in> U} \<and> i \<in> I \<and> openin (X i) U)
+                 relative_to (\<Pi>\<^sub>E i\<in>I. topspace (X i))) U"
+        by blast
+      with \<open>f \<in> U\<close> \<open>U \<in> \<U>\<close>
+      obtain \<T> where "finite \<T>"
+        and \<T>: "\<And>C. C \<in> \<T> \<Longrightarrow> \<exists>i \<in> I. \<exists>V. openin (X i) V \<and> C = {x. x i \<in> V}"
+        and "topspace (product_topology X I) \<inter> \<Inter> \<T> \<subseteq> U" "f \<in> topspace (product_topology X I) \<inter> \<Inter> \<T>"
+        apply (clarsimp simp add: relative_to_def intersection_of_def)
+        apply (rule that, auto dest!: subsetD)
+        done
+      then have "f \<in> PiE I (topspace \<circ> X)" "f \<in> \<Inter>\<T>" and subU: "PiE I (topspace \<circ> X) \<inter> \<Inter>\<T> \<subseteq> U"
+        by (auto simp: PiE_iff)
+      have *: "f i \<in> topspace (X i) \<inter> \<Inter>{U. openin (X i) U \<and> {x. x i \<in> U} \<in> \<T>}
+             \<and> openin (X i) (topspace (X i) \<inter> \<Inter>{U. openin (X i) U \<and> {x. x i \<in> U} \<in> \<T>})"
+        if "i \<in> I" for i
+      proof -
+        have "finite ((\<lambda>U. {x. x i \<in> U}) -` \<T>)"
+        proof (rule finite_vimageI [OF \<open>finite \<T>\<close>])
+          show "inj (\<lambda>U. {x. x i \<in> U})"
+            by (auto simp: inj_on_def)
+        qed
+        then have fin: "finite {U. openin (X i) U \<and> {x. x i \<in> U} \<in> \<T>}"
+          by (rule rev_finite_subset) auto
+        have "openin (X i) (\<Inter> (insert (topspace (X i)) {U. openin (X i) U \<and> {x. x i \<in> U} \<in> \<T>}))"
+          by (rule openin_Inter) (auto simp: fin)
+        then show ?thesis
+          using \<open>f \<in> \<Inter> \<T>\<close> by (fastforce simp: that top)
+      qed
+      define \<Phi> where "\<Phi> \<equiv> \<lambda>i. topspace (X i) \<inter> \<Inter>{U. openin (X i) U \<and> {f. f i \<in> U} \<in> \<T>}"
+      have "\<forall>i \<in> I. \<exists>x. x \<in> S i \<inter> \<Phi> i"
+        using R [OF _ *] unfolding \<Phi>_def by blast
+      then obtain \<theta> where \<theta> [rule_format]: "\<forall>i \<in> I. \<theta> i \<in> S i \<inter> \<Phi> i"
+        by metis
+      show "\<exists>y\<in>Pi\<^sub>E I S. \<exists>x\<in>\<U>. y \<in> x"
+      proof
+        show "\<exists>U \<in> \<U>. (\<lambda>i \<in> I. \<theta> i) \<in> U"
+        proof
+          have "restrict \<theta> I \<in> PiE I (topspace \<circ> X) \<inter> \<Inter>\<T>"
+            using \<T> by (fastforce simp: \<Phi>_def PiE_def dest: \<theta>)
+          then show "restrict \<theta> I \<in> U"
+            using subU by blast
+        qed (rule \<open>U \<in> \<U>\<close>)
+      next
+        show "(\<lambda>i \<in> I. \<theta> i) \<in> Pi\<^sub>E I S"
+          using \<theta> by simp
+      qed
+    qed
+  qed
+  show ?thesis
+    apply (simp add: * closure_of_def PiE_iff set_eq_iff cong: conj_cong)
+    by metis
+qed
 
-lemma topspace_product_topology_alt:
-   "topspace (product_topology Y I) = {f \<in> extensional I. \<forall>k \<in> I. f k \<in> topspace(Y k)}"
-  by (force simp: product_topology PiE_def)
-
-lemma openin_product_topology_alt:
-  "openin (product_topology X I) S \<longleftrightarrow>
-    (\<forall>x \<in> S. \<exists>U. finite {i \<in> I. U i \<noteq> topspace(X i)} \<and>
-                 (\<forall>i \<in> I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S)"
-  apply (simp add: openin_product_topology arbitrary_union_of_alt product_topology_base_alt, auto)
-  apply (drule bspec; blast)
+corollary closedin_product_topology:
+   "closedin (product_topology X I) (PiE I S) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. closedin (X i) (S i))"
+  apply (simp add: PiE_eq PiE_eq_empty_iff closure_of_product_topology flip: closure_of_eq)
+  apply (metis closure_of_empty)
   done
 
+corollary closedin_product_topology_singleton:
+   "f \<in> extensional I \<Longrightarrow> closedin (product_topology X I) {f} \<longleftrightarrow> (\<forall>i \<in> I. closedin (X i) {f i})"
+  using PiE_singleton closedin_product_topology [of X I]
+  by (metis (no_types, lifting) all_not_in_conv insertI1)
 
-text \<open>The basic property of the product topology is the continuity of projections:\<close>
+
+subsubsection \<open>The basic property of the product topology is the continuity of projections:\<close>
 
 lemma continuous_on_topo_product_coordinates [simp]:
   assumes "i \<in> I"

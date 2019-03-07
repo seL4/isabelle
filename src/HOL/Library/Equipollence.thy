@@ -82,7 +82,6 @@ apply (auto simp: lepoll_def)
   apply (simp add: infinite_countable_subset)
   using infinite_iff_countable_subset by blast
 
-
 lemma bij_betw_iff_bijections:
   "bij_betw f A B \<longleftrightarrow> (\<exists>g. (\<forall>x \<in> A. f x \<in> B \<and> g(f x) = x) \<and> (\<forall>y \<in> B. g y \<in> A \<and> f(g y) = y))"
   (is "?lhs = ?rhs")
@@ -114,8 +113,22 @@ proof -
     using * by (auto simp: image_def)
 qed
 
-subsection\<open>The strict relation\<close>
+lemma singleton_lepoll: "{x} \<lesssim> insert y A"
+  by (force simp: lepoll_def)
 
+lemma singleton_eqpoll: "{x} \<approx> {y}"
+  by (blast intro: lepoll_antisym singleton_lepoll)
+
+lemma subset_singleton_iff_lepoll: "(\<exists>x. S \<subseteq> {x}) \<longleftrightarrow> S \<lesssim> {()}"
+proof safe
+  show "S \<lesssim> {()}" if "S \<subseteq> {x}" for x
+    using subset_imp_lepoll [OF that] by (simp add: singleton_eqpoll lepoll_trans2)
+  show "\<exists>x. S \<subseteq> {x}" if "S \<lesssim> {()}"
+  by (metis (no_types, hide_lams) image_empty image_insert lepoll_iff that)
+qed
+
+
+subsection\<open>The strict relation\<close>
 
 lemma lesspoll_not_refl [iff]: "~ (i \<prec> i)"
   by (simp add: lepoll_antisym lesspoll_def)

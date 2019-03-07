@@ -290,7 +290,7 @@ lemma openin_subtopology_diff_closed:
 lemma openin_relative_to: "(openin X relative_to S) = openin (subtopology X S)"
   by (force simp: relative_to_def openin_subtopology)
 
-lemma topspace_subtopology: "topspace (subtopology U V) = topspace U \<inter> V"
+lemma topspace_subtopology [simp]: "topspace (subtopology U V) = topspace U \<inter> V"
   by (auto simp: topspace_def openin_subtopology)
 
 lemma topspace_subtopology_subset:
@@ -597,7 +597,7 @@ definition derived_set_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a 
          {x \<in> topspace X.
                 (\<forall>T. x \<in> T \<and> openin X T \<longrightarrow> (\<exists>y\<noteq>x. y \<in> S \<and> y \<in> T))}"
 
-lemma derived_set_of_restrict:
+lemma derived_set_of_restrict [simp]:
    "X derived_set_of (topspace X \<inter> S) = X derived_set_of S"
   by (simp add: derived_set_of_def) (metis openin_subset subset_iff)
 
@@ -624,7 +624,7 @@ lemma derived_set_of_mono:
    "S \<subseteq> T \<Longrightarrow> X derived_set_of S \<subseteq> X derived_set_of T"
   unfolding derived_set_of_def by blast
 
-lemma derived_set_of_union:
+lemma derived_set_of_Un:
    "X derived_set_of (S \<union> T) = X derived_set_of S \<union> X derived_set_of T" (is "?lhs = ?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
@@ -634,12 +634,12 @@ proof
     by (simp add: derived_set_of_mono)
 qed
 
-lemma derived_set_of_unions:
+lemma derived_set_of_Union:
    "finite \<F> \<Longrightarrow> X derived_set_of (\<Union>\<F>) = (\<Union>S \<in> \<F>. X derived_set_of S)"
 proof (induction \<F> rule: finite_induct)
   case (insert S \<F>)
   then show ?case
-    by (simp add: derived_set_of_union)
+    by (simp add: derived_set_of_Un)
 qed auto
 
 lemma derived_set_of_topspace:
@@ -745,7 +745,7 @@ lemma closure_of_subtopology_mono:
   by auto (meson closure_of_mono inf_mono subset_iff)
 
 lemma closure_of_Un [simp]: "X closure_of (S \<union> T) = X closure_of S \<union> X closure_of T"
-  by (simp add: Un_assoc Un_left_commute closure_of_alt derived_set_of_union inf_sup_distrib1)
+  by (simp add: Un_assoc Un_left_commute closure_of_alt derived_set_of_Un inf_sup_distrib1)
 
 lemma closure_of_Union:
    "finite \<F> \<Longrightarrow> X closure_of (\<Union>\<F>) = (\<Union>S \<in> \<F>. X closure_of S)"
@@ -1544,6 +1544,26 @@ lemma continuous_map_from_discrete_topology [simp]:
 
 lemma continuous_map_iff_continuous_real [simp]: "continuous_map (subtopology euclideanreal S) euclideanreal g = continuous_on S g"
   by (force simp: continuous_map openin_subtopology continuous_on_open_invariant)
+
+lemma continuous_map_iff_continuous_real2 [simp]: "continuous_map euclideanreal euclideanreal g = continuous_on UNIV g"
+  by (metis continuous_map_iff_continuous_real subtopology_UNIV)
+
+lemma continuous_map_openin_preimage_eq:
+   "continuous_map X Y f \<longleftrightarrow>
+        f ` (topspace X) \<subseteq> topspace Y \<and> (\<forall>U. openin Y U \<longrightarrow> openin X (topspace X \<inter> f -` U))"
+  by (auto simp: continuous_map_def vimage_def Int_def)
+
+lemma continuous_map_closedin_preimage_eq:
+   "continuous_map X Y f \<longleftrightarrow>
+        f ` (topspace X) \<subseteq> topspace Y \<and> (\<forall>U. closedin Y U \<longrightarrow> closedin X (topspace X \<inter> f -` U))"
+  by (auto simp: continuous_map_closedin vimage_def Int_def)
+
+lemma continuous_map_square_root: "continuous_map euclideanreal euclideanreal sqrt"
+  by (simp add: continuous_at_imp_continuous_on isCont_real_sqrt)
+
+lemma continuous_map_sqrt [continuous_intros]:
+   "continuous_map X euclideanreal f \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. sqrt(f x))"
+  by (meson continuous_map_compose continuous_map_eq continuous_map_square_root o_apply)
 
 lemma continuous_map_id [simp]: "continuous_map X X id"
   unfolding continuous_map_def  using openin_subopen topspace_def by fastforce

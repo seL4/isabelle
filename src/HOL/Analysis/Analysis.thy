@@ -5,6 +5,7 @@ theory Analysis
   Determinants
   (* Topology *)
   Connected
+  Abstract_Limits
   (* Functional Analysis *)
   Elementary_Normed_Spaces
   Norm_Arith
@@ -27,6 +28,7 @@ theory Analysis
   Bounded_Continuous_Function
   Abstract_Topology
   Function_Topology
+  T1_Spaces
   Infinite_Products
   Infinite_Set_Sum
   Weierstrass_Theorems
