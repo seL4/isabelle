@@ -170,15 +170,6 @@ end;
 
 (** present theory source **)
 
-(*NB: arranging white space around command spans is a black art*)
-
-val is_white = Token.is_space orf Token.is_informal_comment;
-val is_black = not o is_white;
-
-val is_white_comment = Token.is_informal_comment;
-val is_black_comment = Token.is_formal_comment;
-
-
 (* presentation tokens *)
 
 datatype token =
@@ -191,8 +182,8 @@ datatype token =
 fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
 
-val white_token = basic_token is_white;
-val white_comment_token = basic_token is_white_comment;
+val white_token = basic_token Document_Source.is_white;
+val white_comment_token = basic_token Document_Source.is_white_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;
 
@@ -348,14 +339,6 @@ local
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
 
-val space_proper =
-  Scan.one Token.is_blank -- Scan.many is_white_comment -- Scan.one is_black;
-
-val is_improper = not o (is_black orf Token.is_begin_ignore orf Token.is_end_ignore);
-val improper = Scan.many is_improper;
-val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper));
-val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one Token.is_blank));
-
 val opt_newline = Scan.option (Scan.one Token.is_newline);
 
 val ignore =
@@ -365,11 +348,10 @@ val ignore =
     (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
     >> pair (d - 1));
 
-val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (Parse.tag_name --| blank_end);
-
 val locale =
-  Scan.option ((Parse.$$$ "(" -- improper -- Parse.$$$ "in") |--
-    Parse.!!! (improper |-- Parse.name --| (improper -- Parse.$$$ ")")));
+  Scan.option ((Parse.$$$ "(" -- Document_Source.improper -- Parse.$$$ "in") |--
+    Parse.!!!
+      (Document_Source.improper |-- Parse.name --| (Document_Source.improper -- Parse.$$$ ")")));
 
 in
 
@@ -386,25 +368,26 @@ fun present_thy options thy (segments: segment list) =
       >> (fn d => (NONE, (Ignore_Token, ("", d))));
 
     fun markup pred mk flag = Scan.peek (fn d =>
-      improper |--
+      Document_Source.improper |--
         Parse.position (Scan.one (fn tok =>
           Token.is_command tok andalso pred keywords (Token.content_of tok))) --
-      Scan.repeat tag --
-      Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
-      >> (fn (((tok, pos'), tags), source) =>
-        let val name = Token.content_of tok
-        in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
+      Scan.repeat Document_Source.tag --
+      Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
+        Parse.document_source --| Document_Source.improper_end)
+          >> (fn (((tok, pos'), tags), source) =>
+            let val name = Token.content_of tok
+            in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Scan.optional (Scan.one Token.is_command_modifier ::: improper) [] --
-      Scan.one Token.is_command -- Scan.repeat tag
+      Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
+      Scan.one Token.is_command -- Document_Source.tags
       >> (fn ((cmd_mod, cmd), tags) =>
         map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
           [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Scan.one is_black_comment >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
+      Scan.one Document_Source.is_black_comment >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
 
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));

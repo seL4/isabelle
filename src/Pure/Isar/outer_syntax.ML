@@ -185,7 +185,7 @@ fun parse_command thy =
   Scan.ahead (before_command |-- Parse.position Parse.command) :|-- (fn (name, pos) =>
     let
       val keywords = Thy_Header.get_keywords thy;
-      val command_tags = Parse.command -- Parse.tags;
+      val command_tags = Parse.command -- Document_Source.tags;
       val tr0 =
         Toplevel.empty
         |> Toplevel.name name

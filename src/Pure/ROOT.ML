@@ -206,6 +206,7 @@ ML_file "goal.ML";
 ML_file "Isar/keyword.ML";
 ML_file "Isar/token.ML";
 ML_file "Isar/parse.ML";
+ML_file "Thy/document_source.ML";
 ML_file "Thy/thy_header.ML";
 
 (*proof context*)

@@ -42,8 +42,6 @@ sig
   val underscore: string parser
   val maybe: 'a parser -> 'a option parser
   val maybe_position: ('a * Position.T) parser -> ('a option * Position.T) parser
-  val tag_name: string parser
-  val tags: string list parser
   val opt_keyword: string -> bool parser
   val opt_bang: bool parser
   val begin: string parser
@@ -226,9 +224,6 @@ fun maybe_position scan = position (underscore >> K NONE) || scan >> apfst SOME;
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
 val real = float_number >> Value.parse_real || int >> Real.fromInt;
-
-val tag_name = group (fn () => "tag name") (short_ident || string);
-val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
 
 fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
 val opt_bang = Scan.optional ($$$ "!" >> K true) false;
