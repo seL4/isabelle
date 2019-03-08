@@ -33,9 +33,11 @@ sig
   val empty: transition
   val name_of: transition -> string
   val pos_of: transition -> Position.T
+  val timing_of: transition -> Time.time
   val type_error: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
+  val timing: Time.time -> transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
   val is_init: transition -> bool
   val modify_init: (unit -> theory) -> transition -> transition
@@ -77,8 +79,6 @@ sig
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val add_hook: (transition -> state -> state -> unit) -> unit
-  val get_timing: transition -> Time.time
-  val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> state * (exn * string) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
@@ -327,6 +327,7 @@ val empty = make_transition ("", Position.none, Time.zeroTime, []);
 
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
+fun timing_of (Transition {timing, ...}) = timing;
 
 fun command_msg msg tr =
   msg ^ "command " ^ quote (Markup.markup Markup.keyword1 (name_of tr)) ^
@@ -342,6 +343,9 @@ fun name name = map_transition (fn (_, pos, timing, trans) =>
   (name, pos, timing, trans));
 
 fun position pos = map_transition (fn (name, _, timing, trans) =>
+  (name, pos, timing, trans));
+
+fun timing timing = map_transition (fn (name, pos, _, trans) =>
   (name, pos, timing, trans));
 
 fun add_trans tr = map_transition (fn (name, pos, timing, trans) =>
@@ -582,9 +586,6 @@ end;
 
 (* apply transitions *)
 
-fun get_timing (Transition {timing, ...}) = timing;
-fun put_timing timing = map_transition (fn (name, pos, _, trans) => (name, pos, timing, trans));
-
 local
 
 fun app int (tr as Transition {trans, ...}) =
@@ -678,7 +679,7 @@ val put_result = Proof.map_context o Result.put;
 
 fun timing_estimate elem =
   let val trs = tl (Thy_Element.flat_element elem)
-  in fold (fn tr => fn t => get_timing tr + t) trs Time.zeroTime end;
+  in fold (fn tr => fn t => timing_of tr + t) trs Time.zeroTime end;
 
 fun future_proofs_enabled estimate st =
   (case try proof_of st of

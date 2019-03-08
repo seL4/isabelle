@@ -285,7 +285,7 @@ fun excursion keywords master_dir last_timing init elements =
     fun prepare_span st span =
       Command_Span.content span
       |> Command.read keywords (Command.read_thy st) master_dir init ([], ~1)
-      |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
+      |> (fn tr => Toplevel.timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
       let
