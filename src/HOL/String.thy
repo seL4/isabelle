@@ -572,9 +572,27 @@ qualified lift_definition asciis_of_literal :: "String.literal \<Rightarrow> int
   is "map of_char"
   .
 
+qualified lemma asciis_of_zero [simp, code]:
+  "asciis_of_literal 0 = []"
+  by transfer simp
+
+qualified lemma asciis_of_Literal [simp, code]:
+  "asciis_of_literal (String.Literal b0 b1 b2 b3 b4 b5 b6 s) =
+    of_char (Char b0 b1 b2 b3 b4 b5 b6 False) # asciis_of_literal s "
+  by transfer simp
+
 qualified lift_definition literal_of_asciis :: "integer list \<Rightarrow> String.literal"
   is "map (String.ascii_of \<circ> char_of)"
   by auto
+
+qualified lemma literal_of_asciis_Nil [simp, code]:
+  "literal_of_asciis [] = 0"
+  by transfer simp
+
+qualified lemma literal_of_asciis_Cons [simp, code]:
+  "literal_of_asciis (k # ks) = (case char_of k
+    of Char b0 b1 b2 b3 b4 b5 b6 b7 \<Rightarrow> String.Literal b0 b1 b2 b3 b4 b5 b6 (literal_of_asciis ks))"
+  by (simp add: char_of_def) (transfer, simp add: char_of_def)
 
 qualified lemma literal_of_asciis_of_literal [simp]:
   "literal_of_asciis (asciis_of_literal s) = s"
@@ -593,9 +611,14 @@ qualified lemma implode_code [code]:
   "String.implode cs = literal_of_asciis (map of_char cs)"
   by transfer simp
 
-end
+qualified lemma equal_literal [code]:
+  "HOL.equal (String.Literal b0 b1 b2 b3 b4 b5 b6 s)
+    (String.Literal a0 a1 a2 a3 a4 a5 a6 r)
+    \<longleftrightarrow> (b0 \<longleftrightarrow> a0) \<and> (b1 \<longleftrightarrow> a1) \<and> (b2 \<longleftrightarrow> a2) \<and> (b3 \<longleftrightarrow> a3)
+      \<and> (b4 \<longleftrightarrow> a4) \<and> (b5 \<longleftrightarrow> a5) \<and> (b6 \<longleftrightarrow> a6) \<and> (s = r)"
+  by (simp add: equal)
 
-declare [[code drop: String.literal_of_asciis String.asciis_of_literal]]
+end
 
 
 subsubsection \<open>Technical code generation setup\<close>
@@ -619,7 +642,7 @@ lemma [code_computation_unfold]:
 
 end
 
-code_reserved SML string Char
+code_reserved SML string String Char List
 code_reserved OCaml string String Char List
 code_reserved Haskell Prelude
 code_reserved Scala string
@@ -647,7 +670,7 @@ code_printing
     and (Haskell) infixr 5 "++"
     and (Scala) infixl 7 "+"
 | constant String.literal_of_asciis \<rightharpoonup>
-    (SML) "!(String.implode/ o map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
+    (SML) "!(String.implode/ o List.map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
     and (OCaml) "!(let xs = _
       and chr k =
         let l = Big'_int.int'_of'_big'_int k
@@ -658,7 +681,7 @@ code_printing
     and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
     and (Scala) "\"\"/ ++/ _.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\"))"
 | constant String.asciis_of_literal \<rightharpoonup>
-    (SML) "!(map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end) /o String.explode)"
+    (SML) "!(List.map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end) /o String.explode)"
     and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (String.get s i) in
       if k < 128 then Big'_int.big'_int'_of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (String.length s - 1) [])"
     and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
