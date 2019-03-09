@@ -252,11 +252,23 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
 
 (** toplevel transitions **)
 
-(* node transactions -- maintaining stable checkpoints *)
+(* primitive transitions *)
+
+datatype trans =
+  (*init theory*)
+  Init of unit -> theory |
+  (*formal exit of theory*)
+  Exit |
+  (*peek at state*)
+  Keep of bool -> state -> unit |
+  (*node transaction and presentation*)
+  Transaction of (bool -> node -> node_presentation) * (state -> unit);
+
+local
 
 exception FAILURE of state * exn;
 
-fun apply_transaction f g node =
+fun apply f g node =
   let
     val node_pr = node_presentation node;
     val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
@@ -273,21 +285,6 @@ fun apply_transaction f g node =
     | SOME exn => raise FAILURE (result, exn))
   end;
 
-
-(* primitive transitions *)
-
-datatype trans =
-  (*init theory*)
-  Init of unit -> theory |
-  (*formal exit of theory*)
-  Exit |
-  (*peek at state*)
-  Keep of bool -> state -> unit |
-  (*node transaction and presentation*)
-  Transaction of (bool -> node -> node_presentation) * (state -> unit);
-
-local
-
 fun apply_tr int trans state =
   (case (trans, node_of state) of
     (Init f, Toplevel) =>
@@ -296,7 +293,7 @@ fun apply_tr int trans state =
   | (Exit, node as Theory (Context.Theory thy)) =>
       let
         val State ((node', pr_ctxt), _) =
-          node |> apply_transaction
+          node |> apply
             (fn _ => node_presentation (Theory (Context.Theory (Theory.end_theory thy))))
             (K ());
       in State ((Toplevel, pr_ctxt), get_theory node') end
@@ -304,7 +301,7 @@ fun apply_tr int trans state =
       Runtime.controlled_execution (try generic_theory_of state)
         (fn () => (f int state; State (node_presentation node, previous_theory_of state))) ()
   | (Transaction _, Toplevel) => raise UNDEF
-  | (Transaction (f, g), node) => apply_transaction (fn x => f int x) g node
+  | (Transaction (f, g), node) => apply (fn x => f int x) g node
   | _ => raise UNDEF);
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
