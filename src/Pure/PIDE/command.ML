@@ -173,7 +173,10 @@ type eval_state = {failed: bool, command: Toplevel.transition, state: Toplevel.s
 fun init_eval_state opt_thy =
  {failed = false,
   command = Toplevel.empty,
-  state = (case opt_thy of NONE => Toplevel.toplevel | SOME thy => Toplevel.theory_toplevel thy)};
+  state =
+    (case opt_thy of
+      NONE => Toplevel.init ()
+    | SOME thy => Toplevel.theory_toplevel thy)};
 
 datatype eval =
   Eval of

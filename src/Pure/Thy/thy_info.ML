@@ -295,7 +295,7 @@ fun excursion keywords master_dir last_timing init elements =
       in (results, (st', pos')) end;
 
     val (results, (end_state, end_pos)) =
-      fold_map element_result elements (Toplevel.toplevel, Position.none);
+      fold_map element_result elements (Toplevel.init (), Position.none);
 
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
@@ -455,7 +455,7 @@ fun script_thy pos txt thy =
       Outer_Syntax.parse thy pos txt
       |> map (Toplevel.modify_init (K thy));
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
-    val end_state = fold (Toplevel.command_exception true) trs Toplevel.toplevel;
+    val end_state = fold (Toplevel.command_exception true) trs (Toplevel.init ());
   in Toplevel.end_theory end_pos end_state end;
 
 

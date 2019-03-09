@@ -9,7 +9,7 @@ sig
   exception UNDEF
   type state
   val theory_toplevel: theory -> state
-  val toplevel: state
+  val init: unit -> state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -101,6 +101,8 @@ exception UNDEF = Runtime.UNDEF;
 (* datatype node *)
 
 datatype node =
+  Toplevel
+    (*toplevel outside of theory body*) |
   Theory of generic_theory
     (*global or local theory*) |
   Proof of Proof_Node.T * ((Proof.context -> generic_theory) * generic_theory)
@@ -112,68 +114,86 @@ val theory_node = fn Theory gthy => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 val skipped_proof_node = fn Skipped_Proof _ => true | _ => false;
 
-fun cases_node f _ (Theory gthy) = f gthy
-  | cases_node _ g (Proof (prf, _)) = g (Proof_Node.current prf)
-  | cases_node f _ (Skipped_Proof (_, (gthy, _))) = f gthy;
+fun cases_node f _ _ Toplevel = f ()
+  | cases_node _ g _ (Theory gthy) = g gthy
+  | cases_node _ _ h (Proof (prf, _)) = h (Proof_Node.current prf)
+  | cases_node _ g _ (Skipped_Proof (_, (gthy, _))) = g gthy;
+
+fun cases_proper_node g h = cases_node (fn () => raise UNDEF) g h;
+
+val get_theory = cases_node (K NONE) (SOME o Context.theory_of) (SOME o Proof.theory_of);
 
 
 (* datatype state *)
 
-type node_presentation = node * Proof.context;  (*node with presentation context*)
-fun node_presentation0 node = (node, cases_node Context.proof_of Proof.context_of node);
+type node_presentation = node * Proof.context;
 
-datatype state = State of node_presentation option * node_presentation option; (*current, previous*)
+fun node_presentation0 node =
+  (node, cases_proper_node Context.proof_of Proof.context_of node);
 
-fun theory_toplevel thy = State (SOME (node_presentation0 (Theory (Context.Theory thy))), NONE);
+datatype state =
+  State of node_presentation * theory option;
+    (*current node with presentation context, previous theory*)
 
-val toplevel = State (NONE, NONE);
+fun node_of (State ((node, _), _)) = node;
+fun previous_theory_of (State (_, prev_thy)) = prev_thy;
 
-fun is_toplevel (State (NONE, _)) = true
-  | is_toplevel _ = false;
+fun theory_toplevel thy =
+  State (node_presentation0 (Theory (Context.Theory thy)), NONE);
 
-fun level (State (NONE, _)) = 0
-  | level (State (SOME (Theory _, _), _)) = 0
-  | level (State (SOME (Proof (prf, _), _), _)) = Proof.level (Proof_Node.current prf)
-  | level (State (SOME (Skipped_Proof (d, _), _), _)) = d + 1;   (*different notion of proof depth!*)
+fun init () =
+  let val thy0 = Theory.get_pure () handle Fail _ => Context.the_global_context ();
+  in State ((Toplevel, Proof_Context.init_global thy0), NONE) end;
 
-fun str_of_state (State (NONE, SOME (Theory (Context.Theory thy), _))) =
-      "at top level, result theory " ^ quote (Context.theory_name thy)
-  | str_of_state (State (NONE, _)) = "at top level"
-  | str_of_state (State (SOME (Theory (Context.Theory _), _), _)) = "in theory mode"
-  | str_of_state (State (SOME (Theory (Context.Proof _), _), _)) = "in local theory mode"
-  | str_of_state (State (SOME (Proof _, _), _)) = "in proof mode"
-  | str_of_state (State (SOME (Skipped_Proof _, _), _)) = "in skipped proof mode";
+fun level state =
+  (case node_of state of
+    Toplevel => 0
+  | Theory _ => 0
+  | Proof (prf, _) => Proof.level (Proof_Node.current prf)
+  | Skipped_Proof (d, _) => d + 1);   (*different notion of proof depth!*)
+
+fun str_of_state state =
+  (case node_of state of
+    Toplevel =>
+      (case previous_theory_of state of
+        NONE => "at top level"
+      | SOME thy => "at top level, result theory " ^ quote (Context.theory_name thy))
+  | Theory (Context.Theory _) => "in theory mode"
+  | Theory (Context.Proof _) => "in local theory mode"
+  | Proof _ => "in proof mode"
+  | Skipped_Proof _ => "in skipped proof mode");
 
 
 (* current node *)
 
-fun node_of (State (NONE, _)) = raise UNDEF
-  | node_of (State (SOME (node, _), _)) = node;
+fun is_toplevel state = (case node_of state of Toplevel => true | _ => false);
 
-fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
-fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
-fun is_skipped_proof state = not (is_toplevel state) andalso skipped_proof_node (node_of state);
+fun is_theory state =
+  not (is_toplevel state) andalso is_some (theory_node (node_of state));
 
-fun node_case f g state = cases_node f g (node_of state);
+fun is_proof state =
+  not (is_toplevel state) andalso is_some (proof_node (node_of state));
 
-fun previous_theory_of (State (_, NONE)) = NONE
-  | previous_theory_of (State (_, SOME (prev, _))) =
-      SOME (cases_node Context.theory_of Proof.theory_of prev);
+fun is_skipped_proof state =
+  not (is_toplevel state) andalso skipped_proof_node (node_of state);
 
-val context_of = node_case Context.proof_of Proof.context_of;
-val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
-val theory_of = node_case Context.theory_of Proof.theory_of;
-val proof_of = node_case (fn _ => error "No proof state") I;
+fun proper_node_of state = if is_toplevel state then raise UNDEF else node_of state;
+fun proper_node_case f g state = cases_proper_node f g (proper_node_of state);
+
+val context_of = proper_node_case Context.proof_of Proof.context_of;
+val generic_theory_of = proper_node_case I (Context.Proof o Proof.context_of);
+val theory_of = proper_node_case Context.theory_of Proof.theory_of;
+val proof_of = proper_node_case (fn _ => error "No proof state") I;
 
 fun proof_position_of state =
-  (case node_of state of
+  (case proper_node_of state of
     Proof (prf, _) => Proof_Node.position prf
   | _ => ~1);
 
-fun is_end_theory (State (NONE, SOME (Theory (Context.Theory _), _))) = true
+fun is_end_theory (State ((Toplevel, _), SOME _)) = true
   | is_end_theory _ = false;
 
-fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy), _))) = thy
+fun end_theory _ (State ((Toplevel, _), SOME thy)) = thy
   | end_theory pos _ = error ("Malformed theory" ^ Position.here pos);
 
 
@@ -185,13 +205,7 @@ structure Presentation_State = Proof_Data
   fun init _ = NONE;
 );
 
-fun presentation_context0 state =
-  (case state of
-    State (SOME (_, ctxt), _) => ctxt
-  | State (NONE, _) =>
-      (case try Theory.get_pure () of
-        SOME thy => Proof_Context.init_global thy
-      | NONE => raise UNDEF));
+fun presentation_context0 (State ((_, pr_ctxt), _)) = pr_ctxt;
 
 fun presentation_context (state as State (current, _)) =
   presentation_context0 state
@@ -199,31 +213,31 @@ fun presentation_context (state as State (current, _)) =
 
 fun presentation_state ctxt =
   (case Presentation_State.get ctxt of
-    NONE => State (SOME (node_presentation0 (Theory (Context.Proof ctxt))), NONE)
+    NONE => State (node_presentation0 (Theory (Context.Proof ctxt)), NONE)
   | SOME state => state);
 
 
 (* print state *)
 
 fun pretty_context state =
-  (case try node_of state of
-    NONE => []
-  | SOME node =>
-      let
-        val gthy =
-          (case node of
-            Theory gthy => gthy
-          | Proof (_, (_, gthy)) => gthy
-          | Skipped_Proof (_, (_, gthy)) => gthy);
-        val lthy = Context.cases Named_Target.theory_init I gthy;
-      in Local_Theory.pretty lthy end);
+  if is_toplevel state then []
+  else
+    let
+      val gthy =
+        (case node_of state of
+          Toplevel => raise Match
+        | Theory gthy => gthy
+        | Proof (_, (_, gthy)) => gthy
+        | Skipped_Proof (_, (_, gthy)) => gthy);
+      val lthy = Context.cases Named_Target.theory_init I gthy;
+    in Local_Theory.pretty lthy end;
 
 fun pretty_state state =
-  (case try node_of state of
-    NONE => []
-  | SOME (Theory _) => []
-  | SOME (Proof (prf, _)) => Proof.pretty_state (Proof_Node.current prf)
-  | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
+  (case node_of state of
+    Toplevel => []
+  | Theory _ => []
+  | Proof (prf, _) => Proof.pretty_state (Proof_Node.current prf)
+  | Skipped_Proof (d, _) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
 val string_of_state = pretty_state #> Pretty.chunks #> Pretty.string_of;
 
@@ -242,8 +256,8 @@ exception FAILURE of state * exn;
 fun apply_transaction f g node =
   let
     val node_pr = node_presentation0 node;
-    val context = cases_node I (Context.Proof o Proof.context_of) node;
-    fun state_error e node_pr' = (State (SOME node_pr', SOME node_pr), e);
+    val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
+    fun state_error e node_pr' = (State (node_pr', get_theory node), e);
 
     val (result, err) =
       node
@@ -255,13 +269,6 @@ fun apply_transaction f g node =
       NONE => tap g result
     | SOME exn => raise FAILURE (result, exn))
   end;
-
-val exit_transaction =
-  apply_transaction
-    ((fn Theory (Context.Theory thy) => Theory (Context.Theory (Theory.end_theory thy))
-       | node => node) #> node_presentation0)
-    (K ())
-  #> (fn State (node_pr', _) => State (NONE, node_pr'));
 
 
 (* primitive transitions *)
@@ -278,14 +285,20 @@ datatype trans =
 
 local
 
-fun apply_tr _ (Init f) (State (NONE, _)) =
+fun apply_tr _ (Init f) (State ((Toplevel, _), _)) =
       let val node = Theory (Context.Theory (Runtime.controlled_execution NONE f ()))
-      in State (SOME (node_presentation0 node), NONE) end
-  | apply_tr _ Exit (State (SOME (node as Theory (Context.Theory _), _), _)) =
-      exit_transaction node
+      in State (node_presentation0 node, NONE) end
+  | apply_tr _ Exit (State ((node as Theory (Context.Theory thy), _), _)) =
+      let
+        val State ((node', pr_ctxt), _) =
+          node |> apply_transaction
+            (fn _ => node_presentation0 (Theory (Context.Theory (Theory.end_theory thy))))
+            (K ());
+      in State ((Toplevel, pr_ctxt), get_theory node') end
   | apply_tr int (Keep f) state =
       Runtime.controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
-  | apply_tr int (Transaction (f, g)) (State (SOME (node, _), _)) =
+  | apply_tr _ (Transaction _) (State ((Toplevel, _), _)) = raise UNDEF
+  | apply_tr int (Transaction (f, g)) (State ((node, _), _)) =
       apply_transaction (fn x => f int x) g node
   | apply_tr _ _ _ = raise UNDEF;
 
@@ -725,10 +738,10 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
                   {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = ~1}
                   (fn () =>
                     let
-                      val State (SOME (Proof (prf, (_, orig_gthy)), _), prev) = st';
+                      val State ((Proof (prf, (_, orig_gthy)), _), prev_thy) = st';
                       val node' = Proof (Proof_Node.apply (K state) prf, (finish, orig_gthy));
                       val (result, result_state) =
-                        State (SOME (node_presentation0 node'), prev)
+                        State (node_presentation0 node', prev_thy)
                         |> fold_map (element_result keywords) body_elems ||> command end_tr;
                     in (Result_List result, presentation_context0 result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
