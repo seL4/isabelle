@@ -217,8 +217,12 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
 
 fun run keywords int tr st =
   if Future.proofs_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
-    (Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
-      (fn () => Toplevel.command_exception int tr st); ([], SOME st))
+    let
+      val (tr1, tr2) = Toplevel.fork_presentation tr;
+      val _ =
+        Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
+          (fn () => Toplevel.command_exception int tr1 st);
+    in Toplevel.command_errors int tr2 st end
   else Toplevel.command_errors int tr st;
 
 fun check_token_comments ctxt tok =

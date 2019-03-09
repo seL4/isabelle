@@ -475,6 +475,7 @@ object Command
       toks match {
         case (t1, i1) :: (t2, i2) :: rest =>
           if (t1.is_keyword && t1.source == "%" && t2.is_name) clean(rest)
+          else if (t1.is_keyword && Symbol.is_marker(t1.source) && t2.is_embedded) clean(rest)
           else (t1, i1) :: clean((t2, i2) :: rest)
         case _ => toks
       }

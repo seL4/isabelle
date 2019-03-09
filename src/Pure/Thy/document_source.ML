@@ -14,8 +14,10 @@ sig
   val improper: Token.T list parser
   val improper_end: Token.T list parser
   val blank_end: Token.T list parser
-  val tag: string parser
+  val get_tags: Proof.context -> string list
+  val update_tags: string -> Proof.context -> Proof.context
   val tags: string list parser
+  val annotation: Input.source list parser
 end;
 
 structure Document_Source: DOCUMENT_SOURCE =
@@ -41,11 +43,32 @@ val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper))
 val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one Token.is_blank));
 
 
-(* tags *)
+(* syntactic tags (old-style) *)
+
+structure Tags = Proof_Data
+(
+  type T = string list;
+  fun init _ = [];
+);
+
+val get_tags = Tags.get;
+val update_tags = Tags.map o update (op =);
 
 val tag_name = Parse.group (fn () => "document tag name") (Parse.short_ident || Parse.string);
 
 val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (tag_name --| blank_end);
 val tags = Scan.repeat tag;
+
+
+(* semantic markers (operation on presentation context) *)
+
+val marker =
+  (improper -- Parse.$$$ "\<marker>" -- improper) |--
+    Parse.!!! (Parse.group (fn () => "document marker") (Parse.input Parse.embedded) --| blank_end);
+
+val tag_marker =  (*emulation of old-style tags*)
+  tag >> (fn name => Input.string ("tag " ^ Symbol_Pos.quote_string_qq name));
+
+val annotation = Scan.repeat (marker || tag_marker);
 
 end;

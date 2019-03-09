@@ -32,6 +32,7 @@ sig
   val language_ML: bool -> T
   val language_SML: bool -> T
   val language_document: bool -> T
+  val language_document_marker: T
   val language_antiquotation: T
   val language_text: bool -> T
   val language_verbatim: bool -> T
@@ -314,6 +315,8 @@ val language_prop = language' {name = "prop", symbols = true, antiquotes = false
 val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
 val language_SML = language' {name = "SML", symbols = false, antiquotes = false};
 val language_document = language' {name = "document", symbols = false, antiquotes = true};
+val language_document_marker =
+  language {name = "document_marker", symbols = true, antiquotes = true, delimited = true};
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};

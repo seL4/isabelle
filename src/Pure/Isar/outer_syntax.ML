@@ -185,20 +185,21 @@ fun parse_command thy =
   Scan.ahead (before_command |-- Parse.position Parse.command) :|-- (fn (name, pos) =>
     let
       val keywords = Thy_Header.get_keywords thy;
-      val command_tags = Parse.command -- Document_Source.tags;
       val tr0 =
         Toplevel.empty
         |> Toplevel.name name
         |> Toplevel.position pos
         |> Keyword.is_proof_open keywords name ? Toplevel.skip_proof_open
         |> Keyword.is_proof_close keywords name ? Toplevel.skip_proof_close;
+      val command_marker =
+        Parse.command |-- Document_Source.annotation >> (fn markers => Toplevel.markers markers tr0);
     in
       (case lookup_commands thy name of
         SOME (Command {command_parser = Parser parse, ...}) =>
-          Parse.!!! (command_tags |-- parse) >> (fn f => f tr0)
+          Parse.!!! (command_marker -- parse) >> (op |>)
       | SOME (Command {command_parser = Restricted_Parser parse, ...}) =>
           before_command :|-- (fn restricted =>
-            Parse.!!! (command_tags |-- parse restricted)) >> (fn f => f tr0)
+            Parse.!!! (command_marker -- parse restricted)) >> (op |>)
       | NONE =>
           Scan.fail_with (fn _ => fn _ =>
             let

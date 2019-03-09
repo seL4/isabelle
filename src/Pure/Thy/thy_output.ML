@@ -202,7 +202,7 @@ fun present_token ctxt tok =
 
 (* command spans *)
 
-type command = string * Position.T * string list;   (*name, position, tags*)
+type command = string * Position.T;   (*name, position*)
 type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
@@ -287,7 +287,8 @@ fun present_span thy command_tag span state state'
         #> cons (Latex.string flag)
       | _ => I);
 
-    val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
+    val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
+    val cmd_tags = Document_Source.get_tags (Toplevel.presentation_context state');
 
     val (tag, tags) = tag_stack;
     val {tag', active_tag'} =
@@ -371,19 +372,19 @@ fun present_thy options thy (segments: segment list) =
       Document_Source.improper |--
         Parse.position (Scan.one (fn tok =>
           Token.is_command tok andalso pred keywords (Token.content_of tok))) --
-      Scan.repeat Document_Source.tag --
-      Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
-        Parse.document_source --| Document_Source.improper_end)
-          >> (fn (((tok, pos'), tags), source) =>
-            let val name = Token.content_of tok
-            in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
+      (Document_Source.annotation |--
+        Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
+          Parse.document_source --| Document_Source.improper_end))
+            >> (fn ((tok, pos'), source) =>
+              let val name = Token.content_of tok
+              in (SOME (name, pos'), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
-      Scan.one Token.is_command -- Document_Source.tags
-      >> (fn ((cmd_mod, cmd), tags) =>
+      Scan.one Token.is_command --| Document_Source.annotation
+      >> (fn (cmd_mod, cmd) =>
         map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
-          [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
+          [(SOME (Token.content_of cmd, Token.pos_of cmd),
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>

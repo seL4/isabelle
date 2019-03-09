@@ -493,6 +493,7 @@ object Symbol
     /* misc symbols */
 
     val newline_decoded = decode(newline)
+    val marker_decoded = decode(marker)
     val comment_decoded = decode(comment)
     val cancel_decoded = decode(cancel)
     val latex_decoded = decode(latex)
@@ -576,6 +577,14 @@ object Symbol
     if (str.contains('\n'))
       (for (s <- iterator(str)) yield { if (s == "\n") newline_decoded else s }).mkString
     else str
+
+
+  /* marker */
+
+  val marker: Symbol = "\\<marker>"
+  def marker_decoded: Symbol = symbols.marker_decoded
+
+  lazy val is_marker: Set[Symbol] = Set(marker, marker_decoded)
 
 
   /* formal comments */

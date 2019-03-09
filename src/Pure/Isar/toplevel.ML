@@ -37,6 +37,7 @@ sig
   val type_error: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
+  val markers: Input.source list -> transition -> transition
   val timing: Time.time -> transition -> transition
   val init_theory: (unit -> theory) -> transition -> transition
   val is_init: transition -> bool
@@ -85,6 +86,7 @@ sig
   val reset_theory: state -> state option
   val reset_proof: state -> state option
   val reset_notepad: state -> state option
+  val fork_presentation: transition -> transition * transition
   type result
   val join_results: result -> (transition * state) list
   val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
@@ -142,12 +144,9 @@ datatype state =
 fun node_of (State ((node, _), _)) = node;
 fun previous_theory_of (State (_, prev_thy)) = prev_thy;
 
-fun init_toplevel () =
-  let val thy0 = Theory.get_pure () handle Fail _ => Context.the_global_context ();
-  in State ((Toplevel, Proof_Context.init_global thy0), NONE) end;
+fun init_toplevel () = State (node_presentation Toplevel, NONE);
+fun theory_toplevel thy = State (node_presentation (Theory (Context.Theory thy)), NONE);
 
-fun theory_toplevel thy =
-  State (node_presentation (Theory (Context.Theory thy)), NONE);
 
 fun level state =
   (case node_of state of
@@ -289,22 +288,24 @@ datatype trans =
 
 local
 
-fun apply_tr _ (Init f) (State ((Toplevel, _), _)) =
-      let val node = Theory (Context.Theory (Runtime.controlled_execution NONE f ()))
-      in State (node_presentation node, NONE) end
-  | apply_tr _ Exit (State ((node as Theory (Context.Theory thy), _), _)) =
+fun apply_tr int trans state =
+  (case (trans, node_of state) of
+    (Init f, Toplevel) =>
+      Runtime.controlled_execution NONE (fn () =>
+        State (node_presentation (Theory (Context.Theory (f ()))), NONE)) ()
+  | (Exit, node as Theory (Context.Theory thy)) =>
       let
         val State ((node', pr_ctxt), _) =
           node |> apply_transaction
             (fn _ => node_presentation (Theory (Context.Theory (Theory.end_theory thy))))
             (K ());
       in State ((Toplevel, pr_ctxt), get_theory node') end
-  | apply_tr int (Keep f) state =
-      Runtime.controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
-  | apply_tr _ (Transaction _) (State ((Toplevel, _), _)) = raise UNDEF
-  | apply_tr int (Transaction (f, g)) (State ((node, _), _)) =
-      apply_transaction (fn x => f int x) g node
-  | apply_tr _ _ _ = raise UNDEF;
+  | (Keep f, node) =>
+      Runtime.controlled_execution (try generic_theory_of state)
+        (fn () => (f int state; State (node_presentation node, previous_theory_of state))) ()
+  | (Transaction _, Toplevel) => raise UNDEF
+  | (Transaction (f, g), node) => apply_transaction (fn x => f int x) g node
+  | _ => raise UNDEF);
 
 fun apply_union _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int (tr :: trs) state =
@@ -314,9 +315,18 @@ fun apply_union _ [] state = raise FAILURE (state, UNDEF)
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
+fun apply_markers markers (state as State ((node, pr_ctxt), prev_thy)) =
+  let
+    val state' =
+      Runtime.controlled_execution (try generic_theory_of state)
+        (fn () => State ((node, fold Document_Marker.evaluate markers pr_ctxt), prev_thy)) ();
+  in (state', NONE) end
+  handle exn => (state, SOME exn);
+
 in
 
-fun apply_trans int trs state = (apply_union int trs state, NONE)
+fun apply_trans int trans markers state =
+  (apply_union int trans state |> apply_markers markers)
   handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
 
 end;
@@ -325,18 +335,19 @@ end;
 (* datatype transition *)
 
 datatype transition = Transition of
- {name: string,              (*command name*)
-  pos: Position.T,           (*source position*)
-  timing: Time.time,         (*prescient timing information*)
-  trans: trans list};        (*primitive transitions (union)*)
+ {name: string,               (*command name*)
+  pos: Position.T,            (*source position*)
+  markers: Input.source list, (*semantic document markers*)
+  timing: Time.time,          (*prescient timing information*)
+  trans: trans list};         (*primitive transitions (union)*)
 
-fun make_transition (name, pos, timing, trans) =
-  Transition {name = name, pos = pos, timing = timing, trans = trans};
+fun make_transition (name, pos, markers, timing, trans) =
+  Transition {name = name, pos = pos, markers = markers, timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, timing, trans}) =
-  make_transition (f (name, pos, timing, trans));
+fun map_transition f (Transition {name, pos, markers, timing, trans}) =
+  make_transition (f (name, pos, markers, timing, trans));
 
-val empty = make_transition ("", Position.none, Time.zeroTime, []);
+val empty = make_transition ("", Position.none, [], Time.zeroTime, []);
 
 
 (* diagnostics *)
@@ -355,20 +366,23 @@ fun type_error tr = command_msg "Bad context for " tr;
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, timing, trans) =>
-  (name, pos, timing, trans));
+fun name name = map_transition (fn (_, pos, markers, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun position pos = map_transition (fn (name, _, timing, trans) =>
-  (name, pos, timing, trans));
+fun position pos = map_transition (fn (name, _, markers, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun timing timing = map_transition (fn (name, pos, _, trans) =>
-  (name, pos, timing, trans));
+fun markers markers = map_transition (fn (name, pos, _, timing, trans) =>
+  (name, pos, markers, timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, timing, trans) =>
-  (name, pos, timing, tr :: trans));
+fun timing timing = map_transition (fn (name, pos, markers, _, trans) =>
+  (name, pos, markers, timing, trans));
 
-val reset_trans = map_transition (fn (name, pos, timing, _) =>
-  (name, pos, timing, []));
+fun add_trans tr = map_transition (fn (name, pos, markers, timing, trans) =>
+  (name, pos, markers, timing, tr :: trans));
+
+val reset_trans = map_transition (fn (name, pos, markers, timing, _) =>
+  (name, pos, markers, timing, []));
 
 
 (* basic transitions *)
@@ -605,9 +619,9 @@ end;
 
 local
 
-fun app int (tr as Transition {trans, ...}) =
+fun app int (tr as Transition {markers, trans, ...}) =
   setmp_thread_position tr
-    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int trans)
+    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int trans markers)
       ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn));
 
 in
@@ -707,17 +721,25 @@ fun future_proofs_enabled estimate st =
         then Future.proofs_enabled 1
         else Future.proofs_enabled 2 orelse Future.proofs_enabled_timing estimate));
 
+val empty_markers = markers [];
+val empty_trans = reset_trans #> keep (K ());
+
+in
+
+fun fork_presentation tr = (tr |> empty_markers, tr |> empty_trans);
+
 fun atom_result keywords tr st =
   let
     val st' =
       if Future.proofs_enabled 1 andalso Keyword.is_diag keywords (name_of tr) then
-        (Execution.fork
-          {name = "Toplevel.diag", pos = pos_of tr, pri = ~1}
-          (fn () => command tr st); st)
+        let
+          val (tr1, tr2) = fork_presentation tr;
+          val _ =
+            Execution.fork {name = "Toplevel.diag", pos = pos_of tr, pri = ~1}
+              (fn () => command tr1 st);
+        in command tr2 st end
       else command tr st;
   in (Result (tr, st'), st') end;
-
-in
 
 fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result keywords tr st
   | element_result keywords (elem as Thy_Element.Element (head_tr, SOME element_rest)) st =
@@ -734,6 +756,8 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
           in (Result_List (head_result :: proof_results), st'') end
         else
           let
+            val (end_tr1, end_tr2) = fork_presentation end_tr;
+
             val finish = Context.Theory o Proof_Context.theory_of;
 
             val future_proof =
@@ -744,10 +768,10 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
                     let
                       val State ((Proof (prf, (_, orig_gthy)), _), prev_thy) = st';
                       val node' = Proof (Proof_Node.apply (K state) prf, (finish, orig_gthy));
-                      val (result, result_state) =
+                      val (results, result_state) =
                         State (node_presentation node', prev_thy)
-                        |> fold_map (element_result keywords) body_elems ||> command end_tr;
-                    in (Result_List result, presentation_context0 result_state) end))
+                        |> fold_map (element_result keywords) body_elems ||> command end_tr1;
+                    in (Result_List results, presentation_context0 result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 
             val forked_proof =
@@ -756,12 +780,12 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
               end_proof (fn _ => future_proof #>
                 (fn state => state |> Proof.global_done_proof |> Result.put (get_result state)));
 
-            val st'' = st'
-              |> command (head_tr |> reset_trans |> forked_proof);
-            val end_result = Result (end_tr, st'');
+            val st'' = st' |> command (head_tr |> reset_trans |> forked_proof);
+            val end_st = st'' |> command end_tr2;
+            val end_result = Result (end_tr, end_st);
             val result =
               Result_List [head_result, Result.get (presentation_context0 st''), end_result];
-          in (result, st'') end
+          in (result, end_st) end
       end;
 
 end;
