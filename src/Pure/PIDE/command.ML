@@ -175,7 +175,7 @@ fun init_eval_state opt_thy =
   command = Toplevel.empty,
   state =
     (case opt_thy of
-      NONE => Toplevel.init ()
+      NONE => Toplevel.init_toplevel ()
     | SOME thy => Toplevel.theory_toplevel thy)};
 
 datatype eval =

@@ -195,7 +195,7 @@ fun ml_diag verbose source = Toplevel.keep (fn state =>
 fun diag_state ctxt =
   (case Diag_State.get ctxt of
     SOME st => st
-  | NONE => Toplevel.init ());
+  | NONE => Toplevel.init_toplevel ());
 
 val diag_goal = Proof.goal o Toplevel.proof_of o diag_state;
 

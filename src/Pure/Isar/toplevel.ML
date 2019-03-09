@@ -8,8 +8,8 @@ signature TOPLEVEL =
 sig
   exception UNDEF
   type state
+  val init_toplevel: unit -> state
   val theory_toplevel: theory -> state
-  val init: unit -> state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -128,8 +128,12 @@ val get_theory = cases_node (K NONE) (SOME o Context.theory_of) (SOME o Proof.th
 
 type node_presentation = node * Proof.context;
 
-fun node_presentation0 node =
-  (node, cases_proper_node Context.proof_of Proof.context_of node);
+fun init_presentation () =
+  Proof_Context.init_global (Theory.get_pure_bootstrap ());
+
+fun node_presentation node =
+  (node, cases_node init_presentation Context.proof_of Proof.context_of node);
+
 
 datatype state =
   State of node_presentation * theory option;
@@ -138,12 +142,12 @@ datatype state =
 fun node_of (State ((node, _), _)) = node;
 fun previous_theory_of (State (_, prev_thy)) = prev_thy;
 
-fun theory_toplevel thy =
-  State (node_presentation0 (Theory (Context.Theory thy)), NONE);
-
-fun init () =
+fun init_toplevel () =
   let val thy0 = Theory.get_pure () handle Fail _ => Context.the_global_context ();
   in State ((Toplevel, Proof_Context.init_global thy0), NONE) end;
+
+fun theory_toplevel thy =
+  State (node_presentation (Theory (Context.Theory thy)), NONE);
 
 fun level state =
   (case node_of state of
@@ -213,7 +217,7 @@ fun presentation_context (state as State (current, _)) =
 
 fun presentation_state ctxt =
   (case Presentation_State.get ctxt of
-    NONE => State (node_presentation0 (Theory (Context.Proof ctxt)), NONE)
+    NONE => State (node_presentation (Theory (Context.Proof ctxt)), NONE)
   | SOME state => state);
 
 
@@ -255,7 +259,7 @@ exception FAILURE of state * exn;
 
 fun apply_transaction f g node =
   let
-    val node_pr = node_presentation0 node;
+    val node_pr = node_presentation node;
     val context = cases_proper_node I (Context.Proof o Proof.context_of) node;
     fun state_error e node_pr' = (State (node_pr', get_theory node), e);
 
@@ -287,12 +291,12 @@ local
 
 fun apply_tr _ (Init f) (State ((Toplevel, _), _)) =
       let val node = Theory (Context.Theory (Runtime.controlled_execution NONE f ()))
-      in State (node_presentation0 node, NONE) end
+      in State (node_presentation node, NONE) end
   | apply_tr _ Exit (State ((node as Theory (Context.Theory thy), _), _)) =
       let
         val State ((node', pr_ctxt), _) =
           node |> apply_transaction
-            (fn _ => node_presentation0 (Theory (Context.Theory (Theory.end_theory thy))))
+            (fn _ => node_presentation (Theory (Context.Theory (Theory.end_theory thy))))
             (K ());
       in State ((Toplevel, pr_ctxt), get_theory node') end
   | apply_tr int (Keep f) state =
@@ -381,7 +385,7 @@ val keep' = add_trans o Keep;
 
 fun present_transaction f g = add_trans (Transaction (f, g));
 fun transaction f = present_transaction f (K ());
-fun transaction0 f = present_transaction (node_presentation0 oo f) (K ());
+fun transaction0 f = present_transaction (node_presentation oo f) (K ());
 
 fun keep f = add_trans (Keep (fn _ => f));
 
@@ -401,7 +405,7 @@ fun malformed pos msg =
 (* theory transitions *)
 
 fun generic_theory f = transaction (fn _ =>
-  (fn Theory gthy => node_presentation0 (Theory (f gthy))
+  (fn Theory gthy => node_presentation (Theory (f gthy))
     | _ => raise UNDEF));
 
 fun theory' f = transaction (fn int =>
@@ -410,7 +414,7 @@ fun theory' f = transaction (fn int =>
         |> Sign.new_group
         |> f int
         |> Sign.reset_group;
-      in node_presentation0 (Theory (Context.Theory thy')) end
+      in node_presentation (Theory (Context.Theory thy')) end
     | _ => raise UNDEF));
 
 fun theory f = theory' (K f);
@@ -488,7 +492,7 @@ fun end_proof f = transaction (fn int =>
             in (Theory gthy', ctxt') end
           else raise UNDEF
         end
-    | Skipped_Proof (0, (gthy, _)) => node_presentation0 (Theory gthy)
+    | Skipped_Proof (0, (gthy, _)) => node_presentation (Theory gthy)
     | _ => raise UNDEF));
 
 local
@@ -741,7 +745,7 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
                       val State ((Proof (prf, (_, orig_gthy)), _), prev_thy) = st';
                       val node' = Proof (Proof_Node.apply (K state) prf, (finish, orig_gthy));
                       val (result, result_state) =
-                        State (node_presentation0 node', prev_thy)
+                        State (node_presentation node', prev_thy)
                         |> fold_map (element_result keywords) body_elems ||> command end_tr;
                     in (Result_List result, presentation_context0 result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
