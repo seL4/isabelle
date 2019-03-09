@@ -480,10 +480,10 @@ fun end_proof f = transaction (fn int =>
 
 local
 
-fun begin_proof init = transaction0 (fn int =>
+fun begin_proof init_proof = transaction0 (fn int =>
   (fn Theory gthy =>
     let
-      val (finish, prf) = init int gthy;
+      val (finish, prf) = init_proof int gthy;
       val document = Options.default_string "document";
       val skip = (document = "" orelse document = "false") andalso Goal.skip_proofs_enabled ();
       val schematic_goal = try Proof.schematic_goal prf;
