@@ -8,6 +8,7 @@ signature DOCUMENT_MARKER =
 sig
   type marker = Proof.context -> Proof.context
   val setup: binding -> 'a context_parser -> ('a -> marker) -> theory -> theory
+  val setup0: binding -> 'a parser -> ('a -> marker) -> theory -> theory
   val evaluate: Input.source -> marker
 end;
 
@@ -37,6 +38,8 @@ fun setup name scan body thy =
       in body x ctxt' end;
   in thy |> Markers.map (Name_Space.define (Context.Theory thy) true (name, marker) #> #2) end;
 
+fun setup0 name scan = setup name (Scan.lift scan);
+
 
 (* evaluate inner syntax *)
 
@@ -57,8 +60,16 @@ fun evaluate input ctxt =
 
 (* concrete markers *)
 
+fun meta_data markup arg ctxt =
+  (Context_Position.report_text ctxt (Position.thread_data ()) markup arg; ctxt);
+
 val _ =
   Theory.setup
-    (setup (Binding.make ("tag", \<^here>)) (Scan.lift Parse.name) Document_Source.update_tags);
+    (setup0 (Binding.make ("tag", \<^here>)) Parse.name Document_Source.update_tags #>
+     setup0 (Binding.make ("title", \<^here>)) Parse.embedded (meta_data Markup.meta_title) #>
+     setup0 (Binding.make ("creator", \<^here>)) Parse.embedded (meta_data Markup.meta_creator) #>
+     setup0 (Binding.make ("contributor", \<^here>)) Parse.embedded (meta_data Markup.meta_contributor) #>
+     setup0 (Binding.make ("date", \<^here>)) Parse.embedded (meta_data Markup.meta_date) #>
+     setup0 (Binding.make ("description", \<^here>)) Parse.embedded (meta_data Markup.meta_description));
 
 end;

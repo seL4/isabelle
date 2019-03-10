@@ -89,6 +89,15 @@ object Markup
   }
 
 
+  /* meta data */
+
+  val META_TITLE = "meta_title"
+  val META_CREATOR = "meta_creator"
+  val META_CONTRIBUTOR = "meta_contributor"
+  val META_DATE = "meta_date"
+  val META_DESCRIPTION = "meta_description"
+
+
   /* formal entities */
 
   val BINDING = "binding"
