@@ -30,7 +30,6 @@ sig
     Declaration of declaration |
     Files of file Exn.result list
   val pos_of: T -> Position.T
-  val range_of: T list -> Position.range
   val adjust_offsets: (int -> int option) -> T -> T
   val eof: T
   val is_eof: T -> bool
@@ -46,6 +45,7 @@ sig
   val is_comment: T -> bool
   val is_informal_comment: T -> bool
   val is_formal_comment: T -> bool
+  val is_document_marker: T -> bool
   val is_ignored: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
@@ -53,6 +53,8 @@ sig
   val is_space: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
+  val range_of: T list -> Position.range
+  val core_range_of: T list -> Position.range
   val content_of: T -> string
   val source_of: T -> string
   val input_of: T -> Input.source
@@ -190,11 +192,6 @@ type src = T list;
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
-fun range_of (toks as tok :: _) =
-      let val pos' = end_pos_of (List.last toks)
-      in Position.range (pos_of tok, pos') end
-  | range_of [] = Position.no_range;
-
 fun adjust_offsets adjust (Token ((x, range), y, z)) =
   Token ((x, apply2 (Position.adjust_offsets adjust) range), y, z);
 
@@ -245,6 +242,9 @@ fun is_informal_comment (Token (_, (Comment NONE, _), _)) = true
 fun is_formal_comment (Token (_, (Comment (SOME _), _), _)) = true
   | is_formal_comment _ = false;
 
+fun is_document_marker (Token (_, (Comment (SOME Comment.Marker), _), _)) = true
+  | is_document_marker _ = false;
+
 fun is_begin_ignore (Token (_, (Comment NONE, "<"), _)) = true
   | is_begin_ignore _ = false;
 
@@ -265,6 +265,17 @@ fun is_blank (Token (_, (Space, x), _)) = not (String.isSuffix "\n" x)
 
 fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
   | is_newline _ = false;
+
+
+(* range of tokens *)
+
+fun range_of (toks as tok :: _) =
+      let val pos' = end_pos_of (List.last toks)
+      in Position.range (pos_of tok, pos') end
+  | range_of [] = Position.no_range;
+
+val core_range_of =
+  drop_prefix is_ignored #> drop_suffix is_ignored #> range_of;
 
 
 (* token content *)
@@ -636,7 +647,7 @@ fun scan_token keywords = !!! "bad input"
     scan_verbatim >> token_range Verbatim ||
     scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range (Comment NONE) ||
-    Comment.scan >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
+    Comment.scan_outer >> (fn (k, ss) => token (Comment (SOME k)) ss) ||
     scan_space >> token Space ||
     (Scan.max token_leq
       (Scan.max token_leq

@@ -96,6 +96,7 @@ sig
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: Input.source parser
   val document_source: Input.source parser
+  val document_marker: Input.source parser
   val const: string parser
   val term: string parser
   val prop: string parser
@@ -389,6 +390,10 @@ val for_fixes = Scan.optional ($$$ "for" |-- !!! vars) [];
 
 val ML_source = input (group (fn () => "ML source") text);
 val document_source = input (group (fn () => "document source") text);
+
+val document_marker =
+  group (fn () => "document marker")
+    (RESET_VALUE (Scan.one Token.is_document_marker >> Token.input_of));
 
 
 (* terms *)

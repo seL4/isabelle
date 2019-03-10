@@ -83,10 +83,9 @@ object Parse
     def tag: Parser[String] = $$$("%") ~> tag_name
     def tags: Parser[List[String]] = rep(tag)
 
-    def marker: Parser[String] =
-      ($$$(Symbol.marker) | $$$(Symbol.marker_decoded)) ~! embedded ^^ { case _ ~ x => x }
+    def marker: Parser[String] = token("marker", _.is_marker) ^^ (_.content)
 
-    def annotation: Parser[Unit] = rep(marker | tag) ^^ { case _ => () }
+    def annotation: Parser[Unit] = rep(tag | marker) ^^ { case _ => () }
 
 
     /* wrappers */

@@ -118,7 +118,7 @@ val err_prefix = "Rail lexical error: ";
 
 val scan_token =
   scan_space >> token Space ||
-  Comment.scan >> (fn (kind, ss) => token (Comment kind) ss)||
+  Comment.scan_inner >> (fn (kind, ss) => token (Comment kind) ss) ||
   Antiquote.scan_antiq >> antiq_token ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||

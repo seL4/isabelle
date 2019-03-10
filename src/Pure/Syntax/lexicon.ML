@@ -301,7 +301,7 @@ fun tokenize lex xids syms =
 
     val scan =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
-      Comment.scan >> (fn (kind, ss) => token (Comment kind) ss) ||
+      Comment.scan_inner >> (fn (kind, ss) => token (Comment kind) ss) ||
       Scan.max token_leq scan_lit scan_val ||
       scan_string >> token String ||
       scan_str >> token Str ||

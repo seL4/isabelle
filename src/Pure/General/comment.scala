@@ -14,12 +14,14 @@ object Comment
     val COMMENT = Value("formal comment")
     val CANCEL = Value("canceled text")
     val LATEX = Value("embedded LaTeX")
+    val MARKER = Value("document marker")
   }
 
   lazy val symbols: Set[Symbol.Symbol] =
     Set(Symbol.comment, Symbol.comment_decoded,
       Symbol.cancel, Symbol.cancel_decoded,
-      Symbol.latex, Symbol.latex_decoded)
+      Symbol.latex, Symbol.latex_decoded,
+      Symbol.marker, Symbol.marker_decoded)
 
   lazy val symbols_blanks: Set[Symbol.Symbol] =
     Set(Symbol.comment, Symbol.comment_decoded)

@@ -61,8 +61,8 @@ fun output_comment ctxt (kind, syms) =
       Symbol_Pos.cartouche_content syms
       |> output_symbols
       |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
-  | Comment.Latex =>
-      [Latex.symbols (Symbol_Pos.cartouche_content syms)])
+  | Comment.Latex => [Latex.symbols (Symbol_Pos.cartouche_content syms)]
+  | Comment.Marker => [])
 and output_comment_document ctxt (comment, syms) =
   (case comment of
     SOME kind => output_comment ctxt (kind, syms)
@@ -139,6 +139,7 @@ fun output_token ctxt tok =
   in
     (case Token.kind_of tok of
       Token.Comment NONE => []
+    | Token.Comment (SOME Comment.Marker) => []
     | Token.Command => output false "\\isacommand{" "}"
     | Token.Keyword =>
         if Symbol.is_ascii_identifier (Token.content_of tok)

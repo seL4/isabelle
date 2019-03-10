@@ -10,6 +10,7 @@ sig
   val setup: binding -> 'a context_parser -> ('a -> marker) -> theory -> theory
   val setup0: binding -> 'a parser -> ('a -> marker) -> theory -> theory
   val evaluate: Input.source -> marker
+  val legacy_tag: string -> Input.source
 end;
 
 structure Document_Marker: DOCUMENT_MARKER =
@@ -47,14 +48,14 @@ val parse_marker = Parse.token Parse.liberal_name ::: Parse.!!! Parse.args;
 
 fun evaluate input ctxt =
   let
-    val pos = Input.pos_of input;
-    val _ = Context_Position.report ctxt pos Markup.language_document_marker;
-
-    val syms = Input.source_explode input;
+    val body =
+      Input.source_explode input
+      |> drop_prefix (fn (s, _) => s = Symbol.marker)
+      |> Symbol_Pos.cartouche_content;
     val markers =
-      (case Token.read_body (Thy_Header.get_keywords' ctxt) (Parse.list parse_marker) syms of
+      (case Token.read_body (Thy_Header.get_keywords' ctxt) (Parse.list parse_marker) body of
         SOME res => res
-      | NONE => error ("Bad input" ^ Position.here pos));
+      | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)));
   in fold (fn src => #2 (check ctxt (Token.name_of_src src)) src) markers ctxt end;
 
 
@@ -76,5 +77,8 @@ val _ =
           val (arg, pos) = Input.source_content source;
           val _ = Context_Position.report ctxt pos Markup.words;
         in meta_data Markup.meta_description arg ctxt end));
+
+fun legacy_tag name =
+  Input.string (cartouche ("tag " ^ Symbol_Pos.quote_string_qq name));
 
 end;

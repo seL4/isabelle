@@ -493,10 +493,10 @@ object Symbol
     /* misc symbols */
 
     val newline_decoded = decode(newline)
-    val marker_decoded = decode(marker)
     val comment_decoded = decode(comment)
     val cancel_decoded = decode(cancel)
     val latex_decoded = decode(latex)
+    val marker_decoded = decode(marker)
     val open_decoded = decode(open)
     val close_decoded = decode(close)
 
@@ -579,23 +579,17 @@ object Symbol
     else str
 
 
-  /* marker */
-
-  val marker: Symbol = "\\<marker>"
-  def marker_decoded: Symbol = symbols.marker_decoded
-
-  lazy val is_marker: Set[Symbol] = Set(marker, marker_decoded)
-
-
   /* formal comments */
 
   val comment: Symbol = "\\<comment>"
   val cancel: Symbol = "\\<^cancel>"
   val latex: Symbol = "\\<^latex>"
+  val marker: Symbol = "\\<^marker>"
 
   def comment_decoded: Symbol = symbols.comment_decoded
   def cancel_decoded: Symbol = symbols.cancel_decoded
   def latex_decoded: Symbol = symbols.latex_decoded
+  def marker_decoded: Symbol = symbols.marker_decoded
 
 
   /* cartouches */

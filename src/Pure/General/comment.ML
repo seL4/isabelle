@@ -6,13 +6,15 @@ Formal comments.
 
 signature COMMENT =
 sig
-  datatype kind = Comment | Cancel | Latex
+  datatype kind = Comment | Cancel | Latex | Marker
   val markups: kind -> Markup.T list
   val is_symbol: Symbol.symbol -> bool
   val scan_comment: (kind * Symbol_Pos.T list) scanner
   val scan_cancel: (kind * Symbol_Pos.T list) scanner
   val scan_latex: (kind * Symbol_Pos.T list) scanner
-  val scan: (kind * Symbol_Pos.T list) scanner
+  val scan_marker: (kind * Symbol_Pos.T list) scanner
+  val scan_inner: (kind * Symbol_Pos.T list) scanner
+  val scan_outer: (kind * Symbol_Pos.T list) scanner
   val read_body: Symbol_Pos.T list -> (kind option * Symbol_Pos.T list) list
 end;
 
@@ -21,7 +23,7 @@ struct
 
 (* kinds *)
 
-datatype kind = Comment | Cancel | Latex;
+datatype kind = Comment | Cancel | Latex | Marker;
 
 val kinds =
   [(Comment,
@@ -32,7 +34,10 @@ val kinds =
       markups = [Markup.language_text true]}),
    (Latex,
      {symbol = Symbol.latex, blanks = false,
-      markups = [Markup.language_latex true, Markup.no_words]})];
+      markups = [Markup.language_latex true, Markup.no_words]}),
+   (Marker,
+     {symbol = Symbol.marker, blanks = false,
+      markups = [Markup.language_document_marker]})];
 
 val get_kind = the o AList.lookup (op =) kinds;
 val print_kind = quote o #symbol o get_kind;
@@ -69,7 +74,10 @@ in
 val scan_comment = scan_strict Comment;
 val scan_cancel = scan_strict Cancel;
 val scan_latex = scan_strict Latex;
-val scan = scan_comment || scan_cancel || scan_latex;
+val scan_marker = scan_strict Marker;
+
+val scan_inner = scan_comment || scan_cancel || scan_latex;
+val scan_outer = scan_inner || scan_marker;
 
 val scan_body =
   Scan.many1 (fn (s, _) => not (is_symbol s) andalso Symbol.not_eof s) >> pair NONE ||

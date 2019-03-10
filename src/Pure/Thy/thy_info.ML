@@ -451,9 +451,7 @@ fun use_thy name =
 
 fun script_thy pos txt thy =
   let
-    val trs =
-      Outer_Syntax.parse thy pos txt
-      |> map (Toplevel.modify_init (K thy));
+    val trs = Outer_Syntax.parse_text thy (K thy) pos txt;
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
     val end_state = fold (Toplevel.command_exception true) trs (Toplevel.init_toplevel ());
   in Toplevel.end_theory end_pos end_state end;

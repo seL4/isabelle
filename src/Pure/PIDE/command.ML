@@ -155,12 +155,7 @@ fun read keywords thy master_dir init blobs_info span =
         Position.here_list verbatim);
   in
     if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
-    else
-      (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs_info span) of
-        [tr] => Toplevel.modify_init init tr
-      | [] => Toplevel.ignored (#1 (Token.range_of span))
-      | _ => Toplevel.malformed (#1 core_range) "Exactly one command expected")
-      handle ERROR msg => Toplevel.malformed (#1 core_range) msg
+    else Outer_Syntax.parse_span thy init (resolve_files keywords master_dir blobs_info span)
   end;
 
 end;

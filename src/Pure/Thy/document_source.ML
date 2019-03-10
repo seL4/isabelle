@@ -17,7 +17,7 @@ sig
   val get_tags: Proof.context -> string list
   val update_tags: string -> Proof.context -> Proof.context
   val tags: string list parser
-  val annotation: Input.source list parser
+  val annotation: unit parser
 end;
 
 structure Document_Source: DOCUMENT_SOURCE =
@@ -62,13 +62,8 @@ val tags = Scan.repeat tag;
 
 (* semantic markers (operation on presentation context) *)
 
-val marker =
-  (improper -- Parse.$$$ "\<marker>" -- improper) |--
-    Parse.!!! (Parse.group (fn () => "document marker") (Parse.input Parse.embedded) --| blank_end);
+val marker = improper |-- Parse.document_marker --| blank_end;
 
-val tag_marker =  (*emulation of old-style tags*)
-  tag >> (fn name => Input.string ("tag " ^ Symbol_Pos.quote_string_qq name));
-
-val annotation = Scan.repeat (marker || tag_marker);
+val annotation = Scan.repeat (tag >> K () || marker >> K ()) >> K ();
 
 end;
