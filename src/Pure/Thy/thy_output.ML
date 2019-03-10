@@ -61,8 +61,8 @@ fun output_comment ctxt (kind, syms) =
       Symbol_Pos.cartouche_content syms
       |> output_symbols
       |> Latex.enclose_body "%\n\\isamarkupcancel{" "}"
-  | Comment.Latex =>
-      [Latex.symbols (Symbol_Pos.cartouche_content syms)])
+  | Comment.Latex => [Latex.symbols (Symbol_Pos.cartouche_content syms)]
+  | Comment.Marker => [])
 and output_comment_document ctxt (comment, syms) =
   (case comment of
     SOME kind => output_comment ctxt (kind, syms)
@@ -139,6 +139,7 @@ fun output_token ctxt tok =
   in
     (case Token.kind_of tok of
       Token.Comment NONE => []
+    | Token.Comment (SOME Comment.Marker) => []
     | Token.Command => output false "\\isacommand{" "}"
     | Token.Keyword =>
         if Symbol.is_ascii_identifier (Token.content_of tok)
@@ -202,7 +203,7 @@ fun present_token ctxt tok =
 
 (* command spans *)
 
-type command = string * Position.T * string list;   (*name, position, tags*)
+type command = string * Position.T;   (*name, position*)
 type source = (token * (string * int)) list;        (*token, markup flag, meta-comment depth*)
 
 datatype span = Span of command * (source * source * source * source) * bool;
@@ -276,18 +277,17 @@ fun make_command_tag options keywords =
       in {tag' = tag', active_tag' = active_tag'} end
   end;
 
-fun present_span thy command_tag span state state'
+fun present_span command_tag span state state'
     (tag_stack, active_tag, newline, latex, present_cont) =
   let
-    val ctxt' =
-      Toplevel.presentation_context state'
-        handle Toplevel.UNDEF => Proof_Context.get_global thy Context.PureN;
+    val ctxt' = Toplevel.presentation_context state';
     val present = fold (fn (tok, (flag, 0)) =>
         fold cons (present_token ctxt' tok)
         #> cons (Latex.string flag)
       | _ => I);
 
-    val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
+    val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
+    val cmd_tags = Document_Source.get_tags ctxt';
 
     val (tag, tags) = tag_stack;
     val {tag', active_tag'} =
@@ -371,19 +371,19 @@ fun present_thy options thy (segments: segment list) =
       Document_Source.improper |--
         Parse.position (Scan.one (fn tok =>
           Token.is_command tok andalso pred keywords (Token.content_of tok))) --
-      Scan.repeat Document_Source.tag --
-      Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
-        Parse.document_source --| Document_Source.improper_end)
-          >> (fn (((tok, pos'), tags), source) =>
-            let val name = Token.content_of tok
-            in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
+      (Document_Source.annotation |--
+        Parse.!!!! ((Document_Source.improper -- locale -- Document_Source.improper) |--
+          Parse.document_source --| Document_Source.improper_end))
+            >> (fn ((tok, pos'), source) =>
+              let val name = Token.content_of tok
+              in (SOME (name, pos'), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
-      Scan.one Token.is_command -- Document_Source.tags
-      >> (fn ((cmd_mod, cmd), tags) =>
+      Scan.one Token.is_command --| Document_Source.annotation
+      >> (fn (cmd_mod, cmd) =>
         map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
-          [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
+          [(SOME (Token.content_of cmd, Token.pos_of cmd),
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
@@ -442,14 +442,14 @@ fun present_thy options thy (segments: segment list) =
     val command_tag = make_command_tag options keywords;
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span thy command_tag span st st');
+      Toplevel.setmp_thread_position tr (present_span command_tag span st st');
 
     fun present _ [] = I
       | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
       ((NONE, []), NONE, true, [], (I, I))
-      |> present Toplevel.toplevel (spans ~~ command_results)
+      |> present (Toplevel.init_toplevel ()) (spans ~~ command_results)
       |> present_trailer
       |> rev
     else error "Messed-up outer syntax for presentation"

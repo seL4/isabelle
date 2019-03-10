@@ -155,12 +155,7 @@ fun read keywords thy master_dir init blobs_info span =
         Position.here_list verbatim);
   in
     if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
-    else
-      (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs_info span) of
-        [tr] => Toplevel.modify_init init tr
-      | [] => Toplevel.ignored (#1 (Token.range_of span))
-      | _ => Toplevel.malformed (#1 core_range) "Exactly one command expected")
-      handle ERROR msg => Toplevel.malformed (#1 core_range) msg
+    else Outer_Syntax.parse_span thy init (resolve_files keywords master_dir blobs_info span)
   end;
 
 end;
@@ -173,7 +168,10 @@ type eval_state = {failed: bool, command: Toplevel.transition, state: Toplevel.s
 fun init_eval_state opt_thy =
  {failed = false,
   command = Toplevel.empty,
-  state = (case opt_thy of NONE => Toplevel.toplevel | SOME thy => Toplevel.theory_toplevel thy)};
+  state =
+    (case opt_thy of
+      NONE => Toplevel.init_toplevel ()
+    | SOME thy => Toplevel.theory_toplevel thy)};
 
 datatype eval =
   Eval of
@@ -214,8 +212,12 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
 
 fun run keywords int tr st =
   if Future.proofs_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
-    (Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
-      (fn () => Toplevel.command_exception int tr st); ([], SOME st))
+    let
+      val (tr1, tr2) = Toplevel.fork_presentation tr;
+      val _ =
+        Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
+          (fn () => Toplevel.command_exception int tr1 st);
+    in Toplevel.command_errors int tr2 st end
   else Toplevel.command_errors int tr st;
 
 fun check_token_comments ctxt tok =
@@ -260,10 +262,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
     val errs2 =
       (case result of
         NONE => []
-      | SOME st' =>
-          (case try Toplevel.presentation_context st' of
-            NONE => []
-          | SOME ctxt' => check_span_comments ctxt' span tr));
+      | SOME st' => check_span_comments (Toplevel.presentation_context st') span tr);
     val errs = errs1 @ errs2;
     val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
   in

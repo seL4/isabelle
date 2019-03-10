@@ -312,7 +312,7 @@ val scan_sml =
 val scan_sml_antiq = scan_sml >> Antiquote.Text;
 
 val scan_ml_antiq =
-  Comment.scan >> (fn (kind, ss) => Antiquote.Text (token (Comment (SOME kind)) ss)) ||
+  Comment.scan_inner >> (fn (kind, ss) => Antiquote.Text (token (Comment (SOME kind)) ss)) ||
   Antiquote.scan_control >> Antiquote.Control ||
   Antiquote.scan_antiq >> Antiquote.Antiq ||
   scan_rat_antiq >> Antiquote.Antiq ||

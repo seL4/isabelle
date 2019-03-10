@@ -235,10 +235,12 @@ proof -
         with less.prems have "y \<noteq> 0" "z \<noteq> 0" by auto
         have normalized_factors_product:
           "{p. p dvd a * b \<and> normalize p = p} = 
-             (\<lambda>(x,y). x * y) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})" for a b
+             (\<lambda>(x,y). x * y) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
+          for a b
         proof safe
           fix p assume p: "p dvd a * b" "normalize p = p"
-          from dvd_productE[OF p(1)] guess x y . note xy = this
+          from p(1) obtain x y where xy: "p = x * y" "x dvd a" "y dvd b"
+            by (rule dvd_productE)
           define x' y' where "x' = normalize x" and "y' = normalize y"
           have "p = x' * y'"
             by (subst p(2) [symmetric]) (simp add: xy x'_def y'_def normalize_mult)

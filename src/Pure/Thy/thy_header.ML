@@ -175,10 +175,11 @@ val heading =
     Parse.command_name textN ||
     Parse.command_name txtN ||
     Parse.command_name text_rawN) --
-  Document_Source.tags -- Parse.!!! Parse.document_source;
+  (Document_Source.annotation |-- Parse.!!! Parse.document_source);
 
 val parse_header =
-  (Scan.repeat heading -- Parse.command_name theoryN -- Document_Source.tags) |-- Parse.!!! args;
+  (Scan.repeat heading -- Parse.command_name theoryN --| Document_Source.annotation)
+    |-- Parse.!!! args;
 
 fun read_tokens pos toks =
   filter Token.is_proper toks

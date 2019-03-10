@@ -80,7 +80,12 @@ object Parse
           tok.kind == Token.Kind.IDENT ||
           tok.kind == Token.Kind.STRING)
 
-    def tags: Parser[List[String]] = rep($$$("%") ~> tag_name)
+    def tag: Parser[String] = $$$("%") ~> tag_name
+    def tags: Parser[List[String]] = rep(tag)
+
+    def marker: Parser[String] = token("marker", _.is_marker) ^^ (_.content)
+
+    def annotation: Parser[Unit] = rep(tag | marker) ^^ { case _ => () }
 
 
     /* wrappers */

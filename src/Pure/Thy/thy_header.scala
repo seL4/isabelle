@@ -172,9 +172,9 @@ object Thy_Header
           command(TEXT) |
           command(TXT) |
           command(TEXT_RAW)) ~
-        tags ~! document_source
+        annotation ~! document_source
 
-      (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+      (rep(heading) ~ command(THEORY) ~ annotation) ~! args ^^ { case _ ~ x => x }
     }
   }
 

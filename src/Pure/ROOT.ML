@@ -208,6 +208,7 @@ ML_file "Isar/token.ML";
 ML_file "Isar/parse.ML";
 ML_file "Thy/document_source.ML";
 ML_file "Thy/thy_header.ML";
+ML_file "Thy/document_marker.ML";
 
 (*proof context*)
 ML_file "Isar/object_logic.ML";

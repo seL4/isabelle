@@ -575,7 +575,7 @@ fun init_theory deps node span =
     val imports = #imports header;
 
     fun maybe_eval_result eval = Command.eval_result_state eval
-      handle Fail _ => Toplevel.toplevel;
+      handle Fail _ => Toplevel.init_toplevel ();
 
     fun maybe_end_theory pos st = SOME (Toplevel.end_theory pos st)
       handle ERROR msg => (Output.error_message msg; NONE);
@@ -586,7 +586,7 @@ fun init_theory deps node span =
           NONE =>
             maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
-                NONE => Toplevel.toplevel
+                NONE => Toplevel.init_toplevel ()
               | SOME (_, eval) => maybe_eval_result eval)
         | some => some)
         |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));

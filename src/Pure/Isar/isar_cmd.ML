@@ -180,19 +180,23 @@ val skip_proof = local_skip_proof o global_skip_proof;
 
 structure Diag_State = Proof_Data
 (
-  type T = Toplevel.state;
-  fun init _ = Toplevel.toplevel;
+  type T = Toplevel.state option;
+  fun init _ = NONE;
 );
 
 fun ml_diag verbose source = Toplevel.keep (fn state =>
   let
     val opt_ctxt =
       try Toplevel.generic_theory_of state
-      |> Option.map (Context.proof_of #> Diag_State.put state);
+      |> Option.map (Context.proof_of #> Diag_State.put (SOME state));
     val flags = ML_Compiler.verbose verbose ML_Compiler.flags;
   in ML_Context.eval_source_in opt_ctxt flags source end);
 
-val diag_state = Diag_State.get;
+fun diag_state ctxt =
+  (case Diag_State.get ctxt of
+    SOME st => st
+  | NONE => Toplevel.init_toplevel ());
+
 val diag_goal = Proof.goal o Toplevel.proof_of o diag_state;
 
 val _ = Theory.setup

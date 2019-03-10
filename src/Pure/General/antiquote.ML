@@ -122,12 +122,12 @@ val scan_text =
   scan_nl || Scan.repeats1 scan_plain_txt @@@ scan_nl_opt;
 
 val scan_text_comments =
-  scan_nl || Scan.repeats1 (Comment.scan >> #2 || scan_plain_txt) @@@ scan_nl_opt;
+  scan_nl || Scan.repeats1 (Comment.scan_inner >> #2 || scan_plain_txt) @@@ scan_nl_opt;
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
   Symbol_Pos.scan_cartouche err_prefix ||
-  Comment.scan --
+  Comment.scan_inner --
     Symbol_Pos.!!! (fn () => err_prefix ^ "bad formal comment in antiquote body") Scan.fail
     >> K [] ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;

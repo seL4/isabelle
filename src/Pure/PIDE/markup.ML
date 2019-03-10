@@ -16,6 +16,11 @@ sig
   val serialN: string
   val serial_properties: int -> Properties.T
   val instanceN: string
+  val meta_titleN: string val meta_title: T
+  val meta_creatorN: string val meta_creator: T
+  val meta_contributorN: string val meta_contributor: T
+  val meta_dateN: string val meta_date: T
+  val meta_descriptionN: string val meta_description: T
   val languageN: string
   val symbolsN: string
   val delimitedN: string
@@ -32,6 +37,7 @@ sig
   val language_ML: bool -> T
   val language_SML: bool -> T
   val language_document: bool -> T
+  val language_document_marker: T
   val language_antiquotation: T
   val language_text: bool -> T
   val language_verbatim: bool -> T
@@ -282,6 +288,15 @@ fun serial_properties i = [(serialN, Value.print_int i)];
 val instanceN = "instance";
 
 
+(* meta data -- see http://dublincore.org/documents/dces *)
+
+val (meta_titleN, meta_title) = markup_elem "meta_title";
+val (meta_creatorN, meta_creator) = markup_elem "meta_creator";
+val (meta_contributorN, meta_contributor) = markup_elem "meta_contributor";
+val (meta_dateN, meta_date) = markup_elem "meta_date";
+val (meta_descriptionN, meta_description) = markup_elem "meta_description";
+
+
 (* embedded languages *)
 
 val languageN = "language";
@@ -314,6 +329,8 @@ val language_prop = language' {name = "prop", symbols = true, antiquotes = false
 val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
 val language_SML = language' {name = "SML", symbols = false, antiquotes = false};
 val language_document = language' {name = "document", symbols = false, antiquotes = true};
+val language_document_marker =
+  language {name = "document_marker", symbols = true, antiquotes = true, delimited = true};
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};

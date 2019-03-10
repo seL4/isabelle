@@ -18,6 +18,7 @@ sig
   val comment: symbol
   val cancel: symbol
   val latex: symbol
+  val marker: symbol
   val is_char: symbol -> bool
   val is_utf8: symbol -> bool
   val is_symbolic: symbol -> bool
@@ -120,6 +121,7 @@ end;
 val comment = "\<comment>";
 val cancel = "\<^cancel>";
 val latex = "\<^latex>";
+val marker = "\<^marker>";
 
 fun is_char s = size s = 1;
 

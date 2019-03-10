@@ -304,6 +304,9 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_informal_comment: Boolean = kind == Token.Kind.INFORMAL_COMMENT
   def is_formal_comment: Boolean = kind == Token.Kind.FORMAL_COMMENT
+  def is_marker: Boolean =
+    kind == Token.Kind.FORMAL_COMMENT &&
+    (source.startsWith(Symbol.marker) || source.startsWith(Symbol.marker_decoded))
   def is_comment: Boolean = is_informal_comment || is_formal_comment
   def is_ignored: Boolean = is_space || is_informal_comment
   def is_proper: Boolean = !is_space && !is_comment

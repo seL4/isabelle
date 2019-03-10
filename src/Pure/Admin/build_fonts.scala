@@ -30,6 +30,7 @@ object Build_Fonts
         0x203a,  // single guillemet
         0x204b,  // FOOTNOTE
         0x20ac,  // Euro
+        0x2710,  // pencil
         0xfb01,  // ligature fi
         0xfb02,  // ligature fl
         0xfffd,  // replacement character

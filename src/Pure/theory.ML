@@ -13,6 +13,7 @@ sig
   val local_setup: (Proof.context -> Proof.context) -> unit
   val install_pure: theory -> unit
   val get_pure: unit -> theory
+  val get_pure_bootstrap: unit -> theory
   val get_markup: theory -> Markup.T
   val check: {long: bool} -> Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
@@ -58,6 +59,11 @@ fun get_pure () =
   (case Single_Assignment.peek pure of
     SOME thy => thy
   | NONE => raise Fail "Theory Pure not present");
+
+fun get_pure_bootstrap () =
+  (case Single_Assignment.peek pure of
+    SOME thy => thy
+  | NONE => Context.the_global_context ());
 
 
 
