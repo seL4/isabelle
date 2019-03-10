@@ -155,7 +155,7 @@ definition real_of_integer :: "integer \<Rightarrow> real"
 code_printing
   constant real_of_integer \<rightharpoonup>
     (SML) "Real.fromInt"
-    and (OCaml) "Pervasives.float (Big'_int.int'_of'_big'_int (_))"
+    and (OCaml) "Pervasives.float/ (Big'_int.to'_int (_))"
 
 context
 begin

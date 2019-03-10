@@ -717,10 +717,10 @@ fun print_ocaml_module name decls body =
 
 val literals_ocaml = let
   fun numeral_ocaml k = if k < 0
-    then "(Big_int.minus_big_int " ^ numeral_ocaml (~ k) ^ ")"
+    then "(Z.neg " ^ numeral_ocaml (~ k) ^ ")"
     else if k <= 1073741823
-      then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
-      else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
+      then "(Z.of_int " ^ string_of_int k ^ ")"
+      else "(Z.of_string " ^ quote (string_of_int k) ^ ")"
 in Literals {
   literal_string = print_ocaml_string,
   literal_numeral = numeral_ocaml,
@@ -885,9 +885,11 @@ val _ = Theory.setup
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
-      check = {env_var = "ISABELLE_OCAML",
-        make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
-        make_command = fn _ => "\"$ISABELLE_OCAML\" -w pu -safe-string nums.cma ROOT.ocaml"},
+      check = {env_var = "ISABELLE_OPAM_ROOT",
+        make_destination = fn p => Path.append p (Path.explode "ROOT.ml")
+          (*extension demanded by OCaml compiler*),
+        make_command = fn _ =>
+          "\"$ISABELLE_ROOT/lib/scripts/ocamlexec\" ocamlfind ocamlopt -w pu -package zarith -linkpkg ROOT.ml"},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))
@@ -904,6 +906,6 @@ val _ = Theory.setup
       "sig", "struct", "then", "to", "true", "try", "type", "val",
       "virtual", "when", "while", "with"
     ]
-  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod", "Big_int"]);
+  #> fold (Code_Target.add_reserved target_OCaml) ["failwith", "mod", "Z"]);
 
 end; (*struct*)

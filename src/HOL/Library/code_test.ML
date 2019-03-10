@@ -442,7 +442,7 @@ fun evaluate_in_smlnj ctxt =
 (* driver for OCaml *)
 
 val ocamlN = "OCaml"
-val ISABELLE_OCAMLC = "ISABELLE_OCAMLC"
+val ISABELLE_OPAM_ROOT = "ISABELLE_OPAM_ROOT"
 
 fun mk_driver_ocaml _ path _ value_name =
   let
@@ -467,9 +467,9 @@ fun mk_driver_ocaml _ path _ value_name =
 
     val compiled_path = Path.append path (Path.basic "test")
     val compile_cmd =
-      "\"$ISABELLE_OCAMLC\" -w pu -o " ^ File.bash_path compiled_path ^
-      " -I " ^ File.bash_path path ^
-      " nums.cma " ^ File.bash_path code_path ^ " " ^ File.bash_path driver_path
+      "\"$ISABELLE_ROOT/lib/scripts/ocamlexec\" ocamlfind ocamlopt -w pu -package zarith -linkpkg " ^
+      " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path path ^ " " ^
+      File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
     val run_cmd = File.bash_path compiled_path
   in
@@ -478,7 +478,7 @@ fun mk_driver_ocaml _ path _ value_name =
   end
 
 fun evaluate_in_ocaml ctxt =
-  evaluate mk_driver_ocaml (SOME (ISABELLE_OCAMLC, "ocamlc executable")) ocamlN ctxt
+  evaluate mk_driver_ocaml (SOME (ISABELLE_OPAM_ROOT, "ocaml opam environment")) ocamlN ctxt
 
 
 (* driver for GHC *)

@@ -673,7 +673,7 @@ code_printing
     (SML) "!(String.implode/ o List.map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
     and (OCaml) "!(let xs = _
       and chr k =
-        let l = Big'_int.int'_of'_big'_int k
+        let l = Z.to'_int k
           in if 0 <= l && l < 128
           then Char.chr l
           else failwith \"Non-ASCII character in literal\"
@@ -683,7 +683,7 @@ code_printing
 | constant String.asciis_of_literal \<rightharpoonup>
     (SML) "!(List.map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end) /o String.explode)"
     and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (String.get s i) in
-      if k < 128 then Big'_int.big'_int'_of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (String.length s - 1) [])"
+      if k < 128 then Z.of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (String.length s - 1) [])"
     and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
     and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; if (k < 128) BigInt(k) else sys.error(\"Non-ASCII character in literal\") }))"
 | class_instance String.literal :: equal \<rightharpoonup>

@@ -2735,7 +2735,7 @@ end
 
 code_printing
   constant "gcd :: integer \<Rightarrow> _" \<rightharpoonup>
-    (OCaml) "Big'_int.gcd'_big'_int"
+    (OCaml) "!(fun k l -> if Z.equal k Z.zero then/ Z.abs l else if Z.equal/ l Z.zero then Z.abs k else Z.gcd k l)"
   and (Haskell) "Prelude.gcd"
   and (Scala) "_.gcd'((_)')"
   \<comment> \<open>There is no gcd operation in the SML standard library, so no code setup for SML\<close>

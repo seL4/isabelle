@@ -422,8 +422,9 @@ fun check_code_for ctxt target_name strict args program all_public syms =
         val _ = export_result ctxt (SOME (SOME destination)) 80
           (invoke_serializer ctxt target_name generatedN args program all_public syms)
         val cmd = make_command generatedN;
+        val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
       in
-        if Isabelle_System.bash ("cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
+        if Isabelle_System.bash context_cmd <> 0
         then error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
         else ()
       end;

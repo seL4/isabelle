@@ -123,6 +123,15 @@ output, use "file \<open>\<close>". Minor INCOMPATIBILITY.
 * Code generation for OCaml: proper strings are used for literals.
 Minor INCOMPATIBILITY.
 
+* Code generation for OCaml: Zarith superseedes Nums as library for
+integer arithmetic.  Use the following incantation to obtain a suitable
+component setup:
+
+  isabelle ocaml_setup
+  isabelle ocaml_opam install zarith
+
+Minor INCOMPATIBILITY
+
 * Code generation for Haskell: code includes for Haskell must contain
 proper module frame, nothing is added magically any longer.
 INCOMPATIBILITY.

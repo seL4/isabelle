@@ -458,13 +458,13 @@ text \<open>OCaml\<close>
 
 code_printing type_constructor array \<rightharpoonup> (OCaml) "_/ array"
 code_printing constant Array \<rightharpoonup> (OCaml) "failwith/ \"bare Array\""
-code_printing constant Array.new' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.make/ (Big'_int.int'_of'_big'_int/ _)/ _)"
+code_printing constant Array.new' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.make/ (Z.to'_int/ _)/ _)"
 code_printing constant Array.of_list \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.of'_list/ _)"
 code_printing constant Array.make' \<rightharpoonup> (OCaml)
-  "(fun/ ()/ ->/ Array.init/ (Big'_int.int'_of'_big'_int/ _)/ (fun k'_ ->/ _/ (Big'_int.big'_int'_of'_int/ k'_)))"
-code_printing constant Array.len' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))"
-code_printing constant Array.nth' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))"
-code_printing constant Array.upd' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)"
+  "(fun/ ()/ ->/ Array.init/ (Z.to'_int/ _)/ (fun k'_ ->/ _/ (Z.of'_int/ k'_)))"
+code_printing constant Array.len' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Z.of'_int/ (Array.length/ _))"
+code_printing constant Array.nth' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.get/ _/ (Z.to'_int/ _))"
+code_printing constant Array.upd' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.set/ _/ (Z.to'_int/ _)/ _)"
 code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (OCaml) infixl 4 "="
 
 code_reserved OCaml Array

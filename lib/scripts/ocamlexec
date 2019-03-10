@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius; Florian Haftmann
+#
+# Invoke command in OCaml environment setup by "opam".
+
+if [ -d "$ISABELLE_OPAM_ROOT" ]
+then
+  isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- "$@"
+else
+  echo "Cannot execute: missing Isabelle OCaml setup" >&2
+  exit 127
+fi
