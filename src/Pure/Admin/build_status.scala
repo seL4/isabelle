@@ -483,12 +483,12 @@ plot [] """ + range + " " +
 
               val heap_plots =
                 List(
-                  """ using 1:6 smooth sbezier title "heap maximum (smooth)" """,
-                  """ using 1:6 smooth csplines title "heap maximum" """,
-                  """ using 1:7 smooth sbezier title "heap average (smooth)" """,
-                  """ using 1:7 smooth csplines title "heap average" """,
-                  """ using 1:8 smooth sbezier title "heap stored (smooth)" """,
-                  """ using 1:8 smooth csplines title "heap stored" """)
+                  """ using 1:10 smooth sbezier title "heap maximum (smooth)" """,
+                  """ using 1:10 smooth csplines title "heap maximum" """,
+                  """ using 1:11 smooth sbezier title "heap average (smooth)" """,
+                  """ using 1:11 smooth csplines title "heap average" """,
+                  """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
+                  """ using 1:12 smooth csplines title "heap stored" """)
 
               def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image =
               {
