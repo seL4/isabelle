@@ -70,6 +70,11 @@ val _ =
      setup0 (Binding.make ("creator", \<^here>)) Parse.embedded (meta_data Markup.meta_creator) #>
      setup0 (Binding.make ("contributor", \<^here>)) Parse.embedded (meta_data Markup.meta_contributor) #>
      setup0 (Binding.make ("date", \<^here>)) Parse.embedded (meta_data Markup.meta_date) #>
-     setup0 (Binding.make ("description", \<^here>)) Parse.embedded (meta_data Markup.meta_description));
+     setup0 (Binding.make ("description", \<^here>)) (Parse.input Parse.embedded)
+      (fn source => fn ctxt =>
+        let
+          val (arg, pos) = Input.source_content source;
+          val _ = Context_Position.report ctxt pos Markup.words;
+        in meta_data Markup.meta_description arg ctxt end));
 
 end;
