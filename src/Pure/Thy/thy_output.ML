@@ -277,19 +277,17 @@ fun make_command_tag options keywords =
       in {tag' = tag', active_tag' = active_tag'} end
   end;
 
-fun present_span thy command_tag span state state'
+fun present_span command_tag span state state'
     (tag_stack, active_tag, newline, latex, present_cont) =
   let
-    val ctxt' =
-      Toplevel.presentation_context state'
-        handle Toplevel.UNDEF => Proof_Context.get_global thy Context.PureN;
+    val ctxt' = Toplevel.presentation_context state';
     val present = fold (fn (tok, (flag, 0)) =>
         fold cons (present_token ctxt' tok)
         #> cons (Latex.string flag)
       | _ => I);
 
     val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
-    val cmd_tags = Document_Source.get_tags (Toplevel.presentation_context state');
+    val cmd_tags = Document_Source.get_tags ctxt';
 
     val (tag, tags) = tag_stack;
     val {tag', active_tag'} =
@@ -444,7 +442,7 @@ fun present_thy options thy (segments: segment list) =
     val command_tag = make_command_tag options keywords;
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr (present_span thy command_tag span st st');
+      Toplevel.setmp_thread_position tr (present_span command_tag span st st');
 
     fun present _ [] = I
       | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;

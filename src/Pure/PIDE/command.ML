@@ -262,10 +262,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
     val errs2 =
       (case result of
         NONE => []
-      | SOME st' =>
-          (case try Toplevel.presentation_context st' of
-            NONE => []
-          | SOME ctxt' => check_span_comments ctxt' span tr));
+      | SOME st' => check_span_comments (Toplevel.presentation_context st') span tr);
     val errs = errs1 @ errs2;
     val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
   in
