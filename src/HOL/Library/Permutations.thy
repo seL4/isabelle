@@ -112,8 +112,7 @@ lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow>
 lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
   by (simp add: Ball_def permutes_def) metis
 
-(* Next three lemmas contributed by Lukas Bulwahn *)
-lemma permutes_bij_inv_into:
+lemma permutes_bij_inv_into: \<^marker>\<open>contributor \<open>Lukas Bulwahn\<close>\<close>
   fixes A :: "'a set"
     and B :: "'b set"
   assumes "p permutes A"
@@ -132,12 +131,12 @@ next
   then show "(if x \<in> B then f (p (inv_into A f x)) else x) = x" by auto
 qed
 
-lemma permutes_image_mset:
+lemma permutes_image_mset: \<^marker>\<open>contributor \<open>Lukas Bulwahn\<close>\<close>
   assumes "p permutes A"
   shows "image_mset p (mset_set A) = mset_set A"
   using assms by (metis image_mset_mset_set bij_betw_imp_inj_on permutes_imp_bij permutes_image)
 
-lemma permutes_implies_image_mset_eq:
+lemma permutes_implies_image_mset_eq: \<^marker>\<open>contributor \<open>Lukas Bulwahn\<close>\<close>
   assumes "p permutes A" "\<And>x. x \<in> A \<Longrightarrow> f x = f' (p x)"
   shows "image_mset f' (mset_set A) = image_mset f (mset_set A)"
 proof -

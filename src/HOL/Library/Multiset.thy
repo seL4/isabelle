@@ -2099,8 +2099,7 @@ lemma mset_set_eq_iff[simp]:
   shows "mset_set A = mset_set B \<longleftrightarrow> A = B"
   using assms by (fastforce dest: finite_set_mset_mset_set)
 
-(* Contributed by Lukas Bulwahn *)
-lemma image_mset_mset_set:
+lemma image_mset_mset_set: \<^marker>\<open>contributor \<open>Lukas Bulwahn\<close>\<close>
   assumes "inj_on f A"
   shows "image_mset f (mset_set A) = mset_set (f ` A)"
 proof cases

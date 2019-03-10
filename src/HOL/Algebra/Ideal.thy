@@ -513,13 +513,11 @@ proof -
 qed
 
 
-(* Next lemma contributed by Paulo Emílio de Vilhena. *)
-
 text \<open>This next lemma would be trivial if placed in a theory that imports QuotRing,
       but it makes more sense to have it here (easier to find and coherent with the
       previous developments).\<close>
 
-lemma (in cring) cgenideal_prod:
+lemma (in cring) cgenideal_prod: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "(PIdl a) <#> (PIdl b) = PIdl (a \<otimes> b)"
 proof -

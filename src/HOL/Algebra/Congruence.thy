@@ -270,9 +270,7 @@ lemma closure_ofE2:
   using assms by (meson closure_of_memE elemE)
 
 
-(* Lemmas by Paulo Emílio de Vilhena *)
-
-lemma (in partition) equivalence_from_partition:
+lemma (in partition) equivalence_from_partition: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "equivalence \<lparr> carrier = A, eq = (\<lambda>x y. y \<in> (THE b. b \<in> B \<and> x \<in> b))\<rparr>"
     unfolding partition_def equivalence_def
 proof (auto)
@@ -285,10 +283,10 @@ proof (auto)
     using unique_class by (metis (mono_tags, lifting) the_equality)
 qed
 
-lemma (in partition) partition_coverture: "\<Union>B = A"
+lemma (in partition) partition_coverture: "\<Union>B = A" \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   by (meson Sup_le_iff UnionI unique_class incl subsetI subset_antisym)
 
-lemma (in partition) disjoint_union:
+lemma (in partition) disjoint_union: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "b1 \<in> B" "b2 \<in> B"
     and "b1 \<inter> b2 \<noteq> {}"
   shows "b1 = b2"
@@ -299,7 +297,7 @@ proof (rule ccontr)
   thus False using unique_class \<open>b1 \<noteq> b2\<close> assms(1) assms(2) by blast
 qed
 
-lemma partitionI:
+lemma partitionI: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   fixes A :: "'a set" and B :: "('a set) set"
   assumes "\<Union>B = A"
     and "\<And>b1 b2. \<lbrakk> b1 \<in> B; b2 \<in> B \<rbrakk> \<Longrightarrow> b1 \<inter> b2 \<noteq> {} \<Longrightarrow> b1 = b2"
@@ -316,7 +314,7 @@ next
   show "\<And>b. b \<in> B \<Longrightarrow> b \<subseteq> A" using assms(1) by blast
 qed
 
-lemma (in partition) remove_elem:
+lemma (in partition) remove_elem: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "b \<in> B"
   shows "partition (A - b) (B - {b})"
 proof
@@ -327,7 +325,7 @@ next
     using assms unique_class incl partition_axioms partition_coverture by fastforce
 qed
 
-lemma disjoint_sum:
+lemma disjoint_sum: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "\<lbrakk> finite B; finite A; partition A B\<rbrakk> \<Longrightarrow> (\<Sum>b\<in>B. \<Sum>a\<in>b. f a) = (\<Sum>a\<in>A. f a)"
 proof (induct arbitrary: A set: finite)
   case empty thus ?case using partition.unique_class by fastforce
@@ -343,7 +341,7 @@ next
     by (metis add.commute insert_iff partition.incl sum.subset_diff)
 qed
 
-lemma (in partition) disjoint_sum:
+lemma (in partition) disjoint_sum: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "finite A"
   shows "(\<Sum>b\<in>B. \<Sum>a\<in>b. f a) = (\<Sum>a\<in>A. f a)"
 proof -
@@ -352,20 +350,20 @@ proof -
   thus ?thesis using disjoint_sum assms partition_axioms by blast
 qed
 
-lemma (in equivalence) set_eq_insert_aux:
+lemma (in equivalence) set_eq_insert_aux: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "A \<subseteq> carrier S"
     and "x \<in> carrier S" "x' \<in> carrier S" "x .= x'"
     and "y \<in> insert x A"
   shows "y .\<in> insert x' A"
   by (metis assms(1) assms(4) assms(5) contra_subsetD elemI elem_exact insert_iff)
 
-corollary (in equivalence) set_eq_insert:
+corollary (in equivalence) set_eq_insert: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "A \<subseteq> carrier S"
     and "x \<in> carrier S" "x' \<in> carrier S" "x .= x'"
   shows "insert x A {.=} insert x' A"
   by (meson set_eqI assms set_eq_insert_aux sym equivalence_axioms)
 
-lemma (in equivalence) set_eq_pairI:
+lemma (in equivalence) set_eq_pairI: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes xx': "x .= x'"
     and carr: "x \<in> carrier S" "x' \<in> carrier S" "y \<in> carrier S"
   shows "{x, y} {.=} {x', y}"

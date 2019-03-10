@@ -181,8 +181,7 @@ lemma (in ring_hom_ring) nat_pow_hom:
   by (induct n) (auto)
 
 
-(*contributed by Paulo Emílio de Vilhena*)
-lemma (in ring_hom_ring) inj_on_domain:
+lemma (in ring_hom_ring) inj_on_domain: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "inj_on h (carrier R)"
   shows "domain S \<Longrightarrow> domain R"
 proof -

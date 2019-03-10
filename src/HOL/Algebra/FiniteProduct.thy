@@ -517,9 +517,7 @@ next
     using finprod_Suc[of f k] assms atMost_Suc lessThan_Suc_atMost by simp
 qed
 
-(* The following two were contributed by Jeremy Avigad. *)
-
-lemma finprod_reindex:
+lemma finprod_reindex: \<^marker>\<open>contributor \<open>Jeremy Avigad\<close>\<close>
   "f \<in> (h ` A) \<rightarrow> carrier G \<Longrightarrow>
         inj_on h A \<Longrightarrow> finprod G f (h ` A) = finprod G (\<lambda>x. f (h x)) A"
 proof (induct A rule: infinite_finite_induct)
@@ -529,7 +527,7 @@ proof (induct A rule: infinite_finite_induct)
   with \<open>\<not> finite A\<close> show ?case by simp
 qed (auto simp add: Pi_def)
 
-lemma finprod_const:
+lemma finprod_const: \<^marker>\<open>contributor \<open>Jeremy Avigad\<close>\<close>
   assumes a [simp]: "a \<in> carrier G"
     shows "finprod G (\<lambda>x. a) A = a [^] card A"
 proof (induct A rule: infinite_finite_induct)
@@ -541,9 +539,7 @@ proof (induct A rule: infinite_finite_induct)
   qed auto
 qed auto
 
-(* The following lemma was contributed by Jesus Aransay. *)
-
-lemma finprod_singleton:
+lemma finprod_singleton: \<^marker>\<open>contributor \<open>Jesus Aransay\<close>\<close>
   assumes i_in_A: "i \<in> A" and fin_A: "finite A" and f_Pi: "f \<in> A \<rightarrow> carrier G"
   shows "(\<Otimes>j\<in>A. if i = j then f j else \<one>) = f i"
   using i_in_A finprod_insert [of "A - {i}" i "(\<lambda>j. if i = j then f j else \<one>)"]

@@ -425,8 +425,7 @@ proof
   thus "?L \<subseteq> ?R" by auto
 qed
 
-(* Next three lemmas contributed by Paulo Emílio de Vilhena*)
-lemma generate_pow_on_finite_carrier:
+lemma generate_pow_on_finite_carrier: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "finite (carrier G)" and "a \<in> carrier G"
   shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: nat set) }"
 proof
@@ -469,7 +468,7 @@ next
   qed
 qed
 
-lemma generate_pow_card:
+lemma generate_pow_card: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "finite (carrier G)" and "a \<in> carrier G"
   shows "ord a = card (generate G { a })"
 proof -
@@ -481,7 +480,7 @@ qed
 
 (* This lemma was a suggestion of generalization given by Jeremy Avigad
    at the end of the theory FiniteProduct. *)
-corollary power_order_eq_one_group_version:
+corollary power_order_eq_one_group_version: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "finite (carrier G)" and "a \<in> carrier G"
   shows "a [^] (order G) = \<one>"
 proof -

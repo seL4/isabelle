@@ -532,18 +532,16 @@ next
   case (insert x F) then show ?case by (simp add: Pi_def r_distr)
 qed
 
-(* ************************************************************************** *)
-(* Contributed by Paulo E. de Vilhena.                                        *)
 
 text \<open>A quick detour\<close>
 
-lemma add_pow_int_ge: "(k :: int) \<ge> 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub>R\<^esub> a = [ nat k ] \<cdot>\<^bsub>R\<^esub> a"
+lemma add_pow_int_ge: "(k :: int) \<ge> 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub>R\<^esub> a = [ nat k ] \<cdot>\<^bsub>R\<^esub> a" \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   by (simp add: add_pow_def int_pow_def nat_pow_def)
 
-lemma add_pow_int_lt: "(k :: int) < 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub>R\<^esub> a = \<ominus>\<^bsub>R\<^esub> ([ nat (- k) ] \<cdot>\<^bsub>R\<^esub> a)"
+lemma add_pow_int_lt: "(k :: int) < 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub>R\<^esub> a = \<ominus>\<^bsub>R\<^esub> ([ nat (- k) ] \<cdot>\<^bsub>R\<^esub> a)" \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   by (simp add: int_pow_def nat_pow_def a_inv_def add_pow_def)
 
-corollary (in semiring) add_pow_ldistr:
+corollary (in semiring) add_pow_ldistr: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "([(k :: nat)] \<cdot> a) \<otimes> b = [k] \<cdot> (a \<otimes> b)"
 proof -
@@ -556,7 +554,7 @@ proof -
   finally show ?thesis .
 qed
 
-corollary (in semiring) add_pow_rdistr:
+corollary (in semiring) add_pow_rdistr: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "a \<otimes> ([(k :: nat)] \<cdot> b) = [k] \<cdot> (a \<otimes> b)"
 proof -
@@ -570,7 +568,7 @@ proof -
 qed
 
 (* For integers, we need the uniqueness of the additive inverse *)
-lemma (in ring) add_pow_ldistr_int:
+lemma (in ring) add_pow_ldistr_int: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "([(k :: int)] \<cdot> a) \<otimes> b = [k] \<cdot> (a \<otimes> b)"
 proof (cases "k \<ge> 0")
@@ -582,7 +580,7 @@ next
           add_pow_ldistr[OF assms, of "nat (- k)"] assms l_minus by auto
 qed
 
-lemma (in ring) add_pow_rdistr_int:
+lemma (in ring) add_pow_rdistr_int: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "a \<otimes> ([(k :: int)] \<cdot> b) = [k] \<cdot> (a \<otimes> b)"
 proof (cases "k \<ge> 0")
@@ -801,9 +799,7 @@ declare ring_hom_cring.hom_finprod [simp]
 lemma id_ring_hom [simp]: "id \<in> ring_hom R R"
   by (auto intro!: ring_hom_memI)
 
-(* Next lemma contributed by Paulo Emílio de Vilhena. *)
-
-lemma ring_hom_trans:
+lemma ring_hom_trans: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "\<lbrakk> f \<in> ring_hom R S; g \<in> ring_hom S T \<rbrakk> \<Longrightarrow> g \<circ> f \<in> ring_hom R T"
   by (rule ring_hom_memI) (auto simp add: ring_hom_closed ring_hom_mult ring_hom_add ring_hom_one)
 

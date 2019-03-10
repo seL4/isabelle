@@ -755,8 +755,7 @@ lemma (in monoid_cancel) prime_cong [trans]:
   using assms
   by (auto simp: prime_def assoc_unit_l) (metis pp' associated_sym divides_cong_l)
 
-(*by Paulo Emílio de Vilhena*)
-lemma (in comm_monoid_cancel) prime_irreducible:
+lemma (in comm_monoid_cancel) prime_irreducible: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "prime G p"
   shows "irreducible G p"
 proof (rule irreducibleI)

@@ -501,23 +501,23 @@ lemma (in group) inj_on_multc: "c \<in> carrier G \<Longrightarrow> inj_on (\<la
 lemma (in group) inj_on_cmult: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. c \<otimes> x) (carrier G)"
   by(simp add: inj_on_def)
 
-(*Following subsection contributed by Martin Baillon*)
+
 subsection \<open>Submonoids\<close>
 
-locale submonoid =
+locale submonoid = \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   fixes H and G (structure)
   assumes subset: "H \<subseteq> carrier G"
     and m_closed [intro, simp]: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> H"
     and one_closed [simp]: "\<one> \<in> H"
 
-lemma (in submonoid) is_submonoid:
+lemma (in submonoid) is_submonoid: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   "submonoid H G" by (rule submonoid_axioms)
 
-lemma (in submonoid) mem_carrier [simp]:
+lemma (in submonoid) mem_carrier [simp]: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   "x \<in> H \<Longrightarrow> x \<in> carrier G"
   using subset by blast
 
-lemma (in submonoid) submonoid_is_monoid [intro]:
+lemma (in submonoid) submonoid_is_monoid [intro]: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "monoid G"
   shows "monoid (G\<lparr>carrier := H\<rparr>)"
 proof -
@@ -526,11 +526,11 @@ proof -
     by (simp add: monoid_def m_assoc)
 qed
 
-lemma submonoid_nonempty:
+lemma submonoid_nonempty: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   "~ submonoid {} G"
   by (blast dest: submonoid.one_closed)
 
-lemma (in submonoid) finite_monoid_imp_card_positive:
+lemma (in submonoid) finite_monoid_imp_card_positive: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   "finite (carrier G) ==> 0 < card H"
 proof (rule classical)
   assume "finite (carrier G)" and a: "~ 0 < card H"
@@ -540,7 +540,7 @@ proof (rule classical)
 qed
 
 
-lemma (in monoid) monoid_incl_imp_submonoid :
+lemma (in monoid) monoid_incl_imp_submonoid : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "H \<subseteq> carrier G"
 and "monoid (G\<lparr>carrier := H\<rparr>)"
 shows "submonoid H G"
@@ -552,7 +552,7 @@ proof (intro submonoid.intro[OF assms(1)])
   show "\<one> \<in> H " using monoid.one_closed[OF assms(2)] assms by simp
 qed
 
-lemma (in monoid) inv_unique':
+lemma (in monoid) inv_unique': \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "x \<in> carrier G" "y \<in> carrier G"
   shows "\<lbrakk> x \<otimes> y = \<one>; y \<otimes> x = \<one> \<rbrakk> \<Longrightarrow> y = inv x"
 proof -
@@ -563,7 +563,7 @@ proof -
     using inv_unique[OF l_inv Units_r_inv[OF unit] assms Units_inv_closed[OF unit]] .
 qed
 
-lemma (in monoid) m_inv_monoid_consistent: (* contributed by Paulo *)
+lemma (in monoid) m_inv_monoid_consistent: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "x \<in> Units (G \<lparr> carrier := H \<rparr>)" and "submonoid H G"
   shows "inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> x = inv x"
 proof -
@@ -620,7 +620,7 @@ lemma (in group) m_inv_consistent [simp]:
   shows "inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> x = inv x"
   using assms m_inv_monoid_consistent[OF _ subgroup_is_submonoid] subgroup_Units[of H] by auto
 
-lemma (in group) int_pow_consistent: (* by Paulo *)
+lemma (in group) int_pow_consistent: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup H G" "x \<in> H"
   shows "x [^] (n :: int) = x [^]\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> n"
 proof (cases)
@@ -687,19 +687,17 @@ lemma subgroup_nonempty:
 lemma (in subgroup) finite_imp_card_positive: "finite (carrier G) \<Longrightarrow> 0 < card H"
   using subset one_closed card_gt_0_iff finite_subset by blast
 
-(*Following 3 lemmas contributed by Martin Baillon*)
-
-lemma (in subgroup) subgroup_is_submonoid :
+lemma (in subgroup) subgroup_is_submonoid : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   "submonoid H G"
   by (simp add: submonoid.intro subset)
 
-lemma (in group) submonoid_subgroupI :
+lemma (in group) submonoid_subgroupI : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "submonoid H G"
     and "\<And>a. a \<in> H \<Longrightarrow> inv a \<in> H"
   shows "subgroup H G"
   by (metis assms subgroup_def submonoid_def)
 
-lemma (in group) group_incl_imp_subgroup:
+lemma (in group) group_incl_imp_subgroup: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "H \<subseteq> carrier G"
     and "group (G\<lparr>carrier := H\<rparr>)"
   shows "subgroup H G"
@@ -914,9 +912,7 @@ lemma iso_same_card: "G \<cong> H \<Longrightarrow> card (carrier G) = card (car
   using bij_betw_same_card  unfolding is_iso_def iso_def by auto
 
 
-(* Next four lemmas contributed by Paulo. *)
-
-lemma (in monoid) hom_imp_img_monoid:
+lemma (in monoid) hom_imp_img_monoid: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
   shows "monoid (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)" (is "monoid ?h_img")
 proof (rule monoidI)
@@ -953,7 +949,7 @@ next
   finally show "(x \<otimes>\<^bsub>(?h_img)\<^esub> y) \<otimes>\<^bsub>(?h_img)\<^esub> z = x \<otimes>\<^bsub>(?h_img)\<^esub> (y \<otimes>\<^bsub>(?h_img)\<^esub> z)" .
 qed
 
-lemma (in group) hom_imp_img_group:
+lemma (in group) hom_imp_img_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
   shows "group (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)" (is "group ?h_img")
 proof -
@@ -977,7 +973,7 @@ proof -
   qed
 qed
 
-lemma (in group) iso_imp_group:
+lemma (in group) iso_imp_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "G \<cong> H" and "monoid H"
   shows "group H"
 proof -
@@ -1027,7 +1023,7 @@ proof -
   thus ?thesis unfolding group_def group_axioms_def using assms(2) by simp
 qed
 
-corollary (in group) iso_imp_img_group:
+corollary (in group) iso_imp_img_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> iso G H"
   shows "group (H \<lparr> one := h \<one> \<rparr>)"
 proof -
@@ -1131,20 +1127,17 @@ proof -
   with assms show ?thesis by (simp del: H.r_inv H.Units_r_inv)
 qed
 
-(* Contributed by Joachim Breitner *)
-lemma (in group) int_pow_is_hom:
+lemma (in group) int_pow_is_hom: \<^marker>\<open>contributor \<open>Joachim Breitner\<close>\<close>
   "x \<in> carrier G \<Longrightarrow> (([^]) x) \<in> hom \<lparr> carrier = UNIV, mult = (+), one = 0::int \<rparr> G "
   unfolding hom_def by (simp add: int_pow_mult)
 
-(* Next six lemmas contributed by Paulo. *)
-
-lemma (in group_hom) img_is_subgroup: "subgroup (h ` (carrier G)) H"
+lemma (in group_hom) img_is_subgroup: "subgroup (h ` (carrier G)) H" \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   apply (rule subgroupI)
   apply (auto simp add: image_subsetI)
   apply (metis G.inv_closed hom_inv image_iff)
   by (metis G.monoid_axioms hom_mult image_eqI monoid.m_closed)
 
-lemma (in group_hom) subgroup_img_is_subgroup:
+lemma (in group_hom) subgroup_img_is_subgroup: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup I G"
   shows "subgroup (h ` I) H"
 proof -
@@ -1158,7 +1151,7 @@ proof -
     using group_hom.img_is_subgroup[of "G \<lparr> carrier := I \<rparr>" H h] by simp
 qed
 
-lemma (in group_hom) induced_group_hom:
+lemma (in group_hom) induced_group_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup I G"
   shows "group_hom (G \<lparr> carrier := I \<rparr>) (H \<lparr> carrier := h ` I \<rparr>) h"
 proof -
@@ -1170,18 +1163,18 @@ proof -
           subgroup.subgroup_is_group[OF subgroup_img_is_subgroup[OF assms] is_group] by simp
 qed
 
-lemma (in group) canonical_inj_is_hom:
+lemma (in group) canonical_inj_is_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup H G"
   shows "group_hom (G \<lparr> carrier := H \<rparr>) G id"
   unfolding group_hom_def group_hom_axioms_def hom_def
   using subgroup.subgroup_is_group[OF assms is_group]
         is_group subgroup.subset[OF assms] by auto
 
-lemma (in group_hom) nat_pow_hom:
+lemma (in group_hom) nat_pow_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "x \<in> carrier G \<Longrightarrow> h (x [^] (n :: nat)) = (h x) [^]\<^bsub>H\<^esub> n"
   by (induction n) auto
 
-lemma (in group_hom) int_pow_hom:
+lemma (in group_hom) int_pow_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "x \<in> carrier G \<Longrightarrow> h (x [^] (n :: int)) = (h x) [^]\<^bsub>H\<^esub> n"
   using nat_pow_hom by (simp add: int_pow_def2)
 
@@ -1286,9 +1279,7 @@ lemma (in comm_group) inv_mult:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv x \<otimes> inv y"
   by (simp add: m_ac inv_mult_group)
 
-(* Next three lemmas contributed by Paulo. *)
-
-lemma (in comm_monoid) hom_imp_img_comm_monoid:
+lemma (in comm_monoid) hom_imp_img_comm_monoid: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
   shows "comm_monoid (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)" (is "comm_monoid ?h_img")
 proof (rule monoid.monoid_comm_monoidI)
@@ -1309,13 +1300,13 @@ next
   finally show "x \<otimes>\<^bsub>(?h_img)\<^esub> y = y \<otimes>\<^bsub>(?h_img)\<^esub> x" .
 qed
 
-lemma (in comm_group) hom_imp_img_comm_group:
+lemma (in comm_group) hom_imp_img_comm_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
   shows "comm_group (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
   unfolding comm_group_def
   using hom_imp_img_group[OF assms] hom_imp_img_comm_monoid[OF assms] by simp
 
-lemma (in comm_group) iso_imp_img_comm_group:
+lemma (in comm_group) iso_imp_img_comm_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> iso G H"
   shows "comm_group (H \<lparr> one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
 proof -
@@ -1329,7 +1320,7 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-lemma (in comm_group) iso_imp_comm_group:
+lemma (in comm_group) iso_imp_comm_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "G \<cong> H" "monoid H"
   shows "comm_group H"
 proof -

@@ -219,20 +219,18 @@ lemma SUP_Pair: "(SUP x\<in>A. (f x, g x)) = (SUP x\<in>A. f x, SUP x\<in>A. g x
 text \<open>Alternative formulations for set infima and suprema over the product
 of two complete lattices:\<close>
 
-lemma INF_prod_alt_def:
+lemma INF_prod_alt_def: \<^marker>\<open>contributor \<open>Alessandro Coglio\<close>\<close>
   "Inf (f ` A) = (Inf ((fst \<circ> f) ` A), Inf ((snd \<circ> f) ` A))"
   by (simp add: Inf_prod_def image_image)
 
-lemma SUP_prod_alt_def:
+lemma SUP_prod_alt_def: \<^marker>\<open>contributor \<open>Alessandro Coglio\<close>\<close>
   "Sup (f ` A) = (Sup ((fst \<circ> f) ` A), Sup((snd \<circ> f) ` A))"
   by (simp add: Sup_prod_def image_image)
 
 
 subsection \<open>Complete distributive lattices\<close>
 
-(* Contribution: Alessandro Coglio *)
-
-instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
+instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice \<^marker>\<open>contributor \<open>Alessandro Coglio\<close>\<close>
 proof
   fix A::"('a\<times>'b) set set"
   show "Inf (Sup ` A) \<le> Sup (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"

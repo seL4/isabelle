@@ -41,21 +41,17 @@ abbreviation
 lemma (in comm_group) subgroup_imp_normal: "subgroup A G \<Longrightarrow> A \<lhd> G"
   by (simp add: normal_def normal_axioms_def is_group l_coset_def r_coset_def m_comm subgroup.mem_carrier)
 
-(*Next two lemmas contributed by Martin Baillon.*)
-
-lemma l_coset_eq_set_mult:
+lemma l_coset_eq_set_mult: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   fixes G (structure)
   shows "x <# H = {x} <#> H"
   unfolding l_coset_def set_mult_def by simp
 
-lemma r_coset_eq_set_mult:
+lemma r_coset_eq_set_mult: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   fixes G (structure)
   shows "H #> x = H <#> {x}"
   unfolding r_coset_def set_mult_def by simp
 
-(* Next five lemmas contributed by Paulo Emílio de Vilhena.                    *)
-
-lemma (in subgroup) rcosets_non_empty:
+lemma (in subgroup) rcosets_non_empty: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "R \<in> rcosets H"
   shows "R \<noteq> {}"
 proof -
@@ -66,7 +62,7 @@ proof -
   thus ?thesis by blast
 qed
 
-lemma (in group) diff_neutralizes:
+lemma (in group) diff_neutralizes: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "subgroup H G" "R \<in> rcosets H"
   shows "\<And>r1 r2. \<lbrakk> r1 \<in> R; r2 \<in> R \<rbrakk> \<Longrightarrow> r1 \<otimes> (inv r2) \<in> H"
 proof -
@@ -94,23 +90,24 @@ proof -
   thus "r1 \<otimes> inv r2 \<in> H" by (metis assms(1) h1(1) h2(1) subgroup_def)
 qed
 
-lemma mono_set_mult: "\<lbrakk> H \<subseteq> H'; K \<subseteq> K' \<rbrakk> \<Longrightarrow> H <#>\<^bsub>G\<^esub> K \<subseteq> H' <#>\<^bsub>G\<^esub> K'"
+lemma mono_set_mult: "\<lbrakk> H \<subseteq> H'; K \<subseteq> K' \<rbrakk> \<Longrightarrow> H <#>\<^bsub>G\<^esub> K \<subseteq> H' <#>\<^bsub>G\<^esub> K'" \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   unfolding set_mult_def by (simp add: UN_mono)
 
 
 subsection \<open>Stable Operations for Subgroups\<close>
 
-lemma set_mult_consistent [simp]:
+lemma set_mult_consistent [simp]: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "N <#>\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> K = N <#>\<^bsub>G\<^esub> K"
   unfolding set_mult_def by simp
 
-lemma r_coset_consistent [simp]:
+lemma r_coset_consistent [simp]: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "I #>\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> h = I #>\<^bsub>G\<^esub> h"
   unfolding r_coset_def by simp
 
-lemma l_coset_consistent [simp]:
+lemma l_coset_consistent [simp]: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "h <#\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> I = h <#\<^bsub>G\<^esub> I"
   unfolding l_coset_def by simp
+
 
 subsection \<open>Basic Properties of set multiplication\<close>
 
@@ -124,8 +121,7 @@ lemma (in monoid) set_mult_closed:
   shows "H <#> K \<subseteq> carrier G"
   using assms by (auto simp add: set_mult_def subsetD)
 
-(* Next lemma contributed by Martin Baillon.*)
-lemma (in group) set_mult_assoc:
+lemma (in group) set_mult_assoc: \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "M \<subseteq> carrier G" "H \<subseteq> carrier G" "K \<subseteq> carrier G"
   shows "(M <#> H) <#> K = M <#> (H <#> K)"
 proof
@@ -1094,13 +1090,11 @@ corollary (in group_hom) FactGroup_iso :
   using FactGroup_iso_set unfolding is_iso_def by auto
 
 
-(* Next two lemmas contributed by Paulo Emílio de Vilhena. *)
-
-lemma (in group_hom) trivial_hom_iff:
+lemma (in group_hom) trivial_hom_iff: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "h ` (carrier G) = { \<one>\<^bsub>H\<^esub> } \<longleftrightarrow> kernel G H h = carrier G"
   unfolding kernel_def using one_closed by force
 
-lemma (in group_hom) trivial_ker_imp_inj:
+lemma (in group_hom) trivial_ker_imp_inj: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "kernel G H h = { \<one> }"
   shows "inj_on h (carrier G)"
 proof (rule inj_onI)
@@ -1197,11 +1191,9 @@ proof -
 qed
 
 
-(* Next subsection contributed by Martin Baillon. *)
-
 subsection \<open>Theorems about Factor Groups and Direct product\<close>
 
-lemma (in group) DirProd_normal :
+lemma (in group) DirProd_normal : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "group K"
     and "H \<lhd> G"
     and "N \<lhd> K"
@@ -1231,7 +1223,7 @@ proof (intro group.normal_invI[OF DirProd_group[OF group_axioms assms(1)]])
   qed
 qed
 
-lemma (in group) FactGroup_DirProd_multiplication_iso_set :
+lemma (in group) FactGroup_DirProd_multiplication_iso_set : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "group K"
     and "H \<lhd> G"
     and "N \<lhd> K"
@@ -1261,14 +1253,14 @@ proof-
     unfolding iso_def hom_def bij_betw_def inj_on_def by simp
 qed
 
-corollary (in group) FactGroup_DirProd_multiplication_iso_1 :
+corollary (in group) FactGroup_DirProd_multiplication_iso_1 : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "group K"
     and "H \<lhd> G"
     and "N \<lhd> K"
   shows "  ((G Mod H) \<times>\<times> (K Mod N)) \<cong> (G \<times>\<times> K Mod H \<times> N)"
   unfolding is_iso_def using FactGroup_DirProd_multiplication_iso_set assms by auto
 
-corollary (in group) FactGroup_DirProd_multiplication_iso_2 :
+corollary (in group) FactGroup_DirProd_multiplication_iso_2 : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "group K"
     and "H \<lhd> G"
     and "N \<lhd> K"
