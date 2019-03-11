@@ -203,7 +203,7 @@ class JEdit_Editor extends Editor[View]
       override val external = true
       def follow(view: View): Unit =
         Standard_Thread.fork("hyperlink_url") {
-          try { Isabelle_System.open(Url.escape(name)) }
+          try { Isabelle_System.open(Url.escape_name(name)) }
           catch {
             case exn: Throwable =>
               GUI_Thread.later {

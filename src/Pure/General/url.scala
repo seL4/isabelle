@@ -10,13 +10,25 @@ package isabelle
 import java.io.{File => JFile}
 import java.nio.file.{Paths, FileSystemNotFoundException}
 import java.net.{URI, URISyntaxException, URL, MalformedURLException, URLDecoder, URLEncoder}
+import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 
 object Url
 {
-  def escape(name: String): String =
-    (for (c <- name.iterator) yield if (c == '\'') "%27" else new String(Array(c))).mkString
+  /* special characters */
+
+  def escape_special(c: Char): String =
+    if ("!#$&'()*+,/:;=?@[]".contains(c)) String.format(Locale.ROOT, "%%%02X", new Integer(c.toInt))
+    else c.toString
+
+  def escape_special(s: String): String = s.iterator.map(escape_special(_)).mkString
+
+  def escape_name(name: String): String =
+    name.iterator.map({ case '\'' => "%27" case c => c.toString }).mkString
+
+
+  /* make and check URLs */
 
   def apply(name: String): URL =
   {
