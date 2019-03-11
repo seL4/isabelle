@@ -84,4 +84,15 @@ object RDF
     val date: String = dc("date")
     val description: String = dc("description")
   }
+
+  private val meta_data_table =
+    Map(
+      Markup.META_TITLE -> Property.title,
+      Markup.META_CREATOR -> Property.creator,
+      Markup.META_CONTRIBUTOR -> Property.contributor,
+      Markup.META_DATE -> Property.date,
+      Markup.META_DESCRIPTION -> Property.description)
+
+  def meta_data(props: Properties.T): Properties.T =
+    props.flatMap({ case (a, b) => meta_data_table.get(a).map((_, b)) })
 }

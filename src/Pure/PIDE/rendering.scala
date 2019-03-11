@@ -208,6 +208,10 @@ object Rendering
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
 
+  val meta_data_elements =
+    Markup.Elements(Markup.META_TITLE, Markup.META_CREATOR, Markup.META_CONTRIBUTOR,
+      Markup.META_DATE, Markup.META_DESCRIPTION)
+
   val markdown_elements =
     Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
       Markup.Markdown_Bullet.name)
@@ -675,4 +679,19 @@ abstract class Rendering(
       {
         case (res, info) => if (res.isEmpty) Some(Some(info.range)) else None
       }).headOption.flatMap(_.info)
+
+
+  /* meta data */
+
+  def meta_data(range: Text.Range): Properties.T =
+  {
+    val results =
+      snapshot.cumulate[Properties.T](range, Nil, Rendering.meta_data_elements, _ =>
+        {
+          case (res, Text.Info(_, elem)) =>
+            val plain_text = XML.content(elem)
+            Some((elem.name -> plain_text) :: res)
+        })
+    Library.distinct(results.flatMap(_.info.reverse))
+  }
 }
