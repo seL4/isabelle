@@ -291,7 +291,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, optio
   /* tooltips */
 
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
-  def timing_threshold: Double = options.real("jedit_timing_threshold")
+  override def timing_threshold: Double = options.real("jedit_timing_threshold")
 
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
     tooltips(Rendering.tooltip_elements, range).map(info => info.map(Pretty.fbreaks(_)))

@@ -247,7 +247,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
 
   /* tooltips */
 
-  def timing_threshold: Double = options.real("vscode_timing_threshold")
+  override def timing_threshold: Double = options.real("vscode_timing_threshold")
 
 
   /* hyperlinks */
