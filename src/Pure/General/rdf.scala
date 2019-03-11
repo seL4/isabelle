@@ -9,9 +9,6 @@ Support for RDF/XML representation, see also:
 package isabelle
 
 
-import java.net.URI
-
-
 object RDF
 {
   /* document */
@@ -31,9 +28,14 @@ object RDF
 
   /* multiple triples vs. compact description */
 
-  sealed case class Triple(subject: String, predicate: String, `object`: XML.Body)
+  sealed case class Triple(
+    subject: String, predicate: String, `object`: XML.Body = Nil, resource: String = "")
   {
-    def property: XML.Elem = XML.elem(predicate, `object`)
+    require(`object`.isEmpty || resource.isEmpty)
+
+    def property: XML.Elem =
+      if (resource.nonEmpty) XML.elem(Markup(predicate, List("rdf:resource" -> resource)))
+      else XML.elem(predicate, `object`)
   }
 
   def triples(args: List[Triple]): XML.Body =
@@ -65,7 +67,6 @@ object RDF
   // see https://www.w3.org/TR/xmlschema-2/#built-in-datatypes
 
   def string(x: String): XML.Body = if (x.isEmpty) Nil else List(XML.Text(x))
-  def uri(x: URI): XML.Body = string(x.toString)
   def bool(x: Boolean): XML.Body = string(x.toString)
   def int(x: Int): XML.Body = string(Value.Int(x))
   def long(x: Long): XML.Body = string(Value.Long(x))
