@@ -91,7 +91,10 @@ object Dump
   /* session */
 
   sealed case class Args(
-    deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status)
+    session: Headless.Session,
+    deps: Sessions.Deps,
+    snapshot: Document.Snapshot,
+    status: Document_Status.Node_Status)
   {
     def print_node: String = snapshot.node_name.toString
 
@@ -105,6 +108,9 @@ object Dump
     process_theory: Args => Unit,
     progress: Progress = No_Progress)
   {
+    val session = resources.start_session(progress = progress)
+
+
     /* asynchronous consumer */
 
     object Consumer
@@ -123,7 +129,7 @@ object Dump
               val (snapshot, status) = args
               val name = snapshot.node_name
               if (status.ok) {
-                try { process_theory(Args(deps, snapshot, status)) }
+                try { process_theory(Args(session, deps, snapshot, status)) }
                 catch {
                   case exn: Throwable if !Exn.is_interrupt(exn) =>
                   val msg = Exn.message(exn)
@@ -159,7 +165,6 @@ object Dump
 
     /* run session */
 
-    val session = resources.start_session(progress = progress)
     try {
       val use_theories = resources.used_theories(deps).map(_.theory)
       val use_theories_result =
