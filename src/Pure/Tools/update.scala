@@ -47,11 +47,11 @@ object Update
       }
 
     Dump.session(deps, resources, progress = progress,
-      process_theory =
-        (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
+      process_theory = (args: Dump.Args) =>
         {
-          progress.echo("Processing theory " + snapshot.node_name + " ...")
+          progress.echo("Processing theory " + args.print_node + " ...")
 
+          val snapshot = args.snapshot
           for ((node_name, node) <- snapshot.nodes) {
             val xml =
               snapshot.state.markup_to_XML(snapshot.version, node_name,

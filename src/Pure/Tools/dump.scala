@@ -14,8 +14,8 @@ object Dump
   sealed case class Aspect_Args(
     options: Options,
     progress: Progress,
-    deps: Sessions.Deps,
     output_dir: Path,
+    deps: Sessions.Deps,
     snapshot: Document.Snapshot,
     status: Document_Status.Node_Status)
   {
@@ -90,10 +90,19 @@ object Dump
 
   /* session */
 
+  sealed case class Args(
+    deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status)
+  {
+    def print_node: String = snapshot.node_name.toString
+
+    def aspect_args(options: Options, progress: Progress, output_dir: Path): Aspect_Args =
+      Aspect_Args(options, progress, output_dir, deps, snapshot, status)
+  }
+
   def session(
     deps: Sessions.Deps,
     resources: Headless.Resources,
-    process_theory: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
+    process_theory: Args => Unit,
     progress: Progress = No_Progress)
   {
     /* asynchronous consumer */
@@ -114,7 +123,7 @@ object Dump
               val (snapshot, status) = args
               val name = snapshot.node_name
               if (status.ok) {
-                try { process_theory(deps, snapshot, status) }
+                try { process_theory(Args(deps, snapshot, status)) }
                 catch {
                   case exn: Throwable if !Exn.is_interrupt(exn) =>
                   val msg = Exn.message(exn)
@@ -214,12 +223,11 @@ object Dump
         include_sessions = deps.sessions_structure.imports_topological_order)
 
     session(deps, resources, progress = progress,
-      process_theory =
-        (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
+      process_theory = (args: Args) =>
         {
-          progress.echo("Processing theory " + snapshot.node_name + " ...")
+          progress.echo("Processing theory " + args.print_node + " ...")
 
-          val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
+          val aspect_args = args.aspect_args(dump_options, progress, output_dir)
           aspects.foreach(_.operation(aspect_args))
         })
   }
