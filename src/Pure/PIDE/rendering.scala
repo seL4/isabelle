@@ -519,7 +519,7 @@ abstract class Rendering(
 
   /* tooltips */
 
-  def timing_threshold: Double
+  def timing_threshold: Double = 0.0
 
   private sealed case class Tooltip_Info(
     range: Text.Range,
