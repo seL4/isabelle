@@ -1,12 +1,11 @@
 Poly/ML for Isabelle
 ====================
 
-This compilation of Poly/ML (https://www.polyml.org) is based on the
-repository version
-https://github.com/polyml/polyml/commit/fef9f8681c2f (master).
+This compilation of Poly/ML 5.8 (https://www.polyml.org) is based on the
+source distribution from https://github.com/polyml/polyml/releases/tag/v5.8
 
-The Isabelle repository provides the administrative tool
-"build_polyml", which can be used in the polyml component directory as
+The Isabelle repository provides an administrative tool "isabelle
+build_polyml", which can be used in the polyml component directory as
 follows.
 
 * Linux:
@@ -48,4 +47,4 @@ will be placed in /usr/local).
 
 
         Makarius
-        06-Mar-2019
+        12-Mar-2019
