@@ -130,6 +130,23 @@ object Path
 
   def is_reserved(name: String): Boolean =
     Long_Name.explode(name).exists(a => reserved_windows.contains(Word.uppercase(a)))
+
+
+  /* case-insensitive names */
+
+  def check_case_insensitive(paths: List[Path])
+  {
+    val table =
+      (Multi_Map.empty[String, String] /: paths)({ case (tab, path) =>
+        val name = path.expand.implode
+        tab.insert(Word.lowercase(name), name)
+      })
+    val collisions =
+      (for { (_, coll) <- table.iterator_list if coll.length > 1 } yield coll).toList.flatten
+    if (collisions.nonEmpty) {
+      error(("Collision of file names due case-insensitivity:" :: collisions).mkString("\n  "))
+    }
+  }
 }
 
 

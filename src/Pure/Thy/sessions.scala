@@ -364,6 +364,10 @@ object Sessions
             val sources_errors =
               for (p <- session_files if !p.is_file) yield "No such file: " + p
 
+            val path_errors =
+              try { Path.check_case_insensitive(session_files ::: imported_files); Nil }
+              catch { case ERROR(msg) => List(msg) }
+
             val bibtex_errors =
               try { info.bibtex_entries; Nil }
               catch { case ERROR(msg) => List(msg) }
@@ -380,7 +384,7 @@ object Sessions
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: sources_errors ::: bibtex_errors,
+                errors = dependencies.errors ::: sources_errors ::: path_errors ::: bibtex_errors,
                 imports = Some(imports_base))
 
             session_bases + (info.name -> base)
