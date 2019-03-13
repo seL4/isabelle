@@ -11,8 +11,8 @@ Contributions to this Isabelle version
   involving the image operator.
 
 * January 2919: Florian Haftmann
-  Renovation of code generation, particularly proper strings for OCaml
-  end export into session data.
+  Renovation of code generation, particularly export into session data
+  and proper strings and proper integers based on zarith for OCaml.
 
 * February 2019: Jeremy Sylvestre
   Formal Laurent Series and overhaul of Formal power series.
