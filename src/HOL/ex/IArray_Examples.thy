@@ -29,5 +29,13 @@ definition sum :: "'a::monoid_add iarray \<Rightarrow> 'a" where
 lemma "sum (IArray [1,2,3,4,5,6,7,8,9::int]) = 45"
 by eval
 
+definition partial_geometric_sum :: "'a::comm_ring_1 list \<Rightarrow> 'a"
+  where "partial_geometric_sum xs = (let
+    values = IArray xs;
+    coefficients = IArray.of_fun of_nat (length xs)
+  in sum_list (map (\<lambda>i. values !! i * coefficients !! i) [0..<IArray.length values]))"
+
+export_code partial_geometric_sum checking SML OCaml? Haskell? Scala
+
 end
 
