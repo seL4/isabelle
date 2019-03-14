@@ -23,6 +23,7 @@ imports
   Discrete
   Disjoint_Sets
   Dlist
+  Dual_Ordered_Lattice
   Equipollence
   Extended
   Extended_Nat
