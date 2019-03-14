@@ -6,7 +6,7 @@ section \<open>Subtypes of pcpos\<close>
 
 theory Cpodef
   imports Adm
-  keywords "pcpodef" "cpodef" :: thy_goal
+  keywords "pcpodef" "cpodef" :: thy_goal_defn
 begin
 
 subsection \<open>Proving a subtype is a partial order\<close>

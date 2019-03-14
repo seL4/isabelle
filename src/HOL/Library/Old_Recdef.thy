@@ -7,7 +7,7 @@ section \<open>TFL: recursive function definitions\<close>
 theory Old_Recdef
 imports Main
 keywords
-  "recdef" :: thy_decl and
+  "recdef" :: thy_defn and
   "permissive" "congs" "hints"
 begin
 

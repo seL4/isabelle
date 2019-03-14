@@ -7,7 +7,7 @@ section \<open>Cartesian products\<close>
 
 theory Product_Type
   imports Typedef Inductive Fun
-  keywords "inductive_set" "coinductive_set" :: thy_decl
+  keywords "inductive_set" "coinductive_set" :: thy_defn
 begin
 
 subsection \<open>\<^typ>\<open>bool\<close> is a datatype\<close>

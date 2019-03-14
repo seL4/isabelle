@@ -6,7 +6,7 @@ section "Package for defining recursive functions in HOLCF"
 
 theory Fixrec
 imports Cprod Sprod Ssum Up One Tr Fix
-keywords "fixrec" :: thy_decl
+keywords "fixrec" :: thy_defn
 begin
 
 subsection \<open>Pattern-match monad\<close>

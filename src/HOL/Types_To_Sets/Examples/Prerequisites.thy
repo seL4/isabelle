@@ -4,7 +4,7 @@
 
 theory Prerequisites
   imports Main
-  keywords "lemmas_with"::thy_decl
+  keywords "lemmas_with" :: thy_decl
 begin
 
 context

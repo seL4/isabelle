@@ -12,9 +12,9 @@ section \<open>Generalized Corecursor Sugar (corec and friends)\<close>
 theory BNF_Corec
 imports Main
 keywords
-  "corec" :: thy_decl and
-  "corecursive" :: thy_goal and
-  "friend_of_corec" :: thy_goal and
+  "corec" :: thy_defn and
+  "corecursive" :: thy_goal_defn and
+  "friend_of_corec" :: thy_goal_defn and
   "coinduction_upto" :: thy_decl
 begin
 

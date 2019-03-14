@@ -15,11 +15,11 @@ keywords
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl
-  and "typedecl" "type_synonym" "nonterminal" "judgment"
-    "consts" "syntax" "no_syntax" "translations" "no_translations"
-    "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
-    "no_notation" "axiomatization" "alias" "type_alias" "lemmas" "declare"
-    "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
+  and "typedecl" "nonterminal" "judgment" "consts" "syntax" "no_syntax" "translations"
+    "no_translations" "type_notation" "no_type_notation" "notation" "no_notation" "alias"
+    "type_alias" "declare" "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
+  and "type_synonym" "definition" "abbreviation" "lemmas" :: thy_defn
+  and "axiomatization" :: thy_stmt
   and "external_file" "bibtex_file" :: thy_load
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
@@ -46,8 +46,8 @@ keywords
   and "instance" :: thy_goal
   and "overloading" :: thy_decl_block
   and "code_datatype" :: thy_decl
-  and "theorem" "lemma" "corollary" "proposition" :: thy_goal
-  and "schematic_goal" :: thy_goal
+  and "theorem" "lemma" "corollary" "proposition" :: thy_goal_stmt
+  and "schematic_goal" :: thy_goal_stmt
   and "notepad" :: thy_decl_block
   and "have" :: prf_goal % "proof"
   and "hence" :: prf_goal % "proof"

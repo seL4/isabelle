@@ -7,11 +7,11 @@ section \<open>Knaster-Tarski Fixpoint Theorem and inductive definitions\<close>
 theory Inductive
   imports Complete_Lattices Ctr_Sugar
   keywords
-    "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_decl and
+    "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_defn and
     "monos" and
     "print_inductives" :: diag and
     "old_rep_datatype" :: thy_goal and
-    "primrec" :: thy_decl
+    "primrec" :: thy_defn
 begin
 
 subsection \<open>Least fixed points\<close>

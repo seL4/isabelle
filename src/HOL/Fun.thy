@@ -8,7 +8,7 @@ section \<open>Notions about functions\<close>
 
 theory Fun
   imports Set
-  keywords "functor" :: thy_goal
+  keywords "functor" :: thy_goal_defn
 begin
 
 lemma apply_inverse: "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"

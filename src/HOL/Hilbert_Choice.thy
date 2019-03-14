@@ -8,7 +8,7 @@ section \<open>Hilbert's Epsilon-Operator and the Axiom of Choice\<close>
 
 theory Hilbert_Choice
   imports Wellfounded
-  keywords "specification" :: thy_goal
+  keywords "specification" :: thy_goal_defn
 begin
 
 subsection \<open>Hilbert's epsilon\<close>
