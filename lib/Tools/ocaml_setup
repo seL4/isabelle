@@ -4,9 +4,13 @@
 #
 # DESCRIPTION: setup OCaml via OPAM
 
+set -e
+
 if [ -d "$ISABELLE_OPAM_ROOT" ]
 then
   isabelle_opam switch "$ISABELLE_OCAML_VERSION"
 else
   isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION"
 fi
+
+isabelle_opam install zarith
