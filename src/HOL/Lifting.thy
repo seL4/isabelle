@@ -10,7 +10,7 @@ imports Equiv_Relations Transfer
 keywords
   "parametric" and
   "print_quot_maps" "print_quotients" :: diag and
-  "lift_definition" :: thy_goal and
+  "lift_definition" :: thy_goal_defn and
   "setup_lifting" "lifting_forget" "lifting_update" :: thy_decl
 begin
 

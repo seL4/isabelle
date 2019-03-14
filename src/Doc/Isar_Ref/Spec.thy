@@ -93,8 +93,8 @@ text \<open>
   proof documents work properly. Command keywords need to be classified
   according to their structural role in the formal text. Examples may be seen
   in Isabelle/HOL sources itself, such as @{keyword "keywords"}~\<^verbatim>\<open>"typedef"\<close>
-  \<open>:: thy_goal\<close> or @{keyword "keywords"}~\<^verbatim>\<open>"datatype"\<close> \<open>:: thy_decl\<close> for
-  theory-level declarations with and without proof, respectively. Additional
+  \<open>:: thy_goal_defn\<close> or @{keyword "keywords"}~\<^verbatim>\<open>"datatype"\<close> \<open>:: thy_defn\<close> for
+  theory-level definitions with and without proof, respectively. Additional
   @{syntax tags} provide defaults for document preparation
   (\secref{sec:tags}).
 

@@ -11,8 +11,8 @@ section \<open>Composition of Bounded Natural Functors\<close>
 theory BNF_Composition
 imports BNF_Def
 keywords
-  "copy_bnf" :: thy_decl and
-  "lift_bnf" :: thy_goal
+  "copy_bnf" :: thy_defn and
+  "lift_bnf" :: thy_goal_defn
 begin
 
 lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X"

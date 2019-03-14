@@ -6,7 +6,7 @@ section \<open>Partial Function Definitions\<close>
 
 theory Partial_Function
   imports Complete_Partial_Order Option
-  keywords "partial_function" :: thy_decl
+  keywords "partial_function" :: thy_defn
 begin
 
 named_theorems partial_function_mono "monotonicity rules for partial function definitions"

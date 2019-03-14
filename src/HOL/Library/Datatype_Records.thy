@@ -6,7 +6,7 @@ section \<open>Records based on BNF/datatype machinery\<close>
 
 theory Datatype_Records
 imports Main
-keywords "datatype_record" :: thy_decl
+keywords "datatype_record" :: thy_defn
 begin
 
 text \<open>

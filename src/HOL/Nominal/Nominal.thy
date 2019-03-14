@@ -1,8 +1,10 @@
 theory Nominal 
 imports "HOL-Library.Infinite_Set" "HOL-Library.Old_Datatype"
 keywords
-  "atom_decl" "nominal_datatype" "equivariance" :: thy_decl and
-  "nominal_primrec" "nominal_inductive" "nominal_inductive2" :: thy_goal and
+  "atom_decl" :: thy_decl and
+  "nominal_datatype" :: thy_defn and
+  "equivariance" :: thy_decl and
+  "nominal_primrec" "nominal_inductive" "nominal_inductive2" :: thy_goal_defn and
   "avoids"
 begin
 

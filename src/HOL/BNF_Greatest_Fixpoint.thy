@@ -12,9 +12,9 @@ section \<open>Greatest Fixpoint (Codatatype) Operation on Bounded Natural Funct
 theory BNF_Greatest_Fixpoint
 imports BNF_Fixpoint_Base String
 keywords
-  "codatatype" :: thy_decl and
-  "primcorecursive" :: thy_goal and
-  "primcorec" :: thy_decl
+  "codatatype" :: thy_defn and
+  "primcorecursive" :: thy_goal_defn and
+  "primcorec" :: thy_defn
 begin
 
 alias proj = Equiv_Relations.proj

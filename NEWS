@@ -40,6 +40,10 @@ automatically.
 need to provide a closed expression -- without trailing semicolon. Minor
 INCOMPATIBILITY.
 
+* Command keywords of kind thy_decl / thy_goal may be more specifically
+fit into the traditional document model of "definition-statement-proof"
+via thy_defn / thy_stmt / thy_goal_defn / thy_goal_stmt.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

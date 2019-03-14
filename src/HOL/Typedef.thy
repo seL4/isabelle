@@ -7,7 +7,7 @@ section \<open>HOL type definitions\<close>
 theory Typedef
 imports Set
 keywords
-  "typedef" :: thy_goal and
+  "typedef" :: thy_goal_defn and
   "morphisms" :: quasi_command
 begin
 

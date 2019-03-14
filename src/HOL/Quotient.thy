@@ -8,8 +8,8 @@ theory Quotient
 imports Lifting
 keywords
   "print_quotmapsQ3" "print_quotientsQ3" "print_quotconsts" :: diag and
-  "quotient_type" :: thy_goal and "/" and
-  "quotient_definition" :: thy_goal
+  "quotient_type" :: thy_goal_defn and "/" and
+  "quotient_definition" :: thy_goal_defn
 begin
 
 text \<open>

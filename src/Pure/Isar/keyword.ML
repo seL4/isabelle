@@ -14,8 +14,12 @@ sig
   val thy_end: string
   val thy_decl: string
   val thy_decl_block: string
+  val thy_defn: string
+  val thy_stmt: string
   val thy_load: string
   val thy_goal: string
+  val thy_goal_defn: string
+  val thy_goal_stmt: string
   val qed: string
   val qed_script: string
   val qed_block: string
@@ -93,8 +97,12 @@ val thy_begin = "thy_begin";
 val thy_end = "thy_end";
 val thy_decl = "thy_decl";
 val thy_decl_block = "thy_decl_block";
+val thy_defn = "thy_defn";
+val thy_stmt = "thy_stmt";
 val thy_load = "thy_load";
 val thy_goal = "thy_goal";
+val thy_goal_defn = "thy_goal_defn";
+val thy_goal_stmt = "thy_goal_stmt";
 val qed = "qed";
 val qed_script = "qed_script";
 val qed_block = "qed_block";
@@ -117,9 +125,9 @@ val quasi_command = "quasi_command";
 
 val command_kinds =
   [diag, document_heading, document_body, document_raw, thy_begin, thy_end, thy_load, thy_decl,
-    thy_decl_block, thy_goal, qed, qed_script, qed_block, qed_global, prf_goal, prf_block,
-    next_block, prf_open, prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script,
-    prf_script_goal, prf_script_asm_goal];
+    thy_decl_block, thy_defn, thy_stmt, thy_goal, thy_goal_defn, thy_goal_stmt, qed, qed_script,
+    qed_block, qed_global, prf_goal, prf_block, next_block, prf_open, prf_close, prf_chain,
+    prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal, prf_script_asm_goal];
 
 
 (* specifications *)
@@ -256,10 +264,11 @@ val is_theory_end = command_category [thy_end];
 val is_theory_load = command_category [thy_load];
 
 val is_theory = command_category
-  [thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_goal];
+  [thy_begin, thy_end, thy_load, thy_decl, thy_decl_block, thy_defn, thy_stmt, thy_goal,
+    thy_goal_defn, thy_goal_stmt];
 
 val is_theory_body = command_category
-  [thy_load, thy_decl, thy_decl_block, thy_goal];
+  [thy_load, thy_decl, thy_decl_block, thy_defn, thy_stmt, thy_goal, thy_goal_defn, thy_goal_stmt];
 
 val is_proof = command_category
   [qed, qed_script, qed_block, qed_global, prf_goal, prf_block, next_block, prf_open,
@@ -271,7 +280,7 @@ val is_proof_body = command_category
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script, prf_script_goal,
     prf_script_asm_goal];
 
-val is_theory_goal = command_category [thy_goal];
+val is_theory_goal = command_category [thy_goal, thy_goal_defn, thy_goal_stmt];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_script_goal, prf_script_asm_goal];
 val is_qed = command_category [qed, qed_script, qed_block];
 val is_qed_global = command_category [qed_global];

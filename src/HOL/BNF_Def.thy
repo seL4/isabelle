@@ -12,7 +12,7 @@ theory BNF_Def
 imports BNF_Cardinal_Arithmetic Fun_Def_Base
 keywords
   "print_bnfs" :: diag and
-  "bnf" :: thy_goal
+  "bnf" :: thy_goal_defn
 begin
 
 lemma Collect_case_prodD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
