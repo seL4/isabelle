@@ -885,11 +885,11 @@ val _ = Theory.setup
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
-      check = {env_var = "ISABELLE_OPAM_ROOT",
+      check = {env_var = "ISABELLE_OCAMLEXEC",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ml")
           (*extension demanded by OCaml compiler*),
         make_command = fn _ =>
-          "\"$ISABELLE_ROOT/lib/scripts/ocamlexec\" ocamlfind ocamlopt -w pu -package zarith -linkpkg ROOT.ml"},
+          "\"$ISABELLE_OCAMLEXEC\" ocamlfind ocamlopt -w pu -package zarith -linkpkg ROOT.ml"},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))
