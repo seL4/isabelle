@@ -96,6 +96,7 @@ object Markup
   val META_CONTRIBUTOR = "meta_contributor"
   val META_DATE = "meta_date"
   val META_DESCRIPTION = "meta_description"
+  val META_LICENSE = "meta_license"
 
 
   /* formal entities */

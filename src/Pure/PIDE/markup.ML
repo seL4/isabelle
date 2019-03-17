@@ -21,6 +21,7 @@ sig
   val meta_contributorN: string val meta_contributor: T
   val meta_dateN: string val meta_date: T
   val meta_descriptionN: string val meta_description: T
+  val meta_licenseN: string val meta_license: T
   val languageN: string
   val symbolsN: string
   val delimitedN: string
@@ -295,6 +296,7 @@ val (meta_creatorN, meta_creator) = markup_elem "meta_creator";
 val (meta_contributorN, meta_contributor) = markup_elem "meta_contributor";
 val (meta_dateN, meta_date) = markup_elem "meta_date";
 val (meta_descriptionN, meta_description) = markup_elem "meta_description";
+val (meta_licenseN, meta_license) = markup_elem "meta_license";
 
 
 (* embedded languages *)

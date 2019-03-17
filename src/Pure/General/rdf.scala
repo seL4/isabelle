@@ -14,9 +14,9 @@ object RDF
   /* document */
 
   val rdf: XML.Namespace = XML.Namespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-  val dc: XML.Namespace = XML.Namespace("dc", "http://purl.org/dc/elements/1.1/")
+  val dcterms: XML.Namespace = XML.Namespace("dcterms", "http://purl.org/dc/terms/")
 
-  val default_namespaces: List[XML.Namespace] = List(rdf, dc)
+  val default_namespaces: List[XML.Namespace] = List(rdf, dcterms)
 
   def document(body: XML.Body,
     namespaces: List[XML.Namespace] = default_namespaces,
@@ -79,11 +79,12 @@ object RDF
 
   object Property  // binary relation with plain value
   {
-    val title: String = dc("title")
-    val creator: String = dc("creator")
-    val contributor: String = dc("contributor")
-    val date: String = dc("date")
-    val description: String = dc("description")
+    val title: String = dcterms("title")
+    val creator: String = dcterms("creator")
+    val contributor: String = dcterms("contributor")
+    val date: String = dcterms("date")
+    val description: String = dcterms("description")
+    val license: String = dcterms("license")
   }
 
   private val meta_data_table =
@@ -92,7 +93,8 @@ object RDF
       Markup.META_CREATOR -> Property.creator,
       Markup.META_CONTRIBUTOR -> Property.contributor,
       Markup.META_DATE -> Property.date,
-      Markup.META_DESCRIPTION -> Property.description)
+      Markup.META_DESCRIPTION -> Property.description,
+      Markup.META_LICENSE -> Property.license)
 
   def meta_data(props: Properties.T): Properties.T =
     props.flatMap({ case (a, b) => meta_data_table.get(a).map((_, b)) })

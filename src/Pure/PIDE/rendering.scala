@@ -210,7 +210,7 @@ object Rendering
 
   val meta_data_elements =
     Markup.Elements(Markup.META_TITLE, Markup.META_CREATOR, Markup.META_CONTRIBUTOR,
-      Markup.META_DATE, Markup.META_DESCRIPTION)
+      Markup.META_DATE, Markup.META_DESCRIPTION, Markup.META_LICENSE)
 
   val markdown_elements =
     Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,

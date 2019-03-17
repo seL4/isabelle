@@ -76,7 +76,8 @@ val _ =
         let
           val (arg, pos) = Input.source_content source;
           val _ = Context_Position.report ctxt pos Markup.words;
-        in meta_data Markup.meta_description arg ctxt end));
+        in meta_data Markup.meta_description arg ctxt end) #>
+     setup0 (Binding.make ("license", \<^here>)) Parse.embedded (meta_data Markup.meta_license));
 
 fun legacy_tag name =
   Input.string (cartouche ("tag " ^ Symbol_Pos.quote_string_qq name));
