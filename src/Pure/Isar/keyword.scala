@@ -74,6 +74,8 @@ object Keyword
     Set(THY_LOAD, THY_DECL, THY_DECL_BLOCK, THY_DEFN, THY_STMT,
       THY_GOAL, THY_GOAL_DEFN, THY_GOAL_STMT)
 
+  val theory_defn = Set(THY_DEFN, THY_GOAL_DEFN)
+
   val prf_script = Set(PRF_SCRIPT)
 
   val proof =
