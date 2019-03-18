@@ -152,6 +152,7 @@ object Headless
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
+      unicode_symbols: Boolean = false,
       check_delay: Time = default_check_delay,
       check_limit: Int = default_check_limit,
       watchdog_timeout: Time = default_watchdog_timeout,
@@ -263,7 +264,7 @@ object Headless
 
       try {
         session.commands_changed += consumer
-        resources.load_theories(session, id, dep_theories, dep_files, progress)
+        resources.load_theories(session, id, dep_theories, dep_files, unicode_symbols, progress)
         use_theories_state.value.await_result
         check_progress.cancel
       }
@@ -535,6 +536,7 @@ object Headless
       id: UUID.T,
       dep_theories: List[Document.Node.Name],
       dep_files: List[Document.Node.Name],
+      unicode_symbols: Boolean,
       progress: Progress)
     {
       val loaded_theories =
@@ -544,7 +546,8 @@ object Headless
           if (!node_name.is_theory) error("Not a theory file: " + path)
 
           progress.expose_interrupt()
-          val text = File.read(path)
+          val text0 = File.read(path)
+          val text = if (unicode_symbols) Symbol.decode(text0) else text0
           val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
           new Resources.Theory(node_name, node_header, text, true)
         }
