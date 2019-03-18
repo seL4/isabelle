@@ -3,7 +3,7 @@
 *)
 
 theory Function_Topology
-imports Topology_Euclidean_Space Bounded_Linear_Function Finite_Product_Measure 
+imports Topology_Euclidean_Space   
 begin
 
 
@@ -945,24 +945,37 @@ spaces have their counterparts in this simpler setting.\<close>
 
 lemma continuous_on_product_coordinates [simp]:
   "continuous_on UNIV (\<lambda>x. x i::('b::topological_space))"
-unfolding continuous_on_topo_UNIV euclidean_product_topology
-by (rule continuous_on_topo_product_coordinates, simp)
+  unfolding continuous_on_topo_UNIV euclidean_product_topology
+  by (rule continuous_on_topo_product_coordinates, simp)
 
 lemma continuous_on_coordinatewise_then_product [intro, continuous_intros]:
-  assumes "\<And>i. continuous_on UNIV (\<lambda>x. f x i)"
-  shows "continuous_on UNIV f"
-using assms unfolding continuous_on_topo_UNIV euclidean_product_topology
-by (rule continuous_on_topo_coordinatewise_then_product, simp)
+  fixes f :: "('a \<Rightarrow> real) \<Rightarrow> 'b \<Rightarrow> real"
+  assumes "\<And>i. continuous_on S (\<lambda>x. f x i)"
+  shows "continuous_on S f"
+  using continuous_on_topo_coordinatewise_then_product [of UNIV, where T = "\<lambda>i. euclideanreal"]
+  by (metis UNIV_I assms continuous_on_continuous_on_topo euclidean_product_topology)
 
-lemma continuous_on_product_then_coordinatewise:
+lemma continuous_on_product_then_coordinatewise_UNIV:
   assumes "continuous_on UNIV f"
   shows "continuous_on UNIV (\<lambda>x. f x i)"
 using assms unfolding continuous_on_topo_UNIV euclidean_product_topology
 by (rule continuous_on_topo_product_then_coordinatewise(1), simp)
 
-lemma continuous_on_product_coordinatewise_iff:
-  "continuous_on UNIV f \<longleftrightarrow> (\<forall>i. continuous_on UNIV (\<lambda>x. f x i))"
-by (auto intro: continuous_on_product_then_coordinatewise)
+lemma continuous_on_product_then_coordinatewise:
+  assumes "continuous_on S f"
+  shows "continuous_on S (\<lambda>x. f x i)"
+proof -
+  have "continuous_on S ((\<lambda>q. q i) \<circ> f)"
+    by (metis assms continuous_on_compose continuous_on_id 
+        continuous_on_product_then_coordinatewise_UNIV continuous_on_subset subset_UNIV)
+  then show ?thesis
+    by auto
+qed
+
+lemma continuous_on_coordinatewise_iff:
+  fixes f :: "('a \<Rightarrow> real) \<Rightarrow> 'b \<Rightarrow> real"
+  shows "continuous_on (A \<inter> S) f \<longleftrightarrow> (\<forall>i. continuous_on (A \<inter> S) (\<lambda>x. f x i))"
+  by (auto simp: continuous_on_product_then_coordinatewise)
 
 subsubsection%important \<open>Topological countability for product spaces\<close>
 
@@ -1192,86 +1205,6 @@ qed
 instance "fun" :: (countable, second_countable_topology) second_countable_topology
   apply standard
   using product_topology_countable_basis topological_basis_imp_subbasis by auto
-
-
-subsection \<open>The strong operator topology on continuous linear operators\<close> (* FIX ME mv*)
-
-text \<open>Let \<open>'a\<close> and \<open>'b\<close> be two normed real vector spaces. Then the space of linear continuous
-operators from \<open>'a\<close> to \<open>'b\<close> has a canonical norm, and therefore a canonical corresponding topology
-(the type classes instantiation are given in \<^file>\<open>Bounded_Linear_Function.thy\<close>).
-
-However, there is another topology on this space, the strong operator topology, where \<open>T\<^sub>n\<close> tends to
-\<open>T\<close> iff, for all \<open>x\<close> in \<open>'a\<close>, then \<open>T\<^sub>n x\<close> tends to \<open>T x\<close>. This is precisely the product topology
-where the target space is endowed with the norm topology. It is especially useful when \<open>'b\<close> is the set
-of real numbers, since then this topology is compact.
-
-We can not implement it using type classes as there is already a topology, but at least we
-can define it as a topology.
-
-Note that there is yet another (common and useful) topology on operator spaces, the weak operator
-topology, defined analogously using the product topology, but where the target space is given the
-weak-* topology, i.e., the pullback of the weak topology on the bidual of the space under the
-canonical embedding of a space into its bidual. We do not define it there, although it could also be
-defined analogously.
-\<close>
-
-definition%important strong_operator_topology::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector) topology"
-where "strong_operator_topology = pullback_topology UNIV blinfun_apply euclidean"
-
-lemma strong_operator_topology_topspace:
-  "topspace strong_operator_topology = UNIV"
-unfolding strong_operator_topology_def topspace_pullback_topology topspace_euclidean by auto
-
-lemma strong_operator_topology_basis:
-  fixes f::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector)" and U::"'i \<Rightarrow> 'b set" and x::"'i \<Rightarrow> 'a"
-  assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> open (U i)"
-  shows "openin strong_operator_topology {f. \<forall>i\<in>I. blinfun_apply f (x i) \<in> U i}"
-proof -
-  have "open {g::('a\<Rightarrow>'b). \<forall>i\<in>I. g (x i) \<in> U i}"
-    by (rule product_topology_basis'[OF assms])
-  moreover have "{f. \<forall>i\<in>I. blinfun_apply f (x i) \<in> U i}
-                = blinfun_apply-`{g::('a\<Rightarrow>'b). \<forall>i\<in>I. g (x i) \<in> U i} \<inter> UNIV"
-    by auto
-  ultimately show ?thesis
-    unfolding strong_operator_topology_def by (subst openin_pullback_topology) auto
-qed
-
-lemma strong_operator_topology_continuous_evaluation:
-  "continuous_on_topo strong_operator_topology euclidean (\<lambda>f. blinfun_apply f x)"
-proof -
-  have "continuous_on_topo strong_operator_topology euclidean ((\<lambda>f. f x) o blinfun_apply)"
-    unfolding strong_operator_topology_def apply (rule continuous_on_topo_pullback)
-    using continuous_on_topo_UNIV continuous_on_product_coordinates by fastforce
-  then show ?thesis unfolding comp_def by simp
-qed
-
-lemma continuous_on_strong_operator_topo_iff_coordinatewise:
-  "continuous_on_topo T strong_operator_topology f
-    \<longleftrightarrow> (\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x))"
-proof (auto)
-  fix x::"'b"
-  assume "continuous_on_topo T strong_operator_topology f"
-  with continuous_on_topo_compose[OF this strong_operator_topology_continuous_evaluation]
-  have "continuous_on_topo T euclidean ((\<lambda>z. blinfun_apply z x) o f)"
-    by simp
-  then show "continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
-    unfolding comp_def by auto
-next
-  assume *: "\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
-  have "continuous_on_topo T euclidean (blinfun_apply o f)"
-    unfolding euclidean_product_topology
-    apply (rule continuous_on_topo_coordinatewise_then_product, auto)
-    using * unfolding comp_def by auto
-  show "continuous_on_topo T strong_operator_topology f"
-    unfolding strong_operator_topology_def
-    apply (rule continuous_on_topo_pullback')
-    by (auto simp add: \<open>continuous_on_topo T euclidean (blinfun_apply o f)\<close>)
-qed
-
-lemma strong_operator_topology_weaker_than_euclidean:
-  "continuous_on_topo euclidean strong_operator_topology (\<lambda>f. f)"
-  by (subst continuous_on_strong_operator_topo_iff_coordinatewise,
-    auto simp add: continuous_on_topo_UNIV[symmetric] linear_continuous_on)
 
 
 subsection \<open>Metrics on product spaces\<close>
@@ -1649,143 +1582,5 @@ qed
 
 instance "fun" :: (countable, polish_space) polish_space
 by standard
-
-
-
-
-subsection \<open>Measurability\<close> (*FIX ME move? *)
-
-text \<open>There are two natural sigma-algebras on a product space: the borel sigma algebra,
-generated by open sets in the product, and the product sigma algebra, countably generated by
-products of measurable sets along finitely many coordinates. The second one is defined and studied
-in \<^file>\<open>Finite_Product_Measure.thy\<close>.
-
-These sigma-algebra share a lot of natural properties (measurability of coordinates, for instance),
-but there is a fundamental difference: open sets are generated by arbitrary unions, not only
-countable ones, so typically many open sets will not be measurable with respect to the product sigma
-algebra (while all sets in the product sigma algebra are borel). The two sigma algebras coincide
-only when everything is countable (i.e., the product is countable, and the borel sigma algebra in
-the factor is countably generated).
-
-In this paragraph, we develop basic measurability properties for the borel sigma algebra, and
-compare it with the product sigma algebra as explained above.
-\<close>
-
-lemma measurable_product_coordinates [measurable (raw)]:
-  "(\<lambda>x. x i) \<in> measurable borel borel"
-by (rule borel_measurable_continuous_on1[OF continuous_on_product_coordinates])
-
-lemma measurable_product_then_coordinatewise:
-  fixes f::"'a \<Rightarrow> 'b \<Rightarrow> ('c::topological_space)"
-  assumes [measurable]: "f \<in> borel_measurable M"
-  shows "(\<lambda>x. f x i) \<in> borel_measurable M"
-proof -
-  have "(\<lambda>x. f x i) = (\<lambda>y. y i) o f"
-    unfolding comp_def by auto
-  then show ?thesis by simp
-qed
-
-text \<open>To compare the Borel sigma algebra with the product sigma algebra, we give a presentation
-of the product sigma algebra that is more similar to the one we used above for the product
-topology.\<close>
-
-lemma sets_PiM_finite:
-  "sets (Pi\<^sub>M I M) = sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i))
-        {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. X i \<in> sets (M i)) \<and> finite {i. X i \<noteq> space (M i)}}"
-proof
-  have "{(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. X i \<in> sets (M i)) \<and> finite {i. X i \<noteq> space (M i)}} \<subseteq> sets (Pi\<^sub>M I M)"
-  proof (auto)
-    fix X assume H: "\<forall>i. X i \<in> sets (M i)" "finite {i. X i \<noteq> space (M i)}"
-    then have *: "X i \<in> sets (M i)" for i by simp
-    define J where "J = {i \<in> I. X i \<noteq> space (M i)}"
-    have "finite J" "J \<subseteq> I" unfolding J_def using H by auto
-    define Y where "Y = (\<Pi>\<^sub>E j\<in>J. X j)"
-    have "prod_emb I M J Y \<in> sets (Pi\<^sub>M I M)"
-      unfolding Y_def apply (rule sets_PiM_I) using \<open>finite J\<close> \<open>J \<subseteq> I\<close> * by auto
-    moreover have "prod_emb I M J Y = (\<Pi>\<^sub>E i\<in>I. X i)"
-      unfolding prod_emb_def Y_def J_def using H sets.sets_into_space[OF *]
-      by (auto simp add: PiE_iff, blast)
-    ultimately show "Pi\<^sub>E I X \<in> sets (Pi\<^sub>M I M)" by simp
-  qed
-  then show "sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. X i \<in> sets (M i)) \<and> finite {i. X i \<noteq> space (M i)}}
-              \<subseteq> sets (Pi\<^sub>M I M)"
-    by (metis (mono_tags, lifting) sets.sigma_sets_subset' sets.top space_PiM)
-
-  have *: "\<exists>X. {f. (\<forall>i\<in>I. f i \<in> space (M i)) \<and> f \<in> extensional I \<and> f i \<in> A} = Pi\<^sub>E I X \<and>
-                (\<forall>i. X i \<in> sets (M i)) \<and> finite {i. X i \<noteq> space (M i)}"
-    if "i \<in> I" "A \<in> sets (M i)" for i A
-  proof -
-    define X where "X = (\<lambda>j. if j = i then A else space (M j))"
-    have "{f. (\<forall>i\<in>I. f i \<in> space (M i)) \<and> f \<in> extensional I \<and> f i \<in> A} = Pi\<^sub>E I X"
-      unfolding X_def using sets.sets_into_space[OF \<open>A \<in> sets (M i)\<close>] \<open>i \<in> I\<close>
-      by (auto simp add: PiE_iff extensional_def, metis subsetCE, metis)
-    moreover have "X j \<in> sets (M j)" for j
-      unfolding X_def using \<open>A \<in> sets (M i)\<close> by auto
-    moreover have "finite {j. X j \<noteq> space (M j)}"
-      unfolding X_def by simp
-    ultimately show ?thesis by auto
-  qed
-  show "sets (Pi\<^sub>M I M) \<subseteq> sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. X i \<in> sets (M i)) \<and> finite {i. X i \<noteq> space (M i)}}"
-    unfolding sets_PiM_single
-    apply (rule sigma_sets_mono')
-    apply (auto simp add: PiE_iff *)
-    done
-qed
-
-lemma sets_PiM_subset_borel:
-  "sets (Pi\<^sub>M UNIV (\<lambda>_. borel)) \<subseteq> sets borel"
-proof -
-  have *: "Pi\<^sub>E UNIV X \<in> sets borel" if [measurable]: "\<And>i. X i \<in> sets borel" "finite {i. X i \<noteq> UNIV}" for X::"'a \<Rightarrow> 'b set"
-  proof -
-    define I where "I = {i. X i \<noteq> UNIV}"
-    have "finite I" unfolding I_def using that by simp
-    have "Pi\<^sub>E UNIV X = (\<Inter>i\<in>I. (\<lambda>x. x i)-`(X i) \<inter> space borel) \<inter> space borel"
-      unfolding I_def by auto
-    also have "... \<in> sets borel"
-      using that \<open>finite I\<close> by measurable
-    finally show ?thesis by simp
-  qed
-  then have "{(\<Pi>\<^sub>E i\<in>UNIV. X i) |X::('a \<Rightarrow> 'b set). (\<forall>i. X i \<in> sets borel) \<and> finite {i. X i \<noteq> space borel}} \<subseteq> sets borel"
-    by auto
-  then show ?thesis unfolding sets_PiM_finite space_borel
-    by (simp add: * sets.sigma_sets_subset')
-qed
-
-proposition sets_PiM_equal_borel:
-  "sets (Pi\<^sub>M UNIV (\<lambda>i::('a::countable). borel::('b::second_countable_topology measure))) = sets borel"
-proof
-  obtain K::"('a \<Rightarrow> 'b) set set" where K: "topological_basis K" "countable K"
-            "\<And>k. k \<in> K \<Longrightarrow> \<exists>X. (k = Pi\<^sub>E UNIV X) \<and> (\<forall>i. open (X i)) \<and> finite {i. X i \<noteq> UNIV}"
-    using product_topology_countable_basis by fast
-  have *: "k \<in> sets (Pi\<^sub>M UNIV (\<lambda>_. borel))" if "k \<in> K" for k
-  proof -
-    obtain X where H: "k = Pi\<^sub>E UNIV X" "\<And>i. open (X i)" "finite {i. X i \<noteq> UNIV}"
-      using K(3)[OF \<open>k \<in> K\<close>] by blast
-    show ?thesis unfolding H(1) sets_PiM_finite space_borel using borel_open[OF H(2)] H(3) by auto
-  qed
-  have **: "U \<in> sets (Pi\<^sub>M UNIV (\<lambda>_. borel))" if "open U" for U::"('a \<Rightarrow> 'b) set"
-  proof -
-    obtain B where "B \<subseteq> K" "U = (\<Union>B)"
-      using \<open>open U\<close> \<open>topological_basis K\<close> by (metis topological_basis_def)
-    have "countable B" using \<open>B \<subseteq> K\<close> \<open>countable K\<close> countable_subset by blast
-    moreover have "k \<in> sets (Pi\<^sub>M UNIV (\<lambda>_. borel))" if "k \<in> B" for k
-      using \<open>B \<subseteq> K\<close> * that by auto
-    ultimately show ?thesis unfolding \<open>U = (\<Union>B)\<close> by auto
-  qed
-  have "sigma_sets UNIV (Collect open) \<subseteq> sets (Pi\<^sub>M UNIV (\<lambda>i::'a. (borel::('b measure))))"
-    apply (rule sets.sigma_sets_subset') using ** by auto
-  then show "sets (borel::('a \<Rightarrow> 'b) measure) \<subseteq> sets (Pi\<^sub>M UNIV (\<lambda>_. borel))"
-    unfolding borel_def by auto
-qed (simp add: sets_PiM_subset_borel)
-
-lemma measurable_coordinatewise_then_product:
-  fixes f::"'a \<Rightarrow> ('b::countable) \<Rightarrow> ('c::second_countable_topology)"
-  assumes [measurable]: "\<And>i. (\<lambda>x. f x i) \<in> borel_measurable M"
-  shows "f \<in> borel_measurable M"
-proof -
-  have "f \<in> measurable M (Pi\<^sub>M UNIV (\<lambda>_. borel))"
-    by (rule measurable_PiM_single', auto simp add: assms)
-  then show ?thesis using sets_PiM_equal_borel measurable_cong_sets by blast
-qed
 
 end

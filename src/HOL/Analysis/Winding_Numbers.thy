@@ -935,11 +935,10 @@ proposition%unimportant winding_number_compose_exp:
 proof -
   obtain e where "0 < e" and e: "\<And>t. t \<in> {0..1} \<Longrightarrow> e \<le> norm(exp(p t))"
   proof
-     have "closed (path_image (exp \<circ> p))"
-       by (simp add: assms closed_path_image holomorphic_on_exp holomorphic_on_imp_continuous_on path_continuous_image)
+    have "closed (path_image (exp \<circ> p))"
+      by (simp add: assms closed_path_image holomorphic_on_exp holomorphic_on_imp_continuous_on path_continuous_image)
     then show "0 < setdist {0} (path_image (exp \<circ> p))"
-      by (metis (mono_tags, lifting) compact_sing exp_not_eq_zero imageE path_image_compose
-               path_image_nonempty setdist_eq_0_compact_closed setdist_gt_0_compact_closed setdist_eq_0_closed)
+      by (metis exp_not_eq_zero imageE image_comp infdist_eq_setdist infdist_pos_not_in_closed path_defs(4) path_image_nonempty)
   next
     fix t::real
     assume "t \<in> {0..1}"

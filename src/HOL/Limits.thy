@@ -532,6 +532,9 @@ lemma continuous_on_dist[continuous_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. dist (f x) (g x))"
   unfolding continuous_on_def by (auto intro: tendsto_dist)
 
+lemma continuous_at_dist: "isCont (dist a) b"
+  using continuous_on_dist [OF continuous_on_const continuous_on_id] continuous_on_eq_continuous_within by blast
+
 lemma tendsto_norm [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) \<longlongrightarrow> norm a) F"
   unfolding norm_conv_dist by (intro tendsto_intros)
 

@@ -3652,6 +3652,11 @@ proof -
     using \<open>S \<subseteq> box a b\<close> by auto
 qed
 
+corollary bounded_path_connected_Compl_real:
+  fixes S :: "real set"
+  assumes "bounded S" "path_connected(- S)" shows "S = {}"
+  by (simp add: assms bounded_connected_Compl_real path_connected_imp_connected)
+
 lemma bounded_connected_Compl_1:
   fixes S :: "'a::{euclidean_space} set"
   assumes "bounded S" and conn: "connected(- S)" and 1: "DIM('a) = 1"

@@ -3170,4 +3170,71 @@ lemma setdist_unique:
 lemma setdist_le_sing: "x \<in> S ==> setdist S T \<le> setdist {x} T"
   using setdist_subset_left by auto
 
+lemma infdist_eq_setdist: "infdist x A = setdist {x} A"
+  by (simp add: infdist_def setdist_def Setcompr_eq_image)
+
+lemma setdist_eq_infdist: "setdist A B = (if A = {} then 0 else INF a\<in>A. infdist a B)"
+proof -
+  have "Inf {dist x y |x y. x \<in> A \<and> y \<in> B} = (INF x\<in>A. Inf (dist x ` B))"
+    if "b \<in> B" "a \<in> A" for a b
+  proof (rule order_antisym)
+    have "Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> Inf (dist x ` B)"
+      if  "b \<in> B" "a \<in> A" "x \<in> A" for x 
+    proof -
+      have *: "\<And>b'. b' \<in> B \<Longrightarrow> Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> dist x b'"
+        by (metis (mono_tags, lifting) ex_in_conv setdist_def setdist_le_dist that(3))
+      show ?thesis
+        using that by (subst conditionally_complete_lattice_class.le_cInf_iff) (auto simp: *)+
+    qed
+    then show "Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> (INF x\<in>A. Inf (dist x ` B))"
+      using that
+      by (subst conditionally_complete_lattice_class.le_cInf_iff) (auto simp: bdd_below_def)
+  next
+    have *: "\<And>x y. \<lbrakk>b \<in> B; a \<in> A; x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow> \<exists>a\<in>A. Inf (dist a ` B) \<le> dist x y"
+      by (meson bdd_below_image_dist cINF_lower)
+    show "(INF x\<in>A. Inf (dist x ` B)) \<le> Inf {dist x y |x y. x \<in> A \<and> y \<in> B}"
+    proof (rule conditionally_complete_lattice_class.cInf_mono)
+      show "bdd_below ((\<lambda>x. Inf (dist x ` B)) ` A)"
+        by (metis (no_types, lifting) bdd_belowI2 ex_in_conv infdist_def infdist_nonneg that(1))
+    qed (use that in \<open>auto simp: *\<close>)
+  qed
+  then show ?thesis
+    by (auto simp: setdist_def infdist_def)
+qed
+
+lemma continuous_on_infdist [continuous_intros]: "continuous_on B (\<lambda>y. infdist y A)"
+  by (simp add: continuous_on_setdist infdist_eq_setdist)
+
+proposition setdist_attains_inf:
+  assumes "compact B" "B \<noteq> {}"
+  obtains y where "y \<in> B" "setdist A B = infdist y A"
+proof (cases "A = {}")
+  case True
+  then show thesis
+    by (metis assms diameter_compact_attained infdist_def setdist_def that)
+next
+  case False
+  obtain y where "y \<in> B" and min: "\<And>y'. y' \<in> B \<Longrightarrow> infdist y A \<le> infdist y' A"
+    using continuous_attains_inf [OF assms continuous_on_infdist] by blast
+  show thesis
+  proof
+    have "setdist A B = (INF y\<in>B. infdist y A)"
+      by (metis \<open>B \<noteq> {}\<close> setdist_eq_infdist setdist_sym)
+    also have "\<dots> = infdist y A"
+    proof (rule order_antisym)
+      show "(INF y\<in>B. infdist y A) \<le> infdist y A"
+      proof (rule cInf_lower)
+        show "infdist y A \<in> (\<lambda>y. infdist y A) ` B"
+          using \<open>y \<in> B\<close> by blast
+        show "bdd_below ((\<lambda>y. infdist y A) ` B)"
+          by (meson bdd_belowI2 infdist_nonneg)
+      qed
+    next
+      show "infdist y A \<le> (INF y\<in>B. infdist y A)"
+        by (simp add: \<open>B \<noteq> {}\<close> cINF_greatest min)
+    qed
+    finally show "setdist A B = infdist y A" .
+  qed (fact \<open>y \<in> B\<close>)
+qed
+
 end

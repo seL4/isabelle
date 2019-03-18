@@ -810,6 +810,9 @@ lemma not_compact_UNIV[simp]:
   shows "\<not> compact (UNIV::'a set)"
     by (simp add: compact_eq_bounded_closed)
 
+lemma not_compact_space_euclideanreal [simp]: "\<not> compact_space euclideanreal"
+  by (simp add: compact_space_def)
+
 text\<open>Representing sets as the union of a chain of compact sets.\<close>
 lemma closed_Union_compact_subsets:
   fixes S :: "'a::{heine_borel,real_normed_vector} set"

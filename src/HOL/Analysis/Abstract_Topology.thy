@@ -403,8 +403,12 @@ lemma closedin_subtopology_Un:
      \<Longrightarrow> closedin (subtopology X (T \<union> U)) S"
 by (simp add: closedin_subtopology) blast
 
+lemma openin_trans_full:
+   "\<lbrakk>openin (subtopology X U) S; openin X U\<rbrakk> \<Longrightarrow> openin X S"
+  by (simp add: openin_open_subtopology)
 
-subsection \<open>The standard Euclidean topology\<close>
+
+subsection \<open>The canonical topology from the underlying type class\<close>
 
 abbreviation%important euclidean :: "'a::topological_space topology"
   where "euclidean \<equiv> topology open"
@@ -1267,6 +1271,144 @@ lemma frontier_of_subtopology_open:
 lemma discrete_topology_frontier_of [simp]:
      "(discrete_topology U) frontier_of S = {}"
   by (simp add: Diff_eq discrete_topology_closure_of frontier_of_closures)
+
+
+subsection\<open>Locally finite collections\<close>
+
+definition locally_finite_in
+  where
+ "locally_finite_in X \<A> \<longleftrightarrow>
+        (\<Union>\<A> \<subseteq> topspace X) \<and>
+        (\<forall>x \<in> topspace X. \<exists>V. openin X V \<and> x \<in> V \<and> finite {U \<in> \<A>. U \<inter> V \<noteq> {}})"
+
+lemma finite_imp_locally_finite_in:
+   "\<lbrakk>finite \<A>; \<Union>\<A> \<subseteq> topspace X\<rbrakk> \<Longrightarrow> locally_finite_in X \<A>"
+  by (auto simp: locally_finite_in_def)
+
+lemma locally_finite_in_subset:
+  assumes "locally_finite_in X \<A>" "\<B> \<subseteq> \<A>"
+  shows "locally_finite_in X \<B>"
+proof -
+  have "finite {U \<in> \<A>. U \<inter> V \<noteq> {}} \<Longrightarrow> finite {U \<in> \<B>. U \<inter> V \<noteq> {}}" for V
+    apply (erule rev_finite_subset) using \<open>\<B> \<subseteq> \<A>\<close> by blast
+  then show ?thesis
+  using assms unfolding locally_finite_in_def by (fastforce simp add:)
+qed
+
+lemma locally_finite_in_refinement:
+  assumes \<A>: "locally_finite_in X \<A>" and f: "\<And>S. S \<in> \<A> \<Longrightarrow> f S \<subseteq> S"
+  shows "locally_finite_in X (f ` \<A>)"
+proof -
+  show ?thesis
+    unfolding locally_finite_in_def
+  proof safe
+    fix x
+    assume "x \<in> topspace X"
+    then obtain V where "openin X V" "x \<in> V" "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+      using \<A> unfolding locally_finite_in_def by blast
+    moreover have "{U \<in> \<A>. f U \<inter> V \<noteq> {}} \<subseteq> {U \<in> \<A>. U \<inter> V \<noteq> {}}" for V
+      using f by blast
+    ultimately have "finite {U \<in> \<A>. f U \<inter> V \<noteq> {}}"
+      using finite_subset by blast
+    moreover have "f ` {U \<in> \<A>. f U \<inter> V \<noteq> {}} = {U \<in> f ` \<A>. U \<inter> V \<noteq> {}}"
+      by blast
+    ultimately have "finite {U \<in> f ` \<A>. U \<inter> V \<noteq> {}}"
+      by (metis (no_types, lifting) finite_imageI)
+    then show "\<exists>V. openin X V \<and> x \<in> V \<and> finite {U \<in> f ` \<A>. U \<inter> V \<noteq> {}}"
+      using \<open>openin X V\<close> \<open>x \<in> V\<close> by blast
+  next
+    show "\<And>x xa. \<lbrakk>xa \<in> \<A>; x \<in> f xa\<rbrakk> \<Longrightarrow> x \<in> topspace X"
+      by (meson Sup_upper \<A> f locally_finite_in_def subset_iff)
+  qed
+qed
+
+lemma locally_finite_in_subtopology:
+  assumes \<A>: "locally_finite_in X \<A>" "\<Union>\<A> \<subseteq> S"
+  shows "locally_finite_in (subtopology X S) \<A>"
+  unfolding locally_finite_in_def
+proof safe
+  fix x
+  assume x: "x \<in> topspace (subtopology X S)"
+  then obtain V where "openin X V" "x \<in> V" and fin: "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+    using \<A> unfolding locally_finite_in_def topspace_subtopology by blast
+  show "\<exists>V. openin (subtopology X S) V \<and> x \<in> V \<and> finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+  proof (intro exI conjI)
+    show "openin (subtopology X S) (S \<inter> V)"
+      by (simp add: \<open>openin X V\<close> openin_subtopology_Int2)
+    have "{U \<in> \<A>. U \<inter> (S \<inter> V) \<noteq> {}} \<subseteq> {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+      by auto
+    with fin show "finite {U \<in> \<A>. U \<inter> (S \<inter> V) \<noteq> {}}"
+      using finite_subset by auto
+    show "x \<in> S \<inter> V"
+      using x \<open>x \<in> V\<close> by (simp add: topspace_subtopology)
+  qed
+next
+  show "\<And>x A. \<lbrakk>x \<in> A; A \<in> \<A>\<rbrakk> \<Longrightarrow> x \<in> topspace (subtopology X S)"
+    using assms unfolding locally_finite_in_def topspace_subtopology by blast
+qed
+
+
+lemma closedin_locally_finite_Union:
+  assumes clo: "\<And>S. S \<in> \<A> \<Longrightarrow> closedin X S" and \<A>: "locally_finite_in X \<A>"
+  shows "closedin X (\<Union>\<A>)"
+  using \<A> unfolding locally_finite_in_def closedin_def
+proof clarify
+  show "openin X (topspace X - \<Union>\<A>)"
+  proof (subst openin_subopen, clarify)
+    fix x
+    assume "x \<in> topspace X" and "x \<notin> \<Union>\<A>"
+    then obtain V where "openin X V" "x \<in> V" and fin: "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+      using \<A> unfolding locally_finite_in_def by blast
+    let ?T = "V - \<Union>{S \<in> \<A>. S \<inter> V \<noteq> {}}"
+    show "\<exists>T. openin X T \<and> x \<in> T \<and> T \<subseteq> topspace X - \<Union>\<A>"
+    proof (intro exI conjI)
+      show "openin X ?T"
+        by (metis (no_types, lifting) fin \<open>openin X V\<close> clo closedin_Union mem_Collect_eq openin_diff)
+      show "x \<in> ?T"
+        using \<open>x \<notin> \<Union>\<A>\<close> \<open>x \<in> V\<close> by auto
+      show "?T \<subseteq> topspace X - \<Union>\<A>"
+        using \<open>openin X V\<close> openin_subset by auto
+    qed
+  qed
+qed
+
+lemma locally_finite_in_closure:
+  assumes \<A>: "locally_finite_in X \<A>"
+  shows "locally_finite_in X ((\<lambda>S. X closure_of S) ` \<A>)"
+  using \<A> unfolding locally_finite_in_def
+proof (intro conjI; clarsimp)
+  fix x A
+  assume "x \<in> X closure_of A"
+  then show "x \<in> topspace X"
+    by (meson in_closure_of)
+next
+  fix x
+  assume "x \<in> topspace X" and "\<Union>\<A> \<subseteq> topspace X"
+  then obtain V where V: "openin X V" "x \<in> V" and fin: "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
+    using \<A> unfolding locally_finite_in_def by blast
+  have eq: "{y \<in> f ` \<A>. Q y} = f ` {x. x \<in> \<A> \<and> Q(f x)}" for f Q
+    by blast
+  have eq2: "{A \<in> \<A>. X closure_of A \<inter> V \<noteq> {}} = {A \<in> \<A>. A \<inter> V \<noteq> {}}"
+    using openin_Int_closure_of_eq_empty V  by blast
+  have "finite {U \<in> (closure_of) X ` \<A>. U \<inter> V \<noteq> {}}"
+    by (simp add: eq eq2 fin)
+  with V show "\<exists>V. openin X V \<and> x \<in> V \<and> finite {U \<in> (closure_of) X ` \<A>. U \<inter> V \<noteq> {}}"
+    by blast
+qed
+
+lemma closedin_Union_locally_finite_closure:
+   "locally_finite_in X \<A> \<Longrightarrow> closedin X (\<Union>((\<lambda>S. X closure_of S) ` \<A>))"
+  by (metis (mono_tags) closedin_closure_of closedin_locally_finite_Union imageE locally_finite_in_closure)
+
+lemma closure_of_Union_subset: "\<Union>((\<lambda>S. X closure_of S) ` \<A>) \<subseteq> X closure_of (\<Union>\<A>)"
+  by clarify (meson Union_upper closure_of_mono subsetD)
+
+lemma closure_of_locally_finite_Union:
+   "locally_finite_in X \<A> \<Longrightarrow> X closure_of (\<Union>\<A>) = \<Union>((\<lambda>S. X closure_of S) ` \<A>)"
+  apply (rule closure_of_unique)
+  apply (simp add: SUP_upper2 Sup_le_iff closure_of_subset locally_finite_in_def)
+  apply (simp add: closedin_Union_locally_finite_closure)
+  by (simp add: Sup_le_iff closure_of_minimal)
 
 
 subsection\<open>Continuous maps\<close>

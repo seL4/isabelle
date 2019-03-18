@@ -44,6 +44,10 @@ lemma all_union_of:
 lemma all_intersection_of:
      "(\<forall>S. (P intersection_of Q) S \<longrightarrow> R S) \<longleftrightarrow> (\<forall>T. P T \<and> T \<subseteq> Collect Q \<longrightarrow> R(\<Inter>T))"
   by (auto simp: intersection_of_def)
+             
+lemma intersection_ofE:
+     "\<lbrakk>(P intersection_of Q) S; \<And>T. \<lbrakk>P T; T \<subseteq> Collect Q\<rbrakk> \<Longrightarrow> R(\<Inter>T)\<rbrakk> \<Longrightarrow> R S"
+  by (auto simp: intersection_of_def)
 
 lemma union_of_empty:
      "P {} \<Longrightarrow> (P union_of Q) {}"
@@ -317,6 +321,9 @@ lemma relative_to_imp_subset:
   by (auto simp: relative_to_def)
 
 lemma all_relative_to: "(\<forall>S. (P relative_to U) S \<longrightarrow> Q S) \<longleftrightarrow> (\<forall>S. P S \<longrightarrow> Q(U \<inter> S))"
+  by (auto simp: relative_to_def)
+
+lemma relative_toE: "\<lbrakk>(P relative_to U) S; \<And>S. P S \<Longrightarrow> Q(U \<inter> S)\<rbrakk> \<Longrightarrow> Q S"
   by (auto simp: relative_to_def)
 
 lemma relative_to_inc:

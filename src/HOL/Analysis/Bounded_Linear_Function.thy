@@ -9,6 +9,8 @@ imports
   Topology_Euclidean_Space
   Operator_Norm
   Uniform_Limit
+  Function_Topology
+
 begin
 
 lemma onorm_componentwise:
@@ -732,5 +734,87 @@ lemmas bounded_linear_function_uniform_limit_intros[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF bounded_linear_apply_blinfun]
   bounded_linear.uniform_limit[OF bounded_linear_blinfun_apply]
   bounded_linear.uniform_limit[OF bounded_linear_blinfun_matrix]
+
+
+subsection \<open>The strong operator topology on continuous linear operators\<close>
+
+text \<open>Let \<open>'a\<close> and \<open>'b\<close> be two normed real vector spaces. Then the space of linear continuous
+operators from \<open>'a\<close> to \<open>'b\<close> has a canonical norm, and therefore a canonical corresponding topology
+(the type classes instantiation are given in \<^file>\<open>Bounded_Linear_Function.thy\<close>).
+
+However, there is another topology on this space, the strong operator topology, where \<open>T\<^sub>n\<close> tends to
+\<open>T\<close> iff, for all \<open>x\<close> in \<open>'a\<close>, then \<open>T\<^sub>n x\<close> tends to \<open>T x\<close>. This is precisely the product topology
+where the target space is endowed with the norm topology. It is especially useful when \<open>'b\<close> is the set
+of real numbers, since then this topology is compact.
+
+We can not implement it using type classes as there is already a topology, but at least we
+can define it as a topology.
+
+Note that there is yet another (common and useful) topology on operator spaces, the weak operator
+topology, defined analogously using the product topology, but where the target space is given the
+weak-* topology, i.e., the pullback of the weak topology on the bidual of the space under the
+canonical embedding of a space into its bidual. We do not define it there, although it could also be
+defined analogously.
+\<close>
+
+definition%important strong_operator_topology::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector) topology"
+where "strong_operator_topology = pullback_topology UNIV blinfun_apply euclidean"
+
+lemma strong_operator_topology_topspace:
+  "topspace strong_operator_topology = UNIV"
+unfolding strong_operator_topology_def topspace_pullback_topology topspace_euclidean by auto
+
+lemma strong_operator_topology_basis:
+  fixes f::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector)" and U::"'i \<Rightarrow> 'b set" and x::"'i \<Rightarrow> 'a"
+  assumes "finite I" "\<And>i. i \<in> I \<Longrightarrow> open (U i)"
+  shows "openin strong_operator_topology {f. \<forall>i\<in>I. blinfun_apply f (x i) \<in> U i}"
+proof -
+  have "open {g::('a\<Rightarrow>'b). \<forall>i\<in>I. g (x i) \<in> U i}"
+    by (rule product_topology_basis'[OF assms])
+  moreover have "{f. \<forall>i\<in>I. blinfun_apply f (x i) \<in> U i}
+                = blinfun_apply-`{g::('a\<Rightarrow>'b). \<forall>i\<in>I. g (x i) \<in> U i} \<inter> UNIV"
+    by auto
+  ultimately show ?thesis
+    unfolding strong_operator_topology_def by (subst openin_pullback_topology) auto
+qed
+
+lemma strong_operator_topology_continuous_evaluation:
+  "continuous_on_topo strong_operator_topology euclidean (\<lambda>f. blinfun_apply f x)"
+proof -
+  have "continuous_on_topo strong_operator_topology euclidean ((\<lambda>f. f x) o blinfun_apply)"
+    unfolding strong_operator_topology_def apply (rule continuous_on_topo_pullback)
+    using continuous_on_topo_UNIV continuous_on_product_coordinates by fastforce
+  then show ?thesis unfolding comp_def by simp
+qed
+
+lemma continuous_on_strong_operator_topo_iff_coordinatewise:
+  "continuous_on_topo T strong_operator_topology f
+    \<longleftrightarrow> (\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x))"
+proof (auto)
+  fix x::"'b"
+  assume "continuous_on_topo T strong_operator_topology f"
+  with continuous_on_topo_compose[OF this strong_operator_topology_continuous_evaluation]
+  have "continuous_on_topo T euclidean ((\<lambda>z. blinfun_apply z x) o f)"
+    by simp
+  then show "continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
+    unfolding comp_def by auto
+next
+  assume *: "\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
+  have "continuous_on_topo T euclidean (blinfun_apply o f)"
+    unfolding euclidean_product_topology
+    apply (rule continuous_on_topo_coordinatewise_then_product, auto)
+    using * unfolding comp_def by auto
+  show "continuous_on_topo T strong_operator_topology f"
+    unfolding strong_operator_topology_def
+    apply (rule continuous_on_topo_pullback')
+    by (auto simp add: \<open>continuous_on_topo T euclidean (blinfun_apply o f)\<close>)
+qed
+
+lemma strong_operator_topology_weaker_than_euclidean:
+  "continuous_on_topo euclidean strong_operator_topology (\<lambda>f. f)"
+  by (subst continuous_on_strong_operator_topo_iff_coordinatewise,
+    auto simp add: continuous_on_topo_UNIV[symmetric] linear_continuous_on)
+
+
 
 end

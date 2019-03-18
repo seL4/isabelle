@@ -6715,13 +6715,12 @@ qed
 subsection\<open>Paracompactness\<close>
 
 proposition paracompact:
-  fixes S :: "'a :: euclidean_space set"
+  fixes S :: "'a :: {metric_space,second_countable_topology} set"
   assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
   obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
                and "\<And>U. U \<in> \<C>' \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
                and "\<And>x. x \<in> S
-                       \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and>
-                               finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
+                       \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
 proof (cases "S = {}")
   case True with that show ?thesis by blast
 next
@@ -6737,7 +6736,7 @@ next
       apply (rule_tac x = "ball x e" in exI)
       using  \<open>T \<in> \<C>\<close>
       apply (simp add: closure_minimal)
-      done
+      using closed_cball closure_minimal by blast
   qed
   then obtain F G where Gin: "x \<in> G x" and oG: "open (G x)"
                     and clos: "closure (G x) \<subseteq> F x" and Fin: "F x \<in> \<C>"
@@ -6802,7 +6801,7 @@ next
 qed
 
 corollary paracompact_closedin:
-  fixes S :: "'a :: euclidean_space set"
+  fixes S :: "'a :: {metric_space,second_countable_topology} set"
   assumes cin: "closedin (subtopology euclidean U) S"
       and oin: "\<And>T. T \<in> \<C> \<Longrightarrow> openin (subtopology euclidean U) T"
       and "S \<subseteq> \<Union>\<C>"
@@ -6825,7 +6824,7 @@ proof -
   obtain \<D> where "U \<subseteq> \<Union>\<D>"
              and D1: "\<And>U. U \<in> \<D> \<Longrightarrow> open U \<and> (\<exists>T. T \<in> insert (- K) (F ` \<C>) \<and> U \<subseteq> T)"
              and D2: "\<And>x. x \<in> U \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<D>. U \<inter> V \<noteq> {}}"
-    using paracompact [OF 1 2] by auto
+    by (blast intro: paracompact [OF 1 2])
   let ?C = "{U \<inter> V |V. V \<in> \<D> \<and> (V \<inter> K \<noteq> {})}"
   show ?thesis
   proof (rule_tac \<C>' = "{U \<inter> V |V. V \<in> \<D> \<and> (V \<inter> K \<noteq> {})}" in that)
@@ -6847,7 +6846,7 @@ proof -
 qed
 
 corollary%unimportant paracompact_closed:
-  fixes S :: "'a :: euclidean_space set"
+  fixes S :: "'a :: {metric_space,second_countable_topology} set"
   assumes "closed S"
       and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
       and "S \<subseteq> \<Union>\<C>"
@@ -6855,7 +6854,7 @@ corollary%unimportant paracompact_closed:
                and "\<And>U. U \<in> \<C>' \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
                and "\<And>x. \<exists>V. open V \<and> x \<in> V \<and>
                                finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
-using paracompact_closedin [of UNIV S \<C>] assms by auto
+  by (rule paracompact_closedin [of UNIV S \<C>]) (auto simp: assms)
 
   
 subsection%unimportant\<open>Closed-graph characterization of continuity\<close>

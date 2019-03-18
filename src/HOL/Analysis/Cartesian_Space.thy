@@ -671,7 +671,7 @@ lemma rank_mul_le_left:
   by (metis matrix_transpose_mul rank_mul_le_right rank_transpose)
 
 
-subsection%unimportant \<open>Lemmas for working on \<open>real^1/2/3\<close>\<close>
+subsection%unimportant \<open>Lemmas for working on \<open>real^1/2/3/4\<close>\<close>
 
 lemma exhaust_2:
   fixes x :: 2
@@ -699,6 +699,19 @@ qed
 lemma forall_3: "(\<forall>i::3. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and> P 3"
   by (metis exhaust_3)
 
+lemma exhaust_4:
+  fixes x :: 4
+  shows "x = 1 \<or> x = 2 \<or> x = 3 \<or> x = 4"
+proof (induct x)
+  case (of_int z)
+  then have "0 \<le> z" and "z < 4" by simp_all
+  then have "z = 0 \<or> z = 1 \<or> z = 2 \<or> z = 3" by arith
+  then show ?case by auto
+qed
+
+lemma forall_4: "(\<forall>i::4. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and> P 3 \<and> P 4"
+  by (metis exhaust_4)
+
 lemma UNIV_1 [simp]: "UNIV = {1::1}"
   by (auto simp add: num1_eq_iff)
 
@@ -708,6 +721,9 @@ lemma UNIV_2: "UNIV = {1::2, 2::2}"
 lemma UNIV_3: "UNIV = {1::3, 2::3, 3::3}"
   using exhaust_3 by auto
 
+lemma UNIV_4: "UNIV = {1::4, 2::4, 3::4, 4::4}"
+  using exhaust_4 by auto
+
 lemma sum_1: "sum f (UNIV::1 set) = f 1"
   unfolding UNIV_1 by simp
 
@@ -716,6 +732,9 @@ lemma sum_2: "sum f (UNIV::2 set) = f 1 + f 2"
 
 lemma sum_3: "sum f (UNIV::3 set) = f 1 + f 2 + f 3"
   unfolding UNIV_3 by (simp add: ac_simps)
+
+lemma sum_4: "sum f (UNIV::4 set) = f 1 + f 2 + f 3 + f 4"
+  unfolding UNIV_4 by (simp add: ac_simps)
 
 subsection%unimportant\<open>The collapse of the general concepts to dimension one\<close>
 

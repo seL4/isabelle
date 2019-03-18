@@ -14,7 +14,7 @@ text\<open>A difference from HOL Light: all summations over infinite sets equal 
    so the "support" must be made explicit in the summation below!\<close>
 
 proposition subordinate_partition_of_unity:
-  fixes S :: "'a :: euclidean_space set"
+  fixes S :: "'a::metric_space set"
   assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
       and fin: "\<And>x. x \<in> S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. U \<inter> V \<noteq> {}}"
   obtains F :: "['a set, 'a] \<Rightarrow> real"
@@ -26,9 +26,7 @@ proof (cases "\<exists>W. W \<in> \<C> \<and> S \<subseteq> W")
   case True
     then obtain W where "W \<in> \<C>" "S \<subseteq> W" by metis
     then show ?thesis
-      apply (rule_tac F = "\<lambda>V x. if V = W then 1 else 0" in that)
-      apply (auto simp: continuous_on_const supp_sum_def support_on_def)
-      done
+      by (rule_tac F = "\<lambda>V x. if V = W then 1 else 0" in that) (auto simp: supp_sum_def support_on_def)
 next
   case False
     have nonneg: "0 \<le> supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>" for x
@@ -37,9 +35,9 @@ next
     proof -
       have "closedin (subtopology euclidean S) (S - V)"
         by (simp add: Diff_Diff_Int closedin_def opC openin_open_Int \<open>V \<in> \<C>\<close>)
-      with that False setdist_eq_0_closedin [of S "S-V" x] setdist_pos_le [of "{x}" "S - V"]
-        show ?thesis
-          by (simp add: order_class.order.order_iff_strict)
+      with that False  setdist_pos_le [of "{x}" "S - V"]
+      show ?thesis
+        using setdist_gt_0_closedin by fastforce
     qed
     have ss_pos: "0 < supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>" if "x \<in> S" for x
     proof -
@@ -50,17 +48,16 @@ next
       then have *: "finite {A \<in> \<C>. \<not> S \<subseteq> A \<and> x \<notin> closure (S - A)}"
         using closure_def that by (blast intro: rev_finite_subset)
       have "x \<notin> closure (S - U)"
-        by (metis \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> less_irrefl sd_pos setdist_eq_0_sing_1 that)
+        using \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> opC open_Int_closure_eq_empty by fastforce
       then show ?thesis
         apply (simp add: setdist_eq_0_sing_1 supp_sum_def support_on_def)
         apply (rule ordered_comm_monoid_add_class.sum_pos2 [OF *, of U])
         using \<open>U \<in> \<C>\<close> \<open>x \<in> U\<close> False
-        apply (auto simp: setdist_pos_le sd_pos that)
+        apply (auto simp: sd_pos that)
         done
     qed
     define F where
-      "F \<equiv> \<lambda>W x. if x \<in> S then setdist {x} (S - W) / supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>
-                 else 0"
+      "F \<equiv> \<lambda>W x. if x \<in> S then setdist {x} (S - W) / supp_sum (\<lambda>V. setdist {x} (S - V)) \<C> else 0"
     show ?thesis
     proof (rule_tac F = F in that)
       have "continuous_on S (F U)" if "U \<in> \<C>" for U
@@ -302,7 +299,7 @@ subsection\<open>Dugundji's Extension Theorem and Tietze Variants\<close>
 text \<open>See \cite{dugundji}.\<close>
 
 theorem Dugundji:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "convex C" "C \<noteq> {}"
       and cloin: "closedin (subtopology euclidean U) S"
       and contf: "continuous_on S f" and "f ` S \<subseteq> C"
@@ -325,9 +322,8 @@ next
     by (auto simp: sd_pos \<B>_def)
   obtain \<C> where USsub: "U - S \<subseteq> \<Union>\<C>"
        and nbrhd: "\<And>U. U \<in> \<C> \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<B> \<and> U \<subseteq> T)"
-       and fin: "\<And>x. x \<in> U - S
-                     \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> \<C> \<and> U \<inter> V \<noteq> {}}"
-    using paracompact [OF USS] by auto
+       and fin: "\<And>x. x \<in> U - S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> \<C> \<and> U \<inter> V \<noteq> {}}"
+    by (rule paracompact [OF USS]) auto
   have "\<exists>v a. v \<in> U \<and> v \<notin> S \<and> a \<in> S \<and>
               T \<subseteq> ball v (setdist {v} S / 2) \<and>
               dist v a \<le> 2 * setdist {v} S" if "T \<in> \<C>" for T
@@ -353,7 +349,7 @@ next
   proof -
     have "dist (\<V> T) v < setdist {\<V> T} S / 2"
       using that VA mem_ball by blast
-    also have "... \<le> setdist {v} S"
+    also have "\<dots> \<le> setdist {v} S"
       using sdle [OF \<open>T \<in> \<C>\<close> \<open>v \<in> T\<close>] by simp
     also have vS: "setdist {v} S \<le> dist a v"
       by (simp add: setdist_le_dist setdist_sym \<open>a \<in> S\<close>)
@@ -362,9 +358,9 @@ next
       using sdle that vS by force
     have "dist a (\<A> T) \<le> dist a v + dist v (\<V> T) + dist (\<V> T) (\<A> T)"
       by (metis add.commute add_le_cancel_left dist_commute dist_triangle2 dist_triangle_le)
-    also have "... \<le> dist a v + dist a v + dist (\<V> T) (\<A> T)"
+    also have "\<dots> \<le> dist a v + dist a v + dist (\<V> T) (\<A> T)"
       using VTV by (simp add: dist_commute)
-    also have "... \<le> 2 * dist a v + 2 * setdist {\<V> T} S"
+    also have "\<dots> \<le> 2 * dist a v + 2 * setdist {\<V> T} S"
       using VA [OF \<open>T \<in> \<C>\<close>] by auto
     finally show ?thesis
       using VTS by linarith
@@ -477,66 +473,65 @@ qed
 
 
 corollary Tietze:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
-      and "0 \<le> B"
-      and "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> B"
+    and "closedin (subtopology euclidean U) S"
+    and "0 \<le> B"
+    and "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> B"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-                  "\<And>x. x \<in> U \<Longrightarrow> norm(g x) \<le> B"
-  using assms
-by (auto simp: image_subset_iff intro: Dugundji [of "cball 0 B" U S f])
+    "\<And>x. x \<in> U \<Longrightarrow> norm(g x) \<le> B"
+  using assms by (auto simp: image_subset_iff intro: Dugundji [of "cball 0 B" U S f])
 
 corollary%unimportant Tietze_closed_interval:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
-      and "cbox a b \<noteq> {}"
-      and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
+    and "closedin (subtopology euclidean U) S"
+    and "cbox a b \<noteq> {}"
+    and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-                  "\<And>x. x \<in> U \<Longrightarrow> g x \<in> cbox a b"
-apply (rule Dugundji [of "cbox a b" U S f])
-using assms by auto
+    "\<And>x. x \<in> U \<Longrightarrow> g x \<in> cbox a b"
+  apply (rule Dugundji [of "cbox a b" U S f])
+  using assms by auto
 
 corollary%unimportant Tietze_closed_interval_1:
-  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
-      and "a \<le> b"
-      and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
+    and "closedin (subtopology euclidean U) S"
+    and "a \<le> b"
+    and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-                  "\<And>x. x \<in> U \<Longrightarrow> g x \<in> cbox a b"
-apply (rule Dugundji [of "cbox a b" U S f])
-using assms by (auto simp: image_subset_iff)
+    "\<And>x. x \<in> U \<Longrightarrow> g x \<in> cbox a b"
+  apply (rule Dugundji [of "cbox a b" U S f])
+  using assms by (auto simp: image_subset_iff)
 
 corollary%unimportant Tietze_open_interval:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
-      and "box a b \<noteq> {}"
-      and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
+    and "closedin (subtopology euclidean U) S"
+    and "box a b \<noteq> {}"
+    and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-                  "\<And>x. x \<in> U \<Longrightarrow> g x \<in> box a b"
-apply (rule Dugundji [of "box a b" U S f])
-using assms by auto
+    "\<And>x. x \<in> U \<Longrightarrow> g x \<in> box a b"
+  apply (rule Dugundji [of "box a b" U S f])
+  using assms by auto
 
 corollary%unimportant Tietze_open_interval_1:
-  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
-      and "a < b"
-      and no: "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
+    and "closedin (subtopology euclidean U) S"
+    and "a < b"
+    and no: "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-                  "\<And>x. x \<in> U \<Longrightarrow> g x \<in> box a b"
-apply (rule Dugundji [of "box a b" U S f])
-using assms by (auto simp: image_subset_iff)
+    "\<And>x. x \<in> U \<Longrightarrow> g x \<in> box a b"
+  apply (rule Dugundji [of "box a b" U S f])
+  using assms by (auto simp: image_subset_iff)
 
 corollary%unimportant Tietze_unbounded:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
+  fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
-      and "closedin (subtopology euclidean U) S"
+    and "closedin (subtopology euclidean U) S"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-apply (rule Dugundji [of UNIV U S f])
-using assms by auto
+  apply (rule Dugundji [of UNIV U S f])
+  using assms by auto
 
 end
