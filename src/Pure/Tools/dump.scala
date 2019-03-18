@@ -105,6 +105,7 @@ object Dump
   def session(
     deps: Sessions.Deps,
     resources: Headless.Resources,
+    unicode_symbols: Boolean = false,
     process_theory: Args => Unit,
     progress: Progress = No_Progress)
   {
@@ -168,7 +169,10 @@ object Dump
     try {
       val use_theories = resources.used_theories(deps).map(_.theory)
       val use_theories_result =
-        session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
+        session.use_theories(use_theories,
+          unicode_symbols = unicode_symbols,
+          progress = progress,
+          commit = Some(Consumer.apply _))
 
       val bad_theories = Consumer.shutdown()
       val bad_msgs =
