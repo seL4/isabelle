@@ -30,6 +30,13 @@ object Thy_Element
         case Some((_, qed)) => Iterator(head, qed)
       }
 
+    def proof_start: Option[A] =
+      proof match {
+        case None => None
+        case Some((Nil, qed)) => Some(qed)
+        case Some((start :: _, _)) => Some(start.head)
+      }
+
     def last: A =
       proof match {
         case None => head
