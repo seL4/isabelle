@@ -14,8 +14,8 @@ subsection%unimportant \<open>Connectedness\<close>
 lemma connected_local:
  "connected S \<longleftrightarrow>
   \<not> (\<exists>e1 e2.
-      openin (subtopology euclidean S) e1 \<and>
-      openin (subtopology euclidean S) e2 \<and>
+      openin (top_of_set S) e1 \<and>
+      openin (top_of_set S) e2 \<and>
       S \<subseteq> e1 \<union> e2 \<and>
       e1 \<inter> e2 = {} \<and>
       e1 \<noteq> {} \<and>
@@ -39,8 +39,8 @@ proof -
 qed
 
 lemma connected_clopen: "connected S \<longleftrightarrow>
-  (\<forall>T. openin (subtopology euclidean S) T \<and>
-     closedin (subtopology euclidean S) T \<longrightarrow> T = {} \<or> T = S)" (is "?lhs \<longleftrightarrow> ?rhs")
+  (\<forall>T. openin (top_of_set S) T \<and>
+     closedin (top_of_set S) T \<longrightarrow> T = {} \<or> T = S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   have "\<not> connected S \<longleftrightarrow>
     (\<exists>e1 e2. open e1 \<and> open (- e2) \<and> S \<subseteq> e1 \<union> (- e2) \<and> e1 \<inter> (- e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (- e2) \<inter> S \<noteq> {})"
@@ -402,7 +402,7 @@ proof (rule connectedI)
     by blast
 qed
 
-lemma closedin_connected_component: "closedin (subtopology euclidean s) (connected_component_set s x)"
+lemma closedin_connected_component: "closedin (top_of_set s) (connected_component_set s x)"
 proof (cases "connected_component_set s x = {}")
   case True
   then show ?thesis
@@ -423,7 +423,7 @@ next
 qed
 
 lemma closedin_component:
-   "C \<in> components s \<Longrightarrow> closedin (subtopology euclidean s) C"
+   "C \<in> components s \<Longrightarrow> closedin (top_of_set s) C"
   using closedin_connected_component componentsE by blast
 
 
@@ -433,7 +433,7 @@ subsection%unimportant \<open>Proving a function is constant on a connected set
 lemma continuous_levelset_openin_cases:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
-        openin (subtopology euclidean s) {x \<in> s. f x = a}
+        openin (top_of_set s) {x \<in> s. f x = a}
         \<Longrightarrow> (\<forall>x \<in> s. f x \<noteq> a) \<or> (\<forall>x \<in> s. f x = a)"
   unfolding connected_clopen
   using continuous_closedin_preimage_constant by auto
@@ -441,7 +441,7 @@ lemma continuous_levelset_openin_cases:
 lemma continuous_levelset_openin:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
-        openin (subtopology euclidean s) {x \<in> s. f x = a} \<Longrightarrow>
+        openin (top_of_set s) {x \<in> s. f x = a} \<Longrightarrow>
         (\<exists>x \<in> s. f x = a)  \<Longrightarrow> (\<forall>x \<in> s. f x = a)"
   using continuous_levelset_openin_cases[of s f ]
   by meson
@@ -469,8 +469,8 @@ lemma connected_monotone_quotient_preimage:
   assumes "connected T"
       and contf: "continuous_on S f" and fim: "f ` S = T"
       and opT: "\<And>U. U \<subseteq> T
-                 \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` U) \<longleftrightarrow>
-                     openin (subtopology euclidean T) U"
+                 \<Longrightarrow> openin (top_of_set S) (S \<inter> f -` U) \<longleftrightarrow>
+                     openin (top_of_set T) U"
       and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
     shows "connected S"
 proof (rule connectedI)
@@ -492,9 +492,9 @@ proof (rule connectedI)
   qed
   ultimately have UU: "(S \<inter> f -` f ` (S \<inter> U)) = S \<inter> U" and VV: "(S \<inter> f -` f ` (S \<inter> V)) = S \<inter> V"
     by auto
-  have opeU: "openin (subtopology euclidean T) (f ` (S \<inter> U))"
+  have opeU: "openin (top_of_set T) (f ` (S \<inter> U))"
     by (metis UU \<open>open U\<close> fim image_Int_subset le_inf_iff opT openin_open_Int)
-  have opeV: "openin (subtopology euclidean T) (f ` (S \<inter> V))"
+  have opeV: "openin (top_of_set T) (f ` (S \<inter> V))"
     by (metis opT fim VV \<open>open V\<close> openin_open_Int image_Int_subset inf.bounded_iff)
   have "T \<subseteq> f ` (S \<inter> U) \<union> f ` (S \<inter> V)"
     using \<open>S \<subseteq> U \<union> V\<close> fim by auto
@@ -505,7 +505,7 @@ qed
 
 lemma connected_open_monotone_preimage:
   assumes contf: "continuous_on S f" and fim: "f ` S = T"
-    and ST: "\<And>C. openin (subtopology euclidean S) C \<Longrightarrow> openin (subtopology euclidean T) (f ` C)"
+    and ST: "\<And>C. openin (top_of_set S) C \<Longrightarrow> openin (top_of_set T) (f ` C)"
     and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
     and "connected C" "C \<subseteq> T"
   shows "connected (S \<inter> f -` C)"
@@ -525,12 +525,12 @@ proof -
       ultimately show ?thesis
         by metis
     qed
-    have "\<And>U. openin (subtopology euclidean (S \<inter> f -` C)) U
-               \<Longrightarrow> openin (subtopology euclidean C) (f ` U)"
+    have "\<And>U. openin (top_of_set (S \<inter> f -` C)) U
+               \<Longrightarrow> openin (top_of_set C) (f ` U)"
       using open_map_restrict [OF _ ST \<open>C \<subseteq> T\<close>] by metis
     then show "\<And>D. D \<subseteq> C
-          \<Longrightarrow> openin (subtopology euclidean (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
-              openin (subtopology euclidean C) D"
+          \<Longrightarrow> openin (top_of_set (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
+              openin (top_of_set C) D"
       using open_map_imp_quotient_map [of "(S \<inter> f -` C)" f] contf' by (simp add: eqC)
   qed
 qed
@@ -538,7 +538,7 @@ qed
 
 lemma connected_closed_monotone_preimage:
   assumes contf: "continuous_on S f" and fim: "f ` S = T"
-    and ST: "\<And>C. closedin (subtopology euclidean S) C \<Longrightarrow> closedin (subtopology euclidean T) (f ` C)"
+    and ST: "\<And>C. closedin (top_of_set S) C \<Longrightarrow> closedin (top_of_set T) (f ` C)"
     and connT: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
     and "connected C" "C \<subseteq> T"
   shows "connected (S \<inter> f -` C)"
@@ -558,12 +558,12 @@ proof -
       ultimately show ?thesis
         by metis
     qed
-    have "\<And>U. closedin (subtopology euclidean (S \<inter> f -` C)) U
-               \<Longrightarrow> closedin (subtopology euclidean C) (f ` U)"
+    have "\<And>U. closedin (top_of_set (S \<inter> f -` C)) U
+               \<Longrightarrow> closedin (top_of_set C) (f ` U)"
       using closed_map_restrict [OF _ ST \<open>C \<subseteq> T\<close>] by metis
     then show "\<And>D. D \<subseteq> C
-          \<Longrightarrow> openin (subtopology euclidean (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
-              openin (subtopology euclidean C) D"
+          \<Longrightarrow> openin (top_of_set (S \<inter> f -` C)) (S \<inter> f -` C \<inter> f -` D) =
+              openin (top_of_set C) D"
       using closed_map_imp_quotient_map [of "(S \<inter> f -` C)" f] contf' by (simp add: eqC)
   qed
 qed
@@ -576,8 +576,8 @@ subsection\<open>A couple of lemmas about components (see Newman IV, 3.3 and 3.4
 lemma connected_Un_clopen_in_complement:
   fixes S U :: "'a::metric_space set"
   assumes "connected S" "connected U" "S \<subseteq> U" 
-      and opeT: "openin (subtopology euclidean (U - S)) T" 
-      and cloT: "closedin (subtopology euclidean (U - S)) T"
+      and opeT: "openin (top_of_set (U - S)) T" 
+      and cloT: "closedin (top_of_set (U - S)) T"
     shows "connected (S \<union> T)"
 proof -
   have *: "\<lbrakk>\<And>x y. P x y \<longleftrightarrow> P y x; \<And>x y. P x y \<Longrightarrow> S \<subseteq> x \<or> S \<subseteq> y;
@@ -587,11 +587,11 @@ proof -
     unfolding connected_closedin_eq
   proof (rule *)
     fix H1 H2
-    assume H: "closedin (subtopology euclidean (S \<union> T)) H1 \<and> 
-               closedin (subtopology euclidean (S \<union> T)) H2 \<and>
+    assume H: "closedin (top_of_set (S \<union> T)) H1 \<and> 
+               closedin (top_of_set (S \<union> T)) H2 \<and>
                H1 \<union> H2 = S \<union> T \<and> H1 \<inter> H2 = {} \<and> H1 \<noteq> {} \<and> H2 \<noteq> {}"
-    then have clo: "closedin (subtopology euclidean S) (S \<inter> H1)"
-                   "closedin (subtopology euclidean S) (S \<inter> H2)"
+    then have clo: "closedin (top_of_set S) (S \<inter> H1)"
+                   "closedin (top_of_set S) (S \<inter> H2)"
       by (metis Un_upper1 closedin_closed_subset inf_commute)+
     have Seq: "S \<inter> (H1 \<union> H2) = S"
       by (simp add: H)
@@ -606,8 +606,8 @@ proof -
       using H \<open>connected S\<close> unfolding connected_closedin by blast
   next
     fix H1 H2
-    assume H: "closedin (subtopology euclidean (S \<union> T)) H1 \<and>
-               closedin (subtopology euclidean (S \<union> T)) H2 \<and>
+    assume H: "closedin (top_of_set (S \<union> T)) H1 \<and>
+               closedin (top_of_set (S \<union> T)) H2 \<and>
                H1 \<union> H2 = S \<union> T \<and> H1 \<inter> H2 = {} \<and> H1 \<noteq> {} \<and> H2 \<noteq> {}" 
        and "S \<subseteq> H1"
     then have H2T: "H2 \<subseteq> T"
@@ -616,17 +616,17 @@ proof -
       using Diff_iff opeT openin_imp_subset by auto
     with \<open>S \<subseteq> U\<close> have Ueq: "U = (U - S) \<union> (S \<union> T)" 
       by auto
-    have "openin (subtopology euclidean ((U - S) \<union> (S \<union> T))) H2"
+    have "openin (top_of_set ((U - S) \<union> (S \<union> T))) H2"
     proof (rule openin_subtopology_Un)
-      show "openin (subtopology euclidean (S \<union> T)) H2"
+      show "openin (top_of_set (S \<union> T)) H2"
         using \<open>H2 \<subseteq> T\<close> apply (auto simp: openin_closedin_eq)
         by (metis Diff_Diff_Int Diff_disjoint Diff_partition Diff_subset H Int_absorb1 Un_Diff)
-      then show "openin (subtopology euclidean (U - S)) H2"
+      then show "openin (top_of_set (U - S)) H2"
         by (meson H2T Un_upper2 opeT openin_subset_trans openin_trans)
     qed
-    moreover have "closedin (subtopology euclidean ((U - S) \<union> (S \<union> T))) H2"
+    moreover have "closedin (top_of_set ((U - S) \<union> (S \<union> T))) H2"
     proof (rule closedin_subtopology_Un)
-      show "closedin (subtopology euclidean (U - S)) H2"
+      show "closedin (top_of_set (U - S)) H2"
         using H H2T cloT closedin_subset_trans 
         by (blast intro: closedin_subtopology_Un closedin_trans)
     qed (simp add: H)
@@ -650,33 +650,33 @@ proposition component_diff_connected:
   using \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
 proof clarify
   fix H3 H4 
-  assume clo3: "closedin (subtopology euclidean (U - C)) H3" 
-    and clo4: "closedin (subtopology euclidean (U - C)) H4" 
+  assume clo3: "closedin (top_of_set (U - C)) H3" 
+    and clo4: "closedin (top_of_set (U - C)) H4" 
     and "H3 \<union> H4 = U - C" and "H3 \<inter> H4 = {}" and "H3 \<noteq> {}" and "H4 \<noteq> {}"
     and * [rule_format]:
-    "\<forall>H1 H2. \<not> closedin (subtopology euclidean S) H1 \<or>
-                      \<not> closedin (subtopology euclidean S) H2 \<or>
+    "\<forall>H1 H2. \<not> closedin (top_of_set S) H1 \<or>
+                      \<not> closedin (top_of_set S) H2 \<or>
                       H1 \<union> H2 \<noteq> S \<or> H1 \<inter> H2 \<noteq> {} \<or> \<not> H1 \<noteq> {} \<or> \<not> H2 \<noteq> {}"
-  then have "H3 \<subseteq> U-C" and ope3: "openin (subtopology euclidean (U - C)) (U - C - H3)"
-    and "H4 \<subseteq> U-C" and ope4: "openin (subtopology euclidean (U - C)) (U - C - H4)"
+  then have "H3 \<subseteq> U-C" and ope3: "openin (top_of_set (U - C)) (U - C - H3)"
+    and "H4 \<subseteq> U-C" and ope4: "openin (top_of_set (U - C)) (U - C - H4)"
     by (auto simp: closedin_def)
   have "C \<noteq> {}" "C \<subseteq> U-S" "connected C"
     using C in_components_nonempty in_components_subset in_components_maximal by blast+
   have cCH3: "connected (C \<union> H3)"
   proof (rule connected_Un_clopen_in_complement [OF \<open>connected C\<close> \<open>connected U\<close> _ _ clo3])
-    show "openin (subtopology euclidean (U - C)) H3"
+    show "openin (top_of_set (U - C)) H3"
       apply (simp add: openin_closedin_eq \<open>H3 \<subseteq> U - C\<close>)
       apply (simp add: closedin_subtopology)
       by (metis Diff_cancel Diff_triv Un_Diff clo4 \<open>H3 \<inter> H4 = {}\<close> \<open>H3 \<union> H4 = U - C\<close> closedin_closed inf_commute sup_bot.left_neutral)
   qed (use clo3 \<open>C \<subseteq> U - S\<close> in auto)
   have cCH4: "connected (C \<union> H4)"
   proof (rule connected_Un_clopen_in_complement [OF \<open>connected C\<close> \<open>connected U\<close> _ _ clo4])
-    show "openin (subtopology euclidean (U - C)) H4"
+    show "openin (top_of_set (U - C)) H4"
       apply (simp add: openin_closedin_eq \<open>H4 \<subseteq> U - C\<close>)
       apply (simp add: closedin_subtopology)
       by (metis Diff_cancel Int_commute Un_Diff Un_Diff_Int \<open>H3 \<inter> H4 = {}\<close> \<open>H3 \<union> H4 = U - C\<close> clo3 closedin_closed)
   qed (use clo4 \<open>C \<subseteq> U - S\<close> in auto)
-  have "closedin (subtopology euclidean S) (S \<inter> H3)" "closedin (subtopology euclidean S) (S \<inter> H4)"
+  have "closedin (top_of_set S) (S \<inter> H3)" "closedin (top_of_set S) (S \<inter> H4)"
     using clo3 clo4 \<open>S \<subseteq> U\<close> \<open>C \<subseteq> U - S\<close> by (auto simp: closedin_closed)
   moreover have "S \<inter> H3 \<noteq> {}"      
     using components_maximal [OF C cCH3] \<open>C \<noteq> {}\<close> \<open>C \<subseteq> U - S\<close> \<open>H3 \<noteq> {}\<close> \<open>H3 \<subseteq> U - C\<close> by auto
@@ -719,8 +719,8 @@ lemma finite_range_constant_imp_connected:
     shows "connected S"
 proof -
   { fix t u
-    assume clt: "closedin (subtopology euclidean S) t"
-       and clu: "closedin (subtopology euclidean S) u"
+    assume clt: "closedin (top_of_set S) t"
+       and clu: "closedin (top_of_set S) u"
        and tue: "t \<inter> u = {}" and tus: "t \<union> u = S"
     have conif: "continuous_on S (\<lambda>x. if x \<in> t then 0 else 1)"
       apply (subst tus [symmetric])

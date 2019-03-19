@@ -1029,14 +1029,14 @@ proof -
           by (metis frontierS C)
         obtain K where "C \<subseteq> K" "compact K"
                    and Ksub: "K \<subseteq> \<Inter>(range X)" and clo: "closed(\<Inter>(range X) - K)"
-        proof (cases "{k. C \<subseteq> k \<and> compact k \<and> openin (subtopology euclidean (\<Inter>(range X))) k} = {}")
+        proof (cases "{k. C \<subseteq> k \<and> compact k \<and> openin (top_of_set (\<Inter>(range X))) k} = {}")
           case True
           then show ?thesis
             using Sura_Bura [OF lcX Cco \<open>compact C\<close>] boC
             by (simp add: True)
         next
           case False
-          then obtain L where "compact L" "C \<subseteq> L" and K: "openin (subtopology euclidean (\<Inter>x. X x)) L"
+          then obtain L where "compact L" "C \<subseteq> L" and K: "openin (top_of_set (\<Inter>x. X x)) L"
             by blast
           show ?thesis
           proof
@@ -1089,9 +1089,9 @@ proof -
                 apply safe
                 using DiffI J empty apply auto[1]
                 using closure_subset by blast
-              then have "openin (subtopology euclidean (X j)) (X j \<inter> closure U)"
+              then have "openin (top_of_set (X j)) (X j \<inter> closure U)"
                 by (simp add: openin_open_Int \<open>open U\<close>)
-              moreover have "closedin (subtopology euclidean (X j)) (X j \<inter> closure U)"
+              moreover have "closedin (top_of_set (X j)) (X j \<inter> closure U)"
                 by (simp add: closedin_closed_Int)
               moreover have "X j \<inter> closure U \<noteq> X j"
                 by (metis unboundedX \<open>compact (closure U)\<close> bounded_subset compact_eq_bounded_closed inf.order_iff)

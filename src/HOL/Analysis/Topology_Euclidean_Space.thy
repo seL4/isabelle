@@ -1874,8 +1874,8 @@ proof -
   obtain \<B> :: "'a set set"
     where "countable \<B>"
       and "{} \<notin> \<B>"
-      and ope: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(subtopology euclidean S) C"
-      and if_ope: "\<And>T. openin(subtopology euclidean S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
+      and ope: "\<And>C. C \<in> \<B> \<Longrightarrow> openin(top_of_set S) C"
+      and if_ope: "\<And>T. openin(top_of_set S) T \<Longrightarrow> \<exists>\<U>. \<U> \<subseteq> \<B> \<and> T = \<Union>\<U>"
     by (meson subset_second_countable)
   then obtain f where f: "\<And>C. C \<in> \<B> \<Longrightarrow> f C \<in> C"
     by (metis equals0I)
@@ -1889,7 +1889,7 @@ proof -
     proof (clarsimp simp: closure_approachable)
       fix x and e::real
       assume "x \<in> S" "0 < e"
-      have "openin (subtopology euclidean S) (S \<inter> ball x e)"
+      have "openin (top_of_set S) (S \<inter> ball x e)"
         by (simp add: openin_Int_open)
       with if_ope obtain \<U> where  \<U>: "\<U> \<subseteq> \<B>" "S \<inter> ball x e = \<Union>\<U>"
         by meson
@@ -2324,12 +2324,12 @@ lemma setdist_eq_0_closed:
 by (simp add: setdist_eq_0_sing_1)
 
 lemma setdist_eq_0_closedin:
-  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U\<rbrakk>
+  shows "\<lbrakk>closedin (top_of_set U) S; x \<in> U\<rbrakk>
          \<Longrightarrow> (setdist {x} S = 0 \<longleftrightarrow> S = {} \<or> x \<in> S)"
   by (auto simp: closedin_limpt setdist_eq_0_sing_1 closure_def)
 
 lemma setdist_gt_0_closedin:
-  shows "\<lbrakk>closedin (subtopology euclidean U) S; x \<in> U; S \<noteq> {}; x \<notin> S\<rbrakk>
+  shows "\<lbrakk>closedin (top_of_set U) S; x \<in> U; S \<noteq> {}; x \<notin> S\<rbrakk>
          \<Longrightarrow> setdist {x} S > 0"
   using less_eq_real_def setdist_eq_0_closedin by fastforce
 

@@ -1124,7 +1124,7 @@ lemma vimage_fst: "fst -` A = A \<times> UNIV"
 lemma vimage_snd: "snd -` A = UNIV \<times> A"
   by auto
 
-lemma insert_times_insert [simp]:
+lemma insert_Times_insert [simp]:
   "insert a A \<times> insert b B = insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
   by blast
 

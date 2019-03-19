@@ -8,7 +8,7 @@
 chapter \<open>Unsorted\<close>
 
 theory Starlike
-imports Convex_Euclidean_Space
+imports Convex_Euclidean_Space Abstract_Limits
 begin
 
 section \<open>Line Segments\<close>
@@ -1838,7 +1838,7 @@ lemma rel_interior_rel_interior:
   assumes "convex S"
   shows "rel_interior (rel_interior S) = rel_interior S"
 proof -
-  have "openin (subtopology euclidean (affine hull (rel_interior S))) (rel_interior S)"
+  have "openin (top_of_set (affine hull (rel_interior S))) (rel_interior S)"
     using openin_rel_interior[of S] rel_interior_same_affine_hull[of S] assms by auto
   then show ?thesis
     using rel_interior_def by auto
@@ -2083,7 +2083,7 @@ lemma closed_rel_frontier [iff]:
   fixes S :: "'n::euclidean_space set"
   shows "closed (rel_frontier S)"
 proof -
-  have *: "closedin (subtopology euclidean (affine hull S)) (closure S - rel_interior S)"
+  have *: "closedin (top_of_set (affine hull S)) (closure S - rel_interior S)"
     by (simp add: closed_subset closedin_diff closure_affine_hull openin_rel_interior)
   show ?thesis
     apply (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
@@ -4792,11 +4792,11 @@ by (metis assms closure_closed disjnt_def inf_commute)
 
 lemma separation_normal_local:
   fixes S :: "'a::euclidean_space set"
-  assumes US: "closedin (subtopology euclidean U) S"
-      and UT: "closedin (subtopology euclidean U) T"
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
       and "S \<inter> T = {}"
-  obtains S' T' where "openin (subtopology euclidean U) S'"
-                      "openin (subtopology euclidean U) T'"
+  obtains S' T' where "openin (top_of_set U) S'"
+                      "openin (top_of_set U) T'"
                       "S \<subseteq> S'"  "T \<subseteq> T'"  "S' \<inter> T' = {}"
 proof (cases "S = {} \<or> T = {}")
   case True with that show ?thesis
@@ -4810,10 +4810,10 @@ next
   proof (rule_tac S' = "(U \<inter> f -` {0<..})" and T' = "(U \<inter> f -` {..<0})" in that)
     show "(U \<inter> f -` {0<..}) \<inter> (U \<inter> f -` {..<0}) = {}"
       by auto
-    show "openin (subtopology euclidean U) (U \<inter> f -` {0<..})"
+    show "openin (top_of_set U) (U \<inter> f -` {0<..})"
       by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
   next
-    show "openin (subtopology euclidean U) (U \<inter> f -` {..<0})"
+    show "openin (top_of_set U) (U \<inter> f -` {..<0})"
       by (rule continuous_openin_preimage [where T=UNIV]) (simp_all add: contf)
   next
     have "S \<subseteq> U" "T \<subseteq> U"
@@ -4993,10 +4993,10 @@ qed
 
 proposition proper_map:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
-  assumes "closedin (subtopology euclidean S) K"
+  assumes "closedin (top_of_set S) K"
       and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact (S \<inter> f -` U)"
       and "f ` S \<subseteq> T"
-    shows "closedin (subtopology euclidean T) (f ` K)"
+    shows "closedin (top_of_set T) (f ` K)"
 proof -
   have "K \<subseteq> S"
     using assms closedin_imp_subset by metis
@@ -5221,7 +5221,7 @@ lemma compact_convex_collinear_segment:
 lemma proper_map_from_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T" and "compact S"
-          "closedin (subtopology euclidean T) K"
+          "closedin (top_of_set T) K"
   shows "compact (S \<inter> f -` K)"
 by (rule closedin_compact [OF \<open>compact S\<close>] continuous_closedin_preimage_gen assms)+
 
@@ -5236,8 +5236,8 @@ qed
 
 lemma closed_map_fst:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
-  assumes "compact T" "closedin (subtopology euclidean (S \<times> T)) c"
-   shows "closedin (subtopology euclidean S) (fst ` c)"
+  assumes "compact T" "closedin (top_of_set (S \<times> T)) c"
+   shows "closedin (top_of_set S) (fst ` c)"
 proof -
   have *: "fst ` (S \<times> T) \<subseteq> S"
     by auto
@@ -5256,8 +5256,8 @@ qed
 
 lemma closed_map_snd:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
-  assumes "compact S" "closedin (subtopology euclidean (S \<times> T)) c"
-   shows "closedin (subtopology euclidean T) (snd ` c)"
+  assumes "compact S" "closedin (top_of_set (S \<times> T)) c"
+   shows "closedin (top_of_set T) (snd ` c)"
 proof -
   have *: "snd ` (S \<times> T) \<subseteq> T"
     by auto
@@ -5267,14 +5267,14 @@ qed
 
 lemma closedin_compact_projection:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
-  assumes "compact S" and clo: "closedin (subtopology euclidean (S \<times> T)) U"
-    shows "closedin (subtopology euclidean T) {y. \<exists>x. x \<in> S \<and> (x, y) \<in> U}"
+  assumes "compact S" and clo: "closedin (top_of_set (S \<times> T)) U"
+    shows "closedin (top_of_set T) {y. \<exists>x. x \<in> S \<and> (x, y) \<in> U}"
 proof -
   have "U \<subseteq> S \<times> T"
     by (metis clo closedin_imp_subset)
   then have "{y. \<exists>x. x \<in> S \<and> (x, y) \<in> U} = snd ` U"
     by force
-  moreover have "closedin (subtopology euclidean T) (snd ` U)"
+  moreover have "closedin (top_of_set T) (snd ` U)"
     by (rule closed_map_snd [OF assms])
   ultimately show ?thesis
     by simp
@@ -5366,14 +5366,14 @@ by (simp add: affine_hull_convex_Int_open affine_imp_convex assms)
 
 corollary affine_hull_convex_Int_openin:
   fixes S :: "'a::real_normed_vector set"
-  assumes "convex S" "openin (subtopology euclidean (affine hull S)) T" "S \<inter> T \<noteq> {}"
+  assumes "convex S" "openin (top_of_set (affine hull S)) T" "S \<inter> T \<noteq> {}"
     shows "affine hull (S \<inter> T) = affine hull S"
 using assms unfolding openin_open
 by (metis affine_hull_convex_Int_open hull_subset inf.orderE inf_assoc)
 
 corollary affine_hull_openin:
   fixes S :: "'a::real_normed_vector set"
-  assumes "openin (subtopology euclidean (affine hull T)) S" "S \<noteq> {}"
+  assumes "openin (top_of_set (affine hull T)) S" "S \<noteq> {}"
     shows "affine hull S = affine hull T"
 using assms unfolding openin_open
 by (metis affine_affine_hull affine_hull_affine_Int_open hull_hull)
@@ -5396,10 +5396,10 @@ using aff_dim_convex_Int_nonempty_interior interior_eq by blast
 
 lemma affine_hull_Diff:
   fixes S:: "'a::real_normed_vector set"
-  assumes ope: "openin (subtopology euclidean (affine hull S)) S" and "finite F" "F \<subset> S"
+  assumes ope: "openin (top_of_set (affine hull S)) S" and "finite F" "F \<subset> S"
     shows "affine hull (S - F) = affine hull S"
 proof -
-  have clo: "closedin (subtopology euclidean S) F"
+  have clo: "closedin (top_of_set S) F"
     using assms finite_imp_closedin by auto
   moreover have "S - F \<noteq> {}"
     using assms by auto
@@ -6342,7 +6342,7 @@ by (metis (no_types) aff_dim_affine_hull aff_dim_le_DIM aff_dim_UNIV affine_hull
 
 lemma aff_dim_openin:
   fixes S :: "'a::euclidean_space set"
-  assumes ope: "openin (subtopology euclidean T) S" and "affine T" "S \<noteq> {}"
+  assumes ope: "openin (top_of_set T) S" and "affine T" "S \<noteq> {}"
   shows "aff_dim S = aff_dim T"
 proof -
   show ?thesis
@@ -6394,7 +6394,7 @@ qed
 
 lemma dim_openin:
   fixes S :: "'a::euclidean_space set"
-  assumes ope: "openin (subtopology euclidean T) S" and "subspace T" "S \<noteq> {}"
+  assumes ope: "openin (top_of_set T) S" and "subspace T" "S \<noteq> {}"
   shows "dim S = dim T"
 proof (rule order_antisym)
   show "dim S \<le> dim T"
@@ -6490,7 +6490,7 @@ qed
 corollary%unimportant dense_complement_openin_affine_hull:
   fixes S :: "'a :: euclidean_space set"
   assumes less: "aff_dim T < aff_dim S"
-      and ope: "openin (subtopology euclidean (affine hull S)) S"
+      and ope: "openin (top_of_set (affine hull S)) S"
     shows "closure(S - T) = closure S"
 proof -
   have "affine hull S - T \<subseteq> affine hull S"
@@ -6802,13 +6802,13 @@ qed
 
 corollary paracompact_closedin:
   fixes S :: "'a :: {metric_space,second_countable_topology} set"
-  assumes cin: "closedin (subtopology euclidean U) S"
-      and oin: "\<And>T. T \<in> \<C> \<Longrightarrow> openin (subtopology euclidean U) T"
+  assumes cin: "closedin (top_of_set U) S"
+      and oin: "\<And>T. T \<in> \<C> \<Longrightarrow> openin (top_of_set U) T"
       and "S \<subseteq> \<Union>\<C>"
   obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
-               and "\<And>V. V \<in> \<C>' \<Longrightarrow> openin (subtopology euclidean U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
+               and "\<And>V. V \<in> \<C>' \<Longrightarrow> openin (top_of_set U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
                and "\<And>x. x \<in> U
-                       \<Longrightarrow> \<exists>V. openin (subtopology euclidean U) V \<and> x \<in> V \<and>
+                       \<Longrightarrow> \<exists>V. openin (top_of_set U) V \<and> x \<in> V \<and>
                                finite {X. X \<in> \<C>' \<and> (X \<inter> V \<noteq> {})}"
 proof -
   have "\<exists>Z. open Z \<and> (T = U \<inter> Z)" if "T \<in> \<C>" for T
@@ -6830,12 +6830,12 @@ proof -
   proof (rule_tac \<C>' = "{U \<inter> V |V. V \<in> \<D> \<and> (V \<inter> K \<noteq> {})}" in that)
     show "S \<subseteq> \<Union>?C"
       using \<open>U \<inter> K = S\<close> \<open>U \<subseteq> \<Union>\<D>\<close> K by (blast dest!: subsetD)
-    show "\<And>V. V \<in> ?C \<Longrightarrow> openin (subtopology euclidean U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
+    show "\<And>V. V \<in> ?C \<Longrightarrow> openin (top_of_set U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
       using D1 intF by fastforce
     have *: "{X. (\<exists>V. X = U \<inter> V \<and> V \<in> \<D> \<and> V \<inter> K \<noteq> {}) \<and> X \<inter> (U \<inter> V) \<noteq> {}} \<subseteq>
              (\<lambda>x. U \<inter> x) ` {U \<in> \<D>. U \<inter> V \<noteq> {}}" for V
       by blast
-    show "\<exists>V. openin (subtopology euclidean U) V \<and> x \<in> V \<and> finite {X \<in> ?C. X \<inter> V \<noteq> {}}"
+    show "\<exists>V. openin (top_of_set U) V \<and> x \<in> V \<and> finite {X \<in> ?C. X \<inter> V \<noteq> {}}"
          if "x \<in> U" for x
       using D2 [OF that]
       apply clarify
@@ -6862,7 +6862,7 @@ subsection%unimportant\<open>Closed-graph characterization of continuity\<close>
 lemma continuous_closed_graph_gen:
   fixes T :: "'b::real_normed_vector set"
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
-    shows "closedin (subtopology euclidean (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
+    shows "closedin (top_of_set (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
 proof -
   have eq: "((\<lambda>x. Pair x (f x)) ` S) =(S \<times> T \<inter> (\<lambda>z. (f \<circ> fst)z - snd z) -` {0})"
     using fim by auto
@@ -6876,16 +6876,16 @@ lemma continuous_closed_graph_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact T" and fim: "f ` S \<subseteq> T"
   shows "continuous_on S f \<longleftrightarrow>
-         closedin (subtopology euclidean (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
+         closedin (top_of_set (S \<times> T)) ((\<lambda>x. Pair x (f x)) ` S)"
          (is "?lhs = ?rhs")
 proof -
   have "?lhs" if ?rhs
   proof (clarsimp simp add: continuous_on_closed_gen [OF fim])
     fix U
-    assume U: "closedin (subtopology euclidean T) U"
+    assume U: "closedin (top_of_set T) U"
     have eq: "(S \<inter> f -` U) = fst ` (((\<lambda>x. Pair x (f x)) ` S) \<inter> (S \<times> U))"
       by (force simp: image_iff)
-    show "closedin (subtopology euclidean S) (S \<inter> f -` U)"
+    show "closedin (top_of_set S) (S \<inter> f -` U)"
       by (simp add: U closedin_Int closedin_Times closed_map_fst [OF \<open>compact T\<close>] that eq)
   qed
   with continuous_closed_graph_gen assms show ?thesis by blast
@@ -6907,15 +6907,16 @@ lemma continuous_from_closed_graph:
     by (auto intro: closed_subset simp: continuous_closed_graph_eq [OF \<open>compact T\<close> fim])
 
 lemma continuous_on_Un_local_open:
-  assumes opS: "openin (subtopology euclidean (S \<union> T)) S"
-      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+  assumes opS: "openin (top_of_set (S \<union> T)) S"
+      and opT: "openin (top_of_set (S \<union> T)) T"
       and contf: "continuous_on S f" and contg: "continuous_on T f"
     shows "continuous_on (S \<union> T) f"
-using pasting_lemma [of "{S,T}" "S \<union> T" "\<lambda>i. i" "\<lambda>i. f" f] contf contg opS opT by blast
+  using pasting_lemma [of "{S,T}" "top_of_set (S \<union> T)" id euclidean "\<lambda>i. f" f] contf contg opS opT
+  by (simp add: subtopology_subtopology) (metis inf.absorb2 openin_imp_subset)  
 
 lemma continuous_on_cases_local_open:
-  assumes opS: "openin (subtopology euclidean (S \<union> T)) S"
-      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+  assumes opS: "openin (top_of_set (S \<union> T)) S"
+      and opT: "openin (top_of_set (S \<union> T)) T"
       and contf: "continuous_on S f" and contg: "continuous_on T g"
       and fg: "\<And>x. x \<in> S \<and> \<not>P x \<or> x \<in> T \<and> P x \<Longrightarrow> f x = g x"
     shows "continuous_on (S \<union> T) (\<lambda>x. if P x then f x else g x)"
@@ -6927,7 +6928,49 @@ proof -
   then show ?thesis
     by (rule continuous_on_Un_local_open [OF opS opT])
 qed
-  
+
+lemma continuous_map_cases_le:
+  assumes contp: "continuous_map X euclideanreal p"
+    and contq: "continuous_map X euclideanreal q"
+    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
+    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
+    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "continuous_map X Y (\<lambda>x. if p x \<le> q x then f x else g x)"
+proof -
+  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0..} then f x else g x)"
+  proof (rule continuous_map_cases_function)
+    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
+      by (intro contp contq continuous_intros)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0..}}) Y f"
+      by (simp add: contf)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0..})}) Y g"
+      by (simp add: contg flip: Compl_eq_Diff_UNIV)
+  qed (auto simp: fg)
+  then show ?thesis
+    by simp
+qed
+
+lemma continuous_map_cases_lt:
+  assumes contp: "continuous_map X euclideanreal p"
+    and contq: "continuous_map X euclideanreal q"
+    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
+    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
+    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "continuous_map X Y (\<lambda>x. if p x < q x then f x else g x)"
+proof -
+  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0<..} then f x else g x)"
+  proof (rule continuous_map_cases_function)
+    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
+      by (intro contp contq continuous_intros)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0<..}}) Y f"
+      by (simp add: contf)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0<..})}) Y g"
+      by (simp add: contg flip: Compl_eq_Diff_UNIV)
+  qed (auto simp: fg)
+  then show ?thesis
+    by simp
+qed
+
 subsection%unimportant\<open>The union of two collinear segments is another segment\<close>
 
 proposition%unimportant in_convex_hull_exchange:

@@ -7001,13 +7001,13 @@ proof -
       by (metis funpow_add o_apply)
     with that show ?thesis by auto
   qed
-  have 1: "openin (subtopology euclidean S) (\<Inter>n. {w \<in> S. (deriv ^^ n) f w = 0})"
+  have 1: "openin (top_of_set S) (\<Inter>n. {w \<in> S. (deriv ^^ n) f w = 0})"
     apply (rule open_subset, force)
     using \<open>open S\<close>
     apply (simp add: open_contains_ball Ball_def)
     apply (erule all_forward)
     using "*" by auto blast+
-  have 2: "closedin (subtopology euclidean S) (\<Inter>n. {w \<in> S. (deriv ^^ n) f w = 0})"
+  have 2: "closedin (top_of_set S) (\<Inter>n. {w \<in> S. (deriv ^^ n) f w = 0})"
     using assms
     by (auto intro: continuous_closedin_preimage_constant holomorphic_on_imp_continuous_on holomorphic_higher_deriv)
   obtain e where "e>0" and e: "ball w e \<subseteq> S" using openE [OF \<open>open S\<close> \<open>w \<in> S\<close>] .

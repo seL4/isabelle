@@ -4415,9 +4415,9 @@ proof -
     then show "\<exists>e>0. ball x e \<subseteq> (S \<inter> f -` {f x})"
       using \<open>0 < e\<close> by blast
   qed
-  then have "openin (subtopology euclidean S) (S \<inter> f -` {y})"
+  then have "openin (top_of_set S) (S \<inter> f -` {y})"
     by (auto intro!: open_openin_trans[OF \<open>open S\<close>] simp: open_contains_ball)
-  moreover have "closedin (subtopology euclidean S) (S \<inter> f -` {y})"
+  moreover have "closedin (top_of_set S) (S \<inter> f -` {y})"
     by (force intro!: continuous_closedin_preimage [OF contf])
   ultimately have "(S \<inter> f -` {y}) = {} \<or> (S \<inter> f -` {y}) = S"
     using \<open>connected S\<close> by (simp add: connected_clopen)

@@ -2005,7 +2005,7 @@ subsection\<open>Accessibility of frontier points\<close>
 
 lemma dense_accessible_frontier_points:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
-  assumes "open S" and opeSV: "openin (subtopology euclidean (frontier S)) V" and "V \<noteq> {}"
+  assumes "open S" and opeSV: "openin (top_of_set (frontier S)) V" and "V \<noteq> {}"
   obtains g where "arc g" "g ` {0..<1} \<subseteq> S" "pathstart g \<in> S" "pathfinish g \<in> V"
 proof -
   obtain z where "z \<in> V"
@@ -2101,7 +2101,7 @@ qed
 lemma dense_accessible_frontier_points_connected:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes "open S" "connected S" "x \<in> S" "V \<noteq> {}"
-      and ope: "openin (subtopology euclidean (frontier S)) V"
+      and ope: "openin (top_of_set (frontier S)) V"
   obtains g where "arc g" "g ` {0..<1} \<subseteq> S" "pathstart g = x" "pathfinish g \<in> V"
 proof -
   have "V \<subseteq> frontier S"
@@ -2136,8 +2136,8 @@ qed
 lemma dense_access_fp_aux:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes S: "open S" "connected S"
-      and opeSU: "openin (subtopology euclidean (frontier S)) U"
-      and opeSV: "openin (subtopology euclidean (frontier S)) V"
+      and opeSU: "openin (top_of_set (frontier S)) U"
+      and opeSV: "openin (top_of_set (frontier S)) V"
       and "V \<noteq> {}" "\<not> U \<subseteq> V"
   obtains g where "arc g" "pathstart g \<in> U" "pathfinish g \<in> V" "g ` {0<..<1} \<subseteq> S"
 proof -
@@ -2150,7 +2150,7 @@ proof -
   proof (rule dense_accessible_frontier_points_connected [OF S \<open>x \<in> S\<close>])
     show "U - {pathfinish g} \<noteq> {}"
       using \<open>pathfinish g \<in> V\<close> \<open>\<not> U \<subseteq> V\<close> by blast
-    show "openin (subtopology euclidean (frontier S)) (U - {pathfinish g})"
+    show "openin (top_of_set (frontier S)) (U - {pathfinish g})"
       by (simp add: opeSU openin_delete)
   qed auto
   obtain \<gamma> where "arc \<gamma>"
@@ -2183,8 +2183,8 @@ qed
 lemma dense_accessible_frontier_point_pairs:
   fixes S :: "'a::{complete_space,real_normed_vector} set"
   assumes S: "open S" "connected S"
-      and opeSU: "openin (subtopology euclidean (frontier S)) U"
-      and opeSV: "openin (subtopology euclidean (frontier S)) V"
+      and opeSU: "openin (top_of_set (frontier S)) U"
+      and opeSV: "openin (top_of_set (frontier S)) V"
       and "U \<noteq> {}" "V \<noteq> {}" "U \<noteq> V"
     obtains g where "arc g" "pathstart g \<in> U" "pathfinish g \<in> V" "g ` {0<..<1} \<subseteq> S"
 proof -

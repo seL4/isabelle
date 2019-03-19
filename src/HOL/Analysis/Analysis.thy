@@ -27,7 +27,7 @@ theory Analysis
   Homeomorphism
   Bounded_Continuous_Function
   Abstract_Topology
-  Function_Topology
+  Product_Topology
   T1_Spaces
   Infinite_Products
   Infinite_Set_Sum

@@ -916,7 +916,7 @@ proposition homeomorphic_closedin_convex:
   fixes S :: "'m::euclidean_space set"
   assumes "aff_dim S < DIM('n)"
   obtains U and T :: "'n::euclidean_space set"
-     where "convex U" "U \<noteq> {}" "closedin (subtopology euclidean U) T"
+     where "convex U" "U \<noteq> {}" "closedin (top_of_set U) T"
            "S homeomorphic T"
 proof (cases "S = {}")
   case True then show ?thesis
@@ -1051,7 +1051,7 @@ qed
 lemma locally_compact_closedin_open:
     fixes S :: "'a :: metric_space set"
     assumes "locally compact S"
-    obtains T where "open T" "closedin (subtopology euclidean T) S"
+    obtains T where "open T" "closedin (top_of_set T) S"
   by (metis locally_compact_open_Int_closure [OF assms] closed_closure closedin_closed_Int)
 
 
@@ -1079,7 +1079,7 @@ next
       by (simp add: Ucomp setdist_eq_0_sing_1)
     then have homU: "homeomorphism U (f`U) f fst"
       by (auto simp: f_def homeomorphism_def image_iff continuous_intros)
-    have cloS: "closedin (subtopology euclidean U) S"
+    have cloS: "closedin (top_of_set U) S"
       by (metis US closed_closure closedin_closed_Int)
     have cont: "isCont ((\<lambda>x. setdist {x} (- U)) o fst) z" for z :: "'a \<times> 'b"
       by (rule continuous_at_compose continuous_intros continuous_at_setdist)+
@@ -1275,9 +1275,9 @@ definition%important covering_space
   where
   "covering_space c p S \<equiv>
        continuous_on c p \<and> p ` c = S \<and>
-       (\<forall>x \<in> S. \<exists>T. x \<in> T \<and> openin (subtopology euclidean S) T \<and>
+       (\<forall>x \<in> S. \<exists>T. x \<in> T \<and> openin (top_of_set S) T \<and>
                     (\<exists>v. \<Union>v = c \<inter> p -` T \<and>
-                        (\<forall>u \<in> v. openin (subtopology euclidean c) u) \<and>
+                        (\<forall>u \<in> v. openin (top_of_set c) u) \<and>
                         pairwise disjnt v \<and>
                         (\<forall>u \<in> v. \<exists>q. homeomorphism u T p q)))"
 
@@ -1295,8 +1295,8 @@ lemma homeomorphism_imp_covering_space: "homeomorphism S T f g \<Longrightarrow>
 
 lemma covering_space_local_homeomorphism:
   assumes "covering_space c p S" "x \<in> c"
-  obtains T u q where "x \<in> T" "openin (subtopology euclidean c) T"
-                      "p x \<in> u" "openin (subtopology euclidean S) u"
+  obtains T u q where "x \<in> T" "openin (top_of_set c) T"
+                      "p x \<in> u" "openin (top_of_set S) u"
                       "homeomorphism T u p q"
 using assms
 apply (simp add: covering_space_def, clarify)
@@ -1307,8 +1307,8 @@ apply (simp add: covering_space_def, clarify)
 lemma covering_space_local_homeomorphism_alt:
   assumes p: "covering_space c p S" and "y \<in> S"
   obtains x T U q where "p x = y"
-                        "x \<in> T" "openin (subtopology euclidean c) T"
-                        "y \<in> U" "openin (subtopology euclidean S) U"
+                        "x \<in> T" "openin (top_of_set c) T"
+                        "y \<in> U" "openin (top_of_set S) U"
                           "homeomorphism T U p q"
 proof -
   obtain x where "p x = y" "x \<in> c"
@@ -1320,26 +1320,26 @@ qed
 
 proposition covering_space_open_map:
   fixes S :: "'a :: metric_space set" and T :: "'b :: metric_space set"
-  assumes p: "covering_space c p S" and T: "openin (subtopology euclidean c) T"
-    shows "openin (subtopology euclidean S) (p ` T)"
+  assumes p: "covering_space c p S" and T: "openin (top_of_set c) T"
+    shows "openin (top_of_set S) (p ` T)"
 proof -
   have pce: "p ` c = S"
    and covs:
        "\<And>x. x \<in> S \<Longrightarrow>
-            \<exists>X VS. x \<in> X \<and> openin (subtopology euclidean S) X \<and>
+            \<exists>X VS. x \<in> X \<and> openin (top_of_set S) X \<and>
                   \<Union>VS = c \<inter> p -` X \<and>
-                  (\<forall>u \<in> VS. openin (subtopology euclidean c) u) \<and>
+                  (\<forall>u \<in> VS. openin (top_of_set c) u) \<and>
                   pairwise disjnt VS \<and>
                   (\<forall>u \<in> VS. \<exists>q. homeomorphism u X p q)"
     using p by (auto simp: covering_space_def)
   have "T \<subseteq> c"  by (metis openin_euclidean_subtopology_iff T)
-  have "\<exists>X. openin (subtopology euclidean S) X \<and> y \<in> X \<and> X \<subseteq> p ` T"
+  have "\<exists>X. openin (top_of_set S) X \<and> y \<in> X \<and> X \<subseteq> p ` T"
           if "y \<in> p ` T" for y
   proof -
     have "y \<in> S" using \<open>T \<subseteq> c\<close> pce that by blast
-    obtain U VS where "y \<in> U" and U: "openin (subtopology euclidean S) U"
+    obtain U VS where "y \<in> U" and U: "openin (top_of_set S) U"
                   and VS: "\<Union>VS = c \<inter> p -` U"
-                  and openVS: "\<forall>V \<in> VS. openin (subtopology euclidean c) V"
+                  and openVS: "\<forall>V \<in> VS. openin (top_of_set c) V"
                   and homVS: "\<And>V. V \<in> VS \<Longrightarrow> \<exists>q. homeomorphism V U p q"
       using covs [OF \<open>y \<in> S\<close>] by auto
     obtain x where "x \<in> c" "p x \<in> U" "x \<in> T" "p x = y"
@@ -1349,14 +1349,14 @@ proof -
     then obtain q where q: "homeomorphism V U p q" using homVS by blast
     then have ptV: "p ` (T \<inter> V) = U \<inter> q -` (T \<inter> V)"
       using VS \<open>V \<in> VS\<close> by (auto simp: homeomorphism_def)
-    have ocv: "openin (subtopology euclidean c) V"
+    have ocv: "openin (top_of_set c) V"
       by (simp add: \<open>V \<in> VS\<close> openVS)
-    have "openin (subtopology euclidean U) (U \<inter> q -` (T \<inter> V))"
+    have "openin (top_of_set U) (U \<inter> q -` (T \<inter> V))"
       apply (rule continuous_on_open [THEN iffD1, rule_format])
        using homeomorphism_def q apply blast
       using openin_subtopology_Int_subset [of c] q T unfolding homeomorphism_def
       by (metis inf.absorb_iff2 Int_commute ocv openin_euclidean_subtopology_iff)
-    then have os: "openin (subtopology euclidean S) (U \<inter> q -` (T \<inter> V))"
+    then have os: "openin (top_of_set S) (U \<inter> q -` (T \<inter> V))"
       using openin_trans [of U] by (simp add: Collect_conj_eq U)
     show ?thesis
       apply (rule_tac x = "p ` (T \<inter> V)" in exI)
@@ -1386,13 +1386,13 @@ proof -
   have "connected U" by (rule in_components_connected [OF u_compt])
   have contu: "continuous_on U g1" "continuous_on U g2"
        using \<open>U \<subseteq> T\<close> continuous_on_subset g1 g2 by blast+
-  have o12: "openin (subtopology euclidean U) G12"
+  have o12: "openin (top_of_set U) G12"
   unfolding G12_def
   proof (subst openin_subopen, clarify)
     fix z
     assume z: "z \<in> U" "g1 z - g2 z = 0"
-    obtain v w q where "g1 z \<in> v" and ocv: "openin (subtopology euclidean c) v"
-                   and "p (g1 z) \<in> w" and osw: "openin (subtopology euclidean S) w"
+    obtain v w q where "g1 z \<in> v" and ocv: "openin (top_of_set c) v"
+                   and "p (g1 z) \<in> w" and osw: "openin (top_of_set S) w"
                    and hom: "homeomorphism v w p q"
       apply (rule_tac x = "g1 z" in covering_space_local_homeomorphism [OF cov])
        using \<open>U \<subseteq> T\<close> \<open>z \<in> U\<close> g1(2) apply blast+
@@ -1400,15 +1400,15 @@ proof -
     have "g2 z \<in> v" using \<open>g1 z \<in> v\<close> z by auto
     have gg: "U \<inter> g -` v = U \<inter> g -` (v \<inter> g ` U)" for g
       by auto
-    have "openin (subtopology euclidean (g1 ` U)) (v \<inter> g1 ` U)"
+    have "openin (top_of_set (g1 ` U)) (v \<inter> g1 ` U)"
       using ocv \<open>U \<subseteq> T\<close> g1 by (fastforce simp add: openin_open)
-    then have 1: "openin (subtopology euclidean U) (U \<inter> g1 -` v)"
+    then have 1: "openin (top_of_set U) (U \<inter> g1 -` v)"
       unfolding gg by (blast intro: contu continuous_on_open [THEN iffD1, rule_format])
-    have "openin (subtopology euclidean (g2 ` U)) (v \<inter> g2 ` U)"
+    have "openin (top_of_set (g2 ` U)) (v \<inter> g2 ` U)"
       using ocv \<open>U \<subseteq> T\<close> g2 by (fastforce simp add: openin_open)
-    then have 2: "openin (subtopology euclidean U) (U \<inter> g2 -` v)"
+    then have 2: "openin (top_of_set U) (U \<inter> g2 -` v)"
       unfolding gg by (blast intro: contu continuous_on_open [THEN iffD1, rule_format])
-    show "\<exists>T. openin (subtopology euclidean U) T \<and> z \<in> T \<and> T \<subseteq> {z \<in> U. g1 z - g2 z = 0}"
+    show "\<exists>T. openin (top_of_set U) T \<and> z \<in> T \<and> T \<subseteq> {z \<in> U. g1 z - g2 z = 0}"
       using z
       apply (rule_tac x = "(U \<inter> g1 -` v) \<inter> (U \<inter> g2 -` v)" in exI)
       apply (intro conjI)
@@ -1417,7 +1417,7 @@ proof -
       apply (metis \<open>U \<subseteq> T\<close> subsetD eq_iff_diff_eq_0 fg1 fg2 hom homeomorphism_def)
       done
   qed
-  have c12: "closedin (subtopology euclidean U) G12"
+  have c12: "closedin (top_of_set U) G12"
     unfolding G12_def
     by (intro continuous_intros continuous_closedin_preimage_constant contu)
   have "G12 = {} \<or> G12 = U"
@@ -1468,37 +1468,37 @@ proof
   show ?rhs
   proof (rule locallyI)
     fix V x
-    assume V: "openin (subtopology euclidean C) V" and "x \<in> V"
+    assume V: "openin (top_of_set C) V" and "x \<in> V"
     have "p x \<in> p ` C"
       by (metis IntE V \<open>x \<in> V\<close> imageI openin_open)
     then obtain T \<V> where "p x \<in> T"
-                      and opeT: "openin (subtopology euclidean S) T"
+                      and opeT: "openin (top_of_set S) T"
                       and veq: "\<Union>\<V> = C \<inter> p -` T"
-                      and ope: "\<forall>U\<in>\<V>. openin (subtopology euclidean C) U"
+                      and ope: "\<forall>U\<in>\<V>. openin (top_of_set C) U"
                       and hom: "\<forall>U\<in>\<V>. \<exists>q. homeomorphism U T p q"
       using cov unfolding covering_space_def by (blast intro: that)
     have "x \<in> \<Union>\<V>"
       using V veq \<open>p x \<in> T\<close> \<open>x \<in> V\<close> openin_imp_subset by fastforce
     then obtain U where "x \<in> U" "U \<in> \<V>"
       by blast
-    then obtain q where opeU: "openin (subtopology euclidean C) U" and q: "homeomorphism U T p q"
+    then obtain q where opeU: "openin (top_of_set C) U" and q: "homeomorphism U T p q"
       using ope hom by blast
-    with V have "openin (subtopology euclidean C) (U \<inter> V)"
+    with V have "openin (top_of_set C) (U \<inter> V)"
       by blast
-    then have UV: "openin (subtopology euclidean S) (p ` (U \<inter> V))"
+    then have UV: "openin (top_of_set S) (p ` (U \<inter> V))"
       using cov covering_space_open_map by blast
-    obtain W W' where opeW: "openin (subtopology euclidean S) W" and "\<psi> W'" "p x \<in> W" "W \<subseteq> W'" and W'sub: "W' \<subseteq> p ` (U \<inter> V)"
+    obtain W W' where opeW: "openin (top_of_set S) W" and "\<psi> W'" "p x \<in> W" "W \<subseteq> W'" and W'sub: "W' \<subseteq> p ` (U \<inter> V)"
       using locallyE [OF L UV] \<open>x \<in> U\<close> \<open>x \<in> V\<close> by blast
     then have "W \<subseteq> T"
       by (metis Int_lower1 q homeomorphism_image1 image_Int_subset order_trans)
-    show "\<exists>U Z. openin (subtopology euclidean C) U \<and>
+    show "\<exists>U Z. openin (top_of_set C) U \<and>
                  \<phi> Z \<and> x \<in> U \<and> U \<subseteq> Z \<and> Z \<subseteq> V"
     proof (intro exI conjI)
-      have "openin (subtopology euclidean T) W"
+      have "openin (top_of_set T) W"
         by (meson opeW opeT openin_imp_subset openin_subset_trans \<open>W \<subseteq> T\<close>)
-      then have "openin (subtopology euclidean U) (q ` W)"
+      then have "openin (top_of_set U) (q ` W)"
         by (meson homeomorphism_imp_open_map homeomorphism_symD q)
-      then show "openin (subtopology euclidean C) (q ` W)"
+      then show "openin (top_of_set C) (q ` W)"
         using opeU openin_trans by blast
       show "\<phi> (q ` W')"
         by (metis (mono_tags, lifting) Int_subset_iff UV W'sub \<open>\<psi> W'\<close> continuous_on_subset dual_order.trans homeomorphism_def image_Int_subset openin_imp_subset q qim)
@@ -1575,18 +1575,18 @@ proposition covering_space_lift_homotopy:
                     "\<And>y. y \<in> U \<Longrightarrow> k(0, y) = f y"
                     "\<And>z. z \<in> {0..1} \<times> U \<Longrightarrow> h z = p(k z)"
 proof -
-  have "\<exists>V k. openin (subtopology euclidean U) V \<and> y \<in> V \<and>
+  have "\<exists>V k. openin (top_of_set U) V \<and> y \<in> V \<and>
               continuous_on ({0..1} \<times> V) k \<and> k ` ({0..1} \<times> V) \<subseteq> C \<and>
               (\<forall>z \<in> V. k(0, z) = f z) \<and> (\<forall>z \<in> {0..1} \<times> V. h z = p(k z))"
         if "y \<in> U" for y
   proof -
-    obtain UU where UU: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (subtopology euclidean S) (UU s) \<and>
+    obtain UU where UU: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (top_of_set S) (UU s) \<and>
                                         (\<exists>\<V>. \<Union>\<V> = C \<inter> p -` UU s \<and>
-                                            (\<forall>U \<in> \<V>. openin (subtopology euclidean C) U) \<and>
+                                            (\<forall>U \<in> \<V>. openin (top_of_set C) U) \<and>
                                             pairwise disjnt \<V> \<and>
                                             (\<forall>U \<in> \<V>. \<exists>q. homeomorphism U (UU s) p q))"
       using cov unfolding covering_space_def by (metis (mono_tags))
-    then have ope: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (subtopology euclidean S) (UU s)"
+    then have ope: "\<And>s. s \<in> S \<Longrightarrow> s \<in> (UU s) \<and> openin (top_of_set S) (UU s)"
       by blast
     have "\<exists>k n i. open k \<and> open n \<and>
                   t \<in> k \<and> y \<in> n \<and> i \<in> S \<and> h ` (({0..1} \<inter> k) \<times> (U \<inter> n)) \<subseteq> UU i" if "t \<in> {0..1}" for t
@@ -1595,7 +1595,7 @@ proof -
         using \<open>y \<in> U\<close> him that by blast
       then have "(t,y) \<in> ({0..1} \<times> U) \<inter> h -` UU(h(t, y))"
         using \<open>y \<in> U\<close> \<open>t \<in> {0..1}\<close>  by (auto simp: ope)
-      moreover have ope_01U: "openin (subtopology euclidean ({0..1} \<times> U)) (({0..1} \<times> U) \<inter> h -` UU(h(t, y)))"
+      moreover have ope_01U: "openin (top_of_set ({0..1} \<times> U)) (({0..1} \<times> U) \<inter> h -` UU(h(t, y)))"
         using hinS ope continuous_on_open_gen [OF him] conth by blast
       ultimately obtain V W where opeV: "open V" and "t \<in> {0..1} \<inter> V" "t \<in> {0..1} \<inter> V"
                               and opeW: "open W" and "y \<in> U" "y \<in> W"
@@ -1641,7 +1641,7 @@ proof -
       using reals_Archimedean2 by blast
     then have "N > 0"
       using \<open>0 < \<delta>\<close> order.asym by force
-    have *: "\<exists>V k. openin (subtopology euclidean U) V \<and> y \<in> V \<and>
+    have *: "\<exists>V k. openin (top_of_set U) V \<and> y \<in> V \<and>
                    continuous_on ({0..of_nat n / N} \<times> V) k \<and>
                    k ` ({0..of_nat n / N} \<times> V) \<subseteq> C \<and>
                    (\<forall>z\<in>V. k (0, z) = f z) \<and>
@@ -1657,7 +1657,7 @@ proof -
         done
     next
       case (Suc n)
-      then obtain V k where opeUV: "openin (subtopology euclidean U) V"
+      then obtain V k where opeUV: "openin (top_of_set U) V"
                         and "y \<in> V"
                         and contk: "continuous_on ({0..real n / real N} \<times> V) k"
                         and kim: "k ` ({0..real n / real N} \<times> V) \<subseteq> C"
@@ -1676,7 +1676,7 @@ proof -
       have t01: "t \<in> {0..1}"
         using \<open>t \<in> tk\<close> \<open>tk \<subseteq> {0..1}\<close> by blast
       obtain \<V> where \<V>: "\<Union>\<V> = C \<inter> p -` UU (X t)"
-                 and opeC: "\<And>U. U \<in> \<V> \<Longrightarrow> openin (subtopology euclidean C) U"
+                 and opeC: "\<And>U. U \<in> \<V> \<Longrightarrow> openin (top_of_set C) U"
                  and "pairwise disjnt \<V>"
                  and homuu: "\<And>U. U \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism U (UU (X t)) p q"
         using inUS [OF t01] UU by meson
@@ -1703,24 +1703,24 @@ proof -
         by blast
       then obtain W where W: "k (real n / real N, y) \<in> W" and "W \<in> \<V>"
         by blast
-      then obtain p' where opeC': "openin (subtopology euclidean C) W"
+      then obtain p' where opeC': "openin (top_of_set C) W"
                        and hom': "homeomorphism W (UU (X t)) p p'"
         using homuu opeC by blast
       then have "W \<subseteq> C"
         using openin_imp_subset by blast
       define W' where "W' = UU(X t)"
-      have opeVW: "openin (subtopology euclidean V) (V \<inter> (k \<circ> Pair (n / N)) -` W)"
+      have opeVW: "openin (top_of_set V) (V \<inter> (k \<circ> Pair (n / N)) -` W)"
         apply (rule continuous_openin_preimage [OF _ _ opeC'])
          apply (intro continuous_intros continuous_on_subset [OF contk])
         using kim apply (auto simp: \<open>y \<in> V\<close> W)
         done
-      obtain N' where opeUN': "openin (subtopology euclidean U) N'"
+      obtain N' where opeUN': "openin (top_of_set U) N'"
                   and "y \<in> N'" and kimw: "k ` ({(real n / real N)} \<times> N') \<subseteq> W"
         apply (rule_tac N' = "(V \<inter> (k \<circ> Pair (n / N)) -` W)" in that)
         apply (fastforce simp:  \<open>y \<in> V\<close> W intro!: openin_trans [OF opeVW opeUV])+
         done
-      obtain Q Q' where opeUQ: "openin (subtopology euclidean U) Q"
-                    and cloUQ': "closedin (subtopology euclidean U) Q'"
+      obtain Q Q' where opeUQ: "openin (top_of_set U) Q"
+                    and cloUQ': "closedin (top_of_set U) Q'"
                     and "y \<in> Q" "Q \<subseteq> Q'"
                     and Q': "Q' \<subseteq> (U \<inter> NN(t)) \<inter> N' \<inter> V"
       proof -
@@ -1732,9 +1732,9 @@ proof -
           by (metis Int_iff \<open>N' = U \<inter> VX\<close> \<open>V = U \<inter> VO\<close> \<open>y \<in> N'\<close> \<open>y \<in> V\<close> inUS open_contains_cball t01)
         show ?thesis
         proof
-          show "openin (subtopology euclidean U) (U \<inter> ball y e)"
+          show "openin (top_of_set U) (U \<inter> ball y e)"
             by blast
-          show "closedin (subtopology euclidean U) (U \<inter> cball y e)"
+          show "closedin (top_of_set U) (U \<inter> cball y e)"
             using e by (auto simp: closedin_closed)
         qed (use \<open>y \<in> U\<close> \<open>e > 0\<close> VO VX e in auto)
       qed
@@ -1749,13 +1749,13 @@ proof -
         (\<lambda>x. if x \<in> {0..real n / real N} \<times> Q' then k x else (p' \<circ> h) x)"
         unfolding neqQ' [symmetric]
       proof (rule continuous_on_cases_local, simp_all add: neqQ' del: comp_apply)
-        show "closedin (subtopology euclidean ({0..(1 + real n) / real N} \<times> Q'))
+        show "closedin (top_of_set ({0..(1 + real n) / real N} \<times> Q'))
                        ({0..real n / real N} \<times> Q')"
           apply (simp add: closedin_closed)
           apply (rule_tac x="{0 .. real n / real N} \<times> UNIV" in exI)
           using n_div_N_in apply (auto simp: closed_Times)
           done
-        show "closedin (subtopology euclidean ({0..(1 + real n) / real N} \<times> Q'))
+        show "closedin (top_of_set ({0..(1 + real n) / real N} \<times> Q'))
                        ({real n / real N..(1 + real n) / real N} \<times> Q')"
           apply (simp add: closedin_closed)
           apply (rule_tac x="{real n / real N .. (1 + real n) / real N} \<times> UNIV" in exI)
@@ -1845,7 +1845,7 @@ proof -
     show ?thesis
       using*[OF order_refl] N \<open>0 < \<delta>\<close> by (simp add: split: if_split_asm)
   qed
-  then obtain V fs where opeV: "\<And>y. y \<in> U \<Longrightarrow> openin (subtopology euclidean U) (V y)"
+  then obtain V fs where opeV: "\<And>y. y \<in> U \<Longrightarrow> openin (top_of_set U) (V y)"
           and V: "\<And>y. y \<in> U \<Longrightarrow> y \<in> V y"
           and contfs: "\<And>y. y \<in> U \<Longrightarrow> continuous_on ({0..1} \<times> V y) (fs y)"
           and *: "\<And>y. y \<in> U \<Longrightarrow> (fs y) ` ({0..1} \<times> V y) \<subseteq> C \<and>
@@ -1857,14 +1857,17 @@ proof -
   obtain k where contk: "continuous_on ({0..1} \<times> U) k"
              and k: "\<And>x i. \<lbrakk>i \<in> U; x \<in> {0..1} \<times> U \<inter> {0..1} \<times> V i\<rbrakk> \<Longrightarrow> k x = fs i x"
   proof (rule pasting_lemma_exists)
-    show "{0..1} \<times> U \<subseteq> (\<Union>i\<in>U. {0..1} \<times> V i)"
-      apply auto
-      using V by blast
-    show "\<And>i. i \<in> U \<Longrightarrow> openin (subtopology euclidean ({0..1} \<times> U)) ({0..1} \<times> V i)"
+    let ?X = "top_of_set ({0..1::real} \<times> U)"
+    show "topspace ?X \<subseteq> (\<Union>i\<in>U. {0..1} \<times> V i)"
+      using V by force
+    show "\<And>i. i \<in> U \<Longrightarrow> openin (top_of_set ({0..1} \<times> U)) ({0..1} \<times> V i)"
       by (simp add: opeV openin_Times)
-    show "\<And>i. i \<in> U \<Longrightarrow> continuous_on ({0..1} \<times> V i) (fs i)"
-      using contfs by blast
-    show "fs i x = fs j x"  if "i \<in> U" "j \<in> U" and x: "x \<in> {0..1} \<times> U \<inter> {0..1} \<times> V i \<inter> {0..1} \<times> V j"
+    show "\<And>i. i \<in> U \<Longrightarrow> continuous_map
+              (subtopology (top_of_set ({0..1} \<times> U)) ({0..1} \<times> V i)) euclidean (fs i)"
+      using contfs
+      apply simp
+      by (metis continuous_map_iff_continuous continuous_on_subset openin_imp_subset openin_subtopology_self subtopology_subtopology)
+    show "fs i x = fs j x"  if "i \<in> U" "j \<in> U" and x: "x \<in> topspace ?X \<inter> {0..1} \<times> V i \<inter> {0..1} \<times> V j"
          for i j x
     proof -
       obtain u y where "x = (u, y)" "y \<in> V i" "y \<in> V j" "0 \<le> u" "u \<le> 1"
@@ -1900,7 +1903,7 @@ proof -
           using \<open>x = (u, y)\<close> x by blast
       qed
     qed
-  qed blast
+  qed force
   show ?thesis
   proof
     show "k ` ({0..1} \<times> U) \<subseteq> C"
@@ -2282,17 +2285,17 @@ proof -
       using l [of "linepath z z" z "linepath a a"] by (auto simp: assms)
     show LC: "l ` U \<subseteq> C"
       by (clarify dest!: *) (metis (full_types) l pathfinish_in_path_image subsetCE)
-    have "\<exists>T. openin (subtopology euclidean U) T \<and> y \<in> T \<and> T \<subseteq> U \<inter> l -` X"
-         if X: "openin (subtopology euclidean C) X" and "y \<in> U" "l y \<in> X" for X y
+    have "\<exists>T. openin (top_of_set U) T \<and> y \<in> T \<and> T \<subseteq> U \<inter> l -` X"
+         if X: "openin (top_of_set C) X" and "y \<in> U" "l y \<in> X" for X y
     proof -
       have "X \<subseteq> C"
         using X openin_euclidean_subtopology_iff by blast
       have "f y \<in> S"
         using fim \<open>y \<in> U\<close> by blast
       then obtain W \<V>
-              where WV: "f y \<in> W \<and> openin (subtopology euclidean S) W \<and>
+              where WV: "f y \<in> W \<and> openin (top_of_set S) W \<and>
                          (\<Union>\<V> = C \<inter> p -` W \<and>
-                          (\<forall>U \<in> \<V>. openin (subtopology euclidean C) U) \<and>
+                          (\<forall>U \<in> \<V>. openin (top_of_set C) U) \<and>
                           pairwise disjnt \<V> \<and>
                           (\<forall>U \<in> \<V>. \<exists>q. homeomorphism U W p q))"
         using cov by (force simp: covering_space_def)
@@ -2300,15 +2303,15 @@ proof -
         using \<open>X \<subseteq> C\<close> pleq that by auto
       then obtain W' where "l y \<in> W'" and "W' \<in> \<V>"
         by blast
-      with WV obtain p' where opeCW': "openin (subtopology euclidean C) W'"
+      with WV obtain p' where opeCW': "openin (top_of_set C) W'"
                           and homUW': "homeomorphism W' W p p'"
         by blast
       then have contp': "continuous_on W p'" and p'im: "p' ` W \<subseteq> W'"
         using homUW' homeomorphism_image2 homeomorphism_cont2 by fastforce+
       obtain V where "y \<in> V" "y \<in> U" and fimW: "f ` V \<subseteq> W" "V \<subseteq> U"
-                 and "path_connected V" and opeUV: "openin (subtopology euclidean U) V"
+                 and "path_connected V" and opeUV: "openin (top_of_set U) V"
       proof -
-        have "openin (subtopology euclidean U) (U \<inter> f -` W)"
+        have "openin (top_of_set U) (U \<inter> f -` W)"
           using WV contf continuous_on_open_gen fim by auto
         then show ?thesis
           using U WV
@@ -2324,16 +2327,16 @@ proof -
         using homUW' homeomorphism_image2 by fastforce
       show ?thesis
       proof (intro exI conjI)
-        have "openin (subtopology euclidean S) (W \<inter> p' -` (W' \<inter> X))"
+        have "openin (top_of_set S) (W \<inter> p' -` (W' \<inter> X))"
         proof (rule openin_trans)
-          show "openin (subtopology euclidean W) (W \<inter> p' -` (W' \<inter> X))"
+          show "openin (top_of_set W) (W \<inter> p' -` (W' \<inter> X))"
             apply (rule continuous_openin_preimage [OF contp' p'im])
             using X \<open>W' \<subseteq> C\<close> apply (auto simp: openin_open)
             done
-          show "openin (subtopology euclidean S) W"
+          show "openin (top_of_set S) W"
             using WV by blast
         qed
-        then show "openin (subtopology euclidean U) (V \<inter> (U \<inter> (f -` (W \<inter> (p' -` (W' \<inter> X))))))"
+        then show "openin (top_of_set U) (V \<inter> (U \<inter> (f -` (W \<inter> (p' -` (W' \<inter> X))))))"
           by (blast intro: opeUV openin_subtopology_self continuous_openin_preimage [OF contf fim])
          have "p' (f y) \<in> X"
           using \<open>l y \<in> W'\<close> homeomorphism_apply1 [OF homUW'] pleq \<open>y \<in> U\<close> \<open>l y \<in> X\<close> by fastforce

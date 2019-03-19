@@ -18,7 +18,7 @@ lemma Janiszewski_weak:
 proof -
   have [simp]: "a \<notin> S" "a \<notin> T" "b \<notin> S" "b \<notin> T"
     by (meson ComplD ccS ccT connected_component_in)+
-  have clo: "closedin (subtopology euclidean (S \<union> T)) S" "closedin (subtopology euclidean (S \<union> T)) T"
+  have clo: "closedin (top_of_set (S \<union> T)) S" "closedin (top_of_set (S \<union> T)) T"
     by (simp_all add: assms closed_subset compact_imp_closed)
   obtain g where contg: "continuous_on S g"
              and g: "\<And>x. x \<in> S \<Longrightarrow> exp (\<i>* of_real (g x)) = (x - a) /\<^sub>R cmod (x - a) / ((x - b) /\<^sub>R cmod (x - b))"
@@ -276,8 +276,8 @@ proof -
                      and "arc g" "pathstart g = a" "pathfinish g = b"
                      and pag_sub: "path_image g - {a,b} \<subseteq> middle"
       proof (rule dense_accessible_frontier_point_pairs [OF \<open>open middle\<close> \<open>connected middle\<close>, of "path_image c \<inter> ball a0 (dist a0 b0)" "path_image c \<inter> ball b0 (dist a0 b0)"])
-        show "openin (subtopology euclidean (frontier middle)) (path_image c \<inter> ball a0 (dist a0 b0))"
-             "openin (subtopology euclidean (frontier middle)) (path_image c \<inter> ball b0 (dist a0 b0))"
+        show "openin (top_of_set (frontier middle)) (path_image c \<inter> ball a0 (dist a0 b0))"
+             "openin (top_of_set (frontier middle)) (path_image c \<inter> ball b0 (dist a0 b0))"
           by (simp_all add: \<open>frontier middle = path_image c\<close> openin_open_Int)
         show "path_image c \<inter> ball a0 (dist a0 b0) \<noteq> path_image c \<inter> ball b0 (dist a0 b0)"
           using \<open>a0 \<noteq> b0\<close> \<open>b0 \<in> path_image c\<close> by auto

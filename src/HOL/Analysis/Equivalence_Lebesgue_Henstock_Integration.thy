@@ -2032,7 +2032,7 @@ qed
 subsection\<open>Negligibility is a local property\<close>
 
 lemma locally_negligible_alt:
-    "negligible S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>U. openin (subtopology euclidean S) U \<and> x \<in> U \<and> negligible U)"
+    "negligible S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>U. openin (top_of_set S) U \<and> x \<in> U \<and> negligible U)"
      (is "_ = ?rhs")
 proof
   assume "negligible S"
@@ -2040,7 +2040,7 @@ proof
     using openin_subtopology_self by blast
 next
   assume ?rhs
-  then obtain U where ope: "\<And>x. x \<in> S \<Longrightarrow> openin (subtopology euclidean S) (U x)"
+  then obtain U where ope: "\<And>x. x \<in> S \<Longrightarrow> openin (top_of_set S) (U x)"
     and cov: "\<And>x. x \<in> S \<Longrightarrow> x \<in> U x"
     and neg: "\<And>x. x \<in> S \<Longrightarrow> negligible (U x)"
     by metis
@@ -4493,7 +4493,7 @@ proof -
     fix a
     assume a: "a \<in> U n" and fa: "f a \<in> T"
     define V where "V \<equiv> {x. x \<in> U n \<and> f x \<in> T} \<inter> ball a (1 / n / 2)"
-    show "\<exists>V. openin (subtopology euclidean {x \<in> U n. f x \<in> T}) V \<and> a \<in> V \<and> negligible V"
+    show "\<exists>V. openin (top_of_set {x \<in> U n. f x \<in> T}) V \<and> a \<in> V \<and> negligible V"
     proof (intro exI conjI)
       have noxy: "norm(x - y) \<le> n * norm(f x - f y)" if "x \<in> V" "y \<in> V" for x y
         using that unfolding U_def V_def mem_Collect_eq Int_iff mem_ball dist_norm

@@ -62,7 +62,7 @@ proof -
     using g unfolding o_def id_def image_def by auto metis+
   show ?thesis
   proof (rule closedin_closed_trans [of "range f"])
-    show "closedin (subtopology euclidean (range f)) (f ` S)"
+    show "closedin (top_of_set (range f)) (f ` S)"
       using continuous_closedin_preimage [OF confg cgf] by simp
     show "closed (range f)"
       apply (rule closed_injective_image_subspace)
@@ -319,7 +319,7 @@ by (metis low_dim_interior)
 subsection \<open>Relative interior of a set\<close>
 
 definition%important "rel_interior S =
-  {x. \<exists>T. openin (subtopology euclidean (affine hull S)) T \<and> x \<in> T \<and> T \<subseteq> S}"
+  {x. \<exists>T. openin (top_of_set (affine hull S)) T \<and> x \<in> T \<and> T \<subseteq> S}"
 
 lemma rel_interior_mono:
    "\<lbrakk>S \<subseteq> T; affine hull S = affine hull T\<rbrakk>
@@ -327,7 +327,7 @@ lemma rel_interior_mono:
   by (auto simp: rel_interior_def)
 
 lemma rel_interior_maximal:
-   "\<lbrakk>T \<subseteq> S; openin(subtopology euclidean (affine hull S)) T\<rbrakk> \<Longrightarrow> T \<subseteq> (rel_interior S)"
+   "\<lbrakk>T \<subseteq> S; openin(top_of_set (affine hull S)) T\<rbrakk> \<Longrightarrow> T \<subseteq> (rel_interior S)"
   by (auto simp: rel_interior_def)
 
 lemma rel_interior:
@@ -651,20 +651,20 @@ subsubsection \<open>Relative open sets\<close>
 
 definition%important "rel_open S \<longleftrightarrow> rel_interior S = S"
 
-lemma rel_open: "rel_open S \<longleftrightarrow> openin (subtopology euclidean (affine hull S)) S"
+lemma rel_open: "rel_open S \<longleftrightarrow> openin (top_of_set (affine hull S)) S"
   unfolding rel_open_def rel_interior_def
   apply auto
-  using openin_subopen[of "subtopology euclidean (affine hull S)" S]
+  using openin_subopen[of "top_of_set (affine hull S)" S]
   apply auto
   done
 
-lemma openin_rel_interior: "openin (subtopology euclidean (affine hull S)) (rel_interior S)"
+lemma openin_rel_interior: "openin (top_of_set (affine hull S)) (rel_interior S)"
   apply (simp add: rel_interior_def)
   apply (subst openin_subopen, blast)
   done
 
 lemma openin_set_rel_interior:
-   "openin (subtopology euclidean S) (rel_interior S)"
+   "openin (top_of_set S) (rel_interior S)"
 by (rule openin_subset_trans [OF openin_rel_interior rel_interior_subset hull_subset])
 
 lemma affine_rel_open:
@@ -806,11 +806,11 @@ proof -
 qed
 
 lemma rel_interior_eq:
-   "rel_interior s = s \<longleftrightarrow> openin(subtopology euclidean (affine hull s)) s"
+   "rel_interior s = s \<longleftrightarrow> openin(top_of_set (affine hull s)) s"
 using rel_open rel_open_def by blast
 
 lemma rel_interior_openin:
-   "openin(subtopology euclidean (affine hull s)) s \<Longrightarrow> rel_interior s = s"
+   "openin(top_of_set (affine hull s)) s \<Longrightarrow> rel_interior s = s"
 by (simp add: rel_interior_eq)
 
 lemma rel_interior_affine:
@@ -1992,9 +1992,9 @@ proof -
   proof -
     obtain e where "e > 0" and e: "cball a e \<subseteq> T"
       using \<open>open T\<close> \<open>a \<in> T\<close> by (auto simp: open_contains_cball)
-    have "openin (subtopology euclidean S) {a}"
+    have "openin (top_of_set S) {a}"
       unfolding openin_open using that \<open>a \<in> S\<close> by blast
-    moreover have "closedin (subtopology euclidean S) {a}"
+    moreover have "closedin (top_of_set S) {a}"
       by (simp add: assms)
     ultimately show "False"
       using \<open>connected S\<close> connected_clopen S by blast
