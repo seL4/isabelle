@@ -1567,24 +1567,24 @@ proof -
         show "countable {A. \<forall>i j. A $ i $ j \<in> \<rat>}"
           using countable_vector [OF countable_vector, of "\<lambda>i j. \<rat>"] by (simp add: countable_rat)
       qed blast
-      have *: "\<lbrakk>U \<noteq> {} \<Longrightarrow> closedin (subtopology euclidean S) (S \<inter> \<Inter> U)\<rbrakk>
-               \<Longrightarrow> closedin (subtopology euclidean S) (S \<inter> \<Inter> U)" for U
+      have *: "\<lbrakk>U \<noteq> {} \<Longrightarrow> closedin (top_of_set S) (S \<inter> \<Inter> U)\<rbrakk>
+               \<Longrightarrow> closedin (top_of_set S) (S \<inter> \<Inter> U)" for U
         by fastforce
       have eq: "{x::(real,'m)vec. P x \<and> (Q x \<longrightarrow> R x)} = {x. P x \<and> \<not> Q x} \<union> {x. P x \<and> R x}" for P Q R
         by auto
       have sets: "S \<inter> (\<Inter>y\<in>S. {x \<in> S. norm (y - x) < d \<longrightarrow> norm (f y - f x - A *v (y - x)) \<le> e * norm (y - x)})
                   \<in> sets lebesgue" for e A d
       proof -
-        have clo: "closedin (subtopology euclidean S)
+        have clo: "closedin (top_of_set S)
                      {x \<in> S. norm (y - x) < d \<longrightarrow> norm (f y - f x - A *v (y - x)) \<le> e * norm (y - x)}"
           for y
         proof -
           have cont1: "continuous_on S (\<lambda>x. norm (y - x))"
           and  cont2: "continuous_on S (\<lambda>x. e * norm (y - x) - norm (f y - f x - (A *v y - A *v x)))"
             by (force intro: contf continuous_intros)+
-          have clo1: "closedin (subtopology euclidean S) {x \<in> S. d \<le> norm (y - x)}"
+          have clo1: "closedin (top_of_set S) {x \<in> S. d \<le> norm (y - x)}"
             using continuous_closedin_preimage [OF cont1, of "{d..}"] by (simp add: vimage_def Int_def)
-          have clo2: "closedin (subtopology euclidean S)
+          have clo2: "closedin (top_of_set S)
                        {x \<in> S. norm (f y - f x - (A *v y - A *v x)) \<le> e * norm (y - x)}"
             using continuous_closedin_preimage [OF cont2, of "{0..}"] by (simp add: vimage_def Int_def)
           show ?thesis

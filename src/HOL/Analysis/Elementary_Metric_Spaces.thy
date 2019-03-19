@@ -2718,7 +2718,7 @@ lemma bounded_uniformly_continuous_image:
 subsection \<open>With Abstract Topology (TODO: move and remove dependency?)\<close>
 
 lemma openin_contains_ball:
-    "openin (subtopology euclidean t) s \<longleftrightarrow>
+    "openin (top_of_set t) s \<longleftrightarrow>
      s \<subseteq> t \<and> (\<forall>x \<in> s. \<exists>e. 0 < e \<and> ball x e \<inter> t \<subseteq> s)"
     (is "?lhs = ?rhs")
 proof
@@ -2735,7 +2735,7 @@ next
 qed
 
 lemma openin_contains_cball:
-   "openin (subtopology euclidean t) s \<longleftrightarrow>
+   "openin (top_of_set t) s \<longleftrightarrow>
         s \<subseteq> t \<and>
         (\<forall>x \<in> s. \<exists>e. 0 < e \<and> cball x e \<inter> t \<subseteq> s)"
   apply (simp add: openin_contains_ball)

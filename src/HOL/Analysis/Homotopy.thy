@@ -258,12 +258,12 @@ proposition homotopic_with_trans:
     assumes "homotopic_with P X Y f g" and "homotopic_with P X Y g h"
       shows "homotopic_with P X Y f h"
 proof -
-  have clo1: "closedin (subtopology euclidean ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({0..1/2::real} \<times> X)"
+  have clo1: "closedin (top_of_set ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({0..1/2::real} \<times> X)"
     apply (simp add: closedin_closed split_01_prod [symmetric])
     apply (rule_tac x="{0..1/2} \<times> UNIV" in exI)
     apply (force simp: closed_Times)
     done
-  have clo2: "closedin (subtopology euclidean ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({1/2..1::real} \<times> X)"
+  have clo2: "closedin (top_of_set ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({1/2..1::real} \<times> X)"
     apply (simp add: closedin_closed split_01_prod [symmetric])
     apply (rule_tac x="{1/2..1} \<times> UNIV" in exI)
     apply (force simp: closed_Times)
@@ -1472,20 +1472,20 @@ subsection\<open>Local versions of topological properties in general\<close>
 definition%important locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
 where
  "locally P S \<equiv>
-        \<forall>w x. openin (subtopology euclidean S) w \<and> x \<in> w
-              \<longrightarrow> (\<exists>u v. openin (subtopology euclidean S) u \<and> P v \<and>
+        \<forall>w x. openin (top_of_set S) w \<and> x \<in> w
+              \<longrightarrow> (\<exists>u v. openin (top_of_set S) u \<and> P v \<and>
                         x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
 
 lemma locallyI:
-  assumes "\<And>w x. \<lbrakk>openin (subtopology euclidean S) w; x \<in> w\<rbrakk>
-                  \<Longrightarrow> \<exists>u v. openin (subtopology euclidean S) u \<and> P v \<and>
+  assumes "\<And>w x. \<lbrakk>openin (top_of_set S) w; x \<in> w\<rbrakk>
+                  \<Longrightarrow> \<exists>u v. openin (top_of_set S) u \<and> P v \<and>
                         x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w"
     shows "locally P S"
 using assms by (force simp: locally_def)
 
 lemma locallyE:
-  assumes "locally P S" "openin (subtopology euclidean S) w" "x \<in> w"
-  obtains u v where "openin (subtopology euclidean S) u"
+  assumes "locally P S" "openin (top_of_set S) w" "x \<in> w"
+  obtains u v where "openin (top_of_set S) u"
                     "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> w"
   using assms unfolding locally_def by meson
 
@@ -1495,7 +1495,7 @@ lemma locally_mono:
 by (metis assms locally_def)
 
 lemma locally_open_subset:
-  assumes "locally P S" "openin (subtopology euclidean S) t"
+  assumes "locally P S" "openin (top_of_set S) t"
     shows "locally P t"
 using assms
 apply (simp add: locally_def)
@@ -1507,7 +1507,7 @@ apply (erule ex_forward)
 by (metis (no_types, hide_lams) Int_absorb1 Int_lower1 Int_subset_iff openin_open openin_subtopology_Int_subset)
 
 lemma locally_diff_closed:
-    "\<lbrakk>locally P S; closedin (subtopology euclidean S) t\<rbrakk> \<Longrightarrow> locally P (S - t)"
+    "\<lbrakk>locally P S; closedin (top_of_set S) t\<rbrakk> \<Longrightarrow> locally P (S - t)"
   using locally_open_subset closedin_def by fastforce
 
 lemma locally_empty [iff]: "locally P {}"
@@ -1550,15 +1550,15 @@ lemma locally_Times:
     unfolding locally_def
 proof (clarify)
   fix W x y
-  assume W: "openin (subtopology euclidean (S \<times> T)) W" and xy: "(x, y) \<in> W"
-  then obtain U V where "openin (subtopology euclidean S) U" "x \<in> U"
-                        "openin (subtopology euclidean T) V" "y \<in> V" "U \<times> V \<subseteq> W"
+  assume W: "openin (top_of_set (S \<times> T)) W" and xy: "(x, y) \<in> W"
+  then obtain U V where "openin (top_of_set S) U" "x \<in> U"
+                        "openin (top_of_set T) V" "y \<in> V" "U \<times> V \<subseteq> W"
     using Times_in_interior_subtopology by metis
   then obtain U1 U2 V1 V2
-         where opeS: "openin (subtopology euclidean S) U1 \<and> P U2 \<and> x \<in> U1 \<and> U1 \<subseteq> U2 \<and> U2 \<subseteq> U"
-           and opeT: "openin (subtopology euclidean T) V1 \<and> Q V2 \<and> y \<in> V1 \<and> V1 \<subseteq> V2 \<and> V2 \<subseteq> V"
+         where opeS: "openin (top_of_set S) U1 \<and> P U2 \<and> x \<in> U1 \<and> U1 \<subseteq> U2 \<and> U2 \<subseteq> U"
+           and opeT: "openin (top_of_set T) V1 \<and> Q V2 \<and> y \<in> V1 \<and> V1 \<subseteq> V2 \<and> V2 \<subseteq> V"
     by (meson PS QT locallyE)
-  with \<open>U \<times> V \<subseteq> W\<close> show "\<exists>u v. openin (subtopology euclidean (S \<times> T)) u \<and> R v \<and> (x,y) \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> W"
+  with \<open>U \<times> V \<subseteq> W\<close> show "\<exists>u v. openin (top_of_set (S \<times> T)) u \<and> R v \<and> (x,y) \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> W"
     apply (rule_tac x="U1 \<times> V1" in exI)
     apply (rule_tac x="U2 \<times> V2" in exI)
     apply (auto simp: openin_Times R)
@@ -1573,7 +1573,7 @@ proposition homeomorphism_locally_imp:
     shows "locally Q t"
 proof (clarsimp simp: locally_def)
   fix W y
-  assume "y \<in> W" and "openin (subtopology euclidean t) W"
+  assume "y \<in> W" and "openin (top_of_set t) W"
   then obtain T where T: "open T" "W = t \<inter> T"
     by (force simp: openin_open)
   then have "W \<subseteq> t" by auto
@@ -1586,15 +1586,15 @@ proof (clarsimp simp: locally_def)
     using \<open>g ` t = S\<close> \<open>W \<subseteq> t\<close> apply blast
     using g \<open>W \<subseteq> t\<close> apply auto[1]
     by (simp add: f rev_image_eqI)
-  have \<circ>: "openin (subtopology euclidean S) (g ` W)"
+  have \<circ>: "openin (top_of_set S) (g ` W)"
   proof -
     have "continuous_on S f"
       using f(3) by blast
-    then show "openin (subtopology euclidean S) (g ` W)"
-      by (simp add: gw Collect_conj_eq \<open>openin (subtopology euclidean t) W\<close> continuous_on_open f(2))
+    then show "openin (top_of_set S) (g ` W)"
+      by (simp add: gw Collect_conj_eq \<open>openin (top_of_set t) W\<close> continuous_on_open f(2))
   qed
   then obtain u v
-    where osu: "openin (subtopology euclidean S) u" and uv: "P v" "g y \<in> u" "u \<subseteq> v" "v \<subseteq> g ` W"
+    where osu: "openin (top_of_set S) u" and uv: "P v" "g y \<in> u" "u \<subseteq> v" "v \<subseteq> g ` W"
     using S [unfolded locally_def, rule_format, of "g ` W" "g y"] \<open>y \<in> W\<close> by force
   have "v \<subseteq> S" using uv by (simp add: gw)
   have fv: "f ` v = t \<inter> {x. g x \<in> v}"
@@ -1609,7 +1609,7 @@ proof (clarsimp simp: locally_def)
     using \<open>v \<subseteq> S\<close> \<open>W \<subseteq> t\<close> f
     apply (simp add: homeomorphism_def contvf contvg, auto)
     by (metis f(1) rev_image_eqI rev_subsetD)
-  have 1: "openin (subtopology euclidean t) (t \<inter> g -` u)"
+  have 1: "openin (top_of_set t) (t \<inter> g -` u)"
     apply (rule continuous_on_open [THEN iffD1, rule_format])
     apply (rule \<open>continuous_on t g\<close>)
     using \<open>g ` t = S\<close> apply (simp add: osu)
@@ -1619,7 +1619,7 @@ proof (clarsimp simp: locally_def)
     apply (intro conjI Q [OF \<open>P v\<close> homv])
     using \<open>W \<subseteq> t\<close> \<open>y \<in> W\<close>  \<open>f ` v \<subseteq> W\<close>  uv  apply (auto simp: fv)
     done
-  show "\<exists>U. openin (subtopology euclidean t) U \<and> (\<exists>v. Q v \<and> y \<in> U \<and> U \<subseteq> v \<and> v \<subseteq> W)"
+  show "\<exists>U. openin (top_of_set t) U \<and> (\<exists>v. Q v \<and> y \<in> U \<and> U \<subseteq> v \<and> v \<subseteq> W)"
     by (meson 1 2)
 qed
 
@@ -1674,23 +1674,23 @@ lemma locally_open_map_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes P: "locally P S"
       and f: "continuous_on S f"
-      and oo: "\<And>t. openin (subtopology euclidean S) t
-                   \<Longrightarrow> openin (subtopology euclidean (f ` S)) (f ` t)"
+      and oo: "\<And>t. openin (top_of_set S) t
+                   \<Longrightarrow> openin (top_of_set (f ` S)) (f ` t)"
       and Q: "\<And>t. \<lbrakk>t \<subseteq> S; P t\<rbrakk> \<Longrightarrow> Q(f ` t)"
     shows "locally Q (f ` S)"
 proof (clarsimp simp add: locally_def)
   fix W y
-  assume oiw: "openin (subtopology euclidean (f ` S)) W" and "y \<in> W"
+  assume oiw: "openin (top_of_set (f ` S)) W" and "y \<in> W"
   then have "W \<subseteq> f ` S" by (simp add: openin_euclidean_subtopology_iff)
-  have oivf: "openin (subtopology euclidean S) (S \<inter> f -` W)"
+  have oivf: "openin (top_of_set S) (S \<inter> f -` W)"
     by (rule continuous_on_open [THEN iffD1, rule_format, OF f oiw])
   then obtain x where "x \<in> S" "f x = y"
     using \<open>W \<subseteq> f ` S\<close> \<open>y \<in> W\<close> by blast
   then obtain U V
-    where "openin (subtopology euclidean S) U" "P V" "x \<in> U" "U \<subseteq> V" "V \<subseteq> S \<inter> f -` W"
+    where "openin (top_of_set S) U" "P V" "x \<in> U" "U \<subseteq> V" "V \<subseteq> S \<inter> f -` W"
     using P [unfolded locally_def, rule_format, of "(S \<inter> f -` W)" x] oivf \<open>y \<in> W\<close>
     by auto
-  then show "\<exists>X. openin (subtopology euclidean (f ` S)) X \<and> (\<exists>Y. Q Y \<and> y \<in> X \<and> X \<subseteq> Y \<and> Y \<subseteq> W)"
+  then show "\<exists>X. openin (top_of_set (f ` S)) X \<and> (\<exists>Y. Q Y \<and> y \<in> X \<and> X \<subseteq> Y \<and> Y \<subseteq> W)"
     apply (rule_tac x="f ` U" in exI)
     apply (rule conjI, blast intro!: oo)
     apply (rule_tac x="f ` V" in exI)
@@ -1703,21 +1703,21 @@ subsection\<open>An induction principle for connected sets\<close>
 
 proposition connected_induction:
   assumes "connected S"
-      and opD: "\<And>T a. \<lbrakk>openin (subtopology euclidean S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
+      and opD: "\<And>T a. \<lbrakk>openin (top_of_set S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
       and opI: "\<And>a. a \<in> S
-             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+             \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and>
                      (\<forall>x \<in> T. \<forall>y \<in> T. P x \<and> P y \<and> Q x \<longrightarrow> Q y)"
       and etc: "a \<in> S" "b \<in> S" "P a" "P b" "Q a"
     shows "Q b"
 proof -
-  have 1: "openin (subtopology euclidean S)
-             {b. \<exists>T. openin (subtopology euclidean S) T \<and>
+  have 1: "openin (top_of_set S)
+             {b. \<exists>T. openin (top_of_set S) T \<and>
                      b \<in> T \<and> (\<forall>x\<in>T. P x \<longrightarrow> Q x)}"
     apply (subst openin_subopen, clarify)
     apply (rule_tac x=T in exI, auto)
     done
-  have 2: "openin (subtopology euclidean S)
-             {b. \<exists>T. openin (subtopology euclidean S) T \<and>
+  have 2: "openin (top_of_set S)
+             {b. \<exists>T. openin (top_of_set S) T \<and>
                      b \<in> T \<and> (\<forall>x\<in>T. P x \<longrightarrow> \<not> Q x)}"
     apply (subst openin_subopen, clarify)
     apply (rule_tac x=T in exI, auto)
@@ -1738,9 +1738,9 @@ lemma connected_equivalence_relation_gen:
   assumes "connected S"
       and etc: "a \<in> S" "b \<in> S" "P a" "P b"
       and trans: "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
-      and opD: "\<And>T a. \<lbrakk>openin (subtopology euclidean S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
+      and opD: "\<And>T a. \<lbrakk>openin (top_of_set S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
       and opI: "\<And>a. a \<in> S
-             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+             \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and>
                      (\<forall>x \<in> T. \<forall>y \<in> T. P x \<and> P y \<longrightarrow> R x y)"
     shows "R a b"
 proof -
@@ -1754,7 +1754,7 @@ lemma connected_induction_simple:
   assumes "connected S"
       and etc: "a \<in> S" "b \<in> S" "P a"
       and opI: "\<And>a. a \<in> S
-             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+             \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and>
                      (\<forall>x \<in> T. \<forall>y \<in> T. P x \<longrightarrow> P y)"
     shows "P b"
 apply (rule connected_induction [OF \<open>connected S\<close> _, where P = "\<lambda>x. True"], blast)
@@ -1767,7 +1767,7 @@ lemma connected_equivalence_relation:
       and etc: "a \<in> S" "b \<in> S"
       and sym: "\<And>x y. \<lbrakk>R x y; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> R y x"
       and trans: "\<And>x y z. \<lbrakk>R x y; R y z; x \<in> S; y \<in> S; z \<in> S\<rbrakk> \<Longrightarrow> R x z"
-      and opI: "\<And>a. a \<in> S \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. R a x)"
+      and opI: "\<And>a. a \<in> S \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. R a x)"
     shows "R a b"
 proof -
   have "\<And>a b c. \<lbrakk>a \<in> S; b \<in> S; c \<in> S; R a b\<rbrakk> \<Longrightarrow> R a c"
@@ -1779,7 +1779,7 @@ qed
 lemma locally_constant_imp_constant:
   assumes "connected S"
       and opI: "\<And>a. a \<in> S
-             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. f x = f a)"
+             \<Longrightarrow> \<exists>T. openin (top_of_set S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. f x = f a)"
     shows "f constant_on S"
 proof -
   have "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f x = f y"
@@ -1805,7 +1805,7 @@ proposition locally_compact:
   shows
     "locally compact s \<longleftrightarrow>
      (\<forall>x \<in> s. \<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
-                    openin (subtopology euclidean s) u \<and> compact v)"
+                    openin (top_of_set s) u \<and> compact v)"
      (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -1816,11 +1816,11 @@ proof
 next
   assume r [rule_format]: ?rhs
   have *: "\<exists>u v.
-              openin (subtopology euclidean s) u \<and>
+              openin (top_of_set s) u \<and>
               compact v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<inter> T"
           if "open T" "x \<in> s" "x \<in> T" for x T
   proof -
-    obtain u v where uv: "x \<in> u" "u \<subseteq> v" "v \<subseteq> s" "compact v" "openin (subtopology euclidean s) u"
+    obtain u v where uv: "x \<in> u" "u \<subseteq> v" "v \<subseteq> s" "compact v" "openin (top_of_set s) u"
       using r [OF \<open>x \<in> s\<close>] by auto
     obtain e where "e>0" and e: "cball x e \<subseteq> T"
       using open_contains_cball \<open>open T\<close> \<open>x \<in> T\<close> by blast
@@ -1842,7 +1842,7 @@ lemma locally_compactE:
   fixes s :: "'a :: metric_space set"
   assumes "locally compact s"
   obtains u v where "\<And>x. x \<in> s \<Longrightarrow> x \<in> u x \<and> u x \<subseteq> v x \<and> v x \<subseteq> s \<and>
-                             openin (subtopology euclidean s) (u x) \<and> compact (v x)"
+                             openin (top_of_set s) (u x) \<and> compact (v x)"
 using assms
 unfolding locally_compact by metis
 
@@ -1850,7 +1850,7 @@ lemma locally_compact_alt:
   fixes s :: "'a :: heine_borel set"
   shows "locally compact s \<longleftrightarrow>
          (\<forall>x \<in> s. \<exists>u. x \<in> u \<and>
-                    openin (subtopology euclidean s) u \<and> compact(closure u) \<and> closure u \<subseteq> s)"
+                    openin (top_of_set s) u \<and> compact(closure u) \<and> closure u \<subseteq> s)"
 apply (simp add: locally_compact)
 apply (intro ball_cong ex_cong refl iffI)
 apply (metis bounded_subset closure_eq closure_mono compact_eq_bounded_closed dual_order.trans)
@@ -1884,21 +1884,21 @@ lemma locally_compact_compact:
   shows "locally compact s \<longleftrightarrow>
          (\<forall>k. k \<subseteq> s \<and> compact k
               \<longrightarrow> (\<exists>u v. k \<subseteq> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
-                         openin (subtopology euclidean s) u \<and> compact v))"
+                         openin (top_of_set s) u \<and> compact v))"
         (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then obtain u v where
     uv: "\<And>x. x \<in> s \<Longrightarrow> x \<in> u x \<and> u x \<subseteq> v x \<and> v x \<subseteq> s \<and>
-                             openin (subtopology euclidean s) (u x) \<and> compact (v x)"
+                             openin (top_of_set s) (u x) \<and> compact (v x)"
     by (metis locally_compactE)
-  have *: "\<exists>u v. k \<subseteq> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (subtopology euclidean s) u \<and> compact v"
+  have *: "\<exists>u v. k \<subseteq> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (top_of_set s) u \<and> compact v"
           if "k \<subseteq> s" "compact k" for k
   proof -
-    have "\<And>C. (\<forall>c\<in>C. openin (subtopology euclidean k) c) \<and> k \<subseteq> \<Union>C \<Longrightarrow>
+    have "\<And>C. (\<forall>c\<in>C. openin (top_of_set k) c) \<and> k \<subseteq> \<Union>C \<Longrightarrow>
                     \<exists>D\<subseteq>C. finite D \<and> k \<subseteq> \<Union>D"
       using that by (simp add: compact_eq_openin_cover)
-    moreover have "\<forall>c \<in> (\<lambda>x. k \<inter> u x) ` k. openin (subtopology euclidean k) c"
+    moreover have "\<forall>c \<in> (\<lambda>x. k \<inter> u x) ` k. openin (top_of_set k) c"
       using that by clarify (metis subsetD inf.absorb_iff2 openin_subset openin_subtopology_Int_subset topspace_euclidean_subtopology uv)
     moreover have "k \<subseteq> \<Union>((\<lambda>x. k \<inter> u x) ` k)"
       using that by clarsimp (meson subsetCE uv)
@@ -1931,12 +1931,12 @@ lemma open_imp_locally_compact:
   assumes "open s"
     shows "locally compact s"
 proof -
-  have *: "\<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (subtopology euclidean s) u \<and> compact v"
+  have *: "\<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (top_of_set s) u \<and> compact v"
           if "x \<in> s" for x
   proof -
     obtain e where "e>0" and e: "cball x e \<subseteq> s"
       using open_contains_cball assms \<open>x \<in> s\<close> by blast
-    have ope: "openin (subtopology euclidean s) (ball x e)"
+    have ope: "openin (top_of_set s) (ball x e)"
       by (meson e open_ball ball_subset_cball dual_order.trans open_subset)
     show ?thesis
       apply (rule_tac x="ball x e" in exI)
@@ -1955,7 +1955,7 @@ lemma closed_imp_locally_compact:
     shows "locally compact s"
 proof -
   have *: "\<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
-                 openin (subtopology euclidean s) u \<and> compact v"
+                 openin (top_of_set s) u \<and> compact v"
           if "x \<in> s" for x
   proof -
     show ?thesis
@@ -1979,7 +1979,7 @@ by (simp add: compact_Int locally_Int)
 
 lemma locally_compact_closedin:
   fixes s :: "'a :: heine_borel set"
-  shows "\<lbrakk>closedin (subtopology euclidean s) t; locally compact s\<rbrakk>
+  shows "\<lbrakk>closedin (top_of_set s) t; locally compact s\<rbrakk>
         \<Longrightarrow> locally compact t"
 unfolding closedin_closed
 using closed_imp_locally_compact locally_compact_Int by blast
@@ -2010,8 +2010,8 @@ qed
 lemma locally_compact_openin_Un:
   fixes S :: "'a::euclidean_space set"
   assumes LCS: "locally compact S" and LCT:"locally compact T"
-      and opS: "openin (subtopology euclidean (S \<union> T)) S"
-      and opT: "openin (subtopology euclidean (S \<union> T)) T"
+      and opS: "openin (top_of_set (S \<union> T)) S"
+      and opT: "openin (top_of_set (S \<union> T)) T"
     shows "locally compact (S \<union> T)"
 proof -
   have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if "x \<in> S" for x
@@ -2047,8 +2047,8 @@ qed
 lemma locally_compact_closedin_Un:
   fixes S :: "'a::euclidean_space set"
   assumes LCS: "locally compact S" and LCT:"locally compact T"
-      and clS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and clS: "closedin (top_of_set (S \<union> T)) S"
+      and clT: "closedin (top_of_set (S \<union> T)) T"
     shows "locally compact (S \<union> T)"
 proof -
   have "\<exists>e>0. closed (cball x e \<inter> (S \<union> T))" if "x \<in> S" "x \<in> T" for x
@@ -2113,7 +2113,7 @@ lemma locally_compact_compact_subopen:
    "locally compact S \<longleftrightarrow>
     (\<forall>K T. K \<subseteq> S \<and> compact K \<and> open T \<and> K \<subseteq> T
           \<longrightarrow> (\<exists>U V. K \<subseteq> U \<and> U \<subseteq> V \<and> U \<subseteq> T \<and> V \<subseteq> S \<and>
-                     openin (subtopology euclidean S) U \<and> compact V))"
+                     openin (top_of_set S) U \<and> compact V))"
    (is "?lhs = ?rhs")
 proof
   assume L: ?lhs
@@ -2122,10 +2122,10 @@ proof
     fix K :: "'a set" and T :: "'a set"
     assume "K \<subseteq> S" and "compact K" and "open T" and "K \<subseteq> T"
     obtain U V where "K \<subseteq> U" "U \<subseteq> V" "V \<subseteq> S" "compact V"
-                 and ope: "openin (subtopology euclidean S) U"
+                 and ope: "openin (top_of_set S) U"
       using L unfolding locally_compact_compact by (meson \<open>K \<subseteq> S\<close> \<open>compact K\<close>)
     show "\<exists>U V. K \<subseteq> U \<and> U \<subseteq> V \<and> U \<subseteq> T \<and> V \<subseteq> S \<and>
-                openin (subtopology euclidean S) U \<and> compact V"
+                openin (top_of_set S) U \<and> compact V"
     proof (intro exI conjI)
       show "K \<subseteq> U \<inter> T"
         by (simp add: \<open>K \<subseteq> T\<close> \<open>K \<subseteq> U\<close>)
@@ -2133,7 +2133,7 @@ proof
         by (rule closure_subset)
       show "closure (U \<inter> T) \<subseteq> S"
         by (metis \<open>U \<subseteq> V\<close> \<open>V \<subseteq> S\<close> \<open>compact V\<close> closure_closed closure_mono compact_imp_closed inf.cobounded1 subset_trans)
-      show "openin (subtopology euclidean S) (U \<inter> T)"
+      show "openin (top_of_set S) (U \<inter> T)"
         by (simp add: \<open>open T\<close> ope openin_Int_open)
       show "compact (closure (U \<inter> T))"
         by (meson Int_lower1 \<open>U \<subseteq> V\<close> \<open>compact V\<close> bounded_subset compact_closure compact_eq_bounded_closed)
@@ -2151,8 +2151,8 @@ subsection\<open>Sura-Bura's results about compact components of sets\<close>
 proposition Sura_Bura_compact:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and C: "C \<in> components S"
-  shows "C = \<Inter>{T. C \<subseteq> T \<and> openin (subtopology euclidean S) T \<and>
-                           closedin (subtopology euclidean S) T}"
+  shows "C = \<Inter>{T. C \<subseteq> T \<and> openin (top_of_set S) T \<and>
+                           closedin (top_of_set S) T}"
          (is "C = \<Inter>?\<T>")
 proof
   obtain x where x: "C = connected_component_set S x" and "x \<in> S"
@@ -2168,8 +2168,8 @@ proof
     have clo: "closed (\<Inter>?\<T>)"
       by (simp add: \<open>compact S\<close> closed_Inter closedin_compact_eq compact_imp_closed)
     have False
-      if K1: "closedin (subtopology euclidean (\<Inter>?\<T>)) K1" and
-         K2: "closedin (subtopology euclidean (\<Inter>?\<T>)) K2" and
+      if K1: "closedin (top_of_set (\<Inter>?\<T>)) K1" and
+         K2: "closedin (top_of_set (\<Inter>?\<T>)) K2" and
          K12_Int: "K1 \<inter> K2 = {}" and K12_Un: "K1 \<union> K2 = \<Inter>?\<T>" and "K1 \<noteq> {}" "K2 \<noteq> {}"
        for K1 K2
     proof -
@@ -2187,8 +2187,8 @@ proof
         show "(S - (V1 \<union> V2)) \<inter> \<Inter>\<F> \<noteq> {}" if "finite \<F>" and \<F>: "\<F> \<subseteq> ?\<T>" for \<F>
         proof
           assume djo: "(S - (V1 \<union> V2)) \<inter> \<Inter>\<F> = {}"
-          obtain D where opeD: "openin (subtopology euclidean S) D"
-                   and cloD: "closedin (subtopology euclidean S) D"
+          obtain D where opeD: "openin (top_of_set S) D"
+                   and cloD: "closedin (top_of_set S) D"
                    and "C \<subseteq> D" and DV12: "D \<subseteq> V1 \<union> V2"
           proof (cases "\<F> = {}")
             case True
@@ -2197,9 +2197,9 @@ proof
           next
             case False show ?thesis
             proof
-              show ope: "openin (subtopology euclidean S) (\<Inter>\<F>)"
+              show ope: "openin (top_of_set S) (\<Inter>\<F>)"
                 using openin_Inter \<open>finite \<F>\<close> False \<F> by blast
-              then show "closedin (subtopology euclidean S) (\<Inter>\<F>)"
+              then show "closedin (top_of_set S) (\<Inter>\<F>)"
                 by (meson clo\<T> \<F> closed_Inter closed_subset openin_imp_subset subset_eq)
               show "C \<subseteq> \<Inter>\<F>"
                 using \<F> by auto
@@ -2211,16 +2211,16 @@ proof
             by (simp add: x)
           have "closed D"
             using \<open>compact S\<close> cloD closedin_closed_trans compact_imp_closed by blast
-          have cloV1: "closedin (subtopology euclidean D) (D \<inter> closure V1)"
-            and cloV2: "closedin (subtopology euclidean D) (D \<inter> closure V2)"
+          have cloV1: "closedin (top_of_set D) (D \<inter> closure V1)"
+            and cloV2: "closedin (top_of_set D) (D \<inter> closure V2)"
             by (simp_all add: closedin_closed_Int)
           moreover have "D \<inter> closure V1 = D \<inter> V1" "D \<inter> closure V2 = D \<inter> V2"
             apply safe
             using \<open>D \<subseteq> V1 \<union> V2\<close> \<open>open V1\<close> \<open>open V2\<close> V12
                apply (simp_all add: closure_subset [THEN subsetD] closure_iff_nhds_not_empty, blast+)
             done
-          ultimately have cloDV1: "closedin (subtopology euclidean D) (D \<inter> V1)"
-                      and cloDV2:  "closedin (subtopology euclidean D) (D \<inter> V2)"
+          ultimately have cloDV1: "closedin (top_of_set D) (D \<inter> V1)"
+                      and cloDV2:  "closedin (top_of_set D) (D \<inter> V2)"
             by metis+
           then obtain U1 U2 where "closed U1" "closed U2"
                and D1: "D \<inter> V1 = D \<inter> U1" and D2: "D \<inter> V2 = D \<inter> U2"
@@ -2274,21 +2274,21 @@ corollary Sura_Bura_clopen_subset:
   fixes S :: "'a::euclidean_space set"
   assumes S: "locally compact S" and C: "C \<in> components S" and "compact C"
       and U: "open U" "C \<subseteq> U"
-  obtains K where "openin (subtopology euclidean S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
+  obtains K where "openin (top_of_set S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
 proof (rule ccontr)
   assume "\<not> thesis"
-  with that have neg: "\<nexists>K. openin (subtopology euclidean S) K \<and> compact K \<and> C \<subseteq> K \<and> K \<subseteq> U"
+  with that have neg: "\<nexists>K. openin (top_of_set S) K \<and> compact K \<and> C \<subseteq> K \<and> K \<subseteq> U"
     by metis
   obtain V K where "C \<subseteq> V" "V \<subseteq> U" "V \<subseteq> K" "K \<subseteq> S" "compact K"
-               and opeSV: "openin (subtopology euclidean S) V"
+               and opeSV: "openin (top_of_set S) V"
     using S U \<open>compact C\<close>
     apply (simp add: locally_compact_compact_subopen)
     by (meson C in_components_subset)
-  let ?\<T> = "{T. C \<subseteq> T \<and> openin (subtopology euclidean K) T \<and> compact T \<and> T \<subseteq> K}"
+  let ?\<T> = "{T. C \<subseteq> T \<and> openin (top_of_set K) T \<and> compact T \<and> T \<subseteq> K}"
   have CK: "C \<in> components K"
     by (meson C \<open>C \<subseteq> V\<close> \<open>K \<subseteq> S\<close> \<open>V \<subseteq> K\<close> components_intermediate_subset subset_trans)
   with \<open>compact K\<close>
-  have "C = \<Inter>{T. C \<subseteq> T \<and> openin (subtopology euclidean K) T \<and> closedin (subtopology euclidean K) T}"
+  have "C = \<Inter>{T. C \<subseteq> T \<and> openin (top_of_set K) T \<and> closedin (top_of_set K) T}"
     by (simp add: Sura_Bura_compact)
   then have Ceq: "C = \<Inter>?\<T>"
     by (simp add: closedin_compact_eq \<open>compact K\<close>)
@@ -2322,11 +2322,11 @@ proof (rule ccontr)
           by (metis (no_types, lifting) compact_Inter False mem_Collect_eq subsetCE \<F>)
         moreover have "\<Inter>\<F> \<subseteq> K"
           using False that(2) by fastforce
-        moreover have opeKF: "openin (subtopology euclidean K) (\<Inter>\<F>)"
+        moreover have opeKF: "openin (top_of_set K) (\<Inter>\<F>)"
           using False \<F> \<open>finite \<F>\<close> by blast
-        then have opeVF: "openin (subtopology euclidean V) (\<Inter>\<F>)"
+        then have opeVF: "openin (top_of_set V) (\<Inter>\<F>)"
           using W \<open>K \<subseteq> S\<close> \<open>V \<subseteq> K\<close> opeKF \<open>\<Inter>\<F> \<subseteq> K\<close> FUW openin_subset_trans by fastforce
-        then have "openin (subtopology euclidean S) (\<Inter>\<F>)"
+        then have "openin (top_of_set S) (\<Inter>\<F>)"
           by (metis opeSV openin_trans)
         moreover have "\<Inter>\<F> \<subseteq> U"
           by (meson \<open>V \<subseteq> U\<close> opeVF dual_order.trans openin_imp_subset)
@@ -2343,8 +2343,8 @@ qed
 corollary Sura_Bura_clopen_subset_alt:
   fixes S :: "'a::euclidean_space set"
   assumes S: "locally compact S" and C: "C \<in> components S" and "compact C"
-      and opeSU: "openin (subtopology euclidean S) U" and "C \<subseteq> U"
-  obtains K where "openin (subtopology euclidean S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
+      and opeSU: "openin (top_of_set S) U" and "C \<subseteq> U"
+  obtains K where "openin (top_of_set S) K" "compact K" "C \<subseteq> K" "K \<subseteq> U"
 proof -
   obtain V where "open V" "U = S \<inter> V"
     using opeSU by (auto simp: openin_open)
@@ -2358,13 +2358,13 @@ qed
 corollary Sura_Bura:
   fixes S :: "'a::euclidean_space set"
   assumes "locally compact S" "C \<in> components S" "compact C"
-  shows "C = \<Inter> {K. C \<subseteq> K \<and> compact K \<and> openin (subtopology euclidean S) K}"
+  shows "C = \<Inter> {K. C \<subseteq> K \<and> compact K \<and> openin (top_of_set S) K}"
          (is "C = ?rhs")
 proof
   show "?rhs \<subseteq> C"
   proof (clarsimp, rule ccontr)
     fix x
-    assume *: "\<forall>X. C \<subseteq> X \<and> compact X \<and> openin (subtopology euclidean S) X \<longrightarrow> x \<in> X"
+    assume *: "\<forall>X. C \<subseteq> X \<and> compact X \<and> openin (top_of_set S) X \<longrightarrow> x \<in> X"
       and "x \<notin> C"
     obtain U V where "open U" "open V" "{x} \<subseteq> U" "C \<subseteq> V" "U \<inter> V = {}"
       using separation_normal [of "{x}" C]
@@ -2381,8 +2381,8 @@ subsection\<open>Special cases of local connectedness and path connectedness\<cl
 
 lemma locally_connected_1:
   assumes
-    "\<And>v x. \<lbrakk>openin (subtopology euclidean S) v; x \<in> v\<rbrakk>
-              \<Longrightarrow> \<exists>u. openin (subtopology euclidean S) u \<and>
+    "\<And>v x. \<lbrakk>openin (top_of_set S) v; x \<in> v\<rbrakk>
+              \<Longrightarrow> \<exists>u. openin (top_of_set S) u \<and>
                       connected u \<and> x \<in> u \<and> u \<subseteq> v"
    shows "locally connected S"
 apply (clarsimp simp add: locally_def)
@@ -2391,12 +2391,12 @@ done
 
 lemma locally_connected_2:
   assumes "locally connected S"
-          "openin (subtopology euclidean S) t"
+          "openin (top_of_set S) t"
           "x \<in> t"
-   shows "openin (subtopology euclidean S) (connected_component_set t x)"
+   shows "openin (top_of_set S) (connected_component_set t x)"
 proof -
   { fix y :: 'a
-    let ?SS = "subtopology euclidean S"
+    let ?SS = "top_of_set S"
     assume 1: "openin ?SS t"
               "\<forall>w x. openin ?SS w \<and> x \<in> w \<longrightarrow> (\<exists>u. openin ?SS u \<and> (\<exists>v. connected v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w))"
     and "connected_component t x y"
@@ -2420,29 +2420,29 @@ proof -
 qed
 
 lemma locally_connected_3:
-  assumes "\<And>t x. \<lbrakk>openin (subtopology euclidean S) t; x \<in> t\<rbrakk>
-              \<Longrightarrow> openin (subtopology euclidean S)
+  assumes "\<And>t x. \<lbrakk>openin (top_of_set S) t; x \<in> t\<rbrakk>
+              \<Longrightarrow> openin (top_of_set S)
                           (connected_component_set t x)"
-          "openin (subtopology euclidean S) v" "x \<in> v"
-   shows  "\<exists>u. openin (subtopology euclidean S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v"
+          "openin (top_of_set S) v" "x \<in> v"
+   shows  "\<exists>u. openin (top_of_set S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v"
 using assms connected_component_subset by fastforce
 
 lemma locally_connected:
   "locally connected S \<longleftrightarrow>
-   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
-          \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v))"
+   (\<forall>v x. openin (top_of_set S) v \<and> x \<in> v
+          \<longrightarrow> (\<exists>u. openin (top_of_set S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v))"
 by (metis locally_connected_1 locally_connected_2 locally_connected_3)
 
 lemma locally_connected_open_connected_component:
   "locally connected S \<longleftrightarrow>
-   (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
-          \<longrightarrow> openin (subtopology euclidean S) (connected_component_set t x))"
+   (\<forall>t x. openin (top_of_set S) t \<and> x \<in> t
+          \<longrightarrow> openin (top_of_set S) (connected_component_set t x))"
 by (metis locally_connected_1 locally_connected_2 locally_connected_3)
 
 lemma locally_path_connected_1:
   assumes
-    "\<And>v x. \<lbrakk>openin (subtopology euclidean S) v; x \<in> v\<rbrakk>
-              \<Longrightarrow> \<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
+    "\<And>v x. \<lbrakk>openin (top_of_set S) v; x \<in> v\<rbrakk>
+              \<Longrightarrow> \<exists>u. openin (top_of_set S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
    shows "locally path_connected S"
 apply (clarsimp simp add: locally_def)
 apply (drule assms; blast)
@@ -2450,12 +2450,12 @@ done
 
 lemma locally_path_connected_2:
   assumes "locally path_connected S"
-          "openin (subtopology euclidean S) t"
+          "openin (top_of_set S) t"
           "x \<in> t"
-   shows "openin (subtopology euclidean S) (path_component_set t x)"
+   shows "openin (top_of_set S) (path_component_set t x)"
 proof -
   { fix y :: 'a
-    let ?SS = "subtopology euclidean S"
+    let ?SS = "top_of_set S"
     assume 1: "openin ?SS t"
               "\<forall>w x. openin ?SS w \<and> x \<in> w \<longrightarrow> (\<exists>u. openin ?SS u \<and> (\<exists>v. path_connected v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w))"
     and "path_component t x y"
@@ -2479,10 +2479,10 @@ proof -
 qed
 
 lemma locally_path_connected_3:
-  assumes "\<And>t x. \<lbrakk>openin (subtopology euclidean S) t; x \<in> t\<rbrakk>
-              \<Longrightarrow> openin (subtopology euclidean S) (path_component_set t x)"
-          "openin (subtopology euclidean S) v" "x \<in> v"
-   shows  "\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
+  assumes "\<And>t x. \<lbrakk>openin (top_of_set S) t; x \<in> t\<rbrakk>
+              \<Longrightarrow> openin (top_of_set S) (path_component_set t x)"
+          "openin (top_of_set S) v" "x \<in> v"
+   shows  "\<exists>u. openin (top_of_set S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
 proof -
   have "path_component v x x"
     by (meson assms(3) path_component_refl)
@@ -2492,26 +2492,26 @@ qed
 
 proposition locally_path_connected:
   "locally path_connected S \<longleftrightarrow>
-   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
-          \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
+   (\<forall>v x. openin (top_of_set S) v \<and> x \<in> v
+          \<longrightarrow> (\<exists>u. openin (top_of_set S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
   by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
 proposition locally_path_connected_open_path_component:
   "locally path_connected S \<longleftrightarrow>
-   (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
-          \<longrightarrow> openin (subtopology euclidean S) (path_component_set t x))"
+   (\<forall>t x. openin (top_of_set S) t \<and> x \<in> t
+          \<longrightarrow> openin (top_of_set S) (path_component_set t x))"
   by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
 lemma locally_connected_open_component:
   "locally connected S \<longleftrightarrow>
-   (\<forall>t c. openin (subtopology euclidean S) t \<and> c \<in> components t
-          \<longrightarrow> openin (subtopology euclidean S) c)"
+   (\<forall>t c. openin (top_of_set S) t \<and> c \<in> components t
+          \<longrightarrow> openin (top_of_set S) c)"
 by (metis components_iff locally_connected_open_connected_component)
 
 proposition locally_connected_im_kleinen:
   "locally connected S \<longleftrightarrow>
-   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
-       \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
+   (\<forall>v x. openin (top_of_set S) v \<and> x \<in> v
+       \<longrightarrow> (\<exists>u. openin (top_of_set S) u \<and>
                 x \<in> u \<and> u \<subseteq> v \<and>
                 (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> v \<and> x \<in> c \<and> y \<in> c))))"
    (is "?lhs = ?rhs")
@@ -2521,12 +2521,12 @@ proof
     by (fastforce simp add: locally_connected)
 next
   assume ?rhs
-  have *: "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> c"
-       if "openin (subtopology euclidean S) t" and c: "c \<in> components t" and "x \<in> c" for t c x
+  have *: "\<exists>T. openin (top_of_set S) T \<and> x \<in> T \<and> T \<subseteq> c"
+       if "openin (top_of_set S) t" and c: "c \<in> components t" and "x \<in> c" for t c x
   proof -
     from that \<open>?rhs\<close> [rule_format, of t x]
     obtain u where u:
-      "openin (subtopology euclidean S) u \<and> x \<in> u \<and> u \<subseteq> t \<and>
+      "openin (top_of_set S) u \<and> x \<in> u \<and> u \<subseteq> t \<and>
        (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> t \<and> x \<in> c \<and> y \<in> c))"
       using in_components_subset by auto
     obtain F :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a" where
@@ -2551,8 +2551,8 @@ qed
 
 proposition locally_path_connected_im_kleinen:
   "locally path_connected S \<longleftrightarrow>
-   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
-       \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
+   (\<forall>v x. openin (top_of_set S) v \<and> x \<in> v
+       \<longrightarrow> (\<exists>u. openin (top_of_set S) u \<and>
                 x \<in> u \<and> u \<subseteq> v \<and>
                 (\<forall>y. y \<in> u \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> v \<and>
                                 pathstart p = x \<and> pathfinish p = y))))"
@@ -2565,15 +2565,15 @@ proof
     by (meson dual_order.trans)
 next
   assume ?rhs
-  have *: "\<exists>T. openin (subtopology euclidean S) T \<and>
+  have *: "\<exists>T. openin (top_of_set S) T \<and>
                x \<in> T \<and> T \<subseteq> path_component_set u z"
-       if "openin (subtopology euclidean S) u" and "z \<in> u" and c: "path_component u z x" for u z x
+       if "openin (top_of_set S) u" and "z \<in> u" and c: "path_component u z x" for u z x
   proof -
     have "x \<in> u"
       by (meson c path_component_mem(2))
     with that \<open>?rhs\<close> [rule_format, of u x]
     obtain U where U:
-      "openin (subtopology euclidean S) U \<and> x \<in> U \<and> U \<subseteq> u \<and>
+      "openin (top_of_set S) U \<and> x \<in> U \<and> U \<subseteq> u \<and>
        (\<forall>y. y \<in> U \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> u \<and> pathstart p = x \<and> pathfinish p = y))"
        by blast
     show ?thesis
@@ -2626,22 +2626,22 @@ lemma locally_connected_UNIV: "locally connected (UNIV::'a :: real_normed_vector
 
 lemma openin_connected_component_locally_connected:
     "locally connected S
-     \<Longrightarrow> openin (subtopology euclidean S) (connected_component_set S x)"
+     \<Longrightarrow> openin (top_of_set S) (connected_component_set S x)"
 apply (simp add: locally_connected_open_connected_component)
 by (metis connected_component_eq_empty connected_component_subset open_empty open_subset openin_subtopology_self)
 
 lemma openin_components_locally_connected:
-    "\<lbrakk>locally connected S; c \<in> components S\<rbrakk> \<Longrightarrow> openin (subtopology euclidean S) c"
+    "\<lbrakk>locally connected S; c \<in> components S\<rbrakk> \<Longrightarrow> openin (top_of_set S) c"
   using locally_connected_open_component openin_subtopology_self by blast
 
 lemma openin_path_component_locally_path_connected:
   "locally path_connected S
-        \<Longrightarrow> openin (subtopology euclidean S) (path_component_set S x)"
+        \<Longrightarrow> openin (top_of_set S) (path_component_set S x)"
 by (metis (no_types) empty_iff locally_path_connected_2 openin_subopen openin_subtopology_self path_component_eq_empty)
 
 lemma closedin_path_component_locally_path_connected:
     "locally path_connected S
-        \<Longrightarrow> closedin (subtopology euclidean S) (path_component_set S x)"
+        \<Longrightarrow> closedin (top_of_set S) (path_component_set S x)"
 apply  (simp add: closedin_def path_component_subset complement_path_component_Union)
 apply (rule openin_Union)
 using openin_path_component_locally_path_connected by auto
@@ -2670,12 +2670,12 @@ lemma path_component_eq_connected_component:
     shows "(path_component S x = connected_component S x)"
 proof (cases "x \<in> S")
   case True
-  have "openin (subtopology euclidean (connected_component_set S x)) (path_component_set S x)"
+  have "openin (top_of_set (connected_component_set S x)) (path_component_set S x)"
     apply (rule openin_subset_trans [of S])
     apply (intro conjI openin_path_component_locally_path_connected [OF assms])
     using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
     done
-  moreover have "closedin (subtopology euclidean (connected_component_set S x)) (path_component_set S x)"
+  moreover have "closedin (top_of_set (connected_component_set S x)) (path_component_set S x)"
     apply (rule closedin_subset_trans [of S])
     apply (intro conjI closedin_path_component_locally_path_connected [OF assms])
     using path_component_subset_connected_component   apply (auto simp: connected_component_subset)
@@ -2710,26 +2710,26 @@ by (simp add: open_path_connected_component)
 proposition locally_connected_quotient_image:
   assumes lcS: "locally connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
-                \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow>
-                    openin (subtopology euclidean (f ` S)) T"
+                \<Longrightarrow> openin (top_of_set S) (S \<inter> f -` T) \<longleftrightarrow>
+                    openin (top_of_set (f ` S)) T"
     shows "locally connected (f ` S)"
 proof (clarsimp simp: locally_connected_open_component)
   fix U C
-  assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "C \<in> components U"
+  assume opefSU: "openin (top_of_set (f ` S)) U" and "C \<in> components U"
   then have "C \<subseteq> U" "U \<subseteq> f ` S"
     by (meson in_components_subset openin_imp_subset)+
-  then have "openin (subtopology euclidean (f ` S)) C \<longleftrightarrow>
-             openin (subtopology euclidean S) (S \<inter> f -` C)"
+  then have "openin (top_of_set (f ` S)) C \<longleftrightarrow>
+             openin (top_of_set S) (S \<inter> f -` C)"
     by (auto simp: oo)
-  moreover have "openin (subtopology euclidean S) (S \<inter> f -` C)"
+  moreover have "openin (top_of_set S) (S \<inter> f -` C)"
   proof (subst openin_subopen, clarify)
     fix x
     assume "x \<in> S" "f x \<in> C"
-    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` C)"
+    show "\<exists>T. openin (top_of_set S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` C)"
     proof (intro conjI exI)
-      show "openin (subtopology euclidean S) (connected_component_set (S \<inter> f -` U) x)"
+      show "openin (top_of_set S) (connected_component_set (S \<inter> f -` U) x)"
       proof (rule ccontr)
-        assume **: "\<not> openin (subtopology euclidean S) (connected_component_set (S \<inter> f -` U) x)"
+        assume **: "\<not> openin (top_of_set S) (connected_component_set (S \<inter> f -` U) x)"
         then have "x \<notin> (S \<inter> f -` U)"
           using \<open>U \<subseteq> f ` S\<close> opefSU lcS locally_connected_2 oo by blast
         with ** show False
@@ -2768,7 +2768,7 @@ proof (clarsimp simp: locally_connected_open_component)
       finally show "connected_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` C)" .
     qed
   qed
-  ultimately show "openin (subtopology euclidean (f ` S)) C"
+  ultimately show "openin (top_of_set (f ` S)) C"
     by metis
 qed
 
@@ -2776,32 +2776,32 @@ text\<open>The proof resembles that above but is not identical!\<close>
 proposition locally_path_connected_quotient_image:
   assumes lcS: "locally path_connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
-                \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow> openin (subtopology euclidean (f ` S)) T"
+                \<Longrightarrow> openin (top_of_set S) (S \<inter> f -` T) \<longleftrightarrow> openin (top_of_set (f ` S)) T"
     shows "locally path_connected (f ` S)"
 proof (clarsimp simp: locally_path_connected_open_path_component)
   fix U y
-  assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "y \<in> U"
+  assume opefSU: "openin (top_of_set (f ` S)) U" and "y \<in> U"
   then have "path_component_set U y \<subseteq> U" "U \<subseteq> f ` S"
     by (meson path_component_subset openin_imp_subset)+
-  then have "openin (subtopology euclidean (f ` S)) (path_component_set U y) \<longleftrightarrow>
-             openin (subtopology euclidean S) (S \<inter> f -` path_component_set U y)"
+  then have "openin (top_of_set (f ` S)) (path_component_set U y) \<longleftrightarrow>
+             openin (top_of_set S) (S \<inter> f -` path_component_set U y)"
   proof -
     have "path_component_set U y \<subseteq> f ` S"
       using \<open>U \<subseteq> f ` S\<close> \<open>path_component_set U y \<subseteq> U\<close> by blast
     then show ?thesis
       using oo by blast
   qed
-  moreover have "openin (subtopology euclidean S) (S \<inter> f -` path_component_set U y)"
+  moreover have "openin (top_of_set S) (S \<inter> f -` path_component_set U y)"
   proof (subst openin_subopen, clarify)
     fix x
     assume "x \<in> S" and Uyfx: "path_component U y (f x)"
     then have "f x \<in> U"
       using path_component_mem by blast
-    show "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` path_component_set U y)"
+    show "\<exists>T. openin (top_of_set S) T \<and> x \<in> T \<and> T \<subseteq> (S \<inter> f -` path_component_set U y)"
     proof (intro conjI exI)
-      show "openin (subtopology euclidean S) (path_component_set (S \<inter> f -` U) x)"
+      show "openin (top_of_set S) (path_component_set (S \<inter> f -` U) x)"
       proof (rule ccontr)
-        assume **: "\<not> openin (subtopology euclidean S) (path_component_set (S \<inter> f -` U) x)"
+        assume **: "\<not> openin (top_of_set S) (path_component_set (S \<inter> f -` U) x)"
         then have "x \<notin> (S \<inter> f -` U)"
           by (metis (no_types, lifting) \<open>U \<subseteq> f ` S\<close> opefSU lcS oo locally_path_connected_open_path_component)
         then show False
@@ -2842,7 +2842,7 @@ proof (clarsimp simp: locally_path_connected_open_path_component)
       finally show "path_component_set (S \<inter> f -` U) x \<subseteq> (S \<inter> f -` path_component_set U y)" .
     qed
   qed
-  ultimately show "openin (subtopology euclidean (f ` S)) (path_component_set U y)"
+  ultimately show "openin (top_of_set (f ` S)) (path_component_set U y)"
     by metis
 qed
 
@@ -2851,14 +2851,14 @@ subsection%unimportant\<open>Components, continuity, openin, closedin\<close>
 lemma continuous_on_components_gen:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   assumes "\<And>c. c \<in> components S \<Longrightarrow>
-              openin (subtopology euclidean S) c \<and> continuous_on c f"
+              openin (top_of_set S) c \<and> continuous_on c f"
     shows "continuous_on S f"
 proof (clarsimp simp: continuous_openin_preimage_eq)
   fix t :: "'b set"
   assume "open t"
   have *: "S \<inter> f -` t = (\<Union>c \<in> components S. c \<inter> f -` t)"
     by auto
-  show "openin (subtopology euclidean S) (S \<inter> f -` t)"
+  show "openin (top_of_set S) (S \<inter> f -` t)"
     unfolding * using \<open>open t\<close> assms continuous_openin_preimage_gen openin_trans openin_Union by blast
 qed
 
@@ -2891,9 +2891,9 @@ by (blast intro: continuous_on_components_open)
 
 lemma closedin_union_complement_components:
   assumes u: "locally connected u"
-      and S: "closedin (subtopology euclidean u) S"
+      and S: "closedin (top_of_set u) S"
       and cuS: "c \<subseteq> components(u - S)"
-    shows "closedin (subtopology euclidean u) (S \<union> \<Union>c)"
+    shows "closedin (top_of_set u) (S \<union> \<Union>c)"
 proof -
   have di: "(\<And>S t. S \<in> c \<and> t \<in> c' \<Longrightarrow> disjnt S t) \<Longrightarrow> disjnt (\<Union> c) (\<Union> c')" for c'
     by (simp add: disjnt_def) blast
@@ -2906,13 +2906,13 @@ proof -
     by (metis DiffD1 DiffD2 assms(3) components_nonoverlap disjnt_def subsetCE)
   ultimately have eq: "S \<union> \<Union>c = u - (\<Union>(components(u - S) - c))"
     by (auto simp: disjnt_def)
-  have *: "openin (subtopology euclidean u) (\<Union>(components (u - S) - c))"
+  have *: "openin (top_of_set u) (\<Union>(components (u - S) - c))"
     apply (rule openin_Union)
     apply (rule openin_trans [of "u - S"])
     apply (simp add: u S locally_diff_closed openin_components_locally_connected)
     apply (simp add: openin_diff S)
     done
-  have "openin (subtopology euclidean u) (u - (u - \<Union>(components (u - S) - c)))"
+  have "openin (top_of_set u) (u - (u - \<Union>(components (u - S) - c)))"
     apply (rule openin_diff, simp)
     apply (metis closedin_diff closedin_topspace topspace_euclidean_subtopology *)
     done
@@ -2925,7 +2925,7 @@ lemma closed_union_complement_components:
   assumes S: "closed S" and c: "c \<subseteq> components(- S)"
     shows "closed(S \<union> \<Union> c)"
 proof -
-  have "closedin (subtopology euclidean UNIV) (S \<union> \<Union>c)"
+  have "closedin (top_of_set UNIV) (S \<union> \<Union>c)"
     apply (rule closedin_union_complement_components [OF locally_connected_UNIV])
     using S c apply (simp_all add: Compl_eq_Diff_UNIV)
     done
@@ -2935,11 +2935,11 @@ qed
 lemma closedin_Un_complement_component:
   fixes S :: "'a::real_normed_vector set"
   assumes u: "locally connected u"
-      and S: "closedin (subtopology euclidean u) S"
+      and S: "closedin (top_of_set u) S"
       and c: " c \<in> components(u - S)"
-    shows "closedin (subtopology euclidean u) (S \<union> c)"
+    shows "closedin (top_of_set u) (S \<union> c)"
 proof -
-  have "closedin (subtopology euclidean u) (S \<union> \<Union>{c})"
+  have "closedin (top_of_set u) (S \<union> \<Union>{c})"
     using c by (blast intro: closedin_union_complement_components [OF u S])
   then show ?thesis
     by simp
@@ -3987,7 +3987,7 @@ qed
 
 proposition path_connected_openin_diff_countable:
   fixes S :: "'a::euclidean_space set"
-  assumes "connected S" and ope: "openin (subtopology euclidean (affine hull S)) S"
+  assumes "connected S" and ope: "openin (top_of_set (affine hull S)) S"
       and "\<not> collinear S" "countable T"
     shows "path_connected(S - T)"
 proof (clarsimp simp add: path_connected_component)
@@ -3995,9 +3995,9 @@ proof (clarsimp simp add: path_connected_component)
   assume xy: "x \<in> S" "x \<notin> T" "y \<in> S" "y \<notin> T"
   show "path_component (S - T) x y"
   proof (rule connected_equivalence_relation_gen [OF \<open>connected S\<close>, where P = "\<lambda>x. x \<notin> T"])
-    show "\<exists>z. z \<in> U \<and> z \<notin> T" if opeU: "openin (subtopology euclidean S) U" and "x \<in> U" for U x
+    show "\<exists>z. z \<in> U \<and> z \<notin> T" if opeU: "openin (top_of_set S) U" and "x \<in> U" for U x
     proof -
-      have "openin (subtopology euclidean (affine hull S)) U"
+      have "openin (top_of_set (affine hull S)) U"
         using opeU ope openin_trans by blast
       with \<open>x \<in> U\<close> obtain r where Usub: "U \<subseteq> affine hull S" and "r > 0"
                               and subU: "ball x r \<inter> affine hull S \<subseteq> U"
@@ -4024,7 +4024,7 @@ proof (clarsimp simp add: path_connected_component)
         using \<open>countable T\<close> countable_subset by blast
       then show ?thesis by blast
     qed
-    show "\<exists>U. openin (subtopology euclidean S) U \<and> x \<in> U \<and>
+    show "\<exists>U. openin (top_of_set S) U \<and> x \<in> U \<and>
               (\<forall>x\<in>U. \<forall>y\<in>U. x \<notin> T \<and> y \<notin> T \<longrightarrow> path_component (S - T) x y)"
           if "x \<in> S" for x
     proof -
@@ -4046,9 +4046,9 @@ proof (clarsimp simp add: path_connected_component)
       proof (intro exI conjI)
         show "x \<in> ball x r \<inter> affine hull S"
           using \<open>x \<in> S\<close> \<open>r > 0\<close> by (simp add: hull_inc)
-        have "openin (subtopology euclidean (affine hull S)) (ball x r \<inter> affine hull S)"
+        have "openin (top_of_set (affine hull S)) (ball x r \<inter> affine hull S)"
           by (subst inf.commute) (simp add: openin_Int_open)
-        then show "openin (subtopology euclidean S) (ball x r \<inter> affine hull S)"
+        then show "openin (top_of_set S) (ball x r \<inter> affine hull S)"
           by (rule openin_subset_trans [OF _ subS Ssub])
       qed (use * path_component_trans in \<open>auto simp: path_connected_component path_component_of_subset [OF ST]\<close>)
     qed
@@ -4057,7 +4057,7 @@ qed
 
 corollary connected_openin_diff_countable:
   fixes S :: "'a::euclidean_space set"
-  assumes "connected S" and ope: "openin (subtopology euclidean (affine hull S)) S"
+  assumes "connected S" and ope: "openin (top_of_set (affine hull S)) S"
       and "\<not> collinear S" "countable T"
     shows "connected(S - T)"
   by (metis path_connected_imp_connected path_connected_openin_diff_countable [OF assms])
@@ -4074,7 +4074,7 @@ next
   case False
   show ?thesis
   proof (rule path_connected_openin_diff_countable)
-    show "openin (subtopology euclidean (affine hull S)) S"
+    show "openin (top_of_set (affine hull S)) S"
       by (simp add: assms hull_subset open_subset)
     show "\<not> collinear S"
       using assms False by (simp add: collinear_aff_dim aff_dim_open)
@@ -4329,7 +4329,7 @@ qed
 
 proposition%unimportant homeomorphism_moving_point:
   fixes a :: "'a::euclidean_space"
-  assumes ope: "openin (subtopology euclidean (affine hull S)) S"
+  assumes ope: "openin (top_of_set (affine hull S)) S"
       and "S \<subseteq> T"
       and TS: "T \<subseteq> affine hull S"
       and S: "connected S" "a \<in> S" "b \<in> S"
@@ -4371,7 +4371,7 @@ proof -
     then show "bounded {x. \<not> ((f2 \<circ> f1) x = x \<and> (g1 \<circ> g2) x = x)}"
       by (rule bounded_subset) auto
   qed
-  have 3: "\<exists>U. openin (subtopology euclidean S) U \<and>
+  have 3: "\<exists>U. openin (top_of_set S) U \<and>
               d \<in> U \<and>
               (\<forall>x\<in>U.
                   \<exists>f g. homeomorphism T T f g \<and> f d = x \<and>
@@ -4410,7 +4410,7 @@ lemma homeomorphism_moving_points_exists_gen:
   assumes K: "finite K" "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
              "pairwise (\<lambda>i j. (x i \<noteq> x j) \<and> (y i \<noteq> y j)) K"
       and "2 \<le> aff_dim S"
-      and ope: "openin (subtopology euclidean (affine hull S)) S"
+      and ope: "openin (top_of_set (affine hull S)) S"
       and "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
   shows "\<exists>f g. homeomorphism T T f g \<and> (\<forall>i \<in> K. f(x i) = y i) \<and>
                {x. \<not> (f x = x \<and> g x = x)} \<subseteq> S \<and> bounded {x. \<not> (f x = x \<and> g x = x)}"
@@ -4449,7 +4449,7 @@ next
                and hk_sub: "{x. \<not> (h x = x \<and> k x = x)} \<subseteq> S - y ` K"
                and bo_hk:  "bounded {x. \<not> (h x = x \<and> k x = x)}"
   proof (rule homeomorphism_moving_point [of "S - y`K" T "f(x i)" "y i"])
-    show "openin (subtopology euclidean (affine hull (S - y ` K))) (S - y ` K)"
+    show "openin (top_of_set (affine hull (S - y ` K))) (S - y ` K)"
       by (simp add: aff_eq openin_diff finite_imp_closedin image_subset_iff hull_inc insert xyS)
     show "S - y ` K \<subseteq> T"
       using \<open>S \<subseteq> T\<close> by auto
@@ -4499,7 +4499,7 @@ next
   case False
   then have affS: "affine hull S = UNIV"
     by (simp add: affine_hull_open \<open>open S\<close>)
-  then have ope: "openin (subtopology euclidean (affine hull S)) S"
+  then have ope: "openin (top_of_set (affine hull S)) S"
     using \<open>open S\<close> open_openin by auto
   have "2 \<le> DIM('a)" by (rule 2)
   also have "\<dots> = aff_dim (UNIV :: 'a set)"
@@ -4714,7 +4714,7 @@ proof -
       using \<open>cbox w z \<subseteq> S\<close> \<open>S \<subseteq> T\<close> by auto
     show "homeomorphism T T f' g'"
     proof
-      have clo: "closedin (subtopology euclidean (cbox w z \<union> (T - box w z))) (T - box w z)"
+      have clo: "closedin (top_of_set (cbox w z \<union> (T - box w z))) (T - box w z)"
         by (metis Diff_Diff_Int Diff_subset T closedin_def open_box openin_open_Int topspace_euclidean_subtopology)
       have "continuous_on (cbox w z \<union> (T - box w z)) f'" "continuous_on (cbox w z \<union> (T - box w z)) g'"
         unfolding f'_def g'_def
@@ -4830,14 +4830,14 @@ qed
 
 proposition%unimportant homeomorphism_grouping_points_exists_gen:
   fixes S :: "'a::euclidean_space set"
-  assumes opeU: "openin (subtopology euclidean S) U"
-      and opeS: "openin (subtopology euclidean (affine hull S)) S"
+  assumes opeU: "openin (top_of_set S) U"
+      and opeS: "openin (top_of_set (affine hull S)) S"
       and "U \<noteq> {}" "finite K" "K \<subseteq> S" and S: "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
   obtains f g where "homeomorphism T T f g" "{x. (\<not> (f x = x \<and> g x = x))} \<subseteq> S"
                     "bounded {x. (\<not> (f x = x \<and> g x = x))}" "\<And>x. x \<in> K \<Longrightarrow> f x \<in> U"
 proof (cases "2 \<le> aff_dim S")
   case True
-  have opeU': "openin (subtopology euclidean (affine hull S)) U"
+  have opeU': "openin (top_of_set (affine hull S)) U"
     using opeS opeU openin_trans by blast
   obtain u where "u \<in> U" "u \<in> S"
     using \<open>U \<noteq> {}\<close> opeU openin_imp_subset by fastforce+
@@ -4892,7 +4892,7 @@ next
       by (meson Topological_Spaces.connected_continuous_image \<open>connected S\<close> homeomorphism_cont1 homeomorphism_of_subsets homhj hull_subset top_greatest)
     have hUS: "h ` U \<subseteq> h ` S"
       by (meson homeomorphism_imp_open_map homeomorphism_of_subsets homhj hull_subset opeS opeU open_UNIV openin_open_eq)
-    have opn: "openin (subtopology euclidean (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
+    have opn: "openin (top_of_set (affine hull S)) U \<Longrightarrow> open (h ` U)" for U
       using homeomorphism_imp_open_map [OF homhj]  by simp
     have "open (h ` U)" "open (h ` S)"
       by (auto intro: opeS opeU openin_trans opn)

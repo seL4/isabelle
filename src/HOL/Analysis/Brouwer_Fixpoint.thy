@@ -85,7 +85,7 @@ proof -
 qed
 
 lemma retraction_imp_quotient_map:
-  "openin (subtopology euclidean S) (S \<inter> r -` U) \<longleftrightarrow> openin (subtopology euclidean T) U"
+  "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U"
   if retraction: "retraction S T r" and "U \<subseteq> T"
   using retraction apply (rule retractionE)
   apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
@@ -233,12 +233,12 @@ quantifiers. Then ENR turns out to be equivalent to ANR plus local compactness."
 
 definition%important AR :: "'a::topological_space set \<Rightarrow> bool" where
 "AR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
-  S homeomorphic S' \<and> closedin (subtopology euclidean U) S' \<longrightarrow> S' retract_of U"
+  S homeomorphic S' \<and> closedin (top_of_set U) S' \<longrightarrow> S' retract_of U"
 
 definition%important ANR :: "'a::topological_space set \<Rightarrow> bool" where
 "ANR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
-  S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
-  \<longrightarrow> (\<exists>T. openin (subtopology euclidean U) T \<and> S' retract_of T)"
+  S homeomorphic S' \<and> closedin (top_of_set U) S'
+  \<longrightarrow> (\<exists>T. openin (top_of_set U) T \<and> S' retract_of T)"
 
 definition%important ENR :: "'a::topological_space set \<Rightarrow> bool" where
 "ENR S \<equiv> \<exists>U. open U \<and> S retract_of U"
@@ -248,14 +248,14 @@ text \<open>First, show that we do indeed get the "usual" properties of ARs and 
 lemma AR_imp_absolute_extensor:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "AR S" and contf: "continuous_on T f" and "f ` T \<subseteq> S"
-      and cloUT: "closedin (subtopology euclidean U) T"
+      and cloUT: "closedin (top_of_set U) T"
   obtains g where "continuous_on U g" "g ` U \<subseteq> S" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
 proof -
   have "aff_dim S < int (DIM('b \<times> real))"
     using aff_dim_le_DIM [of S] by simp
   then obtain C and S' :: "('b * real) set"
           where C: "convex C" "C \<noteq> {}"
-            and cloCS: "closedin (subtopology euclidean C) S'"
+            and cloCS: "closedin (top_of_set C) S'"
             and hom: "S homeomorphic S'"
     by (metis that homeomorphic_closedin_convex)
   then have "S' retract_of C"
@@ -296,7 +296,7 @@ qed
 lemma AR_imp_absolute_retract:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
   assumes "AR S" "S homeomorphic S'"
-      and clo: "closedin (subtopology euclidean U) S'"
+      and clo: "closedin (top_of_set U) S'"
     shows "S' retract_of U"
 proof -
   obtain g h where hom: "homeomorphism S S' g h"
@@ -334,12 +334,12 @@ lemma absolute_extensor_imp_AR:
   fixes S :: "'a::euclidean_space set"
   assumes "\<And>f :: 'a * real \<Rightarrow> 'a.
            \<And>U T. \<lbrakk>continuous_on T f;  f ` T \<subseteq> S;
-                  closedin (subtopology euclidean U) T\<rbrakk>
+                  closedin (top_of_set U) T\<rbrakk>
                  \<Longrightarrow> \<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)"
   shows "AR S"
 proof (clarsimp simp: AR_def)
   fix U and T :: "('a * real) set"
-  assume "S homeomorphic T" and clo: "closedin (subtopology euclidean U) T"
+  assume "S homeomorphic T" and clo: "closedin (top_of_set U) T"
   then obtain g h where hom: "homeomorphism S T g h"
     by (force simp: homeomorphic_def)
   have h: "continuous_on T h" " h ` T \<subseteq> S"
@@ -369,7 +369,7 @@ lemma AR_eq_absolute_extensor:
   shows "AR S \<longleftrightarrow>
        (\<forall>f :: 'a * real \<Rightarrow> 'a.
         \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
-               closedin (subtopology euclidean U) T \<longrightarrow>
+               closedin (top_of_set U) T \<longrightarrow>
                 (\<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
 apply (rule iffI)
  apply (metis AR_imp_absolute_extensor)
@@ -378,7 +378,7 @@ done
 
 lemma AR_imp_retract:
   fixes S :: "'a::euclidean_space set"
-  assumes "AR S \<and> closedin (subtopology euclidean U) S"
+  assumes "AR S \<and> closedin (top_of_set U) S"
     shows "S retract_of U"
 using AR_imp_absolute_retract assms homeomorphic_refl by blast
 
@@ -398,8 +398,8 @@ by (metis AR_homeomorphic_AR homeomorphic_sym)
 lemma ANR_imp_absolute_neighbourhood_extensor:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "ANR S" and contf: "continuous_on T f" and "f ` T \<subseteq> S"
-      and cloUT: "closedin (subtopology euclidean U) T"
-  obtains V g where "T \<subseteq> V" "openin (subtopology euclidean U) V"
+      and cloUT: "closedin (top_of_set U) T"
+  obtains V g where "T \<subseteq> V" "openin (top_of_set U) V"
                     "continuous_on V g"
                     "g ` V \<subseteq> S" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
 proof -
@@ -407,10 +407,10 @@ proof -
     using aff_dim_le_DIM [of S] by simp
   then obtain C and S' :: "('b * real) set"
           where C: "convex C" "C \<noteq> {}"
-            and cloCS: "closedin (subtopology euclidean C) S'"
+            and cloCS: "closedin (top_of_set C) S'"
             and hom: "S homeomorphic S'"
     by (metis that homeomorphic_closedin_convex)
-  then obtain D where opD: "openin (subtopology euclidean C) D" and "S' retract_of D"
+  then obtain D where opD: "openin (top_of_set C) D" and "S' retract_of D"
     using \<open>ANR S\<close> by (auto simp: ANR_def)
   then obtain r where "S' \<subseteq> D" and contr: "continuous_on D r"
                   and "r ` D \<subseteq> S'" and rid: "\<And>x. x \<in> S' \<Longrightarrow> r x = x"
@@ -437,7 +437,7 @@ proof -
     show "T \<subseteq> U \<inter> f' -` D"
       using cloUT closedin_imp_subset \<open>S' \<subseteq> D\<close> \<open>f ` T \<subseteq> S\<close> eq homeomorphism_image1 homgh
       by fastforce
-    show ope: "openin (subtopology euclidean U) (U \<inter> f' -` D)"
+    show ope: "openin (top_of_set U) (U \<inter> f' -` D)"
       using  \<open>f' ` U \<subseteq> C\<close> by (auto simp: opD contf' continuous_openin_preimage)
     have conth: "continuous_on (r ` f' ` (U \<inter> f' -` D)) h"
       apply (rule continuous_on_subset [of S'])
@@ -460,8 +460,8 @@ qed
 corollary ANR_imp_absolute_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
   assumes "ANR S" "S homeomorphic S'"
-      and clo: "closedin (subtopology euclidean U) S'"
-  obtains V where "openin (subtopology euclidean U) V" "S' retract_of V"
+      and clo: "closedin (top_of_set U) S'"
+  obtains V where "openin (top_of_set U) V" "S' retract_of V"
 proof -
   obtain g h where hom: "homeomorphism S S' g h"
     using assms by (force simp: homeomorphic_def)
@@ -470,7 +470,7 @@ proof -
     apply (metis hom equalityE homeomorphism_def)
     done
     from ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo]
-  obtain V h' where "S' \<subseteq> V" and opUV: "openin (subtopology euclidean U) V"
+  obtain V h' where "S' \<subseteq> V" and opUV: "openin (top_of_set U) V"
                 and h': "continuous_on V h'" "h' ` V \<subseteq> S"
                 and h'h:"\<And>x. x \<in> S' \<Longrightarrow> h' x = h x"
     by (blast intro: ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo])
@@ -508,20 +508,20 @@ lemma absolute_neighbourhood_extensor_imp_ANR:
   fixes S :: "'a::euclidean_space set"
   assumes "\<And>f :: 'a * real \<Rightarrow> 'a.
            \<And>U T. \<lbrakk>continuous_on T f;  f ` T \<subseteq> S;
-                  closedin (subtopology euclidean U) T\<rbrakk>
-                 \<Longrightarrow> \<exists>V g. T \<subseteq> V \<and> openin (subtopology euclidean U) V \<and>
+                  closedin (top_of_set U) T\<rbrakk>
+                 \<Longrightarrow> \<exists>V g. T \<subseteq> V \<and> openin (top_of_set U) V \<and>
                        continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)"
   shows "ANR S"
 proof (clarsimp simp: ANR_def)
   fix U and T :: "('a * real) set"
-  assume "S homeomorphic T" and clo: "closedin (subtopology euclidean U) T"
+  assume "S homeomorphic T" and clo: "closedin (top_of_set U) T"
   then obtain g h where hom: "homeomorphism S T g h"
     by (force simp: homeomorphic_def)
   have h: "continuous_on T h" " h ` T \<subseteq> S"
     using hom homeomorphism_def apply blast
     apply (metis hom equalityE homeomorphism_def)
     done
-  obtain V h' where "T \<subseteq> V" and opV: "openin (subtopology euclidean U) V"
+  obtain V h' where "T \<subseteq> V" and opV: "openin (top_of_set U) V"
                 and h': "continuous_on V h'" "h' ` V \<subseteq> S"
               and h'h: "\<forall>x\<in>T. h' x = h x"
     using assms [OF h clo] by blast
@@ -538,7 +538,7 @@ proof (clarsimp simp: ANR_def)
     show "\<forall>x\<in>T. (g \<circ> h') x = x"
       by clarsimp (metis h'h hom homeomorphism_def)
   qed
-  then show "\<exists>V. openin (subtopology euclidean U) V \<and> T retract_of V"
+  then show "\<exists>V. openin (top_of_set U) V \<and> T retract_of V"
     using opV by blast
 qed
 
@@ -547,8 +547,8 @@ lemma ANR_eq_absolute_neighbourhood_extensor:
   shows "ANR S \<longleftrightarrow>
          (\<forall>f :: 'a * real \<Rightarrow> 'a.
           \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
-                closedin (subtopology euclidean U) T \<longrightarrow>
-               (\<exists>V g. T \<subseteq> V \<and> openin (subtopology euclidean U) V \<and>
+                closedin (top_of_set U) T \<longrightarrow>
+               (\<exists>V g. T \<subseteq> V \<and> openin (top_of_set U) V \<and>
                        continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
 apply (rule iffI)
  apply (metis ANR_imp_absolute_neighbourhood_extensor)
@@ -557,27 +557,27 @@ done
 
 lemma ANR_imp_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set"
-  assumes "ANR S" "closedin (subtopology euclidean U) S"
-  obtains V where "openin (subtopology euclidean U) V" "S retract_of V"
+  assumes "ANR S" "closedin (top_of_set U) S"
+  obtains V where "openin (top_of_set U) V" "S retract_of V"
 using ANR_imp_absolute_neighbourhood_retract assms homeomorphic_refl by blast
 
 lemma ANR_imp_absolute_closed_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
-  assumes "ANR S" "S homeomorphic S'" and US': "closedin (subtopology euclidean U) S'"
+  assumes "ANR S" "S homeomorphic S'" and US': "closedin (top_of_set U) S'"
   obtains V W
-    where "openin (subtopology euclidean U) V"
-          "closedin (subtopology euclidean U) W"
+    where "openin (top_of_set U) V"
+          "closedin (top_of_set U) W"
           "S' \<subseteq> V" "V \<subseteq> W" "S' retract_of W"
 proof -
-  obtain Z where "openin (subtopology euclidean U) Z" and S'Z: "S' retract_of Z"
+  obtain Z where "openin (top_of_set U) Z" and S'Z: "S' retract_of Z"
     by (blast intro: assms ANR_imp_absolute_neighbourhood_retract)
-  then have UUZ: "closedin (subtopology euclidean U) (U - Z)"
+  then have UUZ: "closedin (top_of_set U) (U - Z)"
     by auto
   have "S' \<inter> (U - Z) = {}"
     using \<open>S' retract_of Z\<close> closedin_retract closedin_subtopology by fastforce
   then obtain V W
-      where "openin (subtopology euclidean U) V"
-        and "openin (subtopology euclidean U) W"
+      where "openin (top_of_set U) V"
+        and "openin (top_of_set U) W"
         and "S' \<subseteq> V" "U - Z \<subseteq> W" "V \<inter> W = {}"
       using separation_normal_local [OF US' UUZ]  by auto
   moreover have "S' retract_of U - W"
@@ -592,9 +592,9 @@ qed
 
 lemma ANR_imp_closed_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set"
-  assumes "ANR S" "closedin (subtopology euclidean U) S"
-  obtains V W where "openin (subtopology euclidean U) V"
-                    "closedin (subtopology euclidean U) W"
+  assumes "ANR S" "closedin (top_of_set U) S"
+  obtains V W where "openin (top_of_set U) V"
+                    "closedin (top_of_set U) W"
                     "S \<subseteq> V" "V \<subseteq> W" "S retract_of W"
 by (meson ANR_imp_absolute_closed_neighbourhood_retract assms homeomorphic_refl)
 
@@ -616,7 +616,7 @@ lemma ENR_imp_absolute_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
   assumes "ENR S" and hom: "S homeomorphic S'"
       and "S' \<subseteq> U"
-  obtains V where "openin (subtopology euclidean U) V" "S' retract_of V"
+  obtains V where "openin (top_of_set U) V" "S' retract_of V"
 proof -
   obtain X where "open X" "S retract_of X"
     using \<open>ENR S\<close> by (auto simp: ENR_def)
@@ -625,8 +625,8 @@ proof -
   have "locally compact S'"
     using retract_of_locally_compact open_imp_locally_compact
           homeomorphic_local_compactness \<open>S retract_of X\<close> \<open>open X\<close> hom by blast
-  then obtain W where UW: "openin (subtopology euclidean U) W"
-                  and WS': "closedin (subtopology euclidean W) S'"
+  then obtain W where UW: "openin (top_of_set U) W"
+                  and WS': "closedin (top_of_set W) S'"
     apply (rule locally_compact_closedin_open)
     apply (rename_tac W)
     apply (rule_tac W = "U \<inter> W" in that, blast)
@@ -752,7 +752,7 @@ lemma AR_ANR:
 proof
   assume ?lhs
   obtain C and S' :: "('a * real) set"
-    where "convex C" "C \<noteq> {}" "closedin (subtopology euclidean C) S'" "S homeomorphic S'"
+    where "convex C" "C \<noteq> {}" "closedin (top_of_set C) S'" "S homeomorphic S'"
       apply (rule homeomorphic_closedin_convex [of S, where 'n = "'a * real"])
       using aff_dim_le_DIM [of S] by auto
   with \<open>AR S\<close> have "contractible S"
@@ -777,27 +777,27 @@ next
     by (metis all_not_in_conv atLeastAtMost_iff image_subset_iff mem_Sigma_iff order_refl zero_le_one)
   have "\<exists>g. continuous_on W g \<and> g ` W \<subseteq> S \<and> (\<forall>x\<in>T. g x = f x)"
          if      f: "continuous_on T f" "f ` T \<subseteq> S"
-            and WT: "closedin (subtopology euclidean W) T"
+            and WT: "closedin (top_of_set W) T"
          for W T and f :: "'a \<times> real \<Rightarrow> 'a"
   proof -
     obtain U g
-      where "T \<subseteq> U" and WU: "openin (subtopology euclidean W) U"
+      where "T \<subseteq> U" and WU: "openin (top_of_set W) U"
         and contg: "continuous_on U g"
         and "g ` U \<subseteq> S" and gf: "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
       using iffD1 [OF ANR_eq_absolute_neighbourhood_extensor \<open>ANR S\<close>, rule_format, OF f WT]
       by auto
-    have WWU: "closedin (subtopology euclidean W) (W - U)"
+    have WWU: "closedin (top_of_set W) (W - U)"
       using WU closedin_diff by fastforce
     moreover have "(W - U) \<inter> T = {}"
       using \<open>T \<subseteq> U\<close> by auto
     ultimately obtain V V'
-      where WV': "openin (subtopology euclidean W) V'"
-        and WV: "openin (subtopology euclidean W) V"
+      where WV': "openin (top_of_set W) V'"
+        and WV: "openin (top_of_set W) V"
         and "W - U \<subseteq> V'" "T \<subseteq> V" "V' \<inter> V = {}"
       using separation_normal_local [of W "W-U" T] WT by blast
     then have WVT: "T \<inter> (W - V) = {}"
       by auto
-    have WWV: "closedin (subtopology euclidean W) (W - V)"
+    have WWV: "closedin (top_of_set W) (W - V)"
       using WV closedin_diff by fastforce
     obtain j :: " 'a \<times> real \<Rightarrow> real"
       where contj: "continuous_on W j"
@@ -931,8 +931,8 @@ text \<open>ARs closed under union\<close>
 
 lemma AR_closed_Un_local_aux:
   fixes U :: "'a::euclidean_space set"
-  assumes "closedin (subtopology euclidean U) S"
-          "closedin (subtopology euclidean U) T"
+  assumes "closedin (top_of_set U) S"
+          "closedin (top_of_set U) T"
           "AR S" "AR T" "AR(S \<inter> T)"
   shows "(S \<union> T) retract_of U"
 proof -
@@ -943,10 +943,10 @@ proof -
   define S' where "S' \<equiv> {x \<in> U. setdist {x} S \<le> setdist {x} T}"
   define T' where "T' \<equiv> {x \<in> U. setdist {x} T \<le> setdist {x} S}"
   define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
-  have US': "closedin (subtopology euclidean U) S'"
+  have US': "closedin (top_of_set U) S'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
     by (simp add: S'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
-  have UT': "closedin (subtopology euclidean U) T'"
+  have UT': "closedin (top_of_set U) T'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
     by (simp add: T'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have "S \<subseteq> S'"
@@ -971,7 +971,7 @@ proof -
     by (force simp: W_def setdist_sing_in_set)
   have "S' \<inter> T' = W"
     by (auto simp: S'_def T'_def W_def)
-  then have cloUW: "closedin (subtopology euclidean U) W"
+  then have cloUW: "closedin (top_of_set U) W"
     using closedin_Int US' UT' by blast
   define r where "r \<equiv> \<lambda>x. if x \<in> W then r0 x else x"
   have "r ` (W \<union> S) \<subseteq> S" "r ` (W \<union> T) \<subseteq> T"
@@ -979,14 +979,14 @@ proof -
   have contr: "continuous_on (W \<union> (S \<union> T)) r"
   unfolding r_def
   proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
-    show "closedin (subtopology euclidean (W \<union> (S \<union> T))) W"
-      using \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W \<subseteq> U\<close> \<open>closedin (subtopology euclidean U) W\<close> closedin_subset_trans by fastforce
-    show "closedin (subtopology euclidean (W \<union> (S \<union> T))) (S \<union> T)"
+    show "closedin (top_of_set (W \<union> (S \<union> T))) W"
+      using \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W \<subseteq> U\<close> \<open>closedin (top_of_set U) W\<close> closedin_subset_trans by fastforce
+    show "closedin (top_of_set (W \<union> (S \<union> T))) (S \<union> T)"
       by (meson \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W \<subseteq> U\<close> assms closedin_Un closedin_subset_trans sup.bounded_iff sup.cobounded2)
     show "\<And>x. x \<in> W \<and> x \<notin> W \<or> x \<in> S \<union> T \<and> x \<in> W \<Longrightarrow> r0 x = x"
       by (auto simp: ST)
   qed
-  have cloUWS: "closedin (subtopology euclidean U) (W \<union> S)"
+  have cloUWS: "closedin (top_of_set U) (W \<union> S)"
     by (simp add: cloUW assms closedin_Un)
   obtain g where contg: "continuous_on U g"
              and "g ` U \<subseteq> S" and geqr: "\<And>x. x \<in> W \<union> S \<Longrightarrow> g x = r x"
@@ -994,7 +994,7 @@ proof -
       apply (rule continuous_on_subset [OF contr])
       using \<open>r ` (W \<union> S) \<subseteq> S\<close> apply auto
     done
-  have cloUWT: "closedin (subtopology euclidean U) (W \<union> T)"
+  have cloUWT: "closedin (top_of_set U) (W \<union> T)"
     by (simp add: cloUW assms closedin_Un)
   obtain h where conth: "continuous_on U h"
              and "h ` U \<subseteq> T" and heqr: "\<And>x. x \<in> W \<union> T \<Longrightarrow> h x = r x"
@@ -1022,24 +1022,24 @@ qed
 
 lemma AR_closed_Un_local:
   fixes S :: "'a::euclidean_space set"
-  assumes STS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and STT: "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes STS: "closedin (top_of_set (S \<union> T)) S"
+      and STT: "closedin (top_of_set (S \<union> T)) T"
       and "AR S" "AR T" "AR(S \<inter> T)"
     shows "AR(S \<union> T)"
 proof -
   have "C retract_of U"
-       if hom: "S \<union> T homeomorphic C" and UC: "closedin (subtopology euclidean U) C"
+       if hom: "S \<union> T homeomorphic C" and UC: "closedin (top_of_set U) C"
        for U and C :: "('a * real) set"
   proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
-    have US: "closedin (subtopology euclidean U) (C \<inter> g -` S)"
+    have US: "closedin (top_of_set U) (C \<inter> g -` S)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
       using hom homeomorphism_def apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have UT: "closedin (subtopology euclidean U) (C \<inter> g -` T)"
+    have UT: "closedin (top_of_set U) (C \<inter> g -` T)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
       using hom homeomorphism_def apply blast
@@ -1088,10 +1088,10 @@ text \<open>ANRs closed under union\<close>
 
 lemma ANR_closed_Un_local_aux:
   fixes U :: "'a::euclidean_space set"
-  assumes US: "closedin (subtopology euclidean U) S"
-      and UT: "closedin (subtopology euclidean U) T"
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
       and "ANR S" "ANR T" "ANR(S \<inter> T)"
-  obtains V where "openin (subtopology euclidean U) V" "(S \<union> T) retract_of V"
+  obtains V where "openin (top_of_set U) V" "(S \<union> T) retract_of V"
 proof (cases "S = {} \<or> T = {}")
   case True with assms that show ?thesis
     by (metis ANR_imp_neighbourhood_retract Un_commute inf_bot_right sup_inf_absorb)
@@ -1103,10 +1103,10 @@ next
   define S' where "S' \<equiv> {x \<in> U. setdist {x} S \<le> setdist {x} T}"
   define T' where "T' \<equiv> {x \<in> U. setdist {x} T \<le> setdist {x} S}"
   define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
-  have cloUS': "closedin (subtopology euclidean U) S'"
+  have cloUS': "closedin (top_of_set U) S'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
     by (simp add: S'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
-  have cloUT': "closedin (subtopology euclidean U) T'"
+  have cloUT': "closedin (top_of_set U) T'"
     using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
     by (simp add: T'_def vimage_def Collect_conj_eq continuous_on_diff continuous_on_setdist)
   have "S \<subseteq> S'"
@@ -1123,17 +1123,17 @@ next
     using \<open>S \<subseteq> U\<close> by (force simp: W_def setdist_sing_in_set)+
   have "S' \<inter> T' = W"
     by (auto simp: S'_def T'_def W_def)
-  then have cloUW: "closedin (subtopology euclidean U) W"
+  then have cloUW: "closedin (top_of_set U) W"
     using closedin_Int cloUS' cloUT' by blast
-  obtain W' W0 where "openin (subtopology euclidean W) W'"
-                 and cloWW0: "closedin (subtopology euclidean W) W0"
+  obtain W' W0 where "openin (top_of_set W) W'"
+                 and cloWW0: "closedin (top_of_set W) W0"
                  and "S \<inter> T \<subseteq> W'" "W' \<subseteq> W0"
                  and ret: "(S \<inter> T) retract_of W0"
     apply (rule ANR_imp_closed_neighbourhood_retract [OF \<open>ANR(S \<inter> T)\<close>])
     apply (rule closedin_subset_trans [of U, OF _ ST_W \<open>W \<subseteq> U\<close>])
     apply (blast intro: assms)+
     done
-  then obtain U0 where opeUU0: "openin (subtopology euclidean U) U0"
+  then obtain U0 where opeUU0: "openin (top_of_set U) U0"
                    and U0: "S \<inter> T \<subseteq> U0" "U0 \<inter> W \<subseteq> W0"
     unfolding openin_open  using \<open>W \<subseteq> U\<close> by blast
   have "W0 \<subseteq> U"
@@ -1150,29 +1150,29 @@ next
   have contr: "continuous_on (W0 \<union> (S \<union> T)) r"
   unfolding r_def
   proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
-    show "closedin (subtopology euclidean (W0 \<union> (S \<union> T))) W0"
+    show "closedin (top_of_set (W0 \<union> (S \<union> T))) W0"
       apply (rule closedin_subset_trans [of U])
       using cloWW0 cloUW closedin_trans \<open>W0 \<subseteq> U\<close> \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> apply blast+
       done
-    show "closedin (subtopology euclidean (W0 \<union> (S \<union> T))) (S \<union> T)"
+    show "closedin (top_of_set (W0 \<union> (S \<union> T))) (S \<union> T)"
       by (meson \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W0 \<subseteq> U\<close> assms closedin_Un closedin_subset_trans sup.bounded_iff sup.cobounded2)
     show "\<And>x. x \<in> W0 \<and> x \<notin> W0 \<or> x \<in> S \<union> T \<and> x \<in> W0 \<Longrightarrow> r0 x = x"
       using ST cloWW0 closedin_subset by fastforce
   qed
-  have cloS'WS: "closedin (subtopology euclidean S') (W0 \<union> S)"
+  have cloS'WS: "closedin (top_of_set S') (W0 \<union> S)"
     by (meson closedin_subset_trans US cloUS' \<open>S \<subseteq> S'\<close> \<open>W \<subseteq> S'\<close> cloUW cloWW0 
               closedin_Un closedin_imp_subset closedin_trans)
   obtain W1 g where "W0 \<union> S \<subseteq> W1" and contg: "continuous_on W1 g"
-                and opeSW1: "openin (subtopology euclidean S') W1"
+                and opeSW1: "openin (top_of_set S') W1"
                 and "g ` W1 \<subseteq> S" and geqr: "\<And>x. x \<in> W0 \<union> S \<Longrightarrow> g x = r x"
     apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> _ \<open>r ` (W0 \<union> S) \<subseteq> S\<close> cloS'WS])
      apply (rule continuous_on_subset [OF contr], blast+)
     done
-  have cloT'WT: "closedin (subtopology euclidean T') (W0 \<union> T)"
+  have cloT'WT: "closedin (top_of_set T') (W0 \<union> T)"
     by (meson closedin_subset_trans UT cloUT' \<open>T \<subseteq> T'\<close> \<open>W \<subseteq> T'\<close> cloUW cloWW0 
               closedin_Un closedin_imp_subset closedin_trans)
   obtain W2 h where "W0 \<union> T \<subseteq> W2" and conth: "continuous_on W2 h"
-                and opeSW2: "openin (subtopology euclidean T') W2"
+                and opeSW2: "openin (top_of_set T') W2"
                 and "h ` W2 \<subseteq> T" and heqr: "\<And>x. x \<in> W0 \<union> T \<Longrightarrow> h x = r x"
     apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> _ \<open>r ` (W0 \<union> T) \<subseteq> T\<close> cloT'WT])
      apply (rule continuous_on_subset [OF contr], blast+)
@@ -1187,17 +1187,17 @@ next
          ((U - T') \<inter> O1 \<union> (U - S') \<inter> O2 \<union> U \<inter> O1 \<inter> O2) - (W - U0)"
      using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close>
       by (auto simp: \<open>S' \<union> T' = U\<close> [symmetric] \<open>S' \<inter> T' = W\<close> [symmetric] \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close>)
-    show "openin (subtopology euclidean U) (W1 - (W - U0) \<union> (W2 - (W - U0)))"
+    show "openin (top_of_set U) (W1 - (W - U0) \<union> (W2 - (W - U0)))"
       apply (subst eq)
       apply (intro openin_Un openin_Int_open openin_diff closedin_diff cloUW opeUU0 cloUS' cloUT' \<open>open O1\<close> \<open>open O2\<close>, simp_all)
       done
-    have cloW1: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
+    have cloW1: "closedin (top_of_set (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
       using cloUS' apply (simp add: closedin_closed)
       apply (erule ex_forward)
       using U0 \<open>W0 \<union> S \<subseteq> W1\<close>
       apply (auto simp: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
       done
-    have cloW2: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W2 - (W - U0))"
+    have cloW2: "closedin (top_of_set (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W2 - (W - U0))"
       using cloUT' apply (simp add: closedin_closed)
       apply (erule ex_forward)
       using U0 \<open>W0 \<union> T \<subseteq> W2\<close>
@@ -1227,24 +1227,24 @@ qed
 
 lemma ANR_closed_Un_local:
   fixes S :: "'a::euclidean_space set"
-  assumes STS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and STT: "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes STS: "closedin (top_of_set (S \<union> T)) S"
+      and STT: "closedin (top_of_set (S \<union> T)) T"
       and "ANR S" "ANR T" "ANR(S \<inter> T)" 
     shows "ANR(S \<union> T)"
 proof -
-  have "\<exists>T. openin (subtopology euclidean U) T \<and> C retract_of T"
-       if hom: "S \<union> T homeomorphic C" and UC: "closedin (subtopology euclidean U) C"
+  have "\<exists>T. openin (top_of_set U) T \<and> C retract_of T"
+       if hom: "S \<union> T homeomorphic C" and UC: "closedin (top_of_set U) C"
        for U and C :: "('a * real) set"
   proof -
     obtain f g where hom: "homeomorphism (S \<union> T) C f g"
       using hom by (force simp: homeomorphic_def)
-    have US: "closedin (subtopology euclidean U) (C \<inter> g -` S)"
+    have US: "closedin (top_of_set U) (C \<inter> g -` S)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
       using hom [unfolded homeomorphism_def] apply blast
       apply (metis hom homeomorphism_def set_eq_subset)
       done
-    have UT: "closedin (subtopology euclidean U) (C \<inter> g -` T)"
+    have UT: "closedin (top_of_set U) (C \<inter> g -` T)"
       apply (rule closedin_trans [OF _ UC])
       apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
       using hom [unfolded homeomorphism_def] apply blast
@@ -1291,26 +1291,26 @@ by (simp add: ANR_closed_Un_local closedin_def diff_eq open_Compl openin_open_In
 
 lemma ANR_openin:
   fixes S :: "'a::euclidean_space set"
-  assumes "ANR T" and opeTS: "openin (subtopology euclidean T) S"
+  assumes "ANR T" and opeTS: "openin (top_of_set T) S"
   shows "ANR S"
 proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
   fix f :: "'a \<times> real \<Rightarrow> 'a" and U C
   assume contf: "continuous_on C f" and fim: "f ` C \<subseteq> S"
-     and cloUC: "closedin (subtopology euclidean U) C"
+     and cloUC: "closedin (top_of_set U) C"
   have "f ` C \<subseteq> T"
     using fim opeTS openin_imp_subset by blast
   obtain W g where "C \<subseteq> W"
-               and UW: "openin (subtopology euclidean U) W"
+               and UW: "openin (top_of_set U) W"
                and contg: "continuous_on W g"
                and gim: "g ` W \<subseteq> T"
                and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
     apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> contf \<open>f ` C \<subseteq> T\<close> cloUC])
     using fim by auto
-  show "\<exists>V g. C \<subseteq> V \<and> openin (subtopology euclidean U) V \<and> continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>C. g x = f x)"
+  show "\<exists>V g. C \<subseteq> V \<and> openin (top_of_set U) V \<and> continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x\<in>C. g x = f x)"
   proof (intro exI conjI)
     show "C \<subseteq> W \<inter> g -` S"
       using \<open>C \<subseteq> W\<close> fim geq by blast
-    show "openin (subtopology euclidean U) (W \<inter> g -` S)"
+    show "openin (top_of_set U) (W \<inter> g -` S)"
       by (metis (mono_tags, lifting) UW contg continuous_openin_preimage gim opeTS openin_trans)
     show "continuous_on (W \<inter> g -` S) g"
       by (blast intro: continuous_on_subset [OF contg])
@@ -1323,20 +1323,20 @@ qed
 
 lemma ENR_openin:
     fixes S :: "'a::euclidean_space set"
-    assumes "ENR T" and opeTS: "openin (subtopology euclidean T) S"
+    assumes "ENR T" and opeTS: "openin (top_of_set T) S"
     shows "ENR S"
   using assms apply (simp add: ENR_ANR)
   using ANR_openin locally_open_subset by blast
 
 lemma ANR_neighborhood_retract:
     fixes S :: "'a::euclidean_space set"
-    assumes "ANR U" "S retract_of T" "openin (subtopology euclidean U) T"
+    assumes "ANR U" "S retract_of T" "openin (top_of_set U) T"
     shows "ANR S"
   using ANR_openin ANR_retract_of_ANR assms by blast
 
 lemma ENR_neighborhood_retract:
     fixes S :: "'a::euclidean_space set"
-    assumes "ENR U" "S retract_of T" "openin (subtopology euclidean U) T"
+    assumes "ENR U" "S retract_of T" "openin (top_of_set U) T"
     shows "ENR S"
   using ENR_openin ENR_retract_of_ENR assms by blast
 
@@ -1438,7 +1438,7 @@ lemma ANR_imp_locally_path_connected:
 proof -
   obtain U and T :: "('a \<times> real) set"
      where "convex U" "U \<noteq> {}"
-       and UT: "closedin (subtopology euclidean U) T"
+       and UT: "closedin (top_of_set U) T"
        and "S homeomorphic T"
     apply (rule homeomorphic_closedin_convex [of S])
     using aff_dim_le_DIM [of S] apply auto
@@ -1447,7 +1447,7 @@ proof -
     by (meson ANR_imp_absolute_neighbourhood_retract
         assms convex_imp_locally_path_connected locally_open_subset retract_of_locally_path_connected)
   then have S: "locally path_connected S"
-      if "openin (subtopology euclidean U) V" "T retract_of V" "U \<noteq> {}" for V
+      if "openin (top_of_set U) V" "T retract_of V" "U \<noteq> {}" for V
     using \<open>S homeomorphic T\<close> homeomorphic_locally homeomorphic_path_connectedness by blast
   show ?thesis
     using assms
@@ -1494,11 +1494,11 @@ lemma ANR_Times:
 proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
   fix f :: " ('a \<times> 'b) \<times> real \<Rightarrow> 'a \<times> 'b" and U C
   assume "continuous_on C f" and fim: "f ` C \<subseteq> S \<times> T"
-     and cloUC: "closedin (subtopology euclidean U) C"
+     and cloUC: "closedin (top_of_set U) C"
   have contf1: "continuous_on C (fst \<circ> f)"
     by (simp add: \<open>continuous_on C f\<close> continuous_on_fst)
   obtain W1 g where "C \<subseteq> W1"
-               and UW1: "openin (subtopology euclidean U) W1"
+               and UW1: "openin (top_of_set U) W1"
                and contg: "continuous_on W1 g"
                and gim: "g ` W1 \<subseteq> S"
                and geq: "\<And>x. x \<in> C \<Longrightarrow> g x = (fst \<circ> f) x"
@@ -1508,7 +1508,7 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
   have contf2: "continuous_on C (snd \<circ> f)"
     by (simp add: \<open>continuous_on C f\<close> continuous_on_snd)
   obtain W2 h where "C \<subseteq> W2"
-               and UW2: "openin (subtopology euclidean U) W2"
+               and UW2: "openin (top_of_set U) W2"
                and conth: "continuous_on W2 h"
                and him: "h ` W2 \<subseteq> T"
                and heq: "\<And>x. x \<in> C \<Longrightarrow> h x = (snd \<circ> f) x"
@@ -1516,12 +1516,12 @@ proof (clarsimp simp only: ANR_eq_absolute_neighbourhood_extensor)
     using fim apply auto
     done
   show "\<exists>V g. C \<subseteq> V \<and>
-               openin (subtopology euclidean U) V \<and>
+               openin (top_of_set U) V \<and>
                continuous_on V g \<and> g ` V \<subseteq> S \<times> T \<and> (\<forall>x\<in>C. g x = f x)"
   proof (intro exI conjI)
     show "C \<subseteq> W1 \<inter> W2"
       by (simp add: \<open>C \<subseteq> W1\<close> \<open>C \<subseteq> W2\<close>)
-    show "openin (subtopology euclidean U) (W1 \<inter> W2)"
+    show "openin (top_of_set U) (W1 \<inter> W2)"
       by (simp add: UW1 UW2 openin_Int)
     show  "continuous_on (W1 \<inter> W2) (\<lambda>x. (g x, h x))"
       by (metis (no_types) contg conth continuous_on_Pair continuous_on_subset inf_commute inf_le1)
@@ -3706,7 +3706,7 @@ next
     apply (auto simp: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
     done
   finally have "rel_frontier S retract_of {x. closest_point (affine hull S) x \<noteq> a}" .
-  moreover have "openin (subtopology euclidean UNIV) (UNIV \<inter> closest_point (affine hull S) -` (- {a}))"
+  moreover have "openin (top_of_set UNIV) (UNIV \<inter> closest_point (affine hull S) -` (- {a}))"
     apply (rule continuous_openin_preimage_gen)
     apply (auto simp: False affine_imp_convex continuous_on_closest_point)
     done
@@ -3726,7 +3726,7 @@ by (simp add: ENR_imp_ANR ENR_rel_frontier_convex assms)
 lemma ENR_closedin_Un_local:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>ENR S; ENR T; ENR(S \<inter> T);
-          closedin (subtopology euclidean (S \<union> T)) S; closedin (subtopology euclidean (S \<union> T)) T\<rbrakk>
+          closedin (top_of_set (S \<union> T)) S; closedin (top_of_set (S \<union> T)) T\<rbrakk>
         \<Longrightarrow> ENR(S \<union> T)"
 by (simp add: ENR_ANR ANR_closed_Un_local locally_compact_closedin_Un)
 
@@ -3743,8 +3743,8 @@ lemma absolute_retract_Un:
 
 lemma retract_from_Un_Int:
   fixes S :: "'a::euclidean_space set"
-  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes clS: "closedin (top_of_set (S \<union> T)) S"
+      and clT: "closedin (top_of_set (S \<union> T)) T"
       and Un: "(S \<union> T) retract_of U" and Int: "(S \<inter> T) retract_of T"
     shows "S retract_of U"
 proof -
@@ -3764,8 +3764,8 @@ qed
 
 lemma AR_from_Un_Int_local:
   fixes S :: "'a::euclidean_space set"
-  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes clS: "closedin (top_of_set (S \<union> T)) S"
+      and clT: "closedin (top_of_set (S \<union> T)) T"
       and Un: "AR(S \<union> T)" and Int: "AR(S \<inter> T)"
     shows "AR S"
   apply (rule AR_retract_of_AR [OF Un])
@@ -3773,8 +3773,8 @@ lemma AR_from_Un_Int_local:
 
 lemma AR_from_Un_Int_local':
   fixes S :: "'a::euclidean_space set"
-  assumes "closedin (subtopology euclidean (S \<union> T)) S"
-      and "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes "closedin (top_of_set (S \<union> T)) S"
+      and "closedin (top_of_set (S \<union> T)) T"
       and "AR(S \<union> T)" "AR(S \<inter> T)"
     shows "AR T"
   using AR_from_Un_Int_local [of T S] assms by (simp add: Un_commute Int_commute)
@@ -3787,13 +3787,13 @@ lemma AR_from_Un_Int:
 
 lemma ANR_from_Un_Int_local:
   fixes S :: "'a::euclidean_space set"
-  assumes clS: "closedin (subtopology euclidean (S \<union> T)) S"
-      and clT: "closedin (subtopology euclidean (S \<union> T)) T"
+  assumes clS: "closedin (top_of_set (S \<union> T)) S"
+      and clT: "closedin (top_of_set (S \<union> T)) T"
       and Un: "ANR(S \<union> T)" and Int: "ANR(S \<inter> T)"
     shows "ANR S"
 proof -
-  obtain V where clo: "closedin (subtopology euclidean (S \<union> T)) (S \<inter> T)"
-             and ope: "openin (subtopology euclidean (S \<union> T)) V"
+  obtain V where clo: "closedin (top_of_set (S \<union> T)) (S \<inter> T)"
+             and ope: "openin (top_of_set (S \<union> T)) V"
              and ret: "S \<inter> T retract_of V"
     using ANR_imp_neighbourhood_retract [OF Int] by (metis clS clT closedin_Int)
   then obtain r where r: "continuous_on V r" and rim: "r ` V \<subseteq> S \<inter> T" and req: "\<forall>x\<in>S \<inter> T. r x = x"
@@ -3808,9 +3808,9 @@ proof -
     using Vsub by blast
   have "continuous_on (S \<union> V \<inter> T) (\<lambda>x. if x \<in> S then x else r x)"
   proof (rule continuous_on_cases_local)
-    show "closedin (subtopology euclidean (S \<union> V \<inter> T)) S"
+    show "closedin (top_of_set (S \<union> V \<inter> T)) S"
       using clS closedin_subset_trans inf.boundedE by blast
-    show "closedin (subtopology euclidean (S \<union> V \<inter> T)) (V \<inter> T)"
+    show "closedin (top_of_set (S \<union> V \<inter> T)) (V \<inter> T)"
       using clT Vsup by (auto simp: closedin_closed)
     show "continuous_on (V \<inter> T) r"
       by (meson Int_lower1 continuous_on_subset r)
@@ -3938,7 +3938,7 @@ qed
 
 lemma absolute_retract_imp_AR_gen:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
-  assumes "S retract_of T" "convex T" "T \<noteq> {}" "S homeomorphic S'" "closedin (subtopology euclidean U) S'"
+  assumes "S retract_of T" "convex T" "T \<noteq> {}" "S homeomorphic S'" "closedin (top_of_set U) S'"
   shows "S' retract_of U"
 proof -
   have "AR T"
@@ -3972,7 +3972,7 @@ lemma absolute_retract_from_Un_Int:
 
 lemma ENR_from_Un_Int_gen:
   fixes S :: "'a::euclidean_space set"
-  assumes "closedin (subtopology euclidean (S \<union> T)) S" "closedin (subtopology euclidean (S \<union> T)) T" "ENR(S \<union> T)" "ENR(S \<inter> T)"
+  assumes "closedin (top_of_set (S \<union> T)) S" "closedin (top_of_set (S \<union> T)) T" "ENR(S \<union> T)" "ENR(S \<inter> T)"
   shows "ENR S"
   apply (simp add: ENR_ANR)
   using ANR_from_Un_Int_local ENR_ANR assms locally_compact_closedin by blast
@@ -4124,7 +4124,7 @@ text\<open>It's only this late so we can use the concept of retraction,
 
 theorem Borsuk_homotopy_extension_homotopic:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes cloTS: "closedin (subtopology euclidean T) S"
+  assumes cloTS: "closedin (top_of_set T) S"
       and anr: "(ANR S \<and> ANR T) \<or> ANR U"
       and contf: "continuous_on T f"
       and "f ` T \<subseteq> U"
@@ -4140,15 +4140,15 @@ proof -
        using assms by (auto simp: homotopic_with_def)
   define h' where "h' \<equiv>  \<lambda>z. if snd z \<in> S then h z else (f \<circ> snd) z"
   define B where "B \<equiv> {0::real} \<times> T \<union> {0..1} \<times> S"
-  have clo0T: "closedin (subtopology euclidean ({0..1} \<times> T)) ({0::real} \<times> T)"
+  have clo0T: "closedin (top_of_set ({0..1} \<times> T)) ({0::real} \<times> T)"
     by (simp add: closedin_subtopology_refl closedin_Times)
-  moreover have cloT1S: "closedin (subtopology euclidean ({0..1} \<times> T)) ({0..1} \<times> S)"
+  moreover have cloT1S: "closedin (top_of_set ({0..1} \<times> T)) ({0..1} \<times> S)"
     by (simp add: closedin_subtopology_refl closedin_Times assms)
-  ultimately have clo0TB:"closedin (subtopology euclidean ({0..1} \<times> T)) B"
+  ultimately have clo0TB:"closedin (top_of_set ({0..1} \<times> T)) B"
     by (auto simp: B_def)
-  have cloBS: "closedin (subtopology euclidean B) ({0..1} \<times> S)"
+  have cloBS: "closedin (top_of_set B) ({0..1} \<times> S)"
     by (metis (no_types) Un_subset_iff B_def closedin_subset_trans [OF cloT1S] clo0TB closedin_imp_subset closedin_self)
-  moreover have cloBT: "closedin (subtopology euclidean B) ({0} \<times> T)"
+  moreover have cloBT: "closedin (top_of_set B) ({0} \<times> T)"
     using \<open>S \<subseteq> T\<close> closedin_subset_trans [OF clo0T]
     by (metis B_def Un_upper1 clo0TB closedin_closed inf_le1)
   moreover have "continuous_on ({0} \<times> T) (f \<circ> snd)"
@@ -4161,7 +4161,7 @@ proof -
     done
   have "image h' B \<subseteq> U"
     using \<open>f ` T \<subseteq> U\<close> him by (auto simp: h'_def B_def)
-  obtain V k where "B \<subseteq> V" and opeTV: "openin (subtopology euclidean ({0..1} \<times> T)) V"
+  obtain V k where "B \<subseteq> V" and opeTV: "openin (top_of_set ({0..1} \<times> T)) V"
                and contk: "continuous_on V k" and kim: "k ` V \<subseteq> U"
                and keq: "\<And>x. x \<in> B \<Longrightarrow> k x = h' x"
   using anr
@@ -4177,7 +4177,7 @@ proof -
         apply (simp_all add: ANR_Times convex_imp_ANR ANR_singleton ST eq)
       done
     note Vk = that
-    have *: thesis if "openin (subtopology euclidean ({0..1::real} \<times> T)) V"
+    have *: thesis if "openin (top_of_set ({0..1::real} \<times> T)) V"
                       "retraction V B r" for V r
       using that
       apply (clarsimp simp add: retraction_def)
@@ -4195,14 +4195,14 @@ proof -
     show ?thesis by blast
   qed
   define S' where "S' \<equiv> {x. \<exists>u::real. u \<in> {0..1} \<and> (u, x::'a) \<in> {0..1} \<times> T - V}"
-  have "closedin (subtopology euclidean T) S'"
+  have "closedin (top_of_set T) S'"
     unfolding S'_def
     apply (rule closedin_compact_projection, blast)
     using closedin_self opeTV by blast
   have S'_def: "S' = {x. \<exists>u::real.  (u, x::'a) \<in> {0..1} \<times> T - V}"
     by (auto simp: S'_def)
-  have cloTS': "closedin (subtopology euclidean T) S'"
-    using S'_def \<open>closedin (subtopology euclidean T) S'\<close> by blast
+  have cloTS': "closedin (top_of_set T) S'"
+    using S'_def \<open>closedin (top_of_set T) S'\<close> by blast
   have "S \<inter> S' = {}"
     using S'_def B_def \<open>B \<subseteq> V\<close> by force
   obtain a :: "'a \<Rightarrow> real" where conta: "continuous_on T a"
@@ -4269,7 +4269,7 @@ proof
   assume ?lhs
   then obtain c where c: "homotopic_with (\<lambda>x. True) S T (\<lambda>x. c) f"
     by (blast intro: homotopic_with_symD)
-  have "closedin (subtopology euclidean UNIV) S"
+  have "closedin (top_of_set UNIV) S"
     using \<open>closed S\<close> closed_closedin by fastforce
   then obtain g where "continuous_on UNIV g" "range g \<subseteq> T"
                       "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -4412,7 +4412,7 @@ proof (rule ccontr)
                           "g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1"
                           "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
   proof (rule Borsuk_homotopy_extension_homotopic)
-    show "closedin (subtopology euclidean ?T) S"
+    show "closedin (top_of_set ?T) S"
       by (simp add: \<open>compact S\<close> closed_subset compact_imp_closed)
     show "continuous_on ?T (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
       by (simp add: \<open>b \<notin> S\<close> notcc continuous_on_Borsuk_map)
@@ -4467,8 +4467,8 @@ qed
 subsubsection\<open>More extension theorems\<close>
 
 lemma extension_from_clopen:
-  assumes ope: "openin (subtopology euclidean S) T"
-      and clo: "closedin (subtopology euclidean S) T"
+  assumes ope: "openin (top_of_set S) T"
+      and clo: "closedin (top_of_set S) T"
       and contf: "continuous_on T f" and fim: "f ` T \<subseteq> U" and null: "U = {} \<Longrightarrow> S = {}"
  obtains g where "continuous_on S g" "g ` S \<subseteq> U" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
 proof (cases "U = {}")
@@ -4503,8 +4503,8 @@ lemma extension_from_component:
      and C: "C \<in> components S" and contf: "continuous_on C f" and fim: "f ` C \<subseteq> U"
  obtains g where "continuous_on S g" "g ` S \<subseteq> U" "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
 proof -
-  obtain T g where ope: "openin (subtopology euclidean S) T"
-               and clo: "closedin (subtopology euclidean S) T"
+  obtain T g where ope: "openin (top_of_set S) T"
+               and clo: "closedin (top_of_set S) T"
                and "C \<subseteq> T" and contg: "continuous_on T g" and gim: "g ` T \<subseteq> U"
                and gf: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
     using S
@@ -4514,7 +4514,7 @@ proof -
       by (metis C \<open>locally connected S\<close> openin_components_locally_connected closedin_component contf fim order_refl that)
   next
     assume "compact S"
-    then obtain W g where "C \<subseteq> W" and opeW: "openin (subtopology euclidean S) W"
+    then obtain W g where "C \<subseteq> W" and opeW: "openin (top_of_set S) W"
                  and contg: "continuous_on W g"
                  and gim: "g ` W \<subseteq> U" and gf: "\<And>x. x \<in> C \<Longrightarrow> g x = f x"
       using ANR_imp_absolute_neighbourhood_extensor [of U C f S] C \<open>ANR U\<close> closedin_component contf fim by blast
@@ -4522,11 +4522,11 @@ proof -
       by (auto simp: openin_open)
     moreover have "locally compact S"
       by (simp add: \<open>compact S\<close> closed_imp_locally_compact compact_imp_closed)
-    ultimately obtain K where opeK: "openin (subtopology euclidean S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
+    ultimately obtain K where opeK: "openin (top_of_set S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
       by (metis C Int_subset_iff \<open>C \<subseteq> W\<close> \<open>compact S\<close> compact_components Sura_Bura_clopen_subset)
     show ?thesis
     proof
-      show "closedin (subtopology euclidean S) K"
+      show "closedin (top_of_set S) K"
         by (meson \<open>compact K\<close> \<open>compact S\<close> closedin_compact_eq opeK openin_imp_subset)
       show "continuous_on K g"
         by (metis Int_subset_iff V \<open>K \<subseteq> V\<close> contg continuous_on_subset opeK openin_subtopology subset_eq)
@@ -4545,13 +4545,13 @@ qed
 lemma tube_lemma:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "compact S" and S: "S \<noteq> {}" "(\<lambda>x. (x,a)) ` S \<subseteq> U" 
-      and ope: "openin (subtopology euclidean (S \<times> T)) U"
-  obtains V where "openin (subtopology euclidean T) V" "a \<in> V" "S \<times> V \<subseteq> U"
+      and ope: "openin (top_of_set (S \<times> T)) U"
+  obtains V where "openin (top_of_set T) V" "a \<in> V" "S \<times> V \<subseteq> U"
 proof -
   let ?W = "{y. \<exists>x. x \<in> S \<and> (x, y) \<in> (S \<times> T - U)}"
-  have "U \<subseteq> S \<times> T" "closedin (subtopology euclidean (S \<times> T)) (S \<times> T - U)"
+  have "U \<subseteq> S \<times> T" "closedin (top_of_set (S \<times> T)) (S \<times> T - U)"
     using ope by (auto simp: openin_closedin_eq)
-  then have "closedin (subtopology euclidean T) ?W"
+  then have "closedin (top_of_set T) ?W"
     using \<open>compact S\<close> closedin_compact_projection by blast
   moreover have "a \<in> T - ?W"
     using \<open>U \<subseteq> S \<times> T\<close> S by auto
@@ -4564,16 +4564,16 @@ qed
 lemma tube_lemma_gen:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "compact S" "S \<noteq> {}" "T \<subseteq> T'" "S \<times> T \<subseteq> U"
-      and ope: "openin (subtopology euclidean (S \<times> T')) U"
-  obtains V where "openin (subtopology euclidean T') V" "T \<subseteq> V" "S \<times> V \<subseteq> U"
+      and ope: "openin (top_of_set (S \<times> T')) U"
+  obtains V where "openin (top_of_set T') V" "T \<subseteq> V" "S \<times> V \<subseteq> U"
 proof -
-  have "\<And>x. x \<in> T \<Longrightarrow> \<exists>V. openin (subtopology euclidean T') V \<and> x \<in> V \<and> S \<times> V \<subseteq> U"
+  have "\<And>x. x \<in> T \<Longrightarrow> \<exists>V. openin (top_of_set T') V \<and> x \<in> V \<and> S \<times> V \<subseteq> U"
     using assms by (auto intro:  tube_lemma [OF \<open>compact S\<close>])
-  then obtain F where F: "\<And>x. x \<in> T \<Longrightarrow> openin (subtopology euclidean T') (F x) \<and> x \<in> F x \<and> S \<times> F x \<subseteq> U"
+  then obtain F where F: "\<And>x. x \<in> T \<Longrightarrow> openin (top_of_set T') (F x) \<and> x \<in> F x \<and> S \<times> F x \<subseteq> U"
     by metis
   show ?thesis
   proof
-    show "openin (subtopology euclidean T') (\<Union>(F ` T))"
+    show "openin (top_of_set T') (\<Union>(F ` T))"
       using F by blast
     show "T \<subseteq> \<Union>(F ` T)"
       using F by blast
@@ -4586,9 +4586,9 @@ proposition%unimportant homotopic_neighbourhood_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> U"
       and contg: "continuous_on S g" and gim: "g ` S \<subseteq> U"
-      and clo: "closedin (subtopology euclidean S) T"
+      and clo: "closedin (top_of_set S) T"
       and "ANR U" and hom: "homotopic_with (\<lambda>x. True) T U f g"
-    obtains V where "T \<subseteq> V" "openin (subtopology euclidean S) V"
+    obtains V where "T \<subseteq> V" "openin (top_of_set S) V"
                     "homotopic_with (\<lambda>x. True) V U f g"
 proof -
   have "T \<subseteq> S"
@@ -4604,11 +4604,11 @@ proof -
   have "continuous_on(?S0 \<union> (?S1 \<union> {0..1} \<times> T)) h'"
     unfolding h'_def
   proof (intro continuous_on_cases_local)
-    show "closedin (subtopology euclidean (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) ?S0"
-         "closedin (subtopology euclidean (?S1 \<union> {0..1} \<times> T)) ?S1"
+    show "closedin (top_of_set (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) ?S0"
+         "closedin (top_of_set (?S1 \<union> {0..1} \<times> T)) ?S1"
       using \<open>T \<subseteq> S\<close> by (force intro: closedin_Times closedin_subset_trans [of "{0..1} \<times> S"])+
-    show "closedin (subtopology euclidean (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) (?S1 \<union> {0..1} \<times> T)"
-         "closedin (subtopology euclidean (?S1 \<union> {0..1} \<times> T)) ({0..1} \<times> T)"
+    show "closedin (top_of_set (?S0 \<union> (?S1 \<union> {0..1} \<times> T))) (?S1 \<union> {0..1} \<times> T)"
+         "closedin (top_of_set (?S1 \<union> {0..1} \<times> T)) ({0..1} \<times> T)"
       using \<open>T \<subseteq> S\<close> by (force intro: clo closedin_Times closedin_subset_trans [of "{0..1} \<times> S"])+
     show "continuous_on (?S0) (\<lambda>x. f (snd x))"
       by (intro continuous_intros continuous_on_compose2 [OF contf]) auto
@@ -4619,16 +4619,16 @@ proof -
     by (metis Sigma_Un_distrib1 Un_assoc insert_is_Un) 
   moreover have "h' ` ({0,1} \<times> S \<union> {0..1} \<times> T) \<subseteq> U"
     using fim gim him \<open>T \<subseteq> S\<close> unfolding h'_def by force
-  moreover have "closedin (subtopology euclidean ({0..1::real} \<times> S)) ({0,1} \<times> S \<union> {0..1::real} \<times> T)"
+  moreover have "closedin (top_of_set ({0..1::real} \<times> S)) ({0,1} \<times> S \<union> {0..1::real} \<times> T)"
     by (intro closedin_Times closedin_Un clo) (simp_all add: closed_subset)
   ultimately
   obtain W k where W: "({0,1} \<times> S) \<union> ({0..1} \<times> T) \<subseteq> W"
-               and opeW: "openin (subtopology euclidean ({0..1} \<times> S)) W"
+               and opeW: "openin (top_of_set ({0..1} \<times> S)) W"
                and contk: "continuous_on W k"
                and kim: "k ` W \<subseteq> U"
                and kh': "\<And>x. x \<in> ({0,1} \<times> S) \<union> ({0..1} \<times> T) \<Longrightarrow> k x = h' x"
     by (metis ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR U\<close>, of "({0,1} \<times> S) \<union> ({0..1} \<times> T)" h' "{0..1} \<times> S"])
-  obtain T' where opeT': "openin (subtopology euclidean S) T'" 
+  obtain T' where opeT': "openin (top_of_set S) T'" 
               and "T \<subseteq> T'" and TW: "{0..1} \<times> T' \<subseteq> W"
     using tube_lemma_gen [of "{0..1::real}" T S W] W \<open>T \<subseteq> S\<close> opeW by auto
   moreover have "homotopic_with (\<lambda>x. True) T' U f g"
@@ -4649,8 +4649,8 @@ qed
 text\<open> Homotopy on a union of closed-open sets.\<close>
 proposition%unimportant homotopic_on_clopen_Union:
   fixes \<F> :: "'a::euclidean_space set set"
-  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (subtopology euclidean (\<Union>\<F>)) S"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean (\<Union>\<F>)) S"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (top_of_set (\<Union>\<F>)) S"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (top_of_set (\<Union>\<F>)) S"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> homotopic_with (\<lambda>x. True) S T f g"
   shows "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f g"
 proof -
@@ -4665,8 +4665,8 @@ proof -
     case False
     then obtain V :: "nat \<Rightarrow> 'a set" where V: "range V = \<V>"
       using range_from_nat_into \<open>countable \<V>\<close> by metis
-    with \<open>\<V> \<subseteq> \<F>\<close> have clo: "\<And>n. closedin (subtopology euclidean (\<Union>\<F>)) (V n)"
-                  and ope: "\<And>n. openin (subtopology euclidean (\<Union>\<F>)) (V n)"
+    with \<open>\<V> \<subseteq> \<F>\<close> have clo: "\<And>n. closedin (top_of_set (\<Union>\<F>)) (V n)"
+                  and ope: "\<And>n. openin (top_of_set (\<Union>\<F>)) (V n)"
                   and hom: "\<And>n. homotopic_with (\<lambda>x. True) (V n) T f g"
       using assms by auto 
     then obtain h where conth: "\<And>n. continuous_on ({0..1::real} \<times> V n) (h n)"
@@ -4680,20 +4680,20 @@ proof -
               and eq: "\<And>x i. \<lbrakk>x \<in> {0..1} \<times> \<Union>(V ` UNIV) \<inter>
                                    {0..1} \<times> (V i - (\<Union>m<i. V m))\<rbrakk> \<Longrightarrow> \<zeta> x = h i x"
     proof (rule pasting_lemma_exists)
-      show "{0..1} \<times> \<Union>(V ` UNIV) \<subseteq> (\<Union>i. {0..1::real} \<times> (V i - (\<Union>m<i. V m)))"
+      let ?X = "top_of_set ({0..1::real} \<times> \<Union>(range V))"
+      show "topspace ?X \<subseteq> (\<Union>i. {0..1::real} \<times> (V i - (\<Union>m<i. V m)))"
         by (force simp: Ball_def dest: wop)
-      show "openin (subtopology euclidean ({0..1} \<times> \<Union>(V ` UNIV))) 
+      show "openin (top_of_set ({0..1} \<times> \<Union>(V ` UNIV))) 
                    ({0..1::real} \<times> (V i - (\<Union>m<i. V m)))" for i
       proof (intro openin_Times openin_subtopology_self openin_diff)
-        show "openin (subtopology euclidean (\<Union>(V ` UNIV))) (V i)"
+        show "openin (top_of_set (\<Union>(V ` UNIV))) (V i)"
           using ope V eqU by auto
-        show "closedin (subtopology euclidean (\<Union>(V ` UNIV))) (\<Union>m<i. V m)"
+        show "closedin (top_of_set (\<Union>(V ` UNIV))) (\<Union>m<i. V m)"
           using V clo eqU by (force intro: closedin_Union)
       qed
-      show "continuous_on ({0..1} \<times> (V i - (\<Union>m<i. V m))) (h i)" for i
-        by (rule continuous_on_subset [OF conth]) auto
-      show "\<And>i j x. x \<in> {0..1} \<times> \<Union>(V ` UNIV) \<inter>
-                    {0..1} \<times> (V i - (\<Union>m<i. V m)) \<inter> {0..1} \<times> (V j - (\<Union>m<j. V m))
+      show "continuous_map (subtopology ?X ({0..1} \<times> (V i - \<Union> (V ` {..<i})))) euclidean (h i)"  for i
+        by (auto simp add: subtopology_subtopology intro!: continuous_on_subset [OF conth])
+      show "\<And>i j x. x \<in> topspace ?X \<inter> {0..1} \<times> (V i - (\<Union>m<i. V m)) \<inter> {0..1} \<times> (V j - (\<Union>m<j. V m))
                     \<Longrightarrow> h i x = h j x"
         by clarsimp (metis lessThan_iff linorder_neqE_nat)
     qed auto
@@ -4738,8 +4738,8 @@ proof -
       by (simp add: homotopic_with_subset_left in_components_subset)
   next
     assume R: ?rhs
-    have "\<exists>U. C \<subseteq> U \<and> closedin (subtopology euclidean S) U \<and>
-              openin (subtopology euclidean S) U \<and>
+    have "\<exists>U. C \<subseteq> U \<and> closedin (top_of_set S) U \<and>
+              openin (top_of_set S) U \<and>
               homotopic_with (\<lambda>x. True) U T f g" if C: "C \<in> components S" for C
     proof -
       have "C \<subseteq> S"
@@ -4750,9 +4750,9 @@ proof -
         assume "locally connected S"
         show ?thesis
         proof (intro exI conjI)
-          show "closedin (subtopology euclidean S) C"
+          show "closedin (top_of_set S) C"
             by (simp add: closedin_component that)
-          show "openin (subtopology euclidean S) C"
+          show "openin (top_of_set S) C"
             by (simp add: \<open>locally connected S\<close> openin_components_locally_connected that)
           show "homotopic_with (\<lambda>x. True) C T f g"
             by (simp add: R that)
@@ -4761,7 +4761,7 @@ proof -
         assume "compact S"
         have hom: "homotopic_with (\<lambda>x. True) C T f g"
           using R that by blast
-        obtain U where "C \<subseteq> U" and opeU: "openin (subtopology euclidean S) U"
+        obtain U where "C \<subseteq> U" and opeU: "openin (top_of_set S) U"
                   and hom: "homotopic_with (\<lambda>x. True) U T f g"
           using homotopic_neighbourhood_extension [OF contf fim contg gim _ \<open>ANR T\<close> hom]
             \<open>C \<in> components S\<close> closedin_component by blast
@@ -4769,11 +4769,11 @@ proof -
           by (auto simp: openin_open)
         moreover have "locally compact S"
           by (simp add: \<open>compact S\<close> closed_imp_locally_compact compact_imp_closed)
-        ultimately obtain K where opeK: "openin (subtopology euclidean S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
+        ultimately obtain K where opeK: "openin (top_of_set S) K" and "compact K" "C \<subseteq> K" "K \<subseteq> V"
           by (metis C Int_subset_iff Sura_Bura_clopen_subset \<open>C \<subseteq> U\<close> \<open>compact S\<close> compact_components)
         show ?thesis
         proof (intro exI conjI)
-          show "closedin (subtopology euclidean S) K"
+          show "closedin (top_of_set S) K"
             by (meson \<open>compact K\<close> \<open>compact S\<close> closedin_compact_eq opeK openin_imp_subset)
           show "homotopic_with (\<lambda>x. True) K T f g"
             using V \<open>K \<subseteq> V\<close> hom homotopic_with_subset_left opeK openin_imp_subset by fastforce
@@ -4781,8 +4781,8 @@ proof -
       qed
     qed
     then obtain \<phi> where \<phi>: "\<And>C. C \<in> components S \<Longrightarrow> C \<subseteq> \<phi> C"
-                  and clo\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> closedin (subtopology euclidean S) (\<phi> C)"
-                  and ope\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> openin (subtopology euclidean S) (\<phi> C)"
+                  and clo\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> closedin (top_of_set S) (\<phi> C)"
+                  and ope\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> openin (top_of_set S) (\<phi> C)"
                   and hom\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> homotopic_with (\<lambda>x. True) (\<phi> C) T f g"
       by metis
     have Seq: "S = \<Union> (\<phi> ` components S)"

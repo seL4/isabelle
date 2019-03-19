@@ -3921,9 +3921,9 @@ proof -
       proof (rule Baire [OF \<open>closed U\<close>])
         show "countable {U - C |C. C \<in> \<S> \<and> aff_dim C < aff_dim U}"
           using \<open>finite \<S>\<close> uncountable_infinite by fastforce
-        have "\<And>C. C \<in> \<S> \<Longrightarrow> openin (subtopology euclidean U) (U-C)"
+        have "\<And>C. C \<in> \<S> \<Longrightarrow> openin (top_of_set U) (U-C)"
           by (metis Sup_upper clo closed_limpt closedin_limpt eq openin_diff openin_subtopology_self)
-        then show "openin (subtopology euclidean U) T \<and> U \<subseteq> closure T"
+        then show "openin (top_of_set U) T \<and> U \<subseteq> closure T"
           if "T \<in> {U - C |C. C \<in> \<S> \<and> aff_dim C < aff_dim U}" for T
           using that dense_complement_convex_closed \<open>closed U\<close> \<open>convex U\<close> by auto
       qed

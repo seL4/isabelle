@@ -542,10 +542,10 @@ proof (intro iffI ballI allI impI)
 next
   assume R [rule_format]: "\<forall>x \<in> S. \<forall>e > 0. ?Q x e"
   let ?\<mu> = "measure lebesgue"
-  have "\<exists>U. openin (subtopology euclidean S) U \<and> z \<in> U \<and> negligible U"
+  have "\<exists>U. openin (top_of_set S) U \<and> z \<in> U \<and> negligible U"
     if "z \<in> S" for z
   proof (intro exI conjI)
-    show "openin (subtopology euclidean S) (S \<inter> ball z 1)"
+    show "openin (top_of_set S) (S \<inter> ball z 1)"
       by (simp add: openin_open_Int)
     show "z \<in> S \<inter> ball z 1"
       using \<open>z \<in> S\<close> by auto

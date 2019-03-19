@@ -915,7 +915,7 @@ text\<open>The Baire property of dense sets\<close>
 theorem Baire:
   fixes S::"'a::{real_normed_vector,heine_borel} set"
   assumes "closed S" "countable \<G>"
-      and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (subtopology euclidean S) T \<and> S \<subseteq> closure T"
+      and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (top_of_set S) T \<and> S \<subseteq> closure T"
  shows "S \<subseteq> closure(\<Inter>\<G>)"
 proof (cases "\<G> = {}")
   case True
@@ -930,31 +930,31 @@ next
   proof (clarsimp simp: closure_approachable)
     fix x and e::real
     assume "x \<in> S" "0 < e"
-    obtain TF where opeF: "\<And>n. openin (subtopology euclidean S) (TF n)"
+    obtain TF where opeF: "\<And>n. openin (top_of_set S) (TF n)"
                and ne: "\<And>n. TF n \<noteq> {}"
                and subg: "\<And>n. S \<inter> closure(TF n) \<subseteq> ?g n"
                and subball: "\<And>n. closure(TF n) \<subseteq> ball x e"
                and decr: "\<And>n. TF(Suc n) \<subseteq> TF n"
     proof -
-      have *: "\<exists>Y. (openin (subtopology euclidean S) Y \<and> Y \<noteq> {} \<and>
+      have *: "\<exists>Y. (openin (top_of_set S) Y \<and> Y \<noteq> {} \<and>
                    S \<inter> closure Y \<subseteq> ?g n \<and> closure Y \<subseteq> ball x e) \<and> Y \<subseteq> U"
-        if opeU: "openin (subtopology euclidean S) U" and "U \<noteq> {}" and cloU: "closure U \<subseteq> ball x e" for U n
+        if opeU: "openin (top_of_set S) U" and "U \<noteq> {}" and cloU: "closure U \<subseteq> ball x e" for U n
       proof -
         obtain T where T: "open T" "U = T \<inter> S"
-          using \<open>openin (subtopology euclidean S) U\<close> by (auto simp: openin_subtopology)
+          using \<open>openin (top_of_set S) U\<close> by (auto simp: openin_subtopology)
         with \<open>U \<noteq> {}\<close> have "T \<inter> closure (?g n) \<noteq> {}"
           using gin ope by fastforce
         then have "T \<inter> ?g n \<noteq> {}"
           using \<open>open T\<close> open_Int_closure_eq_empty by blast
         then obtain y where "y \<in> U" "y \<in> ?g n"
           using T ope [of "?g n", OF gin] by (blast dest:  openin_imp_subset)
-        moreover have "openin (subtopology euclidean S) (U \<inter> ?g n)"
+        moreover have "openin (top_of_set S) (U \<inter> ?g n)"
           using gin ope opeU by blast
         ultimately obtain d where U: "U \<inter> ?g n \<subseteq> S" and "d > 0" and d: "ball y d \<inter> S \<subseteq> U \<inter> ?g n"
           by (force simp: openin_contains_ball)
         show ?thesis
         proof (intro exI conjI)
-          show "openin (subtopology euclidean S) (S \<inter> ball y (d/2))"
+          show "openin (top_of_set S) (S \<inter> ball y (d/2))"
             by (simp add: openin_open_Int)
           show "S \<inter> ball y (d/2) \<noteq> {}"
             using \<open>0 < d\<close> \<open>y \<in> U\<close> opeU openin_imp_subset by fastforce
@@ -979,14 +979,14 @@ next
             using ball_divide_subset_numeral d by blast
         qed
       qed
-      let ?\<Phi> = "\<lambda>n X. openin (subtopology euclidean S) X \<and> X \<noteq> {} \<and>
+      let ?\<Phi> = "\<lambda>n X. openin (top_of_set S) X \<and> X \<noteq> {} \<and>
                       S \<inter> closure X \<subseteq> ?g n \<and> closure X \<subseteq> ball x e"
       have "closure (S \<inter> ball x (e / 2)) \<subseteq> closure(ball x (e/2))"
         by (simp add: closure_mono)
       also have "...  \<subseteq> ball x e"
         using \<open>e > 0\<close> by auto
       finally have "closure (S \<inter> ball x (e / 2)) \<subseteq> ball x e" .
-      moreover have"openin (subtopology euclidean S) (S \<inter> ball x (e / 2))" "S \<inter> ball x (e / 2) \<noteq> {}"
+      moreover have"openin (top_of_set S) (S \<inter> ball x (e / 2))" "S \<inter> ball x (e / 2) \<noteq> {}"
         using \<open>0 < e\<close> \<open>x \<in> S\<close> by auto
       ultimately obtain Y where Y: "?\<Phi> 0 Y \<and> Y \<subseteq> S \<inter> ball x (e / 2)"
             using * [of "S \<inter> ball x (e/2)" 0] by metis

@@ -33,7 +33,7 @@ next
       by (simp add: supp_sum_def sum_nonneg)
     have sd_pos: "0 < setdist {x} (S - V)" if "V \<in> \<C>" "x \<in> S" "x \<in> V" for V x
     proof -
-      have "closedin (subtopology euclidean S) (S - V)"
+      have "closedin (top_of_set S) (S - V)"
         by (simp add: Diff_Diff_Int closedin_def opC openin_open_Int \<open>V \<in> \<C>\<close>)
       with that False  setdist_pos_le [of "{x}" "S - V"]
       show ?thesis
@@ -67,7 +67,7 @@ next
           fix x assume "x \<in> S"
           then obtain X where "open X" and x: "x \<in> S \<inter> X" and finX: "finite {U \<in> \<C>. U \<inter> X \<noteq> {}}"
             using assms by blast
-          then have OSX: "openin (subtopology euclidean S) (S \<inter> X)" by blast
+          then have OSX: "openin (top_of_set S) (S \<inter> X)" by blast
           have sumeq: "\<And>x. x \<in> S \<inter> X \<Longrightarrow>
                      (\<Sum>V | V \<in> \<C> \<and> V \<inter> X \<noteq> {}. setdist {x} (S - V))
                      = supp_sum (\<lambda>V. setdist {x} (S - V)) \<C>"
@@ -114,8 +114,8 @@ subsection\<open>Urysohn's Lemma for Euclidean Spaces\<close>
 text \<open>For Euclidean spaces the proof is easy using distances.\<close>
 
 lemma Urysohn_both_ne:
-  assumes US: "closedin (subtopology euclidean U) S"
-      and UT: "closedin (subtopology euclidean U) T"
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
       and "S \<inter> T = {}" "S \<noteq> {}" "T \<noteq> {}" "a \<noteq> b"
   obtains f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
     where "continuous_on U f"
@@ -167,8 +167,8 @@ proof -
 qed
 
 proposition Urysohn_local_strong:
-  assumes US: "closedin (subtopology euclidean U) S"
-      and UT: "closedin (subtopology euclidean U) T"
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
       and "S \<inter> T = {}" "a \<noteq> b"
   obtains f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
     where "continuous_on U f"
@@ -250,8 +250,8 @@ next
 qed
 
 lemma Urysohn_local:
-  assumes US: "closedin (subtopology euclidean U) S"
-      and UT: "closedin (subtopology euclidean U) T"
+  assumes US: "closedin (top_of_set U) S"
+      and UT: "closedin (top_of_set U) T"
       and "S \<inter> T = {}"
   obtains f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
     where "continuous_on U f"
@@ -301,7 +301,7 @@ text \<open>See \cite{dugundji}.\<close>
 theorem Dugundji:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "convex C" "C \<noteq> {}"
-      and cloin: "closedin (subtopology euclidean U) S"
+      and cloin: "closedin (top_of_set U) S"
       and contf: "continuous_on S f" and "f ` S \<subseteq> C"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C"
                   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -427,7 +427,7 @@ next
         obtain N where N: "open N" "a \<in> N"
                    and finN: "finite {U \<in> \<C>. \<exists>a\<in>N. H U a \<noteq> 0}"
           using Hfin False \<open>a \<in> U\<close> by auto
-        have oUS: "openin (subtopology euclidean U) (U - S)"
+        have oUS: "openin (top_of_set U) (U - S)"
           using cloin by (simp add: openin_diff)
         have HcontU: "continuous (at a within U) (H T)" if "T \<in> \<C>" for T
           using Hcont [OF \<open>T \<in> \<C>\<close>] False  \<open>a \<in> U\<close> \<open>T \<in> \<C>\<close>
@@ -444,7 +444,7 @@ next
                     (\<lambda>x. \<Sum>T\<in>{U \<in> \<C>. \<exists>x\<in>N. H U x \<noteq> 0}. H T x *\<^sub>R f (\<A> T))"
               by (force intro: continuous_intros HcontU)+
           next
-            show "openin (subtopology euclidean U) ((U - S) \<inter> N)"
+            show "openin (top_of_set U) ((U - S) \<inter> N)"
               using N oUS openin_trans by blast
           next
             show "a \<in> (U - S) \<inter> N" using False \<open>a \<in> U\<close> N by blast
@@ -475,7 +475,7 @@ qed
 corollary Tietze:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
     and "0 \<le> B"
     and "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> B"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -485,7 +485,7 @@ corollary Tietze:
 corollary%unimportant Tietze_closed_interval:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
     and "cbox a b \<noteq> {}"
     and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -496,7 +496,7 @@ corollary%unimportant Tietze_closed_interval:
 corollary%unimportant Tietze_closed_interval_1:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
     and "a \<le> b"
     and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> cbox a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -507,7 +507,7 @@ corollary%unimportant Tietze_closed_interval_1:
 corollary%unimportant Tietze_open_interval:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
     and "box a b \<noteq> {}"
     and "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -518,7 +518,7 @@ corollary%unimportant Tietze_open_interval:
 corollary%unimportant Tietze_open_interval_1:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
     and "a < b"
     and no: "\<And>x. x \<in> S \<Longrightarrow> f x \<in> box a b"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
@@ -529,7 +529,7 @@ corollary%unimportant Tietze_open_interval_1:
 corollary%unimportant Tietze_unbounded:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
-    and "closedin (subtopology euclidean U) S"
+    and "closedin (top_of_set U) S"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
   apply (rule Dugundji [of UNIV U S f])
   using assms by auto
