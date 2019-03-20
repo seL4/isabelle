@@ -4,7 +4,7 @@
 #
 # Invoke command in OCaml environment setup by "opam".
 
-if [ -d "$ISABELLE_OPAM_ROOT" ]
+if [ -e "$ISABELLE_OPAM_ROOT/config" ]
 then
   isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- "$@"
 else

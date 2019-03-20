@@ -6,7 +6,7 @@
 
 set -e
 
-if [ -d "$ISABELLE_OPAM_ROOT" ]
+if [ -e "$ISABELLE_OPAM_ROOT/config" ]
 then
   isabelle_opam switch "$ISABELLE_OCAML_VERSION"
 else
