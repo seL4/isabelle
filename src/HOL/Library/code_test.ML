@@ -467,7 +467,7 @@ fun mk_driver_ocaml _ path _ value_name =
 
     val compiled_path = Path.append path (Path.basic "test")
     val compile_cmd =
-      "\"$ISABELLE_ROOT/lib/scripts/ocamlexec\" ocamlfind ocamlopt -w pu -package zarith -linkpkg " ^
+      "\"$ISABELLE_HOME/lib/scripts/ocamlexec\" ocamlfind ocamlopt -w pu -package zarith -linkpkg " ^
       " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path path ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
