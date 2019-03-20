@@ -127,12 +127,11 @@ output, use "file \<open>\<close>". Minor INCOMPATIBILITY.
 * Code generation for OCaml: proper strings are used for literals.
 Minor INCOMPATIBILITY.
 
-* Code generation for OCaml: Zarith superseedes Nums as library for
-integer arithmetic.  It is included in the default setup after
-
-  isabelle ocaml_setup
-
-Minor INCOMPATIBILITY.
+* Code generation for OCaml: Zarith supersedes Nums as library for
+proper integer arithmetic. The library is located via standard
+invocations of "ocamlfind" (via ISABELLE_OCAMLFIND settings variable).
+The environment provided by "isabelle ocaml_setup" already contains this
+tool and the required packages. Minor INCOMPATIBILITY.
 
 * Code generation for Haskell: code includes for Haskell must contain
 proper module frame, nothing is added magically any longer.
@@ -284,6 +283,11 @@ specified in seconds; a negative value means it is disabled (default).
 presence of structurally broken sources: full consolidation of theories
 is no longer required.
 
+* OCaml tools and libraries are now accesed via ISABELLE_OCAMLFIND,
+which needs to point to a suitable version of "ocamlfind" (e.g. via
+OPAM, see below). INCOMPATIBILITY: settings variables ISABELLE_OCAML and
+ISABELLE_OCAMLC are no longer supported.
+
 * Support for managed installations of Glasgow Haskell Compiler and
 OCaml via the following command-line tools:
 
@@ -308,12 +312,12 @@ redirected (overriding existing user settings):
 
   ISABELLE_GHC
 
-  ISABELLE_OCAML
-  ISABELLE_OCAMLC
+  ISABELLE_OCAMLFIND
 
 The old meaning of these settings as locally installed executables may
 be recovered by purging the directories ISABELLE_STACK_ROOT /
-ISABELLE_OPAM_ROOT.
+ISABELLE_OPAM_ROOT, or by resetting these variables in
+$ISABELLE_HOME_USER/etc/settings.
 
 * Update to Java 11: the latest long-term support version of OpenJDK.
 

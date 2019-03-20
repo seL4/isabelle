@@ -99,19 +99,9 @@ else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 
-#enforce ISABELLE_OCAML
-if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocaml" ]; then
-  ISABELLE_OCAML="$ISABELLE_HOME/lib/scripts/ocaml"
-fi
-
-#enforce ISABELLE_OCAMLC
-if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
-  ISABELLE_OCAMLC="$ISABELLE_HOME/lib/scripts/ocamlc"
-fi
-
-#enforce ISABELLE_OCAMLEXEC
+#enforce ISABELLE_OCAMLFIND
 if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]; then
-  ISABELLE_OCAMLEXEC="$ISABELLE_HOME/lib/scripts/ocamlexec"
+  ISABELLE_OCAMLFIND="$ISABELLE_HOME/lib/scripts/ocamlfind"
 fi
 
 #enforce ISABELLE_GHC

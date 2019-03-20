@@ -276,7 +276,7 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
     Code_Test_GHC
   theories [condition = ISABELLE_MLTON]
     Code_Test_MLton
-  theories [condition = ISABELLE_OCAMLC]
+  theories [condition = ISABELLE_OCAMLFIND]
     Code_Test_OCaml
   theories [condition = ISABELLE_SMLNJ]
     Code_Test_SMLNJ

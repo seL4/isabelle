@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius; Florian Haftmann
+#
+# Invoke ocamlfind via "opam".
+
+if [ -e "$ISABELLE_OPAM_ROOT/config" ]
+then
+  isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocamlfind "$@"
+else
+  echo "Cannot execute ocamlfind: missing Isabelle OCaml setup" >&2
+  exit 127
+fi
