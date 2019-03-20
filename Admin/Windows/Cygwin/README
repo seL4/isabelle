@@ -16,6 +16,7 @@ Cygwin
   http://isabelle.in.tum.de/cygwin_2016-1  (Isabelle2016-1)
   http://isabelle.in.tum.de/cygwin_2017  (Isabelle2017)
   https://isabelle.sketis.net/cygwin_2018  (Isabelle2018)
+  https://isabelle.sketis.net/cygwin_2019  (Isabelle2019)
 
 * Apache2 redirects for virtual host isabelle.conf:
   Redirect /cygwin/release http://ftp.eq.uc.pt/software/pc/prog/cygwin/release
@@ -35,6 +36,9 @@ Cygwin
   Redirect /cygwin_2018/x86/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
   Redirect /cygwin_2018/x86_64/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
   Redirect /cygwin_2018/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
+  Redirect /cygwin_2019/x86/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86/release
+  Redirect /cygwin_2019/x86_64/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/x86_64/release
+  Redirect /cygwin_2019/noarch/release https://ftp.eq.uc.pt/software/pc/prog/cygwin/noarch/release
 
 * Quasi-component: "isabelle build_cygwin" (as Administrator)
 
