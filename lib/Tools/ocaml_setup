@@ -13,4 +13,4 @@ else
   isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION"
 fi
 
-isabelle_opam install zarith
+isabelle_opam install zarith -y
