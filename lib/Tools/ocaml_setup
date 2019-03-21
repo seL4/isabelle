@@ -8,9 +8,9 @@ set -e
 
 if [ -e "$ISABELLE_OPAM_ROOT/config" ]
 then
-  isabelle_opam switch "$ISABELLE_OCAML_VERSION"
+  isabelle_opam switch create "ocaml-base-compiler.$ISABELLE_OCAML_VERSION"
 else
-  isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION"
+  isabelle_opam init --disable-sandboxing --no-setup --compiler="ocaml-base-compiler.$ISABELLE_OCAML_VERSION"
 fi
 
 isabelle_opam install zarith -y
