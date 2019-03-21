@@ -269,6 +269,23 @@ qed
 subsection "Faster"
 
 
+subsubsection \<open>Size\<close>
+
+fun diff :: "'a tree \<Rightarrow> nat \<Rightarrow> nat" where
+"diff Leaf 0 = 0" |
+"diff (Node l x r) n = (if n=0 then 1 else if even n then diff r (n div 2 - 1) else diff l (n div 2))"
+
+fun size_fast :: "'a tree \<Rightarrow> nat" where
+"size_fast Leaf = 0" |
+"size_fast (Node l x r) = (let n = size_fast r in 1 + 2*n + diff l n)"
+
+lemma diff: "braun t \<Longrightarrow> size t : {n, n + 1} \<Longrightarrow> diff t n = (if size t = n then 0 else 1)"
+by(induction t arbitrary: n) auto
+
+lemma size_fast: "braun t \<Longrightarrow> size_fast t = size t"
+by(induction t) (auto simp add: Let_def diff)
+
+
 subsubsection \<open>Initialization with 1 element\<close>
 
 fun braun_of_naive :: "'a \<Rightarrow> nat \<Rightarrow> 'a tree" where
