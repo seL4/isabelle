@@ -1,10 +1,10 @@
-This is OPAM 1.2.2 -- the OCaml Package Manager.
+This is OPAM 2.0.3 -- the OCaml Package Manager.
 
 The executables for x86_64-linux and x86_64-darwin are from
-https://github.com/ocaml/opam/releases/tag/1.2.2
+https://github.com/ocaml/opam/releases/tag/2.0.3
 
 The executable for x86_64-cygwin is provided as a Cygwin package.
 
 
     Makarius
-    08-Oct-2018
+    21-Mar-2018
