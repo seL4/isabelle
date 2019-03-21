@@ -287,10 +287,10 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(Remote_Build("Mac OS X 10.14 High Sierra", "lapbroy68", self_update = true,
-        options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true -e ISABELLE_OCAML_SETUP=true",
+        options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Mac OS X 10.14 Mojave", "lapnipkow3", self_update = true,
-        options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -e ISABELLE_OCAML_SETUP=true",
+        options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
