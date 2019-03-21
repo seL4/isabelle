@@ -279,7 +279,7 @@ fun size_fast :: "'a tree \<Rightarrow> nat" where
 "size_fast Leaf = 0" |
 "size_fast (Node l x r) = (let n = size_fast r in 1 + 2*n + diff l n)"
 
-lemma diff: "braun t \<Longrightarrow> size t : {n, n + 1} \<Longrightarrow> diff t n = (if size t = n then 0 else 1)"
+lemma diff: "braun t \<Longrightarrow> size t : {n, n + 1} \<Longrightarrow> diff t n = size t - n"
 by(induction t arbitrary: n) auto
 
 lemma size_fast: "braun t \<Longrightarrow> size_fast t = size t"
