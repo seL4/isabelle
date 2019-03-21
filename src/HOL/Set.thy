@@ -1354,6 +1354,13 @@ lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
 lemma Diff_Int2: "A \<inter> C - B \<inter> C = A \<inter> C - B"
   by blast
 
+lemma subset_UnE: 
+  assumes "C \<subseteq> A \<union> B"
+  obtains A' B' where "A' \<subseteq> A" "B' \<subseteq> B" "C = A' \<union> B'"
+proof
+  show "C \<inter> A \<subseteq> A" "C \<inter> B \<subseteq> B" "C = (C \<inter> A) \<union> (C \<inter> B)"
+    using assms by blast+
+qed
 
 text \<open>\<^medskip> Set complement\<close>
 
@@ -1594,6 +1601,9 @@ lemma bex_simps [simp, no_atp]:
   "\<And>A P. (\<not>(\<exists>x\<in>A. P x)) \<longleftrightarrow> (\<forall>x\<in>A. \<not> P x)"
   by auto
 
+lemma ex_image_cong_iff [simp, no_atp]:
+  "(\<exists>x. x\<in>f`A) \<longleftrightarrow> A \<noteq> {}" "(\<exists>x. x\<in>f`A \<and> P x) \<longleftrightarrow> (\<exists>x\<in>A. P (f x))"
+  by auto
 
 subsubsection \<open>Monotonicity of various operations\<close>
 

@@ -1410,7 +1410,10 @@ lemma closure_of_locally_finite_Union:
   by (simp add: Sup_le_iff closure_of_minimal)
 
 
-subsection\<open>Continuous maps\<close>
+subsection%important \<open>Continuous maps\<close>
+
+text \<open>We will need to deal with continuous maps in terms of topologies and not in terms
+of type classes, as defined below.\<close>
 
 definition continuous_map where
   "continuous_map X Y f \<equiv>
@@ -1717,6 +1720,22 @@ lemma continuous_map_id_subt [simp]: "continuous_map (subtopology X S) X id"
 declare continuous_map_id_subt [unfolded id_def, simp]
 
 
+lemma%important continuous_map_alt:
+   "continuous_map T1 T2 f 
+    = ((\<forall>U. openin T2 U \<longrightarrow> openin T1 (f -` U \<inter> topspace T1)) \<and> f ` topspace T1 \<subseteq> topspace T2)"
+  by (auto simp: continuous_map_def vimage_def image_def Collect_conj_eq inf_commute)
+
+lemma continuous_map_open [intro]:
+  "continuous_map T1 T2 f \<Longrightarrow> openin T2 U \<Longrightarrow> openin T1 (f-`U \<inter> topspace(T1))"
+  unfolding continuous_map_alt by auto
+
+lemma continuous_map_preimage_topspace [intro]:
+  assumes "continuous_map T1 T2 f"
+  shows "f-`(topspace T2) \<inter> topspace T1 = topspace T1"
+using assms unfolding continuous_map_def by auto
+
+
+
 subsection\<open>Open and closed maps (not a priori assumed continuous)\<close>
 
 definition open_map :: "'a topology \<Rightarrow> 'b topology \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
@@ -1852,7 +1871,7 @@ lemma open_map_restriction:
   apply clarify
   apply (rename_tac T)
   apply (rule_tac x="f ` T" in image_eqI)
-  using openin_closedin_eq by force+
+  using openin_closedin_eq by fastforce+
 
 lemma closed_map_restriction:
      "\<lbrakk>closed_map X X' f; {x. x \<in> topspace X \<and> f x \<in> V} = U\<rbrakk>
@@ -1861,7 +1880,7 @@ lemma closed_map_restriction:
   apply clarify
   apply (rename_tac T)
   apply (rule_tac x="f ` T" in image_eqI)
-  using closedin_def by force+
+  using closedin_def by fastforce+
 
 subsection\<open>Quotient maps\<close>
                                       
@@ -4177,35 +4196,10 @@ next
   qed
 qed
 
-subsubsection%important \<open>Continuity\<close>
-
-text \<open>We will need to deal with continuous maps in terms of topologies and not in terms
-of type classes, as defined below.\<close>
-
-definition%important continuous_on_topo::"'a topology \<Rightarrow> 'b topology \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  where "continuous_on_topo T1 T2 f = ((\<forall> U. openin T2 U \<longrightarrow> openin T1 (f-`U \<inter> topspace(T1)))
-                                      \<and> (f`(topspace T1) \<subseteq> (topspace T2)))"
-
-lemma continuous_on_continuous_on_topo:
-  "continuous_on s f \<longleftrightarrow> continuous_on_topo (top_of_set s) euclidean f"
-  by (auto simp: continuous_on_topo_def Int_commute continuous_openin_preimage_eq)
-
-lemma continuous_on_topo_UNIV:
-  "continuous_on UNIV f \<longleftrightarrow> continuous_on_topo euclidean euclidean f"
-using continuous_on_continuous_on_topo[of UNIV f] subtopology_UNIV[of euclidean] by auto
-
-lemma continuous_on_topo_open [intro]:
-  "continuous_on_topo T1 T2 f \<Longrightarrow> openin T2 U \<Longrightarrow> openin T1 (f-`U \<inter> topspace(T1))"
-  unfolding continuous_on_topo_def by auto
-
-lemma continuous_on_topo_topspace [intro]:
-  "continuous_on_topo T1 T2 f \<Longrightarrow> f`(topspace T1) \<subseteq> (topspace T2)"
-unfolding continuous_on_topo_def by auto
-
 lemma continuous_on_generated_topo_iff:
-  "continuous_on_topo T1 (topology_generated_by S) f \<longleftrightarrow>
+  "continuous_map T1 (topology_generated_by S) f \<longleftrightarrow>
       ((\<forall>U. U \<in> S \<longrightarrow> openin T1 (f-`U \<inter> topspace(T1))) \<and> (f`(topspace T1) \<subseteq> (\<Union> S)))"
-unfolding continuous_on_topo_def topology_generated_by_topspace
+unfolding continuous_map_alt topology_generated_by_topspace
 proof (auto simp add: topology_generated_by_Basis)
   assume H: "\<forall>U. U \<in> S \<longrightarrow> openin T1 (f -` U \<inter> topspace T1)"
   fix U assume "openin (topology_generated_by S) U"
@@ -4231,31 +4225,11 @@ qed
 lemma continuous_on_generated_topo:
   assumes "\<And>U. U \<in>S \<Longrightarrow> openin T1 (f-`U \<inter> topspace(T1))"
           "f`(topspace T1) \<subseteq> (\<Union> S)"
-  shows "continuous_on_topo T1 (topology_generated_by S) f"
+  shows "continuous_map T1 (topology_generated_by S) f"
   using assms continuous_on_generated_topo_iff by blast
 
-proposition continuous_on_topo_compose:
-  assumes "continuous_on_topo T1 T2 f" "continuous_on_topo T2 T3 g"
-  shows "continuous_on_topo T1 T3 (g o f)"
-  using assms unfolding continuous_on_topo_def
-proof (auto)
-  fix U :: "'c set"
-  assume H: "openin T3 U"
-  have "openin T1 (f -` (g -` U \<inter> topspace T2) \<inter> topspace T1)"
-    using H assms by blast
-  moreover have "f -` (g -` U \<inter> topspace T2) \<inter> topspace T1 = (g \<circ> f) -` U \<inter> topspace T1"
-    using H assms continuous_on_topo_topspace by fastforce
-  ultimately show "openin T1 ((g \<circ> f) -` U \<inter> topspace T1)"
-    by simp
-qed (blast)
 
-lemma continuous_on_topo_preimage_topspace [intro]:
-  assumes "continuous_on_topo T1 T2 f"
-  shows "f-`(topspace T2) \<inter> topspace T1 = topspace T1"
-using assms unfolding continuous_on_topo_def by auto
-
-
-subsubsection%important \<open>Pullback topology\<close>
+subsection%important \<open>Pullback topology\<close>
 
 text \<open>Pulling back a topology by map gives again a topology. \<open>subtopology\<close> is
 a special case of this notion, pulling back by the identity. We introduce the general notion as
@@ -4289,14 +4263,14 @@ lemma topspace_pullback_topology:
   "topspace (pullback_topology A f T) = f-`(topspace T) \<inter> A"
 by (auto simp add: topspace_def openin_pullback_topology)
 
-proposition continuous_on_topo_pullback [intro]:
-  assumes "continuous_on_topo T1 T2 g"
-  shows "continuous_on_topo (pullback_topology A f T1) T2 (g o f)"
-unfolding continuous_on_topo_def
+proposition continuous_map_pullback [intro]:
+  assumes "continuous_map T1 T2 g"
+  shows "continuous_map (pullback_topology A f T1) T2 (g o f)"
+unfolding continuous_map_alt
 proof (auto)
   fix U::"'b set" assume "openin T2 U"
   then have "openin T1 (g-`U \<inter> topspace T1)"
-    using assms unfolding continuous_on_topo_def by auto
+    using assms unfolding continuous_map_alt by auto
   have "(g o f)-`U \<inter> topspace (pullback_topology A f T1) = (g o f)-`U \<inter> A \<inter> f-`(topspace T1)"
     unfolding topspace_pullback_topology by auto
   also have "... = f-`(g-`U \<inter> topspace T1) \<inter> A "
@@ -4310,13 +4284,13 @@ next
   then have "f x \<in> topspace T1"
     unfolding topspace_pullback_topology by auto
   then show "g (f x) \<in> topspace T2"
-    using assms unfolding continuous_on_topo_def by auto
+    using assms unfolding continuous_map_def by auto
 qed
 
-proposition continuous_on_topo_pullback' [intro]:
-  assumes "continuous_on_topo T1 T2 (f o g)" "topspace T1 \<subseteq> g-`A"
-  shows "continuous_on_topo T1 (pullback_topology A f T2) g"
-unfolding continuous_on_topo_def
+proposition continuous_map_pullback' [intro]:
+  assumes "continuous_map T1 T2 (f o g)" "topspace T1 \<subseteq> g-`A"
+  shows "continuous_map T1 (pullback_topology A f T2) g"
+unfolding continuous_map_alt
 proof (auto)
   fix U assume "openin (pullback_topology A f T2) U"
   then have "\<exists>V. openin T2 V \<and> U = f-`V \<inter> A"
@@ -4335,7 +4309,7 @@ proof (auto)
 next
   fix x assume "x \<in> topspace T1"
   have "(f o g) x \<in> topspace T2"
-    using assms(1) \<open>x \<in> topspace T1\<close> unfolding continuous_on_topo_def by auto
+    using assms(1) \<open>x \<in> topspace T1\<close> unfolding continuous_map_def by auto
   then have "g x \<in> f-`(topspace T2)"
     unfolding comp_def by blast
   moreover have "g x \<in> A" using assms(2) \<open>x \<in> topspace T1\<close> by blast

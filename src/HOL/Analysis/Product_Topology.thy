@@ -1,15 +1,12 @@
+section\<open>The binary product topology\<close>
+
 theory Product_Topology
 imports Function_Topology   
 begin
 
-lemma subset_UnE: (*FIXME MOVE*)
-  assumes "C \<subseteq> A \<union> B"
-    obtains A' B' where "A' \<subseteq> A" "B' \<subseteq> B" "C = A' \<union> B'"
-  by (metis assms Int_Un_distrib inf.order_iff inf_le2)
-
 section \<open>Product Topology\<close> 
 
-subsection\<open>A binary product topology where the two types can be different.\<close>
+subsection\<open>Definition\<close>
 
 definition prod_topology :: "'a topology \<Rightarrow> 'b topology \<Rightarrow> ('a \<times> 'b) topology" where
  "prod_topology X Y \<equiv> topology (arbitrary union_of (\<lambda>U. U \<in> {S \<times> T |S T. openin X S \<and> openin Y T}))"
@@ -34,7 +31,7 @@ lemma openin_prod_topology:
 proof (rule topology_inverse')
   show "istopology (arbitrary union_of (\<lambda>U. U \<in> {S \<times> T |S T. openin X S \<and> openin Y T}))"
     apply (rule istopology_base, simp)
-    by (metis openin_Int times_Int_times)
+    by (metis openin_Int Times_Int_Times)
 qed
 
 lemma topspace_prod_topology [simp]:
@@ -62,7 +59,7 @@ lemma subtopology_Times:
 proof -
   have "((\<lambda>U. \<exists>S T. U = S \<times> T \<and> openin X S \<and> openin Y T) relative_to S \<times> T) =
         (\<lambda>U. \<exists>S' T'. U = S' \<times> T' \<and> (openin X relative_to S) S' \<and> (openin Y relative_to T) T')"
-    by (auto simp: relative_to_def times_Int_times fun_eq_iff) metis
+    by (auto simp: relative_to_def Times_Int_Times fun_eq_iff) metis
   then show ?thesis
     by (simp add: topology_eq openin_prod_topology arbitrary_union_of_relative_to flip: openin_relative_to)
 qed
@@ -81,7 +78,7 @@ lemma prod_topology_euclidean [simp]: "prod_topology euclidean euclidean = eucli
 
 lemma prod_topology_subtopology_eu [simp]:
   "prod_topology (subtopology euclidean S) (subtopology euclidean T) = subtopology euclidean (S \<times> T)"
-  by (simp add: prod_topology_subtopology subtopology_subtopology times_Int_times)
+  by (simp add: prod_topology_subtopology subtopology_subtopology Times_Int_Times)
 
 lemma continuous_map_subtopology_eu [simp]:
   "continuous_map (subtopology euclidean S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
@@ -127,6 +124,29 @@ qed
 lemma closedin_Times:
    "closedin (prod_topology X Y) (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> closedin X S \<and> closedin Y T"
   by (auto simp: closure_of_Times times_eq_iff simp flip: closure_of_eq)
+
+lemma interior_of_Times: "(prod_topology X Y) interior_of (S \<times> T) = (X interior_of S) \<times> (Y interior_of T)"
+proof (rule interior_of_unique)
+  show "(X interior_of S) \<times> Y interior_of T \<subseteq> S \<times> T"
+    by (simp add: Sigma_mono interior_of_subset)
+  show "openin (prod_topology X Y) ((X interior_of S) \<times> Y interior_of T)"
+    by (simp add: openin_Times)
+next
+  show "T' \<subseteq> (X interior_of S) \<times> Y interior_of T" if "T' \<subseteq> S \<times> T" "openin (prod_topology X Y) T'" for T'
+  proof (clarsimp; intro conjI)
+    fix a :: "'a" and b :: "'b"
+    assume "(a, b) \<in> T'"
+    with that obtain U V where UV: "openin X U" "openin Y V" "a \<in> U" "b \<in> V" "U \<times> V \<subseteq> T'"
+      by (metis openin_prod_topology_alt)
+    then show "a \<in> X interior_of S"
+      using interior_of_maximal_eq that(1) by fastforce
+    show "b \<in> Y interior_of T"
+      using UV interior_of_maximal_eq that(1)
+      by (metis SigmaI mem_Sigma_iff subset_eq)
+  qed
+qed
+
+subsection \<open>Continuity\<close>
 
 lemma continuous_map_pairwise:
    "continuous_map Z (prod_topology X Y) f \<longleftrightarrow> continuous_map Z X (fst \<circ> f) \<and> continuous_map Z Y (snd \<circ> f)"
@@ -297,37 +317,6 @@ next
     by (simp add: continuous_map_paired case_prod_unfold continuous_map_of_fst [unfolded o_def] continuous_map_of_snd [unfolded o_def])
 qed
 
-lemma homeomorphic_maps_prod:
-   "homeomorphic_maps (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) (\<lambda>(x,y). (f' x, g' y)) \<longleftrightarrow>
-        topspace(prod_topology X Y) = {} \<and>
-        topspace(prod_topology X' Y') = {} \<or>
-        homeomorphic_maps X X' f f' \<and>
-        homeomorphic_maps Y Y' g g'"
-  unfolding homeomorphic_maps_def continuous_map_prod_top
-  by (auto simp: continuous_map_def homeomorphic_maps_def continuous_map_prod_top)
-
-lemma embedding_map_graph:
-   "embedding_map X (prod_topology X Y) (\<lambda>x. (x, f x)) \<longleftrightarrow> continuous_map X Y f"
-    (is "?lhs = ?rhs")
-proof
-  assume L: ?lhs
-  have "snd \<circ> (\<lambda>x. (x, f x)) = f"
-    by force
-  moreover have "continuous_map X Y (snd \<circ> (\<lambda>x. (x, f x)))"
-    using L
-    unfolding embedding_map_def
-    by (meson continuous_map_in_subtopology continuous_map_snd_of homeomorphic_imp_continuous_map)
-  ultimately show ?rhs
-    by simp
-next
-  assume R: ?rhs
-  then show ?lhs
-    unfolding homeomorphic_map_maps embedding_map_def homeomorphic_maps_def
-    by (rule_tac x=fst in exI)
-       (auto simp: continuous_map_in_subtopology continuous_map_paired continuous_map_from_subtopology
-                   continuous_map_fst topspace_subtopology)
-qed
-
 lemma in_prod_topology_closure_of:
   assumes  "z \<in> (prod_topology X Y) closure_of S"
   shows "fst z \<in> X closure_of (fst ` S)" "snd z \<in> Y closure_of (snd ` S)"
@@ -412,7 +401,7 @@ next
           then show ?case
             unfolding \<X>_def \<Y>_def
             apply (simp add: Int_ac subset_eq image_def)
-            apply (metis (no_types) openin_Int openin_topspace times_Int_times)
+            apply (metis (no_types) openin_Int openin_topspace Times_Int_Times)
             done
         qed auto
         then show ?thesis
@@ -450,10 +439,85 @@ next
     using False by blast
 qed
 
-
 lemma compactin_Times:
    "compactin (prod_topology X Y) (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> compactin X S \<and> compactin Y T"
   by (auto simp: compactin_subspace subtopology_Times compact_space_prod_topology)
+
+subsection\<open>Homeomorphic maps\<close>
+
+lemma homeomorphic_maps_prod:
+   "homeomorphic_maps (prod_topology X Y) (prod_topology X' Y') (\<lambda>(x,y). (f x, g y)) (\<lambda>(x,y). (f' x, g' y)) \<longleftrightarrow>
+        topspace(prod_topology X Y) = {} \<and>
+        topspace(prod_topology X' Y') = {} \<or>
+        homeomorphic_maps X X' f f' \<and>
+        homeomorphic_maps Y Y' g g'"
+  unfolding homeomorphic_maps_def continuous_map_prod_top
+  by (auto simp: continuous_map_def homeomorphic_maps_def continuous_map_prod_top)
+
+lemma embedding_map_graph:
+   "embedding_map X (prod_topology X Y) (\<lambda>x. (x, f x)) \<longleftrightarrow> continuous_map X Y f"
+    (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  have "snd \<circ> (\<lambda>x. (x, f x)) = f"
+    by force
+  moreover have "continuous_map X Y (snd \<circ> (\<lambda>x. (x, f x)))"
+    using L
+    unfolding embedding_map_def
+    by (meson continuous_map_in_subtopology continuous_map_snd_of homeomorphic_imp_continuous_map)
+  ultimately show ?rhs
+    by simp
+next
+  assume R: ?rhs
+  then show ?lhs
+    unfolding homeomorphic_map_maps embedding_map_def homeomorphic_maps_def
+    by (rule_tac x=fst in exI)
+       (auto simp: continuous_map_in_subtopology continuous_map_paired continuous_map_from_subtopology
+                   continuous_map_fst topspace_subtopology)
+qed
+
+lemma homeomorphic_space_prod_topology:
+   "\<lbrakk>X homeomorphic_space X''; Y homeomorphic_space Y'\<rbrakk>
+        \<Longrightarrow> prod_topology X Y homeomorphic_space prod_topology X'' Y'"
+using homeomorphic_maps_prod unfolding homeomorphic_space_def by blast
+
+lemma prod_topology_homeomorphic_space_left:
+   "topspace Y = {b} \<Longrightarrow> prod_topology X Y homeomorphic_space X"
+  unfolding homeomorphic_space_def
+  by (rule_tac x=fst in exI) (simp add: homeomorphic_map_def inj_on_def flip: homeomorphic_map_maps)
+
+lemma prod_topology_homeomorphic_space_right:
+   "topspace X = {a} \<Longrightarrow> prod_topology X Y homeomorphic_space Y"
+  unfolding homeomorphic_space_def
+  by (rule_tac x=snd in exI) (simp add: homeomorphic_map_def inj_on_def flip: homeomorphic_map_maps)
+
+
+lemma homeomorphic_space_prod_topology_sing1:
+     "b \<in> topspace Y \<Longrightarrow> X homeomorphic_space (prod_topology X (subtopology Y {b}))"
+  by (metis empty_subsetI homeomorphic_space_sym inf.absorb_iff2 insert_subset prod_topology_homeomorphic_space_left topspace_subtopology)
+
+lemma homeomorphic_space_prod_topology_sing2:
+     "a \<in> topspace X \<Longrightarrow> Y homeomorphic_space (prod_topology (subtopology X {a}) Y)"
+  by (metis empty_subsetI homeomorphic_space_sym inf.absorb_iff2 insert_subset prod_topology_homeomorphic_space_right topspace_subtopology)
+
+lemma topological_property_of_prod_component:
+  assumes major: "P(prod_topology X Y)"
+    and X: "\<And>x. \<lbrakk>x \<in> topspace X; P(prod_topology X Y)\<rbrakk> \<Longrightarrow> P(subtopology (prod_topology X Y) ({x} \<times> topspace Y))"
+    and Y: "\<And>y. \<lbrakk>y \<in> topspace Y; P(prod_topology X Y)\<rbrakk> \<Longrightarrow> P(subtopology (prod_topology X Y) (topspace X \<times> {y}))"
+    and PQ:  "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> Q X')"
+    and PR: "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> R X')"
+  shows "topspace(prod_topology X Y) = {} \<or> Q X \<and> R Y"
+proof -
+  have "Q X \<and> R Y" if "topspace(prod_topology X Y) \<noteq> {}"
+  proof -
+    from that obtain a b where a: "a \<in> topspace X" and b: "b \<in> topspace Y"
+      by force
+    show ?thesis
+      using X [OF a major] and Y [OF b major] homeomorphic_space_prod_topology_sing1 [OF b, of X] homeomorphic_space_prod_topology_sing2 [OF a, of Y]
+      by (simp add: subtopology_Times) (meson PQ PR homeomorphic_space_prod_topology_sing2 homeomorphic_space_sym)
+  qed
+  then show ?thesis by metis
+qed
 
 end
 

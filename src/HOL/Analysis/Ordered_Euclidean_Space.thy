@@ -1,4 +1,4 @@
-subsection \<open>Ordered Euclidean Space\<close> (* why not Section? *)
+section \<open>Ordered Euclidean Space\<close>
 
 theory Ordered_Euclidean_Space
 imports

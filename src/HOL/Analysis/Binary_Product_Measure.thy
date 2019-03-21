@@ -74,11 +74,11 @@ proof (rule measurable_pair_measureI)
 qed
 
 lemma measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otimes>\<^sub>M M2) M1"
-  by (auto simp: fst_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
+  by (auto simp: fst_vimage_eq_Times space_pair_measure sets.sets_into_space Times_Int_Times
     measurable_def)
 
 lemma measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otimes>\<^sub>M M2) M2"
-  by (auto simp: snd_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
+  by (auto simp: snd_vimage_eq_Times space_pair_measure sets.sets_into_space Times_Int_Times
     measurable_def)
 
 lemma measurable_Pair_compose_split[measurable_dest]:
@@ -215,7 +215,7 @@ lemma measurable_Pair1:
 
 lemma Int_stable_pair_measure_generator: "Int_stable {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
   unfolding Int_stable_def
-  by safe (auto simp add: times_Int_times)
+  by safe (auto simp add: Times_Int_Times)
 
 lemma (in finite_measure) finite_measure_cut_measurable:
   assumes [measurable]: "Q \<in> sets (N \<Otimes>\<^sub>M M)"

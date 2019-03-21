@@ -1,7 +1,7 @@
 section\<open>T1 spaces with equivalences to many naturally "nice" properties. \<close>
 
 theory T1_Spaces
-imports Function_Topology 
+imports Product_Topology 
 begin
 
 definition t1_space where
@@ -196,6 +196,22 @@ next
   qed
   then show ?thesis
     using False by blast
+qed
+
+lemma t1_space_prod_topology:
+   "t1_space(prod_topology X Y) \<longleftrightarrow> topspace(prod_topology X Y) = {} \<or> t1_space X \<and> t1_space Y"
+proof (cases "topspace (prod_topology X Y) = {}")
+  case True then show ?thesis
+  by (auto simp: t1_space_empty)
+next
+  case False
+  have eq: "{(x,y)} = {x} \<times> {y}" for x y
+    by simp
+  have "t1_space (prod_topology X Y) \<longleftrightarrow> (t1_space X \<and> t1_space Y)"
+    using False
+    by (force simp: t1_space_closedin_singleton closedin_Times eq simp del: insert_Times_insert)
+  with False show ?thesis
+    by simp
 qed
 
 end

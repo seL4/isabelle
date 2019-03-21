@@ -3,11 +3,11 @@
 *)
 
 theory Function_Topology
-imports Topology_Euclidean_Space   
+imports Topology_Euclidean_Space
 begin
 
 
-section \<open>Function Topology\<close> 
+section \<open>Function Topology\<close>
 
 text \<open>We want to define the general product topology.
 
@@ -42,17 +42,17 @@ probably too naive here).
 
 Here is an example of a reformulation using topologies. Let
 @{text [display]
-\<open>continuous_on_topo T1 T2 f =
+\<open>continuous_map T1 T2 f =
     ((\<forall> U. openin T2 U \<longrightarrow> openin T1 (f-`U \<inter> topspace(T1)))
             \<and> (f`(topspace T1) \<subseteq> (topspace T2)))\<close>}
 be the natural continuity definition of a map from the topology \<open>T1\<close> to the topology \<open>T2\<close>. Then
 the current \<open>continuous_on\<close> (with type classes) can be redefined as
 @{text [display] \<open>continuous_on s f =
-    continuous_on_topo (top_of_set s) (topology euclidean) f\<close>}
+    continuous_map (top_of_set s) (topology euclidean) f\<close>}
 
-In fact, I need \<open>continuous_on_topo\<close> to express the continuity of the projection on subfactors
+In fact, I need \<open>continuous_map\<close> to express the continuity of the projection on subfactors
 for the product topology, in Lemma~\<open>continuous_on_restrict_product_topology\<close>, and I show
-the above equivalence in Lemma~\<open>continuous_on_continuous_on_topo\<close>.
+the above equivalence in Lemma~\<open>continuous_map_iff_continuous\<close>.
 
 I only develop the basics of the product topology in this theory. The most important missing piece
 is Tychonov theorem, stating that a product of compact spaces is always compact for the product
@@ -252,7 +252,7 @@ lemma openin_product_topology:
           ((finite intersection_of (\<lambda>F. (\<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U)))
            relative_to topspace (product_topology X I))"
   apply (subst product_topology)
-  apply (simp add: topspace_product_topology topology_inverse' [OF istopology_subbase])
+  apply (simp add: topology_inverse' [OF istopology_subbase])
   done
 
 lemma subtopology_PiE:
@@ -286,10 +286,9 @@ proof -
   done
 qed
 
-
 lemma product_topology_base_alt:
    "finite intersection_of (\<lambda>F. (\<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U))
-    relative_to topspace(product_topology X I) =
+    relative_to (\<Pi>\<^sub>E i\<in>I. topspace (X i)) =
     (\<lambda>F. (\<exists>U. F =  Pi\<^sub>E I U \<and> finite {i \<in> I. U i \<noteq> topspace(X i)} \<and> (\<forall>i \<in> I. openin (X i) (U i))))"
    (is "?lhs = ?rhs")
 proof -
@@ -339,6 +338,15 @@ proof -
   ultimately show ?thesis
     by meson
 qed
+
+corollary openin_product_topology_alt:
+  "openin (product_topology X I) S \<longleftrightarrow>
+    (\<forall>x \<in> S. \<exists>U. finite {i \<in> I. U i \<noteq> topspace(X i)} \<and>
+                 (\<forall>i \<in> I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S)"
+  unfolding openin_product_topology arbitrary_union_of_alt product_topology_base_alt topspace_product_topology
+  apply safe
+  apply (drule bspec; blast)+
+  done
 
 lemma closure_of_product_topology:
   "(product_topology X I) closure_of (PiE I S) = PiE I (\<lambda>i. (X i) closure_of (S i))"
@@ -445,9 +453,9 @@ lemma openin_product_topology_empty: "openin (product_topology X {}) S \<longlef
 
 subsubsection \<open>The basic property of the product topology is the continuity of projections:\<close>
 
-lemma continuous_on_topo_product_coordinates [simp]:
+lemma continuous_map_product_coordinates [simp]:
   assumes "i \<in> I"
-  shows "continuous_on_topo (product_topology T I) (T i) (\<lambda>x. x i)"
+  shows "continuous_map (product_topology T I) (T i) (\<lambda>x. x i)"
 proof -
   {
     fix U assume "openin (T i) U"
@@ -463,14 +471,14 @@ proof -
       apply (subst *)
       using ** by auto
   }
-  then show ?thesis unfolding continuous_on_topo_def
-    by (auto simp add: assms topspace_product_topology PiE_iff)
+  then show ?thesis unfolding continuous_map_alt
+    by (auto simp add: assms PiE_iff)
 qed
 
-lemma continuous_on_topo_coordinatewise_then_product [intro]:
-  assumes "\<And>i. i \<in> I \<Longrightarrow> continuous_on_topo T1 (T i) (\<lambda>x. f x i)"
+lemma continuous_map_coordinatewise_then_product [intro]:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> continuous_map T1 (T i) (\<lambda>x. f x i)"
           "\<And>i x. i \<notin> I \<Longrightarrow> x \<in> topspace T1 \<Longrightarrow> f x i = undefined"
-  shows "continuous_on_topo T1 (product_topology T I) f"
+  shows "continuous_map T1 (product_topology T I) f"
 unfolding product_topology_def
 proof (rule continuous_on_generated_topo)
   fix U assume "U \<in> {Pi\<^sub>E I X |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
@@ -479,7 +487,7 @@ proof (rule continuous_on_generated_topo)
   define J where "J = {i \<in> I. X i \<noteq> topspace (T i)}"
   have "finite J" "J \<subseteq> I" unfolding J_def using H(3) by auto
   have "(\<lambda>x. f x i)-`(topspace(T i)) \<inter> topspace T1 = topspace T1" if "i \<in> I" for i
-    using that assms(1) by (simp add: continuous_on_topo_preimage_topspace)
+    using that assms(1) by (simp add: continuous_map_preimage_topspace)
   then have *: "(\<lambda>x. f x i)-`(X i) \<inter> topspace T1 = topspace T1" if "i \<in> I-J" for i
     using that unfolding J_def by auto
   have "f-`U \<inter> topspace T1 = (\<Inter>i\<in>I. (\<lambda>x. f x i)-`(X i) \<inter> topspace T1) \<inter> (topspace T1)"
@@ -497,25 +505,25 @@ next
     apply (subst product_topology_def[symmetric])
     apply (simp only: topspace_product_topology)
     apply (auto simp add: PiE_iff)
-    using assms unfolding continuous_on_topo_def by auto
+    using assms unfolding continuous_map_def by auto
 qed
 
-lemma continuous_on_topo_product_then_coordinatewise [intro]:
-  assumes "continuous_on_topo T1 (product_topology T I) f"
-  shows "\<And>i. i \<in> I \<Longrightarrow> continuous_on_topo T1 (T i) (\<lambda>x. f x i)"
+lemma continuous_map_product_then_coordinatewise [intro]:
+  assumes "continuous_map T1 (product_topology T I) f"
+  shows "\<And>i. i \<in> I \<Longrightarrow> continuous_map T1 (T i) (\<lambda>x. f x i)"
         "\<And>i x. i \<notin> I \<Longrightarrow> x \<in> topspace T1 \<Longrightarrow> f x i = undefined"
 proof -
   fix i assume "i \<in> I"
   have "(\<lambda>x. f x i) = (\<lambda>y. y i) o f" by auto
-  also have "continuous_on_topo T1 (T i) (...)"
-    apply (rule continuous_on_topo_compose[of _ "product_topology T I"])
+  also have "continuous_map T1 (T i) (...)"
+    apply (rule continuous_map_compose[of _ "product_topology T I"])
     using assms \<open>i \<in> I\<close> by auto
-  ultimately show "continuous_on_topo T1 (T i) (\<lambda>x. f x i)"
+  ultimately show "continuous_map T1 (T i) (\<lambda>x. f x i)"
     by simp
 next
   fix i x assume "i \<notin> I" "x \<in> topspace T1"
   have "f x \<in> topspace (product_topology T I)"
-    using assms \<open>x \<in> topspace T1\<close> unfolding continuous_on_topo_def by auto
+    using assms \<open>x \<in> topspace T1\<close> unfolding continuous_map_def by auto
   then have "f x \<in> (\<Pi>\<^sub>E i\<in>I. topspace (T i))"
     using topspace_product_topology by metis
   then show "f x i = undefined"
@@ -524,11 +532,11 @@ qed
 
 lemma continuous_on_restrict:
   assumes "J \<subseteq> I"
-  shows "continuous_on_topo (product_topology T I) (product_topology T J) (\<lambda>x. restrict x J)"
-proof (rule continuous_on_topo_coordinatewise_then_product)
+  shows "continuous_map (product_topology T I) (product_topology T J) (\<lambda>x. restrict x J)"
+proof (rule continuous_map_coordinatewise_then_product)
   fix i assume "i \<in> J"
   then have "(\<lambda>x. restrict x J i) = (\<lambda>x. x i)" unfolding restrict_def by auto
-  then show "continuous_on_topo (product_topology T I) (T i) (\<lambda>x. restrict x J i)"
+  then show "continuous_map (product_topology T I) (T i) (\<lambda>x. restrict x J i)"
     using \<open>i \<in> J\<close> \<open>J \<subseteq> I\<close> by auto
 next
   fix i assume "i \<notin> J"
@@ -571,7 +579,7 @@ proof -
   have **: "finite {i. X i \<noteq> UNIV}"
     unfolding X_def V_def J_def using assms(1) by auto
   have "open (Pi\<^sub>E UNIV X)"
-    unfolding open_fun_def 
+    unfolding open_fun_def
     by (simp_all add: * ** product_topology_basis)
   moreover have "Pi\<^sub>E UNIV X = {f. \<forall>i\<in>I. f (x i) \<in> U i}"
     apply (auto simp add: PiE_iff) unfolding X_def V_def J_def
@@ -594,28 +602,28 @@ spaces have their counterparts in this simpler setting.\<close>
 
 lemma continuous_on_product_coordinates [simp]:
   "continuous_on UNIV (\<lambda>x. x i::('b::topological_space))"
-  unfolding continuous_on_topo_UNIV euclidean_product_topology
-  by (rule continuous_on_topo_product_coordinates, simp)
+  using continuous_map_product_coordinates [of _ UNIV "\<lambda>i. euclidean"]
+    by (metis (no_types) continuous_map_iff_continuous euclidean_product_topology iso_tuple_UNIV_I subtopology_UNIV)
 
 lemma continuous_on_coordinatewise_then_product [intro, continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b \<Rightarrow> 'c::topological_space"
   assumes "\<And>i. continuous_on S (\<lambda>x. f x i)"
   shows "continuous_on S f"
-  using continuous_on_topo_coordinatewise_then_product [of UNIV, where T = "\<lambda>i. euclidean"]
-  by (metis UNIV_I assms continuous_on_continuous_on_topo euclidean_product_topology)
+  using continuous_map_coordinatewise_then_product [of UNIV, where T = "\<lambda>i. euclidean"]
+  by (metis UNIV_I assms continuous_map_iff_continuous euclidean_product_topology)
 
 lemma continuous_on_product_then_coordinatewise_UNIV:
   assumes "continuous_on UNIV f"
   shows "continuous_on UNIV (\<lambda>x. f x i)"
-using assms unfolding continuous_on_topo_UNIV euclidean_product_topology
-by (rule continuous_on_topo_product_then_coordinatewise(1), simp)
+  using assms unfolding continuous_map_iff_continuous2 [symmetric] euclidean_product_topology
+  by fastforce
 
 lemma continuous_on_product_then_coordinatewise:
   assumes "continuous_on S f"
   shows "continuous_on S (\<lambda>x. f x i)"
 proof -
   have "continuous_on S ((\<lambda>q. q i) \<circ> f)"
-    by (metis assms continuous_on_compose continuous_on_id 
+    by (metis assms continuous_on_compose continuous_on_id
         continuous_on_product_then_coordinatewise_UNIV continuous_on_subset subset_UNIV)
   then show ?thesis
     by auto
@@ -1581,5 +1589,167 @@ next
       by (auto simp: retraction_map_def retraction_maps_def assms continuous_map_product_projection *)
   qed
 qed
+
+subsection \<open>Open Pi-sets in the product topology\<close>
+
+proposition openin_PiE_gen:
+  "openin (product_topology X I) (PiE I S) \<longleftrightarrow>
+        PiE I S = {} \<or>
+        finite {i \<in> I. ~(S i = topspace(X i))} \<and> (\<forall>i \<in> I. openin (X i) (S i))"
+  (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
+proof (cases "PiE I S = {}")
+  case False
+  moreover have "?lhs = ?rhs"
+  proof
+    assume L: ?lhs
+    moreover
+    obtain z where z: "z \<in> PiE I S"
+      using False by blast
+    ultimately obtain U where fin: "finite {i \<in> I. U i \<noteq> topspace (X i)}"
+      and "Pi\<^sub>E I U \<noteq> {}"
+      and sub: "Pi\<^sub>E I U \<subseteq> Pi\<^sub>E I S"
+      by (fastforce simp add: openin_product_topology_alt)
+    then have *: "\<And>i. i \<in> I \<Longrightarrow> U i \<subseteq> S i"
+      by (simp add: subset_PiE)
+    show ?rhs
+    proof (intro conjI ballI)
+      show "finite {i \<in> I. S i \<noteq> topspace (X i)}"
+        apply (rule finite_subset [OF _ fin], clarify)
+        using *
+        by (metis False L openin_subset topspace_product_topology subset_PiE subset_antisym)
+    next
+      fix i :: "'a"
+      assume "i \<in> I"
+      then show "openin (X i) (S i)"
+        using open_map_product_projection [of i I X] L
+        apply (simp add: open_map_def)
+        apply (drule_tac x="PiE I S" in spec)
+        apply (simp add: False image_projection_PiE split: if_split_asm)
+        done
+    qed
+  next
+    assume ?rhs
+    then show ?lhs
+      apply (simp only: openin_product_topology)
+      apply (rule arbitrary_union_of_inc)
+      apply (auto simp: product_topology_base_alt)
+      done
+  qed
+  ultimately show ?thesis
+    by simp
+qed simp
+
+
+corollary openin_PiE:
+   "finite I \<Longrightarrow> openin (product_topology X I) (PiE I S) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. openin (X i) (S i))"
+  by (simp add: openin_PiE_gen)
+
+proposition compact_space_product_topology:
+   "compact_space(product_topology X I) \<longleftrightarrow>
+    topspace(product_topology X I) = {} \<or> (\<forall>i \<in> I. compact_space(X i))"
+    (is "?lhs = ?rhs")
+proof (cases "topspace(product_topology X I) = {}")
+  case False
+  then obtain z where z: "z \<in> (\<Pi>\<^sub>E i\<in>I. topspace(X i))"
+    by auto
+  show ?thesis
+  proof
+    assume L: ?lhs
+    show ?rhs
+    proof (clarsimp simp add: False compact_space_def)
+      fix i
+      assume "i \<in> I"
+      with L have "continuous_map (product_topology X I) (X i) (\<lambda>f. f i)"
+        by (simp add: continuous_map_product_projection)
+      moreover
+      have "\<And>x. x \<in> topspace (X i) \<Longrightarrow> x \<in> (\<lambda>f. f i) ` (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+        using \<open>i \<in> I\<close> z
+        apply (rule_tac x="\<lambda>j. if j = i then x else if j \<in> I then z j else undefined" in image_eqI, auto)
+        done
+      then have "(\<lambda>f. f i) ` (\<Pi>\<^sub>E i\<in>I. topspace (X i)) = topspace (X i)"
+        using \<open>i \<in> I\<close> z by auto
+      ultimately show "compactin (X i) (topspace (X i))"
+        by (metis L compact_space_def image_compactin topspace_product_topology)
+    qed
+  next
+    assume R: ?rhs
+    show ?lhs
+    proof (cases "I = {}")
+      case True
+      with R show ?thesis
+        by (simp add: compact_space_def)
+    next
+      case False
+      then obtain i where "i \<in> I"
+        by blast
+      show ?thesis
+        using R
+      proof
+        assume com [rule_format]: "\<forall>i\<in>I. compact_space (X i)"
+        let ?\<C> = "{{f. f i \<in> U} |i U. i \<in> I \<and> openin (X i) U}"
+        show "compact_space (product_topology X I)"
+        proof (rule Alexander_subbase_alt)
+          show "topspace (product_topology X I) \<subseteq> \<Union>?\<C>"
+            unfolding topspace_product_topology using \<open>i \<in> I\<close> by blast
+        next
+          fix C
+          assume Csub: "C \<subseteq> ?\<C>" and UC: "topspace (product_topology X I) \<subseteq> \<Union>C"
+          define \<D> where "\<D> \<equiv> \<lambda>i. {U. openin (X i) U \<and> {f. f i \<in> U} \<in> C}"
+          show "\<exists>C'. finite C' \<and> C' \<subseteq> C \<and> topspace (product_topology X I) \<subseteq> \<Union>C'"
+          proof (cases "\<exists>i. i \<in> I \<and> topspace (X i) \<subseteq> \<Union>(\<D> i)")
+            case True
+            then obtain i where "i \<in> I"
+                   and i: "topspace (X i) \<subseteq> \<Union>(\<D> i)"
+              unfolding \<D>_def by blast
+            then have *: "\<And>\<U>. \<lbrakk>Ball \<U> (openin (X i)); topspace (X i) \<subseteq> \<Union>\<U>\<rbrakk> \<Longrightarrow>
+                            \<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> topspace (X i) \<subseteq> \<Union>\<F>"
+              using com [OF \<open>i \<in> I\<close>] by (auto simp: compact_space_def compactin_def)
+            have "topspace (X i) \<subseteq> \<Union>(\<D> i)"
+              using i by auto
+            with * obtain \<F> where "finite \<F> \<and> \<F> \<subseteq> (\<D> i) \<and> topspace (X i) \<subseteq> \<Union>\<F>"
+              unfolding \<D>_def by fastforce
+            with \<open>i \<in> I\<close> show ?thesis
+              unfolding \<D>_def
+              by (rule_tac x="(\<lambda>U. {x. x i \<in> U}) ` \<F>" in exI) auto
+          next
+            case False
+            then have "\<forall>i \<in> I. \<exists>y. y \<in> topspace (X i) \<and> y \<notin> \<Union>(\<D> i)"
+              by force
+            then obtain g where g: "\<And>i. i \<in> I \<Longrightarrow> g i \<in> topspace (X i) \<and> g i \<notin> \<Union>(\<D> i)"
+              by metis
+            then have "(\<lambda>i. if i \<in> I then g i else undefined) \<in> topspace (product_topology X I)"
+              by (simp add: PiE_I)
+            moreover have "(\<lambda>i. if i \<in> I then g i else undefined) \<notin> \<Union>C"
+              using Csub g unfolding \<D>_def by force
+            ultimately show ?thesis
+              using UC by blast
+          qed
+        qed (simp add: product_topology)
+      qed (simp add: compact_space_topspace_empty)
+    qed
+  qed
+qed (simp add: compact_space_topspace_empty)
+
+corollary compactin_PiE:
+   "compactin (product_topology X I) (PiE I S) \<longleftrightarrow>
+        PiE I S = {} \<or> (\<forall>i \<in> I. compactin (X i) (S i))"
+  by (auto simp: compactin_subspace subtopology_PiE subset_PiE compact_space_product_topology
+       PiE_eq_empty_iff)
+
+lemma in_product_topology_closure_of:
+   "z \<in> (product_topology X I) closure_of S
+        \<Longrightarrow> i \<in> I \<Longrightarrow> z i \<in> ((X i) closure_of ((\<lambda>x. x i) ` S))"
+  using continuous_map_product_projection
+  by (force simp: continuous_map_eq_image_closure_subset image_subset_iff)
+
+lemma homeomorphic_space_singleton_product:
+   "product_topology X {k} homeomorphic_space (X k)"
+  unfolding homeomorphic_space
+  apply (rule_tac x="\<lambda>x. x k" in exI)
+  apply (rule bijective_open_imp_homeomorphic_map)
+     apply (simp_all add: continuous_map_product_projection open_map_product_projection)
+  unfolding PiE_over_singleton_iff
+   apply (auto simp: image_iff inj_on_def)
+  done
 
 end
