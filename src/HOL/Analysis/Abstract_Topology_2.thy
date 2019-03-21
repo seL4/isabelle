@@ -1231,6 +1231,15 @@ lemma pathin_subtopology:
 lemma pathin_const:
    "pathin X (\<lambda>x. a) \<longleftrightarrow> a \<in> topspace X"
   by (simp add: pathin_def)
+   
+lemma path_start_in_topspace: "pathin X g \<Longrightarrow> g 0 \<in> topspace X"
+  by (force simp: pathin_def continuous_map)
+
+lemma path_finish_in_topspace: "pathin X g \<Longrightarrow> g 1 \<in> topspace X"
+  by (force simp: pathin_def continuous_map)
+
+lemma path_image_subset_topspace: "pathin X g \<Longrightarrow> g ` ({0..1}) \<subseteq> topspace X"
+  by (force simp: pathin_def continuous_map)
 
 definition path_connected_space :: "'a topology \<Rightarrow> bool"
   where "path_connected_space X \<equiv> \<forall>x \<in> topspace X. \<forall> y \<in> topspace X. \<exists>g. pathin X g \<and> g 0 = x \<and> g 1 = y"
@@ -1322,6 +1331,19 @@ proof -
     qed (use g in auto)
   qed
 qed
+
+lemma path_connectedin_discrete_topology:
+  "path_connectedin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U \<and> (\<exists>a. S \<subseteq> {a})"
+  apply safe
+  using path_connectedin_subset_topspace apply fastforce
+   apply (meson connectedin_discrete_topology path_connectedin_imp_connectedin)
+  using subset_singletonD by fastforce
+
+lemma path_connected_space_discrete_topology:
+   "path_connected_space (discrete_topology U) \<longleftrightarrow> (\<exists>a. U \<subseteq> {a})"
+  by (metis path_connectedin_discrete_topology path_connectedin_topspace path_connected_space_topspace_empty
+            subset_singletonD topspace_discrete_topology)
+
 
 lemma homeomorphic_path_connected_space_imp:
      "\<lbrakk>path_connected_space X; X homeomorphic_space Y\<rbrakk> \<Longrightarrow> path_connected_space Y"

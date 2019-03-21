@@ -779,41 +779,41 @@ proof -
 qed
 
 lemma strong_operator_topology_continuous_evaluation:
-  "continuous_on_topo strong_operator_topology euclidean (\<lambda>f. blinfun_apply f x)"
+  "continuous_map strong_operator_topology euclidean (\<lambda>f. blinfun_apply f x)"
 proof -
-  have "continuous_on_topo strong_operator_topology euclidean ((\<lambda>f. f x) o blinfun_apply)"
-    unfolding strong_operator_topology_def apply (rule continuous_on_topo_pullback)
-    using continuous_on_topo_UNIV continuous_on_product_coordinates by fastforce
+  have "continuous_map strong_operator_topology euclidean ((\<lambda>f. f x) o blinfun_apply)"
+    unfolding strong_operator_topology_def apply (rule continuous_map_pullback)
+    using continuous_on_product_coordinates by fastforce
   then show ?thesis unfolding comp_def by simp
 qed
 
 lemma continuous_on_strong_operator_topo_iff_coordinatewise:
-  "continuous_on_topo T strong_operator_topology f
-    \<longleftrightarrow> (\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x))"
+  "continuous_map T strong_operator_topology f
+    \<longleftrightarrow> (\<forall>x. continuous_map T euclidean (\<lambda>y. blinfun_apply (f y) x))"
 proof (auto)
   fix x::"'b"
-  assume "continuous_on_topo T strong_operator_topology f"
-  with continuous_on_topo_compose[OF this strong_operator_topology_continuous_evaluation]
-  have "continuous_on_topo T euclidean ((\<lambda>z. blinfun_apply z x) o f)"
+  assume "continuous_map T strong_operator_topology f"
+  with continuous_map_compose[OF this strong_operator_topology_continuous_evaluation]
+  have "continuous_map T euclidean ((\<lambda>z. blinfun_apply z x) o f)"
     by simp
-  then show "continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
+  then show "continuous_map T euclidean (\<lambda>y. blinfun_apply (f y) x)"
     unfolding comp_def by auto
 next
-  assume *: "\<forall>x. continuous_on_topo T euclidean (\<lambda>y. blinfun_apply (f y) x)"
-  have "continuous_on_topo T euclidean (blinfun_apply o f)"
+  assume *: "\<forall>x. continuous_map T euclidean (\<lambda>y. blinfun_apply (f y) x)"
+  have "continuous_map T euclidean (blinfun_apply o f)"
     unfolding euclidean_product_topology
-    apply (rule continuous_on_topo_coordinatewise_then_product, auto)
+    apply (rule continuous_map_coordinatewise_then_product, auto)
     using * unfolding comp_def by auto
-  show "continuous_on_topo T strong_operator_topology f"
+  show "continuous_map T strong_operator_topology f"
     unfolding strong_operator_topology_def
-    apply (rule continuous_on_topo_pullback')
-    by (auto simp add: \<open>continuous_on_topo T euclidean (blinfun_apply o f)\<close>)
+    apply (rule continuous_map_pullback')
+    by (auto simp add: \<open>continuous_map T euclidean (blinfun_apply o f)\<close>)
 qed
 
 lemma strong_operator_topology_weaker_than_euclidean:
-  "continuous_on_topo euclidean strong_operator_topology (\<lambda>f. f)"
+  "continuous_map euclidean strong_operator_topology (\<lambda>f. f)"
   by (subst continuous_on_strong_operator_topo_iff_coordinatewise,
-    auto simp add: continuous_on_topo_UNIV[symmetric] linear_continuous_on)
+    auto simp add: linear_continuous_on)
 
 
 

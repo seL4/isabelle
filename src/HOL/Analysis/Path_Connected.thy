@@ -135,6 +135,9 @@ lemma arc_linear_image_eq:
 
 subsection%unimportant\<open>Basic lemmas about paths\<close>
 
+lemma pathin_iff_path_real [simp]: "pathin euclideanreal g \<longleftrightarrow> path g"
+  by (simp add: pathin_def path_def)
+
 lemma continuous_on_path: "path f \<Longrightarrow> t \<subseteq> {0..1} \<Longrightarrow> continuous_on t f"
   using continuous_on_subset path_def by blast
 
@@ -1468,7 +1471,7 @@ lemma path_component_trans:
 lemma path_component_of_subset: "s \<subseteq> t \<Longrightarrow> path_component s x y \<Longrightarrow> path_component t x y"
   unfolding path_component_def by auto
 
-lemma path_connected_linepath:
+lemma path_component_linepath:
     fixes s :: "'a::real_normed_vector set"
     shows "closed_segment a b \<subseteq> s \<Longrightarrow> path_component s a b"
   unfolding path_component_def
@@ -1501,6 +1504,10 @@ subsection \<open>Path connectedness of a space\<close>
 
 definition%important "path_connected s \<longleftrightarrow>
   (\<forall>x\<in>s. \<forall>y\<in>s. \<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
+
+lemma path_connectedin_iff_path_connected_real [simp]:
+     "path_connectedin euclideanreal S \<longleftrightarrow> path_connected S"
+  by (simp add: path_connectedin path_connected_def path_defs)
 
 lemma path_connected_component: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. path_component s x y)"
   unfolding path_connected_def path_component_def by auto
@@ -1818,6 +1825,29 @@ by (auto simp: linear_continuous_on assms path_connected_continuous_image)
 lemma is_interval_path_connected: "is_interval S \<Longrightarrow> path_connected S"
   by (simp add: convex_imp_path_connected is_interval_convex)
 
+lemma path_connectedin_path_image:
+  assumes "pathin X g" shows "path_connectedin X (g ` ({0..1}))"
+  unfolding pathin_def
+proof (rule path_connectedin_continuous_map_image)
+  show "continuous_map (subtopology euclideanreal {0..1}) X g"
+    using assms pathin_def by blast
+qed (auto simp: is_interval_1 is_interval_path_connected)
+
+lemma path_connected_space_subconnected:
+     "path_connected_space X \<longleftrightarrow>
+      (\<forall>x \<in> topspace X. \<forall>y \<in> topspace X. \<exists>S. path_connectedin X S \<and> x \<in> S \<and> y \<in> S)"
+  unfolding path_connected_space_def Ball_def
+  apply (intro all_cong1 imp_cong refl, safe)
+  using path_connectedin_path_image apply fastforce
+  by (meson path_connectedin)
+
+lemma connectedin_path_image: "pathin X g \<Longrightarrow> connectedin X (g ` ({0..1}))"
+  by (simp add: path_connectedin_imp_connectedin path_connectedin_path_image)
+
+lemma compactin_path_image: "pathin X g \<Longrightarrow> compactin X (g ` ({0..1}))"
+  unfolding pathin_def
+  by (rule image_compactin [of "top_of_set {0..1}"]) auto
+
 lemma linear_homeomorphism_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
@@ -1933,6 +1963,372 @@ proof -
     by (meson *)
   then show ?thesis by simp
 qed
+
+
+subsection\<open>Path components\<close>
+
+definition path_component_of
+  where "path_component_of X x y \<equiv> \<exists>g. pathin X g \<and> g 0 = x \<and> g 1 = y"
+
+abbreviation path_component_of_set
+  where "path_component_of_set X x \<equiv> Collect (path_component_of X x)"
+
+definition path_components_of :: "'a topology \<Rightarrow> 'a set set"
+  where "path_components_of X \<equiv> path_component_of_set X ` topspace X"
+
+lemma path_component_in_topspace:
+   "path_component_of X x y \<Longrightarrow> x \<in> topspace X \<and> y \<in> topspace X"
+  by (auto simp: path_component_of_def pathin_def continuous_map_def)
+
+lemma path_component_of_refl:
+   "path_component_of X x x \<longleftrightarrow> x \<in> topspace X"
+  apply (auto simp: path_component_in_topspace)
+  apply (force simp: path_component_of_def pathin_const)
+  done
+
+lemma path_component_of_sym:
+  assumes "path_component_of X x y"
+  shows "path_component_of X y x"
+  using assms
+  apply (clarsimp simp: path_component_of_def pathin_def)
+  apply (rule_tac x="g \<circ> (\<lambda>t. 1 - t)" in exI)
+  apply (auto intro!: continuous_map_compose)
+  apply (force simp: continuous_map_in_subtopology continuous_on_op_minus)
+  done
+
+lemma path_component_of_sym_iff:
+   "path_component_of X x y \<longleftrightarrow> path_component_of X y x"
+  by (metis path_component_of_sym)
+
+lemma path_component_of_trans:
+  assumes "path_component_of X x y" and "path_component_of X y z"
+  shows "path_component_of X x z"
+  unfolding path_component_of_def pathin_def
+proof -
+  let ?T01 = "top_of_set {0..1::real}"
+  obtain g1 g2 where g1: "continuous_map ?T01 X g1" "x = g1 0" "y = g1 1"
+    and g2: "continuous_map ?T01 X g2" "g2 0 = g1 1" "z = g2 1"
+    using assms unfolding path_component_of_def pathin_def by blast
+  let ?g = "\<lambda>x. if x \<le> 1/2 then (g1 \<circ> (\<lambda>t. 2 * t)) x else (g2 \<circ> (\<lambda>t. 2 * t -1)) x"
+  show "\<exists>g. continuous_map ?T01 X g \<and> g 0 = x \<and> g 1 = z"
+  proof (intro exI conjI)
+    show "continuous_map (subtopology euclideanreal {0..1}) X ?g"
+    proof (intro continuous_map_cases_le continuous_map_compose, force, force)
+      show "continuous_map (subtopology ?T01 {x \<in> topspace ?T01. x \<le> 1/2}) ?T01 ((*) 2)"
+        by (auto simp: continuous_map_in_subtopology continuous_map_from_subtopology)
+      have "continuous_map
+             (subtopology (top_of_set {0..1}) {x. 0 \<le> x \<and> x \<le> 1 \<and> 1 \<le> x * 2})
+             euclideanreal (\<lambda>t. 2 * t - 1)"
+        by (intro continuous_intros) (force intro: continuous_map_from_subtopology)
+      then show "continuous_map (subtopology ?T01 {x \<in> topspace ?T01. 1/2 \<le> x}) ?T01 (\<lambda>t. 2 * t - 1)"
+        by (force simp: continuous_map_in_subtopology)
+      show "(g1 \<circ> (*) 2) x = (g2 \<circ> (\<lambda>t. 2 * t - 1)) x" if "x \<in> topspace ?T01" "x = 1/2" for x
+        using that by (simp add: g2(2) mult.commute continuous_map_from_subtopology)
+    qed (auto simp: g1 g2)
+  qed (auto simp: g1 g2)
+qed
+
+
+lemma path_component_of_mono:
+   "\<lbrakk>path_component_of (subtopology X S) x y; S \<subseteq> T\<rbrakk> \<Longrightarrow> path_component_of (subtopology X T) x y"
+  unfolding path_component_of_def
+  by (metis subsetD pathin_subtopology)
+
+
+lemma path_component_of:
+  "path_component_of X x y \<longleftrightarrow> (\<exists>T. path_connectedin X T \<and> x \<in> T \<and> y \<in> T)"
+  apply (auto simp: path_component_of_def)
+  using path_connectedin_path_image apply fastforce
+  apply (metis path_connectedin)
+  done
+
+lemma path_component_of_set:
+   "path_component_of X x y \<longleftrightarrow> (\<exists>g. pathin X g \<and> g 0 = x \<and> g 1 = y)"
+  by (auto simp: path_component_of_def)
+
+lemma path_component_of_subset_topspace:
+   "Collect(path_component_of X x) \<subseteq> topspace X"
+  using path_component_in_topspace by fastforce
+
+lemma path_component_of_eq_empty:
+   "Collect(path_component_of X x) = {} \<longleftrightarrow> (x \<notin> topspace X)"
+  using path_component_in_topspace path_component_of_refl by fastforce
+
+lemma path_connected_space_iff_path_component:
+   "path_connected_space X \<longleftrightarrow> (\<forall>x \<in> topspace X. \<forall>y \<in> topspace X. path_component_of X x y)"
+  by (simp add: path_component_of path_connected_space_subconnected)
+
+lemma path_connected_space_imp_path_component_of:
+   "\<lbrakk>path_connected_space X; a \<in> topspace X; b \<in> topspace X\<rbrakk>
+        \<Longrightarrow> path_component_of X a b"
+  by (simp add: path_connected_space_iff_path_component)
+
+lemma path_connected_space_path_component_set:
+   "path_connected_space X \<longleftrightarrow> (\<forall>x \<in> topspace X. Collect(path_component_of X x) = topspace X)"
+  using path_component_of_subset_topspace path_connected_space_iff_path_component by fastforce
+
+lemma path_component_of_maximal:
+   "\<lbrakk>path_connectedin X s; x \<in> s\<rbrakk> \<Longrightarrow> s \<subseteq> Collect(path_component_of X x)"
+  using path_component_of by fastforce
+
+lemma path_component_of_equiv:
+   "path_component_of X x y \<longleftrightarrow> x \<in> topspace X \<and> y \<in> topspace X \<and> path_component_of X x = path_component_of X y"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (simp add: fun_eq_iff path_component_in_topspace)
+    apply (meson path_component_of_sym path_component_of_trans)
+    done
+qed (simp add: path_component_of_refl)
+
+lemma path_component_of_disjoint:
+     "disjnt (Collect (path_component_of X x)) (Collect (path_component_of X y)) \<longleftrightarrow>
+      ~(path_component_of X x y)"
+  by (force simp: disjnt_def path_component_of_eq_empty path_component_of_equiv)
+
+lemma path_component_of_eq:
+   "path_component_of X x = path_component_of X y \<longleftrightarrow>
+        (x \<notin> topspace X) \<and> (y \<notin> topspace X) \<or>
+        x \<in> topspace X \<and> y \<in> topspace X \<and> path_component_of X x y"
+  by (metis Collect_empty_eq_bot path_component_of_eq_empty path_component_of_equiv)
+
+lemma path_connectedin_path_component_of:
+  "path_connectedin X (Collect (path_component_of X x))"
+proof -
+  have "\<And>y. path_component_of X x y
+        \<Longrightarrow> path_component_of (subtopology X (Collect (path_component_of X x))) x y"
+    by (meson path_component_of path_component_of_maximal path_connectedin_subtopology)
+  then show ?thesis
+    apply (simp add: path_connectedin_def path_component_of_subset_topspace path_connected_space_iff_path_component)
+    by (metis Int_absorb1 mem_Collect_eq path_component_of_equiv path_component_of_subset_topspace topspace_subtopology)
+qed
+
+lemma Union_path_components_of:
+     "\<Union>(path_components_of X) = topspace X"
+  by (auto simp: path_components_of_def path_component_of_equiv)
+
+lemma path_components_of_maximal:
+   "\<lbrakk>C \<in> path_components_of X; path_connectedin X S; ~disjnt C S\<rbrakk> \<Longrightarrow> S \<subseteq> C"
+  apply (auto simp: path_components_of_def path_component_of_equiv)
+  using path_component_of_maximal path_connectedin_def apply fastforce
+  by (meson disjnt_subset2 path_component_of_disjoint path_component_of_equiv path_component_of_maximal)
+
+lemma pairwise_disjoint_path_components_of:
+     "pairwise disjnt (path_components_of X)"
+  by (auto simp: path_components_of_def pairwise_def path_component_of_disjoint path_component_of_equiv)
+
+lemma complement_path_components_of_Union:
+   "C \<in> path_components_of X
+        \<Longrightarrow> topspace X - C = \<Union>(path_components_of X - {C})"
+  by (metis Diff_cancel Diff_subset Union_path_components_of cSup_singleton diff_Union_pairwise_disjoint insert_subset pairwise_disjoint_path_components_of)
+
+lemma nonempty_path_components_of:
+  "C \<in> path_components_of X \<Longrightarrow> (C \<noteq> {})"
+  apply (clarsimp simp: path_components_of_def path_component_of_eq_empty)
+  by (meson path_component_of_refl)
+
+lemma path_components_of_subset: "C \<in> path_components_of X \<Longrightarrow> C \<subseteq> topspace X"
+  by (auto simp: path_components_of_def path_component_of_equiv)
+
+lemma path_connectedin_path_components_of:
+   "C \<in> path_components_of X \<Longrightarrow> path_connectedin X C"
+  by (auto simp: path_components_of_def path_connectedin_path_component_of)
+
+lemma path_component_in_path_components_of:
+  "Collect (path_component_of X a) \<in> path_components_of X \<longleftrightarrow> a \<in> topspace X"
+  apply (rule iffI)
+  using nonempty_path_components_of path_component_of_eq_empty apply fastforce
+  by (simp add: path_components_of_def)
+
+lemma path_connectedin_Union:
+  assumes \<A>: "\<And>S. S \<in> \<A> \<Longrightarrow> path_connectedin X S" "\<Inter>\<A> \<noteq> {}"
+  shows "path_connectedin X (\<Union>\<A>)"
+proof -
+  obtain a where "\<And>S. S \<in> \<A> \<Longrightarrow> a \<in> S"
+    using assms by blast
+  then have "\<And>x. x \<in> topspace (subtopology X (\<Union>\<A>)) \<Longrightarrow> path_component_of (subtopology X (\<Union>\<A>)) a x"
+    apply (simp add: topspace_subtopology)
+    by (meson Union_upper \<A> path_component_of path_connectedin_subtopology)
+  then show ?thesis
+    using \<A> unfolding path_connectedin_def
+    by (metis Sup_le_iff path_component_of_equiv path_connected_space_iff_path_component)
+qed
+
+lemma path_connectedin_Un:
+   "\<lbrakk>path_connectedin X S; path_connectedin X T; S \<inter> T \<noteq> {}\<rbrakk>
+    \<Longrightarrow> path_connectedin X (S \<union> T)"
+  by (blast intro: path_connectedin_Union [of "{S,T}", simplified])
+
+lemma path_connected_space_iff_components_eq:
+  "path_connected_space X \<longleftrightarrow>
+    (\<forall>C \<in> path_components_of X. \<forall>C' \<in> path_components_of X. C = C')"
+  unfolding path_components_of_def
+proof (intro iffI ballI)
+  assume "\<forall>C \<in> path_component_of_set X ` topspace X.
+             \<forall>C' \<in> path_component_of_set X ` topspace X. C = C'"
+  then show "path_connected_space X"
+    using path_component_of_refl path_connected_space_iff_path_component by fastforce
+qed (auto simp: path_connected_space_path_component_set)
+
+lemma path_components_of_eq_empty:
+   "path_components_of X = {} \<longleftrightarrow> topspace X = {}"
+  using Union_path_components_of nonempty_path_components_of by fastforce
+
+lemma path_components_of_empty_space:
+   "topspace X = {} \<Longrightarrow> path_components_of X = {}"
+  by (simp add: path_components_of_eq_empty)
+
+lemma path_components_of_subset_singleton:
+  "path_components_of X \<subseteq> {S} \<longleftrightarrow>
+        path_connected_space X \<and> (topspace X = {} \<or> topspace X = S)"
+proof (cases "topspace X = {}")
+  case True
+  then show ?thesis
+    by (auto simp: path_components_of_empty_space path_connected_space_topspace_empty)
+next
+  case False
+  have "(path_components_of X = {S}) \<longleftrightarrow> (path_connected_space X \<and> topspace X = S)"
+  proof (intro iffI conjI)
+    assume L: "path_components_of X = {S}"
+    then show "path_connected_space X"
+      by (simp add: path_connected_space_iff_components_eq)
+    show "topspace X = S"
+      by (metis L ccpo_Sup_singleton [of S] Union_path_components_of)
+  next
+    assume R: "path_connected_space X \<and> topspace X = S"
+    then show "path_components_of X = {S}"
+      using ccpo_Sup_singleton [of S]
+      by (metis False all_not_in_conv insert_iff mk_disjoint_insert path_component_in_path_components_of path_connected_space_iff_components_eq path_connected_space_path_component_set)
+  qed
+  with False show ?thesis
+    by (simp add: path_components_of_eq_empty subset_singleton_iff)
+qed
+
+lemma path_connected_space_iff_components_subset_singleton:
+   "path_connected_space X \<longleftrightarrow> (\<exists>a. path_components_of X \<subseteq> {a})"
+  by (simp add: path_components_of_subset_singleton)
+
+lemma path_components_of_eq_singleton:
+   "path_components_of X = {S} \<longleftrightarrow> path_connected_space X \<and> topspace X \<noteq> {} \<and> S = topspace X"
+  by (metis cSup_singleton insert_not_empty path_components_of_subset_singleton subset_singleton_iff)
+
+lemma path_components_of_path_connected_space:
+   "path_connected_space X \<Longrightarrow> path_components_of X = (if topspace X = {} then {} else {topspace X})"
+  by (simp add: path_components_of_eq_empty path_components_of_eq_singleton)
+
+lemma path_component_subset_connected_component_of:
+   "path_component_of_set X x \<subseteq> connected_component_of_set X x"
+proof (cases "x \<in> topspace X")
+  case True
+  then show ?thesis
+    by (simp add: connected_component_of_maximal path_component_of_refl path_connectedin_imp_connectedin path_connectedin_path_component_of)
+next
+  case False
+  then show ?thesis
+    using path_component_of_eq_empty by fastforce
+qed
+
+lemma exists_path_component_of_superset:
+  assumes S: "path_connectedin X S" and ne: "topspace X \<noteq> {}"
+  obtains C where "C \<in> path_components_of X" "S \<subseteq> C"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    using ne path_components_of_eq_empty that by fastforce
+next
+  case False
+  then obtain a where "a \<in> S"
+    by blast
+  show ?thesis
+  proof
+    show "Collect (path_component_of X a) \<in> path_components_of X"
+      by (meson \<open>a \<in> S\<close> S subsetD path_component_in_path_components_of path_connectedin_subset_topspace)
+    show "S \<subseteq> Collect (path_component_of X a)"
+      by (simp add: S \<open>a \<in> S\<close> path_component_of_maximal)
+  qed
+qed
+
+lemma path_component_of_eq_overlap:
+   "path_component_of X x = path_component_of X y \<longleftrightarrow>
+      (x \<notin> topspace X) \<and> (y \<notin> topspace X) \<or>
+      Collect (path_component_of X x) \<inter> Collect (path_component_of X y) \<noteq> {}"
+  by (metis disjnt_def empty_iff inf_bot_right mem_Collect_eq path_component_of_disjoint path_component_of_eq path_component_of_eq_empty)
+
+lemma path_component_of_nonoverlap:
+   "Collect (path_component_of X x) \<inter> Collect (path_component_of X y) = {} \<longleftrightarrow>
+    (x \<notin> topspace X) \<or> (y \<notin> topspace X) \<or>
+    path_component_of X x \<noteq> path_component_of X y"
+  by (metis inf.idem path_component_of_eq_empty path_component_of_eq_overlap)
+
+lemma path_component_of_overlap:
+   "Collect (path_component_of X x) \<inter> Collect (path_component_of X y) \<noteq> {} \<longleftrightarrow>
+    x \<in> topspace X \<and> y \<in> topspace X \<and> path_component_of X x = path_component_of X y"
+  by (meson path_component_of_nonoverlap)
+
+lemma path_components_of_disjoint:
+     "\<lbrakk>C \<in> path_components_of X; C' \<in> path_components_of X\<rbrakk> \<Longrightarrow> disjnt C C' \<longleftrightarrow> C \<noteq> C'"
+  by (auto simp: path_components_of_def path_component_of_disjoint path_component_of_equiv)
+
+lemma path_components_of_overlap:
+    "\<lbrakk>C \<in> path_components_of X; C' \<in> path_components_of X\<rbrakk> \<Longrightarrow> C \<inter> C' \<noteq> {} \<longleftrightarrow> C = C'"
+  by (auto simp: path_components_of_def path_component_of_equiv)
+
+lemma path_component_of_unique:
+   "\<lbrakk>x \<in> C; path_connectedin X C; \<And>C'. \<lbrakk>x \<in> C'; path_connectedin X C'\<rbrakk> \<Longrightarrow> C' \<subseteq> C\<rbrakk>
+        \<Longrightarrow> Collect (path_component_of X x) = C"
+  by (meson subsetD eq_iff path_component_of_maximal path_connectedin_path_component_of)
+
+lemma path_component_of_discrete_topology [simp]:
+  "Collect (path_component_of (discrete_topology U) x) = (if x \<in> U then {x} else {})"
+proof -
+  have "\<And>C'. \<lbrakk>x \<in> C'; path_connectedin (discrete_topology U) C'\<rbrakk> \<Longrightarrow> C' \<subseteq> {x}"
+    by (metis path_connectedin_discrete_topology subsetD singletonD)
+  then have "x \<in> U \<Longrightarrow> Collect (path_component_of (discrete_topology U) x) = {x}"
+    by (simp add: path_component_of_unique)
+  then show ?thesis
+    using path_component_in_topspace by fastforce
+qed
+
+lemma path_component_of_discrete_topology_iff [simp]:
+  "path_component_of (discrete_topology U) x y \<longleftrightarrow> x \<in> U \<and> y=x"
+  by (metis empty_iff insertI1 mem_Collect_eq path_component_of_discrete_topology singletonD)
+
+lemma path_components_of_discrete_topology [simp]:
+   "path_components_of (discrete_topology U) = (\<lambda>x. {x}) ` U"
+  by (auto simp: path_components_of_def image_def fun_eq_iff)
+
+lemma homeomorphic_map_path_component_of:
+  assumes f: "homeomorphic_map X Y f" and x: "x \<in> topspace X"
+  shows "Collect (path_component_of Y (f x)) = f ` Collect(path_component_of X x)"
+proof -
+  obtain g where g: "homeomorphic_maps X Y f g"
+    using f homeomorphic_map_maps by blast
+  show ?thesis
+  proof
+    have "Collect (path_component_of Y (f x)) \<subseteq> topspace Y"
+      by (simp add: path_component_of_subset_topspace)
+    moreover have "g ` Collect(path_component_of Y (f x)) \<subseteq> Collect (path_component_of X (g (f x)))"
+      using g x unfolding homeomorphic_maps_def
+      by (metis f homeomorphic_imp_surjective_map imageI mem_Collect_eq path_component_of_maximal path_component_of_refl path_connectedin_continuous_map_image path_connectedin_path_component_of)
+    ultimately show "Collect (path_component_of Y (f x)) \<subseteq> f ` Collect (path_component_of X x)"
+      using g x unfolding homeomorphic_maps_def continuous_map_def image_iff subset_iff
+      by metis
+    show "f ` Collect (path_component_of X x) \<subseteq> Collect (path_component_of Y (f x))"
+    proof (rule path_component_of_maximal)
+      show "path_connectedin Y (f ` Collect (path_component_of X x))"
+        by (meson f homeomorphic_map_path_connectedness_eq path_connectedin_path_component_of)
+    qed (simp add: path_component_of_refl x)
+  qed
+qed
+
+lemma homeomorphic_map_path_components_of:
+  assumes "homeomorphic_map X Y f"
+  shows "path_components_of Y = (image f) ` (path_components_of X)"
+  unfolding path_components_of_def homeomorphic_imp_surjective_map [OF assms, symmetric]
+  apply safe
+  using assms homeomorphic_map_path_component_of apply fastforce
+  by (metis assms homeomorphic_map_path_component_of imageI)
 
 
 subsection \<open>Sphere is path-connected\<close>
@@ -2078,7 +2474,7 @@ next
         done
     }
     then have pcx: "path_component (- s) x (a + C *\<^sub>R (x - a))"
-      by (force simp: closed_segment_def intro!: path_connected_linepath)
+      by (force simp: closed_segment_def intro!: path_component_linepath)
     define D where "D = B / norm(y - a)"  \<comment> \<open>massive duplication with the proof above\<close>
     { fix u
       assume u: "(1 - u) *\<^sub>R y + u *\<^sub>R (a + D *\<^sub>R (y - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
@@ -2113,7 +2509,7 @@ next
         done
     }
     then have pdy: "path_component (- s) y (a + D *\<^sub>R (y - a))"
-      by (force simp: closed_segment_def intro!: path_connected_linepath)
+      by (force simp: closed_segment_def intro!: path_component_linepath)
     have pyx: "path_component (- s) (a + D *\<^sub>R (y - a)) (a + C *\<^sub>R (x - a))"
       apply (rule path_component_of_subset [of "sphere a B"])
        using \<open>s \<subseteq> ball a B\<close>

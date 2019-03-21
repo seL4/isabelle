@@ -550,6 +550,11 @@ qed
 lemma PiE_eq_singleton: "(\<Pi>\<^sub>E i\<in>I. S i) = {\<lambda>i\<in>I. f i} \<longleftrightarrow> (\<forall>i\<in>I. S i = {f i})"
   by (metis (mono_tags, lifting) PiE_eq PiE_singleton insert_not_empty restrict_apply' restrict_extensional)
 
+lemma PiE_over_singleton_iff: "(\<Pi>\<^sub>E x\<in>{a}. B x) = (\<Union>b \<in> B a. {\<lambda>x \<in> {a}. b})"
+  apply (auto simp: PiE_iff split: if_split_asm)
+  apply (metis (no_types, lifting) extensionalityI restrict_apply' restrict_extensional singletonD)
+  done
+
 lemma all_PiE_elements:
    "(\<forall>z \<in> PiE I S. \<forall>i \<in> I. P i (z i)) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. \<forall>x \<in> S i. P i x)" (is "?lhs = ?rhs")
 proof (cases "PiE I S = {}")

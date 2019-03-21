@@ -1134,7 +1134,7 @@ proof (rule set_eqI)
     by (cases "f x") (auto split: prod.split)
 qed
 
-lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
+lemma Times_Int_Times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
   by auto
 
 lemma product_swap: "prod.swap ` (A \<times> B) = B \<times> A"
