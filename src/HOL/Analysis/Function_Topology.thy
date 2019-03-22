@@ -3,7 +3,7 @@
 *)
 
 theory Function_Topology
-imports Topology_Euclidean_Space
+imports Topology_Euclidean_Space Abstract_Limits
 begin
 
 
@@ -1480,6 +1480,8 @@ lemma continuous_map_product_projection [continuous_intros]:
    "k \<in> I \<Longrightarrow> continuous_map (product_topology X I) (X k) (\<lambda>x. x k)"
   using continuous_map_componentwise [of "product_topology X I" X I id] by simp
 
+declare continuous_map_from_subtopology [OF continuous_map_product_projection, continuous_intros]
+
 proposition open_map_product_projection:
   assumes "i \<in> I"
   shows "open_map (product_topology Y I) (Y i) (\<lambda>f. f i)"
@@ -1751,5 +1753,246 @@ lemma homeomorphic_space_singleton_product:
   unfolding PiE_over_singleton_iff
    apply (auto simp: image_iff inj_on_def)
   done
+
+subsection\<open>Relationship with connected spaces, paths, etc.\<close>
+
+proposition connected_space_product_topology:
+   "connected_space(product_topology X I) \<longleftrightarrow>
+    (\<Pi>\<^sub>E i\<in>I. topspace (X i)) = {} \<or> (\<forall>i \<in> I. connected_space(X i))"
+  (is "?lhs \<longleftrightarrow> ?eq \<or> ?rhs")
+proof (cases ?eq)
+  case False
+  moreover have "?lhs = ?rhs"
+  proof
+    assume ?lhs
+    moreover
+    have "connectedin(X i) (topspace(X i))"
+      if "i \<in> I" and ci: "connectedin(product_topology X I) (topspace(product_topology X I))" for i
+    proof -
+      have cm: "continuous_map (product_topology X I) (X i) (\<lambda>f. f i)"
+        by (simp add: \<open>i \<in> I\<close> continuous_map_product_projection)
+      show ?thesis
+        using connectedin_continuous_map_image [OF cm ci] \<open>i \<in> I\<close>
+        by (simp add: False image_projection_PiE)
+    qed
+    ultimately show ?rhs
+      by (meson connectedin_topspace)
+  next
+    assume cs [rule_format]: ?rhs
+    have False
+      if disj: "U \<inter> V = {}" and subUV: "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<subseteq> U \<union> V"
+        and U: "openin (product_topology X I) U"
+        and V: "openin (product_topology X I) V"
+        and "U \<noteq> {}" "V \<noteq> {}"
+      for U V
+    proof -
+      obtain f where "f \<in> U"
+        using \<open>U \<noteq> {}\<close> by blast
+      then have f: "f \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+        using U openin_subset by fastforce
+      have "U \<subseteq> topspace(product_topology X I)" "V \<subseteq> topspace(product_topology X I)"
+        using U V openin_subset by blast+
+      moreover have "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<subseteq> U"
+      proof -
+        obtain C where "(finite intersection_of (\<lambda>F. \<exists>i U. F = {x. x i \<in> U} \<and> i \<in> I \<and> openin (X i) U) relative_to
+            (\<Pi>\<^sub>E i\<in>I. topspace (X i))) C" "C \<subseteq> U" "f \<in> C"
+          using U \<open>f \<in> U\<close> unfolding openin_product_topology union_of_def by auto
+        then obtain \<T> where "finite \<T>"
+          and t: "\<And>C. C \<in> \<T> \<Longrightarrow> \<exists>i u. (i \<in> I \<and> openin (X i) u) \<and> C = {x. x i \<in> u}"
+          and subU: "topspace (product_topology X I) \<inter> \<Inter>\<T> \<subseteq> U"
+          and ftop: "f \<in> topspace (product_topology X I)"
+          and fint: "f \<in> \<Inter> \<T>"
+          by (fastforce simp: relative_to_def intersection_of_def subset_iff)
+        let ?L = "\<Union>C\<in>\<T>. {i. (\<lambda>x. x i) ` C \<subset> topspace (X i)}"
+        obtain L where "finite L"
+          and L: "\<And>i U. \<lbrakk>i \<in> I; openin (X i) U; U \<subset> topspace(X i); {x. x i \<in> U} \<in> \<T>\<rbrakk> \<Longrightarrow> i \<in> L"
+        proof
+          show "finite ?L"
+          proof (rule finite_Union)
+            fix M
+            assume "M \<in> (\<lambda>C. {i. (\<lambda>x. x i) ` C \<subset> topspace (X i)}) ` \<T>"
+            then obtain C where "C \<in> \<T>" and C: "M = {i. (\<lambda>x. x i) ` C \<subset> topspace (X i)}"
+              by blast
+            then obtain j V where "j \<in> I" and ope: "openin (X j) V" and Ceq: "C = {x. x j \<in> V}"
+              using t by meson
+            then have "f j \<in> V"
+              using \<open>C \<in> \<T>\<close> fint by force
+            then have "(\<lambda>x. x k) ` {x. x j \<in> V} = UNIV" if "k \<noteq> j" for k
+              using that
+              apply (clarsimp simp add: set_eq_iff)
+              apply (rule_tac x="\<lambda>m. if m = k then x else f m" in image_eqI, auto)
+              done
+            then have "{i. (\<lambda>x. x i) ` C \<subset> topspace (X i)} \<subseteq> {j}"
+              using Ceq by auto
+            then show "finite M"
+              using C finite_subset by fastforce
+          qed (use \<open>finite \<T>\<close> in blast)
+        next
+          fix i U
+          assume  "i \<in> I" and ope: "openin (X i) U" and psub: "U \<subset> topspace (X i)" and int: "{x. x i \<in> U} \<in> \<T>"
+          then show "i \<in> ?L"
+            by (rule_tac a="{x. x i \<in> U}" in UN_I) (force+)
+        qed
+        show ?thesis
+        proof
+          fix h
+          assume h: "h \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+          define g where "g \<equiv> \<lambda>i. if i \<in> L then f i else h i"
+          have gin: "g \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+            unfolding g_def using f h by auto
+          moreover have "g \<in> X" if "X \<in> \<T>" for X
+            using fint openin_subset t [OF that] L g_def h that by fastforce
+          ultimately have "g \<in> U"
+            using subU by auto
+          have "h \<in> U" if "finite M" "h \<in> PiE I (topspace \<circ> X)" "{i \<in> I. h i \<noteq> g i} \<subseteq> M" for M h
+            using that
+          proof (induction arbitrary: h)
+            case empty
+            then show ?case
+              using PiE_ext \<open>g \<in> U\<close> gin by force
+          next
+            case (insert i M)
+            define f where "f \<equiv> \<lambda>j. if j = i then g i else h j"
+            have fin: "f \<in> PiE I (topspace \<circ> X)"
+              unfolding f_def using gin insert.prems(1) by auto
+            have subM: "{j \<in> I. f j \<noteq> g j} \<subseteq> M"
+              unfolding f_def using insert.prems(2) by auto
+            have "f \<in> U"
+              using insert.IH [OF fin subM] .
+            show ?case
+            proof (cases "h \<in> V")
+              case True
+              show ?thesis
+              proof (cases "i \<in> I")
+                case True
+                let ?U = "{x \<in> topspace(X i). (\<lambda>j. if j = i then x else h j) \<in> U}"
+                let ?V = "{x \<in> topspace(X i). (\<lambda>j. if j = i then x else h j) \<in> V}"
+                have False
+                proof (rule connected_spaceD [OF cs [OF \<open>i \<in> I\<close>]])
+                  have "\<And>k. k \<in> I \<Longrightarrow> continuous_map (X i) (X k) (\<lambda>x. if k = i then x else h k)"
+                    using continuous_map_eq_topcontinuous_at insert.prems(1) topcontinuous_at_def by fastforce
+                  then have cm: "continuous_map (X i) (product_topology X I) (\<lambda>x j. if j = i then x else h j)"
+                    using \<open>i \<in> I\<close> insert.prems(1)
+                    by (auto simp: continuous_map_componentwise extensional_def)
+                  show "openin (X i) ?U"
+                    by (rule openin_continuous_map_preimage [OF cm U])
+                  show "openin (X i) ?V"
+                    by (rule openin_continuous_map_preimage [OF cm V])
+                  show "topspace (X i) \<subseteq> ?U \<union> ?V"
+                  proof clarsimp
+                    fix x
+                    assume "x \<in> topspace (X i)" and "(\<lambda>j. if j = i then x else h j) \<notin> V"
+                    with True subUV \<open>h \<in> Pi\<^sub>E I (topspace \<circ> X)\<close>
+                    show "(\<lambda>j. if j = i then x else h j) \<in> U"
+                      by (drule_tac c="(\<lambda>j. if j = i then x else h j)" in subsetD) auto
+                  qed
+                  show "?U \<inter> ?V = {}"
+                    using disj by blast
+                  show "?U \<noteq> {}"
+                    using \<open>U \<noteq> {}\<close> f_def
+                  proof -
+                    have "(\<lambda>j. if j = i then g i else h j) \<in> U"
+                      using \<open>f \<in> U\<close> f_def by blast
+                    moreover have "f i \<in> topspace (X i)"
+                      by (metis PiE_iff True comp_apply fin)
+                    ultimately have "\<exists>b. b \<in> topspace (X i) \<and> (\<lambda>a. if a = i then b else h a) \<in> U"
+                      using f_def by auto
+                    then show ?thesis
+                      by blast
+                  qed
+                  have "(\<lambda>j. if j = i then h i else h j) = h"
+                    by force
+                  moreover have "h i \<in> topspace (X i)"
+                    using True insert.prems(1) by auto
+                  ultimately show "?V \<noteq> {}"
+                    using \<open>h \<in> V\<close>  by force
+                qed
+                then show ?thesis ..
+              next
+                case False
+                show ?thesis
+                proof (cases "h = f")
+                  case True
+                  show ?thesis
+                    by (rule insert.IH [OF insert.prems(1)]) (simp add: True subM)
+                next
+                  case False
+                  then show ?thesis
+                    using gin insert.prems(1) \<open>i \<notin> I\<close> unfolding f_def by fastforce
+                qed
+              qed
+            next
+              case False
+              then show ?thesis
+                using subUV insert.prems(1) by auto
+            qed
+          qed
+          then show "h \<in> U"
+            unfolding g_def using PiE_iff \<open>finite L\<close> h by fastforce
+        qed
+      qed
+      ultimately show ?thesis
+        using disj inf_absorb2 \<open>V \<noteq> {}\<close> by fastforce
+    qed
+    then show ?lhs
+      unfolding connected_space_def
+      by auto
+  qed
+  ultimately show ?thesis
+    by simp
+qed (simp add: connected_space_topspace_empty)
+
+
+lemma connectedin_PiE:
+   "connectedin (product_topology X I) (PiE I S) \<longleftrightarrow>
+        PiE I S = {} \<or> (\<forall>i \<in> I. connectedin (X i) (S i))"
+  by (fastforce simp add: connectedin_def subtopology_PiE connected_space_product_topology subset_PiE PiE_eq_empty_iff
+      topspace_subtopology_subset)
+
+lemma path_connected_space_product_topology:
+   "path_connected_space(product_topology X I) \<longleftrightarrow>
+    topspace(product_topology X I) = {} \<or> (\<forall>i \<in> I. path_connected_space(X i))"
+ (is "?lhs \<longleftrightarrow> ?eq \<or> ?rhs")
+proof (cases ?eq)
+  case False
+  moreover have "?lhs = ?rhs"
+  proof
+    assume L: ?lhs
+    show ?rhs
+    proof (clarsimp simp flip: path_connectedin_topspace)
+      fix i :: "'a"
+      assume "i \<in> I"
+      have cm: "continuous_map (product_topology X I) (X i) (\<lambda>f. f i)"
+        by (simp add: \<open>i \<in> I\<close> continuous_map_product_projection)
+      show "path_connectedin (X i) (topspace (X i))"
+        using path_connectedin_continuous_map_image [OF cm L [unfolded path_connectedin_topspace [symmetric]]]
+        by (metis \<open>i \<in> I\<close> False retraction_imp_surjective_map retraction_map_product_projection)
+    qed
+  next
+    assume R [rule_format]: ?rhs
+    show ?lhs
+      unfolding path_connected_space_def topspace_product_topology
+    proof clarify
+      fix x y
+      assume x: "x \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))" and y: "y \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+      have "\<forall>i. \<exists>g. i \<in> I \<longrightarrow> pathin (X i) g \<and> g 0 = x i \<and> g 1 = y i"
+        using PiE_mem R path_connected_space_def x y by force
+      then obtain g where g: "\<And>i. i \<in> I \<Longrightarrow> pathin (X i) (g i) \<and> g i 0 = x i \<and> g i 1 = y i"
+        by metis
+      with x y show "\<exists>g. pathin (product_topology X I) g \<and> g 0 = x \<and> g 1 = y"
+        apply (rule_tac x="\<lambda>a. \<lambda>i \<in> I. g i a" in exI)
+        apply (force simp: pathin_def continuous_map_componentwise)
+        done
+    qed
+  qed
+  ultimately show ?thesis
+    by simp
+qed (simp add: path_connected_space_topspace_empty)
+
+lemma path_connectedin_PiE:
+   "path_connectedin (product_topology X I) (PiE I S) \<longleftrightarrow>
+    PiE I S = {} \<or> (\<forall>i \<in> I. path_connectedin (X i) (S i))"
+  by (fastforce simp add: path_connectedin_def subtopology_PiE path_connected_space_product_topology subset_PiE PiE_eq_empty_iff topspace_subtopology_subset)
+
 
 end

@@ -2761,6 +2761,11 @@ definition connected_space :: "'a topology \<Rightarrow> bool" where
 definition connectedin :: "'a topology \<Rightarrow> 'a set \<Rightarrow> bool" where
   "connectedin X S \<equiv> S \<subseteq> topspace X \<and> connected_space (subtopology X S)"
 
+lemma connected_spaceD:
+  "\<lbrakk>connected_space X;
+    openin X U; openin X V; topspace X \<subseteq> U \<union> V; U \<inter> V = {}; U \<noteq> {}; V \<noteq> {}\<rbrakk> \<Longrightarrow> False"
+  by (auto simp: connected_space_def)
+
 lemma connectedin_subset_topspace: "connectedin X S \<Longrightarrow> S \<subseteq> topspace X"
   by (simp add: connectedin_def)
 

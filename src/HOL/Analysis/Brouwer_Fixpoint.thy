@@ -84,7 +84,7 @@ proof -
     done
 qed
 
-lemma retraction_imp_quotient_map:
+lemma retraction_openin_vimage_iff:
   "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U"
   if retraction: "retraction S T r" and "U \<subseteq> T"
   using retraction apply (rule retractionE)
@@ -110,13 +110,13 @@ lemma retract_of_locally_connected:
   assumes "locally connected T" "S retract_of T"
   shows "locally connected S"
   using assms
-  by (auto simp: idempotent_imp_retraction intro!: retraction_imp_quotient_map elim!: locally_connected_quotient_image retract_ofE)
+  by (auto simp: idempotent_imp_retraction intro!: retraction_openin_vimage_iff elim!: locally_connected_quotient_image retract_ofE)
 
 lemma retract_of_locally_path_connected:
   assumes "locally path_connected T" "S retract_of T"
   shows "locally path_connected S"
   using assms
-  by (auto simp: idempotent_imp_retraction intro!: retraction_imp_quotient_map elim!: locally_path_connected_quotient_image retract_ofE)
+  by (auto simp: idempotent_imp_retraction intro!: retraction_openin_vimage_iff elim!: locally_path_connected_quotient_image retract_ofE)
 
 text \<open>A few simple lemmas about deformation retracts\<close>
 

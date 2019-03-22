@@ -1,7 +1,7 @@
 section\<open>The binary product topology\<close>
 
 theory Product_Topology
-imports Function_Topology   
+imports Function_Topology Abstract_Limits
 begin
 
 section \<open>Product Topology\<close> 
@@ -517,6 +517,50 @@ proof -
       by (simp add: subtopology_Times) (meson PQ PR homeomorphic_space_prod_topology_sing2 homeomorphic_space_sym)
   qed
   then show ?thesis by metis
+qed
+
+lemma limitin_pairwise:
+   "limitin (prod_topology X Y) f l F \<longleftrightarrow> limitin X (fst \<circ> f) (fst l) F \<and> limitin Y (snd \<circ> f) (snd l) F"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain a b where ev: "\<And>U. \<lbrakk>(a,b) \<in> U; openin (prod_topology X Y) U\<rbrakk> \<Longrightarrow> \<forall>\<^sub>F x in F. f x \<in> U"
+                        and a: "a \<in> topspace X" and b: "b \<in> topspace Y" and l: "l = (a,b)"
+    by (auto simp: limitin_def)
+  moreover have "\<forall>\<^sub>F x in F. fst (f x) \<in> U" if "openin X U" "a \<in> U" for U
+  proof -
+    have "\<forall>\<^sub>F c in F. f c \<in> U \<times> topspace Y"
+      using b that ev [of "U \<times> topspace Y"] by (auto simp: openin_prod_topology_alt)
+    then show ?thesis
+      by (rule eventually_mono) (metis (mono_tags, lifting) SigmaE2 prod.collapse)
+  qed
+  moreover have "\<forall>\<^sub>F x in F. snd (f x) \<in> U" if "openin Y U" "b \<in> U" for U
+  proof -
+    have "\<forall>\<^sub>F c in F. f c \<in> topspace X \<times> U"
+      using a that ev [of "topspace X \<times> U"] by (auto simp: openin_prod_topology_alt)
+    then show ?thesis
+      by (rule eventually_mono) (metis (mono_tags, lifting) SigmaE2 prod.collapse)
+  qed
+  ultimately show ?rhs
+    by (simp add: limitin_def)
+next
+  have "limitin (prod_topology X Y) f (a,b) F"
+    if "limitin X (fst \<circ> f) a F" "limitin Y (snd \<circ> f) b F" for a b
+    using that
+  proof (clarsimp simp: limitin_def)
+    fix Z :: "('a \<times> 'b) set"
+    assume a: "a \<in> topspace X" "\<forall>U. openin X U \<and> a \<in> U \<longrightarrow> (\<forall>\<^sub>F x in F. fst (f x) \<in> U)"
+      and b: "b \<in> topspace Y" "\<forall>U. openin Y U \<and> b \<in> U \<longrightarrow> (\<forall>\<^sub>F x in F. snd (f x) \<in> U)"
+      and Z: "openin (prod_topology X Y) Z" "(a, b) \<in> Z"
+    then obtain U V where "openin X U" "openin Y V" "a \<in> U" "b \<in> V" "U \<times> V \<subseteq> Z"
+      using Z by (force simp: openin_prod_topology_alt)
+    then have "\<forall>\<^sub>F x in F. fst (f x) \<in> U" "\<forall>\<^sub>F x in F. snd (f x) \<in> V"
+      by (simp_all add: a b)
+    then show "\<forall>\<^sub>F x in F. f x \<in> Z"
+      by (rule eventually_elim2) (use \<open>U \<times> V \<subseteq> Z\<close> subsetD in auto)
+  qed
+  then show "?rhs \<Longrightarrow> ?lhs"
+    by (metis prod.collapse)
 qed
 
 end
