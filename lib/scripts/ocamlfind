@@ -4,7 +4,7 @@
 #
 # Invoke ocamlfind via "opam".
 
-if [ -e "$ISABELLE_OPAM_ROOT/config" ]
+if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]
 then
   isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocamlfind "$@"
 else

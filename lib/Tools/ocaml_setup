@@ -6,11 +6,14 @@
 
 set -e
 
-if [ -e "$ISABELLE_OPAM_ROOT/config" ]
+if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]
 then
-  isabelle_opam switch reinstall -y "$ISABELLE_OCAML_VERSION"
+  isabelle_opam switch -y "$ISABELLE_OCAML_VERSION"
+elif [ -e "$ISABELLE_OPAM_ROOT/config" ]
+then
+  isabelle_opam switch create -y "$ISABELLE_OCAML_VERSION"
 else
   isabelle_opam init -y --disable-sandboxing --no-setup --compiler="$ISABELLE_OCAML_VERSION"
 fi
 
-isabelle_opam install zarith -y
+isabelle_opam install -y zarith
