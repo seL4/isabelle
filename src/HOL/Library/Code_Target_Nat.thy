@@ -93,14 +93,26 @@ lemma [code abstract]:
   "integer_of_nat (m mod n) = of_nat m mod of_nat n"
   by transfer (simp add: zmod_int)
 
-lemma [code]:
-  "Divides.divmod_nat m n = (m div n, m mod n)"
-  by (fact divmod_nat_def)
+context
+  includes integer.lifting
+begin
+
+lemma divmod_nat_code [code]: \<^marker>\<open>contributor \<open>René Thiemann\<close>\<close> \<^marker>\<open>contributor \<open>Akihisa Yamada\<close>\<close>
+  "Divides.divmod_nat m n = (
+     let k = integer_of_nat m; l = integer_of_nat n
+     in map_prod nat_of_integer nat_of_integer
+       (if k = 0 then (0, 0)
+        else if l = 0 then (0, k) else
+          Code_Numeral.divmod_abs k l))"
+  by (simp add: prod_eq_iff Let_def; transfer)
+    (simp add: nat_div_distrib nat_mod_distrib)
+
+end
 
 lemma [code]:
   "divmod m n = map_prod nat_of_integer nat_of_integer (divmod m n)"
-  by (simp only: prod_eq_iff divmod_def map_prod_def case_prod_beta fst_conv snd_conv)
-    (transfer, simp_all only: nat_div_distrib nat_mod_distrib
+  by (simp only: prod_eq_iff divmod_def map_prod_def case_prod_beta fst_conv snd_conv; transfer)
+    (simp_all only: nat_div_distrib nat_mod_distrib
         zero_le_numeral nat_numeral)
   
 lemma [code]:

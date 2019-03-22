@@ -190,10 +190,17 @@ lift_definition less_eq_integer :: "integer \<Rightarrow> integer \<Rightarrow> 
   is "less_eq :: int \<Rightarrow> int \<Rightarrow> bool"
   .
 
+lemma integer_less_eq_iff:
+  "k \<le> l \<longleftrightarrow> int_of_integer k \<le> int_of_integer l"
+  by (fact less_eq_integer.rep_eq)
 
 lift_definition less_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
   is "less :: int \<Rightarrow> int \<Rightarrow> bool"
   .
+
+lemma integer_less_iff:
+  "k < l \<longleftrightarrow> int_of_integer k < int_of_integer l"
+  by (fact less_integer.rep_eq)
 
 lift_definition equal_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
   is "HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -320,7 +327,7 @@ qed (transfer,
 end
 
 declare divmod_algorithm_code [where ?'a = integer,
-  folded integer_of_num_def, unfolded integer_of_num_triv, 
+  folded integer_of_num_def, unfolded integer_of_num_triv,
   code]
 
 lemma integer_of_nat_0: "integer_of_nat 0 = 0"
@@ -492,7 +499,7 @@ lemma divmod_abs_code [code]:
   "divmod_abs 0 j = (0, 0)"
   by (simp_all add: prod_eq_iff)
 
-lemma divmod_integer_code [code]:
+lemma divmod_integer_eq_cases:
   "divmod_integer k l =
     (if k = 0 then (0, 0) else if l = 0 then (0, k) else
     (apsnd \<circ> times \<circ> sgn) l (if sgn k = sgn l
@@ -500,13 +507,29 @@ lemma divmod_integer_code [code]:
       else (let (r, s) = divmod_abs k l in
         if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
 proof -
-  have aux1: "\<And>k l::int. sgn k = sgn l \<longleftrightarrow> k = 0 \<and> l = 0 \<or> 0 < l \<and> 0 < k \<or> l < 0 \<and> k < 0"
+  have *: "sgn k = sgn l \<longleftrightarrow> k = 0 \<and> l = 0 \<or> 0 < l \<and> 0 < k \<or> l < 0 \<and> k < 0" for k l :: int
     by (auto simp add: sgn_if)
-  have aux2: "\<And>q::int. - int_of_integer k = int_of_integer l * q \<longleftrightarrow> int_of_integer k = int_of_integer l * - q" by auto
+  have **: "- k = l * q \<longleftrightarrow> k = - (l * q)" for k l q :: int
+    by auto
   show ?thesis
-    by (simp add: prod_eq_iff integer_eq_iff case_prod_beta aux1)
-      (auto simp add: zdiv_zminus1_eq_if zmod_zminus1_eq_if div_minus_right mod_minus_right aux2)
+    by (simp add: divmod_integer_def divmod_abs_def)
+      (transfer, auto simp add: * ** not_less zdiv_zminus1_eq_if zmod_zminus1_eq_if div_minus_right mod_minus_right)
 qed
+
+lemma divmod_integer_code [code]: \<^marker>\<open>contributor \<open>René Thiemann\<close>\<close> \<^marker>\<open>contributor \<open>Akihisa Yamada\<close>\<close>
+  "divmod_integer k l =
+   (if k = 0 then (0, 0)
+    else if l > 0 then
+            (if k > 0 then Code_Numeral.divmod_abs k l
+             else case Code_Numeral.divmod_abs k l of (r, s) \<Rightarrow>
+                  if s = 0 then (- r, 0) else (- r - 1, l - s))
+    else if l = 0 then (0, k)
+    else apsnd uminus
+            (if k < 0 then Code_Numeral.divmod_abs k l
+             else case Code_Numeral.divmod_abs k l of (r, s) \<Rightarrow>
+                  if s = 0 then (- r, 0) else (- r - 1, - l - s)))"
+  by (cases l "0 :: integer" rule: linorder_cases)
+    (auto split: prod.splits simp add: divmod_integer_eq_cases)
 
 lemma div_integer_code [code]:
   "k div l = fst (divmod_integer k l)"
@@ -742,6 +765,8 @@ code_printing
 
 code_identifier
   code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
+
+export_code divmod_integer in Haskell
 
 
 subsection \<open>Type of target language naturals\<close>
