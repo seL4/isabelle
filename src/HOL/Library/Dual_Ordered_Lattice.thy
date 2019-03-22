@@ -24,6 +24,8 @@ typedef 'a dual = "UNIV :: 'a set"
 
 setup_lifting type_definition_dual
 
+code_datatype dual
+
 lemma dual_eqI:
   "x = y" if "undual x = undual y"
   using that by transfer assumption
@@ -36,7 +38,7 @@ lemma eq_dual_iff [iff]:
   "dual x = dual y \<longleftrightarrow> x = y"
   by transfer simp
 
-lemma undual_dual [simp]:
+lemma undual_dual [simp, code]:
   "undual (dual x) = x"
   by transfer rule
 
@@ -83,6 +85,17 @@ proof
   then show "finite (UNIV :: 'a dual set)"
     by (simp add: surj_dual)
 qed
+
+instantiation dual :: (equal) equal
+begin
+
+lift_definition equal_dual :: "'a dual \<Rightarrow> 'a dual \<Rightarrow> bool"
+  is HOL.equal .
+
+instance
+  by (standard; transfer) (simp add: equal)
+
+end
 
 
 subsection \<open>Pointwise ordering\<close>
