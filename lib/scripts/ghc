@@ -4,7 +4,8 @@
 #
 # Invoke ghc via "stack".
 
-if [ -e "$ISABELLE_STACK_ROOT/config.yaml" ]; then
+if [ -f "$ISABELLE_STACK_ROOT/ISABELLE_GHC_EXE-$ISABELLE_PLATFORM_FAMILY" ]
+then
   isabelle_stack ghc -- "$@"
 else
   echo "Cannot execute ghc: missing Isabelle GHC setup" >&2

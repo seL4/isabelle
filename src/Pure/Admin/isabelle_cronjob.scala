@@ -261,7 +261,7 @@ object Isabelle_Cronjob
       List(Remote_Build("Linux Benchmarks", "lxbroy5", historic = true, history = 90,
         options = "-m32 -B -M1x2,2 -t Benchmarks" +
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
-            " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true -e ISABELLE_SMLNJ=sml" +
+            " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind -e ISABELLE_SMLNJ=sml" +
             " -e ISABELLE_SWIPL=swipl",
           args = "-N -a -d '~~/src/Benchmarks'",
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("Benchmarks"))),
@@ -296,14 +296,14 @@ object Isabelle_Cronjob
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m32 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
+            " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86-windows")),
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m64 -M4" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
-            " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
+            " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
           detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows")))
@@ -315,7 +315,7 @@ object Isabelle_Cronjob
           options = "-m32 -M1x2 -t AFP -P" + n +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
-            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
             " -e ISABELLE_SMLNJ=/home/smlnj/bin/sml",
           args = "-N -X large -X slow",
           afp = true,
