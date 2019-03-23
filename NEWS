@@ -250,6 +250,10 @@ external compiler is applied.
 
 *** System ***
 
+* The command-line option "isabelle build -e" retrieves theory exports
+from the session build database, using 'export_files' in session ROOT
+entries.
+
 * The system option "system_heaps" determines where to store the session
 image of "isabelle build" (and other tools using that internally).
 Former option "-s" is superseded by option "-o system_heaps".
@@ -765,9 +769,7 @@ internalize_sorts and unoverload) and larger experimental application
 *** ML ***
 
 * Operation Export.export emits theory exports (arbitrary blobs), which
-are stored persistently in the session build database. Command-line
-tools "isabelle export" and "isabelle build -e" allow to materialize
-exports in the physical file-system.
+are stored persistently in the session build database.
 
 * Command 'ML_export' exports ML toplevel bindings to the global
 bootstrap environment of the ML process. This allows ML evaluation
@@ -823,9 +825,8 @@ directory.
 * Command-line tool "isabelle imports -I" also reports actual session
 imports. This helps to minimize the session dependency graph.
 
-* The command-line tool "export" and "isabelle build -e" (with
-'export_files' in session ROOT entries) retrieve theory exports from the
-session build database.
+* The command-line tool "export" and 'export_files' in session ROOT
+entries retrieve theory exports from the session build database.
 
 * The command-line tools "isabelle server" and "isabelle client" provide
 access to the Isabelle Server: it supports responsive session management
