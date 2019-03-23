@@ -19,7 +19,8 @@ object Build_Docker
 
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
-      "latex" -> List("texlive-fonts-extra", "texlive-latex-extra", "texlive-math-extra"))
+      "latex" ->
+        List("texlive-fonts-extra", "texlive-font-utils", "texlive-latex-extra", "texlive-science"))
 
   def build_docker(progress: Progress,
     app_archive: String,
@@ -46,6 +47,7 @@ FROM """ + base + """
 SHELL ["/bin/bash", "-c"]
 
 # packages
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && \
   apt-get install -y """ + Bash.strings(packages ::: more_packages) + """ && \
   apt-get clean
