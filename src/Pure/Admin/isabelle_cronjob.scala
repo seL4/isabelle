@@ -270,6 +270,7 @@ object Isabelle_Cronjob
           options = "-m32 -M8" +
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
+            " -e ISABELLE_OPAM_ROOT=\"$ISABELLE_HOME/opam\"" +
             " -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
           args = "-a",
           detect = Build_Log.Prop.build_tags.undefined,
