@@ -12,10 +12,10 @@ object Build_Docker
   private val default_base = "ubuntu"
   private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
-  private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_(?:app|linux)\.tar\.gz$""".r
+  private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux\.tar\.gz$""".r
 
   val packages: List[String] =
-    List("curl", "less", "lib32stdc++6", "libgomp1", "libwww-perl", "rlwrap", "unzip")
+    List("curl", "less", "libfontconfig1", "libgomp1", "libwww-perl", "rlwrap", "unzip")
 
   val package_collections: Map[String, List[String]] =
     Map("X11" -> List("libx11-6", "libxext6", "libxrender1", "libxtst6", "libxi6"),
@@ -129,9 +129,9 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Examples:
 
-    isabelle build_docker -E -t test/isabelle:Isabelle2018 Isabelle2018_app.tar.gz
+    isabelle build_docker -E -t test/isabelle:Isabelle2019 Isabelle2019_linux.tar.gz
 
-    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2018_app.tar.gz
+    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2019_linux.tar.gz
 
 """,
           "B:" -> (arg => base = arg),
