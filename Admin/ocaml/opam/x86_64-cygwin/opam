@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [ -e /usr/bin/opam ]; then
+  exec /usr/bin/opam "$@"
+else
+  echo >&2 "Missing opam executable: please install Cygwin package \"opam\" version 2.0.x"
+  exit 2
+fi
