@@ -40,18 +40,11 @@ Checklist for official releases
 
 - check funny base directory, e.g. "Test 中国";
 
-- check scalable fonts, e.g. src/Doc/Prog_Prove
-  (NOTE: T1 encoding requires cm-super fonts);
-
 - diff NEWS wrt. last official release, which is read-only;
 
 - update https://isabelle.sketis.net/repos/isabelle-website
 
 - check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
-
-- check Logics:
-    ROOTS
-    lib/html/library_index_content.template
 
 - HTML library: check HTML header;
 
