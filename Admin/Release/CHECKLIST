@@ -7,7 +7,7 @@ Checklist for official releases
 
 - test "isabelle dump -l Pure ZF";
 
-- test "isabelle -o export_theory -f ZF";
+- test "isabelle build -o export_theory -f ZF";
 
 - test "isabelle server" according to "system" manual;
 
