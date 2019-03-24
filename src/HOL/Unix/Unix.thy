@@ -93,8 +93,9 @@ text \<open>
   as ``binaries''), or control actual lookup of directory entries (recall that
   mere directory browsing is controlled via \<^term>\<open>Readable\<close>). Note that the
   latter means that in order to perform any file-system operation whatsoever,
-  all directories encountered on the path would have to grant \<^term>\<open>Executable\<close>. We ignore this detail and pretend that all directories give
-  \<^term>\<open>Executable\<close> permission to anybody.
+  all directories encountered on the path would have to grant
+  \<^term>\<open>Executable\<close>. We ignore this detail and pretend that all directories
+  give \<^term>\<open>Executable\<close> permission to anybody.
 \<close>
 
 
@@ -115,10 +116,11 @@ text \<open>
   \<^medskip>
 
   Here the parameter \<^typ>\<open>'a\<close> refers to plain values occurring at leaf
-  positions, parameter \<^typ>\<open>'b\<close> to information kept with inner branch nodes,
-  and parameter \<^typ>\<open>'c\<close> to the branching type of the tree structure. For our
-  purpose we use the type instance with \<^typ>\<open>att \<times> string\<close> (representing
-  plain files), \<^typ>\<open>att\<close> (for attributes of directory nodes), and \<^typ>\<open>name\<close> (for the index type of directory nodes).
+  positions, parameter \<^typ>\<open>'b\<close> to information kept with inner branch
+  nodes, and parameter \<^typ>\<open>'c\<close> to the branching type of the tree
+  structure. For our purpose we use the type instance with \<^typ>\<open>att \<times>
+  string\<close> (representing plain files), \<^typ>\<open>att\<close> (for attributes of
+  directory nodes), and \<^typ>\<open>name\<close> (for the index type of directory nodes).
 \<close>
 
 type_synonym "file" = "(att \<times> string, att, name) env"
@@ -226,7 +228,8 @@ text \<open>
   \<^medskip>
   Successful access to a certain file is the main prerequisite for
   system-calls to be applicable (cf.\ \secref{sec:unix-trans}). Any
-  modification of the file-system is then performed using the basic \<^term>\<open>update\<close> operation.
+  modification of the file-system is then performed using the basic
+  \<^term>\<open>update\<close> operation.
 
   \<^medskip>
   We see that \<^term>\<open>access\<close> is just a wrapper for the basic \<^term>\<open>lookup\<close>
@@ -396,11 +399,11 @@ subsection \<open>Basic properties of single transitions \label{sec:unix-single-
 
 text \<open>
   The transition system \<open>root \<midarrow>x\<rightarrow> root'\<close> defined above determines a unique
-  result \<^term>\<open>root'\<close> from given \<^term>\<open>root\<close> and \<^term>\<open>x\<close> (this is holds
-  rather trivially, since there is even only one clause for each operation).
-  This uniqueness statement will simplify our subsequent development to some
-  extent, since we only have to reason about a partial function rather than a
-  general relation.
+  result \<^term>\<open>root'\<close> from given \<^term>\<open>root\<close> and \<^term>\<open>x\<close> (this is
+  holds rather trivially, since there is even only one clause for each
+  operation). This uniqueness statement will simplify our subsequent
+  development to some extent, since we only have to reason about a partial
+  function rather than a general relation.
 \<close>
 
 theorem transition_uniq:
@@ -531,7 +534,8 @@ text \<open>
   \<^medskip>
   The following fact shows how an invariant \<^term>\<open>Q\<close> of single transitions
   with property \<^term>\<open>P\<close> may be transferred to iterated transitions. The
-  proof is rather obvious by rule induction over the definition of \<^term>\<open>root \<Midarrow>xs\<Rightarrow> root'\<close>.
+  proof is rather obvious by rule induction over the definition of
+  \<^term>\<open>root \<Midarrow>xs\<Rightarrow> root'\<close>.
 \<close>
 
 lemma transitions_invariant:
@@ -827,7 +831,8 @@ text \<open>
   will now establish the three key lemmas required to yield the final result.
 
     \<^enum> The invariant is sufficiently strong to entail the pathological case
-    that \<^term>\<open>user\<^sub>1\<close> is unable to remove the (owned) directory at \<^term>\<open>[user\<^sub>1, name\<^sub>1]\<close>.
+    that \<^term>\<open>user\<^sub>1\<close> is unable to remove the (owned) directory at
+    \<^term>\<open>[user\<^sub>1, name\<^sub>1]\<close>.
 
     \<^enum> The invariant does hold after having executed the \<^term>\<open>bogus\<close> list of
     operations (starting with an initial file-system configuration).
@@ -880,8 +885,9 @@ lemma
 text \<open>
   \<^medskip>
   At last we are left with the main effort to show that the ``bogosity''
-  invariant is preserved by any file-system operation performed by \<^term>\<open>user\<^sub>1\<close> alone. Note that this holds for any \<^term>\<open>path\<close> given, the
-  particular \<^term>\<open>bogus_path\<close> is not required here.
+  invariant is preserved by any file-system operation performed by
+  \<^term>\<open>user\<^sub>1\<close> alone. Note that this holds for any \<^term>\<open>path\<close> given,
+  the particular \<^term>\<open>bogus_path\<close> is not required here.
 \<close>
 
 lemma preserve_invariant:
