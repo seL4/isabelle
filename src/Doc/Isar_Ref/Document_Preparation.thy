@@ -466,43 +466,89 @@ text \<open>
 \<close>
 
 
-section \<open>Markup via command tags \label{sec:tags}\<close>
+section \<open>Document markers and command tags \label{sec:document-markers}\<close>
 
 text \<open>
-  Each Isabelle/Isar command may be decorated by additional presentation tags,
-  to indicate some modification in the way it is printed in the document.
+  \emph{Document markers} are formal comments of the form \<open>\<^marker>\<open>marker_body\<close>\<close>
+  (using the control symbol \<^verbatim>\<open>\<^marker>\<close>) and may occur anywhere within the
+  outer syntax of a command: the inner syntax of a marker body resembles that
+  for attributes (\secref{sec:syn-att}). In contrast, \emph{Command tags} may
+  only occur after a command keyword and are treated as special markers as
+  explained below.
 
   \<^rail>\<open>
-    @{syntax_def tags}: ( tag * )
+    @{syntax_def marker}: '\<^marker>' @{syntax cartouche}
+    ;
+    @{syntax_def marker_body}: (@{syntax name} @{syntax args} * ',')
+    ;
+    @{syntax_def tags}: tag*
     ;
     tag: '%' (@{syntax short_ident} | @{syntax string})
   \<close>
 
-  Some tags are pre-declared for certain classes of commands, serving as
-  default markup if no tags are given in the text:
+  Document markers are stripped from the document output, but surrounding
+  white-space is preserved: e.g.\ a marker at the end of a line does not
+  affect the subsequent line break. Markers operate within the semantic
+  presentation context of a command, and may modify it to change the overall
+  appearance of a command span (e.g.\ by adding tags).
 
-  \<^medskip>
-  \begin{tabular}{ll}
-    \<open>document\<close> & document markup commands \\
-    \<open>theory\<close> & theory begin/end \\
-    \<open>proof\<close> & all proof commands \\
-    \<open>ML\<close> & all commands involving ML code \\
-  \end{tabular}
-  \<^medskip>
+  Each document marker has its own syntax defined in the theory context; the
+  following markers are predefined in Isabelle/Pure:
+
+  \<^rail>\<open>
+    (@@{document_marker_def title} |
+     @@{document_marker_def creator} |
+     @@{document_marker_def contributor} |
+     @@{document_marker_def date} |
+     @@{document_marker_def license} |
+     @@{document_marker_def description}) @{syntax embedded}
+    ;
+    @@{document_marker_def tag} @{syntax name}
+  \<close>
+
+    \<^descr> \<open>\<^marker>\<open>title arg\<close>\<close>, \<open>\<^marker>\<open>creator arg\<close>\<close>, \<open>\<^marker>\<open>contributor arg\<close>\<close>, \<open>\<^marker>\<open>date arg\<close>\<close>,
+    \<open>\<^marker>\<open>license arg\<close>\<close>, and \<open>\<^marker>\<open>description arg\<close>\<close> produce markup in the PIDE
+    document, without any immediate effect on typesetting. This vocabulary is
+    taken from the Dublin Core Metadata
+    Initiative\<^footnote>\<open>\<^url>\<open>https://www.dublincore.org/specifications/dublin-core/dcmi-terms\<close>\<close>.
+    The argument is an uninterpreted string, except for @{document_marker
+    description}, which consists of words that are subject to spell-checking.
+
+    \<^descr> \<open>\<^marker>\<open>tag name\<close>\<close> updates the list of command tags in the presentation
+    context: later declarations take precedence, so \<open>\<^marker>\<open>tag a, tag b, tag c\<close>\<close>
+    produces a reversed list. The default tags are given by the original
+    \<^theory_text>\<open>keywords\<close> declaration of a command, and the system option
+    @{system_option_ref document_tags}.
+
+    An old-style command tag \<^verbatim>\<open>%\<close>\<open>name\<close> is treated like a document marker
+    \<open>\<^marker>\<open>tag name\<close>\<close>: the list of command tags precedes the list of document
+    markers. The head of the resulting tags in the presentation context is
+    turned into {\LaTeX} environments to modify the type-setting. The
+    following tags are pre-declared for certain classes of commands, and serve
+    as default markup for certain kinds of commands:
+
+    \<^medskip>
+    \begin{tabular}{ll}
+      \<open>document\<close> & document markup commands \\
+      \<open>theory\<close> & theory begin/end \\
+      \<open>proof\<close> & all proof commands \\
+      \<open>ML\<close> & all commands involving ML code \\
+    \end{tabular}
+    \<^medskip>
 
   The Isabelle document preparation system @{cite "isabelle-system"} allows
   tagged command regions to be presented specifically, e.g.\ to fold proof
   texts, or drop parts of the text completely.
 
-  For example ``@{command "by"}~\<open>%invisible auto\<close>'' causes that piece of proof
-  to be treated as \<open>invisible\<close> instead of \<open>proof\<close> (the default), which may be
-  shown or hidden depending on the document setup. In contrast, ``@{command
-  "by"}~\<open>%visible auto\<close>'' forces this text to be shown invariably.
+  For example ``\<^theory_text>\<open>by auto\<close>~\<open>\<^marker>\<open>tag invisible\<close>\<close>'' causes that piece of proof to
+  be treated as \<open>invisible\<close> instead of \<open>proof\<close> (the default), which may be
+  shown or hidden depending on the document setup. In contrast, ``\<^theory_text>\<open>by
+  auto\<close>~\<open>\<^marker>\<open>tag visible\<close>\<close>'' forces this text to be shown invariably.
 
   Explicit tag specifications within a proof apply to all subsequent commands
-  of the same level of nesting. For example, ``@{command "proof"}~\<open>%visible
-  \<dots>\<close>~@{command "qed"}'' forces the whole sub-proof to be typeset as \<open>visible\<close>
-  (unless some of its parts are tagged differently).
+  of the same level of nesting. For example, ``\<^theory_text>\<open>proof\<close>~\<open>\<^marker>\<open>tag invisible\<close>
+  \<dots>\<close>~\<^theory_text>\<open>qed\<close>'' forces the whole sub-proof to be typeset as \<open>visible\<close> (unless
+  some of its parts are tagged differently).
 
   \<^medskip>
   Command tags merely produce certain markup environments for type-setting.

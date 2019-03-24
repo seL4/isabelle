@@ -7,6 +7,7 @@ Document markers: declarations on the presentation context.
 signature DOCUMENT_MARKER =
 sig
   type marker = Proof.context -> Proof.context
+  val check: Proof.context -> string * Position.T -> string * (Token.src -> marker)
   val setup: binding -> 'a context_parser -> ('a -> marker) -> theory -> theory
   val setup0: binding -> 'a parser -> ('a -> marker) -> theory -> theory
   val evaluate: Input.source -> marker
@@ -71,13 +72,13 @@ val _ =
      setup0 (Binding.make ("creator", \<^here>)) Parse.embedded (meta_data Markup.meta_creator) #>
      setup0 (Binding.make ("contributor", \<^here>)) Parse.embedded (meta_data Markup.meta_contributor) #>
      setup0 (Binding.make ("date", \<^here>)) Parse.embedded (meta_data Markup.meta_date) #>
+     setup0 (Binding.make ("license", \<^here>)) Parse.embedded (meta_data Markup.meta_license) #>
      setup0 (Binding.make ("description", \<^here>)) (Parse.input Parse.embedded)
       (fn source => fn ctxt =>
         let
           val (arg, pos) = Input.source_content source;
           val _ = Context_Position.report ctxt pos Markup.words;
-        in meta_data Markup.meta_description arg ctxt end) #>
-     setup0 (Binding.make ("license", \<^here>)) Parse.embedded (meta_data Markup.meta_license));
+        in meta_data Markup.meta_description arg ctxt end));
 
 fun legacy_tag name =
   Input.string (cartouche ("tag " ^ Symbol_Pos.quote_string_qq name));

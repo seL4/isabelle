@@ -20,8 +20,8 @@ sig
   val meta_creatorN: string val meta_creator: T
   val meta_contributorN: string val meta_contributor: T
   val meta_dateN: string val meta_date: T
-  val meta_descriptionN: string val meta_description: T
   val meta_licenseN: string val meta_license: T
+  val meta_descriptionN: string val meta_description: T
   val languageN: string
   val symbolsN: string
   val delimitedN: string
@@ -289,14 +289,14 @@ fun serial_properties i = [(serialN, Value.print_int i)];
 val instanceN = "instance";
 
 
-(* meta data -- see http://dublincore.org/documents/dces *)
+(* meta data -- see https://www.dublincore.org/specifications/dublin-core/dcmi-terms *)
 
 val (meta_titleN, meta_title) = markup_elem "meta_title";
 val (meta_creatorN, meta_creator) = markup_elem "meta_creator";
 val (meta_contributorN, meta_contributor) = markup_elem "meta_contributor";
 val (meta_dateN, meta_date) = markup_elem "meta_date";
-val (meta_descriptionN, meta_description) = markup_elem "meta_description";
 val (meta_licenseN, meta_license) = markup_elem "meta_license";
+val (meta_descriptionN, meta_description) = markup_elem "meta_description";
 
 
 (* embedded languages *)

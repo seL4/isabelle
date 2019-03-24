@@ -196,6 +196,7 @@ val _ =
     entity_antiqs no_check "" \<^binding>\<open>case\<close> #>
     entity_antiqs Document_Antiquotation.check "" \<^binding>\<open>antiquotation\<close> #>
     entity_antiqs Document_Antiquotation.check_option "" \<^binding>\<open>antiquotation_option\<close> #>
+    entity_antiqs Document_Marker.check "" \<^binding>\<open>document_marker\<close> #>
     entity_antiqs no_check "isasystem" \<^binding>\<open>setting\<close> #>
     entity_antiqs check_system_option "isasystem" \<^binding>\<open>system_option\<close> #>
     entity_antiqs no_check "" \<^binding>\<open>inference\<close> #>

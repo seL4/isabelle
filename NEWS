@@ -85,6 +85,21 @@ storage directory for "isabelle build". Option "-n" is now clearly
 separated from option "-s".
 
 
+*** Document preparation ***
+
+* Document markers are formal comments of the form \<^marker>\<open>marker_body\<close> that
+are stripped from document output: the effect is to modify the semantic
+presentation context or to emit markup to the PIDE document. Some
+predefined markers are taken from the Dublin Core Metadata Initiative,
+e.g. \<^marker>\<open>contributor arg\<close> or \<^marker>\<open>license arg\<close> and produce PIDE markup that
+can retrieved from the document database.
+
+* Old-style command tags %name are re-interpreted as markers \<^marker>\<open>tag name\<close>
+and produce LaTeX environments as before. Potential INCOMPATIBILITY:
+multiple markers are composed in canonical order, resulting in a
+reversed list of tags in the presentation context.
+
+
 *** Isar ***
 
 * More robust treatment of structural errors: begin/end blocks take

@@ -96,7 +96,7 @@ text \<open>
   \<open>:: thy_goal_defn\<close> or @{keyword "keywords"}~\<^verbatim>\<open>"datatype"\<close> \<open>:: thy_defn\<close> for
   theory-level definitions with and without proof, respectively. Additional
   @{syntax tags} provide defaults for document preparation
-  (\secref{sec:tags}).
+  (\secref{sec:document-markers}).
 
   The @{keyword_def "abbrevs"} specification declares additional abbreviations
   for syntactic completion. The default for a new keyword is just its name,
