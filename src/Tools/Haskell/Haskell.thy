@@ -327,7 +327,7 @@ module Isabelle.Markup (
   markupN, consistentN, unbreakableN, indentN, widthN,
   blockN, block, breakN, break, fbreakN, fbreak, itemN, item,
 
-  wordsN, words, no_wordsN, no_words,
+  wordsN, words,
 
   tfreeN, tfree, tvarN, tvar, freeN, free, skolemN, skolem, boundN, bound, varN, var,
   numeralN, numeral, literalN, literal, delimiterN, delimiter, inner_stringN, inner_string,
@@ -509,9 +509,6 @@ itemN :: String; item :: T
 
 wordsN :: String; words :: T
 (wordsN, words) = markup_elem \<open>Markup.wordsN\<close>
-
-no_wordsN :: String; no_words :: T
-(no_wordsN, no_words) = markup_elem \<open>Markup.no_wordsN\<close>
 
 
 {- inner syntax -}

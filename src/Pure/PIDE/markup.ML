@@ -78,7 +78,6 @@ sig
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
   val wordsN: string val words: T
-  val no_wordsN: string val no_words: T
   val hiddenN: string val hidden: T
   val deleteN: string val delete: T
   val system_optionN: string
@@ -433,7 +432,6 @@ val (itemN, item) = markup_elem "item";
 (* text properties *)
 
 val (wordsN, words) = markup_elem "words";
-val (no_wordsN, no_words) = markup_elem "no_words";
 
 val (hiddenN, hidden) = markup_elem "hidden";
 

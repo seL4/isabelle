@@ -34,7 +34,7 @@ val kinds =
       markups = [Markup.language_text true, Markup.raw_text]}),
    (Latex,
      {symbol = Symbol.latex, blanks = false,
-      markups = [Markup.language_latex true, Markup.no_words, Markup.raw_text]}),
+      markups = [Markup.language_latex true, Markup.raw_text]}),
    (Marker,
      {symbol = Symbol.marker, blanks = false,
       markups = [Markup.language_document_marker]})];
