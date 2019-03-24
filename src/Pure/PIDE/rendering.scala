@@ -139,6 +139,7 @@ object Rendering
     Markup.ML_CHAR -> Color.inner_quoted,
     Markup.ML_STRING -> Color.inner_quoted,
     Markup.ML_COMMENT -> Color.comment1,
+    Markup.COMMENT -> Color.comment1,
     Markup.COMMENT1 -> Color.comment1,
     Markup.COMMENT2 -> Color.comment2,
     Markup.COMMENT3 -> Color.comment3)
