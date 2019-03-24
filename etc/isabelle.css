@@ -68,6 +68,9 @@ body {
 .cartouche      { color: #CC6600; }
 .comment        { color: #CC0000; }
 .improper       { color: #FF5050; }
+.antiquote      { color: #6600CC; }
+.raw_text       { color: #6600CC; }
+.plain_text     { color: #CC6600; }
 .bad            { background-color: #FF6A6A; }
 .quoted         { background-color: rgba(139,139,139,0.05); }
 .antiquoted     { background-color: rgba(255,200,50,0.1); }
