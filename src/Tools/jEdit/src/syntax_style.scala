@@ -148,13 +148,13 @@ object Syntax_Style
 
   /* editing support for control symbols */
 
-  def edit_control_style(text_area: TextArea, control: String)
+  def edit_control_style(text_area: TextArea, control_sym: String)
   {
     GUI_Thread.assert {}
 
     val buffer = text_area.getBuffer
 
-    val control_decoded = Isabelle_Encoding.perhaps_decode(buffer, control)
+    val control_decoded = Isabelle_Encoding.perhaps_decode(buffer, control_sym)
 
     def update_style(text: String): String =
     {
