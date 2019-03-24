@@ -49,14 +49,17 @@ val parse_marker = Parse.token Parse.liberal_name ::: Parse.!!! Parse.args;
 
 fun evaluate input ctxt =
   let
-    val body =
-      Input.source_explode input
-      |> drop_prefix (fn (s, _) => s = Symbol.marker)
-      |> Symbol_Pos.cartouche_content;
+    val syms = Input.source_explode input
+      |> drop_prefix (fn (s, _) => s = Symbol.marker);
+    val pos = #1 (Symbol_Pos.range syms);
+
+    val _ = Context_Position.reports ctxt (map (pair pos) (Comment.kind_markups Comment.Marker));
+
+    val body = Symbol_Pos.cartouche_content syms;
     val markers =
       (case Token.read_body (Thy_Header.get_keywords' ctxt) (Parse.list parse_marker) body of
         SOME res => res
-      | NONE => error ("Bad input" ^ Position.here (Input.pos_of input)));
+      | NONE => error ("Bad input" ^ Position.here pos));
   in fold (fn src => #2 (check ctxt (Token.name_of_src src)) src) markers ctxt end;
 
 
