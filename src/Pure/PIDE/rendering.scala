@@ -40,7 +40,8 @@ object Rendering
     // text
     val main, keyword1, keyword2, keyword3, quasi_keyword, improper, operator,
       tfree, tvar, free, skolem, bound, `var`, inner_numeral, inner_quoted,
-      inner_cartouche, comment1, comment2, comment3, dynamic, class_parameter, antiquote = Value
+      inner_cartouche, comment1, comment2, comment3, dynamic, class_parameter,
+      antiquote, raw_text, plain_text = Value
     val text_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
@@ -128,6 +129,8 @@ object Rendering
     Markup.DYNAMIC_FACT -> Color.dynamic,
     Markup.CLASS_PARAMETER -> Color.class_parameter,
     Markup.ANTIQUOTE -> Color.antiquote,
+    Markup.RAW_TEXT -> Color.raw_text,
+    Markup.PLAIN_TEXT -> Color.plain_text,
     Markup.ML_KEYWORD1 -> Color.keyword1,
     Markup.ML_KEYWORD2 -> Color.keyword2,
     Markup.ML_KEYWORD3 -> Color.keyword3,

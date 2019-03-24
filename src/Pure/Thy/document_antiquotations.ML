@@ -151,8 +151,11 @@ end;
 local
 
 fun report_text ctxt text =
-  Context_Position.report ctxt (Input.pos_of text)
-    (Markup.language_text (Input.is_delimited text));
+  let val pos = Input.pos_of text in
+    Context_Position.reports ctxt
+      [(pos, Markup.language_text (Input.is_delimited text)),
+       (pos, Markup.raw_text)]
+  end;
 
 fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
@@ -246,9 +249,11 @@ val _ = Theory.setup
   (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
+        val pos = Input.pos_of text;
         val _ =
-          Context_Position.report ctxt (Input.pos_of text)
-            (Markup.language_verbatim (Input.is_delimited text));
+          Context_Position.reports ctxt
+            [(pos, Markup.language_verbatim (Input.is_delimited text)),
+             (pos, Markup.raw_text)];
       in #1 (Input.source_content text) end));
 
 

@@ -28,13 +28,13 @@ datatype kind = Comment | Cancel | Latex | Marker;
 val kinds =
   [(Comment,
      {symbol = Symbol.comment, blanks = true,
-      markups = [Markup.language_document true]}),
+      markups = [Markup.language_document true, Markup.plain_text]}),
    (Cancel,
      {symbol = Symbol.cancel, blanks = false,
-      markups = [Markup.language_text true]}),
+      markups = [Markup.language_text true, Markup.raw_text]}),
    (Latex,
      {symbol = Symbol.latex, blanks = false,
-      markups = [Markup.language_latex true, Markup.no_words]}),
+      markups = [Markup.language_latex true, Markup.no_words, Markup.raw_text]}),
    (Marker,
      {symbol = Symbol.marker, blanks = false,
       markups = [Markup.language_document_marker]})];

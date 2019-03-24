@@ -304,6 +304,12 @@ object Markup
   val DOCUMENT_ANTIQUOTATION_OPTION = "document_antiquotation_option"
 
 
+  /* text kind */
+
+  val RAW_TEXT = "raw_text"
+  val PLAIN_TEXT = "plain_text"
+
+
   /* text structure */
 
   val PARAGRAPH = "paragraph"

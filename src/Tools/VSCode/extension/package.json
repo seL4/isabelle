@@ -299,7 +299,11 @@
                 "isabelle.class_parameter_light_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
                 "isabelle.class_parameter_dark_color": { "type": "string", "default": "rgba(210, 105, 30, 1.00)" },
                 "isabelle.antiquote_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
-                "isabelle.antiquote_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" }
+                "isabelle.antiquote_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
+                "isabelle.raw_text_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
+                "isabelle.raw_text_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" },
+                "isabelle.plain_text_light_color": { "type": "string", "default": "rgba(102, 0, 204, 1.00)" },
+                "isabelle.plain_text_dark_color": { "type": "string", "default": "rgba(197, 134, 192, 1.00)" }
             }
         }
     },

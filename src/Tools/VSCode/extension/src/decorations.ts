@@ -57,7 +57,9 @@ const text_colors = [
   "comment3",
   "dynamic",
   "class_parameter",
-  "antiquote"
+  "antiquote",
+  "raw_text",
+  "plain_text"
 ]
 
 const text_overview_colors = [

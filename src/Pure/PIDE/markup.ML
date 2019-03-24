@@ -128,6 +128,8 @@ sig
   val ML_antiquotationN: string
   val document_antiquotationN: string
   val document_antiquotation_optionN: string
+  val raw_textN: string val raw_text: T
+  val plain_textN: string val plain_text: T
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
   val markdown_paragraphN: string val markdown_paragraph: T
@@ -508,6 +510,12 @@ val antiquotationN = "antiquotation";
 val ML_antiquotationN = "ML_antiquotation";
 val document_antiquotationN = "document_antiquotation";
 val document_antiquotation_optionN = "document_antiquotation_option";
+
+
+(* text kind *)
+
+val (raw_textN, raw_text) = markup_elem "raw_text";
+val (plain_textN, plain_text) = markup_elem "plain_text";
 
 
 (* text structure *)
