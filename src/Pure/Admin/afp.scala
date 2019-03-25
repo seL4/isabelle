@@ -7,7 +7,7 @@ Administrative support for the Archive of Formal Proofs.
 package isabelle
 
 
-import java.time.{LocalDate, ZoneId}
+import java.time.LocalDate
 import scala.collection.immutable.SortedMap
 
 
@@ -31,8 +31,7 @@ object AFP
   def parse_date(s: String): Date =
   {
     val t = Date.Formatter.pattern("uuuu-MM-dd").parse(s)
-    val zone_id = ZoneId.of("Europe/Berlin")
-    Date(LocalDate.from(t).atStartOfDay(zone_id))
+    Date(LocalDate.from(t).atStartOfDay(Date.timezone_berlin))
   }
 
   sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])

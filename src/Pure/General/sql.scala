@@ -497,7 +497,7 @@ object PostgreSQL
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
     def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
       if (date == null) stmt.rep.setObject(i, null)
-      else stmt.rep.setObject(i, OffsetDateTime.from(date.to_utc.rep))
+      else stmt.rep.setObject(i, OffsetDateTime.from(date.to(Date.timezone_utc).rep))
 
     def date(res: SQL.Result, column: SQL.Column): Date =
     {

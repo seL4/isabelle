@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.io.{File => JFile}
-import java.time.ZoneId
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
 
@@ -157,7 +156,7 @@ object Build_Log
           List(Locale.ENGLISH, Locale.GERMAN)) :::
         List(
           DateTimeFormatter.RFC_1123_DATE_TIME,
-          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(ZoneId.of("Europe/Berlin")))
+          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(Date.timezone_berlin))
 
       def tune_timezone(s: String): String =
         s match {
@@ -429,7 +428,7 @@ object Build_Log
               log_file.lines.takeWhile(_ != Jenkins.CONFIGURATION).collectFirst({
                 case Jenkins.Host(a, b) => a + "." + b
               }).getOrElse("")
-            parse(Jenkins.engine, host, start.to(ZoneId.of("Europe/Berlin")), Jenkins.No_End,
+            parse(Jenkins.engine, host, start.to(Date.timezone_berlin), Jenkins.No_End,
               Jenkins.Isabelle_Version, Jenkins.AFP_Version)
           case _ => Meta_Info.empty
         }

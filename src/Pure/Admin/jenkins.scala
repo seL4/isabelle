@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.net.URL
-import java.time.ZoneId
 
 import scala.util.matching.Regex
 
@@ -71,7 +70,7 @@ object Jenkins
     main_log: URL,
     session_logs: List[(String, String, URL)])
   {
-    val date: Date = Date(Time.ms(timestamp), ZoneId.of("Europe/Berlin"))
+    val date: Date = Date(Time.ms(timestamp), Date.timezone_berlin)
 
     def log_filename: Path =
       Build_Log.log_filename(Build_Log.Jenkins.engine, date, List(job_name))

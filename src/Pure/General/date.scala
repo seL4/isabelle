@@ -75,6 +75,9 @@ object Date
 
   /* date operations */
 
+  def timezone_utc: ZoneId = ZoneId.of("UTC")
+  def timezone_berlin: ZoneId = ZoneId.of("Europe/Berlin")
+
   def timezone(): ZoneId = ZoneId.systemDefault
 
   def now(zone: ZoneId = timezone()): Date = new Date(ZonedDateTime.now(zone))
@@ -91,7 +94,6 @@ sealed case class Date(rep: ZonedDateTime)
     new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
 
   def to(zone: ZoneId): Date = new Date(rep.withZoneSameInstant(zone))
-  def to_utc: Date = to(ZoneId.of("UTC"))
 
   def unix_epoch: Long = rep.toEpochSecond
   def instant: Instant = Instant.from(rep)
