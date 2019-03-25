@@ -81,15 +81,15 @@ object RDF
 
   object Property  // binary relation with plain value
   {
-    val title: String = dcterms("title")
-    val creator: String = dcterms("creator")
-    val contributor: String = dcterms("contributor")
-    val date: String = dcterms("date")
-    val license: String = dcterms("license")
-    val description: String = dcterms("description")
+    def title: String = dcterms("title")
+    def creator: String = dcterms("creator")
+    def contributor: String = dcterms("contributor")
+    def date: String = dcterms("date")
+    def license: String = dcterms("license")
+    def description: String = dcterms("description")
   }
 
-  private val meta_data_table =
+  private lazy val meta_data_table =
     Map(
       Markup.META_TITLE -> Property.title,
       Markup.META_CREATOR -> Property.creator,
