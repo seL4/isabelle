@@ -25,65 +25,9 @@ object AFP
     new AFP(options, base_dir)
 
 
-  /* metadata */
-
-  object Metadata
-  {
-    private val Section = """^\[(\S+)\]\s*$""".r
-    private val Property = """^(\S+)\s*=(.*)$""".r
-    private val Extra_Line = """^\s+(.*)$""".r
-    private val Blank_Line = """^\s*$""".r
-
-    def read(metadata_file: Path): Map[String, Metadata] =
-    {
-      var result = Map.empty[String, Metadata]
-      var section = ""
-      var props = List.empty[Properties.Entry]
-
-      def flush()
-      {
-        if (section != "") result += (section -> new Metadata(props.reverse))
-        section = ""
-        props = Nil
-      }
-
-      for ((line, i) <- split_lines(File.read(metadata_file)).zipWithIndex)
-      {
-        def err(msg: String): Nothing =
-          error(msg + Position.here(Position.Line_File(i + 1, metadata_file.expand.implode)))
-
-        line match {
-          case Section(name) => flush(); section = name
-          case Property(a, b) =>
-            if (section == "") err("Property without a section")
-            props = (a -> b.trim) :: props
-          case Extra_Line(line) =>
-            props match {
-              case Nil => err("Extra line without a property")
-              case (a, b) :: rest => props = (a, b + "\n" + line.trim) :: rest
-            }
-          case Blank_Line() =>
-          case _ => err("Bad input")
-        }
-      }
-
-      flush()
-      result
-    }
-  }
-
-  class Metadata private[AFP](properties: Properties.T)
-  {
-    override def toString: String =
-      properties.map({ case (a, b) => a + "=" + b }).mkString("Metadata(", ", ", ")")
-
-    def is_empty: Boolean = properties.isEmpty
-  }
-
-
   /* entries */
 
-  sealed case class Entry(name: String, metadata: Metadata, sessions: List[String])
+  sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])
 }
 
 class AFP private(options: Options, val base_dir: Path)
@@ -93,12 +37,57 @@ class AFP private(options: Options, val base_dir: Path)
   val main_dir: Path = base_dir + Path.explode("thys")
 
 
+  /* metadata */
+
+  private val entry_metadata: Map[String, Properties.T] =
+  {
+    val metadata_file = base_dir + Path.explode("metadata/metadata")
+
+    var result = Map.empty[String, Properties.T]
+    var section = ""
+    var props = List.empty[Properties.Entry]
+
+    val Section = """^\[(\S+)\]\s*$""".r
+    val Property = """^(\S+)\s*=(.*)$""".r
+    val Extra_Line = """^\s+(.*)$""".r
+    val Blank_Line = """^\s*$""".r
+
+    def flush()
+    {
+      if (section != "") result += (section -> props.reverse)
+      section = ""
+      props = Nil
+    }
+
+    for ((line, i) <- split_lines(File.read(metadata_file)).zipWithIndex)
+    {
+      def err(msg: String): Nothing =
+        error(msg + Position.here(Position.Line_File(i + 1, metadata_file.expand.implode)))
+
+      line match {
+        case Section(name) => flush(); section = name
+        case Property(a, b) =>
+          if (section == "") err("Property without a section")
+          props = (a -> b.trim) :: props
+        case Extra_Line(line) =>
+          props match {
+            case Nil => err("Extra line without a property")
+            case (a, b) :: rest => props = (a, b + "\n" + line.trim) :: rest
+          }
+        case Blank_Line() =>
+        case _ => err("Bad input")
+      }
+    }
+
+    flush()
+    result
+  }
+
+
   /* entries and sessions */
 
   val entries_map: SortedMap[String, AFP.Entry] =
   {
-    val entry_metadata = AFP.Metadata.read(base_dir + Path.explode("metadata/metadata"))
-
     val entries =
       for (name <- Sessions.parse_roots(main_dir + Sessions.ROOTS)) yield {
         val metadata =
