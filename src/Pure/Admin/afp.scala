@@ -28,6 +28,11 @@ object AFP
   /* entries */
 
   sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])
+  {
+    def maintainers: List[String] =
+      Library.space_explode(',', Properties.get(metadata, "notify").getOrElse("")).
+        map(_.trim).filter(_.nonEmpty)
+  }
 }
 
 class AFP private(options: Options, val base_dir: Path)
@@ -68,7 +73,8 @@ class AFP private(options: Options, val base_dir: Path)
         case Section(name) => flush(); section = name
         case Property(a, b) =>
           if (section == "") err("Property without a section")
-          props = (a -> b.trim) :: props
+          val c = b.trim
+          if (c.nonEmpty) props = (a -> c) :: props
         case Extra_Line(line) =>
           props match {
             case Nil => err("Extra line without a property")
