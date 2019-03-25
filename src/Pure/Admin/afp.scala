@@ -107,7 +107,7 @@ class AFP private(options: Options, val base_dir: Path)
   }
 
 
-  /* entries and sessions */
+  /* entries */
 
   val entries_map: SortedMap[String, AFP.Entry] =
   {
@@ -133,6 +133,14 @@ class AFP private(options: Options, val base_dir: Path)
   }
 
   val entries: List[AFP.Entry] = entries_map.toList.map(_._2)
+
+
+  /* sessions */
+
+  val sessions_map: SortedMap[String, AFP.Entry] =
+    (SortedMap.empty[String, AFP.Entry] /: entries)(
+      { case (m1, e) => (m1 /: e.sessions)({ case (m2, s) => m2 + (s -> e) }) })
+
   val sessions: List[String] = entries.flatMap(_.sessions)
 
   val sessions_structure: Sessions.Structure =
