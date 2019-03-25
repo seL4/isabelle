@@ -77,7 +77,7 @@ class AFP private(options: Options, val base_dir: Path)
 
     def flush()
     {
-      if (section != "") result += (section -> props.reverse)
+      if (section != "") result += (section -> props.reverse.filter(p => p._2.nonEmpty))
       section = ""
       props = Nil
     }
@@ -91,8 +91,7 @@ class AFP private(options: Options, val base_dir: Path)
         case Section(name) => flush(); section = name
         case Property(a, b) =>
           if (section == "") err("Property without a section")
-          val c = b.trim
-          if (c.nonEmpty) props = (a -> c) :: props
+          props = (a -> b.trim) :: props
         case Extra_Line(line) =>
           props match {
             case Nil => err("Extra line without a property")
