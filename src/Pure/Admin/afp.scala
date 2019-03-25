@@ -7,6 +7,9 @@ Administrative support for the Archive of Formal Proofs.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object AFP
 {
   val repos_source = "https://isabelle.sketis.net/repos/afp-devel"
@@ -90,29 +93,34 @@ class AFP private(options: Options, val base_dir: Path)
   val main_dir: Path = base_dir + Path.explode("thys")
 
 
-  /* entries with metadata and sessions */
+  /* entries and sessions */
 
-  val entries: List[AFP.Entry] =
+  val entries_map: SortedMap[String, AFP.Entry] =
   {
     val entry_metadata = AFP.Metadata.read(base_dir + Path.explode("metadata/metadata"))
 
     val entries =
-      (for (name <- Sessions.parse_roots(main_dir + Sessions.ROOTS)) yield {
+      for (name <- Sessions.parse_roots(main_dir + Sessions.ROOTS)) yield {
         val metadata =
           entry_metadata.getOrElse(name, error("Entry without metadata: " + quote(name)))
         val sessions =
           Sessions.parse_root_entries(main_dir + Path.explode(name) + Sessions.ROOT).map(_.name)
         AFP.Entry(name, metadata, sessions)
-      }).sortBy(_.name)
+      }
 
-    val entry_set = entries.iterator.map(_.name).toSet
+    val entries_map =
+      (SortedMap.empty[String, AFP.Entry] /: entries)({ case (m, e) => m + (e.name -> e) })
+
     val extra_metadata =
-      (for ((name, _) <- entry_metadata.iterator if !entry_set(name)) yield name).toList.sorted
-    if (extra_metadata.nonEmpty) error("Meta data without entry: " + commas_quote(extra_metadata))
+      (for ((name, _) <- entry_metadata.iterator if !entries_map.isDefinedAt(name)) yield name).
+        toList.sorted
+    if (extra_metadata.nonEmpty)
+      error("Meta data without entry: " + commas_quote(extra_metadata))
 
-    entries
+    entries_map
   }
 
+  val entries: List[AFP.Entry] = entries_map.toList.map(_._2)
   val sessions: List[String] = entries.flatMap(_.sessions)
 
   val sessions_structure: Sessions.Structure =
