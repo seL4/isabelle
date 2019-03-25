@@ -7,6 +7,7 @@ Administrative support for the Archive of Formal Proofs.
 package isabelle
 
 
+import java.time.{LocalDate, ZoneId}
 import scala.collection.immutable.SortedMap
 
 
@@ -27,11 +28,28 @@ object AFP
 
   /* entries */
 
+  def parse_date(s: String): Date =
+  {
+    val t = Date.Formatter.pattern("uuuu-MM-dd").parse(s)
+    val zone_id = ZoneId.of("Europe/Berlin")
+    Date(LocalDate.from(t).atStartOfDay(zone_id))
+  }
+
   sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])
   {
-    def maintainers: List[String] =
-      Library.space_explode(',', Properties.get(metadata, "notify").getOrElse("")).
-        map(_.trim).filter(_.nonEmpty)
+    def get(prop: String): Option[String] = Properties.get(metadata, prop)
+    def get_string(prop: String): String = get(prop).getOrElse("")
+    def get_strings(prop: String): List[String] =
+      Library.space_explode(',', get_string(prop)).map(_.trim).filter(_.nonEmpty)
+
+    def title: String = get_string("title")
+    def authors: List[String] = get_strings("author")
+    def date: Option[Date] = get("date").map(parse_date(_))
+    def topics: List[String] = get_strings("topic")
+    def `abstract`: String = get_string("abstract")
+    def maintainers: List[String] = get_strings("notify")
+    def contributors: List[String] = get_strings("contributors")
+    def license: Option[String] = get("license")
   }
 }
 
