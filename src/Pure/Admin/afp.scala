@@ -43,12 +43,13 @@ object AFP
 
     def title: String = get_string("title")
     def authors: List[String] = get_strings("author")
-    def date: Option[Date] = get("date").map(parse_date(_))
+    def date: Date =
+      parse_date(get("date").getOrElse(error("Missing date for entry " + quote(name))))
     def topics: List[String] = get_strings("topic")
-    def `abstract`: String = get_string("abstract")
+    def `abstract`: String = get_string("abstract").trim
     def maintainers: List[String] = get_strings("notify")
     def contributors: List[String] = get_strings("contributors")
-    def license: Option[String] = get("license")
+    def license: String = get("license").getOrElse("BSD")
   }
 }
 
