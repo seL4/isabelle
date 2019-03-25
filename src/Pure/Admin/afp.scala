@@ -50,6 +50,15 @@ object AFP
     def maintainers: List[String] = get_strings("notify")
     def contributors: List[String] = get_strings("contributors")
     def license: String = get("license").getOrElse("BSD")
+
+    def rdf_meta_data: Properties.T =
+      RDF.meta_data(
+        proper_string(title).map(Markup.META_TITLE -> _).toList :::
+        authors.map(Markup.META_CREATOR -> _) :::
+        contributors.map(Markup.META_CONTRIBUTOR -> _) :::
+        List(Markup.META_DATE -> RDF.date_format(date)) :::
+        List(Markup.META_LICENSE -> license) :::
+        proper_string(`abstract`).map(Markup.META_DESCRIPTION -> _).toList)
   }
 }
 
