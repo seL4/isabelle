@@ -547,8 +547,8 @@ definition list_fast :: "'a tree \<Rightarrow> 'a list" where
 
 function t_list_fast_rec :: "'a tree list \<Rightarrow> nat" where
 "t_list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts
-  in if us = [] then 0 else
-  length ts + 5 * length us + t_list_fast_rec (map left us @ map right us))"
+  in length ts + (if us = [] then 0 else
+  5 * length us + t_list_fast_rec (map left us @ map right us)))"
 by (pat_completeness, auto)
 
 termination
@@ -635,8 +635,9 @@ proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
   show ?case
   proof cases
     assume "?us = []"
-    thus ?thesis using t_list_fast_rec.simps[of ts] by(simp add: Let_def)
-  next
+    thus ?thesis using t_list_fast_rec.simps[of ts]
+      by(simp add: Let_def sum_list_Suc)
+    next
     assume "?us \<noteq> []"
     let ?children = "map left ?us @ map right ?us"
     have "t_list_fast_rec ts = t_list_fast_rec ?children + 5 * length ?us + length ts"
