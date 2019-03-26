@@ -251,27 +251,29 @@ object Export_Theory
     syntax: Syntax,
     typargs: List[String],
     typ: Term.Typ,
-    abbrev: Option[Term.Term])
+    abbrev: Option[Term.Term],
+    propositional: Boolean)
   {
     def cache(cache: Term.Cache): Const =
       Const(entity.cache(cache),
         syntax,
         typargs.map(cache.string(_)),
         cache.typ(typ),
-        abbrev.map(cache.term(_)))
+        abbrev.map(cache.term(_)),
+        propositional)
   }
 
   def read_consts(provider: Export.Provider): List[Const] =
     provider.uncompressed_yxml(export_prefix + "consts").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.CONST, tree)
-        val (syntax, (args, (typ, abbrev))) =
+        val (syntax, (args, (typ, (abbrev, propositional)))) =
         {
           import XML.Decode._
           pair(decode_syntax, pair(list(string),
-            pair(Term_XML.Decode.typ, option(Term_XML.Decode.term))))(body)
+            pair(Term_XML.Decode.typ, pair(option(Term_XML.Decode.term), bool))))(body)
         }
-        Const(entity, syntax, args, typ, abbrev)
+        Const(entity, syntax, args, typ, abbrev, propositional)
       })
 
 

@@ -231,7 +231,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_const =
       let open XML.Encode Term_XML.Encode
-      in pair encode_syntax (pair (list string) (pair typ (option term))) end;
+      in pair encode_syntax (pair (list string) (pair typ (pair (option term) bool))) end;
 
     fun export_const c (T, abbrev) =
       let
@@ -239,7 +239,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val T' = T |> Logic.unvarifyT_global |> Type.strip_sorts;
         val abbrev' = abbrev |> Option.map (standard_vars_global #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, T'));
-      in encode_const (syntax, (args, (T', abbrev'))) end;
+        val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type T');
+      in encode_const (syntax, (args, (T', (abbrev', propositional)))) end;
 
     val _ =
       export_entities "consts" (SOME oo export_const) Sign.const_space

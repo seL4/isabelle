@@ -17,6 +17,7 @@ sig
   val ensure_propT: Proof.context -> term -> term
   val dest_judgment: Proof.context -> cterm -> cterm
   val judgment_conv: Proof.context -> conv -> conv
+  val is_propositional: Proof.context -> typ -> bool
   val elim_concl: Proof.context -> thm -> term option
   val declare_atomize: attribute
   val declare_rulify: attribute
@@ -145,6 +146,11 @@ fun judgment_conv ctxt cv ct =
   if is_judgment ctxt (Thm.term_of ct)
   then Conv.arg_conv cv ct
   else raise CTERM ("judgment_conv", [ct]);
+
+fun is_propositional ctxt T =
+  T = propT orelse
+    let val x = Free (singleton (Variable.variant_frees ctxt []) ("x", T))
+    in can (fn () => Syntax.check_term ctxt (ensure_propT ctxt x)) () end;
 
 
 (* elimination rules *)
