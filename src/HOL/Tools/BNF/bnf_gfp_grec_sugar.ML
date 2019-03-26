@@ -2154,10 +2154,10 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
       in
         lthy
 (* TODO:
-        |> Spec_Rules.add Spec_Rules.Equational ([fun_t0], flat sel_thmss)
-        |> Spec_Rules.add Spec_Rules.Equational ([fun_t0], flat ctr_thmss)
+        |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat sel_thmss)
+        |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat ctr_thmss)
 *)
-        |> Spec_Rules.add Spec_Rules.Equational ([fun_t0], [code_thm])
+        |> Spec_Rules.add Spec_Rules.equational ([fun_t0], [code_thm])
         |> plugins code_plugin ? Code.declare_default_eqns [(code_thm, true)]
         |> Local_Theory.notes (anonymous_notes @ notes)
         |> snd

@@ -263,7 +263,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
       |> Local_Theory.define_internal ((b, mx), ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
-    val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
+    val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.equational ([lhs], [th]);
 
     val ([(def_name, [th'])], lthy4) = lthy3
       |> Local_Theory.notes [((name, atts), [([th], [])])];

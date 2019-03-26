@@ -1111,10 +1111,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
 
         val (noted, lthy') = lthy
-          |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
-          |> fold (Spec_Rules.add Spec_Rules.Equational)
+          |> Spec_Rules.add Spec_Rules.equational ([casex], case_thms)
+          |> fold (Spec_Rules.add Spec_Rules.equational)
             (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
-          |> fold (Spec_Rules.add Spec_Rules.Equational)
+          |> fold (Spec_Rules.add Spec_Rules.equational)
             (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
           |> Local_Theory.declaration {syntax = false, pervasive = true}
             (fn phi => Case_Translation.register

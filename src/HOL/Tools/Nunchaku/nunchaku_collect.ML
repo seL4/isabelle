@@ -471,13 +471,6 @@ fun card_of_type ctxt =
     card_of []
   end;
 
-fun int_of_classif Spec_Rules.Equational = 1
-  | int_of_classif Spec_Rules.Inductive = 2
-  | int_of_classif Spec_Rules.Co_Inductive = 3
-  | int_of_classif Spec_Rules.Unknown = 4;
-
-val classif_ord = int_ord o apply2 int_of_classif;
-
 fun spec_rules_of ctxt (x as (s, T)) =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -503,7 +496,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
 
     fun spec_rules () =
       Spec_Rules.retrieve ctxt (Const x)
-      |> sort (classif_ord o apply2 fst);
+      |> sort (Spec_Rules.rough_classification_ord o apply2 fst);
 
     val specs =
       if s = \<^const_name>\<open>The\<close> then
@@ -513,7 +506,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
           if card = Inf orelse card = Fin_or_Inf then
             spec_rules ()
           else
-            [(Spec_Rules.Equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
+            [(Spec_Rules.equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
                [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]))]
         end
       else
@@ -544,7 +537,7 @@ fun is_builtin_theory thy_id =
 
 val orphan_axioms_of =
   Spec_Rules.get
-  #> filter (curry (op =) Spec_Rules.Unknown o fst)
+  #> filter (Spec_Rules.is_unknown o fst)
   #> map snd
   #> filter (null o fst)
   #> maps snd
@@ -959,7 +952,7 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                        val (props', cmds) =
                          if null props then
                            ([], map IVal consts)
-                         else if classif = Spec_Rules.Equational then
+                         else if Spec_Rules.is_equational classif then
                            (case partition_props consts props of
                              SOME propss =>
                              (props,
@@ -968,15 +961,15 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                                     pat_complete = is_apparently_pat_complete ctxt props})
                                  consts propss)])
                            | NONE => def_or_spec ())
-                         else if member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive]
-                             classif then
+                         else if (Spec_Rules.is_inductive orf Spec_Rules.is_co_inductive) classif
+                         then
                            if is_inductive_set_intro (hd props) then
                              def_or_spec ()
                            else
                              (case partition_props consts props of
                                SOME propss =>
                                (props,
-                                [ICoPred (if classif = Spec_Rules.Inductive then BNF_Util.Least_FP
+                                [ICoPred (if Spec_Rules.is_inductive classif then BNF_Util.Least_FP
                                    else BNF_Util.Greatest_FP,
                                  length consts = 1 andalso
                                  is_wellfounded_inductive_predicate ctxt wfs debug wf_timeout

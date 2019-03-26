@@ -801,7 +801,7 @@ fun extract thm_vss thy =
            [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
              Logic.mk_equals (head, ft)), [])]
         |-> (fn [def_thm] =>
-           Spec_Rules.add_global Spec_Rules.Equational ([head], [def_thm])
+           Spec_Rules.add_global Spec_Rules.equational ([head], [def_thm])
            #> Code.declare_default_eqns_global [(def_thm, true)])
       end;
 

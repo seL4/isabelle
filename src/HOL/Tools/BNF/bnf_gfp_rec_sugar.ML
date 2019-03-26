@@ -1532,9 +1532,9 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
         val fun_ts0 = map fst def_infos;
       in
         lthy
-        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat sel_thmss)
-        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat ctr_thmss)
-        |> Spec_Rules.add Spec_Rules.Equational (fun_ts0, flat code_thmss)
+        |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat sel_thmss)
+        |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat ctr_thmss)
+        |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat code_thmss)
         |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat code_thmss))
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes)
         |> snd

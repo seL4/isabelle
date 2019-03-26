@@ -1814,7 +1814,7 @@ fun lhs_of_equation (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ _) = 
 
 fun add_spec_rule rule =
   let val head = head_of (lhs_of_equation (Thm.prop_of rule)) in
-    Spec_Rules.add_global Spec_Rules.Equational ([head], [rule])
+    Spec_Rules.add_global Spec_Rules.equational ([head], [rule])
   end;
 
 (* definition *)
