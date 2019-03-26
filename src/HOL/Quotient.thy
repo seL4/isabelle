@@ -141,21 +141,17 @@ lemma fun_quotient3:
   and     q2: "Quotient3 R2 abs2 rep2"
   shows "Quotient3 (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2)"
 proof -
-  have "\<And>a.(rep1 ---> abs2) ((abs1 ---> rep2) a) = a"
+  have "(rep1 ---> abs2) ((abs1 ---> rep2) a) = a" for a
     using q1 q2 by (simp add: Quotient3_def fun_eq_iff)
   moreover
-  have "\<And>a.(R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)"
+  have "(R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)" for a
     by (rule rel_funI)
       (insert q1 q2 Quotient3_rel_abs [of R1 abs1 rep1] Quotient3_rel_rep [of R2 abs2 rep2],
         simp (no_asm) add: Quotient3_def, simp)
-  
   moreover
-  {
-  fix r s
   have "(R1 ===> R2) r s = ((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
-        (rep1 ---> abs2) r  = (rep1 ---> abs2) s)"
+        (rep1 ---> abs2) r  = (rep1 ---> abs2) s)" for r s
   proof -
-    
     have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) r r" unfolding rel_fun_def
       using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
       by (metis (full_types) part_equivp_def)
@@ -163,16 +159,15 @@ proof -
       using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
       by (metis (full_types) part_equivp_def)
     moreover have "(R1 ===> R2) r s \<Longrightarrow> (rep1 ---> abs2) r  = (rep1 ---> abs2) s"
-      apply(auto simp add: rel_fun_def fun_eq_iff) using q1 q2 unfolding Quotient3_def by metis
+      by (auto simp add: rel_fun_def fun_eq_iff)
+        (use q1 q2 in \<open>unfold Quotient3_def, metis\<close>)
     moreover have "((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s) \<Longrightarrow> (R1 ===> R2) r s"
-      apply(auto simp add: rel_fun_def fun_eq_iff) using q1 q2 unfolding Quotient3_def 
-    by (metis map_fun_apply)
-  
+      by (auto simp add: rel_fun_def fun_eq_iff)
+        (use q1 q2 in \<open>unfold Quotient3_def, metis map_fun_apply\<close>)
     ultimately show ?thesis by blast
- qed
- }
- ultimately show ?thesis by (intro Quotient3I) (assumption+)
+  qed
+  ultimately show ?thesis by (intro Quotient3I) (assumption+)
 qed
 
 lemma lambda_prs:
