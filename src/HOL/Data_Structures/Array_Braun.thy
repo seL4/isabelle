@@ -516,22 +516,29 @@ subsubsection \<open>Converting a Braun Tree into a List of Elements\<close>
 text \<open>The code and the proof are originally due to Thomas Sewell (except running time).\<close>
 
 function list_fast_rec :: "'a tree list \<Rightarrow> 'a list" where
-"list_fast_rec ts = (if ts = [] then [] else
-  let us = filter (\<lambda>t. t \<noteq> Leaf) ts
-  in map value us @ list_fast_rec (map left us @ map right us))"
+"list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts in
+  if us = [] then [] else
+  map value us @ list_fast_rec (map left us @ map right us))"
 by (pat_completeness, auto)
 
-lemma list_fast_rec_term: "\<lbrakk> ts \<noteq> []; us = filter (\<lambda>t. t \<noteq> \<langle>\<rangle>) ts \<rbrakk> \<Longrightarrow>
-  (map left us @ map right us, ts) \<in> measure (sum_list \<circ> map (\<lambda>t. 2 * size t + 1))"
-apply (clarsimp simp: sum_list_addf[symmetric] sum_list_map_filter')
-apply (rule sum_list_strict_mono; simp)
-apply (case_tac x; simp)
-done
+lemma list_fast_rec_term1: "ts \<noteq> [] \<Longrightarrow> Leaf \<notin> set ts \<Longrightarrow>
+  sum_list (map (size o left) ts) + sum_list (map (size o right) ts) < sum_list (map size ts)"
+  apply (clarsimp simp: sum_list_addf[symmetric] sum_list_map_filter')
+  apply (rule sum_list_strict_mono; clarsimp?)
+  apply (case_tac x; simp)
+  done
+
+lemma list_fast_rec_term: "us \<noteq> [] \<Longrightarrow> us = filter (\<lambda>t. t \<noteq> \<langle>\<rangle>) ts \<Longrightarrow>
+  sum_list (map (size o left) us) + sum_list (map (size o right) us) < sum_list (map size ts)"
+  apply (rule order_less_le_trans, rule list_fast_rec_term1, simp_all)
+  apply (rule sum_list_filter_le_nat)
+  done
 
 termination
-apply (relation "measure (sum_list o map (\<lambda>t. 2 * size t + 1))")
- apply simp
-using list_fast_rec_term by auto
+  apply (relation "measure (sum_list o map size)")
+   apply simp
+  apply (simp add: list_fast_rec_term)
+  done
 
 declare list_fast_rec.simps[simp del]
 
@@ -539,18 +546,18 @@ definition list_fast :: "'a tree \<Rightarrow> 'a list" where
 "list_fast t = list_fast_rec [t]"
 
 function t_list_fast_rec :: "'a tree list \<Rightarrow> nat" where
-"t_list_fast_rec ts = (if ts = [] then 0 else
-  let us = filter (\<lambda>t. t \<noteq> Leaf) ts
-  in length ts + 5 * length us + t_list_fast_rec (map left us @ map right us))"
+"t_list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts
+  in if us = [] then 0 else
+  length ts + 5 * length us + t_list_fast_rec (map left us @ map right us))"
 by (pat_completeness, auto)
 
 termination
-apply (relation "measure (sum_list o map (\<lambda>t. 2 * size t + 1))")
- apply simp
-using list_fast_rec_term by auto
+  apply (relation "measure (sum_list o map size)")
+   apply simp
+  apply (simp add: list_fast_rec_term)
+  done
 
 declare t_list_fast_rec.simps[simp del]
-
 
 paragraph "Functional Correctness"
 
@@ -588,7 +595,7 @@ proof (induct xs arbitrary: k ts rule: measure_induct_rule[where f=length])
       apply(auto simp: nth_append braun_list_not_Nil take_nths_eq_single braun_list_Nil hd_drop_conv_nth)
       done
     thus ?thesis
-      by (clarsimp simp: list_fast_rec.simps[of ts] o_def list_fast_rec_all_Leaf)
+      by (clarsimp simp: list_fast_rec.simps[of ts] o_def list_fast_rec_all_Leaf Let_def)
   next
     case False
     with less.prems(2) have *:
@@ -614,7 +621,6 @@ corollary list_fast_correct:
   "braun t \<Longrightarrow> list_fast t = list t"
 by (simp add: list_fast_def take_nths_00 braun_list_eq list_fast_rec_correct[where k=0])
 
-
 paragraph "Running Time Analysis"
 
 lemma sum_tree_list_children: "\<forall>t \<in> set ts. t \<noteq> Leaf \<Longrightarrow>
@@ -623,21 +629,20 @@ by(induction ts)(auto simp add: neq_Leaf_iff algebra_simps)
 
 theorem t_list_fast_rec_ub:
   "t_list_fast_rec ts \<le> sum_list (map (\<lambda>t. 7*size t + 1) ts)"
-proof (induction ts rule: measure_induct_rule[where f="sum_list o map (\<lambda>t. 2*size t + 1)"])
+proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
   case (less ts)
+  let ?us = "filter (\<lambda>t. t \<noteq> Leaf) ts"
   show ?case
   proof cases
-    assume "ts = []"
+    assume "?us = []"
     thus ?thesis using t_list_fast_rec.simps[of ts] by(simp add: Let_def)
   next
-    assume "ts \<noteq> []"
-    let ?us = "filter (\<lambda>t. t \<noteq> Leaf) ts"
+    assume "?us \<noteq> []"
     let ?children = "map left ?us @ map right ?us"
     have "t_list_fast_rec ts = t_list_fast_rec ?children + 5 * length ?us + length ts"
-     using \<open>ts \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp add: Let_def)
+     using \<open>?us \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp add: Let_def)
     also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 7 * size t + 1) + 5 * length ?us + length ts"
-      using less[of "map left ?us @ map right ?us"]
-        list_fast_rec_term[of ts, OF \<open>ts \<noteq> []\<close>]
+      using less[of "?children"] list_fast_rec_term[of "?us"] \<open>?us \<noteq> []\<close>
       by (simp)
     also have "\<dots> = (\<Sum>t\<leftarrow>?children. 7*size t) + 7 * length ?us + length ts"
       by(simp add: sum_list_Suc o_def)
