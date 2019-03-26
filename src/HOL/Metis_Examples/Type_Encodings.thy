@@ -53,8 +53,7 @@ fun metis_exhaust_tac ctxt ths =
   let
     fun tac [] st = all_tac st
       | tac (type_enc :: type_encs) st =
-        st (* |> tap (fn _ => tracing (@{make_string} type_enc)) *)
-           |> ((if null type_encs then all_tac else resolve_tac ctxt @{thms fork} 1)
+        st |> ((if null type_encs then all_tac else resolve_tac ctxt @{thms fork} 1)
                THEN Metis_Tactic.metis_tac [type_enc]
                     ATP_Problem_Generate.combsN ctxt ths 1
                THEN COND (has_fewer_prems 2) all_tac no_tac
