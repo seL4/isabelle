@@ -1414,10 +1414,10 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           |> massage_simple_notes fp_b_name;
 
         val (noted, lthy') = lthy
-          |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
+          |> Spec_Rules.add Spec_Rules.equational (`(single o lhs_head_of o hd) map_thms)
           |> fp = Least_FP
-            ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_code_thms)
-          |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set0_thms)
+            ? Spec_Rules.add Spec_Rules.equational (`(single o lhs_head_of o hd) rel_code_thms)
+          |> Spec_Rules.add Spec_Rules.equational (`(single o lhs_head_of o hd) set0_thms)
           |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (rel_code_thms @ map_thms @ set_thms))
           |> Local_Theory.notes (anonymous_notes @ notes);
 
@@ -2689,7 +2689,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           |> massage_multi_notes fp_b_names fpTs;
       in
         lthy
-        |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
+        |> Spec_Rules.add Spec_Rules.equational (recs, flat rec_thmss)
         |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat rec_thmss))
         |> Local_Theory.notes (common_notes @ notes)
         (* for "datatype_realizer.ML": *)
@@ -2869,7 +2869,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           |> massage_multi_notes fp_b_names fpTs;
       in
         lthy
-        |> fold (curry (Spec_Rules.add Spec_Rules.Equational) corecs)
+        |> fold (curry (Spec_Rules.add Spec_Rules.equational) corecs)
           [flat corec_sel_thmss, flat corec_thmss]
         |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) corec_code_thms)
         |> Local_Theory.notes (common_notes @ notes)

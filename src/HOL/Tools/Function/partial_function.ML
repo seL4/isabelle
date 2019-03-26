@@ -302,7 +302,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((_, [rec_rule']), lthy'') = lthy' |> Local_Theory.note (eq_abinding, [rec_rule])
   in
     lthy''
-    |> Spec_Rules.add Spec_Rules.Equational ([f], [rec_rule'])
+    |> Spec_Rules.add Spec_Rules.equational_recdef ([f], [rec_rule'])
     |> note_qualified ("simps", [rec_rule'])
     |> note_qualified ("mono", [mono_thm])
     |> (case raw_induct of NONE => I | SOME thm => note_qualified ("raw_induct", [thm]))

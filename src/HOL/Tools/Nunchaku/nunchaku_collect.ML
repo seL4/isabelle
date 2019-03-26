@@ -506,7 +506,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
           if card = Inf orelse card = Fin_or_Inf then
             spec_rules ()
           else
-            [(Spec_Rules.Equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
+            [(Spec_Rules.equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
                [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]))]
         end
       else

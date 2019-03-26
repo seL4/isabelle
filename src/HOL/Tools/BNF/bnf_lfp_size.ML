@@ -373,8 +373,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val (noted, lthy3) =
         lthy2
-        |> Spec_Rules.add Spec_Rules.Equational (size_consts, size_simps)
-        |> Spec_Rules.add Spec_Rules.Equational (overloaded_size_consts, overloaded_size_simps)
+        |> Spec_Rules.add Spec_Rules.equational (size_consts, size_simps)
+        |> Spec_Rules.add Spec_Rules.equational (overloaded_size_consts, overloaded_size_simps)
         |> Code.declare_default_eqns (map (rpair true) (flat size_thmss))
           (*Ideally, this would be issued only if the "code" plugin is enabled.*)
         |> Local_Theory.notes notes;
