@@ -8,7 +8,12 @@ specifications may get lost.
 
 signature SPEC_RULES =
 sig
-  datatype rough_classification = Unknown | Equational | Inductive | Co_Inductive
+  datatype rough_classification = Equational | Inductive | Co_Inductive | Unknown
+  val rough_classification_ord: rough_classification * rough_classification -> order
+  val is_equational: rough_classification -> bool
+  val is_inductive: rough_classification -> bool
+  val is_co_inductive: rough_classification -> bool
+  val is_unknown: rough_classification -> bool
   type spec = rough_classification * (term list * thm list)
   val get: Proof.context -> spec list
   val get_global: theory -> spec list
@@ -21,9 +26,21 @@ end;
 structure Spec_Rules: SPEC_RULES =
 struct
 
+(* rough classification *)
+
+datatype rough_classification = Equational | Inductive | Co_Inductive | Unknown;
+
+val rough_classification_ord =
+  int_ord o apply2 (fn Equational => 0 | Inductive => 1 | Co_Inductive => 2 | Unknown => 3);
+
+val is_equational = fn Equational => true | _ => false;
+val is_inductive = fn Inductive => true | _ => false;
+val is_co_inductive = fn Co_Inductive => true | _ => false;
+val is_unknown = fn Unknown => true | _ => false;
+
+
 (* rules *)
 
-datatype rough_classification = Unknown | Equational | Inductive | Co_Inductive;
 type spec = rough_classification * (term list * thm list);
 
 structure Rules = Generic_Data
@@ -32,7 +49,7 @@ structure Rules = Generic_Data
   val empty : T =
     Item_Net.init
       (fn ((class1, (ts1, ths1)), (class2, (ts2, ths2))) =>
-        class1 = class2 andalso
+        rough_classification_ord (class1, class2) = EQUAL andalso
         eq_list (op aconv) (ts1, ts2) andalso
         eq_list Thm.eq_thm_prop (ths1, ths2))
       (#1 o #2);

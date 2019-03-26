@@ -317,11 +317,11 @@ fun clasimpset_rule_table_of ctxt =
 *)
         val specs = Spec_Rules.get ctxt
         val (rec_defs, nonrec_defs) = specs
-          |> filter (curry (op =) Spec_Rules.Equational o fst)
+          |> filter (Spec_Rules.is_equational o fst)
           |> maps (snd o snd)
           |> List.partition (is_rec_def o Thm.prop_of)
         val spec_intros = specs
-          |> filter (member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive] o fst)
+          |> filter ((Spec_Rules.is_inductive orf Spec_Rules.is_co_inductive) o fst)
           |> maps (snd o snd)
       in
         Termtab.empty
