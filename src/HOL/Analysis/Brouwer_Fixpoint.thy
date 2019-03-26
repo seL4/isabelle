@@ -49,10 +49,10 @@ lemma retract_of_homotopically_trivial:
   assumes ts: "T retract_of S"
       and hom: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S;
                        continuous_on U g; g ` U \<subseteq> S\<rbrakk>
-                       \<Longrightarrow> homotopic_with (\<lambda>x. True) U S f g"
+                       \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) U S f g"
       and "continuous_on U f" "f ` U \<subseteq> T"
       and "continuous_on U g" "g ` U \<subseteq> T"
-    shows "homotopic_with (\<lambda>x. True) U T f g"
+    shows "homotopic_with_canon (\<lambda>x. True) U T f g"
 proof -
   obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
@@ -69,9 +69,9 @@ qed
 lemma retract_of_homotopically_trivial_null:
   assumes ts: "T retract_of S"
       and hom: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S\<rbrakk>
-                     \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) U S f (\<lambda>x. c)"
+                     \<Longrightarrow> \<exists>c. homotopic_with_canon (\<lambda>x. True) U S f (\<lambda>x. c)"
       and "continuous_on U f" "f ` U \<subseteq> T"
-  obtains c where "homotopic_with (\<lambda>x. True) U T f (\<lambda>x. c)"
+  obtains c where "homotopic_with_canon (\<lambda>x. True) U T f (\<lambda>x. c)"
 proof -
   obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
@@ -98,8 +98,8 @@ lemma retract_of_locally_compact:
   by (metis locally_compact_closedin closedin_retract)
 
 lemma homotopic_into_retract:
-   "\<lbrakk>f ` S \<subseteq> T; g ` S \<subseteq> T; T retract_of U; homotopic_with (\<lambda>x. True) S U f g\<rbrakk>
-        \<Longrightarrow> homotopic_with (\<lambda>x. True) S T f g"
+   "\<lbrakk>f ` S \<subseteq> T; g ` S \<subseteq> T; T retract_of U; homotopic_with_canon (\<lambda>x. True) S U f g\<rbrakk>
+        \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) S T f g"
 apply (subst (asm) homotopic_with_def)
 apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
 apply (rule_tac x="r \<circ> h" in exI)
@@ -122,24 +122,24 @@ text \<open>A few simple lemmas about deformation retracts\<close>
 
 lemma deformation_retract_imp_homotopy_eqv:
   fixes S :: "'a::euclidean_space set"
-  assumes "homotopic_with (\<lambda>x. True) S S id r" and r: "retraction S T r"
+  assumes "homotopic_with_canon (\<lambda>x. True) S S id r" and r: "retraction S T r"
   shows "S homotopy_eqv T"
 proof -
-  have "homotopic_with (\<lambda>x. True) S S (id \<circ> r) id"
+  have "homotopic_with_canon (\<lambda>x. True) S S (id \<circ> r) id"
     by (simp add: assms(1) homotopic_with_symD)
-  moreover have "homotopic_with (\<lambda>x. True) T T (r \<circ> id) id"
+  moreover have "homotopic_with_canon (\<lambda>x. True) T T (r \<circ> id) id"
     using r unfolding retraction_def
-    by (metis (no_types, lifting) comp_id continuous_on_id' homotopic_with_equal homotopic_with_symD id_def image_id order_refl)
+    by (metis eq_id_iff homotopic_with_id2 topspace_euclidean_subtopology)
   ultimately
   show ?thesis
-    unfolding homotopy_eqv_def
-    by (metis continuous_on_id' id_def image_id r retraction_def)
+    unfolding homotopy_equivalent_space_def 
+    by (metis (no_types, lifting) continuous_map_subtopology_eu continuous_on_id' id_def image_id r retraction_def)
 qed
 
 lemma deformation_retract:
   fixes S :: "'a::euclidean_space set"
-    shows "(\<exists>r. homotopic_with (\<lambda>x. True) S S id r \<and> retraction S T r) \<longleftrightarrow>
-           T retract_of S \<and> (\<exists>f. homotopic_with (\<lambda>x. True) S S id f \<and> f ` S \<subseteq> T)"
+    shows "(\<exists>r. homotopic_with_canon (\<lambda>x. True) S S id r \<and> retraction S T r) \<longleftrightarrow>
+           T retract_of S \<and> (\<exists>f. homotopic_with_canon (\<lambda>x. True) S S id f \<and> f ` S \<subseteq> T)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -160,11 +160,11 @@ qed
 lemma deformation_retract_of_contractible_sing:
   fixes S :: "'a::euclidean_space set"
   assumes "contractible S" "a \<in> S"
-  obtains r where "homotopic_with (\<lambda>x. True) S S id r" "retraction S {a} r"
+  obtains r where "homotopic_with_canon (\<lambda>x. True) S S id r" "retraction S {a} r"
 proof -
   have "{a} retract_of S"
     by (simp add: \<open>a \<in> S\<close>)
-  moreover have "homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
+  moreover have "homotopic_with_canon (\<lambda>x. True) S S id (\<lambda>x. a)"
       using assms
       by (auto simp: contractible_def homotopic_into_contractible image_subset_iff)
   moreover have "(\<lambda>x. a) ` S \<subseteq> {a}"
@@ -3392,7 +3392,7 @@ lemma rel_frontier_deformation_retract_of_punctured_convex:
       and arelS: "a \<in> rel_interior S"
       and relS: "rel_frontier S \<subseteq> T"
       and affS: "T \<subseteq> affine hull S"
-  obtains r where "homotopic_with (\<lambda>x. True) (T - {a}) (T - {a}) id r"
+  obtains r where "homotopic_with_canon (\<lambda>x. True) (T - {a}) (T - {a}) id r"
                   "retraction (T - {a}) (rel_frontier S) r"
 proof -
   have "\<exists>d. 0 < d \<and> (a + d *\<^sub>R l) \<in> rel_frontier S \<and>
@@ -3466,7 +3466,7 @@ proof -
     by (blast intro: continuous_on_subset)
   show ?thesis
   proof
-    show "homotopic_with (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
+    show "homotopic_with_canon (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
     proof (rule homotopic_with_linear)
       show "continuous_on (T - {a}) id"
         by (intro continuous_intros continuous_on_compose)
@@ -3560,8 +3560,7 @@ lemma homotopy_eqv_rel_frontier_punctured_convex:
   apply (rule rel_frontier_deformation_retract_of_punctured_convex [of S T])
   using assms
   apply auto
-  apply (subst homotopy_eqv_sym)
-  using deformation_retract_imp_homotopy_eqv by blast
+  using deformation_retract_imp_homotopy_eqv homotopy_equivalent_space_sym by blast
 
 lemma homotopy_eqv_rel_frontier_punctured_affine_hull:
   fixes S :: "'a::euclidean_space set"
@@ -3600,7 +3599,7 @@ lemma Borsuk_map_into_sphere:
 
 lemma Borsuk_maps_homotopic_in_path_component:
   assumes "path_component (- s) a b"
-    shows "homotopic_with (\<lambda>x. True) s (sphere 0 1)
+    shows "homotopic_with_canon (\<lambda>x. True) s (sphere 0 1)
                    (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a))
                    (\<lambda>x. inverse(norm(x - b)) *\<^sub>R (x - b))"
 proof -
@@ -4128,8 +4127,8 @@ theorem Borsuk_homotopy_extension_homotopic:
       and anr: "(ANR S \<and> ANR T) \<or> ANR U"
       and contf: "continuous_on T f"
       and "f ` T \<subseteq> U"
-      and "homotopic_with (\<lambda>x. True) S U f g"
-   obtains g' where "homotopic_with (\<lambda>x. True) T U f g'"
+      and "homotopic_with_canon (\<lambda>x. True) S U f g"
+   obtains g' where "homotopic_with_canon (\<lambda>x. True) T U f g'"
                     "continuous_on T g'" "image g' T \<subseteq> U"
                     "\<And>x. x \<in> S \<Longrightarrow> g' x = g x"
 proof -
@@ -4141,9 +4140,9 @@ proof -
   define h' where "h' \<equiv>  \<lambda>z. if snd z \<in> S then h z else (f \<circ> snd) z"
   define B where "B \<equiv> {0::real} \<times> T \<union> {0..1} \<times> S"
   have clo0T: "closedin (top_of_set ({0..1} \<times> T)) ({0::real} \<times> T)"
-    by (simp add: closedin_subtopology_refl closedin_Times)
+    by (simp add: Abstract_Topology.closedin_Times)
   moreover have cloT1S: "closedin (top_of_set ({0..1} \<times> T)) ({0..1} \<times> S)"
-    by (simp add: closedin_subtopology_refl closedin_Times assms)
+    by (simp add: Abstract_Topology.closedin_Times assms)
   ultimately have clo0TB:"closedin (top_of_set ({0..1} \<times> T)) B"
     by (auto simp: B_def)
   have cloBS: "closedin (top_of_set B) ({0..1} \<times> S)"
@@ -4225,7 +4224,7 @@ proof -
   qed
   show ?thesis
   proof
-    show hom: "homotopic_with (\<lambda>x. True) T U f (\<lambda>x. k (a x, x))"
+    show hom: "homotopic_with_canon (\<lambda>x. True) T U f (\<lambda>x. k (a x, x))"
     proof (simp add: homotopic_with, intro exI conjI)
       show "continuous_on ({0..1} \<times> T) (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z)))"
         apply (intro continuous_on_compose continuous_intros)
@@ -4241,7 +4240,7 @@ proof -
         by auto
     qed
   show "continuous_on T (\<lambda>x. k (a x, x))"
-    using hom homotopic_with_imp_continuous by blast
+    using homotopic_with_imp_continuous_maps [OF hom] by auto
   show "(\<lambda>x. k (a x, x)) ` T \<subseteq> U"
   proof clarify
     fix t
@@ -4262,12 +4261,12 @@ corollary%unimportant nullhomotopic_into_ANR_extension:
       and "ANR T"
       and fim: "f ` S \<subseteq> T"
       and "S \<noteq> {}"
-   shows "(\<exists>c. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)) \<longleftrightarrow>
+   shows "(\<exists>c. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)) \<longleftrightarrow>
           (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> T \<and> (\<forall>x \<in> S. g x = f x))"
        (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then obtain c where c: "homotopic_with (\<lambda>x. True) S T (\<lambda>x. c) f"
+  then obtain c where c: "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. c) f"
     by (blast intro: homotopic_with_symD)
   have "closedin (top_of_set UNIV) S"
     using \<open>closed S\<close> closed_closedin by fastforce
@@ -4281,14 +4280,12 @@ next
   assume ?rhs
   then obtain g where "continuous_on UNIV g" "range g \<subseteq> T" "\<And>x. x\<in>S \<Longrightarrow> g x = f x"
     by blast
-  then obtain c where "homotopic_with (\<lambda>h. True) UNIV T g (\<lambda>x. c)"
+  then obtain c where "homotopic_with_canon (\<lambda>h. True) UNIV T g (\<lambda>x. c)"
     using nullhomotopic_from_contractible [of UNIV g T] contractible_UNIV by blast
+  then have "homotopic_with_canon (\<lambda>x. True) S T g (\<lambda>x. c)"
+    by (simp add: homotopic_from_subtopology)
   then show ?lhs
-    apply (rule_tac x=c in exI)
-    apply (rule homotopic_with_eq [of _ _ _ g "\<lambda>x. c"])
-    apply (rule homotopic_with_subset_left)
-    apply (auto simp: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
-    done
+    by (force elim: homotopic_with_eq [of _ _ _ g "\<lambda>x. c"] simp: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
 qed
 
 corollary%unimportant nullhomotopic_into_rel_frontier_extension:
@@ -4298,7 +4295,7 @@ corollary%unimportant nullhomotopic_into_rel_frontier_extension:
       and "convex T" "bounded T"
       and fim: "f ` S \<subseteq> rel_frontier T"
       and "S \<noteq> {}"
-   shows "(\<exists>c. homotopic_with (\<lambda>x. True) S (rel_frontier T) f (\<lambda>x. c)) \<longleftrightarrow>
+   shows "(\<exists>c. homotopic_with_canon (\<lambda>x. True) S (rel_frontier T) f (\<lambda>x. c)) \<longleftrightarrow>
           (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> rel_frontier T \<and> (\<forall>x \<in> S. g x = f x))"
 by (simp add: nullhomotopic_into_ANR_extension assms ANR_rel_frontier_convex)
 
@@ -4306,7 +4303,7 @@ corollary%unimportant nullhomotopic_into_sphere_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "closed S" and contf: "continuous_on S f"
       and "S \<noteq> {}" and fim: "f ` S \<subseteq> sphere a r"
-    shows "((\<exists>c. homotopic_with (\<lambda>x. True) S (sphere a r) f (\<lambda>x. c)) \<longleftrightarrow>
+    shows "((\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere a r) f (\<lambda>x. c)) \<longleftrightarrow>
            (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> sphere a r \<and> (\<forall>x \<in> S. g x = f x)))"
            (is "?lhs = ?rhs")
 proof (cases "r = 0")
@@ -4328,7 +4325,7 @@ proposition%unimportant Borsuk_map_essential_bounded_component:
   fixes a :: "'a :: euclidean_space"
   assumes "compact S" and "a \<notin> S"
    shows "bounded (connected_component_set (- S) a) \<longleftrightarrow>
-          \<not>(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1)
+          \<not>(\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1)
                                (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a)) (\<lambda>x. c))"
    (is "?lhs = ?rhs")
 proof (cases "S = {}")
@@ -4368,13 +4365,13 @@ next
       using bounded_iff linear by blast
     then have bnot: "b \<notin> ball 0 r"
       by simp
-    have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
+    have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
                                                    (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
       apply (rule Borsuk_maps_homotopic_in_path_component)
       using \<open>closed S\<close> b open_Compl open_path_connected_component apply fastforce
       done
     moreover
-    obtain c where "homotopic_with (\<lambda>x. True) (ball 0 r) (sphere 0 1)
+    obtain c where "homotopic_with_canon (\<lambda>x. True) (ball 0 r) (sphere 0 1)
                                    (\<lambda>x. inverse (norm (x - b)) *\<^sub>R (x - b)) (\<lambda>x. c)"
     proof (rule nullhomotopic_from_contractible)
       show "contractible (ball (0::'a) r)"
@@ -4384,8 +4381,7 @@ next
       show "(\<lambda>x. (x - b) /\<^sub>R norm (x - b)) ` ball 0 r \<subseteq> sphere 0 1"
         using bnot Borsuk_map_into_sphere by blast
     qed blast
-    ultimately have "homotopic_with (\<lambda>x. True) S (sphere 0 1)
-                         (\<lambda>x. (x - a) /\<^sub>R norm (x - a)) (\<lambda>x. c)"
+    ultimately have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. (x - a) /\<^sub>R norm (x - a)) (\<lambda>x. c)"
       by (meson homotopic_with_subset_left homotopic_with_trans r)
     then show "\<not> ?rhs"
       by blast
@@ -4397,7 +4393,7 @@ lemma homotopic_Borsuk_maps_in_bounded_component:
   fixes a :: "'a :: euclidean_space"
   assumes "compact S" and "a \<notin> S"and "b \<notin> S"
       and boc: "bounded (connected_component_set (- S) a)"
-      and hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1)
+      and hom: "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1)
                                (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
                                (\<lambda>x. (x - b) /\<^sub>R norm (x - b))"
    shows "connected_component (- S) a b"
@@ -4418,7 +4414,7 @@ proof (rule ccontr)
       by (simp add: \<open>b \<notin> S\<close> notcc continuous_on_Borsuk_map)
     show "(\<lambda>x. (x - b) /\<^sub>R norm (x - b)) ` ?T \<subseteq> sphere 0 1"
       by (simp add: \<open>b \<notin> S\<close> notcc Borsuk_map_into_sphere)
-    show "homotopic_with (\<lambda>x. True) S (sphere 0 1)
+    show "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1)
              (\<lambda>x. (x - b) /\<^sub>R norm (x - b)) (\<lambda>x. (x - a) /\<^sub>R norm (x - a))"
       by (simp add: hom homotopic_with_symD)
     qed (auto simp: ANR_sphere intro: that)
@@ -4429,7 +4425,7 @@ qed
 lemma Borsuk_maps_homotopic_in_connected_component_eq:
   fixes a :: "'a :: euclidean_space"
   assumes S: "compact S" "a \<notin> S" "b \<notin> S" and 2: "2 \<le> DIM('a)"
-    shows "(homotopic_with (\<lambda>x. True) S (sphere 0 1)
+    shows "(homotopic_with_canon (\<lambda>x. True) S (sphere 0 1)
                    (\<lambda>x. (x - a) /\<^sub>R norm (x - a))
                    (\<lambda>x. (x - b) /\<^sub>R norm (x - b)) \<longleftrightarrow>
            connected_component (- S) a b)"
@@ -4587,9 +4583,9 @@ proposition%unimportant homotopic_neighbourhood_extension:
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> U"
       and contg: "continuous_on S g" and gim: "g ` S \<subseteq> U"
       and clo: "closedin (top_of_set S) T"
-      and "ANR U" and hom: "homotopic_with (\<lambda>x. True) T U f g"
+      and "ANR U" and hom: "homotopic_with_canon (\<lambda>x. True) T U f g"
     obtains V where "T \<subseteq> V" "openin (top_of_set S) V"
-                    "homotopic_with (\<lambda>x. True) V U f g"
+                    "homotopic_with_canon (\<lambda>x. True) V U f g"
 proof -
   have "T \<subseteq> S"
     using clo closedin_imp_subset by blast
@@ -4631,7 +4627,7 @@ proof -
   obtain T' where opeT': "openin (top_of_set S) T'" 
               and "T \<subseteq> T'" and TW: "{0..1} \<times> T' \<subseteq> W"
     using tube_lemma_gen [of "{0..1::real}" T S W] W \<open>T \<subseteq> S\<close> opeW by auto
-  moreover have "homotopic_with (\<lambda>x. True) T' U f g"
+  moreover have "homotopic_with_canon (\<lambda>x. True) T' U f g"
   proof (simp add: homotopic_with, intro exI conjI)
     show "continuous_on ({0..1} \<times> T') k"
       using TW continuous_on_subset contk by auto
@@ -4651,8 +4647,8 @@ proposition%unimportant homotopic_on_clopen_Union:
   fixes \<F> :: "'a::euclidean_space set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (top_of_set (\<Union>\<F>)) S"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (top_of_set (\<Union>\<F>)) S"
-      and "\<And>S. S \<in> \<F> \<Longrightarrow> homotopic_with (\<lambda>x. True) S T f g"
-  shows "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f g"
+      and "\<And>S. S \<in> \<F> \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) S T f g"
+  shows "homotopic_with_canon (\<lambda>x. True) (\<Union>\<F>) T f g"
 proof -
   obtain \<V> where "\<V> \<subseteq> \<F>" "countable \<V>" and eqU: "\<Union>\<V> = \<Union>\<F>"
     using Lindelof_openin assms by blast
@@ -4660,14 +4656,14 @@ proof -
   proof (cases "\<V> = {}")
     case True
     then show ?thesis
-      by (metis Union_empty eqU homotopic_on_empty)
+      by (metis Union_empty eqU homotopic_with_canon_on_empty)
   next
     case False
     then obtain V :: "nat \<Rightarrow> 'a set" where V: "range V = \<V>"
       using range_from_nat_into \<open>countable \<V>\<close> by metis
     with \<open>\<V> \<subseteq> \<F>\<close> have clo: "\<And>n. closedin (top_of_set (\<Union>\<F>)) (V n)"
                   and ope: "\<And>n. openin (top_of_set (\<Union>\<F>)) (V n)"
-                  and hom: "\<And>n. homotopic_with (\<lambda>x. True) (V n) T f g"
+                  and hom: "\<And>n. homotopic_with_canon (\<lambda>x. True) (V n) T f g"
       using assms by auto 
     then obtain h where conth: "\<And>n. continuous_on ({0..1::real} \<times> V n) (h n)"
                   and him: "\<And>n. h n ` ({0..1} \<times> V n) \<subseteq> T" 
@@ -4723,9 +4719,9 @@ qed
 lemma homotopic_on_components_eq:
   fixes S :: "'a :: euclidean_space set" and T :: "'b :: euclidean_space set"
   assumes S: "locally connected S \<or> compact S" and "ANR T"
-  shows "homotopic_with (\<lambda>x. True) S T f g \<longleftrightarrow>
+  shows "homotopic_with_canon (\<lambda>x. True) S T f g \<longleftrightarrow>
          (continuous_on S f \<and> f ` S \<subseteq> T \<and> continuous_on S g \<and> g ` S \<subseteq> T) \<and>
-         (\<forall>C \<in> components S. homotopic_with (\<lambda>x. True) C T f g)"
+         (\<forall>C \<in> components S. homotopic_with_canon (\<lambda>x. True) C T f g)"
     (is "?lhs \<longleftrightarrow> ?C \<and> ?rhs")
 proof -
   have "continuous_on S f" "f ` S \<subseteq> T" "continuous_on S g" "g ` S \<subseteq> T" if ?lhs
@@ -4740,7 +4736,7 @@ proof -
     assume R: ?rhs
     have "\<exists>U. C \<subseteq> U \<and> closedin (top_of_set S) U \<and>
               openin (top_of_set S) U \<and>
-              homotopic_with (\<lambda>x. True) U T f g" if C: "C \<in> components S" for C
+              homotopic_with_canon (\<lambda>x. True) U T f g" if C: "C \<in> components S" for C
     proof -
       have "C \<subseteq> S"
         by (simp add: in_components_subset that)
@@ -4754,15 +4750,15 @@ proof -
             by (simp add: closedin_component that)
           show "openin (top_of_set S) C"
             by (simp add: \<open>locally connected S\<close> openin_components_locally_connected that)
-          show "homotopic_with (\<lambda>x. True) C T f g"
+          show "homotopic_with_canon (\<lambda>x. True) C T f g"
             by (simp add: R that)
         qed auto
       next
         assume "compact S"
-        have hom: "homotopic_with (\<lambda>x. True) C T f g"
+        have hom: "homotopic_with_canon (\<lambda>x. True) C T f g"
           using R that by blast
         obtain U where "C \<subseteq> U" and opeU: "openin (top_of_set S) U"
-                  and hom: "homotopic_with (\<lambda>x. True) U T f g"
+                  and hom: "homotopic_with_canon (\<lambda>x. True) U T f g"
           using homotopic_neighbourhood_extension [OF contf fim contg gim _ \<open>ANR T\<close> hom]
             \<open>C \<in> components S\<close> closedin_component by blast
         then obtain V where "open V" and V: "U = S \<inter> V"
@@ -4775,7 +4771,7 @@ proof -
         proof (intro exI conjI)
           show "closedin (top_of_set S) K"
             by (meson \<open>compact K\<close> \<open>compact S\<close> closedin_compact_eq opeK openin_imp_subset)
-          show "homotopic_with (\<lambda>x. True) K T f g"
+          show "homotopic_with_canon (\<lambda>x. True) K T f g"
             using V \<open>K \<subseteq> V\<close> hom homotopic_with_subset_left opeK openin_imp_subset by fastforce
         qed (use opeK \<open>C \<subseteq> K\<close> in auto)
       qed
@@ -4783,7 +4779,7 @@ proof -
     then obtain \<phi> where \<phi>: "\<And>C. C \<in> components S \<Longrightarrow> C \<subseteq> \<phi> C"
                   and clo\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> closedin (top_of_set S) (\<phi> C)"
                   and ope\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> openin (top_of_set S) (\<phi> C)"
-                  and hom\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> homotopic_with (\<lambda>x. True) (\<phi> C) T f g"
+                  and hom\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) (\<phi> C) T f g"
       by metis
     have Seq: "S = \<Union> (\<phi> ` components S)"
     proof
@@ -4806,11 +4802,11 @@ lemma cohomotopically_trivial_on_components:
   assumes S: "locally connected S \<or> compact S" and "ANR T"
   shows
    "(\<forall>f g. continuous_on S f \<longrightarrow> f ` S \<subseteq> T \<longrightarrow> continuous_on S g \<longrightarrow> g ` S \<subseteq> T \<longrightarrow>
-           homotopic_with (\<lambda>x. True) S T f g)
+           homotopic_with_canon (\<lambda>x. True) S T f g)
     \<longleftrightarrow>
     (\<forall>C\<in>components S.
         \<forall>f g. continuous_on C f \<longrightarrow> f ` C \<subseteq> T \<longrightarrow> continuous_on C g \<longrightarrow> g ` C \<subseteq> T \<longrightarrow>
-              homotopic_with (\<lambda>x. True) C T f g)"
+              homotopic_with_canon (\<lambda>x. True) C T f g)"
      (is "?lhs = ?rhs")
 proof
   assume L[rule_format]: ?lhs
@@ -4823,9 +4819,9 @@ proof
       using extension_from_component [OF S \<open>ANR T\<close> C contf fim] by metis
     obtain g' where contg': "continuous_on S g'" and g'im: "g' ` S \<subseteq> T" and g'g: "\<And>x. x \<in> C \<Longrightarrow> g' x = g x"
       using extension_from_component [OF S \<open>ANR T\<close> C contg gim] by metis
-    have "homotopic_with (\<lambda>x. True) C T f' g'"
+    have "homotopic_with_canon (\<lambda>x. True) C T f' g'"
       using L [OF contf' f'im contg' g'im] homotopic_with_subset_left C in_components_subset by fastforce
-    then show "homotopic_with (\<lambda>x. True) C T f g"
+    then show "homotopic_with_canon (\<lambda>x. True) C T f g"
       using f'f g'g homotopic_with_eq by force
   qed
 next
@@ -4835,10 +4831,10 @@ next
     fix f g
     assume contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
       and contg: "continuous_on S g" and gim: "g ` S \<subseteq> T"
-    moreover have "homotopic_with (\<lambda>x. True) C T f g" if "C \<in> components S" for C
+    moreover have "homotopic_with_canon (\<lambda>x. True) C T f g" if "C \<in> components S" for C
       using R [OF that]
       by (meson contf contg continuous_on_subset fim gim image_mono in_components_subset order.trans that)
-    ultimately show "homotopic_with (\<lambda>x. True) S T f g"
+    ultimately show "homotopic_with_canon (\<lambda>x. True) S T f g"
       by (subst homotopic_on_components_eq [OF S \<open>ANR T\<close>]) auto
   qed
 qed

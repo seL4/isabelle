@@ -103,7 +103,7 @@ proof -
         using z by fastforce
     qed (auto simp: g h algebra_simps exp_add)
   qed
-  ultimately have *: "homotopic_with (\<lambda>x. True) (S \<union> T) (sphere 0 1)
+  ultimately have *: "homotopic_with_canon (\<lambda>x. True) (S \<union> T) (sphere 0 1)
                           (\<lambda>x. (x - a) /\<^sub>R cmod (x - a))  (\<lambda>x. (x - b) /\<^sub>R cmod (x - b))"
     by (subst homotopic_circlemaps_divide) (auto simp: inessential_eq_continuous_logarithm_circle)
   show ?thesis

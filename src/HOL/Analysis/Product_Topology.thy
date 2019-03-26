@@ -80,13 +80,6 @@ lemma prod_topology_subtopology_eu [simp]:
   "prod_topology (subtopology euclidean S) (subtopology euclidean T) = subtopology euclidean (S \<times> T)"
   by (simp add: prod_topology_subtopology subtopology_subtopology Times_Int_Times)
 
-lemma continuous_map_subtopology_eu [simp]:
-  "continuous_map (subtopology euclidean S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
-  apply safe
-  apply (metis continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
-  apply (simp add: continuous_map_closedin_preimage_eq image_subset_iff)
-  by (metis (no_types, hide_lams) continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
-
 lemma openin_prod_topology_alt:
      "openin (prod_topology X Y) S \<longleftrightarrow>
       (\<forall>x y. (x,y) \<in> S \<longrightarrow> (\<exists>U V. openin X U \<and> openin Y V \<and> x \<in> U \<and> y \<in> V \<and> U \<times> V \<subseteq> S))"
@@ -101,7 +94,7 @@ lemma open_map_snd: "open_map (prod_topology X Y) Y snd"
   unfolding open_map_def openin_prod_topology_alt
   by (force simp: openin_subopen [of Y "snd ` _"] intro: subset_snd_imageI)
 
-lemma openin_Times:
+lemma openin_prod_Times_iff:
      "openin (prod_topology X Y) (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> openin X S \<and> openin Y T"
 proof (cases "S = {} \<or> T = {}")
   case False
@@ -121,7 +114,7 @@ proof
     by (clarsimp simp: closure_of_def openin_prod_topology_alt) (meson SigmaI subsetD)
 qed
 
-lemma closedin_Times:
+lemma closedin_prod_Times_iff:
    "closedin (prod_topology X Y) (S \<times> T) \<longleftrightarrow> S = {} \<or> T = {} \<or> closedin X S \<and> closedin Y T"
   by (auto simp: closure_of_Times times_eq_iff simp flip: closure_of_eq)
 
@@ -130,7 +123,7 @@ proof (rule interior_of_unique)
   show "(X interior_of S) \<times> Y interior_of T \<subseteq> S \<times> T"
     by (simp add: Sigma_mono interior_of_subset)
   show "openin (prod_topology X Y) ((X interior_of S) \<times> Y interior_of T)"
-    by (simp add: openin_Times)
+    by (simp add: openin_prod_Times_iff)
 next
   show "T' \<subseteq> (X interior_of S) \<times> Y interior_of T" if "T' \<subseteq> S \<times> T" "openin (prod_topology X Y) T'" for T'
   proof (clarsimp; intro conjI)
@@ -165,7 +158,7 @@ proof -
         unfolding continuous_map_def using True that
         apply clarify
         apply (drule_tac x="U \<times> topspace Y" in spec)
-        by (simp add: openin_Times mem_Times_iff cong: conj_cong)
+        by (simp add: openin_prod_Times_iff mem_Times_iff cong: conj_cong)
       with True show "continuous_map Z X (fst \<circ> f)"
         by (auto simp: continuous_map_def)
     next
@@ -174,7 +167,7 @@ proof -
         unfolding continuous_map_def using True that
         apply clarify
         apply (drule_tac x="topspace X \<times> V" in spec)
-        by (simp add: openin_Times mem_Times_iff cong: conj_cong)
+        by (simp add: openin_prod_Times_iff mem_Times_iff cong: conj_cong)
       with True show "continuous_map Z Y (snd \<circ> f)"
         by (auto simp: continuous_map_def)
     next

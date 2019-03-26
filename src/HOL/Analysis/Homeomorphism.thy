@@ -1861,7 +1861,7 @@ proof -
     show "topspace ?X \<subseteq> (\<Union>i\<in>U. {0..1} \<times> V i)"
       using V by force
     show "\<And>i. i \<in> U \<Longrightarrow> openin (top_of_set ({0..1} \<times> U)) ({0..1} \<times> V i)"
-      by (simp add: opeV openin_Times)
+      by (simp add: Abstract_Topology.openin_Times opeV)
     show "\<And>i. i \<in> U \<Longrightarrow> continuous_map
               (subtopology (top_of_set ({0..1} \<times> U)) ({0..1} \<times> V i)) euclidean (fs i)"
       using contfs
@@ -1949,7 +1949,7 @@ corollary covering_space_lift_homotopic_function:
       and contg: "continuous_on U g"
       and gim: "g ` U \<subseteq> C"
       and pgeq: "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
-      and hom: "homotopic_with (\<lambda>x. True) U S f f'"
+      and hom: "homotopic_with_canon (\<lambda>x. True) U S f f'"
     obtains g' where "continuous_on U g'" "image g' U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g' y) = f' y"
 proof -
   obtain h where conth: "continuous_on ({0..1::real} \<times> U) h"
@@ -1978,7 +1978,7 @@ qed
 corollary covering_space_lift_inessential_function:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" and U :: "'c::real_normed_vector set"
   assumes cov: "covering_space C p S"
-      and hom: "homotopic_with (\<lambda>x. True) U S f (\<lambda>x. a)"
+      and hom: "homotopic_with_canon (\<lambda>x. True) U S f (\<lambda>x. a)"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C" "\<And>y. y \<in> U \<Longrightarrow> p(g y) = f y"
 proof (cases "U = {}")
   case True

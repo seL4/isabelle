@@ -1926,6 +1926,12 @@ lemma disjnt_subset1 : "\<lbrakk>disjnt X Y; Z \<subseteq> X\<rbrakk> \<Longrigh
 lemma disjnt_subset2 : "\<lbrakk>disjnt X Y; Z \<subseteq> Y\<rbrakk> \<Longrightarrow> disjnt X Z"
   by (auto simp: disjnt_def)
 
+lemma disjnt_Un1 [simp]: "disjnt (A \<union> B) C \<longleftrightarrow> disjnt A C \<and> disjnt B C"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_Un2 [simp]: "disjnt C (A \<union> B) \<longleftrightarrow> disjnt C A \<and> disjnt C B"
+  by (auto simp: disjnt_def)
+
 lemma disjoint_image_subset: "\<lbrakk>pairwise disjnt \<A>; \<And>X. X \<in> \<A> \<Longrightarrow> f X \<subseteq> X\<rbrakk> \<Longrightarrow> pairwise disjnt (f `\<A>)"
   unfolding disjnt_def pairwise_def by fast
 
