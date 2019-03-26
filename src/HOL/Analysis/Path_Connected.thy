@@ -1976,6 +1976,13 @@ abbreviation path_component_of_set
 definition path_components_of :: "'a topology \<Rightarrow> 'a set set"
   where "path_components_of X \<equiv> path_component_of_set X ` topspace X"
 
+lemma pathin_canon_iff: "pathin (top_of_set T) g \<longleftrightarrow> path g \<and> g ` {0..1} \<subseteq> T"
+  by (simp add: path_def pathin_def)
+
+lemma path_component_of_canon_iff [simp]:
+  "path_component_of (top_of_set T) a b \<longleftrightarrow> path_component T a b"
+  by (simp add: path_component_of_def pathin_canon_iff path_defs)
+
 lemma path_component_in_topspace:
    "path_component_of X x y \<Longrightarrow> x \<in> topspace X \<and> y \<in> topspace X"
   by (auto simp: path_component_of_def pathin_def continuous_map_def)
@@ -2028,12 +2035,10 @@ proof -
   qed (auto simp: g1 g2)
 qed
 
-
 lemma path_component_of_mono:
    "\<lbrakk>path_component_of (subtopology X S) x y; S \<subseteq> T\<rbrakk> \<Longrightarrow> path_component_of (subtopology X T) x y"
   unfolding path_component_of_def
   by (metis subsetD pathin_subtopology)
-
 
 lemma path_component_of:
   "path_component_of X x y \<longleftrightarrow> (\<exists>T. path_connectedin X T \<and> x \<in> T \<and> y \<in> T)"

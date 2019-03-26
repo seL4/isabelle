@@ -1609,6 +1609,8 @@ proof (cases "topspace X = {}")
   qed
 qed (auto simp: continuous_map_on_empty)
 
+declare continuous_map_const [THEN iffD2, continuous_intros]
+
 lemma continuous_map_compose:
   assumes f: "continuous_map X X' f" and g: "continuous_map X' X'' g"
   shows "continuous_map X X'' (g \<circ> f)"
@@ -3772,6 +3774,13 @@ lemma continuous_on_imp_closedin:
   assumes "continuous_on S f" "closedin (top_of_set (f ` S)) T"
   shows "closedin (top_of_set S) (S \<inter> f -` T)"
   using assms continuous_on_closed by blast
+
+lemma continuous_map_subtopology_eu [simp]:
+  "continuous_map (subtopology euclidean S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
+  apply safe
+  apply (metis continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
+  apply (simp add: continuous_map_closedin_preimage_eq image_subset_iff)
+  by (metis (no_types, hide_lams) continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
 
 subsection%unimportant \<open>Half-global and completely global cases\<close>
 

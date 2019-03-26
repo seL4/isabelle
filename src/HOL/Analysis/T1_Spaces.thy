@@ -209,7 +209,7 @@ next
     by simp
   have "t1_space (prod_topology X Y) \<longleftrightarrow> (t1_space X \<and> t1_space Y)"
     using False
-    by (force simp: t1_space_closedin_singleton closedin_Times eq simp del: insert_Times_insert)
+    by (force simp: t1_space_closedin_singleton closedin_prod_Times_iff eq simp del: insert_Times_insert)
   with False show ?thesis
     by simp
 qed

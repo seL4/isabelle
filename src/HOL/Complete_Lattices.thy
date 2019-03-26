@@ -998,6 +998,12 @@ lemma disjnt_inj_on_iff:
   apply (auto simp: disjnt_def)
   using inj_on_eq_iff by fastforce
 
+lemma disjnt_Union1 [simp]: "disjnt (\<Union>\<A>) B \<longleftrightarrow> (\<forall>A \<in> \<A>. disjnt A B)"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_Union2 [simp]: "disjnt B (\<Union>\<A>) \<longleftrightarrow> (\<forall>A \<in> \<A>. disjnt B A)"
+  by (auto simp: disjnt_def)
+
 
 subsubsection \<open>Unions of families\<close>
 

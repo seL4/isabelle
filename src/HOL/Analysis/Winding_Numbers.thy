@@ -1137,23 +1137,25 @@ proof
              and qeq:  "pathfinish q - pathstart q = 2 * of_real pi * \<i> * winding_number p \<zeta>"
              and peq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p t = \<zeta> + exp(q t)"
     using winding_number_as_continuous_log [OF assms] by blast
-  have *: "homotopic_with (\<lambda>r. pathfinish r = pathstart r)
+  have *: "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r)
                        {0..1} (-{\<zeta>}) ((\<lambda>w. \<zeta> + exp w) \<circ> q) ((\<lambda>w. \<zeta> + exp w) \<circ> (\<lambda>t. 0))"
   proof (rule homotopic_with_compose_continuous_left)
-    show "homotopic_with (\<lambda>f. pathfinish ((\<lambda>w. \<zeta> + exp w) \<circ> f) = pathstart ((\<lambda>w. \<zeta> + exp w) \<circ> f))
+    show "homotopic_with_canon (\<lambda>f. pathfinish ((\<lambda>w. \<zeta> + exp w) \<circ> f) = pathstart ((\<lambda>w. \<zeta> + exp w) \<circ> f))
               {0..1} UNIV q (\<lambda>t. 0)"
     proof (rule homotopic_with_mono, simp_all add: pathfinish_def pathstart_def)
       have "homotopic_loops UNIV q (\<lambda>t. 0)"
-        by (rule homotopic_loops_linear) (use qeq \<open>path q\<close> in \<open>auto simp: continuous_on_const path_defs\<close>)
-      then show "homotopic_with (\<lambda>h. exp (h 1) = exp (h 0)) {0..1} UNIV q (\<lambda>t. 0)"
-        by (simp add: homotopic_loops_def homotopic_with_mono pathfinish_def pathstart_def)
+        by (rule homotopic_loops_linear) (use qeq \<open>path q\<close> in \<open>auto simp: path_defs\<close>)
+      then have "homotopic_with (\<lambda>r. r 1 = r 0) (top_of_set {0..1}) euclidean q (\<lambda>t. 0)"
+        by (simp add: homotopic_loops_def pathfinish_def pathstart_def)
+      then show "homotopic_with (\<lambda>h. exp (h 1) = exp (h 0)) (top_of_set {0..1}) euclidean q (\<lambda>t. 0)"
+        by (rule homotopic_with_mono) simp
     qed
     show "continuous_on UNIV (\<lambda>w. \<zeta> + exp w)"
       by (rule continuous_intros)+
     show "range (\<lambda>w. \<zeta> + exp w) \<subseteq> -{\<zeta>}"
       by auto
   qed
-  then have "homotopic_with (\<lambda>r. pathfinish r = pathstart r) {0..1} (-{\<zeta>}) p (\<lambda>x. \<zeta> + 1)"
+  then have "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r) {0..1} (-{\<zeta>}) p (\<lambda>x. \<zeta> + 1)"
     by (rule homotopic_with_eq) (auto simp: o_def peq pathfinish_def pathstart_def)
   then have "homotopic_loops (-{\<zeta>}) p (\<lambda>t. \<zeta> + 1)"
     by (simp add: homotopic_loops_def)

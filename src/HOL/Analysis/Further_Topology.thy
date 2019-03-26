@@ -164,7 +164,7 @@ lemma spheremap_lemma2:
       and "S \<subseteq> T"
       and contf: "continuous_on (sphere 0 1 \<inter> S) f"
       and fim: "f ` (sphere 0 1 \<inter> S) \<subseteq> sphere 0 1 \<inter> T"
-    shows "\<exists>c. homotopic_with (\<lambda>x. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) f (\<lambda>x. c)"
+    shows "\<exists>c. homotopic_with_canon (\<lambda>x. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) f (\<lambda>x. c)"
 proof -
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; x \<in> S\<rbrakk> \<Longrightarrow> norm (f x) = 1"
     using fim by (simp add: image_subset_iff)
@@ -194,7 +194,7 @@ proof -
     apply (intro derivative_intros diffg differentiable_on_compose [OF diffg])
     using gnz apply auto
     done
-  have homfg: "homotopic_with (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) f g"
+  have homfg: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) f g"
   proof (rule homotopic_with_linear [OF contf])
     show "continuous_on (sphere 0 1 \<inter> S) g"
       using pfg by (simp add: differentiable_imp_continuous_on diffg)
@@ -224,7 +224,7 @@ proof -
     by (auto simp: between_mem_segment midpoint_def)
   have conth: "continuous_on (sphere 0 1 \<inter> S) h"
     using differentiable_imp_continuous_on diffh by blast
-  have hom_hd: "homotopic_with (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) h (\<lambda>x. -d)"
+  have hom_hd: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (T - {0}) h (\<lambda>x. -d)"
     apply (rule homotopic_with_linear [OF conth continuous_on_const])
     apply (simp add: subset_Diff_insert non0hd)
     apply (simp add: segment_convex_hull)
@@ -236,7 +236,7 @@ proof -
     by (intro continuous_intros) auto
   have sub0T: "(\<lambda>y. y /\<^sub>R norm y) ` (T - {0}) \<subseteq> sphere 0 1 \<inter> T"
     by (fastforce simp: assms(2) subspace_mul)
-  obtain c where homhc: "homotopic_with (\<lambda>z. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) h (\<lambda>x. c)"
+  obtain c where homhc: "homotopic_with_canon (\<lambda>z. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) h (\<lambda>x. c)"
     apply (rule_tac c="-d" in that)
     apply (rule homotopic_with_eq)
        apply (rule homotopic_compose_continuous_left [OF hom_hd conT0 sub0T])
@@ -306,7 +306,7 @@ proposition inessential_spheremap_lowdim_gen:
       and affST: "aff_dim S < aff_dim T"
       and contf: "continuous_on (rel_frontier S) f"
       and fim: "f ` (rel_frontier S) \<subseteq> rel_frontier T"
-  obtains c where "homotopic_with (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
+  obtains c where "homotopic_with_canon (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
 proof (cases "S = {}")
   case True
   then show ?thesis
@@ -328,7 +328,7 @@ next
       using \<open>T \<noteq> {}\<close> by blast
     with homeomorphic_imp_homotopy_eqv
     have relT: "sphere 0 1 \<inter> T'  homotopy_eqv rel_frontier T"
-      using homotopy_eqv_sym by blast
+      using homotopy_equivalent_space_sym by blast
     have "aff_dim S \<le> int (dim T')"
       using affT' \<open>subspace T'\<close> affST aff_dim_subspace by force
     with spheremap_lemma3 [OF \<open>bounded S\<close> \<open>convex S\<close> \<open>subspace T'\<close>] \<open>S \<noteq> {}\<close>
@@ -338,10 +338,10 @@ next
         by metis
     with homeomorphic_imp_homotopy_eqv
     have relS: "sphere 0 1 \<inter> S'  homotopy_eqv rel_frontier S"
-      using homotopy_eqv_sym by blast
+      using homotopy_equivalent_space_sym by blast
     have dimST': "dim S' < dim T'"
       by (metis \<open>S' \<subseteq> T'\<close> \<open>subspace S'\<close> \<open>subspace T'\<close> affS' affST affT' less_irrefl not_le subspace_dim_equal)
-    have "\<exists>c. homotopic_with (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
+    have "\<exists>c. homotopic_with_canon (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
       apply (rule homotopy_eqv_homotopic_triviality_null_imp [OF relT contf fim])
       apply (rule homotopy_eqv_cohomotopic_triviality_null[OF relS, THEN iffD1, rule_format])
        apply (metis dimST' \<open>subspace S'\<close>  \<open>subspace T'\<close>  \<open>S' \<subseteq> T'\<close> spheremap_lemma2, blast)
@@ -354,7 +354,7 @@ lemma inessential_spheremap_lowdim:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes
    "DIM('M) < DIM('a)" and f: "continuous_on (sphere a r) f" "f ` (sphere a r) \<subseteq> (sphere b s)"
-   obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
+   obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
 proof (cases "s \<le> 0")
   case True then show ?thesis
     by (meson nullhomotopic_into_contractible f contractible_sphere that)
@@ -522,13 +522,13 @@ next
           using Suc.prems affD by linarith
         have contDh: "continuous_on (rel_frontier D) h"
           using \<open>C \<in> \<F>\<close> relf_sub by (blast intro: continuous_on_subset [OF conth])
-        then have *: "(\<exists>c. homotopic_with (\<lambda>x. True) (rel_frontier D) (rel_frontier T) h (\<lambda>x. c)) =
+        then have *: "(\<exists>c. homotopic_with_canon (\<lambda>x. True) (rel_frontier D) (rel_frontier T) h (\<lambda>x. c)) =
                       (\<exists>g. continuous_on UNIV g \<and>  range g \<subseteq> rel_frontier T \<and>
                            (\<forall>x\<in>rel_frontier D. g x = h x))"
           apply (rule nullhomotopic_into_rel_frontier_extension [OF closed_rel_frontier])
           apply (simp_all add: assms rel_frontier_eq_empty him_relf)
           done
-        have "(\<exists>c. homotopic_with (\<lambda>x. True) (rel_frontier D)
+        have "(\<exists>c. homotopic_with_canon (\<lambda>x. True) (rel_frontier D)
               (rel_frontier T) h (\<lambda>x. c))"
           by (metis inessential_spheremap_lowdim_gen
                  [OF \<open>convex D\<close> \<open>bounded D\<close> \<open>convex T\<close> \<open>bounded T\<close> affD_lessT contDh him_relf])
@@ -1706,7 +1706,7 @@ theorem Borsuk_separation_theorem_gen:
   assumes "compact S"
     shows "(\<forall>c \<in> components(- S). \<not>bounded c) \<longleftrightarrow>
            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
-                \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
+                \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
 proof
   assume L [rule_format]: ?lhs
@@ -1717,9 +1717,10 @@ proof
     obtain g where contg: "continuous_on UNIV g" and gim: "range g \<subseteq> sphere 0 1"
                and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
       by (rule extend_map_UNIV_to_sphere_no_bounded_component [OF _ _ \<open>compact S\<close> contf fim L]) auto
-    then show "\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)"
-      using nullhomotopic_from_contractible [OF contg gim]
-      by (metis assms compact_imp_closed contf empty_iff fim homotopic_with_equal nullhomotopic_into_sphere_extension)
+    then obtain c where c: "homotopic_with_canon (\<lambda>h. True) UNIV (sphere 0 1) g (\<lambda>x. c)"
+      using contractible_UNIV nullhomotopic_from_contractible by blast
+    then show "\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)"
+      by (metis assms compact_imp_closed contf contg contractible_empty fim gf gim nullhomotopic_from_contractible nullhomotopic_into_sphere_extension)
   qed
 next
   assume R [rule_format]: ?rhs
@@ -1744,7 +1745,7 @@ corollary Borsuk_separation_theorem:
   assumes "compact S" and 2: "2 \<le> DIM('a)"
     shows "connected(- S) \<longleftrightarrow>
            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
-                \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
+                \<longrightarrow> (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
 proof
   assume L: ?lhs
@@ -2814,12 +2815,12 @@ proof -
       by simp
     have "convex (cball (0::complex) 1)"
       by (rule convex_cball)
-    then obtain c where "homotopic_with (\<lambda>z. True) (sphere (0::complex) 1) (rel_frontier S) f (\<lambda>x. c)"
+    then obtain c where "homotopic_with_canon (\<lambda>z. True) (sphere (0::complex) 1) (rel_frontier S) f (\<lambda>x. c)"
       apply (rule inessential_spheremap_lowdim_gen [OF _ bounded_cball \<open>convex S\<close> \<open>bounded S\<close>, where f=f])
       using f 3
          apply (auto simp: aff_dim_cball)
       done
-    then show "\<exists>a. homotopic_with (\<lambda>h. True) (sphere 0 1) (rel_frontier S) f (\<lambda>x. a)"
+    then show "\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) (rel_frontier S) f (\<lambda>x. a)"
       by blast
   qed
 qed
@@ -3018,7 +3019,7 @@ next
         by (metis DIM_complex False homeomorphic_spheres_gen not_less zero_less_one)
       then have "simply_connected(sphere (0::complex) 1)"
         using L homeomorphic_simply_connected_eq by blast
-      then obtain a::complex where "homotopic_with (\<lambda>h. True) (sphere 0 1) (sphere 0 1) id (\<lambda>x. a)"
+      then obtain a::complex where "homotopic_with_canon (\<lambda>h. True) (sphere 0 1) (sphere 0 1) id (\<lambda>x. a)"
         apply (simp add: simply_connected_eq_contractible_circlemap)
         by (metis continuous_on_id' id_apply image_id subset_refl)
       then show False
@@ -3496,7 +3497,7 @@ subsection\<open>Hence the Borsukian results about mappings into circles\<close>
 
 lemma inessential_eq_continuous_logarithm:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
+  shows "(\<exists>a. homotopic_with_canon (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x)))"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
@@ -3506,24 +3507,24 @@ next
   assume ?rhs
   then obtain g where contg: "continuous_on S g" and f: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
     by metis
-  obtain a where "homotopic_with (\<lambda>h. True) S (- {of_real 0}) (exp \<circ> g) (\<lambda>x. a)"
+  obtain a where "homotopic_with_canon (\<lambda>h. True) S (- {of_real 0}) (exp \<circ> g) (\<lambda>x. a)"
   proof (rule nullhomotopic_through_contractible [OF contg subset_UNIV _ _ contractible_UNIV])
     show "continuous_on (UNIV::complex set) exp"
       by (intro continuous_intros)
     show "range exp \<subseteq> - {0}"
       by auto
   qed force
-  thus ?lhs
-    apply (rule_tac x=a in exI)
-    by (simp add: f homotopic_with_eq)
+  then have "homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>t. a)"
+    using f homotopic_with_eq by fastforce
+  then show ?lhs ..
 qed
 
 corollary inessential_imp_continuous_logarithm_circle:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  assumes "homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)"
+  assumes "homotopic_with_canon (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)"
   obtains g where "continuous_on S g" and "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
 proof -
-  have "homotopic_with (\<lambda>h. True) S (- {0}) f (\<lambda>t. a)"
+  have "homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>t. a)"
     using assms homotopic_with_subset_right by fastforce
   then show ?thesis
     by (metis inessential_eq_continuous_logarithm that)
@@ -3532,7 +3533,7 @@ qed
 
 lemma inessential_eq_continuous_logarithm_circle:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)) \<longleftrightarrow>
+  shows "(\<exists>a. homotopic_with_canon (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x))))"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
@@ -3552,7 +3553,7 @@ next
   assume ?rhs
   then obtain g where contg: "continuous_on S g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = exp(\<i>* of_real(g x))"
     by metis
-  obtain a where "homotopic_with (\<lambda>h. True) S (sphere 0 1) ((exp \<circ> (\<lambda>z. \<i>*z)) \<circ> (of_real \<circ> g)) (\<lambda>x. a)"
+  obtain a where "homotopic_with_canon (\<lambda>h. True) S (sphere 0 1) ((exp \<circ> (\<lambda>z. \<i>*z)) \<circ> (of_real \<circ> g)) (\<lambda>x. a)"
   proof (rule nullhomotopic_through_contractible)
     show "continuous_on S (complex_of_real \<circ> g)"
       by (intro conjI contg continuous_intros)
@@ -3565,16 +3566,16 @@ next
   qed (auto simp: convex_Reals convex_imp_contractible)
   moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> (*)\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
     by (simp add: g)
-  ultimately show ?lhs
-    apply (rule_tac x=a in exI)
-    by (simp add: homotopic_with_eq)
+  ultimately have "homotopic_with_canon (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)"
+    using homotopic_with_eq by force
+  then show ?lhs ..
 qed
 
 proposition homotopic_with_sphere_times:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  assumes hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g" and conth: "continuous_on S h"
+  assumes hom: "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f g" and conth: "continuous_on S h"
       and hin: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> sphere 0 1"
-    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x * h x) (\<lambda>x. g x * h x)"
+    shows "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x * h x) (\<lambda>x. g x * h x)"
 proof -
   obtain k where contk: "continuous_on ({0..1::real} \<times> S) k"
              and kim: "k ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
@@ -3592,29 +3593,29 @@ qed
 
 proposition homotopic_circlemaps_divide:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-    shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
+    shows "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
            continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
            continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
-           (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c))"
+           (\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c))"
 proof -
-  have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
-       if "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)" for c
+  have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+       if "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)" for c
   proof -
     have "S = {} \<or> path_component (sphere 0 1) 1 c"
       using homotopic_with_imp_subset2 [OF that] path_connected_sphere [of "0::complex" 1]
       by (auto simp: path_connected_component)
-    then have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. 1) (\<lambda>x. c)"
-      by (metis homotopic_constant_maps)
+    then have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. 1) (\<lambda>x. c)"
+      by (simp add: homotopic_constant_maps)
     then show ?thesis
       using homotopic_with_symD homotopic_with_trans that by blast
   qed
-  then have *: "(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)) \<longleftrightarrow>
-                homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+  then have *: "(\<exists>c. homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)) \<longleftrightarrow>
+                homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
     by auto
-  have "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
+  have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
            continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
            continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
-           homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+           homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
         (is "?lhs \<longleftrightarrow> ?rhs")
   proof
     assume L: ?lhs
@@ -3627,7 +3628,7 @@ proof -
       apply (rule continuous_on_subset [of "sphere 0 1", OF continuous_on_inverse])
         apply (auto simp: continuous_on_id)
       done
-    have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
+    have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
       using homotopic_with_sphere_times [OF L cont]
       apply (rule homotopic_with_eq)
          apply (auto simp: division_ring_class.divide_inverse norm_inverse)
@@ -3852,7 +3853,7 @@ lemma continuous_logarithm_on_contractible:
   assumes "continuous_on S f" "contractible S" "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
 proof -
-  obtain c where hom: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>x. c)"
+  obtain c where hom: "homotopic_with_canon (\<lambda>h. True) S (-{0}) f (\<lambda>x. c)"
     using nullhomotopic_from_contractible assms
     by (metis imageE subset_Compl_singleton)
   then show ?thesis
@@ -3920,7 +3921,7 @@ lemma inessential_spheremap_2_aux:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
   assumes 2: "2 < DIM('a)" and contf: "continuous_on (sphere a r) f" 
       and fim: "f `(sphere a r) \<subseteq> (sphere 0 1)" 
-  obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere 0 1) f (\<lambda>x. c)"
+  obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere 0 1) f (\<lambda>x. c)"
 proof -
   obtain g where contg: "continuous_on (sphere a r) g" 
              and feq: "\<And>x. x \<in> sphere a r \<Longrightarrow> f x = exp(g x)"
@@ -3947,7 +3948,7 @@ lemma inessential_spheremap_2:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes a2: "2 < DIM('a)" and b2: "DIM('b) = 2" 
       and contf: "continuous_on (sphere a r) f" and fim: "f `(sphere a r) \<subseteq> (sphere b s)"
-  obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
+  obtains c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
 proof (cases "s \<le> 0")
   case True
   then show ?thesis
@@ -3963,16 +3964,16 @@ next
        and  him: "h ` sphere b s \<subseteq> sphere 0 1"
        and  kim: "k ` sphere 0 1 \<subseteq> sphere b s"
     by (simp_all add: homeomorphism_def)
-  obtain c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere 0 1) (h \<circ> f) (\<lambda>x. c)"
+  obtain c where "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere 0 1) (h \<circ> f) (\<lambda>x. c)"
   proof (rule inessential_spheremap_2_aux [OF a2])
     show "continuous_on (sphere a r) (h \<circ> f)"
       by (meson continuous_on_compose [OF contf] conth continuous_on_subset fim)
     show "(h \<circ> f) ` sphere a r \<subseteq> sphere 0 1"
       using fim him by force
   qed auto
-  then have "homotopic_with (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
+  then have "homotopic_with_canon (\<lambda>f. True) (sphere a r) (sphere b s) (k \<circ> (h \<circ> f)) (k \<circ> (\<lambda>x. c))"
     by (rule homotopic_compose_continuous_left [OF _ contk kim])
-  then have "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
+  then have "homotopic_with_canon (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. k c)"
     apply (rule homotopic_with_eq, auto)
     by (metis fim hk homeomorphism_def image_subset_iff mem_sphere)
   then show ?thesis
@@ -4202,7 +4203,7 @@ text\<open>This doesn't have a standard name. Kuratowski uses ``contractible wit
 definition%important Borsukian where
     "Borsukian S \<equiv>
         \<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
-            \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
+            \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
 
 lemma Borsukian_retraction_gen:
   assumes "Borsukian S" "continuous_on S h" "h ` S = T"
@@ -4259,7 +4260,7 @@ lemma Borsukian_alt:
    "Borsukian S \<longleftrightarrow>
         (\<forall>f g. continuous_on S f \<and> f ` S \<subseteq> -{0} \<and>
                continuous_on S g \<and> g ` S \<subseteq> -{0}
-               \<longrightarrow> homotopic_with (\<lambda>h. True) S (- {0::complex}) f g)"
+               \<longrightarrow> homotopic_with_canon (\<lambda>h. True) S (- {0::complex}) f g)"
   unfolding Borsukian_def homotopic_triviality
   by (simp add: path_connected_punctured_universe)
 
@@ -4343,7 +4344,7 @@ lemma Borsukian_circle:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
-              \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (sphere (0::complex) 1) f (\<lambda>x. a)))"
+              \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) S (sphere (0::complex) 1) f (\<lambda>x. a)))"
 by (simp add: inessential_eq_continuous_logarithm_circle Borsukian_continuous_logarithm_circle_real)
 
 lemma contractible_imp_Borsukian: "contractible S \<Longrightarrow> Borsukian S"
@@ -5335,12 +5336,12 @@ text\<open>Another interesting equivalent of an inessential mapping into C-{0}\<
 proposition inessential_eq_extensible:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
   assumes "closed S"
-  shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
+  shows "(\<exists>a. homotopic_with_canon (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on UNIV g \<and> (\<forall>x \<in> S. g x = f x) \<and> (\<forall>x. g x \<noteq> 0))"
      (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then obtain a where a: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)" ..
+  then obtain a where a: "homotopic_with_canon (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)" ..
   show ?rhs
   proof (cases "S = {}")
     case True
@@ -5403,8 +5404,8 @@ lemma inessential_on_clopen_Union:
   assumes T: "path_connected T"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (top_of_set (\<Union>\<F>)) S"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (top_of_set (\<Union>\<F>)) S"
-      and hom: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. a)"
-  obtains a where "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
+      and hom: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a. homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. a)"
+  obtains a where "homotopic_with_canon (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
 proof (cases "\<Union>\<F> = {}")
   case True
   with that show ?thesis
@@ -5415,16 +5416,16 @@ next
     by blast
   then obtain a where clo: "closedin (top_of_set (\<Union>\<F>)) C"
     and ope: "openin (top_of_set (\<Union>\<F>)) C"
-    and "homotopic_with (\<lambda>x. True) C T f (\<lambda>x. a)"
+    and "homotopic_with_canon (\<lambda>x. True) C T f (\<lambda>x. a)"
     using assms by blast
   with \<open>C \<noteq> {}\<close> have "f ` C \<subseteq> T" "a \<in> T"
     using homotopic_with_imp_subset1 homotopic_with_imp_subset2 by blast+
-  have "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
+  have "homotopic_with_canon (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
   proof (rule homotopic_on_clopen_Union)
     show "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (top_of_set (\<Union>\<F>)) S"
          "\<And>S. S \<in> \<F> \<Longrightarrow> openin (top_of_set (\<Union>\<F>)) S"
       by (simp_all add: assms)
-    show "homotopic_with (\<lambda>x. True) S T f (\<lambda>x. a)" if "S \<in> \<F>" for S
+    show "homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. a)" if "S \<in> \<F>" for S
     proof (cases "S = {}")
       case True
       then show ?thesis
@@ -5433,12 +5434,13 @@ next
       case False
       then obtain b where "b \<in> S"
         by blast
-      obtain c where c: "homotopic_with (\<lambda>x. True) S T f (\<lambda>x. c)"
+      obtain c where c: "homotopic_with_canon (\<lambda>x. True) S T f (\<lambda>x. c)"
         using \<open>S \<in> \<F>\<close> hom by blast
       then have "c \<in> T"
         using \<open>b \<in> S\<close> homotopic_with_imp_subset2 by blast
-      then have "homotopic_with (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. c)"
-        using T \<open>a \<in> T\<close> homotopic_constant_maps path_connected_component by blast
+      then have "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. c)"
+        using T \<open>a \<in> T\<close> homotopic_constant_maps path_connected_component
+        by (simp add: homotopic_constant_maps path_connected_component)
       then show ?thesis
         using c homotopic_with_symD homotopic_with_trans by blast
     qed
