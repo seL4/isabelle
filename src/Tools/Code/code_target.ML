@@ -165,26 +165,21 @@ val generatedN = "Generated_Code";
 
 local
 
-fun flat_modules selects width pretty_modules =
-  let val format = Code_Printer.format selects width in
-    (case pretty_modules of
-      Singleton (_, p) => format p
-    | Hierarchy code_modules => space_implode "\n\n" (map (format o #2) code_modules))
-  end;
+fun flat_modules format pretty_modules =
+  (case pretty_modules of
+    Singleton (_, p) => format p
+  | Hierarchy code_modules => space_implode "\n\n" (map (format o #2) code_modules));
 
-fun export_to_file root width pretty_modules =
-  let val format = Code_Printer.format [] width in
-    (case pretty_modules of
-      Singleton (_, p) => File.write root (format p)
-    | Hierarchy code_modules =>
-        (Isabelle_System.mkdirs root;
-          List.app (fn (names, p) =>
-            File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules))
-  end;
+fun export_to_file root format pretty_modules =
+  (case pretty_modules of
+    Singleton (_, p) => File.write root (format p)
+  | Hierarchy code_modules =>
+      (Isabelle_System.mkdirs root;
+        List.app (fn (names, p) =>
+          File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
 
-fun export_to_exports width pretty_modules =
+fun export_to_exports format pretty_modules =
   let
-    val format = Code_Printer.format [] width;
     fun export name content thy = (Export.export thy name [content]; thy);
   in
     (case pretty_modules of
@@ -194,28 +189,31 @@ fun export_to_exports width pretty_modules =
 
 in
 
-fun export_result some_file width (pretty_code, _) thy =
+fun export_result some_file format (pretty_code, _) thy =
   (case some_file of
     NONE =>
       let
-        val thy' = export_to_exports width pretty_code thy;
+        val thy' = export_to_exports format pretty_code thy;
         val _ = writeln (Export.message thy' "");
       in thy' end
-  | SOME NONE => (writeln (flat_modules [] width pretty_code); thy)
+  | SOME NONE => (writeln (flat_modules format pretty_code); thy)
   | SOME (SOME relative_root) =>
       let
         val root = File.full_path (Resources.master_directory thy) relative_root;
         val _ = File.check_dir (Path.dir root);
-        val _ = export_to_file root width pretty_code;
+        val _ = export_to_file root format pretty_code;
       in thy end);
 
-fun produce_result syms width (Singleton (_, p), deresolve) =
-      ([([], Code_Printer.format [] width p)], map deresolve syms)
-  | produce_result syms width (Hierarchy code_modules, deresolve) =
-      ((map o apsnd) (Code_Printer.format [] width) code_modules, map deresolve syms);
+fun produce_result syms width pretty_modules =
+  let val format = Code_Printer.format [] width in
+    (case pretty_modules of
+      (Singleton (_, p), deresolve) => ([([], format p)], map deresolve syms)
+    | (Hierarchy code_modules, deresolve) =>
+        ((map o apsnd) format code_modules, map deresolve syms))
+  end;
 
 fun present_result selects width (pretty_code, _) =
-  flat_modules selects width pretty_code;
+  flat_modules (Code_Printer.format selects width) pretty_code;
 
 end;
 
@@ -404,9 +402,9 @@ in
 fun export_code_for some_file target_name module_name some_width args program all_public cs thy =
   let
     val thy_ctxt = Proof_Context.init_global thy;
-    val width = the_width thy_ctxt some_width;
+    val format = Code_Printer.format [] (the_width thy_ctxt some_width);
     val res = invoke_serializer thy_ctxt target_name module_name args program all_public cs;
-  in export_result some_file width res thy end;
+  in export_result some_file format res thy end;
 
 fun produce_code_for ctxt target_name module_name some_width args =
   let
@@ -427,11 +425,12 @@ fun check_code_for target_name strict args program all_public syms thy =
   let
     val thy_ctxt = Proof_Context.init_global thy;
     val { env_var, make_destination, make_command } = #check (the_language thy_ctxt target_name);
+    val format = Code_Printer.format [] 80;
     fun ext_check p =
       let
         val destination = make_destination p;
         val thy' =
-          export_result (SOME (SOME destination)) 80
+          export_result (SOME (SOME destination)) format
             (invoke_serializer thy_ctxt target_name generatedN args program all_public syms) thy;
         val cmd = make_command generatedN;
         val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
