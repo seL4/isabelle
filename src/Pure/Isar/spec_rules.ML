@@ -8,12 +8,15 @@ specifications may get lost.
 
 signature SPEC_RULES =
 sig
-  datatype recursion = Primrec of string list | Recdef | Unknown_Recursion
+  datatype recursion =
+    Primrec of string list | Recdef | Primcorec of string list | Corec | Unknown_Recursion
   val recursion_ord: recursion * recursion -> order
   datatype rough_classification = Equational of recursion | Inductive | Co_Inductive | Unknown
   val rough_classification_ord: rough_classification * rough_classification -> order
   val equational_primrec: string list -> rough_classification
   val equational_recdef: rough_classification
+  val equational_primcorec: string list -> rough_classification
+  val equational_corec: rough_classification
   val equational: rough_classification
   val is_equational: rough_classification -> bool
   val is_inductive: rough_classification -> bool
@@ -33,11 +36,15 @@ struct
 
 (* recursion *)
 
-datatype recursion = Primrec of string list | Recdef | Unknown_Recursion;
+datatype recursion =
+  Primrec of string list | Recdef | Primcorec of string list | Corec | Unknown_Recursion;
+
+val recursion_index =
+  fn Primrec _ => 0 | Recdef => 1 | Primcorec _ => 2 | Corec => 3 | Unknown_Recursion => 4;
 
 fun recursion_ord (Primrec Ts1, Primrec Ts2) = list_ord fast_string_ord (Ts1, Ts2)
-  | recursion_ord rs =
-      int_ord (apply2 (fn Primrec _ => 0 | Recdef => 1 | Unknown_Recursion => 2) rs);
+  | recursion_ord (Primcorec Ts1, Primcorec Ts2) = list_ord fast_string_ord (Ts1, Ts2)
+  | recursion_ord rs = int_ord (apply2 recursion_index rs);
 
 
 (* rough classification *)
@@ -50,6 +57,8 @@ fun rough_classification_ord (Equational r1, Equational r2) = recursion_ord (r1,
 
 val equational_primrec = Equational o Primrec;
 val equational_recdef = Equational Recdef;
+val equational_primcorec = Equational o Primcorec;
+val equational_corec = Equational Corec;
 val equational = Equational Unknown_Recursion;
 
 val is_equational = fn Equational _ => true | _ => false;
