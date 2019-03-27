@@ -1059,6 +1059,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
   let
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> mk_tupleT_balanced) fixes |> split_list;
+    val primcorec_types = map (#1 o dest_Type) res_Ts;
 
     val _ = check_duplicate_const_names bs;
     val _ = List.app (uncurry (check_top_sort lthy)) (bs ~~ arg_Ts);
@@ -1532,7 +1533,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
         val fun_ts0 = map fst def_infos;
       in
         lthy
-        |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat sel_thmss)
+        |> Spec_Rules.add (Spec_Rules.equational_primcorec primcorec_types) (fun_ts0, flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat ctr_thmss)
         |> Spec_Rules.add Spec_Rules.equational (fun_ts0, flat code_thmss)
         |> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat code_thmss))
