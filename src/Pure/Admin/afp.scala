@@ -34,6 +34,8 @@ object AFP
     Date(LocalDate.from(t).atStartOfDay(Date.timezone_berlin))
   }
 
+  def trim_mail(s: String): String = s.replaceAll("<[^>]*>", "").trim
+
   sealed case class Entry(name: String, metadata: Properties.T, sessions: List[String])
   {
     def get(prop: String): Option[String] = Properties.get(metadata, prop)
