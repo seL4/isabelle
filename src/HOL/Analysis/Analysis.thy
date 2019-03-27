@@ -6,7 +6,7 @@ theory Analysis
   (* Topology *)
   Connected
   Abstract_Limits
-  Locally
+  Abstract_Euclidean_Space
   (* Functional Analysis *)
   Elementary_Normed_Spaces
   Norm_Arith

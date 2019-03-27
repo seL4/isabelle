@@ -161,6 +161,12 @@ lemma openin_closedin_eq: "openin U S \<longleftrightarrow> S \<subseteq> topspa
   apply (metis openin_subset subset_eq)
   done
 
+lemma topology_finer_closedin:
+  "topspace X = topspace Y \<Longrightarrow> (\<forall>S. openin Y S \<longrightarrow> openin X S) \<longleftrightarrow> (\<forall>S. closedin Y S \<longrightarrow> closedin X S)"
+  apply safe
+   apply (simp add: closedin_def)
+  by (simp add: openin_closedin_eq)
+
 lemma openin_closedin: "S \<subseteq> topspace U \<Longrightarrow> (openin U S \<longleftrightarrow> closedin U (topspace U - S))"
   by (simp add: openin_closedin_eq)
 
@@ -1611,7 +1617,7 @@ qed (auto simp: continuous_map_on_empty)
 
 declare continuous_map_const [THEN iffD2, continuous_intros]
 
-lemma continuous_map_compose:
+lemma continuous_map_compose [continuous_intros]:
   assumes f: "continuous_map X X' f" and g: "continuous_map X' X'' g"
   shows "continuous_map X X'' (g \<circ> f)"
   unfolding continuous_map_def
@@ -1711,10 +1717,10 @@ lemma continuous_map_sqrt [continuous_intros]:
    "continuous_map X euclideanreal f \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. sqrt(f x))"
   by (meson continuous_map_compose continuous_map_eq continuous_map_square_root o_apply)
 
-lemma continuous_map_id [simp]: "continuous_map X X id"
+lemma continuous_map_id [simp, continuous_intros]: "continuous_map X X id"
   unfolding continuous_map_def  using openin_subopen topspace_def by fastforce
 
-declare continuous_map_id [unfolded id_def, simp]
+declare continuous_map_id [unfolded id_def, simp, continuous_intros]
 
 lemma continuous_map_id_subt [simp]: "continuous_map (subtopology X S) X id"
   by (simp add: continuous_map_from_subtopology)

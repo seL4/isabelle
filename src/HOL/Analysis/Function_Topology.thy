@@ -78,6 +78,9 @@ definition%important product_topology::"('i \<Rightarrow> ('a topology)) \<Right
   where "product_topology T I =
     topology_generated_by {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
 
+abbreviation powertop_real :: "'a set \<Rightarrow> ('a \<Rightarrow> real) topology"
+  where "powertop_real \<equiv> product_topology (\<lambda>i. euclideanreal)"
+
 text \<open>The total set of the product topology is the product of the total sets
 along each coordinate.\<close>
 
@@ -1994,5 +1997,55 @@ lemma path_connectedin_PiE:
     PiE I S = {} \<or> (\<forall>i \<in> I. path_connectedin (X i) (S i))"
   by (fastforce simp add: path_connectedin_def subtopology_PiE path_connected_space_product_topology subset_PiE PiE_eq_empty_iff topspace_subtopology_subset)
 
+subsection \<open>Projections from a function topology to a component\<close>
+
+lemma quotient_map_product_projection:
+  assumes "i \<in> I"
+  shows "quotient_map(product_topology X I) (X i) (\<lambda>x. x i) \<longleftrightarrow>
+           (topspace(product_topology X I) = {} \<longrightarrow> topspace(X i) = {})"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs with assms show ?rhs
+    by (auto simp: continuous_open_quotient_map open_map_product_projection)
+next
+  assume ?rhs with assms show ?lhs
+    by (auto simp: Abstract_Topology.retraction_imp_quotient_map retraction_map_product_projection)
+qed
+
+lemma product_topology_homeomorphic_component:
+  assumes "i \<in> I" "\<And>j. \<lbrakk>j \<in> I; j \<noteq> i\<rbrakk> \<Longrightarrow> \<exists>a. topspace(X j) = {a}"
+  shows "product_topology X I homeomorphic_space (X i)"
+proof -
+  have "quotient_map (product_topology X I) (X i) (\<lambda>x. x i)"
+    using assms by (force simp add: quotient_map_product_projection PiE_eq_empty_iff)
+  moreover
+  have "inj_on (\<lambda>x. x i) (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+    using assms by (auto simp: inj_on_def PiE_iff) (metis extensionalityI singletonD)
+  ultimately show ?thesis
+    unfolding homeomorphic_space_def
+    by (rule_tac x="\<lambda>x. x i" in exI) (simp add: homeomorphic_map_def flip: homeomorphic_map_maps)
+qed
+
+lemma topological_property_of_product_component:
+  assumes major: "P (product_topology X I)"
+    and minor: "\<And>z i. \<lbrakk>z \<in> (\<Pi>\<^sub>E i\<in>I. topspace(X i)); P(product_topology X I); i \<in> I\<rbrakk> 
+                      \<Longrightarrow> P(subtopology (product_topology X I) (PiE I (\<lambda>j. if j = i then topspace(X i) else {z j})))"
+               (is "\<And>z i. \<lbrakk>_; _; _\<rbrakk> \<Longrightarrow> P (?SX z i)")
+    and PQ:  "\<And>X X'. X homeomorphic_space X' \<Longrightarrow> (P X \<longleftrightarrow> Q X')"
+  shows "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) = {} \<or> (\<forall>i \<in> I. Q(X i))"
+proof -
+  have "Q(X i)" if "(\<Pi>\<^sub>E i\<in>I. topspace(X i)) \<noteq> {}" "i \<in> I" for i
+  proof -
+    from that obtain f where f: "f \<in> (\<Pi>\<^sub>E i\<in>I. topspace (X i))" 
+      by force
+    have "?SX f i homeomorphic_space X i"
+      apply (simp add: subtopology_PiE )
+      using product_topology_homeomorphic_component [OF \<open>i \<in> I\<close>, of "\<lambda>j. subtopology (X j) (if j = i then topspace (X i) else {f j})"]
+      using f by fastforce
+    then show ?thesis
+      using minor [OF f major \<open>i \<in> I\<close>] PQ by auto
+  qed
+  then show ?thesis by metis
+qed
 
 end

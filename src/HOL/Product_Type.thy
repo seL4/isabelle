@@ -1272,6 +1272,17 @@ setup \<open>
        proc = K Set_Comprehension_Pointfree.code_simproc}])
 \<close>
 
+subsection \<open>Lemmas about disjointness\<close>
+
+lemma disjnt_Times1_iff [simp]: "disjnt (C \<times> A) (C \<times> B) \<longleftrightarrow> C = {} \<or> disjnt A B"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_Times2_iff [simp]: "disjnt (A \<times> C) (B \<times> C) \<longleftrightarrow> C = {} \<or> disjnt A B"
+  by (auto simp: disjnt_def)
+
+lemma disjnt_Sigma_iff: "disjnt (Sigma A C) (Sigma B C) \<longleftrightarrow> (\<forall>i \<in> A\<inter>B. C i = {}) \<or> disjnt A B"
+  by (auto simp: disjnt_def)
+
 
 subsection \<open>Inductively defined sets\<close>
 

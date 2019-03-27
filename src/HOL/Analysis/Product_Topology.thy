@@ -214,6 +214,14 @@ lemma continuous_map_fst_of [continuous_intros]:
 lemma continuous_map_snd_of [continuous_intros]:
    "continuous_map Z (prod_topology X Y) f \<Longrightarrow> continuous_map Z Y (snd \<circ> f)"
   by (simp add: continuous_map_pairwise)
+    
+lemma continuous_map_prod_fst: 
+  "i \<in> I \<Longrightarrow> continuous_map (prod_topology (product_topology (\<lambda>i. Y) I) X) Y (\<lambda>x. fst x i)"
+  using continuous_map_componentwise_UNIV continuous_map_fst by fastforce
+
+lemma continuous_map_prod_snd: 
+  "i \<in> I \<Longrightarrow> continuous_map (prod_topology X (product_topology (\<lambda>i. Y) I)) Y (\<lambda>x. snd x i)"
+  using continuous_map_componentwise_UNIV continuous_map_snd by fastforce
 
 lemma continuous_map_if_iff [simp]: "continuous_map X Y (\<lambda>x. if P then f x else g x) \<longleftrightarrow> continuous_map X Y (if P then f else g)"
   by simp
