@@ -22,6 +22,8 @@ sig
 
   val export_code: bool -> string list
     -> (((string * string) * Path.T option option) * Token.T list) list -> theory -> theory
+  val export_code_cmd: bool -> string list
+    -> (((string * string) * (string * Position.T) option) * Token.T list) list -> theory -> theory
   val produce_code: Proof.context -> bool -> string list
     -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
   val present_code: Proof.context -> string list -> Code_Symbol.T list
