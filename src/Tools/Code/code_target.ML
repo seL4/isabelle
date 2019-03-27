@@ -213,7 +213,7 @@ fun present_result selects width (pretty_code, _) =
 
 type language = {serializer: serializer, literals: literals,
   check: {env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string},
-  evaluation_args: Token.T list}; 
+  evaluation_args: Token.T list};
 
 type ancestry = (string * (Code_Thingol.program -> Code_Thingol.program)) list;
 
@@ -232,7 +232,7 @@ structure Targets = Theory_Data
       ({serial = #serial target1, language = #language target1,
         ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
         Code_Printer.merge_data (data1, data2))
-      else error ("Incompatible targets: " ^ quote target_name) 
+      else error ("Incompatible targets: " ^ quote target_name)
     ) (targets1, targets2)
 );
 
@@ -247,7 +247,7 @@ fun fold1 f xs = fold f (tl xs) (hd xs);
 
 fun join_ancestry thy target_name =
   let
-    val _ = assert_target thy target_name; 
+    val _ = assert_target thy target_name;
     val the_target_data = the o lookup_target_data thy;
     val (target, this_data) = the_target_data target_name;
     val ancestry = #ancestry target;
@@ -264,7 +264,7 @@ fun allocate_target target_name target thy =
       else ();
   in
     thy
-    |> (Targets.map o Symtab.update) (target_name, (target, Code_Printer.empty_data))  
+    |> (Targets.map o Symtab.update) (target_name, (target, Code_Printer.empty_data))
   end;
 
 fun add_language (target_name, language) =
@@ -287,9 +287,9 @@ fun add_derived_target (target_name, initial_ancestry) thy =
       merge_ancestry (ancestry, ancestry')) ancestries;
   in
     allocate_target target_name {serial = #serial supremum, language = #language supremum,
-      ancestry = ancestry} thy 
+      ancestry = ancestry} thy
   end;
-  
+
 fun map_data target_name f thy =
   let
     val _ = assert_target thy target_name;
@@ -298,12 +298,9 @@ fun map_data target_name f thy =
     |> (Targets.map o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
   end;
 
-fun map_reserved target_name =
-  map_data target_name o @{apply 3 (1)};
-fun map_identifiers target_name =
-  map_data target_name o @{apply 3 (2)};
-fun map_printings target_name =
-  map_data target_name o @{apply 3 (3)};
+fun map_reserved target_name = map_data target_name o @{apply 3(1)};
+fun map_identifiers target_name = map_data target_name o @{apply 3(2)};
+fun map_printings target_name = map_data target_name o @{apply 3(3)};
 
 
 (** serializer usage **)
@@ -467,7 +464,7 @@ fun compilation_text' ctxt target_name some_module_name program syms =
 
 fun compilation_text ctxt target_name program syms =
   fst oo compilation_text' ctxt target_name NONE program syms
-  
+
 end; (* local *)
 
 
