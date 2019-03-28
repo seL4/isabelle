@@ -2345,9 +2345,12 @@ text \<open>
       ('(' target ')' '-' ? + @'and')
     ;
     printing_module: symbol_module ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' \<newline>
-        (@{syntax string}
-          (@'for' ((symbol_const | symbol_type_constructor | symbol_class | symbol_class_relation | symbol_class_instance)+))?)? + @'and')
+      ('(' target ')' (@{syntax string} for_symbol?)? + @'and')
+    ;
+    for_symbol:
+      @'for'
+        ((symbol_const | symbol_typeconstructor |
+          symbol_class | symbol_class_relation | symbol_class_instance)+)
     ;
     @@{command (HOL) code_printing} ((printing_const | printing_type_constructor
       | printing_class | printing_class_relation | printing_class_instance
