@@ -12,23 +12,26 @@ sig
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
   val export_code_for: Path.T option option -> string -> string -> int option -> Token.T list
-    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> theory -> theory
+    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
   val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
   val present_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> string
   val check_code_for: string -> bool -> Token.T list
-    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> theory -> theory
+    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
 
   val export_code: bool -> string list
-    -> (((string * string) * Path.T option option) * Token.T list) list -> theory -> theory
+    -> (((string * string) * Path.T option option) * Token.T list) list
+    -> local_theory -> local_theory
   val export_code_cmd: bool -> string list
-    -> (((string * string) * (string * Position.T) option) * Token.T list) list -> theory -> theory
+    -> (((string * string) * (string * Position.T) option) * Token.T list) list
+    -> local_theory -> local_theory
   val produce_code: Proof.context -> bool -> string list
     -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
   val present_code: Proof.context -> string list -> Code_Symbol.T list
     -> string -> string -> int option -> Token.T list -> string
-  val check_code: bool -> string list -> ((string * bool) * Token.T list) list -> theory -> theory
+  val check_code: bool -> string list -> ((string * bool) * Token.T list) list
+    -> local_theory -> local_theory
 
   val generatedN: string
   val compilation_text: Proof.context -> string -> Code_Thingol.program
@@ -401,12 +404,11 @@ fun assert_module_name "" = error "Empty module name not allowed here"
 
 in
 
-fun export_code_for some_file target_name module_name some_width args program all_public cs thy =
+fun export_code_for some_file target_name module_name some_width args program all_public cs lthy =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
-    val format = Code_Printer.format [] (the_width thy_ctxt some_width);
-    val res = invoke_serializer thy_ctxt target_name module_name args program all_public cs;
-  in export_result some_file format res thy end;
+    val format = Code_Printer.format [] (the_width lthy some_width);
+    val res = invoke_serializer lthy target_name module_name args program all_public cs;
+  in Local_Theory.background_theory (export_result some_file format res) lthy end;
 
 fun produce_code_for ctxt target_name module_name some_width args =
   let
@@ -423,29 +425,29 @@ fun present_code_for ctxt target_name module_name some_width args =
     present_result selects (the_width ctxt some_width) (serializer program false syms)
   end;
 
-fun check_code_for target_name strict args program all_public syms thy =
+fun check_code_for target_name strict args program all_public syms lthy =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
-    val { env_var, make_destination, make_command } = #check (the_language thy_ctxt target_name);
+    val { env_var, make_destination, make_command } = #check (the_language lthy target_name);
     val format = Code_Printer.format [] 80;
     fun ext_check p =
       let
         val destination = make_destination p;
-        val thy' =
-          export_result (SOME (SOME destination)) format
-            (invoke_serializer thy_ctxt target_name generatedN args program all_public syms) thy;
+        val lthy' = lthy
+          |> Local_Theory.background_theory
+            (export_result (SOME (SOME destination)) format
+              (invoke_serializer lthy target_name generatedN args program all_public syms));
         val cmd = make_command generatedN;
         val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
       in
         if Isabelle_System.bash context_cmd <> 0
         then error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
-        else thy'
+        else lthy'
       end;
   in
     if not (env_var = "") andalso getenv env_var = "" then
       if strict
       then error (env_var ^ " not set; cannot check code for " ^ target_name)
-      else (warning (env_var ^ " not set; skipped checking code for " ^ target_name); thy)
+      else (warning (env_var ^ " not set; skipped checking code for " ^ target_name); lthy)
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
@@ -495,21 +497,19 @@ fun prep_destination (s, pos) =
       val _ = Position.report pos (Markup.path (Path.smart_implode path));
     in SOME path end;
 
-fun export_code all_public cs seris thy =
+fun export_code all_public cs seris lthy =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
-    val program = Code_Thingol.consts_program thy_ctxt cs;
+    val program = Code_Thingol.consts_program lthy cs;
   in
-    (seris, thy) |-> fold (fn (((target_name, module_name), some_file), args) =>
+    (seris, lthy) |-> fold (fn (((target_name, module_name), some_file), args) =>
       export_code_for some_file target_name module_name NONE args
         program all_public (map Constant cs))
   end;
 
-fun export_code_cmd all_public raw_cs seris thy =
+fun export_code_cmd all_public raw_cs seris lthy =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
-    val cs = Code_Thingol.read_const_exprs thy_ctxt raw_cs;
-  in export_code all_public cs ((map o apfst o apsnd o Option.map) prep_destination seris) thy end;
+    val cs = Code_Thingol.read_const_exprs lthy raw_cs;
+  in export_code all_public cs ((map o apfst o apsnd o Option.map) prep_destination seris) lthy end;
 
 fun produce_code ctxt all_public cs target_name some_width some_module_name args =
   let
@@ -521,18 +521,16 @@ fun present_code ctxt cs syms target_name some_width some_module_name args =
     val program = Code_Thingol.consts_program ctxt cs;
   in present_code_for ctxt target_name some_width some_module_name args program (map Constant cs, syms) end;
 
-fun check_code all_public cs seris thy =
+fun check_code all_public cs seris lthy =
   let
-    val thy_ctxt = Proof_Context.init_global thy;
-    val program = Code_Thingol.consts_program thy_ctxt cs;
+    val program = Code_Thingol.consts_program lthy cs;
   in
-    (seris, thy) |-> fold (fn ((target_name, strict), args) =>
+    (seris, lthy) |-> fold (fn ((target_name, strict), args) =>
       check_code_for target_name strict args program all_public (map Constant cs))
   end;
 
-fun check_code_cmd all_public raw_cs seris thy =
-  let val thy_ctxt = Proof_Context.init_global thy
-  in check_code all_public (Code_Thingol.read_const_exprs thy_ctxt raw_cs) seris thy end;
+fun check_code_cmd all_public raw_cs seris lthy =
+  check_code all_public (Code_Thingol.read_const_exprs lthy raw_cs) seris lthy;
 
 
 (** serializer configuration **)
@@ -703,9 +701,9 @@ val _ =
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>export_code\<close> "generate executable code for constants"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>export_code\<close> "generate executable code for constants"
     (Scan.optional (\<^keyword>\<open>open\<close> >> K true) false -- Scan.repeat1 Parse.term
-      :|-- (fn args => (code_expr_checkingP args || code_expr_inP args)) >> Toplevel.theory);
+      :|-- (fn args => (code_expr_checkingP args || code_expr_inP args)));
 
 end;
 

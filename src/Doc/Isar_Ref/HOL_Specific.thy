@@ -2262,7 +2262,7 @@ text \<open>
   "isabelle-codegen"} for an introduction.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "export_code"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "export_code"}\<open>\<^sup>*\<close> & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{attribute_def (HOL) code} & : & \<open>attribute\<close> \\
     @{command_def (HOL) "code_datatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def (HOL) "print_codesetup"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
