@@ -2298,7 +2298,7 @@ text \<open>
     @@{attribute (HOL) code} ('equation' | 'nbe' | 'abstype' | 'abstract'
       | 'del' | 'drop:' (const+) | 'abort:' (const+))?
     ;
-    @@{command (HOL) code_datatype} const+
+    @@{command (HOL) code_datatype} (const+)
     ;
     @@{attribute (HOL) code_unfold} 'del'?
     ;
@@ -2306,11 +2306,11 @@ text \<open>
     ;
     @@{attribute (HOL) code_abbrev} 'del'?
     ;
-    @@{command (HOL) code_thms} (const_expr+)?
+    @@{command (HOL) code_thms} (const_expr+)
     ;
-    @@{command (HOL) code_deps} (const_expr+)?
+    @@{command (HOL) code_deps} (const_expr+)
     ;
-    @@{command (HOL) code_reserved} target @{syntax string}+
+    @@{command (HOL) code_reserved} target (@{syntax string}+)
     ;
     symbol_const: @'constant' const
     ;
@@ -2318,7 +2318,7 @@ text \<open>
     ;
     symbol_class: @'type_class' class
     ;
-    symbol_class_relation: @'class_relation' class ( '<' | '\<subseteq>' ) class
+    symbol_class_relation: @'class_relation' class ('<' | '\<subseteq>') class
     ;
     symbol_class_instance: @'class_instance' type_constructor @'::' class
     ;
