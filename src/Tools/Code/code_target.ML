@@ -11,7 +11,7 @@ sig
 
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
-  val export_code_for: Path.T option option -> string -> string -> int option -> Token.T list
+  val export_code_for: ({physical: bool} * Path.T) option -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
   val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
@@ -21,10 +21,10 @@ sig
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
 
   val export_code: bool -> string list
-    -> (((string * string) * Path.T option option) * Token.T list) list
+    -> (((string * string) * ({physical: bool} * Path.T) option) * Token.T list) list
     -> local_theory -> local_theory
   val export_code_cmd: bool -> string list
-    -> (((string * string) * (string * Position.T) option) * Token.T list) list
+    -> (((string * string) * ({physical: bool} * (string * Position.T)) option) * Token.T list) list
     -> local_theory -> local_theory
   val produce_code: Proof.context -> bool -> string list
     -> string -> string -> int option -> Token.T list -> (string list * string) list * string option list
@@ -33,6 +33,7 @@ sig
   val check_code: bool -> string list -> ((string * bool) * Token.T list) list
     -> local_theory -> local_theory
 
+  val codeN: string
   val generatedN: string
   val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
@@ -148,7 +149,7 @@ fun check_name is_module s =
   end;
 
 
-(** serializers **)
+(** theory data **)
 
 datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
@@ -166,65 +167,6 @@ type serializer = Token.T list
   -> Code_Symbol.T list
   -> pretty_modules * (Code_Symbol.T -> string option);
 
-val generatedN = "Generated_Code";
-
-local
-
-fun flat_modules format pretty_modules =
-  (case pretty_modules of
-    Singleton (_, p) => format p
-  | Hierarchy code_modules => space_implode "\n\n" (map (format o #2) code_modules));
-
-fun export_to_file root format pretty_modules =
-  (case pretty_modules of
-    Singleton (_, p) => File.write root (format p)
-  | Hierarchy code_modules =>
-      (Isabelle_System.mkdirs root;
-        List.app (fn (names, p) =>
-          File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
-
-fun export_to_exports format pretty_modules =
-  let
-    fun export name content thy = (Export.export thy name [content]; thy);
-  in
-    (case pretty_modules of
-      Singleton (ext, p) => export (Path.basic (generatedN ^ "." ^ ext)) (format p)
-    | Hierarchy modules => fold (fn (names, p) => export (Path.make names) (format p)) modules)
-  end;
-
-in
-
-fun export_result some_file format (pretty_code, _) thy =
-  (case some_file of
-    NONE =>
-      let
-        val thy' = export_to_exports format pretty_code thy;
-        val _ = writeln (Export.message thy' "");
-      in thy' end
-  | SOME NONE => (writeln (flat_modules format pretty_code); thy)
-  | SOME (SOME relative_root) =>
-      let
-        val root = File.full_path (Resources.master_directory thy) relative_root;
-        val _ = File.check_dir (Path.dir root);
-        val _ = export_to_file root format pretty_code;
-      in thy end);
-
-fun produce_result syms width pretty_modules =
-  let val format = Code_Printer.format [] width in
-    (case pretty_modules of
-      (Singleton (_, p), deresolve) => ([([], format p)], map deresolve syms)
-    | (Hierarchy code_modules, deresolve) =>
-        ((map o apsnd) format code_modules, map deresolve syms))
-  end;
-
-fun present_result selects width (pretty_code, _) =
-  flat_modules (Code_Printer.format selects width) pretty_code;
-
-end;
-
-
-(** theory data **)
-
 type language = {serializer: serializer, literals: literals,
   check: {env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string},
   evaluation_args: Token.T list};
@@ -237,25 +179,32 @@ type target = {serial: serial, language: language, ancestry: ancestry};
 
 structure Targets = Theory_Data
 (
-  type T = (target * Code_Printer.data) Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge (targets1, targets2) : T =
-    Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
-      if #serial target1 = #serial target2 then
-      ({serial = #serial target1, language = #language target1,
-        ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
-        Code_Printer.merge_data (data1, data2))
-      else error ("Incompatible targets: " ^ quote target_name)
-    ) (targets1, targets2)
+  type T = (target * Code_Printer.data) Symtab.table * int;
+  val empty = (Symtab.empty, 0);
+  fun extend (targets, _) = (targets, 0);
+  fun merge ((targets1, _), (targets2, _)) : T =
+    let val targets' =
+      Symtab.join (fn target_name => fn ((target1, data1), (target2, data2)) =>
+        if #serial target1 = #serial target2 then
+        ({serial = #serial target1, language = #language target1,
+          ancestry = merge_ancestry (#ancestry target1, #ancestry target2)},
+          Code_Printer.merge_data (data1, data2))
+        else error ("Incompatible targets: " ^ quote target_name)) (targets1, targets2)
+    in (targets', 0) end;
 );
 
-fun exists_target thy = Symtab.defined (Targets.get thy);
-fun lookup_target_data thy = Symtab.lookup (Targets.get thy);
+val exists_target = Symtab.defined o #1 o Targets.get;
+val lookup_target_data = Symtab.lookup o #1 o Targets.get;
 fun assert_target thy target_name =
   if exists_target thy target_name
   then target_name
   else error ("Unknown code target language: " ^ quote target_name);
+
+fun next_export thy =
+  let
+    val thy' = (Targets.map o apsnd) (fn i => i + 1) thy;
+    val i = #2 (Targets.get thy');
+  in ("export" ^ string_of_int i, thy') end;
 
 fun fold1 f xs = fold f (tl xs) (hd xs);
 
@@ -278,7 +227,7 @@ fun allocate_target target_name target thy =
       else ();
   in
     thy
-    |> (Targets.map o Symtab.update) (target_name, (target, Code_Printer.empty_data))
+    |> (Targets.map o apfst o Symtab.update) (target_name, (target, Code_Printer.empty_data))
   end;
 
 fun add_language (target_name, language) =
@@ -309,12 +258,77 @@ fun map_data target_name f thy =
     val _ = assert_target thy target_name;
   in
     thy
-    |> (Targets.map o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
+    |> (Targets.map o apfst o Symtab.map_entry target_name o apsnd o Code_Printer.map_data) f
   end;
 
 fun map_reserved target_name = map_data target_name o @{apply 3(1)};
 fun map_identifiers target_name = map_data target_name o @{apply 3(2)};
 fun map_printings target_name = map_data target_name o @{apply 3(3)};
+
+
+(** serializers **)
+
+val codeN = "code";
+val generatedN = "Generated_Code";
+
+local
+
+fun export_logical file_prefix format pretty_modules =
+  let
+    val prefix = Path.append (Path.basic codeN) file_prefix;
+    fun export name content thy =
+      let
+        val path = Path.append prefix name;
+        val thy' = thy |> Generated_Files.add_files ((path, Position.none), content);
+        val _ = Export.export thy' path [content];
+      in thy' end;
+  in
+    (case pretty_modules of
+      Singleton (ext, p) => export (Path.basic (generatedN ^ "." ^ ext)) (format p)
+    | Hierarchy modules => fold (fn (names, p) => export (Path.make names) (format p)) modules)
+    #> tap (fn thy => writeln (Export.message thy prefix))
+  end;
+
+fun export_physical root format pretty_modules =
+  (case pretty_modules of
+    Singleton (_, p) => File.write root (format p)
+  | Hierarchy code_modules =>
+      (Isabelle_System.mkdirs root;
+        List.app (fn (names, p) =>
+          File.write (Path.appends (root :: map Path.basic names)) (format p)) code_modules));
+
+in
+
+fun export_result some_file format (pretty_code, _) thy =
+  (case some_file of
+    NONE =>
+      let val (file_prefix, thy') = next_export thy;
+      in export_logical (Path.basic file_prefix) format pretty_code thy' end
+  | SOME ({physical = false}, file_prefix) =>
+      export_logical file_prefix format pretty_code thy
+  | SOME ({physical = true}, file) =>
+      let
+        val root = File.full_path (Resources.master_directory thy) file;
+        val _ = File.check_dir (Path.dir root);
+        val _ = export_physical root format pretty_code;
+      in thy end);
+
+fun produce_result syms width pretty_modules =
+  let val format = Code_Printer.format [] width in
+    (case pretty_modules of
+      (Singleton (_, p), deresolve) => ([([], format p)], map deresolve syms)
+    | (Hierarchy code_modules, deresolve) =>
+        ((map o apsnd) format code_modules, map deresolve syms))
+  end;
+
+fun present_result selects width (pretty_modules, _) =
+  let val format = Code_Printer.format selects width in
+    (case pretty_modules of
+      Singleton (_, p) => format p
+    | Hierarchy code_modules => space_implode "\n\n" (map (format o #2) code_modules))
+  end;
+
+end;
 
 
 (** serializer usage **)
@@ -434,7 +448,7 @@ fun check_code_for target_name strict args program all_public syms lthy =
         val destination = make_destination p;
         val lthy' = lthy
           |> Local_Theory.background_theory
-            (export_result (SOME (SOME destination)) format
+            (export_result (SOME ({physical = true}, destination)) format
               (invoke_serializer lthy target_name generatedN args program all_public syms));
         val cmd = make_command generatedN;
         val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
@@ -488,14 +502,23 @@ end; (* local *)
 
 (* code generation *)
 
-fun prep_destination (s, pos) =
-  if s = "" then NONE
+fun prep_destination (location, (s, pos)) =
+  if location = {physical = false} then
+    (location, Path.explode s handle ERROR msg => error (msg ^ Position.here pos))
   else
     let
+      val _ =
+        if s = ""
+        then error ("Bad bad empty " ^ Markup.markup Markup.keyword2 "file" ^ " argument")
+        else ();
+      val _ =
+        legacy_feature
+          (Markup.markup Markup.keyword1 "export_code" ^ " with " ^
+            Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
       val _ = Position.report pos Markup.language_path;
       val path = Path.explode s;
       val _ = Position.report pos (Markup.path (Path.smart_implode path));
-    in SOME path end;
+    in (location, path) end;
 
 fun export_code all_public cs seris lthy =
   let
@@ -671,7 +694,9 @@ val code_expr_argsP = Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.args 
 fun code_expr_inP (all_public, raw_cs) =
   Scan.repeat (\<^keyword>\<open>in\<close> |-- Parse.!!! (Parse.name
     -- Scan.optional (\<^keyword>\<open>module_name\<close> |-- Parse.name) ""
-    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.position Parse.path)
+    -- Scan.option
+        ((\<^keyword>\<open>file_prefix\<close> >> K {physical = false} || \<^keyword>\<open>file\<close> >> K {physical = true})
+          -- Parse.!!! (Parse.position Parse.path))
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 

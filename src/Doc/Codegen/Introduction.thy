@@ -69,7 +69,7 @@ lemma %invisible dequeue_nonempty_Nil [simp]:
 text \<open>\noindent Then we can generate code e.g.~for \<open>SML\<close> as follows:\<close>
 
 export_code %quote empty dequeue enqueue in SML
-  module_name Example file \<open>$ISABELLE_TMP/example.ML\<close>
+  module_name Example file_prefix example
 
 text \<open>\noindent resulting in the following code:\<close>
 
@@ -78,19 +78,29 @@ text %quote \<open>
 \<close>
 
 text \<open>
-  \noindent The @{command_def export_code} command takes a
-  space-separated list of constants for which code shall be generated;
-  anything else needed for those is added implicitly.  Then follows a
-  target language identifier and a freely chosen module name.  A file
-  name denotes the destination to store the generated code.  Note that
-  the semantics of the destination depends on the target language: for
-  \<open>SML\<close>, \<open>OCaml\<close> and \<open>Scala\<close> it denotes a \emph{file},
-  for \<open>Haskell\<close> it denotes a \emph{directory} where a file named as the
-  module name (with extension \<open>.hs\<close>) is written:
+  \noindent The @{command_def export_code} command takes a space-separated
+  list of constants for which code shall be generated; anything else needed
+  for those is added implicitly. Then follows a target language identifier
+  and a freely chosen \<^theory_text>\<open>module_name\<close>. A \<^theory_text>\<open>file_prefix\<close> introduces
+  sub-directory structure for the output of logical files (within the
+  theory context), as well as session exports; the default is \<^verbatim>\<open>export\<close>
+  with a consecutive number within the current theory. The prefix \<^verbatim>\<open>code\<close>
+  is always prepended to the code output directory. For \<open>SML\<close>, \<open>OCaml\<close> and
+  \<open>Scala\<close> the result is a single file, for \<open>Haskell\<close> each module gets its
+  own file with the module name and extension \<^verbatim>\<open>.hs\<close>. Here is an example:\<^footnote>\<open>
+  The exports may be explored within the Isabelle/jEdit Prover IDE using
+  the file-browser on the \<^verbatim>\<open>isabelle-export:\<close> virtual file-system.\<close>
+
+  %FIXME old/new "name"
+  %name denotes the destination to store the generated
+  %code. Note that the semantics of the destination depends on the target
+  %language: for \<open>SML\<close>, \<open>OCaml\<close> and \<open>Scala\<close> it denotes a \emph{file}, for
+  %\<open>Haskell\<close> it denotes a \emph{directory} where a file named as the module
+  %name (with extension \<open>.hs\<close>) is written:
 \<close>
 
 export_code %quote empty dequeue enqueue in Haskell
-  module_name Example file \<open>$ISABELLE_TMP/examples/\<close>
+  module_name Example file_prefix examples
 
 text \<open>
   \noindent This is the corresponding code:

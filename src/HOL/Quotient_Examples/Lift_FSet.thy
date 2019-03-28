@@ -113,7 +113,8 @@ lemma fmember_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> 
 
 text \<open>We can export code:\<close>
 
-export_code fnil fcons fappend fmap ffilter fset fmember in SML
+export_code fnil fcons fappend fmap ffilter fset fmember in SML file_prefix fset
+
 
 subsection \<open>Using transfer with type \<open>fset\<close>\<close>
 

@@ -28,6 +28,6 @@ lift_definition insert :: "'a => 'a set => 'a set" is "\<lambda> x P y. y = x \<
 term "Lift_Set.insert"
 thm Lift_Set.insert_def
 
-export_code empty insert in SML
+export_code empty insert in SML file_prefix set
 
 end

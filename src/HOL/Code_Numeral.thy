@@ -766,7 +766,7 @@ code_printing
 code_identifier
   code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
-export_code divmod_integer in Haskell
+export_code divmod_integer in Haskell file_prefix divmod
 
 
 subsection \<open>Type of target language naturals\<close>

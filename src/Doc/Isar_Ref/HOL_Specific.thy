@@ -2284,8 +2284,8 @@ text \<open>
     @@{command (HOL) export_code} @'open'? \<newline> (const_expr+) (export_target*)
     ;
     export_target:
-      @'in' target (@'module_name' @{syntax string})? \<newline>
-      (@'file' @{syntax string})? ('(' args ')')?
+      @'in' target (@'module_name' @{syntax name})? \<newline>
+      (@'file_prefix' @{syntax embedded})? ('(' args ')')?
     ;
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
@@ -2390,13 +2390,12 @@ text \<open>
   generated. Alternatively, a module name may be specified after the @{keyword
   "module_name"} keyword; then \<^emph>\<open>all\<close> code is placed in this module.
 
-  By default, generated code is treated as theory export which can be
-  explicitly retrieved using @{tool_ref export}. For diagnostic purposes
-  generated code can also be written to the file system using @{keyword "file"};
-  for \<^emph>\<open>SML\<close>, \<^emph>\<open>OCaml\<close> and \<^emph>\<open>Scala\<close> the file specification refers to a single
-  file; for \<^emph>\<open>Haskell\<close>, it refers to a whole directory, where code is
-  generated in multiple files reflecting the module hierarchy.
-  Passing an empty file specification denotes standard output.
+  Generated code is output as logical files within the theory context, as well
+  as session exports that can be retrieved using @{tool_ref export} (or @{tool
+  build} with option \<^verbatim>\<open>-e\<close> and suitable \isakeyword{export\_files}
+  specifications in the session \<^verbatim>\<open>ROOT\<close> entry). All files have a directory
+  prefix \<^verbatim>\<open>code\<close> plus an extra file prefix that may be given via
+  \<^theory_text>\<open>file_prefix\<close> --- the default is a numbered prefix \<^verbatim>\<open>export\<close>\<open>N\<close>.
 
   Serializers take an optional list of arguments in parentheses.
 

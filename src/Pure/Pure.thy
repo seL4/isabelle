@@ -140,7 +140,7 @@ local
             val paths = Generated_Files.export_files thy other_thys;
           in
             if not (null paths) then
-              (writeln (Export.message thy "");
+              (writeln (Export.message thy Path.current);
                writeln (cat_lines (paths |> map (fn (path, pos) =>
                 Markup.markup (Markup.entityN, Position.def_properties_of pos)
                   (quote (Path.implode path))))))

@@ -11,7 +11,7 @@ keywords
   "export_code" "code_identifier" "code_printing" "code_reserved"
     "code_monad" "code_reflect" :: thy_decl and
   "checking" and
-  "datatypes" "functions" "module_name" "file"
+  "datatypes" "functions" "module_name" "file" "file_prefix"
     "constant" "type_constructor" "type_class" "class_relation" "class_instance" "code_module"
     :: quasi_command
 begin

@@ -62,7 +62,7 @@ fun lfilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a llist \<Rightarrow> 'a 
 | "lfilter P (x ### xs) = 
    (if P x then x ### lfilter P xs else lfilter P xs)"
 
-export_code lfilter in SML
+export_code lfilter in SML file_prefix lfilter
 
 value [code] "lfilter odd llist"
 

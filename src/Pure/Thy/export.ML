@@ -10,8 +10,8 @@ sig
   val export_params: params -> string list -> unit
   val export: theory -> Path.T -> string list -> unit
   val export_executable: theory -> Path.T -> string list -> unit
-  val markup: theory -> string -> Markup.T
-  val message: theory -> string -> string
+  val markup: theory -> Path.T -> Markup.T
+  val message: theory -> Path.T -> string
 end;
 
 structure Export: EXPORT =
@@ -47,11 +47,13 @@ fun export_executable theory path blob =
 
 (* information message *)
 
-fun markup thy s =
-  let val name = (Markup.nameN, Context.theory_long_name thy ^ (if s = "" then "" else "/" ^ s))
+fun markup thy path =
+  let
+    val thy_path = Path.append (Path.basic (Context.theory_long_name thy)) path;
+    val name = (Markup.nameN, Path.implode thy_path);
   in Active.make_markup Markup.theory_exportsN {implicit = false, properties = [name]} end;
 
-fun message thy s =
-  "See " ^ Markup.markup (markup thy s) "theory exports";
+fun message thy path =
+  "See " ^ Markup.markup (markup thy path) "theory exports";
 
 end;

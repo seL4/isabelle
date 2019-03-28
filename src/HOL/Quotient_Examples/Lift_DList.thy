@@ -50,5 +50,6 @@ lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o 
 text \<open>We can export code:\<close>
 
 export_code empty insert remove map filter null member length fold foldr concat in SML
+  file_prefix dlist
 
 end
