@@ -199,6 +199,4 @@ ML_val {* check_theory @{theory Map} *}
 ML_val {* check_theory @{theory Relation} *}
 *)
 
-ML \<open>getenv "ISABELLE_TMP"\<close>
-
 end
