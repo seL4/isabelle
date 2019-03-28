@@ -2281,13 +2281,13 @@ text \<open>
   \end{matharray}
 
   \<^rail>\<open>
-    @@{command (HOL) export_code} ( @'open' ) ? ( constexpr + ) \<newline>
-       ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
-        ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
+    @@{command (HOL) export_code} @'open'? (constexpr+) \<newline>
+       ((@'in' target (@'module_name' @{syntax string})? \<newline>
+        (@'file' @{syntax string})? ('(' args ')')?)+) ?
     ;
     const: @{syntax term}
     ;
-    constexpr: ( const | 'name._' | '_' )
+    constexpr: (const | 'name._' | '_')
     ;
     typeconstructor: @{syntax name}
     ;
@@ -2295,78 +2295,77 @@ text \<open>
     ;
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
-    @@{attribute (HOL) code} ( 'equation' | 'nbe' | 'abstype' | 'abstract'
-      | 'del' | 'drop:' ( const + ) | 'abort:' ( const + ) )?
+    @@{attribute (HOL) code} ('equation' | 'nbe' | 'abstype' | 'abstract'
+      | 'del' | 'drop:' (const+) | 'abort:' (const+))?
     ;
-    @@{command (HOL) code_datatype} ( const + )
+    @@{command (HOL) code_datatype} const+
     ;
-    @@{attribute (HOL) code_unfold} ( 'del' ) ?
+    @@{attribute (HOL) code_unfold} 'del'?
     ;
-    @@{attribute (HOL) code_post} ( 'del' ) ?
+    @@{attribute (HOL) code_post} 'del'?
     ;
-    @@{attribute (HOL) code_abbrev} ( 'del' ) ?
+    @@{attribute (HOL) code_abbrev} 'del'?
     ;
-    @@{command (HOL) code_thms} ( constexpr + ) ?
+    @@{command (HOL) code_thms} (constexpr+)?
     ;
-    @@{command (HOL) code_deps} ( constexpr + ) ?
+    @@{command (HOL) code_deps} (constexpr+)?
     ;
-    @@{command (HOL) code_reserved} target ( @{syntax string} + )
+    @@{command (HOL) code_reserved} target @{syntax string}+
     ;
-    symbol_const: ( @'constant' const )
+    symbol_const: @'constant' const
     ;
-    symbol_typeconstructor: ( @'type_constructor' typeconstructor )
+    symbol_typeconstructor: @'type_constructor' typeconstructor
     ;
-    symbol_class: ( @'type_class' class )
+    symbol_class: @'type_class' class
     ;
-    symbol_class_relation: ( @'class_relation' class ( '<' | '\<subseteq>' ) class )
+    symbol_class_relation: @'class_relation' class ( '<' | '\<subseteq>' ) class
     ;
-    symbol_class_instance: ( @'class_instance' typeconstructor @'::' class )
+    symbol_class_instance: @'class_instance' typeconstructor @'::' class
     ;
-    symbol_module: ( @'code_module' name )
+    symbol_module: @'code_module' name
     ;
-    syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
+    syntax: @{syntax string} | (@'infix' | @'infixl' | @'infixr')
+      @{syntax nat} @{syntax string}
     ;
-    printing_const: symbol_const ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' syntax ? + @'and' )
+    printing_const: symbol_const ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' syntax ? + @'and')
     ;
-    printing_typeconstructor: symbol_typeconstructor ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' syntax ? + @'and' )
+    printing_typeconstructor: symbol_typeconstructor ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' syntax ? + @'and')
     ;
-    printing_class: symbol_class ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' @{syntax string} ? + @'and' )
+    printing_class: symbol_class ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' @{syntax string} ? + @'and')
     ;
-    printing_class_relation: symbol_class_relation ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' @{syntax string} ? + @'and' )
+    printing_class_relation: symbol_class_relation ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' @{syntax string} ? + @'and')
     ;
-    printing_class_instance: symbol_class_instance ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' '-' ? + @'and' )
+    printing_class_instance: symbol_class_instance ('\<rightharpoonup>'| '=>') \<newline>
+      ('(' target ')' '-' ? + @'and')
     ;
-    printing_module: symbol_module ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' \<newline>
-        ( @{syntax string}
-          ( @'for' (
-            ( symbol_const | symbol_typeconstructor | symbol_class | symbol_class_relation | symbol_class_instance ) + )
-          ) ? ) ? + @'and' )
+    printing_module: symbol_module ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' \<newline>
+        (@{syntax string}
+          (@'for' ((symbol_const | symbol_typeconstructor | symbol_class | symbol_class_relation | symbol_class_instance)+))?)? + @'and')
     ;
-    @@{command (HOL) code_printing} ( ( printing_const | printing_typeconstructor
+    @@{command (HOL) code_printing} ((printing_const | printing_typeconstructor
       | printing_class | printing_class_relation | printing_class_instance
-      | printing_module ) + '|' )
+      | printing_module) + '|')
     ;
-    @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
+    @@{command (HOL) code_identifier} ((symbol_const | symbol_typeconstructor
       | symbol_class | symbol_class_relation | symbol_class_instance
-      | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \<newline>
-      ( '(' target ')' @{syntax string} ? + @'and' ) + '|' )
+      | symbol_module ) ('\<rightharpoonup>' | '=>') \<newline>
+      ('(' target ')' @{syntax string} ? + @'and') + '|')
     ;
     @@{command (HOL) code_monad} const const target
     ;
     @@{command (HOL) code_reflect} @{syntax string} \<newline>
-      ( @'datatypes' ( @{syntax string} '=' ( '_' | ( @{syntax string} + '|' ) + @'and' ) ) ) ? \<newline>
-      ( @'functions' ( @{syntax string} + ) ) ? ( @'file' @{syntax string} ) ?
+      (@'datatypes' (@{syntax string} '=' ('_' | (@{syntax string} + '|') + @'and')))? \<newline>
+      (@'functions' (@{syntax string} +))? (@'file' @{syntax string})?
     ;
     @@{command (HOL) code_pred} \<newline> ('(' @'modes' ':' modedecl ')')? \<newline> const
     ;
     modedecl: (modes | ((const ':' modes) \<newline>
-        (@'and' ((const ':' modes @'and') +))?))
+      (@'and' ((const ':' modes @'and')+))?))
     ;
     modes: mode @'as' const
   \<close>
