@@ -2281,15 +2281,15 @@ text \<open>
   \end{matharray}
 
   \<^rail>\<open>
-    @@{command (HOL) export_code} @'open'? (constexpr+) \<newline>
+    @@{command (HOL) export_code} @'open'? (const_expr+) \<newline>
        ((@'in' target (@'module_name' @{syntax string})? \<newline>
         (@'file' @{syntax string})? ('(' args ')')?)+) ?
     ;
     const: @{syntax term}
     ;
-    constexpr: (const | 'name._' | '_')
+    const_expr: (const | 'name._' | '_')
     ;
-    typeconstructor: @{syntax name}
+    type_constructor: @{syntax name}
     ;
     class: @{syntax name}
     ;
@@ -2306,21 +2306,21 @@ text \<open>
     ;
     @@{attribute (HOL) code_abbrev} 'del'?
     ;
-    @@{command (HOL) code_thms} (constexpr+)?
+    @@{command (HOL) code_thms} (const_expr+)?
     ;
-    @@{command (HOL) code_deps} (constexpr+)?
+    @@{command (HOL) code_deps} (const_expr+)?
     ;
     @@{command (HOL) code_reserved} target @{syntax string}+
     ;
     symbol_const: @'constant' const
     ;
-    symbol_typeconstructor: @'type_constructor' typeconstructor
+    symbol_type_constructor: @'type_constructor' type_constructor
     ;
     symbol_class: @'type_class' class
     ;
     symbol_class_relation: @'class_relation' class ( '<' | '\<subseteq>' ) class
     ;
-    symbol_class_instance: @'class_instance' typeconstructor @'::' class
+    symbol_class_instance: @'class_instance' type_constructor @'::' class
     ;
     symbol_module: @'code_module' name
     ;
@@ -2330,7 +2330,7 @@ text \<open>
     printing_const: symbol_const ('\<rightharpoonup>' | '=>') \<newline>
       ('(' target ')' syntax ? + @'and')
     ;
-    printing_typeconstructor: symbol_typeconstructor ('\<rightharpoonup>' | '=>') \<newline>
+    printing_type_constructor: symbol_type_constructor ('\<rightharpoonup>' | '=>') \<newline>
       ('(' target ')' syntax ? + @'and')
     ;
     printing_class: symbol_class ('\<rightharpoonup>' | '=>') \<newline>
@@ -2345,13 +2345,13 @@ text \<open>
     printing_module: symbol_module ('\<rightharpoonup>' | '=>') \<newline>
       ('(' target ')' \<newline>
         (@{syntax string}
-          (@'for' ((symbol_const | symbol_typeconstructor | symbol_class | symbol_class_relation | symbol_class_instance)+))?)? + @'and')
+          (@'for' ((symbol_const | symbol_type_constructor | symbol_class | symbol_class_relation | symbol_class_instance)+))?)? + @'and')
     ;
-    @@{command (HOL) code_printing} ((printing_const | printing_typeconstructor
+    @@{command (HOL) code_printing} ((printing_const | printing_type_constructor
       | printing_class | printing_class_relation | printing_class_instance
       | printing_module) + '|')
     ;
-    @@{command (HOL) code_identifier} ((symbol_const | symbol_typeconstructor
+    @@{command (HOL) code_identifier} ((symbol_const | symbol_type_constructor
       | symbol_class | symbol_class_relation | symbol_class_instance
       | symbol_module ) ('\<rightharpoonup>' | '=>') \<newline>
       ('(' target ')' @{syntax string} ? + @'and') + '|')
