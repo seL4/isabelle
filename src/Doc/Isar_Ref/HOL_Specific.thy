@@ -2281,19 +2281,21 @@ text \<open>
   \end{matharray}
 
   \<^rail>\<open>
-    @@{command (HOL) export_code} @'open'? (const_expr+) \<newline>
-       ((@'in' target (@'module_name' @{syntax string})? \<newline>
-        (@'file' @{syntax string})? ('(' args ')')?)+) ?
+    @@{command (HOL) export_code} @'open'? \<newline> (const_expr+) (export_target*)
     ;
-    const: @{syntax term}
+    export_target:
+      @'in' target (@'module_name' @{syntax string})? \<newline>
+      (@'file' @{syntax string})? ('(' args ')')?
+    ;
+    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
     const_expr: (const | 'name._' | '_')
+    ;
+    const: @{syntax term}
     ;
     type_constructor: @{syntax name}
     ;
     class: @{syntax name}
-    ;
-    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
     @@{attribute (HOL) code} ('equation' | 'nbe' | 'abstype' | 'abstract'
       | 'del' | 'drop:' (const+) | 'abort:' (const+))?
