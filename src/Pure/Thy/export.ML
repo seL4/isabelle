@@ -6,6 +6,7 @@ Manage theory exports: compressed blobs.
 
 signature EXPORT =
 sig
+  val check_name: Path.T -> string
   type params = {theory: theory, path: Path.T, executable: bool, compress: bool}
   val export_params: params -> string list -> unit
   val export: theory -> Path.T -> string list -> unit

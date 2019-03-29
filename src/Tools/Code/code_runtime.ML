@@ -780,7 +780,7 @@ val _ =
     (Parse.name -- Scan.optional (\<^keyword>\<open>datatypes\<close> |-- Parse.!!! (parse_datatype
       ::: Scan.repeat (\<^keyword>\<open>and\<close> |-- parse_datatype))) []
     -- Scan.optional (\<^keyword>\<open>functions\<close> |-- Parse.!!!  (Scan.repeat1 Parse.name)) []
-    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.!!! Parse.name)
+    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.!!! Parse.embedded)
     >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
       (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 

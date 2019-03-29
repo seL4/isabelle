@@ -2285,7 +2285,7 @@ text \<open>
     ;
     export_target:
       @'in' target (@'module_name' @{syntax name})? \<newline>
-      (@'file_prefix' @{syntax embedded})? ('(' args ')')?
+      (@'file_prefix' @{syntax path})? ('(' args ')')?
     ;
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
@@ -2296,6 +2296,8 @@ text \<open>
     type_constructor: @{syntax name}
     ;
     class: @{syntax name}
+    ;
+    path: @{syntax embedded}
     ;
     @@{attribute (HOL) code} ('equation' | 'nbe' | 'abstype' | 'abstract'
       | 'del' | 'drop:' (const+) | 'abort:' (const+))?
@@ -2365,7 +2367,7 @@ text \<open>
     ;
     @@{command (HOL) code_reflect} @{syntax string} \<newline>
       (@'datatypes' (@{syntax string} '=' ('_' | (@{syntax string} + '|') + @'and')))? \<newline>
-      (@'functions' (@{syntax string} +))? (@'file' @{syntax string})?
+      (@'functions' (@{syntax string} +))? (@'file' @{syntax path})?
     ;
     @@{command (HOL) code_pred} \<newline> ('(' @'modes' ':' modedecl ')')? \<newline> const
     ;
@@ -2391,11 +2393,16 @@ text \<open>
   "module_name"} keyword; then \<^emph>\<open>all\<close> code is placed in this module.
 
   Generated code is output as logical files within the theory context, as well
-  as session exports that can be retrieved using @{tool_ref export} (or @{tool
+  as session exports that can be retrieved using @{tool_ref export}, or @{tool
   build} with option \<^verbatim>\<open>-e\<close> and suitable \isakeyword{export\_files}
-  specifications in the session \<^verbatim>\<open>ROOT\<close> entry). All files have a directory
-  prefix \<^verbatim>\<open>code\<close> plus an extra file prefix that may be given via
-  \<^theory_text>\<open>file_prefix\<close> --- the default is a numbered prefix \<^verbatim>\<open>export\<close>\<open>N\<close>.
+  specifications in the session \<^verbatim>\<open>ROOT\<close> entry. All files have a common
+  directory prefix: the long theory name plus ``\<^verbatim>\<open>code\<close>''. The actual file
+  name is determined by the target language together with an optional
+  \<^theory_text>\<open>file_prefix\<close> (the default is ``\<^verbatim>\<open>export\<close>'' with a consecutive number
+  within the current theory). For \<open>SML\<close>, \<open>OCaml\<close> and \<open>Scala\<close>, the file prefix
+  becomes a plain file with extension (e.g.\ ``\<^verbatim>\<open>.ML\<close>'' for SML). For
+  \<open>Haskell\<close> the file prefix becomes a directory that is populated with a
+  separate file for each module (with extension ``\<^verbatim>\<open>.hs\<close>'').
 
   Serializers take an optional list of arguments in parentheses.
 

@@ -276,17 +276,17 @@ local
 fun export_logical file_prefix format pretty_modules =
   let
     val prefix = Path.append (Path.basic codeN) file_prefix;
-    fun export name content thy =
+    fun export path content thy =
       let
-        val path = Path.append prefix name;
         val thy' = thy |> Generated_Files.add_files ((path, Position.none), content);
         val _ = Export.export thy' path [content];
       in thy' end;
   in
     (case pretty_modules of
-      Singleton (ext, p) => export (Path.basic (generatedN ^ "." ^ ext)) (format p)
-    | Hierarchy modules => fold (fn (names, p) => export (Path.make names) (format p)) modules)
-    #> tap (fn thy => writeln (Export.message thy prefix))
+      Singleton (ext, p) => export (Path.ext ext prefix) (format p)
+    | Hierarchy modules =>
+        fold (fn (names, p) => export (Path.append prefix (Path.make names)) (format p)) modules)
+    #> tap (fn thy => writeln (Export.message thy (Path.basic codeN)))
   end;
 
 fun export_physical root format pretty_modules =
@@ -504,7 +504,10 @@ end; (* local *)
 
 fun prep_destination (location, (s, pos)) =
   if location = {physical = false} then
-    (location, Path.explode s handle ERROR msg => error (msg ^ Position.here pos))
+    let
+      val path = (Path.explode s |> tap Export.check_name)
+        handle ERROR msg => error (msg ^ Position.here pos)
+    in (location, path) end
   else
     let
       val _ =

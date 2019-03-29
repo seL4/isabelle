@@ -133,20 +133,20 @@ Minor INCOMPATIBILITY, prefer combinators Named_Target.theory_map[_result]
 to lift specifications to the global theory level.
 
 * Command 'export_code' produces output as logical files within the
-theory context, as well as session exports that can be materialized
-using the command-line tools "isabelle export" or "isabelle build -e"
-(with 'export_files' in the session ROOT), or browsed in Isabelle/jEdit
-via the "isabelle-export:" file-system. A 'file_prefix' argument allows
-to specify an explicit prefix, the default is "export" with a
-consecutive number within each theory. The overall prefix "code" is
-always prepended.
+theory context, as well as formal session exports that can be
+materialized via command-line tools "isabelle export" or "isabelle build
+-e" (with 'export_files' in the session ROOT). Isabelle/jEdit also
+provides a virtual file-system "isabelle-export:" that can be explored
+in the regular file-browser. A 'file_prefix' argument allows to specify
+an explicit name prefix for the target file (SML, OCaml, Scala) or
+directory (Haskell); the default is "export" with a consecutive number
+within each theory.
 
 * Command 'export_code': the 'file' argument is now legacy and will be
 removed soon: writing to the physical file-system is not well-defined in
-a reactive/parallel application like Isabelle. The empty 'file' has been
-discontinued already: it has been superseded by the file-browser in
-Isabelle/jEdit with "isabelle-export:" as file-system. Minor
-INCOMPATIBILITY.
+a reactive/parallel application like Isabelle. The empty 'file' argument
+has been discontinued already: it is superseded by the file-browser in
+Isabelle/jEdit on "isabelle-export:". Minor INCOMPATIBILITY.
 
 * Code generation for OCaml: proper strings are used for literals.
 Minor INCOMPATIBILITY.
