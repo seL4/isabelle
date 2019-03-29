@@ -10,6 +10,7 @@ sig
   val get_files: theory -> {path: Path.T, pos: Position.T, content: string} list
   val write_files: theory -> Path.T -> (Path.T * Position.T) list
   val export_files: theory -> theory list -> (Path.T * Position.T) list
+  val the_file_content: theory -> Path.T -> string
   type file_type =
     {name: string, ext: string, make_comment: string -> string, make_string: string -> string}
   val file_type:
@@ -83,6 +84,13 @@ fun export_files thy other_thys =
   other_thys |> maps (fn other_thy =>
     get_files other_thy |> map (fn {path, pos, content} =>
       (Export.export thy path [content]; (path, pos))));
+
+fun the_file_content thy path =
+  (case find_first (fn file => #path file = path) (get_files thy) of
+    SOME {content, ...} => content
+  | NONE =>
+      error ("Missing generated file " ^ Path.print path ^
+        " in theory " ^ quote (Context.theory_long_name thy)));
 
 
 (* file types *)

@@ -11,6 +11,8 @@ sig
   val export_params: params -> string list -> unit
   val export: theory -> Path.T -> string list -> unit
   val export_executable: theory -> Path.T -> string list -> unit
+  val export_file: theory -> Path.T -> Path.T -> unit
+  val export_executable_file: theory -> Path.T -> Path.T -> unit
   val markup: theory -> Path.T -> Markup.T
   val message: theory -> Path.T -> string
 end;
@@ -39,11 +41,14 @@ fun export_params ({theory, path, executable, compress}: params) blob =
     executable = executable,
     compress = compress} blob;
 
-fun export theory path blob =
-  export_params {theory = theory, path = path, executable = false, compress = true} blob;
+fun export thy path blob =
+  export_params {theory = thy, path = path, executable = false, compress = true} blob;
 
-fun export_executable theory path blob =
-  export_params {theory = theory, path = path, executable = true, compress = true} blob;
+fun export_executable thy path blob =
+  export_params {theory = thy, path = path, executable = true, compress = true} blob;
+
+fun export_file thy path file = export thy path [File.read file];
+fun export_executable_file thy path file = export_executable thy path [File.read file];
 
 
 (* information message *)
