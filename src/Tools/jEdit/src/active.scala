@@ -47,7 +47,7 @@ object Active
               case XML.Elem(Markup(Markup.THEORY_EXPORTS, props), _) =>
                 GUI_Thread.later {
                   val name = Markup.Name.unapply(props) getOrElse ""
-                  VFSBrowser.browseDirectory(view, Isabelle_Export.vfs_prefix + name)
+                  PIDE.editor.hyperlink_file(true, Isabelle_Export.vfs_prefix + name).follow(view)
                 }
 
               case XML.Elem(Markup(Markup.JEDIT_ACTION, _), body) =>

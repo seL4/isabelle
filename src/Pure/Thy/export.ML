@@ -23,14 +23,23 @@ struct
 
 type params = {theory: theory, binding: Path.binding, executable: bool, compress: bool};
 
-fun export_params ({theory, binding, executable, compress}: params) blob =
-  (Output.try_protocol_message o Markup.export)
-   {id = Position.get_id (Position.thread_data ()),
-    serial = serial (),
-    theory_name = Context.theory_long_name theory,
-    name = Path.implode_binding binding,
-    executable = executable,
-    compress = compress} blob;
+fun export_params ({theory = thy, binding, executable, compress}: params) blob =
+  let
+    val theory_name = Context.theory_long_name thy;
+    val name = Path.implode_binding binding;
+    val (path, pos) = Path.dest_binding binding;
+    val _ =
+      Context_Position.report_generic (Context.Theory thy) pos
+        (Markup.export_path (Path.implode (Path.append (Path.basic theory_name) path)));
+  in
+    (Output.try_protocol_message o Markup.export)
+     {id = Position.get_id (Position.thread_data ()),
+      serial = serial (),
+      theory_name = theory_name,
+      name = name,
+      executable = executable,
+      compress = compress} blob
+  end;
 
 fun export thy binding blob =
   export_params {theory = thy, binding = binding, executable = false, compress = true} blob;

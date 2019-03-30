@@ -14,6 +14,7 @@ import java.io.{File => JFile}
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
+import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 
 
 class JEdit_Editor extends Editor[View]
@@ -155,15 +156,23 @@ class JEdit_Editor extends Editor[View]
           case _: IllegalArgumentException =>
         }
 
-      case None if (new JFile(name)).isDirectory =>
-        VFSBrowser.browseDirectory(view, name)
-
       case None =>
-        val args =
-          if (line <= 0) Array(name)
-          else if (column <= 0) Array(name, "+line:" + (line + 1))
-          else Array(name, "+line:" + (line + 1) + "," + (column + 1))
-        jEdit.openFiles(view, null, args)
+        val is_file =
+          try {
+            val vfs = VFSManager.getVFSForPath(name)
+            val vfs_file = vfs._getFile((), name, view)
+            vfs_file != null && vfs_file.getType == VFSFile.FILE
+          }
+          catch { case ERROR(_) => false }
+
+        if (is_file) {
+          val args =
+            if (line <= 0) Array(name)
+            else if (column <= 0) Array(name, "+line:" + (line + 1))
+            else Array(name, "+line:" + (line + 1) + "," + (column + 1))
+          jEdit.openFiles(view, null, args)
+        }
+        else VFSBrowser.browseDirectory(view, name)
     }
   }
 

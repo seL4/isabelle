@@ -65,6 +65,7 @@ sig
   val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
+  val export_pathN: string val export_path: string -> T
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
   val markupN: string
@@ -397,6 +398,7 @@ val (citationN, citation) = markup_string "citation" nameN;
 (* external resources *)
 
 val (pathN, path) = markup_string "path" nameN;
+val (export_pathN, export_path) = markup_string "export_path" nameN;
 val (urlN, url) = markup_string "url" nameN;
 val (docN, doc) = markup_string "doc" nameN;
 

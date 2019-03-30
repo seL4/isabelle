@@ -200,6 +200,9 @@ object Markup
   val PATH = "path"
   val Path = new Markup_String(PATH, NAME)
 
+  val EXPORT_PATH = "export_path"
+  val Export_Path = new Markup_String(EXPORT_PATH, NAME)
+
   val URL = "url"
   val Url = new Markup_String(URL, NAME)
 

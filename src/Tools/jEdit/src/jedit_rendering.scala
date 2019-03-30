@@ -124,8 +124,8 @@ object JEdit_Rendering
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.POSITION,
-      Markup.CITATION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.EXPORT_PATH, Markup.DOC, Markup.URL,
+      Markup.POSITION, Markup.CITATION)
 
   private val gutter_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
@@ -240,6 +240,10 @@ class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, optio
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
             val link = PIDE.editor.hyperlink_file(true, file)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Export_Path(name), _))) =>
+            val link = PIDE.editor.hyperlink_file(true, Isabelle_Export.vfs_prefix + name)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
