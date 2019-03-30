@@ -11,8 +11,9 @@ sig
 
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
 
-  val export_code_for: ({physical: bool} * Path.T) option -> string -> string -> int option -> Token.T list
-    -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
+  val export_code_for: ({physical: bool} * (Path.T * Position.T)) option -> string -> string
+    -> int option -> Token.T list  -> Code_Thingol.program -> bool -> Code_Symbol.T list
+    -> local_theory -> local_theory
   val produce_code_for: Proof.context -> string -> string -> int option -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string list * string) list * string option list
   val present_code_for: Proof.context -> string -> string -> int option -> Token.T list
@@ -21,7 +22,7 @@ sig
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> local_theory -> local_theory
 
   val export_code: bool -> string list
-    -> (((string * string) * ({physical: bool} * Path.T) option) * Token.T list) list
+    -> (((string * string) * ({physical: bool} * (Path.T * Position.T)) option) * Token.T list) list
     -> local_theory -> local_theory
   val export_code_cmd: bool -> string list
     -> (((string * string) * ({physical: bool} * (string * Position.T)) option) * Token.T list) list
@@ -273,13 +274,14 @@ val generatedN = "Generated_Code";
 
 local
 
-fun export_logical file_prefix format pretty_modules =
+fun export_logical (file_prefix, file_pos) format pretty_modules =
   let
     val prefix = Path.append (Path.basic codeN) file_prefix;
     fun export path content thy =
       let
-        val thy' = thy |> Generated_Files.add_files ((path, Position.none), content);
-        val _ = Export.export thy' path [content];
+        val binding = Path.binding (path, file_pos);
+        val thy' = thy |> Generated_Files.add_files (binding, content);
+        val _ = Export.export thy' binding [content];
       in thy' end;
   in
     (case pretty_modules of
@@ -303,10 +305,10 @@ fun export_result some_file format (pretty_code, _) thy =
   (case some_file of
     NONE =>
       let val (file_prefix, thy') = next_export thy;
-      in export_logical (Path.basic file_prefix) format pretty_code thy' end
+      in export_logical (Path.basic file_prefix, Position.none) format pretty_code thy' end
   | SOME ({physical = false}, file_prefix) =>
       export_logical file_prefix format pretty_code thy
-  | SOME ({physical = true}, file) =>
+  | SOME ({physical = true}, (file, _)) =>
       let
         val root = File.full_path (Resources.master_directory thy) file;
         val _ = File.check_dir (Path.dir root);
@@ -448,7 +450,7 @@ fun check_code_for target_name strict args program all_public syms lthy =
         val destination = make_destination p;
         val lthy' = lthy
           |> Local_Theory.background_theory
-            (export_result (SOME ({physical = true}, destination)) format
+            (export_result (SOME ({physical = true}, (destination, Position.none))) format
               (invoke_serializer lthy target_name generatedN args program all_public syms));
         val cmd = make_command generatedN;
         val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
@@ -503,11 +505,8 @@ end; (* local *)
 (* code generation *)
 
 fun prep_destination (location, (s, pos)) =
-  if location = {physical = false} then
-    let
-      val path = (Path.explode s |> tap Export.check_name)
-        handle ERROR msg => error (msg ^ Position.here pos)
-    in (location, path) end
+  if location = {physical = false}
+  then (location, Path.explode_pos (s, pos))
   else
     let
       val _ =
@@ -519,9 +518,9 @@ fun prep_destination (location, (s, pos)) =
           (Markup.markup Markup.keyword1 "export_code" ^ " with " ^
             Markup.markup Markup.keyword2 "file" ^ " argument" ^ Position.here pos);
       val _ = Position.report pos Markup.language_path;
-      val path = Path.explode s;
+      val path = #1 (Path.explode_pos (s, pos));
       val _ = Position.report pos (Markup.path (Path.smart_implode path));
-    in (location, path) end;
+    in (location, (path, pos)) end;
 
 fun export_code all_public cs seris lthy =
   let

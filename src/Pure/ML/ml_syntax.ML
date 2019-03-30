@@ -23,6 +23,7 @@ sig
   val print_properties: Properties.T -> string
   val print_position: Position.T -> string
   val print_range: Position.range -> string
+  val print_path_binding: Path.binding -> string
   val make_binding: string * Position.T -> string
   val print_indexname: indexname -> string
   val print_class: class -> string
@@ -97,6 +98,9 @@ fun print_position pos =
 
 fun print_range range =
   "Position.range_of_properties " ^ print_properties (Position.properties_of_range range);
+
+fun print_path_binding binding =
+  "Path.binding " ^ print_pair print_path print_position (Path.dest_binding binding);
 
 fun make_binding (name, pos) =
   "Binding.make " ^ print_pair print_string print_position (name, pos);

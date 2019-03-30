@@ -408,6 +408,7 @@
 \<^named_theorems>      argument: cartouche
 \<^nonterminal>         argument: cartouche
 \<^path>                argument: cartouche
+\<^path_binding>        argument: cartouche
 \<^plugin>              argument: cartouche
 \<^print>
 \<^prop>                argument: cartouche

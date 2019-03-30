@@ -290,6 +290,9 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>path\<close> (ML_antiq check_path) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>file\<close> (ML_antiq check_file) #>
   ML_Antiquotation.value_embedded \<^binding>\<open>dir\<close> (ML_antiq check_dir) #>
+  ML_Antiquotation.value_embedded \<^binding>\<open>path_binding\<close>
+    (Scan.lift (Parse.position Parse.path) >>
+      (ML_Syntax.print_path_binding o Path.explode_binding)) #>
   ML_Antiquotation.value \<^binding>\<open>master_dir\<close>
     (Args.theory >> (ML_Syntax.print_path o master_directory)));
 

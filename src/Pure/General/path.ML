@@ -19,12 +19,12 @@ sig
   val has_parent: T -> bool
   val is_absolute: T -> bool
   val is_basic: T -> bool
-  val all_basic: T -> bool
   val starts_basic: T -> bool
   val append: T -> T -> T
   val appends: T list -> T
   val implode: T -> string
   val explode: string -> T
+  val explode_pos: string * Position.T -> T * Position.T
   val decode: T XML.Decode.T
   val split: string -> T list
   val pretty: T -> Pretty.T
@@ -38,6 +38,14 @@ sig
   val file_name: T -> string
   val smart_implode: T -> string
   val position: T -> Position.T
+  eqtype binding
+  val binding: T * Position.T -> binding
+  val binding0: T -> binding
+  val binding_map: (T -> T) -> binding -> binding
+  val dest_binding: binding -> T * Position.T
+  val implode_binding: binding -> string
+  val explode_binding: string * Position.T -> binding
+  val explode_binding0: string -> binding
 end;
 
 structure Path: PATH =
@@ -169,6 +177,9 @@ fun explode_path str =
 
   in Path (norm (rev elems @ roots)) end;
 
+fun explode_pos (s, pos) =
+  (explode_path s handle ERROR msg => error (msg ^ Position.here pos), pos);
+
 fun split str =
   space_explode ":" str
   |> map_filter (fn s => if s = "" then NONE else SOME (explode_path s));
@@ -242,6 +253,26 @@ fun smart_implode path =
   end;
 
 val position = Position.file o smart_implode;
+
+
+(* binding: strictly monotonic path with position *)
+
+datatype binding = Binding of T * Position.T;
+
+fun binding (path, pos) =
+  if not (is_current path) andalso all_basic path then Binding (path, pos)
+  else error ("Bad path binding: " ^ print path ^ Position.here pos);
+
+fun binding0 path = binding (path, Position.none);
+fun binding_map f (Binding (path, pos)) = binding (f path, pos);
+
+fun dest_binding (Binding args) = args;
+
+val implode_binding = dest_binding #> #1 #> implode_path;
+
+val explode_binding = binding o explode_pos;
+fun explode_binding0 s = explode_binding (s, Position.none);
+
 
 (*final declarations of this structure!*)
 val implode = implode_path;
