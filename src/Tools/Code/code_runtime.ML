@@ -19,7 +19,9 @@ sig
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
   val code_reflect: (string * string list option) list -> string list -> string
-    -> string option -> theory -> theory
+    -> Path.binding option -> theory -> theory
+  val code_reflect_cmd: (string * string list option) list -> string list -> string
+    -> Path.binding option -> theory -> theory
   datatype truth = Holds
   val put_truth: (unit -> truth) -> Proof.context -> Proof.context
   val mount_computation: Proof.context -> (string * typ) list -> typ
@@ -711,18 +713,18 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
       |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
       |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
       |> fold (add_eval_const o apsnd Code_Printer.str) const_map
-  | process_reflection (code, _) _ (SOME file_name) thy =
+  | process_reflection (code, _) _ (SOME binding) thy =
       let
+        val code_binding = Path.map_binding Code_Target.code_path binding;
         val preamble =
           "(* Generated from " ^
             Path.implode (Resources.thy_path (Path.basic (Context.theory_name thy))) ^
           "; DO NOT EDIT! *)";
-        val _ = File.write (Path.explode file_name) (preamble ^ "\n\n" ^ code);
-      in
-        thy
-      end;
+        val thy' = Code_Target.export code_binding (preamble ^ "\n\n" ^ code) thy;
+        val _ = Code_Target.code_export_message thy';
+      in thy' end;
 
-fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_name some_file thy  =
+fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_name file_prefix thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val datatypes = map (fn (raw_tyco, raw_cos) =>
@@ -736,7 +738,7 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
       |> (apsnd o apsnd) (chop (length constrs));
   in
     thy
-    |> process_reflection result module_name some_file
+    |> process_reflection result module_name file_prefix
   end;
 
 val code_reflect = gen_code_reflect Code_Target.cert_tyco (K I);
@@ -780,9 +782,11 @@ val _ =
     (Parse.name -- Scan.optional (\<^keyword>\<open>datatypes\<close> |-- Parse.!!! (parse_datatype
       ::: Scan.repeat (\<^keyword>\<open>and\<close> |-- parse_datatype))) []
     -- Scan.optional (\<^keyword>\<open>functions\<close> |-- Parse.!!!  (Scan.repeat1 Parse.name)) []
-    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.!!! Parse.embedded)
-    >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
-      (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
+    -- Scan.option (\<^keyword>\<open>file_prefix\<close> |-- Parse.!!! (Parse.position Parse.embedded))
+    >> (fn (((module_name, raw_datatypes), raw_functions), file_prefix) =>
+      Toplevel.theory (fn thy =>
+        code_reflect_cmd raw_datatypes raw_functions module_name
+          (Option.map Path.explode_binding file_prefix) thy)));
 
 end; (*local*)
 

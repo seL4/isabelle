@@ -2367,7 +2367,7 @@ text \<open>
     ;
     @@{command (HOL) code_reflect} @{syntax string} \<newline>
       (@'datatypes' (@{syntax string} '=' ('_' | (@{syntax string} + '|') + @'and')))? \<newline>
-      (@'functions' (@{syntax string} +))? (@'file' @{syntax path})?
+      (@'functions' (@{syntax string} +))? (@'file_prefix' @{syntax path})?
     ;
     @@{command (HOL) code_pred} \<newline> ('(' @'modes' ':' modedecl ')')? \<newline> const
     ;
@@ -2485,12 +2485,13 @@ text \<open>
   the discretion of the user to ensure that name prefixes of identifiers in
   compound statements like type classes or datatypes are still the same.
 
-  \<^descr> @{command (HOL) "code_reflect"} without a ``\<open>file\<close>'' argument compiles
-  code into the system runtime environment and modifies the code generator
-  setup that future invocations of system runtime code generation referring to
-  one of the ``\<open>datatypes\<close>'' or ``\<open>functions\<close>'' entities use these precompiled
-  entities. With a ``\<open>file\<close>'' argument, the corresponding code is generated
-  into that specified file without modifying the code generator setup.
+  \<^descr> @{command (HOL) "code_reflect"} without a ``\<^theory_text>\<open>file_prefix\<close>'' argument
+  compiles code into the system runtime environment and modifies the code
+  generator setup that future invocations of system runtime code generation
+  referring to one of the ``\<open>datatypes\<close>'' or ``\<open>functions\<close>'' entities use
+  these precompiled entities. With a ``\<^theory_text>\<open>file_prefix\<close>'' argument, the
+  corresponding code is generated/exported to the specified file (as for
+  \<^theory_text>\<open>export_code\<close>) without modifying the code generator setup.
 
   \<^descr> @{command (HOL) "code_pred"} creates code equations for a predicate given
   a set of introduction rules. Optional mode annotations determine which

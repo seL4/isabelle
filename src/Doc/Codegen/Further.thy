@@ -48,7 +48,7 @@ code_reflect %quote Rat
   functions Fract
     "(plus :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(minus :: rat \<Rightarrow> rat \<Rightarrow> rat)"
     "(times :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(divide :: rat \<Rightarrow> rat \<Rightarrow> rat)"
-  file "$ISABELLE_TMP/rat.ML"
+  file_prefix rat
 
 text \<open>
   \noindent This merely generates the referenced code to the given

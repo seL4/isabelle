@@ -148,6 +148,10 @@ a reactive/parallel application like Isabelle. The empty 'file' argument
 has been discontinued already: it is superseded by the file-browser in
 Isabelle/jEdit on "isabelle-export:". Minor INCOMPATIBILITY.
 
+* Command 'code_reflect' no longer supports the 'file' argument: it has
+been superseded by 'file_prefix' for stateless file management as in
+'export_code'. Minor INCOMPATIBILITY.
+
 * Code generation for OCaml: proper strings are used for literals.
 Minor INCOMPATIBILITY.
 
