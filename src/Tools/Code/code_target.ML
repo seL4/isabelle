@@ -10,6 +10,7 @@ sig
   val read_tyco: Proof.context -> string -> string
 
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
+  val next_export: theory -> string * theory
 
   val export_code_for: ({physical: bool} * (Path.T * Position.T)) option -> string -> string
     -> int option -> Token.T list  -> Code_Thingol.program -> bool -> Code_Symbol.T list
@@ -36,6 +37,9 @@ sig
 
   val codeN: string
   val generatedN: string
+  val code_path: Path.T -> Path.T
+  val code_export_message: theory -> unit
+  val export: Path.binding -> string -> theory -> theory
   val compilation_text: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string list * string) list * string
@@ -272,23 +276,28 @@ fun map_printings target_name = map_data target_name o @{apply 3(3)};
 val codeN = "code";
 val generatedN = "Generated_Code";
 
+val code_path = Path.append (Path.basic codeN);
+fun code_export_message thy = writeln (Export.message thy (Path.basic codeN));
+
+fun export binding content thy =
+  let
+    val thy' = thy |> Generated_Files.add_files (binding, content);
+    val _ = Export.export thy' binding [content];
+  in thy' end;
+
 local
 
 fun export_logical (file_prefix, file_pos) format pretty_modules =
   let
-    val prefix = Path.append (Path.basic codeN) file_prefix;
-    fun export path content thy =
-      let
-        val binding = Path.binding (path, file_pos);
-        val thy' = thy |> Generated_Files.add_files (binding, content);
-        val _ = Export.export thy' binding [content];
-      in thy' end;
+    fun binding path = Path.binding (path, file_pos);
+    val prefix = code_path file_prefix;
   in
     (case pretty_modules of
-      Singleton (ext, p) => export (Path.ext ext prefix) (format p)
+      Singleton (ext, p) => export (binding (Path.ext ext prefix)) (format p)
     | Hierarchy modules =>
-        fold (fn (names, p) => export (Path.append prefix (Path.make names)) (format p)) modules)
-    #> tap (fn thy => writeln (Export.message thy (Path.basic codeN)))
+        fold (fn (names, p) =>
+          export (binding (Path.append prefix (Path.make names))) (format p)) modules)
+    #> tap code_export_message
   end;
 
 fun export_physical root format pretty_modules =
