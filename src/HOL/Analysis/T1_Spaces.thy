@@ -411,7 +411,7 @@ lemma closedin_Hausdorff_finite_eq:
    "\<lbrakk>Hausdorff_space X; finite S\<rbrakk> \<Longrightarrow> closedin X S \<longleftrightarrow> S \<subseteq> topspace X"
   by (meson closedin_Hausdorff_finite closedin_def)
 
-lemma derived_set_of_infinite_open_in:
+lemma derived_set_of_infinite_openin:
    "Hausdorff_space X
         \<Longrightarrow> X derived_set_of S =
             {x \<in> topspace X. \<forall>U. x \<in> U \<and> openin X U \<longrightarrow> infinite(S \<inter> U)}"

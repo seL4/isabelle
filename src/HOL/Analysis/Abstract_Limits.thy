@@ -47,7 +47,7 @@ subsection\<open>Limits in a topological space\<close>
 definition limitin :: "'a topology \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" where
   "limitin X f l F \<equiv> l \<in> topspace X \<and> (\<forall>U. openin X U \<and> l \<in> U \<longrightarrow> eventually (\<lambda>x. f x \<in> U) F)"
 
-lemma limitin_euclideanreal_iff [simp]: "limitin euclideanreal f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
+lemma limitin_canonical_iff [simp]: "limitin euclidean f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
   by (auto simp: limitin_def tendsto_def)
 
 lemma limitin_topspace: "limitin X f l F \<Longrightarrow> l \<in> topspace X"
@@ -203,8 +203,8 @@ lemma limitin_continuous_map:
 
 subsection\<open>Combining theorems for continuous functions into the reals\<close>
 
-lemma continuous_map_real_const [simp,continuous_intros]:
-   "continuous_map X euclideanreal (\<lambda>x. c)"
+lemma continuous_map_canonical_const [continuous_intros]:
+   "continuous_map X euclidean (\<lambda>x. c)"
   by simp
 
 lemma continuous_map_real_mult [continuous_intros]:
@@ -240,23 +240,30 @@ lemma continuous_map_real_mult_right_eq:
    "continuous_map X euclideanreal (\<lambda>x. f x * c) \<longleftrightarrow> c = 0 \<or> continuous_map X euclideanreal f"
   by (simp add: mult.commute flip: continuous_map_real_mult_left_eq)
 
-lemma continuous_map_real_minus [continuous_intros]:
-   "continuous_map X euclideanreal f \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. - f x)"
+lemma continuous_map_minus [continuous_intros]:
+  fixes f :: "'a\<Rightarrow>'b::real_normed_vector"
+  shows "continuous_map X euclidean f \<Longrightarrow> continuous_map X euclidean (\<lambda>x. - f x)"
   by (simp add: continuous_map_atin tendsto_minus)
 
-lemma continuous_map_real_minus_eq:
-   "continuous_map X euclideanreal (\<lambda>x. - f x) \<longleftrightarrow> continuous_map X euclideanreal f"
-  using continuous_map_real_mult_left_eq [where c = "-1"] by auto
+lemma continuous_map_minus_eq [simp]:
+  fixes f :: "'a\<Rightarrow>'b::real_normed_vector"
+  shows "continuous_map X euclidean (\<lambda>x. - f x) \<longleftrightarrow> continuous_map X euclidean f"
+  using continuous_map_minus add.inverse_inverse continuous_map_eq by fastforce
 
-lemma continuous_map_real_add [continuous_intros]:
-   "\<lbrakk>continuous_map X euclideanreal f; continuous_map X euclideanreal g\<rbrakk>
-   \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. f x + g x)"
+lemma continuous_map_add [continuous_intros]:
+  fixes f :: "'a\<Rightarrow>'b::real_normed_vector"
+  shows "\<lbrakk>continuous_map X euclidean f; continuous_map X euclidean g\<rbrakk> \<Longrightarrow> continuous_map X euclidean (\<lambda>x. f x + g x)"
   by (simp add: continuous_map_atin tendsto_add)
 
-lemma continuous_map_real_diff [continuous_intros]:
-   "\<lbrakk>continuous_map X euclideanreal f; continuous_map X euclideanreal g\<rbrakk>
-   \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. f x - g x)"
+lemma continuous_map_diff [continuous_intros]:
+  fixes f :: "'a\<Rightarrow>'b::real_normed_vector"
+  shows "\<lbrakk>continuous_map X euclidean f; continuous_map X euclidean g\<rbrakk> \<Longrightarrow> continuous_map X euclidean (\<lambda>x. f x - g x)"
   by (simp add: continuous_map_atin tendsto_diff)
+
+lemma continuous_map_norm [continuous_intros]:
+  fixes f :: "'a\<Rightarrow>'b::real_normed_vector"
+  shows "continuous_map X euclidean f \<Longrightarrow> continuous_map X euclidean (\<lambda>x. norm(f x))"
+  by (simp add: continuous_map_atin tendsto_norm)
 
 lemma continuous_map_real_abs [continuous_intros]:
    "continuous_map X euclideanreal f \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. abs(f x))"
@@ -273,8 +280,9 @@ lemma continuous_map_real_min [continuous_intros]:
   by (simp add: continuous_map_atin tendsto_min)
 
 lemma continuous_map_sum [continuous_intros]:
-   "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. f x i)\<rbrakk>
-        \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. sum (f x) I)"
+  fixes f :: "'a\<Rightarrow>'b\<Rightarrow>'c::real_normed_vector"
+  shows "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> continuous_map X euclidean (\<lambda>x. f x i)\<rbrakk>
+         \<Longrightarrow> continuous_map X euclidean (\<lambda>x. sum (f x) I)"
   by (simp add: continuous_map_atin tendsto_sum)
 
 lemma continuous_map_prod [continuous_intros]:

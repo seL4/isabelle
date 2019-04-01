@@ -1379,7 +1379,7 @@ proof-
   qed
 qed
 
-lemma (in group) normal_inter_subgroup:
+lemma (in group) normal_Int_subgroup:
   assumes "subgroup H G"
     and "N \<lhd> G"
   shows "(N\<inter>H) \<lhd> (G\<lparr>carrier := H\<rparr>)"

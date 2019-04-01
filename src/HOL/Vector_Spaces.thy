@@ -993,48 +993,6 @@ qed
 
 end
 
-lemma surjective_iff_injective_gen:
-  assumes fS: "finite S"
-    and fT: "finite T"
-    and c: "card S = card T"
-    and ST: "f ` S \<subseteq> T"
-  shows "(\<forall>y \<in> T. \<exists>x \<in> S. f x = y) \<longleftrightarrow> inj_on f S"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume h: "?lhs"
-  {
-    fix x y
-    assume x: "x \<in> S"
-    assume y: "y \<in> S"
-    assume f: "f x = f y"
-    from x fS have S0: "card S \<noteq> 0"
-      by auto
-    have "x = y"
-    proof (rule ccontr)
-      assume xy: "\<not> ?thesis"
-      have th: "card S \<le> card (f ` (S - {y}))"
-        unfolding c
-      proof (rule card_mono)
-        show "finite (f ` (S - {y}))"
-          by (simp add: fS)
-        show "T \<subseteq> f ` (S - {y})"
-          using h xy x y f unfolding subset_eq image_iff
-          by (metis member_remove remove_def)
-      qed
-      also have " \<dots> \<le> card (S - {y})"
-        by (simp add: card_image_le fS)
-      also have "\<dots> \<le> card S - 1" using y fS by simp
-      finally show False using S0 by arith
-    qed
-  }
-  then show ?rhs
-    unfolding inj_on_def by blast
-next
-  assume h: ?rhs
-  have "f ` S = T"
-    by (simp add: ST c card_image card_subset_eq fT h)
-  then show ?lhs by blast
-qed
 
 locale finite_dimensional_vector_space = vector_space +
   fixes Basis :: "'b set"

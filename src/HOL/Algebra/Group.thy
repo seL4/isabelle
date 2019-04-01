@@ -425,7 +425,20 @@ begin
 end
 
 lemma int_pow_int: "x [^]\<^bsub>G\<^esub> (int n) = x [^]\<^bsub>G\<^esub> n"
-by(simp add: int_pow_def nat_pow_def)
+  by(simp add: int_pow_def nat_pow_def)
+
+lemma pow_nat:
+  assumes "i\<ge>0"
+  shows "x [^]\<^bsub>G\<^esub> nat i = x [^]\<^bsub>G\<^esub> i"
+proof (cases i rule: int_cases)
+  case (nonneg n)
+  then show ?thesis
+    by (simp add: int_pow_int)
+next
+  case (neg n)
+  then show ?thesis
+    using assms by linarith
+qed
 
 lemma int_pow_0 [simp]: "x [^]\<^bsub>G\<^esub> (0::int) = \<one>\<^bsub>G\<^esub>"
   by (simp add: int_pow_def)
@@ -449,6 +462,9 @@ lemma (in group) int_pow_1 [simp]:
 lemma (in group) int_pow_neg:
   "x \<in> carrier G \<Longrightarrow> x [^] (-i::int) = inv (x [^] i)"
   by (simp add: int_pow_def2)
+
+lemma (in group) int_pow_neg_int: "x \<in> carrier G \<Longrightarrow> x [^] -(int n) = inv (x [^] n)"
+  by (simp add: int_pow_neg int_pow_int)
 
 lemma (in group) int_pow_mult:
   assumes "x \<in> carrier G" shows "x [^] (i + j::int) = x [^] i \<otimes> x [^] j"
@@ -501,6 +517,38 @@ lemma (in group) inj_on_multc: "c \<in> carrier G \<Longrightarrow> inj_on (\<la
 lemma (in group) inj_on_cmult: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. c \<otimes> x) (carrier G)"
   by(simp add: inj_on_def)
 
+
+lemma (in monoid) group_commutes_pow:
+  fixes n::nat
+  shows "\<lbrakk>x \<otimes> y = y \<otimes> x; x \<in> carrier G; y \<in> carrier G\<rbrakk> \<Longrightarrow> x [^] n \<otimes> y = y \<otimes> x [^] n"
+  apply (induction n, auto)
+  by (metis m_assoc nat_pow_closed)
+
+lemma (in monoid) pow_mult_distrib:
+  assumes eq: "x \<otimes> y = y \<otimes> x" and xy: "x \<in> carrier G" "y \<in> carrier G"
+  shows "(x \<otimes> y) [^] (n::nat) = x [^] n \<otimes> y [^] n"
+proof (induct n)
+  case (Suc n)
+  have "x \<otimes> (y [^] n \<otimes> y) = y [^] n \<otimes> x \<otimes> y"
+    by (simp add: eq group_commutes_pow m_assoc xy)
+  then show ?case
+    using assms Suc.hyps m_assoc by auto
+qed auto
+
+lemma (in group) int_pow_mult_distrib:
+  assumes eq: "x \<otimes> y = y \<otimes> x" and xy: "x \<in> carrier G" "y \<in> carrier G"
+  shows "(x \<otimes> y) [^] (i::int) = x [^] i \<otimes> y [^] i"
+proof (cases i rule: int_cases)
+  case (nonneg n)
+  then show ?thesis
+    by (metis eq int_pow_int pow_mult_distrib xy)
+next
+  case (neg n)
+  then show ?thesis
+    unfolding neg
+    apply (simp add: xy int_pow_neg_int del: of_nat_Suc)
+    by (metis eq inv_mult_group local.nat_pow_Suc nat_pow_closed pow_mult_distrib xy)
+qed
 
 subsection \<open>Submonoids\<close>
 
@@ -852,7 +900,7 @@ lemma iso_set_refl: "(\<lambda>x. x) \<in> iso G G"
 lemma id_iso: "id \<in> iso G G"
   by (simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
-corollary iso_refl : "G \<cong> G"
+corollary iso_refl [simp]: "G \<cong> G"
   using iso_set_refl unfolding is_iso_def by auto
 
 lemma trivial_hom:
@@ -901,11 +949,11 @@ qed
 corollary (in group) iso_sym: "G \<cong> H \<Longrightarrow> H \<cong> G"
   using iso_set_sym unfolding is_iso_def by auto
 
-lemma (in group) iso_set_trans:
-  "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
-  by (auto simp add: iso_def hom_compose bij_betw_compose)
+lemma iso_set_trans:
+  "\<lbrakk>h \<in> Group.iso G H; i \<in> Group.iso H I\<rbrakk> \<Longrightarrow> i \<circ> h \<in> Group.iso G I"
+  by (force simp: iso_def hom_compose intro: bij_betw_trans)
 
-corollary (in group) iso_trans: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
+corollary iso_trans [trans]: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
   using iso_set_trans unfolding is_iso_def by blast
 
 lemma iso_same_card: "G \<cong> H \<Longrightarrow> card (carrier G) = card (carrier H)"
@@ -1081,6 +1129,8 @@ locale group_hom = G?: group G + H?: group H for G (structure) and H (structure)
   fixes h
   assumes homh [simp]: "h \<in> hom G H"
 
+declare group_hom.homh [simp]
+
 lemma (in group_hom) hom_mult [simp]:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
 proof -
@@ -1170,14 +1220,21 @@ lemma (in group) canonical_inj_is_hom: \<^marker>\<open>contributor \<open>Paulo
   using subgroup.subgroup_is_group[OF assms is_group]
         is_group subgroup.subset[OF assms] by auto
 
-lemma (in group_hom) nat_pow_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
+lemma (in group_hom) hom_nat_pow: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "x \<in> carrier G \<Longrightarrow> h (x [^] (n :: nat)) = (h x) [^]\<^bsub>H\<^esub> n"
   by (induction n) auto
 
-lemma (in group_hom) int_pow_hom: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
+lemma (in group_hom) hom_int_pow: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   "x \<in> carrier G \<Longrightarrow> h (x [^] (n :: int)) = (h x) [^]\<^bsub>H\<^esub> n"
-  using nat_pow_hom by (simp add: int_pow_def2)
+  using hom_nat_pow by (simp add: int_pow_def2)
 
+lemma hom_nat_pow:
+  "\<lbrakk>h \<in> hom G H; x \<in> carrier G; group G; group H\<rbrakk> \<Longrightarrow> h (x [^]\<^bsub>G\<^esub> (n :: nat)) = (h x) [^]\<^bsub>H\<^esub> n"
+  by (simp add: group_hom.hom_nat_pow group_hom_axioms_def group_hom_def)
+
+lemma hom_int_pow:
+  "\<lbrakk>h \<in> hom G H; x \<in> carrier G; group G; group H\<rbrakk> \<Longrightarrow> h (x [^]\<^bsub>G\<^esub> (n :: int)) = (h x) [^]\<^bsub>H\<^esub> n"
+  by (simp add: group_hom.hom_int_pow group_hom_axioms.intro group_hom_def)
 
 subsection \<open>Commutative Structures\<close>
 
@@ -1224,11 +1281,6 @@ lemma (in monoid) monoid_comm_monoidI:
       "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y = y \<otimes> x"
   shows "comm_monoid G"
   by (rule comm_monoidI) (auto intro: m_assoc m_comm)
-
-lemma (in comm_monoid) nat_pow_distr:
-  "[| x \<in> carrier G; y \<in> carrier G |] ==>
-  (x \<otimes> y) [^] (n::nat) = x [^] n \<otimes> y [^] n"
-  by (induct n) (simp, simp add: m_ac)
 
 lemma (in comm_monoid) submonoid_is_comm_monoid :
   assumes "submonoid H G"
@@ -1278,6 +1330,17 @@ lemma comm_groupE:
 lemma (in comm_group) inv_mult:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv x \<otimes> inv y"
   by (simp add: m_ac inv_mult_group)
+
+lemma (in comm_monoid) nat_pow_distrib:
+  fixes n::nat
+  assumes "x \<in> carrier G" "y \<in> carrier G"
+  shows "(x \<otimes> y) [^] n = x [^] n \<otimes> y [^] n"
+  by (simp add: assms pow_mult_distrib m_comm)
+
+lemma (in comm_group) int_pow_distrib:
+  assumes "x \<in> carrier G" "y \<in> carrier G"
+  shows "(x \<otimes> y) [^] (i::int) = x [^] i \<otimes> y [^] i"
+  by (simp add: assms int_pow_mult_distrib m_comm)
 
 lemma (in comm_monoid) hom_imp_img_comm_monoid: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"

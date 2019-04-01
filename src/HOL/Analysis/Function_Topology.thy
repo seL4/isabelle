@@ -608,7 +608,7 @@ lemma continuous_on_product_coordinates [simp]:
   using continuous_map_product_coordinates [of _ UNIV "\<lambda>i. euclidean"]
     by (metis (no_types) continuous_map_iff_continuous euclidean_product_topology iso_tuple_UNIV_I subtopology_UNIV)
 
-lemma continuous_on_coordinatewise_then_product [intro, continuous_intros]:
+lemma continuous_on_coordinatewise_then_product [continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b \<Rightarrow> 'c::topological_space"
   assumes "\<And>i. continuous_on S (\<lambda>x. f x i)"
   shows "continuous_on S f"
@@ -635,7 +635,7 @@ qed
 lemma continuous_on_coordinatewise_iff:
   fixes f :: "('a \<Rightarrow> real) \<Rightarrow> 'b \<Rightarrow> real"
   shows "continuous_on (A \<inter> S) f \<longleftrightarrow> (\<forall>i. continuous_on (A \<inter> S) (\<lambda>x. f x i))"
-  by (auto simp: continuous_on_product_then_coordinatewise)
+  by (auto simp: continuous_on_product_then_coordinatewise continuous_on_coordinatewise_then_product)
 
 subsubsection%important \<open>Topological countability for product spaces\<close>
 

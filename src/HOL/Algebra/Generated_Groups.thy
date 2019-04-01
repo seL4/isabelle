@@ -563,4 +563,13 @@ proof -
     by (simp add: int_pow_def2 pow_subgroup_generated)
 qed
 
+lemma kernel_from_subgroup_generated [simp]:
+  "subgroup S G \<Longrightarrow> kernel (subgroup_generated G S) H f = kernel G H f \<inter> S"
+  using subgroup.carrier_subgroup_generated_subgroup subgroup.subset
+  by (fastforce simp add: kernel_def set_eq_iff)
+
+lemma kernel_to_subgroup_generated [simp]:
+  "kernel G (subgroup_generated H S) f = kernel G H f"
+  by (simp add: kernel_def)
+
 end

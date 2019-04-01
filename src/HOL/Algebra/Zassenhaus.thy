@@ -203,7 +203,7 @@ proof-
   hence N_incl : "N \<subseteq> N <#> H"
     by (metis assms(1) normal_imp_subgroup coset_mult_one subgroup_def)
   thus "normal N (G\<lparr>carrier := N <#> H\<rparr>)"
-    using normal_inter_subgroup[OF mult_norm_subgroup[OF assms] assms(1)]
+    using normal_Int_subgroup[OF mult_norm_subgroup[OF assms] assms(1)]
     by (simp add : inf_absorb1)
 qed
 
@@ -308,7 +308,7 @@ proof-
     ultimately have "(G\<lparr>carrier := H\<rparr> Mod N \<inter> H) \<cong> (G\<lparr>carrier := N <#> H\<rparr> Mod N)"
       using group_hom.FactGroup_iso[OF homomorphism im_f] by auto
     hence "G\<lparr>carrier := N <#> H\<rparr> Mod N \<cong> G\<lparr>carrier := H\<rparr> Mod N \<inter> H"
-      by (simp add: group.iso_sym assms normal.factorgroup_is_group normal_inter_subgroup)
+      by (simp add: group.iso_sym assms normal.factorgroup_is_group normal_Int_subgroup)
     thus "G\<lparr>carrier := N <#> H\<rparr> Mod N \<cong> G\<lparr>carrier := H\<rparr> Mod N \<inter> H" by auto
 qed
 
@@ -636,8 +636,7 @@ proof-
   qed
   hence  "Gmod3  = Gmod4" using Hp Gmod4_def by simp
   hence "Gmod1 \<cong> Gmod2"
-    using group.iso_sym group.iso_trans Hyp normal.factorgroup_is_group
-    by (metis assms Gmod1_def Gmod2_def preliminary2)
+    by (metis assms group.iso_sym iso_trans Hyp normal.factorgroup_is_group Gmod2_def preliminary2)
   thus ?thesis using Gmod1_def Gmod2_def by (simp add: inf_commute)
 qed
 

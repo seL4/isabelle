@@ -2045,24 +2045,49 @@ lemma finite_UNIV_inj_surj: "finite(UNIV:: 'a set) \<Longrightarrow> inj f \<Lon
   for f :: "'a \<Rightarrow> 'a"
   by (fastforce simp:surj_def dest!: endo_inj_surj)
 
-corollary infinite_UNIV_nat [iff]: "\<not> finite (UNIV :: nat set)"
+lemma surjective_iff_injective_gen:
+  assumes fS: "finite S"
+    and fT: "finite T"
+    and c: "card S = card T"
+    and ST: "f ` S \<subseteq> T"
+  shows "(\<forall>y \<in> T. \<exists>x \<in> S. f x = y) \<longleftrightarrow> inj_on f S"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "finite (UNIV :: nat set)"
-  with finite_UNIV_inj_surj [of Suc] show False
-    by simp (blast dest: Suc_neq_Zero surjD)
-qed
-
-lemma infinite_UNIV_char_0: "\<not> finite (UNIV :: 'a::semiring_char_0 set)"
-proof
-  assume "finite (UNIV :: 'a set)"
-  with subset_UNIV have "finite (range of_nat :: 'a set)"
-    by (rule finite_subset)
-  moreover have "inj (of_nat :: nat \<Rightarrow> 'a)"
-    by (simp add: inj_on_def)
-  ultimately have "finite (UNIV :: nat set)"
-    by (rule finite_imageD)
-  then show False
-    by simp
+  assume h: "?lhs"
+  {
+    fix x y
+    assume x: "x \<in> S"
+    assume y: "y \<in> S"
+    assume f: "f x = f y"
+    from x fS have S0: "card S \<noteq> 0"
+      by auto
+    have "x = y"
+    proof (rule ccontr)
+      assume xy: "\<not> ?thesis"
+      have th: "card S \<le> card (f ` (S - {y}))"
+        unfolding c
+      proof (rule card_mono)
+        show "finite (f ` (S - {y}))"
+          by (simp add: fS)
+        have "\<lbrakk>x \<noteq> y; x \<in> S; z \<in> S; f x = f y\<rbrakk>
+         \<Longrightarrow> \<exists>x \<in> S. x \<noteq> y \<and> f z = f x" for z
+          by (case_tac "z = y \<longrightarrow> z = x") auto
+        then show "T \<subseteq> f ` (S - {y})"
+          using h xy x y f by fastforce
+      qed
+      also have " \<dots> \<le> card (S - {y})"
+        by (simp add: card_image_le fS)
+      also have "\<dots> \<le> card S - 1" using y fS by simp
+      finally show False using S0 by arith
+    qed
+  }
+  then show ?rhs
+    unfolding inj_on_def by blast
+next
+  assume h: ?rhs
+  have "f ` S = T"
+    by (simp add: ST c card_image card_subset_eq fT h)
+  then show ?lhs by blast
 qed
 
 hide_const (open) Finite_Set.fold
@@ -2083,6 +2108,26 @@ text \<open>
   Infinite sets are non-empty, and if we remove some elements from an
   infinite set, the result is still infinite.
 \<close>
+
+lemma infinite_UNIV_nat [iff]: "infinite (UNIV :: nat set)"
+proof
+  assume "finite (UNIV :: nat set)"
+  with finite_UNIV_inj_surj [of Suc] show False
+    by simp (blast dest: Suc_neq_Zero surjD)
+qed
+
+lemma infinite_UNIV_char_0: "infinite (UNIV :: 'a::semiring_char_0 set)"
+proof
+  assume "finite (UNIV :: 'a set)"
+  with subset_UNIV have "finite (range of_nat :: 'a set)"
+    by (rule finite_subset)
+  moreover have "inj (of_nat :: nat \<Rightarrow> 'a)"
+    by (simp add: inj_on_def)
+  ultimately have "finite (UNIV :: nat set)"
+    by (rule finite_imageD)
+  then show False
+    by simp
+qed
 
 lemma infinite_imp_nonempty: "infinite S \<Longrightarrow> S \<noteq> {}"
   by auto

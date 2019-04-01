@@ -81,13 +81,13 @@ lemma continuous_map_Euclidean_space_add [continuous_intros]:
    "\<lbrakk>continuous_map X (Euclidean_space n) f; continuous_map X (Euclidean_space n) g\<rbrakk>
     \<Longrightarrow> continuous_map X (Euclidean_space n) (\<lambda>x i. f x i + g x i)"
   unfolding Euclidean_space_def continuous_map_in_subtopology
-  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_real_add)
+  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_add)
 
 lemma continuous_map_Euclidean_space_diff [continuous_intros]:
    "\<lbrakk>continuous_map X (Euclidean_space n) f; continuous_map X (Euclidean_space n) g\<rbrakk>
     \<Longrightarrow> continuous_map X (Euclidean_space n) (\<lambda>x i. f x i - g x i)"
   unfolding Euclidean_space_def continuous_map_in_subtopology
-  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_real_diff)
+  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_diff)
 
 lemma homeomorphic_Euclidean_space_product_topology:
   "Euclidean_space n homeomorphic_space product_topology (\<lambda>i. euclideanreal) {..<n}"
@@ -158,12 +158,11 @@ qed
 lemma continuous_map_nsphere_reflection:
   "continuous_map (nsphere n) (nsphere n) (\<lambda>x i. if i = k then -x i else x i)"
 proof -
-  have cm: "continuous_map (powertop_real UNIV)
-           euclideanreal (\<lambda>x. if j = k then - x j else x j)" for j
+  have cm: "continuous_map (powertop_real UNIV) euclideanreal (\<lambda>x. if j = k then - x j else x j)" for j
   proof (cases "j=k")
     case True
     then show ?thesis
-      by simp (metis UNIV_I continuous_map_product_projection continuous_map_real_minus)
+      by simp (metis UNIV_I continuous_map_product_projection)
   next
     case False
     then show ?thesis
@@ -173,7 +172,7 @@ proof -
     by simp
   show ?thesis
     apply (simp add: nsphere continuous_map_in_subtopology continuous_map_componentwise_UNIV
-        continuous_map_from_subtopology  cm topspace_subtopology)
+                     continuous_map_from_subtopology cm)
     apply (intro conjI allI impI continuous_intros continuous_map_from_subtopology continuous_map_product_projection)
       apply (auto simp: power2_eq_square if_distrib [where f = "\<lambda>x. x * _"] eq cong: if_cong)
     done

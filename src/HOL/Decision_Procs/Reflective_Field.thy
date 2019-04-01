@@ -159,7 +159,7 @@ proof (induct e1 e2 rule: npemul.induct)
   proof (cases x y rule: pexpr_cases2)
     case (PPow_PPow e n e' m)
     then show ?thesis
-      by (simp del: npemul.simps add: 1 npepow_correct nat_pow_distr
+      by (simp del: npemul.simps add: 1 npepow_correct nat_pow_distrib
           npemul.simps [of "PExpr2 (PPow e n)" "PExpr2 (PPow e' m)"])
   qed simp_all
 qed
@@ -258,7 +258,7 @@ lemma (in field) isin_correct:
   by (induct e n e' m arbitrary: p e'' rule: isin.induct)
     (force
        simp add:
-         nat_pow_distr nat_pow_pow nat_pow_mult m_ac
+         nat_pow_distrib nat_pow_pow nat_pow_mult m_ac
          npemul_correct npepow_correct
        split: option.split_asm prod.split_asm if_split_asm)+
 
@@ -323,7 +323,7 @@ lemma (in field) split_aux_correct:
     peval xs (PExpr2 (PMul (snd (snd (split_aux e\<^sub>1 n e\<^sub>2))) (fst (snd (split_aux e\<^sub>1 n e\<^sub>2)))))"
   by (induct e\<^sub>1 n e\<^sub>2 rule: split_aux_induct)
     (auto simp add: split_beta
-       nat_pow_distr nat_pow_pow nat_pow_mult m_ac
+       nat_pow_distrib nat_pow_pow nat_pow_mult m_ac
        npemul_correct npepow_correct isin_correct'
        split: option.split)
 

@@ -2190,7 +2190,7 @@ proof -
   have eq: "\<And>t. t \<in> set (dense_repr p) \<Longrightarrow> h [ fst t ] \<otimes>\<^bsub>A\<^esub> (h X [^]\<^bsub>A\<^esub> (snd t)) = (h \<circ> ?f) t"
     using ring_hom_memE(2)[OF ring_hom_ring.homh[OF assms(3)]
           const_in_carrier var_pow_closed[OF assms(1)]]
-          ring_hom_ring.nat_pow_hom[OF assms(3) var_closed(1)[OF assms(1)]] by auto
+          ring_hom_ring.hom_nat_pow[OF assms(3) var_closed(1)[OF assms(1)]] by auto
   show ?thesis
     using A.add.finprod_cong'[OF _ h eq] hp by simp
 qed

@@ -148,6 +148,10 @@ proof -
     by simp
 qed
 
+lemma linear_scale_real:
+  fixes r::real shows "linear f \<Longrightarrow> f (r * b) = r * f b"
+  using linear_scale by fastforce
+
 interpretation scaleR_left: additive "(\<lambda>a. scaleR a x :: 'a::real_vector)"
   by standard (rule scaleR_left_distrib)
 

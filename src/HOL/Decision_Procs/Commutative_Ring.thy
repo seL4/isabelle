@@ -319,12 +319,12 @@ proof (induct n arbitrary: P rule: less_induct)
     proof (cases "even k")
       case True
       with * \<open>in_carrier ls\<close> show ?thesis
-        by (simp add: even_pow sqr_ci nat_pow_distr nat_pow_mult
+        by (simp add: even_pow sqr_ci nat_pow_distrib nat_pow_mult
           mult_2 [symmetric] even_two_times_div_two)
     next
       case False
       with * \<open>in_carrier ls\<close> show ?thesis
-        by (simp add: odd_pow mul_ci sqr_ci nat_pow_distr nat_pow_mult
+        by (simp add: odd_pow mul_ci sqr_ci nat_pow_distrib nat_pow_mult
           mult_2 [symmetric] trans [OF nat_pow_Suc m_comm, symmetric])
     qed
   qed

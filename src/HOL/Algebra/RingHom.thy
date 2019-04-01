@@ -176,7 +176,7 @@ proof -
     using assms by (auto simp: intro: homeq_imp_rcos rcos_imp_homeq a_elemrcos_carrier)
 qed
 
-lemma (in ring_hom_ring) nat_pow_hom:
+lemma (in ring_hom_ring) hom_nat_pow:
   "x \<in> carrier R \<Longrightarrow> h (x [^] (n :: nat)) = (h x) [^]\<^bsub>S\<^esub> n"
   by (induct n) (auto)
 
