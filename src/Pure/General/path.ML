@@ -41,7 +41,7 @@ sig
   eqtype binding
   val binding: T * Position.T -> binding
   val binding0: T -> binding
-  val binding_map: (T -> T) -> binding -> binding
+  val map_binding: (T -> T) -> binding -> binding
   val dest_binding: binding -> T * Position.T
   val implode_binding: binding -> string
   val explode_binding: string * Position.T -> binding
@@ -264,7 +264,8 @@ fun binding (path, pos) =
   else error ("Bad path binding: " ^ print path ^ Position.here pos);
 
 fun binding0 path = binding (path, Position.none);
-fun binding_map f (Binding (path, pos)) = binding (f path, pos);
+
+fun map_binding f (Binding (path, pos)) = binding (f path, pos);
 
 fun dest_binding (Binding args) = args;
 
