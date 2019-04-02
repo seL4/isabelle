@@ -471,12 +471,12 @@ lemma (in group) int_pow_mult:
 proof -
   have [simp]: "-i - j = -j - i" by simp
   show ?thesis
-    by (auto simp add: assms int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
+    by (auto simp: assms int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult)
 qed
 
 lemma (in group) int_pow_inv:
   "x \<in> carrier G \<Longrightarrow> (inv x) [^] (i :: int) = inv (x [^] i)"
-  by (simp add: nat_pow_inv int_pow_def2)
+  by (metis int_pow_def2 nat_pow_inv)
 
 lemma (in group) int_pow_pow:
   assumes "x \<in> carrier G"
@@ -872,6 +872,10 @@ lemma (in group) hom_restrict:
 lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 by (fastforce simp add: hom_def compose_def)
+
+lemma (in group) restrict_hom_iff [simp]:
+  "(\<lambda>x. if x \<in> carrier G then f x else g x) \<in> hom G H \<longleftrightarrow> f \<in> hom G H"
+  by (simp add: hom_def Pi_iff)
 
 definition iso :: "_ => _ => ('a => 'b) set"
   where "iso G H = {h. h \<in> hom G H \<and> bij_betw h (carrier G) (carrier H)}"
@@ -1581,5 +1585,7 @@ lemma (in group) l_cancel_one' [simp]: "x \<in> carrier G \<Longrightarrow> a \<
 
 lemma (in group) r_cancel_one' [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> x = a \<otimes> x \<longleftrightarrow> a = one G"
   using r_cancel_one by fastforce
+
+declare pow_nat [simp] (*causes looping if added above, especially with int_pow_def2*)
 
 end
