@@ -203,6 +203,10 @@ lemma inj_on_one_iff':
    "\<lbrakk>h \<in> hom G H; group G; group H\<rbrakk> \<Longrightarrow> inj_on h (carrier G) \<longleftrightarrow> (\<forall>x. x \<in> carrier G \<longrightarrow> h x = one H \<longrightarrow> x = one G)"
   using group_hom.inj_on_one_iff group_hom.intro group_hom_axioms.intro by blast
 
+lemma mon_iff_hom_one:
+   "\<lbrakk>group G; group H\<rbrakk> \<Longrightarrow> f \<in> mon G H \<longleftrightarrow> f \<in> hom G H \<and> (\<forall>x. x \<in> carrier G \<and> f x = \<one>\<^bsub>H\<^esub> \<longrightarrow> x = \<one>\<^bsub>G\<^esub>)"
+  by (auto simp: mon_def inj_on_one_iff')
+
 lemma (in group_hom) iso_iff: "h \<in> iso G H \<longleftrightarrow> carrier H \<subseteq> h ` carrier G \<and> (\<forall>x\<in>carrier G. h x = \<one>\<^bsub>H\<^esub> \<longrightarrow> x = \<one>)"
   by (auto simp: iso_def bij_betw_def inj_on_one_iff)
 
@@ -374,7 +378,7 @@ qed
 subsection \<open>Normal subgroups\<close>
 
 lemma normal_imp_subgroup: "H \<lhd> G \<Longrightarrow> subgroup H G"
-  by (simp add: normal_def subgroup_def)
+  by (rule normal.axioms(1))
 
 lemma (in group) normalI:
   "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x <# H) \<Longrightarrow> H \<lhd> G"
@@ -395,6 +399,14 @@ lemma (in normal) inv_op_closed2:
   assumes "x \<in> carrier G" and "h \<in> H"
   shows "x \<otimes> h \<otimes> (inv x) \<in> H"
   using assms inv_op_closed1 by (metis inv_closed inv_inv)
+
+lemma (in comm_group) normal_iff_subgroup:
+  "N \<lhd> G \<longleftrightarrow> subgroup N G"
+proof
+  assume "subgroup N G"
+  then show "N \<lhd> G"
+    by unfold_locales (auto simp: subgroupE subgroup.one_closed l_coset_def r_coset_def m_comm subgroup.mem_carrier)
+qed (simp add: normal_imp_subgroup)
 
 
 text\<open>Alternative characterization of normal subgroups\<close>
@@ -925,8 +937,14 @@ theorem (in normal) factorgroup_is_group:
 apply (auto dest: rcosets_inv_mult_group_eq simp add: setinv_closed)
 done
 
-lemma mult_FactGroup [simp]: "X \<otimes>\<^bsub>(G Mod H)\<^esub> X' = X <#>\<^bsub>G\<^esub> X'"
-  by (simp add: FactGroup_def)
+lemma carrier_FactGroup: "carrier(G Mod N) = (\<lambda>x. r_coset G N x) ` carrier G"
+  by (auto simp: FactGroup_def RCOSETS_def)
+
+lemma one_FactGroup [simp]: "one(G Mod N) = N"
+  by (auto simp: FactGroup_def)
+
+lemma mult_FactGroup [simp]: "monoid.mult (G Mod N) = set_mult G"
+  by (auto simp: FactGroup_def)
 
 lemma (in normal) inv_FactGroup:
   assumes "X \<in> carrier (G Mod H)"
@@ -949,6 +967,79 @@ text\<open>The coset map is a homomorphism from \<^term>\<open>G\<close> to the 
 lemma (in normal) r_coset_hom_Mod:
   "(\<lambda>a. H #> a) \<in> hom G (G Mod H)"
   by (auto simp add: FactGroup_def RCOSETS_def Pi_def hom_def rcos_sum)
+
+
+lemma (in comm_group) set_mult_commute:
+  assumes "N \<subseteq> carrier G" "x \<in> rcosets N" "y \<in> rcosets N"
+  shows "x <#> y = y <#> x"
+  using assms unfolding set_mult_def RCOSETS_def
+  by auto (metis m_comm r_coset_subset_G subsetCE)+
+
+lemma (in comm_group) abelian_FactGroup:
+  assumes "subgroup N G" shows "comm_group(G Mod N)"
+proof (rule group.group_comm_groupI)
+  have "N \<lhd> G"
+    by (simp add: assms normal_iff_subgroup)
+  then show "Group.group (G Mod N)"
+    by (simp add: normal.factorgroup_is_group)
+  fix x :: "'a set" and y :: "'a set"
+  assume "x \<in> carrier (G Mod N)" "y \<in> carrier (G Mod N)"
+  then show "x \<otimes>\<^bsub>G Mod N\<^esub> y = y \<otimes>\<^bsub>G Mod N\<^esub> x"
+    apply (simp add: FactGroup_def subgroup_def)
+    apply (rule set_mult_commute)
+    using assms apply (auto simp: subgroup_def)
+    done
+qed
+
+
+lemma FactGroup_universal:
+  assumes "h \<in> hom G H" "N \<lhd> G"
+    and h: "\<And>x y. \<lbrakk>x \<in> carrier G; y \<in> carrier G; r_coset G N x = r_coset G N y\<rbrakk> \<Longrightarrow> h x = h y"
+  obtains g
+  where "g \<in> hom (G Mod N) H" "\<And>x. x \<in> carrier G \<Longrightarrow> g(r_coset G N x) = h x"
+proof -
+  obtain g where g: "\<And>x. x \<in> carrier G \<Longrightarrow> h x = g(r_coset G N x)"
+    using h function_factors_left_gen [of "\<lambda>x. x \<in> carrier G" "r_coset G N" h] by blast
+  show thesis
+  proof
+    show "g \<in> hom (G Mod N) H"
+    proof (rule homI)
+      show "g (u \<otimes>\<^bsub>G Mod N\<^esub> v) = g u \<otimes>\<^bsub>H\<^esub> g v"
+        if "u \<in> carrier (G Mod N)" "v \<in> carrier (G Mod N)" for u v
+      proof -
+        from that
+        obtain x y where xy: "x \<in> carrier G" "u = r_coset G N x" "y \<in> carrier G"  "v = r_coset G N y"
+          by (auto simp: carrier_FactGroup)
+        then have "h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
+           by (metis hom_mult [OF \<open>h \<in> hom G H\<close>])
+        then show ?thesis
+          by (metis Coset.mult_FactGroup xy \<open>N \<lhd> G\<close> g group.subgroup_self normal.axioms(2) normal.rcos_sum subgroup_def)
+      qed
+    qed (use \<open>h \<in> hom G H\<close> in \<open>auto simp: carrier_FactGroup Pi_iff hom_def simp flip: g\<close>)
+  qed (auto simp flip: g)
+qed
+
+
+lemma (in normal) FactGroup_pow:
+  fixes k::nat
+  assumes "a \<in> carrier G"
+  shows "pow (FactGroup G H) (r_coset G H a) k = r_coset G H (pow G a k)"
+proof (induction k)
+  case 0
+  then show ?case
+    by (simp add: r_coset_def)
+next
+  case (Suc k)
+  then show ?case
+    by (simp add: assms rcos_sum)
+qed
+
+lemma (in normal) FactGroup_int_pow:
+  fixes k::int
+  assumes "a \<in> carrier G"
+  shows "pow (FactGroup G H) (r_coset G H a) k = r_coset G H (pow G a k)"
+  by (metis Group.group.axioms(1) image_eqI is_group monoid.nat_pow_closed int_pow_def2 assms
+         FactGroup_pow carrier_FactGroup inv_FactGroup rcos_inv)
 
 
 subsection\<open>The First Isomorphism Theorem\<close>
@@ -982,6 +1073,30 @@ proof -
    by (auto simp add: kernel_def r_coset_def image_def intro: hom_one)
 qed
 
+
+lemma (in group_hom) FactGroup_universal_kernel:
+  assumes "N \<lhd> G" and h: "N \<subseteq> kernel G H h"
+  obtains g where "g \<in> hom (G Mod N) H" "\<And>x. x \<in> carrier G \<Longrightarrow> g(r_coset G N x) = h x"
+proof -
+  have "h x = h y"
+    if "x \<in> carrier G" "y \<in> carrier G" "r_coset G N x = r_coset G N y" for x y
+  proof -
+    have "x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y \<in> N"
+      using \<open>N \<lhd> G\<close> group.rcos_self normal.axioms(2) normal_imp_subgroup
+         subgroup.rcos_module_imp that by fastforce
+    with h have xy: "x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y \<in> kernel G H h"
+      by blast
+    have "h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h y) = h (x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y)"
+      by (simp add: that)
+    also have "\<dots> = \<one>\<^bsub>H\<^esub>"
+      using xy by (simp add: kernel_def)
+    finally have "h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h y) = \<one>\<^bsub>H\<^esub>" .
+    then show ?thesis
+      using H.inv_equality that by fastforce
+  qed
+  with FactGroup_universal [OF homh \<open>N \<lhd> G\<close>] that show thesis
+    by metis
+qed
 
 lemma (in group_hom) FactGroup_the_elem_mem:
   assumes X: "X \<in> carrier (G Mod (kernel G H h))"

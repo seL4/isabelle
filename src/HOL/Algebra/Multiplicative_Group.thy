@@ -448,13 +448,12 @@ next
     proof (cases "k < 0")
       assume "\<not> k < 0"
       hence "b = a [^] (nat k)"
-        by (simp add: int_pow_def2 k)
+        by (simp add: k)
       thus ?thesis by blast
     next
       assume "k < 0"
       hence b: "b = inv (a [^] (nat (- k)))"
-        using k int_pow_def2[of G] by auto
-
+        using k \<open>a \<in> carrier G\<close> by (auto simp: int_pow_neg)
       obtain m where m: "ord a * m \<ge> nat (- k)"
         by (metis assms mult.left_neutral mult_le_mono1 ord_ge_1)
       hence "a [^] (ord a * m) = \<one>"
