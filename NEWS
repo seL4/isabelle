@@ -212,9 +212,8 @@ Carmichael's function, primitive roots, more properties for "ord".
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
-retrieved with the "isabelle export" command-line tool like this:
-
-  isabelle export -x "*:**.prv" HOL-SPARK-Examples
+retrieved via "isabelle build -e HOL-SPARK-Examples" on the
+command-line.
 
 * Sledgehammer:
   - The URL for SystemOnTPTP, which is used by remote provers, has been

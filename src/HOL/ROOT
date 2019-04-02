@@ -874,6 +874,7 @@ session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
     "RIPEMD-160/S_L"
     "RIPEMD-160/S_R"
     "Sqrt/Sqrt"
+  export_files (in ".") "*:**.prv"
 
 session "HOL-SPARK-Manual" in "SPARK/Manual" = "HOL-SPARK" +
   options [show_question_marks = false]
