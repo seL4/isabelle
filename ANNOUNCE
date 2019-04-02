@@ -1,37 +1,37 @@
 Subject: Announcing Isabelle2018
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2018 is now available.
+Isabelle2019 is now available.
 
-This version introduces many changes over Isabelle2017: see the NEWS
+This version introduces many changes over Isabelle2018: see the NEWS
 file for further details. Here are some notable points:
 
-* Improved infix notation within terms.
+* Improved "Isabelle DejaVu" font collection, suitable for text and GUI.
 
-* Improved syntax for formal comments, within terms and other languages.
+* Various Isabelle/jEdit improvements, with virtual file-system access to
+sessions and exports.
 
-* Improved management of ROOT files and session-qualified theories.
+* Improved headless PIDE session (and server).
 
-* Various improvements of document preparation.
+* HOL: 'export_code' now generates logical files in the theory and session
+context, e.g. browsable as "isabelle-export:" in Isabelle/jEdit.
 
-* Many Isabelle/jEdit improvements, including semantic IDE for BibTeX.
+* HOL: various syntax and library improvements.
 
-* Numerous HOL library improvements, including HOL-Algebra.
+* HOL-Analysis: more material and better organization.
 
-* Substantial additions to HOL-Analysis.
+* Isabelle/ML environments for separate SML applications.
 
-* HOL-Library.Code_Lazy: code generation for lazy evaluation.
+* Isabelle/Haskell library for implementation of Isabelle/PIDE backends.
 
-* HOL-Real_Asymp: tools for semi-automatic real asymptotics.
+* Installation management for Haskell (Stack) and OCaml (OPAM).
 
-* Isabelle server for reactive communication with other programs.
-
-* More uniform 64-bit platform support: smaller Isabelle application.
+* Update to current Java 11 and Poly/ML 5.8 with better scalability.
 
 
-You may get Isabelle2018 from the following mirror sites:
+You may get Isabelle2019 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
-  Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle
+  Sydney (Australia)   https://mirror.cse.unsw.edu.au/pub/isabelle
   Potsdam, NY (USA)    https://mirror.clarkson.edu/isabelle

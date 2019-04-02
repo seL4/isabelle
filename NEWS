@@ -9,8 +9,8 @@ New in Isabelle2019 (June 2019)
 
 *** General ***
 
-* The font family "Isabelle DejaVu" is systematically derived from the
-existing "DejaVu" collection, with variants "Sans Mono", "Sans", "Serif"
+* The font collection "Isabelle DejaVu" is systematically derived from
+the existing "DejaVu" fonts, with variants "Sans Mono", "Sans", "Serif"
 and styles "Normal", "Bold", "Italic/Oblique", "Bold-Italic/Oblique".
 The DejaVu base fonts are retricted to well-defined Unicode ranges and
 augmented by special Isabelle symbols, taken from the former
@@ -209,6 +209,8 @@ of Formal power series.
 
 * Session HOL-Number_Theory: More material on residue rings in
 Carmichael's function, primitive roots, more properties for "ord".
+
+* Session HOL-Analysis: More material and better organization.
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
