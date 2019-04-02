@@ -550,6 +550,22 @@ next
     by (metis eq inv_mult_group local.nat_pow_Suc nat_pow_closed pow_mult_distrib xy)
 qed
 
+lemma (in group) pow_eq_div2:
+  fixes m n :: nat
+  assumes x_car: "x \<in> carrier G"
+  assumes pow_eq: "x [^] m = x [^] n"
+  shows "x [^] (m - n) = \<one>"
+proof (cases "m < n")
+  case False
+  have "\<one> \<otimes> x [^] m = x [^] m" by (simp add: x_car)
+  also have "\<dots> = x [^] (m - n) \<otimes> x [^] n"
+    using False by (simp add: nat_pow_mult x_car)
+  also have "\<dots> = x [^] (m - n) \<otimes> x [^] m"
+    by (simp add: pow_eq)
+  finally show ?thesis
+    by (metis nat_pow_closed one_closed right_cancel x_car)
+qed simp
+
 subsection \<open>Submonoids\<close>
 
 locale submonoid = \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
@@ -1520,12 +1536,9 @@ next
   then show "\<exists>I. greatest ?L I (Lower ?L A)" ..
 qed
 
-subsection\<open>Jeremy Avigad's \<open>More_Group\<close> material\<close>
+subsection\<open>The units in any monoid give rise to a group\<close>
 
-text \<open>
-  Show that the units in any monoid give rise to a group.
-
-  The file Residues.thy provides some infrastructure to use
+text \<open>Thanks to Jeremy Avigad. The file Residues.thy provides some infrastructure to use
   facts about the unit group within the ring locale.
 \<close>
 
