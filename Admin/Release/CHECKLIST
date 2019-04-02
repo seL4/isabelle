@@ -48,11 +48,9 @@ Checklist for official releases
 
 - check "Handler catches all exceptions"
 
-- Mac OS X: check app bundle with UHD display;
+- test old HD display: Linux, Windows, Mac OS X;
 
 - Mac OS X: check recent MacTeX;
-
-- Windows: check dpi scaling with UHD display;
 
 - Windows: check recent MiKTeX;
 
