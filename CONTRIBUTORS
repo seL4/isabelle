@@ -3,31 +3,41 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2019
+-----------------------------
 
-* January 2019: Florian Haftmann
-  Clarified syntax and congruence rules for big operators on sets
-  involving the image operator.
-
-* January 2919: Florian Haftmann
-  Renovation of code generation, particularly export into session data
-  and proper strings and proper integers based on zarith for OCaml.
-
-* February 2019: Jeremy Sylvestre
-  Formal Laurent Series and overhaul of Formal power series.
+* February/March 2019: Makarius Wenzel
+  Stateless management of export artifacts in the Isabelle/HOL code generator.
 
 * February 2019: Manuel Eberl
   Exponentiation by squaring, used to implement "power" in monoid_mult and
   fast modular exponentiation.
 
 * February 2019: Manuel Eberl
-  Carmichael's function, primitive roots in residue rings, more properties
-  of the order in residue rings.
+  Carmichael's function, primitive roots in residue rings, more properties of
+  the order in residue rings.
+
+* February 2019: Jeremy Sylvestre
+  Formal Laurent Series and overhaul of Formal power series.
+
+* January 2019: Florian Haftmann
+  Clarified syntax and congruence rules for big operators on sets involving
+  the image operator.
+
+* January 2019: Florian Haftmann
+  Renovation of code generation, particularly export into session data and
+  proper strings and proper integers based on zarith for OCaml.
 
 * January 2019: Andreas Lochbihler
-  New implementation for case_of_simps based on Code_Lazy's
-  pattern matching elimination algorithm.
+  New implementation for case_of_simps based on Code_Lazy's pattern matching
+  elimination algorithm.
+
+* November/December 2018: Makarius Wenzel
+  Support for Isabelle/Haskell applications of Isabelle/PIDE.
+
+* August/September 2018: Makarius Wenzel
+  Improvements of headless Isabelle/PIDE session and server, and systematic
+  exports from theory documents.
 
 * December 2018: Florian Haftmann
   Generic executable sorting algorithms based on executable comparators.
