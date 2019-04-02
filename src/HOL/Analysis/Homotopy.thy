@@ -3815,9 +3815,9 @@ next
       apply (rule_tac x=a in bexI)
        apply (rule_tac x=b in bexI)
       using homotopic_with_prod_topology [OF a b]
-    	  apply (metis (no_types, lifting) case_prod_Pair case_prod_beta' eq_id_iff)
-    	 apply auto
-    	done
+        apply (metis (no_types, lifting) case_prod_Pair case_prod_beta' eq_id_iff)
+       apply auto
+      done
   qed
   with False show ?thesis
     by auto
