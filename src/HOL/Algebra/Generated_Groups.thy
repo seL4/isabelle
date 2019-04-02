@@ -452,6 +452,19 @@ definition subgroup_generated :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<
 lemma carrier_subgroup_generated: "carrier (subgroup_generated G S) = generate G (carrier G \<inter> S)"
   by (auto simp: subgroup_generated_def)
 
+lemma (in group) subgroup_generated_subset_carrier_subset:
+   "S \<subseteq> carrier G \<Longrightarrow> S \<subseteq> carrier(subgroup_generated G S)"
+  by (simp add: Int_absorb1 carrier_subgroup_generated generate.incl subsetI)
+
+lemma (in group) subgroup_generated_minimal:
+   "\<lbrakk>subgroup H G; S \<subseteq> H\<rbrakk> \<Longrightarrow> carrier(subgroup_generated G S) \<subseteq> H"
+  by (simp add: carrier_subgroup_generated generate_subgroup_incl le_infI2)
+
+lemma (in group) carrier_subgroup_generated_subset:
+   "carrier (subgroup_generated G A) \<subseteq> carrier G"
+  apply (clarsimp simp: carrier_subgroup_generated)
+  by (meson Int_lower1 generate_in_carrier)
+
 lemma (in group) group_subgroup_generated [simp]: "group (subgroup_generated G S)"
     unfolding subgroup_generated_def
     by (simp add: generate_is_subgroup subgroup_imp_group)
@@ -520,7 +533,6 @@ lemma (in subgroup) carrier_subgroup_generated_subgroup [simp]:
   "carrier (subgroup_generated G H) = H"
   by (auto simp: generate.incl carrier_subgroup_generated elim: generate.induct)
 
-
 lemma (in group) subgroup_subgroup_generated_iff:
    "subgroup H (subgroup_generated G B) \<longleftrightarrow> subgroup H G \<and> H \<subseteq> carrier(subgroup_generated G B)"
  (is "?lhs = ?rhs")
@@ -542,6 +554,9 @@ next
     by (simp add: generate_is_subgroup subgroup_generated_def subgroup_incl)
 qed
 
+lemma (in group) subgroup_subgroup_generated:
+   "subgroup (carrier(subgroup_generated G S)) G"
+  using group.subgroup_self group_subgroup_generated subgroup_subgroup_generated_iff by blast
 
 lemma pow_subgroup_generated:
    "pow (subgroup_generated G S) = (pow G :: 'a \<Rightarrow> nat \<Rightarrow> 'a)"
@@ -552,6 +567,19 @@ proof -
     by force
 qed
 
+lemma (in group) subgroup_generated2 [simp]: "subgroup_generated (subgroup_generated G S) S = subgroup_generated G S"
+proof -
+  have *: "\<And>A. carrier G \<inter> A \<subseteq> carrier (subgroup_generated (subgroup_generated G A) A)"
+    by (metis (no_types, hide_lams) Int_assoc carrier_subgroup_generated generate.incl inf.order_iff subset_iff)
+  show ?thesis
+  apply (auto intro!: monoid.equality)
+    using group.carrier_subgroup_generated_subset group_subgroup_generated apply blast
+     apply (metis (no_types, hide_lams) "*" group.subgroup_subgroup_generated group_subgroup_generated subgroup_generated_minimal
+        subgroup_generated_restrict subgroup_subgroup_generated_iff subset_eq)
+    apply (simp add: subgroup_generated_def)
+    done
+qed
+
 lemma (in group) int_pow_subgroup_generated:
   fixes n::int
   assumes "x \<in> carrier (subgroup_generated G S)"
@@ -560,7 +588,7 @@ proof -
   have "x [^] nat (- n) \<in> carrier (subgroup_generated G S)"
     by (metis assms group.is_monoid group_subgroup_generated monoid.nat_pow_closed pow_subgroup_generated)
   then show ?thesis
-    by (simp add: int_pow_def2 pow_subgroup_generated)
+    by (metis group.inv_subgroup_generated int_pow_def2 is_group pow_subgroup_generated)
 qed
 
 lemma kernel_from_subgroup_generated [simp]:
