@@ -4,14 +4,10 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2019 (June 2019)
+-------------------------------
 
 *** General ***
-
-* Old-style {* verbatim *} tokens are explicitly marked as legacy
-feature and will be removed soon. Use \<open>cartouche\<close> syntax instead, e.g.
-via "isabelle update_cartouches -t" (available since Isabelle2015).
 
 * The font family "Isabelle DejaVu" is systematically derived from the
 existing "DejaVu" collection, with variants "Sans Mono", "Sans", "Serif"
@@ -28,8 +24,13 @@ INCOMPATIBILITY with display configuration expecting the old
 * Old-style inner comments (* ... *) within the term language are no
 longer supported (legacy feature in Isabelle2018).
 
+* Old-style {* verbatim *} tokens are explicitly marked as legacy
+feature and will be removed soon. Use \<open>cartouche\<close> syntax instead, e.g.
+via "isabelle update_cartouches -t" (available since Isabelle2015).
+
 * Infix operators that begin or end with a "*" can now be paranthesized
-without additional spaces, eg "(*)" instead of "( * )".
+without additional spaces, eg "(*)" instead of "( * )". Minor
+INCOMPATIBILITY.
 
 * Mixfix annotations may use cartouches instead of old-style double
 quotes, e.g. (infixl \<open>+\<close> 60). The command-line tool "isabelle update -u
@@ -40,12 +41,15 @@ automatically.
 need to provide a closed expression -- without trailing semicolon. Minor
 INCOMPATIBILITY.
 
-* Command keywords of kind thy_decl / thy_goal may be more specifically
-fit into the traditional document model of "definition-statement-proof"
-via thy_defn / thy_stmt / thy_goal_defn / thy_goal_stmt.
-
 
 *** Isabelle/jEdit Prover IDE ***
+
+* Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
+DejaVu" collection by default, which provides uniform rendering quality
+with the usual Isabelle symbols. Line spacing no longer needs to be
+adjusted: properties for the old IsabelleText font had "Global Options /
+Text Area / Extra vertical line spacing (in pixels): -2", now it
+defaults to 0.
 
 * The jEdit File Browser is more prominent in the default GUI layout of
 Isabelle/jEdit: various virtual file-systems provide access to Isabelle
@@ -61,28 +65,22 @@ information, based on the "isabelle-session:" virtual file-system. Its
 entries are structured according to chapter / session names, the open
 operation is redirected to the session ROOT file.
 
-* System option "jedit_text_overview" allows to disable the text
-overview column.
-
-* Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
-DejaVu" collection by default, which provides uniform rendering quality
-with the usual Isabelle symbols. Line spacing no longer needs to be
-adjusted: properties for the old IsabelleText font had "Global Options /
-Text Area / Extra vertical line spacing (in pixels): -2", now it
-defaults to 0.
-
-* Improved sub-pixel font rendering (especially on Linux), thanks to
-OpenJDK 11.
-
 * Support for user-defined file-formats via class isabelle.File_Format
 in Isabelle/Scala (e.g. see isabelle.Bibtex.File_Format), configured via
 the shell function "isabelle_file_format" in etc/settings (e.g. of an
 Isabelle component).
 
+* System option "jedit_text_overview" allows to disable the text
+overview column.
+
 * Command-line options "-s" and "-u" of "isabelle jedit" override the
 default for system option "system_heaps" that determines the heap
 storage directory for "isabelle build". Option "-n" is now clearly
 separated from option "-s".
+
+* Update to OpenJDK 11, which is the current long-term support line
+after Java 8. It provides a very different font renderer, with improved
+sub-pixel font rendering.
 
 
 *** Document preparation ***
@@ -102,35 +100,19 @@ reversed list of tags in the presentation context.
 
 *** Isar ***
 
-* More robust treatment of structural errors: begin/end blocks take
-precedence over goal/proof.
-
 * Implicit cases goal1, goal2, goal3, etc. have been discontinued
 (legacy feature since Isabelle2016).
 
+* More robust treatment of structural errors: begin/end blocks take
+precedence over goal/proof. This is particularly relevant for the
+headless PIDE session and server.
+
+* Command keywords of kind thy_decl / thy_goal may be more specifically
+fit into the traditional document model of "definition-statement-proof"
+via thy_defn / thy_stmt / thy_goal_defn / thy_goal_stmt.
+
 
 *** HOL ***
-
-* Formal Laurent series and overhaul of Formal power series 
-in session HOL-Computational_Algebra.
-
-* Exponentiation by squaring in session HOL-Library; used for computing
-powers in class monoid_mult and modular exponentiation in session
-HOL-Number_Theory.
-
-* More material on residue rings in session HOL-Number_Theory:
-Carmichael's function, primitive roots, more properties for "ord".
-
-* The functions \<Union>, \<Inter>, \<Squnion>, \<Sqinter>
-(not the corresponding binding operators) now have the same precedence
-as any other prefix function symbol.  Minor INCOMPATIBILITY.
-
-* Slightly more conventional naming schema in structure Inductive.
-Minor INCOMPATIBILITY.
-
-* Various _global variants of specification tools have been removed.
-Minor INCOMPATIBILITY, prefer combinators Named_Target.theory_map[_result]
-to lift specifications to the global theory level.
 
 * Command 'export_code' produces output as logical files within the
 theory context, as well as formal session exports that can be
@@ -165,16 +147,15 @@ tool and the required packages. Minor INCOMPATIBILITY.
 proper module frame, nothing is added magically any longer.
 INCOMPATIBILITY.
 
-* Code generation: slightly more conventional syntax for
-'code_stmts' antiquotation.  Minor INCOMPATIBILITY.
+* Code generation: slightly more conventional syntax for 'code_stmts'
+antiquotation. Minor INCOMPATIBILITY.
 
-* The simplifier uses image_cong_simp as a congruence rule. The historic
-and not really well-formed congruence rules INF_cong*, SUP_cong*,
-are not used by default any longer.  INCOMPATIBILITY; consider using
-declare image_cong_simp [cong del] in extreme situations.
+* Theory List: the precedence of the list_update operator has changed:
+"f a [n := x]" now needs to be written "(f a)[n := x]".
 
-* INF_image and SUP_image are no default simp rules any longer.
-INCOMPATIBILITY, prefer image_comp as simp rule if needed.
+* The functions \<Union>, \<Inter>, \<Squnion>, \<Sqinter> (not the corresponding binding operators)
+now have the same precedence as any other prefix function symbol. Minor
+INCOMPATIBILITY.
 
 * Simplified syntax setup for big operators under image. In rare
 situations, type conversions are not inserted implicitly any longer
@@ -182,36 +163,52 @@ and need to be given explicitly. Auxiliary abbreviations INFIMUM,
 SUPREMUM, UNION, INTER should now rarely occur in output and are just
 retained as migration auxiliary. INCOMPATIBILITY.
 
-* Theory List: the precedence of the list_update operator has changed:
-"f a [n := x]" now needs to be written "(f a)[n := x]".
+* The simplifier uses image_cong_simp as a congruence rule. The historic
+and not really well-formed congruence rules INF_cong*, SUP_cong*, are
+not used by default any longer. INCOMPATIBILITY; consider using declare
+image_cong_simp [cong del] in extreme situations.
 
-* Theory "HOL-Library.Multiset": the <Union># operator now has the same
-precedence as any other prefix function symbol.
-
-* Retired lemma card_Union_image; use the simpler card_UN_disjoint instead.
-
-* Facts sum_mset.commute and prod_mset.commute renamed to sum_mset.swap
-and prod_mset.swap, similarly to sum.swap and prod.swap.
-INCOMPATIBILITY.
+* INF_image and SUP_image are no default simp rules any longer.
+INCOMPATIBILITY, prefer image_comp as simp rule if needed.
 
 * Strong congruence rules (with =simp=> in the premises) for constant f
 are now uniformly called f_cong_simp, in accordance with congruence
 rules produced for mappers by the datatype package. INCOMPATIBILITY.
 
-* Sledgehammer:
-  - The URL for SystemOnTPTP, which is used by remote provers, has
-    been updated.
-  - The machine-learning-based filter MaSh has been optimized to take
-    less time (in most cases).
+* Retired lemma card_Union_image; use the simpler card_UN_disjoint
+instead. INCOMPATIBILITY.
 
-* SMT: reconstruction is now possible using the SMT solver veriT.
+* Facts sum_mset.commute and prod_mset.commute have been renamed to
+sum_mset.swap and prod_mset.swap, similarly to sum.swap and prod.swap.
+INCOMPATIBILITY.
 
-* HOL-Library.Simps_Case_Conv: case_of_simps now supports overlapping 
-and non-exhaustive patterns and handles arbitrarily nested patterns.
-It uses on the same algorithm as HOL-Library.Code_Lazy, which assumes
-sequential left-to-right pattern matching. The generated
+* ML structure Inductive: slightly more conventional naming schema.
+Minor INCOMPATIBILITY.
+
+* ML: Various _global variants of specification tools have been removed.
+Minor INCOMPATIBILITY, prefer combinators
+Named_Target.theory_map[_result] to lift specifications to the global
+theory level.
+
+* Theory HOL-Library.Simps_Case_Conv: 'case_of_simps' now supports
+overlapping and non-exhaustive patterns and handles arbitrarily nested
+patterns. It uses on the same algorithm as HOL-Library.Code_Lazy, which
+assumes sequential left-to-right pattern matching. The generated
 equation no longer tuples the arguments on the right-hand side.
 INCOMPATIBILITY.
+
+* Theory HOL-Library.Multiset: the <Union># operator now has the same
+precedence as any other prefix function symbol.
+
+* Session HOL-Library and HOL-Number_Theory: Exponentiation by squaring,
+used for computing powers in class "monoid_mult" and modular
+exponentiation.
+
+* Session HOL-Computational_Algebra: Formal Laurent series and overhaul
+of Formal power series.
+
+* Session HOL-Number_Theory: More material on residue rings in
+Carmichael's function, primitive roots, more properties for "ord".
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
@@ -219,16 +216,34 @@ retrieved with the "isabelle export" command-line tool like this:
 
   isabelle export -x "*:**.prv" HOL-SPARK-Examples
 
+* Sledgehammer:
+  - The URL for SystemOnTPTP, which is used by remote provers, has been
+    updated.
+  - The machine-learning-based filter MaSh has been optimized to take
+    less time (in most cases).
+
+* SMT: reconstruction is now possible using the SMT solver veriT.
+
 
 *** ML ***
 
-* Local_Theory.reset is no longer available in user space. Regular
-definitional packages should use balanced blocks of
-Local_Theory.open_target versus Local_Theory.close_target instead,
-or the Local_Theory.subtarget(_result) combinator. Rare INCOMPATIBILITY.
+* Command 'generate_file' allows to produce sources for other languages,
+with antiquotations in the Isabelle context (only the control-cartouche
+form). The default "cartouche" antiquotation evaluates an ML expression
+of type string and inlines the result as a string literal of the target
+language. For example, this works for Haskell as follows:
 
-* Original PolyML.pointerEq is retained as a convenience for tools that
-don't use Isabelle/ML (where this is called "pointer_eq").
+  generate_file "Pure.hs" = \<open>
+  module Isabelle.Pure where
+    allConst, impConst, eqConst :: String
+    allConst = \<open>\<^const_name>\<open>Pure.all\<close>\<close>
+    impConst = \<open>\<^const_name>\<open>Pure.imp\<close>\<close>
+    eqConst = \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
+  \<close>
+
+The ML function Generate_File.generate writes all generated files from a
+given theory to the file-system, e.g. a temporary directory where some
+external compiler is applied.
 
 * ML evaluation (notably via commands 'ML' and 'ML_file') is subject to
 option ML_environment to select a named environment, such as "Isabelle"
@@ -257,35 +272,43 @@ underlying theory, i.e. the directory of the theory file.
 preserving newlines literally. The short form \<^verbatim>\<open>abc\<close> is particularly
 useful.
 
-* Command 'generate_file' allows to produce sources for other languages,
-with antiquotations in the Isabelle context (only the control-cartouche
-form). The default "cartouche" antiquotation evaluates an ML expression
-of type string and inlines the result as a string literal of the target
-language. For example, this works for Haskell as follows:
+* Local_Theory.reset is no longer available in user space. Regular
+definitional packages should use balanced blocks of
+Local_Theory.open_target versus Local_Theory.close_target instead, or
+the Local_Theory.subtarget(_result) combinator. Rare INCOMPATIBILITY.
 
-  generate_file "Pure.hs" = \<open>
-  module Isabelle.Pure where
-    allConst, impConst, eqConst :: String
-    allConst = \<open>\<^const_name>\<open>Pure.all\<close>\<close>
-    impConst = \<open>\<^const_name>\<open>Pure.imp\<close>\<close>
-    eqConst = \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
-  \<close>
-
-The ML function Generate_File.generate writes all generated files from a
-given theory to the file-system, e.g. a temporary directory where some
-external compiler is applied.
+* Original PolyML.pointerEq is retained as a convenience for tools that
+don't use Isabelle/ML (where this is called "pointer_eq").
 
 
 *** System ***
 
-* The command-line option "isabelle build -e" retrieves theory exports
-from the session build database, using 'export_files' in session ROOT
-entries.
+* Update to Java 11: the current long-term support version of OpenJDK.
 
-* The system option "system_heaps" determines where to store the session
+* Update to Poly/ML 5.8 allows to use the native x86_64 platform without
+the full overhead of 64-bit values everywhere. This special x86_64_32
+mode provides up to 16GB ML heap, while program code and stacks are
+allocated elsewhere. Thus approx. 5 times more memory is available for
+applications compared to old x86 mode (which is no longer used by
+Isabelle). The switch to the x86_64 CPU architecture also avoids
+compatibility problems with Linux and macOS, where 32-bit applications
+are gradually phased out.
+
+* System option "checkpoint" has been discontinued: obsolete thanks to
+improved memory management in Poly/ML.
+
+* System option "system_heaps" determines where to store the session
 image of "isabelle build" (and other tools using that internally).
 Former option "-s" is superseded by option "-o system_heaps".
 INCOMPATIBILITY in command-line syntax.
+
+* Session directory $ISABELLE_HOME/src/Tools/Haskell provides some
+source modules for Isabelle tools implemented in Haskell, notably for
+Isabelle/PIDE.
+
+* The command-line tool "isabelle build -e" retrieves theory exports
+from the session build database, using 'export_files' in session ROOT
+entries.
 
 * The command-line tool "isabelle update" uses Isabelle/PIDE in
 batch-mode to update theory sources based on semantic markup produced in
@@ -303,11 +326,7 @@ Instances of class Isabelle_Scala_Tools may be configured via the shell
 function "isabelle_scala_tools" in etc/settings (e.g. of an Isabelle
 component).
 
-* Session directory $ISABELLE_HOME/src/Tools/Haskell provides some
-source modules for Isabelle tools implemented in Haskell, notably for
-Isabelle/PIDE.
-
-* Isabelle server command "use_theories" supports "nodes_status_delay"
+* Isabelle Server command "use_theories" supports "nodes_status_delay"
 for continuous output of node status information. The time interval is
 specified in seconds; a negative value means it is disabled (default).
 
@@ -350,20 +369,6 @@ The old meaning of these settings as locally installed executables may
 be recovered by purging the directories ISABELLE_STACK_ROOT /
 ISABELLE_OPAM_ROOT, or by resetting these variables in
 $ISABELLE_HOME_USER/etc/settings.
-
-* Update to Java 11: the latest long-term support version of OpenJDK.
-
-* System option "checkpoint" has been discontinued: obsolete thanks to
-improved memory management in Poly/ML.
-
-* Update to Poly/ML 5.8 allows to use the native x86_64 platform without
-the full overhead of 64-bit values everywhere. This special x86_64_32
-mode provides up to 16GB ML heap, while program code and stacks are
-allocated elsewhere. Thus approx. 5 times more memory is available for
-applications compared to old x86 mode (which is no longer used by
-Isabelle). The switch to the x86_64 CPU architecture also avoids
-compatibility problems with Linux and macOS, where 32-bit applications
-are gradually phased out.
 
 
 
