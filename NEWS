@@ -9,8 +9,8 @@ New in Isabelle2019 (June 2019)
 
 *** General ***
 
-* The font family "Isabelle DejaVu" is systematically derived from the
-existing "DejaVu" collection, with variants "Sans Mono", "Sans", "Serif"
+* The font collection "Isabelle DejaVu" is systematically derived from
+the existing "DejaVu" fonts, with variants "Sans Mono", "Sans", "Serif"
 and styles "Normal", "Bold", "Italic/Oblique", "Bold-Italic/Oblique".
 The DejaVu base fonts are retricted to well-defined Unicode ranges and
 augmented by special Isabelle symbols, taken from the former
@@ -78,9 +78,9 @@ default for system option "system_heaps" that determines the heap
 storage directory for "isabelle build". Option "-n" is now clearly
 separated from option "-s".
 
-* Update to OpenJDK 11, which is the current long-term support line
-after Java 8. It provides a very different font renderer, with improved
-sub-pixel font rendering.
+* OpenJDK 11 has quite different font rendering, with better glyph
+shapes and improved sub-pixel anti-aliasing. In some situations results
+might be *worse* than Oracle Java 8, though.
 
 
 *** Document preparation ***
@@ -210,6 +210,8 @@ of Formal power series.
 * Session HOL-Number_Theory: More material on residue rings in
 Carmichael's function, primitive roots, more properties for "ord".
 
+* Session HOL-Analysis: More material and better organization.
+
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
 retrieved via "isabelle build -e HOL-SPARK-Examples" on the
@@ -282,7 +284,7 @@ don't use Isabelle/ML (where this is called "pointer_eq").
 
 *** System ***
 
-* Update to Java 11: the current long-term support version of OpenJDK.
+* Update to OpenJDK 11: the current long-term support version of Java.
 
 * Update to Poly/ML 5.8 allows to use the native x86_64 platform without
 the full overhead of 64-bit values everywhere. This special x86_64_32
