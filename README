@@ -10,7 +10,7 @@ Version information
 Installation
 
    Isabelle works on the three main platform families: Linux, Windows,
-   and Mac OS X.  The application bundles from the Isabelle web page
+   and macOS.  The application bundles from the Isabelle web page
    include sources, documentation, and add-on tools for all supported
    platforms.
 
@@ -36,7 +36,7 @@ Other sources of information
 
      * https://www.cl.cam.ac.uk/research/hvg/Isabelle
      * https://isabelle.in.tum.de
-     * http://mirror.cse.unsw.edu.au/pub/isabelle
+     * https://mirror.cse.unsw.edu.au/pub/isabelle
      * https://mirror.clarkson.edu/isabelle
 
   Mailing list
