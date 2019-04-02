@@ -46,17 +46,13 @@ Checklist for official releases
 
 - check doc/Contents, src/Tools/jEdit/dist/doc/Contents;
 
-- HTML library: check HTML header;
-
-- HTML library: check theory dependencies (PDF);
-
 - check "Handler catches all exceptions"
 
-- Mac OS X: check app bundle with Retina display;
+- Mac OS X: check app bundle with UHD display;
 
 - Mac OS X: check recent MacTeX;
 
-- Windows: check dpi scaling with high-definition display;
+- Windows: check dpi scaling with UHD display;
 
 - Windows: check recent MiKTeX;
 
@@ -77,7 +73,7 @@ Packaging
 - Mac OS X: provide "gnutar" executable via shell PATH
   (e.g. copy of /usr/bin/gnutar from Mountain Lion)
 
-- fully-automated packaging (e.g. on lxbroy10):
+- fully-automated packaging (e.g. on lxcisa0):
 
   hg up -r DISTNAME && Admin/build_release -O -l -R DISTNAME -C ~/tmp/isadist/contrib /home/isabelle/dist
 
