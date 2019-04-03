@@ -271,7 +271,7 @@ val _ =
 fun path_antiquotation binding check =
   antiquotation binding
     (Args.context -- Scan.lift (Parse.position Parse.path) >>
-      (fn (ctxt, (name, pos)) => (check ctxt Path.current (name, pos) |> Path.implode)))
+      (fn (ctxt, (name, pos)) => (check ctxt (SOME Path.current) (name, pos) |> Path.implode)))
     (fn {file_type, argument, ...} => #make_string file_type argument);
 
 val _ =

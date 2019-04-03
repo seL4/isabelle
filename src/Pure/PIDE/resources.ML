@@ -34,9 +34,9 @@ sig
   val provide_file: Token.file -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val loaded_files_current: theory -> bool
-  val check_path: Proof.context -> Path.T -> string * Position.T -> Path.T
-  val check_file: Proof.context -> Path.T -> string * Position.T -> Path.T
-  val check_dir: Proof.context -> Path.T -> string * Position.T -> Path.T
+  val check_path: Proof.context -> Path.T option -> string * Position.T -> Path.T
+  val check_file: Proof.context -> Path.T option -> string * Position.T -> Path.T
+  val check_dir: Proof.context -> Path.T option -> string * Position.T -> Path.T
 end;
 
 structure Resources: RESOURCES =
@@ -242,11 +242,15 @@ fun loaded_files_current thy =
 
 (* formal check *)
 
-fun formal_check check_file ctxt dir (name, pos) =
+fun formal_check check_file ctxt opt_dir (name, pos) =
   let
     fun err msg = error (msg ^ Position.here pos);
 
     val _ = Context_Position.report ctxt pos Markup.language_path;
+    val dir =
+      (case opt_dir of
+        SOME dir => dir
+      | NONE => master_directory (Proof_Context.theory_of ctxt));
     val path = Path.append dir (Path.explode name) handle ERROR msg => err msg;
     val _ = Path.expand path handle ERROR msg => err msg;
     val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
@@ -262,11 +266,10 @@ val check_dir = formal_check File.check_dir;
 
 local
 
-fun document_antiq check =
+fun document_antiq (check: Proof.context -> Path.T option -> string * Position.T -> Path.T) =
   Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
     let
-      val dir = master_directory (Proof_Context.theory_of ctxt);
-      val _: Path.T = check ctxt dir (name, pos);
+      val _ = check ctxt NONE (name, pos);
       val latex =
         space_explode "/" name
         |> map Latex.output_ascii
@@ -275,7 +278,7 @@ fun document_antiq check =
 
 fun ML_antiq check =
   Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
-    check ctxt Path.current (name, pos) |> ML_Syntax.print_path);
+    check ctxt (SOME Path.current) (name, pos) |> ML_Syntax.print_path);
 
 in
 
