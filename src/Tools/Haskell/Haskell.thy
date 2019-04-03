@@ -1943,6 +1943,6 @@ server publish handle =
       return ()
 \<close>
 
-export_generated_files
+export_generated_files _
 
 end

@@ -70,6 +70,7 @@ sig
   val embedded_position: (string * Position.T) parser
   val text: string parser
   val path: string parser
+  val path_binding: (string * Position.T) parser
   val session_name: (string * Position.T) parser
   val theory_name: (string * Position.T) parser
   val liberal_name: string parser
@@ -282,6 +283,7 @@ val embedded_position = input embedded >> Input.source_content;
 val text = group (fn () => "text") (embedded || verbatim);
 
 val path = group (fn () => "file name/path specification") embedded;
+val path_binding = group (fn () => "path binding (strict file name)") (position embedded);
 
 val session_name = group (fn () => "session name") name_position;
 val theory_name = group (fn () => "theory name") name_position;

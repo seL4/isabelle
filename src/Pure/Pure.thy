@@ -123,29 +123,20 @@ local
   val _ =
     Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>
       "generate source file, with antiquotations"
-      (Parse.position Parse.path -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
+      (Parse.path_binding -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
         >> Generated_Files.generate_file_cmd);
+
+  val files_in =
+    (Parse.underscore >> K [] || Scan.repeat1 Parse.path_binding) --
+      Scan.option (\<^keyword>\<open>in\<close> |-- Parse.!!! Parse.theory_name);
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>export_generated_files\<close>
-      "export generated files from this or other theories"
-      (Scan.repeat Parse.name_position >> (fn names =>
+      "export generated files from given theories"
+      (Parse.and_list1 files_in >> (fn args =>
         Toplevel.keep (fn st =>
-          let
-            val ctxt = Toplevel.context_of st;
-            val thy = Toplevel.theory_of st;
-            val other_thys =
-              if null names then [thy]
-              else map (Theory.check {long = false} ctxt) names;
-            val paths = Generated_Files.export_files thy other_thys;
-          in
-            if not (null paths) then
-              (writeln (Export.message thy Path.current);
-               writeln (cat_lines (paths |> map (fn (path, pos) =>
-                Markup.markup (Markup.entityN, Position.def_properties_of pos)
-                  (quote (Path.implode path))))))
-            else ()
-          end)));
+          Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)))
+
 in end\<close>
 
 

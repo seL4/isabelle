@@ -11,10 +11,11 @@ ML \<open>
   Isabelle_System.with_tmp_dir "ghc" (fn tmp_dir =>
     let
       val src_dir = Path.append tmp_dir (Path.explode "src");
-      val files = Generated_Files.write_files \<^theory>\<open>Haskell\<close> src_dir;
+      val files = Generated_Files.get_files \<^theory>\<open>Haskell\<close>;
+      val _ = List.app (Generated_Files.write_file src_dir) files;
 
       val modules = files
-        |> map (#1 #> Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
+        |> map (#path #> Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
       val _ =
         GHC.new_project tmp_dir
           {name = "isabelle",
