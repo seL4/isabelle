@@ -2,12 +2,14 @@
     Author:     Paulo Emílio de Vilhena
 *)
 
+section \<open>Generated Groups\<close>
+
 theory Generated_Groups
   imports Group Coset
   
 begin
 
-section \<open>Generated Groups\<close>
+subsection \<open>Generated Groups\<close>
 
 inductive_set generate :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set"
   for G and H where
@@ -17,7 +19,7 @@ inductive_set generate :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightar
   | eng:  "h1 \<in> generate G H \<Longrightarrow> h2 \<in> generate G H \<Longrightarrow> h1 \<otimes>\<^bsub>G\<^esub> h2 \<in> generate G H"
 
 
-subsection \<open>Basic Properties\<close>
+subsubsection \<open>Basic Properties\<close>
 
 lemma (in group) generate_consistent:
   assumes "K \<subseteq> H" "subgroup H G" shows "generate (G \<lparr> carrier := H \<rparr>) K = generate G K"
@@ -195,9 +197,9 @@ next
 qed
 
 
-section \<open>Derived Subgroup\<close>
+subsection \<open>Derived Subgroup\<close>
 
-subsection \<open>Definitions\<close>
+subsubsection \<open>Definitions\<close>
 
 abbreviation derived_set :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set"
   where "derived_set G H \<equiv>
@@ -207,7 +209,7 @@ definition derived :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow>
   "derived G H = generate G (derived_set G H)"
 
 
-subsection \<open>Basic Properties\<close>
+subsubsection \<open>Basic Properties\<close>
 
 lemma (in group) derived_set_incl:
   assumes "K \<subseteq> H" "subgroup H G" shows "derived_set G K \<subseteq> H"
@@ -444,7 +446,7 @@ lemma (in group_hom) exp_of_derived_img:
   using derived_img[OF G.exp_of_derived_in_carrier[OF assms]] by (induct n) (auto)
 
 
-subsection \<open>Generated subgroup of a group\<close>
+subsubsection \<open>Generated subgroup of a group\<close>
 
 definition subgroup_generated :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> ('a, 'b) monoid_scheme"
   where "subgroup_generated G S = G\<lparr>carrier := generate G (carrier G \<inter> S)\<rparr>"
@@ -599,5 +601,115 @@ lemma kernel_from_subgroup_generated [simp]:
 lemma kernel_to_subgroup_generated [simp]:
   "kernel G (subgroup_generated H S) f = kernel G H f"
   by (simp add: kernel_def)
+
+subsection \<open>And homomorphisms\<close>
+
+lemma (in group) hom_from_subgroup_generated:
+   "h \<in> hom G H \<Longrightarrow> h \<in> hom(subgroup_generated G A) H"
+  apply (simp add: hom_def carrier_subgroup_generated Pi_iff)
+  apply (metis group.generate_in_carrier inf_le1 is_group)
+  done
+
+lemma hom_into_subgroup:
+   "\<lbrakk>h \<in> hom G G'; h ` (carrier G) \<subseteq> H\<rbrakk> \<Longrightarrow> h \<in> hom G (subgroup_generated G' H)"
+  by (auto simp: hom_def carrier_subgroup_generated Pi_iff generate.incl image_subset_iff)
+
+lemma hom_into_subgroup_eq_gen:
+    "group G \<Longrightarrow>
+     h \<in> hom K (subgroup_generated G H)
+ \<longleftrightarrow> h \<in> hom K G \<and> h ` (carrier K) \<subseteq> carrier(subgroup_generated G H)"
+  using group.carrier_subgroup_generated_subset [of G H] by (auto simp: hom_def)
+
+lemma hom_into_subgroup_eq:
+   "\<lbrakk>subgroup H G; group G\<rbrakk>
+    \<Longrightarrow> (h \<in> hom K (subgroup_generated G H) \<longleftrightarrow> h \<in> hom K G \<and> h ` (carrier K) \<subseteq> H)"
+  by (simp add: hom_into_subgroup_eq_gen image_subset_iff subgroup.carrier_subgroup_generated_subgroup)
+
+lemma (in group_hom) hom_between_subgroups:
+  assumes "h ` A \<subseteq> B"
+  shows "h \<in> hom (subgroup_generated G A) (subgroup_generated H B)"
+proof -
+  have [simp]: "group G" "group H"
+    by (simp_all add: G.is_group H.is_group)
+  have "x \<in> generate G (carrier G \<inter> A) \<Longrightarrow> h x \<in> generate H (carrier H \<inter> B)" for x
+  proof (induction x rule: generate.induct)
+    case (incl h)
+    then show ?case
+      by (meson IntE IntI assms generate.incl hom_closed image_subset_iff)
+  next
+    case (inv h)
+    then show ?case
+      by (metis G.inv_closed G.inv_inv IntE IntI assms generate.simps hom_inv image_subset_iff local.inv_closed)
+  next
+    case (eng h1 h2)
+    then show ?case
+      by (metis G.generate_in_carrier generate.simps inf.cobounded1 local.hom_mult)
+  qed (auto simp: generate.intros)
+  then have "h ` carrier (subgroup_generated G A) \<subseteq> carrier (subgroup_generated H B)"
+    using group.carrier_subgroup_generated_subset [of G A]
+    by (auto simp: carrier_subgroup_generated)
+  then show ?thesis
+    by (simp add: hom_into_subgroup_eq_gen group.hom_from_subgroup_generated homh)
+qed
+
+lemma (in group_hom) subgroup_generated_by_image:
+  assumes "S \<subseteq> carrier G"
+  shows "carrier (subgroup_generated H (h ` S)) = h ` (carrier(subgroup_generated G S))"
+proof
+  have "x \<in> generate H (carrier H \<inter> h ` S) \<Longrightarrow> x \<in> h ` generate G (carrier G \<inter> S)" for x
+  proof (erule generate.induct)
+    show "\<one>\<^bsub>H\<^esub> \<in> h ` generate G (carrier G \<inter> S)"
+      using generate.one by force
+  next
+    fix f
+    assume "f \<in> carrier H \<inter> h ` S"
+    with assms show "f \<in> h ` generate G (carrier G \<inter> S)" "inv\<^bsub>H\<^esub> f \<in> h ` generate G (carrier G \<inter> S)"
+       apply (auto simp: Int_absorb1 generate.incl)
+      apply (metis generate.simps hom_inv imageI subsetCE)
+      done
+  next
+    fix h1 h2
+    assume
+      "h1 \<in> generate H (carrier H \<inter> h ` S)" "h1 \<in> h ` generate G (carrier G \<inter> S)"
+      "h2 \<in> generate H (carrier H \<inter> h ` S)" "h2 \<in> h ` generate G (carrier G \<inter> S)"
+    then show "h1 \<otimes>\<^bsub>H\<^esub> h2 \<in> h ` generate G (carrier G \<inter> S)"
+      using H.subgroupE(4) group.generate_is_subgroup subgroup_img_is_subgroup
+      by (simp add: G.generate_is_subgroup)
+  qed
+  then
+  show "carrier (subgroup_generated H (h ` S)) \<subseteq> h ` carrier (subgroup_generated G S)"
+    by (auto simp: carrier_subgroup_generated)
+next
+  have "h ` S \<subseteq> carrier H"
+    by (metis (no_types) assms hom_closed image_subset_iff subsetCE)
+  then show "h ` carrier (subgroup_generated G S) \<subseteq> carrier (subgroup_generated H (h ` S))"
+    apply (clarsimp simp: carrier_subgroup_generated)
+    by (metis Int_absorb1 assms generate_img imageI)
+qed
+
+lemma (in group_hom) iso_between_subgroups:
+  assumes "h \<in> iso G H" "S \<subseteq> carrier G" "h ` S = T"
+  shows "h \<in> iso (subgroup_generated G S) (subgroup_generated H T)"
+  using assms
+  by (metis G.carrier_subgroup_generated_subset Group.iso_iff hom_between_subgroups inj_on_subset subgroup_generated_by_image subsetI)
+
+lemma (in group) subgroup_generated_group_carrier:
+  "subgroup_generated G (carrier G) = G"
+proof (rule monoid.equality)
+  show "carrier (subgroup_generated G (carrier G)) = carrier G"
+    by (simp add: subgroup.carrier_subgroup_generated_subgroup subgroup_self)
+qed (auto simp: subgroup_generated_def)
+
+lemma iso_onto_image:
+  assumes "group G" "group H"
+  shows
+   "f \<in> iso G (subgroup_generated H (f ` carrier G)) \<longleftrightarrow> f \<in> hom G H \<and> inj_on f (carrier G)"
+  using assms
+  apply (auto simp: iso_def bij_betw_def hom_into_subgroup_eq_gen carrier_subgroup_generated hom_carrier generate.incl Int_absorb1 Int_absorb2)
+  by (metis group.generateI group.subgroupE(1) group.subgroup_self group_hom.generate_img group_hom.intro group_hom_axioms.intro)
+
+lemma (in group) iso_onto_image:
+   "group H \<Longrightarrow> f \<in> iso G (subgroup_generated H (f ` carrier G)) \<longleftrightarrow> f \<in> mon G H"
+  by (simp add: mon_def epi_def hom_into_subgroup_eq_gen iso_onto_image)
 
 end

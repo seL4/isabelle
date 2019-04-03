@@ -186,7 +186,10 @@ text \<open>
 locale group = monoid +
   assumes Units: "carrier G <= Units G"
 
-lemma (in group) is_group: "group G" by (rule group_axioms)
+lemma (in group) is_group [iff]: "group G" by (rule group_axioms)
+
+lemma (in group) is_monoid [iff]: "monoid G"
+  by (rule monoid_axioms)
 
 theorem groupI:
   fixes G (structure)
@@ -825,6 +828,9 @@ lemma one_DirProd [simp]: "\<one>\<^bsub>G \<times>\<times> H\<^esub> = (\<one>\
 lemma mult_DirProd [simp]: "(g, h) \<otimes>\<^bsub>(G \<times>\<times> H)\<^esub> (g', h') = (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')"
   by (simp add: DirProd_def)
 
+lemma mult_DirProd': "x \<otimes>\<^bsub>(G \<times>\<times> H)\<^esub> y = (fst x \<otimes>\<^bsub>G\<^esub> fst y, snd x \<otimes>\<^bsub>H\<^esub> snd y)"
+  by (subst mult_DirProd [symmetric]) simp
+
 lemma DirProd_assoc: "(G \<times>\<times> H \<times>\<times> I) = (G \<times>\<times> (H \<times>\<times> I))"
   by auto
 
@@ -858,7 +864,7 @@ proof (intro group.group_incl_imp_subgroup[OF DirProd_group[OF assms(1)assms(3)]
   ultimately show "Group.group ((G \<times>\<times> K)\<lparr>carrier := H \<times> I\<rparr>)" by simp
 qed
 
-subsection \<open>Homomorphisms and Isomorphisms\<close>
+subsection \<open>Homomorphisms (mono and epi) and Isomorphisms\<close>
 
 definition
   hom :: "_ => _ => ('a => 'b) set" where
@@ -923,6 +929,14 @@ lemma id_iso: "id \<in> iso G G"
 corollary iso_refl [simp]: "G \<cong> G"
   using iso_set_refl unfolding is_iso_def by auto
 
+lemma iso_iff:
+   "h \<in> iso G H \<longleftrightarrow> h \<in> hom G H \<and> h ` (carrier G) = carrier H \<and> inj_on h (carrier G)"
+  by (auto simp: iso_def hom_def bij_betw_def)
+
+lemma iso_imp_homomorphism:
+   "h \<in> iso G H \<Longrightarrow> h \<in> hom G H"
+  by (simp add: iso_iff)
+
 lemma trivial_hom:
    "group H \<Longrightarrow> (\<lambda>x. one H) \<in> hom G H"
   by (auto simp: hom_def Group.group_def)
@@ -965,7 +979,6 @@ proof -
     by (simp add: Group.iso_def bij_betw_inv_into h)
 qed
 
-
 corollary (in group) iso_sym: "G \<cong> H \<Longrightarrow> H \<cong> G"
   using iso_set_sym unfolding is_iso_def by auto
 
@@ -979,6 +992,50 @@ corollary iso_trans [trans]: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Long
 lemma iso_same_card: "G \<cong> H \<Longrightarrow> card (carrier G) = card (carrier H)"
   using bij_betw_same_card  unfolding is_iso_def iso_def by auto
 
+lemma iso_finite: "G \<cong> H \<Longrightarrow> finite(carrier G) \<longleftrightarrow> finite(carrier H)"
+  by (auto simp: is_iso_def iso_def bij_betw_finite)
+
+lemma mon_compose:
+   "\<lbrakk>f \<in> mon G H; g \<in> mon H K\<rbrakk> \<Longrightarrow> (g \<circ> f) \<in> mon G K"
+  by (auto simp: mon_def intro: hom_compose comp_inj_on inj_on_subset [OF _ hom_carrier])
+
+lemma mon_compose_rev:
+   "\<lbrakk>f \<in> hom G H; g \<in> hom H K; (g \<circ> f) \<in> mon G K\<rbrakk> \<Longrightarrow> f \<in> mon G H"
+  using inj_on_imageI2 by (auto simp: mon_def)
+
+lemma epi_compose:
+   "\<lbrakk>f \<in> epi G H; g \<in> epi H K\<rbrakk> \<Longrightarrow> (g \<circ> f) \<in> epi G K"
+  using hom_compose by (force simp: epi_def hom_compose simp flip: image_image)
+
+lemma epi_compose_rev:
+   "\<lbrakk>f \<in> hom G H; g \<in> hom H K; (g \<circ> f) \<in> epi G K\<rbrakk> \<Longrightarrow> g \<in> epi H K"
+  by (fastforce simp: epi_def hom_def Pi_iff image_def set_eq_iff)
+
+lemma iso_compose_rev:
+   "\<lbrakk>f \<in> hom G H; g \<in> hom H K; (g \<circ> f) \<in> iso G K\<rbrakk> \<Longrightarrow> f \<in> mon G H \<and> g \<in> epi H K"
+  unfolding iso_iff_mon_epi using mon_compose_rev epi_compose_rev by blast
+
+lemma epi_iso_compose_rev:
+  assumes "f \<in> epi G H" "g \<in> hom H K" "(g \<circ> f) \<in> iso G K"
+  shows "f \<in> iso G H \<and> g \<in> iso H K"
+proof
+  show "f \<in> iso G H"
+    by (metis (no_types, lifting) assms epi_def iso_compose_rev iso_iff_mon_epi mem_Collect_eq)
+  then have "f \<in> hom G H \<and> bij_betw f (carrier G) (carrier H)"
+    using Group.iso_def \<open>f \<in> Group.iso G H\<close> by blast
+  then have "bij_betw g (carrier H) (carrier K)"
+    using Group.iso_def assms(3) bij_betw_comp_iff by blast
+  then show "g \<in> iso H K"
+    using Group.iso_def assms(2) by blast
+qed
+
+lemma mon_left_invertible:
+   "\<lbrakk>f \<in> hom G H; \<And>x. x \<in> carrier G \<Longrightarrow> g(f x) = x\<rbrakk> \<Longrightarrow> f \<in> mon G H"
+  by (simp add: mon_def inj_on_def) metis
+
+lemma epi_right_invertible:
+   "\<lbrakk>g \<in> hom H G; f \<in> carrier G \<rightarrow> carrier H; \<And>x. x \<in> carrier G \<Longrightarrow> g(f x) = x\<rbrakk> \<Longrightarrow> g \<in> epi H G"
+  by (force simp: Pi_iff epi_iff_subset image_subset_iff_funcset subset_iff)
 
 lemma (in monoid) hom_imp_img_monoid: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
@@ -1109,6 +1166,43 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+subsubsection \<open>HOL Light's concept of an isomorphism pair\<close>
+
+definition group_isomorphisms
+  where
+ "group_isomorphisms G H f g \<equiv>
+        f \<in> hom G H \<and> g \<in> hom H G \<and>
+        (\<forall>x \<in> carrier G. g(f x) = x) \<and>
+        (\<forall>y \<in> carrier H. f(g y) = y)"
+
+lemma group_isomorphisms_sym: "group_isomorphisms G H f g \<Longrightarrow> group_isomorphisms H G g f"
+  by (auto simp: group_isomorphisms_def)
+
+lemma group_isomorphisms_imp_iso: "group_isomorphisms G H f g \<Longrightarrow> f \<in> iso G H"
+by (auto simp: iso_def inj_on_def image_def group_isomorphisms_def hom_def bij_betw_def Pi_iff, metis+)
+
+lemma (in group) iso_iff_group_isomorphisms:
+  "f \<in> iso G H \<longleftrightarrow> (\<exists>g. group_isomorphisms G H f g)"
+proof safe
+  show "\<exists>g. group_isomorphisms G H f g" if "f \<in> Group.iso G H"
+    unfolding group_isomorphisms_def
+  proof (intro exI conjI)
+    let ?g = "inv_into (carrier G) f"
+    show "\<forall>x\<in>carrier G. ?g (f x) = x"
+      by (metis (no_types, lifting) Group.iso_def bij_betw_inv_into_left mem_Collect_eq that)
+    show "\<forall>y\<in>carrier H. f (?g y) = y"
+      by (metis (no_types, lifting) Group.iso_def bij_betw_inv_into_right mem_Collect_eq that)
+  qed (use Group.iso_def iso_set_sym that in \<open>blast+\<close>)
+next
+  fix g
+  assume "group_isomorphisms G H f g"
+  then show "f \<in> Group.iso G H"
+    by (auto simp: iso_def group_isomorphisms_def hom_in_carrier intro: bij_betw_byWitness)
+qed
+
+
+subsubsection \<open>Involving direct products\<close>
+
 lemma DirProd_commute_iso_set:
   shows "(\<lambda>(x,y). (y,x)) \<in> iso (G \<times>\<times> H) (H \<times>\<times> G)"
   by (auto simp add: iso_def hom_def inj_on_def bij_betw_def)
@@ -1141,6 +1235,53 @@ corollary (in group) DirProd_iso_trans :
   shows "G \<times>\<times> H \<cong> G2 \<times>\<times> I"
   using DirProd_iso_set_trans assms unfolding is_iso_def by blast
 
+lemma hom_pairwise: "f \<in> hom G (DirProd H K) \<longleftrightarrow> (fst \<circ> f) \<in> hom G H \<and> (snd \<circ> f) \<in> hom G K"
+  apply (auto simp: hom_def mult_DirProd' dest: Pi_mem)
+   apply (metis Product_Type.mem_Times_iff comp_eq_dest_lhs funcset_mem)
+  by (metis mult_DirProd prod.collapse)
+
+lemma hom_paired:
+   "(\<lambda>x. (f x,g x)) \<in> hom G (DirProd H K) \<longleftrightarrow> f \<in> hom G H \<and> g \<in> hom G K"
+  by (simp add: hom_pairwise o_def)
+
+lemma hom_paired2:
+  assumes "group G" "group H"
+  shows "(\<lambda>(x,y). (f x,g y)) \<in> hom (DirProd G H) (DirProd G' H') \<longleftrightarrow> f \<in> hom G G' \<and> g \<in> hom H H'"
+  using assms
+  by (fastforce simp: hom_def Pi_def dest!: group.is_monoid)
+
+lemma image_paired_Times:
+   "(\<lambda>(x,y). (f x,g y)) ` (A \<times> B) = (f ` A) \<times> (g ` B)"
+  by auto
+
+lemma iso_paired2:
+  assumes "group G" "group H"
+  shows "(\<lambda>(x,y). (f x,g y)) \<in> iso (DirProd G H) (DirProd G' H') \<longleftrightarrow> f \<in> iso G G' \<and> g \<in> iso H H'"
+  using assms
+  by (fastforce simp add: iso_def inj_on_def bij_betw_def hom_paired2 image_paired_Times
+      times_eq_iff group_def monoid.carrier_not_empty)
+
+lemma hom_of_fst:
+  assumes "group H"
+  shows "(f \<circ> fst) \<in> hom (DirProd G H) K \<longleftrightarrow> f \<in> hom G K"
+proof -
+  interpret group H
+    by (rule assms)
+  show ?thesis
+    using one_closed by (auto simp: hom_def Pi_def)
+qed
+
+lemma hom_of_snd:
+  assumes "group G"
+  shows "(f \<circ> snd) \<in> hom (DirProd G H) K \<longleftrightarrow> f \<in> hom H K"
+proof -
+  interpret group G
+    by (rule assms)
+  show ?thesis
+    using one_closed by (auto simp: hom_def Pi_def)
+qed
+
+
 subsection\<open>The locale for a homomorphism between two groups\<close>
 
 text\<open>Basis for homomorphism proofs: we assume two groups \<^term>\<open>G\<close> and
@@ -1172,7 +1313,8 @@ lemma (in group_hom) hom_one [simp]: "h \<one> = \<one>\<^bsub>H\<^esub>"
 proof -
   have "h \<one> \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = h \<one> \<otimes>\<^bsub>H\<^esub> h \<one>"
     by (simp add: hom_mult [symmetric] del: hom_mult)
-  then show ?thesis by (simp del: r_one)
+  then show ?thesis
+    by (metis H.Units_eq H.Units_l_cancel H.one_closed local.one_closed)
 qed
 
 lemma hom_one:
@@ -1383,6 +1525,11 @@ next
   finally show "x \<otimes>\<^bsub>(?h_img)\<^esub> y = y \<otimes>\<^bsub>(?h_img)\<^esub> x" .
 qed
 
+lemma (in comm_group) hom_group_mult:
+  assumes "f \<in> hom H G" "g \<in> hom H G"
+ shows "(\<lambda>x. f x \<otimes>\<^bsub>G\<^esub> g x) \<in> hom H G"
+    using assms by (auto simp: hom_def Pi_def m_ac)
+
 lemma (in comm_group) hom_imp_img_comm_group: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
   assumes "h \<in> hom G H"
   shows "comm_group (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
@@ -1464,10 +1611,6 @@ lemma (in group) subgroup_self:
 lemma (in group) subgroup_imp_group:
   "subgroup H G ==> group (G\<lparr>carrier := H\<rparr>)"
   by (erule subgroup.subgroup_is_group) (rule group_axioms)
-
-lemma (in group) is_monoid [intro, simp]:
-  "monoid G"
-  by (auto intro: monoid.intro m_assoc)
 
 lemma (in group) subgroup_mult_equality:
   "\<lbrakk> subgroup H G; h1 \<in> H; h2 \<in> H \<rbrakk> \<Longrightarrow>  h1 \<otimes>\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> h2 = h1 \<otimes> h2"

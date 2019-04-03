@@ -1061,6 +1061,26 @@ lemma (in group_hom) normal_kernel: "(kernel G H h) \<lhd> G"
   apply (simp add: kernel_def)
   done
 
+lemma iso_kernel_image:
+  assumes "group G" "group H"
+  shows "f \<in> iso G H \<longleftrightarrow> f \<in> hom G H \<and> kernel G H f = {\<one>\<^bsub>G\<^esub>} \<and> f ` carrier G = carrier H"
+    (is "?lhs = ?rhs")
+proof (intro iffI conjI)
+  assume f: ?lhs
+  show "f \<in> hom G H"
+    using Group.iso_iff f by blast
+  show "kernel G H f = {\<one>\<^bsub>G\<^esub>}"
+    using assms f Group.group_def hom_one
+    by (fastforce simp add: kernel_def iso_iff_mon_epi mon_iff_hom_one set_eq_iff)
+  show "f ` carrier G = carrier H"
+    by (meson Group.iso_iff f)
+next
+  assume ?rhs
+  with assms show ?lhs
+    by (auto simp: kernel_def iso_def bij_betw_def inj_on_one_iff')
+qed
+
+
 lemma (in group_hom) FactGroup_nonempty:
   assumes X: "X \<in> carrier (G Mod kernel G H h)"
   shows "X \<noteq> {}"
@@ -1083,7 +1103,7 @@ proof -
   proof -
     have "x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y \<in> N"
       using \<open>N \<lhd> G\<close> group.rcos_self normal.axioms(2) normal_imp_subgroup
-         subgroup.rcos_module_imp that by fastforce
+         subgroup.rcos_module_imp that by metis 
     with h have xy: "x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y \<in> kernel G H h"
       by blast
     have "h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h y) = h (x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y)"
@@ -1221,7 +1241,6 @@ proof (rule inj_onI)
     using A G.inv_equality G.inv_inv by blast
 qed
 
-(* NEW ========================================================================== *)
 lemma (in group_hom) inj_iff_trivial_ker:
   shows "inj_on h (carrier G) \<longleftrightarrow> kernel G H h = { \<one> }"
 proof
@@ -1236,7 +1255,6 @@ next
     using trivial_ker_imp_inj by simp
 qed
 
-(* NEW ========================================================================== *)
 lemma (in group_hom) induced_group_hom':
   assumes "subgroup I G" shows "group_hom (G \<lparr> carrier := I \<rparr>) H h"
 proof -
@@ -1247,13 +1265,11 @@ proof -
     unfolding group_hom_def group_hom_axioms_def by auto
 qed
 
-(* NEW ========================================================================== *)
 lemma (in group_hom) inj_on_subgroup_iff_trivial_ker:
   assumes "subgroup I G"
   shows "inj_on h I \<longleftrightarrow> kernel (G \<lparr> carrier := I \<rparr>) H h = { \<one> }"
   using group_hom.inj_iff_trivial_ker[OF induced_group_hom'[OF assms]] by simp
 
-(* NEW ========================================================================== *)
 lemma set_mult_hom:
   assumes "h \<in> hom G H" "I \<subseteq> carrier G" and "J \<subseteq> carrier G"
   shows "h ` (I <#>\<^bsub>G\<^esub> J) = (h ` I) <#>\<^bsub>H\<^esub> (h ` J)"
@@ -1281,13 +1297,11 @@ next
   qed
 qed
 
-(* NEW ========================================================================== *)
 corollary coset_hom:
   assumes "h \<in> hom G H" "I \<subseteq> carrier G" "a \<in> carrier G"
   shows "h ` (a <#\<^bsub>G\<^esub> I) = h a <#\<^bsub>H\<^esub> (h ` I)" and "h ` (I #>\<^bsub>G\<^esub> a) = (h ` I) #>\<^bsub>H\<^esub> h a"
   unfolding l_coset_eq_set_mult r_coset_eq_set_mult using assms set_mult_hom[OF assms(1)] by auto
 
-(* NEW ========================================================================== *)
 corollary (in group_hom) set_mult_ker_hom:
   assumes "I \<subseteq> carrier G"
   shows "h ` (I <#> (kernel G H h)) = h ` I" and "h ` ((kernel G H h) <#> I) = h ` I"
@@ -1305,8 +1319,145 @@ proof -
     using set_mult_hom[OF homh assms ker_in_carrier] set_mult_hom[OF homh ker_in_carrier assms] by simp+
 qed
 
+subsubsection\<open>Trivial homomorphisms\<close>
 
-subsection \<open>Theorems about Factor Groups and Direct product\<close>
+definition trivial_homomorphism where
+ "trivial_homomorphism G H f \<equiv> f \<in> hom G H \<and> (\<forall>x \<in> carrier G. f x = one H)"
+
+lemma trivial_homomorphism_kernel:
+   "trivial_homomorphism G H f \<longleftrightarrow> f \<in> hom G H \<and> kernel G H f = carrier G"
+  by (auto simp: trivial_homomorphism_def kernel_def)
+
+lemma (in group) trivial_homomorphism_image:
+   "trivial_homomorphism G H f \<longleftrightarrow> f \<in> hom G H \<and> f ` carrier G = {one H}"
+  by (auto simp: trivial_homomorphism_def) (metis one_closed rev_image_eqI)
+
+
+subsection \<open>Image kernel theorems\<close>
+
+lemma group_Int_image_ker:
+  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" and "inj_on (g \<circ> f) (carrier G)" "group G" "group H" "group K"
+  shows "(f ` carrier G) \<inter> (kernel H K g) = {\<one>\<^bsub>H\<^esub>}"
+proof -
+  have "(f ` carrier G) \<inter> (kernel H K g) \<subseteq> {\<one>\<^bsub>H\<^esub>}"
+    using assms
+    apply (clarsimp simp: kernel_def o_def)
+    by (metis group.is_monoid hom_one inj_on_eq_iff monoid.one_closed)
+  moreover have "one H \<in> f ` carrier G"
+    by (metis f \<open>group G\<close> \<open>group H\<close> group.is_monoid hom_one image_iff monoid.one_closed)
+  moreover have "one H \<in> kernel H K g"
+    apply (simp add: kernel_def)
+    using g group.is_monoid hom_one \<open>group H\<close> \<open>group K\<close> by blast
+  ultimately show ?thesis
+    by blast
+qed
+
+
+lemma group_sum_image_ker:
+  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" and eq: "(g \<circ> f) ` (carrier G) = carrier K"
+     and "group G" "group H" "group K"
+  shows "set_mult H (f ` carrier G) (kernel H K g) = carrier H" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    apply (auto simp: kernel_def set_mult_def)
+    by (meson Group.group_def assms(5) f hom_carrier image_eqI monoid.m_closed subset_iff)
+  have "\<exists>x\<in>carrier G. \<exists>z. z \<in> carrier H \<and> g z = \<one>\<^bsub>K\<^esub> \<and> y = f x \<otimes>\<^bsub>H\<^esub> z"
+    if y: "y \<in> carrier H" for y
+  proof -
+    have "g y \<in> carrier K"
+      using g hom_carrier that by blast
+    with assms obtain x where x: "x \<in> carrier G" "(g \<circ> f) x = g y"
+      by (metis image_iff)
+    with assms have "inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y \<in> carrier H"
+      by (metis group.subgroup_self hom_carrier image_subset_iff subgroup_def y)
+    moreover
+    have "g (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y) = \<one>\<^bsub>K\<^esub>"
+    proof -
+      have "inv\<^bsub>H\<^esub> f x \<in> carrier H"
+        by (meson \<open>group H\<close> f group.inv_closed hom_carrier image_subset_iff x(1))
+      then have "g (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y) = g (inv\<^bsub>H\<^esub> f x) \<otimes>\<^bsub>K\<^esub> g y"
+        by (simp add: hom_mult [OF g] y)
+      also have "\<dots> = inv\<^bsub>K\<^esub> (g (f x)) \<otimes>\<^bsub>K\<^esub> g y"
+        using assms x(1)
+        by (metis (mono_tags, lifting) group_hom.hom_inv group_hom.intro group_hom_axioms.intro hom_carrier image_subset_iff)
+      also have "\<dots> = \<one>\<^bsub>K\<^esub>"
+        using \<open>g y \<in> carrier K\<close> assms(6) group.l_inv x(2) by fastforce
+      finally show ?thesis .
+    qed
+    moreover
+    have "y = f x \<otimes>\<^bsub>H\<^esub> (inv\<^bsub>H\<^esub> f x \<otimes>\<^bsub>H\<^esub> y)"
+      using x y
+      by (metis (no_types, hide_lams) assms(5) f group.inv_solve_left group.subgroup_self hom_carrier image_subset_iff subgroup_def that)
+    ultimately
+    show ?thesis
+      using x y by force
+  qed
+  then show "?rhs \<subseteq> ?lhs"
+    by (auto simp: kernel_def set_mult_def)
+qed
+
+
+lemma group_sum_ker_image:
+  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" and eq: "(g \<circ> f) ` (carrier G) = carrier K"
+     and "group G" "group H" "group K"
+   shows "set_mult H (kernel H K g) (f ` carrier G) = carrier H" (is "?lhs = ?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    apply (auto simp: kernel_def set_mult_def)
+    by (meson Group.group_def \<open>group H\<close> f hom_carrier image_eqI monoid.m_closed subset_iff)
+  have "\<exists>w\<in>carrier H. \<exists>x \<in> carrier G. g w = \<one>\<^bsub>K\<^esub> \<and> y = w \<otimes>\<^bsub>H\<^esub> f x"
+    if y: "y \<in> carrier H" for y
+  proof -
+    have "g y \<in> carrier K"
+      using g hom_carrier that by blast
+    with assms obtain x where x: "x \<in> carrier G" "(g \<circ> f) x = g y"
+      by (metis image_iff)
+    with assms have carr: "(y \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> f x) \<in> carrier H"
+      by (metis group.subgroup_self hom_carrier image_subset_iff subgroup_def y)
+    moreover
+    have "g (y \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> f x) = \<one>\<^bsub>K\<^esub>"
+    proof -
+      have "inv\<^bsub>H\<^esub> f x \<in> carrier H"
+        by (meson \<open>group H\<close> f group.inv_closed hom_carrier image_subset_iff x(1))
+      then have "g (y \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> f x) = g y \<otimes>\<^bsub>K\<^esub> g (inv\<^bsub>H\<^esub> f x)"
+        by (simp add: hom_mult [OF g] y)
+      also have "\<dots> = g y \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> (g (f x))"
+        using assms x(1)
+        by (metis (mono_tags, lifting) group_hom.hom_inv group_hom.intro group_hom_axioms.intro hom_carrier image_subset_iff)
+      also have "\<dots> = \<one>\<^bsub>K\<^esub>"
+        using \<open>g y \<in> carrier K\<close> assms(6) group.l_inv x(2)
+        by (simp add: group.r_inv)
+      finally show ?thesis .
+    qed
+    moreover
+    have "y = (y \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> f x) \<otimes>\<^bsub>H\<^esub> f x"
+      using x y by (meson \<open>group H\<close> carr f group.inv_solve_right hom_carrier image_subset_iff)
+    ultimately
+    show ?thesis
+      using x y by force
+  qed
+  then show "?rhs \<subseteq> ?lhs"
+    by (force simp: kernel_def set_mult_def)
+qed
+
+lemma group_semidirect_sum_ker_image:
+  assumes "(g \<circ> f) \<in> iso G K" "f \<in> hom G H" "g \<in> hom H K" "group G" "group H" "group K"
+  shows "(kernel H K g) \<inter> (f ` carrier G) = {\<one>\<^bsub>H\<^esub>}"
+        "kernel H K g <#>\<^bsub>H\<^esub> (f ` carrier G) = carrier H"
+  using assms
+  by (simp_all add: iso_iff_mon_epi group_Int_image_ker group_sum_ker_image epi_def mon_def Int_commute [of "kernel H K g"])
+
+lemma group_semidirect_sum_image_ker:
+  assumes f: "f \<in> hom G H" and g: "g \<in> hom H K" and iso: "(g \<circ> f) \<in> iso G K"
+     and "group G" "group H" "group K"
+   shows "(f ` carrier G) \<inter> (kernel H K g) = {\<one>\<^bsub>H\<^esub>}"
+          "f ` carrier G <#>\<^bsub>H\<^esub> (kernel H K g) = carrier H"
+  using group_Int_image_ker [OF f g] group_sum_image_ker [OF f g] assms
+  by (simp_all add: iso_def bij_betw_def)
+
+
+
+subsection \<open>Factor Groups and Direct product\<close>
 
 lemma (in group) DirProd_normal : \<^marker>\<open>contributor \<open>Martin Baillon\<close>\<close>
   assumes "group K"

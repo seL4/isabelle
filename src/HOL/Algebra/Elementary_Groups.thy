@@ -5,7 +5,7 @@ section \<open>Elementary Group Constructions\<close>
 *)
 
 theory Elementary_Groups
-imports Generated_Groups
+imports Generated_Groups Multiplicative_Group "HOL-Library.Infinite_Set"
 begin
 
 subsection\<open>Direct sum/product lemmas\<close>
@@ -378,5 +378,290 @@ lemma group_int_pow_integer_group [simp]:
 lemma (in group) hom_integer_group_pow:
    "x \<in> carrier G \<Longrightarrow> pow G x \<in> hom integer_group G"
   by (rule homI) (auto simp: int_pow_mult)
+
+subsection\<open>Additive group of integers modulo n (n = 0 gives just the integers)\<close>
+
+definition integer_mod_group :: "nat \<Rightarrow> int monoid"
+  where
+  "integer_mod_group n \<equiv>
+     if n = 0 then integer_group
+     else \<lparr>carrier = {0..<int n}, monoid.mult = (\<lambda>x y. (x+y) mod int n), one = 0\<rparr>"
+
+lemma carrier_integer_mod_group:
+  "carrier(integer_mod_group n) = (if n=0 then UNIV else {0..<int n})"
+  by (simp add: integer_mod_group_def)
+
+lemma one_integer_mod_group[simp]: "one(integer_mod_group n) = 0"
+  by (simp add: integer_mod_group_def)
+
+lemma mult_integer_mod_group[simp]: "monoid.mult(integer_mod_group n) = (\<lambda>x y. (x + y) mod int n)"
+  by (simp add: integer_mod_group_def integer_group_def)
+
+lemma group_integer_mod_group [simp]: "group (integer_mod_group n)"
+proof -
+  have *: "\<exists>y\<ge>0. y < int n \<and> (y + x) mod int n = 0" if "x < int n" "0 \<le> x" for x
+  proof (cases "x=0")
+    case False
+    with that show ?thesis
+      by (rule_tac x="int n - x" in exI) auto
+  qed (use that in auto)
+  show ?thesis
+    apply (rule groupI)
+        apply (auto simp: integer_mod_group_def Bex_def *, presburger+)
+    done
+qed
+
+lemma inv_integer_mod_group[simp]:
+  "x \<in> carrier (integer_mod_group n) \<Longrightarrow> m_inv(integer_mod_group n) x = (-x) mod int n"
+  by (rule group.inv_equality [OF group_integer_mod_group]) (auto simp: integer_mod_group_def add.commute mod_add_right_eq)
+
+
+lemma pow_integer_mod_group [simp]:
+  fixes m::nat
+  shows "pow (integer_mod_group n) x m = (int m * x) mod int n"
+proof (cases "n=0")
+  case False
+  show ?thesis
+    by (induction m) (auto simp: add.commute mod_add_right_eq distrib_left mult.commute)
+qed (simp add: integer_mod_group_def)
+
+lemma int_pow_integer_mod_group:
+  "pow (integer_mod_group n) x m = (m * x) mod int n"
+proof -
+  have "inv\<^bsub>integer_mod_group n\<^esub> (- (m * x) mod int n) = m * x mod int n"
+    by (simp add: carrier_integer_mod_group mod_minus_eq)
+  then show ?thesis
+    by (simp add: int_pow_def2)
+qed
+
+lemma abelian_integer_mod_group [simp]: "comm_group(integer_mod_group n)"
+  by (simp add: add.commute group.group_comm_groupI)
+
+lemma integer_mod_group_0 [simp]: "0 \<in> carrier(integer_mod_group n)"
+  by (simp add: integer_mod_group_def)
+
+lemma integer_mod_group_1 [simp]: "1 \<in> carrier(integer_mod_group n) \<longleftrightarrow> (n \<noteq> 1)"
+  by (auto simp: integer_mod_group_def)
+
+lemma trivial_integer_mod_group: "trivial_group(integer_mod_group n) \<longleftrightarrow> n = 1"
+  (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+  by (simp add: trivial_group_def carrier_integer_mod_group set_eq_iff split: if_split_asm) (presburger+)
+next
+  assume ?rhs
+  then show ?lhs
+    by (force simp: trivial_group_def carrier_integer_mod_group)
+qed
+
+
+subsection\<open>Cyclic groups\<close>
+
+lemma (in group) subgroup_of_powers:
+  "x \<in> carrier G \<Longrightarrow> subgroup (range (\<lambda>n::int. x [^] n)) G"
+  apply (auto simp: subgroup_def image_iff simp flip: int_pow_mult int_pow_neg)
+  apply (metis group.int_pow_diff int_pow_closed is_group r_inv)
+  done
+
+lemma (in group) carrier_subgroup_generated_by_singleton:
+  assumes "x \<in> carrier G"
+  shows "carrier(subgroup_generated G {x}) = (range (\<lambda>n::int. x [^] n))"
+proof
+  show "carrier (subgroup_generated G {x}) \<subseteq> range (\<lambda>n::int. x [^] n)"
+  proof (rule subgroup_generated_minimal)
+    show "subgroup (range (\<lambda>n::int. x [^] n)) G"
+      using assms subgroup_of_powers by blast
+    show "{x} \<subseteq> range (\<lambda>n::int. x [^] n)"
+      by clarify (metis assms int_pow_1 range_eqI)
+  qed
+  have x: "x \<in> carrier (subgroup_generated G {x})"
+    using assms subgroup_generated_subset_carrier_subset by auto
+  show "range (\<lambda>n::int. x [^] n) \<subseteq> carrier (subgroup_generated G {x})"
+  proof clarify
+    fix n :: "int"
+    show "x [^] n \<in> carrier (subgroup_generated G {x})"
+        by (simp add: x subgroup_int_pow_closed subgroup_subgroup_generated)
+  qed
+qed
+
+
+definition cyclic_group
+  where "cyclic_group G \<equiv> \<exists>x \<in> carrier G. subgroup_generated G {x} = G"
+
+lemma (in group) cyclic_group:
+  "cyclic_group G \<longleftrightarrow> (\<exists>x \<in> carrier G. carrier G = range (\<lambda>n::int. x [^] n))"
+proof -
+  have "\<And>x. \<lbrakk>x \<in> carrier G; carrier G = range (\<lambda>n::int. x [^] n)\<rbrakk>
+         \<Longrightarrow> \<exists>x\<in>carrier G. subgroup_generated G {x} = G"
+    by (rule_tac x=x in bexI) (auto simp: generate_pow subgroup_generated_def intro!: monoid.equality)
+  then show ?thesis
+    unfolding cyclic_group_def
+    using carrier_subgroup_generated_by_singleton by fastforce
+qed
+
+lemma cyclic_integer_group [simp]: "cyclic_group integer_group"
+proof -
+  have *: "int n \<in> generate integer_group {1}" for n
+  proof (induction n)
+    case 0
+    then show ?case
+    using generate.simps by force
+  next
+    case (Suc n)
+    then show ?case
+    by simp (metis generate.simps insert_subset integer_group_def monoid.simps(1) subsetI)
+  qed
+  have **: "i \<in> generate integer_group {1}" for i
+  proof (cases i rule: int_cases)
+    case (nonneg n)
+    then show ?thesis
+      by (simp add: *)
+  next
+    case (neg n)
+    then have "-i \<in> generate integer_group {1}"
+      by (metis "*" add.inverse_inverse)
+    then have "- (-i) \<in> generate integer_group {1}"
+      by (metis UNIV_I group.generate_m_inv_closed group_integer_group integer_group_def inv_integer_group partial_object.select_convs(1) subsetI)
+    then show ?thesis
+      by simp
+  qed
+  show ?thesis
+    unfolding cyclic_group_def
+    by (rule_tac x=1 in bexI)
+       (auto simp: carrier_subgroup_generated ** intro: monoid.equality)
+qed
+
+lemma nontrivial_integer_group [simp]: "\<not> trivial_group integer_group"
+  using integer_mod_group_def trivial_integer_mod_group by presburger
+
+
+lemma (in group) cyclic_imp_abelian_group:
+  "cyclic_group G \<Longrightarrow> comm_group G"
+  apply (auto simp: cyclic_group comm_group_def is_group intro!: monoid_comm_monoidI)
+  apply (metis add.commute int_pow_mult rangeI)
+  done
+
+lemma trivial_imp_cyclic_group:
+   "trivial_group G \<Longrightarrow> cyclic_group G"
+  by (metis cyclic_group_def group.subgroup_generated_group_carrier insertI1 trivial_group_def)
+
+lemma (in group) cyclic_group_alt:
+   "cyclic_group G \<longleftrightarrow> (\<exists>x. subgroup_generated G {x} = G)"
+proof safe
+  fix x
+  assume *: "subgroup_generated G {x} = G"
+  show "cyclic_group G"
+  proof (cases "x \<in> carrier G")
+    case True
+    then show ?thesis
+      using \<open>subgroup_generated G {x} = G\<close> cyclic_group_def by blast
+  next
+    case False
+    then show ?thesis
+      by (metis "*" Int_empty_right Int_insert_right_if0 carrier_subgroup_generated generate_empty trivial_group trivial_imp_cyclic_group)
+  qed
+qed (auto simp: cyclic_group_def)
+
+lemma (in group) cyclic_group_generated:
+  "cyclic_group (subgroup_generated G {x})"
+  using group.cyclic_group_alt group_subgroup_generated subgroup_generated2 by blast
+
+lemma (in group) cyclic_group_epimorphic_image:
+  assumes "h \<in> epi G H" "cyclic_group G" "group H"
+  shows "cyclic_group H"
+proof -
+  interpret h: group_hom
+    using assms
+    by (simp add: group_hom_def group_hom_axioms_def is_group epi_def)
+  obtain x where "x \<in> carrier G" and x: "carrier G = range (\<lambda>n::int. x [^] n)" and eq: "carrier H = h ` carrier G"
+    using assms by (auto simp: cyclic_group epi_def)
+  have "h ` carrier G = range (\<lambda>n::int. h x [^]\<^bsub>H\<^esub> n)"
+    by (metis (no_types, lifting) \<open>x \<in> carrier G\<close> h.hom_int_pow image_cong image_image x)
+  then show ?thesis
+    using \<open>x \<in> carrier G\<close> eq h.cyclic_group by blast
+qed
+
+lemma isomorphic_group_cyclicity:
+   "\<lbrakk>G \<cong> H; group G; group H\<rbrakk> \<Longrightarrow> cyclic_group G \<longleftrightarrow> cyclic_group H"
+  by (meson ex_in_conv group.cyclic_group_epimorphic_image group.iso_sym is_iso_def iso_iff_mon_epi)
+
+
+lemma (in group)
+  assumes "x \<in> carrier G"
+  shows finite_cyclic_subgroup:
+        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> x [^] n = \<one>)" (is "?fin \<longleftrightarrow> ?nat1")
+    and infinite_cyclic_subgroup:
+        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>m n::nat. x [^] m = x [^] n \<longrightarrow> m = n)" (is "\<not> ?fin \<longleftrightarrow> ?nateq")
+    and finite_cyclic_subgroup_int:
+        "finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<exists>i::int. i \<noteq> 0 \<and> x [^] i = \<one>)" (is "?fin \<longleftrightarrow> ?int1")
+    and infinite_cyclic_subgroup_int:
+        "infinite(carrier(subgroup_generated G {x})) \<longleftrightarrow> (\<forall>i j::int. x [^] i = x [^] j \<longrightarrow> i = j)" (is "\<not> ?fin \<longleftrightarrow> ?inteq")
+proof -
+  have 1: "\<not> ?fin" if ?nateq
+  proof -
+    have "infinite (range (\<lambda>n::nat. x [^] n))"
+      using that range_inj_infinite [of "(\<lambda>n::nat. x [^] n)"] by (auto simp: inj_on_def)
+    moreover have "range (\<lambda>n::nat. x [^] n) \<subseteq> range (\<lambda>i::int. x [^] i)"
+      apply clarify
+      by (metis assms group.int_pow_neg int_pow_closed int_pow_neg_int is_group local.inv_equality nat_pow_closed r_inv rangeI)
+    ultimately show ?thesis
+      using carrier_subgroup_generated_by_singleton [OF assms] finite_subset by auto
+  qed
+  have 2: "m = n" if mn: "x [^] m = x [^] n" and eq [rule_format]: "?inteq" for m n::nat
+    using eq [of "int m" "int n"]
+    by (simp add: int_pow_int mn)
+  have 3: ?nat1 if non: "\<not> ?inteq"
+  proof -
+    obtain i j::int where eq: "x [^] i = x [^] j" and "i \<noteq> j"
+      using non by auto
+    show ?thesis
+    proof (cases i j rule: linorder_cases)
+      case less
+      then have [simp]: "x [^] (j - i) = \<one>"
+        by (simp add: eq assms int_pow_diff)
+      show ?thesis
+        using less by (rule_tac x="nat (j-i)" in exI) auto
+    next
+      case greater
+      then have [simp]: "x [^] (i - j) = \<one>"
+        by (simp add: eq assms int_pow_diff)
+      then show ?thesis
+        using greater by (rule_tac x="nat (i-j)" in exI) auto
+    qed (use \<open>i \<noteq> j\<close> in auto)
+  qed
+  have 4: "\<exists>i::int. (i \<noteq> 0) \<and> x [^] i = \<one>" if "n \<noteq> 0" "x [^] n = \<one>" for n::nat
+    apply (rule_tac x="int n" in exI)
+    by (simp add: int_pow_int that)
+  have 5: "finite (carrier (subgroup_generated G {x}))" if "i \<noteq> 0" and 1: "x [^] i = \<one>" for i::int
+  proof -
+    obtain n::nat where n: "n > 0" "x [^] n = \<one>"
+      using "1" "3" \<open>i \<noteq> 0\<close> by fastforce
+    have "x [^] a \<in> ([^]) x ` {0..<n}" for a::int
+    proof
+      show "x [^] a = x [^] nat (a mod int n)"
+        using n
+        by simp (metis (no_types, lifting) assms dvd_minus_mod dvd_trans int_pow_eq int_pow_eq_id int_pow_int)
+      show "nat (a mod int n) \<in> {0..<n}"
+        using n  apply (simp add:  split: split_nat)
+        using Euclidean_Division.pos_mod_bound by presburger
+    qed
+    then have "carrier (subgroup_generated G {x}) \<subseteq> ([^]) x ` {0..<n}"
+      using carrier_subgroup_generated_by_singleton [OF assms] by auto
+    then show ?thesis
+      using finite_surj by blast
+  qed
+  show "?fin \<longleftrightarrow> ?nat1" "\<not> ?fin \<longleftrightarrow> ?nateq" "?fin \<longleftrightarrow> ?int1" "\<not> ?fin \<longleftrightarrow> ?inteq"
+    using 1 2 3 4 5 by meson+
+qed
+
+lemma (in group) finite_cyclic_subgroup_order:
+   "x \<in> carrier G \<Longrightarrow> finite(carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x \<noteq> 0"
+  by (simp add: finite_cyclic_subgroup ord_eq_0)
+
+lemma (in group) infinite_cyclic_subgroup_order:
+   "x \<in> carrier G \<Longrightarrow> infinite (carrier(subgroup_generated G {x})) \<longleftrightarrow> ord x = 0"
+  by (simp add: finite_cyclic_subgroup_order)
+
 
 end
