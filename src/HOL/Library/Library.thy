@@ -64,6 +64,7 @@ imports
   Perm
   Permutation
   Permutations
+  Poly_Mapping
   Power_By_Squaring
   Preorder
   Product_Plus
