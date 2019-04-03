@@ -43,6 +43,8 @@ sig
   val binding0: T -> binding
   val map_binding: (T -> T) -> binding -> binding
   val dest_binding: binding -> T * Position.T
+  val path_of_binding: binding -> T
+  val pos_of_binding: binding -> Position.T
   val implode_binding: binding -> string
   val explode_binding: string * Position.T -> binding
   val explode_binding0: string -> binding
@@ -268,8 +270,10 @@ fun binding0 path = binding (path, Position.none);
 fun map_binding f (Binding (path, pos)) = binding (f path, pos);
 
 fun dest_binding (Binding args) = args;
+val path_of_binding = dest_binding #> #1;
+val pos_of_binding = dest_binding #> #2;
 
-val implode_binding = dest_binding #> #1 #> implode_path;
+val implode_binding = path_of_binding #> implode_path;
 
 val explode_binding = binding o explode_pos;
 fun explode_binding0 s = explode_binding (s, Position.none);
