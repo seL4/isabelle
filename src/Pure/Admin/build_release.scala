@@ -653,7 +653,7 @@ rm -rf "${DIST_NAME}-old"
         } yield (bundle_info.name, bundle_info)
 
       val afp_link =
-        HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
+        HTML.link(AFP.repos_source + "/rev/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),
