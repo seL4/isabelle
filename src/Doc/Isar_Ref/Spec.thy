@@ -665,7 +665,7 @@ text \<open>
     ;
 
     definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
-      @{syntax mixfix}? @'=' @{syntax term} + @'and');
+      @{syntax mixfix}? '=' @{syntax term} + @'and');
   \<close>
 
   The core of each interpretation command is a locale expression \<open>expr\<close>; the
@@ -1188,20 +1188,103 @@ text \<open>
 \<close>
 
 
-section \<open>External file dependencies\<close>
+section \<open>Generated files and external files\<close>
 
 text \<open>
-  \begin{matharray}{rcl}
+  Write access to the physical file-system is incompatible with the stateless
+  model of processing Isabelle documents. To avoid bad effects, the theory
+  context maintains a logical ``file-system'' for generated files, as a
+  mapping of structured file-names to content. Names need to be unique for
+  each theory node. When exporting generated files for other purposes, the
+  (long) theory name is prefixed for extra qualification, but there are also
+  means to smash overlong paths. See also @{cite "isabelle-system"} for
+  \<^theory_text>\<open>export_files\<close> within session \<^verbatim>\<open>ROOT\<close> files, together with @{tool build}
+  option \<^verbatim>\<open>-e\<close>.
+
+  \begin{matharray}{rcll}
+    @{command_def "generate_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "export_generated_files"} & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "compile_generated_files"} & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "external_file"} & : & \<open>any \<rightarrow> any\<close> \\
   \end{matharray}
 
-  \<^rail>\<open>@@{command external_file} @{syntax name} ';'?\<close>
+  \<^rail>\<open>
+    @@{command generate_file} path '=' content
+    ;
+    path: @{syntax embedded}
+    ;
+    content: @{syntax embedded}
+    ;
+    @@{command export_generated_files} (files_in_theory + @'and')
+    ;
+    files_in_theory: (@'_' | (path+)) (('(' @'in' @{syntax name} ')')?)
+    ;
+    @@{command compile_generated_files} (files_in_theory + @'and') \<newline>
+      (@'external_files' (external_files + @'and'))? \<newline>
+      (@'export_files' (export_files + @'and'))? \<newline>
+      (@'export_prefix' path)?
+    ;
+    external_files: (path+) (('(' @'in' path ')')?)
+    ;
+    export_files: (path+) (executable?)
+    ;
+    executable: '(' ('exe' | 'executable') ')'
+    ;
+    @@{command external_file} @{syntax name} ';'?
+  \<close>
+
+  \<^descr> \<^theory_text>\<open>generate_file path = content\<close> augments the table of generated files
+  within the current theory by a new entry: duplicates are not allowed. The
+  name extension determines a pre-existent file-type; the \<open>content\<close> is a
+  string that is preprocessed according to rules of this file-type.
+
+  For example, Isabelle/Pure supports \<^verbatim>\<open>.hs\<close> as file-type for Haskell:
+  embedded cartouches are evaluated as Isabelle/ML expressions of type
+  \<^ML_type>\<open>string\<close>, the result is inlined in Haskell string syntax.
+
+  \<^descr> \<^theory_text>\<open>export_generated_files paths (in thy)\<close> retrieves named generated files
+  from the given theory (that needs be reachable via imports of the current
+  one). By default, the current theory node is used. Using ``\<^verbatim>\<open>_\<close>''
+  (underscore) instead of explicit path names refers to \emph{all} files of a
+  theory node.
+
+  The overall list of files is prefixed with the respective (long) theory name
+  and exported to the session database. In Isabelle/jEdit the result can be
+  browsed via the virtual file-system with prefix ``\<^verbatim>\<open>isabelle-export:\<close>''
+  (using the regular file-browser).
+
+  \<^descr> \<^theory_text>\<open>compile_generated_files paths (in thy) where compile_body\<close> retrieves
+  named generated files as for \<^theory_text>\<open>export_generated_files\<close> and writes them into
+  a temporary directory, such that the \<open>compile_body\<close> may operate on them as
+  an ML function of type \<^ML_type>\<open>Path.T -> unit\<close>. This may create further
+  files, e.g.\ executables produced by a compiler that is invoked as external
+  process (e.g.\ via \<^ML>\<open>Isabelle_System.bash\<close>), or any other files.
+
+  The option ``\<^theory_text>\<open>external_files paths (in base_dir)\<close>'' copies files from the
+  physical file-system into the temporary directory, \emph{before} invoking
+  \<open>compile_body\<close>. The \<open>base_dir\<close> prefix is removed from each of the \<open>paths\<close>,
+  but the remaining sub-directory structure is reconstructed in the target
+  directory.
+
+  The option ``\<^theory_text>\<open>export_files paths\<close>'' exports the specified files from the
+  temporary directory to the session database, \emph{after} invoking
+  \<open>compile_body\<close>. Entries may be decorated with ``\<^theory_text>\<open>(exe)\<close>'' to say that it is
+  a platform-specific executable program: the executable file-attribute will
+  be set, and on Windows the \<^verbatim>\<open>.exe\<close> file-extension will be included;
+  ``\<^theory_text>\<open>(executable)\<close>'' only refers to the file-attribute, without special
+  treatment of the \<^verbatim>\<open>.exe\<close> extension.
+
+  The option ``\<^theory_text>\<open>export_prefix path\<close>'' specifies an extra path prefix for all
+  exports of \<^theory_text>\<open>export_files\<close> above.
 
   \<^descr> \<^theory_text>\<open>external_file name\<close> declares the formal dependency on the given file
   name, such that the Isabelle build process knows about it (see also @{cite
-  "isabelle-system"}). The file can be read e.g.\ in Isabelle/ML via \<^ML>\<open>File.read\<close>, without specific management by the Prover IDE.
+  "isabelle-system"}). This is required for any files mentioned in
+  \<^theory_text>\<open>compile_generated_files / external_files\<close> above, in order to document
+  source dependencies properly. It is also possible to use \<^theory_text>\<open>external_file\<close>
+  alone, e.g.\ when other Isabelle/ML tools use \<^ML>\<open>File.read\<close>, without
+  specific management of content by the Prover IDE.
 \<close>
-
 
 
 section \<open>Primitive specification elements\<close>

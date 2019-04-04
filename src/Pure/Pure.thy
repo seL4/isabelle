@@ -23,6 +23,7 @@ keywords
   and "external_file" "bibtex_file" :: thy_load
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
+  and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
@@ -123,29 +124,46 @@ local
   val _ =
     Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>
       "generate source file, with antiquotations"
-      (Parse.position Parse.path -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
+      (Parse.path_binding -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
         >> Generated_Files.generate_file_cmd);
+
+
+  val files_in_theory =
+    (Parse.underscore >> K [] || Scan.repeat1 Parse.path_binding) --
+      Scan.option (\<^keyword>\<open>(\<close> |-- Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.theory_name --| \<^keyword>\<open>)\<close>));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>export_generated_files\<close>
-      "export generated files from this or other theories"
-      (Scan.repeat Parse.name_position >> (fn names =>
+      "export generated files from given theories"
+      (Parse.and_list1 files_in_theory >> (fn args =>
         Toplevel.keep (fn st =>
-          let
-            val ctxt = Toplevel.context_of st;
-            val thy = Toplevel.theory_of st;
-            val other_thys =
-              if null names then [thy]
-              else map (Theory.check {long = false} ctxt) names;
-            val paths = Generated_Files.export_files thy other_thys;
-          in
-            if not (null paths) then
-              (writeln (Export.message thy Path.current);
-               writeln (cat_lines (paths |> map (fn (path, pos) =>
-                Markup.markup (Markup.entityN, Position.def_properties_of pos)
-                  (quote (Path.implode path))))))
-            else ()
-          end)));
+          Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)));
+
+
+  val base_dir =
+    Scan.optional (\<^keyword>\<open>(\<close> |--
+      Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.position Parse.path --| \<^keyword>\<open>)\<close>)) ("", Position.none);
+
+  val external_files = Scan.repeat1 (Parse.position Parse.path) -- base_dir;
+
+  val exe = Parse.reserved "exe" >> K true || Parse.reserved "executable" >> K false;
+  val executable = \<^keyword>\<open>(\<close> |-- Parse.!!! (exe --| \<^keyword>\<open>)\<close>) >> SOME || Scan.succeed NONE;
+
+  val export_files = Scan.repeat1 Parse.path_binding -- executable;
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>compile_generated_files\<close>
+      "compile generated files and export results"
+      (Parse.and_list files_in_theory --
+        Scan.optional (\<^keyword>\<open>external_files\<close> |-- Parse.!!! (Parse.and_list1 external_files)) [] --
+        Scan.optional (\<^keyword>\<open>export_files\<close> |-- Parse.!!! (Parse.and_list1 export_files)) [] --
+        Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("", Position.none) --
+        (Parse.where_ |-- Parse.!!! Parse.ML_source)
+        >> (fn ((((args, external), export), export_prefix), source) =>
+          Toplevel.keep (fn st =>
+            Generated_Files.compile_generated_files_cmd
+              (Toplevel.context_of st) args external export export_prefix source)));
+
 in end\<close>
 
 

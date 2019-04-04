@@ -15,6 +15,7 @@ sig
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
+  val bash_output_check: string -> string
   val bash_output: string -> string * int
   val bash: string -> int
 end;
@@ -23,6 +24,11 @@ structure Isabelle_System: ISABELLE_SYSTEM =
 struct
 
 (* bash *)
+
+fun bash_output_check s =
+  (case Bash.process s of
+    {rc = 0, out, ...} => (trim_line out)
+  | {err, ...} => error (trim_line err));
 
 fun bash_output s =
   let

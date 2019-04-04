@@ -64,7 +64,7 @@ val command_parser =
       let
         val ctxt = Toplevel.context_of state;
         val thy = Toplevel.theory_of state;
-        val session_dir = Resources.check_dir ctxt (Resources.master_directory thy) dir;
+        val session_dir = Resources.check_dir ctxt NONE dir;
 
         val _ =
           (the_list parent @ sessions) |> List.app (fn arg =>
@@ -88,19 +88,19 @@ val command_parser =
                 Resources.import_name session session_dir s
                   handle ERROR msg => error (msg ^ Position.here pos);
               val theory_path = the_default node_name (Resources.known_theory theory_name);
-              val _ = Resources.check_file ctxt Path.current (Path.implode theory_path, pos);
+              val _ = Resources.check_file ctxt (SOME Path.current) (Path.implode theory_path, pos);
             in () end);
 
         val _ =
           document_files |> List.app (fn (doc_dir, doc_files) =>
             let
-              val dir = Resources.check_dir ctxt session_dir doc_dir;
-              val _ = List.app (ignore o Resources.check_file ctxt dir) doc_files;
+              val dir = Resources.check_dir ctxt (SOME session_dir) doc_dir;
+              val _ = List.app (ignore o Resources.check_file ctxt (SOME dir)) doc_files;
             in () end);
 
         val _ =
           export_files |> List.app (fn ((export_dir, _), _) =>
-            ignore (Resources.check_path ctxt session_dir export_dir));
+            ignore (Resources.check_path ctxt (SOME session_dir) export_dir));
       in () end));
 
 end;
