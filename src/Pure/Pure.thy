@@ -128,14 +128,14 @@ local
         >> Generated_Files.generate_file_cmd);
 
 
-  val files_in =
+  val files_in_theory =
     (Parse.underscore >> K [] || Scan.repeat1 Parse.path_binding) --
       Scan.option (\<^keyword>\<open>(\<close> |-- Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.theory_name --| \<^keyword>\<open>)\<close>));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>export_generated_files\<close>
       "export generated files from given theories"
-      (Parse.and_list1 files_in >> (fn args =>
+      (Parse.and_list1 files_in_theory >> (fn args =>
         Toplevel.keep (fn st =>
           Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)));
 
@@ -154,7 +154,7 @@ local
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>compile_generated_files\<close>
       "compile generated files and export results"
-      (Parse.and_list files_in --
+      (Parse.and_list files_in_theory --
         Scan.optional (\<^keyword>\<open>external_files\<close> |-- Parse.!!! (Parse.and_list1 external_files)) [] --
         Scan.optional (\<^keyword>\<open>export_files\<close> |-- Parse.!!! (Parse.and_list1 export_files)) [] --
         Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("", Position.none) --
