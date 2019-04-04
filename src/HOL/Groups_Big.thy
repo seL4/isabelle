@@ -703,6 +703,31 @@ proof -
   qed
 qed
 
+lemma sum_diff1'_aux:
+  fixes f :: "'a \<Rightarrow> 'b::ab_group_add"
+  assumes "finite F" "{i \<in> I. f i \<noteq> 0} \<subseteq> F"
+  shows "sum' f (I - {i}) = (if i \<in> I then sum' f I - f i else sum' f I)"
+  using assms
+proof induct
+  case (insert x F)
+  have 1: "finite {x \<in> I. f x \<noteq> 0} \<Longrightarrow> finite {x \<in> I. x \<noteq> i \<and> f x \<noteq> 0}"
+    by (erule rev_finite_subset) auto
+  have 2: "finite {x \<in> I. x \<noteq> i \<and> f x \<noteq> 0} \<Longrightarrow> finite {x \<in> I. f x \<noteq> 0}"
+    apply (drule finite_insert [THEN iffD2])
+    by (erule rev_finite_subset) auto
+  have 3: "finite {i \<in> I. f i \<noteq> 0}"
+    using finite_subset insert by blast
+  show ?case
+    using insert sum_diff1 [of "{i \<in> I. f i \<noteq> 0}" f i]
+    by (auto simp: sum.G_def 1 2 3 set_diff_eq conj_ac)
+qed (simp add: sum.G_def)
+
+lemma sum_diff1':
+  fixes f :: "'a \<Rightarrow> 'b::ab_group_add"
+  assumes "finite {i \<in> I. f i \<noteq> 0}"
+  shows "sum' f (I - {i}) = (if i \<in> I then sum' f I - f i else sum' f I)"
+  by (rule sum_diff1'_aux [OF assms order_refl])
+
 lemma (in ordered_comm_monoid_add) sum_mono:
   "(\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i) \<Longrightarrow> (\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
   by (induct K rule: infinite_finite_induct) (use add_mono in auto)

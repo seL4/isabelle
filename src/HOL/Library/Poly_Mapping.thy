@@ -9,10 +9,10 @@ theory Poly_Mapping
 imports Groups_Big_Fun Fun_Lexorder More_List
 begin
 
-subsection \<open>Preliminary: auxiliary operations for \qt{almost everywhere zero}\<close>
+subsection \<open>Preliminary: auxiliary operations for \emph{almost everywhere zero}\<close>
 
 text \<open>
-  A central notion for polynomials are functions being \qt{almost everywhere zero}.
+  A central notion for polynomials are functions being \emph{almost everywhere zero}.
   For these we provide some auxiliary definitions and lemmas.
 \<close>
 
@@ -258,7 +258,7 @@ lemma poly_mapping_eq_iff: "a = b \<longleftrightarrow> lookup a = lookup b"
   by auto
 
 text \<open>
-  We model the universe of functions being \qt{almost everywhere zero}
+  We model the universe of functions being \emph{almost everywhere zero}
   by means of a separate type @{typ "('a, 'b) poly_mapping"}.
   For convenience we provide a suggestive infix syntax which
   is a variant of the usual function space syntax.  Conversion between both types
@@ -289,7 +289,7 @@ text \<open>
   \begin{enumerate}
     \item A clever nesting as @{typ "(nat \<Rightarrow>\<^sub>0 nat) \<Rightarrow>\<^sub>0 'a"}
       later in theory \<open>MPoly\<close> gives a suitable
-      representation type for polynomials \qt{almost for free}:
+      representation type for polynomials \emph{almost for free}:
       Interpreting @{typ "nat \<Rightarrow>\<^sub>0 nat"} as a mapping from variable identifiers
       to exponents yields monomials, and the whole type maps monomials
       to coefficients.  Lets call this the \emph{ultimate interpretation}.
@@ -297,10 +297,10 @@ text \<open>
       is apt to direct implementation using code generation
       \cite{Haftmann-Nipkow:2010:code}.
   \end{enumerate}
-  Note that despite the names \qt{mapping} and \qt{lookup} suggest something
+  Note that despite the names \emph{mapping} and \emph{lookup} suggest something
   implementation-near, it is best to keep @{typ "'a \<Rightarrow>\<^sub>0 'b"} as an abstract
   \emph{algebraic} type
-  providing operations like \qt{addition}, \qt{multiplication} without any notion
+  providing operations like \emph{addition}, \emph{multiplication} without any notion
   of key-order, data structures etc.  This implementations-specific notions are
   easily introduced later for particular implementations but do not provide any
   gain for specifying logical properties of polynomials.
@@ -319,7 +319,7 @@ text \<open>
   number of type classes.
 
   The operations themselves are specified using \<open>lift_definition\<close>, where
-  the proofs of the \qt{almost everywhere zero} property can be significantly involved.
+  the proofs of the \emph{almost everywhere zero} property can be significantly involved.
 
   The @{const lookup} operation is supposed to be usable explicitly (unless in
   other situations where the morphisms between types are somehow internal
