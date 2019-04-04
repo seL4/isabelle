@@ -62,6 +62,11 @@ defaults to 0.
 Isabelle/jEdit: various virtual file-systems provide access to Isabelle
 resources, notably via "favorites:" (or "Edit Favorites").
 
+* Further markup and rendering for "plain text" (e.g. informal prose)
+and "raw text" (e.g. verbatim sources). This improves the visual
+appearance of formal comments inside the term language, or in general
+for repeated alternation of formal and informal text.
+
 * Action "isabelle-export-browser" points the File Browser to the theory
 exports of the current buffer, based on the "isabelle-export:" virtual
 file-system. The directory view needs to be reloaded manually to follow
