@@ -44,7 +44,7 @@ INCOMPATIBILITY.
 * Commands 'generate_file', 'export_generated_files', and
 'compile_generated_files' support a stateless (PIDE-conformant) model
 for generated sources and compiled binaries of other languages. The
-compilation processed is managed in Isabelle/ML, and results exported to
+compilation process is managed in Isabelle/ML, and results exported to
 the session database for further use (e.g. with "isabelle export" or
 "isabelle build -e").
 
