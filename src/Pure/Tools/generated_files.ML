@@ -267,9 +267,10 @@ fun compile_generated_files ctxt args external export export_prefix source =
             ML_Lex.read_source source @ ML_Lex.read ")");
       val _ =
         export |> List.app (fn (bindings, executable) =>
-          bindings |> List.app (fn binding =>
+          bindings |> List.app (fn binding0 =>
             let
-              val (path, pos) = Path.dest_binding binding |>> executable = SOME true ? Path.exe;
+              val binding = binding0 |> Path.map_binding (executable = SOME true ? Path.exe);
+              val (path, pos) = Path.dest_binding binding;
               val content =
                 (case try File.read (Path.append dir path) of
                   SOME context => context
