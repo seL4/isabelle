@@ -74,7 +74,10 @@ structure Data = Theory_Data
 );
 
 fun add_files (binding, content) =
-  let val (path, pos) = Path.dest_binding binding in
+  let
+    val _ = Path.proper_binding binding;
+    val (path, pos) = Path.dest_binding binding;
+  in
     (Data.map o @{apply 3(1)}) (fn files =>
       (case AList.lookup (op =) files path of
         SOME (pos', _) =>

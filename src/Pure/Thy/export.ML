@@ -37,7 +37,7 @@ fun export_params ({theory = thy, binding, executable, compress}: params) blob =
    {id = Position.get_id (Position.thread_data ()),
     serial = serial (),
     theory_name = Context.theory_long_name thy,
-    name = Path.implode_binding binding,
+    name = Path.implode_binding (tap Path.proper_binding binding),
     executable = executable,
     compress = compress} blob);
 

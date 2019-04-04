@@ -157,7 +157,7 @@ local
       (Parse.and_list files_in --
         Scan.optional (\<^keyword>\<open>external_files\<close> |-- Parse.!!! (Parse.and_list1 external_files)) [] --
         Scan.optional (\<^keyword>\<open>export_files\<close> |-- Parse.!!! (Parse.and_list1 export_files)) [] --
-        Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("compiled", Position.none) --
+        Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("", Position.none) --
         (Parse.where_ |-- Parse.!!! Parse.ML_source)
         >> (fn ((((args, external), export), export_prefix), source) =>
           Toplevel.keep (fn st =>
