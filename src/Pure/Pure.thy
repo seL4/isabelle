@@ -23,6 +23,7 @@ keywords
   and "external_file" "bibtex_file" :: thy_load
   and "generate_file" :: thy_decl
   and "export_generated_files" :: diag
+  and "compile_generated_files" :: diag and "external_files" "export_files" "export_prefix"
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
@@ -126,6 +127,7 @@ local
       (Parse.path_binding -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
         >> Generated_Files.generate_file_cmd);
 
+
   val files_in =
     (Parse.underscore >> K [] || Scan.repeat1 Parse.path_binding) --
       Scan.option (\<^keyword>\<open>in\<close> |-- Parse.!!! Parse.theory_name);
@@ -136,6 +138,28 @@ local
       (Parse.and_list1 files_in >> (fn args =>
         Toplevel.keep (fn st =>
           Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)))
+
+
+  val exe = Parse.reserved "exe" >> K true || Parse.reserved "executable" >> K false;
+
+  val executable =
+    \<^keyword>\<open>(\<close> |-- Parse.!!! (exe --| \<^keyword>\<open>)\<close>) >> SOME || Scan.succeed NONE;
+
+  val export_files = Scan.repeat1 Parse.path_binding -- executable;
+
+  val _ =
+    Outer_Syntax.command \<^command_keyword>\<open>compile_generated_files\<close>
+      "compile generated files and export results"
+      (Parse.and_list files_in --
+        Scan.optional (\<^keyword>\<open>external_files\<close> |--
+          Parse.!!! (Scan.repeat1 (Parse.position Parse.path))) [] --
+        Scan.optional (\<^keyword>\<open>export_files\<close> |-- Parse.!!! (Parse.and_list1 export_files)) [] --
+        Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("compiled", Position.none) --
+        (Parse.where_ |-- Parse.!!! Parse.ML_source)
+        >> (fn ((((args, external), export), export_prefix), source) =>
+          Toplevel.keep (fn st =>
+            Generated_Files.compile_generated_files_cmd
+              (Toplevel.context_of st) args external export export_prefix source)));
 
 in end\<close>
 

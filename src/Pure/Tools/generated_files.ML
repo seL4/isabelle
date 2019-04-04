@@ -9,10 +9,12 @@ sig
   val add_files: Path.binding * string -> theory -> theory
   type file = {path: Path.T, pos: Position.T, content: string}
   val file_binding: file -> Path.binding
+  val file_markup: file -> Markup.T
   val print_file: file -> string
+  val report_file: Proof.context -> Position.T -> file -> unit
   val get_files: theory -> file list
   val get_file: theory -> Path.binding -> file
-  val get_files_in: Path.binding list * theory -> file list
+  val get_files_in: Path.binding list * theory -> (file * Position.T) list
   val check_files_in: Proof.context ->
     (string * Position.T) list * (string * Position.T) option -> Path.binding list * theory
   val write_file: Path.T -> file -> unit
@@ -31,6 +33,13 @@ sig
   val export_generated_files: Proof.context -> (Path.binding list * theory) list -> unit
   val export_generated_files_cmd: Proof.context ->
     ((string * Position.T) list * (string * Position.T) option) list -> unit
+  val with_compile_dir: (Path.T -> unit) -> unit
+  val compile_generated_files: Proof.context -> (Path.binding list * theory) list ->
+    Path.T list -> (Path.binding list * bool option) list -> Path.binding -> Input.source -> unit
+  val compile_generated_files_cmd: Proof.context ->
+    ((string * Position.T) list * (string * Position.T) option) list ->
+    (string * Position.T) list -> ((string * Position.T) list * bool option) list ->
+    string * Position.T -> Input.source -> unit
 end;
 
 structure Generated_Files: GENERATED_FILES =
@@ -76,9 +85,12 @@ type file = {path: Path.T, pos: Position.T, content: string};
 
 fun file_binding (file: file) = Path.binding (#path file, #pos file);
 
-fun print_file (file: file) =
-  quote (Path.implode (#path file))
-  |> Markup.markup (Markup.entityN, Position.def_properties_of (#pos file));
+fun file_markup (file: file) = (Markup.entityN, Position.def_properties_of (#pos file));
+
+fun print_file (file: file) = Markup.markup (file_markup file) (quote (Path.implode (#path file)));
+
+fun report_file ctxt pos file = Context_Position.report ctxt pos (file_markup file);
+
 
 fun get_files thy =
   Data.get thy |> #1 |> rev |> map (fn (path, (pos, content)) =>
@@ -93,8 +105,9 @@ fun get_file thy binding =
           " in theory " ^ quote (Context.theory_long_name thy) ^ Position.here pos))
   end;
 
-fun get_files_in ([], thy) = get_files thy
-  | get_files_in (files, thy) = map (get_file thy) files;
+fun get_files_in ([], thy) = map (rpair Position.none) (get_files thy)
+  | get_files_in (files, thy) =
+      map (fn binding => (get_file thy binding, Path.pos_of_binding binding)) files;
 
 
 (* check and output files *)
@@ -196,6 +209,8 @@ fun read_source ctxt (file_type: file_type) source =
 
 (** Isar commands **)
 
+(* generate_file *)
+
 fun generate_file (binding, source) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -212,9 +227,12 @@ fun generate_file (binding, source) lthy =
 fun generate_file_cmd (file, source) lthy =
   generate_file (Path.explode_binding file, source) lthy;
 
+
+(* export_generated_files *)
+
 fun export_generated_files ctxt args =
   let val thy = Proof_Context.theory_of ctxt in
-    (case maps get_files_in args of
+    (case map #1 (maps get_files_in args) of
       [] => ()
     | files =>
        (List.app (export_file thy) files;
@@ -224,7 +242,58 @@ fun export_generated_files ctxt args =
 
 fun export_generated_files_cmd ctxt args =
   export_generated_files ctxt (map (check_files_in ctxt) args);
- 
+
+
+(* compile_generated_files *)
+
+val compile_dir = Config.declare_string ("compile_dir", \<^here>) (K "");
+
+fun with_compile_dir body : unit =
+  body (Path.explode (Config.get (Context.the_local_context ()) compile_dir));
+
+fun compile_generated_files ctxt args external export export_prefix source =
+  Isabelle_System.with_tmp_dir "compile" (fn dir =>
+    let
+      val thy = Proof_Context.theory_of ctxt;
+
+      val files = maps get_files_in args;
+      val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
+      val _ = List.app (write_file dir o #1) files;
+      val _ = external |> List.app (fn file => Isabelle_System.copy_file file dir);
+      val _ =
+        ML_Context.eval_in (SOME (Config.put compile_dir (Path.implode dir) ctxt))
+          ML_Compiler.flags (Input.pos_of source)
+          (ML_Lex.read "Generated_Files.with_compile_dir (" @
+            ML_Lex.read_source source @ ML_Lex.read ")");
+      val _ =
+        export |> List.app (fn (bindings, executable) =>
+          bindings |> List.app (fn binding =>
+            let
+              val (path, pos) = Path.dest_binding binding |>> executable = SOME true ? Path.exe;
+              val content =
+                (case try File.read (Path.append dir path) of
+                  SOME context => context
+                | NONE => error ("Missing result file " ^ Path.print path ^ Position.here pos));
+              val _ = Export.report_export thy export_prefix;
+              val binding' =
+                Path.map_binding (Path.append (Path.path_of_binding export_prefix)) binding;
+            in
+              (if is_some executable then Export.export_executable else Export.export)
+                thy binding' [content]
+            end));
+      val _ =
+        if null export then ()
+        else writeln (Export.message thy (Path.path_of_binding export_prefix));
+    in () end);
+
+fun compile_generated_files_cmd ctxt args external export export_prefix source =
+  compile_generated_files ctxt
+    (map (check_files_in ctxt) args)
+    (map (Resources.check_file ctxt NONE) external)
+    ((map o apfst o map) Path.explode_binding export)
+    (Path.explode_binding export_prefix)
+    source;
+
 
 
 (** concrete file types **)
