@@ -665,7 +665,7 @@ text \<open>
     ;
 
     definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
-      @{syntax mixfix}? @'=' @{syntax term} + @'and');
+      @{syntax mixfix}? '=' @{syntax term} + @'and');
   \<close>
 
   The core of each interpretation command is a locale expression \<open>expr\<close>; the
@@ -1285,7 +1285,6 @@ text \<open>
   alone, e.g.\ when other Isabelle/ML tools use \<^ML>\<open>File.read\<close>, without
   specific management of content by the Prover IDE.
 \<close>
-
 
 
 section \<open>Primitive specification elements\<close>
