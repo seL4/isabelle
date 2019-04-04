@@ -34,11 +34,15 @@ sig
   val export_generated_files_cmd: Proof.context ->
     ((string * Position.T) list * (string * Position.T) option) list -> unit
   val with_compile_dir: (Path.T -> unit) -> unit
-  val compile_generated_files: Proof.context -> (Path.binding list * theory) list ->
-    Path.T list -> (Path.binding list * bool option) list -> Path.binding -> Input.source -> unit
+  val compile_generated_files: Proof.context ->
+    (Path.binding list * theory) list ->
+    (Path.T list * Path.T) list ->
+    (Path.binding list * bool option) list ->
+    Path.binding -> Input.source -> unit
   val compile_generated_files_cmd: Proof.context ->
     ((string * Position.T) list * (string * Position.T) option) list ->
-    (string * Position.T) list -> ((string * Position.T) list * bool option) list ->
+    ((string * Position.T) list * (string * Position.T)) list ->
+    ((string * Position.T) list * bool option) list ->
     string * Position.T -> Input.source -> unit
 end;
 
@@ -259,7 +263,9 @@ fun compile_generated_files ctxt args external export export_prefix source =
       val files = maps get_files_in args;
       val _ = List.app (fn (file, pos) => report_file ctxt pos file) files;
       val _ = List.app (write_file dir o #1) files;
-      val _ = external |> List.app (fn file => Isabelle_System.copy_file file dir);
+      val _ =
+        external |> List.app (fn (files, base_dir) =>
+          files |> List.app (fn file => Isabelle_System.copy_file_base (base_dir, file) dir));
       val _ =
         ML_Context.eval_in (SOME (Config.put compile_dir (Path.implode dir) ctxt))
           ML_Compiler.flags (Input.pos_of source)
@@ -290,7 +296,12 @@ fun compile_generated_files ctxt args external export export_prefix source =
 fun compile_generated_files_cmd ctxt args external export export_prefix source =
   compile_generated_files ctxt
     (map (check_files_in ctxt) args)
-    (map (Resources.check_file ctxt NONE) external)
+    (external |> map (fn (raw_files, raw_base_dir) =>
+      let
+        val base_dir = Resources.check_dir ctxt NONE raw_base_dir;
+        fun check (s, pos) = (Resources.check_file ctxt (SOME base_dir) (s, pos); Path.explode s);
+        val files = map check raw_files;
+      in (files, base_dir) end))
     ((map o apfst o map) Path.explode_binding export)
     (Path.explode_binding export_prefix)
     source;

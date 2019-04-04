@@ -130,20 +130,24 @@ local
 
   val files_in =
     (Parse.underscore >> K [] || Scan.repeat1 Parse.path_binding) --
-      Scan.option (\<^keyword>\<open>in\<close> |-- Parse.!!! Parse.theory_name);
+      Scan.option (\<^keyword>\<open>(\<close> |-- Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.theory_name --| \<^keyword>\<open>)\<close>));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>export_generated_files\<close>
       "export generated files from given theories"
       (Parse.and_list1 files_in >> (fn args =>
         Toplevel.keep (fn st =>
-          Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)))
+          Generated_Files.export_generated_files_cmd (Toplevel.context_of st) args)));
 
+
+  val base_dir =
+    Scan.optional (\<^keyword>\<open>(\<close> |--
+      Parse.!!! (\<^keyword>\<open>in\<close> |-- Parse.position Parse.path --| \<^keyword>\<open>)\<close>)) ("", Position.none);
+
+  val external_files = Scan.repeat1 (Parse.position Parse.path) -- base_dir;
 
   val exe = Parse.reserved "exe" >> K true || Parse.reserved "executable" >> K false;
-
-  val executable =
-    \<^keyword>\<open>(\<close> |-- Parse.!!! (exe --| \<^keyword>\<open>)\<close>) >> SOME || Scan.succeed NONE;
+  val executable = \<^keyword>\<open>(\<close> |-- Parse.!!! (exe --| \<^keyword>\<open>)\<close>) >> SOME || Scan.succeed NONE;
 
   val export_files = Scan.repeat1 Parse.path_binding -- executable;
 
@@ -151,8 +155,7 @@ local
     Outer_Syntax.command \<^command_keyword>\<open>compile_generated_files\<close>
       "compile generated files and export results"
       (Parse.and_list files_in --
-        Scan.optional (\<^keyword>\<open>external_files\<close> |--
-          Parse.!!! (Scan.repeat1 (Parse.position Parse.path))) [] --
+        Scan.optional (\<^keyword>\<open>external_files\<close> |-- Parse.!!! (Parse.and_list1 external_files)) [] --
         Scan.optional (\<^keyword>\<open>export_files\<close> |-- Parse.!!! (Parse.and_list1 export_files)) [] --
         Scan.optional (\<^keyword>\<open>export_prefix\<close> |-- Parse.path_binding) ("compiled", Position.none) --
         (Parse.where_ |-- Parse.!!! Parse.ML_source)
