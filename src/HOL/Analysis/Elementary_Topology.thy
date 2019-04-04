@@ -1459,25 +1459,6 @@ next
   qed
 qed
 
-text\<open>Deducing things about the limit from the elements.\<close>
-
-lemma Lim_in_closed_set:
-  assumes "closed S"
-    and "eventually (\<lambda>x. f(x) \<in> S) net"
-    and "\<not> trivial_limit net" "(f \<longlongrightarrow> l) net"
-  shows "l \<in> S"
-proof (rule ccontr)
-  assume "l \<notin> S"
-  with \<open>closed S\<close> have "open (- S)" "l \<in> - S"
-    by (simp_all add: open_Compl)
-  with assms(4) have "eventually (\<lambda>x. f x \<in> - S) net"
-    by (rule topological_tendstoD)
-  with assms(2) have "eventually (\<lambda>x. False) net"
-    by (rule eventually_elim2) simp
-  with assms(3) show "False"
-    by (simp add: eventually_False)
-qed
-
 text\<open>These are special for limits out of the same topological space.\<close>
 
 lemma Lim_within_id: "(id \<longlongrightarrow> a) (at a within s)"

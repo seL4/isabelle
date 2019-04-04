@@ -9,11 +9,6 @@ theory Group
 imports Complete_Lattice "HOL-Library.FuncSet"
 begin
 
-(*MOVE*)
-lemma image_paired_Times:
-   "(\<lambda>(x,y). (f x,g y)) ` (A \<times> B) = (f ` A) \<times> (g ` B)"
-  by auto
-
 section \<open>Monoids and Groups\<close>
 
 subsection \<open>Definitions\<close>

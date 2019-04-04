@@ -16,6 +16,8 @@ subsection \<open>Generic monoid operation over a set\<close>
 locale comm_monoid_set = comm_monoid
 begin
 
+subsubsection \<open>Standard sum or product indexed by a finite set\<close>
+
 interpretation comp_fun_commute f
   by standard (simp add: fun_eq_iff left_commute)
 
@@ -523,6 +525,92 @@ lemma eq_general_inverses:
   shows "F \<phi> A = F \<gamma> B"
   by (rule eq_general [where h=h]) (force intro: dest: A B)+
 
+subsubsection \<open>HOL Light variant: sum/product indexed by the non-neutral subset\<close>
+text \<open>NB only a subset of the properties above are proved\<close>
+
+definition G :: "['b \<Rightarrow> 'a,'b set] \<Rightarrow> 'a"
+  where "G p I \<equiv> if finite {x \<in> I. p x \<noteq> \<^bold>1} then F p {x \<in> I. p x \<noteq> \<^bold>1} else \<^bold>1"
+
+lemma finite_Collect_op:
+  shows "\<lbrakk>finite {i \<in> I. x i \<noteq> \<^bold>1}; finite {i \<in> I. y i \<noteq> \<^bold>1}\<rbrakk> \<Longrightarrow> finite {i \<in> I. x i \<^bold>* y i \<noteq> \<^bold>1}"
+  apply (rule finite_subset [where B = "{i \<in> I. x i \<noteq> \<^bold>1} \<union> {i \<in> I. y i \<noteq> \<^bold>1}"]) 
+  using left_neutral by force+
+
+lemma empty' [simp]: "G p {} = \<^bold>1"
+  by (auto simp: G_def)
+
+lemma eq_sum [simp]: "finite I \<Longrightarrow> G p I = F p I"
+  by (auto simp: G_def intro: mono_neutral_cong_left)
+
+lemma insert' [simp]:
+  assumes "finite {x \<in> I. p x \<noteq> \<^bold>1}"
+  shows "G p (insert i I) = (if i \<in> I then G p I else p i \<^bold>* G p I)"
+proof -
+  have "{x. x = i \<and> p x \<noteq> \<^bold>1 \<or> x \<in> I \<and> p x \<noteq> \<^bold>1} = (if p i = \<^bold>1 then {x \<in> I. p x \<noteq> \<^bold>1} else insert i {x \<in> I. p x \<noteq> \<^bold>1})"
+    by auto
+  then show ?thesis
+    using assms by (simp add: G_def conj_disj_distribR insert_absorb)
+qed
+
+lemma distrib_triv':
+  assumes "finite I"
+  shows "G (\<lambda>i. g i \<^bold>* h i) I = G g I \<^bold>* G h I"
+  by (simp add: assms local.distrib)
+
+lemma non_neutral': "G g {x \<in> I. g x \<noteq> \<^bold>1} = G g I"
+  by (simp add: G_def)
+
+lemma distrib':
+  assumes "finite {x \<in> I. g x \<noteq> \<^bold>1}" "finite {x \<in> I. h x \<noteq> \<^bold>1}"
+  shows "G (\<lambda>i. g i \<^bold>* h i) I = G g I \<^bold>* G h I"
+proof -
+  have "a \<^bold>* a \<noteq> a \<Longrightarrow> a \<noteq> \<^bold>1" for a
+    by auto
+  then have "G (\<lambda>i. g i \<^bold>* h i) I = G (\<lambda>i. g i \<^bold>* h i) ({i \<in> I. g i \<noteq> \<^bold>1} \<union> {i \<in> I. h i \<noteq> \<^bold>1})"
+    using assms  by (force simp: G_def finite_Collect_op intro!: mono_neutral_cong)
+  also have "\<dots> = G g I \<^bold>* G h I"
+  proof -
+    have "F g ({i \<in> I. g i \<noteq> \<^bold>1} \<union> {i \<in> I. h i \<noteq> \<^bold>1}) = G g I"
+         "F h ({i \<in> I. g i \<noteq> \<^bold>1} \<union> {i \<in> I. h i \<noteq> \<^bold>1}) = G h I"
+      by (auto simp: G_def assms intro: mono_neutral_right)
+    then show ?thesis
+      using assms by (simp add: distrib)
+  qed
+  finally show ?thesis .
+qed
+
+lemma cong':
+  assumes "A = B"
+  assumes g_h: "\<And>x. x \<in> B \<Longrightarrow> g x = h x"
+  shows "G g A = G h B"
+  using assms by (auto simp: G_def cong: conj_cong intro: cong)
+
+
+lemma mono_neutral_cong_left':
+  assumes "S \<subseteq> T"
+    and "\<And>i. i \<in> T - S \<Longrightarrow> h i = \<^bold>1"
+    and "\<And>x. x \<in> S \<Longrightarrow> g x = h x"
+  shows "G g S = G h T"
+proof -
+  have *: "{x \<in> S. g x \<noteq> \<^bold>1} = {x \<in> T. h x \<noteq> \<^bold>1}"
+    using assms by (metis DiffI subset_eq) 
+  then have "finite {x \<in> S. g x \<noteq> \<^bold>1} = finite {x \<in> T. h x \<noteq> \<^bold>1}"
+    by simp
+  then show ?thesis
+    using assms by (auto simp add: G_def * intro: cong)
+qed
+
+lemma mono_neutral_cong_right':
+  "S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. g i = \<^bold>1 \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> g x = h x) \<Longrightarrow>
+    G g T = G h S"
+  by (auto intro!: mono_neutral_cong_left' [symmetric])
+
+lemma mono_neutral_left': "S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. g i = \<^bold>1 \<Longrightarrow> G g S = G g T"
+  by (blast intro: mono_neutral_cong_left')
+
+lemma mono_neutral_right': "S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. g i = \<^bold>1 \<Longrightarrow> G g T = G g S"
+  by (blast intro!: mono_neutral_left' [symmetric])
+
 end
 
 
@@ -532,7 +620,7 @@ context comm_monoid_add
 begin
 
 sublocale sum: comm_monoid_set plus 0
-  defines sum = sum.F ..
+  defines sum = sum.F and sum' = sum.G ..
 
 abbreviation Sum ("\<Sum>")
   where "\<Sum> \<equiv> sum (\<lambda>x. x)"
@@ -1134,7 +1222,7 @@ context comm_monoid_mult
 begin
 
 sublocale prod: comm_monoid_set times 1
-  defines prod = prod.F ..
+  defines prod = prod.F and prod' = prod.G ..
 
 abbreviation Prod ("\<Prod>_" [1000] 999)
   where "\<Prod>A \<equiv> prod (\<lambda>x. x) A"

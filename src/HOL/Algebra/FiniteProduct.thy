@@ -547,6 +547,61 @@ lemma finprod_singleton: \<^marker>\<open>contributor \<open>Jesus Aransay\<clos
     finprod_cong [of "A - {i}" "A - {i}" "(\<lambda>j. if i = j then f j else \<one>)" "(\<lambda>i. \<one>)"]
   unfolding Pi_def simp_implies_def by (force simp add: insert_absorb)
 
+lemma finprod_singleton_swap:
+  assumes i_in_A: "i \<in> A" and fin_A: "finite A" and f_Pi: "f \<in> A \<rightarrow> carrier G"
+  shows "(\<Otimes>j\<in>A. if j = i then f j else \<one>) = f i"
+  using finprod_singleton [OF assms] by (simp add: eq_commute)
+
+lemma finprod_mono_neutral_cong_left:
+  assumes "finite B"
+    and "A \<subseteq> B"
+    and 1: "\<And>i. i \<in> B - A \<Longrightarrow> h i = \<one>"
+    and gh: "\<And>x. x \<in> A \<Longrightarrow> g x = h x"
+    and h: "h \<in> B \<rightarrow> carrier G"
+  shows "finprod G g A = finprod G h B"
+proof-
+  have eq: "A \<union> (B - A) = B" using \<open>A \<subseteq> B\<close> by blast
+  have d: "A \<inter> (B - A) = {}" using \<open>A \<subseteq> B\<close> by blast
+  from \<open>finite B\<close> \<open>A \<subseteq> B\<close> have f: "finite A" "finite (B - A)"
+    by (auto intro: finite_subset)
+  have "h \<in> A \<rightarrow> carrier G" "h \<in> B - A \<rightarrow> carrier G"
+    using assms by (auto simp: image_subset_iff_funcset)
+  moreover have "finprod G g A = finprod G h A \<otimes> finprod G h (B - A)"
+  proof -
+    have "finprod G h (B - A) = \<one>"
+      using "1" finprod_one_eqI by blast
+    moreover have "finprod G g A = finprod G h A"
+      using \<open>h \<in> A \<rightarrow> carrier G\<close> finprod_cong' gh by blast
+    ultimately show ?thesis
+      by (simp add: \<open>h \<in> A \<rightarrow> carrier G\<close>)
+  qed
+  ultimately show ?thesis
+    by (simp add: finprod_Un_disjoint [OF f d, unfolded eq])
+qed
+
+lemma finprod_mono_neutral_cong_right:
+  assumes "finite B"
+    and "A \<subseteq> B" "\<And>i. i \<in> B - A \<Longrightarrow> g i = \<one>" "\<And>x. x \<in> A \<Longrightarrow> g x = h x" "g \<in> B \<rightarrow> carrier G"
+  shows "finprod G g B = finprod G h A"
+  using assms  by (auto intro!: finprod_mono_neutral_cong_left [symmetric])
+
+lemma finprod_mono_neutral_cong:
+  assumes [simp]: "finite B" "finite A"
+    and *: "\<And>i. i \<in> B - A \<Longrightarrow> h i = \<one>" "\<And>i. i \<in> A - B \<Longrightarrow> g i = \<one>"
+    and gh: "\<And>x. x \<in> A \<inter> B \<Longrightarrow> g x = h x"
+    and g: "g \<in> A \<rightarrow> carrier G"
+    and h: "h \<in> B \<rightarrow> carrier G"
+ shows "finprod G g A = finprod G h B"
+proof-
+  have "finprod G g A = finprod G g (A \<inter> B)"
+    by (rule finprod_mono_neutral_cong_right) (use assms in auto)
+  also have "\<dots> = finprod G h (A \<inter> B)"
+    by (rule finprod_cong) (use assms in auto)
+  also have "\<dots> = finprod G h B"
+    by (rule finprod_mono_neutral_cong_left) (use assms in auto)
+  finally show ?thesis .
+qed
+
 end
 
 (* Jeremy Avigad. This should be generalized to arbitrary groups, not just commutative

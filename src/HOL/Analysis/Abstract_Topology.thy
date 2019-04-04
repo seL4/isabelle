@@ -4063,7 +4063,7 @@ lemma openin_topology_generated_by:
   "openin (topology_generated_by S) s \<Longrightarrow> generate_topology_on S s"
 using openin_topology_generated_by_iff by auto
 
-lemma topology_generated_by_topspace:
+lemma topology_generated_by_topspace [simp]:
   "topspace (topology_generated_by S) = (\<Union>S)"
 proof
   {
