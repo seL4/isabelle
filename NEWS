@@ -92,7 +92,8 @@ separated from option "-s".
 
 * OpenJDK 11 has quite different font rendering, with better glyph
 shapes and improved sub-pixel anti-aliasing. In some situations results
-might be *worse* than Oracle Java 8, though.
+might be *worse* than Oracle Java 8, though. A decent HiDPI display is
+recommended.
 
 
 *** Document preparation ***
