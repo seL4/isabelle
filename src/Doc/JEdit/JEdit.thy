@@ -64,7 +64,7 @@ section \<open>The Isabelle/jEdit Prover IDE\<close>
 text \<open>
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.333]{isabelle-jedit}
+  \includegraphics[scale=0.3]{isabelle-jedit}
   \end{center}
   \caption{The Isabelle/jEdit Prover IDE}
   \label{fig:isabelle-jedit}
