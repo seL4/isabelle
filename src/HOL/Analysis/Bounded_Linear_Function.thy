@@ -800,10 +800,11 @@ proof (auto)
     unfolding comp_def by auto
 next
   assume *: "\<forall>x. continuous_map T euclidean (\<lambda>y. blinfun_apply (f y) x)"
-  have "continuous_map T euclidean (blinfun_apply o f)"
-    unfolding euclidean_product_topology
-    apply (rule continuous_map_coordinatewise_then_product, auto)
+  have "\<And>i. continuous_map T euclidean (\<lambda>x. blinfun_apply (f x) i)"
     using * unfolding comp_def by auto
+  then have "continuous_map T euclidean (blinfun_apply o f)"
+    unfolding o_def
+    by (metis (no_types) continuous_map_componentwise_UNIV euclidean_product_topology)
   show "continuous_map T strong_operator_topology f"
     unfolding strong_operator_topology_def
     apply (rule continuous_map_pullback')
@@ -814,7 +815,5 @@ lemma strong_operator_topology_weaker_than_euclidean:
   "continuous_map euclidean strong_operator_topology (\<lambda>f. f)"
   by (subst continuous_on_strong_operator_topo_iff_coordinatewise,
     auto simp add: linear_continuous_on)
-
-
 
 end

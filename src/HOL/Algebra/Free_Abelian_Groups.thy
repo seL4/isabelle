@@ -666,8 +666,7 @@ proof (rule isoI)
           have "finite {i \<in> I. Abs_poly_mapping (?f i) \<noteq> 0}"
             by (rule finite_subset [OF _ fin]) (use \<open>i \<in> I\<close> J_def eq in \<open>auto simp: in_keys_iff\<close>)
           with \<open>i \<in> I\<close> have "?h (\<lambda>j\<in>I. Abs_poly_mapping (?f j)) = Abs_poly_mapping (?f i) + sum' (\<lambda>j. Abs_poly_mapping (?f j)) (I - {i})"
-            apply (simp add: sum_diff1')
-            sorry
+            by (simp add: sum_diff1')
           then show ?thesis
             by (simp add: 1 2 Poly_Mapping.lookup_add)
         next

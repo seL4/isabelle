@@ -3101,7 +3101,7 @@ proof -
       define f' where "f' \<equiv> \<lambda>x. (x - z) powr (n-m)"
       have "f' z=0" using \<open>n>m\<close> unfolding f'_def by auto
       moreover have "continuous F f'" unfolding f'_def F_def continuous_def
-        apply (subst netlimit_within)
+        apply (subst Lim_ident_at)
         using \<open>n>m\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)  
       ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
         by (simp add: continuous_within)
@@ -3130,7 +3130,7 @@ proof -
       define f' where "f' \<equiv>\<lambda>x. (x - z) powr (m-n)"
       have "f' z=0" using \<open>m>n\<close> unfolding f'_def by auto
       moreover have "continuous F f'" unfolding f'_def F_def continuous_def
-        apply (subst netlimit_within)
+        apply (subst Lim_ident_at)
         using \<open>m>n\<close> by (auto intro!:tendsto_powr_complex_0 tendsto_eq_intros)
       ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
         by (simp add: continuous_within)

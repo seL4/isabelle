@@ -32,6 +32,74 @@ proof -
     by (auto intro!: real_le_rsqrt)
 qed
 
+subsection \<open>Continuity of the representation WRT an orthogonal basis\<close>
+
+lemma representation_bound:
+  fixes B :: "'N::real_inner set"
+  assumes "finite B" "independent B" "b \<in> B" and orth: "pairwise orthogonal B"
+  obtains m where "m > 0" "\<And>x. x \<in> span B \<Longrightarrow> \<bar>representation B x b\<bar> \<le> m * norm x"
+proof 
+  fix x
+  assume x: "x \<in> span B"
+  have "b \<noteq> 0"
+    using \<open>independent B\<close> \<open>b \<in> B\<close> dependent_zero by blast
+  have [simp]: "b \<bullet> b' = (if b' = b then (norm b)\<^sup>2 else 0)"
+    if "b \<in> B" "b' \<in> B" for b b'
+    using orth by (simp add: orthogonal_def pairwise_def norm_eq_sqrt_inner that)
+  have "norm x = norm (\<Sum>b\<in>B. representation B x b *\<^sub>R b)"
+    using real_vector.sum_representation_eq [OF \<open>independent B\<close> x \<open>finite B\<close> order_refl]
+    by simp
+  also have "\<dots> = sqrt ((\<Sum>b\<in>B. representation B x b *\<^sub>R b) \<bullet> (\<Sum>b\<in>B. representation B x b *\<^sub>R b))"
+    by (simp add: norm_eq_sqrt_inner)
+  also have "\<dots> = sqrt (\<Sum>b\<in>B. (representation B x b *\<^sub>R b) \<bullet> (representation B x b *\<^sub>R b))"
+    using \<open>finite B\<close>
+    by (simp add: inner_sum_left inner_sum_right if_distrib [of "\<lambda>x. _ * x"] cong: if_cong sum.cong_simp)
+  also have "\<dots> = sqrt (\<Sum>b\<in>B. (norm (representation B x b *\<^sub>R b))\<^sup>2)"
+    by (simp add: mult.commute mult.left_commute power2_eq_square)
+  also have "\<dots> = sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)"
+    by (simp add: norm_mult power_mult_distrib)
+  finally have "norm x = sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)" .
+  moreover
+  have "sqrt ((representation B x b)\<^sup>2 * (norm b)\<^sup>2) \<le> sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)"
+    using \<open>b \<in> B\<close> \<open>finite B\<close> by (auto intro: member_le_sum)
+  then have "\<bar>representation B x b\<bar> \<le> (1 / norm b) * sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)"
+    using \<open>b \<noteq> 0\<close> by (simp add: divide_simps real_sqrt_mult del: real_sqrt_le_iff)
+  ultimately show "\<bar>representation B x b\<bar> \<le> (1 / norm b) * norm x"
+    by simp
+next
+  show "0 < 1 / norm b"
+    using \<open>independent B\<close> \<open>b \<in> B\<close> dependent_zero by auto
+qed 
+
+lemma continuous_on_representation:
+  fixes B :: "'N::euclidean_space set"
+  assumes "finite B" "independent B" "b \<in> B" "pairwise orthogonal B" 
+  shows "continuous_on (span B) (\<lambda>x. representation B x b)"
+proof
+  show "\<exists>d>0. \<forall>x'\<in>span B. dist x' x < d \<longrightarrow> dist (representation B x' b) (representation B x b) \<le> e"
+    if "e > 0" "x \<in> span B" for x e
+  proof -
+    obtain m where "m > 0" and m: "\<And>x. x \<in> span B \<Longrightarrow> \<bar>representation B x b\<bar> \<le> m * norm x"
+      using assms representation_bound by blast
+    show ?thesis
+      unfolding dist_norm
+    proof (intro exI conjI ballI impI)
+      show "e/m > 0"
+        by (simp add: \<open>e > 0\<close> \<open>m > 0\<close>)
+      show "norm (representation B x' b - representation B x b) \<le> e"
+        if x': "x' \<in> span B" and less: "norm (x'-x) < e/m" for x' 
+      proof -
+        have "\<bar>representation B (x'-x) b\<bar> \<le> m * norm (x'-x)"
+          using m [of "x'-x"] \<open>x \<in> span B\<close> span_diff x' by blast
+        also have "\<dots> < e"
+          by (metis \<open>m > 0\<close> less mult.commute pos_less_divide_eq)
+        finally have "\<bar>representation B (x'-x) b\<bar> \<le> e" by simp
+        then show ?thesis
+          by (simp add: \<open>x \<in> span B\<close> \<open>independent B\<close> representation_diff x')
+      qed
+    qed
+  qed
+qed
 
 subsection%unimportant\<open>Balls in Euclidean Space\<close>
 

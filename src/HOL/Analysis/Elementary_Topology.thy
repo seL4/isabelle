@@ -1472,13 +1472,10 @@ text\<open>It's also sometimes useful to extract the limit point from the filter
 abbreviation netlimit :: "'a::t2_space filter \<Rightarrow> 'a"
   where "netlimit F \<equiv> Lim F (\<lambda>x. x)"
 
-lemma netlimit_within: "\<not> trivial_limit (at a within S) \<Longrightarrow> netlimit (at a within S) = a"
-  by (rule tendsto_Lim) (auto intro: tendsto_intros)
-
 lemma netlimit_at [simp]:
   fixes a :: "'a::{perfect_space,t2_space}"
   shows "netlimit (at a) = a"
-  using netlimit_within [of a UNIV] by simp
+  using Lim_ident_at [of a UNIV] by simp
 
 lemma lim_within_interior:
   "x \<in> interior S \<Longrightarrow> (f \<longlongrightarrow> l) (at x within S) \<longleftrightarrow> (f \<longlongrightarrow> l) (at x)"
@@ -2749,6 +2746,5 @@ proof -
     by (auto simp: assms less_imp_le)
   finally show ?thesis .
 qed
-
 
 end

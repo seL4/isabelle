@@ -2015,7 +2015,7 @@ lemma has_vector_derivative_cong_ev:
   using *
   apply (cases "at x within S \<noteq> bot")
   apply (intro refl conj_cong filterlim_cong)
-  apply (auto simp: netlimit_within eventually_at_filter elim: eventually_mono)
+  apply (auto simp: Lim_ident_at eventually_at_filter elim: eventually_mono)
   done
 
 lemma islimpt_closure_open:
