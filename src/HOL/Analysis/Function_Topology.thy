@@ -565,8 +565,14 @@ qed (auto simp add: open_fun_def)
 
 end
 
+lemma open_PiE [intro?]:
+  fixes X::"'i \<Rightarrow> ('b::topological_space) set"
+  assumes "\<And>i. open (X i)" "finite {i. X i \<noteq> UNIV}"
+  shows "open (Pi\<^sub>E UNIV X)"
+    by (simp add: assms open_fun_def product_topology_basis)
+
 lemma euclidean_product_topology:
-  "euclidean = product_topology (\<lambda>i. euclidean::('b::topological_space) topology) UNIV"
+  "product_topology (\<lambda>i. euclidean::('b::topological_space) topology) UNIV = euclidean"
 by (metis open_openin topology_eq open_fun_def)
 
 proposition product_topology_basis':
@@ -582,8 +588,7 @@ proof -
   have **: "finite {i. X i \<noteq> UNIV}"
     unfolding X_def V_def J_def using assms(1) by auto
   have "open (Pi\<^sub>E UNIV X)"
-    unfolding open_fun_def
-    by (simp_all add: * ** product_topology_basis)
+    by (simp add: "*" "**" open_PiE)
   moreover have "Pi\<^sub>E UNIV X = {f. \<forall>i\<in>I. f (x i) \<in> U i}"
     apply (auto simp add: PiE_iff) unfolding X_def V_def J_def
     proof (auto)
@@ -618,8 +623,8 @@ lemma continuous_on_coordinatewise_then_product [continuous_intros]:
 lemma continuous_on_product_then_coordinatewise_UNIV:
   assumes "continuous_on UNIV f"
   shows "continuous_on UNIV (\<lambda>x. f x i)"
-  using assms unfolding continuous_map_iff_continuous2 [symmetric] euclidean_product_topology
-  by fastforce
+  unfolding continuous_map_iff_continuous2 [symmetric]
+  by (rule continuous_map_product_then_coordinatewise [where I=UNIV]) (use assms in \<open>auto simp: euclidean_product_topology\<close>)
 
 lemma continuous_on_product_then_coordinatewise:
   assumes "continuous_on S f"
@@ -724,7 +729,8 @@ proof
   text \<open>\<open>B i\<close> is a countable basis of neighborhoods of \<open>x\<^sub>i\<close>.\<close>
   define B where "B = (\<lambda>i. (A (x i))`UNIV \<union> {UNIV})"
   have "countable (B i)" for i unfolding B_def by auto
-
+  have open_B: "\<And>X i. X \<in> B i \<Longrightarrow> open X"
+    by (auto simp: B_def A)
   define K where "K = {Pi\<^sub>E UNIV X | X. (\<forall>i. X i \<in> B i) \<and> finite {i. X i \<noteq> UNIV}}"
   have "Pi\<^sub>E UNIV (\<lambda>i. UNIV) \<in> K"
     unfolding K_def B_def by auto
@@ -737,10 +743,7 @@ proof
   have "x \<in> k" if "k \<in> K" for k
     using that unfolding K_def B_def apply auto using A(1) by auto
   have "open k" if "k \<in> K" for k
-    using that unfolding open_fun_def K_def B_def apply (auto)
-    apply (rule product_topology_basis)
-    unfolding topspace_euclidean by (auto, metis imageE open_UNIV A(2))
-
+    using that unfolding K_def  by (blast intro: open_B open_PiE elim: )
   have Inc: "\<exists>k\<in>K. k \<subseteq> U" if "open U \<and> x \<in> U" for U
   proof -
     have "openin (product_topology (\<lambda>i. euclidean) UNIV) U" "x \<in> U"
@@ -854,9 +857,7 @@ proof -
   next
     fix U assume "U \<in> K"
     show "open U"
-      using \<open>U \<in> K\<close> unfolding open_fun_def K_def apply (auto)
-      apply (rule product_topology_basis)
-      using \<open>\<And>V. V \<in> B2 \<Longrightarrow> open V\<close> open_UNIV by auto
+      using \<open>U \<in> K\<close> unfolding open_fun_def K_def  by clarify (metis \<open>U \<in> K\<close> i open_PiE open_fun_def)
   qed
 
   show ?thesis using i ii iii by auto

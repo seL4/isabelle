@@ -2,7 +2,7 @@ section\<open>Free Abelian Groups\<close>
 
 theory Free_Abelian_Groups
   imports
-    Product_Groups "HOL-Cardinals.Cardinal_Arithmetic"
+    Product_Groups "../Cardinals/Cardinal_Arithmetic"
    "HOL-Library.Countable_Set" "HOL-Library.Poly_Mapping" "HOL-Library.Equipollence"
 
 begin
@@ -594,7 +594,6 @@ proof -
     by (auto simp: hom_def free_Abelian_group_def Pi_def)
 qed
 
-
 proposition iso_free_Abelian_group_sum:
   assumes "pairwise (\<lambda>i j. disjnt (S i) (S j)) I"
   shows "(\<lambda>f. sum' f I) \<in> iso (sum_group I (\<lambda>i. free_Abelian_group(S i))) (free_Abelian_group (\<Union>(S ` I)))"
@@ -610,8 +609,7 @@ proof (rule isoI)
       done
     show "?h (x \<otimes>\<^bsub>?G\<^esub> y) = ?h x \<otimes>\<^bsub>?H\<^esub> ?h y"
       if "x \<in> carrier ?G" "y \<in> carrier ?G"  for x y
-      using that apply (simp add: sum.finite_Collect_op carrier_sum_group sum.distrib')
-      sorry
+      using that by (simp add: sum.finite_Collect_op carrier_sum_group sum.distrib')
   qed
   interpret GH: group_hom "?G" "?H" "?h"
     using hom by (simp add: group_hom_def group_hom_axioms_def)
@@ -668,8 +666,7 @@ proof (rule isoI)
           have "finite {i \<in> I. Abs_poly_mapping (?f i) \<noteq> 0}"
             by (rule finite_subset [OF _ fin]) (use \<open>i \<in> I\<close> J_def eq in \<open>auto simp: in_keys_iff\<close>)
           with \<open>i \<in> I\<close> have "?h (\<lambda>j\<in>I. Abs_poly_mapping (?f j)) = Abs_poly_mapping (?f i) + sum' (\<lambda>j. Abs_poly_mapping (?f j)) (I - {i})"
-            apply (simp add: sum_diff1')
-            sorry
+            by (simp add: sum_diff1')
           then show ?thesis
             by (simp add: 1 2 Poly_Mapping.lookup_add)
         next

@@ -1694,7 +1694,7 @@ lemma continuous_map_from_discrete_topology [simp]:
   "continuous_map (discrete_topology U) X f \<longleftrightarrow> f ` U \<subseteq> topspace X"
   by (auto simp: continuous_map_def)
 
-lemma continuous_map_iff_continuous [simp]: "continuous_map (subtopology euclidean S) euclidean g = continuous_on S g"
+lemma continuous_map_iff_continuous [simp]: "continuous_map (top_of_set S) euclidean g = continuous_on S g"
   by (fastforce simp add: continuous_map openin_subtopology continuous_on_open_invariant)
 
 lemma continuous_map_iff_continuous2 [simp]: "continuous_map euclidean euclidean g = continuous_on UNIV g"
@@ -3782,11 +3782,16 @@ lemma continuous_on_imp_closedin:
   using assms continuous_on_closed by blast
 
 lemma continuous_map_subtopology_eu [simp]:
-  "continuous_map (subtopology euclidean S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
+  "continuous_map (top_of_set S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
   apply safe
   apply (metis continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
   apply (simp add: continuous_map_closedin_preimage_eq image_subset_iff)
   by (metis (no_types, hide_lams) continuous_map_closedin_preimage_eq continuous_map_in_subtopology continuous_on_closed order_refl topspace_euclidean_subtopology)
+
+lemma continuous_map_euclidean_top_of_set:
+  assumes eq: "f -` S = UNIV" and cont: "continuous_on UNIV f"
+  shows "continuous_map euclidean (top_of_set S) f"
+  by (simp add: cont continuous_map_into_subtopology eq image_subset_iff_subset_vimage)
 
 subsection%unimportant \<open>Half-global and completely global cases\<close>
 

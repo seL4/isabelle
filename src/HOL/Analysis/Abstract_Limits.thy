@@ -53,11 +53,11 @@ lemma limitin_canonical_iff [simp]: "limitin euclidean f l F \<longleftrightarro
 lemma limitin_topspace: "limitin X f l F \<Longrightarrow> l \<in> topspace X"
   by (simp add: limitin_def)
 
-lemma limitin_const: "limitin X (\<lambda>a. l) l F \<longleftrightarrow> l \<in> topspace X"
+lemma limitin_const_iff [simp]: "limitin X (\<lambda>a. l) l F \<longleftrightarrow> l \<in> topspace X"
   by (simp add: limitin_def)
 
-lemma limitin_real_const: "limitin euclideanreal (\<lambda>a. l) l F"
-  by (simp add: limitin_def)
+lemma limitin_const: "limitin euclidean (\<lambda>a. l) l F"
+  by simp
 
 lemma limitin_eventually:
    "\<lbrakk>l \<in> topspace X; eventually (\<lambda>x. f x = l) F\<rbrakk> \<Longrightarrow> limitin X f l F"
@@ -90,6 +90,11 @@ proof (cases "l \<in> S \<inter> topspace X")
   qed
 qed (auto simp: limitin_def topspace_subtopology)
 
+
+lemma limitin_canonical_iff_gen [simp]:
+  assumes "open S"
+  shows "limitin (top_of_set S) f l F \<longleftrightarrow> (f \<longlongrightarrow> l) F \<and> l \<in> S"
+  using assms by (auto simp: limitin_subtopology tendsto_def)
 
 lemma limitin_sequentially:
    "limitin X S l sequentially \<longleftrightarrow>

@@ -620,7 +620,7 @@ proof (cases "\<exists>x. x \<noteq> a")
     apply (simp add: norm_sgn sgn_zero_iff x)
     done
   then show ?thesis
-    by (rule netlimit_within [of a UNIV])
+    by (rule Lim_ident_at [of a UNIV])
 qed simp
 
 subsection \<open>Boundedness\<close>
