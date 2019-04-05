@@ -55,8 +55,8 @@ the session database for further use (e.g. with "isabelle export" or
 DejaVu" collection by default, which provides uniform rendering quality
 with the usual Isabelle symbols. Line spacing no longer needs to be
 adjusted: properties for the old IsabelleText font had "Global Options /
-Text Area / Extra vertical line spacing (in pixels): -2", now it
-defaults to 0.
+Text Area / Extra vertical line spacing (in pixels): -2", it now
+defaults to 1, but 0 works as well.
 
 * The jEdit File Browser is more prominent in the default GUI layout of
 Isabelle/jEdit: various virtual file-systems provide access to Isabelle
