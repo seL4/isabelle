@@ -44,6 +44,7 @@ sig
     ((string * Position.T) list * (string * Position.T)) list ->
     ((string * Position.T) list * bool option) list ->
     string * Position.T -> Input.source -> unit
+  val execute: Path.T -> Input.source -> string -> string
 end;
 
 structure Generated_Files: GENERATED_FILES =
@@ -308,6 +309,15 @@ fun compile_generated_files_cmd ctxt args external export export_prefix source =
     ((map o apfst o map) Path.explode_binding export)
     (Path.explode_binding export_prefix)
     source;
+
+
+(* execute compiler -- auxiliary *)
+
+fun execute dir title compile =
+  Isabelle_System.bash_output_check ("cd " ^ File.bash_path dir ^ " && " ^ compile)
+    handle ERROR msg =>
+      let val (s, pos) = Input.source_content title
+      in error (s ^ " failed" ^ Position.here pos ^ ":\n" ^ msg) end;
 
 
 
