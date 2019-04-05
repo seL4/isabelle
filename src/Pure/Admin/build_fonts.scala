@@ -210,6 +210,7 @@ object Build_Fonts
     target_prefix: String = "Isabelle",
     target_version: String = "",
     target_dir: Path = default_target_dir,
+    unhinted: Boolean = false,
     progress: Progress = No_Progress)
   {
     progress.echo("Directory " + target_dir)
@@ -235,7 +236,8 @@ object Build_Fonts
         progress.echo("Font " + target_file.toString + " ...")
         Isabelle_System.with_tmp_file("font", "ttf")(tmp_file =>
         {
-          auto_hint(source_file, tmp_file)
+          if (unhinted) File.copy(source_file, tmp_file)
+          else auto_hint(source_file, tmp_file)
 
           Fontforge.execute(
             Fontforge.commands(
@@ -319,16 +321,19 @@ isabelle_fonts_hidden "$COMPONENT/Vacuous.ttf"
     Isabelle_Tool("build_fonts", "construct Isabelle fonts", args =>
     {
       var source_dirs: List[Path] = Nil
+      var unhinted = false
 
       val getopts = Getopts("""
 Usage: isabelle build_fonts [OPTIONS]
 
   Options are:
     -d DIR       additional source directory
+    -u           unhinted font (bypass ttfautohint)
 
   Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
-        "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
+        "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))),
+        "u" -> (_ => unhinted = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -339,6 +344,6 @@ Usage: isabelle build_fonts [OPTIONS]
       val progress = new Console_Progress
 
       build_fonts(source_dirs = source_dirs, target_dir = target_dir,
-        target_version = target_version, progress = progress)
+        target_version = target_version, unhinted = unhinted, progress = progress)
     })
 }
