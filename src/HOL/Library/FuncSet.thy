@@ -220,6 +220,12 @@ lemma restrict_upd[simp]: "i \<notin> I \<Longrightarrow> (restrict f I)(i := y)
 lemma restrict_Pi_cancel: "restrict x I \<in> Pi I A \<longleftrightarrow> x \<in> Pi I A"
   by (auto simp: restrict_def Pi_def)
 
+lemma sum_restrict' [simp]: "sum' (\<lambda>i\<in>I. g i) I = sum' (\<lambda>i. g i) I"
+  by (simp add: sum.G_def conj_commute cong: conj_cong)
+
+lemma prod_restrict' [simp]: "prod' (\<lambda>i\<in>I. g i) I = prod' (\<lambda>i. g i) I"
+  by (simp add: prod.G_def conj_commute cong: conj_cong)
+
 
 subsection \<open>Bijections Between Sets\<close>
 
