@@ -2108,12 +2108,6 @@ text \<open>
 chapter \<open>Known problems and workarounds \label{sec:problems}\<close>
 
 text \<open>
-  \<^item> \<^bold>\<open>Problem:\<close> Odd behavior of some diagnostic commands with global
-  side-effects, like writing a physical file.
-
-  \<^bold>\<open>Workaround:\<close> Copy/paste complete command text from elsewhere, or disable
-  continuous checking temporarily.
-
   \<^item> \<^bold>\<open>Problem:\<close> Keyboard shortcuts \<^verbatim>\<open>C+PLUS\<close> and \<^verbatim>\<open>C+MINUS\<close> for adjusting the
   editor font size depend on platform details and national keyboards.
 
