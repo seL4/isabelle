@@ -2108,6 +2108,17 @@ text \<open>
 chapter \<open>Known problems and workarounds \label{sec:problems}\<close>
 
 text \<open>
+  \<^item> \<^bold>\<open>Problem:\<close> Font-rendering in Java 11 (OpenJDK) is worse than Java 8
+  (by Oracle) on low-quality displays.
+
+  \<^bold>\<open>Workaround:\<close> Find an old copy of Java 8 from Oracle (which has
+  ``end-of-live'' status since Jan-2019) and refer to its main directory via
+  @{setting "ISABELLE_JDK_HOME"}\<^verbatim>\<open>="..."\<close> in
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close>. Also add
+  \<^verbatim>\<open>isabelle_fonts_hints=false\<close> to
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close> to avoid problems of the old
+  font renderer with hinting.
+
   \<^item> \<^bold>\<open>Problem:\<close> Keyboard shortcuts \<^verbatim>\<open>C+PLUS\<close> and \<^verbatim>\<open>C+MINUS\<close> for adjusting the
   editor font size depend on platform details and national keyboards.
 
