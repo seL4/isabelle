@@ -93,7 +93,7 @@ separated from option "-s".
 * Isabelle DejaVu fonts are available with hinting by default, which is
 relevant for low-resolution displays. This may be disabled via system
 option "isabelle_fonts_hinted = false" in
-$ISABELLE_HOME_USER/etc/settings -- it occasionally yields better
+$ISABELLE_HOME_USER/etc/preferences -- it occasionally yields better
 results.
 
 * OpenJDK 11 has quite different font rendering, with better glyph
