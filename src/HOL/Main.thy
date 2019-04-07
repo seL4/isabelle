@@ -8,7 +8,7 @@ text \<open>
 theory Main
   imports
     Predicate_Compile
-    Quickcheck_Narrowing 
+    Quickcheck_Narrowing
     Extraction
     Nunchaku
     BNF_Greatest_Fixpoint
@@ -71,6 +71,23 @@ no_notation
   BNF_Cardinal_Arithmetic.cprod (infixr "*c" 80) and
   BNF_Cardinal_Arithmetic.cexp (infixr "^c" 90) and
   BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
+
+bundle cardinal_syntax begin
+notation
+  ordLeq2 (infix "<=o" 50) and
+  ordLeq3 (infix "\<le>o" 50) and
+  ordLess2 (infix "<o" 50) and
+  ordIso2 (infix "=o" 50) and
+  card_of ("|_|") and
+  BNF_Cardinal_Arithmetic.csum (infixr "+c" 65) and
+  BNF_Cardinal_Arithmetic.cprod (infixr "*c" 80) and
+  BNF_Cardinal_Arithmetic.cexp (infixr "^c" 90)
+
+alias cinfinite = BNF_Cardinal_Arithmetic.cinfinite
+alias czero = BNF_Cardinal_Arithmetic.czero
+alias cone = BNF_Cardinal_Arithmetic.cone
+alias ctwo = BNF_Cardinal_Arithmetic.ctwo
+end
 
 no_syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)

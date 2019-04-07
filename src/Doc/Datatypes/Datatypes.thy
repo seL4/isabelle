@@ -13,11 +13,15 @@ theory Datatypes
 imports
   Setup
   "HOL-Library.BNF_Axiomatization"
-  "HOL-Library.Cardinal_Notations"
   "HOL-Library.Countable"
   "HOL-Library.FSet"
   "HOL-Library.Simps_Case_Conv"
 begin
+
+
+(*<*)
+unbundle cardinal_syntax
+(*>*)
 
 section \<open>Introduction
   \label{sec:introduction}\<close>
@@ -2761,8 +2765,8 @@ subsection \<open>Introductory Examples
 
 text \<open>
 The example below shows how to register a type as a BNF using the @{command bnf}
-command. Some of the proof obligations are best viewed with the theory
-\<^file>\<open>~~/src/HOL/Library/Cardinal_Notations.thy\<close> imported.
+command. Some of the proof obligations are best viewed with the bundle
+"cardinal_syntax" included.
 
 The type is simply a copy of the function space \<^typ>\<open>'d \<Rightarrow> 'a\<close>, where \<^typ>\<open>'a\<close>
 is live and \<^typ>\<open>'d\<close> is dead. We introduce it together with its map function,

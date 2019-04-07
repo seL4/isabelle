@@ -10,8 +10,9 @@ section \<open>Constructions on Wellorders\<close>
 theory Wellorder_Constructions
 imports
   Wellorder_Embedding Order_Union
-  "HOL-Library.Cardinal_Notations"
 begin
+
+unbundle cardinal_syntax
 
 declare
   ordLeq_Well_order_simp[simp]

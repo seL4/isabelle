@@ -328,7 +328,7 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
     (* Main theory *)
-    Algebra             
+    Algebra
   document_files "root.bib" "root.tex"
 
 session "HOL-Auth" (timing) in Auth = "HOL-Library" +
@@ -761,7 +761,7 @@ session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
   theories [quick_and_dirty]
     VC_Condition
 
-session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
+session "HOL-Cardinals" (timing) in Cardinals = HOL +
   description "
     Ordinals and Cardinals, Full Theories.
   "

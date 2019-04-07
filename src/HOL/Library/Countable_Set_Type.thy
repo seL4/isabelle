@@ -9,11 +9,15 @@ Type of (at most) countable sets.
 section \<open>Type of (at Most) Countable Sets\<close>
 
 theory Countable_Set_Type
-imports Countable_Set Cardinal_Notations
+imports Countable_Set
 begin
 
 
 subsection\<open>Cardinal stuff\<close>
+
+context
+  includes cardinal_syntax
+begin
 
 lemma countable_card_of_nat: "countable A \<longleftrightarrow> |A| \<le>o |UNIV::nat set|"
   unfolding countable_def card_of_ordLeq[symmetric] by auto
@@ -53,6 +57,8 @@ lemma countable_ordLess:
 assumes AB: "|A| <o |B|" and B: "countable B"
 shows "countable A"
 using countable_ordLeq[OF ordLess_imp_ordLeq[OF AB] B] .
+
+end
 
 subsection \<open>The type of countable sets\<close>
 
@@ -515,6 +521,10 @@ lifting_forget cset.lifting
 
 subsection \<open>Registration as BNF\<close>
 
+context
+  includes cardinal_syntax
+begin
+
 lemma card_of_countable_sets_range:
 fixes A :: "'a set"
 shows "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |{f::nat \<Rightarrow> 'a. range f \<subseteq> A}|"
@@ -530,6 +540,8 @@ by (rule ordLeq_ordIso_trans)
 lemma ordLeq_countable_subsets:
 "|A| \<le>o |{X. X \<subseteq> A \<and> countable X}|"
 apply (rule card_of_ordLeqI[of "\<lambda> a. {a}"]) unfolding inj_on_def by auto
+
+end
 
 lemma finite_countable_subset:
 "finite {X. X \<subseteq> A \<and> countable X} \<longleftrightarrow> finite A"
@@ -574,6 +586,10 @@ next
     by (simp add: subset_eq Ball_def)(transfer, auto simp add: cimage.rep_eq, metis snd_conv, metis fst_conv)
 qed
 
+context
+  includes cardinal_syntax
+begin
+
 bnf "'a cset"
   map: cimage
   sets: rcset
@@ -606,5 +622,7 @@ next
     cimage fst z = x \<and> cimage snd z = y)"
   unfolding rel_cset_alt_def[abs_def] rel_cset_aux[unfolded OO_Grp_alt] by simp
 qed(simp add: bot_cset.rep_eq)
+
+end
 
 end
