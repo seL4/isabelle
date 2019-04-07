@@ -219,6 +219,10 @@ INCOMPATIBILITY.
 * Theory HOL-Library.Multiset: the <Union># operator now has the same
 precedence as any other prefix function symbol.
 
+* Theory HOL-Library.Cardinal_Notations has been discontinued in favor
+of the bundle cardinal_syntax (available in Main).
+Minor INCOMPATIBILITY.
+
 * Session HOL-Library and HOL-Number_Theory: Exponentiation by squaring,
 used for computing powers in class "monoid_mult" and modular
 exponentiation.
