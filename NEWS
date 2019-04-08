@@ -233,7 +233,10 @@ of Formal power series.
 * Session HOL-Number_Theory: More material on residue rings in
 Carmichael's function, primitive roots, more properties for "ord".
 
-* Session HOL-Analysis: More material and better organization.
+* Session HOL-Analysis: Better organization and much more material,
+including algebraic topology.
+
+* Session HOL-Algebra: Much more material on group theory.
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
