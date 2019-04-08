@@ -642,6 +642,17 @@ lemma continuous_on_coordinatewise_iff:
   shows "continuous_on (A \<inter> S) f \<longleftrightarrow> (\<forall>i. continuous_on (A \<inter> S) (\<lambda>x. f x i))"
   by (auto simp: continuous_on_product_then_coordinatewise continuous_on_coordinatewise_then_product)
 
+lemma continuous_map_span_sum:
+  fixes B :: "'a::real_inner set"
+  assumes biB: "\<And>i. i \<in> I \<Longrightarrow> b i \<in> B"
+  shows "continuous_map euclidean (top_of_set (span B)) (\<lambda>x. \<Sum>i\<in>I. x i *\<^sub>R b i)"
+proof (rule continuous_map_euclidean_top_of_set)
+  show "(\<lambda>x. \<Sum>i\<in>I. x i *\<^sub>R b i) -` span B = UNIV"
+    by auto (meson biB lessThan_iff span_base span_scale span_sum)
+  show "continuous_on UNIV (\<lambda>x. \<Sum>i\<in> I. x i *\<^sub>R b i)"
+    by (intro continuous_intros) auto
+qed
+
 subsubsection%important \<open>Topological countability for product spaces\<close>
 
 text \<open>The next two lemmas are useful to prove first or second countability
@@ -866,7 +877,6 @@ qed
 instance "fun" :: (countable, second_countable_topology) second_countable_topology
   apply standard
   using product_topology_countable_basis topological_basis_imp_subbasis by auto
-
 
 subsection \<open>Metrics on product spaces\<close>
 
@@ -1242,7 +1252,7 @@ proof
 qed
 
 instance "fun" :: (countable, polish_space) polish_space
-by standard
+  by standard
 
 
 subsection\<open>The Alexander subbase theorem\<close>

@@ -2728,7 +2728,7 @@ lemma homeomorphic_space_sym:
    "X homeomorphic_space Y \<longleftrightarrow> Y homeomorphic_space X"
   unfolding homeomorphic_space_def by (metis homeomorphic_maps_sym)
 
-lemma homeomorphic_space_trans:
+lemma homeomorphic_space_trans [trans]:
      "\<lbrakk>X1 homeomorphic_space X2; X2 homeomorphic_space X3\<rbrakk> \<Longrightarrow> X1 homeomorphic_space X3"
   unfolding homeomorphic_space_def by (metis homeomorphic_maps_compose)
 

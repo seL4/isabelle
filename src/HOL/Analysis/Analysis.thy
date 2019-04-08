@@ -7,6 +7,8 @@ theory Analysis
   Connected
   Abstract_Limits
   Abstract_Euclidean_Space
+  (*Homology*)
+  Simplices
   (* Functional Analysis *)
   Elementary_Normed_Spaces
   Norm_Arith
