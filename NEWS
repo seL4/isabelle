@@ -265,9 +265,8 @@ language. For example, this works for Haskell as follows:
     eqConst = \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
   \<close>
 
-The ML function Generate_File.generate writes all generated files from a
-given theory to the file-system, e.g. a temporary directory where some
-external compiler is applied.
+See also commands 'export_generated_files' and 'compile_generated_files'
+to use the results.
 
 * ML evaluation (notably via commands 'ML' and 'ML_file') is subject to
 option ML_environment to select a named environment, such as "Isabelle"
