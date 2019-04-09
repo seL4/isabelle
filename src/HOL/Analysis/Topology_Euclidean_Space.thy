@@ -34,6 +34,9 @@ qed
 
 subsection \<open>Continuity of the representation WRT an orthogonal basis\<close>
 
+lemma orthogonal_Basis: "pairwise orthogonal Basis"
+  by (simp add: inner_not_same_Basis orthogonal_def pairwise_def)
+
 lemma representation_bound:
   fixes B :: "'N::real_inner set"
   assumes "finite B" "independent B" "b \<in> B" and orth: "pairwise orthogonal B"

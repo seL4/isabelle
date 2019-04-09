@@ -63,6 +63,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
     "HOL-Library"
+    "HOL-Algebra"
     "HOL-Computational_Algebra"
   theories
     Analysis
