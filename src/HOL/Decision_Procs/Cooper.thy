@@ -2663,8 +2663,7 @@ theorem "(\<exists>m::nat. n = 2 * m) \<longrightarrow> (n + 1) div 2 = n div 2"
 
 subsection \<open>Variant for HOL-Main\<close>
 
--(*code_reflect Cooper_Procedure
--  functions pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
--  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
+export_code pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
+  in Eval module_name Cooper_Procedure file_prefix cooper_procedure
 
 end
