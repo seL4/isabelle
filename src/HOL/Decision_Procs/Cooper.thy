@@ -2,15 +2,15 @@
     Author:     Amine Chaieb
 *)
 
+section \<open>Presburger arithmetic based on Cooper's algorithm\<close>
+
 theory Cooper
 imports
   Complex_Main
   "HOL-Library.Code_Target_Numeral"
 begin
 
-section \<open>Periodicity of \<open>dvd\<close>\<close>
-
-subsection \<open>Shadow syntax and semantics\<close>
+subsection \<open>Basic formulae\<close>
 
 datatype (plugins del: size) num = C int | Bound nat | CN nat int num
   | Neg num | Add num num | Sub num num
@@ -146,7 +146,7 @@ fun qfree :: "fm \<Rightarrow> bool"  \<comment> \<open>Quantifier freeness\<clo
   | "qfree p \<longleftrightarrow> True"
 
 
-text \<open>Boundedness and substitution\<close>
+subsection \<open>Boundedness and substitution\<close>
 
 primrec numbound0 :: "num \<Rightarrow> bool"  \<comment> \<open>a \<open>num\<close> is \<^emph>\<open>independent\<close> of Bound 0\<close>
   where
@@ -418,7 +418,7 @@ proof clarify
 qed
 
 
-text \<open>Simplification\<close>
+subsection \<open>Simplification\<close>
 
 text \<open>Algebraic simplifications for nums\<close>
 
@@ -819,7 +819,9 @@ lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
   apply (case_tac "simpnum a", auto)+
   done
 
-text \<open>Generic quantifier elimination\<close>
+
+subsection \<open>Generic quantifier elimination\<close>
+
 fun qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
   where
     "qelim (E p) = (\<lambda>qe. DJ qe (qelim p qe))"
@@ -2249,7 +2251,7 @@ proof -
 qed
 
 
-text \<open>Cooper's Algorithm\<close>
+subsection \<open>Cooper's Algorithm\<close>
 
 definition cooper :: "fm \<Rightarrow> fm"
 where
@@ -2371,16 +2373,8 @@ definition pa :: "fm \<Rightarrow> fm"
 theorem mirqe: "Ifm bbs bs (pa p) = Ifm bbs bs p \<and> qfree (pa p)"
   using qelim_ci cooper prep by (auto simp add: pa_def)
 
-definition cooper_test :: "unit \<Rightarrow> fm"
-  where "cooper_test u =
-    pa (E (A (Imp (Ge (Sub (Bound 0) (Bound 1)))
-      (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0))) (Bound 2))))))))"
 
-ML_val \<open>@{code cooper_test} ()\<close>
-
-(*code_reflect Cooper_Procedure
-  functions pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
-  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
+subsection \<open>Setup\<close>
 
 oracle linzqe_oracle = \<open>
 let
@@ -2535,7 +2529,7 @@ method_setup cooper = \<open>
 \<close> "decision procedure for linear integer arithmetic"
 
 
-text \<open>Tests\<close>
+subsection \<open>Tests\<close>
 
 lemma "\<exists>(j::int). \<forall>x\<ge>j. \<exists>a b. x = 3*a+5*b"
   by cooper
@@ -2665,5 +2659,12 @@ theorem "\<not> (\<forall>j (i::int). j \<le> i \<longrightarrow> (\<exists>x y.
 
 theorem "(\<exists>m::nat. n = 2 * m) \<longrightarrow> (n + 1) div 2 = n div 2"
   by cooper
+
+
+subsection \<open>Variant for HOL-Main\<close>
+
+-(*code_reflect Cooper_Procedure
+-  functions pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
+-  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
 
 end
