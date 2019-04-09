@@ -1,7 +1,7 @@
 section\<open>Homology, I: Simplices\<close>
 
 theory "Simplices"
-  imports "Abstract_Euclidean_Space" "HOL-Algebra.Free_Abelian_Groups"
+  imports "HOL-Analysis.Abstract_Euclidean_Space" "HOL-Algebra.Free_Abelian_Groups"
 
 begin
 subsection\<open>Standard simplices, all of which are topological subspaces of @{text"R^n"}.      \<close>
