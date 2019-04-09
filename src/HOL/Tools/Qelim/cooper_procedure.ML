@@ -1,5 +1,3 @@
-(* Generated from Cooper.thy; DO NOT EDIT! *)
-
 structure Cooper_Procedure : sig
   datatype inta = Int_of_integer of int
   val integer_of_int : inta -> int
@@ -89,25 +87,29 @@ val minus = #minus : 'a minus -> 'a -> 'a -> 'a;
 
 val minus_int = {minus = minus_inta} : inta minus;
 
-fun sgn_integer k =
-  (if k = (0 : IntInf.int) then (0 : IntInf.int)
-    else (if k < (0 : IntInf.int) then (~1 : IntInf.int)
-           else (1 : IntInf.int)));
-
 fun apsnd f (x, y) = (x, f y);
 
 fun divmod_integer k l =
   (if k = (0 : IntInf.int) then ((0 : IntInf.int), (0 : IntInf.int))
-    else (if l = (0 : IntInf.int) then ((0 : IntInf.int), k)
-           else (apsnd o (fn a => fn b => a * b) o sgn_integer) l
-                  (if sgn_integer k = sgn_integer l
-                    then Integer.div_mod (abs k) (abs l)
-                    else let
-                           val (r, s) = Integer.div_mod (abs k) (abs l);
-                         in
-                           (if s = (0 : IntInf.int) then (~ r, (0 : IntInf.int))
-                             else (~ r - (1 : IntInf.int), abs l - s))
-                         end)));
+    else (if (0 : IntInf.int) < l
+           then (if (0 : IntInf.int) < k then Integer.div_mod (abs k) (abs l)
+                  else let
+                         val (r, s) = Integer.div_mod (abs k) (abs l);
+                       in
+                         (if s = (0 : IntInf.int) then (~ r, (0 : IntInf.int))
+                           else (~ r - (1 : IntInf.int), l - s))
+                       end)
+           else (if l = (0 : IntInf.int) then ((0 : IntInf.int), k)
+                  else apsnd (fn a => ~ a)
+                         (if k < (0 : IntInf.int)
+                           then Integer.div_mod (abs k) (abs l)
+                           else let
+                                  val (r, s) = Integer.div_mod (abs k) (abs l);
+                                in
+                                  (if s = (0 : IntInf.int)
+                                    then (~ r, (0 : IntInf.int))
+                                    else (~ r - (1 : IntInf.int), ~ l - s))
+                                end))));
 
 fun fst (x1, x2) = x1;
 
@@ -506,6 +508,11 @@ val semidom_divide_int =
       semiring_no_zero_divisors_cancel_int}
   : inta semidom_divide;
 
+type 'a algebraic_semidom =
+  {semidom_divide_algebraic_semidom : 'a semidom_divide};
+val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
+  'a algebraic_semidom -> 'a semidom_divide;
+
 type 'a semiring_modulo =
   {comm_semiring_1_cancel_semiring_modulo : 'a comm_semiring_1_cancel,
     modulo_semiring_modulo : 'a modulo};
@@ -515,20 +522,6 @@ val comm_semiring_1_cancel_semiring_modulo =
 val modulo_semiring_modulo = #modulo_semiring_modulo :
   'a semiring_modulo -> 'a modulo;
 
-val semiring_modulo_int =
-  {comm_semiring_1_cancel_semiring_modulo = comm_semiring_1_cancel_int,
-    modulo_semiring_modulo = modulo_int}
-  : inta semiring_modulo;
-
-type 'a algebraic_semidom =
-  {semidom_divide_algebraic_semidom : 'a semidom_divide};
-val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
-  'a algebraic_semidom -> 'a semidom_divide;
-
-val algebraic_semidom_int =
-  {semidom_divide_algebraic_semidom = semidom_divide_int} :
-  inta algebraic_semidom;
-
 type 'a semidom_modulo =
   {algebraic_semidom_semidom_modulo : 'a algebraic_semidom,
     semiring_modulo_semidom_modulo : 'a semiring_modulo};
@@ -536,6 +529,15 @@ val algebraic_semidom_semidom_modulo = #algebraic_semidom_semidom_modulo :
   'a semidom_modulo -> 'a algebraic_semidom;
 val semiring_modulo_semidom_modulo = #semiring_modulo_semidom_modulo :
   'a semidom_modulo -> 'a semiring_modulo;
+
+val algebraic_semidom_int =
+  {semidom_divide_algebraic_semidom = semidom_divide_int} :
+  inta algebraic_semidom;
+
+val semiring_modulo_int =
+  {comm_semiring_1_cancel_semiring_modulo = comm_semiring_1_cancel_int,
+    modulo_semiring_modulo = modulo_int}
+  : inta semiring_modulo;
 
 val semidom_modulo_int =
   {algebraic_semidom_semidom_modulo = algebraic_semidom_int,
@@ -1153,15 +1155,15 @@ fun uminus_int k = Int_of_integer (~ (integer_of_int k));
 fun abs_int i = (if less_int i zero_inta then uminus_int i else i);
 
 fun dvd (A1_, A2_) a b =
-  eq A2_
-    (modulo ((modulo_semiring_modulo o semiring_modulo_semidom_modulo) A1_) b a)
+  eq A1_
+    (modulo ((modulo_semiring_modulo o semiring_modulo_semidom_modulo) A2_) b a)
     (zero ((zero_mult_zero o mult_zero_semiring_0 o semiring_0_semiring_1 o
              semiring_1_comm_semiring_1 o
              comm_semiring_1_comm_semiring_1_cancel o
              comm_semiring_1_cancel_semidom o semidom_semidom_divide o
              semidom_divide_algebraic_semidom o
              algebraic_semidom_semidom_modulo)
-            A1_));
+            A2_));
 
 fun nummul i (C j) = C (times_inta i j)
   | nummul i (CN (n, c, t)) = CN (n, times_inta c i, nummul i t)
@@ -1175,78 +1177,78 @@ fun numneg t = nummul (uminus_int one_inta) t;
 
 fun less_eq_nat m n = integer_of_nat m <= integer_of_nat n;
 
-fun numadd (CN (n1, c1, r1), CN (n2, c2, r2)) =
+fun numadd (CN (n1, c1, r1)) (CN (n2, c2, r2)) =
   (if equal_nat n1 n2
     then let
            val c = plus_inta c1 c2;
          in
-           (if equal_inta c zero_inta then numadd (r1, r2)
-             else CN (n1, c, numadd (r1, r2)))
+           (if equal_inta c zero_inta then numadd r1 r2
+             else CN (n1, c, numadd r1 r2))
          end
     else (if less_eq_nat n1 n2
-           then CN (n1, c1, numadd (r1, Add (Mul (c2, Bound n2), r2)))
-           else CN (n2, c2, numadd (Add (Mul (c1, Bound n1), r1), r2))))
-  | numadd (CN (n1, c1, r1), C dd) = CN (n1, c1, numadd (r1, C dd))
-  | numadd (CN (n1, c1, r1), Bound de) = CN (n1, c1, numadd (r1, Bound de))
-  | numadd (CN (n1, c1, r1), Neg di) = CN (n1, c1, numadd (r1, Neg di))
-  | numadd (CN (n1, c1, r1), Add (dj, dk)) =
-    CN (n1, c1, numadd (r1, Add (dj, dk)))
-  | numadd (CN (n1, c1, r1), Sub (dl, dm)) =
-    CN (n1, c1, numadd (r1, Sub (dl, dm)))
-  | numadd (CN (n1, c1, r1), Mul (dn, doa)) =
-    CN (n1, c1, numadd (r1, Mul (dn, doa)))
-  | numadd (C w, CN (n2, c2, r2)) = CN (n2, c2, numadd (C w, r2))
-  | numadd (Bound x, CN (n2, c2, r2)) = CN (n2, c2, numadd (Bound x, r2))
-  | numadd (Neg ac, CN (n2, c2, r2)) = CN (n2, c2, numadd (Neg ac, r2))
-  | numadd (Add (ad, ae), CN (n2, c2, r2)) =
-    CN (n2, c2, numadd (Add (ad, ae), r2))
-  | numadd (Sub (af, ag), CN (n2, c2, r2)) =
-    CN (n2, c2, numadd (Sub (af, ag), r2))
-  | numadd (Mul (ah, ai), CN (n2, c2, r2)) =
-    CN (n2, c2, numadd (Mul (ah, ai), r2))
-  | numadd (C b1, C b2) = C (plus_inta b1 b2)
-  | numadd (C aj, Bound bi) = Add (C aj, Bound bi)
-  | numadd (C aj, Neg bm) = Add (C aj, Neg bm)
-  | numadd (C aj, Add (bn, bo)) = Add (C aj, Add (bn, bo))
-  | numadd (C aj, Sub (bp, bq)) = Add (C aj, Sub (bp, bq))
-  | numadd (C aj, Mul (br, bs)) = Add (C aj, Mul (br, bs))
-  | numadd (Bound ak, C cf) = Add (Bound ak, C cf)
-  | numadd (Bound ak, Bound cg) = Add (Bound ak, Bound cg)
-  | numadd (Bound ak, Neg ck) = Add (Bound ak, Neg ck)
-  | numadd (Bound ak, Add (cl, cm)) = Add (Bound ak, Add (cl, cm))
-  | numadd (Bound ak, Sub (cn, co)) = Add (Bound ak, Sub (cn, co))
-  | numadd (Bound ak, Mul (cp, cq)) = Add (Bound ak, Mul (cp, cq))
-  | numadd (Neg ao, C en) = Add (Neg ao, C en)
-  | numadd (Neg ao, Bound eo) = Add (Neg ao, Bound eo)
-  | numadd (Neg ao, Neg et) = Add (Neg ao, Neg et)
-  | numadd (Neg ao, Add (eu, ev)) = Add (Neg ao, Add (eu, ev))
-  | numadd (Neg ao, Sub (ew, ex)) = Add (Neg ao, Sub (ew, ex))
-  | numadd (Neg ao, Mul (ey, ez)) = Add (Neg ao, Mul (ey, ez))
-  | numadd (Add (ap, aq), C fm) = Add (Add (ap, aq), C fm)
-  | numadd (Add (ap, aq), Bound fna) = Add (Add (ap, aq), Bound fna)
-  | numadd (Add (ap, aq), Neg fr) = Add (Add (ap, aq), Neg fr)
-  | numadd (Add (ap, aq), Add (fs, ft)) = Add (Add (ap, aq), Add (fs, ft))
-  | numadd (Add (ap, aq), Sub (fu, fv)) = Add (Add (ap, aq), Sub (fu, fv))
-  | numadd (Add (ap, aq), Mul (fw, fx)) = Add (Add (ap, aq), Mul (fw, fx))
-  | numadd (Sub (ar, asa), C gk) = Add (Sub (ar, asa), C gk)
-  | numadd (Sub (ar, asa), Bound gl) = Add (Sub (ar, asa), Bound gl)
-  | numadd (Sub (ar, asa), Neg gp) = Add (Sub (ar, asa), Neg gp)
-  | numadd (Sub (ar, asa), Add (gq, gr)) = Add (Sub (ar, asa), Add (gq, gr))
-  | numadd (Sub (ar, asa), Sub (gs, gt)) = Add (Sub (ar, asa), Sub (gs, gt))
-  | numadd (Sub (ar, asa), Mul (gu, gv)) = Add (Sub (ar, asa), Mul (gu, gv))
-  | numadd (Mul (at, au), C hi) = Add (Mul (at, au), C hi)
-  | numadd (Mul (at, au), Bound hj) = Add (Mul (at, au), Bound hj)
-  | numadd (Mul (at, au), Neg hn) = Add (Mul (at, au), Neg hn)
-  | numadd (Mul (at, au), Add (ho, hp)) = Add (Mul (at, au), Add (ho, hp))
-  | numadd (Mul (at, au), Sub (hq, hr)) = Add (Mul (at, au), Sub (hq, hr))
-  | numadd (Mul (at, au), Mul (hs, ht)) = Add (Mul (at, au), Mul (hs, ht));
+           then CN (n1, c1, numadd r1 (Add (Mul (c2, Bound n2), r2)))
+           else CN (n2, c2, numadd (Add (Mul (c1, Bound n1), r1)) r2)))
+  | numadd (CN (n1, c1, r1)) (C v) = CN (n1, c1, numadd r1 (C v))
+  | numadd (CN (n1, c1, r1)) (Bound v) = CN (n1, c1, numadd r1 (Bound v))
+  | numadd (CN (n1, c1, r1)) (Neg v) = CN (n1, c1, numadd r1 (Neg v))
+  | numadd (CN (n1, c1, r1)) (Add (v, va)) =
+    CN (n1, c1, numadd r1 (Add (v, va)))
+  | numadd (CN (n1, c1, r1)) (Sub (v, va)) =
+    CN (n1, c1, numadd r1 (Sub (v, va)))
+  | numadd (CN (n1, c1, r1)) (Mul (v, va)) =
+    CN (n1, c1, numadd r1 (Mul (v, va)))
+  | numadd (C v) (CN (n2, c2, r2)) = CN (n2, c2, numadd (C v) r2)
+  | numadd (Bound v) (CN (n2, c2, r2)) = CN (n2, c2, numadd (Bound v) r2)
+  | numadd (Neg v) (CN (n2, c2, r2)) = CN (n2, c2, numadd (Neg v) r2)
+  | numadd (Add (v, va)) (CN (n2, c2, r2)) =
+    CN (n2, c2, numadd (Add (v, va)) r2)
+  | numadd (Sub (v, va)) (CN (n2, c2, r2)) =
+    CN (n2, c2, numadd (Sub (v, va)) r2)
+  | numadd (Mul (v, va)) (CN (n2, c2, r2)) =
+    CN (n2, c2, numadd (Mul (v, va)) r2)
+  | numadd (C b1) (C b2) = C (plus_inta b1 b2)
+  | numadd (C v) (Bound va) = Add (C v, Bound va)
+  | numadd (C v) (Neg va) = Add (C v, Neg va)
+  | numadd (C v) (Add (va, vb)) = Add (C v, Add (va, vb))
+  | numadd (C v) (Sub (va, vb)) = Add (C v, Sub (va, vb))
+  | numadd (C v) (Mul (va, vb)) = Add (C v, Mul (va, vb))
+  | numadd (Bound v) (C va) = Add (Bound v, C va)
+  | numadd (Bound v) (Bound va) = Add (Bound v, Bound va)
+  | numadd (Bound v) (Neg va) = Add (Bound v, Neg va)
+  | numadd (Bound v) (Add (va, vb)) = Add (Bound v, Add (va, vb))
+  | numadd (Bound v) (Sub (va, vb)) = Add (Bound v, Sub (va, vb))
+  | numadd (Bound v) (Mul (va, vb)) = Add (Bound v, Mul (va, vb))
+  | numadd (Neg v) (C va) = Add (Neg v, C va)
+  | numadd (Neg v) (Bound va) = Add (Neg v, Bound va)
+  | numadd (Neg v) (Neg va) = Add (Neg v, Neg va)
+  | numadd (Neg v) (Add (va, vb)) = Add (Neg v, Add (va, vb))
+  | numadd (Neg v) (Sub (va, vb)) = Add (Neg v, Sub (va, vb))
+  | numadd (Neg v) (Mul (va, vb)) = Add (Neg v, Mul (va, vb))
+  | numadd (Add (v, va)) (C vb) = Add (Add (v, va), C vb)
+  | numadd (Add (v, va)) (Bound vb) = Add (Add (v, va), Bound vb)
+  | numadd (Add (v, va)) (Neg vb) = Add (Add (v, va), Neg vb)
+  | numadd (Add (v, va)) (Add (vb, vc)) = Add (Add (v, va), Add (vb, vc))
+  | numadd (Add (v, va)) (Sub (vb, vc)) = Add (Add (v, va), Sub (vb, vc))
+  | numadd (Add (v, va)) (Mul (vb, vc)) = Add (Add (v, va), Mul (vb, vc))
+  | numadd (Sub (v, va)) (C vb) = Add (Sub (v, va), C vb)
+  | numadd (Sub (v, va)) (Bound vb) = Add (Sub (v, va), Bound vb)
+  | numadd (Sub (v, va)) (Neg vb) = Add (Sub (v, va), Neg vb)
+  | numadd (Sub (v, va)) (Add (vb, vc)) = Add (Sub (v, va), Add (vb, vc))
+  | numadd (Sub (v, va)) (Sub (vb, vc)) = Add (Sub (v, va), Sub (vb, vc))
+  | numadd (Sub (v, va)) (Mul (vb, vc)) = Add (Sub (v, va), Mul (vb, vc))
+  | numadd (Mul (v, va)) (C vb) = Add (Mul (v, va), C vb)
+  | numadd (Mul (v, va)) (Bound vb) = Add (Mul (v, va), Bound vb)
+  | numadd (Mul (v, va)) (Neg vb) = Add (Mul (v, va), Neg vb)
+  | numadd (Mul (v, va)) (Add (vb, vc)) = Add (Mul (v, va), Add (vb, vc))
+  | numadd (Mul (v, va)) (Sub (vb, vc)) = Add (Mul (v, va), Sub (vb, vc))
+  | numadd (Mul (v, va)) (Mul (vb, vc)) = Add (Mul (v, va), Mul (vb, vc));
 
-fun numsub s t = (if equal_numa s t then C zero_inta else numadd (s, numneg t));
+fun numsub s t = (if equal_numa s t then C zero_inta else numadd s (numneg t));
 
 fun simpnum (C j) = C j
   | simpnum (Bound n) = CN (n, one_inta, C zero_inta)
   | simpnum (Neg t) = numneg (simpnum t)
-  | simpnum (Add (t, s)) = numadd (simpnum t, simpnum s)
+  | simpnum (Add (t, s)) = numadd (simpnum t) (simpnum s)
   | simpnum (Sub (t, s)) = numsub (simpnum t) (simpnum s)
   | simpnum (Mul (i, t)) =
     (if equal_inta i zero_inta then C zero_inta else nummul i (simpnum t))
@@ -1356,7 +1358,7 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
                   in
                     (case aa
                       of C v =>
-                        (if dvd (semidom_modulo_int, equal_int) i v then T
+                        (if dvd (equal_int, semidom_modulo_int) i v then T
                           else F)
                       | Bound _ => Dvd (i, aa) | CN (_, _, _) => Dvd (i, aa)
                       | Neg _ => Dvd (i, aa) | Add (_, _) => Dvd (i, aa)
@@ -1370,7 +1372,7 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
                   in
                     (case aa
                       of C v =>
-                        (if not (dvd (semidom_modulo_int, equal_int) i v) then T
+                        (if not (dvd (equal_int, semidom_modulo_int) i v) then T
                           else F)
                       | Bound _ => NDvd (i, aa) | CN (_, _, _) => NDvd (i, aa)
                       | Neg _ => NDvd (i, aa) | Add (_, _) => NDvd (i, aa)
