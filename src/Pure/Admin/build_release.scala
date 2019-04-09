@@ -211,13 +211,50 @@ directory individually.
 
 
 
-  /** build_release **/
+  /** build release **/
 
   private def execute(dir: Path, script: String): Unit =
     Isabelle_System.bash(script, cwd = dir.file).check
 
   private def execute_tar(dir: Path, args: String): Unit =
     Isabelle_System.gnutar(args, dir = dir).check
+
+
+  /* build heaps on remote server */
+
+  def remote_build_heaps(
+    options: Options, family: Platform.Family.Value, local_dir: Path, build_sessions: List[String])
+  {
+    val server_option = "build_release_server_" + family.toString
+    options.string(server_option) match {
+      case SSH.Target(user, host) =>
+        using(SSH.open_session(options, host = host, user = user))(ssh =>
+        {
+          Isabelle_System.with_tmp_file("tmp", "tar")(local_tmp_tar =>
+          {
+            execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
+            ssh.with_tmp_dir(remote_dir =>
+            {
+              val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
+              ssh.write_file(remote_tmp_tar, local_tmp_tar)
+              val remote_commands =
+                List(
+                  "cd " + File.bash_path(remote_dir),
+                  "tar -xf tmp.tar",
+                  "./bin/isabelle build -o system_heaps -b -- " + Bash.strings(build_sessions),
+                  "tar -cf tmp.tar heaps")
+              ssh.execute(remote_commands.mkString(" && ")).check
+              ssh.read_file(remote_tmp_tar, local_tmp_tar)
+            })
+            execute_tar(local_dir, "-xf " + File.bash_path(local_tmp_tar))
+          })
+        })
+      case s => error("Bad " + server_option + ": " + quote(s))
+    }
+  }
+
+
+  /* main */
 
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
