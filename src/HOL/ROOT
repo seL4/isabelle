@@ -74,6 +74,16 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
 
+session "HOL-Homology" (main timing) in Homology = "HOL-Analysis" +
+  options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
+    document_variants = "document:manual=-proof,-ML,-unimportant"]
+  sessions
+    "HOL-Algebra"
+  theories
+    Homology
+  document_files
+    "root.tex"
+
 session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "HOL-Library" +
   theories
     Computational_Algebra

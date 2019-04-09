@@ -89,6 +89,51 @@ lemma continuous_map_Euclidean_space_diff [continuous_intros]:
   unfolding Euclidean_space_def continuous_map_in_subtopology
   by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_diff)
 
+lemma continuous_map_Euclidean_space_iff:
+  "continuous_map (Euclidean_space m) euclideanreal g
+   = continuous_on (topspace (Euclidean_space m)) g"
+proof
+  assume "continuous_map (Euclidean_space m) euclideanreal g"
+  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclideanreal g"
+    by (simp add: Euclidean_space_def euclidean_product_topology)
+  then show "continuous_on (topspace (Euclidean_space m)) g"
+    by (metis continuous_map_subtopology_eu subtopology_topspace topspace_Euclidean_space)
+next
+  assume "continuous_on (topspace (Euclidean_space m)) g"
+  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclideanreal g"
+    by (metis (lifting) continuous_map_into_fulltopology continuous_map_subtopology_eu order_refl topspace_Euclidean_space)
+  then show "continuous_map (Euclidean_space m) euclideanreal g"
+    by (simp add: Euclidean_space_def euclidean_product_topology)
+qed
+
+lemma cm_Euclidean_space_iff_continuous_on:
+  "continuous_map (subtopology (Euclidean_space m) S) (Euclidean_space n) f
+   \<longleftrightarrow> continuous_on (topspace (subtopology (Euclidean_space m) S)) f \<and>
+       f ` (topspace (subtopology (Euclidean_space m) S)) \<subseteq> topspace (Euclidean_space n)"
+  (is "?P \<longleftrightarrow> ?Q \<and> ?R")
+proof -
+  have ?Q if ?P
+  proof -
+    have "\<And>n. Euclidean_space n = top_of_set {f. \<forall>m\<ge>n. f m = 0}"
+      by (simp add: Euclidean_space_def euclidean_product_topology)
+    with that show ?thesis
+      by (simp add: subtopology_subtopology)
+  qed
+  moreover
+  have ?R if ?P
+    using that by (simp add: image_subset_iff continuous_map_def)
+  moreover
+  have ?P if ?Q ?R
+  proof -
+    have "continuous_map (top_of_set (topspace (subtopology (subtopology (powertop_real UNIV) {f. \<forall>n\<ge>m. f n = 0}) S))) (top_of_set (topspace (subtopology (powertop_real UNIV) {f. \<forall>na\<ge>n. f na = 0}))) f"
+      using Euclidean_space_def that by auto
+    then show ?thesis
+      by (simp add: Euclidean_space_def euclidean_product_topology subtopology_subtopology)
+  qed
+  ultimately show ?thesis
+    by auto
+qed
+
 lemma homeomorphic_Euclidean_space_product_topology:
   "Euclidean_space n homeomorphic_space product_topology (\<lambda>i. euclideanreal) {..<n}"
 proof -
@@ -124,6 +169,7 @@ lemma locally_path_connected_Euclidean_space:
 lemma compact_Euclidean_space:
    "compact_space (Euclidean_space n) \<longleftrightarrow> n = 0"
   by (auto simp: homeomorphic_compact_space [OF homeomorphic_Euclidean_space_product_topology] compact_space_product_topology)
+
 
 subsection\<open>n-dimensional spheres\<close>
 

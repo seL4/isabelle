@@ -1,4 +1,4 @@
-(* Title:      HOL/Analysis/Convex_Euclidean_Space.thy
+(* Title:      HOL/Analysis/Convex.thy
    Author:     L C Paulson, University of Cambridge
    Author:     Robert Himmelmann, TU Muenchen
    Author:     Bogdan Grechuk, University of Edinburgh
