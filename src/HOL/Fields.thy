@@ -378,29 +378,41 @@ next
     by (simp add: divide_inverse)
 qed
 
+subclass idom_divide_cancel
+proof
+  fix a b c
+  assume [simp]: "c \<noteq> 0"
+  show "(c * a) / (c * b) = a / b"
+  proof (cases "b = 0")
+    case True then show ?thesis
+      by simp
+  next
+    case False
+    then have "(c * a) / (c * b) = c * a * (inverse b * inverse c)"
+      by (simp add: divide_inverse nonzero_inverse_mult_distrib)
+    also have "... =  a * inverse b * (inverse c * c)"
+      by (simp only: ac_simps)
+    also have "... =  a * inverse b" by simp
+    finally show ?thesis by (simp add: divide_inverse)
+  qed
+next
+  fix a b c
+  assume "b \<noteq> 0"
+  have "((a * inverse b) * b + c * b) = (c + a * inverse b) * b"
+    using distrib [of c "a * inverse b" b] by (simp add: ac_simps)
+  also have "(a * inverse b) * b = a"
+    using \<open>b \<noteq> 0\<close> by (simp add: ac_simps)
+  finally show "(a + c * b) / b = c + a / b"
+    using \<open>b \<noteq> 0\<close> by (simp add: ac_simps divide_inverse [symmetric])
+qed
+
+lemmas nonzero_mult_divide_mult_cancel_left = div_mult_mult1 \<comment> \<open>duplicate\<close>
+lemmas nonzero_mult_divide_mult_cancel_right = div_mult_mult2 \<comment> \<open>duplicate\<close>
+
 text\<open>There is no slick version using division by zero.\<close>
 lemma inverse_add:
   "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a + inverse b = (a + b) * inverse a * inverse b"
   by (simp add: division_ring_inverse_add ac_simps)
-
-lemma nonzero_mult_divide_mult_cancel_left [simp]:
-  assumes [simp]: "c \<noteq> 0"
-  shows "(c * a) / (c * b) = a / b"
-proof (cases "b = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  then have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
-    by (simp add: divide_inverse nonzero_inverse_mult_distrib)
-  also have "... =  a * inverse b * (inverse c * c)"
-    by (simp only: ac_simps)
-  also have "... =  a * inverse b" by simp
-    finally show ?thesis by (simp add: divide_inverse)
-qed
-
-lemma nonzero_mult_divide_mult_cancel_right [simp]:
-  "c \<noteq> 0 \<Longrightarrow> (a * c) / (b * c) = a / b"
-  using nonzero_mult_divide_mult_cancel_left [of c a b] by (simp add: ac_simps)
 
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse ac_simps)

@@ -1699,6 +1699,69 @@ lemma [nitpick_unfold]:
 end
 
 
+text \<open>Integral (semi)domains with cancellation rules\<close>
+
+class semidom_divide_cancel = semidom_divide +
+  assumes div_mult_self1: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
+    and div_mult_mult1: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
+begin
+
+context
+  fixes b
+  assumes "b \<noteq> 0"
+begin
+
+lemma div_mult_self2:
+  "(a + b * c) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_mult_self3:
+  "(c * b + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_mult_self4:
+  "(b * c + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_add_self1:
+  "(b + a) div b = a div b + 1"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a 1] by (simp add: ac_simps)
+
+lemma div_add_self2:
+  "(a + b) div b = a div b + 1"
+  using \<open>b \<noteq> 0\<close> div_add_self1 [of a] by (simp add: ac_simps)
+
+end
+
+lemma div_mult_mult2:
+  "(a * c) div (b * c) = a div b" if "c \<noteq> 0"
+  using that div_mult_mult1 [of c a b] by (simp add: ac_simps)
+
+lemma div_mult_mult1_if [simp]:
+  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
+  by (simp add: div_mult_mult1)
+
+lemma div_mult_mult2_if [simp]:
+  "(a * c) div (b * c) = (if c = 0 then 0 else a div b)"
+  using div_mult_mult1_if [of c a b] by (simp add: ac_simps)
+
+end
+
+class idom_divide_cancel = idom_divide + semidom_divide_cancel
+begin
+
+lemma div_minus_minus [simp]: "(- a) div (- b) = a div b"
+  using div_mult_mult1 [of "- 1" a b] by simp
+
+lemma div_minus_right: "a div (- b) = (- a) div b"
+  using div_minus_minus [of "- a" b] by simp
+
+lemma div_minus1_right [simp]: "a div (- 1) = - a"
+  using div_minus_right [of a 1] by simp
+
+end
+
+
 text \<open>Quotient and remainder in integral domains\<close>
 
 class semidom_modulo = algebraic_semidom + semiring_modulo

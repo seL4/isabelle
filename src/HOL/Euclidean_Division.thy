@@ -165,25 +165,31 @@ end
 
 subsection \<open>Euclidean (semi)rings with cancel rules\<close>
 
-class euclidean_semiring_cancel = euclidean_semiring +
-  assumes div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
-  and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
+class euclidean_semiring_cancel = euclidean_semiring + semidom_divide_cancel
 begin
 
-lemma div_mult_self2 [simp]:
+context
+  fixes b
   assumes "b \<noteq> 0"
-  shows "(a + b * c) div b = c + a div b"
-  using assms div_mult_self1 [of b a c] by (simp add: mult.commute)
+begin
+
+lemma div_mult_self1 [simp]:
+  "(a + c * b) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> by (rule div_mult_self1)
+
+lemma div_mult_self2 [simp]:
+  "(a + b * c) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> by (rule div_mult_self2)
 
 lemma div_mult_self3 [simp]:
-  assumes "b \<noteq> 0"
-  shows "(c * b + a) div b = c + a div b"
-  using assms by (simp add: add.commute)
+  "(c * b + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> by (rule div_mult_self3)
 
 lemma div_mult_self4 [simp]:
-  assumes "b \<noteq> 0"
-  shows "(b * c + a) div b = c + a div b"
-  using assms by (simp add: add.commute)
+  "(b * c + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> by (rule div_mult_self4)
+
+end
 
 lemma mod_mult_self1 [simp]: "(a + c * b) mod b = a mod b"
 proof (cases "b = 0")
@@ -194,7 +200,7 @@ next
     by (simp add: div_mult_mod_eq)
   also from False div_mult_self1 [of b a c] have
     "\<dots> = (c + a div b) * b + (a + c * b) mod b"
-      by (simp add: algebra_simps)
+    by (simp add: algebra_simps)
   finally have "a = a div b * b + (a + c * b) mod b"
     by (simp add: add.commute [of a] add.assoc distrib_right)
   then have "a div b * b + (a + c * b) mod b = a div b * b + a mod b"
@@ -221,16 +227,6 @@ lemma mod_mult_self1_is_0 [simp]:
 lemma mod_mult_self2_is_0 [simp]:
   "a * b mod b = 0"
   using mod_mult_self1 [of 0 a b] by simp
-
-lemma div_add_self1:
-  assumes "b \<noteq> 0"
-  shows "(b + a) div b = a div b + 1"
-  using assms div_mult_self1 [of b a 1] by (simp add: add.commute)
-
-lemma div_add_self2:
-  assumes "b \<noteq> 0"
-  shows "(a + b) div b = a div b + 1"
-  using assms div_add_self1 [of b a] by (simp add: add.commute)
 
 lemma mod_add_self1 [simp]:
   "(b + a) mod b = a mod b"
@@ -283,14 +279,6 @@ proof -
     by (simp only: div_mult_mod_eq)
   finally show ?thesis .
 qed
-
-lemma div_mult_mult2 [simp]:
-  "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
-  by (drule div_mult_mult1) (simp add: mult.commute)
-
-lemma div_mult_mult1_if [simp]:
-  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
-  by simp_all
 
 lemma mod_mult_mult1:
   "(c * a) mod (c * b) = c * (a mod b)"
@@ -448,22 +436,13 @@ end
 class euclidean_ring_cancel = euclidean_ring + euclidean_semiring_cancel
 begin
 
-subclass idom_divide ..
-
-lemma div_minus_minus [simp]: "(- a) div (- b) = a div b"
-  using div_mult_mult1 [of "- 1" a b] by simp
+subclass idom_divide_cancel ..
 
 lemma mod_minus_minus [simp]: "(- a) mod (- b) = - (a mod b)"
   using mod_mult_mult1 [of "- 1" a b] by simp
 
-lemma div_minus_right: "a div (- b) = (- a) div b"
-  using div_minus_minus [of "- a" b] by simp
-
 lemma mod_minus_right: "a mod (- b) = - ((- a) mod b)"
   using mod_minus_minus [of "- a" b] by simp
-
-lemma div_minus1_right [simp]: "a div (- 1) = - a"
-  using div_minus_right [of a 1] by simp
 
 lemma mod_minus1_right [simp]: "a mod (- 1) = 0"
   using mod_minus_right [of a 1] by simp
