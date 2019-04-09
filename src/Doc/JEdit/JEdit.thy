@@ -2115,7 +2115,7 @@ text \<open>
   ``end-of-live'' status since Jan-2019) and refer to its main directory via
   @{setting "ISABELLE_JDK_HOME"}\<^verbatim>\<open>="..."\<close> in
   \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close>. Also add
-  \<^verbatim>\<open>isabelle_fonts_hints=false\<close> to
+  \<^verbatim>\<open>isabelle_fonts_hinted=false\<close> to
   \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close> to avoid problems of the old
   font renderer with hinting.
 

@@ -317,9 +317,9 @@ object Build_Fonts
     File.write(settings_path,
       """# -*- shell-script -*- :mode=shellscript:
 
-if grep "isabelle_fonts_hinted.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
-then""" + fonts_settings(true) + """
-else""" + fonts_settings(false) + """
+if grep "isabelle_fonts_hinted.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
+then""" + fonts_settings(false) + """
+else""" + fonts_settings(true) + """
 fi
 
 isabelle_fonts_hidden "$COMPONENT/""" + hinted_path(false).file_name + """/Vacuous.ttf"
