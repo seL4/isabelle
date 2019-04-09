@@ -4,6 +4,7 @@ theory "Simplices"
   imports "HOL-Analysis.Abstract_Euclidean_Space" "HOL-Algebra.Free_Abelian_Groups"
 
 begin
+
 subsection\<open>Standard simplices, all of which are topological subspaces of @{text"R^n"}.      \<close>
 
 type_synonym 'a chain = "((nat \<Rightarrow> real) \<Rightarrow> 'a) \<Rightarrow>\<^sub>0 int"
@@ -2779,6 +2780,502 @@ proof -
     with de show "homologous_rel p (subtopology X S) T c d"
       by simp
   qed
+qed
+
+
+subsection\<open>Homotopy invariance\<close>
+
+theorem homotopic_imp_homologous_rel_chain_maps:
+  assumes hom: "homotopic_with (\<lambda>h. h ` T \<subseteq> V) S U f g" and c: "singular_relcycle p S T c"
+  shows "homologous_rel p U V (chain_map p f c) (chain_map p g c)"
+proof -
+  note sum_atMost_Suc [simp del]
+  have contf: "continuous_map S U f" and contg: "continuous_map S U g"
+    using homotopic_with_imp_continuous_maps [OF hom] by metis+
+  obtain h where conth: "continuous_map (prod_topology (top_of_set {0..1::real}) S) U h"
+    and h0: "\<And>x. h(0, x) = f x"
+    and h1: "\<And>x. h(1, x) = g x"
+    and hV: "\<And>t x. \<lbrakk>0 \<le> t; t \<le> 1; x \<in> T\<rbrakk> \<Longrightarrow> h(t,x) \<in> V"
+    using hom by (fastforce simp: homotopic_with_def)
+  define vv where "vv \<equiv> \<lambda>j i. if i = Suc j then 1 else (0::real)"
+  define ww where "ww \<equiv> \<lambda>j i. if i=0 \<or> i = Suc j then 1 else (0::real)"
+  define simp where "simp \<equiv> \<lambda>q i. oriented_simplex (Suc q) (\<lambda>j. if j \<le> i then vv j else ww(j -1))"
+  define pr where "pr \<equiv> \<lambda>q c. \<Sum>i\<le>q. frag_cmul ((-1) ^ i)
+                                        (frag_of (simplex_map (Suc q) (\<lambda>z. h(z 0, c(z \<circ> Suc))) (simp q i)))"
+  have ss_ss: "simplicial_simplex (Suc q) ({x. x 0 \<in> {0..1} \<and> (x \<circ> Suc) \<in> standard_simplex q}) (simp q i)"
+    if "i \<le> q" for q i
+  proof -
+    have "(\<Sum>j\<le>Suc q. (if j \<le> i then vv j 0 else ww (j -1) 0) * x j) \<in> {0..1}"
+      if "x \<in> standard_simplex (Suc q)" for x
+    proof -
+      have "(\<Sum>j\<le>Suc q. if j \<le> i then 0 else x j) \<le> sum x {..Suc q}"
+        using that unfolding standard_simplex_def
+        by (force intro!: sum_mono)
+      with \<open>i \<le> q\<close> that show ?thesis
+        by (simp add: vv_def ww_def standard_simplex_def if_distrib [of "\<lambda>u. u * _"] sum_nonneg cong: if_cong)
+    qed
+    moreover
+    have "(\<lambda>k. \<Sum>j\<le>Suc q. (if j \<le> i then vv j k else ww (j -1) k) * x j) \<circ> Suc \<in> standard_simplex q"
+      if "x \<in> standard_simplex (Suc q)" for x
+    proof -
+      have card: "({..q} \<inter> {k. Suc k = j}) = {j-1}" if "0 < j" "j \<le> Suc q" for j
+        using that by auto
+      have eq: "(\<Sum>j\<le>Suc q. \<Sum>k\<le>q. if j \<le> i then if k = j then x j else 0 else if Suc k = j then x j else 0)
+              = (\<Sum>j\<le>Suc q. x j)"
+        by (rule sum.cong [OF refl]) (use \<open>i \<le> q\<close> in \<open>simp add: sum.If_cases card\<close>)
+      have "(\<Sum>j\<le>Suc q. if j \<le> i then if k = j then x j else 0 else if Suc k = j then x j else 0)
+            \<le> sum x {..Suc q}" for k
+        using that unfolding standard_simplex_def
+        by (force intro!: sum_mono)
+      then show ?thesis
+        using \<open>i \<le> q\<close> that
+        by (simp add: vv_def ww_def standard_simplex_def if_distrib [of "\<lambda>u. u * _"] sum_nonneg
+            sum.swap [where A = "atMost q"] eq cong: if_cong)
+    qed
+    ultimately show ?thesis
+      by (simp add: that simplicial_simplex_oriented_simplex simp_def image_subset_iff if_distribR)
+  qed
+  obtain prism where prism: "\<And>q. prism q 0 = 0"
+    "\<And>q c. singular_chain q S c \<Longrightarrow> singular_chain (Suc q) U (prism q c)"
+    "\<And>q c. singular_chain q (subtopology S T) c
+                           \<Longrightarrow> singular_chain (Suc q) (subtopology U V) (prism q c)"
+    "\<And>q c. singular_chain q S c
+                           \<Longrightarrow> chain_boundary (Suc q) (prism q c) =
+                               chain_map q g c - chain_map q f c - prism (q -1) (chain_boundary q c)"
+  proof
+    show "(frag_extend \<circ> pr) q 0 = 0" for q
+      by (simp add: pr_def)
+  next
+    show "singular_chain (Suc q) U ((frag_extend \<circ> pr) q c)"
+      if "singular_chain q S c" for q c
+      using that [unfolded singular_chain_def]
+    proof (induction c rule: frag_induction)
+      case (one m)
+      show ?case
+      proof (simp add: pr_def, intro singular_chain_cmul singular_chain_sum)
+        fix i :: "nat"
+        assume "i \<in> {..q}"
+        define X where "X = subtopology (powertop_real UNIV) {x. x 0 \<in> {0..1} \<and> (x \<circ> Suc) \<in> standard_simplex q}"
+        show "singular_chain (Suc q) U
+                 (frag_of (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))"
+          unfolding singular_chain_of
+        proof (rule singular_simplex_simplex_map)
+          show "singular_simplex (Suc q) X (simp q i)"
+            unfolding X_def using \<open>i \<in> {..q}\<close> simplicial_imp_singular_simplex ss_ss by blast
+          have 0: "continuous_map X (top_of_set {0..1}) (\<lambda>x. x 0)"
+            unfolding continuous_map_in_subtopology topspace_subtopology X_def
+            by (auto intro: continuous_map_product_projection continuous_map_from_subtopology)
+          have 1: "continuous_map X S (m \<circ> (\<lambda>x j. x (Suc j)))"
+          proof (rule continuous_map_compose)
+            have "continuous_map (powertop_real UNIV) (powertop_real UNIV) (\<lambda>x j. x (Suc j))"
+              by (auto intro: continuous_map_product_projection)
+            then show "continuous_map X (subtopology (powertop_real UNIV) (standard_simplex q)) (\<lambda>x j. x (Suc j))"
+              unfolding X_def o_def
+              by (auto simp: continuous_map_in_subtopology intro: continuous_map_from_subtopology continuous_map_product_projection)
+          qed (use one in \<open>simp add: singular_simplex_def\<close>)
+          show "continuous_map X U (\<lambda>z. h (z 0, m (z \<circ> Suc)))"
+            apply (rule continuous_map_compose [unfolded o_def, OF _ conth])
+            using 0 1 by (simp add: continuous_map_pairwise o_def)
+        qed
+      qed
+    next
+      case (diff a b)
+      then show ?case
+        apply (simp add: frag_extend_diff keys_diff)
+        using singular_chain_def singular_chain_diff by blast
+    qed auto
+  next
+    show "singular_chain (Suc q) (subtopology U V) ((frag_extend \<circ> pr) q c)"
+      if "singular_chain q (subtopology S T) c" for q c
+      using that [unfolded singular_chain_def]
+    proof (induction c rule: frag_induction)
+      case (one m)
+      show ?case
+      proof (simp add: pr_def, intro singular_chain_cmul singular_chain_sum)
+        fix i :: "nat"
+        assume "i \<in> {..q}"
+        define X where "X = subtopology (powertop_real UNIV) {x. x 0 \<in> {0..1} \<and> (x \<circ> Suc) \<in> standard_simplex q}"
+        show "singular_chain (Suc q) (subtopology U V)
+                 (frag_of (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))"
+          unfolding singular_chain_of
+        proof (rule singular_simplex_simplex_map)
+          show "singular_simplex (Suc q) X (simp q i)"
+            unfolding X_def using \<open>i \<in> {..q}\<close> simplicial_imp_singular_simplex ss_ss by blast
+          have 0: "continuous_map X (top_of_set {0..1}) (\<lambda>x. x 0)"
+            unfolding continuous_map_in_subtopology topspace_subtopology X_def
+            by (auto intro: continuous_map_product_projection continuous_map_from_subtopology)
+          have 1: "continuous_map X (subtopology S T) (m \<circ> (\<lambda>x j. x (Suc j)))"
+          proof (rule continuous_map_compose)
+            have "continuous_map (powertop_real UNIV) (powertop_real UNIV) (\<lambda>x j. x (Suc j))"
+              by (auto intro: continuous_map_product_projection)
+            then show "continuous_map X (subtopology (powertop_real UNIV) (standard_simplex q)) (\<lambda>x j. x (Suc j))"
+              unfolding X_def o_def
+              by (auto simp: continuous_map_in_subtopology intro: continuous_map_from_subtopology continuous_map_product_projection)
+            show "continuous_map (subtopology (powertop_real UNIV) (standard_simplex q)) (subtopology S T) m"
+              using one continuous_map_into_fulltopology by (auto simp: singular_simplex_def)
+          qed
+          have "continuous_map X (subtopology U V) (h \<circ> (\<lambda>z. (z 0, m (z \<circ> Suc))))"
+          proof (rule continuous_map_compose)
+            show "continuous_map X (prod_topology (top_of_set {0..1::real}) (subtopology S T)) (\<lambda>z. (z 0, m (z \<circ> Suc)))"
+              using 0 1 by (simp add: continuous_map_pairwise o_def)
+            have "continuous_map (subtopology (prod_topology euclideanreal S) ({0..1} \<times> T)) U h"
+              by (metis conth continuous_map_from_subtopology subtopology_Times subtopology_topspace)
+            with hV show "continuous_map (prod_topology (top_of_set {0..1::real}) (subtopology S T)) (subtopology U V) h"
+              by (force simp: topspace_subtopology continuous_map_in_subtopology subtopology_restrict subtopology_Times)
+          qed
+          then show "continuous_map X (subtopology U V) (\<lambda>z. h (z 0, m (z \<circ> Suc)))"
+            by (simp add: o_def)
+        qed
+      qed
+    next
+      case (diff a b)
+      then show ?case
+        by (metis comp_apply frag_extend_diff singular_chain_diff)
+    qed auto
+  next
+    show "chain_boundary (Suc q) ((frag_extend \<circ> pr) q c) =
+        chain_map q g c - chain_map q f c - (frag_extend \<circ> pr) (q -1) (chain_boundary q c)"
+      if "singular_chain q S c" for q c
+      using that [unfolded singular_chain_def]
+    proof (induction c rule: frag_induction)
+      case (one m)
+      have eq2: "Sigma S T = (\<lambda>i. (i,i)) ` {i \<in> S. i \<in> T i} \<union> (Sigma S (\<lambda>i. T i - {i}))" for S :: "nat set" and T
+        by force
+      have 1: "(\<Sum>(i,j)\<in>(\<lambda>i. (i, i)) ` {i. i \<le> q \<and> i \<le> Suc q}.
+                   frag_cmul (((-1) ^ i) * (-1) ^ j)
+                      (frag_of
+                        (singular_face (Suc q) j
+                          (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))))
+             + (\<Sum>(i,j)\<in>(\<lambda>i. (i, i)) ` {i. i \<le> q}.
+                     frag_cmul (- ((-1) ^ i * (-1) ^ j))
+                        (frag_of
+                          (singular_face (Suc q) (Suc j)
+                            (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))))
+             = frag_of (simplex_map q g m) - frag_of (simplex_map q f m)"
+      proof -
+        have "restrict ((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q 0 \<circ> simplical_face 0)) (standard_simplex q)
+          = restrict (g \<circ> m) (standard_simplex q)"
+        proof (rule restrict_ext)
+          fix x
+          assume x: "x \<in> standard_simplex q"
+          have "(\<Sum>j\<le>Suc q. if j = 0 then 0 else x (j - Suc 0)) = (\<Sum>j\<le>q. x j)"
+            by (simp add: sum_atMost_Suc_shift)
+          with x have "simp q 0 (simplical_face 0 x) 0 = 1"
+            apply (simp add: oriented_simplex_def simp_def simplical_face_in_standard_simplex)
+            apply (simp add: simplical_face_def if_distrib ww_def standard_simplex_def cong: if_cong)
+            done
+          moreover
+          have "(\<lambda>n. if n \<le> q then x n else 0) = x"
+            using standard_simplex_def x by auto
+          then have "(\<lambda>n. simp q 0 (simplical_face 0 x) (Suc n)) = x"
+            unfolding oriented_simplex_def simp_def ww_def using x
+            apply (simp add: simplical_face_in_standard_simplex)
+            apply (simp add: simplical_face_def if_distrib)
+            apply (simp add: if_distribR if_distrib cong: if_cong)
+            done
+          ultimately show "((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q 0 \<circ> simplical_face 0)) x = (g \<circ> m) x"
+            by (simp add: o_def h1)
+        qed
+        then have a: "frag_of (singular_face (Suc q) 0 (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q 0)))
+             = frag_of (simplex_map q g m)"
+          by (simp add: singular_face_simplex_map) (simp add: simplex_map_def)
+        have "restrict ((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q q \<circ> simplical_face (Suc q))) (standard_simplex q)
+          = restrict (f \<circ> m) (standard_simplex q)"
+        proof (rule restrict_ext)
+          fix x
+          assume x: "x \<in> standard_simplex q"
+          then have "simp q q (simplical_face (Suc q) x) 0 = 0"
+            unfolding oriented_simplex_def simp_def
+            by (simp add: simplical_face_in_standard_simplex sum_atMost_Suc) (simp add: simplical_face_def vv_def)
+          moreover have "(\<lambda>n. simp q q (simplical_face (Suc q) x) (Suc n)) = x"
+            unfolding oriented_simplex_def simp_def vv_def using x
+            apply (simp add: simplical_face_in_standard_simplex)
+            apply (force simp: standard_simplex_def simplical_face_def if_distribR if_distrib [of "\<lambda>x. x * _"] sum_atMost_Suc cong: if_cong)
+            done
+          ultimately show "((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q q \<circ> simplical_face (Suc q))) x = (f \<circ> m) x"
+            by (simp add: o_def h0)
+        qed
+        then have b: "frag_of (singular_face (Suc q) (Suc q)
+                     (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q q)))
+          = frag_of (simplex_map q f m)"
+          by (simp add: singular_face_simplex_map) (simp add: simplex_map_def)
+        have sfeq: "simplex_map q (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q (Suc i) \<circ> simplical_face (Suc i))
+                = simplex_map q (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i \<circ> simplical_face (Suc i))"
+          if "i < q" for i
+          unfolding simplex_map_def
+        proof (rule restrict_ext)
+          fix x
+          assume "x \<in> standard_simplex q"
+          then have "(simp q (Suc i) \<circ> simplical_face (Suc i)) x = (simp q i \<circ> simplical_face (Suc i)) x"
+            unfolding oriented_simplex_def simp_def simplical_face_def
+            by (force intro: sum.cong)
+          then show "((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q (Suc i) \<circ> simplical_face (Suc i))) x
+                 = ((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q i \<circ> simplical_face (Suc i))) x"
+            by simp
+        qed
+        have eqq: "{i. i \<le> q \<and> i \<le> Suc q} = {..q}"
+          by force
+        have qeq: "{..q} = insert 0 ((\<lambda>i. Suc i) ` {i. i < q})" "{i. i \<le> q} = insert q {i. i < q}"
+          using le_imp_less_Suc less_Suc_eq_0_disj by auto
+        show ?thesis
+          using a b
+          apply (simp add: sum.reindex inj_on_def eqq)
+          apply (simp add: qeq sum.insert_if sum.reindex sum_negf singular_face_simplex_map sfeq)
+          done
+      qed
+      have 2: "(\<Sum>(i,j)\<in>(SIGMA i:{..q}. {0..min (Suc q) i} - {i}).
+                     frag_cmul ((-1) ^ i * (-1) ^ j)
+                      (frag_of
+                        (singular_face (Suc q) j
+                          (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))))
+             + (\<Sum>(i,j)\<in>(SIGMA i:{..q}. {i..q} - {i}).
+                 frag_cmul (- ((-1) ^ i * (-1) ^ j))
+                  (frag_of
+                    (singular_face (Suc q) (Suc j)
+                      (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))))
+             = - frag_extend (pr (q - Suc 0)) (chain_boundary q (frag_of m))"
+      proof (cases "q=0")
+        case True
+        then show ?thesis
+          by (simp add: chain_boundary_def flip: sum.Sigma)
+      next
+        case False
+        have eq: "{..q - Suc 0} \<times> {..q} = Sigma {..q - Suc 0} (\<lambda>i. {0..min q i}) \<union> Sigma {..q} (\<lambda>i. {i<..q})"
+          by force
+        have I: "(\<Sum>(i,j)\<in>(SIGMA i:{..q}. {0..min (Suc q) i} - {i}).
+                    frag_cmul ((-1) ^ (i + j))
+                      (frag_of
+                        (singular_face (Suc q) j
+                          (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i)))))
+               = (\<Sum>(i,j)\<in>(SIGMA i:{..q - Suc 0}. {0..min q i}).
+                   frag_cmul (- ((-1) ^ (j + i)))
+                    (frag_of
+                      (simplex_map q (\<lambda>z. h (z 0, singular_face q j m (z \<circ> Suc)))
+                        (simp (q - Suc 0) i))))"
+        proof -
+          have seq: "simplex_map q (\<lambda>z. h (z 0, singular_face q j m (z \<circ> Suc)))
+                       (simp (q - Suc 0) (i - Suc 0))
+                   = simplex_map q (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i \<circ> simplical_face j)"
+            if ij: "i \<le> q" "j \<noteq> i" "j \<le> i" for i j
+            unfolding simplex_map_def
+          proof (rule restrict_ext)
+            fix x
+            assume x: "x \<in> standard_simplex q"
+            have "i > 0"
+              using that by force
+            then have iq: "i - Suc 0 \<le> q - Suc 0"
+              using \<open>i \<le> q\<close> False by simp
+            have q0_eq: "{..Suc q} = insert 0 (Suc ` {..q})"
+              by (auto simp: image_def gr0_conv_Suc)
+            have \<alpha>: "simp (q - Suc 0) (i - Suc 0) x 0 = simp q i (simplical_face j x) 0"
+              using False x ij
+              unfolding oriented_simplex_def simp_def vv_def ww_def
+              apply (simp add: simplical_face_in_standard_simplex)
+              apply (force simp: simplical_face_def q0_eq sum.reindex intro!: sum.cong)
+              done
+            have \<beta>: "simplical_face j (simp (q - Suc 0) (i - Suc 0) x \<circ> Suc) = simp q i (simplical_face j x) \<circ> Suc"
+            proof
+              fix k
+              show "simplical_face j (simp (q - Suc 0) (i - Suc 0) x \<circ> Suc) k
+                  = (simp q i (simplical_face j x) \<circ> Suc) k"
+                using False x ij
+                unfolding oriented_simplex_def simp_def o_def vv_def ww_def
+                apply (simp add: simplical_face_in_standard_simplex if_distribR)
+                apply (simp add: simplical_face_def if_distrib [of "\<lambda>u. u * _"] cong: if_cong)
+                apply (intro impI conjI)
+                 apply (force simp: sum_atMost_Suc intro: sum.cong)
+                apply (force simp: q0_eq sum.reindex intro!: sum.cong)
+                done
+            qed
+            have "simp (q - Suc 0) (i - Suc 0) x \<circ> Suc \<in> standard_simplex (q - Suc 0)"
+              using ss_ss [OF iq] \<open>i \<le> q\<close> False \<open>i > 0\<close>
+              apply (simp add: simplicial_simplex image_subset_iff)
+              using \<open>x \<in> standard_simplex q\<close> by blast
+            then show "((\<lambda>z. h (z 0, singular_face q j m (z \<circ> Suc))) \<circ> simp (q - Suc 0) (i - Suc 0)) x
+                = ((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q i \<circ> simplical_face j)) x"
+              by (simp add: singular_face_def \<alpha> \<beta>)
+          qed
+          have [simp]: "(-1::int) ^ (i + j - Suc 0) = - ((-1) ^ (i + j))" if "i \<noteq> j" for i j::nat
+          proof -
+            have "i + j > 0"
+              using that by blast
+            then show ?thesis
+              by (metis (no_types, hide_lams) One_nat_def Suc_diff_1 add.inverse_inverse mult.left_neutral mult_minus_left power_Suc)
+          qed
+          show ?thesis
+            apply (rule sum.eq_general_inverses [where h = "\<lambda>(a,b). (a-1,b)" and k = "\<lambda>(a,b). (Suc a,b)"])
+            using False apply (auto simp: singular_face_simplex_map seq add.commute)
+            done
+        qed
+        have *: "singular_face (Suc q) (Suc j) (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i))
+               = simplex_map q (\<lambda>z. h (z 0, singular_face q j m (z \<circ> Suc))) (simp (q - Suc 0) i)"
+          if ij: "i < j" "j \<le> q" for i j
+        proof -
+          have iq: "i \<le> q - Suc 0"
+            using that by auto
+          have sf_eqh: "singular_face (Suc q) (Suc j)
+                           (\<lambda>x. if x \<in> standard_simplex (Suc q)
+                                then ((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> simp q i) x else undefined) x
+                      = h (simp (q - Suc 0) i x 0,
+                           singular_face q j m (\<lambda>xa. simp (q - Suc 0) i x (Suc xa)))"
+            if x: "x \<in> standard_simplex q" for x
+          proof -
+            let ?f = "\<lambda>k. \<Sum>j\<le>q. if j \<le> i then if k = j then x j else 0
+                               else if Suc k = j then x j else 0"
+            have fm: "simplical_face (Suc j) x \<in> standard_simplex (Suc q)"
+              using ss_ss [OF iq] that ij
+              by (simp add: simplical_face_in_standard_simplex)
+            have ss: "?f \<in> standard_simplex (q - Suc 0)"
+              unfolding standard_simplex_def
+            proof (intro CollectI conjI impI allI)
+              fix k
+              show "0 \<le> ?f k"
+                using that by (simp add: sum_nonneg standard_simplex_def)
+              show "?f k \<le> 1"
+                using x sum_le_included [of "{..q}" "{..q}" x "id"]
+                by (simp add: standard_simplex_def)
+              assume k: "q - Suc 0 < k"
+              show "?f k = 0"
+                by (rule sum.neutral) (use that x iq k standard_simplex_def in auto)
+            next
+              have "(\<Sum>k\<le>q - Suc 0. ?f k)
+                  = (\<Sum>(k,j) \<in> ({..q - Suc 0} \<times> {..q}) \<inter> {(k,j). if j \<le> i then k = j else Suc k = j}. x j)"
+                apply (simp add: sum.Sigma)
+                by (rule sum.mono_neutral_cong) (auto simp: split: if_split_asm)
+              also have "\<dots> = sum x {..q}"
+                apply (rule sum.eq_general_inverses
+                    [where h = "\<lambda>(k,j). if j\<le>i \<and> k=j \<or> j>i \<and> Suc k = j then j else Suc q"
+                      and k = "\<lambda>j. if j \<le> i then (j,j) else (j - Suc 0, j)"])
+                using ij by auto
+              also have "\<dots> = 1"
+                using x by (simp add: standard_simplex_def)
+              finally show "(\<Sum>k\<le>q - Suc 0. ?f k) = 1"
+                by (simp add: standard_simplex_def)
+            qed
+            let ?g = "\<lambda>k. if k \<le> i then 0
+                              else if k < Suc j then x k
+                                   else if k = Suc j then 0 else x (k - Suc 0)"
+            have eq: "{..Suc q} = {..j} \<union> {Suc j} \<union> Suc`{j<..q}" "{..q} = {..j} \<union> {j<..q}"
+              using ij image_iff less_Suc_eq_0_disj less_Suc_eq_le
+              by (force simp: image_iff)+
+            then have "(\<Sum>k\<le>Suc q. ?g k) = (\<Sum>k\<in>{..j} \<union> {Suc j} \<union> Suc`{j<..q}. ?g k)"
+              by simp
+            also have "\<dots> = (\<Sum>k\<in>{..j} \<union> Suc`{j<..q}. ?g k)"
+              by (rule sum.mono_neutral_right) auto
+            also have "\<dots> = (\<Sum>k\<in>{..j}. ?g k) + (\<Sum>k\<in>Suc`{j<..q}. ?g k)"
+              by (rule sum.union_disjoint) auto
+            also have "\<dots> = (\<Sum>k\<in>{..j}. ?g k) + (\<Sum>k\<in>{j<..q}. ?g (Suc k))"
+              by (auto simp: sum.reindex)
+            also have "\<dots> = (\<Sum>k\<in>{..j}. if k \<le> i then 0 else x k)
+                           + (\<Sum>k\<in>{j<..q}. if k \<le> i then 0 else x k)"
+              by (intro sum.cong arg_cong2 [of concl: "(+)"]) (use ij in auto)
+            also have "\<dots> = (\<Sum>k\<le>q. if k \<le> i then 0 else x k)"
+              unfolding eq by (subst sum.union_disjoint) auto
+            finally have "(\<Sum>k\<le>Suc q. ?g k) = (\<Sum>k\<le>q. if k \<le> i then 0 else x k)" .
+            then have QQ: "(\<Sum>l\<le>Suc q. if l \<le> i then 0 else simplical_face (Suc j) x l) = (\<Sum>j\<le>q. if j \<le> i then 0 else x j)"
+              by (simp add: simplical_face_def cong: if_cong)
+            have WW: "(\<lambda>k. \<Sum>l\<le>Suc q. if l \<le> i
+                                    then if k = l then simplical_face (Suc j) x l else 0
+                                    else if Suc k = l then simplical_face (Suc j) x l
+                                    else 0)
+                = simplical_face j
+                   (\<lambda>k. \<Sum>j\<le>q. if j \<le> i then if k = j then x j else 0
+                                else if Suc k = j then x j else 0)"
+            proof -
+              have *: "(\<Sum>l\<le>q. if l \<le> i then 0 else if Suc k = l then x (l - Suc 0) else 0)
+                    = (\<Sum>l\<le>q. if l \<le> i then if k - Suc 0 = l then x l else 0 else if k = l then x l else 0)"
+                (is "?lhs = ?rhs")
+                if "k \<noteq> q" "k > j" for k
+              proof (cases "k \<le> q")
+                case True
+                have "?lhs = sum (\<lambda>l. x (l - Suc 0)) {Suc k}" "?rhs = sum x {k}"
+                  by (rule sum.mono_neutral_cong_right; use True ij that in auto)+
+                then show ?thesis
+                  by simp
+              next
+                case False
+                have "?lhs = 0" "?rhs = 0"
+                  by (rule sum.neutral; use False ij in auto)+
+                then show ?thesis
+                  by simp
+              qed
+              show ?thesis
+                apply (rule ext)
+                unfolding simplical_face_def using ij
+                apply (auto simp: sum_atMost_Suc cong: if_cong)
+                 apply (force simp flip: ivl_disj_un(2) intro: sum.neutral)
+                 apply (auto simp: *)
+                done
+            qed
+            show ?thesis
+              using False that iq
+              unfolding oriented_simplex_def simp_def vv_def ww_def
+              apply (simp add: if_distribR cong: if_cong)
+              apply (simp add: simplical_face_def if_distrib [of "\<lambda>u. u * _"] o_def cong: if_cong)
+              apply (simp add: singular_face_def fm ss QQ WW)
+              done
+          qed
+          show ?thesis
+            unfolding simplex_map_def restrict_def
+            apply (rule ext)
+            apply (simp add: simplicial_simplex image_subset_iff o_def sf_eqh)
+            apply (simp add: singular_face_def)
+            done
+        qed
+        have sgeq: "(SIGMA i:{..q}. {i..q} - {i})  = (SIGMA i:{..q}. {i<..q})"
+          by force
+        have II: "(\<Sum>(i,j)\<in>(SIGMA i:{..q}. {i..q} - {i}).
+                     frag_cmul (- ((-1) ^ (i + j)))
+                      (frag_of
+                        (singular_face (Suc q) (Suc j)
+                          (simplex_map (Suc q) (\<lambda>z. h (z 0, m (z \<circ> Suc))) (simp q i))))) =
+                  (\<Sum>(i,j)\<in>(SIGMA i:{..q}. {i<..q}).
+                     frag_cmul (- ((-1) ^ (j + i)))
+                      (frag_of
+                        (simplex_map q (\<lambda>z. h (z 0, singular_face q j m (z \<circ> Suc)))
+                          (simp (q - Suc 0) i))))"
+          by (force simp: * sgeq add.commute intro: sum.cong)
+        show ?thesis
+          using False
+          apply (simp add: chain_boundary_def frag_extend_sum frag_extend_cmul frag_cmul_sum pr_def flip: sum_negf power_add)
+          apply (subst sum.swap [where A = "{..q}"])
+          apply (simp add: sum.cartesian_product eq sum.union_disjoint disjoint_iff_not_equal I II)
+          done
+      qed
+      have *: "\<lbrakk>a+b = w; c+d = -z\<rbrakk> \<Longrightarrow> (a + c) + (b+d) = w-z" for a b w c d z :: "'c \<Rightarrow>\<^sub>0 int"
+        by (auto simp: algebra_simps)
+      have eq: "{..q} \<times> {..Suc q} =
+                Sigma {..q} (\<lambda>i. {0..min (Suc q) i})
+              \<union> Sigma {..q} (\<lambda>i. {Suc i..Suc q})"
+        by force
+      show ?case
+        apply (subst pr_def)
+        apply (simp add: chain_boundary_sum chain_boundary_cmul)
+        apply (subst chain_boundary_def)
+        apply (simp add: frag_cmul_sum sum.cartesian_product eq sum.union_disjoint disjoint_iff_not_equal
+                     sum.atLeast_Suc_atMost_Suc_shift del: sum_cl_ivl_Suc flip: comm_monoid_add_class.sum.Sigma)
+        apply (simp add: comm_monoid_add_class.sum.Sigma eq2 [of _ "\<lambda>i. {_ i.._ i}"])
+        apply (simp add: sum.union_disjoint disjoint_iff_not_equal * [OF 1 2])
+        done
+    next
+      case (diff a b)
+      then show ?case
+        by (simp add: chain_boundary_diff frag_extend_diff chain_map_diff)
+    qed auto
+  qed
+  have *: "singular_chain p (subtopology U V) (prism (p - Suc 0) (chain_boundary p c))"
+    if "singular_chain p S c" "singular_chain (p - Suc 0) (subtopology S T) (chain_boundary p c)"
+  proof (cases "p")
+    case 0 then show ?thesis by (simp add: chain_boundary_def prism)
+  next
+    case (Suc p')
+    with prism that show ?thesis by auto
+  qed
+  then show ?thesis
+    using c
+    unfolding singular_relcycle_def homologous_rel_def singular_relboundary_def mod_subset_def
+    apply (rule_tac x="- prism p c" in exI)
+    by (simp add: chain_boundary_minus prism(2) prism(4) singular_chain_minus)
 qed
 
 end

@@ -913,6 +913,9 @@ lemma isoI:
   "\<lbrakk>h \<in> hom G H; bij_betw h (carrier G) (carrier H)\<rbrakk> \<Longrightarrow> h \<in> iso G H"
   by (auto simp: iso_def)
 
+lemma is_isoI: "h \<in> iso G H \<Longrightarrow> G \<cong> H"
+  using is_iso_def by auto
+
 lemma epi_iff_subset:
    "f \<in> epi G G' \<longleftrightarrow> f \<in> hom G G' \<and> carrier G' \<subseteq> f ` carrier G"
   by (auto simp: epi_def hom_def)

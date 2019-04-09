@@ -1,6 +1,5 @@
 theory Homology
-  imports
-  Simplices
+  imports Brouwer_Degree 
 begin
 
 end
