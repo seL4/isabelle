@@ -14,7 +14,7 @@ nunchaku-0.5
 opam-2.0.3-1
 polyml-5.8
 postgresql-42.2.5
-scala-2.12.8
+scala-2.12.7
 smbc-0.4.1
 spass-3.8ds-1
 sqlite-jdbc-3.27.2.1

@@ -45,4 +45,3 @@ object Color_Value
       }
     }
 }
-
