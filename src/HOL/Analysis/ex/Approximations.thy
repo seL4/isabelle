@@ -199,7 +199,7 @@ qed
 lemma euler_approx_aux_Suc:
   "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m"
   unfolding euler_approx_aux_def
-  by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv)
+  by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv mult.commute)
 
 lemma eval_euler_approx_aux:
   "euler_approx_aux 0 = 1"
@@ -209,7 +209,7 @@ lemma eval_euler_approx_aux:
 proof -
   have A: "euler_approx_aux (Suc m) = 1 + Suc m * euler_approx_aux m" for m :: nat
     unfolding euler_approx_aux_def
-    by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv)
+    by (subst sum_distrib_left) (simp add: atLeastAtMostSuc_conv mult.commute)
   show ?th by (subst numeral_eq_Suc, subst A, subst numeral_eq_Suc [symmetric]) simp
 qed (simp_all add: euler_approx_aux_def)
 

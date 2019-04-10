@@ -1,7 +1,7 @@
 section\<open>Invariance of Domain\<close>
 
 theory Invariance_of_Domain
-  imports Brouwer_Degree "HOL-Analysis.Continuous_Extension" "HOL-Analysis.Homeomorphism" 
+  imports Brouwer_Degree "HOL-Analysis.Continuous_Extension" "HOL-Analysis.Homeomorphism"
 
 begin
 
@@ -2065,8 +2065,7 @@ proof -
 qed
 
 
-
-subsection\<open> Invariance of dimension and domain in setting of R^n.\<close>
+subsection\<open> Invariance of dimension and domain\<close>
 
 lemma homeomorphic_maps_iff_homeomorphism [simp]:
    "homeomorphic_maps (top_of_set S) (top_of_set T) f g \<longleftrightarrow> homeomorphism S T f g"

@@ -24,7 +24,7 @@ next
   case (Suc l)
   have "of_nat (n + 1) * (\<Prod>i=0..<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
     using prod.atLeast0_lessThan_Suc [where ?'a = 'a, symmetric, of "\<lambda>i. of_nat (Suc n - i)" k]
-    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift)
+    by (simp add: ac_simps prod.atLeast0_lessThan_Suc_shift del: prod.op_ivl_Suc)
   also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (Suc n - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
     by (simp add: Suc atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
   also have "... = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) * (\<Prod>i=0..<k. of_nat (Suc n - i))"
