@@ -497,7 +497,7 @@ rm -rf "${DIST_NAME}-old"
         // build heaps
 
         if (build_sessions.nonEmpty) {
-          progress.echo("Building " + commas(build_sessions) + " ...")
+          progress.echo("Building heaps ...")
           remote_build_heaps(options, platform, build_sessions, isabelle_target)
         }
 
