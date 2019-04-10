@@ -61,7 +61,9 @@ object Isabelle_Devel
         Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
           website_dir =>
             Build_Release.build_release(base_dir, options, rev = rev, afp_rev = afp_rev,
-              parallel_jobs = parallel_jobs, website = Some(website_dir)))
+              parallel_jobs = parallel_jobs,
+              build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
+              website = Some(website_dir)))
       })
   }
 

@@ -41,7 +41,7 @@ object AFP
     def get(prop: String): Option[String] = Properties.get(metadata, prop)
     def get_string(prop: String): String = get(prop).getOrElse("")
     def get_strings(prop: String): List[String] =
-      Library.space_explode(',', get_string(prop)).map(_.trim).filter(_.nonEmpty)
+      space_explode(',', get_string(prop)).map(_.trim).filter(_.nonEmpty)
 
     def title: String = get_string("title")
     def authors: List[String] = get_strings("author")
