@@ -453,7 +453,9 @@ rm -rf "${DIST_NAME}-old"
           get_bundled_components(isabelle_target, platform)
 
         Components.resolve(components_base, bundled_components,
-          target_dir = Some(contrib_dir), progress = progress)
+          target_dir = Some(contrib_dir),
+          copy_dir = Some(release.dist_dir + Path.explode("contrib")),
+          progress = progress)
 
         val more_components_names =
           more_components.map(Components.unpack(contrib_dir, _, progress = progress))
