@@ -2131,6 +2131,20 @@ text \<open>
 
   \<^bold>\<open>Workaround:\<close> Rebind keys via \<^emph>\<open>Global Options~/ Shortcuts\<close>.
 
+  \<^item> \<^bold>\<open>Problem:\<close> Application startup on Mac OS X emits warnings like as follows:
+{\def\isastylett{\footnotesize\normalfont\ttfamily}
+  @{verbatim [display]
+\<open>WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by macosx.MacOSXPlugin to method
+  com.apple.eawt.FullScreenUtilities.setWindowCanFullScreen(java.awt.Window,boolean)
+WARNING: Please consider reporting this to the maintainers of macosx.MacOSXPlugin
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release\<close>}}
+
+  \<^bold>\<open>Workaround:\<close> Ignore these warnings. They merely stem from a private
+  operation provided by Apple that still lacks a public counterpart in
+  OpenJDK 11.
+
   \<^item> \<^bold>\<open>Problem:\<close> The Mac OS X key sequence \<^verbatim>\<open>COMMAND+COMMA\<close> for application
   \<^emph>\<open>Preferences\<close> is in conflict with the jEdit default keyboard shortcut for
   \<^emph>\<open>Incremental Search Bar\<close> (action @{action_ref "quick-search"}).
