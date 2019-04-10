@@ -575,9 +575,6 @@ lemma chain_homotopic_imp_homologous_rel:
 
 subsection\<open>Show that all boundaries are cycles, the key "chain complex" property.\<close>
 
-lemma sum_Int_Diff: "finite A \<Longrightarrow> sum f A = sum f (A \<inter> B) + sum f (A - B)"
-  by (metis Diff_Diff_Int Diff_subset sum.subset_diff)
-
 lemma chain_boundary_boundary:
   assumes "singular_chain p X c"
   shows "chain_boundary (p - Suc 0) (chain_boundary p c) = 0"
@@ -623,7 +620,7 @@ proof (cases "p -1 = 0")
       have *: "(\<Sum>x\<le>p. \<Sum>i\<le>p - Suc 0.
                  frag_cmul ((-1) ^ (x + i)) (frag_of (singular_face (p - Suc 0) i (singular_face p x g))))
               = 0"
-        apply (simp add: sum.cartesian_product sum_Int_Diff [of "_ \<times> _" _ "{(x,y). y < x}"])
+        apply (simp add: sum.cartesian_product sum.Int_Diff [of "_ \<times> _" _ "{(x,y). y < x}"])
         apply (rule eq0)
         apply (simp only: frag_cmul_sum prod.case_distrib [of "frag_cmul (-1)"] frag_cmul_cmul eql eqr flip: power_Suc)
         apply (force simp: simp add: inj_on_def sum.reindex add.commute eqf intro: sum.cong)
@@ -1091,26 +1088,6 @@ proof
   qed
 qed (auto simp: oriented_simplex_def)
 
-lemma sum_zero_middle:
-  fixes g :: "nat \<Rightarrow> 'a::comm_monoid_add"
-  assumes "1 \<le> p" "k \<le> p"
-  shows "(\<Sum>j\<le>p. if j < k then f j else if j = k then 0 else g (j - Suc 0))
-       = (\<Sum>j\<le>p - Suc 0. if j < k then f j else g j)"  (is "?lhs = ?rhs")
-proof -
-  have [simp]: "{..p - Suc 0} \<inter> {j. j < k} = {..<k}" "{..p - Suc 0} \<inter> - {j. j < k} = {k..p - Suc 0}"
-    using assms by auto
-  have "?lhs = (\<Sum>j<k. f j)  + (\<Sum>j = k..p. if j = k then 0 else g (j - Suc 0))"
-    using sum.union_disjoint [of "{..<k}" "{k..p}", where 'a='a] assms
-    by (simp add: ivl_disj_int_one ivl_disj_un_one)
-  also have "\<dots> = (\<Sum>j<k. f j) + (\<Sum>j = Suc k..p. g (j - Suc 0))"
-    by (simp add: sum_head_Suc [of k p] assms)
-  also have "\<dots> = (\<Sum>j<k. f j) + (\<Sum>j = k..p - Suc 0. g j)"
-    using sum.reindex [of Suc "{k..p - Suc 0}", where 'a='a] assms by simp
-  also have "\<dots> = ?rhs"
-    by (simp add: comm_monoid_add_class.sum.If_cases)
-  finally show ?thesis .
-qed
-
 lemma singular_face_oriented_simplex:
   assumes "1 \<le> p" "k \<le> p"
   shows "singular_face p k (oriented_simplex p l) =
@@ -1122,7 +1099,7 @@ proof -
   proof -
     show ?thesis
       unfolding simplical_face_def
-      using sum_zero_middle [OF assms, where 'a=real, symmetric]
+      using sum.zero_middle [OF assms, where 'a=real, symmetric]
       apply (simp add: if_distrib [of "\<lambda>x. _ * x"] if_distrib [of "\<lambda>f. f i * _"] atLeast0AtMost cong: if_cong)
       done
   qed
@@ -1144,7 +1121,7 @@ proof -
     apply (simp add: feq singular_face_def oriented_simplex_def)
     apply (simp add: simplical_face_in_standard_simplex [OF p] restrict_compose_left subset_eq)
     apply (rule_tac x="\<lambda>i. if i < k then m i else m (Suc i)" in exI)
-    using sum_zero_middle [OF p, where 'a=real, symmetric]  unfolding simplical_face_def o_def
+    using sum.zero_middle [OF p, where 'a=real, symmetric]  unfolding simplical_face_def o_def
     apply (simp add: if_distrib [of "\<lambda>x. _ * x"] if_distrib [of "\<lambda>f. f _ * _"] atLeast0AtMost cong: if_cong)
     done
   ultimately
@@ -1213,7 +1190,7 @@ proof -
     by (simp add: oriented_simplex_def standard_simplex_def)
   have "oriented_simplex (Suc p) (\<lambda>i. if i = 0 then v else l (i -1)) x \<in> T"
     if "x \<in> standard_simplex (Suc p)" for x
-  proof (simp add: that oriented_simplex_def sum_atMost_Suc_shift del: sum_atMost_Suc)
+  proof (simp add: that oriented_simplex_def sum_atMost_Suc_shift del: sum.atMost_Suc)
     have x01: "\<And>i. 0 \<le> x i \<and> x i \<le> 1" and x0: "\<And>i. i > Suc p \<Longrightarrow> x i = 0" and x1: "sum x {..Suc p} = 1"
       using that by (auto simp: oriented_simplex_def standard_simplex_def)
     obtain a where "a \<in> S"
@@ -1222,7 +1199,7 @@ proof -
     proof (cases "x 0 = 1")
       case True
       then have "sum x {Suc 0..Suc p} = 0"
-        using x1 by (simp add: atMost_atLeast0 sum_head_Suc)
+        using x1 by (simp add: atMost_atLeast0 sum.atLeast_Suc_atMost)
       then have [simp]: "x (Suc j) = 0" if "j\<le>p" for j
         unfolding sum.atLeast_Suc_atMost_Suc_shift
         using x01 that by (simp add: sum_nonneg_eq_0_iff)
@@ -1318,9 +1295,9 @@ next
   show "chain_boundary (Suc p) (simplicial_cone p v (frag_of f))
         = frag_of f - simplicial_cone (p - Suc 0) v (chain_boundary p (frag_of f))"
     using \<open>p > 0\<close>
-    apply (simp add: assms simplicial_cone_def chain_boundary_of atMost_atLeast0 del: sum_atMost_Suc)
-    apply (subst sum_head_Suc [of 0])
-     apply (simp_all add: 1 2 del: sum_atMost_Suc)
+    apply (simp add: assms simplicial_cone_def chain_boundary_of atMost_atLeast0 del: sum.atMost_Suc)
+    apply (subst sum.atLeast_Suc_atMost [of 0])
+     apply (simp_all add: 1 2 del: sum.atMost_Suc)
     done
 qed
 
@@ -1462,7 +1439,7 @@ proof (induction p arbitrary: S c)
     moreover
     obtain l where l: "\<And>x. x \<in> standard_simplex (Suc p) \<Longrightarrow> (\<lambda>i. (\<Sum>j\<le>Suc p. l j i * x j)) \<in> S"
       and feq: "f = oriented_simplex (Suc p) l"
-      using f by (fastforce simp: simplicial_simplex oriented_simplex_def simp del: sum_atMost_Suc)
+      using f by (fastforce simp: simplicial_simplex oriented_simplex_def simp del: sum.atMost_Suc)
     have "(\<lambda>i. (1 - u) * ((\<Sum>j\<le>Suc p. simplicial_vertex j f i) / (real p + 2)) + u * y i) \<in> S"
       if "0 \<le> u" "u \<le> 1" and y: "y \<in> f ` standard_simplex (Suc p)" for y u
     proof -
@@ -1474,7 +1451,7 @@ proof (induction p arbitrary: S c)
           by (simp add: divide_simps)
         show "(\<lambda>j. if j \<le> Suc p then (1 - u) * inverse (real (p + 2)) + u * x j else 0) \<in> standard_simplex (Suc p)"
           using x \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>
-          apply (simp add: sum.distrib standard_simplex_def i2p linepath_le_1 flip: sum_distrib_left del: sum_atMost_Suc)
+          apply (simp add: sum.distrib standard_simplex_def i2p linepath_le_1 flip: sum_distrib_left del: sum.atMost_Suc)
           apply (simp add: divide_simps)
           done
       qed
@@ -1486,7 +1463,7 @@ proof (induction p arbitrary: S c)
             = (\<Sum>j\<le>Suc p. (1 - u) * l j i / (real p + 2) + u * l j i * x j)" (is "?lhs = _")
           by (simp add: field_simps cong: sum.cong)
         also have "\<dots> = (1 - u) * (\<Sum>j\<le>Suc p. l j i) / (real p + 2) + u * (\<Sum>j\<le>Suc p. l j i * x j)" (is "_ = ?rhs")
-          by (simp add: sum_distrib_left sum.distrib sum_divide_distrib mult.assoc del: sum_atMost_Suc)
+          by (simp add: sum_distrib_left sum.distrib sum_divide_distrib mult.assoc del: sum.atMost_Suc)
         finally show "?lhs = ?rhs" .
       qed
       ultimately show ?thesis
@@ -1589,7 +1566,7 @@ proof (induction p arbitrary: d c f x y)
           and feq: "f = oriented_simplex (Suc p) l"
           using ssf by (auto simp: simplicial_simplex)
         show ?thesis
-        proof (clarsimp simp add: geq simp del: sum_atMost_Suc)
+        proof (clarsimp simp add: geq simp del: sum.atMost_Suc)
           fix x y
           assume x: "x \<in> standard_simplex (Suc p)" and y: "y \<in> standard_simplex (Suc p)"
           then have x': "(\<forall>i. 0 \<le> x i \<and> x i \<le> 1) \<and> (\<forall>i>Suc p. x i = 0) \<and> (\<Sum>i\<le>Suc p. x i) = 1"
@@ -1633,7 +1610,7 @@ proof (induction p arbitrary: d c f x y)
                 then have "\<bar>\<Sum>j\<le>Suc p. l i k / (p + 2) - l j k / (p + 2)\<bar> \<le> (1 + real p) * d / (p + 2)"
                   by (rule order_trans [OF sum_abs])
                 then show "\<bar>l i k - (\<Sum>j\<le>Suc p. l j k) / (2 + real p)\<bar> \<le> (1 + real p) * d / (2 + real p)"
-                  by (simp add: sum_subtractf sum_divide_distrib del: sum_atMost_Suc)
+                  by (simp add: sum_subtractf sum_divide_distrib del: sum.atMost_Suc)
               qed (use standard_simplex_def z in auto)
             qed
             have nonz: "\<bar>m (s - Suc 0) k - m (r - Suc 0) k\<bar> \<le> (1 + real p) * d / (2 + real p)" (is "?lhs \<le> ?rhs")
@@ -1650,7 +1627,7 @@ proof (induction p arbitrary: d c f x y)
                      (if j = 0 then \<lambda>i. (\<Sum>j\<le>Suc p. l j i) / (2 + real p) else m (j -1)) k\<bar>
                      \<le> (1 + real p) * d / (2 + real p)" for j j'
               apply (rule_tac a=j and b = "j'" in linorder_less_wlog)
-                apply (force simp: zero nonz \<open>0 \<le> d\<close> simp del: sum_atMost_Suc)+
+                apply (force simp: zero nonz \<open>0 \<le> d\<close> simp del: sum.atMost_Suc)+
               done
             show ?thesis
               apply (rule convex_sum_bound_le)
@@ -1664,8 +1641,8 @@ proof (induction p arbitrary: d c f x y)
           qed
           then show "\<bar>simplex_cone p (Sigp f) (oriented_simplex p m) x k - simplex_cone p (Sigp f) (oriented_simplex p m) y k\<bar>
                 \<le> (1 + real p) * d / (2 + real p)"
-            apply (simp add: feq Sigp_def simplicial_vertex_oriented_simplex simplex_cone del: sum_atMost_Suc)
-            apply (simp add: oriented_simplex_def x y del: sum_atMost_Suc)
+            apply (simp add: feq Sigp_def simplicial_vertex_oriented_simplex simplex_cone del: sum.atMost_Suc)
+            apply (simp add: oriented_simplex_def x y del: sum.atMost_Suc)
             done
         qed
       qed
@@ -1678,9 +1655,9 @@ proof (induction p arbitrary: d c f x y)
   qed
   show ?case
     using Suc
-    apply (simp del: sum_atMost_Suc)
+    apply (simp del: sum.atMost_Suc)
     apply (drule subsetD [OF keys_frag_extend])
-    apply (simp del: sum_atMost_Suc)
+    apply (simp del: sum.atMost_Suc)
     apply clarify (*OBTAIN?*)
     apply (rename_tac FFF)
     using *
@@ -1831,7 +1808,7 @@ next
       by (metis diff_Suc_1 order_refl simplicial_chain_boundary simplicial_chain_of simplicial_chain_simplicial_subdivision simplicial_simplex_id)
     have 2: "(\<lambda>i. (\<Sum>j\<le>Suc p. simplicial_vertex j (restrict id (standard_simplex (Suc p))) i) / (real p + 2))
                   \<in> standard_simplex (Suc p)"
-      by (simp add: simplicial_vertex_def standard_simplex_def del: sum_atMost_Suc)
+      by (simp add: simplicial_vertex_def standard_simplex_def del: sum.atMost_Suc)
     have ss_Sp: "(\<lambda>i. (if i \<le> Suc p then 1 else 0) / (real p + 2)) \<in> standard_simplex (Suc p)"
       by (simp add: standard_simplex_def divide_simps)
     obtain l where feq: "f = oriented_simplex (Suc p) l"
@@ -1839,7 +1816,7 @@ next
     then have 3: "f (\<lambda>i. (\<Sum>j\<le>Suc p. simplicial_vertex j (restrict id (standard_simplex (Suc p))) i) / (real p + 2))
                 = (\<lambda>i. (\<Sum>j\<le>Suc p. simplicial_vertex j f i) / (real p + 2))"
       unfolding simplicial_vertex_def oriented_simplex_def
-      by (simp add: ss_Sp if_distrib [of "\<lambda>x. _ * x"] sum_divide_distrib del: sum_atMost_Suc cong: if_cong)
+      by (simp add: ss_Sp if_distrib [of "\<lambda>x. _ * x"] sum_divide_distrib del: sum.atMost_Suc cong: if_cong)
     have scp: "singular_chain (Suc p)
                  (subtopology (powertop_real UNIV) (standard_simplex (Suc p)))
                  (frag_of (restrict id (standard_simplex (Suc p))))"
@@ -1859,7 +1836,7 @@ next
           flip: singular_simplex_chain_map_id [OF simplicial_imp_singular_simplex [OF ssf]])
       by (metis (no_types) scp singular_chain_boundary_alt Suc.IH [OF scps] Suc.IH [OF scpf] naturality_singular_subdivision)
     show ?case
-      apply (simp add: singular_subdivision_def del: sum_atMost_Suc)
+      apply (simp add: singular_subdivision_def del: sum.atMost_Suc)
       apply (simp only: ssf 1 2 3 4 chain_map_simplicial_cone [of "Suc p" S _ p "Suc p"])
       done
   qed (auto simp: frag_extend_diff singular_subdivision_diff)
@@ -1960,7 +1937,7 @@ proof (induction p arbitrary: c)
       have "(\<lambda>i'. \<Sum>j\<le>Suc p. l j i' * (if j = i then 1 else 0)) \<in> standard_simplex s"
         using subsetD [OF l] basis_in_standard_simplex that by blast
       moreover have "(\<lambda>i'. \<Sum>j\<le>Suc p. l j i' * (if j = i then 1 else 0)) = l i"
-        using that by (simp add: if_distrib [of "\<lambda>x. _ * x"] del: sum_atMost_Suc cong: if_cong)
+        using that by (simp add: if_distrib [of "\<lambda>x. _ * x"] del: sum.atMost_Suc cong: if_cong)
       ultimately show ?thesis
         by simp
     qed
@@ -2026,7 +2003,7 @@ proof (induction p arbitrary: c)
          apply (rule order_refl)
          apply (simp only: chain_map_of frag_extend_of)
         apply (rule arg_cong2 [where f = "simplicial_cone (Suc p)"])
-         apply (simp add: geq sum_distrib_left oriented_simplex_def ** del: sum_atMost_Suc flip: sum_divide_distrib)
+         apply (simp add: geq sum_distrib_left oriented_simplex_def ** del: sum.atMost_Suc flip: sum_divide_distrib)
         using 2  apply (simp only: oriented_simplex_def sum.swap [where A = "{..s}"])
         using naturality_simplicial_subdivision scf apply (fastforce simp add: 4 chain_map_diff)
         done
@@ -2061,7 +2038,7 @@ proof (induction p arbitrary: c)
         apply (simp only: subd.simps frag_extend_of)
         apply (subst chain_boundary_simplicial_cone [of "Suc p" "standard_simplex s"])
          apply (meson ff scf simplicial_chain_diff simplicial_chain_simplicial_subdivision)
-        apply (simp add: simplicial_cone_def del: sum_atMost_Suc simplicial_subdivision.simps)
+        apply (simp add: simplicial_cone_def del: sum.atMost_Suc simplicial_subdivision.simps)
         done
     qed
   next
@@ -2789,7 +2766,7 @@ theorem homotopic_imp_homologous_rel_chain_maps:
   assumes hom: "homotopic_with (\<lambda>h. h ` T \<subseteq> V) S U f g" and c: "singular_relcycle p S T c"
   shows "homologous_rel p U V (chain_map p f c) (chain_map p g c)"
 proof -
-  note sum_atMost_Suc [simp del]
+  note sum.atMost_Suc [simp del]
   have contf: "continuous_map S U f" and contg: "continuous_map S U g"
     using homotopic_with_imp_continuous_maps [OF hom] by metis+
   obtain h where conth: "continuous_map (prod_topology (top_of_set {0..1::real}) S) U h"
@@ -2986,11 +2963,11 @@ proof -
           assume x: "x \<in> standard_simplex q"
           then have "simp q q (simplical_face (Suc q) x) 0 = 0"
             unfolding oriented_simplex_def simp_def
-            by (simp add: simplical_face_in_standard_simplex sum_atMost_Suc) (simp add: simplical_face_def vv_def)
+            by (simp add: simplical_face_in_standard_simplex sum.atMost_Suc) (simp add: simplical_face_def vv_def)
           moreover have "(\<lambda>n. simp q q (simplical_face (Suc q) x) (Suc n)) = x"
             unfolding oriented_simplex_def simp_def vv_def using x
             apply (simp add: simplical_face_in_standard_simplex)
-            apply (force simp: standard_simplex_def simplical_face_def if_distribR if_distrib [of "\<lambda>x. x * _"] sum_atMost_Suc cong: if_cong)
+            apply (force simp: standard_simplex_def simplical_face_def if_distribR if_distrib [of "\<lambda>x. x * _"] sum.atMost_Suc cong: if_cong)
             done
           ultimately show "((\<lambda>z. h (z 0, m (z \<circ> Suc))) \<circ> (simp q q \<circ> simplical_face (Suc q))) x = (f \<circ> m) x"
             by (simp add: o_def h0)
@@ -3083,7 +3060,7 @@ proof -
                 apply (simp add: simplical_face_in_standard_simplex if_distribR)
                 apply (simp add: simplical_face_def if_distrib [of "\<lambda>u. u * _"] cong: if_cong)
                 apply (intro impI conjI)
-                 apply (force simp: sum_atMost_Suc intro: sum.cong)
+                 apply (force simp: sum.atMost_Suc intro: sum.cong)
                 apply (force simp: q0_eq sum.reindex intro!: sum.cong)
                 done
             qed
@@ -3202,7 +3179,7 @@ proof -
               show ?thesis
                 apply (rule ext)
                 unfolding simplical_face_def using ij
-                apply (auto simp: sum_atMost_Suc cong: if_cong)
+                apply (auto simp: sum.atMost_Suc cong: if_cong)
                  apply (force simp flip: ivl_disj_un(2) intro: sum.neutral)
                  apply (auto simp: *)
                 done

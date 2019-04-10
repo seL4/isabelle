@@ -203,7 +203,7 @@ next
          (simp add: atLeast0LessThan)
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
-      by (simp add: atLeast0LessThan[symmetric] sum_head_upt_Suc cdef)
+      by (simp add: atLeast0LessThan[symmetric] sum.atLeast_Suc_lessThan cdef)
     also note \<open>Suc nd = nlen m\<close>
     finally
     show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)" .

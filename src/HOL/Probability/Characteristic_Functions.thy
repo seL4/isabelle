@@ -177,7 +177,7 @@ next
     unfolding of_nat_mult[symmetric]
     by (simp add: complex_eq_iff ** of_nat_add[symmetric] del: of_nat_mult of_nat_fact of_nat_add)
   show "?P (Suc n)"
-    unfolding sum_atMost_Suc ih f_def CLBINT_I0c_power_mirror_iexp[of _ n]
+    unfolding sum.atMost_Suc ih f_def CLBINT_I0c_power_mirror_iexp[of _ n]
     by (simp add: divide_simps add_eq_0_iff *) (simp add: field_simps)
 qed
 

@@ -5,11 +5,6 @@ theory Brouwer_Degree
 
 begin
 
-lemma Eps_cong:
-  assumes "\<And>x. P x = Q x"
-  shows   "Eps P = Eps Q"
-  using ext[of P Q, OF assms] by simp
-
 subsection\<open>Reduced Homology\<close>
 
 definition reduced_homology_group :: "int \<Rightarrow> 'a topology \<Rightarrow> 'a chain set monoid"

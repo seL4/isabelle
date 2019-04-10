@@ -305,7 +305,7 @@ proof  -
     unfolding lessThan_Suc_eq_insert_0
     by (simp add: ac_simps sum_atLeast1_atMost_eq image_Suc_lessThan)
   ultimately show ?thesis
-    by (auto simp: sums_def simp del: sum_lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
+    by (auto simp: sums_def simp del: sum.lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
 qed
 
 lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
@@ -460,7 +460,7 @@ lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f \<longlonglongrighta
   apply (drule summable_iff_convergent [THEN iffD1])
   apply (drule convergent_Cauchy)
   apply (simp only: Cauchy_iff LIMSEQ_iff)
-  by (metis add.commute add_diff_cancel_right' diff_zero le_SucI sum_lessThan_Suc)
+  by (metis add.commute add_diff_cancel_right' diff_zero le_SucI sum.lessThan_Suc)
 
 lemma summable_imp_convergent: "summable f \<Longrightarrow> convergent f"
   by (force dest!: summable_LIMSEQ_zero simp: convergent_def)

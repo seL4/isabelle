@@ -342,7 +342,7 @@ lemma nth_subdegree_mult_left [simp]:
 lemma nth_subdegree_mult_right [simp]:
   fixes f g :: "('a :: {mult_zero,comm_monoid_add}) fps"
   shows "(f * g) $ (subdegree g) = f $ 0 * g $ subdegree g"
-  by    (cases "subdegree g") (simp_all add: fps_mult_nth nth_less_subdegree_zero sum_head_Suc)
+  by    (cases "subdegree g") (simp_all add: fps_mult_nth nth_less_subdegree_zero sum.atLeast_Suc_atMost)
 
 lemma nth_subdegree_mult [simp]:
   fixes f g :: "('a :: {mult_zero,comm_monoid_add}) fps"
@@ -722,7 +722,7 @@ proof
         ultimately show ?case
           using ab c fps_mult_nth_conv_upto_subdegree_left[of c a "subdegree c + n"]
                 fps_mult_nth_conv_upto_subdegree_left[of c b "subdegree c + n"]
-          by    (simp add: sum_head_Suc)
+          by    (simp add: sum.atLeast_Suc_atMost)
       qed
     qed    
     thus "c = 0 \<or> a = b" by fast
@@ -814,7 +814,7 @@ proof (induct n)
      by (auto simp: fps_pow_nth_below_subdegree)
    with False Suc show ?thesis
       using fps_mult_nth_conv_inside_subdegrees[of f "f^n" "Suc n * subdegree f"]
-            sum_head_Suc[of
+            sum.atLeast_Suc_atMost[of
               "subdegree f"
               "Suc n * subdegree f - subdegree (f ^ n)"
               "\<lambda>i. f $ i * f ^ n $ (Suc n * subdegree f - i)"
@@ -857,7 +857,7 @@ proof (cases n)
   proof (cases m)
     case 0 thus ?thesis using fps_mult_nth_1[of "fps_X" f] by (simp add: fps_X_def)
   next
-    case (Suc k) thus ?thesis by (simp add: fps_mult_nth fps_X_def sum_head_Suc)
+    case (Suc k) thus ?thesis by (simp add: fps_mult_nth fps_X_def sum.atLeast_Suc_atMost)
   qed
   ultimately show ?thesis by simp
 qed (simp add: fps_X_def)
@@ -949,7 +949,7 @@ lemma fps_X_power_subdegree: "subdegree (fps_X^n) = n"
 lemma fps_X_power_mult_nth:
   "(fps_X^k * f) $ n = (if n < k then 0 else f $ (n - k))"
   by  (cases "n<k")
-      (simp_all add: fps_mult_nth_conv_upto_subdegree_left fps_X_power_subdegree sum_head_Suc)
+      (simp_all add: fps_mult_nth_conv_upto_subdegree_left fps_X_power_subdegree sum.atLeast_Suc_atMost)
 
 lemma fps_X_power_mult_right_nth:
   "(f * fps_X^k) $ n = (if n < k then 0 else f $ (n - k))"
@@ -1122,7 +1122,7 @@ proof-
     and n :: nat
     assume "1 \<le> subdegree a"
     hence "fps_shift 1 (a*b) $ n = (\<Sum>i=Suc 0..Suc n. a$i * b$(n+1-i))"
-      using sum_head_Suc[of 0 "n+1" "\<lambda>i. a$i * b$(n+1-i)"]
+      using sum.atLeast_Suc_atMost[of 0 "n+1" "\<lambda>i. a$i * b$(n+1-i)"]
       by    (simp add: fps_mult_nth nth_less_subdegree_zero)
     thus "fps_shift 1 (a*b) $ n = (fps_shift 1 a * b) $ n"
       using sum_shift_bounds_cl_Suc_ivl[of "\<lambda>i. a$i * b$(n+1-i)" 0 n]
@@ -1763,7 +1763,7 @@ proof (rule fps_ext)
       "(f * fps_right_inverse f y) $ n =
         - 1 * sum (\<lambda>i. f$i * fps_right_inverse_constructor f y (n - i)) {1..n} +
         sum (\<lambda>i. f$i * (fps_right_inverse_constructor f y (n - i))) {1..n}"
-      by (simp add: fps_mult_nth sum_head_Suc mult.assoc f0[symmetric])
+      by (simp add: fps_mult_nth sum.atLeast_Suc_atMost mult.assoc f0[symmetric])
     thus "(f * fps_right_inverse f y) $ n = 1 $ n" by (simp add: Suc)
   qed (simp add: f0 fps_inverse_def)
 qed
@@ -1935,7 +1935,7 @@ proof-
           using 1 by auto
         hence
           "fps_right_inverse f (g$0) $ Suc k = 1 * g $ Suc k - g$0 * 1 $ Suc k"
-          by (simp add: fps_mult_nth fg(1)[symmetric] algebra_simps fg(2)[symmetric] sum_head_Suc)
+          by (simp add: fps_mult_nth fg(1)[symmetric] algebra_simps fg(2)[symmetric] sum.atLeast_Suc_atMost)
         with Suc show ?thesis by simp
       qed simp
     qed
@@ -2116,7 +2116,7 @@ proof-
         moreover have "fps_left_inverse ones 1 $ Suc m = ones_inv $ Suc m"
         proof (cases m)
           case (Suc k) thus ?thesis
-            using Suc m 1 by (simp add: ones_def ones_inv_def sum_head_Suc)
+            using Suc m 1 by (simp add: ones_def ones_inv_def sum.atLeast_Suc_atMost)
         qed (simp add: ones_def ones_inv_def)
         ultimately show ?thesis by simp
       qed (simp add: ones_inv_def)
@@ -2183,7 +2183,7 @@ proof-
 
   have f2_nth_simps:
     "f^2 $ 1 = - of_nat 2" "f^2 $ 2 = 1" "\<And>n. n>2 \<Longrightarrow> f^2 $ n = 0"
-      by (simp_all add: power2_eq_square f_def fps_mult_nth sum_head_Suc)
+      by (simp_all add: power2_eq_square f_def fps_mult_nth sum.atLeast_Suc_atMost)
 
   show "fps_left_inverse (f^2) 1 = invf2"
   proof (intro fps_ext)
@@ -3086,7 +3086,7 @@ proof (intro fps_ext)
       of_nat (Suc n) * f$0 * g$(Suc n) +
       (\<Sum>i=1..n. (of_nat (n - i + 1) + of_nat i) * f $ i * g $ (n - i + 1)) +
           of_nat (Suc n) * f$(Suc n) * g$0"
-    by (simp add: fps_mult_nth algebra_simps mult_of_nat_commute sum_head_Suc sum.distrib)
+    by (simp add: fps_mult_nth algebra_simps mult_of_nat_commute sum.atLeast_Suc_atMost sum.distrib)
   moreover have
     "\<forall>i\<in>{1..n}.
       (of_nat (n - i + 1) + of_nat i) * f $ i * g $ (n - i + 1) =
@@ -3103,7 +3103,7 @@ proof (intro fps_ext)
   ultimately have
     "(f * fps_deriv g + fps_deriv f * g) $ n =
       (\<Sum>i=0..Suc n. of_nat (Suc n) * f $ i * g $ (Suc n - i))"
-    by (simp add: sum_head_Suc)
+    by (simp add: sum.atLeast_Suc_atMost)
   with LHS show "fps_deriv (f * g) $ n = (f * fps_deriv g + fps_deriv f * g) $ n"
     by simp
 qed
@@ -3413,7 +3413,7 @@ proof (induct k rule: nat_less_induct, clarify)
   next
     case (Suc i)
     with 1 j have "\<forall>m\<in>{0<..j}. a ^ i $ (j - m) = 0" by auto
-    with Suc a0 show ?thesis by (simp add: fps_mult_nth sum_head_Suc)
+    with Suc a0 show ?thesis by (simp add: fps_mult_nth sum.atLeast_Suc_atMost)
   qed
 qed
 
@@ -3436,8 +3436,8 @@ proof (induct n)
   have "\<forall>i\<in>{Suc 1..Suc n}. a ^ n $ (Suc n - i) = 0"
     using a0 startsby_zero_power_prefix[of a n] by auto
   thus ?case
-    using a0 Suc sum_head_Suc[of 0 "Suc n" "\<lambda>i. a $ i * a ^ n $ (Suc n - i)"]
-          sum_head_Suc[of 1 "Suc n" "\<lambda>i. a $ i * a ^ n $ (Suc n - i)"]
+    using a0 Suc sum.atLeast_Suc_atMost[of 0 "Suc n" "\<lambda>i. a $ i * a ^ n $ (Suc n - i)"]
+          sum.atLeast_Suc_atMost[of 1 "Suc n" "\<lambda>i. a $ i * a ^ n $ (Suc n - i)"]
     by    (simp add: fps_mult_nth)
 qed simp
 
@@ -3806,8 +3806,8 @@ proof (rule fps_ext)
     case (Suc m)
     hence "(f * g) $ n = g $ Suc m - g $ m"
       using fps_mult_nth[of f g "Suc m"]
-            sum_head_Suc[of 0 "Suc m" "\<lambda>i. f $ i * g $ (Suc m - i)"]
-            sum_head_Suc[of 1 "Suc m" "\<lambda>i. f $ i * g $ (Suc m - i)"]
+            sum.atLeast_Suc_atMost[of 0 "Suc m" "\<lambda>i. f $ i * g $ (Suc m - i)"]
+            sum.atLeast_Suc_atMost[of 1 "Suc m" "\<lambda>i. f $ i * g $ (Suc m - i)"]
       by    (simp add: f_def)
     with Suc show ?thesis by (simp add: g_def)
   qed (simp add: f_def g_def)
@@ -6368,7 +6368,7 @@ lemma fps_hypergeo_minus_nat:
 lemma sum_eq_if: "sum f {(n::nat) .. m} = (if m < n then 0 else f n + sum f {n+1 .. m})"
   apply simp
   apply (subst sum.insert[symmetric])
-  apply (auto simp add: not_less sum_head_Suc)
+  apply (auto simp add: not_less sum.atLeast_Suc_atMost)
   done
 
 lemma pochhammer_rec_if: "pochhammer a n = (if n = 0 then 1 else a * pochhammer (a + 1) (n - 1))"

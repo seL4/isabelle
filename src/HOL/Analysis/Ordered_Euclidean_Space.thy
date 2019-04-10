@@ -221,14 +221,9 @@ lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_sp
   by (simp add: cbox_interval)
 
 lemma [simp]:
-  fixes a b::"'a::ordered_euclidean_space" and r s::real
-  shows is_interval_io: "is_interval {..<r}"
-    and is_interval_ic: "is_interval {..a}"
-    and is_interval_oi: "is_interval {r<..}"
+  fixes a b::"'a::ordered_euclidean_space"
+  shows is_interval_ic: "is_interval {..a}"
     and is_interval_ci: "is_interval {a..}"
-    and is_interval_oo: "is_interval {r<..<s}"
-    and is_interval_oc: "is_interval {r<..s}"
-    and is_interval_co: "is_interval {r..<s}"
     and is_interval_cc: "is_interval {b..a}"
   by (force simp: is_interval_def eucl_le[where 'a='a])+
 

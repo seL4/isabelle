@@ -174,7 +174,7 @@ proof (induction n arbitrary: c)
    have "\<exists>k\<le>n. b k \<noteq> 0"
      apply (rule ccontr)
      using polyfun_extremal [OF extr_prem, of 1]
-     apply (auto simp: eventually_at_infinity b simp del: sum_atMost_Suc)
+     apply (auto simp: eventually_at_infinity b simp del: sum.atMost_Suc)
      apply (drule_tac x="of_real ba" in spec, simp)
      done
    then show ?thesis using Suc.IH [of b] ins_ab

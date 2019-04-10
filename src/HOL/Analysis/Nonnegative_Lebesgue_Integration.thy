@@ -1142,7 +1142,7 @@ proof -
     unfolding nn_integral_sum[OF f] ..
   also have "\<dots> = \<integral>\<^sup>+x. (SUP n. \<Sum>i<n. f i x) \<partial>M" using f all_pos
     by (intro nn_integral_monotone_convergence_SUP_AE[symmetric])
-       (elim AE_mp, auto simp: sum_nonneg simp del: sum_lessThan_Suc intro!: AE_I2 sum_mono2)
+       (elim AE_mp, auto simp: sum_nonneg simp del: sum.lessThan_Suc intro!: AE_I2 sum_mono2)
   also have "\<dots> = \<integral>\<^sup>+x. (\<Sum>i. f i x) \<partial>M" using all_pos
     by (intro nn_integral_cong_AE) (auto simp: suminf_eq_SUP)
   finally show ?thesis by simp

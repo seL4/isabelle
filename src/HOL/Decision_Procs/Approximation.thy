@@ -1183,7 +1183,7 @@ next
       by auto
     have sum_move0: "\<And>k F. sum F {0..<Suc k} = F 0 + sum (\<lambda> k. F (Suc k)) {0..<k}"
       unfolding sum_shift_bounds_Suc_ivl[symmetric]
-      unfolding sum_head_upt_Suc[OF zero_less_Suc] ..
+      unfolding sum.atLeast_Suc_lessThan[OF zero_less_Suc] ..
     define C where "C = xs!x - c"
 
     {
@@ -1253,7 +1253,7 @@ proof -
     proof (cases "xs ! x = c")
       case True
       from True[symmetric] hyp[OF bnd_xs] Suc show ?thesis
-        unfolding F_def Suc sum_head_upt_Suc[OF zero_less_Suc] sum_shift_bounds_Suc_ivl
+        unfolding F_def Suc sum.atLeast_Suc_lessThan[OF zero_less_Suc] sum_shift_bounds_Suc_ivl
         by auto
     next
       case False

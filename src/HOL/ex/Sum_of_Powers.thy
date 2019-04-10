@@ -151,7 +151,7 @@ lemma binomial_unroll:
 
 lemma sum_unroll:
   "(\<Sum>k\<le>n::nat. f k) = (if n = 0 then f 0 else f n + (\<Sum>k\<le>n - 1. f k))"
-by auto (metis One_nat_def Suc_pred add.commute sum_atMost_Suc)
+by auto (metis One_nat_def Suc_pred add.commute sum.atMost_Suc)
 
 lemma bernoulli_unroll:
   "n > 0 \<Longrightarrow> bernoulli n = - 1 / (real n + 1) * (\<Sum>k\<le>n - 1. real (n + 1 choose k) * bernoulli k)"

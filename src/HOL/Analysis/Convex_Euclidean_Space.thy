@@ -2090,6 +2090,14 @@ qed
 lemma is_interval_cball_1[intro, simp]: "is_interval (cball a b)" for a b::real
   by (simp add: is_interval_convex_1)
 
+lemma [simp]:
+  fixes r s::real
+  shows is_interval_io: "is_interval {..<r}"
+    and is_interval_oi: "is_interval {r<..}"
+    and is_interval_oo: "is_interval {r<..<s}"
+    and is_interval_oc: "is_interval {r<..s}"
+    and is_interval_co: "is_interval {r..<s}"
+  by (simp_all add: is_interval_convex_1)
 
 subsection%unimportant \<open>Another intermediate value theorem formulation\<close>
 

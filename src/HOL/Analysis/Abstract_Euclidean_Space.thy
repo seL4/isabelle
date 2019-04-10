@@ -90,19 +90,19 @@ lemma continuous_map_Euclidean_space_diff [continuous_intros]:
   by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_diff)
 
 lemma continuous_map_Euclidean_space_iff:
-  "continuous_map (Euclidean_space m) euclideanreal g
+  "continuous_map (Euclidean_space m) euclidean g
    = continuous_on (topspace (Euclidean_space m)) g"
 proof
-  assume "continuous_map (Euclidean_space m) euclideanreal g"
-  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclideanreal g"
+  assume "continuous_map (Euclidean_space m) euclidean g"
+  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclidean g"
     by (simp add: Euclidean_space_def euclidean_product_topology)
   then show "continuous_on (topspace (Euclidean_space m)) g"
     by (metis continuous_map_subtopology_eu subtopology_topspace topspace_Euclidean_space)
 next
   assume "continuous_on (topspace (Euclidean_space m)) g"
-  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclideanreal g"
+  then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclidean g"
     by (metis (lifting) continuous_map_into_fulltopology continuous_map_subtopology_eu order_refl topspace_Euclidean_space)
-  then show "continuous_map (Euclidean_space m) euclideanreal g"
+  then show "continuous_map (Euclidean_space m) euclidean g"
     by (simp add: Euclidean_space_def euclidean_product_topology)
 qed
 
@@ -199,6 +199,21 @@ proof -
     using Suc_lessI [of n] by (fastforce simp: set_eq_iff)
   then show ?thesis
     by (simp add: nsphere subtopology_subtopology)
+qed
+
+lemma topspace_nsphere_minus1:
+  assumes x: "x \<in> topspace (nsphere n)" and "x n = 0"
+  shows "x \<in> topspace (nsphere (n - Suc 0))"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    using x by auto
+next
+  case False
+  have subt_eq: "nsphere (n - Suc 0) = subtopology (nsphere n) {x. x n = 0}"
+    by (metis False Suc_pred le_zero_eq not_le subtopology_nsphere_equator)
+  with x show ?thesis
+    by (simp add: assms)
 qed
 
 lemma continuous_map_nsphere_reflection:

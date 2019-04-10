@@ -1831,18 +1831,40 @@ the standard theorem @{text[source]sum.cong} does not work well
 with the simplifier who adds the unsimplified premise \<^term>\<open>x\<in>B\<close> to
 the context.\<close>
 
-lemmas sum_ivl_cong = sum.ivl_cong
+context comm_monoid_set
+begin
+
+lemma zero_middle:
+  assumes "1 \<le> p" "k \<le> p"
+  shows "F (\<lambda>j. if j < k then g j else if j = k then \<^bold>1 else h (j - Suc 0)) {..p}
+       = F (\<lambda>j. if j < k then g j else h j) {..p - Suc 0}"  (is "?lhs = ?rhs")
+proof -
+  have [simp]: "{..p - Suc 0} \<inter> {j. j < k} = {..<k}" "{..p - Suc 0} \<inter> - {j. j < k} = {k..p - Suc 0}"
+    using assms by auto
+  have "?lhs = F g {..<k} \<^bold>* F (\<lambda>j. if j = k then \<^bold>1 else h (j - Suc 0)) {k..p}"
+    using union_disjoint [of "{..<k}" "{k..p}"] assms
+    by (simp add: ivl_disj_int_one ivl_disj_un_one)
+  also have "\<dots> = F g {..<k} \<^bold>* F (\<lambda>j.  h (j - Suc 0)) {Suc k..p}"
+    by (simp add: atLeast_Suc_atMost [of k p] assms)
+  also have "\<dots> = F g {..<k} \<^bold>* F h {k .. p - Suc 0}"
+    using reindex [of Suc "{k..p - Suc 0}"] assms by simp
+  also have "\<dots> = ?rhs"
+    by (simp add: If_cases)
+  finally show ?thesis .
+qed
+
+lemma atMost_Suc [simp]:
+  "F g {..Suc n} = F g {..n} \<^bold>* g (Suc n)"
+  by (simp add: atMost_Suc ac_simps)
+
+lemma lessThan_Suc [simp]:
+  "F g {..<Suc n} = F g {..<n} \<^bold>* g n"
+  by (simp add: lessThan_Suc ac_simps)
+
+end
 
 (* FIXME why are the following simp rules but the corresponding eqns
 on intervals are not? *)
-
-lemma sum_atMost_Suc [simp]:
-  "(\<Sum>i \<le> Suc n. f i) = (\<Sum>i \<le> n. f i) + f (Suc n)"
-  by (simp add: atMost_Suc ac_simps)
-
-lemma sum_lessThan_Suc [simp]:
-  "(\<Sum>i < Suc n. f i) = (\<Sum>i < n. f i) + f n"
-  by (simp add: lessThan_Suc ac_simps)
 
 lemma sum_cl_ivl_Suc [simp]:
   "sum f {m..Suc n} = (if Suc n < m then 0 else sum f {m..n} + f(Suc n))"
@@ -1851,11 +1873,6 @@ lemma sum_cl_ivl_Suc [simp]:
 lemma sum_op_ivl_Suc [simp]:
   "sum f {m..<Suc n} = (if n < m then 0 else sum f {m..<n} + f(n))"
   by (auto simp: ac_simps atLeastLessThanSuc)
-(*
-lemma sum_cl_ivl_add_one_nat: "(n::nat) \<le> m + 1 ==>
-    (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
-by (auto simp:ac_simps atLeastAtMostSuc_conv)
-*)
 
 lemma sum_head:
   fixes n :: nat
@@ -1871,14 +1888,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma sum_head_Suc:
-  "m \<le> n \<Longrightarrow> sum f {m..n} = f m + sum f {Suc m..n}"
-  by (fact sum.atLeast_Suc_atMost)
-
-lemma sum_head_upt_Suc:
-  "m < n \<Longrightarrow> sum f {m..<n} = f m + sum f {Suc m..<n}"
-  by (fact sum.atLeast_Suc_lessThan)
-
 lemma sum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
   shows "sum f {m..n + p} = sum f {m..n} + sum f {n + 1..n + p}"
 proof-
@@ -1887,12 +1896,10 @@ proof-
     atLeastSucAtMost_greaterThanAtMost)
 qed
 
-lemmas sum_add_nat_ivl = sum.atLeastLessThan_concat
-
 lemma sum_diff_nat_ivl:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow> sum f {m..<p} - sum f {m..<n} = sum f {n..<p}"
-  using sum_add_nat_ivl [of m n p f,symmetric]
+  using sum.atLeastLessThan_concat [of m n p f,symmetric]
   by (simp add: ac_simps)
 
 lemma sum_natinterval_difff:
@@ -1907,7 +1914,7 @@ proof (cases k)
   then have "k > 0"
     by auto
   then show ?thesis
-    by (induct n) (simp_all add: sum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
+    by (induct n) (simp_all add: sum.atLeastLessThan_concat add.commute atLeast0LessThan[symmetric])
 qed auto   
 
 lemma sum_triangle_reindex:
@@ -2020,14 +2027,14 @@ proof (induct n)
 next
   case (Suc n) note IH = this
   have "(\<Sum>i\<le>Suc (Suc n). f i) = (\<Sum>i\<le>Suc n. f i) + f (Suc (Suc n))"
-    by (rule sum_atMost_Suc)
+    by (rule sum.atMost_Suc)
   also have "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
     by (rule IH)
   also have "f 0 + (\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) =
              f 0 + ((\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)))"
     by (rule add.assoc)
   also have "(\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) = (\<Sum>i\<le>Suc n. f (Suc i))"
-    by (rule sum_atMost_Suc [symmetric])
+    by (rule sum.atMost_Suc [symmetric])
   finally show ?case .
 qed
 

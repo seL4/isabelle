@@ -34,7 +34,7 @@ proof -
     by auto
   show ?thesis
     unfolding sum_distrib_left shift_pow uminus_add_conv_diff [symmetric] sum_negf[symmetric]
-    sum_head_upt_Suc[OF zero_less_Suc]
+    sum.atLeast_Suc_lessThan[OF zero_less_Suc]
     sum.reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 

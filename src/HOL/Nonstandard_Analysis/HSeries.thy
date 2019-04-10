@@ -54,7 +54,7 @@ lemma sumhr_mult: "\<And>m n. hypreal_of_real r * sumhr (m, n, f) = sumhr (m, n,
   unfolding sumhr_app by transfer (rule sum_distrib_left)
 
 lemma sumhr_split_add: "\<And>n p. n < p \<Longrightarrow> sumhr (0, n, f) + sumhr (n, p, f) = sumhr (0, p, f)"
-  unfolding sumhr_app by transfer (simp add: sum_add_nat_ivl)
+  unfolding sumhr_app by transfer (simp add: sum.atLeastLessThan_concat)
 
 lemma sumhr_split_diff: "n < p \<Longrightarrow> sumhr (0, p, f) - sumhr (0, n, f) = sumhr (n, p, f)"
   by (drule sumhr_split_add [symmetric, where f = f]) simp

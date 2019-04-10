@@ -604,7 +604,7 @@ next
   also have "(\<Sum>i\<le>n. of_nat (n choose Suc i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
         pochhammer b (Suc n) =
       (\<Sum>i=0..Suc n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
-    apply (subst sum_head_Suc)
+    apply (subst sum.atLeast_Suc_atMost)
     apply simp
     apply (subst sum_shift_bounds_cl_Suc_ivl)
     apply (simp add: atLeast0AtMost)
@@ -858,7 +858,7 @@ next
     unfolding S_def G_def ..
 
   have "S (Suc mm) = G (Suc mm) 0 + (\<Sum>k=Suc 0..Suc mm. G (Suc mm) k)"
-    using SG_def by (simp add: sum_head_Suc atLeast0AtMost [symmetric])
+    using SG_def by (simp add: sum.atLeast_Suc_atMost atLeast0AtMost [symmetric])
   also have "(\<Sum>k=Suc 0..Suc mm. G (Suc mm) k) = (\<Sum>k=0..mm. G (Suc mm) (Suc k))"
     by (subst sum_shift_bounds_cl_Suc_ivl) simp
   also have "\<dots> = (\<Sum>k=0..mm. ((of_nat mm + a gchoose (Suc k)) +
@@ -873,7 +873,7 @@ next
   also have "\<dots> = (\<Sum>k<mm. (of_nat mm + a gchoose Suc k) * x^(Suc k) * y^(mm-k)) +
       (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm)"
     (is "_ = ?A + ?B")
-    by (subst sum_lessThan_Suc) simp
+    by (subst sum.lessThan_Suc) simp
   also have "?A = (\<Sum>k=1..mm. (of_nat mm + a gchoose k) * x^k * y^(mm - k + 1))"
   proof (subst sum_bounds_lt_plus1 [symmetric], intro sum.cong[OF refl], clarify)
     fix k
@@ -894,7 +894,7 @@ next
       y * (G mm 0 + (\<Sum>k=1..mm. (G mm k))) + (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm) + x * (S mm)"
     by (simp add: ring_distribs)
   also have "G mm 0 + (\<Sum>k=1..mm. (G mm k)) = S mm"
-    by (simp add: sum_head_Suc[symmetric] SG_def atLeast0AtMost)
+    by (simp add: sum.atLeast_Suc_atMost[symmetric] SG_def atLeast0AtMost)
   finally have "S (Suc mm) = (x + y) * (S mm) + (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm)"
     by (simp add: algebra_simps)
   also have "(of_nat mm + a gchoose (Suc mm)) = (-1) ^ (Suc mm) * (- a gchoose (Suc mm))"
@@ -1126,7 +1126,7 @@ proof -
     also have "{I. I \<subseteq> K \<and> card I = 0} = {{}}"
       using assms by (auto simp add: card_eq_0_iff K_def dest: finite_subset)
     then have "?rhs = (\<Sum>i = 0..card K. (- 1) ^ (i + 1) * (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)) + 1"
-      by (subst (2) sum_head_Suc) simp_all
+      by (subst (2) sum.atLeast_Suc_atMost) simp_all
     also have "\<dots> = (\<Sum>i = 0..card K. (- 1) * ((- 1) ^ i * int (card K choose i))) + 1"
       using K by (subst n_subsets[symmetric]) simp_all
     also have "\<dots> = - (\<Sum>i = 0..card K. (- 1) ^ i * int (card K choose i)) + 1"

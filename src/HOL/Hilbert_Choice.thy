@@ -43,6 +43,11 @@ abbreviation inv :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" 
 
 subsection \<open>Hilbert's Epsilon-operator\<close>
 
+lemma Eps_cong:
+  assumes "\<And>x. P x = Q x"
+  shows "Eps P = Eps Q"
+  using ext[of P Q, OF assms] by simp
+
 text \<open>
   Easier to apply than \<open>someI\<close> if the witness comes from an
   existential formula.

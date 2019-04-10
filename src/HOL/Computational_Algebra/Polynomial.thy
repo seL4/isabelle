@@ -1000,7 +1000,7 @@ proof (induct p arbitrary: n)
 next
   case (pCons a p n)
   then show ?case
-    by (cases n) (simp_all add: sum_atMost_Suc_shift del: sum_atMost_Suc)
+    by (cases n) (simp_all add: sum_atMost_Suc_shift del: sum.atMost_Suc)
 qed
 
 lemma degree_mult_le: "degree (p * q) \<le> degree p + degree q"

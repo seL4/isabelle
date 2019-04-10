@@ -106,6 +106,11 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma Int_Diff:
+  assumes "finite A"
+  shows "F g A = F g (A \<inter> B) \<^bold>* F g (A - B)"
+  by (subst subset_diff [where B = "A - B"]) (auto simp:  Diff_Diff_Int assms)
+
 lemma setdiff_irrelevant:
   assumes "finite A"
   shows "F g (A - {x. g x = z}) = F g A"

@@ -211,7 +211,7 @@ proof -
     hence "Bseq (\<lambda>n. (\<Sum>k=Suc 0..<Suc n. 2^k * f (2^k)) + f 1)"
       by (intro Bseq_add, subst sum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
     hence "Bseq (\<lambda>n. (\<Sum>k=0..<Suc n. 2^k * f (2^k)))"
-      by (subst sum_head_upt_Suc) (simp_all add: add_ac)
+      by (subst sum.atLeast_Suc_lessThan) (simp_all add: add_ac)
     thus "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))"
       by (subst (asm) Bseq_Suc_iff) (simp add: atLeast0LessThan)
   next

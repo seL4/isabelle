@@ -638,13 +638,13 @@ proof (cases n)
            (\<Sum>i<n. \<Sum>j<n - i. h * ((z + h) ^ j * z ^ (n - Suc j)))"
     apply (rule sum.cong [OF refl])
     apply (clarsimp simp add: less_iff_Suc_add sum_distrib_left diff_power_eq_sum ac_simps 0
-        simp del: sum_lessThan_Suc power_Suc)
+        simp del: sum.lessThan_Suc power_Suc)
     done
   have "h * ?lhs = h * ?rhs"
     apply (simp add: right_diff_distrib diff_divide_distrib h mult.assoc [symmetric])
     using Suc
     apply (simp add: diff_power_eq_sum h right_diff_distrib [symmetric] mult.assoc
-        del: power_Suc sum_lessThan_Suc of_nat_Suc)
+        del: power_Suc sum.lessThan_Suc of_nat_Suc)
     apply (subst lemma_realpow_rev_sumr)
     apply (subst sumr_diff_mult_const2)
     apply (simp add: lemma_termdiff1 sum_distrib_left *)
@@ -6227,7 +6227,7 @@ next
       by blast
     show ?succase
       using Suc.IH [of b k'] bk'
-      by (simp add: eq card_insert_if del: sum_atMost_Suc)
+      by (simp add: eq card_insert_if del: sum.atMost_Suc)
     qed
 qed
 
@@ -6297,7 +6297,7 @@ lemma root_polyfun:
   fixes z :: "'a::idom"
   assumes "1 \<le> n"
   shows "z^n = a \<longleftrightarrow> (\<Sum>i\<le>n. (if i = 0 then -a else if i=n then 1 else 0) * z^i) = 0"
-  using assms by (cases n) (simp_all add: sum_head_Suc atLeast0AtMost [symmetric])
+  using assms by (cases n) (simp_all add: sum.atLeast_Suc_atMost atLeast0AtMost [symmetric])
 
 lemma
   assumes "SORT_CONSTRAINT('a::{idom,real_normed_div_algebra})"
