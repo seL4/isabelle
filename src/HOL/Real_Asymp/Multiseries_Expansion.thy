@@ -3707,7 +3707,7 @@ proof (coinduction arbitrary: f cs rule: asymp_powser_coinduct')
         using h_nz by (intro bigthetaI_cong) (auto elim!: eventually_mono simp: f'_def field_simps)
       also from spec[OF asymp_powser, of "Suc n"]
         have "(\<lambda>x. f x - c - h x * (\<Sum>i<n. mssnth cs' i * h x ^ i)) \<in> O[F](\<lambda>x. h x * h x ^ n)"
-        unfolding sum_lessThan_Suc_shift
+        unfolding sum.lessThan_Suc_shift
         by (simp add: MSSCons algebra_simps sum_distrib_left sum_distrib_right)
       finally show ?thesis
         by (subst (asm) landau_o.big.mult_cancel_left) (insert h_nz, auto)

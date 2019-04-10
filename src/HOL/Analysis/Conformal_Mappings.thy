@@ -1070,7 +1070,7 @@ proof
   proof (cases "\<forall>i\<le>n. 0<i \<longrightarrow> a i = 0")
     case True
     then have [simp]: "\<And>z. f z = a 0"
-      by (simp add: that sum_atMost_shift)
+      by (simp add: that sum.atMost_shift)
     have False using compf [of "{a 0}"] by simp
     then show ?thesis ..
   next

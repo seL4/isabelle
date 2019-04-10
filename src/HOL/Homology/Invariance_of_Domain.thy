@@ -1,7 +1,7 @@
 section\<open>Invariance of Domain\<close>
 
 theory Invariance_of_Domain
-  imports Brouwer_Degree
+  imports Brouwer_Degree "HOL-Analysis.Continuous_Extension" "HOL-Analysis.Homeomorphism"
 
 begin
 
@@ -2065,8 +2065,7 @@ proof -
 qed
 
 
-
-subsection\<open> Invariance of dimension and domain in setting of R^n.\<close>
+subsection\<open> Invariance of dimension and domain\<close>
 
 lemma homeomorphic_maps_iff_homeomorphism [simp]:
    "homeomorphic_maps (top_of_set S) (top_of_set T) f g \<longleftrightarrow> homeomorphism S T f g"
@@ -2424,6 +2423,551 @@ proof (clarsimp simp add: continuous_openin_preimage_eq)
   qed (use assms in auto)
   then show "openin (top_of_set (f ` S)) (f ` S \<inter> g -` T)"
     by (simp add: eq)
+qed
+
+lemma invariance_of_domain_homeomorphism:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
+  obtains g where "homeomorphism S (f ` S) f g"
+proof
+  show "homeomorphism S (f ` S) f (inv_into S f)"
+    by (simp add: assms continuous_on_inverse_open homeomorphism_def)
+qed
+
+corollary invariance_of_domain_homeomorphic:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
+  shows "S homeomorphic (f ` S)"
+  using%unimportant invariance_of_domain_homeomorphism [OF assms]
+  by%unimportant (meson homeomorphic_def)
+
+lemma continuous_image_subset_interior:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "continuous_on S f" "inj_on f S" "DIM('b) \<le> DIM('a)"
+  shows "f ` (interior S) \<subseteq> interior(f ` S)"
+proof (rule interior_maximal)
+  show "f ` interior S \<subseteq> f ` S"
+    by (simp add: image_mono interior_subset)
+  show "open (f ` interior S)"
+    using assms
+    by (auto simp: subset_inj_on interior_subset continuous_on_subset invariance_of_domain_gen)
+qed
+
+lemma homeomorphic_interiors_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and dimeq: "DIM('a) = DIM('b)"
+  shows "(interior S) homeomorphic (interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` interior S \<subseteq> interior T"
+    using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
+  have gim: "g ` interior T \<subseteq> interior S"
+    using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
+  show "homeomorphism (interior S) (interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show "\<And>x. x \<in> interior S \<Longrightarrow> g (f x) = x"
+      by (meson \<open>\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x\<close> subsetD interior_subset)
+    have "interior T \<subseteq> f ` interior S"
+    proof
+      fix x assume "x \<in> interior T"
+      then have "g x \<in> interior S"
+        using gim by blast
+      then show "x \<in> f ` interior S"
+        by (metis T \<open>x \<in> interior T\<close> image_iff interior_subset subsetCE)
+    qed
+    then show "f ` interior S = interior T"
+      using fim by blast
+    show "continuous_on (interior S) f"
+      by (metis interior_subset continuous_on_subset contf)
+    show "\<And>y. y \<in> interior T \<Longrightarrow> f (g y) = y"
+      by (meson T subsetD interior_subset)
+    have "interior S \<subseteq> g ` interior T"
+    proof
+      fix x assume "x \<in> interior S"
+      then have "f x \<in> interior T"
+        using fim by blast
+      then show "x \<in> g ` interior T"
+        by (metis S \<open>x \<in> interior S\<close> image_iff interior_subset subsetCE)
+    qed
+    then show "g ` interior T = interior S"
+      using gim by blast
+    show "continuous_on (interior T) g"
+      by (metis interior_subset continuous_on_subset contg)
+  qed
+qed
+
+lemma homeomorphic_open_imp_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "open S" "S \<noteq> {}" "open T" "T \<noteq> {}"
+  shows "DIM('a) = DIM('b)"
+    using assms
+    apply (simp add: homeomorphic_minimal)
+    apply (rule order_antisym; metis inj_onI invariance_of_dimension)
+    done
+
+proposition homeomorphic_interiors:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "interior S = {} \<longleftrightarrow> interior T = {}"
+    shows "(interior S) homeomorphic (interior T)"
+proof (cases "interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  then have "DIM('a) = DIM('b)"
+    using assms
+    apply (simp add: homeomorphic_minimal)
+    apply (rule order_antisym; metis continuous_on_subset inj_onI inj_on_subset interior_subset invariance_of_dimension open_interior)
+    done
+  then show ?thesis
+    by (rule homeomorphic_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+lemma homeomorphic_frontiers_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "closed S" "closed T" and dimeq: "DIM('a) = DIM('b)"
+  shows "(frontier S) homeomorphic (frontier T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have "g ` interior T \<subseteq> interior S"
+    using continuous_image_subset_interior [OF contg \<open>inj_on g T\<close>] dimeq gTS by simp
+  then have fim: "f ` frontier S \<subseteq> frontier T"
+    apply (simp add: frontier_def)
+    using continuous_image_subset_interior assms(2) assms(3) S by auto
+  have "f ` interior S \<subseteq> interior T"
+    using continuous_image_subset_interior [OF contf \<open>inj_on f S\<close>] dimeq fST by simp
+  then have gim: "g ` frontier T \<subseteq> frontier S"
+    apply (simp add: frontier_def)
+    using continuous_image_subset_interior T assms(2) assms(3) by auto
+  show "homeomorphism (frontier S) (frontier T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> frontier S \<Longrightarrow> g (f x) = x"
+      by (simp add: S assms(2) frontier_def)
+    show fg: "\<And>y. y \<in> frontier T \<Longrightarrow> f (g y) = y"
+      by (simp add: T assms(3) frontier_def)
+    have "frontier T \<subseteq> f ` frontier S"
+    proof
+      fix x assume "x \<in> frontier T"
+      then have "g x \<in> frontier S"
+        using gim by blast
+      then show "x \<in> f ` frontier S"
+        by (metis fg \<open>x \<in> frontier T\<close> imageI)
+    qed
+    then show "f ` frontier S = frontier T"
+      using fim by blast
+    show "continuous_on (frontier S) f"
+      by (metis Diff_subset assms(2) closure_eq contf continuous_on_subset frontier_def)
+    have "frontier S \<subseteq> g ` frontier T"
+    proof
+      fix x assume "x \<in> frontier S"
+      then have "f x \<in> frontier T"
+        using fim by blast
+      then show "x \<in> g ` frontier T"
+        by (metis gf \<open>x \<in> frontier S\<close> imageI)
+    qed
+    then show "g ` frontier T = frontier S"
+      using gim by blast
+    show "continuous_on (frontier T) g"
+      by (metis Diff_subset assms(3) closure_closed contg continuous_on_subset frontier_def)
+  qed
+qed
+
+lemma homeomorphic_frontiers:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "closed S" "closed T"
+          "interior S = {} \<longleftrightarrow> interior T = {}"
+    shows "(frontier S) homeomorphic (frontier T)"
+proof (cases "interior T = {}")
+  case True
+  then show ?thesis
+    by (metis Diff_empty assms closure_eq frontier_def)
+next
+  case False
+  show ?thesis
+    apply (rule homeomorphic_frontiers_same_dimension)
+       apply (simp_all add: assms)
+    using False assms homeomorphic_interiors homeomorphic_open_imp_same_dimension by blast
+qed
+
+lemma continuous_image_subset_rel_interior:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and TS: "aff_dim T \<le> aff_dim S"
+  shows "f ` (rel_interior S) \<subseteq> rel_interior(f ` S)"
+proof (rule rel_interior_maximal)
+  show "f ` rel_interior S \<subseteq> f ` S"
+    by(simp add: image_mono rel_interior_subset)
+  show "openin (top_of_set (affine hull f ` S)) (f ` rel_interior S)"
+  proof (rule invariance_of_domain_affine_sets)
+    show "openin (top_of_set (affine hull S)) (rel_interior S)"
+      by (simp add: openin_rel_interior)
+    show "aff_dim (affine hull f ` S) \<le> aff_dim (affine hull S)"
+      by (metis aff_dim_affine_hull aff_dim_subset fim TS order_trans)
+    show "f ` rel_interior S \<subseteq> affine hull f ` S"
+      by (meson \<open>f ` rel_interior S \<subseteq> f ` S\<close> hull_subset order_trans)
+    show "continuous_on (rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    show "inj_on f (rel_interior S)"
+      using inj_on_subset injf rel_interior_subset by blast
+  qed auto
+qed
+
+lemma homeomorphic_rel_interiors_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
+  shows "(rel_interior S) homeomorphic (rel_interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
+    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
+    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  show "homeomorphism (rel_interior S) (rel_interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> rel_interior S \<Longrightarrow> g (f x) = x"
+      using S rel_interior_subset by blast
+    show fg: "\<And>y. y \<in> rel_interior T \<Longrightarrow> f (g y) = y"
+      using T mem_rel_interior_ball by blast
+    have "rel_interior T \<subseteq> f ` rel_interior S"
+    proof
+      fix x assume "x \<in> rel_interior T"
+      then have "g x \<in> rel_interior S"
+        using gim by blast
+      then show "x \<in> f ` rel_interior S"
+        by (metis fg \<open>x \<in> rel_interior T\<close> imageI)
+    qed
+    moreover have "f ` rel_interior S \<subseteq> rel_interior T"
+      by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+    ultimately show "f ` rel_interior S = rel_interior T"
+      by blast
+    show "continuous_on (rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    have "rel_interior S \<subseteq> g ` rel_interior T"
+    proof
+      fix x assume "x \<in> rel_interior S"
+      then have "f x \<in> rel_interior T"
+        using fim by blast
+      then show "x \<in> g ` rel_interior T"
+        by (metis gf \<open>x \<in> rel_interior S\<close> imageI)
+    qed
+    then show "g ` rel_interior T = rel_interior S"
+      using gim by blast
+    show "continuous_on (rel_interior T) g"
+      using contg continuous_on_subset rel_interior_subset by blast
+  qed
+qed
+
+lemma homeomorphic_rel_interiors:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
+    shows "(rel_interior S) homeomorphic (rel_interior T)"
+proof (cases "rel_interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  obtain f g
+    where S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+      and contf: "continuous_on S f" and contg: "continuous_on T g"
+    using  assms [unfolded homeomorphic_minimal] by auto
+  have "aff_dim (affine hull S) \<le> aff_dim (affine hull T)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior S" _ f])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contf continuous_on_subset rel_interior_subset apply blast
+      apply (meson S hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis S inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  moreover have "aff_dim (affine hull T) \<le> aff_dim (affine hull S)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior T" _ g])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contg continuous_on_subset rel_interior_subset apply blast
+      apply (meson T hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis T inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  ultimately have "aff_dim S = aff_dim T" by force
+  then show ?thesis
+    by (rule homeomorphic_rel_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+
+lemma homeomorphic_rel_boundaries_same_dimension:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
+  shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
+  using assms [unfolded homeomorphic_minimal]
+  unfolding homeomorphic_def
+proof (clarify elim!: ex_forward)
+  fix f g
+  assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+     and contf: "continuous_on S f" and contg: "continuous_on T g"
+  then have fST: "f ` S = T" and gTS: "g ` T = S" and "inj_on f S" "inj_on g T"
+    by (auto simp: inj_on_def intro: rev_image_eqI) metis+
+  have fim: "f ` rel_interior S \<subseteq> rel_interior T"
+    by (metis \<open>inj_on f S\<close> aff contf continuous_image_subset_rel_interior fST order_refl)
+  have gim: "g ` rel_interior T \<subseteq> rel_interior S"
+    by (metis \<open>inj_on g T\<close> aff contg continuous_image_subset_rel_interior gTS order_refl)
+  show "homeomorphism (S - rel_interior S) (T - rel_interior T) f g"
+    unfolding homeomorphism_def
+  proof (intro conjI ballI)
+    show gf: "\<And>x. x \<in> S - rel_interior S \<Longrightarrow> g (f x) = x"
+      using S rel_interior_subset by blast
+    show fg: "\<And>y. y \<in> T - rel_interior T \<Longrightarrow> f (g y) = y"
+      using T mem_rel_interior_ball by blast
+    show "f ` (S - rel_interior S) = T - rel_interior T"
+      using S fST fim gim by auto
+    show "continuous_on (S - rel_interior S) f"
+      using contf continuous_on_subset rel_interior_subset by blast
+    show "g ` (T - rel_interior T) = S - rel_interior S"
+      using T gTS gim fim by auto
+    show "continuous_on (T - rel_interior T) g"
+      using contg continuous_on_subset rel_interior_subset by blast
+  qed
+qed
+
+lemma homeomorphic_rel_boundaries:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
+    shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
+proof (cases "rel_interior T = {}")
+  case True
+  with assms show ?thesis by auto
+next
+  case False
+  obtain f g
+    where S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+      and contf: "continuous_on S f" and contg: "continuous_on T g"
+    using  assms [unfolded homeomorphic_minimal] by auto
+  have "aff_dim (affine hull S) \<le> aff_dim (affine hull T)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior S" _ f])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contf continuous_on_subset rel_interior_subset apply blast
+      apply (meson S hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis S inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  moreover have "aff_dim (affine hull T) \<le> aff_dim (affine hull S)"
+    apply (rule invariance_of_dimension_affine_sets [of _ "rel_interior T" _ g])
+          apply (simp_all add: openin_rel_interior False assms)
+    using contg continuous_on_subset rel_interior_subset apply blast
+      apply (meson T hull_subset image_subsetI rel_interior_subset rev_subsetD)
+    apply (metis T inj_on_inverseI inj_on_subset rel_interior_subset)
+    done
+  ultimately have "aff_dim S = aff_dim T" by force
+  then show ?thesis
+    by (rule homeomorphic_rel_boundaries_same_dimension [OF \<open>S homeomorphic T\<close>])
+qed
+
+proposition uniformly_continuous_homeomorphism_UNIV_trivial:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes contf: "uniformly_continuous_on S f" and hom: "homeomorphism S UNIV f g"
+  shows "S = UNIV"
+proof (cases "S = {}")
+  case True
+  then show ?thesis
+    by (metis UNIV_I hom empty_iff homeomorphism_def image_eqI)
+next
+  case False
+  have "inj g"
+    by (metis UNIV_I hom homeomorphism_apply2 injI)
+  then have "open (g ` UNIV)"
+    by (blast intro: invariance_of_domain hom homeomorphism_cont2)
+  then have "open S"
+    using hom homeomorphism_image2 by blast
+  moreover have "complete S"
+    unfolding complete_def
+  proof clarify
+    fix \<sigma>
+    assume \<sigma>: "\<forall>n. \<sigma> n \<in> S" and "Cauchy \<sigma>"
+    have "Cauchy (f o \<sigma>)"
+      using uniformly_continuous_imp_Cauchy_continuous \<open>Cauchy \<sigma>\<close> \<sigma> contf by blast
+    then obtain l where "(f \<circ> \<sigma>) \<longlonglongrightarrow> l"
+      by (auto simp: convergent_eq_Cauchy [symmetric])
+    show "\<exists>l\<in>S. \<sigma> \<longlonglongrightarrow> l"
+    proof
+      show "g l \<in> S"
+        using hom homeomorphism_image2 by blast
+      have "(g \<circ> (f \<circ> \<sigma>)) \<longlonglongrightarrow> g l"
+        by (meson UNIV_I \<open>(f \<circ> \<sigma>) \<longlonglongrightarrow> l\<close> continuous_on_sequentially hom homeomorphism_cont2)
+      then show "\<sigma> \<longlonglongrightarrow> g l"
+      proof -
+        have "\<forall>n. \<sigma> n = (g \<circ> (f \<circ> \<sigma>)) n"
+          by (metis (no_types) \<sigma> comp_eq_dest_lhs hom homeomorphism_apply1)
+        then show ?thesis
+          by (metis (no_types) LIMSEQ_iff \<open>(g \<circ> (f \<circ> \<sigma>)) \<longlonglongrightarrow> g l\<close>)
+      qed
+    qed
+  qed
+  then have "closed S"
+    by (simp add: complete_eq_closed)
+  ultimately show ?thesis
+    using clopen [of S] False  by simp
+qed
+
+proposition invariance_of_domain_sphere_affine_set_gen:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and U: "bounded U" "convex U"
+      and "affine T" and affTU: "aff_dim T < aff_dim U"
+      and ope: "openin (top_of_set (rel_frontier U)) S"
+   shows "openin (top_of_set T) (f ` S)"
+proof (cases "rel_frontier U = {}")
+  case True
+  then show ?thesis
+    using ope openin_subset by force
+next
+  case False
+  obtain b c where b: "b \<in> rel_frontier U" and c: "c \<in> rel_frontier U" and "b \<noteq> c"
+    using \<open>bounded U\<close> rel_frontier_not_sing [of U] subset_singletonD False  by fastforce
+  obtain V :: "'a set" where "affine V" and affV: "aff_dim V = aff_dim U - 1"
+  proof (rule choose_affine_subset [OF affine_UNIV])
+    show "- 1 \<le> aff_dim U - 1"
+      by (metis aff_dim_empty aff_dim_geq aff_dim_negative_iff affTU diff_0 diff_right_mono not_le)
+    show "aff_dim U - 1 \<le> aff_dim (UNIV::'a set)"
+      by (metis aff_dim_UNIV aff_dim_le_DIM le_cases not_le zle_diff1_eq)
+  qed auto
+  have SU: "S \<subseteq> rel_frontier U"
+    using ope openin_imp_subset by auto
+  have homb: "rel_frontier U - {b} homeomorphic V"
+   and homc: "rel_frontier U - {c} homeomorphic V"
+    using homeomorphic_punctured_sphere_affine_gen [of U _ V]
+    by (simp_all add: \<open>affine V\<close> affV U b c)
+  then obtain g h j k
+           where gh: "homeomorphism (rel_frontier U - {b}) V g h"
+             and jk: "homeomorphism (rel_frontier U - {c}) V j k"
+    by (auto simp: homeomorphic_def)
+  with SU have hgsub: "(h ` g ` (S - {b})) \<subseteq> S" and kjsub: "(k ` j ` (S - {c})) \<subseteq> S"
+    by (simp_all add: homeomorphism_def subset_eq)
+  have [simp]: "aff_dim T \<le> aff_dim V"
+    by (simp add: affTU affV)
+  have "openin (top_of_set T) ((f \<circ> h) ` g ` (S - {b}))"
+  proof (rule invariance_of_domain_affine_sets [OF _ \<open>affine V\<close>])
+    show "openin (top_of_set V) (g ` (S - {b}))"
+      apply (rule homeomorphism_imp_open_map [OF gh])
+      by (meson Diff_mono Diff_subset SU ope openin_delete openin_subset_trans order_refl)
+    show "continuous_on (g ` (S - {b})) (f \<circ> h)"
+       apply (rule continuous_on_compose)
+        apply (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets gh set_eq_subset)
+      using contf continuous_on_subset hgsub by blast
+    show "inj_on (f \<circ> h) (g ` (S - {b}))"
+      using kjsub
+      apply (clarsimp simp add: inj_on_def)
+      by (metis SU b homeomorphism_def inj_onD injf insert_Diff insert_iff gh rev_subsetD)
+    show "(f \<circ> h) ` g ` (S - {b}) \<subseteq> T"
+      by (metis fim image_comp image_mono hgsub subset_trans)
+  qed (auto simp: assms)
+  moreover
+  have "openin (top_of_set T) ((f \<circ> k) ` j ` (S - {c}))"
+  proof (rule invariance_of_domain_affine_sets [OF _ \<open>affine V\<close>])
+    show "openin (top_of_set V) (j ` (S - {c}))"
+      apply (rule homeomorphism_imp_open_map [OF jk])
+      by (meson Diff_mono Diff_subset SU ope openin_delete openin_subset_trans order_refl)
+    show "continuous_on (j ` (S - {c})) (f \<circ> k)"
+       apply (rule continuous_on_compose)
+        apply (meson Diff_mono SU homeomorphism_def homeomorphism_of_subsets jk set_eq_subset)
+      using contf continuous_on_subset kjsub by blast
+    show "inj_on (f \<circ> k) (j ` (S - {c}))"
+      using kjsub
+      apply (clarsimp simp add: inj_on_def)
+      by (metis SU c homeomorphism_def inj_onD injf insert_Diff insert_iff jk rev_subsetD)
+    show "(f \<circ> k) ` j ` (S - {c}) \<subseteq> T"
+      by (metis fim image_comp image_mono kjsub subset_trans)
+  qed (auto simp: assms)
+  ultimately have "openin (top_of_set T) ((f \<circ> h) ` g ` (S - {b}) \<union> ((f \<circ> k) ` j ` (S - {c})))"
+    by (rule openin_Un)
+  moreover have "(f \<circ> h) ` g ` (S - {b}) = f ` (S - {b})"
+  proof -
+    have "h ` g ` (S - {b}) = (S - {b})"
+    proof
+      show "h ` g ` (S - {b}) \<subseteq> S - {b}"
+        using homeomorphism_apply1 [OF gh] SU
+        by (fastforce simp add: image_iff image_subset_iff)
+      show "S - {b} \<subseteq> h ` g ` (S - {b})"
+        apply clarify
+        by  (metis SU subsetD homeomorphism_apply1 [OF gh] image_iff member_remove remove_def)
+    qed
+    then show ?thesis
+      by (metis image_comp)
+  qed
+  moreover have "(f \<circ> k) ` j ` (S - {c}) = f ` (S - {c})"
+  proof -
+    have "k ` j ` (S - {c}) = (S - {c})"
+    proof
+      show "k ` j ` (S - {c}) \<subseteq> S - {c}"
+        using homeomorphism_apply1 [OF jk] SU
+        by (fastforce simp add: image_iff image_subset_iff)
+      show "S - {c} \<subseteq> k ` j ` (S - {c})"
+        apply clarify
+        by  (metis SU subsetD homeomorphism_apply1 [OF jk] image_iff member_remove remove_def)
+    qed
+    then show ?thesis
+      by (metis image_comp)
+  qed
+  moreover have "f ` (S - {b}) \<union> f ` (S - {c}) = f ` (S)"
+    using \<open>b \<noteq> c\<close> by blast
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma invariance_of_domain_sphere_affine_set:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
+      and "r \<noteq> 0" "affine T" and affTU: "aff_dim T < DIM('a)"
+      and ope: "openin (top_of_set (sphere a r)) S"
+   shows "openin (top_of_set T) (f ` S)"
+proof (cases "sphere a r = {}")
+  case True
+  then show ?thesis
+    using ope openin_subset by force
+next
+  case False
+  show ?thesis
+  proof (rule invariance_of_domain_sphere_affine_set_gen [OF contf injf fim bounded_cball convex_cball \<open>affine T\<close>])
+    show "aff_dim T < aff_dim (cball a r)"
+      by (metis False affTU aff_dim_cball assms(4) linorder_cases sphere_empty)
+    show "openin (top_of_set (rel_frontier (cball a r))) S"
+      by (simp add: \<open>r \<noteq> 0\<close> ope)
+  qed
+qed
+
+lemma no_embedding_sphere_lowdim:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on (sphere a r) f" and injf: "inj_on f (sphere a r)" and "r > 0"
+   shows "DIM('a) \<le> DIM('b)"
+proof -
+  have "False" if "DIM('a) > DIM('b)"
+  proof -
+    have "compact (f ` sphere a r)"
+      using compact_continuous_image
+      by (simp add: compact_continuous_image contf)
+    then have "\<not> open (f ` sphere a r)"
+      using compact_open
+      by (metis assms(3) image_is_empty not_less_iff_gr_or_eq sphere_eq_empty)
+    then show False
+      using invariance_of_domain_sphere_affine_set [OF contf injf subset_UNIV] \<open>r > 0\<close>
+      by (metis aff_dim_UNIV affine_UNIV less_irrefl of_nat_less_iff open_openin openin_subtopology_self subtopology_UNIV that)
+  qed
+  then show ?thesis
+    using not_less by blast
 qed
 
 end

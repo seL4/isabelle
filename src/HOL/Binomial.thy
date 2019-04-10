@@ -176,7 +176,7 @@ next
     by (auto simp add: sum_distrib_left ac_simps)
   also have "\<dots> = (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k))"
-    by (simp add: atMost_atLeast0 sum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum_cl_ivl_Suc)
+    by (simp add: atMost_atLeast0 sum.shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum.cl_ivl_Suc)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n + 1 - k))"
@@ -337,7 +337,7 @@ definition gbinomial :: "'a::{semidom_divide,semiring_char_0} \<Rightarrow> nat 
 lemma gbinomial_0 [simp]:
   "a gchoose 0 = 1"
   "0 gchoose (Suc k) = 0"
-  by (simp_all add: gbinomial_prod_rev prod.atLeast0_lessThan_Suc_shift)
+  by (simp_all add: gbinomial_prod_rev prod.atLeast0_lessThan_Suc_shift del: prod.op_ivl_Suc)
 
 lemma gbinomial_Suc: "a gchoose (Suc k) = prod (\<lambda>i. a - of_nat i) {0..k} div fact (Suc k)"
   by (simp add: gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
@@ -358,11 +358,14 @@ lemma gbinomial_mult_fact': "(a gchoose k) * fact k = (\<Prod>i = 0..<k. a - of_
 
 lemma gbinomial_pochhammer: "a gchoose k = (- 1) ^ k * pochhammer (- a) k / fact k"
   for a :: "'a::field_char_0"
-  by (cases k)
-    (simp_all add: pochhammer_minus,
-     simp_all add: gbinomial_prod_rev pochhammer_prod_rev
-       power_mult_distrib [symmetric] atLeastLessThanSuc_atLeastAtMost
-       prod.atLeast_Suc_atMost_Suc_shift of_nat_diff)
+proof (cases k)
+  case (Suc k')
+  then show ?thesis
+    apply (simp add: pochhammer_minus)
+    apply (simp add: gbinomial_prod_rev pochhammer_prod_rev power_mult_distrib [symmetric] atLeastLessThanSuc_atLeastAtMost
+        prod.atLeast_Suc_atMost_Suc_shift of_nat_diff del: prod.cl_ivl_Suc)
+    done
+qed auto
 
 lemma gbinomial_pochhammer': "a gchoose k = pochhammer (a - of_nat k + 1) k / fact k"
   for a :: "'a::field_char_0"
@@ -411,7 +414,7 @@ next
   also have "\<dots> = ((\<Prod>i\<in>{0..<k} \<union> {k..<m + k}. of_nat (m + k - i)) :: 'a)"
     by (simp add: ivl_disj_un)
   finally have "fact n = (fact m * (\<Prod>i = 0..<k. of_nat m + of_nat k - of_nat i) :: 'a)"
-    using prod_shift_bounds_nat_ivl [of "\<lambda>i. of_nat (m + k - i) :: 'a" 0 k m]
+    using prod.shift_bounds_nat_ivl [of "\<lambda>i. of_nat (m + k - i) :: 'a" 0 k m]
     by (simp add: fact_prod_rev [of m] prod.union_disjoint of_nat_diff)
   then have "fact n / fact (n - k) = ((\<Prod>i = 0..<k. of_nat n - of_nat i) :: 'a)"
     by (simp add: n)
@@ -465,7 +468,7 @@ next
     by (simp add: Suc field_simps del: fact_Suc)
   also have "\<dots> =
     (a gchoose Suc h) * of_nat (Suc (Suc h) * fact (Suc h)) + (\<Prod>i=0..Suc h. a - of_nat i)"
-    apply (simp del: fact_Suc add: gbinomial_mult_fact field_simps mult.left_commute [of _ "2"])
+    apply (simp del: fact_Suc prod.op_ivl_Suc add: gbinomial_mult_fact field_simps mult.left_commute [of _ "2"])
     apply (simp del: fact_Suc add: fact_Suc [of "Suc h"] field_simps gbinomial_mult_fact
       mult.left_commute [of _ "2"] atLeastLessThanSuc_atLeastAtMost)
     done
@@ -487,7 +490,7 @@ next
     by (simp add: field_simps Suc atLeastLessThanSuc_atLeastAtMost)
   also have "\<dots> = (\<Prod>i\<in>{0..k}. (a + 1) - of_nat i)"
     using eq0
-    by (simp add: Suc prod.atLeast0_atMost_Suc_shift)
+    by (simp add: Suc prod.atLeast0_atMost_Suc_shift del: prod.cl_ivl_Suc)
   also have "\<dots> = (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
     by (simp only: gbinomial_mult_fact atLeastLessThanSuc_atLeastAtMost)
   finally show ?thesis
@@ -536,7 +539,7 @@ next
   have "(\<Sum>i\<le>n. i * (n choose i)) = (\<Sum>i\<le>Suc m. i * (Suc m choose i))"
     by (simp add: Suc)
   also have "\<dots> = Suc m * 2 ^ m"
-    unfolding sum_atMost_Suc_shift Suc_times_binomial sum_distrib_left[symmetric]
+    unfolding sum.atMost_Suc_shift Suc_times_binomial sum_distrib_left[symmetric]
     by (simp add: choose_row_sum)
   finally show ?thesis
     using Suc by simp
@@ -556,7 +559,7 @@ next
       (\<Sum>i\<le>Suc m. (-1) ^ i * of_nat i * of_nat (Suc m choose i))"
     by (simp add: Suc)
   also have "\<dots> = (\<Sum>i\<le>m. (-1) ^ (Suc i) * of_nat (Suc i * (Suc m choose Suc i)))"
-    by (simp only: sum_atMost_Suc_shift sum_distrib_left[symmetric] mult_ac of_nat_mult) simp
+    by (simp only: sum.atMost_Suc_shift sum_distrib_left[symmetric] mult_ac of_nat_mult) simp
   also have "\<dots> = - of_nat (Suc m) * (\<Sum>i\<le>m. (-1) ^ i * of_nat (m choose i))"
     by (subst sum_distrib_left, rule sum.cong[OF refl], subst Suc_times_binomial)
        (simp add: algebra_simps)
@@ -597,7 +600,7 @@ next
       (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
       ((\<Sum>i\<le>n. of_nat (n choose Suc i) * pochhammer a (Suc i) * pochhammer b (n - i)) +
       pochhammer b (Suc n))"
-    by (subst sum_atMost_Suc_shift) (simp add: ring_distribs sum.distrib)
+    by (subst sum.atMost_Suc_shift) (simp add: ring_distribs sum.distrib)
   also have "(\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a (Suc i) * pochhammer b (n - i)) =
       a * pochhammer ((a + 1) + b) n"
     by (subst Suc) (simp add: sum_distrib_left pochhammer_rec mult_ac)
@@ -606,7 +609,7 @@ next
       (\<Sum>i=0..Suc n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
     apply (subst sum.atLeast_Suc_atMost)
     apply simp
-    apply (subst sum_shift_bounds_cl_Suc_ivl)
+    apply (subst sum.shift_bounds_cl_Suc_ivl)
     apply (simp add: atLeast0AtMost)
     done
   also have "\<dots> = (\<Sum>i\<le>n. of_nat (n choose i) * pochhammer a i * pochhammer b (Suc n - i))"
@@ -675,7 +678,7 @@ next
   then have "((a + 1) gchoose (Suc (Suc b))) = (\<Prod>i = 0..Suc b. a + (1 - of_nat i)) / fact (b + 2)"
     by (simp add: field_simps gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
   also have "(\<Prod>i = 0..Suc b. a + (1 - of_nat i)) = (a + 1) * (\<Prod>i = 0..b. a - of_nat i)"
-    by (simp add: prod.atLeast0_atMost_Suc_shift)
+    by (simp add: prod.atLeast0_atMost_Suc_shift del: prod.cl_ivl_Suc)
   also have "\<dots> / fact (b + 2) = (a + 1) / of_nat (Suc (Suc b)) * (a gchoose Suc b)"
     by (simp_all add: gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
   finally show ?thesis by (simp add: Suc field_simps del: of_nat_Suc)
@@ -690,7 +693,7 @@ next
   then have "((a + 1) gchoose (Suc (Suc b))) = (\<Prod>i = 0 .. Suc b. a + (1 - of_nat i)) / fact (b + 2)"
     by (simp add: field_simps gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
   also have "(\<Prod>i = 0 .. Suc b. a + (1 - of_nat i)) = (a + 1) * (\<Prod>i = 0..b. a - of_nat i)"
-    by (simp add: prod.atLeast0_atMost_Suc_shift)
+    by (simp add: prod.atLeast0_atMost_Suc_shift del: prod.cl_ivl_Suc)
   also have "\<dots> / fact (b + 2) = (a + 1) / of_nat (Suc (Suc b)) * (a gchoose Suc b)"
     by (simp_all add: gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost atLeast0AtMost)
   finally show ?thesis
@@ -860,7 +863,7 @@ next
   have "S (Suc mm) = G (Suc mm) 0 + (\<Sum>k=Suc 0..Suc mm. G (Suc mm) k)"
     using SG_def by (simp add: sum.atLeast_Suc_atMost atLeast0AtMost [symmetric])
   also have "(\<Sum>k=Suc 0..Suc mm. G (Suc mm) k) = (\<Sum>k=0..mm. G (Suc mm) (Suc k))"
-    by (subst sum_shift_bounds_cl_Suc_ivl) simp
+    by (subst sum.shift_bounds_cl_Suc_ivl) simp
   also have "\<dots> = (\<Sum>k=0..mm. ((of_nat mm + a gchoose (Suc k)) +
       (of_nat mm + a gchoose k)) * x^(Suc k) * y^(mm - k))"
     unfolding G_def by (subst gbinomial_addition_formula) simp
@@ -929,11 +932,11 @@ proof -
   also have "(\<Sum>k = 0..(2 * m + 1). (2 * m + 1 choose k)) =
       (\<Sum>k = 0..m. (2 * m + 1 choose k)) +
       (\<Sum>k = m+1..2*m+1. (2 * m + 1 choose k))"
-    using sum_ub_add_nat[of 0 m "\<lambda>k. 2 * m + 1 choose k" "m+1"]
+    using sum.ub_add_nat[of 0 m "\<lambda>k. 2 * m + 1 choose k" "m+1"]
     by (simp add: mult_2)
   also have "(\<Sum>k = m+1..2*m+1. (2 * m + 1 choose k)) =
       (\<Sum>k = 0..m. (2 * m + 1 choose (k + (m + 1))))"
-    by (subst sum_shift_bounds_cl_nat_ivl [symmetric]) (simp add: mult_2)
+    by (subst sum.shift_bounds_cl_nat_ivl [symmetric]) (simp add: mult_2)
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose (m - k)))"
     by (intro sum.cong[OF refl], subst binomial_symmetric) simp_all
   also have "\<dots> = (\<Sum>k = 0..m. (2 * m + 1 choose k))"

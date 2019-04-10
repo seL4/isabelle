@@ -21,15 +21,17 @@ definition fact :: "nat \<Rightarrow> 'a"
   where fact_prod: "fact n = of_nat (\<Prod>{1..n})"
 
 lemma fact_prod_Suc: "fact n = of_nat (prod Suc {0..<n})"
-  by (cases n)
-    (simp_all add: fact_prod prod.atLeast_Suc_atMost_Suc_shift
-      atLeastLessThanSuc_atLeastAtMost)
+  unfolding fact_prod using atLeast0LessThan prod.atLeast1_atMost_eq by auto
 
 lemma fact_prod_rev: "fact n = of_nat (\<Prod>i = 0..<n. n - i)"
-  using prod.atLeastAtMost_rev [of "\<lambda>i. i" 1 n]
-  by (cases n)
-    (simp_all add: fact_prod_Suc prod.atLeast_Suc_atMost_Suc_shift
-      atLeastLessThanSuc_atLeastAtMost)
+proof -
+  have "prod Suc {0..<n} = \<Prod>{1..n}"
+    by (simp add: atLeast0LessThan prod.atLeast1_atMost_eq)
+  then have "prod Suc {0..<n} = prod ((-) (n + 1)) {1..n}"
+    using prod.atLeastAtMost_rev [of "\<lambda>i. i" 1 n] by presburger
+  then show ?thesis
+    unfolding fact_prod_Suc by (simp add: atLeast0LessThan prod.atLeast1_atMost_eq)
+qed
 
 lemma fact_0 [simp]: "fact 0 = 1"
   by (simp add: fact_prod)
@@ -216,7 +218,8 @@ lemma pochhammer_Suc_prod: "pochhammer a (Suc n) = prod (\<lambda>i. a + of_nat 
   by (simp add: pochhammer_prod atLeastLessThanSuc_atLeastAtMost)
 
 lemma pochhammer_Suc_prod_rev: "pochhammer a (Suc n) = prod (\<lambda>i. a + of_nat (n - i)) {0..n}"
-  by (simp add: pochhammer_prod_rev prod.atLeast_Suc_atMost_Suc_shift)
+  using prod.atLeast_Suc_atMost_Suc_shift
+  by (simp add: pochhammer_prod_rev prod.atLeast_Suc_atMost_Suc_shift del: prod.cl_ivl_Suc)
 
 lemma pochhammer_0 [simp]: "pochhammer a 0 = 1"
   by (simp add: pochhammer_prod)
@@ -259,7 +262,7 @@ lemma pochhammer_of_int: "pochhammer (of_int x) n = of_int (pochhammer x n)"
 end
 
 lemma pochhammer_rec: "pochhammer a (Suc n) = a * pochhammer (a + 1) n"
-  by (simp add: pochhammer_prod prod.atLeast0_lessThan_Suc_shift ac_simps)
+  by (simp add: pochhammer_prod prod.atLeast0_lessThan_Suc_shift ac_simps del: prod.op_ivl_Suc)
 
 lemma pochhammer_rec': "pochhammer z (Suc n) = (z + of_nat n) * pochhammer z n"
   by (simp add: pochhammer_prod prod.atLeast0_lessThan_Suc ac_simps)

@@ -510,7 +510,7 @@ proof -
     by (simp add: fact_prod)
     (subst prod_dividef [symmetric], simp_all add: field_simps)
   also from m have "z * ... = (\<Prod>k=0..n. z + k) / fact n"
-    by (simp add: prod.atLeast0_atMost_Suc_shift prod.atLeast_Suc_atMost_Suc_shift)
+    by (simp add: prod.atLeast0_atMost_Suc_shift prod.atLeast_Suc_atMost_Suc_shift del: prod.cl_ivl_Suc)
   also have "(\<Prod>k=0..n. z + k) = pochhammer z (Suc n)"
     unfolding pochhammer_prod
     by (simp add: prod.atLeast0_atMost_Suc atLeastLessThanSuc_atLeastAtMost)
@@ -535,7 +535,7 @@ proof (rule Lim_transform)
   proof eventually_elim
     fix n :: nat assume n: "n > 0"
     have "(\<Sum>k<n. ?f k) = (\<Sum>k=1..n. z / of_nat k - ln (1 + z / of_nat k))"
-      by (subst atLeast0LessThan [symmetric], subst sum_shift_bounds_Suc_ivl [symmetric],
+      by (subst atLeast0LessThan [symmetric], subst sum.shift_bounds_Suc_ivl [symmetric],
           subst atLeastLessThanSuc_atLeastAtMost) simp_all
     also have "\<dots> = z * of_real (harm n) - (\<Sum>k=1..n. ln (1 + z / of_nat k))"
       by (simp add: harm_def sum_subtractf sum_distrib_left divide_inverse)
@@ -653,7 +653,7 @@ proof -
     also have "(\<Sum>n\<in>\<dots>. f n) = (\<Sum>n<k. f n) + (\<Sum>n=k..<m+k. f n)"
       by (rule sum.union_disjoint) auto
     also have "(\<Sum>n=k..<m+k. f n) = (\<Sum>n=0..<m+k-k. f (n + k))"
-      using sum_shift_bounds_nat_ivl [of f 0 k m] by simp
+      using sum.shift_bounds_nat_ivl [of f 0 k m] by simp
     finally show "(\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)) = (\<Sum>n<m+k. f n)" by (simp add: atLeast0LessThan)
   qed
   finally have "(\<lambda>a. sum f {..<a}) \<longlonglongrightarrow> lim (\<lambda>m. sum f {..<m + k})"
@@ -2485,7 +2485,7 @@ proof -
   also have "(\<Prod>k=1..n. 1 + 1 / of_nat k :: real) = (\<Prod>k=1..n. (of_nat k + 1) / of_nat k)"
     by (intro prod.cong) (simp_all add: divide_simps)
   also have "(\<Prod>k=1..n. (of_nat k + 1) / of_nat k :: real) = of_nat n + 1"
-    by (induction n) (simp_all add: prod_nat_ivl_Suc' divide_simps)
+    by (induction n) (simp_all add: prod.nat_ivl_Suc' divide_simps)
   finally show ?thesis ..
 qed
 
@@ -2515,8 +2515,13 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
          (simp_all add: Gamma_series_euler'_def prod.distrib
                         prod_inversef[symmetric] divide_inverse)
     also have "(\<Prod>k=1..n. (1 + z / of_nat k)) = pochhammer (z + 1) n / fact n"
-      by (cases n) (simp_all add: pochhammer_prod fact_prod atLeastLessThanSuc_atLeastAtMost
-        prod_dividef [symmetric] field_simps prod.atLeast_Suc_atMost_Suc_shift)
+    proof (cases n)
+      case (Suc n')
+      then show ?thesis
+        unfolding pochhammer_prod fact_prod
+        by (simp add:  atLeastLessThanSuc_atLeastAtMost field_simps prod_dividef 
+                  prod.atLeast_Suc_atMost_Suc_shift del: prod.cl_ivl_Suc)
+    qed auto
     also have "z * \<dots> = pochhammer z (Suc n) / fact n" by (simp add: pochhammer_rec)
     finally show "?r n = Gamma_series_euler' z n / Gamma_series z n" by simp
   qed
@@ -2561,7 +2566,7 @@ next
   have "(\<lambda>n. \<Sum>k=1..n. z / of_nat k - ln (1 + z / of_nat k)) \<longlonglongrightarrow> ln_Gamma z + euler_mascheroni * z + ln z"
     using ln_Gamma_series'_aux[OF False]
     by (simp only: atLeastLessThanSuc_atLeastAtMost [symmetric] One_nat_def
-                   sum_shift_bounds_Suc_ivl sums_def atLeast0LessThan)
+                   sum.shift_bounds_Suc_ivl sums_def atLeast0LessThan)
   from tendsto_exp[OF this] False z have "?f \<longlonglongrightarrow> z * exp (euler_mascheroni * z) * Gamma z"
     by (simp add: exp_add exp_sum exp_diff mult_ac Gamma_complex_altdef A)
   from tendsto_mult[OF tendsto_const[of "exp (-euler_mascheroni * z) / z"] this] z
@@ -2842,7 +2847,7 @@ proof -
       also have "?A = (\<lambda>t. ?f t * ?g' t)" by (intro ext) (simp_all add: field_simps)
       also have "?B = - (of_nat (Suc n) * fact n / pochhammer z (n+2))"
         by (simp add: divide_simps pochhammer_rec
-              prod_shift_bounds_cl_Suc_ivl del: of_nat_Suc)
+              prod.shift_bounds_cl_Suc_ivl del: of_nat_Suc)
       finally show "((\<lambda>t. ?f t * ?g' t) has_integral (?f 1 * ?g 1 - ?f 0 * ?g 0 - ?I)) {0..1}"
         by simp
     qed (simp_all add: bounded_bilinear_mult)
@@ -3248,7 +3253,7 @@ proof -
     have "(\<lambda>n. P x n - P x (Suc n)) sums (P x 0 - sin (pi * x) / (pi * x))"
       unfolding P_def using x by (intro telescope_sums' sin_product_formula_real')
     also have "(\<lambda>n. P x n - P x (Suc n)) = (\<lambda>n. (x^2 / of_nat (Suc n)^2) * P x n)"
-      unfolding P_def by (simp add: prod_nat_ivl_Suc' algebra_simps)
+      unfolding P_def by (simp add: prod.nat_ivl_Suc' algebra_simps)
     also have "P x 0 = 1" by (simp add: P_def)
     finally have "(\<lambda>n. x\<^sup>2 / (of_nat (Suc n))\<^sup>2 * P x n) sums (1 - sin (pi * x) / (pi * x))" .
     from sums_divide[OF this, of "x^2"] x show ?thesis unfolding g_def by simp

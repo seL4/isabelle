@@ -400,7 +400,7 @@ proof -
   have "?s sums y" using sums_if'[OF \<open>f sums y\<close>] .
   from this[unfolded sums_def, THEN LIMSEQ_Suc]
   have "(\<lambda>n. if even n then f (n div 2) else 0) sums y"
-    by (simp add: lessThan_Suc_eq_insert_0 sum_atLeast1_atMost_eq image_Suc_lessThan
+    by (simp add: lessThan_Suc_eq_insert_0 sum.atLeast1_atMost_eq image_Suc_lessThan
         if_eq sums_def cong del: if_weak_cong)
   from sums_add[OF g_sums this] show ?thesis
     by (simp only: if_sum)
@@ -620,7 +620,7 @@ lemma sumr_diff_mult_const2: "sum f {..<n} - of_nat n * r = (\<Sum>i<n. f i - r)
 
 lemma lemma_realpow_rev_sumr:
   "(\<Sum>p<Suc n. (x ^ p) * (y ^ (n - p))) = (\<Sum>p<Suc n. (x ^ (n - p)) * (y ^ p))"
-  by (subst nat_diff_sum_reindex[symmetric]) simp
+  by (subst sum.nat_diff_reindex[symmetric]) simp
 
 lemma lemma_termdiff2:
   fixes h :: "'a::field"
@@ -1450,7 +1450,7 @@ next
     by (simp add: times_S Suc_diff_le)
   also have "(\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n - i))) =
       (\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n - i)))"
-    by (subst sum_atMost_Suc_shift) simp
+    by (subst sum.atMost_Suc_shift) simp
   also have "(\<Sum>i\<le>n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i))) =
       (\<Sum>i\<le>Suc n. real (Suc n - i) *\<^sub>R (S x i * S y (Suc n - i)))"
     by simp
@@ -1462,7 +1462,7 @@ next
   also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
     by (simp only: scaleR_right.sum)
   finally show "S (x + y) (Suc n) = (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
-    by (simp del: sum_cl_ivl_Suc)
+    by (simp del: sum.cl_ivl_Suc)
 qed
 
 lemma exp_add_commuting: "x * y = y * x \<Longrightarrow> exp (x + y) = exp x * exp y"
@@ -6025,7 +6025,7 @@ lemma pairs_le_eq_Sigma: "{(i, j). i + j \<le> m} = Sigma (atMost m) (\<lambda>r
   by auto
 
 lemma sum_up_index_split: "(\<Sum>k\<le>m + n. f k) = (\<Sum>k\<le>m. f k) + (\<Sum>k = Suc m..m + n. f k)"
-  by (metis atLeast0AtMost Suc_eq_plus1 le0 sum_ub_add_nat)
+  by (metis atLeast0AtMost Suc_eq_plus1 le0 sum.ub_add_nat)
 
 lemma Sigma_interval_disjoint: "(SIGMA i:A. {..v i}) \<inter> (SIGMA i:A.{v i<..w}) = {}"
   for w :: "'a::order"
@@ -6054,7 +6054,7 @@ proof -
   also have "\<dots> = (\<Sum>(i,j)\<in>{(i,j). i+j \<le> m+n}. (a i * x ^ i) * (b j * x ^ j))"
     by (auto simp: pairs_le_eq_Sigma sum.Sigma)
   also have "\<dots> = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
-    apply (subst sum_triangle_reindex_eq)
+    apply (subst sum.triangle_reindex_eq)
     apply (auto simp: algebra_simps sum_distrib_left intro!: sum.cong)
     apply (metis le_add_diff_inverse power_add)
     done
@@ -6165,7 +6165,7 @@ next
   have "(\<Sum>i\<le>Suc n. c i * w^i) = w * (\<Sum>i\<le>n. c (Suc i) * w^i)" for w
   proof -
     have "(\<Sum>i\<le>Suc n. c i * w^i) = (\<Sum>i\<le>n. c (Suc i) * w ^ Suc i)"
-      unfolding Set_Interval.sum_atMost_Suc_shift
+      unfolding Set_Interval.sum.atMost_Suc_shift
       by simp
     also have "\<dots> = w * (\<Sum>i\<le>n. c (Suc i) * w^i)"
       by (simp add: sum_distrib_left ac_simps)

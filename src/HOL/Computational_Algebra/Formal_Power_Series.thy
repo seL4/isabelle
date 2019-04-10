@@ -1125,7 +1125,7 @@ proof-
       using sum.atLeast_Suc_atMost[of 0 "n+1" "\<lambda>i. a$i * b$(n+1-i)"]
       by    (simp add: fps_mult_nth nth_less_subdegree_zero)
     thus "fps_shift 1 (a*b) $ n = (fps_shift 1 a * b) $ n"
-      using sum_shift_bounds_cl_Suc_ivl[of "\<lambda>i. a$i * b$(n+1-i)" 0 n]
+      using sum.shift_bounds_cl_Suc_ivl[of "\<lambda>i. a$i * b$(n+1-i)" 0 n]
       by    (simp add: fps_mult_nth)
   qed
   have "n \<le> subdegree g \<Longrightarrow> fps_shift n (g*h) = fps_shift n g * h"
@@ -2220,7 +2220,7 @@ proof-
               "fps_left_inverse (f^2) 1 $ Suc (Suc (Suc k)) =
                 fps_left_inverse (f\<^sup>2) 1 $ Suc (Suc k) * of_nat 2 -
                 fps_left_inverse (f\<^sup>2) 1 $ Suc k"
-              using sum_ub_add_nat f2_nth_simps(1,2) by simp
+              using sum.ub_add_nat f2_nth_simps(1,2) by simp
             also have "\<dots> = of_nat (2 * Suc (Suc (Suc k))) - of_nat (Suc (Suc k))"
               by (subst A, subst B) (simp add: invf2_def mult.commute)
             also have "\<dots> = of_nat (Suc (Suc (Suc k)) + 1)"
@@ -4136,7 +4136,7 @@ proof -
     
     from v have "k = sum_list v" by (simp add: A_def natpermute_def)
     also have "\<dots> = (\<Sum>i=0..m. v ! i)"
-      by (simp add: sum_list_sum_nth atLeastLessThanSuc_atLeastAtMost del: sum_op_ivl_Suc)
+      by (simp add: sum_list_sum_nth atLeastLessThanSuc_atLeastAtMost del: sum.op_ivl_Suc)
     also from j have "{0..m} = insert j ({0..m}-{j})" by auto
     also from j have "(\<Sum>i\<in>\<dots>. v ! i) = k + (\<Sum>i\<in>{0..m}-{j}. v ! i)"
       by (subst sum.insert) simp_all
@@ -5927,10 +5927,10 @@ proof -
           done
         have th20: "?m1 n * ?p b n = prod (\<lambda>i. b - of_nat i) {0..m}"
           apply (simp add: pochhammer_minus field_simps m)
-          apply (auto simp add: pochhammer_prod_rev of_nat_diff prod.atLeast_Suc_atMost_Suc_shift)
+          apply (auto simp add: pochhammer_prod_rev of_nat_diff prod.atLeast_Suc_atMost_Suc_shift simp del: prod.cl_ivl_Suc)
           done
         have th21:"pochhammer (b - of_nat n + 1) k = prod (\<lambda>i. b - of_nat i) {n - k .. n - 1}"
-          using kn apply (simp add: pochhammer_prod_rev m h prod.atLeast_Suc_atMost_Suc_shift)
+          using kn apply (simp add: pochhammer_prod_rev m h prod.atLeast_Suc_atMost_Suc_shift del: prod.op_ivl_Suc del: prod.cl_ivl_Suc)
           using prod.atLeastAtMost_shift_0 [of "m - h" m, where ?'a = 'a]
           apply (auto simp add: of_nat_diff field_simps)
           done

@@ -1190,7 +1190,7 @@ proof -
     by (simp add: oriented_simplex_def standard_simplex_def)
   have "oriented_simplex (Suc p) (\<lambda>i. if i = 0 then v else l (i -1)) x \<in> T"
     if "x \<in> standard_simplex (Suc p)" for x
-  proof (simp add: that oriented_simplex_def sum_atMost_Suc_shift del: sum.atMost_Suc)
+  proof (simp add: that oriented_simplex_def sum.atMost_Suc_shift del: sum.atMost_Suc)
     have x01: "\<And>i. 0 \<le> x i \<and> x i \<le> 1" and x0: "\<And>i. i > Suc p \<Longrightarrow> x i = 0" and x1: "sum x {..Suc p} = 1"
       using that by (auto simp: oriented_simplex_def standard_simplex_def)
     obtain a where "a \<in> S"
@@ -1224,7 +1224,7 @@ proof -
         have "(\<lambda>i. (\<Sum>j\<le>p. l j i * (x (Suc j) * inverse (1 - x 0)))) \<in> S"
         proof (rule S)
           have "x 0 + (\<Sum>j\<le>p. x (Suc j)) = sum x {..Suc p}"
-            by (metis sum_atMost_Suc_shift)
+            by (metis sum.atMost_Suc_shift)
           with x1 have "(\<Sum>j\<le>p. x (Suc j)) = 1 - x 0"
             by simp
           with False show "(\<Sum>j\<le>p. x (Suc j) * inverse (1 - x 0)) = 1"
@@ -2936,7 +2936,7 @@ proof -
           fix x
           assume x: "x \<in> standard_simplex q"
           have "(\<Sum>j\<le>Suc q. if j = 0 then 0 else x (j - Suc 0)) = (\<Sum>j\<le>q. x j)"
-            by (simp add: sum_atMost_Suc_shift)
+            by (simp add: sum.atMost_Suc_shift)
           with x have "simp q 0 (simplical_face 0 x) 0 = 1"
             apply (simp add: oriented_simplex_def simp_def simplical_face_in_standard_simplex)
             apply (simp add: simplical_face_def if_distrib ww_def standard_simplex_def cong: if_cong)
@@ -3230,7 +3230,7 @@ proof -
         apply (simp add: chain_boundary_sum chain_boundary_cmul)
         apply (subst chain_boundary_def)
         apply (simp add: frag_cmul_sum sum.cartesian_product eq sum.union_disjoint disjoint_iff_not_equal
-                     sum.atLeast_Suc_atMost_Suc_shift del: sum_cl_ivl_Suc flip: comm_monoid_add_class.sum.Sigma)
+                     sum.atLeast_Suc_atMost_Suc_shift del: sum.cl_ivl_Suc flip: comm_monoid_add_class.sum.Sigma)
         apply (simp add: comm_monoid_add_class.sum.Sigma eq2 [of _ "\<lambda>i. {_ i.._ i}"])
         apply (simp add: sum.union_disjoint disjoint_iff_not_equal * [OF 1 2])
         done

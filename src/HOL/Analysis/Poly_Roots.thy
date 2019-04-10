@@ -23,7 +23,7 @@ proof -
   also have "... = (x - y) * (\<Sum>i\<le>n. (\<Sum>j<i. a i * y^(i - Suc j) * x^j))"
     by (simp add: sum_distrib_left ac_simps)
   also have "... = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - Suc j) * x^j))"
-    by (simp add: nested_sum_swap')
+    by (simp add: sum.nested_swap')
   finally show ?thesis .
 qed
 

@@ -199,7 +199,7 @@ next
       by (simp add: div_mult2_eq[symmetric])
     also have
       "\<dots> = (\<Sum>x\<in>{Suc 0..<Suc nd}. m div 10^x  mod 10 * 10^x) + c"
-      by (simp only: sum_shift_bounds_Suc_ivl)
+      by (simp only: sum.shift_bounds_Suc_ivl)
          (simp add: atLeast0LessThan)
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
