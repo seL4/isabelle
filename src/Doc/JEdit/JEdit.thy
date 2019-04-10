@@ -410,13 +410,13 @@ text \<open>
   pixels. This leads to decent rendering quality, despite the old-fashioned
   appearance of \<^emph>\<open>Metal\<close>.
 
-  \begin{figure}[!htb]
+  \begin{sidewaysfigure}[!htb]
   \begin{center}
   \includegraphics[width=\textwidth]{isabelle-jedit-hdpi}
   \end{center}
   \caption{Metal look-and-feel with custom fonts for very high resolution}
   \label{fig:isabelle-jedit-hdpi}
-  \end{figure}
+  \end{sidewaysfigure}
 \<close>
 
 
@@ -1711,7 +1711,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.333]{auto-tools}
+  \includegraphics[scale=0.4]{auto-tools}
   \end{center}
   \caption{Result of automatically tried tools}
   \label{fig:auto-tools}
