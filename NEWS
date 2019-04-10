@@ -90,6 +90,16 @@ default for system option "system_heaps" that determines the heap
 storage directory for "isabelle build". Option "-n" is now clearly
 separated from option "-s".
 
+* The Isabelle/jEdit desktop application uses the same options as
+"isabelle jedit" for its internal "isabelle build" process: the implicit
+option "-o system_heaps" (or "-s") has been discontinued. This reduces
+the potential for surprise wrt. command-line tools.
+
+* The official download of the Isabelle/jEdit application already
+contains heap images for Isabelle/HOL within its main directory: thus
+the first encounter becomes faster and more robust (e.g. when run from a
+read-only directory).
+
 * Isabelle DejaVu fonts are available with hinting by default, which is
 relevant for low-resolution displays. This may be disabled via system
 option "isabelle_fonts_hinted = false" in

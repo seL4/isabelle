@@ -29,7 +29,7 @@ object JEdit_Sessions
     val options1 =
       Isabelle_System.getenv("JEDIT_BUILD_MODE") match {
         case "default" => options
-        case mode => options.bool.update("system_heaps", mode == "" | mode == "system")
+        case mode => options.bool.update("system_heaps", mode == "system")
       }
 
     val options2 =
