@@ -18,7 +18,8 @@ context, e.g. browsable as "isabelle-export:" in Isabelle/jEdit.
 
 * HOL: various syntax and library improvements.
 
-* HOL-Analysis: more material and better organization.
+* HOL libraries: better organization and much more material in HOL-Algebra,
+HOL-Analysis, HOL-Homology.
 
 * Isabelle/ML environments for separate SML applications.
 

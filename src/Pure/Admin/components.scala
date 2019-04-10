@@ -55,6 +55,7 @@ object Components
 
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
+    copy_dir: Option[Path] = None,
     progress: Progress = No_Progress)
   {
     Isabelle_System.mkdirs(base_dir)
@@ -65,6 +66,10 @@ object Components
         val remote = Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY") + "/" + archive_name
         progress.echo("Getting " + remote)
         Bytes.write(archive, Url.read_bytes(Url(remote)))
+      }
+      for (dir <- copy_dir) {
+        Isabelle_System.mkdirs(dir)
+        File.copy(archive, dir)
       }
       unpack(target_dir getOrElse base_dir, archive, progress = progress)
     }
