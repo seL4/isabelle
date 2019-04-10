@@ -164,7 +164,8 @@ text \<open>
 
   Regular jEdit options are accessible via the dialogs \<^emph>\<open>Utilities~/ Global
   Options\<close> or \<^emph>\<open>Plugins~/ Plugin Options\<close>, with a second chance to flip the
-  two within the central options dialog. Changes are stored in \<^path>\<open>$JEDIT_SETTINGS/properties\<close> and \<^path>\<open>$JEDIT_SETTINGS/keymaps\<close>.
+  two within the central options dialog. Changes are stored in
+  \<^path>\<open>$JEDIT_SETTINGS/properties\<close> and \<^path>\<open>$JEDIT_SETTINGS/keymaps\<close>.
 
   Isabelle system options are managed by Isabelle/Scala and changes are stored
   in \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close>, independently of
@@ -1360,7 +1361,9 @@ subsubsection \<open>Isabelle symbols\<close>
 
 text \<open>
   The completion tables for Isabelle symbols (\secref{sec:symbols}) are
-  determined statically from \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close> for each symbol specification as follows:
+  determined statically from \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close> for each symbol specification as
+  follows:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -1671,7 +1674,9 @@ text \<open>
   dictionary, taken from the colon-separated list in the settings variable
   @{setting_def JORTHO_DICTIONARIES}. There are jEdit actions to specify local
   updates to a dictionary, by including or excluding words. The result of
-  permanent dictionary updates is stored in the directory \<^path>\<open>$ISABELLE_HOME_USER/dictionaries\<close>, in a separate file for each dictionary.
+  permanent dictionary updates is stored in the directory
+  \<^path>\<open>$ISABELLE_HOME_USER/dictionaries\<close>, in a separate file for each
+  dictionary.
 
   \<^item> @{system_option_def spell_checker_include} specifies a comma-separated
   list of markup elements that delimit words in the source that is subject to
@@ -2087,13 +2092,15 @@ text \<open>
   compliant.
 
   Under normal circumstances, prover output always works via managed message
-  channels (corresponding to \<^ML>\<open>writeln\<close>, \<^ML>\<open>warning\<close>, \<^ML>\<open>Output.error_message\<close> in Isabelle/ML), which are displayed by regular means
-  within the document model (\secref{sec:output}). Unhandled Isabelle/ML
+  channels (corresponding to \<^ML>\<open>writeln\<close>, \<^ML>\<open>warning\<close>,
+  \<^ML>\<open>Output.error_message\<close> in Isabelle/ML), which are displayed by regular
+  means within the document model (\secref{sec:output}). Unhandled Isabelle/ML
   exceptions are printed by the system via \<^ML>\<open>Output.error_message\<close>.
 
   \<^item> \<^emph>\<open>Syslog\<close> shows system messages that might be relevant to diagnose
   problems with the startup or shutdown phase of the prover process; this also
-  includes raw output on \<^verbatim>\<open>stderr\<close>. Isabelle/ML also provides an explicit \<^ML>\<open>Output.system_message\<close> operation, which is occasionally useful for
+  includes raw output on \<^verbatim>\<open>stderr\<close>. Isabelle/ML also provides an explicit
+  \<^ML>\<open>Output.system_message\<close> operation, which is occasionally useful for
   diagnostic purposes within the system infrastructure itself.
 
   A limited amount of syslog messages are buffered, independently of the
