@@ -222,10 +222,13 @@ directory individually.
 
   /* build heaps on remote server */
 
-  def remote_build_heaps(
-    options: Options, family: Platform.Family.Value, local_dir: Path, build_sessions: List[String])
+  private def remote_build_heaps(
+    options: Options,
+    platform: Platform.Family.Value,
+    build_sessions: List[String],
+    local_dir: Path)
   {
-    val server_option = "build_release_server_" + family.toString
+    val server_option = "build_release_server_" + platform.toString
     options.string(server_option) match {
       case SSH.Target(user, host) =>
         using(SSH.open_session(options, host = host, user = user))(ssh =>
@@ -270,6 +273,7 @@ directory individually.
     platform_families: List[Platform.Family.Value] = default_platform_families,
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
+    build_sessions: List[String] = Nil,
     build_library: Boolean = false,
     parallel_jobs: Int = 1): Release =
   {
@@ -486,6 +490,14 @@ rm -rf "${DIST_NAME}-old"
         }
 
         val jedit_props = Path.explode("src/Tools/jEdit/dist/properties/jEdit.props")
+
+
+        // build heaps
+
+        if (build_sessions.nonEmpty) {
+          progress.echo("Building " + commas(build_sessions) + " ...")
+          remote_build_heaps(options, platform, build_sessions, isabelle_target)
+        }
 
 
         // application bundling
@@ -748,6 +760,7 @@ rm -rf "${DIST_NAME}-old"
       var official_release = false
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
+      var build_sessions: List[String] = Nil
       var more_components: List[Path] = Nil
       var parallel_jobs = 1
       var build_library = false
@@ -765,6 +778,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
+    -b SESSIONS  build platform-specific session images (separated by commas)
     -c ARCHIVE   clean bundling with additional component .tar.gz archive
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
@@ -779,6 +793,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),
+        "b:" -> (arg => build_sessions = space_explode(',', arg)),
         "c:" -> (arg =>
           {
             val path = Path.explode(arg)
@@ -805,8 +820,8 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         platform_families =
           if (platform_families.isEmpty) default_platform_families
           else platform_families,
-        more_components = more_components, build_library = build_library,
-        parallel_jobs = parallel_jobs)
+        more_components = more_components, build_sessions = build_sessions,
+        build_library = build_library, parallel_jobs = parallel_jobs)
     }
   }
 }
