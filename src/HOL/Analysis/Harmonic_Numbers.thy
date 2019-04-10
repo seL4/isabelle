@@ -61,7 +61,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> convergent (\<lambda>n. \<Sum>k=Suc 0..Suc n. inverse (of_nat k) :: real)"
     unfolding harm_def[abs_def] by (subst convergent_Suc_iff) simp_all
   also have "... \<longleftrightarrow> convergent (\<lambda>n. \<Sum>k\<le>n. inverse (of_nat (Suc k)) :: real)"
-    by (subst sum_shift_bounds_cl_Suc_ivl) (simp add: atLeast0AtMost)
+    by (subst sum.shift_bounds_cl_Suc_ivl) (simp add: atLeast0AtMost)
   also have "... \<longleftrightarrow> summable (\<lambda>n. inverse (of_nat n) :: real)"
     by (subst summable_Suc_iff [symmetric]) (simp add: summable_iff_convergent')
   also have "\<not>..." by (rule not_summable_harmonic)
@@ -123,7 +123,7 @@ lemma euler_mascheroni_sum_integral_diff_series:
   "euler_mascheroni.sum_integral_diff_series n = harm (Suc n) - ln (of_nat (Suc n))"
 proof -
   have "harm (Suc n) = (\<Sum>k=0..n. inverse (of_nat k + 1) :: real)" unfolding harm_def
-    unfolding One_nat_def by (subst sum_shift_bounds_cl_Suc_ivl) (simp add: add_ac)
+    unfolding One_nat_def by (subst sum.shift_bounds_cl_Suc_ivl) (simp add: add_ac)
   moreover have "((\<lambda>x. inverse (x + 1) :: real) has_integral ln (of_nat n + 1) - ln (0 + 1))
                    {0..of_nat n}"
     by (intro fundamental_theorem_of_calculus)

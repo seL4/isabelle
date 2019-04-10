@@ -333,7 +333,7 @@ proof (induction n rule: less_induct)
     have "norm (natfun_inverse f (Suc n)) = 
             norm (\<Sum>i = Suc 0..Suc n. fps_nth f i * natfun_inverse f (Suc n - i))"
       (is "_ = norm ?S") using assms 
-      by (simp add: field_simps norm_mult norm_divide del: sum_cl_ivl_Suc)
+      by (simp add: field_simps norm_mult norm_divide del: sum.cl_ivl_Suc)
     also have "norm ?S \<le> (\<Sum>i = Suc 0..Suc n. norm (fps_nth f i * natfun_inverse f (Suc n - i)))"
       by (rule norm_sum)
     also have "\<dots> \<le> (\<Sum>i = Suc 0..Suc n. norm (fps_nth f i) / \<delta> ^ (Suc n - i))"

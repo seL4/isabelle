@@ -13,7 +13,7 @@ lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
 
 lemma sum_mult_product:
   "sum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
-  unfolding sum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
+  unfolding sum.nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
 proof (rule sum.cong, simp, rule sum.reindex_cong)
   fix i
   show "inj_on (\<lambda>j. j + i * B) {..<B}" by (auto intro!: inj_onI)

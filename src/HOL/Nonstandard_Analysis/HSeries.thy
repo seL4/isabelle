@@ -81,7 +81,7 @@ lemma sumhr_minus: "\<And>m n. sumhr (m, n, \<lambda>i. - f i) = - sumhr (m, n, 
 lemma sumhr_shift_bounds:
   "\<And>m n. sumhr (m + hypnat_of_nat k, n + hypnat_of_nat k, f) =
     sumhr (m, n, \<lambda>i. f (i + k))"
-  unfolding sumhr_app by transfer (rule sum_shift_bounds_nat_ivl)
+  unfolding sumhr_app by transfer (rule sum.shift_bounds_nat_ivl)
 
 
 subsection \<open>Nonstandard Sums\<close>

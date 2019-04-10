@@ -29,7 +29,7 @@ proof -
     have "(\<Sum>k<Suc m. f k * x^k) = f 0 + (\<Sum>k=Suc 0..<Suc m. f k * x^k)"
       by (subst atLeast0LessThan [symmetric], subst sum.atLeast_Suc_lessThan) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. f k * x^k) = (\<Sum>k<m. f (k+1) * x^k) * x"
-      by (subst sum_shift_bounds_Suc_ivl)
+      by (subst sum.shift_bounds_Suc_ivl)
          (simp add: sum_distrib_right algebra_simps atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. f k * x ^ k) = f 0 + (\<Sum>k<m. f (k + 1) * x ^ k) * x" .
   }
@@ -422,7 +422,7 @@ proof -
              inverse (f 0) + (\<Sum>k=Suc 0..<Suc m. inverse (f k * x^k))"
       by (subst atLeast0LessThan [symmetric], subst sum.atLeast_Suc_lessThan) simp_all
     also have "(\<Sum>k=Suc 0..<Suc m. inverse (f k * x^k)) = (\<Sum>k<m. inverse (f (k+1) * x^k)) / x"
-      by (subst sum_shift_bounds_Suc_ivl)
+      by (subst sum.shift_bounds_Suc_ivl)
          (simp add: sum_distrib_left divide_inverse algebra_simps
                     atLeast0LessThan power_commutes)
     finally have "(\<Sum>k<Suc m. inverse (f k) * inverse (x ^ k)) =

@@ -620,7 +620,7 @@ proof -
     then have "prod f {..n+M} = prod f {..<M} * prod f {M..n+M}"
       by simp (subst prod.union_disjoint; force)
     also have "\<dots> = prod f {..<M} * (\<Prod>i\<le>n. f (i + M))"
-      by (metis (mono_tags, lifting) add.left_neutral atMost_atLeast0 prod_shift_bounds_cl_nat_ivl)
+      by (metis (mono_tags, lifting) add.left_neutral atMost_atLeast0 prod.shift_bounds_cl_nat_ivl)
     finally show ?thesis by metis
   qed
   ultimately have "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> prod f {..<M} * p"
@@ -975,7 +975,7 @@ proof
     have "prod f {..<n} = 1" for n
       by (metis \<open>\<And>n. 1 \<le> prod f n\<close> \<open>prodinf f = 1\<close> antisym f convergent_prod_has_prod ge1 order_trans prod_le_prodinf zero_le_one)
     then have "(\<Prod>n\<in>{i}. f n) \<le> prod f {..<n}" if "n \<ge> Suc i" for i n
-      by (metis mult.left_neutral order_refl prod.cong prod.neutral_const prod_lessThan_Suc)
+      by (metis mult.left_neutral order_refl prod.cong prod.neutral_const prod.lessThan_Suc)
     then show "\<exists>N. \<forall>n\<ge>N. (\<Prod>n\<in>{i}. f n) \<le> prod f {..<n}" for i
       by blast      
   qed
@@ -1042,7 +1042,7 @@ proof -
     using prod_le_prodinf[of f _ "Suc i"]
     by (meson "0" "1" Suc_leD convergent_prod_has_prod f \<open>n \<le> i\<close> le_trans less_eq_real_def)
   ultimately show ?thesis
-    by (metis le_less_trans mult.commute not_le prod_lessThan_Suc)
+    by (metis le_less_trans mult.commute not_le prod.lessThan_Suc)
 qed
 
 lemma prod_less_prodinf:
@@ -1187,7 +1187,8 @@ proof -
   have "raw_has_prod f M (a * f M) \<longleftrightarrow> (\<lambda>i. \<Prod>j\<le>Suc i. f (j+M)) \<longlonglongrightarrow> a * f M \<and> a * f M \<noteq> 0"
     by (subst LIMSEQ_Suc_iff) (simp add: raw_has_prod_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Prod>j\<le>i. f (Suc j + M)) * f M) \<longlonglongrightarrow> a * f M \<and> a * f M \<noteq> 0"
-    by (simp add: ac_simps atMost_Suc_eq_insert_0 image_Suc_atMost prod_atLeast1_atMost_eq lessThan_Suc_atMost)
+    by (simp add: ac_simps atMost_Suc_eq_insert_0 image_Suc_atMost prod.atLeast1_atMost_eq lessThan_Suc_atMost
+                  del: prod.cl_ivl_Suc)
   also have "\<dots> \<longleftrightarrow> raw_has_prod (\<lambda>n. f (Suc n)) M a \<and> f M \<noteq> 0"
   proof safe
     assume tends: "(\<lambda>i. (\<Prod>j\<le>i. f (Suc j + M)) * f M) \<longlonglongrightarrow> a * f M" and 0: "a * f M \<noteq> 0"

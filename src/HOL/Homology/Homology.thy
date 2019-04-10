@@ -1,5 +1,5 @@
 theory Homology
-  imports Brouwer_Degree 
+  imports Invariance_of_Domain 
 begin
 
 end

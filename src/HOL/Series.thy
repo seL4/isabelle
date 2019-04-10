@@ -80,7 +80,7 @@ lemma summable_zero[simp, intro]: "summable (\<lambda>n. 0)"
   by (rule sums_zero [THEN sums_summable])
 
 lemma sums_group: "f sums s \<Longrightarrow> 0 < k \<Longrightarrow> (\<lambda>n. sum f {n * k ..< n * k + k}) sums s"
-  apply (simp only: sums_def sum_nat_group tendsto_def eventually_sequentially)
+  apply (simp only: sums_def sum.nat_group tendsto_def eventually_sequentially)
   apply (erule all_forward imp_forward exE| assumption)+
   apply (rule_tac x="N" in exI)
   by (metis le_square mult.commute mult.left_neutral mult_le_cancel2 mult_le_mono)
@@ -303,7 +303,7 @@ proof  -
     using assms by (auto intro!: tendsto_add simp: sums_def)
   moreover have "(\<Sum>i<n. f (Suc i)) + f 0 = (\<Sum>i<Suc n. f i)" for n
     unfolding lessThan_Suc_eq_insert_0
-    by (simp add: ac_simps sum_atLeast1_atMost_eq image_Suc_lessThan)
+    by (simp add: ac_simps sum.atLeast1_atMost_eq image_Suc_lessThan)
   ultimately show ?thesis
     by (auto simp: sums_def simp del: sum.lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
 qed
@@ -358,7 +358,7 @@ proof -
   have "f sums (s + f 0) \<longleftrightarrow> (\<lambda>i. \<Sum>j<Suc i. f j) \<longlonglongrightarrow> s + f 0"
     by (subst LIMSEQ_Suc_iff) (simp add: sums_def)
   also have "\<dots> \<longleftrightarrow> (\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"
-    by (simp add: ac_simps lessThan_Suc_eq_insert_0 image_Suc_lessThan sum_atLeast1_atMost_eq)
+    by (simp add: ac_simps lessThan_Suc_eq_insert_0 image_Suc_lessThan sum.atLeast1_atMost_eq)
   also have "\<dots> \<longleftrightarrow> (\<lambda>n. f (Suc n)) sums s"
   proof
     assume "(\<lambda>i. (\<Sum>j<i. f (Suc j)) + f 0) \<longlonglongrightarrow> s + f 0"
@@ -940,7 +940,7 @@ proof -
   with 1 have "(\<lambda>n. sum ?g (?S2 n)) \<longlonglongrightarrow> (\<Sum>k. a k) * (\<Sum>k. b k)"
     by (rule Lim_transform2)
   then show ?thesis
-    by (simp only: sums_def sum_triangle_reindex)
+    by (simp only: sums_def sum.triangle_reindex)
 qed
 
 lemma Cauchy_product:
@@ -1083,7 +1083,7 @@ proof -
     with m have "norm ((\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k)) < e"
       by (intro N) simp_all
     also from True have "(\<Sum>k<Suc n. f k) - (\<Sum>k<m. f k) = (\<Sum>k=m..n. f k)"
-      by (subst sum_diff [symmetric]) (simp_all add: sum_last_plus)
+      by (subst sum_diff [symmetric]) (simp_all add: sum.last_plus)
     finally show ?thesis .
   next
     case False

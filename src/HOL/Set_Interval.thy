@@ -1861,40 +1861,147 @@ lemma lessThan_Suc [simp]:
   "F g {..<Suc n} = F g {..<n} \<^bold>* g n"
   by (simp add: lessThan_Suc ac_simps)
 
-end
-
-(* FIXME why are the following simp rules but the corresponding eqns
-on intervals are not? *)
-
-lemma sum_cl_ivl_Suc [simp]:
-  "sum f {m..Suc n} = (if Suc n < m then 0 else sum f {m..n} + f(Suc n))"
+lemma cl_ivl_Suc [simp]:
+  "F g {m..Suc n} = (if Suc n < m then \<^bold>1 else F g {m..n} \<^bold>* g(Suc n))"
   by (auto simp: ac_simps atLeastAtMostSuc_conv)
 
-lemma sum_op_ivl_Suc [simp]:
-  "sum f {m..<Suc n} = (if n < m then 0 else sum f {m..<n} + f(n))"
+lemma op_ivl_Suc [simp]:
+  "F g {m..<Suc n} = (if n < m then \<^bold>1 else F g {m..<n} \<^bold>* g(n))"
   by (auto simp: ac_simps atLeastLessThanSuc)
 
-lemma sum_head:
+lemma head:
   fixes n :: nat
   assumes mn: "m \<le> n"
-  shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
+  shows "F g {m..n} = g m \<^bold>* F g {m<..n}" (is "?lhs = ?rhs")
 proof -
   from mn
   have "{m..n} = {m} \<union> {m<..n}"
     by (auto intro: ivl_disj_un_singleton)
-  hence "?lhs = (\<Sum>x\<in>{m} \<union> {m<..n}. P x)"
+  hence "?lhs = F g ({m} \<union> {m<..n})"
     by (simp add: atLeast0LessThan)
   also have "\<dots> = ?rhs" by simp
   finally show ?thesis .
 qed
 
-lemma sum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
-  shows "sum f {m..n + p} = sum f {m..n} + sum f {n + 1..n + p}"
+lemma ub_add_nat: 
+  assumes "(m::nat) \<le> n + 1"
+  shows "F g {m..n + p} = F g {m..n} \<^bold>* F g {n + 1..n + p}"
 proof-
   have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using \<open>m \<le> n+1\<close> by auto
-  thus ?thesis by (auto simp: ivl_disj_int sum.union_disjoint
-    atLeastSucAtMost_greaterThanAtMost)
+  thus ?thesis by (auto simp: ivl_disj_int union_disjoint atLeastSucAtMost_greaterThanAtMost)
 qed
+
+lemma nat_group: 
+  fixes k::nat shows "F (\<lambda>m. F g {m * k ..< m*k + k}) {..<n} = F g {..< n * k}"
+proof (cases k)
+  case (Suc l)
+  then have "k > 0"
+    by auto
+  then show ?thesis
+    by (induct n) (simp_all add: atLeastLessThan_concat add.commute atLeast0LessThan[symmetric])
+qed auto   
+
+lemma triangle_reindex:
+  fixes n :: nat
+  shows "F (\<lambda>(i,j). g i j) {(i,j). i+j < n} = F (\<lambda>k. F (\<lambda>i. g i (k - i)) {..k}) {..<n}"
+  apply (simp add: Sigma)
+  apply (rule reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
+  apply auto
+  done
+
+lemma triangle_reindex_eq:
+  fixes n :: nat
+  shows "F (\<lambda>(i,j). g i j) {(i,j). i+j \<le> n} = F (\<lambda>k. F (\<lambda>i. g i (k - i)) {..k}) {..n}"
+using triangle_reindex [of g "Suc n"]
+by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
+
+lemma nat_diff_reindex: "F (\<lambda>i. g (n - Suc i)) {..<n} = F g {..<n}"
+  by (rule reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
+
+lemma shift_bounds_nat_ivl:
+  "F g {m+k..<n+k} = F (\<lambda>i. g(i + k)){m..<n::nat}"
+by (induct "n", auto simp: atLeastLessThanSuc)
+
+lemma shift_bounds_cl_nat_ivl:
+  "F g {m+k..n+k} = F (\<lambda>i. g(i + k)){m..n::nat}"
+  by (rule reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
+
+corollary shift_bounds_cl_Suc_ivl:
+  "F g {Suc m..Suc n} = F (\<lambda>i. g(Suc i)){m..n}"
+by (simp add: shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
+
+corollary shift_bounds_Suc_ivl:
+  "F g {Suc m..<Suc n} = F (\<lambda>i. g(Suc i)){m..<n}"
+by (simp add: shift_bounds_nat_ivl[where k="Suc 0", simplified])
+
+lemma atMost_Suc_shift:
+  shows "F g {..Suc n} = g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..n}"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) note IH = this
+  have "F g {..Suc (Suc n)} = F g {..Suc n} \<^bold>* g (Suc (Suc n))"
+    by (rule atMost_Suc)
+  also have "F g {..Suc n}  = g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..n}"
+    by (rule IH)
+  also have "g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..n} \<^bold>* g (Suc (Suc n)) =
+             g 0 \<^bold>* (F (\<lambda>i. g (Suc i)) {..n} \<^bold>* g (Suc (Suc n)))"
+    by (rule assoc)
+  also have "F (\<lambda>i. g (Suc i)) {..n} \<^bold>* g (Suc (Suc n)) = F (\<lambda>i. g (Suc i)) {..Suc n}"
+    by (rule atMost_Suc [symmetric])
+  finally show ?case .
+qed
+
+lemma lessThan_Suc_shift:
+  "F g {..<Suc n} = g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..<n}"
+  by (induction n) (simp_all add: ac_simps)
+
+lemma atMost_shift:
+  "F g {..n} = g 0 \<^bold>* F (\<lambda>i. g (Suc i)) {..<n}"
+  by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost 
+       atLeastSucAtMost_greaterThanAtMost le0 head shift_bounds_Suc_ivl)
+
+lemma last_plus: 
+  fixes n::nat  shows "m \<le> n \<Longrightarrow> F g {m..n} = g n \<^bold>* F g {m..<n}"
+  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost commute)
+
+lemma nested_swap:
+     "F (\<lambda>i. F (\<lambda>j. a i j) {0..<i}) {0..n} = F (\<lambda>j. F (\<lambda>i. a i j) {Suc j..n}) {0..<n}"
+  by (induction n) (auto simp: distrib)
+
+lemma nested_swap':
+     "F (\<lambda>i. F (\<lambda>j. a i j) {..<i}) {..n} = F (\<lambda>j. F (\<lambda>i. a i j) {Suc j..n}) {..<n}"
+  by (induction n) (auto simp: distrib)
+
+lemma atLeast1_atMost_eq:
+  "F g {Suc 0..n} = F (\<lambda>k. g (Suc k)) {..<n}"
+proof -
+  have "F g {Suc 0..n} = F g (Suc ` {..<n})"
+    by (simp add: image_Suc_lessThan)
+  also have "\<dots> = F (\<lambda>k. g (Suc k)) {..<n}"
+    by (simp add: reindex)
+  finally show ?thesis .
+qed
+
+lemma atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> F g {a..<Suc b} = F g {a..<b} \<^bold>* g b"
+  by (simp add: atLeastLessThanSuc commute)
+
+lemma nat_ivl_Suc':
+  assumes "m \<le> Suc n"
+  shows   "F g {m..Suc n} = g (Suc n) \<^bold>* F g {m..n}"
+proof -
+  from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
+  also have "F g \<dots> = g (Suc n) \<^bold>* F g {m..n}" by simp
+  finally show ?thesis .
+qed
+
+end
+
+lemma sum_natinterval_diff:
+  fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
+  shows  "sum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
+          (if m \<le> n then f m - f(n + 1) else 0)"
+by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
 lemma sum_diff_nat_ivl:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1902,40 +2009,9 @@ lemma sum_diff_nat_ivl:
   using sum.atLeastLessThan_concat [of m n p f,symmetric]
   by (simp add: ac_simps)
 
-lemma sum_natinterval_difff:
-  fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
-  shows  "sum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
-          (if m \<le> n then f m - f(n + 1) else 0)"
-by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
-
-lemma sum_nat_group: "(\<Sum>m<n::nat. sum f {m * k ..< m*k + k}) = sum f {..< n * k}"
-proof (cases k)
-  case (Suc l)
-  then have "k > 0"
-    by auto
-  then show ?thesis
-    by (induct n) (simp_all add: sum.atLeastLessThan_concat add.commute atLeast0LessThan[symmetric])
-qed auto   
-
-lemma sum_triangle_reindex:
-  fixes n :: nat
-  shows "(\<Sum>(i,j)\<in>{(i,j). i+j < n}. f i j) = (\<Sum>k<n. \<Sum>i\<le>k. f i (k - i))"
-  apply (simp add: sum.Sigma)
-  apply (rule sum.reindex_bij_witness[where j="\<lambda>(i, j). (i+j, i)" and i="\<lambda>(k, i). (i, k - i)"])
-  apply auto
-  done
-
-lemma sum_triangle_reindex_eq:
-  fixes n :: nat
-  shows "(\<Sum>(i,j)\<in>{(i,j). i+j \<le> n}. f i j) = (\<Sum>k\<le>n. \<Sum>i\<le>k. f i (k - i))"
-using sum_triangle_reindex [of f "Suc n"]
-by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
-
-lemma nat_diff_sum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
-  by (rule sum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
-
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst sum_subtractf_nat) auto
+
 
 context semiring_parity
 begin
@@ -1963,22 +2039,6 @@ end
 
 
 subsubsection \<open>Shifting bounds\<close>
-
-lemma sum_shift_bounds_nat_ivl:
-  "sum f {m+k..<n+k} = sum (\<lambda>i. f(i + k)){m..<n::nat}"
-by (induct "n", auto simp:atLeastLessThanSuc)
-
-lemma sum_shift_bounds_cl_nat_ivl:
-  "sum f {m+k..n+k} = sum (\<lambda>i. f(i + k)){m..n::nat}"
-  by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
-
-corollary sum_shift_bounds_cl_Suc_ivl:
-  "sum f {Suc m..Suc n} = sum (\<lambda>i. f(Suc i)){m..n}"
-by (simp add:sum_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
-
-corollary sum_shift_bounds_Suc_ivl:
-  "sum f {Suc m..<Suc n} = sum (\<lambda>i. f(Suc i)){m..<n}"
-by (simp add:sum_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
 context comm_monoid_add
 begin
@@ -2019,37 +2079,6 @@ end
 
 end
 
-lemma sum_atMost_Suc_shift:
-  fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
-  shows "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n) note IH = this
-  have "(\<Sum>i\<le>Suc (Suc n). f i) = (\<Sum>i\<le>Suc n. f i) + f (Suc (Suc n))"
-    by (rule sum.atMost_Suc)
-  also have "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
-    by (rule IH)
-  also have "f 0 + (\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) =
-             f 0 + ((\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)))"
-    by (rule add.assoc)
-  also have "(\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) = (\<Sum>i\<le>Suc n. f (Suc i))"
-    by (rule sum.atMost_Suc [symmetric])
-  finally show ?case .
-qed
-
-lemma sum_lessThan_Suc_shift:
-  "(\<Sum>i<Suc n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
-  by (induction n) (simp_all add: add_ac)
-
-lemma sum_atMost_shift:
-  fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
-  shows "(\<Sum>i\<le>n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
-by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost atLeastSucAtMost_greaterThanAtMost le0 sum_head sum_shift_bounds_Suc_ivl)
-
-lemma sum_last_plus: fixes n::nat shows "m \<le> n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
-  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add.commute)
-
 lemma sum_Suc_diff:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> Suc n"
@@ -2061,24 +2090,6 @@ lemma sum_Suc_diff':
   assumes "m \<le> n"
   shows "(\<Sum>i = m..<n. f (Suc i) - f i) = f n - f m"
 using assms by (induct n) (auto simp: le_Suc_eq)
-
-lemma nested_sum_swap:
-     "(\<Sum>i = 0..n. (\<Sum>j = 0..<i. a i j)) = (\<Sum>j = 0..<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: sum.distrib)
-
-lemma nested_sum_swap':
-     "(\<Sum>i\<le>n. (\<Sum>j<i. a i j)) = (\<Sum>j<n. \<Sum>i = Suc j..n. a i j)"
-  by (induction n) (auto simp: sum.distrib)
-
-lemma sum_atLeast1_atMost_eq:
-  "sum f {Suc 0..n} = (\<Sum>k<n. f (Suc k))"
-proof -
-  have "sum f {Suc 0..n} = sum f (Suc ` {..<n})"
-    by (simp add: image_Suc_lessThan)
-  also have "\<dots> = (\<Sum>k<n. f (Suc k))"
-    by (simp add: sum.reindex)
-  finally show ?thesis .
-qed
 
 
 subsubsection \<open>Telescoping\<close>
@@ -2158,7 +2169,7 @@ using diff_power_eq_sum [of 1 _ x]
 lemma one_diff_power_eq:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i<n. x^i)"
-by (metis one_diff_power_eq' [of n x] nat_diff_sum_reindex)
+by (metis one_diff_power_eq' [of n x] sum.nat_diff_reindex)
 
 lemma sum_gp_basic:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -2206,7 +2217,7 @@ subsubsection\<open>Geometric progressions\<close>
 
 lemma sum_gp0:
   fixes x :: "'a::{comm_ring,division_ring}"
-  shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
+  shows "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
   using sum_gp_basic[of x n]
   by (simp add: mult.commute divide_simps)
 
@@ -2387,16 +2398,6 @@ translations
   "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..n}"
   "\<Prod>i<n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..<n}"
 
-lemma prod_atLeast1_atMost_eq:
-  "prod f {Suc 0..n} = (\<Prod>k<n. f (Suc k))"
-proof -
-  have "prod f {Suc 0..n} = prod f (Suc ` {..<n})"
-    by (simp add: image_Suc_lessThan)
-  also have "\<dots> = (\<Prod>k<n. f (Suc k))"
-    by (simp add: prod.reindex)
-  finally show ?thesis .
-qed
-
 lemma prod_int_plus_eq: "prod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
   by (induct j) (auto simp add: atLeastAtMostSuc_conv atLeastAtMostPlus1_int_conv)
 
@@ -2410,55 +2411,6 @@ next
   then show ?thesis
     by auto
 qed
-
-
-subsubsection \<open>Shifting bounds\<close>
-
-lemma prod_shift_bounds_nat_ivl:
-  "prod f {m+k..<n+k} = prod (\<lambda>i. f(i + k)){m..<n::nat}"
-by (induct "n", auto simp:atLeastLessThanSuc)
-
-lemma prod_shift_bounds_cl_nat_ivl:
-  "prod f {m+k..n+k} = prod (\<lambda>i. f(i + k)){m..n::nat}"
-  by (rule prod.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
-
-corollary prod_shift_bounds_cl_Suc_ivl:
-  "prod f {Suc m..Suc n} = prod (\<lambda>i. f(Suc i)){m..n}"
-by (simp add:prod_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
-
-corollary prod_shift_bounds_Suc_ivl:
-  "prod f {Suc m..<Suc n} = prod (\<lambda>i. f(Suc i)){m..<n}"
-by (simp add:prod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
-
-lemma prod_lessThan_Suc [simp]: "prod f {..<Suc n} = prod f {..<n} * f n"
-  by (simp add: lessThan_Suc mult.commute)
-
-lemma prod_lessThan_Suc_shift:"(\<Prod>i<Suc n. f i) = f 0 * (\<Prod>i<n. f (Suc i))"
-  by (induction n) (simp_all add: lessThan_Suc mult_ac)
-
-lemma prod_atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> prod f {a..<Suc b} = prod f {a..<b} * f b"
-  by (simp add: atLeastLessThanSuc mult.commute)
-
-lemma prod_nat_ivl_Suc':
-  assumes "m \<le> Suc n"
-  shows   "prod f {m..Suc n} = f (Suc n) * prod f {m..n}"
-proof -
-  from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
-  also have "prod f \<dots> = f (Suc n) * prod f {m..n}" by simp
-  finally show ?thesis .
-qed
-
-lemma prod_nat_group: "(\<Prod>m<n::nat. prod f {m * k ..< m*k + k}) = prod f {..< n * k}"
-proof (cases "k = 0")
-  case True
-  then show ?thesis
-    by auto
-next
-  case False
-  then show ?thesis 
-    by (induct "n"; simp add: prod.atLeastLessThan_concat algebra_simps atLeast0_lessThan_Suc atLeast0LessThan[symmetric])
-qed
-
 
 subsection \<open>Efficient folding over intervals\<close>
 

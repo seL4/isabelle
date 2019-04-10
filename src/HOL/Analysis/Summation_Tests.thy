@@ -209,7 +209,7 @@ proof -
     from Bseq_mult[OF Bfun_const[of 2] this] have "Bseq (\<lambda>n. \<Sum>k<n. 2^Suc k * f (2^Suc k))"
       by (simp add: sum_distrib_left sum_distrib_right mult_ac)
     hence "Bseq (\<lambda>n. (\<Sum>k=Suc 0..<Suc n. 2^k * f (2^k)) + f 1)"
-      by (intro Bseq_add, subst sum_shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
+      by (intro Bseq_add, subst sum.shift_bounds_Suc_ivl) (simp add: atLeast0LessThan)
     hence "Bseq (\<lambda>n. (\<Sum>k=0..<Suc n. 2^k * f (2^k)))"
       by (subst sum.atLeast_Suc_lessThan) (simp_all add: add_ac)
     thus "Bseq (\<lambda>n. (\<Sum>k<n. 2^k * f (2^k)))"
@@ -354,7 +354,7 @@ proof -
       by (intro sum_nonneg) auto
     hence "norm (\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=Suc m..n. r * f k)" by simp
     also have "(\<Sum>k=Suc m..n. r * f k) = (\<Sum>k=m..<n. r * f (Suc k))"
-     by (subst sum_shift_bounds_Suc_ivl [symmetric])
+     by (subst sum.shift_bounds_Suc_ivl [symmetric])
           (simp only: atLeastLessThanSuc_atLeastAtMost)
     also from m have "\<dots> \<le> (\<Sum>k=m..<n. p k * f k - p (Suc k) * f (Suc k))"
       by (intro sum_mono[OF less_imp_le]) simp_all

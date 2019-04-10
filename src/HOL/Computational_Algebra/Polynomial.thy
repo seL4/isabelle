@@ -523,7 +523,7 @@ next
     also have "a + x * (\<Sum>i\<le>degree p. coeff p i * x ^ i) =
         coeff ?p' 0 * x^0 + (\<Sum>i\<le>degree p. coeff ?p' (Suc i) * x^Suc i)"
       by (simp add: field_simps sum_distrib_left coeff_pCons)
-    also note sum_atMost_Suc_shift[symmetric]
+    also note sum.atMost_Suc_shift[symmetric]
     also note degree_pCons_eq[OF \<open>p \<noteq> 0\<close>, of a, symmetric]
     finally show ?thesis .
   qed
@@ -1000,7 +1000,7 @@ proof (induct p arbitrary: n)
 next
   case (pCons a p n)
   then show ?case
-    by (cases n) (simp_all add: sum_atMost_Suc_shift del: sum.atMost_Suc)
+    by (cases n) (simp_all add: sum.atMost_Suc_shift del: sum.atMost_Suc)
 qed
 
 lemma degree_mult_le: "degree (p * q) \<le> degree p + degree q"
