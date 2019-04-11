@@ -228,8 +228,8 @@ fun make_span cmd src =
 
 local
 
-fun err_bad_nesting pos =
-  error ("Bad nesting of commands in presentation" ^ pos);
+fun err_bad_nesting here =
+  error ("Bad nesting of commands in presentation" ^ here);
 
 fun edge which f (x: string option, y) =
   if x = y then I
@@ -240,8 +240,21 @@ val end_tag = edge #1 Latex.end_tag;
 fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
 fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
-fun document_tag ctxt tag =
-  try hd (fold (update (op =)) (Document_Source.get_tags ctxt) (the_list tag));
+fun document_tag cmd_pos state state' tag_stack =
+  let
+    val ctxt' = Toplevel.presentation_context state';
+    val nesting = Toplevel.level state' - Toplevel.level state;
+
+    val (tag, tags) = tag_stack;
+    val tag' = try hd (fold (update (op =)) (Document_Source.get_tags ctxt') (the_list tag));
+    val tag_stack' =
+      if nesting = 0 andalso not (Toplevel.is_proof state) then tag_stack
+      else if nesting >= 0 then (tag', replicate nesting tag @ tags)
+      else
+        (case drop (~ nesting - 1) tags of
+          tg :: tgs => (tg, tgs)
+        | [] => err_bad_nesting (Position.here cmd_pos));
+  in (tag', tag_stack') end;
 
 fun read_tag s =
   (case space_explode "%" s of
@@ -287,25 +300,12 @@ fun present_span command_tag span state state'
 
     val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
 
-    val (tag, tags) = tag_stack;
-    val tag' = document_tag ctxt' tag;
-    val active_tag' =
-      if is_some tag' then tag'
-      else command_tag cmd_name state state' active_tag;
+    val (tag', tag_stack') = document_tag cmd_pos state state' tag_stack;
+    val active_tag' = if is_some tag' then tag' else command_tag cmd_name state state' active_tag;
     val edge = (active_tag, active_tag');
-
-    val nesting = Toplevel.level state' - Toplevel.level state;
 
     val newline' =
       if is_none active_tag' then span_newline else newline;
-
-    val tag_stack' =
-      if nesting = 0 andalso not (Toplevel.is_proof state) then tag_stack
-      else if nesting >= 0 then (tag', replicate nesting tag @ tags)
-      else
-        (case drop (~ nesting - 1) tags of
-          tg :: tgs => (tg, tgs)
-        | [] => err_bad_nesting (Position.here cmd_pos));
 
     val latex' =
       latex
