@@ -240,6 +240,9 @@ val end_tag = edge #1 Latex.end_tag;
 fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
 fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
+fun document_tag ctxt tag =
+  try hd (fold (update (op =)) (Document_Source.get_tags ctxt) (the_list tag));
+
 fun read_tag s =
   (case space_explode "%" s of
     ["", b] => (SOME b, NONE)
@@ -255,27 +258,22 @@ fun make_command_tag options keywords =
     val document_tags_default = map_filter #1 document_tags;
     val document_tags_command = map_filter #2 document_tags;
   in
-    fn {cmd_name, cmd_tags, tag, active_tag} => fn state => fn state' =>
+    fn cmd_name => fn state => fn state' => fn active_tag =>
       let
-        val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
-
         val keyword_tags =
           if cmd_name = "end" andalso Toplevel.is_end_theory state' then ["theory"]
           else Keyword.command_tags keywords cmd_name;
         val command_tags =
           the_list (AList.lookup (op =) document_tags_command cmd_name) @
           keyword_tags @ document_tags_default;
-
         val active_tag' =
-          if is_some tag' then tag'
-          else
-            (case command_tags of
-              default_tag :: _ => SOME default_tag
-            | [] =>
-                if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
-                then active_tag
-                else NONE);
-      in {tag' = tag', active_tag' = active_tag'} end
+          (case command_tags of
+            default_tag :: _ => SOME default_tag
+          | [] =>
+              if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
+              then active_tag
+              else NONE);
+      in active_tag' end
   end;
 
 fun present_span command_tag span state state'
@@ -288,12 +286,12 @@ fun present_span command_tag span state state'
       | _ => I);
 
     val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
-    val cmd_tags = Document_Source.get_tags ctxt';
 
     val (tag, tags) = tag_stack;
-    val {tag', active_tag'} =
-      command_tag {cmd_name = cmd_name, cmd_tags = cmd_tags, tag = tag, active_tag = active_tag}
-        state state';
+    val tag' = document_tag ctxt' tag;
+    val active_tag' =
+      if is_some tag' then tag'
+      else command_tag cmd_name state state' active_tag;
     val edge = (active_tag, active_tag');
 
     val nesting = Toplevel.level state' - Toplevel.level state;
