@@ -243,10 +243,14 @@ of Formal power series.
 * Session HOL-Number_Theory: More material on residue rings in
 Carmichael's function, primitive roots, more properties for "ord".
 
-* Session HOL-Analysis: Better organization and much more material,
-including algebraic topology.
+* Session HOL-Homology: New, a port of HOL Light's homology library,
+with new proofs of "invariance of domain" and related results.
 
-* Session HOL-Algebra: Much more material on group theory.
+* Session HOL-Analysis: Better organization and much more material
+at the level of abstract topological spaces.
+
+* Session HOL-Algebra: Much more material on group theory, mostly ported
+from HOL Light.
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
