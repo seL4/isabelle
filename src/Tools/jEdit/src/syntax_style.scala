@@ -87,7 +87,7 @@ object Syntax_Style
       new_styles(hidden) =
         new SyntaxStyle(hidden_color, null,
           GUI.transform_font(new Font(font0.getFamily, 0, 1),
-            AffineTransform.getScaleInstance(1.0, font0.getSize.toDouble)))
+            AffineTransform.getScaleInstance(2.0, font0.getSize.toDouble)))
       new_styles(control) =
         new SyntaxStyle(style0.getForegroundColor, style0.getBackgroundColor,
           { val font_style =
