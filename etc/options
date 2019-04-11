@@ -18,8 +18,10 @@ option thy_output_display : bool = false
   -- "indicate output as multi-line display-style material"
 option thy_output_break : bool = false
   -- "control line breaks in non-display material"
+option thy_output_cartouche : bool = false
+  -- "indicate if the output should be delimited as cartouche"
 option thy_output_quotes : bool = false
-  -- "indicate if the output should be enclosed in double quotes"
+  -- "indicate if the output should be delimited via double quotes"
 option thy_output_margin : int = 76
   -- "right margin / page width for printing of display material"
 option thy_output_indent : int = 0

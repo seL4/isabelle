@@ -126,6 +126,10 @@ and produce LaTeX environments as before. Potential INCOMPATIBILITY:
 multiple markers are composed in canonical order, resulting in a
 reversed list of tags in the presentation context.
 
+* Document antiquotation option "cartouche" indicates if the output
+should be delimited as cartouche; this takes precedence over the
+analogous option "quotes".
+
 
 *** Isar ***
 

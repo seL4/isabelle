@@ -387,8 +387,13 @@ text \<open>
     \<^descr> @{antiquotation_option_def break}~\<open>= bool\<close> controls line breaks in
     non-display material.
 
+    \<^descr> @{antiquotation_option_def cartouche}~\<open>= bool\<close> indicates if the output
+    should be delimited as cartouche.
+
     \<^descr> @{antiquotation_option_def quotes}~\<open>= bool\<close> indicates if the output
-    should be enclosed in double quotes.
+    should be delimited via double quotes (option @{antiquotation_option
+    cartouche} takes precedence). Note that the Isabelle {\LaTeX} styles may
+    suppress quotes on their own account.
 
     \<^descr> @{antiquotation_option_def mode}~\<open>= name\<close> adds \<open>name\<close> to the print mode
     to be used for presentation. Note that the standard setup for {\LaTeX}

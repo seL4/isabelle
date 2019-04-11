@@ -7,6 +7,7 @@ Document antiquotations.
 signature DOCUMENT_ANTIQUOTATION =
 sig
   val thy_output_display: bool Config.T
+  val thy_output_cartouche: bool Config.T
   val thy_output_quotes: bool Config.T
   val thy_output_margin: int Config.T
   val thy_output_indent: int Config.T
@@ -17,7 +18,7 @@ sig
   val trim_lines: Proof.context -> string -> string
   val indent_lines: Proof.context -> string -> string
   val prepare_lines: Proof.context -> string -> string
-  val quote: Proof.context -> Pretty.T -> Pretty.T
+  val delimit: Proof.context -> Pretty.T -> Pretty.T
   val indent: Proof.context -> Pretty.T -> Pretty.T
   val format: Proof.context -> Pretty.T -> string
   val output: Proof.context -> Pretty.T -> Output.output
@@ -42,6 +43,7 @@ struct
 
 val thy_output_display = Attrib.setup_option_bool ("thy_output_display", \<^here>);
 val thy_output_break = Attrib.setup_option_bool ("thy_output_break", \<^here>);
+val thy_output_cartouche = Attrib.setup_option_bool ("thy_output_cartouche", \<^here>);
 val thy_output_quotes = Attrib.setup_option_bool ("thy_output_quotes", \<^here>);
 val thy_output_margin = Attrib.setup_option_int ("thy_output_margin", \<^here>);
 val thy_output_indent = Attrib.setup_option_int ("thy_output_indent", \<^here>);
@@ -69,8 +71,10 @@ fun prepare_lines ctxt = trim_lines ctxt #> indent_lines ctxt;
 
 (* output *)
 
-fun quote ctxt =
-  Config.get ctxt thy_output_quotes ? Pretty.quote;
+fun delimit ctxt =
+  if Config.get ctxt thy_output_cartouche then Pretty.cartouche
+  else if Config.get ctxt thy_output_quotes then Pretty.quote
+  else I;
 
 fun indent ctxt =
   Config.get ctxt thy_output_display ? Pretty.indent (Config.get ctxt thy_output_indent);
@@ -80,7 +84,7 @@ fun format ctxt =
   then Pretty.string_of_margin (Config.get ctxt thy_output_margin)
   else Pretty.unformatted_string_of;
 
-fun output ctxt = quote ctxt #> indent ctxt #> format ctxt #> Output.output;
+fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Output.output;
 
 
 (* theory data *)
@@ -219,6 +223,7 @@ val _ = Theory.setup
   setup_option \<^binding>\<open>eta_contract\<close> (Config.put Syntax_Trans.eta_contract o boolean) #>
   setup_option \<^binding>\<open>display\<close> (Config.put thy_output_display o boolean) #>
   setup_option \<^binding>\<open>break\<close> (Config.put thy_output_break o boolean) #>
+  setup_option \<^binding>\<open>cartouche\<close> (Config.put thy_output_cartouche o boolean) #>
   setup_option \<^binding>\<open>quotes\<close> (Config.put thy_output_quotes o boolean) #>
   setup_option \<^binding>\<open>mode\<close> (Config.put thy_output_modes) #>
   setup_option \<^binding>\<open>margin\<close> (Config.put thy_output_margin o integer) #>

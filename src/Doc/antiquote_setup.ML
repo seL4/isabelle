@@ -126,7 +126,7 @@ val _ =
       map (fn (thm, name) =>
         Output.output
           (Document_Antiquotation.format ctxt
-            (Document_Antiquotation.quote ctxt (Thy_Output.pretty_thm ctxt thm))) ^
+            (Document_Antiquotation.delimit ctxt (Thy_Output.pretty_thm ctxt thm))) ^
         enclose "\\rulename{" "}" (Output.output name))
       #> space_implode "\\par\\smallskip%\n"
       #> Latex.string #> single
