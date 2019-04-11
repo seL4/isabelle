@@ -40,8 +40,9 @@ fun find_unused_assms ctxt thy_name =
        |> Config.put Quickcheck.abort_potential true
        |> Config.put Quickcheck.quiet true
     val all_thms =
-      filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
-        (thms_of thy thy_name)
+      thms_of thy thy_name
+      |> filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
+      |> sort_by #1
     fun check_single conjecture =
       (case try (Quickcheck.test_terms ctxt' (true, true) []) [(conjecture, [])] of
         SOME (SOME _) => false
