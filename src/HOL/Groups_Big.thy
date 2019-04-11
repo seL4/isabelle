@@ -169,16 +169,16 @@ lemma UNION_disjoint:
   assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
     and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
   shows "F g (\<Union>(A ` I)) = F (\<lambda>x. F g (A x)) I"
-  apply (insert assms)
-  apply (induct rule: finite_induct)
-   apply simp
-  apply atomize
-  apply (subgoal_tac "\<forall>i\<in>Fa. x \<noteq> i")
-   prefer 2 apply blast
-  apply (subgoal_tac "A x \<inter> \<Union>(A ` Fa) = {}")
-   prefer 2 apply blast
-  apply (simp add: union_disjoint)
-  done
+  using assms
+proof (induction rule: finite_induct)
+  case (insert i I)
+  then have "\<forall>j\<in>I. j \<noteq> i"
+    by blast
+  with insert.prems have "A i \<inter> \<Union>(A ` I) = {}"
+    by blast
+  with insert show ?case
+    by (simp add: union_disjoint)
+qed auto
 
 lemma Union_disjoint:
   assumes "\<forall>A\<in>C. finite A" "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {}"
@@ -195,21 +195,17 @@ lemma distrib: "F (\<lambda>x. g x \<^bold>* h x) A = F g A \<^bold>* F h A"
   by (induct A rule: infinite_finite_induct) (simp_all add: assoc commute left_commute)
 
 lemma Sigma:
-  "finite A \<Longrightarrow> \<forall>x\<in>A. finite (B x) \<Longrightarrow> F (\<lambda>x. F (g x) (B x)) A = F (case_prod g) (SIGMA x:A. B x)"
-  apply (subst Sigma_def)
-  apply (subst UNION_disjoint)
-     apply assumption
-    apply simp
-   apply blast
-  apply (rule cong)
-   apply rule
-  apply (simp add: fun_eq_iff)
-  apply (subst UNION_disjoint)
-     apply simp
-    apply simp
-   apply blast
-  apply (simp add: comp_def)
-  done
+  assumes "finite A" "\<forall>x\<in>A. finite (B x)"
+  shows "F (\<lambda>x. F (g x) (B x)) A = F (case_prod g) (SIGMA x:A. B x)"
+  unfolding Sigma_def
+proof (subst UNION_disjoint)
+  show "F (\<lambda>x. F (g x) (B x)) A = F (\<lambda>x. F (\<lambda>(x, y). g x y) (\<Union>y\<in>B x. {(x, y)})) A"
+  proof (rule cong [OF refl])
+    show "F (g x) (B x) = F (\<lambda>(x, y). g x y) (\<Union>y\<in>B x. {(x, y)})"
+      if "x \<in> A" for x
+      using that assms by (simp add: UNION_disjoint)
+  qed
+qed (use assms in auto)
 
 lemma related:
   assumes Re: "R \<^bold>1 \<^bold>1"
@@ -386,17 +382,27 @@ proof -
 qed
 
 lemma cartesian_product: "F (\<lambda>x. F (g x) B) A = F (case_prod g) (A \<times> B)"
-  apply (rule sym)
-  apply (cases "finite A")
-   apply (cases "finite B")
-    apply (simp add: Sigma)
-   apply (cases "A = {}")
-    apply simp
-   apply simp
-   apply (auto intro: infinite dest: finite_cartesian_productD2)
-  apply (cases "B = {}")
-   apply (auto intro: infinite dest: finite_cartesian_productD1)
-  done
+proof (cases "A = {} \<or> B = {}")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  then have "A \<noteq> {}" "B \<noteq> {}" by auto
+  show ?thesis
+  proof (cases "finite A \<and> finite B")
+    case True
+    then show ?thesis
+      by (simp add: Sigma)
+  next
+    case False
+    then consider "infinite A" | "infinite B" by auto
+    then have "infinite (A \<times> B)"
+      by cases (use \<open>A \<noteq> {}\<close> \<open>B \<noteq> {}\<close> in \<open>auto dest: finite_cartesian_productD1 finite_cartesian_productD2\<close>)
+    then show ?thesis
+      using False by auto
+  qed
+qed
 
 lemma inter_restrict:
   assumes "finite A"
