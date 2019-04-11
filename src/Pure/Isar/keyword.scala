@@ -50,7 +50,7 @@ object Keyword
 
   /* command categories */
 
-  val vacous = Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
+  val vacuous = Set(DIAG, DOCUMENT_HEADING, DOCUMENT_BODY, DOCUMENT_RAW)
 
   val diag = Set(DIAG)
 
