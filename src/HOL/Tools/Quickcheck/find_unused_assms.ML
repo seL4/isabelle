@@ -6,8 +6,9 @@ Finding unused assumptions in lemmas (using Quickcheck).
 
 signature FIND_UNUSED_ASSMS =
 sig
-  val find_unused_assms : Proof.context -> string -> (string * int list list option) list
-  val print_unused_assms : Proof.context -> string option -> unit
+  val check_unused_assms: Proof.context -> string * thm -> string * int list list option
+  val find_unused_assms: Proof.context -> string -> (string * int list list option) list
+  val print_unused_assms: Proof.context -> string option -> unit
 end
 
 structure Find_Unused_Assms : FIND_UNUSED_ASSMS =
@@ -33,16 +34,12 @@ fun find_max_subsets [] = []
 
 (* main functionality *)
 
-fun find_unused_assms ctxt thy_name =
+fun check_unused_assms ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val ctxt' = ctxt
        |> Config.put Quickcheck.abort_potential true
        |> Config.put Quickcheck.quiet true
-    val all_thms =
-      thms_of thy thy_name
-      |> filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
-      |> sort_by #1
     fun check_single conjecture =
       (case try (Quickcheck.test_terms ctxt' (true, true) []) [(conjecture, [])] of
         SOME (SOME _) => false
@@ -54,9 +51,9 @@ fun find_unused_assms ctxt thy_name =
           (fn x =>
             if member (op =) S x then I
             else insert (eq_set (op =)) (insert (op =) x S)) X) Ss []
-    fun check (s, th) =
+    fun check (name, th) =
       (case Logic.strip_horn (Thm.prop_of (Thm.unvarify_global thy th)) of
-        ([], _) => (s, NONE)
+        ([], _) => (name, NONE)
       | (ts, t) =>
           let
             fun mk_conjecture is = Logic.list_implies (drop_indexes is ts, t)
@@ -66,12 +63,18 @@ fun find_unused_assms ctxt thy_name =
                 (fn I => filter (check_single o mk_conjecture) (build singles I))
                 (map single singles) [(map single singles)]
             val maximals = flat (find_max_subsets multiples)
-          in
-            (s, SOME maximals)
-          end)
-  in
-    rev (Par_List.map check all_thms)
-  end
+          in (name, SOME maximals) end)
+  in check end
+
+fun find_unused_assms ctxt thy_name =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val all_thms =
+      thms_of thy thy_name
+      |> filter (fn (name, _) => length (Long_Name.explode name) = 2)  (* FIXME !? *)
+      |> sort_by #1
+    val check = check_unused_assms ctxt
+  in rev (Par_List.map check all_thms) end
 
 
 (* printing results *)
@@ -83,9 +86,9 @@ fun pretty_indexes is =
     (flat (separate [Pretty.str " and", Pretty.brk 1]
       (map (fn i => [Pretty.str (string_of_int (i + 1))]) (sort int_ord is))))
 
-fun pretty_thm (s, set_of_indexes) =
-  Pretty.block (Pretty.str s :: Pretty.str ":" :: Pretty.brk 1 ::
-    Pretty.str "unnecessary assumption(s) " ::
+fun pretty_thm (name, set_of_indexes) =
+  Pretty.block (Pretty.str name :: Pretty.str ":" :: Pretty.brk 1 ::
+    Pretty.str "unnecessary assumption " ::
     separate (Pretty.str " or ") (map pretty_indexes set_of_indexes))
 
 in
@@ -97,7 +100,8 @@ fun print_unused_assms ctxt opt_thy_name =
     val total = length results
     val with_assumptions = length (filter (is_some o snd) results)
     val with_superfluous_assumptions =
-      map_filter (fn (_, NONE) => NONE | (_, SOME []) => NONE | (s, SOME r) => SOME (s, r)) results
+      results |> map_filter
+        (fn (_, NONE) => NONE | (_, SOME []) => NONE | (name, SOME r) => SOME (name, r))
 
     val msg =
       "Found " ^ string_of_int (length with_superfluous_assumptions) ^
