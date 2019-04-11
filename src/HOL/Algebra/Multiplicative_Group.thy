@@ -270,11 +270,11 @@ text_raw \<open>\label{sec:order-elem}\<close>
 context group begin
 
 definition (in group) ord :: "'a \<Rightarrow> nat" where
-  "ord x \<equiv> (@d. \<forall>n::nat. pow G x n = one G \<longleftrightarrow> d dvd n)"
+  "ord x \<equiv> (@d. \<forall>n::nat. x [^] n = \<one> \<longleftrightarrow> d dvd n)"
 
 lemma (in group) pow_eq_id:
   assumes "x \<in> carrier G"
-  shows "pow G x n = one G \<longleftrightarrow> (ord x) dvd n"
+  shows "x [^] n = \<one> \<longleftrightarrow> (ord x) dvd n"
 proof (cases "\<forall>n::nat. pow G x n = one G \<longrightarrow> n = 0")
   case True
   show ?thesis
@@ -429,11 +429,6 @@ proof -
     by (auto simp: order_def)
 qed
 
-lemma finite_group_elem_finite_ord:
-  assumes "finite (carrier G)" "x \<in> carrier G"
-  shows "\<exists> d::nat. d \<ge> 1 \<and> x [^] d = \<one>"
-  using assms old_ord_ge_1 pow_old_ord_eq_1 by auto
-
 lemma old_ord_min:
   assumes  "finite (carrier G)" "1 \<le> d" "a \<in> carrier G" "a [^] d = \<one>" shows "old_ord a \<le> d"
 proof -
@@ -455,7 +450,7 @@ proof -
   qed
 qed
 
-lemma old_ord_dvd_pow_eq_1 :
+lemma old_ord_dvd_pow_eq_1:
   assumes "finite (carrier G)" "a \<in> carrier G" "a [^] k = \<one>"
   shows "old_ord a dvd k"
 proof -
@@ -487,45 +482,30 @@ qed
 lemma
   assumes finite: "finite (carrier G)"
   assumes a: "a \<in> carrier G"
-  shows ord_ge_1: "1 \<le> ord a" and ord_le_group_order: "ord a \<le> order G"
-  using a group.old_ord_ge_1 group.pow_eq_id group.pow_old_ord_eq_1 is_group local.finite apply fastforce
-  by (metis a dvd_antisym group.pow_eq_id is_group local.finite old_ord_dvd_pow_eq_1 old_ord_le_group_order pow_ord_eq_1 pow_old_ord_eq_1)
+  shows ord_ge_1: "1 \<le> ord a" 
+  using a group.old_ord_ge_1 group.pow_eq_id group.pow_old_ord_eq_1 is_group local.finite by fastforce
 
 lemma ord_inj:
-  assumes finite: "finite (carrier G)"
   assumes a: "a \<in> carrier G"
   shows "inj_on (\<lambda> x . a [^] x) {0 .. ord a - 1}"
-proof (rule inj_onI, rule ccontr)
-  fix x y assume A: "x \<in> {0 .. ord a - 1}" "y \<in> {0 .. ord a - 1}" "a [^] x= a [^] y" "x \<noteq> y"
+proof -
+  let ?M = "Max (ord ` carrier G)"
+  have "finite {d \<in> {..?M}. a [^] d = \<one>}" by auto
 
-  have "finite {d \<in> {1..order G}. a [^] d = \<one>}" by auto
-
-  { fix x y assume A: "x < y" "x \<in> {0 .. ord a - 1}" "y \<in> {0 .. ord a - 1}"
-        "a [^] x = a [^] y"
-    hence "y - x < ord a" by auto
-    also have "\<dots> \<le> order G" using assms by (simp add: ord_le_group_order)
-    finally have y_x_range:"y - x \<in> {1 .. order G}" using A by force
-    have "a [^] (y-x) = \<one>" using a A by (simp add: pow_eq_div2)
-
-    hence y_x:"y - x \<in> {d \<in> {1.. order G}. a [^] d = \<one>}" using y_x_range by blast
-    have "min (y - x) (ord a) = ord a"
-      using Min.in_idem[OF \<open>finite {d \<in> {1 .. order G} . a [^] d = \<one>}\<close> y_x]
-      by (simp add: a group.ord_iff_old_ord is_group local.finite) 
-    with \<open>y - x < ord a\<close> have False by linarith
-  }
-  note X = this
-
-  { assume "x < y" with A X have False by blast }
-  moreover
-  { assume "x > y" with A X  have False by metis }
-  moreover
-  { assume "x = y" then have False using A by auto}
-  ultimately
-  show False by fastforce
+  have *: False if A: "x < y" "x \<in> {0 .. ord a - 1}" "y \<in> {0 .. ord a - 1}"
+        "a [^] x = a [^] y" for x y
+  proof -
+    have "y - x < ord a" using that by auto
+    moreover have "a [^] (y-x) = \<one>" using a A by (simp add: pow_eq_div2)
+    ultimately have "min (y - x) (ord a) = ord a"
+      using A(1) a pow_eq_id by auto
+    with \<open>y - x < ord a\<close> show False by linarith
+  qed
+  show ?thesis
+    unfolding inj_on_def by (metis nat_neq_iff *)
 qed
 
 lemma ord_inj':
-  assumes finite: "finite (carrier G)"
   assumes a: "a \<in> carrier G"
   shows "inj_on (\<lambda> x . a [^] x) {1 .. ord a}"
 proof (rule inj_onI, rule ccontr)
@@ -612,31 +592,23 @@ next
 qed
 
 lemma generate_pow_card: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
-  assumes "finite (carrier G)" and "a \<in> carrier G"
+  assumes "finite (carrier G)" and a: "a \<in> carrier G"
   shows "ord a = card (generate G { a })"
 proof -
   have "generate G { a } = (([^]) a) ` {0..ord a - 1}"
     using generate_pow_on_finite_carrier[OF assms] unfolding ord_elems[OF assms] by auto
   thus ?thesis
-    using ord_inj[OF assms] ord_ge_1[OF assms] by (simp add: card_image)
+    using ord_inj[OF a] ord_ge_1[OF assms] by (simp add: card_image)
 qed
 
-(* This lemma was a suggestion of generalization given by Jeremy Avigad
-   at the end of the theory FiniteProduct. *)
-corollary power_order_eq_one_group_version: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
+lemma ord_dvd_group_order: 
   assumes "finite (carrier G)" and "a \<in> carrier G"
-  shows "a [^] (order G) = \<one>"
-proof -
-  have "(ord a) dvd (order G)"
-    using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
-    unfolding generate_pow_card[OF assms]
-    by (metis dvd_triv_right empty_subsetI insert_subset)
-  then obtain k :: nat where "order G = ord a * k" by blast
-  thus ?thesis
-    using assms(2) pow_ord_eq_1 by (metis nat_pow_one nat_pow_pow)
-qed
+  shows "(ord a) dvd (order G)"
+  using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
+  unfolding generate_pow_card[OF assms]
+  by (metis dvd_triv_right empty_subsetI insert_subset)
 
-lemma dvd_gcd :
+lemma dvd_gcd:
   fixes a b :: nat
   obtains q where "a * (b div gcd a b) = b*q"
 proof
@@ -645,9 +617,14 @@ proof
   finally show "a * (b div gcd a b) = b * (a div gcd a b) " .
 qed
 
-lemma ord_pow_dvd_ord_elem :
+lemma (in group) ord_le_group_order:
+  assumes finite: "finite (carrier G)" and a: "a \<in> carrier G"
+  shows "ord a \<le> order G"
+  by (simp add: finite order_gt_0_iff_finite dvd_imp_le [OF ord_dvd_group_order [OF assms]])
+
+lemma ord_pow_dvd_ord_elem:
   assumes finite[simp]: "finite (carrier G)"
-  assumes a[simp]:"a \<in> carrier G"
+  assumes a[simp]: "a \<in> carrier G"
   shows "ord (a[^]n) = ord a div gcd n (ord a)"
 proof -
   have "(a[^]n) [^] ord a = (a [^] ord a) [^] n"
@@ -714,13 +691,6 @@ lemma element_generates_subgroup:
         generate_pow_on_finite_carrier[OF assms]
   unfolding ord_elems[OF assms] by auto
 
-lemma ord_dvd_group_order: 
-  assumes "finite (carrier G)" and "a \<in> carrier G"
-  shows "(ord a) dvd (order G)"
-  using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
-  unfolding generate_pow_card[OF assms]
-  by (metis dvd_triv_right empty_subsetI insert_subset)
-
 end
 
 
@@ -751,12 +721,12 @@ begin
 lemma mult_of_is_Units: "mult_of R = units_of R"
   unfolding mult_of_def units_of_def using field_Units by auto
 
-lemma m_inv_mult_of :
+lemma m_inv_mult_of:
 "\<And>x. x \<in> carrier (mult_of R) \<Longrightarrow> m_inv (mult_of R) x = m_inv R x"
   using mult_of_is_Units units_of_inv unfolding units_of_def
   by simp
 
-lemma field_mult_group :
+lemma field_mult_group:
   shows "group (mult_of R)"
   apply (rule groupI)
   apply (auto simp: mult_of_simps m_assoc dest: integral)
@@ -791,7 +761,7 @@ lemma (in ring) r_right_minus_eq[simp]:
 context UP_cring begin
 
 lemma is_UP_cring:"UP_cring R" by (unfold_locales)
-lemma is_UP_ring :
+lemma is_UP_ring:
   shows "UP_ring R" by (unfold_locales)
 
 end
@@ -893,18 +863,6 @@ text \<open>
   by the first proof given in the survey~@{cite "conrad-cyclicity"}.
 \<close>
 
-lemma (in group) pow_order_eq_1:
-  assumes "finite (carrier G)" "x \<in> carrier G" shows "x [^] order G = \<one>"
-  using assms by (metis nat_pow_pow ord_dvd_group_order pow_ord_eq_1 dvdE nat_pow_one)
-
-(* XXX remove in AFP devel, replaced by div_eq_dividend_iff *)
-lemma nat_div_eq: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a \<longleftrightarrow> b = 1"
-  apply rule
-  apply (cases "b = 0")
-  apply simp_all
-  apply (metis (full_types) One_nat_def Suc_lessI div_less_dividend less_not_refl3)
-  done
-
 lemma (in group)
   assumes finite': "finite (carrier G)"
   assumes "a \<in> carrier G"
@@ -912,7 +870,7 @@ lemma (in group)
 proof
   assume A: ?L then show ?R
     using assms ord_ge_1 [OF assms]
-    by (auto simp: nat_div_eq ord_pow_dvd_ord_elem coprime_iff_gcd_eq_1)
+    by (auto simp: div_eq_dividend_iff ord_pow_dvd_ord_elem coprime_iff_gcd_eq_1)
 next
   assume ?R then show ?L
     using ord_pow_dvd_ord_elem[OF assms, of k] by auto
@@ -957,7 +915,7 @@ proof -
         using finite by (auto intro: card_mono)
       also have "\<dots> \<le> d" using \<open>0 < order (mult_of R)\<close> num_roots_le_deg[OF finite, of d]
         by (simp add : dvd_pos_nat[OF _ \<open>d dvd order (mult_of R)\<close>])
-      finally show ?thesis using G.ord_inj'[OF finite' a] ord_a * by (simp add: card_image)
+      finally show ?thesis using G.ord_inj'[OF a] ord_a * by (simp add: card_image)
     qed
   qed
 
@@ -973,7 +931,7 @@ proof -
     show "?R \<subseteq> ?L" using a by (auto simp add: carrier_mult_of[symmetric] simp del: carrier_mult_of)
   qed
   have "inj_on (\<lambda> n . a[^]n) {n \<in> {1 .. d}. group.ord (mult_of R) (a[^]n) = d}"
-    using G.ord_inj'[OF finite' a, unfolded ord_a] unfolding inj_on_def by fast
+    using G.ord_inj'[OF a, unfolded ord_a] unfolding inj_on_def by fast
   hence "card ((\<lambda>n. a[^]n) ` {n \<in> {1 .. d}. group.ord (mult_of R) (a[^]n) = d})
          = card {k \<in> {1 .. d}. group.ord (mult_of R) (a[^]k) = d}"
          using card_image by blast
