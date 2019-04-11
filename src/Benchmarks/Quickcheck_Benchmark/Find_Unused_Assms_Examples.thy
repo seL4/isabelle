@@ -4,24 +4,31 @@ begin
 
 section \<open>Arithmetics\<close>
 
-declare [[quickcheck_finite_types = false]]
+context notes [[quickcheck_finite_types = false]]
+begin
+  find_unused_assms Divides
+  find_unused_assms GCD
+  find_unused_assms Real
+end
 
-find_unused_assms Divides
-find_unused_assms GCD
-find_unused_assms Real
 
 section \<open>Set Theory\<close>
 
-declare [[quickcheck_finite_types = true]]
+context notes [[quickcheck_finite_types = true]]
+begin
+  find_unused_assms Fun
+  find_unused_assms Relation
+  find_unused_assms Set
+  find_unused_assms Wellfounded
+end
 
-find_unused_assms Fun
-find_unused_assms Relation
-find_unused_assms Set
-find_unused_assms Wellfounded
 
 section \<open>Datatypes\<close>
 
-find_unused_assms List
-find_unused_assms Map
+context notes [[quickcheck_finite_types = true]]
+begin
+  find_unused_assms List
+  find_unused_assms Map
+end
 
 end
