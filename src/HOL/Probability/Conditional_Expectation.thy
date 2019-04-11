@@ -994,7 +994,7 @@ proof -
   moreover have "real_cond_exp M F f x \<ge> c" if "\<forall>n. real_cond_exp M F f x > u n" for x
   proof -
     have "real_cond_exp M F f x \<ge> u n" for n using that less_imp_le by auto
-    then show ?thesis using u(2) LIMSEQ_le_const2 by blast
+    then show ?thesis using u(2) LIMSEQ_le_const2 by metis
   qed
   ultimately show ?thesis by auto
 qed

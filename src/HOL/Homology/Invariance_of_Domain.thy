@@ -2970,4 +2970,63 @@ proof -
     using not_less by blast
 qed
 
+lemma empty_interior_lowdim_gen:
+  fixes S :: "'N::euclidean_space set" and T :: "'M::euclidean_space set"
+  assumes dim: "DIM('M) < DIM('N)" and ST: "S homeomorphic T" 
+  shows "interior S = {}"
+proof -
+  obtain h :: "'M \<Rightarrow> 'N" where "linear h" "\<And>x. norm(h x) = norm x"
+    by (rule isometry_subset_subspace [OF subspace_UNIV subspace_UNIV, where ?'a = 'M and ?'b = 'N])
+       (use dim in auto)
+  then have "inj h"
+    by (metis linear_inj_iff_eq_0 norm_eq_zero)
+  then have "h ` T homeomorphic T"
+    using \<open>linear h\<close> homeomorphic_sym linear_homeomorphic_image by blast
+  then have "interior (h ` T) homeomorphic interior S"
+    using homeomorphic_interiors_same_dimension
+    by (metis ST homeomorphic_sym homeomorphic_trans)
+  moreover   
+  have "interior (range h) = {}"
+    by (simp add: \<open>inj h\<close> \<open>linear h\<close> dim dim_image_eq empty_interior_lowdim)
+  then have "interior (h ` T) = {}"
+    by (metis image_mono interior_mono subset_empty top_greatest)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma empty_interior_lowdim_gen_le:
+  fixes S :: "'N::euclidean_space set" and T :: "'M::euclidean_space set"
+  assumes "DIM('M) \<le> DIM('N)"  "interior T = {}" "S homeomorphic T" 
+  shows "interior S = {}"
+  by (metis assms empty_interior_lowdim_gen homeomorphic_empty(1) homeomorphic_interiors_same_dimension less_le)
+
+lemma homeomorphic_affine_sets_eq:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "affine S" "affine T"
+  shows "S homeomorphic T \<longleftrightarrow> aff_dim S = aff_dim T"
+proof (cases "S = {} \<or> T = {}")
+  case True
+  then show ?thesis
+    using assms homeomorphic_affine_sets by force
+next
+  case False
+  then obtain a b where "a \<in> S" "b \<in> T"
+    by blast
+  then have "subspace ((+) (- a) ` S)" "subspace ((+) (- b) ` T)"
+    using affine_diffs_subspace assms by blast+
+  then show ?thesis
+    by (metis affine_imp_convex assms homeomorphic_affine_sets homeomorphic_convex_sets)
+qed
+
+lemma homeomorphic_hyperplanes_eq:
+  fixes a :: "'M::euclidean_space" and c :: "'N::euclidean_space"
+  assumes "a \<noteq> 0" "c \<noteq> 0" 
+  shows "({x. a \<bullet> x = b} homeomorphic {x. c \<bullet> x = d} \<longleftrightarrow> DIM('M) = DIM('N))" (is "?lhs = ?rhs")
+proof -
+  have "(DIM('M) - Suc 0 = DIM('N) - Suc 0) \<longleftrightarrow> (DIM('M) = DIM('N))"
+    by auto (metis DIM_positive Suc_pred)
+  then show ?thesis
+    using assms by (simp add: homeomorphic_affine_sets_eq affine_hyperplane)
+qed
+
 end
