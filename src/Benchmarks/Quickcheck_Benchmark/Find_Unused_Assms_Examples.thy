@@ -27,7 +27,10 @@ section \<open>Datatypes\<close>
 
 context notes [[quickcheck_finite_types = true]]
 begin
-  find_unused_assms List
+  context notes [[quickcheck_finite_type_size = 2]]
+  begin
+    find_unused_assms List
+  end
   find_unused_assms Map
 end
 
