@@ -28,6 +28,8 @@ option thy_output_indent : int = 0
   -- "indentation for pretty printing of display material"
 option thy_output_source : bool = false
   -- "print original source text rather than internal representation"
+option thy_output_source_cartouche : bool = false
+  -- "print original source text rather than internal representation, preserve cartouches"
 option thy_output_modes : string = ""
   -- "additional print modes for document output (separated by commas)"
 

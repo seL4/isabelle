@@ -422,6 +422,13 @@ text \<open>
     printing of the given source text, with the desirable well-formedness
     check in the background, but without modification of the printed text.
 
+    Cartouche delimiters of the argument are stripped for antiquotations that
+    are internally categorized as ``embedded''.
+
+    \<^descr> @{antiquotation_option_def source_cartouche} is like
+    @{antiquotation_option source}, but cartouche delimiters are always
+    preserved in the output.
+
   For Boolean flags, ``\<open>name = true\<close>'' may be abbreviated as ``\<open>name\<close>''. All
   of the above flags are disabled by default, unless changed specifically for
   a logic session in the corresponding \<^verbatim>\<open>ROOT\<close> file.

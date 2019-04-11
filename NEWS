@@ -130,6 +130,13 @@ reversed list of tags in the presentation context.
 should be delimited as cartouche; this takes precedence over the
 analogous option "quotes".
 
+* Many document antiquotations are internally categorized as "embedded"
+and expect one cartouche argument, which is typically used with the
+\<^control>\<open>cartouche\<close> notation (e.g. \<^term>\<open>\<lambda>x y. x\<close>). The cartouche
+delimiters are stripped in output of the source (antiquotation option
+"source"), but it is possible to enforce delimiters via option
+"source_cartouche", e.g. @{term [source_cartouche] \<open>\<lambda>x y. x\<close>}.
+
 
 *** Isar ***
 

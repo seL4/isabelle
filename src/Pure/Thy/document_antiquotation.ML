@@ -12,6 +12,7 @@ sig
   val thy_output_margin: int Config.T
   val thy_output_indent: int Config.T
   val thy_output_source: bool Config.T
+  val thy_output_source_cartouche: bool Config.T
   val thy_output_break: bool Config.T
   val thy_output_modes: string Config.T
   val trim_blanks: Proof.context -> string -> string
@@ -48,6 +49,7 @@ val thy_output_quotes = Attrib.setup_option_bool ("thy_output_quotes", \<^here>)
 val thy_output_margin = Attrib.setup_option_int ("thy_output_margin", \<^here>);
 val thy_output_indent = Attrib.setup_option_int ("thy_output_indent", \<^here>);
 val thy_output_source = Attrib.setup_option_bool ("thy_output_source", \<^here>);
+val thy_output_source_cartouche = Attrib.setup_option_bool ("thy_output_source_cartouche", \<^here>);
 val thy_output_modes = Attrib.setup_option_string ("thy_output_modes", \<^here>);
 
 
@@ -229,6 +231,7 @@ val _ = Theory.setup
   setup_option \<^binding>\<open>margin\<close> (Config.put thy_output_margin o integer) #>
   setup_option \<^binding>\<open>indent\<close> (Config.put thy_output_indent o integer) #>
   setup_option \<^binding>\<open>source\<close> (Config.put thy_output_source o boolean) #>
+  setup_option \<^binding>\<open>source_cartouche\<close> (Config.put thy_output_source_cartouche o boolean) #>
   setup_option \<^binding>\<open>goals_limit\<close> (Config.put Goal_Display.goals_limit o integer));
 
 end;

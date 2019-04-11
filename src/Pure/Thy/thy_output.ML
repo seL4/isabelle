@@ -20,11 +20,12 @@ sig
   val isabelle_typewriter: Proof.context -> Latex.text list -> Latex.text
   val typewriter: Proof.context -> string -> Latex.text
   val verbatim: Proof.context -> string -> Latex.text
-  val source: Proof.context -> Token.src -> Latex.text
+  val source: Proof.context -> {embedded: bool} -> Token.src -> Latex.text
   val pretty: Proof.context -> Pretty.T -> Latex.text
-  val pretty_source: Proof.context -> Token.src -> Pretty.T -> Latex.text
+  val pretty_source: Proof.context -> {embedded: bool} -> Token.src -> Pretty.T -> Latex.text
   val pretty_items: Proof.context -> Pretty.T list -> Latex.text
-  val pretty_items_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
+  val pretty_items_source: Proof.context -> {embedded: bool} -> Token.src ->
+    Pretty.T list -> Latex.text
   val antiquotation_pretty:
     binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
   val antiquotation_pretty_embedded:
@@ -492,9 +493,19 @@ fun verbatim ctxt =
   then Document_Antiquotation.indent_lines ctxt #> typewriter ctxt
   else split_lines #> map (typewriter ctxt) #> lines #> Latex.block;
 
-fun source ctxt =
+fun token_source ctxt {embedded} tok =
+  if Token.is_kind Token.Cartouche tok andalso embedded andalso
+    not (Config.get ctxt Document_Antiquotation.thy_output_source_cartouche)
+  then Token.content_of tok
+  else Token.unparse tok;
+
+fun is_source ctxt =
+  Config.get ctxt Document_Antiquotation.thy_output_source orelse
+  Config.get ctxt Document_Antiquotation.thy_output_source_cartouche;
+
+fun source ctxt embedded =
   Token.args_of_src
-  #> map (Token.unparse #> Document_Antiquotation.prepare_lines ctxt)
+  #> map (token_source ctxt embedded #> Document_Antiquotation.prepare_lines ctxt)
   #> space_implode " "
   #> output_source ctxt
   #> isabelle ctxt;
@@ -502,16 +513,14 @@ fun source ctxt =
 fun pretty ctxt =
   Document_Antiquotation.output ctxt #> Latex.string #> single #> isabelle ctxt;
 
-fun pretty_source ctxt src prt =
-  if Config.get ctxt Document_Antiquotation.thy_output_source
-  then source ctxt src else pretty ctxt prt;
+fun pretty_source ctxt embedded src prt =
+  if is_source ctxt then source ctxt embedded src else pretty ctxt prt;
 
 fun pretty_items ctxt =
   map (Document_Antiquotation.output ctxt #> Latex.string) #> items #> isabelle ctxt;
 
-fun pretty_items_source ctxt src prts =
-  if Config.get ctxt Document_Antiquotation.thy_output_source
-  then source ctxt src else pretty_items ctxt prts;
+fun pretty_items_source ctxt embedded src prts =
+  if is_source ctxt then source ctxt embedded src else pretty_items ctxt prts;
 
 
 (* antiquotation variants *)
@@ -528,7 +537,8 @@ fun gen_antiquotation_pretty name embedded scan f =
 
 fun gen_antiquotation_pretty_source name embedded scan f =
   gen_setup name embedded scan
-    (fn {context = ctxt, source = src, argument = x} => pretty_source ctxt src (f ctxt x));
+    (fn {context = ctxt, source = src, argument = x} =>
+      pretty_source ctxt {embedded = embedded} src (f ctxt x));
 
 fun gen_antiquotation_raw name embedded scan f =
   gen_setup name embedded scan (fn {context = ctxt, argument = x, ...} => f ctxt x);

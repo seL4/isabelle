@@ -67,7 +67,7 @@ val basic_entity = Thy_Output.antiquotation_pretty_source_embedded;
 fun basic_entities name scan pretty =
   Document_Antiquotation.setup name scan
     (fn {context = ctxt, source = src, argument = xs} =>
-      Thy_Output.pretty_items_source ctxt src (map (pretty ctxt) xs));
+      Thy_Output.pretty_items_source ctxt {embedded = false} src (map (pretty ctxt) xs));
 
 in
 
@@ -87,7 +87,7 @@ val _ = Theory.setup
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
     (fn {context = ctxt, source = src, argument = arg} =>
-      Thy_Output.pretty_items_source ctxt src (pretty_thms_style ctxt arg)));
+      Thy_Output.pretty_items_source ctxt {embedded = false} src (pretty_thms_style ctxt arg)));
 
 end;
 
@@ -240,7 +240,10 @@ val _ = Theory.setup
         val _ = ctxt
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof (m1, m2);
-      in Thy_Output.pretty_source ctxt [hd src, prop_tok] (Thy_Output.pretty_term ctxt prop) end));
+      in
+        Thy_Output.pretty_source ctxt {embedded = false}
+          [hd src, prop_tok] (Thy_Output.pretty_term ctxt prop)
+      end));
 
 
 (* verbatim text *)
