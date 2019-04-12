@@ -231,16 +231,16 @@ embedded as a closed subset of a convex subset of \<open>\<real>\<^sup>n\<^sup>+
 definitions, but we need to split them into two implications because of the lack of type
 quantifiers. Then ENR turns out to be equivalent to ANR plus local compactness."\<close>
 
-definition%important AR :: "'a::topological_space set \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> AR :: "'a::topological_space set \<Rightarrow> bool" where
 "AR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
   S homeomorphic S' \<and> closedin (top_of_set U) S' \<longrightarrow> S' retract_of U"
 
-definition%important ANR :: "'a::topological_space set \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> ANR :: "'a::topological_space set \<Rightarrow> bool" where
 "ANR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
   S homeomorphic S' \<and> closedin (top_of_set U) S'
   \<longrightarrow> (\<exists>T. openin (top_of_set U) T \<and> S' retract_of T)"
 
-definition%important ENR :: "'a::topological_space set \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> ENR :: "'a::topological_space set \<Rightarrow> bool" where
 "ENR S \<equiv> \<exists>U. open U \<and> S retract_of U"
 
 text \<open>First, show that we do indeed get the "usual" properties of ARs and ANRs.\<close>
@@ -4072,7 +4072,7 @@ next
     by (metis finite_insert infinite_imp_nonempty less_linear sphere_eq_empty sphere_trivial)
 qed
 
-corollary%unimportant ANR_sphere:
+corollary\<^marker>\<open>tag unimportant\<close> ANR_sphere:
   fixes a :: "'a::euclidean_space"
   shows "ANR(sphere a r)"
   by (simp add: ENR_imp_ANR ENR_sphere)
@@ -4254,7 +4254,7 @@ proof -
 qed
 
 
-corollary%unimportant nullhomotopic_into_ANR_extension:
+corollary\<^marker>\<open>tag unimportant\<close> nullhomotopic_into_ANR_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "closed S"
       and contf: "continuous_on S f"
@@ -4288,7 +4288,7 @@ next
     by (force elim: homotopic_with_eq [of _ _ _ g "\<lambda>x. c"] simp: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
 qed
 
-corollary%unimportant nullhomotopic_into_rel_frontier_extension:
+corollary\<^marker>\<open>tag unimportant\<close> nullhomotopic_into_rel_frontier_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "closed S"
       and contf: "continuous_on S f"
@@ -4299,7 +4299,7 @@ corollary%unimportant nullhomotopic_into_rel_frontier_extension:
           (\<exists>g. continuous_on UNIV g \<and> range g \<subseteq> rel_frontier T \<and> (\<forall>x \<in> S. g x = f x))"
 by (simp add: nullhomotopic_into_ANR_extension assms ANR_rel_frontier_convex)
 
-corollary%unimportant nullhomotopic_into_sphere_extension:
+corollary\<^marker>\<open>tag unimportant\<close> nullhomotopic_into_sphere_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "closed S" and contf: "continuous_on S f"
       and "S \<noteq> {}" and fim: "f ` S \<subseteq> sphere a r"
@@ -4321,7 +4321,7 @@ next
     done
 qed
 
-proposition%unimportant Borsuk_map_essential_bounded_component:
+proposition\<^marker>\<open>tag unimportant\<close> Borsuk_map_essential_bounded_component:
   fixes a :: "'a :: euclidean_space"
   assumes "compact S" and "a \<notin> S"
    shows "bounded (connected_component_set (- S) a) \<longleftrightarrow>
@@ -4578,7 +4578,7 @@ proof -
   qed
 qed
 
-proposition%unimportant homotopic_neighbourhood_extension:
+proposition\<^marker>\<open>tag unimportant\<close> homotopic_neighbourhood_extension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and fim: "f ` S \<subseteq> U"
       and contg: "continuous_on S g" and gim: "g ` S \<subseteq> U"
@@ -4643,7 +4643,7 @@ proof -
 qed
 
 text\<open> Homotopy on a union of closed-open sets.\<close>
-proposition%unimportant homotopic_on_clopen_Union:
+proposition\<^marker>\<open>tag unimportant\<close> homotopic_on_clopen_Union:
   fixes \<F> :: "'a::euclidean_space set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (top_of_set (\<Union>\<F>)) S"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (top_of_set (\<Union>\<F>)) S"

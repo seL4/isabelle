@@ -13,7 +13,7 @@ theory Elementary_Normed_Spaces
   Connected
 begin
 
-subsection%unimportant \<open>Various Lemmas Combining Imports\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Various Lemmas Combining Imports\<close>
 
 lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
@@ -428,7 +428,7 @@ apply (auto simp: dist_norm algebra_simps)
 done
 
 
-subsection%unimportant \<open>Various Lemmas on Normed Algebras\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Various Lemmas on Normed Algebras\<close>
 
 
 lemma closed_of_nat_image: "closed (of_nat ` A :: 'a::real_normed_algebra_1 set)"
@@ -606,7 +606,7 @@ lemma Lim_at_zero:
   using LIM_offset_zero LIM_offset_zero_cancel ..
 
 
-subsection%unimportant \<open>Limit Point of Filter\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Limit Point of Filter\<close>
 
 lemma netlimit_at_vector:
   fixes a :: "'a::real_normed_vector"
@@ -775,7 +775,7 @@ corollary cobounded_imp_unbounded:
     shows "bounded (- S) \<Longrightarrow> \<not> bounded S"
   using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
 
-subsection%unimportant\<open>Relations among convergence and absolute convergence for power series\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relations among convergence and absolute convergence for power series\<close>
 
 lemma summable_imp_bounded:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -1024,7 +1024,7 @@ qed
 
 subsection \<open>Continuity\<close>
 
-subsubsection%unimportant \<open>Structural rules for uniform continuity\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Structural rules for uniform continuity\<close>
 
 lemma (in bounded_linear) uniformly_continuous_on[continuous_intros]:
   fixes g :: "_::metric_space \<Rightarrow> _"
@@ -1103,7 +1103,7 @@ lemma uniformly_continuous_on_diff[continuous_intros]:
     by (simp add: fun_Compl_def uniformly_continuous_on_minus)
 
 
-subsection%unimportant \<open>Topological properties of linear functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological properties of linear functions\<close>
 
 lemma linear_lim_0:
   assumes "bounded_linear f"
@@ -1131,7 +1131,7 @@ lemma linear_continuous_on:
   "bounded_linear f \<Longrightarrow> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
-subsection%unimportant \<open>Arithmetic Preserves Topological Properties\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic Preserves Topological Properties\<close>
 
 lemma open_scaling[intro]:
   fixes s :: "'a::real_normed_vector set"
@@ -1487,7 +1487,7 @@ lemma ball_translation_subtract:
   using ball_translation [of "- a" c] by (simp cong: image_cong_simp)
 
 
-subsection%unimportant\<open>Homeomorphisms\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Homeomorphisms\<close>
 
 lemma homeomorphic_scaling:
   fixes s :: "'a::real_normed_vector set"
@@ -1597,7 +1597,7 @@ proposition homeomorphic_ball_UNIV:
   using assms homeomorphic_ball01_UNIV homeomorphic_balls(1) homeomorphic_trans zero_less_one by blast
 
 
-subsection%unimportant \<open>Discrete\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Discrete\<close>
 
 lemma finite_implies_discrete:
   fixes S :: "'a::topological_space set"
@@ -1627,7 +1627,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Completeness of "Isometry" (up to constant bounds)\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Completeness of "Isometry" (up to constant bounds)\<close>
 
 lemma cauchy_isometric:\<comment> \<open>TODO: rename lemma to \<open>Cauchy_isometric\<close>\<close>
   assumes e: "e > 0"

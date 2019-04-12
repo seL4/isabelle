@@ -31,7 +31,7 @@ lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distri
   scaleR_cancel_left scaleR_cancel_right scaleR_add_right scaleR_add_left real_vector_class.scaleR_one
 
 
-subsection%unimportant \<open>Sundries\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Sundries\<close>
 
 
 text\<open>A transitive relation is well-founded if all initial segments are finite.\<close>
@@ -132,10 +132,10 @@ lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \
 
 subsection \<open>Bounds on intervals where they exist\<close>
 
-definition%important interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x\<in>s. x\<bullet>i) *\<^sub>R i)"
 
-definition%important interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x\<in>s. x\<bullet>i) *\<^sub>R i)"
 
 lemma interval_upperbound[simp]:
@@ -194,7 +194,7 @@ qed
 
 subsection \<open>The notion of a gauge --- simply an open set containing the point\<close>
 
-definition%important "gauge \<gamma> \<longleftrightarrow> (\<forall>x. x \<in> \<gamma> x \<and> open (\<gamma> x))"
+definition\<^marker>\<open>tag important\<close> "gauge \<gamma> \<longleftrightarrow> (\<forall>x. x \<in> \<gamma> x \<and> open (\<gamma> x))"
 
 lemma gaugeI:
   assumes "\<And>x. x \<in> \<gamma> x"
@@ -251,7 +251,7 @@ lemma gauge_modify:
 
 subsection \<open>Divisions\<close>
 
-definition%important division_of (infixl "division'_of" 40)
+definition\<^marker>\<open>tag important\<close> division_of (infixl "division'_of" 40)
 where
   "s division_of i \<longleftrightarrow>
     finite s \<and>
@@ -997,7 +997,7 @@ qed
 
 subsection \<open>Tagged (partial) divisions\<close>
 
-definition%important tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
+definition\<^marker>\<open>tag important\<close> tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
     finite s \<and>
     (\<forall>x K. (x, K) \<in> s \<longrightarrow> x \<in> K \<and> K \<subseteq> i \<and> (\<exists>a b. K = cbox a b)) \<and>
@@ -1014,7 +1014,7 @@ lemma tagged_partial_division_ofD[dest]:
       (x2, K2) \<in> s \<Longrightarrow> (x1, K1) \<noteq> (x2, K2) \<Longrightarrow> interior K1 \<inter> interior K2 = {}"
   using assms unfolding tagged_partial_division_of_def by blast+
 
-definition%important tagged_division_of (infixr "tagged'_division'_of" 40)
+definition\<^marker>\<open>tag important\<close> tagged_division_of (infixr "tagged'_division'_of" 40)
   where "s tagged_division_of i \<longleftrightarrow> s tagged_partial_division_of i \<and> (\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
 
 lemma tagged_division_of_finite: "s tagged_division_of i \<Longrightarrow> finite s"
@@ -1292,9 +1292,9 @@ text \<open>This auxiliary structure is used to sum up over the elements of a di
   \<open>operative_division\<close>. Instances for the monoid are \<^typ>\<open>'a option\<close>, \<^typ>\<open>real\<close>, and
   \<^typ>\<open>bool\<close>.\<close>
 
-paragraph%important \<open>Using additivity of lifted function to encode definedness.\<close>
+paragraph\<^marker>\<open>tag important\<close> \<open>Using additivity of lifted function to encode definedness.\<close>
 text \<open>%whitespace\<close>
-definition%important lift_option :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> 'c option"
+definition\<^marker>\<open>tag important\<close> lift_option :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> 'c option"
 where
   "lift_option f a' b' = Option.bind a' (\<lambda>a. Option.bind b' (\<lambda>b. Some (f a b)))"
 
@@ -1304,7 +1304,7 @@ lemma lift_option_simps[simp]:
   "lift_option f a' None = None"
   by (auto simp: lift_option_def)
 
-lemma%important comm_monoid_lift_option:
+lemma\<^marker>\<open>tag important\<close> comm_monoid_lift_option:
   assumes "comm_monoid f z"
   shows "comm_monoid (lift_option f) (Some z)"
 proof -
@@ -1335,7 +1335,7 @@ lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and>
 
 paragraph \<open>Division points\<close>
 text \<open>%whitespace\<close>
-definition%important "division_points (k::('a::euclidean_space) set) d =
+definition\<^marker>\<open>tag important\<close> "division_points (k::('a::euclidean_space) set) d =
    {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
      (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
 
@@ -1858,7 +1858,7 @@ qed
 
 subsection \<open>Fine-ness of a partition w.r.t. a gauge\<close>
 
-definition%important fine  (infixr "fine" 46)
+definition\<^marker>\<open>tag important\<close> fine  (infixr "fine" 46)
   where "d fine s \<longleftrightarrow> (\<forall>(x,k) \<in> s. k \<subseteq> d x)"
 
 lemma fineI:
@@ -1907,7 +1907,7 @@ proof -
 qed
 (* FIXME structure here, do not have one lemma in each subsection *)
 
-subsection%unimportant \<open>The set we're concerned with must be closed\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>The set we're concerned with must be closed\<close>
 
 lemma division_of_closed:
   fixes i :: "'n::euclidean_space set"
@@ -2301,7 +2301,7 @@ proof -
   with ptag that show ?thesis by auto
 qed
 
-subsubsection%important \<open>Covering lemma\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Covering lemma\<close>
 
 text\<open> Some technical lemmas used in the approximation results that follow. Proof of the covering
   lemma is an obvious multidimensional generalization of Lemma 3, p65 of Swartz's
@@ -2575,7 +2575,7 @@ subsection \<open>Division filter\<close>
 
 text \<open>Divisions over all gauges towards finer divisions.\<close>
 
-definition%important division_filter :: "'a::euclidean_space set \<Rightarrow> ('a \<times> 'a set) set filter"
+definition\<^marker>\<open>tag important\<close> division_filter :: "'a::euclidean_space set \<Rightarrow> ('a \<times> 'a set) set filter"
   where "division_filter s = (INF g\<in>{g. gauge g}. principal {p. p tagged_division_of s \<and> g fine p})"
 
 proposition eventually_division_filter:

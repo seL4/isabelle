@@ -309,7 +309,7 @@ proof
   then show "emeasure M {y \<in> space M. f y \<noteq> 0} \<noteq> \<infinity>" by simp
 qed fact
 
-definition%important simple_bochner_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b::real_vector) \<Rightarrow> 'b" where
+definition\<^marker>\<open>tag important\<close> simple_bochner_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b::real_vector) \<Rightarrow> 'b" where
   "simple_bochner_integral M f = (\<Sum>y\<in>f`space M. measure M {x\<in>space M. f x = y} *\<^sub>R y)"
 
 proposition simple_bochner_integral_partition:
@@ -895,7 +895,7 @@ inductive integrable for M f where
 
 end
 
-definition%important lebesgue_integral ("integral\<^sup>L") where
+definition\<^marker>\<open>tag important\<close> lebesgue_integral ("integral\<^sup>L") where
   "integral\<^sup>L M f = (if \<exists>x. has_bochner_integral M f x then THE x. has_bochner_integral M f x else 0)"
 
 syntax

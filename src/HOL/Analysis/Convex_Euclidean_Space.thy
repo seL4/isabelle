@@ -14,7 +14,7 @@ imports
   Topology_Euclidean_Space
 begin
 
-subsection%unimportant \<open>Topological Properties of Convex Sets and Functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological Properties of Convex Sets and Functions\<close>
 
 lemma convex_supp_sum:
   assumes "convex S" and 1: "supp_sum u I = 1"
@@ -318,7 +318,7 @@ by (metis low_dim_interior)
 
 subsection \<open>Relative interior of a set\<close>
 
-definition%important "rel_interior S =
+definition\<^marker>\<open>tag important\<close> "rel_interior S =
   {x. \<exists>T. openin (top_of_set (affine hull S)) T \<and> x \<in> T \<and> T \<subseteq> S}"
 
 lemma rel_interior_mono:
@@ -649,7 +649,7 @@ qed
 
 subsubsection \<open>Relative open sets\<close>
 
-definition%important "rel_open S \<longleftrightarrow> rel_interior S = S"
+definition\<^marker>\<open>tag important\<close> "rel_open S \<longleftrightarrow> rel_interior S = S"
 
 lemma rel_open: "rel_open S \<longleftrightarrow> openin (top_of_set (affine hull S)) S"
   unfolding rel_open_def rel_interior_def
@@ -848,7 +848,7 @@ next
 qed
 
 
-subsubsection%unimportant\<open>Relative interior preserves under linear transformations\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Relative interior preserves under linear transformations\<close>
 
 lemma rel_interior_translation_aux:
   fixes a :: "'n::euclidean_space"
@@ -1005,7 +1005,7 @@ lemma rel_interior_injective_linear_image:
   by auto
 
 
-subsection%unimportant \<open>Openness and compactness are preserved by convex hull operation\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Openness and compactness are preserved by convex hull operation\<close>
 
 lemma open_convex_hull[intro]:
   fixes S :: "'a::real_normed_vector set"
@@ -1237,7 +1237,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Extremal points of a simplex are some vertices\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Extremal points of a simplex are some vertices\<close>
 
 lemma dist_increases_online:
   fixes a b d :: "'a::real_inner"
@@ -1432,7 +1432,7 @@ lemma simplex_extremal_le_exists:
 
 subsection \<open>Closest point of a convex set is unique, with a continuous projection\<close>
 
-definition%important closest_point :: "'a::{real_inner,heine_borel} set \<Rightarrow> 'a \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> closest_point :: "'a::{real_inner,heine_borel} set \<Rightarrow> 'a \<Rightarrow> 'a"
   where "closest_point S a = (SOME x. x \<in> S \<and> (\<forall>y\<in>S. dist a x \<le> dist a y))"
 
 lemma closest_point_exists:
@@ -1622,7 +1622,7 @@ next
 qed
 
 
-subsubsection%unimportant \<open>Various point-to-set separating/supporting hyperplane theorems\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Various point-to-set separating/supporting hyperplane theorems\<close>
 
 lemma supporting_hyperplane_closed_point:
   fixes z :: "'a::{real_inner,heine_borel}"
@@ -1707,7 +1707,7 @@ next
 qed
 
 
-subsubsection%unimportant \<open>Now set-to-set for closed/compact sets\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Now set-to-set for closed/compact sets\<close>
 
 lemma separating_hyperplane_closed_compact:
   fixes S :: "'a::euclidean_space set"
@@ -1797,7 +1797,7 @@ proof -
 qed
 
 
-subsubsection%unimportant \<open>General case without assuming closure and getting non-strict separation\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>General case without assuming closure and getting non-strict separation\<close>
 
 lemma separating_hyperplane_set_0:
   assumes "convex S" "(0::'a::euclidean_space) \<notin> S"
@@ -1855,7 +1855,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>More convexity generalities\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>More convexity generalities\<close>
 
 lemma convex_closure [intro,simp]:
   fixes S :: "'a::real_normed_vector set"
@@ -1898,7 +1898,7 @@ lemma convex_hull_eq_empty[simp]: "convex hull S = {} \<longleftrightarrow> S = 
   using hull_subset[of S convex] convex_hull_empty by auto
 
 
-subsection%unimportant \<open>Convex set as intersection of halfspaces\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Convex set as intersection of halfspaces\<close>
 
 lemma convex_halfspace_intersection:
   fixes s :: "('a::euclidean_space) set"
@@ -1922,7 +1922,7 @@ proof -
 qed auto
 
 
-subsection%unimportant \<open>Convexity of general and special intervals\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity of general and special intervals\<close>
 
 lemma is_interval_convex:
   fixes S :: "'a::euclidean_space set"
@@ -2007,7 +2007,7 @@ lemma connected_imp_perfect_aff_dim:
      "\<lbrakk>connected S; aff_dim S \<noteq> 0; a \<in> S\<rbrakk> \<Longrightarrow> a islimpt S"
   using aff_dim_sing connected_imp_perfect by blast
 
-subsection%unimportant \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent\<close>
 
 lemma mem_is_interval_1_I:
   fixes a b c::real
@@ -2099,7 +2099,7 @@ lemma [simp]:
     and is_interval_co: "is_interval {r..<s}"
   by (simp_all add: is_interval_convex_1)
 
-subsection%unimportant \<open>Another intermediate value theorem formulation\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Another intermediate value theorem formulation\<close>
 
 lemma ivt_increasing_component_on_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
@@ -2144,7 +2144,7 @@ lemma ivt_decreasing_component_1:
   by (rule ivt_decreasing_component_on_1) (auto simp: continuous_at_imp_continuous_on)
 
 
-subsection%unimportant \<open>A bound within an interval\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>A bound within an interval\<close>
 
 lemma convex_hull_eq_real_cbox:
   fixes x y :: real assumes "x \<le> y"
@@ -2235,7 +2235,7 @@ proof -
     by (rule_tac that[of "(\<lambda>y. x - ?d + (2 * d) *\<^sub>R y)` S"]) (auto simp: convex_hull_affinity *)
 qed
 
-subsection%unimportant\<open>Representation of any interval as a finite convex hull\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Representation of any interval as a finite convex hull\<close>
 
 lemma image_stretch_interval:
   "(\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k)) *\<^sub>R k) ` cbox a (b::'a::euclidean_space) =
@@ -2312,7 +2312,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Bounded convex function on open set is continuous\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounded convex function on open set is continuous\<close>
 
 lemma convex_on_bounded_continuous:
   fixes S :: "('a::real_normed_vector) set"
@@ -2405,7 +2405,7 @@ proof (rule,rule,rule)
 qed
 
 
-subsection%unimportant \<open>Upper bound on a ball implies upper and lower bounds\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Upper bound on a ball implies upper and lower bounds\<close>
 
 lemma convex_bounds_lemma:
   fixes x :: "'a::real_normed_vector"
@@ -2439,7 +2439,7 @@ next
 qed
 
 
-subsubsection%unimportant \<open>Hence a convex function on an open set is continuous\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Hence a convex function on an open set is continuous\<close>
 
 lemma real_of_nat_ge_one_iff: "1 \<le> real (n::nat) \<longleftrightarrow> 1 \<le> n"
   by auto

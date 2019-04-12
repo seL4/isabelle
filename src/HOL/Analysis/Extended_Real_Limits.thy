@@ -24,7 +24,7 @@ lemma compact_UNIV:
 lemma compact_eq_closed:
   fixes S :: "'a::{complete_linorder,linorder_topology,second_countable_topology} set"
   shows "compact S \<longleftrightarrow> closed S"
-  using%unimportant closed_Int_compact[of S, OF _ compact_UNIV] compact_imp_closed
+  using closed_Int_compact[of S, OF _ compact_UNIV] compact_imp_closed
   by auto
 
 lemma closed_contains_Sup_cl:
@@ -57,7 +57,7 @@ proof -
     by simp
 qed
 
-instance%unimportant enat :: second_countable_topology
+instance\<^marker>\<open>tag unimportant\<close> enat :: second_countable_topology
 proof
   show "\<exists>B::enat set set. countable B \<and> open = generate_topology B"
   proof (intro exI conjI)
@@ -66,7 +66,7 @@ proof
   qed (simp add: open_enat_def)
 qed
 
-instance%unimportant ereal :: second_countable_topology
+instance\<^marker>\<open>tag unimportant\<close> ereal :: second_countable_topology
 proof (standard, intro exI conjI)
   let ?B = "(\<Union>r\<in>\<rat>. {{..< r}, {r <..}} :: ereal set set)"
   show "countable ?B"
@@ -391,7 +391,7 @@ proof -
 qed
 
 
-subsubsection%important \<open>Continuity of addition\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Continuity of addition\<close>
 
 text \<open>The next few lemmas remove an unnecessary assumption in \<open>tendsto_add_ereal\<close>, culminating
 in \<open>tendsto_add_ereal_general\<close> which essentially says that the addition
@@ -522,7 +522,7 @@ next
   then show ?thesis using tendsto_add_ereal_MInf MInf f g by (metis ereal_MInfty_eq_plus)
 qed
 
-subsubsection%important \<open>Continuity of multiplication\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Continuity of multiplication\<close>
 
 text \<open>In the same way as for addition, we prove that the multiplication is continuous on
 ereal times ereal, except at \<open>(\<infinity>, 0)\<close> and \<open>(-\<infinity>, 0)\<close> and \<open>(0, \<infinity>)\<close> and \<open>(0, -\<infinity>)\<close>,
@@ -659,7 +659,7 @@ lemma tendsto_cmult_ereal_general [tendsto_intros]:
 by (cases "c = 0", auto simp add: assms tendsto_mult_ereal)
 
 
-subsubsection%important \<open>Continuity of division\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Continuity of division\<close>
 
 lemma tendsto_inverse_ereal_PInf:
   fixes u::"_ \<Rightarrow> ereal"

@@ -281,7 +281,7 @@ proof
   with \<open>x = f y\<close> show "x \<in> f ` interior S" ..
 qed
 
-subsection%unimportant \<open>Equality of continuous functions on closure and related results\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Equality of continuous functions on closure and related results\<close>
 
 lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -319,7 +319,7 @@ proof -
   then show ?thesis by auto
 qed
 
-subsection%unimportant \<open>A function constant on a set\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>A function constant on a set\<close>
 
 definition constant_on  (infixl "(constant'_on)" 50)
   where "f constant_on A \<equiv> \<exists>y. \<forall>x\<in>A. f x = y"
@@ -341,7 +341,7 @@ using continuous_constant_on_closure [OF contf] cof unfolding constant_on_def
 by metis
 
 
-subsection%unimportant \<open>Continuity relative to a union.\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuity relative to a union.\<close>
 
 lemma continuous_on_Un_local:
     "\<lbrakk>closedin (top_of_set (s \<union> t)) s; closedin (top_of_set (s \<union> t)) t;
@@ -391,7 +391,7 @@ using assms
 by (auto simp: continuous_on_id intro: continuous_on_cases_le [where h = id, simplified])
 
 
-subsection%unimportant\<open>Inverse function property for open/closed maps\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Inverse function property for open/closed maps\<close>
 
 lemma continuous_on_inverse_open_map:
   assumes contf: "continuous_on S f"
@@ -479,7 +479,7 @@ proof -
     by (simp add: continuous_on_closed oo)
 qed
 
-subsection%unimportant \<open>Seperability\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Seperability\<close>
 
 lemma subset_second_countable:
   obtains \<B> :: "'a:: second_countable_topology set set"
@@ -540,7 +540,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Closed Maps\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Closed Maps\<close>
 
 lemma continuous_imp_closed_map:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::t2_space"
@@ -561,7 +561,7 @@ proof -
     by (fastforce simp add: closedin_closed)
 qed
 
-subsection%unimportant\<open>Open Maps\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Open Maps\<close>
 
 lemma open_map_restrict:
   assumes opeU: "openin (top_of_set (S \<inter> f -` T')) U"
@@ -576,7 +576,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Quotient maps\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Quotient maps\<close>
 
 lemma quotient_map_imp_continuous_open:
   assumes T: "f ` S \<subseteq> T"
@@ -693,7 +693,7 @@ lemma continuous_imp_quotient_map:
            openin (top_of_set T) U"
   by (metis (no_types, lifting) assms closed_map_imp_quotient_map continuous_imp_closed_map)
 
-subsection%unimportant\<open>Pasting lemmas for functions, for of casewise definitions\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Pasting lemmas for functions, for of casewise definitions\<close>
 
 subsubsection\<open>on open sets\<close>
 
@@ -905,11 +905,11 @@ qed
 
 subsection \<open>Retractions\<close>
 
-definition%important retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
 where "retraction S T r \<longleftrightarrow>
   T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
 
-definition%important retract_of (infixl "retract'_of" 50) where
+definition\<^marker>\<open>tag important\<close> retract_of (infixl "retract'_of" 50) where
 "T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
 
 lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"

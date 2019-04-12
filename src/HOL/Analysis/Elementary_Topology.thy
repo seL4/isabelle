@@ -22,7 +22,7 @@ lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T.
   using openI by auto
 
 
-subsubsection%unimportant \<open>Archimedean properties and useful consequences\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Archimedean properties and useful consequences\<close>
 
 text\<open>Bernoulli's inequality\<close>
 proposition Bernoulli_inequality:
@@ -111,7 +111,7 @@ lemma forall_pos_mono_1:
   apply (metis Suc_pred of_nat_Suc)
   done
 
-subsubsection%unimportant \<open>Affine transformations of intervals\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Affine transformations of intervals\<close>
 
 lemma real_affinity_le: "0 < m \<Longrightarrow> m * x + c \<le> y \<longleftrightarrow> x \<le> inverse m * y + - (c / m)"
   for m :: "'a::linordered_field"
@@ -144,7 +144,7 @@ subsection \<open>Topological Basis\<close>
 context topological_space
 begin
 
-definition%important "topological_basis B \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "topological_basis B \<longleftrightarrow>
   (\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
 
 lemma topological_basis:
@@ -270,7 +270,7 @@ qed (metis A B topological_basis_open open_Times)
 
 subsection \<open>Countable Basis\<close>
 
-locale%important countable_basis = topological_space p for p::"'a set \<Rightarrow> bool" +
+locale\<^marker>\<open>tag important\<close> countable_basis = topological_space p for p::"'a set \<Rightarrow> bool" +
   fixes B :: "'a set set"
   assumes is_basis: "topological_basis B"
     and countable_basis: "countable B"
@@ -666,7 +666,7 @@ class polish_space = complete_space + second_countable_topology
 
 subsection \<open>Limit Points\<close>
 
-definition%important (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
+definition\<^marker>\<open>tag important\<close> (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
   where "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
 lemma islimptI:
@@ -866,7 +866,7 @@ qed
 
 subsection \<open>Interior of a Set\<close>
 
-definition%important interior :: "('a::topological_space) set \<Rightarrow> 'a set" where
+definition\<^marker>\<open>tag important\<close> interior :: "('a::topological_space) set \<Rightarrow> 'a set" where
 "interior S = \<Union>{T. open T \<and> T \<subseteq> S}"
 
 lemma interiorI [intro?]:
@@ -1045,7 +1045,7 @@ qed
 
 subsection \<open>Closure of a Set\<close>
 
-definition%important closure :: "('a::topological_space) set \<Rightarrow> 'a set" where
+definition\<^marker>\<open>tag important\<close> closure :: "('a::topological_space) set \<Rightarrow> 'a set" where
 "closure S = S \<union> {x . x islimpt S}"
 
 lemma interior_closure: "interior S = - (closure (- S))"
@@ -1175,7 +1175,7 @@ qed
 
 subsection \<open>Frontier (also known as boundary)\<close>
 
-definition%important frontier :: "('a::topological_space) set \<Rightarrow> 'a set" where
+definition\<^marker>\<open>tag important\<close> frontier :: "('a::topological_space) set \<Rightarrow> 'a set" where
 "frontier S = closure S - interior S"
 
 lemma frontier_closed [iff]: "closed (frontier S)"
@@ -1253,7 +1253,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Filters and the ``eventually true'' quantifier\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Filters and the ``eventually true'' quantifier\<close>
 
 text \<open>Identify Trivial limits, where we can't approach arbitrarily closely.\<close>
 
@@ -1846,7 +1846,7 @@ next
   with \<open>U \<inter> \<Inter>A = {}\<close> show False by auto
 qed
 
-definition%important countably_compact :: "('a::topological_space) set \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> countably_compact :: "('a::topological_space) set \<Rightarrow> bool" where
 "countably_compact U \<longleftrightarrow>
   (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A
      \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
@@ -1916,7 +1916,7 @@ lemma countably_compact_eq_compact:
 
 subsubsection\<open>Sequential compactness\<close>
 
-definition%important seq_compact :: "'a::topological_space set \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> seq_compact :: "'a::topological_space set \<Rightarrow> bool" where
 "seq_compact S \<longleftrightarrow>
   (\<forall>f. (\<forall>n. f n \<in> S)
     \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially))"
@@ -2184,7 +2184,7 @@ proposition Bolzano_Weierstrass_imp_seq_compact:
   by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
 
 
-subsection%unimportant \<open>Cartesian products\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Cartesian products\<close>
 
 lemma seq_compact_Times: "seq_compact s \<Longrightarrow> seq_compact t \<Longrightarrow> seq_compact (s \<times> t)"
   unfolding seq_compact_def
@@ -2457,7 +2457,7 @@ qed
 
 subsection \<open>Homeomorphisms\<close>
 
-definition%important "homeomorphism s t f g \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "homeomorphism s t f g \<longleftrightarrow>
   (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
   (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
@@ -2489,7 +2489,7 @@ lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism
 lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
   by (force simp: homeomorphism_def)
 
-definition%important homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60)
   where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
@@ -2661,7 +2661,7 @@ lemma homeomorphic_compactness: "s homeomorphic t \<Longrightarrow> (compact s \
   by (metis compact_continuous_image)
 
 
-subsection%unimportant \<open>On Linorder Topologies\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>On Linorder Topologies\<close>
 
 lemma islimpt_greaterThanLessThan1:
   fixes a b::"'a::{linorder_topology, dense_order}"

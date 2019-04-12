@@ -839,7 +839,7 @@ next
     by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
 qed
 
-definition%important rectpath where
+definition\<^marker>\<open>tag important\<close> rectpath where
   "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
                       in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"
 
@@ -929,7 +929,7 @@ proposition winding_number_rectpath_outside:
                      path_image_rectpath_subset_cbox) simp_all
 
 text\<open>A per-function version for continuous logs, a kind of monodromy\<close>
-proposition%unimportant winding_number_compose_exp:
+proposition\<^marker>\<open>tag unimportant\<close> winding_number_compose_exp:
   assumes "path p"
   shows "winding_number (exp \<circ> p) 0 = (pathfinish p - pathstart p) / (2 * of_real pi * \<i>)"
 proof -
@@ -1020,7 +1020,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection%unimportant \<open>The winding number defines a continuous logarithm for the path itself\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>The winding number defines a continuous logarithm for the path itself\<close>
 
 lemma winding_number_as_continuous_log:
   assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"

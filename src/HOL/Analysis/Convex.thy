@@ -16,7 +16,7 @@ begin
 
 subsection \<open>Convexity\<close>
 
-definition%important convex :: "'a::real_vector set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> convex :: "'a::real_vector set \<Rightarrow> bool"
   where "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
 
 lemma convexI:
@@ -189,7 +189,7 @@ lemma convex_Reals: "convex \<real>"
   by (simp add: convex_def scaleR_conv_of_real)
 
 
-subsection%unimportant \<open>Explicit expressions for convexity in terms of arbitrary sums\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Explicit expressions for convexity in terms of arbitrary sums\<close>
 
 lemma convex_sum:
   fixes C :: "'a::real_vector set"
@@ -342,7 +342,7 @@ lemma convex_finite:
 
 subsection \<open>Functions that are convex on a set\<close>
 
-definition%important convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
   where "convex_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
 
@@ -463,7 +463,7 @@ proof (auto simp: convex_on_def dist_norm)
 qed
 
 
-subsection%unimportant \<open>Arithmetic operations on sets preserve convexity\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic operations on sets preserve convexity\<close>
 
 lemma convex_linear_image:
   assumes "linear f"
@@ -929,7 +929,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Convexity of real functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity of real functions\<close>
 
 lemma convex_on_realI:
   assumes "connected A"
@@ -1111,7 +1111,7 @@ qed
 
 subsection \<open>Affine set and affine hull\<close>
 
-definition%important affine :: "'a::real_vector set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> affine :: "'a::real_vector set \<Rightarrow> bool"
   where "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
 
 lemma affine_alt: "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u::real. (1 - u) *\<^sub>R x + u *\<^sub>R y \<in> s)"
@@ -1149,7 +1149,7 @@ lemma affine_hyperplane: "affine {x. a \<bullet> x = b}"
   by (simp add: affine_def algebra_simps) (metis distrib_right mult.left_neutral)
 
 
-subsubsection%unimportant \<open>Some explicit formulations\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Some explicit formulations\<close>
 
 text "Formalized by Lars Schewe."
 
@@ -1305,7 +1305,7 @@ proof -
 qed
 
 
-subsubsection%unimportant \<open>Stepping theorems and hence small special cases\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Stepping theorems and hence small special cases\<close>
 
 lemma affine_hull_empty[simp]: "affine hull {} = {}"
   by simp
@@ -1417,7 +1417,7 @@ corollary mem_affine_3_minus2:
   by (metis add_uminus_conv_diff mem_affine_3_minus real_vector.scale_minus_left)
 
 
-subsubsection%unimportant \<open>Some relations between affine hull and subspaces\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Some relations between affine hull and subspaces\<close>
 
 lemma affine_hull_insert_subset_span:
   "affine hull (insert a S) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> S}}"
@@ -1473,7 +1473,7 @@ lemma affine_hull_span:
   using affine_hull_insert_span[of a "S - {a}", unfolded insert_Diff[OF assms]] by auto
 
 
-subsubsection%unimportant \<open>Parallel affine sets\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Parallel affine sets\<close>
 
 definition affine_parallel :: "'a::real_vector set \<Rightarrow> 'a::real_vector set \<Rightarrow> bool"
   where "affine_parallel S T \<longleftrightarrow> (\<exists>a. T = (\<lambda>x. a + x) ` S)"
@@ -1573,7 +1573,7 @@ lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
   unfolding subspace_def affine_def by auto
 
 
-subsubsection%unimportant \<open>Subspace parallel to an affine set\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Subspace parallel to an affine set\<close>
 
 lemma subspace_affine: "subspace S \<longleftrightarrow> affine S \<and> 0 \<in> S"
 proof -
@@ -1703,7 +1703,7 @@ qed
 
 subsection \<open>Cones\<close>
 
-definition%important cone :: "'a::real_vector set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> cone :: "'a::real_vector set \<Rightarrow> bool"
   where "cone s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>c\<ge>0. c *\<^sub>R x \<in> s)"
 
 lemma cone_empty[intro, simp]: "cone {}"
@@ -1869,7 +1869,7 @@ subsection \<open>Affine dependence and consequential theorems\<close>
 
 text "Formalized by Lars Schewe."
 
-definition%important affine_dependent :: "'a::real_vector set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> affine_dependent :: "'a::real_vector set \<Rightarrow> bool"
   where "affine_dependent s \<longleftrightarrow> (\<exists>x\<in>s. x \<in> affine hull (s - {x}))"
 
 lemma affine_dependent_subset:
@@ -1946,7 +1946,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Connectedness of convex sets\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Connectedness of convex sets\<close>
 
 lemma connectedD:
   "connected S \<Longrightarrow> open A \<Longrightarrow> open B \<Longrightarrow> S \<subseteq> A \<union> B \<Longrightarrow> A \<inter> B \<inter> S = {} \<Longrightarrow> A \<inter> S = {} \<or> B \<inter> S = {}"
@@ -2003,7 +2003,7 @@ lemma convex_hull_subset:
 lemma convex_hull_eq: "convex hull s = s \<longleftrightarrow> convex s"
   by (metis convex_convex_hull hull_same)
 
-subsubsection%unimportant \<open>Convex hull is "preserved" by a linear function\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Convex hull is "preserved" by a linear function\<close>
 
 lemma convex_hull_linear_image:
   assumes f: "linear f"
@@ -2061,7 +2061,7 @@ proof
 qed
 
 
-subsubsection%unimportant \<open>Stepping theorems for convex hulls of finite sets\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Stepping theorems for convex hulls of finite sets\<close>
 
 lemma convex_hull_empty[simp]: "convex hull {} = {}"
   by (rule hull_unique) auto
@@ -2183,7 +2183,7 @@ lemma convex_hull_insert_alt:
   using diff_eq_eq apply fastforce
   by (metis add.group_left_neutral add_le_imp_le_diff diff_add_cancel)
 
-subsubsection%unimportant \<open>Explicit expression for convex hull\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Explicit expression for convex hull\<close>
 
 proposition convex_hull_indexed:
   fixes S :: "'a::real_vector set"
@@ -2262,7 +2262,7 @@ next
 qed (use assms in \<open>auto simp: convex_explicit\<close>)
 
 
-subsubsection%unimportant \<open>Another formulation\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Another formulation\<close>
 
 text "Formalized by Lars Schewe."
 
@@ -2362,7 +2362,7 @@ proof -
 qed
 
 
-subsubsection%unimportant \<open>A stepping theorem for that expansion\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>A stepping theorem for that expansion\<close>
 
 lemma convex_hull_finite_step:
   fixes S :: "'a::real_vector set"
@@ -2419,7 +2419,7 @@ next
 qed
 
 
-subsubsection%unimportant \<open>Hence some special cases\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Hence some special cases\<close>
 
 lemma convex_hull_2:
   "convex hull {a,b} = {u *\<^sub>R a + v *\<^sub>R b | u v. 0 \<le> u \<and> 0 \<le> v \<and> u + v = 1}"
@@ -2491,7 +2491,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Relations among closure notions and corresponding hulls\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Relations among closure notions and corresponding hulls\<close>
 
 lemma affine_imp_convex: "affine s \<Longrightarrow> convex s"
   unfolding affine_def convex_def by auto
@@ -2629,7 +2629,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Some Properties of Affine Dependent Sets\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Some Properties of Affine Dependent Sets\<close>
 
 lemma affine_independent_0 [simp]: "\<not> affine_dependent {}"
   by (simp add: affine_dependent_def)
@@ -2868,7 +2868,7 @@ qed
 
 subsection \<open>Affine Dimension of a Set\<close>
 
-definition%important aff_dim :: "('a::euclidean_space) set \<Rightarrow> int"
+definition\<^marker>\<open>tag important\<close> aff_dim :: "('a::euclidean_space) set \<Rightarrow> int"
   where "aff_dim V =
   (SOME d :: int.
     \<exists>B. affine hull B = affine hull V \<and> \<not> affine_dependent B \<and> of_nat (card B) = d + 1)"
@@ -3656,7 +3656,7 @@ next
     using hull_mono[OF \<open>s\<subseteq>p\<close>] by auto
 qed
 
-subsection%unimportant\<open>Some Properties of subset of standard basis\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some Properties of subset of standard basis\<close>
 
 lemma affine_hull_substd_basis:
   assumes "d \<subseteq> Basis"
@@ -3673,7 +3673,7 @@ lemma affine_hull_convex_hull [simp]: "affine hull (convex hull S) = affine hull
   by (metis Int_absorb1 Int_absorb2 convex_hull_subset_affine_hull hull_hull hull_mono hull_subset)
 
 
-subsection%unimportant \<open>Moving and scaling convex hulls\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Moving and scaling convex hulls\<close>
 
 lemma convex_hull_set_plus:
   "convex hull (S + T) = convex hull S + convex hull T"
@@ -3700,7 +3700,7 @@ lemma convex_hull_affinity:
   by(simp only: image_image[symmetric] convex_hull_scaling convex_hull_translation)
 
 
-subsection%unimportant \<open>Convexity of cone hulls\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity of cone hulls\<close>
 
 lemma convex_cone_hull:
   assumes "convex S"
@@ -4000,7 +4000,7 @@ theorem Helly:
 
 subsection \<open>Epigraphs of convex functions\<close>
 
-definition%important "epigraph S (f :: _ \<Rightarrow> real) = {xy. fst xy \<in> S \<and> f (fst xy) \<le> snd xy}"
+definition\<^marker>\<open>tag important\<close> "epigraph S (f :: _ \<Rightarrow> real) = {xy. fst xy \<in> S \<and> f (fst xy) \<le> snd xy}"
 
 lemma mem_epigraph: "(x, y) \<in> epigraph S f \<longleftrightarrow> x \<in> S \<and> f x \<le> y"
   unfolding epigraph_def by auto
@@ -4036,7 +4036,7 @@ lemma convex_epigraph_convex: "convex S \<Longrightarrow> convex_on S f \<longle
   by (simp add: convex_epigraph)
 
 
-subsubsection%unimportant \<open>Use this to derive general bound property of convex function\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Use this to derive general bound property of convex function\<close>
 
 lemma convex_on:
   assumes "convex S"
@@ -4060,7 +4060,7 @@ lemma convex_on:
   using assms[unfolded convex] apply auto
   done
 
-subsection%unimportant \<open>A bound within a convex hull\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>A bound within a convex hull\<close>
 
 lemma convex_on_convex_hull_bound:
   assumes "convex_on (convex hull s) f"

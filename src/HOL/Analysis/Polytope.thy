@@ -8,7 +8,7 @@ begin
 
 subsection \<open>Faces of a (usually convex) set\<close>
 
-definition%important face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
+definition\<^marker>\<open>tag important\<close> face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
   where
   "T face_of S \<longleftrightarrow>
         T \<subseteq> S \<and> convex T \<and>
@@ -645,7 +645,7 @@ subsection\<open>Exposed faces\<close>
 
 text\<open>That is, faces that are intersection with supporting hyperplane\<close>
 
-definition%important exposed_face_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> exposed_face_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
                                (infixr "(exposed'_face'_of)" 50)
   where "T exposed_face_of S \<longleftrightarrow>
          T face_of S \<and> (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b})"
@@ -876,7 +876,7 @@ qed
 
 subsection\<open>Extreme points of a set: its singleton faces\<close>
 
-definition%important extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
                                (infixr "(extreme'_point'_of)" 50)
   where "x extreme_point_of S \<longleftrightarrow>
          x \<in> S \<and> (\<forall>a \<in> S. \<forall>b \<in> S. x \<notin> open_segment a b)"
@@ -976,7 +976,7 @@ done
 
 subsection\<open>Facets\<close>
 
-definition%important facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
                     (infixr "(facet'_of)" 50)
   where "F facet_of S \<longleftrightarrow> F face_of S \<and> F \<noteq> {} \<and> aff_dim F = aff_dim S - 1"
 
@@ -1022,7 +1022,7 @@ using facet_of_halfspace_le [of F "-a" "-b"] by simp
 
 subsection \<open>Edges: faces of affine dimension 1\<close> (*FIXME too small subsection, rearrange? *)
 
-definition%important edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
+definition\<^marker>\<open>tag important\<close> edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
   where "e edge_of S \<longleftrightarrow> e face_of S \<and> aff_dim e = 1"
 
 lemma edge_of_imp_subset:
@@ -1601,7 +1601,7 @@ qed
 
 subsection\<open>Polytopes\<close>
 
-definition%important polytope where
+definition\<^marker>\<open>tag important\<close> polytope where
  "polytope S \<equiv> \<exists>v. finite v \<and> S = convex hull v"
 
 lemma polytope_translation_eq: "polytope (image (\<lambda>x. a + x) S) \<longleftrightarrow> polytope S"
@@ -1696,7 +1696,7 @@ qed
 
 subsection\<open>Polyhedra\<close>
 
-definition%important polyhedron where
+definition\<^marker>\<open>tag important\<close> polyhedron where
  "polyhedron S \<equiv>
         \<exists>F. finite F \<and>
             S = \<Inter> F \<and>
@@ -3088,7 +3088,7 @@ subsection\<open>Simplexes\<close>
 
 text\<open>The notion of n-simplex for integer \<^term>\<open>n \<ge> -1\<close>\<close>
 
-definition%important simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
+definition\<^marker>\<open>tag important\<close> simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
   where "n simplex S \<equiv> \<exists>C. \<not> affine_dependent C \<and> int(card C) = n + 1 \<and> S = convex hull C"
 
 lemma simplex:
@@ -3211,7 +3211,7 @@ qed
 
 subsection \<open>Simplicial complexes and triangulations\<close>
 
-definition%important simplicial_complex where
+definition\<^marker>\<open>tag important\<close> simplicial_complex where
  "simplicial_complex \<C> \<equiv>
         finite \<C> \<and>
         (\<forall>S \<in> \<C>. \<exists>n. n simplex S) \<and>
@@ -3219,7 +3219,7 @@ definition%important simplicial_complex where
         (\<forall>S S'. S \<in> \<C> \<and> S' \<in> \<C>
                 \<longrightarrow> (S \<inter> S') face_of S \<and> (S \<inter> S') face_of S')"
 
-definition%important triangulation where
+definition\<^marker>\<open>tag important\<close> triangulation where
  "triangulation \<T> \<equiv>
         finite \<T> \<and>
         (\<forall>T \<in> \<T>. \<exists>n. n simplex T) \<and>

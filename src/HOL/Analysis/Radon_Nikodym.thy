@@ -8,7 +8,7 @@ theory Radon_Nikodym
 imports Bochner_Integration
 begin
 
-definition%important diff_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+definition\<^marker>\<open>tag important\<close> diff_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
 where
   "diff_measure M N = measure_of (space M) (sets M) (\<lambda>A. emeasure M A - emeasure N A)"
 
@@ -165,7 +165,7 @@ qed
 
 subsection "Absolutely continuous"
 
-definition%important absolutely_continuous :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> absolutely_continuous :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
   "absolutely_continuous M N \<longleftrightarrow> null_sets M \<subseteq> null_sets N"
 
 lemma absolutely_continuousI_count_space: "absolutely_continuous (count_space A) M"
@@ -889,7 +889,7 @@ lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
 
 subsection \<open>Radon-Nikodym derivative\<close>
 
-definition%important RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ennreal" where
+definition\<^marker>\<open>tag important\<close> RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ennreal" where
   "RN_deriv M N =
     (if \<exists>f. f \<in> borel_measurable M \<and> density M f = N
        then SOME f. f \<in> borel_measurable M \<and> density M f = N

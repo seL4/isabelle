@@ -9,7 +9,7 @@ theory Connected
     Abstract_Topology_2
 begin
 
-subsection%unimportant \<open>Connectedness\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Connectedness\<close>
 
 lemma connected_local:
  "connected S \<longleftrightarrow>
@@ -68,7 +68,7 @@ qed
 
 subsection \<open>Connected components, considered as a connectedness relation or a set\<close>
 
-definition%important "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
+definition\<^marker>\<open>tag important\<close> "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
 
 abbreviation "connected_component_set s x \<equiv> Collect (connected_component s x)"
 
@@ -268,7 +268,7 @@ lemma connected_component_intermediate_subset:
 
 subsection \<open>The set of connected components of a set\<close>
 
-definition%important components:: "'a::topological_space set \<Rightarrow> 'a set set"
+definition\<^marker>\<open>tag important\<close> components:: "'a::topological_space set \<Rightarrow> 'a set set"
   where "components s \<equiv> connected_component_set s ` s"
 
 lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
@@ -427,7 +427,7 @@ lemma closedin_component:
   using closedin_connected_component componentsE by blast
 
 
-subsection%unimportant \<open>Proving a function is constant on a connected set
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Proving a function is constant on a connected set
   by proving that a level set is open\<close>
 
 lemma continuous_levelset_openin_cases:
@@ -458,7 +458,7 @@ lemma continuous_levelset_open:
   by fast
 
 
-subsection%unimportant \<open>Preservation of Connectedness\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Preservation of Connectedness\<close>
 
 lemma homeomorphic_connectedness:
   assumes "s homeomorphic t"
@@ -688,7 +688,7 @@ proof clarify
 qed
 
 
-subsection%unimportant\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
 
 text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>
 

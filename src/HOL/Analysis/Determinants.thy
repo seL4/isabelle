@@ -12,7 +12,7 @@ begin
 
 subsection  \<open>Trace\<close>
 
-definition%important  trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close>  trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
   where "trace A = sum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
 
 lemma  trace_0: "trace (mat 0) = 0"
@@ -33,9 +33,9 @@ lemma  trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A
   apply (simp add: mult.commute)
   done
 
-subsubsection%important  \<open>Definition of determinant\<close>
+subsubsection\<^marker>\<open>tag important\<close>  \<open>Definition of determinant\<close>
 
-definition%important  det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close>  det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
     sum (\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
       {p. p permutes (UNIV :: 'n set)}"
@@ -776,7 +776,7 @@ lemma  det_eq_0_rank:
   using invertible_det_nz [of A]
   by (auto simp: matrix_left_invertible_injective invertible_left_inverse less_rank_noninjective)
 
-subsubsection%important  \<open>Invertibility of matrices and corresponding linear functions\<close>
+subsubsection\<^marker>\<open>tag important\<close>  \<open>Invertibility of matrices and corresponding linear functions\<close>
 
 lemma  matrix_left_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
@@ -994,12 +994,12 @@ qed
 proposition  orthogonal_transformation_det [simp]:
   fixes f :: "real^'n \<Rightarrow> real^'n"
   shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
-  using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
+  using det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
 
 subsection  \<open>Rotation, reflection, rotoinversion\<close>
 
-definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
-definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
+definition\<^marker>\<open>tag important\<close>  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
+definition\<^marker>\<open>tag important\<close>  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
 
 lemma  orthogonal_rotation_or_rotoinversion:
   fixes Q :: "'a::linordered_idom^'n^'n"

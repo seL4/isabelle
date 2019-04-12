@@ -19,7 +19,7 @@ text \<open>
 \<close>
 
 (* TODO: continuous_in \<rightarrow> integrable_on *)
-locale%important antimono_fun_sum_integral_diff =
+locale\<^marker>\<open>tag important\<close> antimono_fun_sum_integral_diff =
   fixes f :: "real \<Rightarrow> real"
   assumes dec: "\<And>x y. x \<ge> 0 \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
   assumes nonneg: "\<And>x. x \<ge> 0 \<Longrightarrow> f x \<ge> 0"

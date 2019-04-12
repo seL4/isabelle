@@ -245,7 +245,7 @@ text \<open>
   immediately from the definition.
 \<close>
 
-definition%important Gamma_series :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> Gamma_series :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "Gamma_series z n = fact n * exp (z * of_real (ln (of_nat n))) / pochhammer z (n+1)"
 
 definition Gamma_series' :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -317,10 +317,10 @@ text \<open>
   function to the inverse of the Gamma function, and from that to the Gamma function itself.
 \<close>
 
-definition%important ln_Gamma_series :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> ln_Gamma_series :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "ln_Gamma_series z n = z * ln (of_nat n) - ln z - (\<Sum>k=1..n. ln (z / of_nat k + 1))"
 
-definition%unimportant ln_Gamma_series' :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag unimportant\<close> ln_Gamma_series' :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "ln_Gamma_series' z n =
      - euler_mascheroni*z - ln z + (\<Sum>k=1..n. z / of_nat n - ln (z / of_nat k + 1))"
 
@@ -614,12 +614,12 @@ lemma summable_deriv_ln_Gamma:
   by (rule uniformly_convergent_imp_convergent,
       rule uniformly_summable_deriv_ln_Gamma[of z "norm z/2"]) simp_all
 
-definition%important Polygamma :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> Polygamma :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
   "Polygamma n z = (if n = 0 then
       (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) - euler_mascheroni else
       (-1)^Suc n * fact n * (\<Sum>k. inverse ((z + of_nat k)^Suc n)))"
 
-abbreviation%important Digamma :: "('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
+abbreviation\<^marker>\<open>tag important\<close> Digamma :: "('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
   "Digamma \<equiv> Polygamma 0"
 
 lemma Digamma_def:
@@ -1021,7 +1021,7 @@ text \<open>
   the reals and for the complex numbers with a minimal amount of proof duplication.
 \<close>
 
-class%unimportant Gamma = real_normed_field + complete_space +
+class\<^marker>\<open>tag unimportant\<close> Gamma = real_normed_field + complete_space +
   fixes rGamma :: "'a \<Rightarrow> 'a"
   assumes rGamma_eq_zero_iff_aux: "rGamma z = 0 \<longleftrightarrow> (\<exists>n. z = - of_nat n)"
   assumes differentiable_rGamma_aux1:
@@ -1259,12 +1259,12 @@ lemma isCont_Gamma [continuous_intros]:
   "isCont f z \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> isCont (\<lambda>x. Gamma (f x)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_Gamma]])
 
-subsection%unimportant \<open>The complex Gamma function\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>The complex Gamma function\<close>
 
-instantiation%unimportant complex :: Gamma
+instantiation\<^marker>\<open>tag unimportant\<close> complex :: Gamma
 begin
 
-definition%unimportant rGamma_complex :: "complex \<Rightarrow> complex" where
+definition\<^marker>\<open>tag unimportant\<close> rGamma_complex :: "complex \<Rightarrow> complex" where
   "rGamma_complex z = lim (rGamma_series z)"
 
 lemma rGamma_series_complex_converges:
@@ -1299,7 +1299,7 @@ proof -
   thus "?thesis1" "?thesis2" by blast+
 qed
 
-context%unimportant
+context\<^marker>\<open>tag unimportant\<close>
 begin
 
 (* TODO: duplication *)
@@ -1526,7 +1526,7 @@ lemma analytic_on_Polygamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longr
 
 
 
-subsection%unimportant \<open>The real Gamma function\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>The real Gamma function\<close>
 
 lemma rGamma_series_real:
   "eventually (\<lambda>n. rGamma_series x n = Re (rGamma_series (of_real x) n)) sequentially"
@@ -1544,7 +1544,7 @@ proof eventually_elim
   finally show "rGamma_series x n = Re (rGamma_series (of_real x) n)" ..
 qed
 
-instantiation%unimportant real :: Gamma
+instantiation\<^marker>\<open>tag unimportant\<close> real :: Gamma
 begin
 
 definition "rGamma_real x = Re (rGamma (of_real x :: complex))"
@@ -1807,7 +1807,7 @@ text \<open>
   integers, where the Gamma function is not defined).
 \<close>
 
-context%unimportant
+context\<^marker>\<open>tag unimportant\<close>
   fixes G :: "real \<Rightarrow> real"
   assumes G_1: "G 1 = 1"
   assumes G_plus1: "x > 0 \<Longrightarrow> G (x + 1) = x * G x"
@@ -2389,7 +2389,7 @@ theorem Gamma_legendre_duplication:
 end
 
 
-subsection%unimportant \<open>Limits and residues\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Limits and residues\<close>
 
 text \<open>
   The inverse of the Gamma function has simple zeros:
@@ -2537,7 +2537,7 @@ definition Gamma_series_Weierstrass :: "'a :: {banach,real_normed_field} \<Right
   "Gamma_series_Weierstrass z n =
      exp (-euler_mascheroni * z) / z * (\<Prod>k=1..n. exp (z / of_nat k) / (1 + z / of_nat k))"
 
-definition%unimportant
+definition\<^marker>\<open>tag unimportant\<close>
   rGamma_series_Weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
   "rGamma_series_Weierstrass z n =
      exp (euler_mascheroni * z) * z * (\<Prod>k=1..n. (1 + z / of_nat k) * exp (-z / of_nat k))"

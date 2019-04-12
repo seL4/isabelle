@@ -16,7 +16,7 @@ lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if
 
 subsection "Binary products"
 
-definition%important pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
+definition\<^marker>\<open>tag important\<close> pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
   "A \<Otimes>\<^sub>M B = measure_of (space A \<times> space B)
       {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}
       (\<lambda>X. \<integral>\<^sup>+x. (\<integral>\<^sup>+y. indicator X (x,y) \<partial>B) \<partial>A)"
@@ -338,7 +338,7 @@ qed
 
 subsection \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
 
-locale%unimportant pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
+locale\<^marker>\<open>tag unimportant\<close> pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"
 
 lemma (in pair_sigma_finite) measurable_emeasure_Pair1:
@@ -394,7 +394,7 @@ proof -
   qed
 qed
 
-sublocale%unimportant pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
+sublocale\<^marker>\<open>tag unimportant\<close> pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
 proof
   from M1.sigma_finite_countable guess F1 ..
   moreover from M2.sigma_finite_countable guess F2 ..

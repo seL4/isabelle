@@ -390,7 +390,7 @@ qed (auto intro: summable_of_real)
 
 subsection \<open>Gradient derivative\<close>
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   gderiv ::
     "['a::real_inner \<Rightarrow> real, 'a, 'a] \<Rightarrow> bool"
           ("(GDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)

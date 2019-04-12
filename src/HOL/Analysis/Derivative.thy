@@ -20,7 +20,7 @@ lemma has_derivative_add_const:
   by (intro derivative_eq_intros) auto
 
 
-subsection%unimportant \<open>Derivative with composed bilinear function\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Derivative with composed bilinear function\<close>
 
 text \<open>More explicit epsilon-delta forms.\<close>
 
@@ -92,7 +92,7 @@ qed
 
 subsection \<open>Differentiability\<close>
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   differentiable_on :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool"
     (infix "differentiable'_on" 50)
   where "f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable (at x within s))"
@@ -113,7 +113,7 @@ lemma differentiable_at_imp_differentiable_on:
   "(\<And>x. x \<in> s \<Longrightarrow> f differentiable at x) \<Longrightarrow> f differentiable_on s"
   by (metis differentiable_at_withinI differentiable_on_def)
 
-corollary%unimportant differentiable_iff_scaleR:
+corollary\<^marker>\<open>tag unimportant\<close> differentiable_iff_scaleR:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   shows "f differentiable F \<longleftrightarrow> (\<exists>d. (f has_derivative (\<lambda>x. x *\<^sub>R d)) F)"
   by (auto simp: differentiable_def dest: has_derivative_linear linear_imp_scaleR)
@@ -324,7 +324,7 @@ using diff_chain_within[OF Df[unfolded has_vector_derivative_def] Dg]
   by (auto simp: o_def mult.commute has_vector_derivative_def)
 
 
-subsection%unimportant \<open>Composition rules stated just for differentiability\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Composition rules stated just for differentiability\<close>
 
 lemma differentiable_chain_at:
   "f differentiable (at x) \<Longrightarrow>
@@ -342,7 +342,7 @@ lemma differentiable_chain_within:
 subsection \<open>Uniqueness of derivative\<close>
 
 
-text%important \<open>
+text\<^marker>\<open>tag important\<close> \<open>
  The general result is a bit messy because we need approachability of the
  limit point from any direction. But OK for nontrivial intervals etc.
 \<close>
@@ -2195,7 +2195,7 @@ lemma vector_derivative_chain_within:
 
 subsection \<open>Field differentiability\<close>
 
-definition%important field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
            (infixr "(field'_differentiable)" 50)
   where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
 
@@ -2390,7 +2390,7 @@ lemma exp_scaleR_has_vector_derivative_left: "((\<lambda>t. exp (t *\<^sub>R A))
 
 subsection \<open>Field derivative\<close>
 
-definition%important deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "deriv f x \<equiv> SOME D. DERIV f x :> D"
 
 lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
@@ -2701,7 +2701,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Differentiable case distinction\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Differentiable case distinction\<close>
 
 lemma has_derivative_within_If_eq:
   "((\<lambda>x. if P x then f x else g x) has_derivative f') (at x within S) =

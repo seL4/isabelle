@@ -15,13 +15,13 @@ section \<open>Elementary Metric Spaces\<close>
 
 subsection \<open>Open and closed balls\<close>
 
-definition%important ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition\<^marker>\<open>tag important\<close> ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "ball x e = {y. dist x y < e}"
 
-definition%important cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition\<^marker>\<open>tag important\<close> cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "cball x e = {y. dist x y \<le> e}"
 
-definition%important sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition\<^marker>\<open>tag important\<close> sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "sphere x e = {y. dist x y = e}"
 
 lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
@@ -717,7 +717,7 @@ qed
 subsection \<open>Boundedness\<close>
 
   (* FIXME: This has to be unified with BSEQ!! *)
-definition%important (in metric_space) bounded :: "'a set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> (in metric_space) bounded :: "'a set \<Rightarrow> bool"
   where "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
 
 lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e \<and> 0 \<le> e)"
@@ -1198,7 +1198,7 @@ qed
 
 subsection \<open>The diameter of a set\<close>
 
-definition%important diameter :: "'a::metric_space set \<Rightarrow> real" where
+definition\<^marker>\<open>tag important\<close> diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y)\<in>S\<times>S. dist x y)"
 
 lemma diameter_empty [simp]: "diameter{} = 0"
@@ -1464,8 +1464,8 @@ lemma compact_closure [simp]:
   shows "compact(closure S) \<longleftrightarrow> bounded S"
 by (meson bounded_closure bounded_subset closed_closure closure_subset compact_eq_bounded_closed)
 
-instance%important real :: heine_borel
-proof%unimportant
+instance\<^marker>\<open>tag important\<close> real :: heine_borel
+proof
   fix f :: "nat \<Rightarrow> real"
   assume f: "bounded (range f)"
   obtain r :: "nat \<Rightarrow> nat" where r: "strict_mono r" "monoseq (f \<circ> r)"
@@ -1545,8 +1545,8 @@ lemma bounded_snd: "bounded s \<Longrightarrow> bounded (snd ` s)"
   unfolding bounded_def
   by (metis (no_types, hide_lams) dist_snd_le image_iff order.trans)
 
-instance%important prod :: (heine_borel, heine_borel) heine_borel
-proof%unimportant
+instance\<^marker>\<open>tag important\<close> prod :: (heine_borel, heine_borel) heine_borel
+proof
   fix f :: "nat \<Rightarrow> 'a \<times> 'b"
   assume f: "bounded (range f)"
   then have "bounded (fst ` range f)"
@@ -1844,7 +1844,7 @@ lemma banach_fix_type:
   by auto
 
 
-subsection%unimportant\<open> Finite intersection property\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open> Finite intersection property\<close>
 
 text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
 
@@ -1961,7 +1961,7 @@ qed
 
 subsection \<open>Infimum Distance\<close>
 
-definition%important "infdist x A = (if A = {} then 0 else INF a\<in>A. dist x a)"
+definition\<^marker>\<open>tag important\<close> "infdist x A = (if A = {} then 0 else INF a\<in>A. dist x a)"
 
 lemma bdd_below_image_dist[intro, simp]: "bdd_below (dist x ` A)"
   by (auto intro!: zero_le_dist)
@@ -2453,7 +2453,7 @@ corollary compact_uniformly_continuous:
     by (force intro: compact_uniformly_equicontinuous [OF S, of "{f}"])
 
 
-subsection%unimportant\<open> Theorems relating continuity and uniform continuity to closures\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open> Theorems relating continuity and uniform continuity to closures\<close>
 
 lemma continuous_on_closure:
    "continuous_on (closure S) f \<longleftrightarrow>
@@ -2860,7 +2860,7 @@ proof -
   then show ?thesis ..
 qed
 
-subsection%unimportant \<open>Making a continuous function avoid some value in a neighbourhood\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Making a continuous function avoid some value in a neighbourhood\<close>
 
 lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
@@ -3041,7 +3041,7 @@ lemma continuous_ge_on_closure:
 
 subsection\<open>The infimum of the distance between two sets\<close>
 
-definition%important setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
+definition\<^marker>\<open>tag important\<close> setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
   "setdist s t \<equiv>
        (if s = {} \<or> t = {} then 0
         else Inf {dist x y| x y. x \<in> s \<and> y \<in> t})"

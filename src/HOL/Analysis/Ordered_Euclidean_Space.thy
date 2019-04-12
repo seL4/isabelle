@@ -157,7 +157,7 @@ lemma in_Basis_prod_iff:
   shows "i \<in> Basis \<longleftrightarrow> fst i = 0 \<and> snd i \<in> Basis \<or> snd i = 0 \<and> fst i \<in> Basis"
   by (cases i) (auto simp: Basis_prod_def)
 
-instantiation%unimportant prod :: (abs, abs) abs
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (abs, abs) abs
 begin
 
 definition "\<bar>x\<bar> = (\<bar>fst x\<bar>, \<bar>snd x\<bar>)"
@@ -299,11 +299,11 @@ lemma
 instantiation vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
 begin
 
-definition%important "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
-definition%important "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
-definition%important "Inf X = (\<chi> i. (INF x\<in>X. x $ i))"
-definition%important "Sup X = (\<chi> i. (SUP x\<in>X. x $ i))"
-definition%important "\<bar>x\<bar> = (\<chi> i. \<bar>x $ i\<bar>)"
+definition\<^marker>\<open>tag important\<close> "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
+definition\<^marker>\<open>tag important\<close> "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
+definition\<^marker>\<open>tag important\<close> "Inf X = (\<chi> i. (INF x\<in>X. x $ i))"
+definition\<^marker>\<open>tag important\<close> "Sup X = (\<chi> i. (SUP x\<in>X. x $ i))"
+definition\<^marker>\<open>tag important\<close> "\<bar>x\<bar> = (\<chi> i. \<bar>x $ i\<bar>)"
 
 instance
   apply standard

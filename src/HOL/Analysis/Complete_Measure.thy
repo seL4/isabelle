@@ -6,21 +6,21 @@ theory Complete_Measure
   imports Bochner_Integration
 begin
 
-locale%important complete_measure =
+locale\<^marker>\<open>tag important\<close> complete_measure =
   fixes M :: "'a measure"
   assumes complete: "\<And>A B. B \<subseteq> A \<Longrightarrow> A \<in> null_sets M \<Longrightarrow> B \<in> sets M"
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "split_completion M A p = (if A \<in> sets M then p = (A, {}) else
    \<exists>N'. A = fst p \<union> snd p \<and> fst p \<inter> snd p = {} \<and> fst p \<in> sets M \<and> snd p \<subseteq> N' \<and> N' \<in> null_sets M)"
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "main_part M A = fst (Eps (split_completion M A))"
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "null_part M A = snd (Eps (split_completion M A))"
 
-definition%important completion :: "'a measure \<Rightarrow> 'a measure" where
+definition\<^marker>\<open>tag important\<close> completion :: "'a measure \<Rightarrow> 'a measure" where
   "completion M = measure_of (space M) { S \<union> N |S N N'. S \<in> sets M \<and> N' \<in> null_sets M \<and> N \<subseteq> N' }
     (emeasure M \<circ> main_part M)"
 
@@ -67,9 +67,9 @@ next
     by (intro completionI[of _ "\<Union>(S ` UNIV)" "\<Union>(N ` UNIV)" "\<Union>(N' ` UNIV)"]) auto
 qed
 
-lemma%important sets_completion:
+lemma\<^marker>\<open>tag important\<close> sets_completion:
   "sets (completion M) = { S \<union> N |S N N'. S \<in> sets M \<and> N' \<in> null_sets M \<and> N \<subseteq> N' }"
-  using%unimportant sigma_algebra.sets_measure_of_eq[OF sigma_algebra_completion] 
+  using sigma_algebra.sets_measure_of_eq[OF sigma_algebra_completion] 
   by (simp add: completion_def)
 
 lemma sets_completionE:
@@ -86,17 +86,17 @@ lemma sets_completionI_sets[intro, simp]:
   "A \<in> sets M \<Longrightarrow> A \<in> sets (completion M)"
   unfolding sets_completion by force
 
-lemma%important measurable_completion: "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> f \<in> completion M \<rightarrow>\<^sub>M N"
-  by%unimportant (auto simp: measurable_def)
+lemma\<^marker>\<open>tag important\<close> measurable_completion: "f \<in> M \<rightarrow>\<^sub>M N \<Longrightarrow> f \<in> completion M \<rightarrow>\<^sub>M N"
+  by (auto simp: measurable_def)
 
 lemma null_sets_completion:
   assumes "N' \<in> null_sets M" "N \<subseteq> N'" shows "N \<in> sets (completion M)"
   using assms by (intro sets_completionI[of N "{}" N N']) auto
 
-lemma%important split_completion:
+lemma\<^marker>\<open>tag important\<close> split_completion:
   assumes "A \<in> sets (completion M)"
   shows "split_completion M A (main_part M A, null_part M A)"
-proof%unimportant cases
+proof cases
   assume "A \<in> sets M" then show ?thesis
     by (simp add: split_completion_def[abs_def] main_part_def null_part_def)
 next
@@ -181,10 +181,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma%important emeasure_completion[simp]:
+lemma\<^marker>\<open>tag important\<close> emeasure_completion[simp]:
   assumes S: "S \<in> sets (completion M)"
   shows "emeasure (completion M) S = emeasure M (main_part M S)"
-proof%unimportant (subst emeasure_measure_of[OF completion_def completion_into_space])
+proof (subst emeasure_measure_of[OF completion_def completion_into_space])
   let ?\<mu> = "emeasure M \<circ> main_part M"
   show "S \<in> sets (completion M)" "?\<mu> S = emeasure M (main_part M S) " using S by simp_all
   show "positive (sets (completion M)) ?\<mu>"
@@ -283,11 +283,11 @@ proof -
   qed
 qed
 
-lemma%important completion_ex_borel_measurable:
+lemma\<^marker>\<open>tag important\<close> completion_ex_borel_measurable:
   fixes g :: "'a \<Rightarrow> ennreal"
   assumes g: "g \<in> borel_measurable (completion M)"
   shows "\<exists>g'\<in>borel_measurable M. (AE x in M. g x = g' x)"
-proof%unimportant -
+proof -
   from g[THEN borel_measurable_implies_simple_function_sequence'] guess f . note f = this
   from this(1)[THEN completion_ex_simple_function]
   have "\<forall>i. \<exists>f'. simple_function M f' \<and> (AE x in M. f i x = f' x)" ..
@@ -442,19 +442,19 @@ lemma integral_completion:
   assumes f: "f \<in> M \<rightarrow>\<^sub>M borel" shows "integral\<^sup>L (completion M) f = integral\<^sup>L M f"
   by (rule integral_subalgebra[symmetric]) (auto intro: f)
 
-locale%important semifinite_measure =
+locale\<^marker>\<open>tag important\<close> semifinite_measure =
   fixes M :: "'a measure"
   assumes semifinite:
     "\<And>A. A \<in> sets M \<Longrightarrow> emeasure M A = \<infinity> \<Longrightarrow> \<exists>B\<in>sets M. B \<subseteq> A \<and> emeasure M B < \<infinity>"
 
-locale%important locally_determined_measure = semifinite_measure +
+locale\<^marker>\<open>tag important\<close> locally_determined_measure = semifinite_measure +
   assumes locally_determined:
     "\<And>A. A \<subseteq> space M \<Longrightarrow> (\<And>B. B \<in> sets M \<Longrightarrow> emeasure M B < \<infinity> \<Longrightarrow> A \<inter> B \<in> sets M) \<Longrightarrow> A \<in> sets M"
 
-locale%important cld_measure =
+locale\<^marker>\<open>tag important\<close> cld_measure =
   complete_measure M + locally_determined_measure M for M :: "'a measure"
 
-definition%important outer_measure_of :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal"
+definition\<^marker>\<open>tag important\<close> outer_measure_of :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal"
   where "outer_measure_of M A = (INF B \<in> {B\<in>sets M. A \<subseteq> B}. emeasure M B)"
 
 lemma outer_measure_of_eq[simp]: "A \<in> sets M \<Longrightarrow> outer_measure_of M A = emeasure M A"
@@ -553,7 +553,7 @@ proof (rule antisym)
     by (simp add: eq F)
 qed (auto intro: SUP_least outer_measure_of_mono)
 
-definition%important measurable_envelope :: "'a measure \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> measurable_envelope :: "'a measure \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "measurable_envelope M A E \<longleftrightarrow>
     (A \<subseteq> E \<and> E \<in> sets M \<and> (\<forall>F\<in>sets M. emeasure M (F \<inter> E) = outer_measure_of M (F \<inter> A)))"
 
@@ -618,7 +618,7 @@ proof -
     by (auto simp: Int_absorb1)
 qed
 
-lemma%important measurable_envelope_eq2:
+lemma\<^marker>\<open>tag important\<close> measurable_envelope_eq2:
   assumes "A \<subseteq> E" "E \<in> sets M" "emeasure M E < \<infinity>"
   shows "measurable_envelope M A E \<longleftrightarrow> (emeasure M E = outer_measure_of M A)"
 proof safe

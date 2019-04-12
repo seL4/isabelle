@@ -13,7 +13,7 @@ imports
   "HOL-Library.FuncSet"
 begin
 
-subsection%unimportant \<open>Finite Cartesian products, with indexing and lambdas\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Finite Cartesian products, with indexing and lambdas\<close>
 
 typedef ('a, 'b) vec = "UNIV :: ('b::finite \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
@@ -165,7 +165,7 @@ proof -
     by (simp add: image_comp o_def vec_nth_inverse)
 qed
 
-subsection%unimportant \<open>Group operations and class instances\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Group operations and class instances\<close>
 
 instantiation vec :: (zero, finite) zero
 begin
@@ -230,7 +230,7 @@ instance vec :: (ab_group_add, finite) ab_group_add
   by standard (simp_all add: vec_eq_iff)
 
 
-subsection%unimportant\<open>Basic componentwise operations on vectors\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Basic componentwise operations on vectors\<close>
 
 instantiation vec :: (times, finite) times
 begin
@@ -294,15 +294,15 @@ definition scalar_product :: "'a :: semiring_1 ^ 'n \<Rightarrow> 'a ^ 'n \<Righ
 
 subsection \<open>Real vector space\<close>
 
-instantiation%unimportant vec :: (real_vector, finite) real_vector
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (real_vector, finite) real_vector
 begin
 
-definition%important "scaleR \<equiv> (\<lambda> r x. (\<chi> i. scaleR r (x$i)))"
+definition\<^marker>\<open>tag important\<close> "scaleR \<equiv> (\<lambda> r x. (\<chi> i. scaleR r (x$i)))"
 
 lemma vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
   unfolding scaleR_vec_def by simp
 
-instance%unimportant
+instance\<^marker>\<open>tag unimportant\<close>
   by standard (simp_all add: vec_eq_iff scaleR_left_distrib scaleR_right_distrib)
 
 end
@@ -310,15 +310,15 @@ end
 
 subsection \<open>Topological space\<close>
 
-instantiation%unimportant vec :: (topological_space, finite) topological_space
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (topological_space, finite) topological_space
 begin
 
-definition%important [code del]:
+definition\<^marker>\<open>tag important\<close> [code del]:
   "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
       (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
 
-instance%unimportant proof
+instance\<^marker>\<open>tag unimportant\<close> proof
   show "open (UNIV :: ('a ^ 'b) set)"
     unfolding open_vec_def by auto
 next
@@ -418,7 +418,7 @@ proof (rule openI)
   then show "\<exists>T. open T \<and> a \<in> T \<and> T \<subseteq> (\<lambda>x. x $ i) ` S" by - (rule exI)
 qed
 
-instance%unimportant vec :: (perfect_space, finite) perfect_space
+instance\<^marker>\<open>tag unimportant\<close> vec :: (perfect_space, finite) perfect_space
 proof
   fix x :: "'a ^ 'b" show "\<not> open {x}"
   proof
@@ -433,29 +433,29 @@ qed
 subsection \<open>Metric space\<close>
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation%unimportant vec :: (metric_space, finite) dist
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) dist
 begin
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "dist x y = L2_set (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
 instance ..
 end
 
-instantiation%unimportant vec :: (metric_space, finite) uniformity_dist
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) uniformity_dist
 begin
 
-definition%important [code del]:
+definition\<^marker>\<open>tag important\<close> [code del]:
   "(uniformity :: (('a^'b::_) \<times> ('a^'b::_)) filter) =
     (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
-instance%unimportant
+instance\<^marker>\<open>tag unimportant\<close>
   by standard (rule uniformity_vec_def)
 end
 
 declare uniformity_Abort[where 'a="'a :: metric_space ^ 'b :: finite", code]
 
-instantiation%unimportant vec :: (metric_space, finite) metric_space
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) metric_space
 begin
 
 proposition dist_vec_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
@@ -557,7 +557,7 @@ proof (rule metric_CauchyI)
   then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < r" ..
 qed
 
-instance%unimportant vec :: (complete_space, finite) complete_space
+instance\<^marker>\<open>tag unimportant\<close> vec :: (complete_space, finite) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
   have "\<And>i. (\<lambda>n. X n $ i) \<longlonglongrightarrow> lim (\<lambda>n. X n $ i)"
@@ -572,14 +572,14 @@ qed
 
 subsection \<open>Normed vector space\<close>
 
-instantiation%unimportant vec :: (real_normed_vector, finite) real_normed_vector
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (real_normed_vector, finite) real_normed_vector
 begin
 
-definition%important "norm x = L2_set (\<lambda>i. norm (x$i)) UNIV"
+definition\<^marker>\<open>tag important\<close> "norm x = L2_set (\<lambda>i. norm (x$i)) UNIV"
 
-definition%important "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
+definition\<^marker>\<open>tag important\<close> "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
-instance%unimportant proof
+instance\<^marker>\<open>tag unimportant\<close> proof
   fix a :: real and x y :: "'a ^ 'b"
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_vec_def
@@ -609,8 +609,8 @@ lemma norm_le_componentwise_cart:
   fixes x :: "'a::real_normed_vector^'n"
   assumes "\<And>i. norm(x$i) \<le> norm(y$i)"
   shows "norm x \<le> norm y"
-  unfolding%unimportant norm_vec_def
-  by%unimportant (rule L2_set_mono) (auto simp: assms)
+  unfolding norm_vec_def
+  by (rule L2_set_mono) (auto simp: assms)
 
 lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
   apply (simp add: norm_vec_def)
@@ -638,12 +638,12 @@ instance vec :: (banach, finite) banach ..
 
 subsection \<open>Inner product space\<close>
 
-instantiation%unimportant vec :: (real_inner, finite) real_inner
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (real_inner, finite) real_inner
 begin
 
-definition%important "inner x y = sum (\<lambda>i. inner (x$i) (y$i)) UNIV"
+definition\<^marker>\<open>tag important\<close> "inner x y = sum (\<lambda>i. inner (x$i) (y$i)) UNIV"
 
-instance%unimportant proof
+instance\<^marker>\<open>tag unimportant\<close> proof
   fix r :: real and x y z :: "'a ^ 'b"
   show "inner x y = inner y x"
     unfolding inner_vec_def
@@ -672,7 +672,7 @@ subsection \<open>Euclidean space\<close>
 
 text \<open>Vectors pointing along a single axis.\<close>
 
-definition%important "axis k x = (\<chi> i. if i = k then x else 0)"
+definition\<^marker>\<open>tag important\<close> "axis k x = (\<chi> i. if i = k then x else 0)"
 
 lemma axis_nth [simp]: "axis i x $ i = x"
   unfolding axis_def by simp
@@ -696,12 +696,12 @@ lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
 lemma inner_axis': "inner(axis i y) x = inner y (x $ i)"
   by (simp add: inner_axis inner_commute)
 
-instantiation%unimportant vec :: (euclidean_space, finite) euclidean_space
+instantiation\<^marker>\<open>tag unimportant\<close> vec :: (euclidean_space, finite) euclidean_space
 begin
 
-definition%important "Basis = (\<Union>i. \<Union>u\<in>Basis. {axis i u})"
+definition\<^marker>\<open>tag important\<close> "Basis = (\<Union>i. \<Union>u\<in>Basis. {axis i u})"
 
-instance%unimportant proof
+instance\<^marker>\<open>tag unimportant\<close> proof
   show "(Basis :: ('a ^ 'b) set) \<noteq> {}"
     unfolding Basis_vec_def by simp
 next
@@ -777,7 +777,7 @@ lemma axis_index_axis [simp]:
   shows "(axis_index (axis u 1 :: real^'n)) = (u::'n)"
   by (simp add: axis_eq_axis axis_index_def)
 
-subsection%unimportant \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space\<close>
 
 lemma sum_cong_aux:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> sum f A = sum g A"
@@ -851,13 +851,13 @@ lemma vector_smult_component [simp]: "(c *s y)$i = c * (y$i)"
 
 lemma cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
 
-lemmas%unimportant vector_component =
+lemmas\<^marker>\<open>tag unimportant\<close> vector_component =
   vec_component vector_add_component vector_mult_component
   vector_smult_component vector_minus_component vector_uminus_component
   vector_scaleR_component cond_component
 
 
-subsection%unimportant \<open>Some frequently useful arithmetic lemmas over vectors\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Some frequently useful arithmetic lemmas over vectors\<close>
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
   by standard (vector mult.assoc)
@@ -996,31 +996,31 @@ subsection \<open>Matrix operations\<close>
 
 text\<open>Matrix notation. NB: an MxN matrix is of type \<^typ>\<open>'a^'n^'m\<close>, not \<^typ>\<open>'a^'m^'n\<close>\<close>
 
-definition%important map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
+definition\<^marker>\<open>tag important\<close> map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
   "map_matrix f x = (\<chi> i j. f (x $ i $ j))"
 
 lemma nth_map_matrix[simp]: "map_matrix f x $ i $ j = f (x $ i $ j)"
   by (simp add: map_matrix_def)
 
-definition%important matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
+definition\<^marker>\<open>tag important\<close> matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
     (infixl "**" 70)
   where "m ** m' == (\<chi> i j. sum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
-definition%important matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
+definition\<^marker>\<open>tag important\<close> matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
     (infixl "*v" 70)
   where "m *v x \<equiv> (\<chi> i. sum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
-definition%important vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
+definition\<^marker>\<open>tag important\<close> vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
     (infixl "v*" 70)
   where "v v* m == (\<chi> j. sum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
-definition%unimportant "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
-definition%unimportant transpose where
+definition\<^marker>\<open>tag unimportant\<close> "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
+definition\<^marker>\<open>tag unimportant\<close> transpose where
   "(transpose::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
-definition%unimportant "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
-definition%unimportant "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
-definition%unimportant "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
-definition%unimportant "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
+definition\<^marker>\<open>tag unimportant\<close> "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
+definition\<^marker>\<open>tag unimportant\<close> "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
+definition\<^marker>\<open>tag unimportant\<close> "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
+definition\<^marker>\<open>tag unimportant\<close> "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma times0_left [simp]: "(0::'a::semiring_1^'n^'m) ** (A::'a ^'p^'n) = 0" 
   by (simp add: matrix_matrix_mult_def zero_vec_def)
@@ -1151,7 +1151,7 @@ lemma basis_expansion: "sum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring
 
 text\<open>Correspondence between matrices and linear operators.\<close>
 
-definition%important matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
+definition\<^marker>\<open>tag important\<close> matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
 
 lemma matrix_id_mat_1: "matrix id = mat 1"
@@ -1204,10 +1204,10 @@ lemma matrix_vector_column:
 
 subsection\<open>Inverse matrices  (not necessarily square)\<close>
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
   "matrix_inv(A:: 'a::semiring_1^'n^'m) =
     (SOME A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 

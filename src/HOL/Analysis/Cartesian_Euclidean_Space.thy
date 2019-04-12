@@ -565,7 +565,7 @@ qed
 
 subsection "Derivative"
 
-definition%important "jacobian f net = matrix(frechet_derivative f net)"
+definition\<^marker>\<open>tag important\<close> "jacobian f net = matrix(frechet_derivative f net)"
 
 proposition jacobian_works:
   "(f::(real^'a) \<Rightarrow> (real^'b)) differentiable net \<longleftrightarrow>
@@ -591,7 +591,7 @@ proposition differential_zero_maxmin_cart:
     vector_cart[of "\<lambda>j. frechet_derivative f (at x) j $ k"]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis jacobian_def matrix_def)
 
-subsection%unimportant\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
 
 lemma vec_cbox_1_eq [simp]:
   shows "vec ` cbox u v = cbox (vec u) (vec v ::real^1)"

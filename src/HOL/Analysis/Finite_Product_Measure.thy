@@ -15,7 +15,7 @@ lemma PiE_choice: "(\<exists>f\<in>Pi\<^sub>E I F. \<forall>i\<in>I. P i (f i)) 
 lemma case_prod_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-subsection%unimportant \<open>More about Function restricted by \<^const>\<open>extensional\<close>\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>More about Function restricted by \<^const>\<open>extensional\<close>\<close>
 
 definition
   "merge I J = (\<lambda>(x, y) i. if i \<in> I then x i else if i \<in> J then y i else undefined)"
@@ -111,12 +111,12 @@ lemma merge_vimage:
 
 subsection \<open>Finite product spaces\<close>
 
-definition%important prod_emb where
+definition\<^marker>\<open>tag important\<close> prod_emb where
   "prod_emb I M K X = (\<lambda>x. restrict x K) -` X \<inter> (\<Pi>\<^sub>E i\<in>I. space (M i))"
 
 lemma prod_emb_iff:
   "f \<in> prod_emb I M K X \<longleftrightarrow> f \<in> extensional I \<and> (restrict f K \<in> X) \<and> (\<forall>i\<in>I. f i \<in> space (M i))"
-  unfolding%unimportant prod_emb_def PiE_def by auto
+  unfolding prod_emb_def PiE_def by auto
 
 lemma
   shows prod_emb_empty[simp]: "prod_emb M L K {} = {}"
@@ -153,13 +153,13 @@ lemma prod_emb_mono:
   "F \<subseteq> G \<Longrightarrow> prod_emb A M B F \<subseteq> prod_emb A M B G"
   by (auto simp: prod_emb_def)
 
-definition%important PiM :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i \<Rightarrow> 'a) measure" where
+definition\<^marker>\<open>tag important\<close> PiM :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i \<Rightarrow> 'a) measure" where
   "PiM I M = extend_measure (\<Pi>\<^sub>E i\<in>I. space (M i))
     {(J, X). (J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}
     (\<lambda>(J, X). prod_emb I M J (\<Pi>\<^sub>E j\<in>J. X j))
     (\<lambda>(J, X). \<Prod>j\<in>J \<union> {i\<in>I. emeasure (M i) (space (M i)) \<noteq> 1}. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
 
-definition%important prod_algebra :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i \<Rightarrow> 'a) set set" where
+definition\<^marker>\<open>tag important\<close> prod_algebra :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i \<Rightarrow> 'a) set set" where
   "prod_algebra I M = (\<lambda>(J, X). prod_emb I M J (\<Pi>\<^sub>E j\<in>J. X j)) `
     {(J, X). (J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}"
 
@@ -825,14 +825,14 @@ next
     by (auto intro!: eq)
 qed (auto simp: sets_PiM)
 
-locale%unimportant product_sigma_finite =
+locale\<^marker>\<open>tag unimportant\<close> product_sigma_finite =
   fixes M :: "'i \<Rightarrow> 'a measure"
   assumes sigma_finite_measures: "\<And>i. sigma_finite_measure (M i)"
 
-sublocale%unimportant product_sigma_finite \<subseteq> M?: sigma_finite_measure "M i" for i
+sublocale\<^marker>\<open>tag unimportant\<close> product_sigma_finite \<subseteq> M?: sigma_finite_measure "M i" for i
   by (rule sigma_finite_measures)
 
-locale%unimportant finite_product_sigma_finite = product_sigma_finite M for M :: "'i \<Rightarrow> 'a measure" +
+locale\<^marker>\<open>tag unimportant\<close> finite_product_sigma_finite = product_sigma_finite M for M :: "'i \<Rightarrow> 'a measure" +
   fixes I :: "'i set"
   assumes finite_index: "finite I"
 
@@ -991,7 +991,7 @@ lemma (in product_sigma_finite) nn_integral_empty:
   "0 \<le> f (\<lambda>k. undefined) \<Longrightarrow> integral\<^sup>N (Pi\<^sub>M {} M) f = f (\<lambda>k. undefined)"
   by (simp add: PiM_empty nn_integral_count_space_finite max.absorb2)
 
-lemma%important (in product_sigma_finite) distr_merge:
+lemma\<^marker>\<open>tag important\<close> (in product_sigma_finite) distr_merge:
   assumes IJ[simp]: "I \<inter> J = {}" and fin: "finite I" "finite J"
   shows "distr (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M) (Pi\<^sub>M (I \<union> J) M) (merge I J) = Pi\<^sub>M (I \<union> J) M"
    (is "?D = ?P")

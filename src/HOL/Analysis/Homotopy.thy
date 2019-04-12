@@ -8,7 +8,7 @@ theory Homotopy
   imports Path_Connected Continuum_Not_Denumerable Product_Topology
 begin
 
-definition%important homotopic_with
+definition\<^marker>\<open>tag important\<close> homotopic_with
 where
  "homotopic_with P X Y f g \<equiv>
    (\<exists>h. continuous_map (prod_topology (subtopology euclideanreal {0..1}) X) Y h \<and>
@@ -50,10 +50,10 @@ lemma continuous_map_o_Pair:
   apply (simp add: t)
   done
 
-subsection%unimportant\<open>Trivial properties\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Trivial properties\<close>
 
 text \<open>We often want to just localize the ending function equality or whatever.\<close>
-text%important \<open>%whitespace\<close>
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
 proposition homotopic_with:
   assumes "\<And>h k. (\<And>x. x \<in> topspace X \<Longrightarrow> h x = k x) \<Longrightarrow> (P h \<longleftrightarrow> P k)"
   shows "homotopic_with P X Y p q \<longleftrightarrow>
@@ -516,7 +516,7 @@ qed
 subsection\<open>Homotopy of paths, maintaining the same endpoints\<close>
 
 
-definition%important homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
   where
      "homotopic_paths s p q \<equiv>
        homotopic_with_canon (\<lambda>r. pathstart r = pathstart p \<and> pathfinish r = pathfinish p) {0..1} s p q"
@@ -673,7 +673,7 @@ proposition homotopic_paths_continuous_image:
 
 subsection\<open>Group properties for homotopy of paths\<close>
 
-text%important\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
+text\<^marker>\<open>tag important\<close>\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
 
 proposition homotopic_paths_rid:
     "\<lbrakk>path p; path_image p \<subseteq> s\<rbrakk> \<Longrightarrow> homotopic_paths s (p +++ linepath (pathfinish p) (pathfinish p)) p"
@@ -736,7 +736,7 @@ proposition homotopic_paths_linv:
 
 subsection\<open>Homotopy of loops without requiring preservation of endpoints\<close>
 
-definition%important homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
+definition\<^marker>\<open>tag important\<close> homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
  "homotopic_loops s p q \<equiv>
      homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r) {0..1} s p q"
 
@@ -971,7 +971,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Homotopy of "nearby" function, paths and loops\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Homotopy of "nearby" function, paths and loops\<close>
 
 lemma homotopic_with_linear:
   fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
@@ -1173,9 +1173,9 @@ by (auto simp: path_connected_def path_component_def homotopic_points_eq_path_co
 
 subsection\<open>Simply connected sets\<close>
 
-text%important\<open>defined as "all loops are homotopic (as loops)\<close>
+text\<^marker>\<open>tag important\<close>\<open>defined as "all loops are homotopic (as loops)\<close>
 
-definition%important simply_connected where
+definition\<^marker>\<open>tag important\<close> simply_connected where
   "simply_connected S \<equiv>
         \<forall>p q. path p \<and> pathfinish p = pathstart p \<and> path_image p \<subseteq> S \<and>
               path q \<and> pathfinish q = pathstart q \<and> path_image q \<subseteq> S
@@ -1357,7 +1357,7 @@ qed
 
 subsection\<open>Contractible sets\<close>
 
-definition%important contractible where
+definition\<^marker>\<open>tag important\<close> contractible where
  "contractible S \<equiv> \<exists>a. homotopic_with_canon (\<lambda>x. True) S S id (\<lambda>x. a)"
 
 proposition contractible_imp_simply_connected:
@@ -1598,7 +1598,7 @@ qed
 
 subsection\<open>Local versions of topological properties in general\<close>
 
-definition%important locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
 where
  "locally P S \<equiv>
         \<forall>w x. openin (top_of_set S) w \<and> x \<in> w
@@ -2975,7 +2975,7 @@ proof (clarsimp simp: locally_path_connected_open_path_component)
     by metis
 qed
 
-subsection%unimportant\<open>Components, continuity, openin, closedin\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Components, continuity, openin, closedin\<close>
 
 lemma continuous_on_components_gen:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
@@ -3308,7 +3308,7 @@ qed
 
 subsection\<open>Retracts, in a general sense, preserve (co)homotopic triviality)\<close>
 
-locale%important Retracts =
+locale\<^marker>\<open>tag important\<close> Retracts =
   fixes s h t k
   assumes conth: "continuous_on s h"
       and imh: "h ` s = t"
@@ -3474,7 +3474,7 @@ subsection\<open>Homotopy equivalence\<close>
 
 subsection\<open>Homotopy equivalence of topological spaces.\<close>
 
-definition%important homotopy_equivalent_space
+definition\<^marker>\<open>tag important\<close> homotopy_equivalent_space
              (infix "homotopy'_equivalent'_space" 50)
   where "X homotopy_equivalent_space Y \<equiv>
         (\<exists>f g. continuous_map X Y f \<and>
@@ -3897,7 +3897,7 @@ proof -
 qed
 
 
-abbreviation%important homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+abbreviation\<^marker>\<open>tag important\<close> homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
              (infix "homotopy'_eqv" 50)
   where "S homotopy_eqv T \<equiv> top_of_set S homotopy_equivalent_space top_of_set T"
 
@@ -4144,7 +4144,7 @@ lemma homeomorphic_contractible:
   by (metis homeomorphic_contractible_eq)
 
 
-subsection%unimportant\<open>Misc other results\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Misc other results\<close>
 
 lemma bounded_connected_Compl_real:
   fixes S :: "real set"
@@ -4194,7 +4194,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Some Uncountable Sets\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some Uncountable Sets\<close>
 
 lemma uncountable_closed_segment:
   fixes a :: "'a::real_normed_vector"
@@ -4333,7 +4333,7 @@ lemma arc_image_uncountable:
   by (simp add: arc_imp_simple_path assms simple_path_image_uncountable)
 
 
-subsection%unimportant\<open> Some simple positive connection theorems\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open> Some simple positive connection theorems\<close>
 
 proposition path_connected_convex_diff_countable:
   fixes U :: "'a::euclidean_space set"
@@ -4598,9 +4598,9 @@ by (simp add: assms path_connected_imp_connected path_connected_open_diff_counta
 
 
 
-subsection%unimportant \<open>Self-homeomorphisms shuffling points about\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Self-homeomorphisms shuffling points about\<close>
 
-subsubsection%unimportant\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
 
 lemma homeomorphism_moving_point_1:
   fixes a :: "'a::euclidean_space"
@@ -4730,7 +4730,7 @@ proof -
     done
 qed
 
-corollary%unimportant homeomorphism_moving_point_2:
+corollary\<^marker>\<open>tag unimportant\<close> homeomorphism_moving_point_2:
   fixes a :: "'a::euclidean_space"
   assumes "affine T" "a \<in> T" and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
   obtains f g where "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
@@ -4758,7 +4758,7 @@ proof -
 qed
 
 
-corollary%unimportant homeomorphism_moving_point_3:
+corollary\<^marker>\<open>tag unimportant\<close> homeomorphism_moving_point_3:
   fixes a :: "'a::euclidean_space"
   assumes "affine T" "a \<in> T" and ST: "ball a r \<inter> T \<subseteq> S" "S \<subseteq> T"
       and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
@@ -4836,7 +4836,7 @@ proof -
 qed
 
 
-proposition%unimportant homeomorphism_moving_point:
+proposition\<^marker>\<open>tag unimportant\<close> homeomorphism_moving_point:
   fixes a :: "'a::euclidean_space"
   assumes ope: "openin (top_of_set (affine hull S)) S"
       and "S \<subseteq> T"
@@ -4992,7 +4992,7 @@ next
   qed
 qed
 
-proposition%unimportant homeomorphism_moving_points_exists:
+proposition\<^marker>\<open>tag unimportant\<close> homeomorphism_moving_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes 2: "2 \<le> DIM('a)" "open S" "connected S" "S \<subseteq> T" "finite K"
       and KS: "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
@@ -5021,7 +5021,7 @@ next
     using homeomorphism_moving_points_exists_gen [OF \<open>finite K\<close> KS pw _ ope S] that by fastforce
 qed
 
-subsubsection%unimportant\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
 
 lemma homeomorphism_grouping_point_1:
   fixes a::real and c::real
@@ -5258,7 +5258,7 @@ proof -
   qed
 qed
 
-proposition%unimportant homeomorphism_grouping_points_exists:
+proposition\<^marker>\<open>tag unimportant\<close> homeomorphism_grouping_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes "open U" "open S" "connected S" "U \<noteq> {}" "finite K" "K \<subseteq> S" "U \<subseteq> S" "S \<subseteq> T"
   obtains f g where "homeomorphism T T f g" "{x. (\<not> (f x = x \<and> g x = x))} \<subseteq> S"
@@ -5337,7 +5337,7 @@ next
 qed
 
 
-proposition%unimportant homeomorphism_grouping_points_exists_gen:
+proposition\<^marker>\<open>tag unimportant\<close> homeomorphism_grouping_points_exists_gen:
   fixes S :: "'a::euclidean_space set"
   assumes opeU: "openin (top_of_set S) U"
       and opeS: "openin (top_of_set (affine hull S)) S"

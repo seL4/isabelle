@@ -104,7 +104,7 @@ proof -
   then show ?thesis by auto
 qed
 
-subsection%unimportant \<open>More interesting properties of the norm\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>More interesting properties of the norm\<close>
 
 unbundle inner_syntax
 
@@ -230,7 +230,7 @@ qed simp
 
 subsection \<open>Orthogonality\<close>
 
-definition%important (in real_inner) "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
+definition\<^marker>\<open>tag important\<close> (in real_inner) "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
 
 context real_inner
 begin
@@ -299,9 +299,9 @@ qed
 
 subsection  \<open>Orthogonality of a transformation\<close>
 
-definition%important  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
+definition\<^marker>\<open>tag important\<close>  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
-lemma%unimportant  orthogonal_transformation:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation:
   "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v. norm (f v) = norm v)"
   unfolding orthogonal_transformation_def
   apply auto
@@ -310,56 +310,56 @@ lemma%unimportant  orthogonal_transformation:
   apply (simp add: dot_norm linear_add[symmetric])
   done
 
-lemma%unimportant  orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
   by (simp add: linear_iff orthogonal_transformation_def)
 
-lemma%unimportant  orthogonal_orthogonal_transformation:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_orthogonal_transformation:
     "orthogonal_transformation f \<Longrightarrow> orthogonal (f x) (f y) \<longleftrightarrow> orthogonal x y"
   by (simp add: orthogonal_def orthogonal_transformation_def)
 
-lemma%unimportant  orthogonal_transformation_compose:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_compose:
    "\<lbrakk>orthogonal_transformation f; orthogonal_transformation g\<rbrakk> \<Longrightarrow> orthogonal_transformation(f \<circ> g)"
   by (auto simp: orthogonal_transformation_def linear_compose)
 
-lemma%unimportant  orthogonal_transformation_neg:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_neg:
   "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
   by (auto simp: orthogonal_transformation_def dest: linear_compose_neg)
 
-lemma%unimportant  orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
   by (simp add: linear_iff orthogonal_transformation_def)
 
-lemma%unimportant  orthogonal_transformation_linear:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_linear:
    "orthogonal_transformation f \<Longrightarrow> linear f"
   by (simp add: orthogonal_transformation_def)
 
-lemma%unimportant  orthogonal_transformation_inj:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_inj:
   "orthogonal_transformation f \<Longrightarrow> inj f"
   unfolding orthogonal_transformation_def inj_on_def
   by (metis vector_eq)
 
-lemma%unimportant  orthogonal_transformation_surj:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_surj:
   "orthogonal_transformation f \<Longrightarrow> surj f"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: linear_injective_imp_surjective orthogonal_transformation_inj orthogonal_transformation_linear)
 
-lemma%unimportant  orthogonal_transformation_bij:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_bij:
   "orthogonal_transformation f \<Longrightarrow> bij f"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: bij_def orthogonal_transformation_inj orthogonal_transformation_surj)
 
-lemma%unimportant  orthogonal_transformation_inv:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_inv:
   "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (metis (no_types, hide_lams) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
 
-lemma%unimportant  orthogonal_transformation_norm:
+lemma\<^marker>\<open>tag unimportant\<close>  orthogonal_transformation_norm:
   "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"
   by (metis orthogonal_transformation)
 
 
 subsection \<open>Bilinear functions\<close>
 
-definition%important
+definition\<^marker>\<open>tag important\<close>
 bilinear :: "('a::real_vector \<Rightarrow> 'b::real_vector \<Rightarrow> 'c::real_vector) \<Rightarrow> bool" where
 "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
@@ -417,7 +417,7 @@ qed
 
 subsection \<open>Adjoints\<close>
 
-definition%important adjoint :: "(('a::real_inner) \<Rightarrow> ('b::real_inner)) \<Rightarrow> 'b \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> adjoint :: "(('a::real_inner) \<Rightarrow> ('b::real_inner)) \<Rightarrow> 'b \<Rightarrow> 'a" where
 "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
 lemma adjoint_unique:
@@ -579,7 +579,7 @@ lemma forall_pos_mono_1:
   done
 
 
-subsection%unimportant \<open>Euclidean Spaces as Typeclass\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Euclidean Spaces as Typeclass\<close>
 
 lemma independent_Basis: "independent Basis"
   by (rule independent_Basis)
@@ -591,7 +591,7 @@ lemma in_span_Basis: "x \<in> span Basis"
   unfolding span_Basis ..
 
 
-subsection%unimportant \<open>Linearity and Bilinearity continued\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Linearity and Bilinearity continued\<close>
 
 lemma linear_bounded:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -773,7 +773,7 @@ lemma linear_imp_differentiable:
   by (metis linear_imp_has_derivative differentiable_def)
 
 
-subsection%unimportant \<open>We continue\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>We continue\<close>
 
 lemma independent_bound:
   fixes S :: "'a::euclidean_space set"
@@ -1037,7 +1037,7 @@ lemma bilinear_eq_stdbasis:
 
 subsection \<open>Infinity norm\<close>
 
-definition%important "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
+definition\<^marker>\<open>tag important\<close> "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
 
 lemma infnorm_set_image:
   fixes x :: "'a::euclidean_space"
@@ -1227,7 +1227,7 @@ qed
 
 subsection \<open>Collinearity\<close>
 
-definition%important collinear :: "'a::real_vector set \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
 lemma collinear_alt:
@@ -1565,7 +1565,7 @@ proof -
     by (rule_tac U=U in that) (auto simp: span_Un)
 qed
 
-corollary%unimportant orthogonal_extension_strong:
+corollary\<^marker>\<open>tag unimportant\<close> orthogonal_extension_strong:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S"
   obtains U where "U \<inter> (insert 0 S) = {}" "pairwise orthogonal (S \<union> U)"
@@ -1648,7 +1648,7 @@ proof -
 qed
 
 
-proposition%unimportant orthogonal_to_subspace_exists_gen:
+proposition\<^marker>\<open>tag unimportant\<close> orthogonal_to_subspace_exists_gen:
   fixes S :: "'a :: euclidean_space set"
   assumes "span S \<subset> span T"
   obtains x where "x \<noteq> 0" "x \<in> span T" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
@@ -1694,7 +1694,7 @@ proof -
   qed
 qed
 
-corollary%unimportant orthogonal_to_subspace_exists:
+corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_subspace_exists:
   fixes S :: "'a :: euclidean_space set"
   assumes "dim S < DIM('a)"
   obtains x where "x \<noteq> 0" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
@@ -1706,7 +1706,7 @@ have "span S \<subset> UNIV"
     by (auto simp: span_UNIV)
 qed
 
-corollary%unimportant orthogonal_to_vector_exists:
+corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_vector_exists:
   fixes x :: "'a :: euclidean_space"
   assumes "2 \<le> DIM('a)"
   obtains y where "y \<noteq> 0" "orthogonal x y"
@@ -1717,7 +1717,7 @@ proof -
     by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_base that)
 qed
 
-proposition%unimportant orthogonal_subspace_decomp_exists:
+proposition\<^marker>\<open>tag unimportant\<close> orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
   obtains y z
   where "y \<in> span S"

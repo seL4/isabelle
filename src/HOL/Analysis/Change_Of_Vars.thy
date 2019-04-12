@@ -424,10 +424,10 @@ qed
 subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
 
 (*https://en.wikipedia.org/wiki/F\<sigma>_set*)
-inductive%important fsigma :: "'a::topological_space set \<Rightarrow> bool" where
+inductive\<^marker>\<open>tag important\<close> fsigma :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (\<Union>(F ` UNIV))"
 
-inductive%important gdelta :: "'a::topological_space set \<Rightarrow> bool" where
+inductive\<^marker>\<open>tag important\<close> gdelta :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
 
 lemma fsigma_Union_compact:
@@ -2100,7 +2100,7 @@ theorem borel_measurable_det_Jacobian:
   assumes S: "S \<in> sets lebesgue" and f: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
   shows "(\<lambda>x. det(matrix(f' x))) \<in> borel_measurable (lebesgue_on S)"
   unfolding det_def
-  by%unimportant (intro measurable) (auto intro: f borel_measurable_partial_derivatives [OF S])
+  by (intro measurable) (auto intro: f borel_measurable_partial_derivatives [OF S])
 
 text\<open>The localisation wrt S uses the same argument for many similar results.\<close>
 (*See HOL Light's MEASURABLE_ON_LEBESGUE_MEASURABLE_PREIMAGE_BOREL, etc.*)
@@ -2949,7 +2949,7 @@ proposition absolutely_integrable_on_image:
     and intS: "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S"
   shows "f absolutely_integrable_on (g ` S)"
   apply (rule absolutely_integrable_componentwise [OF absolutely_integrable_on_image_real [OF der_g]])
-  using%unimportant absolutely_integrable_component [OF intS]  by%unimportant auto
+  using absolutely_integrable_component [OF intS]  by auto
 
 proposition integral_on_image_ubound:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
@@ -2957,7 +2957,7 @@ proposition integral_on_image_ubound:
     and "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
     and "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x)) integrable_on S"
   shows "integral (g ` S) f \<le> integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x))"
-  using%unimportant integral_on_image_ubound_nonneg [OF assms] by%unimportant simp
+  using integral_on_image_ubound_nonneg [OF assms] by simp
 
 
 subsection\<open>Change-of-variables theorem\<close>
@@ -3576,7 +3576,7 @@ corollary absolutely_integrable_change_of_variables:
     and "inj_on g S"
   shows "f absolutely_integrable_on (g ` S)
      \<longleftrightarrow> (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S"
-  using%unimportant assms has_absolute_integral_change_of_variables by%unimportant blast
+  using assms has_absolute_integral_change_of_variables by blast
 
 corollary integral_change_of_variables:
   fixes f :: "real^'m::{finite,wellorder} \<Rightarrow> real^'n" and g :: "real^'m::_ \<Rightarrow> real^'m::_"
@@ -3586,8 +3586,8 @@ corollary integral_change_of_variables:
     and disj: "(f absolutely_integrable_on (g ` S) \<or>
         (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S)"
   shows "integral (g ` S) f = integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x))"
-  using%unimportant has_absolute_integral_change_of_variables [OF S der_g inj] disj
-  by%unimportant blast
+  using has_absolute_integral_change_of_variables [OF S der_g inj] disj
+  by blast
 
 lemma has_absolute_integral_change_of_variables_1:
   fixes f :: "real \<Rightarrow> real^'n::{finite,wellorder}" and g :: "real \<Rightarrow> real"
@@ -3635,7 +3635,7 @@ corollary absolutely_integrable_change_of_variables_1:
     and inj: "inj_on g S"
   shows "(f absolutely_integrable_on g ` S \<longleftrightarrow>
              (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S)"
-  using%unimportant has_absolute_integral_change_of_variables_1 [OF assms] by%unimportant auto
+  using has_absolute_integral_change_of_variables_1 [OF assms] by auto
 
 
 subsection\<open>Change of variables for integrals: special case of linear function\<close>

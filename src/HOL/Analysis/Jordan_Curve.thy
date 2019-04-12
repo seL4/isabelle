@@ -219,7 +219,7 @@ proof -
 qed
 
 
-theorem%unimportant Jordan_curve:
+theorem\<^marker>\<open>tag unimportant\<close> Jordan_curve:
   fixes c :: "real \<Rightarrow> complex"
   assumes "simple_path c" and loop: "pathfinish c = pathstart c"
   obtains inner outer where
@@ -389,7 +389,7 @@ proof -
 qed
 
 
-corollary%unimportant Jordan_disconnected:
+corollary\<^marker>\<open>tag unimportant\<close> Jordan_disconnected:
   fixes c :: "real \<Rightarrow> complex"
   assumes "simple_path c" "pathfinish c = pathstart c"
     shows "\<not> connected(- path_image c)"

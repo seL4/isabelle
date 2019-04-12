@@ -9,7 +9,7 @@ theory Nonnegative_Lebesgue_Integration
   imports Measure_Space Borel_Space
 begin
 
-subsection%unimportant \<open>Approximating functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Approximating functions\<close>
 
 lemma AE_upper_bound_inf_ennreal:
   fixes F G::"'a \<Rightarrow> ennreal"
@@ -115,7 +115,7 @@ sets are measurable.
 
 \<close>
 
-definition%important "simple_function M g \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "simple_function M g \<longleftrightarrow>
     finite (g ` space M) \<and>
     (\<forall>x \<in> g ` space M. g -` {x} \<inter> space M \<in> sets M)"
 
@@ -301,11 +301,11 @@ lemma simple_function_real_of_nat[intro, simp]:
   shows "simple_function M (\<lambda>x. real (f x))"
   by (rule simple_function_compose1[OF sf])
 
-lemma%important borel_measurable_implies_simple_function_sequence:
+lemma\<^marker>\<open>tag important\<close> borel_measurable_implies_simple_function_sequence:
   fixes u :: "'a \<Rightarrow> ennreal"
   assumes u[measurable]: "u \<in> borel_measurable M"
   shows "\<exists>f. incseq f \<and> (\<forall>i. (\<forall>x. f i x < top) \<and> simple_function M (f i)) \<and> u = (SUP i. f i)"
-proof%unimportant -
+proof -
   define f where [abs_def]:
     "f i x = real_of_int (floor (enn2real (min i (u x)) * 2^i)) / 2^i" for i x
 
@@ -397,7 +397,7 @@ lemma borel_measurable_implies_simple_function_sequence':
   using borel_measurable_implies_simple_function_sequence [OF u]
   by (metis SUP_apply)
 
-lemma%important simple_function_induct
+lemma\<^marker>\<open>tag important\<close> simple_function_induct
     [consumes 1, case_names cong set mult add, induct set: simple_function]:
   fixes u :: "'a \<Rightarrow> ennreal"
   assumes u: "simple_function M u"
@@ -406,7 +406,7 @@ lemma%important simple_function_induct
   assumes mult: "\<And>u c. P u \<Longrightarrow> P (\<lambda>x. c * u x)"
   assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
   shows "P u"
-proof%unimportant (rule cong)
+proof (rule cong)
   from AE_space show "AE x in M. (\<Sum>y\<in>u ` space M. y * indicator (u -` {y} \<inter> space M) x) = u x"
   proof eventually_elim
     fix x assume x: "x \<in> space M"
@@ -468,7 +468,7 @@ proof -
   qed fact
 qed
 
-lemma%important borel_measurable_induct
+lemma\<^marker>\<open>tag important\<close> borel_measurable_induct
     [consumes 1, case_names cong set mult add seq, induct set: borel_measurable]:
   fixes u :: "'a \<Rightarrow> ennreal"
   assumes u: "u \<in> borel_measurable M"
@@ -478,8 +478,8 @@ lemma%important borel_measurable_induct
   assumes add: "\<And>u v. u \<in> borel_measurable M\<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> u x < top) \<Longrightarrow> P u \<Longrightarrow> v \<in> borel_measurable M \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> v x < top) \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> u x = 0 \<or> v x = 0) \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
   assumes seq: "\<And>U. (\<And>i. U i \<in> borel_measurable M) \<Longrightarrow> (\<And>i x. x \<in> space M \<Longrightarrow> U i x < top) \<Longrightarrow> (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> u = (SUP i. U i) \<Longrightarrow> P (SUP i. U i)"
   shows "P u"
-  using%unimportant u
-proof%unimportant (induct rule: borel_measurable_implies_simple_function_sequence')
+  using u
+proof (induct rule: borel_measurable_implies_simple_function_sequence')
   fix U assume U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i x. U i x < top" and sup: "\<And>x. (SUP i. U i x) = u x"
   have u_eq: "u = (SUP i. U i)"
     using u by (auto simp add: image_comp sup)
@@ -580,7 +580,7 @@ qed
 
 subsection "Simple integral"
 
-definition%important simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>S") where
+definition\<^marker>\<open>tag important\<close> simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>S") where
   "integral\<^sup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
 
 syntax
@@ -813,7 +813,7 @@ qed
 
 subsection \<open>Integral on nonnegative functions\<close>
 
-definition%important nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>N") where
+definition\<^marker>\<open>tag important\<close> nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>N") where
   "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f}. integral\<^sup>S M g)"
 
 syntax
@@ -1645,7 +1645,7 @@ qed
 lemma nn_integral_bot[simp]: "nn_integral bot f = 0"
   by (simp add: nn_integral_empty)
 
-subsubsection%unimportant \<open>Distributions\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Distributions\<close>
 
 lemma nn_integral_distr:
   assumes T: "T \<in> measurable M M'" and f: "f \<in> borel_measurable (distr M M' T)"
@@ -1670,7 +1670,7 @@ next
 qed (simp_all add: measurable_compose[OF T] T nn_integral_cmult nn_integral_add
                    nn_integral_monotone_convergence_SUP le_fun_def incseq_def image_comp)
 
-subsubsection%unimportant \<open>Counting space\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Counting space\<close>
 
 lemma simple_function_count_space[simp]:
   "simple_function (count_space A) f \<longleftrightarrow> finite (f ` A)"
@@ -2083,7 +2083,7 @@ qed
 
 subsubsection \<open>Measure spaces with an associated density\<close>
 
-definition%important density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> 'a measure" where
+definition\<^marker>\<open>tag important\<close> density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> 'a measure" where
   "density M f = measure_of (space M) (sets M) (\<lambda>A. \<integral>\<^sup>+ x. f x * indicator A x \<partial>M)"
 
 lemma
@@ -2170,11 +2170,11 @@ next
     by (intro exI[of _ "N \<union> {x\<in>space M. f x = 0}"] conjI *) (auto elim: eventually_elim2)
 qed
 
-lemma%important nn_integral_density:
+lemma\<^marker>\<open>tag important\<close> nn_integral_density:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "integral\<^sup>N (density M f) g = (\<integral>\<^sup>+ x. f x * g x \<partial>M)"
-using%unimportant g proof%unimportant induct
+using g proof induct
   case (cong u v)
   then show ?case
     apply (subst nn_integral_cong[OF cong(3)])
@@ -2293,7 +2293,7 @@ lemma emeasure_density_add:
 
 subsubsection \<open>Point measure\<close>
 
-definition%important point_measure :: "'a set \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> 'a measure" where
+definition\<^marker>\<open>tag important\<close> point_measure :: "'a set \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> 'a measure" where
   "point_measure A f = density (count_space A) f"
 
 lemma
@@ -2359,7 +2359,7 @@ lemma nn_integral_point_measure_finite:
 
 subsubsection \<open>Uniform measure\<close>
 
-definition%important "uniform_measure M A = density M (\<lambda>x. indicator A x / emeasure M A)"
+definition\<^marker>\<open>tag important\<close> "uniform_measure M A = density M (\<lambda>x. indicator A x / emeasure M A)"
 
 lemma
   shows sets_uniform_measure[simp, measurable_cong]: "sets (uniform_measure M A) = sets M"
@@ -2434,7 +2434,7 @@ proof -
     unfolding uniform_measure_def by (simp add: AE_density)
 qed
 
-subsubsection%unimportant \<open>Null measure\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Null measure\<close>
 
 lemma null_measure_eq_density: "null_measure M = density M (\<lambda>_. 0)"
   by (intro measure_eqI) (simp_all add: emeasure_density)
@@ -2451,7 +2451,7 @@ qed simp
 
 subsubsection \<open>Uniform count measure\<close>
 
-definition%important "uniform_count_measure A = point_measure A (\<lambda>x. 1 / card A)"
+definition\<^marker>\<open>tag important\<close> "uniform_count_measure A = point_measure A (\<lambda>x. 1 / card A)"
 
 lemma
   shows space_uniform_count_measure: "space (uniform_count_measure A) = A"
@@ -2480,7 +2480,7 @@ lemma sets_uniform_count_measure_eq_UNIV [simp]:
   "UNIV = sets (uniform_count_measure UNIV) \<longleftrightarrow> True"
 by(simp_all add: sets_uniform_count_measure)
 
-subsubsection%unimportant \<open>Scaled measure\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Scaled measure\<close>
 
 lemma nn_integral_scale_measure:
   assumes f: "f \<in> borel_measurable M"

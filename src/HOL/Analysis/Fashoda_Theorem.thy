@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Bijections between intervals\<close>
 
-definition%important interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
+definition\<^marker>\<open>tag important\<close> interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
   where "interval_bij =
     (\<lambda>(a, b) (u, v) x. (\<Sum>i\<in>Basis. (u\<bullet>i + (x\<bullet>i - a\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (v\<bullet>i - u\<bullet>i)) *\<^sub>R i))"
 
@@ -470,7 +470,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Some slightly ad hoc lemmas I use below\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Some slightly ad hoc lemmas I use below\<close>
 
 lemma segment_vertical:
   fixes a :: "real^2"

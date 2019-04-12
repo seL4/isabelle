@@ -473,7 +473,7 @@ text \<open>
   all inputs with a norm that is smaller than that radius and to diverge for all inputs with a
   norm that is greater.
 \<close>
-definition%important conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
+definition\<^marker>\<open>tag important\<close> conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
   "conv_radius f = inverse (limsup (\<lambda>n. ereal (root n (norm (f n)))))"
 
 lemma conv_radius_cong_weak [cong]: "(\<And>n. f n = g n) \<Longrightarrow> conv_radius f = conv_radius g"

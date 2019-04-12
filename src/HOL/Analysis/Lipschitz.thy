@@ -8,11 +8,11 @@ theory Lipschitz
 imports Borel_Space
 begin
 
-definition%important lipschitz_on
+definition\<^marker>\<open>tag important\<close> lipschitz_on
   where "lipschitz_on C U f \<longleftrightarrow> (0 \<le> C \<and> (\<forall>x \<in> U. \<forall>y\<in>U. dist (f x) (f y) \<le> C * dist x y))"
 
 bundle lipschitz_syntax begin
-notation%important lipschitz_on ("_-lipschitz'_on" [1000])
+notation\<^marker>\<open>tag important\<close> lipschitz_on ("_-lipschitz'_on" [1000])
 end
 bundle no_lipschitz_syntax begin
 no_notation lipschitz_on ("_-lipschitz'_on" [1000])
@@ -155,7 +155,7 @@ proof (rule lipschitz_onI)
 qed fact
 
 
-subsubsection%unimportant \<open>Structural introduction rules\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Structural introduction rules\<close>
 
 named_theorems lipschitz_intros "structural introduction rules for Lipschitz controls"
 
@@ -481,7 +481,7 @@ qed
 
 subsection \<open>Local Lipschitz continuity (uniform for a family of functions)\<close>
 
-definition%important local_lipschitz::
+definition\<^marker>\<open>tag important\<close> local_lipschitz::
   "'a::metric_space set \<Rightarrow> 'b::metric_space set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c::metric_space) \<Rightarrow> bool"
   where
   "local_lipschitz T X f \<equiv> \<forall>x \<in> X. \<forall>t \<in> T.
