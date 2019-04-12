@@ -423,7 +423,7 @@ qed
 
 subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
 
-\<comment> \<open>\<^url>\<open>https://en.wikipedia.org/wiki/F\<sigma>_set\<close>\<close>
+\<comment> \<open>\<^url>\<open>https://en.wikipedia.org/wiki/F-sigma_set\<close>\<close>
 inductive\<^marker>\<open>tag important\<close> fsigma :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (\<Union>(F ` UNIV))"
 
