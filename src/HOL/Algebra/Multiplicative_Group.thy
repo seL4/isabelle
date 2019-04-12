@@ -53,7 +53,7 @@ context UP_cring begin
 
 lemma evalRR_add:
   assumes "p \<in> carrier P" "q \<in> carrier P"
-  assumes x:"x \<in> carrier R"
+  assumes x: "x \<in> carrier R"
   shows "eval R R id x (p \<oplus>\<^bsub>P\<^esub> q) = eval R R id x p \<oplus> eval R R id x q"
 proof -
   interpret UP_pre_univ_prop R R id by unfold_locales simp
@@ -63,7 +63,7 @@ qed
 
 lemma evalRR_sub:
   assumes "p \<in> carrier P" "q \<in> carrier P"
-  assumes x:"x \<in> carrier R"
+  assumes x: "x \<in> carrier R"
   shows "eval R R id x (p \<ominus>\<^bsub>P\<^esub> q) = eval R R id x p \<ominus> eval R R id x q"
 proof -
   interpret UP_pre_univ_prop R R id by unfold_locales simp
@@ -73,7 +73,7 @@ qed
 
 lemma evalRR_mult:
   assumes "p \<in> carrier P" "q \<in> carrier P"
-  assumes x:"x \<in> carrier R"
+  assumes x: "x \<in> carrier R"
   shows "eval R R id x (p \<otimes>\<^bsub>P\<^esub> q) = eval R R id x p \<otimes> eval R R id x q"
 proof -
   interpret UP_pre_univ_prop R R id by unfold_locales simp
@@ -225,10 +225,10 @@ proof -
         hence "a = b" using dvd_div_ge_1[OF _ \<open>d dvd n\<close>] \<open>n>0\<close>
           by (simp add: mult.commute nat_mult_eq_cancel1)
       } thus "inj_on (\<lambda>a. a*n div d) ?RF" unfolding inj_on_def by blast
-      { fix a assume a:"a\<in>?RF"
+      { fix a assume a: "a\<in>?RF"
         hence "a * (n div d) \<ge> 1" using \<open>n>0\<close> dvd_div_ge_1[OF _ \<open>d dvd n\<close>] by simp
-        hence ge_1:"a * n div d \<ge> 1" by (simp add: \<open>d dvd n\<close> div_mult_swap)
-        have le_n:"a * n div d \<le> n" using div_mult_mono a by simp
+        hence ge_1: "a * n div d \<ge> 1" by (simp add: \<open>d dvd n\<close> div_mult_swap)
+        have le_n: "a * n div d \<le> n" using div_mult_mono a by simp
         have "gcd (a * n div d) n = n div d * gcd a d"
           by (simp add: gcd_mult_distrib_nat q ac_simps)
         hence "n div gcd (a * n div d) n = d*n div (d*(n div d))" using a by simp
@@ -244,9 +244,9 @@ proof -
           by (fastforce simp add: div_le_mono div_gcd_coprime)
       } thus "(\<lambda>a. a div gcd a n) ` ?F \<subseteq> ?RF" by blast
     qed force+
-  } hence phi'_eq:"\<And>d. d dvd n \<Longrightarrow> phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"
+  } hence phi'_eq: "\<And>d. d dvd n \<Longrightarrow> phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"
       unfolding phi'_def by presburger
-  have fin:"finite {d. d dvd n}" using dvd_nat_bounds[OF \<open>n>0\<close>] by force
+  have fin: "finite {d. d dvd n}" using dvd_nat_bounds[OF \<open>n>0\<close>] by force
   have "(\<Sum>d | d dvd n. phi' d)
                  = card (\<Union>d \<in> {d. d dvd n}. {m \<in> {1 .. n}. n div gcd m n = d})"
     using card_UN_disjoint[OF fin, of "(\<lambda>d. {m \<in> {1 .. n}. n div gcd m n = d})"] phi'_eq
@@ -390,101 +390,6 @@ lemma (in comm_group) abelian_ord_mul_divides:
         \<Longrightarrow> ord (x \<otimes> y) dvd (ord x * ord y)"
   by (simp add: ord_mul_divides m_comm)
 
-
-definition old_ord where "old_ord a = Min {d \<in> {1 .. order G} . a [^] d = \<one>}"
-
-lemma
-  assumes finite: "finite (carrier G)"
-  assumes a: "a \<in> carrier G"
-  shows old_ord_ge_1: "1 \<le> old_ord a" and old_ord_le_group_order: "old_ord a \<le> order G"
-    and pow_old_ord_eq_1: "a [^] old_ord a = \<one>"
-proof -
-  have "\<not>inj_on (\<lambda>x. a [^] x) {0 .. order G}"
-  proof (rule notI)
-    assume A: "inj_on (\<lambda>x. a [^] x) {0 .. order G}"
-    have "order G + 1 = card {0 .. order G}" by simp
-    also have "\<dots> = card ((\<lambda>x. a [^] x) ` {0 .. order G})" (is "_ = card ?S")
-      using A by (simp add: card_image)
-    also have "?S = {a [^] x | x. x \<in> {0 .. order G}}" by blast
-    also have "\<dots> \<subseteq> carrier G" (is "?S \<subseteq> _") using a by blast
-    then have "card ?S \<le> order G" unfolding order_def
-      by (rule card_mono[OF finite])
-    finally show False by arith
-  qed
-
-  then obtain x y where x_y:"x \<noteq> y" "x \<in> {0 .. order G}" "y \<in> {0 .. order G}"
-                        "a [^] x = a [^] y" unfolding inj_on_def by blast
-  obtain d where "1 \<le> d" "a [^] d = \<one>" "d \<le> order G"
-  proof cases
-    assume "y < x" with x_y show ?thesis
-      by (intro that[where d="x - y"]) (auto simp add: pow_eq_div2[OF a])
-  next
-    assume "\<not>y < x" with x_y show ?thesis
-      by (intro that[where d="y - x"]) (auto simp add: pow_eq_div2[OF a])
-  qed
-  hence "old_ord a \<in> {d \<in> {1 .. order G} . a [^] d = \<one>}"
-    unfolding old_ord_def using Min_in[of "{d \<in> {1 .. order G} . a [^] d = \<one>}"]
-    by fastforce
-  then show "1 \<le> old_ord a" and "old_ord a \<le> order G" and "a [^] old_ord a = \<one>"
-    by (auto simp: order_def)
-qed
-
-lemma old_ord_min:
-  assumes  "finite (carrier G)" "1 \<le> d" "a \<in> carrier G" "a [^] d = \<one>" shows "old_ord a \<le> d"
-proof -
-  define Ord where "Ord = {d \<in> {1..order G}. a [^] d = \<one>}"
-  have fin: "finite Ord" by (auto simp: Ord_def)
-  have in_ord: "old_ord a \<in> Ord"
-    using assms pow_old_ord_eq_1 old_ord_ge_1 old_ord_le_group_order by (auto simp: Ord_def)
-  then have "Ord \<noteq> {}" by auto
-
-  show ?thesis
-  proof (cases "d \<le> order G")
-    case True
-    then have "d \<in> Ord" using assms by (auto simp: Ord_def)
-    with fin in_ord show ?thesis
-      unfolding old_ord_def Ord_def[symmetric] by simp
-  next
-    case False
-    then show ?thesis using in_ord by (simp add: Ord_def)
-  qed
-qed
-
-lemma old_ord_dvd_pow_eq_1:
-  assumes "finite (carrier G)" "a \<in> carrier G" "a [^] k = \<one>"
-  shows "old_ord a dvd k"
-proof -
-  define r where "r = k mod old_ord a"
-
-  define r q where "r = k mod old_ord a" and "q = k div old_ord a"
-  then have q: "k = q * old_ord a + r"
-    by (simp add: div_mult_mod_eq)
-  hence "a[^]k = (a[^]old_ord a)[^]q \<otimes> a[^]r"
-      using assms by (simp add: mult.commute nat_pow_mult nat_pow_pow)
-  hence "a[^]k = a[^]r" using assms by (simp add: pow_old_ord_eq_1)
-  hence "a[^]r = \<one>" using assms(3) by simp
-  have "r < old_ord a" using old_ord_ge_1[OF assms(1-2)] by (simp add: r_def)
-  hence "r = 0" using \<open>a[^]r = \<one>\<close> old_ord_def[of a] old_ord_min[of r a] assms(1-2) by linarith
-  thus ?thesis using q by simp
-qed
-
-lemma (in group) ord_iff_old_ord:
-  assumes finite: "finite (carrier G)"
-  assumes a: "a \<in> carrier G"
-  shows  "ord a = Min {d \<in> {1 .. order G} . a [^] d = \<one>}"
-proof -
-  have "a [^] ord a = \<one>"
-    using a pow_ord_eq_1 by blast
-  then show ?thesis
-    by (metis a dvd_antisym local.finite old_ord_def old_ord_dvd_pow_eq_1 pow_eq_id pow_old_ord_eq_1)
-qed
-
-lemma
-  assumes finite: "finite (carrier G)"
-  assumes a: "a \<in> carrier G"
-  shows ord_ge_1: "1 \<le> ord a" 
-  using a group.old_ord_ge_1 group.pow_eq_id group.pow_old_ord_eq_1 is_group local.finite by fastforce
-
 lemma ord_inj:
   assumes a: "a \<in> carrier G"
   shows "inj_on (\<lambda> x . a [^] x) {0 .. ord a - 1}"
@@ -510,7 +415,7 @@ lemma ord_inj':
   shows "inj_on (\<lambda> x . a [^] x) {1 .. ord a}"
 proof (rule inj_onI, rule ccontr)
   fix x y :: nat
-  assume A:"x \<in> {1 .. ord a}" "y \<in> {1 .. ord a}" "a [^] x = a [^] y" "x\<noteq>y"
+  assume A: "x \<in> {1 .. ord a}" "y \<in> {1 .. ord a}" "a [^] x = a [^] y" "x\<noteq>y"
   { assume "x < ord a" "y < ord a"
     hence False using ord_inj[OF assms] A unfolding inj_on_def by fastforce
   }
@@ -529,13 +434,33 @@ proof (rule inj_onI, rule ccontr)
   ultimately show False using A  by force
 qed
 
+lemma (in group) ord_ge_1: 
+  assumes finite: "finite (carrier G)" and a: "a \<in> carrier G"
+  shows "ord a \<ge> 1" 
+proof -
+  have "((\<lambda>n::nat. a [^] n) ` {0<..}) \<subseteq> carrier G"
+    using a by blast
+  then have "finite ((\<lambda>n::nat. a [^] n) ` {0<..})"
+    using finite_subset finite by auto
+  then have "\<not> inj_on (\<lambda>n::nat. a [^] n) {0<..}"
+    using finite_imageD infinite_Ioi by blast
+  then obtain i j::nat where "i \<noteq> j" "a [^] i = a [^] j"
+    by (auto simp: inj_on_def)
+  then have "\<exists>n::nat. n>0 \<and> a [^] n = \<one>"
+    by (metis a diffs0_imp_equal pow_eq_div2 neq0_conv)
+  then have "ord a \<noteq> 0"
+    by (simp add: ord_eq_0 [OF a])
+  then show ?thesis
+    by simp
+qed
+
 lemma ord_elems:
   assumes "finite (carrier G)" "a \<in> carrier G"
   shows "{a[^]x | x. x \<in> (UNIV :: nat set)} = {a[^]x | x. x \<in> {0 .. ord a - 1}}" (is "?L = ?R")
 proof
   show "?R \<subseteq> ?L" by blast
   { fix y assume "y \<in> ?L"
-    then obtain x::nat where x:"y = a[^]x" by auto
+    then obtain x::nat where x: "y = a[^]x" by auto
     define r q where "r = x mod ord a" and "q = x div ord a"
     then have "x = q * ord a + r"
       by (simp add: div_mult_mod_eq)
@@ -550,7 +475,7 @@ proof
 qed
 
 lemma generate_pow_on_finite_carrier: \<^marker>\<open>contributor \<open>Paulo Emílio de Vilhena\<close>\<close>
-  assumes "finite (carrier G)" and "a \<in> carrier G"
+  assumes "finite (carrier G)" and a: "a \<in> carrier G"
   shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: nat set) }"
 proof
   show "{ a [^] k | k. k \<in> (UNIV :: nat set) } \<subseteq> generate G { a }"
@@ -560,14 +485,14 @@ proof
     hence "b = a [^] (int k)"
       by (simp add: int_pow_int)
     thus "b \<in> generate G { a }"
-      unfolding generate_pow[OF assms(2)] by blast
+      unfolding generate_pow[OF a] by blast
   qed
 next
   show "generate G { a } \<subseteq> { a [^] k | k. k \<in> (UNIV :: nat set) }"
   proof
     fix b assume "b \<in> generate G { a }"
     then obtain k :: int where k: "b = a [^] k"
-      unfolding generate_pow[OF assms(2)] by blast
+      unfolding generate_pow[OF a] by blast
     show "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
     proof (cases "k < 0")
       assume "\<not> k < 0"
@@ -577,15 +502,15 @@ next
     next
       assume "k < 0"
       hence b: "b = inv (a [^] (nat (- k)))"
-        using k \<open>a \<in> carrier G\<close> by (auto simp: int_pow_neg)
+        using k a by (auto simp: int_pow_neg)
       obtain m where m: "ord a * m \<ge> nat (- k)"
         by (metis assms mult.left_neutral mult_le_mono1 ord_ge_1)
       hence "a [^] (ord a * m) = \<one>"
-        by (metis assms nat_pow_one nat_pow_pow pow_ord_eq_1)
+        by (metis a nat_pow_one nat_pow_pow pow_ord_eq_1)
       then obtain k' :: nat where "(a [^] (nat (- k))) \<otimes> (a [^] k') = \<one>"
-        using m assms(2) nat_le_iff_add nat_pow_mult by auto
+        using m a nat_le_iff_add nat_pow_mult by auto
       hence "b = a [^] k'"
-        using b assms(2) by (metis inv_unique' nat_pow_closed nat_pow_comm)
+        using b a by (metis inv_unique' nat_pow_closed nat_pow_comm)
       thus "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }" by blast
     qed
   qed
@@ -602,11 +527,23 @@ proof -
 qed
 
 lemma ord_dvd_group_order: 
-  assumes "finite (carrier G)" and "a \<in> carrier G"
+  assumes "a \<in> carrier G"
   shows "(ord a) dvd (order G)"
-  using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
-  unfolding generate_pow_card[OF assms]
-  by (metis dvd_triv_right empty_subsetI insert_subset)
+proof (cases "finite (carrier G)")
+  case True
+  then show ?thesis
+    using lagrange[OF generate_is_subgroup[of "{a}"]] assms
+    unfolding generate_pow_card[OF True assms]
+    by (metis dvd_triv_right empty_subsetI insert_subset)
+next
+  case False
+  then show ?thesis
+    using order_gt_0_iff_finite by auto
+qed
+
+lemma (in group) pow_order_eq_1:
+  assumes "a \<in> carrier G" shows "a [^] order G = \<one>"
+  using assms by (metis nat_pow_pow ord_dvd_group_order pow_ord_eq_1 dvdE nat_pow_one)
 
 lemma dvd_gcd:
   fixes a b :: nat
@@ -620,68 +557,28 @@ qed
 lemma (in group) ord_le_group_order:
   assumes finite: "finite (carrier G)" and a: "a \<in> carrier G"
   shows "ord a \<le> order G"
-  by (simp add: finite order_gt_0_iff_finite dvd_imp_le [OF ord_dvd_group_order [OF assms]])
+  by (simp add: a dvd_imp_le local.finite ord_dvd_group_order order_gt_0_iff_finite)
 
-lemma ord_pow_dvd_ord_elem:
-  assumes finite[simp]: "finite (carrier G)"
-  assumes a[simp]: "a \<in> carrier G"
-  shows "ord (a[^]n) = ord a div gcd n (ord a)"
+lemma (in group) ord_pow_gen:
+  assumes "x \<in> carrier G"
+  shows "ord (pow G x k) = (if k = 0 then 1 else ord x div gcd (ord x) k)"
 proof -
-  have "(a[^]n) [^] ord a = (a [^] ord a) [^] n"
-    by (simp add: nat_pow_pow pow_eq_id)
-  hence "(a[^]n) [^] ord a = \<one>" by (simp add: pow_ord_eq_1)
-  obtain q where "n * (ord a div gcd n (ord a)) = ord a * q" by (rule dvd_gcd)
-  hence "(a[^]n) [^] (ord a div gcd n (ord a)) = (a [^] ord a)[^]q"
-    using a nat_pow_pow by presburger
-  hence pow_eq_1: "(a[^]n) [^] (ord a div gcd n (ord a)) = \<one>"
-     by (auto simp add : pow_ord_eq_1[of a])
-  have "ord a \<ge> 1" using ord_ge_1 by simp
-  have ge_1:"ord a div gcd n (ord a) \<ge> 1"
+  have "ord (x [^] k) = ord x div gcd (ord x) k"
+    if "0 < k"
   proof -
-    have "gcd n (ord a) dvd ord a" by blast
-    thus ?thesis by (rule dvd_div_ge_1[OF \<open>ord a \<ge> 1\<close>])
+    have "(d dvd k * n) = (d div gcd (d) k dvd n)" for d n
+      using that by (simp add: div_dvd_iff_mult gcd_mult_distrib_nat mult.commute)
+    then show ?thesis
+      using that by (auto simp add: assms ord_unique nat_pow_pow pow_eq_id)
   qed
-  have "ord a \<le> order G" by (simp add: ord_le_group_order)
-  have "ord a div gcd n (ord a) \<le> order G"
-  proof -
-    have "ord a div gcd n (ord a) \<le> ord a" by simp
-    thus ?thesis using \<open>ord a \<le> order G\<close> by linarith
-  qed
-  hence ord_gcd_elem:"ord a div gcd n (ord a) \<in> {d \<in> {1..order G}. (a[^]n) [^] d = \<one>}"
-    using ge_1 pow_eq_1 by force
-  { fix d :: nat
-    assume d_elem:"d \<in> {d \<in> {1..order G}. (a[^]n) [^] d = \<one>}"
-    assume d_lt:"d < ord a div gcd n (ord a)"
-    hence pow_nd:"a[^](n*d)  = \<one>" using d_elem
-      by (simp add : nat_pow_pow)
-    hence "ord a dvd n*d" using assms pow_eq_id by blast
-    then obtain q where "ord a * q = n*d" by (metis dvd_mult_div_cancel)
-    hence prod_eq:"(ord a div gcd n (ord a)) * q = (n div gcd n (ord a)) * d"
-      by (simp add: dvd_div_mult)
-    have cp:"coprime (ord a div gcd n (ord a)) (n div gcd n (ord a))"
-    proof -
-      have "coprime (n div gcd n (ord a)) (ord a div gcd n (ord a))"
-        using div_gcd_coprime[of n "ord a"] ge_1 by fastforce
-      thus ?thesis by (simp add: ac_simps)
-    qed
-    have dvd_d:"(ord a div gcd n (ord a)) dvd d"
-    proof -
-      have "ord a div gcd n (ord a) dvd (n div gcd n (ord a)) * d" using prod_eq
-        by (metis dvd_triv_right mult.commute)
-      hence "ord a div gcd n (ord a) dvd d * (n div gcd n (ord a))"
-        by (simp add: mult.commute)
-      then show ?thesis
-        using cp by (simp add: coprime_dvd_mult_left_iff)
-    qed
-    have "d > 0" using d_elem by simp
-    hence "ord a div gcd n (ord a) \<le> d" using dvd_d by (simp add : Nat.dvd_imp_le)
-    hence False using d_lt by simp
-  } hence ord_gcd_min: "\<And> d . d \<in> {d \<in> {1..order G}. (a[^]n) [^] d = \<one>}
-                        \<Longrightarrow> d\<ge>ord a div gcd n (ord a)" by fastforce
-  have fin:"finite {d \<in> {1..order G}. (a[^]n) [^] d = \<one>}" by auto
-  thus ?thesis using Min_eqI[OF fin ord_gcd_min ord_gcd_elem]
-    by (simp add: group.ord_iff_old_ord is_group)
+  then show ?thesis by auto
 qed
+
+lemma (in group)
+  assumes finite': "finite (carrier G)" "a \<in> carrier G"
+  shows pow_ord_eq_ord_iff: "group.ord G (a [^] k) = ord a \<longleftrightarrow> coprime k (ord a)" (is "?L \<longleftrightarrow> ?R")
+    using assms ord_ge_1 [OF assms]
+    by (auto simp: div_eq_dividend_iff ord_pow_gen coprime_iff_gcd_eq_1 gcd.commute split: if_split_asm)
 
 lemma element_generates_subgroup:
   assumes finite[simp]: "finite (carrier G)"
@@ -726,14 +623,15 @@ lemma m_inv_mult_of:
   using mult_of_is_Units units_of_inv unfolding units_of_def
   by simp
 
-lemma field_mult_group:
-  shows "group (mult_of R)"
-  apply (rule groupI)
-  apply (auto simp: mult_of_simps m_assoc dest: integral)
-  by (metis Diff_iff Units_inv_Units Units_l_inv field_Units singletonE)
+lemma (in field) field_mult_group: "group (mult_of R)"
+  proof (rule groupI)
+  show "\<exists>y\<in>carrier (mult_of R). y \<otimes>\<^bsub>mult_of R\<^esub> x = \<one>\<^bsub>mult_of R\<^esub>"
+    if "x \<in> carrier (mult_of R)" for x
+    using group.l_inv_ex mult_of_is_Units that units_group by fastforce
+qed (auto simp: m_assoc dest: integral)
 
 lemma finite_mult_of: "finite (carrier R) \<Longrightarrow> finite (carrier (mult_of R))"
-  by (auto simp: mult_of_simps)
+  by simp
 
 lemma order_mult_of: "finite (carrier R) \<Longrightarrow> order (mult_of R) = order R - 1"
   unfolding order_def carrier_mult_of by (simp add: card.remove)
@@ -760,7 +658,7 @@ lemma (in ring) r_right_minus_eq[simp]:
 
 context UP_cring begin
 
-lemma is_UP_cring:"UP_cring R" by (unfold_locales)
+lemma is_UP_cring: "UP_cring R" by (unfold_locales)
 lemma is_UP_ring:
   shows "UP_ring R" by (unfold_locales)
 
@@ -792,23 +690,23 @@ next
   show ?case
   proof (cases "\<exists> a \<in> carrier R . eval R R id a f = \<zero>")
     case True
-    then obtain a where a_carrier[simp]: "a \<in> carrier R" and a_root:"eval R R id a f = \<zero>" by blast
+    then obtain a where a_carrier[simp]: "a \<in> carrier R" and a_root: "eval R R id a f = \<zero>" by blast
     have R_not_triv: "carrier R \<noteq> {\<zero>}"
       by (metis R.one_zeroI R.zero_not_one)
-    obtain q  where q:"(q \<in> carrier P)" and
-      f:"f = (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> monom P (eval R R id a f) 0"
+    obtain q  where q: "(q \<in> carrier P)" and
+      f: "f = (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) \<otimes>\<^bsub>P\<^esub> q \<oplus>\<^bsub>P\<^esub> monom P (eval R R id a f) 0"
      using remainder_theorem[OF Suc.prems(1) a_carrier R_not_triv] by auto
     hence lin_fac: "f = (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) \<otimes>\<^bsub>P\<^esub> q" using q by (simp add: a_root)
-    have deg:"deg R (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) = 1"
+    have deg: "deg R (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) = 1"
       using a_carrier by (simp add: deg_minus_eq)
-    hence mon_not_zero:"(monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) \<noteq> \<zero>\<^bsub>P\<^esub>"
+    hence mon_not_zero: "(monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub> P\<^esub> monom P a 0) \<noteq> \<zero>\<^bsub>P\<^esub>"
       by (fastforce simp del: r_right_minus_eq)
-    have q_not_zero:"q \<noteq> \<zero>\<^bsub>P\<^esub>" using Suc by (auto simp add : lin_fac)
+    have q_not_zero: "q \<noteq> \<zero>\<^bsub>P\<^esub>" using Suc by (auto simp add : lin_fac)
     hence "deg R q = x" using Suc deg deg_mult[OF mon_not_zero q_not_zero _ q]
       by (simp add : lin_fac)
-    hence q_IH:"finite {a \<in> carrier R . eval R R id a q = \<zero>}
+    hence q_IH: "finite {a \<in> carrier R . eval R R id a q = \<zero>}
                 \<and> card {a \<in> carrier R . eval R R id a q = \<zero>} \<le> x" using Suc q q_not_zero by blast
-    have subs:"{a \<in> carrier R . eval R R id a f = \<zero>}
+    have subs: "{a \<in> carrier R . eval R R id a f = \<zero>}
                 \<subseteq> {a \<in> carrier R . eval R R id a q = \<zero>} \<union> {a}" (is "?L \<subseteq> ?R \<union> {a}")
       using a_carrier \<open>q \<in> _\<close>
       by (auto simp: evalRR_simps lin_fac R.integral_iff)
@@ -831,20 +729,20 @@ end
 
 lemma (in domain) num_roots_le_deg :
   fixes p d :: nat
-  assumes finite:"finite (carrier R)"
-  assumes d_neq_zero : "d \<noteq> 0"
+  assumes finite: "finite (carrier R)"
+  assumes d_neq_zero: "d \<noteq> 0"
   shows "card {x \<in> carrier R. x [^] d = \<one>} \<le> d"
 proof -
   let ?f = "monom (UP R) \<one>\<^bsub>R\<^esub> d \<ominus>\<^bsub> (UP R)\<^esub> monom (UP R) \<one>\<^bsub>R\<^esub> 0"
-  have one_in_carrier:"\<one> \<in> carrier R" by simp
+  have one_in_carrier: "\<one> \<in> carrier R" by simp
   interpret R: UP_domain R "UP R" by (unfold_locales)
   have "deg R ?f = d"
     using d_neq_zero by (simp add: R.deg_minus_eq)
-  hence f_not_zero:"?f \<noteq> \<zero>\<^bsub>UP R\<^esub>" using  d_neq_zero by (auto simp add : R.deg_nzero_nzero)
-  have roots_bound:"finite {a \<in> carrier R . eval R R id a ?f = \<zero>} \<and>
+  hence f_not_zero: "?f \<noteq> \<zero>\<^bsub>UP R\<^esub>" using  d_neq_zero by (auto simp add : R.deg_nzero_nzero)
+  have roots_bound: "finite {a \<in> carrier R . eval R R id a ?f = \<zero>} \<and>
                     card {a \<in> carrier R . eval R R id a ?f = \<zero>} \<le> deg R ?f"
                     using finite by (intro R.roots_bound[OF _ f_not_zero]) simp
-  have subs:"{x \<in> carrier R. x [^] d = \<one>} \<subseteq> {a \<in> carrier R . eval R R id a ?f = \<zero>}"
+  have subs: "{x \<in> carrier R. x [^] d = \<one>} \<subseteq> {a \<in> carrier R . eval R R id a ?f = \<zero>}"
     by (auto simp: R.evalRR_simps)
   then have "card {x \<in> carrier R. x [^] d = \<one>} \<le>
         card {a \<in> carrier R. eval R R id a ?f = \<zero>}" using finite by (simp add : card_mono)
@@ -863,19 +761,6 @@ text \<open>
   by the first proof given in the survey~@{cite "conrad-cyclicity"}.
 \<close>
 
-lemma (in group)
-  assumes finite': "finite (carrier G)"
-  assumes "a \<in> carrier G"
-  shows pow_ord_eq_ord_iff: "group.ord G (a [^] k) = ord a \<longleftrightarrow> coprime k (ord a)" (is "?L \<longleftrightarrow> ?R")
-proof
-  assume A: ?L then show ?R
-    using assms ord_ge_1 [OF assms]
-    by (auto simp: div_eq_dividend_iff ord_pow_dvd_ord_elem coprime_iff_gcd_eq_1)
-next
-  assume ?R then show ?L
-    using ord_pow_dvd_ord_elem[OF assms, of k] by auto
-qed
-
 context field begin
 
 lemma num_elems_of_ord_eq_phi':
@@ -890,17 +775,17 @@ proof -
     by (rule field_mult_group) simp_all
 
   from exists
-  obtain a where a:"a \<in> carrier (mult_of R)" and ord_a: "group.ord (mult_of R) a = d"
+  obtain a where a: "a \<in> carrier (mult_of R)" and ord_a: "group.ord (mult_of R) a = d"
     by (auto simp add: card_gt_0_iff)
 
-  have set_eq1:"{a[^]n| n. n \<in> {1 .. d}} = {x \<in> carrier (mult_of R). x [^] d = \<one>}"
+  have set_eq1: "{a[^]n| n. n \<in> {1 .. d}} = {x \<in> carrier (mult_of R). x [^] d = \<one>}"
   proof (rule card_seteq)
     show "finite {x \<in> carrier (mult_of R). x [^] d = \<one>}" using finite by auto
 
     show "{a[^]n| n. n \<in> {1 ..d}} \<subseteq> {x \<in> carrier (mult_of R). x[^]d = \<one>}"
     proof
       fix x assume "x \<in> {a[^]n | n. n \<in> {1 .. d}}"
-      then obtain n where n:"x = a[^]n \<and> n \<in> {1 .. d}" by auto
+      then obtain n where n: "x = a[^]n \<and> n \<in> {1 .. d}" by auto
       have "x[^]d =(a[^]d)[^]n" using n a ord_a by (simp add:nat_pow_pow mult.commute)
       hence "x[^]d = \<one>" using ord_a G.pow_ord_eq_1[OF a] by fastforce
       thus "x \<in> {x \<in> carrier (mult_of R). x[^]d = \<one>}" using G.nat_pow_closed[OF a] n by blast
@@ -908,7 +793,7 @@ proof -
 
     show "card {x \<in> carrier (mult_of R). x [^] d = \<one>} \<le> card {a[^]n | n. n \<in> {1 .. d}}"
     proof -
-      have *:"{a[^]n | n. n \<in> {1 .. d }} = ((\<lambda> n. a[^]n) ` {1 .. d})" by auto
+      have *: "{a[^]n | n. n \<in> {1 .. d }} = ((\<lambda> n. a[^]n) ` {1 .. d})" by auto
       have "0 < order (mult_of R)" unfolding order_mult_of[OF finite]
         using card_mono[OF finite, of "{\<zero>, \<one>}"] by (simp add: order_def)
       have "card {x \<in> carrier (mult_of R). x [^] d = \<one>} \<le> card {x \<in> carrier R. x [^] d = \<one>}"
@@ -919,13 +804,13 @@ proof -
     qed
   qed
 
-  have set_eq2:"{x \<in> carrier (mult_of R) . group.ord (mult_of R) x = d}
+  have set_eq2: "{x \<in> carrier (mult_of R) . group.ord (mult_of R) x = d}
                 = (\<lambda> n . a[^]n) ` {n \<in> {1 .. d}. group.ord (mult_of R) (a[^]n) = d}" (is "?L = ?R")
   proof
-    { fix x assume x:"x \<in> (carrier (mult_of R)) \<and> group.ord (mult_of R) x = d"
+    { fix x assume x: "x \<in> (carrier (mult_of R)) \<and> group.ord (mult_of R) x = d"
       hence "x \<in> {x \<in> carrier (mult_of R). x [^] d = \<one>}"
         by (simp add: G.pow_ord_eq_1[of x, symmetric])
-      then obtain n where n:"x = a[^]n \<and> n \<in> {1 .. d}" using set_eq1 by blast
+      then obtain n where n: "x = a[^]n \<and> n \<in> {1 .. d}" using set_eq1 by blast
       hence "x \<in> ?R" using x by fast
     } thus "?L \<subseteq> ?R" by blast
     show "?R \<subseteq> ?L" using a by (auto simp add: carrier_mult_of[symmetric] simp del: carrier_mult_of)
@@ -943,7 +828,7 @@ end
 
 
 theorem (in field) finite_field_mult_group_has_gen :
-  assumes finite:"finite (carrier R)"
+  assumes finite: "finite (carrier R)"
   shows "\<exists> a \<in> carrier (mult_of R) . carrier (mult_of R) = {a[^]i | i::nat . i \<in> UNIV}"
 proof -
   note mult_of_simps[simp]
@@ -964,10 +849,10 @@ proof -
     using fin finite by (subst card_UN_disjoint) auto
   also have "?U = carrier (mult_of R)"
   proof
-    { fix x assume x:"x \<in> carrier (mult_of R)"
-      hence x':"x\<in>carrier (mult_of R)" by simp
+    { fix x assume x: "x \<in> carrier (mult_of R)"
+      hence x': "x\<in>carrier (mult_of R)" by simp
       then have "group.ord (mult_of R) x dvd order (mult_of R)"
-          using finite' G.ord_dvd_group_order[OF _ x'] by (simp add: order_mult_of)
+        using G.ord_dvd_group_order by blast
       hence "x \<in> ?U" using dvd_nat_bounds[of "order (mult_of R)" "group.ord (mult_of R) x"] x by blast
     } thus "carrier (mult_of R) \<subseteq> ?U" by blast
   qed auto
@@ -975,7 +860,7 @@ proof -
     using order_mult_of finite' by (simp add: order_def)
   finally have sum_Ns_eq: "(\<Sum>d | d dvd order (mult_of R). ?N d) = order (mult_of R)" .
 
-  { fix d assume d:"d dvd order (mult_of R)"
+  { fix d assume d: "d dvd order (mult_of R)"
     have "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} \<le> phi' d"
     proof cases
       assume "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} = 0" thus ?thesis by presburger
@@ -985,20 +870,20 @@ proof -
       thus ?thesis using num_elems_of_ord_eq_phi'[OF finite d] by auto
     qed
   }
-  hence all_le:"\<And>i. i \<in> {d. d dvd order (mult_of R) }
+  hence all_le: "\<And>i. i \<in> {d. d dvd order (mult_of R) }
         \<Longrightarrow> (\<lambda>i. card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = i}) i \<le> (\<lambda>i. phi' i) i" by fast
-  hence le:"(\<Sum>i | i dvd order (mult_of R). ?N i)
+  hence le: "(\<Sum>i | i dvd order (mult_of R). ?N i)
             \<le> (\<Sum>i | i dvd order (mult_of R). phi' i)"
             using sum_mono[of "{d .  d dvd order (mult_of R)}"
                   "\<lambda>i. card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = i}"] by presburger
   have "order (mult_of R) = (\<Sum>d | d dvd order (mult_of R). phi' d)" using *
     by (simp add: sum_phi'_factors)
-  hence eq:"(\<Sum>i | i dvd order (mult_of R). ?N i)
+  hence eq: "(\<Sum>i | i dvd order (mult_of R). ?N i)
           = (\<Sum>i | i dvd order (mult_of R). phi' i)" using le sum_Ns_eq by presburger
   have "\<And>i. i \<in> {d. d dvd order (mult_of R) } \<Longrightarrow> ?N i = (\<lambda>i. phi' i) i"
   proof (rule ccontr)
     fix i
-    assume i1:"i \<in> {d. d dvd order (mult_of R)}" and "?N i \<noteq> phi' i"
+    assume i1: "i \<in> {d. d dvd order (mult_of R)}" and "?N i \<noteq> phi' i"
     hence "?N i = 0"
       using num_elems_of_ord_eq_phi'[OF finite, of i] by (auto simp: card_eq_0_iff)
     moreover  have "0 < i" using * i1 by (simp add: dvd_nat_bounds[of "order (mult_of R)" i])
@@ -1010,17 +895,17 @@ proof -
     thus False using eq by force
   qed
   hence "?N (order (mult_of R)) > 0" using * by (simp add: phi'_nonzero)
-  then obtain a where a:"a \<in> carrier (mult_of R)" and a_ord:"group.ord (mult_of R) a = order (mult_of R)"
+  then obtain a where a: "a \<in> carrier (mult_of R)" and a_ord: "group.ord (mult_of R) a = order (mult_of R)"
     by (auto simp add: card_gt_0_iff)
-  hence set_eq:"{a[^]i | i::nat. i \<in> UNIV} = (\<lambda>x. a[^]x) ` {0 .. group.ord (mult_of R) a - 1}"
+  hence set_eq: "{a[^]i | i::nat. i \<in> UNIV} = (\<lambda>x. a[^]x) ` {0 .. group.ord (mult_of R) a - 1}"
     using G.ord_elems[OF finite'] by auto
-  have card_eq:"card ((\<lambda>x. a[^]x) ` {0 .. group.ord (mult_of R) a - 1}) = card {0 .. group.ord (mult_of R) a - 1}"
+  have card_eq: "card ((\<lambda>x. a[^]x) ` {0 .. group.ord (mult_of R) a - 1}) = card {0 .. group.ord (mult_of R) a - 1}"
     by (intro card_image G.ord_inj finite' a)
   hence "card ((\<lambda> x . a[^]x) ` {0 .. group.ord (mult_of R) a - 1}) = card {0 ..order (mult_of R) - 1}"
     using assms by (simp add: card_eq a_ord)
-  hence card_R_minus_1:"card {a[^]i | i::nat. i \<in> UNIV} =  order (mult_of R)"
+  hence card_R_minus_1: "card {a[^]i | i::nat. i \<in> UNIV} =  order (mult_of R)"
     using * by (subst set_eq) auto
-  have **:"{a[^]i | i::nat. i \<in> UNIV} \<subseteq> carrier (mult_of R)"
+  have **: "{a[^]i | i::nat. i \<in> UNIV} \<subseteq> carrier (mult_of R)"
     using G.nat_pow_closed[OF a] by auto
   with _ have "carrier (mult_of R) = {a[^]i|i::nat. i \<in> UNIV}"
     by (rule card_seteq[symmetric]) (simp_all add: card_R_minus_1 finite order_def del: UNIV_I)
