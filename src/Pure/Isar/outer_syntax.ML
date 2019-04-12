@@ -233,7 +233,7 @@ fun parse_command thy markers =
         |> Keyword.is_proof_open keywords name ? Toplevel.skip_proof_open
         |> Keyword.is_proof_close keywords name ? Toplevel.skip_proof_close;
       val command_markers =
-        Parse.command |-- Document_Source.tags >>
+        Parse.command |-- Document_Source.old_tags >>
           (fn tags => Toplevel.markers (map Document_Marker.legacy_tag tags @ markers) tr0);
     in
       (case lookup_commands thy name of

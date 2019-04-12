@@ -312,18 +312,18 @@ fun apply_union _ [] state = raise FAILURE (state, UNDEF)
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
-fun apply_markers markers (state as State ((node, pr_ctxt), prev_thy)) =
+fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
   let
     val state' =
       Runtime.controlled_execution (try generic_theory_of state)
-        (fn () => State ((node, fold Document_Marker.evaluate markers pr_ctxt), prev_thy)) ();
+        (fn () => State ((node, fold (Document_Marker.evaluate name) markers pr_ctxt), prev_thy)) ();
   in (state', NONE) end
   handle exn => (state, SOME exn);
 
 in
 
-fun apply_trans int trans markers state =
-  (apply_union int trans state |> apply_markers markers)
+fun apply_trans int name markers trans state =
+  (apply_union int trans state |> apply_markers name markers)
   handle FAILURE (alt_state, exn) => (alt_state, SOME exn) | exn => (state, SOME exn);
 
 end;
@@ -616,9 +616,9 @@ end;
 
 local
 
-fun app int (tr as Transition {markers, trans, ...}) =
+fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
-    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int trans markers)
+    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int name markers trans)
       ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn));
 
 in

@@ -14,9 +14,16 @@ sig
   val improper: Token.T list parser
   val improper_end: Token.T list parser
   val blank_end: Token.T list parser
-  val get_tags: Proof.context -> string list
-  val update_tags: string -> Proof.context -> Proof.context
-  val tags: string list parser
+  datatype scope = Command | Proof
+  type tag = string * scope
+  val eq_tag: tag * tag -> bool
+  val update_tags: tag -> Proof.context -> Proof.context
+  val get_tags: Proof.context -> tag list
+  type tagging = tag list
+  val update_tagging: Proof.context -> tagging -> tag option * tagging
+  val tag_scope: scope parser
+  val tag_name: string parser
+  val old_tags: string list parser
   val annotation: unit parser
 end;
 
@@ -43,27 +50,62 @@ val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper))
 val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one Token.is_blank));
 
 
-(* syntactic tags (old-style) *)
+(** syntactic tags **)
+
+(* scope *)
+
+datatype scope = Command | Proof;
+
+type tag = string * scope;
+val eq_tag: tag * tag -> bool = eq_fst op =;
+
+
+(* context data *)
 
 structure Tags = Proof_Data
 (
-  type T = string list;
+  type T = tag list;
   fun init _ = [];
 );
 
+val update_tags = Tags.map o update eq_tag;
+
 val get_tags = Tags.get;
-val update_tags = Tags.map o update (op =);
 
-val tag_name = Parse.group (fn () => "document tag name") (Parse.short_ident || Parse.string);
 
-val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (tag_name --| blank_end);
-val tags = Scan.repeat tag;
+(* command tagging *)
+
+type tagging = tag list;
+
+fun update_tagging ctxt tagging =
+  let
+    val tagging' = fold (update eq_tag) (get_tags ctxt) tagging;
+    val nested_tagging' = filter (fn (_, scope) => scope = Proof) tagging';
+  in (try hd tagging', nested_tagging') end;
+
+
+(* parse scope and name *)
+
+val scope = Parse.reserved "command" >> K Command || Parse.reserved "proof" >> K Proof;
+
+val tag_scope =
+  Parse.group (fn () => "document tag scope") (Parse.$$$ "(" |-- Parse.!!! (scope --| Parse.$$$ ")"));
+
+val tag_name =
+  Parse.group (fn () => "document tag name") (Parse.short_ident || Parse.string);
+
+
+(* syntactic tags (old-style) *)
+
+val old_tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (tag_name --| blank_end);
+
+val old_tags = Scan.repeat old_tag;
 
 
 (* semantic markers (operation on presentation context) *)
 
 val marker = improper |-- Parse.document_marker --| blank_end;
 
-val annotation = Scan.repeat (tag >> K () || marker >> K ()) >> K ();
+val annotation = Scan.repeat (old_tag >> K () || marker >> K ()) >> K ();
 
 end;
