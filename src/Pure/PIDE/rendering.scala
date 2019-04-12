@@ -216,6 +216,9 @@ object Rendering
     Markup.Elements(Markup.META_TITLE, Markup.META_CREATOR, Markup.META_CONTRIBUTOR,
       Markup.META_DATE, Markup.META_DESCRIPTION, Markup.META_LICENSE)
 
+  val document_tag_elements =
+    Markup.Elements(Markup.Document_Tag.ELEMENT)
+
   val markdown_elements =
     Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
       Markup.Markdown_Bullet.name)
@@ -695,6 +698,20 @@ abstract class Rendering(
           case (res, Text.Info(_, elem)) =>
             val plain_text = XML.content(elem)
             Some((elem.name -> plain_text) :: res)
+        })
+    Library.distinct(results.flatMap(_.info.reverse))
+  }
+
+
+  /* document tags */
+
+  def document_tags(range: Text.Range): List[String] =
+  {
+    val results =
+      snapshot.cumulate[List[String]](range, Nil, Rendering.document_tag_elements, _ =>
+        {
+          case (res, Text.Info(_, XML.Elem(Markup.Document_Tag(name), _))) => Some(name :: res)
+          case _ => None
         })
     Library.distinct(results.flatMap(_.info.reverse))
   }

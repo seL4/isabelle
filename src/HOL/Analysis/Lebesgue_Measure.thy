@@ -40,16 +40,16 @@ text \<open>
   Every right-continuous and nondecreasing function gives rise to a measure on the reals:
 \<close>
 
-definition%important interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where
+definition\<^marker>\<open>tag important\<close> interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where
   "interval_measure F =
      extend_measure UNIV {(a, b). a \<le> b} (\<lambda>(a, b). {a<..b}) (\<lambda>(a, b). ennreal (F b - F a))"
 
-lemma%important emeasure_interval_measure_Ioc:
+lemma\<^marker>\<open>tag important\<close> emeasure_interval_measure_Ioc:
   assumes "a \<le> b"
   assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
   assumes right_cont_F : "\<And>a. continuous (at_right a) F"
   shows "emeasure (interval_measure F) {a<..b} = F b - F a"
-proof%unimportant (rule extend_measure_caratheodory_pair[OF interval_measure_def \<open>a \<le> b\<close>])
+proof (rule extend_measure_caratheodory_pair[OF interval_measure_def \<open>a \<le> b\<close>])
   show "semiring_of_sets UNIV {{a<..b} |a b :: real. a \<le> b}"
   proof (unfold_locales, safe)
     fix a b c d :: real assume *: "a \<le> b" "c \<le> d"
@@ -319,7 +319,7 @@ lemma emeasure_interval_measure_Ioc_eq:
     emeasure (interval_measure F) {a <.. b} = (if a \<le> b then F b - F a else 0)"
   using emeasure_interval_measure_Ioc[of a b F] by auto
 
-lemma%important sets_interval_measure [simp, measurable_cong]:
+lemma\<^marker>\<open>tag important\<close> sets_interval_measure [simp, measurable_cong]:
     "sets (interval_measure F) = sets borel"
   apply (simp add: sets_extend_measure interval_measure_def borel_sigma_sets_Ioc)
   apply (rule sigma_sets_eqI)
@@ -371,7 +371,7 @@ proof (rule tendsto_unique)
        (auto simp: continuous_on_ennreal continuous_on_diff cont_F continuous_on_const)
 qed (rule trivial_limit_at_left_real)
 
-lemma%important sigma_finite_interval_measure:
+lemma\<^marker>\<open>tag important\<close> sigma_finite_interval_measure:
   assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
   assumes right_cont_F : "\<And>a. continuous (at_right a) F"
   shows "sigma_finite_measure (interval_measure F)"
@@ -382,13 +382,13 @@ lemma%important sigma_finite_interval_measure:
 
 subsection \<open>Lebesgue-Borel measure\<close>
 
-definition%important lborel :: "('a :: euclidean_space) measure" where
+definition\<^marker>\<open>tag important\<close> lborel :: "('a :: euclidean_space) measure" where
   "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. interval_measure (\<lambda>x. x)) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
 
-abbreviation%important lebesgue :: "'a::euclidean_space measure"
+abbreviation\<^marker>\<open>tag important\<close> lebesgue :: "'a::euclidean_space measure"
   where "lebesgue \<equiv> completion lborel"
 
-abbreviation%important lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
+abbreviation\<^marker>\<open>tag important\<close> lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
   where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
 
 lemma
@@ -409,7 +409,7 @@ lemma measurable_lebesgue_cong:
   shows "f \<in> measurable (lebesgue_on S) M \<longleftrightarrow> g \<in> measurable (lebesgue_on S) M"
   by (metis (mono_tags, lifting) IntD1 assms measurable_cong_simp space_restrict_space)
 
-text%unimportant \<open>Measurability of continuous functions\<close>
+text\<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
 
 lemma continuous_imp_measurable_on_sets_lebesgue:
   assumes f: "continuous_on S f" and S: "S \<in> sets lebesgue"
@@ -460,10 +460,10 @@ qed
 lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ennreal (if l \<le> u then u - l else 0)"
   by simp
 
-lemma%important emeasure_lborel_cbox[simp]:
+lemma\<^marker>\<open>tag important\<close> emeasure_lborel_cbox[simp]:
   assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   shows "emeasure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-proof%unimportant -
+proof -
   have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b) :: ennreal) = indicator (cbox l u)"
     by (auto simp: fun_eq_iff cbox_def split: split_indicator)
   then have "emeasure lborel (cbox l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
@@ -654,12 +654,12 @@ lemma mem_closed_if_AE_lebesgue: "closed C \<Longrightarrow> (AE x in lebesgue. 
 
 subsection \<open>Affine transformation on the Lebesgue-Borel\<close>
 
-lemma%important lborel_eqI:
+lemma\<^marker>\<open>tag important\<close> lborel_eqI:
   fixes M :: "'a::euclidean_space measure"
   assumes emeasure_eq: "\<And>l u. (\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b) \<Longrightarrow> emeasure M (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
   assumes sets_eq: "sets M = sets borel"
   shows "lborel = M"
-proof%unimportant (rule measure_eqI_generator_eq)
+proof (rule measure_eqI_generator_eq)
   let ?E = "range (\<lambda>(a, b). box a b::'a set)"
   show "Int_stable ?E"
     by (auto simp: Int_stable_def box_Int_box)
@@ -679,12 +679,12 @@ proof%unimportant (rule measure_eqI_generator_eq)
       done }
 qed
 
-lemma%important lborel_affine_euclidean:
+lemma\<^marker>\<open>tag important\<close> lborel_affine_euclidean:
   fixes c :: "'a::euclidean_space \<Rightarrow> real" and t
   defines "T x \<equiv> t + (\<Sum>j\<in>Basis. (c j * (x \<bullet> j)) *\<^sub>R j)"
   assumes c: "\<And>j. j \<in> Basis \<Longrightarrow> c j \<noteq> 0"
   shows "lborel = density (distr lborel borel T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" (is "_ = ?D")
-proof%unimportant (rule lborel_eqI)
+proof (rule lborel_eqI)
   let ?B = "Basis :: 'a set"
   fix l u assume le: "\<And>b. b \<in> ?B \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   have [measurable]: "T \<in> borel \<rightarrow>\<^sub>M borel"
@@ -736,10 +736,10 @@ lemma lborel_integrable_real_affine_iff:
     lborel_integrable_real_affine[of "\<lambda>x. f (t + c * x)" "1/c" "-t/c"]
   by (auto simp add: field_simps)
 
-lemma%important lborel_integral_real_affine:
+lemma\<^marker>\<open>tag important\<close> lborel_integral_real_affine:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}" and c :: real
   assumes c: "c \<noteq> 0" shows "(\<integral>x. f x \<partial> lborel) = \<bar>c\<bar> *\<^sub>R (\<integral>x. f (t + c * x) \<partial>lborel)"
-proof%unimportant cases
+proof cases
   assume f[measurable]: "integrable lborel f" then show ?thesis
     using c f f[THEN borel_measurable_integrable] f[THEN lborel_integrable_real_affine, of c t]
     by (subst lborel_real_affine[OF c, of t])
@@ -901,9 +901,9 @@ interpretation lborel: sigma_finite_measure lborel
 
 interpretation lborel_pair: pair_sigma_finite lborel lborel ..
 
-lemma%important lborel_prod:
+lemma\<^marker>\<open>tag important\<close> lborel_prod:
   "lborel \<Otimes>\<^sub>M lborel = (lborel :: ('a::euclidean_space \<times> 'b::euclidean_space) measure)"
-proof%unimportant (rule lborel_eqI[symmetric], clarify)
+proof (rule lborel_eqI[symmetric], clarify)
   fix la ua :: 'a and lb ub :: 'b
   assume lu: "\<And>a b. (a, b) \<in> Basis \<Longrightarrow> (la, lb) \<bullet> (a, b) \<le> (ua, ub) \<bullet> (a, b)"
   have [simp]:
@@ -978,14 +978,14 @@ qed
 
 subsection \<open>Lebesgue measurable sets\<close>
 
-abbreviation%important lmeasurable :: "'a::euclidean_space set set"
+abbreviation\<^marker>\<open>tag important\<close> lmeasurable :: "'a::euclidean_space set set"
 where
   "lmeasurable \<equiv> fmeasurable lebesgue"
 
 lemma not_measurable_UNIV [simp]: "UNIV \<notin> lmeasurable"
   by (simp add: fmeasurable_def)
 
-lemma%important lmeasurable_iff_integrable:
+lemma\<^marker>\<open>tag important\<close> lmeasurable_iff_integrable:
   "S \<in> lmeasurable \<longleftrightarrow> integrable lebesgue (indicator S :: 'a::euclidean_space \<Rightarrow> real)"
   by (auto simp: fmeasurable_def integrable_iff_bounded borel_measurable_indicator_iff ennreal_indicator)
 
@@ -1039,7 +1039,7 @@ lemma bounded_set_imp_lmeasurable:
   by (metis assms bounded_Un emeasure_bounded_finite emeasure_completion fmeasurableI main_part_null_part_Un)
 
 
-subsection%unimportant\<open>Translation preserves Lebesgue measure\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Translation preserves Lebesgue measure\<close>
 
 lemma sigma_sets_image:
   assumes S: "S \<in> sigma_sets \<Omega> M" and "M \<subseteq> Pow \<Omega>" "f ` \<Omega> = \<Omega>" "inj_on f \<Omega>"
@@ -1128,12 +1128,12 @@ subsection \<open>A nice lemma for negligibility proofs\<close>
 lemma summable_iff_suminf_neq_top: "(\<And>n. f n \<ge> 0) \<Longrightarrow> \<not> summable f \<Longrightarrow> (\<Sum>i. ennreal (f i)) = top"
   by (metis summable_suminf_not_top)
 
-proposition%important starlike_negligible_bounded_gmeasurable:
+proposition\<^marker>\<open>tag important\<close> starlike_negligible_bounded_gmeasurable:
   fixes S :: "'a :: euclidean_space set"
   assumes S: "S \<in> sets lebesgue" and "bounded S"
       and eq1: "\<And>c x. \<lbrakk>(c *\<^sub>R x) \<in> S; 0 \<le> c; x \<in> S\<rbrakk> \<Longrightarrow> c = 1"
     shows "S \<in> null_sets lebesgue"
-proof%unimportant -
+proof -
   obtain M where "0 < M" "S \<subseteq> ball 0 M"
     using \<open>bounded S\<close> by (auto dest: bounded_subset_ballD)
 
@@ -1252,10 +1252,10 @@ proof -
   qed
 qed
 
-lemma%important outer_regular_lborel:
+lemma\<^marker>\<open>tag important\<close> outer_regular_lborel:
   assumes B: "B \<in> sets borel" and "0 < (e::real)"
   obtains U where "open U" "B \<subseteq> U" "emeasure lborel (U - B) < e"
-proof%unimportant -
+proof -
   obtain U where U: "open U" "B \<subseteq> U" and "emeasure lborel (U-B) \<le> e/2"
     using outer_regular_lborel_le [OF B, of "e/2"] \<open>e > 0\<close>
     by force

@@ -137,7 +137,7 @@ val opt_files =
 
 val keyword_spec =
   Parse.group (fn () => "outer syntax keyword specification")
-    (Parse.name -- opt_files -- Document_Source.tags);
+    (Parse.name -- opt_files -- Document_Source.old_tags);
 
 val keyword_decl =
   Scan.repeat1 Parse.string_position --

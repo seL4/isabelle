@@ -10,7 +10,7 @@ begin
 
 (* TODO FIXME: A lot of the things in here have nothing to do with complex analysis *)
 
-subsection%unimportant\<open>General lemmas\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>General lemmas\<close>
 
 lemma nonneg_Reals_cmod_eq_Re: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> norm z = Re z"
   by (simp add: complex_nonneg_Reals_iff cmod_eq_Re)
@@ -236,11 +236,11 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
-definition%important holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
            (infixl "(holomorphic'_on)" 50)
   where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f field_differentiable (at x within s)"
 
-named_theorems%important holomorphic_intros "structural introduction rules for holomorphic_on"
+named_theorems\<^marker>\<open>tag important\<close> holomorphic_intros "structural introduction rules for holomorphic_on"
 
 lemma holomorphic_onI [intro?]: "(\<And>x. x \<in> s \<Longrightarrow> f field_differentiable (at x within s)) \<Longrightarrow> f holomorphic_on s"
   by (simp add: holomorphic_on_def)
@@ -498,7 +498,7 @@ lemma holomorphic_nonconstant:
   by (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
     (use assms in \<open>auto simp: holomorphic_derivI\<close>)
 
-subsection%unimportant\<open>Caratheodory characterization\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Caratheodory characterization\<close>
 
 lemma field_differentiable_caratheodory_at:
   "f field_differentiable (at z) \<longleftrightarrow>
@@ -514,10 +514,10 @@ lemma field_differentiable_caratheodory_within:
 
 subsection\<open>Analyticity on a set\<close>
 
-definition%important analytic_on (infixl "(analytic'_on)" 50)
+definition\<^marker>\<open>tag important\<close> analytic_on (infixl "(analytic'_on)" 50)
   where "f analytic_on S \<equiv> \<forall>x \<in> S. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
 
-named_theorems%important analytic_intros "introduction rules for proving analyticity"
+named_theorems\<^marker>\<open>tag important\<close> analytic_intros "introduction rules for proving analyticity"
 
 lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic_on S"
   by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
@@ -734,7 +734,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection%unimportant\<open>Analyticity at a point\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Analyticity at a point\<close>
 
 lemma analytic_at_ball:
   "f analytic_on {z} \<longleftrightarrow> (\<exists>e. 0<e \<and> f holomorphic_on ball z e)"
@@ -769,7 +769,7 @@ next
     by (force simp add: analytic_at)
 qed
 
-subsection%unimportant\<open>Combining theorems for derivative with ``analytic at'' hypotheses\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Combining theorems for derivative with ``analytic at'' hypotheses\<close>
 
 lemma
   assumes "f analytic_on {z}" "g analytic_on {z}"
@@ -805,7 +805,7 @@ lemma deriv_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
 by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
 
-subsection%unimportant\<open>Complex differentiation of sequences and series\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Complex differentiation of sequences and series\<close>
 
 (* TODO: Could probably be simplified using Uniform_Limit *)
 lemma has_complex_derivative_sequence:
@@ -910,7 +910,7 @@ proof -
     by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
 qed
 
-subsection%unimportant\<open>Bound theorem\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Bound theorem\<close>
 
 lemma field_differentiable_bound:
   fixes S :: "'a::real_normed_field set"
@@ -924,7 +924,7 @@ lemma field_differentiable_bound:
   apply (rule onorm_le, simp_all add: norm_mult mult_right_mono assms)
   done
 
-subsection%unimportant\<open>Inverse function theorem for complex derivatives\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Inverse function theorem for complex derivatives\<close>
 
 lemma has_field_derivative_inverse_basic:
   shows "DERIV f (g y) :> f' \<Longrightarrow>
@@ -965,7 +965,7 @@ lemma has_field_derivative_inverse_strong_x:
   apply (rule has_derivative_inverse_strong_x [of S g y f])
   by auto
 
-subsection%unimportant \<open>Taylor on Complex Numbers\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Taylor on Complex Numbers\<close>
 
 lemma sum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
@@ -1151,7 +1151,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Polynomal function extremal theorem, from HOL Light\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Polynomal function extremal theorem, from HOL Light\<close>
 
 lemma polyfun_extremal_lemma: (*COMPLEX_POLYFUN_EXTREMAL_LEMMA in HOL Light*)
     fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"

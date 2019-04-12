@@ -129,7 +129,7 @@ qed
 
 (* TODO: in this definition, it would be more natural if einterval a b included a and b when
    they are real. *)
-definition%important interval_lebesgue_integral :: "real measure \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> 'a::{banach, second_countable_topology}" where
+definition\<^marker>\<open>tag important\<close> interval_lebesgue_integral :: "real measure \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> 'a::{banach, second_countable_topology}" where
   "interval_lebesgue_integral M a b f =
     (if a \<le> b then (LINT x:einterval a b|M. f x) else - (LINT x:einterval b a|M. f x))"
 
@@ -140,7 +140,7 @@ syntax
 translations
   "LINT x=a..b|M. f" == "CONST interval_lebesgue_integral M a b (\<lambda>x. f)"
 
-definition%important interval_lebesgue_integrable :: "real measure \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> (real \<Rightarrow> 'a::{banach, second_countable_topology}) \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> interval_lebesgue_integrable :: "real measure \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> (real \<Rightarrow> 'a::{banach, second_countable_topology}) \<Rightarrow> bool" where
   "interval_lebesgue_integrable M a b f =
     (if a \<le> b then set_integrable M (einterval a b) f else set_integrable M (einterval b a) f)"
 
@@ -301,7 +301,7 @@ lemma interval_integral_to_infinity_eq: "(LINT x=ereal a..\<infinity> | M. f x) 
 
 proposition interval_integrable_to_infinity_eq: "(interval_lebesgue_integrable M a \<infinity> f) =
   (set_integrable M {a<..} f)"
-  unfolding%unimportant interval_lebesgue_integrable_def by auto
+  unfolding interval_lebesgue_integrable_def by auto
 
 subsection\<open>Basic properties of integration over an interval wrt lebesgue measure\<close>
 
@@ -1083,8 +1083,8 @@ proposition interval_integral_norm:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "interval_lebesgue_integrable lborel a b f \<Longrightarrow> a \<le> b \<Longrightarrow>
     norm (LBINT t=a..b. f t) \<le> LBINT t=a..b. norm (f t)"
-  using%unimportant integral_norm_bound[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
-  by%unimportant (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
+  using integral_norm_bound[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
+  by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
 
 proposition interval_integral_norm2:
   "interval_lebesgue_integrable lborel a b f \<Longrightarrow>

@@ -121,10 +121,15 @@ predefined markers are taken from the Dublin Core Metadata Initiative,
 e.g. \<^marker>\<open>contributor arg\<close> or \<^marker>\<open>license arg\<close> and produce PIDE markup that
 can retrieved from the document database.
 
-* Old-style command tags %name are re-interpreted as markers \<^marker>\<open>tag name\<close>
-and produce LaTeX environments as before. Potential INCOMPATIBILITY:
-multiple markers are composed in canonical order, resulting in a
-reversed list of tags in the presentation context.
+* Old-style command tags %name are re-interpreted as markers with
+proof-scope \<^marker>\<open>tag (proof) name\<close> and produce LaTeX environments as
+before. Potential INCOMPATIBILITY: multiple markers are composed in
+canonical order, resulting in a reversed list of tags in the
+presentation context.
+
+* Marker \<^marker>\<open>tag name\<close> does not apply to the proof of a top-level goal
+statement by default (e.g. 'theorem', 'lemma'). This is a subtle change
+of semantics wrt. old-style %name.
 
 * Document antiquotation option "cartouche" indicates if the output
 should be delimited as cartouche; this takes precedence over the

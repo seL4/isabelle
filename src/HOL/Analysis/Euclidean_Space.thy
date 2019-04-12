@@ -13,7 +13,7 @@ imports
 begin
 
 
-subsection%unimportant \<open>Interlude: Some properties of real sets\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Interlude: Some properties of real sets\<close>
 
 lemma seq_mono_lemma:
   assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
@@ -211,7 +211,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Subclass relationships\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space
 proof
@@ -234,7 +234,7 @@ qed
 
 subsection \<open>Class instances\<close>
 
-subsubsection%unimportant \<open>Type \<^typ>\<open>real\<close>\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Type \<^typ>\<open>real\<close>\<close>
 
 instantiation real :: euclidean_space
 begin
@@ -250,7 +250,7 @@ end
 lemma DIM_real[simp]: "DIM(real) = 1"
   by simp
 
-subsubsection%unimportant \<open>Type \<^typ>\<open>complex\<close>\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Type \<^typ>\<open>complex\<close>\<close>
 
 instantiation complex :: euclidean_space
 begin
@@ -271,7 +271,7 @@ lemma complex_Basis_1 [iff]: "(1::complex) \<in> Basis"
 lemma complex_Basis_i [iff]: "\<i> \<in> Basis"
   by (simp add: Basis_complex_def)
 
-subsubsection%unimportant \<open>Type \<^typ>\<open>'a \<times> 'b\<close>\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Type \<^typ>\<open>'a \<times> 'b\<close>\<close>
 
 instantiation prod :: (real_inner, real_inner) real_inner
 begin

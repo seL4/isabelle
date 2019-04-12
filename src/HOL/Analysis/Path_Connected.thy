@@ -10,34 +10,34 @@ begin
 
 subsection \<open>Paths and Arcs\<close>
 
-definition%important path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "path g \<longleftrightarrow> continuous_on {0..1} g"
 
-definition%important pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathstart g = g 0"
 
-definition%important pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathfinish g = g 1"
 
-definition%important path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
+definition\<^marker>\<open>tag important\<close> path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
   where "path_image g = g ` {0 .. 1}"
 
-definition%important reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "reversepath g = (\<lambda>x. g(1 - x))"
 
-definition%important joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
     (infixr "+++" 75)
   where "g1 +++ g2 = (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
 
-definition%important simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "simple_path g \<longleftrightarrow>
      path g \<and> (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
 
-definition%important arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bool"
   where "arc g \<longleftrightarrow> path g \<and> inj_on g {0..1}"
 
 
-subsection%unimportant\<open>Invariance theorems\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Invariance theorems\<close>
 
 lemma path_eq: "path p \<Longrightarrow> (\<And>t. t \<in> {0..1} \<Longrightarrow> p t = q t) \<Longrightarrow> path q"
   using continuous_on_eq path_def by blast
@@ -133,7 +133,7 @@ lemma arc_linear_image_eq:
   by (auto simp: arc_def inj_on_def path_linear_image_eq)
 
 
-subsection%unimportant\<open>Basic lemmas about paths\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about paths\<close>
 
 lemma pathin_iff_path_real [simp]: "pathin euclideanreal g \<longleftrightarrow> path g"
   by (simp add: pathin_def path_def)
@@ -298,7 +298,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Path Images\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Path Images\<close>
 
 lemma bounded_path_image: "path g \<Longrightarrow> bounded(path_image g)"
   by (simp add: compact_imp_bounded compact_path_image)
@@ -391,7 +391,7 @@ lemma simple_path_inj_on: "simple_path g \<Longrightarrow> inj_on g {0<..<1}"
   by (auto simp: simple_path_def path_image_def inj_on_def less_eq_real_def Ball_def)
 
 
-subsection%unimportant\<open>Simple paths with the endpoints removed\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Simple paths with the endpoints removed\<close>
 
 lemma simple_path_endless:
     "simple_path c \<Longrightarrow> path_image c - {pathstart c,pathfinish c} = c ` {0<..<1}"
@@ -414,7 +414,7 @@ lemma nonempty_simple_path_endless:
   by (simp add: simple_path_endless)
 
 
-subsection%unimportant\<open>The operations on paths\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>The operations on paths\<close>
 
 lemma path_image_subset_reversepath: "path_image(reversepath g) \<le> path_image g"
   by (auto simp: path_image_def reversepath_def)
@@ -562,7 +562,7 @@ lemma reversepath_joinpaths:
   by (rule ext) (auto simp: mult.commute)
 
 
-subsection%unimportant\<open>Some reversed and "if and only if" versions of joining theorems\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some reversed and "if and only if" versions of joining theorems\<close>
 
 lemma path_join_path_ends:
   fixes g1 :: "real \<Rightarrow> 'a::metric_space"
@@ -695,7 +695,7 @@ lemma arc_join_eq_alt:
 using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
 
 
-subsection%unimportant\<open>The joining of paths is associative\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>The joining of paths is associative\<close>
 
 lemma path_assoc:
     "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
@@ -745,7 +745,7 @@ lemma arc_assoc:
       \<Longrightarrow> arc(p +++ (q +++ r)) \<longleftrightarrow> arc((p +++ q) +++ r)"
 by (simp add: arc_simple_path simple_path_assoc)
 
-subsubsection%unimportant\<open>Symmetry and loops\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Symmetry and loops\<close>
 
 lemma path_sym:
     "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
@@ -764,7 +764,7 @@ by (simp add: path_image_join sup_commute)
 
 subsection\<open>Subpath\<close>
 
-definition%important subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
+definition\<^marker>\<open>tag important\<close> subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
   where "subpath a b g \<equiv> \<lambda>x. g((b - a) * x + a)"
 
 lemma path_image_subpath_gen:
@@ -940,7 +940,7 @@ lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p =
   by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
 
 
-subsection%unimportant\<open>There is a subpath to the frontier\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>There is a subpath to the frontier\<close>
 
 lemma subpath_to_frontier_explicit:
     fixes S :: "'a::metric_space set"
@@ -1059,7 +1059,7 @@ qed
 
 subsection \<open>Shift Path to Start at Some Given Point\<close>
 
-definition%important shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
 
 lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart (shiftpath a g) = g a"
@@ -1171,7 +1171,7 @@ qed
 
 subsection \<open>Straight-Line Paths\<close>
 
-definition%important linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
   where "linepath a b = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b)"
 
 lemma pathstart_linepath[simp]: "pathstart (linepath a b) = a"
@@ -1273,7 +1273,7 @@ lemma linepath_le_1:
   using mult_left_le [of a "1-u"] mult_left_le [of b u] by auto
 
 
-subsection%unimportant\<open>Segments via convex hulls\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Segments via convex hulls\<close>
 
 lemma segments_subset_convex_hull:
     "closed_segment a b \<subseteq> (convex hull {a,b,c})"
@@ -1391,7 +1391,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Bounding a point away from a path\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounding a point away from a path\<close>
 
 lemma not_on_path_ball:
   fixes g :: "real \<Rightarrow> 'a::heine_borel"
@@ -1425,10 +1425,10 @@ subsection \<open>Path component\<close>
 
 text \<open>Original formalization by Tom Hales\<close>
 
-definition%important "path_component s x y \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "path_component s x y \<longleftrightarrow>
   (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
 
-abbreviation%important
+abbreviation\<^marker>\<open>tag important\<close>
   "path_component_set s x \<equiv> Collect (path_component s x)"
 
 lemmas path_defs = path_def pathstart_def pathfinish_def path_image_def path_component_def
@@ -1477,7 +1477,7 @@ lemma path_component_linepath:
   unfolding path_component_def
   by (rule_tac x="linepath a b" in exI, auto)
 
-subsubsection%unimportant \<open>Path components as sets\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Path components as sets\<close>
 
 lemma path_component_set:
   "path_component_set s x =
@@ -1502,7 +1502,7 @@ by (metis (no_types, lifting) Collect_cong mem_Collect_eq path_component_sym pat
 
 subsection \<open>Path connectedness of a space\<close>
 
-definition%important "path_connected s \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "path_connected s \<longleftrightarrow>
   (\<forall>x\<in>s. \<forall>y\<in>s. \<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
 
 lemma path_connectedin_iff_path_connected_real [simp]:
@@ -1814,7 +1814,7 @@ next
 qed
 
 
-subsection%unimportant\<open>Lemmas about path-connectedness\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Lemmas about path-connectedness\<close>
 
 lemma path_connected_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -1909,7 +1909,7 @@ lemma is_interval_path_connected_1:
 using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
 
 
-subsection%unimportant\<open>Path components\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Path components\<close>
 
 lemma Union_path_component [simp]:
    "Union {path_component_set S x |x. x \<in> S} = S"
@@ -2736,7 +2736,7 @@ proposition connected_annulus:
   by (auto simp: path_connected_annulus [OF assms] path_connected_imp_connected)
 
 
-subsection%unimportant\<open>Relations between components and path components\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relations between components and path components\<close>
 
 lemma open_connected_component:
   fixes s :: "'a::real_normed_vector set"
@@ -2841,7 +2841,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Existence of unbounded components\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Existence of unbounded components\<close>
 
 lemma cobounded_unbounded_component:
     fixes s :: "'a :: euclidean_space set"
@@ -2929,13 +2929,13 @@ lemma cobounded_has_bounded_component:
 
 subsection\<open>The \<open>inside\<close> and \<open>outside\<close> of a Set\<close>
 
-text%important\<open>The inside comprises the points in a bounded connected component of the set's complement.
+text\<^marker>\<open>tag important\<close>\<open>The inside comprises the points in a bounded connected component of the set's complement.
   The outside comprises the points in unbounded connected component of the complement.\<close>
 
-definition%important inside where
+definition\<^marker>\<open>tag important\<close> inside where
   "inside S \<equiv> {x. (x \<notin> S) \<and> bounded(connected_component_set ( - S) x)}"
 
-definition%important outside where
+definition\<^marker>\<open>tag important\<close> outside where
   "outside S \<equiv> -S \<inter> {x. \<not> bounded(connected_component_set (- S) x)}"
 
 lemma outside: "outside S = {x. \<not> bounded(connected_component_set (- S) x)}"

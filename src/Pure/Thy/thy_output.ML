@@ -240,21 +240,22 @@ val end_tag = edge #1 Latex.end_tag;
 fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
 fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
-fun document_tag cmd_pos state state' tag_stack =
+fun document_tag cmd_pos state state' tagging_stack =
   let
     val ctxt' = Toplevel.presentation_context state';
     val nesting = Toplevel.level state' - Toplevel.level state;
 
-    val (tag, tags) = tag_stack;
-    val tag' = try hd (fold (update (op =)) (Document_Source.get_tags ctxt') (the_list tag));
-    val tag_stack' =
-      if nesting = 0 andalso not (Toplevel.is_proof state) then tag_stack
-      else if nesting >= 0 then (tag', replicate nesting tag @ tags)
+    val (tagging, taggings) = tagging_stack;
+    val (tag', tagging') = Document_Source.update_tagging ctxt' tagging;
+
+    val tagging_stack' =
+      if nesting = 0 andalso not (Toplevel.is_proof state) then tagging_stack
+      else if nesting >= 0 then (tagging', replicate nesting tagging @ taggings)
       else
-        (case drop (~ nesting - 1) tags of
+        (case drop (~ nesting - 1) taggings of
           tg :: tgs => (tg, tgs)
         | [] => err_bad_nesting (Position.here cmd_pos));
-  in (tag', tag_stack') end;
+  in (tag', tagging_stack') end;
 
 fun read_tag s =
   (case space_explode "%" s of
@@ -290,7 +291,7 @@ fun make_command_tag options keywords =
   end;
 
 fun present_span command_tag span state state'
-    (tag_stack, active_tag, newline, latex, present_cont) =
+    (tagging_stack, active_tag, newline, latex, present_cont) =
   let
     val ctxt' = Toplevel.presentation_context state';
     val present = fold (fn (tok, (flag, 0)) =>
@@ -300,8 +301,10 @@ fun present_span command_tag span state state'
 
     val Span ((cmd_name, cmd_pos), srcs, span_newline) = span;
 
-    val (tag', tag_stack') = document_tag cmd_pos state state' tag_stack;
-    val active_tag' = if is_some tag' then tag' else command_tag cmd_name state state' active_tag;
+    val (tag', tagging_stack') = document_tag cmd_pos state state' tagging_stack;
+    val active_tag' =
+      if is_some tag' then Option.map #1 tag'
+      else command_tag cmd_name state state' active_tag;
     val edge = (active_tag, active_tag');
 
     val newline' =
@@ -318,7 +321,7 @@ fun present_span command_tag span state state'
     val present_cont' =
       if newline then (present (#3 srcs), present (#4 srcs))
       else (I, present (#3 srcs) #> present (#4 srcs));
-  in (tag_stack', active_tag', newline', latex', present_cont') end;
+  in (tagging_stack', active_tag', newline', latex', present_cont') end;
 
 fun present_trailer ((_, tags), active_tag, _, latex, present_cont) =
   if not (null tags) then err_bad_nesting " at end of theory"
@@ -447,7 +450,7 @@ fun present_thy options thy (segments: segment list) =
       | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
-      ((NONE, []), NONE, true, [], (I, I))
+      (([], []), NONE, true, [], (I, I))
       |> present (Toplevel.init_toplevel ()) (spans ~~ command_results)
       |> present_trailer
       |> rev

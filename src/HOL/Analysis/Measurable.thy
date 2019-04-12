@@ -64,10 +64,10 @@ attribute_setup measurable_dest = Measurable.dest_thm_attr
 attribute_setup measurable_cong = Measurable.cong_thm_attr
   "add congurence rules to measurability prover"
 
-method_setup%important measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
+method_setup\<^marker>\<open>tag important\<close> measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
   "measurability prover"
 
-simproc_setup%important measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
+simproc_setup\<^marker>\<open>tag important\<close> measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
 
 setup \<open>
   Global_Theory.add_thms_dynamic (\<^binding>\<open>measurable\<close>, Measurable.get_all)
@@ -380,7 +380,7 @@ lemma measurable_pred_countable[measurable (raw)]:
   unfolding pred_def
   by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
 
-subsection%unimportant \<open>Measurability for (co)inductive predicates\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Measurability for (co)inductive predicates\<close>
 
 lemma measurable_bot[measurable]: "bot \<in> measurable M (count_space UNIV)"
   by (simp add: bot_fun_def)

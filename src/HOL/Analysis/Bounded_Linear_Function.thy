@@ -39,7 +39,7 @@ qed
 
 lemmas onorm_componentwise_le = order_trans[OF onorm_componentwise]
 
-subsection%unimportant \<open>Intro rules for \<^term>\<open>bounded_linear\<close>\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Intro rules for \<^term>\<open>bounded_linear\<close>\<close>
 
 named_theorems bounded_linear_intros
 
@@ -81,7 +81,7 @@ lemmas [bounded_linear_intros] =
   bounded_linear_inner_right_comp
 
 
-subsection%unimportant \<open>declaration of derivative/continuous/tendsto introduction rules for bounded linear functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>declaration of derivative/continuous/tendsto introduction rules for bounded linear functions\<close>
 
 attribute_setup bounded_linear =
   \<open>Scan.succeed (Thm.declaration_attribute (fn thm =>
@@ -116,7 +116,7 @@ attribute_setup bounded_bilinear =
 
 subsection \<open>Type of bounded linear functions\<close>
 
-typedef%important (overloaded) ('a, 'b) blinfun ("(_ \<Rightarrow>\<^sub>L /_)" [22, 21] 21) =
+typedef\<^marker>\<open>tag important\<close> (overloaded) ('a, 'b) blinfun ("(_ \<Rightarrow>\<^sub>L /_)" [22, 21] 21) =
   "{f::'a::real_normed_vector\<Rightarrow>'b::real_normed_vector. bounded_linear f}"
   morphisms blinfun_apply Blinfun
   by (blast intro: bounded_linear_intros)
@@ -142,7 +142,7 @@ subsection \<open>Type class instantiations\<close>
 instantiation blinfun :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
-lift_definition%important norm_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> real" is onorm .
+lift_definition\<^marker>\<open>tag important\<close> norm_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> real" is onorm .
 
 lift_definition minus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
   is "\<lambda>f g x. f x - g x"
@@ -160,14 +160,14 @@ definition open_blinfun :: "('a \<Rightarrow>\<^sub>L 'b) set \<Rightarrow> bool
 lift_definition uminus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>f x. - f x"
   by (rule bounded_linear_minus)
 
-lift_definition%important zero_blinfun :: "'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>x. 0"
+lift_definition\<^marker>\<open>tag important\<close> zero_blinfun :: "'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>x. 0"
   by (rule bounded_linear_zero)
 
-lift_definition%important plus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
+lift_definition\<^marker>\<open>tag important\<close> plus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
   is "\<lambda>f g x. f x + g x"
   by (metis bounded_linear_add)
 
-lift_definition%important scaleR_blinfun::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>r f x. r *\<^sub>R f x"
+lift_definition\<^marker>\<open>tag important\<close> scaleR_blinfun::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>r f x. r *\<^sub>R f x"
   by (metis bounded_linear_compose bounded_linear_scaleR_right)
 
 definition sgn_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
@@ -367,7 +367,7 @@ proof
     by (rule convergentI)
 qed
 
-subsection%unimportant \<open>On Euclidean Space\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>On Euclidean Space\<close>
 
 lemma Zfun_sum:
   assumes "finite s"
@@ -588,7 +588,7 @@ proof
 qed
 
 
-subsection%unimportant \<open>concrete bounded linear functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>concrete bounded linear functions\<close>
 
 lemma transfer_bounded_bilinear_bounded_linearI:
   assumes "g = (\<lambda>i x. (blinfun_apply (f i) x))"
@@ -757,7 +757,7 @@ canonical embedding of a space into its bidual. We do not define it there, altho
 defined analogously.
 \<close>
 
-definition%important strong_operator_topology::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector) topology"
+definition\<^marker>\<open>tag important\<close> strong_operator_topology::"('a::real_normed_vector \<Rightarrow>\<^sub>L'b::real_normed_vector) topology"
 where "strong_operator_topology = pullback_topology UNIV blinfun_apply euclidean"
 
 lemma strong_operator_topology_topspace:

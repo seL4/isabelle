@@ -12,7 +12,7 @@ begin
 subsection\<open>Möbius transformations\<close>
 
 (* TODO: Figure out what to do with Möbius transformations *)
-definition%important "moebius a b c d = (\<lambda>z. (a*z+b) / (c*z+d :: 'a :: field))"
+definition\<^marker>\<open>tag important\<close> "moebius a b c d = (\<lambda>z. (a*z+b) / (c*z+d :: 'a :: field))"
 
 theorem moebius_inverse:
   assumes "a * d \<noteq> b * c" "c * z + d \<noteq> 0"
@@ -64,7 +64,7 @@ next
     by (simp add: norm_power Im_power2)
 qed
 
-subsection%unimportant\<open>The Exponential Function\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>The Exponential Function\<close>
 
 lemma norm_exp_i_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
   by simp
@@ -116,7 +116,7 @@ proof -
     using sums_unique2 by blast
 qed
 
-corollary%unimportant exp_minus_Euler: "exp(-(\<i> * z)) = cos(z) - \<i> * sin(z)"
+corollary\<^marker>\<open>tag unimportant\<close> exp_minus_Euler: "exp(-(\<i> * z)) = cos(z) - \<i> * sin(z)"
   using exp_Euler [of "-z"]
   by simp
 
@@ -154,7 +154,7 @@ lemma Im_sin_nonneg: "Re z = 0 \<Longrightarrow> 0 \<le> Im z \<Longrightarrow> 
 lemma Im_sin_nonneg2: "Re z = pi \<Longrightarrow> Im z \<le> 0 \<Longrightarrow> 0 \<le> Im (sin z)"
   by (simp add: Re_sin Im_sin algebra_simps)
 
-subsection%unimportant\<open>Relationships between real and complex trigonometric and hyperbolic functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relationships between real and complex trigonometric and hyperbolic functions\<close>
 
 lemma real_sin_eq [simp]: "Re(sin(of_real x)) = sin x"
   by (simp add: sin_of_real)
@@ -213,7 +213,7 @@ lemma holomorphic_on_cos' [holomorphic_intros]:
   shows   "(\<lambda>x. cos (f x)) holomorphic_on A"
   using holomorphic_on_compose[OF assms holomorphic_on_cos] by (simp add: o_def)
 
-subsection%unimportant\<open>More on the Polar Representation of Complex Numbers\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>More on the Polar Representation of Complex Numbers\<close>
 
 lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
   by (simp add: Complex_eq exp_add exp_Euler exp_of_real sin_of_real cos_of_real)
@@ -693,7 +693,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Taylor series for complex exponential, sine and cosine\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Taylor series for complex exponential, sine and cosine\<close>
 
 declare power_Suc [simp del]
 
@@ -859,10 +859,10 @@ lemma ln3_gt_1: "ln 3 > (1::real)"
 
 subsection\<open>The argument of a complex number (HOL Light version)\<close>
 
-definition%important is_Arg :: "[complex,real] \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> is_Arg :: "[complex,real] \<Rightarrow> bool"
   where "is_Arg z r \<equiv> z = of_real(norm z) * exp(\<i> * of_real r)"
 
-definition%important Arg2pi :: "complex \<Rightarrow> real"
+definition\<^marker>\<open>tag important\<close> Arg2pi :: "complex \<Rightarrow> real"
   where "Arg2pi z \<equiv> if z = 0 then 0 else THE t. 0 \<le> t \<and> t < 2*pi \<and> is_Arg z t"
 
 lemma is_Arg_2pi_iff: "is_Arg z (r + of_int k * (2 * pi)) \<longleftrightarrow> is_Arg z r"
@@ -940,7 +940,7 @@ next
     done
 qed
 
-corollary%unimportant
+corollary\<^marker>\<open>tag unimportant\<close>
   shows Arg2pi_ge_0: "0 \<le> Arg2pi z"
     and Arg2pi_lt_2pi: "Arg2pi z < 2*pi"
     and Arg2pi_eq: "z = of_real(norm z) * exp(\<i> * of_real(Arg2pi z))"
@@ -1023,7 +1023,7 @@ proof (cases "z=0")
     by blast
 qed auto
 
-corollary%unimportant Arg2pi_gt_0:
+corollary\<^marker>\<open>tag unimportant\<close> Arg2pi_gt_0:
   assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0"
     shows "Arg2pi z > 0"
   using Arg2pi_eq_0 Arg2pi_ge_0 assms dual_order.strict_iff_order
@@ -1128,7 +1128,7 @@ proof (cases w rule: complex_split_polar)
     by (metis (no_types, hide_lams) abs_le_D1 distrib_left mult.commute mult.left_commute mult_left_le)
 qed
 
-subsection%unimportant\<open>Analytic properties of tangent function\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Analytic properties of tangent function\<close>
 
 lemma cnj_tan: "cnj(tan z) = tan(cnj z)"
   by (simp add: cnj_cos cnj_sin tan_def)
@@ -1156,7 +1156,7 @@ subsection\<open>The principal branch of the Complex logarithm\<close>
 instantiation complex :: ln
 begin
 
-definition%important ln_complex :: "complex \<Rightarrow> complex"
+definition\<^marker>\<open>tag important\<close> ln_complex :: "complex \<Rightarrow> complex"
   where "ln_complex \<equiv> \<lambda>z. THE w. exp w = z & -pi < Im(w) & Im(w) \<le> pi"
 
 text\<open>NOTE: within this scope, the constant Ln is not yet available!\<close>
@@ -1189,7 +1189,7 @@ lemma Ln_exp [simp]:
   apply auto
   done
 
-subsection%unimportant\<open>Relation to Real Logarithm\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation to Real Logarithm\<close>
 
 lemma Ln_of_real:
   assumes "0 < z"
@@ -1203,10 +1203,10 @@ proof -
     using assms by simp
 qed
 
-corollary%unimportant Ln_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Re z > 0 \<Longrightarrow> ln z \<in> \<real>"
+corollary\<^marker>\<open>tag unimportant\<close> Ln_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Re z > 0 \<Longrightarrow> ln z \<in> \<real>"
   by (auto simp: Ln_of_real elim: Reals_cases)
 
-corollary%unimportant Im_Ln_of_real [simp]: "r > 0 \<Longrightarrow> Im (ln (of_real r)) = 0"
+corollary\<^marker>\<open>tag unimportant\<close> Im_Ln_of_real [simp]: "r > 0 \<Longrightarrow> Im (ln (of_real r)) = 0"
   by (simp add: Ln_of_real)
 
 lemma cmod_Ln_Reals [simp]: "z \<in> \<real> \<Longrightarrow> 0 < Re z \<Longrightarrow> cmod (ln z) = norm (ln (Re z))"
@@ -1244,13 +1244,13 @@ lemma Ln_unique: "exp(z) = w \<Longrightarrow> -pi < Im(z) \<Longrightarrow> Im(
 lemma Re_Ln [simp]: "z \<noteq> 0 \<Longrightarrow> Re(Ln z) = ln(norm z)"
   by (metis exp_Ln ln_exp norm_exp_eq_Re)
 
-corollary%unimportant ln_cmod_le:
+corollary\<^marker>\<open>tag unimportant\<close> ln_cmod_le:
   assumes z: "z \<noteq> 0"
     shows "ln (cmod z) \<le> cmod (Ln z)"
   using norm_exp [of "Ln z", simplified exp_Ln [OF z]]
   by (metis Re_Ln complex_Re_le_cmod z)
 
-proposition%unimportant exists_complex_root:
+proposition\<^marker>\<open>tag unimportant\<close> exists_complex_root:
   fixes z :: complex
   assumes "n \<noteq> 0"  obtains w where "z = w ^ n"
 proof (cases "z=0")
@@ -1259,13 +1259,13 @@ proof (cases "z=0")
     by (rule_tac w = "exp(Ln z / n)" in that) (simp add: assms exp_of_nat_mult [symmetric])
 qed (use assms in auto)
 
-corollary%unimportant exists_complex_root_nonzero:
+corollary\<^marker>\<open>tag unimportant\<close> exists_complex_root_nonzero:
   fixes z::complex
   assumes "z \<noteq> 0" "n \<noteq> 0"
   obtains w where "w \<noteq> 0" "z = w ^ n"
   by (metis exists_complex_root [of n z] assms power_0_left)
 
-subsection%unimportant\<open>Derivative of Ln away from the branch cut\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Derivative of Ln away from the branch cut\<close>
 
 lemma
   assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
@@ -1456,7 +1456,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Quadrant-type results for Ln\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Quadrant-type results for Ln\<close>
 
 lemma cos_lt_zero_pi: "pi/2 < x \<Longrightarrow> x < 3*pi/2 \<Longrightarrow> cos x < 0"
   using cos_minus_pi cos_gt_zero_pi [of "x-pi"]
@@ -1553,7 +1553,7 @@ by (metis Im_Ln_eq_0 Im_Ln_pos_le Im_Ln_pos_lt add.left_neutral complex_eq less_
     mult_zero_right not_less_iff_gr_or_eq pi_ge_zero pi_neq_zero rcis_zero_arg rcis_zero_mod)
 
 
-subsection%unimportant\<open>More Properties of Ln\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>More Properties of Ln\<close>
 
 lemma cnj_Ln: assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0" shows "cnj(Ln z) = Ln(cnj z)"
 proof (cases "z=0")
@@ -1631,27 +1631,27 @@ lemma Ln_times:
   using assms mpi_less_Im_Ln [of w] mpi_less_Im_Ln [of z]
   by (auto simp: exp_add exp_diff sin_double cos_double exp_Euler intro!: Ln_unique)
 
-corollary%unimportant Ln_times_simple:
+corollary\<^marker>\<open>tag unimportant\<close> Ln_times_simple:
     "\<lbrakk>w \<noteq> 0; z \<noteq> 0; -pi < Im(Ln w) + Im(Ln z); Im(Ln w) + Im(Ln z) \<le> pi\<rbrakk>
          \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z)"
   by (simp add: Ln_times)
 
-corollary%unimportant Ln_times_of_real:
+corollary\<^marker>\<open>tag unimportant\<close> Ln_times_of_real:
     "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(of_real r * z) = ln r + Ln(z)"
   using mpi_less_Im_Ln Im_Ln_le_pi
   by (force simp: Ln_times)
 
-corollary%unimportant Ln_times_Reals:
+corollary\<^marker>\<open>tag unimportant\<close> Ln_times_Reals:
     "\<lbrakk>r \<in> Reals; Re r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(r * z) = ln (Re r) + Ln(z)"
   using Ln_Reals_eq Ln_times_of_real by fastforce
 
-corollary%unimportant Ln_divide_of_real:
+corollary\<^marker>\<open>tag unimportant\<close> Ln_divide_of_real:
     "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(z / of_real r) = Ln(z) - ln r"
 using Ln_times_of_real [of "inverse r" z]
 by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse [symmetric]
          del: of_real_inverse)
 
-corollary%unimportant Ln_prod:
+corollary\<^marker>\<open>tag unimportant\<close> Ln_prod:
   fixes f :: "'a \<Rightarrow> complex"
   assumes "finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
   shows "\<exists>n. Ln (prod f A) = (\<Sum>x \<in> A. Ln (f x) + (of_int (n x) * (2 * pi)) * \<i>)"
@@ -1753,7 +1753,7 @@ subsection\<open>The Argument of a Complex Number\<close>
 
 text\<open>Finally: it's is defined for the same interval as the complex logarithm: \<open>(-\<pi>,\<pi>]\<close>.\<close>
 
-definition%important Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
+definition\<^marker>\<open>tag important\<close> Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
 
 lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
   by (simp add: Im_Ln_eq_pi Arg_def)
@@ -1891,7 +1891,7 @@ lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> 
   using complex_is_Real_iff
   by (simp add: Arg_def Im_Ln_eq_0) (metis less_eq_real_def of_real_Re of_real_def scale_zero_left)
 
-corollary%unimportant Arg_ne_0: assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0" shows "Arg z \<noteq> 0"
+corollary\<^marker>\<open>tag unimportant\<close> Arg_ne_0: assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0" shows "Arg z \<noteq> 0"
   using assms by (auto simp: nonneg_Reals_def Arg_eq_0)
 
 lemma Arg_eq_pi_iff: "Arg z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
@@ -1993,7 +1993,7 @@ lemma unwinding_in_Ints: "(z - Ln(exp z)) / (of_real(2*pi) * \<i>) \<in> \<int>"
   using Arg_exp_diff_2pi [of z]
   by (force simp: Ints_def image_def field_simps Arg_def intro!: complex_eqI)
 
-definition%important unwinding :: "complex \<Rightarrow> int" where
+definition\<^marker>\<open>tag important\<close> unwinding :: "complex \<Rightarrow> int" where
    "unwinding z \<equiv> THE k. of_int k = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
 
 lemma unwinding: "of_int (unwinding z) = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
@@ -2008,7 +2008,7 @@ lemma Ln_times_unwinding:
   using unwinding_2pi by (simp add: exp_add)
 
 
-subsection%unimportant\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
 
 lemma Arg2pi_Ln:
   assumes "0 < Arg2pi z" shows "Arg2pi z = Im(Ln(-z)) + pi"
@@ -2166,7 +2166,7 @@ lemma closed_Arg2pi2pi_le: "closed {z. Arg2pi z \<le> t}"
   using open_Arg2pi2pi_gt [of t]
   by (simp add: closed_def Set.Collect_neg_eq [symmetric] not_le)
 
-subsection%unimportant\<open>Complex Powers\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Complex Powers\<close>
 
 lemma powr_to_1 [simp]: "z powr 1 = (z::complex)"
   by (simp add: powr_def)
@@ -2535,7 +2535,7 @@ proof
 qed
 
 
-subsection%unimportant\<open>Some Limits involving Logarithms\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some Limits involving Logarithms\<close>
 
 lemma lim_Ln_over_power:
   fixes s::complex
@@ -2686,7 +2686,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Relation between Square Root and exp/ln, hence its derivative\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation between Square Root and exp/ln, hence its derivative\<close>
 
 lemma csqrt_exp_Ln:
   assumes "z \<noteq> 0"
@@ -2759,7 +2759,7 @@ lemma continuous_at_csqrt:
     "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) csqrt"
   by (simp add: field_differentiable_within_csqrt field_differentiable_imp_continuous_at)
 
-corollary%unimportant isCont_csqrt' [simp]:
+corollary\<^marker>\<open>tag unimportant\<close> isCont_csqrt' [simp]:
    "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. csqrt (f x)) z"
   by (blast intro: isCont_o2 [OF _ continuous_at_csqrt])
 
@@ -2802,7 +2802,7 @@ subsection\<open>Complex arctangent\<close>
 
 text\<open>The branch cut gives standard bounds in the real case.\<close>
 
-definition%important Arctan :: "complex \<Rightarrow> complex" where
+definition\<^marker>\<open>tag important\<close> Arctan :: "complex \<Rightarrow> complex" where
     "Arctan \<equiv> \<lambda>z. (\<i>/2) * Ln((1 - \<i>*z) / (1 + \<i>*z))"
 
 lemma Arctan_def_moebius: "Arctan z = \<i>/2 * Ln (moebius (-\<i>) 1 \<i> 1 z)"
@@ -3051,7 +3051,7 @@ proof -
   finally show ?thesis by (subst (asm) sums_of_real_iff)
 qed
 
-subsection%unimportant \<open>Real arctangent\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Real arctangent\<close>
 
 lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
 proof -
@@ -3212,7 +3212,7 @@ proof -
     by (auto simp: arctan_series)
 qed
 
-subsection%unimportant \<open>Bounds on pi using real arctangent\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounds on pi using real arctangent\<close>
 
 lemma pi_machin: "pi = 16 * arctan (1 / 5) - 4 * arctan (1 / 239)"
   using machin by simp
@@ -3229,7 +3229,7 @@ lemma pi_gt3: "pi > 3"
 
 subsection\<open>Inverse Sine\<close>
 
-definition%important Arcsin :: "complex \<Rightarrow> complex" where
+definition\<^marker>\<open>tag important\<close> Arcsin :: "complex \<Rightarrow> complex" where
    "Arcsin \<equiv> \<lambda>z. -\<i> * Ln(\<i> * z + csqrt(1 - z\<^sup>2))"
 
 lemma Arcsin_body_lemma: "\<i> * z + csqrt(1 - z\<^sup>2) \<noteq> 0"
@@ -3396,7 +3396,7 @@ lemma holomorphic_on_Arcsin: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<L
 
 subsection\<open>Inverse Cosine\<close>
 
-definition%important Arccos :: "complex \<Rightarrow> complex" where
+definition\<^marker>\<open>tag important\<close> Arccos :: "complex \<Rightarrow> complex" where
    "Arccos \<equiv> \<lambda>z. -\<i> * Ln(z + \<i> * csqrt(1 - z\<^sup>2))"
 
 lemma Arccos_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Im(z + \<i> * csqrt(1 - z\<^sup>2))"
@@ -3555,7 +3555,7 @@ lemma holomorphic_on_Arccos: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<L
   by (simp add: field_differentiable_within_Arccos holomorphic_on_def)
 
 
-subsection%unimportant\<open>Upper and Lower Bounds for Inverse Sine and Cosine\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Upper and Lower Bounds for Inverse Sine and Cosine\<close>
 
 lemma Arcsin_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> \<bar>Re(Arcsin z)\<bar> < pi/2"
   unfolding Re_Arcsin
@@ -3608,7 +3608,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Interrelations between Arcsin and Arccos\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Interrelations between Arcsin and Arccos\<close>
 
 lemma cos_Arcsin_nonzero:
   assumes "z\<^sup>2 \<noteq> 1" shows "cos(Arcsin z) \<noteq> 0"
@@ -3710,7 +3710,7 @@ lemma cos_Arcsin:
   by (simp add: Arcsin_Arccos_csqrt_pos)
 
 
-subsection%unimportant\<open>Relationship with Arcsin on the Real Numbers\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relationship with Arcsin on the Real Numbers\<close>
 
 lemma Im_Arcsin_of_real:
   assumes "\<bar>x\<bar> \<le> 1"
@@ -3727,7 +3727,7 @@ proof -
     by (simp add: Im_Arcsin exp_minus)
 qed
 
-corollary%unimportant Arcsin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arcsin z \<in> \<real>"
+corollary\<^marker>\<open>tag unimportant\<close> Arcsin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arcsin z \<in> \<real>"
   by (metis Im_Arcsin_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
 
 lemma arcsin_eq_Re_Arcsin:
@@ -3760,7 +3760,7 @@ lemma of_real_arcsin: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> of_real(arcsin x)
   by (metis Im_Arcsin_of_real add.right_neutral arcsin_eq_Re_Arcsin complex_eq mult_zero_right of_real_0)
 
 
-subsection%unimportant\<open>Relationship with Arccos on the Real Numbers\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relationship with Arccos on the Real Numbers\<close>
 
 lemma Im_Arccos_of_real:
   assumes "\<bar>x\<bar> \<le> 1"
@@ -3777,7 +3777,7 @@ proof -
     by (simp add: Im_Arccos exp_minus)
 qed
 
-corollary%unimportant Arccos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arccos z \<in> \<real>"
+corollary\<^marker>\<open>tag unimportant\<close> Arccos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\<bar> \<le> 1 \<Longrightarrow> Arccos z \<in> \<real>"
   by (metis Im_Arccos_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
 
 lemma arccos_eq_Re_Arccos:
@@ -3809,7 +3809,7 @@ qed
 lemma of_real_arccos: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> of_real(arccos x) = Arccos(of_real x)"
   by (metis Im_Arccos_of_real add.right_neutral arccos_eq_Re_Arccos complex_eq mult_zero_right of_real_0)
 
-subsection%unimportant\<open>Some interrelationships among the real inverse trig functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some interrelationships among the real inverse trig functions\<close>
 
 lemma arccos_arctan:
   assumes "-1 < x" "x < 1"
@@ -3879,7 +3879,7 @@ lemma arccos_arcsin_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrigh
   using arccos_arcsin_sqrt_pos [of "-x"]
   by (simp add: arccos_minus)
 
-subsection%unimportant\<open>Continuity results for arcsin and arccos\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Continuity results for arcsin and arccos\<close>
 
 lemma continuous_on_Arcsin_real [continuous_intros]:
     "continuous_on {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1} Arcsin"

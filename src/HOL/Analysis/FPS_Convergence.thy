@@ -14,7 +14,7 @@ imports
   "HOL-Computational_Algebra.Formal_Power_Series"
 begin
 
-subsection%unimportant \<open>Balls with extended real radius\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Balls with extended real radius\<close>
 
 text \<open>
   The following is a variant of \<^const>\<open>ball\<close> that also allows an infinite radius.
@@ -55,13 +55,13 @@ lemma open_eball [simp, intro]: "open (eball z r)"
 
 subsection \<open>Basic properties of convergent power series\<close>
 
-definition%important fps_conv_radius :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> ereal" where
+definition\<^marker>\<open>tag important\<close> fps_conv_radius :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> ereal" where
   "fps_conv_radius f = conv_radius (fps_nth f)"
 
-definition%important eval_fps :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition\<^marker>\<open>tag important\<close> eval_fps :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> 'a \<Rightarrow> 'a" where
   "eval_fps f z = (\<Sum>n. fps_nth f n * z ^ n)"
 
-definition%important fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
+definition\<^marker>\<open>tag important\<close> fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
   "fps_expansion f z0 = Abs_fps (\<lambda>n. (deriv ^^ n) f z0 / fact n)"
 
 lemma norm_summable_fps:
@@ -213,7 +213,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Lower bounds on radius of convergence\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Lower bounds on radius of convergence\<close>
 
 lemma fps_conv_radius_deriv:
   fixes f :: "'a :: {banach, real_normed_field} fps"
@@ -811,7 +811,7 @@ text \<open>
   the coefficients of the series with the singularities of the function, this predicate
   is enough.
 \<close>
-definition%important
+definition\<^marker>\<open>tag important\<close>
   has_fps_expansion :: "('a :: {banach,real_normed_div_algebra} \<Rightarrow> 'a) \<Rightarrow> 'a fps \<Rightarrow> bool"
   (infixl "has'_fps'_expansion" 60) 
   where "(f has_fps_expansion F) \<longleftrightarrow> 

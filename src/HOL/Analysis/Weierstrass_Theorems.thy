@@ -8,7 +8,7 @@ begin
 
 subsection \<open>Bernstein polynomials\<close>
 
-definition%important Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
+definition\<^marker>\<open>tag important\<close> Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
   "Bernstein n k x \<equiv> of_nat (n choose k) * x ^ k * (1 - x) ^ (n - k)"
 
 lemma Bernstein_nonneg: "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> Bernstein n k x"
@@ -174,7 +174,7 @@ Bruno Brosowski and Frank Deutsch.
 An Elementary Proof of the Stone-Weierstrass Theorem.
 Proceedings of the American Mathematical Society
 Volume 81, Number 1, January 1981.
-DOI: 10.2307/2043993  https://www.jstor.org/stable/2043993\<close>
+DOI: 10.2307/2043993  \<^url>\<open>https://www.jstor.org/stable/2043993\<close>\<close>
 
 locale function_ring_on =
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"
@@ -201,7 +201,7 @@ begin
   lemma prod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const mult)
 
-  definition%important normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
+  definition\<^marker>\<open>tag important\<close> normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
     where "normf f \<equiv> SUP x\<in>S. \<bar>f x\<bar>"
 
   lemma normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
@@ -792,7 +792,7 @@ inductive real_polynomial_function :: "('a::real_normed_vector \<Rightarrow> rea
 
 declare real_polynomial_function.intros [intro]
 
-definition%important polynomial_function :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> bool"
+definition\<^marker>\<open>tag important\<close> polynomial_function :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> bool"
   where
    "polynomial_function p \<equiv> (\<forall>f. bounded_linear f \<longrightarrow> real_polynomial_function (f o p))"
 

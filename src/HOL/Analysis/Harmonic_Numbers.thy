@@ -19,7 +19,7 @@ text \<open>
 
 subsection \<open>The Harmonic numbers\<close>
 
-definition%important harm :: "nat \<Rightarrow> 'a :: real_normed_field" where
+definition\<^marker>\<open>tag important\<close> harm :: "nat \<Rightarrow> 'a :: real_normed_field" where
   "harm n = (\<Sum>k=1..n. inverse (of_nat k))"
 
 lemma harm_altdef: "harm n = (\<Sum>k<n. inverse (of_nat (Suc k)))"
@@ -156,7 +156,7 @@ proof -
   thus ?thesis by (subst (asm) convergent_Suc_iff)
 qed
 
-lemma%important euler_mascheroni_LIMSEQ:
+lemma\<^marker>\<open>tag important\<close> euler_mascheroni_LIMSEQ:
   "(\<lambda>n. harm n - ln (of_nat n) :: real) \<longlonglongrightarrow> euler_mascheroni"
   unfolding euler_mascheroni_def
   by (simp add: convergent_LIMSEQ_iff [symmetric] euler_mascheroni_convergent)
@@ -250,7 +250,7 @@ proof (rule Lim_transform_eventually)
 qed
 
 
-subsection%unimportant \<open>Bounds on the Euler-Mascheroni constant\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounds on the Euler-Mascheroni constant\<close>
 
 (* TODO: Move? *)
 lemma ln_inverse_approx_le:

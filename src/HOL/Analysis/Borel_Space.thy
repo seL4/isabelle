@@ -25,7 +25,7 @@ proof -
     by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)
 qed
 
-definition%important "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
+definition\<^marker>\<open>tag important\<close> "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
 
 lemma mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on f A"
@@ -41,7 +41,7 @@ lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on f A"
 lemma mono_on_subset: "mono_on f A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on f B"
   unfolding mono_on_def by auto
 
-definition%important "strict_mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
+definition\<^marker>\<open>tag important\<close> "strict_mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
 
 lemma strict_mono_onI:
   "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on f A"
@@ -296,7 +296,7 @@ qed
 
 subsection \<open>Generic Borel spaces\<close>
 
-definition%important (in topological_space) borel :: "'a measure" where
+definition\<^marker>\<open>tag important\<close> (in topological_space) borel :: "'a measure" where
   "borel = sigma UNIV {S. open S}"
 
 abbreviation "borel_measurable M \<equiv> measurable M borel"
@@ -1508,7 +1508,7 @@ lemma borel_measurable_cos [measurable]: "(cos :: _ \<Rightarrow> (_::{real_norm
 lemma borel_measurable_arctan [measurable]: "arctan \<in> borel_measurable borel"
   by (intro borel_measurable_continuous_on1 continuous_intros)
 
-lemma%important borel_measurable_complex_iff:
+lemma\<^marker>\<open>tag important\<close> borel_measurable_complex_iff:
   "f \<in> borel_measurable M \<longleftrightarrow>
     (\<lambda>x. Re (f x)) \<in> borel_measurable M \<and> (\<lambda>x. Im (f x)) \<in> borel_measurable M"
   apply auto
@@ -1701,7 +1701,7 @@ lemma borel_measurable_enn2real[measurable (raw)]:
   "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. enn2real (f x)) \<in> M \<rightarrow>\<^sub>M borel"
   unfolding enn2real_def[abs_def] by measurable
 
-definition%important [simp]: "is_borel f M \<longleftrightarrow> f \<in> borel_measurable M"
+definition\<^marker>\<open>tag important\<close> [simp]: "is_borel f M \<longleftrightarrow> f \<in> borel_measurable M"
 
 lemma is_borel_transfer[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) (=) is_borel is_borel"
   unfolding is_borel_def[abs_def]

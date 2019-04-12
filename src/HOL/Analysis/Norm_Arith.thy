@@ -131,13 +131,13 @@ lemmas arithmetic_simps =
 
 ML_file \<open>normarith.ML\<close>
 
-method_setup%important norm = \<open>
+method_setup\<^marker>\<open>tag important\<close> norm = \<open>
   Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 \<close> "prove simple linear statements about vector norms"
 
 
 text \<open>Hence more metric properties.\<close>
-text%important \<open>%whitespace\<close>
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
 proposition dist_triangle_add:
   fixes x y x' y' :: "'a::real_normed_vector"
   shows "dist (x + y) (x' + y') \<le> dist x x' + dist y y'"

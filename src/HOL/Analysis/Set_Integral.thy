@@ -15,11 +15,11 @@ begin
     Notation
 *)
 
-definition%important "set_borel_measurable M A f \<equiv> (\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable M"
+definition\<^marker>\<open>tag important\<close> "set_borel_measurable M A f \<equiv> (\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable M"
 
-definition%important  "set_integrable M A f \<equiv> integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
+definition\<^marker>\<open>tag important\<close>  "set_integrable M A f \<equiv> integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"
 
-definition%important  "set_lebesgue_integral M A f \<equiv> lebesgue_integral M (\<lambda>x. indicator A x *\<^sub>R f x)"
+definition\<^marker>\<open>tag important\<close>  "set_lebesgue_integral M A f \<equiv> lebesgue_integral M (\<lambda>x. indicator A x *\<^sub>R f x)"
 
 syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
@@ -417,7 +417,7 @@ lemma lebesgue_integral_countable_add:
     and intgbl: "set_integrable M (\<Union>i. A i) f"
   shows "LINT x:(\<Union>i. A i)|M. f x = (\<Sum>i. (LINT x:(A i)|M. f x))"
     unfolding set_lebesgue_integral_def
-proof%unimportant (subst integral_suminf[symmetric])
+proof (subst integral_suminf[symmetric])
   show int_A: "integrable M (\<lambda>x. indicat_real (A i) x *\<^sub>R f x)" for i
     using intgbl unfolding set_integrable_def [symmetric]
     by (rule set_integrable_subset) auto

@@ -51,12 +51,12 @@ qed
 
 subsection \<open>Characterizations of Measures\<close>
 
-definition%important outer_measure_space where
+definition\<^marker>\<open>tag important\<close> outer_measure_space where
   "outer_measure_space M f \<longleftrightarrow> positive M f \<and> increasing M f \<and> countably_subadditive M f"
 
-subsubsection%important \<open>Lambda Systems\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Lambda Systems\<close>
 
-definition%important lambda_system :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set set"
+definition\<^marker>\<open>tag important\<close> lambda_system :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set set"
 where
   "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
 
@@ -297,7 +297,7 @@ proof -
     using pos by (simp add: measure_space_def)
 qed
 
-definition%important outer_measure :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set \<Rightarrow> ennreal" where
+definition\<^marker>\<open>tag important\<close> outer_measure :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set \<Rightarrow> ennreal" where
    "outer_measure M f X =
      (INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i)}. \<Sum>i. f (A i))"
 
@@ -499,7 +499,7 @@ qed (rule cont)
 
 subsection \<open>Volumes\<close>
 
-definition%important volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
   "volume M f \<longleftrightarrow>
   (f {} = 0) \<and> (\<forall>a\<in>M. 0 \<le> f a) \<and>
   (\<forall>C\<subseteq>M. disjoint C \<longrightarrow> finite C \<longrightarrow> \<Union>C \<in> M \<longrightarrow> f (\<Union>C) = (\<Sum>c\<in>C. f c))"
@@ -635,7 +635,7 @@ proof -
   qed
 qed
 
-subsubsection%important \<open>Caratheodory on semirings\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Caratheodory on semirings\<close>
 
 theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"

@@ -22,7 +22,7 @@ text \<open>
   including a constructor \<open>RealVal\<close> for real numbers. Then \<open>embed_measure\<close> allows us to lift a 
   measure on real numbers to the appropriate subset of that algebraic datatype.
 \<close>
-definition%important embed_measure :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
+definition\<^marker>\<open>tag important\<close> embed_measure :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
   "embed_measure M f = measure_of (f ` space M) {f ` A |A. A \<in> sets M}
                            (\<lambda>A. emeasure M (f -` A \<inter> space M))"
 

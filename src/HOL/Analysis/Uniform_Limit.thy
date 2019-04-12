@@ -12,10 +12,10 @@ begin
 
 subsection \<open>Definition\<close>
 
-definition%important uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
+definition\<^marker>\<open>tag important\<close> uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
   where "uniformly_on S l = (INF e\<in>{0 <..}. principal {f. \<forall>x\<in>S. dist (f x) (l x) < e})"
 
-abbreviation%important
+abbreviation\<^marker>\<open>tag important\<close>
   "uniform_limit S f l \<equiv> filterlim f (uniformly_on S l)"
 
 definition uniformly_convergent_on where
@@ -366,7 +366,7 @@ proof (rule uniform_limitI)
 qed
 
 text\<open>Alternative version, formulated as in HOL Light\<close>
-corollary%unimportant series_comparison_uniform:
+corollary\<^marker>\<open>tag unimportant\<close> series_comparison_uniform:
   fixes f :: "_ \<Rightarrow> nat \<Rightarrow> _ :: banach"
   assumes g: "summable g" and le: "\<And>n x. N \<le> n \<and> x \<in> A \<Longrightarrow> norm(f x n) \<le> g n"
     shows "\<exists>l. \<forall>e. 0 < e \<longrightarrow> (\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> A \<longrightarrow> dist(sum (f x) {..<n}) (l x) < e)"
@@ -379,20 +379,20 @@ proof -
     done
 qed
 
-corollary%unimportant Weierstrass_m_test:
+corollary\<^marker>\<open>tag unimportant\<close> Weierstrass_m_test:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
   assumes "summable M"
   shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
   using assms by (intro Weierstrass_m_test_ev always_eventually) auto
 
-corollary%unimportant Weierstrass_m_test'_ev:
+corollary\<^marker>\<open>tag unimportant\<close> Weierstrass_m_test'_ev:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
   unfolding uniformly_convergent_on_def by (rule exI, rule Weierstrass_m_test_ev[OF assms])
 
-corollary%unimportant Weierstrass_m_test':
+corollary\<^marker>\<open>tag unimportant\<close> Weierstrass_m_test':
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
@@ -402,7 +402,7 @@ lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Lon
   by simp
 
 
-subsection%unimportant \<open>Structural introduction rules\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Structural introduction rules\<close>
 
 named_theorems uniform_limit_intros "introduction rules for uniform_limit"
 setup \<open>

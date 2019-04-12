@@ -106,7 +106,7 @@ next
 qed (meson assms compact_imp_closed seq_compact_closed_subset seq_compact_eq_compact)+
 
 
-subsection%unimportant\<open>Arcwise Connections\<close>(*FIX ME this subsection is empty(?) *)
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Arcwise Connections\<close>(*FIX ME this subsection is empty(?) *)
 
 subsection\<open>Density of points with dyadic rational coordinates\<close>
 
@@ -201,7 +201,7 @@ proof -
 qed
 
 
-definition%unimportant dyadics :: "'a::field_char_0 set" where "dyadics \<equiv> \<Union>k m. {of_nat m / 2^k}"
+definition\<^marker>\<open>tag unimportant\<close> dyadics :: "'a::field_char_0 set" where "dyadics \<equiv> \<Union>k m. {of_nat m / 2^k}"
 
 lemma real_in_dyadics [simp]: "real m \<in> dyadics"
   apply (simp add: dyadics_def)
@@ -344,7 +344,7 @@ next
 qed
 
 
-function%unimportant (domintros) dyad_rec :: "[nat \<Rightarrow> 'a, 'a\<Rightarrow>'a, 'a\<Rightarrow>'a, real] \<Rightarrow> 'a" where
+function\<^marker>\<open>tag unimportant\<close> (domintros) dyad_rec :: "[nat \<Rightarrow> 'a, 'a\<Rightarrow>'a, 'a\<Rightarrow>'a, real] \<Rightarrow> 'a" where
     "dyad_rec b l r (real m) = b m"
   | "dyad_rec b l r ((4 * real m + 1) / 2 ^ (Suc n)) = l (dyad_rec b l r ((2*m + 1) / 2^n))"
   | "dyad_rec b l r ((4 * real m + 3) / 2 ^ (Suc n)) = r (dyad_rec b l r ((2*m + 1) / 2^n))"
@@ -479,12 +479,12 @@ proof -
   finally show ?thesis .
 qed
 
-definition%unimportant dyad_rec2
+definition\<^marker>\<open>tag unimportant\<close> dyad_rec2
     where "dyad_rec2 u v lc rc x =
              dyad_rec (\<lambda>z. (u,v)) (\<lambda>(a,b). (a, lc a b (midpoint a b))) (\<lambda>(a,b). (rc a b (midpoint a b), b)) (2*x)"
 
-abbreviation%unimportant leftrec where "leftrec u v lc rc x \<equiv> fst (dyad_rec2 u v lc rc x)"
-abbreviation%unimportant rightrec where "rightrec u v lc rc x \<equiv> snd (dyad_rec2 u v lc rc x)"
+abbreviation\<^marker>\<open>tag unimportant\<close> leftrec where "leftrec u v lc rc x \<equiv> fst (dyad_rec2 u v lc rc x)"
+abbreviation\<^marker>\<open>tag unimportant\<close> rightrec where "rightrec u v lc rc x \<equiv> snd (dyad_rec2 u v lc rc x)"
 
 lemma leftrec_base: "leftrec u v lc rc (real m / 2) = u"
   by (simp add: dyad_rec2_def)

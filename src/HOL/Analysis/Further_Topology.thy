@@ -2249,7 +2249,7 @@ corollary invariance_of_dimension:
   assumes contf: "continuous_on S f" and "open S"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "DIM('a) \<le> DIM('b)"
-  using%unimportant invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
+  using invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
   by auto
 
 
@@ -2260,7 +2260,7 @@ corollary continuous_injective_image_subspace_dim_le:
       and injf: "inj_on f S"
     shows "dim S \<le> dim T"
   apply (rule invariance_of_dimension_subspaces [of S S _ f])
-  using%unimportant assms by (auto simp: subspace_affine)
+  using assms by (auto simp: subspace_affine)
 
 lemma invariance_of_dimension_convex_domain:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2364,8 +2364,8 @@ corollary invariance_of_domain_homeomorphic:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
   shows "S homeomorphic (f ` S)"
-  using%unimportant invariance_of_domain_homeomorphism [OF assms]
-  by%unimportant (meson homeomorphic_def)
+  using invariance_of_domain_homeomorphism [OF assms]
+  by (meson homeomorphic_def)
 
 lemma continuous_image_subset_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -3375,7 +3375,7 @@ qed
 
 corollary covering_space_square_punctured_plane:
   "covering_space (- {0}) (\<lambda>z::complex. z^2) (- {0})"
-  by%unimportant (simp add: covering_space_power_punctured_plane)
+  by (simp add: covering_space_power_punctured_plane)
 
 
 proposition covering_space_exp_punctured_plane:
@@ -4200,7 +4200,7 @@ subsection\<open>The "Borsukian" property of sets\<close>
 text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to \<open>[S\<^sup>1]\<close>''
  while Whyburn uses ``property b''. It's closely related to unicoherence.\<close>
 
-definition%important Borsukian where
+definition\<^marker>\<open>tag important\<close> Borsukian where
     "Borsukian S \<equiv>
         \<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
             \<longrightarrow> (\<exists>a. homotopic_with_canon (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
@@ -4815,7 +4815,7 @@ qed
 
 subsection\<open>Unicoherence (closed)\<close>
 
-definition%important unicoherent where
+definition\<^marker>\<open>tag important\<close> unicoherent where
   "unicoherent U \<equiv>
   \<forall>S T. connected S \<and> connected T \<and> S \<union> T = U \<and>
         closedin (top_of_set U) S \<and> closedin (top_of_set U) T
@@ -5006,16 +5006,16 @@ qed
 corollary contractible_imp_unicoherent:
   fixes U :: "'a::euclidean_space set"
   assumes "contractible U"  shows "unicoherent U"
-  by%unimportant (simp add: Borsukian_imp_unicoherent assms contractible_imp_Borsukian)
+  by (simp add: Borsukian_imp_unicoherent assms contractible_imp_Borsukian)
 
 corollary convex_imp_unicoherent:
   fixes U :: "'a::euclidean_space set"
   assumes "convex U"  shows "unicoherent U"
-  by%unimportant (simp add: Borsukian_imp_unicoherent assms convex_imp_Borsukian)
+  by (simp add: Borsukian_imp_unicoherent assms convex_imp_Borsukian)
 
 text\<open>If the type class constraint can be relaxed, I don't know how!\<close>
 corollary unicoherent_UNIV: "unicoherent (UNIV :: 'a :: euclidean_space set)"
-  by%unimportant (simp add: convex_imp_unicoherent)
+  by (simp add: convex_imp_unicoherent)
 
 
 lemma unicoherent_monotone_image_compact:

@@ -9,7 +9,7 @@ theory Infinite_Products
   imports Topology_Euclidean_Space Complex_Transcendental
 begin
 
-subsection%unimportant \<open>Preliminaries\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Preliminaries\<close>
 
 lemma sum_le_prod:
   fixes f :: "'a \<Rightarrow> 'b :: linordered_semidom"
@@ -54,19 +54,19 @@ qed auto
 
 subsection\<open>Definitions and basic properties\<close>
 
-definition%important raw_has_prod :: "[nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}, nat, 'a] \<Rightarrow> bool" 
+definition\<^marker>\<open>tag important\<close> raw_has_prod :: "[nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}, nat, 'a] \<Rightarrow> bool" 
   where "raw_has_prod f M p \<equiv> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
 
 text\<open>The nonzero and zero cases, as in \emph{Complex Analysis} by Joseph Bak and Donald J.Newman, page 241\<close>
-text%important \<open>%whitespace\<close>
-definition%important
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
+definition\<^marker>\<open>tag important\<close>
   has_prod :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a \<Rightarrow> bool" (infixr "has'_prod" 80)
   where "f has_prod p \<equiv> raw_has_prod f 0 p \<or> (\<exists>i q. p = 0 \<and> f i = 0 \<and> raw_has_prod f (Suc i) q)"
 
-definition%important convergent_prod :: "(nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}) \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> convergent_prod :: "(nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}) \<Rightarrow> bool" where
   "convergent_prod f \<equiv> \<exists>M p. raw_has_prod f M p"
 
-definition%important prodinf :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a"
+definition\<^marker>\<open>tag important\<close> prodinf :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a"
     (binder "\<Prod>" 10)
   where "prodinf f = (THE p. f has_prod p)"
 
@@ -148,7 +148,7 @@ qed (auto simp: prod_defs)
 
 subsection\<open>Absolutely convergent products\<close>
 
-definition%important abs_convergent_prod :: "(nat \<Rightarrow> _) \<Rightarrow> bool" where
+definition\<^marker>\<open>tag important\<close> abs_convergent_prod :: "(nat \<Rightarrow> _) \<Rightarrow> bool" where
   "abs_convergent_prod f \<longleftrightarrow> convergent_prod (\<lambda>i. 1 + norm (f i - 1))"
 
 lemma abs_convergent_prodI:
@@ -222,7 +222,7 @@ next
     by (rule_tac x=0 in exI) auto
 qed
 
-lemma%important convergent_prod_iff_convergent: 
+lemma\<^marker>\<open>tag important\<close> convergent_prod_iff_convergent: 
   fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
   assumes "\<And>i. f i \<noteq> 0"
   shows "convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. f i) \<and> lim (\<lambda>n. \<Prod>i\<le>n. f i) \<noteq> 0"
@@ -398,7 +398,7 @@ proof -
   thus ?thesis by eventually_elim auto
 qed
 
-subsection%unimportant \<open>Ignoring initial segments\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Ignoring initial segments\<close>
 
 lemma convergent_prod_offset:
   assumes "convergent_prod (\<lambda>n. f (n + m))"  
@@ -450,7 +450,7 @@ proof -
     using raw_has_prod_def that by blast 
 qed
 
-corollary%unimportant convergent_prod_ignore_initial_segment:
+corollary\<^marker>\<open>tag unimportant\<close> convergent_prod_ignore_initial_segment:
   fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
   assumes "convergent_prod f"
   shows   "convergent_prod (\<lambda>n. f (n + m))"
@@ -461,14 +461,14 @@ corollary%unimportant convergent_prod_ignore_initial_segment:
   apply (auto simp add: raw_has_prod_def add_ac)
   done
 
-corollary%unimportant convergent_prod_ignore_nonzero_segment:
+corollary\<^marker>\<open>tag unimportant\<close> convergent_prod_ignore_nonzero_segment:
   fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
   assumes f: "convergent_prod f" and nz: "\<And>i. i \<ge> M \<Longrightarrow> f i \<noteq> 0"
   shows "\<exists>p. raw_has_prod f M p"
   using convergent_prod_ignore_initial_segment [OF f]
   by (metis convergent_LIMSEQ_iff convergent_prod_iff_convergent le_add_same_cancel2 nz prod_defs(1) zero_order(1))
 
-corollary%unimportant abs_convergent_prod_ignore_initial_segment:
+corollary\<^marker>\<open>tag unimportant\<close> abs_convergent_prod_ignore_initial_segment:
   assumes "abs_convergent_prod f"
   shows   "abs_convergent_prod (\<lambda>n. f (n + m))"
   using assms unfolding abs_convergent_prod_def 
@@ -761,7 +761,7 @@ proof -
   qed
 qed
 
-corollary%unimportant has_prod_0:
+corollary\<^marker>\<open>tag unimportant\<close> has_prod_0:
   fixes f :: "nat \<Rightarrow> 'a::{semidom,t2_space}"
   assumes "\<And>n. f n = 1"
   shows "f has_prod 1"
@@ -874,7 +874,7 @@ lemma prodinf_finite:
 
 end
 
-subsection%unimportant \<open>Infinite products on ordered topological monoids\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Infinite products on ordered topological monoids\<close>
 
 lemma LIMSEQ_prod_0: 
   fixes f :: "nat \<Rightarrow> 'a::{semidom,topological_space}"
@@ -1075,7 +1075,7 @@ lemma convergent_prodI_nonneg_bounded:
   using convergent_prod_def raw_has_prodI_bounded [OF assms] by blast
 
 
-subsection%unimportant \<open>Infinite products on topological spaces\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Infinite products on topological spaces\<close>
 
 context
   fixes f g :: "nat \<Rightarrow> 'a::{t2_space,topological_semigroup_mult,idom}"
@@ -1176,7 +1176,7 @@ lemma convergent_prod_prod: "(\<And>i. i \<in> I \<Longrightarrow> convergent_pr
 
 end
 
-subsection%unimportant \<open>Infinite summability on real normed fields\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Infinite summability on real normed fields\<close>
 
 context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
@@ -1332,7 +1332,7 @@ next
     by (simp add: ac_simps)
 qed
 
-corollary%unimportant has_prod_iff_shift':
+corollary\<^marker>\<open>tag unimportant\<close> has_prod_iff_shift':
   assumes "\<And>i. i < n \<Longrightarrow> f i \<noteq> 0"
   shows "(\<lambda>i. f (i + n)) has_prod (a / (\<Prod>i<n. f i)) \<longleftrightarrow> f has_prod a"
   by (simp add: assms has_prod_iff_shift)
@@ -1773,7 +1773,7 @@ lemma summable_Ln_complex:
   using convergent_prod_def assms convergent_prod_iff_summable_complex by blast
 
 
-subsection%unimportant \<open>Embeddings from the reals into some complete real normed field\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Embeddings from the reals into some complete real normed field\<close>
 
 lemma tendsto_eq_of_real_lim:
   assumes "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) \<longlonglongrightarrow> q"

@@ -10,7 +10,7 @@ begin
 
 subsection\<open>Moebius functions are biholomorphisms of the unit disc\<close>
 
-definition%important Moebius_function :: "[real,complex,complex] \<Rightarrow> complex" where
+definition\<^marker>\<open>tag important\<close> Moebius_function :: "[real,complex,complex] \<Rightarrow> complex" where
   "Moebius_function \<equiv> \<lambda>t w z. exp(\<i> * of_real t) * (z - w) / (1 - cnj w * z)"
 
 lemma Moebius_function_simple:
@@ -1411,7 +1411,7 @@ qed
 qed
 
 
-subsection%unimportant \<open>More Borsukian results\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>More Borsukian results\<close>
 
 lemma Borsukian_componentwise_eq:
   fixes S :: "'a::euclidean_space set"

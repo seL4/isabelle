@@ -74,7 +74,7 @@ point, equal to \<open>undefined\<close> along all coordinates.
 So, we use the first formulation, which moreover seems to give rise to more straightforward proofs.
 \<close>
 
-definition%important product_topology::"('i \<Rightarrow> ('a topology)) \<Rightarrow> ('i set) \<Rightarrow> (('i \<Rightarrow> 'a) topology)"
+definition\<^marker>\<open>tag important\<close> product_topology::"('i \<Rightarrow> ('a topology)) \<Rightarrow> ('i set) \<Rightarrow> (('i \<Rightarrow> 'a) topology)"
   where "product_topology T I =
     topology_generated_by {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
 
@@ -548,12 +548,12 @@ next
 qed
 
 
-subsubsection%important \<open>Powers of a single topological space as a topological space, using type classes\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Powers of a single topological space as a topological space, using type classes\<close>
 
 instantiation "fun" :: (type, topological_space) topological_space
 begin
 
-definition%important open_fun_def:
+definition\<^marker>\<open>tag important\<close> open_fun_def:
   "open U = openin (product_topology (\<lambda>i. euclidean) UNIV) U"
 
 instance proof
@@ -653,7 +653,7 @@ proof (rule continuous_map_euclidean_top_of_set)
     by (intro continuous_intros) auto
 qed
 
-subsubsection%important \<open>Topological countability for product spaces\<close>
+subsubsection\<^marker>\<open>tag important\<close> \<open>Topological countability for product spaces\<close>
 
 text \<open>The next two lemmas are useful to prove first or second countability
 of product spaces, but they have more to do with countability and could
@@ -897,10 +897,10 @@ for countable products of the same space.\<close>
 instantiation "fun" :: (countable, metric_space) metric_space
 begin
 
-definition%important dist_fun_def:
+definition\<^marker>\<open>tag important\<close> dist_fun_def:
   "dist x y = (\<Sum>n. (1/2)^n * min (dist (x (from_nat n)) (y (from_nat n))) 1)"
 
-definition%important uniformity_fun_def:
+definition\<^marker>\<open>tag important\<close> uniformity_fun_def:
   "(uniformity::(('a \<Rightarrow> 'b) \<times> ('a \<Rightarrow> 'b)) filter) = (INF e\<in>{0<..}. principal {(x, y). dist (x::('a\<Rightarrow>'b)) y < e})"
 
 text \<open>Except for the first one, the auxiliary lemmas below are only useful when proving the

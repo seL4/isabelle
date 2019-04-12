@@ -515,7 +515,9 @@ text \<open>
      @@{document_marker_def license} |
      @@{document_marker_def description}) @{syntax embedded}
     ;
-    @@{document_marker_def tag} @{syntax name}
+    @@{document_marker_def tag} (scope?) @{syntax name}
+    ;
+    scope: '(' ('proof' | 'command') ')'
   \<close>
 
     \<^descr> \<open>\<^marker>\<open>title arg\<close>\<close>, \<open>\<^marker>\<open>creator arg\<close>\<close>, \<open>\<^marker>\<open>contributor arg\<close>\<close>, \<open>\<^marker>\<open>date arg\<close>\<close>,
@@ -532,12 +534,19 @@ text \<open>
     \<^theory_text>\<open>keywords\<close> declaration of a command, and the system option
     @{system_option_ref document_tags}.
 
+    The optional \<open>scope\<close> tells how far the tagging is applied to subsequent
+    proof structure: ``\<^theory_text>\<open>("proof")\<close>'' means it applies to the following proof
+    text, and ``\<^theory_text>\<open>(command)\<close>'' means it only applies to the current command.
+    The default within a proof body is ``\<^theory_text>\<open>("proof")\<close>'', but for toplevel goal
+    statements it is ``\<^theory_text>\<open>(command)\<close>''. Thus a \<open>tag\<close> marker for \<^theory_text>\<open>theorem\<close>,
+    \<^theory_text>\<open>lemma\<close> etc. does \emph{not} affect its proof by default.
+
     An old-style command tag \<^verbatim>\<open>%\<close>\<open>name\<close> is treated like a document marker
-    \<open>\<^marker>\<open>tag name\<close>\<close>: the list of command tags precedes the list of document
-    markers. The head of the resulting tags in the presentation context is
-    turned into {\LaTeX} environments to modify the type-setting. The
-    following tags are pre-declared for certain classes of commands, and serve
-    as default markup for certain kinds of commands:
+    \<open>\<^marker>\<open>tag (proof) name\<close>\<close>: the list of command tags precedes the list of
+    document markers. The head of the resulting tags in the presentation
+    context is turned into {\LaTeX} environments to modify the type-setting.
+    The following tags are pre-declared for certain classes of commands, and
+    serve as default markup for certain kinds of commands:
 
     \<^medskip>
     \begin{tabular}{ll}

@@ -14,7 +14,7 @@ text \<open>
   dimension need not be an integer; we also allow fractional dimensions, although we do
   not use this case or prove anything about it for now.
 \<close>
-definition%important unit_ball_vol :: "real \<Rightarrow> real" where
+definition\<^marker>\<open>tag important\<close> unit_ball_vol :: "real \<Rightarrow> real" where
   "unit_ball_vol n = pi powr (n / 2) / Gamma (n / 2 + 1)"
 
 lemma unit_ball_vol_pos [simp]: "n \<ge> 0 \<Longrightarrow> unit_ball_vol n > 0"
@@ -177,7 +177,7 @@ context
   assumes r: "r \<ge> 0"
 begin
 
-theorem%unimportant emeasure_cball:
+theorem\<^marker>\<open>tag unimportant\<close> emeasure_cball:
   "emeasure lborel (cball c r) = ennreal (unit_ball_vol (DIM('a)) * r ^ DIM('a))"
 proof (cases "r = 0")
   case False
@@ -202,11 +202,11 @@ proof (cases "r = 0")
   finally show ?thesis .
 qed auto
 
-corollary%unimportant content_cball:
+corollary\<^marker>\<open>tag unimportant\<close> content_cball:
   "content (cball c r) = unit_ball_vol (DIM('a)) * r ^ DIM('a)"
   by (simp add: measure_def emeasure_cball r)
 
-corollary%unimportant emeasure_ball:
+corollary\<^marker>\<open>tag unimportant\<close> emeasure_ball:
   "emeasure lborel (ball c r) = ennreal (unit_ball_vol (DIM('a)) * r ^ DIM('a))"
 proof -
   from negligible_sphere[of c r] have "sphere c r \<in> null_sets lborel"
@@ -219,7 +219,7 @@ proof -
   finally show ?thesis ..
 qed
 
-corollary%important content_ball:
+corollary\<^marker>\<open>tag important\<close> content_ball:
   "content (ball c r) = unit_ball_vol (DIM('a)) * r ^ DIM('a)"
   by (simp add: measure_def r emeasure_ball)
 
@@ -289,25 +289,25 @@ lemma unit_ball_vol_0 [simp]: "unit_ball_vol 0 = 1"
 lemma unit_ball_vol_1 [simp]: "unit_ball_vol 1 = 2"
   using unit_ball_vol_odd[of 0] by simp
 
-corollary%unimportant
+corollary\<^marker>\<open>tag unimportant\<close>
           unit_ball_vol_2: "unit_ball_vol 2 = pi"
       and unit_ball_vol_3: "unit_ball_vol 3 = 4 / 3 * pi"
       and unit_ball_vol_4: "unit_ball_vol 4 = pi\<^sup>2 / 2"
       and unit_ball_vol_5: "unit_ball_vol 5 = 8 / 15 * pi\<^sup>2"
   by (simp_all add: eval_unit_ball_vol)
 
-corollary%unimportant circle_area:
+corollary\<^marker>\<open>tag unimportant\<close> circle_area:
   "r \<ge> 0 \<Longrightarrow> content (ball c r :: (real ^ 2) set) = r ^ 2 * pi"
   by (simp add: content_ball unit_ball_vol_2)
 
-corollary%unimportant sphere_volume:
+corollary\<^marker>\<open>tag unimportant\<close> sphere_volume:
   "r \<ge> 0 \<Longrightarrow> content (ball c r :: (real ^ 3) set) = 4 / 3 * r ^ 3 * pi"
   by (simp add: content_ball unit_ball_vol_3)
 
 text \<open>
   Useful equivalent forms
 \<close>
-corollary%unimportant content_ball_eq_0_iff [simp]: "content (ball c r) = 0 \<longleftrightarrow> r \<le> 0"
+corollary\<^marker>\<open>tag unimportant\<close> content_ball_eq_0_iff [simp]: "content (ball c r) = 0 \<longleftrightarrow> r \<le> 0"
 proof -
   have "r > 0 \<Longrightarrow> content (ball c r) > 0"
     by (simp add: content_ball unit_ball_vol_def)
@@ -315,10 +315,10 @@ proof -
     by (fastforce simp: ball_empty)
 qed
 
-corollary%unimportant content_ball_gt_0_iff [simp]: "0 < content (ball z r) \<longleftrightarrow> 0 < r"
+corollary\<^marker>\<open>tag unimportant\<close> content_ball_gt_0_iff [simp]: "0 < content (ball z r) \<longleftrightarrow> 0 < r"
   by (auto simp: zero_less_measure_iff)
 
-corollary%unimportant content_cball_eq_0_iff [simp]: "content (cball c r) = 0 \<longleftrightarrow> r \<le> 0"
+corollary\<^marker>\<open>tag unimportant\<close> content_cball_eq_0_iff [simp]: "content (cball c r) = 0 \<longleftrightarrow> r \<le> 0"
 proof (cases "r = 0")
   case False
   moreover have "r > 0 \<Longrightarrow> content (cball c r) > 0"
@@ -327,7 +327,7 @@ proof (cases "r = 0")
     by fastforce
 qed auto
 
-corollary%unimportant content_cball_gt_0_iff [simp]: "0 < content (cball z r) \<longleftrightarrow> 0 < r"
+corollary\<^marker>\<open>tag unimportant\<close> content_cball_gt_0_iff [simp]: "0 < content (cball z r) \<longleftrightarrow> 0 < r"
   by (auto simp: zero_less_measure_iff)
 
 end

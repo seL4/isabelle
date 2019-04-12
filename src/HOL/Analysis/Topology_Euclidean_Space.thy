@@ -104,7 +104,7 @@ proof
   qed
 qed
 
-subsection%unimportant\<open>Balls in Euclidean Space\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Balls in Euclidean Space\<close>
 
 lemma cball_subset_cball_iff:
   fixes a :: "'a :: euclidean_space"
@@ -382,11 +382,11 @@ corollary One_neq_0[iff]: "One \<noteq> 0"
 corollary Zero_neq_One[iff]: "0 \<noteq> One"
   by (metis One_non_0)
 
-definition%important (in euclidean_space) eucl_less (infix "<e" 50)
+definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50)
   where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
-definition%important box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
-definition%important "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
+definition\<^marker>\<open>tag important\<close> box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
+definition\<^marker>\<open>tag important\<close> "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
 
 lemma box_def: "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i}"
   and in_box_eucl_less: "x \<in> box a b \<longleftrightarrow> a <e x \<and> x <e b"
@@ -943,7 +943,7 @@ qed
 
 subsection \<open>General Intervals\<close>
 
-definition%important "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close> "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
 lemma is_interval_1:
@@ -1119,7 +1119,7 @@ lemma is_interval_minus_translation'[simp]:
   by (metis image_cong uminus_add_conv_diff)
 
 
-subsection%unimportant \<open>Bounded Projections\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounded Projections\<close>
 
 lemma bounded_inner_imp_bdd_above:
   assumes "bounded s"
@@ -1132,7 +1132,7 @@ lemma bounded_inner_imp_bdd_below:
 by (simp add: assms bounded_imp_bdd_below bounded_linear_image bounded_linear_inner_left)
 
 
-subsection%unimportant \<open>Structural rules for pointwise continuity\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Structural rules for pointwise continuity\<close>
 
 lemma continuous_infnorm[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
@@ -1145,7 +1145,7 @@ lemma continuous_inner[continuous_intros]:
   using assms unfolding continuous_def by (rule tendsto_inner)
 
 
-subsection%unimportant \<open>Structural rules for setwise continuity\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Structural rules for setwise continuity\<close>
 
 lemma continuous_on_infnorm[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
@@ -1160,7 +1160,7 @@ lemma continuous_on_inner[continuous_intros]:
   by (rule bounded_bilinear.continuous_on)
 
 
-subsection%unimportant \<open>Openness of halfspaces.\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Openness of halfspaces.\<close>
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
   by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
@@ -1185,7 +1185,7 @@ lemma open_Collect_eucl_less[simp, intro]:
   shows "open {x. x <e a}" "open {x. a <e x}"
   by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
-subsection%unimportant \<open>Closure of halfspaces and hyperplanes\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Closure of halfspaces and hyperplanes\<close>
 
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
@@ -1216,7 +1216,7 @@ lemma closed_interval_right:
   by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 
-subsection%unimportant\<open>Some more convenient intermediate-value theorem formulations\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Some more convenient intermediate-value theorem formulations\<close>
 
 lemma connected_ivt_hyperplane:
   assumes "connected S" and xy: "x \<in> S" "y \<in> S" and b: "inner a x \<le> b" "b \<le> inner a y"
@@ -1537,8 +1537,8 @@ lemma compact_lemma:
      (auto intro!: assms bounded_linear_inner_left bounded_linear_image
        simp: euclidean_representation)
 
-instance%important euclidean_space \<subseteq> heine_borel
-proof%unimportant
+instance\<^marker>\<open>tag important\<close> euclidean_space \<subseteq> heine_borel
+proof
   fix f :: "nat \<Rightarrow> 'a"
   assume f: "bounded (range f)"
   then obtain l::'a and r where r: "strict_mono r"
@@ -1576,7 +1576,7 @@ proof%unimportant
     by auto
 qed
 
-instance%important euclidean_space \<subseteq> banach ..
+instance\<^marker>\<open>tag important\<close> euclidean_space \<subseteq> banach ..
 
 instance euclidean_space \<subseteq> second_countable_topology
 proof
@@ -1678,7 +1678,7 @@ next
 qed
 
 
-subsection%unimportant\<open>Componentwise limits and continuity\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Componentwise limits and continuity\<close>
 
 text\<open>But is the premise really necessary? Need to generalise @{thm euclidean_dist_l2}\<close>
 lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
@@ -1796,7 +1796,7 @@ next
     by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
 qed
 
-subsection%unimportant \<open>Continuous Extension\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuous Extension\<close>
 
 definition clamp :: "'a::euclidean_space \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "clamp a b x = (if (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)
@@ -1985,7 +1985,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Diameter\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Diameter\<close>
 
 lemma diameter_cball [simp]:
   fixes a :: "'a::euclidean_space"
@@ -2046,7 +2046,7 @@ lemma diameter_cbox:
      simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
 
 
-subsection%unimportant\<open>Relating linear images to open/closed/interior/closure/connected\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Relating linear images to open/closed/interior/closure/connected\<close>
 
 proposition open_surjective_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
@@ -2155,7 +2155,7 @@ lemma connected_linear_image:
 using connected_continuous_image assms linear_continuous_on linear_conv_bounded_linear by blast
 
 
-subsection%unimportant \<open>"Isometry" (up to constant bounds) of Injective Linear Map\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>"Isometry" (up to constant bounds) of Injective Linear Map\<close>
 
 proposition injective_imp_isometric:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2243,7 +2243,7 @@ proof -
 qed
 
 
-subsection%unimportant \<open>Some properties of a canonical subspace\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Some properties of a canonical subspace\<close>
 
 lemma closed_substandard: "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0}"
   (is "closed ?A")

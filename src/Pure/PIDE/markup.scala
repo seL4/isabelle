@@ -307,16 +307,26 @@ object Markup
   val DOCUMENT_ANTIQUOTATION_OPTION = "document_antiquotation_option"
 
 
-  /* text kind */
+  /* document text */
 
   val RAW_TEXT = "raw_text"
   val PLAIN_TEXT = "plain_text"
 
-
-  /* text structure */
-
   val PARAGRAPH = "paragraph"
   val TEXT_FOLD = "text_fold"
+
+  object Document_Tag
+  {
+    val ELEMENT = "document_tag"
+    val IMPORTANT = "important"
+    val UNIMPORTANT = "unimportant"
+
+    def unapply(markup: Markup): Option[String] =
+      markup match {
+        case Markup(ELEMENT, Name(name)) => Some(name)
+        case _ => None
+      }
+  }
 
 
   /* Markdown document structure */

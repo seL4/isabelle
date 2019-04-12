@@ -482,7 +482,7 @@ corollary Tietze:
     "\<And>x. x \<in> U \<Longrightarrow> norm(g x) \<le> B"
   using assms by (auto simp: image_subset_iff intro: Dugundji [of "cball 0 B" U S f])
 
-corollary%unimportant Tietze_closed_interval:
+corollary\<^marker>\<open>tag unimportant\<close> Tietze_closed_interval:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
     and "closedin (top_of_set U) S"
@@ -493,7 +493,7 @@ corollary%unimportant Tietze_closed_interval:
   apply (rule Dugundji [of "cbox a b" U S f])
   using assms by auto
 
-corollary%unimportant Tietze_closed_interval_1:
+corollary\<^marker>\<open>tag unimportant\<close> Tietze_closed_interval_1:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
     and "closedin (top_of_set U) S"
@@ -504,7 +504,7 @@ corollary%unimportant Tietze_closed_interval_1:
   apply (rule Dugundji [of "cbox a b" U S f])
   using assms by (auto simp: image_subset_iff)
 
-corollary%unimportant Tietze_open_interval:
+corollary\<^marker>\<open>tag unimportant\<close> Tietze_open_interval:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
     and "closedin (top_of_set U) S"
@@ -515,7 +515,7 @@ corollary%unimportant Tietze_open_interval:
   apply (rule Dugundji [of "box a b" U S f])
   using assms by auto
 
-corollary%unimportant Tietze_open_interval_1:
+corollary\<^marker>\<open>tag unimportant\<close> Tietze_open_interval_1:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> real"
   assumes "continuous_on S f"
     and "closedin (top_of_set U) S"
@@ -526,7 +526,7 @@ corollary%unimportant Tietze_open_interval_1:
   apply (rule Dugundji [of "box a b" U S f])
   using assms by (auto simp: image_subset_iff)
 
-corollary%unimportant Tietze_unbounded:
+corollary\<^marker>\<open>tag unimportant\<close> Tietze_unbounded:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
     and "closedin (top_of_set U) S"

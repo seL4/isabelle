@@ -7,7 +7,7 @@ section \<open>Generalised Binomial Theorem\<close>
 text \<open>
   The proof of the Generalised Binomial Theorem and related results.
   We prove the generalised binomial theorem for complex numbers, following the proof at:
-  \url{https://proofwiki.org/wiki/Binomial_Theorem/General_Binomial_Theorem}
+  \<^url>\<open>https://proofwiki.org/wiki/Binomial_Theorem/General_Binomial_Theorem\<close>
 \<close>
 
 theory Generalised_Binomial_Theorem

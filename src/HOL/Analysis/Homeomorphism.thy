@@ -852,7 +852,7 @@ corollary homeomorphic_punctured_sphere_affine:
   assumes "0 < r" and b: "b \<in> sphere a r"
       and "affine T" and affS: "aff_dim T + 1 = DIM('a)"
     shows "(sphere a r - {b}) homeomorphic T"
-  using%unimportant homeomorphic_punctured_affine_sphere_affine [of r b a UNIV T] assms by%unimportant auto
+  using homeomorphic_punctured_affine_sphere_affine [of r b a UNIV T] assms by auto
 
 corollary homeomorphic_punctured_sphere_hyperplane:
   fixes a :: "'a :: euclidean_space"
@@ -1270,7 +1270,7 @@ corollary homeomorphic_convex_compact:
 
 subsection\<open>Covering spaces and lifting results for them\<close>
 
-definition%important covering_space
+definition\<^marker>\<open>tag important\<close> covering_space
            :: "'a::topological_space set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
   where
   "covering_space c p S \<equiv>
@@ -2130,8 +2130,8 @@ corollary covering_space_monodromy:
       and "path h2" and pih2: "path_image h2 \<subseteq> C" and ph2: "\<And>t. t \<in> {0..1} \<Longrightarrow> p(h2 t) = g2 t"
       and h1h2: "pathstart h1 = pathstart h2"
     shows "pathfinish h1 = pathfinish h2"
-  using%unimportant covering_space_lift_homotopic_paths [OF assms] homotopic_paths_imp_pathfinish
-  by%unimportant blast
+  using covering_space_lift_homotopic_paths [OF assms] homotopic_paths_imp_pathfinish
+  by blast
 
 
 corollary covering_space_lift_homotopic_path:

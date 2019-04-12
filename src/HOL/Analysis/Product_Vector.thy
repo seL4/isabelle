@@ -23,10 +23,10 @@ locale module_prod = module_pair begin
 definition scale :: "'a \<Rightarrow> 'b \<times> 'c \<Rightarrow> 'b \<times> 'c"
   where "scale a v = (s1 a (fst v), s2 a (snd v))"
 
-lemma%important scale_prod: "scale x (a, b) = (s1 x a, s2 x b)"
+lemma\<^marker>\<open>tag important\<close> scale_prod: "scale x (a, b) = (s1 x a, s2 x b)"
   by (auto simp: scale_def)
 
-sublocale%important p: module scale
+sublocale\<^marker>\<open>tag important\<close> p: module scale
 proof qed (simp_all add: scale_def
   m1.scale_left_distrib m1.scale_right_distrib m2.scale_left_distrib m2.scale_right_distrib)
 
@@ -113,7 +113,7 @@ subsection \<open>Product is a Metric Space\<close>
 
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation%unimportant prod :: (metric_space, metric_space) dist
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) dist
 begin
 
 definition dist_prod_def[code del]:
@@ -122,7 +122,7 @@ definition dist_prod_def[code del]:
 instance ..
 end
 
-instantiation%unimportant prod :: (metric_space, metric_space) uniformity_dist
+instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) uniformity_dist
 begin
 
 definition [code del]:
@@ -253,8 +253,8 @@ qed
 
 subsection \<open>Product is a Complete Metric Space\<close>
 
-instance%important prod :: (complete_space, complete_space) complete_space
-proof%unimportant
+instance\<^marker>\<open>tag important\<close> prod :: (complete_space, complete_space) complete_space
+proof
   fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
   have 1: "(\<lambda>n. fst (X n)) \<longlonglongrightarrow> lim (\<lambda>n. fst (X n))"
     using Cauchy_fst [OF \<open>Cauchy X\<close>]
@@ -310,9 +310,9 @@ end
 
 declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"]]
 
-instance%important prod :: (banach, banach) banach ..
+instance\<^marker>\<open>tag important\<close> prod :: (banach, banach) banach ..
 
-subsubsection%unimportant \<open>Pair operations are linear\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Pair operations are linear\<close>
 
 lemma bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
@@ -352,8 +352,9 @@ proof
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
 qed
 
-subsubsection%unimportant \<open>Frechet derivatives involving pairs\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Frechet derivatives involving pairs\<close>
 
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
 proposition has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)"
     and g: "(g has_derivative g') (at x within s)"
@@ -387,7 +388,7 @@ lemma has_derivative_split [derivative_intros]:
   unfolding split_beta' .
 
 
-subsubsection%unimportant \<open>Vector derivatives involving pairs\<close>
+subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Vector derivatives involving pairs\<close>
 
 lemma has_vector_derivative_Pair[derivative_intros]:
   assumes "(f has_vector_derivative f') (at x within s)"

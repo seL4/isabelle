@@ -2324,7 +2324,7 @@ corollary invariance_of_dimension:
   assumes contf: "continuous_on S f" and "open S"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "DIM('a) \<le> DIM('b)"
-  using%unimportant invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
+  using invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
   by auto
 
 corollary continuous_injective_image_subspace_dim_le:
@@ -2334,7 +2334,7 @@ corollary continuous_injective_image_subspace_dim_le:
       and injf: "inj_on f S"
     shows "dim S \<le> dim T"
   apply (rule invariance_of_dimension_subspaces [of S S _ f])
-  using%unimportant assms by (auto simp: subspace_affine)
+  using assms by (auto simp: subspace_affine)
 
 lemma invariance_of_dimension_convex_domain:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -2438,8 +2438,8 @@ corollary invariance_of_domain_homeomorphic:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
   shows "S homeomorphic (f ` S)"
-  using%unimportant invariance_of_domain_homeomorphism [OF assms]
-  by%unimportant (meson homeomorphic_def)
+  using invariance_of_domain_homeomorphism [OF assms]
+  by (meson homeomorphic_def)
 
 lemma continuous_image_subset_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"

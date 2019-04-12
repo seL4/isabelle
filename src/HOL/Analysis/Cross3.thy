@@ -13,7 +13,7 @@ begin
 context includes no_Set_Product_syntax 
 begin \<comment>\<open>locally disable syntax for set product, to avoid warnings\<close>
 
-definition%important cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr "\<times>" 80)
+definition\<^marker>\<open>tag important\<close> cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr "\<times>" 80)
   where "a \<times> b \<equiv>
     vector [a$2 * b$3 - a$3 * b$2,
             a$3 * b$1 - a$1 * b$3,

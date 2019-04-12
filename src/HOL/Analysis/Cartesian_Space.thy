@@ -13,7 +13,7 @@ theory Cartesian_Space
     Finite_Cartesian_Product Linear_Algebra
 begin
 
-subsection%unimportant \<open>Type @{typ \<open>'a ^ 'n\<close>} and fields as vector spaces\<close> (*much of the following
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Type @{typ \<open>'a ^ 'n\<close>} and fields as vector spaces\<close> (*much of the following
 is really basic linear algebra, check for overlap? rename subsection?  *)
 
 definition "cart_basis = {axis i 1 | i. i\<in>UNIV}"
@@ -552,7 +552,7 @@ lemma matrix_vector_mul_injective_on_rowspace:
   using nullspace_inter_rowspace [of A "x-y"]
   by (metis diff_eq_diff_eq diff_self matrix_vector_mult_diff_distrib span_diff)
 
-definition%important rank :: "'a::field^'n^'m=>nat"
+definition\<^marker>\<open>tag important\<close> rank :: "'a::field^'n^'m=>nat"
   where row_rank_def_gen: "rank A \<equiv> vec.dim(rows A)"
 
 lemma row_rank_def: "rank A = dim (rows A)" for A::"real^'n^'m"
@@ -671,7 +671,7 @@ lemma rank_mul_le_left:
   by (metis matrix_transpose_mul rank_mul_le_right rank_transpose)
 
 
-subsection%unimportant \<open>Lemmas for working on \<open>real^1/2/3/4\<close>\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Lemmas for working on \<open>real^1/2/3/4\<close>\<close>
 
 lemma exhaust_2:
   fixes x :: 2
@@ -736,7 +736,7 @@ lemma sum_3: "sum f (UNIV::3 set) = f 1 + f 2 + f 3"
 lemma sum_4: "sum f (UNIV::4 set) = f 1 + f 2 + f 3 + f 4"
   unfolding UNIV_4 by (simp add: ac_simps)
 
-subsection%unimportant\<open>The collapse of the general concepts to dimension one\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>The collapse of the general concepts to dimension one\<close>
 
 lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
   by (simp add: vec_eq_iff)
@@ -762,7 +762,7 @@ lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
 
 
-subsection%unimportant\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
 
 lemma vector_one_nth [simp]:
   fixes x :: "'a^1" shows "vec (x $ 1) = x"
@@ -795,7 +795,7 @@ lemma has_derivative_vector_1:
     done
 
 
-subsection%unimportant\<open>Explicit vector construction from lists\<close>
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Explicit vector construction from lists\<close>
 
 definition "vector l = (\<chi> i. foldr (\<lambda>x f n. fun_upd (f (n+1)) n x) l (\<lambda>n x. 0) 1 i)"
 
@@ -835,7 +835,7 @@ lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<f
   apply (simp add: forall_3)
   done
 
-subsection%unimportant \<open>lambda skolemization on cartesian products\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>lambda skolemization on cartesian products\<close>
 
 lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow>
    (\<exists>x::'a ^ 'n. \<forall>i. P i (x $ i))" (is "?lhs \<longleftrightarrow> ?rhs")
@@ -950,7 +950,7 @@ lemma vector_cart:
 lemma const_vector_cart:"((\<chi> i. d)::real^'n) = (\<Sum>i\<in>Basis. d *\<^sub>R i)"
   by (rule vector_cart)
 
-subsection%unimportant \<open>Explicit formulas for low dimensions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Explicit formulas for low dimensions\<close>
 
 lemma  prod_neutral_const: "prod f {(1::nat)..1} = f 1"
   by simp
@@ -964,7 +964,7 @@ lemma  prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
 
 subsection  \<open>Orthogonality of a matrix\<close>
 
-definition%important  "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
+definition\<^marker>\<open>tag important\<close>  "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
   transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
 
 lemma  orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1"

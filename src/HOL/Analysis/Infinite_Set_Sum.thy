@@ -74,14 +74,14 @@ qed (simp_all add: countable_PiE assms)
 
 
 
-definition%important abs_summable_on ::
+definition\<^marker>\<open>tag important\<close> abs_summable_on ::
     "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
     (infix "abs'_summable'_on" 50)
  where
    "f abs_summable_on A \<longleftrightarrow> integrable (count_space A) f"
 
 
-definition%important infsetsum ::
+definition\<^marker>\<open>tag important\<close> infsetsum ::
     "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> 'b"
  where
    "infsetsum f A = lebesgue_integral (count_space A) f"

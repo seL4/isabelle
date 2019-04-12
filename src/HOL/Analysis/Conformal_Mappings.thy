@@ -464,7 +464,7 @@ proof -
 qed
 
 text\<open>No need for \<^term>\<open>S\<close> to be connected. But the nonconstant condition is stronger.\<close>
-corollary%unimportant open_mapping_thm2:
+corollary\<^marker>\<open>tag unimportant\<close> open_mapping_thm2:
   assumes holf: "f holomorphic_on S"
       and S: "open S"
       and "open U" "U \<subseteq> S"
@@ -494,7 +494,7 @@ proof -
     by force
 qed
 
-corollary%unimportant open_mapping_thm3:
+corollary\<^marker>\<open>tag unimportant\<close> open_mapping_thm3:
   assumes holf: "f holomorphic_on S"
       and "open S" and injf: "inj_on f S"
     shows  "open (f ` S)"
@@ -585,7 +585,7 @@ using frontier_interior_subset frontier_of_connected_component_subset by blast
     using z \<open>\<xi> \<in> S\<close> closure_subset by fastforce
 qed
 
-corollary%unimportant maximum_real_frontier:
+corollary\<^marker>\<open>tag unimportant\<close> maximum_real_frontier:
   assumes holf: "f holomorphic_on (interior S)"
       and contf: "continuous_on (closure S) f"
       and bos: "bounded S"
@@ -596,7 +596,7 @@ using maximum_modulus_frontier [of "exp o f" S "exp B"]
       Transcendental.continuous_on_exp holomorphic_on_compose holomorphic_on_exp assms
 by auto
 
-subsection%unimportant \<open>Factoring out a zero according to its order\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Factoring out a zero according to its order\<close>
 
 lemma holomorphic_factor_order_of_zero:
   assumes holf: "f holomorphic_on S"
@@ -1021,7 +1021,7 @@ next
     qed
 qed
 
-subsection%unimportant \<open>Entire proper functions are precisely the non-trivial polynomials\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Entire proper functions are precisely the non-trivial polynomials\<close>
 
 lemma proper_map_polyfun:
     fixes c :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,heine_borel}"
@@ -2163,7 +2163,7 @@ subsection \<open>Cauchy's residue theorem\<close>
 text\<open>Wenda Li and LC Paulson (2016). A Formal Proof of Cauchy's Residue Theorem.
     Interactive Theorem Proving\<close>
 
-definition%important residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
+definition\<^marker>\<open>tag important\<close> residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "residue f z = (SOME int. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon><e
     \<longrightarrow> (f has_contour_integral 2*pi* \<i> *int) (circlepath z \<epsilon>))"
 
@@ -2967,7 +2967,7 @@ qed
 
 subsection \<open>Non-essential singular points\<close>
 
-definition%important is_pole :: 
+definition\<^marker>\<open>tag important\<close> is_pole :: 
   "('a::topological_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_pole f a =  (LIM x (at a). f x :> at_infinity)"
 
@@ -3695,12 +3695,12 @@ lemma isolated_singularity_at_holomorphic:
 subsubsection \<open>The order of non-essential singularities (i.e. removable singularities or poles)\<close>
 
 
-definition%important zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int" where
+definition\<^marker>\<open>tag important\<close> zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int" where
   "zorder f z = (THE n. (\<exists>h r. r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
                    \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w-z) powr (of_int n)
                    \<and> h w \<noteq>0)))"
 
-definition%important zor_poly
+definition\<^marker>\<open>tag important\<close> zor_poly
     ::"[complex \<Rightarrow> complex, complex] \<Rightarrow> complex \<Rightarrow> complex" where
   "zor_poly f z = (SOME h. \<exists>r. r > 0 \<and> h holomorphic_on cball z r \<and> h z \<noteq> 0
                    \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w - z) powr (zorder f z)

@@ -788,7 +788,7 @@ qed
 
 
 
-subsubsection%important\<open>Montel's theorem\<close>
+subsubsection\<^marker>\<open>tag important\<close>\<open>Montel's theorem\<close>
 
 text\<open>a sequence of holomorphic functions uniformly bounded
 on compact subsets of an open set S has a subsequence that converges to a
@@ -1780,8 +1780,8 @@ corollary great_Picard_alt:
   assumes M: "open M" "z \<in> M" and holf: "f holomorphic_on (M - {z})"
     and non: "\<And>l. \<not> (f \<longlongrightarrow> l) (at z)" "\<And>l. \<not> ((inverse \<circ> f) \<longlongrightarrow> l) (at z)"
   obtains a where "- {a} \<subseteq> f ` (M - {z})"
-  apply%unimportant (simp add: subset_iff image_iff)
-  by%unimportant (metis great_Picard [OF M _ holf] non)
+  apply (simp add: subset_iff image_iff)
+  by (metis great_Picard [OF M _ holf] non)
     
 
 corollary great_Picard_infinite:

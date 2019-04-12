@@ -11,8 +11,8 @@ begin
 
 text \<open>This formulation yields zero if \<open>'a\<close> is the trivial vector space.\<close>
 
-text%important \<open>%whitespace\<close>
-definition%important
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
+definition\<^marker>\<open>tag important\<close>
 onorm :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> real" where
 "onorm f = (SUP x. norm (f x) / norm x)"
 
