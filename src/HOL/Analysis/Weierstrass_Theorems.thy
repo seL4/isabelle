@@ -174,7 +174,7 @@ Bruno Brosowski and Frank Deutsch.
 An Elementary Proof of the Stone-Weierstrass Theorem.
 Proceedings of the American Mathematical Society
 Volume 81, Number 1, January 1981.
-DOI: 10.2307/2043993  https://www.jstor.org/stable/2043993\<close>
+DOI: 10.2307/2043993  \<^url>\<open>https://www.jstor.org/stable/2043993\<close>\<close>
 
 locale function_ring_on =
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"

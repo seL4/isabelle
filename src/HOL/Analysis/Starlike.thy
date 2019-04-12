@@ -7380,7 +7380,7 @@ proof -
     by (metis (no_types) adjoint_works euclidean_eqI)
 qed
 
-(*http://mathonline.wikidot.com/injectivity-and-surjectivity-of-the-adjoint-of-a-linear-map*)
+\<comment> \<open>\<^url>\<open>https://mathonline.wikidot.com/injectivity-and-surjectivity-of-the-adjoint-of-a-linear-map\<close>\<close>
 lemma surj_adjoint_iff_inj [simp]:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "linear f"
