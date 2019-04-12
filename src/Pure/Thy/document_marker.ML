@@ -83,7 +83,11 @@ val parse_tag =
         then Document_Source.Command
         else Document_Source.Proof;
       val tag = Scan.optional Document_Source.tag_scope scope0 -- Document_Source.tag_name >> swap;
-    in Scan.lift tag end);
+    in Scan.lift (Parse.position tag) end);
+
+fun update_tags (tag as (name, _), pos) ctxt =
+ (Context_Position.report ctxt pos (Markup.document_tag name);
+  Document_Source.update_tags tag ctxt);
 
 
 (* concrete markers *)
@@ -93,7 +97,7 @@ fun meta_data markup arg ctxt =
 
 val _ =
   Theory.setup
-    (setup (Binding.make ("tag", \<^here>)) parse_tag Document_Source.update_tags #>
+    (setup (Binding.make ("tag", \<^here>)) parse_tag update_tags #>
      setup0 (Binding.make ("title", \<^here>)) Parse.embedded (meta_data Markup.meta_title) #>
      setup0 (Binding.make ("creator", \<^here>)) Parse.embedded (meta_data Markup.meta_creator) #>
      setup0 (Binding.make ("contributor", \<^here>)) Parse.embedded (meta_data Markup.meta_contributor) #>

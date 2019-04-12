@@ -132,6 +132,7 @@ sig
   val plain_textN: string val plain_text: T
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
+  val document_tagN: string val document_tag: string -> T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
   val markdown_bulletN: string val markdown_bullet: int -> T
@@ -512,16 +513,15 @@ val document_antiquotationN = "document_antiquotation";
 val document_antiquotation_optionN = "document_antiquotation_option";
 
 
-(* text kind *)
+(* document text *)
 
 val (raw_textN, raw_text) = markup_elem "raw_text";
 val (plain_textN, plain_text) = markup_elem "plain_text";
 
-
-(* text structure *)
-
 val (paragraphN, paragraph) = markup_elem "paragraph";
 val (text_foldN, text_fold) = markup_elem "text_fold";
+
+val (document_tagN, document_tag) = markup_string "document_tag" nameN;
 
 
 (* Markdown document structure *)
