@@ -354,6 +354,7 @@ qed
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Frechet derivatives involving pairs\<close>
 
+text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
 proposition has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)"
     and g: "(g has_derivative g') (at x within s)"
