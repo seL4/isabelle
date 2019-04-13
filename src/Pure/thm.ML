@@ -175,9 +175,14 @@ fun dest_ctyp (Ctyp {cert, T = Type (_, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
 
-fun dest_ctyp_nth i (Ctyp {cert, T = Type (_, Ts), maxidx, sorts}) =
-      Ctyp {cert = cert, T = nth Ts i, maxidx = maxidx, sorts = sorts}
-  | dest_ctyp_nth _ cT = raise TYPE ("dest_ctyp_nth", [typ_of cT], []);
+fun dest_ctyp_nth i (Ctyp {cert, T, maxidx, sorts}) =
+  let fun err () = raise TYPE ("dest_ctyp_nth", [T], []) in
+    (case T of
+      Type (_, Ts) =>
+        Ctyp {cert = cert, T = nth Ts i handle General.Subscript => err (),
+          maxidx = maxidx, sorts = sorts}
+    | _ => err ())
+  end;
 
 
 
