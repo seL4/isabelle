@@ -131,6 +131,9 @@ presentation context.
 statement by default (e.g. 'theorem', 'lemma'). This is a subtle change
 of semantics wrt. old-style %name.
 
+* In Isabelle/jEdit, the string "\tag" may be completed to a "\<^marker>\<open>tag \<close>"
+template.
+
 * Document antiquotation option "cartouche" indicates if the output
 should be delimited as cartouche; this takes precedence over the
 analogous option "quotes".

@@ -95,7 +95,8 @@ keywords
   and "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
-abbrevs "===>" = "===>"  (*prevent replacement of very long arrows*)
+abbrevs "\\tag" = "\<^marker>\<open>tag \<close>"
+  and "===>" = "===>"  (*prevent replacement of very long arrows*)
   and "--->" = "\<midarrow>\<rightarrow>"
   and "hence" "thus" "default_sort" "simproc_setup" "apply_end" "realizers" "realizability" = ""
   and "hence" = "then have"
