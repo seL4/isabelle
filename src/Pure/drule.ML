@@ -21,6 +21,7 @@ sig
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
+  val instantiate'_normalize: ctyp option list -> cterm option list -> thm -> thm
   val infer_instantiate_types: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
   val infer_instantiate': Proof.context -> cterm option list -> thm -> thm
@@ -730,6 +731,9 @@ fun comp_no_flatten (th, n) i rule =
 
 fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
+
+fun instantiate'_normalize Ts ts th =
+  Thm.adjust_maxidx_thm ~1 (Thm.instantiate' Ts ts th COMP_INCR asm_rl);
 
 (*instantiation with type-inference for variables*)
 fun infer_instantiate_types _ [] th = th

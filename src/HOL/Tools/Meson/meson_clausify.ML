@@ -94,37 +94,36 @@ fun is_quasi_lambda_free (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $
   | is_quasi_lambda_free (Abs _) = false
   | is_quasi_lambda_free _ = true
 
-(* FIXME: Requires more use of cterm constructors. *)
 fun abstract ctxt ct =
   let
-      val Abs(x,_,body) = Thm.term_of ct
-      val Type (\<^type_name>\<open>fun\<close>, [xT,bodyT]) = Thm.typ_of_cterm ct
-      val cxT = Thm.ctyp_of ctxt xT
-      val cbodyT = Thm.ctyp_of ctxt bodyT
-      fun makeK () =
-        Thm.instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.cterm_of ctxt body)] @{thm abs_K}
+      val Abs (_, _, body) = Thm.term_of ct
+      val (x, cbody) = Thm.dest_abs NONE ct
+      val (A, cbodyT) = Thm.dest_ctyp_fun (Thm.ctyp_of_cterm ct)
+      fun makeK () = Thm.instantiate' [SOME A, SOME cbodyT] [SOME cbody] @{thm abs_K}
   in
       case body of
           Const _ => makeK()
         | Free _ => makeK()
         | Var _ => makeK()  (*though Var isn't expected*)
-        | Bound 0 => Thm.instantiate' [SOME cxT] [] @{thm abs_I} (*identity: I*)
+        | Bound 0 => Thm.instantiate' [SOME A] [] @{thm abs_I} (*identity: I*)
         | rator$rand =>
             if Term.is_dependent rator then (*C or S*)
                if Term.is_dependent rand then (*S*)
-                 let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
-                     val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
-                     val abs_S' =
-                      infer_instantiate ctxt [(("f", 0), crator), (("g", 0), crand)] @{thm abs_S}
+                 let val crator = Thm.lambda x (Thm.dest_fun cbody)
+                     val crand = Thm.lambda x (Thm.dest_arg cbody)
+                     val (C, B) = Thm.dest_ctyp_fun (Thm.dest_ctyp_nth 1 (Thm.ctyp_of_cterm crator))
+                     val abs_S' = @{thm abs_S}
+                       |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_S')
                  in
                    Thm.transitive abs_S' (Conv.binop_conv (abstract ctxt) rhs)
                  end
                else (*C*)
-                 let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
-                     val abs_C' =
-                      infer_instantiate ctxt [(("f", 0), crator), (("b", 0), Thm.cterm_of ctxt rand)]
-                        @{thm abs_C}
+                 let val crator = Thm.lambda x (Thm.dest_fun cbody)
+                     val crand = Thm.dest_arg cbody
+                     val (C, B) = Thm.dest_ctyp_fun (Thm.dest_ctyp_nth 1 (Thm.ctyp_of_cterm crator))
+                     val abs_C' = @{thm abs_C}
+                       |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_C')
                  in
                    Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv (abstract ctxt)) rhs)
@@ -132,10 +131,11 @@ fun abstract ctxt ct =
             else if Term.is_dependent rand then (*B or eta*)
                if rand = Bound 0 then Thm.eta_conversion ct
                else (*B*)
-                 let val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
-                     val crator = Thm.cterm_of ctxt rator
-                     val abs_B' =
-                      infer_instantiate ctxt [(("a", 0), crator), (("g", 0), crand)] @{thm abs_B}
+                 let val crator = Thm.dest_fun cbody
+                     val crand = Thm.lambda x (Thm.dest_arg cbody)
+                     val (C, B) = Thm.dest_ctyp_fun (Thm.ctyp_of_cterm crator)
+                     val abs_B' = @{thm abs_B}
+                      |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_B')
                  in Thm.transitive abs_B' (Conv.arg_conv (abstract ctxt) rhs) end
             else makeK ()
