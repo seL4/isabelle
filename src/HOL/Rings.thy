@@ -160,9 +160,9 @@ lemma dvd_trans [trans]:
   shows "a dvd c"
 proof -
   from assms obtain v where "b = a * v"
-    by (auto elim!: dvdE)
+    by auto
   moreover from assms obtain w where "c = b * w"
-    by (auto elim!: dvdE)
+    by auto
   ultimately have "c = a * (v * w)"
     by (simp add: mult.assoc)
   then show ?thesis ..
@@ -175,13 +175,13 @@ lemma strict_subset_divisors_dvd: "{c. c dvd a} \<subset> {c. c dvd b} \<longlef
   by (auto simp add: subset_iff intro: dvd_trans)
 
 lemma one_dvd [simp]: "1 dvd a"
-  by (auto intro!: dvdI)
+  by (auto intro: dvdI)
 
-lemma dvd_mult [simp]: "a dvd c \<Longrightarrow> a dvd (b * c)"
-  by (auto intro!: mult.left_commute dvdI elim!: dvdE)
+lemma dvd_mult [simp]: "a dvd (b * c)" if "a dvd c"
+  using that by rule (auto intro: mult.left_commute dvdI)
 
-lemma dvd_mult2 [simp]: "a dvd b \<Longrightarrow> a dvd (b * c)"
-  using dvd_mult [of a b c] by (simp add: ac_simps)
+lemma dvd_mult2 [simp]: "a dvd (b * c)" if "a dvd b"
+  using that dvd_mult [of a b c] by (simp add: ac_simps)
 
 lemma dvd_triv_right [simp]: "a dvd b * a"
   by (rule dvd_mult) (rule dvd_refl)
@@ -215,7 +215,7 @@ begin
 subclass semiring_1 ..
 
 lemma dvd_0_left_iff [simp]: "0 dvd a \<longleftrightarrow> a = 0"
-  by (auto intro: dvd_refl elim!: dvdE)
+  by auto
 
 lemma dvd_0_right [iff]: "a dvd 0"
 proof
@@ -375,7 +375,7 @@ begin
 
 subclass ring_1 ..
 subclass comm_semiring_1_cancel
-  by unfold_locales (simp add: algebra_simps)
+  by standard (simp add: algebra_simps)
 
 lemma dvd_minus_iff [simp]: "x dvd - y \<longleftrightarrow> x dvd y"
 proof
@@ -513,23 +513,19 @@ subclass semidom ..
 
 subclass ring_1_no_zero_divisors ..
 
-lemma dvd_mult_cancel_right [simp]: "a * c dvd b * c \<longleftrightarrow> c = 0 \<or> a dvd b"
+lemma dvd_mult_cancel_right [simp]:
+  "a * c dvd b * c \<longleftrightarrow> c = 0 \<or> a dvd b"
 proof -
   have "a * c dvd b * c \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
-    unfolding dvd_def by (simp add: ac_simps)
+    by (auto simp add: ac_simps)
   also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
-    unfolding dvd_def by simp
+    by auto
   finally show ?thesis .
 qed
 
-lemma dvd_mult_cancel_left [simp]: "c * a dvd c * b \<longleftrightarrow> c = 0 \<or> a dvd b"
-proof -
-  have "c * a dvd c * b \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
-    unfolding dvd_def by (simp add: ac_simps)
-  also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
-    unfolding dvd_def by simp
-  finally show ?thesis .
-qed
+lemma dvd_mult_cancel_left [simp]:
+  "c * a dvd c * b \<longleftrightarrow> c = 0 \<or> a dvd b"
+  using dvd_mult_cancel_right [of a c b] by (simp add: ac_simps)
 
 lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> a = b \<or> a = - b"
 proof
@@ -905,7 +901,7 @@ proof (cases "a = 0")
 next
   case False
   moreover from assms obtain k l where "b = a * k" and "c = a * l"
-    by (auto elim!: dvdE)
+    by blast
   ultimately show ?thesis by simp
 qed
 
@@ -918,7 +914,7 @@ proof (cases "c = 0")
 next
   case False
   moreover from assms obtain k l where "a = c * k" and "b = c * l"
-    by (auto elim!: dvdE)
+    by blast
   moreover have "c * k + c * l = c * (k + l)"
     by (simp add: algebra_simps)
   ultimately show ?thesis
@@ -934,7 +930,7 @@ proof (cases "b = 0 \<or> c = 0")
 next
   case False
   moreover from assms obtain k l where "a = b * k" and "c = d * l"
-    by (auto elim!: dvdE)
+    by blast
   moreover have "b * k * (d * l) div (b * d) = (b * d) * (k * l) div (b * d)"
     by (simp add: ac_simps)
   ultimately show ?thesis by simp
@@ -951,12 +947,12 @@ next
   assume ?lhs
   then have "b div a * a = c * a" by simp
   moreover from assms have "b div a * a = b"
-    by (auto elim!: dvdE simp add: ac_simps)
+    by (auto simp add: ac_simps)
   ultimately show ?rhs by simp
 qed
 
 lemma dvd_div_mult_self [simp]: "a dvd b \<Longrightarrow> b div a * a = b"
-  by (cases "a = 0") (auto elim: dvdE simp add: ac_simps)
+  by (cases "a = 0") (auto simp add: ac_simps)
 
 lemma dvd_mult_div_cancel [simp]: "a dvd b \<Longrightarrow> a * (b div a) = b"
   using dvd_div_mult_self [of a b] by (simp add: ac_simps)
@@ -1026,7 +1022,7 @@ proof (cases "c = 0 \<or> b = 0")
 next
   case False
   from assms obtain r s where "b = c * r" and "a = c * r * s"
-    by (blast elim: dvdE)
+    by blast
   moreover with False have "r \<noteq> 0"
     by auto
   ultimately show ?thesis using False
@@ -1044,7 +1040,7 @@ next
   case False
   from assms obtain r s
     where "a = d * r * s" and "b = d * r"
-    by (blast elim: dvdE)
+    by blast
   with False show ?thesis
     by simp (simp add: ac_simps)
 qed
