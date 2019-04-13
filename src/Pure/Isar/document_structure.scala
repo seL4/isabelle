@@ -24,6 +24,9 @@ object Document_Structure
     command.span.is_kind(keywords,
       kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
 
+  def is_document_command(keywords: Keyword.Keywords, command: Command): Boolean =
+    command.span.is_kind(keywords, Keyword.document, false)
+
   def is_heading_command(command: Command): Boolean =
     proper_heading_level(command).isDefined
 
