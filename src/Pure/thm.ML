@@ -26,6 +26,7 @@ sig
   val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
   val dest_ctyp_nth: int -> ctyp -> ctyp
+  val make_ctyp: ctyp -> ctyp list -> ctyp
   (*certified terms*)
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -81,6 +82,7 @@ sig
   val trim_context_ctyp: ctyp -> ctyp
   val trim_context_cterm: cterm -> cterm
   val trim_context: thm -> thm
+  val transfer_ctyp: theory -> ctyp -> ctyp
   val transfer_cterm: theory -> cterm -> cterm
   val transfer: theory -> thm -> thm
   val transfer': Proof.context -> thm -> thm
@@ -181,6 +183,25 @@ fun dest_ctyp_nth i (Ctyp {cert, T, maxidx, sorts}) =
       Type (_, Ts) =>
         Ctyp {cert = cert, T = nth Ts i handle General.Subscript => err (),
           maxidx = maxidx, sorts = sorts}
+    | _ => err ())
+  end;
+
+fun join_certificate_ctyp (Ctyp {cert, ...}) cert0 = Context.join_certificate (cert0, cert);
+fun union_sorts_ctyp (Ctyp {sorts, ...}) sorts0 = Sorts.union sorts0 sorts;
+fun maxidx_ctyp (Ctyp {maxidx, ...}) maxidx0 = Int.max (maxidx0, maxidx);
+
+fun make_ctyp (Ctyp {cert, T, maxidx = _, sorts = _}) cargs =
+  let
+    val As = map typ_of cargs;
+    fun err () = raise TYPE ("make_ctyp", T :: As, []);
+  in
+    (case T of
+      Type (a, args) =>
+        Ctyp {
+          cert = fold join_certificate_ctyp cargs cert,
+          maxidx = fold maxidx_ctyp cargs ~1,
+          sorts = fold union_sorts_ctyp cargs [],
+          T = if length args = length cargs then Type (a, As) else err ()}
     | _ => err ())
   end;
 
@@ -453,6 +474,19 @@ fun trim_context th =
       Thm (der,
        {cert = Context.Certificate_Id (Context.theory_id thy),
         tags = tags, maxidx = maxidx, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}));
+
+fun transfer_ctyp thy' cT =
+  let
+    val Ctyp {cert, T, maxidx, sorts} = cT;
+    val _ =
+      Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
+        raise CONTEXT ("Cannot transfer: not a super theory", [cT], [], [],
+          SOME (Context.Theory thy'));
+    val cert' = Context.join_certificate (Context.Certificate thy', cert);
+  in
+    if Context.eq_certificate (cert, cert') then cT
+    else Ctyp {cert = cert', T = T, maxidx = maxidx, sorts = sorts}
+  end;
 
 fun transfer_cterm thy' ct =
   let
