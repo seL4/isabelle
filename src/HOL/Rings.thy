@@ -120,7 +120,7 @@ end
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 begin
 
-lemma (in semiring_1) of_bool_conj:
+lemma of_bool_conj:
   "of_bool (P \<and> Q) = of_bool P * of_bool Q"
   by auto
 
