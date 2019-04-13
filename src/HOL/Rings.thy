@@ -13,6 +13,8 @@ theory Rings
   imports Groups Set Fun
 begin
 
+subsection \<open>Semirings and rings\<close>
+
 class semiring = ab_semigroup_add + semigroup_mult +
   assumes distrib_right[algebra_simps]: "(a + b) * c = a * c + b * c"
   assumes distrib_left[algebra_simps]: "a * (b + c) = a * b + a * c"
@@ -126,7 +128,8 @@ lemma of_bool_conj:
 
 end
 
-text \<open>Abstract divisibility\<close>
+
+subsection \<open>Abstract divisibility\<close>
 
 class dvd = times
 begin
@@ -403,6 +406,9 @@ lemma dvd_diff [simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dv
 
 end
 
+
+subsection \<open>Towards integral domains\<close>
+
 class semiring_no_zero_divisors = semiring_0 +
   assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 begin
@@ -633,17 +639,8 @@ qed
 
 end
 
-text \<open>
-  The theory of partially ordered rings is taken from the books:
-    \<^item> \<^emph>\<open>Lattice Theory\<close> by Garret Birkhoff, American Mathematical Society, 1979
-    \<^item> \<^emph>\<open>Partially Ordered Algebraic Systems\<close>, Pergamon Press, 1963
 
-  Most of the used notions can also be looked up in
-    \<^item> \<^url>\<open>http://www.mathworld.com\<close> by Eric Weisstein et. al.
-    \<^item> \<^emph>\<open>Algebra I\<close> by van der Waerden, Springer
-\<close>
-
-text \<open>Syntactic division operator\<close>
+subsection \<open>(Partial) Division\<close>
 
 class divide =
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
@@ -786,6 +783,71 @@ next
 qed
 
 end
+
+text \<open>Integral (semi)domains with cancellation rules\<close>
+
+class semidom_divide_cancel = semidom_divide +
+  assumes div_mult_self1: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
+    and div_mult_mult1: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
+begin
+
+context
+  fixes b
+  assumes "b \<noteq> 0"
+begin
+
+lemma div_mult_self2:
+  "(a + b * c) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_mult_self3:
+  "(c * b + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_mult_self4:
+  "(b * c + a) div b = c + a div b"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
+
+lemma div_add_self1:
+  "(b + a) div b = a div b + 1"
+  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a 1] by (simp add: ac_simps)
+
+lemma div_add_self2:
+  "(a + b) div b = a div b + 1"
+  using \<open>b \<noteq> 0\<close> div_add_self1 [of a] by (simp add: ac_simps)
+
+end
+
+lemma div_mult_mult2:
+  "(a * c) div (b * c) = a div b" if "c \<noteq> 0"
+  using that div_mult_mult1 [of c a b] by (simp add: ac_simps)
+
+lemma div_mult_mult1_if [simp]:
+  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
+  by (simp add: div_mult_mult1)
+
+lemma div_mult_mult2_if [simp]:
+  "(a * c) div (b * c) = (if c = 0 then 0 else a div b)"
+  using div_mult_mult1_if [of c a b] by (simp add: ac_simps)
+
+end
+
+class idom_divide_cancel = idom_divide + semidom_divide_cancel
+begin
+
+lemma div_minus_minus [simp]: "(- a) div (- b) = a div b"
+  using div_mult_mult1 [of "- 1" a b] by simp
+
+lemma div_minus_right: "a div (- b) = (- a) div b"
+  using div_minus_minus [of "- a" b] by simp
+
+lemma div_minus1_right [simp]: "a div (- 1) = - a"
+  using div_minus_right [of a 1] by simp
+
+end
+
+
+subsection \<open>Basic notions following from divisibility\<close>
 
 class algebraic_semidom = semidom_divide
 begin
@@ -1699,70 +1761,7 @@ lemma [nitpick_unfold]:
 end
 
 
-text \<open>Integral (semi)domains with cancellation rules\<close>
-
-class semidom_divide_cancel = semidom_divide +
-  assumes div_mult_self1: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
-    and div_mult_mult1: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
-begin
-
-context
-  fixes b
-  assumes "b \<noteq> 0"
-begin
-
-lemma div_mult_self2:
-  "(a + b * c) div b = c + a div b"
-  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
-
-lemma div_mult_self3:
-  "(c * b + a) div b = c + a div b"
-  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
-
-lemma div_mult_self4:
-  "(b * c + a) div b = c + a div b"
-  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a c] by (simp add: ac_simps)
-
-lemma div_add_self1:
-  "(b + a) div b = a div b + 1"
-  using \<open>b \<noteq> 0\<close> div_mult_self1 [of b a 1] by (simp add: ac_simps)
-
-lemma div_add_self2:
-  "(a + b) div b = a div b + 1"
-  using \<open>b \<noteq> 0\<close> div_add_self1 [of a] by (simp add: ac_simps)
-
-end
-
-lemma div_mult_mult2:
-  "(a * c) div (b * c) = a div b" if "c \<noteq> 0"
-  using that div_mult_mult1 [of c a b] by (simp add: ac_simps)
-
-lemma div_mult_mult1_if [simp]:
-  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
-  by (simp add: div_mult_mult1)
-
-lemma div_mult_mult2_if [simp]:
-  "(a * c) div (b * c) = (if c = 0 then 0 else a div b)"
-  using div_mult_mult1_if [of c a b] by (simp add: ac_simps)
-
-end
-
-class idom_divide_cancel = idom_divide + semidom_divide_cancel
-begin
-
-lemma div_minus_minus [simp]: "(- a) div (- b) = a div b"
-  using div_mult_mult1 [of "- 1" a b] by simp
-
-lemma div_minus_right: "a div (- b) = (- a) div b"
-  using div_minus_minus [of "- a" b] by simp
-
-lemma div_minus1_right [simp]: "a div (- 1) = - a"
-  using div_minus_right [of a 1] by simp
-
-end
-
-
-text \<open>Quotient and remainder in integral domains\<close>
+subsection \<open>Quotient and remainder in integral domains\<close>
 
 class semidom_modulo = algebraic_semidom + semiring_modulo
 begin
@@ -1833,7 +1832,19 @@ lemma cancel_div_mod_rules:
 
 end
 
-text \<open>Interlude: basic tool support for algebraic and arithmetic calculations\<close>
+class idom_modulo = idom + semidom_modulo
+begin
+
+subclass idom_divide ..
+
+lemma div_diff [simp]:
+  "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> (a - b) div c = a div c - b div c"
+  using div_add [of _  _ "- b"] by (simp add: dvd_neg_div)
+
+end
+
+
+subsection \<open>Interlude: basic tool support for algebraic and arithmetic calculations\<close>
 
 named_theorems arith "arith facts -- only ground formulas"
 ML_file \<open>Tools/arith_data.ML\<close>
@@ -1859,17 +1870,18 @@ structure Cancel_Div_Mod_Ring = Cancel_Div_Mod
 simproc_setup cancel_div_mod_int ("(a::'a::semidom_modulo) + b") =
   \<open>K Cancel_Div_Mod_Ring.proc\<close>
 
-class idom_modulo = idom + semidom_modulo
-begin
 
-subclass idom_divide ..
+subsection \<open>Ordered semirings and rings\<close>
 
-lemma div_diff [simp]:
-  "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> (a - b) div c = a div c - b div c"
-  using div_add [of _  _ "- b"] by (simp add: dvd_neg_div)
+text \<open>
+  The theory of partially ordered rings is taken from the books:
+    \<^item> \<^emph>\<open>Lattice Theory\<close> by Garret Birkhoff, American Mathematical Society, 1979
+    \<^item> \<^emph>\<open>Partially Ordered Algebraic Systems\<close>, Pergamon Press, 1963
 
-end
-
+  Most of the used notions can also be looked up in
+    \<^item> \<^url>\<open>http://www.mathworld.com\<close> by Eric Weisstein et. al.
+    \<^item> \<^emph>\<open>Algebra I\<close> by van der Waerden, Springer
+\<close>
 
 class ordered_semiring = semiring + ordered_comm_monoid_add +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -2668,6 +2680,7 @@ lemma abs_add_one_gt_zero: "0 < 1 + \<bar>x\<bar>"
   by (auto simp: abs_if not_less intro: zero_less_one add_strict_increasing less_trans)
 
 end
+
 
 subsection \<open>Dioids\<close>
 
