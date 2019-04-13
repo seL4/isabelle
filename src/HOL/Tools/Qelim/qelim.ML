@@ -41,9 +41,10 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
     in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
   | Const(\<^const_name>\<open>Ex\<close>,_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
-  | Const(\<^const_name>\<open>All\<close>, allT)$_ =>
+  | Const(\<^const_name>\<open>All\<close>, _)$_ =>
     let
-     val T = Thm.ctyp_of ctxt (#1 (Term.dest_funT (#1 (Term.dest_funT allT))))
+     val allT = Thm.ctyp_of_cterm (Thm.dest_fun p)
+     val T = Thm.dest_ctyp_nth 0 (Thm.dest_ctyp_nth 0 allT)
      val p = Thm.dest_arg p
      val th = Thm.instantiate' [SOME T] [SOME p] all_not_ex
     in Thm.transitive th (conv env (Thm.rhs_of th))
