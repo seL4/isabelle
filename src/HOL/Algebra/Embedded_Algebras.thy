@@ -49,6 +49,16 @@ begin
 
 subsection \<open>Basic Properties - First Part\<close>
 
+lemma line_extension_consistent:
+  assumes "subring K R" shows "ring.line_extension (R \<lparr> carrier := K \<rparr>) = line_extension"
+  unfolding ring.line_extension_def[OF subring_is_ring[OF assms]] line_extension_def
+  by (simp add: set_add_def set_mult_def)
+
+lemma Span_consistent:
+  assumes "subring K R" shows "ring.Span (R \<lparr> carrier := K \<rparr>) = Span"
+  unfolding ring.Span.simps[OF subring_is_ring[OF assms]] Span.simps
+            line_extension_consistent[OF assms] by simp
+
 lemma combine_in_carrier [simp, intro]:
   "\<lbrakk> set Ks \<subseteq> carrier R; set Us \<subseteq> carrier R \<rbrakk> \<Longrightarrow> combine Ks Us \<in> carrier R"
   by (induct Ks Us rule: combine.induct) (auto)
@@ -70,6 +80,31 @@ lemma combine_eq_foldr:
 lemma combine_replicate:
   "set Us \<subseteq> carrier R \<Longrightarrow> combine (replicate (length Us) \<zero>) Us = \<zero>"
   by (induct Us) (auto)
+
+lemma combine_take:
+  "combine (take (length Us) Ks) Us = combine Ks Us"
+  by (induct Us arbitrary: Ks)
+     (auto, metis combine.simps(1) list.exhaust take.simps(1) take_Suc_Cons)
+
+lemma combine_append_zero:
+  "set Us \<subseteq> carrier R \<Longrightarrow> combine (Ks @ [ \<zero> ]) Us = combine Ks Us"
+proof (induct Ks arbitrary: Us)
+  case Nil thus ?case by (induct Us) (auto)
+next
+  case Cons thus ?case by (cases Us) (auto)
+qed
+
+lemma combine_prepend_replicate:
+  "\<lbrakk> set Ks \<subseteq> carrier R; set Us \<subseteq> carrier R \<rbrakk> \<Longrightarrow>
+     combine ((replicate n \<zero>) @ Ks) Us = combine Ks (drop n Us)"
+proof (induct n arbitrary: Us, simp)
+  case (Suc n) thus ?case
+    by (cases Us) (auto, meson combine_in_carrier ring_simprules(8) set_drop_subset subset_trans)
+qed
+
+lemma combine_append_replicate:
+  "set Us \<subseteq> carrier R \<Longrightarrow> combine (Ks @ (replicate n \<zero>)) Us = combine Ks Us"
+  by (induct n) (auto, metis append.assoc combine_append_zero replicate_append_same)
 
 lemma combine_append:
   assumes "length Ks = length Us"
@@ -119,6 +154,36 @@ next
   finally show ?case .
 qed
 
+lemma combine_normalize:
+  assumes "set Ks \<subseteq> carrier R" "set Us \<subseteq> carrier R" "combine Ks Us = a" 
+  obtains Ks'
+  where "set (take (length Us) Ks) \<subseteq> set Ks'" "set Ks' \<subseteq> set (take (length Us) Ks) \<union> { \<zero> }"
+    and "length Ks' = length Us" "combine Ks' Us = a"
+proof -
+  define Ks'
+    where "Ks' = (if length Ks \<le> length Us
+                  then Ks @ (replicate (length Us - length Ks) \<zero>) else take (length Us) Ks)"
+  hence "set (take (length Us) Ks) \<subseteq> set Ks'" "set Ks' \<subseteq> set (take (length Us) Ks) \<union> { \<zero> }"
+        "length Ks' = length Us" "a = combine Ks' Us"
+    using combine_append_replicate[OF assms(2)] combine_take assms(3) by auto
+  thus thesis
+    using that by blast
+qed
+
+lemma line_extension_mem_iff: "u \<in> line_extension K a E \<longleftrightarrow> (\<exists>k \<in> K. \<exists>v \<in> E. u = k \<otimes> a \<oplus> v)"
+  unfolding line_extension_def set_add_def'[of R "K #> a" E] unfolding r_coset_def by blast
+
+lemma line_extension_in_carrier:
+  assumes "K \<subseteq> carrier R" "a \<in> carrier R" "E \<subseteq> carrier R"
+  shows "line_extension K a E \<subseteq> carrier R"
+  using set_add_closed[OF r_coset_subset_G[OF assms(1-2)] assms(3)]
+  by (simp add: line_extension_def)
+
+lemma Span_in_carrier:
+  assumes "K \<subseteq> carrier R" "set Us \<subseteq> carrier R"
+  shows "Span K Us \<subseteq> carrier R"
+  using assms by (induct Us) (auto simp add: line_extension_in_carrier)
+
 
 subsection \<open>Some Basic Properties of Linear Independence\<close>
 
@@ -131,10 +196,18 @@ lemma independent_backwards:
   "independent K (u # Us) \<Longrightarrow> u \<in> carrier R"
   by (cases rule: independent.cases, auto)+
 
+lemma dimension_independent [intro]: "independent K Us \<Longrightarrow> dimension (length Us) K (Span K Us)"
+proof (induct Us)
+  case Nil thus ?case by simp
+next
+  case Cons thus ?case
+    using Suc_dim independent_backwards[OF Cons(2)] by auto 
+qed
+
 
 text \<open>Now, we fix K, a subfield of the ring. Many lemmas would also be true for weaker
       structures, but our interest is to work with subfields, so generalization could
-      be the subjuct of a future work.\<close>
+      be the subject of a future work.\<close>
 
 context
   fixes K :: "'a set" assumes K: "subfield K R"
@@ -145,9 +218,6 @@ subsection \<open>Basic Properties - Second Part\<close>
 
 lemmas subring_props [simp] =
   subringE[OF subfieldE(1)[OF K]]
-
-lemma line_extension_mem_iff: "u \<in> line_extension K a E \<longleftrightarrow> (\<exists>k \<in> K. \<exists>v \<in> E. u = k \<otimes> a \<oplus> v)"
-  unfolding line_extension_def set_add_def'[of R "K #> a" E] unfolding r_coset_def by blast
 
 lemma line_extension_is_subgroup:
   assumes "subgroup E (add_monoid R)" "a \<in> carrier R"
@@ -325,6 +395,28 @@ lemma Span_eq_combine_set_length_version:
 
 subsubsection \<open>Corollaries\<close>
 
+corollary Span_mem_iff_length_version:
+  assumes "set Us \<subseteq> carrier R"
+  shows "a \<in> Span K Us \<longleftrightarrow> (\<exists>Ks. set Ks \<subseteq> K \<and> length Ks = length Us \<and> a = combine Ks Us)"
+  using Span_eq_combine_set_length_version[OF assms] by blast
+
+corollary Span_mem_imp_non_trivial_combine:
+  assumes "set Us \<subseteq> carrier R" and "a \<in> Span K Us"
+  obtains k Ks
+  where "k \<in> K - { \<zero> }" "set Ks \<subseteq> K" "length Ks = length Us" "combine (k # Ks) (a # Us) = \<zero>"
+proof -
+  obtain Ks where Ks: "set Ks \<subseteq> K" "length Ks = length Us" "a = combine Ks Us"
+    using Span_mem_iff_length_version[OF assms(1)] assms(2) by auto
+  hence "((\<ominus> \<one>) \<otimes> a) \<oplus> a = combine ((\<ominus> \<one>) # Ks) (a # Us)"
+    by auto
+  moreover have "((\<ominus> \<one>) \<otimes> a) \<oplus> a = \<zero>"
+    using assms(2) Span_subgroup_props(1)[OF assms(1)] l_minus l_neg by auto  
+  moreover have "\<ominus> \<one> \<noteq> \<zero>"
+    using subfieldE(6)[OF K] l_neg by force 
+  ultimately show ?thesis
+    using that subring_props(3,5) Ks(1-2) by (force simp del: combine.simps)
+qed
+
 corollary Span_mem_iff:
   assumes "set Us \<subseteq> carrier R" and "a \<in> carrier R"
   shows "a \<in> Span K Us \<longleftrightarrow> (\<exists>k \<in> K - { \<zero> }. \<exists>Ks. set Ks \<subseteq> K \<and> combine (k # Ks) (a # Us) = \<zero>)"
@@ -354,11 +446,6 @@ next
   thus "?in_Span"
     using Span_m_inv_simprule[OF assms(1) _ assms(2), of k] k by auto
 qed
-
-corollary Span_mem_iff_length_version:
-  assumes "set Us \<subseteq> carrier R"
-  shows "a \<in> Span K Us \<longleftrightarrow> (\<exists>Ks. set Ks \<subseteq> K \<and> length Ks = length Us \<and> a = combine Ks Us)"
-  using Span_eq_combine_set_length_version[OF assms] by blast
 
 
 subsection \<open>Span as the minimal subgroup that contains \<^term>\<open>K <#> (set Us)\<close>\<close>
@@ -525,7 +612,7 @@ next
       fix v assume "v \<in> line_extension K u (Span K Us <+>\<^bsub>R\<^esub> Span K Vs)"
       then obtain k u' v'
         where v: "k \<in> K" "u' \<in> Span K Us" "v' \<in> Span K Vs" "v = k \<otimes> u \<oplus> (u' \<oplus> v')"
-        using line_extension_mem_iff[of v u "Span K Us <+>\<^bsub>R\<^esub> Span K Vs"]
+        using line_extension_mem_iff[of v _ u "Span K Us <+>\<^bsub>R\<^esub> Span K Vs"]
         unfolding set_add_def' by blast
       hence "v = (k \<otimes> u \<oplus> u') \<oplus> v'"
         using in_carrier(2-3)[THEN Span_subgroup_props(1)] in_carrier(1) subring_props(1)
@@ -541,12 +628,12 @@ next
       fix v assume "v \<in> Span K (u # Us) <+>\<^bsub>R\<^esub> Span K Vs"
       then obtain k u' v'
         where v: "k \<in> K" "u' \<in> Span K Us" "v' \<in> Span K Vs" "v = (k \<otimes> u \<oplus> u') \<oplus> v'"
-        using line_extension_mem_iff[of _ u "Span K Us"] unfolding set_add_def' by auto
+        using line_extension_mem_iff[of _ _ u "Span K Us"] unfolding set_add_def' by auto
       hence "v = (k \<otimes> u) \<oplus> (u' \<oplus> v')"
         using in_carrier(2-3)[THEN Span_subgroup_props(1)] in_carrier(1) subring_props(1)
         by (metis (no_types, lifting) rev_subsetD ring_simprules(5,7))
       thus "v \<in> line_extension K u (Span K Us <+>\<^bsub>R\<^esub> Span K Vs)"
-        using line_extension_mem_iff[of "(k \<otimes> u) \<oplus> (u' \<oplus> v')" u "Span K Us <+>\<^bsub>R\<^esub> Span K Vs"]
+        using line_extension_mem_iff[of "(k \<otimes> u) \<oplus> (u' \<oplus> v')" K u "Span K Us <+>\<^bsub>R\<^esub> Span K Vs"]
         unfolding set_add_def' using v by auto
     qed
   qed
@@ -571,7 +658,7 @@ next
     by auto
 qed
 
-lemma independent_strinct_incl:
+lemma independent_strict_incl:
   assumes "independent K (u # Us)" shows "Span K Us \<subset> Span K (u # Us)"
 proof -
   have "u \<in> Span K (u # Us)"
@@ -588,7 +675,7 @@ corollary independent_replacement:
 proof -
   assume "Span K (u # Us) \<subseteq> Span K Vs"
   hence "Span K Us \<subset> Span K Vs"
-    using independent_strinct_incl[OF assms(1)] by auto
+    using independent_strict_incl[OF assms(1)] by auto
   then obtain v where v: "v \<in> set Vs" "v \<notin> Span K Us"
     using Span_strict_incl[of Us Vs] assms[THEN independent_in_carrier] by auto
   thus ?thesis
@@ -638,7 +725,7 @@ next
         where u': "u' \<in> Span K Us" "u' \<in> carrier R"
           and v': "v' \<in> Span K Vs" "v' \<in> carrier R" "v' \<noteq> \<zero>"
           and k: "k \<in> K" "(k \<otimes> u \<oplus> u') = v'"
-        using line_extension_mem_iff[of _ u "Span K Us"] in_carrier(2-3)[THEN Span_subgroup_props(1)]
+        using line_extension_mem_iff[of _ _ u "Span K Us"] in_carrier(2-3)[THEN Span_subgroup_props(1)]
               subring_props(1) by force
       hence "v' = \<zero>" if "k = \<zero>"
         using in_carrier(1) that IH by auto
@@ -735,6 +822,11 @@ next
   qed
 qed
 
+lemma non_trivial_combine_imp_dependent:
+  assumes "set Ks \<subseteq> K" and "combine Ks Us = \<zero>" and "\<not> set (take (length Us) Ks) \<subseteq> { \<zero> }"
+  shows "dependent K Us"
+  using independent_imp_trivial_combine[OF _ assms(1-2)] assms(3) by blast  
+
 lemma trivial_combine_imp_independent:
   assumes "set Us \<subseteq> carrier R"
     and "\<And>Ks. \<lbrakk> set Ks \<subseteq> K; combine Ks Us = \<zero> \<rbrakk> \<Longrightarrow> set (take (length Us) Ks) \<subseteq> { \<zero> }"
@@ -771,6 +863,27 @@ next
 
   ultimately show ?case
     using li_Cons[OF u] by simp
+qed
+
+corollary dependent_imp_non_trivial_combine:
+  assumes "set Us \<subseteq> carrier R" and "dependent K Us"
+  obtains Ks where "length Ks = length Us" "combine Ks Us = \<zero>" "set Ks \<subseteq> K" "set Ks \<noteq> { \<zero> }"
+proof -
+  obtain Ks
+    where Ks: "set Ks \<subseteq> carrier R" "set Ks \<subseteq> K" "combine Ks Us = \<zero>" "\<not> set (take (length Us) Ks) \<subseteq> { \<zero> }"
+    using trivial_combine_imp_independent[OF assms(1)] assms(2) subring_props(1) by blast
+  obtain Ks'
+    where Ks': "set (take (length Us) Ks) \<subseteq> set Ks'" "set Ks' \<subseteq> set (take (length Us) Ks) \<union> { \<zero> }"
+               "length Ks' = length Us" "combine Ks' Us = \<zero>"
+    using combine_normalize[OF Ks(1) assms(1) Ks(3)] by metis
+  have "set (take (length Us) Ks) \<subseteq> set Ks"
+    by (simp add: set_take_subset) 
+  hence "set Ks' \<subseteq> K"
+    using Ks(2) Ks'(2) subring_props(2) Un_commute by blast
+  moreover have "set Ks' \<noteq> { \<zero> }"
+    using Ks'(1) Ks(4) by auto
+  ultimately show thesis
+    using that Ks' by blast
 qed
 
 corollary unique_decomposition:
@@ -964,7 +1077,7 @@ next
   thus ?case by blast
 qed
 
-lemma dimension_zero [intro]: "dimension 0 K E \<Longrightarrow> E = { \<zero> }"
+lemma dimension_zero: "dimension 0 K E \<Longrightarrow> E = { \<zero> }"
 proof -
   assume "dimension 0 K E"
   then obtain Vs where "length Vs = 0" "Span K Vs = E"
@@ -973,12 +1086,12 @@ proof -
     by auto
 qed
 
-lemma dimension_independent [intro]: "independent K Us \<Longrightarrow> dimension (length Us) K (Span K Us)"
-proof (induct Us)
-  case Nil thus ?case by simp
-next
-  case Cons thus ?case
-    using Suc_dim[OF independent_backwards(3,1)[OF Cons(2)]] by auto
+lemma dimension_one [iff]: "dimension 1 K K"
+proof -
+  have "K = Span K [ \<one> ]"
+    using line_extension_mem_iff[of _ K \<one> "{ \<zero> }"] subfieldE(3)[OF K] by (auto simp add: rev_subsetD)
+  thus ?thesis
+    using dimension.Suc_dim[OF one_closed _ dimension.zero_dim, of K] subfieldE(6)[OF K] by auto 
 qed
 
 lemma dimensionI:
@@ -1081,6 +1194,37 @@ proof -
     using aux_lemma[OF _ assms(2-3)] by auto
 qed
 
+lemma filter_base:
+  assumes "set Us \<subseteq> carrier R"
+  obtains Vs where "set Vs \<subseteq> carrier R" and "independent K Vs" and "Span K Vs = Span K Us"
+proof -
+  from \<open>set Us \<subseteq> carrier R\<close> have "\<exists>Vs. independent K Vs \<and> Span K Vs = Span K Us"
+  proof (induction Us)
+    case Nil thus ?case by auto
+  next
+    case (Cons u Us)
+    then obtain Vs where Vs: "independent K Vs" "Span K Vs = Span K Us"
+      by auto
+    show ?case
+    proof (cases "u \<in> Span K Us")
+      case True
+      hence "Span K (u # Us) = Span K Us"
+        using Span_base_incl mono_Span_subset
+        by (metis Cons.prems insert_subset list.simps(15) subset_antisym)
+      thus ?thesis
+        using Vs by blast
+    next
+      case False
+      hence "Span K (u # Vs) = Span K (u # Us)" and "independent K (u # Vs)"
+        using li_Cons[of u K Vs] Cons(2) Vs by auto
+      thus ?thesis
+        by blast
+    qed
+  qed
+  thus ?thesis
+    using independent_in_carrier that by auto
+qed
+
 lemma dimension_backwards:
   "dimension (Suc n) K E \<Longrightarrow> \<exists>v \<in> carrier R. \<exists>E'. dimension n K E' \<and> v \<notin> E' \<and> E = line_extension K v E'"
   by (cases rule: dimension.cases) (auto)
@@ -1123,7 +1267,7 @@ proof -
 
   hence dim: "dimension (n + m - k) K (Span K (Us @ (Vs @ Bs)))"
     using independent_append[OF independent_split(2)[OF Us(2)] Vs(2)] Us(1) Vs(1) Bs(2)
-          dimension_independent[of "Us @ (Vs @ Bs)"] by auto
+          dimension_independent[of K "Us @ (Vs @ Bs)"] by auto
 
   have "(Span K Us) <+>\<^bsub>R\<^esub> F \<subseteq> E <+>\<^bsub>R\<^esub> F"
     using mono_Span_append(1)[OF in_carrier(1) Bs(1)] Us(3) unfolding set_add_def' by auto
@@ -1149,9 +1293,10 @@ proof -
   thus ?thesis using dim by simp
 qed
 
-end
+end (* of fixed K context. *)
 
-end
+end (* of ring context. *)
+
 
 lemma (in ring) telescopic_base_aux:
   assumes "subfield K R" "subfield F R"
@@ -1186,7 +1331,7 @@ proof -
   proof
     fix v assume "v \<in> E"
     then obtain f where f: "f \<in> F" "v = f \<otimes> u \<oplus> \<zero>"
-      using u(1,3) line_extension_mem_iff[OF assms(2)] by auto
+      using u(1,3) line_extension_mem_iff by auto
     then obtain Ks where Ks: "set Ks \<subseteq> K" "f = combine Ks Us"
       using Span_eq_combine_set[OF assms(1) Us(1)] Us(4) by auto
     have "v = f \<otimes> u"
@@ -1209,7 +1354,7 @@ proof -
     ultimately have "v = (combine Ks Us) \<otimes> u \<oplus> \<zero>" and "combine Ks Us \<in> F"
       using subring_props(1)[OF assms(2)] u(1) by auto
     thus "v \<in> E"
-      using u(3) line_extension_mem_iff[OF assms(2)] by auto
+      using u(3) line_extension_mem_iff by auto
   qed
   ultimately have "Span K (map (\<lambda>u'. u' \<otimes> u) Us) = E" by auto
   thus ?thesis
@@ -1234,9 +1379,9 @@ next
   hence li: "independent F [ v ]" "independent F Vs'" and inter: "Span F [ v ] \<inter> Span F Vs' = { \<zero> }"
     using Vs(3) independent_split[OF assms(2), of "[ v ]" Vs'] by auto
   have "dimension n K (Span F [ v ])"
-    using dimension_independent[OF assms(2) li(1)] telescopic_base_aux[OF assms(1-3)] by simp
+    using dimension_independent[OF li(1)] telescopic_base_aux[OF assms(1-3)] by simp
   moreover have "dimension (n * m) K (Span F Vs')"
-    using Suc(1) dimension_independent[OF assms(2) li(2)] Vs(2) unfolding v by auto
+    using Suc(1) dimension_independent[OF li(2)] Vs(2) unfolding v by auto
   ultimately have "dimension (n * Suc m) K (Span F [ v ] <+>\<^bsub>R\<^esub> Span F Vs')"
     using dimension_direct_sum_space[OF assms(1) _ _ inter] by auto
   thus "dimension (n * Suc m) K E"
@@ -1244,70 +1389,387 @@ next
 qed
 
 
-(*
-lemma combine_take:
-  assumes "set Ks  \<subseteq> carrier R" "set Us \<subseteq> carrier R"
-  shows "length Ks \<le> length Us \<Longrightarrow> combine Ks Us = combine Ks (take (length Ks) Us)"
-    and "length Us \<le> length Ks \<Longrightarrow> combine Ks Us = combine (take (length Us) Ks) Us"
-proof -
-  assume len: "length Ks \<le> length Us"
-  hence Us: "Us = (take (length Ks) Us) @ (drop (length Ks) Us)" by auto
-  hence set_t: "set (take (length Ks) Us) \<subseteq> carrier R" and set_d: "set (drop (length Ks) Us) \<subseteq> carrier R"
-    using assms(2) len by (metis le_sup_iff set_append)+
-  hence "combine Ks Us = (combine Ks (take (length Ks) Us)) \<oplus> \<zero>"
-    using combine_append[OF _ assms(1), of "take (length Ks) Us" "[]" "drop (length Ks) Us"] len by auto
-  also have " ... = combine Ks (take (length Ks) Us)"
-    using combine_in_carrier[OF assms(1) set_t] by auto
-  finally show "combine Ks Us = combine Ks (take (length Ks) Us)" .
-next
-  assume len: "length Us \<le> length Ks"
-  hence Us: "Ks = (take (length Us) Ks) @ (drop (length Us) Ks)" by auto
-  hence set_t: "set (take (length Us) Ks) \<subseteq> carrier R" and set_d: "set (drop (length Us) Ks) \<subseteq> carrier R"
-    using assms(1) len by (metis le_sup_iff set_append)+
-  hence "combine Ks Us = (combine (take (length Us) Ks) Us) \<oplus> \<zero>"
-    using combine_append[OF _ _ assms(2), of "take (length Us) Ks" "drop (length Us) Ks" "[]"] len by auto
-  also have " ... = combine (take (length Us) Ks) Us"
-    using combine_in_carrier[OF set_t assms(2)] by auto
-  finally show "combine Ks Us = combine (take (length Us) Ks) Us" .
-qed
-*)
+context ring_hom_ring
+begin
 
-(*
-lemma combine_normalize:
-  assumes "set Ks \<subseteq> K" "set Us \<subseteq> carrier R" "a = combine Ks Us"
-  shows "\<exists>Ks'. set Ks' \<subseteq> K \<and> length Ks' = length Us \<and> a = combine Ks' Us"
-proof (cases "length Ks \<le> length Us")
-  assume "\<not> length Ks \<le> length Us"
-  hence len: "length Us < length Ks" by simp
-  hence "length (take (length Us) Ks) = length Us" and "set (take (length Us) Ks) \<subseteq> K"
-    using assms(1) by (auto, metis contra_subsetD in_set_takeD)
-  thus ?thesis
-    using combine_take(2)[OF _ assms(2), of Ks] assms(1,3) subring_props(1) len
-    by (metis dual_order.trans nat_less_le)
-next
-  assume len: "length Ks \<le> length Us"
-  have Ks: "set Ks \<subseteq> carrier R" and set_r: "set (replicate (length Us - length Ks) \<zero>) \<subseteq> carrier R"
-    using assms subring_props(1) zero_closed by (metis dual_order.trans, auto)
-  moreover
-  have set_t: "set (take (length Ks) Us) \<subseteq> carrier R"
-   and set_d: "set (drop (length Ks) Us) \<subseteq> carrier R"
-    using assms(2) len dual_order.trans by (metis set_take_subset, metis set_drop_subset)
-  ultimately
-  have "combine (Ks @ (replicate (length Us - length Ks) \<zero>)) Us =
-       (combine Ks (take (length Ks) Us)) \<oplus>
-       (combine (replicate (length Us - length Ks) \<zero>) (drop (length Ks) Us))"
-    using combine_append[OF _ Ks set_t set_r set_d] len by auto
-  also have " ... = combine Ks (take (length Ks) Us)"
-    using combine_replicate[OF set_d] combine_in_carrier[OF Ks set_t] by auto
-  also have " ... = a"
-    using combine_take(1)[OF Ks assms(2) len] assms(3) by simp
-  finally have "combine (Ks @ (replicate (length Us - length Ks) \<zero>)) Us = a" .
-  moreover have "set (Ks @ (replicate (length Us - length Ks) \<zero>)) \<subseteq> K"
-    using assms(1) subring_props(2) by auto
-  moreover have "length (Ks @ (replicate (length Us - length Ks) \<zero>)) = length Us"
-    using len by simp
-  ultimately show ?thesis by blast
+lemma combine_hom:
+  "\<lbrakk> set Ks \<subseteq> carrier R; set Us \<subseteq> carrier R \<rbrakk> \<Longrightarrow> combine (map h Ks) (map h Us) = h (R.combine Ks Us)"
+  by (induct Ks Us rule: R.combine.induct) (auto)
+
+lemma line_extension_hom:
+  assumes "K \<subseteq> carrier R" "a \<in> carrier R" "E \<subseteq> carrier R"
+  shows "line_extension (h ` K) (h a) (h ` E) = h ` R.line_extension K a E"
+  using set_add_hom[OF homh R.r_coset_subset_G[OF assms(1-2)] assms(3)]
+        coset_hom(2)[OF ring_hom_in_hom(1)[OF homh] assms(1-2)]
+  unfolding R.line_extension_def S.line_extension_def
+  by simp
+
+lemma Span_hom:
+  assumes "K \<subseteq> carrier R" "set Us \<subseteq> carrier R"
+  shows "Span (h ` K) (map h Us) = h ` R.Span K Us"
+  using assms line_extension_hom R.Span_in_carrier by (induct Us) (auto)
+
+lemma inj_on_subgroup_iff_trivial_ker:
+  assumes "subgroup H (add_monoid R)"
+  shows "inj_on h H \<longleftrightarrow> a_kernel (R \<lparr> carrier := H \<rparr>) S h = { \<zero> }"
+  using group_hom.inj_on_subgroup_iff_trivial_ker[OF a_group_hom assms]
+  unfolding a_kernel_def[of "R \<lparr> carrier := H \<rparr>" S h] by simp
+
+corollary inj_on_Span_iff_trivial_ker:
+  assumes "subfield K R" "set Us \<subseteq> carrier R"
+  shows "inj_on h (R.Span K Us) \<longleftrightarrow> a_kernel (R \<lparr> carrier := R.Span K Us \<rparr>) S h = { \<zero> }"
+  using inj_on_subgroup_iff_trivial_ker[OF R.Span_is_add_subgroup[OF assms]] .
+
+
+context
+  fixes K :: "'a set" assumes K: "subfield K R" and one_zero: "\<one>\<^bsub>S\<^esub> \<noteq> \<zero>\<^bsub>S\<^esub>"
+begin
+
+lemma inj_hom_preserves_independent:
+  assumes "inj_on h (R.Span K Us)"
+  and "R.independent K Us" shows "independent (h ` K) (map h Us)"
+proof (rule ccontr)
+  have in_carrier: "set Us \<subseteq> carrier R" "set (map h Us) \<subseteq> carrier S"
+    using R.independent_in_carrier[OF assms(2)] by auto 
+
+  assume ld: "dependent (h ` K) (map h Us)"
+  obtain Ks :: "'c list"
+    where Ks: "length Ks = length Us" "combine Ks (map h Us) = \<zero>\<^bsub>S\<^esub>" "set Ks \<subseteq> h ` K" "set Ks \<noteq> { \<zero>\<^bsub>S\<^esub> }"
+    using dependent_imp_non_trivial_combine[OF img_is_subfield(2)[OF K one_zero] in_carrier(2) ld]
+    by (metis length_map)
+  obtain Ks' where Ks': "set Ks' \<subseteq> K" "Ks = map h Ks'"
+    using Ks(3) by (induct Ks) (auto, metis insert_subset list.simps(15,9))
+  hence "h (R.combine Ks' Us) = \<zero>\<^bsub>S\<^esub>"
+    using combine_hom[OF _ in_carrier(1)] Ks(2) subfieldE(3)[OF K] by (metis subset_trans)
+  moreover have "R.combine Ks' Us \<in> R.Span K Us"
+    using R.Span_eq_combine_set[OF K in_carrier(1)] Ks'(1) by auto
+  ultimately have "R.combine Ks' Us = \<zero>"
+    using assms hom_zero R.Span_subgroup_props(2)[OF K in_carrier(1)] by (auto simp add: inj_on_def)
+  hence "set Ks' \<subseteq> { \<zero> }"
+    using R.independent_imp_trivial_combine[OF K assms(2)] Ks' Ks(1)
+    by (metis length_map order_refl take_all)
+  hence "set Ks \<subseteq> { \<zero>\<^bsub>S\<^esub> }"
+    unfolding Ks' using hom_zero by (induct Ks') (auto)
+  hence "Ks = []"
+    using Ks(4) by (metis set_empty2 subset_singletonD)
+  hence "independent (h ` K) (map h Us)"
+    using independent.li_Nil Ks(1) by simp
+  from \<open>dependent (h ` K) (map h Us)\<close> and this show False by simp
 qed
-*)
+
+corollary inj_hom_dimension:
+  assumes "inj_on h E"
+  and "R.dimension n K E" shows "dimension n (h ` K) (h ` E)"
+proof -
+  obtain Us
+    where Us: "set Us \<subseteq> carrier R" "R.independent K Us" "length Us = n" "R.Span K Us = E"
+    using R.exists_base[OF K assms(2)] by blast
+  hence "dimension n (h ` K) (Span (h ` K) (map h Us))"
+    using dimension_independent[OF inj_hom_preserves_independent[OF _ Us(2)]] assms(1) by auto
+  thus ?thesis
+    using Span_hom[OF subfieldE(3)[OF K] Us(1)] Us(4) by simp
+qed
+
+corollary rank_nullity_theorem:
+  assumes "R.dimension n K E" and "R.dimension m K (a_kernel (R \<lparr> carrier := E \<rparr>) S h)"
+  shows "dimension (n - m) (h ` K) (h ` E)"
+proof -
+  obtain Us
+    where Us: "set Us \<subseteq> carrier R" "R.independent K Us" "length Us = m"
+              "R.Span K Us = a_kernel (R \<lparr> carrier := E \<rparr>) S h"
+    using R.exists_base[OF K assms(2)] by blast
+  obtain Vs
+    where Vs: "R.independent K (Vs @ Us)" "length (Vs @ Us) = n" "R.Span K (Vs @ Us) = E" 
+    using R.complete_base[OF K assms(1) Us(2)] R.Span_base_incl[OF K Us(1)] Us(4)
+    unfolding a_kernel_def' by auto
+  have set_Vs: "set Vs \<subseteq> carrier R"
+    using R.independent_in_carrier[OF Vs(1)] by auto
+  have "R.Span K Vs \<inter> a_kernel (R \<lparr> carrier := E \<rparr>) S h = { \<zero> }"
+    using R.independent_split[OF K Vs(1)] Us(4) by simp
+  moreover have "R.Span K Vs \<subseteq> E"
+    using R.mono_Span_append(1)[OF K set_Vs Us(1)] Vs(3) by auto
+  ultimately have "a_kernel (R \<lparr> carrier := R.Span K Vs \<rparr>) S h \<subseteq> { \<zero> }"
+    unfolding a_kernel_def' by (simp del: R.Span.simps, blast)
+  hence "a_kernel (R \<lparr> carrier := R.Span K Vs \<rparr>) S h = { \<zero> }"
+    using R.Span_subgroup_props(2)[OF K set_Vs]
+    unfolding a_kernel_def' by (auto simp del: R.Span.simps)
+  hence "inj_on h (R.Span K Vs)"
+    using inj_on_Span_iff_trivial_ker[OF K set_Vs] by simp
+  moreover have "R.dimension (n - m) K (R.Span K Vs)"
+    using R.dimension_independent[OF R.independent_split(2)[OF K Vs(1)]] Vs(2) Us(3) by auto
+  ultimately have "dimension (n - m) (h ` K) (h ` (R.Span K Vs))"
+    using assms(1) inj_hom_dimension by simp
+
+  have "h ` E = h ` (R.Span K Vs <+>\<^bsub>R\<^esub> R.Span K Us)"
+    using R.Span_append_eq_set_add[OF K set_Vs Us(1)] Vs(3) by simp
+  hence "h ` E = h ` (R.Span K Vs) <+>\<^bsub>S\<^esub> h ` (R.Span K Us)"
+    using R.Span_subgroup_props(1)[OF K] set_Vs Us(1) set_add_hom[OF homh] by auto
+  moreover have "h ` (R.Span K Us) = { \<zero>\<^bsub>S\<^esub> }"
+    using R.space_subgroup_props(2)[OF K assms(1)] unfolding Us(4) a_kernel_def' by force
+  ultimately have "h ` E = h ` (R.Span K Vs) <+>\<^bsub>S\<^esub> { \<zero>\<^bsub>S\<^esub> }"
+    by simp
+  hence "h ` E = h ` (R.Span K Vs)"
+    using R.Span_subgroup_props(1-2)[OF K set_Vs] unfolding set_add_def' by force
+
+  from \<open>dimension (n - m) (h ` K) (h ` (R.Span K Vs))\<close> and this show ?thesis by simp
+qed
+
+end (* of fixed K context. *)
+
+end (* of ring_hom_ring context. *)
+
+lemma (in ring_hom_ring)
+  assumes "subfield K R" and "set Us \<subseteq> carrier R" and "\<one>\<^bsub>S\<^esub> \<noteq> \<zero>\<^bsub>S\<^esub>"
+    and "independent (h ` K) (map h Us)" shows "R.independent K Us"
+proof (rule ccontr)
+  assume "R.dependent K Us"
+  then obtain Ks
+    where "length Ks = length Us" and "R.combine Ks Us = \<zero>" and "set Ks \<subseteq> K" and "set Ks \<noteq> { \<zero> }"
+    using R.dependent_imp_non_trivial_combine[OF assms(1-2)] by metis
+  hence "combine (map h Ks) (map h Us) = \<zero>\<^bsub>S\<^esub>"
+    using combine_hom[OF _ assms(2), of Ks] subfieldE(3)[OF assms(1)] by simp
+  moreover from \<open>set Ks \<subseteq> K\<close> have "set (map h Ks) \<subseteq> h ` K"
+    by (induction Ks) (auto)
+  moreover have "\<not> set (map h Ks) \<subseteq> { h \<zero> }"
+  proof (rule ccontr)
+    assume "\<not> \<not> set (map h Ks) \<subseteq> { h \<zero> }" then have "set (map h Ks) \<subseteq> { h \<zero> }"
+      by simp
+    moreover from \<open>R.dependent K Us\<close> and \<open>length Ks = length Us\<close> have "Ks \<noteq> []"
+      by auto
+    ultimately have "set (map h Ks) = { h \<zero> }"
+      using subset_singletonD by fastforce
+    with \<open>set Ks \<subseteq> K\<close> have "set Ks = { \<zero> }"
+      using inj_onD[OF _ _ _ subringE(2)[OF subfieldE(1)[OF assms(1)]], of h]
+            img_is_subfield(1)[OF assms(1,3)] subset_singletonD
+      by (induction Ks) (auto simp add: subset_singletonD, fastforce)
+    with \<open>set Ks \<noteq> { \<zero> }\<close> show False
+      by simp
+  qed
+  with \<open>length Ks = length Us\<close> have "\<not> set (take (length (map h Us)) (map h Ks)) \<subseteq> { h \<zero> }"
+    by auto
+  ultimately have "dependent (h ` K) (map h Us)"
+    using non_trivial_combine_imp_dependent[OF img_is_subfield(2)[OF assms(1,3)], of "map h Ks"] by simp
+  with \<open>independent (h ` K) (map h Us)\<close> show False
+    by simp
+qed
+
+
+subsection \<open>Finite Dimension\<close>
+
+definition (in ring) finite_dimension :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  where "finite_dimension K E \<longleftrightarrow> (\<exists>n. dimension n K E)"
+
+abbreviation (in ring) infinite_dimension :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+  where "infinite_dimension K E \<equiv> \<not> finite_dimension K E"
+
+definition (in ring) dim :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat"
+  where "dim K E = (THE n. dimension n K E)"
+
+locale subalgebra = subgroup V "add_monoid R" for K and V and R (structure) +
+  assumes smult_closed: "\<lbrakk> k \<in> K; v \<in> V \<rbrakk> \<Longrightarrow> k \<otimes> v \<in> V"
+
+
+subsubsection \<open>Basic Properties\<close>
+
+lemma (in ring) unique_dimension:
+  assumes "subfield K R" and "finite_dimension K E" shows "\<exists>!n. dimension n K E"
+  using assms(2) dimension_is_inj[OF assms(1)] unfolding finite_dimension_def by auto
+
+lemma (in ring) finite_dimensionI:
+  assumes "dimension n K E" shows "finite_dimension K E"
+  using assms unfolding finite_dimension_def by auto
+
+lemma (in ring) finite_dimensionE:
+  assumes "subfield K R" and "finite_dimension K E" shows "dimension ((dim over K) E) K E"
+  using theI'[OF unique_dimension[OF assms]] unfolding over_def dim_def by simp
+
+lemma (in ring) dimI:
+  assumes "subfield K R" and "dimension n K E" shows "(dim over K) E = n"
+  using finite_dimensionE[OF assms(1) finite_dimensionI] dimension_is_inj[OF assms(1)] assms(2)
+  unfolding over_def dim_def by auto
+
+lemma (in ring) finite_dimensionE' [elim]:
+  assumes "finite_dimension K E" and "\<And>n. dimension n K E \<Longrightarrow> P" shows P
+  using assms unfolding finite_dimension_def by auto
+
+lemma (in ring) Span_finite_dimension:
+  assumes "subfield K R" and "set Us \<subseteq> carrier R"
+  shows "finite_dimension K (Span K Us)"
+  using filter_base[OF assms] finite_dimensionI[OF dimension_independent[of K]] by metis
+
+lemma (in ring) carrier_is_subalgebra:
+  assumes "K \<subseteq> carrier R" shows "subalgebra K (carrier R) R"
+  using assms subalgebra.intro[OF add.group_incl_imp_subgroup[of "carrier R"], of K] add.group_axioms
+  unfolding subalgebra_axioms_def by auto
+
+lemma (in ring) subalgebra_in_carrier:
+  assumes "subalgebra K V R" shows "V \<subseteq> carrier R"
+  using subgroup.subset[OF subalgebra.axioms(1)[OF assms]] by simp
+
+lemma (in ring) subalgebra_inter:
+  assumes "subalgebra K V R" and "subalgebra K V' R" shows "subalgebra K (V \<inter> V') R"
+  using add.subgroups_Inter_pair assms unfolding subalgebra_def subalgebra_axioms_def by auto
+
+lemma (in ring_hom_ring) img_is_subalgebra:
+  assumes "K \<subseteq> carrier R" and "subalgebra K V R" shows "subalgebra (h ` K) (h ` V) S"
+proof (intro subalgebra.intro)
+  have "group_hom (add_monoid R) (add_monoid S) h"
+    using ring_hom_in_hom(2)[OF homh] R.add.group_axioms add.group_axioms
+    unfolding group_hom_def group_hom_axioms_def by auto
+  thus "subgroup (h ` V) (add_monoid S)"
+    using group_hom.subgroup_img_is_subgroup[OF _ subalgebra.axioms(1)[OF assms(2)]] by force
+next
+  show "subalgebra_axioms (h ` K) (h ` V) S"
+    using R.subalgebra_in_carrier[OF assms(2)] subalgebra.axioms(2)[OF assms(2)] assms(1)
+    unfolding subalgebra_axioms_def
+    by (auto, metis hom_mult image_eqI subset_iff)
+qed
+
+lemma (in ring) ideal_is_subalgebra:
+  assumes "K \<subseteq> carrier R" "ideal I R" shows "subalgebra K I R"
+  using ideal.axioms(1)[OF assms(2)] ideal.I_l_closed[OF assms(2)] assms(1)
+  unfolding subalgebra_def subalgebra_axioms_def additive_subgroup_def by auto
+
+lemma (in ring) Span_is_subalgebra:
+  assumes "subfield K R" "set Us \<subseteq> carrier R" shows "subalgebra K (Span K Us) R"
+  using Span_smult_closed[OF assms] Span_is_add_subgroup[OF assms]
+  unfolding subalgebra_def subalgebra_axioms_def by auto
+
+lemma (in ring) finite_dimension_imp_subalgebra:
+  assumes "subfield K R" "finite_dimension K E" shows "subalgebra K E R"
+  using exists_base[OF assms(1) finite_dimensionE[OF assms]] Span_is_subalgebra[OF assms(1)] by auto
+
+lemma (in ring) subalgebra_Span_incl:
+  assumes "subfield K R" and "subalgebra K V R" "set Us \<subseteq> V" shows "Span K Us \<subseteq> V"
+proof -
+  have "K <#> (set Us) \<subseteq> V"
+    using subalgebra.smult_closed[OF assms(2)] assms(3) unfolding set_mult_def by blast
+  moreover have "set Us \<subseteq> carrier R"
+    using subalgebra_in_carrier[OF assms(2)] assms(3) by auto
+  ultimately show ?thesis
+    using subalgebra.axioms(1)[OF assms(2)] Span_min[OF assms(1)] by blast
+qed
+
+lemma (in ring) Span_subalgebra_minimal:
+  assumes "subfield K R" "set Us \<subseteq> carrier R"
+  shows "Span K Us = \<Inter> { V. subalgebra K V R \<and> set Us \<subseteq> V }"
+  using Span_is_subalgebra[OF assms] Span_base_incl[OF assms] subalgebra_Span_incl[OF assms(1)]
+  by blast
+
+lemma (in ring) Span_subalgebraI:
+  assumes "subfield K R"
+    and "subalgebra K E R" "set Us \<subseteq> E"
+    and "\<And>V. \<lbrakk> subalgebra K V R; set Us \<subseteq> V \<rbrakk> \<Longrightarrow> E \<subseteq> V"
+  shows "E = Span K Us"
+proof -
+  have "\<Inter> { V. subalgebra K V R \<and> set Us \<subseteq> V } = E"
+    using assms(2-4) by auto
+  thus "E = Span K Us"
+    using Span_subalgebra_minimal subalgebra_in_carrier[of K E] assms by auto
+qed
+
+lemma (in ring) subalbegra_incl_imp_finite_dimension:
+  assumes "subfield K R" and "finite_dimension K E"
+  and "subalgebra K V R" "V \<subseteq> E" shows "finite_dimension K V"
+proof -
+  obtain n where n: "dimension n K E"
+    using assms(2) by auto
+
+  define S where "S = { Us. set Us \<subseteq> V \<and> independent K Us }"
+  have "length ` S \<subseteq> {..n}"
+    unfolding S_def using independent_length_le_dimension[OF assms(1) n] assms(4) by auto
+  moreover have "[] \<in> S"
+    unfolding S_def by simp
+  hence "length ` S \<noteq> {}" by blast
+  ultimately obtain m where m: "m \<in> length ` S" and greatest: "\<And>k. k \<in> length ` S \<Longrightarrow> k \<le> m"
+    by (meson Max_ge Max_in finite_atMost rev_finite_subset)
+  then obtain Us where Us: "set Us \<subseteq> V" "independent K Us" "m = length Us"
+      unfolding S_def by auto
+  have "Span K Us = V"
+  proof (rule ccontr)
+    assume "\<not> Span K Us = V" then have "Span K Us \<subset> V"
+      using subalgebra_Span_incl[OF assms(1,3) Us(1)] by blast
+    then obtain v where v:"v \<in> V" "v \<notin> Span K Us"
+      by blast
+    hence "independent K (v # Us)"
+      using independent.li_Cons[OF _ _ Us(2)] subalgebra_in_carrier[OF assms(3)] by auto
+    hence "(v # Us) \<in> S"
+      unfolding S_def using Us(1) v(1) by auto
+    hence "length (v # Us) \<le> m"
+      using greatest by blast
+    moreover have "length (v # Us) = Suc m"
+      using Us(3) by auto
+    ultimately show False by simp
+  qed
+  thus ?thesis
+    using finite_dimensionI[OF dimension_independent[OF Us(2)]] by simp
+qed
+
+lemma (in ring_hom_ring) infinite_dimension_hom:
+  assumes "subfield K R" and "\<one>\<^bsub>S\<^esub> \<noteq> \<zero>\<^bsub>S\<^esub>" and "inj_on h E" and "subalgebra K E R"
+  shows "R.infinite_dimension K E \<Longrightarrow> infinite_dimension (h ` K) (h ` E)"
+proof -
+  note subfield = img_is_subfield(2)[OF assms(1-2)]
+
+  assume "R.infinite_dimension K E"
+  show "infinite_dimension (h ` K) (h ` E)"
+  proof (rule ccontr)
+    assume "\<not> infinite_dimension (h ` K) (h ` E)"
+    then obtain Vs where "set Vs \<subseteq> carrier S" and "Span (h ` K) Vs = h ` E"
+      using exists_base[OF subfield] by blast
+    hence "set Vs \<subseteq> h ` E"
+      using Span_base_incl[OF subfield] by blast
+    hence "\<exists>Us. set Us \<subseteq> E \<and> Vs = map h Us"
+      by (induct Vs) (auto, metis insert_subset list.simps(9,15))
+    then obtain Us where "set Us \<subseteq> E" and "Vs = map h Us"
+      by blast
+    with \<open>Span (h ` K) Vs = h ` E\<close> have "h ` (R.Span K Us) = h ` E"
+      using R.subalgebra_in_carrier[OF assms(4)] Span_hom assms(1) by auto
+    moreover from \<open>set Us \<subseteq> E\<close> have "R.Span K Us \<subseteq> E"
+      using R.subalgebra_Span_incl assms(1-4) by blast
+    ultimately have "R.Span K Us = E"
+    proof (auto simp del: R.Span.simps)
+      fix a assume "a \<in> E"
+      with \<open>h ` (R.Span K Us) = h ` E\<close> obtain b where "b \<in> R.Span K Us" and "h a = h b"
+        by auto
+      with \<open>R.Span K Us \<subseteq> E\<close> and \<open>a \<in> E\<close> have "a = b"
+        using inj_onD[OF assms(3)] by auto
+      with \<open>b \<in> R.Span K Us\<close> show "a \<in> R.Span K Us"
+        by simp
+    qed
+    with \<open>set Us \<subseteq> E\<close> have "R.finite_dimension K E"
+      using R.Span_finite_dimension[OF assms(1)] R.subalgebra_in_carrier[OF assms(4)] by auto
+    with \<open>R.infinite_dimension K E\<close> show False
+      by simp
+  qed
+qed
+
+
+subsubsection \<open>Reformulation of some lemmas in this new language.\<close>
+
+lemma (in ring) sum_space_dim:
+  assumes "subfield K R" "finite_dimension K E" "finite_dimension K F"
+  shows "finite_dimension K (E <+>\<^bsub>R\<^esub> F)"
+    and "((dim over K) (E <+>\<^bsub>R\<^esub> F)) = ((dim over K) E) + ((dim over K) F) - ((dim over K) (E \<inter> F))"
+proof -
+  obtain n m k where n: "dimension n K E" and m: "dimension m K F" and k: "dimension k K (E \<inter> F)"
+    using assms(2-3) subalbegra_incl_imp_finite_dimension[OF assms(1-2)
+          subalgebra_inter[OF assms(2-3)[THEN finite_dimension_imp_subalgebra[OF assms(1)]]]]
+    by (meson inf_le1 finite_dimension_def)
+  hence "dimension (n + m - k) K (E <+>\<^bsub>R\<^esub> F)"
+    using dimension_sum_space[OF assms(1)] by simp
+  thus "finite_dimension K (E <+>\<^bsub>R\<^esub> F)"
+   and "((dim over K) (E <+>\<^bsub>R\<^esub> F)) = ((dim over K) E) + ((dim over K) F) - ((dim over K) (E \<inter> F))"
+    using finite_dimensionI dimI[OF assms(1)] n m k by auto
+qed
+
+lemma (in ring) telescopic_base_dim:
+  assumes "subfield K R" "subfield F R" and "finite_dimension K F" and "finite_dimension F E"
+  shows "finite_dimension K E" and "(dim over K) E = ((dim over K) F) * ((dim over F) E)"
+  using telescopic_base[OF assms(1-2)
+        finite_dimensionE[OF assms(1,3)]
+        finite_dimensionE[OF assms(2,4)]]
+        dimI[OF assms(1)] finite_dimensionI
+  by auto
 
 end
