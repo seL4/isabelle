@@ -213,13 +213,9 @@ fun transfer_rel_conv conv =
 
 val Rel_rule = Thm.symmetric @{thm Rel_def}
 
-fun dest_funcT cT =
-  (case Thm.dest_ctyp cT of [T, U] => (T, U)
-    | _ => raise TYPE ("dest_funcT", [Thm.typ_of cT], []))
-
 fun Rel_conv ct =
-  let val (cT, cT') = dest_funcT (Thm.ctyp_of_cterm ct)
-      val (cU, _) = dest_funcT cT'
+  let val (cT, cT') = Thm.dest_ctyp_fun (Thm.ctyp_of_cterm ct)
+      val (cU, _) = Thm.dest_ctyp_fun cT'
   in Thm.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
 
 (* Conversion to preprocess a transfer rule *)
@@ -465,8 +461,8 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
             val (thm1, hyps) = zip ctxt' (thm0 :: thms) t u
             val ((r1, x), y) = apfst Thm.dest_comb (Thm.dest_comb (Thm.dest_arg cprop))
             val r2 = Thm.dest_fun2 (Thm.dest_arg (Thm.cprop_of thm1))
-            val (a1, (b1, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r1))
-            val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r2))
+            val (a1, (b1, _)) = apsnd Thm.dest_ctyp_fun (Thm.dest_ctyp_fun (Thm.ctyp_of_cterm r1))
+            val (a2, (b2, _)) = apsnd Thm.dest_ctyp_fun (Thm.dest_ctyp_fun (Thm.ctyp_of_cterm r2))
             val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
             val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
             val rule = Thm.instantiate' tinsts insts @{thm Rel_abs}
