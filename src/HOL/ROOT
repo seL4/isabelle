@@ -74,7 +74,7 @@ session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations
 
-session "HOL-Homology" (main timing) in Homology = "HOL-Analysis" +
+session "HOL-Homology" (timing) in Homology = "HOL-Analysis" +
   options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
