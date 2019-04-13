@@ -40,8 +40,6 @@ sig
 
   (*patterns and instantiations*)
   val mk_const_pat: theory -> string -> (ctyp -> 'a) -> 'a * cterm
-  val destT1: ctyp -> ctyp
-  val destT2: ctyp -> ctyp
   val instTs: ctyp list -> ctyp list * cterm -> cterm
   val instT: ctyp -> ctyp * cterm -> cterm
   val instT': cterm -> ctyp * cterm -> cterm
@@ -175,9 +173,6 @@ fun mk_const_pat thy name destT =
   let val cpat = Thm.global_cterm_of thy (Const (name, Sign.the_const_type thy name))
   in (destT (Thm.ctyp_of_cterm cpat), cpat) end
 
-val destT1 = hd o Thm.dest_ctyp
-val destT2 = hd o tl o Thm.dest_ctyp
-
 fun instTs cUs (cTs, ct) = Thm.instantiate_cterm (map (dest_TVar o Thm.typ_of) cTs ~~ cUs, []) ct
 fun instT cU (cT, ct) = instTs [cU] ([cT], ct)
 fun instT' ct = instT (Thm.ctyp_of_cterm ct)
@@ -208,7 +203,7 @@ fun dest_cprop ct =
     \<^const>\<open>Trueprop\<close> $ _ => Thm.dest_arg ct
   | _ => raise CTERM ("not a property", [ct]))
 
-val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> destT1
+val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> (Thm.dest_ctyp_nth 0)
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
 val dest_prop = (fn \<^const>\<open>Trueprop\<close> $ t => t | t => t)

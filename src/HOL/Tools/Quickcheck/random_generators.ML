@@ -70,13 +70,12 @@ fun random_fun T1 T2 eq term_of random random_split seed =
 
 local
 
-fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
 val eq = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_arg;
 val lhs = eq |> Thm.dest_arg1;
 val pt_random_aux = lhs |> Thm.dest_fun;
 val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
 val a_v =
-  pt_random_aux |> Thm.ctyp_of_cterm |> dest_ctyp_nth 1
+  pt_random_aux |> Thm.ctyp_of_cterm |> Thm.dest_ctyp_nth 1
   |> Thm.typ_of |> dest_TVar;
 
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},

@@ -25,6 +25,7 @@ sig
   val global_ctyp_of: theory -> typ -> ctyp
   val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
+  val dest_ctyp_nth: int -> ctyp -> ctyp
   (*certified terms*)
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -173,6 +174,10 @@ val ctyp_of = global_ctyp_of o Proof_Context.theory_of;
 fun dest_ctyp (Ctyp {cert, T = Type (_, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
+
+fun dest_ctyp_nth i (Ctyp {cert, T = Type (_, Ts), maxidx, sorts}) =
+      Ctyp {cert = cert, T = nth Ts i, maxidx = maxidx, sorts = sorts}
+  | dest_ctyp_nth _ cT = raise TYPE ("dest_ctyp_nth", [typ_of cT], []);
 
 
 
