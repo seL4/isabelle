@@ -7,6 +7,23 @@ imports Ideal Divisibility QuotRing Multiplicative_Group
 
 begin
 
+(* TEMPORARY ====================================================================== *)
+definition mult_of :: "('a, 'b) ring_scheme \<Rightarrow> 'a monoid" where
+  "mult_of R \<equiv> \<lparr> carrier = carrier R - {\<zero>\<^bsub>R\<^esub>}, mult = mult R, one = \<one>\<^bsub>R\<^esub>\<rparr>"
+
+lemma carrier_mult_of [simp]: "carrier (mult_of R) = carrier R - {\<zero>\<^bsub>R\<^esub>}"
+  by (simp add: mult_of_def)
+
+lemma mult_mult_of [simp]: "mult (mult_of R) = mult R"
+ by (simp add: mult_of_def)
+
+lemma nat_pow_mult_of: "([^]\<^bsub>mult_of R\<^esub>) = (([^]\<^bsub>R\<^esub>) :: _ \<Rightarrow> nat \<Rightarrow> _)"
+  by (simp add: mult_of_def fun_eq_iff nat_pow_def)
+
+lemma one_mult_of [simp]: "\<one>\<^bsub>mult_of R\<^esub> = \<one>\<^bsub>R\<^esub>"
+  by (simp add: mult_of_def)
+(* ================================================================================ *)
+
 section \<open>The Arithmetic of Rings\<close>
 
 text \<open>In this section we study the links between the divisibility theory and that of rings\<close>
@@ -50,6 +67,11 @@ sublocale factorial_domain < mult_of: factorial_monoid "mult_of R"
   rewrites "mult (mult_of R) = mult R"
        and "one  (mult_of R) =  one R"
   using factorial_monoid_axioms by auto
+
+lemma (in ring) noetherian_ringI:
+  assumes "\<And>I. ideal I R \<Longrightarrow> \<exists>A \<subseteq> carrier R. finite A \<and> I = Idl A"
+  shows "noetherian_ring R"
+  using assms by unfold_locales auto
 
 lemma (in domain) euclidean_domainI:
   assumes "\<And>a b. \<lbrakk> a \<in> carrier R - { \<zero> }; b \<in> carrier R - { \<zero> } \<rbrakk> \<Longrightarrow>
@@ -529,7 +551,7 @@ qed
 lemma (in ring) trivial_ideal_chain_imp_noetherian:
   assumes "\<And>C. \<lbrakk> C \<noteq> {}; subset.chain { I. ideal I R } C \<rbrakk> \<Longrightarrow> \<Union>C \<in> C"
   shows "noetherian_ring R"
-proof (auto simp add: noetherian_ring_def noetherian_ring_axioms_def ring_axioms)
+proof (rule noetherian_ringI)
   fix I assume I: "ideal I R"
   have in_carrier: "I \<subseteq> carrier R" and add_subgroup: "additive_subgroup I R"
     using ideal.axioms(1)[OF I] additive_subgroup.a_subset by auto
@@ -660,6 +682,26 @@ proof (rule ccontr)
     unfolding pred_on.chain_def by (metis C psubsetE subset_maxchain_max, blast)
   thus False
     using C unfolding pred_on.maxchain_def by blast
+qed
+
+lemma (in noetherian_domain) exists_irreducible_divisor:
+  assumes "a \<in> carrier R - { \<zero> }" and "a \<notin> Units R"
+  obtains b where "b \<in> carrier R" and "ring_irreducible b" and "b divides a"
+proof -
+  obtain fs where set_fs: "set fs \<subseteq> carrier (mult_of R)" and "wfactors (mult_of R) fs a"
+    using factorization_property[OF assms] by blast
+  hence "a \<in> Units R" if "fs = []"
+    using that assms(1) Units_cong assoc_iff_assoc_mult unfolding wfactors_def by (simp, blast)
+  hence "fs \<noteq> []"
+    using assms(2) by auto
+  then obtain f' fs' where fs: "fs = f' # fs'"
+    using list.exhaust by blast
+  from \<open>wfactors (mult_of R) fs a\<close> have "f' divides a"
+    using mult_of.wfactors_dividesI[OF _ set_fs] assms(1) unfolding fs by auto
+  moreover from \<open>wfactors (mult_of R) fs a\<close> have "ring_irreducible f'" and "f' \<in> carrier R"
+    using set_fs ring_irreducibleI'[of f'] unfolding wfactors_def fs by auto
+  ultimately show thesis
+    using that by blast
 qed
 
 

@@ -225,6 +225,11 @@ lemma (in domain) subring_is_domain:
   assumes "subring H R" shows "domain (R \<lparr> carrier := H \<rparr>)"
   using subdomainI'[OF assms] unfolding subdomain_iff[OF subringE(1)[OF assms]] .
 
+(* NEW ====================== *)
+lemma (in ring) subdomain_is_domain:
+  assumes "subdomain H R" shows "domain (R \<lparr> carrier := H \<rparr>)"
+  using assms unfolding subdomain_iff[OF subdomainE(1)[OF assms]] .
+
 
 subsubsection \<open>Subfields\<close>
 
@@ -338,6 +343,23 @@ proof -
     using monoid.m_inv_monoid_consistent[OF monoid_axioms k K(2)] by auto
 qed
 
+lemma (in ring) subfield_m_inv_simprule:
+  assumes "subfield K R"
+  shows "\<lbrakk> k \<in> K - { \<zero> }; a \<in> carrier R \<rbrakk> \<Longrightarrow> k \<otimes> a \<in> K \<Longrightarrow> a \<in> K"
+proof -
+  note subring_props = subringE[OF subfieldE(1)[OF assms]]
+
+  assume A: "k \<in> K - { \<zero> }" "a \<in> carrier R" "k \<otimes> a \<in> K"
+  then obtain k' where k': "k' \<in> K" "k \<otimes> a = k'" by blast
+  have inv_k: "inv k \<in> K" "inv k \<otimes> k = \<one>"
+    using subfield_m_inv[OF assms A(1)] by auto
+  hence "inv k \<otimes> (k \<otimes> a) \<in> K"
+    using k' A(3) subring_props(6) by auto
+  thus "a \<in> K"
+    using m_assoc[of "inv k" k a] A(2) inv_k subring_props(1)
+    by (metis (no_types, hide_lams) A(1) Diff_iff l_one subsetCE)
+qed
+
 lemma (in ring) subfield_iff:
   shows "\<lbrakk> field (R \<lparr> carrier := K \<rparr>); K \<subseteq> carrier R \<rbrakk> \<Longrightarrow> subfield K R"
     and "subfield K R \<Longrightarrow> field (R \<lparr> carrier := K \<rparr>)"
@@ -431,6 +453,48 @@ proof -
     using field.ring_iso_imp_img_field[OF field, of h "S \<lparr> carrier := h ` K \<rparr>"] by auto
   thus "subfield (h ` K) S"
     using S.subfield_iff[of "h ` K"] K(1) ring_hom_memE(1)[OF homh] by blast
+qed
+
+(* NEW ========================================================================== *)
+lemma (in ring_hom_ring) induced_ring_hom:
+  assumes "subring K R" shows "ring_hom_ring (R \<lparr> carrier := K \<rparr>) S h"
+proof -
+  have "h \<in> ring_hom (R \<lparr> carrier := K \<rparr>) S"
+    using homh subringE(1)[OF assms] unfolding ring_hom_def
+    by (auto, meson hom_mult hom_add subsetCE)+
+  thus ?thesis
+    using R.subring_is_ring[OF assms] ring_axioms
+    unfolding ring_hom_ring_def ring_hom_ring_axioms_def by auto
+qed
+
+(* NEW ========================================================================== *)
+lemma (in ring_hom_ring) inj_on_subgroup_iff_trivial_ker:
+  assumes "subring K R"
+  shows "inj_on h K \<longleftrightarrow> a_kernel (R \<lparr> carrier := K \<rparr>) S h = { \<zero> }"
+  using ring_hom_ring.inj_iff_trivial_ker[OF induced_ring_hom[OF assms]] by simp
+
+lemma (in ring_hom_ring) inv_ring_hom:
+  assumes "inj_on h K" and "subring K R"
+  shows "ring_hom_ring (S \<lparr> carrier := h ` K \<rparr>) R (inv_into K h)"
+proof (intro ring_hom_ringI[OF _ R.ring_axioms], auto)
+  show "ring (S \<lparr> carrier := h ` K \<rparr>)"
+    using subring_is_ring[OF img_is_subring[OF assms(2)]] .
+next
+  show "inv_into K h \<one>\<^bsub>S\<^esub> = \<one>\<^bsub>R\<^esub>"
+    using assms(1) subringE(3)[OF assms(2)] hom_one by (simp add: inv_into_f_eq)
+next
+  fix k1 k2
+  assume k1: "k1 \<in> K" and k2: "k2 \<in> K"
+  with \<open>k1 \<in> K\<close> show "inv_into K h (h k1) \<in> carrier R"
+    using assms(1) subringE(1)[OF assms(2)] by (simp add: subset_iff)
+
+  from \<open>k1 \<in> K\<close> and \<open>k2 \<in> K\<close>
+  have "h k1 \<oplus>\<^bsub>S\<^esub> h k2 = h (k1 \<oplus>\<^bsub>R\<^esub> k2)" and "k1 \<oplus>\<^bsub>R\<^esub> k2 \<in> K"
+   and "h k1 \<otimes>\<^bsub>S\<^esub> h k2 = h (k1 \<otimes>\<^bsub>R\<^esub> k2)" and "k1 \<otimes>\<^bsub>R\<^esub> k2 \<in> K"
+    using subringE(1,6,7)[OF assms(2)] by (simp add: subset_iff)+
+  thus "inv_into K h (h k1 \<oplus>\<^bsub>S\<^esub> h k2) = inv_into K h (h k1) \<oplus>\<^bsub>R\<^esub> inv_into K h (h k2)"
+   and "inv_into K h (h k1 \<otimes>\<^bsub>S\<^esub> h k2) = inv_into K h (h k1) \<otimes>\<^bsub>R\<^esub> inv_into K h (h k2)"
+    using assms(1) k1 k2 by simp+
 qed
 
 end
