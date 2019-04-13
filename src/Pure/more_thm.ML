@@ -144,17 +144,12 @@ val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert
 val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
 
 
-(* ctyp destructors *)
+(* ctyp operations *)
 
 fun dest_ctyp_fun cT =
-  let
-    val T = Thm.typ_of cT;
-    fun dest_ctyp_nth i = Thm.dest_ctyp_nth i cT;
-  in
-    (case T of
-      Type ("fun", _) => (dest_ctyp_nth 0, dest_ctyp_nth 1)
-    | _ => raise TYPE ("dest_ctyp_fun", [T], []))
-  end;
+  (case Thm.typ_of cT of
+    Type ("fun", _) => let val [A, B] = Thm.dest_ctyp cT in (A, B) end
+  | T => raise TYPE ("dest_ctyp_fun", [T], []));
 
 (* ctyp version of strip_type: maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T) *)
 fun strip_type cT =
@@ -167,7 +162,7 @@ fun strip_type cT =
   | _ => ([], cT));
 
 
-(* cterm constructors and destructors *)
+(* cterm operations *)
 
 fun all_name ctxt (x, t) A =
   let
