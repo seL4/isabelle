@@ -44,7 +44,7 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
   | Const(\<^const_name>\<open>All\<close>, _)$_ =>
     let
      val allT = Thm.ctyp_of_cterm (Thm.dest_fun p)
-     val T = Thm.dest_ctyp_nth 0 (Thm.dest_ctyp_nth 0 allT)
+     val T = Thm.dest_ctyp0 (Thm.dest_ctyp0 allT)
      val p = Thm.dest_arg p
      val th = Thm.instantiate' [SOME T] [SOME p] all_not_ex
     in Thm.transitive th (conv env (Thm.rhs_of th))

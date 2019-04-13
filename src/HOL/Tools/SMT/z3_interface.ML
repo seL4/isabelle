@@ -127,18 +127,18 @@ val disj = Thm.cterm_of \<^context> \<^const>\<open>HOL.disj\<close>
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>HOL.eq\<close> (Thm.dest_ctyp_nth 0)
+val eq = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>HOL.eq\<close> Thm.dest_ctyp0
 fun mk_eq ct cu = Thm.mk_binop (SMT_Util.instT' ct eq) ct cu
 
 val if_term =
-  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>If\<close> (Thm.dest_ctyp_nth 0 o Thm.dest_ctyp_nth 1)
+  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>If\<close> (Thm.dest_ctyp0 o Thm.dest_ctyp1)
 fun mk_if cc ct = Thm.mk_binop (Thm.apply (SMT_Util.instT' ct if_term) cc) ct
 
-val access = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_app\<close> (Thm.dest_ctyp_nth 0)
+val access = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_app\<close> Thm.dest_ctyp0
 fun mk_access array = Thm.apply (SMT_Util.instT' array access) array
 
 val update =
-  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_upd\<close> (Thm.dest_ctyp o Thm.dest_ctyp_nth 0)
+  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_upd\<close> (Thm.dest_ctyp o Thm.dest_ctyp0)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_cterm array)
   in Thm.apply (Thm.mk_binop (SMT_Util.instTs cTs update) array index) value end

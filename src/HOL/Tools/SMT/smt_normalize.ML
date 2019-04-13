@@ -186,7 +186,7 @@ local
             Pattern.matches thy (t', u) andalso not (t aconv u))
         in not (Term.exists_subterm some_match u) end
 
-  val pat = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>pat\<close> (Thm.dest_ctyp_nth 0)
+  val pat = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>pat\<close> Thm.dest_ctyp0
   fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =

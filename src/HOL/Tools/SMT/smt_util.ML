@@ -203,7 +203,7 @@ fun dest_cprop ct =
     \<^const>\<open>Trueprop\<close> $ _ => Thm.dest_arg ct
   | _ => raise CTERM ("not a property", [ct]))
 
-val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> (Thm.dest_ctyp_nth 0)
+val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> Thm.dest_ctyp0
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
 val dest_prop = (fn \<^const>\<open>Trueprop\<close> $ t => t | t => t)

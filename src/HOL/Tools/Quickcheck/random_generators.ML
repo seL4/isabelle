@@ -75,7 +75,7 @@ val lhs = eq |> Thm.dest_arg1;
 val pt_random_aux = lhs |> Thm.dest_fun;
 val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
 val a_v =
-  pt_random_aux |> Thm.ctyp_of_cterm |> Thm.dest_ctyp_nth 1
+  pt_random_aux |> Thm.ctyp_of_cterm |> Thm.dest_ctyp1
   |> Thm.typ_of |> dest_TVar;
 
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},

@@ -98,7 +98,7 @@ fun abstract ctxt ct =
   let
       val Abs (_, _, body) = Thm.term_of ct
       val (x, cbody) = Thm.dest_abs NONE ct
-      val (A, cbodyT) = Thm.dest_ctyp_fun (Thm.ctyp_of_cterm ct)
+      val (A, cbodyT) = Thm.dest_funT (Thm.ctyp_of_cterm ct)
       fun makeK () = Thm.instantiate' [SOME A, SOME cbodyT] [SOME cbody] @{thm abs_K}
   in
       case body of
@@ -111,7 +111,7 @@ fun abstract ctxt ct =
                if Term.is_dependent rand then (*S*)
                  let val crator = Thm.lambda x (Thm.dest_fun cbody)
                      val crand = Thm.lambda x (Thm.dest_arg cbody)
-                     val (C, B) = Thm.dest_ctyp_fun (Thm.dest_ctyp_nth 1 (Thm.ctyp_of_cterm crator))
+                     val (C, B) = Thm.dest_funT (Thm.dest_ctyp1 (Thm.ctyp_of_cterm crator))
                      val abs_S' = @{thm abs_S}
                        |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_S')
@@ -121,7 +121,7 @@ fun abstract ctxt ct =
                else (*C*)
                  let val crator = Thm.lambda x (Thm.dest_fun cbody)
                      val crand = Thm.dest_arg cbody
-                     val (C, B) = Thm.dest_ctyp_fun (Thm.dest_ctyp_nth 1 (Thm.ctyp_of_cterm crator))
+                     val (C, B) = Thm.dest_funT (Thm.dest_ctyp1 (Thm.ctyp_of_cterm crator))
                      val abs_C' = @{thm abs_C}
                        |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_C')
@@ -133,7 +133,7 @@ fun abstract ctxt ct =
                else (*B*)
                  let val crator = Thm.dest_fun cbody
                      val crand = Thm.lambda x (Thm.dest_arg cbody)
-                     val (C, B) = Thm.dest_ctyp_fun (Thm.ctyp_of_cterm crator)
+                     val (C, B) = Thm.dest_funT (Thm.ctyp_of_cterm crator)
                      val abs_B' = @{thm abs_B}
                       |> instantiate'_normalize [SOME A, SOME B, SOME C] [SOME crator, SOME crand]
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_B')

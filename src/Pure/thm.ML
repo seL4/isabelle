@@ -25,7 +25,9 @@ sig
   val global_ctyp_of: theory -> typ -> ctyp
   val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
-  val dest_ctyp_nth: int -> ctyp -> ctyp
+  val dest_ctypN: int -> ctyp -> ctyp
+  val dest_ctyp0: ctyp -> ctyp
+  val dest_ctyp1: ctyp -> ctyp
   val make_ctyp: ctyp -> ctyp list -> ctyp
   (*certified terms*)
   val term_of: cterm -> term
@@ -177,14 +179,17 @@ fun dest_ctyp (Ctyp {cert, T = Type (_, Ts), maxidx, sorts}) =
       map (fn T => Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = sorts}) Ts
   | dest_ctyp cT = raise TYPE ("dest_ctyp", [typ_of cT], []);
 
-fun dest_ctyp_nth i (Ctyp {cert, T, maxidx, sorts}) =
-  let fun err () = raise TYPE ("dest_ctyp_nth", [T], []) in
+fun dest_ctypN n (Ctyp {cert, T, maxidx, sorts}) =
+  let fun err () = raise TYPE ("dest_ctypN", [T], []) in
     (case T of
       Type (_, Ts) =>
-        Ctyp {cert = cert, T = nth Ts i handle General.Subscript => err (),
+        Ctyp {cert = cert, T = nth Ts n handle General.Subscript => err (),
           maxidx = maxidx, sorts = sorts}
     | _ => err ())
   end;
+
+val dest_ctyp0 = dest_ctypN 0;
+val dest_ctyp1 = dest_ctypN 1;
 
 fun join_certificate_ctyp (Ctyp {cert, ...}) cert0 = Context.join_certificate (cert0, cert);
 fun union_sorts_ctyp (Ctyp {sorts, ...}) sorts0 = Sorts.union sorts0 sorts;

@@ -481,7 +481,7 @@ fun choose v th th' = case Thm.concl_of th of
   \<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>Ex\<close>,_)$_) =>
    let
     val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
-    val T = Thm.dest_ctyp_nth 0 (Thm.ctyp_of_cterm p)
+    val T = Thm.dest_ctyp0 (Thm.ctyp_of_cterm p)
     val th0 = Conv.fconv_rule (Thm.beta_conversion true)
         (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
     val pv = (Thm.rhs_of o Thm.beta_conversion true)
