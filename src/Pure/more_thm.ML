@@ -28,6 +28,8 @@ sig
   val add_tvars: thm -> ctyp list -> ctyp list
   val add_frees: thm -> cterm list -> cterm list
   val add_vars: thm -> cterm list -> cterm list
+  val dest_ctyp_fun: ctyp -> ctyp * ctyp
+  val strip_type: ctyp -> ctyp list * ctyp
   val all_name: Proof.context -> string * cterm -> cterm -> cterm
   val all: Proof.context -> cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
@@ -140,6 +142,29 @@ val op aconvc = op aconv o apply2 Thm.term_of;
 val add_tvars = Thm.fold_atomic_ctyps (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
 val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
 val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
+
+
+(* ctyp destructors *)
+
+fun dest_ctyp_fun cT =
+  let
+    val T = Thm.typ_of cT;
+    fun dest_ctyp_nth i = Thm.dest_ctyp_nth i cT;
+  in
+    (case T of
+      Type ("fun", _) => (dest_ctyp_nth 0, dest_ctyp_nth 1)
+    | _ => raise TYPE ("dest_ctyp_fun", [T], []))
+  end;
+
+(* ctyp version of strip_type: maps  [T1,...,Tn]--->T  to   ([T1,T2,...,Tn], T) *)
+fun strip_type cT =
+  (case Thm.typ_of cT of
+    Type ("fun", _) =>
+      let
+        val (cT1, cT2) = dest_ctyp_fun cT;
+        val (cTs, cT') = strip_type cT2
+      in (cT1 :: cTs, cT') end
+  | _ => ([], cT));
 
 
 (* cterm constructors and destructors *)
