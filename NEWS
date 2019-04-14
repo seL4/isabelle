@@ -268,8 +268,8 @@ with new proofs of "invariance of domain" and related results.
 * Session HOL-Analysis: Better organization and much more material
 at the level of abstract topological spaces.
 
-* Session HOL-Algebra: Much more material on group theory, mostly ported
-from HOL Light.
+* Session HOL-Algebra: Free abelian groups, etc., ported from HOL Light;
+proofs towards algebraic closure by de Vilhena and Baillon.
 
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be

@@ -6,6 +6,12 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2019
 -----------------------------
 
+* April 2019: LC Paulson
+  Homology and supporting lemmas on topology and group theory
+
+* April 2019: Paulo de Vilhena and Martin Baillon
+  Group theory developments towards proving algebraic closure
+
 * February/March 2019: Makarius Wenzel
   Stateless management of export artifacts in the Isabelle/HOL code generator.
 
