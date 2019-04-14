@@ -897,7 +897,7 @@ proof -
 qed
 
 
-subsection \<open>Link between pmod and rupture_surj\<close>
+subsection \<open>Link between @{term \<open>(pmod)\<close>} and @{term rupture_surj}\<close>
 
 lemma (in domain) rupture_surj_composed_with_pmod:
   assumes "subfield K R" and "p \<in> carrier (K[X])" and "q \<in> carrier (K[X])"

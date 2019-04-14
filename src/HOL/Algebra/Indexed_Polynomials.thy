@@ -336,7 +336,7 @@ proof -
 qed
 
 
-subsection \<open>Link with Weak_Morphisms\<close>
+subsection \<open>Link with Weak Morphisms\<close>
 
 text \<open>We study some elements of the contradiction needed in the algebraic closure existence proof. \<close>
 
