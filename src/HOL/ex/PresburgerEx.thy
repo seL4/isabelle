@@ -88,7 +88,6 @@ theorem "\<exists>(j::int). \<forall>i. j \<le> i --> (\<exists>x y. 0 \<le> x &
 theorem "~ (\<forall>j (i::int). j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
   by presburger
 
-text\<open>Slow: about 5 seconds on a 1.6GHz machine.\<close>
 theorem "(\<exists>m::nat. n = 2 * m) --> (n + 1) div 2 = n div 2"
   by presburger
 
