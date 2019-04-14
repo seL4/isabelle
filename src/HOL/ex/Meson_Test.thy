@@ -304,7 +304,7 @@ lemma BOO003_1:
   BOO002_0_ax equal INVERSE multiplicative_identity additive_identity multiply product add sum &
   BOO002_0_eq INVERSE multiply add product sum equal &
   (~product(x::'a,x,x)) --> False"
-  oops
+  by meson
 
 (*51194 inferences so far.  Searching to depth 13. 204.6 secs
   Strange! The previous problem also has 51194 inferences at depth 13.  They
@@ -314,7 +314,7 @@ lemma BOO004_1:
   BOO002_0_ax equal INVERSE multiplicative_identity additive_identity multiply product add sum &
   BOO002_0_eq INVERSE multiply add product sum equal &
   (~sum(x::'a,x,x)) --> False"
-  oops
+  by meson
 
 (*74799 inferences so far.  Searching to depth 13.  290.0 secs*)
 lemma BOO005_1:
@@ -322,7 +322,7 @@ lemma BOO005_1:
   BOO002_0_ax equal INVERSE multiplicative_identity additive_identity multiply product add sum &
   BOO002_0_eq INVERSE multiply add product sum equal &
   (~sum(x::'a,multiplicative_identity,multiplicative_identity)) --> False"
-  oops
+  by meson
 
 (*74799 inferences so far.  Searching to depth 13.  314.6 secs*)
 lemma BOO006_1:
@@ -330,7 +330,7 @@ lemma BOO006_1:
   BOO002_0_ax equal INVERSE multiplicative_identity additive_identity multiply product add sum &
   BOO002_0_eq INVERSE multiply add product sum equal &
   (~product(x::'a,additive_identity,additive_identity)) --> False"
-  oops
+  by meson
 
 (*5 inferences so far.  Searching to depth 5.  1.3 secs*)
 lemma BOO011_1:
@@ -434,7 +434,7 @@ lemma CAT005_1:
   (defined(a::'a,d)) &
   (identity_map(d)) &
   (~equal(domain(a),d)) --> False"
-  oops
+  by meson
 
 (*1728 inferences so far.  Searching to depth 10.  5.8 secs*)
 lemma CAT007_1:
@@ -453,7 +453,7 @@ lemma CAT018_1:
   (defined(a::'a,b)) &
   (defined(b::'a,c)) &
   (~defined(a::'a,compos(b::'a,c))) --> False"
-  oops
+  by meson
 
 (*1118 inferences so far.  Searching to depth 8.  2.3 secs*)
 lemma COL001_2:
@@ -505,7 +505,7 @@ lemma COL052_2:
   (agreeable(c)) &
   (~agreeable(a)) &
   (equal(c::'a,compos(a::'a,b))) --> False"
-  oops
+  by meson
 
 (*13201 inferences so far.  Searching to depth 11.  31.9 secs*)
 lemma COL075_2:
@@ -517,7 +517,7 @@ lemma COL075_2:
   (\<forall>A B. equal(A::'a,B) --> equal(b(A),b(B))) &
   (\<forall>C D. equal(C::'a,D) --> equal(c(C),c(D))) &
   (\<forall>Y. ~equal(apply(apply(Y::'a,b(Y)),c(Y)),apply(b(Y),b(Y)))) --> False"
-  oops
+  by meson
 
 (*33 inferences so far.  Searching to depth 7.  0.1 secs*)
 lemma COM001_1:
@@ -785,7 +785,7 @@ lemma GEO017_2:
     between equal equidistant &
   (equidistant(u::'a,v,w,x)) &
   (~equidistant(u::'a,v,x,w)) --> False"
-  oops
+  by meson
 
 (*382903 inferences so far.  Searching to depth 9. 1022s (17 mins) on griffon*)
 lemma GEO027_3:
@@ -895,7 +895,7 @@ lemma GRP013_1:
   (product(INVERSE(a),INVERSE(b),d)) &
   (\<forall>A C B. product(INVERSE(A),INVERSE(B),C) --> product(A::'a,C,B)) &
   (~product(c::'a,d,identity)) --> False"
-  oops
+  by meson
 
 (*2448 inferences so far.  Searching to depth 10.  7.2 secs*)
 lemma GRP037_3:
@@ -965,7 +965,7 @@ lemma GRP130_1_002:
   (\<forall>X Y W Z. product(X::'a,W,Y) & product(X::'a,Z,Y) --> equal(W::'a,Z)) &
   (\<forall>Y X W Z. product(W::'a,Y,X) & product(Z::'a,Y,X) --> equal(W::'a,Z)) &
   (\<forall>Z1 Z2 Y X. product(X::'a,Y,Z1) & product(X::'a,Z1,Z2) --> product(Z2::'a,Y,X)) --> False"
-  oops
+  by meson
 
 abbreviation "GRP004_0_ax INVERSE identity multiply equal \<equiv>
   (\<forall>X. equal(multiply(identity::'a,X),X)) &
@@ -1034,7 +1034,7 @@ lemma HEN003_3:
   HEN002_0_ax identity Zero Divide equal mless_equal &
   HEN002_0_eq mless_equal Divide equal &
   (~equal(Divide(a::'a,a),Zero)) --> False"
-  oops
+  by meson
 
 (*202177 inferences so far.  Searching to depth 14.  451 secs*)
 lemma HEN007_2:
@@ -1065,7 +1065,7 @@ lemma HEN007_2:
   (quotient(z::'a,y,zQy)) &
   (quotient(z::'a,x,zQx)) &
   (~mless_equal(zQy::'a,zQx)) --> False"
-  oops
+  by meson
 
 (*60026 inferences so far.  Searching to depth 12.  42.2 secs*)
 lemma HEN008_4:
@@ -1081,7 +1081,7 @@ lemma HEN008_4:
   (\<forall>Y Z X. mless_equal(X::'a,Y) --> mless_equal(Divide(Z::'a,Y),Divide(Z::'a,X))) &
   (mless_equal(a::'a,b)) &
   (~mless_equal(Divide(a::'a,c),Divide(b::'a,c))) --> False"
-  oops
+  by meson
 
 (*3160 inferences so far.  Searching to depth 11.  3.5 secs*)
 lemma HEN009_5:
@@ -1109,7 +1109,7 @@ lemma HEN012_3:
   HEN002_0_ax identity Zero Divide equal mless_equal &
   HEN002_0_eq mless_equal Divide equal &
   (~mless_equal(a::'a,a)) --> False"
-  oops
+  by meson
 
 
 (*1063 inferences so far.  Searching to depth 20.  1.0 secs*)
@@ -1233,7 +1233,7 @@ lemma LDA003_1:
   (\<forall>G H I'. equal(G::'a,H) & left(G::'a,I') --> left(H::'a,I')) &
   (\<forall>J L K'. equal(J::'a,K') & left(L::'a,J) --> left(L::'a,K')) &
   (~left(num3::'a,u)) --> False"
-  oops
+  by meson
 
 
 (*2392 inferences so far.  Searching to depth 12.  2.2 secs*)
@@ -1355,7 +1355,7 @@ lemma NUM024_1:
   (\<forall>B A C. equal(add(A::'a,B),add(C::'a,B)) --> equal(A::'a,C)) &
   (mless(a::'a,a)) &
   (\<forall>A. ~equal(successor(A),num0)) --> False"
-  oops
+  by meson
 
 abbreviation "SET004_0_ax not_homomorphism2 not_homomorphism1
     homomorphism compatible operation cantor diagonalise subset_relation
@@ -2010,7 +2010,7 @@ lemma PUZ025_1:
   (a_truth(says(a::'a,equal_type(b::'a,c)))) &
   (ask_1_if_2(c::'a,equal_type(a::'a,b))) &
   (\<forall>Answer. ~answer(Answer)) --> False"
-  oops
+  by meson
 
 
 (*621 inferences so far.  Searching to depth 18.  0.2 secs*)
@@ -2074,7 +2074,7 @@ lemma RNG001_3:
   (\<forall>Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &
   (\<forall>Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &
   (~product(a::'a,additive_identity,additive_identity)) --> False"
-  oops
+  by meson
 
 abbreviation "RNG_other_ax multiply add equal product additive_identity additive_inverse sum \<equiv>
   (\<forall>X. sum(X::'a,additive_inverse(X),additive_identity)) &
@@ -2279,7 +2279,7 @@ lemma RNG041_1:
   (product(a::'a,b,additive_identity)) &
   (~equal(a::'a,additive_identity)) &
   (~equal(b::'a,additive_identity)) --> False"
-  oops
+  by meson
 
 (*101319 inferences so far.  Searching to depth 14.  76.0 secs*)
 lemma ROB010_1:
@@ -2292,7 +2292,7 @@ lemma ROB010_1:
   (\<forall>G H. equal(G::'a,H) --> equal(negate(G),negate(H))) &
   (equal(negate(add(a::'a,negate(b))),c)) &
   (~equal(negate(add(c::'a,negate(add(b::'a,a)))),a)) --> False"
-  oops
+  by meson
 
 
 (*6933 inferences so far.  Searching to depth 12.  5.1 secs*)
@@ -2329,7 +2329,7 @@ lemma ROB016_1:
   (positive_integer(k)) &
   (\<forall>Vk X Y. equal(negate(add(negate(Y),negate(add(X::'a,negate(Y))))),X) & positive_integer(Vk) --> equal(negate(add(Y::'a,multiply(Vk::'a,add(X::'a,negate(add(X::'a,negate(Y))))))),negate(Y))) &
   (~equal(negate(add(e::'a,multiply(k::'a,add(d::'a,negate(add(d::'a,negate(e))))))),negate(e))) --> False"
-  oops
+  by meson
 
 (*14077 inferences so far.  Searching to depth 11.  32.8 secs*)
 lemma ROB021_1:
@@ -2342,7 +2342,7 @@ lemma ROB021_1:
   (\<forall>G H. equal(G::'a,H) --> equal(negate(G),negate(H))) &
   (\<forall>X Y. equal(negate(X),negate(Y)) --> equal(X::'a,Y)) &
   (~equal(add(negate(add(a::'a,negate(b))),negate(add(negate(a),negate(b)))),b)) --> False"
-  oops
+  by meson
 
 (*35532 inferences so far.  Searching to depth 19.  54.3 secs*)
 lemma SET005_1:
@@ -2362,7 +2362,7 @@ lemma SET005_1:
   (intersection(b::'a,c,bIc)) &
   (intersection(a::'a,bIc,aIbIc)) &
   (~intersection(aIb::'a,c,aIbIc)) --> False"
-  oops
+  by meson
 
 
 (*6450 inferences so far.  Searching to depth 14.  4.2 secs*)
@@ -2895,6 +2895,6 @@ lemma TOP005_2:
   (\<forall>X U Y. subset_collections(X::'a,Y) & element_of_collection(U::'a,X) --> element_of_collection(U::'a,Y)) &
   (subset_collections(g::'a,top_of_basis(f))) &
   (~element_of_collection(union_of_members(g),top_of_basis(f))) --> False"
-  oops
+  by meson
 
 end
