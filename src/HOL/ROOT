@@ -829,7 +829,7 @@ session "HOL-Word" (main timing) in Word = HOL +
     "HOL-Library"
   theories
     Word
-    Word_Bitwise
+    More_Word
     Word_Examples
   document_files "root.bib" "root.tex"
 

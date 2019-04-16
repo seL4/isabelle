@@ -285,6 +285,10 @@ command-line.
 
 * SMT: reconstruction is now possible using the SMT solver veriT.
 
+* Session HOL-Word:
+  * New theory More_Word as comprehensive entrance point.
+  INCOMPATIBILITY.
+
 
 *** ML ***
 
