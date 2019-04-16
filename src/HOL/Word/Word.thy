@@ -9,7 +9,7 @@ imports
   "HOL-Library.Type_Length"
   "HOL-Library.Boolean_Algebra"
   Bits_Bit
-  Bool_List_Representation
+  Bits_Int
   Misc_Typedef
   Word_Miscellaneous
 begin

@@ -6,6 +6,9 @@ theory Word_Miscellaneous
   imports "HOL-Library.Bit" Misc_Numeric
 begin
 
+lemma ex_eq_or: "(\<exists>m. n = Suc m \<and> (m = k \<or> P m)) \<longleftrightarrow> n = Suc k \<or> (\<exists>m. n = Suc m \<and> P m)"
+  by auto
+
 lemma power_minus_simp: "0 < n \<Longrightarrow> a ^ n = a * a ^ (n - 1)"
   by (auto dest: gr0_implies_Suc)
 

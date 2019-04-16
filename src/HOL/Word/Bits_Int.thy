@@ -9,7 +9,7 @@ and converting them to and from lists of bools.
 section \<open>Bitwise Operations on Binary Integers\<close>
 
 theory Bits_Int
-  imports Bits Bit_Representation
+  imports Bits Bit_Representation Bool_List_Representation
 begin
 
 subsection \<open>Logical operations\<close>
@@ -365,6 +365,41 @@ lemma bin_add_not: "x + NOT x = (-1::int)"
   apply (case_tac bit, auto)
   done
 
+lemma mod_BIT: "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
+proof -
+  have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
+    by (simp add: mod_mult_mult1)
+  also have "\<dots> = ((2 * bin mod 2 ^ Suc n) + 1) mod 2 ^ Suc n"
+    by (simp add: ac_simps p1mod22k')
+  also have "\<dots> = (2 * bin + 1) mod 2 ^ Suc n"
+    by (simp only: mod_simps)
+  finally show ?thesis
+    by (auto simp add: Bit_def)
+qed
+
+lemma AND_mod: "x AND 2 ^ n - 1 = x mod 2 ^ n"
+  for x :: int
+proof (induct x arbitrary: n rule: bin_induct)
+  case 1
+  then show ?case
+    by simp
+next
+  case 2
+  then show ?case
+    by (simp, simp add: m1mod2k)
+next
+  case (3 bin bit)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc m)
+    with 3 show ?thesis
+      by (simp only: power_BIT mod_BIT int_and_Bits) simp
+  qed
+qed
+
 
 subsubsection \<open>Truncating results of bit-wise operations\<close>
 
@@ -385,6 +420,53 @@ lemma bintr_bintr_i: "x = bintrunc n y \<Longrightarrow> bintrunc n x = bintrunc
 
 lemmas bin_trunc_and = bin_trunc_ao(1) [THEN bintr_bintr_i]
 lemmas bin_trunc_or = bin_trunc_ao(2) [THEN bintr_bintr_i]
+
+lemma bl_xor_aux_bin:
+  "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
+    bin_to_bl_aux n (v XOR w) (map2 (\<lambda>x y. x \<noteq> y) bs cs)"
+  apply (induct n arbitrary: v w bs cs)
+   apply simp
+  apply (case_tac v rule: bin_exhaust)
+  apply (case_tac w rule: bin_exhaust)
+  apply clarsimp
+  apply (case_tac b)
+   apply auto
+  done
+
+lemma bl_or_aux_bin:
+  "map2 (\<or>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
+    bin_to_bl_aux n (v OR w) (map2 (\<or>) bs cs)"
+  apply (induct n arbitrary: v w bs cs)
+   apply simp
+  apply (case_tac v rule: bin_exhaust)
+  apply (case_tac w rule: bin_exhaust)
+  apply clarsimp
+  done
+
+lemma bl_and_aux_bin:
+  "map2 (\<and>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
+    bin_to_bl_aux n (v AND w) (map2 (\<and>) bs cs)"
+  apply (induct n arbitrary: v w bs cs)
+   apply simp
+  apply (case_tac v rule: bin_exhaust)
+  apply (case_tac w rule: bin_exhaust)
+  apply clarsimp
+  done
+
+lemma bl_not_aux_bin: "map Not (bin_to_bl_aux n w cs) = bin_to_bl_aux n (NOT w) (map Not cs)"
+  by (induct n arbitrary: w cs) auto
+
+lemma bl_not_bin: "map Not (bin_to_bl n w) = bin_to_bl n (NOT w)"
+  by (simp add: bin_to_bl_def bl_not_aux_bin)
+
+lemma bl_and_bin: "map2 (\<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v AND w)"
+  by (simp add: bin_to_bl_def bl_and_aux_bin)
+
+lemma bl_or_bin: "map2 (\<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
+  by (simp add: bin_to_bl_def bl_or_aux_bin)
+
+lemma bl_xor_bin: "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
+  by (simp only: bin_to_bl_def bl_xor_aux_bin map2_Nil)
 
 
 subsection \<open>Setting and clearing bits\<close>
@@ -470,186 +552,33 @@ lemma bin_sc_numeral [simp]:
     bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
   by (simp add: numeral_eq_Suc)
 
+instantiation int :: bitss
+begin
 
-subsection \<open>Splitting and concatenation\<close>
+definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
 
-definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int"
-  where "bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0"
+definition "lsb i = i !! 0" for i :: int
 
-fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
-  where "bin_rsplit_aux n m c bs =
-    (if m = 0 \<or> n = 0 then bs
-     else
-      let (a, b) = bin_split n c
-      in bin_rsplit_aux n (m - n) a (b # bs))"
+definition "set_bit i n b = bin_sc n b i"
 
-definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
-  where "bin_rsplit n w = bin_rsplit_aux n (fst w) (snd w) []"
+definition
+  "set_bits f =
+    (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
+      let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
+      in bl_to_bin (rev (map f [0..<n]))
+     else if \<exists>n. \<forall>n'\<ge>n. f n' then
+      let n = LEAST n. \<forall>n'\<ge>n. f n'
+      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
+     else 0 :: int)"
 
-fun bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
-  where "bin_rsplitl_aux n m c bs =
-    (if m = 0 \<or> n = 0 then bs
-     else
-      let (a, b) = bin_split (min m n) c
-      in bin_rsplitl_aux n (m - n) a (b # bs))"
+definition "shiftl x n = x * 2 ^ n" for x :: int
 
-definition bin_rsplitl :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
-  where "bin_rsplitl n w = bin_rsplitl_aux n (fst w) (snd w) []"
+definition "shiftr x n = x div 2 ^ n" for x :: int
 
-declare bin_rsplit_aux.simps [simp del]
-declare bin_rsplitl_aux.simps [simp del]
+definition "msb x \<longleftrightarrow> x < 0" for x :: int
 
-lemma bin_sign_cat: "bin_sign (bin_cat x n y) = bin_sign x"
-  by (induct n arbitrary: y) auto
-
-lemma bin_cat_Suc_Bit: "bin_cat w (Suc n) (v BIT b) = bin_cat w n v BIT b"
-  by auto
-
-lemma bin_nth_cat:
-  "bin_nth (bin_cat x k y) n =
-    (if n < k then bin_nth y n else bin_nth x (n - k))"
-  apply (induct k arbitrary: n y)
-   apply clarsimp
-  apply (case_tac n, auto)
-  done
-
-lemma bin_nth_split:
-  "bin_split n c = (a, b) \<Longrightarrow>
-    (\<forall>k. bin_nth a k = bin_nth c (n + k)) \<and>
-    (\<forall>k. bin_nth b k = (k < n \<and> bin_nth c k))"
-  apply (induct n arbitrary: b c)
-   apply clarsimp
-  apply (clarsimp simp: Let_def split: prod.split_asm)
-  apply (case_tac k)
-  apply auto
-  done
-
-lemma bin_cat_assoc: "bin_cat (bin_cat x m y) n z = bin_cat x (m + n) (bin_cat y n z)"
-  by (induct n arbitrary: z) auto
-
-lemma bin_cat_assoc_sym: "bin_cat x m (bin_cat y n z) = bin_cat (bin_cat x (m - n) y) (min m n) z"
-  apply (induct n arbitrary: z m)
-   apply clarsimp
-  apply (case_tac m, auto)
-  done
-
-lemma bin_cat_zero [simp]: "bin_cat 0 n w = bintrunc n w"
-  by (induct n arbitrary: w) auto
-
-lemma bintr_cat1: "bintrunc (k + n) (bin_cat a n b) = bin_cat (bintrunc k a) n b"
-  by (induct n arbitrary: b) auto
-
-lemma bintr_cat: "bintrunc m (bin_cat a n b) =
-    bin_cat (bintrunc (m - n) a) n (bintrunc (min m n) b)"
-  by (rule bin_eqI) (auto simp: bin_nth_cat nth_bintr)
-
-lemma bintr_cat_same [simp]: "bintrunc n (bin_cat a n b) = bintrunc n b"
-  by (auto simp add : bintr_cat)
-
-lemma cat_bintr [simp]: "bin_cat a n (bintrunc n b) = bin_cat a n b"
-  by (induct n arbitrary: b) auto
-
-lemma split_bintrunc: "bin_split n c = (a, b) \<Longrightarrow> b = bintrunc n c"
-  by (induct n arbitrary: b c) (auto simp: Let_def split: prod.split_asm)
-
-lemma bin_cat_split: "bin_split n w = (u, v) \<Longrightarrow> w = bin_cat u n v"
-  by (induct n arbitrary: v w) (auto simp: Let_def split: prod.split_asm)
-
-lemma bin_split_cat: "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
-  by (induct n arbitrary: w) auto
-
-lemma bin_split_zero [simp]: "bin_split n 0 = (0, 0)"
-  by (induct n) auto
-
-lemma bin_split_minus1 [simp]:
-  "bin_split n (- 1) = (- 1, bintrunc n (- 1))"
-  by (induct n) auto
-
-lemma bin_split_trunc:
-  "bin_split (min m n) c = (a, b) \<Longrightarrow>
-    bin_split n (bintrunc m c) = (bintrunc (m - n) a, b)"
-  apply (induct n arbitrary: m b c, clarsimp)
-  apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
-  apply (case_tac m)
-   apply (auto simp: Let_def split: prod.split_asm)
-  done
-
-lemma bin_split_trunc1:
-  "bin_split n c = (a, b) \<Longrightarrow>
-    bin_split n (bintrunc m c) = (bintrunc (m - n) a, bintrunc m b)"
-  apply (induct n arbitrary: m b c, clarsimp)
-  apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
-  apply (case_tac m)
-   apply (auto simp: Let_def split: prod.split_asm)
-  done
-
-lemma bin_cat_num: "bin_cat a n b = a * 2 ^ n + bintrunc n b"
-  apply (induct n arbitrary: b)
-   apply clarsimp
-  apply (simp add: Bit_def)
-  done
-
-lemma bin_split_num: "bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
-  apply (induct n arbitrary: b)
-   apply simp
-  apply (simp add: bin_rest_def zdiv_zmult2_eq)
-  apply (case_tac b rule: bin_exhaust)
-  apply simp
-  apply (simp add: Bit_def mod_mult_mult1 p1mod22k)
-  done
-
-
-subsection \<open>Miscellaneous lemmas\<close>
-
-lemma nth_2p_bin: "bin_nth (2 ^ n) m = (m = n)"
-  apply (induct n arbitrary: m)
-   apply clarsimp
-   apply safe
-   apply (case_tac m)
-    apply (auto simp: Bit_B0_2t [symmetric])
-  done
-
-\<comment> \<open>for use when simplifying with \<open>bin_nth_Bit\<close>\<close>
-lemma ex_eq_or: "(\<exists>m. n = Suc m \<and> (m = k \<or> P m)) \<longleftrightarrow> n = Suc k \<or> (\<exists>m. n = Suc m \<and> P m)"
-  by auto
-
-lemma power_BIT: "2 ^ (Suc n) - 1 = (2 ^ n - 1) BIT True"
-  by (induct n) (simp_all add: Bit_B1)
-
-lemma mod_BIT: "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
-proof -
-  have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
-    by (simp add: mod_mult_mult1)
-  also have "\<dots> = ((2 * bin mod 2 ^ Suc n) + 1) mod 2 ^ Suc n"
-    by (simp add: ac_simps p1mod22k')
-  also have "\<dots> = (2 * bin + 1) mod 2 ^ Suc n"
-    by (simp only: mod_simps)
-  finally show ?thesis
-    by (auto simp add: Bit_def)
-qed
-
-lemma AND_mod: "x AND 2 ^ n - 1 = x mod 2 ^ n"
-  for x :: int
-proof (induct x arbitrary: n rule: bin_induct)
-  case 1
-  then show ?case
-    by simp
-next
-  case 2
-  then show ?case
-    by (simp, simp add: m1mod2k)
-next
-  case (3 bin bit)
-  show ?case
-  proof (cases n)
-    case 0
-    then show ?thesis by simp
-  next
-    case (Suc m)
-    with 3 show ?thesis
-      by (simp only: power_BIT mod_BIT int_and_Bits) simp
-  qed
-qed
+instance ..
 
 end
 
+end

@@ -6,10 +6,10 @@ theorems linking them to lists of booleans, and repeated splitting
 and concatenation.
 *)
 
-section "Bool lists and integers"
+section \<open>Bool lists and integers\<close>
 
 theory Bool_List_Representation
-  imports Bits_Int
+  imports Bit_Representation
 begin
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
@@ -399,55 +399,6 @@ lemma last_bin_last: "size xs > 0 \<Longrightarrow> last xs \<longleftrightarrow
 lemma bin_last_last: "bin_last w \<longleftrightarrow> last (bin_to_bl (Suc n) w)"
   by (simp add: bin_to_bl_def) (auto simp: bin_to_bl_aux_alt)
 
-
-subsection \<open>Links between bit-wise operations and operations on bool lists\<close>
-
-lemma bl_xor_aux_bin:
-  "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
-    bin_to_bl_aux n (v XOR w) (map2 (\<lambda>x y. x \<noteq> y) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
-  apply (case_tac v rule: bin_exhaust)
-  apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  apply (case_tac b)
-   apply auto
-  done
-
-lemma bl_or_aux_bin:
-  "map2 (\<or>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
-    bin_to_bl_aux n (v OR w) (map2 (\<or>) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
-  apply (case_tac v rule: bin_exhaust)
-  apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  done
-
-lemma bl_and_aux_bin:
-  "map2 (\<and>) (bin_to_bl_aux n v bs) (bin_to_bl_aux n w cs) =
-    bin_to_bl_aux n (v AND w) (map2 (\<and>) bs cs)"
-  apply (induct n arbitrary: v w bs cs)
-   apply simp
-  apply (case_tac v rule: bin_exhaust)
-  apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  done
-
-lemma bl_not_aux_bin: "map Not (bin_to_bl_aux n w cs) = bin_to_bl_aux n (NOT w) (map Not cs)"
-  by (induct n arbitrary: w cs) auto
-
-lemma bl_not_bin: "map Not (bin_to_bl n w) = bin_to_bl n (NOT w)"
-  by (simp add: bin_to_bl_def bl_not_aux_bin)
-
-lemma bl_and_bin: "map2 (\<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v AND w)"
-  by (simp add: bin_to_bl_def bl_and_aux_bin)
-
-lemma bl_or_bin: "map2 (\<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
-  by (simp add: bin_to_bl_def bl_or_aux_bin)
-
-lemma bl_xor_bin: "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
-  by (simp only: bin_to_bl_def bl_xor_aux_bin map2_Nil)
 
 lemma drop_bin2bl_aux:
   "drop m (bin_to_bl_aux n bin bs) =
@@ -1041,37 +992,5 @@ lemma bin_rsplit_len_indep:
   apply (erule bin_rsplit_aux_len_indep)
   apply (rule refl)
   done
-
-
-text \<open>Even more bit operations\<close>
-
-instantiation int :: bitss
-begin
-
-definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
-
-definition "lsb i = i !! 0" for i :: int
-
-definition "set_bit i n b = bin_sc n b i"
-
-definition
-  "set_bits f =
-    (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
-      in bl_to_bin (rev (map f [0..<n]))
-     else if \<exists>n. \<forall>n'\<ge>n. f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. f n'
-      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
-     else 0 :: int)"
-
-definition "shiftl x n = x * 2 ^ n" for x :: int
-
-definition "shiftr x n = x div 2 ^ n" for x :: int
-
-definition "msb x \<longleftrightarrow> x < 0" for x :: int
-
-instance ..
-
-end
 
 end
