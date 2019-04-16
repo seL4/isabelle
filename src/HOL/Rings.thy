@@ -1137,11 +1137,6 @@ proof -
     by (rule dvd_div_mult2_eq)
 qed
 
-lemmas unit_simps = mult_unit_dvd_iff div_unit_dvd_iff dvd_mult_unit_iff
-  dvd_div_unit_iff unit_div_mult_swap unit_div_commute
-  unit_mult_left_cancel unit_mult_right_cancel unit_div_cancel
-  unit_eq_div1 unit_eq_div2
-
 lemma is_unit_div_mult_cancel_left:
   assumes "a \<noteq> 0" and "is_unit b"
   shows "a div (a * b) = 1 div b"
@@ -2519,20 +2514,6 @@ lemma add_less_zeroD:
   by (auto simp: not_less intro: le_less_trans [of _ "x+y"])
 
 end
-
-text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
-
-lemmas mult_compare_simps =
-  mult_le_cancel_right mult_le_cancel_left
-  mult_le_cancel_right1 mult_le_cancel_right2
-  mult_le_cancel_left1 mult_le_cancel_left2
-  mult_less_cancel_right mult_less_cancel_left
-  mult_less_cancel_right1 mult_less_cancel_right2
-  mult_less_cancel_left1 mult_less_cancel_left2
-  mult_cancel_right mult_cancel_left
-  mult_cancel_right1 mult_cancel_right2
-  mult_cancel_left1 mult_cancel_left2
-
 
 text \<open>Reasoning about inequalities with division\<close>
 
