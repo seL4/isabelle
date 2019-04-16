@@ -157,22 +157,22 @@ class JEdit_Editor extends Editor[View]
         }
 
       case None =>
-        val is_file =
+        val is_dir =
           try {
             val vfs = VFSManager.getVFSForPath(name)
             val vfs_file = vfs._getFile((), name, view)
-            vfs_file != null && vfs_file.getType == VFSFile.FILE
+            vfs_file != null && vfs_file.getType == VFSFile.DIRECTORY
           }
           catch { case ERROR(_) => false }
 
-        if (is_file) {
+        if (is_dir) VFSBrowser.browseDirectory(view, name)
+        else {
           val args =
             if (line <= 0) Array(name)
             else if (column <= 0) Array(name, "+line:" + (line + 1))
             else Array(name, "+line:" + (line + 1) + "," + (column + 1))
           jEdit.openFiles(view, null, args)
         }
-        else VFSBrowser.browseDirectory(view, name)
     }
   }
 
