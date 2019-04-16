@@ -10,18 +10,15 @@ theory Word_Type
 begin
 
 lemma take_bit_uminus:
-  fixes k :: int
-  shows "take_bit n (- (take_bit n k)) = take_bit n (- k)"
+  "take_bit n (- (take_bit n k)) = take_bit n (- k)" for k :: int
   by (simp add: take_bit_eq_mod mod_minus_eq)
 
 lemma take_bit_minus:
-  fixes k l :: int
-  shows "take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)"
+  "take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)" for k l :: int
   by (simp add: take_bit_eq_mod mod_diff_eq)
 
 lemma take_bit_nonnegative [simp]:
-  fixes k :: int
-  shows "take_bit n k \<ge> 0"
+  "take_bit n k \<ge> 0" for k :: int
   by (simp add: take_bit_eq_mod)
 
 definition signed_take_bit :: "nat \<Rightarrow> int \<Rightarrow> int"
@@ -29,9 +26,8 @@ definition signed_take_bit :: "nat \<Rightarrow> int \<Rightarrow> int"
     "signed_take_bit n k = take_bit (Suc n) (k + 2 ^ n) - 2 ^ n"
 
 lemma signed_take_bit_eq_take_bit':
-  assumes "n > 0"
-  shows "signed_take_bit (n - Suc 0) k = take_bit n (k + 2 ^ (n - 1)) - 2 ^ (n - 1)"
-  using assms by (simp add: signed_take_bit_eq_take_bit)
+  "signed_take_bit (n - Suc 0) k = take_bit n (k + 2 ^ (n - 1)) - 2 ^ (n - 1)" if "n > 0"
+  using that by (simp add: signed_take_bit_eq_take_bit)
   
 lemma signed_take_bit_0 [simp]:
   "signed_take_bit 0 k = - (k mod 2)"
@@ -62,10 +58,10 @@ lemma signed_take_bit_of_minus_1 [simp]:
   by (induct n) simp_all
 
 lemma signed_take_bit_eq_iff_take_bit_eq:
-  assumes "n > 0"
-  shows "signed_take_bit (n - Suc 0) k = signed_take_bit (n - Suc 0) l \<longleftrightarrow> take_bit n k = take_bit n l" (is "?P \<longleftrightarrow> ?Q")
+  "signed_take_bit (n - Suc 0) k = signed_take_bit (n - Suc 0) l \<longleftrightarrow> take_bit n k = take_bit n l" (is "?P \<longleftrightarrow> ?Q")
+  if "n > 0"
 proof -
-  from assms obtain m where m: "n = Suc m"
+  from that obtain m where m: "n = Suc m"
     by (cases n) auto
   show ?thesis
   proof 
@@ -82,7 +78,7 @@ proof -
       by (simp only: signed_take_bit_eq_take_bit m) simp
   next
     assume ?P
-    with assms have "(k + 2 ^ (n - Suc 0)) mod 2 ^ n = (l + 2 ^ (n - Suc 0)) mod 2 ^ n"
+    with that have "(k + 2 ^ (n - Suc 0)) mod 2 ^ n = (l + 2 ^ (n - Suc 0)) mod 2 ^ n"
       by (simp add: signed_take_bit_eq_take_bit' take_bit_eq_mod)
     then have "(i + (k + 2 ^ (n - Suc 0))) mod 2 ^ n = (i + (l + 2 ^ (n - Suc 0))) mod 2 ^ n" for i
       by (metis mod_add_eq)
