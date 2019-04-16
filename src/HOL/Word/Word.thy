@@ -62,7 +62,7 @@ subsection \<open>Type conversions and casting\<close>
 
 definition sint :: "'a::len word \<Rightarrow> int"
   \<comment> \<open>treats the most-significant-bit as a sign bit\<close>
-  where sint_uint: "sint w = sbintrunc (len_of TYPE('a) - 1) (uint w)"
+  where sint_uint: "sint w = sbintrunc (LENGTH('a) - 1) (uint w)"
 
 definition unat :: "'a::len0 word \<Rightarrow> nat"
   where "unat w = nat (uint w)"
@@ -377,9 +377,11 @@ definition word_test_bit_def: "test_bit a = bin_nth (uint a)"
 
 definition word_set_bit_def: "set_bit a n x = word_of_int (bin_sc n x (uint a))"
 
-definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth (len_of TYPE('a)) f)"
+definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth LENGTH('a) f)"
 
 definition word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a)"
+
+definition "msb a \<longleftrightarrow> bin_sign (sbintrunc (LENGTH('a) - 1) (uint a)) = - 1"
 
 definition shiftl1 :: "'a word \<Rightarrow> 'a word"
   where "shiftl1 w = word_of_int (uint w BIT False)"
@@ -396,21 +398,16 @@ instance ..
 
 end
 
+lemma word_msb_def:
+  "msb a \<longleftrightarrow> bin_sign (sint a) = - 1"
+  by (simp add: msb_word_def sint_uint)
+
 lemma [code]:
   shows word_not_def: "NOT (a::'a::len0 word) = word_of_int (NOT (uint a))"
     and word_and_def: "(a::'a word) AND b = word_of_int (uint a AND uint b)"
     and word_or_def: "(a::'a word) OR b = word_of_int (uint a OR uint b)"
     and word_xor_def: "(a::'a word) XOR b = word_of_int (uint a XOR uint b)"
   by (simp_all add: bitNOT_word_def bitAND_word_def bitOR_word_def bitXOR_word_def)
-
-instantiation word :: (len) bitss
-begin
-
-definition word_msb_def: "msb a \<longleftrightarrow> bin_sign (sint a) = -1"
-
-instance ..
-
-end
 
 definition setBit :: "'a::len0 word \<Rightarrow> nat \<Rightarrow> 'a word"
   where "setBit w n = set_bit w n True"

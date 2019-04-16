@@ -746,7 +746,7 @@ lemma bin_sc_numeral [simp]:
     bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
   by (simp add: numeral_eq_Suc)
 
-instantiation int :: bitss
+instantiation int :: bits
 begin
 
 definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
