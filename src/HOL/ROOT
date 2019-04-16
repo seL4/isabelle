@@ -830,7 +830,6 @@ session "HOL-Word" (main timing) in Word = HOL +
   theories
     Word
     WordBitwise
-    Bit_Comparison
     WordExamples
   document_files "root.bib" "root.tex"
 
