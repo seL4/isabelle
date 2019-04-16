@@ -1,8 +1,8 @@
-(*  Title:      HOL/Word/WordBitwise.thy
+(*  Title:      HOL/Word/Word_Bitwise.thy
     Authors:    Thomas Sewell, NICTA and Sascha Boehme, TU Muenchen
 *)
 
-theory WordBitwise
+theory Word_Bitwise
   imports Word
 begin
 

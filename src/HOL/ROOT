@@ -829,8 +829,8 @@ session "HOL-Word" (main timing) in Word = HOL +
     "HOL-Library"
   theories
     Word
-    WordBitwise
-    WordExamples
+    Word_Bitwise
+    Word_Examples
   document_files "root.bib" "root.tex"
 
 session "HOL-Statespace" in Statespace = HOL +

@@ -14,7 +14,7 @@ imports
   Misc_Arithmetic
 begin
 
-text \<open>See \<^file>\<open>WordExamples.thy\<close> for examples.\<close>
+text \<open>See \<^file>\<open>Word_Examples.thy\<close> for examples.\<close>
 
 subsection \<open>Type definition\<close>
 
