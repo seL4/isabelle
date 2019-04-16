@@ -5,8 +5,36 @@
 section \<open>Integers as implicit bit strings\<close>
 
 theory Bit_Representation
-  imports Misc_Numeric
+  imports Main
 begin
+
+lemma int_mod_lem: "0 < n \<Longrightarrow> 0 \<le> b \<and> b < n \<longleftrightarrow> b mod n = b"
+  for b n :: int
+  apply safe
+    apply (erule (1) mod_pos_pos_trivial)
+   apply (erule_tac [!] subst)
+   apply auto
+  done
+
+lemma int_mod_ge: "a < n \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a mod n"
+  for a n :: int
+  by (metis dual_order.trans le_cases mod_pos_pos_trivial pos_mod_conj)
+
+lemma int_mod_ge': "b < 0 \<Longrightarrow> 0 < n \<Longrightarrow> b + n \<le> b mod n"
+  for b n :: int
+  by (metis add_less_same_cancel2 int_mod_ge mod_add_self2)
+
+lemma int_mod_le': "0 \<le> b - n \<Longrightarrow> b mod n \<le> b - n"
+  for b n :: int
+  by (metis minus_mod_self2 zmod_le_nonneg_dividend)
+
+lemma emep1: "even n \<Longrightarrow> even d \<Longrightarrow> 0 \<le> d \<Longrightarrow> (n + 1) mod d = (n mod d) + 1"
+  for n d :: int
+  by (auto simp add: pos_zmod_mult_2 add.commute dvd_def)
+
+lemma m1mod2k: "- 1 mod 2 ^ n = (2 ^ n - 1 :: int)"
+  by (rule zmod_minus1) simp
+
 
 subsection \<open>Constructors and destructors for binary integers\<close>
 
@@ -563,7 +591,9 @@ lemma range_bintrunc: "range (bintrunc n) = {i. 0 \<le> i \<and> i < 2 ^ n}"
   apply (unfold no_bintr_alt1)
   apply (auto simp add: image_iff)
   apply (rule exI)
-  apply (auto intro: int_mod_lem [THEN iffD1, symmetric])
+  apply (rule sym)
+  using int_mod_lem [symmetric, of "2 ^ n"]
+  apply auto
   done
 
 lemma no_sbintr_alt2: "sbintrunc n = (\<lambda>w. (w + 2 ^ n) mod 2 ^ Suc n - 2 ^ n :: int)"
@@ -572,15 +602,15 @@ lemma no_sbintr_alt2: "sbintrunc n = (\<lambda>w. (w + 2 ^ n) mod 2 ^ Suc n - 2 
 lemma range_sbintrunc: "range (sbintrunc n) = {i. - (2 ^ n) \<le> i \<and> i < 2 ^ n}"
   apply (unfold no_sbintr_alt2)
   apply (auto simp add: image_iff eq_diff_eq)
+
   apply (rule exI)
   apply (auto intro: int_mod_lem [THEN iffD1, symmetric])
   done
 
 lemma sb_inc_lem: "a + 2^k < 0 \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
   for a :: int
-  apply (erule int_mod_ge' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k", simplified zless2p])
-  apply (rule TrueI)
-  done
+  using int_mod_ge' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"]
+  by simp
 
 lemma sb_inc_lem': "a < - (2^k) \<Longrightarrow> a + 2^k + 2^(Suc k) \<le> (a + 2^k) mod 2^(Suc k)"
   for a :: int
@@ -599,8 +629,6 @@ lemma sb_dec_lem': "2 ^ k \<le> a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) 
 
 lemma sbintrunc_dec: "x \<ge> (2 ^ n) \<Longrightarrow> x - 2 ^ (Suc n) >= sbintrunc n x"
   unfolding no_sbintr_alt2 by (drule sb_dec_lem') simp
-
-lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
 
 lemma bintr_ge0: "0 \<le> bintrunc n w"
   by (simp add: bintrunc_mod2p)
@@ -815,7 +843,7 @@ lemma bin_split_num: "bin_split n b = (b div 2 ^ n, b mod 2 ^ n)"
   apply (simp add: bin_rest_def zdiv_zmult2_eq)
   apply (case_tac b rule: bin_exhaust)
   apply simp
-  apply (simp add: Bit_def mod_mult_mult1 p1mod22k)
+  apply (simp add: Bit_def mod_mult_mult1 pos_zmod_mult_2 add.commute)
   done
 
 end

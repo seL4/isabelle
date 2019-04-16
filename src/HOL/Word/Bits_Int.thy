@@ -370,7 +370,7 @@ proof -
   have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
     by (simp add: mod_mult_mult1)
   also have "\<dots> = ((2 * bin mod 2 ^ Suc n) + 1) mod 2 ^ Suc n"
-    by (simp add: ac_simps p1mod22k')
+    by (simp add: ac_simps pos_zmod_mult_2)
   also have "\<dots> = (2 * bin + 1) mod 2 ^ Suc n"
     by (simp only: mod_simps)
   finally show ?thesis

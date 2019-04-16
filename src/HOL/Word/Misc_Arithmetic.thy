@@ -1,10 +1,43 @@
-(*  Title:      HOL/Word/Word_Miscellaneous.thy  *)
+(*  Title:      HOL/Word/Misc_Arithmetic.thy  *)
 
-section \<open>Miscellaneous lemmas, of at least doubtful value\<close>
+section \<open>Miscellaneous lemmas, mostly for arithmetic\<close>
 
-theory Word_Miscellaneous
-  imports "HOL-Library.Bit" Misc_Numeric
+theory Misc_Arithmetic
+  imports "HOL-Library.Bit" Bit_Representation
 begin
+
+lemma one_mod_exp_eq_one [simp]:
+  "1 mod (2 * 2 ^ n) = (1::int)"
+  using power_gt1 [of 2 n] by (auto intro: mod_pos_pos_trivial)
+  
+lemma mod_2_neq_1_eq_eq_0: "k mod 2 \<noteq> 1 \<longleftrightarrow> k mod 2 = 0"
+  for k :: int
+  by (fact not_mod_2_eq_1_eq_0)
+
+lemma z1pmod2: "(2 * b + 1) mod 2 = (1::int)"
+  for b :: int
+  by arith
+
+lemma diff_le_eq': "a - b \<le> c \<longleftrightarrow> a \<le> b + c"
+  for a b c :: int
+  by arith
+
+lemma zless2: "0 < (2 :: int)"
+  by (fact zero_less_numeral)
+
+lemma zless2p: "0 < (2 ^ n :: int)"
+  by arith
+
+lemma zle2p: "0 \<le> (2 ^ n :: int)"
+  by arith
+
+lemma p1mod22k': "(1 + 2 * b) mod (2 * 2 ^ n) = 1 + 2 * (b mod 2 ^ n)"
+  for b :: int
+  using zle2p by (rule pos_zmod_mult_2)
+
+lemma p1mod22k: "(2 * b + 1) mod (2 * 2 ^ n) = 2 * (b mod 2 ^ n) + 1"
+  for b :: int
+  by (simp add: p1mod22k' add.commute)
 
 lemma ex_eq_or: "(\<exists>m. n = Suc m \<and> (m = k \<or> P m)) \<longleftrightarrow> n = Suc k \<or> (\<exists>m. n = Suc m \<and> P m)"
   by auto
@@ -52,19 +85,6 @@ lemma size_Cons_lem_eq: "y = xa # list \<Longrightarrow> size y = Suc k \<Longri
   by auto
 
 lemmas ls_splits = prod.split prod.split_asm if_split_asm
-
-lemma not_B1_is_B0: "y \<noteq> 1 \<Longrightarrow> y = 0"
-  for y :: bit
-  by (cases y) auto
-
-lemma B1_ass_B0:
-  fixes y :: bit
-  assumes y: "y = 0 \<Longrightarrow> y = 1"
-  shows "y = 1"
-  apply (rule classical)
-  apply (drule not_B1_is_B0)
-  apply (erule y)
-  done
 
 \<comment> \<open>simplifications for specific word lengths\<close>
 lemmas n2s_ths [THEN eq_reflection] = add_2_eq_Suc add_2_eq_Suc'
@@ -394,5 +414,20 @@ lemma min_minus [simp]: "min m (m - k) = m - k"
 lemma min_minus' [simp]: "min (m - k) m = m - k"
   for m k :: nat
   by arith
+
+lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p]
+
+lemma not_B1_is_B0: "y \<noteq> 1 \<Longrightarrow> y = 0"
+  for y :: bit
+  by (cases y) auto
+
+lemma B1_ass_B0:
+  fixes y :: bit
+  assumes y: "y = 0 \<Longrightarrow> y = 1"
+  shows "y = 1"
+  apply (rule classical)
+  apply (drule not_B1_is_B0)
+  apply (erule y)
+  done
 
 end

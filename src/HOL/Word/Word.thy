@@ -11,7 +11,7 @@ imports
   Bits_Bit
   Bits_Int
   Misc_Typedef
-  Word_Miscellaneous
+  Misc_Arithmetic
 begin
 
 text \<open>See \<^file>\<open>WordExamples.thy\<close> for examples.\<close>
