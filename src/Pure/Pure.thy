@@ -545,9 +545,8 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>named_theorems\<close>
     "declare named collection of theorems"
-    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.text ""
-      -- Scan.optional (\<^keyword>\<open>includes\<close> |-- Scan.repeat1 Parse.text) []) >>
-      fold (fn ((b, descr), extends) => snd o Named_Theorems.declare b extends descr));
+    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.text "") >>
+      fold (fn (b, descr) => snd o Named_Theorems.declare b descr));
 
 in end\<close>
 

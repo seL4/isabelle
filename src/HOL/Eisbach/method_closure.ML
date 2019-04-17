@@ -182,7 +182,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
       |> Local_Theory.map_background_naming (Name_Space.add_path (Binding.name_of name))
       |> Config.put Method.old_section_parser true
       |> fold setup_local_method methods
-      |> fold_map (fn b => Named_Theorems.declare b [] "") uses;
+      |> fold_map (fn b => Named_Theorems.declare b "") uses;
 
     val (term_args, lthy2) = lthy1
       |> add_fixes vars |-> fold_map Proof_Context.inferred_param |>> map Free;

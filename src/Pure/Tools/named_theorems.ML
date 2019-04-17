@@ -14,8 +14,7 @@ sig
   val add: string -> attribute
   val del: string -> attribute
   val check: Proof.context -> string * Position.T -> string
-  val declare: binding -> string list -> string ->
-    local_theory -> string * local_theory
+  val declare: binding -> string -> local_theory -> string * local_theory
 end;
 
 structure Named_Theorems: NAMED_THEOREMS =
@@ -88,17 +87,15 @@ fun check ctxt (xname, pos) =
 
 (* declaration *)
 
-fun declare binding raw_extends descr lthy =
+fun declare binding descr lthy =
   let
     val name = Local_Theory.full_name lthy binding;
-    val extends = map (fn s => check lthy (s, Position.none)) raw_extends;
     val description =
       "declaration of " ^ (if descr = "" then Binding.name_of binding ^ " rules" else descr);
     val lthy' = lthy
       |> Local_Theory.background_theory (Context.theory_map (new_entry name))
       |> Local_Theory.map_contexts (K (Context.proof_map (new_entry name)))
-      |> Local_Theory.add_thms_dynamic (binding,
-           fn context => maps (content context) (extends @ [name]))
+      |> Local_Theory.add_thms_dynamic (binding, fn context => content context name)
       |> Attrib.local_setup binding (Attrib.add_del (add name) (del name)) description
   in (name, lthy') end;
 

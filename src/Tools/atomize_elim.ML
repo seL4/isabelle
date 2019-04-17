@@ -19,7 +19,7 @@ struct
 val named_theorems =
   Context.>>> (Context.map_theory_result
    (Named_Target.theory_init #>
-    Named_Theorems.declare \<^binding>\<open>atomize_elim\<close> [] "atomize_elim rewrite rule" ##>
+    Named_Theorems.declare \<^binding>\<open>atomize_elim\<close> "atomize_elim rewrite rule" ##>
     Local_Theory.exit_global));
 
 
