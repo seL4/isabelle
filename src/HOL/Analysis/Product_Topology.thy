@@ -455,6 +455,15 @@ lemma homeomorphic_maps_prod:
   unfolding homeomorphic_maps_def continuous_map_prod_top
   by (auto simp: continuous_map_def homeomorphic_maps_def continuous_map_prod_top)
 
+lemma homeomorphic_maps_swap:
+   "homeomorphic_maps (prod_topology X Y) (prod_topology Y X)
+                          (\<lambda>(x,y). (y,x)) (\<lambda>(y,x). (x,y))"
+  by (auto simp: homeomorphic_maps_def case_prod_unfold continuous_map_fst continuous_map_pairedI continuous_map_snd)
+
+lemma homeomorphic_map_swap:
+   "homeomorphic_map (prod_topology X Y) (prod_topology Y X) (\<lambda>(x,y). (y,x))"
+  using homeomorphic_map_maps homeomorphic_maps_swap by metis
+
 lemma embedding_map_graph:
    "embedding_map X (prod_topology X Y) (\<lambda>x. (x, f x)) \<longleftrightarrow> continuous_map X Y f"
     (is "?lhs = ?rhs")
@@ -474,7 +483,7 @@ next
     unfolding homeomorphic_map_maps embedding_map_def homeomorphic_maps_def
     by (rule_tac x=fst in exI)
        (auto simp: continuous_map_in_subtopology continuous_map_paired continuous_map_from_subtopology
-                   continuous_map_fst topspace_subtopology)
+                   continuous_map_fst)
 qed
 
 lemma homeomorphic_space_prod_topology:

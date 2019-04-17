@@ -2109,6 +2109,14 @@ proof -
     by (metis Int_absorb1 mem_Collect_eq path_component_of_equiv path_component_of_subset_topspace topspace_subtopology)
 qed
 
+lemma path_connectedin_euclidean [simp]:
+   "path_connectedin euclidean S \<longleftrightarrow> path_connected S"
+  by (auto simp: path_connectedin_def path_connected_space_iff_path_component path_connected_component)
+
+lemma path_connected_space_euclidean_subtopology [simp]:
+   "path_connected_space(subtopology euclidean S) \<longleftrightarrow> path_connected S"
+  using path_connectedin_topspace by force
+
 lemma Union_path_components_of:
      "\<Union>(path_components_of X) = topspace X"
   by (auto simp: path_components_of_def path_component_of_equiv)

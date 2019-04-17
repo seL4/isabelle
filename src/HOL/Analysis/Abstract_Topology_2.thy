@@ -1107,7 +1107,7 @@ lemma retract_of_connected:
     "\<lbrakk>connected T; S retract_of T\<rbrakk> \<Longrightarrow> connected S"
   by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
 
-lemma retraction_imp_quotient_map:
+lemma retraction_openin_vimage_iff:
   "openin (top_of_set S) (S \<inter> r -` U) \<longleftrightarrow> openin (top_of_set T) U"
   if retraction: "retraction S T r" and "U \<subseteq> T"
   using retraction apply (rule retractionE)

@@ -195,6 +195,23 @@ qed
 lemma countable_image_inj_on: "countable (f ` A) \<Longrightarrow> inj_on f A \<Longrightarrow> countable A"
   by (metis countable_image the_inv_into_onto)
 
+lemma countable_image_inj_Int_vimage:
+   "\<lbrakk>inj_on f S; countable A\<rbrakk> \<Longrightarrow> countable (S \<inter> f -` A)"
+  by (meson countable_image_inj_on countable_subset image_subset_iff_subset_vimage inf_le2 inj_on_Int)
+
+lemma countable_image_inj_gen:
+   "\<lbrakk>inj_on f S; countable A\<rbrakk> \<Longrightarrow> countable {x \<in> S. f x \<in> A}"
+  using countable_image_inj_Int_vimage
+  by (auto simp: vimage_def Collect_conj_eq)
+
+lemma countable_image_inj_eq:
+   "inj_on f S \<Longrightarrow> countable(f ` S) \<longleftrightarrow> countable S"
+  using countable_image_inj_on by blast
+
+lemma countable_image_inj:
+   "\<lbrakk>countable A; inj f\<rbrakk> \<Longrightarrow> countable {x. f x \<in> A}"
+  by (metis (mono_tags, lifting) countable_image_inj_eq countable_subset image_Collect_subsetI inj_on_inverseI the_inv_f_f)
+
 lemma countable_UN[intro, simp]:
   fixes I :: "'i set" and A :: "'i => 'a set"
   assumes I: "countable I"
@@ -319,6 +336,39 @@ next
   assume ?rhs
   then show ?lhs by force
 qed
+
+lemma ex_subset_image_inj:
+   "(\<exists>T. T \<subseteq> f ` S \<and> P T) \<longleftrightarrow> (\<exists>T. T \<subseteq> S \<and> inj_on f T \<and> P (f ` T))"
+  by (auto simp: subset_image_inj)
+
+lemma all_subset_image_inj:
+   "(\<forall>T. T \<subseteq> f ` S \<longrightarrow> P T) \<longleftrightarrow> (\<forall>T. T \<subseteq> S \<and> inj_on f T \<longrightarrow> P(f ` T))"
+  by (metis subset_image_inj)
+
+lemma ex_countable_subset_image_inj:
+   "(\<exists>T. countable T \<and> T \<subseteq> f ` S \<and> P T) \<longleftrightarrow>
+    (\<exists>T. countable T \<and> T \<subseteq> S \<and> inj_on f T \<and> P (f ` T))"
+  by (metis countable_image_inj_eq subset_image_inj)
+
+lemma all_countable_subset_image_inj:
+   "(\<forall>T. countable T \<and> T \<subseteq> f ` S \<longrightarrow> P T) \<longleftrightarrow> (\<forall>T. countable T \<and> T \<subseteq> S \<and> inj_on f T \<longrightarrow>P(f ` T))"
+  by (metis countable_image_inj_eq subset_image_inj)
+
+lemma ex_countable_subset_image:
+   "(\<exists>T. countable T \<and> T \<subseteq> f ` S \<and> P T) \<longleftrightarrow> (\<exists>T. countable T \<and> T \<subseteq> S \<and> P (f ` T))"
+  by (metis countable_subset_image)
+
+lemma all_countable_subset_image:
+   "(\<forall>T. countable T \<and> T \<subseteq> f ` S \<longrightarrow> P T) \<longleftrightarrow> (\<forall>T. countable T \<and> T \<subseteq> S \<longrightarrow> P(f ` T))"
+  by (metis countable_subset_image)
+
+lemma countable_image_eq:
+   "countable(f ` S) \<longleftrightarrow> (\<exists>T. countable T \<and> T \<subseteq> S \<and> f ` S = f ` T)"
+  by (metis countable_image countable_image_inj_eq order_refl subset_image_inj)
+
+lemma countable_image_eq_inj:
+   "countable(f ` S) \<longleftrightarrow> (\<exists>T. countable T \<and> T \<subseteq> S \<and> f ` S = f ` T \<and> inj_on f T)"
+  by (metis countable_image_inj_eq order_refl subset_image_inj)
 
 lemma infinite_countable_subset':
   assumes X: "infinite X" shows "\<exists>C\<subseteq>X. countable C \<and> infinite C"

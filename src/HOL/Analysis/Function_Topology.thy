@@ -1410,7 +1410,7 @@ proof -
     ultimately obtain \<C>' where "finite \<C>'" "\<C>' \<subseteq> \<B>'" "U \<subseteq> \<Union>\<C>'"
       using fin [of \<B>'] \<open>topspace X = U\<close> \<open>U \<subseteq> \<Union>\<B>\<close> by blast
     then show ?thesis
-      unfolding \<B>' exists_finite_subset_image \<open>topspace X = U\<close> by auto
+      unfolding \<B>' ex_finite_subset_image \<open>topspace X = U\<close> by auto
   qed
   show ?thesis
     apply (rule Alexander_subbase [where \<B> = "Collect ((\<lambda>x. x \<in> \<B>) relative_to (topspace X))"])

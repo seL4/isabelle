@@ -382,6 +382,10 @@ by (metis closedin_def closedin_topspace inf.absorb_iff2 le_inf_iff topspace_sub
 lemma closedin_topspace_empty: "topspace T = {} \<Longrightarrow> (closedin T S \<longleftrightarrow> S = {})"
   by (simp add: closedin_def)
 
+lemma open_in_topspace_empty:
+   "topspace X = {} \<Longrightarrow> openin X S \<longleftrightarrow> S = {}"
+  by (simp add: openin_closedin_eq)
+
 lemma openin_imp_subset:
    "openin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
 by (metis Int_iff openin_subtopology subsetI)
@@ -1755,6 +1759,26 @@ definition closed_map :: "'a topology \<Rightarrow> 'b topology \<Rightarrow> ('
 lemma open_map_imp_subset_topspace:
      "open_map X1 X2 f \<Longrightarrow> f ` (topspace X1) \<subseteq> topspace X2"
   unfolding open_map_def by (simp add: openin_subset)
+
+lemma open_map_on_empty:
+   "topspace X = {} \<Longrightarrow> open_map X Y f"
+  by (metis empty_iff imageE in_mono open_map_def openin_subopen openin_subset)
+
+lemma closed_map_on_empty:
+   "topspace X = {} \<Longrightarrow> closed_map X Y f"
+  by (simp add: closed_map_def closedin_topspace_empty)
+
+lemma closed_map_const:
+   "closed_map X Y (\<lambda>x. c) \<longleftrightarrow> topspace X = {} \<or> closedin Y {c}"
+proof (cases "topspace X = {}")
+  case True
+  then show ?thesis
+    by (simp add: closed_map_on_empty)
+next
+  case False
+  then show ?thesis
+    by (auto simp: closed_map_def image_constant_conv)
+qed
 
 lemma open_map_imp_subset:
     "\<lbrakk>open_map X1 X2 f; S \<subseteq> topspace X1\<rbrakk> \<Longrightarrow> f ` S \<subseteq> topspace X2"
@@ -3220,6 +3244,10 @@ lemma compact_space:
   unfolding compact_space_alt
   using openin_subset by fastforce
 
+lemma compactinD:
+  "\<lbrakk>compactin X S; \<And>U. U \<in> \<U> \<Longrightarrow> openin X U; S \<subseteq> \<Union>\<U>\<rbrakk> \<Longrightarrow> \<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> S \<subseteq> \<Union>\<F>"
+  by (auto simp: compactin_def)
+
 lemma compactin_euclidean_iff [simp]: "compactin euclidean S \<longleftrightarrow> compact S"
   by (simp add: compact_eq_Heine_Borel compactin_def) meson
 
@@ -3229,7 +3257,7 @@ proof -
   have eq: "(\<forall>U \<in> \<U>. \<exists>Y. openin X Y \<and> U = Y \<inter> S) \<longleftrightarrow> \<U> \<subseteq> (\<lambda>Y. Y \<inter> S) ` {y. openin X y}" for \<U>
     by auto
   show ?thesis
-    by (auto simp: compactin_def topspace_subtopology openin_subtopology eq imp_conjL all_subset_image exists_finite_subset_image)
+    by (auto simp: compactin_def topspace_subtopology openin_subtopology eq imp_conjL all_subset_image ex_finite_subset_image)
 qed
 
 lemma compactin_subspace: "compactin X S \<longleftrightarrow> S \<subseteq> topspace X \<and> compact_space (subtopology X S)"
@@ -3411,7 +3439,7 @@ next
       by (auto simp: \<V>_def)
     moreover assume [unfolded compact_space_alt, rule_format, of \<V>]: "compact_space X"
     ultimately obtain \<F> where \<F>: "finite \<F>" "\<F> \<subseteq> \<U>" "topspace X \<subseteq> topspace X - \<Inter>\<F>"
-      by (auto simp: exists_finite_subset_image \<V>_def)
+      by (auto simp: ex_finite_subset_image \<V>_def)
     moreover have "\<F> \<noteq> {}"
       using \<F> \<open>topspace X \<noteq> {}\<close> by blast
     ultimately show "False"
@@ -3645,7 +3673,7 @@ lemma embedding_map_in_subtopology:
    "embedding_map X (subtopology Y S) f \<longleftrightarrow> embedding_map X Y f \<and> f ` (topspace X) \<subseteq> S"
   apply (auto simp: embedding_map_def subtopology_subtopology Int_absorb1)
     apply (metis (no_types) homeomorphic_imp_surjective_map subtopology_subtopology subtopology_topspace topspace_subtopology)
-  apply (simp add: continuous_map_def homeomorphic_eq_everything_map topspace_subtopology)
+  apply (simp add: continuous_map_def homeomorphic_eq_everything_map)
   done
 
 lemma injective_open_imp_embedding_map:
@@ -3653,7 +3681,7 @@ lemma injective_open_imp_embedding_map:
   unfolding embedding_map_def
   apply (rule bijective_open_imp_homeomorphic_map)
   using continuous_map_in_subtopology apply blast
-    apply (auto simp: continuous_map_in_subtopology open_map_into_subtopology topspace_subtopology continuous_map)
+    apply (auto simp: continuous_map_in_subtopology open_map_into_subtopology continuous_map)
   done
 
 lemma injective_closed_imp_embedding_map:
@@ -3661,13 +3689,18 @@ lemma injective_closed_imp_embedding_map:
   unfolding embedding_map_def
   apply (rule bijective_closed_imp_homeomorphic_map)
      apply (simp_all add: continuous_map_into_subtopology closed_map_into_subtopology)
-  apply (simp add: continuous_map inf.absorb_iff2 topspace_subtopology)
+  apply (simp add: continuous_map inf.absorb_iff2)
   done
 
 lemma embedding_map_imp_homeomorphic_space:
    "embedding_map X Y f \<Longrightarrow> X homeomorphic_space (subtopology Y (f ` (topspace X)))"
   unfolding embedding_map_def
   using homeomorphic_space by blast
+
+lemma embedding_imp_closed_map:
+   "\<lbrakk>embedding_map X Y f; closedin Y (f ` topspace X)\<rbrakk> \<Longrightarrow> closed_map X Y f"
+  unfolding closed_map_def
+  by (auto simp: closedin_closed_subtopology embedding_map_def homeomorphic_map_closedness_eq)
 
 
 subsection\<open>Retraction and section maps\<close>
@@ -4341,5 +4374,235 @@ next
   ultimately show "g x \<in> topspace (pullback_topology A f T2)"
     unfolding topspace_pullback_topology by blast
 qed
+subsection\<open>Proper maps (not a priori assumed continuous) \<close>
+
+definition proper_map
+  where
+ "proper_map X Y f \<equiv>
+        closed_map X Y f \<and> (\<forall>y \<in> topspace Y. compactin X {x \<in> topspace X. f x = y})"
+
+lemma proper_imp_closed_map:
+   "proper_map X Y f \<Longrightarrow> closed_map X Y f"
+  by (simp add: proper_map_def)
+
+lemma proper_map_imp_subset_topspace:
+   "proper_map X Y f \<Longrightarrow> f ` (topspace X) \<subseteq> topspace Y"
+  by (simp add: closed_map_imp_subset_topspace proper_map_def)
+
+lemma closed_injective_imp_proper_map:
+  assumes f: "closed_map X Y f" and inj: "inj_on f (topspace X)"
+  shows "proper_map X Y f"
+  unfolding proper_map_def
+proof (clarsimp simp: f)
+  show "compactin X {x \<in> topspace X. f x = y}"
+    if "y \<in> topspace Y" for y
+  proof -
+    have "{x \<in> topspace X. f x = y} = {} \<or> (\<exists>a \<in> topspace X. {x \<in> topspace X. f x = y} = {a})"
+      using inj_on_eq_iff [OF inj] by auto
+    then show ?thesis
+      using that by (metis (no_types, lifting) compactin_empty compactin_sing)
+  qed
+qed
+
+lemma injective_imp_proper_eq_closed_map:
+   "inj_on f (topspace X) \<Longrightarrow> (proper_map X Y f \<longleftrightarrow> closed_map X Y f)"
+  using closed_injective_imp_proper_map proper_imp_closed_map by blast
+
+lemma homeomorphic_imp_proper_map:
+   "homeomorphic_map X Y f \<Longrightarrow> proper_map X Y f"
+  by (simp add: closed_injective_imp_proper_map homeomorphic_eq_everything_map)
+
+lemma compactin_proper_map_preimage:
+  assumes f: "proper_map X Y f" and "compactin Y K"
+  shows "compactin X {x. x \<in> topspace X \<and> f x \<in> K}"
+proof -
+  have "f ` (topspace X) \<subseteq> topspace Y"
+    by (simp add: f proper_map_imp_subset_topspace)
+  have *: "\<And>y. y \<in> topspace Y \<Longrightarrow> compactin X {x \<in> topspace X. f x = y}"
+    using f by (auto simp: proper_map_def)
+  show ?thesis
+    unfolding compactin_def
+  proof clarsimp
+    show "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> {x \<in> topspace X. f x \<in> K} \<subseteq> \<Union>\<F>"
+      if \<U>: "\<forall>U\<in>\<U>. openin X U" and sub: "{x \<in> topspace X. f x \<in> K} \<subseteq> \<Union>\<U>"
+      for \<U>
+    proof -
+      have "\<forall>y \<in> K. \<exists>\<V>. finite \<V> \<and> \<V> \<subseteq> \<U>  \<and> {x \<in> topspace X. f x = y} \<subseteq> \<Union>\<V>"
+      proof
+        fix y
+        assume "y \<in> K"
+        then have "compactin X {x \<in> topspace X. f x = y}"
+          by (metis "*" \<open>compactin Y K\<close> compactin_subspace subsetD)
+        with \<open>y \<in> K\<close> show "\<exists>\<V>. finite \<V> \<and> \<V> \<subseteq> \<U>  \<and> {x \<in> topspace X. f x = y} \<subseteq> \<Union>\<V>"
+          unfolding compactin_def using \<U> sub by fastforce
+      qed
+      then obtain \<V> where \<V>: "\<And>y. y \<in> K \<Longrightarrow> finite (\<V> y) \<and> \<V> y \<subseteq> \<U>  \<and> {x \<in> topspace X. f x = y} \<subseteq> \<Union>(\<V> y)"
+        by (metis (full_types))
+      define F where "F \<equiv> \<lambda>y. topspace Y - f ` (topspace X - \<Union>(\<V> y))"
+      have "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> F ` K \<and> K \<subseteq> \<Union>\<F>"
+      proof (rule compactinD [OF \<open>compactin Y K\<close>])
+        have "\<And>x. x \<in> K \<Longrightarrow> closedin Y (f ` (topspace X - \<Union>(\<V> x)))"
+          using f unfolding proper_map_def closed_map_def
+          by (meson \<U> \<V> openin_Union openin_closedin_eq subsetD)
+        then show "openin Y U" if "U \<in> F ` K" for U
+          using that by (auto simp: F_def)
+        show "K \<subseteq> \<Union>(F ` K)"
+          using \<V> \<open>compactin Y K\<close> unfolding F_def compactin_def by fastforce
+      qed
+      then obtain J where "finite J" "J \<subseteq> K" and J: "K \<subseteq> \<Union>(F ` J)"
+        by (auto simp: ex_finite_subset_image)
+      show ?thesis
+        unfolding F_def
+      proof (intro exI conjI)
+        show "finite (\<Union>(\<V> ` J))"
+          using \<V> \<open>J \<subseteq> K\<close> \<open>finite J\<close> by blast
+        show "\<Union>(\<V> ` J) \<subseteq> \<U>"
+          using \<V> \<open>J \<subseteq> K\<close> by blast
+        show "{x \<in> topspace X. f x \<in> K} \<subseteq> \<Union>(\<Union>(\<V> ` J))"
+          using J \<open>J \<subseteq> K\<close> unfolding F_def by auto
+      qed
+    qed
+  qed
+qed
+
+
+lemma compact_space_proper_map_preimage:
+  assumes f: "proper_map X Y f" and fim: "f ` (topspace X) = topspace Y" and "compact_space Y"
+  shows "compact_space X"
+proof -
+  have eq: "topspace X = {x \<in> topspace X. f x \<in> topspace Y}"
+    using fim by blast
+  moreover have "compactin Y (topspace Y)"
+    using \<open>compact_space Y\<close> compact_space_def by auto
+  ultimately show ?thesis
+    unfolding compact_space_def
+    using eq f compactin_proper_map_preimage by fastforce
+qed
+
+lemma proper_map_alt:
+   "proper_map X Y f \<longleftrightarrow>
+    closed_map X Y f \<and> (\<forall>K. compactin Y K \<longrightarrow> compactin X {x. x \<in> topspace X \<and> f x \<in> K})"
+  proof (intro iffI conjI allI impI)
+  show "compactin X {x \<in> topspace X. f x \<in> K}"
+    if "proper_map X Y f" and "compactin Y K" for K
+    using that by (simp add: compactin_proper_map_preimage)
+  show "proper_map X Y f"
+    if f: "closed_map X Y f \<and> (\<forall>K. compactin Y K \<longrightarrow> compactin X {x \<in> topspace X. f x \<in> K})"
+  proof -
+    have "compactin X {x \<in> topspace X. f x = y}" if "y \<in> topspace Y" for y
+    proof -
+      have "compactin X {x \<in> topspace X. f x \<in> {y}}"
+        using f compactin_sing that by fastforce
+      then show ?thesis
+        by auto
+    qed
+    with f show ?thesis
+      by (auto simp: proper_map_def)
+  qed
+qed (simp add: proper_imp_closed_map)
+
+lemma proper_map_on_empty:
+   "topspace X = {} \<Longrightarrow> proper_map X Y f"
+  by (auto simp: proper_map_def closed_map_on_empty)
+
+lemma proper_map_id [simp]:
+   "proper_map X X id"
+proof (clarsimp simp: proper_map_alt closed_map_id)
+  fix K
+  assume K: "compactin X K"
+  then have "{a \<in> topspace X. a \<in> K} = K"
+    by (simp add: compactin_subspace subset_antisym subset_iff)
+  then show "compactin X {a \<in> topspace X. a \<in> K}"
+    using K by auto
+qed
+
+lemma proper_map_compose:
+  assumes "proper_map X Y f" "proper_map Y Z g"
+  shows "proper_map X Z (g \<circ> f)"
+proof -
+  have "closed_map X Y f" and f: "\<And>K. compactin Y K \<Longrightarrow> compactin X {x \<in> topspace X. f x \<in> K}"
+    and "closed_map Y Z g" and g: "\<And>K. compactin Z K \<Longrightarrow> compactin Y {x \<in> topspace Y. g x \<in> K}"
+    using assms by (auto simp: proper_map_alt)
+  show ?thesis
+    unfolding proper_map_alt
+  proof (intro conjI allI impI)
+    show "closed_map X Z (g \<circ> f)"
+      using \<open>closed_map X Y f\<close> \<open>closed_map Y Z g\<close> closed_map_compose by blast
+    have "{x \<in> topspace X. g (f x) \<in> K} = {x \<in> topspace X. f x \<in> {b \<in> topspace Y. g b \<in> K}}" for K
+      using \<open>closed_map X Y f\<close> closed_map_imp_subset_topspace by blast
+    then show "compactin X {x \<in> topspace X. (g \<circ> f) x \<in> K}"
+      if "compactin Z K" for K
+      using f [OF g [OF that]] by auto
+  qed
+qed
+
+lemma proper_map_const:
+   "proper_map X Y (\<lambda>x. c) \<longleftrightarrow> compact_space X \<and> (topspace X = {} \<or> closedin Y {c})"
+proof (cases "topspace X = {}")
+  case True
+  then show ?thesis
+    by (simp add: compact_space_topspace_empty proper_map_on_empty)
+next
+  case False
+  have *: "compactin X {x \<in> topspace X. c = y}" if "compact_space X" for y
+  proof (cases "c = y")
+    case True
+    then show ?thesis
+      using compact_space_def \<open>compact_space X\<close> by auto
+  qed auto
+  then show ?thesis
+    using closed_compactin closedin_subset
+    by (force simp: False proper_map_def closed_map_const compact_space_def)
+qed
+
+lemma proper_map_inclusion:
+   "s \<subseteq> topspace X
+        \<Longrightarrow> proper_map (subtopology X s) X id \<longleftrightarrow> closedin X s \<and> (\<forall>k. compactin X k \<longrightarrow> compactin X (s \<inter> k))"
+  by (auto simp: proper_map_alt closed_map_inclusion_eq inf.absorb_iff2 Collect_conj_eq compactin_subtopology intro: closed_Int_compactin)
+
+
+subsection\<open>Perfect maps (proper, continuous and surjective)\<close>
+
+definition perfect_map 
+  where "perfect_map X Y f \<equiv> continuous_map X Y f \<and> proper_map X Y f \<and> f ` (topspace X) = topspace Y"
+
+lemma homeomorphic_imp_perfect_map:
+   "homeomorphic_map X Y f \<Longrightarrow> perfect_map X Y f"
+  by (simp add: homeomorphic_eq_everything_map homeomorphic_imp_proper_map perfect_map_def)
+
+lemma perfect_imp_quotient_map:
+   "perfect_map X Y f \<Longrightarrow> quotient_map X Y f"
+  by (simp add: continuous_closed_imp_quotient_map perfect_map_def proper_map_def)
+
+lemma homeomorphic_eq_injective_perfect_map:
+   "homeomorphic_map X Y f \<longleftrightarrow> perfect_map X Y f \<and> inj_on f (topspace X)"
+  using homeomorphic_imp_perfect_map homeomorphic_map_def perfect_imp_quotient_map by blast
+
+lemma perfect_injective_eq_homeomorphic_map:
+   "perfect_map X Y f \<and> inj_on f (topspace X) \<longleftrightarrow> homeomorphic_map X Y f"
+  by (simp add: homeomorphic_eq_injective_perfect_map)
+
+lemma perfect_map_id [simp]: "perfect_map X X id"
+  by (simp add: homeomorphic_imp_perfect_map)
+
+lemma perfect_map_compose:
+   "\<lbrakk>perfect_map X Y f; perfect_map Y Z g\<rbrakk> \<Longrightarrow> perfect_map X Z (g \<circ> f)"
+  by (meson continuous_map_compose perfect_imp_quotient_map perfect_map_def proper_map_compose quotient_map_compose_eq quotient_map_def)
+
+lemma perfect_imp_continuous_map:
+   "perfect_map X Y f \<Longrightarrow> continuous_map X Y f"
+  using perfect_map_def by blast
+
+lemma perfect_imp_closed_map:
+   "perfect_map X Y f \<Longrightarrow> closed_map X Y f"
+  by (simp add: perfect_map_def proper_map_def)
+
+lemma perfect_imp_proper_map:
+   "perfect_map X Y f \<Longrightarrow> proper_map X Y f"
+  by (simp add: perfect_map_def)
+
+lemma perfect_imp_surjective_map:
+   "perfect_map X Y f \<Longrightarrow> f ` (topspace X) = topspace Y"
+  by (simp add: perfect_map_def)
 
 end

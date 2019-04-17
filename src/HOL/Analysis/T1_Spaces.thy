@@ -475,6 +475,37 @@ proof -
     by (simp add: topology_eq)
 qed
 
+lemma continuous_map_imp_closed_graph:
+  assumes f: "continuous_map X Y f" and Y: "Hausdorff_space Y"
+  shows "closedin (prod_topology X Y) ((\<lambda>x. (x,f x)) ` topspace X)"
+  unfolding closedin_def
+proof
+  show "(\<lambda>x. (x, f x)) ` topspace X \<subseteq> topspace (prod_topology X Y)"
+    using continuous_map_def f by fastforce
+  show "openin (prod_topology X Y) (topspace (prod_topology X Y) - (\<lambda>x. (x, f x)) ` topspace X)"
+    unfolding openin_prod_topology_alt
+  proof (intro allI impI)
+    show "\<exists>U V. openin X U \<and> openin Y V \<and> x \<in> U \<and> y \<in> V \<and> U \<times> V \<subseteq> topspace (prod_topology X Y) - (\<lambda>x. (x, f x)) ` topspace X"
+      if "(x,y) \<in> topspace (prod_topology X Y) - (\<lambda>x. (x, f x)) ` topspace X"
+      for x y
+    proof -
+      have "x \<in> topspace X" "y \<in> topspace Y" "y \<noteq> f x"
+        using that by auto
+      moreover have "f x \<in> topspace Y"
+        by (meson \<open>x \<in> topspace X\<close> continuous_map_def f)
+      ultimately obtain U V where UV: "openin Y U" "openin Y V" "f x \<in> U" "y \<in> V" "disjnt U V"
+        using Y Hausdorff_space_def by metis
+      show ?thesis
+      proof (intro exI conjI)
+        show "openin X {x \<in> topspace X. f x \<in> U}"
+          using \<open>openin Y U\<close> f openin_continuous_map_preimage by blast
+        show "{x \<in> topspace X. f x \<in> U} \<times> V \<subseteq> topspace (prod_topology X Y) - (\<lambda>x. (x, f x)) ` topspace X"
+          using UV by (auto simp: disjnt_iff dest: openin_subset)
+      qed (use UV \<open>x \<in> topspace X\<close> in auto)
+    qed
+  qed
+qed
+
 lemma continuous_imp_closed_map:
    "\<lbrakk>compact_space X; Hausdorff_space Y; continuous_map X Y f\<rbrakk> \<Longrightarrow> closed_map X Y f"
   by (meson closed_map_def closedin_compact_space compactin_imp_closedin image_compactin)
@@ -529,8 +560,39 @@ proof (rule continuous_map_from_subtopology_mono [OF _ \<open>S \<subseteq> f ` 
   qed
 qed
 
+lemma closed_map_paired_continuous_map_right:
+   "\<lbrakk>continuous_map X Y f; Hausdorff_space Y\<rbrakk> \<Longrightarrow> closed_map X (prod_topology X Y) (\<lambda>x. (x,f x))"
+  by (simp add: continuous_map_imp_closed_graph embedding_map_graph embedding_imp_closed_map)
 
-lemma Hausdorff_space_euclidean: "Hausdorff_space (euclidean :: 'a::metric_space topology)"
+lemma closed_map_paired_continuous_map_left:
+  assumes f: "continuous_map X Y f" and Y: "Hausdorff_space Y"
+  shows "closed_map X (prod_topology Y X) (\<lambda>x. (f x,x))"
+proof -
+  have eq: "(\<lambda>x. (f x,x)) = (\<lambda>(a,b). (b,a)) \<circ> (\<lambda>x. (x,f x))"
+    by auto
+  show ?thesis
+    unfolding eq
+  proof (rule closed_map_compose)
+    show "closed_map X (prod_topology X Y) (\<lambda>x. (x, f x))"
+      using Y closed_map_paired_continuous_map_right f by blast
+    show "closed_map (prod_topology X Y) (prod_topology Y X) (\<lambda>(a, b). (b, a))"
+      by (metis homeomorphic_map_swap homeomorphic_imp_closed_map)
+  qed
+qed
+
+lemma proper_map_paired_continuous_map_right:
+   "\<lbrakk>continuous_map X Y f; Hausdorff_space Y\<rbrakk>
+        \<Longrightarrow> proper_map X (prod_topology X Y) (\<lambda>x. (x,f x))"
+  using closed_injective_imp_proper_map closed_map_paired_continuous_map_right
+  by (metis (mono_tags, lifting) Pair_inject inj_onI)
+
+lemma proper_map_paired_continuous_map_left:
+   "\<lbrakk>continuous_map X Y f; Hausdorff_space Y\<rbrakk>
+        \<Longrightarrow> proper_map X (prod_topology Y X) (\<lambda>x. (f x,x))"
+  using closed_injective_imp_proper_map closed_map_paired_continuous_map_left
+  by (metis (mono_tags, lifting) Pair_inject inj_onI)
+
+lemma Hausdorff_space_euclidean [simp]: "Hausdorff_space (euclidean :: 'a::metric_space topology)"
 proof -
   have "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
     if "x \<noteq> y"

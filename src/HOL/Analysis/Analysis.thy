@@ -29,7 +29,7 @@ theory Analysis
   Bounded_Continuous_Function
   Abstract_Topology
   Product_Topology
-  T1_Spaces
+  Lindelof_Spaces
   Infinite_Products
   Infinite_Set_Sum
   Weierstrass_Theorems

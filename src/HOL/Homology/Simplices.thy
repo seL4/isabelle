@@ -2411,7 +2411,7 @@ proof -
     using compactin_standard_simplex [of p]
     unfolding compactin_def by force
   then obtain S where "finite S" and ssp: "S \<subseteq> standard_simplex p" "standard_simplex p \<subseteq> \<Union>(F ` S)"
-    unfolding exists_finite_subset_image by (auto simp: exists_finite_subset_image)
+    unfolding ex_finite_subset_image by (auto simp: ex_finite_subset_image)
   then have "S \<noteq> {}"
     by (auto simp: nonempty_standard_simplex)
   show ?thesis

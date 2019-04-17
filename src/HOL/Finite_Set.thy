@@ -334,7 +334,7 @@ proof safe
     using finite_subset_image [OF B] P by blast
 qed blast
 
-lemma exists_finite_subset_image:
+lemma ex_finite_subset_image:
   "(\<exists>B. finite B \<and> B \<subseteq> f ` A \<and> P B) \<longleftrightarrow> (\<exists>B. finite B \<and> B \<subseteq> A \<and> P (f ` B))"
 proof safe
   fix B :: "'a set"
