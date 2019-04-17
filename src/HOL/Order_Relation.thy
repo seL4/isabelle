@@ -52,6 +52,14 @@ lemma linear_order_on_converse[simp]: "linear_order_on A (r\<inverse>) = linear_
   by (simp add: linear_order_on_def)
 
 
+lemma partial_order_on_acyclic:
+  "partial_order_on A r \<Longrightarrow> acyclic (r - Id)"
+  by (simp add: acyclic_irrefl partial_order_on_def preorder_on_def trans_diff_Id)
+
+lemma partial_order_on_well_order_on:               
+  "finite r \<Longrightarrow> partial_order_on A r \<Longrightarrow> wf (r - Id)" 
+  by (simp add: finite_acyclic_wf partial_order_on_acyclic) 
+
 lemma strict_linear_order_on_diff_Id: "linear_order_on A r \<Longrightarrow> strict_linear_order_on A (r - Id)"
   by (simp add: order_on_defs trans_diff_Id)
 
@@ -358,6 +366,23 @@ next
   qed
   ultimately show "(a,b) \<in> r"
     using assms order_on_defs[of "Field r" r] total_on_def[of "Field r" r] by blast
+qed
+
+lemma finite_Partial_order_induct[consumes 3, case_names step]:
+  assumes "Partial_order r"
+    and "x \<in> Field r"
+    and "finite r"
+    and step: "\<And>x. x \<in> Field r \<Longrightarrow> (\<And>y. y \<in> aboveS r x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P x"
+  using assms(2)
+proof (induct rule: wf_induct[of "r\<inverse> - Id"])
+  case 1
+  from assms(1,3) show "wf (r\<inverse> - Id)"
+    using partial_order_on_well_order_on partial_order_on_converse by blast
+next
+  case prems: (2 x)
+  show ?case
+    by (rule step) (use prems in \<open>auto simp: aboveS_def intro: FieldI2\<close>)
 qed
 
 lemma finite_Linear_order_induct[consumes 3, case_names step]:
