@@ -562,6 +562,27 @@ lemma inv_unique_comp:
   shows "inv f = g"
   using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
 
+lemma subset_image_inj:
+  "S \<subseteq> f ` T \<longleftrightarrow> (\<exists>U. U \<subseteq> T \<and> inj_on f U \<and> S = f ` U)"
+proof safe
+  show "\<exists>U\<subseteq>T. inj_on f U \<and> S = f ` U"
+    if "S \<subseteq> f ` T"
+  proof -
+    from that [unfolded subset_image_iff subset_iff]
+    obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> g x \<in> T \<and> x = f (g x)"
+      by (auto simp add: image_iff Bex_def choice_iff')
+    show ?thesis
+    proof (intro exI conjI)
+      show "g ` S \<subseteq> T"
+        by (simp add: g image_subsetI)
+      show "inj_on f (g ` S)"
+        using g by (auto simp: inj_on_def)
+      show "S = f ` (g ` S)"
+        using g image_subset_iff by auto
+    qed
+  qed
+qed blast
+
 
 subsection \<open>Other Consequences of Hilbert's Epsilon\<close>
 

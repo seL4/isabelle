@@ -8,27 +8,6 @@ theory Infinite_Set
   imports Main
 begin
 
-lemma subset_image_inj:
-  "S \<subseteq> f ` T \<longleftrightarrow> (\<exists>U. U \<subseteq> T \<and> inj_on f U \<and> S = f ` U)"
-proof safe
-  show "\<exists>U\<subseteq>T. inj_on f U \<and> S = f ` U"
-    if "S \<subseteq> f ` T"
-  proof -
-    from that [unfolded subset_image_iff subset_iff]
-    obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> g x \<in> T \<and> x = f (g x)"
-      unfolding image_iff by metis
-    show ?thesis
-    proof (intro exI conjI)
-      show "g ` S \<subseteq> T"
-        by (simp add: g image_subsetI)
-      show "inj_on f (g ` S)"
-        using g by (auto simp: inj_on_def)
-      show "S = f ` (g ` S)"
-        using g image_subset_iff by auto
-    qed
-  qed
-qed blast
-
 subsection \<open>The set of natural numbers is infinite\<close>
 
 lemma infinite_nat_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
