@@ -738,6 +738,34 @@ lemma finite_linorder_min_induct [consumes 1, case_names empty insert]:
   "\<lbrakk>finite A; P {}; \<And>b A. \<lbrakk>finite A; \<forall>a\<in>A. b < a; P A\<rbrakk> \<Longrightarrow> P (insert b A)\<rbrakk> \<Longrightarrow> P A"
   by (rule linorder.finite_linorder_max_induct [OF dual_linorder])
 
+lemma finite_ranking_induct[consumes 1, case_names empty insert]:
+  fixes f :: "'b \<Rightarrow> 'a"
+  assumes "finite S"
+  assumes "P {}" 
+  assumes "\<And>x S. finite S \<Longrightarrow> (\<And>y. y \<in> S \<Longrightarrow> f y \<le> f x) \<Longrightarrow> P S \<Longrightarrow> P (insert x S)"
+  shows "P S"
+  using `finite S` 
+proof (induction rule: finite_psubset_induct)
+  case (psubset A)
+  {
+    assume "A \<noteq> {}"
+    hence "f ` A \<noteq> {}" and "finite (f ` A)"
+      using psubset finite_image_iff by simp+ 
+    then obtain a where "f a = Max (f ` A)" and "a \<in> A"
+      by (metis Max_in[of "f ` A"] imageE)
+    then have "P (A - {a})"
+      using psubset member_remove by blast 
+    moreover 
+    have "\<And>y. y \<in> A \<Longrightarrow> f y \<le> f a"
+      using \<open>f a = Max (f ` A)\<close> \<open>finite (f ` A)\<close> by simp
+    ultimately
+    have ?case
+      by (metis \<open>a \<in> A\<close> DiffD1 insert_Diff assms(3) finite_Diff psubset.hyps)
+  }
+  thus ?case
+    using assms(2) by blast
+qed
+
 lemma Least_Min:
   assumes "finite {a. P a}" and "\<exists>a. P a"
   shows "(LEAST a. P a) = Min {a. P a}"
