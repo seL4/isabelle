@@ -96,7 +96,7 @@ definition ucast :: "'a::len0 word \<Rightarrow> 'b::len0 word"
 instantiation word :: (len0) size
 begin
 
-definition word_size: "size (w :: 'a word) = len_of TYPE('a)"
+definition word_size: "size (w :: 'a word) = LENGTH('a)"
 
 instance ..
 
@@ -1883,8 +1883,7 @@ lemma uint_mod: "uint (x mod y) = uint x mod uint y"
   for x y :: "'a::len word"
   by (simp add: uint_nat unat_mod zmod_int)
 
-
-subsection \<open>Definition of \<open>unat_arith\<close> tactic\<close>
+text \<open>Definition of \<open>unat_arith\<close> tactic\<close>
 
 lemma unat_split: "P (unat x) \<longleftrightarrow> (\<forall>n. of_nat n = x \<and> n < 2^len_of TYPE('a) \<longrightarrow> P n)"
   for x :: "'a::len word"
@@ -2065,16 +2064,20 @@ lemma of_bl_length_less:
   apply (rule bl_to_bin_lt2p)
   done
 
+lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
+  for n :: "'a::len word"
+  by unat_arith
+
 
 subsection \<open>Cardinality, finiteness of set of words\<close>
 
 instance word :: (len0) finite
   by standard (simp add: type_definition.univ [OF type_definition_word])
 
-lemma card_word: "CARD('a::len0 word) = 2 ^ len_of TYPE('a)"
+lemma card_word: "CARD('a word) = 2 ^ LENGTH('a::len0)"
   by (simp add: type_definition.card [OF type_definition_word] nat_power_eq)
 
-lemma card_word_size: "card (UNIV :: 'a word set) = (2 ^ size x)"
+lemma card_word_size: "CARD('a word) = 2 ^ size x"
   for x :: "'a::len0 word"
   unfolding word_size by (rule card_word)
 
@@ -2583,6 +2586,10 @@ lemma word_set_ge: "w \<le> set_bit w n True"
   apply simp
   done
 
+lemma set_bit_beyond:
+  "size x \<le> n \<Longrightarrow> set_bit x n b = x" for x :: "'a :: len0 word"
+  by (auto intro: word_eqI simp add: test_bit_set_gen word_size)
+
 
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
@@ -2794,8 +2801,6 @@ lemma shiftl1_rev: "shiftl1 w = word_reverse (shiftr1 (word_reverse w))"
   apply (unfold word_reverse_def)
   apply (rule word_bl.Rep_inverse' [symmetric])
   apply (simp add: bl_shiftl1' bl_shiftr1' word_bl.Abs_inverse)
-  apply (cases "to_bl w")
-   apply auto
   done
 
 lemma shiftl_rev: "shiftl w n = word_reverse (shiftr (word_reverse w) n)"
@@ -3162,6 +3167,9 @@ lemma mask_power_eq: "(x AND mask n) ^ k AND mask n = x ^ k AND mask n"
   using word_of_int_Ex [where x=x]
   by (auto simp: and_mask_wi' word_of_int_power_hom word.abs_eq_iff bintrunc_mod2p mod_simps)
 
+lemma mask_full [simp]: "mask LENGTH('a) = (- 1 :: 'a::len word)"
+  by (simp add: mask_def word_size shiftl_zero_size)
+
 
 subsubsection \<open>Revcast\<close>
 
@@ -3410,6 +3418,10 @@ lemma sofl_test:
       drule sbintrunc_inc sbintrunc_dec,
       simp)+
   done
+
+lemma shiftr_zero_size: "size x \<le> n \<Longrightarrow> x >> n = 0"
+  for x :: "'a :: len0 word"
+  by (rule word_eqI) (auto simp add: nth_shiftr dest: test_bit_size)
 
 
 subsection \<open>Split and cat\<close>
@@ -4493,9 +4505,63 @@ lemma word_rec_max:
   apply simp
   done
 
-lemma unatSuc: "1 + n \<noteq> 0 \<Longrightarrow> unat (1 + n) = Suc (unat n)"
-  for n :: "'a::len word"
-  by unat_arith
+
+subsection \<open>More\<close>
+
+lemma set_bits_K_False [simp]:
+  "set_bits (\<lambda>_. False) = (0 :: 'a :: len0 word)"
+  by (rule word_eqI) (simp add: test_bit.eq_norm)
+
+lemma test_bit_1' [simp]:
+  "(1 :: 'a :: len0 word) !! n \<longleftrightarrow> 0 < len_of TYPE('a) \<and> n = 0"
+  by (cases n) (simp_all only: one_word_def test_bit_wi bin_nth.simps, simp_all)
+
+lemma mask_0 [simp]:
+  "mask 0 = 0"
+  by (simp add: Word.mask_def)
+
+lemma shiftl0 [simp]:
+  "x << 0 = (x :: 'a :: len0 word)"
+  by (metis shiftl_rev shiftr_x_0 word_rev_gal)
+
+lemma mask_1: "mask 1 = 1"
+  by (simp add: mask_def)
+
+lemma mask_Suc_0: "mask (Suc 0) = 1"
+  by (simp add: mask_def)
+
+lemma mask_numeral: "mask (numeral n) = 2 * mask (pred_numeral n) + 1"
+  by (simp add: mask_def neg_numeral_class.sub_def numeral_eq_Suc numeral_pow)
+
+lemma bin_last_bintrunc: "bin_last (bintrunc l n) = (l > 0 \<and> bin_last n)"
+  by (cases l) simp_all
+
+lemma word_and_1:
+  "n AND 1 = (if n !! 0 then 1 else 0)" for n :: "_ word"
+  by transfer (rule bin_rl_eqI, simp_all add: bin_rest_trunc bin_last_bintrunc)
+
+lemma bintrunc_shiftl:
+  "bintrunc n (m << i) = bintrunc (n - i) m << i"
+proof (induction i arbitrary: n)
+  case 0
+  show ?case
+    by simp
+next
+  case (Suc i)
+  then show ?case by (cases n) simp_all
+qed
+
+lemma shiftl_transfer [transfer_rule]:
+  includes lifting_syntax
+  shows "(pcr_word ===> (=) ===> pcr_word) (<<) (<<)"
+  by (auto intro!: rel_funI word_eqI simp add: word.pcr_cr_eq cr_word_def word_size nth_shiftl)
+
+lemma uint_shiftl:
+  "uint (n << i) = bintrunc (size n) (uint n << i)"
+  unfolding word_size by transfer (simp add: bintrunc_shiftl)
+
+
+subsection \<open>Misc\<close>
 
 declare bin_to_bl_def [simp]
 

@@ -775,4 +775,381 @@ instance ..
 
 end
 
+
+subsection \<open>More lemmas\<close>
+
+lemma twice_conv_BIT: "2 * x = x BIT False"
+  by (rule bin_rl_eqI) (simp_all, simp_all add: bin_rest_def bin_last_def)
+
+lemma not_int_cmp_0 [simp]:
+  fixes i :: int shows
+  "0 < NOT i \<longleftrightarrow> i < -1"
+  "0 \<le> NOT i \<longleftrightarrow> i < 0"
+  "NOT i < 0 \<longleftrightarrow> i \<ge> 0"
+  "NOT i \<le> 0 \<longleftrightarrow> i \<ge> -1"
+by(simp_all add: int_not_def) arith+
+
+lemma bbw_ao_dist2: "(x :: int) AND (y OR z) = x AND y OR x AND z"
+by(metis int_and_comm bbw_ao_dist)
+
+lemmas int_and_ac = bbw_lcs(1) int_and_comm int_and_assoc
+
+lemma int_nand_same [simp]: fixes x :: int shows "x AND NOT x = 0"
+by(induct x y\<equiv>"NOT x" rule: bitAND_int.induct)(subst bitAND_int.simps, clarsimp)
+
+lemma int_nand_same_middle: fixes x :: int shows "x AND y AND NOT x = 0"
+by (metis bbw_lcs(1) int_and_0 int_nand_same)
+
+lemma and_xor_dist: fixes x :: int shows
+  "x AND (y XOR z) = (x AND y) XOR (x AND z)"
+by(simp add: int_xor_def bbw_ao_dist2 bbw_ao_dist bbw_not_dist int_and_ac int_nand_same_middle)
+
+lemma BIT_lt0 [simp]: "x BIT b < 0 \<longleftrightarrow> x < 0"
+by(cases b)(auto simp add: Bit_def)
+
+lemma BIT_ge0 [simp]: "x BIT b \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+by(cases b)(auto simp add: Bit_def)
+
+lemma [simp]: 
+  shows bin_rest_lt0: "bin_rest i < 0 \<longleftrightarrow> i < 0"
+  and  bin_rest_ge_0: "bin_rest i \<ge> 0 \<longleftrightarrow> i \<ge> 0"
+by(auto simp add: bin_rest_def)
+
+lemma bin_rest_gt_0 [simp]: "bin_rest x > 0 \<longleftrightarrow> x > 1"
+by(simp add: bin_rest_def add1_zle_eq pos_imp_zdiv_pos_iff) (metis add1_zle_eq one_add_one)
+
+lemma int_and_lt0 [simp]: fixes x y :: int shows
+  "x AND y < 0 \<longleftrightarrow> x < 0 \<and> y < 0"
+by(induct x y rule: bitAND_int.induct)(subst bitAND_int.simps, simp)
+
+lemma int_and_ge0 [simp]: fixes x y :: int shows 
+  "x AND y \<ge> 0 \<longleftrightarrow> x \<ge> 0 \<or> y \<ge> 0"
+by (metis int_and_lt0 linorder_not_less)
+
+lemma int_and_1: fixes x :: int shows "x AND 1 = x mod 2"
+by(subst bitAND_int.simps)(simp add: Bit_def bin_last_def zmod_minus1)
+
+lemma int_1_and: fixes x :: int shows "1 AND x = x mod 2"
+by(subst int_and_comm)(simp add: int_and_1)
+
+lemma int_or_lt0 [simp]: fixes x y :: int shows 
+  "x OR y < 0 \<longleftrightarrow> x < 0 \<or> y < 0"
+by(simp add: int_or_def)
+
+lemma int_xor_lt0 [simp]: fixes x y :: int shows
+  "x XOR y < 0 \<longleftrightarrow> ((x < 0) \<noteq> (y < 0))"
+by(auto simp add: int_xor_def)
+
+lemma int_xor_ge0 [simp]: fixes x y :: int shows
+  "x XOR y \<ge> 0 \<longleftrightarrow> ((x \<ge> 0) \<longleftrightarrow> (y \<ge> 0))"
+by (metis int_xor_lt0 linorder_not_le)
+
+lemma bin_last_conv_AND:
+  "bin_last i \<longleftrightarrow> i AND 1 \<noteq> 0"
+proof -
+  obtain x b where "i = x BIT b" by(cases i rule: bin_exhaust)
+  hence "i AND 1 = 0 BIT b"
+    by(simp add: BIT_special_simps(2)[symmetric] del: BIT_special_simps(2))
+  thus ?thesis using \<open>i = x BIT b\<close> by(cases b) simp_all
+qed
+
+lemma bitval_bin_last:
+  "of_bool (bin_last i) = i AND 1"
+proof -
+  obtain x b where "i = x BIT b" by(cases i rule: bin_exhaust)
+  hence "i AND 1 = 0 BIT b"
+    by(simp add: BIT_special_simps(2)[symmetric] del: BIT_special_simps(2))
+  thus ?thesis by(cases b)(simp_all add: bin_last_conv_AND)
+qed
+
+lemma bl_to_bin_BIT:
+  "bl_to_bin bs BIT b = bl_to_bin (bs @ [b])"
+by(simp add: bl_to_bin_append)
+
+lemma bin_last_bl_to_bin: "bin_last (bl_to_bin bs) \<longleftrightarrow> bs \<noteq> [] \<and> last bs"
+by(cases "bs = []")(auto simp add: bl_to_bin_def last_bin_last'[where w=0])
+
+lemma bin_rest_bl_to_bin: "bin_rest (bl_to_bin bs) = bl_to_bin (butlast bs)"
+by(cases "bs = []")(simp_all add: bl_to_bin_def butlast_rest_bl2bin_aux)
+
+lemma bin_nth_numeral_unfold:
+  "bin_nth (numeral (num.Bit0 x)) n \<longleftrightarrow> n > 0 \<and> bin_nth (numeral x) (n - 1)"
+  "bin_nth (numeral (num.Bit1 x)) n \<longleftrightarrow> (n > 0 \<longrightarrow> bin_nth (numeral x) (n - 1))"
+by(case_tac [!] n) simp_all
+
+lemma bin_sign_and:
+  "bin_sign (i AND j) = - (bin_sign i * bin_sign j)"
+by(simp add: bin_sign_def)
+
+lemma minus_BIT_0: fixes x y :: int shows "x BIT b - y BIT False = (x - y) BIT b"
+by(simp add: Bit_def)
+
+lemma int_not_neg_numeral: "NOT (- numeral n) = (Num.sub n num.One :: int)"
+by(simp add: int_not_def)
+
+lemma sub_inc_One: "Num.sub (Num.inc n) num.One = numeral n"
+by (metis add_diff_cancel diff_minus_eq_add diff_numeral_special(2) diff_numeral_special(6))
+
+lemma inc_BitM: "Num.inc (Num.BitM n) = num.Bit0 n"
+by(simp add: BitM_plus_one[symmetric] add_One)
+
+lemma int_neg_numeral_pOne_conv_not: "- numeral (n + num.One) = (NOT (numeral n) :: int)"
+by(simp add: int_not_def)
+
+lemma int_lsb_BIT [simp]: fixes x :: int shows
+  "lsb (x BIT b) \<longleftrightarrow> b"
+by(simp add: lsb_int_def)
+
+lemma bin_last_conv_lsb: "bin_last = lsb"
+by(clarsimp simp add: lsb_int_def fun_eq_iff)
+
+lemma int_lsb_numeral [simp]:
+  "lsb (0 :: int) = False"
+  "lsb (1 :: int) = True"
+  "lsb (Numeral1 :: int) = True"
+  "lsb (- 1 :: int) = True"
+  "lsb (- Numeral1 :: int) = True"
+  "lsb (numeral (num.Bit0 w) :: int) = False"
+  "lsb (numeral (num.Bit1 w) :: int) = True"
+  "lsb (- numeral (num.Bit0 w) :: int) = False"
+  "lsb (- numeral (num.Bit1 w) :: int) = True"
+by(simp_all add: lsb_int_def)
+
+lemma int_set_bit_0 [simp]: fixes x :: int shows
+  "set_bit x 0 b = bin_rest x BIT b"
+by(auto simp add: set_bit_int_def intro: bin_rl_eqI)
+
+lemma int_set_bit_Suc: fixes x :: int shows
+  "set_bit x (Suc n) b = set_bit (bin_rest x) n b BIT bin_last x"
+by(auto simp add: set_bit_int_def twice_conv_BIT intro: bin_rl_eqI)
+
+lemma bin_last_set_bit:
+  "bin_last (set_bit x n b) = (if n > 0 then bin_last x else b)"
+by(cases n)(simp_all add: int_set_bit_Suc)
+
+lemma bin_rest_set_bit: 
+  "bin_rest (set_bit x n b) = (if n > 0 then set_bit (bin_rest x) (n - 1) b else bin_rest x)"
+by(cases n)(simp_all add: int_set_bit_Suc)
+
+lemma int_set_bit_numeral: fixes x :: int shows
+  "set_bit x (numeral w) b = set_bit (bin_rest x) (pred_numeral w) b BIT bin_last x"
+by(simp add: set_bit_int_def)
+
+lemmas int_set_bit_numerals [simp] =
+  int_set_bit_numeral[where x="numeral w'"] 
+  int_set_bit_numeral[where x="- numeral w'"]
+  int_set_bit_numeral[where x="Numeral1"]
+  int_set_bit_numeral[where x="1"]
+  int_set_bit_numeral[where x="0"]
+  int_set_bit_Suc[where x="numeral w'"]
+  int_set_bit_Suc[where x="- numeral w'"]
+  int_set_bit_Suc[where x="Numeral1"]
+  int_set_bit_Suc[where x="1"]
+  int_set_bit_Suc[where x="0"]
+  for w'
+
+lemma int_shiftl_BIT: fixes x :: int
+  shows int_shiftl0 [simp]: "x << 0 = x"
+  and int_shiftl_Suc [simp]: "x << Suc n = (x << n) BIT False"
+by(auto simp add: shiftl_int_def Bit_def)
+
+lemma int_0_shiftl [simp]: "0 << n = (0 :: int)"
+by(induct n) simp_all
+
+lemma bin_last_shiftl: "bin_last (x << n) \<longleftrightarrow> n = 0 \<and> bin_last x"
+by(cases n)(simp_all)
+
+lemma bin_rest_shiftl: "bin_rest (x << n) = (if n > 0 then x << (n - 1) else bin_rest x)"
+by(cases n)(simp_all)
+
+lemma bin_nth_shiftl [simp]: "bin_nth (x << n) m \<longleftrightarrow> n \<le> m \<and> bin_nth x (m - n)"
+proof(induct n arbitrary: x m)
+  case (Suc n)
+  thus ?case by(cases m) simp_all
+qed simp
+
+lemma int_shiftr_BIT [simp]: fixes x :: int
+  shows int_shiftr0: "x >> 0 = x"
+  and int_shiftr_Suc: "x BIT b >> Suc n = x >> n"
+proof -
+  show "x >> 0 = x" by (simp add: shiftr_int_def)
+  show "x BIT b >> Suc n = x >> n" by (cases b)
+   (simp_all add: shiftr_int_def Bit_def add.commute pos_zdiv_mult_2)
+qed
+
+lemma bin_last_shiftr: "bin_last (x >> n) \<longleftrightarrow> x !! n"
+proof(induct n arbitrary: x)
+  case 0 thus ?case by simp
+next
+  case (Suc n)
+  thus ?case by(cases x rule: bin_exhaust) simp
+qed
+
+lemma bin_rest_shiftr [simp]: "bin_rest (x >> n) = x >> Suc n"
+proof(induct n arbitrary: x)
+  case 0
+  thus ?case by(cases x rule: bin_exhaust) auto
+next
+  case (Suc n)
+  thus ?case by(cases x rule: bin_exhaust) auto
+qed
+
+lemma bin_nth_shiftr [simp]: "bin_nth (x >> n) m = bin_nth x (n + m)"
+proof(induct n arbitrary: x m)
+  case (Suc n)
+  thus ?case by(cases x rule: bin_exhaust) simp_all
+qed simp
+
+lemma bin_nth_conv_AND:
+  fixes x :: int shows 
+  "bin_nth x n \<longleftrightarrow> x AND (1 << n) \<noteq> 0"
+proof(induct n arbitrary: x)
+  case 0 
+  thus ?case by(simp add: int_and_1 bin_last_def)
+next
+  case (Suc n)
+  thus ?case by(cases x rule: bin_exhaust)(simp_all add: bin_nth_ops Bit_eq_0_iff)
+qed
+
+lemma int_shiftl_numeral [simp]: 
+  "(numeral w :: int) << numeral w' = numeral (num.Bit0 w) << pred_numeral w'"
+  "(- numeral w :: int) << numeral w' = - numeral (num.Bit0 w) << pred_numeral w'"
+by(simp_all add: numeral_eq_Suc Bit_def shiftl_int_def)
+  (metis add_One mult_inc semiring_norm(11) semiring_norm(13) semiring_norm(2) semiring_norm(6) semiring_norm(87))+
+
+lemma int_shiftl_One_numeral [simp]: "(1 :: int) << numeral w = 2 << pred_numeral w"
+by(metis int_shiftl_numeral numeral_One)
+
+lemma shiftl_ge_0 [simp]: fixes i :: int shows "i << n \<ge> 0 \<longleftrightarrow> i \<ge> 0"
+by(induct n) simp_all
+
+lemma shiftl_lt_0 [simp]: fixes i :: int shows "i << n < 0 \<longleftrightarrow> i < 0"
+by (metis not_le shiftl_ge_0)
+
+lemma int_shiftl_test_bit: "(n << i :: int) !! m \<longleftrightarrow> m \<ge> i \<and> n !! (m - i)"
+proof(induction i)
+  case (Suc n)
+  thus ?case by(cases m) simp_all
+qed simp
+
+lemma int_0shiftr [simp]: "(0 :: int) >> x = 0"
+by(simp add: shiftr_int_def)
+
+lemma int_minus1_shiftr [simp]: "(-1 :: int) >> x = -1"
+by(simp add: shiftr_int_def div_eq_minus1)
+
+lemma int_shiftr_ge_0 [simp]: fixes i :: int shows "i >> n \<ge> 0 \<longleftrightarrow> i \<ge> 0"
+proof(induct n arbitrary: i)
+  case (Suc n)
+  thus ?case by(cases i rule: bin_exhaust) simp_all
+qed simp
+
+lemma int_shiftr_lt_0 [simp]: fixes i :: int shows "i >> n < 0 \<longleftrightarrow> i < 0"
+by (metis int_shiftr_ge_0 not_less)
+
+lemma uminus_Bit_eq:
+  "- k BIT b = (- k - of_bool b) BIT b"
+  by (cases b) (simp_all add: Bit_def)
+
+lemma int_shiftr_numeral [simp]:
+  "(1 :: int) >> numeral w' = 0"
+  "(numeral num.One :: int) >> numeral w' = 0"
+  "(numeral (num.Bit0 w) :: int) >> numeral w' = numeral w >> pred_numeral w'"
+  "(numeral (num.Bit1 w) :: int) >> numeral w' = numeral w >> pred_numeral w'"
+  "(- numeral (num.Bit0 w) :: int) >> numeral w' = - numeral w >> pred_numeral w'"
+  "(- numeral (num.Bit1 w) :: int) >> numeral w' = - numeral (Num.inc w) >> pred_numeral w'"
+  by (simp_all only: numeral_One expand_BIT numeral_eq_Suc int_shiftr_Suc BIT_special_simps(2)[symmetric] int_0shiftr add_One uminus_Bit_eq)
+    (simp_all add: add_One)
+
+lemma int_shiftr_numeral_Suc0 [simp]:
+  "(1 :: int) >> Suc 0 = 0"
+  "(numeral num.One :: int) >> Suc 0 = 0"
+  "(numeral (num.Bit0 w) :: int) >> Suc 0 = numeral w"
+  "(numeral (num.Bit1 w) :: int) >> Suc 0 = numeral w"
+  "(- numeral (num.Bit0 w) :: int) >> Suc 0 = - numeral w"
+  "(- numeral (num.Bit1 w) :: int) >> Suc 0 = - numeral (Num.inc w)"
+by(simp_all only: One_nat_def[symmetric] numeral_One[symmetric] int_shiftr_numeral pred_numeral_simps int_shiftr0)
+
+lemma bin_nth_minus_p2:
+  assumes sign: "bin_sign x = 0"
+  and y: "y = 1 << n"
+  and m: "m < n"
+  and x: "x < y"
+  shows "bin_nth (x - y) m = bin_nth x m"
+using sign m x unfolding y
+proof(induction m arbitrary: x y n)
+  case 0
+  thus ?case
+    by(simp add: bin_last_def shiftl_int_def) (metis (hide_lams, no_types) mod_diff_right_eq mod_self neq0_conv numeral_One power_eq_0_iff power_mod diff_zero zero_neq_numeral)
+next
+  case (Suc m)
+  from \<open>Suc m < n\<close> obtain n' where [simp]: "n = Suc n'" by(cases n) auto
+  obtain x' b where [simp]: "x = x' BIT b" by(cases x rule: bin_exhaust)
+  from \<open>bin_sign x = 0\<close> have "bin_sign x' = 0" by simp
+  moreover from \<open>x < 1 << n\<close> have "x' < 1 << n'"
+    by(cases b)(simp_all add: Bit_def shiftl_int_def)
+  moreover have "(2 * x' + of_bool b - 2 * 2 ^ n') div 2 = x' + (- (2 ^ n') + of_bool b div 2)"
+    by(simp only: add_diff_eq[symmetric] add.commute div_mult_self2[OF zero_neq_numeral[symmetric]])
+  ultimately show ?case using Suc.IH[of x' n'] Suc.prems
+    by(cases b)(simp_all add: Bit_def bin_rest_def shiftl_int_def)
+qed
+
+lemma bin_clr_conv_NAND:
+  "bin_sc n False i = i AND NOT (1 << n)"
+by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
+
+lemma bin_set_conv_OR:
+  "bin_sc n True i = i OR (1 << n)"
+by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
+
+lemma int_set_bits_K_True [simp]: "(BITS _. True) = (-1 :: int)"
+by(auto simp add: set_bits_int_def bin_last_bl_to_bin)
+
+lemma int_set_bits_K_False [simp]: "(BITS _. False) = (0 :: int)"
+by(auto simp add: set_bits_int_def)
+
+lemma msb_conv_bin_sign: "msb x \<longleftrightarrow> bin_sign x = -1"
+by(simp add: bin_sign_def not_le msb_int_def)
+
+lemma msb_BIT [simp]: "msb (x BIT b) = msb x"
+by(simp add: msb_int_def)
+
+lemma msb_bin_rest [simp]: "msb (bin_rest x) = msb x"
+by(simp add: msb_int_def)
+
+lemma int_msb_and [simp]: "msb ((x :: int) AND y) \<longleftrightarrow> msb x \<and> msb y"
+by(simp add: msb_int_def)
+
+lemma int_msb_or [simp]: "msb ((x :: int) OR y) \<longleftrightarrow> msb x \<or> msb y"
+by(simp add: msb_int_def)
+
+lemma int_msb_xor [simp]: "msb ((x :: int) XOR y) \<longleftrightarrow> msb x \<noteq> msb y"
+by(simp add: msb_int_def)
+
+lemma int_msb_not [simp]: "msb (NOT (x :: int)) \<longleftrightarrow> \<not> msb x"
+by(simp add: msb_int_def not_less)
+
+lemma msb_shiftl [simp]: "msb ((x :: int) << n) \<longleftrightarrow> msb x"
+by(simp add: msb_int_def)
+
+lemma msb_shiftr [simp]: "msb ((x :: int) >> r) \<longleftrightarrow> msb x"
+by(simp add: msb_int_def)
+
+lemma msb_bin_sc [simp]: "msb (bin_sc n b x) \<longleftrightarrow> msb x"
+by(simp add: msb_conv_bin_sign)
+
+lemma msb_set_bit [simp]: "msb (set_bit (x :: int) n b) \<longleftrightarrow> msb x"
+by(simp add: msb_conv_bin_sign set_bit_int_def)
+
+lemma msb_0 [simp]: "msb (0 :: int) = False"
+by(simp add: msb_int_def)
+
+lemma msb_1 [simp]: "msb (1 :: int) = False"
+by(simp add: msb_int_def)
+
+lemma msb_numeral [simp]:
+  "msb (numeral n :: int) = False"
+  "msb (- numeral n :: int) = True"
+by(simp_all add: msb_int_def)
+
 end

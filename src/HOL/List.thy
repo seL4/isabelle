@@ -1995,6 +1995,9 @@ corollary longest_common_suffix:
   using longest_common_prefix[of "rev xs" "rev ys"]
   unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
+lemma butlast_rev [simp]: "butlast (rev xs) = rev (tl xs)"
+  by (cases xs) simp_all
+
 
 subsubsection \<open>\<^const>\<open>take\<close> and \<^const>\<open>drop\<close>\<close>
 
@@ -3150,7 +3153,7 @@ lemma nth_upt [simp]: "i + k < j ==> [i..<j] ! k = i + k"
 lemma hd_upt[simp]: "i < j \<Longrightarrow> hd[i..<j] = i"
   by(simp add:upt_conv_Cons)
 
-lemma tl_upt: "tl [m..<n] = [Suc m..<n]"
+lemma tl_upt [simp]: "tl [m..<n] = [Suc m..<n]"
   by (simp add: upt_rec)
 
 lemma last_upt[simp]: "i < j \<Longrightarrow> last[i..<j] = j - 1"

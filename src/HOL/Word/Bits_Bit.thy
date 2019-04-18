@@ -82,4 +82,8 @@ lemma bit_AND_eq_1_iff [simp]: "a AND b = 1 \<longleftrightarrow> a = 1 \<and> b
   for a b :: bit
   by (induct a) simp_all
 
+lemma bit_nand_same [simp]: "x AND NOT x = 0"
+  for x :: bit
+  by (cases x) simp_all
+
 end
