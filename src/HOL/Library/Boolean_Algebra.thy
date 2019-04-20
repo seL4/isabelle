@@ -8,33 +8,33 @@ theory Boolean_Algebra
   imports Main
 begin
 
-locale boolean_algebra = conj: abel_semigroup "(\<sqinter>)" + disj: abel_semigroup "(\<squnion>)"
-  for conj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<sqinter>" 70)
-    and disj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<squnion>" 65) +
+locale boolean_algebra = conj: abel_semigroup "(\<^bold>\<sqinter>)" + disj: abel_semigroup "(\<^bold>\<squnion>)"
+  for conj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<^bold>\<sqinter>" 70)
+    and disj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<^bold>\<squnion>" 65) +
   fixes compl :: "'a \<Rightarrow> 'a"  ("\<sim> _" [81] 80)
     and zero :: "'a"  ("\<zero>")
     and one  :: "'a"  ("\<one>")
-  assumes conj_disj_distrib: "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-    and disj_conj_distrib: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-    and conj_one_right: "x \<sqinter> \<one> = x"
-    and disj_zero_right: "x \<squnion> \<zero> = x"
-    and conj_cancel_right [simp]: "x \<sqinter> \<sim> x = \<zero>"
-    and disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
+  assumes conj_disj_distrib: "x \<^bold>\<sqinter> (y \<^bold>\<squnion> z) = (x \<^bold>\<sqinter> y) \<^bold>\<squnion> (x \<^bold>\<sqinter> z)"
+    and disj_conj_distrib: "x \<^bold>\<squnion> (y \<^bold>\<sqinter> z) = (x \<^bold>\<squnion> y) \<^bold>\<sqinter> (x \<^bold>\<squnion> z)"
+    and conj_one_right: "x \<^bold>\<sqinter> \<one> = x"
+    and disj_zero_right: "x \<^bold>\<squnion> \<zero> = x"
+    and conj_cancel_right [simp]: "x \<^bold>\<sqinter> \<sim> x = \<zero>"
+    and disj_cancel_right [simp]: "x \<^bold>\<squnion> \<sim> x = \<one>"
 begin
 
-sublocale conj: semilattice_neutr "(\<sqinter>)" "\<one>"
+sublocale conj: semilattice_neutr "(\<^bold>\<sqinter>)" "\<one>"
 proof
-  show "x \<sqinter> \<one> = x" for x
+  show "x \<^bold>\<sqinter> \<one> = x" for x
     by (fact conj_one_right)
-  show "x \<sqinter> x = x" for x
+  show "x \<^bold>\<sqinter> x = x" for x
   proof -
-    have "x \<sqinter> x = (x \<sqinter> x) \<squnion> \<zero>"
+    have "x \<^bold>\<sqinter> x = (x \<^bold>\<sqinter> x) \<^bold>\<squnion> \<zero>"
       by (simp add: disj_zero_right)
-    also have "\<dots> = (x \<sqinter> x) \<squnion> (x \<sqinter> \<sim> x)"
+    also have "\<dots> = (x \<^bold>\<sqinter> x) \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> x)"
       by simp
-    also have "\<dots> = x \<sqinter> (x \<squnion> \<sim> x)"
+    also have "\<dots> = x \<^bold>\<sqinter> (x \<^bold>\<squnion> \<sim> x)"
       by (simp only: conj_disj_distrib)
-    also have "\<dots> = x \<sqinter> \<one>"
+    also have "\<dots> = x \<^bold>\<sqinter> \<one>"
       by simp
     also have "\<dots> = x"
       by (simp add: conj_one_right)
@@ -42,19 +42,19 @@ proof
   qed
 qed
 
-sublocale disj: semilattice_neutr "(\<squnion>)" "\<zero>"
+sublocale disj: semilattice_neutr "(\<^bold>\<squnion>)" "\<zero>"
 proof
-  show "x \<squnion> \<zero> = x" for x
+  show "x \<^bold>\<squnion> \<zero> = x" for x
     by (fact disj_zero_right)
-  show "x \<squnion> x = x" for x
+  show "x \<^bold>\<squnion> x = x" for x
   proof -
-    have "x \<squnion> x = (x \<squnion> x) \<sqinter> \<one>"
+    have "x \<^bold>\<squnion> x = (x \<^bold>\<squnion> x) \<^bold>\<sqinter> \<one>"
       by simp
-    also have "\<dots> = (x \<squnion> x) \<sqinter> (x \<squnion> \<sim> x)"
+    also have "\<dots> = (x \<^bold>\<squnion> x) \<^bold>\<sqinter> (x \<^bold>\<squnion> \<sim> x)"
       by simp
-    also have "\<dots> = x \<squnion> (x \<sqinter> \<sim> x)"
+    also have "\<dots> = x \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> x)"
       by (simp only: disj_conj_distrib)
-    also have "\<dots> = x \<squnion> \<zero>"
+    also have "\<dots> = x \<^bold>\<squnion> \<zero>"
       by simp
     also have "\<dots> = x"
       by (simp add: disj_zero_right)
@@ -66,32 +66,32 @@ qed
 subsection \<open>Complement\<close>
 
 lemma complement_unique:
-  assumes 1: "a \<sqinter> x = \<zero>"
-  assumes 2: "a \<squnion> x = \<one>"
-  assumes 3: "a \<sqinter> y = \<zero>"
-  assumes 4: "a \<squnion> y = \<one>"
+  assumes 1: "a \<^bold>\<sqinter> x = \<zero>"
+  assumes 2: "a \<^bold>\<squnion> x = \<one>"
+  assumes 3: "a \<^bold>\<sqinter> y = \<zero>"
+  assumes 4: "a \<^bold>\<squnion> y = \<one>"
   shows "x = y"
 proof -
-  from 1 3 have "(a \<sqinter> x) \<squnion> (x \<sqinter> y) = (a \<sqinter> y) \<squnion> (x \<sqinter> y)"
+  from 1 3 have "(a \<^bold>\<sqinter> x) \<^bold>\<squnion> (x \<^bold>\<sqinter> y) = (a \<^bold>\<sqinter> y) \<^bold>\<squnion> (x \<^bold>\<sqinter> y)"
     by simp
-  then have "(x \<sqinter> a) \<squnion> (x \<sqinter> y) = (y \<sqinter> a) \<squnion> (y \<sqinter> x)"
+  then have "(x \<^bold>\<sqinter> a) \<^bold>\<squnion> (x \<^bold>\<sqinter> y) = (y \<^bold>\<sqinter> a) \<^bold>\<squnion> (y \<^bold>\<sqinter> x)"
     by (simp add: ac_simps)
-  then have "x \<sqinter> (a \<squnion> y) = y \<sqinter> (a \<squnion> x)"
+  then have "x \<^bold>\<sqinter> (a \<^bold>\<squnion> y) = y \<^bold>\<sqinter> (a \<^bold>\<squnion> x)"
     by (simp add: conj_disj_distrib)
-  with 2 4 have "x \<sqinter> \<one> = y \<sqinter> \<one>"
+  with 2 4 have "x \<^bold>\<sqinter> \<one> = y \<^bold>\<sqinter> \<one>"
     by simp
   then show "x = y"
     by simp
 qed
 
-lemma compl_unique: "x \<sqinter> y = \<zero> \<Longrightarrow> x \<squnion> y = \<one> \<Longrightarrow> \<sim> x = y"
+lemma compl_unique: "x \<^bold>\<sqinter> y = \<zero> \<Longrightarrow> x \<^bold>\<squnion> y = \<one> \<Longrightarrow> \<sim> x = y"
   by (rule complement_unique [OF conj_cancel_right disj_cancel_right])
 
 lemma double_compl [simp]: "\<sim> (\<sim> x) = x"
 proof (rule compl_unique)
-  show "\<sim> x \<sqinter> x = \<zero>"
+  show "\<sim> x \<^bold>\<sqinter> x = \<zero>"
     by (simp only: conj_cancel_right conj.commute)
-  show "\<sim> x \<squnion> x = \<one>"
+  show "\<sim> x \<^bold>\<squnion> x = \<one>"
     by (simp only: disj_cancel_right disj.commute)
 qed
 
@@ -101,13 +101,13 @@ lemma compl_eq_compl_iff [simp]: "\<sim> x = \<sim> y \<longleftrightarrow> x = 
 
 subsection \<open>Conjunction\<close>
 
-lemma conj_zero_right [simp]: "x \<sqinter> \<zero> = \<zero>"
+lemma conj_zero_right [simp]: "x \<^bold>\<sqinter> \<zero> = \<zero>"
 proof -
-  from conj_cancel_right have "x \<sqinter> \<zero> = x \<sqinter> (x \<sqinter> \<sim> x)"
+  from conj_cancel_right have "x \<^bold>\<sqinter> \<zero> = x \<^bold>\<sqinter> (x \<^bold>\<sqinter> \<sim> x)"
     by simp
-  also from conj_assoc have "\<dots> = (x \<sqinter> x) \<sqinter> \<sim> x"
+  also from conj_assoc have "\<dots> = (x \<^bold>\<sqinter> x) \<^bold>\<sqinter> \<sim> x"
     by (simp only: ac_simps)
-  also from conj_absorb have "\<dots> = x \<sqinter> \<sim> x"
+  also from conj_absorb have "\<dots> = x \<^bold>\<sqinter> \<sim> x"
     by simp
   also have "\<dots> = \<zero>"
     by simp
@@ -117,39 +117,39 @@ qed
 lemma compl_one [simp]: "\<sim> \<one> = \<zero>"
   by (rule compl_unique [OF conj_zero_right disj_zero_right])
 
-lemma conj_zero_left [simp]: "\<zero> \<sqinter> x = \<zero>"
+lemma conj_zero_left [simp]: "\<zero> \<^bold>\<sqinter> x = \<zero>"
   by (subst conj.commute) (rule conj_zero_right)
 
-lemma conj_cancel_left [simp]: "\<sim> x \<sqinter> x = \<zero>"
+lemma conj_cancel_left [simp]: "\<sim> x \<^bold>\<sqinter> x = \<zero>"
   by (subst conj.commute) (rule conj_cancel_right)
 
-lemma conj_disj_distrib2: "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
+lemma conj_disj_distrib2: "(y \<^bold>\<squnion> z) \<^bold>\<sqinter> x = (y \<^bold>\<sqinter> x) \<^bold>\<squnion> (z \<^bold>\<sqinter> x)"
   by (simp only: conj.commute conj_disj_distrib)
 
 lemmas conj_disj_distribs = conj_disj_distrib conj_disj_distrib2
 
-lemma conj_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
+lemma conj_assoc: "(x \<^bold>\<sqinter> y) \<^bold>\<sqinter> z = x \<^bold>\<sqinter> (y \<^bold>\<sqinter> z)"
   by (fact ac_simps)
 
-lemma conj_commute: "x \<sqinter> y = y \<sqinter> x"
+lemma conj_commute: "x \<^bold>\<sqinter> y = y \<^bold>\<sqinter> x"
   by (fact ac_simps)
 
 lemmas conj_left_commute = conj.left_commute
 lemmas conj_ac = conj.assoc conj.commute conj.left_commute
 
-lemma conj_one_left: "\<one> \<sqinter> x = x"
+lemma conj_one_left: "\<one> \<^bold>\<sqinter> x = x"
   by (fact conj.left_neutral)
 
-lemma conj_left_absorb: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+lemma conj_left_absorb: "x \<^bold>\<sqinter> (x \<^bold>\<sqinter> y) = x \<^bold>\<sqinter> y"
   by (fact conj.left_idem)
 
-lemma conj_absorb: "x \<sqinter> x = x"
+lemma conj_absorb: "x \<^bold>\<sqinter> x = x"
   by (fact conj.idem)
 
 
 subsection \<open>Disjunction\<close>
 
-interpretation dual: boolean_algebra "(\<squnion>)" "(\<sqinter>)" compl \<one> \<zero>
+interpretation dual: boolean_algebra "(\<^bold>\<squnion>)" "(\<^bold>\<sqinter>)" compl \<one> \<zero>
   apply standard
        apply (rule disj_conj_distrib)
       apply (rule conj_disj_distrib)
@@ -159,73 +159,73 @@ interpretation dual: boolean_algebra "(\<squnion>)" "(\<sqinter>)" compl \<one> 
 lemma compl_zero [simp]: "\<sim> \<zero> = \<one>"
   by (fact dual.compl_one)
 
-lemma disj_one_right [simp]: "x \<squnion> \<one> = \<one>"
+lemma disj_one_right [simp]: "x \<^bold>\<squnion> \<one> = \<one>"
   by (fact dual.conj_zero_right)
 
-lemma disj_one_left [simp]: "\<one> \<squnion> x = \<one>"
+lemma disj_one_left [simp]: "\<one> \<^bold>\<squnion> x = \<one>"
   by (fact dual.conj_zero_left)
 
-lemma disj_cancel_left [simp]: "\<sim> x \<squnion> x = \<one>"
+lemma disj_cancel_left [simp]: "\<sim> x \<^bold>\<squnion> x = \<one>"
   by (rule dual.conj_cancel_left)
 
-lemma disj_conj_distrib2: "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
+lemma disj_conj_distrib2: "(y \<^bold>\<sqinter> z) \<^bold>\<squnion> x = (y \<^bold>\<squnion> x) \<^bold>\<sqinter> (z \<^bold>\<squnion> x)"
   by (rule dual.conj_disj_distrib2)
 
 lemmas disj_conj_distribs = disj_conj_distrib disj_conj_distrib2
 
-lemma disj_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
+lemma disj_assoc: "(x \<^bold>\<squnion> y) \<^bold>\<squnion> z = x \<^bold>\<squnion> (y \<^bold>\<squnion> z)"
   by (fact ac_simps)
 
-lemma disj_commute: "x \<squnion> y = y \<squnion> x"
+lemma disj_commute: "x \<^bold>\<squnion> y = y \<^bold>\<squnion> x"
   by (fact ac_simps)
 
 lemmas disj_left_commute = disj.left_commute
 
 lemmas disj_ac = disj.assoc disj.commute disj.left_commute
 
-lemma disj_zero_left: "\<zero> \<squnion> x = x"
+lemma disj_zero_left: "\<zero> \<^bold>\<squnion> x = x"
   by (fact disj.left_neutral)
 
-lemma disj_left_absorb: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
+lemma disj_left_absorb: "x \<^bold>\<squnion> (x \<^bold>\<squnion> y) = x \<^bold>\<squnion> y"
   by (fact disj.left_idem)
 
-lemma disj_absorb: "x \<squnion> x = x"
+lemma disj_absorb: "x \<^bold>\<squnion> x = x"
   by (fact disj.idem)
 
 
 subsection \<open>De Morgan's Laws\<close>
 
-lemma de_Morgan_conj [simp]: "\<sim> (x \<sqinter> y) = \<sim> x \<squnion> \<sim> y"
+lemma de_Morgan_conj [simp]: "\<sim> (x \<^bold>\<sqinter> y) = \<sim> x \<^bold>\<squnion> \<sim> y"
 proof (rule compl_unique)
-  have "(x \<sqinter> y) \<sqinter> (\<sim> x \<squnion> \<sim> y) = ((x \<sqinter> y) \<sqinter> \<sim> x) \<squnion> ((x \<sqinter> y) \<sqinter> \<sim> y)"
+  have "(x \<^bold>\<sqinter> y) \<^bold>\<sqinter> (\<sim> x \<^bold>\<squnion> \<sim> y) = ((x \<^bold>\<sqinter> y) \<^bold>\<sqinter> \<sim> x) \<^bold>\<squnion> ((x \<^bold>\<sqinter> y) \<^bold>\<sqinter> \<sim> y)"
     by (rule conj_disj_distrib)
-  also have "\<dots> = (y \<sqinter> (x \<sqinter> \<sim> x)) \<squnion> (x \<sqinter> (y \<sqinter> \<sim> y))"
+  also have "\<dots> = (y \<^bold>\<sqinter> (x \<^bold>\<sqinter> \<sim> x)) \<^bold>\<squnion> (x \<^bold>\<sqinter> (y \<^bold>\<sqinter> \<sim> y))"
     by (simp only: conj_ac)
-  finally show "(x \<sqinter> y) \<sqinter> (\<sim> x \<squnion> \<sim> y) = \<zero>"
+  finally show "(x \<^bold>\<sqinter> y) \<^bold>\<sqinter> (\<sim> x \<^bold>\<squnion> \<sim> y) = \<zero>"
     by (simp only: conj_cancel_right conj_zero_right disj_zero_right)
 next
-  have "(x \<sqinter> y) \<squnion> (\<sim> x \<squnion> \<sim> y) = (x \<squnion> (\<sim> x \<squnion> \<sim> y)) \<sqinter> (y \<squnion> (\<sim> x \<squnion> \<sim> y))"
+  have "(x \<^bold>\<sqinter> y) \<^bold>\<squnion> (\<sim> x \<^bold>\<squnion> \<sim> y) = (x \<^bold>\<squnion> (\<sim> x \<^bold>\<squnion> \<sim> y)) \<^bold>\<sqinter> (y \<^bold>\<squnion> (\<sim> x \<^bold>\<squnion> \<sim> y))"
     by (rule disj_conj_distrib2)
-  also have "\<dots> = (\<sim> y \<squnion> (x \<squnion> \<sim> x)) \<sqinter> (\<sim> x \<squnion> (y \<squnion> \<sim> y))"
+  also have "\<dots> = (\<sim> y \<^bold>\<squnion> (x \<^bold>\<squnion> \<sim> x)) \<^bold>\<sqinter> (\<sim> x \<^bold>\<squnion> (y \<^bold>\<squnion> \<sim> y))"
     by (simp only: disj_ac)
-  finally show "(x \<sqinter> y) \<squnion> (\<sim> x \<squnion> \<sim> y) = \<one>"
+  finally show "(x \<^bold>\<sqinter> y) \<^bold>\<squnion> (\<sim> x \<^bold>\<squnion> \<sim> y) = \<one>"
     by (simp only: disj_cancel_right disj_one_right conj_one_right)
 qed
 
-lemma de_Morgan_disj [simp]: "\<sim> (x \<squnion> y) = \<sim> x \<sqinter> \<sim> y"
+lemma de_Morgan_disj [simp]: "\<sim> (x \<^bold>\<squnion> y) = \<sim> x \<^bold>\<sqinter> \<sim> y"
   using dual.boolean_algebra_axioms by (rule boolean_algebra.de_Morgan_conj)
 
 
 subsection \<open>Symmetric Difference\<close>
 
 definition xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
-  where "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
+  where "x \<oplus> y = (x \<^bold>\<sqinter> \<sim> y) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> y)"
 
 sublocale xor: abel_semigroup xor
 proof
   fix x y z :: 'a
-  let ?t = "(x \<sqinter> y \<sqinter> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> \<sim> y \<sqinter> z)"
-  have "?t \<squnion> (z \<sqinter> x \<sqinter> \<sim> x) \<squnion> (z \<sqinter> y \<sqinter> \<sim> y) = ?t \<squnion> (x \<sqinter> y \<sqinter> \<sim> y) \<squnion> (x \<sqinter> z \<sqinter> \<sim> z)"
+  let ?t = "(x \<^bold>\<sqinter> y \<^bold>\<sqinter> z) \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> z)"
+  have "?t \<^bold>\<squnion> (z \<^bold>\<sqinter> x \<^bold>\<sqinter> \<sim> x) \<^bold>\<squnion> (z \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> y) = ?t \<^bold>\<squnion> (x \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> y) \<^bold>\<squnion> (x \<^bold>\<sqinter> z \<^bold>\<sqinter> \<sim> z)"
     by (simp only: conj_cancel_right conj_zero_right)
   then show "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
     by (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
@@ -240,7 +240,7 @@ lemmas xor_left_commute = xor.left_commute
 
 lemmas xor_ac = xor.assoc xor.commute xor.left_commute
 
-lemma xor_def2: "x \<oplus> y = (x \<squnion> y) \<sqinter> (\<sim> x \<squnion> \<sim> y)"
+lemma xor_def2: "x \<oplus> y = (x \<^bold>\<squnion> y) \<^bold>\<sqinter> (\<sim> x \<^bold>\<squnion> \<sim> y)"
   by (simp only: xor_def conj_disj_distribs disj_ac conj_ac conj_cancel_right disj_zero_left)
 
 lemma xor_zero_right [simp]: "x \<oplus> \<zero> = x"
@@ -283,22 +283,22 @@ lemma xor_cancel_right: "x \<oplus> \<sim> x = \<one>"
 lemma xor_cancel_left: "\<sim> x \<oplus> x = \<one>"
   by (simp only: xor_compl_left xor_self compl_zero)
 
-lemma conj_xor_distrib: "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
+lemma conj_xor_distrib: "x \<^bold>\<sqinter> (y \<oplus> z) = (x \<^bold>\<sqinter> y) \<oplus> (x \<^bold>\<sqinter> z)"
 proof -
-  have *: "(x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> z) =
-        (y \<sqinter> x \<sqinter> \<sim> x) \<squnion> (z \<sqinter> x \<sqinter> \<sim> x) \<squnion> (x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> z)"
+  have *: "(x \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> z) =
+        (y \<^bold>\<sqinter> x \<^bold>\<sqinter> \<sim> x) \<^bold>\<squnion> (z \<^bold>\<sqinter> x \<^bold>\<sqinter> \<sim> x) \<^bold>\<squnion> (x \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> z)"
     by (simp only: conj_cancel_right conj_zero_right disj_zero_left)
-  then show "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
+  then show "x \<^bold>\<sqinter> (y \<oplus> z) = (x \<^bold>\<sqinter> y) \<oplus> (x \<^bold>\<sqinter> z)"
     by (simp (no_asm_use) only:
         xor_def de_Morgan_disj de_Morgan_conj double_compl
         conj_disj_distribs conj_ac disj_ac)
 qed
 
-lemma conj_xor_distrib2: "(y \<oplus> z) \<sqinter> x = (y \<sqinter> x) \<oplus> (z \<sqinter> x)"
+lemma conj_xor_distrib2: "(y \<oplus> z) \<^bold>\<sqinter> x = (y \<^bold>\<sqinter> x) \<oplus> (z \<^bold>\<sqinter> x)"
 proof -
-  have "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
+  have "x \<^bold>\<sqinter> (y \<oplus> z) = (x \<^bold>\<sqinter> y) \<oplus> (x \<^bold>\<sqinter> z)"
     by (rule conj_xor_distrib)
-  then show "(y \<oplus> z) \<sqinter> x = (y \<sqinter> x) \<oplus> (z \<sqinter> x)"
+  then show "(y \<oplus> z) \<^bold>\<sqinter> x = (y \<^bold>\<sqinter> x) \<oplus> (z \<^bold>\<sqinter> x)"
     by (simp only: conj_commute)
 qed
 
