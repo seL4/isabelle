@@ -4202,8 +4202,8 @@ lemma word_and_not [simp]: "x AND NOT x = 0"
 lemma word_or_not [simp]: "x OR NOT x = max_word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-lemma word_boolean: "boolean (AND) (OR) bitNOT 0 max_word"
-  apply (rule boolean.intro)
+lemma word_boolean_algebra: "boolean_algebra (AND) (OR) bitNOT 0 max_word"
+  apply (rule boolean_algebra.intro)
            apply (rule word_bw_assocs)
           apply (rule word_bw_assocs)
          apply (rule word_bw_comms)
@@ -4216,17 +4216,17 @@ lemma word_boolean: "boolean (AND) (OR) bitNOT 0 max_word"
   apply (rule word_or_not)
   done
 
-interpretation word_bool_alg: boolean "(AND)" "(OR)" bitNOT 0 max_word
-  by (rule word_boolean)
+interpretation word_bool_alg: boolean_algebra "(AND)" "(OR)" bitNOT 0 max_word
+  by (rule word_boolean_algebra)
 
 lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
   for x y :: "'a::len0 word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-interpretation word_bool_alg: boolean_xor "(AND)" "(OR)" bitNOT 0 max_word "(XOR)"
-  apply (rule boolean_xor.intro)
-   apply (rule word_boolean)
-  apply (rule boolean_xor_axioms.intro)
+interpretation word_bool_alg: boolean_algebra_xor "(AND)" "(OR)" bitNOT 0 max_word "(XOR)"
+  apply (rule boolean_algebra_xor.intro)
+   apply (rule word_boolean_algebra)
+  apply (rule boolean_algebra_xor_axioms.intro)
   apply (rule word_xor_and_or)
   done
 

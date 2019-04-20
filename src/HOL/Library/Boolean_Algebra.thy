@@ -8,7 +8,7 @@ theory Boolean_Algebra
   imports Main
 begin
 
-locale boolean =
+locale boolean_algebra =
   fixes conj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<sqinter>" 70)
     and disj :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<squnion>" 65)
     and compl :: "'a \<Rightarrow> 'a"  ("\<sim> _" [81] 80)
@@ -38,8 +38,8 @@ lemmas disj_left_commute = disj.left_commute
 lemmas conj_ac = conj.assoc conj.commute conj.left_commute
 lemmas disj_ac = disj.assoc disj.commute disj.left_commute
 
-lemma dual: "boolean disj conj compl one zero"
-  apply (rule boolean.intro)
+lemma dual: "boolean_algebra disj conj compl one zero"
+  apply (rule boolean_algebra.intro)
            apply (rule disj_assoc)
           apply (rule conj_assoc)
          apply (rule disj_commute)
@@ -143,28 +143,28 @@ lemmas conj_disj_distribs = conj_disj_distrib conj_disj_distrib2
 subsection \<open>Disjunction\<close>
 
 lemma disj_absorb [simp]: "x \<squnion> x = x"
-  by (rule boolean.conj_absorb [OF dual])
+  by (rule boolean_algebra.conj_absorb [OF dual])
 
 lemma disj_one_right [simp]: "x \<squnion> \<one> = \<one>"
-  by (rule boolean.conj_zero_right [OF dual])
+  by (rule boolean_algebra.conj_zero_right [OF dual])
 
 lemma compl_zero [simp]: "\<sim> \<zero> = \<one>"
-  by (rule boolean.compl_one [OF dual])
+  by (rule boolean_algebra.compl_one [OF dual])
 
 lemma disj_zero_left [simp]: "\<zero> \<squnion> x = x"
-  by (rule boolean.conj_one_left [OF dual])
+  by (rule boolean_algebra.conj_one_left [OF dual])
 
 lemma disj_one_left [simp]: "\<one> \<squnion> x = \<one>"
-  by (rule boolean.conj_zero_left [OF dual])
+  by (rule boolean_algebra.conj_zero_left [OF dual])
 
 lemma disj_cancel_left [simp]: "\<sim> x \<squnion> x = \<one>"
-  by (rule boolean.conj_cancel_left [OF dual])
+  by (rule boolean_algebra.conj_cancel_left [OF dual])
 
 lemma disj_left_absorb [simp]: "x \<squnion> (x \<squnion> y) = x \<squnion> y"
-  by (rule boolean.conj_left_absorb [OF dual])
+  by (rule boolean_algebra.conj_left_absorb [OF dual])
 
 lemma disj_conj_distrib2: "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
-  by (rule boolean.conj_disj_distrib2 [OF dual])
+  by (rule boolean_algebra.conj_disj_distrib2 [OF dual])
 
 lemmas disj_conj_distribs = disj_conj_distrib disj_conj_distrib2
 
@@ -189,14 +189,14 @@ next
 qed
 
 lemma de_Morgan_disj [simp]: "\<sim> (x \<squnion> y) = \<sim> x \<sqinter> \<sim> y"
-  by (rule boolean.de_Morgan_conj [OF dual])
+  by (rule boolean_algebra.de_Morgan_conj [OF dual])
 
 end
 
 
 subsection \<open>Symmetric Difference\<close>
 
-locale boolean_xor = boolean +
+locale boolean_algebra_xor = boolean_algebra +
   fixes xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
   assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
 begin
