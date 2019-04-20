@@ -191,14 +191,14 @@ proof -
       by (simp add: int_mod_eq')
     have "e mod ?MM = e" using \<open>0 <= e\<close> \<open>e <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "(?MM::int) = 2 ^ len_of TYPE(32)" by simp
+    have "(?MM::int) = 2 ^ LENGTH(32)" by simp
     show ?thesis
       unfolding
         word_add_def
         uint_word_of_int_id[OF \<open>0 <= a\<close> \<open>a <= ?M\<close>]
         uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
         int_word_uint
-      unfolding \<open>?MM = 2 ^ len_of TYPE(32)\<close>
+      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
       unfolding word_uint.Abs_norm
       by (simp add:
         \<open>a mod ?MM = a\<close>
@@ -231,7 +231,7 @@ proof -
       by (simp add: int_mod_eq')
     have "e' mod ?MM = e'" using \<open>0 <= e'\<close> \<open>e' <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "(?MM::int) = 2 ^ len_of TYPE(32)" by simp
+    have "(?MM::int) = 2 ^ LENGTH(32)" by simp
     have nat_transfer: "79 - nat j = nat (79 - j)"
       using nat_diff_distrib \<open>0 <= j\<close>  \<open>j <= 79\<close>
       by simp
@@ -242,7 +242,7 @@ proof -
         uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
         int_word_uint
         nat_transfer
-      unfolding \<open>?MM = 2 ^ len_of TYPE(32)\<close>
+      unfolding \<open>?MM = 2 ^ LENGTH(32)\<close>
       unfolding word_uint.Abs_norm
       by (simp add:
         \<open>a' mod ?MM = a'\<close>

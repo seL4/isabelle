@@ -54,12 +54,12 @@ lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
 lemma bl_word_sub: "to_bl (x - y) = to_bl (x + (- y))"
   by simp
 
-lemma rbl_word_1: "rev (to_bl (1 :: 'a::len0 word)) = takefill False (len_of TYPE('a)) [True]"
+lemma rbl_word_1: "rev (to_bl (1 :: 'a::len0 word)) = takefill False (LENGTH('a)) [True]"
   apply (rule_tac s="rev (to_bl (word_succ (0 :: 'a word)))" in trans)
    apply simp
   apply (simp only: rtb_rbl_ariths(1)[OF refl])
   apply simp
-  apply (case_tac "len_of TYPE('a)")
+  apply (case_tac "LENGTH('a)")
    apply simp
   apply (simp add: takefill_alt)
   done
@@ -120,21 +120,21 @@ lemma rbl_word_neg: "rev (to_bl (- x)) = rbl_succ2 True (map Not (rev (to_bl x))
 
 lemma rbl_word_cat:
   "rev (to_bl (word_cat x y :: 'a::len0 word)) =
-    takefill False (len_of TYPE('a)) (rev (to_bl y) @ rev (to_bl x))"
+    takefill False (LENGTH('a)) (rev (to_bl y) @ rev (to_bl x))"
   by (simp add: word_cat_bl word_rev_tf)
 
 lemma rbl_word_slice:
   "rev (to_bl (slice n w :: 'a::len0 word)) =
-    takefill False (len_of TYPE('a)) (drop n (rev (to_bl w)))"
+    takefill False (LENGTH('a)) (drop n (rev (to_bl w)))"
   apply (simp add: slice_take word_rev_tf rev_take)
-  apply (cases "n < len_of TYPE('b)", simp_all)
+  apply (cases "n < LENGTH('b)", simp_all)
   done
 
 lemma rbl_word_ucast:
-  "rev (to_bl (ucast x :: 'a::len0 word)) = takefill False (len_of TYPE('a)) (rev (to_bl x))"
+  "rev (to_bl (ucast x :: 'a::len0 word)) = takefill False (LENGTH('a)) (rev (to_bl x))"
   apply (simp add: to_bl_ucast takefill_alt)
   apply (simp add: rev_drop)
-  apply (cases "len_of TYPE('a) < len_of TYPE('b)")
+  apply (cases "LENGTH('a) < LENGTH('b)")
    apply simp_all
   done
 
@@ -172,14 +172,14 @@ lemma rbl_sshiftr:
    apply (simp add: word_size takefill_last_def takefill_alt
       last_rev word_msb_alt word_rev_tf
       drop_nonempty_def take_Cons')
-   apply (case_tac "len_of TYPE('a)", simp_all)
+   apply (case_tac "LENGTH('a)", simp_all)
   apply (rule word_eqI)
   apply (simp add: nth_sshiftr word_size test_bit_of_bl
       msb_nth)
   done
 
 lemma nth_word_of_int:
-  "(word_of_int x :: 'a::len0 word) !! n = (n < len_of TYPE('a) \<and> bin_nth x n)"
+  "(word_of_int x :: 'a::len0 word) !! n = (n < LENGTH('a) \<and> bin_nth x n)"
   apply (simp add: test_bit_bl word_size to_bl_of_bin)
   apply (subst conj_cong[OF refl], erule bin_nth_bl)
   apply auto
@@ -187,18 +187,18 @@ lemma nth_word_of_int:
 
 lemma nth_scast:
   "(scast (x :: 'a::len word) :: 'b::len word) !! n =
-    (n < len_of TYPE('b) \<and>
-    (if n < len_of TYPE('a) - 1 then x !! n
-     else x !! (len_of TYPE('a) - 1)))"
+    (n < LENGTH('b) \<and>
+    (if n < LENGTH('a) - 1 then x !! n
+     else x !! (LENGTH('a) - 1)))"
   by (simp add: scast_def nth_sint)
 
 lemma rbl_word_scast:
-  "rev (to_bl (scast x :: 'a::len word)) = takefill_last False (len_of TYPE('a)) (rev (to_bl x))"
+  "rev (to_bl (scast x :: 'a::len word)) = takefill_last False (LENGTH('a)) (rev (to_bl x))"
   apply (rule nth_equalityI)
    apply (simp add: word_size takefill_last_def)
   apply (clarsimp simp: nth_scast takefill_last_def
       nth_takefill word_size nth_rev to_bl_nth)
-  apply (cases "len_of TYPE('b)")
+  apply (cases "LENGTH('b)")
    apply simp
   apply (clarsimp simp: less_Suc_eq_le linorder_not_less
       last_rev word_msb_alt[symmetric]
@@ -313,7 +313,7 @@ lemma word_sint_msb_eq: "sint x = uint x - (if msb x then 2 ^ size x else 0)"
    apply (simp add: sints_num word_size)
    apply (rule conjI)
     apply (simp add: le_diff_eq')
-    apply (rule order_trans[where y="2 ^ (len_of TYPE('a) - 1)"])
+    apply (rule order_trans[where y="2 ^ (LENGTH('a) - 1)"])
      apply (simp add: power_Suc[symmetric])
     apply (simp add: linorder_not_less[symmetric] mask_eq_iff[symmetric])
     apply (rule notI, drule word_eqD[where x="size x - 1"])

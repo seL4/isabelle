@@ -38,10 +38,10 @@ lemmas [simp] =
 
 lemma bit_not_spark_eq:
   "NOT (word_of_int x :: ('a::len0) word) =
-  word_of_int (2 ^ len_of TYPE('a) - 1 - x)"
+  word_of_int (2 ^ LENGTH('a) - 1 - x)"
 proof -
   have "word_of_int x + NOT (word_of_int x) =
-    word_of_int x + (word_of_int (2 ^ len_of TYPE('a) - 1 - x)::'a word)"
+    word_of_int x + (word_of_int (2 ^ LENGTH('a) - 1 - x)::'a word)"
     by (simp only: bwsimps bin_add_not Min_def)
       (simp add: word_of_int_hom_syms word_of_int_2p_len)
   then show ?thesis by (rule add_left_imp_eq)

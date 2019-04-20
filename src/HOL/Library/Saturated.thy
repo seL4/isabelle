@@ -12,7 +12,7 @@ begin
 
 subsection \<open>The type of saturated naturals\<close>
 
-typedef (overloaded) ('a::len) sat = "{.. len_of TYPE('a)}"
+typedef (overloaded) ('a::len) sat = "{.. LENGTH('a)}"
   morphisms nat_of Abs_sat
   by auto
 
@@ -29,22 +29,22 @@ lemma Abs_sat_nat_of [code abstype]:
   by (fact nat_of_inverse)
 
 definition Abs_sat' :: "nat \<Rightarrow> 'a::len sat" where
-  "Abs_sat' n = Abs_sat (min (len_of TYPE('a)) n)"
+  "Abs_sat' n = Abs_sat (min (LENGTH('a)) n)"
 
 lemma nat_of_Abs_sat' [simp]:
-  "nat_of (Abs_sat' n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  "nat_of (Abs_sat' n :: ('a::len) sat) = min (LENGTH('a)) n"
   unfolding Abs_sat'_def by (rule Abs_sat_inverse) simp
 
 lemma nat_of_le_len_of [simp]:
-  "nat_of (n :: ('a::len) sat) \<le> len_of TYPE('a)"
+  "nat_of (n :: ('a::len) sat) \<le> LENGTH('a)"
   using nat_of [where x = n] by simp
 
 lemma min_len_of_nat_of [simp]:
-  "min (len_of TYPE('a)) (nat_of (n::('a::len) sat)) = nat_of n"
+  "min (LENGTH('a)) (nat_of (n::('a::len) sat)) = nat_of n"
   by (rule min.absorb2 [OF nat_of_le_len_of])
 
 lemma min_nat_of_len_of [simp]:
-  "min (nat_of (n::('a::len) sat)) (len_of TYPE('a)) = nat_of n"
+  "min (nat_of (n::('a::len) sat)) (LENGTH('a)) = nat_of n"
   by (subst min.commute) simp
 
 lemma Abs_sat'_nat_of [simp]:
@@ -80,14 +80,14 @@ lemma nat_of_zero_sat [simp, code abstract]:
   by (simp add: zero_sat_def)
 
 lemma nat_of_one_sat [simp, code abstract]:
-  "nat_of 1 = min 1 (len_of TYPE('a))"
+  "nat_of 1 = min 1 (LENGTH('a))"
   by (simp add: one_sat_def)
 
 definition
   "x + y = Abs_sat' (nat_of x + nat_of y)"
 
 lemma nat_of_plus_sat [simp, code abstract]:
-  "nat_of (x + y) = min (nat_of x + nat_of y) (len_of TYPE('a))"
+  "nat_of (x + y) = min (nat_of x + nat_of y) (LENGTH('a))"
   by (simp add: plus_sat_def)
 
 definition
@@ -96,7 +96,7 @@ definition
 lemma nat_of_minus_sat [simp, code abstract]:
   "nat_of (x - y) = nat_of x - nat_of y"
 proof -
-  from nat_of_le_len_of [of x] have "nat_of x - nat_of y \<le> len_of TYPE('a)" by arith
+  from nat_of_le_len_of [of x] have "nat_of x - nat_of y \<le> LENGTH('a)" by arith
   then show ?thesis by (simp add: minus_sat_def)
 qed
 
@@ -104,7 +104,7 @@ definition
   "x * y = Abs_sat' (nat_of x * nat_of y)"
 
 lemma nat_of_times_sat [simp, code abstract]:
-  "nat_of (x * y) = min (nat_of x * nat_of y) (len_of TYPE('a))"
+  "nat_of (x * y) = min (nat_of x * nat_of y) (LENGTH('a))"
   by (simp add: times_sat_def)
 
 instance
@@ -153,7 +153,7 @@ abbreviation Sat :: "nat \<Rightarrow> 'a::len sat" where
   "Sat \<equiv> of_nat"
 
 lemma nat_of_Sat [simp]:
-  "nat_of (Sat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  "nat_of (Sat n :: ('a::len) sat) = min (LENGTH('a)) n"
   by (rule nat_of_Abs_sat' [unfolded Abs_sat'_eq_of_nat])
 
 lemma [code_abbrev]:
@@ -167,7 +167,7 @@ qualified definition sat_of_nat :: "nat \<Rightarrow> ('a::len) sat"
   where [code_abbrev]: "sat_of_nat = of_nat"
 
 lemma [code abstract]:
-  "nat_of (sat_of_nat n :: ('a::len) sat) = min (len_of TYPE('a)) n"
+  "nat_of (sat_of_nat n :: ('a::len) sat) = min (LENGTH('a)) n"
   by (simp add: sat_of_nat_def)
 
 end
@@ -195,7 +195,7 @@ begin
 definition "(inf :: 'a sat \<Rightarrow> 'a sat \<Rightarrow> 'a sat) = min"
 definition "(sup :: 'a sat \<Rightarrow> 'a sat \<Rightarrow> 'a sat) = max"
 definition "bot = (0 :: 'a sat)"
-definition "top = Sat (len_of TYPE('a))"
+definition "top = Sat (LENGTH('a))"
 
 instance
   by standard
