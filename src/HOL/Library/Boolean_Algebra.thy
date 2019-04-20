@@ -191,15 +191,11 @@ qed
 lemma de_Morgan_disj [simp]: "\<sim> (x \<squnion> y) = \<sim> x \<sqinter> \<sim> y"
   by (rule boolean_algebra.de_Morgan_conj [OF dual])
 
-end
-
 
 subsection \<open>Symmetric Difference\<close>
 
-locale boolean_algebra_xor = boolean_algebra +
-  fixes xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
-  assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
-begin
+definition xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
+  where "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
 
 sublocale xor: abel_semigroup xor
 proof

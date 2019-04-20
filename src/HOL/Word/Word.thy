@@ -4202,33 +4202,27 @@ lemma word_and_not [simp]: "x AND NOT x = 0"
 lemma word_or_not [simp]: "x OR NOT x = max_word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-lemma word_boolean_algebra: "boolean_algebra (AND) (OR) bitNOT 0 max_word"
-  apply (rule boolean_algebra.intro)
-           apply (rule word_bw_assocs)
-          apply (rule word_bw_assocs)
-         apply (rule word_bw_comms)
-        apply (rule word_bw_comms)
-       apply (rule word_ao_dist2)
-      apply (rule word_oa_dist2)
-     apply (rule word_and_max)
-    apply (rule word_log_esimps)
-   apply (rule word_and_not)
-  apply (rule word_or_not)
-  done
-
-interpretation word_bool_alg: boolean_algebra "(AND)" "(OR)" bitNOT 0 max_word
-  by (rule word_boolean_algebra)
+global_interpretation word_bool_alg: boolean_algebra
+  where conj = "(AND)" and disj = "(OR)" and compl = bitNOT
+    and zero = 0 and one = max_word
+  rewrites "word_bool_alg.xor = (XOR)"
+proof -
+  interpret boolean_algebra
+    where conj = "(AND)" and disj = "(OR)" and compl = bitNOT
+      and zero = 0 and one = max_word
+    apply standard
+             apply (simp_all add: word_bw_assocs word_bw_comms word_bw_lcs)
+     apply (fact word_ao_dist2)
+    apply (fact word_oa_dist2)
+    done
+  show "boolean_algebra (AND) (OR) bitNOT 0 max_word" ..
+  show "xor = (XOR)"
+    by (auto simp add: fun_eq_iff word_eq_iff xor_def word_ops_nth_size word_size)
+qed
 
 lemma word_xor_and_or: "x XOR y = x AND NOT y OR NOT x AND y"
   for x y :: "'a::len0 word"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
-
-interpretation word_bool_alg: boolean_algebra_xor "(AND)" "(OR)" bitNOT 0 max_word "(XOR)"
-  apply (rule boolean_algebra_xor.intro)
-   apply (rule word_boolean_algebra)
-  apply (rule boolean_algebra_xor_axioms.intro)
-  apply (rule word_xor_and_or)
-  done
 
 lemma shiftr_x_0 [iff]: "x >> 0 = x"
   for x :: "'a::len0 word"
