@@ -1185,9 +1185,86 @@ lemma bin_rsplit_len_indep:
 
 subsection \<open>Logical operations\<close>
 
-text "bit-wise logical operations on the int type"
+primrec bin_sc :: "nat \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> int"
+  where
+    Z: "bin_sc 0 b w = bin_rest w BIT b"
+  | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
 
-instantiation int :: bit
+lemma bin_nth_sc [simp]: "bin_nth (bin_sc n b w) n \<longleftrightarrow> b"
+  by (induct n arbitrary: w) auto
+
+lemma bin_sc_sc_same [simp]: "bin_sc n c (bin_sc n b w) = bin_sc n c w"
+  by (induct n arbitrary: w) auto
+
+lemma bin_sc_sc_diff: "m \<noteq> n \<Longrightarrow> bin_sc m c (bin_sc n b w) = bin_sc n b (bin_sc m c w)"
+  apply (induct n arbitrary: w m)
+   apply (case_tac [!] m)
+     apply auto
+  done
+
+lemma bin_nth_sc_gen: "bin_nth (bin_sc n b w) m = (if m = n then b else bin_nth w m)"
+  by (induct n arbitrary: w m) (case_tac [!] m, auto)
+
+lemma bin_sc_nth [simp]: "bin_sc n (bin_nth w n) w = w"
+  by (induct n arbitrary: w) auto
+
+lemma bin_sign_sc [simp]: "bin_sign (bin_sc n b w) = bin_sign w"
+  by (induct n arbitrary: w) auto
+
+lemma bin_sc_bintr [simp]: "bintrunc m (bin_sc n x (bintrunc m (w))) = bintrunc m (bin_sc n x w)"
+  apply (induct n arbitrary: w m)
+   apply (case_tac [!] w rule: bin_exhaust)
+   apply (case_tac [!] m, auto)
+  done
+
+lemma bin_clr_le: "bin_sc n False w \<le> w"
+  apply (induct n arbitrary: w)
+   apply (case_tac [!] w rule: bin_exhaust)
+   apply (auto simp: le_Bits)
+  done
+
+lemma bin_set_ge: "bin_sc n True w \<ge> w"
+  apply (induct n arbitrary: w)
+   apply (case_tac [!] w rule: bin_exhaust)
+   apply (auto simp: le_Bits)
+  done
+
+lemma bintr_bin_clr_le: "bintrunc n (bin_sc m False w) \<le> bintrunc n w"
+  apply (induct n arbitrary: w m)
+   apply simp
+  apply (case_tac w rule: bin_exhaust)
+  apply (case_tac m)
+   apply (auto simp: le_Bits)
+  done
+
+lemma bintr_bin_set_ge: "bintrunc n (bin_sc m True w) \<ge> bintrunc n w"
+  apply (induct n arbitrary: w m)
+   apply simp
+  apply (case_tac w rule: bin_exhaust)
+  apply (case_tac m)
+   apply (auto simp: le_Bits)
+  done
+
+lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
+  by (induct n) auto
+
+lemma bin_sc_TM [simp]: "bin_sc n True (- 1) = - 1"
+  by (induct n) auto
+
+lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
+
+lemma bin_sc_minus: "0 < n \<Longrightarrow> bin_sc (Suc (n - 1)) b w = bin_sc n b w"
+  by auto
+
+lemmas bin_sc_Suc_minus =
+  trans [OF bin_sc_minus [symmetric] bin_sc.Suc]
+
+lemma bin_sc_numeral [simp]:
+  "bin_sc (numeral k) b w =
+    bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
+  by (simp add: numeral_eq_Suc)
+
+instantiation int :: bit_operations
 begin
 
 definition int_not_def: "bitNOT = (\<lambda>x::int. - x - 1)"
@@ -1207,9 +1284,32 @@ definition int_or_def: "bitOR = (\<lambda>x y::int. NOT (NOT x AND NOT y))"
 
 definition int_xor_def: "bitXOR = (\<lambda>x y::int. (x AND NOT y) OR (NOT x AND y))"
 
+definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
+
+definition "lsb i = i !! 0" for i :: int
+
+definition "set_bit i n b = bin_sc n b i"
+
+definition
+  "set_bits f =
+    (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
+      let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
+      in bl_to_bin (rev (map f [0..<n]))
+     else if \<exists>n. \<forall>n'\<ge>n. f n' then
+      let n = LEAST n. \<forall>n'\<ge>n. f n'
+      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
+     else 0 :: int)"
+
+definition "shiftl x n = x * 2 ^ n" for x :: int
+
+definition "shiftr x n = x div 2 ^ n" for x :: int
+
+definition "msb x \<longleftrightarrow> x < 0" for x :: int
+
 instance ..
 
 end
+
 
 subsubsection \<open>Basic simplification rules\<close>
 
@@ -1871,113 +1971,7 @@ by(simp add: int_not_def)
 
 subsection \<open>Setting and clearing bits\<close>
 
-primrec bin_sc :: "nat \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> int"
-  where
-    Z: "bin_sc 0 b w = bin_rest w BIT b"
-  | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
 
-lemma bin_nth_sc [simp]: "bin_nth (bin_sc n b w) n \<longleftrightarrow> b"
-  by (induct n arbitrary: w) auto
-
-lemma bin_sc_sc_same [simp]: "bin_sc n c (bin_sc n b w) = bin_sc n c w"
-  by (induct n arbitrary: w) auto
-
-lemma bin_sc_sc_diff: "m \<noteq> n \<Longrightarrow> bin_sc m c (bin_sc n b w) = bin_sc n b (bin_sc m c w)"
-  apply (induct n arbitrary: w m)
-   apply (case_tac [!] m)
-     apply auto
-  done
-
-lemma bin_nth_sc_gen: "bin_nth (bin_sc n b w) m = (if m = n then b else bin_nth w m)"
-  by (induct n arbitrary: w m) (case_tac [!] m, auto)
-
-lemma bin_sc_nth [simp]: "bin_sc n (bin_nth w n) w = w"
-  by (induct n arbitrary: w) auto
-
-lemma bin_sign_sc [simp]: "bin_sign (bin_sc n b w) = bin_sign w"
-  by (induct n arbitrary: w) auto
-
-lemma bin_sc_bintr [simp]: "bintrunc m (bin_sc n x (bintrunc m (w))) = bintrunc m (bin_sc n x w)"
-  apply (induct n arbitrary: w m)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (case_tac [!] m, auto)
-  done
-
-lemma bin_clr_le: "bin_sc n False w \<le> w"
-  apply (induct n arbitrary: w)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp: le_Bits)
-  done
-
-lemma bin_set_ge: "bin_sc n True w \<ge> w"
-  apply (induct n arbitrary: w)
-   apply (case_tac [!] w rule: bin_exhaust)
-   apply (auto simp: le_Bits)
-  done
-
-lemma bintr_bin_clr_le: "bintrunc n (bin_sc m False w) \<le> bintrunc n w"
-  apply (induct n arbitrary: w m)
-   apply simp
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac m)
-   apply (auto simp: le_Bits)
-  done
-
-lemma bintr_bin_set_ge: "bintrunc n (bin_sc m True w) \<ge> bintrunc n w"
-  apply (induct n arbitrary: w m)
-   apply simp
-  apply (case_tac w rule: bin_exhaust)
-  apply (case_tac m)
-   apply (auto simp: le_Bits)
-  done
-
-lemma bin_sc_FP [simp]: "bin_sc n False 0 = 0"
-  by (induct n) auto
-
-lemma bin_sc_TM [simp]: "bin_sc n True (- 1) = - 1"
-  by (induct n) auto
-
-lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
-
-lemma bin_sc_minus: "0 < n \<Longrightarrow> bin_sc (Suc (n - 1)) b w = bin_sc n b w"
-  by auto
-
-lemmas bin_sc_Suc_minus =
-  trans [OF bin_sc_minus [symmetric] bin_sc.Suc]
-
-lemma bin_sc_numeral [simp]:
-  "bin_sc (numeral k) b w =
-    bin_sc (pred_numeral k) b (bin_rest w) BIT bin_last w"
-  by (simp add: numeral_eq_Suc)
-
-instantiation int :: bits
-begin
-
-definition [iff]: "i !! n \<longleftrightarrow> bin_nth i n"
-
-definition "lsb i = i !! 0" for i :: int
-
-definition "set_bit i n b = bin_sc n b i"
-
-definition
-  "set_bits f =
-    (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
-      in bl_to_bin (rev (map f [0..<n]))
-     else if \<exists>n. \<forall>n'\<ge>n. f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. f n'
-      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
-     else 0 :: int)"
-
-definition "shiftl x n = x * 2 ^ n" for x :: int
-
-definition "shiftr x n = x div 2 ^ n" for x :: int
-
-definition "msb x \<longleftrightarrow> x < 0" for x :: int
-
-instance ..
-
-end
 
 lemma int_lsb_BIT [simp]: fixes x :: int shows
   "lsb (x BIT b) \<longleftrightarrow> b"

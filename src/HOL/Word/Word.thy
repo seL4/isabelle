@@ -358,7 +358,14 @@ definition word_sless :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> bool"
 
 subsection \<open>Bit-wise operations\<close>
 
-instantiation word :: (len0) bits
+definition shiftl1 :: "'a::len0 word \<Rightarrow> 'a word"
+  where "shiftl1 w = word_of_int (uint w BIT False)"
+
+definition shiftr1 :: "'a::len0 word \<Rightarrow> 'a word"
+  \<comment> \<open>shift right as unsigned or as signed, ie logical or arithmetic\<close>
+  where "shiftr1 w = word_of_int (bin_rest (uint w))"
+
+instantiation word :: (len0) bit_operations
 begin
 
 lift_definition bitNOT_word :: "'a word \<Rightarrow> 'a word" is bitNOT
@@ -382,13 +389,6 @@ definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth LENGTH('a) f)"
 definition word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a)"
 
 definition "msb a \<longleftrightarrow> bin_sign (sbintrunc (LENGTH('a) - 1) (uint a)) = - 1"
-
-definition shiftl1 :: "'a word \<Rightarrow> 'a word"
-  where "shiftl1 w = word_of_int (uint w BIT False)"
-
-definition shiftr1 :: "'a word \<Rightarrow> 'a word"
-  \<comment> \<open>shift right as unsigned or as signed, ie logical or arithmetic\<close>
-  where "shiftr1 w = word_of_int (bin_rest (uint w))"
 
 definition shiftl_def: "w << n = (shiftl1 ^^ n) w"
 

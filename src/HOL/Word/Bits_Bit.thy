@@ -8,7 +8,7 @@ theory Bits_Bit
   imports Bits "HOL-Library.Bit"
 begin
 
-instantiation bit :: bit
+instantiation bit :: bit_operations
 begin
 
 primrec bitNOT_bit
