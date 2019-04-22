@@ -8,8 +8,8 @@ theory Word
 imports
   "HOL-Library.Type_Length"
   "HOL-Library.Boolean_Algebra"
-  Bits_Bit
   Bits_Int
+  Bits_Bit
   Misc_Typedef
   Misc_Arithmetic
 begin
@@ -2084,6 +2084,9 @@ lemma card_word_size: "CARD('a word) = 2 ^ size x"
 
 subsection \<open>Bitwise Operations on Words\<close>
 
+lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
+  by simp
+
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
 
 \<comment> \<open>following definitions require both arithmetic and bit-wise word operations\<close>
@@ -2589,6 +2592,18 @@ lemma word_set_ge: "w \<le> set_bit w n True"
 lemma set_bit_beyond:
   "size x \<le> n \<Longrightarrow> set_bit x n b = x" for x :: "'a :: len0 word"
   by (auto intro: word_eqI simp add: test_bit_set_gen word_size)
+
+lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 (\<or>) (rev (to_bl x)) (rev (to_bl y))"
+  by (simp add: map2_def zip_rev bl_word_or rev_map)
+
+lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 (\<and>) (rev (to_bl x)) (rev (to_bl y))"
+  by (simp add: map2_def zip_rev bl_word_and rev_map)
+
+lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (rev (to_bl y))"
+  by (simp add: map2_def zip_rev bl_word_xor rev_map)
+
+lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
+  by (simp add: bl_word_not rev_map)
 
 
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>

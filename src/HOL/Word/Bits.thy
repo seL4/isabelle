@@ -20,8 +20,6 @@ text \<open>
   bind slightly stronger than \<open>*\<close>.
 \<close>
 
-text \<open>Testing and shifting operations.\<close>
-
 class bits = bit +
   fixes test_bit :: "'a \<Rightarrow> nat \<Rightarrow> bool"  (infixl "!!" 100)
     and lsb :: "'a \<Rightarrow> bool"

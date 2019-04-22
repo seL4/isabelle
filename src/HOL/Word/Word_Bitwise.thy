@@ -36,21 +36,6 @@ text \<open>Breaking up word equalities into equalities on their
   bit lists. Equalities are generated and manipulated in the
   reverse order to \<^const>\<open>to_bl\<close>.\<close>
 
-lemma word_eq_rbl_eq: "x = y \<longleftrightarrow> rev (to_bl x) = rev (to_bl y)"
-  by simp
-
-lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 (\<or>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_or rev_map)
-
-lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 (\<and>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_and rev_map)
-
-lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_xor rev_map)
-
-lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
-  by (simp add: bl_word_not rev_map)
-
 lemma bl_word_sub: "to_bl (x - y) = to_bl (x + (- y))"
   by simp
 

@@ -3,7 +3,7 @@
 section \<open>Miscellaneous lemmas, mostly for arithmetic\<close>
 
 theory Misc_Arithmetic
-  imports "HOL-Library.Bit" Bit_Representation
+  imports Misc_Auxiliary "HOL-Library.Bit"
 begin
 
 lemma one_mod_exp_eq_one [simp]:
@@ -168,7 +168,9 @@ lemma nmod2: "n mod 2 = 0 \<or> n mod 2 = 1"
   for n :: int
   by arith
 
-lemmas eme1p = emep1 [simplified add.commute]
+lemma eme1p:
+  "even n \<Longrightarrow> even d \<Longrightarrow> 0 \<le> d \<Longrightarrow> (1 + n) mod d = 1 + n mod d" for n d :: int
+  using emep1 [of n d] by (simp add: ac_simps)
 
 lemma le_diff_eq': "a \<le> c - b \<longleftrightarrow> b + a \<le> c"
   for a b c :: int
