@@ -2561,13 +2561,13 @@ lemma set_bit_beyond:
   by (auto intro: word_eqI simp add: test_bit_set_gen word_size)
 
 lemma rbl_word_or: "rev (to_bl (x OR y)) = map2 (\<or>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_or rev_map)
+  by (simp add: zip_rev bl_word_or rev_map)
 
 lemma rbl_word_and: "rev (to_bl (x AND y)) = map2 (\<and>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_and rev_map)
+  by (simp add: zip_rev bl_word_and rev_map)
 
 lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def zip_rev bl_word_xor rev_map)
+  by (simp add: zip_rev bl_word_xor rev_map)
 
 lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
   by (simp add: bl_word_not rev_map)
@@ -3026,7 +3026,7 @@ lemma align_lem_or [rule_format] :
   apply (case_tac m)
    apply auto
   apply (drule_tac t="length xs" for xs in sym)
-  apply (auto simp: map2_def zip_replicate o_def)
+  apply (auto simp: zip_replicate o_def)
   done
 
 lemma align_lem_and [rule_format] :
@@ -3041,7 +3041,7 @@ lemma align_lem_and [rule_format] :
   apply (case_tac m)
   apply auto
   apply (drule_tac t="length xs" for xs in sym)
-  apply (auto simp: map2_def zip_replicate o_def map_replicate_const)
+  apply (auto simp: zip_replicate o_def map_replicate_const)
   done
 
 lemma aligned_bl_add_size [OF refl]:
@@ -3924,7 +3924,6 @@ lemma but_last_map2 [rule_format] :
     butlast (map2 f xs ys) = map2 f (butlast xs) (butlast ys)"
   apply (induct xs)
    apply auto
-     apply (unfold map2_def)
      apply ((case_tac ys, auto simp: neq_Nil_conv)[1])+
   done
 
@@ -3940,7 +3939,7 @@ lemma rotater1_zip:
 lemma rotater1_map2:
   "length xs = length ys \<Longrightarrow>
     rotater1 (map2 f xs ys) = map2 f (rotater1 xs) (rotater1 ys)"
-  by (simp add: map2_def rotater1_map rotater1_zip)
+  by (simp add: rotater1_map rotater1_zip)
 
 lemmas lrth =
   box_equals [OF asm_rl length_rotater [symmetric]
@@ -3955,7 +3954,7 @@ lemma rotater_map2:
 lemma rotate1_map2:
   "length xs = length ys \<Longrightarrow>
     rotate1 (map2 f xs ys) = map2 f (rotate1 xs) (rotate1 ys)"
-  by (cases xs; cases ys) (auto simp: map2_def)
+  by (cases xs; cases ys) auto
 
 lemmas lth = box_equals [OF asm_rl length_rotate [symmetric]
   length_rotate [symmetric], THEN rotate1_map2]
@@ -4307,7 +4306,7 @@ proof -
     by simp
   also have "map2 (\<and>) \<dots> (to_bl (mask n::'a::len word)) =
       replicate n' False @ drop n' (to_bl w)"
-    unfolding to_bl_mask n'_def map2_def by (subst zip_append) auto
+    unfolding to_bl_mask n'_def by (subst zip_append) auto
   finally show ?thesis .
 qed
 

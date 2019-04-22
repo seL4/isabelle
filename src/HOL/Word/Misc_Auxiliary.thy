@@ -140,21 +140,6 @@ lemma takefill_numeral_Cons [simp]:
   by (simp add: numeral_eq_Suc)
 
 
-subsection \<open>Simultaneous map\<close>
-
-definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
-  where "map2 f as bs = map (case_prod f) (zip as bs)"
-
-lemma map2_Nil [simp, code]: "map2 f [] ys = []"
-  by (auto simp: map2_def)
-
-lemma map2_Nil2 [simp, code]: "map2 f xs [] = []"
-  by (auto simp: map2_def)
-
-lemma map2_Cons [simp, code]: "map2 f (x # xs) (y # ys) = f x y # map2 f xs ys"
-  by (auto simp: map2_def)
-
-
 subsection \<open>Auxiliary: Range projection\<close>
 
 definition bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> 'a list"

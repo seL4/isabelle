@@ -2753,7 +2753,7 @@ lemma bl_and_bin: "map2 (\<and>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (
 lemma bl_or_bin: "map2 (\<or>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v OR w)"
   by (simp add: bin_to_bl_def bl_or_aux_bin)
 
-lemma bl_xor_bin: "map2 (\<lambda>x y. x \<noteq> y) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
-  by (simp only: bin_to_bl_def bl_xor_aux_bin map2_Nil)
+lemma bl_xor_bin: "map2 (\<noteq>) (bin_to_bl n v) (bin_to_bl n w) = bin_to_bl n (v XOR w)"
+  using bl_xor_aux_bin by (simp add: bin_to_bl_def)
 
 end

@@ -50,7 +50,7 @@ lemma rbl_word_1: "rev (to_bl (1 :: 'a::len0 word)) = takefill False (LENGTH('a)
   done
 
 lemma rbl_word_if: "rev (to_bl (if P then x else y)) = map2 (If P) (rev (to_bl x)) (rev (to_bl y))"
-  by (simp add: map2_def split_def)
+  by (simp add: split_def)
 
 lemma rbl_add_carry_Cons:
   "(if car then rbl_succ else id) (rbl_add (x # xs) (y # ys)) =
@@ -496,7 +496,7 @@ val expand_word_eq_sss =
    put_simpset no_split_ss \<^context> addsimps
     @{thms list.simps split_conv replicate.simps list.map
                                 zip_Cons_Cons zip_Nil drop_Suc_Cons drop_0 drop_Nil
-                                foldr.simps map2_Cons map2_Nil takefill_Suc_Cons
+                                foldr.simps list.map zip.simps(1) zip_Nil zip_Cons_Cons takefill_Suc_Cons
                                 takefill_Suc_Nil takefill.Z rbl_succ2_simps
                                 rbl_plus_simps rev_bin_to_bl_simps append.simps
                                 takefill_last_simps drop_nonempty_simps
