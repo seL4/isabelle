@@ -1,5 +1,5 @@
 (*  Title:      HOL/Word/Bits.thy
-    Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
+    Author:     Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 
 section \<open>Syntactic type classes for bit operations\<close>
@@ -19,7 +19,6 @@ class bit_operations =
     and lsb :: "'a \<Rightarrow> bool"
     and msb :: "'a \<Rightarrow> bool"
     and set_bit :: "'a \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> 'a"
-    and set_bits :: "(nat \<Rightarrow> bool) \<Rightarrow> 'a"  (binder "BITS " 10)
 
 text \<open>
   We want the bitwise operations to bind slightly weaker

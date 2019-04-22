@@ -1290,16 +1290,6 @@ definition "lsb i = i !! 0" for i :: int
 
 definition "set_bit i n b = bin_sc n b i"
 
-definition
-  "set_bits f =
-    (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
-      in bl_to_bin (rev (map f [0..<n]))
-     else if \<exists>n. \<forall>n'\<ge>n. f n' then
-      let n = LEAST n. \<forall>n'\<ge>n. f n'
-      in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
-     else 0 :: int)"
-
 definition "shiftl x n = x * 2 ^ n" for x :: int
 
 definition "shiftr x n = x div 2 ^ n" for x :: int
@@ -2174,12 +2164,6 @@ by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
 lemma bin_set_conv_OR:
   "bin_sc n True i = i OR (1 << n)"
 by(induct n arbitrary: i)(auto intro: bin_rl_eqI)
-
-lemma int_set_bits_K_True [simp]: "(BITS _. True) = (-1 :: int)"
-  by (auto simp add: set_bits_int_def bl_to_bin_def)
-
-lemma int_set_bits_K_False [simp]: "(BITS _. False) = (0 :: int)"
-  by (simp add: set_bits_int_def)
 
 lemma msb_conv_bin_sign: "msb x \<longleftrightarrow> bin_sign x = -1"
 by(simp add: bin_sign_def not_le msb_int_def)

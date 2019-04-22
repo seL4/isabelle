@@ -10,6 +10,7 @@ imports
   "HOL-Library.Boolean_Algebra"
   Bits_Int
   Bits_Bit
+  Bit_Comprehension
   Misc_Typedef
   Misc_Arithmetic
 begin
@@ -384,8 +385,6 @@ definition word_test_bit_def: "test_bit a = bin_nth (uint a)"
 
 definition word_set_bit_def: "set_bit a n x = word_of_int (bin_sc n x (uint a))"
 
-definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth LENGTH('a) f)"
-
 definition word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a)"
 
 definition "msb a \<longleftrightarrow> bin_sign (sbintrunc (LENGTH('a) - 1) (uint a)) = - 1"
@@ -479,8 +478,6 @@ definition word_rsplit :: "'a::len0 word \<Rightarrow> 'b::len word list"
 definition max_word :: "'a::len word"
   \<comment> \<open>Largest representable machine integer.\<close>
   where "max_word = word_of_int (2 ^ LENGTH('a) - 1)"
-
-lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
 
 
 subsection \<open>Theorems about typedefs\<close>
@@ -2429,36 +2426,6 @@ lemmas word_ops_msb = msb1 [unfolded msb_nth [symmetric, unfolded One_nat_def]]
 lemmas lsb0 = len_gt_0 [THEN word_ops_nth_size [unfolded word_size]]
 lemmas word_ops_lsb = lsb0 [unfolded word_lsb_alt]
 
-lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
-  "n = size w \<Longrightarrow> ofn = set_bits \<Longrightarrow> [w, ofn g] = l \<Longrightarrow>
-    td_ext test_bit ofn {f. \<forall>i. f i \<longrightarrow> i < n} (\<lambda>h i. h i \<and> i < n)"
-  for w :: "'a::len0 word"
-  apply (unfold word_size td_ext_def')
-  apply safe
-     apply (rule_tac [3] ext)
-     apply (rule_tac [4] ext)
-     apply (unfold word_size of_nth_def test_bit_bl)
-     apply safe
-       defer
-       apply (clarsimp simp: word_bl.Abs_inverse)+
-  apply (rule word_bl.Rep_inverse')
-  apply (rule sym [THEN trans])
-   apply (rule bl_of_nth_nth)
-  apply simp
-  apply (rule bl_of_nth_inj)
-  apply (clarsimp simp add : test_bit_bl word_size)
-  done
-
-interpretation test_bit:
-  td_ext
-    "(!!) :: 'a::len0 word \<Rightarrow> nat \<Rightarrow> bool"
-    set_bits
-    "{f. \<forall>i. f i \<longrightarrow> i < LENGTH('a::len0)}"
-    "(\<lambda>h i. h i \<and> i < LENGTH('a::len0))"
-  by (rule td_ext_nth)
-
-lemmas td_nth = test_bit.td_thm
-
 lemma word_set_set_same [simp]: "set_bit (set_bit w n x) n y = set_bit w n y"
   for w :: "'a::len0 word"
   by (rule word_eqI) (simp add : test_bit_set_gen word_size)
@@ -2604,6 +2571,54 @@ lemma rbl_word_xor: "rev (to_bl (x XOR y)) = map2 (\<noteq>) (rev (to_bl x)) (re
 
 lemma rbl_word_not: "rev (to_bl (NOT x)) = map Not (rev (to_bl x))"
   by (simp add: bl_word_not rev_map)
+
+
+subsection \<open>Bit comprehension\<close>
+
+instantiation word :: (len0) bit_comprehension
+begin
+
+definition word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth LENGTH('a) f)"
+
+instance ..
+
+end
+
+lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
+
+lemma td_ext_nth [OF refl refl refl, unfolded word_size]:
+  "n = size w \<Longrightarrow> ofn = set_bits \<Longrightarrow> [w, ofn g] = l \<Longrightarrow>
+    td_ext test_bit ofn {f. \<forall>i. f i \<longrightarrow> i < n} (\<lambda>h i. h i \<and> i < n)"
+  for w :: "'a::len0 word"
+  apply (unfold word_size td_ext_def')
+  apply safe
+     apply (rule_tac [3] ext)
+     apply (rule_tac [4] ext)
+     apply (unfold word_size of_nth_def test_bit_bl)
+     apply safe
+       defer
+       apply (clarsimp simp: word_bl.Abs_inverse)+
+  apply (rule word_bl.Rep_inverse')
+  apply (rule sym [THEN trans])
+   apply (rule bl_of_nth_nth)
+  apply simp
+  apply (rule bl_of_nth_inj)
+  apply (clarsimp simp add : test_bit_bl word_size)
+  done
+
+interpretation test_bit:
+  td_ext
+    "(!!) :: 'a::len0 word \<Rightarrow> nat \<Rightarrow> bool"
+    set_bits
+    "{f. \<forall>i. f i \<longrightarrow> i < LENGTH('a::len0)}"
+    "(\<lambda>h i. h i \<and> i < LENGTH('a::len0))"
+  by (rule td_ext_nth)
+
+lemmas td_nth = test_bit.td_thm
+
+lemma set_bits_K_False [simp]:
+  "set_bits (\<lambda>_. False) = (0 :: 'a :: len0 word)"
+  by (rule word_eqI) (simp add: test_bit.eq_norm)
 
 
 subsection \<open>Shifting, Rotating, and Splitting Words\<close>
@@ -4516,10 +4531,6 @@ lemma word_rec_max:
 
 
 subsection \<open>More\<close>
-
-lemma set_bits_K_False [simp]:
-  "set_bits (\<lambda>_. False) = (0 :: 'a :: len0 word)"
-  by (rule word_eqI) (simp add: test_bit.eq_norm)
 
 lemma test_bit_1' [simp]:
   "(1 :: 'a :: len0 word) !! n \<longleftrightarrow> 0 < LENGTH('a) \<and> n = 0"
