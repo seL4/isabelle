@@ -531,8 +531,8 @@ object Isabelle_Cronjob
           SEQ(List(
             init,
             build_history_base,
+            build_release,
             PAR(
-              build_release ::
               List(remote_builds1, remote_builds2).map(remote_builds =>
               SEQ(List(
                 PAR(remote_builds.map(_.filter(_.active)).map(seq =>
