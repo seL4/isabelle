@@ -5655,22 +5655,20 @@ next
       by auto
     let ?h = "\<lambda>y. g (a + (fst y) *\<^sub>R (snd y - a))"
     have "continuous_on ({0..1} \<times> sphere a r) ?h"
-      apply (rule continuous_on_compose2 [OF contg])
-       apply (intro continuous_intros)
-      apply (auto simp: dist_norm norm_minus_commute mult_left_le_one_le)
-      done
+    proof (rule continuous_on_compose2 [OF contg])
+      show "continuous_on ({0..1} \<times> sphere a r) (\<lambda>x. a + fst x *\<^sub>R (snd x - a))"
+        by (intro continuous_intros)
+      qed (auto simp: dist_norm norm_minus_commute mult_left_le_one_le)
     moreover
     have "?h ` ({0..1} \<times> sphere a r) \<subseteq> S"
       by (auto simp: dist_norm norm_minus_commute mult_left_le_one_le gim [THEN subsetD])
     moreover
     have "\<forall>x\<in>sphere a r. ?h (0, x) = g a" "\<forall>x\<in>sphere a r. ?h (1, x) = f x"
       by (auto simp: dist_norm norm_minus_commute mult_left_le_one_le gf)
-    ultimately
-    show ?lhs
-      apply (subst homotopic_with_sym)
-      apply (rule_tac x="g a" in exI)
-      apply (auto simp: homotopic_with)
-      done
+    ultimately have "homotopic_with_canon (\<lambda>x. True) (sphere a r) S (\<lambda>x. g a) f"
+      by (auto simp: homotopic_with)
+    then show ?lhs
+      using homotopic_with_symD by blast
   qed
   ultimately
   show ?thesis by meson

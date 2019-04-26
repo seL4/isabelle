@@ -3,8 +3,39 @@ section \<open>Complex Path Integrals and Cauchy's Integral Theorem\<close>
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
 theory Cauchy_Integral_Theorem
-imports Complex_Transcendental Weierstrass_Theorems Ordered_Euclidean_Space
+imports Complex_Transcendental Henstock_Kurzweil_Integration Weierstrass_Theorems Ordered_Euclidean_Space
 begin
+
+lemma leibniz_rule_holomorphic:
+  fixes f::"complex \<Rightarrow> 'b::euclidean_space \<Rightarrow> complex"
+  assumes "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> ((\<lambda>x. f x t) has_field_derivative fx x t) (at x within U)"
+  assumes "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
+  assumes "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
+  assumes "convex U"
+  shows "(\<lambda>x. integral (cbox a b) (f x)) holomorphic_on U"
+  using leibniz_rule_field_differentiable[OF assms(1-3) _ assms(4)]
+  by (auto simp: holomorphic_on_def)
+
+lemma Ln_measurable [measurable]: "Ln \<in> measurable borel borel"
+proof -
+  have *: "Ln (-of_real x) = of_real (ln x) + \<i> * pi" if "x > 0" for x
+    using that by (subst Ln_minus) (auto simp: Ln_of_real)
+  have **: "Ln (of_real x) = of_real (ln (-x)) + \<i> * pi" if "x < 0" for x
+    using *[of "-x"] that by simp
+  have cont: "(\<lambda>x. indicat_real (- \<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel_measurable borel"
+    by (intro borel_measurable_continuous_on_indicator continuous_intros) auto
+  have "(\<lambda>x. if x \<in> \<real>\<^sub>\<le>\<^sub>0 then ln (-Re x) + \<i> * pi else indicator (-\<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel \<rightarrow>\<^sub>M borel"
+    (is "?f \<in> _") by (rule measurable_If_set[OF _ cont]) auto
+  hence "(\<lambda>x. if x = 0 then Ln 0 else ?f x) \<in> borel \<rightarrow>\<^sub>M borel" by measurable
+  also have "(\<lambda>x. if x = 0 then Ln 0 else ?f x) = Ln"
+    by (auto simp: fun_eq_iff ** nonpos_Reals_def)
+  finally show ?thesis .
+qed
+
+lemma powr_complex_measurable [measurable]:
+  assumes [measurable]: "f \<in> measurable M borel" "g \<in> measurable M borel"
+  shows   "(\<lambda>x. f x powr g x :: complex) \<in> measurable M borel"
+  using assms by (simp add: powr_def)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Homeomorphisms of arc images\<close>
 

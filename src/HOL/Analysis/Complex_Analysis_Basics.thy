@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-imports Equivalence_Lebesgue_Henstock_Integration "HOL-Library.Nonpos_Ints"
+  imports Derivative "HOL-Library.Nonpos_Ints"
 begin
 
 (* TODO FIXME: A lot of the things in here have nothing to do with complex analysis *)
@@ -82,31 +82,6 @@ lemma continuous_within_norm_id [continuous_intros]: "continuous (at x within S)
 
 lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
   by (intro continuous_on_id continuous_on_norm)
-
-(*MOVE? But not to Finite_Cartesian_Product*)
-lemma sums_vec_nth :
-  assumes "f sums a"
-  shows "(\<lambda>x. f x $ i) sums a $ i"
-using assms unfolding sums_def
-by (auto dest: tendsto_vec_nth [where i=i])
-
-lemma summable_vec_nth :
-  assumes "summable f"
-  shows "summable (\<lambda>x. f x $ i)"
-using assms unfolding summable_def
-by (blast intro: sums_vec_nth)
-
-(* TODO: Move? *)
-lemma DERIV_zero_connected_constant:
-  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
-  assumes "connected S"
-      and "open S"
-      and "finite K"
-      and "continuous_on S f"
-      and "\<forall>x\<in>(S - K). DERIV f x :> 0"
-    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
-using has_derivative_zero_connected_constant [OF assms(1-4)] assms
-by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
 lemmas DERIV_zero_constant = has_field_derivative_zero_constant
 
@@ -393,16 +368,6 @@ next
     using assms by (intro holomorphic_cong) auto
   finally show \<dots> .
 qed (insert assms, auto)
-
-lemma leibniz_rule_holomorphic:
-  fixes f::"complex \<Rightarrow> 'b::euclidean_space \<Rightarrow> complex"
-  assumes "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> ((\<lambda>x. f x t) has_field_derivative fx x t) (at x within U)"
-  assumes "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
-  assumes "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
-  assumes "convex U"
-  shows "(\<lambda>x. integral (cbox a b) (f x)) holomorphic_on U"
-  using leibniz_rule_field_differentiable[OF assms(1-3) _ assms(4)]
-  by (auto simp: holomorphic_on_def)
 
 lemma DERIV_deriv_iff_field_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"

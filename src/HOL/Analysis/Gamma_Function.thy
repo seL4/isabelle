@@ -5,8 +5,9 @@
 section \<open>The Gamma Function\<close>
 
 theory Gamma_Function
-imports
+  imports
   Conformal_Mappings
+  Equivalence_Lebesgue_Henstock_Integration
   Summation_Tests
   Harmonic_Numbers
   "HOL-Library.Nonpos_Ints"

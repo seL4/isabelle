@@ -5,7 +5,7 @@
 section \<open>Path-Connectedness\<close>
 
 theory Path_Connected
-  imports Starlike
+  imports Starlike T1_Spaces
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -3786,8 +3786,192 @@ next
       apply (rule **)   (*such a horrible mess*)
       apply (rule connected_Int_frontier [where t = "f`S", OF connected_ball])
       using \<open>a \<in> S\<close> \<open>0 < r\<close>
-      apply (auto simp: disjoint_iff_not_equal  dist_norm)
+      apply (auto simp: disjoint_iff_not_equal dist_norm)
       by (metis dw_le norm_minus_commute not_less order_trans rle wy)
 qed
+
+
+subsubsection\<open>Special characterizations of classes of functions into and out of R.\<close>
+
+proposition embedding_map_into_euclideanreal:
+  assumes "path_connected_space X"
+  shows "embedding_map X euclideanreal f \<longleftrightarrow>
+         continuous_map X euclideanreal f \<and> inj_on f (topspace X)"
+  proof safe
+  show "continuous_map X euclideanreal f"
+    if "embedding_map X euclideanreal f"
+    using continuous_map_in_subtopology homeomorphic_imp_continuous_map that
+    unfolding embedding_map_def by blast
+  show "inj_on f (topspace X)"
+    if "embedding_map X euclideanreal f"
+    using that homeomorphic_imp_injective_map
+    unfolding embedding_map_def by blast
+  show "embedding_map X euclideanreal f"
+    if cont: "continuous_map X euclideanreal f" and inj: "inj_on f (topspace X)"
+  proof -
+    obtain g where gf: "\<And>x. x \<in> topspace X \<Longrightarrow> g (f x) = x"
+      using inv_into_f_f [OF inj] by auto
+    show ?thesis
+      unfolding embedding_map_def homeomorphic_map_maps homeomorphic_maps_def
+    proof (intro exI conjI)
+      show "continuous_map X (top_of_set (f ` topspace X)) f"
+        by (simp add: cont continuous_map_in_subtopology)
+      let ?S = "f ` topspace X"
+      have eq: "{x \<in> ?S. g x \<in> U} = f ` U" if "openin X U" for U
+        using openin_subset [OF that] by (auto simp: gf)
+      have 1: "g ` ?S \<subseteq> topspace X"
+        using eq by blast
+      have "openin (top_of_set ?S) {x \<in> ?S. g x \<in> T}"
+        if "openin X T" for T
+      proof -
+        have "T \<subseteq> topspace X"
+          by (simp add: openin_subset that)
+        have RR: "\<forall>x \<in> ?S \<inter> g -` T. \<exists>d>0. \<forall>x' \<in> ?S \<inter> ball x d. g x' \<in> T"
+        proof (clarsimp simp add: gf)
+          have pcS: "path_connectedin euclidean ?S"
+            using assms cont path_connectedin_continuous_map_image path_connectedin_topspace by blast
+          show "\<exists>d>0. \<forall>x'\<in>f ` topspace X \<inter> ball (f x) d. g x' \<in> T"
+            if "x \<in> T" for x
+          proof -
+            have x: "x \<in> topspace X"
+              using \<open>T \<subseteq> topspace X\<close> \<open>x \<in> T\<close> by blast
+            obtain u v d where "0 < d" "u \<in> topspace X" "v \<in> topspace X"
+                         and sub_fuv: "?S \<inter> {f x - d .. f x + d} \<subseteq> {f u..f v}"
+            proof (cases "\<exists>u \<in> topspace X. f u < f x")
+              case True
+              then obtain u where u: "u \<in> topspace X" "f u < f x" ..
+              show ?thesis
+              proof (cases "\<exists>v \<in> topspace X. f x < f v")
+                case True
+                then obtain v where v: "v \<in> topspace X" "f x < f v" ..
+                show ?thesis
+                proof
+                  let ?d = "min (f x - f u) (f v - f x)"
+                  show "0 < ?d"
+                    by (simp add: \<open>f u < f x\<close> \<open>f x < f v\<close>)
+                  show "f ` topspace X \<inter> {f x - ?d..f x + ?d} \<subseteq> {f u..f v}"
+                    by fastforce
+                qed (auto simp: u v)
+              next
+                case False
+                show ?thesis
+                proof
+                  let ?d = "f x - f u"
+                  show "0 < ?d"
+                    by (simp add: u)
+                  show "f ` topspace X \<inter> {f x - ?d..f x + ?d} \<subseteq> {f u..f x}"
+                    using x u False by auto
+                qed (auto simp: x u)
+              qed
+            next
+              case False
+              note no_u = False
+              show ?thesis
+              proof (cases "\<exists>v \<in> topspace X. f x < f v")
+                case True
+                then obtain v where v: "v \<in> topspace X" "f x < f v" ..
+                show ?thesis
+                proof
+                  let ?d = "f v - f x"
+                  show "0 < ?d"
+                    by (simp add: v)
+                  show "f ` topspace X \<inter> {f x - ?d..f x + ?d} \<subseteq> {f x..f v}"
+                    using False by auto
+                qed (auto simp: x v)
+              next
+                case False
+                show ?thesis
+                proof
+                  show "f ` topspace X \<inter> {f x - 1..f x + 1} \<subseteq> {f x..f x}"
+                    using False no_u by fastforce
+                qed (auto simp: x)
+              qed
+            qed
+            then obtain h where "pathin X h" "h 0 = u" "h 1 = v"
+              using assms unfolding path_connected_space_def by blast
+            obtain C where "compactin X C" "connectedin X C" "u \<in> C" "v \<in> C"
+            proof
+              show "compactin X (h ` {0..1})"
+                using that by (simp add: \<open>pathin X h\<close> compactin_path_image)
+              show "connectedin X (h ` {0..1})"
+                using \<open>pathin X h\<close> connectedin_path_image by blast
+            qed (use \<open>h 0 = u\<close> \<open>h 1 = v\<close> in auto)
+            have "continuous_map (subtopology euclideanreal (?S \<inter> {f x - d .. f x + d})) (subtopology X C) g"
+            proof (rule continuous_inverse_map)
+              show "compact_space (subtopology X C)"
+                using \<open>compactin X C\<close> compactin_subspace by blast
+              show "continuous_map (subtopology X C) euclideanreal f"
+                by (simp add: cont continuous_map_from_subtopology)
+              have "{f u .. f v} \<subseteq> f ` topspace (subtopology X C)"
+              proof (rule connected_contains_Icc)
+                show "connected (f ` topspace (subtopology X C))"
+                  using connectedin_continuous_map_image [OF cont]
+                  by (simp add: \<open>compactin X C\<close> \<open>connectedin X C\<close> compactin_subset_topspace inf_absorb2)
+                show "f u \<in> f ` topspace (subtopology X C)"
+                  by (simp add: \<open>u \<in> C\<close> \<open>u \<in> topspace X\<close>)
+                show "f v \<in> f ` topspace (subtopology X C)"
+                  by (simp add: \<open>v \<in> C\<close> \<open>v \<in> topspace X\<close>)
+              qed
+              then show "f ` topspace X \<inter> {f x - d..f x + d} \<subseteq> f ` topspace (subtopology X C)"
+                using sub_fuv by blast
+            qed (auto simp: gf)
+            then have contg: "continuous_map (subtopology euclideanreal (?S \<inter> {f x - d .. f x + d})) X g"
+              using continuous_map_in_subtopology by blast
+            have "\<exists>e>0. \<forall>x \<in> ?S \<inter> {f x - d .. f x + d} \<inter> ball (f x) e. g x \<in> T"
+              using openin_continuous_map_preimage [OF contg \<open>openin X T\<close>] x \<open>x \<in> T\<close> \<open>0 < d\<close>
+              unfolding openin_euclidean_subtopology_iff
+              by (force simp: gf dist_commute)
+            then obtain e where "e > 0 \<and> (\<forall>x\<in>f ` topspace X \<inter> {f x - d..f x + d} \<inter> ball (f x) e. g x \<in> T)"
+              by metis
+            with \<open>0 < d\<close> have "min d e > 0" "\<forall>u. u \<in> topspace X \<longrightarrow> \<bar>f x - f u\<bar> < min d e \<longrightarrow> u \<in> T"
+              using dist_real_def gf by force+
+            then show ?thesis
+              by (metis (full_types) Int_iff dist_real_def image_iff mem_ball gf)
+          qed
+        qed
+        then obtain d where d: "\<And>r. r \<in> ?S \<inter> g -` T \<Longrightarrow>
+                d r > 0 \<and> (\<forall>x \<in> ?S \<inter> ball r (d r). g x \<in> T)"
+          by metis
+        show ?thesis
+          unfolding openin_subtopology
+        proof (intro exI conjI)
+          show "{x \<in> ?S. g x \<in> T} = (\<Union>r \<in> ?S \<inter> g -` T. ball r (d r)) \<inter> f ` topspace X"
+            using d by (auto simp: gf)
+        qed auto
+      qed
+      then show "continuous_map (top_of_set ?S) X g"
+        by (simp add: continuous_map_def gf)
+    qed (auto simp: gf)
+  qed
+qed
+
+subsubsection \<open>An injective function into R is a homeomorphism and so an open map.\<close>
+
+lemma injective_into_1d_eq_homeomorphism:
+  fixes f :: "'a::topological_space \<Rightarrow> real"
+  assumes f: "continuous_on S f" and S: "path_connected S"
+  shows "inj_on f S \<longleftrightarrow> (\<exists>g. homeomorphism S (f ` S) f g)"
+proof
+  show "\<exists>g. homeomorphism S (f ` S) f g"
+    if "inj_on f S"
+  proof -
+    have "embedding_map (top_of_set S) euclideanreal f"
+      using that embedding_map_into_euclideanreal [of "top_of_set S" f] assms by auto
+    then show ?thesis
+      by (simp add: embedding_map_def) (metis all_closedin_homeomorphic_image f homeomorphism_injective_closed_map that)
+  qed
+qed (metis homeomorphism_def inj_onI)
+
+lemma injective_into_1d_imp_open_map:
+  fixes f :: "'a::topological_space \<Rightarrow> real"
+  assumes "continuous_on S f" "path_connected S" "inj_on f S" "openin (subtopology euclidean S) T"
+  shows "openin (subtopology euclidean (f ` S)) (f ` T)"
+  using assms homeomorphism_imp_open_map injective_into_1d_eq_homeomorphism by blast
+
+lemma homeomorphism_into_1d:
+  fixes f :: "'a::topological_space \<Rightarrow> real"
+  assumes "path_connected S" "continuous_on S f" "f ` S = T" "inj_on f S"
+  shows "\<exists>g. homeomorphism S T f g"
+  using assms injective_into_1d_eq_homeomorphism by blast
 
 end

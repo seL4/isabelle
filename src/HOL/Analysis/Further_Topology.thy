@@ -3,7 +3,7 @@ section \<open>Extending Continous Maps, Invariance of Domain, etc\<close> (*FIX
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
 theory Further_Topology
-  imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope Complex_Transcendental
+  imports Weierstrass_Theorems Polytope Complex_Transcendental Equivalence_Lebesgue_Henstock_Integration
 begin
 
 subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
@@ -4644,8 +4644,8 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
     proof (rule upper_lower_hemicontinuous_explicit [of T "\<lambda>y. {z \<in> S. f z = y}" S])
       show "\<And>U. openin (top_of_set S) U
                  \<Longrightarrow> openin (top_of_set T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
-        using continuous_imp_closed_map closed_map_iff_upper_hemicontinuous_preimage [OF fim [THEN equalityD1]]
-        by (simp add: continuous_imp_closed_map \<open>compact S\<close> contf fim)
+        using closed_map_iff_upper_hemicontinuous_preimage [OF fim [THEN equalityD1]]
+        by (simp add: Abstract_Topology_2.continuous_imp_closed_map \<open>compact S\<close> contf fim)
       show "\<And>U. closedin (top_of_set S) U \<Longrightarrow>
                  closedin (top_of_set T) {x \<in> T. {z \<in> S. f z = x} \<subseteq> U}"
         using  ope open_map_iff_lower_hemicontinuous_preimage [OF fim [THEN equalityD1]]

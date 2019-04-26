@@ -7,8 +7,7 @@ section \<open>Henstock-Kurzweil Gauge Integration in Many Dimensions\<close>
 
 theory Henstock_Kurzweil_Integration
 imports
-  Lebesgue_Measure
-  Tagged_Division
+  Lebesgue_Measure Tagged_Division
 begin
 
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
@@ -4436,7 +4435,7 @@ lemma has_derivative_zero_connected_constant:
 proof (cases "S = {}")
   case True
   then show ?thesis
-by (metis empty_iff that)
+    by (metis empty_iff that)
 next
   case False
   then obtain c where "c \<in> S"
@@ -4444,6 +4443,17 @@ next
   then show ?thesis
     by (metis has_derivative_zero_unique_strong_connected assms that)
 qed
+
+lemma DERIV_zero_connected_constant:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes "connected S"
+      and "open S"
+      and "finite K"
+      and "continuous_on S f"
+      and "\<forall>x\<in>(S - K). DERIV f x :> 0"
+    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
+  using has_derivative_zero_connected_constant [OF assms(1-4)] assms
+  by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
 
 subsection \<open>Integrating characteristic function of an interval\<close>

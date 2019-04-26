@@ -507,22 +507,22 @@ proof
 qed
 
 lemma continuous_imp_closed_map:
-   "\<lbrakk>compact_space X; Hausdorff_space Y; continuous_map X Y f\<rbrakk> \<Longrightarrow> closed_map X Y f"
+   "\<lbrakk>continuous_map X Y f; compact_space X; Hausdorff_space Y\<rbrakk> \<Longrightarrow> closed_map X Y f"
   by (meson closed_map_def closedin_compact_space compactin_imp_closedin image_compactin)
 
 lemma continuous_imp_quotient_map:
-   "\<lbrakk>compact_space X; Hausdorff_space Y; continuous_map X Y f; f ` (topspace X) = topspace Y\<rbrakk>
+   "\<lbrakk>continuous_map X Y f; compact_space X; Hausdorff_space Y; f ` (topspace X) = topspace Y\<rbrakk>
         \<Longrightarrow> quotient_map X Y f"
   by (simp add: continuous_imp_closed_map continuous_closed_imp_quotient_map)
 
 lemma continuous_imp_homeomorphic_map:
-   "\<lbrakk>compact_space X; Hausdorff_space Y; continuous_map X Y f;
+   "\<lbrakk>continuous_map X Y f; compact_space X; Hausdorff_space Y; 
      f ` (topspace X) = topspace Y; inj_on f (topspace X)\<rbrakk>
         \<Longrightarrow> homeomorphic_map X Y f"
   by (simp add: continuous_imp_closed_map bijective_closed_imp_homeomorphic_map)
 
 lemma continuous_imp_embedding_map:
-   "\<lbrakk>compact_space X; Hausdorff_space Y; continuous_map X Y f; inj_on f (topspace X)\<rbrakk>
+   "\<lbrakk>continuous_map X Y f; compact_space X; Hausdorff_space Y; inj_on f (topspace X)\<rbrakk>
         \<Longrightarrow> embedding_map X Y f"
   by (simp add: continuous_imp_closed_map injective_closed_imp_embedding_map)
 

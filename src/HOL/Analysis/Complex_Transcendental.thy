@@ -4,9 +4,7 @@ text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\
 
 theory Complex_Transcendental
 imports
-  Complex_Analysis_Basics
-  Summation_Tests
-   "HOL-Library.Periodic_Fun"
+  Complex_Analysis_Basics Summation_Tests "HOL-Library.Periodic_Fun"
 begin
 
 subsection\<open>Möbius transformations\<close>
@@ -875,7 +873,7 @@ proof -
   have zr: "z = (cmod z) * exp (\<i> * r)" and zs: "z = (cmod z) * exp (\<i> * s)"
     using r s by (auto simp: is_Arg_def)
   with \<open>z \<noteq> 0\<close> have eq: "exp (\<i> * r) = exp (\<i> * s)"
-    by (metis mult_eq_0_iff vector_space_over_itself.scale_left_imp_eq)
+    by (metis mult_eq_0_iff mult_left_cancel)
   have  "\<i> * r = \<i> * s"
     by (rule exp_complex_eqI) (use rs in \<open>auto simp: eq exp_complex_eqI\<close>)
   then show ?thesis
@@ -1727,27 +1725,6 @@ proof -
     by (simp add: ln_div)
   finally show ?thesis .
 qed
-
-lemma Ln_measurable [measurable]: "Ln \<in> measurable borel borel"
-proof -
-  have *: "Ln (-of_real x) = of_real (ln x) + \<i> * pi" if "x > 0" for x
-    using that by (subst Ln_minus) (auto simp: Ln_of_real)
-  have **: "Ln (of_real x) = of_real (ln (-x)) + \<i> * pi" if "x < 0" for x
-    using *[of "-x"] that by simp
-  have cont: "(\<lambda>x. indicat_real (- \<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel_measurable borel"
-    by (intro borel_measurable_continuous_on_indicator continuous_intros) auto
-  have "(\<lambda>x. if x \<in> \<real>\<^sub>\<le>\<^sub>0 then ln (-Re x) + \<i> * pi else indicator (-\<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel \<rightarrow>\<^sub>M borel"
-    (is "?f \<in> _") by (rule measurable_If_set[OF _ cont]) auto
-  hence "(\<lambda>x. if x = 0 then Ln 0 else ?f x) \<in> borel \<rightarrow>\<^sub>M borel" by measurable
-  also have "(\<lambda>x. if x = 0 then Ln 0 else ?f x) = Ln"
-    by (auto simp: fun_eq_iff ** nonpos_Reals_def)
-  finally show ?thesis .
-qed
-
-lemma powr_complex_measurable [measurable]:
-  assumes [measurable]: "f \<in> measurable M borel" "g \<in> measurable M borel"
-  shows   "(\<lambda>x. f x powr g x :: complex) \<in> measurable M borel"
-  using assms by (simp add: powr_def)
 
 subsection\<open>The Argument of a Complex Number\<close>
 

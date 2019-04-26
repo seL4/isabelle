@@ -188,6 +188,18 @@ lemma vec_nth_real_1_iff_cbox [simp]:
   shows "(\<lambda>x::real^1. x $ 1) ` S = {a..b} \<longleftrightarrow> S = cbox (vec a) (vec b)"
   by (metis interval_cbox vec_nth_1_iff_cbox)
 
+lemma sums_vec_nth :
+  assumes "f sums a"
+  shows "(\<lambda>x. f x $ i) sums a $ i"
+  using assms unfolding sums_def
+  by (auto dest: tendsto_vec_nth [where i=i])
+
+lemma summable_vec_nth :
+  assumes "summable f"
+  shows "summable (\<lambda>x. f x $ i)"
+  using assms unfolding summable_def
+  by (blast intro: sums_vec_nth)
+
 lemma closed_eucl_atLeastAtMost[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..b}"
