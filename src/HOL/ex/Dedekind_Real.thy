@@ -19,14 +19,8 @@ subsection \<open>Dedekind cuts or sections\<close>
 
 definition
   cut :: "rat set \<Rightarrow> bool" where
-  "cut A = ({} \<subset> A \<and>
-            A \<subset> {0<..} \<and>
-            (\<forall>y \<in> A. ((\<forall>z. 0<z \<and> z < y \<longrightarrow> z \<in> A) \<and> (\<exists>u \<in> A. y < u))))"
-
-lemma interval_empty_iff:
-  "{y. (x::'a::unbounded_dense_linorder) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
-  by (auto dest: dense)
-
+  "cut A \<equiv> {} \<subset> A \<and> A \<subset> {0<..} \<and>
+            (\<forall>y \<in> A. ((\<forall>z. 0<z \<and> z < y \<longrightarrow> z \<in> A) \<and> (\<exists>u \<in> A. y < u)))"
 
 lemma cut_of_rat: 
   assumes q: "0 < q" shows "cut {r::rat. 0 < r \<and> r < q}" (is "cut ?A")
@@ -36,7 +30,7 @@ proof -
   proof
     show "{} \<subseteq> ?A" by simp
     show "{} \<noteq> ?A"
-      by (force simp only: q eq_commute [of "{}"] interval_empty_iff)
+      using field_lbound_gt_zero q by auto
   qed
   show ?thesis
     by (simp add: cut_def pos nonempty,
@@ -51,7 +45,7 @@ lemma Abs_preal_induct [induct type: preal]:
   "(\<And>x. cut x \<Longrightarrow> P (Abs_preal x)) \<Longrightarrow> P x"
   using Abs_preal_induct [of P x] by simp
 
-lemma Rep_preal: "cut (Rep_preal x)"
+lemma cut_Rep_preal [simp]: "cut (Rep_preal x)"
   using Rep_preal [of x] by simp
 
 definition
@@ -163,12 +157,12 @@ text \<open>preal lemmas instantiated to \<^term>\<open>Rep_preal X\<close>\<clo
 
 lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
 thm preal_Ex_mem
-by (rule preal_Ex_mem [OF Rep_preal])
+by (rule preal_Ex_mem [OF cut_Rep_preal])
 
 lemma Rep_preal_exists_bound: "\<exists>x>0. x \<notin> Rep_preal X"
-by (rule preal_exists_bound [OF Rep_preal])
+by (rule preal_exists_bound [OF cut_Rep_preal])
 
-lemmas not_in_Rep_preal_ub = not_in_preal_ub [OF Rep_preal]
+lemmas not_in_Rep_preal_ub = not_in_preal_ub [OF cut_Rep_preal]
 
 
 subsection\<open>Properties of Ordering\<close>
@@ -188,7 +182,7 @@ next
 next
   fix z w :: preal
   show "z < w \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
-  by (auto simp add: preal_le_def preal_less_def Rep_preal_inject)
+  by (auto simp: preal_le_def preal_less_def Rep_preal_inject)
 qed  
 
 lemma preal_imp_pos: "\<lbrakk>cut A; r \<in> A\<rbrakk> \<Longrightarrow> 0 < r"
@@ -199,7 +193,7 @@ proof
   fix x y :: preal
   show "x \<le> y \<or> y \<le> x"
     unfolding preal_le_def
-    by (meson Rep_preal not_in_preal_ub preal_downwards_closed preal_imp_pos subsetI)
+    by (meson cut_Rep_preal not_in_preal_ub preal_downwards_closed preal_imp_pos subsetI)
 qed
 
 instantiation preal :: distrib_lattice
@@ -213,7 +207,7 @@ definition
 
 instance
   by intro_classes
-    (auto simp add: inf_preal_def sup_preal_def max_min_distrib2)
+    (auto simp: inf_preal_def sup_preal_def max_min_distrib2)
 
 end
 
@@ -231,7 +225,7 @@ lemma mem_add_set:
   shows "cut (add_set A B)"
 proof -
   have "{} \<subset> add_set A B"
-    using assms by (force simp add: add_set_def dest: preal_nonempty)
+    using assms by (force simp: add_set_def dest: preal_nonempty)
   moreover
   obtain q where "q > 0" "q \<notin> add_set A B"
   proof -
@@ -289,8 +283,8 @@ proof -
 qed
 
 lemma preal_add_assoc: "((x::preal) + y) + z = x + (y + z)"
-  apply (simp add: preal_add_def mem_add_set Rep_preal)
-  apply (force simp add: add_set_def ac_simps)
+  apply (simp add: preal_add_def mem_add_set cut_Rep_preal)
+  apply (force simp: add_set_def ac_simps)
   done
 
 instance preal :: ab_semigroup_add
@@ -317,7 +311,7 @@ lemma mem_mult_set:
 proof -
   have "{} \<subset> mult_set A B"
     using assms
-      by (force simp add: mult_set_def dest: preal_nonempty)
+      by (force simp: mult_set_def dest: preal_nonempty)
     moreover
     obtain q where "q > 0" "q \<notin> mult_set A B"
     proof -
@@ -338,7 +332,7 @@ proof -
                 using assms x \<open>u < x\<close> \<open>v < y\<close> \<open>0 \<le> v\<close> by (blast intro: mult_strict_mono)
             ultimately have False by force
           }
-          thus ?thesis by (auto simp add: mult_set_def)
+          thus ?thesis by (auto simp: mult_set_def)
         qed
       qed
     qed
@@ -378,7 +372,7 @@ qed
 
 lemma preal_mult_assoc: "((x::preal) * y) * z = x * (y * z)"
   apply (simp add: preal_mult_def mem_mult_set Rep_preal)
-  apply (force simp add: mult_set_def ac_simps)
+  apply (force simp: mult_set_def ac_simps)
   done
 
 instance preal :: ab_semigroup_mult
@@ -452,7 +446,7 @@ lemma mem_Rep_preal_mult_iff:
 
 lemma distrib_subset1:
   "Rep_preal (w * (x + y)) \<subseteq> Rep_preal (w * x + w * y)"
-  by (force simp add: Bex_def mem_Rep_preal_add_iff mem_Rep_preal_mult_iff distrib_left)
+  by (force simp: Bex_def mem_Rep_preal_add_iff mem_Rep_preal_mult_iff distrib_left)
 
 lemma preal_add_mult_distrib_mean:
   assumes a: "a \<in> Rep_preal w"
@@ -463,7 +457,7 @@ lemma preal_add_mult_distrib_mean:
 proof
   let ?c = "(a*d + b*e)/(d+e)"
   have [simp]: "0<a" "0<b" "0<d" "0<e" "0<d+e"
-    by (blast intro: preal_imp_pos [OF Rep_preal] a b d e pos_add_strict)+
+    by (blast intro: preal_imp_pos [OF cut_Rep_preal] a b d e pos_add_strict)+
   have cpos: "0 < ?c"
     by (simp add: zero_less_divide_iff zero_less_mult_iff pos_add_strict)
   show "a * d + b * e = ?c * (d + e)"
@@ -474,13 +468,13 @@ proof
     hence "?c \<le> b"
       by (simp add: pos_divide_le_eq distrib_left mult_right_mono
                     order_less_imp_le)
-    thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal b cpos])
+    thus ?thesis by (rule preal_downwards_closed' [OF cut_Rep_preal b cpos])
   next
     assume "b \<le> a"
     hence "?c \<le> a"
       by (simp add: pos_divide_le_eq distrib_left mult_right_mono
                     order_less_imp_le)
-    thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal a cpos])
+    thus ?thesis by (rule preal_downwards_closed' [OF cut_Rep_preal a cpos])
   qed
 qed
 
@@ -536,7 +530,7 @@ proof -
             by (simp add: inverse_less_imp_less [of x] ygt)
           have "inverse y \<in> A"
             by (simp add: preal_downwards_closed [OF \<open>cut A\<close> x] iyless)}
-        thus ?thesis by (auto simp add: inverse_set_def)
+        thus ?thesis by (auto simp: inverse_set_def)
       qed
     qed
   qed
@@ -570,7 +564,7 @@ proof (cases z rule: int_cases)
     case (Suc k)
     then obtain b where b: "b \<in> A" "b + of_nat k * u \<in> A" ..
     hence "b + of_int (int k)*u + u \<in> A" by (simp add: assms)
-    thus ?case by (force simp add: algebra_simps b)
+    thus ?case by (force simp: algebra_simps b)
   qed
 next
   case (neg n)
@@ -658,9 +652,9 @@ proof -
     have "r + ?d < r*x"
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)
-      also from ypos have "... = (r/y) * (y + ?d)"
+      also from ypos have "\<dots> = (r/y) * (y + ?d)"
         by (simp only: algebra_simps divide_inverse, simp)
-      also have "... = r*x" using ypos
+      also have "\<dots> = r*x" using ypos
         by simp
       finally show "r + ?d < r*x" .
     qed
@@ -687,13 +681,13 @@ lemma subset_inverse_mult_lemma:
     u \<in> Rep_preal R \<and> x = r * u"
 proof -
   from xpos and xless have "1 < inverse x" by (simp add: one_less_inverse_iff)
-  from lemma_gleason9_36 [OF Rep_preal this]
+  from lemma_gleason9_36 [OF cut_Rep_preal this]
   obtain r where r: "r \<in> Rep_preal R" 
              and notin: "r * (inverse x) \<notin> Rep_preal R" ..
-  have rpos: "0<r" by (rule preal_imp_pos [OF Rep_preal r])
-  from preal_exists_greater [OF Rep_preal r]
+  have rpos: "0<r" by (rule preal_imp_pos [OF cut_Rep_preal r])
+  from preal_exists_greater [OF cut_Rep_preal r]
   obtain u where u: "u \<in> Rep_preal R" and rless: "r < u" ..
-  have upos: "0<u" by (rule preal_imp_pos [OF Rep_preal u])
+  have upos: "0<u" by (rule preal_imp_pos [OF cut_Rep_preal u])
   show ?thesis
   proof (intro exI conjI)
     show "0 < x/u" using xpos upos
@@ -710,12 +704,12 @@ qed
 
 lemma subset_inverse_mult: 
      "Rep_preal 1 \<subseteq> Rep_preal(inverse R * R)"
-  by (force simp add: Rep_preal_one mem_Rep_preal_inverse_iff mem_Rep_preal_mult_iff dest: subset_inverse_mult_lemma)
+  by (force simp: Rep_preal_one mem_Rep_preal_inverse_iff mem_Rep_preal_mult_iff dest: subset_inverse_mult_lemma)
 
 lemma inverse_mult_subset: "Rep_preal(inverse R * R) \<subseteq> Rep_preal 1"
   proof -
   have "0 < u * v" if "v \<in> Rep_preal R" "0 < u" "u < r" for u v r :: rat
-    using that by (simp add: zero_less_mult_iff preal_imp_pos [OF Rep_preal]) 
+    using that by (simp add: zero_less_mult_iff preal_imp_pos [OF cut_Rep_preal]) 
   moreover have "r * q < 1"
     if "q \<in> Rep_preal R" "0 < r" "r < y" "inverse y \<notin> Rep_preal R"
     for r q y :: rat
@@ -724,12 +718,12 @@ lemma inverse_mult_subset: "Rep_preal(inverse R * R) \<subseteq> Rep_preal 1"
       using not_in_Rep_preal_ub that by auto 
     hence "r * q < r/y" 
       using that by (simp add: divide_inverse mult_less_cancel_left)
-    also have "... \<le> 1" 
+    also have "\<dots> \<le> 1" 
       using that by (simp add: pos_divide_le_eq)
     finally show ?thesis .
   qed
   ultimately show ?thesis
-    by (auto simp add: Rep_preal_one mem_Rep_preal_inverse_iff mem_Rep_preal_mult_iff)
+    by (auto simp: Rep_preal_one mem_Rep_preal_inverse_iff mem_Rep_preal_mult_iff)
 qed 
 
 lemma preal_mult_inverse: "inverse R * R = (1::preal)"
@@ -748,9 +742,9 @@ proof
   obtain y where y: "y \<in> Rep_preal S" and "y > 0"
     using Rep_preal preal_nonempty by blast
   have ry: "r+y \<in> Rep_preal(R + S)" using r y
-    by (auto simp add: mem_Rep_preal_add_iff)
+    by (auto simp: mem_Rep_preal_add_iff)
   then show "r \<in> Rep_preal(R + S)"
-    by (meson \<open>0 < y\<close> add_less_same_cancel1 not_in_Rep_preal_ub order.asym preal_imp_pos [OF Rep_preal r])
+    by (meson \<open>0 < y\<close> add_less_same_cancel1 not_in_Rep_preal_ub order.asym preal_imp_pos [OF cut_Rep_preal r])
 qed
 
 lemma Rep_preal_sum_not_subset: "~ Rep_preal (R + S) \<subseteq> Rep_preal(R)"
@@ -760,7 +754,7 @@ proof -
   obtain r where r: "r \<in> Rep_preal R" and notin: "r + y \<notin> Rep_preal R"
     using Dedekind_Real.Rep_preal Gleason9_34 \<open>0 < y\<close> by blast 
   have "r + y \<in> Rep_preal (R + S)" using r y
-    by (auto simp add: mem_Rep_preal_add_iff)
+    by (auto simp: mem_Rep_preal_add_iff)
   thus ?thesis using notin by blast
 qed
 
@@ -782,12 +776,12 @@ proof -
     using assms unfolding preal_less_def by auto
   then have "{} \<subset> diff_set (Rep_preal S) (Rep_preal R)"
     apply (simp add: diff_set_def psubset_eq)
-    by (metis Rep_preal add_eq_exists less_add_same_cancel1 preal_exists_greater preal_imp_pos)
+    by (metis cut_Rep_preal add_eq_exists less_add_same_cancel1 preal_exists_greater preal_imp_pos)
   moreover
   obtain q where "q > 0" "q \<notin> Rep_preal S"
     using Rep_preal_exists_bound by blast
   then have qnot: "q \<notin> diff_set (Rep_preal S) (Rep_preal R)"
-    by (auto simp: diff_set_def dest: Rep_preal [THEN preal_downwards_closed])
+    by (auto simp: diff_set_def dest: cut_Rep_preal [THEN preal_downwards_closed])
   moreover have "diff_set (Rep_preal S) (Rep_preal R) \<subset> {0<..}" (is "?lhs < ?rhs")
     using \<open>0 < q\<close> diff_set_def qnot by blast
   moreover have "z \<in> diff_set (Rep_preal S) (Rep_preal R)"
@@ -798,12 +792,12 @@ proof -
   proof -
     obtain a b where "0 < a" "0 < b" "a \<notin> Rep_preal R" "a + y + b \<in> Rep_preal S"
       using y
-      by (simp add: diff_set_def) (metis Rep_preal add_eq_exists less_add_same_cancel1 preal_exists_greater) 
+      by (simp add: diff_set_def) (metis cut_Rep_preal add_eq_exists less_add_same_cancel1 preal_exists_greater) 
     then have "a + (y + b) \<in> Rep_preal S"
       by (simp add: add.assoc)
     then have "y + b \<in> diff_set (Rep_preal S) (Rep_preal R)"
       using \<open>0 < a\<close> \<open>0 < b\<close> \<open>a \<notin> Rep_preal R\<close> y
-      by (auto simp add: diff_set_def)
+      by (auto simp: diff_set_def)
     then show ?thesis
       using \<open>0 < b\<close> less_add_same_cancel1 by blast
   qed
@@ -816,7 +810,7 @@ lemma mem_Rep_preal_diff_iff:
        (z \<in> Rep_preal (S - R)) \<longleftrightarrow> 
        (\<exists>x. 0 < x \<and> 0 < z \<and> x \<notin> Rep_preal R \<and> x + z \<in> Rep_preal S)"
   apply (simp add: preal_diff_def mem_diff_set Rep_preal)
-  apply (force simp add: diff_set_def) 
+  apply (force simp: diff_set_def) 
   done
 
 proposition less_add_left:
@@ -827,7 +821,7 @@ proof -
   have "a + b \<in> Rep_preal S"
     if "a \<in> Rep_preal R" "c + b \<in> Rep_preal S" "c \<notin> Rep_preal R"
     and "0 < b" "0 < c" for a b c
-    by (meson Rep_preal add_less_imp_less_right add_pos_pos not_in_Rep_preal_ub preal_downwards_closed preal_imp_pos that)
+    by (meson cut_Rep_preal add_less_imp_less_right add_pos_pos not_in_Rep_preal_ub preal_downwards_closed preal_imp_pos that)
   then have "R + (S-R) \<le> S"
     using assms mem_Rep_preal_add_iff mem_Rep_preal_diff_iff preal_le_def by auto
   have "x \<in> Rep_preal (R + (S - R))" if "x \<in> Rep_preal S" for x
@@ -843,8 +837,8 @@ proof -
       have xpos: "x > 0"
         using Rep_preal preal_imp_pos that by blast 
       obtain e where epos: "0 < e" and xe: "x + e \<in> Rep_preal S"
-        by (metis Rep_preal x add_eq_exists less_add_same_cancel1 preal_exists_greater)
-      from  Gleason9_34 [OF Rep_preal epos]
+        by (metis cut_Rep_preal x add_eq_exists less_add_same_cancel1 preal_exists_greater)
+      from  Gleason9_34 [OF cut_Rep_preal epos]
       obtain r where r: "r \<in> Rep_preal R" and notin: "r + e \<notin> Rep_preal R" ..
       with x False xpos have rless: "r < x" by (blast intro: not_in_Rep_preal_ub)
       from add_eq_exists [of r x]
@@ -854,7 +848,7 @@ proof -
         show "r + e \<notin> Rep_preal R" by (rule notin)
         show "r + e + y \<in> Rep_preal S" using xe eq by (simp add: ac_simps)
         show "0 < r + e" 
-          using epos preal_imp_pos [OF Rep_preal r] by simp
+          using epos preal_imp_pos [OF cut_Rep_preal r] by simp
       qed (use r rless eq in auto)
     qed
     then show ?thesis
@@ -917,15 +911,15 @@ proof -
     using \<open>P \<noteq> {}\<close> mem_Rep_preal_Ex by fastforce
   moreover
   obtain q where "q > 0" and "q \<notin> (\<Union>X \<in> P. Rep_preal(X))"
-    using Rep_preal_exists_bound [of Y] le by (auto simp add: preal_le_def)
+    using Rep_preal_exists_bound [of Y] le by (auto simp: preal_le_def)
   then have "(\<Union>X \<in> P. Rep_preal(X)) \<subset> {0<..}"
-    using Rep_preal preal_imp_pos by auto
+    using cut_Rep_preal preal_imp_pos by force
   moreover
   have "\<And>u z. \<lbrakk>u \<in> (\<Union>X \<in> P. Rep_preal(X)); 0 < z; z < u\<rbrakk> \<Longrightarrow> z \<in> (\<Union>X \<in> P. Rep_preal(X))"
-    by (auto elim: Rep_preal [THEN preal_downwards_closed])
+    by (auto elim: cut_Rep_preal [THEN preal_downwards_closed])
   moreover
   have "\<And>y. y \<in> (\<Union>X \<in> P. Rep_preal(X)) \<Longrightarrow> \<exists>u \<in> (\<Union>X \<in> P. Rep_preal(X)). y < u"
-    by (blast dest: Rep_preal [THEN preal_exists_greater])
+    by (blast dest: cut_Rep_preal [THEN preal_exists_greater])
   ultimately show ?thesis
     by (simp add: Dedekind_Real.cut_def)
 qed
@@ -963,7 +957,7 @@ definition "Real = UNIV//realrel"
 
 typedef real = Real
   morphisms Rep_Real Abs_Real
-  unfolding Real_def by (auto simp add: quotient_def)
+  unfolding Real_def by (auto simp: quotient_def)
 
 text \<open>This doesn't involve the overloaded "real" function: users don't see it\<close>
 definition
@@ -1030,7 +1024,7 @@ lemma preal_trans_lemma:
   by (metis add.left_commute assms preal_add_left_cancel)
 
 lemma equiv_realrel: "equiv UNIV realrel"
-  by (auto simp add: equiv_def refl_on_def sym_def trans_def realrel_def intro: dest: preal_trans_lemma)
+  by (auto simp: equiv_def refl_on_def sym_def trans_def realrel_def intro: dest: preal_trans_lemma)
 
 text\<open>Reduces equality of equivalence classes to the \<^term>\<open>realrel\<close> relation:
   \<^term>\<open>(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)\<close>\<close>
@@ -1065,7 +1059,7 @@ qed
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
   have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
-    by (auto simp add: congruent_def add.commute) 
+    by (auto simp: congruent_def add.commute) 
   thus ?thesis
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
 qed
@@ -1202,7 +1196,7 @@ qed
 subsection\<open>The \<open>\<le>\<close> Ordering\<close>
 
 lemma real_le_refl: "w \<le> (w::real)"
-  by (cases w, force simp add: real_le_def)
+  by (cases w, force simp: real_le_def)
 
 text\<open>The arithmetic decision procedure is not set up for type preal.
   This lemma is currently unused, but it could simplify the proofs of the
@@ -1224,7 +1218,7 @@ lemma real_le_lemma:
 proof -
   have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: assms)
   hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: ac_simps)
-  also have "... \<le> (x2+y1) + (u2+v1)" by (simp add: assms)
+  also have "\<dots> \<le> (x2+y1) + (u2+v1)" by (simp add: assms)
   finally show ?thesis by simp
 qed
 
@@ -1242,19 +1236,19 @@ lemma real_trans_lemma:
   shows "x + v' \<le> u' + (y::preal)"
 proof -
   have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: ac_simps)
-  also have "... \<le> (u+y) + (u+v')" by (simp add: assms)
-  also have "... \<le> (u+y) + (u'+v)" by (simp add: assms)
-  also have "... = (u'+y) + (u+v)"  by (simp add: ac_simps)
+  also have "\<dots> \<le> (u+y) + (u+v')" by (simp add: assms)
+  also have "\<dots> \<le> (u+y) + (u'+v)" by (simp add: assms)
+  also have "\<dots> = (u'+y) + (u+v)"  by (simp add: ac_simps)
   finally show ?thesis by simp
 qed
 
 lemma real_le_trans: "\<lbrakk>i \<le> j; j \<le> k\<rbrakk> \<Longrightarrow> i \<le> (k::real)"
-  by (cases i, cases j, cases k) (auto simp add: real_le intro: real_trans_lemma)
+  by (cases i, cases j, cases k) (auto simp: real_le intro: real_trans_lemma)
 
 instance real :: order
 proof
   show "u < v \<longleftrightarrow> u \<le> v \<and> \<not> v \<le> u" for u v::real
-    by (auto simp add: real_less_def intro: real_le_antisym)
+    by (auto simp: real_less_def intro: real_le_antisym)
 qed (auto intro: real_le_refl real_le_trans real_le_antisym)
 
 instance real :: linorder
@@ -1273,7 +1267,7 @@ definition
   "(sup :: real \<Rightarrow> real \<Rightarrow> real) = max"
 
 instance
-  by standard (auto simp add: inf_real_def sup_real_def max_min_distrib2)
+  by standard (auto simp: inf_real_def sup_real_def max_min_distrib2)
 
 end
 
@@ -1302,7 +1296,7 @@ lemma real_mult_order:
   fixes x y::real
   assumes "0 < x" "0 < y"
   shows "0 < x * y"
-  proof (cases x , cases y)
+  proof (cases x, cases y)
   show "0 < x * y"
     if x: "x = Abs_Real (Dedekind_Real.realrel `` {(x1, x2)})"
       and y: "y = Abs_Real (Dedekind_Real.realrel `` {(y1, y2)})"
@@ -1432,12 +1426,12 @@ proof (rule exI, rule allI)
   next
     assume pos_y: "0 < y"
     then obtain py where y_is_py: "y = real_of_preal py"
-      by (auto simp add: real_gt_zero_preal_Ex)
+      by (auto simp: real_gt_zero_preal_Ex)
 
     obtain a where "a \<in> P" using not_empty_P ..
     with positive_P have a_pos: "0 < a" ..
     then obtain pa where "a = real_of_preal pa"
-      by (auto simp add: real_gt_zero_preal_Ex)
+      by (auto simp: real_gt_zero_preal_Ex)
     hence "pa \<in> ?pP" using \<open>a \<in> P\<close> by auto
     hence pP_not_empty: "?pP \<noteq> {}" by auto
 
@@ -1446,7 +1440,7 @@ proof (rule exI, rule allI)
     from this and \<open>a \<in> P\<close> have "a < sup" ..
     hence "0 < sup" using a_pos by arith
     then obtain possup where "sup = real_of_preal possup"
-      by (auto simp add: real_gt_zero_preal_Ex)
+      by (auto simp: real_gt_zero_preal_Ex)
     hence "\<forall>X \<in> ?pP. X \<le> possup"
       using sup by auto
     with pP_not_empty have psup: "\<And>Z. (\<exists>X \<in> ?pP. Z < X) = (Z < psup ?pP)"
@@ -1457,12 +1451,12 @@ proof (rule exI, rule allI)
       then obtain x where x_in_P: "x \<in> P" and y_less_x: "y < x" ..
       hence "0 < x" using pos_y by arith
       then obtain px where x_is_px: "x = real_of_preal px"
-        by (auto simp add: real_gt_zero_preal_Ex)
+        by (auto simp: real_gt_zero_preal_Ex)
 
       have py_less_X: "\<exists>X \<in> ?pP. py < X"
       proof
         show "py < px" using y_is_py and x_is_px and y_less_x
-          by (simp add: )
+          by simp
         show "px \<in> ?pP" using x_in_P and x_is_px by simp
       qed
 
@@ -1470,18 +1464,18 @@ proof (rule exI, rule allI)
         using psup by simp
       hence "py < psup ?pP" using py_less_X by simp
       thus "y < real_of_preal (psup {w. real_of_preal w \<in> P})"
-        using y_is_py and pos_y by (simp add: )
+        using y_is_py and pos_y by simp
     next
       assume y_less_psup: "y < real_of_preal (psup ?pP)"
 
       hence "py < psup ?pP" using y_is_py
-        by (simp add: )
+        by simp
       then obtain "X" where py_less_X: "py < X" and X_in_pP: "X \<in> ?pP"
         using psup by auto
       then obtain x where x_is_X: "x = real_of_preal X"
         by (simp add: real_gt_zero_preal_Ex)
       hence "y < x" using py_less_X and y_is_py
-        by (simp add: )
+        by simp
       moreover have "x \<in> P" 
         using x_is_X and X_in_pP by simp
       ultimately show "\<exists> x \<in> P. y < x" ..
