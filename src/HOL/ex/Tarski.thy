@@ -444,34 +444,34 @@ proof (intro lub_least ballI)
   qed
 qed
 
-lemma flubH_le_lubH: 
+lemma lubH_is_fixp: 
   assumes "H = {x \<in> A. (x, f x) \<in> r}"
-  shows "(f (lub H cl), lub H cl) \<in> r"
+  shows "lub H cl \<in> fix f A"
 proof -
-  have "(lub H cl, f (lub H cl)) \<in> r"
-    using assms lubH_le_flubH by blast
-  then have "(f (lub H cl), f (f (lub H cl))) \<in> r"
-    by (meson PO_imp_refl_on monotoneE monotone_f refl_on_domain)
-  then have "f (lub H cl) \<in> H"
-    by (metis (no_types, lifting) PO_imp_refl_on assms mem_Collect_eq refl_on_domain)
-  then show ?thesis
-    by (simp add: assms lub_upper)
+  have "(f (lub H cl), lub H cl) \<in> r"
+  proof -
+    have "(lub H cl, f (lub H cl)) \<in> r"
+      using assms lubH_le_flubH by blast
+    then have "(f (lub H cl), f (f (lub H cl))) \<in> r"
+      by (meson PO_imp_refl_on monotoneE monotone_f refl_on_domain)
+    then have "f (lub H cl) \<in> H"
+      by (metis (no_types, lifting) PO_imp_refl_on assms mem_Collect_eq refl_on_domain)
+    then show ?thesis
+      by (simp add: assms lub_upper)
+  qed
+  with assms show ?thesis
+    by (simp add: fix_def antisymE lubH_le_flubH lub_in_lattice)
 qed
 
-
-
-lemma lubH_is_fixp: "H = {x \<in> A. (x, f x) \<in> r} \<Longrightarrow> lub H cl \<in> fix f A"
-  by (simp add: fix_def antisymE flubH_le_lubH lubH_le_flubH lub_in_lattice)
-
-lemma fix_in_H: "\<lbrakk>H = {x \<in> A. (x, f x) \<in> r}; x \<in> P\<rbrakk> \<Longrightarrow> x \<in> H"
-  by (simp add: P_def fix_imp_eq [of _ f A] reflE fix_subset [of f A, THEN subsetD])
-
-lemma fixf_le_lubH: "H = {x \<in> A. (x, f x) \<in> r} \<Longrightarrow> \<forall>x \<in> fix f A. (x, lub H cl) \<in> r"
-  by (metis (no_types, lifting) P_def fix_in_H lub_upper mem_Collect_eq subset_eq)
-
-lemma lubH_least_fixf:
-  "H = {x \<in> A. (x, f x) \<in> r} \<Longrightarrow> \<forall>L. (\<forall>y \<in> fix f A. (y,L) \<in> r) \<longrightarrow> (lub H cl, L) \<in> r"
-  using lubH_is_fixp by blast
+lemma fixf_le_lubH: 
+  assumes "H = {x \<in> A. (x, f x) \<in> r}" "x \<in> fix f A"
+  shows "(x, lub H cl) \<in> r"
+proof -
+  have "x \<in> P \<Longrightarrow> x \<in> H"
+    by (simp add: assms P_def fix_imp_eq [of _ f A] reflE fix_subset [of f A, THEN subsetD])
+  with assms show ?thesis
+    by (metis (no_types, lifting) P_def lub_upper mem_Collect_eq subset_eq)
+qed
 
 
 subsection \<open>Tarski fixpoint theorem 1, first part\<close>
@@ -623,9 +623,8 @@ lemma Bot_intv_not_empty: "x \<in> A \<Longrightarrow> interval r (Bot cl) x \<n
   using Bot_dual_Top Bot_prop intervalI reflE by fastforce
 
 
-subsection \<open>fixed points form a partial order\<close>
-
-lemma fixf_po: "\<lparr>pset = P, order = induced P r\<rparr> \<in> PartialOrder"
+text \<open>the set of fixed points form a partial order\<close>
+proposition fixf_po: "\<lparr>pset = P, order = induced P r\<rparr> \<in> PartialOrder"
   by (simp add: P_def fix_subset po_subset_po)
 
 end
@@ -723,10 +722,8 @@ qed
 end
 
 lemma CompleteLatticeI_simp:
-  "\<lbrakk>po \<in> PartialOrder; \<And>S. S \<subseteq> A \<Longrightarrow> \<exists>L. isLub S po  L; A = pset po\<rbrakk>
-    \<Longrightarrow> po \<in> CompleteLattice"
+  "\<lbrakk>po \<in> PartialOrder; \<And>S. S \<subseteq> A \<Longrightarrow> \<exists>L. isLub S po  L; A = pset po\<rbrakk> \<Longrightarrow> po \<in> CompleteLattice"
   by (metis CompleteLatticeI Rdual)
-
 
 theorem (in CLF) Tarski_full: "\<lparr>pset = P, order = induced P r\<rparr> \<in> CompleteLattice"
 proof (intro CompleteLatticeI_simp allI impI)
