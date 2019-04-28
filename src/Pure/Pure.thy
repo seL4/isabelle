@@ -125,7 +125,7 @@ local
   val _ =
     Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>
       "generate source file, with antiquotations"
-      (Parse.path_binding -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
+      (Parse.path_binding -- (\<^keyword>\<open>=\<close> |-- Parse.embedded_input)
         >> Generated_Files.generate_file_cmd);
 
 

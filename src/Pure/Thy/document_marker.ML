@@ -103,7 +103,7 @@ val _ =
      setup0 (Binding.make ("contributor", \<^here>)) Parse.embedded (meta_data Markup.meta_contributor) #>
      setup0 (Binding.make ("date", \<^here>)) Parse.embedded (meta_data Markup.meta_date) #>
      setup0 (Binding.make ("license", \<^here>)) Parse.embedded (meta_data Markup.meta_license) #>
-     setup0 (Binding.make ("description", \<^here>)) (Parse.input Parse.embedded)
+     setup0 (Binding.make ("description", \<^here>)) Parse.embedded_input
       (fn source => fn ctxt =>
         let
           val (arg, pos) = Input.source_content source;
