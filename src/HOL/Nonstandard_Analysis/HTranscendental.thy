@@ -165,125 +165,144 @@ proof -
 qed
 
 lemma coshr_zero [simp]: "coshr 0 = 1"
-apply (simp add: coshr_def sumhr_split_add
-                   [OF hypnat_one_less_hypnat_omega, symmetric]) 
-apply (rule st_unique, simp)
-apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
-apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
-apply (rule_tac x="whn" in spec)
-apply (unfold sumhr_app, transfer, simp add: cos_coeff_def power_0_left)
-done
+  proof -
+  have "\<forall>x>1. 1 = sumhr (0, 1, \<lambda>n. cos_coeff n * 0 ^ n) + sumhr (1, x, \<lambda>n. cos_coeff n * 0 ^ n)"
+    unfolding sumhr_app by transfer (simp add: power_0_left)
+  then have "sumhr (0, 1, \<lambda>n. cos_coeff n * 0 ^ n) + sumhr (1, whn, \<lambda>n. cos_coeff n * 0 ^ n) \<approx> 1"
+    by auto
+  then show ?thesis
+    unfolding coshr_def
+    using sumhr_split_add [OF hypnat_one_less_hypnat_omega] st_unique by auto
+qed
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) \<approx> 1"
-apply (subgoal_tac "( *f* exp) (0::hypreal) = 1", simp)
-apply (transfer, simp)
-done
+  proof -
+  have "(*f* exp) (0::real star) = 1"
+    by transfer simp
+  then show ?thesis
+    by auto
+qed
 
-lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal \<Longrightarrow> ( *f* exp) (x::hypreal) \<approx> 1"
-apply (case_tac "x = 0")
-apply (cut_tac [2] x = 0 in DERIV_exp)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
-apply (drule_tac x = x in bspec, auto)
-apply (drule_tac c = x in approx_mult1)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] 
-            simp add: mult.assoc)
-apply (rule approx_add_right_cancel [where d="-1"])
-apply (rule approx_sym [THEN [2] approx_trans2])
-apply (auto simp add: mem_infmal_iff)
-done
+lemma STAR_exp_Infinitesimal: 
+  assumes "x \<in> Infinitesimal" shows "( *f* exp) (x::hypreal) \<approx> 1"
+proof (cases "x = 0")
+  case False
+  have "NSDERIV exp 0 :> 1"
+    by (metis DERIV_exp NSDERIV_DERIV_iff exp_zero)
+  then have "((*f* exp) x - 1) / x \<approx> 1"
+    using nsderiv_def False NSDERIVD2 assms by fastforce
+  then have "(*f* exp) x - 1 \<approx> x"
+    using NSDERIVD4 \<open>NSDERIV exp 0 :> 1\<close> assms by fastforce
+  then show ?thesis
+    by (meson Infinitesimal_approx approx_minus_iff approx_trans2 assms not_Infinitesimal_not_zero)
+qed auto
 
 lemma STAR_exp_epsilon [simp]: "( *f* exp) \<epsilon> \<approx> 1"
-by (auto intro: STAR_exp_Infinitesimal)
+  by (auto intro: STAR_exp_Infinitesimal)
 
 lemma STAR_exp_add:
-  "!!(x::'a:: {banach,real_normed_field} star) y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
-by transfer (rule exp_add)
+  "\<And>(x::'a:: {banach,real_normed_field} star) y. ( *f* exp)(x + y) = ( *f* exp) x * ( *f* exp) y"
+  by transfer (rule exp_add)
 
 lemma exphr_hypreal_of_real_exp_eq: "exphr x = hypreal_of_real (exp x)"
-apply (simp add: exphr_def)
-apply (rule st_unique, simp)
-apply (subst starfunNat_sumr [symmetric])
-unfolding atLeast0LessThan
-apply (rule NSLIMSEQ_D [THEN approx_sym])
-apply (rule LIMSEQ_NSLIMSEQ)
-apply (subst sums_def [symmetric])
-apply (cut_tac exp_converges [where x=x], simp)
-apply (rule HNatInfinite_whn)
-done
+proof -
+  have "(\<lambda>n. inverse (fact n) * x ^ n) sums exp x"
+    using exp_converges [of x] by simp
+  then have "(\<lambda>n. \<Sum>n<n. inverse (fact n) * x ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S exp x"
+    using NSsums_def sums_NSsums_iff by blast
+  then have "hypreal_of_real (exp x) \<approx> sumhr (0, whn, \<lambda>n. inverse (fact n) * x ^ n)"
+    unfolding starfunNat_sumr [symmetric] atLeast0LessThan
+    using HNatInfinite_whn NSLIMSEQ_iff approx_sym by blast
+  then show ?thesis
+    unfolding exphr_def using st_eq_approx_iff by auto
+qed
 
 lemma starfun_exp_ge_add_one_self [simp]: "\<And>x::hypreal. 0 \<le> x \<Longrightarrow> (1 + x) \<le> ( *f* exp) x"
-by transfer (rule exp_ge_add_one_self_aux)
+  by transfer (rule exp_ge_add_one_self_aux)
 
-(* exp (oo) is infinite *)
+text\<open>exp maps infinities to infinities\<close>
 lemma starfun_exp_HInfinite:
-     "\<lbrakk>x \<in> HInfinite; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* exp) (x::hypreal) \<in> HInfinite"
-apply (frule starfun_exp_ge_add_one_self)
-apply (rule HInfinite_ge_HInfinite, assumption)
-apply (rule order_trans [of _ "1+x"], auto) 
-done
+  fixes x :: hypreal
+  assumes "x \<in> HInfinite" "0 \<le> x"
+  shows "( *f* exp) x \<in> HInfinite"
+proof -
+  have "x \<le> 1 + x"
+    by simp
+  also have "\<dots> \<le> (*f* exp) x"
+    by (simp add: \<open>0 \<le> x\<close>)
+  finally show ?thesis
+    using HInfinite_ge_HInfinite assms by blast
+qed
 
 lemma starfun_exp_minus:
   "\<And>x::'a:: {banach,real_normed_field} star. ( *f* exp) (-x) = inverse(( *f* exp) x)"
-by transfer (rule exp_minus)
+  by transfer (rule exp_minus)
 
-(* exp (-oo) is infinitesimal *)
+text\<open>exp maps infinitesimals to infinitesimals\<close>
 lemma starfun_exp_Infinitesimal:
-     "\<lbrakk>x \<in> HInfinite; x \<le> 0\<rbrakk> \<Longrightarrow> ( *f* exp) (x::hypreal) \<in> Infinitesimal"
-apply (subgoal_tac "\<exists>y. x = - y")
-apply (rule_tac [2] x = "- x" in exI)
-apply (auto intro!: HInfinite_inverse_Infinitesimal starfun_exp_HInfinite
-            simp add: starfun_exp_minus HInfinite_minus_iff)
-done
+  fixes x :: hypreal
+  assumes "x \<in> HInfinite" "x \<le> 0"
+  shows "( *f* exp) x \<in> Infinitesimal"
+proof -
+  obtain y where "x = -y" "y \<ge> 0"
+    by (metis abs_of_nonpos assms(2) eq_abs_iff')
+  then have "( *f* exp) y \<in> HInfinite"
+    using HInfinite_minus_iff assms(1) starfun_exp_HInfinite by blast
+  then show ?thesis
+    by (simp add: HInfinite_inverse_Infinitesimal \<open>x = - y\<close> starfun_exp_minus)
+qed
 
 lemma starfun_exp_gt_one [simp]: "\<And>x::hypreal. 0 < x \<Longrightarrow> 1 < ( *f* exp) x"
-by transfer (rule exp_gt_one)
+  by transfer (rule exp_gt_one)
 
 abbreviation real_ln :: "real \<Rightarrow> real" where 
   "real_ln \<equiv> ln"
 
 lemma starfun_ln_exp [simp]: "\<And>x. ( *f* real_ln) (( *f* exp) x) = x"
-by transfer (rule ln_exp)
+  by transfer (rule ln_exp)
 
 lemma starfun_exp_ln_iff [simp]: "\<And>x. (( *f* exp)(( *f* real_ln) x) = x) = (0 < x)"
-by transfer (rule exp_ln_iff)
+  by transfer (rule exp_ln_iff)
 
-lemma starfun_exp_ln_eq: "!!u x. ( *f* exp) u = x \<Longrightarrow> ( *f* real_ln) x = u"
-by transfer (rule ln_unique)
+lemma starfun_exp_ln_eq: "\<And>u x. ( *f* exp) u = x \<Longrightarrow> ( *f* real_ln) x = u"
+  by transfer (rule ln_unique)
 
 lemma starfun_ln_less_self [simp]: "\<And>x. 0 < x \<Longrightarrow> ( *f* real_ln) x < x"
-by transfer (rule ln_less_self)
+  by transfer (rule ln_less_self)
 
 lemma starfun_ln_ge_zero [simp]: "\<And>x. 1 \<le> x \<Longrightarrow> 0 \<le> ( *f* real_ln) x"
-by transfer (rule ln_ge_zero)
+  by transfer (rule ln_ge_zero)
 
 lemma starfun_ln_gt_zero [simp]: "\<And>x .1 < x \<Longrightarrow> 0 < ( *f* real_ln) x"
-by transfer (rule ln_gt_zero)
+  by transfer (rule ln_gt_zero)
 
 lemma starfun_ln_not_eq_zero [simp]: "\<And>x. \<lbrakk>0 < x; x \<noteq> 1\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<noteq> 0"
-by transfer simp
+  by transfer simp
 
 lemma starfun_ln_HFinite: "\<lbrakk>x \<in> HFinite; 1 \<le> x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HFinite"
-apply (rule HFinite_bounded)
-apply assumption 
-apply (simp_all add: starfun_ln_less_self order_less_imp_le)
-done
+  by (metis HFinite_HInfinite_iff less_le_trans starfun_exp_HInfinite starfun_exp_ln_iff starfun_ln_ge_zero zero_less_one)
 
 lemma starfun_ln_inverse: "\<And>x. 0 < x \<Longrightarrow> ( *f* real_ln) (inverse x) = -( *f* ln) x"
-by transfer (rule ln_inverse)
+  by transfer (rule ln_inverse)
 
 lemma starfun_abs_exp_cancel: "\<And>x. \<bar>( *f* exp) (x::hypreal)\<bar> = ( *f* exp) x"
-by transfer (rule abs_exp_cancel)
+  by transfer (rule abs_exp_cancel)
 
 lemma starfun_exp_less_mono: "\<And>x y::hypreal. x < y \<Longrightarrow> ( *f* exp) x < ( *f* exp) y"
-by transfer (rule exp_less_mono)
+  by transfer (rule exp_less_mono)
 
-lemma starfun_exp_HFinite: "x \<in> HFinite \<Longrightarrow> ( *f* exp) (x::hypreal) \<in> HFinite"
-apply (auto simp add: HFinite_def, rename_tac u)
-apply (rule_tac x="( *f* exp) u" in rev_bexI)
-apply (simp add: Reals_eq_Standard)
-apply (simp add: starfun_abs_exp_cancel)
-apply (simp add: starfun_exp_less_mono)
-done
+lemma starfun_exp_HFinite: 
+  fixes x :: hypreal
+  assumes "x \<in> HFinite"
+  shows "( *f* exp) x \<in> HFinite"
+proof -
+  obtain u where "u \<in> \<real>" "\<bar>x\<bar> < u"
+    using HFiniteD assms by force
+  with assms have "\<bar>(*f* exp) x\<bar> < (*f* exp) u" 
+    using starfun_abs_exp_cancel starfun_exp_less_mono by auto
+  with \<open>u \<in> \<real>\<close> show ?thesis
+    by (force simp: HFinite_def Reals_eq_Standard)
+qed
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:
      "\<lbrakk>x \<in> Infinitesimal; z \<in> HFinite\<rbrakk> \<Longrightarrow> ( *f* exp) (z + x::hypreal) \<approx> ( *f* exp) z"
@@ -307,7 +326,7 @@ apply (insert linorder_linear [of x 0])
 apply (auto intro: starfun_exp_HInfinite starfun_exp_Infinitesimal)
 done
 
-(* check out this proof!!! *)
+(* check out this proof\<And>! *)
 lemma starfun_ln_HFinite_not_Infinitesimal:
      "\<lbrakk>x \<in> HFinite - Infinitesimal; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HFinite"
 apply (rule ccontr, drule HInfinite_HFinite_iff [THEN iffD2])
