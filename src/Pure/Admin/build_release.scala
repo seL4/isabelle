@@ -39,7 +39,7 @@ object Build_Release
     def bundle_info(platform: Platform.Family.Value): Bundle_Info =
       platform match {
         case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.xz")
-        case Platform.Family.macos => Bundle_Info(platform, "Mac OS X", dist_name + "_macos.tar.xz")
+        case Platform.Family.macos => Bundle_Info(platform, "macOS", dist_name + "_macos.tar.xz")
         case Platform.Family.windows => Bundle_Info(platform, "Windows", dist_name + ".exe")
       }
   }
