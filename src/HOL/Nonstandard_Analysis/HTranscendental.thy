@@ -8,11 +8,8 @@ Converted to Isar and polished by lcp
 section\<open>Nonstandard Extensions of Transcendental Functions\<close>
 
 theory HTranscendental
-imports Complex_Main HSeries HDeriv Sketch_and_Explore
+imports Complex_Main HSeries HDeriv
 begin
-
-
-sledgehammer_params [timeout = 90]
 
 definition
   exphr :: "real \<Rightarrow> hypreal" where
@@ -305,242 +302,215 @@ proof -
 qed
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:
-     "\<lbrakk>x \<in> Infinitesimal; z \<in> HFinite\<rbrakk> \<Longrightarrow> ( *f* exp) (z + x::hypreal) \<approx> ( *f* exp) z"
-apply (simp add: STAR_exp_add)
-apply (frule STAR_exp_Infinitesimal)
-apply (drule approx_mult2)
-apply (auto intro: starfun_exp_HFinite)
-done
+  fixes x :: hypreal
+  shows "\<lbrakk>x \<in> Infinitesimal; z \<in> HFinite\<rbrakk> \<Longrightarrow> ( *f* exp) (z + x::hypreal) \<approx> ( *f* exp) z"
+  using STAR_exp_Infinitesimal approx_mult2 starfun_exp_HFinite by (fastforce simp add: STAR_exp_add)
 
-(* using previous result to get to result *)
 lemma starfun_ln_HInfinite:
-     "\<lbrakk>x \<in> HInfinite; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HInfinite"
-apply (rule ccontr, drule HFinite_HInfinite_iff [THEN iffD2])
-apply (drule starfun_exp_HFinite)
-apply (simp add: starfun_exp_ln_iff [THEN iffD2] HFinite_HInfinite_iff)
-done
+  "\<lbrakk>x \<in> HInfinite; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HInfinite"
+  by (metis HInfinite_HFinite_iff starfun_exp_HFinite starfun_exp_ln_iff)
 
 lemma starfun_exp_HInfinite_Infinitesimal_disj:
- "x \<in> HInfinite \<Longrightarrow> ( *f* exp) x \<in> HInfinite \<or> ( *f* exp) (x::hypreal) \<in> Infinitesimal"
-apply (insert linorder_linear [of x 0]) 
-apply (auto intro: starfun_exp_HInfinite starfun_exp_Infinitesimal)
-done
+  fixes x :: hypreal
+  shows "x \<in> HInfinite \<Longrightarrow> ( *f* exp) x \<in> HInfinite \<or> ( *f* exp) (x::hypreal) \<in> Infinitesimal"
+  by (meson linear starfun_exp_HInfinite starfun_exp_Infinitesimal)
 
-(* check out this proof\<And>! *)
 lemma starfun_ln_HFinite_not_Infinitesimal:
      "\<lbrakk>x \<in> HFinite - Infinitesimal; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HFinite"
-apply (rule ccontr, drule HInfinite_HFinite_iff [THEN iffD2])
-apply (drule starfun_exp_HInfinite_Infinitesimal_disj)
-apply (simp add: starfun_exp_ln_iff [symmetric] HInfinite_HFinite_iff
-            del: starfun_exp_ln_iff)
-done
+  by (metis DiffD1 DiffD2 HInfinite_HFinite_iff starfun_exp_HInfinite_Infinitesimal_disj starfun_exp_ln_iff)
 
 (* we do proof by considering ln of 1/x *)
 lemma starfun_ln_Infinitesimal_HInfinite:
-     "\<lbrakk>x \<in> Infinitesimal; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x \<in> HInfinite"
-apply (drule Infinitesimal_inverse_HInfinite)
-apply (frule positive_imp_inverse_positive)
-apply (drule_tac [2] starfun_ln_HInfinite)
-apply (auto simp add: starfun_ln_inverse HInfinite_minus_iff)
-done
+  assumes "x \<in> Infinitesimal" "0 < x"
+  shows "( *f* real_ln) x \<in> HInfinite"
+proof -
+  have "inverse x \<in> HInfinite"
+    using Infinitesimal_inverse_HInfinite assms by blast
+  then show ?thesis
+    using HInfinite_minus_iff assms(2) starfun_ln_HInfinite starfun_ln_inverse by fastforce
+qed
 
 lemma starfun_ln_less_zero: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> ( *f* real_ln) x < 0"
-by transfer (rule ln_less_zero)
+  by transfer (rule ln_less_zero)
 
 lemma starfun_ln_Infinitesimal_less_zero:
-     "\<lbrakk>x \<in> Infinitesimal; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x < 0"
-by (auto intro!: starfun_ln_less_zero simp add: Infinitesimal_def)
+  "\<lbrakk>x \<in> Infinitesimal; 0 < x\<rbrakk> \<Longrightarrow> ( *f* real_ln) x < 0"
+  by (auto intro!: starfun_ln_less_zero simp add: Infinitesimal_def)
 
 lemma starfun_ln_HInfinite_gt_zero:
-     "\<lbrakk>x \<in> HInfinite; 0 < x\<rbrakk> \<Longrightarrow> 0 < ( *f* real_ln) x"
-by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
+  "\<lbrakk>x \<in> HInfinite; 0 < x\<rbrakk> \<Longrightarrow> 0 < ( *f* real_ln) x"
+  by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
 
-
-(*
-Goalw [NSLIM_def] "(\<lambda>h. ((x powr h) - 1) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S ln x"
-*)
 
 lemma HFinite_sin [simp]: "sumhr (0, whn, \<lambda>n. sin_coeff n * x ^ n) \<in> HFinite"
-unfolding sumhr_app
-apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
-apply (rule NSBseqD2)
-apply (rule NSconvergent_NSBseq)
-apply (rule convergent_NSconvergent_iff [THEN iffD1])
-apply (rule summable_iff_convergent [THEN iffD1])
-using summable_norm_sin [of x]
-apply (simp add: summable_rabs_cancel)
-done
+proof -
+  have "summable (\<lambda>i. sin_coeff i * x ^ i)"
+    using summable_norm_sin [of x] by (simp add: summable_rabs_cancel)
+  then have "(*f* (\<lambda>n. \<Sum>n<n. sin_coeff n * x ^ n)) whn \<in> HFinite"
+    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_iff
+    using HFinite_star_of HNatInfinite_whn approx_HFinite approx_sym by blast
+  then show ?thesis
+    unfolding sumhr_app
+    by (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
+qed
 
 lemma STAR_sin_zero [simp]: "( *f* sin) 0 = 0"
-by transfer (rule sin_zero)
+  by transfer (rule sin_zero)
 
 lemma STAR_sin_Infinitesimal [simp]:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal \<Longrightarrow> ( *f* sin) x \<approx> x"
-apply (case_tac "x = 0")
-apply (cut_tac [2] x = 0 in DERIV_sin)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
-apply (drule bspec [where x = x], auto)
-apply (drule approx_mult1 [where c = x])
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-           simp add: mult.assoc)
-done
+  assumes "x \<in> Infinitesimal"
+  shows "( *f* sin) x \<approx> x"
+proof (cases "x = 0")
+  case False
+  have "NSDERIV sin 0 :> 1"
+    by (metis DERIV_sin NSDERIV_DERIV_iff cos_zero)
+  then have "(*f* sin) x / x \<approx> 1"
+    using False NSDERIVD2 assms by fastforce
+  with assms show ?thesis
+    unfolding star_one_def
+    by (metis False Infinitesimal_approx Infinitesimal_ratio approx_star_of_HFinite)
+qed auto
 
 lemma HFinite_cos [simp]: "sumhr (0, whn, \<lambda>n. cos_coeff n * x ^ n) \<in> HFinite"
-unfolding sumhr_app
-apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
-apply (rule NSBseqD2)
-apply (rule NSconvergent_NSBseq)
-apply (rule convergent_NSconvergent_iff [THEN iffD1])
-apply (rule summable_iff_convergent [THEN iffD1])
-using summable_norm_cos [of x]
-apply (simp add: summable_rabs_cancel)
-done
+proof -
+  have "summable (\<lambda>i. cos_coeff i * x ^ i)"
+    using summable_norm_cos [of x] by (simp add: summable_rabs_cancel)
+  then have "(*f* (\<lambda>n. \<Sum>n<n. cos_coeff n * x ^ n)) whn \<in> HFinite"
+    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_iff
+    using HFinite_star_of HNatInfinite_whn approx_HFinite approx_sym by blast
+  then show ?thesis
+    unfolding sumhr_app
+    by (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
+qed
 
 lemma STAR_cos_zero [simp]: "( *f* cos) 0 = 1"
-by transfer (rule cos_zero)
+  by transfer (rule cos_zero)
 
 lemma STAR_cos_Infinitesimal [simp]:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal \<Longrightarrow> ( *f* cos) x \<approx> 1"
-apply (case_tac "x = 0")
-apply (cut_tac [2] x = 0 in DERIV_cos)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
-apply (drule bspec [where x = x])
-apply auto
-apply (drule approx_mult1 [where c = x])
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult.assoc)
-apply (rule approx_add_right_cancel [where d = "-1"])
-apply simp
-done
+  assumes "x \<in> Infinitesimal"
+  shows "( *f* cos) x \<approx> 1"
+proof (cases "x = 0")
+  case False
+  have "NSDERIV cos 0 :> 0"
+    by (metis DERIV_cos NSDERIV_DERIV_iff add.inverse_neutral sin_zero)
+  then have "(*f* cos) x - 1 \<approx> 0"
+    using NSDERIV_approx assms by fastforce
+  with assms show ?thesis
+    using approx_minus_iff by blast
+qed auto
 
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"
-by transfer (rule tan_zero)
+  by transfer (rule tan_zero)
 
-lemma STAR_tan_Infinitesimal: "x \<in> Infinitesimal \<Longrightarrow> ( *f* tan) x \<approx> x"
-apply (case_tac "x = 0")
-apply (cut_tac [2] x = 0 in DERIV_tan)
-apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
-apply (drule bspec [where x = x], auto)
-apply (drule approx_mult1 [where c = x])
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-             simp add: mult.assoc)
-done
+lemma STAR_tan_Infinitesimal [simp]:
+  assumes "x \<in> Infinitesimal"
+  shows "( *f* tan) x \<approx> x"
+proof (cases "x = 0")
+  case False
+  have "NSDERIV tan 0 :> 1"
+    using DERIV_tan [of 0] by (simp add: NSDERIV_DERIV_iff)
+  then have "(*f* tan) x / x \<approx> 1"
+    using False NSDERIVD2 assms by fastforce
+  with assms show ?thesis
+    unfolding star_one_def
+    by (metis False Infinitesimal_approx Infinitesimal_ratio approx_star_of_HFinite)
+qed auto
 
 lemma STAR_sin_cos_Infinitesimal_mult:
   fixes x :: "'a::{real_normed_field,banach} star"
   shows "x \<in> Infinitesimal \<Longrightarrow> ( *f* sin) x * ( *f* cos) x \<approx> x"
-using approx_mult_HFinite [of "( *f* sin) x" _ "( *f* cos) x" 1] 
-by (simp add: Infinitesimal_subset_HFinite [THEN subsetD])
+  using approx_mult_HFinite [of "( *f* sin) x" _ "( *f* cos) x" 1] 
+  by (simp add: Infinitesimal_subset_HFinite [THEN subsetD])
 
 lemma HFinite_pi: "hypreal_of_real pi \<in> HFinite"
-by simp
+  by simp
 
-(* lemmas *)
-
-lemma lemma_split_hypreal_of_real:
-     "N \<in> HNatInfinite  
-      \<Longrightarrow> hypreal_of_real a =  
-          hypreal_of_hypnat N * (inverse(hypreal_of_hypnat N) * hypreal_of_real a)"
-by (simp add: mult.assoc [symmetric] zero_less_HNatInfinite)
 
 lemma STAR_sin_Infinitesimal_divide:
   fixes x :: "'a::{real_normed_field,banach} star"
   shows "\<lbrakk>x \<in> Infinitesimal; x \<noteq> 0\<rbrakk> \<Longrightarrow> ( *f* sin) x/x \<approx> 1"
-using DERIV_sin [of "0::'a"]
-by (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
+  using DERIV_sin [of "0::'a"]
+  by (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 
-(*------------------------------------------------------------------------*) 
-(* sin* (1/n) * 1/(1/n) \<approx> 1 for n = oo                                   *)
-(*------------------------------------------------------------------------*)
+subsection \<open>Proving $\sin* (1/n) \times 1/(1/n) \approx 1$ for $n = \infty$ \<close> 
 
 lemma lemma_sin_pi:
-     "n \<in> HNatInfinite  
+  "n \<in> HNatInfinite  
       \<Longrightarrow> ( *f* sin) (inverse (hypreal_of_hypnat n))/(inverse (hypreal_of_hypnat n)) \<approx> 1"
-apply (rule STAR_sin_Infinitesimal_divide)
-apply (auto simp add: zero_less_HNatInfinite)
-done
+  by (simp add: STAR_sin_Infinitesimal_divide zero_less_HNatInfinite)
 
 lemma STAR_sin_inverse_HNatInfinite:
      "n \<in> HNatInfinite  
       \<Longrightarrow> ( *f* sin) (inverse (hypreal_of_hypnat n)) * hypreal_of_hypnat n \<approx> 1"
-apply (frule lemma_sin_pi)
-apply (simp add: divide_inverse)
-done
+  by (metis field_class.field_divide_inverse inverse_inverse_eq lemma_sin_pi)
 
 lemma Infinitesimal_pi_divide_HNatInfinite: 
      "N \<in> HNatInfinite  
       \<Longrightarrow> hypreal_of_real pi/(hypreal_of_hypnat N) \<in> Infinitesimal"
-apply (simp add: divide_inverse)
-apply (auto intro: Infinitesimal_HFinite_mult2)
-done
+  by (simp add: Infinitesimal_HFinite_mult2 field_class.field_divide_inverse)
 
 lemma pi_divide_HNatInfinite_not_zero [simp]:
-     "N \<in> HNatInfinite \<Longrightarrow> hypreal_of_real pi/(hypreal_of_hypnat N) \<noteq> 0"
-by (simp add: zero_less_HNatInfinite)
+  "N \<in> HNatInfinite \<Longrightarrow> hypreal_of_real pi/(hypreal_of_hypnat N) \<noteq> 0"
+  by (simp add: zero_less_HNatInfinite)
 
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi:
-     "n \<in> HNatInfinite  
-      \<Longrightarrow> ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n)) * hypreal_of_hypnat n  
-          \<approx> hypreal_of_real pi"
-apply (frule STAR_sin_Infinitesimal_divide
-               [OF Infinitesimal_pi_divide_HNatInfinite 
-                   pi_divide_HNatInfinite_not_zero])
-apply (auto)
-apply (rule approx_SReal_mult_cancel [of "inverse (hypreal_of_real pi)"])
-apply (auto intro: Reals_inverse simp add: divide_inverse ac_simps)
-done
+  assumes "n \<in> HNatInfinite"
+  shows "(*f* sin) (hypreal_of_real pi / hypreal_of_hypnat n) * hypreal_of_hypnat n \<approx>
+         hypreal_of_real pi"
+proof -
+  have "(*f* sin) (hypreal_of_real pi / hypreal_of_hypnat n) / (hypreal_of_real pi / hypreal_of_hypnat n) \<approx> 1"
+    using Infinitesimal_pi_divide_HNatInfinite STAR_sin_Infinitesimal_divide assms pi_divide_HNatInfinite_not_zero by blast
+  then have "hypreal_of_hypnat n * star_of sin \<star> (hypreal_of_real pi / hypreal_of_hypnat n) / hypreal_of_real pi \<approx> 1"
+    by (simp add: mult.commute starfun_def)
+  then show ?thesis
+    apply (simp add: starfun_def field_simps)
+    by (metis (no_types, lifting) approx_mult_subst_star_of approx_refl mult_cancel_right1 nonzero_eq_divide_eq pi_neq_zero star_of_eq_0)
+qed
 
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi2:
      "n \<in> HNatInfinite  
-      \<Longrightarrow> hypreal_of_hypnat n *  
-          ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n))  
-          \<approx> hypreal_of_real pi"
-apply (rule mult.commute [THEN subst])
-apply (erule STAR_sin_pi_divide_HNatInfinite_approx_pi)
-done
+      \<Longrightarrow> hypreal_of_hypnat n * ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n)) \<approx> hypreal_of_real pi"
+  by (metis STAR_sin_pi_divide_HNatInfinite_approx_pi mult.commute)
 
 lemma starfunNat_pi_divide_n_Infinitesimal: 
      "N \<in> HNatInfinite \<Longrightarrow> ( *f* (\<lambda>x. pi / real x)) N \<in> Infinitesimal"
-by (auto intro!: Infinitesimal_HFinite_mult2 
-         simp add: starfun_mult [symmetric] divide_inverse
-                   starfun_inverse [symmetric] starfunNat_real_of_nat)
+  by (simp add: Infinitesimal_HFinite_mult2 divide_inverse starfunNat_real_of_nat)
 
 lemma STAR_sin_pi_divide_n_approx:
-     "N \<in> HNatInfinite \<Longrightarrow>  
-      ( *f* sin) (( *f* (\<lambda>x. pi / real x)) N) \<approx>  
-      hypreal_of_real pi/(hypreal_of_hypnat N)"
-apply (simp add: starfunNat_real_of_nat [symmetric])
-apply (rule STAR_sin_Infinitesimal)
-apply (simp add: divide_inverse)
-apply (rule Infinitesimal_HFinite_mult2)
-apply (subst starfun_inverse)
-apply (erule starfunNat_inverse_real_of_nat_Infinitesimal)
-apply simp
-done
+  assumes "N \<in> HNatInfinite"
+  shows "( *f* sin) (( *f* (\<lambda>x. pi / real x)) N) \<approx> hypreal_of_real pi/(hypreal_of_hypnat N)"
+proof -
+  have "\<exists>s. (*f* sin) ((*f* (\<lambda>n. pi / real n)) N) \<approx> s \<and> hypreal_of_real pi / hypreal_of_hypnat N \<approx> s"
+    by (metis (lifting) Infinitesimal_approx Infinitesimal_pi_divide_HNatInfinite STAR_sin_Infinitesimal assms starfunNat_pi_divide_n_Infinitesimal)
+  then show ?thesis
+    by (meson approx_trans2)
+qed
 
 lemma NSLIMSEQ_sin_pi: "(\<lambda>n. real n * sin (pi / real n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S pi"
-apply (auto simp add: NSLIMSEQ_def starfun_mult [symmetric] starfunNat_real_of_nat)
-apply (rule_tac f1 = sin in starfun_o2 [THEN subst])
-apply (auto simp add: starfun_mult [symmetric] starfunNat_real_of_nat divide_inverse)
-apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
-apply (auto dest: STAR_sin_pi_divide_HNatInfinite_approx_pi 
-            simp add: starfunNat_real_of_nat mult.commute divide_inverse)
-done
+proof -
+  have *: "hypreal_of_hypnat N * (*f* sin) ((*f* (\<lambda>x. pi / real x)) N) \<approx> hypreal_of_real pi"
+    if "N \<in> HNatInfinite"
+    for N :: "nat star"
+    using that
+    by simp (metis STAR_sin_pi_divide_HNatInfinite_approx_pi2 starfunNat_real_of_nat)
+  show ?thesis
+    by (simp add: NSLIMSEQ_def starfunNat_real_of_nat) (metis * starfun_o2)
+qed
 
 lemma NSLIMSEQ_cos_one: "(\<lambda>n. cos (pi / real n))\<longlonglongrightarrow>\<^sub>N\<^sub>S 1"
-apply (simp add: NSLIMSEQ_def, auto)
-apply (rule_tac f1 = cos in starfun_o2 [THEN subst])
-apply (rule STAR_cos_Infinitesimal)
-apply (auto intro!: Infinitesimal_HFinite_mult2 
-            simp add: starfun_mult [symmetric] divide_inverse
-                      starfun_inverse [symmetric] starfunNat_real_of_nat)
-done
+proof -
+  have "(*f* cos) ((*f* (\<lambda>x. pi / real x)) N) \<approx> 1"
+    if "N \<in> HNatInfinite" for N 
+    using that STAR_cos_Infinitesimal starfunNat_pi_divide_n_Infinitesimal by blast
+  then show ?thesis
+    by (simp add: NSLIMSEQ_def) (metis STAR_cos_Infinitesimal starfunNat_pi_divide_n_Infinitesimal starfun_o2)
+qed
 
 lemma NSLIMSEQ_sin_cos_pi:
-     "(\<lambda>n. real n * sin (pi / real n) * cos (pi / real n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S pi"
-by (insert NSLIMSEQ_mult [OF NSLIMSEQ_sin_pi NSLIMSEQ_cos_one], simp)
+  "(\<lambda>n. real n * sin (pi / real n) * cos (pi / real n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S pi"
+  using NSLIMSEQ_cos_one NSLIMSEQ_mult NSLIMSEQ_sin_pi by force
 
 
 text\<open>A familiar approximation to \<^term>\<open>cos x\<close> when \<^term>\<open>x\<close> is small\<close>
@@ -548,17 +518,18 @@ text\<open>A familiar approximation to \<^term>\<open>cos x\<close> when \<^term
 lemma STAR_cos_Infinitesimal_approx:
   fixes x :: "'a::{real_normed_field,banach} star"
   shows "x \<in> Infinitesimal \<Longrightarrow> ( *f* cos) x \<approx> 1 - x\<^sup>2"
-apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
-apply (auto simp add: Infinitesimal_approx_minus [symmetric] 
-            add.assoc [symmetric] numeral_2_eq_2)
-done
+  by (metis Infinitesimal_square_iff STAR_cos_Infinitesimal approx_diff approx_sym diff_zero mem_infmal_iff power2_eq_square)
 
 lemma STAR_cos_Infinitesimal_approx2:
   fixes x :: hypreal  \<comment> \<open>perhaps could be generalised, like many other hypreal results\<close>
-  shows "x \<in> Infinitesimal \<Longrightarrow> ( *f* cos) x \<approx> 1 - (x\<^sup>2)/2"
-apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
-apply (auto intro: Infinitesimal_SReal_divide Infinitesimal_mult
-            simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)
-done
+  assumes "x \<in> Infinitesimal"
+  shows "( *f* cos) x \<approx> 1 - (x\<^sup>2)/2"
+proof -
+  have "1 \<approx> 1 - x\<^sup>2 / 2"
+    using assms
+    by (auto intro: Infinitesimal_SReal_divide simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)
+  then show ?thesis
+    using STAR_cos_Infinitesimal approx_trans assms by blast
+qed
 
 end
