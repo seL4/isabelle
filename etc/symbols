@@ -394,6 +394,7 @@
 \<^class>               argument: cartouche
 \<^class_syntax>        argument: cartouche
 \<^command_keyword>     argument: cartouche
+\<^const>               argument: cartouche
 \<^const_abbrev>        argument: cartouche
 \<^const_name>          argument: cartouche
 \<^const_syntax>        argument: cartouche
