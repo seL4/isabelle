@@ -38,8 +38,8 @@ object Build_Release
 
     def bundle_info(platform: Platform.Family.Value): Bundle_Info =
       platform match {
-        case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz")
-        case Platform.Family.macos => Bundle_Info(platform, "Mac OS X", dist_name + "_macos.tar.gz")
+        case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.xz")
+        case Platform.Family.macos => Bundle_Info(platform, "Mac OS X", dist_name + "_macos.tar.xz")
         case Platform.Family.windows => Bundle_Info(platform, "Windows", dist_name + ".exe")
       }
   }
@@ -522,11 +522,11 @@ rm -rf "${DIST_NAME}-old"
               isabelle_target + Path.explode(isabelle_name))
             Isabelle_System.rm_tree(linux_app)
 
-            val archive_name = isabelle_name + "_linux.tar.gz"
+            val archive_name = isabelle_name + "_linux.tar.xz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
-              Bash.string(isabelle_name))
+              "-cf- " + Bash.string(isabelle_name) +
+              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
 
 
           case Platform.Family.macos =>
@@ -582,11 +582,11 @@ rm -rf "${DIST_NAME}-old"
 
             // application archive
 
-            val archive_name = isabelle_name + "_macos.tar.gz"
+            val archive_name = isabelle_name + "_macos.tar.xz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
-              File.bash_path(isabelle_app))
+              "-cf- " + File.bash_path(isabelle_app) +
+              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
 
 
           case Platform.Family.windows =>
