@@ -398,12 +398,12 @@ lemma (in monoid) division_weak_partial_order [simp, intro!]:
 
 subsubsection \<open>Multiplication and associativity\<close>
 
-lemma (in monoid_cancel) mult_cong_r:
+lemma (in monoid) mult_cong_r:
   assumes "b \<sim> b'" "a \<in> carrier G"  "b \<in> carrier G"  "b' \<in> carrier G"
   shows "a \<otimes> b \<sim> a \<otimes> b'"
   by (meson assms associated_def divides_mult_lI)
 
-lemma (in comm_monoid_cancel) mult_cong_l:
+lemma (in comm_monoid) mult_cong_l:
   assumes "a \<sim> a'" "a \<in> carrier G"  "a' \<in> carrier G"  "b \<in> carrier G"
   shows "a \<otimes> b \<sim> a' \<otimes> b"
   using assms m_comm mult_cong_r by auto
@@ -723,6 +723,11 @@ proof (elim irreducibleE)
   qed
 qed
 
+lemma divides_irreducible_condition:
+  assumes "irreducible G r" and "a \<in> carrier G"
+  shows "a divides\<^bsub>G\<^esub> r \<Longrightarrow> a \<in> Units G \<or> a \<sim>\<^bsub>G\<^esub> r"
+  using assms unfolding irreducible_def properfactor_def associated_def
+  by (cases "r divides\<^bsub>G\<^esub> a", auto)
 
 subsubsection \<open>Prime elements\<close>
 

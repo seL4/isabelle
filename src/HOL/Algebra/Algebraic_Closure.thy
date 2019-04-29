@@ -39,11 +39,6 @@ abbreviation (in ring) restrict_extensions :: "((('a list \<times> nat) multiset
 
 subsection \<open>Basic Properties\<close>
 
-(* ========== *)
-lemma (in field) is_ring: "ring R"
-  using ring_axioms .
-(* ========== *)
-
 lemma law_restrict_carrier: "carrier (law_restrict R) = carrier R"
   by (simp add: law_restrict_def ring.defs)
 
@@ -371,12 +366,6 @@ end
 
 subsection \<open>Zorn\<close>
 
-(* ========== *)
-lemma Chains_relation_of:
-  assumes "C \<in> Chains (relation_of P A)" shows "C \<subseteq> A"
-  using assms unfolding Chains_def relation_of_def by auto
-(* ========== *)
-
 lemma (in ring) exists_core_chain:
   assumes "C \<in> Chains (relation_of (\<lesssim>) \<S>)" obtains C' where "C' \<subseteq> extensions" and "C = law_restrict ` C'"
   using Chains_relation_of[OF assms] by (meson subset_image_iff)
@@ -645,41 +634,6 @@ proof -
   with \<open>p \<noteq> []\<close> and \<open>x \<in> carrier R\<close> show "is_root p x"
     unfolding is_root_def by simp
 qed
-
-(* MOVE TO Polynomial_Dvisibility.thy ================== *)
-lemma (in domain) associated_polynomials_imp_same_length: (* stronger than "imp_same_degree" *)
-  assumes "subring K R" and "p \<in> carrier (K[X])" and "q \<in> carrier (K[X])"
-  shows "p \<sim>\<^bsub>K[X]\<^esub> q \<Longrightarrow> length p = length q"
-proof -
-  { fix p q
-    assume p: "p \<in> carrier (K[X])" and q: "q \<in> carrier (K[X])" and "p \<sim>\<^bsub>K[X]\<^esub> q"
-    have "length p \<le> length q"
-    proof (cases "q = []")
-      case True with \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p = []"
-        unfolding associated_def True factor_def univ_poly_def by auto
-      thus ?thesis
-        using True by simp
-    next
-      case False
-      from \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p divides\<^bsub>K [X]\<^esub> q"
-        unfolding associated_def by simp
-      hence "p divides\<^bsub>poly_ring R\<^esub> q"
-        using carrier_polynomial[OF assms(1)]
-        unfolding factor_def univ_poly_carrier univ_poly_mult by auto
-      with \<open>q \<noteq> []\<close> have "degree p \<le> degree q"
-        using pdivides_imp_degree_le[OF assms(1) p q] unfolding pdivides_def by simp
-      with \<open>q \<noteq> []\<close> show ?thesis
-        by (cases "p = []", auto simp add: Suc_leI le_diff_iff)
-    qed
-  } note aux_lemma = this
-
-  interpret UP: domain "K[X]"
-    using univ_poly_is_domain[OF assms(1)] .
-
-  assume "p \<sim>\<^bsub>K[X]\<^esub> q" thus ?thesis
-    using aux_lemma[OF assms(2-3)] aux_lemma[OF assms(3,2) UP.associated_sym] by simp
-qed
-(* ================================================= *)
 
 lemma (in domain) associated_polynomials_imp_same_is_root:
   assumes "p \<in> carrier (poly_ring R)" and "q \<in> carrier (poly_ring R)" and "p \<sim>\<^bsub>poly_ring R\<^esub> q"
@@ -1454,19 +1408,6 @@ proof -
     using assms(3)[of a] by auto
 qed
 
-(* REPLACE th following lemmas on Divisibility.thy ============= *)
-(* the only difference is the locale                             *)
-lemma (in monoid) mult_cong_r:
-  assumes "b \<sim> b'" "a \<in> carrier G"  "b \<in> carrier G"  "b' \<in> carrier G"
-  shows "a \<otimes> b \<sim> a \<otimes> b'"
-  by (meson assms associated_def divides_mult_lI)
-
-lemma (in comm_monoid) mult_cong_l:
-  assumes "a \<sim> a'" "a \<in> carrier G"  "a' \<in> carrier G"  "b \<in> carrier G"
-  shows "a \<otimes> b \<sim> a' \<otimes> b"
-  using assms m_comm mult_cong_r by auto
-(* ============================================================= *)
-
 lemma (in field) associated_polynomials_imp_same_roots:
   assumes "p \<in> carrier (poly_ring R)" "p \<noteq> []" and "q \<in> carrier (poly_ring R)" "q \<noteq> []"
   shows "roots (p \<otimes>\<^bsub>poly_ring R\<^esub> q) = roots p + roots q"
@@ -1555,12 +1496,6 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
   qed
 qed
 
-(* MOVE to Divisibility.thy ======== *)
-lemma divides_irreducible_condition:
-  assumes "irreducible G r" and "a \<in> carrier G"
-  shows "a divides\<^bsub>G\<^esub> r \<Longrightarrow> a \<in> Units G \<or> a \<sim>\<^bsub>G\<^esub> r"
-  using assms unfolding irreducible_def properfactor_def associated_def
-  by (cases "r divides\<^bsub>G\<^esub> a", auto)
 
 (* MOVE to Polynomial_Divisibility.thy ======== *)
 lemma (in ring) divides_pirreducible_condition:

@@ -475,6 +475,10 @@ lemma Chains_alt_def:
   shows "Chains r = {C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C}"
   using assms Chains_subset Chains_subset' by blast
 
+lemma Chains_relation_of:
+  assumes "C \<in> Chains (relation_of P A)" shows "C \<subseteq> A"
+  using assms unfolding Chains_def relation_of_def by auto
+
 lemma pairwise_chain_Union:
   assumes P: "\<And>S. S \<in> \<C> \<Longrightarrow> pairwise R S" and "chain\<^sub>\<subseteq> \<C>"
   shows "pairwise R (\<Union>\<C>)"

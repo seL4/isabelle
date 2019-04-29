@@ -643,6 +643,9 @@ subsection \<open>Fields\<close>
 text \<open>Field would not need to be derived from domain, the properties
   for domain follow from the assumptions of field\<close>
 
+lemma (in field) is_ring: "ring R"
+  using ring_axioms .
+
 lemma fieldE :
   fixes R (structure)
   assumes "field R"

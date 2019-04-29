@@ -727,12 +727,37 @@ lemma (in domain) associated_polynomials_iff:
   unfolding univ_poly_units[OF assms(1)] by auto
 
 corollary (in domain) associated_polynomials_imp_same_length: (* stronger than "imp_same_degree" *)
-  assumes "subfield K R" and "p \<in> carrier (K[X])" "q \<in> carrier (K[X])"
+  assumes "subring K R" and "p \<in> carrier (K[X])" and "q \<in> carrier (K[X])"
   shows "p \<sim>\<^bsub>K[X]\<^esub> q \<Longrightarrow> length p = length q"
-  unfolding associated_polynomials_iff[OF assms]
-  using poly_mult_const(1)[OF subfieldE(1)[OF assms(1)],of q] assms(3)
-  by (auto simp add: univ_poly_carrier univ_poly_mult simp del: poly_mult.simps)
+proof -
+  { fix p q
+    assume p: "p \<in> carrier (K[X])" and q: "q \<in> carrier (K[X])" and "p \<sim>\<^bsub>K[X]\<^esub> q"
+    have "length p \<le> length q"
+    proof (cases "q = []")
+      case True with \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p = []"
+        unfolding associated_def True factor_def univ_poly_def by auto
+      thus ?thesis
+        using True by simp
+    next
+      case False
+      from \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p divides\<^bsub>K [X]\<^esub> q"
+        unfolding associated_def by simp
+      hence "p divides\<^bsub>poly_ring R\<^esub> q"
+        using carrier_polynomial[OF assms(1)]
+        unfolding factor_def univ_poly_carrier univ_poly_mult by auto
+      with \<open>q \<noteq> []\<close> have "degree p \<le> degree q"
+        using pdivides_imp_degree_le[OF assms(1) p q] unfolding pdivides_def by simp
+      with \<open>q \<noteq> []\<close> show ?thesis
+        by (cases "p = []", auto simp add: Suc_leI le_diff_iff)
+    qed
+  } note aux_lemma = this
 
+  interpret UP: domain "K[X]"
+    using univ_poly_is_domain[OF assms(1)] .
+
+  assume "p \<sim>\<^bsub>K[X]\<^esub> q" thus ?thesis
+    using aux_lemma[OF assms(2-3)] aux_lemma[OF assms(3,2) UP.associated_sym] by simp
+qed
 
 subsection \<open>Ideals\<close>
 
@@ -772,6 +797,8 @@ proof -
   have "\<And>r. \<lbrakk> r \<in> carrier (K[X]); lead_coeff r = \<one>; I = PIdl\<^bsub>K[X]\<^esub> r \<rbrakk> \<Longrightarrow> r = p"
   proof -
     fix r assume r: "r \<in> carrier (K[X])" "lead_coeff r = \<one>" "I = PIdl\<^bsub>K[X]\<^esub> r"
+    have "subring K R"
+      by (simp add: \<open>subfield K R\<close> subfieldE(1))
     obtain k where k: "k \<in> K - { \<zero> }" "r = [ k ] \<otimes>\<^bsub>K[X]\<^esub> p"
       using UP.associated_iff_same_ideal[OF r(1) in_carrier] PIdl_p r(3)
             associated_polynomials_iff[OF assms(1) r(1) in_carrier]
@@ -780,7 +807,7 @@ proof -
       unfolding polynomial_def by simp
     moreover have "p \<noteq> []"
       using not_nil UP.associated_iff_same_ideal[OF in_carrier q(1)] q(2) PIdl_p
-            associated_polynomials_imp_same_length[OF assms(1) in_carrier q(1)] by auto
+            associated_polynomials_imp_same_length[OF \<open>subring K R\<close> in_carrier q(1)] by auto
     ultimately have "lead_coeff r = k \<otimes> (lead_coeff p)"
       using poly_mult_lead_coeff[OF subfieldE(1)[OF assms(1)]] in_carrier k(2)
       unfolding univ_poly_def by (auto simp del: poly_mult.simps)
