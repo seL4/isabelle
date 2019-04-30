@@ -14,11 +14,8 @@ definition FreeUltrafilterNat :: "nat filter"  (\<open>\<U>\<close>)
   where "\<U> = (SOME U. freeultrafilter U)"
 
 lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
-  apply (unfold FreeUltrafilterNat_def)
-  apply (rule someI_ex)
-  apply (rule freeultrafilter_Ex)
-  apply (rule infinite_UNIV_nat)
-  done
+  unfolding FreeUltrafilterNat_def
+  by (simp add: freeultrafilter_Ex someI_ex)
 
 interpretation FreeUltrafilterNat: freeultrafilter \<U>
   by (rule freeultrafilter_FreeUltrafilterNat)
@@ -42,16 +39,10 @@ theorem star_cases [case_names star_n, cases type: star]:
   by (cases x) (auto simp: star_n_def star_def elim: quotientE)
 
 lemma all_star_eq: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>X. P (star_n X))"
-  apply auto
-  apply (rule_tac x = x in star_cases)
-  apply simp
-  done
+  by (metis star_cases)
 
 lemma ex_star_eq: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>X. P (star_n X))"
-  apply auto
-  apply (rule_tac x=x in star_cases)
-  apply auto
-  done
+  by (metis star_cases)
 
 text \<open>Proving that \<^term>\<open>starrel\<close> is an equivalence relation.\<close>
 
@@ -599,12 +590,16 @@ lemmas star_of_simps [simp] =
 subsection \<open>Ordering and lattice classes\<close>
 
 instance star :: (order) order
-  apply intro_classes
-     apply (transfer, rule less_le_not_le)
-    apply (transfer, rule order_refl)
-   apply (transfer, erule (1) order_trans)
-  apply (transfer, erule (1) order_antisym)
-  done
+proof 
+  show "\<And>x y::'a star. (x < y) = (x \<le> y \<and> \<not> y \<le> x)"
+    by transfer (rule less_le_not_le)
+  show "\<And>x::'a star. x \<le> x"
+    by transfer (rule order_refl)
+  show "\<And>x y z::'a star. \<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> x \<le> z"
+    by transfer (rule order_trans)
+  show "\<And>x y::'a star. \<lbrakk>x \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> x = y"
+    by transfer (rule order_antisym)
+qed
 
 instantiation star :: (semilattice_inf) semilattice_inf
 begin
@@ -639,16 +634,12 @@ instance star :: (linorder) linorder
   by (intro_classes, transfer, rule linorder_linear)
 
 lemma star_max_def [transfer_unfold]: "max = *f2* max"
-  apply (rule ext, rule ext)
-  apply (unfold max_def, transfer, fold max_def)
-  apply (rule refl)
-  done
+  unfolding max_def
+  by (intro ext, transfer, simp)
 
 lemma star_min_def [transfer_unfold]: "min = *f2* min"
-  apply (rule ext, rule ext)
-  apply (unfold min_def, transfer, fold min_def)
-  apply (rule refl)
-  done
+  unfolding min_def
+  by (intro ext, transfer, simp)
 
 lemma Standard_max [simp]: "x \<in> Standard \<Longrightarrow> y \<in> Standard \<Longrightarrow> max x y \<in> Standard"
   by (simp add: star_max_def)
@@ -928,10 +919,9 @@ lemma starset_finite: "finite A \<Longrightarrow> *s* A = star_of ` A"
   by (erule finite_induct) simp_all
 
 instance star :: (finite) finite
-  apply intro_classes
-  apply (subst starset_UNIV [symmetric])
-  apply (subst starset_finite [OF finite])
-  apply (rule finite_imageI [OF finite])
-  done
+proof intro_classes
+  show "finite (UNIV::'a star set)"
+    by (metis starset_UNIV finite finite_imageI starset_finite)
+qed
 
 end

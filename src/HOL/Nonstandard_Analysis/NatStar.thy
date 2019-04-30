@@ -15,33 +15,49 @@ lemma star_n_eq_starfun_whn: "star_n X = ( *f* X) whn"
   by (simp add: hypnat_omega_def starfun_def star_of_def Ifun_star_n)
 
 lemma starset_n_Un: "*sn* (\<lambda>n. (A n) \<union> (B n)) = *sn* A \<union> *sn* B"
-  apply (simp add: starset_n_def star_n_eq_starfun_whn Un_def)
-  apply (rule_tac x=whn in spec, transfer, simp)
-  done
+proof -
+  have "\<And>N. Iset ((*f* (\<lambda>n. {x. x \<in> A n \<or> x \<in> B n})) N) =
+    {x. x \<in> Iset ((*f* A) N) \<or> x \<in> Iset ((*f* B) N)}"
+    by transfer simp
+  then show ?thesis
+    by (simp add: starset_n_def star_n_eq_starfun_whn Un_def)
+qed
 
 lemma InternalSets_Un: "X \<in> InternalSets \<Longrightarrow> Y \<in> InternalSets \<Longrightarrow> X \<union> Y \<in> InternalSets"
   by (auto simp add: InternalSets_def starset_n_Un [symmetric])
 
 lemma starset_n_Int: "*sn* (\<lambda>n. A n \<inter> B n) = *sn* A \<inter> *sn* B"
-  apply (simp add: starset_n_def star_n_eq_starfun_whn Int_def)
-  apply (rule_tac x=whn in spec, transfer, simp)
-  done
+proof -
+  have "\<And>N. Iset ((*f* (\<lambda>n. {x. x \<in> A n \<and> x \<in> B n})) N) =
+    {x. x \<in> Iset ((*f* A) N) \<and> x \<in> Iset ((*f* B) N)}"
+    by transfer simp
+  then show ?thesis
+    by (simp add: starset_n_def star_n_eq_starfun_whn Int_def)
+qed
 
 lemma InternalSets_Int: "X \<in> InternalSets \<Longrightarrow> Y \<in> InternalSets \<Longrightarrow> X \<inter> Y \<in> InternalSets"
   by (auto simp add: InternalSets_def starset_n_Int [symmetric])
 
 lemma starset_n_Compl: "*sn* ((\<lambda>n. - A n)) = - ( *sn* A)"
-  apply (simp add: starset_n_def star_n_eq_starfun_whn Compl_eq)
-  apply (rule_tac x=whn in spec, transfer, simp)
-  done
+proof -
+  have "\<And>N. Iset ((*f* (\<lambda>n. {x. x \<notin> A n})) N) =
+    {x. x \<notin> Iset ((*f* A) N)}"
+    by transfer simp
+  then show ?thesis
+    by (simp add: starset_n_def star_n_eq_starfun_whn Compl_eq)
+qed
 
 lemma InternalSets_Compl: "X \<in> InternalSets \<Longrightarrow> - X \<in> InternalSets"
   by (auto simp add: InternalSets_def starset_n_Compl [symmetric])
 
 lemma starset_n_diff: "*sn* (\<lambda>n. (A n) - (B n)) = *sn* A - *sn* B"
-  apply (simp add: starset_n_def star_n_eq_starfun_whn set_diff_eq)
-  apply (rule_tac x=whn in spec, transfer, simp)
-  done
+proof -
+  have "\<And>N. Iset ((*f* (\<lambda>n. {x. x \<in> A n \<and> x \<notin> B n})) N) =
+    {x. x \<in> Iset ((*f* A) N) \<and> x \<notin> Iset ((*f* B) N)}"
+    by transfer simp
+  then show ?thesis
+    by (simp add: starset_n_def star_n_eq_starfun_whn set_diff_eq)
+qed
 
 lemma InternalSets_diff: "X \<in> InternalSets \<Longrightarrow> Y \<in> InternalSets \<Longrightarrow> X - Y \<in> InternalSets"
   by (auto simp add: InternalSets_def starset_n_diff [symmetric])
@@ -59,9 +75,7 @@ lemma InternalSets_starset_n [simp]: "( *s* X) \<in> InternalSets"
   by (auto simp add: InternalSets_def starset_starset_n_eq)
 
 lemma InternalSets_UNIV_diff: "X \<in> InternalSets \<Longrightarrow> UNIV - X \<in> InternalSets"
-  apply (subgoal_tac "UNIV - X = - X")
-   apply (auto intro: InternalSets_Compl)
-  done
+  by (simp add: InternalSets_Compl diff_eq)
 
 
 subsection \<open>Nonstandard Extensions of Functions\<close>
@@ -104,10 +118,7 @@ lemma starfunNat_real_of_nat: "( *f* real) = hypreal_of_hypnat"
 
 lemma starfun_inverse_real_of_nat_eq:
   "N \<in> HNatInfinite \<Longrightarrow> ( *f* (\<lambda>x::nat. inverse (real x))) N = inverse (hypreal_of_hypnat N)"
-  apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
-  apply (subgoal_tac "hypreal_of_hypnat N \<noteq> 0")
-   apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat)
-  done
+  by (metis of_hypnat_def starfun_inverse2)
 
 text \<open>Internal functions -- some redundancy with \<open>*f*\<close> now.\<close>
 
@@ -144,10 +155,7 @@ lemma starfun_eq_iff: "(( *f* f) = ( *f* g)) \<longleftrightarrow> f = g"
 
 lemma starfunNat_inverse_real_of_nat_Infinitesimal [simp]:
   "N \<in> HNatInfinite \<Longrightarrow> ( *f* (\<lambda>x. inverse (real x))) N \<in> Infinitesimal"
-  apply (rule_tac f1 = inverse in starfun_o2 [THEN subst])
-  apply (subgoal_tac "hypreal_of_hypnat N \<noteq> 0")
-   apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat)
-  done
+  using starfun_inverse_real_of_nat_eq by auto
 
 
 subsection \<open>Nonstandard Characterization of Induction\<close>
@@ -166,23 +174,22 @@ lemma starP2_eq_iff: "( *p2* (=)) = (=)"
 lemma starP2_eq_iff2: "( *p2* (\<lambda>x y. x = y)) X Y \<longleftrightarrow> X = Y"
   by (simp add: starP2_eq_iff)
 
-lemma nonempty_nat_set_Least_mem: "c \<in> S \<Longrightarrow> (LEAST n. n \<in> S) \<in> S"
-  for S :: "nat set"
-  by (erule LeastI)
+lemma nonempty_set_star_has_least_lemma:
+  "\<exists>n\<in>S. \<forall>m\<in>S. n \<le> m" if "S \<noteq> {}" for S :: "nat set"
+proof
+  show "\<forall>m\<in>S. (LEAST n. n \<in> S) \<le> m"
+    by (simp add: Least_le)
+  show "(LEAST n. n \<in> S) \<in> S"
+    by (meson that LeastI_ex equals0I)
+qed
 
 lemma nonempty_set_star_has_least:
   "\<And>S::nat set star. Iset S \<noteq> {} \<Longrightarrow> \<exists>n \<in> Iset S. \<forall>m \<in> Iset S. n \<le> m"
-  apply (transfer empty_def)
-  apply (rule_tac x="LEAST n. n \<in> S" in bexI)
-   apply (simp add: Least_le)
-  apply (rule LeastI_ex, auto)
-  done
+  using nonempty_set_star_has_least_lemma by (transfer empty_def)
 
 lemma nonempty_InternalNatSet_has_least: "S \<in> InternalSets \<Longrightarrow> S \<noteq> {} \<Longrightarrow> \<exists>n \<in> S. \<forall>m \<in> S. n \<le> m"
   for S :: "hypnat set"
-  apply (clarsimp simp add: InternalSets_def starset_n_def)
-  apply (erule nonempty_set_star_has_least)
-  done
+  by (force simp add: InternalSets_def starset_n_def dest!: nonempty_set_star_has_least)
 
 text \<open>Goldblatt, page 129 Thm 11.3.2.\<close>
 lemma internal_induct_lemma:

@@ -154,12 +154,14 @@ lemma hypnat_of_nat_one [simp]: "hypnat_of_nat (Suc 0) = 1"
 lemma hypnat_of_nat_Suc [simp]: "hypnat_of_nat (Suc n) = hypnat_of_nat n + 1"
   by transfer simp
 
-lemma of_nat_eq_add [rule_format]: "\<forall>d::hypnat. of_nat m = of_nat n + d \<longrightarrow> d \<in> range of_nat"
-  apply (induct n)
-   apply (auto simp add: add.assoc)
-  apply (case_tac x)
-   apply (auto simp add: add.commute [of 1])
-  done
+lemma of_nat_eq_add: 
+  fixes d::hypnat
+  shows "of_nat m = of_nat n + d \<Longrightarrow> d \<in> range of_nat"
+proof (induct n arbitrary: d)
+  case (Suc n)
+  then show ?case
+    by (metis Nats_def Nats_eq_Standard Standard_simps(4) hypnat_diff_add_inverse of_nat_in_Nats)
+qed auto
 
 lemma Nats_diff [simp]: "a \<in> Nats \<Longrightarrow> b \<in> Nats \<Longrightarrow> a - b \<in> Nats" for a b :: hypnat
   by (simp add: Nats_eq_Standard)
@@ -224,37 +226,22 @@ lemma zero_not_mem_HNatInfinite [simp]: "0 \<notin> HNatInfinite"
   by (simp add: HNatInfinite_def)
 
 lemma Nats_downward_closed: "x \<in> Nats \<Longrightarrow> y \<le> x \<Longrightarrow> y \<in> Nats" for x y :: hypnat
-  apply (simp only: linorder_not_less [symmetric])
-  apply (erule contrapos_np)
-  apply (drule HNatInfinite_not_Nats_iff [THEN iffD2])
-  apply (erule (1) Nats_less_HNatInfinite)
-  done
+  using HNatInfinite_not_Nats_iff Nats_le_HNatInfinite by fastforce
 
 lemma HNatInfinite_upward_closed: "x \<in> HNatInfinite \<Longrightarrow> x \<le> y \<Longrightarrow> y \<in> HNatInfinite"
-  apply (simp only: HNatInfinite_not_Nats_iff)
-  apply (erule contrapos_nn)
-  apply (erule (1) Nats_downward_closed)
-  done
+  using HNatInfinite_not_Nats_iff Nats_downward_closed by blast
 
 lemma HNatInfinite_add: "x \<in> HNatInfinite \<Longrightarrow> x + y \<in> HNatInfinite"
-  apply (erule HNatInfinite_upward_closed)
-  apply (rule hypnat_le_add1)
-  done
+  using HNatInfinite_upward_closed hypnat_le_add1 by blast
 
 lemma HNatInfinite_add_one: "x \<in> HNatInfinite \<Longrightarrow> x + 1 \<in> HNatInfinite"
   by (rule HNatInfinite_add)
 
-lemma HNatInfinite_diff: "x \<in> HNatInfinite \<Longrightarrow> y \<in> Nats \<Longrightarrow> x - y \<in> HNatInfinite"
-  apply (frule (1) Nats_le_HNatInfinite)
-  apply (simp only: HNatInfinite_not_Nats_iff)
-  apply (erule contrapos_nn)
-  apply (drule (1) Nats_add, simp)
-  done
+lemma HNatInfinite_diff: "\<lbrakk>x \<in> HNatInfinite; y \<in> Nats\<rbrakk> \<Longrightarrow> x - y \<in> HNatInfinite"
+  by (metis HNatInfinite_not_Nats_iff Nats_add Nats_le_HNatInfinite le_add_diff_inverse)
 
 lemma HNatInfinite_is_Suc: "x \<in> HNatInfinite \<Longrightarrow> \<exists>y. x = y + 1" for x :: hypnat
-  apply (rule_tac x = "x - (1::hypnat) " in exI)
-  apply (simp add: Nats_le_HNatInfinite)
-  done
+  using hypnat_gt_zero_iff2 zero_less_HNatInfinite by blast
 
 
 subsection \<open>Existence of an infinite hypernatural number\<close>
@@ -308,32 +295,29 @@ subsubsection \<open>Alternative characterization of the set of infinite hyperna
 
 text \<open>\<^term>\<open>HNatInfinite = {N. \<forall>n \<in> Nats. n < N}\<close>\<close>
 
-(*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
-lemma HNatInfinite_FreeUltrafilterNat_lemma:
-  assumes "\<forall>N::nat. eventually (\<lambda>n. f n \<noteq> N) \<U>"
-  shows "eventually (\<lambda>n. N < f n) \<U>"
-  apply (induct N)
-  using assms
-   apply (drule_tac x = 0 in spec, simp)
-  using assms
-  apply (drule_tac x = "Suc N" in spec)
-  apply (auto elim: eventually_elim2)
-  done
+text\<open>unused, but possibly interesting\<close>
+lemma HNatInfinite_FreeUltrafilterNat_eventually:
+  assumes "\<And>k::nat. eventually (\<lambda>n. f n \<noteq> k) \<U>"
+  shows "eventually (\<lambda>n. m < f n) \<U>"
+proof (induct m)
+  case 0
+  then show ?case
+    using assms eventually_mono by fastforce
+next
+  case (Suc m)
+  then show ?case
+    using assms [of "Suc m"] eventually_elim2 by fastforce
+qed
 
 lemma HNatInfinite_iff: "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"
-  apply (safe intro!: Nats_less_HNatInfinite)
-  apply (auto simp add: HNatInfinite_def)
-  done
+  using HNatInfinite_def Nats_less_HNatInfinite by auto
 
 
 subsubsection \<open>Alternative Characterization of \<^term>\<open>HNatInfinite\<close> using Free Ultrafilter\<close>
 
 lemma HNatInfinite_FreeUltrafilterNat:
   "star_n X \<in> HNatInfinite \<Longrightarrow> \<forall>u. eventually (\<lambda>n. u < X n) \<U>"
-  apply (auto simp add: HNatInfinite_iff SHNat_eq)
-  apply (drule_tac x="star_of u" in spec, simp)
-  apply (simp add: star_of_def star_less_def starP2_star_n)
-  done
+  by (metis (full_types) starP2_star_of starP_star_n star_less_def star_of_less_HNatInfinite)
 
 lemma FreeUltrafilterNat_HNatInfinite:
   "\<forall>u. eventually (\<lambda>n. u < X n) \<U> \<Longrightarrow> star_n X \<in> HNatInfinite"
