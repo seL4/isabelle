@@ -84,6 +84,13 @@ lemma hypreal_sqrt_gt_zero: "\<And>x. 0 < x \<Longrightarrow> 0 < ( *f* sqrt)(x)
 lemma hypreal_sqrt_ge_zero: "0 \<le> x \<Longrightarrow> 0 \<le> ( *f* sqrt)(x)"
   by (auto intro: hypreal_sqrt_gt_zero simp add: order_le_less)
 
+lemma hypreal_sqrt_lessI:
+  "\<And>x u. \<lbrakk>0 < u; x < u\<^sup>2\<rbrakk> \<Longrightarrow> ( *f* sqrt) x < u"
+proof transfer
+  show "\<And>x u. \<lbrakk>0 < u; x < u\<^sup>2\<rbrakk> \<Longrightarrow> sqrt x < u"
+  by (metis less_le real_sqrt_less_iff real_sqrt_pow2 real_sqrt_power) 
+qed
+ 
 lemma hypreal_sqrt_hrabs [simp]: "\<And>x. ( *f* sqrt)(x\<^sup>2) = \<bar>x\<bar>"
   by transfer simp
 
@@ -521,7 +528,7 @@ lemma STAR_cos_Infinitesimal_approx:
   by (metis Infinitesimal_square_iff STAR_cos_Infinitesimal approx_diff approx_sym diff_zero mem_infmal_iff power2_eq_square)
 
 lemma STAR_cos_Infinitesimal_approx2:
-  fixes x :: hypreal  \<comment> \<open>perhaps could be generalised, like many other hypreal results\<close>
+  fixes x :: hypreal 
   assumes "x \<in> Infinitesimal"
   shows "( *f* cos) x \<approx> 1 - (x\<^sup>2)/2"
 proof -
