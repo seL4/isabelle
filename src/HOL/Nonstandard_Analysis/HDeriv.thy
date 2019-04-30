@@ -34,9 +34,6 @@ lemma DERIV_NS_iff: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>h. (f (x +
 lemma NS_DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D"
   by (simp add: DERIV_def LIM_NSLIM_iff)
 
-lemma hnorm_of_hypreal: "\<And>r. hnorm (( *f* of_real) r::'a::real_normed_div_algebra star) = \<bar>r\<bar>"
-  by transfer (rule norm_of_real)
-
 lemma Infinitesimal_of_hypreal:
   "x \<in> Infinitesimal \<Longrightarrow> (( *f* of_real) x::'a::real_normed_div_algebra star) \<in> Infinitesimal"
   by (metis Infinitesimal_of_hypreal_iff of_hypreal_def)

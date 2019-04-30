@@ -72,12 +72,12 @@ lemma HFinite_hcmod_hcomplex_of_complex [simp]:
   "hcmod (hcomplex_of_complex r) \<in> HFinite"
   by (auto intro!: SReal_subset_HFinite [THEN subsetD])
 
-lemma HFinite_hcmod_iff: "(x \<in> HFinite) = (hcmod x \<in> HFinite)"
+lemma HFinite_hcmod_iff [simp]: "hcmod x \<in> HFinite \<longleftrightarrow> x \<in> HFinite"
   by (simp add: HFinite_def)
 
 lemma HFinite_bounded_hcmod:
   "\<lbrakk>x \<in> HFinite; y \<le> hcmod x; 0 \<le> y\<rbrakk> \<Longrightarrow> y \<in> HFinite"
-  by (auto intro: HFinite_bounded simp add: HFinite_hcmod_iff)
+  using HFinite_bounded HFinite_hcmod_iff by blast
 
 
 subsection\<open>The Complex Infinitesimals form a Subring\<close>
@@ -91,7 +91,7 @@ lemma HInfinite_hcmod_iff: "(z \<in> HInfinite) = (hcmod z \<in> HInfinite)"
 
 lemma HFinite_diff_Infinitesimal_hcmod:
   "x \<in> HFinite - Infinitesimal \<Longrightarrow> hcmod x \<in> HFinite - Infinitesimal"
-  by (simp add: HFinite_hcmod_iff Infinitesimal_hcmod_iff)
+  by (simp add: Infinitesimal_hcmod_iff)
 
 lemma hcmod_less_Infinitesimal:
   "\<lbrakk>e \<in> Infinitesimal; hcmod x < hcmod e\<rbrakk> \<Longrightarrow> x \<in> Infinitesimal"
@@ -193,16 +193,21 @@ lemma Infinitesimal_hIm: "x \<in> Infinitesimal \<Longrightarrow> hIm x \<in> In
   using Infinitesimal_hcmod_iff abs_hIm_le_hcmod hrabs_le_Infinitesimal by blast
 
 lemma Infinitesimal_HComplex:
-  "\<lbrakk>x \<in> Infinitesimal; y \<in> Infinitesimal\<rbrakk> \<Longrightarrow> HComplex x y \<in> Infinitesimal"
-apply (rule Infinitesimal_hcmod_iff [THEN iffD2])
-apply (simp add: hcmod_i)
-apply (rule Infinitesimal_add)
-apply (erule Infinitesimal_hrealpow, simp)
-apply (erule Infinitesimal_hrealpow, simp)
-done
+  assumes x: "x \<in> Infinitesimal" and y: "y \<in> Infinitesimal"
+  shows "HComplex x y \<in> Infinitesimal"
+proof -
+  have "hcmod (HComplex 0 y) \<in> Infinitesimal"
+    by (simp add: hcmod_i y)
+  moreover have "hcmod (hcomplex_of_hypreal x) \<in> Infinitesimal" 
+    using Infinitesimal_hcmod_iff Infinitesimal_of_hypreal_iff x by blast
+  ultimately have "hcmod (HComplex x y) \<in> Infinitesimal"
+    by (metis Infinitesimal_add Infinitesimal_hcmod_iff add.right_neutral hcomplex_of_hypreal_add_HComplex)
+  then show ?thesis
+    by (simp add: Infinitesimal_hnorm_iff)
+qed
 
 lemma hcomplex_Infinitesimal_iff:
-  "(x \<in> Infinitesimal) = (hRe x \<in> Infinitesimal \<and> hIm x \<in> Infinitesimal)"
+  "(x \<in> Infinitesimal) \<longleftrightarrow> (hRe x \<in> Infinitesimal \<and> hIm x \<in> Infinitesimal)"
   using Infinitesimal_HComplex Infinitesimal_hIm Infinitesimal_hRe by fastforce
 
 lemma hRe_diff [simp]: "\<And>x y. hRe (x - y) = hRe x - hRe y"
@@ -232,12 +237,16 @@ lemma HFinite_hIm: "x \<in> HFinite \<Longrightarrow> hIm x \<in> HFinite"
   using HFinite_bounded_hcmod abs_ge_zero abs_hIm_le_hcmod by blast
 
 lemma HFinite_HComplex:
-  "\<lbrakk>x \<in> HFinite; y \<in> HFinite\<rbrakk> \<Longrightarrow> HComplex x y \<in> HFinite"
-apply (subgoal_tac "HComplex x 0 + HComplex 0 y \<in> HFinite", simp)
-apply (rule HFinite_add)
-apply (simp add: HFinite_hcmod_iff hcmod_i)
-apply (simp add: HFinite_hcmod_iff hcmod_i)
-done
+  assumes "x \<in> HFinite" "y \<in> HFinite"
+  shows "HComplex x y \<in> HFinite"
+proof -
+  have "HComplex x 0 \<in> HFinite" "HComplex 0 y \<in> HFinite"
+    using HFinite_hcmod_iff assms hcmod_i by fastforce+
+  then have "HComplex x 0 + HComplex 0 y \<in> HFinite"
+    using HFinite_add by blast
+  then show ?thesis
+    by simp
+qed
 
 lemma hcomplex_HFinite_iff:
   "(x \<in> HFinite) = (hRe x \<in> HFinite \<and> hIm x \<in> HFinite)"
@@ -252,12 +261,17 @@ lemma hcomplex_of_hypreal_approx_iff [simp]:
   by (simp add: hcomplex_approx_iff)
 
 (* Here we go - easy proof now!! *)
-lemma stc_part_Ex: "x \<in> HFinite \<Longrightarrow> \<exists>t \<in> SComplex. x \<approx> t"
-apply (simp add: hcomplex_HFinite_iff hcomplex_approx_iff)
-apply (rule_tac x="HComplex (st (hRe x)) (st (hIm x))" in bexI)
-apply (simp add: st_approx_self [THEN approx_sym])
-apply (simp add: Standard_HComplex st_SReal [unfolded Reals_eq_Standard])
-done
+lemma stc_part_Ex:
+  assumes "x \<in> HFinite" 
+  shows "\<exists>t \<in> SComplex. x \<approx> t"
+proof -
+  let ?t = "HComplex (st (hRe x)) (st (hIm x))"
+  have "?t \<in> SComplex"
+    using HFinite_hIm HFinite_hRe Reals_eq_Standard assms st_SReal by auto
+  moreover have "x \<approx> ?t"
+    by (simp add: HFinite_hIm HFinite_hRe assms hcomplex_approx_iff st_HFinite st_eq_approx)
+  ultimately show ?thesis ..
+qed
 
 lemma stc_part_Ex1: "x \<in> HFinite \<Longrightarrow> \<exists>!t. t \<in> SComplex \<and> x \<approx> t"
   using approx_sym approx_unique_complex stc_part_Ex by blast
@@ -342,9 +356,7 @@ lemma stc_not_Infinitesimal: "stc(x) \<noteq> 0 \<Longrightarrow> x \<notin> Inf
 
 lemma stc_inverse:
   "\<lbrakk>x \<in> HFinite; stc x \<noteq> 0\<rbrakk>  \<Longrightarrow> stc(inverse x) = inverse (stc x)"
-  apply (drule stc_not_Infinitesimal)
-  apply (simp add: stc_unique stc_SComplex stc_approx_self approx_inverse)
-  done
+  by (simp add: stc_unique stc_SComplex stc_approx_self approx_inverse stc_not_Infinitesimal)
 
 lemma stc_divide [simp]:
   "\<lbrakk>x \<in> HFinite; y \<in> HFinite; stc y \<noteq> 0\<rbrakk>  
@@ -364,27 +376,15 @@ lemma SComplex_SReal_hcomplex_of_hypreal:
 
 lemma stc_hcomplex_of_hypreal: 
  "z \<in> HFinite \<Longrightarrow> stc(hcomplex_of_hypreal z) = hcomplex_of_hypreal (st z)"
-apply (rule stc_unique)
-apply (rule SComplex_SReal_hcomplex_of_hypreal)
-apply (erule st_SReal)
-apply (simp add: hcomplex_of_hypreal_approx_iff st_approx_self)
-done
+  by (simp add: SComplex_SReal_hcomplex_of_hypreal st_SReal st_approx_self stc_unique)
 
-(*
-Goal "x \<in> HFinite \<Longrightarrow> hcmod(stc x) = st(hcmod x)"
-by (dtac stc_approx_self 1)
-by (auto_tac (claset(),simpset() addsimps [bex_Infinitesimal_iff2 RS sym]));
-
-
-approx_hcmod_add_hcmod
-*)
+lemma hmod_stc_eq:
+  assumes "x \<in> HFinite" 
+  shows "hcmod(stc x) = st(hcmod x)"
+    by (metis SReal_hcmod_SComplex approx_HFinite approx_hnorm assms st_unique stc_SComplex_eq stc_eq_approx_iff stc_part_Ex)
 
 lemma Infinitesimal_hcnj_iff [simp]:
-     "(hcnj z \<in> Infinitesimal) = (z \<in> Infinitesimal)"
-by (simp add: Infinitesimal_hcmod_iff)
-
-lemma Infinitesimal_hcomplex_of_hypreal_epsilon [simp]:
-     "hcomplex_of_hypreal \<epsilon> \<in> Infinitesimal"
-by (simp add: Infinitesimal_hcmod_iff)
+  "(hcnj z \<in> Infinitesimal) \<longleftrightarrow> (z \<in> Infinitesimal)"
+  by (simp add: Infinitesimal_hcmod_iff)
 
 end
