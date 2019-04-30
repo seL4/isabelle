@@ -82,10 +82,8 @@ subsection \<open>Theorems about nonstandard extensions of functions\<close>
 text \<open>Nonstandard extension of a function (defined using a
   constant sequence) as a special case of an internal function.\<close>
 
-lemma starfun_n_starfun: "\<forall>n. F n = f \<Longrightarrow> *fn* F = *f* f"
-  apply (drule fun_eq_iff [THEN iffD2])
-  apply (simp add: starfun_n_def starfun_def star_of_def)
-  done
+lemma starfun_n_starfun: "F = (\<lambda>n. f) \<Longrightarrow> *fn* F = *f* f"
+  by (simp add: starfun_n_def starfun_def star_of_def)
 
 text \<open>Prove that \<open>abs\<close> for hypreal is a nonstandard extension of abs for real w/o
   use of congruence property (proved after this for general
@@ -94,16 +92,13 @@ text \<open>Prove that \<open>abs\<close> for hypreal is a nonstandard extension
   Proof now Uses the ultrafilter tactic!\<close>
 
 lemma hrabs_is_starext_rabs: "is_starext abs abs"
-  apply (simp add: is_starext_def, safe)
-  apply (rule_tac x=x in star_cases)
-  apply (rule_tac x=y in star_cases)
-  apply (unfold star_n_def, auto)
-  apply (rule bexI, rule_tac [2] lemma_starrel_refl)
-  apply (rule bexI, rule_tac [2] lemma_starrel_refl)
-  apply (fold star_n_def)
-  apply (unfold star_abs_def starfun_def star_of_def)
-  apply (simp add: Ifun_star_n star_n_eq_iff)
-  done
+  proof -
+  have "\<exists>f\<in>Rep_star (star_n h). \<exists>g\<in>Rep_star (star_n k). (star_n k = \<bar>star_n h\<bar>) = (\<forall>\<^sub>F n in \<U>. (g n::'a) = \<bar>f n\<bar>)"
+    for x y :: "'a star" and h k
+    by (metis (full_types) Rep_star_star_n star_n_abs star_n_eq_iff)
+  then show ?thesis
+    unfolding is_starext_def by (metis star_cases)
+qed
 
 
 text \<open>Nonstandard extension of functions.\<close>
@@ -153,34 +148,32 @@ text \<open>The NS extension of the identity function.\<close>
 lemma starfun_Id [simp]: "\<And>x. ( *f* (\<lambda>x. x)) x = x"
   by transfer (rule refl)
 
-text \<open>This is trivial, given \<open>starfun_Id\<close>.\<close>
-lemma starfun_Idfun_approx: "x \<approx> star_of a \<Longrightarrow> ( *f* (\<lambda>x. x)) x \<approx> star_of a"
-  by (simp only: starfun_Id)
-
 text \<open>The Star-function is a (nonstandard) extension of the function.\<close>
 lemma is_starext_starfun: "is_starext ( *f* f) f"
-  apply (auto simp: is_starext_def)
-  apply (rule_tac x = x in star_cases)
-  apply (rule_tac x = y in star_cases)
-  apply (auto intro!: bexI [OF _ Rep_star_star_n] simp: starfun star_n_eq_iff)
-  done
+proof -
+  have "\<exists>X\<in>Rep_star x. \<exists>Y\<in>Rep_star y. (y = (*f* f) x) = (\<forall>\<^sub>F n in \<U>. Y n = f (X n))"
+    for x y
+    by (metis (mono_tags) Rep_star_star_n star_cases star_n_eq_iff starfun_star_n)
+  then show ?thesis
+    by (auto simp: is_starext_def)
+qed
 
 text \<open>Any nonstandard extension is in fact the Star-function.\<close>
-lemma is_starfun_starext: "is_starext F f \<Longrightarrow> F = *f* f"
-  apply (simp add: is_starext_def)
-  apply (rule ext)
-  apply (rule_tac x = x in star_cases)
-  apply (drule_tac x = x in spec)
-  apply (drule_tac x = "( *f* f) x" in spec)
-  apply (auto simp add: starfun_star_n)
-  apply (simp add: star_n_eq_iff [symmetric])
-  apply (simp add: starfun_star_n [of f, symmetric])
-  done
+lemma is_starfun_starext:
+  assumes "is_starext F f"
+  shows "F = *f* f"
+  proof -
+  have "F x = (*f* f) x"
+    if "\<forall>x y. \<exists>X\<in>Rep_star x. \<exists>Y\<in>Rep_star y. (y = F x) = (\<forall>\<^sub>F n in \<U>. Y n = f (X n))" for x
+    by (metis that mem_Rep_star_iff star_n_eq_iff starfun_star_n)
+  with assms show ?thesis
+    by (force simp add: is_starext_def)
+qed
 
 lemma is_starext_starfun_iff: "is_starext F f \<longleftrightarrow> F = *f* f"
   by (blast intro: is_starfun_starext is_starext_starfun)
 
-text \<open>Extented function has same solution as its standard version
+text \<open>Extended function has same solution as its standard version
   for real arguments. i.e they are the same for all real arguments.\<close>
 lemma starfun_eq: "( *f* f) (star_of a) = star_of (f a)"
   by (rule starfun_star_of)
@@ -199,9 +192,7 @@ lemma starfun_mult_HFinite_approx:
   "( *f* f) x \<approx> l \<Longrightarrow> ( *f* g) x \<approx> m \<Longrightarrow> l \<in> HFinite \<Longrightarrow> m \<in> HFinite \<Longrightarrow>
     ( *f* (\<lambda>x. f x * g x)) x \<approx> l * m"
   for l m :: "'a::real_normed_algebra star"
-  apply (drule (3) approx_mult_HFinite)
-  apply (auto intro: approx_HFinite [OF _ approx_sym])
-  done
+  using approx_mult_HFinite by auto
 
 lemma starfun_add_approx: "( *f* f) x \<approx> l \<Longrightarrow> ( *f* g) x \<approx> m \<Longrightarrow> ( *f* (%x. f x + g x)) x \<approx> l + m"
   by (auto intro: approx_add)
@@ -259,35 +250,48 @@ lemma Infinitesimal_FreeUltrafilterNat_iff2:
       star_of_nat_def starfun_star_n star_n_inverse star_n_less)
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
-  "n \<in> HNatInfinite \<Longrightarrow> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
-  apply (cases n)
-  apply (auto simp: of_hypnat_def starfun_star_n star_n_inverse
-    HNatInfinite_FreeUltrafilterNat_iff Infinitesimal_FreeUltrafilterNat_iff2)
-  apply (drule_tac x = "Suc m" in spec)
-  apply (auto elim!: eventually_mono)
-  done
+  assumes "n \<in> HNatInfinite"
+  shows "inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
+proof (cases n)
+  case (star_n X)
+  then have *: "\<And>k. \<forall>\<^sub>F n in \<U>. k < X n"
+    using HNatInfinite_FreeUltrafilterNat assms by blast
+  have "\<forall>\<^sub>F n in \<U>. inverse (real (X n)) < inverse (1 + real m)" for m
+    using * [of "Suc m"] by (auto elim!: eventually_mono)
+  then show ?thesis
+    using star_n by (auto simp: of_hypnat_def starfun_star_n star_n_inverse Infinitesimal_FreeUltrafilterNat_iff2)
+qed
 
 lemma approx_FreeUltrafilterNat_iff:
   "star_n X \<approx> star_n Y \<longleftrightarrow> (\<forall>r>0. eventually (\<lambda>n. norm (X n - Y n) < r) \<U>)"
-  apply (subst approx_minus_iff)
-  apply (rule mem_infmal_iff [THEN subst])
-  apply (simp add: star_n_diff)
-  apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
-  done
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (star_n X - star_n Y \<approx> 0)"
+    using approx_minus_iff by blast
+  also have "... = ?rhs"
+    by (metis (full_types) Infinitesimal_FreeUltrafilterNat_iff mem_infmal_iff star_n_diff)
+  finally show ?thesis .
+qed
 
 lemma approx_FreeUltrafilterNat_iff2:
   "star_n X \<approx> star_n Y \<longleftrightarrow> (\<forall>m. eventually (\<lambda>n. norm (X n - Y n) < inverse (real (Suc m))) \<U>)"
-  apply (subst approx_minus_iff)
-  apply (rule mem_infmal_iff [THEN subst])
-  apply (simp add: star_n_diff)
-  apply (simp add: Infinitesimal_FreeUltrafilterNat_iff2)
-  done
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (star_n X - star_n Y \<approx> 0)"
+    using approx_minus_iff by blast
+  also have "... = ?rhs"
+    by (metis (full_types) Infinitesimal_FreeUltrafilterNat_iff2 mem_infmal_iff star_n_diff)
+  finally show ?thesis .
+qed
 
 lemma inj_starfun: "inj starfun"
-  apply (rule inj_onI)
-  apply (rule ext, rule ccontr)
-  apply (drule_tac x = "star_n (\<lambda>n. xa)" in fun_cong)
-  apply (auto simp add: starfun star_n_eq_iff FreeUltrafilterNat.proper)
-  done
+proof (rule inj_onI)
+  show "\<phi> = \<psi>" if eq: "*f* \<phi> = *f* \<psi>" for \<phi> \<psi> :: "'a \<Rightarrow> 'b"
+  proof (rule ext, rule ccontr)
+    show False
+      if "\<phi> x \<noteq> \<psi> x" for x
+      by (metis eq that star_of_inject starfun_eq)
+  qed
+qed
 
 end
