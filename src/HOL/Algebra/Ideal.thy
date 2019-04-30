@@ -193,7 +193,7 @@ proof -
 qed
 
 
-subsection \<open>General Ideal Properies\<close>
+subsection \<open>General Ideal Properties\<close>
 
 lemma (in ideal) one_imp_carrier:
   assumes I_one_closed: "\<one> \<in> I"
@@ -209,6 +209,30 @@ lemma (in ideal) Icarr:
   assumes iI: "i \<in> I"
   shows "i \<in> carrier R"
   using iI by (rule a_Hcarr)
+
+lemma (in ring) quotient_eq_iff_same_a_r_cos:
+  assumes "ideal I R" and "a \<in> carrier R" and "b \<in> carrier R"
+  shows "a \<ominus> b \<in> I \<longleftrightarrow> I +> a = I +> b"
+proof
+  assume "I +> a = I +> b"
+  then obtain i where "i \<in> I" and "\<zero> \<oplus> a = i \<oplus> b"
+    using additive_subgroup.zero_closed[OF ideal.axioms(1)[OF assms(1)]] assms(2)
+    unfolding a_r_coset_def' by blast
+  hence "a \<ominus> b = i"
+    using assms(2-3) by (metis a_minus_def add.inv_solve_right assms(1) ideal.Icarr l_zero)
+  with \<open>i \<in> I\<close> show "a \<ominus> b \<in> I"
+    by simp
+next
+  assume "a \<ominus> b \<in> I"
+  then obtain i where "i \<in> I" and "a = i \<oplus> b"
+    using ideal.Icarr[OF assms(1)] assms(2-3)
+    by (metis a_minus_def add.inv_solve_right)
+  hence "I +> a = (I +> i) +> b"
+    using ideal.Icarr[OF assms(1)] assms(3)
+    by (simp add: a_coset_add_assoc subsetI)
+  with \<open>i \<in> I\<close> show "I +> a = I +> b"
+    using a_rcos_zero[OF assms(1)] by simp
+qed
 
 
 subsection \<open>Intersection of Ideals\<close>

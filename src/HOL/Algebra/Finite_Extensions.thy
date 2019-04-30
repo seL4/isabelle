@@ -293,8 +293,11 @@ proof
         using assms(1) lin(2) unfolding polynomial_def by auto
       hence "eval (normalize (p @ [ k2 ])) x = k1 \<otimes> x \<oplus> k2"
         using eval_append_aux[of p k2 x] eval_normalize[of "p @ [ k2 ]" x] assms(2) p(3) by auto
-      thus ?case
-        using normalize_gives_polynomial[of "p @ [ k2 ]"] polynomial_incl[OF p(2)] lin(2)
+      moreover have "set (p @ [k2]) \<subseteq> K"
+        using polynomial_incl[OF p(2)] \<open>k2 \<in> K\<close> by auto
+      then have "local.normalize (p @ [k2]) \<in> carrier (K [X])"
+        using normalize_gives_polynomial univ_poly_carrier by blast
+      ultimately show ?case
         unfolding univ_poly_carrier by force
     qed
   qed
@@ -720,91 +723,4 @@ proof -
   qed
 qed
 
-
-(*
-proposition (in domain) finite_extension_is_subfield:
-  assumes "subfield K R" "set xs \<subseteq> carrier R"
-  shows "subfield (finite_extension K xs) R \<longleftrightarrow> (algebraic_set over K) (set xs)"
-proof
-  have "(\<And>x. x \<in> set xs \<Longrightarrow> (algebraic over K) x) \<Longrightarrow> subfield (finite_extension K xs) R"
-    using simple_extension_is_subfield algebraic_mono assms
-    by (induct xs) (auto, metis finite_extension.simps finite_extension_incl subring_props(1))
-  thus "(algebraic_set over K) (set xs) \<Longrightarrow> subfield (finite_extension K xs) R"
-    unfolding algebraic_set_def over_def by auto
-next
-  { fix x xs
-    assume x: "x \<in> carrier R" and xs: "set xs \<subseteq> carrier R"
-      and is_subfield: "subfield (finite_extension K (x # xs)) R"
-    hence "(algebraic over K) x" sorry }
-
-  assume "subfield (finite_extension K xs) R" thus "(algebraic_set over K) (set xs)"
-    using assms(2)
-  proof (induct xs)
-    case Nil thus ?case
-      unfolding algebraic_set_def over_def by simp
-  next
-    case (Cons x xs)
-    have "(algebraic over K) x"
-      using simple_extension_subfield_imp_algebraic[OF 
-            finite_extension_is_subring[of K xs], of x]
-
-    then show ?case sorry
-  qed
-qed
-*)
-
-(*
-lemma (in ring) transcendental_imp_trivial_ker:
-  assumes "x \<in> carrier R"
-  shows "(transcendental over K) x \<Longrightarrow> (\<And>p. \<lbrakk> polynomial R p; set p \<subseteq> K \<rbrakk> \<Longrightarrow> eval p x = \<zero> \<Longrightarrow> p = [])"
-proof -
-  fix p assume "(transcendental over K) x" "polynomial R p" "eval p x = \<zero>" "set p \<subseteq> K"
-  moreover have "eval [] x = \<zero>" and "polynomial R []"
-    using assms zero_is_polynomial by auto
-  ultimately show "p = []"
-    unfolding over_def transcendental_def inj_on_def by auto
-qed
-
-lemma (in domain) trivial_ker_imp_transcendental:
-  assumes "subring K R" and "x \<in> carrier R"
-  shows "(\<And>p. \<lbrakk> polynomial R p; set p \<subseteq> K \<rbrakk> \<Longrightarrow> eval p x = \<zero> \<Longrightarrow> p = []) \<Longrightarrow> (transcendental over K) x"
-proof -
-  assume "\<And>p. \<lbrakk> polynomial R p; set p \<subseteq> K \<rbrakk> \<Longrightarrow> eval p x = \<zero> \<Longrightarrow> p = []"
-  hence "a_kernel (univ_poly (R \<lparr> carrier := K \<rparr>)) R (\<lambda>p. local.eval p x) = { [] }"
-    unfolding a_kernel_def' univ_poly_subring_def'[OF assms(1)] by auto
-  moreover have "[] = \<zero>\<^bsub>(univ_poly (R \<lparr> carrier := K \<rparr>))\<^esub>"
-    unfolding univ_poly_def by auto
-  ultimately have "inj_on (\<lambda>p. local.eval p x) (carrier (univ_poly (R \<lparr> carrier := K \<rparr>)))"
-    using ring_hom_ring.trivial_ker_imp_inj[OF eval_ring_hom[OF assms]] by auto
-  thus "(transcendental over K) x"
-    unfolding over_def transcendental_def univ_poly_subring_def'[OF assms(1)] by simp
-qed
-
-lemma (in ring) non_trivial_ker_imp_algebraic:
-  assumes "x \<in> carrier R"
-    and "p \<noteq> []" "polynomial R p" "set p \<subseteq> K" "eval p x = \<zero>"
-  shows "(algebraic over K) x"
-  using transcendental_imp_trivial_ker[OF assms(1) _ assms(3-5)] assms(2)
-  unfolding over_def algebraic_def by auto
-
-lemma (in domain) algebraic_imp_non_trivial_ker:
-  assumes "subring K R" "x \<in> carrier R"
-  shows "(algebraic over K) x \<Longrightarrow> (\<exists>p \<noteq> []. polynomial R p \<and> set p \<subseteq> K \<and> eval p x = \<zero>)"
-  using trivial_ker_imp_transcendental[OF assms]
-  unfolding over_def algebraic_def by auto
-
-lemma (in domain) algebraic_iff:
-  assumes "subring K R" "x \<in> carrier R"
-  shows "(algebraic over K) x \<longleftrightarrow> (\<exists>p \<noteq> []. polynomial R p \<and> set p \<subseteq> K \<and> eval p x = \<zero>)"
-  using non_trivial_ker_imp_algebraic[OF assms(2)] algebraic_imp_non_trivial_ker[OF assms] by auto
-*)
-
-
-(*
-lemma (in field)
-  assumes "subfield K R"
-  shows "subfield (simple_extension K x) R \<longleftrightarrow> (algebraic over K) x"
-  sorry
-
-*)
 end

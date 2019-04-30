@@ -266,7 +266,7 @@ Carmichael's function, primitive roots, more properties for "ord".
 at the level of abstract topological spaces.
 
 * Session HOL-Algebra: Free abelian groups, etc., ported from HOL Light;
-proofs towards algebraic closure by de Vilhena and Baillon.
+ algebraic closure of a field by de Vilhena and Baillon.
 
 * Session HOL-Homology has been added. It is a port of HOL Light's
 homology library, with new proofs of "invariance of domain" and related
