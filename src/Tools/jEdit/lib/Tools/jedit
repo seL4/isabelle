@@ -433,5 +433,6 @@ then
     JEDIT_LOGIC_FOCUS JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
-  exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
+  exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \
+    "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
 fi

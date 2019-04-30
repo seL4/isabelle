@@ -30,7 +30,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
     <runtimeBits>64</runtimeBits>
-    <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
+    <opt>-splash:&quot;%EXEDIR%\lib\logo\isabelle.gif&quot; -Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
   </jre>
   <splash>
     <file>{SPLASH}</file>
