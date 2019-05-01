@@ -34,9 +34,19 @@ fun print_term ctxt t =
   |> Sledgehammer_Util.simplify_spaces
   |> maybe_quote ctxt;
 
-fun print_isar_skeleton ctxt indent keyword (fixes, assms, concl) =
+fun eigen_context_for_statement (fixes, assms, concl) ctxt =
   let
-    val (_, ctxt') = Variable.add_fixes (map fst fixes) ctxt;
+    val (fixes', ctxt') = Variable.add_fixes (map fst fixes) ctxt;
+    val subst_free = AList.lookup (op =) (map fst fixes ~~ fixes')
+    val subst = map_aterms (fn Free (v, T) => Free (the_default v (subst_free v), T)
+      | t => t)
+    val assms' = map subst assms;
+    val concl' = subst concl;
+  in ((fixes, assms', concl'), ctxt') end;
+
+fun print_isar_skeleton ctxt indent keyword stmt =
+  let
+    val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
     val prefix = replicate_string indent " ";
       \<comment> \<open>TODO consider pre-existing indentation -- how?\<close>
     val prefix_sep = "\n" ^ prefix ^ "    and ";
