@@ -519,12 +519,11 @@ proof -
     by simp
 qed
 
-lemma parity_induct [case_names zero even odd]:
-  assumes zero: "P 0"
-  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
-  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
-  shows "P n"
-proof (induct n rule: less_induct)
+lemma nat_parity_induct [case_names zero even odd]:
+  "P n" if zero: "P 0"
+    and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
+    and odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+proof (induction n rule: less_induct)
   case (less n)
   show "P n"
   proof (cases "n = 0")
@@ -535,13 +534,74 @@ proof (induct n rule: less_induct)
     show ?thesis
     proof (cases "even n")
       case True
-      with hyp even [of "n div 2"] show ?thesis
+      then have "n \<noteq> 1"
+        by auto
+      with \<open>n \<noteq> 0\<close> have "n div 2 > 0"
+        by simp
+      with \<open>even n\<close> hyp even [of "n div 2"] show ?thesis
         by simp
     next
       case False
       with hyp odd [of "n div 2"] show ?thesis
         by simp
     qed
+  qed
+qed
+
+lemma int_parity_induct [case_names zero minus even odd]:
+  "P k" if zero_int: "P 0"
+    and minus_int: "P (- 1)"
+    and even_int: "\<And>k. P k \<Longrightarrow> k \<noteq> 0 \<Longrightarrow> P (k * 2)"
+    and odd_int: "\<And>k. P k \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> P (1 + (k * 2))" for k :: int
+proof (cases "k \<ge> 0")
+  case True
+  define n where "n = nat k"
+  with True have "k = int n"
+    by simp
+  then show "P k"
+  proof (induction n arbitrary: k rule: nat_parity_induct)
+    case zero
+    then show ?case
+      by (simp add: zero_int)
+  next
+    case (even n)
+    have "P (int n * 2)"
+      by (rule even_int) (use even in simp_all)
+    with even show ?case
+      by (simp add: ac_simps)
+  next
+    case (odd n)
+    have "P (1 + (int n * 2))"
+      by (rule odd_int) (use odd in simp_all)
+    with odd show ?case
+      by (simp add: ac_simps)
+  qed
+next
+  case False
+  define n where "n = nat (- k - 1)"
+  with False have "k = - int n - 1"
+    by simp
+  then show "P k"
+  proof (induction n arbitrary: k rule: nat_parity_induct)
+    case zero
+    then show ?case
+      by (simp add: minus_int)
+  next
+    case (even n)
+    have "P (1 + (- int (Suc n) * 2))"
+      by (rule odd_int) (use even in \<open>simp_all add: algebra_simps\<close>)
+    also have "\<dots> = - int (2 * n) - 1"
+      by (simp add: algebra_simps)
+    finally show ?case
+      using even by simp
+  next
+    case (odd n)
+    have "P (- int (Suc n) * 2)"
+      by (rule even_int) (use odd in \<open>simp_all add: algebra_simps\<close>)
+    also have "\<dots> = - int (Suc (2 * n)) - 1"
+      by (simp add: algebra_simps)
+    finally show ?case
+      using odd by simp
   qed
 qed
 
@@ -955,5 +1015,15 @@ lemma take_bit_of_Suc_0 [simp]:
 lemma drop_bit_of_Suc_0 [simp]:
   "drop_bit n (Suc 0) = of_bool (n = 0)"
   using drop_bit_of_1 [where ?'a = nat] by simp
+
+
+subsection \<open>Legacy\<close>
+
+lemma parity_induct [case_names zero even odd]:
+  assumes zero: "P 0"
+  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
+  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+  shows "P n"
+  using assms by (rule nat_parity_induct)
 
 end

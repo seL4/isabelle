@@ -2678,6 +2678,26 @@ proof -
   from this that show ?thesis by fastforce
 qed
 
+lemma zip_eq_Nil_iff:
+  "zip xs ys = [] \<longleftrightarrow> xs = [] \<or> ys = []"
+  by (cases xs; cases ys) simp_all
+
+lemma zip_eq_ConsE:
+  assumes "zip xs ys = xy # xys"
+  obtains x xs' y ys' where "xs = x # xs'"
+    and "ys = y # ys'" and "xy = (x, y)"
+    and "xys = zip xs' ys'"
+proof -
+  from assms have "xs \<noteq> []" and "ys \<noteq> []"
+    using zip_eq_Nil_iff [of xs ys] by simp_all
+  then obtain x xs' y ys'  where xs: "xs = x # xs'"
+    and ys: "ys = y # ys'"
+    by (cases xs; cases ys) auto
+  with assms have "xy = (x, y)" and "xys = zip xs' ys'"
+    by simp_all
+  with xs ys show ?thesis ..
+qed
+
 lemma pair_list_eqI:
   assumes "map fst xs = map fst ys" and "map snd xs = map snd ys"
   shows "xs = ys"

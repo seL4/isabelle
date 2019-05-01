@@ -229,6 +229,10 @@ lemma nat_of_num_sqr: "nat_of_num (sqr x) = nat_of_num x * nat_of_num x"
 lemma sqr_conv_mult: "sqr x = x * x"
   by (simp add: num_eq_iff nat_of_num_sqr nat_of_num_mult)
 
+lemma num_double [simp]:
+  "num.Bit0 num.One * n = num.Bit0 n"
+  by (simp add: num_eq_iff nat_of_num_mult)
+
 
 subsection \<open>Binary numerals\<close>
 
