@@ -56,9 +56,6 @@ lemma lemma_not_hyprealA: "x \<notin> hypreal_of_real ` A \<Longrightarrow> \<fo
 lemma lemma_not_starA: "x \<notin> star_of ` A \<Longrightarrow> \<forall>y \<in> A. x \<noteq> star_of y"
   by auto
 
-lemma lemma_Compl_eq: "- {n. X n = xa} = {n. X n \<noteq> xa}"
-  by auto
-
 lemma STAR_real_seq_to_hypreal: "\<forall>n. (X n) \<notin> M \<Longrightarrow> star_n X \<notin> *s* M"
   by (simp add: starset_def star_of_def Iset_star_n FreeUltrafilterNat.proper)
 
