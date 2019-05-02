@@ -234,9 +234,6 @@ lemma HNatInfinite_upward_closed: "x \<in> HNatInfinite \<Longrightarrow> x \<le
 lemma HNatInfinite_add: "x \<in> HNatInfinite \<Longrightarrow> x + y \<in> HNatInfinite"
   using HNatInfinite_upward_closed hypnat_le_add1 by blast
 
-lemma HNatInfinite_add_one: "x \<in> HNatInfinite \<Longrightarrow> x + 1 \<in> HNatInfinite"
-  by (rule HNatInfinite_add)
-
 lemma HNatInfinite_diff: "\<lbrakk>x \<in> HNatInfinite; y \<in> Nats\<rbrakk> \<Longrightarrow> x - y \<in> HNatInfinite"
   by (metis HNatInfinite_not_Nats_iff Nats_add Nats_le_HNatInfinite le_add_diff_inverse)
 

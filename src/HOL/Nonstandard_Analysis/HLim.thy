@@ -62,10 +62,7 @@ lemma NSLIM_add_minus: "f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l \<Longrigh
 
 lemma NSLIM_inverse: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<Longrightarrow> L \<noteq> 0 \<Longrightarrow> (\<lambda>x. inverse (f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (inverse L)"
   for L :: "'a::real_normed_div_algebra"
-  apply (simp add: NSLIM_def, clarify)
-  apply (drule spec)
-  apply (auto simp add: star_of_approx_inverse)
-  done
+  unfolding NSLIM_def by (metis (no_types) star_of_approx_inverse star_of_simps(6) starfun_inverse)
 
 lemma NSLIM_zero:
   assumes f: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l"
@@ -76,27 +73,32 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma NSLIM_zero_cancel: "(\<lambda>x. f x - l) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0 \<Longrightarrow> f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l"
-  apply (drule_tac g = "\<lambda>x. l" and m = l in NSLIM_add)
-   apply (auto simp add: add.assoc)
-  done
+lemma NSLIM_zero_cancel: 
+  assumes "(\<lambda>x. f x - l) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0"
+  shows "f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l"
+proof -
+  have "(\<lambda>x. f x - l + l) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0 + l"
+    by (fast intro: assms NSLIM_const NSLIM_add)
+  then show ?thesis
+    by simp
+qed
 
-lemma NSLIM_const_not_eq: "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
-  for a :: "'a::real_normed_algebra_1"
-  apply (simp add: NSLIM_def)
-  apply (rule_tac x="star_of a + of_hypreal \<epsilon>" in exI)
-  apply (simp add: hypreal_epsilon_not_zero approx_def)
-  done
+lemma NSLIM_const_eq:
+  fixes a :: "'a::real_normed_algebra_1"
+  assumes "(\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l"
+  shows "k = l"
+proof -
+  have "\<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l" if "k \<noteq> l"
+  proof -
+    have "star_of a + of_hypreal \<epsilon> \<approx> star_of a"
+      by (simp add: approx_def)
+    then show ?thesis
+      using hypreal_epsilon_not_zero that by (force simp add: NSLIM_def)
+  qed
+  with assms show ?thesis by metis
+qed
 
-lemma NSLIM_not_zero: "k \<noteq> 0 \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S 0"
-  for a :: "'a::real_normed_algebra_1"
-  by (rule NSLIM_const_not_eq)
-
-lemma NSLIM_const_eq: "(\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<Longrightarrow> k = L"
-  for a :: "'a::real_normed_algebra_1"
-  by (rule ccontr) (blast dest: NSLIM_const_not_eq)
-
-lemma NSLIM_unique: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<Longrightarrow> f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S M \<Longrightarrow> L = M"
+lemma NSLIM_unique: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l \<Longrightarrow> f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S M \<Longrightarrow> l = M"
   for a :: "'a::real_normed_algebra_1"
   by (drule (1) NSLIM_diff) (auto dest!: NSLIM_const_eq)
 
@@ -182,10 +184,7 @@ lemma isNSCont_NSLIM: "isNSCont f a \<Longrightarrow> f \<midarrow>a\<rightarrow
   by (simp add: isNSCont_def NSLIM_def)
 
 lemma NSLIM_isNSCont: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a) \<Longrightarrow> isNSCont f a"
-  apply (auto simp add: isNSCont_def NSLIM_def)
-  apply (case_tac "y = star_of a")
-   apply auto
-  done
+  by (force simp add: isNSCont_def NSLIM_def)
 
 text \<open>NS continuity can be defined using NS Limit in
   similar fashion to standard definition of continuity.\<close>
@@ -214,20 +213,23 @@ text \<open>Alternative definition of continuity.\<close>
 
 text \<open>Prove equivalence between NS limits --
   seems easier than using standard definition.\<close>
-lemma NSLIM_h_iff: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L"
-  apply (simp add: NSLIM_def, auto)
-   apply (drule_tac x = "star_of a + x" in spec)
-   apply (drule_tac [2] x = "- star_of a + x" in spec, safe, simp)
-      apply (erule mem_infmal_iff [THEN iffD2, THEN Infinitesimal_add_approx_self [THEN approx_sym]])
-     apply (erule_tac [3] approx_minus_iff2 [THEN iffD1])
-    prefer 2 apply (simp add: add.commute)
-   apply (rule_tac x = x in star_cases)
-   apply (rule_tac [2] x = x in star_cases)
-   apply (auto simp add: starfun star_of_def star_n_minus star_n_add add.assoc star_n_zero_num)
-  done
-
-lemma NSLIM_isCont_iff: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S f a \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S f a"
-  by (fact NSLIM_h_iff)
+lemma NSLIM_at0_iff: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L"
+proof
+  assume "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
+  then show "(\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L"
+    by (simp add: NSLIM_def) (metis (no_types) add_cancel_left_right approx_add_left_iff starfun_lambda_cancel)
+next
+  assume *: "(\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L"
+  show "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
+  proof (clarsimp simp: NSLIM_def)
+    fix x
+    assume "x \<noteq> star_of a" "x \<approx> star_of a"
+    then have "(*f* (\<lambda>h. f (a + h))) (- star_of a + x) \<approx> star_of L"
+      by (metis (no_types, lifting) "*" NSLIM_D add.right_neutral add_minus_cancel approx_minus_iff2 star_zero_def)
+    then show "(*f* f) x \<approx> star_of L"
+      by (simp add: starfun_lambda_cancel)
+  qed
+qed
 
 lemma isNSCont_minus: "isNSCont f a \<Longrightarrow> isNSCont (\<lambda>x. - f x) a"
   by (simp add: isNSCont_def)

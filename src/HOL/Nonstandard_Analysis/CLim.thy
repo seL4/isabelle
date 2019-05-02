@@ -100,7 +100,7 @@ lemma LIM_CRLIM_Re_Im_iff: "f \<midarrow>a\<rightarrow> L \<longleftrightarrow> 
 subsection \<open>Continuity\<close>
 
 lemma NSLIM_isContc_iff: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S f a \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S f a"
-  by (rule NSLIM_h_iff)
+  by (rule NSLIM_at0_iff)
 
 
 subsection \<open>Functions from Complex to Reals\<close>

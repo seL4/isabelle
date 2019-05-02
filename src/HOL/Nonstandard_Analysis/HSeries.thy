@@ -155,7 +155,7 @@ lemma NSsummable_NSCauchy:
 text \<open>Terms of a convergent series tend to zero.\<close>
 lemma NSsummable_NSLIMSEQ_zero: "NSsummable f \<Longrightarrow> f \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
   apply (auto simp add: NSLIMSEQ_def NSsummable_NSCauchy)
-  by (metis HNatInfinite_add_one approx_hrabs_zero_cancel sumhr_Suc)
+  by (metis HNatInfinite_add approx_hrabs_zero_cancel sumhr_Suc)
 
 text \<open>Nonstandard comparison test.\<close>
 lemma NSsummable_comparison_test: "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> \<bar>f n\<bar> \<le> g n \<Longrightarrow> NSsummable g \<Longrightarrow> NSsummable f"

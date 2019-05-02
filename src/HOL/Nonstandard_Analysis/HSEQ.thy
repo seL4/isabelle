@@ -41,9 +41,6 @@ definition NSCauchy :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow>
 
 subsection \<open>Limits of Sequences\<close>
 
-lemma NSLIMSEQ_iff: "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S L) \<longleftrightarrow> (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
-  by (simp add: NSLIMSEQ_def)
-
 lemma NSLIMSEQ_I: "(\<And>N. N \<in> HNatInfinite \<Longrightarrow> starfun X N \<approx> star_of L) \<Longrightarrow> X \<longlonglongrightarrow>\<^sub>N\<^sub>S L"
   by (simp add: NSLIMSEQ_def)
 
@@ -72,10 +69,6 @@ lemma NSLIMSEQ_minus_cancel: "(\<lambda>n. - X n) \<longlonglongrightarrow>\<^su
 lemma NSLIMSEQ_diff: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b \<Longrightarrow> (\<lambda>n. X n - Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a - b"
   using NSLIMSEQ_add [of X a "- Y" "- b"] by (simp add: NSLIMSEQ_minus fun_Compl_def)
 
-(* FIXME: delete *)
-lemma NSLIMSEQ_add_minus: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b \<Longrightarrow> (\<lambda>n. X n + - Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a + - b"
-  by (simp add: NSLIMSEQ_diff)
-
 lemma NSLIMSEQ_diff_const: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> (\<lambda>n. f n - b) \<longlonglongrightarrow>\<^sub>N\<^sub>S a - b"
   by (simp add: NSLIMSEQ_diff NSLIMSEQ_const)
 
@@ -95,10 +88,8 @@ lemma NSLIMSEQ_norm: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrighta
 
 text \<open>Uniqueness of limit.\<close>
 lemma NSLIMSEQ_unique: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> X \<longlonglongrightarrow>\<^sub>N\<^sub>S b \<Longrightarrow> a = b"
-  apply (simp add: NSLIMSEQ_def)
-  apply (drule HNatInfinite_whn [THEN [2] bspec])+
-  apply (auto dest: approx_trans3)
-  done
+  unfolding NSLIMSEQ_def
+  using HNatInfinite_whn approx_trans3 star_of_approx_iff by blast
 
 lemma NSLIMSEQ_pow [rule_format]: "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S a) \<longrightarrow> ((\<lambda>n. (X n) ^ m) \<longlonglongrightarrow>\<^sub>N\<^sub>S a ^ m)"
   for a :: "'a::{real_normed_algebra,power}"
@@ -109,15 +100,9 @@ text \<open>We can now try and derive a few properties of sequences,
 
 lemma NSLIMSEQ_le: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l \<Longrightarrow> g \<longlonglongrightarrow>\<^sub>N\<^sub>S m \<Longrightarrow> \<exists>N. \<forall>n \<ge> N. f n \<le> g n \<Longrightarrow> l \<le> m"
   for l m :: real
-  apply (simp add: NSLIMSEQ_def, safe)
-  apply (drule starfun_le_mono)
-  apply (drule HNatInfinite_whn [THEN [2] bspec])+
-  apply (drule_tac x = whn in spec)
-  apply (drule bex_Infinitesimal_iff2 [THEN iffD2])+
-  apply clarify
-  apply (auto intro: hypreal_of_real_le_add_Infininitesimal_cancel2)
-  done
-
+  unfolding NSLIMSEQ_def
+  by (metis HNatInfinite_whn bex_Infinitesimal_iff2 hypnat_of_nat_le_whn hypreal_of_real_le_add_Infininitesimal_cancel2 starfun_le_mono)
+ 
 lemma NSLIMSEQ_le_const: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S r \<Longrightarrow> \<forall>n. a \<le> X n \<Longrightarrow> a \<le> r"
   for a r :: real
   by (erule NSLIMSEQ_le [OF NSLIMSEQ_const]) auto
@@ -130,24 +115,30 @@ text \<open>Shift a convergent series by 1:
   By the equivalence between Cauchiness and convergence and because
   the successor of an infinite hypernatural is also infinite.\<close>
 
-lemma NSLIMSEQ_Suc: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l \<Longrightarrow> (\<lambda>n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
-  apply (unfold NSLIMSEQ_def)
-  apply safe
-  apply (drule_tac x="N + 1" in bspec)
-   apply (erule HNatInfinite_add)
-  apply (simp add: starfun_shift_one)
-  done
-
-lemma NSLIMSEQ_imp_Suc: "(\<lambda>n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l \<Longrightarrow> f \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
-  apply (unfold NSLIMSEQ_def)
-  apply safe
-  apply (drule_tac x="N - 1" in bspec)
-   apply (erule Nats_1 [THEN [2] HNatInfinite_diff])
-  apply (simp add: starfun_shift_one one_le_HNatInfinite)
-  done
-
-lemma NSLIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l \<longleftrightarrow> f \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
-  by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
+lemma NSLIMSEQ_Suc_iff: "((\<lambda>n. f (Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l) \<longleftrightarrow> (f \<longlonglongrightarrow>\<^sub>N\<^sub>S l)"
+proof
+  assume *: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
+  show "(\<lambda>n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
+  proof (rule NSLIMSEQ_I)
+    fix N
+    assume "N \<in> HNatInfinite"
+    then have "(*f* f) (N + 1) \<approx> star_of l"
+      by (simp add: HNatInfinite_add NSLIMSEQ_D *)
+    then show "(*f* (\<lambda>n. f (Suc n))) N \<approx> star_of l"
+      by (simp add: starfun_shift_one)
+  qed
+next
+  assume *: "(\<lambda>n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
+  show "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
+  proof (rule NSLIMSEQ_I)
+    fix N
+    assume "N \<in> HNatInfinite"
+    then have "(*f* (\<lambda>n. f (Suc n))) (N - 1) \<approx> star_of l"
+      using * by (simp add: HNatInfinite_diff NSLIMSEQ_D)
+    then show "(*f* f) N \<approx> star_of l"
+      by (simp add: \<open>N \<in> HNatInfinite\<close> one_le_HNatInfinite starfun_shift_one)
+  qed
+qed
 
 
 subsubsection \<open>Equivalence of \<^term>\<open>LIMSEQ\<close> and \<^term>\<open>NSLIMSEQ\<close>\<close>
@@ -262,11 +253,7 @@ lemma Standard_subset_HFinite: "Standard \<subseteq> HFinite"
   by (auto simp: Standard_def)
 
 lemma NSBseqD2: "NSBseq X \<Longrightarrow> ( *f* X) N \<in> HFinite"
-  apply (cases "N \<in> HNatInfinite")
-   apply (erule (1) NSBseqD)
-  apply (rule subsetD [OF Standard_subset_HFinite])
-  apply (simp add: HNatInfinite_def Nats_eq_Standard)
-  done
+  using HNatInfinite_def NSBseq_def Nats_eq_Standard Standard_starfun Standard_subset_HFinite by blast
 
 lemma NSBseqI: "\<forall>N \<in> HNatInfinite. ( *f* X) N \<in> HFinite \<Longrightarrow> NSBseq X"
   by (simp add: NSBseq_def)

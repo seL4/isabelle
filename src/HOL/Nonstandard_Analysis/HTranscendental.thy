@@ -216,7 +216,7 @@ proof -
     using NSsums_def sums_NSsums_iff by blast
   then have "hypreal_of_real (exp x) \<approx> sumhr (0, whn, \<lambda>n. inverse (fact n) * x ^ n)"
     unfolding starfunNat_sumr [symmetric] atLeast0LessThan
-    using HNatInfinite_whn NSLIMSEQ_iff approx_sym by blast
+    using HNatInfinite_whn NSLIMSEQ_def approx_sym by blast
   then show ?thesis
     unfolding exphr_def using st_eq_approx_iff by auto
 qed
@@ -354,7 +354,7 @@ proof -
   have "summable (\<lambda>i. sin_coeff i * x ^ i)"
     using summable_norm_sin [of x] by (simp add: summable_rabs_cancel)
   then have "(*f* (\<lambda>n. \<Sum>n<n. sin_coeff n * x ^ n)) whn \<in> HFinite"
-    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_iff
+    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_def
     using HFinite_star_of HNatInfinite_whn approx_HFinite approx_sym by blast
   then show ?thesis
     unfolding sumhr_app
@@ -384,7 +384,7 @@ proof -
   have "summable (\<lambda>i. cos_coeff i * x ^ i)"
     using summable_norm_cos [of x] by (simp add: summable_rabs_cancel)
   then have "(*f* (\<lambda>n. \<Sum>n<n. cos_coeff n * x ^ n)) whn \<in> HFinite"
-    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_iff
+    unfolding summable_sums_iff sums_NSsums_iff NSsums_def NSLIMSEQ_def
     using HFinite_star_of HNatInfinite_whn approx_HFinite approx_sym by blast
   then show ?thesis
     unfolding sumhr_app
