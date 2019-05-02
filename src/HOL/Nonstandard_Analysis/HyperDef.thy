@@ -201,70 +201,42 @@ subsection \<open>Existence of Infinite Hyperreal Number\<close>
 text \<open>Existence of infinite number not corresponding to any real number.
   Use assumption that member \<^term>\<open>\<U>\<close> is not finite.\<close>
 
-text \<open>A few lemmas first.\<close>
-
-lemma lemma_omega_empty_singleton_disj:
-  "{n::nat. x = real n} = {} \<or> (\<exists>y. {n::nat. x = real n} = {y})"
-  by force
-
-lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
-  using lemma_omega_empty_singleton_disj [of x] by auto
-
-lemma not_ex_hypreal_of_real_eq_omega: "\<nexists>x. hypreal_of_real x = \<omega>"
-  apply (simp add: omega_def star_of_def star_n_eq_iff)
-  apply clarify
-  apply (rule_tac x2="x-1" in lemma_finite_omega_set [THEN FreeUltrafilterNat.finite, THEN notE])
-  apply (erule eventually_mono)
-  apply auto
-  done
-
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> \<omega>"
-  using not_ex_hypreal_of_real_eq_omega by auto
+proof -
+  have False if "\<forall>\<^sub>F n in \<U>. x = 1 + real n" for x
+  proof -
+    have "finite {n::nat. x = 1 + real n}"
+      by (simp add: finite_nat_set_iff_bounded_le) (metis add.commute nat_le_linear nat_le_real_less)
+    then show False
+      using FreeUltrafilterNat.finite that by blast
+  qed
+  then show ?thesis
+    by (auto simp add: omega_def star_of_def star_n_eq_iff)
+qed
 
 text \<open>Existence of infinitesimal number also not corresponding to any real number.\<close>
 
-lemma lemma_epsilon_empty_singleton_disj:
-  "{n::nat. x = inverse(real(Suc n))} = {} \<or> (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
-  by auto
-
-lemma lemma_finite_epsilon_set: "finite {n. x = inverse (real (Suc n))}"
-  using lemma_epsilon_empty_singleton_disj [of x] by auto
-
-lemma not_ex_hypreal_of_real_eq_epsilon: "\<nexists>x. hypreal_of_real x = \<epsilon>"
-  by (auto simp: epsilon_def star_of_def star_n_eq_iff
-      lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite] simp del: of_nat_Suc)
-
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> \<epsilon>"
-  using not_ex_hypreal_of_real_eq_epsilon by auto
+proof -
+  have False if "\<forall>\<^sub>F n in \<U>. x = inverse (1 + real n)" for x
+  proof -
+    have "finite {n::nat. x = inverse (1 + real n)}"
+      by (simp add: finite_nat_set_iff_bounded_le) (metis add.commute inverse_inverse_eq linear nat_le_real_less of_nat_Suc) 
+    then show False
+      using FreeUltrafilterNat.finite that by blast
+  qed
+  then show ?thesis
+    by (auto simp: epsilon_def star_of_def star_n_eq_iff)
+qed
 
 lemma hypreal_epsilon_not_zero: "\<epsilon> \<noteq> 0"
-  by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff FreeUltrafilterNat.proper
-      del: star_of_zero)
+  using hypreal_of_real_not_eq_epsilon by force
 
 lemma hypreal_epsilon_inverse_omega: "\<epsilon> = inverse \<omega>"
   by (simp add: epsilon_def omega_def star_n_inverse)
 
 lemma hypreal_epsilon_gt_zero: "0 < \<epsilon>"
   by (simp add: hypreal_epsilon_inverse_omega)
-
-
-subsection \<open>Absolute Value Function for the Hyperreals\<close>
-
-lemma hrabs_add_less: "\<bar>x\<bar> < r \<Longrightarrow> \<bar>y\<bar> < s \<Longrightarrow> \<bar>x + y\<bar> < r + s"
-  for x y r s :: hypreal
-  by (simp add: abs_if split: if_split_asm)
-
-lemma hrabs_less_gt_zero: "\<bar>x\<bar> < r \<Longrightarrow> 0 < r"
-  for x r :: hypreal
-  by (blast intro!: order_le_less_trans abs_ge_zero)
-
-lemma hrabs_disj: "\<bar>x\<bar> = x \<or> \<bar>x\<bar> = -x"
-  for x :: "'a::abs_if"
-  by (simp add: abs_if)
-
-lemma hrabs_add_lemma_disj: "y + - x + (y + - z) = \<bar>x + - z\<bar> \<Longrightarrow> y = z \<or> x = y"
-  for x y z :: hypreal
-  by (simp add: abs_if split: if_split_asm)
 
 
 subsection \<open>Embedding the Naturals into the Hyperreals\<close>
@@ -425,17 +397,8 @@ lemma hyperpow_mult: "\<And>r s n. (r * s::'a::comm_monoid_mult star) pow n = (r
 lemma hyperpow_two_le [simp]: "\<And>r. (0::'a::{monoid_mult,linordered_ring_strict} star) \<le> r pow 2"
   by (auto simp add: hyperpow_two zero_le_mult_iff)
 
-lemma hrabs_hyperpow_two [simp]:
-  "\<bar>x pow 2\<bar> = (x::'a::{monoid_mult,linordered_ring_strict} star) pow 2"
-  by (simp only: abs_of_nonneg hyperpow_two_le)
-
 lemma hyperpow_two_hrabs [simp]: "\<bar>x::'a::linordered_idom star\<bar> pow 2 = x pow 2"
   by (simp add: hyperpow_hrabs)
-
-text \<open>The precondition could be weakened to \<^term>\<open>0\<le>x\<close>.\<close>
-lemma hypreal_mult_less_mono: "u < v \<Longrightarrow> x < y \<Longrightarrow> 0 < v \<Longrightarrow> 0 < x \<Longrightarrow> u * x < v * y"
-  for u v x y :: hypreal
-  by (simp add: mult_strict_mono order_less_imp_le)
 
 lemma hyperpow_two_gt_one: "\<And>r::'a::linordered_semidom star. 1 < r \<Longrightarrow> 1 < r pow 2"
   by transfer simp
@@ -444,10 +407,7 @@ lemma hyperpow_two_ge_one: "\<And>r::'a::linordered_semidom star. 1 \<le> r \<Lo
   by transfer (rule one_le_power)
 
 lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"
-  apply (rule_tac y = "1 pow n" in order_trans)
-   apply (rule_tac [2] hyperpow_le)
-    apply auto
-  done
+  by (metis hyperpow_eq_one hyperpow_le one_le_numeral zero_less_one)
 
 lemma hyperpow_minus_one2 [simp]: "\<And>n. (- 1) pow (2 * n) = (1::hypreal)"
   by transfer (rule power_minus1_even)
@@ -469,14 +429,10 @@ lemma hyperpow_zero_HNatInfinite [simp]: "N \<in> HNatInfinite \<Longrightarrow>
   by (drule HNatInfinite_is_Suc, auto)
 
 lemma hyperpow_le_le: "(0::hypreal) \<le> r \<Longrightarrow> r \<le> 1 \<Longrightarrow> n \<le> N \<Longrightarrow> r pow N \<le> r pow n"
-  apply (drule order_le_less [of n, THEN iffD1])
-  apply (auto intro: hyperpow_less_le)
-  done
+  by (metis hyperpow_less_le le_less)
 
 lemma hyperpow_Suc_le_self2: "(0::hypreal) \<le> r \<Longrightarrow> r < 1 \<Longrightarrow> r pow (n + (1::hypnat)) \<le> r"
-  apply (drule_tac n = " (1::hypnat) " in hyperpow_le_le)
-    apply auto
-  done
+  by (metis hyperpow_less_le hyperpow_one hypnat_add_self_le le_less)
 
 lemma hyperpow_hypnat_of_nat: "\<And>x. x pow hypnat_of_nat n = x ^ n"
   by transfer (rule refl)
