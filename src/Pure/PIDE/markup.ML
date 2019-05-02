@@ -132,6 +132,7 @@ sig
   val plain_textN: string val plain_text: T
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
+  val document_markerN: string val document_marker: T
   val document_tagN: string val document_tag: string -> T
   val markdown_paragraphN: string val markdown_paragraph: T
   val markdown_itemN: string val markdown_item: T
@@ -521,6 +522,7 @@ val (plain_textN, plain_text) = markup_elem "plain_text";
 val (paragraphN, paragraph) = markup_elem "paragraph";
 val (text_foldN, text_fold) = markup_elem "text_fold";
 
+val (document_markerN, document_marker) = markup_elem "document_marker";
 val (document_tagN, document_tag) = markup_string "document_tag" nameN;
 
 

@@ -37,7 +37,7 @@ val kinds =
       markups = [Markup.language_latex true, Markup.raw_text]}),
    (Marker,
      {symbol = Symbol.marker, blanks = false,
-      markups = [Markup.language_document_marker]})];
+      markups = [Markup.language_document_marker, Markup.document_marker]})];
 
 val get_kind = the o AList.lookup (op =) kinds;
 val print_kind = quote o #symbol o get_kind;
