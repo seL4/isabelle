@@ -240,11 +240,17 @@ object Bibtex
     optional_crossref: List[String],
     optional_other: List[String])
   {
+    val optional_standard: List[String] = List("url", "doi", "ee")
+
     def is_required(s: String): Boolean = required.contains(s.toLowerCase)
     def is_optional(s: String): Boolean =
-      optional_crossref.contains(s.toLowerCase) || optional_other.contains(s.toLowerCase)
+      optional_crossref.contains(s.toLowerCase) ||
+      optional_other.contains(s.toLowerCase) ||
+      optional_standard.contains(s.toLowerCase)
 
-    def fields: List[String] = required ::: optional_crossref ::: optional_other
+    def fields: List[String] =
+      required ::: optional_crossref ::: optional_other ::: optional_standard
+
     def template: String =
       "@" + kind + "{,\n" + fields.map(x => "  " + x + " = {},\n").mkString + "}\n"
   }
