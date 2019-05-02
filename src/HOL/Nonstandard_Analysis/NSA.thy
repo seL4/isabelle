@@ -964,8 +964,8 @@ proof -
       then obtain r where "y < r" "r < x"
         using dense by blast
       then show ?thesis
-        using isUbD [OF that] apply (simp add: )
-        by (meson SReal_dense \<open>y \<in> \<real>\<close> assms greater not_le)
+        using isUbD [OF that]
+        by simp (meson SReal_dense \<open>y \<in> \<real>\<close> assms greater not_le)
     qed auto
   qed
   with assms show ?thesis
@@ -1161,14 +1161,14 @@ lemma not_HInfinite_one [simp]: "1 \<notin> HInfinite"
 
 lemma approx_hrabs_disj: "\<bar>x\<bar> \<approx> x \<or> \<bar>x\<bar> \<approx> -x"
   for x :: hypreal
-  using hrabs_disj [of x] by auto
+  by (simp add: abs_if)
 
 
 subsection \<open>Theorems about Monads\<close>
 
 lemma monad_hrabs_Un_subset: "monad \<bar>x\<bar> \<le> monad x \<union> monad (- x)"
   for x :: hypreal
-  by (rule hrabs_disj [of x, THEN disjE]) auto
+  by (simp add: abs_if)
 
 lemma Infinitesimal_monad_eq: "e \<in> Infinitesimal \<Longrightarrow> monad (x + e) = monad x"
   by (fast intro!: Infinitesimal_add_approx_self [THEN approx_sym] approx_monad_iff [THEN iffD1])
@@ -1184,7 +1184,7 @@ lemma monad_zero_minus_iff: "x \<in> monad 0 \<longleftrightarrow> - x \<in> mon
 
 lemma monad_zero_hrabs_iff: "x \<in> monad 0 \<longleftrightarrow> \<bar>x\<bar> \<in> monad 0"
   for x :: hypreal
-  by (rule hrabs_disj [of x, THEN disjE]) (auto simp: monad_zero_minus_iff [symmetric])
+  using Infinitesimal_monad_zero_iff by blast
 
 lemma mem_monad_self [simp]: "x \<in> monad x"
   by (simp add: monad_def)
@@ -1240,7 +1240,7 @@ lemma approx_hrabs: "x \<approx> y \<Longrightarrow> \<bar>x\<bar> \<approx> \<b
 
 lemma approx_hrabs_zero_cancel: "\<bar>x\<bar> \<approx> 0 \<Longrightarrow> x \<approx> 0"
   for x :: hypreal
-  using hrabs_disj [of x] by (auto dest: approx_minus)
+  using mem_infmal_iff by blast
 
 lemma approx_hrabs_add_Infinitesimal: "e \<in> Infinitesimal \<Longrightarrow> \<bar>x\<bar> \<approx> \<bar>x + e\<bar>"
   for e x :: hypreal
@@ -1614,24 +1614,20 @@ proof (simp only: real_of_nat_less_inverse_iff)
     by auto
 qed
 
-lemma lemma_real_le_Un_eq2:
-  "{n. u \<le> inverse(real(Suc n))} =
-    {n. u < inverse(real(Suc n))} \<union> {n. u = inverse(real(Suc n))}"
-  by (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
-
-lemma finite_inverse_real_of_posnat_ge_real: "0 < u \<Longrightarrow> finite {n. u \<le> inverse (real (Suc n))}"
-  by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_epsilon_set finite_inverse_real_of_posnat_gt_real
-      simp del: of_nat_Suc)
+lemma finite_inverse_real_of_posnat_ge_real:
+  assumes "0 < u"
+  shows "finite {n. u \<le> inverse (real (Suc n))}"
+proof -
+  have "\<forall>na. u \<le> inverse (1 + real na) \<longrightarrow> na \<le> ceiling (inverse u)"
+    by (metis add.commute add1_zle_eq assms ceiling_mono ceiling_of_nat dual_order.order_iff_strict inverse_inverse_eq le_imp_inverse_le semiring_1_class.of_nat_simps(2))
+  then show ?thesis
+    apply (auto simp add: finite_nat_set_iff_bounded_le)
+    by (meson assms inverse_positive_iff_positive le_nat_iff less_imp_le zero_less_ceiling)
+qed
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
   "0 < u \<Longrightarrow> \<not> eventually (\<lambda>n. u \<le> inverse(real(Suc n))) \<U>"
   by (blast intro!: FreeUltrafilterNat.finite finite_inverse_real_of_posnat_ge_real)
-
-text \<open>The complement of \<open>{n. u \<le> inverse(real(Suc n))} = {n. inverse (real (Suc n)) < u}\<close>
-  is in \<open>\<U>\<close> by property of (free) ultrafilters.\<close>
-lemma Compl_le_inverse_eq: "- {n. u \<le> inverse(real(Suc n))} = {n. inverse(real(Suc n)) < u}"
-  by (auto dest!: order_le_less_trans simp add: linorder_not_le)
-
 
 lemma FreeUltrafilterNat_inverse_real_of_posnat:
   "0 < u \<Longrightarrow> eventually (\<lambda>n. inverse(real(Suc n)) < u) \<U>"
