@@ -271,7 +271,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
             " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_OPAM_ROOT=\"$ISABELLE_HOME/opam\"" +
-            " -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/smlnj/bin/sml",
+            " -e ISABELLE_SMLNJ=/mnt/nfsbroy/home/isabelle/smlnj/bin/sml",
           args = "-a",
           detect = Build_Log.Prop.build_tags.undefined,
           history_base = "2c0f24e927dd"),
@@ -317,7 +317,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
-            " -e ISABELLE_SMLNJ=/home/smlnj/bin/sml",
+            " -e ISABELLE_SMLNJ=/home/isabelle/smlnj/bin/sml",
           args = "-N -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")))
