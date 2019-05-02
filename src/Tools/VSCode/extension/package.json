@@ -1,6 +1,6 @@
 {
-    "name": "isabelle",
-    "displayName": "Isabelle",
+    "name": "Isabelle2019",
+    "displayName": "Isabelle2019",
     "description": "Isabelle Prover IDE",
     "keywords": [
         "theorem prover",
