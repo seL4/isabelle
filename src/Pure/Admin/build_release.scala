@@ -726,15 +726,15 @@ rm -rf "${DIST_NAME}-old"
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
             val bundle =
-              release.dist_dir + Path.explode(release.dist_name + "_" + Platform.family + ".tar.gz")
-            execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
+              release.dist_dir + Path.explode(release.dist_name + "_" + Platform.family + ".tar.xz")
+            execute_tar(tmp_dir, "-xJf " + File.bash_path(bundle))
 
             val other_isabelle = release.other_isabelle(tmp_dir)
 
             Isabelle_System.mkdirs(other_isabelle.etc)
             File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
 
-            other_isabelle.bash("bin/isabelle build -j " + parallel_jobs +
+            other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
               " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
               " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
             other_isabelle.isabelle_home_user.file.delete
