@@ -525,8 +525,8 @@ rm -rf "${DIST_NAME}-old"
             val archive_name = isabelle_name + "_linux.tar.xz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-cf- " + Bash.string(isabelle_name) +
-              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
+              "-cJf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+              Bash.string(isabelle_name))
 
 
           case Platform.Family.macos =>
@@ -582,11 +582,11 @@ rm -rf "${DIST_NAME}-old"
 
             // application archive
 
-            val archive_name = isabelle_name + "_macos.tar.xz"
+            val archive_name = isabelle_name + "_macos.tar.gz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-cf- " + File.bash_path(isabelle_app) +
-              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
+              "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+              File.bash_path(isabelle_app))
 
 
           case Platform.Family.windows =>
@@ -725,16 +725,18 @@ rm -rf "${DIST_NAME}-old"
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
+            if (!Platform.is_linux) error("Linux platform required for library archive")
+
             val bundle =
-              release.dist_dir + Path.explode(release.dist_name + "_" + Platform.family + ".tar.gz")
-            execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
+              release.dist_dir + Path.explode(release.dist_name + "_linux.tar.xz")
+            execute_tar(tmp_dir, "-xJf " + File.bash_path(bundle))
 
             val other_isabelle = release.other_isabelle(tmp_dir)
 
             Isabelle_System.mkdirs(other_isabelle.etc)
             File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
 
-            other_isabelle.bash("bin/isabelle build -j " + parallel_jobs +
+            other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
               " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
               " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
             other_isabelle.isabelle_home_user.file.delete
