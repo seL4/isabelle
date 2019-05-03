@@ -209,7 +209,8 @@ INCOMPATIBILITY.
 situations, type conversions are not inserted implicitly any longer
 and need to be given explicitly. Auxiliary abbreviations INFIMUM,
 SUPREMUM, UNION, INTER should now rarely occur in output and are just
-retained as migration auxiliary. INCOMPATIBILITY.
+retained as migration auxiliary. Abbreviations MINIMUM and MAXIMUM
+are gone INCOMPATIBILITY.
 
 * The simplifier uses image_cong_simp as a congruence rule. The historic
 and not really well-formed congruence rules INF_cong*, SUP_cong*, are
