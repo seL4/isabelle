@@ -13,8 +13,7 @@ begin
 subsection \<open>General notion of a topology as a value\<close>
 
 definition\<^marker>\<open>tag important\<close> istopology :: "('a set \<Rightarrow> bool) \<Rightarrow> bool" where
-"istopology L \<longleftrightarrow>
-  L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union>K))"
+  "istopology L \<equiv> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>\<K>. (\<forall>K\<in>\<K>. L K) \<longrightarrow> L (\<Union>\<K>))"
 
 typedef\<^marker>\<open>tag important\<close> 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
@@ -55,7 +54,7 @@ proposition openin_clauses:
     "openin U {}"
     "\<And>S T. openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S\<inter>T)"
     "\<And>K. (\<forall>S \<in> K. openin U S) \<Longrightarrow> openin U (\<Union>K)"
-  using openin[of U] unfolding istopology_def mem_Collect_eq by fast+
+  using openin[of U] unfolding istopology_def by auto
 
 lemma openin_subset[intro]: "openin U S \<Longrightarrow> S \<subseteq> topspace U"
   unfolding topspace_def by blast
