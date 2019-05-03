@@ -582,10 +582,10 @@ rm -rf "${DIST_NAME}-old"
 
             // application archive
 
-            val archive_name = isabelle_name + "_macos.tar.xz"
+            val archive_name = isabelle_name + "_macos.tar.gz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-cJf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+              "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
               File.bash_path(isabelle_app))
 
 
@@ -725,8 +725,10 @@ rm -rf "${DIST_NAME}-old"
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
+            if (!Platform.is_linux) error("Linux platform required for library archive")
+
             val bundle =
-              release.dist_dir + Path.explode(release.dist_name + "_" + Platform.family + ".tar.xz")
+              release.dist_dir + Path.explode(release.dist_name + "_linux.tar.xz")
             execute_tar(tmp_dir, "-xJf " + File.bash_path(bundle))
 
             val other_isabelle = release.other_isabelle(tmp_dir)
