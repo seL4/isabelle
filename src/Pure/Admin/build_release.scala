@@ -525,8 +525,8 @@ rm -rf "${DIST_NAME}-old"
             val archive_name = isabelle_name + "_linux.tar.xz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-cf- " + Bash.string(isabelle_name) +
-              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
+              "-cJf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+              Bash.string(isabelle_name))
 
 
           case Platform.Family.macos =>
@@ -585,8 +585,8 @@ rm -rf "${DIST_NAME}-old"
             val archive_name = isabelle_name + "_macos.tar.xz"
             progress.echo("Packaging " + archive_name + " ...")
             execute_tar(tmp_dir,
-              "-cf- " + File.bash_path(isabelle_app) +
-              " | xz > " + File.bash_path(release.dist_dir + Path.explode(archive_name)))
+              "-cJf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+              File.bash_path(isabelle_app))
 
 
           case Platform.Family.windows =>
