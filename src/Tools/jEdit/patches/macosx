@@ -1,6 +1,6 @@
 diff -ru MacOSX-trunk-r24891/build.properties MacOSX-trunk/build.properties
---- MacOSX-trunk-r24891/build.properties	2018-10-20 11:45:32.632681780 +0200
-+++ MacOSX-trunk/build.properties	2018-10-20 13:11:21.039870008 +0200
+--- MacOSX-trunk-r24891/build.properties	2018-10-20 11:45:32.000000000 +0200
++++ MacOSX-trunk/build.properties	2019-05-08 17:07:07.001576716 +0200
 @@ -1,3 +1,6 @@
  build.support=../build-support-trunk
  jedit.install.dir=../jedit-trunk/build
@@ -10,7 +10,7 @@ diff -ru MacOSX-trunk-r24891/build.properties MacOSX-trunk/build.properties
 +compiler.extdirs=
 diff -ru MacOSX-trunk-r24891/CHANGES.txt MacOSX-trunk/CHANGES.txt
 --- MacOSX-trunk-r24891/CHANGES.txt	2013-09-24 01:12:13.000000000 +0200
-+++ MacOSX-trunk/CHANGES.txt	2018-10-20 15:28:20.068978715 +0200
++++ MacOSX-trunk/CHANGES.txt	2019-05-08 17:07:07.001576716 +0200
 @@ -1,3 +1,6 @@
 +Mac OS X Plugin 1.4 [Makarius]
 +- Updates for Java 9: use java.awt.Desktop instead of old com.apple.eawt.Application / OSXAdapter.
@@ -20,7 +20,7 @@ diff -ru MacOSX-trunk-r24891/CHANGES.txt MacOSX-trunk/CHANGES.txt
  - Got rid of alternative dispatcher stuff which was workaround for Java 5 bugs.
 diff -ru MacOSX-trunk-r24891/docs/MacOSX.html MacOSX-trunk/docs/MacOSX.html
 --- MacOSX-trunk-r24891/docs/MacOSX.html	2013-09-19 19:42:51.000000000 +0200
-+++ MacOSX-trunk/docs/MacOSX.html	2018-10-20 15:09:33.726059959 +0200
++++ MacOSX-trunk/docs/MacOSX.html	2019-05-08 17:07:07.001576716 +0200
 @@ -16,8 +16,8 @@
      <td valign="TOP"><strong><font size="+2">jEdit Mac OS X Plugin</font></strong></td>
      <td valign="TOP" align="RIGHT">
@@ -34,7 +34,7 @@ diff -ru MacOSX-trunk-r24891/docs/MacOSX.html MacOSX-trunk/docs/MacOSX.html
      </td>
 diff -ru MacOSX-trunk-r24891/macosx/MacOSXPlugin.java MacOSX-trunk/macosx/MacOSXPlugin.java
 --- MacOSX-trunk-r24891/macosx/MacOSXPlugin.java	2013-09-20 02:51:27.000000000 +0200
-+++ MacOSX-trunk/macosx/MacOSXPlugin.java	2018-10-20 13:33:25.272004064 +0200
++++ MacOSX-trunk/macosx/MacOSXPlugin.java	2019-05-08 17:25:14.905716526 +0200
 @@ -25,6 +25,7 @@
  //{{{ Imports
  import java.awt.event.InputEvent;
@@ -123,10 +123,58 @@ diff -ru MacOSX-trunk-r24891/macosx/MacOSXPlugin.java MacOSX-trunk/macosx/MacOSX
  		}
  		
  	}
+@@ -198,9 +193,6 @@
+ 		{
+ 			ViewUpdate msg = (ViewUpdate)message;
+ 			refreshProxyIcon(msg.getView());
+-			
+-			if (msg.getWhat() == ViewUpdate.CREATED)
+-				enableFullScreenMode(msg.getView());
+ 		}
+ 		else if(message instanceof EditPaneUpdate)
+ 		{
+@@ -312,26 +304,6 @@
+ 		return jEdit.getBooleanProperty("plugin.MacOSXPlugin.disableOption");
+ 	}
+ 	
+-	public void enableFullScreenMode(View view)
+-	{
+-		if (fullScreenFailed)
+-			return;
+-		
+-		try
+-		{
+-			// FullScreenUtilities.setWindowCanFullScreen(view, true);
+-			Class<?> Util = Class.forName("com.apple.eawt.FullScreenUtilities");
+-			Class arguments[] = new Class[] { java.awt.Window.class, Boolean.TYPE };
+-			Method setWindowCanFullScreen = Util.getMethod("setWindowCanFullScreen", arguments);
+-			setWindowCanFullScreen.invoke(Util, view, true);
+-		}
+-		catch (Exception e)
+-		{
+-			Log.log(Log.DEBUG, this, "Unable to enable OS X native full screen mode: " + e);
+-			fullScreenFailed = true;
+-		}
+-	}
+-
+ 	//{{{ osok() method
+ 	private boolean osok()
+ 	{	
+@@ -344,10 +316,4 @@
+ 
+ 		return true;
+ 	}//}}}
+-
+-	//{{{ Instance variables
+-	
+-	// If unable to enable full screen mode (e.g., running on OSX 10.6 or earlier), don't keep trying
+-	private boolean fullScreenFailed = false;
+-	//}}}
+ }
 Only in MacOSX-trunk-r24891/macosx: OSXAdapter.java
 diff -ru MacOSX-trunk-r24891/MacOSX.props MacOSX-trunk/MacOSX.props
 --- MacOSX-trunk-r24891/MacOSX.props	2013-09-24 01:12:13.000000000 +0200
-+++ MacOSX-trunk/MacOSX.props	2018-10-20 15:20:44.362204710 +0200
++++ MacOSX-trunk/MacOSX.props	2019-05-08 17:07:07.001576716 +0200
 @@ -5,8 +5,8 @@
  # Plugin info
  #
