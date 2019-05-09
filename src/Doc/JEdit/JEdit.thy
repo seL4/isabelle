@@ -665,31 +665,36 @@ text \<open>
 \<close>
 
 
-section \<open>File-system access\<close>
+section \<open>Physical and logical files \label{sec:files}\<close>
 
 text \<open>
   File specifications in jEdit follow various formats and conventions
-  according to \<^emph>\<open>Virtual File Systems\<close>, which may be also provided by
-  additional plugins. This allows to access remote files via the \<^verbatim>\<open>https:\<close>
-  protocol prefix, for example. Isabelle/jEdit attempts to work with the
-  file-system model of jEdit as far as possible. In particular, theory sources
-  are passed directly from the editor to the prover, without indirection via
-  physical files.
+  according to \<^emph>\<open>Virtual File Systems\<close>, which may be also provided by plugins.
+  This allows to access remote files via the \<^verbatim>\<open>https:\<close> protocol prefix, for
+  example. Isabelle/jEdit attempts to work with the file-system model of jEdit
+  as far as possible. In particular, theory sources are passed from the editor
+  to the prover, without indirection via the file-system. Thus files don't
+  need to be saved: the editor buffer content is used directly.
+\<close>
 
-  Despite the flexibility of URLs in jEdit, local files are particularly
-  important and are accessible without protocol prefix. The file path notation
-  is that of the Java Virtual Machine on the underlying platform. On Windows
-  the preferred form uses backslashes, but happens to accept forward slashes
-  like Unix/POSIX as well. Further differences arise due to Windows drive
-  letters and network shares.
 
-  The Java notation for files needs to be distinguished from the one of
-  Isabelle, which uses POSIX notation with forward slashes on \<^emph>\<open>all\<close>
-  platforms. Isabelle/ML on Windows uses Unix-style path notation, with drive
-  letters as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Environment variables from the
-  Isabelle process may be used freely, e.g.\ \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> or
-  \<^file>\<open>$POLYML_HOME/README\<close>. There are special shortcuts: \<^dir>\<open>~\<close> for
-  \<^dir>\<open>$USER_HOME\<close> and \<^dir>\<open>~~\<close> for \<^dir>\<open>$ISABELLE_HOME\<close>.
+subsection \<open>Local files and environment variables \label{sec:local-files}\<close>
+
+text \<open>
+  Local files (without URL notation) are particularly important. The file path
+  notation is that of the Java Virtual Machine on the underlying platform. On
+  Windows the preferred form uses backslashes, but happens to accept forward
+  slashes like Unix/POSIX as well. Further differences arise due to Windows
+  drive letters and network shares: thus relative paths (with forward slashes)
+  are portable, but absolute paths are not.
+
+  File paths in Java are distinct from Isabelle; the latter uses POSIX
+  notation with forward slashes on \<^emph>\<open>all\<close> platforms. Isabelle/ML on Windows
+  uses Unix-style path notation, with drive letters according to Cygwin (e.g.\
+  \<^verbatim>\<open>/cygdrive/c\<close>). Environment variables from the Isabelle process may be used
+  freely, e.g.\ \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> or \<^file>\<open>$POLYML_HOME/README\<close>.
+  There are special shortcuts: \<^dir>\<open>~\<close> for \<^dir>\<open>$USER_HOME\<close> and \<^dir>\<open>~~\<close> for
+  \<^dir>\<open>$ISABELLE_HOME\<close>.
 
   \<^medskip> Since jEdit happens to support environment variables within file
   specifications as well, it is natural to use similar notation within the
@@ -704,7 +709,7 @@ text \<open>
   environment, in order to allow easy access to these important places from
   the editor: \<^verbatim>\<open>$ISABELLE_HOME\<close>, \<^verbatim>\<open>$ISABELLE_HOME_USER\<close>, \<^verbatim>\<open>$JEDIT_HOME\<close>,
   \<^verbatim>\<open>$JEDIT_SETTINGS\<close>. The file browser of jEdit also includes \<^emph>\<open>Favorites\<close> for
-  these two important locations.
+  these locations.
 
   \<^medskip> Path specifications in prover input or output usually include formal
   markup that turns it into a hyperlink (see also
@@ -715,6 +720,38 @@ text \<open>
   Formally checked paths in prover input are subject to completion
   (\secref{sec:completion}): partial specifications are resolved via directory
   content and possible completions are offered in a popup.
+\<close>
+
+
+subsection \<open>PIDE resources via virtual file-systems\<close>
+
+text \<open>
+  The jEdit file browser is docked by default, e.g. see
+  \figref{fig:isabelle-jedit-hdpi} (left docking area). It provides immediate
+  access to the local file-system, as well as important Isabelle resources via
+  the \<^emph>\<open>Favorites\<close> menu. Environment variables like \<^verbatim>\<open>$ISABELLE_HOME\<close> are
+  discussed in \secref{sec:local-files}. Virtual file-systems are more
+  special: the idea is to present structured information like a directory
+  tree. The following URLs are offered in the \<^emph>\<open>Favorites\<close> menu, or by
+  corresponding jEdit actions.
+
+    \<^item> URL \<^verbatim>\<open>isabelle-export:\<close> or action @{action_def
+    "isabelle-export-browser"} shows a toplevel directory with theory names:
+    each may provide its own tree structure of session exports. Exports are
+    like a logical file-system for the current prover session, maintained as
+    Isabelle/Scala data structures and written to the session database
+    eventually. The \<^verbatim>\<open>isabelle-export:\<close> URL exposes the current content
+    according to a snapshot of the document model. The file browser is \<^emph>\<open>not\<close>
+    updated continuously when the PIDE document changes: the reload operation
+    needs to be used explicitly. A notable example for exports is the command
+    @{command_ref export_code} @{cite "isabelle-isar-ref"}.
+
+    \<^item> URL \<^verbatim>\<open>isabelle-session:\<close> or action @{action_def
+    "isabelle-session-browser"} show the structure of session chapters and
+    sessions within them. What looks like a file-entry is actually a reference
+    to the session definition in its corresponding \<^verbatim>\<open>ROOT\<close> file. The latter is
+    subject to Prover IDE markup, so the session theories and other files may
+    be browsed quickly by following hyperlinks in the text.
 \<close>
 
 
