@@ -2157,7 +2157,8 @@ text \<open>
   \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close>. Also add
   \<^verbatim>\<open>isabelle_fonts_hinted=false\<close> to
   \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close> to avoid problems of the old
-  font renderer with hinting.
+  font renderer with hinting. Run the application from the command-line as
+  @{tool jedit}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Keyboard shortcuts \<^verbatim>\<open>C+PLUS\<close> and \<^verbatim>\<open>C+MINUS\<close> for adjusting the
   editor font size depend on platform details and national keyboards.
