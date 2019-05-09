@@ -111,6 +111,12 @@ shapes and improved sub-pixel anti-aliasing. In some situations results
 might be *worse* than Oracle Java 8, though -- a proper HiDPI / UHD
 display is recommended.
 
+* OpenJDK 11 supports GTK version 2.2 and 3 (according to system
+property jdk.gtk.version). The factory default is version 3, but
+ISABELLE_JAVA_SYSTEM_OPTIONS includes "-Djdk.gtk.version=2.2" to make
+this more conservative (as in Java 8). Depending on the GTK theme
+configuration, "-Djdk.gtk.version=3" might work better or worse.
+
 
 *** Document preparation ***
 
