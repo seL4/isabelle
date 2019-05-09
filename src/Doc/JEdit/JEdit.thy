@@ -305,7 +305,7 @@ text \<open>
   Connect to already running Isabelle/jEdit instance and open FILES\<close>}
 
   The \<^verbatim>\<open>-c\<close> option merely checks the presence of the server, producing a
-  process return code accordingly.
+  process return-code.
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
@@ -2168,8 +2168,8 @@ text \<open>
   \<^emph>\<open>Preferences\<close> is in conflict with the jEdit default keyboard shortcut for
   \<^emph>\<open>Incremental Search Bar\<close> (action @{action_ref "quick-search"}).
 
-  \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to
-  national keyboard, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
+  \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to the
+  national keyboard layout, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
 
   \<^item> \<^bold>\<open>Problem:\<close> On Mac OS X with native Apple look-and-feel, some exotic
   national keyboards may cause a conflict of menu accelerator keys with
