@@ -14,8 +14,9 @@ text \<open>
   interaction\<close> @{cite "Wenzel:2010" and "Wenzel:2012:UITP-EPTCS" and
   "Wenzel:2014:ITP-PIDE" and "Wenzel:2014:UITP"}, based on a document-oriented
   approach to \<^emph>\<open>continuous proof processing\<close> @{cite "Wenzel:2011:CICM" and
-  "Wenzel:2012"}. Many concepts and system components are fit together in
-  order to make this work. The main building blocks are as follows.
+  "Wenzel:2012" and "Wenzel:2018:FIDE" and "Wenzel:2019:MKM"}. Many concepts
+  and system components are fit together in order to make this work. The main
+  building blocks are as follows.
 
     \<^descr>[Isabelle/ML] is the implementation and extension language of Isabelle,
     see also @{cite "isabelle-implementation"}. It is integrated into the
@@ -38,9 +39,10 @@ text \<open>
     rich formal markup for GUI rendering.
 
     \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>\<^url>\<open>http://www.jedit.org\<close>\<close>
-    implemented in Java\<^footnote>\<open>\<^url>\<open>https://www.java.com\<close>\<close>. It is easily extensible by
-    plugins written in any language that works on the JVM. In the context of
-    Isabelle this is always Scala\<^footnote>\<open>\<^url>\<open>https://www.scala-lang.org\<close>\<close>.
+    implemented in Java\<^footnote>\<open>\<^url>\<open>https://adoptopenjdk.net\<close>\<close>. It is easily
+    extensible by plugins written in any language that works on the JVM. In
+    the context of Isabelle this is always
+    Scala\<^footnote>\<open>\<^url>\<open>https://www.scala-lang.org\<close>\<close>.
 
     \<^descr>[Isabelle/jEdit] is the main application of the PIDE framework and the
     default user-interface for Isabelle. It targets both beginners and
@@ -85,17 +87,15 @@ text \<open>
   the running text editor. Prover IDE functionality is fully activated after
   successful termination of the build process. A failure may require changing
   some options and restart of the Isabelle plugin or application. Changing the
-  logic session, or the underlying ML system platform (32\,bit versus 64\,bit)
-  requires a restart of the whole application to take effect.
+  logic session requires a restart of the whole application to take effect.
 
-  \<^medskip>
-  The main job of the Prover IDE is to manage sources and their changes,
+  \<^medskip> The main job of the Prover IDE is to manage sources and their changes,
   taking the logical structure as a formal document into account (see also
   \secref{sec:document-model}). The editor and the prover are connected
-  asynchronously in a lock-free manner. The prover is free to organize the
-  checking of the formal text in parallel on multiple cores, and provides
-  feedback via markup, which is rendered in the editor via colors, boxes,
-  squiggly underlines, hyperlinks, popup windows, icons, clickable output etc.
+  asynchronously without locking. The prover is free to organize the checking
+  of the formal text in parallel on multiple cores, and provides feedback via
+  markup, which is rendered in the editor via colors, boxes, squiggly
+  underlines, hyperlinks, popup windows, icons, clickable output etc.
 
   Using the mouse together with the modifier key \<^verbatim>\<open>CONTROL\<close> (Linux, Windows)
   or \<^verbatim>\<open>COMMAND\<close> (Mac OS X) exposes formal content via tooltips and/or
@@ -140,7 +140,7 @@ text \<open>
   to update bundled plugins or to add further functionality. This needs to be
   done with the usual care for such an open bazaar of contributions. Arbitrary
   combinations of add-on features are apt to cause problems. It is advisable
-  to start with the default configuration of Isabelle/jEdit and develop some
+  to start with the default configuration of Isabelle/jEdit and develop a
   sense how it is meant to work, before loading too many other plugins.
 
   \<^medskip>
@@ -192,7 +192,7 @@ text \<open>
   Options are usually loaded on startup and saved on shutdown of
   Isabelle/jEdit. Editing the generated \<^path>\<open>$JEDIT_SETTINGS/properties\<close>
   or \<^path>\<open>$ISABELLE_HOME_USER/etc/preferences\<close> manually while the
-  application is running may cause surprise due to lost updates!
+  application is running may cause lost updates!
 \<close>
 
 
@@ -205,13 +205,13 @@ text \<open>
   first start of the editor; afterwards the keymap file takes precedence and
   is no longer affected by change of default properties.
 
-  Users may change their keymap later, but this may lead to conflicts with
+  Users may modify their keymap later, but this can lead to conflicts with
   \<^verbatim>\<open>shortcut\<close> properties in \<^file>\<open>$JEDIT_HOME/src/jEdit.props\<close>.
 
   The action @{action_def "isabelle.keymap-merge"} helps to resolve pending
-  Isabelle keymap changes that are in conflict with the current jEdit keymap;
-  while non-conflicting changes are applied implicitly. This action is
-  automatically invoked on Isabelle/jEdit startup.
+  Isabelle keymap changes wrt. the current jEdit keymap; non-conflicting
+  changes are applied implicitly. This action is automatically invoked on
+  Isabelle/jEdit startup.
 \<close>
 
 
@@ -280,7 +280,7 @@ text \<open>
   The \<^verbatim>\<open>-J\<close> and \<^verbatim>\<open>-j\<close> options pass additional low-level options to the JVM or
   jEdit, respectively. The defaults are provided by the Isabelle settings
   environment @{cite "isabelle-system"}, but note that these only work for the
-  command-line tool described here, and not the regular application.
+  command-line tool described here, and not the desktop application.
 
   The \<^verbatim>\<open>-D\<close> option allows to define JVM system properties; this is passed
   directly to the underlying \<^verbatim>\<open>java\<close> process.
@@ -309,7 +309,7 @@ text \<open>
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
-  name (e.g.\ \<^verbatim>\<open>Isabelle2018\<close>). Thus @{tool jedit_client} can connect to the
+  name (e.g.\ \<^verbatim>\<open>Isabelle2019\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
@@ -328,17 +328,16 @@ subsection \<open>Look-and-feel \label{sec:look-and-feel}\<close>
 
 text \<open>
   jEdit is a Java/AWT/Swing application with the ambition to support
-  ``native'' look-and-feel on all platforms, within the limits of what Oracle
-  as Java provider and major operating system distributors allow (see also
-  \secref{sec:problems}).
+  ``native'' look-and-feel on all platforms, within the limits of what Java
+  provider and major operating systems allow (see also \secref{sec:problems}).
 
   Isabelle/jEdit enables platform-specific look-and-feel by default as
   follows.
 
     \<^descr>[Linux:] The platform-independent \<^emph>\<open>Metal\<close> is used by default.
 
-    The Linux-specific \<^emph>\<open>GTK+\<close> often works as well, but the overall GTK theme
-    and options need to be selected to suite Java/AWT/Swing. Note that Java
+    The Linux-specific \<^emph>\<open>GTK+\<close> often works, but the overall GTK theme and
+    options need to be selected to suite Java/AWT/Swing. Note that the Java
     Virtual Machine has no direct influence of GTK rendering.
 
     \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default.
@@ -358,32 +357,31 @@ text \<open>
   historic \<^emph>\<open>CDE/Motif\<close> should be ignored.
 
   Changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close> may update the
-  GUI only partially: proper restart of Isabelle/jEdit is usually required.
+  GUI only partially: a proper restart of Isabelle/jEdit is usually required.
 \<close>
 
 
-subsection \<open>Displays with very high resolution \label{sec:hdpi}\<close>
+subsection \<open>Displays with high resolution \label{sec:hdpi}\<close>
 
 text \<open>
-  In distant past, displays with $1024 \times 768$ or $1280 \times 1024$
-  pixels were considered ``high resolution'' and bitmap fonts with 12 or 14
-  pixels as adequate for text rendering. After 2016, we have routinely seen
-  much higher resolutions, e.g. ``Full HD'' at $1920 \times 1080$ pixels or
-  ``Ultra HD'' / ``4K'' at $3840 \times 2160$.
+  In 2019, we usually see displays with high resolution like ``Ultra HD'' /
+  ``4K'' at $3840 \times 2160$, or more. Old ``Full HD'' displays at $1920
+  \times 1080$ pixels are still being used, but Java 11 font-rendering might
+  look bad on it (see \secref{sec:problems}) --- this is a good opportunity to
+  upgrade to current 4K or 5K technology. GUI layouts are lagging behind the
+  high resolution trends, and implicitly assume very old-fashioned $1024
+  \times 768$ or $1280 \times 1024$ screens and fonts with 12 or 14 pixels.
+  Java and jEdit do provide reasonable support for high resolution, but this
+  requires manual adjustments as described below.
 
-  GUI frameworks are usually lagging behind, with hard-wired icon sizes and
-  tiny fonts. Java and jEdit do provide reasonable support for very high
-  resolution, but this requires manual adjustments as described below.
-
-  \<^medskip>
-  The \<^bold>\<open>operating-system\<close> usually provides some configuration for global
-  scaling of text fonts, e.g.\ $120\%$--$250\%$ on Windows. This impacts
-  regular GUI elements, when used with native look-and-feel: Linux \<^emph>\<open>GTK+\<close>,
-  \<^emph>\<open>Windows\<close>, \<^emph>\<open>Mac OS X\<close>, respectively. Alternatively, it is possible to use
-  the platform-independent \<^emph>\<open>Metal\<close> look-and-feel and readjust its main font
-  sizes via jEdit options explained below. The Isabelle/jEdit \<^bold>\<open>application\<close>
-  provides further options to adjust font sizes in particular GUI elements.
-  Here is a summary of all relevant font properties:
+  \<^medskip> The \<^bold>\<open>operating-system\<close> often provides some configuration for global
+  scaling of text fonts, e.g.\ to enlarge it uniformly by $200\%$. This
+  impacts regular GUI elements, when used with native look-and-feel: Linux
+  \<^emph>\<open>GTK+\<close>, \<^emph>\<open>Windows\<close>, \<^emph>\<open>Mac OS X\<close>, respectively. Alternatively, it is
+  possible to use the platform-independent \<^emph>\<open>Metal\<close> look-and-feel and change
+  its main font sizes via jEdit options explained below. The Isabelle/jEdit
+  \<^bold>\<open>application\<close> provides further options to adjust font sizes in particular
+  GUI elements. Here is a summary of all relevant font properties:
 
     \<^item> \<^emph>\<open>Global Options / Text Area / Text font\<close>: the main text area font,
     which is also used as reference point for various derived font sizes,
@@ -406,15 +404,15 @@ text \<open>
     e.g.\ relevant for Isabelle/Scala command-line.
 
   In \figref{fig:isabelle-jedit-hdpi} the \<^emph>\<open>Metal\<close> look-and-feel is configured
-  with custom fonts at 30 pixels, and the main text area and console at 36
-  pixels. This leads to decent rendering quality, despite the old-fashioned
-  appearance of \<^emph>\<open>Metal\<close>.
+  with custom fonts at 36 pixels, and the main text area and console at 40
+  pixels. This leads to fairly good rendering quality, despite the
+  old-fashioned appearance of \<^emph>\<open>Metal\<close>.
 
   \begin{sidewaysfigure}[!htb]
   \begin{center}
   \includegraphics[width=\textwidth]{isabelle-jedit-hdpi}
   \end{center}
-  \caption{Metal look-and-feel with custom fonts for very high resolution}
+  \caption{Metal look-and-feel with custom fonts for high resolution}
   \label{fig:isabelle-jedit-hdpi}
   \end{sidewaysfigure}
 \<close>
@@ -478,7 +476,7 @@ text \<open>
   Isabelle sources consist of \<^emph>\<open>symbols\<close> that extend plain ASCII to allow
   infinitely many mathematical symbols within the formal sources. This works
   without depending on particular encodings and varying Unicode
-  standards.\<^footnote>\<open>Raw Unicode characters within formal sources would compromise
+  standards.\<^footnote>\<open>Raw Unicode characters within formal sources compromise
   portability and reliability in the face of changing interpretation of
   special features of Unicode, such as Combining Characters or Bi-directional
   Text.\<close> See @{cite "Wenzel:2011:CICM"}.
@@ -486,10 +484,10 @@ text \<open>
   For the prover back-end, formal text consists of ASCII characters that are
   grouped according to some simple rules, e.g.\ as plain ``\<^verbatim>\<open>a\<close>'' or symbolic
   ``\<^verbatim>\<open>\<alpha>\<close>''. For the editor front-end, a certain subset of symbols is rendered
-  physically via Unicode glyphs, in order to show ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for
-  example. This symbol interpretation is specified by the Isabelle system
-  distribution in \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and may be augmented by the
-  user in \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close>.
+  physically via Unicode glyphs, to show ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for example.
+  This symbol interpretation is specified by the Isabelle system distribution
+  in \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> and may be augmented by the user in
+  \<^path>\<open>$ISABELLE_HOME_USER/etc/symbols\<close>.
 
   The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
@@ -519,17 +517,18 @@ text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
   with the Isabelle symbol encoding, the fallback-encoding UTF-8 is used and
   Isabelle symbols remain in literal \<^verbatim>\<open>\<symbol>\<close> form. The jEdit menu
   operation \<^emph>\<open>Utilities~/ Buffer Options~/ Character encoding\<close> allows to
-  enforce the UTF-8-Isabelle, but this will also change original Unicode
-  text into Isabelle symbols when saving the file!
+  enforce \<^verbatim>\<open>UTF-8-Isabelle\<close>, but this will also change original Unicode text
+  into Isabelle symbols when saving the file!
 \<close>
 
 paragraph \<open>Font.\<close>
 text \<open>Correct rendering via Unicode requires a font that contains glyphs for
   the corresponding codepoints. There are also various unusual symbols with
   particular purpose in Isabelle, e.g.\ control symbols and very long arrows.
-  Isabelle/jEdit prefers its own font collection \<^verbatim>\<open>Isabelle DejaVu\<close>, which
-  ensures that all standard Isabelle symbols are shown on the screen (or
-  printer) as expected.
+  Isabelle/jEdit prefers its own font collection \<^verbatim>\<open>Isabelle DejaVu\<close>, with
+  families \<^verbatim>\<open>Serif\<close> (default for help texts), \<^verbatim>\<open>Sans\<close> (default for GUI
+  elements), \<^verbatim>\<open>Mono Sans\<close> (default for text area). This ensures that all
+  standard Isabelle symbols are shown on the screen (or printer) as expected.
 
   Note that a Java/AWT/Swing application can load additional fonts only if
   they are not installed on the operating system already! Outdated versions of
@@ -537,7 +536,7 @@ text \<open>Correct rendering via Unicode requires a font that contains glyphs f
   Isabelle/jEdit to use its bundled version. This could lead to missing glyphs
   (black rectangles), when the system version of a font is older than the
   application version. This problem can be avoided by refraining to
-  ``install'' any version of \<^verbatim>\<open>IsabelleText\<close> in the first place, although it
+  ``install'' a copy of the Isabelle fonts in the first place, although it
   might be tempting to use the same font in other applications.
 
   HTML pages generated by Isabelle refer to the same Isabelle fonts as a
@@ -562,11 +561,10 @@ text \<open>In principle, Isabelle/jEdit could delegate the problem to produce
   representation with some additional information about \<^emph>\<open>symbol
   abbreviations\<close> (see below).
 
-  \<^enum> Copy/paste from decoded source files: text that is rendered as Unicode
-  already can be re-used to produce further text. This also works between
-  different applications, e.g.\ Isabelle/jEdit and some web browser or mail
-  client, as long as the same Unicode interpretation of Isabelle symbols is
-  used.
+  \<^enum> Copy/paste from decoded source files: text that is already rendered as
+  Unicode can be re-used for other text. This also works between different
+  applications, e.g.\ Isabelle/jEdit and some web browser or mail client, as
+  long as the same Unicode interpretation of Isabelle symbols is used.
 
   \<^enum> Copy/paste from prover output within Isabelle/jEdit. The same principles
   as for text buffers apply, but note that \<^emph>\<open>copy\<close> in secondary Isabelle/jEdit
@@ -658,7 +656,8 @@ text \<open>
   For example, \<^verbatim>\<open>PIDE\<close> refers to the Isabelle/jEdit plugin object, and \<^verbatim>\<open>view\<close>
   to the current editor view of jEdit. The Scala expression
   \<^verbatim>\<open>PIDE.snapshot(view)\<close> makes a PIDE document snapshot of the current buffer
-  within the current editor view.
+  within the current editor view: it allows to retrieve document markup in a
+  timeless~/ stateless manner, while the prover continues its processing.
 
   This helps to explore Isabelle/Scala functionality interactively. Some care
   is required to avoid interference with the internals of the running
@@ -671,7 +670,7 @@ section \<open>File-system access\<close>
 text \<open>
   File specifications in jEdit follow various formats and conventions
   according to \<^emph>\<open>Virtual File Systems\<close>, which may be also provided by
-  additional plugins. This allows to access remote files via the \<^verbatim>\<open>http:\<close>
+  additional plugins. This allows to access remote files via the \<^verbatim>\<open>https:\<close>
   protocol prefix, for example. Isabelle/jEdit attempts to work with the
   file-system model of jEdit as far as possible. In particular, theory sources
   are passed directly from the editor to the prover, without indirection via
@@ -686,20 +685,19 @@ text \<open>
 
   The Java notation for files needs to be distinguished from the one of
   Isabelle, which uses POSIX notation with forward slashes on \<^emph>\<open>all\<close>
-  platforms. Isabelle/ML on Windows uses Unix-style path notation, too, and
-  driver letter representation as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Moreover,
-  environment variables from the Isabelle process may be used freely, e.g.\
-  \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> or \<^file>\<open>$POLYML_HOME/README\<close>. There are special
-  shortcuts: \<^dir>\<open>~\<close> for \<^dir>\<open>$USER_HOME\<close> and \<^dir>\<open>~~\<close> for \<^dir>\<open>$ISABELLE_HOME\<close>.
+  platforms. Isabelle/ML on Windows uses Unix-style path notation, with drive
+  letters as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Environment variables from the
+  Isabelle process may be used freely, e.g.\ \<^file>\<open>$ISABELLE_HOME/etc/symbols\<close> or
+  \<^file>\<open>$POLYML_HOME/README\<close>. There are special shortcuts: \<^dir>\<open>~\<close> for
+  \<^dir>\<open>$USER_HOME\<close> and \<^dir>\<open>~~\<close> for \<^dir>\<open>$ISABELLE_HOME\<close>.
 
-  \<^medskip>
-  Since jEdit happens to support environment variables within file
+  \<^medskip> Since jEdit happens to support environment variables within file
   specifications as well, it is natural to use similar notation within the
   editor, e.g.\ in the file-browser. This does not work in full generality,
   though, due to the bias of jEdit towards platform-specific notation and of
   Isabelle towards POSIX. Moreover, the Isabelle settings environment is not
-  yet active when starting Isabelle/jEdit via its standard application
-  wrapper, in contrast to @{tool jedit} run from the command line
+  accessible when starting Isabelle/jEdit via the desktop application wrapper,
+  in contrast to @{tool jedit} run from the command line
   (\secref{sec:command-line}).
 
   Isabelle/jEdit imitates important system settings within the Java process
@@ -708,12 +706,11 @@ text \<open>
   \<^verbatim>\<open>$JEDIT_SETTINGS\<close>. The file browser of jEdit also includes \<^emph>\<open>Favorites\<close> for
   these two important locations.
 
-  \<^medskip>
-  Path specifications in prover input or output usually include formal markup
-  that turns it into a hyperlink (see also \secref{sec:tooltips-hyperlinks}).
-  This allows to open the corresponding file in the text editor, independently
-  of the path notation. If the path refers to a directory, the jEdit file
-  browser is opened on it.
+  \<^medskip> Path specifications in prover input or output usually include formal
+  markup that turns it into a hyperlink (see also
+  \secref{sec:tooltips-hyperlinks}). This allows to open the corresponding
+  file in the text editor, independently of the path notation. If the path
+  refers to a directory, it is opened in the jEdit file browser.
 
   Formally checked paths in prover input are subject to completion
   (\secref{sec:completion}): partial specifications are resolved via directory
@@ -726,7 +723,7 @@ section \<open>Indentation\<close>
 text \<open>
   Isabelle/jEdit augments the existing indentation facilities of jEdit to take
   the structure of theory and proof texts into account. There is also special
-  support for unstructured proof scripts.
+  support for unstructured proof scripts (\<^theory_text>\<open>apply\<close> etc.).
 
     \<^descr>[Syntactic indentation] follows the outer syntax of Isabelle/Isar.
 
@@ -735,7 +732,7 @@ text \<open>
     approximation may need further manual tuning.
 
     Action @{action "isabelle.newline"} (shortcut \<^verbatim>\<open>ENTER\<close>) indents the old
-    and the new line according to command keywords only: this leads to precise
+    and the new line according to command keywords only: leading to precise
     alignment of the main Isar language elements. This depends on option
     @{system_option_def "jedit_indent_newline"} (enabled by default).
 
@@ -744,11 +741,10 @@ text \<open>
     on option @{system_option_def "jedit_indent_input"} (enabled by default).
 
     \<^descr>[Semantic indentation] adds additional white space to unstructured proof
-    scripts (\<^theory_text>\<open>apply\<close> etc.) via number of subgoals. This requires information
-    of ongoing document processing and may thus lag behind, when the user is
-    editing too quickly; see also option @{system_option_def
-    "jedit_script_indent"} and @{system_option_def
-    "jedit_script_indent_limit"}.
+    scripts via the number of subgoals. This requires information of ongoing
+    document processing and may thus lag behind when the user is editing too
+    quickly; see also option @{system_option_def "jedit_script_indent"} and
+    @{system_option_def "jedit_script_indent_limit"}.
 
   The above options are accessible in the menu \<^emph>\<open>Plugins / Plugin Options /
   Isabelle / General\<close>. A prerequisite for advanced indentation is \<^emph>\<open>Utilities
@@ -1132,7 +1128,7 @@ text \<open>
 
     \<^item> The \<^emph>\<open>Search\<close> field allows to highlight query output according to some
     regular expression, in the notation that is commonly used on the Java
-    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html\<close>\<close>
+    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
     This may serve as an additional visual filter of the result.
 
     \<^item> The \<^emph>\<open>Zoom\<close> box controls the font size of the output area.
@@ -1331,7 +1327,7 @@ text \<open>
     completion of name-space entries propose antiquotation names.
 
   With some practice, input of quoted sub-languages and antiquotations of
-  embedded languages should work fluently. Note that national keyboard layouts
+  embedded languages should work smoothly. Note that national keyboard layouts
   might cause problems with back-quote as dead key, but double quote can be
   used instead.
 \<close>
@@ -1426,7 +1422,7 @@ text \<open>
 
   Already recognized names are \<^emph>\<open>not\<close> completed further, but completion may be
   extended by appending a suffix of underscores. This provokes a failed
-  lookup, and another completion attempt while ignoring the underscores. For
+  lookup, and another completion attempt (ignoring the underscores). For
   example, in a name space where \<^verbatim>\<open>foo\<close> and \<^verbatim>\<open>foobar\<close> are known, the input
   \<^verbatim>\<open>foo\<close> remains unchanged, but \<^verbatim>\<open>foo_\<close> may be completed to \<^verbatim>\<open>foo\<close> or
   \<^verbatim>\<open>foobar\<close>.
@@ -1854,7 +1850,7 @@ section \<open>Markdown structure\<close>
 
 text \<open>
   Document text is internally structured in paragraphs and nested lists, using
-  notation that is similar to Markdown\<^footnote>\<open>\<^url>\<open>http://commonmark.org\<close>\<close>. There are
+  notation that is similar to Markdown\<^footnote>\<open>\<^url>\<open>https://commonmark.org\<close>\<close>. There are
   special control symbols for items of different kinds of lists, corresponding
   to \<^verbatim>\<open>itemize\<close>, \<^verbatim>\<open>enumerate\<close>, \<^verbatim>\<open>description\<close> in {\LaTeX}. This is illustrated
   in for \<^verbatim>\<open>itemize\<close> in \figref{fig:markdown-document}.
@@ -1869,8 +1865,8 @@ text \<open>
 
   Items take colour according to the depth of nested lists. This helps to
   explore the implicit rules for list structure interactively. There is also
-  markup for individual paragraphs in the text: it may be explored via mouse
-  hovering with \<^verbatim>\<open>CONTROL\<close> / \<^verbatim>\<open>COMMAND\<close> as usual
+  markup for individual items and paragraphs in the text: it may be explored
+  via mouse hovering with \<^verbatim>\<open>CONTROL\<close> / \<^verbatim>\<open>COMMAND\<close> as usual
   (\secref{sec:tooltips-hyperlinks}).
 \<close>
 
@@ -2078,7 +2074,7 @@ text \<open>
   messages starts with the first activation of the corresponding dockable
   window; earlier messages are lost.
 
-  Actual display of protocol messages causes considerable slowdown, so it is
+  Display of protocol messages causes considerable slowdown, so it is
   important to undock all \<^emph>\<open>Protocol\<close> panels for production work.
 
   \<^item> \<^emph>\<open>Raw Output\<close> shows chunks of text from the \<^verbatim>\<open>stdout\<close> and \<^verbatim>\<open>stderr\<close>
