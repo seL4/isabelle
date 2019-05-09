@@ -64,7 +64,7 @@ section \<open>The Isabelle/jEdit Prover IDE\<close>
 text \<open>
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.3]{isabelle-jedit}
+  \includegraphics[width=\textwidth]{isabelle-jedit}
   \end{center}
   \caption{The Isabelle/jEdit Prover IDE}
   \label{fig:isabelle-jedit}
@@ -1203,7 +1203,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.5]{popup1}
+  \includegraphics[scale=0.333]{popup1}
   \end{center}
   \caption{Tooltip and hyperlink for some formal entity}
   \label{fig:tooltip}
@@ -1215,7 +1215,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.5]{popup2}
+  \includegraphics[scale=0.333]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities}
   \label{fig:nested-tooltips}
@@ -1253,7 +1253,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.5]{scope1}
+  \includegraphics[scale=0.333]{scope1}
   \end{center}
   \caption{Scope of formal entity: defining vs.\ referencing positions}
   \label{fig:scope1}
@@ -1266,7 +1266,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.5]{scope2}
+  \includegraphics[scale=0.333]{scope2}
   \end{center}
   \caption{The result of semantic selection and systematic renaming}
   \label{fig:scope2}
@@ -1711,7 +1711,7 @@ text \<open>
 
   \begin{figure}[!htb]
   \begin{center}
-  \includegraphics[scale=0.4]{auto-tools}
+  \includegraphics[scale=0.333]{auto-tools}
   \end{center}
   \caption{Result of automatically tried tools}
   \label{fig:auto-tools}
