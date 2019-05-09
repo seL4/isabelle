@@ -1503,14 +1503,15 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
           [Pretty.block (Pretty.breaks (head ::
             flat (separate sep (map (single o prt) xs))))];
   in
-    Pretty.block (Pretty.fbreaks
-      (prt_name name :: Pretty.str ":" ::
-        prt_sect (Pretty.keyword1 "fix") [] (prt_name o Binding.name_of o fst) fixes @
-        prt_sect (Pretty.keyword1 "let") [Pretty.keyword2 "and"] prt_let
-          (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
-        (if forall (null o #2) asms then []
-          else prt_sect (Pretty.keyword1 "assume") [Pretty.keyword2 "and"] prt_asm asms) @
-        prt_sect (Pretty.str "subcases:") [] (prt_name o fst) cs))
+    Pretty.block
+      (prt_name name :: Pretty.str ":" :: Pretty.fbrk ::
+        Pretty.fbreaks
+          (prt_sect (Pretty.keyword1 "fix") [] (prt_name o Binding.name_of o fst) fixes @
+           prt_sect (Pretty.keyword1 "let") [Pretty.keyword2 "and"] prt_let
+             (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
+           (if forall (null o #2) asms then []
+            else prt_sect (Pretty.keyword1 "assume") [Pretty.keyword2 "and"] prt_asm asms) @
+           prt_sect (Pretty.str "subcases:") [] (prt_name o fst) cs))
   end;
 
 in
