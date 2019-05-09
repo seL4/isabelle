@@ -1,5 +1,7 @@
 (* Author: Tobias Nipkow *)
 
+section "Sorting"
+
 theory Sorting
 imports
   Complex_Main

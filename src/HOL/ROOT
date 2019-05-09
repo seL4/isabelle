@@ -233,7 +233,9 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     AA_Map
     Set2_Join_RBT
     Array_Braun
-    Trie
+    Trie_Fun
+    Trie_Map
+    Tries_Binary
     Leftist_Heap
     Binomial_Heap
   document_files "root.tex" "root.bib"

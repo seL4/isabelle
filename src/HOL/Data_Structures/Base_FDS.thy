@@ -1,3 +1,5 @@
+section "Common Basis Theory"
+
 theory Base_FDS
 imports "HOL-Library.Pattern_Aliases"
 begin
