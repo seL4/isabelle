@@ -88,8 +88,12 @@ object Isabelle_Session
         case Some(snapshot) =>
           val sessions = sessions_structure()
           val session = PIDE.resources.session_base.theory_qualifier(snapshot.node_name)
-          val chapter = sessions.get(session).getOrElse(Sessions.UNSORTED)
-          chapter + "/" + session
+          val chapter =
+            sessions.get(session) match {
+              case Some(info) => info.chapter
+              case None => Sessions.UNSORTED
+            }
+          chapter
       }
     VFSBrowser.browseDirectory(view, vfs_prefix + path)
   }
