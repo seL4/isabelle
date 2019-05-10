@@ -2239,7 +2239,7 @@ text \<open>
 \<close>
 
 
-chapter \<open>Executable code\<close>
+chapter \<open>Executable code \label{ch:export-code}\<close>
 
 text \<open>
   For validation purposes, it is often useful to \<^emph>\<open>execute\<close> specifications. In

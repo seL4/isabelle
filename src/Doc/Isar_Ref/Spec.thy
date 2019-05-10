@@ -1218,18 +1218,28 @@ text \<open>
 (*<*)end(*>*)
 
 
-section \<open>Generated files and external files\<close>
+section \<open>Generated files and exported files\<close>
 
 text \<open>
   Write access to the physical file-system is incompatible with the stateless
-  model of processing Isabelle documents. To avoid bad effects, the theory
-  context maintains a logical ``file-system'' for generated files, as a
-  mapping of structured file-names to content. Names need to be unique for
-  each theory node. When exporting generated files for other purposes, the
-  (long) theory name is prefixed for extra qualification, but there are also
-  means to smash overlong paths. See also @{cite "isabelle-system"} for
-  \<^theory_text>\<open>export_files\<close> within session \<^verbatim>\<open>ROOT\<close> files, together with @{tool build}
-  option \<^verbatim>\<open>-e\<close>.
+  model of processing Isabelle documents. To avoid bad effects, the following
+  concepts for abstract file-management are provided by Isabelle:
+
+    \<^descr>[Generated files] are stored within the theory context in Isabelle/ML.
+    This allows to operate on the content in Isabelle/ML, e.g. via the command
+    @{command compile_generated_files}.
+
+    \<^descr>[Exported files] are stored within the session database in
+    Isabelle/Scala. This allows to deliver artefacts to external tools, see
+    also @{cite "isabelle-system"} for session \<^verbatim>\<open>ROOT\<close> declaration
+    \<^theory_text>\<open>export_files\<close>, and @{tool build} option \<^verbatim>\<open>-e\<close>.
+
+  A notable example is the command @{command_ref export_code}
+  (\chref{ch:export-code}): it uses both concepts simultaneously.
+
+  File names are hierarchically structured, using a slash as separator. The
+  (long) theory name is used as a prefix: the resulting name needs to be
+  globally unique.
 
   \begin{matharray}{rcll}
     @{command_def "generate_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
