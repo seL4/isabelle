@@ -1071,6 +1071,7 @@ text \<open>
     @{attribute_def ML_debugger} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def ML_exception_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def ML_exception_debugger} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def ML_environment} & : & \<open>attribute\<close> & default \<open>Isabelle\<close> \\
   \end{tabular}
 
   \<^rail>\<open>
@@ -1185,7 +1186,36 @@ text \<open>
   the Poly/ML debugger, at the cost of extra compile-time and run-time
   overhead. Relevant ML modules need to be compiled beforehand with debugging
   enabled, see @{attribute ML_debugger} above.
+
+  \<^descr> @{attribute ML_environment} determines the named ML environment for
+  toplevel declarations, e.g.\ in command \<^theory_text>\<open>ML\<close> or \<^theory_text>\<open>ML_file\<close>. The following
+  ML environments are predefined in Isabelle/Pure:
+
+    \<^item> \<open>Isabelle\<close> for Isabelle/ML. It contains all modules of Isabelle/Pure and
+    further add-ons, e.g. material from Isabelle/HOL.
+
+    \<^item> \<open>SML\<close> for official Standard ML. It contains only the initial basis
+    according to \<^url>\<open>http://sml-family.org/Basis/overview.html\<close>.
+
+  The Isabelle/ML function \<^ML>\<open>ML_Env.setup\<close> defines a new ML environment.
+  This is useful to incorporate big SML projects in an isolated name space,
+  possibly with variations on ML syntax; the existing setup of
+  \<^ML>\<open>ML_Env.SML_operations\<close> follows the official standard.
+
+  It is also possible to move toplevel bindings between ML environments, using
+  a notation with ``\<open>>\<close>'' as separator. For example:
 \<close>
+
+(*<*)experiment begin(*>*)
+        declare [[ML_environment = "Isabelle>SML"]]
+        ML \<open>val println = writeln\<close>
+
+        declare [[ML_environment = "SML"]]
+        ML \<open>println "test"\<close>
+
+        declare [[ML_environment = "Isabelle"]]
+        ML \<open>ML \<open>println\<close> (*bad*) handle ERROR msg => warning msg\<close>
+(*<*)end(*>*)
 
 
 section \<open>Generated files and external files\<close>

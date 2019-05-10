@@ -317,25 +317,9 @@ language. For example, this works for Haskell as follows:
 See also commands 'export_generated_files' and 'compile_generated_files'
 to use the results.
 
-* ML evaluation (notably via commands 'ML' and 'ML_file') is subject to
+* ML evaluation (notably via command 'ML' or 'ML_file') is subject to
 option ML_environment to select a named environment, such as "Isabelle"
-for Isabelle/ML, or "SML" for official Standard ML. It is also possible
-to move toplevel bindings between environments, using a notation with
-">" as separator. For example:
-
-  declare [[ML_environment = "Isabelle>SML"]]
-  ML \<open>val println = writeln\<close>
-
-  declare [[ML_environment = "SML"]]
-  ML \<open>println "test"\<close>
-
-  declare [[ML_environment = "Isabelle"]]
-  ML \<open>println\<close>  \<comment> \<open>not present\<close>
-
-The Isabelle/ML function ML_Env.setup defines new ML environments. This
-is useful to incorporate big SML projects in an isolated name space, and
-potentially with variations on ML syntax (existing ML_Env.SML_operations
-observes the official standard).
+for Isabelle/ML, or "SML" for official Standard ML.
 
 * ML antiquotation @{master_dir} refers to the master directory of the
 underlying theory, i.e. the directory of the theory file.
