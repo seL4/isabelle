@@ -10,6 +10,9 @@ Nice abstract model. Not efficient because of the function space.\<close>
 
 datatype 'a trie = Nd bool "'a \<Rightarrow> 'a trie option"
 
+definition empty :: "'a trie" where
+[simp]: "empty = Nd False (\<lambda>_. None)"
+
 fun isin :: "'a trie \<Rightarrow> 'a list \<Rightarrow> bool" where
 "isin (Nd b m) [] = b" |
 "isin (Nd b m) (k # xs) = (case m k of None \<Rightarrow> False | Some t \<Rightarrow> isin t xs)"
@@ -17,7 +20,7 @@ fun isin :: "'a trie \<Rightarrow> 'a list \<Rightarrow> bool" where
 fun insert :: "('a::linorder) list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
 "insert [] (Nd b m) = Nd True m" |
 "insert (x#xs) (Nd b m) =
-   Nd b (m(x := Some(insert xs (case m x of None \<Rightarrow> Nd False (\<lambda>_. None) | Some t \<Rightarrow> t))))"
+   Nd b (m(x := Some(insert xs (case m x of None \<Rightarrow> empty | Some t \<Rightarrow> t))))"
 
 fun delete :: "('a::linorder) list \<Rightarrow> 'a trie \<Rightarrow> 'a trie" where
 "delete [] (Nd b m) = Nd False m" |
@@ -73,7 +76,7 @@ next
 qed
 
 interpretation S: Set
-where empty = "Nd False (\<lambda>_. None)" and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and set = set and invar = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by (simp)

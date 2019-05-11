@@ -29,6 +29,10 @@ apply(induction t a rule: lookup.induct)
 apply(auto split: if_splits)
 done
 
+
+definition empty :: "'a trie_map" where
+[simp]: "empty = Nd False Leaf"
+
 fun isin :: "('a::linorder) trie_map \<Rightarrow> 'a list \<Rightarrow> bool" where
 "isin (Nd b m) [] = b" |
 "isin (Nd b m) (x # xs) = (case lookup m x of None \<Rightarrow> False | Some t \<Rightarrow> isin t xs)"
@@ -36,7 +40,7 @@ fun isin :: "('a::linorder) trie_map \<Rightarrow> 'a list \<Rightarrow> bool" w
 fun insert :: "('a::linorder) list \<Rightarrow> 'a trie_map \<Rightarrow> 'a trie_map" where
 "insert [] (Nd b m) = Nd True m" |
 "insert (x#xs) (Nd b m) =
-  Nd b (update x (insert xs (case lookup m x of None \<Rightarrow> Nd False Leaf | Some t \<Rightarrow> t)) m)"
+  Nd b (update x (insert xs (case lookup m x of None \<Rightarrow> empty | Some t \<Rightarrow> t)) m)"
 
 fun delete :: "('a::linorder) list \<Rightarrow> 'a trie_map \<Rightarrow> 'a trie_map" where
 "delete [] (Nd b m) = Nd False m" |
@@ -84,7 +88,7 @@ done
 text \<open>Overall correctness w.r.t. the \<open>Set\<close> ADT:\<close>
 
 interpretation S2: Set
-where empty = "Nd False Leaf" and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and set = "set o abs" and invar = invar
 proof (standard, goal_cases)
   case 1 show ?case by (simp)
