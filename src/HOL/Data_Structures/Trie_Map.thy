@@ -51,22 +51,22 @@ subsection "Correctness"
 text \<open>Proof by stepwise refinement. First abstract to type @{typ "'a trie"}.\<close>
 
 fun abs :: "'a::linorder trie_map \<Rightarrow> 'a trie" where
-"abs (Nd b t) = Trie_Fun0.Nd b (\<lambda>a. map_option abs (lookup t a))"
+"abs (Nd b t) = Trie_Fun.Nd b (\<lambda>a. map_option abs (lookup t a))"
 
 fun invar :: "('a::linorder)trie_map \<Rightarrow> bool" where
 "invar (Nd b m) = (M.invar m \<and> (\<forall>a t. lookup m a = Some t \<longrightarrow> invar t))"
 
-lemma isin_abs: "isin t xs = Trie_Fun0.isin (abs t) xs"
+lemma isin_abs: "isin t xs = Trie_Fun.isin (abs t) xs"
 apply(induction t xs rule: isin.induct)
 apply(auto split: option.split)
 done
 
-lemma abs_insert: "invar t \<Longrightarrow> abs(insert xs t) = Trie_Fun0.insert xs (abs t)"
+lemma abs_insert: "invar t \<Longrightarrow> abs(insert xs t) = Trie_Fun.insert xs (abs t)"
 apply(induction xs t rule: insert.induct)
 apply(auto simp: M.map_specs RBT_Set.empty_def[symmetric] split: option.split)
 done
 
-lemma abs_delete: "invar t \<Longrightarrow> abs(delete xs t) = Trie_Fun0.delete xs (abs t)"
+lemma abs_delete: "invar t \<Longrightarrow> abs(delete xs t) = Trie_Fun.delete xs (abs t)"
 apply(induction xs t rule: delete.induct)
 apply(auto simp: M.map_specs split: option.split)
 done
