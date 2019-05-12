@@ -21,6 +21,9 @@ subsection "Trie"
 
 datatype trie = Lf | Nd bool "trie * trie"
 
+definition empty :: trie where
+[simp]: "empty = Lf"
+
 fun isin :: "trie \<Rightarrow> bool list \<Rightarrow> bool" where
 "isin Lf ks = False" |
 "isin (Nd b lr) ks =
@@ -34,8 +37,8 @@ fun insert :: "bool list \<Rightarrow> trie \<Rightarrow> trie" where
 "insert (k#ks) Lf = Nd False (mod2 (insert ks) k (Lf,Lf))" |
 "insert (k#ks) (Nd b lr) = Nd b (mod2 (insert ks) k lr)"
 
-lemma isin_insert: "isin (insert as t) bs = (as = bs \<or> isin t bs)"
-apply(induction as t arbitrary: bs rule: insert.induct)
+lemma isin_insert: "isin (insert xs t) ys = (xs = ys \<or> isin t ys)"
+apply(induction xs t arbitrary: ys rule: insert.induct)
 apply (auto split: list.splits if_splits)
 done
 
@@ -65,8 +68,8 @@ fun delete :: "bool list \<Rightarrow> trie \<Rightarrow> trie" where
       [] \<Rightarrow> node False lr |
       k#ks' \<Rightarrow> node b (mod2 (delete ks') k lr))"
 
-lemma isin_delete: "isin (delete as t) bs = (as \<noteq> bs \<and> isin t bs)"
-apply(induction as t arbitrary: bs rule: delete.induct)
+lemma isin_delete: "isin (delete xs t) ys = (xs \<noteq> ys \<and> isin t ys)"
+apply(induction xs t arbitrary: ys rule: delete.induct)
  apply simp
 apply (auto split: list.splits if_splits)
   apply (metis isin.simps(1))
@@ -76,20 +79,29 @@ apply (auto split: list.splits if_splits)
 definition set_trie :: "trie \<Rightarrow> bool list set" where
 "set_trie t = {xs. isin t xs}"
 
+lemma set_trie_empty: "set_trie empty = {}"
+by(simp add: set_trie_def)
+
+lemma set_trie_isin: "isin t xs = (xs \<in> set_trie t)"
+by(simp add: set_trie_def)
+
 lemma set_trie_insert: "set_trie(insert xs t) = set_trie t \<union> {xs}"
 by(auto simp add: isin_insert set_trie_def)
 
+lemma set_trie_delete: "set_trie(delete xs t) = set_trie t - {xs}"
+by(auto simp add: isin_delete set_trie_def)
+
 interpretation S: Set
-where empty = Lf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and set = set_trie and invar = "\<lambda>t. True"
 proof (standard, goal_cases)
-  case 1 show ?case by (simp add: set_trie_def)
+  case 1 show ?case by (rule set_trie_empty)
 next
-  case 2 thus ?case by(simp add: set_trie_def)
+  case 2 show ?case by(rule set_trie_isin)
 next
   case 3 thus ?case by(auto simp: set_trie_insert)
 next
-  case 4 thus ?case by(auto simp: isin_delete set_trie_def)
+  case 4 show ?case by(rule set_trie_delete)
 qed (rule TrueI)+
 
 
