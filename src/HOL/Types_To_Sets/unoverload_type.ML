@@ -16,7 +16,7 @@ struct
 fun params_of_class thy class = try (Axclass.get_info thy #> #params) class |> these
 
 fun params_of_super_classes thy class =
-  Sorts.super_classes (Sign.classes_of thy) class |> maps (params_of_class thy)
+  class::Sorts.super_classes (Sign.classes_of thy) class |> maps (params_of_class thy)
 
 fun params_of_sort thy sort = maps (params_of_super_classes thy) sort
 
