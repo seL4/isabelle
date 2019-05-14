@@ -107,15 +107,18 @@ qed (rule TrueI)+
 
 subsection "Patricia Trie"
 
-datatype ptrie = LfP | NdP "bool list" bool "ptrie * ptrie"
+datatype trieP = LfP | NdP "bool list" bool "trieP * trieP"
 
-fun isinP :: "ptrie \<Rightarrow> bool list \<Rightarrow> bool" where
+fun isinP :: "trieP \<Rightarrow> bool list \<Rightarrow> bool" where
 "isinP LfP ks = False" |
 "isinP (NdP ps b lr) ks =
   (let n = length ps in
    if ps = take n ks
    then case drop n ks of [] \<Rightarrow> b | k#ks' \<Rightarrow> isinP (sel2 k lr) ks'
    else False)"
+
+definition emptyP :: trieP where
+[simp]: "emptyP = LfP"
 
 fun split where
 "split [] ys = ([],[],ys)" |
@@ -130,7 +133,8 @@ lemma mod2_cong[fundef_cong]:
   \<Longrightarrow> mod2 f k lr= mod2 f' k' lr'"
 by(cases lr, cases lr', auto)
 
-fun insertP :: "bool list \<Rightarrow> ptrie \<Rightarrow> ptrie" where
+
+fun insertP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "insertP ks LfP  = NdP ks True (LfP,LfP)" |
 "insertP ks (NdP ps b lr) =
   (case split ks ps of
@@ -145,10 +149,10 @@ fun insertP :: "bool list \<Rightarrow> ptrie \<Rightarrow> ptrie" where
      (qs,[],[]) \<Rightarrow> NdP ps True lr)"
 
 
-fun nodeP :: "bool list \<Rightarrow> bool \<Rightarrow> ptrie * ptrie \<Rightarrow> ptrie" where
+fun nodeP :: "bool list \<Rightarrow> bool \<Rightarrow> trieP * trieP \<Rightarrow> trieP" where
 "nodeP ps b lr = (if \<not> b \<and> lr = (LfP,LfP) then LfP else NdP ps b lr)"
 
-fun deleteP :: "bool list \<Rightarrow> ptrie \<Rightarrow> ptrie" where
+fun deleteP :: "bool list \<Rightarrow> trieP \<Rightarrow> trieP" where
 "deleteP ks LfP  = LfP" |
 "deleteP ks (NdP ps b lr) =
   (case split ks ps of
@@ -159,16 +163,16 @@ fun deleteP :: "bool list \<Rightarrow> ptrie \<Rightarrow> ptrie" where
 
 subsubsection \<open>Functional Correctness\<close>
 
-text \<open>First step: @{typ ptrie} implements @{typ trie} via the abstraction function \<open>abs_ptrie\<close>:\<close>
+text \<open>First step: @{typ trieP} implements @{typ trie} via the abstraction function \<open>abs_trieP\<close>:\<close>
 
 fun prefix_trie :: "bool list \<Rightarrow> trie \<Rightarrow> trie" where
 "prefix_trie [] t = t" |
 "prefix_trie (k#ks) t =
   (let t' = prefix_trie ks t in Nd False (if k then (Lf,t') else (t',Lf)))"
 
-fun abs_ptrie :: "ptrie \<Rightarrow> trie" where
-"abs_ptrie LfP = Lf" |
-"abs_ptrie (NdP ps b (l,r)) = prefix_trie ps (Nd b (abs_ptrie l, abs_ptrie r))"
+fun abs_trieP :: "trieP \<Rightarrow> trie" where
+"abs_trieP LfP = Lf" |
+"abs_trieP (NdP ps b (l,r)) = prefix_trie ps (Nd b (abs_trieP l, abs_trieP r))"
 
 
 text \<open>Correctness of @{const isinP}:\<close>
@@ -181,8 +185,8 @@ apply(auto split: list.split)
 done
 
 lemma isinP:
-  "isinP t ks = isin (abs_ptrie t) ks"
-apply(induction t arbitrary: ks rule: abs_ptrie.induct)
+  "isinP t ks = isin (abs_trieP t) ks"
+apply(induction t arbitrary: ks rule: abs_trieP.induct)
  apply(auto simp: isin_prefix_trie split: list.split)
 done
 
@@ -216,8 +220,8 @@ apply(induction ks ps arbitrary: qs ks' ps' rule: split.induct)
 apply(auto split: prod.splits if_splits)
 done
 
-lemma abs_ptrie_insertP:
-  "abs_ptrie (insertP ks t) = insert ks (abs_ptrie t)"
+lemma abs_trieP_insertP:
+  "abs_trieP (insertP ks t) = insert ks (abs_trieP t)"
 apply(induction t arbitrary: ks)
 apply(auto simp: prefix_trie_Lfs insert_prefix_trie_same insert_append prefix_trie_append
            dest!: split_if split: list.split prod.split if_splits)
@@ -229,7 +233,7 @@ text \<open>Correctness of @{const deleteP}:\<close>
 lemma prefix_trie_Lf: "prefix_trie xs t = Lf \<longleftrightarrow> xs = [] \<and> t = Lf"
 by(cases xs)(auto)
 
-lemma abs_ptrie_Lf: "abs_ptrie t = Lf \<longleftrightarrow> t = LfP"
+lemma abs_trieP_Lf: "abs_trieP t = Lf \<longleftrightarrow> t = LfP"
 by(cases t) (auto simp: prefix_trie_Lf)
 
 lemma delete_prefix_trie:
@@ -242,35 +246,35 @@ lemma delete_append_prefix_trie:
    = (if delete ys t = Lf then Lf else prefix_trie xs (delete ys t))"
 by(induction xs)(auto simp: prefix_trie_Lf)
 
-lemma delete_abs_ptrie:
-  "delete ks (abs_ptrie t) = abs_ptrie (deleteP ks t)"
+lemma delete_abs_trieP:
+  "delete ks (abs_trieP t) = abs_trieP (deleteP ks t)"
 apply(induction t arbitrary: ks)
 apply(auto simp: delete_prefix_trie delete_append_prefix_trie
-        prefix_trie_append prefix_trie_Lf abs_ptrie_Lf
+        prefix_trie_append prefix_trie_Lf abs_trieP_Lf
         dest!: split_if split: if_splits list.split prod.split)
 done
 
 
 text \<open>The overall correctness proof. Simply composes correctness lemmas.\<close>
 
-definition set_ptrie :: "ptrie \<Rightarrow> bool list set" where
-"set_ptrie = set_trie o abs_ptrie"
+definition set_trieP :: "trieP \<Rightarrow> bool list set" where
+"set_trieP = set_trie o abs_trieP"
 
-lemma set_ptrie_insertP: "set_ptrie (insertP xs t) = set_ptrie t \<union> {xs}"
-by(simp add: abs_ptrie_insertP set_trie_insert set_ptrie_def)
+lemma set_trieP_insertP: "set_trieP (insertP xs t) = set_trieP t \<union> {xs}"
+by(simp add: abs_trieP_insertP set_trie_insert set_trieP_def)
 
 interpretation SP: Set
-where empty = LfP and isin = isinP and insert = insertP and delete = deleteP
-and set = set_ptrie and invar = "\<lambda>t. True"
+where empty = emptyP and isin = isinP and insert = insertP and delete = deleteP
+and set = set_trieP and invar = "\<lambda>t. True"
 proof (standard, goal_cases)
-  case 1 show ?case by (simp add: set_ptrie_def set_trie_def)
+  case 1 show ?case by (simp add: set_trieP_def set_trie_def)
 next
-  case 2 thus ?case by(simp add: isinP set_ptrie_def set_trie_def)
+  case 2 thus ?case by(simp add: isinP set_trieP_def set_trie_def)
 next
-  case 3 thus ?case by (auto simp: set_ptrie_insertP)
+  case 3 thus ?case by (auto simp: set_trieP_insertP)
 next
   case 4 thus ?case
-    by(auto simp: isin_delete set_ptrie_def set_trie_def simp flip: delete_abs_ptrie)
+    by(auto simp: isin_delete set_trieP_def set_trie_def simp flip: delete_abs_trieP)
 qed (rule TrueI)+
 
 end
