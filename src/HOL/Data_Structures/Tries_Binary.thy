@@ -184,7 +184,7 @@ apply(induction ps arbitrary: ks)
 apply(auto split: list.split)
 done
 
-lemma isinP:
+lemma abs_trieP_isinP:
   "isinP t ks = isin (abs_trieP t) ks"
 apply(induction t arbitrary: ks rule: abs_trieP.induct)
  apply(auto simp: isin_prefix_trie split: list.split)
@@ -260,8 +260,14 @@ text \<open>The overall correctness proof. Simply composes correctness lemmas.\<
 definition set_trieP :: "trieP \<Rightarrow> bool list set" where
 "set_trieP = set_trie o abs_trieP"
 
+lemma isinP_set_trieP: "isinP t xs = (xs \<in> set_trieP t)"
+by(simp add: abs_trieP_isinP set_trie_isin set_trieP_def)
+
 lemma set_trieP_insertP: "set_trieP (insertP xs t) = set_trieP t \<union> {xs}"
 by(simp add: abs_trieP_insertP set_trie_insert set_trieP_def)
+
+lemma set_trieP_deleteP: "set_trieP (deleteP xs t) = set_trieP t - {xs}"
+by(auto simp: set_trie_delete set_trieP_def simp flip: delete_abs_trieP)
 
 interpretation SP: Set
 where empty = emptyP and isin = isinP and insert = insertP and delete = deleteP
@@ -269,12 +275,11 @@ and set = set_trieP and invar = "\<lambda>t. True"
 proof (standard, goal_cases)
   case 1 show ?case by (simp add: set_trieP_def set_trie_def)
 next
-  case 2 thus ?case by(simp add: isinP set_trieP_def set_trie_def)
+  case 2 show ?case by(rule isinP_set_trieP)
 next
   case 3 thus ?case by (auto simp: set_trieP_insertP)
 next
-  case 4 thus ?case
-    by(auto simp: isin_delete set_trieP_def set_trie_def simp flip: delete_abs_trieP)
+  case 4 thus ?case by(auto simp: set_trieP_deleteP)
 qed (rule TrueI)+
 
 end
