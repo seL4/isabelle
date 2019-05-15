@@ -304,15 +304,10 @@ next
 qed (auto simp: Ioc_inj mono_F)
 
 lemma measure_interval_measure_Ioc:
-  assumes "a \<le> b"
-  assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
-  assumes right_cont_F : "\<And>a. continuous (at_right a) F"
+  assumes "a \<le> b" and "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y" and "\<And>a. continuous (at_right a) F"
   shows "measure (interval_measure F) {a <.. b} = F b - F a"
   unfolding measure_def
-  apply (subst emeasure_interval_measure_Ioc)
-  apply fact+
-  apply (simp add: assms)
-  done
+  by (simp add: assms emeasure_interval_measure_Ioc)
 
 lemma emeasure_interval_measure_Ioc_eq:
   "(\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y) \<Longrightarrow> (\<And>a. continuous (at_right a) F) \<Longrightarrow>
@@ -408,6 +403,11 @@ lemma measurable_lebesgue_cong:
   assumes "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
   shows "f \<in> measurable (lebesgue_on S) M \<longleftrightarrow> g \<in> measurable (lebesgue_on S) M"
   by (metis (mono_tags, lifting) IntD1 assms measurable_cong_simp space_restrict_space)
+
+lemma integrable_lebesgue_on_UNIV_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
+  shows "integrable (lebesgue_on UNIV) f = integrable lebesgue f"
+  by (auto simp: integrable_restrict_space)
 
 text\<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
 

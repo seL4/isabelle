@@ -956,6 +956,15 @@ lemma ennreal_indicator: "ennreal (indicator A x) = indicator A x"
 lemma ennreal_numeral[simp]: "ennreal (numeral n) = numeral n"
   using ennreal_of_nat_eq_real_of_nat[of "numeral n"] by simp
 
+lemma ennreal_less_numeral_iff [simp]: "ennreal n < numeral w \<longleftrightarrow> n < numeral w"
+  by (metis ennreal_less_iff ennreal_numeral less_le not_less zero_less_numeral)
+
+lemma numeral_less_ennreal_iff [simp]: "numeral w < ennreal n \<longleftrightarrow> numeral w < n"
+  using ennreal_less_iff zero_le_numeral by fastforce
+
+lemma numeral_le_ennreal_iff [simp]: "numeral n \<le> ennreal m \<longleftrightarrow> numeral n \<le> m"
+  by (metis not_le ennreal_less_numeral_iff)
+
 lemma min_ennreal: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> min (ennreal x) (ennreal y) = ennreal (min x y)"
   by (auto split: split_min)
 

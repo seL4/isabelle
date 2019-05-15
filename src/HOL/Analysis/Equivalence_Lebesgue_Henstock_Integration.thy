@@ -3119,11 +3119,28 @@ proof (rule Bochner_Integration.integrable_bound)
     using f by (auto intro: has_integral_implies_lebesgue_measurable simp: integrable_on_def)
 qed (use le in \<open>force intro!: always_eventually split: split_indicator\<close>)
 
+corollary absolutely_integrable_on_const [simp]:
+  fixes c :: "'a::euclidean_space"
+  assumes "S \<in> lmeasurable"
+  shows "(\<lambda>x. c) absolutely_integrable_on S"
+  by (metis (full_types) assms absolutely_integrable_integrable_bound integrable_on_const order_refl)
+
 lemma absolutely_integrable_continuous:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "continuous_on (cbox a b) f \<Longrightarrow> f absolutely_integrable_on cbox a b"
   using absolutely_integrable_integrable_bound
   by (simp add: absolutely_integrable_on_def continuous_on_norm integrable_continuous)
+
+lemma continous_imp_integrable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "continuous_on (cbox a b) f"
+  shows "integrable (lebesgue_on (cbox a b)) f"
+proof -
+  have "f absolutely_integrable_on cbox a b"
+    by (simp add: absolutely_integrable_continuous assms)
+  then show ?thesis
+    by (simp add: integrable_restrict_space set_integrable_def)
+qed
 
 
 subsection \<open>Componentwise\<close>

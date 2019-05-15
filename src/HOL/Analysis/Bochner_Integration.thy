@@ -1932,6 +1932,24 @@ lemma integral_mono:
     integral\<^sup>L M f \<le> integral\<^sup>L M g"
   by (intro integral_mono_AE) auto
 
+lemma integral_norm_bound_integral:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach,second_countable_topology}"
+  assumes "integrable M f" "integrable M g" "\<And>x. x \<in> space M \<Longrightarrow> norm(f x) \<le> g x"
+  shows "norm (\<integral>x. f x \<partial>M) \<le> (\<integral>x. g x \<partial>M)"
+proof -
+  have "norm (\<integral>x. f x \<partial>M) \<le> (\<integral>x. norm (f x) \<partial>M)"
+    by (rule integral_norm_bound)
+  also have "... \<le> (\<integral>x. g x \<partial>M)"
+    using assms integrable_norm integral_mono by blast
+  finally show ?thesis .
+qed
+
+lemma integral_abs_bound_integral:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "integrable M f" "integrable M g" "\<And>x. x \<in> space M \<Longrightarrow> \<bar>f x\<bar> \<le> g x"
+  shows "\<bar>\<integral>x. f x \<partial>M\<bar> \<le> (\<integral>x. g x \<partial>M)"
+  by (metis integral_norm_bound_integral assms real_norm_def)
+
 text \<open>The next two statements are useful to bound Lebesgue integrals, as they avoid one
 integrability assumption. The price to pay is that the upper function has to be nonnegative,
 but this is often true and easy to check in computations.\<close>
