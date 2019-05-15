@@ -2771,8 +2771,8 @@ lemma powr_real_of_int:
   using powr_realpow[of x "nat n"] powr_realpow[of x "nat (-n)"]
   by (auto simp: field_simps powr_minus)
 
-lemma powr_numeral [simp]: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
-  by (metis of_nat_numeral powr_realpow)
+lemma powr_numeral [simp]: "0 \<le> x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
+  by (metis less_le power_zero_numeral powr_0 of_nat_numeral powr_realpow)
 
 lemma powr_int:
   assumes "x > 0"

@@ -606,11 +606,9 @@ lemmas eq_numeral_simps [simp] =
 end
 
 
-subsubsection \<open>Comparisons: class \<open>linordered_semidom\<close>\<close>
+subsubsection \<open>Comparisons: class \<open>linordered_nonzero_semiring\<close>\<close>
 
-text \<open>Could be perhaps more general than here.\<close>
-
-context linordered_semidom
+context linordered_nonzero_semiring
 begin
 
 lemma numeral_le_iff: "numeral m \<le> numeral n \<longleftrightarrow> m \<le> n"
@@ -621,10 +619,10 @@ proof -
 qed
 
 lemma one_le_numeral: "1 \<le> numeral n"
-  using numeral_le_iff [of One n] by (simp add: numeral_One)
+  using numeral_le_iff [of num.One n] by (simp add: numeral_One)
 
-lemma numeral_le_one_iff: "numeral n \<le> 1 \<longleftrightarrow> n \<le> One"
-  using numeral_le_iff [of n One] by (simp add: numeral_One)
+lemma numeral_le_one_iff: "numeral n \<le> 1 \<longleftrightarrow> n \<le> num.One"
+  using numeral_le_iff [of n num.One] by (simp add: numeral_One)
 
 lemma numeral_less_iff: "numeral m < numeral n \<longleftrightarrow> m < n"
 proof -
@@ -634,16 +632,16 @@ proof -
 qed
 
 lemma not_numeral_less_one: "\<not> numeral n < 1"
-  using numeral_less_iff [of n One] by (simp add: numeral_One)
+  using numeral_less_iff [of n num.One] by (simp add: numeral_One)
 
-lemma one_less_numeral_iff: "1 < numeral n \<longleftrightarrow> One < n"
-  using numeral_less_iff [of One n] by (simp add: numeral_One)
+lemma one_less_numeral_iff: "1 < numeral n \<longleftrightarrow> num.One < n"
+  using numeral_less_iff [of num.One n] by (simp add: numeral_One)
 
 lemma zero_le_numeral: "0 \<le> numeral n"
-  by (induct n) (simp_all add: numeral.simps)
+  using dual_order.trans one_le_numeral zero_le_one by blast
 
 lemma zero_less_numeral: "0 < numeral n"
-  by (induct n) (simp_all add: numeral.simps add_pos_pos)
+  using less_linear not_numeral_less_one order.strict_trans zero_less_one by blast
 
 lemma not_numeral_le_zero: "\<not> numeral n \<le> 0"
   by (simp add: not_le zero_less_numeral)
