@@ -128,7 +128,7 @@ fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" wh
   (case cmp x a of
      LT \<Rightarrow> node21 (del x l) a r |
      GT \<Rightarrow> node22 l a (del x r) |
-     EQ \<Rightarrow> let (a',t) = split_min r in node22 l a' t)" |
+     EQ \<Rightarrow> let (a',r') = split_min r in node22 l a' r')" |
 "del x (Node3 l a m b r) =
   (case cmp x a of
      LT \<Rightarrow> node31 (del x l) a m b r |
