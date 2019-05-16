@@ -86,42 +86,42 @@ corollary inorder_update:
 by(simp add: update_def inorder_upd)
 
 
-lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
+lemma inorder_del: "\<lbrakk> complete t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
   (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
-corollary inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
+corollary inorder_delete: "\<lbrakk> complete t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
 by(simp add: delete_def inorder_del)
 
 
 subsection \<open>Balancedness\<close>
 
-lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd x y t)) \<and> height(upd x y t) = height t"
+lemma complete_upd: "complete t \<Longrightarrow> complete (tree\<^sub>i(upd x y t)) \<and> height(upd x y t) = height t"
 by (induct t) (auto split!: if_split up\<^sub>i.split)(* 16 secs in 2015 *)
 
-corollary bal_update: "bal t \<Longrightarrow> bal (update x y t)"
-by (simp add: update_def bal_upd)
+corollary complete_update: "complete t \<Longrightarrow> complete (update x y t)"
+by (simp add: update_def complete_upd)
 
 
-lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
+lemma height_del: "complete t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
   (auto simp add: heights max_def height_split_min split: prod.split)
 
-lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
+lemma complete_tree\<^sub>d_del: "complete t \<Longrightarrow> complete(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_split_min height_del height_split_min split: prod.split)
+  (auto simp: completes complete_split_min height_del height_split_min split: prod.split)
 
-corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
-by(simp add: delete_def bal_tree\<^sub>d_del)
+corollary complete_delete: "complete t \<Longrightarrow> complete(delete x t)"
+by(simp add: delete_def complete_tree\<^sub>d_del)
 
 
 subsection \<open>Overall Correctness\<close>
 
 interpretation M: Map_by_Ordered
 where empty = empty and lookup = lookup and update = update and delete = delete
-and inorder = inorder and inv = bal
+and inorder = inorder and inv = complete
 proof (standard, goal_cases)
   case 1 thus ?case by(simp add: empty_def)
 next
@@ -133,9 +133,9 @@ next
 next
   case 5 thus ?case by(simp add: empty_def)
 next
-  case 6 thus ?case by(simp add: bal_update)
+  case 6 thus ?case by(simp add: complete_update)
 next
-  case 7 thus ?case by(simp add: bal_delete)
+  case 7 thus ?case by(simp add: complete_delete)
 qed
 
 end

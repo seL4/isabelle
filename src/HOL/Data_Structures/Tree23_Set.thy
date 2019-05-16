@@ -188,17 +188,17 @@ lemmas inorder_nodes = inorder_node21 inorder_node22
   inorder_node31 inorder_node32 inorder_node33
 
 lemma split_minD:
-  "split_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
+  "split_min t = (x,t') \<Longrightarrow> complete t \<Longrightarrow> height t > 0 \<Longrightarrow>
   x # inorder(tree\<^sub>d t') = inorder t"
 by(induction t arbitrary: t' rule: split_min.induct)
   (auto simp: inorder_nodes split: prod.splits)
 
-lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
+lemma inorder_del: "\<lbrakk> complete t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
   (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
-lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
+lemma inorder_delete: "\<lbrakk> complete t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
 by(simp add: delete_def inorder_del)
 
@@ -208,7 +208,7 @@ subsection \<open>Balancedness\<close>
 
 subsubsection "Proofs for insert"
 
-text\<open>First a standard proof that \<^const>\<open>ins\<close> preserves \<^const>\<open>bal\<close>.\<close>
+text\<open>First a standard proof that \<^const>\<open>ins\<close> preserves \<^const>\<open>complete\<close>.\<close>
 
 instantiation up\<^sub>i :: (type)height
 begin
@@ -221,7 +221,7 @@ instance ..
 
 end
 
-lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
+lemma complete_ins: "complete t \<Longrightarrow> complete (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
 by (induct t) (auto split!: if_split up\<^sub>i.split) (* 15 secs in 2015 *)
 
 text\<open>Now an alternative proof (by Brian Huffman) that runs faster because
@@ -257,14 +257,14 @@ lemma full_Suc_Node3_iff [simp]:
 lemma full_imp_height: "full n t \<Longrightarrow> height t = n"
   by (induct set: full, simp_all)
 
-lemma full_imp_bal: "full n t \<Longrightarrow> bal t"
+lemma full_imp_complete: "full n t \<Longrightarrow> complete t"
   by (induct set: full, auto dest: full_imp_height)
 
-lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
+lemma complete_imp_full: "complete t \<Longrightarrow> full (height t) t"
   by (induct t, simp_all)
 
-lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
-  by (auto elim!: bal_imp_full full_imp_bal)
+lemma complete_iff_full: "complete t \<longleftrightarrow> (\<exists>n. full n t)"
+  by (auto elim!: complete_imp_full full_imp_complete)
 
 text \<open>The \<^const>\<open>insert\<close> function either preserves the height of the
 tree, or increases it by one. The constructor returned by the \<^term>\<open>insert\<close> function determines which: A return value of the form \<^term>\<open>T\<^sub>i t\<close> indicates that the height will be the same. A value of the
@@ -277,10 +277,10 @@ fun full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" where
 lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (ins a t)"
 by (induct rule: full.induct) (auto split: up\<^sub>i.split)
 
-text \<open>The \<^const>\<open>insert\<close> operation preserves balance.\<close>
+text \<open>The \<^const>\<open>insert\<close> operation preserves completeance.\<close>
 
-lemma bal_insert: "bal t \<Longrightarrow> bal (insert a t)"
-unfolding bal_iff_full insert_def
+lemma complete_insert: "complete t \<Longrightarrow> complete (insert a t)"
+unfolding complete_iff_full insert_def
 apply (erule exE)
 apply (drule full\<^sub>i_ins [of _ _ a])
 apply (cases "ins a t")
@@ -301,31 +301,31 @@ instance ..
 
 end
 
-lemma bal_tree\<^sub>d_node21:
-  "\<lbrakk>bal r; bal (tree\<^sub>d l'); height r = height l' \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d (node21 l' a r))"
+lemma complete_tree\<^sub>d_node21:
+  "\<lbrakk>complete r; complete (tree\<^sub>d l'); height r = height l' \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d (node21 l' a r))"
 by(induct l' a r rule: node21.induct) auto
 
-lemma bal_tree\<^sub>d_node22:
-  "\<lbrakk>bal(tree\<^sub>d r'); bal l; height r' = height l \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d (node22 l a r'))"
+lemma complete_tree\<^sub>d_node22:
+  "\<lbrakk>complete(tree\<^sub>d r'); complete l; height r' = height l \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d (node22 l a r'))"
 by(induct l a r' rule: node22.induct) auto
 
-lemma bal_tree\<^sub>d_node31:
-  "\<lbrakk> bal (tree\<^sub>d l'); bal m; bal r; height l' = height r; height m = height r \<rbrakk>
-  \<Longrightarrow> bal (tree\<^sub>d (node31 l' a m b r))"
+lemma complete_tree\<^sub>d_node31:
+  "\<lbrakk> complete (tree\<^sub>d l'); complete m; complete r; height l' = height r; height m = height r \<rbrakk>
+  \<Longrightarrow> complete (tree\<^sub>d (node31 l' a m b r))"
 by(induct l' a m b r rule: node31.induct) auto
 
-lemma bal_tree\<^sub>d_node32:
-  "\<lbrakk> bal l; bal (tree\<^sub>d m'); bal r; height l = height r; height m' = height r \<rbrakk>
-  \<Longrightarrow> bal (tree\<^sub>d (node32 l a m' b r))"
+lemma complete_tree\<^sub>d_node32:
+  "\<lbrakk> complete l; complete (tree\<^sub>d m'); complete r; height l = height r; height m' = height r \<rbrakk>
+  \<Longrightarrow> complete (tree\<^sub>d (node32 l a m' b r))"
 by(induct l a m' b r rule: node32.induct) auto
 
-lemma bal_tree\<^sub>d_node33:
-  "\<lbrakk> bal l; bal m; bal(tree\<^sub>d r'); height l = height r'; height m = height r' \<rbrakk>
-  \<Longrightarrow> bal (tree\<^sub>d (node33 l a m b r'))"
+lemma complete_tree\<^sub>d_node33:
+  "\<lbrakk> complete l; complete m; complete(tree\<^sub>d r'); height l = height r'; height m = height r' \<rbrakk>
+  \<Longrightarrow> complete (tree\<^sub>d (node33 l a m b r'))"
 by(induct l a m b r' rule: node33.induct) auto
 
-lemmas bals = bal_tree\<^sub>d_node21 bal_tree\<^sub>d_node22
-  bal_tree\<^sub>d_node31 bal_tree\<^sub>d_node32 bal_tree\<^sub>d_node33
+lemmas completes = complete_tree\<^sub>d_node21 complete_tree\<^sub>d_node22
+  complete_tree\<^sub>d_node31 complete_tree\<^sub>d_node32 complete_tree\<^sub>d_node33
 
 lemma height'_node21:
    "height r > 0 \<Longrightarrow> height(node21 l' a r) = max (height l') (height r) + 1"
@@ -354,32 +354,32 @@ lemmas heights = height'_node21 height'_node22
   height'_node31 height'_node32 height'_node33
 
 lemma height_split_min:
-  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
+  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> complete t \<Longrightarrow> height t' = height t"
 by(induct t arbitrary: x t' rule: split_min.induct)
   (auto simp: heights split: prod.splits)
 
-lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
+lemma height_del: "complete t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
   (auto simp: heights max_def height_split_min split: prod.splits)
 
-lemma bal_split_min:
-  "\<lbrakk> split_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
+lemma complete_split_min:
+  "\<lbrakk> split_min t = (x, t'); complete t; height t > 0 \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d t')"
 by(induct t arbitrary: x t' rule: split_min.induct)
-  (auto simp: heights height_split_min bals split: prod.splits)
+  (auto simp: heights height_split_min completes split: prod.splits)
 
-lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
+lemma complete_tree\<^sub>d_del: "complete t \<Longrightarrow> complete(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_split_min height_del height_split_min split: prod.splits)
+  (auto simp: completes complete_split_min height_del height_split_min split: prod.splits)
 
-corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
-by(simp add: delete_def bal_tree\<^sub>d_del)
+corollary complete_delete: "complete t \<Longrightarrow> complete(delete x t)"
+by(simp add: delete_def complete_tree\<^sub>d_del)
 
 
 subsection \<open>Overall Correctness\<close>
 
 interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
-and inorder = inorder and inv = bal
+and inorder = inorder and inv = complete
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: isin_set)
 next
@@ -387,9 +387,9 @@ next
 next
   case 4 thus ?case by(simp add: inorder_delete)
 next
-  case 6 thus ?case by(simp add: bal_insert)
+  case 6 thus ?case by(simp add: complete_insert)
 next
-  case 7 thus ?case by(simp add: bal_delete)
+  case 7 thus ?case by(simp add: complete_delete)
 qed (simp add: empty_def)+
 
 end

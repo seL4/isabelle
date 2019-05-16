@@ -34,13 +34,13 @@ end
 
 text \<open>Balanced:\<close>
 
-fun bal :: "'a tree23 \<Rightarrow> bool" where
-"bal Leaf = True" |
-"bal (Node2 l _ r) = (bal l & bal r & height l = height r)" |
-"bal (Node3 l _ m _ r) =
-  (bal l & bal m & bal r & height l = height m & height m = height r)"
+fun complete :: "'a tree23 \<Rightarrow> bool" where
+"complete Leaf = True" |
+"complete (Node2 l _ r) = (complete l & complete r & height l = height r)" |
+"complete (Node3 l _ m _ r) =
+  (complete l & complete m & complete r & height l = height m & height m = height r)"
 
-lemma ht_sz_if_bal: "bal t \<Longrightarrow> 2 ^ height t \<le> size t + 1"
+lemma ht_sz_if_complete: "complete t \<Longrightarrow> 2 ^ height t \<le> size t + 1"
 by (induction t) auto
 
 end
