@@ -294,11 +294,14 @@ fun edit_keywords edits (Version nodes) =
       (String_Graph.all_succs nodes (map_filter (fn (a, Deps _) => SOME a | _ => NONE) edits))
       nodes);
 
+fun is_suppressed_node (nodes: node String_Graph.T) (name, node) =
+  String_Graph.is_maximal nodes name andalso is_empty_node node;
+
 fun put_node (name, node) (Version nodes) =
   let
     val nodes1 = update_node name (K node) nodes;
     val nodes2 =
-      if String_Graph.is_maximal nodes1 name andalso is_empty_node node
+      if is_suppressed_node nodes1 (name, node)
       then String_Graph.del_node name nodes1
       else nodes1;
   in Version nodes2 end;
