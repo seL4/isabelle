@@ -812,7 +812,8 @@ fun update old_version_id new_version_id edits consolidate state =
                             forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                         val (print_execs, common, (still_visible, initial)) =
-                          if imports_result_changed then (assign_update_empty, NONE, (true, true))
+                          if imports_result_changed
+                          then (assign_update_empty, NONE, (true, true))
                           else last_common keywords state node_required node0 node;
 
                         val common_command_exec =
