@@ -13,7 +13,9 @@ object Protocol
 
   object Assign_Update
   {
-    def unapply(text: String): Option[(Document_ID.Version, Document.Assign_Update)] =
+    def unapply(text: String)
+      : Option[(Document_ID.Version, List[String], Document.Assign_Update)] =
+    {
       try {
         import XML.Decode._
         def decode_upd(body: XML.Body): (Long, List[Long]) =
@@ -21,12 +23,13 @@ object Protocol
             case a :: bs => (a, bs)
             case _ => throw new XML.XML_Body(body)
           }
-        Some(pair(long, list(decode_upd _))(Symbol.decode_yxml(text)))
+        Some(triple(long, list(string), list(decode_upd _))(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None
         case _: XML.Error => None
       }
+    }
   }
 
   object Removed

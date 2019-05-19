@@ -48,7 +48,7 @@ object Pretty_Text_Area
     val state1 =
       state0.continue_history(Future.value(version0), edits, Future.value(version1))
         .define_version(version1, state0.the_assignment(version0))
-        .assign(version1.id, List(command.id -> List(Document_ID.make())))._2
+        .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
 
     (command.source, state1)
   }

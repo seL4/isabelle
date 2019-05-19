@@ -25,7 +25,7 @@ sig
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
   val update: Document_ID.version -> Document_ID.version -> edit list -> string list -> state ->
-    Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
+    string list * Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -869,7 +869,7 @@ fun update old_version_id new_version_id edits consolidate state =
     val state' = state
       |> define_version new_version_id new_version assigned_nodes;
 
-  in (removed, assign_result, state') end);
+  in (Symtab.keys edited, removed, assign_result, state') end);
 
 end;
 
