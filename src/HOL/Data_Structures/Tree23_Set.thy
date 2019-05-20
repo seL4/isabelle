@@ -31,97 +31,97 @@ fun isin :: "'a::linorder tree23 \<Rightarrow> 'a \<Rightarrow> bool" where
           EQ \<Rightarrow> True |
           GT \<Rightarrow> isin r x))"
 
-datatype 'a up\<^sub>i = T\<^sub>i "'a tree23" | Up\<^sub>i "'a tree23" 'a "'a tree23"
+datatype 'a upI = TI "'a tree23" | OF "'a tree23" 'a "'a tree23"
 
-fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree23" where
-"tree\<^sub>i (T\<^sub>i t) = t" |
-"tree\<^sub>i (Up\<^sub>i l a r) = Node2 l a r"
+fun treeI :: "'a upI \<Rightarrow> 'a tree23" where
+"treeI (TI t) = t" |
+"treeI (OF l a r) = Node2 l a r"
 
-fun ins :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>i" where
-"ins x Leaf = Up\<^sub>i Leaf x Leaf" |
+fun ins :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a upI" where
+"ins x Leaf = OF Leaf x Leaf" |
 "ins x (Node2 l a r) =
    (case cmp x a of
       LT \<Rightarrow>
         (case ins x l of
-           T\<^sub>i l' => T\<^sub>i (Node2 l' a r) |
-           Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)) |
-      EQ \<Rightarrow> T\<^sub>i (Node2 l x r) |
+           TI l' => TI (Node2 l' a r) |
+           OF l1 b l2 => TI (Node3 l1 b l2 a r)) |
+      EQ \<Rightarrow> TI (Node2 l x r) |
       GT \<Rightarrow>
         (case ins x r of
-           T\<^sub>i r' => T\<^sub>i (Node2 l a r') |
-           Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2)))" |
+           TI r' => TI (Node2 l a r') |
+           OF r1 b r2 => TI (Node3 l a r1 b r2)))" |
 "ins x (Node3 l a m b r) =
    (case cmp x a of
       LT \<Rightarrow>
         (case ins x l of
-           T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r) |
-           Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)) |
-      EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+           TI l' => TI (Node3 l' a m b r) |
+           OF l1 c l2 => OF (Node2 l1 c l2) a (Node2 m b r)) |
+      EQ \<Rightarrow> TI (Node3 l a m b r) |
       GT \<Rightarrow>
         (case cmp x b of
            GT \<Rightarrow>
              (case ins x r of
-                T\<^sub>i r' => T\<^sub>i (Node3 l a m b r') |
-                Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)) |
-           EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+                TI r' => TI (Node3 l a m b r') |
+                OF r1 c r2 => OF (Node2 l a m) b (Node2 r1 c r2)) |
+           EQ \<Rightarrow> TI (Node3 l a m b r) |
            LT \<Rightarrow>
              (case ins x m of
-                T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r) |
-                Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))"
+                TI m' => TI (Node3 l a m' b r) |
+                OF m1 c m2 => OF (Node2 l a m1) c (Node2 m2 b r))))"
 
 hide_const insert
 
 definition insert :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
-"insert x t = tree\<^sub>i(ins x t)"
+"insert x t = treeI(ins x t)"
 
-datatype 'a up\<^sub>d = T\<^sub>d "'a tree23" | Up\<^sub>d "'a tree23"
+datatype 'a upD = TD "'a tree23" | UF "'a tree23"
 
-fun tree\<^sub>d :: "'a up\<^sub>d \<Rightarrow> 'a tree23" where
-"tree\<^sub>d (T\<^sub>d t) = t" |
-"tree\<^sub>d (Up\<^sub>d t) = t"
+fun treeD :: "'a upD \<Rightarrow> 'a tree23" where
+"treeD (TD t) = t" |
+"treeD (UF t) = t"
 
 (* Variation: return None to signal no-change *)
 
-fun node21 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
-"node21 (T\<^sub>d t1) a t2 = T\<^sub>d(Node2 t1 a t2)" |
-"node21 (Up\<^sub>d t1) a (Node2 t2 b t3) = Up\<^sub>d(Node3 t1 a t2 b t3)" |
-"node21 (Up\<^sub>d t1) a (Node3 t2 b t3 c t4) = T\<^sub>d(Node2 (Node2 t1 a t2) b (Node2 t3 c t4))"
+fun node21 :: "'a upD \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a upD" where
+"node21 (TD t1) a t2 = TD(Node2 t1 a t2)" |
+"node21 (UF t1) a (Node2 t2 b t3) = UF(Node3 t1 a t2 b t3)" |
+"node21 (UF t1) a (Node3 t2 b t3 c t4) = TD(Node2 (Node2 t1 a t2) b (Node2 t3 c t4))"
 
-fun node22 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a up\<^sub>d" where
-"node22 t1 a (T\<^sub>d t2) = T\<^sub>d(Node2 t1 a t2)" |
-"node22 (Node2 t1 b t2) a (Up\<^sub>d t3) = Up\<^sub>d(Node3 t1 b t2 a t3)" |
-"node22 (Node3 t1 b t2 c t3) a (Up\<^sub>d t4) = T\<^sub>d(Node2 (Node2 t1 b t2) c (Node2 t3 a t4))"
+fun node22 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a upD \<Rightarrow> 'a upD" where
+"node22 t1 a (TD t2) = TD(Node2 t1 a t2)" |
+"node22 (Node2 t1 b t2) a (UF t3) = UF(Node3 t1 b t2 a t3)" |
+"node22 (Node3 t1 b t2 c t3) a (UF t4) = TD(Node2 (Node2 t1 b t2) c (Node2 t3 a t4))"
 
-fun node31 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
-"node31 (T\<^sub>d t1) a t2 b t3 = T\<^sub>d(Node3 t1 a t2 b t3)" |
-"node31 (Up\<^sub>d t1) a (Node2 t2 b t3) c t4 = T\<^sub>d(Node2 (Node3 t1 a t2 b t3) c t4)" |
-"node31 (Up\<^sub>d t1) a (Node3 t2 b t3 c t4) d t5 = T\<^sub>d(Node3 (Node2 t1 a t2) b (Node2 t3 c t4) d t5)"
+fun node31 :: "'a upD \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a upD" where
+"node31 (TD t1) a t2 b t3 = TD(Node3 t1 a t2 b t3)" |
+"node31 (UF t1) a (Node2 t2 b t3) c t4 = TD(Node2 (Node3 t1 a t2 b t3) c t4)" |
+"node31 (UF t1) a (Node3 t2 b t3 c t4) d t5 = TD(Node3 (Node2 t1 a t2) b (Node2 t3 c t4) d t5)"
 
-fun node32 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
-"node32 t1 a (T\<^sub>d t2) b t3 = T\<^sub>d(Node3 t1 a t2 b t3)" |
-"node32 t1 a (Up\<^sub>d t2) b (Node2 t3 c t4) = T\<^sub>d(Node2 t1 a (Node3 t2 b t3 c t4))" |
-"node32 t1 a (Up\<^sub>d t2) b (Node3 t3 c t4 d t5) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
+fun node32 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a upD \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a upD" where
+"node32 t1 a (TD t2) b t3 = TD(Node3 t1 a t2 b t3)" |
+"node32 t1 a (UF t2) b (Node2 t3 c t4) = TD(Node2 t1 a (Node3 t2 b t3 c t4))" |
+"node32 t1 a (UF t2) b (Node3 t3 c t4 d t5) = TD(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
 
-fun node33 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a up\<^sub>d" where
-"node33 l a m b (T\<^sub>d r) = T\<^sub>d(Node3 l a m b r)" |
-"node33 t1 a (Node2 t2 b t3) c (Up\<^sub>d t4) = T\<^sub>d(Node2 t1 a (Node3 t2 b t3 c t4))" |
-"node33 t1 a (Node3 t2 b t3 c t4) d (Up\<^sub>d t5) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
+fun node33 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a upD \<Rightarrow> 'a upD" where
+"node33 l a m b (TD r) = TD(Node3 l a m b r)" |
+"node33 t1 a (Node2 t2 b t3) c (UF t4) = TD(Node2 t1 a (Node3 t2 b t3 c t4))" |
+"node33 t1 a (Node3 t2 b t3 c t4) d (UF t5) = TD(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
 
-fun split_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
-"split_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
-"split_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
+fun split_min :: "'a tree23 \<Rightarrow> 'a * 'a upD" where
+"split_min (Node2 Leaf a Leaf) = (a, UF Leaf)" |
+"split_min (Node3 Leaf a Leaf b Leaf) = (a, TD(Node2 Leaf b Leaf))" |
 "split_min (Node2 l a r) = (let (x,l') = split_min l in (x, node21 l' a r))" |
 "split_min (Node3 l a m b r) = (let (x,l') = split_min l in (x, node31 l' a m b r))"
 
 text \<open>In the base cases of \<open>split_min\<close> and \<open>del\<close> it is enough to check if one subtree is a \<open>Leaf\<close>,
 in which case balancedness implies that so are the others. Exercise.\<close>
 
-fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
-"del x Leaf = T\<^sub>d Leaf" |
+fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a upD" where
+"del x Leaf = TD Leaf" |
 "del x (Node2 Leaf a Leaf) =
-  (if x = a then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf a Leaf))" |
+  (if x = a then UF Leaf else TD(Node2 Leaf a Leaf))" |
 "del x (Node3 Leaf a Leaf b Leaf) =
-  T\<^sub>d(if x = a then Node2 Leaf b Leaf else
+  TD(if x = a then Node2 Leaf b Leaf else
      if x = b then Node2 Leaf a Leaf
      else Node3 Leaf a Leaf b Leaf)" |
 "del x (Node2 l a r) =
@@ -140,7 +140,7 @@ fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" wh
           GT \<Rightarrow> node33 l a m b (del x r)))"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
-"delete x t = tree\<^sub>d(del x t)"
+"delete x t = treeD(del x t)"
 
 
 subsection "Functional Correctness"
@@ -154,8 +154,8 @@ by (induction t) (auto simp: isin_simps ball_Un)
 subsubsection "Proofs for insert"
 
 lemma inorder_ins:
-  "sorted(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(ins x t)) = ins_list x (inorder t)"
-by(induction t) (auto simp: ins_list_simps split: up\<^sub>i.splits)
+  "sorted(inorder t) \<Longrightarrow> inorder(treeI(ins x t)) = ins_list x (inorder t)"
+by(induction t) (auto simp: ins_list_simps split: upI.splits)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
@@ -165,23 +165,23 @@ by(simp add: insert_def inorder_ins)
 subsubsection "Proofs for delete"
 
 lemma inorder_node21: "height r > 0 \<Longrightarrow>
-  inorder (tree\<^sub>d (node21 l' a r)) = inorder (tree\<^sub>d l') @ a # inorder r"
+  inorder (treeD (node21 l' a r)) = inorder (treeD l') @ a # inorder r"
 by(induct l' a r rule: node21.induct) auto
 
 lemma inorder_node22: "height l > 0 \<Longrightarrow>
-  inorder (tree\<^sub>d (node22 l a r')) = inorder l @ a # inorder (tree\<^sub>d r')"
+  inorder (treeD (node22 l a r')) = inorder l @ a # inorder (treeD r')"
 by(induct l a r' rule: node22.induct) auto
 
 lemma inorder_node31: "height m > 0 \<Longrightarrow>
-  inorder (tree\<^sub>d (node31 l' a m b r)) = inorder (tree\<^sub>d l') @ a # inorder m @ b # inorder r"
+  inorder (treeD (node31 l' a m b r)) = inorder (treeD l') @ a # inorder m @ b # inorder r"
 by(induct l' a m b r rule: node31.induct) auto
 
 lemma inorder_node32: "height r > 0 \<Longrightarrow>
-  inorder (tree\<^sub>d (node32 l a m' b r)) = inorder l @ a # inorder (tree\<^sub>d m') @ b # inorder r"
+  inorder (treeD (node32 l a m' b r)) = inorder l @ a # inorder (treeD m') @ b # inorder r"
 by(induct l a m' b r rule: node32.induct) auto
 
 lemma inorder_node33: "height m > 0 \<Longrightarrow>
-  inorder (tree\<^sub>d (node33 l a m b r')) = inorder l @ a # inorder m @ b # inorder (tree\<^sub>d r')"
+  inorder (treeD (node33 l a m b r')) = inorder l @ a # inorder m @ b # inorder (treeD r')"
 by(induct l a m b r' rule: node33.induct) auto
 
 lemmas inorder_nodes = inorder_node21 inorder_node22
@@ -189,12 +189,12 @@ lemmas inorder_nodes = inorder_node21 inorder_node22
 
 lemma split_minD:
   "split_min t = (x,t') \<Longrightarrow> complete t \<Longrightarrow> height t > 0 \<Longrightarrow>
-  x # inorder(tree\<^sub>d t') = inorder t"
+  x # inorder(treeD t') = inorder t"
 by(induction t arbitrary: t' rule: split_min.induct)
   (auto simp: inorder_nodes split: prod.splits)
 
 lemma inorder_del: "\<lbrakk> complete t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
-  inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
+  inorder(treeD (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
   (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
@@ -210,19 +210,19 @@ subsubsection "Proofs for insert"
 
 text\<open>First a standard proof that \<^const>\<open>ins\<close> preserves \<^const>\<open>complete\<close>.\<close>
 
-instantiation up\<^sub>i :: (type)height
+instantiation upI :: (type)height
 begin
 
-fun height_up\<^sub>i :: "'a up\<^sub>i \<Rightarrow> nat" where
-"height (T\<^sub>i t) = height t" |
-"height (Up\<^sub>i l a r) = height l"
+fun height_upI :: "'a upI \<Rightarrow> nat" where
+"height (TI t) = height t" |
+"height (OF l a r) = height l"
 
 instance ..
 
 end
 
-lemma complete_ins: "complete t \<Longrightarrow> complete (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto split!: if_split up\<^sub>i.split) (* 15 secs in 2015 *)
+lemma complete_ins: "complete t \<Longrightarrow> complete (treeI(ins a t)) \<and> height(ins a t) = height t"
+by (induct t) (auto split!: if_split upI.split) (* 15 secs in 2015 *)
 
 text\<open>Now an alternative proof (by Brian Huffman) that runs faster because
 two properties (balance and height) are combined in one predicate.\<close>
@@ -267,15 +267,15 @@ lemma complete_iff_full: "complete t \<longleftrightarrow> (\<exists>n. full n t
   by (auto elim!: complete_imp_full full_imp_complete)
 
 text \<open>The \<^const>\<open>insert\<close> function either preserves the height of the
-tree, or increases it by one. The constructor returned by the \<^term>\<open>insert\<close> function determines which: A return value of the form \<^term>\<open>T\<^sub>i t\<close> indicates that the height will be the same. A value of the
-form \<^term>\<open>Up\<^sub>i l p r\<close> indicates an increase in height.\<close>
+tree, or increases it by one. The constructor returned by the \<^term>\<open>insert\<close> function determines which: A return value of the form \<^term>\<open>TI t\<close> indicates that the height will be the same. A value of the
+form \<^term>\<open>OF l p r\<close> indicates an increase in height.\<close>
 
-fun full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" where
-"full\<^sub>i n (T\<^sub>i t) \<longleftrightarrow> full n t" |
-"full\<^sub>i n (Up\<^sub>i l p r) \<longleftrightarrow> full n l \<and> full n r"
+fun full\<^sub>i :: "nat \<Rightarrow> 'a upI \<Rightarrow> bool" where
+"full\<^sub>i n (TI t) \<longleftrightarrow> full n t" |
+"full\<^sub>i n (OF l p r) \<longleftrightarrow> full n l \<and> full n r"
 
 lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (ins a t)"
-by (induct rule: full.induct) (auto split: up\<^sub>i.split)
+by (induct rule: full.induct) (auto split: upI.split)
 
 text \<open>The \<^const>\<open>insert\<close> operation preserves completeance.\<close>
 
@@ -290,42 +290,42 @@ done
 
 subsection "Proofs for delete"
 
-instantiation up\<^sub>d :: (type)height
+instantiation upD :: (type)height
 begin
 
-fun height_up\<^sub>d :: "'a up\<^sub>d \<Rightarrow> nat" where
-"height (T\<^sub>d t) = height t" |
-"height (Up\<^sub>d t) = height t + 1"
+fun height_upD :: "'a upD \<Rightarrow> nat" where
+"height (TD t) = height t" |
+"height (UF t) = height t + 1"
 
 instance ..
 
 end
 
-lemma complete_tree\<^sub>d_node21:
-  "\<lbrakk>complete r; complete (tree\<^sub>d l'); height r = height l' \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d (node21 l' a r))"
+lemma complete_treeD_node21:
+  "\<lbrakk>complete r; complete (treeD l'); height r = height l' \<rbrakk> \<Longrightarrow> complete (treeD (node21 l' a r))"
 by(induct l' a r rule: node21.induct) auto
 
-lemma complete_tree\<^sub>d_node22:
-  "\<lbrakk>complete(tree\<^sub>d r'); complete l; height r' = height l \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d (node22 l a r'))"
+lemma complete_treeD_node22:
+  "\<lbrakk>complete(treeD r'); complete l; height r' = height l \<rbrakk> \<Longrightarrow> complete (treeD (node22 l a r'))"
 by(induct l a r' rule: node22.induct) auto
 
-lemma complete_tree\<^sub>d_node31:
-  "\<lbrakk> complete (tree\<^sub>d l'); complete m; complete r; height l' = height r; height m = height r \<rbrakk>
-  \<Longrightarrow> complete (tree\<^sub>d (node31 l' a m b r))"
+lemma complete_treeD_node31:
+  "\<lbrakk> complete (treeD l'); complete m; complete r; height l' = height r; height m = height r \<rbrakk>
+  \<Longrightarrow> complete (treeD (node31 l' a m b r))"
 by(induct l' a m b r rule: node31.induct) auto
 
-lemma complete_tree\<^sub>d_node32:
-  "\<lbrakk> complete l; complete (tree\<^sub>d m'); complete r; height l = height r; height m' = height r \<rbrakk>
-  \<Longrightarrow> complete (tree\<^sub>d (node32 l a m' b r))"
+lemma complete_treeD_node32:
+  "\<lbrakk> complete l; complete (treeD m'); complete r; height l = height r; height m' = height r \<rbrakk>
+  \<Longrightarrow> complete (treeD (node32 l a m' b r))"
 by(induct l a m' b r rule: node32.induct) auto
 
-lemma complete_tree\<^sub>d_node33:
-  "\<lbrakk> complete l; complete m; complete(tree\<^sub>d r'); height l = height r'; height m = height r' \<rbrakk>
-  \<Longrightarrow> complete (tree\<^sub>d (node33 l a m b r'))"
+lemma complete_treeD_node33:
+  "\<lbrakk> complete l; complete m; complete(treeD r'); height l = height r'; height m = height r' \<rbrakk>
+  \<Longrightarrow> complete (treeD (node33 l a m b r'))"
 by(induct l a m b r' rule: node33.induct) auto
 
-lemmas completes = complete_tree\<^sub>d_node21 complete_tree\<^sub>d_node22
-  complete_tree\<^sub>d_node31 complete_tree\<^sub>d_node32 complete_tree\<^sub>d_node33
+lemmas completes = complete_treeD_node21 complete_treeD_node22
+  complete_treeD_node31 complete_treeD_node32 complete_treeD_node33
 
 lemma height'_node21:
    "height r > 0 \<Longrightarrow> height(node21 l' a r) = max (height l') (height r) + 1"
@@ -363,16 +363,16 @@ by(induction x t rule: del.induct)
   (auto simp: heights max_def height_split_min split: prod.splits)
 
 lemma complete_split_min:
-  "\<lbrakk> split_min t = (x, t'); complete t; height t > 0 \<rbrakk> \<Longrightarrow> complete (tree\<^sub>d t')"
+  "\<lbrakk> split_min t = (x, t'); complete t; height t > 0 \<rbrakk> \<Longrightarrow> complete (treeD t')"
 by(induct t arbitrary: x t' rule: split_min.induct)
   (auto simp: heights height_split_min completes split: prod.splits)
 
-lemma complete_tree\<^sub>d_del: "complete t \<Longrightarrow> complete(tree\<^sub>d(del x t))"
+lemma complete_treeD_del: "complete t \<Longrightarrow> complete(treeD(del x t))"
 by(induction x t rule: del.induct)
   (auto simp: completes complete_split_min height_del height_split_min split: prod.splits)
 
 corollary complete_delete: "complete t \<Longrightarrow> complete(delete x t)"
-by(simp add: delete_def complete_tree\<^sub>d_del)
+by(simp add: delete_def complete_treeD_del)
 
 
 subsection \<open>Overall Correctness\<close>
