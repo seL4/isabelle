@@ -489,6 +489,7 @@ text \<open>
     @{method_def (HOL) relation} & : & \<open>method\<close> \\
     @{method_def (HOL) lexicographic_order} & : & \<open>method\<close> \\
     @{method_def (HOL) size_change} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) termination_simp} & : & \<open>attribute\<close> \\
     @{method_def (HOL) induction_schema} & : & \<open>method\<close> \\
   \end{matharray}
 
@@ -534,6 +535,10 @@ text \<open>
 
   For local descent proofs, the @{syntax clasimpmod} modifiers are accepted
   (as for @{method auto}).
+
+  \<^descr> @{attribute (HOL) termination_simp} declares extra rules for the
+  simplifier, when invoked in termination proofs. This can be useful, e.g.,
+  for special rules involving size estimations.
 
   \<^descr> @{method (HOL) induction_schema} derives user-specified induction rules
   from well-founded induction and completeness of patterns. This factors out

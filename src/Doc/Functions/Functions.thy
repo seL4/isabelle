@@ -347,6 +347,15 @@ text \<open>
   method a bit stronger: it can then use multiset orders internally.
 \<close>
 
+subsection \<open>Configuring simplification rules for termination proofs\<close>
+
+text \<open>
+  Since both \<open>lexicographic_order\<close> and \<open>size_change\<close> rely on the simplifier internally,
+  there can sometimes be the need for adding additional simp rules to them.
+  This can be done either as arguments to the methods themselves, or globally via the
+  theorem attribute \<open>termination_simp\<close>, which is useful in rare cases.
+\<close>
+
 section \<open>Mutual Recursion\<close>
 
 text \<open>
