@@ -791,7 +791,7 @@ lemma length_induct:
 by (fact measure_induct)
 
 lemma induct_list012:
-  "\<lbrakk>P []; \<And>x. P [x]; \<And>x y zs. P (y # zs) \<Longrightarrow> P (x # y # zs)\<rbrakk> \<Longrightarrow> P xs"
+  "\<lbrakk>P []; \<And>x. P [x]; \<And>x y zs. \<lbrakk> P zs; P (y # zs) \<rbrakk> \<Longrightarrow> P (x # y # zs)\<rbrakk> \<Longrightarrow> P xs"
 by induction_schema (pat_completeness, lexicographic_order)
 
 lemma list_nonempty_induct [consumes 1, case_names single cons]:
