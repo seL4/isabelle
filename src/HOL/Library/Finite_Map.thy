@@ -254,6 +254,15 @@ by transfer' (auto simp: map_upd_def)
 lemma fmdom_fmupd[simp]: "fmdom (fmupd a b m) = finsert a (fmdom m)" by transfer (simp add: map_upd_def)
 lemma fmdom'_fmupd[simp]: "fmdom' (fmupd a b m) = insert a (fmdom' m)" by transfer (simp add: map_upd_def)
 
+lemma fmupd_reorder_neq:
+  assumes "a \<noteq> b"
+  shows "fmupd a x (fmupd b y m) = fmupd b y (fmupd a x m)"
+using assms
+by transfer' (auto simp: map_upd_def)
+
+lemma fmupd_idem[simp]: "fmupd a x (fmupd a y m) = fmupd a x m"
+by transfer' (auto simp: map_upd_def)
+
 lift_definition fmfilter :: "('a \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap"
   is map_filter
   parametric map_filter_transfer
@@ -357,6 +366,18 @@ lemma fmdom_drop_fset[simp]: "fmdom (fmdrop_fset A m) = fmdom m - A" unfolding f
 lemma fmdom'_restrict_set: "fmdom' (fmrestrict_set A m) \<subseteq> A" unfolding fmfilter_alt_defs by auto
 lemma fmdom_restrict_fset: "fmdom (fmrestrict_fset A m) |\<subseteq>| A" unfolding fmfilter_alt_defs by auto
 
+lemma fmdrop_fmupd: "fmdrop x (fmupd y z m) = (if x = y then fmdrop x m else fmupd y z (fmdrop x m))"
+by transfer' (auto simp: map_drop_def map_filter_def map_upd_def)
+
+lemma fmdrop_idle: "x |\<notin>| fmdom B \<Longrightarrow> fmdrop x B = B"
+by transfer' (auto simp: map_drop_def map_filter_def)
+
+lemma fmdrop_idle': "x \<notin> fmdom' B \<Longrightarrow> fmdrop x B = B"
+by transfer' (auto simp: map_drop_def map_filter_def)
+
+lemma fmdrop_fmupd_same: "fmdrop x (fmupd x y m) = fmdrop x m"
+by transfer' (auto simp: map_drop_def map_filter_def map_upd_def)
+
 lemma fmdom'_restrict_set_precise: "fmdom' (fmrestrict_set A m) = fmdom' m \<inter> A"
 unfolding fmfilter_alt_defs by auto
 
@@ -403,6 +424,12 @@ unfolding fmfilter_alt_defs by simp
 
 lemma fmdrop_fset_empty[simp]: "fmdrop_fset A fmempty = fmempty"
 unfolding fmfilter_alt_defs by simp
+
+lemma fmdrop_fset_fmdom[simp]: "fmdrop_fset (fmdom A) A = fmempty"
+by transfer' (auto simp: map_drop_set_def map_filter_def)
+
+lemma fmdrop_set_fmdom[simp]: "fmdrop_set (fmdom' A) A = fmempty"
+by transfer' (auto simp: map_drop_set_def map_filter_def)
 
 lemma fmrestrict_set_empty[simp]: "fmrestrict_set A fmempty = fmempty"
 unfolding fmfilter_alt_defs by simp
@@ -1028,6 +1055,8 @@ lemma fmmap_fset_of_fmap: "fset_of_fmap (fmmap f m) = (\<lambda>(k, v). (k, f v)
 including fset.lifting
 by transfer' (auto simp: set_of_map_def)
 
+lemma fmmap_fmupd: "fmmap f (fmupd x y m) = fmupd x (f y) (fmmap f m)"
+by transfer' (auto simp: fun_eq_iff map_upd_def)
 
 subsection \<open>\<^const>\<open>size\<close> setup\<close>
 
