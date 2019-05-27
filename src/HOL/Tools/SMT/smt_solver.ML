@@ -49,7 +49,8 @@ struct
 local
 
 fun make_command command options problem_path proof_path =
-  Bash.strings (command () @ options) ^ " " ^ File.bash_path problem_path ^
+  Bash.strings (command () @ options) ^ " " ^
+    Bash.string (File.platform_path problem_path) ^
     " > " ^ File.bash_path proof_path ^ " 2>&1"
 
 fun with_trace ctxt msg f x =
