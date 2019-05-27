@@ -1,8 +1,8 @@
 #main components for everyday use, without big impact on overall build time
-bash_process-1.2.2
+bash_process-1.2.3
 bib2xhtml-20190409
 csdp-6.x
-cvc4-1.5-4
+cvc4-1.5-5
 e-2.0-2
 isabelle_fonts-20190409
 jdk-11.0.3+7
@@ -22,4 +22,4 @@ ssh-java-20190323
 stack-1.9.3
 vampire-4.2.2
 xz-java-1.8
-z3-4.4.0pre-2
+z3-4.4.0pre-3

@@ -269,15 +269,19 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     }
     private val delay_flush = Standard_Thread.delay_first(output_delay) { flush() }
 
-    def invoke(assign: Boolean, cmds: List[Command]): Unit = synchronized {
-      assignment |= assign
-      for (command <- cmds) {
-        nodes += command.node_name
-        command.blobs_names.foreach(nodes += _)
-        commands += command
+    def invoke(assign: Boolean, edited_nodes: List[Document.Node.Name], cmds: List[Command]): Unit =
+      synchronized {
+        assignment |= assign
+        for (node <- edited_nodes) {
+          nodes += node
+        }
+        for (command <- cmds) {
+          nodes += command.node_name
+          command.blobs_names.foreach(nodes += _)
+          commands += command
+        }
+        delay_flush.invoke()
       }
-      delay_flush.invoke()
-    }
 
     def shutdown()
     {
@@ -457,7 +461,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       {
         try {
           val st = global_state.change_result(f)
-          change_buffer.invoke(false, List(st.command))
+          change_buffer.invoke(false, Nil, List(st.command))
         }
         catch { case _: Document.State.Fail => bad_output() }
       }
@@ -485,10 +489,11 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
               case Markup.Assign_Update =>
                 msg.text match {
-                  case Protocol.Assign_Update(id, update) =>
+                  case Protocol.Assign_Update(id, edited, update) =>
                     try {
-                      val cmds = global_state.change_result(_.assign(id, update))
-                      change_buffer.invoke(true, cmds)
+                      val (edited_nodes, cmds) =
+                        global_state.change_result(_.assign(id, edited, update))
+                      change_buffer.invoke(true, edited_nodes, cmds)
                       manager.send(Session.Change_Flush)
                     }
                     catch { case _: Document.State.Fail => bad_output() }

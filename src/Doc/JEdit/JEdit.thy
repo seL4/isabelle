@@ -2152,7 +2152,7 @@ text \<open>
   (by Oracle) on low-quality displays.
 
   \<^bold>\<open>Workaround:\<close> Find an old copy of Java 8 from Oracle (which has
-  ``end-of-live'' status since Jan-2019) and refer to its main directory via
+  ``end-of-life'' status since Jan-2019) and refer to its main directory via
   @{setting "ISABELLE_JDK_HOME"}\<^verbatim>\<open>="..."\<close> in
   \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close>. Also add
   \<^verbatim>\<open>isabelle_fonts_hinted=false\<close> to

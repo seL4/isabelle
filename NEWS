@@ -129,7 +129,7 @@ are stripped from document output: the effect is to modify the semantic
 presentation context or to emit markup to the PIDE document. Some
 predefined markers are taken from the Dublin Core Metadata Initiative,
 e.g. \<^marker>\<open>contributor arg\<close> or \<^marker>\<open>license arg\<close> and produce PIDE markup that
-can retrieved from the document database.
+can be retrieved from the document database.
 
 * Old-style command tags %name are re-interpreted as markers with
 proof-scope \<^marker>\<open>tag (proof) name\<close> and produce LaTeX environments as

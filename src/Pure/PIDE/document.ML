@@ -25,7 +25,7 @@ sig
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
   val update: Document_ID.version -> Document_ID.version -> edit list -> string list -> state ->
-    Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
+    string list * Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -294,11 +294,14 @@ fun edit_keywords edits (Version nodes) =
       (String_Graph.all_succs nodes (map_filter (fn (a, Deps _) => SOME a | _ => NONE) edits))
       nodes);
 
+fun is_suppressed_node (nodes: node String_Graph.T) (name, node) =
+  String_Graph.is_maximal nodes name andalso is_empty_node node;
+
 fun put_node (name, node) (Version nodes) =
   let
     val nodes1 = update_node name (K node) nodes;
     val nodes2 =
-      if String_Graph.is_maximal nodes1 name andalso is_empty_node node
+      if is_suppressed_node nodes1 (name, node)
       then String_Graph.del_node name nodes1
       else nodes1;
   in Version nodes2 end;
@@ -809,7 +812,8 @@ fun update old_version_id new_version_id edits consolidate state =
                             forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                         val (print_execs, common, (still_visible, initial)) =
-                          if imports_result_changed then (assign_update_empty, NONE, (true, true))
+                          if imports_result_changed
+                          then (assign_update_empty, NONE, (true, true))
                           else last_common keywords state node_required node0 node;
 
                         val common_command_exec =
@@ -865,7 +869,7 @@ fun update old_version_id new_version_id edits consolidate state =
     val state' = state
       |> define_version new_version_id new_version assigned_nodes;
 
-  in (removed, assign_result, state') end);
+  in (Symtab.keys edited, removed, assign_result, state') end);
 
 end;
 

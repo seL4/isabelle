@@ -1,6 +1,6 @@
 ;!@Install@!UTF-8!
 GUIFlags="64"
-InstallPath="%%S"
+InstallPath="%UserDesktop%"
 BeginPrompt="Unpack {ISABELLE_NAME}?"
 ExtractPathText="Target directory"
 ExtractTitle="Unpacking {ISABELLE_NAME} ..."

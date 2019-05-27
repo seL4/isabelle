@@ -651,7 +651,7 @@ object Document
     }
 
     val init: State =
-      State().define_version(Version.init, Assignment.init).assign(Version.init.id, Nil)._2
+      State().define_version(Version.init, Assignment.init).assign(Version.init.id, Nil, Nil)._2
   }
 
   final case class State private(
@@ -768,9 +768,14 @@ object Document
           st <- command_states(version, command).iterator
         } yield st.exports)
 
-    def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
+    def assign(id: Document_ID.Version, edited: List[String], update: Assign_Update)
+      : ((List[Node.Name], List[Command]), State) =
     {
       val version = the_version(id)
+
+      val edited_set = edited.toSet
+      val edited_nodes =
+        (for { (name, _) <- version.nodes.iterator if edited_set(name.node) } yield name).toList
 
       def upd(exec_id: Document_ID.Exec, st: Command.State)
           : Option[(Document_ID.Exec, Command.State)] =
@@ -794,7 +799,7 @@ object Document
       val new_assignment = the_assignment(version).assign(update)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
 
-      (changed_commands, new_state)
+      ((edited_nodes, changed_commands), new_state)
     }
 
     def is_assigned(version: Version): Boolean =

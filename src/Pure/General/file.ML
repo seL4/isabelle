@@ -50,6 +50,7 @@ val platform_path = ML_System.platform_path o standard_path;
 val bash_path = Bash_Syntax.string o standard_path;
 val bash_paths = Bash_Syntax.strings o map standard_path;
 
+
 (* full_path *)
 
 fun full_path dir path =

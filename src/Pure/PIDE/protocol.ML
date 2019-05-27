@@ -106,7 +106,7 @@ val _ =
 
             val _ = Execution.discontinue ();
 
-            val (removed, assign_update, state') =
+            val (edited, removed, assign_update, state') =
               Document.update old_id new_id edits consolidate state;
             val _ =
               (singleton o Future.forks)
@@ -117,12 +117,12 @@ val _ =
 
             val _ =
               Output.protocol_message Markup.assign_update
-                ((new_id, assign_update) |>
+                ((new_id, edited, assign_update) |>
                   let
                     open XML.Encode;
                     fun encode_upd (a, bs) =
                       string (space_implode "," (map Value.print_int (a :: bs)));
-                  in pair int (list encode_upd) end
+                  in triple int (list string) (list encode_upd) end
                   |> YXML.chunks_of_body);
           in Document.start_execution state' end)));
 
