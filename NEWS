@@ -28,8 +28,8 @@ longer supported (legacy feature in Isabelle2018).
 feature and will be removed soon. Use \<open>cartouche\<close> syntax instead, e.g.
 via "isabelle update_cartouches -t" (available since Isabelle2015).
 
-* Infix operators that begin or end with a "*" can now be paranthesized
-without additional spaces, eg "(*)" instead of "( * )". Minor
+* Infix operators that begin or end with a "*" are now parenthesized
+without additional spaces, e.g. "(*)" instead of "( * )". Minor
 INCOMPATIBILITY.
 
 * Mixfix annotations may use cartouches instead of old-style double
@@ -252,7 +252,7 @@ assumes sequential left-to-right pattern matching. The generated
 equation no longer tuples the arguments on the right-hand side.
 INCOMPATIBILITY.
 
-* Theory HOL-Library.Multiset: the <Union># operator now has the same
+* Theory HOL-Library.Multiset: the \<Union># operator now has the same
 precedence as any other prefix function symbol.
 
 * Theory HOL-Library.Cardinal_Notations has been discontinued in favor
