@@ -5486,26 +5486,7 @@ by (simp add: enumerate_eq_zip)
 text \<open>Stability of \<^const>\<open>sort_key\<close>:\<close>
 
 lemma sort_key_stable: "filter (\<lambda>y. f y = k) (sort_key f xs) = filter (\<lambda>y. f y = k) xs"
-proof (induction xs)
-  case Nil thus ?case by simp
-next
-  case (Cons a xs)
-  thus ?case
-  proof (cases "f a = k")
-    case False thus ?thesis
-      using Cons.IH by (metis (mono_tags) filter.simps(2) filter_sort)
-  next
-    case True
-    hence ler: "filter (\<lambda>y. f y = k) (a # xs) = a # filter (\<lambda>y. f y = f a) xs" by simp
-    have "\<forall>y \<in> set (sort_key f (filter (\<lambda>y. f y = f a) xs)). f y = f a" by simp
-    hence "insort_key f a (sort_key f (filter (\<lambda>y. f y = f a) xs))
-            = a # (sort_key f (filter (\<lambda>y. f y = f a) xs))"
-      by (simp add: insort_is_Cons)
-    hence lel: "filter (\<lambda>y. f y = k) (sort_key f (a # xs)) = a # filter (\<lambda>y. f y = f a) (sort_key f xs)"
-      by (metis True filter_sort ler sort_key_simps(2))
-    from lel ler show ?thesis using Cons.IH True by (auto)
-  qed
-qed
+by (induction xs) (auto simp: filter_insort insort_is_Cons filter_insort_triv)
 
 corollary stable_sort_key_sort_key: "stable_sort_key sort_key"
 by(simp add: stable_sort_key_def sort_key_stable)
