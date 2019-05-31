@@ -242,7 +242,7 @@ next
   qed
 qed
 
-(* Beware of conversions: *)
+(* Beware of implicit conversions: *)
 lemma c_msort_log: "length xs = 2^k \<Longrightarrow> c_msort xs \<le> length xs * log 2 (length xs)"
 using c_msort_le[of xs k] apply (simp add: log_nat_power algebra_simps)
 by (metis (mono_tags) numeral_power_eq_of_nat_cancel_iff of_nat_le_iff of_nat_mult)
@@ -250,7 +250,6 @@ by (metis (mono_tags) numeral_power_eq_of_nat_cancel_iff of_nat_le_iff of_nat_mu
 
 subsection "Bottom-Up Merge Sort"
 
-(* Exercise: make tail recursive *)
 fun merge_adj :: "('a::linorder) list list \<Rightarrow> 'a list list" where
 "merge_adj [] = []" |
 "merge_adj [xs] = [xs]" |
