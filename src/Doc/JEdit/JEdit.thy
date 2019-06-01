@@ -1954,7 +1954,7 @@ text \<open>
 \<close>
 
 
-section \<open>Document preview \label{sec:document-preview}\<close>
+section \<open>Document preview and printing \label{sec:document-preview}\<close>
 
 text \<open>
   The action @{action_def isabelle.preview} opens an HTML preview of the
@@ -1964,6 +1964,10 @@ text \<open>
 
   Action @{action_def isabelle.draft} is similar to @{action
   isabelle.preview}, but shows a plain-text document draft.
+
+  Both actions show document sources in a regular Web browser, which may be
+  also used to print the result in a more portable manner than the Java
+  printer dialog of the jEdit @{action_ref print} action.
 \<close>
 
 
@@ -2184,6 +2188,11 @@ text \<open>
   the main text area.
 
   \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>Isabelle DejaVu\<close> fonts.
+
+  \<^item> \<^bold>\<open>Problem:\<close> On Mac OS X the Java printer dialog sometimes does not work.
+
+  \<^bold>\<open>Workaround:\<close> Use action @{action isabelle.draft} and print via the Web
+  browser.
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus tend to disrupt key
   event handling of Java/AWT/Swing.
