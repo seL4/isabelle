@@ -8,6 +8,7 @@ package isabelle.vscode
 
 
 import isabelle._
+import isabelle.vscode.Protocol
 
 import java.io.{InputStream, OutputStream, FileOutputStream, ByteArrayOutputStream, File => JFile}
 

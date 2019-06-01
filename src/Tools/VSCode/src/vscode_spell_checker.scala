@@ -8,6 +8,7 @@ package isabelle.vscode
 
 
 import isabelle._
+import isabelle.vscode.Protocol
 
 
 object VSCode_Spell_Checker

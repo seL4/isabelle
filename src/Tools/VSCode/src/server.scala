@@ -12,6 +12,7 @@ package isabelle.vscode
 
 
 import isabelle._
+import isabelle.vscode.{Protocol, Server}
 
 import java.io.{PrintStream, OutputStream, File => JFile}
 

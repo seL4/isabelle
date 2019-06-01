@@ -8,6 +8,7 @@ package isabelle.vscode
 
 
 import isabelle._
+import isabelle.vscode.{Protocol, Server}
 
 
 object Dynamic_Output

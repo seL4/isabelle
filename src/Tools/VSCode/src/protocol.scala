@@ -9,6 +9,7 @@ package isabelle.vscode
 
 
 import isabelle._
+import isabelle.vscode.Server
 
 import java.io.{File => JFile}
 
