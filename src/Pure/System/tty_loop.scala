@@ -29,7 +29,7 @@ class TTY_Loop(writer: Writer, reader: Reader,
         if (result.length > 0) {
           System.out.print(result.toString)
           System.out.flush()
-          result.length = 0
+          result.clear
         }
         else {
           reader.close()

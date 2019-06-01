@@ -231,7 +231,7 @@ class Prover(
           }
           if (result.length > 0) {
             output(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
-            result.length = 0
+            result.clear
           }
           else {
             reader.close
