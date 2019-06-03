@@ -125,7 +125,7 @@ fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fa
 fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
 fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
 
-val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
+val transfer_morphism = thm_morphism "transfer" o Thm.join_transfer;
 val transfer_morphism' = transfer_morphism o Proof_Context.theory_of;
 val transfer_morphism'' = transfer_morphism o Context.theory_of;
 
