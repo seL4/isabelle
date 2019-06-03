@@ -565,6 +565,8 @@ fun export_morphism inner outer =
     val term = singleton (export_terms inner outer);
     val typ = Logic.type_map term;
   in
+    Morphism.transfer_morphism' inner $>
+    Morphism.transfer_morphism' outer $>
     Morphism.morphism "Variable.export" {binding = [], typ = [typ], term = [term], fact = [fact]}
   end;
 
