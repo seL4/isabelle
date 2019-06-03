@@ -373,7 +373,7 @@ fun process_line str tstate =
           gettm t tstate ||>> (fn ti => getth th ti) |>> (fn (tm, th) => abs tm th) |-> setth
       | process (thy, state) (#"M", [s]) =
           let
-            val ctxt = Variable.set_body false (Proof_Context.init_global thy)
+            val ctxt = Proof_Context.init_global thy
             val thm = freezeT thy (Global_Theory.get_thm thy s)
             val ((_, [th']), _) = Variable.import true [thm] ctxt
           in
