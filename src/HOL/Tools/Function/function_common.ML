@@ -114,7 +114,7 @@ fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psi
         inducts = Option.map fact inducts, termination = thm termination,
         totality = Option.map thm totality, defname = Morphism.binding phi defname,
         is_partial = is_partial, cases = fact cases,
-        elims = Option.map (map fact) elims, pelims = map fact pelims }
+        pelims = map fact pelims, elims = Option.map (map fact) elims }
     end
 
 
