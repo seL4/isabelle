@@ -27,7 +27,7 @@ local
 
 fun calculate thy class sups base_sort param_map assm_axiom =
   let
-    val empty_ctxt = Proof_Context.init_global thy;
+    val thy_ctxt = Proof_Context.init_global thy;
 
     val certT = Thm.trim_context_ctyp o Thm.global_ctyp_of thy;
     val cert = Thm.trim_context_cterm o Thm.global_cterm_of thy;
@@ -42,7 +42,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       Element.instantiate_normalize_morphism ([], param_map_inst);
     val typ_morph =
       Element.instantiate_normalize_morphism ([(a_tfree, certT (TFree (Name.aT, [class])))], [])
-    val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = empty_ctxt
+    val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = thy_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            (Expression.Named param_map_const, [])))], []);
     val (props, inst_morph) =
@@ -60,11 +60,11 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val loc_intro_tac =
           (case Locale.intros_of thy class of
             (_, NONE) => all_tac
-          | (_, SOME intro) => ALLGOALS (resolve_tac empty_ctxt [intro]));
+          | (_, SOME intro) => ALLGOALS (resolve_tac thy_ctxt [intro]));
         val tac = loc_intro_tac
-          THEN ALLGOALS (Proof_Context.fact_tac empty_ctxt (sup_axioms @ the_list assm_axiom));
-      in Element.prove_witness empty_ctxt prop tac end) some_prop;
-    val some_axiom = Option.map (Element.conclude_witness empty_ctxt) some_witn;
+          THEN ALLGOALS (Proof_Context.fact_tac thy_ctxt (sup_axioms @ the_list assm_axiom));
+      in Element.prove_witness thy_ctxt prop tac end) some_prop;
+    val some_axiom = Option.map (Element.conclude_witness thy_ctxt) some_witn;
 
     (* canonical interpretation *)
     val base_morph = inst_morph
@@ -75,7 +75,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     (* assm_intro *)
     fun prove_assm_intro thm =
       let
-        val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
+        val ((_, [thm']), _) = Variable.import true [thm] thy_ctxt;
         val const_eq_morph =
           (case eq_morph of
             SOME eq_morph => const_morph $> eq_morph
