@@ -249,15 +249,22 @@ fun derived_def ctxt get_pos {conditional} prop =
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt get_pos);
-    fun prove def_ctxt def =
-      Goal.prove def_ctxt
-        ((not (Variable.is_body def_ctxt) ? Variable.add_free_names def_ctxt prop) []) [] prop
-        (fn {context = goal_ctxt, ...} =>
-          ALLGOALS
-            (CONVERSION (meta_rewrite_conv goal_ctxt) THEN'
-              rewrite_goal_tac goal_ctxt [def] THEN'
-              resolve_tac goal_ctxt [Drule.reflexive_thm]))
-      handle ERROR msg => cat_error msg "Failed to prove definitional specification";
+    fun prove def_ctxt0 def =
+      let
+        val def_ctxt = Variable.auto_fixes prop def_ctxt0;
+        val def_thm =
+          Goal.prove def_ctxt [] [] prop
+            (fn {context = goal_ctxt, ...} =>
+              ALLGOALS
+                (CONVERSION (meta_rewrite_conv goal_ctxt) THEN'
+                  rewrite_goal_tac goal_ctxt [def] THEN'
+                  resolve_tac goal_ctxt [Drule.reflexive_thm]))
+          handle ERROR msg => cat_error msg "Failed to prove definitional specification";
+      in
+        def_thm
+        |> singleton (Variable.export def_ctxt def_ctxt0)
+        |> Drule.zero_var_indexes
+      end;
   in (((c, T), rhs), prove) end;
 
 end;
