@@ -390,7 +390,7 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
   let
     val (stmt, elems_ctxt) = prep_stmt raw_elems raw_stmt ctxt;
     val prems = Assumption.local_prems_of elems_ctxt ctxt;
-    val stmt_ctxt = fold (fold (Variable.auto_fixes o fst) o snd) stmt elems_ctxt;
+    val stmt_ctxt = fold (fold (Proof_Context.augment o fst) o snd) stmt elems_ctxt;
   in
     (case raw_stmt of
       Element.Shows _ =>

@@ -62,6 +62,7 @@ sig
   val facts_of: Proof.context -> Facts.T
   val facts_of_fact: Proof.context -> string -> Facts.T
   val markup_extern_fact: Proof.context -> string -> Markup.T list * xstring
+  val augment: term -> Proof.context -> Proof.context
   val print_name: Proof.context -> string -> string
   val pretty_name: Proof.context -> string -> Pretty.T
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
@@ -412,6 +413,14 @@ fun markup_extern_fact ctxt name =
       if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
       else [markup];
   in (markups, xname) end;
+
+
+(* augment context by implicit term declarations *)
+
+fun augment t ctxt = ctxt
+  |> not (Variable.is_body ctxt) ?
+      Variable.add_fixes_direct (rev (Variable.add_free_names ctxt t []))
+  |> Variable.declare_term t;
 
 
 

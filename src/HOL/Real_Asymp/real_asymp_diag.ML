@@ -122,7 +122,7 @@ fun gen_limit prep_term prep_flt prep_facts res ctxt facts t flt =
   let
     val t = prep_term ctxt t
     val flt = prep_flt ctxt flt
-    val ctxt = Variable.auto_fixes t ctxt
+    val ctxt = Proof_Context.augment t ctxt
     val t = reduce_to_at_top flt t
     val facts = prep_facts ctxt facts
     val ectxt = mk_eval_ctxt ctxt |> add_facts facts |> set_verbose true
@@ -165,7 +165,7 @@ fun gen_expansion prep_term prep_flt prep_facts res ctxt facts (n, strict) t flt
   let
     val t = prep_term ctxt t
     val flt = prep_flt ctxt flt
-    val ctxt = Variable.auto_fixes t ctxt
+    val ctxt = Proof_Context.augment t ctxt
     val t = reduce_to_at_top flt t
     val facts = prep_facts ctxt facts
     val ectxt = mk_eval_ctxt ctxt |> add_facts facts |> set_verbose true

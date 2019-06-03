@@ -184,7 +184,7 @@ fun inst_morphism params ((prfx, mandatory), insts') ctxt =
     val (type_parms'', insts'') = chop (length type_parms') checked;
 
     (* context *)
-    val ctxt' = fold Variable.auto_fixes checked ctxt;
+    val ctxt' = fold Proof_Context.augment checked ctxt;
     val certT = Thm.trim_context_ctyp o Thm.ctyp_of ctxt';
     val cert = Thm.trim_context_cterm o Thm.cterm_of ctxt';
 
@@ -266,7 +266,7 @@ fun restore_elem (Fixes fixes, css) =
   | restore_elem (elem as Lazy_Notes _, _) = elem;
 
 fun prep (_, pats) (ctxt, t :: ts) =
-  let val ctxt' = Variable.auto_fixes t ctxt
+  let val ctxt' = Proof_Context.augment t ctxt
   in
     ((t, Syntax.check_props (Proof_Context.set_mode Proof_Context.mode_pattern ctxt') pats),
       (ctxt', ts))
@@ -547,7 +547,7 @@ fun prep_goal_expression prep expression ctxt =
 
     val goal_ctxt = ctxt
       |> fix_params fixed
-      |> (fold o fold) Variable.auto_fixes (propss @ eq_propss);
+      |> (fold o fold) Proof_Context.augment (propss @ eq_propss);
 
     val export = Variable.export_morphism goal_ctxt ctxt;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;

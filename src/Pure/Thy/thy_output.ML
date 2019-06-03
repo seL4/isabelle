@@ -466,7 +466,7 @@ end;
 (* pretty printing *)
 
 fun pretty_term ctxt t =
-  Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
+  Syntax.pretty_term (Proof_Context.augment t ctxt) t;
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 

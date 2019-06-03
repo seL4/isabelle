@@ -303,7 +303,7 @@ fun string_of_isar_proof ctxt0 i n proof =
             |> Print_Mode.setmp [] (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
             |> maybe_quote keywords),
-       ctxt |> perhaps (try (Variable.auto_fixes term)))
+       ctxt |> perhaps (try (Proof_Context.augment term)))
 
     fun using_facts [] [] = ""
       | using_facts ls ss = enclose "using " " " (space_implode " " (map string_of_label ls @ ss))
@@ -323,7 +323,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       maybe_quote keywords (simplify_spaces (Print_Mode.setmp [] (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =
-      (s ^ space_implode " and " (map of_free xs), ctxt |> fold Variable.auto_fixes (map Free xs))
+      (s ^ space_implode " and " (map of_free xs), ctxt |> fold Proof_Context.augment (map Free xs))
 
     fun add_fix _ [] = I
       | add_fix ind xs = add_str (of_indent ind ^ "fix ") #> add_frees xs #> add_str "\n"

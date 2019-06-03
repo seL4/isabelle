@@ -1591,7 +1591,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
 
 fun prove ctxt strict (t, tac) =
   let
-    val ctxt' = Variable.auto_fixes t ctxt;
+    val ctxt' = Proof_Context.augment t ctxt;
   in
     if strict
     then Goal.prove ctxt' [] [] t (K tac)

@@ -20,7 +20,7 @@ ML \<open>
       let
         val ctxt = Toplevel.context_of st;
         val t = Syntax.read_term ctxt s;
-        val ctxt' = Variable.auto_fixes t ctxt;
+        val ctxt' = Proof_Context.augment t ctxt;
       in Pretty.writeln (Syntax.pretty_term ctxt' t) end)));
 \<close>
 

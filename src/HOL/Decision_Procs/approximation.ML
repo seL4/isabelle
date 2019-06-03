@@ -271,7 +271,7 @@ fun approximate_cmd modes raw_t state =
     val t = Syntax.read_term ctxt raw_t;
     val t' = approx 30 ctxt t;
     val ty' = Term.type_of t';
-    val ctxt' = Variable.auto_fixes t' ctxt;
+    val ctxt' = Proof_Context.augment t' ctxt;
   in
     Print_Mode.with_modes modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,

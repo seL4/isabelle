@@ -1018,7 +1018,7 @@ fun values_cmd print_modes soln raw_t state =
     val t = Syntax.read_term ctxt raw_t
     val t' = values ctxt soln t
     val ty' = Term.type_of t'
-    val ctxt' = Variable.auto_fixes t' ctxt
+    val ctxt' = Proof_Context.augment t' ctxt
     val _ = tracing "Printing terms..."
   in
     Print_Mode.with_modes print_modes (fn () =>

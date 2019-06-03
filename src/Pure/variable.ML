@@ -58,7 +58,6 @@ sig
   val add_fixes_binding: binding list -> Proof.context -> string list * Proof.context
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
-  val auto_fixes: term -> Proof.context -> Proof.context
   val fix_dummy_patterns: term -> Proof.context -> term * Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val gen_all: Proof.context -> thm -> thm
@@ -475,10 +474,6 @@ fun add_fixes_direct xs ctxt = ctxt
   |> set_body false
   |> (snd o add_fixes xs)
   |> restore_body ctxt;
-
-fun auto_fixes t ctxt = ctxt
-  |> not (is_body ctxt) ? add_fixes_direct (rev (add_free_names ctxt t []))
-  |> declare_term t;
 
 
 (* dummy patterns *)

@@ -1648,7 +1648,7 @@ fun generic_code_pred prep_const options raw_const lthy =
           binds = [], cases = []}) preds cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
-      |> fold Variable.auto_fixes cases_rules
+      |> fold Proof_Context.augment cases_rules
       |> Proof_Context.update_cases case_env
     fun after_qed thms goal_ctxt =
       let
@@ -1983,7 +1983,7 @@ fun values_cmd print_modes param_user_modes options k raw_t state =
     val t = Syntax.read_term ctxt raw_t
     val ((t', stats), ctxt') = values param_user_modes options k t ctxt
     val ty' = Term.type_of t'
-    val ctxt'' = Variable.auto_fixes t' ctxt'
+    val ctxt'' = Proof_Context.augment t' ctxt'
     val pretty_stat =
       (case stats of
         NONE => []

@@ -255,14 +255,14 @@ fun string_of_prfs full state arg =
 fun string_of_prop ctxt s =
   let
     val prop = Syntax.read_prop ctxt s;
-    val ctxt' = Variable.auto_fixes prop ctxt;
+    val ctxt' = Proof_Context.augment prop ctxt;
   in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt' prop)) end;
 
 fun string_of_term ctxt s =
   let
     val t = Syntax.read_term ctxt s;
     val T = Term.type_of t;
-    val ctxt' = Variable.auto_fixes t ctxt;
+    val ctxt' = Proof_Context.augment t ctxt;
   in
     Pretty.string_of
       (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t), Pretty.fbrk,

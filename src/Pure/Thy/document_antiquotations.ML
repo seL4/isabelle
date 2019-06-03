@@ -43,7 +43,7 @@ fun pretty_abbrev ctxt s =
       handle TYPE _ => err ();
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
     val eq = Logic.mk_equals (t, t');
-    val ctxt' = Variable.auto_fixes eq ctxt;
+    val ctxt' = Proof_Context.augment eq ctxt;
   in Proof_Context.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_locale ctxt (name, pos) =

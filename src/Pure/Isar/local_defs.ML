@@ -251,7 +251,7 @@ fun derived_def ctxt get_pos {conditional} prop =
       |> (abs_def o #2 o cert_def ctxt get_pos);
     fun prove def_ctxt0 def =
       let
-        val def_ctxt = Variable.auto_fixes prop def_ctxt0;
+        val def_ctxt = Proof_Context.augment prop def_ctxt0;
         val def_thm =
           Goal.prove def_ctxt [] [] prop
             (fn {context = goal_ctxt, ...} =>

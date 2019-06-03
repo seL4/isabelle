@@ -126,7 +126,7 @@ type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm 
 
 fun make_simproc ctxt name {lhss, proc} =
   let
-    val ctxt' = fold Variable.auto_fixes lhss ctxt;
+    val ctxt' = fold Proof_Context.augment lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
     cert_simproc (Proof_Context.theory_of ctxt) name {lhss = lhss', proc = proc}

@@ -169,7 +169,7 @@ fun declare raw_key
     {semiring = raw_semiring0, ring = raw_ring0, field = raw_field0, idom = raw_idom, ideal = raw_ideal}
     lthy =
   let
-    val ctxt' = fold Variable.auto_fixes (fst raw_semiring0 @ fst raw_ring0 @ fst raw_field0) lthy;
+    val ctxt' = fold Proof_Context.augment (fst raw_semiring0 @ fst raw_ring0 @ fst raw_field0) lthy;
     val prepare_ops = apfst (Variable.export_terms ctxt' lthy #> map (Thm.cterm_of lthy));
     val raw_semiring = prepare_ops raw_semiring0;
     val raw_ring = prepare_ops raw_ring0;

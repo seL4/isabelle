@@ -1093,7 +1093,7 @@ fun global_goal prep_propp before_qed after_qed propp ctxt =
     val (propss, binds) =
       prep_propp (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) propp;
     val goal_ctxt = ctxt
-      |> (fold o fold) Variable.auto_fixes propss
+      |> (fold o fold) Proof_Context.augment propss
       |> fold Variable.bind_term binds;
     fun after_qed' (result_ctxt, results) ctxt' = ctxt'
       |> Proof_Context.restore_naming ctxt

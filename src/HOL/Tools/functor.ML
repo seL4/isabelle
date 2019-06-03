@@ -187,7 +187,7 @@ fun analyze_mapper ctxt input_mapper =
       else error ("Illegal additional type variable(s) in term: " ^ Syntax.string_of_term ctxt input_mapper);
     val _ =
       if null (Term.add_vars (singleton
-        (Variable.export_terms (Variable.auto_fixes input_mapper ctxt) ctxt) input_mapper) [])
+        (Variable.export_terms (Proof_Context.augment input_mapper ctxt) ctxt) input_mapper) [])
       then ()
       else error ("Illegal locally free variable(s) in term: "
         ^ Syntax.string_of_term ctxt input_mapper);

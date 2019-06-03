@@ -318,7 +318,7 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
 
 fun mk_fast_generator_expr ctxt (t, eval_terms) =
   let
-    val ctxt' = Variable.auto_fixes t ctxt
+    val ctxt' = Proof_Context.augment t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
@@ -351,7 +351,7 @@ fun mk_return t genuine =
 
 fun mk_generator_expr ctxt (t, eval_terms) =
   let
-    val ctxt' = Variable.auto_fixes t ctxt
+    val ctxt' = Proof_Context.augment t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
@@ -374,7 +374,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
 fun mk_full_generator_expr ctxt (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val ctxt' = Variable.auto_fixes t ctxt
+    val ctxt' = Proof_Context.augment t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     val ([depth_name, genuine_only_name], ctxt'') =
@@ -415,7 +415,7 @@ fun mk_parametric_generator_expr mk_generator_expr =
 fun mk_validator_expr ctxt t =
   let
     fun bounded_forallT T = (T --> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>natural\<close> --> \<^typ>\<open>bool\<close>
-    val ctxt' = Variable.auto_fixes t ctxt
+    val ctxt' = Proof_Context.augment t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)

@@ -594,7 +594,7 @@ fun mk_cases ctxt prop =
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
-      |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
+      |> singleton (Variable.export (Proof_Context.augment prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of
       SOME r => r
@@ -642,7 +642,7 @@ val _ =
 fun mk_simp_eq ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val ctxt' = Variable.auto_fixes prop ctxt;
+    val ctxt' = Proof_Context.augment prop ctxt;
     val lhs_of = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of;
     val substs =
       retrieve_equations ctxt (HOLogic.dest_Trueprop prop)

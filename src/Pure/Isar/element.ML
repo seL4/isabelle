@@ -426,7 +426,7 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
       let
         val asms' = Attrib.map_specs (map (Attrib.attribute ctxt)) asms;
         val (_, ctxt') = ctxt
-          |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
+          |> fold Proof_Context.augment (maps (map #1 o #2) asms')
           |> Proof_Context.add_assms Assumption.assume_export asms';
       in ctxt' end)
   | init (Defines defs) = Context.map_proof (fn ctxt =>
@@ -436,7 +436,7 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
             let val (_, t') = Local_Defs.cert_def ctxt (K []) t  (* FIXME adapt ps? *)
             in (t', (b, [(t', ps)])) end);
         val (_, ctxt') = ctxt
-          |> fold Variable.auto_fixes (map #1 asms)
+          |> fold Proof_Context.augment (map #1 asms)
           |> Proof_Context.add_assms Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2
