@@ -224,6 +224,7 @@ val mode_schematic = make_mode (false, true, false);
 val mode_abbrev    = make_mode (false, false, true);
 
 
+
 (** Isar proof context information **)
 
 type cases = Rule_Cases.T Name_Space.table;
