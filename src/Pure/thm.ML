@@ -90,6 +90,7 @@ sig
   val transfer': Proof.context -> thm -> thm
   val transfer'': Context.generic -> thm -> thm
   val join_transfer: theory -> thm -> thm
+  val join_transfer_context: Proof.context * thm -> Proof.context * thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
@@ -534,6 +535,11 @@ val transfer'' = transfer o Context.theory_of;
 fun join_transfer thy th =
   if Context.subthy_id (Context.theory_id thy, theory_id th) then th
   else transfer thy th;
+
+fun join_transfer_context (ctxt, th) =
+  if Context.subthy_id (Context.theory_id (Proof_Context.theory_of ctxt), theory_id th) then
+    (Context.raw_transfer (theory_of_thm th) ctxt, th)
+  else (ctxt, transfer' ctxt th);
 
 
 (* matching *)
