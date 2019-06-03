@@ -557,11 +557,7 @@ val _ = Theory.setup
     (Scan.succeed (Thm.rule_attribute [] (K Tactic.make_elim)))
     "destruct rule turned into elimination rule format" #>
   setup \<^binding>\<open>no_vars\<close>
-    (Scan.succeed (Thm.rule_attribute [] (fn context => fn th =>
-      let
-        val ctxt = Variable.set_body false (Context.proof_of context);
-        val ((_, [th']), _) = Variable.import true [th] ctxt;
-      in th' end)))
+    (Scan.succeed (Thm.rule_attribute [] (Variable.import_vars o Context.proof_of)))
     "imported schematic variables" #>
   setup \<^binding>\<open>atomize\<close>
     (Scan.succeed Object_Logic.declare_atomize) "declaration of atomize rule" #>

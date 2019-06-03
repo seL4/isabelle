@@ -79,6 +79,7 @@ sig
   val import_prf: bool -> Proofterm.proof -> Proof.context -> Proofterm.proof * Proof.context
   val import: bool -> thm list -> Proof.context ->
     ((((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list) * thm list) * Proof.context
+  val import_vars: Proof.context -> thm -> thm
   val tradeT: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val trade: (Proof.context -> thm list -> thm list) -> Proof.context -> thm list -> thm list
   val is_bound_focus: Proof.context -> bool
@@ -626,6 +627,10 @@ fun import is_open ths ctxt =
       map (apsnd (Thm.cterm_of ctxt')) inst);
     val ths' = map (Thm.instantiate insts') ths;
   in ((insts', ths'), ctxt') end;
+
+fun import_vars ctxt th =
+  let val ((_, [th']), _) = ctxt |> set_body false |> import true [th];
+  in th' end;
 
 
 (* import/export *)

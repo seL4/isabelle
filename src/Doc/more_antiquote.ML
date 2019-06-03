@@ -20,12 +20,6 @@ val _ =
 
 (* code theorem antiquotation *)
 
-fun no_vars ctxt thm =
-  let
-    val ctxt' = Variable.set_body false ctxt;
-    val ((_, [thm]), _) = Variable.import true [thm] ctxt';
-  in thm end;
-
 val _ =
   Theory.setup (Thy_Output.antiquotation_pretty \<^binding>\<open>code_thms\<close> Args.term
     (fn ctxt => fn raw_const =>
@@ -38,7 +32,7 @@ val _ =
           |> snd
           |> these
           |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
-          |> map (HOLogic.mk_obj_eq o no_vars ctxt o Axclass.overload ctxt);
+          |> map (HOLogic.mk_obj_eq o Variable.import_vars ctxt o Axclass.overload ctxt);
       in Pretty.chunks (map (Thy_Output.pretty_thm ctxt) thms) end));
 
 end;
