@@ -262,7 +262,7 @@ fun derived_def ctxt get_pos {conditional} prop =
           handle ERROR msg => cat_error msg "Failed to prove definitional specification";
       in
         def_thm
-        |> singleton (Variable.export def_ctxt def_ctxt0)
+        |> singleton (Proof_Context.export def_ctxt def_ctxt0)
         |> Drule.zero_var_indexes
       end;
   in (((c, T), rhs), prove) end;

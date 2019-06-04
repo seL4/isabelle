@@ -549,7 +549,7 @@ fun prep_goal_expression prep expression ctxt =
       |> fix_params fixed
       |> (fold o fold) Proof_Context.augment (propss @ eq_propss);
 
-    val export = Variable.export_morphism goal_ctxt ctxt;
+    val export = Proof_Context.export_morphism goal_ctxt ctxt;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
     val exp_term = Term_Subst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;

@@ -70,7 +70,7 @@ fun prep_interpretation prep_expr prep_term
     val ((propss, eq_propss, deps, eqnss, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val (def_eqns, def_ctxt) =
       augment_with_defs prep_term raw_defs deps expr_ctxt;
-    val export' = Variable.export_morphism def_ctxt expr_ctxt;
+    val export' = Proof_Context.export_morphism def_ctxt expr_ctxt;
   in (((propss, eq_propss, deps, eqnss, export, export'), def_eqns), def_ctxt) end;
 
 in
