@@ -7,7 +7,6 @@ General-purpose functions used by the Lifting package.
 signature LIFTING_UTIL =
 sig
   val MRSL: thm list * thm -> thm
-  val option_fold: 'b -> ('a -> 'b) -> 'a option -> 'b
   val dest_Quotient: term -> term * term * term * term
 
   val quot_thm_rel: thm -> term
@@ -40,9 +39,6 @@ struct
 infix 0 MRSL
 
 fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
-
-fun option_fold a _ NONE = a
-  | option_fold _ f (SOME x) = f x
 
 fun dest_Quotient (Const (\<^const_name>\<open>Quotient\<close>, _) $ rel $ abs $ rep $ cr)
       = (rel, abs, rep, cr)
