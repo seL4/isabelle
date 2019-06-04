@@ -46,8 +46,6 @@ fun proc ctxt ct =
     val prems = Simplifier.prems_of ctxt;
     val t = Thm.term_of ct;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
-    val export = singleton (Variable.export ctxt' ctxt)
-    (* FIXME ctxt vs. ctxt' *)
 
     val (t1,t2) = Data.dest_bal t'
     val (m1, t1') = Data.dest_coeff t1
@@ -65,13 +63,13 @@ fun proc ctxt ct =
               else Data.mk_bal (Data.mk_coeff(n1,t1'), Data.mk_coeff(n2,t2'))
     val reshape =  (*Move d to the front and put the rest into standard form
                        i * #m * j == #d * (#n * (j * k)) *)
-      Data.prove_conv [Data.norm_tac ctxt] ctxt prems
+      Data.prove_conv [Data.norm_tac ctxt'] ctxt' prems
         (t', Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-    Option.map (export o Data.simplify_meta_eq ctxt)
+    Option.map (singleton (Variable.export ctxt' ctxt) o Data.simplify_meta_eq ctxt')
       (Data.prove_conv
-         [Data.trans_tac ctxt reshape, resolve_tac ctxt [Data.cancel] 1,
-          Data.numeral_simp_tac ctxt] ctxt prems (t', rhs))
+         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.cancel] 1,
+          Data.numeral_simp_tac ctxt'] ctxt' prems (t', rhs))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE

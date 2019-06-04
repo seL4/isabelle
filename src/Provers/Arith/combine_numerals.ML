@@ -69,8 +69,6 @@ fun proc ctxt ct =
   let
     val t = Thm.term_of ct
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
-    val export = singleton (Variable.export ctxt' ctxt)
-    (* FIXME ctxt vs. ctxt' (!?) *)
 
     val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
     val T = Term.fastype_of u
@@ -79,13 +77,13 @@ fun proc ctxt ct =
                        i + #m + j + k == #m + i + (j + k) *)
       if Data.iszero m orelse Data.iszero n then   (*trivial, so do nothing*)
         raise TERM("combine_numerals", [])
-      else Data.prove_conv [Data.norm_tac ctxt] ctxt
+      else Data.prove_conv [Data.norm_tac ctxt'] ctxt'
         (t', Data.mk_sum T ([Data.mk_coeff (m, u), Data.mk_coeff (n, u)] @ terms))
   in
-    Option.map (export o Data.simplify_meta_eq ctxt)
+    Option.map (singleton (Variable.export ctxt' ctxt) o Data.simplify_meta_eq ctxt')
       (Data.prove_conv
-         [Data.trans_tac ctxt reshape, resolve_tac ctxt [Data.left_distrib] 1,
-          Data.numeral_simp_tac ctxt] ctxt
+         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.left_distrib] 1,
+          Data.numeral_simp_tac ctxt'] ctxt'
          (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   (* FIXME avoid handling of generic exceptions *)

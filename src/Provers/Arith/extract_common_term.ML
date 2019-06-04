@@ -50,8 +50,6 @@ fun proc ctxt t =
   let
     val prems = Simplifier.prems_of ctxt;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
-    val export = singleton (Variable.export ctxt' ctxt)
-    (* FIXME ctxt vs. ctxt' (!?) *)
 
     val (t1,t2) = Data.dest_bal t'
     val terms1 = Data.dest_sum t1
@@ -59,7 +57,7 @@ fun proc ctxt t =
 
     val u = find_common (terms1,terms2)
     val simp_th =
-          case Data.simp_conv ctxt u of NONE => raise TERM("no simp", [])
+          case Data.simp_conv ctxt' u of NONE => raise TERM("no simp", [])
           | SOME th => th
     val terms1' = Data.find_first u terms1
     and terms2' = Data.find_first u terms2
@@ -67,10 +65,10 @@ fun proc ctxt t =
 
     val t'' = Data.mk_bal (Data.mk_sum T (u::terms1'), Data.mk_sum T (u::terms2'))
     val reshape =
-      Goal.prove ctxt [] [] (Data.mk_eq (t', t'')) (K (Data.norm_tac ctxt))
+      Goal.prove ctxt' [] [] (Data.mk_eq (t', t'')) (K (Data.norm_tac ctxt))
 
   in
-    SOME (export (Data.simplify_meta_eq ctxt simp_th reshape))
+    SOME (singleton (Variable.export ctxt' ctxt) (Data.simplify_meta_eq ctxt' simp_th reshape))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
