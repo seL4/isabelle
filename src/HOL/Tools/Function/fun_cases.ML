@@ -33,7 +33,7 @@ fun mk_fun_cases ctxt prop =
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (Inductive.mk_cases_tac ctxt) (Thm.assume cprop RS rl))
-      |> singleton (Variable.export (Proof_Context.augment prop ctxt) ctxt);
+      |> singleton (Proof_Context.export (Proof_Context.augment prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) (flat elims) of
       SOME r => r

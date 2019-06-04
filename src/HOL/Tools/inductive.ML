@@ -594,7 +594,7 @@ fun mk_cases ctxt prop =
     fun mk_elim rl =
       Thm.implies_intr cprop
         (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
-      |> singleton (Variable.export (Proof_Context.augment prop ctxt) ctxt);
+      |> singleton (Proof_Context.export (Proof_Context.augment prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of
       SOME r => r
@@ -661,7 +661,7 @@ fun mk_simp_eq ctxt prop =
   in
     infer_instantiate ctxt' inst eq
     |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite ctxt')))
-    |> singleton (Variable.export ctxt' ctxt)
+    |> singleton (Proof_Context.export ctxt' ctxt)
   end
 
 
