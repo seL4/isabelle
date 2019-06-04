@@ -164,7 +164,7 @@ val curry_K_ss =
 
 (* instantiate generic fixpoint induction and eliminate the canonical assumptions;
   curry induction predicate *)
-fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rule =
+fun specialize_fixp_induct ctxt fT fT_uc curry uncurry mono_thm f_def rule =
   let
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
@@ -186,14 +186,14 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
 fun mk_curried_induct args ctxt inst_rule =
   let
     val cert = Thm.cterm_of ctxt
+    (* FIXME ctxt vs. ctxt' (!?) *)
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
 
     val split_paired_all_conv =
       Conv.every_conv (replicate (length args - 1) (Conv.rewr_conv @{thm split_paired_all}))
 
     val split_params_conv =
-      Conv.params_conv ~1 (fn ctxt' =>
-        Conv.implies_conv split_paired_all_conv Conv.all_conv)
+      Conv.params_conv ~1 (fn _ => Conv.implies_conv split_paired_all_conv Conv.all_conv)
 
     val (P_var, x_var) =
        Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
@@ -280,7 +280,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
     val specialized_fixp_induct =
-      specialize_fixp_induct lthy' args fT fT_uc F curry uncurry inst_mono_thm f_def fixp_induct
+      specialize_fixp_induct lthy' fT fT_uc curry uncurry inst_mono_thm f_def fixp_induct
       |> Drule.rename_bvars' (map SOME (f_bname :: f_bname :: argnames));
 
     val mk_raw_induct =
