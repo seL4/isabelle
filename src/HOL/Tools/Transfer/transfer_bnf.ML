@@ -72,55 +72,56 @@ fun generate_relation_constraint_goal ctxt bnf constraint_def =
       constraint_def |> Thm.prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
       |> head_of |> fst o dest_Const
     val live = live_of_bnf bnf
-    val (((As, Bs), Ds), ctxt) = ctxt
+    val (((As, Bs), Ds), ctxt') = ctxt
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
 
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
-    val (args, ctxt) = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt
+    val (args, ctxt'') = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt'
     val concl = HOLogic.mk_Trueprop (mk_relation_constraint constr_name (list_comb (relator, args)))
     val assms = map (HOLogic.mk_Trueprop o (mk_relation_constraint constr_name)) args
     val goal = Logic.list_implies (assms, concl)
   in
-    (goal, ctxt)
+    (goal, ctxt'')
   end
 
 fun prove_relation_side_constraint ctxt bnf constraint_def =
   let
-    val old_ctxt = ctxt
-    val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove_sorry ctxt [] [] goal
-      (fn {context = ctxt, prems = _} => side_constraint_tac bnf [constraint_def] ctxt 1)
-      |> Thm.close_derivation
+    val (goal, ctxt') = generate_relation_constraint_goal ctxt bnf constraint_def
   in
-    Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
+    Goal.prove_sorry ctxt' [] [] goal (fn {context = goal_ctxt, ...} =>
+      side_constraint_tac bnf [constraint_def] goal_ctxt 1)
+    |> Thm.close_derivation
+    |> singleton (Variable.export ctxt' ctxt)
+    |> Drule.zero_var_indexes
   end
 
 fun prove_relation_bi_constraint ctxt bnf constraint_def side_constraints =
   let
-    val old_ctxt = ctxt
-    val (goal, ctxt) = generate_relation_constraint_goal ctxt bnf constraint_def
-    val thm = Goal.prove_sorry ctxt [] [] goal
-      (fn {context = ctxt, prems = _} => bi_constraint_tac constraint_def side_constraints ctxt 1)
-      |> Thm.close_derivation
+    val (goal, ctxt') = generate_relation_constraint_goal ctxt bnf constraint_def
   in
-    Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
+    Goal.prove_sorry ctxt' [] [] goal (fn {context = goal_ctxt, ...} =>
+      bi_constraint_tac constraint_def side_constraints goal_ctxt 1)
+    |> Thm.close_derivation
+    |> singleton (Variable.export ctxt' ctxt)
+    |> Drule.zero_var_indexes
   end
 
-val defs = [("left_total_rel", @{thm left_total_alt_def}), ("right_total_rel", @{thm right_total_alt_def}),
+val defs =
+ [("left_total_rel", @{thm left_total_alt_def}), ("right_total_rel", @{thm right_total_alt_def}),
   ("left_unique_rel", @{thm left_unique_alt_def}), ("right_unique_rel", @{thm right_unique_alt_def})]
 
-fun prove_relation_constraints bnf lthy =
+fun prove_relation_constraints bnf ctxt =
   let
     val transfer_attr = @{attributes [transfer_rule]}
     val Tname = base_name_of_bnf bnf
 
-    val defs = map (apsnd (prove_relation_side_constraint lthy bnf)) defs
-    val bi_total = prove_relation_bi_constraint lthy bnf @{thm bi_total_alt_def}
+    val defs = map (apsnd (prove_relation_side_constraint ctxt bnf)) defs
+    val bi_total = prove_relation_bi_constraint ctxt bnf @{thm bi_total_alt_def}
       [snd (nth defs 0), snd (nth defs 1)]
-    val bi_unique = prove_relation_bi_constraint lthy bnf @{thm bi_unique_alt_def}
+    val bi_unique = prove_relation_bi_constraint ctxt bnf @{thm bi_unique_alt_def}
       [snd (nth defs 2), snd (nth defs 3)]
     val defs = ("bi_total_rel", bi_total) :: ("bi_unique_rel", bi_unique) :: defs
   in
@@ -174,23 +175,23 @@ fun Domainp_tac bnf pred_def ctxt =
 fun prove_Domainp_rel ctxt bnf pred_def =
   let
     val live = live_of_bnf bnf
-    val old_ctxt = ctxt
-    val (((As, Bs), Ds), ctxt) = ctxt
+    val (((As, Bs), Ds), ctxt') = ctxt
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
 
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
-    val (args, ctxt) = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt
+    val (args, ctxt'') = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt'
     val lhs = mk_Domainp (list_comb (relator, args))
     val rhs = Term.list_comb (mk_pred_of_bnf Ds As bnf, map mk_Domainp args)
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove_sorry ctxt [] [] goal
-      (fn {context = ctxt, prems = _} => Domainp_tac bnf pred_def ctxt 1)
-      |> Thm.close_derivation
   in
-    Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
+    Goal.prove_sorry ctxt'' [] [] goal (fn {context = goal_ctxt, ...} =>
+      Domainp_tac bnf pred_def goal_ctxt 1)
+    |> Thm.close_derivation
+    |> singleton (Variable.export ctxt'' ctxt)
+    |> Drule.zero_var_indexes
   end
 
 fun predicator bnf lthy =
@@ -232,8 +233,8 @@ val _ =
 
 (* simplification rules for the predicator *)
 
-fun lookup_defined_pred_data lthy name =
-  case Transfer.lookup_pred_data lthy name of
+fun lookup_defined_pred_data ctxt name =
+  case Transfer.lookup_pred_data ctxt name of
     SOME data => data
   | NONE => raise NO_PRED_DATA ()
 
