@@ -562,12 +562,13 @@ fun setup_by_quotient (config: config) quot_thm opt_reflp_thm opt_par_thm lthy0 
       end
 
     fun generate_parametric_rel_eq ctxt transfer_rule opt_param_thm =
-      option_fold transfer_rule
-        (Lifting_Def.generate_parametric_transfer_rule ctxt transfer_rule) opt_param_thm
-      handle Lifting_Term.MERGE_TRANSFER_REL msg =>
-        error (cat_lines
-          ["Generation of a parametric transfer rule for the quotient relation failed.",
-          (Pretty.string_of (Pretty.block [Pretty.str "Reason:", Pretty.brk 2, msg]))])
+      (case opt_param_thm of
+        NONE => transfer_rule
+      | SOME param_thm =>
+          (Lifting_Def.generate_parametric_transfer_rule ctxt transfer_rule param_thm
+            handle Lifting_Term.MERGE_TRANSFER_REL msg =>
+              error ("Generation of a parametric transfer rule for the quotient relation failed:\n"
+                ^ Pretty.string_of msg)))
 
     fun setup_transfer_rules_par ctxt notes =
       let

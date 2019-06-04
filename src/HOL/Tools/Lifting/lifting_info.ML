@@ -248,14 +248,13 @@ fun print_quotients ctxt =
   let
     fun prt_quot (qty_name, {quot_thm, pcr_info}: quotient) =
       Pretty.block (separate (Pretty.brk 2)
-       [Pretty.str "type:",
-        Pretty.str qty_name,
-        Pretty.str "quot. thm:",
-        Syntax.pretty_term ctxt (Thm.prop_of quot_thm),
-        Pretty.str "pcrel_def thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o Thm.prop_of o #pcrel_def) pcr_info,
-        Pretty.str "pcr_cr_eq thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o Thm.prop_of o #pcr_cr_eq) pcr_info])
+        ([Pretty.str "type:", Pretty.str qty_name,
+          Pretty.str "quot thm:", Thm.pretty_thm ctxt quot_thm] @
+         (case pcr_info of
+           NONE => []
+         | SOME {pcrel_def, pcr_cr_eq, ...} =>
+            [Pretty.str "pcrel_def thm:", Thm.pretty_thm ctxt pcrel_def,
+             Pretty.str "pcr_cr_eq thm:", Thm.pretty_thm ctxt pcr_cr_eq])))
   in
     map prt_quot (Symtab.dest (get_quotients ctxt))
     |> Pretty.big_list "quotients:"
