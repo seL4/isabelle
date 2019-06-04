@@ -1251,7 +1251,7 @@ simproc_setup let_simp ("Let x f") = \<open>
       else
         let (*Norbert Schirmer's case*)
           val t = Thm.term_of ct;
-          val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
+          val (t', ctxt') = yield_singleton (Variable.import_terms false) t ctxt;
         in
           Option.map (hd o Variable.export ctxt' ctxt o single)
             (case t' of Const (\<^const_name>\<open>Let\<close>,_) $ x $ f => (* x and f are already in normal form *)

@@ -346,8 +346,8 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
                             | _ => false) fully_skolemized_t then
           let
             val (fully_skolemized_ct, ctxt) =
-              Variable.import_terms true [fully_skolemized_t] ctxt
-              |>> the_single |>> Thm.cterm_of ctxt
+              yield_singleton (Variable.import_terms true) fully_skolemized_t ctxt
+              |>> Thm.cterm_of ctxt
           in
             (SOME (discharger_th, fully_skolemized_ct),
              (Thm.assume fully_skolemized_ct, ctxt))

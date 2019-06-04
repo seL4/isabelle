@@ -737,7 +737,7 @@ fun simple_translate_lambdas do_lambdas ctxt t =
         | _ =>
           if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
           else t |> Envir.eta_contract |> do_lambdas ctxt Ts)
-      val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
+      val (t, ctxt') = yield_singleton (Variable.import_terms true) t ctxt
     in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
 
 fun do_cheaply_conceal_lambdas Ts (t1 $ t2) =

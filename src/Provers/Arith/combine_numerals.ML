@@ -68,7 +68,7 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
 fun proc ctxt ct =
   let
     val t = Thm.term_of ct
-    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
 
     val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
     val T = Term.fastype_of u

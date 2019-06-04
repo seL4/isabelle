@@ -466,7 +466,7 @@ val post_thms =
 
 fun conv ctxt t =
   let
-    val ([t'], ctxt') = Variable.import_terms true [t] (Variable.declare_term t ctxt)
+    val (t', ctxt') = yield_singleton (Variable.import_terms true) t (Variable.declare_term t ctxt)
     val ct = Thm.cterm_of ctxt' t'
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))

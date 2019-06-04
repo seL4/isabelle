@@ -1048,7 +1048,7 @@ fun peephole_optimisation thy intro =
 
 fun import_intros inp_pred [] ctxt =
       let
-        val ([outp_pred], ctxt') = Variable.import_terms true [inp_pred] ctxt
+        val (outp_pred, ctxt') = yield_singleton (Variable.import_terms true) inp_pred ctxt
         val T = fastype_of outp_pred
         val paramTs = ho_argsT_of_typ (binder_types T)
         val (param_names, _) = Variable.variant_fixes

@@ -30,7 +30,7 @@ fun pretty_const ctxt c =
   let
     val t = Const (c, Consts.type_scheme (Proof_Context.consts_of ctxt) c)
       handle TYPE (msg, _, _) => error msg;
-    val ([t'], _) = Variable.import_terms true [t] ctxt;
+    val (t', _) = yield_singleton (Variable.import_terms true) t ctxt;
   in Thy_Output.pretty_term ctxt t' end;
 
 fun pretty_abbrev ctxt s =

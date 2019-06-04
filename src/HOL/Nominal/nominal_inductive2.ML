@@ -169,7 +169,8 @@ fun prove_strong_ind s alt_name avoids ctxt =
       (Induct.lookup_inductP ctxt (hd names)))));
     val induct_cases' = if null induct_cases then replicate (length intrs) ""
       else induct_cases;
-    val ([raw_induct'], ctxt') = Variable.import_terms false [Thm.prop_of raw_induct] ctxt;
+    val (raw_induct', ctxt') = ctxt
+      |> yield_singleton (Variable.import_terms false) (Thm.prop_of raw_induct);
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
     val ps = map (fst o snd) concls;

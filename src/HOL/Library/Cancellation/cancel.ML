@@ -47,7 +47,7 @@ exception SORT_NOT_GENERAL_ENOUGH of string * typ * term
 fun proc ctxt ct =
   let
     val t = Thm.term_of ct
-    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
     val pre_simplified_ct = Simplifier.full_rewrite (clear_simpset ctxt addsimps
       Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_pre\<close> addsimprocs
       [\<^simproc>\<open>NO_MATCH\<close>]) (Thm.cterm_of ctxt t');

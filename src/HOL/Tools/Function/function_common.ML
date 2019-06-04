@@ -320,7 +320,7 @@ fun import_last_function ctxt =
   (case Item_Net.content (get_functions ctxt) of
     [] => NONE
   | (t, _) :: _ =>
-      let val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+      let val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
       in import_function_data t' ctxt' end)
 
 

@@ -69,7 +69,7 @@ fun proc ctxt ct =
   let
     val prems = Simplifier.prems_of ctxt
     val t = Thm.term_of ct
-    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
 
     val (t1,t2) = Data.dest_bal t'
     val terms1 = Data.dest_sum t1

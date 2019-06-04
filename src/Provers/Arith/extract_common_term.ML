@@ -49,7 +49,7 @@ fun find_common (terms1,terms2) =
 fun proc ctxt t =
   let
     val prems = Simplifier.prems_of ctxt;
-    val ([t'], ctxt') = Variable.import_terms true [t] ctxt
+    val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
 
     val (t1,t2) = Data.dest_bal t'
     val terms1 = Data.dest_sum t1
