@@ -169,17 +169,16 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
   in
-    (* FIXME ctxt vs. ctxt' (!?) *)
     rule
-    |> infer_instantiate' ctxt
-      ((map o Option.map) (Thm.cterm_of ctxt) [SOME uncurry, NONE, SOME curry, NONE, SOME P_inst])
-    |> Tactic.rule_by_tactic ctxt
-      (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3 (* discharge U (C f) = f *)
-       THEN Simplifier.simp_tac (put_simpset curry_K_ss ctxt) 4 (* simplify bot case *)
-       THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 5) (* simplify induction step *)
+    |> infer_instantiate' ctxt'
+      ((map o Option.map) (Thm.cterm_of ctxt') [SOME uncurry, NONE, SOME curry, NONE, SOME P_inst])
+    |> Tactic.rule_by_tactic ctxt'
+      (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt') 3 (* discharge U (C f) = f *)
+       THEN Simplifier.simp_tac (put_simpset curry_K_ss ctxt') 4 (* simplify bot case *)
+       THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt') 5) (* simplify induction step *)
     |> (fn thm => thm OF [mono_thm, f_def])
     |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
-         (Raw_Simplifier.rewrite ctxt false [mk_meta_eq @{thm Product_Type.curry_case_prod}]))
+         (Raw_Simplifier.rewrite ctxt' false [mk_meta_eq @{thm Product_Type.curry_case_prod}]))
     |> singleton (Variable.export ctxt' ctxt)
   end
 
@@ -192,8 +191,7 @@ fun mk_curried_induct args ctxt inst_rule =
       Conv.every_conv (replicate (length args - 1) (Conv.rewr_conv @{thm split_paired_all}))
 
     val split_params_conv =
-      Conv.params_conv ~1 (fn ctxt' =>
-        Conv.implies_conv split_paired_all_conv Conv.all_conv)
+      Conv.params_conv ~1 (fn _ => Conv.implies_conv split_paired_all_conv Conv.all_conv)
 
     val (P_var, x_var) =
        Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
@@ -205,13 +203,13 @@ fun mk_curried_induct args ctxt inst_rule =
     val P_inst = cert (uncurry_n (length args) (Free (P, PT)))
 
     val inst_rule' = inst_rule
-      |> Tactic.rule_by_tactic ctxt
-        (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 4
-         THEN Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3
-         THEN CONVERSION (split_params_conv ctxt
-           then_conv (Conv.forall_conv (K split_paired_all_conv) ctxt)) 3)
+      |> Tactic.rule_by_tactic ctxt'
+        (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt') 4
+         THEN Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt') 3
+         THEN CONVERSION (split_params_conv ctxt'
+           then_conv (Conv.forall_conv (K split_paired_all_conv) ctxt')) 3)
       |> Thm.instantiate ([], [(P_var, P_inst), (x_var, x_inst)])
-      |> Simplifier.full_simplify (put_simpset split_conv_ss ctxt)
+      |> Simplifier.full_simplify (put_simpset split_conv_ss ctxt')
       |> singleton (Variable.export ctxt' ctxt)
   in
     inst_rule'
