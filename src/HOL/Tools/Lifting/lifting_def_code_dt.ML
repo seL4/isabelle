@@ -300,14 +300,14 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
               EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o Transfer.transfer_tac true ctxt,
                 SELECT_GOAL (Local_Defs.unfold0_tac ctxt [id_apply]), rtac ctxt refl] i;
             val rep_isom_transfer = transfer_of_rep_isom_data rep_isom_data
-            val (_, transfer_ctxt) =
-              Proof_Context.note_thms ""
-                (Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])]) args_ctxt
+            val (_, transfer_ctxt) = args_ctxt
+              |> Proof_Context.note_thms ""
+                  (Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])])
             val f_alt_def =
               Goal.prove_sorry transfer_ctxt [] [] f_alt_def_goal
                 (fn {context = goal_ctxt, ...} => HEADGOAL (f_alt_def_tac goal_ctxt))
               |> Thm.close_derivation
-              |> singleton (Variable.export args_ctxt lthy4)  (* FIXME proper transfer_ctxt!? *)
+              |> singleton (Variable.export transfer_ctxt lthy4)
             val lthy5 = lthy4
               |> Local_Theory.note ((Binding.empty, @{attributes [code]}), [f_alt_def])
               |> snd

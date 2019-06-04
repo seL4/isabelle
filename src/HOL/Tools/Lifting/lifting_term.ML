@@ -456,8 +456,8 @@ in
       fun prove_extra_assms ctxt ctm distr_rule =
         let
           fun prove_assm assm =
-            try (Goal.prove ctxt [] [] (Thm.term_of assm)) (fn _ =>  (* FIXME proper goal_ctxt!? *)
-              SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt (Transfer.get_transfer_raw ctxt))) 1)
+            try (Goal.prove ctxt [] [] (Thm.term_of assm)) (fn {context = goal_ctxt, ...} =>
+              SOLVED' (REPEAT_ALL_NEW (resolve_tac goal_ctxt (Transfer.get_transfer_raw goal_ctxt))) 1)
   
           fun is_POS_or_NEG ctm =
             case (head_of o Thm.term_of o Thm.dest_arg) ctm of

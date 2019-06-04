@@ -158,7 +158,7 @@ in
             |> Conv.fconv_rule (Conv.arg_conv (Conv.rewr_conv eq_OO_meta))
             |> HOLogic.mk_obj_eq
             |> singleton (Variable.export args_ctxt lthy)
-          val lthy' = args_ctxt  (* FIXME lthy!? *)
+          val lthy' = lthy
             |> #notes config ?
               (Local_Theory.note ((Binding.qualify_name true qty_name "pcr_cr_eq", []), [thm]) #> #2)
         in
