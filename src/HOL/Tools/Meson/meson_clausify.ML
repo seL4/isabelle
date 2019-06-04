@@ -363,27 +363,26 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
 fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
   let
-    val thy = Proof_Context.theory_of ctxt0
-    val choice_ths = choice_theorems thy
-    val (opt, (nnf_th, ctxt)) =
+    val choice_ths = choice_theorems (Proof_Context.theory_of ctxt0)
+    val (opt, (nnf_th, ctxt1)) =
       nnf_axiom choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
       make_cnf
        (if new_skolem orelse null choice_ths then []
-        else map (old_skolem_theorem_of_def ctxt) (old_skolem_defs th))
-       th ctxt
-    val (cnf_ths, ctxt) = clausify nnf_th
+        else map (old_skolem_theorem_of_def ctxt1) (old_skolem_defs th))
+       th ctxt1
+    val (cnf_ths, ctxt2) = clausify nnf_th
     fun intr_imp ct th =
-      Thm.instantiate ([], [((("i", 0), \<^typ>\<open>nat\<close>), Thm.cterm_of ctxt (HOLogic.mk_nat ax_no))])
+      Thm.instantiate ([], [((("i", 0), \<^typ>\<open>nat\<close>), Thm.cterm_of ctxt2 (HOLogic.mk_nat ax_no))])
                       (zero_var_indexes @{thm skolem_COMBK_D})
       RS Thm.implies_intr ct th
   in
-    (opt |> Option.map (I #>> singleton (Variable.export ctxt ctxt0)
+    (opt |> Option.map (I #>> singleton (Variable.export ctxt2 ctxt0)
                         ##> (Thm.term_of #> HOLogic.dest_Trueprop
-                             #> singleton (Variable.export_terms ctxt ctxt0))),
-     cnf_ths |> map (combinators ? introduce_combinators_in_theorem ctxt
+                             #> singleton (Variable.export_terms ctxt2 ctxt0))),
+     cnf_ths |> map (combinators ? introduce_combinators_in_theorem ctxt2
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
-             |> Variable.export ctxt ctxt0
+             |> Variable.export ctxt2 ctxt0
              |> finish_cnf
              |> map Thm.close_derivation)
   end

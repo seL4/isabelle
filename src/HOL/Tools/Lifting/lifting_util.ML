@@ -128,7 +128,6 @@ fun map_interrupt f l =
   end
 
 fun conceal_naming_result f lthy = 
-  let val old_lthy = lthy
-  in lthy |> Proof_Context.concealed |> f ||> Proof_Context.restore_naming old_lthy end;
+  lthy |> Proof_Context.concealed |> f ||> Proof_Context.restore_naming lthy;
 
 end

@@ -53,12 +53,8 @@ exception CHECK_RTY of typ * typ
 type quotients = Lifting_Info.quotient Symtab.table
 
 fun match ctxt err ty_pat ty =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    Sign.typ_match thy (ty_pat, ty) Vartab.empty
-      handle Type.TYPE_MATCH => err ctxt ty_pat ty
-  end
+  Sign.typ_match (Proof_Context.theory_of ctxt) (ty_pat, ty) Vartab.empty
+    handle Type.TYPE_MATCH => err ctxt ty_pat ty
 
 fun equiv_match_err ctxt ty_pat ty =
   let
@@ -82,11 +78,7 @@ fun get_quot_data (quotients: quotients) s =
      Pretty.str "found."])
 
 fun get_quot_thm quotients ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    Thm.transfer thy (#quot_thm (get_quot_data quotients s))
-  end
+  Thm.transfer' ctxt (#quot_thm (get_quot_data quotients s))
 
 fun has_pcrel_info quotients s = is_some (#pcr_info (get_quot_data quotients s))
 
@@ -99,51 +91,34 @@ fun get_pcrel_info quotients s =
      Pretty.str "found."])
 
 fun get_pcrel_def quotients ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    Thm.transfer thy (#pcrel_def (get_pcrel_info quotients s))
-  end
+  Thm.transfer' ctxt (#pcrel_def (get_pcrel_info quotients s))
 
 fun get_pcr_cr_eq quotients ctxt s =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    Thm.transfer thy (#pcr_cr_eq (get_pcrel_info quotients s))
-  end
+  Thm.transfer' ctxt (#pcr_cr_eq (get_pcrel_info quotients s))
 
 fun get_rel_quot_thm ctxt s =
-   let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Lifting_Info.lookup_quot_maps ctxt s of
-      SOME map_data => Thm.transfer thy (#rel_quot_thm map_data)
-    | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
+  (case Lifting_Info.lookup_quot_maps ctxt s of
+    SOME map_data => Thm.transfer' ctxt (#rel_quot_thm map_data)
+  | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
       [Pretty.str ("No relator for the type " ^ quote s), 
        Pretty.brk 1,
        Pretty.str "found."]))
-  end
-
+  
 fun get_rel_distr_rules ctxt s tm =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in
-    (case Lifting_Info.lookup_relator_distr_data ctxt s of
-      SOME rel_distr_thm => (
-        case tm of
-          Const (\<^const_name>\<open>POS\<close>, _) => map (Thm.transfer thy) (#pos_distr_rules rel_distr_thm)
-          | Const (\<^const_name>\<open>NEG\<close>, _) => map (Thm.transfer thy) (#neg_distr_rules rel_distr_thm)
-      )
-    | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
+  (case Lifting_Info.lookup_relator_distr_data ctxt s of
+    SOME rel_distr_thm =>
+      (case tm of
+        Const (\<^const_name>\<open>POS\<close>, _) => map (Thm.transfer' ctxt) (#pos_distr_rules rel_distr_thm)
+      | Const (\<^const_name>\<open>NEG\<close>, _) => map (Thm.transfer' ctxt) (#neg_distr_rules rel_distr_thm))
+  | NONE => raise QUOT_THM_INTERNAL (Pretty.block
       [Pretty.str ("No relator distr. data for the type " ^ quote s), 
        Pretty.brk 1,
        Pretty.str "found."]))
-  end
 
 fun is_id_quot thm = Thm.eq_thm_prop (thm, @{thm identity_quotient})
 
-fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
-  case try (get_rel_quot_thm ctxt) type_name of
+fun zip_Tvars ctxt0 type_name rty_Tvars qty_Tvars =
+  case try (get_rel_quot_thm ctxt0) type_name of
     NONE => rty_Tvars ~~ qty_Tvars
     | SOME rel_quot_thm =>
       let 
@@ -181,27 +156,26 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
         val qty = Type (type_name, qty_Tvars)
         val rel_quot_thm_concl = (Logic.strip_imp_concl o Thm.prop_of) rel_quot_thm
         val schematic_rel_absT = quot_term_absT rel_quot_thm_concl;
-        val thy = Proof_Context.theory_of ctxt
         val absT = rty --> qty
         val schematic_absT = 
           absT 
-          |> Logic.type_map (singleton (Variable.polymorphic ctxt))
+          |> Logic.type_map (singleton (Variable.polymorphic ctxt0))
           |> Logic.incr_tvar (maxidx_of_typ schematic_rel_absT + 1) 
             (* because absT can already contain schematic variables from rty patterns *)
         val maxidx = Term.maxidx_of_typs [schematic_rel_absT, schematic_absT]
-        val _ = Sign.typ_unify thy (schematic_rel_absT, schematic_absT) (Vartab.empty,maxidx)
-          handle Type.TUNIFY => equiv_univ_err ctxt schematic_rel_absT schematic_absT
+        val _ =
+          Sign.typ_unify (Proof_Context.theory_of ctxt0) (schematic_rel_absT, schematic_absT)
+            (Vartab.empty, maxidx)
+          handle Type.TUNIFY => equiv_univ_err ctxt0 schematic_rel_absT schematic_absT
         val subs = raw_match (schematic_rel_absT, absT) Vartab.empty
         val rel_quot_thm_prems = (Logic.strip_imp_prems o Thm.prop_of) rel_quot_thm
       in
-        map (dest_funT o 
-             Envir.subst_type subs o
-             quot_term_absT) 
-          rel_quot_thm_prems
+        map (dest_funT o Envir.subst_type subs o quot_term_absT) rel_quot_thm_prems
       end
 
-fun gen_rty_is_TVar quotients ctxt qty = qty |> Tname |> get_quot_thm quotients ctxt |> 
-  quot_thm_rty_qty |> fst |> is_TVar
+fun gen_rty_is_TVar quotients ctxt qty =
+  qty |> Tname |> get_quot_thm quotients ctxt
+  |> quot_thm_rty_qty |> fst |> is_TVar
 
 fun gen_instantiate_rtys quotients ctxt (rty, (qty as Type (qty_name, _))) =
   let
@@ -307,25 +281,19 @@ fun prove_schematic_quot_thm (actions: 'a fold_quot_thm) quotients ctxt (rty, qt
 
 fun force_qty_type ctxt qty quot_thm =
   let
-    val thy = Proof_Context.theory_of ctxt
     val (_, qty_schematic) = quot_thm_rty_qty quot_thm
-    val match_env = Sign.typ_match thy (qty_schematic, qty) Vartab.empty
+    val match_env = Sign.typ_match (Proof_Context.theory_of ctxt) (qty_schematic, qty) Vartab.empty
     fun prep_ty (x, (S, ty)) = ((x, S), Thm.ctyp_of ctxt ty)
     val ty_inst = Vartab.fold (cons o prep_ty) match_env []
-  in
-    Thm.instantiate (ty_inst, []) quot_thm
-  end
+  in Thm.instantiate (ty_inst, []) quot_thm end
 
 fun check_rty_type ctxt rty quot_thm =
   let  
-    val thy = Proof_Context.theory_of ctxt
     val (rty_forced, _) = quot_thm_rty_qty quot_thm
     val rty_schematic = Logic.type_map (singleton (Variable.polymorphic ctxt)) rty
-    val _ = Sign.typ_match thy (rty_schematic, rty_forced) Vartab.empty
+    val _ = Sign.typ_match (Proof_Context.theory_of ctxt) (rty_schematic, rty_forced) Vartab.empty
       handle Type.TYPE_MATCH => raise CHECK_RTY (rty_schematic, rty_forced)
-  in
-    ()
-  end
+  in () end
 
 (*
   The function tries to prove that rty and qty form a quotient.
@@ -344,9 +312,7 @@ in
       val (schematic_quot_thm, _) = prove_schematic_quot_thm id_actions quotients ctxt (rty, qty) ()
       val quot_thm = force_qty_type ctxt qty schematic_quot_thm
       val _ = check_rty_type ctxt rty quot_thm
-    in
-      quot_thm
-    end
+    in quot_thm end
 end
 
 (*
@@ -370,26 +336,28 @@ val get_fresh_Q_t =
     val tfrees_Q_t = rev (Term.add_tfree_names Q_t [])
   in
     fn ctxt =>
-    let
-      fun rename_free_var tab (Free (name, typ)) = Free (the_default name (AList.lookup op= tab name),typ)
-        | rename_free_var _ t = t
-      
-      fun rename_free_vars tab = map_aterms (rename_free_var tab)
-      
-      fun rename_free_tvars tab =
-        map_types (map_type_tfree (fn (name, sort) => TFree (the_default name (AList.lookup op= tab name), sort)))
-      
-      val (new_frees_Q_t, ctxt) = Variable.variant_fixes frees_Q_t ctxt
-      val tab_frees = frees_Q_t ~~ new_frees_Q_t
-      
-      val (new_tfrees_Q_t, ctxt) = Variable.invent_types (replicate (length tfrees_Q_t) []) ctxt
-      val tab_tfrees = tfrees_Q_t ~~ (fst o split_list) new_tfrees_Q_t
+      let
+        fun rename_free_var tab (Free (name, typ)) =
+              Free (the_default name (AList.lookup op= tab name), typ)
+          | rename_free_var _ t = t
 
-      val renamed_Q_t = rename_free_vars tab_frees Q_t
-      val renamed_Q_t = rename_free_tvars tab_tfrees renamed_Q_t
-    in
-      (renamed_Q_t, ctxt)
-    end
+        fun rename_free_vars tab = map_aterms (rename_free_var tab)
+
+        fun rename_free_tvars tab =
+          map_types (map_type_tfree (fn (name, sort) =>
+            TFree (the_default name (AList.lookup op= tab name), sort)))
+
+        val (new_frees_Q_t, ctxt') = Variable.variant_fixes frees_Q_t ctxt
+        val tab_frees = frees_Q_t ~~ new_frees_Q_t
+
+        val (new_tfrees_Q_t, ctxt'') = Variable.invent_types (replicate (length tfrees_Q_t) []) ctxt'
+        val tab_tfrees = tfrees_Q_t ~~ (fst o split_list) new_tfrees_Q_t
+
+        val renamed_Q_t = rename_free_vars tab_frees Q_t
+        val renamed_Q_t = rename_free_tvars tab_tfrees renamed_Q_t
+      in
+        (renamed_Q_t, ctxt'')
+      end
   end
 
 (*
@@ -402,39 +370,29 @@ val get_fresh_Q_t =
   to the corresponding assumption in the returned theorem.
 *)
 
-fun prove_param_quot_thm ctxt ty = 
+fun prove_param_quot_thm ctxt0 ty = 
   let 
-    fun generate (ty as Type (s, tys)) (table_ctxt as (table, ctxt)) =
-      if null tys 
-      then 
-        let 
-          val instantiated_id_quot_thm =
-            Thm.instantiate' [SOME (Thm.ctyp_of ctxt ty)] [] @{thm identity_quotient}
-        in
-          (instantiated_id_quot_thm, (table, ctxt)) 
-        end
-      else
-        let
-          val (args, table_ctxt) = fold_map generate tys table_ctxt
-        in
-          (args MRSL (get_rel_quot_thm ctxt s), table_ctxt)
-        end 
+    fun generate (ty as Type (s, tys)) (table, ctxt) =
+          if null tys then
+            let 
+              val instantiated_id_quot_thm =
+                Thm.instantiate' [SOME (Thm.ctyp_of ctxt ty)] [] @{thm identity_quotient}
+            in (instantiated_id_quot_thm, (table, ctxt)) end
+          else
+            let val (args, table_ctxt') = fold_map generate tys (table, ctxt)
+            in (args MRSL (get_rel_quot_thm ctxt s), table_ctxt') end
       | generate ty (table, ctxt) =
-        if AList.defined (op=) table ty 
-        then (the (AList.lookup (op=) table ty), (table, ctxt))
-        else 
-          let
-            val (Q_t, ctxt') = get_fresh_Q_t ctxt
-            val Q_thm = Thm.assume (Thm.cterm_of ctxt' Q_t)
-            val table' = (ty, Q_thm) :: table
-          in
-            (Q_thm, (table', ctxt'))
-          end
+          if AList.defined (op =) table ty
+          then (the (AList.lookup (op =) table ty), (table, ctxt))
+          else
+            let
+              val (Q_t, ctxt') = get_fresh_Q_t ctxt
+              val Q_thm = Thm.assume (Thm.cterm_of ctxt' Q_t)
+              val table' = (ty, Q_thm) :: table
+            in (Q_thm, (table', ctxt')) end
 
-    val (param_quot_thm, (table, ctxt)) = generate ty ([], ctxt)
-  in
-    (param_quot_thm, rev table, ctxt)
-  end
+    val (param_quot_thm, (table, ctxt1)) = generate ty ([], ctxt0)
+  in (param_quot_thm, rev table, ctxt1) end
   handle QUOT_THM_INTERNAL pretty_msg => raise PARAM_QUOT_THM (ty, pretty_msg)
 
 (*
@@ -446,11 +404,10 @@ fun prove_param_quot_thm ctxt ty =
 
 fun generate_parametrized_relator ctxt ty =
   let
-    val orig_ctxt = ctxt
-    val (quot_thm, table, ctxt) = prove_param_quot_thm ctxt ty
+    val (quot_thm, table, ctxt') = prove_param_quot_thm ctxt ty
     val parametrized_relator = quot_thm_crel quot_thm
     val args = map (fn (_, q_thm) => quot_thm_crel q_thm) table
-    val exported_terms = Variable.exportT_terms ctxt orig_ctxt (parametrized_relator :: args)
+    val exported_terms = Variable.exportT_terms ctxt' ctxt (parametrized_relator :: args)
   in
     (hd exported_terms, tl exported_terms)
   end
@@ -487,7 +444,7 @@ local
   fun rewrs_imp rules = first_imp (map rewr_imp rules)
 in
 
-  fun gen_merge_transfer_relations quotients ctxt ctm =
+  fun gen_merge_transfer_relations quotients ctxt0 ctm =
     let
       val ctm = Thm.dest_arg ctm
       val tm = Thm.term_of ctm
@@ -498,14 +455,15 @@ in
       
       fun prove_extra_assms ctxt ctm distr_rule =
         let
-          fun prove_assm assm = try (Goal.prove ctxt [] [] (Thm.term_of assm))
-            (fn _ => SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt (Transfer.get_transfer_raw ctxt))) 1)
+          fun prove_assm assm =
+            try (Goal.prove ctxt [] [] (Thm.term_of assm)) (fn _ =>  (* FIXME proper goal_ctxt!? *)
+              SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt (Transfer.get_transfer_raw ctxt))) 1)
   
           fun is_POS_or_NEG ctm =
             case (head_of o Thm.term_of o Thm.dest_arg) ctm of
               Const (\<^const_name>\<open>POS\<close>, _) => true
-              | Const (\<^const_name>\<open>NEG\<close>, _) => true
-              | _ => false
+            | Const (\<^const_name>\<open>NEG\<close>, _) => true
+            | _ => false
   
           val inst_distr_rule = rewr_imp distr_rule ctm
           val extra_assms = filter_out is_POS_or_NEG (cprems_of inst_distr_rule)
@@ -518,7 +476,7 @@ in
       fun cannot_merge_error_msg () = Pretty.block
          [Pretty.str "Rewriting (merging) of this term has failed:",
           Pretty.brk 1,
-          Syntax.pretty_term ctxt rel]
+          Syntax.pretty_term ctxt0 rel]
   
     in
       case get_args 2 rel of
@@ -530,25 +488,25 @@ in
             in
               if same_type_constrs (rty', qty) then
                 let
-                  val distr_rules = get_rel_distr_rules ctxt ((fst o dest_Type) rty') (head_of tm)
-                  val distr_rule = get_first (prove_extra_assms ctxt ctm) distr_rules
+                  val distr_rules = get_rel_distr_rules ctxt0 ((fst o dest_Type) rty') (head_of tm)
+                  val distr_rule = get_first (prove_extra_assms ctxt0 ctm) distr_rules
                 in
                   case distr_rule of
                     NONE => raise MERGE_TRANSFER_REL (cannot_merge_error_msg ())
-                    | SOME distr_rule =>  (map (gen_merge_transfer_relations quotients ctxt) 
-                                            (cprems_of distr_rule)) 
-                      MRSL distr_rule
+                  | SOME distr_rule =>
+                      map (gen_merge_transfer_relations quotients ctxt0) (cprems_of distr_rule)
+                        MRSL distr_rule
                 end
               else
                 let 
-                  val pcrel_def = get_pcrel_def quotients ctxt ((fst o dest_Type) qty)
+                  val pcrel_def = get_pcrel_def quotients ctxt0 ((fst o dest_Type) qty)
                   val pcrel_const = (head_of o fst o Logic.dest_equals o Thm.prop_of) pcrel_def
                 in
                   if same_constants pcrel_const (head_of trans_rel) then
                     let
                       val unfolded_ctm = Thm.rhs_of (Conv.arg1_conv (Conv.arg_conv (Conv.rewr_conv pcrel_def)) ctm)
                       val distr_rule = rewrs_imp @{thms POS_pcr_rule NEG_pcr_rule} unfolded_ctm
-                      val result = (map (gen_merge_transfer_relations quotients ctxt) 
+                      val result = (map (gen_merge_transfer_relations quotients ctxt0) 
                         (cprems_of distr_rule)) MRSL distr_rule
                       val fold_pcr_rel = Conv.rewr_conv (Thm.symmetric pcrel_def)
                     in  
@@ -572,8 +530,8 @@ in
     (e.g., (rel_S R) OO (pcr_T op=) --> pcr_T R using the definition pcr_T R = (rel_S R) OO cr_T).
   *)
 
-  fun merge_transfer_relations ctxt ctm = gen_merge_transfer_relations 
-    (Lifting_Info.get_quotients ctxt) ctxt ctm
+  fun merge_transfer_relations ctxt ctm =
+    gen_merge_transfer_relations (Lifting_Info.get_quotients ctxt) ctxt ctm
 end
 
 fun gen_parametrize_transfer_rule quotients ctxt thm =

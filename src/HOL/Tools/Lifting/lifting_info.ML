@@ -124,18 +124,18 @@ fun map_relator_distr_data  f = map_data I I I f I I
 fun map_restore_data        f = map_data I I I I f I
 fun map_no_code_types       f = map_data I I I I I f
 
-val get_quot_maps'           = #quot_maps o Data.get
-val get_quotients'           = #quotients o Data.get
-val get_reflexivity_rules'   = #reflexivity_rules o Data.get
-val get_relator_distr_data'  = #relator_distr_data o Data.get
-val get_restore_data'        = #restore_data o Data.get
-val get_no_code_types'       = #no_code_types o Data.get
+val get_quot_maps' = #quot_maps o Data.get
+val get_quotients' = #quotients o Data.get
+val get_reflexivity_rules' = #reflexivity_rules o Data.get
+val get_relator_distr_data' = #relator_distr_data o Data.get
+val get_restore_data' = #restore_data o Data.get
+val get_no_code_types' = #no_code_types o Data.get
 
-fun get_quot_maps          ctxt = get_quot_maps' (Context.Proof ctxt)
-fun get_quotients          ctxt = get_quotients' (Context.Proof ctxt)
-fun get_relator_distr_data ctxt = get_relator_distr_data' (Context.Proof ctxt)
-fun get_restore_data       ctxt = get_restore_data' (Context.Proof ctxt)
-fun get_no_code_types      ctxt = get_no_code_types' (Context.Proof ctxt)
+val get_quot_maps = get_quot_maps' o Context.Proof
+val get_quotients = get_quotients' o Context.Proof
+val get_relator_distr_data = get_relator_distr_data' o Context.Proof
+val get_restore_data = get_restore_data' o Context.Proof
+val get_no_code_types = get_no_code_types' o Context.Proof
 
 
 (* info about Quotient map theorems *)
@@ -228,7 +228,7 @@ fun lookup_quot_thm_quotients ctxt quot_thm =
   in
     case lookup_quotients ctxt qty_full_name of
       SOME quotient => if compare_data quotient then SOME quotient else NONE
-      | NONE => NONE
+    | NONE => NONE
   end
 
 fun update_quotients type_name qinfo context =
@@ -293,7 +293,7 @@ fun get_relator_eq_onp_rules ctxt =
 
 (* info about reflexivity rules *)
 
-fun get_reflexivity_rules ctxt = Item_Net.content (get_reflexivity_rules' (Context.Proof ctxt))
+val get_reflexivity_rules = Item_Net.content o get_reflexivity_rules' o Context.Proof
 
 fun add_reflexivity_rule thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
 val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule

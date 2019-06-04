@@ -226,8 +226,8 @@ fun case_tac rule =
 fun bundle_name_of_bundle_binding binding phi context  =
   Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi binding);
 
-fun prove_schematic_quot_thm actions ctxt = Lifting_Term.prove_schematic_quot_thm actions
- (Lifting_Info.get_quotients ctxt) ctxt
+fun prove_schematic_quot_thm actions ctxt =
+  Lifting_Term.prove_schematic_quot_thm actions (Lifting_Info.get_quotients ctxt) ctxt
 
 fun prove_code_dt (rty, qty) lthy =
   let
@@ -245,24 +245,25 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
     fun R_conv rel_eq_onps = Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
       then_conv Transfer.bottom_rewr_conv rel_eq_onps
 
-    val (ret_lift_def, lthy) = add_lift_def (#lift_config config) var qty rhs rsp_thm par_thms lthy
+    val (ret_lift_def, lthy1) = add_lift_def (#lift_config config) var qty rhs rsp_thm par_thms lthy
   in
     if (not (#code_dt config) orelse (code_eq_of_lift_def ret_lift_def <> NONE_EQ)
       andalso (code_eq_of_lift_def ret_lift_def <> UNKNOWN_EQ))
       (* Let us try even in case of UNKNOWN_EQ. If this leads to problems, the user can always
         say that they do not want this workaround. *)
-    then  (ret_lift_def, lthy)
+    then (ret_lift_def, lthy1)
     else
       let
-        val lift_def = inst_of_lift_def lthy qty ret_lift_def
+        val lift_def = inst_of_lift_def lthy1 qty ret_lift_def
         val rty = rty_of_lift_def lift_def
         val rty_ret = body_type rty
         val qty_ret = body_type qty
 
-        val (lthy, rel_eq_onps) = prove_code_dt (rty_ret, qty_ret) lthy
-        val code_dt = code_dt_of lthy (rty_ret, qty_ret)
+        val (lthy2, rel_eq_onps) = prove_code_dt (rty_ret, qty_ret) lthy1
+        val code_dt = code_dt_of lthy2 (rty_ret, qty_ret)
       in
-        if is_none code_dt orelse is_none (rep_isom_data_of_code_dt (the code_dt)) then (ret_lift_def, lthy)
+        if is_none code_dt orelse is_none (rep_isom_data_of_code_dt (the code_dt))
+        then (ret_lift_def, lthy2)
         else
           let
             val code_dt = the code_dt
@@ -270,29 +271,28 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val rep_isom_data = code_dt |> rep_isom_data_of_code_dt |> the
             val pointer = pointer_of_rep_isom_data rep_isom_data
             val quot_active = 
-              Lifting_Info.lookup_restore_data lthy pointer |> the |> #quotient |> #quot_thm
-              |> Lifting_Info.lookup_quot_thm_quotients lthy |> is_some
+              Lifting_Info.lookup_restore_data lthy2 pointer |> the |> #quotient |> #quot_thm
+              |> Lifting_Info.lookup_quot_thm_quotients lthy2 |> is_some
             val qty_code_dt_bundle_name = bundle_name_of_rep_isom_data rep_isom_data
             val rep_isom = mk_rep_isom_of_code_dt qty_ret code_dt |> the
-            val lthy = if quot_active then lthy else Bundle.includes [qty_code_dt_bundle_name] lthy
+            val lthy3 = if quot_active then lthy2 else Bundle.includes [qty_code_dt_bundle_name] lthy2
             fun qty_isom_of_rep_isom rep = rep |> dest_Const |> snd |> domain_type
             val qty_isom = qty_isom_of_rep_isom rep_isom
             val f'_var = (Binding.suffix_name "_aux" (fst var), NoSyn);
             val f'_qty = strip_type qty |> fst |> rpair qty_isom |> op --->
-            val f'_rsp_rel = Lifting_Term.equiv_relation lthy (rty, f'_qty);
+            val f'_rsp_rel = Lifting_Term.equiv_relation lthy3 (rty, f'_qty);
             val rsp = rsp_thm_of_lift_def lift_def
             val rel_eq_onps_conv = HOLogic.Trueprop_conv (Conv.fun2_conv (ret_rel_conv (R_conv rel_eq_onps)))
             val rsp_norm = Conv.fconv_rule rel_eq_onps_conv rsp
             val f'_rsp_goal = HOLogic.mk_Trueprop (f'_rsp_rel $ rhs $ rhs);
-            val f'_rsp = Goal.prove_sorry lthy [] [] f'_rsp_goal
+            val f'_rsp = Goal.prove_sorry lthy3 [] [] f'_rsp_goal
               (fn {context = ctxt, prems = _} =>
                 HEADGOAL (CONVERSION (rel_eq_onps_conv) THEN' rtac ctxt rsp_norm))
               |> Thm.close_derivation
-            val (f'_lift_def, lthy) = add_lift_def ld_no_notes f'_var f'_qty rhs f'_rsp [] lthy
-            val f'_lift_def = inst_of_lift_def lthy f'_qty f'_lift_def
+            val (f'_lift_def, lthy4) = add_lift_def ld_no_notes f'_var f'_qty rhs f'_rsp [] lthy3
+            val f'_lift_def = inst_of_lift_def lthy4 f'_qty f'_lift_def
             val f'_lift_const = mk_lift_const_of_lift_def f'_qty f'_lift_def
-            val args_lthy = lthy
-            val (args, lthy) = mk_Frees "x" (binder_types qty) lthy
+            val (args, args_ctxt) = mk_Frees "x" (binder_types qty) lthy4
             val f_alt_def_goal_lhs = list_comb (lift_const_of_lift_def lift_def, args);
             val f_alt_def_goal_rhs = rep_isom $ list_comb (f'_lift_const, args);
             val f_alt_def_goal = HOLogic.mk_Trueprop (HOLogic.mk_eq (f_alt_def_goal_lhs, f_alt_def_goal_rhs));
@@ -300,26 +300,26 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
               EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o Transfer.transfer_tac true ctxt,
                 SELECT_GOAL (Local_Defs.unfold0_tac ctxt [id_apply]), rtac ctxt refl] i;
             val rep_isom_transfer = transfer_of_rep_isom_data rep_isom_data
-            val (_, transfer_lthy) =
+            val (_, transfer_ctxt) =
               Proof_Context.note_thms ""
-                (Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])]) lthy
-            val f_alt_def = Goal.prove_sorry transfer_lthy [] [] f_alt_def_goal
-              (fn {context = ctxt, prems = _} => HEADGOAL (f_alt_def_tac ctxt))
+                (Binding.empty_atts, [([rep_isom_transfer], [Transfer.transfer_add])]) args_ctxt
+            val f_alt_def =
+              Goal.prove_sorry transfer_ctxt [] [] f_alt_def_goal
+                (fn {context = goal_ctxt, ...} => HEADGOAL (f_alt_def_tac goal_ctxt))
               |> Thm.close_derivation
-              |> singleton (Variable.export lthy args_lthy)
-            val lthy = args_lthy
-            val lthy =  lthy
+              |> singleton (Variable.export args_ctxt lthy4)  (* FIXME proper transfer_ctxt!? *)
+            val lthy5 = lthy4
               |> Local_Theory.note ((Binding.empty, @{attributes [code]}), [f_alt_def])
               |> snd
               (* if processing a mutual datatype (there is a cycle!) the corresponding quotient 
                  will be needed later and will be forgotten later *)
               |> (if quot_active then I else Lifting_Setup.lifting_forget pointer)
           in
-            (ret_lift_def, lthy)
+            (ret_lift_def, lthy5)
           end
        end
     end
-and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
+and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
   let
     (* logical definition of qty qty_isom isomorphism *) 
     val uTname = unique_Tname (rty, qty)
@@ -328,24 +328,23 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
       THEN' (rtac ctxt @{thm id_transfer}));
 
-    val (rep_isom_lift_def, lthy) =
-      lthy
+    val (rep_isom_lift_def, lthy1) = lthy0
       |> Local_Theory.open_target |> snd
       |> lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
         (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac []
-      |>> inst_of_lift_def lthy (qty_isom --> qty);
-    val (abs_isom, lthy) =
-      lthy
+      |>> inst_of_lift_def lthy0 (qty_isom --> qty);
+    val (abs_isom, lthy2) = lthy1
       |> lift_def ld_no_notes (Binding.qualify_name true uTname "Abs_isom", NoSyn)
         (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac []
       |>> mk_lift_const_of_lift_def (qty --> qty_isom);
     val rep_isom = lift_const_of_lift_def rep_isom_lift_def
 
-    val pointer = Lifting_Setup.pointer_of_bundle_binding lthy qty_isom_bundle
-    fun code_dt phi context = code_dt_of lthy (rty, qty) |> the |>
-      update_rep_isom rep_isom (transfer_rules_of_lift_def rep_isom_lift_def |> hd)
-       (bundle_name_of_bundle_binding qty_isom_bundle phi context) pointer;
-    val lthy = lthy  
+    val pointer = Lifting_Setup.pointer_of_bundle_binding lthy2 qty_isom_bundle
+    fun code_dt phi context =
+      code_dt_of lthy2 (rty, qty) |> the
+      |> update_rep_isom rep_isom (transfer_rules_of_lift_def rep_isom_lift_def |> hd)
+          (bundle_name_of_bundle_binding qty_isom_bundle phi context) pointer;
+    val lthy3 = lthy2  
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
       |> Local_Theory.close_target
@@ -354,7 +353,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
       and selectors for qty_isom *)
     val (rty_name, typs) = dest_Type rty
     val (_, qty_typs) = dest_Type qty
-    val fp = BNF_FP_Def_Sugar.fp_sugar_of lthy rty_name
+    val fp = BNF_FP_Def_Sugar.fp_sugar_of lthy3 rty_name
     val fp = if is_some fp then the fp
       else error ("code_dt: " ^ quote rty_name ^ " is not a datatype.")
     val ctr_sugar = fp |> #fp_ctr_sugar |> #ctr_sugar
@@ -365,7 +364,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
 
     val n = length ctrs;
     val ks = 1 upto n;
-    val (xss, _) = mk_Freess "x" ctr_Tss lthy;
+    val (xss, _) = mk_Freess "x" ctr_Tss lthy3;
 
     fun sel_retT (rty' as Type (s, rtys'), qty' as Type (s', qtys')) =
         if (rty', qty') = (rty, qty) then qty_isom else (if s = s'
@@ -377,7 +376,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun lazy_prove_code_dt (rty, qty) lthy =
       if is_none (code_dt_of lthy (rty, qty)) then prove_code_dt (rty, qty) lthy |> fst else lthy;
 
-    val lthy = fold2 (fold2 (lazy_prove_code_dt oo pair)) ctr_Tss sel_retTs lthy
+    val lthy4 = fold2 (fold2 (lazy_prove_code_dt oo pair)) ctr_Tss sel_retTs lthy3
 
     val sel_argss = @{map 4} (fn k => fn xs => @{map 2} (fn x => fn qty_ret => 
       (k, qty_ret, (xs, x)))) ks xss xss sel_retTs;
@@ -398,7 +397,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           (if k = k' then (fold_rev Term.lambda xs x, wits) else gen_undef_wit Ts wits)) ctr_Tss ks []
       end;
     fun mk_sel_rhs arg =
-      let val (sel_rhs, wits) = mk_sel_case_args lthy ctr_Tss ks arg
+      let val (sel_rhs, wits) = mk_sel_case_args lthy4 ctr_Tss ks arg
       in (arg |> #2, wits, list_comb (mk_sel_casex arg, sel_rhs)) end;
     fun mk_dis_case_args args k  = map (fn (k', arg) => (if k = k'
       then fold_rev Term.lambda arg \<^const>\<open>True\<close> else fold_rev Term.lambda arg \<^const>\<open>False\<close>)) args;
@@ -407,9 +406,9 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val dis_qty = qty_isom --> HOLogic.boolT;
     val dis_names = map (fn k => Binding.qualify_name true uTname ("dis" ^ string_of_int k)) ks;
 
-    val (diss, lthy) = @{fold_map 2} (fn b => fn rhs => fn lthy =>
+    val (diss, lthy5) = @{fold_map 2} (fn b => fn rhs => fn lthy =>
       lift_def ld_no_notes (b, NoSyn) dis_qty rhs (K all_tac) [] lthy
-      |>> mk_lift_const_of_lift_def dis_qty) dis_names dis_rhs lthy
+      |>> mk_lift_const_of_lift_def dis_qty) dis_names dis_rhs lthy4
 
     val unfold_lift_sel_rsp = @{lemma "(\<And>x. P1 x \<Longrightarrow> P2 (f x)) \<Longrightarrow> (rel_fun (eq_onp P1) (eq_onp P2)) f f"
       by (simp add: eq_onp_same_args rel_fun_eq_onp_rel)}
@@ -422,16 +421,16 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
         EVERY' [hyp_subst_tac ctxt, (* does not kill wits because = was rewritten to eq_onp top *)
         Raw_Simplifier.rewrite_goal_tac ctxt (map safe_mk_meta_eq dt_rules), 
         REPEAT_DETERM o etac ctxt conjE, assume_tac ctxt])) i
-    val pred_simps = Transfer.lookup_pred_data lthy (Tname rty) |> the |> Transfer.pred_simps
+    val pred_simps = Transfer.lookup_pred_data lthy5 (Tname rty) |> the |> Transfer.pred_simps
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
     val sel_names =
       map (fn (k, xs) =>
         map (fn k' => Binding.qualify_name true uTname ("sel" ^ string_of_int k ^ string_of_int k'))
           (1 upto length xs)) (ks ~~ ctr_Tss);
-    val (selss, lthy) = @{fold_map 2} (@{fold_map 2} (fn b => fn (qty_ret, wits, rhs) => fn lthy =>
+    val (selss, lthy6) = @{fold_map 2} (@{fold_map 2} (fn b => fn (qty_ret, wits, rhs) => fn lthy =>
         lift_def_code_dt { code_dt = true, lift_config = ld_no_notes }
         (b, NoSyn) (qty_isom --> qty_ret) rhs (HEADGOAL o sel_tac wits) [] lthy
-      |>> mk_lift_const_of_lift_def (qty_isom --> qty_ret))) sel_names sel_rhs lthy
+      |>> mk_lift_const_of_lift_def (qty_isom --> qty_ret))) sel_names sel_rhs lthy5
 
     (* now we can execute the qty qty_isom isomorphism *)
     fun mk_type_definition newT oldT RepC AbsC A =
@@ -450,30 +449,31 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           (map safe_mk_meta_eq @{thms id_apply simp_thms Ball_def}),
          rtac ctxt TrueI] i;
 
-    val (_, transfer_lthy) =
+    val (_, transfer_ctxt) =
       Proof_Context.note_thms ""
         (Binding.empty_atts,
           [(@{thms right_total_UNIV_transfer}, [Transfer.transfer_add]),
-           (@{thms Domain_eq_top}, [Transfer.transfer_domain_add])]) lthy;
+           (@{thms Domain_eq_top}, [Transfer.transfer_domain_add])]) lthy6;
 
-    val quot_thm_isom = Goal.prove_sorry transfer_lthy [] [] typedef_goal
-      (fn {context = ctxt, prems = _} => typ_isom_tac ctxt 1)
+    val quot_thm_isom =
+      Goal.prove_sorry transfer_ctxt [] [] typedef_goal
+        (fn {context = goal_ctxt, ...} => typ_isom_tac goal_ctxt 1)
       |> Thm.close_derivation
-      |> singleton (Variable.export transfer_lthy lthy)
+      |> singleton (Variable.export transfer_ctxt lthy6)
       |> (fn thm => @{thm UNIV_typedef_to_Quotient} OF [thm, @{thm reflexive}])
     val qty_isom_name = Tname qty_isom;
     val quot_isom_rep =
       let
-        val (quotients : Lifting_Term.quotients) = Symtab.insert (Lifting_Info.quotient_eq) (qty_isom_name,
-          {quot_thm = quot_thm_isom, pcr_info = NONE}) Symtab.empty
+        val (quotients : Lifting_Term.quotients) =
+          Symtab.insert (Lifting_Info.quotient_eq)
+            (qty_isom_name, {quot_thm = quot_thm_isom, pcr_info = NONE}) Symtab.empty
         val id_actions = { constr = K I, lift = K I, comp_lift = K I }
       in
         fn ctxt => fn (rty, qty) => Lifting_Term.prove_schematic_quot_thm id_actions quotients
           ctxt (rty, qty) () |> fst |> Lifting_Term.force_qty_type ctxt qty
           |> quot_thm_rep
       end;
-    val x_lthy = lthy
-    val (x, lthy) = yield_singleton (mk_Frees "x") qty_isom lthy;
+    val (x, x_ctxt) = yield_singleton (mk_Frees "x") qty_isom lthy6;
 
     fun mk_ctr ctr ctr_Ts sels =
       let
@@ -488,7 +488,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           end;
       in
         @{fold 3} (fn sel => fn ctr_T => fn sel_ret_T => fn ctr =>
-          ctr $ rep_isom lthy (sel $ x) (ctr_T, sel_ret_T)) sels ctr_Ts sel_ret_Ts ctr
+          ctr $ rep_isom x_ctxt (sel $ x) (ctr_T, sel_ret_T)) sels ctr_Ts sel_ret_Ts ctr
       end;
 
     (* stolen from Metis *)
@@ -535,26 +535,25 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
        the datatype fp. Otherwise rep_isom_code_tac could fail (especially transfer in it) is such
        a way that it is not easy to infer the problem with sorts.
     *)
-    val _ = yield_singleton (mk_Frees "x") (#T fp) lthy |> fst |> force_typ lthy qty
+    val _ = yield_singleton (mk_Frees "x") (#T fp) x_ctxt |> fst |> force_typ x_ctxt qty
 
-    val rep_isom_code = Goal.prove_sorry lthy [] [] rep_isom_code_goal
-      (fn {context = ctxt, prems = _} => rep_isom_code_tac ctr_sugar ctxt 1)
+    val rep_isom_code =
+      Goal.prove_sorry x_ctxt [] [] rep_isom_code_goal
+        (fn {context = goal_ctxt, ...} => rep_isom_code_tac ctr_sugar goal_ctxt 1)
       |> Thm.close_derivation
-      |> singleton(Variable.export lthy x_lthy)
-    val lthy = x_lthy
-    val lthy =
-      lthy
-      |> snd o Local_Theory.note ((Binding.empty, @{attributes [code]}), [rep_isom_code])
-      |> Lifting_Setup.lifting_forget pointer
+      |> singleton(Variable.export x_ctxt lthy6)
   in
-    ((selss, diss, rep_isom_code), lthy)
+    lthy6
+    |> snd o Local_Theory.note ((Binding.empty, @{attributes [code]}), [rep_isom_code])
+    |> Lifting_Setup.lifting_forget pointer
+    |> pair (selss, diss, rep_isom_code)
   end
-and constr qty (quot_thm, (lthy, rel_eq_onps)) =
+and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
   let
-    val quot_thm = Lifting_Term.force_qty_type lthy qty quot_thm
+    val quot_thm = Lifting_Term.force_qty_type lthy0 qty quot_thm
     val (rty, qty) = quot_thm_rty_qty quot_thm
     val rty_name = Tname rty;
-    val pred_data = Transfer.lookup_pred_data lthy rty_name
+    val pred_data = Transfer.lookup_pred_data lthy0 rty_name
     val pred_data = if is_some pred_data then the pred_data
       else error ("code_dt: " ^ quote rty_name ^ " is not a datatype.")
     val rel_eq_onp = safe_mk_meta_eq (Transfer.rel_eq_onp pred_data);
@@ -563,12 +562,11 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
       then_conv Conv.rewr_conv rel_eq_onp
     val quot_thm = Conv.fconv_rule(HOLogic.Trueprop_conv (Quotient_R_conv R_conv)) quot_thm;
   in
-    if is_none (code_dt_of lthy (rty, qty)) then
+    if is_none (code_dt_of lthy0 (rty, qty)) then
       let
         val non_empty_pred = quot_thm RS @{thm type_definition_Quotient_not_empty}
         val pred = quot_thm_rel quot_thm |> dest_comb |> snd;
-        val (pred, lthy) =
-          lthy
+        val (pred, lthy1) = lthy0
           |> Local_Theory.open_target |> snd
           |> yield_singleton (Variable.import_terms true) pred;
         val TFrees = Term.add_tfreesT qty []
@@ -578,29 +576,29 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
             SELECT_GOAL (Local_Defs.unfold0_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
         val uTname = unique_Tname (rty, qty)
         val Tdef_set = HOLogic.mk_Collect ("x", rty, pred $ Free("x", rty));
-        val ((_, tcode_dt), lthy) = conceal_naming_result (typedef (Binding.concealed uTname, TFrees, NoSyn)
-          Tdef_set NONE (fn lthy => HEADGOAL (non_empty_typedef_tac non_empty_pred lthy))) lthy;
+        val ((_, tcode_dt), lthy2) = lthy1
+          |> conceal_naming_result
+            (typedef (Binding.concealed uTname, TFrees, NoSyn)
+              Tdef_set NONE (fn lthy => HEADGOAL (non_empty_typedef_tac non_empty_pred lthy)));
         val type_definition_thm = tcode_dt |> snd |> #type_definition;
         val qty_isom = tcode_dt |> fst |> #abs_type;
 
-        val (binding, lthy) =
-          lthy
-          |> conceal_naming_result (Lifting_Setup.setup_by_typedef_thm
-              { notes = false } type_definition_thm)
+        val (binding, lthy3) = lthy2
+          |> conceal_naming_result
+            (Lifting_Setup.setup_by_typedef_thm {notes = false} type_definition_thm)
           ||> Local_Theory.close_target
         val (wit, wit_thm) = mk_witness quot_thm;
         val code_dt = mk_code_dt rty qty wit wit_thm NONE;
-        val lthy = lthy
+        val lthy4 = lthy3
           |> update_code_dt code_dt
           |> mk_rep_isom binding (rty, qty, qty_isom) |> snd
       in
-        (quot_thm, (lthy, rel_eq_onps))
+        (quot_thm, (lthy4, rel_eq_onps))
       end
     else
-      (quot_thm, (lthy, rel_eq_onps))
+      (quot_thm, (lthy0, rel_eq_onps))
   end
-and lift_def_code_dt config var qty rhs tac par_thms lthy = gen_lift_def (add_lift_def_code_dt config)
-  var qty rhs tac par_thms lthy
+and lift_def_code_dt config = gen_lift_def (add_lift_def_code_dt config)
 
 
 (** from parsed parameters to the config record **)
@@ -634,9 +632,9 @@ local
     [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
       @{thm pcr_Domainp}]
 in
-fun mk_readable_rsp_thm_eq tm lthy =
+fun mk_readable_rsp_thm_eq tm ctxt =
   let
-    val ctm = Thm.cterm_of lthy tm
+    val ctm = Thm.cterm_of ctxt tm
     
     fun assms_rewr_conv tactic rule ct =
       let
@@ -685,18 +683,18 @@ fun mk_readable_rsp_thm_eq tm lthy =
             @{thm rel_fun_def[THEN eq_reflection]}]
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
         val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
-            eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
+            eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw ctxt)
         val intro_top_rule = @{thm eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
         val kill_tops = Transfer.top_sweep_rewr_conv [@{thm eq_onp_top_eq_eq[THEN eq_reflection]}]
         val eq_onp_assms_tac = (CONVERSION kill_tops THEN' 
-          TRY o REPEAT_ALL_NEW (resolve_tac lthy eq_onp_assms_tac_rules) 
-          THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
+          TRY o REPEAT_ALL_NEW (resolve_tac ctxt eq_onp_assms_tac_rules) 
+          THEN_ALL_NEW (DETERM o Transfer.eq_tac ctxt)) 1
         val relator_eq_onp_conv = Conv.bottom_conv
           (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac
-            (intro_top_rule :: Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
+            (intro_top_rule :: Lifting_Info.get_relator_eq_onp_rules ctxt)))) ctxt
           then_conv kill_tops
         val relator_eq_conv = Conv.bottom_conv
-          (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
+          (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq ctxt)))) ctxt
       in
         case (Thm.term_of ctm) of
           Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ => 
@@ -705,18 +703,18 @@ fun mk_readable_rsp_thm_eq tm lthy =
       end
     
     val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) ctxt
     val unfold_inv_conv = 
-      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy
+      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) ctxt
     val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
-    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
+    val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) ctxt
     val beta_conv = Thm.beta_conversion true
     val eq_thm = 
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs
          then_conv unfold_inv_conv) ctm
   in
-    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
+    Object_Logic.rulify ctxt (eq_thm RS Drule.equal_elim_rule2)
   end
 end
 
@@ -772,40 +770,39 @@ fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
       error error_msg
     end
 
-fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy =
+fun lift_def_cmd (params, raw_var, rhs_raw, par_xthms) lthy0 =
   let
     val config = evaluate_params params
-    val ((binding, SOME qty, mx), lthy) = Proof_Context.read_var raw_var lthy
+    val ((binding, SOME qty, mx), lthy1) = Proof_Context.read_var raw_var lthy0
     val var = (binding, mx)
-    val rhs = Syntax.read_term lthy rhs_raw
-    val par_thms = Attrib.eval_thms lthy par_xthms
-    val (goal, after_qed) = prepare_lift_def (add_lift_def_code_dt config) var qty rhs par_thms lthy
+    val rhs = Syntax.read_term lthy1 rhs_raw
+    val par_thms = Attrib.eval_thms lthy1 par_xthms
+    val (goal, after_qed) = lthy1
+      |> prepare_lift_def (add_lift_def_code_dt config) var qty rhs par_thms
     val (goal, after_qed) =
       case goal of
         NONE => (goal, K (after_qed Drule.dummy_thm))
         | SOME prsp_tm =>
           let
-            val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
+            val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy1
             val (readable_rsp_tm, _) = Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)
-            val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
+            val readable_rsp_tm_tnames = rename_to_tnames lthy1 readable_rsp_tm
         
             fun after_qed' [[thm]] lthy = 
               let
-                val internal_rsp_thm = Goal.prove lthy [] [] prsp_tm 
-                    (fn {context = ctxt, ...} =>
-                      rtac ctxt readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
-              in
-                after_qed internal_rsp_thm lthy
-              end
-          in
-            (SOME readable_rsp_tm_tnames, after_qed')
-          end
+                val internal_rsp_thm =
+                  Goal.prove lthy [] [] prsp_tm (fn {context = goal_ctxt, ...} =>
+                    rtac goal_ctxt readable_rsp_thm_eq 1 THEN
+                    Proof_Context.fact_tac goal_ctxt [thm] 1)
+              in after_qed internal_rsp_thm lthy end
+          in (SOME readable_rsp_tm_tnames, after_qed') end
     fun after_qed_with_err_handling thmss ctxt = (after_qed thmss ctxt
-      handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
+      handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy1 (rty, qty) msg)
       handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) =>
-        check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw);
+        check_rty_err lthy1 (rty_schematic, rty_forced) (raw_var, rhs_raw);
   in
-    Proof.theorem NONE (snd oo after_qed_with_err_handling) [map (rpair []) (the_list goal)] lthy
+    lthy1
+    |> Proof.theorem NONE (snd oo after_qed_with_err_handling) [map (rpair []) (the_list goal)]
   end
 
 fun lift_def_cmd_with_err_handling (params, (raw_var, rhs_raw, par_xthms)) lthy =

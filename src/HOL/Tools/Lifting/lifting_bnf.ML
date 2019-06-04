@@ -48,14 +48,13 @@ fun mk_Quotient args =
 fun prove_Quotient_map bnf ctxt =
   let
     val live = live_of_bnf bnf
-    val old_ctxt = ctxt
-    val (((As, Bs), Ds), ctxt) = ctxt
+    val (((As, Bs), Ds), ctxt') = ctxt
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees (dead_of_bnf bnf)
     val argTss = map2 (fn a => fn b => [mk_pred2T a a, a --> b, b --> a,mk_pred2T a b]) As Bs
-    val ((argss, argss'), ctxt) =
-      @{fold_map 2} mk_Frees ["R", "Abs", "Rep", "T"] (transpose argTss) ctxt
+    val ((argss, argss'), ctxt'') = ctxt'
+      |> @{fold_map 2} mk_Frees ["R", "Abs", "Rep", "T"] (transpose argTss)
       |>> `transpose
    
     val assms = map (mk_Quotient #> HOLogic.mk_Trueprop) argss
@@ -65,11 +64,12 @@ fun prove_Quotient_map bnf ctxt =
     val T_rel = list_comb (mk_rel_of_bnf Ds As Bs bnf, nth argss' 3)
     val concl = mk_Quotient [R_rel, Abs_map, Rep_map, T_rel] |> HOLogic.mk_Trueprop
     val goal = Logic.list_implies (assms, concl)
-    val thm = Goal.prove_sorry ctxt [] [] goal 
-      (fn {context = ctxt, prems = _} => Quotient_tac bnf ctxt 1)
-      |> Thm.close_derivation
   in
-    Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
+    Goal.prove_sorry ctxt'' [] [] goal
+      (fn {context = goal_ctxt, ...} => Quotient_tac bnf goal_ctxt 1)
+    |> Thm.close_derivation
+    |> singleton (Variable.export ctxt'' ctxt)
+    |> Drule.zero_var_indexes
   end
 
 

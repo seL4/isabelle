@@ -186,14 +186,14 @@ local
     |> map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
 in
 
-fun add_asserted tab_update tab_empty p_extract cond outer_ctxt rewrite_rules assms steps ctxt =
+fun add_asserted tab_update tab_empty p_extract cond outer_ctxt rewrite_rules assms steps ctxt0 =
   let
-    val eqs = map (rewrite ctxt [rewrite_true_rule]) rewrite_rules
+    val eqs = map (rewrite ctxt0 [rewrite_true_rule]) rewrite_rules
     val eqs' = union Thm.eq_thm eqs prep_rules
 
     val assms_net =
       assms
-      |> map (apsnd (rewrite ctxt eqs'))
+      |> map (apsnd (rewrite ctxt0 eqs'))
       |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
       |> thm_net_of snd
 
@@ -229,7 +229,7 @@ fun add_asserted tab_update tab_empty p_extract cond outer_ctxt rewrite_rules as
         else
           cx
       end
-  in fold add steps (([], []), (ctxt, tab_empty)) end
+  in fold add steps (([], []), (ctxt0, tab_empty)) end
 
 end
 
