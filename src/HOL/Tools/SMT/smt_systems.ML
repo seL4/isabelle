@@ -19,10 +19,11 @@ fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
 
 fun make_command name () = [getenv (name ^ "_SOLVER")]
 
-fun outcome_of unsat sat unknown solver_name line =
+fun outcome_of unsat sat unknown timeout solver_name line =
   if String.isPrefix unsat line then SMT_Solver.Unsat
   else if String.isPrefix sat line then SMT_Solver.Sat
   else if String.isPrefix unknown line then SMT_Solver.Unknown
+  else if String.isPrefix timeout line then SMT_Solver.Time_Out
   else raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("Solver " ^ quote solver_name ^
     " failed -- enable tracing using the " ^ quote (Config.name_of SMT_Config.trace) ^
     " option for details"))
@@ -56,7 +57,7 @@ val cvc3: SMT_Solver.solver_config = {
   options = cvc3_options,
   smt_options = [],
   default_max_relevant = 400 (* FUDGE *),
-  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = NONE,
   replay = NONE }
 
@@ -96,7 +97,7 @@ val cvc4: SMT_Solver.solver_config = {
   options = cvc4_options,
   smt_options = [(":produce-unsat-cores", "true")],
   default_max_relevant = 400 (* FUDGE *),
-  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC4_Proof_Parse.parse_proof),
   replay = NONE }
 
@@ -127,7 +128,7 @@ val veriT: SMT_Solver.solver_config = {
     "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]),
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
-  outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown"),
+  outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
 
@@ -157,7 +158,7 @@ val z3: SMT_Solver.solver_config = {
   options = z3_options,
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 350 (* FUDGE *),
-  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME Z3_Replay.parse_proof,
   replay = SOME Z3_Replay.replay }
 
