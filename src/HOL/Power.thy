@@ -643,6 +643,40 @@ lemma of_nat_power_less_of_nat_cancel_iff[simp]: "of_nat x < (of_nat b) ^ w \<lo
 
 end
 
+
+text \<open>Some @{typ nat}-specific lemmas:\<close>
+
+lemma mono_ge2_power_minus_self:
+  assumes "k \<ge> 2" shows "mono (\<lambda>m. k ^ m - m)"
+unfolding mono_iff_le_Suc
+proof
+  fix n
+  have "k ^ n < k ^ Suc n" using power_strict_increasing_iff[of k "n" "Suc n"] assms by linarith
+  thus "k ^ n - n \<le> k ^ Suc n - Suc n" by linarith
+qed
+
+lemma self_le_ge2_pow[simp]:
+  assumes "k \<ge> 2" shows "m \<le> k ^ m"
+proof (induction m)
+  case 0 show ?case by simp
+next
+  case (Suc m)
+  hence "Suc m \<le> Suc (k ^ m)" by simp
+  also have "... \<le> k^m + k^m" using one_le_power[of k m] assms by linarith
+  also have "... \<le> k * k^m" by (metis mult_2 mult_le_mono1[OF assms])
+  finally show ?case by simp
+qed
+
+lemma diff_le_diff_pow[simp]:
+  assumes "k \<ge> 2" shows "m - n \<le> k ^ m - k ^ n"
+proof (cases "n \<le> m")
+  case True
+  thus ?thesis
+    using monoD[OF mono_ge2_power_minus_self[OF assms] True] self_le_ge2_pow[OF assms, of m]
+    by (simp add: le_diff_conv le_diff_conv2)
+qed auto
+
+
 context linordered_ring_strict
 begin
 
