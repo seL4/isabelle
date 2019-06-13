@@ -130,9 +130,13 @@ fun timing_report_task () = let
   end
 
 fun log_path fname = let
-    val isabelle_heaps = Path.explode (getenv "ISABELLE_HEAPS")
-    val log_fname = Path.make [getenv "ML_IDENTIFIER", "log", fname]
-  in Path.append isabelle_heaps log_fname end
+    val isabelle_output = getenv "ISABELLE_OUTPUT"
+    val log_base =
+        if isabelle_output = ""
+        then Path.append (Path.explode (getenv "ISABELLE_HEAPS"))
+                         (Path.make [getenv "ML_IDENTIFIER"])
+        else Path.explode isabelle_output
+  in Path.append log_base (Path.make ["log", fname]) end
 
 fun open_outfile session_name = let
     val fname = session_name ^ "_times.txt"
