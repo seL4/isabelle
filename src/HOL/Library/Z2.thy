@@ -1,12 +1,18 @@
-(*  Title:      HOL/Library/Bit.thy
+(*  Title:      HOL/Library/Z2.thy
     Author:     Brian Huffman
 *)
 
 section \<open>The Field of Integers mod 2\<close>
 
-theory Bit
+theory Z2
 imports Main
 begin
+
+text \<open>
+  Note that in most cases \<^typ>\<open>bool\<close> is appropriate hen a binary type is needed; the
+  type provided here, for historical reasons named \<guillemotright>bit\<guillemotleft>, is only needed if proper
+  field operations are required.
+\<close>
 
 subsection \<open>Bits as a datatype\<close>
 

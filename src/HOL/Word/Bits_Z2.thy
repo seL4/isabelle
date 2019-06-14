@@ -1,11 +1,11 @@
-(*  Title:      HOL/Word/Bits_Bit.thy
+(*  Title:      HOL/Word/Bits_Z2.thy
     Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 
 section \<open>Bit operations in $\cal Z_2$\<close>
 
-theory Bits_Bit
-  imports Bits "HOL-Library.Bit"
+theory Bits_Z2
+  imports Bits "HOL-Library.Z2"
 begin
 
 instantiation bit :: bit_operations

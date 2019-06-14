@@ -4,7 +4,6 @@ imports
   AList
   Adhoc_Overloading
   BigO
-  Bit
   BNF_Axiomatization
   BNF_Corec
   Boolean_Algebra
@@ -94,6 +93,7 @@ imports
   Type_Length
   Uprod
   While_Combinator
+  Z2
 begin
 end
 (*>*)

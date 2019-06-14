@@ -9,7 +9,7 @@ imports
   "HOL-Library.Type_Length"
   "HOL-Library.Boolean_Algebra"
   Bits_Int
-  Bits_Bit
+  Bits_Z2
   Bit_Comprehension
   Misc_Typedef
   Misc_Arithmetic

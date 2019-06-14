@@ -3,7 +3,7 @@
 section \<open>Miscellaneous lemmas, mostly for arithmetic\<close>
 
 theory Misc_Arithmetic
-  imports Misc_Auxiliary "HOL-Library.Bit"
+  imports Misc_Auxiliary "HOL-Library.Z2"
 begin
 
 lemma one_mod_exp_eq_one [simp]:
