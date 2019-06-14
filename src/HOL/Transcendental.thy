@@ -1815,6 +1815,10 @@ lemma ln_neg_is_const: "x \<le> 0 \<Longrightarrow> ln x = (THE x. False)"
   for x :: real
   by (auto simp: ln_real_def intro!: arg_cong[where f = The])
 
+lemma powr_eq_one_iff [simp]:
+  "a powr x = 1 \<longleftrightarrow> x = 0" if "a > 1" for a x :: real
+  using that by (auto simp: powr_def split: if_splits)
+
 lemma isCont_ln:
   fixes x :: real
   assumes "x \<noteq> 0"
@@ -2692,6 +2696,10 @@ using less_log_of_power[of 2] by simp
 lemma gr_one_powr[simp]:
   fixes x y :: real shows "\<lbrakk> x > 1; y > 0 \<rbrakk> \<Longrightarrow> 1 < x powr y"
 by(simp add: less_powr_iff)
+
+lemma log_pow_cancel [simp]:
+  "a > 0 \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log a (a ^ b) = b"
+  by (simp add: ln_realpow log_def)
 
 lemma floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp: floor_eq_iff powr_le_iff less_powr_iff)

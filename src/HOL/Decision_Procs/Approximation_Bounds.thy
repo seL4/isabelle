@@ -2540,16 +2540,16 @@ next
     have "0 < m" and "m \<noteq> 0" using \<open>0 < x\<close> Float powr_gt_zero[of 2 e]
       by (auto simp add: zero_less_mult_iff)
     define bl where "bl = bitlen m - 1"
+    then have bitlen: "bitlen m = bl + 1"
+      by simp
     hence "bl \<ge> 0"
-      using \<open>m > 0\<close> by (simp add: bitlen_alt_def)
+      using \<open>m > 0\<close> by (auto simp add: bitlen_alt_def)
     have "1 \<le> Float m e"
       using \<open>1 \<le> x\<close> Float unfolding less_eq_float_def by auto
     from bitlen_div[OF \<open>0 < m\<close>] float_gt1_scale[OF \<open>1 \<le> Float m e\<close>] \<open>bl \<ge> 0\<close>
     have x_bnds: "0 \<le> real_of_float (?x - 1)" "real_of_float (?x - 1) < 1"
-      unfolding bl_def[symmetric]
-      by (auto simp: powr_realpow[symmetric] field_simps)
-         (auto simp : powr_minus field_simps)
-
+      using abs_real_le_2_powr_bitlen [of m] \<open>m > 0\<close>
+      by (simp_all add: bitlen powr_realpow [symmetric] powr_minus powr_add field_simps)
     {
       have "float_round_down prec (lb_ln2 prec * ?s) \<le> ln 2 * (e + (bitlen m - 1))"
           (is "real_of_float ?lb2 \<le> _")

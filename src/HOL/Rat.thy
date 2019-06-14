@@ -629,7 +629,8 @@ qed
 instantiation rat :: floor_ceiling
 begin
 
-definition [code del]: "\<lfloor>x\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))" for x :: rat
+definition floor_rat :: "rat \<Rightarrow> int"
+  where"\<lfloor>x\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))" for x :: rat
 
 instance
 proof
@@ -639,7 +640,7 @@ qed
 
 end
 
-lemma floor_Fract: "\<lfloor>Fract a b\<rfloor> = a div b"
+lemma floor_Fract [simp]: "\<lfloor>Fract a b\<rfloor> = a div b"
   by (simp add: Fract_of_int_quotient floor_divide_of_int_eq)
 
 
@@ -788,6 +789,10 @@ proof
     by (induct a) (simp add: of_rat_rat Fract_of_int_eq [symmetric])
 qed
 
+lemma abs_of_rat [simp]:
+  "\<bar>of_rat r\<bar> = (of_rat \<bar>r\<bar> :: 'a :: linordered_field)"
+  by (cases "r \<ge> 0") (simp_all add: not_le of_rat_minus)
+
 text \<open>Collapse nested embeddings.\<close>
 lemma of_rat_of_nat_eq [simp]: "of_rat (of_nat n) = of_nat n"
   by (induct n) (simp_all add: of_rat_add)
@@ -800,6 +805,14 @@ lemma of_rat_numeral_eq [simp]: "of_rat (numeral w) = numeral w"
 
 lemma of_rat_neg_numeral_eq [simp]: "of_rat (- numeral w) = - numeral w"
   using of_rat_of_int_eq [of "- numeral w"] by simp
+
+lemma of_rat_floor [simp]:
+  "\<lfloor>of_rat r\<rfloor> = \<lfloor>r\<rfloor>"
+  by (cases r) (simp add: Fract_of_int_quotient of_rat_divide floor_divide_of_int_eq)
+
+lemma of_rat_ceiling [simp]:
+  "\<lceil>of_rat r\<rceil> = \<lceil>r\<rceil>"
+  using of_rat_floor [of "- r"] by (simp add: of_rat_minus ceiling_def)
 
 lemmas zero_rat = Zero_rat_def
 lemmas one_rat = One_rat_def

@@ -25,10 +25,6 @@ next
     by (simp add: real_of_nat_div_aux [symmetric])
 qed
 
-lemma powr_eq_one_iff [simp]:
-  "a powr x = 1 \<longleftrightarrow> x = 0" if "a > 1" for a x :: real
-  using that by (auto simp: powr_def split: if_splits)
-
 
 subsection \<open>Floorlog\<close>
 

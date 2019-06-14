@@ -545,7 +545,8 @@ proof -
   have "\<phi> > 0" "\<phi> > 1" by(auto simp: \<phi>_def pos_add_strict)
   hence "height t = log \<phi> (\<phi> ^ height t)" by(simp add: log_nat_power)
   also have "\<dots> \<le> log \<phi> (size1 t)"
-    using avl_size_lowerbound[OF assms(2), folded \<phi>_def] \<open>1 < \<phi>\<close>  by simp
+    using avl_size_lowerbound[OF assms(2), folded \<phi>_def] \<open>1 < \<phi>\<close>
+    by (simp add: le_log_of_power) 
   also have "\<dots> = (1/log 2 \<phi>) * log 2 (size1 t)"
     by(simp add: log_base_change[of 2 \<phi>])
   finally show ?thesis .

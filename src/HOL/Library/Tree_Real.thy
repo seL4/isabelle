@@ -19,7 +19,7 @@ lemma min_height_size1_log: "min_height t \<le> log 2 (size1 t)"
 by (simp add: le_log2_of_power min_height_size1)
 
 lemma size1_log_if_complete: "complete t \<Longrightarrow> height t = log 2 (size1 t)"
-by (simp add: log2_of_power_eq size1_if_complete)
+by (simp add: size1_if_complete)
 
 lemma min_height_size1_log_if_incomplete:
   "\<not> complete t \<Longrightarrow> min_height t < log 2 (size1 t)"
