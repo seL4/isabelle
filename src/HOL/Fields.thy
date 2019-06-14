@@ -904,20 +904,6 @@ text\<open>Lemmas \<open>sign_simps\<close> is a first attempt to automate proof
 of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close> because the former can lead to case
 explosions.\<close>
 
-(* Only works once linear arithmetic is installed:
-text{*An example:*}
-lemma fixes a b c d e f :: "'a::linordered_field"
-shows "\<lbrakk>a>b; c<d; e<f; 0 < u \<rbrakk> \<Longrightarrow>
- ((a-b)*(c-d)*(e-f))/((c-d)*(e-f)*(a-b)) <
- ((e-f)*(a-b)*(c-d))/((e-f)*(a-b)*(c-d)) + u"
-apply(subgoal_tac "(c-d)*(e-f)*(a-b) > 0")
- prefer 2 apply(simp add:sign_simps)
-apply(subgoal_tac "(c-d)*(e-f)*(a-b)*u > 0")
- prefer 2 apply(simp add:sign_simps)
-apply(simp add:field_simps)
-done
-*)
-
 lemma divide_pos_pos[simp]:
   "0 < x ==> 0 < y ==> 0 < x / y"
 by(simp add:field_simps)
