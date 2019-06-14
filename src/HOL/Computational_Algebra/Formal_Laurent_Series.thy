@@ -4081,7 +4081,7 @@ lemma dist_fls_ge0: "dist (a :: 'a fls) b \<ge> 0"
   by (simp add: dist_fls_def)
 
 definition uniformity_fls_def [code del]:
-  "(uniformity :: ('a fls \<times> 'a fls) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity :: ('a fls \<times> 'a fls) filter) = (INF e \<in> {0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_fls_def' [code del]:
   "open (U :: 'a fls set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"

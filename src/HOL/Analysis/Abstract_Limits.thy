@@ -7,7 +7,7 @@ subsection\<open>nhdsin and atin\<close>
 
 definition nhdsin :: "'a topology \<Rightarrow> 'a \<Rightarrow> 'a filter"
   where "nhdsin X a =
-           (if a \<in> topspace X then (INF S:{S. openin X S \<and> a \<in> S}. principal S) else bot)"
+           (if a \<in> topspace X then (INF S\<in>{S. openin X S \<and> a \<in> S}. principal S) else bot)"
 
 definition atin :: "'a topology \<Rightarrow> 'a \<Rightarrow> 'a filter"
   where "atin X a \<equiv> inf (nhdsin X a) (principal (topspace X - {a}))"
@@ -21,7 +21,7 @@ lemma eventually_nhdsin:
   "eventually P (nhdsin X a) \<longleftrightarrow> a \<notin> topspace X \<or> (\<exists>S. openin X S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
 proof (cases "a \<in> topspace X")
   case True
-  hence "nhdsin X a = (INF S:{S. openin X S \<and> a \<in> S}. principal S)"
+  hence "nhdsin X a = (INF S\<in>{S. openin X S \<and> a \<in> S}. principal S)"
     by (simp add: nhdsin_def)
   also have "eventually P \<dots> \<longleftrightarrow> (\<exists>S. openin X S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
     using True by (subst eventually_INF_base) (auto simp: eventually_principal)

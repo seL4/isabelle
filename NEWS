@@ -1,3 +1,5 @@
+
+
 Isabelle NEWS -- history of user-relevant changes
 =================================================
 
@@ -6,6 +8,12 @@ Isabelle NEWS -- history of user-relevant changes
 
 New in this Isabelle version
 ----------------------------
+
+*** HOL ***
+
+* ASCII membership syntax concerning big operators for infimum
+and supremum is gone.  INCOMPATIBILITY.
+
 
 
 New in Isabelle2019 (June 2019)
