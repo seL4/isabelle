@@ -432,7 +432,7 @@ lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarro
 lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
-context unique_euclidean_semiring_with_nat
+context semiring_parity
 begin
 
 declare even_mult_iff [presburger]
@@ -445,7 +445,7 @@ lemma [presburger]:
 
 end
 
-context unique_euclidean_ring_with_nat
+context ring_parity
 begin
 
 declare even_minus [presburger]

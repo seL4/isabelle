@@ -11,106 +11,11 @@ begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
-class unique_euclidean_semiring_with_nat = semidom + semiring_char_0 + unique_euclidean_semiring +
-  assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
-    and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
-    and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"
+class semiring_parity = comm_semiring_1 + semiring_modulo +
+  assumes even_iff_mod_2_eq_zero: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
+    and odd_iff_mod_2_eq_one: "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
+    and odd_one [simp]: "\<not> 2 dvd 1"
 begin
-
-lemma division_segment_eq_iff:
-  "a = b" if "division_segment a = division_segment b"
-    and "euclidean_size a = euclidean_size b"
-  using that division_segment_euclidean_size [of a] by simp
-
-lemma euclidean_size_of_nat [simp]:
-  "euclidean_size (of_nat n) = n"
-proof -
-  have "division_segment (of_nat n) * of_nat (euclidean_size (of_nat n)) = of_nat n"
-    by (fact division_segment_euclidean_size)
-  then show ?thesis by simp
-qed
-
-lemma of_nat_euclidean_size:
-  "of_nat (euclidean_size a) = a div division_segment a"
-proof -
-  have "of_nat (euclidean_size a) = division_segment a * of_nat (euclidean_size a) div division_segment a"
-    by (subst nonzero_mult_div_cancel_left) simp_all
-  also have "\<dots> = a div division_segment a"
-    by simp
-  finally show ?thesis .
-qed
-
-lemma division_segment_1 [simp]:
-  "division_segment 1 = 1"
-  using division_segment_of_nat [of 1] by simp
-
-lemma division_segment_numeral [simp]:
-  "division_segment (numeral k) = 1"
-  using division_segment_of_nat [of "numeral k"] by simp
-
-lemma euclidean_size_1 [simp]:
-  "euclidean_size 1 = 1"
-  using euclidean_size_of_nat [of 1] by simp
-
-lemma euclidean_size_numeral [simp]:
-  "euclidean_size (numeral k) = numeral k"
-  using euclidean_size_of_nat [of "numeral k"] by simp
-
-lemma of_nat_dvd_iff:
-  "of_nat m dvd of_nat n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
-proof (cases "m = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  show ?thesis
-  proof
-    assume ?Q
-    then show ?P
-      by (auto elim: dvd_class.dvdE)
-  next
-    assume ?P
-    with False have "of_nat n = of_nat n div of_nat m * of_nat m"
-      by simp
-    then have "of_nat n = of_nat (n div m * m)"
-      by (simp add: of_nat_div)
-    then have "n = n div m * m"
-      by (simp only: of_nat_eq_iff)
-    then have "n = m * (n div m)"
-      by (simp add: ac_simps)
-    then show ?Q ..
-  qed
-qed
-
-lemma of_nat_mod:
-  "of_nat (m mod n) = of_nat m mod of_nat n"
-proof -
-  have "of_nat m div of_nat n * of_nat n + of_nat m mod of_nat n = of_nat m"
-    by (simp add: div_mult_mod_eq)
-  also have "of_nat m = of_nat (m div n * n + m mod n)"
-    by simp
-  finally show ?thesis
-    by (simp only: of_nat_div of_nat_mult of_nat_add) simp
-qed
-
-lemma one_div_two_eq_zero [simp]:
-  "1 div 2 = 0"
-proof -
-  from of_nat_div [symmetric] have "of_nat 1 div of_nat 2 = of_nat 0"
-    by (simp only:) simp
-  then show ?thesis
-    by simp
-qed
-
-lemma one_mod_two_eq_one [simp]:
-  "1 mod 2 = 1"
-proof -
-  from of_nat_mod [symmetric] have "of_nat 1 mod of_nat 2 = of_nat 1"
-    by (simp only:) simp
-  then show ?thesis
-    by simp
-qed
 
 abbreviation even :: "'a \<Rightarrow> bool"
   where "even a \<equiv> 2 dvd a"
@@ -118,58 +23,23 @@ abbreviation even :: "'a \<Rightarrow> bool"
 abbreviation odd :: "'a \<Rightarrow> bool"
   where "odd a \<equiv> \<not> 2 dvd a"
 
-lemma even_iff_mod_2_eq_zero:
-  "even a \<longleftrightarrow> a mod 2 = 0"
-  by (fact dvd_eq_mod_eq_0)
-
-lemma odd_iff_mod_2_eq_one:
-  "odd a \<longleftrightarrow> a mod 2 = 1"
-proof
-  assume "a mod 2 = 1"
-  then show "odd a"
-    by auto
-next
-  assume "odd a"
-  have eucl: "euclidean_size (a mod 2) = 1"
-  proof (rule order_antisym)
-    show "euclidean_size (a mod 2) \<le> 1"
-      using mod_size_less [of 2 a] by simp
-    show "1 \<le> euclidean_size (a mod 2)"
-      using \<open>odd a\<close> by (simp add: Suc_le_eq dvd_eq_mod_eq_0)
-  qed 
-  from \<open>odd a\<close> have "\<not> of_nat 2 dvd division_segment a * of_nat (euclidean_size a)"
-    by simp
-  then have "\<not> of_nat 2 dvd of_nat (euclidean_size a)"
-    by (auto simp only: dvd_mult_unit_iff' is_unit_division_segment)
-  then have "\<not> 2 dvd euclidean_size a"
-    using of_nat_dvd_iff [of 2] by simp
-  then have "euclidean_size a mod 2 = 1"
-    by (simp add: semidom_modulo_class.dvd_eq_mod_eq_0)
-  then have "of_nat (euclidean_size a mod 2) = of_nat 1"
-    by simp
-  then have "of_nat (euclidean_size a) mod 2 = 1"
-    by (simp add: of_nat_mod)
-  from \<open>odd a\<close> eucl
-  show "a mod 2 = 1"
-    by (auto intro: division_segment_eq_iff simp add: division_segment_mod)
-qed
-
-lemma mod2_eq_if: "x mod 2 = (if even x then 0 else 1)"
-by (simp add: odd_iff_mod_2_eq_one)
-
 lemma parity_cases [case_names even odd]:
   assumes "even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P"
   assumes "odd a \<Longrightarrow> a mod 2 = 1 \<Longrightarrow> P"
   shows P
-  using assms by (cases "even a") (simp_all add: odd_iff_mod_2_eq_one)
+  using assms by (cases "even a")
+    (simp_all add: even_iff_mod_2_eq_zero [symmetric] odd_iff_mod_2_eq_one [symmetric])
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
 
 lemma not_mod_2_eq_1_eq_0 [simp]:
   "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
   by (cases a rule: parity_cases) simp_all
 
-lemma not_mod_2_eq_0_eq_1 [simp]:
-  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
-  by (cases a rule: parity_cases) simp_all
+lemma mod2_eq_if: "a mod 2 = (if 2 dvd a then 0 else 1)"
+  by (simp add: even_iff_mod_2_eq_zero odd_iff_mod_2_eq_one)
 
 lemma evenE [elim?]:
   assumes "even a"
@@ -189,50 +59,15 @@ qed
 
 lemma mod_2_eq_odd:
   "a mod 2 = of_bool (odd a)"
-  by (auto elim: oddE)
+  by (auto elim: oddE simp add: even_iff_mod_2_eq_zero)
 
 lemma of_bool_odd_eq_mod_2:
   "of_bool (odd a) = a mod 2"
   by (simp add: mod_2_eq_odd)
 
-lemma one_mod_2_pow_eq [simp]:
-  "1 mod (2 ^ n) = of_bool (n > 0)"
-proof -
-  have "1 mod (2 ^ n) = of_nat (1 mod (2 ^ n))"
-    using of_nat_mod [of 1 "2 ^ n"] by simp
-  also have "\<dots> = of_bool (n > 0)"
-    by simp
-  finally show ?thesis .
-qed
-
-lemma one_div_2_pow_eq [simp]:
-  "1 div (2 ^ n) = of_bool (n = 0)"
-  using div_mult_mod_eq [of 1 "2 ^ n"] by auto
-
-lemma even_of_nat [simp]:
-  "even (of_nat a) \<longleftrightarrow> even a"
-proof -
-  have "even (of_nat a) \<longleftrightarrow> of_nat 2 dvd of_nat a"
-    by simp
-  also have "\<dots> \<longleftrightarrow> even a"
-    by (simp only: of_nat_dvd_iff)
-  finally show ?thesis .
-qed
-
 lemma even_zero [simp]:
   "even 0"
   by (fact dvd_0_right)
-
-lemma odd_one [simp]:
-  "odd 1"
-proof -
-  have "\<not> (2 :: nat) dvd 1"
-    by simp
-  then have "\<not> of_nat 2 dvd of_nat 1"
-    unfolding of_nat_dvd_iff by simp
-  then show ?thesis
-    by simp
-qed
 
 lemma odd_even_add:
   "even (a + b)" if "odd a" and "odd b"
@@ -310,6 +145,197 @@ qed
 
 lemma even_power [simp]: "even (a ^ n) \<longleftrightarrow> even a \<and> n > 0"
   by (induct n) auto
+
+end
+
+class ring_parity = ring + semiring_parity
+begin
+
+subclass comm_ring_1 ..
+
+lemma even_minus:
+  "even (- a) \<longleftrightarrow> even a"
+  by (fact dvd_minus_iff)
+
+lemma even_diff [simp]:
+  "even (a - b) \<longleftrightarrow> even (a + b)"
+  using even_add [of a "- b"] by simp
+
+end
+
+
+subsection \<open>Special case: euclidean rings containing the natural numbers\<close>
+
+class unique_euclidean_semiring_with_nat = semidom + semiring_char_0 + unique_euclidean_semiring +
+  assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
+    and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
+    and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"
+begin
+
+lemma division_segment_eq_iff:
+  "a = b" if "division_segment a = division_segment b"
+    and "euclidean_size a = euclidean_size b"
+  using that division_segment_euclidean_size [of a] by simp
+
+lemma euclidean_size_of_nat [simp]:
+  "euclidean_size (of_nat n) = n"
+proof -
+  have "division_segment (of_nat n) * of_nat (euclidean_size (of_nat n)) = of_nat n"
+    by (fact division_segment_euclidean_size)
+  then show ?thesis by simp
+qed
+
+lemma of_nat_euclidean_size:
+  "of_nat (euclidean_size a) = a div division_segment a"
+proof -
+  have "of_nat (euclidean_size a) = division_segment a * of_nat (euclidean_size a) div division_segment a"
+    by (subst nonzero_mult_div_cancel_left) simp_all
+  also have "\<dots> = a div division_segment a"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma division_segment_1 [simp]:
+  "division_segment 1 = 1"
+  using division_segment_of_nat [of 1] by simp
+
+lemma division_segment_numeral [simp]:
+  "division_segment (numeral k) = 1"
+  using division_segment_of_nat [of "numeral k"] by simp
+
+lemma euclidean_size_1 [simp]:
+  "euclidean_size 1 = 1"
+  using euclidean_size_of_nat [of 1] by simp
+
+lemma euclidean_size_numeral [simp]:
+  "euclidean_size (numeral k) = numeral k"
+  using euclidean_size_of_nat [of "numeral k"] by simp
+
+lemma of_nat_dvd_iff:
+  "of_nat m dvd of_nat n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
+proof (cases "m = 0")
+  case True
+  then show ?thesis
+    by simp
+next
+  case False
+  show ?thesis
+  proof
+    assume ?Q
+    then show ?P
+      by auto
+  next
+    assume ?P
+    with False have "of_nat n = of_nat n div of_nat m * of_nat m"
+      by simp
+    then have "of_nat n = of_nat (n div m * m)"
+      by (simp add: of_nat_div)
+    then have "n = n div m * m"
+      by (simp only: of_nat_eq_iff)
+    then have "n = m * (n div m)"
+      by (simp add: ac_simps)
+    then show ?Q ..
+  qed
+qed
+
+lemma of_nat_mod:
+  "of_nat (m mod n) = of_nat m mod of_nat n"
+proof -
+  have "of_nat m div of_nat n * of_nat n + of_nat m mod of_nat n = of_nat m"
+    by (simp add: div_mult_mod_eq)
+  also have "of_nat m = of_nat (m div n * n + m mod n)"
+    by simp
+  finally show ?thesis
+    by (simp only: of_nat_div of_nat_mult of_nat_add) simp
+qed
+
+lemma one_div_two_eq_zero [simp]:
+  "1 div 2 = 0"
+proof -
+  from of_nat_div [symmetric] have "of_nat 1 div of_nat 2 = of_nat 0"
+    by (simp only:) simp
+  then show ?thesis
+    by simp
+qed
+
+lemma one_mod_two_eq_one [simp]:
+  "1 mod 2 = 1"
+proof -
+  from of_nat_mod [symmetric] have "of_nat 1 mod of_nat 2 = of_nat 1"
+    by (simp only:) simp
+  then show ?thesis
+    by simp
+qed
+
+subclass semiring_parity
+proof
+  show "2 dvd a \<longleftrightarrow> a mod 2 = 0" for a
+    by (fact dvd_eq_mod_eq_0)
+  show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1" for a
+  proof
+    assume "a mod 2 = 1"
+    then show "\<not> 2 dvd a"
+      by auto
+  next
+    assume "\<not> 2 dvd a"
+    have eucl: "euclidean_size (a mod 2) = 1"
+    proof (rule order_antisym)
+      show "euclidean_size (a mod 2) \<le> 1"
+        using mod_size_less [of 2 a] by simp
+      show "1 \<le> euclidean_size (a mod 2)"
+        using \<open>\<not> 2 dvd a\<close> by (simp add: Suc_le_eq dvd_eq_mod_eq_0)
+    qed 
+    from \<open>\<not> 2 dvd a\<close> have "\<not> of_nat 2 dvd division_segment a * of_nat (euclidean_size a)"
+      by simp
+    then have "\<not> of_nat 2 dvd of_nat (euclidean_size a)"
+      by (auto simp only: dvd_mult_unit_iff' is_unit_division_segment)
+    then have "\<not> 2 dvd euclidean_size a"
+      using of_nat_dvd_iff [of 2] by simp
+    then have "euclidean_size a mod 2 = 1"
+      by (simp add: semidom_modulo_class.dvd_eq_mod_eq_0)
+    then have "of_nat (euclidean_size a mod 2) = of_nat 1"
+      by simp
+    then have "of_nat (euclidean_size a) mod 2 = 1"
+      by (simp add: of_nat_mod)
+    from \<open>\<not> 2 dvd a\<close> eucl
+    show "a mod 2 = 1"
+      by (auto intro: division_segment_eq_iff simp add: division_segment_mod)
+  qed
+  show "\<not> is_unit 2"
+  proof (rule notI)
+    assume "is_unit 2"
+    then have "of_nat 2 dvd of_nat 1"
+      by simp
+    then have "is_unit (2::nat)"
+      by (simp only: of_nat_dvd_iff)
+    then show False
+      by simp
+  qed
+qed
+
+lemma even_of_nat [simp]:
+  "even (of_nat a) \<longleftrightarrow> even a"
+proof -
+  have "even (of_nat a) \<longleftrightarrow> of_nat 2 dvd of_nat a"
+    by simp
+  also have "\<dots> \<longleftrightarrow> even a"
+    by (simp only: of_nat_dvd_iff)
+  finally show ?thesis .
+qed
+
+lemma one_mod_2_pow_eq [simp]:
+  "1 mod (2 ^ n) = of_bool (n > 0)"
+proof -
+  have "1 mod (2 ^ n) = of_nat (1 mod (2 ^ n))"
+    using of_nat_mod [of 1 "2 ^ n"] by simp
+  also have "\<dots> = of_bool (n > 0)"
+    by simp
+  finally show ?thesis .
+qed
+
+lemma one_div_2_pow_eq [simp]:
+  "1 div (2 ^ n) = of_bool (n = 0)"
+  using div_mult_mod_eq [of 1 "2 ^ n"] by auto
 
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
@@ -427,15 +453,7 @@ end
 class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
 begin
 
-subclass comm_ring_1 ..
-
-lemma even_minus:
-  "even (- a) \<longleftrightarrow> even a"
-  by (fact dvd_minus_iff)
-
-lemma even_diff [simp]:
-  "even (a - b) \<longleftrightarrow> even (a + b)"
-  using even_add [of a "- b"] by simp
+subclass ring_parity ..
 
 lemma minus_1_mod_2_eq [simp]:
   "- 1 mod 2 = 1"
@@ -446,7 +464,7 @@ lemma minus_1_div_2_eq [simp]:
 proof -
   from div_mult_mod_eq [of "- 1" 2]
   have "- 1 div 2 * 2 = - 1 * 2"
-    using local.add_implies_diff by fastforce
+    using add_implies_diff by fastforce
   then show ?thesis
     using mult_right_cancel [of 2 "- 1 div 2" "- 1"] by simp
 qed
@@ -519,6 +537,10 @@ proof -
     by simp
 qed
 
+lemma not_mod2_eq_Suc_0_eq_0 [simp]:
+  "n mod 2 \<noteq> Suc 0 \<longleftrightarrow> n mod 2 = 0"
+  using not_mod_2_eq_1_eq_0 [of n] by simp
+
 lemma nat_parity_induct [case_names zero even odd]:
   "P n" if zero: "P 0"
     and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
@@ -547,10 +569,6 @@ proof (induction n rule: less_induct)
     qed
   qed
 qed
-
-lemma not_mod2_eq_Suc_0_eq_0 [simp]:
-  "n mod 2 \<noteq> Suc 0 \<longleftrightarrow> n mod 2 = 0"
-  using not_mod_2_eq_1_eq_0 [of n] by simp
 
 lemma odd_card_imp_not_empty:
   \<open>A \<noteq> {}\<close> if \<open>odd (card A)\<close>
@@ -762,7 +780,7 @@ qed
 
 subsection \<open>Abstract bit operations\<close>
 
-context unique_euclidean_semiring_with_nat
+context semiring_parity
 begin
 
 text \<open>The primary purpose of the following operations is
@@ -776,6 +794,11 @@ definition take_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
 
 definition drop_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
   where drop_bit_eq_div: "drop_bit n a = a div 2 ^ n"
+
+end
+
+context unique_euclidean_semiring_with_nat
+begin
 
 lemma bit_ident:
   "push_bit n (drop_bit n a) + take_bit n a = a"

@@ -75,7 +75,7 @@ declare zdvd1_eq[algebra]
 declare mod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
 
-context unique_euclidean_semiring_with_nat
+context semiring_parity
 begin
 
 declare even_mult_iff [algebra]
@@ -83,7 +83,7 @@ declare even_power [algebra]
 
 end
 
-context unique_euclidean_ring_with_nat
+context ring_parity
 begin
 
 declare even_minus [algebra]
