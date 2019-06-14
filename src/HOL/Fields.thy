@@ -900,10 +900,6 @@ lemma frac_le_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y \<le> w / z \<longleftrightarrow> (x * z - w * y) / (y * z) \<le> 0"
   by (subst le_iff_diff_le_0) (simp add: diff_frac_eq )
 
-text\<open>Lemmas \<open>sign_simps\<close> is a first attempt to automate proofs
-of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close> because the former can lead to case
-explosions.\<close>
-
 lemma divide_pos_pos[simp]:
   "0 < x ==> 0 < y ==> 0 < x / y"
 by(simp add:field_simps)

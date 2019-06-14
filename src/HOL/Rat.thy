@@ -529,6 +529,10 @@ qed
 
 end
 
+text\<open>Lemmas \<open>sign_simps\<close> is a first attempt to automate proofs
+of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close> because the former can lead to case
+explosions.\<close>
+
 lemmas (in linordered_field) sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
 lemmas sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
 
