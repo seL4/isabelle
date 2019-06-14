@@ -72,7 +72,7 @@ ML_file \<open>Tools/semiring_normalizer.ML\<close>
 context comm_semiring_1
 begin
 
-lemma semiring_normalization_rules:
+lemma semiring_normalization_rules [no_atp]:
   "(a * m) + (b * m) = (a + b) * m"
   "(a * m) + m = (a + 1) * m"
   "m + (a * m) = (a + 1) * m"
@@ -127,7 +127,7 @@ end
 context comm_ring_1
 begin
 
-lemma ring_normalization_rules:
+lemma ring_normalization_rules [no_atp]:
   "- x = (- 1) * x"
   "x - y = x + (- y)"
   by simp_all
