@@ -18,31 +18,6 @@ theory Main
     GCD
 begin
 
-text \<open>Legacy\<close>
-
-context Inf
-begin
-
-abbreviation (input) INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "INFIMUM A f \<equiv> \<Sqinter>(f ` A)"
-
-end
-
-context Sup
-begin
-
-abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "SUPREMUM A f \<equiv> \<Squnion>(f ` A)"
-
-end
-
-abbreviation (input) INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
-  where "INTER \<equiv> INFIMUM"
-
-abbreviation (input) UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
-  where "UNION \<equiv> SUPREMUM"
-
-
 text \<open>Namespace cleanup\<close>
 
 hide_const (open)
