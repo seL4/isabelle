@@ -1928,13 +1928,12 @@ lemma ennreal_minus_cancel_iff:
 text \<open>The next lemma is wrong for $a = top$, for $b = c = 1$ for instance.\<close>
 
 lemma ennreal_right_diff_distrib:
-  fixes a b c::ennreal
+  fixes a b c :: ennreal
   assumes "a \<noteq> top"
   shows "a * (b - c) = a * b - a * c"
-  apply (cases a, cases b, cases c, auto simp add: assms)
-  apply (metis (mono_tags, lifting) ennreal_minus ennreal_mult' linordered_field_class.sign_simps(38) split_mult_pos_le)
-  apply (metis ennreal_minus_zero ennreal_mult_cancel_left ennreal_top_eq_mult_iff minus_top_ennreal mult_eq_0_iff top_neq_ennreal)
-  apply (metis ennreal_minus_eq_top ennreal_minus_zero ennreal_mult_eq_top_iff mult_eq_0_iff)
+  apply (cases a; cases b; cases c)
+         apply (use assms in \<open>auto simp add: ennreal_mult_top ennreal_minus ennreal_mult' [symmetric]\<close>)
+  apply (simp add: algebra_simps)
   done
 
 lemma SUP_diff_ennreal:

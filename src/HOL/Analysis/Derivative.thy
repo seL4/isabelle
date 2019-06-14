@@ -862,7 +862,8 @@ proof -
     have "u *\<^sub>R y = u *\<^sub>R (y - x) + u *\<^sub>R x"
       by (simp add: scale_right_diff_distrib)
     then show "x + u *\<^sub>R (y - x) \<in> S"
-      using that \<open>convex S\<close> unfolding convex_alt by (metis (no_types) atLeastAtMost_iff linordered_field_class.sign_simps(2) pth_c(3) scaleR_collapse x y)
+      using that \<open>convex S\<close> x y by (simp add: convex_alt)
+        (metis pth_b(2) pth_c(1) scaleR_collapse)
   qed
   have "\<And>z. z \<in> (\<lambda>u. x + u *\<^sub>R (y - x)) ` {0..1} \<Longrightarrow>
           (f has_derivative f' z) (at z within (\<lambda>u. x + u *\<^sub>R (y - x)) ` {0..1})"

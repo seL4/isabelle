@@ -131,8 +131,10 @@ next
       show "\<lbrakk>\<not> 0 \<le> m; a \<le> b;  x \<in> {m *\<^sub>R b + c..m *\<^sub>R a + c}\<rbrakk>
             \<Longrightarrow> x \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}" for x
         apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI)
-        apply (auto simp: diff_le_eq neg_le_divideR_eq)
-        using diff_eq_diff_less_eq linordered_field_class.sign_simps(11) minus_diff_eq not_less scaleR_le_cancel_left_neg by fastforce
+        apply (auto simp add: neg_le_divideR_eq not_le)
+         apply (auto simp: field_simps)
+        apply (metis (no_types, lifting) add_diff_cancel_left' add_le_imp_le_right diff_add_cancel inverse_eq_divide neg_le_divideR_eq neg_le_iff_le scale_minus_right)
+        done
     qed
   qed
 qed

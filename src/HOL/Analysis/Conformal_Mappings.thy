@@ -1878,9 +1878,9 @@ proof -
         apply (simp add: power2_eq_square divide_simps C_def norm_mult)
         proof -
           have "norm z * (norm (deriv f 0) * (r - norm z - norm z)) \<le> norm z * (norm (deriv f 0) * (r - norm z) - norm (deriv f 0) * norm z)"
-            by (simp add: linordered_field_class.sign_simps(38))
+            by (simp add: sign_simps)
           then show "(norm z * (r - norm z) - norm z * norm z) * norm (deriv f 0) \<le> norm (deriv f 0) * norm z * (r - norm z) - norm z * norm z * norm (deriv f 0)"
-            by (simp add: linordered_field_class.sign_simps(38) mult.commute mult.left_commute)
+            by (simp add: sign_simps)
         qed
     qed
     have sq201 [simp]: "0 < (1 - sqrt 2 / 2)" "(1 - sqrt 2 / 2)  < 1"

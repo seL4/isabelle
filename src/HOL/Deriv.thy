@@ -1409,12 +1409,14 @@ theorem MVT:
     and dif: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> f differentiable (at x)"
   shows "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
 proof -
-  obtain f' where derf: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
+  obtain f' :: "real \<Rightarrow> real \<Rightarrow> real"
+    where derf: "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (f has_derivative f' x) (at x)"
     using dif unfolding differentiable_def by metis
   then obtain z where "a < z" "z < b" "f b - f a = (f' z) (b - a)"
     using mvt [OF lt contf] by blast
   then show ?thesis
-    by (metis derf dif has_derivative_unique has_field_derivative_imp_has_derivative linordered_field_class.sign_simps(5) real_differentiable_def)
+    by (simp add: ac_simps)
+      (metis derf dif has_derivative_unique has_field_derivative_imp_has_derivative real_differentiable_def)
 qed
 
 corollary MVT2:
