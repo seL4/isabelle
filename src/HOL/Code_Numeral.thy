@@ -277,7 +277,7 @@ lemma [code]:
   "division_segment (k :: integer) = (if k \<ge> 0 then 1 else - 1)"
   by transfer (simp add: division_segment_int_def)
 
-instance integer :: ring_parity
+instance integer :: unique_euclidean_ring_with_nat
   by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
 lemma [transfer_rule]:
@@ -958,7 +958,7 @@ lemma [code]:
 instance natural :: linordered_semidom
   by (standard; transfer) simp_all
 
-instance natural :: semiring_parity
+instance natural :: unique_euclidean_semiring_with_nat
   by (standard; transfer) simp_all
 
 lemma [transfer_rule]:

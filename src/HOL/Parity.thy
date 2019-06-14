@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
-class semiring_parity = semidom + semiring_char_0 + unique_euclidean_semiring +
+class unique_euclidean_semiring_with_nat = semidom + semiring_char_0 + unique_euclidean_semiring +
   assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
     and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
     and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"
@@ -424,7 +424,7 @@ qed
 
 end
 
-class ring_parity = ring + semiring_parity
+class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
 begin
 
 subclass comm_ring_1 ..
@@ -456,7 +456,7 @@ end
 
 subsection \<open>Instance for \<^typ>\<open>nat\<close>\<close>
 
-instance nat :: semiring_parity
+instance nat :: unique_euclidean_semiring_with_nat
   by standard (simp_all add: dvd_eq_mod_eq_0)
 
 lemma even_Suc_Suc_iff [simp]:
@@ -684,7 +684,7 @@ end
 
 subsection \<open>Instance for \<^typ>\<open>int\<close>\<close>
 
-instance int :: ring_parity
+instance int :: unique_euclidean_ring_with_nat
   by standard (simp_all add: dvd_eq_mod_eq_0 divide_int_def division_segment_int_def)
 
 lemma even_diff_iff:
@@ -762,7 +762,7 @@ qed
 
 subsection \<open>Abstract bit operations\<close>
 
-context semiring_parity
+context unique_euclidean_semiring_with_nat
 begin
 
 text \<open>The primary purpose of the following operations is

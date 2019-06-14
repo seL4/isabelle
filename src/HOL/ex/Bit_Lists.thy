@@ -25,7 +25,7 @@ definition of_signed :: "bool list \<Rightarrow> 'a"
 
 end
 
-class semiring_bits = semiring_parity +
+class semiring_bits = unique_euclidean_semiring_with_nat +
   assumes half_measure: "a div 2 \<noteq> a \<Longrightarrow> euclidean_size (a div 2) < euclidean_size a"
   \<comment> \<open>It is not clear whether this could be derived from already existing assumptions.\<close>
 begin
@@ -82,7 +82,7 @@ lemma of_unsigned_bits_of:
   "of_unsigned (bits_of n) = n" for n :: nat
   using of_unsigned_bits_of_nat [of n, where ?'a = nat] by simp
 
-class ring_bits = ring_parity + semiring_bits
+class ring_bits = unique_euclidean_ring_with_nat + semiring_bits
 begin
 
 lemma bits_of_minus_1 [simp]:

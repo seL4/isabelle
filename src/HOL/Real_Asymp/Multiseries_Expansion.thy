@@ -4805,12 +4805,12 @@ lemma odd_addI:
   by auto
 
 lemma even_diffI:
-  "even a \<Longrightarrow> even b \<Longrightarrow> even (a - b :: 'a :: ring_parity)"
+  "even a \<Longrightarrow> even b \<Longrightarrow> even (a - b :: 'a :: unique_euclidean_ring_with_nat)"
   "odd a \<Longrightarrow> odd b \<Longrightarrow> even (a - b)"
   by auto
 
 lemma odd_diffI:
-  "even a \<Longrightarrow> odd b \<Longrightarrow> odd (a - b :: 'a :: ring_parity)"
+  "even a \<Longrightarrow> odd b \<Longrightarrow> odd (a - b :: 'a :: unique_euclidean_ring_with_nat)"
   "odd a \<Longrightarrow> even b \<Longrightarrow> odd (a - b)"
   by auto
 
@@ -4820,8 +4820,8 @@ lemma even_multI: "even a \<Longrightarrow> even (a * b)" "even b \<Longrightarr
 lemma odd_multI: "odd a \<Longrightarrow> odd b \<Longrightarrow> odd (a * b)"
   by auto
 
-lemma even_uminusI: "even a \<Longrightarrow> even (-a :: 'a :: ring_parity)"
-  and odd_uminusI:  "odd a \<Longrightarrow> odd (-a :: 'a :: ring_parity)"
+lemma even_uminusI: "even a \<Longrightarrow> even (-a :: 'a :: unique_euclidean_ring_with_nat)"
+  and odd_uminusI:  "odd a \<Longrightarrow> odd (-a :: 'a :: unique_euclidean_ring_with_nat)"
   by auto
 
 lemma odd_powerI: "odd a \<Longrightarrow> odd (a ^ n)"

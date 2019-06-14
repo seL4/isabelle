@@ -811,7 +811,7 @@ text \<open>
   and less technical class hierarchy.
 \<close>
 
-class unique_euclidean_semiring_numeral = semiring_parity + linordered_semidom +
+class unique_euclidean_semiring_numeral = unique_euclidean_semiring_with_nat + linordered_semidom +
   assumes div_less: "0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a div b = 0"
     and mod_less: " 0 \<le> a \<Longrightarrow> a < b \<Longrightarrow> a mod b = a"
     and div_positive: "0 < b \<Longrightarrow> b \<le> a \<Longrightarrow> a div b > 0"

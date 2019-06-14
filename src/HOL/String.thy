@@ -45,7 +45,7 @@ lemma of_char_Char [simp]:
 
 end
 
-context semiring_parity
+context unique_euclidean_semiring_with_nat
 begin
 
 definition char_of :: "'a \<Rightarrow> char"
