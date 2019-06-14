@@ -61,12 +61,12 @@ declare bits_of.simps [simp del]
 
 lemma not_last_bits_of_nat [simp]:
   "\<not> last (bits_of (of_nat n))"
-  by (induction n rule: parity_induct)
+  by (induction n rule: nat_parity_induct)
     (use of_nat_neq_0 in \<open>simp_all add: algebra_simps\<close>)
 
 lemma of_unsigned_bits_of_nat:
   "of_unsigned (bits_of (of_nat n)) = of_nat n"
-  by (induction n rule: parity_induct)
+  by (induction n rule: nat_parity_induct)
     (use of_nat_neq_0 in \<open>simp_all add: algebra_simps\<close>)
 
 end
@@ -106,7 +106,7 @@ qed
 
 lemma last_bits_of_neg_of_nat [simp]:
   "last (bits_of (- 1 - of_nat n))"
-proof (induction n rule: parity_induct)
+proof (induction n rule: nat_parity_induct)
   case zero
   then show ?case
     by simp
@@ -132,7 +132,7 @@ lemma of_signed_bits_neg_of_nat:
   "of_signed (bits_of (- 1 - of_nat n)) = - 1 - of_nat n"
 proof -
   have "of_unsigned (map Not (bits_of (- 1 - of_nat n))) = of_nat n"
-  proof (induction n rule: parity_induct)
+  proof (induction n rule: nat_parity_induct)
     case zero
     then show ?case
       by simp

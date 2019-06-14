@@ -1016,14 +1016,4 @@ lemma drop_bit_of_Suc_0 [simp]:
   "drop_bit n (Suc 0) = of_bool (n = 0)"
   using drop_bit_of_1 [where ?'a = nat] by simp
 
-
-subsection \<open>Legacy\<close>
-
-lemma parity_induct [case_names zero even odd]:
-  assumes zero: "P 0"
-  assumes even: "\<And>n. P n \<Longrightarrow> P (2 * n)"
-  assumes odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
-  shows "P n"
-  using assms by (rule nat_parity_induct)
-
 end
