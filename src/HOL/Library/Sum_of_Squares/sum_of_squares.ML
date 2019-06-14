@@ -1006,14 +1006,18 @@ in
     | _ => NONE)
 end;
 
+val sos_ss = @{context}
+  |> fold Simplifier.add_simp @{thms field_simps}
+  |> Simplifier.del_simp @{thm mult_nonneg_nonneg}
+  |> Simplifier.simpset_of;
+
 fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
   (case get_denom false P of
     NONE => no_tac
   | SOME (d, ord) =>
       let
-        val simp_ctxt =
-          ctxt addsimps @{thms field_simps}
-          addsimps [@{thm power_divide}]
+        val simp_ctxt = ctxt
+          |> Simplifier.put_simpset sos_ss
         val th =
           Thm.instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
             (if ord then @{lemma "(d=0 \<longrightarrow> P) \<and> (d>0 \<longrightarrow> P) \<and> (d<(0::real) \<longrightarrow> P) \<Longrightarrow> P" by auto}
@@ -1023,11 +1027,8 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
 fun sos_tac print_cert prover ctxt =
-  (* The SOS prover breaks if mult_nonneg_nonneg is in the simpset *)
-  let val ctxt' = Context_Position.set_visible false ctxt delsimps @{thms mult_nonneg_nonneg}
-  in Object_Logic.full_atomize_tac ctxt' THEN'
-     elim_denom_tac ctxt' THEN'
-     core_sos_tac print_cert prover ctxt'
-  end;
+  Object_Logic.full_atomize_tac ctxt THEN'
+  elim_denom_tac ctxt THEN'
+  core_sos_tac print_cert prover ctxt;
 
 end;
