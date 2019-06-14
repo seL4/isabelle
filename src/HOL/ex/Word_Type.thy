@@ -136,6 +136,13 @@ instance word :: (len) comm_ring_1
 subsubsection \<open>Conversions\<close>
 
 lemma [transfer_rule]:
+  "rel_fun HOL.eq (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) numeral numeral"
+proof -
+  note transfer_rule_numeral [transfer_rule]
+  show ?thesis by transfer_prover
+qed
+
+lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_word int of_nat"
 proof -
   note transfer_rule_of_nat [transfer_rule]
@@ -235,6 +242,85 @@ lift_definition modulo_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a w
 instance ..
 
 end
+
+lemma [transfer_rule]:
+  "rel_fun pcr_word (\<longleftrightarrow>) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)"
+proof -
+  have even_word_unfold: "even k \<longleftrightarrow> (\<exists>l. take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l))" (is "?P \<longleftrightarrow> ?Q")
+    for k :: int
+  proof
+    assume ?P
+    then show ?Q
+      by auto
+  next
+    assume ?Q
+    then obtain l where "take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l)" ..
+    then have "even (take_bit LENGTH('a) k)"
+      by simp
+    then show ?P
+      by simp
+  qed
+  show ?thesis by (simp only: even_word_unfold [abs_def] dvd_def [where ?'a = "'a word", abs_def])
+    transfer_prover
+qed
+
+instance word :: (len) semiring_modulo
+proof
+  show "a div b * b + a mod b = a" for a b :: "'a word"
+  proof transfer
+    fix k l :: int
+    define r :: int where "r = 2 ^ LENGTH('a)"
+    then have r: "take_bit LENGTH('a) k = k mod r" for k
+      by (simp add: take_bit_eq_mod)
+    have "k mod r = ((k mod r) div (l mod r) * (l mod r)
+      + (k mod r) mod (l mod r)) mod r"
+      by (simp add: div_mult_mod_eq)
+    also have "... = (((k mod r) div (l mod r) * (l mod r)) mod r
+      + (k mod r) mod (l mod r)) mod r"
+      by (simp add: mod_add_left_eq)
+    also have "... = (((k mod r) div (l mod r) * l) mod r
+      + (k mod r) mod (l mod r)) mod r"
+      by (simp add: mod_mult_right_eq)
+    finally have "k mod r = ((k mod r) div (l mod r) * l
+      + (k mod r) mod (l mod r)) mod r"
+      by (simp add: mod_simps)
+    with r show "take_bit LENGTH('a) (take_bit LENGTH('a) k div take_bit LENGTH('a) l * l
+      + take_bit LENGTH('a) k mod take_bit LENGTH('a) l) = take_bit LENGTH('a) k"
+      by simp
+  qed
+qed
+
+instance word :: (len) semiring_parity
+proof
+  show "\<not> 2 dvd (1::'a word)"
+    by transfer simp
+  consider (triv) "LENGTH('a) = 1" "take_bit LENGTH('a) 2 = (0 :: int)"
+    | (take_bit_2) "take_bit LENGTH('a) 2 = (2 :: int)"
+  proof (cases "LENGTH('a) \<ge> 2")
+    case False
+    then have "LENGTH('a) = 1"
+      by (auto simp add: not_le dest: less_2_cases)
+    then have "take_bit LENGTH('a) 2 = (0 :: int)"
+      by simp
+    with \<open>LENGTH('a) = 1\<close> triv show ?thesis
+      by simp
+  next
+    case True
+    then obtain n where "LENGTH('a) = Suc (Suc n)"
+      by (auto dest: le_Suc_ex)
+    then have "take_bit LENGTH('a) 2 = (2 :: int)"
+      by simp
+    with take_bit_2 show ?thesis
+      by simp
+  qed
+  note * = this
+  show even_iff_mod_2_eq_0: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
+    for a :: "'a word"
+    by (transfer; cases rule: *) (simp_all add: mod_2_eq_odd)
+  show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
+    for a :: "'a word"
+    by (transfer; cases rule: *) (simp_all add: mod_2_eq_odd)
+qed
 
 
 subsubsection \<open>Orderings\<close>

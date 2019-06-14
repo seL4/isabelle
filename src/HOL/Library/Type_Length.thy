@@ -33,6 +33,13 @@ text \<open>Some theorems are only true on words with length greater 0.\<close>
 
 class len = len0 +
   assumes len_gt_0 [iff]: "0 < LENGTH('a)"
+begin
+
+lemma len_not_eq_0 [simp]:
+  "LENGTH('a) \<noteq> 0"
+  by simp
+
+end
 
 instantiation num0 and num1 :: len0
 begin
