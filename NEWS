@@ -18,6 +18,11 @@ and supremum is gone.  INCOMPATIBILITY.
 Z2 (0 / 1): theory HOL/Library/Bit.thy has been renamed accordingly.
 INCOMPATIBILITY.
 
+* Fact collection sign_simps contains only simplification rules
+for products being less / greater / equal to zero; combine with
+existing collections algebra_simps or field_simps to obtain
+reasonable simplification.  INCOMPATIBILITY.
+
 
 New in Isabelle2019 (June 2019)
 -------------------------------

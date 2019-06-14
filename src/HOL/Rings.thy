@@ -16,8 +16,8 @@ begin
 subsection \<open>Semirings and rings\<close>
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes distrib_right[algebra_simps]: "(a + b) * c = a * c + b * c"
-  assumes distrib_left[algebra_simps]: "a * (b + c) = a * b + a * c"
+  assumes distrib_right [algebra_simps]: "(a + b) * c = a * c + b * c"
+  assumes distrib_left [algebra_simps]: "a * (b + c) = a * b + a * c"
 begin
 
 text \<open>For the \<open>combine_numerals\<close> simproc\<close>
@@ -2176,17 +2176,17 @@ proof
     by (simp add: neq_iff)
 qed
 
-lemma zero_less_mult_iff: "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
+lemma zero_less_mult_iff [sign_simps]: "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
   by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
      (auto simp add: mult_neg_neg not_less le_less dest: zero_less_mult_pos zero_less_mult_pos2)
 
-lemma zero_le_mult_iff: "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
+lemma zero_le_mult_iff [sign_simps]: "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
   by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
 
-lemma mult_less_0_iff: "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
+lemma mult_less_0_iff [sign_simps]: "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
   using zero_less_mult_iff [of "- a" b] by auto
 
-lemma mult_le_0_iff: "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
+lemma mult_le_0_iff [sign_simps]: "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
   using zero_le_mult_iff [of "- a" b] by auto
 
 text \<open>

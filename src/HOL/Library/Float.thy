@@ -495,10 +495,10 @@ lemma mantissa_pos_iff: "0 < mantissa x \<longleftrightarrow> 0 < x"
   by (auto simp: mantissa_exponent sign_simps)
 
 lemma mantissa_nonneg_iff: "0 \<le> mantissa x \<longleftrightarrow> 0 \<le> x"
-  by (auto simp: mantissa_exponent sign_simps zero_le_mult_iff)
+  by (auto simp: mantissa_exponent sign_simps)
 
 lemma mantissa_neg_iff: "0 > mantissa x \<longleftrightarrow> 0 > x"
-  by (auto simp: mantissa_exponent sign_simps zero_le_mult_iff)
+  by (auto simp: mantissa_exponent sign_simps)
 
 lemma
   fixes m e :: int
@@ -1788,8 +1788,8 @@ qualified lemma compute_float_plus_up[code]: "float_plus_up p x y = - float_plus
   using truncate_down_uminus_eq[of p "x + y"]
   by transfer (simp add: plus_down_def plus_up_def ac_simps)
 
-lemma mantissa_zero[simp]: "mantissa 0 = 0"
-  by (metis mantissa_0 zero_float.abs_eq)
+lemma mantissa_zero: "mantissa 0 = 0"
+  by (fact mantissa_0)
 
 qualified lemma compute_float_less[code]: "a < b \<longleftrightarrow> is_float_pos (float_plus_down 0 b (- a))"
   using truncate_down[of 0 "b - a"] truncate_down_pos[of "b - a" 0]
@@ -1972,8 +1972,10 @@ proof -
     from assms \<open>0 < x\<close> have "log 2 x \<le> log 2 y"
       by auto
     with \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close>
-    have logless: "log 2 x < log 2 y" and flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
-      by (metis floor_less_cancel linorder_cases not_le)+
+    have logless: "log 2 x < log 2 y"
+      by linarith
+    have flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
+      using \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close> \<open>log 2 x \<le> log 2 y\<close> by linarith
     have "truncate_up prec x =
       real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor> )\<rceil> * 2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)"
       using assms by (simp add: truncate_up_def round_up_def)

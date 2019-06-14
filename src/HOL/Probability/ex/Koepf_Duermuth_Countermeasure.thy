@@ -80,9 +80,6 @@ using \<open>finite A\<close> proof induct
   qed
 qed simp
 
-lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
-  by auto
-
 lemma prod_sum_distrib_lists:
   fixes P and S :: "'a set" and f :: "'a \<Rightarrow> _::semiring_0" assumes "finite S"
   shows "(\<Sum>ms\<in>{ms. set ms \<subseteq> S \<and> length ms = n \<and> (\<forall>i<n. P i (ms!i))}. \<Prod>x<n. f (ms ! x)) =
@@ -99,7 +96,7 @@ next
     by force+
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
-    by (simp add: sum.reindex split_conv sum_cartesian_product'
+    by (simp add: sum.reindex sum_cartesian_product'
       lessThan_Suc_eq_insert_0 prod.reindex sum_distrib_right[symmetric] sum_distrib_left[symmetric])
 qed
 
@@ -464,7 +461,7 @@ proof -
     unfolding ce_OB_eq_ce_t
     by (rule mutual_information_eq_entropy_conditional_entropy simple_function_finite)+
   also have "\<dots> = \<H>(t\<circ>OB) - \<H>(t\<circ>OB | fst)"
-    unfolding entropy_chain_rule[symmetric, OF simple_function_finite simple_function_finite] sign_simps
+    unfolding entropy_chain_rule[symmetric, OF simple_function_finite simple_function_finite] algebra_simps
     by (subst entropy_commute) simp
   also have "\<dots> \<le> \<H>(t\<circ>OB)"
     using conditional_entropy_nonneg[of "t\<circ>OB" fst] by simp

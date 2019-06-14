@@ -15,8 +15,9 @@ begin
 subsection \<open>Dynamic facts\<close>
 
 named_theorems ac_simps "associativity and commutativity simplification rules"
-  and algebra_simps "algebra simplification rules"
+  and algebra_simps "algebra simplification rules for rings"
   and field_simps "algebra simplification rules for fields"
+  and sign_simps "algebra simplification rules for comparision with zero"
 
 text \<open>
   The rewrites accumulated in \<open>algebra_simps\<close> deal with the classical
@@ -32,6 +33,10 @@ text \<open>
   can be proved to be non-zero (for equations) or positive/negative (for
   inequalities). Can be too aggressive and is therefore separate from the more
   benign \<open>algebra_simps\<close>.
+
+  Lemmas \<open>sign_simps\<close> is a first attempt to automate proofs
+  of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close>
+  because the former can lead to case explosions.
 \<close>
 
 

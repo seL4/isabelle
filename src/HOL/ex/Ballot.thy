@@ -223,13 +223,13 @@ next
 
       have "Suc a * (a - Suc b) + (Suc a - b) * Suc b =
         (Suc a * a - Suc a * Suc b) + (Suc a * Suc b - Suc b * b)"
-        by (simp add: sign_simps)
+        by (simp add: algebra_simps)
       also have "\<dots> = (Suc a * a + (Suc a * Suc b - Suc b * b)) - Suc a * Suc b"
         using \<open>b<a\<close> by (intro add_diff_assoc2 mult_mono) auto
       also have "\<dots> = (Suc a * a + Suc a * Suc b) - Suc b * b - Suc a * Suc b"
         using \<open>b<a\<close> by (intro arg_cong2[where f="(-)"] add_diff_assoc mult_mono) auto
       also have "\<dots> = (Suc a * Suc (a + b)) - (Suc b * Suc (a + b))"
-        by (simp add: sign_simps)
+        by (simp add: algebra_simps)
       finally have rearrange: "Suc a * (a - Suc b) + (Suc a - b) * Suc b = (Suc a - Suc b) * Suc (a + b)"
         unfolding diff_mult_distrib by simp
 

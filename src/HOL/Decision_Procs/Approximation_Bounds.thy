@@ -1588,7 +1588,7 @@ proof (rule allI | rule impI | erule conjE)+
     by (cases "k = 0")
       (auto intro!: add_mono
         simp add: k [symmetric] uminus_add_conv_diff [symmetric]
-        simp del: float_of_numeral uminus_add_conv_diff)
+        simp del: uminus_add_conv_diff)
   hence "?lx \<le> x - k * (2 * pi) \<and> x - k * (2 * pi) \<le> ?ux"
     by (auto intro!: float_plus_down_le float_plus_up_le)
   note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
