@@ -541,7 +541,7 @@ lemma not_mod2_eq_Suc_0_eq_0 [simp]:
   "n mod 2 \<noteq> Suc 0 \<longleftrightarrow> n mod 2 = 0"
   using not_mod_2_eq_1_eq_0 [of n] by simp
 
-lemma nat_parity_induct [case_names zero even odd]:
+lemma nat_bit_induct [case_names zero even odd]:
   "P n" if zero: "P 0"
     and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
     and odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
@@ -720,7 +720,7 @@ lemma even_add_abs_iff:
 lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
   by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
 
-lemma int_parity_induct [case_names zero minus even odd]:
+lemma int_bit_induct [case_names zero minus even odd]:
   "P k" if zero_int: "P 0"
     and minus_int: "P (- 1)"
     and even_int: "\<And>k. P k \<Longrightarrow> k \<noteq> 0 \<Longrightarrow> P (k * 2)"
@@ -731,7 +731,7 @@ proof (cases "k \<ge> 0")
   with True have "k = int n"
     by simp
   then show "P k"
-  proof (induction n arbitrary: k rule: nat_parity_induct)
+  proof (induction n arbitrary: k rule: nat_bit_induct)
     case zero
     then show ?case
       by (simp add: zero_int)
@@ -754,7 +754,7 @@ next
   with False have "k = - int n - 1"
     by simp
   then show "P k"
-  proof (induction n arbitrary: k rule: nat_parity_induct)
+  proof (induction n arbitrary: k rule: nat_bit_induct)
     case zero
     then show ?case
       by (simp add: minus_int)
