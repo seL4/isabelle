@@ -1086,7 +1086,7 @@ end
 
 subsection \<open>Setting up simplification procedures\<close>
 
-lemmas of_int_simps =
+lemmas of_int_simps [no_atp] =
   of_int_0 of_int_1 of_int_add of_int_mult
 
 ML_file \<open>Tools/int_arith.ML\<close>
