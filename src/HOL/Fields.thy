@@ -81,8 +81,8 @@ declaration \<open>K (
 simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = n") =
   \<open>K Lin_Arith.simproc\<close> \<comment> \<open>Because of this simproc, the arithmetic solver is
    really only useful to detect inconsistencies among the premises for subgoals which are
-   *not* themselves (in)equalities, because the latter activate
-   fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
+   \<^emph>\<open>not\<close> themselves (in)equalities, because the latter activate
+   \<^text>\<open>fast_nat_arith_simproc\<close> anyway. However, it seems cheaper to activate the
    solver all the time rather than add the additional check.\<close>
 
 lemmas [arith_split] = nat_diff_split split_min split_max
