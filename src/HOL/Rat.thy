@@ -647,21 +647,8 @@ lemma floor_Fract [simp]: "\<lfloor>Fract a b\<rfloor> = a div b"
 subsection \<open>Linear arithmetic setup\<close>
 
 declaration \<open>
-  K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
-    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
-  #> Lin_Arith.add_inj_thms [@{thm of_int_le_iff} RS iffD2, @{thm of_int_eq_iff} RS iffD2]
+  K (Lin_Arith.add_inj_thms @{thms of_int_le_iff [THEN iffD2] of_int_eq_iff [THEN iffD2]}
     (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
-  #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
-      @{thm True_implies_equals},
-      @{thm distrib_left [where a = "numeral v" for v]},
-      @{thm distrib_left [where a = "- numeral v" for v]},
-      @{thm div_by_1}, @{thm div_0},
-      @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
-      @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
-      @{thm add_divide_distrib}, @{thm diff_divide_distrib},
-      @{thm of_int_minus}, @{thm of_int_diff},
-      @{thm of_int_of_nat_eq}]
-  #> Lin_Arith.add_simprocs [Numeral_Simprocs.field_divide_cancel_numeral_factor]
   #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> rat\<close>)
   #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_int\<close>, \<^typ>\<open>int \<Rightarrow> rat\<close>))
 \<close>

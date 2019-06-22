@@ -1370,14 +1370,13 @@ let
     else Numeral.mk_cnumber (Thm.ctyp_of ctxt T) n;
 in
   K (
-    Lin_Arith.add_simps
-      @{thms arith_simps more_arith_simps rel_simps pred_numeral_simps
-        arith_special numeral_One of_nat_simps uminus_numeral_One}
+    Lin_Arith.set_number_of number_of
     #> Lin_Arith.add_simps
-      @{thms Suc_numeral Let_numeral Let_neg_numeral Let_0 Let_1
+      @{thms arith_simps more_arith_simps rel_simps pred_numeral_simps
+        arith_special numeral_One of_nat_simps uminus_numeral_One
+        Suc_numeral Let_numeral Let_neg_numeral Let_0 Let_1
         le_Suc_numeral le_numeral_Suc less_Suc_numeral less_numeral_Suc
-        Suc_eq_numeral eq_numeral_Suc mult_Suc mult_Suc_right of_nat_numeral}
-    #> Lin_Arith.set_number_of number_of)
+        Suc_eq_numeral eq_numeral_Suc mult_Suc mult_Suc_right of_nat_numeral})
 end
 \<close>
 

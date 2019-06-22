@@ -290,13 +290,13 @@ declaration \<open>
        \<^simproc>\<open>inteq_cancel_numerals\<close>,
        \<^simproc>\<open>intless_cancel_numerals\<close>,
        \<^simproc>\<open>intle_cancel_numerals\<close>,
-       \<^simproc>\<open>field_combine_numerals\<close>]
-  #> Lin_Arith.add_simprocs
-      [\<^simproc>\<open>nat_combine_numerals\<close>,
+       \<^simproc>\<open>field_combine_numerals\<close>,
+       \<^simproc>\<open>nat_combine_numerals\<close>,
        \<^simproc>\<open>nateq_cancel_numerals\<close>,
        \<^simproc>\<open>natless_cancel_numerals\<close>,
        \<^simproc>\<open>natle_cancel_numerals\<close>,
-       \<^simproc>\<open>natdiff_cancel_numerals\<close>])
+       \<^simproc>\<open>natdiff_cancel_numerals\<close>,
+       Numeral_Simprocs.field_divide_cancel_numeral_factor])
 \<close>
 
 end

@@ -60,26 +60,33 @@ text \<open>Setup for linear arithmetic prover\<close>
 ML_file \<open>~~/src/Provers/Arith/fast_lin_arith.ML\<close>
 ML_file \<open>Tools/lin_arith.ML\<close>
 setup \<open>Lin_Arith.global_setup\<close>
-declaration \<open>K Lin_Arith.setup\<close>
+declaration \<open>K (
+  Lin_Arith.init_arith_data
+  #> Lin_Arith.add_discrete_type \<^type_name>\<open>nat\<close>
+  #> Lin_Arith.add_lessD @{thm Suc_leI}
+  #> Lin_Arith.add_simps @{thms simp_thms ring_distribs if_True if_False
+      minus_diff_eq
+      add_0_left add_0_right order_less_irrefl
+      zero_neq_one zero_less_one zero_le_one
+      zero_neq_one [THEN not_sym] not_one_le_zero not_one_less_zero
+      add_Suc add_Suc_right nat.inject
+      Suc_le_mono Suc_less_eq Zero_not_Suc
+      Suc_not_Zero le_0_eq One_nat_def}
+  #> Lin_Arith.add_simprocs [\<^simproc>\<open>group_cancel_add\<close>, \<^simproc>\<open>group_cancel_diff\<close>,
+      \<^simproc>\<open>group_cancel_eq\<close>, \<^simproc>\<open>group_cancel_le\<close>,
+      \<^simproc>\<open>group_cancel_less\<close>,
+      \<^simproc>\<open>nateq_cancel_sums\<close>,\<^simproc>\<open>natless_cancel_sums\<close>,
+      \<^simproc>\<open>natle_cancel_sums\<close>])\<close>
 
 simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = n") =
-  \<open>K Lin_Arith.simproc\<close>
-(* Because of this simproc, the arithmetic solver is really only
-useful to detect inconsistencies among the premises for subgoals which are
-*not* themselves (in)equalities, because the latter activate
-fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
-solver all the time rather than add the additional check. *)
+  \<open>K Lin_Arith.simproc\<close> \<comment> \<open>Because of this simproc, the arithmetic solver is
+   really only useful to detect inconsistencies among the premises for subgoals which are
+   *not* themselves (in)equalities, because the latter activate
+   fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
+   solver all the time rather than add the additional check.\<close>
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
-context linordered_nonzero_semiring
-begin
-lemma of_nat_max: "of_nat (max x y) = max (of_nat x) (of_nat y)"
-  by (auto simp: max_def)
-
-lemma of_nat_min: "of_nat (min x y) = min (of_nat x) (of_nat y)"
-  by (auto simp: min_def)
-end
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 

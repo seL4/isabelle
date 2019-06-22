@@ -1253,16 +1253,7 @@ lemma of_rat_dense:
 subsection \<open>Numerals and Arithmetic\<close>
 
 declaration \<open>
-  K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
-    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
-  #> Lin_Arith.add_inj_thms [@{thm of_int_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
-    (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
-  #> Lin_Arith.add_simps [@{thm of_nat_0}, @{thm of_nat_Suc}, @{thm of_nat_add},
-      @{thm of_nat_mult}, @{thm of_int_0}, @{thm of_int_1},
-      @{thm of_int_add}, @{thm of_int_minus}, @{thm of_int_diff},
-      @{thm of_int_mult}, @{thm of_int_of_nat_eq},
-      @{thm of_nat_numeral}, @{thm of_int_numeral}, @{thm of_int_neg_numeral}]
-  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> real\<close>)
+  K (Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> real\<close>)
   #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_int\<close>, \<^typ>\<open>int \<Rightarrow> real\<close>))
 \<close>
 

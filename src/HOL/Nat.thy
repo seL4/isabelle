@@ -1773,19 +1773,32 @@ lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
 
 end
 
+context linordered_nonzero_semiring
+begin
+
+lemma of_nat_max: "of_nat (max x y) = max (of_nat x) (of_nat y)"
+  by (auto simp: max_def ord_class.max_def)
+
+lemma of_nat_min: "of_nat (min x y) = min (of_nat x) (of_nat y)"
+  by (auto simp: min_def ord_class.min_def)
+
+end
 
 context linordered_semidom
 begin
-subclass linordered_nonzero_semiring ..
-subclass semiring_char_0 ..
-end
 
+subclass linordered_nonzero_semiring ..
+
+subclass semiring_char_0 ..
+
+end
 
 context linordered_idom
 begin
 
-lemma abs_of_nat [simp]: "\<bar>of_nat n\<bar> = of_nat n"
-  unfolding abs_if by auto
+lemma abs_of_nat [simp]:
+  "\<bar>of_nat n\<bar> = of_nat n"
+  by (simp add: abs_if)
 
 lemma sgn_of_nat [simp]:
   "sgn (of_nat n) = of_bool (n > 0)"

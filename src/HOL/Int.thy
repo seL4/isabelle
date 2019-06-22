@@ -1086,11 +1086,27 @@ end
 
 subsection \<open>Setting up simplification procedures\<close>
 
-lemmas of_int_simps [no_atp] =
-  of_int_0 of_int_1 of_int_add of_int_mult
-
 ML_file \<open>Tools/int_arith.ML\<close>
-declaration \<open>K Int_Arith.setup\<close>
+
+declaration \<open>K (
+  Lin_Arith.add_discrete_type \<^type_name>\<open>Int.int\<close>
+  #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
+  #> Lin_Arith.add_inj_thms @{thms of_nat_le_iff [THEN iffD2] of_nat_eq_iff [THEN iffD2]}
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> int\<close>)
+  #> Lin_Arith.add_simps
+      @{thms of_int_0 of_int_1 of_int_add of_int_mult of_int_numeral of_int_neg_numeral nat_0 nat_1 diff_nat_numeral nat_numeral
+      neg_less_iff_less
+      True_implies_equals
+      distrib_left [where a = "numeral v" for v]
+      distrib_left [where a = "- numeral v" for v]
+      div_by_1 div_0
+      times_divide_eq_right times_divide_eq_left
+      minus_divide_left [THEN sym] minus_divide_right [THEN sym]
+      add_divide_distrib diff_divide_distrib
+      of_int_minus of_int_diff
+      of_int_of_nat_eq}
+  #> Lin_Arith.add_simprocs [Int_Arith.zero_one_idom_simproc]
+)\<close>
 
 simproc_setup fast_arith
   ("(m::'a::linordered_idom) < n" |

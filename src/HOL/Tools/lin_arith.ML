@@ -17,8 +17,8 @@ sig
   val add_inj_const: string * typ -> Context.generic -> Context.generic
   val add_discrete_type: string -> Context.generic -> Context.generic
   val set_number_of: (Proof.context -> typ -> int -> cterm) -> Context.generic -> Context.generic
-  val setup: Context.generic -> Context.generic
   val global_setup: theory -> theory
+  val init_arith_data: Context.generic -> Context.generic
   val split_limit: int Config.T
   val neq_limit: int Config.T
   val trace: bool Config.T
@@ -972,24 +972,5 @@ val global_setup =
             (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>arith\<close>) @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" tac;
-
-val setup =
-  init_arith_data
-  #> add_discrete_type \<^type_name>\<open>nat\<close>
-  #> add_lessD @{thm Suc_leI}
-  #> add_simps (@{thms simp_thms} @ @{thms ring_distribs} @ [@{thm if_True}, @{thm if_False},
-      @{thm minus_diff_eq},
-      @{thm add_0_left}, @{thm add_0_right}, @{thm order_less_irrefl},
-      @{thm zero_neq_one}, @{thm zero_less_one}, @{thm zero_le_one},
-      @{thm zero_neq_one} RS not_sym, @{thm not_one_le_zero}, @{thm not_one_less_zero}])
-  #> add_simps [@{thm add_Suc}, @{thm add_Suc_right}, @{thm nat.inject},
-      @{thm Suc_le_mono}, @{thm Suc_less_eq}, @{thm Zero_not_Suc},
-      @{thm Suc_not_Zero}, @{thm le_0_eq}, @{thm One_nat_def}]
-  #> add_simprocs [\<^simproc>\<open>group_cancel_add\<close>, \<^simproc>\<open>group_cancel_diff\<close>,
-      \<^simproc>\<open>group_cancel_eq\<close>, \<^simproc>\<open>group_cancel_le\<close>,
-      \<^simproc>\<open>group_cancel_less\<close>]
-     (*abel_cancel helps it work in abstract algebraic domains*)
-  #> add_simprocs [\<^simproc>\<open>nateq_cancel_sums\<close>,\<^simproc>\<open>natless_cancel_sums\<close>,
-      \<^simproc>\<open>natle_cancel_sums\<close>];
 
 end;
