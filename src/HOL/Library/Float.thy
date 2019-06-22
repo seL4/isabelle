@@ -831,19 +831,12 @@ proof (cases "p + e < 0")
   finally show ?thesis
     using \<open>p + e < 0\<close>
     apply transfer
-    apply (simp add: ac_simps round_down_def flip: floor_divide_of_int_eq)
-    proof - (*FIXME*)
-      fix pa :: int and ea :: int and ma :: int
-      assume a1: "2 ^ nat (- pa - ea) = 1 / (2 powr real_of_int pa * 2 powr real_of_int ea)"
-      assume "pa + ea < 0"
-      have "\<lfloor>real_of_int ma / real_of_int (int 2 ^ nat (- (pa + ea)))\<rfloor> =
-          \<lfloor>real_of_float (Float ma (pa + ea))\<rfloor>"
-        using a1 by (simp add: powr_add)
-      then show "\<lfloor>real_of_int ma * (2 powr real_of_int pa * 2 powr real_of_int ea)\<rfloor> =
-          ma div 2 ^ nat (- pa - ea)"
-        by (metis Float.rep_eq add_uminus_conv_diff floor_divide_of_int_eq
-            minus_add_distrib of_int_simps(3) of_nat_numeral powr_add)
-    qed
+    apply (simp add: round_down_def field_simps flip: floor_divide_of_int_eq)
+    apply (metis (no_types, hide_lams) Float.rep_eq
+      add.inverse_inverse compute_real_of_float diff_minus_eq_add
+      floor_divide_of_int_eq int_of_reals(1) linorder_not_le
+      minus_add_distrib of_int_eq_numeral_power_cancel_iff powr_add)
+    done
 next
   case False
   then have r: "real_of_int e + real_of_int p = real (nat (e + p))"
