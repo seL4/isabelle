@@ -336,6 +336,7 @@ fun merge_specs (Specs {types = types1, pending_eqns = _,
         NONE => true
       | SOME (tyco, abs) => (case History.lookup types tyco of
           NONE => false
+        | SOME (_, Constructors _) => false
         | SOME (_, Abstractor {abstractor = (abs', _), projection, more_abstract_functions, ...}) =>
             abs = abs' andalso (c = projection orelse member (op =) more_abstract_functions c));
     fun check_datatypes (_, case_spec) =
