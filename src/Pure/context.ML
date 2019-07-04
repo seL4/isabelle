@@ -50,6 +50,7 @@ sig
   val subthy: theory * theory -> bool
   val trace_theories: bool Unsynchronized.ref
   val theories_trace: unit -> {active_positions: Position.T list, active: int, total: int}
+  val join_thys: theory * theory -> theory
   val begin_thy: string -> theory list -> theory
   val finish_thy: theory -> theory
   val theory_data_size: theory -> (Position.T * int) list
@@ -365,7 +366,39 @@ val finish_thy = change_thy true I #> tap extend_thy;
 end;
 
 
-(* named theory nodes *)
+(* join: anonymous theory nodes *)
+
+local
+
+fun bad_join (thy1, thy2) = raise THEORY ("Cannot join theories", [thy1, thy2]);
+
+fun join_history thys =
+  apply2 history_of thys |>
+  (fn ({name, stage}, {name = name', stage = stage'}) =>
+    if name = name' andalso is_some stage andalso is_some stage' then
+      {name = name, stage = Option.map next_stage stage}
+    else bad_join thys);
+
+fun join_ancestry thys =
+  apply2 ancestry_of thys |>
+  (fn (ancestry as {parents, ancestors}, {parents = parents', ancestors = ancestors'}) =>
+    if eq_list eq_thy (parents, parents') andalso eq_list eq_thy (ancestors, ancestors')
+    then ancestry else bad_join thys);
+
+in
+
+fun join_thys thys =
+  let
+    val ids = merge_ids thys;
+    val history = join_history thys;
+    val ancestry = join_ancestry thys;
+    val data = merge_data thys (apply2 data_of thys);
+  in create_thy ids history ancestry data end;
+
+end;
+
+
+(* merge: named theory nodes *)
 
 local
 

@@ -23,6 +23,7 @@ sig
   val defs_of: theory -> Defs.T
   val at_begin: (theory -> theory option) -> theory -> theory
   val at_end: (theory -> theory option) -> theory -> theory
+  val join_theory: theory list -> theory
   val begin_theory: string * Position.T -> theory list -> theory
   val end_theory: theory -> theory
   val add_axiom: Proof.context -> binding * term -> theory -> theory
@@ -166,6 +167,11 @@ val axioms_of = Name_Space.dest_table o axiom_table;
 fun all_axioms_of thy = maps axioms_of (nodes_of thy);
 
 val defs_of = #defs o rep_theory;
+
+
+(* join theory *)
+
+val join_theory = foldl1 Context.join_thys;
 
 
 (* begin/end theory *)
