@@ -117,6 +117,10 @@ structure Datatab = Table(type key = int val ord = int_ord);
 
 (** datatype theory **)
 
+type stage = int * int Synchronized.var;
+fun init_stage () : stage = (0, Synchronized.var "Context.stage" 1);
+fun next_stage ((_, state): stage) = (Synchronized.change_result state (fn n => (n, n + 1)), state);
+
 datatype theory_id =
   Theory_Id of
    (*identity*)
@@ -124,7 +128,7 @@ datatype theory_id =
     ids: Inttab.set} *            (*cumulative identifiers -- symbolic body content*)
    (*history*)
    {name: string,                 (*official theory name*)
-    stage: int};                  (*counter for anonymous updates*)
+    stage: stage option};         (*index and counter for anonymous updates*)
 
 datatype theory =
   Theory of
@@ -153,7 +157,7 @@ val ancestry_of = #2 o rep_theory;
 val data_of = #3 o rep_theory;
 
 fun make_identity id ids = {id = id, ids = ids};
-fun make_history name stage = {name = name, stage = stage};
+fun make_history name = {name = name, stage = SOME (init_stage ())};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 
 val theory_id_long_name = #name o history_of_id;
@@ -169,11 +173,11 @@ val ancestors_of = #ancestors o ancestry_of;
 (* names *)
 
 val PureN = "Pure";
-val finished = ~1;
 
 fun display_name thy_id =
-  let val {name, stage} = history_of_id thy_id;
-  in if stage = finished then name else name ^ ":" ^ string_of_int stage end;
+  (case history_of_id thy_id of
+    {name, stage = NONE} => name
+  | {name, stage = SOME (i, _)} => name ^ ":" ^ string_of_int i);
 
 fun display_names thy =
   let
@@ -197,7 +201,7 @@ fun get_theory long thy name =
     (case find_first (fn thy' => theory_name' long thy' = name) (ancestors_of thy) of
       SOME thy' => thy'
     | NONE => error ("Unknown ancestor theory " ^ quote name))
-  else if #stage (history_of thy) = finished then thy
+  else if is_none (#stage (history_of thy)) then thy
   else error ("Unfinished theory " ^ quote name);
 
 
@@ -335,7 +339,7 @@ end;
 (* primitives *)
 
 val pre_pure_thy =
-  create_thy Inttab.empty (make_history PureN 0) (make_ancestry [] []) Datatab.empty;
+  create_thy Inttab.empty (make_history PureN) (make_ancestry [] []) Datatab.empty;
 
 local
 
@@ -344,10 +348,10 @@ fun change_thy finish f thy =
     val Theory_Id ({id, ids}, {name, stage}) = theory_id thy;
     val Theory (_, ancestry, data) = thy;
     val (ancestry', data') =
-      if stage = finished then
+      if is_none stage then
         (make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)), extend_data data)
       else (ancestry, data);
-    val history' = {name = name, stage = if finish then finished else stage + 1};
+    val history' = {name = name, stage = if finish then NONE else Option.map next_stage stage};
     val ids' = insert_id id ids;
     val data'' = f data';
   in create_thy ids' history' ancestry' data'' end;
@@ -368,7 +372,7 @@ local
 fun merge_thys thys =
   let
     val ids = merge_ids thys;
-    val history = make_history "" 0;
+    val history = make_history "";
     val ancestry = make_ancestry [] [];
     val data = merge_data thys (apply2 data_of thys);
   in create_thy ids history ancestry data end;
@@ -394,7 +398,7 @@ fun begin_thy name imports =
         | thy :: thys => Library.foldl merge_thys (thy, thys));
       val Theory_Id ({ids, ...}, _) = theory_id thy0;
 
-      val history = make_history name 0;
+      val history = make_history name;
       val ancestry = make_ancestry parents ancestors;
     in create_thy ids history ancestry (data_of thy0) |> tap finish_thy end;
 
