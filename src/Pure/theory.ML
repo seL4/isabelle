@@ -171,7 +171,9 @@ val defs_of = #defs o rep_theory;
 
 (* join theory *)
 
-val join_theory = foldl1 Context.join_thys;
+fun join_theory [] = raise List.Empty
+  | join_theory [thy] = thy
+  | join_theory thys = foldl1 Context.join_thys thys |> Sign.restore_naming (hd thys);
 
 
 (* begin/end theory *)
