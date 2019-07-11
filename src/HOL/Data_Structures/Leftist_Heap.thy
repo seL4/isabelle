@@ -46,7 +46,6 @@ fun get_min :: "'a lheap \<Rightarrow> 'a" where
 
 text \<open>For function \<open>merge\<close>:\<close>
 unbundle pattern_aliases
-declare size_prod_measure[measure_function]
 
 fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge Leaf t2 = t2" |
