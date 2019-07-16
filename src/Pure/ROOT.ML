@@ -104,6 +104,7 @@ ML_file "context.ML";
 ML_file "context_position.ML";
 ML_file "System/options.ML";
 ML_file "config.ML";
+ML_file "soft_type_system.ML";
 
 
 subsection "Concurrency within the ML runtime";

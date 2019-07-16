@@ -310,7 +310,9 @@ fun certify' prop context do_expand consts thy tm =
     val tm' = Term.map_types (certify_typ thy) tm;
     val T = type_check context tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
-    val tm'' = Consts.certify context (tsig_of thy) do_expand consts tm';
+    val tm'' = tm'
+      |> Consts.certify context (tsig_of thy) do_expand consts
+      |> Soft_Type_System.global_purge thy;
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
 fun certify_term thy = certify' false (Context.Theory thy) true (consts_of thy) thy;
