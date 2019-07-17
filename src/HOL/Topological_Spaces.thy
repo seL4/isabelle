@@ -1145,7 +1145,7 @@ definition (in topological_space) convergent :: "(nat \<Rightarrow> 'a) \<Righta
 lemma lim_def: "lim X = (THE L. X \<longlonglongrightarrow> L)"
   unfolding Lim_def ..
 
-lemma tendsto_explicit:
+lemma lim_explicit:
   "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
   unfolding tendsto_def eventually_sequentially by auto
 

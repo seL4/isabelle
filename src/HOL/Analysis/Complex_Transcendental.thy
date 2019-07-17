@@ -2631,7 +2631,7 @@ proof (rule Lim_transform_eventually)
   have "(\<lambda>n. ln(1 + 1/n) / ln n) \<longlonglongrightarrow> 0"
   proof (rule Lim_transform_bound)
     show "(inverse o real) \<longlonglongrightarrow> 0"
-      by (metis comp_def lim_inverse_n tendsto_explicit)
+      by (metis comp_def lim_inverse_n lim_explicit)
     show "\<forall>\<^sub>F n in sequentially. norm (ln (1 + 1 / n) / ln n) \<le> norm ((inverse \<circ> real) n)"
     proof
       fix n::nat

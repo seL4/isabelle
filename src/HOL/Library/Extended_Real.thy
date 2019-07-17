@@ -3172,7 +3172,7 @@ lemma tendsto_obtains_N:
     and "f0 \<in> S"
   obtains N where "\<forall>n\<ge>N. f n \<in> S"
   using assms using tendsto_def
-  using tendsto_explicit[of f f0] assms by auto
+  using lim_explicit[of f f0] assms by auto
 
 lemma ereal_LimI_finite_iff:
   fixes x :: ereal
