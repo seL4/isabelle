@@ -7447,7 +7447,7 @@ proof -
       by (simp add: filterlim_at_top)
     with x have "eventually (\<lambda>n. f n x = x powr e) at_top"
       by (auto elim!: eventually_mono simp: f_def)
-    thus "(\<lambda>n. f n x) \<longlonglongrightarrow> x powr e" by (simp add: Lim_eventually)
+    thus "(\<lambda>n. f n x) \<longlonglongrightarrow> x powr e" by (simp add: tendsto_eventually)
   next
     have "norm (integral {a..} (f n)) \<le> -F a" for n :: nat
     proof (cases "n \<ge> a")

@@ -1335,7 +1335,7 @@ proof -
         by (blast intro: equiintegrable_on_subset [OF equiintegrable_closed_interval_restrictions [OF int_f']])
       have 2: "(\<lambda>n. if x \<in> cbox (u n) (v n) then if x \<in> S then 0 else f x else 0)
                \<longlonglongrightarrow> (if x \<in> cbox c d then if x \<in> S then 0 else f x else 0)" for x
-        by (fastforce simp: dest: get_n intro: Lim_eventually eventually_sequentiallyI)
+        by (fastforce simp: dest: get_n intro: tendsto_eventually eventually_sequentiallyI)
       have [simp]: "cbox c d \<inter> cbox a b = cbox c d"
         using c d by (force simp: mem_box)
       have [simp]: "cbox (u n) (v n) \<inter> cbox a b = cbox (u n) (v n)" for n
@@ -1529,7 +1529,7 @@ next
           show "?\<phi> k x \<le> ?\<phi> (Suc k) x" if "x \<in> box a b" for k x
             using cb12 box_subset_cbox that by (force simp: intro!: fg)
           show "(\<lambda>k. ?\<phi> k x) \<longlonglongrightarrow> g x - f x \<bullet> j" if x: "x \<in> box a b" for x
-          proof (rule Lim_eventually)
+          proof (rule tendsto_eventually)
             obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> cbox (a + (b - a) /\<^sub>R real k) (b - (b - a) /\<^sub>R real k)"
               using getN [OF x] by blast
             show "\<forall>\<^sub>F k in sequentially. ?\<phi> k x = g x - f x \<bullet> j"
@@ -1609,7 +1609,7 @@ next
           show "?\<phi> k x \<le> ?\<phi> (Suc k) x" if "x \<in> box a b" for k x
             using cb12 box_subset_cbox that by (force simp: intro!: gf)
           show "(\<lambda>k. ?\<phi> k x) \<longlonglongrightarrow> f x \<bullet> j - g x" if x: "x \<in> box a b" for x
-          proof (rule Lim_eventually)
+          proof (rule tendsto_eventually)
             obtain N::nat where N: "\<And>k. k \<ge> N \<Longrightarrow> x \<in> cbox (a + (b - a) /\<^sub>R real k) (b - (b - a) /\<^sub>R real k)"
               using getN [OF x] by blast
             show "\<forall>\<^sub>F k in sequentially. ?\<phi> k x = f x \<bullet> j - g x"

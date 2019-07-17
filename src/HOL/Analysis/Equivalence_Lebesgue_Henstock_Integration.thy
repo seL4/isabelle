@@ -1474,7 +1474,7 @@ proof -
   have 2: "\<And>k x. indicat_real (\<Union>m\<le>k. S m) x \<le> (indicat_real (\<Union>m\<le>Suc k. S m) x)"
     by (simp add: indicator_def)
   have 3: "\<And>x. (\<lambda>k. indicat_real (\<Union>m\<le>k. S m) x) \<longlonglongrightarrow> (indicat_real (\<Union>n. S n) x)"
-    by (force simp: indicator_def eventually_sequentially intro: Lim_eventually)
+    by (force simp: indicator_def eventually_sequentially intro: tendsto_eventually)
   have 4: "bounded (range (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))))"
     by (simp add: 0)
   have *: "indicat_real (\<Union>n. S n) integrable_on UNIV \<and>
@@ -1914,7 +1914,7 @@ proof -
   have 2: "\<And>n x::'a. indicat_real (S n) x \<le> (indicat_real (S (Suc n)) x)"
     by (simp add: indicator_leI nest rev_subsetD)
   have 3: "\<And>x. (\<lambda>n. indicat_real (S n) x) \<longlonglongrightarrow> (indicat_real (\<Union>(S ` UNIV)) x)"
-    apply (rule Lim_eventually)
+    apply (rule tendsto_eventually)
     apply (simp add: indicator_def)
     by (metis eventually_sequentiallyI lift_Suc_mono_le nest subsetCE)
   have 4: "bounded (range (\<lambda>n. integral UNIV (indicat_real (S n))))"
@@ -3712,7 +3712,7 @@ proof -
     show "\<forall>x\<in>UNIV.
          (\<lambda>n. if x \<in> (\<Union>m\<le>n. s m) then f x else 0)
          \<longlonglongrightarrow> (if x \<in> \<Union>(s ` UNIV) then f x else 0)"
-      by (force intro: Lim_eventually eventually_sequentiallyI)
+      by (force intro: tendsto_eventually eventually_sequentiallyI)
   qed auto
   then show "?F \<longlonglongrightarrow> ?I"
     by (simp only: integral_restrict_UNIV)
@@ -3829,7 +3829,7 @@ proof -
     then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
       by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
     then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"
-      by (rule Lim_eventually)
+      by (rule tendsto_eventually)
   qed (auto simp: nonneg incseq_def le_fun_def split: split_indicator)
   then have "integral\<^sup>N lborel ?fR = (\<integral>\<^sup>+ x. (SUP i. ?f i x) \<partial>lborel)"
     by simp

@@ -397,7 +397,7 @@ proof (rule AE_I2)
       then have *: "eventually (\<lambda>i. x \<in> A i) sequentially"
         using \<open>x \<in> A i\<close> \<open>mono A\<close> by (auto simp: eventually_sequentially mono_def)
       show ?thesis
-        apply (intro Lim_eventually)
+        apply (intro tendsto_eventually)
         using *
         apply eventually_elim
         apply (auto split: split_indicator)
@@ -1002,7 +1002,7 @@ proof (rule tendsto_at_topI_sequentially)
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {a..X n} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {a..} x *\<^sub>R f x"
-        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
+        by (intro tendsto_eventually) (auto split: split_indicator elim!: eventually_mono)
     qed
     fix n show "AE x in M. norm (indicator {a..X n} x *\<^sub>R f x) \<le> 
                              indicator {a..} x *\<^sub>R norm (f x)"
@@ -1039,7 +1039,7 @@ proof (rule tendsto_at_botI_sequentially)
       have "eventually (\<lambda>n. x \<ge> X n) sequentially"
         unfolding filterlim_at_bot_le[where c=x] by auto
       then show "(\<lambda>n. indicator {X n..b} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {..b} x *\<^sub>R f x"
-        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
+        by (intro tendsto_eventually) (auto split: split_indicator elim!: eventually_mono)
     qed
     fix n show "AE x in M. norm (indicator {X n..b} x *\<^sub>R f x) \<le> 
                              indicator {..b} x *\<^sub>R norm (f x)"

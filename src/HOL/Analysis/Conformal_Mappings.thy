@@ -1000,7 +1000,7 @@ next
           done
         then show ?thesis
           apply (simp add: lim_at_infinity_0)
-          apply (rule Lim_eventually)
+          apply (rule tendsto_eventually)
           apply (simp add: eventually_at)
           apply (rule_tac x=r in exI)
           apply (simp add: \<open>0 < r\<close> dist_norm)

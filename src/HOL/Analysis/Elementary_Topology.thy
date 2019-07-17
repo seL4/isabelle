@@ -1325,9 +1325,6 @@ lemma Lim_within_union:
 
 subsection \<open>Limits\<close>
 
-lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f \<longlongrightarrow> l) net"
-  by (rule topological_tendstoI) (auto elim: eventually_mono)
-
 text \<open>The expected monotonicity property.\<close>
 
 lemma Lim_Un:

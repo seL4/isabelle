@@ -574,6 +574,28 @@ lemma odd_card_imp_not_empty:
   \<open>A \<noteq> {}\<close> if \<open>odd (card A)\<close>
   using that by auto
 
+lemma nat_induct2 [case_names 0 1 step]:
+  assumes "P 0" "P 1" and step: "\<And>n::nat. P n \<Longrightarrow> P (n + 2)"
+  shows "P n"
+proof (induct n rule: less_induct)
+  case (less n)
+  show ?case
+  proof (cases "n < Suc (Suc 0)")
+    case True
+    then show ?thesis
+      using assms by (auto simp: less_Suc_eq)
+  next
+    case False
+    then obtain k where k: "n = Suc (Suc k)"
+      by (force simp: not_less nat_le_iff_add)
+    then have "k<n"
+      by simp
+    with less assms have "P (k+2)"
+      by blast
+    then show ?thesis
+      by (simp add: k)
+  qed
+qed
 
 subsection \<open>Parity and powers\<close>
 

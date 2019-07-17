@@ -148,11 +148,6 @@ lemma mono_INF_fun:
     "(\<And>x y. mono (F x y)) \<Longrightarrow> mono (\<lambda>z x. INF y \<in> X x. F x y z :: 'a :: complete_lattice)"
   by (auto intro!: INF_mono[OF bexI] simp: le_fun_def mono_def)
 
-lemma continuous_on_max:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
-  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. max (f x) (g x))"
-  by (auto simp: continuous_on_def intro!: tendsto_max)
-
 lemma continuous_on_cmult_ereal:
   "\<bar>c::ereal\<bar> \<noteq> \<infinity> \<Longrightarrow> continuous_on A f \<Longrightarrow> continuous_on A (\<lambda>x. c * f x)"
   using tendsto_cmult_ereal[of c f "f x" "at x within A" for x]

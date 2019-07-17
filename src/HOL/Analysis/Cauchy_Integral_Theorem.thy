@@ -2844,7 +2844,7 @@ proof -
     by (simp add: Lim_at dist_norm inverse_eq_divide)
   show ?thesis
     apply (simp add: has_field_derivative_def has_derivative_at2 bounded_linear_mult_right)
-    apply (rule Lim_transform [OF * Lim_eventually])
+    apply (rule Lim_transform [OF * tendsto_eventually])
     using \<open>open S\<close> x apply (force simp: dist_norm open_contains_ball inverse_eq_divide [symmetric] eventually_at)
     done
 qed
@@ -2948,7 +2948,7 @@ proof -
     by (simp add: Lim_within dist_norm inverse_eq_divide)
   show ?thesis
     apply (simp add: has_field_derivative_def has_derivative_within bounded_linear_mult_right)
-    apply (rule Lim_transform [OF * Lim_eventually])
+    apply (rule Lim_transform [OF * tendsto_eventually])
     using linordered_field_no_ub
     apply (force simp: inverse_eq_divide [symmetric] eventually_at)
     done

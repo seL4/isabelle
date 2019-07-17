@@ -226,6 +226,10 @@ lemma real_root_divide: "root n (x / y) = root n x / root n y"
 lemma real_root_abs: "0 < n \<Longrightarrow> root n \<bar>x\<bar> = \<bar>root n x\<bar>"
   by (simp add: abs_if real_root_minus)
 
+lemma root_abs_power: "n > 0 \<Longrightarrow> abs (root n (y ^n)) = abs y"
+  using root_sgn_power [of n]
+  by (metis abs_ge_zero power_abs real_root_abs real_root_power_cancel)
+
 lemma real_root_power: "0 < n \<Longrightarrow> root n (x ^ k) = root n x ^ k"
   by (induct k) (simp_all add: real_root_mult)
 

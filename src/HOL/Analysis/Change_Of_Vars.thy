@@ -3402,7 +3402,7 @@ proof -
       next
         show "(\<lambda>k. if x \<in> (\<Union>m\<le>k. g ` F m) then norm (f x) else 0)
               \<longlonglongrightarrow> (if x \<in> (\<Union>m. g ` F m) then norm (f x) else 0)" for x
-          by (force intro: Lim_eventually eventually_sequentiallyI)
+          by (force intro: tendsto_eventually eventually_sequentiallyI)
       qed auto
     next
       show "(\<lambda>k. if x \<in> (\<Union>m\<le>k. g ` F m) then f x else 0)
@@ -3411,7 +3411,7 @@ proof -
         fix m y
         assume "y \<in> F m"
         show "(\<lambda>k. if \<exists>x\<in>{..k}. g y \<in> g ` F x then f (g y) else 0) \<longlonglongrightarrow> f (g y)"
-          using \<open>y \<in> F m\<close> by (force intro: Lim_eventually eventually_sequentiallyI [of m])
+          using \<open>y \<in> F m\<close> by (force intro: tendsto_eventually eventually_sequentiallyI [of m])
       qed
     qed auto
     then show fai: "f absolutely_integrable_on (\<Union>m. g ` F m)"
@@ -3483,7 +3483,7 @@ proof -
           unfolding integral_restrict_UNIV image_UN [symmetric] o_def by simp
       next
         show "(\<lambda>k. if x \<in> ?U k then norm (?D x) else 0) \<longlonglongrightarrow> (if x \<in> (\<Union>n. F n) then norm (?D x) else 0)" for x
-          by (force intro: Lim_eventually eventually_sequentiallyI)
+          by (force intro: tendsto_eventually eventually_sequentiallyI)
       qed auto
     next
       show "(\<lambda>k. if x \<in> ?U k then ?D x else 0) \<longlonglongrightarrow> (if x \<in> (\<Union>n. F n) then ?D x else 0)" for x
@@ -3491,7 +3491,7 @@ proof -
         fix n
         assume "x \<in> F n"
         show "(\<lambda>m. if \<exists>j\<in>{..m}. x \<in> F j then ?D x else 0) \<longlonglongrightarrow> ?D x"
-          using \<open>x \<in> F n\<close> by (auto intro!: Lim_eventually eventually_sequentiallyI [of n])
+          using \<open>x \<in> F n\<close> by (auto intro!: tendsto_eventually eventually_sequentiallyI [of n])
       qed
     qed auto
     then show Dai: "?D absolutely_integrable_on (\<Union>n. F n)"

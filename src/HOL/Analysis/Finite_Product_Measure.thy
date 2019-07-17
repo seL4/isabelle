@@ -1224,7 +1224,7 @@ compare it with the product sigma algebra as explained above.
 
 lemma measurable_product_coordinates [measurable (raw)]:
   "(\<lambda>x. x i) \<in> measurable borel borel"
-by (rule borel_measurable_continuous_on1[OF continuous_on_product_coordinates])
+by (rule borel_measurable_continuous_onI[OF continuous_on_product_coordinates])
 
 lemma measurable_product_then_coordinatewise:
   fixes f::"'a \<Rightarrow> 'b \<Rightarrow> ('c::topological_space)"

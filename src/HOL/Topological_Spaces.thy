@@ -782,6 +782,9 @@ lemma topological_tendstoD:
 lemma tendsto_bot [simp]: "(f \<longlongrightarrow> a) bot"
   by (simp add: tendsto_def)
 
+lemma tendsto_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> ((\<lambda>x. f x) \<longlongrightarrow> l) net"
+  by (rule topological_tendstoI) (auto elim: eventually_mono)
+
 end
 
 lemma (in topological_space) filterlim_within_subset:
@@ -1141,6 +1144,10 @@ definition (in topological_space) convergent :: "(nat \<Rightarrow> 'a) \<Righta
 
 lemma lim_def: "lim X = (THE L. X \<longlonglongrightarrow> L)"
   unfolding Lim_def ..
+
+lemma tendsto_explicit:
+  "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
+  unfolding tendsto_def eventually_sequentially by auto
 
 
 subsection \<open>Monotone sequences and subsequences\<close>
@@ -1706,7 +1713,7 @@ lemma LIM_equal: "\<forall>x. x \<noteq> a \<longrightarrow> f x = g x \<Longrig
 lemma LIM_cong: "a = b \<Longrightarrow> (\<And>x. x \<noteq> b \<Longrightarrow> f x = g x) \<Longrightarrow> l = m \<Longrightarrow> (f \<midarrow>a\<rightarrow> l) \<longleftrightarrow> (g \<midarrow>b\<rightarrow> m)"
   by (simp add: LIM_equal)
 
-lemma LIM_cong_limit: "f \<midarrow>x\<rightarrow> L \<Longrightarrow> K = L \<Longrightarrow> f \<midarrow>x\<rightarrow> K"
+lemma tendsto_cong_limit: "(f \<longlongrightarrow> l) F \<Longrightarrow> k = l \<Longrightarrow> (f \<longlongrightarrow> k) F"
   by simp
 
 lemma tendsto_at_iff_tendsto_nhds: "g \<midarrow>l\<rightarrow> g l \<longleftrightarrow> (g \<longlongrightarrow> g l) (nhds l)"
@@ -2248,6 +2255,26 @@ lemma continuous_at_split:
   "continuous (at x) f \<longleftrightarrow> continuous (at_left x) f \<and> continuous (at_right x) f"
   for x :: "'a::linorder_topology"
   by (simp add: continuous_within filterlim_at_split)
+
+lemma continuous_on_max [continuous_intros]:
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
+  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. max (f x) (g x))"
+  by (auto simp: continuous_on_def intro!: tendsto_max)
+
+lemma continuous_on_min [continuous_intros]:
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
+  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. min (f x) (g x))"
+  by (auto simp: continuous_on_def intro!: tendsto_min)
+
+lemma continuous_max [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::linorder_topology"
+  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (max (f x) (g x)))"
+  by (simp add: tendsto_max continuous_def)
+
+lemma continuous_min [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::linorder_topology"
+  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (min (f x) (g x)))"
+  by (simp add: tendsto_min continuous_def)
 
 text \<open>
   The following open/closed Collect lemmas are ported from

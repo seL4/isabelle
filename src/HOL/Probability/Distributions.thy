@@ -116,7 +116,7 @@ proof (rule LIMSEQ_unique)
   show "?X \<longlonglongrightarrow> (\<integral>\<^sup>+x. ennreal (x^k * exp (-x)) * indicator {0 ..} x \<partial>lborel)"
     apply (intro nn_integral_LIMSEQ)
     apply (auto simp: incseq_def le_fun_def eventually_sequentially
-                split: split_indicator intro!: Lim_eventually)
+                split: split_indicator intro!: tendsto_eventually)
     apply (metis nat_ceiling_le_eq)
     done
 

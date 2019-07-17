@@ -599,7 +599,7 @@ proof (rule borel_measurableI)
     by (force simp add: sets_restrict_space space_restrict_space)
 qed
 
-lemma borel_measurable_continuous_on1: "continuous_on UNIV f \<Longrightarrow> f \<in> borel_measurable borel"
+lemma borel_measurable_continuous_onI: "continuous_on UNIV f \<Longrightarrow> f \<in> borel_measurable borel"
   by (drule borel_measurable_continuous_on_restrict) simp
 
 lemma borel_measurable_continuous_on_if:
@@ -623,7 +623,7 @@ qed auto
 lemma borel_measurable_continuous_on:
   assumes f: "continuous_on UNIV f" and g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f (g x)) \<in> borel_measurable M"
-  using measurable_comp[OF g borel_measurable_continuous_on1[OF f]] by (simp add: comp_def)
+  using measurable_comp[OF g borel_measurable_continuous_onI[OF f]] by (simp add: comp_def)
 
 lemma borel_measurable_continuous_on_indicator:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
@@ -1332,7 +1332,7 @@ qed auto
 subsection "Borel measurable operators"
 
 lemma borel_measurable_norm[measurable]: "norm \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_sgn [measurable]: "(sgn::'a::real_normed_vector \<Rightarrow> 'a) \<in> borel_measurable borel"
   by (rule borel_measurable_continuous_countable_exceptions[where X="{0}"])
@@ -1460,7 +1460,7 @@ lemma borel_measurable_log[measurable (raw)]:
 
 lemma borel_measurable_exp[measurable]:
   "(exp::'a::{real_normed_field,banach}\<Rightarrow>'a) \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI isCont_exp)
+  by (intro borel_measurable_continuous_onI continuous_at_imp_continuous_on ballI isCont_exp)
 
 lemma measurable_real_floor[measurable]:
   "(floor :: real \<Rightarrow> int) \<in> measurable borel (count_space UNIV)"
@@ -1479,10 +1479,10 @@ lemma borel_measurable_real_floor: "(\<lambda>x::real. real_of_int \<lfloor>x\<r
   by simp
 
 lemma borel_measurable_root [measurable]: "root n \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_sqrt [measurable]: "sqrt \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_power [measurable (raw)]:
   fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
@@ -1491,22 +1491,22 @@ lemma borel_measurable_power [measurable (raw)]:
   by (intro borel_measurable_continuous_on [OF _ f] continuous_intros)
 
 lemma borel_measurable_Re [measurable]: "Re \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_Im [measurable]: "Im \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_of_real [measurable]: "(of_real :: _ \<Rightarrow> (_::real_normed_algebra)) \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_sin [measurable]: "(sin :: _ \<Rightarrow> (_::{real_normed_field,banach})) \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_cos [measurable]: "(cos :: _ \<Rightarrow> (_::{real_normed_field,banach})) \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma borel_measurable_arctan [measurable]: "arctan \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_intros)
+  by (intro borel_measurable_continuous_onI continuous_intros)
 
 lemma\<^marker>\<open>tag important\<close> borel_measurable_complex_iff:
   "f \<in> borel_measurable M \<longleftrightarrow>
@@ -1692,10 +1692,10 @@ text \<open> \<^type>\<open>ennreal\<close> is a topological monoid, so no rules
   statements are usually done on type classes. \<close>
 
 lemma measurable_enn2ereal[measurable]: "enn2ereal \<in> borel \<rightarrow>\<^sub>M borel"
-  by (intro borel_measurable_continuous_on1 continuous_on_enn2ereal)
+  by (intro borel_measurable_continuous_onI continuous_on_enn2ereal)
 
 lemma measurable_e2ennreal[measurable]: "e2ennreal \<in> borel \<rightarrow>\<^sub>M borel"
-  by (intro borel_measurable_continuous_on1 continuous_on_e2ennreal)
+  by (intro borel_measurable_continuous_onI continuous_on_e2ennreal)
 
 lemma borel_measurable_enn2real[measurable (raw)]:
   "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. enn2real (f x)) \<in> M \<rightarrow>\<^sub>M borel"

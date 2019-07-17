@@ -1642,7 +1642,7 @@ qed
 subsection \<open>Asymptotic Equivalence\<close>
 
 (* TODO Move *)
-lemma Lim_eventually: "eventually (\<lambda>x. f x = c) F \<Longrightarrow> filterlim f (nhds c) F"
+lemma tendsto_eventually: "eventually (\<lambda>x. f x = c) F \<Longrightarrow> filterlim f (nhds c) F"
   by (simp add: eventually_mono eventually_nhds_x_imp_x filterlim_iff)
 
 named_theorems asymp_equiv_intros
@@ -1775,13 +1775,13 @@ proof (cases "c = 0")
 next
   case True
   with asymp_equiv_eventually_zeros[OF assms] show ?thesis
-    by (simp add: Lim_eventually)
+    by (simp add: tendsto_eventually)
 qed
 
 lemma asymp_equiv_refl_ev:
   assumes "eventually (\<lambda>x. f x = g x) F"
   shows   "f \<sim>[F] g"
-  by (intro asymp_equivI Lim_eventually)
+  by (intro asymp_equivI tendsto_eventually)
      (insert assms, auto elim!: eventually_mono)
 
 lemma asymp_equiv_sandwich:

@@ -91,7 +91,7 @@ proof safe
 qed
 
 lemma (in real_distribution) char_measurable [measurable]: "char M \<in> borel_measurable borel"
-  by (auto intro!: borel_measurable_continuous_on1 continuous_at_imp_continuous_on isCont_char)
+  by (auto intro!: borel_measurable_continuous_onI continuous_at_imp_continuous_on isCont_char)
 
 subsection \<open>Independence\<close>
 

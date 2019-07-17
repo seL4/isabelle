@@ -138,7 +138,7 @@ lemma continuous_on_sinc[continuous_intros]:
   by (auto simp: isCont_sinc)
 
 lemma borel_measurable_sinc[measurable]: "sinc \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI isCont_sinc)
+  by (intro borel_measurable_continuous_onI continuous_at_imp_continuous_on ballI isCont_sinc)
 
 lemma sinc_AE: "AE x in lborel. sin x / x = sinc x"
   by (rule AE_I [where N = "{0}"], auto)
@@ -205,7 +205,7 @@ lemma isCont_Si: "isCont Si x"
   using DERIV_Si by (rule DERIV_isCont)
 
 lemma borel_measurable_Si[measurable]: "Si \<in> borel_measurable borel"
-  by (auto intro: isCont_Si continuous_at_imp_continuous_on borel_measurable_continuous_on1)
+  by (auto intro: isCont_Si continuous_at_imp_continuous_on borel_measurable_continuous_onI)
 
 lemma Si_at_top_LBINT:
   "((\<lambda>t. (LBINT x=0..\<infinity>. exp (-(x * t)) * (x * sin t + cos t) / (1 + x^2))) \<longlongrightarrow> 0) at_top"

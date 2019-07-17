@@ -1995,6 +1995,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma in_pairs: "F g {2*m..Suc(2*n)} = F (\<lambda>i. g(2*i) \<^bold>* g(Suc(2*i))) {m..n}"
+proof (induction n)
+  case 0
+  show ?case
+    by (cases "m=0") auto
+next
+  case (Suc n)
+  then show ?case
+    by (auto simp: assoc split: if_split_asm)
+qed
+
+lemma in_pairs_0: "F g {..Suc(2*n)} = F (\<lambda>i. g(2*i) \<^bold>* g(Suc(2*i))) {..n}"
+  using in_pairs [of _ 0 n] by (simp add: atLeast0AtMost)
+
 end
 
 lemma sum_natinterval_diff:

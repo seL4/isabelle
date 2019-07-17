@@ -779,6 +779,11 @@ lemma tendsto_mult_right: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<l
   for c :: "'a::topological_semigroup_mult"
   by (rule tendsto_mult [OF _ tendsto_const])
 
+lemma lim_const_over_n [tendsto_intros]:
+  fixes a :: "'a::real_normed_field"
+  shows "(\<lambda>n. a / of_nat n) \<longlonglongrightarrow> 0"
+  using tendsto_mult [OF tendsto_const [of a] lim_1_over_n] by simp
+
 lemmas continuous_of_real [continuous_intros] =
   bounded_linear.continuous [OF bounded_linear_of_real]
 

@@ -576,7 +576,7 @@ next
                  (contour_integral (?g z) f - (contour_integral (?g x) f + f x * (z - x))) -
                  (contour_integral (linepath x z) f - f x * (z - x)) /\<^sub>R norm (z - x))
             \<midarrow>x\<rightarrow> 0"
-        apply (rule Lim_eventually)
+        apply (rule tendsto_eventually)
         apply (simp add: eventually_at)
         apply (rule_tac x=d in exI)
         using \<open>d > 0\<close> * by simp

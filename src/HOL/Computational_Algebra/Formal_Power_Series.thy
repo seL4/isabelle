@@ -6117,19 +6117,6 @@ lemma fps_cos_nth_add_2:
   apply simp
   done
 
-lemma nat_induct2: "P 0 \<Longrightarrow> P 1 \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (n + 2)) \<Longrightarrow> P (n::nat)"
-  unfolding One_nat_def numeral_2_eq_2
-  apply (induct n rule: nat_less_induct)
-  apply (case_tac n)
-  apply simp
-  apply (rename_tac m)
-  apply (case_tac m)
-  apply simp
-  apply (rename_tac k)
-  apply (case_tac k)
-  apply simp_all
-  done
-
 lemma nat_add_1_add_1: "(n::nat) + 1 + 1 = n + 2"
   by simp
 
