@@ -198,6 +198,8 @@
 \<Updown>               code: 0x0021d5  group: arrow
 \<langle>               code: 0x0027e8  group: punctuation  abbrev: <<
 \<rangle>               code: 0x0027e9  group: punctuation  abbrev: >>
+\<llangle>              code: 0x0027ea  group: punctuation  abbrev: <<
+\<rrangle>              code: 0x0027eb  group: punctuation  abbrev: >>
 \<lceil>                code: 0x002308  group: punctuation  abbrev: [.
 \<rceil>                code: 0x002309  group: punctuation  abbrev: .]
 \<lfloor>               code: 0x00230a  group: punctuation  abbrev: [.

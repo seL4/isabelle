@@ -97,6 +97,8 @@ object Build_Fonts
         0x27e7,  // right white square bracket
         0x27e8,  // left angle bracket
         0x27e9,  // right angle bracket
+        0x27ea,  // left double angle bracket
+        0x27eb,  // right double angle bracket
       ) ++
       (0x27f0 to 0x27ff) ++  // Supplemental Arrows-A
       (0x2900 to 0x297f) ++  // Supplemental Arrows-B
