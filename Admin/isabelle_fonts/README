@@ -4,11 +4,11 @@ Isabelle DejaVu fonts
 The Isabelle fonts are subject to the same BSD-3-clause license as Isabelle.
 
 TTF files are produced automatically from the Deja Vu font family with symbols
-from the IsabelleText font:
+from the IsabelleSymbols font (formerly IsabelleText):
 
   isabelle build_fonts -d dejavu-fonts-ttf-2.37/ttf
 
-The IsabelleText template (see Admin/isabelle_fonts in the repository) has
+The IsabelleSymbols template (see Admin/isabelle_fonts in the repository) has
 been assembled manually, by composing glyphs from Bluesky TeX fonts (scaled
 222%) with some additions from DejaVu Sans Mono and DejaVu Sans. Some
 additional symbols are from Symbola, see http://greekfonts.teilar.gr "In lieu
@@ -17,7 +17,7 @@ Douros".
 
 
     Makarius
-    10-Feb-2019
+    17-Jul-2019
 
 
 ----------------------------------------------------------------------------

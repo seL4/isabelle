@@ -198,6 +198,8 @@
 \<Updown>               code: 0x0021d5  group: arrow
 \<langle>               code: 0x0027e8  group: punctuation  abbrev: <<
 \<rangle>               code: 0x0027e9  group: punctuation  abbrev: >>
+\<llangle>              code: 0x0027ea  group: punctuation  abbrev: <<
+\<rrangle>              code: 0x0027eb  group: punctuation  abbrev: >>
 \<lceil>                code: 0x002308  group: punctuation  abbrev: [.
 \<rceil>                code: 0x002309  group: punctuation  abbrev: .]
 \<lfloor>               code: 0x00230a  group: punctuation  abbrev: [.
@@ -278,6 +280,7 @@
 \<succeq>               code: 0x00227d  group: relation
 \<parallel>             code: 0x002225  group: punctuation  abbrev: ||
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
+\<bbar>                 code: 0x002aff  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
 \<minusplus>            code: 0x002213  group: operator
 \<times>                code: 0x0000d7  group: operator  abbrev: <*>
@@ -328,6 +331,7 @@
 \<registered>           code: 0x0000ae
 \<hyphen>               code: 0x002010  group: punctuation
 \<inverse>              code: 0x0000af  group: operator
+\<sqdot>                code: 0x0000b7  group: punctuation
 \<onequarter>           code: 0x0000bc  group: digit
 \<onehalf>              code: 0x0000bd  group: digit
 \<threequarters>        code: 0x0000be  group: digit

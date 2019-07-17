@@ -1,0 +1,25 @@
+--- 5.5.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2018-04-09 01:58:01.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2019-07-17 21:36:43.985183582 +0200
+@@ -1625,8 +1630,8 @@
+ 		}
+ 
+ 		// Scan backwards, trying to find a bracket
+-		String openBrackets = "([{«‹⟨⌈⌊⦇⟦⦃";
+-		String closeBrackets = ")]}»›⟩⌉⌋⦈⟧⦄";
++		String openBrackets = "([{«‹⟨⌈⌊⦇⟦⦃⟪";
++		String closeBrackets = ")]}»›⟩⌉⌋⦈⟧⦄⟫";
+ 		int count = 1;
+ 		char openBracket = '\0';
+ 		char closeBracket = '\0';
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/TextUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2018-04-09 01:58:07.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2019-07-17 21:44:15.545431576 +0200
+@@ -113,6 +113,8 @@
+ 		case '⟧': if (direction != null) direction[0] = false; return '⟦';
+ 		case '⦃': if (direction != null) direction[0] = true;  return '⦄';
+ 		case '⦄': if (direction != null) direction[0] = false; return '⦃';
++		case '⟪': if (direction != null) direction[0] = true;  return '⟫';
++		case '⟫': if (direction != null) direction[0] = false; return '⟪';
+ 		default:  return '\0';
+ 		}
+ 	} //}}}
