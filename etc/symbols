@@ -278,6 +278,7 @@
 \<succeq>               code: 0x00227d  group: relation
 \<parallel>             code: 0x002225  group: punctuation  abbrev: ||
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
+\<bbar>                 code: 0x002aff  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
 \<minusplus>            code: 0x002213  group: operator
 \<times>                code: 0x0000d7  group: operator  abbrev: <*>
