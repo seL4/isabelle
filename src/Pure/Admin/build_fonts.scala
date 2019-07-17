@@ -31,7 +31,6 @@ object Build_Fonts
         0x204b,  // FOOTNOTE
         0x20ac,  // Euro
         0x2710,  // pencil
-        0x2aff,  // n-ary Dijkstra choice
         0xfb01,  // ligature fi
         0xfb02,  // ligature fl
         0xfffd,  // replacement character
