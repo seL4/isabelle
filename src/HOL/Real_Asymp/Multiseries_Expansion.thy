@@ -4611,7 +4611,7 @@ lemma compare_reals_diff_sgnD:
 lemma expands_to_real_imp_filterlim:
   assumes "(f expands_to (c :: real)) basis"
   shows   "(f \<longlongrightarrow> c) at_top"
-  using assms by (auto elim!: expands_to.cases simp: eq_commute[of c] Lim_eventually)
+  using assms by (auto elim!: expands_to.cases simp: eq_commute[of c] tendsto_eventually)
 
 lemma expands_to_MSLNil_imp_filterlim:
   assumes "(f expands_to MS MSLNil f') basis"
@@ -4620,7 +4620,7 @@ proof -
   from assms have "eventually (\<lambda>x. f' x = 0) at_top" "eventually (\<lambda>x. f' x = f x) at_top"
     by (auto elim!: expands_to.cases is_expansion_aux.cases[of MSLNil])
   hence "eventually (\<lambda>x. f x = 0) at_top" by eventually_elim auto
-  thus ?thesis by (simp add: Lim_eventually)
+  thus ?thesis by (simp add: tendsto_eventually)
 qed
 
 lemma expands_to_neg_exponent_imp_filterlim:
@@ -5193,7 +5193,7 @@ next
   hence "eventually (\<lambda>n. of_nat (f n) = (of_nat c :: 'a)) F"
     by eventually_elim simp
   thus "filterlim (\<lambda>n. of_nat (f n)) (nhds (of_nat c :: 'a)) F"
-    by (rule Lim_eventually)
+    by (rule tendsto_eventually)
 qed
 
 lemma tendsto_of_int_iff:
@@ -5210,7 +5210,7 @@ next
   hence "eventually (\<lambda>n. of_int (f n) = (of_int c :: 'a)) F"
     by eventually_elim simp
   thus "filterlim (\<lambda>n. of_int (f n)) (nhds (of_int c :: 'a)) F"
-    by (rule Lim_eventually)
+    by (rule tendsto_eventually)
 qed
 
 lemma filterlim_at_top_int_iff_filterlim_real:

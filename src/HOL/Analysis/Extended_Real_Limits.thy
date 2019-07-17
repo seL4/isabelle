@@ -849,7 +849,7 @@ proof (cases x)
   then obtain K::nat where "K>0" "K > abs(r)" using reals_Archimedean2 gr0I by auto
   then have "min x n = x" if "n \<ge> K" for n apply (subst real, subst real, auto) using that eq_iff by fastforce
   then have "eventually (\<lambda>n. min x n = x) sequentially" using eventually_at_top_linorder by blast
-  then show ?thesis by (simp add: Lim_eventually)
+  then show ?thesis by (simp add: tendsto_eventually)
 next
   case (PInf)
   then have "min x n = n" for n::nat by (auto simp add: min_def)
@@ -870,7 +870,7 @@ proof (cases x)
   then have "min x n = x" if "n \<ge> K" for n apply (subst real, subst real, auto) using that eq_iff by fastforce
   then have "real_of_ereal(min x n) = r" if "n \<ge> K" for n using real that by auto
   then have "eventually (\<lambda>n. real_of_ereal(min x n) = r) sequentially" using eventually_at_top_linorder by blast
-  then have "(\<lambda>n. real_of_ereal(min x n)) \<longlonglongrightarrow> r" by (simp add: Lim_eventually)
+  then have "(\<lambda>n. real_of_ereal(min x n)) \<longlonglongrightarrow> r" by (simp add: tendsto_eventually)
   then show ?thesis using real by auto
 next
   case (PInf)
@@ -886,7 +886,7 @@ proof (cases x)
   then obtain K::nat where "K>0" "K > abs(r)" using reals_Archimedean2 gr0I by auto
   then have "max x (-real n) = x" if "n \<ge> K" for n apply (subst real, subst real, auto) using that eq_iff by fastforce
   then have "eventually (\<lambda>n. max x (-real n) = x) sequentially" using eventually_at_top_linorder by blast
-  then show ?thesis by (simp add: Lim_eventually)
+  then show ?thesis by (simp add: tendsto_eventually)
 next
   case (MInf)
   then have "max x (-real n) = (-1)* ereal(real n)" for n::nat by (auto simp add: max_def)
@@ -909,7 +909,7 @@ proof (cases x)
   then have "max x (-real n) = x" if "n \<ge> K" for n apply (subst real, subst real, auto) using that eq_iff by fastforce
   then have "real_of_ereal(max x (-real n)) = r" if "n \<ge> K" for n using real that by auto
   then have "eventually (\<lambda>n. real_of_ereal(max x (-real n)) = r) sequentially" using eventually_at_top_linorder by blast
-  then have "(\<lambda>n. real_of_ereal(max x (-real n))) \<longlonglongrightarrow> r" by (simp add: Lim_eventually)
+  then have "(\<lambda>n. real_of_ereal(max x (-real n))) \<longlonglongrightarrow> r" by (simp add: tendsto_eventually)
   then show ?thesis using real by auto
 next
   case (MInf)

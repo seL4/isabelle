@@ -332,7 +332,8 @@ proof cases
     have "(Discrete.sqrt n)^2 < m^2" by linarith
   with power2_less_imp_less have lt_m: "Discrete.sqrt n < m" by blast
   from m_def Suc_sqrt_power2_gt[of "n"]
-    have "m^2 \<le> (Suc(Discrete.sqrt n))^2" by simp
+    have "m^2 \<le> (Suc(Discrete.sqrt n))^2"
+      by linarith
   with power2_nat_le_eq_le have "m \<le> Suc (Discrete.sqrt n)" by blast
   with lt_m have "m = Suc (Discrete.sqrt n)" by simp
   with lhs m_def show ?thesis by fastforce

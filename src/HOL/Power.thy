@@ -476,6 +476,10 @@ lemma power_less_imp_less_exp: "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrigh
 lemma power_strict_mono [rule_format]: "a < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<longrightarrow> a ^ n < b ^ n"
   by (induct n) (auto simp: mult_strict_mono le_less_trans [of 0 a b])
 
+lemma power_mono_iff [simp]:
+  shows "\<lbrakk>a \<ge> 0; b \<ge> 0; n>0\<rbrakk> \<Longrightarrow> a ^ n \<le> b ^ n \<longleftrightarrow> a \<le> b"
+  using power_mono [of a b] power_strict_mono [of b a] not_le by auto
+
 text\<open>Lemma for \<open>power_strict_decreasing\<close>\<close>
 lemma power_Suc_less: "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * a ^ n < a ^ n"
   by (induct n) (auto simp: mult_strict_left_mono)

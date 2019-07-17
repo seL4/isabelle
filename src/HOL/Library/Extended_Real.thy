@@ -2951,10 +2951,6 @@ proof (subst filterlim_cong[OF refl refl])
   thus "((\<lambda>x. ereal (real_of_ereal (f x))) \<longlongrightarrow> 0) F" by (simp add: zero_ereal_def)
 qed
 
-lemma tendsto_explicit:
-  "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
-  unfolding tendsto_def eventually_sequentially by auto
-
 lemma Lim_bounded_PInfty2: "f \<longlonglongrightarrow> l \<Longrightarrow> \<forall>n\<ge>N. f n \<le> ereal B \<Longrightarrow> l \<noteq> \<infinity>"
   using LIMSEQ_le_const2[of f l "ereal B"] by fastforce
 

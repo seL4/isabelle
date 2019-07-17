@@ -1154,7 +1154,12 @@ lemma Ints_nonzero_abs_less1:
   fixes x:: "'a :: linordered_idom"
   shows "\<lbrakk>x \<in> Ints; abs x < 1\<rbrakk> \<Longrightarrow> x = 0"
     using Ints_nonzero_abs_ge1 [of x] by auto
-    
+
+lemma Ints_eq_abs_less1:
+  fixes x:: "'a :: linordered_idom"
+  shows "\<lbrakk>x \<in> Ints; y \<in> Ints\<rbrakk> \<Longrightarrow> x = y \<longleftrightarrow> abs (x-y) < 1"
+  using eq_iff_diff_eq_0 by (fastforce intro: Ints_nonzero_abs_less1)
+ 
 
 subsection \<open>The functions \<^term>\<open>nat\<close> and \<^term>\<open>int\<close>\<close>
 

@@ -284,7 +284,7 @@ theorem weak_conv_imp_integral_bdd_continuous_conv:
     "(\<lambda> n. integral\<^sup>L (\<mu> n) f) \<longlonglongrightarrow> integral\<^sup>L M f"
   using assms
   by (intro weak_conv_imp_bdd_ae_continuous_conv)
-     (auto intro!: borel_measurable_continuous_on1 continuous_at_imp_continuous_on)
+     (auto intro!: borel_measurable_continuous_onI continuous_at_imp_continuous_on)
 
 theorem weak_conv_imp_continuity_set_conv:
   fixes f :: "real \<Rightarrow> real"

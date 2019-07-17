@@ -610,7 +610,7 @@ lemma has_bochner_integral_bounded_linear:
 proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.cases)
   interpret T: bounded_linear T by fact
   have [measurable]: "T \<in> borel_measurable borel"
-    by (intro borel_measurable_continuous_on1 T.continuous_on continuous_on_id)
+    by (intro borel_measurable_continuous_onI T.continuous_on continuous_on_id)
   assume [measurable]: "f \<in> borel_measurable M"
   then show "(\<lambda>x. T (f x)) \<in> borel_measurable M"
     by auto
@@ -2821,7 +2821,7 @@ proof (rule tendsto_at_topI_sequentially)
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) \<longlonglongrightarrow> f x"
-        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
+        by (intro tendsto_eventually) (auto split: split_indicator elim!: eventually_mono)
     qed
     fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
       by (auto split: split_indicator)

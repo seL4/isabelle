@@ -26,18 +26,10 @@ proof -
       apply (force simp: abs_le_iff bdd_above_def)
       done
   next
+    have *: "\<And>x. x \<in> S \<Longrightarrow> Inf S \<le> x"
+      by (meson abs_le_iff bdd bdd_below_def cInf_lower minus_le_iff)
     show "Sup (uminus ` S) \<le> - Inf S"
-      apply (rule cSup_least)
-      using \<open>S \<noteq> {}\<close>
-       apply force
-      apply clarsimp
-      apply (rule cInf_lower)
-       apply assumption
-      using bdd
-      apply (simp add: bdd_below_def)
-      apply (rule_tac x = "- a" in exI)
-      apply force
-      done
+      using \<open>S \<noteq> {}\<close> by (force intro: * cSup_least)
   qed
   with cSup_abs_le [of "uminus ` S"] assms show ?thesis
     by fastforce
@@ -753,6 +745,9 @@ proof safe
   also have "of_int \<lfloor>x\<rfloor> + frac x = x" by (simp add: frac_def)
   finally show "x \<in> \<int>" .
 qed (auto simp: frac_def)
+
+lemma frac_1_eq: "frac (x+1) = frac x"
+  by (simp add: frac_def)
 
 
 subsection \<open>Rounding to the nearest integer\<close>

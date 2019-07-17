@@ -2340,7 +2340,7 @@ proof (rule has_derivativeI)
   have [tendsto_intros]: "((\<lambda>x. \<Sum>i. ?e i x) \<longlongrightarrow> A) ?F"
     by (auto intro!: swap_uniform_limit[where f="\<lambda>n x. \<Sum>i < n. ?e i x" and F = sequentially])
   have [tendsto_intros]: "((\<lambda>x. if x = t then 0 else 1) \<longlongrightarrow> 1) ?F"
-    by (rule Lim_eventually) (simp add: eventually_at_filter)
+    by (rule tendsto_eventually) (simp add: eventually_at_filter)
   have "((\<lambda>y. ((y - t) / abs (y - t)) *\<^sub>R ((\<Sum>n. ?e n y) - A)) \<longlongrightarrow> 0) (at t within T)"
     unfolding *
     by (rule tendsto_norm_zero_cancel) (auto intro!: tendsto_eq_intros)

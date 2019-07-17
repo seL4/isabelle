@@ -1299,11 +1299,11 @@ lemma field_differentiable_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0
 lemma continuous_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) Ln"
   by (simp add: field_differentiable_imp_continuous_at field_differentiable_within_Ln)
 
-lemma isCont_Ln' [simp]:
+lemma isCont_Ln' [simp,continuous_intros]:
    "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
   by (blast intro: isCont_o2 [OF _ continuous_at_Ln])
 
-lemma continuous_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Ln"
+lemma continuous_within_Ln [continuous_intros]: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Ln"
   using continuous_at_Ln continuous_at_imp_continuous_within by blast
 
 lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> S \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on S Ln"

@@ -1673,7 +1673,7 @@ proof
     by (force simp add: eventually_sequentially intro: that)
   qed
   with \<theta>to\<Theta> have "(\<lambda>n. (\<Sum>j\<le>n. Im (Ln (z j)))) \<longlonglongrightarrow> \<Theta> + of_int K * (2*pi)"
-    by (simp add: k tendsto_add tendsto_mult Lim_eventually)
+    by (simp add: k tendsto_add tendsto_mult tendsto_eventually)
   moreover have "(\<lambda>n. (\<Sum>k\<le>n. Re (Ln (z k)))) \<longlonglongrightarrow> Re (Ln \<xi>)"
     using assms continuous_imp_tendsto [OF isCont_ln tendsto_norm [OF L]]
     by (simp add: o_def flip: prod_norm ln_prod)

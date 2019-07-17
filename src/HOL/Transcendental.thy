@@ -2919,6 +2919,10 @@ lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x
 lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
   by (simp add: powr_def root_powr_inverse sqrt_def)
 
+lemma square_powr_half [simp]:
+  fixes x::real shows "x\<^sup>2 powr (1/2) = \<bar>x\<bar>"
+  by (simp add: powr_half_sqrt)
+
 lemma ln_powr_bound: "1 \<le> x \<Longrightarrow> 0 < a \<Longrightarrow> ln x \<le> (x powr a) / a"
   for x :: real
   by (metis exp_gt_zero linear ln_eq_zero_iff ln_exp ln_less_self ln_powr mult.commute
@@ -4586,7 +4590,7 @@ lemma continuous_within_tan [continuous_intros]:
   unfolding continuous_within by (rule tendsto_tan)
 
 lemma LIM_cos_div_sin: "(\<lambda>x. cos(x)/sin(x)) \<midarrow>pi/2\<rightarrow> 0"
-  by (rule LIM_cong_limit, (rule tendsto_intros)+, simp_all)
+  by (rule tendsto_cong_limit, (rule tendsto_intros)+, simp_all)
 
 lemma lemma_tan_total: 
   assumes "0 < y" shows "\<exists>x. 0 < x \<and> x < pi/2 \<and> y < tan x"

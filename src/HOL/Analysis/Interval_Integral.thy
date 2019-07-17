@@ -518,7 +518,7 @@ proof -
       then have "eventually (\<lambda>i. f x * indicator {l i..u i} x = f x) sequentially"
         by eventually_elim auto }
     then show ?thesis
-      unfolding approx(1) by (auto intro!: AE_I2 Lim_eventually split: split_indicator)
+      unfolding approx(1) by (auto intro!: AE_I2 tendsto_eventually split: split_indicator)
   qed
   have 4: "(\<lambda>i. \<integral> x. indicator {l i..u i} x *\<^sub>R f x \<partial>lborel) \<longlonglongrightarrow> C"
     using lbint_lim by (simp add: interval_integral_Icc [unfolded set_lebesgue_integral_def] approx less_imp_le)
@@ -556,7 +556,7 @@ proof -
     show "\<And>i. AE x in lborel. norm (indicator {l i..u i} x *\<^sub>R f x) \<le> norm (indicator (einterval a b) x *\<^sub>R f x)"
       by (intro AE_I2) (auto simp: approx split: split_indicator)
     show "AE x in lborel. (\<lambda>i. indicator {l i..u i} x *\<^sub>R f x) \<longlonglongrightarrow> indicator (einterval a b) x *\<^sub>R f x"
-    proof (intro AE_I2 tendsto_intros Lim_eventually)
+    proof (intro AE_I2 tendsto_intros tendsto_eventually)
       fix x
       { fix i assume "l i \<le> x" "x \<le> u i"
         with \<open>incseq u\<close>[THEN incseqD, of i] \<open>decseq l\<close>[THEN decseqD, of i]

@@ -1863,6 +1863,22 @@ lemma Nats_induct [case_names of_nat, induct set: Nats]: "x \<in> \<nat> \<Longr
 
 end
 
+lemma Nats_diff [simp]:
+  fixes a:: "'a::linordered_idom"
+  assumes "a \<in> \<nat>" "b \<in> \<nat>" "b \<le> a" shows "a - b \<in> \<nat>"
+proof -
+  obtain i where i: "a = of_nat i"
+    using Nats_cases assms by blast
+  obtain j where j: "b = of_nat j"
+    using Nats_cases assms by blast
+  have "j \<le> i"
+    using \<open>b \<le> a\<close> i j of_nat_le_iff by blast
+  then have *: "of_nat i - of_nat j = (of_nat (i-j) :: 'a)"
+    by (simp add: of_nat_diff)
+  then show ?thesis
+    by (simp add: * i j)
+qed
+
 
 subsection \<open>Further arithmetic facts concerning the natural numbers\<close>
 
