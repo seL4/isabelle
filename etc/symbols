@@ -328,6 +328,7 @@
 \<registered>           code: 0x0000ae
 \<hyphen>               code: 0x002010  group: punctuation
 \<inverse>              code: 0x0000af  group: operator
+\<sqdot>                code: 0x0000b7  group: punctuation
 \<onequarter>           code: 0x0000bc  group: digit
 \<onehalf>              code: 0x0000bd  group: digit
 \<threequarters>        code: 0x0000be  group: digit
