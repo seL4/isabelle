@@ -1110,7 +1110,7 @@ lemma enn2real_leI: "0 \<le> B \<Longrightarrow> x \<le> ennreal B \<Longrightar
 lemma enn2real_positive_iff: "0 < enn2real x \<longleftrightarrow> (0 < x \<and> x < top)"
   by (cases x rule: ennreal_cases) auto
 
-lemma enn2real_eq_1_iff[simp]: "enn2real x = 1 \<longleftrightarrow> x = 1"
+lemma enn2real_eq_posreal_iff[simp]: "c > 0 \<Longrightarrow> enn2real x = c \<longleftrightarrow> x = c"
   by (cases x) auto
 
 subsection \<open>Coercion from \<^typ>\<open>enat\<close> to \<^typ>\<open>ennreal\<close>\<close>

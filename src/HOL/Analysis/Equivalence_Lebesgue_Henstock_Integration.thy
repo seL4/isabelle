@@ -957,6 +957,11 @@ proof -
     using absolutely_integrable_on_def set_integrable_def by blast
 qed
 
+lemma absolutely_integrable_imp_integrable:
+  assumes "f absolutely_integrable_on S" "S \<in> sets lebesgue"
+  shows "integrable (lebesgue_on S) f"
+  by (meson assms integrable_restrict_space set_integrable_def sets.Int sets.top)
+
 lemma absolutely_integrable_on_null [intro]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "content (cbox a b) = 0 \<Longrightarrow> f absolutely_integrable_on (cbox a b)"

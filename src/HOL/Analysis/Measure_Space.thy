@@ -1112,7 +1112,7 @@ lemma AE_symmetric:
 
 lemma AE_impI:
   "(P \<Longrightarrow> AE x in M. Q x) \<Longrightarrow> AE x in M. P \<longrightarrow> Q x"
-  by (cases P) auto
+  by fastforce
 
 lemma AE_measure:
   assumes AE: "AE x in M. P x" and sets: "{x\<in>space M. P x} \<in> sets M" (is "?P \<in> sets M")
@@ -1561,6 +1561,9 @@ lemma measure_eq_emeasure_eq_ennreal: "0 \<le> x \<Longrightarrow> emeasure M A 
 lemma enn2real_plus:"a < top \<Longrightarrow> b < top \<Longrightarrow> enn2real (a + b) = enn2real a + enn2real b"
   by (simp add: enn2real_def plus_ennreal.rep_eq real_of_ereal_add less_top
            del: real_of_ereal_enn2ereal)
+
+lemma enn2real_sum:"(\<And>i. i \<in> I \<Longrightarrow> f i < top) \<Longrightarrow> enn2real (sum f I) = sum (enn2real \<circ> f) I"
+  by (induction I rule: infinite_finite_induct) (auto simp: enn2real_plus)
 
 lemma measure_eq_AE:
   assumes iff: "AE x in M. x \<in> A \<longleftrightarrow> x \<in> B"

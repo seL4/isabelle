@@ -119,6 +119,11 @@ lemma content_cbox_pair_eq0_D:
    "content (cbox (a,c) (b,d)) = 0 \<Longrightarrow> content (cbox a b) = 0 \<or> content (cbox c d) = 0"
   by (simp add: content_Pair)
 
+lemma content_cbox_plus:
+  fixes x :: "'a::euclidean_space"
+  shows "content(cbox x (x + h *\<^sub>R One)) = (if h \<ge> 0 then h ^ DIM('a) else 0)"
+  by (simp add: algebra_simps content_cbox_if box_eq_empty)
+
 lemma content_0_subset: "content(cbox a b) = 0 \<Longrightarrow> s \<subseteq> cbox a b \<Longrightarrow> content s = 0"
   using emeasure_mono[of s "cbox a b" lborel]
   by (auto simp: measure_def enn2real_eq_0_iff emeasure_lborel_cbox_eq)

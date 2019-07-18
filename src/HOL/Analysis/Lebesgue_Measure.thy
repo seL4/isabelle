@@ -386,6 +386,16 @@ abbreviation\<^marker>\<open>tag important\<close> lebesgue :: "'a::euclidean_sp
 abbreviation\<^marker>\<open>tag important\<close> lebesgue_on :: "'a set \<Rightarrow> 'a::euclidean_space measure"
   where "lebesgue_on \<Omega> \<equiv> restrict_space (completion lborel) \<Omega>"
 
+lemma lebesgue_on_mono:
+  assumes major: "AE x in lebesgue_on S. P x" and minor: "\<And>x.\<lbrakk>P x; x \<in> S\<rbrakk> \<Longrightarrow> Q x"
+  shows "AE x in lebesgue_on S. Q x"
+proof -
+  have "AE a in lebesgue_on S. P a \<longrightarrow> Q a"
+    using minor space_restrict_space by fastforce
+  then show ?thesis
+    using major by auto
+qed
+
 lemma
   shows sets_lborel[simp, measurable_cong]: "sets lborel = sets borel"
     and space_lborel[simp]: "space lborel = space borel"
@@ -424,6 +434,12 @@ proof -
     by (simp add: borel_measurable_continuous_on_restrict [OF f] borel_measurable_subalgebra 
                   space_restrict_space)
 qed
+
+lemma id_borel_measurable_lebesgue [iff]: "id \<in> borel_measurable lebesgue"
+  by (simp add: measurable_completion)
+
+lemma id_borel_measurable_lebesgue_on [iff]: "id \<in> borel_measurable (lebesgue_on S)"
+  by (simp add: measurable_completion measurable_restrict_space1)
 
 context
 begin
@@ -616,6 +632,21 @@ lemma countable_imp_null_set_lborel: "countable A \<Longrightarrow> A \<in> null
 
 lemma finite_imp_null_set_lborel: "finite A \<Longrightarrow> A \<in> null_sets lborel"
   by (intro countable_imp_null_set_lborel countable_finite)
+
+lemma insert_null_sets_iff [simp]: "insert a N \<in> null_sets lebesgue \<longleftrightarrow> N \<in> null_sets lebesgue"     
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (meson completion.complete2 subset_insertI)
+next
+  assume ?rhs then show ?lhs
+  by (simp add: null_sets.insert_in_sets null_setsI)
+qed
+
+lemma insert_null_sets_lebesgue_on_iff [simp]:
+  assumes "a \<in> S" "S \<in> sets lebesgue"
+  shows "insert a N \<in> null_sets (lebesgue_on S) \<longleftrightarrow> N \<in> null_sets (lebesgue_on S)"     
+  by (simp add: assms null_sets_restrict_space)
 
 lemma lborel_neq_count_space[simp]: "lborel \<noteq> count_space (A::('a::ordered_euclidean_space) set)"
 proof
@@ -1417,5 +1448,59 @@ qed
 
 lemma gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
   using fsigma_imp_gdelta gdelta_imp_fsigma by force
+
+lemma lebesgue_set_almost_fsigma:
+  assumes "S \<in> sets lebesgue"
+  obtains C T where "fsigma C" "T \<in> null_sets lebesgue" "C \<union> T = S" "disjnt C T"
+proof -
+  { fix n::nat
+    obtain T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "emeasure lebesgue (S - T) < ennreal (1 / Suc n)"
+      using sets_lebesgue_inner_closed [OF assms]
+      by (metis of_nat_0_less_iff zero_less_Suc zero_less_divide_1_iff)
+    then have "\<exists>T. closed T \<and> T \<subseteq> S \<and> S - T \<in> lmeasurable \<and> measure lebesgue (S-T) < 1 / Suc n"
+      by (metis emeasure_eq_measure2 ennreal_leI not_le)
+  }
+  then obtain F where F: "\<And>n::nat. closed (F n) \<and> F n \<subseteq> S \<and> S - F n \<in> lmeasurable \<and> measure lebesgue (S - F n) < 1 / Suc n"
+    by metis
+  let ?C = "\<Union>(F ` UNIV)"
+  show thesis
+  proof
+    show "fsigma ?C"
+      using F by (simp add: fsigma.intros)
+    show "(S - ?C) \<in> null_sets lebesgue"
+    proof (clarsimp simp add: completion.null_sets_outer_le)
+      fix e :: "real"
+      assume "0 < e"
+      then obtain n where n: "1 / Suc n < e"
+        using nat_approx_posE by metis
+      show "\<exists>T \<in> lmeasurable. S - (\<Union>x. F x) \<subseteq> T \<and> measure lebesgue T \<le> e"
+      proof (intro bexI conjI)
+        show "measure lebesgue (S - F n) \<le> e"
+          by (meson F n less_trans not_le order.asym)
+      qed (use F in auto)
+    qed
+    show "?C \<union> (S - ?C) = S"
+      using F by blast
+    show "disjnt ?C (S - ?C)"
+      by (auto simp: disjnt_def)
+  qed
+qed
+
+lemma lebesgue_set_almost_gdelta:
+  assumes "S \<in> sets lebesgue"
+  obtains C T where "gdelta C" "T \<in> null_sets lebesgue" "S \<union> T = C" "disjnt S T"
+proof -
+  have "-S \<in> sets lebesgue"
+    using assms Compl_in_sets_lebesgue by blast
+  then obtain C T where C: "fsigma C" "T \<in> null_sets lebesgue" "C \<union> T = -S" "disjnt C T"
+    using lebesgue_set_almost_fsigma by metis
+  show thesis
+  proof
+    show "gdelta (-C)"
+      by (simp add: \<open>fsigma C\<close> fsigma_imp_gdelta)
+    show "S \<union> T = -C" "disjnt S T"
+      using C by (auto simp: disjnt_def)
+  qed (use C in auto)
+qed
 
 end

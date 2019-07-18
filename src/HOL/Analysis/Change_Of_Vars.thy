@@ -421,64 +421,6 @@ proof -
     by (simp add: measure_linear_image \<open>linear f\<close> S f)
 qed
 
-subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
-
-text\<open>A Lebesgue set is almost an \<open>F_sigma\<close> or \<open>G_delta\<close>.\<close>
-lemma lebesgue_set_almost_fsigma:
-  assumes "S \<in> sets lebesgue"
-  obtains C T where "fsigma C" "negligible T" "C \<union> T = S" "disjnt C T"
-proof -
-  { fix n::nat
-    obtain T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "emeasure lebesgue (S - T) < ennreal (1 / Suc n)"
-      using sets_lebesgue_inner_closed [OF assms]
-      by (metis of_nat_0_less_iff zero_less_Suc zero_less_divide_1_iff)
-    then have "\<exists>T. closed T \<and> T \<subseteq> S \<and> S - T \<in> lmeasurable \<and> measure lebesgue (S-T) < 1 / Suc n"
-      by (metis emeasure_eq_measure2 ennreal_leI not_le)
-  }
-  then obtain F where F: "\<And>n::nat. closed (F n) \<and> F n \<subseteq> S \<and> S - F n \<in> lmeasurable \<and> measure lebesgue (S - F n) < 1 / Suc n"
-    by metis
-  let ?C = "\<Union>(F ` UNIV)"
-  show thesis
-  proof
-    show "fsigma ?C"
-      using F by (simp add: fsigma.intros)
-    show "negligible (S - ?C)"
-    proof (clarsimp simp add: negligible_outer_le)
-      fix e :: "real"
-      assume "0 < e"
-      then obtain n where n: "1 / Suc n < e"
-        using nat_approx_posE by metis
-      show "\<exists>T. S - (\<Union>x. F x) \<subseteq> T \<and> T \<in> lmeasurable \<and> measure lebesgue T \<le> e"
-      proof (intro exI conjI)
-        show "measure lebesgue (S - F n) \<le> e"
-          by (meson F n less_trans not_le order.asym)
-      qed (use F in auto)
-    qed
-    show "?C \<union> (S - ?C) = S"
-      using F by blast
-    show "disjnt ?C (S - ?C)"
-      by (auto simp: disjnt_def)
-  qed
-qed
-
-lemma lebesgue_set_almost_gdelta:
-  assumes "S \<in> sets lebesgue"
-  obtains C T where "gdelta C" "negligible T" "S \<union> T = C" "disjnt S T"
-proof -
-  have "-S \<in> sets lebesgue"
-    using assms Compl_in_sets_lebesgue by blast
-  then obtain C T where C: "fsigma C" "negligible T" "C \<union> T = -S" "disjnt C T"
-    using lebesgue_set_almost_fsigma by metis
-  show thesis
-  proof
-    show "gdelta (-C)"
-      by (simp add: \<open>fsigma C\<close> fsigma_imp_gdelta)
-    show "S \<union> T = -C" "disjnt S T"
-      using C by (auto simp: disjnt_def)
-  qed (use C in auto)
-qed
-
-
 proposition measure_semicontinuous_with_hausdist_explicit:
   assumes "bounded S" and neg: "negligible(frontier S)" and "e > 0"
   obtains d where "d > 0"
@@ -3459,11 +3401,13 @@ theorem has_absolute_integral_change_of_variables:
            integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f(g x)) = b
      \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
 proof -
-  obtain C N where "fsigma C" "negligible N" and CNS: "C \<union> N = S" and "disjnt C N"
+  obtain C N where "fsigma C" and N: "N \<in> null_sets lebesgue" and CNS: "C \<union> N = S" and "disjnt C N"
     using lebesgue_set_almost_fsigma [OF S] .
   then obtain F :: "nat \<Rightarrow> (real^'m::_) set"
     where F: "range F \<subseteq> Collect compact" and Ceq: "C = Union(range F)"
     using fsigma_Union_compact by metis
+  have "negligible N"
+    using N by (simp add: negligible_iff_null_sets)
   let ?D = "\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R f (g x)"
   have "?D absolutely_integrable_on C \<and> integral C ?D = b
     \<longleftrightarrow> f absolutely_integrable_on (g ` C) \<and> integral (g ` C) f = b"

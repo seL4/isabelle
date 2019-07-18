@@ -641,11 +641,8 @@ proof -
 qed
 
 lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x \<le> b)"
-  apply (simp add: bounded_iff)
-  apply (subgoal_tac "\<And>x (y::real). 0 < 1 + \<bar>y\<bar> \<and> (x \<le> y \<longrightarrow> x \<le> 1 + \<bar>y\<bar>)")
-  apply metis
-  apply arith
-  done
+  unfolding bounded_iff 
+  by (meson less_imp_le not_le order_trans zero_less_one)
 
 lemma bounded_pos_less: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x < b)"
   apply (simp add: bounded_pos)
