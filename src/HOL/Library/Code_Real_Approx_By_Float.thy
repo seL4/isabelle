@@ -199,7 +199,9 @@ declare [[code drop: "HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool"
   "uminus :: real \<Rightarrow> real"
   "minus :: real \<Rightarrow> real \<Rightarrow> real"
   "times :: real \<Rightarrow> real \<Rightarrow> real"
-  "divide :: real \<Rightarrow> real \<Rightarrow> real"]]
+  "divide :: real \<Rightarrow> real \<Rightarrow> real"
+  "(<) :: real \<Rightarrow> real \<Rightarrow> bool"
+  "(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool"]]
 
 lemma [code]: "inverse r = 1 / r" for r :: real
   by (fact inverse_eq_divide)
