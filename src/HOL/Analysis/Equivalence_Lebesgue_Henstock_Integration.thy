@@ -1168,6 +1168,10 @@ next
   qed auto
 qed
 
+corollary eventually_ae_filter_negligible:
+  "eventually P (ae_filter lebesgue) \<longleftrightarrow> (\<exists>N. negligible N \<and> {x. \<not> P x} \<subseteq> N)"
+  by (auto simp: completion.AE_iff_null_sets negligible_iff_null_sets null_sets_completion_subset)
+
 lemma starlike_negligible:
   assumes "closed S"
       and eq1: "\<And>c x. (a + c *\<^sub>R x) \<in> S \<Longrightarrow> 0 \<le> c \<Longrightarrow> a + x \<in> S \<Longrightarrow> c = 1"
@@ -1561,7 +1565,8 @@ proof (clarsimp simp: completion.null_sets_outer)
     using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
   obtain T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" 
                  "measure lebesgue (T - S) < e/2 / (2 * B * DIM('M)) ^ DIM('N)"
-    by (rule lmeasurable_outer_open [OF \<open>S \<in> sets lebesgue\<close> e22])
+    using sets_lebesgue_outer_open [OF \<open>S \<in> sets lebesgue\<close> e22]
+    by (metis emeasure_eq_measure2 ennreal_leI linorder_not_le)
   then have T: "measure lebesgue T \<le> e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     using \<open>negligible S\<close> by (simp add: measure_Diff_null_set negligible_iff_null_sets)
   have "\<exists>r. 0 < r \<and> r \<le> 1/2 \<and>
@@ -3563,7 +3568,7 @@ lemma dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes f: "\<And>k. (f k) integrable_on S" and h: "h integrable_on S"
     and le: "\<And>k x. x \<in> S \<Longrightarrow> norm (f k x) \<le> h x"
-    and conv: "\<forall>x \<in> S. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+    and conv: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
   shows "g integrable_on S" "(\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
 proof -
   have 3: "h absolutely_integrable_on S"
@@ -3709,8 +3714,7 @@ proof -
       using fU absolutely_integrable_on_def by blast
     show "(\<lambda>x. if x \<in> \<Union>(s ` UNIV) then norm(f x) else 0) integrable_on UNIV"
       by (metis (no_types) absolutely_integrable_on_def f integrable_restrict_UNIV)
-    show "\<forall>x\<in>UNIV.
-         (\<lambda>n. if x \<in> (\<Union>m\<le>n. s m) then f x else 0)
+    show "\<And>x. (\<lambda>n. if x \<in> (\<Union>m\<le>n. s m) then f x else 0)
          \<longlonglongrightarrow> (if x \<in> \<Union>(s ` UNIV) then f x else 0)"
       by (force intro: tendsto_eventually eventually_sequentiallyI)
   qed auto

@@ -920,6 +920,9 @@ lemma ennreal_plus[simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> ennreal (a + b) = ennreal a + ennreal b"
   by (transfer fixing: a b) (auto simp: max_absorb2)
 
+lemma add_mono_ennreal: "x < ennreal y \<Longrightarrow> x' < ennreal y' \<Longrightarrow> x + x' < ennreal (y + y')"
+  by (metis (full_types) add_strict_mono ennreal_less_zero_iff ennreal_plus less_le not_less zero_le)
+
 lemma sum_ennreal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. ennreal (f i)) = ennreal (sum f I)"
   by (induction I rule: infinite_finite_induct) (auto simp: sum_nonneg)
 

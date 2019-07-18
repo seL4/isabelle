@@ -106,6 +106,12 @@ lemma limsup_INF_SUP: "limsup f = (INF n. SUP m\<in>{n..}. f m)"
   unfolding Limsup_def eventually_sequentially
   by (rule INF_eq) (auto simp: atLeast_def intro!: SUP_mono)
 
+lemma mem_limsup_iff: "x \<in> limsup A \<longleftrightarrow> (\<exists>\<^sub>F n in sequentially. x \<in> A n)"
+  by (simp add: Limsup_def) (metis (mono_tags) eventually_mono not_frequently)
+
+lemma mem_liminf_iff: "x \<in> liminf A \<longleftrightarrow> (\<forall>\<^sub>F n in sequentially. x \<in> A n)"
+  by (simp add: Liminf_def) (metis (mono_tags) eventually_mono)
+
 lemma Limsup_const:
   assumes ntriv: "\<not> trivial_limit F"
   shows "Limsup F (\<lambda>x. c) = c"

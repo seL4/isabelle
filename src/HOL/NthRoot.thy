@@ -379,6 +379,18 @@ lemma DERIV_real_root_generic:
       DERIV_odd_real_root[THEN DERIV_cong]
       DERIV_even_real_root[THEN DERIV_cong])
 
+lemma power_tendsto_0_iff [simp]:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "n > 0"
+  shows "((\<lambda>x. f x ^ n) \<longlongrightarrow> 0) F \<longleftrightarrow> (f \<longlongrightarrow> 0) F"
+proof -
+  have "((\<lambda>x. \<bar>root n (f x ^ n)\<bar>) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> 0) F"
+    by (auto simp: assms root_abs_power tendsto_rabs_zero_iff)
+  then have "((\<lambda>x. f x ^ n) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> 0) F"
+    by (metis tendsto_real_root abs_0 real_root_zero tendsto_rabs)
+  with assms show ?thesis
+    by (auto simp: tendsto_null_power)
+qed
 
 subsection \<open>Square Root\<close>
 
@@ -392,20 +404,13 @@ lemma real_sqrt_unique: "y\<^sup>2 = x \<Longrightarrow> 0 \<le> y \<Longrightar
   unfolding sqrt_def by (rule real_root_pos_unique [OF pos2])
 
 lemma real_sqrt_abs [simp]: "sqrt (x\<^sup>2) = \<bar>x\<bar>"
-  apply (rule real_sqrt_unique)
-   apply (rule power2_abs)
-  apply (rule abs_ge_zero)
-  done
+  by (metis power2_abs abs_ge_zero real_sqrt_unique)
 
 lemma real_sqrt_pow2 [simp]: "0 \<le> x \<Longrightarrow> (sqrt x)\<^sup>2 = x"
   unfolding sqrt_def by (rule real_root_pow_pos2 [OF pos2])
 
 lemma real_sqrt_pow2_iff [simp]: "(sqrt x)\<^sup>2 = x \<longleftrightarrow> 0 \<le> x"
-  apply (rule iffI)
-   apply (erule subst)
-   apply (rule zero_le_power2)
-  apply (erule real_sqrt_pow2)
-  done
+  by (metis real_sqrt_pow2 zero_le_power2)
 
 lemma real_sqrt_zero [simp]: "sqrt 0 = 0"
   unfolding sqrt_def by (rule real_root_zero)

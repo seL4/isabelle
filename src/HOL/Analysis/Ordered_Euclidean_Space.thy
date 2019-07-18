@@ -145,6 +145,28 @@ proof atomize_elim
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed
 
+lemma tendsto_sup[tendsto_intros]:
+  fixes X :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+  assumes "(X \<longlongrightarrow> x) net" "(Y \<longlongrightarrow> y) net"
+  shows "((\<lambda>i. sup (X i) (Y i)) \<longlongrightarrow> sup x y) net"
+   unfolding sup_max eucl_sup by (intro assms tendsto_intros)
+
+lemma tendsto_inf[tendsto_intros]:
+  fixes X :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+  assumes "(X \<longlongrightarrow> x) net" "(Y \<longlongrightarrow> y) net"
+  shows "((\<lambda>i. inf (X i) (Y i)) \<longlongrightarrow> inf x y) net"
+   unfolding inf_min eucl_inf by (intro assms tendsto_intros)
+
+lemma tendsto_componentwise_max:
+  assumes f: "(f \<longlongrightarrow> l) F" and g: "(g \<longlongrightarrow> m) F"
+  shows "((\<lambda>x. (\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)) \<longlongrightarrow> (\<Sum>i\<in>Basis. max (l \<bullet> i) (m \<bullet> i) *\<^sub>R i)) F"
+  by (intro tendsto_intros assms)
+
+lemma tendsto_componentwise_min:
+  assumes f: "(f \<longlongrightarrow> l) F" and g: "(g \<longlongrightarrow> m) F"
+  shows "((\<lambda>x. (\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)) \<longlongrightarrow> (\<Sum>i\<in>Basis. min (l \<bullet> i) (m \<bullet> i) *\<^sub>R i)) F"
+  by (intro tendsto_intros assms)
+
 lemma (in order) atLeastatMost_empty'[simp]:
   "(\<not> a \<le> b) \<Longrightarrow> {a..b} = {}"
   by (auto)
@@ -336,6 +358,6 @@ lemma ENR_interval [iff]:
     fixes a :: "'a::ordered_euclidean_space"
     shows "ENR{a..b}"
   by (auto simp: interval_cbox)
-
+    
 end
 
