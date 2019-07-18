@@ -393,6 +393,9 @@ lemma
     and measurable_lborel2[simp]: "measurable lborel M = measurable borel M"
   by (simp_all add: lborel_def)
 
+lemma space_lebesgue_on [simp]: "space (lebesgue_on S) = S"
+  by (simp add: space_restrict_space)
+
 lemma sets_lebesgue_on_refl [iff]: "S \<in> sets (lebesgue_on S)"
     by (metis inf_top.right_neutral sets.top space_borel space_completion space_lborel space_restrict_space)
 
@@ -1290,9 +1293,10 @@ proof -
   qed (use A N in auto)
 qed
 
-lemma lmeasurable_outer_open:
+lemma sets_lebesgue_outer_open:
+  fixes e::real
   assumes S: "S \<in> sets lebesgue" and "e > 0"
-  obtains T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" "measure lebesgue (T - S) < e"
+  obtains T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" "emeasure lebesgue (T - S) < ennreal e"
 proof -
   obtain S' where S': "S \<subseteq> S'" "S' \<in> sets borel"
               and null: "S' - S \<in> null_sets lebesgue"
@@ -1315,27 +1319,28 @@ proof -
     by (simp add: S U(1) sets.Diff)
   then show "(U - S) \<in> lmeasurable"
     unfolding fmeasurable_def using U(3) eq less_le_trans by fastforce
-  with eq U show "measure lebesgue (U - S) < e"
-    by (metis \<open>U - S \<in> lmeasurable\<close> emeasure_eq_measure2 ennreal_leI not_le)
+  with eq U show "emeasure lebesgue (U - S) < e"
+    by (simp add: eq)
   qed
 qed
 
 lemma sets_lebesgue_inner_closed:
+  fixes e::real
   assumes "S \<in> sets lebesgue" "e > 0"
-  obtains T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "measure lebesgue (S - T) < e"
+  obtains T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "emeasure lebesgue (S - T) < ennreal e"
 proof -
   have "-S \<in> sets lebesgue"
     using assms by (simp add: Compl_in_sets_lebesgue)
   then obtain T where "open T" "-S \<subseteq> T"
-          and T: "(T - -S) \<in> lmeasurable" "measure lebesgue (T - -S) < e"
-    using lmeasurable_outer_open assms  by blast
+          and T: "(T - -S) \<in> lmeasurable" "emeasure lebesgue (T - -S) < e"
+    using sets_lebesgue_outer_open assms  by blast
   show thesis
   proof
     show "closed (-T)"
       using \<open>open T\<close> by blast
     show "-T \<subseteq> S"
       using \<open>- S \<subseteq> T\<close> by auto
-    show "S - ( -T) \<in> lmeasurable" "measure lebesgue (S - (- T)) < e"
+    show "S - ( -T) \<in> lmeasurable" "emeasure lebesgue (S - (- T)) < e"
       using T by (auto simp: Int_commute)
   qed
 qed
@@ -1347,5 +1352,70 @@ lemma lebesgue_openin:
 lemma lebesgue_closedin:
    "\<lbrakk>closedin (top_of_set S) T; S \<in> sets lebesgue\<rbrakk> \<Longrightarrow> T \<in> sets lebesgue"
   by (metis borel_closed closedin_closed sets.Int sets_completionI_sets sets_lborel)
+
+
+subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close> 
+
+\<comment> \<open>\<^url>\<open>https://en.wikipedia.org/wiki/F-sigma_set\<close>\<close>
+inductive\<^marker>\<open>tag important\<close> fsigma :: "'a::topological_space set \<Rightarrow> bool" where
+  "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (\<Union>(F ` UNIV))"
+
+inductive\<^marker>\<open>tag important\<close> gdelta :: "'a::topological_space set \<Rightarrow> bool" where
+  "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
+
+lemma fsigma_Union_compact:
+  fixes S :: "'a::{real_normed_vector,heine_borel} set"
+  shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV))"
+proof safe
+  assume "fsigma S"
+  then obtain F :: "nat \<Rightarrow> 'a set" where F: "range F \<subseteq> Collect closed" "S = \<Union>(F ` UNIV)"
+    by (meson fsigma.cases image_subsetI mem_Collect_eq)
+  then have "\<exists>D::nat \<Rightarrow> 'a set. range D \<subseteq> Collect compact \<and> \<Union>(D ` UNIV) = F i" for i
+    using closed_Union_compact_subsets [of "F i"]
+    by (metis image_subsetI mem_Collect_eq range_subsetD)
+  then obtain D :: "nat \<Rightarrow> nat \<Rightarrow> 'a set"
+    where D: "\<And>i. range (D i) \<subseteq> Collect compact \<and> \<Union>((D i) ` UNIV) = F i"
+    by metis
+  let ?DD = "\<lambda>n. (\<lambda>(i,j). D i j) (prod_decode n)"
+  show "\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV)"
+  proof (intro exI conjI)
+    show "range ?DD \<subseteq> Collect compact"
+      using D by clarsimp (metis mem_Collect_eq rangeI split_conv subsetCE surj_pair)
+    show "S = \<Union> (range ?DD)"
+    proof
+      show "S \<subseteq> \<Union> (range ?DD)"
+        using D F
+        by clarsimp (metis UN_iff old.prod.case prod_decode_inverse prod_encode_eq)
+      show "\<Union> (range ?DD) \<subseteq> S"
+        using D F  by fastforce
+    qed
+  qed
+next
+  fix F :: "nat \<Rightarrow> 'a set"
+  assume "range F \<subseteq> Collect compact" and "S = \<Union>(F ` UNIV)"
+  then show "fsigma (\<Union>(F ` UNIV))"
+    by (simp add: compact_imp_closed fsigma.intros image_subset_iff)
+qed
+
+lemma gdelta_imp_fsigma: "gdelta S \<Longrightarrow> fsigma (- S)"
+proof (induction rule: gdelta.induct)
+  case (1 F)
+  have "- \<Inter>(F ` UNIV) = (\<Union>i. -(F i))"
+    by auto
+  then show ?case
+    by (simp add: fsigma.intros closed_Compl 1)
+qed
+
+lemma fsigma_imp_gdelta: "fsigma S \<Longrightarrow> gdelta (- S)"
+proof (induction rule: fsigma.induct)
+  case (1 F)
+  have "- \<Union>(F ` UNIV) = (\<Inter>i. -(F i))"
+    by auto
+  then show ?case
+    by (simp add: 1 gdelta.intros open_closed)
+qed
+
+lemma gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
+  using fsigma_imp_gdelta gdelta_imp_fsigma by force
 
 end

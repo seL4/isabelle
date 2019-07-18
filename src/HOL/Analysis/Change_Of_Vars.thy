@@ -423,77 +423,17 @@ qed
 
 subsection\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
 
-\<comment> \<open>\<^url>\<open>https://en.wikipedia.org/wiki/F-sigma_set\<close>\<close>
-inductive\<^marker>\<open>tag important\<close> fsigma :: "'a::topological_space set \<Rightarrow> bool" where
-  "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (\<Union>(F ` UNIV))"
-
-inductive\<^marker>\<open>tag important\<close> gdelta :: "'a::topological_space set \<Rightarrow> bool" where
-  "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
-
-lemma fsigma_Union_compact:
-  fixes S :: "'a::{real_normed_vector,heine_borel} set"
-  shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV))"
-proof safe
-  assume "fsigma S"
-  then obtain F :: "nat \<Rightarrow> 'a set" where F: "range F \<subseteq> Collect closed" "S = \<Union>(F ` UNIV)"
-    by (meson fsigma.cases image_subsetI mem_Collect_eq)
-  then have "\<exists>D::nat \<Rightarrow> 'a set. range D \<subseteq> Collect compact \<and> \<Union>(D ` UNIV) = F i" for i
-    using closed_Union_compact_subsets [of "F i"]
-    by (metis image_subsetI mem_Collect_eq range_subsetD)
-  then obtain D :: "nat \<Rightarrow> nat \<Rightarrow> 'a set"
-    where D: "\<And>i. range (D i) \<subseteq> Collect compact \<and> \<Union>((D i) ` UNIV) = F i"
-    by metis
-  let ?DD = "\<lambda>n. (\<lambda>(i,j). D i j) (prod_decode n)"
-  show "\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV)"
-  proof (intro exI conjI)
-    show "range ?DD \<subseteq> Collect compact"
-      using D by clarsimp (metis mem_Collect_eq rangeI split_conv subsetCE surj_pair)
-    show "S = \<Union> (range ?DD)"
-    proof
-      show "S \<subseteq> \<Union> (range ?DD)"
-        using D F
-        by clarsimp (metis UN_iff old.prod.case prod_decode_inverse prod_encode_eq)
-      show "\<Union> (range ?DD) \<subseteq> S"
-        using D F  by fastforce
-    qed
-  qed
-next
-  fix F :: "nat \<Rightarrow> 'a set"
-  assume "range F \<subseteq> Collect compact" and "S = \<Union>(F ` UNIV)"
-  then show "fsigma (\<Union>(F ` UNIV))"
-    by (simp add: compact_imp_closed fsigma.intros image_subset_iff)
-qed
-
-lemma gdelta_imp_fsigma: "gdelta S \<Longrightarrow> fsigma (- S)"
-proof (induction rule: gdelta.induct)
-  case (1 F)
-  have "- \<Inter>(F ` UNIV) = (\<Union>i. -(F i))"
-    by auto
-  then show ?case
-    by (simp add: fsigma.intros closed_Compl 1)
-qed
-
-lemma fsigma_imp_gdelta: "fsigma S \<Longrightarrow> gdelta (- S)"
-proof (induction rule: fsigma.induct)
-  case (1 F)
-  have "- \<Union>(F ` UNIV) = (\<Inter>i. -(F i))"
-    by auto
-  then show ?case
-    by (simp add: 1 gdelta.intros open_closed)
-qed
-
-lemma gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
-  using fsigma_imp_gdelta gdelta_imp_fsigma by force
-
 text\<open>A Lebesgue set is almost an \<open>F_sigma\<close> or \<open>G_delta\<close>.\<close>
 lemma lebesgue_set_almost_fsigma:
   assumes "S \<in> sets lebesgue"
   obtains C T where "fsigma C" "negligible T" "C \<union> T = S" "disjnt C T"
 proof -
   { fix n::nat
-    have "\<exists>T. closed T \<and> T \<subseteq> S \<and> S - T \<in> lmeasurable \<and> measure lebesgue (S-T) < 1 / Suc n"
+    obtain T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "emeasure lebesgue (S - T) < ennreal (1 / Suc n)"
       using sets_lebesgue_inner_closed [OF assms]
-      by (metis divide_pos_pos less_numeral_extra(1) of_nat_0_less_iff zero_less_Suc)
+      by (metis of_nat_0_less_iff zero_less_Suc zero_less_divide_1_iff)
+    then have "\<exists>T. closed T \<and> T \<subseteq> S \<and> S - T \<in> lmeasurable \<and> measure lebesgue (S-T) < 1 / Suc n"
+      by (metis emeasure_eq_measure2 ennreal_leI not_le)
   }
   then obtain F where F: "\<And>n::nat. closed (F n) \<and> F n \<subseteq> S \<and> S - F n \<in> lmeasurable \<and> measure lebesgue (S - F n) < 1 / Suc n"
     by metis
@@ -557,16 +497,16 @@ next
     by (metis neg negligible_iff_null_sets)
   have "frontier S \<in> lmeasurable" and mS0: "measure lebesgue (frontier S) = 0"
     using neg negligible_imp_measurable negligible_iff_measure by blast+
-  with \<open>e > 0\<close> lmeasurable_outer_open
+  with \<open>e > 0\<close> sets_lebesgue_outer_open
   obtain U where "open U"
-    and U: "frontier S \<subseteq> U" "U - frontier S \<in> lmeasurable" "measure lebesgue (U - frontier S) < e"
+    and U: "frontier S \<subseteq> U" "U - frontier S \<in> lmeasurable" "emeasure lebesgue (U - frontier S) < e"
     by (metis fmeasurableD)
   with null have "U \<in> lmeasurable"
     by (metis borel_open measurable_Diff_null_set sets_completionI_sets sets_lborel)
   have "measure lebesgue (U - frontier S) = measure lebesgue U"
     using mS0 by (simp add: \<open>U \<in> lmeasurable\<close> fmeasurableD measure_Diff_null_set null)
   with U have mU: "measure lebesgue U < e"
-    by simp
+    by (simp add: emeasure_eq_measure2 ennreal_less_iff)
   show ?thesis
   proof
     have "U \<noteq> UNIV"
@@ -612,12 +552,12 @@ proposition lebesgue_regular_inner:
  assumes "S \<in> sets lebesgue"
  obtains K C where "negligible K" "\<And>n::nat. compact(C n)" "S = (\<Union>n. C n) \<union> K"
 proof -
-  have "\<exists>T. closed T \<and> T \<subseteq> S \<and> (S - T) \<in> lmeasurable \<and> measure lebesgue (S - T) < (1/2)^n" for n
+  have "\<exists>T. closed T \<and> T \<subseteq> S \<and> (S - T) \<in> lmeasurable \<and> emeasure lebesgue (S - T) < ennreal ((1/2)^n)" for n
     using sets_lebesgue_inner_closed assms
     by (metis sets_lebesgue_inner_closed zero_less_divide_1_iff zero_less_numeral zero_less_power)
   then obtain C where clo: "\<And>n. closed (C n)" and subS: "\<And>n. C n \<subseteq> S"
     and mea: "\<And>n. (S - C n) \<in> lmeasurable"
-    and less: "\<And>n. measure lebesgue (S - C n) < (1/2)^n"
+    and less: "\<And>n. emeasure lebesgue (S - C n) < ennreal ((1/2)^n)"
     by metis
   have "\<exists>F. (\<forall>n::nat. compact(F n)) \<and> (\<Union>n. F n) = C m" for m::nat
     by (metis clo closed_Union_compact_subsets)
@@ -645,7 +585,8 @@ proof -
         show "S - C n \<in> lmeasurable"
           by (simp add: mea)
         show "measure lebesgue (S - C n) \<le> e"
-          using less [of n] n by simp
+          using less [of n] n
+          by (simp add: emeasure_eq_measure2 less_le mea)
       qed
     qed
     show "compact (?C n)" for n
@@ -758,9 +699,11 @@ proof -
       have eps_d: "f ` S \<in> lmeasurable"  "?\<mu> (f ` S) \<le> (B+e) * (?\<mu> S + d)" (is "?MD")
                   if "d > 0" for d
       proof -
-        obtain T where "open T" "S \<subseteq> T" and TS: "(T-S) \<in> lmeasurable" and "?\<mu> (T-S) < d"
-          using S \<open>d > 0\<close> lmeasurable_outer_open by blast
-        with S have "T \<in> lmeasurable" and Tless: "?\<mu> T < ?\<mu> S + d"
+        obtain T where T: "open T" "S \<subseteq> T" and TS: "(T-S) \<in> lmeasurable" and "emeasure lebesgue (T-S) < ennreal d"
+          using S \<open>d > 0\<close> sets_lebesgue_outer_open by blast
+        then have "?\<mu> (T-S) < d"
+          by (metis emeasure_eq_measure2 ennreal_leI not_less)
+        with S T TS have "T \<in> lmeasurable" and Tless: "?\<mu> T < ?\<mu> S + d"
           by (auto simp: measurable_measure_Diff dest!: fmeasurable_Diff_D)
         have "\<exists>r. 0 < r \<and> r < d \<and> ball x r \<subseteq> T \<and> f ` (S \<inter> ball x r) \<in> lmeasurable \<and>
                   ?\<mu> (f ` (S \<inter> ball x r)) \<le> (B + e) * ?\<mu> (ball x r)"
