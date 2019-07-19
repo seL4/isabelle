@@ -169,6 +169,16 @@ lemma mult_indicator_subset:
   "A \<subseteq> B \<Longrightarrow> indicator A x * indicator B x = (indicator A x :: 'a::comm_semiring_1)"
   by (auto split: split_indicator simp: fun_eq_iff)
 
+lemma indicator_times_eq_if:
+  fixes f :: "'a \<Rightarrow> 'b::comm_ring_1"
+  shows "indicator S x * f x = (if x \<in> S then f x else 0)" "f x * indicator S x = (if x \<in> S then f x else 0)"
+  by auto
+
+lemma indicator_scaleR_eq_if:
+  fixes f :: "'a \<Rightarrow> 'b::real_vector"
+  shows "indicator S x *\<^sub>R f x = (if x \<in> S then f x else 0)"
+  by simp
+
 lemma indicator_sums:
   assumes "\<And>i j. i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
   shows "(\<lambda>i. indicator (A i) x::real) sums indicator (\<Union>i. A i) x"

@@ -1439,7 +1439,7 @@ proof (rule has_derivative_inverse_strong[where g'="g' x" and f=f])
 qed (use assms in auto)
 
 
-text \<open>Invertible derivative continous at a point implies local
+text \<open>Invertible derivative continuous at a point implies local
 injectivity. It's only for this we need continuity of the derivative,
 except of course if we want the fact that the inverse derivative is
 also continuous. So if we know for some other reason that the inverse

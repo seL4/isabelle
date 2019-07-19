@@ -985,7 +985,7 @@ qed
 
 subsection \<open>Stone-Weierstrass theorem for polynomial functions\<close>
 
-text\<open>First, we need to show that they are continous, differentiable and separable.\<close>
+text\<open>First, we need to show that they are continuous, differentiable and separable.\<close>
 
 lemma continuous_real_polymonial_function:
   assumes "real_polynomial_function f"

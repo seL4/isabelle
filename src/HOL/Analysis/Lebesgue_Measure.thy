@@ -1072,6 +1072,13 @@ lemma bounded_set_imp_lmeasurable:
   assumes "bounded S" "S \<in> sets lebesgue" shows "S \<in> lmeasurable"
   by (metis assms bounded_Un emeasure_bounded_finite emeasure_completion fmeasurableI main_part_null_part_Un)
 
+lemma finite_measure_lebesgue_on: "S \<in> lmeasurable \<Longrightarrow> finite_measure (lebesgue_on S)"
+  by (auto simp: finite_measureI fmeasurable_def emeasure_restrict_space)
+
+lemma integrable_const_ivl [iff]:
+  fixes a::"'a::ordered_euclidean_space"
+  shows "integrable (lebesgue_on {a..b}) (\<lambda>x. c)"
+  by (metis cbox_interval finite_measure.integrable_const finite_measure_lebesgue_on lmeasurable_cbox)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Translation preserves Lebesgue measure\<close>
 

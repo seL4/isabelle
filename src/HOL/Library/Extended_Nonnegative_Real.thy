@@ -1113,6 +1113,9 @@ lemma enn2real_positive_iff: "0 < enn2real x \<longleftrightarrow> (0 < x \<and>
 lemma enn2real_eq_posreal_iff[simp]: "c > 0 \<Longrightarrow> enn2real x = c \<longleftrightarrow> x = c"
   by (cases x) auto
 
+lemma ennreal_enn2real_if: "ennreal (enn2real r) = (if r = top then 0 else r)"
+  by(auto intro!: ennreal_enn2real simp add: less_top)
+
 subsection \<open>Coercion from \<^typ>\<open>enat\<close> to \<^typ>\<open>ennreal\<close>\<close>
 
 
@@ -1324,6 +1327,9 @@ lemma tendsto_enn2ereal_iff[simp]: "((\<lambda>i. enn2ereal (f i)) \<longlongrig
     continuous_on_e2ennreal[THEN continuous_on_tendsto_compose, of "\<lambda>x. enn2ereal (f x)" "enn2ereal x" F UNIV]
   by auto
 
+lemma ennreal_tendsto_0_iff: "(\<And>n. f n \<ge> 0) \<Longrightarrow> ((\<lambda>n. ennreal (f n)) \<longlonglongrightarrow> 0) \<longleftrightarrow> (f \<longlonglongrightarrow> 0)"
+  by (metis (mono_tags) ennreal_0 eventuallyI order_refl tendsto_ennreal_iff)
+    
 lemma continuous_on_add_ennreal:
   fixes f g :: "'a::topological_space \<Rightarrow> ennreal"
   shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. f x + g x)"
@@ -1729,6 +1735,20 @@ lemma suminf_ennreal2:
 
 lemma less_top_ennreal: "x < top \<longleftrightarrow> (\<exists>r\<ge>0. x = ennreal r)"
   by (cases x) auto
+
+lemma enn2real_less_iff[simp]: "x < top \<Longrightarrow> enn2real x < c \<longleftrightarrow> x < c"
+  using ennreal_less_iff less_top_ennreal by auto
+
+lemma enn2real_le_iff[simp]: "\<lbrakk>x < top; c > 0\<rbrakk> \<Longrightarrow> enn2real x \<le> c \<longleftrightarrow> x \<le> c"
+  by (cases x) auto
+
+lemma enn2real_less:
+  assumes "enn2real e < r" "e \<noteq> top" shows "e < ennreal r"
+  using enn2real_less_iff assms top.not_eq_extremum by blast
+
+lemma enn2real_le:
+  assumes "enn2real e \<le> r" "e \<noteq> top" shows "e \<le> ennreal r"
+  by (metis assms enn2real_less ennreal_enn2real_if eq_iff less_le)
 
 lemma tendsto_top_iff_ennreal:
   fixes f :: "'a \<Rightarrow> ennreal"

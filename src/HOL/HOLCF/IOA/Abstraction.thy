@@ -43,7 +43,7 @@ definition is_live_abstraction :: "('s1 \<Rightarrow> 's2) \<Rightarrow> ('a, 's
     is_abstraction h (fst CL) (fst AM) \<and> temp_weakening (snd AM) (snd CL) h"
 
 
-(* thm about ex2seq which is not provable by induction as ex2seq is not continous *)
+(* thm about ex2seq which is not provable by induction as ex2seq is not continuous *)
 axiomatization where
   ex2seq_abs_cex: "ex2seq (cex_abs h ex) = cex_absSeq h (ex2seq ex)"
 

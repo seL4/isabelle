@@ -816,6 +816,36 @@ proof -
   finally show ?thesis .
 qed
 
+lemma has_integral_integral_lebesgue_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "integrable (lebesgue_on S) f" "S \<in> sets lebesgue"
+  shows "(f has_integral (integral\<^sup>L (lebesgue_on S) f)) S"
+proof -
+  let ?f = "\<lambda>x. if x \<in> S then f x else 0"
+  have "integrable lebesgue (\<lambda>x. indicat_real S x *\<^sub>R f x)"
+    using indicator_scaleR_eq_if [of S _ f] assms
+  by (metis (full_types) integrable_restrict_space sets.Int_space_eq2)
+  then have "integrable lebesgue ?f"
+    using indicator_scaleR_eq_if [of S _ f] assms by auto
+  then have "(?f has_integral (integral\<^sup>L lebesgue ?f)) UNIV"
+    by (rule has_integral_integral_lebesgue)
+  then have "(f has_integral (integral\<^sup>L lebesgue ?f)) S"
+    using has_integral_restrict_UNIV by blast
+  moreover
+  have "S \<inter> space lebesgue \<in> sets lebesgue"
+    by (simp add: assms)
+  then have "(integral\<^sup>L lebesgue ?f) = (integral\<^sup>L (lebesgue_on S) f)"
+    by (simp add: integral_restrict_space indicator_scaleR_eq_if)
+  ultimately show ?thesis
+    by auto
+qed
+
+lemma lebesgue_integral_eq_integral:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "integrable (lebesgue_on S) f" "S \<in> sets lebesgue"
+  shows "integral\<^sup>L (lebesgue_on S) f = integral S f"
+  by (metis has_integral_integral_lebesgue_on assms integral_unique)
+
 lemma integrable_on_lebesgue:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "integrable lebesgue f \<Longrightarrow> f integrable_on UNIV"
@@ -3141,7 +3171,7 @@ lemma absolutely_integrable_continuous:
   using absolutely_integrable_integrable_bound
   by (simp add: absolutely_integrable_on_def continuous_on_norm integrable_continuous)
 
-lemma continous_imp_integrable:
+lemma continuous_imp_integrable:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on (cbox a b) f"
   shows "integrable (lebesgue_on (cbox a b)) f"
@@ -3151,6 +3181,13 @@ proof -
   then show ?thesis
     by (simp add: integrable_restrict_space set_integrable_def)
 qed
+
+lemma continuous_imp_integrable_real:
+  fixes f :: "real \<Rightarrow> 'b::euclidean_space"
+  assumes "continuous_on {a..b} f"
+  shows "integrable (lebesgue_on {a..b}) f"
+  by (metis assms continuous_imp_integrable interval_cbox)
+
 
 
 subsection \<open>Componentwise\<close>
@@ -4485,6 +4522,24 @@ proof (rule integrable_on_all_intervals_integrable_bound [OF _ normf g])
   qed
 qed
 
+lemma measurable_bounded_by_integrable_imp_lebesgue_integrable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f \<in> borel_measurable (lebesgue_on S)" and g: "integrable (lebesgue_on S) g"
+    and normf: "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> g x" and S: "S \<in> sets lebesgue"
+  shows "integrable (lebesgue_on S) f"
+proof -
+  have "f absolutely_integrable_on S"
+    by (metis (no_types) S absolutely_integrable_integrable_bound f g integrable_on_lebesgue_on measurable_bounded_by_integrable_imp_integrable normf)
+  then show ?thesis
+    by (simp add: S integrable_restrict_space set_integrable_def)
+qed
+
+lemma measurable_bounded_by_integrable_imp_integrable_real:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "f \<in> borel_measurable (lebesgue_on S)" "g integrable_on S" "\<And>x. x \<in> S \<Longrightarrow> abs(f x) \<le> g x" "S \<in> sets lebesgue"
+  shows "f integrable_on S"
+  using measurable_bounded_by_integrable_imp_integrable [of f S g] assms by simp
+
 subsection\<open> Relation between Borel measurability and integrability.\<close>
 
 lemma integrable_imp_measurable_weak:
@@ -4503,6 +4558,53 @@ proof -
   then show ?thesis
     using assms borel_measurable_If_D borel_measurable_UNIV_eq integrable_imp_measurable_weak integrable_restrict_UNIV by blast
 qed
+
+lemma integrable_iff_integrable_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue" "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>lebesgue_on S) < \<infinity>"
+  shows "integrable (lebesgue_on S) f \<longleftrightarrow> f integrable_on S"
+  using assms integrable_iff_bounded integrable_imp_measurable integrable_on_lebesgue_on by blast
+
+lemma absolutely_integrable_measurable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S) \<and> integrable (lebesgue_on S) (norm \<circ> f)"
+    (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  then have "f \<in> borel_measurable (lebesgue_on S)"
+    by (simp add: absolutely_integrable_on_def integrable_imp_measurable)
+  then show ?rhs
+    using assms set_integrable_norm [of lebesgue S f] L
+    by (simp add: integrable_restrict_space set_integrable_def)
+next
+  assume ?rhs then show ?lhs
+    using assms integrable_on_lebesgue_on
+    by (metis absolutely_integrable_integrable_bound comp_def eq_iff measurable_bounded_by_integrable_imp_integrable)
+qed
+
+lemma absolutely_integrable_measurable_real:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  shows "f absolutely_integrable_on S \<longleftrightarrow>
+         f \<in> borel_measurable (lebesgue_on S) \<and> integrable (lebesgue_on S) (\<lambda>x. \<bar>f x\<bar>)"
+  by (simp add: absolutely_integrable_measurable assms o_def)
+
+lemma absolutely_integrable_measurable_real':
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S) \<and> (\<lambda>x. \<bar>f x\<bar>) integrable_on S"
+  using assms
+  apply (auto simp: absolutely_integrable_measurable integrable_on_lebesgue_on)
+  apply (simp add: integrable_on_lebesgue_on measurable_bounded_by_integrable_imp_lebesgue_integrable)
+  using abs_absolutely_integrableI_1 absolutely_integrable_measurable measurable_bounded_by_integrable_imp_integrable_real by blast
+
+lemma measurable_bounded_by_integrable_imp_absolutely_integrable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f \<in> borel_measurable (lebesgue_on S)" "S \<in> sets lebesgue"
+    and "g integrable_on S" and "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> (g x)"
+  shows "f absolutely_integrable_on S"
+  using assms absolutely_integrable_integrable_bound measurable_bounded_by_integrable_imp_integrable by blast
 
 proposition negligible_differentiable_vimage:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"

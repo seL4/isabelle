@@ -20,9 +20,6 @@ lemma [simp]:
   and ennreal_max_0': "ennreal (max x 0) = ennreal x"
 by(simp_all add: max_def ennreal_eq_0_iff)
 
-lemma ennreal_enn2real_if: "ennreal (enn2real r) = (if r = \<top> then 0 else r)"
-by(auto intro!: ennreal_enn2real simp add: less_top)
-
 lemma e2ennreal_0 [simp]: "e2ennreal 0 = 0"
 by(simp add: zero_ennreal_def)
 
