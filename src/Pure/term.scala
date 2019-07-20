@@ -11,6 +11,8 @@ package isabelle
 
 object Term
 {
+  /* types and terms */
+
   type Indexname = (String, Int)
 
   type Sort = List[String]
@@ -29,6 +31,32 @@ object Term
   case class Bound(index: Int) extends Term
   case class Abs(name: String, typ: Typ = dummyT, body: Term) extends Term
   case class App(fun: Term, arg: Term) extends Term
+
+
+  /* type arguments of consts */
+
+  def const_typargs(name: String, typ: Typ, typargs: List[String], decl: Typ): List[Typ] =
+  {
+    var subst = Map.empty[String, Typ]
+
+    def bad_match(): Nothing = error("Malformed type instance for " + name + ": " + typ)
+    def raw_match(arg: (Typ, Typ))
+    {
+      arg match {
+        case (TFree(a, _), ty) =>
+          subst.get(a) match {
+            case None => subst += (a -> ty)
+            case Some(ty1) => if (ty != ty1) bad_match()
+          }
+        case (Type(c1, args1), Type(c2, args2)) if c1 == c2 =>
+          (args1 zip args2).foreach(raw_match)
+        case _ => bad_match()
+      }
+    }
+    raw_match(decl, typ)
+
+    typargs.map(subst)
+  }
 
 
 
