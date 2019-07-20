@@ -19,7 +19,7 @@ object JEdit_Sessions
   /* session options */
 
   def session_dirs(): List[Path] =
-    Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+    Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS")).filterNot(p => p.implode == "-")
 
   def session_no_build(): Boolean =
     Isabelle_System.getenv("JEDIT_NO_BUILD") == "true"

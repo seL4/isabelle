@@ -148,7 +148,7 @@ JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
 JEDIT_LOGIC_FOCUS=""
 JEDIT_INCLUDE_SESSIONS=""
-JEDIT_SESSION_DIRS=""
+JEDIT_SESSION_DIRS="-"
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_NO_BUILD=""
@@ -182,11 +182,7 @@ function getoptions()
         BUILD_ONLY=true
         ;;
       d)
-        if [ -z "$JEDIT_SESSION_DIRS" ]; then
-          JEDIT_SESSION_DIRS="$OPTARG"
-        else
-          JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
-        fi
+        JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
         ;;
       i)
         if [ -z "$JEDIT_INCLUDE_SESSIONS" ]; then
