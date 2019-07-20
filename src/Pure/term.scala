@@ -33,6 +33,24 @@ object Term
   case class App(fun: Term, arg: Term) extends Term
 
 
+  /* Pure logic */
+
+  def itselfT(ty: Typ): Typ = Type(Pure_Thy.ITSELF, List(ty))
+  val propT: Typ = Type(Pure_Thy.PROP, Nil)
+  def funT(ty1: Typ, ty2: Typ): Typ = Type(Pure_Thy.FUN, List(ty1, ty2))
+
+  def mk_type(ty: Typ): Term = Const(Pure_Thy.TYPE, itselfT(ty))
+
+  def const_of_class(c: String): String = c + "_class"
+
+  def mk_of_sort(ty: Typ, s: Sort): List[Term] =
+  {
+    val class_type = funT(itselfT(ty), propT)
+    val t = mk_type(ty)
+    s.map(c => App(Const(const_of_class(c), class_type), t))
+  }
+
+
   /* type arguments of consts */
 
   def const_typargs(name: String, typ: Typ, typargs: List[String], decl: Typ): List[Typ] =

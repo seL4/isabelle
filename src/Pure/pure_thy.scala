@@ -19,6 +19,7 @@ object Pure_Thy
   val ALL: String = "Pure.all"
   val IMP: String = "Pure.imp"
   val EQ: String = "Pure.eq"
+  val TYPE: String = "Pure.type"
 
 
   /* proof terms (abstract syntax) */
