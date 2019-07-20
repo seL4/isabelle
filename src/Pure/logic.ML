@@ -54,6 +54,7 @@ sig
   val name_arities: arity -> string list
   val name_arity: string * sort list * class -> string
   val mk_arities: arity -> term list
+  val mk_arity: string * sort list * class -> term
   val dest_arity: term -> string * sort list * class
   val unconstrainT: sort list -> term ->
     ((typ -> typ) * ((typ * class) * term) list * (typ * class) list) * term
@@ -318,6 +319,8 @@ fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 fun mk_arities (t, Ss, S) =
   let val T = Type (t, ListPair.map TFree (Name.invent Name.context Name.aT (length Ss), Ss))
   in map (fn c => mk_of_class (T, c)) S end;
+
+fun mk_arity (t, Ss, c) = the_single (mk_arities (t, Ss, [c]));
 
 fun dest_arity tm =
   let

@@ -440,10 +440,10 @@ object Export_Theory
 
   /* sort algebra */
 
-  sealed case class Classrel(class_name: String, super_names: List[String])
+  sealed case class Classrel(class1: String, class2: String, prop: Prop)
   {
     def cache(cache: Term.Cache): Classrel =
-      Classrel(cache.string(class_name), super_names.map(cache.string(_)))
+      Classrel(cache.string(class1), cache.string(class2), prop.cache(cache))
   }
 
   def read_classrel(provider: Export.Provider): List[Classrel] =
@@ -452,15 +452,16 @@ object Export_Theory
     val classrel =
     {
       import XML.Decode._
-      list(pair(string, list(string)))(body)
+      list(pair(decode_prop, pair(string, string)))(body)
     }
-    for ((c, cs) <- classrel) yield Classrel(c, cs)
+    for ((prop, (c1, c2)) <- classrel) yield Classrel(c1, c2, prop)
   }
 
-  sealed case class Arity(type_name: String, domain: List[Term.Sort], codomain: String)
+  sealed case class Arity(type_name: String, domain: List[Term.Sort], codomain: String, prop: Prop)
   {
     def cache(cache: Term.Cache): Arity =
-      Arity(cache.string(type_name), domain.map(cache.sort(_)), cache.string(codomain))
+      Arity(cache.string(type_name), domain.map(cache.sort(_)), cache.string(codomain),
+        prop.cache(cache))
   }
 
   def read_arities(provider: Export.Provider): List[Arity] =
@@ -470,9 +471,9 @@ object Export_Theory
     {
       import XML.Decode._
       import Term_XML.Decode._
-      list(triple(string, list(sort), string))(body)
+      list(pair(decode_prop, triple(string, list(sort), string)))(body)
     }
-    for ((a, b, c) <- arities) yield Arity(a, b, c)
+    for ((prop, (a, b, c)) <- arities) yield Arity(a, b, c, prop)
   }
 
 

@@ -325,16 +325,24 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
         (#2 (#classes rep_tsig));
 
+    val encode_prop0 =
+      encode_axiom Name.context o Logic.varify_global;
+
     val encode_classrel =
       let open XML.Encode
-      in list (pair string (list string)) end;
+      in list (pair encode_prop0 (pair string string)) end;
 
     val encode_arities =
       let open XML.Encode Term_XML.Encode
-      in list (triple string (list sort) string) end;
+      in list (pair encode_prop0 (triple string (list sort) string)) end;
 
-    val _ = if null classrel then () else export_body thy "classrel" (encode_classrel classrel);
-    val _ = if null arities then () else export_body thy "arities" (encode_arities arities);
+    val export_classrel =
+      maps (fn (c, cs) => map (pair c) cs) #> map (`Logic.mk_classrel) #> encode_classrel;
+
+    val export_arities = map (`Logic.mk_arity) #> encode_arities;
+
+    val _ = if null classrel then () else export_body thy "classrel" (export_classrel classrel);
+    val _ = if null arities then () else export_body thy "arities" (export_arities arities);
 
 
     (* locales *)
