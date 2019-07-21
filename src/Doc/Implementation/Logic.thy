@@ -1147,11 +1147,8 @@ text \<open>
   \begin{center}
   \begin{supertabular}{rclr}
 
-  @{syntax_def (inner) proof} & = & \<^verbatim>\<open>Lam\<close> \<open>params\<close> \<^verbatim>\<open>.\<close> \<open>proof\<close> \\
-    & \<open>|\<close> & \<open>\<^bold>\<lambda>\<close> \<open>params\<close> \<^verbatim>\<open>.\<close> \<open>proof\<close> \\
-    & \<open>|\<close> & \<open>proof\<close> \<^verbatim>\<open>%\<close> \<open>any\<close> \\
+  @{syntax_def (inner) proof} & = & \<open>\<^bold>\<lambda>\<close> \<open>params\<close> \<^verbatim>\<open>.\<close> \<open>proof\<close> \\
     & \<open>|\<close> & \<open>proof\<close> \<open>\<cdot>\<close> \<open>any\<close> \\
-    & \<open>|\<close> & \<open>proof\<close> \<^verbatim>\<open>%%\<close> \<open>proof\<close> \\
     & \<open>|\<close> & \<open>proof\<close> \<open>\<bullet>\<close> \<open>proof\<close> \\
     & \<open>|\<close> & \<open>id  |  longid\<close> \\
   \\
