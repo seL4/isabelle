@@ -542,8 +542,9 @@ fun register { named_consts, computation_Ts, computation_cTs } ctxt =
     val position_index' = #position_index data + 1;
     fun generated_code' () =
       let
-        val evals = Abs ("eval", map snd computation_cTs' --->
-          TFree (Name.aT, []), list_comb (Bound 0, map Const computation_cTs'))
+        val evals =
+          Abs ("eval", map snd computation_cTs' ---> Term.aT [],
+            list_comb (Bound 0, map Const computation_cTs'))
           |> preprocess_term { ctxt = ctxt } ctxt
       in Code_Thingol.dynamic_value ctxt
         (K I) (runtime_code ctxt NONE [] named_consts' computation_Ts') evals

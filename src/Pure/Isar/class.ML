@@ -309,7 +309,7 @@ fun synchronize_class_syntax sort base_sort ctxt =
               (case Vartab.lookup tyenv (Name.aT, 0) of
                 SOME (_, ty' as TVar (vi, sort)) =>
                   if Type_Infer.is_param vi andalso Sorts.sort_le algebra (base_sort, sort)
-                  then SOME (ty', TFree (Name.aT, base_sort))
+                  then SOME (ty', Term.aT base_sort)
                   else NONE
               | _ => NONE)
           | NONE => NONE)
@@ -335,8 +335,7 @@ fun redeclare_operations thy sort =
 
 fun begin sort base_sort ctxt =
   ctxt
-  |> Variable.declare_term
-      (Logic.mk_type (TFree (Name.aT, base_sort)))
+  |> Variable.declare_term (Logic.mk_type (Term.aT base_sort))
   |> synchronize_class_syntax sort base_sort
   |> Overloading.activate_improvable_syntax;
 

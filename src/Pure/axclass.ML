@@ -512,7 +512,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
           (case Term.add_tvarsT T [] of
             [((a, _), S)] => check_constraint (a, S)
           | _ => error ("Exactly one type variable expected in class parameter " ^ quote p));
-        val T' = Term.map_type_tvar (fn _ => TFree (Name.aT, [class])) T;
+        val T' = Term.map_type_tvar (K (Term.aT [class])) T;
       in (p, T') end);
 
 

@@ -28,7 +28,7 @@ val proofT = Type ("proof", []);
 val paramT = Type ("param", []);
 val paramsT = Type ("params", []);
 val idtT = Type ("idt", []);
-val aT = TFree (Name.aT, []);
+val aT = Term.aT [];
 
 
 (** constants for theorems and axioms **)

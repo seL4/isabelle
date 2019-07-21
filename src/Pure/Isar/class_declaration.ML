@@ -41,7 +41,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val const_morph =
       Element.instantiate_normalize_morphism ([], param_map_inst);
     val typ_morph =
-      Element.instantiate_normalize_morphism ([(a_tfree, certT (TFree (Name.aT, [class])))], [])
+      Element.instantiate_normalize_morphism ([(a_tfree, certT (Term.aT [class]))], [])
     val (([raw_props], _, [(_, raw_inst_morph)], _, export_morph), _) = thy_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            (Expression.Named param_map_const, [])))], []);
@@ -139,7 +139,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
                   " of type parameter " ^ Name.aT ^ " of sort " ^
                   Syntax.string_of_sort_global thy S)
           | _ => error "Multiple type variables in class specification");
-        val fixateT = TFree (Name.aT, fixate_sort);
+        val fixateT = Term.aT fixate_sort;
       in
         (map o map_atyps)
           (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) Ts
@@ -194,7 +194,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
         | [(_, sort)] => sort
         | _ => error "Multiple type variables in class specification");
     val supparams = map (fn ((c, T), _) =>
-      (c, map_atyps (K (TFree (Name.aT, base_sort))) T)) raw_supparams;
+      (c, map_atyps (K (Term.aT base_sort)) T)) raw_supparams;
     val supparam_names = map fst supparams;
     fun mk_param ((c, _), _) = Free (c, (the o AList.lookup (op =) supparams) c);
     val supexpr = (map (fn sup => (sup, (("", false),
@@ -264,16 +264,16 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
     (*FIXME simplify*)
     val supconsts = supparam_names
       |> AList.make (snd o the o AList.lookup (op =) (Class.these_params thy sups))
-      |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
+      |> (map o apsnd o apsnd o map_atyps) (K (Term.aT [class]));
     val all_params = Locale.params_of thy class;
     val raw_params = (snd o chop (length supparam_names)) all_params;
     fun add_const ((raw_c, raw_ty), _) thy =
       let
         val b = Binding.name raw_c;
         val c = Sign.full_name thy b;
-        val ty = map_atyps (K (TFree (Name.aT, base_sort))) raw_ty;
+        val ty = map_atyps (K (Term.aT base_sort)) raw_ty;
         val ty0 = Type.strip_sorts ty;
-        val ty' = map_atyps (K (TFree (Name.aT, [class]))) ty0;
+        val ty' = map_atyps (K (Term.aT [class])) ty0;
         val syn = (the_default NoSyn o AList.lookup Binding.eq_name global_syntax) b;
       in
         thy

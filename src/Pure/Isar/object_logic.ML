@@ -126,7 +126,7 @@ fun drop_judgment ctxt (Abs (x, T, t)) = Abs (x, T, drop_judgment ctxt t)
 fun fixed_judgment ctxt x =
   let  (*be robust wrt. low-level errors*)
     val c = judgment_name ctxt;
-    val aT = TFree (Name.aT, []);
+    val aT = Term.aT [];
     val T =
       the_default (aT --> propT) (Sign.const_type (Proof_Context.theory_of ctxt) c)
       |> Term.map_type_tvar (fn ((a, _), S) => TFree (a, S));
