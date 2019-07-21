@@ -290,8 +290,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun encode_axiom used t = encode_prop used ([], t);
 
-    val encode_fact_single = encode_prop Name.context o prop_of;
-    val encode_fact_multi = XML.Encode.list (encode_prop Name.context) o map prop_of;
+    val encode_fact = encode_prop Name.context;
+    val encode_fact_single = encode_fact o prop_of;
+    val encode_fact_multi = XML.Encode.list encode_fact o map prop_of;
 
     val _ =
       export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
@@ -321,25 +322,27 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* sort algebra *)
 
-    val {classrel, arities} =
-      Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
-        (#2 (#classes rep_tsig));
+    local
+      val prop = encode_axiom Name.context o Logic.varify_global;
 
-    val encode_prop0 =
-      encode_axiom Name.context o Logic.varify_global;
+      val encode_classrel =
+        let open XML.Encode
+        in list (pair prop (pair string string)) end;
 
-    val encode_classrel =
-      let open XML.Encode
-      in list (pair encode_prop0 (pair string string)) end;
+      val encode_arities =
+        let open XML.Encode Term_XML.Encode
+        in list (pair prop (triple string (list sort) string)) end;
+    in
+      val export_classrel =
+        maps (fn (c, cs) => map (pair c) cs) #> map (`Logic.mk_classrel) #> encode_classrel;
 
-    val encode_arities =
-      let open XML.Encode Term_XML.Encode
-      in list (pair encode_prop0 (triple string (list sort) string)) end;
+      val export_arities = map (`Logic.mk_arity) #> encode_arities;
 
-    val export_classrel =
-      maps (fn (c, cs) => map (pair c) cs) #> map (`Logic.mk_classrel) #> encode_classrel;
+      val {classrel, arities} =
+        Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
+          (#2 (#classes rep_tsig));
 
-    val export_arities = map (`Logic.mk_arity) #> encode_arities;
+    end;
 
     val _ = if null classrel then () else export_body thy "classrel" (export_classrel classrel);
     val _ = if null arities then () else export_body thy "arities" (export_arities arities);
