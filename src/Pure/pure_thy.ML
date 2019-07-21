@@ -14,6 +14,8 @@ end;
 structure Pure_Thy: PURE_THY =
 struct
 
+(* auxiliary *)
+
 val typ = Simple_Syntax.read_typ;
 val prop = Simple_Syntax.read_prop;
 
@@ -26,6 +28,18 @@ fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range);
 fun infix_ (sy, p) = Infix (Input.string sy, p, Position.no_range);
 fun infixr_ (sy, p) = Infixr (Input.string sy, p, Position.no_range);
 fun binder (sy, p, q) = Binder (Input.string sy, p, q, Position.no_range);
+
+fun add_deps_type c thy =
+  let
+    val n = Sign.arity_number thy c;
+    val typargs = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
+  in thy |> Theory.add_deps_global "" ((Defs.Type, c), typargs) [] end
+
+fun add_deps_const c thy =
+  let
+    val T = Logic.unvarifyT_global (Sign.the_const_type thy c);
+    val typargs = Sign.const_typargs thy (c, T);
+  in thy |> Theory.add_deps_global "" ((Defs.Const, c), typargs) [] end;
 
 
 (* application syntax variants *)
@@ -70,11 +84,13 @@ val _ = Theory.setup
    [(Binding.make ("fun", \<^here>), 2, NoSyn),
     (Binding.make ("prop", \<^here>), 0, NoSyn),
     (Binding.make ("itself", \<^here>), 1, NoSyn),
-    (Binding.make ("dummy", \<^here>), 0, NoSyn)]
-  #> Theory.add_deps_global "fun" ((Defs.Type, "fun"), [typ "'a", typ "'b"]) []
-  #> Theory.add_deps_global "prop" ((Defs.Type, "prop"), []) []
-  #> Theory.add_deps_global "itself" ((Defs.Type, "itself"), [typ "'a"]) []
-  #> Theory.add_deps_global "dummy" ((Defs.Type, "dummy"), []) []
+    (Binding.make ("dummy", \<^here>), 0, NoSyn),
+    (qualify (Binding.make ("proof", \<^here>)), 0, NoSyn)]
+  #> add_deps_type "fun"
+  #> add_deps_type "prop"
+  #> add_deps_type "itself"
+  #> add_deps_type "dummy"
+  #> add_deps_type "Pure.proof"
   #> Sign.add_nonterminals_global
     (map (fn name => Binding.make (name, \<^here>))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
@@ -200,12 +216,20 @@ val _ = Theory.setup
     (qualify (Binding.make ("all", \<^here>)), typ "('a \<Rightarrow> prop) \<Rightarrow> prop", binder ("\<And>", 0, 0)),
     (qualify (Binding.make ("prop", \<^here>)), typ "prop \<Rightarrow> prop", NoSyn),
     (qualify (Binding.make ("type", \<^here>)), typ "'a itself", NoSyn),
-    (qualify (Binding.make ("dummy_pattern", \<^here>)), typ "'a", Mixfix.mixfix "'_")]
-  #> Theory.add_deps_global "Pure.eq" ((Defs.Const, "Pure.eq"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.imp" ((Defs.Const, "Pure.imp"), []) []
-  #> Theory.add_deps_global "Pure.all" ((Defs.Const, "Pure.all"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.type" ((Defs.Const, "Pure.type"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.dummy_pattern" ((Defs.Const, "Pure.dummy_pattern"), [typ "'a"]) []
+    (qualify (Binding.make ("dummy_pattern", \<^here>)), typ "'a", Mixfix.mixfix "'_"),
+    (qualify (Binding.make ("Appt", \<^here>)), typ "Pure.proof \<Rightarrow> 'a \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("AppP", \<^here>)), typ "Pure.proof \<Rightarrow> Pure.proof \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("Abst", \<^here>)), typ "('a \<Rightarrow> Pure.proof) \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("AbsP", \<^here>)), typ "prop \<Rightarrow> (Pure.proof \<Rightarrow> Pure.proof) \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("Hyp", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("Oracle", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("OfClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
+    (qualify (Binding.make ("MinProof", \<^here>)), typ "Pure.proof", Mixfix.mixfix "?")]
+  #> add_deps_const "Pure.eq"
+  #> add_deps_const "Pure.imp"
+  #> add_deps_const "Pure.all"
+  #> add_deps_const "Pure.type"
+  #> add_deps_const "Pure.dummy_pattern"
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation

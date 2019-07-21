@@ -22,16 +22,16 @@ object Pure_Thy
   val TYPE: String = "Pure.type"
 
 
-  /* proof terms (abstract syntax) */
+  /* abstract syntax for proof terms */
 
-  val PROOF: String = "proof"
+  val PROOF: String = "Pure.proof"
 
-  val APPT: String = "Appt"
-  val APPP: String = "AppP"
-  val ABST: String = "Abst"
-  val ABSP: String = "AbsP"
-  val HYP: String = "Hyp"
-  val ORACLE: String = "Oracle"
-  val OFCLASS: String = "OfClass"
-  val MINPROOF: String = "MinProof"
+  val APPT: String = "Pure.Appt"
+  val APPP: String = "Pure.AppP"
+  val ABST: String = "Pure.Abst"
+  val ABSP: String = "Pure.AbsP"
+  val HYP: String = "Pure.Hyp"
+  val ORACLE: String = "Pure.Oracle"
+  val OFCLASS: String = "Pure.OfClass"
+  val MINPROOF: String = "Pure.MinProof"
 }

@@ -34,9 +34,9 @@ val rews =
    \<open>(meta_eq_to_obj_eq \<cdot> TYPE('U) \<cdot> x1 \<cdot> x2 \<bullet> prfU \<bullet>
       (combination \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<cdot> x \<cdot> y \<bullet> prf1 \<bullet> prf2)) \<equiv>
     (cong \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<cdot> x \<cdot> y \<bullet>
-      (OfClass type_class \<cdot> TYPE('T)) \<bullet> prfU \<bullet>
-      (meta_eq_to_obj_eq \<cdot> TYPE('T \<Rightarrow> 'U) \<cdot> f \<cdot> g \<bullet> (OfClass type_class \<cdot> TYPE('T \<Rightarrow> 'U)) \<bullet> prf1) \<bullet>
-      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> (OfClass type_class \<cdot> TYPE('T)) \<bullet> prf2))\<close>,
+      (Pure.OfClass type_class \<cdot> TYPE('T)) \<bullet> prfU \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T \<Rightarrow> 'U) \<cdot> f \<cdot> g \<bullet> (Pure.OfClass type_class \<cdot> TYPE('T \<Rightarrow> 'U)) \<bullet> prf1) \<bullet>
+      (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> (Pure.OfClass type_class \<cdot> TYPE('T)) \<bullet> prf2))\<close>,
 
    \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x1 \<cdot> x2 \<bullet> prfT \<bullet>
       (axm.transitive \<cdot> TYPE('T) \<cdot> x \<cdot> y \<cdot> z \<bullet> prf1 \<bullet> prf2)) \<equiv>
@@ -54,9 +54,9 @@ val rews =
    \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T \<Rightarrow> 'U) \<cdot> x1 \<cdot> x2 \<bullet> prfTU \<bullet>
       (abstract_rule \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<bullet> prf)) \<equiv>
     (ext \<cdot> TYPE('T) \<cdot> TYPE('U) \<cdot> f \<cdot> g \<bullet>
-      (OfClass type_class \<cdot> TYPE('T)) \<bullet> (OfClass type_class \<cdot> TYPE('U)) \<bullet>
+      (Pure.OfClass type_class \<cdot> TYPE('T)) \<bullet> (Pure.OfClass type_class \<cdot> TYPE('U)) \<bullet>
       (\<^bold>\<lambda>(x::'T). meta_eq_to_obj_eq \<cdot> TYPE('U) \<cdot> f x \<cdot> g x \<bullet>
-         (OfClass type_class \<cdot> TYPE('U)) \<bullet> (prf \<cdot> x)))\<close>,
+         (Pure.OfClass type_class \<cdot> TYPE('U)) \<bullet> (prf \<cdot> x)))\<close>,
 
    \<open>(meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet>
       (eq_reflection \<cdot> TYPE('T) \<cdot> x \<cdot> y \<bullet> prfT \<bullet> prf)) \<equiv> prf\<close>,
@@ -70,9 +70,9 @@ val rews =
         prfT \<bullet> arity_type_bool \<bullet>
         (cong \<cdot> TYPE('T) \<cdot> TYPE('T\<Rightarrow>bool) \<cdot>
           ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> A \<cdot> B \<bullet>
-          prfT \<bullet> (OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
+          prfT \<bullet> (Pure.OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
           (HOL.refl \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
           (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> B \<bullet> prfT \<bullet> prf1)) \<bullet>
         (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> C \<cdot> D \<bullet> prfT \<bullet> prf2)) \<bullet>
       (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> C \<bullet> prfT \<bullet> prf3))\<close>,
@@ -87,9 +87,9 @@ val rews =
         prfT \<bullet> arity_type_bool \<bullet>
         (cong \<cdot> TYPE('T) \<cdot> TYPE('T\<Rightarrow>bool) \<cdot>
           ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> A \<cdot> B \<bullet>
-          prfT \<bullet> (OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
+          prfT \<bullet> (Pure.OfClass type_class \<cdot> TYPE('T\<Rightarrow>bool)) \<bullet>
           (HOL.refl \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool) \<cdot> ((=) :: 'T\<Rightarrow>'T\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE('T\<Rightarrow>'T\<Rightarrow>bool))) \<bullet>
           (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> A \<cdot> B \<bullet> prfT \<bullet> prf1)) \<bullet>
         (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> C \<cdot> D \<bullet> prfT \<bullet> prf2)) \<bullet>
       (meta_eq_to_obj_eq \<cdot> TYPE('T) \<cdot> B \<cdot> D \<bullet> prfT \<bullet> prf3))\<close>,
@@ -155,7 +155,7 @@ val rews =
         ((\<and>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<and>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
           prfb \<bullet> prfbb \<bullet>
           (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<and>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
           (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<or> *)
@@ -181,7 +181,7 @@ val rews =
         ((\<or>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<or>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
           prfb \<bullet> prfbb \<bullet>
           (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<or>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
           (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<longrightarrow> *)
@@ -205,7 +205,7 @@ val rews =
         ((\<longrightarrow>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<longrightarrow>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
           prfb \<bullet> prfbb \<bullet>
           (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((\<longrightarrow>) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
           (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (* \<not> *)
@@ -257,7 +257,7 @@ val rews =
         ((=) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((=) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> A \<cdot> A \<bullet>
           prfb \<bullet> prfbb \<bullet>
           (HOL.refl \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool) \<cdot> ((=) :: bool\<Rightarrow>bool\<Rightarrow>bool) \<bullet>
-             (OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
+             (Pure.OfClass type_class \<cdot> TYPE(bool\<Rightarrow>bool\<Rightarrow>bool))) \<bullet>
           (HOL.refl \<cdot> TYPE(bool) \<cdot> A \<bullet> prfb)))\<close>,
 
    (** transitivity, reflexivity, and symmetry **)

@@ -91,6 +91,8 @@ sig
   val prf_subst_bounds: term list -> proof -> proof
   val prf_subst_pbounds: proof list -> proof -> proof
   val freeze_thaw_prf: proof -> proof * (proof -> proof)
+  val proofT: typ
+  val term_of_proof: proof -> term
 
   (** proof terms for specific inference rules **)
   val implies_intr_proof: term -> proof -> proof
@@ -751,6 +753,59 @@ fun freeze_thaw_prf prf =
     (map_proof_terms (freeze names names') (frzT names') prf,
      map_proof_terms (thaw rnames rnames') (thawT rnames'))
   end;
+
+end;
+
+
+(**** proof terms as pure terms ****)
+
+val proofT = Type ("Pure.proof", []);
+
+local
+
+val AbsPt = Const ("Pure.AbsP", [propT, proofT --> proofT] ---> proofT);
+val AppPt = Const ("Pure.AppP", [proofT, proofT] ---> proofT);
+val Hypt = Const ("Pure.Hyp", propT --> proofT);
+val Oraclet = Const ("Pure.Oracle", propT --> proofT);
+val OfClasst = Const ("Pure.OfClass", (Term.itselfT dummyT --> propT) --> proofT);
+val MinProoft = Const ("Pure.MinProof", proofT);
+
+val mk_tyapp = fold (fn T => fn prf => Const ("Pure.Appt",
+  [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
+
+fun term_of _ (PThm (_, ((name, _, NONE), _))) =
+      Const (Long_Name.append "thm" name, proofT)
+  | term_of _ (PThm (_, ((name, _, SOME Ts), _))) =
+      mk_tyapp Ts (Const (Long_Name.append "thm" name, proofT))
+  | term_of _ (PAxm (name, _, NONE)) = Const (Long_Name.append "axm" name, proofT)
+  | term_of _ (PAxm (name, _, SOME Ts)) =
+      mk_tyapp Ts (Const (Long_Name.append "axm" name, proofT))
+  | term_of _ (OfClass (T, c)) =
+      mk_tyapp [T] (OfClasst $ Const (Logic.const_of_class c, Term.itselfT dummyT --> propT))
+  | term_of _ (PBound i) = Bound i
+  | term_of Ts (Abst (s, opT, prf)) =
+      let val T = the_default dummyT opT
+      in Const ("Pure.Abst", (T --> proofT) --> proofT) $
+        Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
+      end
+  | term_of Ts (AbsP (s, t, prf)) =
+      AbsPt $ the_default Term.dummy_prop t $
+        Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
+  | term_of Ts (prf1 %% prf2) =
+      AppPt $ term_of Ts prf1 $ term_of Ts prf2
+  | term_of Ts (prf % opt) =
+      let val t = the_default Term.dummy opt
+      in Const ("Pure.Appt",
+        [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
+          term_of Ts prf $ t
+      end
+  | term_of Ts (Hyp t) = Hypt $ t
+  | term_of Ts (Oracle (_, t, _)) = Oraclet $ t
+  | term_of Ts MinProof = MinProoft;
+
+in
+
+val term_of_proof = term_of [];
 
 end;
 
