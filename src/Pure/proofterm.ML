@@ -797,10 +797,10 @@ fun term_of _ (PThm (_, ((name, _, Ts), _))) =
         val t = the_default Term.dummy opt;
         val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
       in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
-  | term_of Ts (Hyp t) = Hypt $ t
-  | term_of Ts (Oracle (_, t, _)) = Oraclet $ t
-  | term_of Ts MinProof = MinProoft
-  | term_of Ts (Promise (_, t, _)) = raise TERM ("Illegal proof promise", [t]);
+  | term_of _ (Hyp t) = Hypt $ t
+  | term_of _ (Oracle (_, t, _)) = Oraclet $ t
+  | term_of _ MinProof = MinProoft
+  | term_of _ (Promise (_, t, _)) = raise TERM ("Illegal proof promise", [t]);
 
 in
 
