@@ -763,32 +763,29 @@ val proofT = Type ("Pure.proof", []);
 
 local
 
-val AbsPt = Const ("Pure.AbsP", [propT, proofT --> proofT] ---> proofT);
-val AppPt = Const ("Pure.AppP", [proofT, proofT] ---> proofT);
+val AbsPt = Const ("Pure.AbsP", propT --> (proofT --> proofT) --> proofT);
+val AppPt = Const ("Pure.AppP", proofT --> proofT --> proofT);
 val Hypt = Const ("Pure.Hyp", propT --> proofT);
 val Oraclet = Const ("Pure.Oracle", propT --> proofT);
 val MinProoft = Const ("Pure.MinProof", proofT);
+
+fun AppT T prf =
+  Const ("Pure.Appt", proofT --> Term.itselfT T --> proofT) $ prf $ Logic.mk_type T;
 
 fun OfClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-val mk_tyapp = fold (fn T => fn prf => Const ("Pure.Appt",
-  [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
-
-fun term_of _ (PThm (_, ((name, _, NONE), _))) =
-      Const (Long_Name.append "thm" name, proofT)
-  | term_of _ (PThm (_, ((name, _, SOME Ts), _))) =
-      mk_tyapp Ts (Const (Long_Name.append "thm" name, proofT))
-  | term_of _ (PAxm (name, _, NONE)) = Const (Long_Name.append "axm" name, proofT)
-  | term_of _ (PAxm (name, _, SOME Ts)) =
-      mk_tyapp Ts (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (OfClass (T, c)) = mk_tyapp [T] (OfClasst (T, c))
+fun term_of _ (PThm (_, ((name, _, Ts), _))) =
+      fold AppT (these Ts) (Const (Long_Name.append "thm" name, proofT))
+  | term_of _ (PAxm (name, _, Ts)) =
+      fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
+  | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) =
-      let val T = the_default dummyT opT
-      in Const ("Pure.Abst", (T --> proofT) --> proofT) $
-        Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
+      let val T = the_default dummyT opT in
+        Const ("Pure.Abst", (T --> proofT) --> proofT) $
+          Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
       end
   | term_of Ts (AbsP (s, t, prf)) =
       AbsPt $ the_default Term.dummy_prop t $
@@ -796,11 +793,10 @@ fun term_of _ (PThm (_, ((name, _, NONE), _))) =
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
   | term_of Ts (prf % opt) =
-      let val t = the_default Term.dummy opt
-      in Const ("Pure.Appt",
-        [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
-          term_of Ts prf $ t
-      end
+      let
+        val t = the_default Term.dummy opt;
+        val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
+      in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
   | term_of Ts (Hyp t) = Hypt $ t
   | term_of Ts (Oracle (_, t, _)) = Oraclet $ t
   | term_of Ts MinProof = MinProoft;
