@@ -8,7 +8,6 @@ signature PROOF_SYNTAX =
 sig
   val add_proof_syntax: theory -> theory
   val proof_of_term: theory -> bool -> term -> Proofterm.proof
-  val cterm_of_proof: theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
   val read_term: theory -> bool -> typ -> string -> term
   val read_proof: theory -> bool -> bool -> string -> Proofterm.proof
   val proof_syntax: Proofterm.proof -> theory -> theory
@@ -139,18 +138,6 @@ fun proof_of_term thy ty =
 
   in prf_of [] end;
 
-
-fun cterm_of_proof thy prf =
-  let
-    val thm_names = map fst (Global_Theory.all_thms_of thy true);
-    val axm_names = map fst (Theory.all_axioms_of thy);
-    val thy' = thy
-      |> add_proof_syntax
-      |> add_proof_atom_consts
-        (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names);
-  in
-    (Thm.global_cterm_of thy' (Proofterm.term_of_proof prf), proof_of_term thy true o Thm.term_of)
-  end;
 
 fun read_term thy topsort =
   let
