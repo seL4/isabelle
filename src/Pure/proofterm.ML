@@ -61,7 +61,7 @@ sig
   val decode: proof XML.Decode.T
   val decode_body: proof_body XML.Decode.T
 
-  (** primitive operations **)
+  (*primitive operations*)
   val proofs_enabled: unit -> bool
   val atomic_proof: proof -> bool
   val compact_proof: proof -> bool
@@ -95,7 +95,7 @@ sig
   val proofT: typ
   val term_of_proof: proof -> term
 
-  (** proof terms for specific inference rules **)
+  (*proof terms for specific inference rules*)
   val implies_intr_proof: term -> proof -> proof
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: term -> string -> proof -> proof
@@ -139,7 +139,7 @@ sig
   val oracle_proof: string -> term -> oracle * proof
   val shrink_proof: proof -> proof
 
-  (** rewriting on proof terms **)
+  (*rewriting on proof terms*)
   val add_prf_rrule: proof * proof -> theory -> theory
   val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val no_skel: proof
@@ -163,7 +163,7 @@ end
 structure Proofterm : PROOFTERM =
 struct
 
-(***** datatype proof *****)
+(** datatype proof **)
 
 datatype proof =
    MinProof
@@ -215,7 +215,7 @@ fun make_thm_node name prop body =
         in consolidate (join_thms thms) end)};
 
 
-(***** proof atoms *****)
+(* proof atoms *)
 
 fun fold_proof_atoms all f =
   let
@@ -314,7 +314,8 @@ fun no_thm_proofs (PThm (i, (a, _))) = PThm (i, (a, no_body))
   | no_thm_proofs a = a;
 
 
-(***** XML data representation *****)
+
+(** XML data representation **)
 
 (* encode *)
 
@@ -386,7 +387,7 @@ val decode_body = proof_body;
 end;
 
 
-(***** proof objects with different levels of detail *****)
+(** proof objects with different levels of detail **)
 
 fun atomic_proof prf =
   (case prf of
@@ -492,7 +493,7 @@ fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type _ prf = prf;
 
 
-(***** utilities *****)
+(* utilities *)
 
 fun strip_abs (_::Ts) (Abs (_, _, t)) = strip_abs Ts t
   | strip_abs _ t = t;
@@ -591,7 +592,7 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
   | prf_add_loose_bnos _ _ _ _ = ([], []);
 
 
-(**** substitutions ****)
+(* substitutions *)
 
 fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
@@ -643,7 +644,7 @@ fun norm_proof env =
   in Same.commit norm end;
 
 
-(***** Remove some types in proof term (to save space) *****)
+(* remove some types in proof term (to save space) *)
 
 fun remove_types (Abs (s, _, t)) = Abs (s, dummyT, remove_types t)
   | remove_types (t $ u) = remove_types t $ remove_types u
@@ -656,7 +657,7 @@ fun remove_types_env (Envir.Envir {maxidx, tenv, tyenv}) =
 fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
 
 
-(**** substitution of bound variables ****)
+(* substitution of bound variables *)
 
 fun prf_subst_bounds args prf =
   let
@@ -700,7 +701,7 @@ fun prf_subst_pbounds args prf =
   in (case args of [] => prf | _ => substh prf 0 0) end;
 
 
-(**** Freezing and thawing of variables in proof terms ****)
+(* freezing and thawing of variables in proof terms *)
 
 local
 
@@ -761,7 +762,8 @@ fun freeze_thaw_prf prf =
 end;
 
 
-(**** proof terms as pure terms ****)
+
+(** proof terms as pure terms **)
 
 val proofT = Type ("Pure.proof", []);
 
@@ -813,7 +815,10 @@ val term_of_proof = term_of [];
 end;
 
 
-(***** implication introduction *****)
+
+(** inference rules **)
+
+(* implication introduction *)
 
 fun gen_implies_intr_proof f h prf =
   let
@@ -834,7 +839,7 @@ val implies_intr_proof = gen_implies_intr_proof (K NONE);
 val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 
-(***** forall introduction *****)
+(* forall introduction *)
 
 fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
 
@@ -843,7 +848,7 @@ fun forall_intr_proof' t prf =
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
 
-(***** varify *****)
+(* varify *)
 
 fun varify_proof t fixed prf =
   let
@@ -887,7 +892,7 @@ fun legacy_freezeT t prf =
 end;
 
 
-(***** rotate assumptions *****)
+(* rotate assumptions *)
 
 fun rotate_proof Bs Bi m prf =
   let
@@ -903,7 +908,7 @@ fun rotate_proof Bs Bi m prf =
   end;
 
 
-(***** permute premises *****)
+(* permute premises *)
 
 fun permute_prems_proof prems j k prf =
   let val n = length prems
@@ -912,7 +917,7 @@ fun permute_prems_proof prems j k prf =
   end;
 
 
-(***** generalization *****)
+(* generalization *)
 
 fun generalize (tfrees, frees) idx =
   Same.commit (map_proof_terms_same
@@ -920,7 +925,7 @@ fun generalize (tfrees, frees) idx =
     (Term_Subst.generalizeT_same tfrees idx));
 
 
-(***** instantiation *****)
+(* instantiation *)
 
 fun instantiate (instT, inst) =
   Same.commit (map_proof_terms_same
@@ -928,7 +933,7 @@ fun instantiate (instT, inst) =
     (Term_Subst.instantiateT_same instT));
 
 
-(***** lifting *****)
+(* lifting *)
 
 fun lift_proof Bi inc prop prf =
   let
@@ -980,7 +985,7 @@ fun incr_indexes i =
     (Logic.incr_indexes_same ([], [], i)) (Logic.incr_tvar_same i));
 
 
-(***** proof by assumption *****)
+(* proof by assumption *)
 
 fun mk_asm_prf t i m =
   let
@@ -996,7 +1001,7 @@ fun assumption_proof Bs Bi n prf =
     map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));
 
 
-(***** Composition of object rule with proof state *****)
+(* composition of object rule with proof state *)
 
 fun flatten_params_proof i j n (Const ("Pure.imp", _) $ A $ B, k) =
       AbsP ("H", NONE (*A*), flatten_params_proof (i+1) j n (B, k))
@@ -1018,7 +1023,8 @@ fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
   end;
 
 
-(***** axioms for equality *****)
+
+(** axioms for equality **)
 
 val aT = TFree ("'a", []);
 val bT = TFree ("'b", []);
@@ -1103,7 +1109,8 @@ fun equal_elim A B prf1 prf2 =
   equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
-(**** type classes ****)
+
+(** type classes **)
 
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
@@ -1174,7 +1181,7 @@ fun of_sort_proof thy hyps =
 end;
 
 
-(***** axioms and theorems *****)
+(** axioms and theorems **)
 
 val proofs = Unsynchronized.ref 2;
 fun proofs_enabled () = ! proofs >= 2;
@@ -1312,11 +1319,11 @@ val shrink_proof =
   in fn prf => #4 (shrink [] 0 prf) end;
 
 
-(**** Simple first order matching functions for terms and proofs ****)
+
+(** simple first order matching functions for terms and proofs **)
+(*see pattern.ML*)
 
 exception PMatch;
-
-(** see pattern.ML **)
 
 fun flt (i: int) = filter (fn n => n < i);
 
@@ -1461,7 +1468,8 @@ fun could_unify prf1 prf2 =
   end;
 
 
-(**** rewriting on proof terms ****)
+
+(** rewriting on proof terms **)
 
 val no_skel = PBound 0;
 val normal_skel = Hyp (Var ((Name.uu, 0), propT));
@@ -1553,7 +1561,8 @@ fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 
-(**** theory data ****)
+
+(** theory data **)
 
 structure Data = Theory_Data
 (
@@ -1575,7 +1584,8 @@ fun add_prf_rrule r = (Data.map o apfst) (cons (stamp (), r));
 fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 
 
-(***** promises *****)
+
+(** promises **)
 
 fun promise_proof thy i prop =
   let
@@ -1624,7 +1634,8 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
   end;
 
 
-(***** abstraction over sort constraints *****)
+
+(** abstraction over sort constraints **)
 
 fun unconstrainT_prf thy (atyp_map, constraints) =
   let
@@ -1649,7 +1660,8 @@ fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
     proof = unconstrainT_prf thy constrs proof};
 
 
-(***** theorems *****)
+
+(** theorems **)
 
 fun prepare_thm_proof thy name shyps hyps concl promises body =
   let

@@ -34,7 +34,7 @@ fun forall_intr_vfs_prf prop prf = fold_rev Proofterm.forall_intr_proof'
   (vars_of prop @ frees_of prop) prf;
 
 
-(**** generate constraints for proof term ****)
+(* generate constraints for proof term *)
 
 fun mk_var env Ts T =
   let val (env', v) = Envir.genvar "a" (env, rev Ts ---> T)
@@ -231,7 +231,7 @@ fun make_constraints_cprf ctxt env cprf =
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
 
-(**** update list of free variables of constraints ****)
+(* update list of free variables of constraints *)
 
 fun upd_constrs env cs =
   let
@@ -252,7 +252,7 @@ fun upd_constrs env cs =
   in check_cs cs end;
 
 
-(**** solution of constraints ****)
+(* solution of constraints *)
 
 fun solve _ [] bigenv = bigenv
   | solve ctxt cs bigenv =
@@ -284,7 +284,7 @@ fun solve _ [] bigenv = bigenv
       end;
 
 
-(**** reconstruction of proofs ****)
+(* reconstruction of proofs *)
 
 fun reconstruct_proof ctxt prop cprf =
   let
@@ -335,8 +335,7 @@ fun proof_of ctxt raw_thm =
   in reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
 
 
-
-(**** expand and reconstruct subproofs ****)
+(* expand and reconstruct subproofs *)
 
 fun expand_proof ctxt thms prf =
   let
