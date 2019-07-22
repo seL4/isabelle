@@ -799,7 +799,8 @@ fun term_of _ (PThm (_, ((name, _, Ts), _))) =
       in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
   | term_of Ts (Hyp t) = Hypt $ t
   | term_of Ts (Oracle (_, t, _)) = Oraclet $ t
-  | term_of Ts MinProof = MinProoft;
+  | term_of Ts MinProof = MinProoft
+  | term_of Ts (Promise (_, t, _)) = raise TERM ("Illegal proof promise", [t]);
 
 in
 
