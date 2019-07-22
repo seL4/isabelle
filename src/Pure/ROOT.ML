@@ -129,6 +129,7 @@ ML_file "Concurrent/mailbox.ML";
 ML_file "Concurrent/cache.ML";
 
 ML_file "PIDE/active.ML";
+ML_file "Thy/export.ML";
 
 
 subsection "Inner syntax";
@@ -305,7 +306,6 @@ ML_file "pure_syn.ML";
 ML_file "PIDE/command.ML";
 ML_file "PIDE/query_operation.ML";
 ML_file "PIDE/resources.ML";
-ML_file "Thy/export.ML";
 ML_file "Thy/present.ML";
 ML_file "Thy/thy_info.ML";
 ML_file "Thy/export_theory.ML";

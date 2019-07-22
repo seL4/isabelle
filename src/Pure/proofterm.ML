@@ -36,6 +36,7 @@ sig
   type pthm = serial * thm_node
   type oracle = string * term
   val proof_of: proof_body -> proof
+  val map_proof_of: (proof -> proof) -> proof_body -> proof_body
   val thm_node_name: thm_node -> string
   val thm_node_prop: thm_node -> term
   val thm_node_body: thm_node -> proof_body future
@@ -189,6 +190,9 @@ type pthm = serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
+
+fun map_proof_of f (PBody {oracles, thms, proof}) =
+  PBody {oracles = oracles, thms = thms, proof = f proof};
 
 fun rep_thm_node (Thm_Node args) = args;
 val thm_node_name = #name o rep_thm_node;
@@ -1307,9 +1311,6 @@ val shrink_proof =
       | needed _ _ _ = [];
   in fn prf => #4 (shrink [] 0 prf) end;
 
-fun shrink_proof_body (PBody {oracles, thms, proof}) =
-  PBody {oracles = oracles, thms = thms, proof = shrink_proof proof};
-
 
 (**** Simple first order matching functions for terms and proofs ****)
 
@@ -1671,19 +1672,29 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       else
         let
           val rew = rew_proof thy;
-          val prf' = fold_rev implies_intr_proof hyps prf;
+          val prf0 = fold_rev implies_intr_proof hyps prf;
         in
           (singleton o Future.cond_forks)
             {name = "Proofterm.prepare_thm_proof", group = NONE,
               deps = [], pri = 1, interrupts = true}
-            (fn () => make_body0 (rew prf'))
+            (fn () => make_body0 (rew prf0))
         end;
 
-    val postproc =
-      unconstrainT_body thy (atyp_map, constraints) #> shrink_proof_body;
-
     fun new_prf () =
-      (serial (), fulfill_proof_future thy promises postproc body0);
+      let
+        val i = serial ();
+        fun export prf1 =
+         (if Options.default_bool "export_proofs" then
+            Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
+              (Buffer.chunks
+                (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
+          else ();
+          if Options.default_bool "prune_proofs" then MinProof else prf1);
+        val postproc =
+          unconstrainT_body thy (atyp_map, constraints) #>
+          map_proof_of (export #> shrink_proof);
+      in (i, fulfill_proof_future thy promises postproc body0) end;
+
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of

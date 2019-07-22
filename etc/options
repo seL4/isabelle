@@ -277,8 +277,16 @@ option ssh_alive_count_max : int = 3
 section "Theory Export"
 
 option export_document : bool = false
+  -- "export document sources to Isabelle/Scala"
 
 option export_theory : bool = false
+  -- "export theory content to Isabelle/Scala"
+
+option export_proofs : bool = false
+  -- "export proof terms to Isabelle/Scala"
+
+option prune_proofs : bool = false
+  -- "prune proof terms after export (do not store in Isabelle/ML)"
 
 
 section "Theory update"
