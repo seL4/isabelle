@@ -1307,6 +1307,9 @@ val shrink_proof =
       | needed _ _ _ = [];
   in fn prf => #4 (shrink [] 0 prf) end;
 
+fun shrink_proof_body (PBody {oracles, thms, proof}) =
+  PBody {oracles = oracles, thms = thms, proof = shrink_proof proof};
+
 
 (**** Simple first order matching functions for terms and proofs ****)
 
@@ -1603,7 +1606,7 @@ fun fulfill_norm_proof thy ps body0 =
     val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future thy promises postproc body =
+fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body =
   let
     fun fulfill () =
       postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body));
@@ -1657,7 +1660,6 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       map SOME (frees_of prop);
 
     val ((atyp_map, constraints, outer_constraints), prop1) = Logic.unconstrainT shyps prop;
-    val postproc = unconstrainT_body thy (atyp_map, constraints);
     val args1 =
       (map o Option.map o Term.map_types o Term.map_atyps)
         (Type.strip_sorts o atyp_map) args;
@@ -1674,10 +1676,14 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
           (singleton o Future.cond_forks)
             {name = "Proofterm.prepare_thm_proof", group = NONE,
               deps = [], pri = 1, interrupts = true}
-            (fn () => make_body0 (shrink_proof (rew prf')))
+            (fn () => make_body0 (rew prf'))
         end;
 
-    fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
+    val postproc =
+      unconstrainT_body thy (atyp_map, constraints) #> shrink_proof_body;
+
+    fun new_prf () =
+      (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
