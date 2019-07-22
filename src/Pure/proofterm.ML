@@ -767,8 +767,11 @@ val AbsPt = Const ("Pure.AbsP", [propT, proofT --> proofT] ---> proofT);
 val AppPt = Const ("Pure.AppP", [proofT, proofT] ---> proofT);
 val Hypt = Const ("Pure.Hyp", propT --> proofT);
 val Oraclet = Const ("Pure.Oracle", propT --> proofT);
-val OfClasst = Const ("Pure.OfClass", (Term.itselfT dummyT --> propT) --> proofT);
 val MinProoft = Const ("Pure.MinProof", proofT);
+
+fun OfClasst (T, c) =
+  let val U = Term.itselfT T --> propT
+  in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
 val mk_tyapp = fold (fn T => fn prf => Const ("Pure.Appt",
   [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
@@ -780,8 +783,7 @@ fun term_of _ (PThm (_, ((name, _, NONE), _))) =
   | term_of _ (PAxm (name, _, NONE)) = Const (Long_Name.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
       mk_tyapp Ts (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (OfClass (T, c)) =
-      mk_tyapp [T] (OfClasst $ Const (Logic.const_of_class c, Term.itselfT dummyT --> propT))
+  | term_of _ (OfClass (T, c)) = mk_tyapp [T] (OfClasst (T, c))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT
