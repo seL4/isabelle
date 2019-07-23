@@ -24,15 +24,6 @@ val quiet_mode = Config.declare_bool ("Reconstruct.quiet_mode", \<^here>) (K tru
 fun message ctxt msg =
   if Config.get ctxt quiet_mode then () else writeln (msg ());
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
-fun frees_of t = map Free (rev (Term.add_frees t []));
-
-fun forall_intr_vfs prop = fold_rev Logic.all
-  (vars_of prop @ frees_of prop) prop;
-
-fun forall_intr_vfs_prf prop prf = fold_rev Proofterm.forall_intr_proof'
-  (vars_of prop @ frees_of prop) prf;
-
 
 (* generate constraints for proof term *)
 
@@ -142,7 +133,7 @@ fun make_constraints_cprf ctxt env cprf =
                 NONE => fold_map mk_tvar (map snd tvars @ map snd tfrees) env
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
-              (forall_intr_vfs prop) handle ListPair.UnequalLengths =>
+              (Proofterm.forall_intr_vfs prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (Proofterm.guess_name prf))
           in (prop', Proofterm.change_type (SOME Ts) prf, [], env', vTs) end;
 
@@ -305,7 +296,7 @@ fun reconstruct_proof ctxt prop cprf =
 
 fun prop_of_atom prop Ts = subst_atomic_types
   (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
-  (forall_intr_vfs prop);
+  (Proofterm.forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm Envir.init;
 
@@ -366,7 +357,7 @@ fun expand_proof ctxt thms prf =
                     val _ =
                       message ctxt (fn () =>
                         "Reconstructing proof of " ^ a ^ "\n" ^ Syntax.string_of_term ctxt prop);
-                    val prf' = forall_intr_vfs_prf prop
+                    val prf' = Proofterm.forall_intr_vfs_prf prop
                       (reconstruct_proof ctxt prop (Proofterm.join_proof body));
                     val (maxidx', prfs', prf) = expand
                       (Proofterm.maxidx_proof prf' ~1) prfs prf'

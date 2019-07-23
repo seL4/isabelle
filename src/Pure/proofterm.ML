@@ -149,6 +149,10 @@ sig
     (typ list -> term option list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
 
+  val forall_intr_vfs: term -> term
+  val forall_intr_vfs_prf: term -> proof -> proof
+  val clean_proof: proof -> proof
+
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
@@ -1567,6 +1571,62 @@ fun add_prf_rrule r = (Data.map o apfst) (cons (stamp (), r));
 fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 
 
+(* clean proof: expand unnamed PThm nodes *)
+
+local
+
+fun vars_of t = map Var (rev (Term.add_vars t []));
+fun frees_of t = map Free (rev (Term.add_frees t []));
+fun variables_of t = vars_of t @ frees_of t;
+
+in
+
+fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
+fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
+
+end;
+
+fun clean_proof prf =
+  let
+    fun clean maxidx prfs (AbsP (s, t, prf)) =
+          let val (maxidx', prfs', prf') = clean maxidx prfs prf
+          in (maxidx', prfs', AbsP (s, t, prf')) end
+      | clean maxidx prfs (Abst (s, T, prf)) =
+          let val (maxidx', prfs', prf') = clean maxidx prfs prf
+          in (maxidx', prfs', Abst (s, T, prf')) end
+      | clean maxidx prfs (prf1 %% prf2) =
+          let
+            val (maxidx', prfs', prf1') = clean maxidx prfs prf1;
+            val (maxidx'', prfs'', prf2') = clean maxidx' prfs' prf2;
+          in (maxidx'', prfs'', prf1' %% prf2') end
+      | clean maxidx prfs (prf % t) =
+          let val (maxidx', prfs', prf') = clean maxidx prfs prf
+          in (maxidx', prfs', prf' % t) end
+      | clean maxidx prfs (PThm (_, (("", prop, SOME Ts), body))) =
+          let
+            val (maxidx', prf, prfs') =
+              (case AList.lookup (op =) prfs prop of
+                NONE =>
+                  let
+                    val prf' = forall_intr_vfs_prf prop (join_proof body);
+                    val (maxidx', prfs', prf) = clean (maxidx_proof prf' ~1) prfs prf';
+                    val prfs'' = (prop, (maxidx', prf)) :: prfs';
+                  in (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs'') end
+              | SOME (maxidx', prf) => (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs));
+            val tfrees = Term.add_tfrees prop [] |> rev;
+            val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
+              (Term.add_tvars prop [] |> rev) @ map (rpair ~1 o fst) tfrees ~~ Ts;
+            val varify = map_type_tfree (fn p as (a, S) =>
+              if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
+          in
+            (maxidx', prfs', map_proof_types (typ_subst_TVars tye o varify) prf)
+          end
+      | clean maxidx prfs prf = (maxidx, prfs, prf);
+
+    val maxidx = maxidx_proof prf ~1;
+  in norm_proof (Envir.empty maxidx) (#3 (clean maxidx [] prf)) end;
+
+
 
 (** promises **)
 
@@ -1657,19 +1717,22 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
             (fn () => make_body0 (rew prf0))
         end;
 
+    fun export i prf1 =
+     (if Options.default_bool "export_proofs" then
+        Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
+          (Buffer.chunks
+            (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
+      else ();
+      if Options.default_bool "prune_proofs" then MinProof else prf1);
+
+    fun publish i = clean_proof #> export i #> shrink_proof;
+
     fun new_prf () =
       let
         val i = serial ();
-        fun export prf1 =
-         (if Options.default_bool "export_proofs" then
-            Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
-              (Buffer.chunks
-                (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
-          else ();
-          if Options.default_bool "prune_proofs" then MinProof else prf1);
         val postproc =
           unconstrainT_body thy (atyp_map, constraints) #>
-          map_proof_of (export #> shrink_proof);
+          name <> "" ? map_proof_of (publish i);
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -1677,7 +1740,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
           if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'
-          then (i, body')
+          then (i, body' |> name <> "" ? Future.map (map_proof_of (publish i)))
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop1, NONE), body'));
