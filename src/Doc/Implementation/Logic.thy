@@ -1191,8 +1191,8 @@ text %mlref \<open>
   \<^descr> Type \<^ML_type>\<open>proof\<close> represents proof terms; this is a datatype with
   constructors @{index_ML Abst}, @{index_ML AbsP}, @{index_ML_op "%"},
   @{index_ML_op "%%"}, @{index_ML PBound}, @{index_ML MinProof}, @{index_ML
-  Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML Promise}, @{index_ML
-  PThm} as explained above. %FIXME OfClass (!?)
+  Hyp}, @{index_ML PAxm}, @{index_ML Oracle}, @{index_ML PThm} as explained
+  above. %FIXME OfClass (!?)
 
   \<^descr> Type \<^ML_type>\<open>proof_body\<close> represents the nested proof information of a
   named theorem, consisting of a digest of oracles and named theorem over some
