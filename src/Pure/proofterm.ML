@@ -1305,8 +1305,9 @@ val shrink_proof =
 
 
 
-(** simple first order matching functions for terms and proofs **)
-(*see pattern.ML*)
+(** rewriting on proof terms **)
+
+(* simple first order matching functions for terms and proofs (see pattern.ML) *)
 
 exception PMatch;
 
@@ -1452,8 +1453,7 @@ fun could_unify prf1 prf2 =
   end;
 
 
-
-(** rewriting on proof terms **)
+(* rewrite proof *)
 
 val no_skel = PBound 0;
 val normal_skel = Hyp (Var ((Name.uu, 0), propT));
@@ -1545,8 +1545,7 @@ fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 
-
-(** theory data **)
+(* theory data *)
 
 structure Data = Theory_Data
 (
