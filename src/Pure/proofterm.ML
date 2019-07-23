@@ -394,6 +394,7 @@ fun atomic_proof prf =
   | AbsP _ => false
   | op % _ => false
   | op %% _ => false
+  | MinProof => false
   | _ => true);
 
 fun compact_proof (prf % _) = compact_proof prf
