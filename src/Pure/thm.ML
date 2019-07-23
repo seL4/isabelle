@@ -636,7 +636,7 @@ fun extra_shyps (th as Thm (_, {shyps, ...})) =
 fun make_deriv promises oracles thms proof =
   Deriv {promises = promises, body = PBody {oracles = oracles, thms = thms, proof = proof}};
 
-val empty_deriv = make_deriv [] [] [] Proofterm.MinProof;
+val empty_deriv = make_deriv [] [] [] MinProof;
 
 
 (* inference rules *)
@@ -720,12 +720,14 @@ fun future future_thm ct =
   let
     val Cterm {cert = cert, t = prop, T, maxidx, sorts} = ct;
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
+    val _ =
+      if Proofterm.proofs_enabled ()
+      then raise CTERM ("future: proof terms enabled", [ct]) else ();
 
-    val thy = theory_of_cterm ct;
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv [(i, future)] [] [] (Proofterm.promise_proof thy i prop),
+    Thm (make_deriv [(i, future)] [] [] MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,

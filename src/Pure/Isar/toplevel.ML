@@ -713,6 +713,7 @@ fun future_proofs_enabled estimate st =
   (case try proof_of st of
     NONE => false
   | SOME state =>
+      not (Proofterm.proofs_enabled ()) andalso
       not (Proof.is_relevant state) andalso
        (if can (Proof.assert_bottom true) state
         then Future.proofs_enabled 1

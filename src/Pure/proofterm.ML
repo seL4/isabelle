@@ -20,7 +20,6 @@ sig
    | PAxm of string * term * typ list option
    | OfClass of typ * class
    | Oracle of string * term * typ list option
-   | Promise of serial * term * typ list
    | PThm of serial * ((string * term * typ list option) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) Ord_List.T,
@@ -150,7 +149,6 @@ sig
     (typ list -> term option list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
 
-  val promise_proof: theory -> serial -> term -> proof
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
@@ -176,7 +174,6 @@ datatype proof =
  | PAxm of string * term * typ list option
  | OfClass of typ * class
  | Oracle of string * term * typ list option
- | Promise of serial * term * typ list
  | PThm of serial * ((string * term * typ list option) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) Ord_List.T,
@@ -334,7 +331,6 @@ fun proof prf = prf |> variant
   fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
   fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
-  fn Promise (a, b, c) => ([int_atom a], pair term (list typ) (b, c)),
   fn PThm (a, ((b, c, d), body)) =>
     ([int_atom a, b], triple term (option (list typ)) proof_body (c, d, Future.join body))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
@@ -368,7 +364,6 @@ fun proof prf = prf |> variant
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in PAxm (a, c, d) end,
   fn ([b], a) => OfClass (typ a, b),
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
-  fn ([a], b) => let val (c, d) = pair term (list typ) b in Promise (int_atom a, c, d) end,
   fn ([a, b], c) =>
     let val (d, e, f) = triple term (option (list typ)) proof_body c
     in PThm (int_atom a, ((b, d, e), Future.value f)) end]
@@ -395,7 +390,6 @@ fun atomic_proof prf =
   | AbsP _ => false
   | op % _ => false
   | op %% _ => false
-  | Promise _ => false
   | _ => true);
 
 fun compact_proof (prf % _) = compact_proof prf
@@ -445,7 +439,6 @@ fun map_proof_same term typ ofclass =
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
       | proof (OfClass T_c) = ofclass T_c
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
-      | proof (Promise (i, prop, Ts)) = Promise (i, prop, typs Ts)
       | proof (PThm (i, ((a, prop, SOME Ts), body))) =
           PThm (i, ((a, prop, SOME (typs Ts)), body))
       | proof _ = raise Same.SAME;
@@ -472,7 +465,6 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ g (OfClass (T, _)) = g T
   | fold_proof_terms _ g (Oracle (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms _ g (Promise (_, _, Ts)) = fold g Ts
   | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts), _))) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
@@ -487,7 +479,6 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type _ (Promise _) = raise Fail "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) =
       PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
@@ -636,8 +627,6 @@ fun norm_proof env =
           OfClass (htypeT Envir.norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
           Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
-      | norm (Promise (i, prop, Ts)) =
-          Promise (i, prop, htypeTs Envir.norm_types_same Ts)
       | norm (PThm (i, ((s, t, Ts), body))) =
           PThm (i, ((s, t, Same.map_option (htypeTs Envir.norm_types_same) Ts), body))
       | norm _ = raise Same.SAME;
@@ -805,8 +794,7 @@ fun term_of _ (PThm (_, ((name, _, Ts), _))) =
       in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
   | term_of _ (Hyp t) = Hypt $ t
   | term_of _ (Oracle (_, t, _)) = Oraclet $ t
-  | term_of _ MinProof = MinProoft
-  | term_of _ (Promise (_, t, _)) = raise TERM ("Illegal proof promise", [t]);
+  | term_of _ MinProof = MinProoft;
 
 in
 
@@ -956,8 +944,6 @@ fun lift_proof Bi inc prop prf =
           OfClass (Logic.incr_tvar_same inc T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
           Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (Promise (i, prop, Ts)) =
-          Promise (i, prop, Same.map (Logic.incr_tvar_same inc) Ts)
       | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
           PThm (i, ((s, prop, (Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), body))
       | lift' _ _ _ = raise Same.SAME
@@ -1296,7 +1282,6 @@ val shrink_proof =
               (case prf of
                 PAxm (_, prop, _) => prop
               | Oracle (_, prop, _) => prop
-              | Promise (_, prop, _) => prop
               | PThm (_, ((_, prop, _), _)) => prop
               | _ => raise Fail "shrink: proof not in normal form");
             val vs = vars_of prop;
@@ -1431,7 +1416,6 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
       | subst _ _ (OfClass (T, c)) = OfClass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
-      | subst _ _ (Promise (i, prop, Ts)) = Promise (i, prop, substTs Ts)
       | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
           PThm (i, ((id, prop, Same.map_option substTs Ts), body))
       | subst _ _ _ = raise Same.SAME;
@@ -1587,16 +1571,6 @@ fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 
 (** promises **)
 
-fun promise_proof thy i prop =
-  let
-    val _ = prop |> Term.exists_subterm (fn t =>
-      (Term.is_Free t orelse Term.is_Var t) andalso
-        raise Fail ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
-    val _ = prop |> Term.exists_type (Term.exists_subtype
-      (fn TFree (a, _) => raise Fail ("promise_proof: illegal type variable " ^ quote a)
-        | _ => false));
-  in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
-
 fun fulfill_norm_proof thy ps body0 =
   let
     val _ = consolidate (map #2 ps @ [body0]);
@@ -1606,15 +1580,7 @@ fun fulfill_norm_proof thy ps body0 =
         (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
-    val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
-
-    fun fill (Promise (i, prop, Ts)) =
-          (case Inttab.lookup proofs i of
-            NONE => NONE
-          | SOME prf => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) prf, normal_skel))
-      | fill _ = NONE;
-    val (rules, procs) = get_data thy;
-    val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
+    val proof = rew_proof thy proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body =

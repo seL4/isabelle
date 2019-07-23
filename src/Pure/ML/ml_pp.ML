@@ -80,7 +80,6 @@ fun prt_proof parens dp prf =
     | PAxm a => prt_app "PAxm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
     | OfClass a => prt_app "OfClass" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
     | Oracle a => prt_app "Oracle" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | Promise a => prt_app "Promise" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
     | PThm a => prt_app "PThm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1))))
 
 and prt_proofs parens dp prf =
