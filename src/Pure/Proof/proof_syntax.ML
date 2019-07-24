@@ -51,7 +51,7 @@ fun add_proof_syntax thy =
      ("", paramT --> paramsT, Mixfix.mixfix "_"),
      (Lexicon.mark_const "Pure.Appt", [proofT, aT] ---> proofT, mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
      (Lexicon.mark_const "Pure.AppP", [proofT, proofT] ---> proofT, mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
-     (Lexicon.mark_const "Pure.MinProof", proofT, Mixfix.mixfix "?")]
+     (Lexicon.mark_const "Pure.MinProof", proofT, Mixfix.mixfix "\<^bold>?")]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
     [(Ast.mk_appl (Ast.Constant "_Lam")
         [Ast.mk_appl (Ast.Constant "_Lam0")
