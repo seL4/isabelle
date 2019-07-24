@@ -1727,22 +1727,22 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     fun prune prf1 =
       if Options.default_bool "prune_proofs" then MinProof else shrink_proof prf1;
 
-    fun publish i = clean_proof thy #> tap (export i) #> prune;
+    fun publish i = tap (export i) #> prune;
 
     fun new_prf () =
       let
         val i = serial ();
         val postproc =
           unconstrainT_body thy (atyp_map, constraints) #>
-          name <> "" ? map_proof_of (publish i);
+          name <> "" ? map_proof_of (clean_proof thy #> publish i);
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
-        (PThm (i, ((old_name, prop', NONE), body')), args') =>
-          if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'
-          then (i, body' |> name <> "" ? Future.map (map_proof_of (publish i)))
+        (PThm (i, ((a, prop', NONE), body')), args') =>
+          if (a = "" orelse a = name) andalso prop1 = prop' andalso args = args'
+          then (i, body' |> (a = "" andalso name <> "") ? Future.map (map_proof_of (publish i)))
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop1, NONE), body'));
