@@ -1718,14 +1718,16 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
         end;
 
     fun export i prf1 =
-     (if Options.default_bool "export_proofs" then
+     if Options.default_bool "export_proofs" then
         Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
           (Buffer.chunks
             (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
       else ();
-      if Options.default_bool "prune_proofs" then MinProof else prf1);
 
-    fun publish i = clean_proof thy #> export i #> shrink_proof;
+    fun prune prf1 =
+      if Options.default_bool "prune_proofs" then MinProof else shrink_proof prf1;
+
+    fun publish i = clean_proof thy #> tap (export i) #> prune;
 
     fun new_prf () =
       let
