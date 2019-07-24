@@ -353,8 +353,6 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           fast_tac (put_claset ZF_cs ctxt' addSEs free_SEs @ Su.free_SEs) 1])
     end;
 
-  val simps = case_eqns @ recursor_eqns;
-
   val dt_info =
         {inductive = true,
          constructors = constructors,
@@ -379,13 +377,15 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Sign.add_path big_rec_base_name
         |> Global_Theory.add_thmss
-         [((Binding.name "simps", simps), [Simplifier.simp_add]),
+         [((Binding.name "case_eqns", case_eqns), []),
+          ((Binding.name "recursor_eqns", recursor_eqns), []),
           ((Binding.empty, intrs), [Cla.safe_intro NONE]),
           ((Binding.name "con_defs", con_defs), []),
-          ((Binding.name "case_eqns", case_eqns), []),
-          ((Binding.name "recursor_eqns", recursor_eqns), []),
           ((Binding.name "free_iffs", free_iffs), []),
-          ((Binding.name "free_elims", free_SEs), [])] |> snd
+          ((Binding.name "free_elims", free_SEs), [])]
+        |-> (fn simps1 :: simps2 :: _ =>
+            Global_Theory.add_thmss
+              [((Binding.name "simps", simps1 @ simps2), [Simplifier.simp_add])]) |> #2
         |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
         |> ConstructorsData.map (fold Symtab.update con_pairs)
         |> Sign.parent_path,
