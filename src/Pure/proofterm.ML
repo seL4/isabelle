@@ -151,7 +151,7 @@ sig
 
   val forall_intr_vfs: term -> term
   val forall_intr_vfs_prf: term -> proof -> proof
-  val clean_proof: proof -> proof
+  val clean_proof: theory -> proof -> proof
 
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> sort list -> term list -> term ->
@@ -1587,7 +1587,7 @@ fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of pro
 
 end;
 
-fun clean_proof prf =
+fun clean_proof thy prf =
   let
     fun clean maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = clean maxidx prfs prf
@@ -1624,8 +1624,7 @@ fun clean_proof prf =
           end
       | clean maxidx prfs prf = (maxidx, prfs, prf);
 
-    val maxidx = maxidx_proof prf ~1;
-  in norm_proof (Envir.empty maxidx) (#3 (clean maxidx [] prf)) end;
+  in rew_proof thy (#3 (clean (maxidx_proof prf ~1) [] prf)) end;
 
 
 
@@ -1726,7 +1725,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       else ();
       if Options.default_bool "prune_proofs" then MinProof else prf1);
 
-    fun publish i = clean_proof #> export i #> shrink_proof;
+    fun publish i = clean_proof thy #> export i #> shrink_proof;
 
     fun new_prf () =
       let
