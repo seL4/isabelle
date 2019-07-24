@@ -79,7 +79,6 @@ sig
   val forall_intr_frees: thm -> thm
   val unvarify_global: theory -> thm -> thm
   val unvarify_axiom: theory -> string -> thm
-  val close_derivation: thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
   val add_axiom: Proof.context -> binding * term -> theory -> (string * thm) * theory
@@ -496,12 +495,6 @@ fun unvarify_global thy th =
   in Thm.instantiate (map (apsnd (Thm.global_ctyp_of thy)) instT, inst) th end;
 
 fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
-
-
-(* close_derivation *)
-
-fun close_derivation thm =
-  if Thm.derivation_closed thm then thm else Thm.name_derivation "" thm;
 
 
 (* user renaming of parameters in a subgoal *)

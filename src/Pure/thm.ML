@@ -104,6 +104,7 @@ sig
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val name_derivation: string -> thm -> thm
+  val close_derivation: thm -> thm
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
@@ -759,6 +760,9 @@ fun name_derivation name (thm as Thm (der, args)) =
     val (pthm, proof) = Proofterm.thm_proof thy name shyps hyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
   in Thm (der', args) end;
+
+fun close_derivation thm =
+  if derivation_closed thm then thm else name_derivation "" thm;
 
 
 
