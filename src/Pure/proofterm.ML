@@ -1688,6 +1688,8 @@ fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
 
 (** theorems **)
 
+val proof_serial = Counter.make ();
+
 fun prepare_thm_proof thy name shyps hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
@@ -1731,7 +1733,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun new_prf () =
       let
-        val i = serial ();
+        val i = proof_serial ();
         val postproc =
           unconstrainT_body thy (atyp_map, constraints) #>
           name <> "" ? map_proof_of (clean_proof thy #> publish i);
