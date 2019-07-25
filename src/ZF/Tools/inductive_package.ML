@@ -172,8 +172,6 @@ let
     |> Sign.add_path big_rec_base_name
     |> Global_Theory.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
-  val ctxt1 = Proof_Context.init_global thy1;
-
 
   (*fetch fp definitions from the theory*)
   val big_rec_def::part_rec_defs =
@@ -185,11 +183,14 @@ let
   (********)
   val dummy = writeln "  Proving monotonicity...";
 
-  val bnd_mono =
+  val bnd_mono0 =
     Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn {context = ctxt, ...} => EVERY
         [resolve_tac ctxt [@{thm Collect_subset} RS @{thm bnd_monoI}] 1,
          REPEAT (ares_tac ctxt (@{thms basic_monos} @ monos) 1)]);
+
+  val (bnd_mono, thy2) = thy1
+    |> Global_Theory.add_thm ((Binding.name "bnd_mono", bnd_mono0), [])
 
   val dom_subset = Drule.export_without_context (big_rec_def RS Fp.subs);
 
@@ -241,11 +242,17 @@ let
      right = fn rl => rl RS @{thm disjI2},
      init = @{thm asm_rl}};
 
-  val intrs =
+  val intrs0 =
     (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
     |> ListPair.map (fn (t, tacs) =>
-      Goal.prove_global thy1 [] [] t
+      Goal.prove_global thy2 [] [] t
         (fn {context = ctxt, ...} => EVERY (rewrite_goals_tac ctxt part_rec_defs :: tacs ctxt)));
+
+  val ([intrs], thy3) = thy2
+    |> Global_Theory.add_thmss [((Binding.name "intros", intrs0), [])];
+
+  val ctxt3 = Proof_Context.init_global thy3;
+
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
@@ -259,8 +266,12 @@ let
       THEN (PRIMITIVE (fold_rule ctxt part_rec_defs));
 
   (*Elimination*)
-  val elim =
-    rule_by_tactic ctxt1 (basic_elim_tac ctxt1) (unfold RS Ind_Syntax.equals_CollectD)
+  val (elim, thy4) = thy3
+    |> Global_Theory.add_thm
+      ((Binding.name "elim",
+        rule_by_tactic ctxt3 (basic_elim_tac ctxt3) (unfold RS Ind_Syntax.equals_CollectD)), []);
+
+  val ctxt4 = Proof_Context.init_global thy4;
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
       the given defs.  Cannot simply use the local con_defs because
@@ -272,7 +283,7 @@ let
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
 
-  fun induction_rules raw_induct thy =
+  fun induction_rules raw_induct =
    let
      val dummy = writeln "  Proving the induction rule...";
 
@@ -318,15 +329,15 @@ let
      val dummy =
       if ! Ind_Syntax.trace then
         writeln (cat_lines
-          (["ind_prems:"] @ map (Syntax.string_of_term ctxt1) ind_prems @
-           ["raw_induct:", Thm.string_of_thm ctxt1 raw_induct]))
+          (["ind_prems:"] @ map (Syntax.string_of_term ctxt4) ind_prems @
+           ["raw_induct:", Thm.string_of_thm ctxt4 raw_induct]))
       else ();
 
 
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
      val min_ss =
-           (empty_simpset (Proof_Context.init_global thy)
+           (empty_simpset (Proof_Context.init_global thy4)
              |> Simplifier.set_mksimps (fn ctxt => map mk_eq o ZF_atomize o Variable.gen_all ctxt))
            setSolver (mk_solver "minimal"
                       (fn ctxt => resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt)
@@ -334,7 +345,7 @@ let
                                    ORELSE' eresolve_tac ctxt @{thms FalseE}));
 
      val quant_induct =
-       Goal.prove_global thy [] ind_prems
+       Goal.prove_global thy4 [] ind_prems
          (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
          (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt part_rec_defs,
@@ -352,7 +363,7 @@ let
 
      val dummy =
       if ! Ind_Syntax.trace then
-        writeln ("quant_induct:\n" ^ Thm.string_of_thm ctxt1 quant_induct)
+        writeln ("quant_induct:\n" ^ Thm.string_of_thm ctxt4 quant_induct)
       else ();
 
 
@@ -404,9 +415,9 @@ let
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln ("induct_concl = " ^
-                           Syntax.string_of_term ctxt1 induct_concl);
+                           Syntax.string_of_term ctxt4 induct_concl);
                   writeln ("mutual_induct_concl = " ^
-                           Syntax.string_of_term ctxt1 mutual_induct_concl))
+                           Syntax.string_of_term ctxt4 mutual_induct_concl))
              else ();
 
 
@@ -420,7 +431,7 @@ let
      val lemma = (*makes the link between the two induction rules*)
        if need_mutual then
           (writeln "  Proving the mutual induction rule...";
-           Goal.prove_global thy [] []
+           Goal.prove_global thy4 [] []
              (Logic.mk_implies (induct_concl, mutual_induct_concl))
              (fn {context = ctxt, ...} => EVERY
                [rewrite_goals_tac ctxt part_rec_defs,
@@ -429,7 +440,7 @@ let
 
      val dummy =
       if ! Ind_Syntax.trace then
-        writeln ("lemma: " ^ Thm.string_of_thm ctxt1 lemma)
+        writeln ("lemma: " ^ Thm.string_of_thm ctxt4 lemma)
       else ();
 
 
@@ -480,7 +491,7 @@ let
 
      val mutual_induct_fsplit =
        if need_mutual then
-         Goal.prove_global thy [] (map (induct_prem (rec_tms~~preds)) intr_tms)
+         Goal.prove_global thy4 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
            mutual_induct_concl
            (fn {context = ctxt, prems} => EVERY
              [resolve_tac ctxt [quant_induct RS lemma] 1,
@@ -495,7 +506,7 @@ let
      val inst =
          case elem_frees of [_] => I
             | _ => Drule.instantiate_normalize ([], [(((("x",1), Ind_Syntax.iT)),
-                                      Thm.global_cterm_of thy elem_tuple)]);
+                                      Thm.global_cterm_of thy4 elem_tuple)]);
 
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
@@ -503,50 +514,47 @@ let
      val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (pred_var $ _) = Thm.concl_of induct0
 
      val induct =
-       CP.split_rule_var (Proof_Context.init_global thy)
+       CP.split_rule_var (Proof_Context.init_global thy4)
         (pred_var, elem_type-->FOLogic.oT, induct0)
        |> Drule.export_without_context
-     and mutual_induct = CP.remove_split (Proof_Context.init_global thy) mutual_induct_fsplit
+     and mutual_induct = CP.remove_split (Proof_Context.init_global thy4) mutual_induct_fsplit
 
      val ([induct', mutual_induct'], thy') =
-       thy
+       thy4
        |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), induct),
              [case_names, Induct.induct_pred big_rec_name]),
            ((Binding.name "mutual_induct", mutual_induct), [case_names])];
-    in ((thy', induct'), mutual_induct')
+    in ((induct', mutual_induct'), thy')
     end;  (*of induction_rules*)
 
   val raw_induct = Drule.export_without_context ([big_rec_def, bnd_mono] MRS Fp.induct)
 
-  val ((thy2, induct), mutual_induct) =
-    if not coind then induction_rules raw_induct thy1
+  val ((induct, mutual_induct), thy5) =
+    if not coind then induction_rules raw_induct
     else
-      (thy1
+      thy4
       |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
-      |> apfst hd |> Library.swap, @{thm TrueI})
+      |> apfst (hd #> pair @{thm TrueI})
   and defs = big_rec_def :: part_rec_defs
 
 
-  val (([bnd_mono', dom_subset', elim'], [defs', intrs']), thy3) =
-    thy2
+  val (([dom_subset', elim'], [defs']), thy6) =
+    thy5
     |> IndCases.declare big_rec_name make_cases
     |> Global_Theory.add_thms
-      [((Binding.name "bnd_mono", bnd_mono), []),
-       ((Binding.name "dom_subset", dom_subset), []),
+      [((Binding.name "dom_subset", dom_subset), []),
        ((Binding.name "cases", elim), [case_names, Induct.cases_pred big_rec_name])]
-    ||>> (Global_Theory.add_thmss o map Thm.no_attributes)
-        [(Binding.name "defs", defs),
-         (Binding.name "intros", intrs)];
-  val (intrs'', thy4) =
-    thy3
-    |> Global_Theory.add_thms ((map Binding.name intr_names ~~ intrs') ~~ map #2 intr_specs)
+    ||>> (Global_Theory.add_thmss o map Thm.no_attributes) [(Binding.name "defs", defs)];
+  val (intrs', thy7) =
+    thy6
+    |> Global_Theory.add_thms ((map Binding.name intr_names ~~ intrs) ~~ map #2 intr_specs)
     ||> Sign.parent_path;
   in
-    (thy4,
+    (thy7,
       {defs = defs',
-       bnd_mono = bnd_mono',
+       bnd_mono = bnd_mono,
        dom_subset = dom_subset',
-       intrs = intrs'',
+       intrs = intrs',
        elim = elim',
        induct = induct,
        mutual_induct = mutual_induct})

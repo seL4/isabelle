@@ -293,13 +293,20 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   val free_iffs = map Drule.export_without_context (con_defs RL [@{thm def_swap_iff}]);
 
-  val case_eqns = map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs);
+  val ([case_eqns], thy2) = thy1
+    |> Sign.add_path big_rec_base_name
+    |> Global_Theory.add_thmss
+      [((Binding.name "case_eqns",
+          map prove_case_eqn (flat con_ty_lists ~~ case_args ~~ tl con_defs)), [])]
+    ||> Sign.parent_path;
+
 
   (*** Prove the recursor theorems ***)
 
-  val recursor_eqns = case try (Misc_Legacy.get_def thy1) recursor_base_name of
+  val (recursor_eqns, thy3) =
+   case try (Misc_Legacy.get_def thy2) recursor_base_name of
      NONE => (writeln "  [ No recursion operator ]";
-              [])
+              ([], thy2))
    | SOME recursor_def =>
       let
         (*Replace subterms rec`x (where rec is a Free var) by recursor_tm(x) *)
@@ -316,22 +323,28 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           FOLogic.mk_Trueprop
            (FOLogic.mk_eq
             (recursor_tm $
-             (list_comb (Const (Sign.intern_const thy1 name,T),
+             (list_comb (Const (Sign.intern_const thy2 name,T),
                          args)),
              subst_rec (Term.betapplys (recursor_case, args))));
 
         val recursor_trans = recursor_def RS @{thm def_Vrecursor} RS @{thm trans};
 
         fun prove_recursor_eqn arg =
-          Goal.prove_global thy1 [] []
-            (Ind_Syntax.traceIt "next recursor equation = " thy1 (mk_recursor_eqn arg))
+          Goal.prove_global thy2 [] []
+            (Ind_Syntax.traceIt "next recursor equation = " thy2 (mk_recursor_eqn arg))
             (*Proves a single recursor equation.*)
             (fn {context = ctxt, ...} => EVERY
               [resolve_tac ctxt [recursor_trans] 1,
                simp_tac (put_simpset rank_ss ctxt addsimps case_eqns) 1,
                IF_UNSOLVED (simp_tac (put_simpset rank_ss ctxt addsimps tl con_defs) 1)]);
       in
-         map prove_recursor_eqn (flat con_ty_lists ~~ recursor_cases)
+        thy2
+        |> Sign.add_path big_rec_base_name
+        |> Global_Theory.add_thmss
+          [((Binding.name "recursor_eqns",
+            map prove_recursor_eqn (flat con_ty_lists ~~ recursor_cases)), [])]
+        ||> Sign.parent_path
+        |>> the_single
       end
 
   val constructors =
@@ -375,17 +388,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
  in
   (*Updating theory components: simprules and datatype info*)
-  (thy1 |> Sign.add_path big_rec_base_name
+  (thy3 |> Sign.add_path big_rec_base_name
         |> Global_Theory.add_thmss
-         [((Binding.name "case_eqns", case_eqns), []),
-          ((Binding.name "recursor_eqns", recursor_eqns), []),
+         [((Binding.name "simps", case_eqns @ recursor_eqns), [Simplifier.simp_add]),
           ((Binding.empty, intrs), [Cla.safe_intro NONE]),
           ((Binding.name "con_defs", con_defs), []),
           ((Binding.name "free_iffs", free_iffs), []),
-          ((Binding.name "free_elims", free_SEs), [])]
-        |-> (fn simps1 :: simps2 :: _ =>
-            Global_Theory.add_thmss
-              [((Binding.name "simps", simps1 @ simps2), [Simplifier.simp_add])]) |> #2
+          ((Binding.name "free_elims", free_SEs), [])] |> #2
         |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
         |> ConstructorsData.map (fold Symtab.update con_pairs)
         |> Sign.parent_path,
