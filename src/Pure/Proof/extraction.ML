@@ -623,7 +623,7 @@ fun extract thm_vss thy =
                     val corr_prop = Reconstruct.prop_of corr_prf;
                     val corr_prf' =
                       Proofterm.proof_combP (Proofterm.proof_combt
-                         (PThm (serial (),
+                         (PThm (Proofterm.proof_serial (),
                           ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
                             Future.value (Proofterm.approximate_proof_body corr_prf))),
                               vfs_of corr_prop),
@@ -740,7 +740,7 @@ fun extract thm_vss thy =
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
-                        (PThm (serial (),
+                        (PThm (Proofterm.proof_serial (),
                          ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
                            Future.value (Proofterm.approximate_proof_body corr_prf'))),
                             vfs_of corr_prop),
