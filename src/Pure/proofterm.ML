@@ -1022,92 +1022,6 @@ fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
 
 
 
-(** axioms for equality **)
-
-val aT = TFree ("'a", []);
-val bT = TFree ("'b", []);
-val x = Free ("x", aT);
-val y = Free ("y", aT);
-val z = Free ("z", aT);
-val A = Free ("A", propT);
-val B = Free ("B", propT);
-val f = Free ("f", aT --> bT);
-val g = Free ("g", aT --> bT);
-
-val equality_axms =
- [("reflexive", Logic.mk_equals (x, x)),
-  ("symmetric", Logic.mk_implies (Logic.mk_equals (x, y), Logic.mk_equals (y, x))),
-  ("transitive",
-    Logic.list_implies ([Logic.mk_equals (x, y), Logic.mk_equals (y, z)], Logic.mk_equals (x, z))),
-  ("equal_intr",
-    Logic.list_implies ([Logic.mk_implies (A, B), Logic.mk_implies (B, A)], Logic.mk_equals (A, B))),
-  ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
-  ("abstract_rule",
-    Logic.mk_implies
-      (Logic.all x
-        (Logic.mk_equals (f $ x, g $ x)), Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
-  ("combination", Logic.list_implies
-    ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
-
-val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
-  equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
-
-val reflexive = reflexive_axm % NONE;
-
-fun symmetric (prf as PAxm ("Pure.reflexive", _, _) % _) = prf
-  | symmetric prf = symmetric_axm % NONE % NONE %% prf;
-
-fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
-  | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
-  | transitive u (Type ("prop", [])) prf1 prf2 =
-      transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
-  | transitive _ _ prf1 prf2 = transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
-
-fun abstract_rule x a prf =
-  abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
-
-fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
-      is_some f orelse check_comb prf
-  | check_comb (PAxm ("Pure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
-      check_comb prf1 andalso check_comb prf2
-  | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
-  | check_comb _ = false;
-
-fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
-  let
-    val f = Envir.beta_norm f;
-    val g = Envir.beta_norm g;
-    val prf =
-      if check_comb prf1 then
-        combination_axm % NONE % NONE
-      else
-        (case prf1 of
-          PAxm ("Pure.reflexive", _, _) % _ =>
-            combination_axm %> remove_types f % NONE
-        | _ => combination_axm %> remove_types f %> remove_types g)
-  in
-    (case T of
-      Type ("fun", _) => prf %
-        (case head_of f of
-          Abs _ => SOME (remove_types t)
-        | Var _ => SOME (remove_types t)
-        | _ => NONE) %
-        (case head_of g of
-          Abs _ => SOME (remove_types u)
-        | Var _ => SOME (remove_types u)
-        | _ => NONE) %% prf1 %% prf2
-     | _ => prf % NONE % NONE %% prf1 %% prf2)
-  end;
-
-fun equal_intr A B prf1 prf2 =
-  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
-
-fun equal_elim A B prf1 prf2 =
-  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
-
-
-
 (** type classes **)
 
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
@@ -1177,6 +1091,7 @@ fun of_sort_proof thy hyps =
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
 end;
+
 
 
 (** axioms and theorems **)
@@ -1314,6 +1229,92 @@ val shrink_proof =
       | needed (Var (ixn, _)) (_::_) _ = [ixn]
       | needed _ _ _ = [];
   in fn prf => #4 (shrink [] 0 prf) end;
+
+
+
+(** axioms for equality **)
+
+val aT = TFree ("'a", []);
+val bT = TFree ("'b", []);
+val x = Free ("x", aT);
+val y = Free ("y", aT);
+val z = Free ("z", aT);
+val A = Free ("A", propT);
+val B = Free ("B", propT);
+val f = Free ("f", aT --> bT);
+val g = Free ("g", aT --> bT);
+
+val equality_axms =
+ [("reflexive", Logic.mk_equals (x, x)),
+  ("symmetric", Logic.mk_implies (Logic.mk_equals (x, y), Logic.mk_equals (y, x))),
+  ("transitive",
+    Logic.list_implies ([Logic.mk_equals (x, y), Logic.mk_equals (y, z)], Logic.mk_equals (x, z))),
+  ("equal_intr",
+    Logic.list_implies ([Logic.mk_implies (A, B), Logic.mk_implies (B, A)], Logic.mk_equals (A, B))),
+  ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
+  ("abstract_rule",
+    Logic.mk_implies
+      (Logic.all x
+        (Logic.mk_equals (f $ x, g $ x)), Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
+  ("combination", Logic.list_implies
+    ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
+
+val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
+  equal_elim_axm, abstract_rule_axm, combination_axm] =
+    map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
+
+val reflexive = reflexive_axm % NONE;
+
+fun symmetric (prf as PAxm ("Pure.reflexive", _, _) % _) = prf
+  | symmetric prf = symmetric_axm % NONE % NONE %% prf;
+
+fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
+  | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
+  | transitive u (Type ("prop", [])) prf1 prf2 =
+      transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
+  | transitive _ _ prf1 prf2 = transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+
+fun abstract_rule x a prf =
+  abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
+
+fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
+      is_some f orelse check_comb prf
+  | check_comb (PAxm ("Pure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
+      check_comb prf1 andalso check_comb prf2
+  | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
+  | check_comb _ = false;
+
+fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
+  let
+    val f = Envir.beta_norm f;
+    val g = Envir.beta_norm g;
+    val prf =
+      if check_comb prf1 then
+        combination_axm % NONE % NONE
+      else
+        (case prf1 of
+          PAxm ("Pure.reflexive", _, _) % _ =>
+            combination_axm %> remove_types f % NONE
+        | _ => combination_axm %> remove_types f %> remove_types g)
+  in
+    (case T of
+      Type ("fun", _) => prf %
+        (case head_of f of
+          Abs _ => SOME (remove_types t)
+        | Var _ => SOME (remove_types t)
+        | _ => NONE) %
+        (case head_of g of
+          Abs _ => SOME (remove_types u)
+        | Var _ => SOME (remove_types u)
+        | _ => NONE) %% prf1 %% prf2
+     | _ => prf % NONE % NONE %% prf1 %% prf2)
+  end;
+
+fun equal_intr A B prf1 prf2 =
+  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+fun equal_elim A B prf1 prf2 =
+  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
 
