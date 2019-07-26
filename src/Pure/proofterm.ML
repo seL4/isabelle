@@ -9,6 +9,7 @@ infix 8 % %% %>;
 signature BASIC_PROOFTERM =
 sig
   type thm_node
+  type proof_serial = int
   datatype proof =
      MinProof
    | PBound of int
@@ -20,10 +21,10 @@ sig
    | PAxm of string * term * typ list option
    | OfClass of typ * class
    | Oracle of string * term * typ list option
-   | PThm of serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
+   | PThm of proof_serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) Ord_List.T,
-     thms: (serial * thm_node) Ord_List.T,
+     thms: (proof_serial * thm_node) Ord_List.T,
      proof: proof}
   val %> : proof * term -> proof
 end;
@@ -32,7 +33,7 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
   val proofs: int Unsynchronized.ref
-  type pthm = serial * thm_node
+  type pthm = proof_serial * thm_node
   type oracle = string * term
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -41,7 +42,8 @@ sig
   val thm_node_body: thm_node -> proof_body future
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
-  val fold_body_thms: ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
+  val fold_body_thms:
+    ({serial: proof_serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
   val consolidate: proof_body list -> unit
   val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
@@ -153,6 +155,7 @@ sig
   val forall_intr_vfs_prf: term -> proof -> proof
   val clean_proof: theory -> proof -> proof
 
+  val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
@@ -167,6 +170,8 @@ struct
 
 (** datatype proof **)
 
+type proof_serial = int;
+
 datatype proof =
    MinProof
  | PBound of int
@@ -178,16 +183,16 @@ datatype proof =
  | PAxm of string * term * typ list option
  | OfClass of typ * class
  | Oracle of string * term * typ list option
- | PThm of serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
+ | PThm of proof_serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) Ord_List.T,
-   thms: (serial * thm_node) Ord_List.T,
+   thms: (proof_serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
 type oracle = string * term;
-type pthm = serial * thm_node;
+type pthm = proof_serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
