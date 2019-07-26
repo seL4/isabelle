@@ -153,6 +153,7 @@ sig
 
   val forall_intr_vfs: term -> term
   val forall_intr_vfs_prf: term -> proof -> proof
+  val app_types: int -> term -> typ list -> proof -> proof
   val clean_proof: theory -> proof -> proof
 
   val proof_serial: unit -> proof_serial
@@ -1592,6 +1593,14 @@ in
 fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
 
+fun app_types shift prop Ts prf =
+  let
+    val tvars = rev (Term.add_tvars prop []);
+    val tfrees = rev (Term.add_tfrees prop []);
+    val vs = map (fn ((a, i), _) => (a, i + shift)) tvars @ map (fn (a, _) => (a, ~1)) tfrees;
+    fun varify (v as (a, S)) = if member (op =) tfrees v then TVar ((a, ~1), S) else TFree v;
+  in map_proof_types (typ_subst_TVars (vs ~~ Ts) o map_type_tfree varify) prf end;
+
 end;
 
 fun clean_proof thy prf =
@@ -1621,14 +1630,7 @@ fun clean_proof thy prf =
                     val prfs'' = (prop, (maxidx', prf)) :: prfs';
                   in (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs'') end
               | SOME (maxidx', prf) => (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs));
-            val tfrees = Term.add_tfrees prop [] |> rev;
-            val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
-              (Term.add_tvars prop [] |> rev) @ map (rpair ~1 o fst) tfrees ~~ Ts;
-            val varify = map_type_tfree (fn p as (a, S) =>
-              if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
-          in
-            (maxidx', prfs', map_proof_types (typ_subst_TVars tye o varify) prf)
-          end
+          in (maxidx', prfs', app_types (maxidx + 1) prop Ts prf) end
       | clean maxidx prfs prf = (maxidx, prfs, prf);
 
   in rew_proof thy (#3 (clean (maxidx_proof prf ~1) [] prf)) end;

@@ -364,21 +364,14 @@ fun expand_proof ctxt thms prf =
                       |> open_proof
                       |> reconstruct_proof ctxt prop
                       |> Proofterm.forall_intr_vfs_prf prop;
-                    val (maxidx', prfs', prf) = expand
-                      (Proofterm.maxidx_proof prf' ~1) prfs prf'
-                  in (maxidx' + maxidx + 1, Proofterm.incr_indexes (maxidx + 1) prf,
-                    ((a, prop), (maxidx', prf)) :: prfs')
+                    val (maxidx', prfs', prf) = expand (Proofterm.maxidx_proof prf' ~1) prfs prf'
+                  in
+                    (maxidx' + maxidx + 1, Proofterm.incr_indexes (maxidx + 1) prf,
+                      ((a, prop), (maxidx', prf)) :: prfs')
                   end
-              | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
-                  Proofterm.incr_indexes (maxidx + 1) prf, prfs));
-            val tfrees = Term.add_tfrees prop [] |> rev;
-            val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
-              (Term.add_tvars prop [] |> rev) @ map (rpair ~1 o fst) tfrees ~~ Ts;
-            val varify = map_type_tfree (fn p as (a, S) =>
-              if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
-          in
-            (maxidx', prfs', Proofterm.map_proof_types (typ_subst_TVars tye o varify) prf)
-          end
+              | SOME (maxidx', prf) =>
+                  (maxidx' + maxidx + 1, Proofterm.incr_indexes (maxidx + 1) prf, prfs));
+          in (maxidx', prfs', Proofterm.app_types (maxidx + 1) prop Ts prf) end
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
   in #3 (expand (Proofterm.maxidx_proof prf ~1) [] prf) end;
