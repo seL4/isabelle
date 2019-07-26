@@ -135,7 +135,7 @@ fun make_constraints_cprf ctxt env cprf =
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
               (Proofterm.forall_intr_vfs prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (Proofterm.guess_name prf))
-          in (prop', Proofterm.change_type (SOME Ts) prf, [], env', vTs) end;
+          in (prop', Proofterm.change_types (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);

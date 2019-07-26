@@ -81,7 +81,7 @@ sig
   val fold_proof_terms: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
   val maxidx_proof: proof -> int -> int
   val size_of_proof: proof -> int
-  val change_type: typ list option -> proof -> proof
+  val change_types: typ list option -> proof -> proof
   val prf_abstract_over: term -> proof -> proof
   val prf_incr_bv: int -> int -> int -> int -> proof -> proof
   val incr_pboundvars: int -> int -> proof -> proof
@@ -487,12 +487,12 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
   | size_of_proof _ = 1;
 
-fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
-  | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
-  | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (PThm (i, ((name, prop, _, open_proof), body))) =
-      PThm (i, ((name, prop, opTs, open_proof), body))
-  | change_type _ prf = prf;
+fun change_types types (PAxm (name, prop, _)) = PAxm (name, prop, types)
+  | change_types (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
+  | change_types types (Oracle (name, prop, _)) = Oracle (name, prop, types)
+  | change_types types (PThm (i, ((name, prop, _, open_proof), body))) =
+      PThm (i, ((name, prop, types, open_proof), body))
+  | change_types _ prf = prf;
 
 
 (* utilities *)

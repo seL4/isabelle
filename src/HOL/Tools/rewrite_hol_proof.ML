@@ -317,7 +317,7 @@ fun make_subst Ts prf xs (_, []) = prf
   | make_subst Ts prf xs (f, ((x, y), (prf', clprf)) :: ps) =
       let val T = fastype_of1 (Ts, x)
       in if x aconv y then make_subst Ts prf (xs @ [x]) (f, ps)
-        else Proofterm.change_type (SOME [T]) subst_prf %> x %> y %>
+        else Proofterm.change_types (SOME [T]) subst_prf %> x %> y %>
           Abs ("z", T, list_comb (incr_boundvars 1 f,
             map (incr_boundvars 1) xs @ Bound 0 ::
             map (incr_boundvars 1 o snd o fst) ps)) %% clprf %% prf' %%
@@ -326,7 +326,7 @@ fun make_subst Ts prf xs (_, []) = prf
 
 fun make_sym Ts ((x, y), (prf, clprf)) =
   ((y, x),
-    (Proofterm.change_type (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% clprf %% prf, clprf));
+    (Proofterm.change_types (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% clprf %% prf, clprf));
 
 fun mk_AbsP P t = AbsP ("H", Option.map HOLogic.mk_Trueprop P, t);
 

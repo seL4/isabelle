@@ -91,7 +91,7 @@ fun proof_of_term thy ty =
 
     fun prf_of [] (Bound i) = PBound i
       | prf_of Ts (Const (s, Type ("Pure.proof", _))) =
-          Proofterm.change_type (if ty then SOME Ts else NONE)
+          Proofterm.change_types (if ty then SOME Ts else NONE)
             (case Long_Name.explode s of
                "axm" :: xs =>
                  let
@@ -111,7 +111,7 @@ fun proof_of_term thy ty =
       | prf_of Ts (Const ("Pure.OfClass", _) $ Const (c_class, _)) =
           (case try Logic.class_of_const c_class of
             SOME c =>
-              Proofterm.change_type (if ty then SOME Ts else NONE)
+              Proofterm.change_types (if ty then SOME Ts else NONE)
                 (OfClass (TVar ((Name.aT, 0), []), c))
           | NONE => error ("Bad class constant: " ^ quote c_class))
       | prf_of Ts (Const ("Pure.Hyp", _) $ prop) = Hyp prop

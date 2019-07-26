@@ -116,7 +116,7 @@ fun condrew thy rules procs =
 
   in rew end;
 
-val chtype = Proofterm.change_type o SOME;
+val chtypes = Proofterm.change_types o SOME;
 
 fun extr_name s vs = Long_Name.append "extr" (space_implode "_" (s :: vs));
 fun corr_name s vs = extr_name s vs ^ "_correctness";
@@ -731,10 +731,10 @@ fun extract thm_vss thy =
                       (Abs ("x", T, rlz $ list_comb (Bound 0, args') $ prop));
 
                     val corr_prf' = mkabsp shyps
-                      (chtype [] Proofterm.equal_elim_axm %> lhs %> rhs %%
-                       (chtype [propT] Proofterm.symmetric_axm %> rhs %> lhs %%
-                         (chtype [T, propT] Proofterm.combination_axm %> f %> f %> c %> t' %%
-                           (chtype [T --> propT] Proofterm.reflexive_axm %> f) %%
+                      (chtypes [] Proofterm.equal_elim_axm %> lhs %> rhs %%
+                       (chtypes [propT] Proofterm.symmetric_axm %> rhs %> lhs %%
+                         (chtypes [T, propT] Proofterm.combination_axm %> f %> f %> c %> t' %%
+                           (chtypes [T --> propT] Proofterm.reflexive_axm %> f) %%
                            PAxm (Thm.def_name cname, eqn,
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Reconstruct.prop_of corr_prf';

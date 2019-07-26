@@ -243,7 +243,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
                 map the ts);
             in
-              (Proofterm.change_type (SOME [fastype_of1 (Ts, rhs')])
+              (Proofterm.change_types (SOME [fastype_of1 (Ts, rhs')])
                 Proofterm.reflexive_axm %> rhs', true)
             end
           else (prf, false)
