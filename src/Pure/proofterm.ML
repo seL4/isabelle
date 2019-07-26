@@ -20,7 +20,7 @@ sig
    | PAxm of string * term * typ list option
    | OfClass of typ * class
    | Oracle of string * term * typ list option
-   | PThm of serial * ((string * term * typ list option) * proof_body future)
+   | PThm of serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
@@ -178,7 +178,7 @@ datatype proof =
  | PAxm of string * term * typ list option
  | OfClass of typ * class
  | Oracle of string * term * typ list option
- | PThm of serial * ((string * term * typ list option) * proof_body future)
+ | PThm of serial * ((string * term * typ list option * (proof -> proof)) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
@@ -295,7 +295,7 @@ fun approximate_proof_body prf =
   let
     val (oracles, thms) = fold_proof_atoms false
       (fn Oracle (s, prop, _) => apfst (cons (s, prop))
-        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, make_thm_node name prop body))
+        | PThm (i, ((name, prop, _, _), body)) => apsnd (cons (i, make_thm_node name prop body))
         | _ => I) [prf] ([], []);
   in
     PBody
@@ -335,8 +335,9 @@ fun proof prf = prf |> variant
   fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
   fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
-  fn PThm (a, ((b, c, d), body)) =>
-    ([int_atom a, b], triple term (option (list typ)) proof_body (c, d, Future.join body))]
+  fn PThm (a, ((b, c, d, open_proof), body)) =>
+    ([int_atom a, b], triple term (option (list typ)) proof_body
+      (c, d, map_proof_of open_proof (Future.join body)))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
 and pthm (a, thm_node) =
@@ -370,7 +371,7 @@ fun proof prf = prf |> variant
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b], c) =>
     let val (d, e, f) = triple term (option (list typ)) proof_body c
-    in PThm (int_atom a, ((b, d, e), Future.value f)) end]
+    in PThm (int_atom a, ((b, d, e, I), Future.value f)) end]
 and proof_body x =
   let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
@@ -444,8 +445,8 @@ fun map_proof_same term typ ofclass =
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
       | proof (OfClass T_c) = ofclass T_c
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
-      | proof (PThm (i, ((a, prop, SOME Ts), body))) =
-          PThm (i, ((a, prop, SOME (typs Ts)), body))
+      | proof (PThm (i, ((a, prop, SOME Ts, open_proof), body))) =
+          PThm (i, ((a, prop, SOME (typs Ts), open_proof), body))
       | proof _ = raise Same.SAME;
   in proof end;
 
@@ -470,7 +471,7 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ g (OfClass (T, _)) = g T
   | fold_proof_terms _ g (Oracle (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts), _))) = fold g Ts
+  | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts, _), _))) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
 fun maxidx_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf;
@@ -484,8 +485,8 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (PThm (i, ((name, prop, _), body))) =
-      PThm (i, ((name, prop, opTs), body))
+  | change_type opTs (PThm (i, ((name, prop, _, open_proof), body))) =
+      PThm (i, ((name, prop, opTs, open_proof), body))
   | change_type _ prf = prf;
 
 
@@ -632,8 +633,8 @@ fun norm_proof env =
           OfClass (htypeT Envir.norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
           Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
-      | norm (PThm (i, ((s, t, Ts), body))) =
-          PThm (i, ((s, t, Same.map_option (htypeTs Envir.norm_types_same) Ts), body))
+      | norm (PThm (i, ((s, t, Ts, open_proof), body))) =
+          PThm (i, ((s, t, Same.map_option (htypeTs Envir.norm_types_same) Ts, open_proof), body))
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
 
@@ -776,7 +777,7 @@ fun OfClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-fun term_of _ (PThm (_, ((name, _, Ts), _))) =
+fun term_of _ (PThm (_, ((name, _, Ts, _), _))) =
       fold AppT (these Ts) (Const (Long_Name.append "thm" name, proofT))
   | term_of _ (PAxm (name, _, Ts)) =
       fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
@@ -949,8 +950,8 @@ fun lift_proof Bi inc prop prf =
           OfClass (Logic.incr_tvar_same inc T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
           Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
-          PThm (i, ((s, prop, (Same.map_option o Same.map) (Logic.incr_tvar inc) Ts), body))
+      | lift' _ _ (PThm (i, ((s, prop, Ts, open_proof), body))) =
+          PThm (i, ((s, prop, (Same.map_option o Same.map) (Logic.incr_tvar inc) Ts, open_proof), body))
       | lift' _ _ _ = raise Same.SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
 
@@ -1287,7 +1288,7 @@ val shrink_proof =
               (case prf of
                 PAxm (_, prop, _) => prop
               | Oracle (_, prop, _) => prop
-              | PThm (_, ((_, prop, _), _)) => prop
+              | PThm (_, ((_, prop, _, _), _)) => prop
               | _ => raise Fail "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
@@ -1376,7 +1377,8 @@ fun match_proof Ts tymatch =
       | mtch Ts i j inst (OfClass (T1, c1), OfClass (T2, c2)) =
           if c1 = c2 then matchT inst (T1, T2)
           else raise PMatch
-      | mtch Ts i j inst (PThm (_, ((name1, prop1, opTs), _)), PThm (_, ((name2, prop2, opUs), _))) =
+      | mtch Ts i j inst
+            (PThm (_, ((name1, prop1, opTs, _), _)), PThm (_, ((name2, prop2, opUs, _), _))) =
           if name1 = name2 andalso prop1 = prop2 then
             optmatch matchTs inst (opTs, opUs)
           else raise PMatch
@@ -1422,8 +1424,8 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
       | subst _ _ (OfClass (T, c)) = OfClass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
-      | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
-          PThm (i, ((id, prop, Same.map_option substTs Ts), body))
+      | subst _ _ (PThm (i, ((id, prop, Ts, open_proof), body))) =
+          PThm (i, ((id, prop, Same.map_option substTs Ts, open_proof), body))
       | subst _ _ _ = raise Same.SAME;
   in fn t => subst 0 0 t handle Same.SAME => t end;
 
@@ -1447,7 +1449,7 @@ fun could_unify prf1 prf2 =
       | (Hyp (Var _), _) => true
       | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
       | (OfClass (_, c), OfClass (_, d)) => c = d andalso matchrands prf1 prf2
-      | (PThm (_, ((a, propa, _), _)), PThm (_, ((b, propb, _), _))) =>
+      | (PThm (_, ((a, propa, _, _), _)), PThm (_, ((b, propb, _, _), _))) =>
           a = b andalso propa = propb andalso matchrands prf1 prf2
       | (PBound i, PBound j) => i = j andalso matchrands prf1 prf2
       | (AbsP _, _) =>  true   (*because of possible eta equality*)
@@ -1603,7 +1605,7 @@ fun clean_proof thy prf =
       | clean maxidx prfs (prf % t) =
           let val (maxidx', prfs', prf') = clean maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
-      | clean maxidx prfs (PThm (_, (("", prop, SOME Ts), body))) =
+      | clean maxidx prfs (PThm (_, (("", prop, SOME Ts, _), body))) =
           let
             val (maxidx', prf, prfs') =
               (case AList.lookup (op =) prfs prop of
@@ -1707,47 +1709,39 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
-      if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
-      else
-        let
-          val rew = rew_proof thy;
-          val prf0 = fold_rev implies_intr_proof hyps prf;
-        in
-          (singleton o Future.cond_forks)
-            {name = "Proofterm.prepare_thm_proof", group = NONE,
-              deps = [], pri = 1, interrupts = true}
-            (fn () => make_body0 (rew prf0))
-        end;
+      Future.value (make_body0
+        (if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof))
 
     fun export i prf1 =
-     if Options.default_bool "export_proofs" then
+      if Options.default_bool "export_proofs" then
         Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
-          (Buffer.chunks
-            (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
+          (Buffer.chunks (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
       else ();
 
     fun prune prf1 =
-      if Options.default_bool "prune_proofs" then MinProof else shrink_proof prf1;
+      if Options.default_bool "prune_proofs" then MinProof
+      else shrink_proof prf1;
 
-    fun publish i = tap (export i) #> prune;
+    fun publish i = clean_proof thy #> tap (export i) #> prune;
 
     fun new_prf () =
       let
         val i = proof_serial ();
         val postproc =
           unconstrainT_body thy (atyp_map, constraints) #>
-          name <> "" ? map_proof_of (clean_proof thy #> publish i);
+          name <> "" ? map_proof_of (publish i);
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
-        (PThm (i, ((a, prop', NONE), body')), args') =>
+        (PThm (i, ((a, prop', NONE, _), body')), args') =>
           if (a = "" orelse a = name) andalso prop1 = prop' andalso args = args'
           then (i, body' |> (a = "" andalso name <> "") ? Future.map (map_proof_of (publish i)))
           else new_prf ()
       | _ => new_prf ());
-    val head = PThm (i, ((name, prop1, NONE), body'));
+    val open_proof = if name = "" then clean_proof thy #> shrink_proof else I;
+    val head = PThm (i, ((name, prop1, NONE, open_proof), body'));
   in ((i, make_thm_node name prop1 body'), head, args, argsP, args1) end;
 
 fun thm_proof thy name shyps hyps concl promises body =
@@ -1762,11 +1756,11 @@ fun unconstrain_thm_proof thy shyps concl promises body =
 fun get_name shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
     (case strip_combt (fst (strip_combP prf)) of
-      (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
+      (PThm (_, ((name, prop', _, _), _)), _) => if prop = prop' then name else ""
     | _ => "")
   end;
 
-fun guess_name (PThm (_, ((name, _, _), _))) = name
+fun guess_name (PThm (_, ((name, _, _, _), _))) = name
   | guess_name (prf %% Hyp _) = guess_name prf
   | guess_name (prf %% OfClass _) = guess_name prf
   | guess_name (prf % NONE) = guess_name prf

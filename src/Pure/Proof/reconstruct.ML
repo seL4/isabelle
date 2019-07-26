@@ -209,7 +209,7 @@ fun make_constraints_cprf ctxt env cprf =
                  add_cnstrt Ts (v $ t) (prf % SOME t) cnstrts env3 vTs'
                    (u, Const ("Pure.all", (T --> propT) --> propT) $ v)
                end)
-      | mk_cnstrts env _ _ vTs (prf as PThm (_, ((_, prop, opTs), _))) =
+      | mk_cnstrts env _ _ vTs (prf as PThm (_, ((_, prop, opTs, _), _))) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
@@ -312,7 +312,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
       Const ("Pure.imp", _) $ P $ Q => Q
     | _ => error "prop_of: ==> expected")
   | prop_of0 Hs (Hyp t) = t
-  | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts), _))) = prop_of_atom prop Ts
+  | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts, _), _))) = prop_of_atom prop Ts
   | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 Hs (OfClass (T, c)) = Logic.mk_of_class (T, c)
   | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
@@ -330,6 +330,8 @@ fun proof_of ctxt raw_thm =
 
 fun expand_proof ctxt thms prf =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     fun expand maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', AbsP (s, t, prf')) end
@@ -344,7 +346,7 @@ fun expand_proof ctxt thms prf =
       | expand maxidx prfs (prf % t) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
-      | expand maxidx prfs (prf as PThm (_, ((a, prop, SOME Ts), body))) =
+      | expand maxidx prfs (prf as PThm (_, ((a, prop, SOME Ts, open_proof), body))) =
           if not (exists
             (fn (b, NONE) => a = b
               | (b, SOME prop') => a = b andalso prop = prop') thms)
@@ -357,8 +359,11 @@ fun expand_proof ctxt thms prf =
                     val _ =
                       message ctxt (fn () =>
                         "Reconstructing proof of " ^ a ^ "\n" ^ Syntax.string_of_term ctxt prop);
-                    val prf' = Proofterm.forall_intr_vfs_prf prop
-                      (reconstruct_proof ctxt prop (Proofterm.join_proof body));
+                    val prf' =
+                      Proofterm.join_proof body
+                      |> open_proof
+                      |> reconstruct_proof ctxt prop
+                      |> Proofterm.forall_intr_vfs_prf prop;
                     val (maxidx', prfs', prf) = expand
                       (Proofterm.maxidx_proof prf' ~1) prfs prf'
                   in (maxidx' + maxidx + 1, Proofterm.incr_indexes (maxidx + 1) prf,

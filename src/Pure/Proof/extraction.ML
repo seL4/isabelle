@@ -596,9 +596,9 @@ fun extract thm_vss thy =
               (corr_prf1 % u %% corr_prf2, defs2)
           end
 
-      | corr d vs ts Ts hs cs _ (prf0 as PThm (_, ((name, prop, SOME Ts'), body))) _ defs =
+      | corr d vs ts Ts hs cs _ (prf0 as PThm (_, ((name, prop, SOME Ts', open_proof), body))) _ defs =
           let
-            val prf = Proofterm.join_proof body;
+            val prf = Proofterm.join_proof body |> open_proof;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val sprfs = mk_sprfs cs tye;
@@ -624,7 +624,7 @@ fun extract thm_vss thy =
                     val corr_prf' =
                       Proofterm.proof_combP (Proofterm.proof_combt
                          (PThm (serial (),
-                          ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
+                          ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
                             Future.value (Proofterm.approximate_proof_body corr_prf))),
                               vfs_of corr_prop),
                               map PBound (length shyps - 1 downto 0)) |>
@@ -694,9 +694,9 @@ fun extract thm_vss thy =
               in (f $ t, defs'') end
           end
 
-      | extr d vs ts Ts hs (prf0 as PThm (_, ((s, prop, SOME Ts'), body))) defs =
+      | extr d vs ts Ts hs (prf0 as PThm (_, ((s, prop, SOME Ts', open_proof), body))) defs =
           let
-            val prf = Proofterm.join_proof body;
+            val prf = Proofterm.join_proof body |> open_proof;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
@@ -741,7 +741,7 @@ fun extract thm_vss thy =
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
                         (PThm (serial (),
-                         ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
+                         ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
                            Future.value (Proofterm.approximate_proof_body corr_prf'))),
                             vfs_of corr_prop),
                              map PBound (length shyps - 1 downto 0)) |>
