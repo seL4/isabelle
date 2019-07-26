@@ -1234,20 +1234,20 @@ fun is_proj t =
     | t' => is_p 0 t')
   end;
 
-fun needed_vars prop =
-  union (op =) (Library.foldl (uncurry (union (op =)))
-    ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))))
-  (prop_vars prop);
+fun prop_args prop =
+  let
+    val needed_vars =
+      union (op =) (Library.foldl (uncurry (union (op =)))
+        ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))))
+      (prop_vars prop);
+    val vars =
+      vars_of prop |> map (fn (v as Var (ixn, _)) =>
+        if member (op =) needed_vars ixn then SOME v else NONE);
+    val frees = map SOME (frees_of prop);
+  in vars @ frees end;
 
 fun gen_axm_proof c name prop =
-  let
-    val nvs = needed_vars prop;
-    val args = map (fn (v as Var (ixn, _)) =>
-        if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
-      map SOME (frees_of prop);
-  in
-    proof_combt' (c (name, prop, NONE), args)
-  end;
+  proof_combt' (c (name, prop, NONE), prop_args prop);
 
 val axm_proof = gen_axm_proof PAxm;
 
@@ -1697,14 +1697,34 @@ fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
 
 val proof_serial = Counter.make ();
 
+
+(* publish *)
+
+local
+
+fun export thy i proof =
+  if Options.default_bool "export_proofs" then
+    Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
+      (Buffer.chunks (YXML.buffer_body (Term_XML.Encode.term (term_of_proof proof)) Buffer.empty))
+  else ();
+
+fun prune proof =
+  if Options.default_bool "prune_proofs" then MinProof
+  else shrink_proof proof;
+
+in
+
+fun publish thy i = clean_proof thy #> tap (export thy i) #> prune;
+
+end;
+
+
+(* PThm nodes *)
+
 fun prepare_thm_proof thy name shyps hyps concl promises body =
   let
-    val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, concl);
-    val nvs = needed_vars prop;
-    val args = map (fn (v as Var (ixn, _)) =>
-        if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
-      map SOME (frees_of prop);
+    val args = prop_args prop;
 
     val ((atyp_map, constraints, outer_constraints), prop1) = Logic.unconstrainT shyps prop;
     val args1 =
@@ -1712,29 +1732,18 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
         (Type.strip_sorts o atyp_map) args;
     val argsP = map OfClass outer_constraints @ map Hyp hyps;
 
-    fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
+    val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val body0 =
-      Future.value (make_body0
-        (if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof))
-
-    fun export i prf1 =
-      if Options.default_bool "export_proofs" then
-        Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
-          (Buffer.chunks (YXML.buffer_body (Term_XML.Encode.term (term_of_proof prf1)) Buffer.empty))
-      else ();
-
-    fun prune prf1 =
-      if Options.default_bool "prune_proofs" then MinProof
-      else shrink_proof prf1;
-
-    fun publish i = clean_proof thy #> tap (export i) #> prune;
+      Future.value
+        (PBody {oracles = oracles0, thms = thms0,
+          proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
 
     fun new_prf () =
       let
         val i = proof_serial ();
         val postproc =
           unconstrainT_body thy (atyp_map, constraints) #>
-          name <> "" ? map_proof_of (publish i);
+          name <> "" ? map_proof_of (publish thy i);
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -1742,9 +1751,10 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((a, prop', NONE, _), body')), args') =>
           if (a = "" orelse a = name) andalso prop1 = prop' andalso args = args'
-          then (i, body' |> (a = "" andalso name <> "") ? Future.map (map_proof_of (publish i)))
+          then (i, body' |> (a = "" andalso name <> "") ? Future.map (map_proof_of (publish thy i)))
           else new_prf ()
       | _ => new_prf ());
+
     val open_proof = if name = "" then clean_proof thy #> shrink_proof else I;
     val head = PThm (i, ((name, prop1, NONE, open_proof), body'));
   in ((i, make_thm_node name prop1 body'), head, args, argsP, args1) end;
@@ -1757,6 +1767,8 @@ fun unconstrain_thm_proof thy shyps concl promises body =
   let val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
   in (pthm, proof_combt' (head, args)) end;
 
+
+(* approximative PThm name *)
 
 fun get_name shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
