@@ -1660,7 +1660,7 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
     else
       (singleton o Future.forks)
         {name = "Proofterm.fulfill_proof_future", group = NONE,
-          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
+          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 1,
           interrupts = true}
         fulfill
   end;
