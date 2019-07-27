@@ -23,7 +23,6 @@ sig
   val name_multi: string -> 'a list -> (string * 'a) list
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
-  val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
   val check_thms_lazy: thm list lazy -> thm list lazy
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
@@ -121,11 +120,8 @@ fun name_thm pre official name thm = thm
 fun name_thms pre official name thms =
   map (uncurry (name_thm pre official)) (name_multi name thms);
 
-fun name_thmss official name fact =
-  burrow_fact (name_thms true official name) fact;
 
-
-(* enter_thms *)
+(* apply theorems and attributes *)
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
@@ -171,30 +167,37 @@ fun add_thms_lazy kind (b, thms) thy =
         |> Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
-fun enter_thms pre_name post_name app_att (b, thms) thy =
-  if Binding.is_empty b then app_att thms thy |-> register_proofs
+val app_facts =
+  apfst flat oo fold_map (fn (thms, atts) => fold_map (Thm.theory_attributes atts) thms);
+
+fun apply_facts pre_name post_name (b, facts) thy =
+  if Binding.is_empty b then app_facts facts thy |-> register_proofs
   else
     let
       val name = Sign.full_name thy b;
-      val (thms', thy') =
-        app_att (pre_name name thms) thy |>> post_name name |-> register_proofs;
+      val (thms', thy') = thy
+        |> app_facts (map (apfst (pre_name name)) facts)
+        |>> post_name name |-> register_proofs;
       val thy'' = thy' |> add_facts (b, Lazy.value thms');
     in (map (Thm.transfer thy'') thms', thy'') end;
+
+fun apply_fact pre_name post_name (b, fact) =
+  apply_facts pre_name post_name (b, [fact]);
 
 
 (* store_thm *)
 
 fun store_thm (b, th) =
-  enter_thms (name_thms true true) (name_thms false true) pair (b, [th]) #>> the_single;
+  apply_fact (name_thms true true) (name_thms false true) (b, ([th], [])) #>> the_single;
 
 fun store_thm_open (b, th) =
-  enter_thms (name_thms true false) (name_thms false false) pair (b, [th]) #>> the_single;
+  apply_fact (name_thms true false) (name_thms false false) (b, ([th], [])) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((b, thms), atts) =
-  enter_thms pre_name (name_thms false true) (fold_map (Thm.theory_attributes atts)) (b, thms);
+  apply_fact pre_name (name_thms false true) (b, (thms, atts));
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -222,12 +225,9 @@ fun add_thms_dynamic arg thy =
 fun note_thms kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
-    fun app (ths, atts) =
-      fold_map (Thm.theory_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
-    val (thms, thy') =
-      enter_thms (name_thmss true) (name_thms false true) (apfst flat oo fold_map app)
-        (b, facts) thy;
-  in ((name, thms), thy') end;
+    val facts' = facts |> map (apsnd (fn atts => surround (Thm.kind kind) (atts @ more_atts)));
+    val (thms', thy') = thy |> apply_facts (name_thms true true) (name_thms false true) (b, facts');
+  in ((name, thms'), thy') end;
 
 val note_thmss = fold_map o note_thms;
 

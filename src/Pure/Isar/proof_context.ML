@@ -1088,7 +1088,7 @@ fun add_thms_lazy kind (b, ths) ctxt =
 fun note_thms kind ((b, more_atts), facts) ctxt =
   let
     val name = full_name ctxt b;
-    val facts' = Global_Theory.name_thmss false name facts;
+    val facts' = Global_Theory.burrow_fact (Global_Theory.name_thms true false name) facts;
     fun app (ths, atts) =
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
     val (res, ctxt') = fold_map app facts' ctxt;
