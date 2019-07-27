@@ -330,8 +330,6 @@ fun proof_of ctxt raw_thm =
 
 fun expand_proof ctxt thms prf =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     fun expand maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', AbsP (s, t, prf')) end
