@@ -1712,7 +1712,7 @@ fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
   else shrink_proof proof;
 
-fun prepare_thm_proof thy name shyps hyps concl promises body =
+fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
   let
     val named = name <> "";
 
@@ -1744,23 +1744,26 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((a, prop', NONE, _), body')), args') =>
-          if (a = "" orelse a = name) andalso prop1 = prop' andalso args = args'
+          if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args
           then (i, body' |> (a = "" andalso named) ? Future.map (publish i))
           else new_prf ()
       | _ => new_prf ());
 
+    val pthm = (i, make_thm_node name prop1 body');
+
     val head = PThm (i, ((name, prop1, NONE, open_proof), body'));
-  in ((i, make_thm_node name prop1 body'), head, args, argsP, args1) end;
+    val proof =
+      if unconstrain
+      then proof_combt' (head, args1)
+      else proof_combP (proof_combt' (head, args), argsP);
+  in (pthm, proof) end;
 
 in
 
-fun thm_proof thy name shyps hyps concl promises body =
-  let val (pthm, head, args, argsP, _) = prepare_thm_proof thy name shyps hyps concl promises body
-  in (pthm, proof_combP (proof_combt' (head, args), argsP)) end;
+val thm_proof = prepare_thm_proof false;
 
 fun unconstrain_thm_proof thy shyps concl promises body =
-  let val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
-  in (pthm, proof_combt' (head, args)) end;
+  prepare_thm_proof true thy "" shyps [] concl promises body;
 
 end;
 
