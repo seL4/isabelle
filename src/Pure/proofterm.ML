@@ -1700,9 +1700,6 @@ fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
 
 val proof_serial = Counter.make ();
 
-
-(* publish *)
-
 local
 
 fun export thy i proof =
@@ -1715,17 +1712,10 @@ fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
   else shrink_proof proof;
 
-in
-
-fun publish thy i = clean_proof thy #> tap (export thy i) #> prune;
-
-end;
-
-
-(* PThm nodes *)
-
 fun prepare_thm_proof thy name shyps hyps concl promises body =
   let
+    val named = name <> "";
+
     val prop = Logic.list_implies (hyps, concl);
     val args = prop_args prop;
 
@@ -1741,12 +1731,13 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
         (PBody {oracles = oracles0, thms = thms0,
           proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
 
+    fun publish i = map_proof_of (clean_proof thy #> tap (export thy i) #> prune);
+    val open_proof = not named ? (clean_proof thy #> shrink_proof);
+
     fun new_prf () =
       let
         val i = proof_serial ();
-        val postproc =
-          unconstrainT_body thy (atyp_map, constraints) #>
-          name <> "" ? map_proof_of (publish thy i);
+        val postproc = unconstrainT_body thy (atyp_map, constraints) #> named ? publish i;
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -1754,13 +1745,14 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((a, prop', NONE, _), body')), args') =>
           if (a = "" orelse a = name) andalso prop1 = prop' andalso args = args'
-          then (i, body' |> (a = "" andalso name <> "") ? Future.map (map_proof_of (publish thy i)))
+          then (i, body' |> (a = "" andalso named) ? Future.map (publish i))
           else new_prf ()
       | _ => new_prf ());
 
-    val open_proof = if name = "" then clean_proof thy #> shrink_proof else I;
     val head = PThm (i, ((name, prop1, NONE, open_proof), body'));
   in ((i, make_thm_node name prop1 body'), head, args, argsP, args1) end;
+
+in
 
 fun thm_proof thy name shyps hyps concl promises body =
   let val (pthm, head, args, argsP, _) = prepare_thm_proof thy name shyps hyps concl promises body
@@ -1769,6 +1761,8 @@ fun thm_proof thy name shyps hyps concl promises body =
 fun unconstrain_thm_proof thy shyps concl promises body =
   let val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
   in (pthm, proof_combt' (head, args)) end;
+
+end;
 
 
 (* approximative PThm name *)
