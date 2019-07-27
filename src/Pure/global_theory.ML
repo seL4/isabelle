@@ -181,23 +181,20 @@ fun apply_facts pre_name post_name (b, facts) thy =
       val thy'' = thy' |> add_facts (b, Lazy.value thms');
     in (map (Thm.transfer thy'') thms', thy'') end;
 
-fun apply_fact pre_name post_name (b, fact) =
-  apply_facts pre_name post_name (b, [fact]);
-
 
 (* store_thm *)
 
 fun store_thm (b, th) =
-  apply_fact (name_thms true true) (name_thms false true) (b, ([th], [])) #>> the_single;
+  apply_facts (name_thms true true) (name_thms false true) (b, [([th], [])]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  apply_fact (name_thms true false) (name_thms false false) (b, ([th], [])) #>> the_single;
+  apply_facts (name_thms true false) (name_thms false false) (b, [([th], [])]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((b, thms), atts) =
-  apply_fact pre_name (name_thms false true) (b, (thms, atts));
+  apply_facts pre_name (name_thms false true) (b, [(thms, atts)]);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
