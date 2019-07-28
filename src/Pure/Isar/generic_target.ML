@@ -277,7 +277,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = Global_Theory.name_thm true true name th'';
+    val result = Global_Theory.name_thm Global_Theory.official1 name th'';
 
     (*import fixes*)
     val (tvars, vars) =
@@ -299,7 +299,7 @@ fun import_export_proof ctxt (name, raw_th) =
         handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
       |> Local_Defs.contract ctxt defs (Thm.cprop_of th)
       |> Goal.norm_result ctxt
-      |> Global_Theory.name_thm false false name;
+      |> Global_Theory.name_thm Global_Theory.unofficial2 name;
 
   in (result'', result) end;
 

@@ -21,8 +21,13 @@ sig
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val name_multi: string -> 'a list -> (string * 'a) list
-  val name_thm: bool -> bool -> string -> thm -> thm
-  val name_thms: bool -> bool -> string -> thm list -> thm list
+  type name_flags = {pre: bool, official: bool}
+  val official1: name_flags
+  val official2: name_flags
+  val unofficial1: name_flags
+  val unofficial2: name_flags
+  val name_thm: name_flags -> string -> thm -> thm
+  val name_thms: name_flags -> string -> thm list -> thm list
   val check_thms_lazy: thm list lazy -> thm list lazy
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
@@ -107,18 +112,26 @@ fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
 (* naming *)
 
-fun name_multi name [x] = [(name, x)]
-  | name_multi "" xs = map (pair "") xs
-  | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
+type name_flags = {pre: bool, official: bool};
 
-fun name_thm pre official name thm = thm
+val official1 : name_flags = {pre = true, official = true};
+val official2 : name_flags = {pre = false, official = true};
+val unofficial1 : name_flags = {pre = true, official = false};
+val unofficial2 : name_flags = {pre = false, official = false};
+
+fun name_thm {pre, official} name thm = thm
   |> (official andalso not (pre andalso Thm.derivation_name thm <> "")) ?
       Thm.name_derivation name
   |> (name <> "" andalso not (pre andalso Thm.has_name_hint thm)) ?
       Thm.put_name_hint name;
 
-fun name_thms pre official name thms =
-  map (uncurry (name_thm pre official)) (name_multi name thms);
+
+fun name_multi name [x] = [(name, x)]
+  | name_multi "" xs = map (pair "") xs
+  | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
+
+fun name_thms name_flags name thms =
+  map (uncurry (name_thm name_flags)) (name_multi name thms);
 
 
 (* apply theorems and attributes *)
@@ -164,7 +177,7 @@ fun add_thms_lazy kind (b, thms) thy =
       val name = Sign.full_name thy b;
       val thms' =
         check_thms_lazy thms
-        |> Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind));
+        |> Lazy.map_finished (name_thms official1 name #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
 val app_facts =
@@ -185,16 +198,16 @@ fun apply_facts pre_name post_name (b, facts) thy =
 (* store_thm *)
 
 fun store_thm (b, th) =
-  apply_facts (name_thms true true) (name_thms false true) (b, [([th], [])]) #>> the_single;
+  apply_facts (name_thms official1) (name_thms official2) (b, [([th], [])]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  apply_facts (name_thms true false) (name_thms false false) (b, [([th], [])]) #>> the_single;
+  apply_facts (name_thms unofficial1) (name_thms unofficial2) (b, [([th], [])]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((b, thms), atts) =
-  apply_facts pre_name (name_thms false true) (b, [(thms, atts)]);
+  apply_facts pre_name (name_thms official2) (b, [(thms, atts)]);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -202,8 +215,8 @@ fun gen_add_thmss pre_name =
 fun gen_add_thms pre_name args =
   apfst (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
 
-val add_thmss = gen_add_thmss (name_thms true true);
-val add_thms = gen_add_thms (name_thms true true);
+val add_thmss = gen_add_thmss (name_thms official1);
+val add_thms = gen_add_thms (name_thms official1);
 val add_thm = yield_singleton add_thms;
 
 
@@ -223,7 +236,7 @@ fun note_thms kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
     val facts' = facts |> map (apsnd (fn atts => surround (Thm.kind kind) (atts @ more_atts)));
-    val (thms', thy') = thy |> apply_facts (name_thms true true) (name_thms false true) (b, facts');
+    val (thms', thy') = thy |> apply_facts (name_thms official1) (name_thms official2) (b, facts');
   in ((name, thms'), thy') end;
 
 val note_thmss = fold_map o note_thms;
