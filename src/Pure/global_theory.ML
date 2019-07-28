@@ -124,9 +124,9 @@ val unofficial2 = Name_Flags {pre = false, official = false};
 
 fun name_thm No_Name_Flags _ thm = thm
   | name_thm (Name_Flags {pre, official}) name thm = thm
-      |> (official andalso not (pre andalso Thm.derivation_name thm <> "")) ?
+      |> (official andalso (not pre orelse Thm.derivation_name thm = "")) ?
           Thm.name_derivation name
-      |> (name <> "" andalso not (pre andalso Thm.has_name_hint thm)) ?
+      |> (name <> "" andalso (not pre orelse not (Thm.has_name_hint thm))) ?
           Thm.put_name_hint name;
 
 end;
