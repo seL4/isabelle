@@ -8,7 +8,6 @@ theory IFOL
 imports Pure
 begin
 
-ML \<open>\<^assert> (not (can ML \<open>open RunCall\<close>))\<close>
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 ML_file \<open>~~/src/Provers/splitter.ML\<close>
 ML_file \<open>~~/src/Provers/hypsubst.ML\<close>
