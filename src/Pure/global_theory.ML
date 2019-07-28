@@ -206,17 +206,13 @@ fun store_thm_open (b, th) =
 
 (* add_thms(s) *)
 
-fun add_thms_atts pre_name ((b, thms), atts) =
-  apply_facts pre_name (name_thms official2) (b, [(thms, atts)]);
+val add_thmss =
+  fold_map (fn ((b, thms), atts) =>
+    apply_facts (name_thms official1) (name_thms official2) (b, [(thms, atts)]));
 
-fun gen_add_thmss pre_name =
-  fold_map (add_thms_atts pre_name);
+fun add_thms args =
+  add_thmss (map (apfst (apsnd single)) args) #>> map the_single;
 
-fun gen_add_thms pre_name args =
-  apfst (map hd) o gen_add_thmss pre_name (map (apfst (apsnd single)) args);
-
-val add_thmss = gen_add_thmss (name_thms official1);
-val add_thms = gen_add_thms (name_thms official1);
 val add_thm = yield_singleton add_thms;
 
 
@@ -254,7 +250,11 @@ fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0
       |> Thm.varifyT_global;
-  in yield_singleton (gen_add_thms (K I)) ((b, thm), atts) thy' end);
+  in
+    thy'
+    |> apply_facts (K I) (name_thms official2) (b, [([thm], atts)])
+    |>> the_single
+  end);
 
 in
 
