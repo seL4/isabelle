@@ -21,7 +21,8 @@ sig
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val name_multi: string -> 'a list -> (string * 'a) list
-  type name_flags = {pre: bool, official: bool}
+  type name_flags
+  val unnamed: name_flags
   val official1: name_flags
   val official2: name_flags
   val unofficial1: name_flags
@@ -110,21 +111,25 @@ fun burrow_fact f = split_list #>> burrow f #> op ~~;
 fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
 
-(* naming *)
+(* name theorems *)
 
-type name_flags = {pre: bool, official: bool};
+abstype name_flags = No_Name_Flags | Name_Flags of {pre: bool, official: bool}
+with
 
-val official1 : name_flags = {pre = true, official = true};
-val official2 : name_flags = {pre = false, official = true};
-val unofficial1 : name_flags = {pre = true, official = false};
-val unofficial2 : name_flags = {pre = false, official = false};
+val unnamed = No_Name_Flags;
+val official1 = Name_Flags {pre = true, official = true};
+val official2 = Name_Flags {pre = false, official = true};
+val unofficial1 = Name_Flags {pre = true, official = false};
+val unofficial2 = Name_Flags {pre = false, official = false};
 
-fun name_thm {pre, official} name thm = thm
-  |> (official andalso not (pre andalso Thm.derivation_name thm <> "")) ?
-      Thm.name_derivation name
-  |> (name <> "" andalso not (pre andalso Thm.has_name_hint thm)) ?
-      Thm.put_name_hint name;
+fun name_thm No_Name_Flags _ thm = thm
+  | name_thm (Name_Flags {pre, official}) name thm = thm
+      |> (official andalso not (pre andalso Thm.derivation_name thm <> "")) ?
+          Thm.name_derivation name
+      |> (name <> "" andalso not (pre andalso Thm.has_name_hint thm)) ?
+          Thm.put_name_hint name;
 
+end;
 
 fun name_multi name [x] = [(name, x)]
   | name_multi "" xs = map (pair "") xs
@@ -183,14 +188,14 @@ fun add_thms_lazy kind (b, thms) thy =
 val app_facts =
   apfst flat oo fold_map (fn (thms, atts) => fold_map (Thm.theory_attributes atts) thms);
 
-fun apply_facts pre_name post_name (b, facts) thy =
+fun apply_facts name_flags1 name_flags2 (b, facts) thy =
   if Binding.is_empty b then app_facts facts thy |-> register_proofs
   else
     let
       val name = Sign.full_name thy b;
       val (thms', thy') = thy
-        |> app_facts (map (apfst (pre_name name)) facts)
-        |>> post_name name |-> register_proofs;
+        |> app_facts (map (apfst (name_thms name_flags1 name)) facts)
+        |>> name_thms name_flags2 name |-> register_proofs;
       val thy'' = thy' |> add_facts (b, Lazy.value thms');
     in (map (Thm.transfer thy'') thms', thy'') end;
 
@@ -198,17 +203,16 @@ fun apply_facts pre_name post_name (b, facts) thy =
 (* store_thm *)
 
 fun store_thm (b, th) =
-  apply_facts (name_thms official1) (name_thms official2) (b, [([th], [])]) #>> the_single;
+  apply_facts official1 official2 (b, [([th], [])]) #>> the_single;
 
 fun store_thm_open (b, th) =
-  apply_facts (name_thms unofficial1) (name_thms unofficial2) (b, [([th], [])]) #>> the_single;
+  apply_facts unofficial1 unofficial2 (b, [([th], [])]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 val add_thmss =
-  fold_map (fn ((b, thms), atts) =>
-    apply_facts (name_thms official1) (name_thms official2) (b, [(thms, atts)]));
+  fold_map (fn ((b, thms), atts) => apply_facts official1 official2 (b, [(thms, atts)]));
 
 fun add_thms args =
   add_thmss (map (apfst (apsnd single)) args) #>> map the_single;
@@ -232,7 +236,7 @@ fun note_thms kind ((b, more_atts), facts) thy =
   let
     val name = Sign.full_name thy b;
     val facts' = facts |> map (apsnd (fn atts => surround (Thm.kind kind) (atts @ more_atts)));
-    val (thms', thy') = thy |> apply_facts (name_thms official1) (name_thms official2) (b, facts');
+    val (thms', thy') = thy |> apply_facts official1 official2 (b, facts');
   in ((name, thms'), thy') end;
 
 val note_thmss = fold_map o note_thms;
@@ -250,11 +254,7 @@ fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0
       |> Thm.varifyT_global;
-  in
-    thy'
-    |> apply_facts (K I) (name_thms official2) (b, [([thm], atts)])
-    |>> the_single
-  end);
+  in thy' |> apply_facts unnamed official2 (b, [([thm], atts)]) |>> the_single end);
 
 in
 
