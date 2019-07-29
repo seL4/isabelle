@@ -1710,8 +1710,6 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
     val args = prop_args prop;
 
     val (ucontext, prop1) = Logic.unconstrainT shyps prop;
-    val args1 = (map o Option.map o Term.map_types) (#map_atyps ucontext) args;
-    val argsP = map OfClass (#outer_constraints ucontext) @ map Hyp hyps;
 
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val body0 =
@@ -1741,9 +1739,11 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
 
     val head = PThm (i, ((name, prop1, NONE, open_proof), body'));
     val proof =
-      if unconstrain
-      then proof_combt' (head, args1)
-      else proof_combP (proof_combt' (head, args), argsP);
+      if unconstrain then
+        proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
+      else
+        proof_combP (proof_combt' (head, args),
+          map OfClass (#outer_constraints ucontext) @ map Hyp hyps);
   in (pthm, proof) end;
 
 in
