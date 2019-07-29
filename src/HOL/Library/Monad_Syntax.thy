@@ -10,27 +10,26 @@ theory Monad_Syntax
 begin
 
 text \<open>
-  We provide a convenient do-notation for monadic expressions
-  well-known from Haskell.  \<^const>\<open>Let\<close> is printed
-  specially in do-expressions.
+We provide a convenient do-notation for monadic expressions well-known from Haskell.
+const>\<open>Let\<close> is printed specially in do-expressions.
 \<close>
 
 consts
-  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd" (infixr "\<bind>" 54)
+  bind :: "'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'd" (infixl "\<bind>" 54)
 
 notation (ASCII)
-  bind (infixr ">>=" 54)
+  bind (infixl ">>=" 54)
 
 
 abbreviation (do_notation)
-  bind_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd"
+  bind_do :: "'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'd"
   where "bind_do \<equiv> bind"
 
 notation (output)
-  bind_do (infixr "\<bind>" 54)
+  bind_do (infixl "\<bind>" 54)
 
 notation (ASCII output)
-  bind_do (infixr ">>=" 54)
+  bind_do (infixl ">>=" 54)
 
 
 nonterminal do_binds and do_bind
@@ -41,11 +40,11 @@ syntax
   "_do_then" :: "'a \<Rightarrow> do_bind" ("_" [14] 13)
   "_do_final" :: "'a \<Rightarrow> do_binds" ("_")
   "_do_cons" :: "[do_bind, do_binds] \<Rightarrow> do_binds" ("_;//_" [13, 12] 12)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<then>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl "\<then>" 54)
 
 syntax (ASCII)
   "_do_bind" :: "[pttrn, 'a] \<Rightarrow> do_bind" ("(2_ <-/ _)" 13)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr ">>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl ">>" 54)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
