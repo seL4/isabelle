@@ -56,8 +56,14 @@ sig
   val mk_arities: arity -> term list
   val mk_arity: string * sort list * class -> term
   val dest_arity: term -> string * sort list * class
-  val unconstrainT: sort list -> term ->
-    ((typ -> typ) * ((typ * class) * term) list * (typ * class) list) * term
+  type unconstrain_context =
+   {present_map: (typ * typ) list,
+    constraints_map: (sort * typ) list,
+    atyp_map: typ -> typ,
+    map_atyps: typ -> typ,
+    constraints: ((typ * class) * term) list,
+    outer_constraints: (typ * class) list};
+  val unconstrainT: sort list -> term -> unconstrain_context * term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -339,6 +345,14 @@ fun dest_arity tm =
 
 (* internalized sort constraints *)
 
+type unconstrain_context =
+ {present_map: (typ * typ) list,
+  constraints_map: (sort * typ) list,
+  atyp_map: typ -> typ,
+  map_atyps: typ -> typ,
+  constraints: ((typ * class) * term) list,
+  outer_constraints: (typ * class) list};
+
 fun unconstrainT shyps prop =
   let
     val present = rev ((fold_types o fold_atyps_sorts) (insert (eq_fst op =)) prop []);
@@ -362,19 +376,25 @@ fun unconstrainT shyps prop =
           | NONE => raise TYPE ("Dangling type variable", [T], [])));
 
     val constraints =
-      maps (fn (_, T as TVar (ai, S)) =>
-        map (fn c => ((T, c), mk_of_class (TVar (ai, []), c))) S)
-        constraints_map;
+      constraints_map |> maps (fn (_, T as TVar (ai, S)) =>
+        map (fn c => ((T, c), mk_of_class (TVar (ai, []), c))) S);
 
     val outer_constraints =
       maps (fn (T, S) => map (pair T) S)
         (present @ map (fn S => (TFree ("'dummy", S), S)) extra);
 
-    val prop' =
-      prop
-      |> (Term.map_types o Term.map_atyps) (Type.strip_sorts o atyp_map)
-      |> curry list_implies (map snd constraints);
-  in ((atyp_map, constraints, outer_constraints), prop') end;
+    val map_atyps = Term.map_atyps (Type.strip_sorts o atyp_map);
+    val ucontext =
+     {present_map = present_map,
+      constraints_map = constraints_map,
+      atyp_map = atyp_map,
+      map_atyps = map_atyps,
+      constraints = constraints,
+      outer_constraints = outer_constraints};
+    val prop' = prop
+      |> Term.map_types map_atyps
+      |> curry list_implies (map #2 constraints);
+  in (ucontext, prop') end;
 
 
 
