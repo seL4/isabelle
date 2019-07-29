@@ -60,6 +60,7 @@ sig
    {present_map: (typ * typ) list,
     extra_map: (sort * typ) list,
     atyp_map: typ -> typ,
+    map_atyps: typ -> typ,
     constraints: ((typ * class) * term) list,
     outer_constraints: (typ * class) list};
   val unconstrainT: sort list -> term -> unconstrain_context * term
@@ -348,6 +349,7 @@ type unconstrain_context =
  {present_map: (typ * typ) list,
   extra_map: (sort * typ) list,
   atyp_map: typ -> typ,
+  map_atyps: typ -> typ,
   constraints: ((typ * class) * term) list,
   outer_constraints: (typ * class) list};
 
@@ -382,16 +384,18 @@ fun unconstrainT shyps prop =
       maps (fn (T, S) => map (pair T) S)
         (present @ map (fn S => (TFree ("'dummy", S), S)) extra);
 
-    val context =
+    val map_atyps = Term.map_atyps (Type.strip_sorts o atyp_map);
+    val ucontext =
      {present_map = present_map,
       extra_map = extra_map,
       atyp_map = atyp_map,
+      map_atyps = map_atyps,
       constraints = constraints,
       outer_constraints = outer_constraints};
     val prop' = prop
-      |> (Term.map_types o Term.map_atyps) (Type.strip_sorts o atyp_map)
-      |> curry list_implies (map snd constraints);
-  in (context, prop') end;
+      |> Term.map_types map_atyps
+      |> curry list_implies (map #2 constraints);
+  in (ucontext, prop') end;
 
 
 
