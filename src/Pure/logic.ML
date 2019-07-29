@@ -58,7 +58,7 @@ sig
   val dest_arity: term -> string * sort list * class
   type unconstrain_context =
    {present_map: (typ * typ) list,
-    extra_map: (sort * typ) list,
+    constraints_map: (sort * typ) list,
     atyp_map: typ -> typ,
     map_atyps: typ -> typ,
     constraints: ((typ * class) * term) list,
@@ -347,7 +347,7 @@ fun dest_arity tm =
 
 type unconstrain_context =
  {present_map: (typ * typ) list,
-  extra_map: (sort * typ) list,
+  constraints_map: (sort * typ) list,
   atyp_map: typ -> typ,
   map_atyps: typ -> typ,
   constraints: ((typ * class) * term) list,
@@ -363,19 +363,18 @@ fun unconstrainT shyps prop =
 
     val present_map =
       map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;
-    val extra_map =
+    val constraints_map =
+      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @
       map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
 
     fun atyp_map T =
       (case AList.lookup (op =) present_map T of
         SOME U => U
       | NONE =>
-          (case AList.lookup (op =) extra_map (Type.sort_of_atyp T) of
+          (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
             SOME U => U
           | NONE => raise TYPE ("Dangling type variable", [T], [])));
 
-    val constraints_map =
-      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @ extra_map;
     val constraints =
       constraints_map |> maps (fn (_, T as TVar (ai, S)) =>
         map (fn c => ((T, c), mk_of_class (TVar (ai, []), c))) S);
@@ -387,7 +386,7 @@ fun unconstrainT shyps prop =
     val map_atyps = Term.map_atyps (Type.strip_sorts o atyp_map);
     val ucontext =
      {present_map = present_map,
-      extra_map = extra_map,
+      constraints_map = constraints_map,
       atyp_map = atyp_map,
       map_atyps = map_atyps,
       constraints = constraints,
