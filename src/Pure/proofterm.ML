@@ -1719,7 +1719,8 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
     val prop = Logic.list_implies (hyps, concl);
     val args = prop_args prop;
 
-    val ((atyp_map, constraints, outer_constraints), prop1) = Logic.unconstrainT shyps prop;
+    val {atyp_map, constraints, outer_constraints, prop = prop1, ...} =
+      Logic.unconstrainT shyps prop;
     val args1 =
       (map o Option.map o Term.map_types o Term.map_atyps)
         (Type.strip_sorts o atyp_map) args;
@@ -1771,7 +1772,7 @@ end;
 (* approximative PThm name *)
 
 fun get_name shyps hyps prop prf =
-  let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
+  let val {prop, ...} = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
     (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, ((name, prop', _, _), _)), _) => if prop = prop' then name else ""
     | _ => "")

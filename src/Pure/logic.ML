@@ -57,7 +57,10 @@ sig
   val mk_arity: string * sort list * class -> term
   val dest_arity: term -> string * sort list * class
   val unconstrainT: sort list -> term ->
-    ((typ -> typ) * ((typ * class) * term) list * (typ * class) list) * term
+   {atyp_map: typ -> typ,
+    constraints: ((typ * class) * term) list,
+    outer_constraints: (typ * class) list,
+    prop: term}
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -374,7 +377,12 @@ fun unconstrainT shyps prop =
       prop
       |> (Term.map_types o Term.map_atyps) (Type.strip_sorts o atyp_map)
       |> curry list_implies (map snd constraints);
-  in ((atyp_map, constraints, outer_constraints), prop') end;
+  in
+   {atyp_map = atyp_map,
+    constraints = constraints,
+    outer_constraints = outer_constraints,
+    prop = prop'}
+  end;
 
 
 

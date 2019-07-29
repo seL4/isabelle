@@ -31,7 +31,8 @@ fun internalize_sort ctvar thm =
     val thy = Thm.theory_of_thm thm;
     val tvar = Thm.typ_of ctvar;
 
-    val ((_, assms, classes),_) = Logic.unconstrainT [] (Thm.prop_of thm);
+    val {constraints = assms, outer_constraints = classes, ...} =
+      Logic.unconstrainT [] (Thm.prop_of thm);
 
     fun is_proper_class thy = can (Axclass.get_info thy); (* trick by FH *)
     fun reduce_to_non_proper_sort (TVar (name, sort)) =
