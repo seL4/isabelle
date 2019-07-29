@@ -31,15 +31,14 @@ fun internalize_sort ctvar thm =
     val thy = Thm.theory_of_thm thm;
     val tvar = Thm.typ_of ctvar;
 
-    val {constraints = assms, outer_constraints = classes, ...} =
-      Logic.unconstrainT [] (Thm.prop_of thm);
+    val (ucontext, _) = Logic.unconstrainT [] (Thm.prop_of thm);
 
     fun is_proper_class thy = can (Axclass.get_info thy); (* trick by FH *)
     fun reduce_to_non_proper_sort (TVar (name, sort)) =
         TVar (name, Sign.minimize_sort thy (filter_out (is_proper_class thy) (Sign.complete_sort thy sort)))
       | reduce_to_non_proper_sort _ = error "not supported";
 
-    val data = (map fst classes) ~~ assms;
+    val data = map #1 (#outer_constraints ucontext) ~~ #constraints ucontext;
 
     val new_tvar = get_first (fn (tvar', ((ren_tvar, _), _)) => if tvar = tvar'
       then SOME (reduce_to_non_proper_sort ren_tvar) else NONE) data

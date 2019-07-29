@@ -379,7 +379,7 @@ fun expand_proof ctxt thms prf =
 
 fun clean_proof_of ctxt full thm =
   let
-    val {prop, ...} =
+    val (_, prop) =
       Logic.unconstrainT (Thm.shyps_of thm)
         (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
   in

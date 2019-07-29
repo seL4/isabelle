@@ -1670,37 +1670,27 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
 
 
 
-(** abstraction over sort constraints **)
-
-fun unconstrainT_prf thy (atyp_map, constraints) =
-  let
-    fun hyp_map hyp =
-      (case AList.lookup (op =) constraints hyp of
-        SOME t => Hyp t
-      | NONE => raise Fail "unconstrainT_prf: missing constraint");
-
-    val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o atyp_map);
-    fun ofclass (ty, c) =
-      let val ty' = Term.map_atyps atyp_map ty;
-      in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
-  in
-    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
-    #> fold_rev (implies_intr_proof o snd) constraints
-  end;
-
-fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
-  PBody
-   {oracles = oracles,  (* FIXME merge (!), unconstrain (!?!) *)
-    thms = thms,  (* FIXME merge (!) *)
-    proof = unconstrainT_prf thy constrs proof};
-
-
-
 (** theorems **)
 
 val proof_serial = Counter.make ();
 
 local
+
+fun unconstrainT_prf thy (ucontext: Logic.unconstrain_context) =
+  let
+    fun hyp_map hyp =
+      (case AList.lookup (op =) (#constraints ucontext) hyp of
+        SOME t => Hyp t
+      | NONE => raise Fail "unconstrainT_prf: missing constraint");
+
+    val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o #atyp_map ucontext);
+    fun ofclass (ty, c) =
+      let val ty' = Term.map_atyps (#atyp_map ucontext) ty;
+      in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
+  in
+    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
+    #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
+  end;
 
 fun export thy i proof =
   if Options.default_bool "export_proofs" then
@@ -1719,12 +1709,11 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
     val prop = Logic.list_implies (hyps, concl);
     val args = prop_args prop;
 
-    val {atyp_map, constraints, outer_constraints, prop = prop1, ...} =
-      Logic.unconstrainT shyps prop;
+    val (ucontext, prop1) = Logic.unconstrainT shyps prop;
     val args1 =
       (map o Option.map o Term.map_types o Term.map_atyps)
-        (Type.strip_sorts o atyp_map) args;
-    val argsP = map OfClass outer_constraints @ map Hyp hyps;
+        (Type.strip_sorts o #atyp_map ucontext) args;
+    val argsP = map OfClass (#outer_constraints ucontext) @ map Hyp hyps;
 
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val body0 =
@@ -1738,7 +1727,7 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
     fun new_prf () =
       let
         val i = proof_serial ();
-        val postproc = unconstrainT_body thy (atyp_map, constraints) #> named ? publish i;
+        val postproc = map_proof_of (unconstrainT_prf thy ucontext) #> named ? publish i;
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -1772,7 +1761,7 @@ end;
 (* approximative PThm name *)
 
 fun get_name shyps hyps prop prf =
-  let val {prop, ...} = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
+  let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
     (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, ((name, prop', _, _), _)), _) => if prop = prop' then name else ""
     | _ => "")
