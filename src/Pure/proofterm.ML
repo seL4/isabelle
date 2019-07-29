@@ -54,8 +54,9 @@ sig
   val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
   val all_oracles_of: proof_body -> oracle Ord_List.T
   val approximate_proof_body: proof -> proof_body
-  val no_proof_body: proof_body
+  val no_proof_body: proof -> proof_body
   val no_thm_proofs: proof -> proof
+  val no_body_proofs: proof -> proof
 
   val encode: proof XML.Encode.T
   val encode_body: proof_body XML.Encode.T
@@ -310,8 +311,8 @@ fun approximate_proof_body prf =
       proof = prf}
   end;
 
-val no_proof_body = PBody {oracles = [], thms = [], proof = MinProof};
-val no_body = Future.value no_proof_body;
+fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
+val no_body = Future.value (no_proof_body MinProof);
 
 fun no_thm_proofs (PThm (i, (a, _))) = PThm (i, (a, no_body))
   | no_thm_proofs (Abst (x, T, prf)) = Abst (x, T, no_thm_proofs prf)
@@ -319,6 +320,14 @@ fun no_thm_proofs (PThm (i, (a, _))) = PThm (i, (a, no_body))
   | no_thm_proofs (prf % t) = no_thm_proofs prf % t
   | no_thm_proofs (prf1 %% prf2) = no_thm_proofs prf1 %% no_thm_proofs prf2
   | no_thm_proofs a = a;
+
+fun no_body_proofs (PThm (i, (a, body))) =
+      PThm (i, (a, Future.value (no_proof_body (join_proof body))))
+  | no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
+  | no_body_proofs (AbsP (x, t, prf)) = AbsP (x, t, no_body_proofs prf)
+  | no_body_proofs (prf % t) = no_body_proofs prf % t
+  | no_body_proofs (prf1 %% prf2) = no_body_proofs prf1 %% no_body_proofs prf2
+  | no_body_proofs a = a;
 
 
 
