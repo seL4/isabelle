@@ -12,7 +12,6 @@ sig
   val matchess: theory -> term list * term list -> bool
   val equiv: theory -> term * term -> bool
   val first_order: term -> bool
-  val pattern: term -> bool
   val match_rew: theory -> term -> term * term -> (term * term) option
   val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
   val rewrite_term_top: theory -> (term * term) list -> (term -> term option) list -> term -> term
@@ -35,14 +34,6 @@ fun first_order (Abs (_, _, t)) = first_order t
   | first_order (Var _ $ _) = false
   | first_order (t $ u) = first_order t andalso first_order u
   | first_order _ = true;
-
-fun pattern (Abs (_, _, t)) = pattern t
-  | pattern t =
-      let val (head, args) = strip_comb t in
-        if is_Var head then
-          forall is_Bound args andalso not (has_duplicates (op aconv) args)
-        else forall pattern args
-      end;
 
 
 (* rewriting -- simple but fast *)

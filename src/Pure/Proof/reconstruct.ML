@@ -6,14 +6,12 @@ Reconstruction of partial proof terms.
 
 signature RECONSTRUCT =
 sig
-  val quiet_mode : bool Config.T
-  val reconstruct_proof : Proof.context -> term -> Proofterm.proof -> Proofterm.proof
-  val prop_of' : term list -> Proofterm.proof -> term
-  val prop_of : Proofterm.proof -> term
-  val proof_of : Proof.context -> thm -> Proofterm.proof
-  val expand_proof : Proof.context -> (string * term option) list ->
+  val quiet_mode: bool Config.T
+  val reconstruct_proof: Proof.context -> term -> Proofterm.proof -> Proofterm.proof
+  val prop_of': term list -> Proofterm.proof -> term
+  val prop_of: Proofterm.proof -> term
+  val expand_proof: Proof.context -> (string * term option) list ->
     Proofterm.proof -> Proofterm.proof
-  val clean_proof_of : Proof.context -> bool -> thm -> Proofterm.proof
 end;
 
 structure Reconstruct : RECONSTRUCT =
@@ -250,7 +248,7 @@ fun solve _ [] bigenv = bigenv
       let
         fun search env [] = error ("Unsolvable constraints:\n" ^
               Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                Thm.pretty_flexpair ctxt (apply2 (Envir.norm_term bigenv) p)) cs)))
+                Syntax.pretty_flexpair ctxt (apply2 (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
                 let
@@ -321,10 +319,6 @@ fun prop_of0 Hs (PBound i) = nth Hs i
 val prop_of' = Envir.beta_eta_contract oo prop_of0;
 val prop_of = prop_of' [];
 
-fun proof_of ctxt raw_thm =
-  let val thm = Thm.transfer' ctxt raw_thm
-  in reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
-
 
 (* expand and reconstruct subproofs *)
 
@@ -373,22 +367,5 @@ fun expand_proof ctxt thms prf =
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
   in #3 (expand (Proofterm.maxidx_proof prf ~1) [] prf) end;
-
-
-(* cleanup for output etc. *)
-
-fun clean_proof_of ctxt full thm =
-  let
-    val (_, prop) =
-      Logic.unconstrainT (Thm.shyps_of thm)
-        (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
-  in
-    Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
-    |> reconstruct_proof ctxt prop
-    |> expand_proof ctxt [("", NONE)]
-    |> Proofterm.rew_proof (Proof_Context.theory_of ctxt)
-    |> Proofterm.no_thm_proofs
-    |> not full ? Proofterm.shrink_proof
-  end;
 
 end;

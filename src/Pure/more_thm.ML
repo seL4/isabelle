@@ -114,12 +114,13 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
+  val reconstruct_proof_of: Proof.context -> thm -> Proofterm.proof
+  val clean_proof_of: Proof.context -> bool -> thm -> Proofterm.proof
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
-  val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_thm_raw: Proof.context -> {quote: bool, show_hyps: bool} -> thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thm_item: Proof.context -> thm -> Pretty.T
@@ -584,7 +585,7 @@ fun add_def_global unchecked overloaded arg thy =
 
 
 
-(*** theorem tags ***)
+(** theorem tags **)
 
 (* add / delete tags *)
 
@@ -672,7 +673,29 @@ fun untag s = rule_attribute [] (K (untag_rule s));
 fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 
-(* forked proofs *)
+
+(** proof terms **)
+
+fun reconstruct_proof_of ctxt raw_thm =
+  let val thm = Thm.transfer' ctxt raw_thm
+  in Reconstruct.reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
+
+fun clean_proof_of ctxt full thm =
+  let
+    val (_, prop) =
+      Logic.unconstrainT (Thm.shyps_of thm)
+        (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
+  in
+    Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
+    |> Reconstruct.reconstruct_proof ctxt prop
+    |> Reconstruct.expand_proof ctxt [("", NONE)]
+    |> Proofterm.rew_proof (Proof_Context.theory_of ctxt)
+    |> Proofterm.no_thm_proofs
+    |> not full ? Proofterm.shrink_proof
+  end;
+
+
+(** forked proofs **)
 
 structure Proofs = Theory_Data
 (
@@ -706,9 +729,6 @@ val show_tags = Config.declare_bool ("show_tags", \<^here>) (K false);
 fun pretty_tag (name, arg) = Pretty.strs [name, quote arg];
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun pretty_flexpair ctxt (t, u) = Pretty.block
-  [Syntax.pretty_term ctxt t, Pretty.str " \<equiv>\<^sup>?", Pretty.brk 1, Syntax.pretty_term ctxt u];
-
 fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
   let
     val show_tags = Config.get ctxt show_tags;
@@ -732,7 +752,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
       if hlen = 0 then []
       else if show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o pretty_flexpair ctxt) tpairs @ map prt_term hyps @
+          (map (q o Syntax.pretty_flexpair ctxt) tpairs @ map prt_term hyps @
            map (Syntax.pretty_sort ctxt) extra_shyps)]
       else [Pretty.brk 2, Pretty.str ("[" ^ replicate_string hlen "." ^ "]")];
     val tsymbs =

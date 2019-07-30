@@ -195,6 +195,6 @@ fun pretty_proof ctxt prf =
     (Proofterm.term_of_proof prf);
 
 fun pretty_clean_proof_of ctxt full thm =
-  pretty_proof ctxt (Reconstruct.clean_proof_of ctxt full thm);
+  pretty_proof ctxt (Thm.clean_proof_of ctxt full thm);
 
 end;

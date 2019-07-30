@@ -21,6 +21,7 @@ sig
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
+  val pattern: term -> bool
 end;
 
 structure Pattern: PATTERN =
@@ -375,5 +376,12 @@ let
   val envir' = apfst (typ_match thy (pT, oT)) envir;
 in mtch [] po envir' handle Pattern => first_order_match thy po envir' end;
 
-end;
 
+fun pattern (Abs (_, _, t)) = pattern t
+  | pattern t =
+      let val (head, args) = strip_comb t in
+        if is_Var head then
+          forall is_Bound args andalso not (has_duplicates (op aconv) args)
+        else forall pattern args
+      end;
+end;

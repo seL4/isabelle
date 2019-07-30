@@ -169,10 +169,12 @@ ML_file "pattern.ML";
 ML_file "unify.ML";
 ML_file "theory.ML";
 ML_file "proofterm.ML";
+ML_file "Proof/reconstruct.ML";
 ML_file "thm.ML";
 ML_file "more_pattern.ML";
 ML_file "more_unify.ML";
 ML_file "more_thm.ML";
+
 ML_file "facts.ML";
 ML_file "global_theory.ML";
 ML_file "pure_thy.ML";
@@ -283,7 +285,6 @@ ML_file "Isar/proof_node.ML";
 ML_file "Isar/toplevel.ML";
 
 (*proof term operations*)
-ML_file "Proof/reconstruct.ML";
 ML_file "Proof/proof_syntax.ML";
 ML_file "Proof/proof_rewrite_rules.ML";
 ML_file "Proof/proof_checker.ML";

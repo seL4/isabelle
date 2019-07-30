@@ -20,7 +20,7 @@ fun name_of_thm thm =
   | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
 
 fun prf_of ctxt thm =
-  Reconstruct.proof_of ctxt thm
+  Thm.reconstruct_proof_of ctxt thm
   |> Reconstruct.expand_proof ctxt [("", NONE)];  (* FIXME *)
 
 fun subsets [] = [[]]
