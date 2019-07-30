@@ -2015,15 +2015,26 @@ fun unconstrainT_prf thy (ucontext: Logic.unconstrain_context) =
     #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
   end;
 
-fun export thy i proof =
+fun clean_proof thy = rew_proof thy #> shrink_proof;
+
+fun export thy i prop proof =
   if Options.default_bool "export_proofs" then
-    Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
-      (Buffer.chunks (YXML.buffer_body (Term_XML.Encode.term (term_of_proof proof)) Buffer.empty))
+    let
+      val thy_ctxt = Proof_Context.init_global thy;
+      val xml =
+        reconstruct_proof thy_ctxt prop proof
+        |> expand_proof thy_ctxt [("", NONE)]
+        |> term_of_proof
+        |> Term_XML.Encode.term;
+    in
+      Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
+        (Buffer.chunks (YXML.buffer_body xml Buffer.empty))
+    end
   else ();
 
 fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
-  else shrink_proof proof;
+  else proof;
 
 fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
   let
@@ -2040,8 +2051,8 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
         (PBody {oracles = oracles0, thms = thms0,
           proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
 
-    fun publish i = map_proof_of (rew_proof thy #> tap (export thy i) #> prune);
-    val open_proof = not named ? (rew_proof thy #> shrink_proof);
+    fun publish i = map_proof_of (clean_proof thy #> tap (export thy i prop1) #> prune);
+    val open_proof = not named ? clean_proof thy;
 
     fun new_prf () =
       let
