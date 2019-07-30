@@ -6,7 +6,6 @@ Reconstruction of partial proof terms.
 
 signature RECONSTRUCT =
 sig
-  val quiet_mode: bool Config.T
   val reconstruct_proof: Proof.context -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of': term list -> Proofterm.proof -> term
   val prop_of: Proofterm.proof -> term
@@ -16,12 +15,6 @@ end;
 
 structure Reconstruct : RECONSTRUCT =
 struct
-
-val quiet_mode = Config.declare_bool ("Reconstruct.quiet_mode", \<^here>) (K true);
-
-fun message ctxt msg =
-  if Config.get ctxt quiet_mode then () else writeln (msg ());
-
 
 (* generate constraints for proof term *)
 
@@ -278,15 +271,11 @@ fun solve _ [] bigenv = bigenv
 fun reconstruct_proof ctxt prop cprf =
   let
     val (cprf' % SOME prop', thawf) = Proofterm.freeze_thaw_prf (cprf % SOME prop);
-    val _ = message ctxt (fn _ => "Collecting constraints ...");
     val (t, prf, cs, env, _) = make_constraints_cprf ctxt
       (Envir.empty (Proofterm.maxidx_proof cprf ~1)) cprf';
     val cs' =
       map (apply2 (Envir.norm_term env)) ((t, prop') :: cs)
       |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
-    val _ =
-      message ctxt
-        (fn () => "Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve ctxt cs' env
   in
     thawf (Proofterm.norm_proof env' prf)
@@ -348,9 +337,6 @@ fun expand_proof ctxt thms prf =
               (case AList.lookup (op =) prfs (a, prop) of
                 NONE =>
                   let
-                    val _ =
-                      message ctxt (fn () =>
-                        "Reconstructing proof of " ^ a ^ "\n" ^ Syntax.string_of_term ctxt prop);
                     val prf' =
                       Proofterm.join_proof body
                       |> open_proof
