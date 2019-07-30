@@ -40,7 +40,7 @@ fun chaseT env (T as TVar v) =
       | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
-fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
+fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
       (t as Const (s, T)) = if T = dummyT then
         (case Sign.const_type (Proof_Context.theory_of ctxt) s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
@@ -50,14 +50,14 @@ fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
               Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv})
             end)
       else (t, T, vTs, env)
-  | infer_type ctxt env Ts vTs (t as Free (s, T)) =
+  | infer_type _ env _ vTs (t as Free (s, T)) =
       if T = dummyT then (case Symtab.lookup vTs s of
           NONE =>
             let val (T, env') = mk_tvar [] env
             in (Free (s, T), T, Symtab.update_new (s, T) vTs, env') end
         | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
-  | infer_type ctxt env Ts vTs (Var _) = error "reconstruct_proof: internal error"
+  | infer_type _ _ _ _ (Var _) = error "reconstruct_proof: internal error"
   | infer_type ctxt env Ts vTs (Abs (s, T, t)) =
       let
         val (T', env') = if T = dummyT then mk_tvar [] env else (T, env);
@@ -73,7 +73,7 @@ fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
           let val (V, env3) = mk_tvar [] env2
           in (t' $ u', V, vTs2, unifyT ctxt env3 T (U --> V)) end)
       end
-  | infer_type ctxt env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
+  | infer_type _ env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
       handle General.Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify ctxt (t, u) =
@@ -239,7 +239,7 @@ fun upd_constrs env cs =
 fun solve _ [] bigenv = bigenv
   | solve ctxt cs bigenv =
       let
-        fun search env [] = error ("Unsolvable constraints:\n" ^
+        fun search _ [] = error ("Unsolvable constraints:\n" ^
               Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
                 Syntax.pretty_flexpair ctxt (apply2 (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
@@ -290,19 +290,19 @@ val head_norm = Envir.head_norm Envir.init;
 fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Abst (s, SOME T, prf)) =
       Logic.all_const T $ (Abs (s, T, prop_of0 Hs prf))
-  | prop_of0 Hs (AbsP (s, SOME t, prf)) =
+  | prop_of0 Hs (AbsP (_, SOME t, prf)) =
       Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
   | prop_of0 Hs (prf % SOME t) = (case head_norm (prop_of0 Hs prf) of
       Const ("Pure.all", _) $ f => f $ t
     | _ => error "prop_of: all expected")
-  | prop_of0 Hs (prf1 %% prf2) = (case head_norm (prop_of0 Hs prf1) of
-      Const ("Pure.imp", _) $ P $ Q => Q
+  | prop_of0 Hs (prf1 %% _) = (case head_norm (prop_of0 Hs prf1) of
+      Const ("Pure.imp", _) $ _ $ Q => Q
     | _ => error "prop_of: ==> expected")
-  | prop_of0 Hs (Hyp t) = t
-  | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts, _), _))) = prop_of_atom prop Ts
-  | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
-  | prop_of0 Hs (OfClass (T, c)) = Logic.mk_of_class (T, c)
-  | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 _ (Hyp t) = t
+  | prop_of0 _ (PThm (_, ((_, prop, SOME Ts, _), _))) = prop_of_atom prop Ts
+  | prop_of0 _ (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 _ (OfClass (T, c)) = Logic.mk_of_class (T, c)
+  | prop_of0 _ (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
 val prop_of' = Envir.beta_eta_contract oo prop_of0;
