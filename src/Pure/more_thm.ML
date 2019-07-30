@@ -680,8 +680,9 @@ fun reconstruct_proof_of ctxt raw_thm =
   let val thm = Thm.transfer' ctxt raw_thm
   in Reconstruct.reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
 
-fun clean_proof_of ctxt full thm =
+fun clean_proof_of ctxt full raw_thm =
   let
+    val thm = Thm.transfer' ctxt raw_thm;
     val (_, prop) =
       Logic.unconstrainT (Thm.shyps_of thm)
         (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
@@ -693,6 +694,7 @@ fun clean_proof_of ctxt full thm =
     |> Proofterm.no_thm_proofs
     |> not full ? Proofterm.shrink_proof
   end;
+
 
 
 (** forked proofs **)
