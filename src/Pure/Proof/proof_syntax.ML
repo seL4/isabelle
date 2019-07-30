@@ -11,7 +11,7 @@ sig
   val read_term: theory -> bool -> typ -> string -> term
   val read_proof: theory -> bool -> bool -> string -> Proofterm.proof
   val proof_syntax: Proofterm.proof -> theory -> theory
-  val proof_of: Proof.context -> bool -> thm -> Proofterm.proof
+  val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_clean_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
@@ -177,9 +177,9 @@ fun proof_syntax prf =
       (map (Long_Name.append "thm") thm_names @ map (Long_Name.append "axm") axm_names)
   end;
 
-fun proof_of ctxt full raw_thm =
+fun proof_of full thm =
   let
-    val thm = Thm.transfer' ctxt raw_thm;
+    val thy = Thm.theory_of_thm thm;
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
     val prf' =
@@ -187,7 +187,7 @@ fun proof_of ctxt full raw_thm =
         (PThm (_, ((_, prop', _, _), body)), _) =>
           if prop = prop' then Proofterm.join_proof body else prf
       | _ => prf)
-  in if full then Proofterm.reconstruct_proof ctxt prop prf' else prf' end;
+  in if full then Proofterm.reconstruct_proof thy prop prf' else prf' end;
 
 fun pretty_proof ctxt prf =
   Proof_Context.pretty_term_abbrev
@@ -195,6 +195,6 @@ fun pretty_proof ctxt prf =
     (Proofterm.term_of_proof prf);
 
 fun pretty_clean_proof_of ctxt full thm =
-  pretty_proof ctxt (Thm.clean_proof_of ctxt full thm);
+  pretty_proof ctxt (Thm.clean_proof_of full thm);
 
 end;

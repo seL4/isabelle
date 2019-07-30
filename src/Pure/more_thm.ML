@@ -114,8 +114,8 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
-  val reconstruct_proof_of: Proof.context -> thm -> Proofterm.proof
-  val clean_proof_of: Proof.context -> bool -> thm -> Proofterm.proof
+  val reconstruct_proof_of: thm -> Proofterm.proof
+  val clean_proof_of: bool -> thm -> Proofterm.proof
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
   val show_consts: bool Config.T
@@ -676,21 +676,20 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 (** proof terms **)
 
-fun reconstruct_proof_of ctxt raw_thm =
-  let val thm = Thm.transfer' ctxt raw_thm
-  in Proofterm.reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
+fun reconstruct_proof_of thm =
+  Proofterm.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
-fun clean_proof_of ctxt full raw_thm =
+fun clean_proof_of full thm =
   let
-    val thm = Thm.transfer' ctxt raw_thm;
+    val thy = Thm.theory_of_thm thm;
     val (_, prop) =
       Logic.unconstrainT (Thm.shyps_of thm)
         (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
   in
     Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
-    |> Proofterm.reconstruct_proof ctxt prop
-    |> Proofterm.expand_proof ctxt [("", NONE)]
-    |> Proofterm.rew_proof (Proof_Context.theory_of ctxt)
+    |> Proofterm.reconstruct_proof thy prop
+    |> Proofterm.expand_proof thy [("", NONE)]
+    |> Proofterm.rew_proof thy
     |> Proofterm.no_thm_proofs
     |> not full ? Proofterm.shrink_proof
   end;

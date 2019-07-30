@@ -239,12 +239,13 @@ fun string_of_prfs full state arg =
       NONE =>
         let
           val {context = ctxt, goal = thm} = Proof.simple_goal (Toplevel.proof_of state);
+          val thy = Proof_Context.theory_of ctxt;
           val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
         in
           Proof_Syntax.pretty_proof ctxt
-            (if full then Proofterm.reconstruct_proof ctxt prop prf' else prf')
+            (if full then Proofterm.reconstruct_proof thy prop prf' else prf')
         end
     | SOME srcs =>
         let

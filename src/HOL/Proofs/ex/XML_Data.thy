@@ -12,8 +12,8 @@ begin
 subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
-  fun export_proof ctxt thm =
-    Proofterm.encode (Thm.clean_proof_of ctxt true thm);
+  fun export_proof thm =
+    Proofterm.encode (Thm.clean_proof_of true thm);
 
   fun import_proof thy xml =
     let
@@ -30,24 +30,24 @@ ML \<open>val thy1 = \<^theory>\<close>
 lemma ex: "A \<longrightarrow> A" ..
 
 ML_val \<open>
-  val xml = export_proof \<^context> @{thm ex};
+  val xml = export_proof @{thm ex};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof \<^context> @{thm de_Morgan};
+  val xml = export_proof @{thm de_Morgan};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof \<^context> @{thm Drinker's_Principle};
+  val xml = export_proof @{thm Drinker's_Principle};
   val thm = import_proof thy1 xml;
 \<close>
 
 text \<open>Some fairly large proof:\<close>
 
 ML_val \<open>
-  val xml = export_proof \<^context> @{thm abs_less_iff};
+  val xml = export_proof @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
   \<^assert> (size (YXML.string_of_body xml) > 1000000);
 \<close>

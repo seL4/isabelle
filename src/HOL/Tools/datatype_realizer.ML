@@ -129,7 +129,6 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
       |> Global_Theory.store_thm
         (Binding.qualified_name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
-    val ctxt' = Proof_Context.init_global thy';
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Old_Datatype_Prop.make_ind [descr])) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
@@ -148,7 +147,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             | _ => AbsP ("H", SOME p, prf)))
           (rec_fns ~~ Thm.prems_of thm)
           (Proofterm.proof_combP
-            (Thm.reconstruct_proof_of ctxt' thm', map PBound (length prems - 1 downto 0))));
+            (Thm.reconstruct_proof_of thm', map PBound (length prems - 1 downto 0))));
 
     val r' =
       if null is then r
@@ -204,7 +203,6 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
       |> Sign.root_path
       |> Global_Theory.store_thm (Binding.qualified_name (exh_name ^ "_P_correctness"), thm)
       ||> Sign.restore_naming thy;
-    val ctxt' = Proof_Context.init_global thy';
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf =
@@ -214,10 +212,10 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
               (AbsP ("H", SOME (Logic.varify_global p), prf)))
           (prems ~~ rs)
           (Proofterm.proof_combP
-            (Thm.reconstruct_proof_of ctxt' thm', map PBound (length prems - 1 downto 0))));
+            (Thm.reconstruct_proof_of thm', map PBound (length prems - 1 downto 0))));
     val prf' =
       Extraction.abs_corr_shyps thy' exhaust []
-        (map Var (Term.add_vars (Thm.prop_of exhaust) [])) (Thm.reconstruct_proof_of ctxt' exhaust);
+        (map Var (Term.add_vars (Thm.prop_of exhaust) [])) (Thm.reconstruct_proof_of exhaust);
     val r' =
       Logic.varify_global (Abs ("y", T,
         (fold_rev (Term.abs o dest_Free) rs

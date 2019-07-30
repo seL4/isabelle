@@ -152,10 +152,10 @@ sig
     (typ list -> term option list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
 
-  val reconstruct_proof: Proof.context -> term -> proof -> proof
+  val reconstruct_proof: theory -> term -> proof -> proof
   val prop_of': term list -> proof -> term
   val prop_of: proof -> term
-  val expand_proof: Proof.context -> (string * term option) list -> proof -> proof
+  val expand_proof: theory -> (string * term option) list -> proof -> proof
 
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
@@ -1629,10 +1629,10 @@ fun mk_tvar S (Envir.Envir {maxidx, tenv, tyenv}) =
 
 val mk_abs = fold (fn T => fn u => Abs ("", T, u));
 
-fun unifyT ctxt env T U =
+fun unifyT thy env T U =
   let
     val Envir.Envir {maxidx, tenv, tyenv} = env;
-    val (tyenv', maxidx') = Sign.typ_unify (Proof_Context.theory_of ctxt) (T, U) (tyenv, maxidx);
+    val (tyenv', maxidx') = Sign.typ_unify thy (T, U) (tyenv, maxidx);
   in Envir.Envir {maxidx = maxidx', tenv = tenv, tyenv = tyenv'} end;
 
 fun chaseT env (T as TVar v) =
@@ -1641,9 +1641,9 @@ fun chaseT env (T as TVar v) =
       | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
-fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
+fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
       (t as Const (s, T)) = if T = dummyT then
-        (case Sign.const_type (Proof_Context.theory_of ctxt) s of
+        (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T =>
             let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
@@ -1659,61 +1659,60 @@ fun infer_type ctxt (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
         | SOME T => (Free (s, T), T, vTs, env))
       else (t, T, vTs, env)
   | infer_type _ _ _ _ (Var _) = error "reconstruct_proof: internal error"
-  | infer_type ctxt env Ts vTs (Abs (s, T, t)) =
+  | infer_type thy env Ts vTs (Abs (s, T, t)) =
       let
         val (T', env') = if T = dummyT then mk_tvar [] env else (T, env);
-        val (t', U, vTs', env'') = infer_type ctxt env' (T' :: Ts) vTs t
+        val (t', U, vTs', env'') = infer_type thy env' (T' :: Ts) vTs t
       in (Abs (s, T', t'), T' --> U, vTs', env'') end
-  | infer_type ctxt env Ts vTs (t $ u) =
+  | infer_type thy env Ts vTs (t $ u) =
       let
-        val (t', T, vTs1, env1) = infer_type ctxt env Ts vTs t;
-        val (u', U, vTs2, env2) = infer_type ctxt env1 Ts vTs1 u;
+        val (t', T, vTs1, env1) = infer_type thy env Ts vTs t;
+        val (u', U, vTs2, env2) = infer_type thy env1 Ts vTs1 u;
       in (case chaseT env2 T of
-          Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT ctxt env2 U U')
+          Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT thy env2 U U')
         | _ =>
           let val (V, env3) = mk_tvar [] env2
-          in (t' $ u', V, vTs2, unifyT ctxt env3 T (U --> V)) end)
+          in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
   | infer_type _ env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
       handle General.Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
-fun cantunify ctxt (t, u) =
+fun cantunify thy (t, u) =
   error ("Non-unifiable terms:\n" ^
-    Syntax.string_of_term ctxt t ^ "\n\n" ^ Syntax.string_of_term ctxt u);
+    Syntax.string_of_term_global thy t ^ "\n\n" ^ Syntax.string_of_term_global thy u);
 
-fun decompose ctxt Ts (p as (t, u)) env =
+fun decompose thy Ts (p as (t, u)) env =
   let
     fun rigrig (a, T) (b, U) uT ts us =
-      if a <> b then cantunify ctxt p
-      else apfst flat (fold_map (decompose ctxt Ts) (ts ~~ us) (uT env T U))
+      if a <> b then cantunify thy p
+      else apfst flat (fold_map (decompose thy Ts) (ts ~~ us) (uT env T U))
   in
     case apply2 (strip_comb o Envir.head_norm env) p of
-      ((Const c, ts), (Const d, us)) => rigrig c d (unifyT ctxt) ts us
-    | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT ctxt) ts us
+      ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
+    | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
     | ((Bound i, ts), (Bound j, us)) =>
         rigrig (i, dummyT) (j, dummyT) (K o K) ts us
     | ((Abs (_, T, t), []), (Abs (_, U, u), [])) =>
-        decompose ctxt (T::Ts) (t, u) (unifyT ctxt env T U)
+        decompose thy (T::Ts) (t, u) (unifyT thy env T U)
     | ((Abs (_, T, t), []), _) =>
-        decompose ctxt (T::Ts) (t, incr_boundvars 1 u $ Bound 0) env
+        decompose thy (T::Ts) (t, incr_boundvars 1 u $ Bound 0) env
     | (_, (Abs (_, T, u), [])) =>
-        decompose ctxt (T::Ts) (incr_boundvars 1 t $ Bound 0, u) env
+        decompose thy (T::Ts) (incr_boundvars 1 t $ Bound 0, u) env
     | _ => ([(mk_abs Ts t, mk_abs Ts u)], env)
   end;
 
-fun make_constraints_cprf ctxt env cprf =
+fun make_constraints_cprf thy env cprf =
   let
     fun add_cnstrt Ts prop prf cs env vTs (t, u) =
       let
         val t' = mk_abs Ts t;
         val u' = mk_abs Ts u
       in
-        (prop, prf, cs, Pattern.unify (Context.Proof ctxt) (t', u') env, vTs)
-        handle Pattern.Pattern =>
-            let val (cs', env') = decompose ctxt [] (t', u') env
+        (prop, prf, cs, Pattern.unify (Context.Theory thy) (t', u') env, vTs)
+          handle Pattern.Pattern =>
+            let val (cs', env') = decompose thy [] (t', u') env
             in (prop, prf, cs @ cs', env', vTs) end
-        | Pattern.Unif =>
-            cantunify ctxt (Envir.norm_term env t', Envir.norm_term env u')
+          | Pattern.Unif => cantunify thy (Envir.norm_term env t', Envir.norm_term env u')
       end;
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
@@ -1748,7 +1747,7 @@ fun make_constraints_cprf ctxt env cprf =
           end
       | mk_cnstrts env Ts Hs vTs (AbsP (s, SOME t, cprf)) =
           let
-            val (t', _, vTs', env') = infer_type ctxt env Ts vTs t;
+            val (t', _, vTs', env') = infer_type thy env Ts vTs t;
             val (u, prf, cnstrts, env'', vTs'') = mk_cnstrts env' Ts (t'::Hs) vTs' cprf;
           in (Logic.mk_implies (t', u), AbsP (s, SOME t', prf), cnstrts, env'', vTs'')
           end
@@ -1771,11 +1770,11 @@ fun make_constraints_cprf ctxt env cprf =
                 end)
           end
       | mk_cnstrts env Ts Hs vTs (cprf % SOME t) =
-          let val (t', U, vTs1, env1) = infer_type ctxt env Ts vTs t
+          let val (t', U, vTs1, env1) = infer_type thy env Ts vTs t
           in (case head_norm (mk_cnstrts env1 Ts Hs vTs1 cprf) of
              (Const ("Pure.all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env2, vTs2) =>
-               let val env3 = unifyT ctxt env2 T U
+               let val env3 = unifyT thy env2 T U
                in (betapply (f, t'), prf % SOME t', cnstrts, env3, vTs2)
                end
            | (u, prf, cnstrts, env2, vTs2) =>
@@ -1838,11 +1837,13 @@ fun upd_constrs env cs =
 (* solution of constraints *)
 
 fun solve _ [] bigenv = bigenv
-  | solve ctxt cs bigenv =
+  | solve thy cs bigenv =
       let
-        fun search _ [] = error ("Unsolvable constraints:\n" ^
-              Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                Syntax.pretty_flexpair ctxt (apply2 (Envir.norm_term bigenv) p)) cs)))
+        fun search _ [] =
+              error ("Unsolvable constraints:\n" ^
+                Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
+                  Syntax.pretty_flexpair (Syntax.init_pretty_global thy)
+                    (apply2 (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
                 let
@@ -1850,10 +1851,10 @@ fun solve _ [] bigenv = bigenv
                   val tn2 = Envir.norm_term bigenv t2
                 in
                   if Pattern.pattern tn1 andalso Pattern.pattern tn2 then
-                    (Pattern.unify (Context.Proof ctxt) (tn1, tn2) env, ps) handle Pattern.Unif =>
-                       cantunify ctxt (tn1, tn2)
+                    (Pattern.unify (Context.Theory thy) (tn1, tn2) env, ps)
+                      handle Pattern.Unif => cantunify thy (tn1, tn2)
                   else
-                    let val (cs', env') = decompose ctxt [] (tn1, tn2) env
+                    let val (cs', env') = decompose thy [] (tn1, tn2) env
                     in if cs' = [(tn1, tn2)] then
                          apsnd (cons (false, (tn1, tn2), vs)) (search env ps)
                        else search env' (map (fn q => (true, q, vs)) cs' @ ps)
@@ -1863,7 +1864,7 @@ fun solve _ [] bigenv = bigenv
         val Envir.Envir {maxidx, ...} = bigenv;
         val (env, cs') = search (Envir.empty maxidx) cs;
       in
-        solve ctxt (upd_constrs env cs') (Envir.merge (bigenv, env))
+        solve thy (upd_constrs env cs') (Envir.merge (bigenv, env))
       end;
 
 in
@@ -1871,18 +1872,16 @@ in
 
 (* reconstruction of proofs *)
 
-fun reconstruct_proof ctxt prop cprf =
+fun reconstruct_proof thy prop cprf =
   let
     val (cprf' % SOME prop', thawf) = freeze_thaw_prf (cprf % SOME prop);
-    val (t, prf, cs, env, _) = make_constraints_cprf ctxt
+    val (t, prf, cs, env, _) = make_constraints_cprf thy
       (Envir.empty (maxidx_proof cprf ~1)) cprf';
     val cs' =
       map (apply2 (Envir.norm_term env)) ((t, prop') :: cs)
       |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
-    val env' = solve ctxt cs' env
-  in
-    thawf (norm_proof env' prf)
-  end;
+    val env' = solve thy cs' env
+  in thawf (norm_proof env' prf) end;
 
 fun prop_of_atom prop Ts = subst_atomic_types
   (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
@@ -1914,7 +1913,7 @@ val prop_of = prop_of' [];
 
 (* expand and reconstruct subproofs *)
 
-fun expand_proof ctxt thms prf =
+fun expand_proof thy thms prf =
   let
     fun expand maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
@@ -1943,7 +1942,7 @@ fun expand_proof ctxt thms prf =
                     val prf' =
                       join_proof body
                       |> open_proof
-                      |> reconstruct_proof ctxt prop
+                      |> reconstruct_proof thy prop
                       |> forall_intr_vfs_prf prop;
                     val (maxidx', prfs', prf) = expand (maxidx_proof prf' ~1) prfs prf'
                   in
@@ -2020,10 +2019,9 @@ fun clean_proof thy = rew_proof thy #> shrink_proof;
 fun export thy i prop proof =
   if Options.default_bool "export_proofs" then
     let
-      val thy_ctxt = Proof_Context.init_global thy;
       val xml =
-        reconstruct_proof thy_ctxt prop proof
-        |> expand_proof thy_ctxt [("", NONE)]
+        reconstruct_proof thy prop proof
+        |> expand_proof thy [("", NONE)]
         |> term_of_proof
         |> Term_XML.Encode.term;
     in

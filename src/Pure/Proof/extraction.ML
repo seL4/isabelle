@@ -340,7 +340,7 @@ fun prep_realizer thy =
             (if T = nullT then t else list_comb (t, vars')) $ prop);
       val r = Logic.list_implies (shyps,
         fold_rev Logic.all (map (get_var_type r') vars) r');
-      val prf = Proofterm.reconstruct_proof ctxt' r (rd s2);
+      val prf = Proofterm.reconstruct_proof thy' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
 
@@ -483,7 +483,6 @@ val dummyt = Const ("dummy", dummyT);
 fun extract thm_vss thy =
   let
     val thy' = add_syntax thy;
-    val ctxt' = Proof_Context.init_global thy';
 
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
@@ -491,8 +490,8 @@ fun extract thm_vss thy =
     val rtypes = map fst types;
     val typroc = typeof_proc [];
     val prep = the_default (K I) prep thy' o
-      ProofRewriteRules.elim_defs ctxt' false (map (Thm.transfer thy) defs) o
-      Proofterm.expand_proof ctxt' (map (rpair NONE) ("" :: expand));
+      ProofRewriteRules.elim_defs thy' false (map (Thm.transfer thy) defs) o
+      Proofterm.expand_proof thy' (map (rpair NONE) ("" :: expand));
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
     fun find_inst prop Ts ts vs =
@@ -515,7 +514,7 @@ fun extract thm_vss thy =
       Logic.mk_of_sort (TVar (ixn, []), Sign.defaultS thy)) tye;
 
     fun mk_sprfs cs tye = maps (fn (_, T) =>
-      ProofRewriteRules.mk_of_sort_proof ctxt' (map SOME cs)
+      ProofRewriteRules.mk_of_sort_proof thy' (map SOME cs)
         (T, Sign.defaultS thy)) tye;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
@@ -616,7 +615,7 @@ fun extract thm_vss thy =
                     val _ = msg d ("Building correctness proof for " ^ quote name ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Proofterm.reconstruct_proof ctxt' prop prf);
+                    val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
                     val (corr_prf0, defs'') = corr (d + 1) vs' [] [] []
                       (rev shyps) NONE prf' prf' defs';
                     val corr_prf = mkabsp shyps corr_prf0;
@@ -640,7 +639,7 @@ fun extract thm_vss thy =
             | SOME rs => (case find vs' rs of
                 SOME (_, prf') => (Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs), defs')
               | NONE => error ("corr: no realizer for instance of theorem " ^
-                  quote name ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
+                  quote name ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))))
           end
 
@@ -655,7 +654,7 @@ fun extract thm_vss thy =
               SOME (_, prf) => (Proofterm.proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye),
                 defs)
             | NONE => error ("corr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                   (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
@@ -708,7 +707,7 @@ fun extract thm_vss thy =
                     val _ = msg d ("Extracting " ^ quote s ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Proofterm.reconstruct_proof ctxt' prop prf);
+                    val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
                     val (t, defs') = extr (d + 1) vs' [] [] [] prf' defs;
                     val (corr_prf, defs'') = corr (d + 1) vs' [] [] []
                       (rev shyps) (SOME t) prf' prf' defs';
@@ -756,7 +755,7 @@ fun extract thm_vss thy =
             | SOME rs => (case find vs' rs of
                 SOME (t, _) => (subst_TVars tye' t, defs)
               | NONE => error ("extr: no realizer for instance of theorem " ^
-                  quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
+                  quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
@@ -768,7 +767,7 @@ fun extract thm_vss thy =
             case find vs' (Symtab.lookup_list realizers s) of
               SOME (t, _) => (subst_TVars tye' t, defs)
             | NONE => error ("extr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                   (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
@@ -783,7 +782,7 @@ fun extract thm_vss thy =
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
-      in Proofterm.reconstruct_proof ctxt' prop prf end;
+      in Proofterm.reconstruct_proof thy' prop prf end;
 
     val defs =
       fold (fn (thm, vs) => snd o (extr 0 vs [] [] [] o prep_thm vs) thm)
