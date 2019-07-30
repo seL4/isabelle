@@ -155,7 +155,6 @@ sig
   val forall_intr_vfs: term -> term
   val forall_intr_vfs_prf: term -> proof -> proof
   val app_types: int -> term -> typ list -> proof -> proof
-  val clean_proof: theory -> proof -> proof
 
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
@@ -1613,38 +1612,6 @@ fun app_types shift prop Ts prf =
 
 end;
 
-fun clean_proof thy prf =
-  let
-    fun clean maxidx prfs (AbsP (s, t, prf)) =
-          let val (maxidx', prfs', prf') = clean maxidx prfs prf
-          in (maxidx', prfs', AbsP (s, t, prf')) end
-      | clean maxidx prfs (Abst (s, T, prf)) =
-          let val (maxidx', prfs', prf') = clean maxidx prfs prf
-          in (maxidx', prfs', Abst (s, T, prf')) end
-      | clean maxidx prfs (prf1 %% prf2) =
-          let
-            val (maxidx', prfs', prf1') = clean maxidx prfs prf1;
-            val (maxidx'', prfs'', prf2') = clean maxidx' prfs' prf2;
-          in (maxidx'', prfs'', prf1' %% prf2') end
-      | clean maxidx prfs (prf % t) =
-          let val (maxidx', prfs', prf') = clean maxidx prfs prf
-          in (maxidx', prfs', prf' % t) end
-      | clean maxidx prfs (PThm (_, (("", prop, SOME Ts, _), body))) =
-          let
-            val (maxidx', prf, prfs') =
-              (case AList.lookup (op =) prfs prop of
-                NONE =>
-                  let
-                    val prf' = forall_intr_vfs_prf prop (join_proof body);
-                    val (maxidx', prfs', prf) = clean (maxidx_proof prf' ~1) prfs prf';
-                    val prfs'' = (prop, (maxidx', prf)) :: prfs';
-                  in (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs'') end
-              | SOME (maxidx', prf) => (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs));
-          in (maxidx', prfs', app_types (maxidx + 1) prop Ts prf) end
-      | clean maxidx prfs prf = (maxidx, prfs, prf);
-
-  in rew_proof thy (#3 (clean (maxidx_proof prf ~1) [] prf)) end;
-
 
 
 (** promises **)
@@ -1726,8 +1693,8 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
         (PBody {oracles = oracles0, thms = thms0,
           proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
 
-    fun publish i = map_proof_of (clean_proof thy #> tap (export thy i) #> prune);
-    val open_proof = not named ? (clean_proof thy #> shrink_proof);
+    fun publish i = map_proof_of (rew_proof thy #> tap (export thy i) #> prune);
+    val open_proof = not named ? (rew_proof thy #> shrink_proof);
 
     fun new_prf () =
       let
