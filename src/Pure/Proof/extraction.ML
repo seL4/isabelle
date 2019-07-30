@@ -340,7 +340,7 @@ fun prep_realizer thy =
             (if T = nullT then t else list_comb (t, vars')) $ prop);
       val r = Logic.list_implies (shyps,
         fold_rev Logic.all (map (get_var_type r') vars) r');
-      val prf = Reconstruct.reconstruct_proof ctxt' r (rd s2);
+      val prf = Proofterm.reconstruct_proof ctxt' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
 
@@ -492,7 +492,7 @@ fun extract thm_vss thy =
     val typroc = typeof_proc [];
     val prep = the_default (K I) prep thy' o
       ProofRewriteRules.elim_defs ctxt' false (map (Thm.transfer thy) defs) o
-      Reconstruct.expand_proof ctxt' (map (rpair NONE) ("" :: expand));
+      Proofterm.expand_proof ctxt' (map (rpair NONE) ("" :: expand));
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
     fun find_inst prop Ts ts vs =
@@ -579,7 +579,7 @@ fun extract thm_vss thy =
 
       | corr d vs ts Ts hs cs t (prf1 %% prf2) (prf1' %% prf2') defs =
           let
-            val prop = Reconstruct.prop_of' hs prf2';
+            val prop = Proofterm.prop_of' hs prf2';
             val T = etype_of thy' vs Ts prop;
             val (f, u, defs1) = if T = nullT then (t, NONE, defs) else
               (case t of
@@ -616,11 +616,11 @@ fun extract thm_vss thy =
                     val _ = msg d ("Building correctness proof for " ^ quote name ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Reconstruct.reconstruct_proof ctxt' prop prf);
+                    val prf' = prep (Proofterm.reconstruct_proof ctxt' prop prf);
                     val (corr_prf0, defs'') = corr (d + 1) vs' [] [] []
                       (rev shyps) NONE prf' prf' defs';
                     val corr_prf = mkabsp shyps corr_prf0;
-                    val corr_prop = Reconstruct.prop_of corr_prf;
+                    val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_prf' =
                       Proofterm.proof_combP (Proofterm.proof_combt
                          (PThm (Proofterm.proof_serial (),
@@ -641,7 +641,7 @@ fun extract thm_vss thy =
                 SOME (_, prf') => (Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs), defs')
               | NONE => error ("corr: no realizer for instance of theorem " ^
                   quote name ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
-                    (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts)))))))
+                    (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))))
           end
 
       | corr d vs ts Ts hs cs _ (prf0 as PAxm (s, prop, SOME Ts')) _ defs =
@@ -656,7 +656,7 @@ fun extract thm_vss thy =
                 defs)
             | NONE => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
-                  (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts)))))
+                  (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
       | corr d vs ts Ts hs _ _ _ _ defs = error "corr: bad proof"
@@ -686,7 +686,7 @@ fun extract thm_vss thy =
       | extr d vs ts Ts hs (prf1 %% prf2) defs =
           let
             val (f, defs') = extr d vs [] Ts hs prf1 defs;
-            val prop = Reconstruct.prop_of' hs prf2;
+            val prop = Proofterm.prop_of' hs prf2;
             val T = etype_of thy' vs Ts prop
           in
             if T = nullT then (f, defs') else
@@ -708,7 +708,7 @@ fun extract thm_vss thy =
                     val _ = msg d ("Extracting " ^ quote s ^
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
-                    val prf' = prep (Reconstruct.reconstruct_proof ctxt' prop prf);
+                    val prf' = prep (Proofterm.reconstruct_proof ctxt' prop prf);
                     val (t, defs') = extr (d + 1) vs' [] [] [] prf' defs;
                     val (corr_prf, defs'') = corr (d + 1) vs' [] [] []
                       (rev shyps) (SOME t) prf' prf' defs';
@@ -737,7 +737,7 @@ fun extract thm_vss thy =
                            (chtypes [T --> propT] Proofterm.reflexive_axm %> f) %%
                            PAxm (Thm.def_name cname, eqn,
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
-                    val corr_prop = Reconstruct.prop_of corr_prf';
+                    val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
                         (PThm (Proofterm.proof_serial (),
@@ -757,7 +757,7 @@ fun extract thm_vss thy =
                 SOME (t, _) => (subst_TVars tye' t, defs)
               | NONE => error ("extr: no realizer for instance of theorem " ^
                   quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
-                    (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts))))))
+                    (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
       | extr d vs ts Ts hs (prf0 as PAxm (s, prop, SOME Ts')) defs =
@@ -769,7 +769,7 @@ fun extract thm_vss thy =
               SOME (t, _) => (subst_TVars tye' t, defs)
             | NONE => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term ctxt' (Envir.beta_norm
-                  (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts)))))
+                  (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
       | extr d vs ts Ts hs _ defs = error "extr: bad proof";
@@ -783,7 +783,7 @@ fun extract thm_vss thy =
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
-      in Reconstruct.reconstruct_proof ctxt' prop prf end;
+      in Proofterm.reconstruct_proof ctxt' prop prf end;
 
     val defs =
       fold (fn (thm, vs) => snd o (extr 0 vs [] [] [] o prep_thm vs) thm)
@@ -807,7 +807,7 @@ fun extract thm_vss thy =
 
     fun add_corr (s, (vs, prf)) thy =
       let
-        val corr_prop = Reconstruct.prop_of prf;
+        val corr_prop = Proofterm.prop_of prf;
       in
         thy
         |> Global_Theory.store_thm (Binding.qualified_name (corr_name s vs),

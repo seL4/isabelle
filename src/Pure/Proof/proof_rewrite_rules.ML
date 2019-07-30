@@ -265,7 +265,7 @@ fun elim_defs ctxt r defs prf =
               then I
               else cons (name, SOME prop)
             | _ => I) [prf] [];
-      in Reconstruct.expand_proof ctxt thms end;
+      in Proofterm.expand_proof ctxt thms end;
   in
     rewrite_terms (Pattern.rewrite_term (Proof_Context.theory_of ctxt) defs' [])
       (fst (insert_refl defnames [] (f prf)))
@@ -276,7 +276,7 @@ fun elim_defs ctxt r defs prf =
 
 fun elim_vars mk_default prf =
   let
-    val prop = Reconstruct.prop_of prf;
+    val prop = Proofterm.prop_of prf;
     val tv = Term.add_vars prop [];
     val tf = Term.add_frees prop [];
 
@@ -354,8 +354,8 @@ fun mk_of_sort_proof ctxt hs (T, S) =
         ~1 => error "expand_of_class: missing class hypothesis"
       | i => PBound i;
     fun reconstruct prf prop = prf |>
-      Reconstruct.reconstruct_proof ctxt prop |>
-      Reconstruct.expand_proof ctxt [("", NONE)] |>
+      Proofterm.reconstruct_proof ctxt prop |>
+      Proofterm.expand_proof ctxt [("", NONE)] |>
       Same.commit (Proofterm.map_proof_same Same.same Same.same hyp)
   in
     map2 reconstruct

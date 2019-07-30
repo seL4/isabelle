@@ -244,7 +244,7 @@ fun string_of_prfs full state arg =
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
         in
           Proof_Syntax.pretty_proof ctxt
-            (if full then Reconstruct.reconstruct_proof ctxt prop prf' else prf')
+            (if full then Proofterm.reconstruct_proof ctxt prop prf' else prf')
         end
     | SOME srcs =>
         let

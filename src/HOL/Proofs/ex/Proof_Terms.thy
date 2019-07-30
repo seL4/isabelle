@@ -60,7 +60,7 @@ ML_val \<open>
       \       (\<^bold>\<lambda>(H: _) Ha: _. conjI \<cdot> _ \<cdot> _ \<bullet> Ha \<bullet> H))";
   val thm =
     prf
-    |> Reconstruct.reconstruct_proof ctxt \<^prop>\<open>A \<and> B \<longrightarrow> B \<and> A\<close>
+    |> Proofterm.reconstruct_proof ctxt \<^prop>\<open>A \<and> B \<longrightarrow> B \<and> A\<close>
     |> Proof_Checker.thm_of_proof thy
     |> Drule.export_without_context;
 \<close>

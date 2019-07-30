@@ -41,7 +41,7 @@ fun pretty_prf thy vs Hs prf =
     Proofterm.prf_subst_pbounds (map (Hyp o Thm.prop_of) Hs)
   in
     (Proof_Syntax.pretty_proof (Syntax.init_pretty_global thy) prf',
-     Syntax.pretty_term_global thy (Reconstruct.prop_of prf'))
+     Syntax.pretty_term_global thy (Proofterm.prop_of prf'))
   end;
 
 fun pretty_term thy vs _ t =

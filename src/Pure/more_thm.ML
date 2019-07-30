@@ -678,7 +678,7 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 fun reconstruct_proof_of ctxt raw_thm =
   let val thm = Thm.transfer' ctxt raw_thm
-  in Reconstruct.reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
+  in Proofterm.reconstruct_proof ctxt (Thm.prop_of thm) (Thm.proof_of thm) end;
 
 fun clean_proof_of ctxt full raw_thm =
   let
@@ -688,8 +688,8 @@ fun clean_proof_of ctxt full raw_thm =
         (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
   in
     Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
-    |> Reconstruct.reconstruct_proof ctxt prop
-    |> Reconstruct.expand_proof ctxt [("", NONE)]
+    |> Proofterm.reconstruct_proof ctxt prop
+    |> Proofterm.expand_proof ctxt [("", NONE)]
     |> Proofterm.rew_proof (Proof_Context.theory_of ctxt)
     |> Proofterm.no_thm_proofs
     |> not full ? Proofterm.shrink_proof

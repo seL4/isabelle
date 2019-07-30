@@ -187,7 +187,7 @@ fun proof_of ctxt full raw_thm =
         (PThm (_, ((_, prop', _, _), body)), _) =>
           if prop = prop' then Proofterm.join_proof body else prf
       | _ => prf)
-  in if full then Reconstruct.reconstruct_proof ctxt prop prf' else prf' end;
+  in if full then Proofterm.reconstruct_proof ctxt prop prf' else prf' end;
 
 fun pretty_proof ctxt prf =
   Proof_Context.pretty_term_abbrev

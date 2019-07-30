@@ -21,7 +21,7 @@ fun name_of_thm thm =
 
 fun prf_of ctxt thm =
   Thm.reconstruct_proof_of ctxt thm
-  |> Reconstruct.expand_proof ctxt [("", NONE)];  (* FIXME *)
+  |> Proofterm.expand_proof ctxt [("", NONE)];  (* FIXME *)
 
 fun subsets [] = [[]]
   | subsets (x::xs) =

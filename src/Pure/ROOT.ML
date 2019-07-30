@@ -169,7 +169,6 @@ ML_file "pattern.ML";
 ML_file "unify.ML";
 ML_file "theory.ML";
 ML_file "proofterm.ML";
-ML_file "Proof/reconstruct.ML";
 ML_file "thm.ML";
 ML_file "more_pattern.ML";
 ML_file "more_unify.ML";
