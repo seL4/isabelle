@@ -4,7 +4,7 @@ section \<open>Leftist Heap\<close>
 
 theory Leftist_Heap
 imports
-  Base_FDS
+  "HOL-Library.Pattern_Aliases"
   Tree2
   Priority_Queue_Specs
   Complex_Main

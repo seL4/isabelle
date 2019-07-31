@@ -6,7 +6,7 @@ section \<open>Binomial Heap\<close>
 
 theory Binomial_Heap
 imports
-  Base_FDS
+  "HOL-Library.Pattern_Aliases"
   Complex_Main
   Priority_Queue_Specs
 begin
