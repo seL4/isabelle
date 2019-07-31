@@ -791,34 +791,42 @@ fun OfClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-fun term_of _ (PThm (_, ((name, _, Ts, _), _))) =
-      fold AppT (these Ts) (Const (Long_Name.append "thm" name, proofT))
-  | term_of _ (PAxm (name, _, Ts)) =
-      fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
-  | term_of _ (PBound i) = Bound i
-  | term_of Ts (Abst (s, opT, prf)) =
-      let val T = the_default dummyT opT in
-        Const ("Pure.Abst", (T --> proofT) --> proofT) $
-          Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
-      end
-  | term_of Ts (AbsP (s, t, prf)) =
-      AbsPt $ the_default Term.dummy_prop t $
-        Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
-  | term_of Ts (prf1 %% prf2) =
-      AppPt $ term_of Ts prf1 $ term_of Ts prf2
-  | term_of Ts (prf % opt) =
-      let
-        val t = the_default Term.dummy opt;
-        val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
-      in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
-  | term_of _ (Hyp t) = Hypt $ t
-  | term_of _ (Oracle (_, t, _)) = Oraclet $ t
-  | term_of _ MinProof = MinProoft;
-
 in
 
-val term_of_proof = term_of [];
+fun thm_const_default (_: proof_serial) name = Long_Name.append "thm" name;
+fun axm_const_default name = Long_Name.append "axm" name;
+
+fun term_of
+   {thm_const: proof_serial -> string -> string,
+    axm_const: string -> string} =
+  let
+    fun term _ (PThm (i, ((name, _, Ts, _), _))) =
+          fold AppT (these Ts) (Const (thm_const i name, proofT))
+      | term _ (PAxm (name, _, Ts)) =
+          fold AppT (these Ts) (Const (axm_const name, proofT))
+      | term _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
+      | term _ (PBound i) = Bound i
+      | term Ts (Abst (s, opT, prf)) =
+          let val T = the_default dummyT opT in
+            Const ("Pure.Abst", (T --> proofT) --> proofT) $
+              Abs (s, T, term (T::Ts) (incr_pboundvars 1 0 prf))
+          end
+      | term Ts (AbsP (s, t, prf)) =
+          AbsPt $ the_default Term.dummy_prop t $
+            Abs (s, proofT, term (proofT::Ts) (incr_pboundvars 0 1 prf))
+      | term Ts (prf1 %% prf2) =
+          AppPt $ term Ts prf1 $ term Ts prf2
+      | term Ts (prf % opt) =
+          let
+            val t = the_default Term.dummy opt;
+            val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
+          in Const ("Pure.Appt", proofT --> T --> proofT) $ term Ts prf $ t end
+      | term _ (Hyp t) = Hypt $ t
+      | term _ (Oracle (_, t, _)) = Oraclet $ t
+      | term _ MinProof = MinProoft;
+  in term [] end;
+
+val term_of_proof = term_of {thm_const = thm_const_default, axm_const = axm_const_default};
 
 end;
 
@@ -2016,14 +2024,34 @@ fun unconstrainT_prf thy (ucontext: Logic.unconstrain_context) =
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
+val export_proof_term =
+  term_of {thm_const = K o string_of_int, axm_const = axm_const_default};
+
+fun export_proof thy main_prop main_proof =
+  let
+    fun add_proof_boxes (AbsP (_, _, prf)) = add_proof_boxes prf
+      | add_proof_boxes (Abst (_, _, prf)) = add_proof_boxes prf
+      | add_proof_boxes (prf1 %% prf2) = add_proof_boxes prf1 #> add_proof_boxes prf2
+      | add_proof_boxes (prf % _) = add_proof_boxes prf
+      | add_proof_boxes (PThm (i, (("", prop, _, open_proof), body))) =
+          (fn boxes =>
+            if Inttab.defined boxes i then boxes
+            else
+              let val prf = open_proof (join_proof body) |> reconstruct_proof thy prop;
+              in add_proof_boxes prf boxes |> Inttab.update (i, prf) end)
+      | add_proof_boxes _ = I;
+
+    val proof = reconstruct_proof thy main_prop main_proof;
+    val proof_boxes =
+      (proof, Inttab.empty) |-> add_proof_boxes |> Inttab.dest
+      |> map (apsnd export_proof_term);
+  in (proof_boxes, export_proof_term proof) end;
+
 fun export thy i prop proof =
   if Options.default_bool "export_proofs" then
     let
-      val xml =
-        reconstruct_proof thy prop proof
-        |> expand_proof thy [("", NONE)]
-        |> term_of_proof
-        |> Term_XML.Encode.term;
+      val xml = export_proof thy prop proof
+        |> let open XML.Encode Term_XML.Encode in pair (list (pair int term)) term end;
     in
       Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
         (Buffer.chunks (YXML.buffer_body xml Buffer.empty))
