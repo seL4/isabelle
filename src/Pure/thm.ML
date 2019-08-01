@@ -164,8 +164,7 @@ struct
 
 (** certified types **)
 
-abstype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: sort Ord_List.T}
-with
+datatype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 fun typ_of (Ctyp {T, ...}) = T;
 
@@ -218,9 +217,8 @@ fun make_ctyp (Ctyp {cert, T, maxidx = _, sorts = _}) cargs =
 (** certified terms **)
 
 (*certified terms with checked typ, maxidx, and sorts*)
-abstype cterm =
-  Cterm of {cert: Context.certificate, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T}
-with
+datatype cterm =
+  Cterm of {cert: Context.certificate, t: term, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 exception CTERM of string * cterm list;
 
@@ -349,7 +347,7 @@ fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
 
 (*** Derivations and Theorems ***)
 
-abstype thm = Thm of
+datatype thm = Thm of
  deriv *                        (*derivation*)
  {cert: Context.certificate,    (*background theory certificate*)
   tags: Properties.T,           (*additional annotations/comments*)
@@ -360,8 +358,7 @@ abstype thm = Thm of
   prop: term}                   (*conclusion*)
 and deriv = Deriv of
  {promises: (serial * thm future) Ord_List.T,
-  body: Proofterm.proof_body}
-with
+  body: Proofterm.proof_body};
 
 type conv = cterm -> thm;
 
@@ -1890,10 +1887,6 @@ fun invoke_oracle thy1 name oracle arg =
           prop = prop})
       end
   end;
-
-end;
-end;
-end;
 
 
 (* authentic derivation names *)
