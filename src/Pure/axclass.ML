@@ -173,6 +173,15 @@ val arity_prefix = "arity_";
 
 fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
+fun standard_tvars thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val tvars = rev (Term.add_tvars (Thm.prop_of thm) []);
+    val names = Name.invent Name.context Name.aT (length tvars);
+    val tinst =
+      map2 (fn (ai, S) => fn b => ((ai, S), Thm.global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
+  in Thm.instantiate (tinst, []) thm end
+
 
 val is_classrel = Symreltab.defined o proven_classrels_of;
 
@@ -193,7 +202,7 @@ fun complete_classrels thy =
               thy2
               |> (map_proven_classrels o Symreltab.update) ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
-                |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
+                |> standard_tvars
                 |> Thm.close_derivation
                 |> Thm.trim_context));
 
@@ -230,14 +239,11 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
       |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) =>
             c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
 
-    val names = Name.invent Name.context Name.aT (length Ss);
-    val std_vars = map (fn a => SOME (Thm.global_ctyp_of thy (TVar ((a, 0), [])))) names;
-
     val completions = super_class_completions |> map (fn c1 =>
       let
         val th1 =
           (th RS the_classrel thy (c, c1))
-          |> Thm.instantiate' std_vars []
+          |> standard_tvars
           |> Thm.close_derivation
           |> Thm.trim_context;
       in ((th1, thy_name), c1) end);
@@ -247,7 +253,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
   in (finished', arities') end;
 
 fun put_arity_completion ((t, Ss, c), th) thy =
-  let val ar = ((c, Ss), (Thm.trim_context th, Context.theory_name thy)) in
+  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
     thy
     |> map_proven_arities
       (Symtab.insert_list (eq_fst op =) (t, ar) #>
@@ -397,7 +403,6 @@ fun add_classrel raw_th thy =
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
     val th'' = th'
       |> Thm.unconstrainT
-      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy' (TVar ((Name.aT, 0), [])))] []
       |> Thm.trim_context;
   in
     thy'
@@ -420,15 +425,15 @@ fun add_arity raw_th thy =
 
     val args = Name.invent_names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, _) => SOME (Thm.global_ctyp_of thy' (TVar ((a, 0), [])))) args;
 
     val missing_params = Sign.complete_sort thy' [c]
       |> maps (these o Option.map #params o try (get_info thy'))
       |> filter_out (fn (const, _) => can (get_inst_param thy') (const, t))
       |> (map o apsnd o map_atyps) (K T);
+
     val th'' = th'
       |> Thm.unconstrainT
-      |> Thm.instantiate' std_vars [];
+      |> Thm.trim_context;
   in
     thy'
     |> fold (#2 oo declare_overloaded) missing_params
