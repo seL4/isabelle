@@ -122,14 +122,20 @@ type stage = int * int Synchronized.var;
 fun init_stage () : stage = (0, Synchronized.var "Context.stage" 1);
 fun next_stage ((_, state): stage) = (Synchronized.change_result state (fn n => (n, n + 1)), state);
 
-datatype theory_id =
+abstype theory_id =
   Theory_Id of
    (*identity*)
    {id: serial,                   (*identifier*)
     ids: Inttab.set} *            (*cumulative identifiers -- symbolic body content*)
    (*history*)
    {name: string,                 (*official theory name*)
-    stage: stage option};         (*index and counter for anonymous updates*)
+    stage: stage option}          (*index and counter for anonymous updates*)
+with
+
+fun rep_theory_id (Theory_Id args) = args;
+val make_theory_id = Theory_Id;
+
+end;
 
 datatype theory =
   Theory of
@@ -144,7 +150,6 @@ datatype theory =
 
 exception THEORY of string * theory list;
 
-fun rep_theory_id (Theory_Id args) = args;
 fun rep_theory (Theory args) = args;
 
 val theory_identity = #1 o rep_theory;
@@ -211,8 +216,8 @@ fun get_theory long thy name =
 fun insert_id id ids = Inttab.update (id, ()) ids;
 
 val merge_ids =
-  apply2 theory_id #>
-  (fn (Theory_Id ({id = id1, ids = ids1, ...}, _), Theory_Id ({id = id2, ids = ids2, ...}, _)) =>
+  apply2 (theory_id #> rep_theory_id #> #1) #>
+  (fn ({id = id1, ids = ids1, ...}, {id = id2, ids = ids2, ...}) =>
     Inttab.merge (K true) (ids1, ids2)
     |> insert_id id1
     |> insert_id id2);
@@ -223,7 +228,8 @@ val merge_ids =
 val eq_thy_id = op = o apply2 (#id o identity_of_id);
 val eq_thy = op = o apply2 (#id o identity_of);
 
-fun proper_subthy_id (Theory_Id ({id, ...}, _), Theory_Id ({ids, ...}, _)) = Inttab.defined ids id;
+val proper_subthy_id =
+  apply2 (rep_theory_id #> #1) #> (fn ({id, ...}, {ids, ...}) => Inttab.defined ids id);
 val proper_subthy = proper_subthy_id o apply2 theory_id;
 
 fun subthy_id p = eq_thy_id p orelse proper_subthy_id p;
@@ -330,7 +336,7 @@ fun theories_trace () =
 
 fun create_thy ids history ancestry data =
   let
-    val theory_id = Theory_Id (make_identity (serial ()) ids, history);
+    val theory_id = make_theory_id (make_identity (serial ()) ids, history);
     val token = make_token ();
   in Theory ({theory_id = theory_id, token = token}, ancestry, data) end;
 
@@ -346,7 +352,7 @@ local
 
 fun change_thy finish f thy =
   let
-    val Theory_Id ({id, ids}, {name, stage}) = theory_id thy;
+    val ({id, ids}, {name, stage}) = rep_theory_id (theory_id thy);
     val Theory (_, ancestry, data) = thy;
     val (ancestry', data') =
       if is_none stage then
@@ -429,7 +435,7 @@ fun begin_thy name imports =
           [] => error "Missing theory imports"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl merge_thys (thy, thys));
-      val Theory_Id ({ids, ...}, _) = theory_id thy0;
+      val ({ids, ...}, _) = rep_theory_id (theory_id thy0);
 
       val history = make_history name;
       val ancestry = make_ancestry parents ancestors;
