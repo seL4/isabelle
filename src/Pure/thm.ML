@@ -111,6 +111,9 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
+  (*oracles*)
+  val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
+  val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
   (*inference rules*)
   val assume: cterm -> thm
   val implies_intr: cterm -> thm -> thm
@@ -152,9 +155,6 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  (*oracles*)
-  val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
-  val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
 structure Thm: THM =
@@ -812,6 +812,51 @@ fun adjust_maxidx_thm i (th as Thm (der, {cert, tags, maxidx, shyps, hyps, tpair
   else
     Thm (der, {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i),
       cert = cert, tags = tags, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop});
+
+
+
+(*** Theory data ***)
+
+structure Data = Theory_Data
+(
+  type T =
+    unit Name_Space.table;  (*oracles: authentic derivation names*)
+  val empty : T = Name_Space.empty_table "oracle";
+  val extend = I;
+  fun merge data : T = Name_Space.merge_tables data;
+);
+
+val get_oracles = Data.get;
+val map_oracles = Data.map;
+
+
+
+(*** Oracles ***)
+
+fun add_oracle (b, oracle_fn) thy =
+  let
+    val (name, oracles') = Name_Space.define (Context.Theory thy) true (b, ()) (get_oracles thy);
+    val thy' = map_oracles (K oracles') thy;
+    fun invoke_oracle arg =
+      let val Cterm {cert = cert2, t = prop, T, maxidx, sorts} = oracle_fn arg in
+        if T <> propT then
+          raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
+        else
+          let val (oracle, prf) = Proofterm.oracle_proof name prop in
+            Thm (make_deriv [] [oracle] [] prf,
+             {cert = Context.join_certificate (Context.Certificate thy', cert2),
+              tags = [],
+              maxidx = maxidx,
+              shyps = sorts,
+              hyps = [],
+              tpairs = [],
+              prop = prop})
+          end
+      end;
+  in ((name, invoke_oracle), thy') end;
+
+fun extern_oracles verbose ctxt =
+  map #1 (Name_Space.markup_table verbose ctxt (get_oracles (Proof_Context.theory_of ctxt)));
 
 
 
@@ -1864,49 +1909,6 @@ fun biresolution opt_ctxt match brules i state =
                                res brules))
               else res brules
     in  Seq.flat (res brules)  end;
-
-
-
-(*** Oracles ***)
-
-(* oracle rule *)
-
-fun invoke_oracle thy1 name oracle arg =
-  let val Cterm {cert = cert2, t = prop, T, maxidx, sorts} = oracle arg in
-    if T <> propT then
-      raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
-    else
-      let val (ora, prf) = Proofterm.oracle_proof name prop in
-        Thm (make_deriv [] [ora] [] prf,
-         {cert = Context.join_certificate (Context.Certificate thy1, cert2),
-          tags = [],
-          maxidx = maxidx,
-          shyps = sorts,
-          hyps = [],
-          tpairs = [],
-          prop = prop})
-      end
-  end;
-
-
-(* authentic derivation names *)
-
-structure Oracles = Theory_Data
-(
-  type T = unit Name_Space.table;
-  val empty : T = Name_Space.empty_table "oracle";
-  val extend = I;
-  fun merge data : T = Name_Space.merge_tables data;
-);
-
-fun extern_oracles verbose ctxt =
-  map #1 (Name_Space.markup_table verbose ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
-
-fun add_oracle (b, oracle) thy =
-  let
-    val (name, tab') = Name_Space.define (Context.Theory thy) true (b, ()) (Oracles.get thy);
-    val thy' = Oracles.put tab' thy;
-  in ((name, invoke_oracle thy' name oracle), thy') end;
 
 end;
 

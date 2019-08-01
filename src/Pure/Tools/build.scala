@@ -289,6 +289,7 @@ object Build
             }
 
           process.result(
+            progress_stderr = Output.writeln(_),
             progress_stdout = (line: String) =>
               Library.try_unprefix("\floading_theory = ", line) match {
                 case Some(theory) =>

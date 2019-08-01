@@ -2064,6 +2064,11 @@ fun prune proof =
 
 fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
   let
+(*
+    val FIXME =
+      Output.physical_stderr ("pthm " ^ quote name ^ " " ^ Position.here (Position.thread_data ()) ^ "\n");
+*)
+
     val named = name <> "";
 
     val prop = Logic.list_implies (hyps, concl);
