@@ -131,12 +131,10 @@ sig
   val equal_elim: term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
-  val classrel_proof: theory -> class * class -> proof
-  val arity_proof: theory -> string * sort list * class -> proof
-  val of_sort_proof: theory -> (typ * class -> proof) -> typ * sort -> proof list
-  val install_axclass_proofs:
-   {classrel_proof: theory -> class * class -> proof,
-    arity_proof: theory -> string * sort list * class -> proof} -> theory -> theory
+  val of_sort_proof: Sorts.algebra ->
+    (class * class -> proof) ->
+    (string * class list list * class -> proof) ->
+    (typ * class -> proof) -> typ * sort -> proof list
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val shrink_proof: proof -> proof
@@ -159,9 +157,11 @@ sig
 
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> string -> sort list -> term list -> term ->
+  val thm_proof: theory -> (class * class -> proof) ->
+    (string * class list list * class -> proof) -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
-  val unconstrain_thm_proof: theory -> sort list -> term ->
+  val unconstrain_thm_proof: theory -> (class * class -> proof) ->
+    (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: sort list -> term list -> term -> proof -> string
 end
@@ -1053,60 +1053,14 @@ fun strip_shyps_proof algebra present witnessed extra_sorts prf =
         | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
   in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
 
-
-local
-
-type axclass_proofs =
- {classrel_proof: theory -> class * class -> proof,
-  arity_proof: theory -> string * sort list * class -> proof};
-
-structure Axclass_Proofs = Theory_Data
-(
-  type T = axclass_proofs option;
-  val empty = NONE;
-  val extend = I;
-  val merge = merge_options;
-);
-
-fun the_axclass_proofs which thy x =
-  (case Axclass_Proofs.get thy of
-    NONE => raise Fail "Axclass proof operations not installed"
-  | SOME proofs => which proofs thy x);
-
-in
-
-val classrel_proof = the_axclass_proofs #classrel_proof;
-val arity_proof = the_axclass_proofs #arity_proof;
-
-fun install_axclass_proofs proofs =
-  Axclass_Proofs.map
-    (fn NONE => SOME proofs
-      | SOME _ => raise Fail "Axclass proof operations already installed");
-
-end;
-
-
-local
-
-fun canonical_instance typs =
-  let
-    val names = Name.invent Name.context Name.aT (length typs);
-    val instT = map2 (fn a => fn T => (((a, 0), []), Type.strip_sorts T)) names typs;
-  in instantiate (instT, []) end;
-
-in
-
-fun of_sort_proof thy hyps =
-  Sorts.of_sort_derivation (Sign.classes_of thy)
-   {class_relation = fn typ => fn _ => fn (prf, c1) => fn c2 =>
-      if c1 = c2 then prf
-      else canonical_instance [typ] (classrel_proof thy (c1, c2)) %% prf,
-    type_constructor = fn (a, typs) => fn dom => fn c =>
+fun of_sort_proof algebra classrel_proof arity_proof hyps =
+  Sorts.of_sort_derivation algebra
+   {class_relation = fn _ => fn _ => fn (prf, c1) => fn c2 =>
+      if c1 = c2 then prf else classrel_proof (c1, c2) %% prf,
+    type_constructor = fn (a, _) => fn dom => fn c =>
       let val Ss = map (map snd) dom and prfs = maps (map fst) dom
-      in proof_combP (canonical_instance typs (arity_proof thy (a, Ss, c)), prfs) end,
+      in proof_combP (arity_proof (a, Ss, c), prfs) end,
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
-
-end;
 
 
 
@@ -2006,17 +1960,17 @@ val proof_serial = Counter.make ();
 
 local
 
-fun unconstrainT_prf thy (ucontext: Logic.unconstrain_context) =
+fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
   let
     fun hyp_map hyp =
       (case AList.lookup (op =) (#constraints ucontext) hyp of
         SOME t => Hyp t
-      | NONE => raise Fail "unconstrainT_prf: missing constraint");
+      | NONE => raise Fail "unconstrainT_proof: missing constraint");
 
     val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o #atyp_map ucontext);
     fun ofclass (ty, c) =
       let val ty' = Term.map_atyps (#atyp_map ucontext) ty;
-      in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
+      in the_single (of_sort_proof algebra classrel_proof arity_proof  hyp_map (ty', [c])) end;
   in
     Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
     #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
@@ -2062,13 +2016,9 @@ fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
   else proof;
 
-fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
+fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
+    name shyps hyps concl promises body =
   let
-(*
-    val FIXME =
-      Output.physical_stderr ("pthm " ^ quote name ^ " " ^ Position.here (Position.thread_data ()) ^ "\n");
-*)
-
     val named = name <> "";
 
     val prop = Logic.list_implies (hyps, concl);
@@ -2088,7 +2038,9 @@ fun prepare_thm_proof unconstrain thy name shyps hyps concl promises body =
     fun new_prf () =
       let
         val i = proof_serial ();
-        val postproc = map_proof_of (unconstrainT_prf thy ucontext) #> named ? publish i;
+        val unconstrainT =
+          unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
+        val postproc = map_proof_of unconstrainT #> named ? publish i;
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
@@ -2115,8 +2067,8 @@ in
 
 val thm_proof = prepare_thm_proof false;
 
-fun unconstrain_thm_proof thy shyps concl promises body =
-  prepare_thm_proof true thy "" shyps [] concl promises body;
+fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises body =
+  prepare_thm_proof true thy classrel_proof arity_proof "" shyps [] concl promises body;
 
 end;
 

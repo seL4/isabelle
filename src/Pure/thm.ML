@@ -115,6 +115,11 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
+  (*type classes*)
+  val the_classrel: theory -> class * class -> thm
+  val the_arity: theory -> string * sort list * class -> thm
+  val classrel_proof: theory -> class * class -> proof
+  val arity_proof: theory -> string * sort list * class -> proof
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
   val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
@@ -160,8 +165,6 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val the_classrel: theory -> class * class -> thm
-  val the_arity: theory -> string * sort list * class -> thm
   val thynames_of_arity: theory -> string * class -> string list
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
@@ -747,32 +750,6 @@ fun future future_thm ct =
   end;
 
 
-(* closed derivations with official name *)
-
-(*non-deterministic, depends on unknown promises*)
-fun derivation_closed (Thm (Deriv {body, ...}, _)) =
-  Proofterm.compact_proof (Proofterm.proof_of body);
-
-(*non-deterministic, depends on unknown promises*)
-fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
-  Proofterm.get_name shyps hyps prop (Proofterm.proof_of body);
-
-fun name_derivation name (thm as Thm (der, args)) =
-  let
-    val Deriv {promises, body} = der;
-    val {shyps, hyps, prop, tpairs, ...} = args;
-    val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
-    val thy = theory_of_thm thm;
-
-    val ps = map (apsnd (Future.map fulfill_body)) promises;
-    val (pthm, proof) = Proofterm.thm_proof thy name shyps hyps prop ps body;
-    val der' = make_deriv [] [] [pthm] proof;
-  in Thm (der', args) end;
-
-fun close_derivation thm =
-  if derivation_closed thm then thm else name_derivation "" thm;
-
-
 
 (** Axioms **)
 
@@ -828,47 +805,97 @@ fun adjust_maxidx_thm i (th as Thm (der, {cert, tags, maxidx, shyps, hyps, tpair
 
 (*** Theory data ***)
 
-datatype sorts = Sorts of
+(* type classes *)
+
+datatype classes = Classes of
  {classrels: thm Symreltab.table,
   arities: ((class * sort list) * (thm * string)) list Symtab.table};
 
-fun make_sorts (classrels, arities) = Sorts {classrels = classrels, arities = arities};
+fun make_classes (classrels, arities) = Classes {classrels = classrels, arities = arities};
 
-val empty_sorts = make_sorts (Symreltab.empty, Symtab.empty);
+val empty_classes = make_classes (Symreltab.empty, Symtab.empty);
 
-fun merge_sorts
-   (Sorts {classrels = classrels1, arities = arities1},
-    Sorts {classrels = classrels2, arities = arities2}) =
+(*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
+fun merge_classes
+   (Classes {classrels = classrels1, arities = arities1},
+    Classes {classrels = classrels2, arities = arities2}) =
   let
-    (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
     val classrels' = Symreltab.merge (K true) (classrels1, classrels2);
     val arities' = Symtab.merge_list (eq_fst op =) (arities1, arities2);
-  in make_sorts (classrels', arities') end;
+  in make_classes (classrels', arities') end;
 
+
+(* data *)
 
 structure Data = Theory_Data
 (
   type T =
     unit Name_Space.table *  (*oracles: authentic derivation names*)
-    sorts;  (*sort algebra within the logic*)
+    classes;  (*type classes within the logic*)
 
-  val empty : T = (Name_Space.empty_table "oracle", empty_sorts);
+  val empty : T = (Name_Space.empty_table "oracle", empty_classes);
   val extend = I;
   fun merge ((oracles1, sorts1), (oracles2, sorts2)) : T =
-    (Name_Space.merge_tables (oracles1, oracles2), merge_sorts (sorts1, sorts2));
+    (Name_Space.merge_tables (oracles1, oracles2), merge_classes (sorts1, sorts2));
 );
 
 val get_oracles = #1 o Data.get;
 val map_oracles = Data.map o apfst;
 
-val get_sorts = (fn (_, Sorts args) => args) o Data.get;
-val get_classrels = #classrels o get_sorts;
-val get_arities = #arities o get_sorts;
+val get_classes = (fn (_, Classes args) => args) o Data.get;
+val get_classrels = #classrels o get_classes;
+val get_arities = #arities o get_classes;
 
-fun map_sorts f =
-  (Data.map o apsnd) (fn Sorts {classrels, arities} => make_sorts (f (classrels, arities)));
-fun map_classrels f = map_sorts (fn (classrels, arities) => (f classrels, arities));
-fun map_arities f = map_sorts (fn (classrels, arities) => (classrels, f arities));
+fun map_classes f =
+  (Data.map o apsnd) (fn Classes {classrels, arities} => make_classes (f (classrels, arities)));
+fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
+fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
+
+
+(* type classes *)
+
+fun the_classrel thy (c1, c2) =
+  (case Symreltab.lookup (get_classrels thy) (c1, c2) of
+    SOME thm => transfer thy thm
+  | NONE => error ("Unproven class relation " ^
+      Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
+
+fun the_arity thy (a, Ss, c) =
+  (case AList.lookup (op =) (Symtab.lookup_list (get_arities thy) a) (c, Ss) of
+    SOME (thm, _) => transfer thy thm
+  | NONE => error ("Unproven type arity " ^
+      Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
+
+val classrel_proof = proof_of oo the_classrel;
+val arity_proof = proof_of oo the_arity;
+
+
+
+(*** Theorems with official name ***)
+
+(*non-deterministic, depends on unknown promises*)
+fun derivation_closed (Thm (Deriv {body, ...}, _)) =
+  Proofterm.compact_proof (Proofterm.proof_of body);
+
+(*non-deterministic, depends on unknown promises*)
+fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
+  Proofterm.get_name shyps hyps prop (Proofterm.proof_of body);
+
+fun name_derivation name (thm as Thm (der, args)) =
+  let
+    val Deriv {promises, body} = der;
+    val {shyps, hyps, prop, tpairs, ...} = args;
+    val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
+    val thy = theory_of_thm thm;
+
+    val ps = map (apsnd (Future.map fulfill_body)) promises;
+    val (pthm, proof) =
+      Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy) name shyps hyps prop ps body;
+    val der' = make_deriv [] [] [pthm] proof;
+  in Thm (der', args) end;
+
+fun close_derivation thm =
+  if derivation_closed thm then thm else name_derivation "" thm;
 
 
 
@@ -1501,7 +1528,8 @@ fun unconstrainT (thm as Thm (der, args)) =
     val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
     val ps = map (apsnd (Future.map fulfill_body)) promises;
-    val (pthm, proof) = Proofterm.unconstrain_thm_proof thy shyps prop ps body;
+    val (pthm, proof) =
+      Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy) shyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
     val prop' = Proofterm.thm_node_prop (#2 pthm);
   in
@@ -1977,7 +2005,7 @@ fun tha RS thb = tha RSN (1,thb);
 
 
 
-(*** sort algebra within the logic ***)
+(**** Type classes ****)
 
 fun standard_tvars thm =
   let
@@ -1990,12 +2018,6 @@ fun standard_tvars thm =
 
 
 (* class relations *)
-
-fun the_classrel thy (c1, c2) =
-  (case Symreltab.lookup (get_classrels thy) (c1, c2) of
-    SOME thm => transfer thy thm
-  | NONE => error ("Unproven class relation " ^
-      Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
 
 val is_classrel = Symreltab.defined o get_classrels;
 
@@ -2028,12 +2050,6 @@ fun complete_classrels thy =
 
 
 (* type arities *)
-
-fun the_arity thy (a, Ss, c) =
-  (case AList.lookup (op =) (Symtab.lookup_list (get_arities thy) a) (c, Ss) of
-    SOME (thm, _) => transfer thy thm
-  | NONE => error ("Unproven type arity " ^
-      Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
 
 fun thynames_of_arity thy (a, c) =
   Symtab.lookup_list (get_arities thy) a
@@ -2084,10 +2100,7 @@ fun complete_arities thy =
 val _ =
   Theory.setup
    (Theory.at_begin complete_classrels #>
-    Theory.at_begin complete_arities #>
-    Proofterm.install_axclass_proofs
-     {classrel_proof = proof_of oo the_classrel,
-      arity_proof = proof_of oo the_arity});
+    Theory.at_begin complete_arities);
 
 
 (* primitive rules *)

@@ -359,7 +359,8 @@ fun mk_of_sort_proof thy hs (T, S) =
       Same.commit (Proofterm.map_proof_same Same.same Same.same hyp)
   in
     map2 reconstruct
-      (Proofterm.of_sort_proof thy (OfClass o apfst Type.strip_sorts) (subst T, S))
+      (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.classrel_proof thy) (Thm.arity_proof thy)
+        (OfClass o apfst Type.strip_sorts) (subst T, S))
       (Logic.mk_of_sort (T, S))
   end;
 
