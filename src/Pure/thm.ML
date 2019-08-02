@@ -160,7 +160,6 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val is_classrel: theory -> class * class -> bool
   val the_classrel: theory -> class * class -> thm
   val the_arity: theory -> string * sort list * class -> thm
   val thynames_of_arity: theory -> string * class -> string list
@@ -863,7 +862,13 @@ val get_oracles = #1 o Data.get;
 val map_oracles = Data.map o apfst;
 
 val get_sorts = (fn (_, Sorts args) => args) o Data.get;
-val map_sorts = Data.map o apsnd;
+val get_classrels = #classrels o get_sorts;
+val get_arities = #arities o get_sorts;
+
+fun map_sorts f =
+  (Data.map o apsnd) (fn Sorts {classrels, arities} => make_sorts (f (classrels, arities)));
+fun map_classrels f = map_sorts (fn (classrels, arities) => (f classrels, arities));
+fun map_arities f = map_sorts (fn (classrels, arities) => (classrels, f arities));
 
 
 
@@ -1986,16 +1991,13 @@ fun standard_tvars thm =
 
 (* class relations *)
 
-val get_classrels = #classrels o get_sorts;
-fun map_classrels f = map_sorts (fn Sorts {classrels, arities} => make_sorts (f classrels, arities));
-
-val is_classrel = Symreltab.defined o get_classrels;
-
 fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (get_classrels thy) (c1, c2) of
     SOME thm => transfer thy thm
   | NONE => error ("Unproven class relation " ^
       Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
+
+val is_classrel = Symreltab.defined o get_classrels;
 
 fun complete_classrels thy =
   let
@@ -2026,9 +2028,6 @@ fun complete_classrels thy =
 
 
 (* type arities *)
-
-val get_arities = #arities o get_sorts;
-fun map_arities f = map_sorts (fn Sorts {classrels, arities} => make_sorts (classrels, f arities));
 
 fun the_arity thy (a, Ss, c) =
   (case AList.lookup (op =) (Symtab.lookup_list (get_arities thy) a) (c, Ss) of
