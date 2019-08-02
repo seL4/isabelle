@@ -7,6 +7,8 @@ derivations, theorems, inference rules (including lifting and
 resolution), oracles.
 *)
 
+infix 0 RS RSN;
+
 signature BASIC_THM =
 sig
   type ctyp
@@ -15,6 +17,8 @@ sig
   type thm
   type conv = cterm -> thm
   exception THM of string * int * thm list
+  val RSN: thm * (int * thm) -> thm
+  val RS: thm * thm -> thm
 end;
 
 signature THM =
@@ -145,6 +149,7 @@ sig
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
+  val plain_prop_of: thm -> term
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -155,6 +160,12 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  val is_classrel: theory -> class * class -> bool
+  val the_classrel: theory -> class * class -> thm
+  val the_arity: theory -> string * sort list * class -> thm
+  val thynames_of_arity: theory -> string * class -> string list
+  val add_classrel: thm -> theory -> theory
+  val add_arity: thm -> theory -> theory
 end;
 
 structure Thm: THM =
@@ -393,6 +404,7 @@ fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
 
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
+
 
 val union_hyps = Ord_List.union Term_Ord.fast_term_ord;
 val insert_hyps = Ord_List.insert Term_Ord.fast_term_ord;
@@ -817,17 +829,41 @@ fun adjust_maxidx_thm i (th as Thm (der, {cert, tags, maxidx, shyps, hyps, tpair
 
 (*** Theory data ***)
 
+datatype sorts = Sorts of
+ {classrels: thm Symreltab.table,
+  arities: ((class * sort list) * (thm * string)) list Symtab.table};
+
+fun make_sorts (classrels, arities) = Sorts {classrels = classrels, arities = arities};
+
+val empty_sorts = make_sorts (Symreltab.empty, Symtab.empty);
+
+fun merge_sorts
+   (Sorts {classrels = classrels1, arities = arities1},
+    Sorts {classrels = classrels2, arities = arities2}) =
+  let
+    (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
+    val classrels' = Symreltab.merge (K true) (classrels1, classrels2);
+    val arities' = Symtab.merge_list (eq_fst op =) (arities1, arities2);
+  in make_sorts (classrels', arities') end;
+
+
 structure Data = Theory_Data
 (
   type T =
-    unit Name_Space.table;  (*oracles: authentic derivation names*)
-  val empty : T = Name_Space.empty_table "oracle";
+    unit Name_Space.table *  (*oracles: authentic derivation names*)
+    sorts;  (*sort algebra within the logic*)
+
+  val empty : T = (Name_Space.empty_table "oracle", empty_sorts);
   val extend = I;
-  fun merge data : T = Name_Space.merge_tables data;
+  fun merge ((oracles1, sorts1), (oracles2, sorts2)) : T =
+    (Name_Space.merge_tables (oracles1, oracles2), merge_sorts (sorts1, sorts2));
 );
 
-val get_oracles = Data.get;
-val map_oracles = Data.map;
+val get_oracles = #1 o Data.get;
+val map_oracles = Data.map o apfst;
+
+val get_sorts = (fn (_, Sorts args) => args) o Data.get;
+val map_sorts = Data.map o apsnd;
 
 
 
@@ -1511,6 +1547,20 @@ fun legacy_freezeT (Thm (der, {cert, shyps, hyps, tpairs, prop, ...})) =
       prop = prop3})
   end;
 
+fun plain_prop_of raw_thm =
+  let
+    val thm = strip_shyps raw_thm;
+    fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
+  in
+    if not (null (hyps_of thm)) then
+      err "theorem may not contain hypotheses"
+    else if not (null (extra_shyps thm)) then
+      err "theorem may not contain sort hypotheses"
+    else if not (null (tpairs_of thm)) then
+      err "theorem may not contain flex-flex pairs"
+    else prop_of thm
+  end;
+
 
 (*** Inference rules for tactics ***)
 
@@ -1909,6 +1959,163 @@ fun biresolution opt_ctxt match brules i state =
                                res brules))
               else res brules
     in  Seq.flat (res brules)  end;
+
+(*Resolution: exactly one resolvent must be produced*)
+fun tha RSN (i, thb) =
+  (case Seq.chop 2 (biresolution NONE false [(false, tha)] i thb) of
+    ([th], _) => th
+  | ([], _) => raise THM ("RSN: no unifiers", i, [tha, thb])
+  | _ => raise THM ("RSN: multiple unifiers", i, [tha, thb]));
+
+(*Resolution: P \<Longrightarrow> Q, Q \<Longrightarrow> R gives P \<Longrightarrow> R*)
+fun tha RS thb = tha RSN (1,thb);
+
+
+
+(*** sort algebra within the logic ***)
+
+fun standard_tvars thm =
+  let
+    val thy = theory_of_thm thm;
+    val tvars = rev (Term.add_tvars (prop_of thm) []);
+    val names = Name.invent Name.context Name.aT (length tvars);
+    val tinst =
+      map2 (fn (ai, S) => fn b => ((ai, S), global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
+  in instantiate (tinst, []) thm end
+
+
+(* class relations *)
+
+val get_classrels = #classrels o get_sorts;
+fun map_classrels f = map_sorts (fn Sorts {classrels, arities} => make_sorts (f classrels, arities));
+
+val is_classrel = Symreltab.defined o get_classrels;
+
+fun the_classrel thy (c1, c2) =
+  (case Symreltab.lookup (get_classrels thy) (c1, c2) of
+    SOME thm => transfer thy thm
+  | NONE => error ("Unproven class relation " ^
+      Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
+
+fun complete_classrels thy =
+  let
+    fun complete (c, (_, (all_preds, all_succs))) (finished1, thy1) =
+      let
+        fun compl c1 c2 (finished2, thy2) =
+          if is_classrel thy2 (c1, c2) then (finished2, thy2)
+          else
+            (false,
+              thy2
+              |> (map_classrels o Symreltab.update) ((c1, c2),
+                (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
+                |> standard_tvars
+                |> close_derivation
+                |> trim_context));
+
+        val proven = is_classrel thy1;
+        val preds = Graph.Keys.fold (fn c1 => proven (c1, c) ? cons c1) all_preds [];
+        val succs = Graph.Keys.fold (fn c2 => proven (c, c2) ? cons c2) all_succs [];
+      in
+        fold_product compl preds succs (finished1, thy1)
+      end;
+  in
+    (case Graph.fold complete (Sorts.classes_of (Sign.classes_of thy)) (true, thy) of
+      (true, _) => NONE
+    | (_, thy') => SOME thy')
+  end;
+
+
+(* type arities *)
+
+val get_arities = #arities o get_sorts;
+fun map_arities f = map_sorts (fn Sorts {classrels, arities} => make_sorts (classrels, f arities));
+
+fun the_arity thy (a, Ss, c) =
+  (case AList.lookup (op =) (Symtab.lookup_list (get_arities thy) a) (c, Ss) of
+    SOME (thm, _) => transfer thy thm
+  | NONE => error ("Unproven type arity " ^
+      Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
+
+fun thynames_of_arity thy (a, c) =
+  Symtab.lookup_list (get_arities thy) a
+  |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
+  |> rev;
+
+fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, arities) =
+  let
+    val algebra = Sign.classes_of thy;
+    val ars = Symtab.lookup_list arities t;
+    val super_class_completions =
+      Sign.super_classes thy c
+      |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) =>
+            c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
+
+    val completions = super_class_completions |> map (fn c1 =>
+      let
+        val th1 =
+          (th RS the_classrel thy (c, c1))
+          |> standard_tvars
+          |> close_derivation
+          |> trim_context;
+      in ((th1, thy_name), c1) end);
+
+    val finished' = finished andalso null completions;
+    val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
+  in (finished', arities') end;
+
+fun put_arity_completion ((t, Ss, c), th) thy =
+  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
+    thy
+    |> map_arities
+      (Symtab.insert_list (eq_fst op =) (t, ar) #>
+        curry (insert_arity_completions thy t ar) true #> #2)
+  end;
+
+fun complete_arities thy =
+  let
+    val arities = get_arities thy;
+    val (finished, arities') =
+      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars)
+        arities (true, arities);
+  in
+    if finished then NONE
+    else SOME (map_arities (K arities') thy)
+  end;
+
+val _ =
+  Theory.setup
+   (Theory.at_begin complete_classrels #>
+    Theory.at_begin complete_arities #>
+    Proofterm.install_axclass_proofs
+     {classrel_proof = proof_of oo the_classrel,
+      arity_proof = proof_of oo the_arity});
+
+
+(* primitive rules *)
+
+fun add_classrel raw_th thy =
+  let
+    val th = strip_shyps (transfer thy raw_th);
+    val prop = plain_prop_of th;
+    val (c1, c2) = Logic.dest_classrel prop;
+  in
+    thy
+    |> Sign.primitive_classrel (c1, c2)
+    |> map_classrels (Symreltab.update ((c1, c2), th |> unconstrainT |> trim_context))
+    |> perhaps complete_classrels
+    |> perhaps complete_arities
+  end;
+
+fun add_arity raw_th thy =
+  let
+    val th = strip_shyps (transfer thy raw_th);
+    val prop = plain_prop_of th;
+    val (t, Ss, c) = Logic.dest_arity prop;
+  in
+    thy
+    |> Sign.primitive_arity (t, Ss, [c])
+    |> put_arity_completion ((t, Ss, c), th |> unconstrainT |> trim_context)
+  end;
 
 end;
 

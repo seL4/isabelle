@@ -4,7 +4,7 @@
 Derived rules and other operations on theorems.
 *)
 
-infix 0 RS RSN RL RLN MRS OF COMP INCR_COMP COMP_INCR;
+infix 0 RL RLN MRS OF COMP INCR_COMP COMP_INCR;
 
 signature BASIC_DRULE =
 sig
@@ -30,8 +30,6 @@ sig
   val implies_intr_hyps: thm -> thm
   val rotate_prems: int -> thm -> thm
   val rearrange_prems: int list -> thm -> thm
-  val RSN: thm * (int * thm) -> thm
-  val RS: thm * thm -> thm
   val RLN: thm list * (int * thm list) -> thm list
   val RL: thm list * thm list -> thm list
   val MRS: thm list * thm -> thm
@@ -293,16 +291,6 @@ in
   fun multi_resolves opt_ctxt facts rules =
     Seq.maps (multi_resolve opt_ctxt facts) (Seq.of_list rules);
 end;
-
-(*Resolution: exactly one resolvent must be produced*)
-fun tha RSN (i, thb) =
-  (case Seq.chop 2 (Thm.biresolution NONE false [(false, tha)] i thb) of
-    ([th], _) => th
-  | ([], _) => raise THM ("RSN: no unifiers", i, [tha, thb])
-  | _ => raise THM ("RSN: multiple unifiers", i, [tha, thb]));
-
-(*Resolution: P \<Longrightarrow> Q, Q \<Longrightarrow> R gives P \<Longrightarrow> R*)
-fun tha RS thb = tha RSN (1,thb);
 
 (*For joining lists of rules*)
 fun thas RLN (i, thbs) =

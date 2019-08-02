@@ -844,7 +844,7 @@ fun split_conjuncts_in_assms ctxt th =
     fun split_conjs i nprems th =
       if i > nprems then th
       else
-        (case try Drule.RSN (@{thm conjI}, (i, th)) of
+        (case try (op RSN) (@{thm conjI}, (i, th)) of
           SOME th' => split_conjs i (nprems + 1) th'
         | NONE => split_conjs (i + 1) nprems th)
   in

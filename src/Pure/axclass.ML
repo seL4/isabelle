@@ -11,7 +11,6 @@ sig
   val get_info: theory -> class -> info
   val class_of_param: theory -> string -> class option
   val instance_name: string * class -> string
-  val thynames_of_arity: theory -> string * class -> string list
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
   val unoverload: Proof.context -> thm -> thm
@@ -69,30 +68,23 @@ fun add_param ctxt ((x, c): param) params =
 datatype data = Data of
  {axclasses: info Symtab.table,
   params: param list,
-  proven_classrels: thm Symreltab.table,
-  proven_arities: ((class * sort list) * (thm * string)) list Symtab.table,
     (*arity theorems with theory name*)
   inst_params:
     (string * thm) Symtab.table Symtab.table *
       (*constant name ~> type constructor ~> (constant name, equation)*)
     (string * string) Symtab.table (*constant name ~> (constant name, type constructor)*)};
 
-fun make_data
-    (axclasses, params, proven_classrels, proven_arities, inst_params) =
-  Data {axclasses = axclasses, params = params, proven_classrels = proven_classrels,
-    proven_arities = proven_arities, inst_params = inst_params};
+fun make_data (axclasses, params, inst_params) =
+  Data {axclasses = axclasses, params = params, inst_params = inst_params};
 
 structure Data = Theory_Data'
 (
   type T = data;
-  val empty =
-    make_data (Symtab.empty, [], Symreltab.empty, Symtab.empty, (Symtab.empty, Symtab.empty));
+  val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty));
   val extend = I;
   fun merge old_thys
-      (Data {axclasses = axclasses1, params = params1, proven_classrels = proven_classrels1,
-        proven_arities = proven_arities1, inst_params = inst_params1},
-       Data {axclasses = axclasses2, params = params2, proven_classrels = proven_classrels2,
-        proven_arities = proven_arities2, inst_params = inst_params2}) =
+      (Data {axclasses = axclasses1, params = params1, inst_params = inst_params1},
+       Data {axclasses = axclasses2, params = params2, inst_params = inst_params2}) =
     let
       val old_ctxt = Syntax.init_pretty_global (fst old_thys);
 
@@ -103,48 +95,32 @@ structure Data = Theory_Data'
           fold_rev (fn p => if member (op =) params1 p then I else add_param old_ctxt p)
             params2 params1;
 
-      (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
-      val proven_classrels' = Symreltab.merge (K true) (proven_classrels1, proven_classrels2);
-      val proven_arities' = Symtab.merge_list (eq_fst op =) (proven_arities1, proven_arities2);
-
       val inst_params' =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
           Symtab.merge (K true) (#2 inst_params1, #2 inst_params2));
-    in
-      make_data (axclasses', params', proven_classrels', proven_arities', inst_params')
-    end;
+    in make_data (axclasses', params', inst_params') end;
 );
 
 fun map_data f =
-  Data.map (fn Data {axclasses, params, proven_classrels, proven_arities, inst_params} =>
-    make_data (f (axclasses, params, proven_classrels, proven_arities, inst_params)));
+  Data.map (fn Data {axclasses, params, inst_params} =>
+    make_data (f (axclasses, params, inst_params)));
 
 fun map_axclasses f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params) =>
-    (f axclasses, params, proven_classrels, proven_arities, inst_params));
+  map_data (fn (axclasses, params, inst_params) =>
+    (f axclasses, params, inst_params));
 
 fun map_params f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params) =>
-    (axclasses, f params, proven_classrels, proven_arities, inst_params));
-
-fun map_proven_classrels f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params) =>
-    (axclasses, params, f proven_classrels, proven_arities, inst_params));
-
-fun map_proven_arities f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params) =>
-    (axclasses, params, proven_classrels, f proven_arities, inst_params));
+  map_data (fn (axclasses, params, inst_params) =>
+    (axclasses, f params, inst_params));
 
 fun map_inst_params f =
-  map_data (fn (axclasses, params, proven_classrels, proven_arities, inst_params) =>
-    (axclasses, params, proven_classrels, proven_arities, f inst_params));
+  map_data (fn (axclasses, params, inst_params) =>
+    (axclasses, params, f inst_params));
 
 val rep_data = Data.get #> (fn Data args => args);
 
 val axclasses_of = #axclasses o rep_data;
 val params_of = #params o rep_data;
-val proven_classrels_of = #proven_classrels o rep_data;
-val proven_arities_of = #proven_arities o rep_data;
 val inst_params_of = #inst_params o rep_data;
 
 
@@ -164,120 +140,6 @@ fun all_params_of thy S =
   in fold (fn (x, c) => if Sign.subsort thy (S, [c]) then cons x else I) params [] end;
 
 fun class_of_param thy = AList.lookup (op =) (params_of thy);
-
-
-(* maintain instances *)
-
-val classrel_prefix = "classrel_";
-val arity_prefix = "arity_";
-
-fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
-
-fun standard_tvars thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val tvars = rev (Term.add_tvars (Thm.prop_of thm) []);
-    val names = Name.invent Name.context Name.aT (length tvars);
-    val tinst =
-      map2 (fn (ai, S) => fn b => ((ai, S), Thm.global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
-  in Thm.instantiate (tinst, []) thm end
-
-
-val is_classrel = Symreltab.defined o proven_classrels_of;
-
-fun the_classrel thy (c1, c2) =
-  (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
-    SOME thm => Thm.transfer thy thm
-  | NONE => error ("Unproven class relation " ^
-      Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
-
-fun complete_classrels thy =
-  let
-    fun complete (c, (_, (all_preds, all_succs))) (finished1, thy1) =
-      let
-        fun compl c1 c2 (finished2, thy2) =
-          if is_classrel thy2 (c1, c2) then (finished2, thy2)
-          else
-            (false,
-              thy2
-              |> (map_proven_classrels o Symreltab.update) ((c1, c2),
-                (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
-                |> standard_tvars
-                |> Thm.close_derivation
-                |> Thm.trim_context));
-
-        val proven = is_classrel thy1;
-        val preds = Graph.Keys.fold (fn c1 => proven (c1, c) ? cons c1) all_preds [];
-        val succs = Graph.Keys.fold (fn c2 => proven (c, c2) ? cons c2) all_succs [];
-      in
-        fold_product compl preds succs (finished1, thy1)
-      end;
-  in
-    (case Graph.fold complete (Sorts.classes_of (Sign.classes_of thy)) (true, thy) of
-      (true, _) => NONE
-    | (_, thy') => SOME thy')
-  end;
-
-
-fun the_arity thy (a, Ss, c) =
-  (case AList.lookup (op =) (Symtab.lookup_list (proven_arities_of thy) a) (c, Ss) of
-    SOME (thm, _) => Thm.transfer thy thm
-  | NONE => error ("Unproven type arity " ^
-      Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
-
-fun thynames_of_arity thy (a, c) =
-  Symtab.lookup_list (proven_arities_of thy) a
-  |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
-  |> rev;
-
-fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, arities) =
-  let
-    val algebra = Sign.classes_of thy;
-    val ars = Symtab.lookup_list arities t;
-    val super_class_completions =
-      Sign.super_classes thy c
-      |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) =>
-            c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
-
-    val completions = super_class_completions |> map (fn c1 =>
-      let
-        val th1 =
-          (th RS the_classrel thy (c, c1))
-          |> standard_tvars
-          |> Thm.close_derivation
-          |> Thm.trim_context;
-      in ((th1, thy_name), c1) end);
-
-    val finished' = finished andalso null completions;
-    val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
-  in (finished', arities') end;
-
-fun put_arity_completion ((t, Ss, c), th) thy =
-  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
-    thy
-    |> map_proven_arities
-      (Symtab.insert_list (eq_fst op =) (t, ar) #>
-       curry (insert_arity_completions thy t ar) true #> #2)
-  end;
-
-fun complete_arities thy =
-  let
-    val arities = proven_arities_of thy;
-    val (finished, arities') =
-      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars)
-        arities (true, arities);
-  in
-    if finished then NONE
-    else SOME (map_proven_arities (K arities') thy)
-  end;
-
-val _ =
-  Theory.setup
-   (Theory.at_begin complete_classrels #>
-    Theory.at_begin complete_arities #>
-    Proofterm.install_axclass_proofs
-     {classrel_proof = Thm.proof_of oo the_classrel,
-      arity_proof = Thm.proof_of oo the_arity});
 
 
 (* maintain instance parameters *)
@@ -322,6 +184,12 @@ fun unoverload_const thy (c_ty as (c, _)) =
 
 
 (** instances **)
+
+val classrel_prefix = "classrel_";
+val arity_prefix = "arity_";
+
+fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
+
 
 (* class relations *)
 
@@ -400,17 +268,7 @@ fun add_classrel raw_th thy =
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
     val binding =
       Binding.concealed (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))));
-    val (th', thy') = Global_Theory.store_thm (binding, th) thy;
-    val th'' = th'
-      |> Thm.unconstrainT
-      |> Thm.trim_context;
-  in
-    thy'
-    |> Sign.primitive_classrel (c1, c2)
-    |> map_proven_classrels (Symreltab.update ((c1, c2), th''))
-    |> perhaps complete_classrels
-    |> perhaps complete_arities
-  end;
+  in thy |> Global_Theory.store_thm (binding, th) |-> Thm.add_classrel end;
 
 fun add_arity raw_th thy =
   let
@@ -421,24 +279,18 @@ fun add_arity raw_th thy =
 
     val binding =
       Binding.concealed (Binding.name (prefix arity_prefix (Logic.name_arity arity)));
-    val (th', thy') = Global_Theory.store_thm (binding, th) thy;
 
     val args = Name.invent_names Name.context Name.aT Ss;
-    val T = Type (t, map TFree args);
-
-    val missing_params = Sign.complete_sort thy' [c]
-      |> maps (these o Option.map #params o try (get_info thy'))
-      |> filter_out (fn (const, _) => can (get_inst_param thy') (const, t))
-      |> (map o apsnd o map_atyps) (K T);
-
-    val th'' = th'
-      |> Thm.unconstrainT
-      |> Thm.trim_context;
+    val missing_params =
+      Sign.complete_sort thy [c]
+      |> maps (these o Option.map #params o try (get_info thy))
+      |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
+      |> (map o apsnd o map_atyps) (K (Type (t, map TFree args)));
   in
-    thy'
+    thy
+    |> Global_Theory.store_thm (binding, th)
+    |-> Thm.add_arity
     |> fold (#2 oo declare_overloaded) missing_params
-    |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity_completion ((t, Ss, c), th'')
   end;
 
 
@@ -569,12 +421,10 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val axclass =
       make_axclass
         (Thm.trim_context def, Thm.trim_context intro, map Thm.trim_context axioms, params);
+
     val result_thy =
       facts_thy
-      |> map_proven_classrels
-          (fold2 (fn c => fn th => Symreltab.update ((class, c), Thm.trim_context th))
-            super classrel)
-      |> perhaps complete_classrels
+      |> fold (fn th => Thm.add_classrel (class_triv RS th)) classrel
       |> Sign.qualified_path false bconst
       |> Global_Theory.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms))
       |> #2

@@ -53,7 +53,6 @@ sig
   val class_triv: theory -> class -> thm
   val of_sort: ctyp * sort -> thm list
   val is_dummy: thm -> bool
-  val plain_prop_of: thm -> term
   val add_thm: thm -> thm list -> thm list
   val del_thm: thm -> thm list -> thm list
   val merge_thms: thm list * thm list -> thm list
@@ -267,20 +266,6 @@ fun is_dummy thm =
   (case try Logic.dest_term (Thm.concl_of thm) of
     NONE => false
   | SOME t => Term.is_dummy_pattern (Term.head_of t));
-
-fun plain_prop_of raw_thm =
-  let
-    val thm = Thm.strip_shyps raw_thm;
-    fun err msg = raise THM ("plain_prop_of: " ^ msg, 0, [thm]);
-  in
-    if not (null (Thm.hyps_of thm)) then
-      err "theorem may not contain hypotheses"
-    else if not (null (Thm.extra_shyps thm)) then
-      err "theorem may not contain sort hypotheses"
-    else if not (null (Thm.tpairs_of thm)) then
-      err "theorem may not contain flex-flex pairs"
-    else Thm.prop_of thm
-  end;
 
 
 (* collections of theorems in canonical order *)
