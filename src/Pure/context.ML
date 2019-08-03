@@ -33,6 +33,7 @@ sig
   val timing: bool Unsynchronized.ref
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
+  val theory_id_ord: theory_id * theory_id -> order
   val theory_id_long_name: theory_id -> string
   val theory_id_name: theory_id -> string
   val theory_long_name: theory -> string
@@ -166,6 +167,7 @@ fun make_identity id ids = {id = id, ids = ids};
 fun make_history name = {name = name, stage = SOME (init_stage ())};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 
+val theory_id_ord = int_ord o apply2 (#id o identity_of_id);
 val theory_id_long_name = #name o history_of_id;
 val theory_id_name = Long_Name.base_name o theory_id_long_name;
 val theory_long_name = #name o history_of;

@@ -132,13 +132,15 @@ fun future_result ctxt result prop =
         Drule.forall_intr_list fixes #>
         Thm.adjust_maxidx_thm ~1 #>
         Thm.generalize (map #1 tfrees, []) 0 #>
-        Thm.strip_shyps);
+        Thm.strip_shyps #>
+        Thm.solve_constraints);
     val local_result =
       Thm.future global_result global_prop
       |> Thm.close_derivation
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
-      |> fold (Thm.elim_implies o Thm.assume) assms;
+      |> fold (Thm.elim_implies o Thm.assume) assms
+      |> Thm.solve_constraints;
   in local_result end;
 
 
