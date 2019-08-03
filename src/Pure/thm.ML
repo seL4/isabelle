@@ -2227,14 +2227,6 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
     val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
   in (finished', arities') end;
 
-fun put_arity_completion ((t, Ss, c), th) thy =
-  let val ar = ((c, Ss), (th, Context.theory_name thy)) in
-    thy
-    |> map_arities
-      (Symtab.insert_list (eq_fst op =) (t, ar) #>
-        curry (insert_arity_completions thy t ar) true #> #2)
-  end;
-
 fun complete_arities thy =
   let
     val arities = get_arities thy;
@@ -2272,10 +2264,13 @@ fun add_arity raw_th thy =
     val th = strip_shyps (transfer thy raw_th);
     val prop = plain_prop_of th;
     val (t, Ss, c) = Logic.dest_arity prop;
+    val ar = ((c, Ss), (th |> unconstrainT |> trim_context, Context.theory_name thy))
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity_completion ((t, Ss, c), th |> unconstrainT |> trim_context)
+    |> map_arities
+      (Symtab.insert_list (eq_fst op =) (t, ar) #>
+        curry (insert_arity_completions thy t ar) true #> #2)
   end;
 
 end;
