@@ -8,6 +8,7 @@ strings, lists as sets, orders, current directory, misc.
 See also General/basics.ML for the most fundamental concepts.
 *)
 
+infixr 0 <<<
 infix 2 ?
 infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
@@ -196,6 +197,7 @@ sig
   val string_ord: string * string -> order
   val fast_string_ord: string * string -> order
   val option_ord: ('a * 'b -> order) -> 'a option * 'b option -> order
+  val <<< : ('a -> order) * ('a -> order) -> 'a -> order
   val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
@@ -903,6 +905,9 @@ fun is_greater_equal ord = ord = GREATER orelse ord = EQUAL;
 fun rev_order LESS = GREATER
   | rev_order EQUAL = EQUAL
   | rev_order GREATER = LESS;
+
+(*compose orders*)
+fun (a_ord <<< b_ord) p = (case a_ord p of EQUAL => b_ord p | ord => ord);
 
 (*assume rel is a linear strict order*)
 fun make_ord rel (x, y) =

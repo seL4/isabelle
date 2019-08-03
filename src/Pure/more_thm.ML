@@ -206,19 +206,11 @@ val term_ord = Term_Ord.term_ord o apply2 Thm.term_of;
 
 (* thm order: ignores theory context! *)
 
-fun thm_ord ths =
-  (case Term_Ord.fast_term_ord (apply2 Thm.prop_of ths) of
-    EQUAL =>
-      (case
-        list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord)
-          (apply2 Thm.tpairs_of ths)
-       of
-        EQUAL =>
-          (case list_ord Term_Ord.fast_term_ord (apply2 Thm.hyps_of ths) of
-            EQUAL => list_ord Term_Ord.sort_ord (apply2 Thm.shyps_of ths)
-          | ord => ord)
-      | ord => ord)
-  | ord => ord);
+val thm_ord =
+  Term_Ord.fast_term_ord o apply2 Thm.prop_of
+  <<< list_ord (prod_ord Term_Ord.fast_term_ord Term_Ord.fast_term_ord) o apply2 Thm.tpairs_of
+  <<< list_ord Term_Ord.fast_term_ord o apply2 Thm.hyps_of
+  <<< list_ord Term_Ord.sort_ord o apply2 Thm.shyps_of;
 
 
 (* tables and caches *)
