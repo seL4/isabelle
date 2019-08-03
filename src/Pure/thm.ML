@@ -382,6 +382,7 @@ val union_constraints = Ord_List.union constraint_ord;
 fun insert_constraints thy (T, S) =
   let
     val ignored =
+      ! Proofterm.proofs < 1 orelse
       S = [] orelse
         (case T of
           TFree (_, S') => S = S'
