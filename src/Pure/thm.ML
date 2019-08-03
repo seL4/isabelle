@@ -2207,12 +2207,10 @@ fun thynames_of_arity thy (a, c) =
 
 fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, arities) =
   let
-    val algebra = Sign.classes_of thy;
     val ars = Symtab.lookup_list arities t;
     val completions =
       Sign.super_classes thy c |> map_filter (fn c1 =>
-        if exists (fn ((c', Ss'), _) => c1 = c' andalso Sorts.sorts_le algebra (Ss', Ss)) ars
-        then NONE
+        if exists (fn ((c', Ss'), _) => c1 = c' andalso Ss' = Ss) ars then NONE
         else
           let
             val th1 =
