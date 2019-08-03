@@ -864,13 +864,22 @@ fun adjust_maxidx_thm i
 
 (* type classes *)
 
+structure Aritytab =
+  Table(
+    type key = string * sort list * class;
+    val ord =
+      fast_string_ord o apply2 #1
+      <<< fast_string_ord o apply2 #3
+      <<< list_ord Term_Ord.sort_ord o apply2 #2;
+  );
+
 datatype classes = Classes of
  {classrels: thm Symreltab.table,
-  arities: ((class * sort list) * (thm * string)) list Symtab.table};
+  arities: (thm * string * serial) Aritytab.table};
 
 fun make_classes (classrels, arities) = Classes {classrels = classrels, arities = arities};
 
-val empty_classes = make_classes (Symreltab.empty, Symtab.empty);
+val empty_classes = make_classes (Symreltab.empty, Aritytab.empty);
 
 (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
 fun merge_classes
@@ -878,7 +887,7 @@ fun merge_classes
     Classes {classrels = classrels2, arities = arities2}) =
   let
     val classrels' = Symreltab.merge (K true) (classrels1, classrels2);
-    val arities' = Symtab.merge_list (eq_fst op =) (arities1, arities2);
+    val arities' = Aritytab.merge (K true) (arities1, arities2);
   in make_classes (classrels', arities') end;
 
 
@@ -918,8 +927,8 @@ fun the_classrel thy (c1, c2) =
       Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));
 
 fun the_arity thy (a, Ss, c) =
-  (case AList.lookup (op =) (Symtab.lookup_list (get_arities thy) a) (c, Ss) of
-    SOME (thm, _) => transfer thy thm
+  (case Aritytab.lookup (get_arities thy) (a, Ss, c) of
+    SOME (thm, _, _) => transfer thy thm
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
 
@@ -2202,16 +2211,15 @@ fun complete_classrels thy =
 (* type arities *)
 
 fun thynames_of_arity thy (a, c) =
-  Symtab.lookup_list (get_arities thy) a
-  |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
-  |> rev;
+  (get_arities thy, []) |-> Aritytab.fold
+    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser))
+  |> sort (int_ord o apply2 #2) |> map #1;
 
-fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, arities) =
+fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, arities) =
   let
-    val ars = Symtab.lookup_list arities t;
     val completions =
       Sign.super_classes thy c |> map_filter (fn c1 =>
-        if exists (fn ((c', Ss'), _) => c1 = c' andalso Ss' = Ss) ars then NONE
+        if Aritytab.defined arities (t, Ss, c1) then NONE
         else
           let
             val th1 =
@@ -2219,17 +2227,16 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
               |> standard_tvars
               |> close_derivation
               |> trim_context;
-          in SOME (t, ((c1, Ss), (th1, thy_name))) end);
+          in SOME ((t, Ss, c1), (th1, thy_name, ser)) end);
     val finished' = finished andalso null completions;
-    val arities' = fold Symtab.cons_list completions arities;
+    val arities' = fold Aritytab.update completions arities;
   in (finished', arities') end;
 
 fun complete_arities thy =
   let
     val arities = get_arities thy;
     val (finished, arities') =
-      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars)
-        arities (true, arities);
+      Aritytab.fold (insert_arity_completions thy) arities (true, get_arities thy);
   in
     if finished then NONE
     else SOME (map_arities (K arities') thy)
@@ -2261,13 +2268,11 @@ fun add_arity raw_th thy =
     val th = strip_shyps (transfer thy raw_th);
     val prop = plain_prop_of th;
     val (t, Ss, c) = Logic.dest_arity prop;
-    val ar = ((c, Ss), (th |> unconstrainT |> trim_context, Context.theory_name thy))
+    val ar = ((t, Ss, c), (th |> unconstrainT |> trim_context, Context.theory_name thy, serial ()));
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
-    |> map_arities
-      (Symtab.insert_list (eq_fst op =) (t, ar) #>
-        curry (insert_arity_completions thy t ar) true #> #2)
+    |> map_arities (Aritytab.update ar #> curry (insert_arity_completions thy ar) true #> #2)
   end;
 
 end;
