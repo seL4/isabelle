@@ -2209,22 +2209,20 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
   let
     val algebra = Sign.classes_of thy;
     val ars = Symtab.lookup_list arities t;
-    val super_class_completions =
-      Sign.super_classes thy c
-      |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) =>
-            c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
-
-    val completions = super_class_completions |> map (fn c1 =>
-      let
-        val th1 =
-          (th RS the_classrel thy (c, c1))
-          |> standard_tvars
-          |> close_derivation
-          |> trim_context;
-      in ((th1, thy_name), c1) end);
-
+    val completions =
+      Sign.super_classes thy c |> map_filter (fn c1 =>
+        if exists (fn ((c', Ss'), _) => c1 = c' andalso Sorts.sorts_le algebra (Ss', Ss)) ars
+        then NONE
+        else
+          let
+            val th1 =
+              (th RS the_classrel thy (c, c1))
+              |> standard_tvars
+              |> close_derivation
+              |> trim_context;
+          in SOME (t, ((c1, Ss), (th1, thy_name))) end);
     val finished' = finished andalso null completions;
-    val arities' = fold (fn (th, c1) => Symtab.cons_list (t, ((c1, Ss), th))) completions arities;
+    val arities' = fold Symtab.cons_list completions arities;
   in (finished', arities') end;
 
 fun complete_arities thy =
