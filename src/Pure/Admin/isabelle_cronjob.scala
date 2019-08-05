@@ -335,6 +335,26 @@ object Isabelle_Cronjob
           args = "-g large -g slow",
           afp = true,
           bulky = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))),
+      List(
+        Remote_Build("AFP2", "lrzcloud2", self_update = true,
+          proxy_host = "lxbroy10", proxy_user = "i21isatest",
+          ssh_host = "10.195.2.10",
+          options = "-m32 -M1x8 -t AFP" +
+            " -e ISABELLE_GHC=ghc" +
+            " -e ISABELLE_MLTON=mlton" +
+            " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
+            " -e ISABELLE_SMLNJ=sml",
+          args = "-X large -X slow",
+          afp = true,
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
+        Remote_Build("AFP bulky2", "lrzcloud2", self_update = true,
+          proxy_host = "lxbroy10", proxy_user = "i21isatest",
+          ssh_host = "10.195.2.10",
+          options = "-m64 -M8 -U30000 -s10 -t AFP",
+          args = "-g large -g slow",
+          afp = true,
+          bulky = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))))
 
   def remote_build_history(rev: String, afp_rev: Option[String], i: Int, r: Remote_Build)
