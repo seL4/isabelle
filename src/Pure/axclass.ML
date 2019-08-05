@@ -9,6 +9,7 @@ signature AXCLASS =
 sig
   type info = {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
   val get_info: theory -> class -> info
+  val get_arity_thyname: theory -> string * class -> string option
   val class_of_param: theory -> string -> class option
   val instance_name: string * class -> string
   val param_of_inst: theory -> string * string -> string
@@ -67,59 +68,67 @@ fun add_param ctxt ((x, c): param) params =
 
 datatype data = Data of
  {axclasses: info Symtab.table,
+  arity_thynames: string Symreltab.table,
   params: param list,
-    (*arity theorems with theory name*)
   inst_params:
     (string * thm) Symtab.table Symtab.table *
       (*constant name ~> type constructor ~> (constant name, equation)*)
     (string * string) Symtab.table (*constant name ~> (constant name, type constructor)*)};
 
-fun make_data (axclasses, params, inst_params) =
-  Data {axclasses = axclasses, params = params, inst_params = inst_params};
+fun make_data (axclasses, arity_thynames, params, inst_params) =
+  Data {axclasses = axclasses, arity_thynames = arity_thynames,
+    params = params, inst_params = inst_params};
 
 structure Data = Theory_Data'
 (
   type T = data;
-  val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty));
+  val empty = make_data (Symtab.empty, Symreltab.empty, [], (Symtab.empty, Symtab.empty));
   val extend = I;
   fun merge old_thys
-      (Data {axclasses = axclasses1, params = params1, inst_params = inst_params1},
-       Data {axclasses = axclasses2, params = params2, inst_params = inst_params2}) =
+      (Data {axclasses = axclasses1, arity_thynames = arity_thynames1,
+          params = params1, inst_params = inst_params1},
+       Data {axclasses = axclasses2, arity_thynames = arity_thynames2,
+         params = params2, inst_params = inst_params2}) =
     let
       val old_ctxt = Syntax.init_pretty_global (fst old_thys);
 
       val axclasses' = Symtab.merge (K true) (axclasses1, axclasses2);
+      val arity_thynames' = Symreltab.merge (K true) (arity_thynames1, arity_thynames2);
       val params' =
         if null params1 then params2
         else
           fold_rev (fn p => if member (op =) params1 p then I else add_param old_ctxt p)
             params2 params1;
-
       val inst_params' =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
           Symtab.merge (K true) (#2 inst_params1, #2 inst_params2));
-    in make_data (axclasses', params', inst_params') end;
+    in make_data (axclasses', arity_thynames', params', inst_params') end;
 );
 
 fun map_data f =
-  Data.map (fn Data {axclasses, params, inst_params} =>
-    make_data (f (axclasses, params, inst_params)));
+  Data.map (fn Data {axclasses, arity_thynames, params, inst_params} =>
+    make_data (f (axclasses, arity_thynames, params, inst_params)));
 
 fun map_axclasses f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (f axclasses, params, inst_params));
+  map_data (fn (axclasses, arity_thynames, params, inst_params) =>
+    (f axclasses, arity_thynames, params, inst_params));
+
+fun map_arity_thynames f =
+  map_data (fn (axclasses, arity_thynames, params, inst_params) =>
+    (axclasses, f arity_thynames, params, inst_params));
 
 fun map_params f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (axclasses, f params, inst_params));
+  map_data (fn (axclasses, arity_thynames, params, inst_params) =>
+    (axclasses, arity_thynames, f params, inst_params));
 
 fun map_inst_params f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (axclasses, params, f inst_params));
+  map_data (fn (axclasses, arity_thynames, params, inst_params) =>
+    (axclasses, arity_thynames, params, f inst_params));
 
 val rep_data = Data.get #> (fn Data args => args);
 
 val axclasses_of = #axclasses o rep_data;
+val arity_thynames_of = #arity_thynames o rep_data;
 val params_of = #params o rep_data;
 val inst_params_of = #inst_params o rep_data;
 
@@ -140,6 +149,18 @@ fun all_params_of thy S =
   in fold (fn (x, c) => if Sign.subsort thy (S, [c]) then cons x else I) params [] end;
 
 fun class_of_param thy = AList.lookup (op =) (params_of thy);
+
+
+(* theory name of first type instantiation *)
+
+fun get_arity_thyname thy (t, c) =
+  get_first (fn c' => Symreltab.lookup (arity_thynames_of thy) (t, c'))
+    (c :: Sign.super_classes thy c);
+
+fun put_arity_thyname ar thy =
+  if is_some (get_arity_thyname thy ar) then thy
+  else map_arity_thynames (Symreltab.update (ar, Context.theory_name thy)) thy;
+
 
 
 (* maintain instance parameters *)
@@ -290,6 +311,7 @@ fun add_arity raw_th thy =
     thy
     |> Global_Theory.store_thm (binding, th)
     |-> Thm.add_arity
+    |> put_arity_thyname (t, c)
     |> fold (#2 oo declare_overloaded) missing_params
   end;
 
