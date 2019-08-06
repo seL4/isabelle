@@ -533,7 +533,9 @@ fun mk_rrule ctxt (thm, name) =
       if rewrite_rule_extra_vars prems lhs rhs orelse is_Var (Thm.term_of elhs)
       then mk_eq_True ctxt (thm, name)
       else rrule_eq_True ctxt thm name lhs elhs rhs thm
-  end;
+  end |> map (fn {thm, name, lhs, elhs, perm} =>
+    {thm = Thm.trim_context thm, name = name, lhs = lhs,
+      elhs = Thm.trim_context_cterm elhs, perm = perm});
 
 fun orient_rrule ctxt (thm, name) =
   let
@@ -690,8 +692,7 @@ fun del_eqcong thm ctxt = ctxt |> map_simpset2
         raise SIMPLIFIER ("Congruence must start with a constant", [thm]);
       val (xs, _) = congs;
       val xs' = filter_out (fn (x : cong_name, _) => x = a) xs;
-      val weak' = xs' |> map_filter (fn (a, thm) =>
-        if is_full_cong thm then NONE else SOME a);
+      val weak' = xs' |> map_filter (fn (a, th) => if is_full_cong th then NONE else SOME a);
     in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
 fun add_cong thm ctxt = add_eqcong (mk_cong ctxt thm) ctxt;
@@ -1351,7 +1352,11 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
     val _ =
       cond_tracing ctxt (fn () =>
         print_term ctxt "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" (Thm.term_of ct));
-  in bottomc (mode, Option.map (Drule.flexflex_unique (SOME ctxt)) oo prover, maxidx) ctxt ct end;
+  in
+    ct
+    |> bottomc (mode, Option.map (Drule.flexflex_unique (SOME ctxt)) oo prover, maxidx) ctxt
+    |> Thm.solve_constraints
+  end;
 
 val simple_prover =
   SINGLE o (fn ctxt => ALLGOALS (resolve_tac ctxt (prems_of ctxt)));

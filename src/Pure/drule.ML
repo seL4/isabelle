@@ -281,7 +281,8 @@ val rearrange_prems =
 (*Resolution: multiple arguments, multiple results*)
 local
   fun res opt_ctxt th i rule =
-    Thm.biresolution opt_ctxt false [(false, th)] i rule handle THM _ => Seq.empty;
+    (Thm.biresolution opt_ctxt false [(false, th)] i rule handle THM _ => Seq.empty)
+    |> Seq.map Thm.solve_constraints;
 
   fun multi_res _ _ [] rule = Seq.single rule
     | multi_res opt_ctxt i (th :: ths) rule =
@@ -297,14 +298,14 @@ fun thas RLN (i, thbs) =
   let
     val resolve = Thm.biresolution NONE false (map (pair false) thas) i
     fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
-  in maps resb thbs end;
+  in maps resb thbs |> map Thm.solve_constraints end;
 
 fun thas RL thbs = thas RLN (1, thbs);
 
 (*Isar-style multi-resolution*)
 fun bottom_rl OF rls =
   (case Seq.chop 2 (multi_resolve NONE rls bottom_rl) of
-    ([th], _) => th
+    ([th], _) => Thm.solve_constraints th
   | ([], _) => raise THM ("OF: no unifiers", 0, bottom_rl :: rls)
   | _ => raise THM ("OF: multiple unifiers", 0, bottom_rl :: rls));
 
@@ -318,7 +319,8 @@ fun rls MRS bottom_rl = bottom_rl OF rls;
 fun compose (tha, i, thb) =
   Thm.bicompose NONE {flatten = true, match = false, incremented = false} (false, tha, 0) i thb
   |> Seq.list_of |> distinct Thm.eq_thm
-  |> (fn [th] => th | _ => raise THM ("compose: unique result expected", i, [tha, thb]));
+  |> (fn [th] => Thm.solve_constraints th
+       | _ => raise THM ("compose: unique result expected", i, [tha, thb]));
 
 
 (** theorem equality **)
@@ -695,7 +697,7 @@ fun comp incremented th1 th2 =
   Thm.bicompose NONE {flatten = true, match = false, incremented = incremented}
     (false, th1, 0) 1 th2
   |> Seq.list_of |> distinct Thm.eq_thm
-  |> (fn [th] => th | _ => raise THM ("COMP", 1, [th1, th2]));
+  |> (fn [th] => Thm.solve_constraints th | _ => raise THM ("COMP", 1, [th1, th2]));
 
 in
 
@@ -709,7 +711,7 @@ fun comp_no_flatten (th, n) i rule =
   (case distinct Thm.eq_thm (Seq.list_of
       (Thm.bicompose NONE {flatten = false, match = false, incremented = true}
         (false, th, n) i (incr_indexes th rule))) of
-    [th'] => th'
+    [th'] => Thm.solve_constraints th'
   | [] => raise THM ("comp_no_flatten", i, [th, rule])
   | _ => raise THM ("comp_no_flatten: unique result expected", i, [th, rule]));
 
