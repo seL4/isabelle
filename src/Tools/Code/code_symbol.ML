@@ -99,9 +99,9 @@ end;
 local
   fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
   fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
-  fun thyname_of_instance thy inst = case Axclass.get_arity_thyname thy inst
-   of NONE => error ("No such instance: " ^ quote (fst inst ^ " :: " ^  snd inst))
-    | SOME thyname => thyname;
+  fun thyname_of_instance thy inst = case Thm.thynames_of_arity thy inst
+   of [] => error ("No such instance: " ^ quote (fst inst ^ " :: " ^  snd inst))
+    | thyname :: _ => thyname;
   fun thyname_of_const thy c = case Axclass.class_of_param thy c
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_type_of_constr_or_abstr thy c

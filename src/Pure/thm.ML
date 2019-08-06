@@ -167,6 +167,7 @@ sig
   val bicompose: Proof.context option -> {flatten: bool, match: bool, incremented: bool} ->
     bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: Proof.context option -> bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  val thynames_of_arity: theory -> string * class -> string list
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
 end;
@@ -874,7 +875,7 @@ structure Aritytab =
 
 datatype classes = Classes of
  {classrels: thm Symreltab.table,
-  arities: thm Aritytab.table};
+  arities: (thm * string * serial) Aritytab.table};
 
 fun make_classes (classrels, arities) = Classes {classrels = classrels, arities = arities};
 
@@ -927,7 +928,7 @@ fun the_classrel thy (c1, c2) =
 
 fun the_arity thy (a, Ss, c) =
   (case Aritytab.lookup (get_arities thy) (a, Ss, c) of
-    SOME thm => transfer thy thm
+    SOME (thm, _, _) => transfer thy thm
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
 
@@ -2210,7 +2211,12 @@ fun complete_classrels thy =
 
 (* type arities *)
 
-fun insert_arity_completions thy ((t, Ss, c), th) (finished, arities) =
+fun thynames_of_arity thy (a, c) =
+  (get_arities thy, []) |-> Aritytab.fold
+    (fn ((a', _, c'), (_, name, ser)) => (a = a' andalso c = c') ? cons (name, ser))
+  |> sort (int_ord o apply2 #2) |> map #1;
+
+fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, arities) =
   let
     val completions =
       Sign.super_classes thy c |> map_filter (fn c1 =>
@@ -2222,7 +2228,7 @@ fun insert_arity_completions thy ((t, Ss, c), th) (finished, arities) =
               |> standard_tvars
               |> close_derivation
               |> trim_context;
-          in SOME ((t, Ss, c1), th1) end);
+          in SOME ((t, Ss, c1), (th1, thy_name, ser)) end);
     val finished' = finished andalso null completions;
     val arities' = fold Aritytab.update completions arities;
   in (finished', arities') end;
@@ -2263,7 +2269,7 @@ fun add_arity raw_th thy =
     val th = strip_shyps (transfer thy raw_th);
     val prop = plain_prop_of th;
     val (t, Ss, c) = Logic.dest_arity prop;
-    val ar = ((t, Ss, c), (th |> unconstrainT |> trim_context));
+    val ar = ((t, Ss, c), (th |> unconstrainT |> trim_context, Context.theory_name thy, serial ()));
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
