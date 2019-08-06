@@ -96,8 +96,9 @@ fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
     val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i NONE state
     val tn = find_tname ctxt' var (map Thm.term_of asms)
     val rule =
-        if exh then #exhaustion (datatype_info thy tn)
-               else #induct  (datatype_info thy tn)
+      datatype_info thy tn
+      |> (if exh then #exhaustion else #induct)
+      |> Thm.transfer thy;
     val (Const(\<^const_name>\<open>mem\<close>,_) $ Var(ixn,_) $ _) =
         (case Thm.prems_of rule of
              [] => error "induction is not available for this datatype"
@@ -136,11 +137,11 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
     val dt_info =
           {inductive = true,
            constructors = constructors,
-           rec_rewrites = recursor_eqns,
-           case_rewrites = case_eqns,
-           induct = induct,
-           mutual_induct = @{thm TrueI},  (*No need for mutual induction*)
-           exhaustion = elim};
+           rec_rewrites = map Thm.trim_context recursor_eqns,
+           case_rewrites = map Thm.trim_context case_eqns,
+           induct = Thm.trim_context induct,
+           mutual_induct = Thm.trim_context @{thm TrueI},  (*No need for mutual induction*)
+           exhaustion = Thm.trim_context elim};
 
     val con_info =
           {big_rec_name = big_rec_name,
@@ -149,8 +150,9 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
            free_iffs = [],  (*thus we expect the necessary freeness rewrites
                               to be in the simpset already, as is the case for
                               Nat and disjoint sum*)
-           rec_rewrites = (case recursor_eqns of
-                               [] => case_eqns | _ => recursor_eqns)};
+           rec_rewrites =
+            (case recursor_eqns of [] => case_eqns | _ => recursor_eqns)
+            |> map Thm.trim_context};
 
     (*associate with each constructor the datatype name and rewrites*)
     val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors

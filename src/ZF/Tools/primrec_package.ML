@@ -172,7 +172,7 @@ fun primrec_i args thy =
       |> Sign.add_path (Long_Name.base_name fname)
       |> Global_Theory.add_defs false [Thm.no_attributes (apfst Binding.name def)];
 
-    val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
+    val rewrites = def_thm :: map (mk_meta_eq o Thm.transfer thy1) (#rec_rewrites con_info)
     val eqn_thms =
       eqn_terms |> map (fn t =>
         Goal.prove_global thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)

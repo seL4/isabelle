@@ -185,7 +185,7 @@ fun add_quot_map rel_quot_thm context =
     val rel_quot_thm_concl = (Logic.strip_imp_concl o Thm.prop_of) rel_quot_thm
     val (_, abs, _, _) = (dest_Quotient o HOLogic.dest_Trueprop) rel_quot_thm_concl
     val relatorT_name = (fst o dest_Type o fst o dest_funT o fastype_of) abs
-    val minfo = {rel_quot_thm = rel_quot_thm}
+    val minfo = {rel_quot_thm = Thm.trim_context rel_quot_thm}
   in
     Data.map (map_quot_maps (Symtab.update (relatorT_name, minfo))) context
   end
@@ -218,7 +218,9 @@ fun transform_pcr_info phi {pcrel_def, pcr_cr_eq} =
 fun transform_quotient phi {quot_thm, pcr_info} =
   {quot_thm = Morphism.thm phi quot_thm, pcr_info = Option.map (transform_pcr_info phi) pcr_info}
 
-fun lookup_quotients ctxt type_name = Symtab.lookup (get_quotients ctxt) type_name
+fun lookup_quotients ctxt type_name =
+  Symtab.lookup (get_quotients ctxt) type_name
+  |> Option.map (transform_quotient (Morphism.transfer_morphism' ctxt))
 
 fun lookup_quot_thm_quotients ctxt quot_thm =
   let
@@ -232,7 +234,8 @@ fun lookup_quot_thm_quotients ctxt quot_thm =
   end
 
 fun update_quotients type_name qinfo context =
-  Data.map (map_quotients (Symtab.update (type_name, qinfo))) context
+  let val qinfo' = transform_quotient Morphism.trim_context_morphism qinfo
+  in Data.map (map_quotients (Symtab.update (type_name, qinfo'))) context end
 
 fun delete_quotients quot_thm context =
   let
@@ -292,9 +295,13 @@ fun get_relator_eq_onp_rules ctxt =
 
 (* info about reflexivity rules *)
 
-val get_reflexivity_rules = Item_Net.content o get_reflexivity_rules' o Context.Proof
+fun get_reflexivity_rules ctxt =
+  Item_Net.content (get_reflexivity_rules' (Context.Proof ctxt))
+  |> map (Thm.transfer' ctxt)
 
-fun add_reflexivity_rule thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
+fun add_reflexivity_rule thm =
+  Data.map (map_reflexivity_rules (Item_Net.update (Thm.trim_context thm)))
+
 val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule
 
 
@@ -360,16 +367,19 @@ fun negate_mono_rule mono_rule =
 
 fun add_reflexivity_rules mono_rule context =
   let
-    fun find_eq_rule thm ctxt =
+    val ctxt = Context.proof_of context
+    val thy = Context.theory_of context
+
+    fun find_eq_rule thm =
       let
-        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm;
-        val rules = Item_Net.retrieve (Transfer.get_relator_eq_item_net ctxt) concl_rhs;
+        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o Thm.concl_of) thm
+        val rules = Transfer.retrieve_relator_eq ctxt concl_rhs
       in
-        find_first (fn thm => Pattern.matches (Proof_Context.theory_of ctxt) (concl_rhs,
-          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.concl_of) thm)) rules
+        find_first (fn th => Pattern.matches thy (concl_rhs,
+          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.concl_of) th)) rules
       end
 
-    val eq_rule = find_eq_rule mono_rule (Context.proof_of context);
+    val eq_rule = find_eq_rule mono_rule;
     val eq_rule = if is_some eq_rule then the eq_rule else error
       "No corresponding rule that the relator preserves equality was found."
   in
@@ -505,13 +515,17 @@ in
     end
 end
 
-fun get_distr_rules_raw context = Symtab.fold
-  (fn (_, {pos_distr_rules, neg_distr_rules, ...}) => fn rules => pos_distr_rules @ neg_distr_rules @ rules)
+fun get_distr_rules_raw context =
+  Symtab.fold (fn (_, {pos_distr_rules, neg_distr_rules, ...}) => fn rules =>
+      pos_distr_rules @ neg_distr_rules @ rules)
     (get_relator_distr_data' context) []
+  |> map (Thm.transfer'' context)
 
-fun get_mono_rules_raw context = Symtab.fold
-  (fn (_, {pos_mono_rule, neg_mono_rule, ...}) => fn rules => [pos_mono_rule, neg_mono_rule] @ rules)
+fun get_mono_rules_raw context =
+  Symtab.fold (fn (_, {pos_mono_rule, neg_mono_rule, ...}) => fn rules =>
+      [pos_mono_rule, neg_mono_rule] @ rules)
     (get_relator_distr_data' context) []
+  |> map (Thm.transfer'' context)
 
 val lookup_relator_distr_data = Symtab.lookup o get_relator_distr_data
 

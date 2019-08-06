@@ -624,7 +624,7 @@ fun get_cr_pcr_eqs ctxt =
   let
     fun collect (data : Lifting_Info.quotient) l =
       if is_some (#pcr_info data)
-      then ((Thm.symmetric o safe_mk_meta_eq o #pcr_cr_eq o the o #pcr_info) data :: l)
+      then ((Thm.symmetric o safe_mk_meta_eq o Thm.transfer' ctxt o #pcr_cr_eq o the o #pcr_info) data :: l)
       else l
     val table = Lifting_Info.get_quotients ctxt
   in

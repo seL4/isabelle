@@ -1576,6 +1576,7 @@ fun instantiate ([], []) th = th
           hyps = hyps,
           tpairs = tpairs',
           prop = prop'})
+        |> solve_constraints
       end
       handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
@@ -2155,7 +2156,7 @@ fun biresolution opt_ctxt match brules i state =
 (*Resolution: exactly one resolvent must be produced*)
 fun tha RSN (i, thb) =
   (case Seq.chop 2 (biresolution NONE false [(false, tha)] i thb) of
-    ([th], _) => th
+    ([th], _) => solve_constraints th
   | ([], _) => raise THM ("RSN: no unifiers", i, [tha, thb])
   | _ => raise THM ("RSN: multiple unifiers", i, [tha, thb]));
 

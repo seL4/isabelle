@@ -369,19 +369,20 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val dt_info =
         {inductive = true,
          constructors = constructors,
-         rec_rewrites = recursor_eqns,
-         case_rewrites = case_eqns,
-         induct = induct,
-         mutual_induct = mutual_induct,
-         exhaustion = elim};
+         rec_rewrites = map Thm.trim_context recursor_eqns,
+         case_rewrites = map Thm.trim_context case_eqns,
+         induct = Thm.trim_context induct,
+         mutual_induct = Thm.trim_context mutual_induct,
+         exhaustion = Thm.trim_context elim};
 
   val con_info =
         {big_rec_name = big_rec_name,
          constructors = constructors,
             (*let primrec handle definition by cases*)
-         free_iffs = free_iffs,
-         rec_rewrites = (case recursor_eqns of
-                             [] => case_eqns | _ => recursor_eqns)};
+         free_iffs = map Thm.trim_context free_iffs,
+         rec_rewrites =
+          (case recursor_eqns of [] => case_eqns | _ => recursor_eqns)
+          |> map Thm.trim_context};
 
   (*associate with each constructor the datatype name and rewrites*)
   val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors
