@@ -171,8 +171,9 @@ fun elim_concl ctxt rule =
 
 (* maintain rules *)
 
-val get_atomize = #1 o #atomize_rulify o get_data;
-val get_rulify = #2 o #atomize_rulify o get_data;
+fun get_atomize_rulify f ctxt = map (Thm.transfer' ctxt) (f (#atomize_rulify (get_data ctxt)));
+val get_atomize = get_atomize_rulify #1;
+val get_rulify = get_atomize_rulify #2;
 
 fun add_atomize th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
   (base_sort, judgment, (Thm.add_thm (Thm.trim_context th) atomize, rulify)));
