@@ -164,8 +164,8 @@ structure EqCancelNumeralsData =
   val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
-  val bal_add1 = @{thm eq_add_iff} RS @{thm iff_trans}
-  val bal_add2 = @{thm eq_add_iff} RS @{thm iff_trans}
+  val bal_add1 = @{thm eq_add_iff [THEN iff_trans]}
+  val bal_add2 = @{thm eq_add_iff [THEN iff_trans]}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
   end;
 
@@ -177,8 +177,8 @@ structure LessCancelNumeralsData =
   val prove_conv = prove_conv "natless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>Ordinal.lt\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Ordinal.lt\<close> iT
-  val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
-  val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
+  val bal_add1 = @{thm less_add_iff [THEN iff_trans]}
+  val bal_add2 = @{thm less_add_iff [THEN iff_trans]}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
   end;
 
@@ -190,8 +190,8 @@ structure DiffCancelNumeralsData =
   val prove_conv = prove_conv "natdiff_cancel_numerals"
   val mk_bal   = FOLogic.mk_binop \<^const_name>\<open>Arith.diff\<close>
   val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Arith.diff\<close> iT
-  val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
-  val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
+  val bal_add1 = @{thm diff_add_eq [THEN trans]}
+  val bal_add2 = @{thm diff_add_eq [THEN trans]}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm trans}
   end;
 
