@@ -22,16 +22,16 @@ sig
   val fold_relator_eqs_conv: Proof.context -> conv
   val unfold_relator_eqs_conv: Proof.context -> conv
   val get_transfer_raw: Proof.context -> thm list
-  val get_relator_eq_item_net: Proof.context -> thm Item_Net.T
   val get_relator_eq: Proof.context -> thm list
+  val retrieve_relator_eq: Proof.context -> term -> thm list
   val get_sym_relator_eq: Proof.context -> thm list
   val get_relator_eq_raw: Proof.context -> thm list
   val get_relator_domain: Proof.context -> thm list
   val morph_pred_data: morphism -> pred_data -> pred_data
   val lookup_pred_data: Proof.context -> string -> pred_data option
   val update_pred_data: string -> pred_data -> Context.generic -> Context.generic
-  val get_compound_lhs: Proof.context -> (term * thm) Item_Net.T
-  val get_compound_rhs: Proof.context -> (term * thm) Item_Net.T
+  val is_compound_lhs: Proof.context -> term -> bool
+  val is_compound_rhs: Proof.context -> term -> bool
   val transfer_add: attribute
   val transfer_del: attribute
   val transfer_raw_add: thm -> Context.generic -> Context.generic
@@ -67,7 +67,7 @@ val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o apply2 snd) (singl
 val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
-datatype pred_data = PRED_DATA of {pred_def:thm, rel_eq_onp: thm, pred_simps: thm list}
+datatype pred_data = PRED_DATA of {pred_def: thm, rel_eq_onp: thm, pred_simps: thm list}
 
 fun mk_pred_data pred_def rel_eq_onp pred_simps = PRED_DATA {pred_def = pred_def, 
   rel_eq_onp = rel_eq_onp, pred_simps = pred_simps}
@@ -124,25 +124,32 @@ structure Data = Generic_Data
       pred_data = Symtab.merge (K true) (pd1, pd2) }
 )
 
-val get_transfer_raw = Item_Net.content o #transfer_raw o Data.get o Context.Proof
+fun get_net_content f ctxt =
+  Item_Net.content (f (Data.get (Context.Proof ctxt)))
+  |> map (Thm.transfer' ctxt)
+
+val get_transfer_raw = get_net_content #transfer_raw
 
 val get_known_frees = #known_frees o Data.get o Context.Proof
 
-val get_compound_lhs = #compound_lhs o Data.get o Context.Proof
+fun is_compound f ctxt t =
+  Item_Net.retrieve (f (Data.get (Context.Proof ctxt))) t
+  |> exists (fn (pat, _) => Pattern.matches (Proof_Context.theory_of ctxt) (pat, t));
 
-val get_compound_rhs = #compound_rhs o Data.get o Context.Proof
+val is_compound_lhs = is_compound #compound_lhs
+val is_compound_rhs = is_compound #compound_rhs
 
-val get_relator_eq_item_net = #relator_eq o Data.get o Context.Proof
+val get_relator_eq = get_net_content #relator_eq #> map safe_mk_meta_eq
 
-val get_relator_eq =
-  map safe_mk_meta_eq o Item_Net.content o #relator_eq o Data.get o Context.Proof
+fun retrieve_relator_eq ctxt t =
+  Item_Net.retrieve (#relator_eq (Data.get (Context.Proof ctxt))) t
+  |> map (Thm.transfer' ctxt)
 
-val get_sym_relator_eq =
-  map (Thm.symmetric o safe_mk_meta_eq) o Item_Net.content o #relator_eq o Data.get o Context.Proof
+val get_sym_relator_eq = get_net_content #relator_eq #> map (safe_mk_meta_eq #> Thm.symmetric)
 
-val get_relator_eq_raw = Item_Net.content o #relator_eq_raw o Data.get o Context.Proof
+val get_relator_eq_raw = get_net_content #relator_eq_raw
 
-val get_relator_domain = Item_Net.content o #relator_domain o Data.get o Context.Proof
+val get_relator_domain = get_net_content #relator_domain
 
 val get_pred_data = #pred_data o Data.get o Context.Proof
 
@@ -167,19 +174,20 @@ fun map_relator_eq_raw f = map_data I I I I I f I I
 fun map_relator_domain f = map_data I I I I I I f I
 fun map_pred_data      f = map_data I I I I I I I f
 
-fun add_transfer_thm thm = Data.map
-  (map_transfer_raw (Item_Net.update thm) o
-   map_compound_lhs
-     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ (lhs as (_ $ _)) $ _ =>
-          Item_Net.update (lhs, thm)
-      | _ => I) o
-   map_compound_rhs
-     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ _ $ (rhs as (_ $ _)) =>
-          Item_Net.update (rhs, thm)
-      | _ => I) o
-   map_known_frees (Term.add_frees (Thm.concl_of thm)))
+val add_transfer_thm =
+  Thm.trim_context #> (fn thm => Data.map
+    (map_transfer_raw (Item_Net.update thm) o
+     map_compound_lhs
+       (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+          Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ (lhs as (_ $ _)) $ _ =>
+            Item_Net.update (lhs, thm)
+        | _ => I) o
+     map_compound_rhs
+       (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+          Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ _ $ (rhs as (_ $ _)) =>
+            Item_Net.update (rhs, thm)
+        | _ => I) o
+     map_known_frees (Term.add_frees (Thm.concl_of thm))))
 
 fun del_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.remove thm) o
@@ -560,16 +568,9 @@ fun bool_insts p (t, u) =
     map_filter f (Symtab.dest tab)
   end
 
-fun retrieve_terms t net = map fst (Item_Net.retrieve net t)
-
-fun matches_list ctxt term =
-  is_some o find_first (fn pat => Pattern.matches (Proof_Context.theory_of ctxt) (pat, term))
-
 fun transfer_rule_of_term ctxt equiv t =
   let
-    val compound_rhs = get_compound_rhs ctxt
-    fun is_rhs t = compound_rhs |> retrieve_terms t |> matches_list ctxt t
-    val s = skeleton is_rhs ctxt t
+    val s = skeleton (is_compound_rhs ctxt) ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
     fun prep a = "R" ^ Library.unprefix "'" a
@@ -590,9 +591,7 @@ fun transfer_rule_of_term ctxt equiv t =
 
 fun transfer_rule_of_lhs ctxt t =
   let
-    val compound_lhs = get_compound_lhs ctxt
-    fun is_lhs t = compound_lhs |> retrieve_terms t |> matches_list ctxt t
-    val s = skeleton is_lhs ctxt t
+    val s = skeleton (is_compound_lhs ctxt) ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
     fun prep a = "R" ^ Library.unprefix "'" a
@@ -853,10 +852,12 @@ val _ =
   Theory.setup
     let
       val name = \<^binding>\<open>relator_eq\<close>
-      fun add_thm thm context = context
-        |> Data.map (map_relator_eq (Item_Net.update thm))
+      fun add_thm thm context =
+        context
+        |> Data.map (map_relator_eq (Item_Net.update (Thm.trim_context thm)))
         |> Data.map (map_relator_eq_raw
-            (Item_Net.update (abstract_equalities_relator_eq (Context.proof_of context) thm)))
+            (Item_Net.update
+              (Thm.trim_context (abstract_equalities_relator_eq (Context.proof_of context) thm))))
       fun del_thm thm context = context
         |> Data.map (map_relator_eq (Item_Net.remove thm))
         |> Data.map (map_relator_eq_raw
@@ -876,15 +877,21 @@ val _ =
       val name = \<^binding>\<open>relator_domain\<close>
       fun add_thm thm context =
         let
-          val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+          val thm' = thm
+            |> abstract_domains_relator_domain (Context.proof_of context)
+            |> Thm.trim_context
         in
-          context |> Data.map (map_relator_domain (Item_Net.update thm)) |> add_transfer_domain_thm thm
+          context
+          |> Data.map (map_relator_domain (Item_Net.update thm'))
+          |> add_transfer_domain_thm thm'
         end
       fun del_thm thm context =
         let
-          val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+          val thm' = abstract_domains_relator_domain (Context.proof_of context) thm
         in
-          context |> Data.map (map_relator_domain (Item_Net.remove thm)) |> del_transfer_domain_thm thm
+          context
+          |> Data.map (map_relator_domain (Item_Net.remove thm'))
+          |> del_transfer_domain_thm thm'
         end
       val add = Thm.declaration_attribute add_thm
       val del = Thm.declaration_attribute del_thm
