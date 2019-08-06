@@ -96,6 +96,28 @@ lemma "f91 n = (if 100 < n then n - 10 else 91)"
   by (induct n rule: f91.induct) auto
 
 
+subsubsection \<open>Here comes Takeuchi's function\<close>
+
+definition tak_m1 where "tak_m1 = (\<lambda>(x,y,z). if x \<le> y then 0 else 1)"
+definition tak_m2 where "tak_m2 = (\<lambda>(x,y,z). nat (Max {x, y, z} - Min {x, y, z}))"
+definition tak_m3 where "tak_m3 = (\<lambda>(x,y,z). nat (x - Min {x, y, z}))"
+
+function tak :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int" where
+  "tak x y z = (if x \<le> y then y else tak (tak (x-1) y z) (tak (y-1) z x) (tak (z-1) x y))"
+  by auto
+
+lemma tak_pcorrect:
+  "tak_dom (x, y, z) \<Longrightarrow> tak x y z = (if x \<le> y then y else if y \<le> z then z else x)"
+  by (induction x y z rule: tak.pinduct) (auto simp: tak.psimps)
+
+termination
+  by (relation "tak_m1 <*mlex*> tak_m2 <*mlex*> tak_m3 <*mlex*> {}")
+     (auto simp: mlex_iff wf_mlex tak_pcorrect tak_m1_def tak_m2_def tak_m3_def min_def max_def)
+
+theorem tak_correct: "tak x y z = (if x \<le> y then y else if y \<le> z then z else x)"
+  by (induction x y z rule: tak.induct) auto
+
+
 subsection \<open>More general patterns\<close>
 
 subsubsection \<open>Overlapping patterns\<close>
@@ -243,7 +265,6 @@ fun_cases pred0E[elim]: "pred n = 0"
 
 lemma "pred n = 0 \<Longrightarrow> n = 0 \<or> n = Suc 0"
   by (erule pred0E) metis+
-
 
 text \<open>
   Other expressions on the right-hand side also work, but whether the
