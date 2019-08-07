@@ -136,7 +136,6 @@ fun clause2raw_thm ctxt clause =
   let
     (* eliminates negated disjunctions from the i-th premise, possibly *)
     (* adding new premises, then continues with the (i+1)-th premise   *)
-    (* int -> Thm.thm -> Thm.thm *)
     fun not_disj_to_prem i thm =
       if i > Thm.nprems_of thm then
         thm
@@ -145,7 +144,6 @@ fun clause2raw_thm ctxt clause =
           (Seq.hd (REPEAT_DETERM (resolve_tac ctxt [clause2raw_not_disj] i) thm))
     (* moves all premises to hyps, i.e. "[...] |- A1 ==> ... ==> An ==> B" *)
     (* becomes "[..., A1, ..., An] |- B"                                   *)
-    (* Thm.thm -> Thm.thm *)
     fun prems_to_hyps thm =
       fold (fn cprem => fn thm' =>
         Thm.implies_elim thm' (Thm.assume cprem)) (cprems_of thm) thm
@@ -282,8 +280,6 @@ fun make_nnf_thm_under_quantifiers ctxt =
 (*      simplified only if the left-hand side does not simplify to False     *)
 (*      (True, respectively).                                                *)
 (* ------------------------------------------------------------------------- *)
-
-(* Theory.theory -> Term.term -> Thm.thm *)
 
 fun simp_True_False_thm thy (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ x $ y) =
       let
