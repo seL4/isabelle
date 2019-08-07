@@ -263,6 +263,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs = Ts, ...}) =
     |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
     |> Thm.forall_intr x
     |> Thm.forall_intr P
+    |> Thm.solve_constraints
   end
 
 

@@ -146,7 +146,7 @@ fun mk_partial_elim_rules ctxt result =
           |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) arg_vars
           |> Thm.forall_intr P
       in
-        map unstrip (elim_stripped :: bool_elims)
+        map (unstrip #> Thm.solve_constraints) (elim_stripped :: bool_elims)
       end;
   in
     map_index mk_partial_elim_rule fs
