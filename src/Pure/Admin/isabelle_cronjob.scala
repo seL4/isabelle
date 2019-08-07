@@ -345,7 +345,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_MLTON=mlton" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAMLFIND=ocamlfind" +
             " -e ISABELLE_SMLNJ=sml",
-          args = "-X large -X slow",
+          args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
         Remote_Build("AFP bulky2", "lrzcloud2", self_update = true,
