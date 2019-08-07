@@ -68,7 +68,6 @@ sig
   val theory_name: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
-  val constraints_of: thm -> (theory * (typ * sort)) list
   val shyps_of: thm -> sort Ord_List.T
   val hyps_of: thm -> term list
   val prop_of: thm -> term
@@ -88,7 +87,6 @@ sig
   val theory_of_thm: thm -> theory
   val trim_context_ctyp: ctyp -> ctyp
   val trim_context_cterm: cterm -> cterm
-  val trim_context: thm -> thm
   val transfer_ctyp: theory -> ctyp -> ctyp
   val transfer_cterm: theory -> cterm -> cterm
   val transfer: theory -> thm -> thm
@@ -110,6 +108,7 @@ sig
   val derivation_name: thm -> string
   val name_derivation: string -> thm -> thm
   val close_derivation: thm -> thm
+  val trim_context: thm -> thm
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
@@ -364,13 +363,14 @@ fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
 
 (* sort constraints *)
 
-type constraint = theory * (typ * sort);
+type constraint = {theory: theory, typ: typ, sort: sort};
 
 local
 
 val constraint_ord : constraint * constraint -> order =
-  prod_ord (Context.theory_id_ord o apply2 Context.theory_id)
-    (prod_ord Term_Ord.typ_ord Term_Ord.sort_ord);
+  Context.theory_id_ord o apply2 (Context.theory_id o #theory)
+  <<< Term_Ord.typ_ord o apply2 #typ
+  <<< Term_Ord.sort_ord o apply2 #sort;
 
 val smash_atyps =
   map_atyps (fn TVar (_, S) => Term.aT S | TFree (_, S) => Term.aT S | T => T);
@@ -388,7 +388,10 @@ fun insert_constraints thy (T, S) =
           TFree (_, S') => S = S'
         | TVar (_, S') => S = S'
         | _ => false);
-  in if ignored then I else Ord_List.insert constraint_ord (thy, (smash_atyps T, S)) end;
+  in
+    if ignored then I
+    else Ord_List.insert constraint_ord {theory = thy, typ = smash_atyps T, sort = S}
+  end;
 
 fun insert_constraints_env thy env =
   let
@@ -946,25 +949,36 @@ fun union_digest (oracles1, thms1) (oracles2, thms2) =
 fun thm_digest (Thm (Deriv {body = Proofterm.PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
 
-fun constraint_digest thy =
+fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
       if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
-    type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)};
+    type_variable = fn T => map (pair ([], [])) (Type.sort_of_atyp T)}
+   (typ, sort);
 
 in
 
 fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
-  | solve_constraints (Thm (der, args)) =
+  | solve_constraints (thm as Thm (der, args)) =
       let
         val {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop} = args;
 
+        val thy = Context.certificate_theory cert;
+        val bad_thys =
+          constraints |> map_filter (fn {theory = thy', ...} =>
+            if Context.eq_thy (thy, thy') then NONE else SOME thy');
+        val () =
+          if null bad_thys then ()
+          else
+            raise THEORY ("solve_constraints: bad theories for theorem\n" ^
+              Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
+
         val Deriv {promises, body = Proofterm.PBody {oracles, thms, proof}} = der;
         val (oracles', thms') = (oracles, thms)
-          |> fold (fold union_digest o uncurry constraint_digest) constraints;
+          |> fold (fold union_digest o constraint_digest) constraints;
         val body' = Proofterm.PBody {oracles = oracles', thms = thms', proof = proof};
       in
         Thm (Deriv {promises = promises, body = body'},
