@@ -1735,6 +1735,51 @@ val sym = @{thm sym}
 val trans = @{thm trans}
 \<close>
 
+locale cnf
+begin
+
+lemma clause2raw_notE: "\<lbrakk>P; \<not>P\<rbrakk> \<Longrightarrow> False" by auto
+lemma clause2raw_not_disj: "\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> \<not> (P \<or> Q)" by auto
+lemma clause2raw_not_not: "P \<Longrightarrow> \<not>\<not> P" by auto
+
+lemma iff_refl: "(P::bool) = P" by auto
+lemma iff_trans: "[| (P::bool) = Q; Q = R |] ==> P = R" by auto
+lemma conj_cong: "[| P = P'; Q = Q' |] ==> (P \<and> Q) = (P' \<and> Q')" by auto
+lemma disj_cong: "[| P = P'; Q = Q' |] ==> (P \<or> Q) = (P' \<or> Q')" by auto
+
+lemma make_nnf_imp: "[| (\<not>P) = P'; Q = Q' |] ==> (P \<longrightarrow> Q) = (P' \<or> Q')" by auto
+lemma make_nnf_iff: "[| P = P'; (\<not>P) = NP; Q = Q'; (\<not>Q) = NQ |] ==> (P = Q) = ((P' \<or> NQ) \<and> (NP \<or> Q'))" by auto
+lemma make_nnf_not_false: "(\<not>False) = True" by auto
+lemma make_nnf_not_true: "(\<not>True) = False" by auto
+lemma make_nnf_not_conj: "[| (\<not>P) = P'; (\<not>Q) = Q' |] ==> (\<not>(P \<and> Q)) = (P' \<or> Q')" by auto
+lemma make_nnf_not_disj: "[| (\<not>P) = P'; (\<not>Q) = Q' |] ==> (\<not>(P \<or> Q)) = (P' \<and> Q')" by auto
+lemma make_nnf_not_imp: "[| P = P'; (\<not>Q) = Q' |] ==> (\<not>(P \<longrightarrow> Q)) = (P' \<and> Q')" by auto
+lemma make_nnf_not_iff: "[| P = P'; (\<not>P) = NP; Q = Q'; (\<not>Q) = NQ |] ==> (\<not>(P = Q)) = ((P' \<or> Q') \<and> (NP \<or> NQ))" by auto
+lemma make_nnf_not_not: "P = P' ==> (\<not>\<not>P) = P'" by auto
+
+lemma simp_TF_conj_True_l: "[| P = True; Q = Q' |] ==> (P \<and> Q) = Q'" by auto
+lemma simp_TF_conj_True_r: "[| P = P'; Q = True |] ==> (P \<and> Q) = P'" by auto
+lemma simp_TF_conj_False_l: "P = False ==> (P \<and> Q) = False" by auto
+lemma simp_TF_conj_False_r: "Q = False ==> (P \<and> Q) = False" by auto
+lemma simp_TF_disj_True_l: "P = True ==> (P \<or> Q) = True" by auto
+lemma simp_TF_disj_True_r: "Q = True ==> (P \<or> Q) = True" by auto
+lemma simp_TF_disj_False_l: "[| P = False; Q = Q' |] ==> (P \<or> Q) = Q'" by auto
+lemma simp_TF_disj_False_r: "[| P = P'; Q = False |] ==> (P \<or> Q) = P'" by auto
+
+lemma make_cnf_disj_conj_l: "[| (P \<or> R) = PR; (Q \<or> R) = QR |] ==> ((P \<and> Q) \<or> R) = (PR \<and> QR)" by auto
+lemma make_cnf_disj_conj_r: "[| (P \<or> Q) = PQ; (P \<or> R) = PR |] ==> (P \<or> (Q \<and> R)) = (PQ \<and> PR)" by auto
+
+lemma make_cnfx_disj_ex_l: "((\<exists>(x::bool). P x) \<or> Q) = (\<exists>x. P x \<or> Q)" by auto
+lemma make_cnfx_disj_ex_r: "(P \<or> (\<exists>(x::bool). Q x)) = (\<exists>x. P \<or> Q x)" by auto
+lemma make_cnfx_newlit: "(P \<or> Q) = (\<exists>x. (P \<or> x) \<and> (Q \<or> \<not>x))" by auto
+lemma make_cnfx_ex_cong: "(\<forall>(x::bool). P x = Q x) \<Longrightarrow> (\<exists>x. P x) = (\<exists>x. Q x)" by auto
+
+lemma weakening_thm: "[| P; Q |] ==> Q" by auto
+
+lemma cnftac_eq_imp: "[| P = Q; P |] ==> Q" by auto
+
+end
+
 ML_file \<open>Tools/cnf.ML\<close>
 
 
