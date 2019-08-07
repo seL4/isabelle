@@ -244,12 +244,12 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
 
     fun typedef_result inhabited lthy1 =
       let
-        val typedef' = inhabited RS typedef;
-        fun make th = Goal.norm_result lthy1 (typedef' RS th);
-        val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),
-            Abs_inject), Rep_cases), Abs_cases), Rep_induct), Abs_induct), lthy2) = lthy1
-          |> Local_Theory.note ((type_definition_name, []), [typedef'])
-          ||>> note ((Rep_name, []), make @{thm type_definition.Rep})
+        val ((_, [type_definition]), lthy2) = lthy1
+          |> Local_Theory.note ((type_definition_name, []), [inhabited RS typedef]);
+        fun make th = Goal.norm_result lthy2 (type_definition RS th);
+        val (((((((((Rep, Rep_inverse), Abs_inverse), Rep_inject), Abs_inject), Rep_cases),
+            Abs_cases), Rep_induct), Abs_induct), lthy3) = lthy2
+          |> note ((Rep_name, []), make @{thm type_definition.Rep})
           ||>> note ((Binding.suffix_name "_inverse" Rep_name, []),
               make @{thm type_definition.Rep_inverse})
           ||>> note ((Binding.suffix_name "_inverse" Abs_name, []),
@@ -283,7 +283,7 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
           Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct});
       in
-        lthy2
+        lthy3
         |> Local_Theory.declaration {syntax = false, pervasive = true}
           (fn phi => put_info full_name (transform_info phi info))
         |> Typedef_Plugin.data Plugin_Name.default_filter full_name
@@ -301,9 +301,7 @@ fun add_typedef overloaded typ set opt_bindings tac lthy =
   let
     val ((goal, _, typedef_result), lthy') =
       prepare_typedef Syntax.check_term overloaded typ set opt_bindings lthy;
-    val inhabited =
-      Goal.prove lthy' [] [] goal (tac o #context)
-      |> Goal.norm_result lthy' |> Thm.close_derivation;
+    val inhabited = Goal.prove lthy' [] [] goal (tac o #context) |> Goal.norm_result lthy';
   in typedef_result inhabited lthy' end;
 
 fun add_typedef_global overloaded typ set opt_bindings tac =
