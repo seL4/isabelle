@@ -1650,7 +1650,7 @@ fun of_class (cT, raw_c) =
         tpairs = [],
         prop = prop})
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
-  end;
+  end |> solve_constraints;
 
 (*Remove extra sorts that are witnessed by type signature information*)
 fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
