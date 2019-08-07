@@ -298,7 +298,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 (* INFERENCE RULE: REFL *)
 
-val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by simp}
+val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by (drule notE) (rule refl)}
 
 val refl_x = Thm.cterm_of \<^context> (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
@@ -312,8 +312,8 @@ fun refl_inference ctxt type_enc concealed sym_tab t =
 
 (* INFERENCE RULE: EQUALITY *)
 
-val subst_em = @{lemma "s = t \<Longrightarrow> P s \<Longrightarrow> \<not> P t \<Longrightarrow> False" by simp}
-val ssubst_em = @{lemma "s = t \<Longrightarrow> P t \<Longrightarrow> \<not> P s \<Longrightarrow> False" by simp}
+val subst_em = @{lemma "s = t \<Longrightarrow> P s \<Longrightarrow> \<not> P t \<Longrightarrow> False" by (erule notE) (erule subst)}
+val ssubst_em = @{lemma "s = t \<Longrightarrow> P t \<Longrightarrow> \<not> P s \<Longrightarrow> False" by (erule notE) (erule ssubst)}
 
 fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
   let val thy = Proof_Context.theory_of ctxt
@@ -523,7 +523,7 @@ fun unify_first_prem_with_concl ctxt i th =
     infer_instantiate_types ctxt (map (apfst (dest_Var o Thm.term_of)) t_inst) th
   end
 
-val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
+val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by assumption}
 
 fun copy_prems_tac ctxt [] ns i =
     if forall (curry (op =) 1) ns then all_tac else copy_prems_tac ctxt (rev ns) [] i
