@@ -255,13 +255,13 @@ fun insert_thm th net =
 val insert_thms = fold_rev insert_thm;
 
 fun addrew ctxt thm (SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}) =
-let val thms = mk_simps ctxt thm
+let val thms = map Thm.trim_context (mk_simps ctxt thm)
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
       simps = (thm,thms)::simps, simp_net = insert_thms thms simp_net}
 end;
 
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
-let val congs' = thms @ congs;
+let val congs' = map Thm.trim_context thms @ congs;
 in SS{auto_tac=auto_tac, congs= congs',
       cong_net= insert_thms (map mk_trans thms) cong_net,
       mk_simps = fn ctxt => normed_rews ctxt congs', simps=simps, simp_net=simp_net}
