@@ -237,11 +237,6 @@ fun unfold_relator_eqs_conv ctxt ct = (top_rewr_conv (get_sym_relator_eq ctxt)) 
 fun mk_is_equality t =
   Const (\<^const_name>\<open>is_equality\<close>, Term.fastype_of t --> HOLogic.boolT) $ t
 
-val is_equality_lemma =
-  @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (=))"
-    by (unfold is_equality_def, rule, drule meta_spec,
-      erule meta_mp, rule refl, simp)}
-
 fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
   let
     val prop = Thm.prop_of thm
@@ -260,7 +255,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
     val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite ctxt false [is_equality_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite ctxt false @{thms is_equality_lemma} cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
@@ -313,11 +308,6 @@ fun abstract_equalities_domain ctxt thm =
 fun mk_Domainp_assm (T, R) =
   HOLogic.mk_eq ((Const (\<^const_name>\<open>Domainp\<close>, Term.fastype_of T --> Term.fastype_of R) $ T), R)
 
-val Domainp_lemma =
-  @{lemma "(!!R. Domainp T = R ==> PROP (P R)) == PROP (P (Domainp T))"
-    by (rule, drule meta_spec,
-      erule meta_mp, rule refl, simp)}
-
 fun fold_Domainp f (t as Const (\<^const_name>\<open>Domainp\<close>,_) $ (Var (_,_))) = f t
   | fold_Domainp f (t $ u) = fold_Domainp f t #> fold_Domainp f u
   | fold_Domainp f (Abs (_, _, t)) = fold_Domainp f t
@@ -352,7 +342,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = fold Logic.all frees (Logic.list_implies (prems, mk_prop' t'))
     val prop2 = Logic.list_rename_params (rev names) prop1
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite ctxt false [Domainp_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite ctxt false @{thms Domainp_lemma} cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm;
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))

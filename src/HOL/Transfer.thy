@@ -229,6 +229,22 @@ unfolding bi_unique_alt_def ..
 end
 
 
+lemma is_equality_lemma: "(\<And>R. is_equality R \<Longrightarrow> PROP (P R)) \<equiv> PROP (P (=))"
+  apply (unfold is_equality_def)
+  apply (rule equal_intr_rule)
+   apply (drule meta_spec)
+   apply (erule meta_mp)
+   apply (rule refl)
+  apply simp
+  done
+
+lemma Domainp_lemma: "(\<And>R. Domainp T = R \<Longrightarrow> PROP (P R)) \<equiv> PROP (P (Domainp T))"
+  apply (rule equal_intr_rule)
+   apply (drule meta_spec)
+   apply (erule meta_mp)
+   apply (rule refl)
+  apply simp
+  done
 
 ML_file \<open>Tools/Transfer/transfer.ML\<close>
 declare refl [transfer_rule]
