@@ -15,25 +15,17 @@ end;
 structure Nat_Arith: NAT_ARITH =
 struct
 
-val add1 = @{lemma "(A::'a::comm_monoid_add) == k + a ==> A + b == k + (a + b)"
-      by (simp only: ac_simps)}
-val add2 = @{lemma "(B::'a::comm_monoid_add) == k + b ==> a + B == k + (a + b)"
-      by (simp only: ac_simps)}
-val suc1 = @{lemma "A == k + a ==> Suc A == k + Suc a"
-      by (simp only: add_Suc_right)}
-val rule0 = @{lemma "(a::'a::comm_monoid_add) == a + 0"
-      by (simp only: add_0_right)}
-
 val norm_rules = map mk_meta_eq @{thms add_0_left add_0_right}
 
 fun move_to_front ctxt path = Conv.every_conv
-    [Conv.rewr_conv (Library.foldl (op RS) (rule0, path)),
+    [Conv.rewr_conv (Library.foldl (op RS) (@{thm nat_arith.rule0}, path)),
      Conv.arg_conv (Raw_Simplifier.rewrite ctxt false norm_rules)]
 
 fun add_atoms path (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ x $ y) =
-      add_atoms (add1::path) x #> add_atoms (add2::path) y
+      add_atoms (@{thm nat_arith.add1}::path) x #>
+      add_atoms (@{thm nat_arith.add2}::path) y
   | add_atoms path (Const (\<^const_name>\<open>Nat.Suc\<close>, _) $ x) =
-      add_atoms (suc1::path) x
+      add_atoms (@{thm nat_arith.suc1}::path) x
   | add_atoms _ (Const (\<^const_name>\<open>Groups.zero\<close>, _)) = I
   | add_atoms path x = cons (x, path)
 

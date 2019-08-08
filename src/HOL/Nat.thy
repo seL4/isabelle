@@ -1887,6 +1887,23 @@ lemma subst_equals:
   shows "u = s"
   using assms(2,1) by (rule trans)
 
+locale nat_arith
+begin
+
+lemma add1: "(A::'a::comm_monoid_add) \<equiv> k + a \<Longrightarrow> A + b \<equiv> k + (a + b)"
+  by (simp only: ac_simps)
+
+lemma add2: "(B::'a::comm_monoid_add) \<equiv> k + b \<Longrightarrow> a + B \<equiv> k + (a + b)"
+  by (simp only: ac_simps)
+
+lemma suc1: "A == k + a \<Longrightarrow> Suc A \<equiv> k + Suc a"
+  by (simp only: add_Suc_right)
+
+lemma rule0: "(a::'a::comm_monoid_add) \<equiv> a + 0"
+  by (simp only: add_0_right)
+
+end
+
 ML_file \<open>Tools/nat_arith.ML\<close>
 
 simproc_setup nateq_cancel_sums

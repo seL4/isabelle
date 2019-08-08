@@ -18,30 +18,20 @@ end
 structure Group_Cancel: GROUP_CANCEL =
 struct
 
-val add1 = @{lemma "(A::'a::comm_monoid_add) == k + a ==> A + b == k + (a + b)"
-      by (simp only: ac_simps)}
-val add2 = @{lemma "(B::'a::comm_monoid_add) == k + b ==> a + B == k + (a + b)"
-      by (simp only: ac_simps)}
-val sub1 = @{lemma "(A::'a::ab_group_add) == k + a ==> A - b == k + (a - b)"
-      by (simp only: add_diff_eq)}
-val sub2 = @{lemma "(B::'a::ab_group_add) == k + b ==> a - B == - k + (a - b)"
-      by (simp only: minus_add diff_conv_add_uminus ac_simps)}
-val neg1 = @{lemma "(A::'a::ab_group_add) == k + a ==> - A == - k + - a"
-      by (simp only: minus_add_distrib)}
-val rule0 = @{lemma "(a::'a::comm_monoid_add) == a + 0"
-      by (simp only: add_0_right)}
 val minus_minus = mk_meta_eq @{thm minus_minus}
 
 fun move_to_front path = Conv.every_conv
-    [Conv.rewr_conv (Library.foldl (op RS) (rule0, path)),
+    [Conv.rewr_conv (Library.foldl (op RS) (@{thm group_cancel.rule0}, path)),
      Conv.arg1_conv (Conv.repeat_conv (Conv.rewr_conv minus_minus))]
 
 fun add_atoms pos path (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ x $ y) =
-      add_atoms pos (add1::path) x #> add_atoms pos (add2::path) y
+      add_atoms pos (@{thm group_cancel.add1}::path) x #>
+      add_atoms pos (@{thm group_cancel.add2}::path) y
   | add_atoms pos path (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ x $ y) =
-      add_atoms pos (sub1::path) x #> add_atoms (not pos) (sub2::path) y
+      add_atoms pos (@{thm group_cancel.sub1}::path) x #>
+      add_atoms (not pos) (@{thm group_cancel.sub2}::path) y
   | add_atoms pos path (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ x) =
-      add_atoms (not pos) (neg1::path) x
+      add_atoms (not pos) (@{thm group_cancel.neg1}::path) x
   | add_atoms _ _ (Const (\<^const_name>\<open>Groups.zero\<close>, _)) = I
   | add_atoms pos path x = cons ((pos, x), path)
 

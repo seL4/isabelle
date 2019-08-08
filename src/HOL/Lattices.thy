@@ -693,6 +693,29 @@ lemma inf_compl_bot_right [simp]: "inf x (inf y (- x)) = bot"
 
 end
 
+locale boolean_algebra_cancel
+begin
+
+lemma sup1: "(A::'a::semilattice_sup) \<equiv> sup k a \<Longrightarrow> sup A b \<equiv> sup k (sup a b)"
+  by (simp only: ac_simps)
+
+lemma sup2: "(B::'a::semilattice_sup) \<equiv> sup k b \<Longrightarrow> sup a B \<equiv> sup k (sup a b)"
+  by (simp only: ac_simps)
+
+lemma sup0: "(a::'a::bounded_semilattice_sup_bot) \<equiv> sup a bot"
+  by simp
+
+lemma inf1: "(A::'a::semilattice_inf) \<equiv> inf k a \<Longrightarrow> inf A b \<equiv> inf k (inf a b)"
+  by (simp only: ac_simps)
+
+lemma inf2: "(B::'a::semilattice_inf) \<equiv> inf k b \<Longrightarrow> inf a B \<equiv> inf k (inf a b)"
+  by (simp only: ac_simps)
+
+lemma inf0: "(a::'a::bounded_semilattice_inf_top) \<equiv> inf a top"
+  by simp
+
+end
+
 ML_file \<open>Tools/boolean_algebra_cancel.ML\<close>
 
 simproc_setup boolean_algebra_cancel_sup ("sup a b::'a::boolean_algebra") =

@@ -993,6 +993,29 @@ lemma diff_strict_right_mono: "a < b \<Longrightarrow> a - c < b - c"
 
 end
 
+locale group_cancel
+begin
+
+lemma add1: "(A::'a::comm_monoid_add) \<equiv> k + a \<Longrightarrow> A + b \<equiv> k + (a + b)"
+  by (simp only: ac_simps)
+
+lemma add2: "(B::'a::comm_monoid_add) \<equiv> k + b \<Longrightarrow> a + B \<equiv> k + (a + b)"
+  by (simp only: ac_simps)
+
+lemma sub1: "(A::'a::ab_group_add) \<equiv> k + a \<Longrightarrow> A - b \<equiv> k + (a - b)"
+  by (simp only: add_diff_eq)
+
+lemma sub2: "(B::'a::ab_group_add) \<equiv> k + b \<Longrightarrow> a - B \<equiv> - k + (a - b)"
+  by (simp only: minus_add diff_conv_add_uminus ac_simps)
+
+lemma neg1: "(A::'a::ab_group_add) \<equiv> k + a \<Longrightarrow> - A \<equiv> - k + - a"
+  by (simp only: minus_add_distrib)
+
+lemma rule0: "(a::'a::comm_monoid_add) \<equiv> a + 0"
+  by (simp only: add_0_right)
+
+end
+
 ML_file \<open>Tools/group_cancel.ML\<close>
 
 simproc_setup group_cancel_add ("a + b::'a::ab_group_add") =
