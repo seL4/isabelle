@@ -144,8 +144,9 @@ fun metis_call type_enc lam_trans =
 exception METIS_UNPROVABLE of unit
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
+fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
+      val type_enc :: fallback_type_encs = type_encs
       val new_skolem =
         Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
       val do_lams =
