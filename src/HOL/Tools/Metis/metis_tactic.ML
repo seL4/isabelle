@@ -49,13 +49,13 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
 fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
   (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
     Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ t =>
-    let
-      val ct = Thm.cterm_of ctxt t
-      val cT = Thm.ctyp_of_cterm ct
-    in refl |> Thm.instantiate' [SOME cT] [SOME ct] end
+      let
+        val ct = Thm.cterm_of ctxt t
+        val cT = Thm.ctyp_of_cterm ct
+      in refl |> Thm.instantiate' [SOME cT] [SOME ct] end
   | Const (\<^const_name>\<open>disj\<close>, _) $ t1 $ t2 =>
-    (if can HOLogic.dest_not t1 then t2 else t1)
-    |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
+      (if can HOLogic.dest_not t1 then t2 else t1)
+      |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
   | _ => raise Fail "expected reflexive or trivial clause")
   |> Meson.make_meta_clause ctxt
 
@@ -64,7 +64,10 @@ fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
     val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN resolve_tac ctxt [refl] 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
-  in Goal.prove_internal ctxt [] ct (K tac) |> Meson.make_meta_clause ctxt end
+  in
+    Goal.prove_internal ctxt [] ct (K tac)
+    |> Meson.make_meta_clause ctxt
+  end
 
 fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
   | add_vars_and_frees (Abs (_, _, t)) = add_vars_and_frees t
@@ -73,27 +76,24 @@ fun add_vars_and_frees (t $ u) = fold (add_vars_and_frees) [t, u]
   | add_vars_and_frees _ = I
 
 fun introduce_lam_wrappers ctxt th =
-  if Meson_Clausify.is_quasi_lambda_free (Thm.prop_of th) then
-    th
+  if Meson_Clausify.is_quasi_lambda_free (Thm.prop_of th) then th
   else
     let
       fun conv first ctxt ct =
-        if Meson_Clausify.is_quasi_lambda_free (Thm.term_of ct) then
-          Thm.reflexive ct
+        if Meson_Clausify.is_quasi_lambda_free (Thm.term_of ct) then Thm.reflexive ct
         else
           (case Thm.term_of ct of
             Abs (_, _, u) =>
-            if first then
-              (case add_vars_and_frees u [] of
-                [] =>
-                Conv.abs_conv (conv false o snd) ctxt ct
-                |> (fn th => Meson.first_order_resolve ctxt th @{thm Metis.eq_lambdaI})
-              | v :: _ =>
-                Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
-                |> Thm.cterm_of ctxt
-                |> Conv.comb_conv (conv true ctxt))
-            else
-              Conv.abs_conv (conv false o snd) ctxt ct
+              if first then
+                (case add_vars_and_frees u [] of
+                  [] =>
+                  Conv.abs_conv (conv false o snd) ctxt ct
+                  |> (fn th => Meson.first_order_resolve ctxt th @{thm Metis.eq_lambdaI})
+                | v :: _ =>
+                    Abs (Name.uu, fastype_of v, abstract_over (v, Thm.term_of ct)) $ v
+                    |> Thm.cterm_of ctxt
+                    |> Conv.comb_conv (conv true ctxt))
+              else Conv.abs_conv (conv false o snd) ctxt ct
           | Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _ => Thm.reflexive ct
           | _ => Conv.comb_conv (conv true ctxt) ct)
       val eq_th = conv true ctxt (Thm.cprop_of th)
@@ -145,94 +145,98 @@ exception METIS_UNPROVABLE of unit
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
-  let val thy = Proof_Context.theory_of ctxt
-      val type_enc :: fallback_type_encs = type_encs
-      val new_skolem =
-        Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
-      val do_lams =
-        (lam_trans = liftingN orelse lam_trans = lam_liftingN)
-        ? introduce_lam_wrappers ctxt
-      val th_cls_pairs =
-        map2 (fn j => fn th =>
-                (Thm.get_name_hint th,
-                 th |> Drule.eta_contraction_rule
-                    |> Meson_Clausify.cnf_axiom ctxt new_skolem (lam_trans = combsN) j
-                    ||> map do_lams))
-             (0 upto length ths0 - 1) ths0
-      val ths = maps (snd o snd) th_cls_pairs
-      val dischargers = map (fst o snd) th_cls_pairs
-      val cls = cls |> map (Drule.eta_contraction_rule #> do_lams)
-      val _ = trace_msg ctxt (K "FOL_SOLVE: CONJECTURE CLAUSES")
-      val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) cls
-      val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
-      val type_enc = type_enc_of_string Strict type_enc
-      val (sym_tab, axioms, ord_info, concealed) =
-        generate_metis_problem ctxt type_enc lam_trans cls ths
-      fun get_isa_thm mth Isa_Reflexive_or_Trivial =
+  let
+    val thy = Proof_Context.theory_of ctxt
+
+    val new_skolem = Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
+    val do_lams =
+      (lam_trans = liftingN orelse lam_trans = lam_liftingN) ? introduce_lam_wrappers ctxt
+    val th_cls_pairs =
+      map2 (fn j => fn th =>
+        (Thm.get_name_hint th,
+          th
+          |> Drule.eta_contraction_rule
+          |> Meson_Clausify.cnf_axiom ctxt new_skolem (lam_trans = combsN) j
+          ||> map do_lams))
+        (0 upto length ths0 - 1) ths0
+    val ths = maps (snd o snd) th_cls_pairs
+    val dischargers = map (fst o snd) th_cls_pairs
+    val cls = cls |> map (Drule.eta_contraction_rule #> do_lams)
+    val _ = trace_msg ctxt (K "FOL_SOLVE: CONJECTURE CLAUSES")
+    val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) cls
+
+    val type_enc :: fallback_type_encs = type_encs
+    val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
+    val type_enc = type_enc_of_string Strict type_enc
+
+    val (sym_tab, axioms, ord_info, concealed) =
+      generate_metis_problem ctxt type_enc lam_trans cls ths
+    fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth
-        | get_isa_thm mth Isa_Lambda_Lifted =
+      | get_isa_thm mth Isa_Lambda_Lifted =
           lam_lifted_of_metis ctxt type_enc sym_tab concealed mth
-        | get_isa_thm _ (Isa_Raw ith) = ith
-      val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
-      val _ = trace_msg ctxt (K "ISABELLE CLAUSES")
-      val _ = List.app (fn (_, ith) => trace_msg ctxt (fn () => Thm.string_of_thm ctxt ith)) axioms
-      val _ = trace_msg ctxt (K "METIS CLAUSES")
-      val _ = List.app (fn (mth, _) => trace_msg ctxt (fn () => Metis_Thm.toString mth)) axioms
-      val _ = trace_msg ctxt (K "START METIS PROVE PROCESS")
-      val ordering =
-        if Config.get ctxt advisory_simp then
-          kbo_advisory_simp_ordering (ord_info ())
-        else
-          Metis_KnuthBendixOrder.default
+      | get_isa_thm _ (Isa_Raw ith) = ith
+    val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+    val _ = trace_msg ctxt (K "ISABELLE CLAUSES")
+    val _ = List.app (fn (_, ith) => trace_msg ctxt (fn () => Thm.string_of_thm ctxt ith)) axioms
+    val _ = trace_msg ctxt (K "METIS CLAUSES")
+    val _ = List.app (fn (mth, _) => trace_msg ctxt (fn () => Metis_Thm.toString mth)) axioms
+
+    val _ = trace_msg ctxt (K "START METIS PROVE PROCESS")
+    val ordering =
+      if Config.get ctxt advisory_simp
+      then kbo_advisory_simp_ordering (ord_info ())
+      else Metis_KnuthBendixOrder.default
+
     fun fall_back () =
       (verbose_warning ctxt
-           ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
+        ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
        FOL_SOLVE unused fallback_type_encs lam_trans ctxt cls ths0)
   in
     (case filter (fn t => Thm.prop_of t aconv \<^prop>\<open>False\<close>) cls of
-       false_th :: _ => [false_th RS @{thm FalseE}]
-     | [] =>
-     (case Metis_Resolution.loop (Metis_Resolution.new (resolution_params ordering)
-         {axioms = axioms |> map fst, conjecture = []}) of
-       Metis_Resolution.Contradiction mth =>
-       let
-         val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^ Metis_Thm.toString mth)
-         val ctxt' = fold Variable.declare_constraints (map Thm.prop_of cls) ctxt
-                      (*add constraints arising from converting goal to clause form*)
-         val proof = Metis_Proof.proof mth
-         val result = fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof axioms
-         val used = map_filter (used_axioms axioms) proof
-         val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
-         val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) used
-         val (used_th_cls_pairs, unused_th_cls_pairs) =
-           List.partition (have_common_thm ctxt used o snd o snd) th_cls_pairs
-         val unused_ths = maps (snd o snd) unused_th_cls_pairs
-         val unused_names = map fst unused_th_cls_pairs
-       in
-         unused := unused_ths;
-         if not (null unused_names) then
-           verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused_names)
-         else
-           ();
-         if not (null cls) andalso not (have_common_thm ctxt used cls) then
-           verbose_warning ctxt "The assumptions are inconsistent"
-         else
-           ();
-         (case result of
-           (_, ith) :: _ =>
-           (trace_msg ctxt (fn () => "Success: " ^ Thm.string_of_thm ctxt ith);
-            [discharge_skolem_premises ctxt dischargers ith])
-         | _ => (trace_msg ctxt (K "Metis: No result"); []))
-       end
-     | Metis_Resolution.Satisfiable _ =>
-       (trace_msg ctxt (K "Metis: No first-order proof with the supplied lemmas");
-        raise METIS_UNPROVABLE ()))
-    handle METIS_UNPROVABLE () => if null fallback_type_encs then [] else fall_back ()
-         | METIS_RECONSTRUCT (loc, msg) =>
-           if null fallback_type_encs then
-             (verbose_warning ctxt ("Failed to replay Metis proof\n" ^ loc ^ ": " ^ msg); [])
-           else
-             fall_back ())
+      false_th :: _ => [false_th RS @{thm FalseE}]
+    | [] =>
+        (case Metis_Resolution.loop (Metis_Resolution.new (resolution_params ordering)
+            {axioms = axioms |> map fst, conjecture = []}) of
+          Metis_Resolution.Contradiction mth =>
+          let
+            val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^ Metis_Thm.toString mth)
+            val ctxt' = fold Variable.declare_constraints (map Thm.prop_of cls) ctxt
+              (*add constraints arising from converting goal to clause form*)
+            val proof = Metis_Proof.proof mth
+            val result = fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof axioms
+            val used = map_filter (used_axioms axioms) proof
+            val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
+            val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) used
+            val (used_th_cls_pairs, unused_th_cls_pairs) =
+              List.partition (have_common_thm ctxt used o snd o snd) th_cls_pairs
+            val unused_ths = maps (snd o snd) unused_th_cls_pairs
+            val unused_names = map fst unused_th_cls_pairs
+
+            val _ = unused := unused_ths;
+            val _ =
+              if not (null unused_names) then
+                verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused_names)
+              else ();
+            val _ =
+              if not (null cls) andalso not (have_common_thm ctxt used cls) then
+                verbose_warning ctxt "The assumptions are inconsistent"
+              else ();
+          in
+            (case result of
+              (_, ith) :: _ =>
+                (trace_msg ctxt (fn () => "Success: " ^ Thm.string_of_thm ctxt ith);
+                  [discharge_skolem_premises ctxt dischargers ith])
+            | _ => (trace_msg ctxt (K "Metis: No result"); []))
+          end
+        | Metis_Resolution.Satisfiable _ =>
+            (trace_msg ctxt (K "Metis: No first-order proof with the supplied lemmas");
+              raise METIS_UNPROVABLE ()))
+        handle METIS_UNPROVABLE () => if null fallback_type_encs then [] else fall_back ()
+          | METIS_RECONSTRUCT (loc, msg) =>
+              if null fallback_type_encs then
+                (verbose_warning ctxt ("Failed to replay Metis proof\n" ^ loc ^ ": " ^ msg); [])
+              else fall_back ())
   end
 
 fun neg_clausify ctxt combinators =
