@@ -300,7 +300,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by (drule notE) (rule refl)}
 
-val refl_x = Thm.cterm_of \<^context> (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
+val [refl_x] = Term.add_vars (Thm.prop_of REFL_THM) [];
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
 fun refl_inference ctxt type_enc concealed sym_tab t =
@@ -308,7 +308,7 @@ fun refl_inference ctxt type_enc concealed sym_tab t =
     val i_t = singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) t
     val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
     val c_t = cterm_incr_types ctxt refl_idx i_t
-  in infer_instantiate_types ctxt [(dest_Var (Thm.term_of refl_x), c_t)] REFL_THM end
+  in infer_instantiate_types ctxt [(refl_x, c_t)] REFL_THM end
 
 (* INFERENCE RULE: EQUALITY *)
 
