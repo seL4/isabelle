@@ -1794,7 +1794,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
-      | mk_cnstrts _ _ _ _ _ = error "reconstruct_proof: minimal proof object"
+      | mk_cnstrts _ _ _ _ MinProof = error "reconstruct_proof: minimal proof object"
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
 
