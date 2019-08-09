@@ -90,7 +90,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
 
     fun afterqed [[proof]] lthy =
       let
-        val result = cont lthy (Thm.close_derivation proof)
+        val result = cont lthy (Thm.close_derivation \<^here> proof)
         val FunctionResult {fs, R, dom, psimps, simple_pinducts,
                 termination, domintros, cases, ...} = result
 
@@ -185,7 +185,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
     val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     fun afterqed [[totality]] lthy =
       let
-        val totality = Thm.close_derivation totality
+        val totality = Thm.close_derivation \<^here> totality
         val remove_domain_condition =
           full_simplify (put_simpset HOL_basic_ss lthy
             addsimps [totality, @{thm True_implies_equals}])

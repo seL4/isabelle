@@ -76,7 +76,7 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
     fun proves goals = goals
       |> Logic.mk_conjunction_balanced
       |> prove
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
       |> Conjunction.elim_balanced (length goals)
       |> map Simpdata.mk_eq;
   in

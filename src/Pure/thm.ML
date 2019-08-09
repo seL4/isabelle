@@ -106,8 +106,8 @@ sig
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
-  val name_derivation: string -> thm -> thm
-  val close_derivation: thm -> thm
+  val name_derivation: string * Position.T -> thm -> thm
+  val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
@@ -1000,7 +1000,7 @@ fun derivation_closed (Thm (Deriv {body, ...}, _)) =
 fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
   Proofterm.get_name shyps hyps prop (Proofterm.proof_of body);
 
-fun name_derivation name =
+fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>
     let
       val thy = theory_of_thm thm;
@@ -1013,13 +1013,14 @@ fun name_derivation name =
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (pthm, proof) =
-        Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy) name shyps hyps prop ps body;
+        Proofterm.thm_proof thy (classrel_proof thy) (arity_proof thy)
+          name_pos shyps hyps prop ps body;
       val der' = make_deriv [] [] [pthm] proof;
     in Thm (der', args) end);
 
-val close_derivation =
+fun close_derivation pos =
   solve_constraints #> (fn thm =>
-    if derivation_closed thm then thm else name_derivation "" thm);
+    if derivation_closed thm then thm else name_derivation ("", pos) thm);
 
 val trim_context = solve_constraints #> trim_context_thm;
 
@@ -1688,7 +1689,8 @@ val unconstrainT =
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (pthm, proof) =
-        Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy) shyps prop ps body;
+        Proofterm.unconstrain_thm_proof thy (classrel_proof thy) (arity_proof thy)
+          shyps prop ps body;
       val der' = make_deriv [] [] [pthm] proof;
       val prop' = Proofterm.thm_node_prop (#2 pthm);
     in
@@ -2207,7 +2209,7 @@ fun complete_classrels thy =
               |> (map_classrels o Symreltab.update) ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
                 |> standard_tvars
-                |> close_derivation
+                |> close_derivation \<^here>
                 |> trim_context));
 
         val proven = is_classrel thy1;
@@ -2240,7 +2242,7 @@ fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, ar
             val th1 =
               (th RS the_classrel thy (c, c1))
               |> standard_tvars
-              |> close_derivation
+              |> close_derivation \<^here>
               |> trim_context;
           in SOME ((t, Ss, c1), (th1, thy_name, ser)) end);
     val finished' = finished andalso null completions;

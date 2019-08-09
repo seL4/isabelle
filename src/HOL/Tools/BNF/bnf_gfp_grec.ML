@@ -881,7 +881,7 @@ fun derive_sig_transfer maybe_swap ctxt live_AsBs pre_rel sig_rel Rs R const pre
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_sig_transfer_tac ctxt pre_rel_def preT_rel_eqs transfer_thm))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_transfer_by_transfer_prover ctxt live_AsBs Rs R const const_defs rel_eqs transfers =
@@ -893,7 +893,7 @@ fun derive_transfer_by_transfer_prover ctxt live_AsBs Rs R const const_defs rel_
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt (const_defs @ map (fn thm => thm RS sym) rel_eqs)
         rel_eqs transfers))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_dtor_transfer ctxt live_EsFs Y Z pre_rel fp_rel Rs dtor dtor_rel_thm =
@@ -911,7 +911,7 @@ fun derive_dtor_transfer ctxt live_EsFs Y Z pre_rel fp_rel Rs dtor dtor_rel_thm 
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_dtor_transfer_tac ctxt dtor_rel_thm))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_Lam_or_eval_core_transfer ctxt live_AsBs Y Z preT ssig_T Rs R pre_rel sig_or_ssig_rel
@@ -936,7 +936,7 @@ fun derive_Lam_or_eval_core_transfer ctxt live_AsBs Y Z preT ssig_T Rs R pre_rel
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [const_def] rel_eqs transfers))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_proto_sctr_transfer_step_or_merge ctxt Y Z R dead_pre_rel dead_sig_rel proto_sctr
@@ -949,7 +949,7 @@ fun derive_proto_sctr_transfer_step_or_merge ctxt Y Z R dead_pre_rel dead_sig_re
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [proto_sctr_def] fp_k_T_rel_eqs transfers))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_sctr_transfer ctxt live_AsBs Y Z ssig_T Rs R pre_rel ssig_rel sctr sctr_def
@@ -967,7 +967,7 @@ fun derive_sctr_transfer ctxt live_AsBs Y Z ssig_T Rs R pre_rel ssig_rel sctr sc
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [sctr_def] fp_k_T_rel_eqs transfers))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_corecUU_transfer ctxt live_AsBs Y Z Rs R preT ssig_T pre_rel fp_rel ssig_rel corecUU
@@ -993,7 +993,7 @@ fun derive_corecUU_transfer ctxt live_AsBs Y Z Rs R preT ssig_T pre_rel fp_rel s
     |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [cutSsig_def, corecU_def, corecUU_def] fp_k_T_rel_eqs
         transfers))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun mk_natural_goal ctxt simple_T_mapfs fs t u =
@@ -1021,7 +1021,7 @@ fun derive_natural_by_unfolding ctxt live_AsBs preT pre_map fs f const map_thms 
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_natural_by_unfolding_tac ctxt map_thms))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_natural_from_transfer ctxt live_AsBs simple_T_mapfs fs f const transfer bnfs subst_bnfs =
@@ -1035,7 +1035,7 @@ fun derive_natural_from_transfer ctxt live_AsBs simple_T_mapfs fs f const transf
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_natural_from_transfer_tac ctxt m (replicate m true) transfer [] (map rel_Grp_of_bnf bnfs)
         (map rel_Grp_of_bnf subst_bnfs)))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_natural_from_transfer_with_pre_type ctxt live_AsBs Y Z preT ssig_T pre_map ssig_map fs
@@ -1077,7 +1077,7 @@ fun derive_Lam_Inl_Inr ctxt Y Z preT old_sig_T old_ssig_T k_T ssig_T dead_pre_ma
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal
       (fn {context = ctxt, prems = _} => mk_Lam_Inl_Inr_tac ctxt unsig_thm Lam_def))
     |> Conjunction.elim_balanced (length goals)
-    |> map Thm.close_derivation
+    |> map (Thm.close_derivation \<^here>)
   end;
 
 fun derive_flat_VLeaf ctxt Y Z ssig_T x VLeaf dead_ssig_map flat ssig_induct fp_map_id sig_map_cong
@@ -1095,7 +1095,7 @@ fun derive_flat_VLeaf ctxt Y Z ssig_T x VLeaf dead_ssig_map flat ssig_induct fp_
       mk_flat_VLeaf_or_flat_tac ctxt ssig_induct' sig_map_cong
         (fp_map_id :: sig_map_ident :: sig_map_comp :: ssig_map_thms @ flat_simps @
          @{thms o_apply id_apply id_def[symmetric]})))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_flat_flat ctxt Y Z ssig_T x dead_ssig_map flat ssig_induct fp_map_id sig_map_cong
@@ -1116,7 +1116,7 @@ fun derive_flat_flat ctxt Y Z ssig_T x dead_ssig_map flat ssig_induct fp_map_id 
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_flat_VLeaf_or_flat_tac ctxt ssig_induct' sig_map_cong
         (o_apply :: fp_map_id :: sig_map_comp :: ssig_map_thms @ flat_simps)))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_core_flat ctxt Y Z preT ssig_T dead_pre_map dead_ssig_map flat eval_core x
@@ -1148,7 +1148,7 @@ fun derive_eval_core_flat ctxt Y Z preT ssig_T dead_pre_map dead_ssig_map flat e
       mk_eval_core_flat_tac ctxt ssig_induct' dead_pre_map_id dead_pre_map_comp0 dead_pre_map_comp
         fp_map_id sig_map_comp sig_map_cong ssig_map_thms ssig_map_comp flat_simps
         flat_pointful_natural flat_flat Lam_pointful_natural eval_core_simps))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_thm ctxt dtor_inject dtor_unfold_thm eval_def =
@@ -1177,7 +1177,7 @@ fun derive_eval_flat ctxt Y Z fpT ssig_T dead_ssig_map flat eval x dead_pre_map_
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_flat_tac ctxt dead_pre_map_comp0 ssig_map_id ssig_map_comp flat_pointful_natural
         eval_core_pointful_natural eval_core_flat eval_thm cond_eval_o_flat))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_Oper ctxt live Y Z fpT sig_T ssig_T dead_sig_map Oper eval algLam x sig_map_ident
@@ -1196,7 +1196,7 @@ fun derive_eval_Oper ctxt live Y Z fpT sig_T ssig_T dead_sig_map Oper eval algLa
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_Oper_tac ctxt live sig_map_ident sig_map_comp0 sig_map_comp Oper_natural_pointful
         VLeaf_natural flat_simps eval_flat algLam_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_V_or_CLeaf ctxt Y fpT V_or_CLeaf eval x dead_pre_map_id dead_pre_map_comp fp_map_id
@@ -1211,7 +1211,7 @@ fun derive_eval_V_or_CLeaf ctxt Y fpT V_or_CLeaf eval x dead_pre_map_id dead_pre
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_V_or_CLeaf_tac ctxt dead_pre_map_id dead_pre_map_comp fp_map_id dtor_unfold_unique
         V_or_CLeaf_map_thm eval_core_simps eval_thm))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_extdd_mor ctxt Y Z preT fpT ssig_T dead_pre_map dtor extdd cutSsig f g dead_pre_map_comp0
@@ -1235,7 +1235,7 @@ fun derive_extdd_mor ctxt Y Z preT fpT ssig_T dead_pre_map dtor extdd cutSsig f 
       mk_extdd_mor_tac ctxt dead_pre_map_comp0 dead_pre_map_comp VLeaf_map_thm ssig_map_comp
         flat_pointful_natural eval_core_pointful_natural eval_thm eval_flat eval_VLeaf cutSsig_def
         prem))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_mor_cutSsig_flat ctxt Y Z preT fpT ssig_T dead_pre_map dead_ssig_map dtor flat eval_core
@@ -1271,7 +1271,7 @@ fun derive_mor_cutSsig_flat ctxt Y Z preT fpT ssig_T dead_pre_map dead_ssig_map 
         dead_pre_map_cong dtor_unfold_unique dead_ssig_map_comp0 ssig_map_comp flat_simps
         flat_pointful_natural eval_core_pointful_natural flat_flat flat_VLeaf eval_core_flat
         cutSsig_def cutSsig_def_pointful_natural eval_thm prem))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_extdd_o_VLeaf ctxt Y Z preT fpT ssig_T dead_pre_map dtor VLeaf extdd f g
@@ -1295,7 +1295,7 @@ fun derive_extdd_o_VLeaf ctxt Y Z preT fpT ssig_T dead_pre_map dtor VLeaf extdd 
     |> (fn vars => Goal.prove_sorry ctxt vars [prem] goal (fn {context = ctxt, prems = [prem]} =>
       mk_extdd_o_VLeaf_tac ctxt dead_pre_map_comp0 dead_pre_map_comp dtor_inject ssig_map_thms
         eval_core_simps eval_thm eval_VLeaf prem))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_corecU_pointfree ctxt Y Z preT fpT ssig_T dead_pre_map dtor extdd corecU g
@@ -1318,7 +1318,7 @@ fun derive_corecU_pointfree ctxt Y Z preT fpT ssig_T dead_pre_map dtor extdd cor
       mk_corecU_pointfree_tac ctxt dead_pre_map_comp dtor_unfold_thm ssig_map_thms
       dead_ssig_map_comp0 flat_simps flat_VLeaf eval_core_simps cutSsig_def mor_cutSsig_flat
       corecU_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_corecU_ctor_unique ctxt Y Z preT fpT ssig_T dead_pre_map ctor dtor VLeaf extdd corecU f g
@@ -1386,7 +1386,7 @@ fun derive_dtor_algLam ctxt Y Z preT fpT sig_T ssig_T dead_pre_map dtor dead_sig
       mk_dtor_algLam_tac ctxt pre_map_comp dead_pre_map_id dead_pre_map_comp0 dead_pre_map_comp
         sig_map_comp Oper_pointful_natural ssig_map_thms dead_ssig_map_comp0 Lam_pointful_natural
         eval_core_simps eval_thm eval_flat eval_VLeaf algLam_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_algLam_base ctxt Y Z preT fpT dead_pre_map ctor dtor algLam proto_sctr dead_pre_map_id
@@ -1407,7 +1407,7 @@ fun derive_algLam_base ctxt Y Z preT fpT dead_pre_map ctor dtor algLam proto_sct
       mk_algLam_base_tac ctxt dead_pre_map_dtor dead_pre_map_id dead_pre_map_comp ctor_dtor
         dtor_ctor dtor_unfold_unique unsig_thm Sig_pointful_natural ssig_map_thms Lam_def flat_simps
         eval_core_simps eval_thm algLam_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_flat_embL ctxt Y Z old_ssig_T ssig_T dead_old_ssig_map embL old_flat flat x
@@ -1431,7 +1431,7 @@ fun derive_flat_embL ctxt Y Z old_ssig_T ssig_T dead_old_ssig_map embL old_flat 
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_flat_embL_tac ctxt old_ssig_induct' fp_map_id Sig_pointful_natural old_sig_map_comp
         old_sig_map_cong old_ssig_map_thms old_flat_simps flat_simps embL_simps))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_core_embL ctxt Y Z preT old_ssig_T ssig_T dead_pre_map embL old_eval_core eval_core
@@ -1457,7 +1457,7 @@ fun derive_eval_core_embL ctxt Y Z preT old_ssig_T ssig_T dead_pre_map embL old_
       mk_eval_core_embL_tac ctxt old_ssig_induct' dead_pre_map_comp0 dead_pre_map_comp
         Sig_pointful_natural unsig_thm old_sig_map_comp old_sig_map_cong old_Lam_pointful_natural
         Lam_def flat_embL old_eval_core_simps eval_core_simps embL_simps embL_pointful_natural))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_embL ctxt Y fpT embL old_eval eval dead_pre_map_comp0 dtor_unfold_unique
@@ -1470,7 +1470,7 @@ fun derive_eval_embL ctxt Y fpT embL old_eval eval dead_pre_map_comp0 dtor_unfol
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_embL_tac ctxt dead_pre_map_comp0 dtor_unfold_unique embL_pointful_natural
         eval_core_embL old_eval_thm eval_thm))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_algLam_algLam ctxt Inx_const Y fpT Sig old_algLam algLam dead_pre_map_comp dtor_inject
@@ -1486,7 +1486,7 @@ fun derive_algLam_algLam ctxt Inx_const Y fpT Sig old_algLam algLam dead_pre_map
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_algLam_algLam_tac ctxt dead_pre_map_comp dtor_inject unsig_thm sig_map_thm Lam_def
         eval_embL old_dtor_algLam dtor_algLam))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_core_k_as_ssig ctxt Y preT k_T rho eval_core k_as_ssig x pre_map_comp
@@ -1505,7 +1505,7 @@ fun derive_eval_core_k_as_ssig ctxt Y preT k_T rho eval_core k_as_ssig x pre_map
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_core_k_as_ssig_tac ctxt pre_map_comp dead_pre_map_id sig_map_comp ssig_map_thms
         Lam_natural_pointful Lam_Inr flat_VLeaf eval_core_simps))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_algLam_algrho ctxt Y fpT Sig algLam algrho algLam_def algrho_def =
@@ -1519,7 +1519,7 @@ fun derive_algLam_algrho ctxt Y fpT Sig algLam algrho algLam_def algrho_def =
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_algLam_algrho_tac ctxt algLam_def algrho_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_dtor_algrho ctxt Y Z preT fpT k_T ssig_T dead_pre_map dead_k_map dtor rho eval algrho x
@@ -1543,7 +1543,7 @@ fun derive_dtor_algrho ctxt Y Z preT fpT k_T ssig_T dead_pre_map dead_k_map dtor
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_dtor_algrho_tac ctxt eval_thm k_as_ssig_natural_pointful eval_core_k_as_ssig algrho_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_algLam_step_or_merge ctxt Y fpT ctor proto_sctr algLam proto_sctr_def old_algLam_pointful
@@ -1557,7 +1557,7 @@ fun derive_algLam_step_or_merge ctxt Y fpT ctor proto_sctr algLam proto_sctr_def
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_algLam_step_tac ctxt proto_sctr_def old_algLam_pointful algLam_algLam_pointful))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eval_sctr ctxt Y Z fpT ssig_T dead_pre_map ctor eval sctr proto_sctr_pointful_natural
@@ -1574,7 +1574,7 @@ fun derive_eval_sctr ctxt Y Z fpT ssig_T dead_pre_map ctor eval sctr proto_sctr_
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_eval_sctr_tac ctxt proto_sctr_pointful_natural eval_Oper algLam_thm sctr_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_corecUU_pointfree_unique ctxt Y Z preT fpT ssig_T dead_pre_map ctor dead_ssig_map eval
@@ -1609,7 +1609,7 @@ fun derive_corecUU_pointfree_unique ctxt Y Z preT fpT ssig_T dead_pre_map ctor d
           mk_corecUU_pointfree_tac ctxt dead_pre_map_comp0 dead_pre_map_comp dtor_ctor dtor_inject
             ssig_map_comp flat_pointful_natural eval_core_pointful_natural eval_thm eval_flat
             corecU_ctor sctr_pointful_natural eval_sctr_pointful corecUU_def))
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val corecUU_unique =
@@ -1623,7 +1623,7 @@ fun derive_corecUU_pointfree_unique ctxt Y Z preT fpT ssig_T dead_pre_map ctor d
                 mk_corecUU_unique_tac ctxt dead_pre_map_comp0 dead_pre_map_comp dtor_ctor
                   ssig_map_comp flat_pointful_natural eval_core_pointful_natural eval_thm eval_flat
                   corecU_unique sctr_pointful_natural eval_sctr_pointful corecUU_def prem))
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
   in
     (corecUU_pointfree, corecUU_unique)
@@ -1858,7 +1858,7 @@ fun derive_equivp_Retr ctxt fpT Retr R dead_pre_rel_refl_thm dead_pre_rel_flip_t
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_equivp_Retr_tac ctxt dead_pre_rel_refl_thm dead_pre_rel_flip_thm dead_pre_rel_mono_thm
         dead_pre_rel_compp_thm))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_Retr_coinduct ctxt fpT Retr R dtor_rel_coinduct_thm rel_eq_thm =
@@ -1868,7 +1868,7 @@ fun derive_Retr_coinduct ctxt fpT Retr R dtor_rel_coinduct_thm rel_eq_thm =
   in
     Goal.prove_sorry ctxt [] [] goal (fn {context = ctxt, prems = _} =>
       mk_Retr_coinduct_tac ctxt dtor_rel_coinduct_thm rel_eq_thm)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_Retr fp_sugar fpT dead_pre_bnf ctor dtor names_lthy lthy =
@@ -1904,7 +1904,7 @@ fun derive_cong_locale ctxt rel eval Retr0 tac =
   in
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} => tac ctxt))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_cong_general fp_b version fpT dead_ssig_bnf dead_pre_bnf eval Retr equivp_Retr

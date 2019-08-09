@@ -133,7 +133,7 @@ val lfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
     in
       Goal.prove lthy vars [] goal (fn {context = ctxt, prems = _} =>
         mk_lfp_rec_sugar_transfer_tac ctxt def)
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
     end);
 
 val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
@@ -162,7 +162,7 @@ val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
            (maps (#xtor_co_rec_transfers o #fp_res) fp_sugars)
            (map (rel_def_of_bnf o #pre_bnf) fp_sugars)
            disc_eq_cases case_thms case_distribs case_congs)
-       |> Thm.close_derivation
+       |> Thm.close_derivation \<^here>
      end);
 
 val _ = Theory.setup (lfp_rec_sugar_interpretation transfer_plugin

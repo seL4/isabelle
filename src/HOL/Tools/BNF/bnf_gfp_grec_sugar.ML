@@ -247,7 +247,7 @@ fun derive_case_dtor ctxt fpT_name =
   in
     Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_case_dtor_tac ctxt u abs_inverse dtor_ctor ctr_defs exhaust case_thms)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_case_trivial ctxt fpT_name =
@@ -269,7 +269,7 @@ fun derive_case_trivial ctxt fpT_name =
     Goal.prove_sorry ctxt [var_name] [] goal (fn {context = ctxt, prems = _} =>
       HEADGOAL (rtac ctxt exhaust') THEN ALLGOALS (hyp_subst_tac ctxt) THEN
       unfold_thms_tac ctxt case_thms THEN ALLGOALS (rtac ctxt refl))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun mk_abs_rep_transfers ctxt fpT_name =
@@ -351,7 +351,7 @@ fun derive_code ctxt inner_fp_simps goal
         live_nesting_map_ident0s fp_map_ident case_trivial ctr_defs case_eq_ifs corecUU_thm
         all_sig_map_thms ssig_map_thms all_algLam_alg_pointfuls (all_algrho_eqs_of ctxt) eval_simps
         inner_fp_simps fun_def))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_unique ctxt phi code_goal
@@ -410,7 +410,7 @@ fun derive_unique ctxt phi code_goal
         live_nesting_map_ident0s fp_map_ident case_trivial ctr_defs case_eq_ifs all_sig_map_thms
         ssig_map_thms all_algLam_alg_pointfuls (all_algrho_eqs_of ctxt) eval_simps corecUU_unique
         eq_corecUU)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_last_disc ctxt fcT_name =
@@ -428,7 +428,7 @@ fun derive_last_disc ctxt fcT_name =
   in
     Goal.prove_sorry ctxt [fst (dest_Free u)] [] goal (fn {context = ctxt, prems = _} =>
       mk_last_disc_tac ctxt u exhaust (flat disc_thmss))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_algLam_algs,
@@ -522,7 +522,7 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
           disc_sel_eq_cases case_dtor case_eq_ifs const_pointful_naturals
           fp_nesting_k_map_disc_sels' rho_def dtor_algrho corecUU_unique eq_corecUU all_sig_map_thms
           ssig_map_thms all_algLam_alg_pointfuls (all_algrho_eqs_of ctxt) eval_simps)
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
       handle e as ERROR _ =>
         (case filter (is_none o snd) (const_transfers ~~ const_pointful_natural_opts) of
           [] => Exn.reraise e
@@ -549,7 +549,7 @@ fun prime_rho_transfer_goal ctxt fpT_name rho_def goal =
       Variable.add_free_names ctxt goal []
       |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
         unfold_thms_tac ctxt simps THEN HEADGOAL (rtac ctxt rho_transfer')))
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
 
     val goal' = Raw_Simplifier.rewrite_term thy simps [] goal;
   in
@@ -567,7 +567,7 @@ fun derive_rho_transfer_folded ctxt fpT_name const_transfers rho_def goal =
       mk_rho_transfer_tac ctxt (null abs_rep_transfers) (rel_def_of_bnf pre_bnf)
       const_transfers))
     |> unfold_thms ctxt [rho_def RS @{thm symmetric}]
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong alg =
@@ -606,7 +606,7 @@ fun derive_cong_ctr_intros ctxt cong_ctor_intro =
       Variable.add_free_names ctxt goal []
       |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
         mk_cong_intro_ctr_or_friend_tac ctxt ctr_def [pre_rel_def, abs_inverse] cong_ctor_intro))
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
 
     val goals = map (mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong) ctrs;
   in
@@ -635,7 +635,7 @@ fun derive_cong_friend_intro ctxt cong_algrho_intro =
     Variable.add_free_names ctxt goal []
     |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_cong_intro_ctr_or_friend_tac ctxt eq_algrho [] cong_algrho_intro))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_cong_intros lthy ctr_names friend_names
@@ -1912,7 +1912,7 @@ fun derive_eq_corecUU ctxt {sig_fp_sugars, ssig_fp_sugar, eval, corecUU, eval_si
         live_nesting_map_ident0s fp_map_ident case_trivial ctr_defs case_eq_ifs all_sig_map_thms
         ssig_map_thms all_algLam_alg_pointfuls (all_algrho_eqs_of ctxt) eval_simps corecUU_unique
         fun_code)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 fun derive_coinduct_cong_intros
@@ -2167,7 +2167,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
       Variable.add_free_names ctxt goal []
       |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
         HEADGOAL (Transfer.transfer_prover_tac ctxt)))
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
 
     fun maybe_prove_transfer_goal ctxt goal =
       (case try (prove_transfer_goal ctxt) goal of

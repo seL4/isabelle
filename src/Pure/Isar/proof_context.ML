@@ -1074,27 +1074,29 @@ fun add_facts {index} arg ctxt = ctxt
 fun update_facts flags (b, SOME ths) ctxt = ctxt |> add_facts flags (b, Lazy.value ths) |> #2
   | update_facts _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b));
 
+fun bind_name ctxt b = (full_name ctxt b, Binding.default_pos_of b);
+
 in
 
 fun add_thms_lazy kind (b, ths) ctxt =
   let
-    val name = full_name ctxt b;
+    val name_pos = bind_name ctxt b;
     val ths' =
       Global_Theory.check_thms_lazy ths
       |> Lazy.map_finished
-          (Global_Theory.name_thms Global_Theory.unofficial1 name #> map (Thm.kind_rule kind));
+          (Global_Theory.name_thms Global_Theory.unofficial1 name_pos #> map (Thm.kind_rule kind));
     val (_, ctxt') = add_facts {index = is_stmt ctxt} (b, ths') ctxt;
   in ctxt' end;
 
 fun note_thms kind ((b, more_atts), facts) ctxt =
   let
-    val name = full_name ctxt b;
+    val (name, pos) = bind_name ctxt b;
     val facts' = facts
-      |> Global_Theory.burrow_fact (Global_Theory.name_thms Global_Theory.unofficial1 name);
+      |> Global_Theory.burrow_fact (Global_Theory.name_thms Global_Theory.unofficial1 (name, pos));
     fun app (ths, atts) =
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
     val (res, ctxt') = fold_map app facts' ctxt;
-    val thms = Global_Theory.name_thms Global_Theory.unofficial2 name (flat res);
+    val thms = Global_Theory.name_thms Global_Theory.unofficial2 (name, pos) (flat res);
     val (_, ctxt'') = ctxt' |> add_facts {index = is_stmt ctxt} (b, Lazy.value thms);
   in ((name, thms), ctxt'') end;
 

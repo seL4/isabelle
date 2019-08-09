@@ -557,7 +557,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
                 (fn {context = ctxt, prems = _} =>
                   mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
                     fp_nesting_pred_maps def_thms rec_thm)
-              |> Thm.close_derivation);
+              |> Thm.close_derivation \<^here>);
       in
         ((js, simps), lthy')
       end;

@@ -497,7 +497,7 @@ fun conclude_goal ctxt goal propss =
     fun err_lost () = error ("Lost goal structure:\n" ^ Thm.string_of_thm ctxt goal);
 
     val th =
-      (Goal.conclude (Thm.close_derivation goal) handle THM _ => err_lost ())
+      (Goal.conclude (Thm.close_derivation \<^here> goal) handle THM _ => err_lost ())
       |> Drule.flexflex_unique (SOME ctxt)
       |> Thm.check_shyps ctxt
       |> Thm.check_hyps (Context.Proof ctxt);

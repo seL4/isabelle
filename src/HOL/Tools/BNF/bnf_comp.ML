@@ -252,7 +252,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           mk_simplified_set_tac ctxt (collect_set_map_of_bnf outer);
         val set'_eq_set =
           Goal.prove (*no sorry*) names_lthy [] [] goal tac
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
         val set' = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of set'_eq_set)));
       in
         (set', set'_eq_set)
@@ -274,7 +274,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val goal = mk_Trueprop_mem (bd_bd', ordIso);
         in
           (bd', SOME (Goal.prove_sorry lthy [] [] goal (bd_ordIso_natLeq_tac o #context)
-            |> Thm.close_derivation))
+            |> Thm.close_derivation \<^here>))
         end
       else
         (bd, NONE);
@@ -308,7 +308,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           Goal.prove_sorry lthy [] [] goal
             (fn {context = ctxt, prems = _} =>
               mk_comp_set_alt_tac ctxt (collect_set_map_of_bnf outer))
-          |> Thm.close_derivation)
+          |> Thm.close_derivation \<^here>)
         (map2 (curry mk_Trueprop_eq) sets sets_alt);
 
     fun map_cong0_tac ctxt =
@@ -342,7 +342,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       in
         Goal.prove_sorry lthy [] [] goal
           (fn {context = ctxt, prems = _} => mk_comp_in_alt_tac ctxt set_alt_thms)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     fun le_rel_OO_tac ctxt = mk_le_rel_OO_tac ctxt (le_rel_OO_of_bnf outer) (rel_mono_of_bnf outer)
@@ -465,7 +465,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
-          kill_in_alt_tac ctxt) |> Thm.close_derivation
+          kill_in_alt_tac ctxt) |> Thm.close_derivation \<^here>
       end;
 
     fun le_rel_OO_tac ctxt =
@@ -579,7 +579,7 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} => lift_in_alt_tac ctxt)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     fun le_rel_OO_tac ctxt = rtac ctxt (le_rel_OO_of_bnf bnf) 1;
@@ -667,7 +667,7 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
       in
         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
           mk_permute_in_alt_tac ctxt src dest)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     fun le_rel_OO_tac ctxt = rtac ctxt (le_rel_OO_of_bnf bnf) 1;

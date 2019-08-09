@@ -136,7 +136,7 @@ fun future_result ctxt result prop =
         Thm.solve_constraints);
     val local_result =
       Thm.future global_result global_prop
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms
@@ -220,7 +220,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
           (Thm.term_of stmt);
   in
     res
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> Conjunction.elim_balanced (length props)
     |> map (Assumption.export false ctxt' ctxt)
     |> Variable.export ctxt' ctxt

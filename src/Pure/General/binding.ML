@@ -18,6 +18,7 @@ sig
   val set_pos: Position.T -> binding -> binding
   val reset_pos: binding -> binding
   val default_pos: binding -> binding
+  val default_pos_of: binding -> Position.T
   val name: bstring -> binding
   val name_of: binding -> bstring
   val map_name: (bstring -> bstring) -> binding -> binding
@@ -94,6 +95,10 @@ val reset_pos = set_pos Position.none;
 
 fun default_pos b =
   if pos_of b = Position.none then set_pos (Position.thread_data ()) b else b;
+
+fun default_pos_of b =
+  let val pos = pos_of b
+  in if pos = Position.none then Position.thread_data () else pos end;
 
 
 (* name *)

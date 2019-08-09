@@ -101,7 +101,7 @@ fun mk_curry_uncurryN_balanced_raw ctxt n =
         rtac ctxt refl);
   in
     Goal.prove_sorry ctxt [] [] goal (fn {context = ctxt, ...} => mk_tac ctxt)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 val num_curry_uncurryN_balanced_precomp = 8;
@@ -239,7 +239,7 @@ fun mk_pointful_natural_from_transfer ctxt transfer =
     Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_natural_from_transfer_tac ctxt m (replicate n true) transfer A_nesting_map_ids
         A_nesting_rel_Grps [])
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 type s_parse_info =

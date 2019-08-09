@@ -288,7 +288,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val f'_rsp = Goal.prove_sorry lthy3 [] [] f'_rsp_goal
               (fn {context = ctxt, prems = _} =>
                 HEADGOAL (CONVERSION (rel_eq_onps_conv) THEN' rtac ctxt rsp_norm))
-              |> Thm.close_derivation
+              |> Thm.close_derivation \<^here>
             val (f'_lift_def, lthy4) = add_lift_def ld_no_notes f'_var f'_qty rhs f'_rsp [] lthy3
             val f'_lift_def = inst_of_lift_def lthy4 f'_qty f'_lift_def
             val f'_lift_const = mk_lift_const_of_lift_def f'_qty f'_lift_def
@@ -306,7 +306,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val f_alt_def =
               Goal.prove_sorry transfer_ctxt [] [] f_alt_def_goal
                 (fn {context = goal_ctxt, ...} => HEADGOAL (f_alt_def_tac goal_ctxt))
-              |> Thm.close_derivation
+              |> Thm.close_derivation \<^here>
               |> singleton (Variable.export transfer_ctxt lthy4)
             val lthy5 = lthy4
               |> Local_Theory.note ((Binding.empty, @{attributes [code]}), [f_alt_def])
@@ -458,7 +458,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
     val quot_thm_isom =
       Goal.prove_sorry transfer_ctxt [] [] typedef_goal
         (fn {context = goal_ctxt, ...} => typ_isom_tac goal_ctxt 1)
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
       |> singleton (Variable.export transfer_ctxt lthy6)
       |> (fn thm => @{thm UNIV_typedef_to_Quotient} OF [thm, @{thm reflexive}])
     val qty_isom_name = Tname qty_isom;
@@ -540,7 +540,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
     val rep_isom_code =
       Goal.prove_sorry x_ctxt [] [] rep_isom_code_goal
         (fn {context = goal_ctxt, ...} => rep_isom_code_tac ctr_sugar goal_ctxt 1)
-      |> Thm.close_derivation
+      |> Thm.close_derivation \<^here>
       |> singleton(Variable.export x_ctxt lthy6)
   in
     lthy6

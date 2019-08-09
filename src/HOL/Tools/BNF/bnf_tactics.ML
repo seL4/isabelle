@@ -59,7 +59,7 @@ fun mk_pointfree2 ctxt thm = thm
     (K (rtac ctxt ext 1 THEN
         unfold_thms_tac ctxt ([o_apply, unfold_thms ctxt [o_apply] (mk_sym thm)]) THEN
         rtac ctxt refl 1)))
-  |> Thm.close_derivation;
+  |> Thm.close_derivation \<^here>;
 
 
 (* Theorems for open typedefs with UNIV as representing set *)

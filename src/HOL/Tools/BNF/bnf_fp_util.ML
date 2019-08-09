@@ -567,7 +567,7 @@ fun mk_xtor_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's 
       (map2 (flip mk_leq) relphis pre_phis));
   in
     Goal.prove_sorry lthy (map (fst o dest_Free) (phis @ pre_phis)) prems concl tac
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
   end;
 
@@ -586,7 +586,7 @@ fun mk_xtor_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_f
       (HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj transfers));
   in
     Goal.prove_sorry lthy [] [] goal tac
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> split_conj_thm
   end;
 
@@ -796,7 +796,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_xtor_co_rec_id_tac ctxt xtor_un_fold_xtor_thms
             xtor_un_fold_unique xtor_un_folds map_comps)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> split_conj_thm
       end;
 
@@ -825,7 +825,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
           |> (fn vars => Goal.prove_sorry lthy vars [] goal
             (fn {context = ctxt, prems = _} =>
               mk_xtor_co_rec_tac ctxt un_fold co_rec_defs co_rec_expand_thms))
-          |> Thm.close_derivation)
+          |> Thm.close_derivation \<^here>)
         goals xtor_un_folds
       end;
 
@@ -856,7 +856,7 @@ fun derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) pre_bnfs xtors0 un_folds0
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_xtor_co_rec_unique_tac ctxt fp co_rec_defs
             co_rec_expand'_thms xtor_un_fold_unique map_id0s sym_map_comp0s inverses)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val xtor_co_rec_o_map_thms = if forall is_none absT_info_opts

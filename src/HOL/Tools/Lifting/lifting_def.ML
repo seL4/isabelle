@@ -664,7 +664,7 @@ fun gen_lift_def add_lift_def var qty rhs tac par_thms lthy =
         let
           val rsp_thm =
             Goal.prove_sorry lthy [] [] goal (tac o #context)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
         in
           after_qed rsp_thm lthy
         end

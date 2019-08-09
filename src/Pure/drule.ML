@@ -256,7 +256,7 @@ val export_without_context_open =
 val export_without_context =
   flexflex_unique NONE
   #> export_without_context_open
-  #> Thm.close_derivation;
+  #> Thm.close_derivation \<^here>;
 
 
 (*Rotates a rule's premises to the left by k*)

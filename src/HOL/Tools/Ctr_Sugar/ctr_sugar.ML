@@ -731,7 +731,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           in
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
               mk_nchotomy_tac ctxt n exhaust_thm)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val case_thms =
@@ -743,7 +743,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
             @{map 4} (fn k => fn goal => fn injects => fn distinctss =>
                 Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                   mk_case_tac ctxt n k case_def injects distinctss)
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               ks goals inject_thmss distinct_thmsss
           end;
 
@@ -764,7 +764,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                mk_case_cong_tac ctxt uexhaust_thm case_thms),
              Goal.prove_sorry lthy weak_vars [] weak_goal (fn {context = ctxt, prems = _} =>
                etac ctxt arg_cong 1))
-            |> apply2 (Thm.close_derivation)
+            |> apply2 (Thm.close_derivation \<^here>)
           end;
 
         val split_lhs = q $ ufcase;
@@ -786,13 +786,13 @@ fun prepare_free_constructors kind prep_plugins prep_term
           Variable.add_free_names lthy goal []
           |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
             mk_split_tac ctxt uexhaust_thm case_thms selss inject_thmss distinct_thmsss))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         fun prove_split_asm asm_goal split_thm =
           Variable.add_free_names lthy asm_goal []
           |> (fn vars => Goal.prove_sorry lthy vars [] asm_goal (fn {context = ctxt, ...} =>
             mk_split_asm_tac ctxt split_thm))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         val (split_thm, split_asm_thm) =
           let
@@ -851,7 +851,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 in
                   Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                     mk_unique_disc_def_tac ctxt m uexhaust_thm)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               fun mk_alternate_disc_def k =
@@ -864,7 +864,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               val has_alternate_disc_def =
@@ -917,7 +917,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
                   fun prove tac goal =
                     Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} => tac ctxt)
-                    |> Thm.close_derivation;
+                    |> Thm.close_derivation \<^here>;
 
                   val half_pairss = mk_half_pairss (`I (ms ~~ discD_thms ~~ udiscs));
 
@@ -945,7 +945,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
                     mk_exhaust_disc_tac ctxt n exhaust_thm discI_thms)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               val (safe_collapse_thms, all_collapse_thms) =
@@ -962,7 +962,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                     @{map 5} (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
                         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                           mk_collapse_tac ctxt m discD sel_thms ORELSE HEADGOAL (assume_tac ctxt))
-                        |> Thm.close_derivation
+                        |> Thm.close_derivation \<^here>
                         |> not triv ? perhaps (try (fn thm => refl RS thm)))
                       ms discD_thms sel_thmss trivs goals;
                 in
@@ -980,7 +980,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
                     mk_exhaust_sel_tac ctxt n exhaust_disc_thm swapped_all_collapse_thms)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               val expand_thm =
@@ -1006,7 +1006,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                     mk_expand_tac ctxt n ms (inst_thm u exhaust_disc_thm)
                       (inst_thm v exhaust_disc_thm) uncollapse_thms distinct_disc_thmsss
                       distinct_disc_thmsss')
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               val (split_sel_thm, split_sel_asm_thm) =
@@ -1028,7 +1028,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 in
                   Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
                     mk_case_eq_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                 end;
 
               val disc_eq_case_thms =
@@ -1044,7 +1044,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   Goal.prove_sorry lthy vars [] goal
                     (fn {context = ctxt, ...} => mk_disc_eq_case_tac ctxt (Thm.cterm_of ctxt u)
                        exhaust_thm (flat nontriv_disc_thmss) distinct_thms case_thms)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                   |> Conjunction.elim_balanced (length goals)
                 end;
             in
@@ -1066,7 +1066,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
           in
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
               mk_case_distrib_tac ctxt (Thm.cterm_of ctxt u) exhaust_thm case_thms)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
@@ -1151,7 +1151,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
   end;
 
 fun free_constructors kind tacss = (fn (goalss, after_qed, lthy) =>
-  map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
+  map2 (map2 (Thm.close_derivation \<^here> oo Goal.prove_sorry lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors kind (K I) (K I);
 
 fun free_constructors_cmd kind = (fn (goalss, after_qed, lthy) =>

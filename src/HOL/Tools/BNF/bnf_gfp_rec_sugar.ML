@@ -1147,7 +1147,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
         tac_opt;
 
     val excludess'' = @{map 3} (fn tac_opt => fn sequential => map (fn (j, goal) =>
-          (j, (Option.map (Goal.prove (*no sorry*) lthy [] [] goal #> Thm.close_derivation)
+          (j, (Option.map (Goal.prove (*no sorry*) lthy [] [] goal #> Thm.close_derivation \<^here>)
              (exclude_tac tac_opt sequential j), goal))))
         tac_opts sequentials excludess'
       handle ERROR _ => use_primcorecursive ();
@@ -1183,12 +1183,12 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
               in
                 [Goal.prove (*no sorry*) lthy [] [] goal (fn {context = ctxt, ...} =>
                    mk_primcorec_nchotomy_tac ctxt (res_exhaust_discs @ arg_exhaust_discs))
-                 |> Thm.close_derivation]
+                 |> Thm.close_derivation \<^here>]
                 handle ERROR _ => use_primcorecursive ()
               end
             | false =>
               (case tac_opt of
-                SOME tac => [Goal.prove_sorry lthy [] [] goal tac |> Thm.close_derivation]
+                SOME tac => [Goal.prove_sorry lthy [] [] goal tac |> Thm.close_derivation \<^here>]
               | NONE => []))
         tac_opts corec_specs disc_eqnss nchotomy_goalss syntactic_exhaustives;
 
@@ -1232,7 +1232,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                     mk_primcorec_exhaust_tac ctxt
                       ("" (* for "P" *) :: map (fst o dest_Free) fun_args)
                       (length disc_eqns) nchotomy_thm)
-                 |> Thm.close_derivation])
+                 |> Thm.close_derivation \<^here>])
             disc_eqnss nchotomy_thmss;
         val nontriv_exhaust_thmss = map (filter_out is_trivial_implies) exhaust_thmss;
 
@@ -1266,7 +1266,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                 Goal.prove_sorry lthy [] [] goal
                   (fn {context = ctxt, prems = _} =>
                     mk_primcorec_disc_tac ctxt def_thms corec_disc k m excludesss)
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> pair (#disc (nth ctr_specs ctr_no))
                 |> pair eqn_pos
                 |> single
@@ -1299,7 +1299,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                 mk_primcorec_sel_tac ctxt def_thms distincts split_sels split_sel_asms
                   fp_nesting_maps fp_nesting_map_ident0s fp_nesting_map_comps corec_sel k m
                   excludesss)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
             |> `(is_some code_rhs_opt ? Local_Defs.fold lthy sel_defs) (*mildly too aggressive*)
             |> pair sel
             |> pair eqn_pos
@@ -1349,7 +1349,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                   (fn {context = ctxt, prems = _} =>
                     mk_primcorec_ctr_tac ctxt m collapse disc_thm_opt sel_thms)
                 |> is_some code_rhs_opt ? Local_Defs.fold lthy sel_defs (*mildly too aggressive*)
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> pair ctr
                 |> pair eqn_pos
                 |> single
@@ -1438,12 +1438,12 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                           mk_primcorec_raw_code_tac ctxt distincts discIs split_sels split_sel_asms
                             ms ctr_thms
                             (if exhaustive_code then try the_single nchotomys else NONE))
-                      |> Thm.close_derivation;
+                      |> Thm.close_derivation \<^here>;
                   in
                     Goal.prove_sorry lthy [] [] goal
                       (fn {context = ctxt, prems = _} =>
                         mk_primcorec_code_tac ctxt distincts split_sels raw_code_thm)
-                    |> Thm.close_derivation
+                    |> Thm.close_derivation \<^here>
                     |> single
                   end)
               end)
@@ -1473,7 +1473,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                 (fn {context = ctxt, prems = _} =>
                   mk_primcorec_disc_iff_tac ctxt (map (fst o dest_Free) exhaust_fun_args)
                     (the_single exhaust_thms) disc_thms disc_thmss' (flat distinct_discss))
-              |> Thm.close_derivation
+              |> Thm.close_derivation \<^here>
               |> fold (fn rule => perhaps (try (fn thm => Meson.first_order_resolve lthy thm rule)))
                 @{thms eqTrueE eq_False[THEN iffD1] notnotD}
               |> pair eqn_pos

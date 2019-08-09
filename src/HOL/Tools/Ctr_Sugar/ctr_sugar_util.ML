@@ -221,11 +221,13 @@ val unfold_thms = Local_Defs.unfold0;
 fun name_noted_thms _ _ [] = []
   | name_noted_thms qualifier base ((local_name, thms) :: noted) =
     if Long_Name.base_name local_name = base then
-      (local_name,
-       map_index (uncurry (fn j => Thm.name_derivation (Long_Name.append qualifier base ^
-         (if can the_single thms then "" else "_" ^ string_of_int (j + 1))))) thms) :: noted
-    else
-      ((local_name, thms) :: name_noted_thms qualifier base noted);
+      let
+        val thms' = thms |> map_index (uncurry (fn j =>
+          Thm.name_derivation
+            (((Long_Name.append qualifier base ^
+              (if can the_single thms then "" else "_" ^ string_of_int (j + 1))), Position.none))))
+      in (local_name, thms') :: noted end
+    else ((local_name, thms) :: name_noted_thms qualifier base noted);
 
 fun substitute_noted_thm noted =
   let val tab = fold (fold (Termtab.default o `Thm.full_prop_of) o snd) noted Termtab.empty in

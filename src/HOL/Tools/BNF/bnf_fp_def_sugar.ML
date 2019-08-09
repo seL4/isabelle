@@ -655,7 +655,7 @@ fun define_ctrs_dtrs_for_type fp_b_name fpT ctor dtor ctor_dtor dtor_ctor n ks a
         Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
           mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctor_absT, fpT])
             (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val ctr_rhss =
@@ -784,7 +784,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           mk_rel_case_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust injects
             rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
         |> singleton (Proof_Context.export names_lthy lthy)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     fun derive_case_transfer rel_case_thm =
@@ -797,7 +797,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
           mk_case_transfer_tac ctxt rel_case_thm case_thms)
         |> singleton (Proof_Context.export names_lthy lthy)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
   in
     if live = 0 then
@@ -877,7 +877,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_map_tac ctxt abs_inverses pre_map_def map_ctor_thm live_nesting_map_id0s ctr_defs'
                 extra_unfolds_map)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
             |> Conjunction.elim_balanced (length goals)
           end;
 
@@ -906,7 +906,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                   mk_set0_tac ctxt abs_inverses pre_set_defs dtor_ctor fp_set_thms
                     fp_nesting_set_maps live_nesting_set_maps ctr_defs' extra_unfolds_set)
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> Conjunction.elim_balanced (length goals)
               end
           end;
@@ -953,7 +953,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_rel_tac ctxt abs_inverses pre_rel_def rel_ctor_thm live_nesting_rel_eqs ctr_defs'
                 extra_unfolds_rel)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
             |> Conjunction.elim_balanced (length goals)
           end;
 
@@ -979,7 +979,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                    Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                      mk_rel_tac ctxt abs_inverses pre_rel_def rel_ctor_thm live_nesting_rel_eqs
                        ctr_defs' extra_unfolds_rel)
-                   |> Thm.close_derivation
+                   |> Thm.close_derivation \<^here>
                    |> Conjunction.elim_balanced (length goals)
                  end)
           end;
@@ -1012,7 +1012,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} =>
                  mk_ctr_transfer_tac ctxt rel_intro_thms live_nesting_rel_eqs)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
             |> Conjunction.elim_balanced (length goals)
           end;
 
@@ -1066,7 +1066,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 val thm =
                   Goal.prove_sorry lthy vars (flat premss) goal (fn {context = ctxt, prems} =>
                     mk_set_cases_tac ctxt (Thm.cterm_of ctxt ta) prems exhaust set_thms)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                   |> rotate_prems ~1;
 
                 val cases_set_attr =
@@ -1117,7 +1117,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                  in
                    Goal.prove_sorry lthy vars [] goal
                      (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
-                   |> Thm.close_derivation
+                   |> Thm.close_derivation \<^here>
                    |> Conjunction.elim_balanced (length goals)
                  end)
           end;
@@ -1150,7 +1150,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 mk_rel_sel_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust
                   (flat disc_thmss) (flat sel_thmss) rel_inject_thms distincts rel_distinct_thms
                   live_nesting_rel_eqs))
-              |> Thm.close_derivation;
+              |> Thm.close_derivation \<^here>;
           in
             map prove goals
           end;
@@ -1183,7 +1183,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   Goal.prove_sorry lthy vars [] goal
                     (fn {context = ctxt, prems = _} =>
                        mk_sel_transfer_tac ctxt n sel_defs case_transfer_thm)
-                  |> Thm.close_derivation
+                  |> Thm.close_derivation \<^here>
                   |> Conjunction.elim_balanced (length goals)
                 end
             end;
@@ -1201,7 +1201,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   (fn {context = ctxt, prems = _} => mk_disc_transfer_tac ctxt
                      (the_single rel_sel_thms) (the_single exhaust_discs)
                      (flat (flat distinct_discsss)))
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> Conjunction.elim_balanced (length goals)
               end
           end;
@@ -1230,7 +1230,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   (fn {context = ctxt, prems = _} =>
                      mk_map_disc_iff_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
                        map_thms)
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> Conjunction.elim_balanced (length goals)
               end
           end;
@@ -1270,7 +1270,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                      (fn {context = ctxt, prems = _} =>
                         mk_map_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
                           map_thms (flat sel_thmss) live_nesting_map_id0s)
-                   |> Thm.close_derivation
+                   |> Thm.close_derivation \<^here>
                    |> Conjunction.elim_balanced (length goals)
                  end)
           end;
@@ -1334,7 +1334,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                      (fn {context = ctxt, prems = _} =>
                         mk_set_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
                           (flat sel_thmss) set0_thms)
-                   |> Thm.close_derivation
+                   |> Thm.close_derivation \<^here>
                    |> Conjunction.elim_balanced (length goals)
                  end)
           end;
@@ -1744,7 +1744,7 @@ fun derive_rel_induct_thms_for_types ctxt nn fpA_Ts As Bs ctrAss ctrAs_Tsss exha
       Goal.prove_sorry ctxt vars prems goal (fn {context = ctxt, prems} =>
         mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (Thm.cterm_of ctxt) IRs) exhausts
           ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
   in
     (postproc_co_induct ctxt nn @{thm predicate2D} @{thm predicate2D_conj} rel_induct0_thm,
      mk_induct_attrs ctrAss)
@@ -1796,7 +1796,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
           Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, ...} =>
             mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' pre_abs_inverses
               abs_inverses fp_nesting_set_maps pre_set_defss)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         `(conj_dests nn) thm
       end;
@@ -1838,7 +1838,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
         fun prove goal tac =
           Goal.prove_sorry ctxt [] [] goal (tac o #context)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         map2 (map2 prove) goalss tacss
       end;
@@ -1947,7 +1947,7 @@ fun derive_rel_coinduct_thms_for_types ctxt nn fpA_Ts ns As Bs mss (ctr_sugars :
           (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
           (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
           rel_pre_defs abs_inverses live_nesting_rel_eqs)
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
   in
     (postproc_co_induct ctxt nn @{thm predicate2D} @{thm predicate2D_conj} rel_coinduct0_thm,
      mk_coinduct_attrs fpA_Ts (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss)
@@ -2028,7 +2028,7 @@ fun derive_set_induct_thms_for_types ctxt nn fpTs ctrss setss dtor_set_inducts e
             (fn {context = ctxt, prems} =>
                mk_set_induct0_tac ctxt (map (Thm.cterm_of ctxt'') Ps) prems dtor_set_inducts
                  exhausts set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         val case_names_attr = Attrib.case_names (quasi_unambiguous_case_names case_names);
         val induct_set_attrs = map (Attrib.internal o K o Induct.induct_pred o name_of_set) sets;
@@ -2115,7 +2115,7 @@ fun derive_coinduct_thms_for_types ctxt strong alter_r pre_bnfs dtor_coinduct dt
       |> (fn vars => Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, ...} =>
         mk_coinduct_tac ctxt live_nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs pre_abs_inverses
           abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss))
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
 
     val rel_eqs = map rel_eq_of_bnf pre_bnfs;
     val rel_monos = map rel_mono_of_bnf pre_bnfs;
@@ -2202,7 +2202,7 @@ fun derive_coinduct_corecs_thms_for_types ctxt pre_bnfs
 
         fun prove goal tac =
           Goal.prove_sorry ctxt [] [] goal (tac o #context)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         map2 (map2 prove) goalss tacss
         |> map (map (unfold_thms ctxt @{thms case_sum_if}))
@@ -2226,7 +2226,7 @@ fun derive_coinduct_corecs_thms_for_types ctxt pre_bnfs
         fun prove goal tac =
           Variable.add_free_names ctxt goal []
           |> (fn vars => Goal.prove_sorry ctxt vars [] goal (tac o #context))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         fun proves [_] [_] = []
           | proves goals tacs = map2 prove goals tacs;
@@ -2565,7 +2565,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              mk_rec_transfer_tac ctxt nn ns (map (Thm.cterm_of ctxt) Ss)
                (map (Thm.cterm_of ctxt) Rs) xsssss rec_defs xtor_co_rec_transfers pre_rel_defs
                live_nesting_rel_eqs)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> Conjunction.elim_balanced nn
       end;
 
@@ -2626,7 +2626,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                 Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                   mk_co_rec_o_map_tac ctxt rec_def pre_map_defs live_nesting_map_ident0s
                     abs_inverses ctor_rec_o_map)
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               rec_o_map_goals rec_defs xtor_co_rec_o_maps;
         in
           map single rec_o_map_thms
@@ -2717,7 +2717,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              mk_corec_transfer_tac ctxt (map (Thm.cterm_of ctxt) Ss) (map (Thm.cterm_of ctxt) Rs)
                type_definitions corec_defs xtor_co_rec_transfers pre_rel_defs
                live_nesting_rel_eqs (flat pgss) pss qssss gssss)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> Conjunction.elim_balanced (length goals)
       end;
 
@@ -2773,7 +2773,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                 Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                   mk_co_rec_o_map_tac ctxt corec_def pre_map_defs live_nesting_map_ident0s
                     abs_inverses dtor_map_o_corec)
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               map_o_corec_goals corec_defs xtor_co_rec_o_maps;
         in
           map single map_o_corec_thms

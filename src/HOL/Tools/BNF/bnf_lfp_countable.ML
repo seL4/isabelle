@@ -178,7 +178,7 @@ fun derive_encode_injectives_thms _ [] = []
           inj_map_strongs')
       |> HOLogic.conj_elims ctxt
       |> Proof_Context.export names_ctxt ctxt
-      |> map Thm.close_derivation
+      |> map (Thm.close_derivation \<^here>)
     end;
 
 fun get_countable_goal_type_name (\<^const>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>Ex\<close>, _)

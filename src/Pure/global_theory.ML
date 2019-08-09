@@ -20,15 +20,15 @@ sig
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
-  val name_multi: string -> 'a list -> (string * 'a) list
+  val name_multi: string * Position.T -> 'a list -> ((string * Position.T) * 'a) list
   type name_flags
   val unnamed: name_flags
   val official1: name_flags
   val official2: name_flags
   val unofficial1: name_flags
   val unofficial2: name_flags
-  val name_thm: name_flags -> string -> thm -> thm
-  val name_thms: name_flags -> string -> thm list -> thm list
+  val name_thm: name_flags -> string * Position.T -> thm -> thm
+  val name_thms: name_flags -> string * Position.T -> thm list -> thm list
   val check_thms_lazy: thm list lazy -> thm list lazy
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
@@ -122,35 +122,39 @@ val official2 = Name_Flags {pre = false, official = true};
 val unofficial1 = Name_Flags {pre = true, official = false};
 val unofficial2 = Name_Flags {pre = false, official = false};
 
-fun name_thm name_flags name =
+fun name_thm name_flags (name, pos) =
   Thm.solve_constraints #> (fn thm =>
     (case name_flags of
       No_Name_Flags => thm
     | Name_Flags {pre, official} =>
         thm
         |> (official andalso (not pre orelse Thm.derivation_name thm = "")) ?
-            Thm.name_derivation name
+            Thm.name_derivation (name, pos)
         |> (name <> "" andalso (not pre orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));
 
 end;
 
-fun name_multi name [x] = [(name, x)]
-  | name_multi "" xs = map (pair "") xs
-  | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
+fun name_multi (name, pos: Position.T) xs =
+  (case xs of
+    [x] => [((name, pos), x)]
+  | _ =>
+      if name = "" then map (pair ("", pos)) xs
+      else map_index (fn (i, x) => ((name ^ "_" ^ string_of_int (i + 1), pos), x)) xs);
 
-fun name_thms name_flags name thms =
-  map (uncurry (name_thm name_flags)) (name_multi name thms);
+fun name_thms name_flags name_pos thms =
+  map (uncurry (name_thm name_flags)) (name_multi name_pos thms);
 
 
 (* apply theorems and attributes *)
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
+fun bind_name thy b = (Sign.full_name thy b, Binding.default_pos_of b);
+
 fun add_facts (b, fact) thy =
   let
-    val full_name = Sign.full_name thy b;
-    val pos = Binding.pos_of b;
+    val (full_name, pos) = bind_name thy b;
     fun check fact =
       fact |> map_index (fn (i, thm) =>
         let
@@ -183,10 +187,10 @@ fun add_thms_lazy kind (b, thms) thy =
   if Binding.is_empty b then Thm.register_proofs (check_thms_lazy thms) thy
   else
     let
-      val name = Sign.full_name thy b;
+      val name_pos = bind_name thy b;
       val thms' =
         check_thms_lazy thms
-        |> Lazy.map_finished (name_thms official1 name #> map (Thm.kind_rule kind));
+        |> Lazy.map_finished (name_thms official1 name_pos #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
 val app_facts =
@@ -196,10 +200,10 @@ fun apply_facts name_flags1 name_flags2 (b, facts) thy =
   if Binding.is_empty b then app_facts facts thy |-> register_proofs
   else
     let
-      val name = Sign.full_name thy b;
+      val name_pos= bind_name thy b;
       val (thms', thy') = thy
-        |> app_facts (map (apfst (name_thms name_flags1 name)) facts)
-        |>> name_thms name_flags2 name |-> register_proofs;
+        |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
+        |>> name_thms name_flags2 name_pos |-> register_proofs;
       val thy'' = thy' |> add_facts (b, Lazy.value thms');
     in (map (Thm.transfer thy'') thms', thy'') end;
 

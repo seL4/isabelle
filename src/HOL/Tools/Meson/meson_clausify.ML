@@ -384,7 +384,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt2 ctxt0
              |> finish_cnf
-             |> map Thm.close_derivation)
+             |> map (Thm.close_derivation \<^here>))
   end
   handle THM _ => (NONE, [])
 

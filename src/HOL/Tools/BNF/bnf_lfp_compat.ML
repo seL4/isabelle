@@ -158,7 +158,7 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
 
     fun prove goal =
       Goal.prove_sorry ctxt [] [] goal (tac o #context)
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
   in
     map (map prove) goalss
   end;

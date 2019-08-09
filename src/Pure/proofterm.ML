@@ -11,7 +11,7 @@ sig
   type thm_node
   type proof_serial = int
   type thm_header =
-    {serial: proof_serial, name: string, prop: term, types: typ list option}
+    {serial: proof_serial, pos: Position.T, name: string, prop: term, types: typ list option}
   type thm_body
   datatype proof =
      MinProof
@@ -40,7 +40,7 @@ sig
   type oracle = string * term
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
-  val thm_header: proof_serial -> string -> term -> typ list option -> thm_header
+  val thm_header: proof_serial -> Position.T -> string -> term -> typ list option -> thm_header
   val thm_body: (proof -> proof) -> proof_body future -> thm_body
   val thm_body_proof_raw: thm_body -> proof
   val thm_body_proof_open: thm_body -> proof
@@ -165,8 +165,8 @@ sig
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
-    (string * class list list * class -> proof) -> string -> sort list -> term list -> term ->
-    (serial * proof_body future) list -> proof_body -> pthm * proof
+    (string * class list list * class -> proof) -> string * Position.T -> sort list ->
+    term list -> term -> (serial * proof_body future) list -> proof_body -> pthm * proof
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
@@ -181,7 +181,7 @@ struct
 type proof_serial = int;
 
 type thm_header =
-  {serial: proof_serial, name: string, prop: term, types: typ list option};
+  {serial: proof_serial, pos: Position.T, name: string, prop: term, types: typ list option};
 
 datatype proof =
    MinProof
@@ -213,8 +213,8 @@ val join_proof = Future.join #> proof_of;
 fun map_proof_of f (PBody {oracles, thms, proof}) =
   PBody {oracles = oracles, thms = thms, proof = f proof};
 
-fun thm_header serial name prop types : thm_header =
-  {serial = serial, name = name, prop = prop, types = types};
+fun thm_header serial pos name prop types : thm_header =
+  {serial = serial, pos = pos, name = name, prop = prop, types = types};
 
 fun thm_body open_proof body =
   Thm_Body {open_proof = open_proof, body = body};
@@ -369,9 +369,10 @@ fun proof prf = prf |> variant
   fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
   fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
-  fn PThm ({serial, name, prop, types}, Thm_Body {open_proof, body}) =>
-    ([int_atom serial, name], triple term (option (list typ)) proof_body
-      (prop, types, map_proof_of open_proof (Future.join body)))]
+  fn PThm ({serial, pos, name, prop, types}, Thm_Body {open_proof, body}) =>
+    ([int_atom serial, name],
+      pair properties (pair term (pair (option (list typ)) proof_body))
+        (Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
 and pthm (a, thm_node) =
@@ -404,8 +405,8 @@ fun proof prf = prf |> variant
   fn ([b], a) => OfClass (typ a, b),
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b], c) =>
-    let val (d, e, f) = triple term (option (list typ)) proof_body c
-    in PThm (thm_header (int_atom a) b d e, thm_body I (Future.value f)) end]
+    let val ((d, (e, (f, g)))) = pair properties (pair term (pair (option (list typ)) proof_body)) c
+    in PThm (thm_header (int_atom a) (Position.of_properties d) b e f, thm_body I (Future.value g)) end]
 and proof_body x =
   let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
@@ -479,8 +480,8 @@ fun map_proof_same term typ ofclass =
       | proof (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (typs Ts))
       | proof (OfClass T_c) = ofclass T_c
       | proof (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (typs Ts))
-      | proof (PThm ({serial, name, prop, types = SOME Ts}, thm_body)) =
-          PThm (thm_header serial name prop (SOME (typs Ts)), thm_body)
+      | proof (PThm ({serial, pos, name, prop, types = SOME Ts}, thm_body)) =
+          PThm (thm_header serial pos name prop (SOME (typs Ts)), thm_body)
       | proof _ = raise Same.SAME;
   in proof end;
 
@@ -519,8 +520,8 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_types types (PAxm (name, prop, _)) = PAxm (name, prop, types)
   | change_types (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_types types (Oracle (name, prop, _)) = Oracle (name, prop, types)
-  | change_types types (PThm ({serial, name, prop, ...}, thm_body)) =
-      PThm (thm_header serial name prop types, thm_body)
+  | change_types types (PThm ({serial, pos, name, prop, types = _}, thm_body)) =
+      PThm (thm_header serial pos name prop types, thm_body)
   | change_types _ prf = prf;
 
 
@@ -667,8 +668,8 @@ fun norm_proof env =
           OfClass (htypeT Envir.norm_type_same T, c)
       | norm (Oracle (s, prop, Ts)) =
           Oracle (s, prop, Same.map_option (htypeTs Envir.norm_types_same) Ts)
-      | norm (PThm ({serial = i, name = a, prop = t, types = Ts}, thm_body)) =
-          PThm (thm_header i a t (Same.map_option (htypeTs Envir.norm_types_same) Ts), thm_body)
+      | norm (PThm ({serial = i, pos = p, name = a, prop = t, types = Ts}, thm_body)) =
+          PThm (thm_header i p a t (Same.map_option (htypeTs Envir.norm_types_same) Ts), thm_body)
       | norm _ = raise Same.SAME;
   in Same.commit norm end;
 
@@ -992,8 +993,8 @@ fun lift_proof Bi inc prop prf =
           OfClass (Logic.incr_tvar_same inc T, c)
       | lift' _ _ (Oracle (s, prop, Ts)) =
           Oracle (s, prop, (Same.map_option o Same.map) (Logic.incr_tvar_same inc) Ts)
-      | lift' _ _ (PThm ({serial = i, name = s, prop, types = Ts}, thm_body)) =
-          PThm (thm_header i s prop ((Same.map_option o Same.map) (Logic.incr_tvar inc) Ts),
+      | lift' _ _ (PThm ({serial = i, pos = p, name = s, prop, types = Ts}, thm_body)) =
+          PThm (thm_header i p s prop ((Same.map_option o Same.map) (Logic.incr_tvar inc) Ts),
             thm_body)
       | lift' _ _ _ = raise Same.SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle Same.SAME => prf);
@@ -1423,8 +1424,8 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Same.map_option substTs Ts)
       | subst _ _ (OfClass (T, c)) = OfClass (substT T, c)
       | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Same.map_option substTs Ts)
-      | subst _ _ (PThm ({serial = i, name = id, prop, types}, thm_body)) =
-          PThm (thm_header i id prop (Same.map_option substTs types), thm_body)
+      | subst _ _ (PThm ({serial = i, pos = p, name = id, prop, types}, thm_body)) =
+          PThm (thm_header i p id prop (Same.map_option substTs types), thm_body)
       | subst _ _ _ = raise Same.SAME;
   in fn t => subst 0 0 t handle Same.SAME => t end;
 
@@ -2038,7 +2039,7 @@ fun prune proof =
   else proof;
 
 fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
-    name shyps hyps concl promises body =
+    (name, pos) shyps hyps concl promises body =
   let
     val named = name <> "";
 
@@ -2067,7 +2068,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
-        (PThm ({serial = i, name = a, prop = prop', types = NONE}, thm_body'), args') =>
+        (PThm ({serial = i, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
           if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
             let val Thm_Body {body = body', ...} = thm_body';
             in (i, body' |> (a = "" andalso named) ? Future.map (publish i)) end
@@ -2076,7 +2077,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val pthm = (i, make_thm_node name prop1 body');
 
-    val head = PThm (thm_header i name prop1 NONE, thm_body open_proof body');
+    val head = PThm (thm_header i pos name prop1 NONE, thm_body open_proof body');
     val proof =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
@@ -2090,7 +2091,8 @@ in
 val thm_proof = prepare_thm_proof false;
 
 fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises body =
-  prepare_thm_proof true thy classrel_proof arity_proof "" shyps [] concl promises body;
+  prepare_thm_proof true thy classrel_proof arity_proof ("", Position.none)
+    shyps [] concl promises body;
 
 end;
 

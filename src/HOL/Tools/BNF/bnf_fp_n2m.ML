@@ -36,7 +36,7 @@ fun mk_arg_cong ctxt n t =
   in
     Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       HEADGOAL (hyp_subst_tac ctxt THEN' rtac ctxt refl))
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
   end;
 
 val cacheN = "cache"
@@ -473,7 +473,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
         |> HOLogic.mk_Trueprop
         |> (fn goal => Goal.prove_sorry raw_lthy [] [] goal
           (fn {context = ctxt, prems = _} => mk_xtor_un_fold_tac ctxt n simps cache_defs))
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> Morphism.thm phi
         |> split_conj_thm
         |> map (fn thm => thm RS @{thm comp_eq_dest})
@@ -512,7 +512,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
         Goal.prove_sorry raw_lthy vars prems concl
           (mk_xtor_un_fold_unique_tac fp un_fold_defs map_arg_congs xtor_un_fold_o_maps
             Rep_o_Abss fp_un_fold_uniques simp_thms map_thms map_defs cache_defs)
-          |> Thm.close_derivation
+          |> Thm.close_derivation \<^here>
           |> case_fp fp I (fn thm => thm OF replicate n sym)
           |> Morphism.thm phi
       end;

@@ -67,7 +67,7 @@ fun prove_Quotient_map bnf ctxt =
   in
     Goal.prove_sorry ctxt'' [] [] goal
       (fn {context = goal_ctxt, ...} => Quotient_tac bnf goal_ctxt 1)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> singleton (Variable.export ctxt'' ctxt)
     |> Drule.zero_var_indexes
   end

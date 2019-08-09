@@ -57,7 +57,7 @@ local
     let
       (* should use "close_derivation" for thms that are used multiple times *)
       (* it seems to allow for sharing in explicit proof objects *)
-      val x' = Thm.close_derivation (k x)
+      val x' = Thm.close_derivation \<^here> (k x)
       val Lx = x' RS cont_L
     in (map (fn y => SOME (k y RS Lx)) ys, x') end
 

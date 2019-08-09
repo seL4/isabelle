@@ -1449,7 +1449,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
               mk_collect_set_map_tac ctxt (#set_map0 axioms))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val collect_set_map = Lazy.lazy mk_collect_set_map;
@@ -1464,7 +1464,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             Goal.prove_sorry lthy [] [] in_mono_goal (fn {context = ctxt, prems = _} =>
               mk_in_mono_tac ctxt live)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val in_mono = Lazy.lazy mk_in_mono;
@@ -1479,7 +1479,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             Goal.prove_sorry lthy [] [] in_cong_goal
               (fn {context = ctxt, prems = _} => (TRY o hyp_subst_tac ctxt THEN' rtac ctxt refl) 1)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val in_cong = Lazy.lazy mk_in_cong;
@@ -1501,7 +1501,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
               unfold_thms_tac ctxt @{thms simp_implies_def} THEN
               mk_map_cong_tac ctxt (#map_cong0 axioms))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val map_cong = Lazy.lazy (mk_map_cong Logic.mk_implies);
@@ -1516,7 +1516,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
               mk_inj_map_tac ctxt live (Lazy.force map_id) (Lazy.force map_comp) (#map_cong0 axioms)
                 (Lazy.force map_cong))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val inj_map = Lazy.lazy mk_inj_map;
@@ -1560,7 +1560,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 (Lazy.force map_comp) (Lazy.force map_id) (#map_cong0 axioms)
                 (map Lazy.force set_map) (#set_bd axioms) (#bd_card_order axioms)
                 bd_Card_order bd_Cinfinite bd_Cnotzero)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val in_bd = Lazy.lazy mk_in_bd;
@@ -1578,7 +1578,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fn {context = ctxt, prems = _} => mk_rel_Grp_tac ctxt rel_OO_Grps (#map_id0 axioms)
                 (#map_cong0 axioms) (Lazy.force map_id) (Lazy.force map_comp)
                 (map Lazy.force set_map))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_Grp = Lazy.lazy mk_rel_Grp;
@@ -1596,7 +1596,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
               (fn {context = ctxt, prems = _} =>
                 mk_rel_mono_tac ctxt rel_OO_Grps (Lazy.force in_mono))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         fun mk_rel_cong0 () =
@@ -1607,7 +1607,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
               (fn {context = ctxt, prems = _} => (TRY o hyp_subst_tac ctxt THEN' rtac ctxt refl) 1)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_mono = Lazy.lazy mk_rel_mono;
@@ -1619,7 +1619,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               HOLogic.eq_const CA'))
             (fn {context = ctxt, prems = _} =>
               mk_rel_eq_tac ctxt live (Lazy.force rel_Grp) (Lazy.force rel_cong0) (#map_id0 axioms))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         val rel_eq = Lazy.lazy mk_rel_eq;
 
@@ -1633,13 +1633,13 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fn {context = ctxt, prems = _} => mk_rel_conversep_le_tac ctxt rel_OO_Grps
                 (Lazy.force rel_eq) (#map_cong0 axioms) (Lazy.force map_comp)
                 (map Lazy.force set_map))
-              |> Thm.close_derivation
+              |> Thm.close_derivation \<^here>
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
               (fn {context = ctxt, prems = _} =>
                 mk_rel_conversep_tac ctxt le_thm (Lazy.force rel_mono))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_conversep = Lazy.lazy mk_rel_conversep;
@@ -1649,7 +1649,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             (fold_rev Logic.all (Rs @ Ss) (HOLogic.mk_Trueprop (mk_leq rel_OO_lhs rel_OO_rhs)))
             (fn {context = ctxt, prems = _} => mk_rel_OO_le_tac ctxt rel_OO_Grps (Lazy.force rel_eq)
               (#map_cong0 axioms) (Lazy.force map_comp) (map Lazy.force set_map))
-          |> Thm.close_derivation
+          |> Thm.close_derivation \<^here>
           |> (fn thm => @{thm antisym} OF [thm, #le_rel_OO axioms]);
 
         val rel_OO = Lazy.lazy mk_rel_OO;
@@ -1679,7 +1679,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fold_rev Logic.all (x :: y :: Rs @ Rs_copy) (Logic.list_implies (prems, concl)))
               (fn {context = ctxt, prems = _} => mk_rel_mono_strong0_tac ctxt (Lazy.force in_rel)
                 (map Lazy.force set_map))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_mono_strong0 = Lazy.lazy mk_rel_mono_strong0;
@@ -1704,7 +1704,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             |> (fn vars => Goal.prove_sorry lthy vars (prem0 :: prem1 :: prems) eq
               (fn {context = ctxt, prems} =>
                 mk_rel_cong_tac ctxt (chop 2 prems) (Lazy.force rel_mono_strong)))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_cong = Lazy.lazy (mk_rel_cong Logic.mk_implies);
@@ -1722,7 +1722,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Ps @ Ps_copy) (Logic.list_implies (cong_prems, cong_concl)))
               (fn {context = ctxt, prems = _} => (TRY o hyp_subst_tac ctxt THEN' rtac ctxt refl) 1)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_cong0 = Lazy.lazy mk_pred_cong0;
@@ -1735,7 +1735,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy (map fst Ps') [] (mk_Trueprop_eq (lhs, rhs))
               (fn {context = ctxt, prems = _} =>
                 mk_rel_eq_onp_tac ctxt (#pred_set axioms) (#map_id0 axioms) (Lazy.force rel_Grp))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_eq_onp = Lazy.lazy mk_rel_eq_onp;
@@ -1754,7 +1754,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fold_rev Logic.all (x :: Ps @ Ps_copy) (Logic.list_implies (prems, concl)))
               (fn {context = ctxt, prems = _} =>
                 mk_pred_mono_strong0_tac ctxt (Lazy.force pred_rel) (Lazy.force rel_mono_strong0))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_mono_strong0 = Lazy.lazy mk_pred_mono_strong0;
@@ -1770,7 +1770,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fold_rev Logic.all (Ps @ Ps_copy) (Logic.list_implies (mono_prems, mono_concl)))
               (fn {context = ctxt, prems = _} =>
                 mk_pred_mono_tac ctxt (Lazy.force rel_eq_onp) (Lazy.force rel_mono))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_mono = Lazy.lazy mk_pred_mono;
@@ -1790,7 +1790,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             |> (fn vars => Goal.prove_sorry lthy vars (prem0 :: prems) eq
               (fn {context = ctxt, prems} =>
                 mk_rel_cong_tac ctxt (chop 1 prems) (Lazy.force pred_mono_strong)))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_cong = Lazy.lazy (mk_pred_cong Logic.mk_implies);
@@ -1812,7 +1812,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               HEADGOAL (EVERY' [REPEAT_DETERM o etac ctxt conjE,
                 etac ctxt (Lazy.force map_cong) THEN_ALL_NEW
                   (etac ctxt @{thm bspec} THEN' assume_tac ctxt)]))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val map_cong_pred = Lazy.lazy mk_map_cong_pred;
@@ -1839,7 +1839,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                   (Lazy.force rel_Grp) (Lazy.force map_id)))
             |> map (unfold_thms lthy @{thms vimage2p_def[of id, simplified id_apply]
                  vimage2p_def[of _ id, simplified id_apply]})
-            |> map Thm.close_derivation
+            |> map (Thm.close_derivation \<^here>)
           end;
 
         val rel_map = Lazy.lazy mk_rel_map;
@@ -1869,7 +1869,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 unfold_thms_tac ctxt [prop_conv_thm] THEN
                 HEADGOAL (rtac ctxt (Lazy.force thm RS sym RS @{thm ord_eq_le_trans})
                   THEN' rtac ctxt (Lazy.force rel_mono) THEN_ALL_NEW assume_tac ctxt))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_reflp = Lazy.lazy (mk_rel_preserves mk_reflp @{thm reflp_eq} rel_eq);
@@ -1888,7 +1888,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                   Lazy.force rel_cong0 RS fun_cong RS fun_cong RS trans OF
                     replicate live @{thm eq_onp_True},
                   Lazy.force rel_eq RS fun_cong RS fun_cong RS trans, @{thm eqTrueI[OF refl]}])))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_True = Lazy.lazy mk_pred_True;
@@ -1907,7 +1907,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 unfold_thms_tac ctxt
                   (@{thms Ball_image_comp ball_empty} @ map Lazy.force set_map) THEN
                 HEADGOAL (rtac ctxt refl))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_map = Lazy.lazy mk_pred_map;
@@ -1926,7 +1926,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fn {context = ctxt, prems = _} => mk_map_transfer_tac ctxt (Lazy.force rel_mono)
                 (Lazy.force in_rel) (map Lazy.force set_map) (#map_cong0 axioms)
                 (Lazy.force map_comp))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val map_transfer = Lazy.lazy mk_map_transfer;
@@ -1943,7 +1943,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_pred_transfer_tac ctxt live (Lazy.force in_rel) (Lazy.force pred_map)
                 (Lazy.force pred_cong))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val pred_transfer = Lazy.lazy mk_pred_transfer;
@@ -1964,7 +1964,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fn {context = ctxt, prems = _} =>
                 mk_rel_transfer_tac ctxt (Lazy.force in_rel) (Lazy.force rel_map)
                   (Lazy.force rel_mono_strong))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val rel_transfer = Lazy.lazy mk_rel_transfer;
@@ -1985,7 +1985,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 Goal.prove_sorry lthy vars [] goal
                   (fn {context = ctxt, prems = _} =>
                      mk_set_transfer_tac ctxt (Lazy.force in_rel) (map Lazy.force set_map))
-                |> Thm.close_derivation
+                |> Thm.close_derivation \<^here>
                 |> Conjunction.elim_balanced (length goals)
               end
           end;
@@ -2011,7 +2011,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
               mk_inj_map_strong_tac ctxt (Lazy.force rel_eq) (Lazy.force rel_map)
                 (Lazy.force rel_mono_strong))
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val inj_map_strong = Lazy.lazy mk_inj_map_strong;
@@ -2074,12 +2074,12 @@ fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
         (fn {context = ctxt, prems = _} => mk_wits_tac ctxt set_maps)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
         |> (map o map) (Thm.forall_elim_vars 0);
   in
-    map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
+    map2 (Thm.close_derivation \<^here> oo Goal.prove_sorry lthy [] [])
       goals (map (fn tac => fn {context = ctxt, prems = _} =>
         unfold_thms_tac ctxt one_step_defs THEN tac ctxt) tacs)
     |> (fn thms => after_qed mk_wit_thms (map single thms) lthy)
@@ -2094,7 +2094,7 @@ fun bnf_cmd (raw_csts, raw_plugins) =
     fun mk_triv_wit_thms tac set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
         (fn {context = ctxt, prems = _} => TRYALL Goal.conjunction_tac THEN tac ctxt set_maps)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
         |> (map o map) (Thm.forall_elim_vars 0);

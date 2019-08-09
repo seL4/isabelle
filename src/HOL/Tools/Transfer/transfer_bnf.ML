@@ -93,7 +93,7 @@ fun prove_relation_side_constraint ctxt bnf constraint_def =
   in
     Goal.prove_sorry ctxt' [] [] goal (fn {context = goal_ctxt, ...} =>
       side_constraint_tac bnf [constraint_def] goal_ctxt 1)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> singleton (Variable.export ctxt' ctxt)
     |> Drule.zero_var_indexes
   end
@@ -104,7 +104,7 @@ fun prove_relation_bi_constraint ctxt bnf constraint_def side_constraints =
   in
     Goal.prove_sorry ctxt' [] [] goal (fn {context = goal_ctxt, ...} =>
       bi_constraint_tac constraint_def side_constraints goal_ctxt 1)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> singleton (Variable.export ctxt' ctxt)
     |> Drule.zero_var_indexes
   end
@@ -189,7 +189,7 @@ fun prove_Domainp_rel ctxt bnf pred_def =
   in
     Goal.prove_sorry ctxt'' [] [] goal (fn {context = goal_ctxt, ...} =>
       Domainp_tac bnf pred_def goal_ctxt 1)
-    |> Thm.close_derivation
+    |> Thm.close_derivation \<^here>
     |> singleton (Variable.export ctxt'' ctxt)
     |> Drule.zero_var_indexes
   end

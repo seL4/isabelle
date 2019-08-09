@@ -300,7 +300,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 mk_size_neq ctxt (map (Thm.cterm_of lthy2) xs)
                 (#exhaust (#ctr_sugar (#fp_ctr_sugar fp_sugar))) size_thms)
               |> single
-              |> map Thm.close_derivation;
+              |> map (Thm.close_derivation \<^here>);
           in thm end) fp_sugars overloaded_size_consts overloaded_size_simpss;
 
       val ABs = As ~~ Bs;
@@ -347,7 +347,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 @{map 3} (fn goal => fn size_def => fn rec_o_map =>
                     Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                       mk_size_gen_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
-                    |> Thm.close_derivation
+                    |> Thm.close_derivation \<^here>
                     |> single)
                   size_gen_o_map_goals size_defs rec_o_maps
               else

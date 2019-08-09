@@ -90,11 +90,6 @@ struct
 
 (** auxiliary **)
 
-(* close theorem for storage *)
-
-val close = Thm.trim_context o Thm.close_derivation;
-
-
 (* printing *)
 
 fun string_of_typ thy =
@@ -1012,13 +1007,13 @@ fun constrain_cert thy sorts (Nothing cert_thm) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
 
 fun conclude_cert (Nothing cert_thm) =
-      Nothing (Thm.close_derivation cert_thm)
+      Nothing (Thm.close_derivation \<^here> cert_thm)
   | conclude_cert (Equations (cert_thm, propers)) =
-      Equations (Thm.close_derivation cert_thm, propers)
+      Equations (Thm.close_derivation \<^here> cert_thm, propers)
   | conclude_cert (cert as Projection _) =
       cert
   | conclude_cert (Abstract (abs_thm, tyco)) =
-      Abstract (Thm.close_derivation abs_thm, tyco);
+      Abstract (Thm.close_derivation \<^here> abs_thm, tyco);
 
 fun typscheme_of_cert thy (Nothing cert_thm) =
       fst (get_head thy cert_thm)
@@ -1403,7 +1398,7 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
         (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
             Thm.string_of_thm_global thy thm') else (); true)
       else false;
-  in (close thm, proper) :: filter_out drop eqns end;
+  in (thm |> Thm.close_derivation \<^here> |> Thm.trim_context, proper) :: filter_out drop eqns end;
 
 fun add_eqn_for (c, eqn) thy =
   thy |> modify_specs (modify_pending_eqns c (subsumptive_add thy true eqn));
@@ -1419,7 +1414,7 @@ fun add_eqns_for default (c, proto_eqns) thy =
     else specs);
 
 fun add_abstract_for (c, (thm, tyco_abs as (tyco, _))) =
-  modify_specs (register_fun_spec c (Abstr (Thm.close_derivation thm, tyco_abs))
+  modify_specs (register_fun_spec c (Abstr (Thm.close_derivation \<^here> thm, tyco_abs))
     #> map_types (History.modify_entry tyco (add_abstract_function c)))
 
 in

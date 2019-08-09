@@ -191,7 +191,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (mk_Trueprop_eq (lhs, rhs))
           (fn {context = ctxt, prems = _} => mk_map_comp_id_tac ctxt map_comp0)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val map_comp_id_thms = @{map 5} mk_map_comp_id xFs mapsAsBs mapsBsCs' mapsAsCs' map_comps;
@@ -208,7 +208,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, goal))
           (fn {context = ctxt, prems = _} => mk_map_cong0L_tac ctxt m map_cong0 map_id)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val map_cong0L_thms = @{map 5} mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_ids;
@@ -277,7 +277,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           Variable.add_free_names lthy goal []
           |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
             mk_alg_set_tac ctxt alg_def))
-          |> Thm.close_derivation)
+          |> Thm.close_derivation \<^here>)
         goals
       end;
 
@@ -296,7 +296,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           |> (fn vars => Goal.prove_sorry lthy vars [] goal
             (fn {context = ctxt, prems = _} =>
               mk_alg_not_empty_tac ctxt alg_set alg_set_thms wit_thms))
-          |> Thm.close_derivation)
+          |> Thm.close_derivation \<^here>)
         goals alg_set_thms
       end;
 
@@ -372,7 +372,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           Variable.add_free_names lthy goal []
           |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
             mk_mor_elim_tac ctxt mor_def))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         map prove elim_goals
       end;
@@ -385,7 +385,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, concl))
           (fn {context = ctxt, prems = _} => mk_mor_incl_tac ctxt mor_def map_ids)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val mor_comp_thm =
@@ -399,7 +399,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, concl))
           (fn {context = ctxt, prems = _} => mk_mor_comp_tac ctxt mor_def set_mapss map_comp_id_thms)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val mor_cong_thm =
@@ -411,7 +411,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, concl))
           (fn {context = ctxt, prems = _} => (hyp_subst_tac ctxt THEN' assume_tac ctxt) 1)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val mor_str_thm =
@@ -424,7 +424,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_mor_str_tac ctxt ks mor_def)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val mor_UNIV_thm =
@@ -438,7 +438,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (mk_Trueprop_eq (lhs, rhs))
           (fn {context = ctxt, prems = _} => mk_mor_UNIV_tac ctxt m morE_thms mor_def)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val timer = time (timer "Morphism definition & thms");
@@ -552,7 +552,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] (Logic.list_implies ([prem], concl))
           (fn {context = ctxt, prems = _} => mk_bd_limit_tac ctxt n suc_bd_Cinfinite)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val timer = time (timer "Bounds");
@@ -592,7 +592,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         val min_algs_thm = Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_min_algs_tac ctxt suc_bd_worel in_cong'_thms)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         val min_algs_thms = map (fn k => min_algs_thm RS mk_nthI n k) ks;
 
@@ -604,7 +604,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Variable.add_free_names lthy goal []
             |> (fn vars => Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_min_algs_mono_tac ctxt min_algs))
-            |> Thm.close_derivation)
+            |> Thm.close_derivation \<^here>)
           (map mk_mono_goal min_algss) min_algs_thms;
 
         fun mk_card_conjunct min_alg = mk_ordLeq (mk_card_of min_alg) Asuc_bd;
@@ -622,7 +622,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 m suc_bd_worel min_algs_thms in_sbds
                 sbd_Card_order sbd_Cnotzero suc_bd_Card_order suc_bd_Cinfinite suc_bd_Cnotzero
                 suc_bd_Asuc_bd Asuc_bd_Cinfinite)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
@@ -639,7 +639,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_min_algs_least_tac ctxt least_cT least_ct
                 suc_bd_worel min_algs_thms alg_set_thms)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
       in
         (min_algs_thms, monos, card_of, least)
@@ -698,7 +698,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_alg_min_alg_tac ctxt m alg_def min_alg_defs
                 suc_bd_limit_thm sbd_Cinfinite set_sbdss min_algs_thms min_algs_mono_thms)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         fun mk_card_of_thm min_alg def =
@@ -709,7 +709,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_card_of_min_alg_tac ctxt def card_of_min_algs_thm
                 suc_bd_Card_order suc_bd_Asuc_bd Asuc_bd_Cinfinite)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         fun mk_least_thm min_alg B def =
@@ -720,7 +720,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           in
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_least_min_alg_tac ctxt def least_min_algs_thm)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val leasts = @{map 3} mk_least_thm min_algs Bs min_alg_defs;
@@ -735,7 +735,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} =>
                 EVERY' (rtac ctxt mor_incl_thm :: map (etac ctxt) leasts) 1)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
       in
         (alg_min_alg, map2 mk_card_of_thm min_algs min_alg_defs, leasts, incl)
@@ -830,7 +830,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       (HOLogic.mk_Trueprop (mk_Ball II
         (Term.absfree iidx' (mk_alg select_Bs select_ss))))
       (fn {context = ctxt, prems = _} => mk_alg_select_tac ctxt Abs_IIT_inverse_thm)
-      |> Thm.close_derivation;
+      |> Thm.close_derivation \<^here>;
 
     val mor_select_thm =
       let
@@ -846,7 +846,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (fn {context = ctxt, prems = _} => mk_mor_select_tac ctxt mor_def mor_cong_thm
             mor_comp_thm mor_incl_min_alg_thm alg_def alg_select_thm alg_set_thms set_mapss
             str_init_defs)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val init_unique_mor_thms =
@@ -865,7 +865,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           Goal.prove_sorry lthy vars [] (Logic.list_implies (all_prems, unique))
             (fn {context = ctxt, prems = _} => mk_init_unique_mor_tac ctxt cts m alg_def
               alg_init_thm least_min_alg_thms in_mono'_thms alg_set_thms morE_thms map_cong0s)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         split_conj_thm unique_mor
       end;
@@ -899,7 +899,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Goal.prove_sorry lthy vars [] (Logic.mk_implies (prem, concl))
           (fn {context = ctxt, prems = _} => mk_init_induct_tac ctxt m alg_def alg_init_thm
             least_min_alg_thms alg_set_thms)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val timer = time (timer "Initiality definition & thms");
@@ -977,7 +977,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             (HOLogic.mk_Trueprop (mk_mor UNIVs ctors car_inits str_inits Rep_Ts))
             (fn {context = ctxt, prems = _} => mk_mor_Rep_tac ctxt m defs Reps Abs_inverses
               alg_min_alg_thm alg_set_thms set_mapss)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
 
         fun mk_ct initFT str abs = Term.absdummy initFT (abs $ (str $ Bound 0))
         val cts = @{map 3} (Thm.cterm_of lthy ooo mk_ct) init_FTs str_inits Abs_Ts;
@@ -987,7 +987,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             (HOLogic.mk_Trueprop (mk_mor car_inits str_inits UNIVs ctors Abs_Ts))
             (fn {context = ctxt, prems = _} => mk_mor_Abs_tac ctxt cts defs Abs_inverses
               map_comp_id_thms map_cong0L_thms)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         (mor_Rep, mor_Abs)
       end;
@@ -1046,7 +1046,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, concl))
           (fn {context = ctxt, prems = _} => mk_copy_tac ctxt m alg_def mor_def alg_set_thms
             set_mapss)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val init_ex_mor_thm =
@@ -1059,7 +1059,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (fn {context = ctxt, prems = _} =>
             mk_init_ex_mor_tac ctxt Abs_IIT_inverse_thm (alg_min_alg_thm RS copy_thm)
               card_of_min_alg_thms mor_Rep_thm mor_comp_thm mor_select_thm mor_incl_thm)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val mor_fold_thm =
@@ -1073,7 +1073,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, ...} =>
             mk_mor_fold_tac ctxt cT ct fold_defs init_ex_mor_thm mor_cong)
-        |> Thm.close_derivation
+        |> Thm.close_derivation \<^here>
       end;
 
     val ctor_fold_thms = map (fn morE => rule_by_tactic lthy
@@ -1089,7 +1089,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         val unique_mor = Goal.prove_sorry lthy vars [] (Logic.mk_implies (prem, unique))
           (fn {context = ctxt, prems = _} => mk_fold_unique_mor_tac ctxt type_defs
             init_unique_mor_thms Reps mor_comp_thm mor_Abs_thm mor_fold_thm)
-          |> Thm.close_derivation;
+          |> Thm.close_derivation \<^here>;
       in
         `split_conj_thm unique_mor
       end;
@@ -1148,7 +1148,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           Goal.prove_sorry lthy [] [] goal
             (fn {context = ctxt, prems = _} => mk_dtor_o_ctor_tac ctxt dtor_def foldx map_comp_id
               map_cong0L ctor_o_fold_thms)
-          |> Thm.close_derivation)
+          |> Thm.close_derivation \<^here>)
         goals dtor_defs ctor_fold_thms map_comp_id_thms map_cong0L_thms
       end;
 
@@ -1215,7 +1215,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (fn {context = ctxt, prems = _} =>
             mk_ctor_induct_tac ctxt m set_mapss init_induct_thm morE_thms mor_Abs_thm
             Rep_inverses Abs_inverses Reps)
-        |> Thm.close_derivation,
+        |> Thm.close_derivation \<^here>,
         rev (Term.add_tfrees goal []))
       end;
 
@@ -1258,7 +1258,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         (Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => mk_ctor_induct2_tac ctxt cTs cts ctor_induct_thm
             weak_ctor_induct_thms)
-        |> Thm.close_derivation,
+        |> Thm.close_derivation \<^here>,
         rev (Term.add_tfrees goal []))
       end;
 
@@ -1495,7 +1495,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 |> (fn vars => Goal.prove_sorry lthy vars [] goal
                   (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Imap_defs THEN
                     mk_map_tac ctxt m n foldx map_comp_id map_cong0))
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               goals ctor_fold_thms map_comp_id_thms map_cong0s;
           in
             `(map (fn thm => thm RS @{thm comp_eq_dest})) maps
@@ -1514,7 +1514,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             val unique = Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, goal))
               (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Imap_defs THEN
                 mk_ctor_map_unique_tac ctxt ctor_fold_unique_thm sym_map_comps)
-              |> Thm.close_derivation;
+              |> Thm.close_derivation \<^here>;
           in
             `split_conj_thm unique
           end;
@@ -1532,7 +1532,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             val setss = map (map2 (fn foldx => fn goal =>
                 Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
                   unfold_thms_tac ctxt Iset_defs THEN mk_set_tac ctxt foldx)
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               ctor_fold_thms) goalss;
 
             fun mk_simp_goal pas_set act_sets sets ctor z set =
@@ -1550,7 +1550,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               |> (fn vars => Goal.prove_sorry lthy vars [] goal
                   (fn {context = ctxt, prems = _} =>
                     mk_ctor_set_tac ctxt set (nth set_nats (i - 1)) (drop m set_nats)))
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               set_mapss) ls simp_goalss setss;
           in
             ctor_setss
@@ -1597,7 +1597,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 Variable.add_free_names lthy goal []
                 |> (fn vars => Goal.prove_sorry lthy vars [] goal
                   (fn {context = ctxt, prems = _} => mk_tac ctxt induct csets ctor_sets i))
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               goals csetss ctor_Iset_thmss inducts ls;
           in
             map split_conj_thm thms
@@ -1626,7 +1626,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 |> (fn vars => Goal.prove_sorry lthy vars [] goal
                     (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Ibd_defs THEN
                       mk_tac ctxt induct ctor_sets i))
-                |> Thm.close_derivation)
+                |> Thm.close_derivation \<^here>)
               goals ctor_Iset_thmss inducts ls;
           in
             map split_conj_thm thms
@@ -1657,7 +1657,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             val thm = Goal.prove_sorry lthy vars [] goal
                 (fn {context = ctxt, prems = _} => mk_mcong_tac ctxt (rtac ctxt induct) set_Iset_thmsss
                   map_cong0s ctor_Imap_thms)
-              |> Thm.close_derivation;
+              |> Thm.close_derivation \<^here>;
           in
             split_conj_thm thm
           end;
@@ -1693,7 +1693,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                (fn {context = ctxt, prems = _} =>
                  mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
                    ctor_inject ctor_dtor set_map0s ctor_set_incls ctor_set_set_inclss))
-              |> Thm.close_derivation)
+              |> Thm.close_derivation \<^here>)
             ks goals in_rels map_comps map_cong0s ctor_Imap_thms ctor_Iset_thmss'
               ctor_inject_thms ctor_dtor_thms set_mapss ctor_Iset_incl_thmss
               ctor_set_Iset_incl_thmsss
@@ -1718,7 +1718,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
                 ctor_Irel_thms rel_mono_strong0s le_rel_OOs)
-            |> Thm.close_derivation
+            |> Thm.close_derivation \<^here>
           end;
 
         val timer = time (timer "helpers for BNF properties");

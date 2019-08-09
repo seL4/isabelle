@@ -303,13 +303,16 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun bind_name lthy b =
+  (Local_Theory.full_name lthy b, Binding.default_pos_of b);
+
 in
 
 fun notes target_notes kind facts lthy =
   let
     val facts' = facts
-      |> map (fn (a, bs) => (a, Global_Theory.burrow_fact (Global_Theory.name_multi
-          (Local_Theory.full_name lthy (fst a))) bs))
+      |> map (fn (a, bs) =>
+          (a, Global_Theory.burrow_fact (Global_Theory.name_multi (bind_name lthy (fst a))) bs))
       |> Global_Theory.map_facts (import_export_proof lthy);
     val local_facts = Global_Theory.map_facts #1 facts';
     val global_facts = Global_Theory.map_facts #2 facts';
