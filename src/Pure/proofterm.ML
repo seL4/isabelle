@@ -288,13 +288,12 @@ val unions_thms = Ord_List.unions thm_ord;
 val all_oracles_of =
   let
     fun collect (PBody {oracles, thms, ...}) =
-      tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
+      (if null oracles then I else apfst (cons oracles)) #>
+      (tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
         if Inttab.defined seen i then (x, seen)
         else
-          let
-            val body = Future.join (thm_node_body thm_node);
-            val (x', seen') = collect body (x, Inttab.update (i, ()) seen);
-          in (if null oracles then x' else oracles :: x', seen') end);
+          let val body = Future.join (thm_node_body thm_node)
+          in collect body (x, Inttab.update (i, ()) seen) end));
   in fn body => unions_oracles (#1 (collect body ([], Inttab.empty))) end;
 
 fun approximate_proof_body prf =
