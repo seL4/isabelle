@@ -167,7 +167,7 @@ fun read_proof thy topsort =
 fun proof_syntax prf =
   let
     val thm_names = Symtab.keys (Proofterm.fold_proof_atoms true
-      (fn PThm (_, ((name, _, _, _), _)) => if name <> "" then Symtab.update (name, ()) else I
+      (fn PThm ({name, ...}, _) => if name <> "" then Symtab.update (name, ()) else I
         | _ => I) [prf] Symtab.empty);
     val axm_names = Symtab.keys (Proofterm.fold_proof_atoms true
       (fn PAxm (name, _, _) => Symtab.update (name, ()) | _ => I) [prf] Symtab.empty);
@@ -183,9 +183,9 @@ fun proof_of full thm =
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
     val prf' =
-      (case Proofterm.strip_combt (fst (Proofterm.strip_combP prf)) of
-        (PThm (_, ((_, prop', _, _), body)), _) =>
-          if prop = prop' then Proofterm.join_proof body else prf
+      (case fst (Proofterm.strip_combt (fst (Proofterm.strip_combP prf))) of
+        PThm ({prop = prop', ...}, thm_body) =>
+          if prop = prop' then Proofterm.thm_body_proof_raw thm_body else prf
       | _ => prf)
   in if full then Proofterm.reconstruct_proof thy prop prf' else prf' end;
 

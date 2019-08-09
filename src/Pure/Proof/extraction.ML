@@ -595,9 +595,9 @@ fun extract thm_vss thy =
               (corr_prf1 % u %% corr_prf2, defs2)
           end
 
-      | corr d vs ts Ts hs cs _ (prf0 as PThm (_, ((name, prop, SOME Ts', open_proof), body))) _ defs =
+      | corr d vs ts Ts hs cs _ (prf0 as PThm ({name, prop, types = SOME Ts', ...}, thm_body)) _ defs =
           let
-            val prf = Proofterm.join_proof body |> open_proof;
+            val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val sprfs = mk_sprfs cs tye;
@@ -620,13 +620,16 @@ fun extract thm_vss thy =
                       (rev shyps) NONE prf' prf' defs';
                     val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Proofterm.prop_of corr_prf;
+                    val corr_header =
+                      Proofterm.thm_header (Proofterm.proof_serial ()) (corr_name name vs')
+                        corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
+                    val corr_body =
+                      Proofterm.thm_body I (Future.value (Proofterm.approximate_proof_body corr_prf));
                     val corr_prf' =
-                      Proofterm.proof_combP (Proofterm.proof_combt
-                         (PThm (Proofterm.proof_serial (),
-                          ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
-                            Future.value (Proofterm.approximate_proof_body corr_prf))),
-                              vfs_of corr_prop),
-                              map PBound (length shyps - 1 downto 0)) |>
+                      Proofterm.proof_combP
+                        (Proofterm.proof_combt
+                          (PThm (corr_header, corr_body), vfs_of corr_prop),
+                            map PBound (length shyps - 1 downto 0)) |>
                       fold_rev Proofterm.forall_intr_proof'
                         (map (get_var_type corr_prop) (vfs_of prop)) |>
                       mkabsp shyps
@@ -693,9 +696,9 @@ fun extract thm_vss thy =
               in (f $ t, defs'') end
           end
 
-      | extr d vs ts Ts hs (prf0 as PThm (_, ((s, prop, SOME Ts', open_proof), body))) defs =
+      | extr d vs ts Ts hs (prf0 as PThm ({name = s, prop, types = SOME Ts', ...}, thm_body)) defs =
           let
-            val prf = Proofterm.join_proof body |> open_proof;
+            val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
@@ -737,12 +740,15 @@ fun extract thm_vss thy =
                            PAxm (Thm.def_name cname, eqn,
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Proofterm.prop_of corr_prf';
+                    val corr_header =
+                      Proofterm.thm_header (Proofterm.proof_serial ()) (corr_name s vs')
+                        corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
+                    val corr_body =
+                      Proofterm.thm_body I
+                        (Future.value (Proofterm.approximate_proof_body corr_prf'));
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
-                        (PThm (Proofterm.proof_serial (),
-                         ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev)), I),
-                           Future.value (Proofterm.approximate_proof_body corr_prf'))),
-                            vfs_of corr_prop),
+                        (PThm (corr_header, corr_body), vfs_of corr_prop),
                              map PBound (length shyps - 1 downto 0)) |>
                       fold_rev Proofterm.forall_intr_proof'
                         (map (get_var_type corr_prop) (vfs_of prop)) |>

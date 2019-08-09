@@ -14,7 +14,7 @@ structure InductiveRealizer : INDUCTIVE_REALIZER =
 struct
 
 fun name_of_thm thm =
-  (case Proofterm.fold_proof_atoms false (fn PThm (_, ((name, _, _, _), _)) => cons name | _ => I)
+  (case Proofterm.fold_proof_atoms false (fn PThm ({name, ...}, _) => cons name | _ => I)
       [Thm.proof_of thm] [] of
     [name] => name
   | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
