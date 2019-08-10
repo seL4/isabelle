@@ -232,7 +232,8 @@ sig
     theory_name: string,
     name: string,
     executable: bool,
-    compress: bool}
+    compress: bool,
+    strict: bool}
   val export: export_args -> Properties.T
   val debugger_state: string -> Properties.T
   val debugger_output: string -> Properties.T
@@ -718,16 +719,18 @@ type export_args =
   theory_name: string,
   name: string,
   executable: bool,
-  compress: bool};
+  compress: bool,
+  strict: bool};
 
-fun export ({id, serial, theory_name, name, executable, compress}: export_args) =
+fun export ({id, serial, theory_name, name, executable, compress, strict}: export_args) =
  [(functionN, exportN),
   (idN, the_default "" id),
   (serialN, Value.print_int serial),
   ("theory_name", theory_name),
   (nameN, name),
   ("executable", Value.print_bool executable),
-  ("compress", Value.print_bool compress)];
+  ("compress", Value.print_bool compress),
+  ("strict", Value.print_bool strict)];
 
 
 (* debugger *)

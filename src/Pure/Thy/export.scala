@@ -189,13 +189,16 @@ object Export
     private val errors = Synchronized[List[String]](Nil)
 
     private val consumer =
-      Consumer_Thread.fork(name = "export")(consume = (entry: Entry) =>
+      Consumer_Thread.fork(name = "export")(consume = (arg: (Entry, Boolean)) =>
         {
+          val (entry, strict) = arg
           entry.body.join
           db.transaction {
             if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
-              val msg = message("Duplicate export", entry.theory_name, entry.name)
-              errors.change(msg :: _)
+              if (strict) {
+                val msg = message("Duplicate export", entry.theory_name, entry.name)
+                errors.change(msg :: _)
+              }
             }
             else entry.write(db)
           }
@@ -203,7 +206,7 @@ object Export
         })
 
     def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
-      consumer.send(make_entry(session_name, args, body, cache = cache))
+      consumer.send(make_entry(session_name, args, body, cache = cache) -> args.strict)
 
     def shutdown(close: Boolean = false): List[String] =
     {

@@ -632,11 +632,13 @@ object Markup
       theory_name: String,
       name: String,
       executable: Boolean,
-      compress: Boolean)
+      compress: Boolean,
+      strict: Boolean)
 
     val THEORY_NAME = "theory_name"
     val EXECUTABLE = "executable"
     val COMPRESS = "compress"
+    val STRICT = "strict"
 
     def dest_inline(props: Properties.T): Option[(Args, Path)] =
       props match {
@@ -647,8 +649,9 @@ object Markup
             (NAME, name),
             (EXECUTABLE, Value.Boolean(executable)),
             (COMPRESS, Value.Boolean(compress)),
+            (STRICT, Value.Boolean(strict)),
             (FILE, file)) if isabelle.Path.is_valid(file) =>
-          val args = Args(None, serial, theory_name, name, executable, compress)
+          val args = Args(None, serial, theory_name, name, executable, compress, strict)
           Some((args, isabelle.Path.explode(file)))
         case _ => None
       }
@@ -662,8 +665,9 @@ object Markup
             (THEORY_NAME, theory_name),
             (NAME, name),
             (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress))) =>
-          Some(Args(proper_string(id), serial, theory_name, name, executable, compress))
+            (COMPRESS, Value.Boolean(compress)),
+            (STRICT, Value.Boolean(strict))) =>
+          Some(Args(proper_string(id), serial, theory_name, name, executable, compress, strict))
         case _ => None
       }
   }

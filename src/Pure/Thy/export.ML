@@ -7,7 +7,8 @@ Manage theory exports: compressed blobs.
 signature EXPORT =
 sig
   val report_export: theory -> Path.binding -> unit
-  type params = {theory: theory, binding: Path.binding, executable: bool, compress: bool}
+  type params =
+    {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool}
   val export_params: params -> string list -> unit
   val export: theory -> Path.binding -> string list -> unit
   val export_executable: theory -> Path.binding -> string list -> unit
@@ -29,9 +30,10 @@ fun report_export thy binding =
     val markup = Markup.export_path (Path.implode (Path.append (Path.basic theory_name) path));
   in Context_Position.report_generic (Context.Theory thy) pos markup end;
 
-type params = {theory: theory, binding: Path.binding, executable: bool, compress: bool};
+type params =
+  {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool};
 
-fun export_params ({theory = thy, binding, executable, compress}: params) blob =
+fun export_params ({theory = thy, binding, executable, compress, strict}: params) blob =
  (report_export thy binding;
   (Output.try_protocol_message o Markup.export)
    {id = Position.get_id (Position.thread_data ()),
@@ -39,13 +41,16 @@ fun export_params ({theory = thy, binding, executable, compress}: params) blob =
     theory_name = Context.theory_long_name thy,
     name = Path.implode_binding (tap Path.proper_binding binding),
     executable = executable,
-    compress = compress} blob);
+    compress = compress,
+    strict = strict} blob);
 
 fun export thy binding blob =
-  export_params {theory = thy, binding = binding, executable = false, compress = true} blob;
+  export_params
+    {theory = thy, binding = binding, executable = false, compress = true, strict = true} blob;
 
 fun export_executable thy binding blob =
-  export_params {theory = thy, binding = binding, executable = true, compress = true} blob;
+  export_params
+    {theory = thy, binding = binding, executable = true, compress = true, strict = true} blob;
 
 fun export_file thy binding file = export thy binding [File.read file];
 fun export_executable_file thy binding file = export_executable thy binding [File.read file];
