@@ -2003,38 +2003,43 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
-val export_proof_term =
-  term_of {thm_const = K o string_of_int, axm_const = axm_const_default};
-
-fun export_proof thy main_prop main_proof =
+fun export_proof thy i prop prf =
   let
-    fun add_proof_boxes (AbsP (_, _, prf)) = add_proof_boxes prf
-      | add_proof_boxes (Abst (_, _, prf)) = add_proof_boxes prf
-      | add_proof_boxes (prf1 %% prf2) = add_proof_boxes prf1 #> add_proof_boxes prf2
-      | add_proof_boxes (prf % _) = add_proof_boxes prf
-      | add_proof_boxes (PThm ({serial = i, name = "", prop, ...}, thm_body)) =
-          (fn boxes =>
-            if Inttab.defined boxes i then boxes
+    val xml =
+      reconstruct_proof thy prop prf
+      |> term_of {thm_const = K o string_of_int, axm_const = axm_const_default}
+      |> Term_XML.Encode.term;
+    val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
+  in
+    chunks |> Export.export_params
+     {theory = thy,
+      binding = Path.binding0 (Path.make ["proofs", string_of_int i]),
+      executable = false,
+      compress = true,
+      strict = false}
+  end;
+
+fun export_proof_boxes thy proof =
+  let
+    fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
+      | export_boxes (Abst (_, _, prf)) = export_boxes prf
+      | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
+      | export_boxes (prf % _) = export_boxes prf
+      | export_boxes (PThm ({serial = i, name = "", prop, ...}, thm_body)) =
+          (fn seen =>
+            if Inttab.defined seen i then seen
             else
-              let val prf = thm_body_proof_open thm_body |> reconstruct_proof thy prop;
-              in add_proof_boxes prf boxes |> Inttab.update (i, prf) end)
-      | add_proof_boxes _ = I;
+              let
+                val proof = thm_body_proof_open thm_body;
+                val _ = export_proof thy i prop proof;
+                val boxes' = Inttab.update (i, ()) seen;
+              in export_boxes proof boxes' end)
+      | export_boxes _ = I;
+  in (proof, Inttab.empty) |-> export_boxes |> ignore end;
 
-    val proof = reconstruct_proof thy main_prop main_proof;
-    val proof_boxes =
-      (proof, Inttab.empty) |-> add_proof_boxes |> Inttab.dest
-      |> map (apsnd export_proof_term);
-  in (proof_boxes, export_proof_term proof) end;
-
-fun export thy i prop proof =
+fun export thy i prop prf =
   if Options.default_bool "export_proofs" then
-    let
-      val xml = export_proof thy prop proof
-        |> let open XML.Encode Term_XML.Encode in pair (list (pair int term)) term end;
-    in
-      Export.export thy (Path.binding0 (Path.make ["proofs", string_of_int i]))
-        (Buffer.chunks (YXML.buffer_body xml Buffer.empty))
-    end
+    (export_proof_boxes thy prf; export_proof thy i prop prf)
   else ();
 
 fun prune proof =
