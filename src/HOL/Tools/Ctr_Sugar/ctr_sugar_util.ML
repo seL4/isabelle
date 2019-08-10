@@ -225,7 +225,7 @@ fun name_noted_thms _ _ [] = []
         val thms' = thms |> map_index (uncurry (fn j =>
           Thm.name_derivation
             (((Long_Name.append qualifier base ^
-              (if can the_single thms then "" else "_" ^ string_of_int (j + 1))), Position.none))))
+              (if can the_single thms then "" else "_" ^ string_of_int (j + 1))), \<^here>))))
       in (local_name, thms') :: noted end
     else ((local_name, thms) :: name_noted_thms qualifier base noted);
 
