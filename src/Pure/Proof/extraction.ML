@@ -624,8 +624,7 @@ fun extract thm_vss thy =
                     val corr_header =
                       Proofterm.thm_header (Proofterm.proof_serial ()) pos (corr_name name vs')
                         corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
-                    val corr_body =
-                      Proofterm.thm_body I (Future.value (Proofterm.approximate_proof_body corr_prf));
+                    val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf);
                     val corr_prf' =
                       Proofterm.proof_combP
                         (Proofterm.proof_combt
@@ -745,9 +744,7 @@ fun extract thm_vss thy =
                     val corr_header =
                       Proofterm.thm_header (Proofterm.proof_serial ()) pos (corr_name s vs')
                         corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
-                    val corr_body =
-                      Proofterm.thm_body I
-                        (Future.value (Proofterm.approximate_proof_body corr_prf'));
+                    val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf');
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
                         (PThm (corr_header, corr_body), vfs_of corr_prop),

@@ -41,7 +41,7 @@ sig
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
   val thm_header: proof_serial -> Position.T list -> string -> term -> typ list option -> thm_header
-  val thm_body: (proof -> proof) -> proof_body future -> thm_body
+  val thm_body: proof_body -> thm_body
   val thm_body_proof_raw: thm_body -> proof
   val thm_body_proof_open: thm_body -> proof
   val thm_node_name: thm_node -> string
@@ -216,8 +216,7 @@ fun map_proof_of f (PBody {oracles, thms, proof}) =
 fun thm_header serial pos name prop types : thm_header =
   {serial = serial, pos = pos, name = name, prop = prop, types = types};
 
-fun thm_body open_proof body =
-  Thm_Body {open_proof = open_proof, body = body};
+fun thm_body body = Thm_Body {open_proof = I, body = Future.value body};
 fun thm_body_proof_raw (Thm_Body {body, ...}) = join_proof body;
 fun thm_body_proof_open (Thm_Body {open_proof, body}) = open_proof (join_proof body);
 
@@ -409,7 +408,7 @@ fun proof prf = prf |> variant
       val ((d, (e, (f, g)))) =
         pair (list properties) (pair term (pair (option (list typ)) proof_body)) c;
       val header = thm_header (int_atom a) (map Position.of_properties d) b e f;
-    in PThm (header, thm_body I (Future.value g)) end]
+    in PThm (header, thm_body g) end]
 and proof_body x =
   let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
@@ -2086,7 +2085,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val pthm = (i, make_thm_node name prop1 body');
 
     val header = thm_header i ([pos, Position.thread_data ()]) name prop1 NONE;
-    val head = PThm (header, thm_body open_proof body');
+    val head = PThm (header, Thm_Body {open_proof = open_proof, body = body'});
     val proof =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
