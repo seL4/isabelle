@@ -11,7 +11,7 @@ sig
   type thm_node
   type proof_serial = int
   type thm_header =
-    {serial: proof_serial, pos: Position.T, name: string, prop: term, types: typ list option}
+    {serial: proof_serial, pos: Position.T list, name: string, prop: term, types: typ list option}
   type thm_body
   datatype proof =
      MinProof
@@ -40,7 +40,7 @@ sig
   type oracle = string * term
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
-  val thm_header: proof_serial -> Position.T -> string -> term -> typ list option -> thm_header
+  val thm_header: proof_serial -> Position.T list -> string -> term -> typ list option -> thm_header
   val thm_body: (proof -> proof) -> proof_body future -> thm_body
   val thm_body_proof_raw: thm_body -> proof
   val thm_body_proof_open: thm_body -> proof
@@ -181,7 +181,7 @@ struct
 type proof_serial = int;
 
 type thm_header =
-  {serial: proof_serial, pos: Position.T, name: string, prop: term, types: typ list option};
+  {serial: proof_serial, pos: Position.T list, name: string, prop: term, types: typ list option};
 
 datatype proof =
    MinProof
@@ -371,8 +371,8 @@ fun proof prf = prf |> variant
   fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn PThm ({serial, pos, name, prop, types}, Thm_Body {open_proof, body}) =>
     ([int_atom serial, name],
-      pair properties (pair term (pair (option (list typ)) proof_body))
-        (Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
+      pair (list properties) (pair term (pair (option (list typ)) proof_body))
+        (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
 and pthm (a, thm_node) =
@@ -405,8 +405,11 @@ fun proof prf = prf |> variant
   fn ([b], a) => OfClass (typ a, b),
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b], c) =>
-    let val ((d, (e, (f, g)))) = pair properties (pair term (pair (option (list typ)) proof_body)) c
-    in PThm (thm_header (int_atom a) (Position.of_properties d) b e f, thm_body I (Future.value g)) end]
+    let
+      val ((d, (e, (f, g)))) =
+        pair (list properties) (pair term (pair (option (list typ)) proof_body)) c;
+      val header = thm_header (int_atom a) (map Position.of_properties d) b e f;
+    in PThm (header, thm_body I (Future.value g)) end]
 and proof_body x =
   let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
@@ -2077,7 +2080,8 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val pthm = (i, make_thm_node name prop1 body');
 
-    val head = PThm (thm_header i pos name prop1 NONE, thm_body open_proof body');
+    val header = thm_header i ([pos, Position.thread_data ()]) name prop1 NONE;
+    val head = PThm (header, thm_body open_proof body');
     val proof =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
