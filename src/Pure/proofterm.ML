@@ -200,7 +200,7 @@ and proof_body = PBody of
    thms: (proof_serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_body =
-  Thm_Body of {open_proof: proof -> proof, body: proof_body future}
+  Thm_Body of {export_proof: unit lazy, open_proof: proof -> proof, body: proof_body future}
 and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
@@ -216,9 +216,13 @@ fun map_proof_of f (PBody {oracles, thms, proof}) =
 fun thm_header serial pos name prop types : thm_header =
   {serial = serial, pos = pos, name = name, prop = prop, types = types};
 
-fun thm_body body = Thm_Body {open_proof = I, body = Future.value body};
+val no_export_proof = Lazy.value ();
+
+fun thm_body body =
+  Thm_Body {export_proof = no_export_proof, open_proof = I, body = Future.value body};
+fun thm_body_export_proof (Thm_Body {export_proof, ...}) = export_proof;
 fun thm_body_proof_raw (Thm_Body {body, ...}) = join_proof body;
-fun thm_body_proof_open (Thm_Body {open_proof, body}) = open_proof (join_proof body);
+fun thm_body_proof_open (Thm_Body {open_proof, body, ...}) = open_proof (join_proof body);
 
 fun rep_thm_node (Thm_Node args) = args;
 val thm_node_name = #name o rep_thm_node;
@@ -330,7 +334,7 @@ fun approximate_proof_body prf =
   end;
 
 fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
-val no_thm_body = Thm_Body {open_proof = I, body = Future.value (no_proof_body MinProof)};
+val no_thm_body = thm_body (no_proof_body MinProof);
 
 fun no_thm_proofs (Abst (x, T, prf)) = Abst (x, T, no_thm_proofs prf)
   | no_thm_proofs (AbsP (x, t, prf)) = AbsP (x, t, no_thm_proofs prf)
@@ -343,8 +347,11 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
   | no_body_proofs (AbsP (x, t, prf)) = AbsP (x, t, no_body_proofs prf)
   | no_body_proofs (prf % t) = no_body_proofs prf % t
   | no_body_proofs (prf1 %% prf2) = no_body_proofs prf1 %% no_body_proofs prf2
-  | no_body_proofs (PThm (header, Thm_Body {open_proof, body})) =
-      PThm (header, Thm_Body {open_proof = open_proof, body = Future.value (no_proof_body (join_proof body))})
+  | no_body_proofs (PThm (header, Thm_Body {export_proof, open_proof, body})) =
+      let
+        val body' = Future.value (no_proof_body (join_proof body));
+        val thm_body' = Thm_Body {export_proof = export_proof, open_proof = open_proof, body = body'};
+      in PThm (header, thm_body') end
   | no_body_proofs a = a;
 
 
@@ -368,7 +375,7 @@ fun proof prf = prf |> variant
   fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
   fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
-  fn PThm ({serial, pos, name, prop, types}, Thm_Body {open_proof, body}) =>
+  fn PThm ({serial, pos, name, prop, types}, Thm_Body {open_proof, body, ...}) =>
     ([int_atom serial, name],
       pair (list properties) (pair term (pair (option (list typ)) proof_body))
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
@@ -2018,28 +2025,28 @@ fun export_proof thy i prop prf =
       strict = false}
   end;
 
-fun export_proof_boxes thy proof =
+fun export_proof_boxes proof =
   let
     fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
       | export_boxes (Abst (_, _, prf)) = export_boxes prf
       | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
       | export_boxes (prf % _) = export_boxes prf
-      | export_boxes (PThm ({serial = i, name = "", prop, ...}, thm_body)) =
-          (fn seen =>
-            if Inttab.defined seen i then seen
+      | export_boxes (PThm ({serial = i, name = "", ...}, thm_body)) =
+          (fn boxes =>
+            if Inttab.defined boxes i then boxes
             else
               let
-                val proof = thm_body_proof_open thm_body;
-                val _ = export_proof thy i prop proof;
-                val boxes' = Inttab.update (i, ()) seen;
-              in export_boxes proof boxes' end)
+                val prf = thm_body_proof_raw thm_body;
+                val boxes' = Inttab.update (i, thm_body_export_proof thm_body) boxes;
+              in export_boxes prf boxes' end)
       | export_boxes _ = I;
-  in (proof, Inttab.empty) |-> export_boxes |> ignore end;
+    val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
+  in List.app (Lazy.force o #2) boxes end;
+
+fun export_enabled () = Options.default_bool "export_proofs";
 
 fun export thy i prop prf =
-  if Options.default_bool "export_proofs" then
-    (export_proof_boxes thy prf; export_proof thy i prop prf)
-  else ();
+  if export_enabled () then (export_proof_boxes prf; export_proof thy i prop prf) else ();
 
 fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
@@ -2082,10 +2089,15 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
           else new_prf ()
       | _ => new_prf ());
 
+    val export_proof =
+      if named orelse not (export_enabled ()) then no_export_proof
+      else Lazy.lazy (fn () => join_proof body' |> open_proof |> export_proof thy i prop1);
+
     val pthm = (i, make_thm_node name prop1 body');
 
     val header = thm_header i ([pos, Position.thread_data ()]) name prop1 NONE;
-    val head = PThm (header, Thm_Body {open_proof = open_proof, body = body'});
+    val thm_body = Thm_Body {export_proof = export_proof, open_proof = open_proof, body = body'};
+    val head = PThm (header, thm_body);
     val proof =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
