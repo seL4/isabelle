@@ -242,7 +242,7 @@ fun here pos =
     else s1 ^ Markup.markup (Markup.properties props Markup.position) s2
   end;
 
-val here_list = implode o map here;
+val here_list = map here #> distinct (op =) #> implode;
 
 
 (* range *)
