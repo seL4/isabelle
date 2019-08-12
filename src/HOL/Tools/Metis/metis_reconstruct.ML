@@ -83,9 +83,10 @@ fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
 
 (** FOL step Inference Rules **)
 
-fun lookth th_pairs fth =
-  the (AList.lookup (uncurry Metis_Thm.equal) th_pairs fth)
-  handle Option.Option => raise Fail ("Failed to find Metis theorem " ^ Metis_Thm.toString fth)
+fun lookth th_pairs fol_th =
+  (case AList.lookup (uncurry Metis_Thm.equal) th_pairs fol_th of
+    SOME th => th
+  | NONE => raise Fail ("Failed to find Metis theorem " ^ Metis_Thm.toString fol_th))
 
 fun cterm_incr_types ctxt idx =
   Thm.cterm_of ctxt o map_types (Logic.incr_tvar idx)
