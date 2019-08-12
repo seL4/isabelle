@@ -152,7 +152,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
     val (vars, tms) =
       ListPair.unzip (map_filter subst_translation substs)
       ||> polish_hol_terms ctxt concealed
-    val ctm_of = cterm_incr_types ctxt (1 + Thm.maxidx_of i_th)
+    val ctm_of = cterm_incr_types ctxt (Thm.maxidx_of i_th + 1)
     val substs' = ListPair.zip (vars, map ctm_of tms)
     val _ = trace_msg ctxt (fn () =>
       cat_lines ("subst_translations:" ::
@@ -182,7 +182,7 @@ fun incr_type_indexes ctxt inc th =
   Instantiations of those Vars could then fail.*)
 fun resolve_inc_tyvars ctxt tha i thb =
   let
-    val tha = incr_type_indexes ctxt (1 + Thm.maxidx_of thb) tha
+    val tha = incr_type_indexes ctxt (Thm.maxidx_of thb + 1) tha
     fun res (tha, thb) =
       (case Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
             (false, tha, Thm.nprems_of tha) i thb
@@ -299,15 +299,13 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 (* INFERENCE RULE: REFL *)
 
 val REFL_THM = Thm.incr_indexes 2 @{lemma "x \<noteq> x \<Longrightarrow> False" by (drule notE) (rule refl)}
-
 val [refl_x] = Term.add_vars (Thm.prop_of REFL_THM) [];
-val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
 fun refl_inference ctxt type_enc concealed sym_tab t =
   let
     val i_t = singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) t
     val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
-    val c_t = cterm_incr_types ctxt refl_idx i_t
+    val c_t = cterm_incr_types ctxt (Thm.maxidx_of REFL_THM + 1) i_t
   in infer_instantiate_types ctxt [(refl_x, c_t)] REFL_THM end
 
 
@@ -368,8 +366,8 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
     val _ = trace_msg ctxt (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
     val _ = trace_msg ctxt (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
     val _ = trace_msg ctxt (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
-    val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill-typed but gives right max*)
-    val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
+    val maxidx = fold Term.maxidx_term [i_tm, tm_abs, tm_subst] ~1
+    val subst' = Thm.incr_indexes (maxidx + 1) (if pos then subst_em else ssubst_em)
     val _ = trace_msg ctxt (fn () => "subst' " ^ Thm.string_of_thm ctxt subst')
     val eq_terms =
       map (apply2 (Thm.cterm_of ctxt))
