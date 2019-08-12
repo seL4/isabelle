@@ -380,17 +380,20 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
 
 val factor = Seq.hd o distinct_subgoals_tac
 
-fun one_step ctxt type_enc concealed sym_tab th_pairs p =
-  (case p of
-    (fol_th, Metis_Proof.Axiom _) => axiom_inference th_pairs fol_th |> factor
-  | (_, Metis_Proof.Assume f_atom) => assume_inference ctxt type_enc concealed sym_tab f_atom
-  | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
-      inst_inference ctxt type_enc concealed sym_tab th_pairs f_subst f_th1 |> factor
-  | (_, Metis_Proof.Resolve(f_atom, f_th1, f_th2)) =>
-      resolve_inference ctxt type_enc concealed sym_tab th_pairs f_atom f_th1 f_th2 |> factor
-  | (_, Metis_Proof.Refl f_tm) => refl_inference ctxt type_enc concealed sym_tab f_tm
-  | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
-      equality_inference ctxt type_enc concealed sym_tab f_lit f_p f_r)
+fun one_step ctxt type_enc concealed sym_tab th_pairs (fol_th, inference) =
+  (case inference of
+    Metis_Proof.Axiom _ =>
+      axiom_inference th_pairs fol_th |> factor
+  | Metis_Proof.Assume atom =>
+      assume_inference ctxt type_enc concealed sym_tab atom
+  | Metis_Proof.Metis_Subst (subst, th1) =>
+      inst_inference ctxt type_enc concealed sym_tab th_pairs subst th1 |> factor
+  | Metis_Proof.Resolve (atom, th1, th2) =>
+      resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 |> factor
+  | Metis_Proof.Refl tm =>
+      refl_inference ctxt type_enc concealed sym_tab tm
+  | Metis_Proof.Equality (lit, p, r) =>
+      equality_inference ctxt type_enc concealed sym_tab lit p r)
 
 fun flexflex_first_order ctxt th =
   (case Thm.tpairs_of th of
