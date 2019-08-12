@@ -23,8 +23,6 @@ end;
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
 
-open Meson
-
 (* the extra "Meson" helps prevent clashes (FIXME) *)
 val new_skolem_var_prefix = "MesonSK"
 val new_nonskolem_var_prefix = "MesonV"
@@ -306,14 +304,14 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
          |> new_skolem ? forall_intr_vars
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule (Object_Logic.atomize ctxt)
-                |> cong_extensionalize_thm ctxt
-                |> abs_extensionalize_thm ctxt
-                |> make_nnf ctxt
+                |> Meson.cong_extensionalize_thm ctxt
+                |> Meson.abs_extensionalize_thm ctxt
+                |> Meson.make_nnf ctxt
   in
     if new_skolem then
       let
         fun skolemize choice_ths =
-          skolemize_with_choice_theorems ctxt choice_ths
+          Meson.skolemize_with_choice_theorems ctxt choice_ths
           #> simplify (ss_only @{thms all_simps[symmetric]} ctxt)
         val no_choice = null choice_ths
         val pull_out =
@@ -323,7 +321,7 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
             skolemize choice_ths
         val discharger_th = th |> pull_out
         val discharger_th =
-          discharger_th |> has_too_many_clauses ctxt (Thm.concl_of discharger_th)
+          discharger_th |> Meson.has_too_many_clauses ctxt (Thm.concl_of discharger_th)
                            ? (to_definitional_cnf_with_quantifiers ctxt
                               #> pull_out)
         val zapped_th =
@@ -356,18 +354,18 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
          (NONE, (th, ctxt))
       end
     else
-      (NONE, (th |> has_too_many_clauses ctxt (Thm.concl_of th)
+      (NONE, (th |> Meson.has_too_many_clauses ctxt (Thm.concl_of th)
                     ? to_definitional_cnf_with_quantifiers ctxt, ctxt))
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
 fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
   let
-    val choice_ths = choice_theorems (Proof_Context.theory_of ctxt0)
+    val choice_ths = Meson.choice_theorems (Proof_Context.theory_of ctxt0)
     val (opt, (nnf_th, ctxt1)) =
       nnf_axiom choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
-      make_cnf
+      Meson.make_cnf
        (if new_skolem orelse null choice_ths then []
         else map (old_skolem_theorem_of_def ctxt1) (old_skolem_defs th))
        th ctxt1
@@ -383,7 +381,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
      cnf_ths |> map (combinators ? introduce_combinators_in_theorem ctxt2
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt2 ctxt0
-             |> finish_cnf
+             |> Meson.finish_cnf
              |> map (Thm.close_derivation \<^here>))
   end
   handle THM _ => (NONE, [])
