@@ -20,7 +20,7 @@ then combine them into a new red node.
 \<close>
 fun joinL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "joinL l x r =
-  (if bheight l = bheight r then R l x r
+  (if bheight l \<ge> bheight r then R l x r
    else case r of
      B l' x' r' \<Rightarrow> baliL (joinL l x l') x' r' |
      R l' x' r' \<Rightarrow> R (joinL l x l') x' r')"
@@ -43,31 +43,6 @@ fun join :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" 
 declare joinL.simps[simp del]
 declare joinR.simps[simp del]
 
-text \<open>
-One would expect \<^const>\<open>joinR\<close> to be be completely dual to \<^const>\<open>joinL\<close>.
-Thus the condition should be \<^prop>\<open>bheight l = bheight r\<close>. What we have done
-is totalize the function. On the intended domain (\<^prop>\<open>bheight l \<ge> bheight r\<close>)
-the two versions behave exactly the same, including complexity. Thus from a programmer's
-perspective they are equivalent. However, not from a verifier's perspective:
-the total version of \<^const>\<open>joinR\<close> is easier
-to reason about because lemmas about it may not require preconditions. In particular
-\<^prop>\<open>set_tree (joinR l x r) = set_tree l \<union> {x} \<union> set_tree r\<close>
-is provable outright and hence also
-\<^prop>\<open>set_tree (join l x r) = set_tree l \<union> {x} \<union> set_tree r\<close>.
-This is necessary because locale \<^locale>\<open>Set2_Join\<close> unconditionally assumes
-exactly that. Adding preconditions to this assumptions significantly complicates
-the proofs within \<^locale>\<open>Set2_Join\<close>, which we want to avoid.
-
-Why not work with the partial version of \<^const>\<open>joinR\<close> and add the precondition
-\<^prop>\<open>bheight l \<ge> bheight r\<close> to lemmas about \<^const>\<open>joinR\<close>? After all, that is how
-we worked with \<^const>\<open>joinL\<close>, and \<^const>\<open>join\<close> ensures that \<^const>\<open>joinL\<close> and \<^const>\<open>joinR\<close>
-are only called under the respective precondition. But function \<^const>\<open>bheight\<close>
-makes the difference: it descends along the left spine, just like \<^const>\<open>joinL\<close>.
-Function \<^const>\<open>joinR\<close>, however, descends along the right spine and thus \<^const>\<open>bheight\<close>
-may change all the time. Thus we would need the further precondition \<^prop>\<open>invh l\<close>.
-This is what we really wanted to avoid in order to satisfy the unconditional assumption
-in \<^locale>\<open>Set2_Join\<close>.
-\<close>
 
 subsection "Properties"
 
