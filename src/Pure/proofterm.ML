@@ -2009,12 +2009,29 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
+
+local open XML.Encode Term_XML.Encode in
+
+fun proof prf = prf |> variant
+ [fn MinProof => ([], []),
+  fn PBound a => ([int_atom a], []),
+  fn Abst (a, SOME b, c) => ([a], pair typ proof (b, c)),
+  fn AbsP (a, SOME b, c) => ([a], pair term proof (b, c)),
+  fn a % SOME b => ([], pair proof term (a, b)),
+  fn a %% b => ([], pair proof proof (a, b)),
+  fn Hyp a => ([], term a),
+  fn PAxm (name, b, SOME Ts) => ([name], list typ Ts),
+  fn OfClass (T, c) => ([c], typ T),
+  fn Oracle (name, prop, SOME Ts) => ([name], pair term (list typ) (prop, Ts)),
+  fn PThm ({serial, name, types = SOME Ts, ...}, _) => ([int_atom serial, name], list typ Ts)];
+
+fun encode_export prop prf = pair term proof (prop, prf);
+
+end;
+
 fun export_proof thy i prop prf =
   let
-    val xml =
-      reconstruct_proof thy prop prf
-      |> term_of {thm_const = K o string_of_int, axm_const = axm_const_default}
-      |> Term_XML.Encode.term;
+    val xml = reconstruct_proof thy prop prf |> encode_export prop;
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in
     chunks |> Export.export_params
