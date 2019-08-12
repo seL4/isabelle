@@ -101,20 +101,20 @@ val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 (* INFERENCE RULE: ASSUME *)
 
-val EXCLUDED_MIDDLE = @{lemma "P \<Longrightarrow> \<not> P \<Longrightarrow> False" by (rule notE)}
-
-fun inst_excluded_middle ctxt i_atom =
-  let val [vx] = Term.add_vars (Thm.prop_of EXCLUDED_MIDDLE) []
-  in infer_instantiate_types ctxt [(vx, Thm.cterm_of ctxt i_atom)] EXCLUDED_MIDDLE end
+fun inst_excluded_middle i_atom =
+  @{lemma "P \<Longrightarrow> \<not> P \<Longrightarrow> False" by (rule notE)}
+  |> instantiate_normalize ([], [((("P", 0), \<^typ>\<open>bool\<close>), i_atom)])
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
-  inst_excluded_middle ctxt
-    (singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom))
+  singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) (Metis_Term.Fn atom)
+  |> Thm.cterm_of ctxt |> inst_excluded_middle
 
-(* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
-   to reconstruct them admits new possibilities of errors, e.g. concerning
-   sorts. Instead we try to arrange that new TVars are distinct and that types
-   can be inferred from terms. *)
+
+(* INFERENCE RULE: INSTANTIATE (SUBST). *)
+
+(*Type instantiations are ignored. Trying to reconstruct them admits new
+  possibilities of errors, e.g. concerning sorts. Instead we try to arrange
+  hat new TVars are distinct and that types can be inferred from terms.*)
 
 fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
   let
@@ -298,7 +298,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 (* INFERENCE RULE: REFL *)
 
-val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by (drule notE) (rule refl)}
+val REFL_THM = Thm.incr_indexes 2 @{lemma "x \<noteq> x \<Longrightarrow> False" by (drule notE) (rule refl)}
 
 val [refl_x] = Term.add_vars (Thm.prop_of REFL_THM) [];
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
