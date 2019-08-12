@@ -185,7 +185,7 @@ fun resolve_inc_tyvars ctxt th1 i th2 =
     val th1' = incr_type_indexes ctxt (Thm.maxidx_of th2 + 1) th1
     fun res (tha, thb) =
       (case Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
-            (false, tha, Thm.nprems_of tha) i thb
+            (false, Thm.close_derivation \<^here> tha, Thm.nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
       | _ =>
