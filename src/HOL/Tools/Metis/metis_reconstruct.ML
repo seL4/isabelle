@@ -180,9 +180,9 @@ fun incr_type_indexes ctxt inc th =
 (*Like RSN, but we rename apart only the type variables. Vars here typically
   have an index of 1, and the use of RSN would increase this typically to 3.
   Instantiations of those Vars could then fail.*)
-fun resolve_inc_tyvars ctxt tha i thb =
+fun resolve_inc_tyvars ctxt th1 i th2 =
   let
-    val tha = incr_type_indexes ctxt (Thm.maxidx_of thb + 1) tha
+    val th1' = incr_type_indexes ctxt (Thm.maxidx_of th2 + 1) th1
     fun res (tha, thb) =
       (case Thm.bicompose (SOME ctxt) {flatten = true, match = false, incremented = true}
             (false, tha, Thm.nprems_of tha) i thb
@@ -199,11 +199,11 @@ fun resolve_inc_tyvars ctxt tha i thb =
             res (tha', thb')
         end)
   in
-    res (tha, thb)
+    res (th1', th2)
     handle TERM z =>
       let
         val ps = []
-          |> fold (Term.add_vars o Thm.prop_of) [tha, thb]
+          |> fold (Term.add_vars o Thm.prop_of) [th1', th2]
           |> AList.group (op =)
           |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
           |> rpair Envir.init
@@ -217,7 +217,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
           again. We could do this the first time around but this error occurs seldom and we don't
           want to break existing proofs in subtle ways or slow them down.*)
         if null ps then raise TERM z
-        else res (apply2 (Drule.instantiate_normalize (ps, [])) (tha, thb))
+        else res (apply2 (Drule.instantiate_normalize (ps, [])) (th1', th2))
       end
   end
 
