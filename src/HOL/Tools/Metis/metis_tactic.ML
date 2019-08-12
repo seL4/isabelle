@@ -176,7 +176,8 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
       | get_isa_thm mth Isa_Lambda_Lifted =
           lam_lifted_of_metis ctxt type_enc sym_tab concealed mth
       | get_isa_thm _ (Isa_Raw ith) = ith
-    val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+    val axioms = axioms |> map (fn (mth, ith) =>
+      (mth, get_isa_thm mth ith |> Thm.close_derivation \<^here>))
     val _ = trace_msg ctxt (K "ISABELLE CLAUSES")
     val _ = List.app (fn (_, ith) => trace_msg ctxt (fn () => Thm.string_of_thm ctxt ith)) axioms
     val _ = trace_msg ctxt (K "METIS CLAUSES")
@@ -208,15 +209,12 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
             val used = map_filter (used_axioms axioms) proof
             val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
             val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) used
-            val (used_th_cls_pairs, unused_th_cls_pairs) =
-              List.partition (have_common_thm ctxt used o snd o snd) th_cls_pairs
-            val unused_ths = maps (snd o snd) unused_th_cls_pairs
-            val unused_names = map fst unused_th_cls_pairs
 
-            val _ = unused := unused_ths;
+            val unused_th_cls_pairs = filter_out (have_common_thm ctxt used o #2 o #2) th_cls_pairs
+            val _ = unused := maps (#2 o #2) unused_th_cls_pairs;
             val _ =
-              if not (null unused_names) then
-                verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused_names)
+              if not (null unused_th_cls_pairs) then
+                verbose_warning ctxt ("Unused theorems: " ^ commas_quote (map #1 unused_th_cls_pairs))
               else ();
             val _ =
               if not (null cls) andalso not (have_common_thm ctxt used cls) then

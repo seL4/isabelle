@@ -1007,8 +1007,7 @@ fun name_derivation name_pos =
       val Deriv {promises, body} = der;
       val {shyps, hyps, prop, tpairs, ...} = args;
 
-      fun err msg = raise THM ("name_derivation: " ^ msg, 0, [thm]);
-      val _ = null tpairs orelse err "bad flex-flex constraints";
+      val _ = null tpairs orelse raise THM ("name_derivation: bad flex-flex constraints", 0, [thm]);
 
       val ps = map (apsnd (Future.map fulfill_body)) promises;
       val (pthm, proof) =
@@ -1019,7 +1018,8 @@ fun name_derivation name_pos =
 
 fun close_derivation pos =
   solve_constraints #> (fn thm =>
-    if derivation_closed thm then thm else name_derivation ("", pos) thm);
+    if not (null (tpairs_of thm)) orelse derivation_closed thm then thm
+    else name_derivation ("", pos) thm);
 
 val trim_context = solve_constraints #> trim_context_thm;
 
