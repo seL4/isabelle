@@ -176,7 +176,8 @@ fun FOL_SOLVE unused type_encs lam_trans ctxt cls ths0 =
       | get_isa_thm mth Isa_Lambda_Lifted =
           lam_lifted_of_metis ctxt type_enc sym_tab concealed mth
       | get_isa_thm _ (Isa_Raw ith) = ith
-    val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
+    val axioms = axioms |> map (fn (mth, ith) =>
+      (mth, get_isa_thm mth ith |> Thm.close_derivation \<^here>))
     val _ = trace_msg ctxt (K "ISABELLE CLAUSES")
     val _ = List.app (fn (_, ith) => trace_msg ctxt (fn () => Thm.string_of_thm ctxt ith)) axioms
     val _ = trace_msg ctxt (K "METIS CLAUSES")
