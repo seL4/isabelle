@@ -9,6 +9,15 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Isar ***
+
+* The proof method combinator (subproofs m) applies the method
+expression m consecutively to each subgoal, constructing individual
+subproofs internally. This impacts the internal construction of proof
+terms: it makes a cascade of let-expressions within the derivation tree
+and may thus improve scalability.
+
+
 *** HOL ***
 
 * ASCII membership syntax concerning big operators for infimum

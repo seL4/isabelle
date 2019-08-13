@@ -766,6 +766,7 @@ text \<open>
     @{command_def "print_rules"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\[0.5ex]
     @{method_def "-"} & : & \<open>method\<close> \\
     @{method_def "goal_cases"} & : & \<open>method\<close> \\
+    @{method_def "subproofs"} & : & \<open>method\<close> \\
     @{method_def "fact"} & : & \<open>method\<close> \\
     @{method_def "assumption"} & : & \<open>method\<close> \\
     @{method_def "this"} & : & \<open>method\<close> \\
@@ -781,6 +782,8 @@ text \<open>
 
   \<^rail>\<open>
     @@{method goal_cases} (@{syntax name}*)
+    ;
+    @@{method subproofs} @{syntax method}
     ;
     @@{method fact} @{syntax thms}?
     ;
@@ -824,6 +827,14 @@ text \<open>
   command will @{command fix} goal parameters, @{command assume} goal
   premises, and @{command let} variable @{variable_ref ?case} refer to the
   conclusion.
+
+  \<^descr> @{method "subproofs"}~\<open>m\<close> applies the method expression \<open>m\<close> consecutively
+  to each subgoal, constructing individual subproofs internally (analogous to
+  ``\<^theory_text>\<open>show goal by m\<close>'' for each subgoal of the proof state). Search
+  alternatives of \<open>m\<close> are truncated: the method is forced to be deterministic.
+  This method combinator impacts the internal construction of proof terms: it
+  makes a cascade of let-expressions within the derivation tree and may thus
+  improve scalability.
 
   \<^descr> @{method "fact"}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> composes some fact from \<open>a\<^sub>1, \<dots>, a\<^sub>n\<close> (or
   implicitly from the current proof context) modulo unification of schematic
