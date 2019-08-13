@@ -98,7 +98,7 @@ ML_file \<open>Tools/Function/fun.ML\<close>
 ML_file \<open>Tools/Function/induction_schema.ML\<close>
 
 method_setup induction_schema = \<open>
-  Scan.succeed (Method.CONTEXT_TACTIC oo Induction_Schema.induction_schema_tac)
+  Scan.succeed (CONTEXT_TACTIC oo Induction_Schema.induction_schema_tac)
 \<close> "prove an induction principle"
 
 

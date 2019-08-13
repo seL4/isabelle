@@ -125,7 +125,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
     end);
 
 fun coinduction_tac ctxt x1 x2 x3 x4 =
-  Method.NO_CONTEXT_TACTIC ctxt (coinduction_context_tactic x1 x2 x3 x4);
+  NO_CONTEXT_TACTIC ctxt (coinduction_context_tactic x1 x2 x3 x4);
 
 
 local

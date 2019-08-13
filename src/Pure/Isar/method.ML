@@ -4,24 +4,9 @@
 Isar proof methods.
 *)
 
-infix 1 CONTEXT_THEN_ALL_NEW;
-
-signature BASIC_METHOD =
-sig
-  type context_state = Proof.context * thm
-  type context_tactic = context_state -> context_state Seq.result Seq.seq
-  val CONTEXT_CASES: Rule_Cases.cases -> tactic -> context_tactic
-  val CONTEXT_SUBGOAL: (term * int -> context_tactic) -> int -> context_tactic
-  val CONTEXT_THEN_ALL_NEW: (int -> context_tactic) * (int -> tactic) -> int -> context_tactic
-end;
-
 signature METHOD =
 sig
-  include BASIC_METHOD
   type method = thm list -> context_tactic
-  val CONTEXT: Proof.context -> thm Seq.seq -> context_state Seq.result Seq.seq
-  val CONTEXT_TACTIC: tactic -> context_tactic
-  val NO_CONTEXT_TACTIC: Proof.context -> context_tactic -> tactic
   val CONTEXT_METHOD: (thm list -> context_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
   val fail: method
@@ -115,35 +100,6 @@ struct
 
 (** proof methods **)
 
-(* tactics with proof context / cases *)
-
-type context_state = Proof.context * thm;
-type context_tactic = context_state -> context_state Seq.result Seq.seq;
-
-fun CONTEXT ctxt : thm Seq.seq -> context_state Seq.result Seq.seq =
-  Seq.map (Seq.Result o pair ctxt);
-
-fun CONTEXT_TACTIC tac : context_tactic =
-  fn (ctxt, st) => CONTEXT ctxt (tac st);
-
-fun NO_CONTEXT_TACTIC ctxt (tac: context_tactic) st =
-  tac (ctxt, st) |> Seq.filter_results |> Seq.map snd;
-
-fun CONTEXT_CASES cases tac : context_tactic =
-  fn (ctxt, st) => CONTEXT (Proof_Context.update_cases cases ctxt) (tac st);
-
-fun CONTEXT_SUBGOAL tac i : context_tactic =
-  fn (ctxt, st) =>
-    (case try Logic.nth_prem (i, Thm.prop_of st) of
-      SOME goal => tac (goal, i) (ctxt, st)
-    | NONE => Seq.empty);
-
-fun (tac1 CONTEXT_THEN_ALL_NEW tac2) i : context_tactic =
-  fn (ctxt, st) =>
-    (ctxt, st) |> tac1 i |> Seq.maps_results (fn (ctxt', st') =>
-      CONTEXT ctxt' ((Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st'));
-
-
 (* type method *)
 
 type method = thm list -> context_tactic;
@@ -165,16 +121,17 @@ fun insert_tac _ [] _ = all_tac
       EVERY (map (fn r => resolve_tac ctxt [Drule.forall_intr_vars r COMP_INCR revcut_rl] i) facts);
 
 fun insert thms =
-  CONTEXT_METHOD (fn _ => fn (ctxt, st) => st |> ALLGOALS (insert_tac ctxt thms) |> CONTEXT ctxt);
+  CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
+    st |> ALLGOALS (insert_tac ctxt thms) |> TACTIC_CONTEXT ctxt);
 
 
 fun SIMPLE_METHOD tac =
   CONTEXT_METHOD (fn facts => fn (ctxt, st) =>
-    st |> (ALLGOALS (insert_tac ctxt facts) THEN tac) |> CONTEXT ctxt);
+    st |> (ALLGOALS (insert_tac ctxt facts) THEN tac) |> TACTIC_CONTEXT ctxt);
 
 fun SIMPLE_METHOD'' quant tac =
   CONTEXT_METHOD (fn facts => fn (ctxt, st) =>
-    st |> quant (insert_tac ctxt facts THEN' tac) |> CONTEXT ctxt);
+    st |> quant (insert_tac ctxt facts THEN' tac) |> TACTIC_CONTEXT ctxt);
 
 val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
 
@@ -195,7 +152,7 @@ fun goal_cases_tac case_names : context_tactic =
 
 fun cheating int = CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
   if int orelse Config.get ctxt quick_and_dirty then
-    CONTEXT ctxt (ALLGOALS (Skip_Proof.cheat_tac ctxt) st)
+    TACTIC_CONTEXT ctxt (ALLGOALS (Skip_Proof.cheat_tac ctxt) st)
   else error "Cheating requires quick_and_dirty mode!");
 
 
@@ -216,7 +173,8 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 fun atomize false ctxt =
       SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
   | atomize true ctxt =
-      CONTEXT_TACTIC o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
+      Context_Tactic.CONTEXT_TACTIC o
+        K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
 
 
 (* this -- resolve facts directly *)
@@ -530,7 +488,7 @@ fun BYPASS_CONTEXT (tac: tactic) =
   fn result =>
     (case result of
       Seq.Error _ => Seq.single result
-    | Seq.Result (ctxt, st) => tac st |> CONTEXT ctxt);
+    | Seq.Result (ctxt, st) => tac st |> TACTIC_CONTEXT ctxt);
 
 val preparation = BYPASS_CONTEXT (ALLGOALS Goal.conjunction_tac);
 
@@ -839,7 +797,7 @@ val _ = Theory.setup
       "rotate assumptions of goal" #>
   setup \<^binding>\<open>tactic\<close> (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
-  setup \<^binding>\<open>raw_tactic\<close> (parse_tactic >> (fn tac => fn _ => CONTEXT_TACTIC o tac))
+  setup \<^binding>\<open>raw_tactic\<close> (parse_tactic >> (fn tac => fn _ => Context_Tactic.CONTEXT_TACTIC o tac))
     "ML tactic as raw proof method" #>
   setup \<^binding>\<open>use\<close>
     (Attrib.thms -- (Scan.lift (Parse.$$$ "in") |-- text_closure) >>
@@ -852,9 +810,6 @@ val unfold = unfold_meth;
 val fold = fold_meth;
 
 end;
-
-structure Basic_Method: BASIC_METHOD = Method;
-open Basic_Method;
 
 val CONTEXT_METHOD = Method.CONTEXT_METHOD;
 val METHOD = Method.METHOD;

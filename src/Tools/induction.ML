@@ -47,7 +47,7 @@ val induction_context_tactic =
       in ((cases', consumes), th) end);
 
 fun induction_tac ctxt x1 x2 x3 x4 x5 x6 x7 =
-  Method.NO_CONTEXT_TACTIC ctxt (induction_context_tactic x1 x2 x3 x4 x5 x6 x7);
+  NO_CONTEXT_TACTIC ctxt (induction_context_tactic x1 x2 x3 x4 x5 x6 x7);
 
 val _ =
   Theory.local_setup (Induct.gen_induct_setup \<^binding>\<open>induction\<close> induction_context_tactic);

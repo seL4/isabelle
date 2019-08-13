@@ -432,7 +432,7 @@ fun refine_insert ths =
   refine_singleton (Method.Basic (K (Method.insert ths)));
 
 fun refine_primitive r =
-  refine_singleton (Method.Basic (fn ctxt => fn _ => Method.CONTEXT_TACTIC (PRIMITIVE (r ctxt))));
+  refine_singleton (Method.Basic (fn ctxt => fn _ => CONTEXT_TACTIC (PRIMITIVE (r ctxt))));
 
 end;
 
@@ -973,7 +973,7 @@ fun implicit_vars props =
   in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
-  refine_singleton (Method.Basic (fn ctxt => Method.CONTEXT_TACTIC o
+  refine_singleton (Method.Basic (fn ctxt => CONTEXT_TACTIC o
     K (HEADGOAL (PRECISE_CONJUNCTS n
       (HEADGOAL (CONJUNCTS (ALLGOALS (resolve_tac ctxt [Drule.termI]))))))));
 

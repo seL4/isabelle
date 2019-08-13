@@ -535,7 +535,7 @@ fun cases_context_tactic simp insts opt_rule facts i : context_tactic =
     end;
 
 fun cases_tac ctxt x1 x2 x3 x4 x5 =
-  Method.NO_CONTEXT_TACTIC ctxt (cases_context_tactic x1 x2 x3 x4 x5);
+  NO_CONTEXT_TACTIC ctxt (cases_context_tactic x1 x2 x3 x4 x5);
 
 end;
 
@@ -828,10 +828,10 @@ fun gen_induct_context_tactic mod_cases simp def_insts arbitrary taking opt_rule
 val induct_context_tactic = gen_induct_context_tactic I;
 
 fun gen_induct_tac ctxt x1 x2 x3 x4 x5 x6 x7 x8 =
-  Method.NO_CONTEXT_TACTIC ctxt (gen_induct_context_tactic x1 x2 x3 x4 x5 x6 x7 x8);
+  NO_CONTEXT_TACTIC ctxt (gen_induct_context_tactic x1 x2 x3 x4 x5 x6 x7 x8);
 
 fun induct_tac ctxt x1 x2 x3 x4 x5 x6 x7 =
-  Method.NO_CONTEXT_TACTIC ctxt (induct_context_tactic x1 x2 x3 x4 x5 x6 x7);
+  NO_CONTEXT_TACTIC ctxt (induct_context_tactic x1 x2 x3 x4 x5 x6 x7);
 
 
 
@@ -882,7 +882,7 @@ fun coinduct_context_tactic inst taking opt_rule facts =
     end);
 
 fun coinduct_tac ctxt x1 x2 x3 x4 x5 =
-  Method.NO_CONTEXT_TACTIC ctxt (coinduct_context_tactic x1 x2 x3 x4 x5);
+  NO_CONTEXT_TACTIC ctxt (coinduct_context_tactic x1 x2 x3 x4 x5);
 
 end;
 
