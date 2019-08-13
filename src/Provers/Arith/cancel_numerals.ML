@@ -88,21 +88,22 @@ fun proc ctxt ct =
         else Data.prove_conv [Data.norm_tac ctxt'] ctxt' prems
           (t', Data.mk_bal (newshape(n1,terms1'), newshape(n2,terms2')))
   in
-    Option.map (singleton (Variable.export ctxt' ctxt) o Data.simplify_meta_eq ctxt')
-      (if n2 <= n1 then
-         Data.prove_conv
-           [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.bal_add1] 1,
-            Data.numeral_simp_tac ctxt'] ctxt' prems
-           (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
-       else
-         Data.prove_conv
-           [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.bal_add2] 1,
-            Data.numeral_simp_tac ctxt'] ctxt' prems
-           (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
+    (if n2 <= n1 then
+       Data.prove_conv
+         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.bal_add1] 1,
+          Data.numeral_simp_tac ctxt'] ctxt' prems
+         (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
+     else
+       Data.prove_conv
+         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.bal_add2] 1,
+          Data.numeral_simp_tac ctxt'] ctxt' prems
+         (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
+    |> Option.map
+      (Data.simplify_meta_eq ctxt' #>
+        singleton (Variable.export ctxt' ctxt))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)
                              Undeclared type constructor "Numeral.bin"*)
-
 end;

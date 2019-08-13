@@ -80,11 +80,13 @@ fun proc ctxt ct =
       else Data.prove_conv [Data.norm_tac ctxt'] ctxt'
         (t', Data.mk_sum T ([Data.mk_coeff (m, u), Data.mk_coeff (n, u)] @ terms))
   in
-    Option.map (singleton (Variable.export ctxt' ctxt) o Data.simplify_meta_eq ctxt')
-      (Data.prove_conv
-         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.left_distrib] 1,
-          Data.numeral_simp_tac ctxt'] ctxt'
-         (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
+    Data.prove_conv
+       [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.left_distrib] 1,
+        Data.numeral_simp_tac ctxt'] ctxt'
+       (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms))
+    |> Option.map
+      (Data.simplify_meta_eq ctxt' #>
+        singleton (Variable.export ctxt' ctxt))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE

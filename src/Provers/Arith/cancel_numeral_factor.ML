@@ -66,10 +66,12 @@ fun proc ctxt ct =
       Data.prove_conv [Data.norm_tac ctxt'] ctxt' prems
         (t', Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-    Option.map (singleton (Variable.export ctxt' ctxt) o Data.simplify_meta_eq ctxt')
-      (Data.prove_conv
-         [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.cancel] 1,
-          Data.numeral_simp_tac ctxt'] ctxt' prems (t', rhs))
+    Data.prove_conv
+       [Data.trans_tac ctxt' reshape, resolve_tac ctxt' [Data.cancel] 1,
+        Data.numeral_simp_tac ctxt'] ctxt' prems (t', rhs)
+    |> Option.map
+      (Data.simplify_meta_eq ctxt' #>
+        singleton (Variable.export ctxt' ctxt))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
