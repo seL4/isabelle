@@ -696,11 +696,12 @@ definition "abs = (\<lambda>x :: finite_2. x)"
 definition "sgn = (\<lambda>x :: finite_2. x)"
 instance
   by standard
-    (simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def
-      times_finite_2_def
-      inverse_finite_2_def divide_finite_2_def modulo_finite_2_def
-      abs_finite_2_def sgn_finite_2_def
-      split: finite_2.splits)
+    (subproofs
+      \<open>simp_all add: plus_finite_2_def uminus_finite_2_def minus_finite_2_def
+        times_finite_2_def
+        inverse_finite_2_def divide_finite_2_def modulo_finite_2_def
+        abs_finite_2_def sgn_finite_2_def
+        split: finite_2.splits\<close>)
 end
 
 lemma two_finite_2 [simp]:
@@ -718,8 +719,9 @@ definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | a\
 definition [simp]: "division_segment (x :: finite_2) = 1"
 instance
   by standard
-    (auto simp add: divide_finite_2_def times_finite_2_def dvd_finite_2_unfold
-    split: finite_2.splits)
+    (subproofs
+      \<open>auto simp add: divide_finite_2_def times_finite_2_def dvd_finite_2_unfold
+        split: finite_2.splits\<close>)
 end
 
  
@@ -930,12 +932,13 @@ definition "abs = (\<lambda>x. case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 | _ \
 definition "sgn = (\<lambda>x :: finite_3. x)"
 instance
   by standard
-    (simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def
-      times_finite_3_def
-      inverse_finite_3_def divide_finite_3_def modulo_finite_3_def
-      abs_finite_3_def sgn_finite_3_def
-      less_finite_3_def
-      split: finite_3.splits)
+    (subproofs
+      \<open>simp_all add: plus_finite_3_def uminus_finite_3_def minus_finite_3_def
+        times_finite_3_def
+        inverse_finite_3_def divide_finite_3_def modulo_finite_3_def
+        abs_finite_3_def sgn_finite_3_def
+        less_finite_3_def
+        split: finite_3.splits\<close>)
 end
 
 lemma two_finite_3 [simp]:
@@ -951,14 +954,17 @@ definition [simp]: "normalize x = (case x of a\<^sub>3 \<Rightarrow> a\<^sub>2 |
 definition [simp]: "unit_factor = (id :: finite_3 \<Rightarrow> _)"
 definition [simp]: "euclidean_size x = (case x of a\<^sub>1 \<Rightarrow> 0 | _ \<Rightarrow> 1)"
 definition [simp]: "division_segment (x :: finite_3) = 1"
-instance proof
+instance
+proof
   fix x :: finite_3
   assume "x \<noteq> 0"
   then show "is_unit (unit_factor x)"
     by (cases x) (simp_all add: dvd_finite_3_unfold)
-qed (auto simp add: divide_finite_3_def times_finite_3_def
-  dvd_finite_3_unfold inverse_finite_3_def plus_finite_3_def
-  split: finite_3.splits)
+qed
+  (subproofs
+    \<open>auto simp add: divide_finite_3_def times_finite_3_def
+      dvd_finite_3_unfold inverse_finite_3_def plus_finite_3_def
+      split: finite_3.splits\<close>)
 end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
@@ -1029,9 +1035,11 @@ definition
   | (a\<^sub>3, _) \<Rightarrow> a\<^sub>3 | (_, a\<^sub>3) \<Rightarrow> a\<^sub>3
   | _ \<Rightarrow> a\<^sub>1)"
 
-instance proof
-qed(auto simp add: less_finite_4_def less_eq_finite_4_def Inf_finite_4_def Sup_finite_4_def 
-    inf_finite_4_def sup_finite_4_def split: finite_4.splits)
+instance
+  by standard
+    (subproofs
+      \<open>auto simp add: less_finite_4_def less_eq_finite_4_def Inf_finite_4_def Sup_finite_4_def 
+        inf_finite_4_def sup_finite_4_def split: finite_4.splits\<close>)
 end
 
 instance finite_4 :: complete_lattice ..
@@ -1042,9 +1050,10 @@ instantiation finite_4 :: complete_boolean_algebra begin
 definition "- x = (case x of a\<^sub>1 \<Rightarrow> a\<^sub>4 | a\<^sub>2 \<Rightarrow> a\<^sub>3 | a\<^sub>3 \<Rightarrow> a\<^sub>2 | a\<^sub>4 \<Rightarrow> a\<^sub>1)"
 definition "x - y = x \<sqinter> - (y :: finite_4)"
 instance
-by intro_classes
-  (simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def 
-    split: finite_4.splits)
+  by standard
+    (subproofs
+      \<open>simp_all add: inf_finite_4_def sup_finite_4_def uminus_finite_4_def minus_finite_4_def 
+        split: finite_4.splits\<close>)
 end
 
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
@@ -1130,10 +1139,11 @@ definition
    | (a\<^sub>4, _) \<Rightarrow> a\<^sub>4 | (_, a\<^sub>4) \<Rightarrow> a\<^sub>4
    | _ \<Rightarrow> a\<^sub>1)"
 
-instance 
-proof
-qed (auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def 
-    Inf_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm)
+instance
+  by standard
+    (subproofs
+      \<open>auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def 
+        Inf_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm\<close>)
 end
 
 
