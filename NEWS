@@ -1,5 +1,3 @@
-
-
 Isabelle NEWS -- history of user-relevant changes
 =================================================
 
@@ -20,20 +18,21 @@ and may thus improve scalability.
 
 *** HOL ***
 
-* ASCII membership syntax concerning big operators for infimum
-and supremum is gone.  INCOMPATIBILITY.
+* ASCII membership syntax concerning big operators for infimum and
+supremum is gone. INCOMPATIBILITY.
 
-* Clear distinction between types for bits (False / True) and
-Z2 (0 / 1): theory HOL/Library/Bit.thy has been renamed accordingly.
+* Clear distinction between types for bits (False / True) and Z2 (0 /
+1): theory HOL/Library/Bit.thy has been renamed accordingly.
 INCOMPATIBILITY.
 
-* Fact collection sign_simps contains only simplification rules
-for products being less / greater / equal to zero; combine with
-existing collections algebra_simps or field_simps to obtain
-reasonable simplification.  INCOMPATIBILITY.
+* Fact collection sign_simps contains only simplification rules for
+products being less / greater / equal to zero; combine with existing
+collections algebra_simps or field_simps to obtain reasonable
+simplification. INCOMPATIBILITY.
 
-* Theory HOL-Library.Monad_Syntax: infix operation "bind" (>>=) associates
-to the left now as is customary.
+* Theory HOL-Library.Monad_Syntax: infix operation "bind" (>>=)
+associates to the left now as is customary.
+
 
 
 New in Isabelle2019 (June 2019)
