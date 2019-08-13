@@ -593,6 +593,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Iff_Oracle
     Induction_Schema
     Intuitionistic
+    Join_Theory
     Lagrange
     List_to_Set_Comprehension_Examples
     LocaleTest2
