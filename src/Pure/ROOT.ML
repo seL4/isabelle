@@ -243,8 +243,8 @@ ML_file "ML/ml_compiler2.ML";
 section "Bootstrap phase 3: towards theory Pure and final ML toplevel setup";
 
 (*basic proof engine*)
-ML_file "context_tactic.ML";
 ML_file "par_tactical.ML";
+ML_file "context_tactic.ML";
 ML_file "Isar/proof_display.ML";
 ML_file "Isar/attrib.ML";
 ML_file "Isar/context_rules.ML";

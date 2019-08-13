@@ -16,6 +16,7 @@ sig
   val CONTEXT_CASES: Rule_Cases.cases -> tactic -> context_tactic
   val CONTEXT_SUBGOAL: (term * int -> context_tactic) -> int -> context_tactic
   val CONTEXT_THEN_ALL_NEW: (int -> context_tactic) * (int -> tactic) -> int -> context_tactic
+  val SUBPROOFS: context_tactic -> context_tactic
 end;
 
 signature CONTEXT_TACTIC =
@@ -25,6 +26,8 @@ end;
 
 structure Context_Tactic: CONTEXT_TACTIC =
 struct
+
+(* type context_tactic *)
 
 type context_state = Proof.context * thm;
 type context_tactic = context_state -> context_state Seq.result Seq.seq;
@@ -51,6 +54,30 @@ fun (tac1 CONTEXT_THEN_ALL_NEW tac2) i : context_tactic =
   fn (ctxt, st) =>
     (ctxt, st) |> tac1 i |> Seq.maps_results (fn (ctxt', st') =>
       TACTIC_CONTEXT ctxt' ((Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st'));
+
+
+(* subproofs with closed derivation *)
+
+fun SUBPROOFS tac : context_tactic =
+  let
+    fun apply (g :: gs) (SOME (Seq.Result (results, ctxt))) =
+          (case Seq.pull (tac (ctxt, Goal.init g)) of
+            SOME (Seq.Result (ctxt', st'), _) =>
+              apply gs (SOME (Seq.Result (st' :: results, ctxt')))
+          | SOME (Seq.Error msg, _) => SOME (Seq.Error msg)
+          | NONE => NONE)
+      | apply _ x = x;
+  in
+    fn (ctxt, st) =>
+      (case Par_Tactical.strip_goals st of
+        SOME goals =>
+          (case apply goals (SOME (Seq.Result ([], ctxt))) of
+            SOME (Seq.Result (results, ctxt')) =>
+              TACTIC_CONTEXT ctxt' (Par_Tactical.retrofit_tac {close = true} results st)
+          | SOME (Seq.Error msg) => Seq.single (Seq.Error msg)
+          | NONE => Seq.empty)
+      | NONE => Seq.DETERM tac (ctxt, st))
+  end;
 
 end;
 

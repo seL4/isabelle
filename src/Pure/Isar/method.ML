@@ -770,6 +770,8 @@ val _ = Theory.setup
       |> (fn SOME msg => Seq.single (Seq.Error msg)
            | NONE => goal_cases_tac (map Token.content_of names) (ctxt, st)))))
     "bind cases for goals" #>
+  setup \<^binding>\<open>subproofs\<close> (text_closure >> (Context_Tactic.SUBPROOFS ooo evaluate_runtime))
+    "apply proof method to subproofs with closed derivation" #>
   setup \<^binding>\<open>insert\<close> (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts" #>
   setup \<^binding>\<open>intro\<close> (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
