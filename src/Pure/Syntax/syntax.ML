@@ -549,15 +549,17 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
       print_ast_trtab = print_ast_trtab2, prtabs = prtabs2} = tabs2;
 
     val (input', gram') =
-      (case subtract (op =) input1 input2 of
-        [] => (input1, gram1)
-      | new_xprods2 =>
-          if subset (op =) (input1, input2) then (input2, gram2)
-          else
-            let
-              val input' = new_xprods2 @ input1;
-              val gram' = Lazy.lazy_name "Syntax.merge_syntax" (fn () => Parser.make_gram input');
-            in (input', gram') end);
+      if pointer_eq (input1, input2) then (input1, gram1)
+      else
+        (case subtract (op =) input1 input2 of
+          [] => (input1, gram1)
+        | new_xprods2 =>
+            if subset (op =) (input1, input2) then (input2, gram2)
+            else
+              let
+                val input' = new_xprods2 @ input1;
+                val gram' = Lazy.lazy_name "Syntax.merge_syntax" (fn () => Parser.make_gram input');
+              in (input', gram') end);
   in
     Syntax
     ({input = input',
