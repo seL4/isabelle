@@ -44,52 +44,6 @@ val encode_syntax =
       in ([], triple int string int (ass, delim, pri)) end];
 
 
-(* standardization of variables: only frees and named bounds *)
-
-local
-
-fun declare_names (Abs (_, _, b)) = declare_names b
-  | declare_names (t $ u) = declare_names t #> declare_names u
-  | declare_names (Const (c, _)) = Name.declare (Long_Name.base_name c)
-  | declare_names (Free (x, _)) = Name.declare x
-  | declare_names _ = I;
-
-fun variant_abs bs (Abs (x, T, t)) =
-      let
-        val names = fold Name.declare bs (declare_names t Name.context);
-        val x' = #1 (Name.variant x names);
-        val t' = variant_abs (x' :: bs) t;
-      in Abs (x', T, t') end
-  | variant_abs bs (t $ u) = variant_abs bs t $ variant_abs bs u
-  | variant_abs _ t = t;
-
-in
-
-fun standard_vars used =
-  let
-    fun zero_var_indexes tm =
-      Term_Subst.instantiate (Term_Subst.zero_var_indexes_inst used [tm]) tm;
-
-    fun unvarifyT ty = ty |> Term.map_atyps
-      (fn TVar ((a, _), S) => TFree (a, S)
-        | T as TFree (a, _) =>
-            if Name.is_declared used a then T
-            else raise TYPE (Logic.bad_fixed a, [ty], []));
-
-    fun unvarify tm = tm |> Term.map_aterms
-      (fn Var ((x, _), T) => Free (x, T)
-        | t as Free (x, _) =>
-            if Name.is_declared used x then t
-            else raise TERM (Logic.bad_fixed x, [tm])
-        | t => t);
-
-  in zero_var_indexes #> map_types unvarifyT #> unvarify #> variant_abs [] end;
-
-val standard_vars_global = standard_vars Name.context;
-
-end;
-
-
 (* free variables: not declared in the context *)
 
 val is_free = not oo Name.is_declared;
@@ -253,7 +207,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val U = Logic.unvarifyT_global T;
         val U0 = Type.strip_sorts U;
         val recursion = primrec_types thy_ctxt (c, U);
-        val abbrev' = abbrev |> Option.map (standard_vars_global #> map_types Type.strip_sorts);
+        val abbrev' = abbrev
+          |> Option.map (Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, U0));
         val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
       in encode_const (syntax, (args, (U0, (abbrev', (propositional, recursion))))) end;
@@ -277,7 +232,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun encode_prop used (Ss, raw_prop) =
       let
-        val prop = standard_vars used raw_prop;
+        val prop = Proofterm.standard_vars_term used raw_prop;
         val args = rev (add_frees used prop []);
         val typargs = rev (add_tfrees used prop []);
         val used' = fold (Name.declare o #1) typargs used;

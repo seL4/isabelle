@@ -162,6 +162,10 @@ sig
   val prop_of: proof -> term
   val expand_proof: theory -> (string * term option) list -> proof -> proof
 
+  val standard_vars: Name.context -> term list * proof list -> term list * proof list
+  val standard_vars_term: Name.context -> term -> term
+  val standard_vars_proof: Name.context -> proof -> proof
+
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
@@ -1979,6 +1983,82 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
 
 (** theorems **)
 
+(* standardization of variables for export: only frees and named bounds *)
+
+local
+
+fun declare_names_term (Abs (_, _, b)) = declare_names_term b
+  | declare_names_term (t $ u) = declare_names_term t #> declare_names_term u
+  | declare_names_term (Const (c, _)) = Name.declare (Long_Name.base_name c)
+  | declare_names_term (Free (x, _)) = Name.declare x
+  | declare_names_term _ = I;
+
+val declare_names_term' = fn SOME t => declare_names_term t | NONE => I;
+
+fun declare_names_proof (Abst (_, _, prf)) = declare_names_proof prf
+  | declare_names_proof (AbsP (_, t, prf)) = declare_names_term' t #> declare_names_proof prf
+  | declare_names_proof (prf % t) = declare_names_proof prf #> declare_names_term' t
+  | declare_names_proof (prf1 %% prf2) = declare_names_proof prf1 #> declare_names_proof prf2
+  | declare_names_proof _ = I;
+
+fun variant names bs x =
+  #1 (Name.variant x (fold Name.declare bs names));
+
+fun variant_term bs (Abs (x, T, t)) =
+      let
+        val x' = variant (declare_names_term t Name.context) bs x;
+        val t' = variant_term (x' :: bs) t;
+      in Abs (x', T, t') end
+  | variant_term bs (t $ u) = variant_term bs t $ variant_term bs u
+  | variant_term _ t = t;
+
+fun variant_proof bs (Abst (x, T, prf)) =
+      let
+        val x' = variant (declare_names_proof prf Name.context) bs x;
+        val prf' = variant_proof (x' :: bs) prf;
+      in Abst (x', T, prf') end
+  | variant_proof bs (AbsP (x, t, prf)) =
+      let
+        val x' = variant (declare_names_term' t (declare_names_proof prf Name.context)) bs x;
+        val t' = Option.map (variant_term bs) t;
+        val prf' = variant_proof (x' :: bs) prf;
+      in AbsP (x', t', prf') end
+  | variant_proof bs (prf % t) = variant_proof bs prf % Option.map (variant_term bs) t
+  | variant_proof bs (prf1 %% prf2) = variant_proof bs prf1 %% variant_proof bs prf2
+  | variant_proof bs (Hyp t) = Hyp (variant_term bs t)
+  | variant_proof _ prf = prf;
+
+in
+
+fun standard_vars used (terms, proofs) =
+  let
+    val proof_terms = rev ((fold (fold_proof_terms cons (cons o Logic.mk_type))) proofs []);
+    val inst = Term_Subst.zero_var_indexes_inst used (terms @ proof_terms);
+
+    val is_used = Name.is_declared used o Name.clean;
+    fun unvarifyT ty = ty |> Term.map_atyps
+      (fn TVar ((a, _), S) => TFree (a, S)
+        | T as TFree (a, _) => if is_used a then T else raise TYPE (Logic.bad_fixed a, [ty], [])
+        | T => T);
+    fun unvarify tm = tm |> Term.map_aterms
+      (fn Var ((x, _), T) => Free (x, T)
+        | t as Free (x, _) => if is_used x then t else raise TERM (Logic.bad_fixed x, [tm])
+        | t => t);
+
+    val terms' = terms
+      |> map (Term_Subst.instantiate inst #> unvarify #> map_types unvarifyT #> variant_term []);
+    val proofs' = proofs
+      |> map (instantiate inst #> map_proof_terms unvarify unvarifyT #> variant_proof []);
+  in (terms', proofs') end;
+
+fun standard_vars_term used t = standard_vars used ([t], []) |> #1 |> the_single;
+fun standard_vars_proof used prf = standard_vars used ([], [prf]) |> #2 |> the_single;
+
+end;
+
+
+(* PThm nodes *)
+
 val proof_serial = Counter.make ();
 
 local
@@ -2021,9 +2101,18 @@ fun encode_export prop prf = pair term proof (prop, prf);
 
 end;
 
+val declare_freesT = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
+fun declare_frees t =
+  fold_types declare_freesT t #>
+  fold_aterms (fn Free (x, _) => Name.declare x | _ => I) t;
+
 fun export_proof thy i prop prf =
   let
-    val xml = reconstruct_proof thy prop prf |> encode_export prop;
+    val free_names = Name.context
+      |> declare_frees prop
+      |> fold_proof_terms declare_frees declare_freesT prf;
+    val ([prop'], [prf']) = standard_vars free_names ([prop], [reconstruct_proof thy prop prf]);
+    val xml = encode_export prop' prf';
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in
     chunks |> Export.export_params
