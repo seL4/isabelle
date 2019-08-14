@@ -905,10 +905,13 @@ fun check_conv ctxt msg thm thm' =
 (* mk_procrule *)
 
 fun mk_procrule ctxt thm =
-  let val (prems, lhs, elhs, rhs, _) = decomp_simp thm in
+  let
+    val (prems, lhs, elhs, rhs, _) = decomp_simp thm
+    val thm' = Thm.close_derivation \<^here> thm;
+  in
     if rewrite_rule_extra_vars prems lhs rhs
     then (cond_warning ctxt (fn () => print_thm ctxt "Extra vars on rhs:" ("", thm)); [])
-    else [mk_rrule2 {thm = thm, name = "", lhs = lhs, elhs = elhs, perm = false}]
+    else [mk_rrule2 {thm = thm', name = "", lhs = lhs, elhs = elhs, perm = false}]
   end;
 
 
