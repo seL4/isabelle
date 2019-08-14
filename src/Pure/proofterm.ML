@@ -2099,18 +2099,18 @@ fun proof prf = prf |> variant
 
 fun encode_export prop prf = pair term proof (prop, prf);
 
-end;
 
-val declare_freesT = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-fun declare_frees t =
-  fold_types declare_freesT t #>
-  fold_aterms (fn Free (x, _) => Name.declare x | _ => I) t;
+val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
+fun used_frees_term t = fold_types used_frees_type t #> Term.declare_term_frees t;
+val used_frees_proof = fold_proof_terms used_frees_term used_frees_type;
+
+end;
 
 fun export_proof thy i prop prf =
   let
     val free_names = Name.context
-      |> declare_frees prop
-      |> fold_proof_terms declare_frees declare_freesT prf;
+      |> used_frees_term prop
+      |> used_frees_proof prf;
     val ([prop'], [prf']) = standard_vars free_names ([prop], [reconstruct_proof thy prop prf]);
     val xml = encode_export prop' prf';
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
