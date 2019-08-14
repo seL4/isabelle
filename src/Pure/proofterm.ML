@@ -1987,12 +1987,7 @@ fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body 
 
 local
 
-fun declare_names_term (Abs (_, _, b)) = declare_names_term b
-  | declare_names_term (t $ u) = declare_names_term t #> declare_names_term u
-  | declare_names_term (Const (c, _)) = Name.declare (Long_Name.base_name c)
-  | declare_names_term (Free (x, _)) = Name.declare x
-  | declare_names_term _ = I;
-
+val declare_names_term = Term.declare_term_frees;
 val declare_names_term' = fn SOME t => declare_names_term t | NONE => I;
 
 fun declare_names_proof (Abst (_, _, prf)) = declare_names_proof prf
