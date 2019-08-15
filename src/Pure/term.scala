@@ -13,7 +13,7 @@ object Term
 {
   /* types and terms */
 
-  type Indexname = (String, Int)
+  sealed case class Indexname(name: String, index: Int)
 
   type Sort = List[String]
   val dummyS: Sort = List("")
@@ -100,7 +100,7 @@ object Term
     extends isabelle.Cache(initial_size, max_string)
   {
     protected def cache_indexname(x: Indexname): Indexname =
-      lookup(x) getOrElse store(cache_string(x._1), cache_int(x._2))
+      lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))
 
     protected def cache_sort(x: Sort): Sort =
       if (x == dummyS) dummyS
@@ -141,7 +141,7 @@ object Term
             case Const(name, typ) => store(Const(cache_string(name), cache_typ(typ)))
             case Free(name, typ) => store(Free(cache_string(name), cache_typ(typ)))
             case Var(name, typ) => store(Var(cache_indexname(name), cache_typ(typ)))
-            case Bound(index) => store(Bound(cache_int(index)))
+            case Bound(_) => store(x)
             case Abs(name, typ, body) =>
               store(Abs(cache_string(name), cache_typ(typ), cache_term(body)))
             case App(fun, arg) => store(App(cache_term(fun), cache_term(arg)))
@@ -157,7 +157,7 @@ object Term
           case Some(y) => y
           case None =>
             x match {
-              case PBound(index) => store(PBound(cache_int(index)))
+              case PBound(_) => store(x)
               case Abst(name, typ, body) =>
                 store(Abst(cache_string(name), cache_typ(typ), cache_proof(body)))
               case AbsP(name, hyp, body) =>

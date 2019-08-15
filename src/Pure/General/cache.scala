@@ -37,9 +37,6 @@ class Cache(initial_size: Int = 131071, max_string: Int = 100)
     x
   }
 
-  protected def cache_int(x: Int): Int =
-    lookup(x) getOrElse store(x)
-
   protected def cache_string(x: String): String =
   {
     if (x == "") ""
@@ -58,6 +55,5 @@ class Cache(initial_size: Int = 131071, max_string: Int = 100)
   }
 
   // main methods
-  def int(x: Int): Int = synchronized { cache_int(x) }
   def string(x: String): String = synchronized { cache_string(x) }
 }
