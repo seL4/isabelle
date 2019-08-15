@@ -226,6 +226,10 @@ object Export
         def apply(export_name: String): Option[Entry] =
           read_entry(db, session_name, theory_name, export_name)
 
+        def focus(other_theory: String): Provider =
+          if (other_theory == theory_name) this
+          else Provider.database(db, session_name, other_theory)
+
         override def toString: String = db.toString
       }
 
@@ -234,6 +238,15 @@ object Export
         def apply(export_name: String): Option[Entry] =
           snapshot.exports_map.get(export_name)
 
+        def focus(other_theory: String): Provider =
+          if (other_theory == snapshot.node_name.theory) this
+          else {
+            val node_name =
+              snapshot.version.nodes.theory_name(other_theory) getOrElse
+                error("Bad theory " + quote(other_theory))
+            Provider.snapshot(snapshot.state.snapshot(node_name))
+          }
+
         override def toString: String = snapshot.toString
       }
 
@@ -241,6 +254,10 @@ object Export
       new Provider {
         def apply(export_name: String): Option[Entry] =
           read_entry(dir, session_name, theory_name, export_name)
+
+        def focus(other_theory: String): Provider =
+          if (other_theory == theory_name) this
+          else Provider.directory(dir, session_name, other_theory)
 
         override def toString: String = dir.toString
       }
@@ -255,6 +272,8 @@ object Export
         case Some(entry) => entry.uncompressed_yxml(cache = cache)
         case None => Nil
       }
+
+    def focus(other_theory: String): Provider
   }
 
 

@@ -65,6 +65,7 @@ object Export_Theory
   /** theory content **/
 
   val export_prefix: String = "theory/"
+  val export_prefix_proofs: String = "proofs/"
 
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
@@ -366,6 +367,21 @@ object Export_Theory
         val facts = XML.Decode.list(decode_fact)(body)
         Fact_Multi(entity, facts)
       })
+
+  def read_proof(
+    provider: Export.Provider,
+    theory_name: String,
+    serial: Long,
+    cache: Option[Term.Cache] = None): (Term.Term, Term.Proof) =
+  {
+    val body = provider.focus(theory_name).uncompressed_yxml(export_prefix_proofs + serial)
+    if (body.isEmpty) error("Bad proof export " + serial)
+    val (prop, proof) = XML.Decode.pair(Term_XML.Decode.term, Term_XML.Decode.proof)(body)
+    cache match {
+      case None => (prop, proof)
+      case Some(cache) => (cache.term(prop), cache.proof(proof))
+    }
+  }
 
 
   /* type classes */
