@@ -165,9 +165,8 @@ sig
   val prop_of: proof -> term
   val expand_proof: theory -> (string * term option) list -> proof -> proof
 
-  val standard_vars: Name.context -> term list * proof list -> term list * proof list
+  val standard_vars: Name.context -> term * proof option -> term * proof option
   val standard_vars_term: Name.context -> term -> term
-  val standard_vars_proof: Name.context -> proof -> proof
 
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
@@ -2049,25 +2048,37 @@ val used_frees_proof = fold_proof_terms used_frees_term used_frees_type;
 
 val unvarifyT = Term.map_atyps (fn TVar ((a, _), S) => TFree (a, S) | T => T);
 val unvarify = Term.map_aterms (fn Var ((x, _), T) => Free (x, T) | t => t) #> map_types unvarifyT;
+val unvarify_proof = map_proof_terms unvarify unvarifyT;
+
+fun hidden_types prop proof =
+  let
+    val visible = (fold_types o fold_atyps) (insert (op =)) prop [];
+    val add_hiddenT = fold_atyps (fn T => not (member (op =) visible T) ? insert (op =) T);
+  in rev (fold_proof_terms (fold_types add_hiddenT) add_hiddenT proof []) end;
+
+fun standard_hidden_types term proof =
+  let
+    val hidden = hidden_types term proof;
+    val idx = Term.maxidx_term term (maxidx_proof proof ~1) + 1;
+    fun smash T = if member (op =) hidden T then TVar (("'", idx), Type.sort_of_atyp T) else T;
+    val smashT = map_atyps smash;
+  in map_proof_terms (map_types smashT) smashT proof end;
 
 in
 
-fun standard_vars used (terms, proofs) =
+fun standard_vars used (term, opt_proof) =
   let
-    val used' = used
-      |> fold used_frees_term terms
+    val proofs = the_list (Option.map (standard_hidden_types term) opt_proof);
+    val proof_terms = rev (fold (fold_proof_terms cons (cons o Logic.mk_type)) proofs []);
+    val used_frees = used
+      |> used_frees_term term
       |> fold used_frees_proof proofs;
-    val proof_terms = rev ((fold (fold_proof_terms cons (cons o Logic.mk_type))) proofs []);
-    val inst = Term_Subst.zero_var_indexes_inst used' (terms @ proof_terms);
+    val inst = Term_Subst.zero_var_indexes_inst used_frees (term :: proof_terms);
+    val term' = term |> Term_Subst.instantiate inst |> unvarify |> variant_term [];
+    val proofs' = proofs |> map (instantiate inst #> unvarify_proof #> variant_proof []);
+  in (term', try hd proofs') end;
 
-    val terms' = terms
-      |> map (Term_Subst.instantiate inst #> unvarify #> variant_term []);
-    val proofs' = proofs
-      |> map (instantiate inst #> map_proof_terms unvarify unvarifyT #> variant_proof []);
-  in (terms', proofs') end;
-
-fun standard_vars_term used t = standard_vars used ([t], []) |> #1 |> the_single;
-fun standard_vars_proof used prf = standard_vars used ([], [prf]) |> #2 |> the_single;
+fun standard_vars_term used t = #1 (standard_vars used (t, NONE));
 
 end;
 
@@ -2102,7 +2113,8 @@ fun encode_export prop prf =
 
 fun export_proof thy i prop prf =
   let
-    val ([prop'], [prf']) = standard_vars Name.context ([prop], [reconstruct_proof thy prop prf]);
+    val (prop', SOME prf') =
+      standard_vars Name.context (prop, SOME (reconstruct_proof thy prop prf));
     val xml = encode_export prop' prf';
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in

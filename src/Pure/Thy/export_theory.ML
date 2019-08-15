@@ -222,14 +222,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun standard_prop used extra_shyps raw_prop raw_proof =
       let
-        val raw_proofs = the_list raw_proof;
-        val ([prop], proofs) = Proofterm.standard_vars used ([raw_prop], raw_proofs);
-
+        val (prop, proof) = Proofterm.standard_vars used (raw_prop, raw_proof);
         val args = rev (add_frees used prop []);
         val typargs = rev (add_tfrees used prop []);
         val used_typargs = fold (Name.declare o #1) typargs used;
         val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
-      in ((sorts @ typargs, args, prop), try hd proofs) end;
+      in ((sorts @ typargs, args, prop), proof) end;
 
     val encode_prop =
       let open XML.Encode Term_XML.Encode
