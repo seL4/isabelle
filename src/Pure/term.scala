@@ -14,6 +14,21 @@ object Term
   /* types and terms */
 
   sealed case class Indexname(name: String, index: Int)
+  {
+    override def toString: String =
+      if (index == -1) name
+      else {
+        val dot =
+          Symbol.explode(name).reverse match {
+            case _ :: s :: _ if s == Symbol.sub_decoded || s == Symbol.sub => false
+            case c :: _ => Symbol.is_digit(c)
+            case _ => true
+          }
+        if (dot) "?" + name + "." + index
+        else if (index != 0) "?" + name + index
+        else "?" + name
+      }
+  }
 
   type Sort = List[String]
   val dummyS: Sort = List("")
