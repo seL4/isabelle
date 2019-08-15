@@ -32,6 +32,19 @@ object Term
   case class Abs(name: String, typ: Typ = dummyT, body: Term) extends Term
   case class App(fun: Term, arg: Term) extends Term
 
+  sealed abstract class Proof
+  case object MinProof extends Proof
+  case class PBound(index: Int) extends Proof
+  case class Abst(name: String, typ: Typ, body: Proof) extends Proof
+  case class AbsP(name: String, hyp: Term, body: Proof) extends Proof
+  case class Appt(fun: Proof, arg: Term) extends Proof
+  case class AppP(fun: Proof, arg: Proof) extends Proof
+  case class Hyp(hyp: Term) extends Proof
+  case class PAxm(name: String, types: List[Typ]) extends Proof
+  case class OfClass(typ: Typ, cls: String) extends Proof
+  case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
+  case class PThm(serial: Long, pseudo_name: String, types: List[Typ]) extends Proof
+
 
   /* Pure logic */
 
@@ -101,11 +114,22 @@ object Term
           case Some(y) => y
           case None =>
             x match {
-              case Type(name, args) => store(Type(cache_string(name), args.map(cache_typ(_))))
+              case Type(name, args) => store(Type(cache_string(name), cache_typs(args)))
               case TFree(name, sort) => store(TFree(cache_string(name), cache_sort(sort)))
               case TVar(name, sort) => store(TVar(cache_indexname(name), cache_sort(sort)))
             }
         }
+    }
+
+    protected def cache_typs(x: List[Typ]): List[Typ] =
+    {
+      if (x.isEmpty) Nil
+      else {
+        lookup(x) match {
+          case Some(y) => y
+          case None => store(x.map(cache_typ(_)))
+        }
+      }
     }
 
     protected def cache_term(x: Term): Term =
@@ -125,11 +149,38 @@ object Term
       }
     }
 
+    protected def cache_proof(x: Proof): Proof =
+    {
+      if (x == MinProof) MinProof
+      else {
+        lookup(x) match {
+          case Some(y) => y
+          case None =>
+            x match {
+              case MinProof => x
+              case PBound(index) => store(PBound(cache_int(index)))
+              case Abst(name, typ, body) =>
+                store(Abst(cache_string(name), cache_typ(typ), cache_proof(body)))
+              case AbsP(name, hyp, body) =>
+                store(AbsP(cache_string(name), cache_term(hyp), cache_proof(body)))
+              case Appt(fun, arg) => store(Appt(cache_proof(fun), cache_term(arg)))
+              case AppP(fun, arg) => store(AppP(cache_proof(fun), cache_proof(arg)))
+              case OfClass(typ, cls) => store(OfClass(cache_typ(typ), cache_string(cls)))
+              case Oracle(name, prop, types) =>
+                store(Oracle(cache_string(name), cache_term(prop), cache_typs(types)))
+              case PThm(serial, name, types) =>
+                store(PThm(serial, cache_string(name), cache_typs(types)))
+            }
+        }
+      }
+    }
+
     // main methods
     def indexname(x: Indexname): Indexname = synchronized { cache_indexname(x) }
     def sort(x: Sort): Sort = synchronized { cache_sort(x) }
     def typ(x: Typ): Typ = synchronized { cache_typ(x) }
     def term(x: Term): Term = synchronized { cache_term(x) }
+    def proof(x: Proof): Proof = synchronized { cache_proof(x) }
 
     def position(x: Position.T): Position.T =
       synchronized { x.map({ case (a, b) => (cache_string(a), cache_string(b)) }) }
