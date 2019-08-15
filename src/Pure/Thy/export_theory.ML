@@ -223,8 +223,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun standard_prop used extra_shyps raw_prop raw_proof =
       let
         val raw_proofs = the_list raw_proof;
-        val used_proofs = used |> fold Proofterm.used_frees_proof raw_proofs;
-        val ([prop], proofs) = ([raw_prop], raw_proofs) |> Proofterm.standard_vars used_proofs;
+        val ([prop], proofs) = Proofterm.standard_vars used ([raw_prop], raw_proofs);
 
         val args = rev (add_frees used prop []);
         val typargs = rev (add_tfrees used prop []);
