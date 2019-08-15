@@ -390,6 +390,9 @@ object Document
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
+    def theory_name(theory: String): Option[Node.Name] =
+      graph.keys_iterator.find(name => name.theory == theory)
+
     def commands_loading(file_name: Node.Name): List[Command] =
       (for {
         (_, node) <- iterator

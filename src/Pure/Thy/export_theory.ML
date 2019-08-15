@@ -220,40 +220,40 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* axioms and facts *)
 
-    fun prop_of raw_thm =
+    fun standard_prop used extra_shyps raw_prop raw_proof =
       let
-        val thm = raw_thm
-          |> Thm.transfer thy
-          |> Thm.check_hyps (Context.Theory thy)
-          |> Thm.strip_shyps;
-        val prop = thm
-          |> Thm.full_prop_of;
-      in (Thm.extra_shyps thm, prop) end;
-
-    fun encode_prop used (Ss, raw_prop) =
-      let
-        val prop = Proofterm.standard_vars_term used raw_prop;
+        val (prop, proof) = Proofterm.standard_vars used (raw_prop, raw_proof);
         val args = rev (add_frees used prop []);
         val typargs = rev (add_tfrees used prop []);
-        val used' = fold (Name.declare o #1) typargs used;
-        val sorts = Name.invent used' Name.aT (length Ss) ~~ Ss;
-      in
-        (sorts @ typargs, args, prop) |>
-          let open XML.Encode Term_XML.Encode
-          in triple (list (pair string sort)) (list (pair string typ)) term end
-      end;
+        val used_typargs = fold (Name.declare o #1) typargs used;
+        val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
+      in ((sorts @ typargs, args, prop), proof) end;
 
-    fun encode_axiom used t = encode_prop used ([], t);
+    val encode_prop =
+      let open XML.Encode Term_XML.Encode
+      in triple (list (pair string sort)) (list (pair string typ)) term end;
 
-    val encode_fact = encode_prop Name.context;
-    val encode_fact_single = encode_fact o prop_of;
-    val encode_fact_multi = XML.Encode.list encode_fact o map prop_of;
+    fun encode_axiom used prop =
+      encode_prop (#1 (standard_prop used [] prop NONE));
+
+    val clean_thm =
+      Thm.transfer thy
+      #> Thm.check_hyps (Context.Theory thy)
+      #> Thm.strip_shyps;
+
+    val encode_fact = clean_thm #> (fn thm =>
+      standard_prop Name.context
+        (Thm.extra_shyps thm)
+        (Thm.full_prop_of thm)
+        (try Thm.reconstruct_proof_of thm) |>
+      let open XML.Encode Term_XML.Encode
+      in pair encode_prop (option Proofterm.encode_full) end);
 
     val _ =
       export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
         Theory.axiom_space (Theory.axioms_of thy);
     val _ =
-      export_entities "facts" (K (SOME o encode_fact_multi))
+      export_entities "facts" (K (SOME o XML.Encode.list encode_fact))
         (Facts.space_of o Global_Theory.facts_of)
         (Facts.dest_static true [] (Global_Theory.facts_of thy));
 
@@ -262,12 +262,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_class =
       let open XML.Encode Term_XML.Encode
-      in pair (list (pair string typ)) (list encode_fact_single) end;
+      in pair (list (pair string typ)) (list (encode_axiom Name.context)) end;
 
     fun export_class name =
       (case try (Axclass.get_info thy) name of
         NONE => ([], [])
-      | SOME {params, axioms, ...} => (params, axioms))
+      | SOME {params, axioms, ...} => (params, map (Thm.plain_prop_of o clean_thm) axioms))
       |> encode_class |> SOME;
 
     val _ =

@@ -65,6 +65,7 @@ object Export_Theory
   /** theory content **/
 
   val export_prefix: String = "theory/"
+  val export_prefix_proofs: String = "proofs/"
 
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
@@ -284,7 +285,7 @@ object Export_Theory
       })
 
 
-  /* facts */
+  /* axioms and facts */
 
   sealed case class Prop(
     typargs: List[(String, Term.Sort)],
@@ -309,23 +310,45 @@ object Export_Theory
     Prop(typargs, args, t)
   }
 
-  sealed case class Fact_Single(entity: Entity, prop: Prop)
+
+  sealed case class Fact(prop: Prop, proof: Option[Term.Proof])
   {
-    def cache(cache: Term.Cache): Fact_Single =
-      Fact_Single(entity.cache(cache), prop.cache(cache))
+    def cache(cache: Term.Cache): Fact =
+      Fact(prop.cache(cache), proof.map(cache.proof _))
   }
 
-  sealed case class Fact_Multi(entity: Entity, props: List[Prop])
+  def decode_fact(body: XML.Body): Fact =
+  {
+    val (prop, proof) =
+    {
+      import XML.Decode._
+      pair(decode_prop _, option(Term_XML.Decode.proof))(body)
+    }
+    Fact(prop, proof)
+  }
+
+  sealed case class Fact_Single(entity: Entity, fact: Fact)
+  {
+    def cache(cache: Term.Cache): Fact_Single =
+      Fact_Single(entity.cache(cache), fact.cache(cache))
+
+    def prop: Prop = fact.prop
+    def proof: Option[Term.Proof] = fact.proof
+  }
+
+  sealed case class Fact_Multi(entity: Entity, facts: List[Fact])
   {
     def cache(cache: Term.Cache): Fact_Multi =
-      Fact_Multi(entity.cache(cache), props.map(_.cache(cache)))
+      Fact_Multi(entity.cache(cache), facts.map(_.cache(cache)))
+
+    def props: List[Prop] = facts.map(_.prop)
 
     def split: List[Fact_Single] =
-      props match {
-        case List(prop) => List(Fact_Single(entity, prop))
+      facts match {
+        case List(fact) => List(Fact_Single(entity, fact))
         case _ =>
-          for ((prop, i) <- props.zipWithIndex)
-          yield Fact_Single(entity.copy(name = entity.name + "(" + (i + 1) + ")"), prop)
+          for ((fact, i) <- facts.zipWithIndex)
+          yield Fact_Single(entity.copy(name = entity.name + "(" + (i + 1) + ")"), fact)
       }
   }
 
@@ -334,16 +357,31 @@ object Export_Theory
       {
         val (entity, body) = decode_entity(Kind.AXIOM, tree)
         val prop = decode_prop(body)
-        Fact_Single(entity, prop)
+        Fact_Single(entity, Fact(prop, None))
       })
 
   def read_facts(provider: Export.Provider): List[Fact_Multi] =
     provider.uncompressed_yxml(export_prefix + "facts").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.FACT, tree)
-        val props = XML.Decode.list(decode_prop)(body)
-        Fact_Multi(entity, props)
+        val facts = XML.Decode.list(decode_fact)(body)
+        Fact_Multi(entity, facts)
       })
+
+  def read_proof(
+    provider: Export.Provider,
+    theory_name: String,
+    serial: Long,
+    cache: Option[Term.Cache] = None): (Term.Term, Term.Proof) =
+  {
+    val body = provider.focus(theory_name).uncompressed_yxml(export_prefix_proofs + serial)
+    if (body.isEmpty) error("Bad proof export " + serial)
+    val (prop, proof) = XML.Decode.pair(Term_XML.Decode.term, Term_XML.Decode.proof)(body)
+    cache match {
+      case None => (prop, proof)
+      case Some(cache) => (cache.term(prop), cache.proof(proof))
+    }
+  }
 
 
   /* type classes */

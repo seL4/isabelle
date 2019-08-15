@@ -597,7 +597,7 @@ fun extract thm_vss thy =
 
       | corr d vs ts Ts hs cs _ (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) _ defs =
           let
-            val {pos, name, prop, ...} = thm_header;
+            val {pos, theory_name, name, prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
@@ -622,8 +622,9 @@ fun extract thm_vss thy =
                     val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_header =
-                      Proofterm.thm_header (Proofterm.proof_serial ()) pos (corr_name name vs')
-                        corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
+                      Proofterm.thm_header (Proofterm.proof_serial ()) pos theory_name
+                        (corr_name name vs') corr_prop
+                        (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf);
                     val corr_prf' =
                       Proofterm.proof_combP
@@ -698,7 +699,7 @@ fun extract thm_vss thy =
 
       | extr d vs ts Ts hs (prf0 as PThm (thm_header as {types = SOME Ts', ...}, thm_body)) defs =
           let
-            val {pos, name = s, prop, ...} = thm_header;
+            val {pos, theory_name, name = s, prop, ...} = thm_header;
             val prf = Proofterm.thm_body_proof_open thm_body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
@@ -742,8 +743,9 @@ fun extract thm_vss thy =
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_header =
-                      Proofterm.thm_header (Proofterm.proof_serial ()) pos (corr_name s vs')
-                        corr_prop (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
+                      Proofterm.thm_header (Proofterm.proof_serial ()) pos theory_name
+                        (corr_name s vs') corr_prop
+                        (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf');
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
