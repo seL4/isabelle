@@ -157,7 +157,6 @@ object Term
           case Some(y) => y
           case None =>
             x match {
-              case MinProof => x
               case PBound(index) => store(PBound(cache_int(index)))
               case Abst(name, typ, body) =>
                 store(Abst(cache_string(name), cache_typ(typ), cache_proof(body)))
@@ -165,6 +164,8 @@ object Term
                 store(AbsP(cache_string(name), cache_term(hyp), cache_proof(body)))
               case Appt(fun, arg) => store(Appt(cache_proof(fun), cache_term(arg)))
               case AppP(fun, arg) => store(AppP(cache_proof(fun), cache_proof(arg)))
+              case Hyp(hyp) => store(Hyp(cache_term(hyp)))
+              case PAxm(name, types) => store(PAxm(cache_string(name), cache_typs(types)))
               case OfClass(typ, cls) => store(OfClass(cache_typ(typ), cache_string(cls)))
               case Oracle(name, prop, types) =>
                 store(Oracle(cache_string(name), cache_term(prop), cache_typs(types)))
