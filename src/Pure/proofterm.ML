@@ -67,6 +67,7 @@ sig
 
   val encode: proof XML.Encode.T
   val encode_body: proof_body XML.Encode.T
+  val encode_full: proof XML.Encode.T
   val decode: proof XML.Decode.T
   val decode_body: proof_body XML.Decode.T
 
@@ -165,6 +166,9 @@ sig
   val standard_vars: Name.context -> term list * proof list -> term list * proof list
   val standard_vars_term: Name.context -> term -> term
   val standard_vars_proof: Name.context -> proof -> proof
+  val used_frees_type: typ -> Name.context -> Name.context
+  val used_frees_term: term -> Name.context -> Name.context
+  val used_frees_proof: proof -> Name.context -> Name.context
 
   val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
@@ -389,10 +393,24 @@ and pthm (a, thm_node) =
   pair int (triple string term proof_body)
     (a, (thm_node_name thm_node, thm_node_prop thm_node, Future.join (thm_node_body thm_node)));
 
+fun full_proof prf = prf |> variant
+ [fn MinProof => ([], []),
+  fn PBound a => ([int_atom a], []),
+  fn Abst (a, SOME b, c) => ([a], pair typ full_proof (b, c)),
+  fn AbsP (a, SOME b, c) => ([a], pair term full_proof (b, c)),
+  fn a % SOME b => ([], pair full_proof term (a, b)),
+  fn a %% b => ([], pair full_proof full_proof (a, b)),
+  fn Hyp a => ([], term a),
+  fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
+  fn OfClass (T, c) => ([c], typ T),
+  fn Oracle (name, prop, SOME Ts) => ([name], pair term (list typ) (prop, Ts)),
+  fn PThm ({serial, name, types = SOME Ts, ...}, _) => ([int_atom serial, name], list typ Ts)];
+
 in
 
 val encode = proof;
 val encode_body = proof_body;
+val encode_full = full_proof;
 
 end;
 
@@ -2051,6 +2069,10 @@ fun standard_vars_proof used prf = standard_vars used ([], [prf]) |> #2 |> the_s
 
 end;
 
+val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
+fun used_frees_term t = fold_types used_frees_type t #> Term.declare_term_frees t;
+val used_frees_proof = fold_proof_terms used_frees_term used_frees_type;
+
 
 (* PThm nodes *)
 
@@ -2076,30 +2098,9 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
-
-local open XML.Encode Term_XML.Encode in
-
-fun proof prf = prf |> variant
- [fn MinProof => ([], []),
-  fn PBound a => ([int_atom a], []),
-  fn Abst (a, SOME b, c) => ([a], pair typ proof (b, c)),
-  fn AbsP (a, SOME b, c) => ([a], pair term proof (b, c)),
-  fn a % SOME b => ([], pair proof term (a, b)),
-  fn a %% b => ([], pair proof proof (a, b)),
-  fn Hyp a => ([], term a),
-  fn PAxm (name, b, SOME Ts) => ([name], list typ Ts),
-  fn OfClass (T, c) => ([c], typ T),
-  fn Oracle (name, prop, SOME Ts) => ([name], pair term (list typ) (prop, Ts)),
-  fn PThm ({serial, name, types = SOME Ts, ...}, _) => ([int_atom serial, name], list typ Ts)];
-
-fun encode_export prop prf = pair term proof (prop, prf);
-
-
-val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-fun used_frees_term t = fold_types used_frees_type t #> Term.declare_term_frees t;
-val used_frees_proof = fold_proof_terms used_frees_term used_frees_type;
-
-end;
+fun encode_export prop prf =
+  let open XML.Encode Term_XML.Encode
+  in pair term encode_full (prop, prf) end;
 
 fun export_proof thy i prop prf =
   let
