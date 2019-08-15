@@ -856,7 +856,7 @@ next
         have "integrable (map_pmf (to_nat_on M) M) (\<lambda>n. B)"
           by auto
         then show "summable (\<lambda>n. pmf (map_pmf (to_nat_on (set_pmf M)) M) n * B)"
-          by (simp add: measure_pmf_eq_density integrable_density integrable_count_space_nat_iff summable_rabs_cancel)
+          by (fastforce simp add: measure_pmf_eq_density integrable_density integrable_count_space_nat_iff summable_mult2)
       qed
     qed simp
   qed simp

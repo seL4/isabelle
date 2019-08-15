@@ -1676,7 +1676,7 @@ proof (intro asymp_equivI)
     by (intro always_eventually) simp
   moreover have "((\<lambda>_. 1) \<longlongrightarrow> 1) F" by simp
   ultimately show "((\<lambda>x. if f x = 0 \<and> f x = 0 then 1 else f x / f x) \<longlongrightarrow> 1) F"
-    by (rule Lim_transform_eventually)
+    by (simp add: Landau_Symbols.tendsto_eventually)
 qed
 
 lemma asymp_equiv_symI: 
@@ -1702,7 +1702,7 @@ proof (cases "F = bot")
   qed
   hence "eventually (\<lambda>x. f x / g x = (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) F"
     by eventually_elim simp
-  from this and assms show "f \<sim>[F] g" unfolding asymp_equiv_def 
+  with assms show "f \<sim>[F] g" unfolding asymp_equiv_def 
     by (rule Lim_transform_eventually)
 qed (simp_all add: asymp_equiv_def)
 
@@ -1748,10 +1748,10 @@ lemma asymp_equiv_trans [trans]:
   shows   "f \<sim>[F] h"
 proof -
   let ?T = "\<lambda>f g x. if f x = 0 \<and> g x = 0 then 1 else f x / g x"
-  from assms[THEN asymp_equiv_eventually_zeros]
-    have "eventually (\<lambda>x. ?T f g x * ?T g h x = ?T f h x) F" by eventually_elim simp
-  moreover from tendsto_mult[OF assms[THEN asymp_equivD]] 
-    have "((\<lambda>x. ?T f g x * ?T g h x) \<longlongrightarrow> 1) F" by simp
+  from tendsto_mult[OF assms[THEN asymp_equivD]] 
+  have "((\<lambda>x. ?T f g x * ?T g h x) \<longlongrightarrow> 1) F" by simp
+  moreover from assms[THEN asymp_equiv_eventually_zeros]
+  have "eventually (\<lambda>x. ?T f g x * ?T g h x = ?T f h x) F" by eventually_elim simp
   ultimately show ?thesis unfolding asymp_equiv_def by (rule Lim_transform_eventually)
 qed
 
@@ -1845,13 +1845,15 @@ lemma asymp_equiv_tendsto_transfer:
   shows   "(g \<longlongrightarrow> c) F"
 proof -
   let ?h = "\<lambda>x. (if g x = 0 \<and> f x = 0 then 1 else g x / f x) * f x"
-  have "eventually (\<lambda>x. ?h x = g x) F"
-    using asymp_equiv_eventually_zeros[OF assms(1)] by eventually_elim simp
-  moreover from assms(1) have "g \<sim>[F] f" by (rule asymp_equiv_symI)
+  from assms(1) have "g \<sim>[F] f" by (rule asymp_equiv_symI)
   hence "filterlim (\<lambda>x. if g x = 0 \<and> f x = 0 then 1 else g x / f x) (nhds 1) F"
     by (rule asymp_equivD)
   from tendsto_mult[OF this assms(2)] have "(?h \<longlongrightarrow> c) F" by simp
-  ultimately show ?thesis by (rule Lim_transform_eventually)
+  moreover 
+  have "eventually (\<lambda>x. ?h x = g x) F"
+    using asymp_equiv_eventually_zeros[OF assms(1)] by eventually_elim simp
+  ultimately show ?thesis
+    by (rule Lim_transform_eventually)
 qed
 
 lemma tendsto_asymp_equiv_cong:
@@ -1861,10 +1863,11 @@ proof -
   {
     fix f g :: "'a \<Rightarrow> 'b"
     assume *: "f \<sim>[F] g" "(g \<longlongrightarrow> c) F"
+    have "((\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) \<longlongrightarrow> c * 1) F"
+      by (intro tendsto_intros asymp_equivD *)
+    moreover 
     have "eventually (\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x) = f x) F"
       using asymp_equiv_eventually_zeros[OF *(1)] by eventually_elim simp
-    moreover have "((\<lambda>x. g x * (if f x = 0 \<and> g x = 0 then 1 else f x / g x)) \<longlongrightarrow> c * 1) F"
-      by (intro tendsto_intros asymp_equivD *)
     ultimately have "(f \<longlongrightarrow> c * 1) F"
       by (rule Lim_transform_eventually)
   }
@@ -1968,11 +1971,11 @@ proof -
   from assms have "((\<lambda>x. ?T f1 g1 x * ?T f2 g2 x) \<longlongrightarrow> 1 * 1) F"
     by (intro tendsto_mult asymp_equivD)
   moreover {
-    have "eventually (\<lambda>x. ?S x = ?S' x) F"
-      using assms[THEN asymp_equiv_eventually_zeros] by eventually_elim auto
-    moreover have "(?S \<longlongrightarrow> 0) F"
+    have "(?S \<longlongrightarrow> 0) F"
       by (intro filterlim_If assms[THEN A, THEN tendsto_mono[rotated]])
          (auto intro: le_infI1 le_infI2)
+    moreover have "eventually (\<lambda>x. ?S x = ?S' x) F"
+      using assms[THEN asymp_equiv_eventually_zeros] by eventually_elim auto
     ultimately have "(?S' \<longlongrightarrow> 0) F" by (rule Lim_transform_eventually)
   }
   ultimately have "(?T (\<lambda>x. f1 x * f2 x) (\<lambda>x. g1 x * g2 x) \<longlongrightarrow> 1 * 1) F"
@@ -2037,12 +2040,12 @@ lemma asymp_equiv_powr_real [asymp_equiv_intros]:
   shows   "(\<lambda>x. f x powr y) \<sim>[F] (\<lambda>x. g x powr y)"
 proof -
   let ?T = "\<lambda>f g x. if f x = 0 \<and> g x = 0 then 1 else f x / g x"
-  have "eventually (\<lambda>x. ?T f g x powr y = ?T (\<lambda>x. f x powr y) (\<lambda>x. g x powr y) x) F"
-    using asymp_equiv_eventually_zeros[OF assms(1)] assms(2,3)
-    by eventually_elim (auto simp: powr_divide)
-  moreover have "((\<lambda>x. ?T f g x powr y) \<longlongrightarrow> 1 powr y) F"
+  have "((\<lambda>x. ?T f g x powr y) \<longlongrightarrow> 1 powr y) F"
     by (intro tendsto_intros asymp_equivD[OF assms(1)]) simp_all
   hence "((\<lambda>x. ?T f g x powr y) \<longlongrightarrow> 1) F" by simp
+  moreover have "eventually (\<lambda>x. ?T f g x powr y = ?T (\<lambda>x. f x powr y) (\<lambda>x. g x powr y) x) F"
+    using asymp_equiv_eventually_zeros[OF assms(1)] assms(2,3)
+    by eventually_elim (auto simp: powr_divide)
   ultimately show ?thesis unfolding asymp_equiv_def by (rule Lim_transform_eventually)
 qed
 

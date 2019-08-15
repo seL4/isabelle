@@ -218,7 +218,7 @@ proof -
               filterlim_subseq) (auto simp: strict_mono_def)
   hence "(\<lambda>n. ?em (2*n) - ?em n + ln (2::real)) \<longlonglongrightarrow> ln 2" by simp
   ultimately have "(\<lambda>n. (\<Sum>k<2*n. (-1)^k / real_of_nat (Suc k))) \<longlonglongrightarrow> ln 2"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
 
   moreover have "summable (\<lambda>k. (-1)^k * inverse (real_of_nat (Suc k)))"
     using LIMSEQ_inverse_real_of_nat

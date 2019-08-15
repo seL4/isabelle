@@ -417,10 +417,43 @@ lemma measurable_lebesgue_cong:
   shows "f \<in> measurable (lebesgue_on S) M \<longleftrightarrow> g \<in> measurable (lebesgue_on S) M"
   by (metis (mono_tags, lifting) IntD1 assms measurable_cong_simp space_restrict_space)
 
+lemma lebesgue_on_UNIV_eq: "lebesgue_on UNIV = lebesgue"
+proof -
+  have "measure_of UNIV (sets lebesgue) (emeasure lebesgue) = lebesgue"
+    by (metis measure_of_of_measure space_borel space_completion space_lborel)
+  then show ?thesis
+    by (auto simp: restrict_space_def)
+qed
+
 lemma integrable_lebesgue_on_UNIV_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "integrable (lebesgue_on UNIV) f = integrable lebesgue f"
   by (auto simp: integrable_restrict_space)
+lemma integral_restrict_Int:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue" "T \<in> sets lebesgue"
+  shows "integral\<^sup>L (lebesgue_on T) (\<lambda>x. if x \<in> S then f x else 0) = integral\<^sup>L (lebesgue_on (S \<inter> T)) f"
+proof -
+  have "(\<lambda>x. indicat_real T x *\<^sub>R (if x \<in> S then f x else 0)) = (\<lambda>x. indicat_real (S \<inter> T) x *\<^sub>R f x)"
+    by (force simp: indicator_def)
+  then show ?thesis
+    by (simp add: assms sets.Int Bochner_Integration.integral_restrict_space)
+qed
+
+lemma integral_restrict:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<subseteq> T" "S \<in> sets lebesgue" "T \<in> sets lebesgue"
+  shows "integral\<^sup>L (lebesgue_on T) (\<lambda>x. if x \<in> S then f x else 0) = integral\<^sup>L (lebesgue_on S) f"
+  using integral_restrict_Int [of S T f] assms
+  by (simp add: Int_absorb2)
+
+lemma integral_restrict_UNIV:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue"
+  shows "integral\<^sup>L lebesgue (\<lambda>x. if x \<in> S then f x else 0) = integral\<^sup>L (lebesgue_on S) f"
+  using integral_restrict_Int [of S UNIV f] assms
+  by (simp add: lebesgue_on_UNIV_eq)
+
 
 text\<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
 
@@ -1026,6 +1059,12 @@ lemma\<^marker>\<open>tag important\<close> lmeasurable_iff_integrable:
 lemma lmeasurable_cbox [iff]: "cbox a b \<in> lmeasurable"
   and lmeasurable_box [iff]: "box a b \<in> lmeasurable"
   by (auto simp: fmeasurable_def emeasure_lborel_box_eq emeasure_lborel_cbox_eq)
+
+lemma
+  fixes a::real
+  shows lmeasurable_interval [iff]: "{a..b} \<in> lmeasurable" "{a<..<b} \<in> lmeasurable"
+  apply (metis box_real(2) lmeasurable_cbox)
+  by (metis box_real(1) lmeasurable_box)
 
 lemma fmeasurable_compact: "compact S \<Longrightarrow> S \<in> fmeasurable lborel"
   using emeasure_compact_finite[of S] by (intro fmeasurableI) (auto simp: borel_compact)

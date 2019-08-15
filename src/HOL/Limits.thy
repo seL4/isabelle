@@ -1981,7 +1981,7 @@ proposition Lim_transform_eq: "((\<lambda>x. f x - g x) \<longlongrightarrow> 0)
   using Lim_transform Lim_transform2 by blast
 
 lemma Lim_transform_eventually:
-  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> (g \<longlongrightarrow> l) net"
+  "\<lbrakk>(f \<longlongrightarrow> l) F; eventually (\<lambda>x. f x = g x) F\<rbrakk> \<Longrightarrow> (g \<longlongrightarrow> l) F"
   using eventually_elim2 by (fastforce simp add: tendsto_def)
 
 lemma Lim_transform_within:

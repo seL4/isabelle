@@ -2373,11 +2373,11 @@ proof (rule has_derivativeI)
   qed
 
   ultimately have "((\<lambda>y. (exp ((y - t) *\<^sub>R A) - 1 - (y - t) *\<^sub>R A) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0) (at t within T)"
-    by (rule Lim_transform_eventually[rotated])
+    by (rule Lim_transform_eventually)
   from tendsto_mult_right_zero[OF this, where c="exp (t *\<^sub>R A)"]
   show "((\<lambda>y. (exp (y *\<^sub>R A) - exp (t *\<^sub>R A) - (y - t) *\<^sub>R (exp (t *\<^sub>R A) * A)) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0)
       (at t within T)"
-    by (rule Lim_transform_eventually[rotated])
+    by (rule Lim_transform_eventually)
       (auto simp: algebra_simps divide_simps exp_add_commuting[symmetric])
 qed (rule bounded_linear_scaleR_left)
 

@@ -4135,6 +4135,15 @@ proof
     using that by (auto elim: evenE)
 qed
 
+lemma sin_zero_pi_iff:
+  fixes x::real
+  assumes "\<bar>x\<bar> < pi"
+  shows "sin x = 0 \<longleftrightarrow> x = 0"
+proof
+  show "x = 0" if "sin x = 0"
+    using that assms by (auto simp: sin_zero_iff)
+qed auto
+
 lemma cos_zero_iff_int: "cos x = 0 \<longleftrightarrow> (\<exists>n. odd n \<and> x = of_int n * (pi/2))"
 proof -
   have 1: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> real n = real_of_int i"

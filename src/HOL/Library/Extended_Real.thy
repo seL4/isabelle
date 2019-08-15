@@ -3993,7 +3993,7 @@ proof (cases x)
     by (auto intro!: tendsto_inverse)
   from real \<open>0 < x\<close> show ?thesis
     by (auto simp: at_ereal tendsto_compose_filtermap[symmetric] eventually_at_filter
-             intro!: Lim_transform_eventually[OF _ **] t1_space_nhds)
+             intro!: Lim_transform_eventually[OF **] t1_space_nhds)
 qed (insert \<open>0 < x\<close>, auto intro!: inverse_infty_ereal_tendsto_0)
 
 lemma inverse_ereal_tendsto_at_right_0: "(inverse \<longlongrightarrow> \<infinity>) (at_right (0::ereal))"

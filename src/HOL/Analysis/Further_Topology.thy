@@ -4020,7 +4020,7 @@ proof -
       apply (auto simp: exp_eq dist_norm norm_mult)
       done
     then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
-      by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
+      by (auto intro!: Lim_transform_eventually [OF tendsto_divide [OF ee dd]])
     then show ?thesis
       by (auto simp: field_differentiable_def has_field_derivative_iff)
   qed
@@ -4068,7 +4068,7 @@ proof -
       apply (auto simp: exp_eq dist_norm norm_mult)
       done
     then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
-      by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
+      by (auto intro!: Lim_transform_eventually [OF tendsto_divide [OF ee dd]])
     then show ?thesis
       by (auto simp: field_differentiable_def has_field_derivative_iff)
   qed

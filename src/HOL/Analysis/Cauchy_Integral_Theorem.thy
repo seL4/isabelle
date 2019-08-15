@@ -6481,7 +6481,7 @@ proof -
   have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
         sums contour_integral (circlepath z r) (\<lambda>u. f u/(u - w))"
     unfolding sums_def
-    apply (intro Lim_transform_eventually [OF eq] contour_integral_uniform_limit_circlepath [OF eventuallyI ul] cic)
+    apply (intro Lim_transform_eventually [OF _ eq] contour_integral_uniform_limit_circlepath [OF eventuallyI ul] cic)
     using \<open>0 < r\<close> apply auto
     done
   then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
@@ -6715,7 +6715,7 @@ proof -
     then have tendsto_0: "((\<lambda>n. 1 / (2 * of_real pi * \<i>) * (?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2))) \<longlongrightarrow> 0) F"
       using Lim_null by (force intro!: tendsto_mult_right_zero)
     have "((\<lambda>n. f' n w - g' w) \<longlongrightarrow> 0) F"
-      apply (rule Lim_transform_eventually [OF _ tendsto_0])
+      apply (rule Lim_transform_eventually [OF tendsto_0])
       apply (force simp: divide_simps intro: eq_f' eventually_mono [OF cont])
       done
     then show ?thesis using Lim_null by blast

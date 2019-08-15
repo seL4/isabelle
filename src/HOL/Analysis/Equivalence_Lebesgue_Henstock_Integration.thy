@@ -557,8 +557,8 @@ lemma nn_integral_has_integral_lborel:
   shows "integral\<^sup>N lborel f = I"
 proof -
   from f_borel have "(\<lambda>x. ennreal (f x)) \<in> borel_measurable lborel" by auto
-  from borel_measurable_implies_simple_function_sequence'[OF this] 
-  obtain F where F: "\<And>i. simple_function lborel (F i)" "incseq F" 
+  from borel_measurable_implies_simple_function_sequence'[OF this]
+  obtain F where F: "\<And>i. simple_function lborel (F i)" "incseq F"
                  "\<And>i x. F i x < top" "\<And>x. (SUP i. F i x) = ennreal (f x)"
     by blast
   then have [measurable]: "\<And>i. F i \<in> borel_measurable lborel"
@@ -876,7 +876,7 @@ lemma set_integral_reflect:
 lemma borel_integrable_atLeastAtMost':
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
   assumes f: "continuous_on {a..b} f"
-  shows "set_integrable lborel {a..b} f" 
+  shows "set_integrable lborel {a..b} f"
   unfolding set_integrable_def
   by (intro borel_integrable_compact compact_Icc f)
 
@@ -909,7 +909,7 @@ lemma set_borel_integral_eq_integral:
 proof -
   let ?f = "\<lambda>x. indicator S x *\<^sub>R f x"
   have "(?f has_integral LINT x : S | lborel. f x) UNIV"
-    using assms has_integral_integral_lborel 
+    using assms has_integral_integral_lborel
     unfolding set_integrable_def set_lebesgue_integral_def by blast
   hence 1: "(f has_integral (set_lebesgue_integral lborel S f)) S"
     apply (subst has_integral_restrict_UNIV [symmetric])
@@ -927,7 +927,7 @@ lemma has_integral_set_lebesgue:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "set_integrable lebesgue S f"
   shows "(f has_integral (LINT x:S|lebesgue. f x)) S"
-  using has_integral_integral_lebesgue f 
+  using has_integral_integral_lebesgue f
   by (fastforce simp add: set_integrable_def set_lebesgue_integral_def indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] cong: if_cong)
 
 lemma set_lebesgue_integral_eq_integral:
@@ -1031,7 +1031,7 @@ proof -
     then have "f absolutely_integrable_on S"
       using absolutely_integrable_restrict_UNIV by blast
   }
-  then show ?thesis        
+  then show ?thesis
     unfolding absolutely_integrable_on_def by auto
 qed
 
@@ -1043,7 +1043,7 @@ lemma absolutely_integrable_on_scaleR_iff:
 proof (cases "c=0")
   case False
   then show ?thesis
-  unfolding absolutely_integrable_on_def 
+  unfolding absolutely_integrable_on_def
   by (simp add: norm_mult)
 qed auto
 
@@ -1086,6 +1086,27 @@ lemma absolutely_integrable_spike_set:
   assumes f: "f absolutely_integrable_on S" and neg: "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
   shows "f absolutely_integrable_on T"
   using absolutely_integrable_spike_set_eq f neg by blast
+
+lemma absolutely_integrable_reflect[simp]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "(\<lambda>x. f(-x)) absolutely_integrable_on cbox (-b) (-a) \<longleftrightarrow> f absolutely_integrable_on cbox a b"
+  apply (auto simp: absolutely_integrable_on_def dest: integrable_reflect [THEN iffD1])
+  unfolding integrable_on_def by auto
+
+lemma absolutely_integrable_reflect_real[simp]:
+  fixes f :: "real \<Rightarrow> 'b::euclidean_space"
+  shows "(\<lambda>x. f(-x)) absolutely_integrable_on {-b .. -a} \<longleftrightarrow> f absolutely_integrable_on {a..b::real}"
+  unfolding box_real[symmetric] by (rule absolutely_integrable_reflect)
+
+lemma absolutely_integrable_on_subcbox:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "\<lbrakk>f absolutely_integrable_on S; cbox a b \<subseteq> S\<rbrakk> \<Longrightarrow> f absolutely_integrable_on cbox a b"
+  by (meson absolutely_integrable_on_def integrable_on_subcbox)
+
+lemma absolutely_integrable_on_subinterval:
+  fixes f :: "real \<Rightarrow> 'b::euclidean_space"
+  shows "\<lbrakk>f absolutely_integrable_on S; {a..b} \<subseteq> S\<rbrakk> \<Longrightarrow> f absolutely_integrable_on {a..b}"
+  using absolutely_integrable_on_subcbox by fastforce
 
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
@@ -1598,7 +1619,7 @@ proof (clarsimp simp: completion.null_sets_outer)
     by blast
   have e22: "0 < e/2 / (2 * B * real DIM('M)) ^ DIM('N)"
     using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
-  obtain T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" 
+  obtain T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable"
                  "measure lebesgue (T - S) < e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     using sets_lebesgue_outer_open [OF \<open>S \<in> sets lebesgue\<close> e22]
     by (metis emeasure_eq_measure2 ennreal_leI linorder_not_le)
@@ -1752,7 +1773,7 @@ proof (clarsimp simp: completion.null_sets_outer)
         finally show "\<Union>\<D>' \<subseteq> T" .
         show "T \<in> lmeasurable"
           using \<open>S \<in> lmeasurable\<close> \<open>S \<subseteq> T\<close> \<open>T - S \<in> lmeasurable\<close> fmeasurable_Diff_D by blast
-      qed 
+      qed
       have "sum (measure lebesgue) \<D>' = sum content \<D>'"
         using  \<open>\<D>' \<subseteq> \<D>\<close> cbox by (force intro: sum.cong)
       then have "(2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>' =
@@ -2140,7 +2161,7 @@ lemma set_integrable_norm:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes f: "set_integrable M k f" shows "set_integrable M k (\<lambda>x. norm (f x))"
   using integrable_norm f by (force simp add: set_integrable_def)
- 
+
 lemma absolutely_integrable_bounded_variation:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "f absolutely_integrable_on UNIV"
@@ -2208,7 +2229,7 @@ proof -
           using d' by force
         show "x \<notin> \<Union>{i \<in> d. x \<notin> i}"
           by auto
-      qed 
+      qed
       then show ?thesis
         by force
     qed
@@ -2216,13 +2237,13 @@ proof -
       by metis
     have "e/2 > 0"
       using e by auto
-    with Henstock_lemma[OF f] 
+    with Henstock_lemma[OF f]
     obtain \<gamma> where g: "gauge \<gamma>"
-      "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; \<gamma> fine p\<rbrakk> 
+      "\<And>p. \<lbrakk>p tagged_partial_division_of cbox a b; \<gamma> fine p\<rbrakk>
                 \<Longrightarrow> (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
-      by (metis (no_types, lifting))      
+      by (metis (no_types, lifting))
     let ?g = "\<lambda>x. \<gamma> x \<inter> ball x (k x)"
-    show ?thesis 
+    show ?thesis
     proof (intro exI conjI allI impI)
       show "gauge ?g"
         using g(1) k(1) by (auto simp: gauge_def)
@@ -2275,9 +2296,9 @@ proof -
           unfolding p'_def using d' by blast
         have "y \<in> \<Union>{K. \<exists>x. (x, K) \<in> p'}" if y: "y \<in> cbox a b" for y
         proof -
-          obtain x l where xl: "(x, l) \<in> p" "y \<in> l" 
+          obtain x l where xl: "(x, l) \<in> p" "y \<in> l"
             using y unfolding p'(6)[symmetric] by auto
-          obtain i where i: "i \<in> d" "y \<in> i" 
+          obtain i where i: "i \<in> d" "y \<in> i"
             using y unfolding d'(6)[symmetric] by auto
           have "x \<in> i"
             using fineD[OF p(3) xl(1)] using k(2) i xl by auto
@@ -2290,12 +2311,12 @@ proof -
             using * by auto
         next
           show "cbox a b \<subseteq> \<Union>{k. \<exists>x. (x, k) \<in> p'}"
-          proof 
+          proof
             fix y
             assume y: "y \<in> cbox a b"
-            obtain x L where xl: "(x, L) \<in> p" "y \<in> L" 
+            obtain x L where xl: "(x, L) \<in> p" "y \<in> L"
               using y unfolding p'(6)[symmetric] by auto
-            obtain I where i: "I \<in> d" "y \<in> I" 
+            obtain I where i: "I \<in> d" "y \<in> I"
               using y unfolding d'(6)[symmetric] by auto
             have "x \<in> I"
               using fineD[OF p(3) xl(1)] using k(2) i xl by auto
@@ -2323,7 +2344,7 @@ proof -
       moreover have "\<exists>y i l. (x, K) = (y, i \<inter> l) \<and> (y, l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}"
         if xK: "(x,K) \<in> p'" for x K
       proof -
-        obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l" 
+        obtain i l where il: "x \<in> i" "i \<in> d" "(x, l) \<in> p" "K = i \<inter> l"
           using xK unfolding p'_def by auto
         then show ?thesis
           using p'(2) by fastforce
@@ -2378,7 +2399,7 @@ proof -
               show ?thesis
                 apply (rule sum.mono_neutral_left)
                   apply (simp add: snd_p(1))
-                unfolding d'_def uv using * by auto 
+                unfolding d'_def uv using * by auto
             qed
             also have "\<dots> = (\<Sum>l\<in>snd ` p. norm (integral (K \<inter> l) f))"
             proof -
@@ -2388,8 +2409,8 @@ proof -
                 have "interior (K \<inter> l) \<subseteq> interior (l \<inter> y)"
                   by (metis Int_lower2 interior_mono le_inf_iff that(4))
                 then have "interior (K \<inter> l) = {}"
-                  by (simp add: snd_p(5) that) 
-                moreover from d'(4)[OF k] snd_p(4)[OF that(1)] 
+                  by (simp add: snd_p(5) that)
+                moreover from d'(4)[OF k] snd_p(4)[OF that(1)]
                 obtain u1 v1 u2 v2
                   where uv: "K = cbox u1 u2" "l = cbox v1 v2" by metis
                 ultimately show ?thesis
@@ -2449,7 +2470,7 @@ proof -
               then show ?thesis by auto
             qed
             have 1: "\<exists>i l. snd (a, b) = i \<inter> l \<and> i \<in> d \<and> l \<in> snd ` p" if "(a, b) \<in> p'" for a b
-              using that 
+              using that
               apply (clarsimp simp: p'_def image_iff)
               by (metis (no_types, hide_lams) snd_conv)
             show ?thesis
@@ -2494,7 +2515,7 @@ proof -
                 by auto
               then show "\<bar>content (l1 \<inter> k1)\<bar> * norm (f x1) = 0"
                 unfolding uv Int_interval content_eq_0_interior[symmetric] by auto
-            qed 
+            qed
             then show ?thesis
               unfolding *
               apply (subst sum.reindex_nontrivial [OF fin_pd])
@@ -2551,7 +2572,7 @@ proof -
           finally show ?thesis .
         qed
       qed (rule d)
-    qed 
+    qed
   qed
   then show ?thesis
     using absolutely_integrable_onI [OF f has_integral_integrable] has_integral[of _ ?S]
@@ -2598,7 +2619,7 @@ proof (rule absolutely_integrable_onI, fact)
     then obtain d K where ddiv: "d division_of \<Union>d" and "K = (\<Sum>k\<in>d. norm (integral k f))"
       "Sup (sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union> d}) - e < K"
       by (auto simp add: image_iff not_le)
-    then have d: "Sup (sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union> d}) - e 
+    then have d: "Sup (sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union> d}) - e
                   < (\<Sum>k\<in>d. norm (integral k f))"
       by auto
     note d'=division_ofD[OF ddiv]
@@ -2644,7 +2665,7 @@ proof (rule absolutely_integrable_onI, fact)
            and d1: "\<And>p. \<lbrakk>p tagged_division_of (cbox a b); d1 fine p\<rbrakk> \<Longrightarrow>
             norm ((\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm (f x))) < e/2"
           unfolding has_integral_integral has_integral by meson
-        obtain d2 where "gauge d2" 
+        obtain d2 where "gauge d2"
           and d2: "\<And>p. \<lbrakk>p tagged_partial_division_of (cbox a b); d2 fine p\<rbrakk> \<Longrightarrow>
             (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x - integral k f)) < e/2"
           by (blast intro: Henstock_lemma [OF f(1) \<open>e/2>0\<close>])
@@ -3171,6 +3192,11 @@ lemma absolutely_integrable_continuous:
   using absolutely_integrable_integrable_bound
   by (simp add: absolutely_integrable_on_def continuous_on_norm integrable_continuous)
 
+lemma absolutely_integrable_continuous_real:
+  fixes f :: "real \<Rightarrow> 'b::euclidean_space"
+  shows "continuous_on {a..b} f \<Longrightarrow> f absolutely_integrable_on {a..b}"
+  by (metis absolutely_integrable_continuous box_real(2))
+
 lemma continuous_imp_integrable:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on (cbox a b) f"
@@ -3261,13 +3287,13 @@ proof -
                (\<lambda>x. norm(\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f) x)"
     by (simp add: sum.delta)
   have *: "(\<lambda>y. \<Sum>j\<in>Basis. if j = i then y *\<^sub>R j else 0) \<circ>
-           (\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f 
-           absolutely_integrable_on S" 
+           (\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f
+           absolutely_integrable_on S"
         if "i \<in> Basis" for i
   proof -
     have "bounded_linear (\<lambda>y. \<Sum>j\<in>Basis. if j = i then y *\<^sub>R j else 0)"
       by (simp add: linear_linear algebra_simps linearI)
-    moreover have "(\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f 
+    moreover have "(\<lambda>x. norm (\<Sum>j\<in>Basis. if j = i then (x \<bullet> i) *\<^sub>R j else 0)) \<circ> f
                    absolutely_integrable_on S"
       unfolding o_def
       apply (rule absolutely_integrable_norm [unfolded o_def])
@@ -3290,14 +3316,14 @@ lemma abs_absolutely_integrableI_1:
   shows "f absolutely_integrable_on A"
   by (rule absolutely_integrable_integrable_bound [OF _ assms]) auto
 
-  
+
 lemma abs_absolutely_integrableI:
   assumes f: "f integrable_on S" and fcomp: "(\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i) integrable_on S"
   shows "f absolutely_integrable_on S"
 proof -
   have "(\<lambda>x. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on S" if "i \<in> Basis" for i
   proof -
-    have "(\<lambda>x. \<bar>f x \<bullet> i\<bar>) integrable_on S" 
+    have "(\<lambda>x. \<bar>f x \<bullet> i\<bar>) integrable_on S"
       using assms integrable_component [OF fcomp, where y=i] that by simp
     then have "(\<lambda>x. f x \<bullet> i) absolutely_integrable_on S"
       using abs_absolutely_integrableI_1 f integrable_component by blast
@@ -3310,7 +3336,7 @@ proof -
     by (simp add: euclidean_representation)
 qed
 
-    
+
 lemma absolutely_integrable_abs_iff:
    "f absolutely_integrable_on S \<longleftrightarrow>
     f integrable_on S \<and> (\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i) integrable_on S"
@@ -3319,7 +3345,7 @@ proof
   assume ?lhs then show ?rhs
     using absolutely_integrable_abs absolutely_integrable_on_def by blast
 next
-  assume ?rhs 
+  assume ?rhs
   moreover
   have "(\<lambda>x. if x \<in> S then \<Sum>i\<in>Basis. \<bar>f x \<bullet> i\<bar> *\<^sub>R i else 0) = (\<lambda>x. \<Sum>i\<in>Basis. \<bar>(if x \<in> S then f x else 0) \<bullet> i\<bar> *\<^sub>R i)"
     by force
@@ -3333,7 +3359,7 @@ lemma absolutely_integrable_max:
    shows "(\<lambda>x. \<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)
             absolutely_integrable_on S"
 proof -
-  have "(\<lambda>x. \<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = 
+  have "(\<lambda>x. \<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
         (\<lambda>x. (1/2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))"
   proof (rule ext)
     fix x
@@ -3347,7 +3373,7 @@ proof -
     show "(\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
          (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
   qed
-  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))) 
+  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
     apply (intro absolutely_integrable_add absolutely_integrable_scaleR_left assms)
     using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
@@ -3355,7 +3381,7 @@ proof -
     done
   ultimately show ?thesis by metis
 qed
-  
+
 corollary absolutely_integrable_max_1:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
   assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
@@ -3368,7 +3394,7 @@ lemma absolutely_integrable_min:
    shows "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)
             absolutely_integrable_on S"
 proof -
-  have "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = 
+  have "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
         (\<lambda>x. (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))"
   proof (rule ext)
     fix x
@@ -3382,7 +3408,7 @@ proof -
     show "(\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
          (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
   qed
-  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))) 
+  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
     apply (intro absolutely_integrable_add absolutely_integrable_diff absolutely_integrable_scaleR_left assms)
     using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
@@ -3390,7 +3416,7 @@ proof -
     done
   ultimately show ?thesis by metis
 qed
-  
+
 corollary absolutely_integrable_min_1:
   fixes f :: "'n::euclidean_space \<Rightarrow> real"
   assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
@@ -3404,7 +3430,7 @@ lemma nonnegative_absolutely_integrable:
 proof -
   have "(\<lambda>x. (f x \<bullet> i) *\<^sub>R i) absolutely_integrable_on A" if "i \<in> Basis" for i
   proof -
-    have "(\<lambda>x. f x \<bullet> i) integrable_on A" 
+    have "(\<lambda>x. f x \<bullet> i) integrable_on A"
       by (simp add: assms(1) integrable_component)
     then have "(\<lambda>x. f x \<bullet> i) absolutely_integrable_on A"
       by (metis that comp nonnegative_absolutely_integrable_1)
@@ -3416,7 +3442,7 @@ proof -
   then show ?thesis
     by (simp add: euclidean_representation)
 qed
-  
+
 lemma absolutely_integrable_component_ubound:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes f: "f integrable_on A" and g: "g absolutely_integrable_on A"
@@ -3511,7 +3537,7 @@ proof -
       using int [OF B'] by (auto simp: image_iff o_def cong: if_cong dest!: has_integral_vec1_I_cbox)
   qed
   show ?thesis
-    using assms 
+    using assms
     apply (subst has_integral_alt)
     apply (subst (asm) has_integral_alt)
     apply (simp add: has_integral_vec1_I_cbox split: if_split_asm)
@@ -3632,7 +3658,7 @@ proof -
     "AE x in lebesgue. norm (indicator S x *\<^sub>R f k x) \<le> indicator S x *\<^sub>R h x" for k
     using conv le by (auto intro!: always_eventually split: split_indicator)
   have g: "g absolutely_integrable_on S"
-    using 1 2 3 4 unfolding set_borel_measurable_def set_integrable_def    
+    using 1 2 3 4 unfolding set_borel_measurable_def set_integrable_def
     by (rule integrable_dominated_convergence)
   then show "g integrable_on S"
     by (auto simp: absolutely_integrable_on_def)
@@ -3712,7 +3738,7 @@ proof clarify
   assume fb [rule_format]: "\<And>k. \<forall>b\<in>Basis. (\<lambda>x. f k x \<bullet> b) absolutely_integrable_on S" and b: "b \<in> Basis"
   show "(\<lambda>x. g x \<bullet> b) integrable_on S"
   proof (rule dominated_convergence_integrable_1 [OF fb h])
-    fix x 
+    fix x
     assume "x \<in> S"
     show "norm (g x \<bullet> b) \<le> h x"
       using norm_nth_le \<open>x \<in> S\<close> b normg order.trans by blast
@@ -3773,7 +3799,7 @@ For the positive integral we replace continuity with Borel-measurability.
 
 \<close>
 
-lemma                                                                                          
+lemma
   fixes f :: "real \<Rightarrow> real"
   assumes [measurable]: "f \<in> borel_measurable borel"
   assumes f: "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" and "a \<le> b"
@@ -4400,7 +4426,7 @@ lemma lebesgue_measurable_vimage_borel:
   shows "{x. f x \<in> T} \<in> sets lebesgue"
   using assms borel_measurable_vimage_borel [of f UNIV] by auto
 
-lemma borel_measurable_If_I:
+lemma borel_measurable_if_I:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "f \<in> borel_measurable (lebesgue_on S)" and S: "S \<in> sets lebesgue"
   shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
@@ -4416,7 +4442,7 @@ proof -
   done
 qed
 
-lemma borel_measurable_If_D:
+lemma borel_measurable_if_D:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
   shows "f \<in> borel_measurable (lebesgue_on S)"
@@ -4426,11 +4452,11 @@ lemma borel_measurable_If_D:
   apply (force simp: space_restrict_space sets_restrict_space image_iff intro: rev_bexI)
   done
 
-lemma borel_measurable_UNIV:
+lemma borel_measurable_if:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "S \<in> sets lebesgue"
   shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
-  using assms borel_measurable_If_D borel_measurable_If_I by blast
+  using assms borel_measurable_if_D borel_measurable_if_I by blast
 
 lemma borel_measurable_lebesgue_preimage_borel:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -4514,7 +4540,7 @@ proof (rule integrable_on_all_intervals_integrable_bound [OF _ normf g])
   show "(\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b" for a b
   proof (rule measurable_bounded_lemma)
     show "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
-      by (simp add: S borel_measurable_UNIV f)
+      by (simp add: S borel_measurable_if f)
     show "(\<lambda>x. if x \<in> S then g x else 0) integrable_on cbox a b"
       by (simp add: g integrable_altD(1))
     show "norm (if x \<in> S then f x else 0) \<le> (if x \<in> S then g x else 0)" for x
@@ -4556,7 +4582,7 @@ proof -
   have "(UNIV::'a set) \<in> sets lborel"
     by simp
   then show ?thesis
-    using assms borel_measurable_If_D borel_measurable_UNIV_eq integrable_imp_measurable_weak integrable_restrict_UNIV by blast
+    using assms borel_measurable_if_D borel_measurable_UNIV_eq integrable_imp_measurable_weak integrable_restrict_UNIV by blast
 qed
 
 lemma integrable_iff_integrable_on:
@@ -4598,6 +4624,12 @@ lemma absolutely_integrable_measurable_real':
   apply (auto simp: absolutely_integrable_measurable integrable_on_lebesgue_on)
   apply (simp add: integrable_on_lebesgue_on measurable_bounded_by_integrable_imp_lebesgue_integrable)
   using abs_absolutely_integrableI_1 absolutely_integrable_measurable measurable_bounded_by_integrable_imp_integrable_real by blast
+
+lemma absolutely_integrable_imp_borel_measurable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f absolutely_integrable_on S" "S \<in> sets lebesgue"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+  using absolutely_integrable_measurable assms by blast
 
 lemma measurable_bounded_by_integrable_imp_absolutely_integrable:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -4772,7 +4804,7 @@ proof (cases "A = {}")
     fix e :: real assume e: "e > 0"
     have sets [intro]: "A \<in> sets M" if "A \<in> sets borel" for A
       using that assms by blast
-  
+
     have "((\<lambda>b. LINT y:{a..b}|M. g y) \<longlongrightarrow> (LINT y:{a..}|M. g y)) at_top"
       by (intro tendsto_set_lebesgue_integral_at_top assms sets) auto
     with e obtain b0 :: real where b0: "\<forall>b\<ge>b0. \<bar>(LINT y:{a..}|M. g y) - (LINT y:{a..b}|M. g y)\<bar> < e"
@@ -4792,7 +4824,7 @@ proof (cases "A = {}")
 
     have "eventually (\<lambda>b. b \<ge> b0) at_top" by (rule eventually_ge_at_top)
     moreover have "eventually (\<lambda>b. b \<ge> a) at_top" by (rule eventually_ge_at_top)
-    ultimately show "eventually (\<lambda>b. \<forall>x\<in>A. 
+    ultimately show "eventually (\<lambda>b. \<forall>x\<in>A.
                        dist (LINT y:{a..b}|M. f x y) (LINT y:{a..}|M. f x y) < e) at_top"
     proof eventually_elim
       case (elim b)

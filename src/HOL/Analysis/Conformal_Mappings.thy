@@ -4476,7 +4476,7 @@ proof -
   hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
     unfolding isCont_def .
   ultimately have "((\<lambda>w. f w * (w - z0) powr - n) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   hence "((\<lambda>x. f (g x) * (g x - z0) powr - n) \<longlongrightarrow> zor_poly f z0 z0) F"
     by (rule filterlim_compose[OF _ g])
   from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
@@ -4505,7 +4505,7 @@ proof -
   hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
     unfolding isCont_def .
   ultimately have "((\<lambda>w. f w / (w - z0) ^ nat n) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   hence "((\<lambda>x. f (g x) / (g x - z0) ^ nat n) \<longlongrightarrow> zor_poly f z0 z0) F"
     by (rule filterlim_compose[OF _ g])
   from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
@@ -4537,7 +4537,7 @@ proof -
   hence "(zor_poly f z0 \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
     unfolding isCont_def .
   ultimately have "((\<lambda>w. f w * (w - z0) ^ nat (-n)) \<longlongrightarrow> zor_poly f z0 z0) (at z0)"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   hence "((\<lambda>x. f (g x) * (g x - z0) ^ nat (-n)) \<longlongrightarrow> zor_poly f z0 z0) F"
     by (rule filterlim_compose[OF _ g])
   from tendsto_unique[OF \<open>F \<noteq> bot\<close> this lim] show ?thesis .
@@ -4577,7 +4577,7 @@ proof -
   moreover have "((\<lambda>w. ((f w - f z) / (w - z)) / ((g w - g z) / (w - z))) \<longlongrightarrow> f' / g') (at z)"
     by (intro tendsto_divide has_field_derivativeD assms)
   ultimately have "((\<lambda>w. f w / g w) \<longlongrightarrow> f' / g') (at z)"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   with assms show ?thesis by simp
 qed
 

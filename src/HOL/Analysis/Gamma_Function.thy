@@ -715,7 +715,7 @@ proof -
     by (intro tendsto_intros LIMSEQ_n_over_Suc_n) simp_all
   hence "(\<lambda>n. of_real (ln (real n / (real n + 1)))) \<longlonglongrightarrow> (0 :: 'a)" by (simp add: add_ac)
   hence lim: "(\<lambda>n. of_real (ln (real n)) - of_real (ln (real n + 1))) \<longlonglongrightarrow> (0::'a)"
-  proof (rule Lim_transform_eventually [rotated])
+  proof (rule Lim_transform_eventually)
     show "eventually (\<lambda>n. of_real (ln (real n / (real n + 1))) =
             of_real (ln (real n)) - (of_real (ln (real n + 1)) :: 'a)) at_top"
       using eventually_gt_at_top[of "0::nat"] by eventually_elim (simp add: ln_div)
@@ -1118,7 +1118,7 @@ proof -
     by (intro tendsto_intros lim_inverse_n)
   hence "(\<lambda>n. ?f n * rGamma_series z n) \<longlonglongrightarrow> rGamma z" by simp
   ultimately have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> rGamma z"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   moreover have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> z * rGamma (z + 1)"
     by (intro tendsto_intros)
   ultimately show "z * rGamma (z + 1) = rGamma z" using LIMSEQ_unique by blast
@@ -1324,7 +1324,7 @@ proof -
        (simp_all add: convergent_LIMSEQ_iff rGamma_complex_def)
   hence "(\<lambda>n. ?f n * rGamma_series z n) \<longlonglongrightarrow> rGamma z" by simp
   ultimately have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> rGamma z"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   moreover have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> z * rGamma (z + 1)"
     using rGamma_series_complex_converges
     by (auto intro!: tendsto_mult simp: rGamma_complex_def convergent_LIMSEQ_iff)
@@ -2054,7 +2054,7 @@ proof -
       by (intro tendsto_intros Gamma_series'_LIMSEQ)
          (simp_all add: o_def strict_mono_def Gamma_eq_zero_iff)
     ultimately have "?h \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
-      by (rule Lim_transform_eventually)
+      by (blast intro: Lim_transform_eventually)
   } note lim = this
 
   from assms double_in_nonpos_Ints_imp[of z] have z': "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
@@ -2504,7 +2504,7 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
                      intro: eventually_mono eventually_gt_at_top[of "0::nat"] dest: pochhammer_eq_0_imp_nonpos_Int)
   moreover have "?r' \<longlonglongrightarrow> exp (z * of_real (ln 1))"
     by (intro tendsto_intros LIMSEQ_Suc_n_over_n) simp_all
-  ultimately show "?r \<longlonglongrightarrow> 1" by (force dest!: Lim_transform_eventually)
+  ultimately show "?r \<longlonglongrightarrow> 1" by (force intro: Lim_transform_eventually)
 
   from eventually_gt_at_top[of "0::nat"]
     show "eventually (\<lambda>n. ?r n = Gamma_series_euler' z n / Gamma_series z n) sequentially"
@@ -2901,8 +2901,7 @@ proof -
     by eventually_elim (simp add: powr_def algebra_simps Ln_of_nat Gamma_series_def)
   from this and Gamma_series_LIMSEQ[of z]
     have C: "(\<lambda>k. of_nat k powr z * fact k / pochhammer z (k+1)) \<longlonglongrightarrow> Gamma z"
-    by (rule Lim_transform_eventually)
-
+    by (blast intro: Lim_transform_eventually)
   {
     fix x :: real assume x: "x \<ge> 0"
     have lim_exp: "(\<lambda>k. (1 - x / real k) ^ k) \<longlonglongrightarrow> exp (-x)"

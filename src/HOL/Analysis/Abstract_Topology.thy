@@ -3985,7 +3985,7 @@ proof -
   ultimately
   have "\<forall>\<^sub>F x in at a within T. f x = g x"
     by eventually_elim (auto simp: \<open>S = _\<close> eq)
-  then show ?thesis using f
+  with f show ?thesis
     by (rule Lim_transform_eventually)
 qed
 

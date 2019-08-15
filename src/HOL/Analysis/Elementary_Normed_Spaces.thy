@@ -495,9 +495,9 @@ corollary Lim_at_infinityI [intro?]:
   done
 
 lemma Lim_transform_within_set_eq:
-  fixes a l :: "'a::real_normed_vector"
-  shows "eventually (\<lambda>x. x \<in> s \<longleftrightarrow> x \<in> t) (at a)
-         \<Longrightarrow> ((f \<longlongrightarrow> l) (at a within s) \<longleftrightarrow> (f \<longlongrightarrow> l) (at a within t))"
+  fixes a :: "'a::metric_space" and l :: "'b::metric_space"
+  shows "eventually (\<lambda>x. x \<in> S \<longleftrightarrow> x \<in> T) (at a)
+         \<Longrightarrow> ((f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l) (at a within T))"
   by (force intro: Lim_transform_within_set elim: eventually_mono)
 
 lemma Lim_null:

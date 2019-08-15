@@ -3522,12 +3522,17 @@ lemma has_integral_stretch:
     and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "((\<lambda>x. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) has_integral
          ((1/ \<bar>prod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
-apply (rule has_integral_twiddle[where f=f])
-unfolding zero_less_abs_iff content_image_stretch_interval
-unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
-using assms
-by auto
+  apply (rule has_integral_twiddle[where f=f])
+  unfolding zero_less_abs_iff content_image_stretch_interval
+  unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
+  using assms
+  by auto
 
+lemma has_integral_stretch_real:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "(f has_integral i) {a..b}" and "m \<noteq> 0"
+  shows "((\<lambda>x. f (m * x)) has_integral (1 / \<bar>m\<bar>) *\<^sub>R i) ((\<lambda>x. x / m) ` {a..b})"
+  using has_integral_stretch [of f i a b "\<lambda>b. m"] assms by simp
 
 lemma integrable_stretch:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -3605,6 +3610,11 @@ lemma has_integral_reflect[simp]:
   "((\<lambda>x. f (-x)) has_integral i) (cbox (-b) (-a)) \<longleftrightarrow> (f has_integral i) (cbox a b)"
   by (auto dest: has_integral_reflect_lemma)
 
+lemma has_integral_reflect_real[simp]:
+  fixes a b::real
+  shows "((\<lambda>x. f (-x)) has_integral i) {-b..-a} \<longleftrightarrow> (f has_integral i) {a..b}"
+  by (metis has_integral_reflect interval_cbox)
+
 lemma integrable_reflect[simp]: "(\<lambda>x. f(-x)) integrable_on cbox (-b) (-a) \<longleftrightarrow> f integrable_on cbox a b"
   unfolding integrable_on_def by auto
 
@@ -3618,7 +3628,6 @@ lemma integral_reflect[simp]: "integral (cbox (-b) (-a)) (\<lambda>x. f (-x)) = 
 lemma integral_reflect_real[simp]: "integral {-b .. -a} (\<lambda>x. f (-x)) = integral {a..b::real} f"
   unfolding box_real[symmetric]
   by (rule integral_reflect)
-
 
 subsection \<open>Stronger form of FCT; quite a tedious proof\<close>
 
@@ -7286,19 +7295,19 @@ proof -
     thus "bounded (range(\<lambda>k. integral {c..} (f k)))"
       by (intro boundedI[of _ "exp (-a*c)/a"]) auto
   qed (auto simp: f_def)
-
+  have "(\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
+    by (intro tendsto_intros filterlim_compose[OF exp_at_bot]
+        filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_real_sequentially)+
+      (insert a, simp_all)
+  moreover
   from eventually_gt_at_top[of "nat \<lceil>c\<rceil>"] have "eventually (\<lambda>k. of_nat k > c) sequentially"
     by eventually_elim linarith
   hence "eventually (\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a = integral {c..} (f k)) sequentially"
-    by eventually_elim (simp add: integral_f)
-  moreover have "(\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
-    by (intro tendsto_intros filterlim_compose[OF exp_at_bot]
-          filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_real_sequentially)+
-       (insert a, simp_all)
+    by eventually_elim (simp add: integral_f) 
   ultimately have "(\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
     by (rule Lim_transform_eventually)
   from LIMSEQ_unique[OF conjunct2[OF A] this]
-    have "integral {c..} (\<lambda>x. exp (-a*x)) = exp (-a*c)/a" by simp
+  have "integral {c..} (\<lambda>x. exp (-a*x)) = exp (-a*c)/a" by simp
   with conjunct1[OF A] show ?thesis
     by (simp add: has_integral_integral)
 qed
@@ -7363,7 +7372,7 @@ proof (cases "c = 0")
         have "eventually (\<lambda>k. x powr a = f k x) sequentially"
         by eventually_elim (insert x, simp add: f_def)
       moreover have "(\<lambda>_. x powr a) \<longlonglongrightarrow> x powr a" by simp
-      ultimately show ?thesis by (rule Lim_transform_eventually)
+      ultimately show ?thesis by (blast intro: Lim_transform_eventually)
     qed (simp_all add: f_def)
   next
     {
@@ -7390,7 +7399,7 @@ proof (cases "c = 0")
   hence "(\<lambda>k. c powr (a + 1) / (a + 1) - inverse (real (Suc k)) powr (a + 1) / (a + 1))
           \<longlonglongrightarrow> c powr (a + 1) / (a + 1)" by simp
   ultimately have "(\<lambda>k. integral {0..c} (f k)) \<longlonglongrightarrow> c powr (a+1) / (a+1)"
-    by (rule Lim_transform_eventually)
+    by (blast intro: Lim_transform_eventually)
   with A have "integral {0..c} (\<lambda>x. x powr a) = c powr (a+1) / (a+1)"
     by (blast intro: LIMSEQ_unique)
   with A show ?thesis by (simp add: has_integral_integral)
@@ -7474,7 +7483,7 @@ proof -
     by (insert assms, (rule tendsto_intros filterlim_compose[OF tendsto_neg_powr]
           filterlim_ident filterlim_real_sequentially | simp)+)
   hence "(\<lambda>n. F n - F a) \<longlonglongrightarrow> -F a" by simp
-  ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> -F a" by (rule Lim_transform_eventually)
+  ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> -F a" by (blast intro: Lim_transform_eventually)
   from conjunct2[OF *] and this
     have "integral {a..} (\<lambda>x. x powr e) = -F a" by (rule LIMSEQ_unique)
   with conjunct1[OF *] show ?thesis

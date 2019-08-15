@@ -2335,7 +2335,7 @@ proof (rule emeasure_measure_of_sigma)
       then have eq: "(\<Union>i. F i) = F i"
         by auto
       with i show ?thesis
-        by (auto intro!: Lim_transform_eventually[OF _ tendsto_const] eventually_sequentiallyI[where c=i])
+        by (auto intro!: Lim_transform_eventually[OF tendsto_const] eventually_sequentiallyI[where c=i])
     next
       assume "\<not> (\<exists>i. \<forall>j\<ge>i. F i = F j)"
       then obtain f where f: "\<And>i. i \<le> f i" "\<And>i. F i \<noteq> F (f i)" by metis

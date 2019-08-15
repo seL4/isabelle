@@ -271,7 +271,7 @@ qed
 
 lemma Si_at_top: "(Si \<longlongrightarrow> pi / 2) at_top"
 proof -
-  have "\<forall>\<^sub>F t in at_top. pi / 2 - (LBINT u=0..\<infinity>. exp (-(u * t)) * (u * sin t + cos t) / (1 + u^2)) = Si t"
+  have \<dagger>: "\<forall>\<^sub>F t in at_top. pi / 2 - (LBINT u=0..\<infinity>. exp (-(u * t)) * (u * sin t + cos t) / (1 + u^2)) = Si t"
     using eventually_ge_at_top[of 0]
   proof eventually_elim
     fix t :: real assume "t \<ge> 0"
@@ -326,8 +326,8 @@ proof -
       using Si_at_top_integrable[OF \<open>0\<le>t\<close>] by (simp add: integrable_I0i_1_div_plus_square LBINT_I0i_1_div_plus_square)
     finally show "pi / 2 - (LBINT u=0..\<infinity>. exp (-(u * t)) * (u * sin t + cos t) / (1 + u^2)) = Si t" ..
   qed
-  then show ?thesis
-    by (rule Lim_transform_eventually)
+  show ?thesis
+    by (rule Lim_transform_eventually [OF _ \<dagger>])
        (auto intro!: tendsto_eq_intros Si_at_top_LBINT)
 qed
 

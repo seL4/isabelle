@@ -2012,7 +2012,7 @@ proof -
         by auto
     qed
     then show ?thesis
-      unfolding borel_measurable_lebesgue_preimage_borel borel_measurable_UNIV [OF assms, symmetric]
+      unfolding borel_measurable_lebesgue_preimage_borel borel_measurable_if [OF assms, symmetric]
       by blast
 qed
 
@@ -2508,9 +2508,9 @@ proof -
           apply (intro borel_measurable_abs borel_measurable_det_Jacobian [OF h_lmeas, where f=g])
           by (meson der_g IntD2 has_derivative_within_subset inf_le2)
         then have "(\<lambda>x. if x \<in> {t. h n (g t) = y} \<inter> S then ?D x else 0) \<in> borel_measurable lebesgue"
-          by (rule borel_measurable_If_I [OF _ h_lmeas])
+          by (rule borel_measurable_if_I [OF _ h_lmeas])
         then show "(\<lambda>x. if x \<in> {t. h n (g t) = y} then ?D x else 0) \<in> borel_measurable (lebesgue_on S)"
-          by (simp add: if_if_eq_conj Int_commute borel_measurable_UNIV [OF S, symmetric])
+          by (simp add: if_if_eq_conj Int_commute borel_measurable_if [OF S, symmetric])
         show "(\<lambda>x. ?D x *\<^sub>R f (g x) /\<^sub>R y) integrable_on S"
           by (rule integrable_cmul) (use det_int_fg in auto)
         show "norm (if x \<in> {t. h n (g t) = y} then ?D x else 0) \<le> ?D x *\<^sub>R f (g x) /\<^sub>R y"
@@ -2671,7 +2671,7 @@ proof -
       also have "\<dots> \<in> borel_measurable lebesgue"
         by (rule Df_borel)
       finally have *: "(\<lambda>x. \<bar>?D x\<bar> * f (g x)) \<in> borel_measurable (lebesgue_on S')"
-        by (simp add: borel_measurable_If_D)
+        by (simp add: borel_measurable_if_D)
       have "?h \<in> borel_measurable (lebesgue_on S')"
         by (intro * S' der_gS' borel_measurable_det_Jacobian measurable) (blast intro: der_gS')
       moreover have "?h x = f(g x)" if "x \<in> S'" for x

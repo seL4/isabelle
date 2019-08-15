@@ -1581,11 +1581,16 @@ qed
 
 end
 
-lemma integrable_mult_left_iff:
+lemma integrable_mult_left_iff [simp]:
   fixes f :: "'a \<Rightarrow> real"
   shows "integrable M (\<lambda>x. c * f x) \<longleftrightarrow> c = 0 \<or> integrable M f"
   using integrable_mult_left[of c M f] integrable_mult_left[of "1 / c" M "\<lambda>x. c * f x"]
   by (cases "c = 0") auto
+
+lemma integrable_mult_right_iff [simp]:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "integrable M (\<lambda>x. f x * c) \<longleftrightarrow> c = 0 \<or> integrable M f"
+  using integrable_mult_left_iff [of M c f] by (simp add: mult.commute)
 
 lemma integrableI_nn_integral_finite:
   assumes [measurable]: "f \<in> borel_measurable M"
@@ -2939,7 +2944,7 @@ proof -
           have "(\<integral>\<^sup>+ y. ennreal (norm (s i (x, y))) \<partial>M) \<le> (\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M)"
             using x s by (intro nn_integral_mono) auto
           also have "(\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M) < \<infinity>"
-            using int_2f by (simp add: integrable_iff_bounded)
+            using int_2f unfolding integrable_iff_bounded by simp
           finally show "(\<integral>\<^sup>+ xa. ennreal (norm (s i (x, xa))) \<partial>M) < \<infinity>" .
         qed
         then have "integral\<^sup>L M (\<lambda>y. s i (x, y)) = simple_bochner_integral M (\<lambda>y. s i (x, y))"

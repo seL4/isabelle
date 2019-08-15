@@ -727,7 +727,7 @@ proof (cases l)
     then have "ereal(1/v n) = 1/u n" using H(2) by simp
   }
   ultimately have "eventually (\<lambda>n. ereal(1/v n) = 1/u n) F" using ureal eventually_elim2 by force
-  with Lim_transform_eventually[OF this lim] show ?thesis by simp
+  with Lim_transform_eventually[OF lim this] show ?thesis by simp
 next
   case (PInf)
   then have "1/l = 0" by auto
@@ -744,7 +744,7 @@ next
   have "(v \<longlongrightarrow> \<infinity>) F" unfolding v_def using MInf assms(1) tendsto_uminus_ereal by fastforce
   then have "((\<lambda>n. 1/v n) \<longlongrightarrow> 0) F" using tendsto_inverse_ereal_PInf by auto
   then have "((\<lambda>n. -1/v n) \<longlongrightarrow> 0) F" using tendsto_uminus_ereal by fastforce
-  then show ?thesis unfolding v_def using Lim_transform_eventually[OF *] \<open> 1/l = 0 \<close> by auto
+  then show ?thesis unfolding v_def using Lim_transform_eventually[OF _ *] \<open> 1/l = 0 \<close> by auto
 qed
 
 lemma tendsto_divide_ereal [tendsto_intros]:
