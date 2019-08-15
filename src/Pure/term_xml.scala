@@ -66,6 +66,6 @@ object Term_XML
         { case (List(a), b) => PAxm(a, list(typ)(b)) },
         { case (List(a), b) => OfClass(typ(b), a) },
         { case (List(a), b) => val (c, d) = pair(term, list(typ))(b); Oracle(a, c, d) },
-        { case (List(a, b), c) => PThm(long_atom(a), b, list(typ)(c)) }))
+        { case (List(a, b, c), d) => PThm(long_atom(a), b, c, list(typ)(d)) }))
   }
 }
