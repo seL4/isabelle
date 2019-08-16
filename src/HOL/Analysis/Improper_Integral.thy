@@ -1,3 +1,7 @@
+(*  Title:      HOL/Analysis/Improper_Integral.thy
+    Author: LC Paulson (ported from HOL Light)
+*)
+
 section \<open>Continuity of the indefinite integral; improper integral theorem\<close>
 
 theory "Improper_Integral"
@@ -64,6 +68,180 @@ lemma equiintegrable_on_insert:
   assumes "f integrable_on cbox a b" "F equiintegrable_on cbox a b"
   shows "(insert f F) equiintegrable_on cbox a b"
   by (metis assms equiintegrable_on_Un equiintegrable_on_sing insert_is_Un)
+
+
+lemma equiintegrable_cmul:
+  assumes F: "F equiintegrable_on I"
+  shows "(\<Union>c \<in> {-k..k}. \<Union>f \<in> F. {(\<lambda>x. c *\<^sub>R f x)}) equiintegrable_on I"
+  unfolding equiintegrable_on_def
+  proof (intro conjI impI allI ballI)
+  show "f integrable_on I"
+    if "f \<in> (\<Union>c\<in>{- k..k}. \<Union>f\<in>F. {\<lambda>x. c *\<^sub>R f x})"
+    for f :: "'a \<Rightarrow> 'b"
+    using that assms equiintegrable_on_integrable integrable_cmul by blast
+  show "\<exists>\<gamma>. gauge \<gamma> \<and> (\<forall>f \<D>. f \<in> (\<Union>c\<in>{- k..k}. \<Union>f\<in>F. {\<lambda>x. c *\<^sub>R f x}) \<and> \<D> tagged_division_of I
+          \<and> \<gamma> fine \<D> \<longrightarrow> norm ((\<Sum>(x, K)\<in>\<D>. content K *\<^sub>R f x) - integral I f) < \<epsilon>)"
+    if "\<epsilon> > 0" for \<epsilon>
+  proof -
+    obtain \<gamma> where "gauge \<gamma>"
+      and \<gamma>: "\<And>f \<D>. \<lbrakk>f \<in> F; \<D> tagged_division_of I; \<gamma> fine \<D>\<rbrakk>
+                    \<Longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral I f) < \<epsilon> / (\<bar>k\<bar> + 1)"
+      using assms \<open>\<epsilon> > 0\<close> unfolding equiintegrable_on_def
+      by (metis add.commute add.right_neutral add_strict_mono divide_pos_pos norm_eq_zero real_norm_def zero_less_norm_iff zero_less_one)
+    moreover have "norm ((\<Sum>(x, K)\<in>\<D>. content K *\<^sub>R c *\<^sub>R (f x)) - integral I (\<lambda>x. c *\<^sub>R f x)) < \<epsilon>"
+      if c: "c \<in> {- k..k}"
+        and "f \<in> F" "\<D> tagged_division_of I" "\<gamma> fine \<D>"
+      for \<D> c f
+    proof -
+      have "norm ((\<Sum>x\<in>\<D>. case x of (x, K) \<Rightarrow> content K *\<^sub>R c *\<^sub>R f x) - integral I (\<lambda>x. c *\<^sub>R f x))
+          = \<bar>c\<bar> * norm ((\<Sum>x\<in>\<D>. case x of (x, K) \<Rightarrow> content K *\<^sub>R f x) - integral I f)"
+        by (simp add: algebra_simps scale_sum_right case_prod_unfold flip: norm_scaleR)
+      also have "\<dots> \<le> (\<bar>k\<bar> + 1) * norm ((\<Sum>x\<in>\<D>. case x of (x, K) \<Rightarrow> content K *\<^sub>R f x) - integral I f)"
+        using c by (auto simp: mult_right_mono)
+      also have "\<dots> < (\<bar>k\<bar> + 1) * (\<epsilon> / (\<bar>k\<bar> + 1))"
+        by (rule mult_strict_left_mono) (use \<gamma> less_eq_real_def that in auto)
+      also have "\<dots> = \<epsilon>"
+        by auto
+      finally show ?thesis .
+    qed
+    ultimately show ?thesis
+      by (rule_tac x="\<gamma>" in exI) auto
+  qed
+qed
+
+
+lemma equiintegrable_add:
+  assumes F: "F equiintegrable_on I" and G: "G equiintegrable_on I"
+  shows "(\<Union>f \<in> F. \<Union>g \<in> G. {(\<lambda>x. f x + g x)}) equiintegrable_on I"
+  unfolding equiintegrable_on_def
+proof (intro conjI impI allI ballI)
+  show "f integrable_on I"
+    if "f \<in> (\<Union>f\<in>F. \<Union>g\<in>G. {\<lambda>x. f x + g x})" for f
+    using that equiintegrable_on_integrable assms  by (auto intro: integrable_add)
+  show "\<exists>\<gamma>. gauge \<gamma> \<and> (\<forall>f \<D>. f \<in> (\<Union>f\<in>F. \<Union>g\<in>G. {\<lambda>x. f x + g x}) \<and> \<D> tagged_division_of I
+          \<and> \<gamma> fine \<D> \<longrightarrow> norm ((\<Sum>(x, K)\<in>\<D>. content K *\<^sub>R f x) - integral I f) < \<epsilon>)"
+    if "\<epsilon> > 0" for \<epsilon>
+  proof -
+    obtain \<gamma>1 where "gauge \<gamma>1"
+      and \<gamma>1: "\<And>f \<D>. \<lbrakk>f \<in> F; \<D> tagged_division_of I; \<gamma>1 fine \<D>\<rbrakk>
+                    \<Longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral I f) < \<epsilon>/2"
+      using assms \<open>\<epsilon> > 0\<close> unfolding equiintegrable_on_def by (meson half_gt_zero_iff)
+    obtain \<gamma>2 where  "gauge \<gamma>2"
+      and \<gamma>2: "\<And>g \<D>. \<lbrakk>g \<in> G; \<D> tagged_division_of I; \<gamma>2 fine \<D>\<rbrakk>
+                    \<Longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g x) - integral I g) < \<epsilon>/2"
+      using assms \<open>\<epsilon> > 0\<close> unfolding equiintegrable_on_def by (meson half_gt_zero_iff)
+    have "gauge (\<lambda>x. \<gamma>1 x \<inter> \<gamma>2 x)"
+      using \<open>gauge \<gamma>1\<close> \<open>gauge \<gamma>2\<close> by blast
+    moreover have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R h x) - integral I h) < \<epsilon>"
+      if h: "h \<in> (\<Union>f\<in>F. \<Union>g\<in>G. {\<lambda>x. f x + g x})"
+        and \<D>: "\<D> tagged_division_of I" and fine: "(\<lambda>x. \<gamma>1 x \<inter> \<gamma>2 x) fine \<D>"
+      for h \<D>
+    proof -
+      obtain f g where "f \<in> F" "g \<in> G" and heq: "h = (\<lambda>x. f x + g x)"
+        using h by blast
+      then have int: "f integrable_on I" "g integrable_on I"
+        using F G equiintegrable_on_def by blast+
+      have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R h x) - integral I h)
+          = norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x + content K *\<^sub>R g x) - (integral I f + integral I g))"
+        by (simp add: heq algebra_simps integral_add int)
+      also have "\<dots> = norm (((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral I f + (\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g x) - integral I g))"
+        by (simp add: sum.distrib algebra_simps case_prod_unfold)
+      also have "\<dots> \<le> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral I f) + norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g x) - integral I g)"
+        by (metis (mono_tags) add_diff_eq norm_triangle_ineq)
+      also have "\<dots> < \<epsilon>/2 + \<epsilon>/2"
+        using \<gamma>1 [OF \<open>f \<in> F\<close> \<D>] \<gamma>2 [OF \<open>g \<in> G\<close> \<D>] fine  by (simp add: fine_Int)
+      finally show ?thesis by simp
+    qed
+    ultimately show ?thesis
+      by meson
+  qed
+qed
+
+lemma equiintegrable_minus:
+  assumes "F equiintegrable_on I"
+  shows "(\<Union>f \<in> F. {(\<lambda>x. - f x)}) equiintegrable_on I"
+  by (force intro: equiintegrable_on_subset [OF equiintegrable_cmul [OF assms, of 1]])
+
+lemma equiintegrable_diff:
+  assumes F: "F equiintegrable_on I" and G: "G equiintegrable_on I"
+  shows "(\<Union>f \<in> F. \<Union>g \<in> G. {(\<lambda>x. f x - g x)}) equiintegrable_on I"
+  by (rule equiintegrable_on_subset [OF equiintegrable_add [OF F equiintegrable_minus [OF G]]]) auto
+
+
+lemma equiintegrable_sum:
+  fixes F :: "('a::euclidean_space \<Rightarrow> 'b::euclidean_space) set"
+  assumes "F equiintegrable_on cbox a b"
+  shows "(\<Union>I \<in> Collect finite. \<Union>c \<in> {c. (\<forall>i \<in> I. c i \<ge> 0) \<and> sum c I = 1}.
+          \<Union>f \<in> I \<rightarrow> F. {(\<lambda>x. sum (\<lambda>i::'j. c i *\<^sub>R f i x) I)}) equiintegrable_on cbox a b"
+    (is "?G equiintegrable_on _")
+  unfolding equiintegrable_on_def
+proof (intro conjI impI allI ballI)
+  show "f integrable_on cbox a b" if "f \<in> ?G" for f
+    using that assms by (auto simp: equiintegrable_on_def intro!: integrable_sum integrable_cmul)
+  show "\<exists>\<gamma>. gauge \<gamma>
+           \<and> (\<forall>g \<D>. g \<in> ?G \<and> \<D> tagged_division_of cbox a b \<and> \<gamma> fine \<D>
+              \<longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g x) - integral (cbox a b) g) < \<epsilon>)"
+    if "\<epsilon> > 0" for \<epsilon>
+  proof -
+    obtain \<gamma> where "gauge \<gamma>"
+      and \<gamma>: "\<And>f \<D>. \<lbrakk>f \<in> F; \<D> tagged_division_of cbox a b; \<gamma> fine \<D>\<rbrakk>
+                    \<Longrightarrow> norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R f x) - integral (cbox a b) f) < \<epsilon> / 2"
+      using assms \<open>\<epsilon> > 0\<close> unfolding equiintegrable_on_def by (meson half_gt_zero_iff)
+    moreover have "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g x) - integral (cbox a b) g) < \<epsilon>"
+      if g: "g \<in> ?G"
+        and \<D>: "\<D> tagged_division_of cbox a b"
+        and fine: "\<gamma> fine \<D>"
+      for \<D> g
+    proof -
+      obtain I c f where "finite I" and 0: "\<And>i::'j. i \<in> I \<Longrightarrow> 0 \<le> c i"
+        and 1: "sum c I = 1" and f: "f \<in> I \<rightarrow> F" and geq: "g = (\<lambda>x. \<Sum>i\<in>I. c i *\<^sub>R f i x)"
+        using g by auto
+      have fi_int: "f i integrable_on cbox a b" if "i \<in> I" for i
+        by (metis Pi_iff assms equiintegrable_on_def f that)
+      have *: "integral (cbox a b) (\<lambda>x. c i *\<^sub>R f i x) = (\<Sum>(x, K)\<in>\<D>. integral K (\<lambda>x. c i *\<^sub>R f i x))"
+        if "i \<in> I" for i
+      proof -
+        have "f i integrable_on cbox a b"
+          by (metis Pi_iff assms equiintegrable_on_def f that)
+        then show ?thesis
+          by (intro \<D> integrable_cmul integral_combine_tagged_division_topdown)
+      qed
+      have "finite \<D>"
+        using \<D> by blast
+      have swap: "(\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R (\<Sum>i\<in>I. c i *\<^sub>R f i x))
+            = (\<Sum>i\<in>I. c i *\<^sub>R (\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f i x))"
+        by (simp add: scale_sum_right case_prod_unfold algebra_simps) (rule sum.swap)
+      have "norm ((\<Sum>(x, K)\<in>\<D>. content K *\<^sub>R g x) - integral (cbox a b) g)
+          = norm ((\<Sum>i\<in>I. c i *\<^sub>R ((\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f i x) - integral (cbox a b) (f i))))"
+        unfolding geq swap
+        by (simp add: scaleR_right.sum algebra_simps integral_sum fi_int integrable_cmul \<open>finite I\<close> sum_subtractf flip: sum_diff)
+      also have "\<dots> \<le> (\<Sum>i\<in>I. c i * \<epsilon> / 2)"
+      proof (rule sum_norm_le)
+        show "norm (c i *\<^sub>R ((\<Sum>(xa, K)\<in>\<D>. content K *\<^sub>R f i xa) - integral (cbox a b) (f i))) \<le> c i * \<epsilon> / 2"
+          if "i \<in> I" for i
+        proof -
+          have "norm ((\<Sum>(x, K)\<in>\<D>. content K *\<^sub>R f i x) - integral (cbox a b) (f i)) \<le> \<epsilon>/2"
+            using \<gamma> [OF _ \<D> fine, of "f i"] funcset_mem [OF f] that  by auto
+          then show ?thesis
+            using that by (auto simp: 0 mult.assoc intro: mult_left_mono)
+        qed
+      qed
+      also have "\<dots> < \<epsilon>"
+        using 1 \<open>\<epsilon> > 0\<close> by (simp add: flip: sum_divide_distrib sum_distrib_right)
+      finally show ?thesis .
+    qed
+    ultimately show ?thesis
+      by (rule_tac x="\<gamma>" in exI) auto
+  qed
+qed
+
+corollary equiintegrable_sum_real:
+  fixes F :: "(real \<Rightarrow> 'b::euclidean_space) set"
+  assumes "F equiintegrable_on {a..b}"
+  shows "(\<Union>I \<in> Collect finite. \<Union>c \<in> {c. (\<forall>i \<in> I. c i \<ge> 0) \<and> sum c I = 1}.
+          \<Union>f \<in> I \<rightarrow> F. {(\<lambda>x. sum (\<lambda>i. c i *\<^sub>R f i x) I)})
+         equiintegrable_on {a..b}"
+  using equiintegrable_sum [of F a b] assms by auto
 
 
 text\<open> Basic combining theorems for the interval of integration.\<close>
@@ -1171,7 +1349,6 @@ next
 qed
 
 
-
 corollary equiintegrable_halfspace_restrictions_ge:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F"
@@ -1202,6 +1379,37 @@ proof -
     using equiintegrable_reflect [OF *] by (auto simp: eq)
 qed
 
+corollary equiintegrable_halfspace_restrictions_lt:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F"
+    and norm_f: "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm(h x) \<le> norm(f x)"
+  shows "(\<Union>i \<in> Basis. \<Union>c. \<Union>h \<in> F. {(\<lambda>x. if x \<bullet> i < c then h x else 0)}) equiintegrable_on cbox a b"
+         (is "?G equiintegrable_on cbox a b")
+proof -
+  have *: "(\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if c \<le> x \<bullet> i then h x else 0}) equiintegrable_on cbox a b"
+    using equiintegrable_halfspace_restrictions_ge [OF F f] norm_f by auto
+  have "(\<lambda>x. if x \<bullet> i < c then h x else 0) = (\<lambda>x. h x - (if c \<le> x \<bullet> i then h x else 0))"
+    if "i \<in> Basis" "h \<in> F" for i c h
+    using that by force
+  then show ?thesis
+    by (blast intro: equiintegrable_on_subset [OF equiintegrable_diff [OF F *]])
+qed
+
+corollary equiintegrable_halfspace_restrictions_gt:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes F: "F equiintegrable_on cbox a b" and f: "f \<in> F"
+    and norm_f: "\<And>h x. \<lbrakk>h \<in> F; x \<in> cbox a b\<rbrakk> \<Longrightarrow> norm(h x) \<le> norm(f x)"
+  shows "(\<Union>i \<in> Basis. \<Union>c. \<Union>h \<in> F. {(\<lambda>x. if x \<bullet> i > c then h x else 0)}) equiintegrable_on cbox a b"
+         (is "?G equiintegrable_on cbox a b")
+proof -
+  have *: "(\<Union>i\<in>Basis. \<Union>c. \<Union>h\<in>F. {\<lambda>x. if c \<ge> x \<bullet> i then h x else 0}) equiintegrable_on cbox a b"
+    using equiintegrable_halfspace_restrictions_le [OF F f] norm_f by auto
+  have "(\<lambda>x. if x \<bullet> i > c then h x else 0) = (\<lambda>x. h x - (if c \<ge> x \<bullet> i then h x else 0))"
+    if "i \<in> Basis" "h \<in> F" for i c h
+    using that by force
+  then show ?thesis
+    by (blast intro: equiintegrable_on_subset [OF equiintegrable_diff [OF F *]])
+qed
 
 proposition equiintegrable_closed_interval_restrictions:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -1661,6 +1869,405 @@ next
     qed
   qed
 qed
+
+subsection\<open>Second Mean Value Theorem\<close>
+
+
+
+subsection\<open>Second mean value theorem and corollaries\<close>
+
+lemma level_approx:
+  fixes f :: "real \<Rightarrow> real" and n::nat
+  assumes f: "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> f x \<and> f x \<le> 1" and "x \<in> S" "n \<noteq> 0"
+  shows "\<bar>f x - (\<Sum>k = Suc 0..n. if k / n \<le> f x then inverse n else 0)\<bar> < inverse n"
+        (is "?lhs < _")
+proof -
+  have "n * f x \<ge> 0"
+    using assms by auto
+  then obtain m::nat where m: "floor(n * f x) = int m"
+    using nonneg_int_cases zero_le_floor by blast
+  then have kn: "real k / real n \<le> f x \<longleftrightarrow> k \<le> m" for k
+    using \<open>n \<noteq> 0\<close> by (simp add: divide_simps mult.commute) linarith
+  then have "Suc n / real n \<le> f x \<longleftrightarrow> Suc n \<le> m"
+    by blast
+  have "real n * f x \<le> real n"
+    by (simp add: \<open>x \<in> S\<close> f mult_left_le)
+  then have "m \<le> n"
+    using m by linarith
+  have "?lhs = \<bar>f x - (\<Sum>k \<in> {Suc 0..n} \<inter> {..m}. inverse n)\<bar>"
+    by (subst sum.inter_restrict) (auto simp: kn)
+  also have "\<dots> < inverse n"
+    using \<open>m \<le> n\<close> \<open>n \<noteq> 0\<close> m
+    by (simp add: min_absorb2 divide_simps mult.commute) linarith
+  finally show ?thesis .
+qed
+
+
+lemma SMVT_lemma2:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "f integrable_on {a..b}"
+    and g: "\<And>x y. x \<le> y \<Longrightarrow> g x \<le> g y"
+  shows "(\<Union>y::real. {\<lambda>x. if g x \<ge> y then f x else 0}) equiintegrable_on {a..b}"
+proof -
+  have ffab: "{f} equiintegrable_on {a..b}"
+    by (metis equiintegrable_on_sing f interval_cbox)
+  then have ff: "{f} equiintegrable_on (cbox a b)"
+    by simp
+  have ge: "(\<Union>c. {\<lambda>x. if x \<ge> c then f x else 0}) equiintegrable_on {a..b}"
+    using equiintegrable_halfspace_restrictions_ge [OF ff] by auto
+  have gt: "(\<Union>c. {\<lambda>x. if x > c then f x else 0}) equiintegrable_on {a..b}"
+    using equiintegrable_halfspace_restrictions_gt [OF ff] by auto
+  have 0: "{(\<lambda>x. 0)} equiintegrable_on {a..b}"
+    by (metis box_real(2) equiintegrable_on_sing integrable_0)
+  have \<dagger>: "(\<lambda>x. if g x \<ge> y then f x else 0) \<in> {(\<lambda>x. 0), f} \<union> (\<Union>z. {\<lambda>x. if z < x then f x else 0}) \<union> (\<Union>z. {\<lambda>x. if z \<le> x then f x else 0})"
+    for y
+  proof (cases "(\<forall>x. g x \<ge> y) \<or> (\<forall>x. \<not> (g x \<ge> y))")
+    let ?\<mu> = "Inf {x. g x \<ge> y}"
+    case False
+    have lower: "?\<mu> \<le> x" if "g x \<ge> y" for x
+      apply (rule cInf_lower)
+      using False
+       apply (auto simp: that bdd_below_def)
+      by (meson dual_order.trans g linear)
+    have greatest: "?\<mu> \<ge> z" if  "(\<And>x. g x \<ge> y \<Longrightarrow> z \<le> x)" for z
+      by (metis False cInf_greatest empty_iff mem_Collect_eq that)
+    show ?thesis
+    proof (cases "g ?\<mu> \<ge> y")
+      case True
+      then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x \<ge> \<zeta>"
+        by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}}\<close>
+      then show ?thesis
+        by (force simp: \<zeta>)
+    next
+      case False
+      have "(y \<le> g x) = (?\<mu> < x)" for x
+      proof
+        show "?\<mu> < x" if "y \<le> g x"
+          using that False less_eq_real_def lower by blast
+        show "y \<le> g x" if "?\<mu> < x"
+          by (metis g greatest le_less_trans that less_le_trans linear not_less)
+      qed
+      then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x > \<zeta>" ..
+      then show ?thesis
+        by (force simp: \<zeta>)
+    qed
+  qed auto
+  show ?thesis
+    apply (rule equiintegrable_on_subset [OF equiintegrable_on_Un [OF gt equiintegrable_on_Un [OF ge equiintegrable_on_Un [OF ffab 0]]]])
+    using \<dagger> apply (simp add: UN_subset_iff)
+    done
+qed
+
+
+lemma SMVT_lemma4:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "f integrable_on {a..b}"
+    and "a \<le> b"
+    and g: "\<And>x y. x \<le> y \<Longrightarrow> g x \<le> g y"
+    and 01: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> 0 \<le> g x \<and> g x \<le> 1"
+  obtains c where "a \<le> c" "c \<le> b" "((\<lambda>x. g x *\<^sub>R f x) has_integral integral {c..b} f) {a..b}"
+proof -
+  have "connected ((\<lambda>x. integral {x..b} f) ` {a..b})"
+    by (simp add: f indefinite_integral_continuous_1' connected_continuous_image)
+  moreover have "compact ((\<lambda>x. integral {x..b} f) ` {a..b})"
+    by (simp add: compact_continuous_image f indefinite_integral_continuous_1')
+  ultimately obtain m M where int_fab: "(\<lambda>x. integral {x..b} f) ` {a..b} = {m..M}"
+    using connected_compact_interval_1 by meson
+  have "\<exists>c. c \<in> {a..b} \<and>
+              integral {c..b} f =
+              integral {a..b} (\<lambda>x. (\<Sum>k = 1..n. if g x \<ge> real k / real n then inverse n *\<^sub>R f x else 0))" for n
+  proof (cases "n=0")
+    case True
+    then show ?thesis
+      using \<open>a \<le> b\<close> by auto
+  next
+    case False
+    have "(\<Union>c::real. {\<lambda>x. if g x \<ge> c then f x else 0}) equiintegrable_on {a..b}"
+      using SMVT_lemma2 [OF f g] .
+    then have int: "(\<lambda>x. if g x \<ge> c then f x else 0) integrable_on {a..b}" for c
+      by (simp add: equiintegrable_on_def)
+    have int': "(\<lambda>x. if g x \<ge> c then u * f x else 0) integrable_on {a..b}" for c u
+    proof -
+      have "(\<lambda>x. if g x \<ge> c then u * f x else 0) = (\<lambda>x. u * (if g x \<ge> c then f x else 0))"
+        by (force simp: if_distrib)
+      then show ?thesis
+        using integrable_on_cmult_left [OF int] by simp
+    qed
+    have "\<exists>d. d \<in> {a..b} \<and> integral {a..b} (\<lambda>x. if g x \<ge> y then f x else 0) = integral {d..b} f" for y
+    proof -
+      let ?X = "{x. g x \<ge> y}"
+      have *: "\<exists>a. ?X = {x. a \<le> x} \<or> ?X = {x. a < x}"
+        if 1: "?X \<noteq> {}" and 2: "?X \<noteq> UNIV"
+      proof -
+        let ?\<mu> = "Inf{x. g x \<ge> y}"
+        have lower: "?\<mu> \<le> x" if "g x \<ge> y" for x
+          apply (rule cInf_lower)
+          using 1 2 apply (auto simp: that bdd_below_def)
+          by (meson dual_order.trans g linear)
+        have greatest: "?\<mu> \<ge> z" if  "(\<And>x. g x \<ge> y \<Longrightarrow> z \<le> x)" for z
+          by (metis cInf_greatest mem_Collect_eq that 1)
+        show ?thesis
+        proof (cases "g ?\<mu> \<ge> y")
+          case True
+          then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x \<ge> \<zeta>"
+            by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}}\<close>
+          then show ?thesis
+            by (force simp: \<zeta>)
+        next
+          case False
+          have "(y \<le> g x) = (?\<mu> < x)" for x
+          proof
+            show "?\<mu> < x" if "y \<le> g x"
+              using that False less_eq_real_def lower by blast
+            show "y \<le> g x" if "?\<mu> < x"
+              by (metis g greatest le_less_trans that less_le_trans linear not_less)
+          qed
+          then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x > \<zeta>" ..
+          then show ?thesis
+            by (force simp: \<zeta>)
+        qed
+      qed
+      then consider "?X = {}" | "?X = UNIV" | d where "?X = {x. d \<le> x} \<or>?X = {x. d < x}"
+        by metis
+      then have "\<exists>d. d \<in> {a..b} \<and> integral {a..b} (\<lambda>x. if x \<in> ?X then f x else 0) = integral {d..b} f"
+      proof cases
+        case 1
+        then show ?thesis
+          using \<open>a \<le> b\<close> by auto
+      next
+        case 2
+        then show ?thesis
+          using \<open>a \<le> b\<close> by auto
+      next
+        case (3 d)
+        show ?thesis
+        proof (cases "d < a")
+          case True
+          with 3 show ?thesis
+            apply (rule_tac x=a in exI)
+            apply (auto simp: \<open>a \<le> b\<close> iff del: mem_Collect_eq intro!: Henstock_Kurzweil_Integration.integral_cong, simp_all)
+            done
+        next
+          case False
+          show ?thesis
+          proof (cases "b < d")
+            case True
+            have "integral {a..b} (\<lambda>x. if x \<in> {x. y \<le> g x} then f x else 0) = integral {a..b} (\<lambda>x. 0)"
+              by (rule Henstock_Kurzweil_Integration.integral_cong) (use 3 True in fastforce)
+            then show ?thesis
+              using \<open>a \<le> b\<close> by auto
+          next
+            case False
+            with \<open>\<not> d < a\<close> have eq: "Collect ((\<le>) d) \<inter> {a..b} = {d..b}" "Collect ((<) d) \<inter> {a..b} = {d<..b}"
+              by force+
+            moreover have "integral {d<..b} f = integral {d..b} f"
+              by (rule integral_spike_set [OF empty_imp_negligible negligible_subset [OF negligible_sing [of d]]]) auto
+            ultimately
+            show ?thesis
+              using \<open>\<not> d < a\<close> False 3
+              apply (rule_tac x=d in exI)
+              apply (auto simp: \<open>a \<le> b\<close> iff del: mem_Collect_eq; subst Henstock_Kurzweil_Integration.integral_restrict_Int)
+               apply (simp_all add: \<open>a \<le> b\<close> not_less eq)
+              done
+          qed
+        qed
+      qed
+      then show ?thesis
+        by auto
+    qed
+    then have "\<forall>k. \<exists>d. d \<in> {a..b} \<and> integral {a..b} (\<lambda>x. if real k / real n \<le> g x then f x else 0) = integral {d..b} f"
+      by meson
+    then obtain d where dab: "\<And>k. d k \<in> {a..b}"
+      and deq: "\<And>k::nat. integral {a..b} (\<lambda>x. if k/n \<le> g x then f x else 0) = integral {d k..b} f"
+      by metis
+    have "(\<Sum>k = 1..n. integral {a..b} (\<lambda>x. if real k / real n \<le> g x then f x else 0)) /\<^sub>R n \<in> {m..M}"
+      unfolding scaleR_right.sum
+    proof (intro conjI allI impI convex [THEN iffD1, rule_format])
+      show "integral {a..b} (\<lambda>xa. if real k / real n \<le> g xa then f xa else 0) \<in> {m..M}" for k
+        by (metis (no_types, lifting) deq image_eqI int_fab dab)
+    qed (use \<open>n \<noteq> 0\<close> in auto)
+    then have "\<exists>c. c \<in> {a..b} \<and>
+              integral {c..b} f = inverse n *\<^sub>R (\<Sum>k = 1..n. integral {a..b} (\<lambda>x. if g x \<ge> real k / real n then f x else 0))"
+      by (metis (no_types, lifting) int_fab imageE)
+    then show ?thesis
+      by (simp add: sum_distrib_left if_distrib integral_sum int' flip: integral_mult_right cong: if_cong)
+  qed
+  then obtain c where cab: "\<And>n. c n \<in> {a..b}"
+    and c: "\<And>n. integral {c n..b} f = integral {a..b} (\<lambda>x. (\<Sum>k = 1..n. if g x \<ge> real k / real n then f x /\<^sub>R n else 0))"
+    by metis
+  obtain d and \<sigma> :: "nat\<Rightarrow>nat"
+    where "d \<in> {a..b}" and \<sigma>: "strict_mono \<sigma>" and d: "(c \<circ> \<sigma>) \<longlonglongrightarrow> d" and non0: "\<And>n. \<sigma> n \<ge> Suc 0"
+  proof -
+    have "compact{a..b}"
+      by auto
+    with cab obtain d and s0
+      where "d \<in> {a..b}" and s0: "strict_mono s0" and tends: "(c \<circ> s0) \<longlonglongrightarrow> d"
+      unfolding compact_def
+      using that by blast
+    show thesis
+    proof
+      show "d \<in> {a..b}"
+        by fact
+      show "strict_mono (s0 \<circ> Suc)"
+        using s0 by (auto simp: strict_mono_def)
+      show "(c \<circ> (s0 \<circ> Suc)) \<longlonglongrightarrow> d"
+        by (metis tends LIMSEQ_subseq_LIMSEQ Suc_less_eq comp_assoc strict_mono_def)
+      show "\<And>n. (s0 \<circ> Suc) n \<ge> Suc 0"
+        by (metis comp_apply le0 not_less_eq_eq old.nat.exhaust s0 seq_suble)
+    qed
+  qed
+  define \<phi> where "\<phi> \<equiv> \<lambda>n x. \<Sum>k = Suc 0..\<sigma> n. if k/(\<sigma> n) \<le> g x then f x /\<^sub>R (\<sigma> n) else 0"
+  define \<psi> where "\<psi> \<equiv> \<lambda>n x. \<Sum>k = Suc 0..\<sigma> n. if k/(\<sigma> n) \<le> g x then inverse (\<sigma> n) else 0"
+  have **: "(\<lambda>x. g x *\<^sub>R f x) integrable_on cbox a b \<and>
+            (\<lambda>n. integral (cbox a b) (\<phi> n)) \<longlonglongrightarrow> integral (cbox a b) (\<lambda>x. g x *\<^sub>R f x)"
+  proof (rule equiintegrable_limit)
+    have \<dagger>: "((\<lambda>n. \<lambda>x. (\<Sum>k = Suc 0..n. if k / n \<le> g x then inverse n *\<^sub>R f x else 0)) ` {Suc 0..}) equiintegrable_on {a..b}"
+    proof -
+      have *: "(\<Union>c::real. {\<lambda>x. if g x \<ge> c then f x else 0}) equiintegrable_on {a..b}"
+        using SMVT_lemma2 [OF f g] .
+      show ?thesis
+        apply (rule equiintegrable_on_subset [OF equiintegrable_sum_real [OF *]], clarify)
+        apply (rule_tac a="{Suc 0..n}" in UN_I, force)
+        apply (rule_tac a="\<lambda>k. inverse n" in UN_I, auto)
+        apply (rule_tac x="\<lambda>k x. if real k / real n \<le> g x then f x else 0" in bexI)
+         apply (force intro: sum.cong)+
+        done
+    qed
+    show "range \<phi> equiintegrable_on cbox a b"
+      unfolding \<phi>_def
+      by (auto simp: non0 intro: equiintegrable_on_subset [OF \<dagger>])
+    show "(\<lambda>n. \<phi> n x) \<longlonglongrightarrow> g x *\<^sub>R f x"
+      if x: "x \<in> cbox a b" for x
+    proof -
+      have eq: "\<phi> n x = \<psi> n x *\<^sub>R f x"  for n
+        by (auto simp: \<phi>_def \<psi>_def sum_distrib_right if_distrib intro: sum.cong)
+      show ?thesis
+        unfolding eq
+      proof (rule tendsto_scaleR [OF _ tendsto_const])
+        show "(\<lambda>n. \<psi> n x) \<longlonglongrightarrow> g x"
+          unfolding lim_sequentially dist_real_def
+        proof (intro allI impI)
+          fix e :: real
+          assume "e > 0"
+          then obtain N where "N \<noteq> 0" "0 < inverse (real N)" and N: "inverse (real N) < e"
+            using real_arch_inverse by metis
+          moreover have "\<bar>\<psi> n x - g x\<bar> < inverse (real N)" if "n\<ge>N" for n
+          proof -
+            have "\<bar>g x - \<psi> n x\<bar> < inverse (real (\<sigma> n))"
+              unfolding \<psi>_def
+            proof (rule level_approx [of "{a..b}" g])
+              show "\<sigma> n \<noteq> 0"
+                by (metis Suc_n_not_le_n non0)
+            qed (use x 01 non0 in auto)
+            also have "\<dots> \<le> inverse N"
+              using seq_suble [OF \<sigma>] \<open>N \<noteq> 0\<close> non0 that by (auto intro: order_trans simp: divide_simps)
+            finally show ?thesis
+              by linarith
+          qed
+          ultimately show "\<exists>N. \<forall>n\<ge>N. \<bar>\<psi> n x - g x\<bar> < e"
+            using less_trans by blast
+        qed
+      qed
+    qed
+  qed
+  show thesis
+  proof
+    show "a \<le> d" "d \<le> b"
+      using \<open>d \<in> {a..b}\<close> atLeastAtMost_iff by blast+
+    show "((\<lambda>x. g x *\<^sub>R f x) has_integral integral {d..b} f) {a..b}"
+      unfolding has_integral_iff
+    proof
+      show "(\<lambda>x. g x *\<^sub>R f x) integrable_on {a..b}"
+        using ** by simp
+      show "integral {a..b} (\<lambda>x. g x *\<^sub>R f x) = integral {d..b} f"
+      proof (rule tendsto_unique)
+        show "(\<lambda>n. integral {c(\<sigma> n)..b} f) \<longlonglongrightarrow> integral {a..b} (\<lambda>x. g x *\<^sub>R f x)"
+          using ** by (simp add: c \<phi>_def)
+        show "(\<lambda>n. integral {c(\<sigma> n)..b} f) \<longlonglongrightarrow> integral {d..b} f"
+          using indefinite_integral_continuous_1' [OF f]
+          using d unfolding o_def
+          apply (simp add: continuous_on_eq_continuous_within)
+          apply (drule_tac x=d in bspec)
+          using \<open>d \<in> {a..b}\<close> apply blast
+          apply (simp add: continuous_within_sequentially o_def)
+          using cab by auto
+      qed auto
+    qed
+  qed
+qed
+
+
+theorem second_mean_value_theorem_full:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "f integrable_on {a..b}" and "a \<le> b"
+    and g: "\<And>x y. \<lbrakk>a \<le> x; x \<le> y; y \<le> b\<rbrakk> \<Longrightarrow> g x \<le> g y"
+  obtains c where "c \<in> {a..b}"
+    and "((\<lambda>x. g x * f x) has_integral (g a * integral {a..c} f + g b * integral {c..b} f)) {a..b}"
+proof -
+  have gab: "g a \<le> g b"
+    using \<open>a \<le> b\<close> g by blast 
+  then consider "g a < g b" | "g a = g b"
+    by linarith
+  then show thesis
+  proof cases
+    case 1
+    define h where "h \<equiv> \<lambda>x. if x < a then 0 else if b < x then 1
+                             else (g x - g a) / (g b - g a)"
+    obtain c where "a \<le> c" "c \<le> b" and c: "((\<lambda>x. h x *\<^sub>R f x) has_integral integral {c..b} f) {a..b}"
+    proof (rule SMVT_lemma4 [OF f \<open>a \<le> b\<close>, of h])
+      show "h x \<le> h y" "0 \<le> h x \<and> h x \<le> 1"  if "x \<le> y" for x y
+        using that gab by (auto simp: divide_simps g h_def)
+    qed
+    show ?thesis
+    proof
+      show "c \<in> {a..b}"
+        using \<open>a \<le> c\<close> \<open>c \<le> b\<close> by auto
+      have I: "((\<lambda>x. g x * f x - g a * f x) has_integral (g b - g a) * integral {c..b} f) {a..b}"
+      proof (subst has_integral_cong)
+        show "g x * f x - g a * f x = (g b - g a) * h x *\<^sub>R f x"
+          if "x \<in> {a..b}" for x
+          using 1 that by (simp add: h_def divide_simps algebra_simps)
+        show "((\<lambda>x. (g b - g a) * h x *\<^sub>R f x) has_integral (g b - g a) * integral {c..b} f) {a..b}"
+          using has_integral_mult_right [OF c, of "g b - g a"] .
+      qed
+      have II: "((\<lambda>x. g a * f x) has_integral g a * integral {a..b} f) {a..b}"
+        using has_integral_mult_right [where c = "g a", OF integrable_integral [OF f]] .
+      have "((\<lambda>x. g x * f x) has_integral (g b - g a) * integral {c..b} f + g a * integral {a..b} f) {a..b}"
+        using has_integral_add [OF I II] by simp
+      then show "((\<lambda>x. g x * f x) has_integral g a * integral {a..c} f + g b * integral {c..b} f) {a..b}"
+        by (simp add: algebra_simps flip: integral_combine [OF \<open>a \<le> c\<close> \<open>c \<le> b\<close> f])
+    qed
+  next
+    case 2
+    show ?thesis
+    proof
+      show "a \<in> {a..b}"
+        by (simp add: \<open>a \<le> b\<close>)
+      have "((\<lambda>x. g x * f x) has_integral g a * integral {a..b} f) {a..b}"
+      proof (rule has_integral_eq)
+        show "((\<lambda>x. g a * f x) has_integral g a * integral {a..b} f) {a..b}"
+          using f has_integral_mult_right by blast
+        show "g a * f x = g x * f x"
+          if "x \<in> {a..b}" for x
+          by (metis atLeastAtMost_iff g less_eq_real_def not_le that 2)
+      qed
+      then show "((\<lambda>x. g x * f x) has_integral g a * integral {a..a} f + g b * integral {a..b} f) {a..b}"
+        by (simp add: 2)
+    qed
+  qed
+qed
+
+
+corollary second_mean_value_theorem:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "f integrable_on {a..b}" and "a \<le> b"
+   and g: "\<And>x y. \<lbrakk>a \<le> x; x \<le> y; y \<le> b\<rbrakk> \<Longrightarrow> g x \<le> g y"
+ obtains c where "c \<in> {a..b}"
+                 "integral {a..b} (\<lambda>x. g x * f x)
+                = g a * integral {a..c} f + g b * integral {c..b} f"
+    using second_mean_value_theorem_full [where g=g, OF assms]
+    by (metis (full_types) integral_unique)
+
 
 end
   

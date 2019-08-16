@@ -4466,6 +4466,194 @@ lemma borel_measurable_lebesgue_preimage_borel:
     apply (auto simp: in_borel_measurable_borel vimage_def)
   done
 
+subsection \<open>Lebesgue sets and continuous images\<close>
+
+proposition lebesgue_regular_inner:
+ assumes "S \<in> sets lebesgue"
+ obtains K C where "negligible K" "\<And>n::nat. compact(C n)" "S = (\<Union>n. C n) \<union> K"
+proof -
+  have "\<exists>T. closed T \<and> T \<subseteq> S \<and> (S - T) \<in> lmeasurable \<and> emeasure lebesgue (S - T) < ennreal ((1/2)^n)" for n
+    using sets_lebesgue_inner_closed assms
+    by (metis sets_lebesgue_inner_closed zero_less_divide_1_iff zero_less_numeral zero_less_power)
+  then obtain C where clo: "\<And>n. closed (C n)" and subS: "\<And>n. C n \<subseteq> S"
+    and mea: "\<And>n. (S - C n) \<in> lmeasurable"
+    and less: "\<And>n. emeasure lebesgue (S - C n) < ennreal ((1/2)^n)"
+    by metis
+  have "\<exists>F. (\<forall>n::nat. compact(F n)) \<and> (\<Union>n. F n) = C m" for m::nat
+    by (metis clo closed_Union_compact_subsets)
+  then obtain D :: "[nat,nat] \<Rightarrow> 'a set" where D: "\<And>m n. compact(D m n)" "\<And>m. (\<Union>n. D m n) = C m"
+    by metis
+  let ?C = "from_nat_into (\<Union>m. range (D m))"
+  have "countable (\<Union>m. range (D m))"
+    by blast
+  have "range (from_nat_into (\<Union>m. range (D m))) = (\<Union>m. range (D m))"
+    using range_from_nat_into by simp
+  then have CD: "\<exists>m n. ?C k = D m n"  for k
+    by (metis (mono_tags, lifting) UN_iff rangeE range_eqI)
+  show thesis
+  proof
+    show "negligible (S - (\<Union>n. C n))"
+    proof (clarsimp simp: negligible_outer_le)
+      fix e :: "real"
+      assume "e > 0"
+      then obtain n where n: "(1/2)^n < e"
+        using real_arch_pow_inv [of e "1/2"] by auto
+      show "\<exists>T. S - (\<Union>n. C n) \<subseteq> T \<and> T \<in> lmeasurable \<and> measure lebesgue T \<le> e"
+      proof (intro exI conjI)
+        show "S - (\<Union>n. C n) \<subseteq> S - C n"
+          by blast
+        show "S - C n \<in> lmeasurable"
+          by (simp add: mea)
+        show "measure lebesgue (S - C n) \<le> e"
+          using less [of n] n
+          by (simp add: emeasure_eq_measure2 less_le mea)
+      qed
+    qed
+    show "compact (?C n)" for n
+      using CD D by metis
+    show "S = (\<Union>n. ?C n) \<union> (S - (\<Union>n. C n))" (is "_ = ?rhs")
+    proof
+      show "S \<subseteq> ?rhs"
+        using D by fastforce
+      show "?rhs \<subseteq> S"
+        using subS D CD by auto (metis Sup_upper range_eqI subsetCE)
+    qed
+  qed
+qed
+
+lemma sets_lebesgue_continuous_image:
+  assumes T: "T \<in> sets lebesgue" and contf: "continuous_on S f"
+    and negim: "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible(f ` T)" and "T \<subseteq> S"
+ shows "f ` T \<in> sets lebesgue"
+proof -
+  obtain K C where "negligible K" and com: "\<And>n::nat. compact(C n)" and Teq: "T = (\<Union>n. C n) \<union> K"
+    using lebesgue_regular_inner [OF T] by metis
+  then have comf: "\<And>n::nat. compact(f ` C n)"
+    by (metis Un_subset_iff Union_upper \<open>T \<subseteq> S\<close> compact_continuous_image contf continuous_on_subset rangeI)
+  have "((\<Union>n. f ` C n) \<union> f ` K) \<in> sets lebesgue"
+  proof (rule sets.Un)
+    have "K \<subseteq> S"
+      using Teq \<open>T \<subseteq> S\<close> by blast
+    show "(\<Union>n. f ` C n) \<in> sets lebesgue"
+    proof (rule sets.countable_Union)
+      show "range (\<lambda>n. f ` C n) \<subseteq> sets lebesgue"
+        using borel_compact comf by (auto simp: borel_compact)
+    qed auto
+    show "f ` K \<in> sets lebesgue"
+      by (simp add: \<open>K \<subseteq> S\<close> \<open>negligible K\<close> negim negligible_imp_sets)
+  qed
+  then show ?thesis
+    by (simp add: Teq image_Un image_Union)
+qed
+
+lemma differentiable_image_in_sets_lebesgue:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes S: "S \<in> sets lebesgue" and dim: "DIM('m) \<le> DIM('n)" and f: "f differentiable_on S"
+  shows "f`S \<in> sets lebesgue"
+proof (rule sets_lebesgue_continuous_image [OF S])
+  show "continuous_on S f"
+    by (meson differentiable_imp_continuous_on f)
+  show "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible (f ` T)"
+    using differentiable_on_subset f
+    by (auto simp: intro!: negligible_differentiable_image_negligible [OF dim])
+qed auto
+
+lemma sets_lebesgue_on_continuous_image:
+  assumes S: "S \<in> sets lebesgue" and X: "X \<in> sets (lebesgue_on S)" and contf: "continuous_on S f"
+    and negim: "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible(f ` T)"
+  shows "f ` X \<in> sets (lebesgue_on (f ` S))"
+proof -
+  have "X \<subseteq> S"
+    by (metis S X sets.Int_space_eq2 sets_restrict_space_iff)
+  moreover have "f ` S \<in> sets lebesgue"
+    using S contf negim sets_lebesgue_continuous_image by blast
+  moreover have "f ` X \<in> sets lebesgue"
+    by (metis S X contf negim sets_lebesgue_continuous_image sets_restrict_space_iff space_restrict_space space_restrict_space2)
+  ultimately show ?thesis
+    by (auto simp: sets_restrict_space_iff)
+qed
+
+lemma differentiable_image_in_sets_lebesgue_on:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes S: "S \<in> sets lebesgue" and X: "X \<in> sets (lebesgue_on S)" and dim: "DIM('m) \<le> DIM('n)"
+       and f: "f differentiable_on S"
+     shows "f ` X \<in> sets (lebesgue_on (f`S))"
+proof (rule sets_lebesgue_on_continuous_image [OF S X])
+  show "continuous_on S f"
+    by (meson differentiable_imp_continuous_on f)
+  show "\<And>T. \<lbrakk>negligible T; T \<subseteq> S\<rbrakk> \<Longrightarrow> negligible (f ` T)"
+    using differentiable_on_subset f
+    by (auto simp: intro!: negligible_differentiable_image_negligible [OF dim])
+qed
+
+subsection \<open>Affine lemmas\<close>
+
+lemma borel_measurable_affine:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes f: "f \<in> borel_measurable lebesgue" and "c \<noteq> 0"
+  shows "(\<lambda>x. f(t + c *\<^sub>R x)) \<in> borel_measurable lebesgue"
+proof -
+  { fix a b
+    have "{x. f x \<in> cbox a b} \<in> sets lebesgue"
+      using f cbox_borel lebesgue_measurable_vimage_borel by blast
+    then have "(\<lambda>x. (x - t) /\<^sub>R c) ` {x. f x \<in> cbox a b} \<in> sets lebesgue"
+    proof (rule differentiable_image_in_sets_lebesgue)
+      show "(\<lambda>x. (x - t) /\<^sub>R c) differentiable_on {x. f x \<in> cbox a b}"
+        unfolding differentiable_on_def differentiable_def
+        by (rule \<open>c \<noteq> 0\<close> derivative_eq_intros strip exI | simp)+
+    qed auto
+    moreover
+    have "{x. f(t + c *\<^sub>R x) \<in> cbox a b} = (\<lambda>x. (x-t) /\<^sub>R c) ` {x. f x \<in> cbox a b}"
+      using \<open>c \<noteq> 0\<close> by (auto simp: image_def)
+    ultimately have "{x. f(t + c *\<^sub>R x) \<in> cbox a b} \<in> sets lebesgue"
+      by (auto simp: borel_measurable_vimage_closed_interval) }
+  then show ?thesis
+    by (subst lebesgue_on_UNIV_eq [symmetric]; auto simp: borel_measurable_vimage_closed_interval)
+qed
+    
+lemma lebesgue_integrable_real_affine:
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space"
+  assumes f: "integrable lebesgue f" and "c \<noteq> 0"
+  shows "integrable lebesgue (\<lambda>x. f(t + c * x))"
+proof -
+  have "(\<lambda>x. norm (f x)) \<in> borel_measurable lebesgue"
+    by (simp add: borel_measurable_integrable f)
+  then show ?thesis
+    using assms borel_measurable_affine [of f c]
+    unfolding integrable_iff_bounded
+    by (subst (asm) nn_integral_real_affine_lebesgue[where c=c and t=t])  (auto simp: ennreal_mult_less_top)
+qed
+
+lemma lebesgue_integrable_real_affine_iff:
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space"
+  shows "c \<noteq> 0 \<Longrightarrow> integrable lebesgue (\<lambda>x. f(t + c * x)) \<longleftrightarrow> integrable lebesgue f"
+  using lebesgue_integrable_real_affine[of f c t]
+        lebesgue_integrable_real_affine[of "\<lambda>x. f(t + c * x)" "1/c" "-t/c"]
+  by (auto simp: field_simps)
+
+lemma\<^marker>\<open>tag important\<close> lebesgue_integral_real_affine:
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space" and c :: real
+  assumes c: "c \<noteq> 0" shows "(\<integral>x. f x \<partial> lebesgue) = \<bar>c\<bar> *\<^sub>R (\<integral>x. f(t + c * x) \<partial>lebesgue)"
+proof cases
+  have "(\<lambda>x. t + c * x) \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
+    using lebesgue_affine_measurable[where c= "\<lambda>x::real. c"] \<open>c \<noteq> 0\<close> by simp
+  moreover
+  assume "integrable lebesgue f"
+  ultimately show ?thesis
+    by (subst lebesgue_real_affine[OF c, of t]) (auto simp: integral_density integral_distr)
+next
+  assume "\<not> integrable lebesgue f" with c show ?thesis
+    by (simp add: lebesgue_integrable_real_affine_iff not_integrable_integral_eq)
+qed
+
+lemma has_bochner_integral_lebesgue_real_affine_iff:
+  fixes i :: "'a :: euclidean_space"
+  shows "c \<noteq> 0 \<Longrightarrow>
+    has_bochner_integral lebesgue f i \<longleftrightarrow>
+    has_bochner_integral lebesgue (\<lambda>x. f(t + c * x)) (i /\<^sub>R \<bar>c\<bar>)"
+  unfolding has_bochner_integral_iff lebesgue_integrable_real_affine_iff
+  by (simp_all add: lebesgue_integral_real_affine[symmetric] divideR_right cong: conj_cong)
+
 subsection\<open>More results on integrability\<close>
 
 lemma integrable_on_all_intervals_UNIV:
