@@ -128,7 +128,7 @@ fun name_thm name_flags (name, pos) =
       No_Name_Flags => thm
     | Name_Flags {pre, official} =>
         thm
-        |> (official andalso (not pre orelse Thm.derivation_name thm = "")) ?
+        |> (official andalso (not pre orelse Thm.raw_derivation_name thm = "")) ?
             Thm.name_derivation (name, pos)
         |> (name <> "" andalso (not pre orelse not (Thm.has_name_hint thm))) ?
             Thm.put_name_hint name));

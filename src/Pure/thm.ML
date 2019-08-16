@@ -106,6 +106,7 @@ sig
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
+  val raw_derivation_name: thm -> string
   val name_derivation: string * Position.T -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
@@ -996,8 +997,12 @@ fun derivation_closed (Thm (Deriv {body, ...}, _)) =
   Proofterm.compact_proof (Proofterm.proof_of body);
 
 (*non-deterministic, depends on unknown promises*)
-fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
+fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
   Proofterm.get_name shyps hyps prop (Proofterm.proof_of body);
+
+(*deterministic name of finished proof*)
+fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
+  Proofterm.get_name shyps hyps prop (proof_of thm);
 
 fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>
