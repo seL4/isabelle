@@ -19,7 +19,7 @@ sig
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
-  val name_multi: string * Position.T -> 'a list -> ((string * Position.T) * 'a) list
+  val name_multi: string * Position.T -> thm list -> ((string * Position.T) * thm) list
   type name_flags
   val unnamed: name_flags
   val official1: name_flags
@@ -134,15 +134,11 @@ fun name_thm name_flags (name, pos) =
 
 end;
 
-fun name_multi (name, pos: Position.T) xs =
-  (case xs of
-    [x] => [((name, pos), x)]
-  | _ =>
-      if name = "" then map (pair ("", pos)) xs
-      else map_index (fn (i, x) => ((name ^ "_" ^ string_of_int (i + 1), pos), x)) xs);
+fun name_multi (name, pos) =
+  Facts.thm_name_list name #> (map o apfst) (fn thm_name => (Facts.thm_name_flat thm_name, pos));
 
-fun name_thms name_flags name_pos thms =
-  map (uncurry (name_thm name_flags)) (name_multi name_pos thms);
+fun name_thms name_flags name_pos =
+  name_multi name_pos #> map (uncurry (name_thm name_flags));
 
 
 (* apply theorems and attributes *)

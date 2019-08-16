@@ -46,7 +46,8 @@ sig
   val hide: bool -> string -> T -> T
   type thm_name = string * int
   val thm_name_ord: thm_name * thm_name -> order
-  val single_thm_name: string -> thm_name
+  val thm_name_flat: thm_name -> string
+  val thm_name_list: string -> thm list -> (thm_name * thm) list
   val get_thm: Context.generic -> T -> thm_name * Position.T -> thm
 end;
 
@@ -305,7 +306,12 @@ fun hide fully name (Facts {facts, props}) =
 type thm_name = string * int;
 val thm_name_ord = prod_ord string_ord int_ord;
 
-fun single_thm_name name : thm_name = (name, 0);
+fun thm_name_flat (name, i) =
+  if name = "" orelse i = 0 then name
+  else name ^ "_" ^ string_of_int i;
+
+fun thm_name_list name [thm: thm] = [((name, 0), thm)]
+  | thm_name_list name thms = map_index (fn (i, thm) => ((name, i + 1), thm)) thms;
 
 fun get_thm context facts ((name, i), pos) =
   let
