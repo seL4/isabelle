@@ -177,6 +177,8 @@ sig
     (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: sort list -> term list -> term -> proof -> string
+  val get_id: sort list -> term list -> term -> proof ->
+    {serial: proof_serial, theory_name: string} option
 end
 
 structure Proofterm : PROOFTERM =
@@ -2183,10 +2185,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
-        (PThm ({serial = i, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
+        (PThm ({serial, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
           if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
-            let val Thm_Body {body = body', ...} = thm_body';
-            in (i, body' |> (a = "" andalso named) ? Future.map (publish i)) end
+            let
+              val Thm_Body {body = body', ...} = thm_body';
+              val i = if a = "" andalso named then proof_serial () else serial;
+            in (i, body' |> serial <> i ? Future.map (publish i)) end
           else new_prf ()
       | _ => new_prf ());
 
@@ -2221,12 +2225,23 @@ end;
 
 (* approximative PThm name *)
 
-fun get_name shyps hyps prop prf =
+fun get_identity shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
     (case fst (strip_combt (fst (strip_combP prf))) of
-      PThm ({name, prop = prop', ...}, _) => if prop = prop' then name else ""
-    | _ => "")
+      PThm ({serial, theory_name, name, prop = prop', ...}, _) =>
+        if prop = prop'
+        then SOME {serial = serial, theory_name = theory_name, name = name} else NONE
+    | _ => NONE)
   end;
+
+fun get_name shyps hyps prop prf =
+  Option.map #name (get_identity shyps hyps prop prf) |> the_default "";
+
+fun get_id shyps hyps prop prf =
+  (case get_identity shyps hyps prop prf of
+    NONE => NONE
+  | SOME {name = "", ...} => NONE
+  | SOME {serial, theory_name, ...} => SOME {serial = serial, theory_name = theory_name});
 
 end;
 

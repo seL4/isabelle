@@ -106,6 +106,7 @@ sig
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
+  val derivation_id: thm -> {serial: proof_serial, theory_name: string} option
   val raw_derivation_name: thm -> string
   val name_derivation: string * Position.T -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
@@ -1003,6 +1004,9 @@ fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
 (*deterministic name of finished proof*)
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_name shyps hyps prop (proof_of thm);
+
+fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
+  Proofterm.get_id shyps hyps prop (proof_of thm);
 
 fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>
