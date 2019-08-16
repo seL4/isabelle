@@ -282,7 +282,7 @@ fun gen_thm pick = Scan.depend (fn context =>
         val atts = map (attribute_generic context) srcs;
         val (ths', context') =
           fold_map (curry (fold (uncurry o Thm.apply_attribute) atts)) ths context;
-      in (context', pick (name, Facts.pos_of_ref thmref) ths') end)
+      in (context', pick (name, Facts.ref_pos thmref) ths') end)
   end);
 
 in

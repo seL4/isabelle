@@ -12,11 +12,11 @@ sig
     Named of (string * Position.T) * interval list option |
     Fact of string
   val named: string -> ref
+  val ref_name: ref -> string
+  val ref_pos: ref -> Position.T
+  val map_ref_name: (string -> string) -> ref -> ref
   val string_of_selection: interval list option -> string
   val string_of_ref: ref -> string
-  val name_of_ref: ref -> string
-  val pos_of_ref: ref -> Position.T
-  val map_name_of_ref: (string -> string) -> ref -> ref
   val select: ref -> thm list -> thm list
   val selections: string * thm list -> (ref * thm) list
   type T
@@ -85,14 +85,14 @@ datatype ref =
 
 fun named name = Named ((name, Position.none), NONE);
 
-fun name_of_ref (Named ((name, _), _)) = name
-  | name_of_ref (Fact _) = raise Fail "Illegal literal fact";
+fun ref_name (Named ((name, _), _)) = name
+  | ref_name (Fact _) = raise Fail "Illegal literal fact";
 
-fun pos_of_ref (Named ((_, pos), _)) = pos
-  | pos_of_ref (Fact _) = Position.none;
+fun ref_pos (Named ((_, pos), _)) = pos
+  | ref_pos (Fact _) = Position.none;
 
-fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
-  | map_name_of_ref _ r = r;
+fun map_ref_name f (Named ((name, pos), is)) = Named ((f name, pos), is)
+  | map_ref_name _ r = r;
 
 fun string_of_selection NONE = ""
   | string_of_selection (SOME is) = enclose "(" ")" (commas (map string_of_interval is));

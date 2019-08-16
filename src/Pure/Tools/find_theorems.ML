@@ -125,7 +125,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 (* filter_name *)
 
 fun filter_name str_pat (thmref, _) =
-  if match_string str_pat (Facts.name_of_ref thmref)
+  if match_string str_pat (Facts.ref_name thmref)
   then SOME (0, 0, 0) else NONE;
 
 
