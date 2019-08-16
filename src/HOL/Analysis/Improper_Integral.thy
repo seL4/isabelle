@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Equiintegrability\<close>
 
-text\<open>The definition here only really makes sense for an elementary set. 
+text\<open>The definition here only really makes sense for an elementary set.
      We just use compact intervals in applications below.\<close>
 
 definition\<^marker>\<open>tag important\<close> equiintegrable_on (infixr "equiintegrable'_on" 46)
@@ -27,7 +27,7 @@ lemma equiintegrable_on_integrable:
 lemma equiintegrable_on_sing [simp]:
      "{f} equiintegrable_on cbox a b \<longleftrightarrow> f integrable_on cbox a b"
   by (simp add: equiintegrable_on_def has_integral_integral has_integral integrable_on_def)
-    
+
 lemma equiintegrable_on_subset: "\<lbrakk>F equiintegrable_on I; G \<subseteq> F\<rbrakk> \<Longrightarrow> G equiintegrable_on I"
   unfolding equiintegrable_on_def Ball_def
   by (erule conj_forward imp_forward all_forward ex_forward | blast)+
@@ -401,7 +401,7 @@ proof -
     using assms
     apply (auto simp: equiintegrable_on_def)
     apply (rule integrable_eq)
-    by auto 
+    by auto
 qed
 
 subsection\<open>Subinterval restrictions for equiintegrable families\<close>
@@ -1432,9 +1432,9 @@ proof -
       have *: "norm (h x) \<le> norm (f x)"
         if "h \<in> insert f (\<Union>c d. {?g B c d})" "x \<in> cbox a b" for h x
         using that by auto
-      have "(\<Union>i\<in>Basis. 
-                \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}). 
-                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0}) 
+      have "(\<Union>i\<in>Basis.
+                \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}).
+                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0})
              equiintegrable_on cbox a b"
       proof (rule equiintegrable_halfspace_restrictions_ge [where f=f])
         show "insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}).
@@ -1443,13 +1443,13 @@ proof -
           using insert.prems apply auto
           done
         show"norm(h x) \<le> norm(f x)"
-          if "h \<in> insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<xi> then h x else 0})" 
+          if "h \<in> insert f (\<Union>i\<in>Basis. \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<xi> then h x else 0})"
              "x \<in> cbox a b" for h x
           using that by auto
       qed auto
-      then have "insert f (\<Union>i\<in>Basis. 
-                \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}). 
-                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0}) 
+      then have "insert f (\<Union>i\<in>Basis.
+                \<Union>\<xi>. \<Union>h\<in>insert f (\<Union>i\<in>Basis. \<Union>\<psi>. \<Union>h\<in>insert f (\<Union>c d. {?g B c d}). {\<lambda>x. if x \<bullet> i \<le> \<psi> then h x else 0}).
+                {\<lambda>x. if \<xi> \<le> x \<bullet> i then h x else 0})
              equiintegrable_on cbox a b"
         by (blast intro: f equiintegrable_on_insert)
       then show ?case
@@ -1469,7 +1469,7 @@ proof -
   show ?thesis
     by (rule equiintegrable_on_subset [OF * [OF subset_refl]]) (auto simp: mem_box)
 qed
-  
+
 
 
 subsection\<open>Continuity of the indefinite integral\<close>
@@ -1935,7 +1935,7 @@ proof -
     proof (cases "g ?\<mu> \<ge> y")
       case True
       then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x \<ge> \<zeta>"
-        by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}}\<close>
+        by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}\<close>
       then show ?thesis
         by (force simp: \<zeta>)
     next
@@ -2010,7 +2010,7 @@ proof -
         proof (cases "g ?\<mu> \<ge> y")
           case True
           then obtain \<zeta> where \<zeta>: "\<And>x. g x \<ge> y \<longleftrightarrow> x \<ge> \<zeta>"
-            by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}}\<close>
+            by (metis g lower order.trans)  \<comment> \<open>in fact y is @{term ?\<mu>}\<close>
           then show ?thesis
             by (force simp: \<zeta>)
         next
@@ -2205,7 +2205,7 @@ theorem second_mean_value_theorem_full:
     and "((\<lambda>x. g x * f x) has_integral (g a * integral {a..c} f + g b * integral {c..b} f)) {a..b}"
 proof -
   have gab: "g a \<le> g b"
-    using \<open>a \<le> b\<close> g by blast 
+    using \<open>a \<le> b\<close> g by blast
   then consider "g a < g b" | "g a = g b"
     by linarith
   then show thesis
@@ -2270,4 +2270,4 @@ corollary second_mean_value_theorem:
 
 
 end
-  
+
