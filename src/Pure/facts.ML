@@ -44,6 +44,10 @@ sig
   val add_dynamic: Context.generic -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
+  type thm_name = string * int
+  val thm_name_ord: thm_name * thm_name -> order
+  val single_thm_name: string -> thm_name
+  val get_thm: Context.generic -> T -> thm_name * Position.T -> thm
 end;
 
 structure Facts: FACTS =
@@ -51,10 +55,18 @@ struct
 
 (** fact references **)
 
-fun the_single _ [th] : thm = th
-  | the_single (name, pos) ths =
-      error ("Expected singleton fact " ^ quote name ^
-        " (length " ^ string_of_int (length ths) ^ ")" ^ Position.here pos);
+fun length_msg (thms: thm list) pos =
+  " (length " ^ string_of_int (length thms) ^ ")" ^ Position.here pos;
+
+fun err_single (name, pos) thms =
+  error ("Expected singleton fact " ^ quote name ^ length_msg thms pos);
+
+fun err_selection (name, pos) i thms =
+  error ("Bad fact selection " ^ quote (name ^ enclose "(" ")" (string_of_int i)) ^
+    length_msg thms pos);
+
+fun the_single _ [thm] = thm
+  | the_single name_pos thms = err_single name_pos thms;
 
 
 (* datatype interval *)
@@ -108,12 +120,10 @@ fun select (Fact _) ths = ths
   | select (Named ((name, pos), SOME ivs)) ths =
       let
         val n = length ths;
-        fun err msg =
-          error (msg ^ " for fact " ^ quote name ^ " (length " ^ string_of_int n ^ ")" ^
-            Position.here pos);
+        fun err msg = error (msg ^ " for fact " ^ quote name ^ length_msg ths pos);
         fun sel i =
-          if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
-          else nth ths (i - 1);
+          if i > 0 andalso i <= n then nth ths (i - 1)
+          else err_selection (name, pos) i ths;
         val is = maps (interval n) ivs handle Fail msg => err msg;
       in map sel is end;
 
@@ -287,5 +297,28 @@ fun del name (Facts {facts, props}) =
 
 fun hide fully name (Facts {facts, props}) =
   make_facts (Name_Space.hide_table fully name facts) props;
+
+
+
+(** get individual theorems **)
+
+type thm_name = string * int;
+val thm_name_ord = prod_ord string_ord int_ord;
+
+fun single_thm_name name : thm_name = (name, 0);
+
+fun get_thm context facts ((name, i), pos) =
+  let
+    fun print_name () =
+      markup_extern (Context.proof_of context) facts name |-> Markup.markup;
+  in
+    (case (lookup context facts name, i) of
+      (NONE, _) => error ("Undefined fact " ^ quote (print_name ()) ^ Position.here pos)
+    | (SOME {thms = [thm], ...}, 0) => thm
+    | (SOME {thms, ...}, 0) => err_single (print_name (), pos) thms
+    | (SOME {thms, ...}, _) =>
+        if i > 0 andalso i <= length thms then nth thms (i - 1)
+        else err_selection (print_name (), pos) i thms)
+  end;
 
 end;
