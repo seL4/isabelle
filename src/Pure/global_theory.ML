@@ -16,7 +16,6 @@ sig
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
   val all_thms_of: theory -> bool -> (string * thm) list
-  val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
@@ -63,15 +62,16 @@ structure Data = Theory_Data
 );
 
 val facts_of = Data.get;
+fun map_facts f = Data.map f;
 
 fun check_fact thy = Facts.check (Context.Theory thy) (facts_of thy);
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
 fun alias_fact binding name thy =
-  Data.map (Facts.alias (Sign.naming_of thy) binding name) thy;
+  map_facts (Facts.alias (Sign.naming_of thy) binding name) thy;
 
-fun hide_fact fully name = Data.map (Facts.hide fully name);
+fun hide_fact fully name = map_facts (Facts.hide fully name);
 
 
 (* retrieve theorems *)
@@ -106,7 +106,6 @@ fun all_thms_of thy verbose =
 
 (* fact specifications *)
 
-fun map_facts f = map (apsnd (map (apfst (map f))));
 fun burrow_fact f = split_list #>> burrow f #> op ~~;
 fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
@@ -176,7 +175,7 @@ fun add_facts (b, fact) thy =
         end);
     val arg = (b, Lazy.map_finished (tap check) fact);
   in
-    thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
+    thy |> map_facts (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
   end;
 
 fun check_thms_lazy (thms: thm list lazy) =
@@ -231,8 +230,8 @@ val add_thm = yield_singleton add_thms;
 (* dynamic theorems *)
 
 fun add_thms_dynamic' context arg thy =
-  let val (name, facts') = Facts.add_dynamic context arg (Data.get thy)
-  in (name, Data.put facts' thy) end;
+  let val (name, facts') = Facts.add_dynamic context arg (facts_of thy)
+  in (name, map_facts (K facts') thy) end;
 
 fun add_thms_dynamic arg thy =
   add_thms_dynamic' (Context.Theory thy) arg thy |> snd;
