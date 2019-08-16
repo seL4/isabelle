@@ -396,6 +396,14 @@ proof -
     using major by auto
 qed
 
+lemma integral_eq_zero_null_sets:
+  assumes "S \<in> null_sets lebesgue"
+  shows "integral\<^sup>L (lebesgue_on S) f = 0"
+proof (rule integral_eq_zero_AE)
+  show "AE x in lebesgue_on S. f x = 0"
+    by (metis (no_types, lifting) assms AE_not_in lebesgue_on_mono null_setsD2 null_sets_restrict_space order_refl)
+qed
+
 lemma
   shows sets_lborel[simp, measurable_cong]: "sets lborel = sets borel"
     and space_lborel[simp]: "space lborel = space borel"
@@ -844,6 +852,26 @@ proof -
   also have "\<dots> = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))"
     by (subst completion.completion_distr_eq) (auto simp: eq measurable_completion)
   finally show "lebesgue = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" .
+qed
+
+corollary lebesgue_real_affine:
+  "c \<noteq> 0 \<Longrightarrow> lebesgue = density (distr lebesgue lebesgue (\<lambda>x. t + c * x)) (\<lambda>_. ennreal (abs c))"
+    using lebesgue_affine_euclidean [where c= "\<lambda>x::real. c"] by simp
+
+lemma nn_integral_real_affine_lebesgue:
+  fixes c :: real assumes f[measurable]: "f \<in> borel_measurable lebesgue" and c: "c \<noteq> 0"
+  shows "(\<integral>\<^sup>+x. f x \<partial>lebesgue) = ennreal\<bar>c\<bar> * (\<integral>\<^sup>+x. f(t + c * x) \<partial>lebesgue)"
+proof -
+  have "(\<integral>\<^sup>+x. f x \<partial>lebesgue) = (\<integral>\<^sup>+x. f x \<partial>density (distr lebesgue lebesgue (\<lambda>x. t + c * x)) (\<lambda>x. ennreal \<bar>c\<bar>))"
+    using lebesgue_real_affine c by auto
+  also have "\<dots> = \<integral>\<^sup>+ x. ennreal \<bar>c\<bar> * f x \<partial>distr lebesgue lebesgue (\<lambda>x. t + c * x)"
+    by (subst nn_integral_density) auto
+  also have "\<dots> = ennreal \<bar>c\<bar> * integral\<^sup>N (distr lebesgue lebesgue (\<lambda>x. t + c * x)) f"
+    using f measurable_distr_eq1 nn_integral_cmult by blast
+  also have "\<dots> = \<bar>c\<bar> * (\<integral>\<^sup>+x. f(t + c * x) \<partial>lebesgue)"
+    using lebesgue_affine_measurable[where c= "\<lambda>x::real. c"]
+    by (subst nn_integral_distr) (force+)
+  finally show ?thesis .
 qed
 
 lemma lebesgue_measurable_scaling[measurable]: "(*\<^sub>R) x \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
