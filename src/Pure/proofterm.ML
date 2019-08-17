@@ -176,9 +176,9 @@ sig
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
-  val get_name: sort list -> term list -> term -> proof -> string
-  val get_id: sort list -> term list -> term -> proof ->
-    {serial: proof_serial, theory_name: string} option
+  val get_approximative_name: sort list -> term list -> term -> proof -> string
+  type thm_id = {serial: proof_serial, theory_name: string}
+  val get_id: sort list -> term list -> term -> proof -> thm_id option
 end
 
 structure Proofterm : PROOFTERM =
@@ -2223,7 +2223,7 @@ fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises bo
 end;
 
 
-(* approximative PThm name *)
+(* get PThm identity *)
 
 fun get_identity shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
@@ -2234,10 +2234,13 @@ fun get_identity shyps hyps prop prf =
     | _ => NONE)
   end;
 
-fun get_name shyps hyps prop prf =
+fun get_approximative_name shyps hyps prop prf =
   Option.map #name (get_identity shyps hyps prop prf) |> the_default "";
 
-fun get_id shyps hyps prop prf =
+
+type thm_id = {serial: proof_serial, theory_name: string};
+
+fun get_id shyps hyps prop prf : thm_id option =
   (case get_identity shyps hyps prop prf of
     NONE => NONE
   | SOME {name = "", ...} => NONE
