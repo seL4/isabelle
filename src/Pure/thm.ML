@@ -124,6 +124,8 @@ sig
   val arity_proof: theory -> string * sort list * class -> proof
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
+  val oracle_space: theory -> Name_Space.T
+  val pretty_oracle: Proof.context -> string -> Pretty.T
   val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
   (*inference rules*)
   val assume: cterm -> thm
@@ -1057,6 +1059,11 @@ fun add_oracle (b, oracle_fn) thy =
           end
       end;
   in ((name, invoke_oracle), thy') end;
+
+val oracle_space = Name_Space.space_of_table o get_oracles;
+
+fun pretty_oracle ctxt =
+  Name_Space.pretty ctxt (oracle_space (Proof_Context.theory_of ctxt));
 
 fun extern_oracles verbose ctxt =
   map #1 (Name_Space.markup_table verbose ctxt (get_oracles (Proof_Context.theory_of ctxt)));

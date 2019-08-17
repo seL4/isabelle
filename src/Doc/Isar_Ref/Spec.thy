@@ -1419,11 +1419,12 @@ text \<open>
 \<close>
 
 
-section \<open>Oracles\<close>
+section \<open>Oracles \label{sec:oracles}\<close>
 
 text \<open>
   \begin{matharray}{rcll}
     @{command_def "oracle"} & : & \<open>theory \<rightarrow> theory\<close> & (axiomatic!) \\
+    @{command_def "thm_oracles"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   Oracles allow Isabelle to take advantage of external reasoners such as
@@ -1439,10 +1440,15 @@ text \<open>
 
   Isabelle merely guarantees well-formedness of the propositions being
   asserted, and records within the internal derivation object how presumed
-  theorems depend on unproven suppositions.
+  theorems depend on unproven suppositions. This also includes implicit
+  type-class reasoning via the order-sorted algebra of class relations and
+  type arities (see also @{command_ref instantiation} and @{command_ref
+  instance}).
 
   \<^rail>\<open>
     @@{command oracle} @{syntax name} '=' @{syntax text}
+    ;
+    @@{command thm_oracles} @{syntax thms}
   \<close>
 
   \<^descr> \<^theory_text>\<open>oracle name = "text"\<close> turns the given ML expression \<open>text\<close> of type
@@ -1451,9 +1457,12 @@ text \<open>
   infinitary specification of axioms! Invoking the oracle only works within
   the scope of the resulting theory.
 
-
   See \<^file>\<open>~~/src/HOL/ex/Iff_Oracle.thy\<close> for a worked example of defining a new
   primitive rule as oracle, and turning it into a proof method.
+
+  \<^descr> \<^theory_text>\<open>thm_oracles thms\<close> displays all oracles used in the internal derivation
+  of the given theorems; this covers the full graph of transitive
+  dependencies.
 \<close>
 
 

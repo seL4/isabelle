@@ -84,7 +84,7 @@ keywords
     "print_interps" "print_dependencies" "print_attributes"
     "print_simpset" "print_rules" "print_trans_rules" "print_methods"
     "print_antiquotations" "print_ML_antiquotations" "thy_deps"
-    "locale_deps" "class_deps" "thm_deps" "print_term_bindings"
+    "locale_deps" "class_deps" "thm_deps" "thm_oracles" "print_term_bindings"
     "print_facts" "print_cases" "print_statement" "thm" "prf" "full_prf"
     "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
   and "print_state" :: diag
@@ -1307,6 +1307,15 @@ val _ =
         Thm_Deps.thm_deps (Toplevel.theory_of st)
           (Attrib.eval_thms (Toplevel.context_of st) args))));
 
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>thm_oracles\<close>
+    "print all oracles used in theorems (full graph of transitive dependencies)"
+    (Parse.thms1 >> (fn args =>
+      Toplevel.keep (fn st =>
+        let
+          val ctxt = Toplevel.context_of st;
+          val thms = Attrib.eval_thms ctxt args;
+        in Pretty.writeln (Thm_Deps.pretty_thm_oracles ctxt thms) end)));
 
 val thy_names = Scan.repeat1 (Scan.unless Parse.minus Parse.theory_name);
 
