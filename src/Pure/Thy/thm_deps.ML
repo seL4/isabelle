@@ -27,9 +27,11 @@ fun has_skip_proof thms =
 
 fun pretty_thm_oracles ctxt thms =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun prt_oracle (name, NONE) = [Thm.pretty_oracle ctxt name]
       | prt_oracle (name, SOME prop) =
-          [Thm.pretty_oracle ctxt name, Pretty.str ":", Pretty.brk 1, Syntax.pretty_term ctxt prop];
+          [Thm.pretty_oracle ctxt name, Pretty.str ":", Pretty.brk 1,
+            Syntax.pretty_term_global thy prop];
   in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) (all_oracles thms)) end;
 
 
