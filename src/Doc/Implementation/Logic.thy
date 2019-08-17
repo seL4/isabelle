@@ -533,11 +533,13 @@ text \<open>
   B\<vartheta>\<close> from \<open>\<Gamma> \<turnstile> B\<close> is correct, but \<open>\<Gamma>\<vartheta> \<supseteq> \<Gamma>\<close> does not
   necessarily hold: the result belongs to a different proof context.
 
-  \<^medskip>
-  An \<^emph>\<open>oracle\<close> is a function that produces axioms on the fly. Logically, this
-  is an instance of the \<open>axiom\<close> rule (\figref{fig:prim-rules}), but there is
-  an operational difference. The system always records oracle invocations
-  within derivations of theorems by a unique tag.
+  \<^medskip> An \<^emph>\<open>oracle\<close> is a function that produces axioms on the fly. Logically,
+  this is an instance of the \<open>axiom\<close> rule (\figref{fig:prim-rules}), but there
+  is an operational difference. The inference kernel records oracle
+  invocations within derivations of theorems by a unique tag. This also
+  includes implicit type-class reasoning via the order-sorted algebra of class
+  relations and type arities (see also @{command_ref instantiation} and
+  @{command_ref instance}).
 
   Axiomatizations should be limited to the bare minimum, typically as part of
   the initial logical basis of an object-logic formalization. Later on,
@@ -597,6 +599,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML Theory.add_deps: "Defs.context -> string ->
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
+  @{index_ML Thm_Deps.all_oracles: "thm list -> (string * term option) list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Thm.peek_status\<close>~\<open>thm\<close> informs about the current status of the
@@ -678,6 +681,12 @@ text %mlref \<open>
   a named specification for constant \<open>c\<^sub>\<tau>\<close>, relative to existing
   specifications for constants \<open>\<^vec>d\<^sub>\<sigma>\<close>. This also works for type
   constructors.
+
+  \<^descr> \<^ML>\<open>Thm_Deps.all_oracles\<close>~\<open>thms\<close> returns all oracles used in the
+  internal derivation of the given theorems; this covers the full graph of
+  transitive dependencies. The result contains a name, plus the original
+  proposition, if @{ML Proofterm.proofs} was at least @{ML 1} during the
+  oracle inference. See also the command @{command_ref "thm_oracles"}.
 \<close>
 
 text %mlantiq \<open>
@@ -688,6 +697,7 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "thm"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "thms"} & : & \<open>ML_antiquotation\<close> \\
   @{ML_antiquotation_def "lemma"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "oracle_name"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   \<^rail>\<open>
@@ -703,6 +713,8 @@ text %mlantiq \<open>
   ;
   @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @'by' method method?
+  ;
+  @@{ML_antiquotation oracle_name} embedded
   \<close>
 
   \<^descr> \<open>@{ctyp \<tau>}\<close> produces a certified type wrt.\ the current background theory
@@ -731,6 +743,9 @@ text %mlantiq \<open>
   justification is syntactically limited to a single @{command "by"} step.
   More complex Isar proofs should be done in regular theory source, before
   compiling the corresponding ML text that uses the result.
+
+  \<^descr> \<open>@{oracle_name a}\<close> inlines the internalized oracle name \<open>a\<close> --- as
+  \<^ML_type>\<open>string\<close> literal.
 \<close>
 
 
