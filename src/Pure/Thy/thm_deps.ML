@@ -7,12 +7,19 @@ Dependencies of theorems wrt. internal derivation.
 
 signature THM_DEPS =
 sig
+  val all_oracles: thm list -> Proofterm.oracle list
   val thm_deps: theory -> thm list -> unit
   val unused_thms: theory list * theory list -> (string * thm) list
 end;
 
 structure Thm_Deps: THM_DEPS =
 struct
+
+(* oracles *)
+
+fun all_oracles thms =
+  Proofterm.all_oracles_of (map Thm.proof_body_of thms);
+
 
 (* thm_deps *)
 
