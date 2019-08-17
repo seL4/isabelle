@@ -1,7 +1,8 @@
-(*  Title:      Pure/Tools/thm_deps.ML
+(*  Title:      Pure/Thy/thm_deps.ML
     Author:     Stefan Berghofer, TU Muenchen
+    Author:     Makarius
 
-Visualize dependencies of theorems.
+Dependencies of theorems wrt. internal derivation.
 *)
 
 signature THM_DEPS =
