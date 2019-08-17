@@ -24,10 +24,10 @@ sig
    | Hyp of term
    | PAxm of string * term * typ list option
    | OfClass of typ * class
-   | Oracle of string * term * typ list option
+   | Oracle of string * term option * typ list option
    | PThm of thm_header * thm_body
   and proof_body = PBody of
-    {oracles: (string * term) Ord_List.T,
+    {oracles: (string * term option) Ord_List.T,
      thms: (proof_serial * thm_node) Ord_List.T,
      proof: proof}
   val %> : proof * term -> proof
@@ -38,7 +38,7 @@ sig
   include BASIC_PROOFTERM
   val proofs: int Unsynchronized.ref
   type pthm = proof_serial * thm_node
-  type oracle = string * term
+  type oracle = string * term option
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
   val thm_header: proof_serial -> Position.T list -> string -> string -> term -> typ list option ->
@@ -202,10 +202,10 @@ datatype proof =
  | Hyp of term
  | PAxm of string * term * typ list option
  | OfClass of typ * class
- | Oracle of string * term * typ list option
+ | Oracle of string * term option * typ list option
  | PThm of thm_header * thm_body
 and proof_body = PBody of
-  {oracles: (string * term) Ord_List.T,
+  {oracles: (string * term option) Ord_List.T,
    thms: (proof_serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_body =
@@ -213,7 +213,9 @@ and thm_body =
 and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
-type oracle = string * term;
+type oracle = string * term option;
+val oracle_prop = the_default Term.dummy;
+
 type pthm = proof_serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
@@ -311,7 +313,7 @@ fun peek_status bodies =
 
 (* proof body *)
 
-val oracle_ord = prod_ord fast_string_ord Term_Ord.fast_term_ord;
+val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
 fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
@@ -383,13 +385,13 @@ fun proof prf = prf |> variant
   fn Hyp a => ([], term a),
   fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
-  fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
+  fn Oracle (a, b, c) => ([a], pair (option term) (option (list typ)) (b, c)),
   fn PThm ({serial, pos, theory_name, name, prop, types}, Thm_Body {open_proof, body, ...}) =>
     ([int_atom serial, theory_name, name],
       pair (list properties) (pair term (pair (option (list typ)) proof_body))
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
-  triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
+  triple (list (pair string (option term))) (list pthm) proof (oracles, thms, prf)
 and pthm (a, thm_node) =
   pair int (triple string term proof_body)
     (a, (thm_node_name thm_node, thm_node_prop thm_node, Future.join (thm_node_body thm_node)));
@@ -404,7 +406,7 @@ fun full_proof prf = prf |> variant
   fn Hyp a => ([], term a),
   fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
   fn OfClass (T, c) => ([c], typ T),
-  fn Oracle (name, prop, SOME Ts) => ([name], pair term (list typ) (prop, Ts)),
+  fn Oracle (name, prop, SOME Ts) => ([name], pair (option term) (list typ) (prop, Ts)),
   fn PThm ({serial, theory_name, name, types = SOME Ts, ...}, _) =>
     ([int_atom serial, theory_name, name], list typ Ts)];
 
@@ -433,7 +435,7 @@ fun proof prf = prf |> variant
   fn ([], a) => Hyp (term a),
   fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in PAxm (a, c, d) end,
   fn ([b], a) => OfClass (typ a, b),
-  fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
+  fn ([a], b) => let val (c, d) = pair (option term) (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b, c], d) =>
     let
       val ((e, (f, (g, h)))) =
@@ -441,7 +443,7 @@ fun proof prf = prf |> variant
       val header = thm_header (int_atom a) (map Position.of_properties e) b c f g;
     in PThm (header, thm_body h) end]
 and proof_body x =
-  let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
+  let val (a, b, c) = triple (list (pair string (option term))) (list pthm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
 and pthm x =
   let val (a, (b, c, d)) = pair int (triple string term proof_body) x
@@ -868,7 +870,7 @@ fun term_of _ (PThm ({name, types = Ts, ...}, _)) =
         val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
       in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
   | term_of _ (Hyp t) = Hypt $ t
-  | term_of _ (Oracle (_, t, _)) = Oraclet $ t
+  | term_of _ (Oracle (_, t, _)) = Oraclet $ oracle_prop t
   | term_of _ MinProof = MinProoft;
 
 in
@@ -1180,14 +1182,13 @@ fun prop_args prop =
     val frees = map SOME (frees_of prop);
   in vars @ frees end;
 
-fun gen_axm_proof c name prop =
-  proof_combt' (c (name, prop, NONE), prop_args prop);
-
-val axm_proof = gen_axm_proof PAxm;
+fun axm_proof name prop =
+  proof_combt' (PAxm (name, prop, NONE), prop_args prop);
 
 fun oracle_proof name prop =
-  if ! proofs = 0 then ((name, Term.dummy), Oracle (name, Term.dummy, NONE))
-  else ((name, prop), gen_axm_proof Oracle name prop);
+  if ! proofs = 0
+  then ((name, NONE), Oracle (name, NONE, NONE))
+  else ((name, SOME prop), proof_combt' (Oracle (name, SOME prop, NONE), prop_args prop));
 
 val shrink_proof =
   let
@@ -1226,7 +1227,7 @@ val shrink_proof =
             val prop =
               (case prf of
                 PAxm (_, prop, _) => prop
-              | Oracle (_, prop, _) => prop
+              | Oracle (_, prop, _) => oracle_prop prop
               | PThm ({prop, ...}, _) => prop
               | _ => raise Fail "shrink: proof not in normal form");
             val vs = vars_of prop;
@@ -1818,7 +1819,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env _ _ vTs (prf as OfClass (T, c)) =
           mk_cnstrts_atom env vTs (Logic.mk_of_class (T, c)) NONE prf
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
-          mk_cnstrts_atom env vTs prop opTs prf
+          mk_cnstrts_atom env vTs (oracle_prop prop) opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
       | mk_cnstrts _ _ _ _ MinProof = error "reconstruct_proof: minimal proof object"
   in mk_cnstrts env [] [] Symtab.empty cprf end;
@@ -1915,7 +1916,7 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 _ (PThm ({prop, types = SOME Ts, ...}, _)) = prop_of_atom prop Ts
   | prop_of0 _ (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ (OfClass (T, c)) = Logic.mk_of_class (T, c)
-  | prop_of0 _ (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 _ (Oracle (_, prop, SOME Ts)) = prop_of_atom (oracle_prop prop) Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
 
 val prop_of' = Envir.beta_eta_contract oo prop_of0;
