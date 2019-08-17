@@ -14,7 +14,8 @@ sig
   val hide_fact: bool -> string -> theory -> theory
   val dest_thms: bool -> theory list -> theory -> (Facts.thm_name * thm) list
   val dest_thm_names: theory -> (proof_serial * Facts.thm_name) list
-  val lookup_thm_name: theory -> string -> proof_serial -> Facts.thm_name option
+  val lookup_thm_id: theory -> Proofterm.thm_id -> Facts.thm_name option
+  val lookup_thm: theory -> thm -> Facts.thm_name option
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
@@ -107,15 +108,25 @@ fun make_thm_names thy =
 
 fun get_thm_names thy =
   (case thm_names_of thy of
-    NONE => make_thm_names thy
-  | SOME lazy_tab => Lazy.force lazy_tab);
+    NONE => Lazy.lazy (fn () => make_thm_names thy)
+  | SOME lazy_tab => lazy_tab);
 
-val dest_thm_names = Inttab.dest o get_thm_names;
+val dest_thm_names = Inttab.dest o Lazy.force o get_thm_names;
 
-fun lookup_thm_name thy theory_name serial =
-  Theory.nodes_of thy |> get_first (fn thy' =>
-    if Context.theory_long_name thy' = theory_name
-    then Inttab.lookup (get_thm_names thy') serial else NONE);
+fun lookup_thm_id thy =
+  let
+    val theories =
+      fold (fn thy' => Symtab.update (Context.theory_long_name thy', get_thm_names thy'))
+        (Theory.nodes_of thy) Symtab.empty;
+    fun lookup (thm_id: Proofterm.thm_id) =
+      (case Symtab.lookup theories (#theory_name thm_id) of
+        NONE => NONE
+      | SOME lazy_tab => Inttab.lookup (Lazy.force lazy_tab) (#serial thm_id));
+  in lookup end;
+
+fun lookup_thm thy =
+  let val lookup = lookup_thm_id thy
+  in fn thm => (case Thm.derivation_id thm of NONE => NONE | SOME thm_id => lookup thm_id) end;
 
 val _ =
   Theory.setup (Theory.at_end (fn thy =>
