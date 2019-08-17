@@ -36,8 +36,7 @@ ML \<open>iff_oracle (\<^theory>, 2)\<close>
 ML \<open>iff_oracle (\<^theory>, 10)\<close>
 
 ML \<open>
-  Thm.peek_status (iff_oracle (\<^theory>, 10));
-  \<^assert> (#oracle it);
+  \<^assert> (map #1 (Thm_Deps.all_oracles [iff_oracle (\<^theory>, 10)]) = [\<^oracle_name>\<open>iff_oracle\<close>]);
 \<close>
 
 text \<open>These oracle calls had better fail.\<close>

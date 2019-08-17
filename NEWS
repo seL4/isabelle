@@ -57,6 +57,8 @@ associates to the left now as is customary.
 Theory.join_theory recovers a single result theory. See also the example
 in theory "HOL-ex.Join_Theory".
 
+* Antiquotation @{oracle_name} inlines a formally checked oracle name.
+
 
 
 New in Isabelle2019 (June 2019)

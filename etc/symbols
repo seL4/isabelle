@@ -429,6 +429,7 @@
 \<^type_abbrev>         argument: cartouche
 \<^type_name>           argument: cartouche
 \<^type_syntax>         argument: cartouche
+\<^oracle_name>         argument: cartouche
 \<^code>                argument: cartouche
 \<^computation>         argument: cartouche
 \<^computation_conv>    argument: cartouche

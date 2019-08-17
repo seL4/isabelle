@@ -78,6 +78,10 @@ val _ = Theory.setup
   ML_Antiquotation.value_embedded \<^binding>\<open>cprop\<close> (Args.prop >> (fn t =>
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
+  ML_Antiquotation.inline_embedded \<^binding>\<open>oracle_name\<close>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
+      ML_Syntax.print_string (Thm.check_oracle ctxt (name, pos)))) #>
+
   ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
