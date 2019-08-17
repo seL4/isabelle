@@ -32,7 +32,7 @@ val (_, make_thm_cterm) =
 fun make_thm thy prop = make_thm_cterm (Thm.global_cterm_of thy prop);
 
 
-(* cheat_tac *)
+(* cheat_tac -- 'sorry' *)
 
 fun cheat_tac ctxt = SUBGOAL (fn (goal, i) =>
   let
