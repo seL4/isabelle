@@ -475,7 +475,6 @@ val theory_name = Context.theory_id_name o theory_id;
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
-val constraints_of = #constraints o rep_thm;
 val shyps_of = #shyps o rep_thm;
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
