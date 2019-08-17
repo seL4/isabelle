@@ -1304,8 +1304,10 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thm_deps\<close> "visualize theorem dependencies"
     (Parse.thms1 >> (fn args =>
       Toplevel.keep (fn st =>
-        Thm_Deps.thm_deps (Toplevel.theory_of st)
-          (Attrib.eval_thms (Toplevel.context_of st) args))));
+        let
+          val thy = Toplevel.theory_of st;
+          val ctxt = Toplevel.context_of st;
+        in Thm_Deps.thm_deps_cmd thy (Attrib.eval_thms ctxt args) end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thm_oracles\<close>
@@ -1329,7 +1331,7 @@ val _ =
             fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
             val check = Theory.check {long = false} ctxt;
           in
-            Thm_Deps.unused_thms
+            Thm_Deps.unused_thms_cmd
               (case opt_range of
                 NONE => (Theory.parents_of thy, [thy])
               | SOME (xs, NONE) => (map check xs, [thy])

@@ -10,8 +10,8 @@ sig
   val all_oracles: thm list -> Proofterm.oracle list
   val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
-  val thm_deps: theory -> thm list -> unit
-  val unused_thms: theory list * theory list -> (string * thm) list
+  val thm_deps_cmd: theory -> thm list -> unit
+  val unused_thms_cmd: theory list * theory list -> (string * thm) list
 end;
 
 structure Thm_Deps: THM_DEPS =
@@ -35,9 +35,9 @@ fun pretty_thm_oracles ctxt thms =
   in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) (all_oracles thms)) end;
 
 
-(* thm_deps *)
+(* thm_deps_cmd *)
 
-fun thm_deps thy thms =
+fun thm_deps_cmd thy thms =
   let
     fun make_node name directory =
       Graph_Display.session_node
@@ -70,9 +70,9 @@ fun thm_deps thy thms =
   end;
 
 
-(* unused_thms *)
+(* unused_thms_cmd *)
 
-fun unused_thms (base_thys, thys) =
+fun unused_thms_cmd (base_thys, thys) =
   let
     fun add_fact transfer space (name, ths) =
       if exists (fn thy => Global_Theory.defined_fact thy name) base_thys then I
