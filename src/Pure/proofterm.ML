@@ -37,6 +37,7 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
   val proofs: int Unsynchronized.ref
+  exception MIN_PROOF
   type pthm = proof_serial * thm_node
   type oracle = string * term option
   val proof_of: proof_body -> proof
@@ -212,6 +213,8 @@ and thm_body =
   Thm_Body of {export_proof: unit lazy, open_proof: proof -> proof, body: proof_body future}
 and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
+
+exception MIN_PROOF;
 
 type oracle = string * term option;
 val oracle_prop = the_default Term.dummy;
@@ -1821,7 +1824,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs (oracle_prop prop) opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
-      | mk_cnstrts _ _ _ _ MinProof = error "reconstruct_proof: minimal proof object"
+      | mk_cnstrts _ _ _ _ MinProof = raise MIN_PROOF
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
 

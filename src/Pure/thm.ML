@@ -1007,7 +1007,8 @@ fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_approximative_name shyps hyps prop (proof_of thm);
 
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
-  Proofterm.get_id shyps hyps prop (proof_of thm);
+  Proofterm.get_id shyps hyps prop (proof_of thm)
+    handle Proofterm.MIN_PROOF => NONE;
 
 fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>
