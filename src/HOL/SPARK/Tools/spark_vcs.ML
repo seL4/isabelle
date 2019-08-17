@@ -961,8 +961,7 @@ fun close incomplete thy =
           val (proved, unproved) = partition_vcs vcs;
           val _ = Thm.consolidate (maps (#2 o snd) proved);
           val (proved', proved'') =
-            List.partition (fn (_, (_, thms, _, _)) =>
-              exists (#oracle o Thm.peek_status) thms) proved;
+            List.partition (fn (_, (_, thms, _, _)) => Thm_Deps.has_skip_proof thms) proved;
           val _ =
             if null unproved then ()
             else (if incomplete then warning else error) (Pretty.string_of (pp_open_vcs unproved));

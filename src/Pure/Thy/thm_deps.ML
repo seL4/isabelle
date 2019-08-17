@@ -8,6 +8,7 @@ Dependencies of theorems wrt. internal derivation.
 signature THM_DEPS =
 sig
   val all_oracles: thm list -> Proofterm.oracle list
+  val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> unit
   val unused_thms: theory list * theory list -> (string * thm) list
@@ -20,6 +21,9 @@ struct
 
 fun all_oracles thms =
   Proofterm.all_oracles_of (map Thm.proof_body_of thms);
+
+fun has_skip_proof thms =
+  all_oracles thms |> exists (fn (name, _) => name = \<^oracle_name>\<open>skip_proof\<close>);
 
 fun pretty_thm_oracles ctxt thms =
   let
