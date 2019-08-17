@@ -7,6 +7,23 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Internal derivations record dependencies on oracles and other theorems
+accurately, including the implicit type-class reasoning wrt. proven
+class relations and type arities. In particular, the formal tagging with
+"Pure.skip_proofs" of results stemming from "instance ... sorry" is now
+propagated properly to theorems depending on such type instances.
+
+* Command 'sorry' (oracle "Pure.skip_proofs") is more precise about the
+actual proposition that is assumed in the goal and proof context. This
+requires at least Proofterm.proofs = 1 to show up in theorem
+dependencies.
+
+* Command 'thm_oracles' prints all oracles used in given theorems,
+covering the full graph of transitive dependencies.
+
+
 *** Isar ***
 
 * The proof method combinator (subproofs m) applies the method
