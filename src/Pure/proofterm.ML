@@ -56,7 +56,6 @@ sig
     ({serial: proof_serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
   val consolidate: proof_body list -> unit
-  val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
@@ -289,29 +288,6 @@ fun fold_body_thms f =
             val (x', seen') = app body (x, Inttab.update (i, ()) seen);
           in (f {serial = i, name = name, prop = prop, body = body} x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
-
-fun peek_status bodies =
-  let
-    fun status (PBody {oracles, thms, ...}) x =
-      let
-        val ((oracle, unfinished, failed), seen) =
-          (thms, x) |-> fold (fn (i, thm_node) => fn (st, seen) =>
-            if Inttab.defined seen i then (st, seen)
-            else
-              let val seen' = Inttab.update (i, ()) seen in
-                (case Future.peek (thm_node_body thm_node) of
-                  SOME (Exn.Res body') => status body' (st, seen')
-                | SOME (Exn.Exn _) =>
-                    let val (oracle, unfinished, _) = st
-                    in ((oracle, unfinished, true), seen') end
-                | NONE =>
-                    let val (oracle, _, failed) = st
-                    in ((oracle, true, failed), seen') end)
-              end);
-      in ((oracle orelse not (null oracles), unfinished, failed), seen) end;
-    val (oracle, unfinished, failed) =
-      #1 (fold status bodies ((false, false, false), Inttab.empty));
-  in {oracle = oracle, unfinished = unfinished, failed = failed} end;
 
 
 (* proof body *)

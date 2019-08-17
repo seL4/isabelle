@@ -102,7 +102,6 @@ sig
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val consolidate: thm list -> unit
-  val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
@@ -753,21 +752,6 @@ val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
 val consolidate = ignore o proof_bodies_of;
-
-
-(* derivation status *)
-
-fun peek_status (Thm (Deriv {promises, body}, _)) =
-  let
-    val ps = map (Future.peek o snd) promises;
-    val bodies = body ::
-      map_filter (fn SOME (Exn.Res th) => SOME (raw_body_of th) | _ => NONE) ps;
-    val {oracle, unfinished, failed} = Proofterm.peek_status bodies;
-  in
-   {oracle = oracle,
-    unfinished = unfinished orelse exists is_none ps,
-    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
-  end;
 
 
 (* future rule *)

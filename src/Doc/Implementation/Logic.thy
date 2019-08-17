@@ -579,7 +579,6 @@ text %mlref \<open>
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type thm} \\
-  @{index_ML Thm.peek_status: "thm -> {oracle: bool, unfinished: bool, failed: bool}"} \\
   @{index_ML Thm.transfer: "theory -> thm -> thm"} \\
   @{index_ML Thm.assume: "cterm -> thm"} \\
   @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
@@ -601,13 +600,6 @@ text %mlref \<open>
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
   @{index_ML Thm_Deps.all_oracles: "thm list -> (string * term option) list"} \\
   \end{mldecls}
-
-  \<^descr> \<^ML>\<open>Thm.peek_status\<close>~\<open>thm\<close> informs about the current status of the
-  derivation object behind the given theorem. This is a snapshot of a
-  potentially ongoing (parallel) evaluation of proofs. The three Boolean
-  values indicate the following: \<^verbatim>\<open>oracle\<close> if the finished part contains some
-  oracle invocation; \<^verbatim>\<open>unfinished\<close> if some future proofs are still pending;
-  \<^verbatim>\<open>failed\<close> if some future proof has failed, rendering the theorem invalid!
 
   \<^descr> \<^ML>\<open>Logic.all\<close>~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
   occurrences of the atomic term \<open>a\<close> in the body proposition \<open>B\<close> are replaced
