@@ -175,6 +175,7 @@ ML_file "more_unify.ML";
 ML_file "more_thm.ML";
 
 ML_file "facts.ML";
+ML_file "thm_name.ML";
 ML_file "global_theory.ML";
 ML_file "pure_thy.ML";
 ML_file "drule.ML";

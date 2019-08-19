@@ -12,14 +12,15 @@ sig
   val defined_fact: theory -> string -> bool
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
-  val dest_thms: bool -> theory list -> theory -> (Facts.thm_name * thm) list
-  val dest_thm_names: theory -> (proof_serial * Facts.thm_name) list
-  val lookup_thm_id: theory -> Proofterm.thm_id -> Facts.thm_name option
-  val lookup_thm: theory -> thm -> Facts.thm_name option
+  val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
+  val dest_thm_names: theory -> (proof_serial * Thm_Name.T) list
+  val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
+  val lookup_thm: theory -> thm -> Thm_Name.T option
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
   val all_thms_of: theory -> bool -> (string * thm) list
+  val get_thm_name: theory -> Thm_Name.T * Position.T -> thm
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
     ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
@@ -59,7 +60,7 @@ struct
 
 structure Data = Theory_Data
 (
-  type T = Facts.T * Facts.thm_name Inttab.table lazy option;
+  type T = Facts.T * Thm_Name.T Inttab.table lazy option;
   val empty: T = (Facts.empty, NONE);
   fun extend (facts, _) = (facts, NONE);
   fun merge ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), NONE);
@@ -82,7 +83,7 @@ fun hide_fact fully name = map_facts (Facts.hide fully name);
 
 fun dest_thms verbose prev_thys thy =
   Facts.dest_static verbose (map facts_of prev_thys) (facts_of thy)
-  |> maps (uncurry Facts.thm_name_list);
+  |> maps (uncurry Thm_Name.make_list);
 
 
 (* thm_name vs. derivation_id *)
@@ -102,8 +103,8 @@ fun make_thm_names thy =
           (case Inttab.lookup thm_names serial of
             SOME thm_name' =>
               raise THM ("Duplicate use of derivation identity for " ^
-                Facts.thm_name_print thm_name ^ " vs. " ^
-                Facts.thm_name_print thm_name', 0, [thm])
+                Thm_Name.print thm_name ^ " vs. " ^
+                Thm_Name.print thm_name', 0, [thm])
           | NONE => Inttab.update (serial, thm_name) thm_names)));
 
 fun get_thm_names thy =
@@ -166,6 +167,21 @@ fun all_thms_of thy verbose =
       else append (map (`(Thm.get_name_hint) o transfer) ths);
   in Facts.fold_static add facts [] end;
 
+fun get_thm_name thy ((name, i), pos) =
+  let
+    val facts = facts_of thy;
+    fun print_name () =
+      Facts.markup_extern (Proof_Context.init_global thy) facts name |-> Markup.markup;
+  in
+    (case (Facts.lookup (Context.Theory thy) facts name, i) of
+      (NONE, _) => error ("Undefined fact " ^ quote (print_name ()) ^ Position.here pos)
+    | (SOME {thms = [thm], ...}, 0) => thm
+    | (SOME {thms, ...}, 0) => Facts.err_single (print_name (), pos) thms
+    | (SOME {thms, ...}, _) =>
+        if i > 0 andalso i <= length thms then nth thms (i - 1)
+        else Facts.err_selection (print_name (), pos) i thms)
+  end;
+
 
 
 (** store theorems **)
@@ -201,7 +217,7 @@ fun name_thm name_flags (name, pos) =
 end;
 
 fun name_multi (name, pos) =
-  Facts.thm_name_list name #> (map o apfst) (fn thm_name => (Facts.thm_name_flat thm_name, pos));
+  Thm_Name.make_list name #> (map o apfst) (fn thm_name => (Thm_Name.flatten thm_name, pos));
 
 fun name_thms name_flags name_pos =
   name_multi name_pos #> map (uncurry (name_thm name_flags));
