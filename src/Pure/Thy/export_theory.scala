@@ -28,7 +28,7 @@ object Export_Theory
     types: Boolean = true,
     consts: Boolean = true,
     axioms: Boolean = true,
-    facts: Boolean = true,
+    thms: Boolean = true,
     classes: Boolean = true,
     locales: Boolean = true,
     locale_dependencies: Boolean = true,
@@ -44,7 +44,7 @@ object Export_Theory
           Export.read_theory_names(db, session_name).map((theory_name: String) =>
             read_theory(Export.Provider.database(db, session_name, theory_name),
               session_name, theory_name, types = types, consts = consts,
-              axioms = axioms, facts = facts, classes = classes, locales = locales,
+              axioms = axioms, thms = thms, classes = classes, locales = locales,
               locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
               typedefs = typedefs, cache = Some(cache)))
         }
@@ -70,8 +70,8 @@ object Export_Theory
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
     consts: List[Const],
-    axioms: List[Fact_Single],
-    facts: List[Fact_Multi],
+    axioms: List[Axiom],
+    thms: List[Thm],
     classes: List[Class],
     locales: List[Locale],
     locale_dependencies: List[Locale_Dependency],
@@ -86,7 +86,7 @@ object Export_Theory
         types.iterator.map(_.entity.serial) ++
         consts.iterator.map(_.entity.serial) ++
         axioms.iterator.map(_.entity.serial) ++
-        facts.iterator.map(_.entity.serial) ++
+        thms.iterator.map(_.entity.serial) ++
         classes.iterator.map(_.entity.serial) ++
         locales.iterator.map(_.entity.serial) ++
         locale_dependencies.iterator.map(_.entity.serial)
@@ -97,7 +97,7 @@ object Export_Theory
         types.map(_.cache(cache)),
         consts.map(_.cache(cache)),
         axioms.map(_.cache(cache)),
-        facts.map(_.cache(cache)),
+        thms.map(_.cache(cache)),
         classes.map(_.cache(cache)),
         locales.map(_.cache(cache)),
         locale_dependencies.map(_.cache(cache)),
@@ -113,7 +113,7 @@ object Export_Theory
     types: Boolean = true,
     consts: Boolean = true,
     axioms: Boolean = true,
-    facts: Boolean = true,
+    thms: Boolean = true,
     classes: Boolean = true,
     locales: Boolean = true,
     locale_dependencies: Boolean = true,
@@ -134,7 +134,7 @@ object Export_Theory
         if (types) read_types(provider) else Nil,
         if (consts) read_consts(provider) else Nil,
         if (axioms) read_axioms(provider) else Nil,
-        if (facts) read_facts(provider) else Nil,
+        if (thms) read_thms(provider) else Nil,
         if (classes) read_classes(provider) else Nil,
         if (locales) read_locales(provider) else Nil,
         if (locale_dependencies) read_locale_dependencies(provider) else Nil,
@@ -166,7 +166,7 @@ object Export_Theory
     val TYPE = Value("type")
     val CONST = Value("const")
     val AXIOM = Value("axiom")
-    val FACT = Value("fact")
+    val THM = Value("thm")
     val CLASS = Value("class")
     val LOCALE = Value("locale")
     val LOCALE_DEPENDENCY = Value("locale_dependency")
@@ -285,7 +285,7 @@ object Export_Theory
       })
 
 
-  /* axioms and facts */
+  /* axioms */
 
   sealed case class Prop(
     typargs: List[(String, Term.Sort)],
@@ -310,62 +310,40 @@ object Export_Theory
     Prop(typargs, args, t)
   }
 
-
-  sealed case class Fact(prop: Prop, proof: Option[Term.Proof])
+  sealed case class Axiom(entity: Entity, prop: Prop)
   {
-    def cache(cache: Term.Cache): Fact =
-      Fact(prop.cache(cache), proof.map(cache.proof _))
+    def cache(cache: Term.Cache): Axiom =
+      Axiom(entity.cache(cache), prop.cache(cache))
   }
 
-  def decode_fact(body: XML.Body): Fact =
-  {
-    val (prop, proof) =
-    {
-      import XML.Decode._
-      pair(decode_prop _, option(Term_XML.Decode.proof))(body)
-    }
-    Fact(prop, proof)
-  }
-
-  sealed case class Fact_Single(entity: Entity, fact: Fact)
-  {
-    def cache(cache: Term.Cache): Fact_Single =
-      Fact_Single(entity.cache(cache), fact.cache(cache))
-
-    def prop: Prop = fact.prop
-    def proof: Option[Term.Proof] = fact.proof
-  }
-
-  sealed case class Fact_Multi(entity: Entity, facts: List[Fact])
-  {
-    def cache(cache: Term.Cache): Fact_Multi =
-      Fact_Multi(entity.cache(cache), facts.map(_.cache(cache)))
-
-    def props: List[Prop] = facts.map(_.prop)
-
-    def split: List[Fact_Single] =
-      facts match {
-        case List(fact) => List(Fact_Single(entity, fact))
-        case _ =>
-          for ((fact, i) <- facts.zipWithIndex)
-          yield Fact_Single(entity.copy(name = entity.name + "(" + (i + 1) + ")"), fact)
-      }
-  }
-
-  def read_axioms(provider: Export.Provider): List[Fact_Single] =
+  def read_axioms(provider: Export.Provider): List[Axiom] =
     provider.uncompressed_yxml(export_prefix + "axioms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.AXIOM, tree)
         val prop = decode_prop(body)
-        Fact_Single(entity, Fact(prop, None))
+        Axiom(entity, prop)
       })
 
-  def read_facts(provider: Export.Provider): List[Fact_Multi] =
-    provider.uncompressed_yxml(export_prefix + "facts").map((tree: XML.Tree) =>
+
+  /* theorems */
+
+  sealed case class Thm(entity: Entity, prop: Prop, proof: Option[Term.Proof])
+  {
+    def cache(cache: Term.Cache): Thm =
+      Thm(entity.cache(cache), prop.cache(cache), proof.map(cache.proof _))
+  }
+
+  def read_thms(provider: Export.Provider): List[Thm] =
+    provider.uncompressed_yxml(export_prefix + "thms").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(Kind.FACT, tree)
-        val facts = XML.Decode.list(decode_fact)(body)
-        Fact_Multi(entity, facts)
+        val (entity, body) = decode_entity(Kind.THM, tree)
+        val (prop, prf) =
+        {
+          import XML.Decode._
+          import Term_XML.Decode._
+          pair(decode_prop _, option(proof))(body)
+        }
+        Thm(entity, prop, prf)
       })
 
   def read_proof(

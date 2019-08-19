@@ -218,7 +218,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         (#constants (Consts.dest (Sign.consts_of thy)));
 
 
-    (* axioms and facts *)
+    (* axioms *)
 
     fun standard_prop used extra_shyps raw_prop raw_proof =
       let
@@ -236,12 +236,26 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_axiom used prop =
       encode_prop (#1 (standard_prop used [] prop NONE));
 
+    val _ =
+      export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
+        Theory.axiom_space (Theory.axioms_of thy);
+
+
+    (* theorems *)
+
     val clean_thm =
       Thm.transfer thy
       #> Thm.check_hyps (Context.Theory thy)
       #> Thm.strip_shyps;
 
-    val encode_fact = clean_thm #> (fn thm =>
+    fun entity_markup_thm (serial, (name, i)) =
+      let
+        val space = Facts.space_of (Global_Theory.facts_of thy);
+        val xname = Name_Space.extern_shortest thy_ctxt space name;
+        val {pos, ...} = Name_Space.the_entry space name;
+      in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
+
+    val encode_thm = clean_thm #> (fn thm =>
       standard_prop Name.context
         (Thm.extra_shyps thm)
         (Thm.full_prop_of thm)
@@ -249,13 +263,16 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let open XML.Encode Term_XML.Encode
       in pair encode_prop (option Proofterm.encode_full) end);
 
-    val _ =
-      export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
-        Theory.axiom_space (Theory.axioms_of thy);
-    val _ =
-      export_entities "facts" (K (SOME o XML.Encode.list encode_fact))
-        (Facts.space_of o Global_Theory.facts_of)
-        (Facts.dest_static true [] (Global_Theory.facts_of thy));
+    fun export_thms thms =
+      let val elems =
+        thms |> map (fn (serial, thm_name) =>
+          let
+            val markup = entity_markup_thm (serial, thm_name);
+            val body = encode_thm (Global_Theory.get_thm_name thy (thm_name, Position.none));
+          in XML.Elem (markup, body) end)
+      in if null elems then () else export_body thy "thms" elems end;
+
+    val _ = export_thms (Global_Theory.dest_thm_names thy);
 
 
     (* type classes *)
