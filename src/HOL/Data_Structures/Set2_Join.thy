@@ -85,9 +85,10 @@ subsection "\<open>split\<close>"
 fun split :: "('a,'b)tree \<Rightarrow> 'a \<Rightarrow> ('a,'b)tree \<times> bool \<times> ('a,'b)tree" where
 "split Leaf k = (Leaf, False, Leaf)" |
 "split (Node l a _ r) x =
-  (if x < a then let (l1,b,l2) = split l x in (l1, b, join l2 a r) else
-   if a < x then let (r1,b,r2) = split r x in (join l a r1, b, r2)
-   else (l, True, r))"
+  (case cmp x a of
+     LT \<Rightarrow> let (l1,b,l2) = split l x in (l1, b, join l2 a r) |
+     GT \<Rightarrow> let (r1,b,r2) = split r x in (join l a r1, b, r2) |
+     EQ \<Rightarrow> (l, True, r))"
 
 lemma split: "split t x = (l,xin,r) \<Longrightarrow> bst t \<Longrightarrow>
   set_tree l = {a \<in> set_tree t. a < x} \<and> set_tree r = {a \<in> set_tree t. x < a}
