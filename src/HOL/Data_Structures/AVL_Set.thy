@@ -133,7 +133,7 @@ subsubsection \<open>Insertion maintains AVL balance\<close>
 
 declare Let_def [simp]
 
-lemma [simp]: "avl t \<Longrightarrow> ht t = height t"
+lemma ht_height[simp]: "avl t \<Longrightarrow> ht t = height t"
 by (induct t) simp_all
 
 lemma height_balL:
@@ -148,7 +148,7 @@ lemma height_balR:
    height (balR l a r) = height l + 3"
 by (cases r) (auto simp add:node_def balR_def split:tree.split)
 
-lemma [simp]: "height(node l a r) = max (height l) (height r) + 1"
+lemma height_node[simp]: "height(node l a r) = max (height l) (height r) + 1"
 by (simp add: node_def)
 
 lemma avl_node:

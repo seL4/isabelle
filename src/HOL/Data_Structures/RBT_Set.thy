@@ -205,11 +205,11 @@ lemma invh_baldR_invc:
 by(induct l a r rule: baldR.induct)
   (auto simp: invh_baliL bheight_baliL invh_paint bheight_paint_Red)
 
-lemma invc_baldR: "\<lbrakk>invc a; invc2 b; color a = Black\<rbrakk> \<Longrightarrow> invc (baldR a x b)"
-by (induct a x b rule: baldR.induct) (simp_all add: invc_baliL)
+lemma invc_baldR: "\<lbrakk>invc l; invc2 r; color l = Black\<rbrakk> \<Longrightarrow> invc (baldR l a r)"
+by (induct l a r rule: baldR.induct) (simp_all add: invc_baliL)
 
-lemma invc2_baldR: "\<lbrakk> invc l; invc2 r \<rbrakk> \<Longrightarrow>invc2 (baldR l x r)"
-by (induct l x r rule: baldR.induct) (auto simp: invc_baliL paint_invc2 invc2I)
+lemma invc2_baldR: "\<lbrakk> invc l; invc2 r \<rbrakk> \<Longrightarrow>invc2 (baldR l a r)"
+by (induct l a r rule: baldR.induct) (auto simp: invc_baliL paint_invc2 invc2I)
 
 lemma invh_combine:
   "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk>
@@ -251,7 +251,7 @@ case (2 x _ y c)
   qed
 qed auto
 
-theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete k t)"
+theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete x t)"
 by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc2I invh_paint)
 
 text \<open>Overall correctness:\<close>
