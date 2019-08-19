@@ -171,6 +171,7 @@ declare -a SOURCES=(
   pure_thy.scala
   term.scala
   term_xml.scala
+  thm_name.scala
   ../Tools/Graphview/graph_file.scala
   ../Tools/Graphview/graph_panel.scala
   ../Tools/Graphview/graphview.scala
