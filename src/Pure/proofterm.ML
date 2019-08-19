@@ -6,7 +6,7 @@ LF style proof terms.
 
 infix 8 % %% %>;
 
-signature BASIC_PROOFTERM =
+signature PROOFTERM =
 sig
   type thm_node
   type thm_header =
@@ -30,11 +30,6 @@ sig
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
   val %> : proof * term -> proof
-end;
-
-signature PROOFTERM =
-sig
-  include BASIC_PROOFTERM
   val proofs: int Unsynchronized.ref
   exception MIN_PROOF
   type pthm = serial * thm_node
@@ -2222,5 +2217,11 @@ fun get_id shyps hyps prop prf : thm_id option =
 
 end;
 
-structure Basic_Proofterm : BASIC_PROOFTERM = Proofterm;
+structure Basic_Proofterm =
+struct
+  datatype proof = datatype Proofterm.proof
+  datatype proof_body = datatype Proofterm.proof_body
+  val op %> = Proofterm.%>
+end;
+
 open Basic_Proofterm;
