@@ -6,6 +6,8 @@ Environment of named facts, optionally indexed by proposition.
 
 signature FACTS =
 sig
+  val err_selection: string * Position.T -> int -> thm list -> 'a
+  val err_single: string * Position.T -> thm list -> 'a
   val the_single: string * Position.T -> thm list -> thm
   datatype interval = FromTo of int * int | From of int | Single of int
   datatype ref =
@@ -44,12 +46,6 @@ sig
   val add_dynamic: Context.generic -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
-  type thm_name = string * int
-  val thm_name_ord: thm_name * thm_name -> order
-  val thm_name_print: thm_name -> string
-  val thm_name_flat: thm_name -> string
-  val thm_name_list: string -> thm list -> (thm_name * thm) list
-  val get_thm: Context.generic -> T -> thm_name * Position.T -> thm
 end;
 
 structure Facts: FACTS =
@@ -60,12 +56,12 @@ struct
 fun length_msg (thms: thm list) pos =
   " (length " ^ string_of_int (length thms) ^ ")" ^ Position.here pos;
 
-fun err_single (name, pos) thms =
-  error ("Expected singleton fact " ^ quote name ^ length_msg thms pos);
-
 fun err_selection (name, pos) i thms =
   error ("Bad fact selection " ^ quote (name ^ enclose "(" ")" (string_of_int i)) ^
     length_msg thms pos);
+
+fun err_single (name, pos) thms =
+  error ("Expected singleton fact " ^ quote name ^ length_msg thms pos);
 
 fun the_single _ [thm] = thm
   | the_single name_pos thms = err_single name_pos thms;
@@ -299,37 +295,5 @@ fun del name (Facts {facts, props}) =
 
 fun hide fully name (Facts {facts, props}) =
   make_facts (Name_Space.hide_table fully name facts) props;
-
-
-
-(** get individual theorems **)
-
-type thm_name = string * int;
-val thm_name_ord = prod_ord string_ord int_ord;
-
-fun thm_name_print (name, i) =
-  if name = "" orelse i = 0 then name
-  else name ^ enclose "(" ")" (string_of_int i);
-
-fun thm_name_flat (name, i) =
-  if name = "" orelse i = 0 then name
-  else name ^ "_" ^ string_of_int i;
-
-fun thm_name_list name [thm: thm] = [((name, 0), thm)]
-  | thm_name_list name thms = map_index (fn (i, thm) => ((name, i + 1), thm)) thms;
-
-fun get_thm context facts ((name, i), pos) =
-  let
-    fun print_name () =
-      markup_extern (Context.proof_of context) facts name |-> Markup.markup;
-  in
-    (case (lookup context facts name, i) of
-      (NONE, _) => error ("Undefined fact " ^ quote (print_name ()) ^ Position.here pos)
-    | (SOME {thms = [thm], ...}, 0) => thm
-    | (SOME {thms, ...}, 0) => err_single (print_name (), pos) thms
-    | (SOME {thms, ...}, _) =>
-        if i > 0 andalso i <= length thms then nth thms (i - 1)
-        else err_selection (print_name (), pos) i thms)
-  end;
 
 end;

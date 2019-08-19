@@ -622,7 +622,7 @@ fun extract thm_vss thy =
                     val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Proofterm.prop_of corr_prf;
                     val corr_header =
-                      Proofterm.thm_header (Proofterm.proof_serial ()) pos theory_name
+                      Proofterm.thm_header (serial ()) pos theory_name
                         (corr_name name vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf);
@@ -743,7 +743,7 @@ fun extract thm_vss thy =
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Proofterm.prop_of corr_prf';
                     val corr_header =
-                      Proofterm.thm_header (Proofterm.proof_serial ()) pos theory_name
+                      Proofterm.thm_header (serial ()) pos theory_name
                         (corr_name s vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
                     val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf');
