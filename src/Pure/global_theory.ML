@@ -13,7 +13,7 @@ sig
   val alias_fact: binding -> string -> theory -> theory
   val hide_fact: bool -> string -> theory -> theory
   val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
-  val dest_thm_names: theory -> (proof_serial * Thm_Name.T) list
+  val dest_thm_names: theory -> (serial * Thm_Name.T) list
   val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
   val lookup_thm: theory -> thm -> Thm_Name.T option
   val get_thms: theory -> xstring -> thm list

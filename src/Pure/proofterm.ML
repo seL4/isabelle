@@ -9,9 +9,8 @@ infix 8 % %% %>;
 signature BASIC_PROOFTERM =
 sig
   type thm_node
-  type proof_serial = int
   type thm_header =
-    {serial: proof_serial, pos: Position.T list, theory_name: string, name: string,
+    {serial: serial, pos: Position.T list, theory_name: string, name: string,
       prop: term, types: typ list option}
   type thm_body
   datatype proof =
@@ -28,7 +27,7 @@ sig
    | PThm of thm_header * thm_body
   and proof_body = PBody of
     {oracles: (string * term option) Ord_List.T,
-     thms: (proof_serial * thm_node) Ord_List.T,
+     thms: (serial * thm_node) Ord_List.T,
      proof: proof}
   val %> : proof * term -> proof
 end;
@@ -38,11 +37,11 @@ sig
   include BASIC_PROOFTERM
   val proofs: int Unsynchronized.ref
   exception MIN_PROOF
-  type pthm = proof_serial * thm_node
+  type pthm = serial * thm_node
   type oracle = string * term option
   val proof_of: proof_body -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
-  val thm_header: proof_serial -> Position.T list -> string -> string -> term -> typ list option ->
+  val thm_header: serial -> Position.T list -> string -> string -> term -> typ list option ->
     thm_header
   val thm_body: proof_body -> thm_body
   val thm_body_proof_raw: thm_body -> proof
@@ -53,7 +52,7 @@ sig
   val join_proof: proof_body future -> proof
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms:
-    ({serial: proof_serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
+    ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
   val consolidate: proof_body list -> unit
 
@@ -168,7 +167,6 @@ sig
   val standard_vars: Name.context -> term * proof option -> term * proof option
   val standard_vars_term: Name.context -> term -> term
 
-  val proof_serial: unit -> proof_serial
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
@@ -177,7 +175,7 @@ sig
     (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_approximative_name: sort list -> term list -> term -> proof -> string
-  type thm_id = {serial: proof_serial, theory_name: string}
+  type thm_id = {serial: serial, theory_name: string}
   val get_id: sort list -> term list -> term -> proof -> thm_id option
 end
 
@@ -186,10 +184,8 @@ struct
 
 (** datatype proof **)
 
-type proof_serial = int;
-
 type thm_header =
-  {serial: proof_serial, pos: Position.T list, theory_name: string, name: string,
+  {serial: serial, pos: Position.T list, theory_name: string, name: string,
     prop: term, types: typ list option};
 
 datatype proof =
@@ -206,7 +202,7 @@ datatype proof =
  | PThm of thm_header * thm_body
 and proof_body = PBody of
   {oracles: (string * term option) Ord_List.T,
-   thms: (proof_serial * thm_node) Ord_List.T,
+   thms: (serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_body =
   Thm_Body of {export_proof: unit lazy, open_proof: proof -> proof, body: proof_body future}
@@ -218,7 +214,7 @@ exception MIN_PROOF;
 type oracle = string * term option;
 val oracle_prop = the_default Term.dummy;
 
-type pthm = proof_serial * thm_node;
+type pthm = serial * thm_node;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
@@ -2067,8 +2063,6 @@ end;
 
 (* PThm nodes *)
 
-val proof_serial = Counter.make ();
-
 local
 
 fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
@@ -2156,7 +2150,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     fun new_prf () =
       let
-        val i = proof_serial ();
+        val i = serial ();
         val unconstrainT =
           unconstrainT_proof (Sign.classes_of thy) classrel_proof arity_proof ucontext;
         val postproc = map_proof_of unconstrainT #> named ? publish i;
@@ -2165,12 +2159,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
     val (i, body') =
       (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
-        (PThm ({serial, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
+        (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
           if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
             let
               val Thm_Body {body = body', ...} = thm_body';
-              val i = if a = "" andalso named then proof_serial () else serial;
-            in (i, body' |> serial <> i ? Future.map (publish i)) end
+              val i = if a = "" andalso named then serial () else ser;
+            in (i, body' |> ser <> i ? Future.map (publish i)) end
           else new_prf ()
       | _ => new_prf ());
 
@@ -2218,7 +2212,7 @@ fun get_approximative_name shyps hyps prop prf =
   Option.map #name (get_identity shyps hyps prop prf) |> the_default "";
 
 
-type thm_id = {serial: proof_serial, theory_name: string};
+type thm_id = {serial: serial, theory_name: string};
 
 fun get_id shyps hyps prop prf : thm_id option =
   (case get_identity shyps hyps prop prf of
