@@ -302,11 +302,11 @@ fun all_oracles_of bodies =
   let
     fun collect (PBody {oracles, thms, ...}) =
       (if null oracles then I else apfst (cons oracles)) #>
-      (tap join_thms thms |> fold (fn (i, thm_node) => fn (x, seen) =>
-        if Inttab.defined seen i then (x, seen)
+      (tap join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
+        if Inttab.defined seen i then (res, seen)
         else
           let val body = Future.join (thm_node_body thm_node)
-          in collect body (x, Inttab.update (i, ()) seen) end));
+          in collect body (res, Inttab.update (i, ()) seen) end));
   in fold collect bodies ([], Inttab.empty) |> #1 |> unions_oracles end;
 
 fun approximate_proof_body prf =
