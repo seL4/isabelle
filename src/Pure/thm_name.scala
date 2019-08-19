@@ -22,11 +22,19 @@ object Thm_Name
   }
 
   def graph[A]: Graph[Thm_Name, A] = Graph.empty(Ordering)
+
+  private val Thm_Name_Regex = """^(.)+\((\d+)\)$""".r
+
+  def parse(s: String): Thm_Name =
+    s match {
+      case Thm_Name_Regex(name, Value.Nat(index)) => Thm_Name(name, index)
+      case _ => Thm_Name(s, 0)
+    }
 }
 
 sealed case class Thm_Name(name: String, index: Int)
 {
-  override def toString: String =
+  def print: String =
     if (name == "" || index == 0) name
     else name + "(" + index + ")"
 
