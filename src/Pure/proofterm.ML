@@ -30,7 +30,7 @@ sig
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
   type oracle = string * term option
-  type pthm = serial * thm_node
+  type thm = serial * thm_node
   exception MIN_PROOF
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
@@ -43,17 +43,17 @@ sig
   val thm_node_name: thm_node -> string
   val thm_node_prop: thm_node -> term
   val thm_node_body: thm_node -> proof_body future
-  val join_thms: pthm list -> proof_body list
+  val join_thms: thm list -> proof_body list
   val consolidate: proof_body list -> unit
-  val make_thm: thm_header -> thm_body -> pthm
+  val make_thm: thm_header -> thm_body -> thm
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms:
     ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
   val oracle_ord: oracle ord
-  val thm_ord: pthm ord
+  val thm_ord: thm ord
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
-  val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
+  val unions_thms: thm Ord_List.T list -> thm Ord_List.T
   val no_proof_body: proof -> proof_body
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
@@ -165,10 +165,10 @@ sig
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
-    term list -> term -> (serial * proof_body future) list -> proof_body -> pthm * proof
+    term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> sort list -> term ->
-    (serial * proof_body future) list -> proof_body -> pthm * proof
+    (serial * proof_body future) list -> proof_body -> thm * proof
   val get_approximative_name: sort list -> term list -> term -> proof -> string
   type thm_id = {serial: serial, theory_name: string}
   val get_id: sort list -> term list -> term -> proof -> thm_id option
@@ -207,7 +207,7 @@ and thm_node =
 type oracle = string * term option;
 val oracle_prop = the_default Term.dummy;
 
-type pthm = serial * thm_node;
+type thm = serial * thm_node;
 
 exception MIN_PROOF;
 
@@ -235,7 +235,7 @@ val thm_node_prop = #prop o rep_thm_node;
 val thm_node_body = #body o rep_thm_node;
 val thm_node_consolidate = #consolidate o rep_thm_node;
 
-fun join_thms (thms: pthm list) =
+fun join_thms (thms: thm list) =
   Future.joins (map (thm_node_body o #2) thms);
 
 val consolidate =
@@ -288,7 +288,7 @@ fun fold_body_thms f =
 (* proof body *)
 
 val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
-fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
+fun thm_ord ((i, _): thm, (j, _): thm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
@@ -340,8 +340,8 @@ fun proof prf = prf |> variant
       pair (list properties) (pair term (pair (option (list typ)) proof_body))
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body (PBody {oracles, thms, proof = prf}) =
-  triple (list (pair string (option term))) (list pthm) proof (oracles, thms, prf)
-and pthm (a, thm_node) =
+  triple (list (pair string (option term))) (list thm) proof (oracles, thms, prf)
+and thm (a, thm_node) =
   pair int (triple string term proof_body)
     (a, (thm_node_name thm_node, thm_node_prop thm_node, Future.join (thm_node_body thm_node)));
 
@@ -392,9 +392,9 @@ fun proof prf = prf |> variant
       val header = thm_header (int_atom a) (map Position.of_properties e) b c f g;
     in PThm (header, thm_body h) end]
 and proof_body x =
-  let val (a, b, c) = triple (list (pair string (option term))) (list pthm) proof x
+  let val (a, b, c) = triple (list (pair string (option term))) (list thm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
-and pthm x =
+and thm x =
   let val (a, (b, c, d)) = pair int (triple string term proof_body) x
   in (a, make_thm_node b c (Future.value d)) end;
 
@@ -2146,7 +2146,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       if named orelse not (export_enabled ()) then no_export_proof
       else Lazy.lazy (fn () => join_proof body' |> open_proof |> export_proof thy i prop1);
 
-    val pthm = (i, make_thm_node name prop1 body');
+    val thm = (i, make_thm_node name prop1 body');
 
     val header =
       thm_header i ([pos, Position.thread_data ()]) (Context.theory_long_name thy) name prop1 NONE;
@@ -2158,7 +2158,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       else
         proof_combP (proof_combt' (head, args),
           map OfClass (#outer_constraints ucontext) @ map Hyp hyps);
-  in (pthm, proof) end;
+  in (thm, proof) end;
 
 in
 
