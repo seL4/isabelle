@@ -43,6 +43,7 @@ sig
   val thm_node_name: thm_node -> string
   val thm_node_prop: thm_node -> term
   val thm_node_body: thm_node -> proof_body future
+  val join_thms: pthm list -> proof_body list
   val consolidate: proof_body list -> unit
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms:
@@ -52,7 +53,6 @@ sig
   val thm_ord: pthm ord
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
-  val all_oracles_of: proof_body list -> oracle Ord_List.T
   val approximate_proof_body: proof -> proof_body
   val no_proof_body: proof -> proof_body
   val no_thm_proofs: proof -> proof
@@ -289,17 +289,6 @@ fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
-
-fun all_oracles_of bodies =
-  let
-    fun collect (PBody {oracles, thms, ...}) =
-      (if null oracles then I else apfst (cons oracles)) #>
-      (tap join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
-        if Inttab.defined seen i then (res, seen)
-        else
-          let val body = Future.join (thm_node_body thm_node)
-          in collect body (res, Inttab.update (i, ()) seen) end));
-  in fold collect bodies ([], Inttab.empty) |> #1 |> unions_oracles end;
 
 fun approximate_proof_body prf =
   let

@@ -20,7 +20,16 @@ struct
 (* oracles *)
 
 fun all_oracles thms =
-  Proofterm.all_oracles_of (map Thm.proof_body_of thms);
+  let
+    fun collect (PBody {oracles, thms, ...}) =
+      (if null oracles then I else apfst (cons oracles)) #>
+      (tap Proofterm.join_thms thms |> fold (fn (i, thm_node) => fn (res, seen) =>
+        if Inttab.defined seen i then (res, seen)
+        else
+          let val body = Future.join (Proofterm.thm_node_body thm_node)
+          in collect body (res, Inttab.update (i, ()) seen) end));
+    val bodies = map Thm.proof_body_of thms;
+  in fold collect bodies ([], Inttab.empty) |> #1 |> Proofterm.unions_oracles end;
 
 fun has_skip_proof thms =
   all_oracles thms |> exists (fn (name, _) => name = \<^oracle_name>\<open>skip_proof\<close>);
