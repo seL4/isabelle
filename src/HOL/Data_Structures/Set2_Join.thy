@@ -23,12 +23,10 @@ locale Set2_Join =
 fixes join :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> ('a,'b) tree \<Rightarrow> ('a,'b) tree"
 fixes inv :: "('a,'b) tree \<Rightarrow> bool"
 assumes set_join: "set_tree (join l a r) = set_tree l \<union> {a} \<union> set_tree r"
-assumes bst_join:
-  "\<lbrakk> bst l; bst r; \<forall>x \<in> set_tree l. x < a; \<forall>y \<in> set_tree r. a < y \<rbrakk>
-  \<Longrightarrow> bst (join l a r)"
+assumes bst_join: "bst (Node l a b r) \<Longrightarrow> bst (join l a r)"
 assumes inv_Leaf: "inv \<langle>\<rangle>"
 assumes inv_join: "\<lbrakk> inv l; inv r \<rbrakk> \<Longrightarrow> inv (join l a r)"
-assumes inv_Node: "\<lbrakk> inv (Node l a h r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
+assumes inv_Node: "\<lbrakk> inv (Node l a b r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
 begin
 
 declare set_join [simp]
@@ -40,7 +38,7 @@ fun split_min :: "('a,'b) tree \<Rightarrow> 'a \<times> ('a,'b) tree" where
   (if l = Leaf then (a,r) else let (m,l') = split_min l in (m, join l' a r))"
 
 lemma split_min_set:
-  "\<lbrakk> split_min t = (m,t');  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> m \<in> set_tree t \<and> set_tree t = Set.insert m (set_tree t')"
+  "\<lbrakk> split_min t = (m,t');  t \<noteq> Leaf \<rbrakk> \<Longrightarrow> m \<in> set_tree t \<and> set_tree t = {m} \<union> set_tree t'"
 proof(induction t arbitrary: t')
   case Node thus ?case by(auto split: prod.splits if_splits dest: inv_Node)
 next
@@ -115,7 +113,7 @@ subsection "\<open>insert\<close>"
 definition insert :: "'a \<Rightarrow> ('a,'b) tree \<Rightarrow> ('a,'b) tree" where
 "insert x t = (let (l,_,r) = split t x in join l x r)"
 
-lemma set_tree_insert: "bst t \<Longrightarrow> set_tree (insert x t) = Set.insert x (set_tree t)"
+lemma set_tree_insert: "bst t \<Longrightarrow> set_tree (insert x t) = {x} \<union> set_tree t"
 by(auto simp add: insert_def split split: prod.split)
 
 lemma bst_insert: "bst t \<Longrightarrow> bst (insert x t)"

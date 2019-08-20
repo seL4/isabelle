@@ -168,32 +168,32 @@ lemma set_join: "set_tree (join l x r) = set_tree l \<union> {x} \<union> set_tr
 by(simp add: set_joinL set_joinR set_paint)
 
 lemma bst_baliL:
-  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < k; \<forall>x\<in>set_tree r. k < x\<rbrakk>
-   \<Longrightarrow> bst (baliL l k r)"
-by(cases "(l,k,r)" rule: baliL.cases) (auto simp: ball_Un)
+  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < a; \<forall>x\<in>set_tree r. a < x\<rbrakk>
+   \<Longrightarrow> bst (baliL l a r)"
+by(cases "(l,a,r)" rule: baliL.cases) (auto simp: ball_Un)
 
 lemma bst_baliR:
-  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < k; \<forall>x\<in>set_tree r. k < x\<rbrakk>
-   \<Longrightarrow> bst (baliR l k r)"
-by(cases "(l,k,r)" rule: baliR.cases) (auto simp: ball_Un)
+  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < a; \<forall>x\<in>set_tree r. a < x\<rbrakk>
+   \<Longrightarrow> bst (baliR l a r)"
+by(cases "(l,a,r)" rule: baliR.cases) (auto simp: ball_Un)
 
 lemma bst_joinL:
-  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < k; \<forall>y\<in>set_tree r. k < y; bheight l \<le> bheight r\<rbrakk>
-  \<Longrightarrow> bst (joinL l k r)"
-proof(induction l k r rule: joinL.induct)
-  case (1 l x r)
+  "\<lbrakk>bst (Node l a n r); bheight l \<le> bheight r\<rbrakk>
+  \<Longrightarrow> bst (joinL l a r)"
+proof(induction l a r rule: joinL.induct)
+  case (1 l a r)
   thus ?case
-    by(auto simp: set_baliL joinL.simps[of l x r] set_joinL ball_Un intro!: bst_baliL
+    by(auto simp: set_baliL joinL.simps[of l a r] set_joinL ball_Un intro!: bst_baliL
         split!: tree.splits color.splits)
 qed
 
 lemma bst_joinR:
-  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < k; \<forall>y\<in>set_tree r. k < y \<rbrakk>
-  \<Longrightarrow> bst (joinR l k r)"
-proof(induction l k r rule: joinR.induct)
-  case (1 l x r)
+  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < a; \<forall>y\<in>set_tree r. a < y \<rbrakk>
+  \<Longrightarrow> bst (joinR l a r)"
+proof(induction l a r rule: joinR.induct)
+  case (1 l a r)
   thus ?case
-    by(auto simp: set_baliR joinR.simps[of l x r] set_joinR ball_Un intro!: bst_baliR
+    by(auto simp: set_baliR joinR.simps[of l a r] set_joinR ball_Un intro!: bst_baliR
         split!: tree.splits color.splits)
 qed
 
@@ -201,10 +201,11 @@ lemma bst_paint: "bst (paint c t) = bst t"
 by(cases t) auto
 
 lemma bst_join:
-  "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < k; \<forall>y\<in>set_tree r. k < y \<rbrakk>
-  \<Longrightarrow> bst (join l k r)"
+  "bst (Node l a n r) \<Longrightarrow> bst (join l a r)"
 by(auto simp: bst_paint bst_joinL bst_joinR)
 
+lemma inv_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> invc(join l x r) \<and> invh(join l x r)"
+by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint)
 
 subsubsection "Interpretation of \<^locale>\<open>Set2_Join\<close> with Red-Black Tree"
 
@@ -215,12 +216,11 @@ and join2_rbt = RBT.join2 and split_min_rbt = RBT.split_min
 proof (standard, goal_cases)
   case 1 show ?case by (rule set_join)
 next
-  case 2 thus ?case by (rule bst_join)
+  case 2 thus ?case by (simp add: bst_join del: join.simps)
 next
   case 3 show ?case by simp
 next
-  case 4 thus ?case
-    by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint)
+  case 4 thus ?case by (simp add: inv_join del: join.simps)
 next
   case 5 thus ?case by simp
 qed
