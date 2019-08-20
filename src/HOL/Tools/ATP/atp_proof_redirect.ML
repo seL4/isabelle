@@ -7,7 +7,7 @@ Transformation of a proof by contradiction into a direct proof.
 signature ATP_ATOM =
 sig
   type key
-  val ord : key * key -> order
+  val ord : key ord
   val string_of : key -> string
 end;
 

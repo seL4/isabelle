@@ -41,7 +41,7 @@ sig
   val is_improper: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
   val is_newly_fixed: Proof.context -> Proof.context -> string -> bool
-  val fixed_ord: Proof.context -> string * string -> order
+  val fixed_ord: Proof.context -> string ord
   val intern_fixed: Proof.context -> string -> string
   val lookup_fixed: Proof.context -> string -> string option
   val revert_fixed: Proof.context -> string -> string

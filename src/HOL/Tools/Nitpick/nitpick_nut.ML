@@ -92,7 +92,7 @@ sig
   val untuple : (nut -> 'a) -> nut -> 'a list
   val add_free_and_const_names :
     nut -> nut list * nut list -> nut list * nut list
-  val name_ord : (nut * nut) -> order
+  val name_ord : nut ord
   val the_name : 'a NameTable.table -> nut -> 'a
   val the_rel : nut NameTable.table -> nut -> Kodkod.n_ary_index
   val nut_from_term : hol_context -> op2 -> term -> nut

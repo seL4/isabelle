@@ -16,14 +16,14 @@ sig
   val markup_def: T -> string -> Markup.T
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
-  val entry_ord: T -> string * string -> order
+  val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val names_long: bool Config.T
   val names_short: bool Config.T
   val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
-  val extern_ord: Proof.context -> T -> string * string -> order
+  val extern_ord: Proof.context -> T -> string ord
   val extern_shortest: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val pretty: Proof.context -> T -> string -> Pretty.T

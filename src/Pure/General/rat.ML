@@ -13,7 +13,7 @@ sig
   val dest: rat -> int * int
   val string_of_rat: rat -> string
   val signed_string_of_rat: rat -> string
-  val ord: rat * rat -> order
+  val ord: rat ord
   val le: rat -> rat -> bool
   val lt: rat -> rat -> bool
   val sign: rat -> order

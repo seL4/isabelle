@@ -185,24 +185,25 @@ sig
   val submultiset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
 
   (*orders*)
+  type 'a ord = 'a * 'a -> order
   val is_equal: order -> bool
   val is_less: order -> bool
   val is_less_equal: order -> bool
   val is_greater: order -> bool
   val is_greater_equal: order -> bool
   val rev_order: order -> order
-  val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
-  val bool_ord: bool * bool -> order
-  val int_ord: int * int -> order
-  val string_ord: string * string -> order
-  val fast_string_ord: string * string -> order
+  val make_ord: ('a * 'a -> bool) -> 'a ord
+  val bool_ord: bool ord
+  val int_ord: int ord
+  val string_ord: string ord
+  val fast_string_ord: string ord
   val option_ord: ('a * 'b -> order) -> 'a option * 'b option -> order
   val <<< : ('a -> order) * ('a -> order) -> 'a -> order
   val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
   val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
   val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
-  val sort: ('a * 'a -> order) -> 'a list -> 'a list
-  val sort_distinct: ('a * 'a -> order) -> 'a list -> 'a list
+  val sort: 'a ord -> 'a list -> 'a list
+  val sort_distinct: 'a ord -> 'a list -> 'a list
   val sort_strings: string list -> string list
   val sort_by: ('a -> string) -> 'a list -> 'a list
   val tag_list: int -> 'a list -> (int * 'a) list
@@ -895,6 +896,8 @@ fun submultiset _ ([], _)  = true
 
 
 (** orders **)
+
+type 'a ord = 'a * 'a -> order;
 
 fun is_equal ord = ord = EQUAL;
 fun is_less ord = ord = LESS;

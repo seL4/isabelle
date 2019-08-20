@@ -38,7 +38,7 @@ sig
   val string_of_proof_method : Proof.context -> string list -> proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
-  val play_outcome_ord : play_outcome * play_outcome -> order
+  val play_outcome_ord : play_outcome ord
   val one_line_proof_text : Proof.context -> int -> one_line_params -> string
 end;
 

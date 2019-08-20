@@ -15,17 +15,17 @@ end;
 signature TERM_ORD =
 sig
   include BASIC_TERM_ORD
-  val fast_indexname_ord: indexname * indexname -> order
-  val sort_ord: sort * sort -> order
-  val typ_ord: typ * typ -> order
-  val fast_term_ord: term * term -> order
-  val syntax_term_ord: term * term -> order
-  val indexname_ord: indexname * indexname -> order
-  val tvar_ord: (indexname * sort) * (indexname * sort) -> order
-  val var_ord: (indexname * typ) * (indexname * typ) -> order
-  val term_ord: term * term -> order
-  val hd_ord: term * term -> order
-  val term_lpo: (term -> int) -> term * term -> order
+  val fast_indexname_ord: indexname ord
+  val sort_ord: sort ord
+  val typ_ord: typ ord
+  val fast_term_ord: term ord
+  val syntax_term_ord: term ord
+  val indexname_ord: indexname ord
+  val tvar_ord: (indexname * sort) ord
+  val var_ord: (indexname * typ) ord
+  val term_ord: term ord
+  val hd_ord: term ord
+  val term_lpo: (term -> int) -> term ord
   val term_cache: (term -> 'a) -> term -> 'a
 end;
 

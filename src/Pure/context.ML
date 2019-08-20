@@ -33,7 +33,7 @@ sig
   val timing: bool Unsynchronized.ref
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
-  val theory_id_ord: theory_id * theory_id -> order
+  val theory_id_ord: theory_id ord
   val theory_id_long_name: theory_id -> string
   val theory_id_name: theory_id -> string
   val theory_long_name: theory -> string

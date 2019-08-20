@@ -15,11 +15,11 @@ sig
 
   (* indices, equalities, orders *)
   val int_of_kind: kind -> int
-  val con_ord: (string * typ) * (string * typ) -> order
+  val con_ord: (string * typ) ord
   val eq_kind: kind * kind -> bool
-  val kind_ord: kind * kind -> order
+  val kind_ord: kind ord
   val eq_expr: expr * expr -> bool
-  val expr_ord: expr * expr -> order
+  val expr_ord: expr ord
   val dual_expr: expr -> expr -> bool
 
   (* constructors *)

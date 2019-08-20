@@ -10,7 +10,7 @@ Systematic naming of individual theorems, as selections from multi-facts.
 signature THM_NAME =
 sig
   type T = string * int
-  val ord: T * T -> order
+  val ord: T ord
   val print: T -> string
   val flatten: T -> string
   val make_list: string -> thm list -> (T * thm) list

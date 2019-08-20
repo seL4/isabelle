@@ -103,6 +103,7 @@ sig
   val proof_of: thm -> proof
   val consolidate: thm list -> unit
   val future: thm future -> cterm -> thm
+  val thm_deps: thm -> Proofterm.thm Ord_List.T
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val derivation_id: thm -> Proofterm.thm_id option
@@ -371,7 +372,7 @@ type constraint = {theory: theory, typ: typ, sort: sort};
 
 local
 
-val constraint_ord : constraint * constraint -> order =
+val constraint_ord : constraint ord =
   Context.theory_id_ord o apply2 (Context.theory_id o #theory)
   <<< Term_Ord.typ_ord o apply2 #typ
   <<< Term_Ord.sort_ord o apply2 #sort;
@@ -710,7 +711,7 @@ val empty_deriv = make_deriv [] [] [] MinProof;
 
 (* inference rules *)
 
-fun promise_ord ((i, _), (j, _)) = int_ord (j, i);
+val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 fun deriv_rule2 f
     (Deriv {promises = ps1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})
@@ -736,7 +737,6 @@ fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, pr
 
 (* fulfilled proofs *)
 
-fun raw_body_of (Thm (Deriv {body, ...}, _)) = body;
 fun raw_promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun join_promises [] = ()
@@ -933,7 +933,7 @@ local
 fun union_digest (oracles1, thms1) (oracles2, thms2) =
   (Proofterm.unions_oracles [oracles1, oracles2], Proofterm.unions_thms [thms1, thms2]);
 
-fun thm_digest (Thm (Deriv {body = Proofterm.PBody {oracles, thms, ...}, ...}, _)) =
+fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
 
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
@@ -963,10 +963,10 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
             raise THEORY ("solve_constraints: bad theories for theorem\n" ^
               Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
 
-        val Deriv {promises, body = Proofterm.PBody {oracles, thms, proof}} = der;
+        val Deriv {promises, body = PBody {oracles, thms, proof}} = der;
         val (oracles', thms') = (oracles, thms)
           |> fold (fold union_digest o constraint_digest) constraints;
-        val body' = Proofterm.PBody {oracles = oracles', thms = thms', proof = proof};
+        val body' = PBody {oracles = oracles', thms = thms', proof = proof};
       in
         Thm (Deriv {promises = promises, body = body'},
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
@@ -991,9 +991,18 @@ fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_approximative_name shyps hyps prop (proof_of thm);
 
+(*identified PThm node*)
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_id shyps hyps prop (proof_of thm)
     handle Proofterm.MIN_PROOF => NONE;
+
+(*dependencies of PThm node*)
+fun thm_deps (thm as Thm (Deriv {promises = [], body = PBody {thms, ...}, ...}, _)) =
+      (case (derivation_id thm, thms) of
+        (SOME {serial = i, ...}, [(j, thm_node)]) =>
+          if i = j then Proofterm.thm_node_thms thm_node else thms
+      | _ => thms)
+  | thm_deps thm = raise THM ("thm_deps: bad promises", 0, [thm]);
 
 fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>

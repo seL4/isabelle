@@ -104,7 +104,7 @@ sig
     * string * (string * 'd list) list) list * string list
   val core_inference : 'a -> 'b -> ('b * 'b list) * ATP_Problem.atp_formula_role *
     ('c, 'd, (string, 'e) ATP_Problem.atp_term, 'f) ATP_Problem.atp_formula * 'a * 'g list
-  val vampire_step_name_ord : (string * 'a) * (string * 'a) -> order
+  val vampire_step_name_ord : (string * 'a) ord
   val core_of_agsyhol_proof :  string -> string list option
 end;
 

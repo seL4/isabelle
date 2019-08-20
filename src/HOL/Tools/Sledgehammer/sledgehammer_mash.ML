@@ -48,7 +48,7 @@ sig
     (real * (('a * real) list * 'a list)) list -> 'a list
   val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
-  val crude_thm_ord : Proof.context -> thm * thm -> order
+  val crude_thm_ord : Proof.context -> thm ord
   val thm_less : thm * thm -> bool
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash : Proof.context -> params -> string -> string -> fact list -> thm ->

@@ -32,7 +32,7 @@ sig
   val dummy: token
   val literal: string -> token
   val is_literal: token -> bool
-  val tokens_match_ord: token * token -> order
+  val tokens_match_ord: token ord
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool

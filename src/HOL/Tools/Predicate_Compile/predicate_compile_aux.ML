@@ -10,7 +10,7 @@ sig
   (* mode *)
   datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
   val eq_mode : mode * mode -> bool
-  val mode_ord: mode * mode -> order
+  val mode_ord: mode ord
   val list_fun_mode : mode list -> mode
   val strip_fun_mode : mode -> mode list
   val dest_fun_mode : mode -> mode list
