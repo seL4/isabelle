@@ -15,7 +15,7 @@ sig
   val dest_thms: bool -> theory list -> theory -> (Thm_Name.T * thm) list
   val dest_thm_names: theory -> (serial * Thm_Name.T) list
   val lookup_thm_id: theory -> Proofterm.thm_id -> Thm_Name.T option
-  val lookup_thm: theory -> thm -> Thm_Name.T option
+  val lookup_thm: theory -> thm -> (Proofterm.thm_id * Thm_Name.T) option
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val transfer_theories: theory -> thm -> thm
@@ -126,8 +126,15 @@ fun lookup_thm_id thy =
   in lookup end;
 
 fun lookup_thm thy =
-  let val lookup = lookup_thm_id thy
-  in fn thm => (case Thm.derivation_id thm of NONE => NONE | SOME thm_id => lookup thm_id) end;
+  let val lookup = lookup_thm_id thy in
+    fn thm =>
+      (case Thm.derivation_id thm of
+        NONE => NONE
+      | SOME thm_id =>
+          (case lookup thm_id of
+            NONE => NONE
+          | SOME thm_name => SOME (thm_id, thm_name)))
+  end;
 
 val _ =
   Theory.setup (Theory.at_end (fn thy =>
