@@ -9,7 +9,7 @@ sig
   type float = int * int
   val zero: float
   val eq: float * float -> bool
-  val ord: float * float -> order
+  val ord: float ord
   val sign: float -> order
   val min: float -> float -> float
   val max: float -> float -> float

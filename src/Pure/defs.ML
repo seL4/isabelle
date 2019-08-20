@@ -11,7 +11,7 @@ sig
   datatype item_kind = Const | Type
   type item = item_kind * string
   type entry = item * typ list
-  val item_kind_ord: item_kind * item_kind -> order
+  val item_kind_ord: item_kind ord
   val plain_args: typ list -> bool
   type context = Proof.context * (Name_Space.T * Name_Space.T)
   val global_context: theory -> context

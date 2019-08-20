@@ -40,9 +40,9 @@ sig
   val dest_equals_rhs: cterm -> cterm
   val lhs_of: thm -> cterm
   val rhs_of: thm -> cterm
-  val fast_term_ord: cterm * cterm -> order
-  val term_ord: cterm * cterm -> order
-  val thm_ord: thm * thm -> order
+  val fast_term_ord: cterm ord
+  val term_ord: cterm ord
+  val thm_ord: thm ord
   val cterm_cache: (cterm -> 'a) -> cterm -> 'a
   val thm_cache: (thm -> 'a) -> thm -> 'a
   val is_reflexive: thm -> bool

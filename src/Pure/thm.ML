@@ -371,7 +371,7 @@ type constraint = {theory: theory, typ: typ, sort: sort};
 
 local
 
-val constraint_ord : constraint * constraint -> order =
+val constraint_ord : constraint ord =
   Context.theory_id_ord o apply2 (Context.theory_id o #theory)
   <<< Term_Ord.typ_ord o apply2 #typ
   <<< Term_Ord.sort_ord o apply2 #sort;

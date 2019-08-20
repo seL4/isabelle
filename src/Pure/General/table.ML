@@ -8,7 +8,7 @@ balanced 2-3 trees.
 signature KEY =
 sig
   type key
-  val ord: key * key -> order
+  val ord: key ord
 end;
 
 signature TABLE =

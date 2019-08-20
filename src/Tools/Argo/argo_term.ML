@@ -17,7 +17,7 @@ sig
   val expr_of: term -> Argo_Expr.expr
   val type_of: term -> Argo_Expr.typ
   val eq_term: term * term -> bool
-  val term_ord: term * term -> order
+  val term_ord: term ord
 
   (* context *)
   type context

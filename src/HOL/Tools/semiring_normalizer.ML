@@ -18,21 +18,19 @@ sig
     local_theory -> local_theory
 
   val semiring_normalize_conv: Proof.context -> conv
-  val semiring_normalize_ord_conv: Proof.context -> (cterm * cterm -> order) -> conv
+  val semiring_normalize_ord_conv: Proof.context -> cterm ord -> conv
   val semiring_normalize_wrapper: Proof.context -> entry -> conv
-  val semiring_normalize_ord_wrapper: Proof.context -> entry
-    -> (cterm * cterm -> order) -> conv
+  val semiring_normalize_ord_wrapper: Proof.context -> entry -> cterm ord -> conv
   val semiring_normalizers_conv: cterm list -> cterm list * thm list
     -> cterm list * thm list -> cterm list * thm list ->
-      (cterm -> bool) * conv * conv * conv -> (cterm * cterm -> order) ->
+      (cterm -> bool) * conv * conv * conv -> cterm ord ->
         {add: Proof.context -> conv,
          mul: Proof.context -> conv,
          neg: Proof.context -> conv,
          main: Proof.context -> conv,
          pow: Proof.context -> conv,
          sub: Proof.context -> conv}
-  val semiring_normalizers_ord_wrapper:  Proof.context -> entry ->
-    (cterm * cterm -> order) ->
+  val semiring_normalizers_ord_wrapper:  Proof.context -> entry -> cterm ord ->
       {add: Proof.context -> conv,
        mul: Proof.context -> conv,
        neg: Proof.context -> conv,

@@ -24,7 +24,7 @@ sig
 
   val no_label : label
 
-  val label_ord : label * label -> order
+  val label_ord : label ord
   val string_of_label : label -> string
   val sort_facts : facts -> facts
 
@@ -39,7 +39,7 @@ sig
 
   structure Canonical_Label_Tab : TABLE
 
-  val canonical_label_ord : (label * label) -> order
+  val canonical_label_ord : label ord
 
   val comment_isar_proof : (label -> proof_method list -> string) -> isar_proof -> isar_proof
   val chain_isar_proof : isar_proof -> isar_proof

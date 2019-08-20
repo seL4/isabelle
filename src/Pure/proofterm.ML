@@ -51,8 +51,8 @@ sig
     proof_body list -> 'a -> 'a
   val consolidate: proof_body list -> unit
 
-  val oracle_ord: oracle * oracle -> order
-  val thm_ord: pthm * pthm -> order
+  val oracle_ord: oracle ord
+  val thm_ord: pthm ord
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
   val all_oracles_of: proof_body list -> oracle Ord_List.T

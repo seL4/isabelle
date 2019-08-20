@@ -10,9 +10,9 @@ signature SPEC_RULES =
 sig
   datatype recursion =
     Primrec of string list | Recdef | Primcorec of string list | Corec | Unknown_Recursion
-  val recursion_ord: recursion * recursion -> order
+  val recursion_ord: recursion ord
   datatype rough_classification = Equational of recursion | Inductive | Co_Inductive | Unknown
-  val rough_classification_ord: rough_classification * rough_classification -> order
+  val rough_classification_ord: rough_classification ord
   val equational_primrec: string list -> rough_classification
   val equational_recdef: rough_classification
   val equational_primcorec: string list -> rough_classification

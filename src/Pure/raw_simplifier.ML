@@ -82,7 +82,7 @@ sig
       mk_sym: Proof.context -> thm -> thm option,
       mk_eq_True: Proof.context -> thm -> thm option,
       reorient: Proof.context -> term list -> term -> term -> bool},
-    term_ord: term * term -> order,
+    term_ord: term ord,
     subgoal_tac: Proof.context -> int -> tactic,
     loop_tacs: (string * (Proof.context -> int -> tactic)) list,
     solvers: solver list * solver list}
@@ -101,7 +101,7 @@ sig
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_term_ord: (term * term -> order) -> Proof.context -> Proof.context
+  val set_term_ord: term ord -> Proof.context -> Proof.context
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val solver: Proof.context -> solver -> int -> tactic
   val default_mk_sym: Proof.context -> thm -> thm option
@@ -268,7 +268,7 @@ datatype simpset =
       mk_sym: Proof.context -> thm -> thm option,
       mk_eq_True: Proof.context -> thm -> thm option,
       reorient: Proof.context -> term list -> term -> term -> bool},
-    term_ord: term * term -> order,
+    term_ord: term ord,
     subgoal_tac: Proof.context -> int -> tactic,
     loop_tacs: (string * (Proof.context -> int -> tactic)) list,
     solvers: solver list * solver list};

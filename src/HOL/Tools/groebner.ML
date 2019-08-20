@@ -10,7 +10,7 @@ sig
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
      {ring_conv: Proof.context -> conv,
-     simple_ideal: (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list),
+     simple_ideal: cterm list -> cterm -> cterm ord -> cterm list,
      multi_ideal: cterm list -> cterm list -> cterm list -> (cterm * cterm) list,
      poly_eq_ss: simpset, unwind_conv: Proof.context -> conv}
   val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic

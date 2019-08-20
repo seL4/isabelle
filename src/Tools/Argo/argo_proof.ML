@@ -52,7 +52,7 @@ sig
 
   (* equalities and orders *)
   val eq_proof_id: proof_id * proof_id -> bool
-  val proof_id_ord: proof_id * proof_id -> order
+  val proof_id_ord: proof_id ord
 
   (* conversion constructors *)
   val keep_conv: conv
