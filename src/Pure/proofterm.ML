@@ -45,6 +45,7 @@ sig
   val thm_node_body: thm_node -> proof_body future
   val join_thms: pthm list -> proof_body list
   val consolidate: proof_body list -> unit
+  val make_thm: thm_header -> thm_body -> pthm
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms:
     ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
@@ -53,7 +54,6 @@ sig
   val thm_ord: pthm ord
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
-  val approximate_proof_body: proof -> proof_body
   val no_proof_body: proof -> proof_body
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
@@ -249,6 +249,9 @@ fun make_thm_node name prop body =
         let val PBody {thms, ...} = Future.join body
         in consolidate (join_thms thms) end)};
 
+fun make_thm ({serial, name, prop, ...}: thm_header) (Thm_Body {body, ...}) =
+  (serial, make_thm_node name prop body);
+
 
 (* proof atoms *)
 
@@ -289,20 +292,6 @@ fun thm_ord ((i, _): pthm, (j, _): pthm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
-
-fun approximate_proof_body prf =
-  let
-    val (oracles, thms) = fold_proof_atoms false
-      (fn Oracle (s, prop, _) => apfst (cons (s, prop))
-        | PThm ({serial = i, name, prop, ...}, Thm_Body {body, ...}) =>
-            apsnd (cons (i, make_thm_node name prop body))
-        | _ => I) [prf] ([], []);
-  in
-    PBody
-     {oracles = Ord_List.make oracle_ord oracles,
-      thms = Ord_List.make thm_ord thms,
-      proof = prf}
-  end;
 
 fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
 val no_thm_body = thm_body (no_proof_body MinProof);

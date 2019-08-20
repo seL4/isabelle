@@ -173,6 +173,21 @@ fun read_term ctxt T s =
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
   in parse ctxt' s |> Type.constraint T |> Syntax.check_term ctxt' end;
 
+fun make_proof_body prf =
+  let
+    val (oracles, thms) =
+      ([prf], ([], [])) |-> Proofterm.fold_proof_atoms false
+        (fn Oracle (name, prop, _) => apfst (cons (name, prop))
+          | PThm (header, thm_body) => apsnd (cons (Proofterm.make_thm header thm_body))
+          | _ => I);
+    val body =
+      PBody
+       {oracles = Ord_List.make Proofterm.oracle_ord oracles,
+        thms = Ord_List.make Proofterm.thm_ord thms,
+        proof = prf};
+  in Proofterm.thm_body body end;
+
+
 
 (**** theory data ****)
 
@@ -625,11 +640,10 @@ fun extract thm_vss thy =
                       Proofterm.thm_header (serial ()) pos theory_name
                         (corr_name name vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
-                    val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf);
                     val corr_prf' =
                       Proofterm.proof_combP
                         (Proofterm.proof_combt
-                          (PThm (corr_header, corr_body), vfs_of corr_prop),
+                          (PThm (corr_header, make_proof_body corr_prf), vfs_of corr_prop),
                             map PBound (length shyps - 1 downto 0)) |>
                       fold_rev Proofterm.forall_intr_proof'
                         (map (get_var_type corr_prop) (vfs_of prop)) |>
@@ -746,10 +760,9 @@ fun extract thm_vss thy =
                       Proofterm.thm_header (serial ()) pos theory_name
                         (corr_name s vs') corr_prop
                         (SOME (map TVar (Term.add_tvars corr_prop [] |> rev)));
-                    val corr_body = Proofterm.thm_body (Proofterm.approximate_proof_body corr_prf');
                     val corr_prf'' =
                       Proofterm.proof_combP (Proofterm.proof_combt
-                        (PThm (corr_header, corr_body), vfs_of corr_prop),
+                        (PThm (corr_header, make_proof_body corr_prf), vfs_of corr_prop),
                              map PBound (length shyps - 1 downto 0)) |>
                       fold_rev Proofterm.forall_intr_proof'
                         (map (get_var_type corr_prop) (vfs_of prop)) |>
