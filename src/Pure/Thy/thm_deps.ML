@@ -10,6 +10,7 @@ sig
   val all_oracles: thm list -> Proofterm.oracle list
   val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
+  val thm_deps: theory -> thm -> (Proofterm.thm_id * Thm_Name.T) list
   val thm_deps_cmd: theory -> thm list -> unit
   val unused_thms_cmd: theory list * theory list -> (string * thm) list
 end;
@@ -42,6 +43,22 @@ fun pretty_thm_oracles ctxt thms =
           [Thm.pretty_oracle ctxt name, Pretty.str ":", Pretty.brk 1,
             Syntax.pretty_term_global thy prop];
   in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) (all_oracles thms)) end;
+
+
+(* thm_deps *)
+
+fun thm_deps thy =
+  let
+    val lookup = Global_Theory.lookup_thm_id thy;
+    fun deps (i, thm_node) res =
+      if Inttab.defined res i then res
+      else
+        let val thm_id = Proofterm.thm_id (i, thm_node) in
+          (case lookup thm_id of
+            SOME thm_name => Inttab.update (i, (thm_id, thm_name)) res
+          | NONE => fold deps (Proofterm.thm_node_thms thm_node) res)
+        end;
+  in fn thm => fold deps (Thm.thm_deps thm) Inttab.empty |> Inttab.dest |> map #2 end;
 
 
 (* thm_deps_cmd *)

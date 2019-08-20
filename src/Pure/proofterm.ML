@@ -40,9 +40,11 @@ sig
   val thm_body: proof_body -> thm_body
   val thm_body_proof_raw: thm_body -> proof
   val thm_body_proof_open: thm_body -> proof
+  val thm_node_theory_name: thm_node -> string
   val thm_node_name: thm_node -> string
   val thm_node_prop: thm_node -> term
   val thm_node_body: thm_node -> proof_body future
+  val thm_node_thms: thm_node -> thm list
   val join_thms: thm list -> proof_body list
   val consolidate: proof_body list -> unit
   val make_thm: thm_header -> thm_body -> thm
@@ -171,6 +173,7 @@ sig
     (serial * proof_body future) list -> proof_body -> thm * proof
   val get_approximative_name: sort list -> term list -> term -> proof -> string
   type thm_id = {serial: serial, theory_name: string}
+  val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
 end
 
@@ -202,7 +205,8 @@ and proof_body = PBody of
 and thm_body =
   Thm_Body of {export_proof: unit lazy, open_proof: proof -> proof, body: proof_body future}
 and thm_node =
-  Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
+  Thm_Node of {theory_name: string, name: string, prop: term,
+    body: proof_body future, consolidate: unit lazy};
 
 type oracle = string * term option;
 val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
@@ -232,9 +236,11 @@ fun thm_body_proof_raw (Thm_Body {body, ...}) = join_proof body;
 fun thm_body_proof_open (Thm_Body {open_proof, body, ...}) = open_proof (join_proof body);
 
 fun rep_thm_node (Thm_Node args) = args;
+val thm_node_theory_name = #theory_name o rep_thm_node;
 val thm_node_name = #name o rep_thm_node;
 val thm_node_prop = #prop o rep_thm_node;
 val thm_node_body = #body o rep_thm_node;
+val thm_node_thms = thm_node_body #> Future.join #> (fn PBody {thms, ...} => thms);
 val thm_node_consolidate = #consolidate o rep_thm_node;
 
 fun join_thms (thms: thm list) =
@@ -244,15 +250,15 @@ val consolidate =
   maps (fn PBody {thms, ...} => map (thm_node_consolidate o #2) thms)
   #> Lazy.consolidate #> map Lazy.force #> ignore;
 
-fun make_thm_node name prop body =
-  Thm_Node {name = name, prop = prop, body = body,
+fun make_thm_node theory_name name prop body =
+  Thm_Node {theory_name = theory_name, name = name, prop = prop, body = body,
     consolidate =
       Lazy.lazy_name "Proofterm.make_thm_node" (fn () =>
         let val PBody {thms, ...} = Future.join body
         in consolidate (join_thms thms) end)};
 
-fun make_thm ({serial, name, prop, ...}: thm_header) (Thm_Body {body, ...}) =
-  (serial, make_thm_node name prop body);
+fun make_thm ({serial, theory_name, name, prop, ...}: thm_header) (Thm_Body {body, ...}) =
+  (serial, make_thm_node theory_name name prop body);
 
 
 (* proof atoms *)
@@ -341,8 +347,9 @@ fun proof prf = prf |> variant
 and proof_body (PBody {oracles, thms, proof = prf}) =
   triple (list (pair string (option term))) (list thm) proof (oracles, thms, prf)
 and thm (a, thm_node) =
-  pair int (triple string term proof_body)
-    (a, (thm_node_name thm_node, thm_node_prop thm_node, Future.join (thm_node_body thm_node)));
+  pair int (pair string (pair string (pair term proof_body)))
+    (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
+      (Future.join (thm_node_body thm_node))))));
 
 fun full_proof prf = prf |> variant
  [fn MinProof => ([], []),
@@ -394,8 +401,8 @@ and proof_body x =
   let val (a, b, c) = triple (list (pair string (option term))) (list thm) proof x
   in PBody {oracles = a, thms = b, proof = c} end
 and thm x =
-  let val (a, (b, c, d)) = pair int (triple string term proof_body) x
-  in (a, make_thm_node b c (Future.value d)) end;
+  let val (a, (b, (c, (d, e)))) = pair int (pair string (pair string (pair term proof_body))) x
+  in (a, make_thm_node b c d (Future.value e)) end;
 
 in
 
@@ -2145,10 +2152,10 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       if named orelse not (export_enabled ()) then no_export_proof
       else Lazy.lazy (fn () => join_proof body' |> open_proof |> export_proof thy i prop1);
 
-    val thm = (i, make_thm_node name prop1 body');
+    val theory_name = Context.theory_long_name thy;
+    val thm = (i, make_thm_node theory_name name prop1 body');
 
-    val header =
-      thm_header i ([pos, Position.thread_data ()]) (Context.theory_long_name thy) name prop1 NONE;
+    val header = thm_header i ([pos, Position.thread_data ()]) theory_name name prop1 NONE;
     val thm_body = Thm_Body {export_proof = export_proof, open_proof = open_proof, body = body'};
     val head = PThm (header, thm_body);
     val proof =
@@ -2186,6 +2193,9 @@ fun get_approximative_name shyps hyps prop prf =
 
 
 type thm_id = {serial: serial, theory_name: string};
+
+fun thm_id (serial, thm_node) : thm_id =
+  {serial = serial, theory_name = thm_node_theory_name thm_node};
 
 fun get_id shyps hyps prop prf : thm_id option =
   (case get_identity shyps hyps prop prf of

@@ -103,6 +103,7 @@ sig
   val proof_of: thm -> proof
   val consolidate: thm list -> unit
   val future: thm future -> cterm -> thm
+  val thm_deps: thm -> Proofterm.thm Ord_List.T
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val derivation_id: thm -> Proofterm.thm_id option
@@ -990,9 +991,18 @@ fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_approximative_name shyps hyps prop (proof_of thm);
 
+(*identified PThm node*)
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
   Proofterm.get_id shyps hyps prop (proof_of thm)
     handle Proofterm.MIN_PROOF => NONE;
+
+(*dependencies of PThm node*)
+fun thm_deps (thm as Thm (Deriv {promises = [], body = PBody {thms, ...}, ...}, _)) =
+      (case (derivation_id thm, thms) of
+        (SOME {serial = i, ...}, [(j, thm_node)]) =>
+          if i = j then Proofterm.thm_node_thms thm_node else thms
+      | _ => thms)
+  | thm_deps thm = raise THM ("thm_deps: bad promises", 0, [thm]);
 
 fun name_derivation name_pos =
   solve_constraints #> (fn thm as Thm (der, args) =>
