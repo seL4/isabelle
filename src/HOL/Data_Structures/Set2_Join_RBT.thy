@@ -32,7 +32,7 @@ fun joinR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
      B l' x' r' \<Rightarrow> baliR l' x' (joinR r' x r) |
      R l' x' r' \<Rightarrow> R l' x' (joinR r' x r))"
 
-fun join :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
+definition join :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "join l x r =
   (if bheight l > bheight r
    then paint Black (joinR l x r)
@@ -102,7 +102,7 @@ qed
 (* unused *)
 lemma rbt_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> rbt(join l x r)"
 by(simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint rbt_def
-    color_paint_Black)
+    color_paint_Black join_def)
 
 text \<open>To make sure the the black height is not increased unnecessarily:\<close>
 
@@ -112,7 +112,7 @@ by(cases t) auto
 lemma "\<lbrakk> rbt l; rbt r \<rbrakk> \<Longrightarrow> bheight(join l x r) \<le> max (bheight l) (bheight r) + 1"
 using bheight_paint_Black[of "joinL l x r"] bheight_paint_Black[of "joinR l x r"]
   bheight_joinL[of l r x] bheight_joinR[of l r x]
-by(auto simp: max_def rbt_def)
+by(auto simp: max_def rbt_def join_def)
 
 
 subsubsection "Inorder properties"
@@ -133,7 +133,8 @@ proof(induction l x r rule: joinR.induct)
 qed
 
 lemma "inorder(join l x r) = inorder l @ x # inorder r"
-by(auto simp: inorder_joinL inorder_joinR inorder_paint split!: tree.splits color.splits if_splits
+by(auto simp: inorder_joinL inorder_joinR inorder_paint join_def
+      split!: tree.splits color.splits if_splits
       dest!: arg_cong[where f = inorder])
 
 
@@ -165,7 +166,7 @@ lemma set_paint: "set_tree (paint c t) = set_tree t"
 by (cases t) auto
 
 lemma set_join: "set_tree (join l x r) = set_tree l \<union> {x} \<union> set_tree r"
-by(simp add: set_joinL set_joinR set_paint)
+by(simp add: set_joinL set_joinR set_paint join_def)
 
 lemma bst_baliL:
   "\<lbrakk>bst l; bst r; \<forall>x\<in>set_tree l. x < a; \<forall>x\<in>set_tree r. a < x\<rbrakk>
@@ -202,10 +203,10 @@ by(cases t) auto
 
 lemma bst_join:
   "bst (Node l a n r) \<Longrightarrow> bst (join l a r)"
-by(auto simp: bst_paint bst_joinL bst_joinR)
+by(auto simp: bst_paint bst_joinL bst_joinR join_def)
 
 lemma inv_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> invc(join l x r) \<and> invh(join l x r)"
-by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint)
+by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint join_def)
 
 subsubsection "Interpretation of \<^locale>\<open>Set2_Join\<close> with Red-Black Tree"
 
@@ -216,11 +217,11 @@ and join2_rbt = RBT.join2 and split_min_rbt = RBT.split_min
 proof (standard, goal_cases)
   case 1 show ?case by (rule set_join)
 next
-  case 2 thus ?case by (simp add: bst_join del: join.simps)
+  case 2 thus ?case by (simp add: bst_join)
 next
   case 3 show ?case by simp
 next
-  case 4 thus ?case by (simp add: inv_join del: join.simps)
+  case 4 thus ?case by (simp add: inv_join)
 next
   case 5 thus ?case by simp
 qed
