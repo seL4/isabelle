@@ -710,7 +710,7 @@ val empty_deriv = make_deriv [] [] [] MinProof;
 
 (* inference rules *)
 
-fun promise_ord ((i, _), (j, _)) = int_ord (j, i);
+val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 fun deriv_rule2 f
     (Deriv {promises = ps1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})

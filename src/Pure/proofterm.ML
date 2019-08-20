@@ -209,7 +209,7 @@ val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
 val oracle_prop = the_default Term.dummy;
 
 type thm = serial * thm_node;
-val thm_ord : thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
+val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 exception MIN_PROOF;
 
