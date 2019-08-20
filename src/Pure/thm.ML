@@ -736,7 +736,6 @@ fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, pr
 
 (* fulfilled proofs *)
 
-fun raw_body_of (Thm (Deriv {body, ...}, _)) = body;
 fun raw_promises_of (Thm (Deriv {promises, ...}, _)) = promises;
 
 fun join_promises [] = ()
