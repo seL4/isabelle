@@ -255,13 +255,20 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val {pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
 
-    val encode_thm = clean_thm #> (fn thm =>
-      standard_prop Name.context
-        (Thm.extra_shyps thm)
-        (Thm.full_prop_of thm)
-        (try Thm.reconstruct_proof_of thm) |>
-      let open XML.Encode Term_XML.Encode
-      in pair encode_prop (option Proofterm.encode_full) end);
+    fun encode_thm raw_thm =
+      let
+        val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy raw_thm);
+        val thm = clean_thm raw_thm;
+        val (prop, proof) =
+          standard_prop Name.context
+            (Thm.extra_shyps thm)
+            (Thm.full_prop_of thm)
+            (try Thm.reconstruct_proof_of thm);
+      in
+        (prop, (deps, proof)) |>
+          let open XML.Encode Term_XML.Encode
+          in pair encode_prop (pair (list string) (option Proofterm.encode_full)) end
+      end;
 
     fun export_thms thms =
       let val elems =

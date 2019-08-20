@@ -327,23 +327,23 @@ object Export_Theory
 
   /* theorems */
 
-  sealed case class Thm(entity: Entity, prop: Prop, proof: Option[Term.Proof])
+  sealed case class Thm(entity: Entity, prop: Prop, deps: List[String], proof: Option[Term.Proof])
   {
     def cache(cache: Term.Cache): Thm =
-      Thm(entity.cache(cache), prop.cache(cache), proof.map(cache.proof _))
+      Thm(entity.cache(cache), prop.cache(cache), deps.map(cache.string _), proof.map(cache.proof _))
   }
 
   def read_thms(provider: Export.Provider): List[Thm] =
     provider.uncompressed_yxml(export_prefix + "thms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.THM, tree)
-        val (prop, prf) =
+        val (prop, (deps, prf)) =
         {
           import XML.Decode._
           import Term_XML.Decode._
-          pair(decode_prop _, option(proof))(body)
+          pair(decode_prop _, pair(list(string), option(proof)))(body)
         }
-        Thm(entity, prop, prf)
+        Thm(entity, prop, deps, prf)
       })
 
   def read_proof(
