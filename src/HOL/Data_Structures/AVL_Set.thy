@@ -134,7 +134,7 @@ subsubsection \<open>Insertion maintains AVL balance\<close>
 declare Let_def [simp]
 
 lemma ht_height[simp]: "avl t \<Longrightarrow> ht t = height t"
-by (induct t) simp_all
+by (cases t) simp_all
 
 lemma height_balL:
   "\<lbrakk> height l = height r + 2; avl l; avl r \<rbrakk> \<Longrightarrow>

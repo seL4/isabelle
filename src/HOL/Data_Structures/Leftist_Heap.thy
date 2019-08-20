@@ -29,12 +29,15 @@ text\<open>The invariants:\<close>
 fun (in linorder) heap :: "('a,'b) tree \<Rightarrow> bool" where
 "heap Leaf = True" |
 "heap (Node l m _ r) =
-  (heap l \<and> heap r \<and> (\<forall>x \<in> set_mset(mset_tree l + mset_tree r). m \<le> x))"
+  (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 fun ltree :: "'a lheap \<Rightarrow> bool" where
 "ltree Leaf = True" |
 "ltree (Node l a n r) =
  (n = rank r + 1 \<and> rank l \<ge> rank r \<and> ltree l & ltree r)"
+
+definition empty :: "'a lheap" where
+"empty = Leaf"
 
 definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "node l a r =
@@ -48,11 +51,14 @@ text \<open>For function \<open>merge\<close>:\<close>
 unbundle pattern_aliases
 
 fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
-"merge Leaf t2 = t2" |
-"merge t1 Leaf = t1" |
+"merge Leaf t = t" |
+"merge t Leaf = t" |
 "merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
    (if a1 \<le> a2 then node l1 a1 (merge r1 t2)
     else node l2 a2 (merge t1 r2))"
+
+text \<open>Termination of @{const merge}: by sum or lexicographic product of the sizes
+of the two arguments. Isabelle uses a lexicographic product.\<close>
 
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
@@ -83,9 +89,11 @@ lemma ltree_node: "ltree (node l a r) \<longleftrightarrow> ltree l \<and> ltree
 by(auto simp add: node_def)
 
 lemma heap_node: "heap (node l a r) \<longleftrightarrow>
-  heap l \<and> heap r \<and> (\<forall>x \<in> set_mset(mset_tree l + mset_tree r). a \<le> x)"
+  heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. a \<le> x)"
 by(auto simp add: node_def)
 
+lemma set_tree_mset: "set_tree t = set_mset(mset_tree t)"
+by(induction t) auto
 
 subsection "Functional Correctness"
 
@@ -95,7 +103,7 @@ by (induction h1 h2 rule: merge.induct) (auto simp add: node_def ac_simps)
 lemma mset_insert: "mset_tree (insert x t) = mset_tree t + {#x#}"
 by (auto simp add: insert_def mset_merge)
 
-lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min_mset (mset_tree h)"
+lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min(set_tree h)"
 by (induction h) (auto simp add: eq_Min_iff)
 
 lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
@@ -120,7 +128,7 @@ qed simp_all
 
 lemma heap_merge: "\<lbrakk> heap l; heap r \<rbrakk> \<Longrightarrow> heap (merge l r)"
 proof(induction l r rule: merge.induct)
-  case 3 thus ?case by(auto simp: heap_node mset_merge ball_Un)
+  case 3 thus ?case by(auto simp: heap_node mset_merge ball_Un set_tree_mset)
 qed simp_all
 
 lemma ltree_insert: "ltree t \<Longrightarrow> ltree(insert x t)"
@@ -139,12 +147,12 @@ text \<open>Last step of functional correctness proof: combine all the above lem
 to show that leftist heaps satisfy the specification of priority queues with merge.\<close>
 
 interpretation lheap: Priority_Queue_Merge
-where empty = Leaf and is_empty = "\<lambda>h. h = Leaf"
+where empty = empty and is_empty = "\<lambda>h. h = Leaf"
 and insert = insert and del_min = del_min
 and get_min = get_min and merge = merge
 and invar = "\<lambda>h. heap h \<and> ltree h" and mset = mset_tree
 proof(standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case (2 q) show ?case by (cases q) auto
 next
@@ -152,9 +160,9 @@ next
 next
   case 4 show ?case by(rule mset_del_min)
 next
-  case 5 thus ?case by(simp add: get_min mset_tree_empty)
+  case 5 thus ?case by(simp add: get_min mset_tree_empty set_tree_mset)
 next
-  case 6 thus ?case by(simp)
+  case 6 thus ?case by(simp add: empty_def)
 next
   case 7 thus ?case by(simp add: heap_insert ltree_insert)
 next
@@ -186,8 +194,8 @@ qed
 text\<open>Explicit termination argument: sum of sizes\<close>
 
 fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"t_merge Leaf t2 = 1" |
-"t_merge t2 Leaf = 1" |
+"t_merge Leaf t = 1" |
+"t_merge t Leaf = 1" |
 "t_merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
   (if a1 \<le> a2 then 1 + t_merge r1 t2
    else 1 + t_merge t1 r2)"
