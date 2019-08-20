@@ -60,6 +60,16 @@ in theory "HOL-ex.Join_Theory".
 * Antiquotation @{oracle_name} inlines a formally checked oracle name.
 
 
+*** System ***
+
+* Theory export via Isabelle/Scala has been reworked. The former "fact"
+name space is now split into individual "thm" items: names are
+potentially indexed, such as "foo" for singleton facts, or "bar(1)",
+"bar(2)", "bar(3)" for multi-facts. Theorem dependencies are now
+exported as well: this spans an overall dependency graph of internal
+inferences; it might help to reconstruct the formal structure of theory
+libraries. See also the module Export_Theory in Isabelle/Scala.
+
 
 New in Isabelle2019 (June 2019)
 -------------------------------
