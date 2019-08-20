@@ -8,11 +8,11 @@ infix 8 % %% %>;
 
 signature PROOFTERM =
 sig
-  type thm_node
   type thm_header =
     {serial: serial, pos: Position.T list, theory_name: string, name: string,
       prop: term, types: typ list option}
   type thm_body
+  type thm_node
   datatype proof =
      MinProof
    | PBound of int
@@ -29,12 +29,11 @@ sig
     {oracles: (string * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
-  val %> : proof * term -> proof
-  val proofs: int Unsynchronized.ref
-  exception MIN_PROOF
-  type pthm = serial * thm_node
   type oracle = string * term option
+  type pthm = serial * thm_node
+  exception MIN_PROOF
   val proof_of: proof_body -> proof
+  val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
   val thm_header: serial -> Position.T list -> string -> string -> term -> typ list option ->
     thm_header
@@ -44,13 +43,11 @@ sig
   val thm_node_name: thm_node -> string
   val thm_node_prop: thm_node -> term
   val thm_node_body: thm_node -> proof_body future
-  val join_proof: proof_body future -> proof
+  val consolidate: proof_body list -> unit
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms:
     ({serial: serial, name: string, prop: term, body: proof_body} -> 'a -> 'a) ->
     proof_body list -> 'a -> 'a
-  val consolidate: proof_body list -> unit
-
   val oracle_ord: oracle ord
   val thm_ord: pthm ord
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
@@ -67,7 +64,10 @@ sig
   val decode: proof XML.Decode.T
   val decode_body: proof_body XML.Decode.T
 
+  val %> : proof * term -> proof
+
   (*primitive operations*)
+  val proofs: int Unsynchronized.ref
   val proofs_enabled: unit -> bool
   val atomic_proof: proof -> bool
   val compact_proof: proof -> bool
@@ -204,12 +204,13 @@ and thm_body =
 and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
-exception MIN_PROOF;
-
 type oracle = string * term option;
 val oracle_prop = the_default Term.dummy;
 
 type pthm = serial * thm_node;
+
+exception MIN_PROOF;
+
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
@@ -428,6 +429,9 @@ end;
 
 
 (** proof objects with different levels of detail **)
+
+val proofs = Unsynchronized.ref 2;
+fun proofs_enabled () = ! proofs >= 2;
 
 fun atomic_proof prf =
   (case prf of
@@ -1085,9 +1089,6 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
 
 
 (** axioms and theorems **)
-
-val proofs = Unsynchronized.ref 2;
-fun proofs_enabled () = ! proofs >= 2;
 
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));

@@ -933,7 +933,7 @@ local
 fun union_digest (oracles1, thms1) (oracles2, thms2) =
   (Proofterm.unions_oracles [oracles1, oracles2], Proofterm.unions_thms [thms1, thms2]);
 
-fun thm_digest (Thm (Deriv {body = Proofterm.PBody {oracles, thms, ...}, ...}, _)) =
+fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) =
   (oracles, thms);
 
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
@@ -963,10 +963,10 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
             raise THEORY ("solve_constraints: bad theories for theorem\n" ^
               Syntax.string_of_term_global thy (prop_of thm), thy :: bad_thys);
 
-        val Deriv {promises, body = Proofterm.PBody {oracles, thms, proof}} = der;
+        val Deriv {promises, body = PBody {oracles, thms, proof}} = der;
         val (oracles', thms') = (oracles, thms)
           |> fold (fold union_digest o constraint_digest) constraints;
-        val body' = Proofterm.PBody {oracles = oracles', thms = thms', proof = proof};
+        val body' = PBody {oracles = oracles', thms = thms', proof = proof};
       in
         Thm (Deriv {promises = promises, body = body'},
           {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
