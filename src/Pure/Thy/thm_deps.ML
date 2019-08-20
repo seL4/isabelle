@@ -58,7 +58,11 @@ fun thm_deps thy =
             SOME thm_name => Inttab.update (i, (thm_id, thm_name)) res
           | NONE => fold deps (Proofterm.thm_node_thms thm_node) res)
         end;
-  in fn thm => fold deps (Thm.thm_deps thm) Inttab.empty |> Inttab.dest |> map #2 end;
+  in
+    fn thm =>
+      fold deps (Thm.thm_deps (Thm.transfer thy thm)) Inttab.empty
+      |> Inttab.dest |> map #2
+  end;
 
 
 (* thm_deps_cmd *)
