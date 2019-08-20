@@ -205,9 +205,11 @@ and thm_node =
   Thm_Node of {name: string, prop: term, body: proof_body future, consolidate: unit lazy};
 
 type oracle = string * term option;
+val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
 val oracle_prop = the_default Term.dummy;
 
 type thm = serial * thm_node;
+val thm_ord : thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
 exception MIN_PROOF;
 
@@ -286,9 +288,6 @@ fun fold_body_thms f =
 
 
 (* proof body *)
-
-val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
-fun thm_ord ((i, _): thm, (j, _): thm) = int_ord (j, i);
 
 val unions_oracles = Ord_List.unions oracle_ord;
 val unions_thms = Ord_List.unions thm_ord;
