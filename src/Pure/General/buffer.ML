@@ -8,6 +8,7 @@ signature BUFFER =
 sig
   type T
   val empty: T
+  val is_empty: T -> bool
   val chunks: T -> string list
   val content: T -> string
   val add: string -> T -> T
@@ -22,6 +23,8 @@ abstype T = Buffer of {chunk_size: int, chunk: string list, buffer: string list}
 with
 
 val empty = Buffer {chunk_size = 0, chunk = [], buffer = []};
+
+fun is_empty (Buffer {chunk, buffer, ...}) = null chunk andalso null buffer;
 
 local
   val chunk_limit = 4096;

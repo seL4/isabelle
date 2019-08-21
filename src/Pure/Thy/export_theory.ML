@@ -125,9 +125,12 @@ fun setup_presentation f =
   Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
     if Options.bool (#options context) "export_theory" then f context thy else ()));
 
-fun export_body thy name body =
-  Export.export thy (Path.binding0 (Path.make ["theory", name]))
-    (Buffer.chunks (YXML.buffer_body body Buffer.empty));
+fun export_buffer thy name buffer =
+  if Buffer.is_empty buffer then ()
+  else Export.export thy (Path.binding0 (Path.make ["theory", name])) (Buffer.chunks buffer);
+
+fun export_body thy name elems =
+  export_buffer thy name (YXML.buffer_body elems Buffer.empty);
 
 
 (* presentation *)
@@ -157,22 +160,21 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       in make_entity_markup name xname pos serial end;
 
     fun export_entities export_name export get_space decls =
-      let val elems =
-        let
-          val parent_spaces = map get_space parents;
-          val space = get_space thy;
-        in
-          (decls, []) |-> fold (fn (name, decl) =>
-            if exists (fn space => Name_Space.declared space name) parent_spaces then I
-            else
-              (case export name decl of
-                NONE => I
-              | SOME body =>
-                  cons (#serial (Name_Space.the_entry space name),
-                    XML.Elem (entity_markup space name, body))))
-          |> sort (int_ord o apply2 #1) |> map #2
-        end;
-      in if null elems then () else export_body thy export_name elems end;
+      let
+        val parent_spaces = map get_space parents;
+        val space = get_space thy;
+      in
+        (decls, []) |-> fold (fn (name, decl) =>
+          if exists (fn space => Name_Space.declared space name) parent_spaces then I
+          else
+            (case export name decl of
+              NONE => I
+            | SOME body =>
+                cons (#serial (Name_Space.the_entry space name),
+                  XML.Elem (entity_markup space name, body))))
+        |> sort (int_ord o apply2 #1) |> map #2
+        |> export_body thy export_name
+      end;
 
 
     (* types *)
@@ -270,16 +272,16 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           in pair encode_prop (pair (list string) (option Proofterm.encode_full)) end
       end;
 
-    fun export_thms thms =
-      let val elems =
-        thms |> map (fn (serial, thm_name) =>
-          let
-            val markup = entity_markup_thm (serial, thm_name);
-            val body = encode_thm (Global_Theory.get_thm_name thy (thm_name, Position.none));
-          in XML.Elem (markup, body) end)
-      in if null elems then () else export_body thy "thms" elems end;
+    fun buffer_export_thm (serial, thm_name) =
+      let
+        val markup = entity_markup_thm (serial, thm_name);
+        val body = encode_thm (Global_Theory.get_thm_name thy (thm_name, Position.none));
+      in YXML.buffer (XML.Elem (markup, body)) end;
 
-    val _ = export_thms (Global_Theory.dest_thm_names thy);
+    val _ =
+      Buffer.empty
+      |> fold buffer_export_thm (Global_Theory.dest_thm_names thy)
+      |> export_buffer thy "thms";
 
 
     (* type classes *)
@@ -320,7 +322,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       val {classrel, arities} =
         Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
           (#2 (#classes rep_tsig));
-
     end;
 
     val _ = if null classrel then () else export_body thy "classrel" (export_classrel classrel);
@@ -360,24 +361,22 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         in pair string (pair string (pair (list (pair string bool)) encode_subst)) end;
 
     val _ =
-      (case get_dependencies parents thy of
-        [] => ()
-      | deps =>
-          deps |> map_index (fn (i, dep) =>
-            let
-              val xname = string_of_int (i + 1);
-              val name = Long_Name.implode [Context.theory_name thy, xname];
-              val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
-              val body = encode_locale_dependency dep;
-            in XML.Elem (markup, body) end)
-          |> export_body thy "locale_dependencies");
+      get_dependencies parents thy
+      |> map_index (fn (i, dep) =>
+        let
+          val xname = string_of_int (i + 1);
+          val name = Long_Name.implode [Context.theory_name thy, xname];
+          val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
+          val body = encode_locale_dependency dep;
+        in XML.Elem (markup, body) end)
+      |> export_body thy "locale_dependencies";
 
 
     (* parents *)
 
     val _ =
-      export_body thy "parents"
-        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
+      Export.export thy \<^path_binding>\<open>theory/parents\<close>
+        [YXML.string_of_body (XML.Encode.string (cat_lines (map Context.theory_long_name parents)))];
 
   in () end);
 
