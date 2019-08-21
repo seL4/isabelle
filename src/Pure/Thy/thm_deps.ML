@@ -55,13 +55,16 @@ fun thm_deps thy =
       else
         let val thm_id = Proofterm.thm_id (i, thm_node) in
           (case lookup thm_id of
-            SOME thm_name => Inttab.update (i, (thm_id, thm_name)) res
-          | NONE => fold deps (Proofterm.thm_node_thms thm_node) res)
+            SOME thm_name =>
+              Inttab.update (i, SOME (thm_id, thm_name)) res
+          | NONE =>
+              Inttab.update (i, NONE) res
+              |> fold deps (Proofterm.thm_node_thms thm_node))
         end;
   in
     fn thm =>
-      fold deps (Thm.thm_deps (Thm.transfer thy thm)) Inttab.empty
-      |> Inttab.dest |> map #2
+      (fold deps (Thm.thm_deps (Thm.transfer thy thm)) Inttab.empty, [])
+      |-> Inttab.fold_rev (fn (_, SOME entry) => cons entry | _ => I)
   end;
 
 
