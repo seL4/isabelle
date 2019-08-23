@@ -132,8 +132,6 @@ fun exn_messages e =
             | THM (msg, i, thms) =>
                 raised exn ("THM " ^ string_of_int i)
                   (msg :: robust_context context Thm.string_of_thm thms)
-            | Proofterm.MIN_PROOF =>
-                raised exn "MIN_PROOF" ["minimal proof object in reconstruction"]
             | _ => raised exn (robust (Pretty.string_of o pretty_exn) exn) []);
         in [((i, msg), id)] end)
       and sorted_msgs context exn =

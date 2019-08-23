@@ -993,8 +993,7 @@ fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =
 
 (*identified PThm node*)
 fun derivation_id (thm as Thm (_, {shyps, hyps, prop, ...})) =
-  Proofterm.get_id shyps hyps prop (proof_of thm)
-    handle Proofterm.MIN_PROOF => NONE;
+  Proofterm.get_id shyps hyps prop (proof_of thm);
 
 (*dependencies of PThm node*)
 fun thm_deps (thm as Thm (Deriv {promises = [], body = PBody {thms, ...}, ...}, _)) =

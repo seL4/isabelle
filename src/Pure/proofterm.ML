@@ -31,7 +31,6 @@ sig
      proof: proof}
   type oracle = string * term option
   type thm = serial * thm_node
-  exception MIN_PROOF
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -214,8 +213,6 @@ val oracle_prop = the_default Term.dummy;
 
 type thm = serial * thm_node;
 val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
-
-exception MIN_PROOF;
 
 
 fun proof_of (PBody {proof, ...}) = proof;
@@ -1561,6 +1558,8 @@ fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 
 local
 
+exception MIN_PROOF of unit;
+
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
 fun variables_of t = vars_of t @ frees_of t;
@@ -1776,7 +1775,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env _ _ vTs (prf as Oracle (_, prop, opTs)) =
           mk_cnstrts_atom env vTs (oracle_prop prop) opTs prf
       | mk_cnstrts env _ _ vTs (Hyp t) = (t, Hyp t, [], env, vTs)
-      | mk_cnstrts _ _ _ _ MinProof = raise MIN_PROOF
+      | mk_cnstrts _ _ _ _ MinProof = raise MIN_PROOF ()
   in mk_cnstrts env [] [] Symtab.empty cprf end;
 
 
@@ -1848,7 +1847,7 @@ fun reconstruct_proof thy prop cprf =
       map (apply2 (Envir.norm_term env)) ((t, prop') :: cs)
       |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
     val env' = solve thy cs' env
-  in thawf (norm_proof env' prf) end;
+  in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
 fun prop_of_atom prop Ts = subst_atomic_types
   (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
