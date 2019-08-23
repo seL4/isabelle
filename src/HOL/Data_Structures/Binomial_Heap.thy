@@ -28,13 +28,13 @@ type_synonym 'a heap = "'a tree list"
 subsubsection \<open>Multiset of elements\<close>
 
 fun mset_tree :: "'a::linorder tree \<Rightarrow> 'a multiset" where
-  "mset_tree (Node _ a c) = {#a#} + (\<Sum>t\<in>#mset c. mset_tree t)"
+  "mset_tree (Node _ a ts) = {#a#} + (\<Sum>t\<in>#mset ts. mset_tree t)"
 
 definition mset_heap :: "'a::linorder heap \<Rightarrow> 'a multiset" where
-  "mset_heap c = (\<Sum>t\<in>#mset c. mset_tree t)"
+  "mset_heap ts = (\<Sum>t\<in>#mset ts. mset_tree t)"
 
 lemma mset_tree_simp_alt[simp]:
-  "mset_tree (Node r a c) = {#a#} + mset_heap c"
+  "mset_tree (Node r a ts) = {#a#} + mset_heap ts"
   unfolding mset_heap_def by auto
 declare mset_tree.simps[simp del]
 
@@ -181,22 +181,28 @@ by(auto simp: insert_def)
 
 subsubsection \<open>\<open>merge\<close>\<close>
 
+context
+includes pattern_aliases
+begin
+
 fun merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> 'a heap" where
   "merge ts\<^sub>1 [] = ts\<^sub>1"
 | "merge [] ts\<^sub>2 = ts\<^sub>2"
-| "merge (t\<^sub>1#ts\<^sub>1) (t\<^sub>2#ts\<^sub>2) = (
-    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1 # merge ts\<^sub>1 (t\<^sub>2#ts\<^sub>2) else
-    if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2 # merge (t\<^sub>1#ts\<^sub>1) ts\<^sub>2
+| "merge (t\<^sub>1#ts\<^sub>1 =: h\<^sub>1) (t\<^sub>2#ts\<^sub>2 =: h\<^sub>2) = (
+    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1 # merge ts\<^sub>1 h\<^sub>2 else
+    if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2 # merge h\<^sub>1 ts\<^sub>2
     else ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2)
   )"
+
+end
 
 lemma merge_simp2[simp]: "merge [] ts\<^sub>2 = ts\<^sub>2"
 by (cases ts\<^sub>2) auto
 
 lemma merge_rank_bound:
   assumes "t' \<in> set (merge ts\<^sub>1 ts\<^sub>2)"
-  assumes "\<forall>t'\<in>set ts\<^sub>1. rank t < rank t'"
-  assumes "\<forall>t'\<in>set ts\<^sub>2. rank t < rank t'"
+  assumes "\<forall>t\<^sub>1\<in>set ts\<^sub>1. rank t < rank t\<^sub>1"
+  assumes "\<forall>t\<^sub>2\<in>set ts\<^sub>2. rank t < rank t\<^sub>2"
   shows "rank t < rank t'"
 using assms
 by (induction ts\<^sub>1 ts\<^sub>2 arbitrary: t' rule: merge.induct)
@@ -515,14 +521,20 @@ qed
 
 subsubsection \<open>\<open>t_merge\<close>\<close>
 
+context
+includes pattern_aliases
+begin
+
 fun t_merge :: "'a::linorder heap \<Rightarrow> 'a heap \<Rightarrow> nat" where
   "t_merge ts\<^sub>1 [] = 1"
 | "t_merge [] ts\<^sub>2 = 1"
-| "t_merge (t\<^sub>1#ts\<^sub>1) (t\<^sub>2#ts\<^sub>2) = 1 + (
-    if rank t\<^sub>1 < rank t\<^sub>2 then t_merge ts\<^sub>1 (t\<^sub>2#ts\<^sub>2)
-    else if rank t\<^sub>2 < rank t\<^sub>1 then t_merge (t\<^sub>1#ts\<^sub>1) ts\<^sub>2
+| "t_merge (t\<^sub>1#ts\<^sub>1 =: h\<^sub>1) (t\<^sub>2#ts\<^sub>2 =: h\<^sub>2) = 1 + (
+    if rank t\<^sub>1 < rank t\<^sub>2 then t_merge ts\<^sub>1 h\<^sub>2
+    else if rank t\<^sub>2 < rank t\<^sub>1 then t_merge h\<^sub>1 ts\<^sub>2
     else t_ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2) + t_merge ts\<^sub>1 ts\<^sub>2
   )"
+
+end
 
 text \<open>A crucial idea is to estimate the time in correlation with the
   result length, as each carry reduces the length of the result.\<close>
