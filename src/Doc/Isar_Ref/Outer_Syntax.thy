@@ -589,8 +589,9 @@ text \<open>
   matches against subtypes. The criterion \<open>name: p\<close> and the prefix ``\<open>-\<close>''
   function as described for @{command "find_theorems"}.
 
-  \<^descr> @{command "thm_deps"}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> visualizes dependencies of facts, using
-  Isabelle's graph browser tool (see also @{cite "isabelle-system"}).
+  \<^descr> @{command "thm_deps"}~\<open>thms\<close> prints immediate theorem dependencies, i.e.\
+  the union of all theorems that are used directly to prove the argument
+  facts, without going deeper into the dependency graph.
 
   \<^descr> @{command "unused_thms"}~\<open>A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n\<close> displays all theorems
   that are proved in theories \<open>B\<^sub>1 \<dots> B\<^sub>n\<close> or their parents but not in \<open>A\<^sub>1 \<dots>

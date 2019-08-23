@@ -23,6 +23,10 @@ dependencies.
 * Command 'thm_oracles' prints all oracles used in given theorems,
 covering the full graph of transitive dependencies.
 
+* Command 'thm_deps' prints immediate theorem dependencies of the given
+facts. The former graph visualization has been discontinued, because it
+was hardly usable.
+
 
 *** Isar ***
 

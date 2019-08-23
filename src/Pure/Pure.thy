@@ -1301,13 +1301,14 @@ val _ =
 
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>thm_deps\<close> "visualize theorem dependencies"
+  Outer_Syntax.command \<^command_keyword>\<open>thm_deps\<close>
+    "print theorem dependencies (immediate non-transitive)"
     (Parse.thms1 >> (fn args =>
       Toplevel.keep (fn st =>
         let
           val thy = Toplevel.theory_of st;
           val ctxt = Toplevel.context_of st;
-        in Thm_Deps.thm_deps_cmd thy (Attrib.eval_thms ctxt args) end)));
+        in Pretty.writeln (Thm_Deps.pretty_thm_deps thy (Attrib.eval_thms ctxt args)) end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thm_oracles\<close>

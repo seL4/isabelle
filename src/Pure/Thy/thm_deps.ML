@@ -10,8 +10,8 @@ sig
   val all_oracles: thm list -> Proofterm.oracle list
   val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
-  val thm_deps: theory -> thm -> (Proofterm.thm_id * Thm_Name.T) list
-  val thm_deps_cmd: theory -> thm list -> unit
+  val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
+  val pretty_thm_deps: theory -> thm list -> Pretty.T
   val unused_thms_cmd: theory list * theory list -> (string * thm) list
 end;
 
@@ -62,45 +62,21 @@ fun thm_deps thy =
               |> fold deps (Proofterm.thm_node_thms thm_node))
         end;
   in
-    fn thm =>
-      (fold deps (Thm.thm_deps (Thm.transfer thy thm)) Inttab.empty, [])
+    fn thms =>
+      (fold (fold deps o Thm.thm_deps o Thm.transfer thy) thms Inttab.empty, [])
       |-> Inttab.fold_rev (fn (_, SOME entry) => cons entry | _ => I)
   end;
 
-
-(* thm_deps_cmd *)
-
-fun thm_deps_cmd thy thms =
+fun pretty_thm_deps thy thms =
   let
-    fun make_node name directory =
-      Graph_Display.session_node
-       {name = Long_Name.base_name name, directory = directory, unfold = false, path = ""};
-    fun add_dep {name = "", ...} = I
-      | add_dep {name = name, body = PBody {thms = thms', ...}, ...} =
-          let
-            val prefix = #1 (split_last (Long_Name.explode name));
-            val session =
-              (case prefix of
-                a :: _ =>
-                  (case try (Context.get_theory {long = false} thy) a of
-                    SOME thy =>
-                      (case Present.theory_qualifier thy of
-                        "" => []
-                      | session => [session])
-                  | NONE => [])
-              | _ => ["global"]);
-            val node = make_node name (space_implode "/" (session @ prefix));
-            val deps = filter_out (fn s => s = "") (map (Proofterm.thm_node_name o #2) thms');
-          in Symtab.update (name, (node, deps)) end;
-    val entries0 = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) Symtab.empty;
-    val entries1 =
-      Symtab.fold (fn (_, (_, deps)) => deps |> fold (fn d => fn tab =>
-        if Symtab.defined tab d then tab
-        else Symtab.update (d, (make_node d "", [])) tab)) entries0 entries0;
-  in
-    Symtab.fold (fn (name, (node, deps)) => cons ((name, node), deps)) entries1 []
-    |> Graph_Display.display_graph_old
-  end;
+    val ctxt = Proof_Context.init_global thy;
+    val items =
+      map #2 (thm_deps thy thms)
+      |> map (fn (name, i) => (Proof_Context.markup_extern_fact ctxt name, i))
+      |> sort_by (#2 o #1)
+      |> map (fn ((marks, xname), i) =>
+          Pretty.item [Pretty.marks_str (marks, Thm_Name.print (xname, i))]);
+  in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
 
 
 (* unused_thms_cmd *)

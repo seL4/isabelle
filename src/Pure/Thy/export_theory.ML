@@ -259,7 +259,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun encode_thm raw_thm =
       let
-        val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy raw_thm);
+        val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = clean_thm raw_thm;
         val raw_proof =
           if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else Proofterm.MinProof;
