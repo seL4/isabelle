@@ -163,6 +163,7 @@ sig
   val standard_vars: Name.context -> term * proof option -> term * proof option
   val standard_vars_term: Name.context -> term -> term
 
+  val export_enabled: unit -> bool
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
@@ -2042,6 +2043,8 @@ end;
 
 (* PThm nodes *)
 
+fun export_enabled () = Options.default_bool "export_proofs";
+
 local
 
 fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
@@ -2098,8 +2101,6 @@ fun export_proof_boxes proof =
       | export_boxes _ = I;
     val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
-
-fun export_enabled () = Options.default_bool "export_proofs";
 
 fun export thy i prop prf =
   if export_enabled () then (export_proof_boxes prf; export_proof thy i prop prf) else ();
