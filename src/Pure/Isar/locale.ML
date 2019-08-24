@@ -433,8 +433,8 @@ fun collect_mixins context (name, morph) =
 
 (*** Activate context elements of locale ***)
 
-fun activate_err msg (name, morph) context =
-  cat_error msg ("The above error(s) occurred while activating locale instance\n" ^
+fun activate_err msg kind (name, morph) context =
+  cat_error msg ("The above error(s) occurred while activating " ^ kind ^ " of locale instance\n" ^
     (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |>
       Pretty.string_of));
 
@@ -470,14 +470,24 @@ fun force_notes (Lazy_Notes (kind, (b, ths))) = Notes (kind, [((b, []), [(Lazy.f
 
 (* Declarations, facts and entire locale content *)
 
+val trace_locales =
+  Attrib.setup_config_bool (Binding.make ("trace_locales", \<^here>)) (K false);
+
+fun trace kind (name, morph) context =
+  if Config.get_generic context trace_locales
+  then tracing ("Activating " ^ kind ^ " of " ^
+    (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |> Pretty.string_of))
+  else ();
+
 fun activate_syntax_decls (name, morph) context =
   let
+    val _ = trace "syntax" (name, morph) context;
     val thy = Context.theory_of context;
     val {syntax_decls, ...} = the_locale thy name;
   in
     context
     |> fold_rev (fn (decl, _) => decl morph) syntax_decls
-      handle ERROR msg => activate_err msg (name, morph) context
+      handle ERROR msg => activate_err msg "syntax" (name, morph) context
   end;
 
 fun activate_notes activ_elem transfer context export' (name, morph) input =
@@ -492,7 +502,14 @@ fun activate_notes activ_elem transfer context export' (name, morph) input =
   in
     (notes', input) |-> fold (fn elem => fn res =>
       activ_elem (Element.transform_ctxt (transfer res) elem) res)
-  end handle ERROR msg => activate_err msg (name, morph) context;
+  end handle ERROR msg => activate_err msg "facts" (name, morph) context;
+
+fun activate_notes_trace activ_elem transfer context export' (name, morph) context' =
+  let
+    val _ = trace "facts" (name, morph) context';
+  in
+    activate_notes activ_elem transfer context export' (name, morph) context'
+  end;
 
 fun activate_all name thy activ_elem transfer (marked, input) =
   let
@@ -517,7 +534,7 @@ fun activate_facts export dep context =
   |> Context_Position.set_visible_generic false
   |> pair (Idents.get context)
   |> roundup (Context.theory_of context)
-      (activate_notes init_element Morphism.transfer_morphism'' context export)
+      (activate_notes_trace init_element Morphism.transfer_morphism'' context export)
       (the_default Morphism.identity export) dep
   |-> Idents.put
   |> Context_Position.restore_visible_generic context;

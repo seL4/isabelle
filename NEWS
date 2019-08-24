@@ -36,6 +36,9 @@ subproofs internally. This impacts the internal construction of proof
 terms: it makes a cascade of let-expressions within the derivation tree
 and may thus improve scalability.
 
+* New attribute "trace_locales" for tracing activation of locale
+instances during roundup.
+
 
 *** HOL ***
 

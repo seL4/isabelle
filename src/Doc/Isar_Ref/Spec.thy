@@ -501,7 +501,7 @@ text \<open>
 subsection \<open>Locale declarations\<close>
 
 text \<open>
-  \begin{matharray}{rcl}
+  \begin{tabular}{rcll}
     @{command_def "locale"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
     @{command_def "experiment"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
     @{command_def "print_locale"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
@@ -509,7 +509,8 @@ text \<open>
     @{command_def "locale_deps"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{method_def intro_locales} & : & \<open>method\<close> \\
     @{method_def unfold_locales} & : & \<open>method\<close> \\
-  \end{matharray}
+    @{attribute_def trace_locales} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+  \end{tabular}
 
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
@@ -627,6 +628,11 @@ text \<open>
   specifications entailed by the context, both from target statements, and
   from interpretations (see below). New goals that are entailed by the current
   context are discharged automatically.
+
+  \<^descr> @{attribute trace_locales}, when set to
+  \<open>true\<close>, prints the locale instances activated during
+  roundup.  Useful for understanding local theories created by complex
+  locale hierarchies.
 \<close>
 
 
