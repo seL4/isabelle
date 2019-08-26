@@ -216,6 +216,9 @@ option headless_watchdog_timeout : real = 600
 option headless_commit_cleanup_delay : real = 60
   -- "delay for cleanup of already imported theories (seconds, 0 = disabled)"
 
+option execution_eager : bool = false
+  -- "prefer theories with shorter stack of decendants"
+
 
 section "Miscellaneous Tools"
 

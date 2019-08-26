@@ -493,6 +493,27 @@ fun make_required nodes =
         Symtab.update (a, ())) all_visible all_required
   end;
 
+structure Eager_Graph = Graph(type key = int * string val ord = prod_ord int_ord string_ord);
+
+fun schedule_execution f nodes =
+  if Options.default_bool \<^system_option>\<open>execution_eager\<close>
+  then
+    let
+      val decorate = the o String_Graph.maximal_descendants nodes;
+      fun add_node (d, a) = Eager_Graph.default_node ((d, a), String_Graph.get_node nodes a);
+    in
+      (nodes, Eager_Graph.empty) |-> String_Graph.fold (fn (a, (_, (preds, _))) =>
+        let
+          val a' = `decorate a;
+          val bs' = String_Graph.Keys.fold (cons o `decorate) preds [];
+        in
+          fold add_node (a' :: bs')
+          #> fold (fn b' => Eager_Graph.add_edge (b', a')) bs'
+        end)
+      |> Eager_Graph.schedule (fn deps => fn ((_, x), y) => f (map (apfst #2) deps) (x, y))
+    end
+  else String_Graph.schedule f nodes;
+
 fun start_execution state = state |> map_state (fn (versions, blobs, commands, execution) =>
   timeit "Document.start_execution" (fn () =>
     let
@@ -513,7 +534,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val nodes = nodes_of (the_version state version_id);
       val required = make_required nodes;
       val _ =
-        nodes |> String_Graph.schedule
+        nodes |> schedule_execution
           (fn deps => fn (name, node) =>
             if Symtab.defined required name orelse visible_node node orelse pending_result node then
               let
