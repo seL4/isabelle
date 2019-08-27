@@ -59,7 +59,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lt
       |> map (apfst (apsnd (fn ats => moreatts @ ats)))
       |> map (apfst (apfst extra_qualify))
 
-    val (saved_spec_simps, lthy) =
+    val (saved_spec_simps, lthy') =
       fold_map Local_Theory.note spec lthy
 
     val saved_simps = maps snd saved_spec_simps
@@ -67,7 +67,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lt
 
     fun note fname simps =
       Local_Theory.note ((mod_binding (derived_name fname label), []), simps) #> snd
-  in (saved_simps, fold2 note fnames simps_by_f lthy) end
+  in (saved_simps, fold2 note fnames simps_by_f lthy') end
 
 fun prepare_function do_print prep fixspec eqns config lthy =
   let
@@ -88,20 +88,20 @@ fun prepare_function do_print prep fixspec eqns config lthy =
     val ((goal_state, cont), lthy') =
       Function_Mutual.prepare_function_mutual config defname fixes0 eqs lthy
 
-    fun afterqed [[proof]] lthy =
+    fun afterqed [[proof]] lthy1 =
       let
-        val result = cont lthy (Thm.close_derivation \<^here> proof)
+        val result = cont lthy1 (Thm.close_derivation \<^here> proof)
         val FunctionResult {fs, R, dom, psimps, simple_pinducts,
                 termination, domintros, cases, ...} = result
 
-        val pelims = Function_Elims.mk_partial_elim_rules lthy result
+        val pelims = Function_Elims.mk_partial_elim_rules lthy1 result
 
         val concealed_partial = if partials then I else Binding.concealed
 
         val addsmps = add_simps fnames post sort_cont
 
-        val (((((psimps', [pinducts']), [termination']), cases'), pelims'), lthy) =
-          lthy
+        val (((((psimps', [pinducts']), [termination']), cases'), pelims'), lthy2) =
+          lthy1
           |> addsmps (concealed_partial o Binding.qualify false "partial")
                "psimps" concealed_partial psimp_attribs psimps
           ||>> Local_Theory.notes [((concealed_partial (derived_name defname "pinduct"), []),
@@ -125,11 +125,11 @@ fun prepare_function do_print prep fixspec eqns config lthy =
           pelims=pelims',elims=NONE}
 
         val _ =
-          Proof_Display.print_consts do_print (Position.thread_data ()) lthy
+          Proof_Display.print_consts do_print (Position.thread_data ()) lthy2
             (K false) (map fst fixes)
       in
         (info,
-         lthy |> Local_Theory.declaration {syntax = false, pervasive = false}
+         lthy2 |> Local_Theory.declaration {syntax = false, pervasive = false}
           (fn phi => add_function_data (transform_function_data phi info)))
       end
   in
@@ -183,24 +183,24 @@ fun prepare_termination_proof mod_binding prep_term raw_term_opt lthy =
       pinducts, defname, fnames, cases, dom, pelims, ...} = info
     val domT = domain_type (fastype_of R)
     val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
-    fun afterqed [[totality]] lthy =
+    fun afterqed [[raw_totality]] lthy1 =
       let
-        val totality = Thm.close_derivation \<^here> totality
+        val totality = Thm.close_derivation \<^here> raw_totality
         val remove_domain_condition =
-          full_simplify (put_simpset HOL_basic_ss lthy
+          full_simplify (put_simpset HOL_basic_ss lthy1
             addsimps [totality, @{thm True_implies_equals}])
         val tsimps = map remove_domain_condition psimps
         val tinduct = map remove_domain_condition pinducts
         val telims = map (map remove_domain_condition) pelims
       in
-        lthy
+        lthy1
         |> add_simps I "simps" mod_binding simp_attribs tsimps
         ||> Code.declare_default_eqns (map (rpair true) tsimps)
         ||>> Local_Theory.note
           ((mod_binding (derived_name defname "induct"), [Attrib.case_names case_names]), tinduct)
         ||>> fold_map (note_derived ("elims", [Attrib.consumes 1, Attrib.constraints 1]))
           (map mod_binding fnames ~~ telims)
-        |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
+        |-> (fn ((simps,(_,inducts)), elims) => fn lthy2 =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
             simps=SOME simps, inducts=SOME inducts, termination=termination, totality=SOME totality,
@@ -208,7 +208,7 @@ fun prepare_termination_proof mod_binding prep_term raw_term_opt lthy =
             |> transform_function_data (Morphism.binding_morphism "" mod_binding)
           in
             (info',
-             lthy
+             lthy2
              |> Local_Theory.declaration {syntax = false, pervasive = false}
                (fn phi => add_function_data (transform_function_data phi info'))
              |> Spec_Rules.add Spec_Rules.equational_recdef (fs, tsimps))
