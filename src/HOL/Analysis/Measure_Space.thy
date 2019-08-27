@@ -1184,9 +1184,6 @@ lemma AE_ball_countable':
   "(\<And>N. N \<in> I \<Longrightarrow> AE x in M. P N x) \<Longrightarrow> countable I \<Longrightarrow> AE x in M. \<forall>N \<in> I. P N x"
   unfolding AE_ball_countable by simp
 
-lemma pairwise_alt: "pairwise R S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S-{x}. R x y)"
-  by (auto simp add: pairwise_def)
-
 lemma AE_pairwise: "countable F \<Longrightarrow> pairwise (\<lambda>A B. AE x in M. R x A B) F \<longleftrightarrow> (AE x in M. pairwise (R x) F)"
   unfolding pairwise_alt by (simp add: AE_ball_countable)
 

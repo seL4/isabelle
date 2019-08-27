@@ -1863,6 +1863,9 @@ text \<open>Misc\<close>
 definition pairwise :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
   where "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. x \<noteq> y \<longrightarrow> R x y)"
 
+lemma pairwise_alt: "pairwise R S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S-{x}. R x y)"
+by (auto simp add: pairwise_def)
+
 lemma pairwise_trivial [simp]: "pairwise (\<lambda>i j. j \<noteq> i) I"
   by (auto simp: pairwise_def)
 
