@@ -221,29 +221,6 @@ lemma has_real_derivative_imp_continuous_on:
   apply (intro differentiable_imp_continuous_on, unfold differentiable_on_def)
   using assms differentiable_at_withinI real_differentiable_def by blast
 
-lemma closure_contains_Sup:
-  fixes S :: "real set"
-  assumes "S \<noteq> {}" "bdd_above S"
-  shows "Sup S \<in> closure S"
-proof -
-  have "Inf (uminus ` S) \<in> closure (uminus ` S)"
-      using assms by (intro closure_contains_Inf) auto
-  also have "Inf (uminus ` S) = -Sup S" by (simp add: Inf_real_def image_comp)
-  also have "closure (uminus ` S) = uminus ` closure S"
-      by (rule sym, intro closure_injective_linear_image) (auto intro: linearI)
-  finally show ?thesis by auto
-qed
-
-lemma closed_contains_Sup:
-  fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> bdd_above S \<Longrightarrow> closed S \<Longrightarrow> Sup S \<in> S"
-  by (subst closure_closed[symmetric], assumption, rule closure_contains_Sup)
-
-lemma closed_subset_contains_Sup:
-  fixes A C :: "real set"
-  shows "closed C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> Sup A \<in> C"
-  by (metis closure_contains_Sup closure_minimal subset_eq)
-
 lemma continuous_interval_vimage_Int:
   assumes "continuous_on {a::real..b} g" and mono: "\<And>x y. a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b \<Longrightarrow> g x \<le> g y"
   assumes "a \<le> b" "(c::real) \<le> d" "{c..d} \<subseteq> {g a..g b}"

@@ -677,6 +677,25 @@ proof -
   then show ?thesis unfolding closure_approachable by auto
 qed
 
+lemma closure_contains_Sup:
+  fixes S :: "real set"
+  assumes "S \<noteq> {}" "bdd_above S"
+  shows "Sup S \<in> closure S"
+proof -
+  have *: "\<forall>x\<in>S. x \<le> Sup S"
+    using cSup_upper[of _ S] assms by metis
+  {
+    fix e :: real
+    assume "e > 0"
+    then have "Sup S - e < Sup S" by simp
+    with assms obtain x where "x \<in> S" "Sup S - e < x"
+      by (subst (asm) less_cSup_iff) auto
+    with * have "\<exists>x\<in>S. dist x (Sup S) < e"
+      by (intro bexI[of _ x]) (auto simp: dist_real_def)
+  }
+  then show ?thesis unfolding closure_approachable by auto
+qed
+
 lemma not_trivial_limit_within_ball:
   "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -2921,6 +2940,16 @@ lemma closed_subset_contains_Inf:
   fixes A C :: "real set"
   shows "closed C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> A \<noteq> {} \<Longrightarrow> bdd_below A \<Longrightarrow> Inf A \<in> C"
   by (metis closure_contains_Inf closure_minimal subset_eq)
+
+lemma closed_contains_Sup:
+  fixes S :: "real set"
+  shows "S \<noteq> {} \<Longrightarrow> bdd_above S \<Longrightarrow> closed S \<Longrightarrow> Sup S \<in> S"
+  by (subst closure_closed[symmetric], assumption, rule closure_contains_Sup)
+
+lemma closed_subset_contains_Sup:
+  fixes A C :: "real set"
+  shows "closed C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> Sup A \<in> C"
+  by (metis closure_contains_Sup closure_minimal subset_eq)
 
 lemma atLeastAtMost_subset_contains_Inf:
   fixes A :: "real set" and a b :: real

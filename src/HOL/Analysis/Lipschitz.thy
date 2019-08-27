@@ -5,7 +5,8 @@
 section \<open>Lipschitz Continuity\<close>
 
 theory Lipschitz
-imports Borel_Space
+  imports
+    Derivative
 begin
 
 definition\<^marker>\<open>tag important\<close> lipschitz_on
