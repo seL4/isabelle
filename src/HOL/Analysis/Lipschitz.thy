@@ -367,7 +367,7 @@ from the real case, but we will not prove it explicitly.
 
 We give several variations around this statement. This is essentially a connectedness argument.\<close>
 
-lemma locally_lipschitz_imp_lispchitz_aux:
+lemma locally_lipschitz_imp_lipschitz_aux:
   fixes f::"real \<Rightarrow> ('a::metric_space)"
   assumes "a \<le> b"
           "continuous_on {a..b} f"
@@ -407,7 +407,7 @@ lemma locally_lipschitz_imp_lipschitz:
   shows "lipschitz_on M {a..b} f"
 proof (rule lipschitz_onI[OF _ \<open>M \<ge> 0\<close>])
   have *: "dist (f t) (f s) \<le> M * (t-s)" if "s \<le> t" "s \<in> {a..b}" "t \<in> {a..b}" for s t
-  proof (rule locally_lipschitz_imp_lispchitz_aux, simp add: \<open>s \<le> t\<close>)
+  proof (rule locally_lipschitz_imp_lipschitz_aux, simp add: \<open>s \<le> t\<close>)
     show "continuous_on {s..t} f" using continuous_on_subset[OF assms(1)] that by auto
     fix x assume "x \<in> {s..<t}"
     then have "x \<in> {a..<b}" using that by auto
