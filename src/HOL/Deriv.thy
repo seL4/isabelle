@@ -1451,6 +1451,20 @@ proof (rule strict_monoI)
   finally show "f x < f y" by simp
 qed
 
+proposition  deriv_nonneg_imp_mono:
+  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
+  assumes ab: "a \<le> b"
+  shows "g a \<le> g b"
+proof (cases "a < b")
+  assume "a < b"
+  from deriv have "\<And>x. \<lbrakk>x \<ge> a; x \<le> b\<rbrakk> \<Longrightarrow> (g has_real_derivative g' x) (at x)" by simp
+  with MVT2[OF \<open>a < b\<close>] and deriv
+    obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
+  from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
+  with g_ab show ?thesis by simp
+qed (insert ab, simp)
+
 
 subsubsection \<open>A function is constant if its derivative is 0 over an interval.\<close>
 

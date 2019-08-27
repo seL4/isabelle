@@ -39,6 +39,15 @@ lemma has_derivative_at':
         norm (f x' - f x - f'(x' - x)) / norm (x' - x) < e)"
   using has_derivative_within' [of f f' x UNIV] by simp
 
+lemma has_derivative_componentwise_within:
+   "(f has_derivative f') (at a within S) \<longleftrightarrow>
+    (\<forall>i \<in> Basis. ((\<lambda>x. f x \<bullet> i) has_derivative (\<lambda>x. f' x \<bullet> i)) (at a within S))"
+  apply (simp add: has_derivative_within)
+  apply (subst tendsto_componentwise_iff)
+  apply (simp add: bounded_linear_componentwise_iff [symmetric] ball_conj_distrib)
+  apply (simp add: algebra_simps)
+  done
+
 lemma has_derivative_at_withinI:
   "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f') (at x within s)"
   unfolding has_derivative_within' has_derivative_at'
