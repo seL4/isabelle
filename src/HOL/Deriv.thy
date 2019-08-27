@@ -797,6 +797,10 @@ lemma has_vector_derivative_continuous:
   "(f has_vector_derivative D) (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (auto intro: has_derivative_continuous simp: has_vector_derivative_def)
 
+lemma continuous_on_vector_derivative:
+  "(\<And>x. x \<in> S \<Longrightarrow> (f has_vector_derivative f' x) (at x within S)) \<Longrightarrow> continuous_on S f"
+  by (auto simp: continuous_on_eq_continuous_within intro!: has_vector_derivative_continuous)
+
 lemma has_vector_derivative_mult_right[derivative_intros]:
   fixes a :: "'a::real_normed_algebra"
   shows "(f has_vector_derivative x) F \<Longrightarrow> ((\<lambda>x. a * f x) has_vector_derivative (a * x)) F"

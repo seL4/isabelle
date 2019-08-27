@@ -8,10 +8,6 @@ theory Interval_Integral (*FIX ME rename? Lebesgue  *)
   imports Equivalence_Lebesgue_Henstock_Integration
 begin
 
-lemma continuous_on_vector_derivative:
-  "(\<And>x. x \<in> S \<Longrightarrow> (f has_vector_derivative f' x) (at x within S)) \<Longrightarrow> continuous_on S f"
-  by (auto simp: continuous_on_eq_continuous_within intro!: has_vector_derivative_continuous)
-
 definition "einterval a b = {x. a < ereal x \<and> ereal x < b}"
 
 lemma einterval_eq[simp]:
