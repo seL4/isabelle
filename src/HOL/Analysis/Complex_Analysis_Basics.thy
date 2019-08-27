@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-  imports Derivative "HOL-Library.Nonpos_Ints"
+  imports Brouwer_Fixpoint "HOL-Library.Nonpos_Ints"
 begin
 
 (* TODO FIXME: A lot of the things in here have nothing to do with complex analysis *)

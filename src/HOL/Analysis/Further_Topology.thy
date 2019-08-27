@@ -6,6 +6,18 @@ theory Further_Topology
   imports Weierstrass_Theorems Polytope Complex_Transcendental Equivalence_Lebesgue_Henstock_Integration
 begin
 
+subsection\<^marker>\<open>tag unimportant\<close>\<open>Retracts and intervals in ordered euclidean space\<close>
+
+lemma ANR_interval [iff]:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "ANR{a..b}"
+  by (simp add: interval_cbox)
+
+lemma ENR_interval [iff]:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "ENR{a..b}"
+  by (auto simp: interval_cbox)
+
 subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
 
 lemma spheremap_lemma1:

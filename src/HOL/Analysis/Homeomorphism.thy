@@ -38,246 +38,6 @@ lemma homeomorphic_spheres_gen:
 
 subsection \<open>Homeomorphism of all convex compact sets with nonempty interior\<close>
 
-proposition ray_to_rel_frontier:
-  fixes a :: "'a::real_inner"
-  assumes "bounded S"
-      and a: "a \<in> rel_interior S"
-      and aff: "(a + l) \<in> affine hull S"
-      and "l \<noteq> 0"
-  obtains d where "0 < d" "(a + d *\<^sub>R l) \<in> rel_frontier S"
-           "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (a + e *\<^sub>R l) \<in> rel_interior S"
-proof -
-  have aaff: "a \<in> affine hull S"
-    by (meson a hull_subset rel_interior_subset rev_subsetD)
-  let ?D = "{d. 0 < d \<and> a + d *\<^sub>R l \<notin> rel_interior S}"
-  obtain B where "B > 0" and B: "S \<subseteq> ball a B"
-    using bounded_subset_ballD [OF \<open>bounded S\<close>] by blast
-  have "a + (B / norm l) *\<^sub>R l \<notin> ball a B"
-    by (simp add: dist_norm \<open>l \<noteq> 0\<close>)
-  with B have "a + (B / norm l) *\<^sub>R l \<notin> rel_interior S"
-    using rel_interior_subset subsetCE by blast
-  with \<open>B > 0\<close> \<open>l \<noteq> 0\<close> have nonMT: "?D \<noteq> {}"
-    using divide_pos_pos zero_less_norm_iff by fastforce
-  have bdd: "bdd_below ?D"
-    by (metis (no_types, lifting) bdd_belowI le_less mem_Collect_eq)
-  have relin_Ex: "\<And>x. x \<in> rel_interior S \<Longrightarrow>
-                    \<exists>e>0. \<forall>x'\<in>affine hull S. dist x' x < e \<longrightarrow> x' \<in> rel_interior S"
-    using openin_rel_interior [of S] by (simp add: openin_euclidean_subtopology_iff)
-  define d where "d = Inf ?D"
-  obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "\<And>\<eta>. \<lbrakk>0 \<le> \<eta>; \<eta> < \<epsilon>\<rbrakk> \<Longrightarrow> (a + \<eta> *\<^sub>R l) \<in> rel_interior S"
-  proof -
-    obtain e where "e>0"
-            and e: "\<And>x'. x' \<in> affine hull S \<Longrightarrow> dist x' a < e \<Longrightarrow> x' \<in> rel_interior S"
-      using relin_Ex a by blast
-    show thesis
-    proof (rule_tac \<epsilon> = "e / norm l" in that)
-      show "0 < e / norm l" by (simp add: \<open>0 < e\<close> \<open>l \<noteq> 0\<close>)
-    next
-      show "a + \<eta> *\<^sub>R l \<in> rel_interior S" if "0 \<le> \<eta>" "\<eta> < e / norm l" for \<eta>
-      proof (rule e)
-        show "a + \<eta> *\<^sub>R l \<in> affine hull S"
-          by (metis (no_types) add_diff_cancel_left' aff affine_affine_hull mem_affine_3_minus aaff)
-        show "dist (a + \<eta> *\<^sub>R l) a < e"
-          using that by (simp add: \<open>l \<noteq> 0\<close> dist_norm pos_less_divide_eq)
-      qed
-    qed
-  qed
-  have inint: "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> a + e *\<^sub>R l \<in> rel_interior S"
-    unfolding d_def using cInf_lower [OF _ bdd]
-    by (metis (no_types, lifting) a add.right_neutral le_less mem_Collect_eq not_less real_vector.scale_zero_left)
-  have "\<epsilon> \<le> d"
-    unfolding d_def
-    apply (rule cInf_greatest [OF nonMT])
-    using \<epsilon> dual_order.strict_implies_order le_less_linear by blast
-  with \<open>0 < \<epsilon>\<close> have "0 < d" by simp
-  have "a + d *\<^sub>R l \<notin> rel_interior S"
-  proof
-    assume adl: "a + d *\<^sub>R l \<in> rel_interior S"
-    obtain e where "e > 0"
-             and e: "\<And>x'. x' \<in> affine hull S \<Longrightarrow> dist x' (a + d *\<^sub>R l) < e \<Longrightarrow> x' \<in> rel_interior S"
-      using relin_Ex adl by blast
-    have "d + e / norm l \<le> Inf {d. 0 < d \<and> a + d *\<^sub>R l \<notin> rel_interior S}"
-    proof (rule cInf_greatest [OF nonMT], clarsimp)
-      fix x::real
-      assume "0 < x" and nonrel: "a + x *\<^sub>R l \<notin> rel_interior S"
-      show "d + e / norm l \<le> x"
-      proof (cases "x < d")
-        case True with inint nonrel \<open>0 < x\<close>
-          show ?thesis by auto
-      next
-        case False
-          then have dle: "x < d + e / norm l \<Longrightarrow> dist (a + x *\<^sub>R l) (a + d *\<^sub>R l) < e"
-            by (simp add: field_simps \<open>l \<noteq> 0\<close>)
-          have ain: "a + x *\<^sub>R l \<in> affine hull S"
-            by (metis add_diff_cancel_left' aff affine_affine_hull mem_affine_3_minus aaff)
-          show ?thesis
-            using e [OF ain] nonrel dle by force
-      qed
-    qed
-    then show False
-      using \<open>0 < e\<close> \<open>l \<noteq> 0\<close> by (simp add: d_def [symmetric] divide_simps)
-  qed
-  moreover have "a + d *\<^sub>R l \<in> closure S"
-  proof (clarsimp simp: closure_approachable)
-    fix \<eta>::real assume "0 < \<eta>"
-    have 1: "a + (d - min d (\<eta> / 2 / norm l)) *\<^sub>R l \<in> S"
-      apply (rule subsetD [OF rel_interior_subset inint])
-      using \<open>l \<noteq> 0\<close> \<open>0 < d\<close> \<open>0 < \<eta>\<close> by auto
-    have "norm l * min d (\<eta> / (norm l * 2)) \<le> norm l * (\<eta> / (norm l * 2))"
-      by (metis min_def mult_left_mono norm_ge_zero order_refl)
-    also have "... < \<eta>"
-      using \<open>l \<noteq> 0\<close> \<open>0 < \<eta>\<close> by (simp add: divide_simps)
-    finally have 2: "norm l * min d (\<eta> / (norm l * 2)) < \<eta>" .
-    show "\<exists>y\<in>S. dist y (a + d *\<^sub>R l) < \<eta>"
-      apply (rule_tac x="a + (d - min d (\<eta> / 2 / norm l)) *\<^sub>R l" in bexI)
-      using 1 2 \<open>0 < d\<close> \<open>0 < \<eta>\<close> apply (auto simp: algebra_simps)
-      done
-  qed
-  ultimately have infront: "a + d *\<^sub>R l \<in> rel_frontier S"
-    by (simp add: rel_frontier_def)
-  show ?thesis
-    by (rule that [OF \<open>0 < d\<close> infront inint])
-qed
-
-corollary ray_to_frontier:
-  fixes a :: "'a::euclidean_space"
-  assumes "bounded S"
-      and a: "a \<in> interior S"
-      and "l \<noteq> 0"
-  obtains d where "0 < d" "(a + d *\<^sub>R l) \<in> frontier S"
-           "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (a + e *\<^sub>R l) \<in> interior S"
-proof -
-  have "interior S = rel_interior S"
-    using a rel_interior_nonempty_interior by auto
-  then have "a \<in> rel_interior S"
-    using a by simp
-  then show ?thesis
-    apply (rule ray_to_rel_frontier [OF \<open>bounded S\<close> _ _ \<open>l \<noteq> 0\<close>])
-     using a affine_hull_nonempty_interior apply blast
-    by (simp add: \<open>interior S = rel_interior S\<close> frontier_def rel_frontier_def that)
-qed
-
-
-lemma segment_to_rel_frontier_aux:
-  fixes x :: "'a::euclidean_space"
-  assumes "convex S" "bounded S" and x: "x \<in> rel_interior S" and y: "y \<in> S" and xy: "x \<noteq> y"
-  obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
-                   "open_segment x z \<subseteq> rel_interior S"
-proof -
-  have "x + (y - x) \<in> affine hull S"
-    using hull_inc [OF y] by auto
-  then obtain d where "0 < d" and df: "(x + d *\<^sub>R (y-x)) \<in> rel_frontier S"
-                  and di: "\<And>e. \<lbrakk>0 \<le> e; e < d\<rbrakk> \<Longrightarrow> (x + e *\<^sub>R (y-x)) \<in> rel_interior S"
-    by (rule ray_to_rel_frontier [OF \<open>bounded S\<close> x]) (use xy in auto)
-  show ?thesis
-  proof
-    show "x + d *\<^sub>R (y - x) \<in> rel_frontier S"
-      by (simp add: df)
-  next
-    have "open_segment x y \<subseteq> rel_interior S"
-      using rel_interior_closure_convex_segment [OF \<open>convex S\<close> x] closure_subset y by blast
-    moreover have "x + d *\<^sub>R (y - x) \<in> open_segment x y" if "d < 1"
-      using xy
-      apply (auto simp: in_segment)
-      apply (rule_tac x="d" in exI)
-      using \<open>0 < d\<close> that apply (auto simp: divide_simps algebra_simps)
-      done
-    ultimately have "1 \<le> d"
-      using df rel_frontier_def by fastforce
-    moreover have "x = (1 / d) *\<^sub>R x + ((d - 1) / d) *\<^sub>R x"
-      by (metis \<open>0 < d\<close> add.commute add_divide_distrib diff_add_cancel divide_self_if less_irrefl scaleR_add_left scaleR_one)
-    ultimately show "y \<in> closed_segment x (x + d *\<^sub>R (y - x))"
-      apply (auto simp: in_segment)
-      apply (rule_tac x="1/d" in exI)
-      apply (auto simp: divide_simps algebra_simps)
-      done
-  next
-    show "open_segment x (x + d *\<^sub>R (y - x)) \<subseteq> rel_interior S"
-      apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> x])
-      using df rel_frontier_def by auto
-  qed
-qed
-
-lemma segment_to_rel_frontier:
-  fixes x :: "'a::euclidean_space"
-  assumes S: "convex S" "bounded S" and x: "x \<in> rel_interior S"
-      and y: "y \<in> S" and xy: "\<not>(x = y \<and> S = {x})"
-  obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
-                  "open_segment x z \<subseteq> rel_interior S"
-proof (cases "x=y")
-  case True
-  with xy have "S \<noteq> {x}"
-    by blast
-  with True show ?thesis
-    by (metis Set.set_insert all_not_in_conv ends_in_segment(1) insert_iff segment_to_rel_frontier_aux[OF S x] that y)
-next
-  case False
-  then show ?thesis
-    using segment_to_rel_frontier_aux [OF S x y] that by blast
-qed
-
-proposition rel_frontier_not_sing:
-  fixes a :: "'a::euclidean_space"
-  assumes "bounded S"
-    shows "rel_frontier S \<noteq> {a}"
-proof (cases "S = {}")
-  case True  then show ?thesis  by simp
-next
-  case False
-  then obtain z where "z \<in> S"
-    by blast
-  then show ?thesis
-  proof (cases "S = {z}")
-    case True then show ?thesis  by simp
-  next
-    case False
-    then obtain w where "w \<in> S" "w \<noteq> z"
-      using \<open>z \<in> S\<close> by blast
-    show ?thesis
-    proof
-      assume "rel_frontier S = {a}"
-      then consider "w \<notin> rel_frontier S" | "z \<notin> rel_frontier S"
-        using \<open>w \<noteq> z\<close> by auto
-      then show False
-      proof cases
-        case 1
-        then have w: "w \<in> rel_interior S"
-          using \<open>w \<in> S\<close> closure_subset rel_frontier_def by fastforce
-        have "w + (w - z) \<in> affine hull S"
-          by (metis \<open>w \<in> S\<close> \<open>z \<in> S\<close> affine_affine_hull hull_inc mem_affine_3_minus scaleR_one)
-        then obtain e where "0 < e" "(w + e *\<^sub>R (w - z)) \<in> rel_frontier S"
-          using \<open>w \<noteq> z\<close>  \<open>z \<in> S\<close> by (metis assms ray_to_rel_frontier right_minus_eq w)
-        moreover obtain d where "0 < d" "(w + d *\<^sub>R (z - w)) \<in> rel_frontier S"
-          using ray_to_rel_frontier [OF \<open>bounded S\<close> w, of "1 *\<^sub>R (z - w)"]  \<open>w \<noteq> z\<close>  \<open>z \<in> S\<close>
-          by (metis add.commute add.right_neutral diff_add_cancel hull_inc scaleR_one)
-        ultimately have "d *\<^sub>R (z - w) = e *\<^sub>R (w - z)"
-          using \<open>rel_frontier S = {a}\<close> by force
-        moreover have "e \<noteq> -d "
-          using \<open>0 < e\<close> \<open>0 < d\<close> by force
-        ultimately show False
-          by (metis (no_types, lifting) \<open>w \<noteq> z\<close> eq_iff_diff_eq_0 minus_diff_eq real_vector.scale_cancel_right real_vector.scale_minus_right scaleR_left.minus)
-      next
-        case 2
-        then have z: "z \<in> rel_interior S"
-          using \<open>z \<in> S\<close> closure_subset rel_frontier_def by fastforce
-        have "z + (z - w) \<in> affine hull S"
-          by (metis \<open>z \<in> S\<close> \<open>w \<in> S\<close> affine_affine_hull hull_inc mem_affine_3_minus scaleR_one)
-        then obtain e where "0 < e" "(z + e *\<^sub>R (z - w)) \<in> rel_frontier S"
-          using \<open>w \<noteq> z\<close>  \<open>w \<in> S\<close> by (metis assms ray_to_rel_frontier right_minus_eq z)
-        moreover obtain d where "0 < d" "(z + d *\<^sub>R (w - z)) \<in> rel_frontier S"
-          using ray_to_rel_frontier [OF \<open>bounded S\<close> z, of "1 *\<^sub>R (w - z)"]  \<open>w \<noteq> z\<close>  \<open>w \<in> S\<close>
-          by (metis add.commute add.right_neutral diff_add_cancel hull_inc scaleR_one)
-        ultimately have "d *\<^sub>R (w - z) = e *\<^sub>R (z - w)"
-          using \<open>rel_frontier S = {a}\<close> by force
-        moreover have "e \<noteq> -d "
-          using \<open>0 < e\<close> \<open>0 < d\<close> by force
-        ultimately show False
-          by (metis (no_types, lifting) \<open>w \<noteq> z\<close> eq_iff_diff_eq_0 minus_diff_eq real_vector.scale_cancel_right real_vector.scale_minus_right scaleR_left.minus)
-      qed
-    qed
-  qed
-qed
-
 proposition
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 0: "0 \<in> rel_interior S"
@@ -1267,6 +1027,20 @@ corollary homeomorphic_convex_compact:
   shows "S homeomorphic T"
   using assms
   by (meson zero_less_one homeomorphic_trans homeomorphic_convex_compact_cball homeomorphic_sym)
+
+lemma homeomorphic_closed_intervals:
+  fixes a :: "'a::euclidean_space" and b and c :: "'a::euclidean_space" and d
+  assumes "box a b \<noteq> {}" and "box c d \<noteq> {}"
+    shows "(cbox a b) homeomorphic (cbox c d)"
+apply (rule homeomorphic_convex_compact)
+using assms apply auto
+done
+
+lemma homeomorphic_closed_intervals_real:
+  fixes a::real and b and c::real and d
+  assumes "a<b" and "c<d"
+  shows "{a..b} homeomorphic {c..d}"
+  using assms by (auto intro: homeomorphic_convex_compact)
 
 subsection\<open>Covering spaces and lifting results for them\<close>
 

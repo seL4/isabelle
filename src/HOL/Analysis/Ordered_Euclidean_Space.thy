@@ -300,20 +300,6 @@ lemma compact_interval [simp]:
   shows "compact {a .. b}"
   by (metis compact_cbox interval_cbox)
 
-lemma homeomorphic_closed_intervals:
-  fixes a :: "'a::euclidean_space" and b and c :: "'a::euclidean_space" and d
-  assumes "box a b \<noteq> {}" and "box c d \<noteq> {}"
-    shows "(cbox a b) homeomorphic (cbox c d)"
-apply (rule homeomorphic_convex_compact)
-using assms apply auto
-done
-
-lemma homeomorphic_closed_intervals_real:
-  fixes a::real and b and c::real and d
-  assumes "a<b" and "c<d"
-  shows "{a..b} homeomorphic {c..d}"
-  using assms by (auto intro: homeomorphic_convex_compact)
-
 no_notation
   eucl_less (infix "<e" 50)
 
@@ -349,15 +335,5 @@ instance
 
 end
 
-lemma ANR_interval [iff]:
-    fixes a :: "'a::ordered_euclidean_space"
-    shows "ANR{a..b}"
-by (simp add: interval_cbox)
-
-lemma ENR_interval [iff]:
-    fixes a :: "'a::ordered_euclidean_space"
-    shows "ENR{a..b}"
-  by (auto simp: interval_cbox)
-    
 end
 
