@@ -1213,6 +1213,9 @@ lemmas closed_real_atMost = closed_atMost[where 'a=real]
 lemmas closed_real_atLeast = closed_atLeast[where 'a=real]
 lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
+instance real :: ordered_real_vector
+  by standard (auto intro: mult_left_mono mult_right_mono)
+
 
 subsection \<open>Extra type constraints\<close>
 
