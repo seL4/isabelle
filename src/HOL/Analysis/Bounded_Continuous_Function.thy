@@ -2,7 +2,8 @@ section \<open>Bounded Continuous Functions\<close>
 
 theory Bounded_Continuous_Function
   imports
-    Henstock_Kurzweil_Integration
+    Topology_Euclidean_Space
+    Uniform_Limit
 begin
 
 subsection \<open>Definition\<close>
@@ -292,27 +293,22 @@ lemma norm_bound:
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>(bounded) continuous extenstion\<close>
 
-lemma integral_clamp:
-  "integral {t0::real..clamp t0 t1 x} f =
-    (if x < t0 then 0 else if x \<le> t1 then integral {t0..x} f else integral {t0..t1} f)"
-  by (auto simp: clamp_def)
-
-lemma continuous_on_interval_bcontfunE:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::metric_space"
-  assumes "continuous_on {a .. b} f"
+lemma continuous_on_cbox_bcontfunE:
+  fixes f::"'a::euclidean_space \<Rightarrow> 'b::metric_space"
+  assumes "continuous_on (cbox a b) f"
   obtains g::"'a \<Rightarrow>\<^sub>C 'b" where
-    "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> g x = f x"
+    "\<And>x. x \<in> cbox a b \<Longrightarrow> g x = f x"
     "\<And>x. g x = f (clamp a b x)"
 proof -
   define g where "g \<equiv> ext_cont f a b"
   have "g \<in> bcontfun"
     using assms
-    by (auto intro!: continuous_on_ext_cont simp: g_def cbox_interval bcontfun_def)
-      (auto simp: g_def ext_cont_def cbox_interval
-        intro!: compact_interval clamp_bounded compact_imp_bounded[OF compact_continuous_image] assms)
+    by (auto intro!: continuous_on_ext_cont simp: g_def bcontfun_def)
+      (auto simp: g_def ext_cont_def
+        intro!: clamp_bounded compact_imp_bounded[OF compact_continuous_image] assms)
   then obtain h where h: "g = apply_bcontfun h" by (rule bcontfunE)
-  then have "h x = f x" if "a \<le> x" "x \<le> b" for x
-    by (auto simp: h[symmetric] g_def cbox_interval that)
+  then have "h x = f x" if "x \<in> cbox a b" for x
+    by (auto simp: h[symmetric] g_def that)
   moreover
   have "h x = f (clamp a b x)" for x
     by (auto simp: h[symmetric] g_def ext_cont_def)
