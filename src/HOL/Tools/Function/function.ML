@@ -165,7 +165,7 @@ fun gen_function do_print prep fixspec eqns config lthy =
 val function = gen_function false Specification.check_multi_specs
 fun function_cmd a b c int = gen_function int Specification.read_multi_specs a b c
 
-fun prepare_termination_proof mod_binding prep_term raw_term_opt lthy =
+fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
     val info =
@@ -194,18 +194,18 @@ fun prepare_termination_proof mod_binding prep_term raw_term_opt lthy =
         val telims = map (map remove_domain_condition) pelims
       in
         lthy1
-        |> add_simps I "simps" mod_binding simp_attribs tsimps
+        |> add_simps prep_binding "simps" prep_binding simp_attribs tsimps
         ||> Code.declare_default_eqns (map (rpair true) tsimps)
         ||>> Local_Theory.note
-          ((mod_binding (derived_name defname "induct"), [Attrib.case_names case_names]), tinduct)
+          ((prep_binding (derived_name defname "induct"), [Attrib.case_names case_names]), tinduct)
         ||>> fold_map (note_derived ("elims", [Attrib.consumes 1, Attrib.constraints 1]))
-          (map mod_binding fnames ~~ telims)
+          (map prep_binding fnames ~~ telims)
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy2 =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
             simps=SOME simps, inducts=SOME inducts, termination=termination, totality=SOME totality,
             cases=cases, pelims=pelims, elims=SOME elims}
-            |> transform_function_data (Morphism.binding_morphism "" mod_binding)
+            |> transform_function_data (Morphism.binding_morphism "" prep_binding)
           in
             (info',
              lthy2
