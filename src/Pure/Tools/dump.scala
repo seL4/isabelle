@@ -171,6 +171,7 @@ object Dump
       val use_theories_result =
         session.use_theories(use_theories,
           unicode_symbols = unicode_symbols,
+          share_common_data = true,
           progress = progress,
           commit = Some(Consumer.apply _))
 
@@ -203,8 +204,13 @@ object Dump
   {
     val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
     val options1 =
-      options0 + "completion_limit=0" + "ML_statistics=false" +
-        "parallel_proofs=0" + "editor_tracing_messages=0" + "editor_presentation"
+      options0 +
+        "completion_limit=0" +
+        "ML_statistics=false" +
+        "parallel_proofs=0" +
+        "editor_tracing_messages=0" +
+        "editor_presentation" +
+        "execution_eager"
     (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
   }
 
