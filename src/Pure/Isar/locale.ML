@@ -96,6 +96,7 @@ sig
     {source: string, target: string, prefix: (string * bool) list, morphism: morphism,
       pos: Position.T, serial: serial}
   val dest_dependencies: theory list -> theory -> locale_dependency list
+  val tracing : Proof.context -> string -> unit
 end;
 
 structure Locale: LOCALE =
@@ -473,11 +474,12 @@ fun force_notes (Lazy_Notes (kind, (b, ths))) = Notes (kind, [((b, []), [(Lazy.f
 val trace_locales =
   Attrib.setup_config_bool (Binding.make ("trace_locales", \<^here>)) (K false);
 
+fun tracing context msg =
+  if Config.get context trace_locales then Output.tracing msg else ();
+  
 fun trace kind (name, morph) context =
-  if Config.get_generic context trace_locales
-  then tracing ("Activating " ^ kind ^ " of " ^
-    (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |> Pretty.string_of))
-  else ();
+  tracing (Context.proof_of context) ("Activating " ^ kind ^ " of " ^
+    (pretty_reg (Context.proof_of context) Morphism.identity (name, morph) |> Pretty.string_of));
 
 fun activate_syntax_decls (name, morph) context =
   let

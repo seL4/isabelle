@@ -396,7 +396,9 @@ fun prep_full_context_statement
         val (inst_morph, _) = inst_morphism params (prfx, inst''') ctxt;
         val ctxt' = Locale.activate_declarations (loc, inst_morph) ctxt2
           handle ERROR msg => if null eqns then error msg else
-            (writeln (msg ^ "\nFalling back to reading rewrites clause first."); ctxt2);
+            (Locale.tracing ctxt1
+             (msg ^ "\nFalling back to reading rewrites clause before activation.");
+             ctxt2);
 
         val attrss = map (apsnd (map (prep_attr ctxt)) o fst) eqns;
         val eqns' = (prep_eqns ctxt' o map snd) eqns;
