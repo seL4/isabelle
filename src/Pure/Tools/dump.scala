@@ -171,6 +171,7 @@ object Dump
       val use_theories_result =
         session.use_theories(use_theories,
           unicode_symbols = unicode_symbols,
+          share_common_data = true,
           progress = progress,
           commit = Some(Consumer.apply _))
 
