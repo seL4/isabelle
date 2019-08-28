@@ -158,6 +158,7 @@ object Headless
       watchdog_timeout: Time = default_watchdog_timeout,
       nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID.T = UUID.random(),
+      share_common_data: Boolean = false,
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
@@ -264,7 +265,8 @@ object Headless
 
       try {
         session.commands_changed += consumer
-        resources.load_theories(session, id, dep_theories, dep_files, unicode_symbols, progress)
+        resources.load_theories(
+          session, id, dep_theories, dep_files, unicode_symbols, share_common_data, progress)
         use_theories_state.value.await_result
         check_progress.cancel
       }
@@ -537,6 +539,7 @@ object Headless
       dep_theories: List[Document.Node.Name],
       dep_files: List[Document.Node.Name],
       unicode_symbols: Boolean,
+      share_common_data: Boolean,
       progress: Progress)
     {
       val loaded_theories =
@@ -570,7 +573,8 @@ object Headless
             for { node_name <- dep_files if doc_blobs1.changed(node_name) }
             yield st1.blob_edits(node_name, st.blobs.get(node_name))
 
-          session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
+          session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten,
+            share_common_data = share_common_data)
           st1.update_theories(theory_edits.map(_._2))
         })
     }

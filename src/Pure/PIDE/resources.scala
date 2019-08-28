@@ -228,8 +228,10 @@ class Resources(
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text],
-      consolidate: List[Document.Node.Name]): Session.Change =
-    Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits, consolidate)
+      consolidate: List[Document.Node.Name],
+      share_common_data: Boolean): Session.Change =
+    Thy_Syntax.parse_change(
+      resources, reparse_limit, previous, doc_blobs, edits, consolidate, share_common_data)
 
   def commit(change: Session.Change) { }
 
