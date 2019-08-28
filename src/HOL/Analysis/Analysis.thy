@@ -43,7 +43,7 @@ theory Analysis
   Generalised_Binomial_Theorem
   Gamma_Function
   Change_Of_Vars
-  Lipschitz
+  Multivariate_Analysis
   Simplex_Content
 begin
 
