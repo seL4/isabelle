@@ -30,7 +30,7 @@ by (auto simp: sorted_snoc_iff)
 lemmas isin_simps2 = sorted_lems sorted_ConsD sorted_snocD
 *)
 
-lemmas isin_simps = sorted_lems sorted_Cons_iff sorted_snoc_iff
+lemmas isin_simps = sorted_mid_iff' sorted_Cons_iff sorted_snoc_iff
 
 
 subsection \<open>Inserting into an ordered list without duplicates:\<close>
