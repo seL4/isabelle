@@ -5,9 +5,9 @@
 
 section \<open>Vector Spaces and Algebras over the Reals\<close>
 
-theory Real_Vector_Spaces
+theory Real_Vector_Spaces              
 imports Real Topological_Spaces Vector_Spaces
-begin
+begin                                   
 
 subsection \<open>Real vector spaces\<close>
 
@@ -16,20 +16,19 @@ class scaleR =
 begin
 
 abbreviation divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a"  (infixl "'/\<^sub>R" 70)
-  where "x /\<^sub>R r \<equiv> scaleR (inverse r) x"
+  where "x /\<^sub>R r \<equiv> inverse r *\<^sub>R x"
 
 end
 
 class real_vector = scaleR + ab_group_add +
-  assumes scaleR_add_right: "scaleR a (x + y) = scaleR a x + scaleR a y"
-  and scaleR_add_left: "scaleR (a + b) x = scaleR a x + scaleR b x"
-  and scaleR_scaleR: "scaleR a (scaleR b x) = scaleR (a * b) x"
-  and scaleR_one: "scaleR 1 x = x"
-
+  assumes scaleR_add_right: "a *\<^sub>R (x + y) = a *\<^sub>R x + a *\<^sub>R y"
+  and scaleR_add_left: "(a + b) *\<^sub>R x = a *\<^sub>R x + b *\<^sub>R x"
+  and scaleR_scaleR: "a *\<^sub>R b *\<^sub>R x = (a * b) *\<^sub>R x"
+  and scaleR_one: "1 *\<^sub>R x = x"
 
 class real_algebra = real_vector + ring +
-  assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
-    and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
+  assumes mult_scaleR_left [simp]: "a *\<^sub>R x * y = a *\<^sub>R (x * y)"
+    and mult_scaleR_right [simp]: "x * a *\<^sub>R y = a *\<^sub>R (x * y)"
 
 class real_algebra_1 = real_algebra + ring_1
 
@@ -49,10 +48,12 @@ end
 
 locale linear = Vector_Spaces.linear "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
 begin
+
 lemmas scaleR = scale
+
 end
 
-global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
+global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a :: real_vector"
   rewrites "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
     and "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
   defines dependent_raw_def: dependent = real_vector.dependent
@@ -449,32 +450,53 @@ lemma scaleR_mono: "a \<le> b \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<
 lemma scaleR_mono': "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
   by (rule scaleR_mono) (auto intro: order.trans)
 
-lemma pos_le_divideRI:
-  assumes "0 < c"
-    and "c *\<^sub>R a \<le> b"
-  shows "a \<le> b /\<^sub>R c"
-proof -
-  from scaleR_left_mono[OF assms(2)] assms(1)
-  have "c *\<^sub>R a /\<^sub>R c \<le> b /\<^sub>R c"
+lemma pos_le_divideR_eq:
+  "a \<le> b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a \<le> b" (is "?P \<longleftrightarrow> ?Q") if "0 < c"
+proof
+  assume ?P
+  with scaleR_left_mono that have "c *\<^sub>R a \<le> c *\<^sub>R (b /\<^sub>R c)"
     by simp
-  with assms show ?thesis
+  with that show ?Q
+    by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
+next
+  assume ?Q
+  with scaleR_left_mono that have "c *\<^sub>R a /\<^sub>R c \<le> b /\<^sub>R c"
+    by simp
+  with that show ?P
     by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
 qed
 
-lemma pos_le_divideR_eq:
-  assumes "0 < c"
-  shows "a \<le> b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a \<le> b"
-    (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  from scaleR_left_mono[OF this] assms have "c *\<^sub>R a \<le> c *\<^sub>R (b /\<^sub>R c)"
-    by simp
-  with assms show ?rhs
-    by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
-next
-  assume ?rhs
-  with assms show ?lhs by (rule pos_le_divideRI)
-qed
+lemma pos_less_divideR_eq:
+  "a < b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a < b" if "c > 0"
+  using that pos_le_divideR_eq [of c a b]
+  by (auto simp add: le_less scaleR_scaleR scaleR_one)
+
+lemma pos_divideR_le_eq:
+  "b /\<^sub>R c \<le> a \<longleftrightarrow> b \<le> c *\<^sub>R a" if "c > 0"
+  using that pos_le_divideR_eq [of "inverse c" b a] by simp
+
+lemma pos_divideR_less_eq:
+  "b /\<^sub>R c < a \<longleftrightarrow> b < c *\<^sub>R a" if "c > 0"
+  using that pos_less_divideR_eq [of "inverse c" b a] by simp
+
+lemma pos_le_minus_divideR_eq:
+  "a \<le> - (b /\<^sub>R c) \<longleftrightarrow> c *\<^sub>R a \<le> - b" if "c > 0"
+  using that by (metis add_minus_cancel diff_0 left_minus minus_minus neg_le_iff_le
+    scaleR_add_right uminus_add_conv_diff pos_le_divideR_eq)
+  
+lemma pos_less_minus_divideR_eq:
+  "a < - (b /\<^sub>R c) \<longleftrightarrow> c *\<^sub>R a < - b" if "c > 0"
+  using that by (metis le_less less_le_not_le pos_divideR_le_eq
+    pos_divideR_less_eq pos_le_minus_divideR_eq)
+
+lemma pos_minus_divideR_le_eq:
+  "- (b /\<^sub>R c) \<le> a \<longleftrightarrow> - b \<le> c *\<^sub>R a" if "c > 0"
+  using that by (metis pos_divideR_le_eq pos_le_minus_divideR_eq that
+    inverse_positive_iff_positive le_imp_neg_le minus_minus)
+
+lemma pos_minus_divideR_less_eq:
+  "- (b /\<^sub>R c) < a \<longleftrightarrow> - b < c *\<^sub>R a" if "c > 0"
+  using that by (simp add: less_le_not_le pos_le_minus_divideR_eq pos_minus_divideR_le_eq) 
 
 lemma scaleR_image_atLeastAtMost: "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {c *\<^sub>R x..c *\<^sub>R y}"
   apply (auto intro!: scaleR_left_mono)
@@ -485,10 +507,49 @@ lemma scaleR_image_atLeastAtMost: "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {
 end
 
 lemma neg_le_divideR_eq:
-  fixes a :: "'a :: ordered_real_vector"
-  assumes "c < 0"
-  shows "a \<le> b /\<^sub>R c \<longleftrightarrow> b \<le> c *\<^sub>R a"
-  using pos_le_divideR_eq [of "-c" a "-b"] assms by simp
+  "a \<le> b /\<^sub>R c \<longleftrightarrow> b \<le> c *\<^sub>R a" (is "?P \<longleftrightarrow> ?Q") if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that pos_le_divideR_eq [of "- c" a "- b"] by simp
+
+lemma neg_less_divideR_eq:
+  "a < b /\<^sub>R c \<longleftrightarrow> b < c *\<^sub>R a" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that neg_le_divideR_eq [of c a b] by (auto simp add: le_less)
+
+lemma neg_divideR_le_eq:
+  "b /\<^sub>R c \<le> a \<longleftrightarrow> c *\<^sub>R a \<le> b" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that pos_divideR_le_eq [of "- c" "- b" a] by simp
+
+lemma neg_divideR_less_eq:
+  "b /\<^sub>R c < a \<longleftrightarrow> c *\<^sub>R a < b" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that neg_divideR_le_eq [of c b a] by (auto simp add: le_less)
+
+lemma neg_le_minus_divideR_eq:
+  "a \<le> - (b /\<^sub>R c) \<longleftrightarrow> - b \<le> c *\<^sub>R a" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that pos_le_minus_divideR_eq [of "- c" a "- b"] by (simp add: minus_le_iff)
+  
+lemma neg_less_minus_divideR_eq:
+  "a < - (b /\<^sub>R c) \<longleftrightarrow> - b < c *\<^sub>R a" if "c < 0"
+   for a b :: "'a :: ordered_real_vector"
+proof -
+  have *: "- b = c *\<^sub>R a \<longleftrightarrow> b = - (c *\<^sub>R a)"
+    by (metis add.inverse_inverse)
+  from that neg_le_minus_divideR_eq [of c a b]
+  show ?thesis by (auto simp add: le_less *)
+qed
+
+lemma neg_minus_divideR_le_eq:
+  "- (b /\<^sub>R c) \<le> a \<longleftrightarrow> c *\<^sub>R a \<le> - b" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that pos_minus_divideR_le_eq [of "- c" "- b" a] by (simp add: le_minus_iff) 
+
+lemma neg_minus_divideR_less_eq:
+  "- (b /\<^sub>R c) < a \<longleftrightarrow> c *\<^sub>R a < - b" if "c < 0"
+    for a b :: "'a :: ordered_real_vector"
+  using that by (simp add: less_le_not_le neg_le_minus_divideR_eq neg_minus_divideR_le_eq)
 
 lemma scaleR_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> a *\<^sub>R x"
   for x :: "'a::ordered_real_vector"
