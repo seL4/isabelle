@@ -208,7 +208,7 @@ subsection "Functional correctness"
 subsubsection \<open>Functional correctness of isin:\<close>
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set (inorder t))"
-by (induction t) (auto simp: isin_simps ball_Un)
+by (induction t) (auto simp: isin_simps)
 
 
 subsubsection \<open>Functional correctness of insert:\<close>

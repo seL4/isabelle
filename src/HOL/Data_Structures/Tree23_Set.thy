@@ -148,7 +148,7 @@ subsection "Functional Correctness"
 subsubsection "Proofs for isin"
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set (inorder t))"
-by (induction t) (auto simp: isin_simps ball_Un)
+by (induction t) (auto simp: isin_simps)
 
 
 subsubsection "Proofs for insert"
