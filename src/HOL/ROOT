@@ -5,7 +5,7 @@ session HOL (main) = Pure +
     Classical Higher-order Logic.
   "
   options [strict_facts]
-  theories
+  theories [dump_checkpoint]
     Main (global)
     Complex_Main (global)
   document_files
@@ -64,7 +64,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
   sessions
     "HOL-Library"
     "HOL-Computational_Algebra"
-  theories
+  theories [dump_checkpoint]
     Analysis
   document_files
     "root.tex"

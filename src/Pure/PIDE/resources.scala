@@ -135,6 +135,13 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
+  def dump_checkpoint(info: Sessions.Info): List[Document.Node.Name] =
+    for {
+      (options, thys) <- info.theories
+      if options.bool("dump_checkpoint")
+      (thy, _) <- thys
+    } yield import_name(info, thy)
+
   def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
   {
     val name = import_name(qualifier, dir, s)

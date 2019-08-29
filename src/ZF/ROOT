@@ -46,6 +46,7 @@ session ZF (main timing) = Pure +
     FOL
   theories
     ZF (global)
+  theories [dump_checkpoint]
     ZFC (global)
   document_files "root.tex"
 
