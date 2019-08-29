@@ -66,7 +66,7 @@ next
   case 3 thus ?case by(simp add: inorder_insert set_ins_list set_def invar_def)
 next
   case (4 s x) thus ?case
-    by (auto simp: inorder_delete distinct_if_sorted set_del_list_eq invar_def set_def)
+    by (auto simp: inorder_delete set_del_list invar_def set_def)
 next
   case 5 thus ?case by(simp add: inorder_empty inorder_inv_empty invar_def)
 next

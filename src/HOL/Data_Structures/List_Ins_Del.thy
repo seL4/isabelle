@@ -40,13 +40,8 @@ fun ins_list :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "ins_list x (a#xs) =
   (if x < a then x#a#xs else if x=a then a#xs else a # ins_list x xs)"
 
-lemma set_ins_list: "set (ins_list x xs) = insert x (set xs)"
+lemma set_ins_list: "set (ins_list x xs) = set xs \<union> {x}"
 by(induction xs) auto
-
-lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
-apply(induction xs rule: induct_list012)
-apply auto
-by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
 
 lemma sorted_ins_list: "sorted xs \<Longrightarrow> sorted(ins_list x xs)"
 by(induction xs rule: induct_list012) auto
@@ -87,9 +82,9 @@ fun del_list :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 lemma del_list_idem: "x \<notin> set xs \<Longrightarrow> del_list x xs = xs"
 by (induct xs) simp_all
 
-lemma set_del_list_eq:
-  "distinct xs \<Longrightarrow> set (del_list x xs) = set xs - {x}"
-by(induct xs) auto
+lemma set_del_list:
+  "sorted xs \<Longrightarrow> set (del_list x xs) = set xs - {x}"
+by(induct xs) (auto simp: sorted_Cons_iff)
 
 lemma sorted_del_list: "sorted xs \<Longrightarrow> sorted(del_list x xs)"
 apply(induction xs rule: induct_list012)
