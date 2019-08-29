@@ -132,6 +132,9 @@ class Resources(
   def import_name(name: Document.Node.Name, s: String): Document.Node.Name =
     import_name(session_base.theory_qualifier(name), name.master_dir, s)
 
+  def import_name(info: Sessions.Info, s: String): Document.Node.Name =
+    import_name(info.name, info.dir.implode, s)
+
   def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
   {
     val name = import_name(qualifier, dir, s)
@@ -246,12 +249,9 @@ class Resources(
   def session_dependencies(info: Sessions.Info, progress: Progress = No_Progress)
     : Dependencies[Options] =
   {
-    val qualifier = info.name
-    val dir = info.dir.implode
-
     (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
       dependencies.require_thys(options,
-        for { (thy, pos) <- thys } yield (import_name(qualifier, dir, thy), pos),
+        for { (thy, pos) <- thys } yield (import_name(info, thy), pos),
         progress = progress)
     })
   }
