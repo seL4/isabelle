@@ -219,6 +219,9 @@ option headless_commit_cleanup_delay : real = 60
 option execution_eager : bool = false
   -- "prefer theories with shorter stack of decendants"
 
+option dump_checkpoint : bool = false
+  -- "mark individual theories to share common data in ML"
+
 
 section "Miscellaneous Tools"
 
