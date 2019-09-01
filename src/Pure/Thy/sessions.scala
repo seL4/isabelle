@@ -147,7 +147,7 @@ object Sessions
     doc_names: List[String] = Nil,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[(Options, Document.Node.Name)] = Nil,
+    used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
     dump_checkpoint: List[Document.Node.Name] = Nil,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -208,30 +208,33 @@ object Sessions
       } yield name).toList
 
     def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
-      : List[(Options, Document.Node.Name)] =
+      : Graph[Document.Node.Name, Options] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
-      for {
-        session_name <- sessions_structure.build_topological_order
-        (options, name) <- session_bases(session_name).used_theories
-        if {
-          def warn(msg: String): Unit =
-            progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+      val used =
+        for {
+          session_name <- sessions_structure.build_topological_order
+          entry @ ((name, options), _) <- session_bases(session_name).used_theories
+          if {
+            def warn(msg: String): Unit =
+              progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
-          val conditions =
-            space_explode(',', options.string("condition")).
-              filter(cond => Isabelle_System.getenv(cond) == "")
-          if (conditions.nonEmpty) {
-            warn("undefined " + conditions.mkString(", "))
-            false
+            val conditions =
+              space_explode(',', options.string("condition")).
+                filter(cond => Isabelle_System.getenv(cond) == "")
+            if (conditions.nonEmpty) {
+              warn("undefined " + conditions.mkString(", "))
+              false
+            }
+            else if (default_skip_proofs && !options.bool("skip_proofs")) {
+              warn("option skip_proofs")
+              false
+            }
+            else true
           }
-          else if (default_skip_proofs && !options.bool("skip_proofs")) {
-            warn("option skip_proofs")
-            false
-          }
-          else true
-        }
-      } yield (options, name)
+        } yield entry
+      Graph.make[Document.Node.Name, Options](used, permissive = true)(
+        Document.Node.Name.Theory_Ordering)
     }
 
     def sources(name: String): List[SHA1.Digest] =
@@ -370,6 +373,10 @@ object Sessions
                 theories = dependencies.entries,
                 loaded_files = loaded_files)
 
+            val used_theories =
+              for ((options, name) <- dependencies.adjunct_theories)
+              yield ((name, options), known.theories(name.theory).imports)
+
             val sources_errors =
               for (p <- session_files if !p.is_file) yield "No such file: " + p
 
@@ -387,7 +394,7 @@ object Sessions
                 doc_names = doc_names,
                 global_theories = global_theories,
                 loaded_theories = dependencies.loaded_theories,
-                used_theories = dependencies.adjunct_theories,
+                used_theories = used_theories,
                 dump_checkpoint = dump_checkpoint,
                 known = known,
                 overall_syntax = overall_syntax,

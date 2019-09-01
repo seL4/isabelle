@@ -106,6 +106,11 @@ object Document
       {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
       }
+
+      object Theory_Ordering extends scala.math.Ordering[Name]
+      {
+        def compare(name1: Name, name2: Name): Int = name1.theory compare name2.theory
+      }
     }
 
     sealed case class Name(node: String, master_dir: String = "", theory: String = "")
@@ -135,6 +140,8 @@ object Document
     sealed case class Entry(name: Node.Name, header: Node.Header)
     {
       def map(f: String => String): Entry = copy(name = name.map(f))
+
+      def imports: List[Node.Name] = header.imports.map(_._1)
 
       override def toString: String = name.toString
     }
