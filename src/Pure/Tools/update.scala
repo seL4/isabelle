@@ -16,21 +16,11 @@ object Update
     select_dirs: List[Path] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
-    Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, strict = true)
+    val session =
+      Dump.Session(options, logic, progress = progress, log = log, dirs = dirs,
+        select_dirs = select_dirs, selection = selection)
 
-    val dump_options = Dump.make_options(options)
-
-    val deps =
-      Dump.dependencies(dump_options, progress = progress,
-        dirs = dirs, select_dirs = select_dirs, selection = selection)
-
-    val resources =
-      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
-        session_dirs = dirs ::: select_dirs,
-        include_sessions = deps.sessions_structure.imports_topological_order)
-
-    val path_cartouches = dump_options.bool("update_path_cartouches")
+    val path_cartouches = session.dump_options.bool("update_path_cartouches")
 
     def update_xml(xml: XML.Body): XML.Body =
       xml flatMap {
@@ -46,24 +36,23 @@ object Update
         case t => List(t)
       }
 
-    Dump.session(deps, resources, progress = progress,
-      process_theory = (args: Dump.Args) =>
-        {
-          progress.echo("Processing theory " + args.print_node + " ...")
+    session.run((args: Dump.Args) =>
+      {
+        progress.echo("Processing theory " + args.print_node + " ...")
 
-          val snapshot = args.snapshot
-          for ((node_name, node) <- snapshot.nodes) {
-            val xml =
-              snapshot.state.markup_to_XML(snapshot.version, node_name,
-                Text.Range.full, Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
+        val snapshot = args.snapshot
+        for ((node_name, node) <- snapshot.nodes) {
+          val xml =
+            snapshot.state.markup_to_XML(snapshot.version, node_name,
+              Text.Range.full, Markup.Elements(Markup.UPDATE, Markup.LANGUAGE))
 
-            val source1 = Symbol.encode(XML.content(update_xml(xml)))
-            if (source1 != Symbol.encode(node.source)) {
-              progress.echo("Updating " + node_name.path)
-              File.write(node_name.path, source1)
-            }
+          val source1 = Symbol.encode(XML.content(update_xml(xml)))
+          if (source1 != Symbol.encode(node.source)) {
+            progress.echo("Updating " + node_name.path)
+            File.write(node_name.path, source1)
           }
-        })
+        }
+      })
   }
 
 

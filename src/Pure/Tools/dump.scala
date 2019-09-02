@@ -13,9 +13,9 @@ object Dump
 
   sealed case class Aspect_Args(
     options: Options,
+    deps: Sessions.Deps,
     progress: Progress,
     output_dir: Path,
-    deps: Sessions.Deps,
     snapshot: Document.Snapshot,
     status: Document_Status.Node_Status)
   {
@@ -73,135 +73,177 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* dependencies */
-
-  def dependencies(
-    options: Options,
-    progress: Progress = No_Progress,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    selection: Sessions.Selection = Sessions.Selection.empty): Sessions.Deps =
-  {
-    Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
-      selection_deps(options, selection, progress = progress,
-        uniform_session = true, loading_sessions = true)
-  }
-
-
   /* session */
 
   sealed case class Args(
     session: Headless.Session,
-    deps: Sessions.Deps,
     snapshot: Document.Snapshot,
     status: Document_Status.Node_Status)
   {
     def print_node: String = snapshot.node_name.toString
-
-    def aspect_args(options: Options, progress: Progress, output_dir: Path): Aspect_Args =
-      Aspect_Args(options, progress, output_dir, deps, snapshot, status)
   }
 
-  def session(
-    deps: Sessions.Deps,
-    resources: Headless.Resources,
-    unicode_symbols: Boolean = false,
-    process_theory: Args => Unit,
-    progress: Progress = No_Progress)
+  object Session
   {
-    val session = resources.start_session(progress = progress)
-
-
-    /* asynchronous consumer */
-
-    object Consumer
+    def apply(
+      options: Options,
+      logic: String,
+      aspects: List[Aspect] = Nil,
+      progress: Progress = No_Progress,
+      log: Logger = No_Logger,
+      dirs: List[Path] = Nil,
+      select_dirs: List[Path] = Nil,
+      selection: Sessions.Selection = Sessions.Selection.empty): Session =
     {
-      sealed case class Bad_Theory(
-        name: Document.Node.Name,
-        status: Document_Status.Node_Status,
-        errors: List[String])
+      new Session(options, logic, aspects, progress, log, dirs, select_dirs, selection)
+    }
+  }
 
-      private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
+  class Session private(
+    options: Options,
+    logic: String,
+    aspects: List[Aspect],
+    progress: Progress,
+    log: Logger,
+    dirs: List[Path],
+    select_dirs: List[Path],
+    selection: Sessions.Selection)
+  {
+    /* context */
 
-      private val consumer =
-        Consumer_Thread.fork(name = "dump")(
-          consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
-            {
-              val (snapshot, status) = args
-              val name = snapshot.node_name
-              if (status.ok) {
-                try { process_theory(Args(session, deps, snapshot, status)) }
-                catch {
-                  case exn: Throwable if !Exn.is_interrupt(exn) =>
-                  val msg = Exn.message(exn)
-                  progress.echo("FAILED to process theory " + name)
-                  progress.echo_error_message(msg)
-                  consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
-                }
-              }
-              else {
-                val msgs =
-                  for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
-                  yield {
-                    "Error" + Position.here(pos) + ":\n" +
-                      XML.content(Pretty.formatted(List(tree)))
+    Build.build_logic(options, logic, build_heap = true, progress = progress,
+      dirs = dirs ::: select_dirs, strict = true)
+
+    val dump_options: Options =
+    {
+      val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
+      val options1 =
+        options0 +
+          "completion_limit=0" +
+          "ML_statistics=false" +
+          "parallel_proofs=0" +
+          "editor_tracing_messages=0" +
+          "editor_presentation" +
+          "execution_eager"
+      (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+    }
+
+    val deps: Sessions.Deps =
+      Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
+        selection_deps(dump_options, selection, progress = progress,
+          uniform_session = true, loading_sessions = true)
+
+    val resources: Headless.Resources =
+      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
+        session_dirs = dirs ::: select_dirs,
+        include_sessions = deps.sessions_structure.imports_topological_order)
+
+    val used_theories: List[Document.Node.Name] =
+    {
+      for {
+        name <- deps.used_theories_condition(dump_options, progress = progress).topological_order
+        if !resources.session_base.loaded_theory(name.theory)
+      } yield name
+    }
+
+
+    /* run */
+
+    def run(process_theory: Args => Unit, unicode_symbols: Boolean = false)
+    {
+      val session = resources.start_session(progress = progress)
+
+
+      // asynchronous consumer
+
+      object Consumer
+      {
+        sealed case class Bad_Theory(
+          name: Document.Node.Name,
+          status: Document_Status.Node_Status,
+          errors: List[String])
+
+        private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
+
+        private val consumer =
+          Consumer_Thread.fork(name = "dump")(
+            consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
+              {
+                val (snapshot, status) = args
+                val name = snapshot.node_name
+                if (status.ok) {
+                  try { process_theory(Args(session, snapshot, status)) }
+                  catch {
+                    case exn: Throwable if !Exn.is_interrupt(exn) =>
+                    val msg = Exn.message(exn)
+                    progress.echo("FAILED to process theory " + name)
+                    progress.echo_error_message(msg)
+                    consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
                   }
-                progress.echo("FAILED to process theory " + name)
-                msgs.foreach(progress.echo_error_message)
-                consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
-              }
-              true
-            })
+                }
+                else {
+                  val msgs =
+                    for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
+                    yield {
+                      "Error" + Position.here(pos) + ":\n" +
+                        XML.content(Pretty.formatted(List(tree)))
+                    }
+                  progress.echo("FAILED to process theory " + name)
+                  msgs.foreach(progress.echo_error_message)
+                  consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
+                }
+                true
+              })
 
-      def apply(snapshot: Document.Snapshot, status: Document_Status.Node_Status): Unit =
-        consumer.send((snapshot, status))
+        def apply(snapshot: Document.Snapshot, status: Document_Status.Node_Status): Unit =
+          consumer.send((snapshot, status))
 
-      def shutdown(): List[Bad_Theory] =
-      {
-        consumer.shutdown()
-        consumer_bad_theories.value.reverse
-      }
-    }
-
-
-    /* run session */
-
-    try {
-      val dump_checkpoint = deps.dump_checkpoint.toSet
-      def commit(snapshot: Document.Snapshot, status: Document_Status.Node_Status)
-      {
-        if (dump_checkpoint(snapshot.node_name)) {
-          session.protocol_command("ML_Heap.share_common_data")
+        def shutdown(): List[Bad_Theory] =
+        {
+          consumer.shutdown()
+          consumer_bad_theories.value.reverse
         }
-        Consumer.apply(snapshot, status)
       }
 
-      val use_theories = resources.used_theories(deps).map(_.theory)
-      val use_theories_result =
-        session.use_theories(use_theories,
-          unicode_symbols = unicode_symbols,
-          share_common_data = true,
-          progress = progress,
-          commit = Some(commit _))
 
-      val bad_theories = Consumer.shutdown()
-      val bad_msgs =
-        bad_theories.map(bad =>
-          Output.clean_yxml(
-            "FAILED theory " + bad.name +
-              (if (bad.status.consolidated) "" else ": " + bad.status.percentage + "% finished") +
-              (if (bad.errors.isEmpty) "" else bad.errors.mkString("\n", "\n", ""))))
+      // run
 
-      val pending_msgs =
-        use_theories_result.nodes_pending match {
-          case Nil => Nil
-          case pending => List("Pending theories: " + commas(pending.map(p => p._1.toString)))
+      try {
+        val dump_checkpoint = deps.dump_checkpoint.toSet
+        def commit(snapshot: Document.Snapshot, status: Document_Status.Node_Status)
+        {
+          if (dump_checkpoint(snapshot.node_name)) {
+            session.protocol_command("ML_Heap.share_common_data")
+          }
+          Consumer.apply(snapshot, status)
         }
 
-      val errors = bad_msgs ::: pending_msgs
-      if (errors.nonEmpty) error(errors.mkString("\n\n"))
+        val use_theories_result =
+          session.use_theories(used_theories.map(_.theory),
+            unicode_symbols = unicode_symbols,
+            share_common_data = true,
+            progress = progress,
+            commit = Some(commit _))
+
+        val bad_theories = Consumer.shutdown()
+        val bad_msgs =
+          bad_theories.map(bad =>
+            Output.clean_yxml(
+              "FAILED theory " + bad.name +
+                (if (bad.status.consolidated) "" else ": " + bad.status.percentage + "% finished") +
+                (if (bad.errors.isEmpty) "" else bad.errors.mkString("\n", "\n", ""))))
+
+        val pending_msgs =
+          use_theories_result.nodes_pending match {
+            case Nil => Nil
+            case pending => List("Pending theories: " + commas(pending.map(p => p._1.toString)))
+          }
+
+        val errors = bad_msgs ::: pending_msgs
+        if (errors.nonEmpty) error(errors.mkString("\n\n"))
+      }
+      finally { session.stop() }
     }
-    finally { session.stop() }
   }
 
 
@@ -209,21 +251,9 @@ object Dump
 
   val default_output_dir: Path = Path.explode("dump")
 
-  def make_options(options: Options, aspects: List[Aspect] = Nil): Options =
-  {
-    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
-    val options1 =
-      options0 +
-        "completion_limit=0" +
-        "ML_statistics=false" +
-        "parallel_proofs=0" +
-        "editor_tracing_messages=0" +
-        "editor_presentation" +
-        "execution_eager"
-    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
-  }
-
-  def dump(options: Options, logic: String,
+  def dump(
+    options: Options,
+    logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = No_Progress,
     log: Logger = No_Logger,
@@ -232,28 +262,18 @@ object Dump
     output_dir: Path = default_output_dir,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
-    Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, strict = true)
-
-    val dump_options = make_options(options, aspects)
-
-    val deps =
-      dependencies(dump_options, progress = progress,
+    val session =
+      Session(options, logic, aspects = aspects, progress = progress, log = log,
         dirs = dirs, select_dirs = select_dirs, selection = selection)
 
-    val resources =
-      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
-        session_dirs = dirs ::: select_dirs,
-        include_sessions = deps.sessions_structure.imports_topological_order)
-
-    session(deps, resources, progress = progress,
-      process_theory = (args: Args) =>
-        {
-          progress.echo("Processing theory " + args.print_node + " ...")
-
-          val aspect_args = args.aspect_args(dump_options, progress, output_dir)
-          aspects.foreach(_.operation(aspect_args))
-        })
+    session.run((args: Args) =>
+      {
+        progress.echo("Processing theory " + args.print_node + " ...")
+        val aspect_args =
+          Aspect_Args(session.dump_options, session.deps, progress, output_dir,
+            args.snapshot, args.status)
+        aspects.foreach(_.operation(aspect_args))
+      })
   }
 
 

@@ -485,18 +485,6 @@ object Headless
     def options: Options = session_base_info.options
 
 
-    /* dependencies */
-
-    def used_theories(
-      deps: Sessions.Deps, progress: Progress = No_Progress): List[Document.Node.Name] =
-    {
-      for {
-        name <- deps.used_theories_condition(options, progress = progress).topological_order
-        if !session_base.loaded_theory(name.theory)
-      } yield name
-    }
-
-
     /* session */
 
     def start_session(print_mode: List[String] = Nil, progress: Progress = No_Progress): Session =
