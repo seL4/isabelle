@@ -233,7 +233,7 @@ object Sessions
             else true
           }
         } yield entry
-      Graph.make[Document.Node.Name, Options](used, permissive = true)(
+      Graph.make[Document.Node.Name, Options](used, symmetric = true, permissive = true)(
         Document.Node.Name.Theory_Ordering)
     }
 
