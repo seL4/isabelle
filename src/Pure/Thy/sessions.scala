@@ -124,7 +124,7 @@ object Sessions
       val entries =
         for ((_, entry) <- theories.toList)
         yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp._1.theory).name))
-      Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
+      Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
     }
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
