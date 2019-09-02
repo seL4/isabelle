@@ -109,9 +109,8 @@ object Headless
           if (commit.isDefined) {
             (already_committed /: dep_theories)({ case (committed, name) =>
               def parents_committed: Boolean =
-                version.nodes(name).header.imports.forall({ case (parent, _) =>
-                  resources.session_base.loaded_theory(parent) || committed.isDefinedAt(parent)
-                })
+                version.nodes(name).header.imports.forall(parent =>
+                  resources.session_base.loaded_theory(parent) || committed.isDefinedAt(parent))
               if (!committed.isDefinedAt(name) && parents_committed &&
                   state.node_consolidated(version, name))
               {
@@ -398,7 +397,7 @@ object Headless
       {
         val entries =
           for ((name, theory) <- theories.toList)
-          yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
+          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_)))
         Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
       }
 

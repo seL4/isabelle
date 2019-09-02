@@ -82,7 +82,7 @@ object Thy_Syntax
           node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
         if (update_header) {
           val node1 = node.update_header(header)
-          if (node.header.imports.map(_._1) != node1.header.imports.map(_._1) ||
+          if (node.header.imports != node1.header.imports ||
               node.header.keywords != node1.header.keywords ||
               node.header.abbrevs != node1.header.abbrevs ||
               node.header.errors != node1.header.errors) syntax_changed0 += name
@@ -102,8 +102,7 @@ object Thy_Syntax
           val header = node.header
           val imports_syntax =
             if (header.imports.nonEmpty) {
-              Outer_Syntax.merge(
-                header.imports.map(p => resources.session_base.node_syntax(nodes, p._1)))
+              Outer_Syntax.merge(header.imports.map(resources.session_base.node_syntax(nodes, _)))
             }
             else resources.session_base.overall_syntax
           Some(imports_syntax + header)

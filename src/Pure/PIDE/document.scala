@@ -81,11 +81,13 @@ object Document
     /* header and name */
 
     sealed case class Header(
-      imports: List[(Name, Position.T)] = Nil,
+      imports_pos: List[(Name, Position.T)] = Nil,
       keywords: Thy_Header.Keywords = Nil,
       abbrevs: Thy_Header.Abbrevs = Nil,
       errors: List[String] = Nil)
     {
+      def imports: List[Name] = imports_pos.map(_._1)
+
       def append_errors(msgs: List[String]): Header =
         copy(errors = errors ::: msgs)
 
@@ -140,8 +142,6 @@ object Document
     sealed case class Entry(name: Node.Name, header: Node.Header)
     {
       def map(f: String => String): Entry = copy(name = name.map(f))
-
-      def imports: List[Node.Name] = header.imports.map(_._1)
 
       override def toString: String = name.toString
     }
@@ -384,7 +384,7 @@ object Document
     def + (entry: (Node.Name, Node)): Nodes =
     {
       val (name, node) = entry
-      val imports = node.header.imports.map(_._1)
+      val imports = node.header.imports
       val graph1 =
         (graph.default_node(name, Node.empty) /: imports)((g, p) => g.default_node(p, Node.empty))
       val graph2 = (graph1 /: graph1.imm_preds(name))((g, dep) => g.del_edge(dep, name))

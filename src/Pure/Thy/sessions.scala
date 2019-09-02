@@ -123,7 +123,7 @@ object Sessions
     {
       val entries =
         for ((_, entry) <- theories.toList)
-        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp._1.theory).name))
+        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name))
       Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
     }
 
@@ -361,9 +361,7 @@ object Sessions
               (graph0 /: dependencies.entries)(
                 { case (g, entry) =>
                     val a = node(entry.name)
-                    val bs =
-                      entry.header.imports.map({ case (name, _) => node(name) }).
-                        filterNot(_ == a)
+                    val bs = entry.header.imports.map(node).filterNot(_ == a)
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
@@ -375,7 +373,7 @@ object Sessions
 
             val used_theories =
               for ((options, name) <- dependencies.adjunct_theories)
-              yield ((name, options), known.theories(name.theory).imports)
+              yield ((name, options), known.theories(name.theory).header.imports)
 
             val sources_errors =
               for (p <- session_files if !p.is_file) yield "No such file: " + p

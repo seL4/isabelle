@@ -191,7 +191,7 @@ object Imports
               (for {
                 name <- session_base.known.theories_local.iterator.map(p => p._2.name)
                 if session_base.theory_qualifier(name) == info.name
-                (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
+                (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports_pos
                 upd <- update_name(session_base.overall_syntax.keywords, pos,
                   standard_import(session_base.theory_qualifier(name), name.master_dir, _))
               } yield upd).toList

@@ -512,16 +512,16 @@ object Command
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = Scan.char_reader(Token.implode(span.content))
-        val imports = resources.check_thy_reader(node_name, reader).imports
+        val imports_pos = resources.check_thy_reader(node_name, reader).imports_pos
         val raw_imports =
           try {
-            val imports1 = Thy_Header.read(reader, Token.Pos.none).imports
-            if (imports.length == imports1.length) imports1.map(_._1) else error("")
+            val read_imports = Thy_Header.read(reader, Token.Pos.none).imports
+            if (imports_pos.length == read_imports.length) read_imports else error("")
           }
-          catch { case exn: Throwable => List.fill(imports.length)("") }
+          catch { case exn: Throwable => List.fill(imports_pos.length)("") }
 
         val errors =
-          for { ((import_name, pos), s) <- imports zip raw_imports if !can_import(import_name) }
+          for { ((import_name, pos), s) <- imports_pos zip raw_imports if !can_import(import_name) }
           yield {
             val completion =
               if (Thy_Header.is_base_name(s)) {

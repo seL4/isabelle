@@ -181,20 +181,19 @@ class Resources(
         val header = Thy_Header.read(reader, start, strict)
 
         val base_name = node_name.theory_base_name
-        val (name, pos) = header.name
-        if (base_name != name)
-          error("Bad theory name " + quote(name) +
-            " for file " + thy_path(Path.basic(base_name)) + Position.here(pos) +
-            Completion.report_theories(pos, List(base_name)))
+        if (base_name != header.name)
+          error("Bad theory name " + quote(header.name) +
+            " for file " + thy_path(Path.basic(base_name)) + Position.here(header.pos) +
+            Completion.report_theories(header.pos, List(base_name)))
 
-        val imports =
-          header.imports.map({ case (s, pos) =>
+        val imports_pos =
+          header.imports_pos.map({ case (s, pos) =>
             val name = import_name(node_name, s)
             if (Sessions.exclude_theory(name.theory_base_name))
               error("Bad theory name " + quote(name.theory_base_name) + Position.here(pos))
             (name, pos)
           })
-        Document.Node.Header(imports, header.keywords, header.abbrevs)
+        Document.Node.Header(imports_pos, header.keywords, header.abbrevs)
       }
       catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
     }
@@ -309,7 +308,7 @@ class Resources(
               try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
               catch { case ERROR(msg) => cat_error(msg, message) }
             val entry = Document.Node.Entry(name, header)
-            dependencies1.require_thys(adjunct, header.imports,
+            dependencies1.require_thys(adjunct, header.imports_pos,
               initiators = name :: initiators, progress = progress).cons(entry)
           }
           catch {
@@ -342,7 +341,7 @@ class Resources(
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
       (session_base.loaded_theories /: entries)({ case (graph, entry) =>
         val name = entry.name.theory
-        val imports = entry.header.imports.map(p => p._1.theory)
+        val imports = entry.header.imports.map(_.theory)
 
         val graph1 = (graph /: (name :: imports))(_.default_node(_, Outer_Syntax.empty))
         val graph2 = (graph1 /: imports)(_.add_edge(_, name))

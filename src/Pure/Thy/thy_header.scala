@@ -224,7 +224,12 @@ object Thy_Header
 }
 
 sealed case class Thy_Header(
-  name: (String, Position.T),
-  imports: List[(String, Position.T)],
+  name_pos: (String, Position.T),
+  imports_pos: List[(String, Position.T)],
   keywords: Thy_Header.Keywords,
   abbrevs: Thy_Header.Abbrevs)
+{
+  def name: String = name_pos._1
+  def pos: Position.T = name_pos._2
+  def imports: List[String] = imports_pos.map(_._1)
+}
