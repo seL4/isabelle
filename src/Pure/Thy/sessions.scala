@@ -148,7 +148,7 @@ object Sessions
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
-    dump_checkpoint: List[Document.Node.Name] = Nil,
+    dump_checkpoints: Set[Document.Node.Name] = Set.empty,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
@@ -201,11 +201,11 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def dump_checkpoint: List[Document.Node.Name] =
+    def dump_checkpoints: Set[Document.Node.Name] =
       (for {
         (_, base) <- session_bases.iterator
-        name <- base.dump_checkpoint.iterator
-      } yield name).toList
+        name <- base.dump_checkpoints.iterator
+      } yield name).toSet
 
     def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
       : Graph[Document.Node.Name, Options] =
@@ -311,7 +311,7 @@ object Sessions
 
             val dependencies = resources.session_dependencies(info)
 
-            val dump_checkpoint = resources.dump_checkpoint(info)
+            val dump_checkpoints = resources.dump_checkpoints(info)
 
             val overall_syntax = dependencies.overall_syntax
 
@@ -393,7 +393,7 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = used_theories,
-                dump_checkpoint = dump_checkpoint,
+                dump_checkpoints = dump_checkpoints,
                 known = known,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),

@@ -209,10 +209,10 @@ object Dump
       // run
 
       try {
-        val dump_checkpoint = deps.dump_checkpoint.toSet
+        val dump_checkpoints = deps.dump_checkpoints
         def commit(snapshot: Document.Snapshot, status: Document_Status.Node_Status)
         {
-          if (dump_checkpoint(snapshot.node_name)) {
+          if (dump_checkpoints.contains(snapshot.node_name)) {
             session.protocol_command("ML_Heap.share_common_data")
           }
           Consumer.apply(snapshot, status)

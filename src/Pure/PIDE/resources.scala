@@ -135,12 +135,12 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def dump_checkpoint(info: Sessions.Info): List[Document.Node.Name] =
-    for {
-      (options, thys) <- info.theories
+  def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =
+    (for {
+      (options, thys) <- info.theories.iterator
       if options.bool("dump_checkpoint")
-      (thy, _) <- thys
-    } yield import_name(info, thy)
+      (thy, _) <- thys.iterator
+    } yield import_name(info, thy)).toSet
 
   def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
   {
