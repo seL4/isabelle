@@ -84,7 +84,7 @@ object Headless
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
-      result: Promise[Use_Theories_Result] = Future.promise[Use_Theories_Result])
+      result: Option[Exn.Result[Use_Theories_Result]] = None)
     {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
@@ -92,10 +92,14 @@ object Headless
       def watchdog(watchdog_timeout: Time): Boolean =
         watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
 
-      def cancel_result { result.cancel }
-      def finished_result: Boolean = result.is_finished
-      def await_result { result.join_result }
-      def join_result: Use_Theories_Result = result.join
+      def finished_result: Boolean = result.isDefined
+
+      def join_result: Option[(Exn.Result[Use_Theories_Result], Use_Theories_State)] =
+        if (finished_result) Some((result.get, this)) else None
+
+      def cancel_result: Use_Theories_State =
+        if (finished_result) this else copy(result = Some(Exn.Exn(Exn.Interrupt())))
+
       def check_result(
           state: Document.State,
           version: Document.Version,
@@ -124,26 +128,27 @@ object Headless
           }
           else already_committed
 
-        if (beyond_limit || watchdog(watchdog_timeout) ||
-          dep_theories.forall(name =>
-            already_committed1.isDefinedAt(name) ||
-            state.node_consolidated(version, name) ||
-            nodes_status.quasi_consolidated(name)))
-        {
-          val nodes =
-            for (name <- dep_theories)
-            yield { (name -> Document_Status.Node_Status.make(state, version, name)) }
-          val nodes_committed =
-            for {
-              name <- dep_theories
-              status <- already_committed1.get(name)
-            } yield (name -> status)
+        val result1 =
+          if (!finished_result &&
+            (beyond_limit || watchdog(watchdog_timeout) ||
+              dep_theories.forall(name =>
+                already_committed1.isDefinedAt(name) ||
+                state.node_consolidated(version, name) ||
+                nodes_status.quasi_consolidated(name))))
+          {
+            val nodes =
+              for (name <- dep_theories)
+              yield { (name -> Document_Status.Node_Status.make(state, version, name)) }
+            val nodes_committed =
+              for {
+                name <- dep_theories
+                status <- already_committed1.get(name)
+              } yield (name -> status)
+            Some(Exn.Res(new Use_Theories_Result(state, version, nodes, nodes_committed)))
+          }
+          else result
 
-          try { result.fulfill(new Use_Theories_Result(state, version, nodes, nodes_committed)) }
-          catch { case _: IllegalStateException => }
-        }
-
-        copy(already_committed = already_committed1)
+        copy(already_committed = already_committed1, result = result1)
       }
     }
 
@@ -193,7 +198,7 @@ object Headless
         var check_count = 0
         Event_Timer.request(Time.now(), repeat = Some(check_delay))
           {
-            if (progress.stopped) use_theories_state.value.cancel_result
+            if (progress.stopped) use_theories_state.change(_.cancel_result)
             else {
               check_count += 1
               check_result_state(check_limit > 0 && check_count > check_limit)
@@ -266,7 +271,7 @@ object Headless
         session.commands_changed += consumer
         resources.load_theories(
           session, id, dep_theories, dep_files, unicode_symbols, share_common_data, progress)
-        use_theories_state.value.await_result
+        use_theories_state.guarded_access(_.join_result)
         check_progress.cancel
       }
       finally {
@@ -274,7 +279,7 @@ object Headless
         resources.unload_theories(session, id, dep_theories)
       }
 
-      use_theories_state.value.join_result
+      Exn.release(use_theories_state.guarded_access(_.join_result))
     }
 
     def purge_theories(
