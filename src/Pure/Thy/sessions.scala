@@ -120,12 +120,9 @@ object Sessions
     def theory_names: List[Document.Node.Name] = theories.iterator.map(p => p._2.name).toList
 
     lazy val theory_graph: Graph[Document.Node.Name, Unit] =
-    {
-      val entries =
+      Document.theory_graph(
         for ((_, entry) <- theories.toList)
-        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name))
-      Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
-    }
+        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name)))
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
     {
@@ -211,30 +208,30 @@ object Sessions
       : Graph[Document.Node.Name, Options] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
-      val used =
-        for {
-          session_name <- sessions_structure.build_topological_order
-          entry @ ((name, options), _) <- session_bases(session_name).used_theories
-          if {
-            def warn(msg: String): Unit =
-              progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+      Document.theory_graph(
+        permissive = true,
+        entries =
+          for {
+            session_name <- sessions_structure.build_topological_order
+            entry @ ((name, options), _) <- session_bases(session_name).used_theories
+            if {
+              def warn(msg: String): Unit =
+                progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
-            val conditions =
-              space_explode(',', options.string("condition")).
-                filter(cond => Isabelle_System.getenv(cond) == "")
-            if (conditions.nonEmpty) {
-              warn("undefined " + conditions.mkString(", "))
-              false
+              val conditions =
+                space_explode(',', options.string("condition")).
+                  filter(cond => Isabelle_System.getenv(cond) == "")
+              if (conditions.nonEmpty) {
+                warn("undefined " + conditions.mkString(", "))
+                false
+              }
+              else if (default_skip_proofs && !options.bool("skip_proofs")) {
+                warn("option skip_proofs")
+                false
+              }
+              else true
             }
-            else if (default_skip_proofs && !options.bool("skip_proofs")) {
-              warn("option skip_proofs")
-              false
-            }
-            else true
-          }
-        } yield entry
-      Graph.make[Document.Node.Name, Options](used, symmetric = true, permissive = true)(
-        Document.Node.Name.Theory_Ordering)
+          } yield entry)
     }
 
     def sources(name: String): List[SHA1.Digest] =

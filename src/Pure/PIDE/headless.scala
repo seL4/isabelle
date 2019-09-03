@@ -399,12 +399,9 @@ object Headless
       /* theories */
 
       lazy val theory_graph: Graph[Document.Node.Name, Unit] =
-      {
-        val entries =
+        Document.theory_graph(
           for ((name, theory) <- theories.toList)
-          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_)))
-        Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
-      }
+          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_))))
 
       def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
 

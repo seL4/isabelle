@@ -76,6 +76,11 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
+  def theory_graph[A](
+      entries: List[((Node.Name, A), List[Node.Name])],
+      permissive: Boolean = false): Graph[Node.Name, A] =
+    Graph.make(entries, symmetric = true, permissive = permissive)(Node.Name.Theory_Ordering)
+
   object Node
   {
     /* header and name */
