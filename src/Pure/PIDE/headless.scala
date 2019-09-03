@@ -472,7 +472,8 @@ object Headless
             frontier(base1, front ++ add)
           }
         }
-        frontier(theory_graph.maximals.filter(clean), Set.empty)
+        if (clean.isEmpty) Set.empty
+        else frontier(theory_graph.maximals.filter(clean), Set.empty)
       }
     }
   }
