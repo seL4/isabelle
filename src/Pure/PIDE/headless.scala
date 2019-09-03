@@ -426,13 +426,13 @@ object Headless
         copy(theories = theories -- remove)
       }
 
-      def unload_theories(session: Session, id: UUID.T, dep_theories: List[Document.Node.Name])
+      def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
         : State =
       {
-        val st1 = remove_required(id, dep_theories)
+        val st1 = remove_required(id, theories)
         val theory_edits =
           for {
-            node_name <- dep_theories
+            node_name <- theories
             theory <- st1.theories.get(node_name)
           }
           yield {
@@ -526,14 +526,14 @@ object Headless
     def load_theories(
       session: Session,
       id: UUID.T,
-      dep_theories: List[Document.Node.Name],
-      dep_files: List[Document.Node.Name],
+      theories: List[Document.Node.Name],
+      files: List[Document.Node.Name],
       unicode_symbols: Boolean,
       share_common_data: Boolean,
       progress: Progress)
     {
       val loaded_theories =
-        for (node_name <- dep_theories)
+        for (node_name <- theories)
         yield {
           val path = node_name.path
           if (!node_name.is_theory) error("Not a theory file: " + path)
@@ -550,7 +550,7 @@ object Headless
 
       state.change(st =>
         {
-          val (doc_blobs1, st1) = st.insert_required(id, dep_theories).update_blobs(dep_files)
+          val (doc_blobs1, st1) = st.insert_required(id, theories).update_blobs(files)
           val theory_edits =
             for (theory <- loaded_theories)
             yield {
@@ -560,7 +560,7 @@ object Headless
               (edits, (node_name, theory1))
             }
           val file_edits =
-            for { node_name <- dep_files if doc_blobs1.changed(node_name) }
+            for { node_name <- files if doc_blobs1.changed(node_name) }
             yield st1.blob_edits(node_name, st.blobs.get(node_name))
 
           session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten,
@@ -569,9 +569,9 @@ object Headless
         })
     }
 
-    def unload_theories(session: Session, id: UUID.T, dep_theories: List[Document.Node.Name])
+    def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
     {
-      state.change(_.unload_theories(session, id, dep_theories))
+      state.change(_.unload_theories(session, id, theories))
     }
 
     def clean_theories(session: Session, id: UUID.T, clean: Set[Document.Node.Name])
