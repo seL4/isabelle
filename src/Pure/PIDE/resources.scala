@@ -338,6 +338,10 @@ class Resources(
         case errs => error(cat_lines(errs))
       }
 
+    lazy val theory_graph: Document.Theory_Graph[A] =
+      Document.theory_graph(entries.map(entry =>
+        ((entry.name, seen(entry.name)), entry.header.imports)))
+
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
       (session_base.loaded_theories /: entries)({ case (graph, entry) =>
         val name = entry.name.theory

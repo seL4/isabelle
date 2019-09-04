@@ -119,7 +119,7 @@ object Sessions
 
     def theory_names: List[Document.Node.Name] = theories.iterator.map(p => p._2.name).toList
 
-    lazy val theory_graph: Graph[Document.Node.Name, Unit] =
+    lazy val theory_graph: Document.Theory_Graph[Unit] =
       Document.theory_graph(
         for ((_, entry) <- theories.toList)
         yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name)))
@@ -204,8 +204,8 @@ object Sessions
         name <- base.dump_checkpoints.iterator
       } yield name).toSet
 
-    def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
-      : Graph[Document.Node.Name, Options] =
+    def used_theories_condition(
+      default_options: Options, progress: Progress = No_Progress): Document.Theory_Graph[Options] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
       Document.theory_graph(
