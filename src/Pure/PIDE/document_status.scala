@@ -244,6 +244,12 @@ object Document_Status
         node_status <- get(name)
       } yield (name, node_status)).toList
 
+    def consolidated(name: Document.Node.Name): Boolean =
+      rep.get(name) match {
+        case Some(st) => st.consolidated
+        case None => false
+      }
+
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       rep.get(name) match {
         case Some(st) => st.quasi_consolidated
