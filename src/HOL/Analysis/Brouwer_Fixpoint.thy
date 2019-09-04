@@ -15,11 +15,7 @@
 section \<open>Brouwer's Fixed Point Theorem\<close>
 
 theory Brouwer_Fixpoint
-  imports
-    Path_Connected
-    Homeomorphism
-    Continuous_Extension
-    Derivative
+  imports Homeomorphism Derivative
 begin
 
 subsection \<open>Retractions\<close>

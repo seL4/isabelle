@@ -1,7 +1,7 @@
 section \<open>Absolute Retracts, Absolute Neighbourhood Retracts and Euclidean Neighbourhood Retracts\<close>
 
 theory Retracts
-  imports Brouwer_Fixpoint Ordered_Euclidean_Space
+  imports Brouwer_Fixpoint Continuous_Extension Ordered_Euclidean_Space
 begin
 
 
