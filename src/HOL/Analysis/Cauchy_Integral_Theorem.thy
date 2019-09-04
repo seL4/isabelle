@@ -3,7 +3,7 @@ section \<open>Complex Path Integrals and Cauchy's Integral Theorem\<close>
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
 theory Cauchy_Integral_Theorem
-imports Complex_Transcendental Henstock_Kurzweil_Integration Weierstrass_Theorems Ordered_Euclidean_Space
+imports Complex_Transcendental Henstock_Kurzweil_Integration Weierstrass_Theorems Retracts
 begin
 
 lemma leibniz_rule_holomorphic:
