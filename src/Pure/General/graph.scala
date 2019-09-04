@@ -14,8 +14,17 @@ import scala.annotation.tailrec
 object Graph
 {
   class Duplicate[Key](val key: Key) extends Exception
+  {
+    override def toString: String = "Graph.Duplicate(" + key.toString + ")"
+  }
   class Undefined[Key](val key: Key) extends Exception
+  {
+    override def toString: String = "Graph.Undefined(" + key.toString + ")"
+  }
   class Cycles[Key](val cycles: List[List[Key]]) extends Exception
+  {
+    override def toString: String = cycles.mkString("Graph.Cycles(", ",\n", ")")
+  }
 
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))

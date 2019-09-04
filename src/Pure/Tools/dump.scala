@@ -206,24 +206,16 @@ object Dump
       }
 
 
-      // run
+      // synchronous body
 
       try {
-        val dump_checkpoint = deps.dump_checkpoint.toSet
-        def commit(snapshot: Document.Snapshot, status: Document_Status.Node_Status)
-        {
-          if (dump_checkpoint(snapshot.node_name)) {
-            session.protocol_command("ML_Heap.share_common_data")
-          }
-          Consumer.apply(snapshot, status)
-        }
-
         val use_theories_result =
           session.use_theories(used_theories.map(_.theory),
             unicode_symbols = unicode_symbols,
             share_common_data = true,
             progress = progress,
-            commit = Some(commit _))
+            checkpoints = deps.dump_checkpoints,
+            commit = Some(Consumer.apply _))
 
         val bad_theories = Consumer.shutdown()
         val bad_msgs =

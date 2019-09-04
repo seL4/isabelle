@@ -119,13 +119,10 @@ object Sessions
 
     def theory_names: List[Document.Node.Name] = theories.iterator.map(p => p._2.name).toList
 
-    lazy val theory_graph: Graph[Document.Node.Name, Unit] =
-    {
-      val entries =
+    lazy val theory_graph: Document.Theory_Graph[Unit] =
+      Document.theory_graph(
         for ((_, entry) <- theories.toList)
-        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name))
-      Graph.make(entries, symmetric = true)(Document.Node.Name.Theory_Ordering)
-    }
+        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name)))
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
     {
@@ -148,7 +145,7 @@ object Sessions
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
-    dump_checkpoint: List[Document.Node.Name] = Nil,
+    dump_checkpoints: Set[Document.Node.Name] = Set.empty,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
@@ -201,40 +198,40 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def dump_checkpoint: List[Document.Node.Name] =
+    def dump_checkpoints: Set[Document.Node.Name] =
       (for {
         (_, base) <- session_bases.iterator
-        name <- base.dump_checkpoint.iterator
-      } yield name).toList
+        name <- base.dump_checkpoints.iterator
+      } yield name).toSet
 
-    def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
-      : Graph[Document.Node.Name, Options] =
+    def used_theories_condition(
+      default_options: Options, progress: Progress = No_Progress): Document.Theory_Graph[Options] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
-      val used =
-        for {
-          session_name <- sessions_structure.build_topological_order
-          entry @ ((name, options), _) <- session_bases(session_name).used_theories
-          if {
-            def warn(msg: String): Unit =
-              progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+      Document.theory_graph(
+        permissive = true,
+        entries =
+          for {
+            session_name <- sessions_structure.build_topological_order
+            entry @ ((name, options), _) <- session_bases(session_name).used_theories
+            if {
+              def warn(msg: String): Unit =
+                progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
-            val conditions =
-              space_explode(',', options.string("condition")).
-                filter(cond => Isabelle_System.getenv(cond) == "")
-            if (conditions.nonEmpty) {
-              warn("undefined " + conditions.mkString(", "))
-              false
+              val conditions =
+                space_explode(',', options.string("condition")).
+                  filter(cond => Isabelle_System.getenv(cond) == "")
+              if (conditions.nonEmpty) {
+                warn("undefined " + conditions.mkString(", "))
+                false
+              }
+              else if (default_skip_proofs && !options.bool("skip_proofs")) {
+                warn("option skip_proofs")
+                false
+              }
+              else true
             }
-            else if (default_skip_proofs && !options.bool("skip_proofs")) {
-              warn("option skip_proofs")
-              false
-            }
-            else true
-          }
-        } yield entry
-      Graph.make[Document.Node.Name, Options](used, symmetric = true, permissive = true)(
-        Document.Node.Name.Theory_Ordering)
+          } yield entry)
     }
 
     def sources(name: String): List[SHA1.Digest] =
@@ -311,7 +308,7 @@ object Sessions
 
             val dependencies = resources.session_dependencies(info)
 
-            val dump_checkpoint = resources.dump_checkpoint(info)
+            val dump_checkpoints = resources.dump_checkpoints(info)
 
             val overall_syntax = dependencies.overall_syntax
 
@@ -393,7 +390,7 @@ object Sessions
                 global_theories = global_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = used_theories,
-                dump_checkpoint = dump_checkpoint,
+                dump_checkpoints = dump_checkpoints,
                 known = known,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),

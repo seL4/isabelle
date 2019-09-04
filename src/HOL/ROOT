@@ -734,7 +734,7 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  theories
+  theories [dump_checkpoint]
     Probability
   document_files "root.tex"
 
@@ -745,7 +745,7 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Measure_Not_CCC
 
 session "HOL-Nominal" in Nominal = "HOL-Library" +
-  theories
+  theories [dump_checkpoint]
     Nominal
 
 session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +

@@ -135,12 +135,12 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def dump_checkpoint(info: Sessions.Info): List[Document.Node.Name] =
-    for {
-      (options, thys) <- info.theories
+  def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =
+    (for {
+      (options, thys) <- info.theories.iterator
       if options.bool("dump_checkpoint")
-      (thy, _) <- thys
-    } yield import_name(info, thy)
+      (thy, _) <- thys.iterator
+    } yield import_name(info, thy)).toSet
 
   def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
   {
@@ -337,6 +337,21 @@ class Resources(
         case Nil => this
         case errs => error(cat_lines(errs))
       }
+
+    lazy val theory_graph: Document.Theory_Graph[Unit] =
+    {
+      val regular = theories.toSet
+      val irregular =
+        (for {
+          entry <- entries.iterator
+          imp <- entry.header.imports
+          if !regular(imp)
+        } yield imp).toSet
+
+      Document.theory_graph(
+        irregular.toList.map(name => ((name, ()), Nil)) :::
+        entries.map(entry => ((entry.name, ()), entry.header.imports)))
+    }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
       (session_base.loaded_theories /: entries)({ case (graph, entry) =>
