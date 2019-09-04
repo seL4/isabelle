@@ -3,7 +3,7 @@ section \<open>Faces, Extreme Points, Polytopes, Polyhedra etc\<close>
 text\<open>Ported from HOL Light by L C Paulson\<close>
 
 theory Polytope
-imports Cartesian_Euclidean_Space
+imports Cartesian_Euclidean_Space Path_Connected
 begin
 
 subsection \<open>Faces of a (usually convex) set\<close>
@@ -22,9 +22,7 @@ lemma face_of_translation_eq [simp]:
 proof -
   have *: "\<And>a T S. T face_of S \<Longrightarrow> ((+) a ` T face_of (+) a ` S)"
     apply (simp add: face_of_def Ball_def, clarify)
-    apply (drule open_segment_translation_eq [THEN iffD1])
-    using inj_image_mem_iff inj_add_left apply metis
-    done
+    by (meson imageI open_segment_translation_eq)
   show ?thesis
     apply (rule iffI)
     apply (force simp: image_comp o_def dest: * [where a = "-a"])

@@ -2,7 +2,7 @@ section \<open>Ordered Euclidean Space\<close>
 
 theory Ordered_Euclidean_Space
 imports
-  Cartesian_Euclidean_Space
+  Cartesian_Euclidean_Space Path_Connected
   "HOL-Library.Product_Order"
 begin
 

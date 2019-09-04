@@ -7,7 +7,7 @@ section \<open>Derivative\<close>
 
 theory Derivative
   imports
-    Path_Connected
+    Starlike
     Operator_Norm
     Uniform_Limit
     Bounded_Linear_Function
