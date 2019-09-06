@@ -629,7 +629,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
             handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
           case Protocol_Command(name, args) if prover.defined =>
-            prover.get.protocol_command(name, args:_*)
+            prover.get.protocol_command_args(name, args)
 
           case change: Session.Change if prover.defined =>
             val state = global_state.value

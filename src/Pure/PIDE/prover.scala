@@ -341,15 +341,18 @@ class Prover(
 
   /** protocol commands **/
 
-  def protocol_command_bytes(name: String, args: Bytes*): Unit =
+  def protocol_command_raw(name: String, args: List[Bytes]): Unit =
     command_input match {
-      case Some(thread) if thread.is_active => thread.send(Bytes(name) :: args.toList)
+      case Some(thread) if thread.is_active => thread.send(Bytes(name) :: args)
       case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
-  def protocol_command(name: String, args: String*)
+  def protocol_command_args(name: String, args: List[String])
   {
-    receiver(new Prover.Input(name, args.toList))
-    protocol_command_bytes(name, args.map(Bytes(_)): _*)
+    receiver(new Prover.Input(name, args))
+    protocol_command_raw(name, args.map(Bytes(_)))
   }
+
+  def protocol_command(name: String, args: String*): Unit =
+    protocol_command_args(name, args.toList)
 }

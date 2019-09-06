@@ -197,7 +197,8 @@ trait Protocol
 {
   /* protocol commands */
 
-  def protocol_command_bytes(name: String, args: Bytes*): Unit
+  def protocol_command_raw(name: String, args: List[Bytes]): Unit
+  def protocol_command_args(name: String, args: List[String])
   def protocol_command(name: String, args: String*): Unit
 
 
@@ -242,7 +243,7 @@ trait Protocol
   /* interned items */
 
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
-    protocol_command_bytes("Document.define_blob", Bytes(digest.toString), bytes)
+    protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
 
   def define_command(command: Command)
   {
@@ -266,9 +267,9 @@ trait Protocol
       Symbol.encode_yxml(list(encode_tok)(toks))
     }
 
-    protocol_command("Document.define_command",
-      (Document_ID(command.id) :: Symbol.encode(command.span.name) :: blobs_yxml :: toks_yxml ::
-        toks.map(tok => Symbol.encode(tok.source))): _*)
+    protocol_command_args("Document.define_command",
+      Document_ID(command.id) :: Symbol.encode(command.span.name) :: blobs_yxml :: toks_yxml ::
+        toks.map(tok => Symbol.encode(tok.source)))
   }
 
 
@@ -314,8 +315,8 @@ trait Protocol
       edits.map({ case (name, edit) =>
         Symbol.encode_yxml(pair(string, encode_edit(name))(name.node, edit)) })
     }
-    protocol_command("Document.update",
-      (Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml): _*)
+    protocol_command_args("Document.update",
+      Document_ID(old_id) :: Document_ID(new_id) :: consolidate_yxml :: edits_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])
