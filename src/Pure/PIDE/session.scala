@@ -9,6 +9,7 @@ package isabelle
 
 
 import scala.collection.immutable.Queue
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -420,28 +421,33 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     {
       require(prover.defined)
 
-      def id_command(command: Command)
+      // define commands
       {
-        for {
-          (name, digest) <- command.blobs_defined
-          if !global_state.value.defined_blob(digest)
-        } {
-          change.version.nodes(name).get_blob match {
-            case Some(blob) =>
-              global_state.change(_.define_blob(digest))
-              prover.get.define_blob(digest, blob.bytes)
-            case None =>
-              Output.error_message("Missing blob " + quote(name.toString))
+        val id_commands = new mutable.ListBuffer[Command]
+        def id_command(command: Command)
+        {
+          for {
+            (name, digest) <- command.blobs_defined
+            if !global_state.value.defined_blob(digest)
+          } {
+            change.version.nodes(name).get_blob match {
+              case Some(blob) =>
+                global_state.change(_.define_blob(digest))
+                prover.get.define_blob(digest, blob.bytes)
+              case None =>
+                Output.error_message("Missing blob " + quote(name.toString))
+            }
+          }
+
+          if (!global_state.value.defined_command(command.id)) {
+            global_state.change(_.define_command(command))
+            id_commands += command
           }
         }
-
-        if (!global_state.value.defined_command(command.id)) {
-          global_state.change(_.define_command(command))
-          prover.get.define_command(command)
+        for { (_, edit) <- change.doc_edits } {
+          edit.foreach({ case (c1, c2) => c1.foreach(id_command); c2.foreach(id_command) })
         }
-      }
-      for { (_, edit) <- change.doc_edits } {
-        edit.foreach({ case (c1, c2) => c1.foreach(id_command); c2.foreach(id_command) })
+        if (id_commands.nonEmpty) prover.get.define_commands_bulk(id_commands.toList)
       }
 
       val assignment = global_state.value.the_assignment(change.previous).check_finished

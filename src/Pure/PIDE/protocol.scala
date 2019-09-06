@@ -245,11 +245,12 @@ trait Protocol
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
     protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
 
-  def define_command(command: Command)
+  private def encode_command(command: Command): (String, String, String, String, List[String]) =
   {
+    import XML.Encode._
+
     val blobs_yxml =
     {
-      import XML.Encode._
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
@@ -259,17 +260,46 @@ trait Protocol
       Symbol.encode_yxml(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
 
-    val toks = command.span.content
     val toks_yxml =
     {
-      import XML.Encode._
       val encode_tok: T[Token] = (tok => pair(int, int)((tok.kind.id, Symbol.length(tok.source))))
-      Symbol.encode_yxml(list(encode_tok)(toks))
+      Symbol.encode_yxml(list(encode_tok)(command.span.content))
     }
+    val toks_sources = command.span.content.map(tok => Symbol.encode(tok.source))
 
-    protocol_command_args("Document.define_command",
-      Document_ID(command.id) :: Symbol.encode(command.span.name) :: blobs_yxml :: toks_yxml ::
-        toks.map(tok => Symbol.encode(tok.source)))
+    (Document_ID(command.id), Symbol.encode(command.span.name), blobs_yxml, toks_yxml, toks_sources)
+  }
+
+  def define_command(command: Command)
+  {
+    val (command_id, name, blobs_yxml, toks_yxml, toks_sources) = encode_command(command)
+    protocol_command_args(
+      "Document.define_command", command_id :: name :: blobs_yxml :: toks_yxml :: toks_sources)
+  }
+
+  def define_commands(commands: List[Command])
+  {
+    protocol_command_args("Document.define_commands",
+      commands.map(command =>
+      {
+        import XML.Encode._
+        val (command_id, name, blobs_yxml, toks_yxml, toks_sources) = encode_command(command)
+        val body =
+          pair(string, pair(string, pair(string, pair(string, list(string)))))(
+            command_id, (name, (blobs_yxml, (toks_yxml, toks_sources))))
+        YXML.string_of_body(body)
+      }))
+  }
+
+  def define_commands_bulk(commands: List[Command])
+  {
+    val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
+    irregular.foreach(define_command(_))
+    regular match {
+      case Nil =>
+      case List(command) => define_command(command)
+      case _ => define_commands(regular)
+    }
   }
 
 

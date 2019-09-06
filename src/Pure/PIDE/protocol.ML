@@ -39,11 +39,11 @@ val _ =
   Isabelle_Process.protocol_command "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 
-fun decode_command id name blobs_yxml toks_yxml sources : Document.command =
+fun decode_command id name blobs_xml toks_xml sources : Document.command =
   let
     open XML.Decode;
     val (blobs_digests, blobs_index) =
-      YXML.parse_body blobs_yxml |>
+      blobs_xml |>
         let
           val message = YXML.string_of_body o Protocol_Message.command_positions id;
         in
@@ -53,7 +53,7 @@ fun decode_command id name blobs_yxml toks_yxml sources : Document.command =
               fn ([], a) => Exn.Exn (ERROR (message a))]))
             int
         end;
-    val toks = YXML.parse_body toks_yxml |> list (pair int int);
+    val toks = list (pair int int) toks_xml;
   in
    {command_id = Document_ID.parse id,
     name = name,
@@ -64,9 +64,22 @@ fun decode_command id name blobs_yxml toks_yxml sources : Document.command =
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
-    (fn id :: name :: blobs_yxml :: toks_yxml :: sources =>
-      Document.change_state
-        (Document.define_command (decode_command id name blobs_yxml toks_yxml sources)));
+    (fn id :: name :: blobs :: toks :: sources =>
+      let
+        val command = decode_command id name (YXML.parse_body blobs) (YXML.parse_body toks) sources;
+      in Document.change_state (Document.define_command command) end);
+
+val _ =
+  Isabelle_Process.protocol_command "Document.define_commands"
+    (fn args =>
+      let
+        fun decode arg =
+          let
+            open XML.Decode;
+            val (id, (name, (blobs_xml, (toks_xml, sources)))) =
+              pair string (pair string (pair I (pair I (list string)))) (YXML.parse_body arg);
+          in decode_command id name blobs_xml toks_xml sources end;
+      in Document.change_state (fold (Document.define_command o decode) args) end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
