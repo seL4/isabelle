@@ -326,6 +326,8 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
 
     The Isabelle Algebraic Library.
   "
+  sessions
+    "HOL-Cardinals"
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
