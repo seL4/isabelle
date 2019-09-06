@@ -341,9 +341,17 @@ class Prover(
 
   /** protocol commands **/
 
+  var trace: Boolean = false
+
   def protocol_command_raw(name: String, args: List[Bytes]): Unit =
     command_input match {
-      case Some(thread) if thread.is_active => thread.send(Bytes(name) :: args)
+      case Some(thread) if thread.is_active =>
+        if (trace) {
+          val payload = (0 /: args)({ case (n, b) => n + b.length })
+          Output.writeln(
+            "protocol_command " + name + ", args = " + args.length + ", payload = " + payload)
+        }
+        thread.send(Bytes(name) :: args)
       case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
