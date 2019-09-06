@@ -193,17 +193,22 @@ object Headless
                 })
           }
 
+        def finished_theory(name: Document.Node.Name): Boolean =
+          loaded_theory(name) ||
+          already_committed1.isDefinedAt(name) ||
+          state.node_consolidated(version, name)
+
         val result1 =
           if (!finished_result &&
             (beyond_limit || watchdog ||
               dep_graph.keys_iterator.forall(name =>
-                already_committed1.isDefinedAt(name) ||
-                state.node_consolidated(version, name) ||
-                nodes_status.quasi_consolidated(name))))
+                finished_theory(name) || nodes_status.quasi_consolidated(name))))
           {
             val nodes =
-              (for (name <- dep_graph.keys_iterator)
-                yield { (name -> Document_Status.Node_Status.make(state, version, name)) }).toList
+              (for {
+                name <- dep_graph.keys_iterator
+                if !loaded_theory(name)
+              } yield { (name -> Document_Status.Node_Status.make(state, version, name)) }).toList
             val nodes_committed =
               (for {
                 name <- dep_graph.keys_iterator
@@ -214,11 +219,7 @@ object Headless
           else result
 
         val (load_theories, checkpoints_state1) =
-          checkpoints_state.next(dep_graph,
-            name =>
-              loaded_theory(name) ||
-              already_committed1.isDefinedAt(name) ||
-              nodes_status.consolidated(name))
+          checkpoints_state.next(dep_graph, finished_theory(_))
 
         (load_theories,
           copy(already_committed = already_committed1, result = result1,
