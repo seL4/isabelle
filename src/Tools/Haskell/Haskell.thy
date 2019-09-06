@@ -344,7 +344,7 @@ module Isabelle.Markup (
   verbatimN, verbatim, cartoucheN, cartouche, commentN, comment, comment1N, comment1,
   comment2N, comment2, comment3N, comment3,
 
-  acceptedN, accepted, forkedN, forked, joinedN, joined, runningN, running, finishedN, finished,
+  forkedN, forked, joinedN, joined, runningN, running, finishedN, finished,
   failedN, failed, canceledN, canceled, initializedN, initialized, finalizedN, finalized,
   consolidatedN, consolidated,
 
@@ -629,11 +629,10 @@ comment3N :: String; comment3 :: T
 
 {- command status -}
 
-acceptedN, forkedN, joinedN, runningN, finishedN, failedN, canceledN,
+forkedN, joinedN, runningN, finishedN, failedN, canceledN,
   initializedN, finalizedN, consolidatedN :: String
-accepted, forked, joined, running, finished, failed, canceled,
+forked, joined, running, finished, failed, canceled,
   initialized, finalized, consolidated :: T
-(acceptedN, accepted) = markup_elem \<open>Markup.acceptedN\<close>
 (forkedN, forked) = markup_elem \<open>Markup.forkedN\<close>
 (joinedN, joined) = markup_elem \<open>Markup.joinedN\<close>
 (runningN, running) = markup_elem \<open>Markup.runningN\<close>
