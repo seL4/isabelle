@@ -39,29 +39,34 @@ val _ =
   Isabelle_Process.protocol_command "Document.define_blob"
     (fn [digest, content] => Document.change_state (Document.define_blob digest content));
 
+fun decode_command id name blobs_yxml toks_yxml sources : Document.command =
+  let
+    open XML.Decode;
+    val (blobs_digests, blobs_index) =
+      YXML.parse_body blobs_yxml |>
+        let
+          val message = YXML.string_of_body o Protocol_Message.command_positions id;
+        in
+          pair
+            (list (variant
+             [fn ([], a) => Exn.Res (pair string (option string) a),
+              fn ([], a) => Exn.Exn (ERROR (message a))]))
+            int
+        end;
+    val toks = YXML.parse_body toks_yxml |> list (pair int int);
+  in
+   {command_id = Document_ID.parse id,
+    name = name,
+    blobs_digests = blobs_digests,
+    blobs_index = blobs_index,
+    tokens = toks ~~ sources}
+  end;
+
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
     (fn id :: name :: blobs_yxml :: toks_yxml :: sources =>
-      let
-        val (blobs, blobs_index) =
-          YXML.parse_body blobs_yxml |>
-            let
-              val message =
-                YXML.string_of_body o Protocol_Message.command_positions id;
-              open XML.Decode;
-            in
-              pair
-                (list (variant
-                 [fn ([], a) => Exn.Res (pair string (option string) a),
-                  fn ([], a) => Exn.Exn (ERROR (message a))]))
-                int
-            end;
-        val toks =
-          (YXML.parse_body toks_yxml |> let open XML.Decode in list (pair int int) end) ~~ sources;
-      in
-        Document.change_state
-          (Document.define_command (Document_ID.parse id) name blobs blobs_index toks)
-      end);
+      Document.change_state
+        (Document.define_command (decode_command id name blobs_yxml toks_yxml sources)));
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"

@@ -19,8 +19,13 @@ sig
   val init_state: state
   val define_blob: string -> string -> state -> state
   type blob_digest = (string * string option) Exn.result
-  val define_command: Document_ID.command -> string -> blob_digest list -> int ->
-    ((int * int) * string) list -> state -> state
+  type command =
+   {command_id: Document_ID.command,
+    name: string,
+    blobs_digests: blob_digest list,
+    blobs_index: int,
+    tokens: ((int * int) * string) list}
+  val define_command: command -> state -> state
   val command_exec: state -> string -> Document_ID.command -> Command.exec option
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
@@ -404,7 +409,14 @@ fun blob_reports pos (blob_digest: blob_digest) =
 
 (* commands *)
 
-fun define_command command_id name blobs_digests blobs_index toks =
+type command =
+  {command_id: Document_ID.command,
+   name: string,
+   blobs_digests: blob_digest list,
+   blobs_index: int,
+   tokens: ((int * int) * string) list};
+
+fun define_command {command_id, name, blobs_digests, blobs_index, tokens} =
   map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
@@ -413,7 +425,7 @@ fun define_command command_id name blobs_digests blobs_index toks =
           Position.setmp_thread_data (Position.id_only id)
             (fn () =>
               let
-                val (tokens, _) = fold_map Token.make toks (Position.id id);
+                val (tokens, _) = fold_map Token.make tokens (Position.id id);
                 val _ =
                   if blobs_index < 0
                   then (*inlined errors*)
