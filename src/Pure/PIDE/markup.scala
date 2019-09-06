@@ -553,6 +553,7 @@ object Markup
   val COMMAND_TIMING: Properties.Entry = (FUNCTION, "command_timing")
   val THEORY_TIMING: Properties.Entry = (FUNCTION, "theory_timing")
 
+  val Commands_Accepted: Properties.T = List((FUNCTION, "commands_accepted"))
   val Assign_Update: Properties.T = List((FUNCTION, "assign_update"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 

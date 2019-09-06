@@ -503,6 +503,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
                 change_command(_.add_export(id, (args.serial, export)))
 
+              case Markup.Commands_Accepted =>
+                msg.text match {
+                  case Protocol.Commands_Accepted(ids) =>
+                    ids.foreach(id =>
+                      change_command(_.accumulate(id, Protocol.Commands_Accepted.message, xml_cache)))
+                  case _ => bad_output()
+                }
+
               case Markup.Assign_Update =>
                 msg.text match {
                   case Protocol.Assign_Update(id, edited, update) =>

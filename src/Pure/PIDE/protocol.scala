@@ -11,6 +11,15 @@ object Protocol
 {
   /* document editing */
 
+  object Commands_Accepted
+  {
+    def unapply(text: String): Option[List[Document_ID.Command]] =
+      try { Some(space_explode(',', text).map(Value.Long.parse)) }
+      catch { case ERROR(_) => None }
+
+    val message: XML.Elem = XML.elem(Markup.STATUS, List(XML.elem(Markup.ACCEPTED)))
+  }
+
   object Assign_Update
   {
     def unapply(text: String)

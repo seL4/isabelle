@@ -438,9 +438,6 @@ fun define_command {command_id, name, blobs_digests, blobs_index, tokens} =
       val commands' =
         Inttab.update_new (command_id, (name, blobs_digests, blobs_index, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-      val _ =
-        Position.setmp_thread_data (Position.id_only id)
-          (fn () => Output.status [Markup.markup_only Markup.accepted]) ();
     in (versions, blobs, commands', execution) end);
 
 fun the_command (State {commands, ...}) command_id =

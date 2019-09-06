@@ -174,7 +174,6 @@ sig
   val goalN: string val goal: T
   val subgoalN: string val subgoal: string -> T
   val taskN: string
-  val acceptedN: string val accepted: T
   val forkedN: string val forked: T
   val joinedN: string val joined: T
   val runningN: string val running: T
@@ -211,6 +210,7 @@ sig
   val dialogN: string val dialog: serial -> string -> T
   val jedit_actionN: string
   val functionN: string
+  val commands_accepted: Properties.T
   val assign_update: Properties.T
   val removed_versions: Properties.T
   val protocol_handler: string -> Properties.T
@@ -623,7 +623,6 @@ val (subgoalN, subgoal) = markup_string "subgoal" nameN;
 
 val taskN = "task";
 
-val (acceptedN, accepted) = markup_elem "accepted";
 val (forkedN, forked) = markup_elem "forked";
 val (joinedN, joined) = markup_elem "joined";
 val (runningN, running) = markup_elem "running";
@@ -681,6 +680,8 @@ val jedit_actionN = "jedit_action";
 (* protocol message functions *)
 
 val functionN = "function"
+
+val commands_accepted = [(functionN, "commands_accepted")];
 
 val assign_update = [(functionN, "assign_update")];
 val removed_versions = [(functionN, "removed_versions")];

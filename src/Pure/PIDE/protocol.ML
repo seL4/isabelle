@@ -62,12 +62,15 @@ fun decode_command id name blobs_xml toks_xml sources : Document.command =
     tokens = toks ~~ sources}
   end;
 
+fun commands_accepted ids = Output.protocol_message Markup.commands_accepted [commas ids];
+
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
     (fn id :: name :: blobs :: toks :: sources =>
       let
         val command = decode_command id name (YXML.parse_body blobs) (YXML.parse_body toks) sources;
-      in Document.change_state (Document.define_command command) end);
+        val _ = Document.change_state (Document.define_command command);
+      in commands_accepted [id] end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_commands"
@@ -79,7 +82,10 @@ val _ =
             val (id, (name, (blobs_xml, (toks_xml, sources)))) =
               pair string (pair string (pair I (pair I (list string)))) (YXML.parse_body arg);
           in decode_command id name blobs_xml toks_xml sources end;
-      in Document.change_state (fold (Document.define_command o decode) args) end);
+
+        val commands = map decode args;
+        val _ = Document.change_state (fold Document.define_command commands);
+      in commands_accepted (map (Value.print_int o #command_id) commands) end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
