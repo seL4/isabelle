@@ -131,7 +131,7 @@ object Dump
     val deps: Sessions.Deps =
       Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
         selection_deps(dump_options, selection, progress = progress,
-          uniform_session = true, loading_sessions = true)
+          uniform_session = true, loading_sessions = true).check_errors
 
     val resources: Headless.Resources =
       Headless.Resources.make(dump_options, logic, progress = progress, log = log,
