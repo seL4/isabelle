@@ -35,7 +35,7 @@ sig
   val error_message': serial * string -> unit
   val error_message: string -> unit
   val system_message: string -> unit
-  val status: string -> unit
+  val status: string list -> unit
   val report: string list -> unit
   val result: Properties.T -> string list -> unit
   val protocol_message: Properties.T -> string list -> unit
@@ -146,7 +146,7 @@ fun legacy_feature s = ! legacy_fn [output ("Legacy feature! " ^ s)];
 fun error_message' (i, s) = ! error_message_fn (i, [output s]);
 fun error_message s = error_message' (serial (), s);
 fun system_message s = ! system_message_fn [output s];
-fun status s = ! status_fn [output s];
+fun status ss = ! status_fn (map output ss);
 fun report ss = ! report_fn (map output ss);
 fun result props ss = ! result_fn props (map output ss);
 fun protocol_message props ss = ! protocol_message_fn props (map output ss);

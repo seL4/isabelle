@@ -193,7 +193,7 @@ fun get_consolidated (Node {consolidated, ...}) = consolidated;
 val is_consolidated = Lazy.is_finished o get_consolidated;
 
 fun commit_consolidated node =
-  (Lazy.force (get_consolidated node); Output.status (Markup.markup_only Markup.consolidated));
+  (Lazy.force (get_consolidated node); Output.status [Markup.markup_only Markup.consolidated]);
 
 fun could_consolidate node =
   not (is_consolidated node) andalso is_some (finished_result_theory node);
@@ -428,7 +428,7 @@ fun define_command command_id name blobs_digests blobs_index toks =
           handle Inttab.DUP dup => err_dup "command" dup;
       val _ =
         Position.setmp_thread_data (Position.id_only id)
-          (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
+          (fn () => Output.status [Markup.markup_only Markup.accepted]) ();
     in (versions, blobs, commands', execution) end);
 
 fun the_command (State {commands, ...}) command_id =
@@ -619,7 +619,7 @@ fun init_theory deps node span =
       if null parents_reports then [Theory.get_pure ()] else map #1 parents_reports;
     val _ = Position.reports (map #2 parents_reports);
     val thy = Resources.begin_theory master_dir header parents;
-    val _ = Output.status (Markup.markup_only Markup.initialized);
+    val _ = Output.status [Markup.markup_only Markup.initialized];
   in thy end;
 
 fun check_root_theory node =

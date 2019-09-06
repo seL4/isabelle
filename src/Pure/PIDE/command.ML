@@ -233,7 +233,7 @@ fun report tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();
 
 fun status tr m =
-  Toplevel.setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
+  Toplevel.setmp_thread_position tr (fn () => Output.status [Markup.markup_only m]) ();
 
 fun command_indent tr st =
   (case try Toplevel.proof_of st of
