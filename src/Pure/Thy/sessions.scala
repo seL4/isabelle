@@ -484,6 +484,7 @@ object Sessions
                   path = ".",
                   parent = ancestor,
                   description = "Required theory imports from other sessions",
+                  directories = Nil,
                   options = Nil,
                   imports = info.deps,
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
@@ -528,6 +529,7 @@ object Sessions
     dir: Path,
     parent: Option[String],
     description: String,
+    directories: List[(Path, Boolean)],
     options: Options,
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
@@ -537,6 +539,9 @@ object Sessions
     meta_digest: SHA1.Digest)
   {
     def deps: List[String] = parent.toList ::: imports
+
+    def dirs: List[Path] = dir :: directories.map(_._1)
+    def dirs_strict: List[Path] = dir :: (for { (d, false) <- directories } yield d)
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
@@ -557,6 +562,10 @@ object Sessions
       if (exclude_session(name)) error("Bad session name")
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
+
+      val directories =
+        for { (d, b) <- entry.directories }
+        yield (dir + Path.explode(d), b)
 
       val session_options = options ++ entry.options
 
@@ -589,11 +598,11 @@ object Sessions
         entry.export_files.map({ case (dir, prune, pats) => (Path.explode(dir), prune, pats) })
 
       val meta_digest =
-        SHA1.digest((name, chapter, entry.parent, entry.options, entry.imports,
+        SHA1.digest((name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
           entry.theories_no_position, conditions, entry.document_files).toString)
 
-      Info(name, chapter, dir_selected, entry.pos, entry.groups,
-        dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
+      Info(name, chapter, dir_selected, entry.pos, entry.groups, dir + Path.explode(entry.path),
+        entry.parent, entry.description, directories, session_options,
         entry.imports, theories, global_theories, document_files, export_files, meta_digest)
     }
     catch {
@@ -685,19 +694,37 @@ object Sessions
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
 
+    def strict_directories: Map[JFile, String] =
+      (Map.empty[JFile, String] /:
+        (for {
+          session <- imports_topological_order.iterator
+          info = apply(session)
+          dir <- info.dirs_strict.iterator
+        } yield (info, dir)))({ case (dirs, (info, dir)) =>
+            val session = info.name
+            val canonical_dir = dir.canonical_file
+            dirs.get(canonical_dir) match {
+              case Some(session1) if session != session1 =>
+                val info1 = apply(session1)
+                error("Duplicate use of directory " + dir +
+                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
+                  "\n  vs. session " + quote(session) + Position.here(info.pos))
+              case _ => dirs + (canonical_dir -> session)
+            }
+          })
+
     def global_theories: Map[String, String] =
       (Thy_Header.bootstrap_global_theories.toMap /:
         (for {
           (_, (info, _)) <- imports_graph.iterator
           thy <- info.global_theories.iterator }
-         yield (thy, info)))({
-            case (global, (thy, info)) =>
-              val qualifier = info.name
-              global.get(thy) match {
-                case Some(qualifier1) if qualifier != qualifier1 =>
-                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
-                case _ => global + (thy -> qualifier)
-              }
+         yield (thy, info)))({ case (global, (thy, info)) =>
+            val qualifier = info.name
+            global.get(thy) match {
+              case Some(qualifier1) if qualifier != qualifier1 =>
+                error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
+              case _ => global + (thy -> qualifier)
+            }
           })
 
     def check_sessions(names: List[String])
@@ -823,6 +850,8 @@ object Sessions
   private val SESSION = "session"
   private val IN = "in"
   private val DESCRIPTION = "description"
+  private val DIRECTORIES = "directories"
+  private val OVERLAPPING = "overlapping"
   private val OPTIONS = "options"
   private val SESSIONS = "sessions"
   private val THEORIES = "theories"
@@ -831,10 +860,12 @@ object Sessions
   private val EXPORT_FILES = "export_files"
 
   val root_syntax =
-    Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" + GLOBAL + IN +
+    Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
+      GLOBAL + IN + OVERLAPPING +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
+      (DIRECTORIES, Keyword.QUASI_COMMAND) +
       (OPTIONS, Keyword.QUASI_COMMAND) +
       (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
@@ -850,6 +881,7 @@ object Sessions
     path: String,
     parent: Option[String],
     description: String,
+    directories: List[(String, Boolean)],
     options: List[Options.Spec],
     imports: List[String],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
@@ -876,11 +908,11 @@ object Sessions
           { case x ~ y => (x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
-      val global =
-        ($$$("(") ~! $$$(GLOBAL) ~ $$$(")")) ^^ { case _ => true } | success(false)
+      def directories =
+        rep1(path ~ opt_keyword(OVERLAPPING) ^^ { case x ~ y => (x, y) })
 
       val theory_entry =
-        position(theory_name) ~ global ^^ { case x ~ y => (x, y) }
+        position(theory_name) ~ opt_keyword(GLOBAL) ^^ { case x ~ y => (x, y) }
 
       val theories =
         $$$(THEORIES) ~!
@@ -906,13 +938,14 @@ object Sessions
           ($$$("=") ~!
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
+              (($$$(DIRECTORIES) ~! directories ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
               (rep(export_files))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k) }
     }
 
     def parse_root(path: Path): List[Entry] =

@@ -7,9 +7,9 @@ PIDE markup for session ROOT.
 theory Sessions
   imports Pure
   keywords "session" :: thy_decl
-    and "description" "options" "sessions" "theories"
+    and "description" "directories" "options" "sessions" "theories"
       "document_files" "export_files" :: quasi_command
-    and "global"
+    and "global" "overlapping"
 begin
 
 ML \<open>

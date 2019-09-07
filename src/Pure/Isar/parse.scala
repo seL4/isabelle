@@ -69,6 +69,9 @@ object Parse
     def ML_source: Parser[String] = atom("ML source", _.is_text)
     def document_source: Parser[String] = atom("document source", _.is_text)
 
+    def opt_keyword(s: String): Parser[Boolean] =
+      ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ { case _ => true } | success(false)
+
     def path: Parser[String] =
       atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
 

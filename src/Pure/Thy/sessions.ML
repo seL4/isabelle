@@ -19,10 +19,9 @@ val theory_name = "Pure.Sessions";
 
 local
 
-val global =
-  Parse.$$$ "(" -- Parse.!!! (Parse.$$$ "global" -- Parse.$$$ ")") >> K true || Scan.succeed false;
+val directory = Parse.position Parse.path -- Parse.opt_keyword "overlapping";
 
-val theory_entry = Parse.theory_name --| global;
+val theory_entry = Parse.theory_name --| Parse.opt_keyword "global";
 
 val theories =
   Parse.$$$ "theories" |-- Parse.!!! (Scan.optional Parse.options [] -- Scan.repeat1 theory_entry);
@@ -52,6 +51,7 @@ val command_parser =
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
       Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
+      Scan.optional (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 directory)) [] --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
@@ -59,11 +59,11 @@ val command_parser =
       Scan.repeat document_files --
       Scan.repeat export_files))
   >> (fn ((((session, _), _), dir),
-          (((((((parent, descr), options), sessions), theories), document_files), export_files))) =>
+          ((((((((parent, descr), directories), options), sessions), theories),
+            document_files), export_files))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;
-        val thy = Toplevel.theory_of state;
         val session_dir = Resources.check_dir ctxt NONE dir;
 
         val _ =
@@ -90,6 +90,9 @@ val command_parser =
               val theory_path = the_default node_name (Resources.known_theory theory_name);
               val _ = Resources.check_file ctxt (SOME Path.current) (Path.implode theory_path, pos);
             in () end);
+
+        val _ =
+          directories |> List.app (ignore o Resources.check_dir ctxt (SOME session_dir) o #1);
 
         val _ =
           document_files |> List.app (fn (doc_dir, doc_files) =>
