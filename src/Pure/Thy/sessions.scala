@@ -253,7 +253,6 @@ object Sessions
   }
 
   def deps(sessions_structure: Structure,
-      global_theories: Map[String, String],
       progress: Progress = No_Progress,
       inlined_files: Boolean = false,
       verbose: Boolean = false,
@@ -290,7 +289,7 @@ object Sessions
           try {
             val parent_base: Sessions.Base =
               info.parent match {
-                case None => Base.bootstrap(global_theories)
+                case None => Base.bootstrap(sessions_structure.global_theories)
                 case Some(parent) => session_bases(parent)
               }
             val imports_base: Sessions.Base =
@@ -387,7 +386,7 @@ object Sessions
               Base(
                 pos = info.pos,
                 doc_names = doc_names,
-                global_theories = global_theories,
+                global_theories = sessions_structure.global_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = used_theories,
                 dump_checkpoints = dump_checkpoints,
@@ -440,7 +439,6 @@ object Sessions
     all_known: Boolean = false): Base_Info =
   {
     val full_sessions = load_structure(options, dirs = dirs)
-    val global_theories = full_sessions.global_theories
 
     val selected_sessions =
       full_sessions.selection(Selection(sessions = session :: session_ancestor.toList))
@@ -449,7 +447,7 @@ object Sessions
 
     val (session1, infos1) =
       if (session_requirements && ancestor.isDefined) {
-        val deps = Sessions.deps(selected_sessions, global_theories, progress = progress)
+        val deps = Sessions.deps(selected_sessions, progress = progress)
         val base = deps(session)
 
         val ancestor_loaded =
@@ -511,7 +509,7 @@ object Sessions
     }
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
-    val deps1 = Sessions.deps(sessions1, global_theories, progress = progress)
+    val deps1 = Sessions.deps(sessions1, progress = progress)
     val base1 = deps1(session1).copy(known = deps1.all_known)
 
     Base_Info(options, dirs, session1, deps1.sessions_structure, deps1.errors, base1, infos1)
@@ -662,7 +660,7 @@ object Sessions
       }
     }
 
-    val graph0 =
+    val info_graph =
       (Graph.string[Info] /: infos) {
         case (graph, info) =>
           if (graph.defined(info.name))
@@ -670,13 +668,49 @@ object Sessions
               Position.here(graph.get_node(info.name).pos))
           else graph.new_node(info.name, info)
       }
-    val graph1 = add_edges(graph0, "parent", _.parent)
-    val graph2 = add_edges(graph1, "imports", _.imports)
+    val build_graph = add_edges(info_graph, "parent", _.parent)
+    val imports_graph = add_edges(build_graph, "imports", _.imports)
 
-    new Structure(graph1, graph2)
+    val strict_directories: Map[JFile, String] =
+      (Map.empty[JFile, String] /:
+        (for {
+          session <- imports_graph.topological_order.iterator
+          info = info_graph.get_node(session)
+          dir <- info.dirs_strict.iterator
+        } yield (info, dir)))({ case (dirs, (info, dir)) =>
+            val session = info.name
+            val canonical_dir = dir.canonical_file
+            dirs.get(canonical_dir) match {
+              case Some(session1) if session != session1 =>
+                val info1 = info_graph.get_node(session1)
+                error("Duplicate use of directory " + dir +
+                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
+                  "\n  vs. session " + quote(session) + Position.here(info.pos))
+              case _ => dirs + (canonical_dir -> session)
+            }
+          })
+
+    val global_theories: Map[String, String] =
+      (Thy_Header.bootstrap_global_theories.toMap /:
+        (for {
+          session <- imports_graph.topological_order.iterator
+          info = info_graph.get_node(session)
+          thy <- info.global_theories.iterator }
+         yield (info, thy)))({ case (global, (info, thy)) =>
+            val qualifier = info.name
+            global.get(thy) match {
+              case Some(qualifier1) if qualifier != qualifier1 =>
+                error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
+              case _ => global + (thy -> qualifier)
+            }
+          })
+
+    new Structure(strict_directories, global_theories, build_graph, imports_graph)
   }
 
   final class Structure private[Sessions](
+      val strict_directories: Map[JFile, String],
+      val global_theories: Map[String, String],
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
   {
@@ -693,39 +727,6 @@ object Sessions
     def defined(name: String): Boolean = imports_graph.defined(name)
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
-
-    def strict_directories: Map[JFile, String] =
-      (Map.empty[JFile, String] /:
-        (for {
-          session <- imports_topological_order.iterator
-          info = apply(session)
-          dir <- info.dirs_strict.iterator
-        } yield (info, dir)))({ case (dirs, (info, dir)) =>
-            val session = info.name
-            val canonical_dir = dir.canonical_file
-            dirs.get(canonical_dir) match {
-              case Some(session1) if session != session1 =>
-                val info1 = apply(session1)
-                error("Duplicate use of directory " + dir +
-                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
-                  "\n  vs. session " + quote(session) + Position.here(info.pos))
-              case _ => dirs + (canonical_dir -> session)
-            }
-          })
-
-    def global_theories: Map[String, String] =
-      (Thy_Header.bootstrap_global_theories.toMap /:
-        (for {
-          (_, (info, _)) <- imports_graph.iterator
-          thy <- info.global_theories.iterator }
-         yield (thy, info)))({ case (global, (thy, info)) =>
-            val qualifier = info.name
-            global.get(thy) match {
-              case Some(qualifier1) if qualifier != qualifier1 =>
-                error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
-              case _ => global + (thy -> qualifier)
-            }
-          })
 
     def check_sessions(names: List[String])
     {
@@ -779,7 +780,8 @@ object Sessions
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
-      new Structure(restrict(build_graph), restrict(imports_graph))
+      new Structure(
+        strict_directories, global_theories, restrict(build_graph), restrict(imports_graph))
     }
 
     def selection_deps(
@@ -815,7 +817,7 @@ object Sessions
         else selection
 
       val deps =
-        Sessions.deps(sessions_structure.selection(selection1), global_theories,
+        Sessions.deps(sessions_structure.selection(selection1),
           progress = progress, inlined_files = inlined_files, verbose = verbose)
 
       if (loading_sessions) {

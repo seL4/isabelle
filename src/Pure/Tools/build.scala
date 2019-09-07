@@ -434,7 +434,7 @@ object Build
     val deps =
     {
       val deps0 =
-        Sessions.deps(full_sessions.selection(selection1), full_sessions.global_theories,
+        Sessions.deps(full_sessions.selection(selection1),
           progress = progress, inlined_files = true, verbose = verbose,
           list_files = list_files, check_keywords = check_keywords).check_errors
 
@@ -452,7 +452,7 @@ object Build
             })
 
         Sessions.deps(full_sessions.selection(Sessions.Selection(sessions = outdated)),
-          full_sessions.global_theories, progress = progress, inlined_files = true).check_errors
+          progress = progress, inlined_files = true).check_errors
       }
       else deps0
     }
