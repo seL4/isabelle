@@ -212,8 +212,9 @@ object Dump
         val use_theories_result =
           session.use_theories(used_theories.map(_.theory),
             unicode_symbols = unicode_symbols,
+            share_common_data = false /* FIXME true */,
             progress = progress,
-            checkpoints = deps.dump_checkpoints,
+            checkpoints = Set.empty /* FIXME deps.dump_checkpoints */,
             commit = Some(Consumer.apply _))
 
         val bad_theories = Consumer.shutdown()
