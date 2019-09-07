@@ -538,8 +538,7 @@ object Sessions
   {
     def deps: List[String] = parent.toList ::: imports
 
-    def dirs: List[Path] = dir :: directories.map(_._1)
-    def dirs_strict: List[Path] = dir :: (for { (d, false) <- directories } yield d)
+    def dirs: List[(Path, Boolean)] = (dir, false) :: directories
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
@@ -561,9 +560,10 @@ object Sessions
       if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
+      val session_path = dir + Path.explode(entry.path)
       val directories =
-        for { (d, b) <- entry.directories }
-        yield (dir + Path.explode(d), b)
+        for { (dir, overlapping) <- entry.directories }
+        yield (session_path + Path.explode(dir), overlapping)
 
       val session_options = options ++ entry.options
 
@@ -599,7 +599,7 @@ object Sessions
         SHA1.digest((name, chapter, entry.parent, entry.directories, entry.options, entry.imports,
           entry.theories_no_position, conditions, entry.document_files).toString)
 
-      Info(name, chapter, dir_selected, entry.pos, entry.groups, dir + Path.explode(entry.path),
+      Info(name, chapter, dir_selected, entry.pos, entry.groups, session_path,
         entry.parent, entry.description, directories, session_options,
         entry.imports, theories, global_theories, document_files, export_files, meta_digest)
     }
@@ -671,22 +671,28 @@ object Sessions
     val build_graph = add_edges(info_graph, "parent", _.parent)
     val imports_graph = add_edges(build_graph, "imports", _.imports)
 
-    val strict_directories: Map[JFile, String] =
-      (Map.empty[JFile, String] /:
+    val session_directories: Map[JFile, (String, Boolean)] =
+      (Map.empty[JFile, (String, Boolean)] /:
         (for {
           session <- imports_graph.topological_order.iterator
           info = info_graph.get_node(session)
-          dir <- info.dirs_strict.iterator
-        } yield (info, dir)))({ case (dirs, (info, dir)) =>
+          dir_overlapping <- info.dirs.iterator
+        } yield (info, dir_overlapping)))({ case (dirs, (info, (dir, overlapping))) =>
             val session = info.name
             val canonical_dir = dir.canonical_file
+            def update(over: Boolean) = dirs + (canonical_dir -> (session -> over))
             dirs.get(canonical_dir) match {
-              case Some(session1) if session != session1 =>
-                val info1 = info_graph.get_node(session1)
-                error("Duplicate use of directory " + dir +
-                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
-                  "\n  vs. session " + quote(session) + Position.here(info.pos))
-              case _ => dirs + (canonical_dir -> session)
+              case Some((session1, overlapping1)) =>
+                if (session == session1) update(overlapping || overlapping1)
+                else if (overlapping && !overlapping1) dirs
+                else if (!overlapping && overlapping1) update(overlapping)
+                else {
+                  val info1 = info_graph.get_node(session1)
+                  error("Duplicate use of directory " + dir +
+                    "\n  for session " + quote(session1) + Position.here(info1.pos) +
+                    "\n  vs. session " + quote(session) + Position.here(info.pos))
+                }
+              case None => update(overlapping)
             }
           })
 
@@ -705,11 +711,11 @@ object Sessions
             }
           })
 
-    new Structure(strict_directories, global_theories, build_graph, imports_graph)
+    new Structure(session_directories, global_theories, build_graph, imports_graph)
   }
 
   final class Structure private[Sessions](
-      val strict_directories: Map[JFile, String],
+      val session_directories: Map[JFile, (String, Boolean)],
       val global_theories: Map[String, String],
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
@@ -781,7 +787,7 @@ object Sessions
       }
 
       new Structure(
-        strict_directories, global_theories, restrict(build_graph), restrict(imports_graph))
+        session_directories, global_theories, restrict(build_graph), restrict(imports_graph))
     }
 
     def selection_deps(
