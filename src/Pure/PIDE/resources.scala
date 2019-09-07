@@ -135,6 +135,16 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
+  def theory_name(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
+  {
+    val dir = File.canonical(file).getParentFile
+    val qualifier = session_base.session_directories.get(dir).map(_._1).getOrElse(default_qualifier)
+    Thy_Header.theory_name(file.getName) match {
+      case "" => None
+      case s => Some(import_name(qualifier, File.path(file).dir.implode, s))
+    }
+  }
+
   def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =
     (for {
       (options, thys) <- info.theories.iterator

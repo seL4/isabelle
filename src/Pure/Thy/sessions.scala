@@ -133,8 +133,11 @@ object Sessions
 
   object Base
   {
-    def bootstrap(global_theories: Map[String, String]): Base =
+    def bootstrap(
+        session_directories: Map[JFile, (String, Boolean)],
+        global_theories: Map[String, String]): Base =
       Base(
+        session_directories = session_directories,
         global_theories = global_theories,
         overall_syntax = Thy_Header.bootstrap_syntax)
   }
@@ -142,6 +145,7 @@ object Sessions
   sealed case class Base(
     pos: Position.T = Position.none,
     doc_names: List[String] = Nil,
+    session_directories: Map[JFile, (String, Boolean)] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
@@ -183,7 +187,8 @@ object Sessions
       for ((theory, entry) <- known.theories.toList)
         yield (theory, entry.name.node)
 
-    def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
+    def get_imports: Base =
+      imports getOrElse Base.bootstrap(session_directories, global_theories)
   }
 
   sealed case class Deps(
@@ -289,7 +294,10 @@ object Sessions
           try {
             val parent_base: Sessions.Base =
               info.parent match {
-                case None => Base.bootstrap(sessions_structure.global_theories)
+                case None =>
+                  Base.bootstrap(
+                    sessions_structure.session_directories,
+                    sessions_structure.global_theories)
                 case Some(parent) => session_bases(parent)
               }
             val imports_base: Sessions.Base =
@@ -386,6 +394,7 @@ object Sessions
               Base(
                 pos = info.pos,
                 doc_names = doc_names,
+                session_directories = sessions_structure.session_directories,
                 global_theories = sessions_structure.global_theories,
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = used_theories,
