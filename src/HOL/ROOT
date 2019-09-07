@@ -12,7 +12,7 @@ session HOL (main) = Pure +
     "root.bib"
     "root.tex"
 
-session "HOL-Proofs" (timing) = Pure +
+session "HOL-Proofs" (timing) in Proofs = Pure +
   description "
     HOL-Main with explicit proof terms.
   "
