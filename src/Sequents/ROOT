@@ -37,6 +37,7 @@ session Sequents = Pure +
     S. Kalvala and V. de Paiva, Linear Logic in Isabelle (in TR 379, University
     of Cambridge Computer Lab, 1995, ed L. Paulson)
   "
+  directories "LK"
   theories
     LK
     ILL

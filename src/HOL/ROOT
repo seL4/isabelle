@@ -4,6 +4,7 @@ session HOL (main) = Pure +
   description "
     Classical Higher-order Logic.
   "
+  directories "../Tools"
   options [strict_facts]
   theories [dump_checkpoint]
     Main (global)
@@ -349,6 +350,7 @@ session "HOL-Auth" (timing) in Auth = "HOL-Library" +
   description "
     A new approach to verifying authentication protocols.
   "
+  directories "Smartcard" "Guard"
   theories
     Auth_Shared
     Auth_Public
@@ -364,6 +366,7 @@ session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
 
     Verifying security protocols using Chandy and Misra's UNITY formalism.
   "
+  directories "Simple" "Comp"
   theories
     (*Basic meta-theory*)
     UNITY_Main
@@ -413,6 +416,7 @@ session "HOL-ZF" in ZF = "HOL-Library" +
   document_files "root.tex"
 
 session "HOL-Imperative_HOL" (timing) in Imperative_HOL = "HOL-Library" +
+  directories "ex"
   options [print_mode = "iff,no_brackets"]
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
@@ -421,6 +425,7 @@ session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
   description "
     Various decision procedures, typically involving reflection.
   "
+  directories "ex"
   theories
     Decision_Procs
 
@@ -485,6 +490,7 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   "
+  directories "BV" "Comp" "DFA" "J" "JVM"
   sessions
     "HOL-Eisbach"
   theories
@@ -700,6 +706,7 @@ session "HOL-Matrix_LP" in Matrix_LP = "HOL-Library" +
   description "
     Two-dimensional matrices and linear programming.
   "
+  directories "Compute_Oracle"
   theories Cplex
   document_files "root.tex"
 
@@ -791,6 +798,7 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
   description "
     (Co)datatype Examples.
   "
+  directories "Derivation_Trees"
   theories
     Compat
     Lambda_Term
@@ -811,6 +819,7 @@ session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
   description "
     Corecursion Examples.
   "
+  directories "Tests"
   theories
     LFilter
     Paper_Examples
@@ -874,6 +883,7 @@ session "HOL-SPARK" in "SPARK" = "HOL-Word" +
     SPARK
 
 session "HOL-SPARK-Examples" in "SPARK/Examples" = "HOL-SPARK" +
+  directories "Gcd" "Liseq" "RIPEMD-160" "Sqrt"
   theories
     "Gcd/Greatest_Common_Divisor"
     "Liseq/Longest_Increasing_Subsequence"
@@ -968,6 +978,7 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
   description "
     Experimental extension of Higher-Order Logic to allow translation of types to sets.
   "
+  directories "Examples"
   theories
     Types_To_Sets
     "Examples/Prerequisites"

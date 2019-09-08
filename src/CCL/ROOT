@@ -10,6 +10,7 @@ session CCL = Pure +
     A computational logic for an untyped functional language with
     evaluation to weak head-normal form.
   "
+  directories "ex"
   sessions
     FOL
   theories

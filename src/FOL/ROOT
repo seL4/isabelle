@@ -24,6 +24,7 @@ session "FOL-ex" in ex = FOL +
   description "
     Examples for First-Order Logic.
   "
+  directories "Locale_Test"
   theories
     Natural_Numbers
     Intro
@@ -42,4 +43,3 @@ session "FOL-ex" in ex = FOL +
   theories [document = false, skip_proofs = false]
     "Locale_Test/Locale_Test"
   document_files "root.tex"
-

@@ -404,6 +404,8 @@ session System (doc) in "System" = Pure +
     "root.tex"
 
 session Tutorial (doc) in "Tutorial" = HOL +
+  directories "Advanced" "CTL" "CodeGen" "Datatype" "Documents" "Fun" "Ifexpr"
+    "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
   options [document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
   theories [threads = 1]
     "ToyList/ToyList_Test"
