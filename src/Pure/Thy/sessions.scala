@@ -507,9 +507,9 @@ object Sessions
                   path = ".",
                   parent = ancestor,
                   description = "Required theory imports from other sessions",
-                  directories = Nil,
                   options = Nil,
                   imports = info.deps,
+                  directories = Nil,
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
                   document_files = Nil,
                   export_files = Nil))))
@@ -914,9 +914,9 @@ object Sessions
     path: String,
     parent: Option[String],
     description: String,
-    directories: List[(String, Boolean)],
     options: List[Options.Spec],
     imports: List[String],
+    directories: List[(String, Boolean)],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_files: List[(String, String)],
     export_files: List[(String, Int, List[String])]) extends Entry
@@ -941,8 +941,7 @@ object Sessions
           { case x ~ y => (x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
-      def directories =
-        rep1(path ~ opt_keyword(OVERLAPPING) ^^ { case x ~ y => (x, y) })
+      def directory = path ~ opt_keyword(OVERLAPPING) ^^ { case x ~ y => (x, y) }
 
       val theory_entry =
         position(theory_name) ~ opt_keyword(GLOBAL) ^^ { case x ~ y => (x, y) }
@@ -971,9 +970,9 @@ object Sessions
           ($$$("=") ~!
             (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
-              (($$$(DIRECTORIES) ~! directories ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (($$$(DIRECTORIES) ~! rep1(directory) ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
               (rep(export_files))))) ^^

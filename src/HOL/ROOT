@@ -4,8 +4,8 @@ session HOL (main) = Pure +
   description "
     Classical Higher-order Logic.
   "
-  directories "../Tools"
   options [strict_facts]
+  directories "../Tools"
   theories [dump_checkpoint]
     Main (global)
     Complex_Main (global)
@@ -416,8 +416,8 @@ session "HOL-ZF" in ZF = "HOL-Library" +
   document_files "root.tex"
 
 session "HOL-Imperative_HOL" (timing) in Imperative_HOL = "HOL-Library" +
-  directories "ex"
   options [print_mode = "iff,no_brackets"]
+  directories "ex"
   theories Imperative_HOL_ex
   document_files "root.bib" "root.tex"
 
@@ -490,9 +490,9 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
   "
-  directories "BV" "Comp" "DFA" "J" "JVM"
   sessions
     "HOL-Eisbach"
+  directories "BV" "Comp" "DFA" "J" "JVM"
   theories
     MicroJava
   document_files

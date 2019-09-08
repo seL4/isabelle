@@ -53,17 +53,15 @@ text \<open>
     ;
 
     @{syntax_def session_entry}: @'session' @{syntax system_name} groups? dir? '=' \<newline>
-      (@{syntax system_name} '+')? description? directories?  \<newline>
-      options? (sessions?) (theories*) (document_files*) \<newline>
-      (export_files*)
+      (@{syntax system_name} '+')? description? options? \<newline>
+      sessions? directories? (theories*) \<newline>
+      (document_files*) (export_files*)
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
     dir: @'in' @{syntax embedded}
     ;
     description: @'description' @{syntax text}
-    ;
-    directories: @'directories' ((dir ('(' @'overlapping' ')')?) +)
     ;
     options: @'options' opts
     ;
@@ -72,6 +70,8 @@ text \<open>
     value: @{syntax name} | @{syntax real}
     ;
     sessions: @'sessions' (@{syntax system_name}+)
+    ;
+    directories: @'directories' ((dir ('(' @'overlapping' ')')?) +)
     ;
     theories: @'theories' opts? (theory_entry+)
     ;
@@ -110,16 +110,6 @@ text \<open>
   \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form annotation for this
   session.
 
-  \<^descr> \isakeyword{directories}~\<open>dirs\<close> specifies additional directories for
-  import of theory files via \isakeyword{theories} within \<^verbatim>\<open>ROOT\<close> or
-  \<^theory_text>\<open>imports\<close> within a theory; \<open>dirs\<close> are relative to the main session
-  directory (cf.\ \isakeyword{session} \dots \isakeyword{in}~\<open>dir\<close>). These
-  directories should be exclusively assigned to a unique session, without
-  implicit sharing of file-system locations, but
-  \isakeyword{directories}~\<open>dir\<close>~(\isakeyword{overlapping}) is tolerant in
-  this respect (it might cause problems in the Prover IDE @{cite
-  "isabelle-jedit"} to assign session-qualified theory names to open files).
-
   \<^descr> \isakeyword{options}~\<open>[x = a, y = b, z]\<close> defines separate options
   (\secref{sec:system-options}) that are used when processing this session,
   but \<^emph>\<open>without\<close> propagation to child sessions. Note that \<open>z\<close> abbreviates \<open>z =
@@ -133,6 +123,16 @@ text \<open>
 
   Theories that are imported from other sessions are excluded from the current
   session document.
+
+  \<^descr> \isakeyword{directories}~\<open>dirs\<close> specifies additional directories for
+  import of theory files via \isakeyword{theories} within \<^verbatim>\<open>ROOT\<close> or
+  \<^theory_text>\<open>imports\<close> within a theory; \<open>dirs\<close> are relative to the main session
+  directory (cf.\ \isakeyword{session} \dots \isakeyword{in}~\<open>dir\<close>). These
+  directories should be exclusively assigned to a unique session, without
+  implicit sharing of file-system locations, but
+  \isakeyword{directories}~\<open>dir\<close>~(\isakeyword{overlapping}) is tolerant in
+  this respect (it might cause problems in the Prover IDE @{cite
+  "isabelle-jedit"} to assign session-qualified theory names to open files).
 
   \<^descr> \isakeyword{theories}~\<open>options names\<close> specifies a block of theories that
   are processed within an environment that is augmented by the given options,

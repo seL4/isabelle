@@ -16,8 +16,8 @@ session CTT = Pure +
     Simon Thompson, Type Theory and Functional Programming (Addison-Wesley,
     1991)
   "
-  directories "ex"
   options [thy_output_source]
+  directories "ex"
   theories
     CTT
     "ex/Typechecking"

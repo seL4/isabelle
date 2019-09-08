@@ -10,9 +10,9 @@ session LCF = Pure +
     Useful references on LCF: Lawrence C. Paulson,
     Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
   "
-  directories "ex"
   sessions
     FOL
+  directories "ex"
   theories
     LCF
     (* Some examples from Lawrence Paulson's book Logic and Computation *)

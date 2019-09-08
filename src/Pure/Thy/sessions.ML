@@ -51,15 +51,15 @@ val command_parser =
   (Parse.$$$ "=" |--
     Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
       Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
-      Scan.optional (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 directory)) [] --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
+      Scan.optional (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 directory)) [] --
       Scan.repeat theories --
       Scan.repeat document_files --
       Scan.repeat export_files))
   >> (fn ((((session, _), _), dir),
-          ((((((((parent, descr), directories), options), sessions), theories),
+          ((((((((parent, descr), options), sessions), directories), theories),
             document_files), export_files))) =>
     Toplevel.keep (fn state =>
       let
