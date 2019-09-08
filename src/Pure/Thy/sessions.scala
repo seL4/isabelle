@@ -379,6 +379,21 @@ object Sessions
               for ((options, name) <- dependencies.adjunct_theories)
               yield ((name, options), known.theories(name.theory).header.imports)
 
+            val dir_errors =
+            {
+              val ok = (for { (dir, _) <- info.dirs } yield dir.canonical_file).toSet
+              (for {
+                  ((name, _), _) <- used_theories.iterator
+                  if imports_base.theory_qualifier(name) == session_name
+                  val path = name.master_dir_path
+                  if !ok(path.canonical_file)
+                } yield {
+                  val path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
+                  "Implicit use of directory " + path1 + " for theory " + quote(name.toString)
+                }
+              ).toList
+            }
+
             val sources_errors =
               for (p <- session_files if !p.is_file) yield "No such file: " + p
 
@@ -404,7 +419,8 @@ object Sessions
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
                 session_graph_display = session_graph_display,
-                errors = dependencies.errors ::: sources_errors ::: path_errors ::: bibtex_errors,
+                errors = dependencies.errors ::: dir_errors ::: sources_errors :::
+                  path_errors ::: bibtex_errors,
                 imports = Some(imports_base))
 
             session_bases + (info.name -> base)
