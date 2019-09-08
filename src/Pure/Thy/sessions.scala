@@ -382,16 +382,23 @@ object Sessions
             val dir_errors =
             {
               val ok = (for { (dir, _) <- info.dirs } yield dir.canonical_file).toSet
-              (for {
+              val bad =
+                (for {
                   ((name, _), _) <- used_theories.iterator
                   if imports_base.theory_qualifier(name) == session_name
                   val path = name.master_dir_path
                   if !ok(path.canonical_file)
-                } yield {
-                  val path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
-                  "Implicit use of directory " + path1 + " for theory " + quote(name.toString)
-                }
-              ).toList
+                  path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
+                } yield (path1, name)).toList
+              val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).toSet.toList.sorted
+
+              val errs1 =
+                for { (path1, name) <- bad }
+                yield "Implicit use of directory " + path1 + " for theory " + quote(name.toString)
+              val errs2 =
+                if (bad_dirs.isEmpty) Nil
+                else List("Implicit use of session directories: " + commas(bad_dirs))
+              errs1 ::: errs2
             }
 
             val sources_errors =
