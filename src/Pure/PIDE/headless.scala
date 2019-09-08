@@ -63,7 +63,7 @@ object Headless
     nodes: List[Document.Node.Name])
   {
     def next(
-      dep_graph: Document.Theory_Graph[Unit],
+      dep_graph: Document.Node.Name.Graph[Unit],
       finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Checkpoints_State) =
     {
       import Checkpoints_State.Status
@@ -150,7 +150,7 @@ object Headless
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Option[Exn.Result[Use_Theories_Result]] = None)
     {
-      def dep_graph: Document.Theory_Graph[Unit] = dependencies.theory_graph
+      def dep_graph: Document.Node.Name.Graph[Unit] = dependencies.theory_graph
 
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
@@ -479,8 +479,8 @@ object Headless
 
       /* theories */
 
-      lazy val theory_graph: Document.Theory_Graph[Unit] =
-        Document.theory_graph(
+      lazy val theory_graph: Document.Node.Name.Graph[Unit] =
+        Document.Node.Name.make_graph(
           for ((name, theory) <- theories.toList)
           yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_))))
 

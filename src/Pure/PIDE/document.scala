@@ -76,13 +76,6 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
-  type Theory_Graph[A] = Graph[Node.Name, A]
-
-  def theory_graph[A](
-      entries: List[((Node.Name, A), List[Node.Name])],
-      permissive: Boolean = false): Theory_Graph[A] =
-    Graph.make(entries, symmetric = true, permissive = permissive)(Node.Name.Theory_Ordering)
-
   object Node
   {
     /* header and name */
@@ -116,10 +109,11 @@ object Document
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
       }
 
-      object Theory_Ordering extends scala.math.Ordering[Name]
-      {
-        def compare(name1: Name, name2: Name): Int = name1.theory compare name2.theory
-      }
+      type Graph[A] = isabelle.Graph[Node.Name, A]
+
+      def make_graph[A](
+          entries: List[((Name, A), List[Name])], permissive: Boolean = false): Graph[A] =
+        Graph.make(entries, symmetric = true, permissive = permissive)(Ordering)
     }
 
     sealed case class Name(node: String, master_dir: String = "", theory: String = "")
