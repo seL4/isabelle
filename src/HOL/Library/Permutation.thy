@@ -8,7 +8,7 @@ theory Permutation
 imports Multiset
 begin
 
-inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (\<open>_ <~~> _\<close>  [50, 50] 50)  (* FIXME proper infix, without ambiguity!? *)
+inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixr \<open><~~>\<close> 50)
 where
   Nil [intro!]: "[] <~~> []"
 | swap [intro!]: "y # x # l <~~> x # y # l"
@@ -21,17 +21,14 @@ proposition perm_refl [iff]: "l <~~> l"
 
 subsection \<open>Some examples of rule induction on permutations\<close>
 
-proposition xperm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
-  by (induct xs == "[] :: 'a list" ys pred: perm) simp_all
+proposition perm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
+  by (induction "[] :: 'a list" ys pred: perm) simp_all
 
 
 text \<open>\medskip This more general theorem is easier to understand!\<close>
 
 proposition perm_length: "xs <~~> ys \<Longrightarrow> length xs = length ys"
   by (induct pred: perm) simp_all
-
-proposition perm_empty_imp: "[] <~~> xs \<Longrightarrow> xs = []"
-  by (drule perm_length) auto
 
 proposition perm_sym: "xs <~~> ys \<Longrightarrow> ys <~~> xs"
   by (induct pred: perm) auto
@@ -66,9 +63,7 @@ proposition perm_empty [iff]: "[] <~~> xs \<longleftrightarrow> xs = []"
   by (blast intro: perm_empty_imp)
 
 proposition perm_empty2 [iff]: "xs <~~> [] \<longleftrightarrow> xs = []"
-  apply auto
-  apply (erule perm_sym [THEN perm_empty_imp])
-  done
+  using perm_sym by auto
 
 proposition perm_sing_imp: "ys <~~> xs \<Longrightarrow> xs = [y] \<Longrightarrow> ys = [y]"
   by (induct pred: perm) auto
@@ -98,7 +93,7 @@ proposition cons_perm_imp_perm: "z # xs <~~> z # ys \<Longrightarrow> xs <~~> ys
   by (drule perm_remove_perm [where z = z]) auto
 
 proposition cons_perm_eq [iff]: "z#xs <~~> z#ys \<longleftrightarrow> xs <~~> ys"
-  by (blast intro: cons_perm_imp_perm)
+  by (meson cons_perm_imp_perm perm.Cons)
 
 proposition append_perm_imp_perm: "zs @ xs <~~> zs @ ys \<Longrightarrow> xs <~~> ys"
   by (induct zs arbitrary: xs ys rule: rev_induct) auto
@@ -107,74 +102,52 @@ proposition perm_append1_eq [iff]: "zs @ xs <~~> zs @ ys \<longleftrightarrow> x
   by (blast intro: append_perm_imp_perm perm_append1)
 
 proposition perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~> ys"
-  apply (safe intro!: perm_append2)
-  apply (rule append_perm_imp_perm)
-  apply (rule perm_append_swap [THEN perm.trans])
-    \<comment> \<open>the previous step helps this \<open>blast\<close> call succeed quickly\<close>
-  apply (blast intro: perm_append_swap)
-  done
+  by (meson perm.trans perm_append1_eq perm_append_swap)
 
 theorem mset_eq_perm: "mset xs = mset ys \<longleftrightarrow> xs <~~> ys"
-  apply (rule iffI)
-  apply (erule_tac [2] perm.induct)
-  apply (simp_all add: union_ac)
-  apply (erule rev_mp)
-  apply (rule_tac x=ys in spec)
-  apply (induct_tac xs)
-  apply auto
-  apply (erule_tac x = "remove1 a x" in allE)
-  apply (drule sym)
-  apply simp
-  apply (subgoal_tac "a \<in> set x")
-  apply (drule_tac z = a in perm.Cons)
-  apply (erule perm.trans)
-  apply (rule perm_sym)
-  apply (erule perm_remove)
-  apply (drule_tac f=set_mset in arg_cong)
-  apply simp
-  done
+proof
+  assume "mset xs = mset ys"
+  then show "xs <~~> ys"
+  proof (induction xs arbitrary: ys)
+    case (Cons x xs)
+    then have "x \<in> set ys"
+      using mset_eq_setD by fastforce
+    then show ?case
+      by (metis Cons.IH Cons.prems mset_remove1 perm.Cons perm.trans perm_remove perm_sym remove_hd)
+  qed auto
+next
+  assume "xs <~~> ys"
+  then show "mset xs = mset ys"
+    by induction (simp_all add: union_ac)
+qed
 
 proposition mset_le_perm_append: "mset xs \<subseteq># mset ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
-  apply (auto simp: mset_eq_perm[THEN sym] mset_subset_eq_exists_conv)
-  apply (insert surj_mset)
-  apply (drule surjD)
-  apply (blast intro: sym)+
-  done
+  apply (rule iffI)
+  apply (metis mset_append mset_eq_perm mset_subset_eq_exists_conv surjD surj_mset)
+  by (metis mset_append mset_eq_perm mset_subset_eq_exists_conv)
 
 proposition perm_set_eq: "xs <~~> ys \<Longrightarrow> set xs = set ys"
   by (metis mset_eq_perm mset_eq_setD)
 
 proposition perm_distinct_iff: "xs <~~> ys \<Longrightarrow> distinct xs = distinct ys"
-  apply (induct pred: perm)
-     apply simp_all
-   apply fastforce
-  apply (metis perm_set_eq)
-  done
+  by (metis card_distinct distinct_card perm_length perm_set_eq)
 
 theorem eq_set_perm_remdups: "set xs = set ys \<Longrightarrow> remdups xs <~~> remdups ys"
-  apply (induct xs arbitrary: ys rule: length_induct)
-  apply (case_tac "remdups xs")
-   apply simp_all
-  apply (subgoal_tac "a \<in> set (remdups ys)")
-   prefer 2 apply (metis list.set(2) insert_iff set_remdups)
-  apply (drule split_list) apply (elim exE conjE)
-  apply (drule_tac x = list in spec) apply (erule impE) prefer 2
-   apply (drule_tac x = "ysa @ zs" in spec) apply (erule impE) prefer 2
-    apply simp
-    apply (subgoal_tac "a # list <~~> a # ysa @ zs")
-     apply (metis Cons_eq_appendI perm_append_Cons trans)
-    apply (metis Cons Cons_eq_appendI distinct.simps(2)
-      distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
-   apply (subgoal_tac "set (a # list) =
-      set (ysa @ a # zs) \<and> distinct (a # list) \<and> distinct (ysa @ a # zs)")
-    apply (fastforce simp add: insert_ident)
-   apply (metis distinct_remdups set_remdups)
-   apply (subgoal_tac "length (remdups xs) < Suc (length xs)")
-   apply simp
-   apply (subgoal_tac "length (remdups xs) \<le> length xs")
-   apply simp
-   apply (rule length_remdups_leq)
-  done
+proof (induction xs arbitrary: ys rule: length_induct)
+  case (1 xs)
+  show ?case
+  proof (cases "remdups xs")
+    case Nil
+    with "1.prems" show ?thesis
+      using "1.prems" by auto
+  next
+    case (Cons x us)
+    then have "x \<in> set (remdups ys)"
+      using "1.prems" set_remdups by fastforce
+    then show ?thesis
+      using "1.prems" mset_eq_perm set_eq_iff_mset_remdups_eq by blast
+  qed
+qed 
 
 proposition perm_remdups_iff_eq_set: "remdups x <~~> remdups y \<longleftrightarrow> set x = set y"
   by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
@@ -243,10 +216,7 @@ qed
 proposition perm_finite: "finite {B. B <~~> A}"
 proof (rule finite_subset[where B="{xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"])
  show "finite {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
-   apply (cases A, simp)
-   apply (rule card_ge_0_finite)
-   apply (auto simp: card_lists_length_le)
-   done
+   using finite_lists_length_le by blast
 next
  show "{B. B <~~> A} \<subseteq> {xs. set xs \<subseteq> set A \<and> length xs \<le> length A}"
    by (clarsimp simp add: perm_length perm_set_eq)
