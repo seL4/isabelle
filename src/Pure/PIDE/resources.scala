@@ -135,7 +135,7 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def theory_name(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
+  def find_theory(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
   {
     val dir = File.canonical(file).getParentFile
     val qualifier = session_base.session_directories.get(dir).getOrElse(default_qualifier)
