@@ -19,8 +19,6 @@ val theory_name = "Pure.Sessions";
 
 local
 
-val directory = Parse.position Parse.path -- Parse.opt_keyword "overlapping";
-
 val theory_entry = Parse.theory_name --| Parse.opt_keyword "global";
 
 val theories =
@@ -54,7 +52,8 @@ val command_parser =
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
-      Scan.optional (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 directory)) [] --
+      Scan.optional
+        (Parse.$$$ "directories" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.path))) [] --
       Scan.repeat theories --
       Scan.repeat document_files --
       Scan.repeat export_files))
@@ -92,7 +91,7 @@ val command_parser =
             in () end);
 
         val _ =
-          directories |> List.app (ignore o Resources.check_dir ctxt (SOME session_dir) o #1);
+          directories |> List.app (ignore o Resources.check_dir ctxt (SOME session_dir));
 
         val _ =
           document_files |> List.app (fn (doc_dir, doc_files) =>

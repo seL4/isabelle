@@ -138,7 +138,7 @@ class Resources(
   def theory_name(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
   {
     val dir = File.canonical(file).getParentFile
-    val qualifier = session_base.session_directories.get(dir).map(_._1).getOrElse(default_qualifier)
+    val qualifier = session_base.session_directories.get(dir).getOrElse(default_qualifier)
     Thy_Header.theory_name(file.getName) match {
       case "" => None
       case s => Some(import_name(qualifier, File.path(file).dir.implode, s))

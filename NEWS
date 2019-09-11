@@ -10,9 +10,10 @@ New in this Isabelle version
 *** General ***
 
 * Session ROOT files need to specify explicit 'directories' for import
-of theory files. Directories that are used by different sessions should
-be avoided, but may be specified as 'overlapping' (this affects formal
-theory names in the Prover IDE).
+of theory files. Directories cannot be shared by different sessions.
+(Recall that import of theories from other sessions works via
+session-qualified theory names, together with suitable 'sessions'
+declarations in the ROOT.)
 
 * Internal derivations record dependencies on oracles and other theorems
 accurately, including the implicit type-class reasoning wrt. proven

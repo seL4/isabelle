@@ -134,7 +134,7 @@ object Sessions
   object Base
   {
     def bootstrap(
-        session_directories: Map[JFile, (String, Boolean)],
+        session_directories: Map[JFile, String],
         global_theories: Map[String, String]): Base =
       Base(
         session_directories = session_directories,
@@ -145,7 +145,7 @@ object Sessions
   sealed case class Base(
     pos: Position.T = Position.none,
     doc_names: List[String] = Nil,
-    session_directories: Map[JFile, (String, Boolean)] = Map.empty,
+    session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
@@ -381,7 +381,7 @@ object Sessions
 
             val dir_errors =
             {
-              val ok = (for { (dir, _) <- info.dirs } yield dir.canonical_file).toSet
+              val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
                   ((name, _), _) <- used_theories.iterator
@@ -559,7 +559,7 @@ object Sessions
     dir: Path,
     parent: Option[String],
     description: String,
-    directories: List[(Path, Boolean)],
+    directories: List[Path],
     options: Options,
     imports: List[String],
     theories: List[(Options, List[(String, Position.T)])],
@@ -570,7 +570,7 @@ object Sessions
   {
     def deps: List[String] = parent.toList ::: imports
 
-    def dirs: List[(Path, Boolean)] = (dir, false) :: directories
+    def dirs: List[Path] = dir :: directories
 
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
 
@@ -593,9 +593,7 @@ object Sessions
       if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 
       val session_path = dir + Path.explode(entry.path)
-      val directories =
-        for { (dir, overlapping) <- entry.directories }
-        yield (session_path + Path.explode(dir), overlapping)
+      val directories = entry.directories.map(dir => session_path + Path.explode(dir))
 
       val session_options = options ++ entry.options
 
@@ -703,28 +701,22 @@ object Sessions
     val build_graph = add_edges(info_graph, "parent", _.parent)
     val imports_graph = add_edges(build_graph, "imports", _.imports)
 
-    val session_directories: Map[JFile, (String, Boolean)] =
-      (Map.empty[JFile, (String, Boolean)] /:
+    val session_directories: Map[JFile, String] =
+      (Map.empty[JFile, String] /:
         (for {
           session <- imports_graph.topological_order.iterator
           info = info_graph.get_node(session)
-          dir_overlapping <- info.dirs.iterator
-        } yield (info, dir_overlapping)))({ case (dirs, (info, (dir, overlapping))) =>
+          dir <- info.dirs.iterator
+        } yield (info, dir)))({ case (dirs, (info, dir)) =>
             val session = info.name
             val canonical_dir = dir.canonical_file
-            def update(over: Boolean) = dirs + (canonical_dir -> (session -> over))
             dirs.get(canonical_dir) match {
-              case Some((session1, overlapping1)) =>
-                if (session == session1) update(overlapping || overlapping1)
-                else if (overlapping && !overlapping1) dirs
-                else if (!overlapping && overlapping1) update(overlapping)
-                else {
-                  val info1 = info_graph.get_node(session1)
-                  error("Duplicate use of directory " + dir +
-                    "\n  for session " + quote(session1) + Position.here(info1.pos) +
-                    "\n  vs. session " + quote(session) + Position.here(info.pos))
-                }
-              case None => update(overlapping)
+              case Some(session1) if session1 != session =>
+                val info1 = info_graph.get_node(session1)
+                error("Duplicate use of directory " + dir +
+                  "\n  for session " + quote(session1) + Position.here(info1.pos) +
+                  "\n  vs. session " + quote(session) + Position.here(info.pos))
+              case None => dirs + (canonical_dir -> session)
             }
           })
 
@@ -747,7 +739,7 @@ object Sessions
   }
 
   final class Structure private[Sessions](
-      val session_directories: Map[JFile, (String, Boolean)],
+      val session_directories: Map[JFile, String],
       val global_theories: Map[String, String],
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
@@ -891,7 +883,6 @@ object Sessions
   private val IN = "in"
   private val DESCRIPTION = "description"
   private val DIRECTORIES = "directories"
-  private val OVERLAPPING = "overlapping"
   private val OPTIONS = "options"
   private val SESSIONS = "sessions"
   private val THEORIES = "theories"
@@ -901,7 +892,7 @@ object Sessions
 
   val root_syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      GLOBAL + IN + OVERLAPPING +
+      GLOBAL + IN +
       (CHAPTER, Keyword.THY_DECL) +
       (SESSION, Keyword.THY_DECL) +
       (DESCRIPTION, Keyword.QUASI_COMMAND) +
@@ -923,7 +914,7 @@ object Sessions
     description: String,
     options: List[Options.Spec],
     imports: List[String],
-    directories: List[(String, Boolean)],
+    directories: List[String],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
     document_files: List[(String, String)],
     export_files: List[(String, Int, List[String])]) extends Entry
@@ -947,8 +938,6 @@ object Sessions
         option_name ~ opt($$$("=") ~! option_value ^^ { case _ ~ x => x }) ^^
           { case x ~ y => (x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
-
-      def directory = path ~ opt_keyword(OVERLAPPING) ^^ { case x ~ y => (x, y) }
 
       val theory_entry =
         position(theory_name) ~ opt_keyword(GLOBAL) ^^ { case x ~ y => (x, y) }
@@ -979,7 +968,7 @@ object Sessions
               (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
-              (($$$(DIRECTORIES) ~! rep1(directory) ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (($$$(DIRECTORIES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
               (rep(document_files) ^^ (x => x.flatten)) ~
               (rep(export_files))))) ^^

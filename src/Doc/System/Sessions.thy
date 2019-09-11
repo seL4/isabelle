@@ -71,7 +71,7 @@ text \<open>
     ;
     sessions: @'sessions' (@{syntax system_name}+)
     ;
-    directories: @'directories' ((dir ('(' @'overlapping' ')')?) +)
+    directories: @'directories' (dir+)
     ;
     theories: @'theories' opts? (theory_entry+)
     ;
@@ -128,11 +128,8 @@ text \<open>
   import of theory files via \isakeyword{theories} within \<^verbatim>\<open>ROOT\<close> or
   \<^theory_text>\<open>imports\<close> within a theory; \<open>dirs\<close> are relative to the main session
   directory (cf.\ \isakeyword{session} \dots \isakeyword{in}~\<open>dir\<close>). These
-  directories should be exclusively assigned to a unique session, without
-  implicit sharing of file-system locations, but
-  \isakeyword{directories}~\<open>dir\<close>~(\isakeyword{overlapping}) is tolerant in
-  this respect (it might cause problems in the Prover IDE @{cite
-  "isabelle-jedit"} to assign session-qualified theory names to open files).
+  directories need to be exclusively assigned to a unique session, without
+  implicit sharing of file-system locations.
 
   \<^descr> \isakeyword{theories}~\<open>options names\<close> specifies a block of theories that
   are processed within an environment that is augmented by the given options,

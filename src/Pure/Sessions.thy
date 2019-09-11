@@ -9,7 +9,7 @@ theory Sessions
   keywords "session" :: thy_decl
     and "description" "directories" "options" "sessions" "theories"
       "document_files" "export_files" :: quasi_command
-    and "global" "overlapping"
+    and "global"
 begin
 
 ML \<open>
