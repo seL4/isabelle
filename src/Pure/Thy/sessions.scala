@@ -691,7 +691,7 @@ object Sessions
             val session = info.name
             val canonical_dir = dir.canonical_file
             dirs.get(canonical_dir) match {
-              case Some(session1) if session1 != session =>
+              case Some(session1) =>
                 val info1 = info_graph.get_node(session1)
                 error("Duplicate use of directory " + dir +
                   "\n  for session " + quote(session1) + Position.here(info1.pos) +
