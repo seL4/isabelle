@@ -111,9 +111,8 @@ object Document
 
       type Graph[A] = isabelle.Graph[Node.Name, A]
 
-      def make_graph[A](
-          entries: List[((Name, A), List[Name])], permissive: Boolean = false): Graph[A] =
-        Graph.make(entries, symmetric = true, permissive = permissive)(Ordering)
+      def make_graph[A](entries: List[((Name, A), List[Name])]): Graph[A] =
+        Graph.make(entries, symmetric = true)(Ordering)
     }
 
     sealed case class Name(node: String, master_dir: String = "", theory: String = "")

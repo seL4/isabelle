@@ -30,13 +30,10 @@ object Graph
     new Graph[Key, A](SortedMap.empty(ord))
 
   def make[Key, A](entries: List[((Key, A), List[Key])],
-    symmetric: Boolean = false,
-    permissive: Boolean = false)(implicit ord: Ordering[Key]): Graph[Key, A] =
+    symmetric: Boolean = false)(implicit ord: Ordering[Key]): Graph[Key, A] =
   {
     val graph1 =
-      (empty[Key, A](ord) /: entries) { case (graph, ((x, info), _)) =>
-        if (permissive) graph.default_node(x, info) else graph.new_node(x, info)
-      }
+      (empty[Key, A](ord) /: entries) { case (graph, ((x, info), _)) => graph.new_node(x, info) }
     val graph2 =
       (graph1 /: entries) { case (graph, ((x, _), ys)) =>
         (graph /: ys)({ case (g, y) => if (symmetric) g.add_edge(y, x) else g.add_edge(x, y) }) }
