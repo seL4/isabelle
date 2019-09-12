@@ -56,7 +56,6 @@ object JEdit_Sessions
 
   def logic_ancestor: Option[String] = proper_string(Isabelle_System.getenv("JEDIT_LOGIC_ANCESTOR"))
   def logic_requirements: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_REQUIREMENTS") == "true"
-  def logic_focus: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_FOCUS") == "true"
   def logic_include_sessions: List[String] =
     space_explode(':', Isabelle_System.getenv("JEDIT_INCLUDE_SESSIONS"))
 
@@ -124,9 +123,7 @@ object JEdit_Sessions
       include_sessions = logic_include_sessions,
       session = logic_name(options),
       session_ancestor = logic_ancestor,
-      session_requirements = logic_requirements,
-      session_focus = logic_focus,
-      all_known = !logic_focus)
+      session_requirements = logic_requirements)
 
   def session_build(
     options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =

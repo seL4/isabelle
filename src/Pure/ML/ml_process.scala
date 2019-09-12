@@ -29,14 +29,15 @@ object ML_Process
     val logic_name = Isabelle_System.default_logic(logic)
     val _store = store.getOrElse(Sessions.store(options))
 
+    val sessions_structure1 =
+      sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
+
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
         val selection = Sessions.Selection(sessions = List(logic_name))
-        val selected_sessions =
-          sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
-            .selection(selection)
-        selected_sessions.build_requirements(List(logic_name)).
+        sessions_structure1.selection(selection).
+          build_requirements(List(logic_name)).
           map(a => File.platform_path(_store.the_heap(a)))
       }
 
@@ -96,7 +97,8 @@ object ML_Process
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
 
           List("Resources.init_session_base" +
-            " {sessions = " + print_sessions(base.known.sessions.toList) +
+            " {session_positions = " + print_sessions(sessions_structure1.session_positions) +
+            ", session_directories = " + print_table(sessions_structure1.dest_session_directories) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) +

@@ -35,7 +35,6 @@ object Server
       var logic_ancestor: Option[String] = None
       var log_file: Option[Path] = None
       var logic_requirements = false
-      var logic_focus = false
       var dirs: List[Path] = Nil
       var include_sessions: List[String] = Nil
       var logic = default_logic
@@ -47,10 +46,9 @@ object Server
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
-    -A NAME      ancestor session for options -R and -S (default: parent)
+    -A NAME      ancestor session for option -R (default: parent)
     -L FILE      logging on FILE
     -R NAME      build image with requirements from other sessions
-    -S NAME      like option -R, with focus on selected session
     -d DIR       include session directory
     -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
@@ -63,7 +61,6 @@ Usage: isabelle vscode_server [OPTIONS]
         "A:" -> (arg => logic_ancestor = Some(arg)),
         "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
         "R:" -> (arg => { logic = arg; logic_requirements = true }),
-        "S:" -> (arg => { logic = arg; logic_requirements = true; logic_focus = true }),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
         "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => logic = arg),
@@ -79,8 +76,7 @@ Usage: isabelle vscode_server [OPTIONS]
       val server =
         new Server(channel, options, session_name = logic, session_dirs = dirs,
           include_sessions = include_sessions, session_ancestor = logic_ancestor,
-          session_requirements = logic_requirements, session_focus = logic_focus,
-          all_known = !logic_focus, modes = modes, log = log)
+          session_requirements = logic_requirements, modes = modes, log = log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -107,8 +103,6 @@ class Server(
   include_sessions: List[String] = Nil,
   session_ancestor: Option[String] = None,
   session_requirements: Boolean = false,
-  session_focus: Boolean = false,
-  all_known: Boolean = false,
   modes: List[String] = Nil,
   log: Logger = No_Logger)
 {
@@ -271,9 +265,9 @@ class Server(
         val base_info =
           Sessions.base_info(
             options, session_name, dirs = session_dirs, include_sessions = include_sessions,
-            session_ancestor = session_ancestor, session_requirements = session_requirements,
-            session_focus = session_focus, all_known = all_known)
-        val session_base = base_info.check_base
+            session_ancestor = session_ancestor, session_requirements = session_requirements)
+
+        base_info.check_base
 
         def build(no_build: Boolean = false): Build.Results =
           Build.build(options, build_heap = true, no_build = no_build, dirs = session_dirs,
@@ -289,7 +283,7 @@ class Server(
           if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val resources = new VSCode_Resources(options, session_base, log)
+        val resources = new VSCode_Resources(options, base_info, log)
           {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version.nodes).nonEmpty)

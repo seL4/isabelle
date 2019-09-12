@@ -14,6 +14,7 @@ import java.io.{File => JFile}
 
 
 class Resources(
+  val sessions_structure: Sessions.Structure,
   val session_base: Sessions.Base,
   val log: Logger = No_Logger)
 {
@@ -46,6 +47,13 @@ class Resources(
 
   def append(node_name: Document.Node.Name, source_path: Path): String =
     append(node_name.master_dir, source_path)
+
+  def make_theory_node(dir: String, file: Path, theory: String): Document.Node.Name =
+  {
+    val node = append(dir, file)
+    val master_dir = append(dir, file.dir)
+    Document.Node.Name(node, master_dir, theory)
+  }
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -109,22 +117,30 @@ class Resources(
       theory
     else Long_Name.qualify(qualifier, theory)
 
+  def find_theory_node(theory: String): Option[Document.Node.Name] =
+    session_base.known.theories.get(theory).map(_.name) orElse {
+      val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
+      val session = session_base.theory_qualifier(theory)
+      val dirs =
+        sessions_structure.get(session) match {
+          case Some(info) => info.dirs
+          case None => Nil
+        }
+      dirs.collectFirst({
+        case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
+    }
+
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
     if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
     else {
-      session_base.known_theory(theory) match {
+      find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
           if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
             Document.Node.Name.loaded_theory(theory)
-          else {
-            val path = Path.explode(s)
-            val node = append(dir, thy_path(path))
-            val master_dir = append(dir, path.dir)
-            Document.Node.Name(node, master_dir, theory)
-          }
+          else make_theory_node(dir, thy_path(Path.explode(s)), theory)
       }
     }
   }

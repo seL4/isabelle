@@ -99,21 +99,24 @@ object Imports
     select_dirs: List[Path] = Nil,
     verbose: Boolean = false) =
   {
+    val sessions_structure =
+      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
+
     val deps =
-      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(options, selection, progress = progress, verbose = verbose).check_errors
+      sessions_structure.selection_deps(options, selection, progress = progress, verbose = verbose).
+        check_errors
 
     val root_keywords = Sessions.root_syntax.keywords
 
     if (operation_imports) {
       val report_imports: List[Report] =
-        deps.sessions_structure.build_topological_order.map((session_name: String) =>
+        sessions_structure.build_topological_order.map((session_name: String) =>
           {
-            val info = deps.sessions_structure(session_name)
+            val info = sessions_structure(session_name)
             val session_base = deps(session_name)
 
             val declared_imports =
-              deps.sessions_structure.imports_requirements(List(session_name)).toSet
+              sessions_structure.imports_requirements(List(session_name)).toSet
 
             val extra_imports =
               (for {
@@ -125,18 +128,18 @@ object Imports
               } yield qualifier).toSet
 
             val loaded_imports =
-              deps.sessions_structure.imports_requirements(
+              sessions_structure.imports_requirements(
                 session_base.loaded_theories.keys.map(a =>
                   session_base.theory_qualifier(session_base.known.theories(a).name)))
               .toSet - session_name
 
             val minimal_imports =
               loaded_imports.filter(s1 =>
-                !loaded_imports.exists(s2 => deps.sessions_structure.imports_graph.is_edge(s1, s2)))
+                !loaded_imports.exists(s2 => sessions_structure.imports_graph.is_edge(s1, s2)))
 
             def make_result(set: Set[String]): Option[List[String]] =
               if (set.isEmpty) None
-              else Some(deps.sessions_structure.imports_topological_order.filter(set))
+              else Some(sessions_structure.imports_topological_order.filter(set))
 
             Report(info, declared_imports, make_result(extra_imports),
               if (loaded_imports == declared_imports - session_name) None
@@ -170,13 +173,13 @@ object Imports
     if (operation_update) {
       progress.echo("\nUpdate theory imports" + update_message + ":")
       val updates =
-        deps.sessions_structure.build_topological_order.flatMap(session_name =>
+        sessions_structure.build_topological_order.flatMap(session_name =>
           {
-            val info = deps.sessions_structure(session_name)
+            val info = sessions_structure(session_name)
             val session_base = deps(session_name)
-            val session_resources = new Resources(session_base)
+            val session_resources = new Resources(sessions_structure, session_base)
             val imports_base = session_base.get_imports
-            val imports_resources = new Resources(imports_base)
+            val imports_resources = new Resources(sessions_structure, imports_base)
 
             def standard_import(qualifier: String, dir: String, s: String): String =
               imports_resources.standard_import(session_base, qualifier, dir, s)

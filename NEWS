@@ -46,6 +46,16 @@ and may thus improve scalability.
 instances during roundup.
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* Prover IDE startup is now much faster, because theory dependencies are
+no longer explored in advance. The overall session structure with its
+declarations of 'directories' is sufficient to locate theory files. Thus
+the "session focus" of option "isabelle jedit -S" has become obsolete
+(likewise for "isabelle vscode_server -S"). Existing option "-R" is both
+sufficient and more convenient to start editing a particular session.
+
+
 *** HOL ***
 
 * ASCII membership syntax concerning big operators for infimum and

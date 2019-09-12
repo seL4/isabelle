@@ -86,7 +86,7 @@ val command_parser =
               val {node_name, theory_name, ...} =
                 Resources.import_name session session_dir s
                   handle ERROR msg => error (msg ^ Position.here pos);
-              val theory_path = the_default node_name (Resources.known_theory theory_name);
+              val theory_path = the_default node_name (Resources.find_theory_file theory_name);
               val _ = Resources.check_file ctxt (SOME Path.current) (Path.implode theory_path, pos);
             in () end);
 

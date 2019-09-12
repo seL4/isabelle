@@ -241,7 +241,8 @@ trait Protocol
   {
     val base = resources.session_base.standard_path
     protocol_command("Prover.init_session_base",
-      encode_sessions(base.known.sessions.toList),
+      encode_sessions(resources.sessions_structure.session_positions),
+      encode_table(resources.sessions_structure.dest_session_directories),
       encode_list(base.doc_names),
       encode_table(base.global_theories.toList),
       encode_list(base.loaded_theories.keys),

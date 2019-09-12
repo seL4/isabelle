@@ -197,6 +197,8 @@ object Build
   {
     val options = NUMA.policy_options(info.options, numa_node)
 
+    val sessions_structure = deps.sessions_structure
+
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
@@ -216,15 +218,19 @@ object Build
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
-                pair(list(pair(string, properties)), pair(list(string),
+                pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
-                pair(list(string), pair(list(pair(string, string)), list(string))))))))))))))))))(
+                pair(list(string), pair(list(pair(string, string)),
+                pair(list(string), pair(list(pair(string, string)), list(string)))))))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
-                (info.theories, (base.known.sessions.toList, (base.doc_names,
-                (base.global_theories.toList, (base.loaded_theories.keys, (base.dest_known_theories,
-                info.bibtex_entries.map(_.info)))))))))))))))))))
+                (info.theories,
+                (sessions_structure.session_positions,
+                (sessions_structure.dest_session_directories,
+                (base.doc_names, (base.global_theories.toList,
+                (base.loaded_theories.keys, (base.dest_known_theories,
+                info.bibtex_entries.map(_.info))))))))))))))))))))
             })
 
         val env =
@@ -238,7 +244,7 @@ object Build
             ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
 
         if (pide && !Sessions.is_pure(name)) {
-          val resources = new Resources(deps(parent))
+          val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
@@ -246,7 +252,7 @@ object Build
           val session_result = Future.promise[Process_Result]
 
           Isabelle_Process.start(session, options, logic = parent, cwd = info.dir.file, env = env,
-            sessions_structure = Some(deps.sessions_structure), store = Some(store),
+            sessions_structure = Some(sessions_structure), store = Some(store),
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)

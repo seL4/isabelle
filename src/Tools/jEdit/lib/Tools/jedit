@@ -100,12 +100,11 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
-  echo "    -A NAME      ancestor session for options -R and -S (default: parent)"
+  echo "    -A NAME      ancestor session for options -R (default: parent)"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
   echo "    -R NAME      build image with requirements from other sessions"
-  echo "    -S NAME      like option -R, with focus on selected session"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
@@ -146,7 +145,6 @@ BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
-JEDIT_LOGIC_FOCUS=""
 JEDIT_INCLUDE_SESSIONS=""
 JEDIT_SESSION_DIRS="-"
 JEDIT_LOGIC=""
@@ -157,7 +155,7 @@ JEDIT_BUILD_MODE="default"
 function getoptions()
 {
   OPTIND=1
-  while getopts "A:BFD:J:R:S:bd:fi:j:l:m:np:su" OPT
+  while getopts "A:BFD:J:R:bd:fi:j:l:m:np:su" OPT
   do
     case "$OPT" in
       A)
@@ -172,11 +170,6 @@ function getoptions()
       R)
         JEDIT_LOGIC="$OPTARG"
         JEDIT_LOGIC_REQUIREMENTS="true"
-        ;;
-      S)
-        JEDIT_LOGIC="$OPTARG"
-        JEDIT_LOGIC_REQUIREMENTS="true"
-        JEDIT_LOGIC_FOCUS="true"
         ;;
       b)
         BUILD_ONLY=true
@@ -426,7 +419,7 @@ popd >/dev/null
 if [ "$BUILD_ONLY" = false ]
 then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
-    JEDIT_LOGIC_FOCUS JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
+    JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \

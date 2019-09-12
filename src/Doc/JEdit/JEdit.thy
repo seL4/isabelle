@@ -228,12 +228,11 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
-    -A NAME      ancestor session for options -R and -S (default: parent)
+    -A NAME      ancestor session for option -R (default: parent)
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
                  (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)
     -R NAME      build image with requirements from other sessions
-    -S NAME      like option -R, with focus on selected session
     -b           build only
     -d DIR       include session directory
     -f           fresh build
@@ -262,12 +261,9 @@ text \<open>
   The \<^verbatim>\<open>-R\<close> option builds an auxiliary logic image with all theories from
   other sessions that are not already present in its parent; it also opens the
   session \<^verbatim>\<open>ROOT\<close> entry in the editor to facilitate editing of the main
-  session. The \<^verbatim>\<open>-S\<close> option is like \<^verbatim>\<open>-R\<close>, with a focus on the selected
-  session and its descendants: the namespace of accessible theories is
-  restricted accordingly. This reduces startup time for big projects, notably
-  the ``Archive of Formal Proofs''. The \<^verbatim>\<open>-A\<close> option specifies and alternative
-  ancestor session for options \<^verbatim>\<open>-R\<close> and \<^verbatim>\<open>-S\<close>: this allows to restructure the
-  hierarchy of session images on the spot.
+  session. The \<^verbatim>\<open>-A\<close> option specifies and alternative ancestor session for
+  option \<^verbatim>\<open>-R\<close>: this allows to restructure the hierarchy of session images on
+  the spot.
 
   The \<^verbatim>\<open>-i\<close> option includes additional sessions into the name-space of
   theories: multiple occurrences are possible.

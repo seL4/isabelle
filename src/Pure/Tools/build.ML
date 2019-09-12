@@ -152,7 +152,8 @@ datatype args = Args of
   name: string,
   master_dir: Path.T,
   theories: (Options.T * (string * Position.T) list) list,
-  sessions: (string * Properties.T) list,
+  session_positions: (string * Properties.T) list,
+  session_directories: (string * string) list,
   doc_names: string list,
   global_theories: (string * string) list,
   loaded_theories: string list,
@@ -165,35 +166,39 @@ fun decode_args yxml =
     val position = Position.of_properties o properties;
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
       (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
-      (theories, (sessions, (doc_names, (global_theories, (loaded_theories,
-      (known_theories, bibtex_entries))))))))))))))))) =
+      (theories, (session_positions, (session_directories, (doc_names, (global_theories,
+      (loaded_theories, (known_theories, bibtex_entries)))))))))))))))))) =
       pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
-              (pair (list (pair string properties)) (pair (list string)
+              (pair (list (pair string properties))
                 (pair (list (pair string string)) (pair (list string)
-                  (pair (list (pair string string)) (list string)))))))))))))))))
+                  (pair (list (pair string string)) (pair (list string)
+                    (pair (list (pair string string)) (list string))))))))))))))))))
       (YXML.parse_body yxml);
   in
     Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
       verbose = verbose, browser_info = Path.explode browser_info,
       document_files = map (apply2 Path.explode) document_files,
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
-      name = name, master_dir = Path.explode master_dir, theories = theories, sessions = sessions,
+      name = name, master_dir = Path.explode master_dir, theories = theories,
+      session_positions = session_positions, session_directories = session_directories,
       doc_names = doc_names, global_theories = global_theories, loaded_theories = loaded_theories,
       known_theories = known_theories, bibtex_entries = bibtex_entries}
   end;
 
 fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
-    document_files, graph_file, parent_name, chapter, name, master_dir, theories, sessions,
-    doc_names, global_theories, loaded_theories, known_theories, bibtex_entries}) =
+    document_files, graph_file, parent_name, chapter, name, master_dir, theories, session_positions,
+    session_directories, doc_names, global_theories, loaded_theories, known_theories,
+    bibtex_entries}) =
   let
     val symbols = HTML.make_symbols symbol_codes;
 
     val _ =
       Resources.init_session_base
-        {sessions = sessions,
+        {session_positions = session_positions,
+         session_directories = session_directories,
          docs = doc_names,
          global_theories = global_theories,
          loaded_theories = loaded_theories,

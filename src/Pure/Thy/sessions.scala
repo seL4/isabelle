@@ -41,7 +41,6 @@ object Sessions
     val empty: Known = Known()
 
     def make(local_dir: Path, bases: List[Base],
-      sessions: List[(String, Position.T)] = Nil,
       theories: List[Document.Node.Entry] = Nil,
       loaded_files: List[(String, List[Path])] = Nil): Known =
     {
@@ -57,9 +56,6 @@ object Sessions
         theories.iterator.filter(entry =>
           entry.name.path.canonical_file.toPath.startsWith(local_path))
       }
-
-      val known_sessions =
-        (sessions.toMap /: bases)({ case (known, base) => known ++ base.known.sessions })
 
       val known_theories =
         (Map.empty[String, Document.Node.Entry] /: (bases_iterator(false) ++ theories.iterator))({
@@ -92,7 +88,6 @@ object Sessions
         (loaded_files.toMap /: bases.map(base => base.known.loaded_files))(_ ++ _)
 
       Known(
-        known_sessions,
         known_theories,
         known_theories_local,
         known_files.iterator.map(p => (p._1, p._2.reverse)).toMap,
@@ -101,7 +96,6 @@ object Sessions
   }
 
   sealed case class Known(
-    sessions: Map[String, Position.T] = Map.empty,
     theories: Map[String, Document.Node.Entry] = Map.empty,
     theories_local: Map[String, Document.Node.Entry] = Map.empty,
     files: Map[JFile, List[Document.Node.Name]] = Map.empty,
@@ -179,9 +173,6 @@ object Sessions
 
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
-
-    def known_theory(name: String): Option[Document.Node.Name] =
-      known.theories.get(name).map(_.name)
 
     def dest_known_theories: List[(String, String)] =
       for ((theory, entry) <- known.theories.toList)
@@ -304,7 +295,7 @@ object Sessions
               parent_base.copy(known =
                 Known.make(info.dir, parent_base :: info.imports.map(session_bases(_))))
 
-            val resources = new Resources(imports_base)
+            val resources = new Resources(sessions_structure, imports_base)
 
             if (verbose || list_files) {
               val groups =
@@ -371,7 +362,6 @@ object Sessions
 
             val known =
               Known.make(info.dir, List(imports_base),
-                sessions = List(info.name -> info.pos),
                 theories = dependencies.entries,
                 loaded_files = loaded_files)
 
@@ -466,9 +456,7 @@ object Sessions
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
     session_ancestor: Option[String] = None,
-    session_requirements: Boolean = false,
-    session_focus: Boolean = false,
-    all_known: Boolean = false): Base_Info =
+    session_requirements: Boolean = false): Base_Info =
   {
     val full_sessions = load_structure(options, dirs = dirs)
 
@@ -529,22 +517,11 @@ object Sessions
       else load_structure(options, dirs = dirs, infos = infos1)
 
     val selected_sessions1 =
-    {
-      val sel_sessions1 = session1 :: session :: include_sessions
-      val select_sessions1 =
-        if (session_focus) {
-          full_sessions1.check_sessions(sel_sessions1)
-          full_sessions1.imports_descendants(sel_sessions1)
-        }
-        else sel_sessions1
-      full_sessions1.selection(Selection(sessions = select_sessions1))
-    }
+      full_sessions1.selection(Selection(sessions = session1 :: session :: include_sessions))
 
-    val sessions1 = if (all_known) full_sessions1 else selected_sessions1
-    val deps1 = Sessions.deps(sessions1, progress = progress)
-    val base1 = deps1(session1).copy(known = deps1.all_known)
+    val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(options, dirs, session1, deps1.sessions_structure, deps1.errors, base1, infos1)
+    Base_Info(options, dirs, session1, full_sessions1, deps1.errors, deps1(session1), infos1)
   }
 
 
@@ -701,6 +678,9 @@ object Sessions
     val build_graph = add_edges(info_graph, "parent", _.parent)
     val imports_graph = add_edges(build_graph, "imports", _.imports)
 
+    val session_positions: List[(String, Position.T)] =
+      (for ((name, (info, _)) <- info_graph.iterator) yield (name, info.pos)).toList
+
     val session_directories: Map[JFile, String] =
       (Map.empty[JFile, String] /:
         (for {
@@ -735,16 +715,22 @@ object Sessions
             }
           })
 
-    new Structure(session_directories, global_theories, build_graph, imports_graph)
+    new Structure(
+      session_positions, session_directories, global_theories, build_graph, imports_graph)
   }
 
   final class Structure private[Sessions](
+      val session_positions: List[(String, Position.T)],
       val session_directories: Map[JFile, String],
       val global_theories: Map[String, String],
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
   {
     sessions_structure =>
+
+    def dest_session_directories: List[(String, String)] =
+      for ((file, session) <- session_directories.toList)
+        yield (File.standard_path(file), session)
 
     lazy val chapters: SortedMap[String, List[Info]] =
       (SortedMap.empty[String, List[Info]] /: build_graph.iterator)(
@@ -811,7 +797,8 @@ object Sessions
       }
 
       new Structure(
-        session_directories, global_theories, restrict(build_graph), restrict(imports_graph))
+        session_positions, session_directories, global_theories,
+        restrict(build_graph), restrict(imports_graph))
     }
 
     def selection_deps(
