@@ -494,6 +494,11 @@ lemma has_integral_mult_left:
   shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) S"
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
+lemma has_integral_divide:
+  fixes c :: "_ :: real_normed_div_algebra"
+  shows "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x / c) has_integral (y / c)) S"
+  unfolding divide_inverse by (simp add: has_integral_mult_left)
+
 text\<open>The case analysis eliminates the condition \<^term>\<open>f integrable_on S\<close> at the cost
      of the type class constraint \<open>division_ring\<close>\<close>
 corollary integral_mult_left [simp]:
@@ -2734,6 +2739,34 @@ lemma ident_integrable_on:
   fixes a::real
   shows "(\<lambda>x. x) integrable_on {a..b}"
 by (metis atLeastatMost_empty_iff integrable_on_def has_integral_empty ident_has_integral)
+
+lemma integral_sin [simp]:
+  fixes a::real
+  assumes "a \<le> b" shows "integral {a..b} sin = cos a - cos b"
+proof -
+  have "(sin has_integral (- cos b - - cos a)) {a..b}"
+  proof (rule fundamental_theorem_of_calculus)
+    show "((\<lambda>a. - cos a) has_vector_derivative sin x) (at x within {a..b})" for x
+      unfolding has_field_derivative_iff_has_vector_derivative [symmetric]
+      by (rule derivative_eq_intros | force)+
+  qed (use assms in auto)
+  then show ?thesis
+    by (simp add: integral_unique)
+qed
+
+lemma integral_cos [simp]:
+  fixes a::real
+  assumes "a \<le> b" shows "integral {a..b} cos = sin b - sin a"
+proof -
+  have "(cos has_integral (sin b - sin a)) {a..b}"
+  proof (rule fundamental_theorem_of_calculus)
+    show "(sin has_vector_derivative cos x) (at x within {a..b})" for x
+      unfolding has_field_derivative_iff_has_vector_derivative [symmetric]
+      by (rule derivative_eq_intros | force)+
+  qed (use assms in auto)
+  then show ?thesis
+    by (simp add: integral_unique)
+qed
 
 
 subsection \<open>Taylor series expansion\<close>

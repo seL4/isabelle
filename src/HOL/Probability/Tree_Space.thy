@@ -247,13 +247,6 @@ proof (rule measurableI)
     by (auto simp: sets_restrict_space_iff space_restrict_space)
 qed
 
-lemma measurable_restrict_mono:
-  assumes f: "f \<in> restrict_space M A \<rightarrow>\<^sub>M N" and "B \<subseteq> A"
-  shows "f \<in> restrict_space M B \<rightarrow>\<^sub>M N"
-by (rule measurable_compose[OF measurable_restrict_space3 f])
-   (insert \<open>B \<subseteq> A\<close>, auto)
-
-
 lemma measurable_value[measurable (raw)]:
   assumes "f \<in> X \<rightarrow>\<^sub>M tree_sigma M"
     and "\<And>x. x \<in> space X \<Longrightarrow> f x \<noteq> Leaf"

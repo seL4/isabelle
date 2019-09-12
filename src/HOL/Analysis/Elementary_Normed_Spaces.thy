@@ -9,7 +9,7 @@ section \<open>Elementary Normed Vector Spaces\<close>
 theory Elementary_Normed_Spaces
   imports
   "HOL-Library.FuncSet"
-  Elementary_Metric_Spaces
+  Elementary_Metric_Spaces Linear_Algebra
   Connected
 begin
 
@@ -1099,34 +1099,6 @@ lemma uniformly_continuous_on_diff[continuous_intros]:
   using assms uniformly_continuous_on_add [of s f "- g"]
     by (simp add: fun_Compl_def uniformly_continuous_on_minus)
 
-
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological properties of linear functions\<close>
-
-lemma linear_lim_0:
-  assumes "bounded_linear f"
-  shows "(f \<longlongrightarrow> 0) (at (0))"
-proof -
-  interpret f: bounded_linear f by fact
-  have "(f \<longlongrightarrow> f 0) (at 0)"
-    using tendsto_ident_at by (rule f.tendsto)
-  then show ?thesis unfolding f.zero .
-qed
-
-lemma linear_continuous_at:
-  assumes "bounded_linear f"
-  shows "continuous (at a) f"
-  unfolding continuous_at using assms
-  apply (rule bounded_linear.tendsto)
-  apply (rule tendsto_ident_at)
-  done
-
-lemma linear_continuous_within:
-  "bounded_linear f \<Longrightarrow> continuous (at x within s) f"
-  using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
-
-lemma linear_continuous_on:
-  "bounded_linear f \<Longrightarrow> continuous_on s f"
-  using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic Preserves Topological Properties\<close>
 
