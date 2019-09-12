@@ -384,7 +384,9 @@ object Sessions
               val errs2 =
                 if (bad_dirs.isEmpty) Nil
                 else List("Implicit use of session directories: " + commas(bad_dirs))
-              errs1 ::: errs2
+              val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
+
+              errs1 ::: errs2 ::: errs3
             }
 
             val sources_errors =
