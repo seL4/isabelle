@@ -141,7 +141,7 @@ object Dump
     val used_theories: List[Document.Node.Name] =
     {
       for {
-        name <- deps.used_theories_condition(dump_options, progress = progress).topological_order
+        (name, _) <- deps.used_theories_condition(dump_options, progress = progress)
         if !resources.session_base.loaded_theory(name.theory)
       } yield name
     }

@@ -142,7 +142,7 @@ object Sessions
     session_directories: Map[JFile, String] = Map.empty,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[((Document.Node.Name, Options), List[Document.Node.Name])] = Nil,
+    used_theories: List[(Document.Node.Name, Options)] = Nil,
     dump_checkpoints: Set[Document.Node.Name] = Set.empty,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -200,33 +200,30 @@ object Sessions
       } yield name).toSet
 
     def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
-      : Document.Node.Name.Graph[Options] =
+      : List[(Document.Node.Name, Options)] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
-      Document.Node.Name.make_graph(
-        permissive = true,
-        entries =
-          for {
-            session_name <- sessions_structure.build_topological_order
-            entry @ ((name, options), _) <- session_bases(session_name).used_theories
-            if {
-              def warn(msg: String): Unit =
-                progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+      for {
+        session_name <- sessions_structure.build_topological_order
+        entry @ (name, options) <- session_bases(session_name).used_theories
+        if {
+          def warn(msg: String): Unit =
+            progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
-              val conditions =
-                space_explode(',', options.string("condition")).
-                  filter(cond => Isabelle_System.getenv(cond) == "")
-              if (conditions.nonEmpty) {
-                warn("undefined " + conditions.mkString(", "))
-                false
-              }
-              else if (default_skip_proofs && !options.bool("skip_proofs")) {
-                warn("option skip_proofs")
-                false
-              }
-              else true
-            }
-          } yield entry)
+          val conditions =
+            space_explode(',', options.string("condition")).
+              filter(cond => Isabelle_System.getenv(cond) == "")
+          if (conditions.nonEmpty) {
+            warn("undefined " + conditions.mkString(", "))
+            false
+          }
+          else if (default_skip_proofs && !options.bool("skip_proofs")) {
+            warn("option skip_proofs")
+            false
+          }
+          else true
+        }
+      } yield entry
     }
 
     def sources(name: String): List[SHA1.Digest] =
@@ -366,14 +363,14 @@ object Sessions
 
             val used_theories =
               for ((options, name) <- dependencies.adjunct_theories)
-              yield ((name, options), known.theories(name.theory).header.imports)
+              yield (name, options)
 
             val dir_errors =
             {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  ((name, _), _) <- used_theories.iterator
+                  (name, _) <- used_theories.iterator
                   if imports_base.theory_qualifier(name) == session_name
                   val path = name.master_dir_path
                   if !ok(path.canonical_file)
