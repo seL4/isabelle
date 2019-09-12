@@ -9,7 +9,7 @@ section \<open>Elementary Normed Vector Spaces\<close>
 theory Elementary_Normed_Spaces
   imports
   "HOL-Library.FuncSet"
-  Elementary_Metric_Spaces
+  Elementary_Metric_Spaces Linear_Algebra
   Connected
 begin
 
