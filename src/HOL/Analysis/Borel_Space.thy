@@ -2101,7 +2101,7 @@ lemma measurable_abs_powr [measurable]:
   fixes p::real
   assumes [measurable]: "f \<in> borel_measurable M"
   shows "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> borel_measurable M"
-unfolding powr_def by auto
+  by simp
 
 text \<open>The next one is a variation around \<open>measurable_restrict_space\<close>.\<close>
 
@@ -2114,6 +2114,12 @@ proof -
   then show ?thesis by (metis Int_iff funcsetI funcset_mem
       measurable_restrict_space2[of f, of "restrict_space M A", of B, of N] assms(2) space_restrict_space)
 qed
+
+lemma measurable_restrict_mono:
+  assumes f: "f \<in> restrict_space M A \<rightarrow>\<^sub>M N" and "B \<subseteq> A"
+  shows "f \<in> restrict_space M B \<rightarrow>\<^sub>M N"
+by (rule measurable_compose[OF measurable_restrict_space3 f])
+   (insert \<open>B \<subseteq> A\<close>, auto)
 
 text \<open>The next one is a variation around \<open>measurable_piecewise_restrict\<close>.\<close>
 
