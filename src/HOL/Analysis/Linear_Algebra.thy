@@ -1879,4 +1879,88 @@ proof -
         orthogonal_commute orthogonal_def)
 qed
 
+subsection\<open>Linear functions are (uniformly) continuous on any set\<close>
+
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological properties of linear functions\<close>
+
+lemma linear_lim_0:
+  assumes "bounded_linear f"
+  shows "(f \<longlongrightarrow> 0) (at (0))"
+proof -
+  interpret f: bounded_linear f by fact
+  have "(f \<longlongrightarrow> f 0) (at 0)"
+    using tendsto_ident_at by (rule f.tendsto)
+  then show ?thesis unfolding f.zero .
+qed
+
+lemma linear_continuous_at:
+  assumes "bounded_linear f"
+  shows "continuous (at a) f"
+  unfolding continuous_at using assms
+  apply (rule bounded_linear.tendsto)
+  apply (rule tendsto_ident_at)
+  done
+
+lemma linear_continuous_within:
+  "bounded_linear f \<Longrightarrow> continuous (at x within s) f"
+  using continuous_at_imp_continuous_at_within linear_continuous_at by blast
+
+lemma linear_continuous_on:
+  "bounded_linear f \<Longrightarrow> continuous_on s f"
+  using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
+
+lemma Lim_linear:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space" and h :: "'b \<Rightarrow> 'c::real_normed_vector"
+  assumes "(f \<longlongrightarrow> l) F" "linear h"
+  shows "((\<lambda>x. h(f x)) \<longlongrightarrow> h l) F"
+proof -
+  obtain B where B: "B > 0" "\<And>x. norm (h x) \<le> B * norm x"
+    using linear_bounded_pos [OF \<open>linear h\<close>] by blast
+  show ?thesis
+    unfolding tendsto_iff
+  proof (intro allI impI)
+    show "\<forall>\<^sub>F x in F. dist (h (f x)) (h l) < e" if "e > 0" for e
+    proof -
+      have "\<forall>\<^sub>F x in F. dist (f x) l < e/B"
+        by (simp add: \<open>0 < B\<close> assms(1) tendstoD that)
+      then show ?thesis
+        unfolding dist_norm
+      proof (rule eventually_mono)
+        show "norm (h (f x) - h l) < e" if "norm (f x - l) < e / B" for x
+          using that B
+          apply (simp add: divide_simps)
+          by (metis \<open>linear h\<close> le_less_trans linear_diff mult.commute)
+      qed
+    qed
+  qed
+qed
+
+lemma linear_continuous_compose:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space" and g :: "'b \<Rightarrow> 'c::real_normed_vector"
+  assumes "continuous F f" "linear g"
+  shows "continuous F (\<lambda>x. g(f x))"
+  using assms unfolding continuous_def by (rule Lim_linear)
+
+lemma linear_continuous_on_compose:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space" and g :: "'b \<Rightarrow> 'c::real_normed_vector"
+  assumes "continuous_on S f" "linear g"
+  shows "continuous_on S (\<lambda>x. g(f x))"
+  using assms by (simp add: continuous_on_eq_continuous_within linear_continuous_compose)
+
+text\<open>Also bilinear functions, in composition form\<close>
+
+lemma bilinear_continuous_compose:
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
+  assumes "continuous F f" "continuous F g" "bilinear h"
+  shows "continuous F (\<lambda>x. h (f x) (g x))"
+  using assms bilinear_conv_bounded_bilinear bounded_bilinear.continuous by blast
+
+lemma bilinear_continuous_on_compose:
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
+    and f :: "'d::t2_space \<Rightarrow> 'a"
+  assumes "continuous_on S f" "continuous_on S g" "bilinear h"
+  shows "continuous_on S (\<lambda>x. h (f x) (g x))"
+  using assms by (simp add: continuous_on_eq_continuous_within bilinear_continuous_compose)
+
+
 end

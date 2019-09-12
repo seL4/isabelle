@@ -895,6 +895,11 @@ lemma power_dvd_imp_le: "i ^ m dvd i ^ n \<Longrightarrow> 1 < i \<Longrightarro
   apply simp
   done
 
+lemma dvd_power_iff_le:
+  fixes k::nat
+  shows "2 \<le> k \<Longrightarrow> ((k ^ m) dvd (k ^ n) \<longleftrightarrow> m \<le> n)"
+  using le_imp_power_dvd power_dvd_imp_le by force
+
 lemma power2_nat_le_eq_le: "m\<^sup>2 \<le> n\<^sup>2 \<longleftrightarrow> m \<le> n"
   for m n :: nat
   by (auto intro: power2_le_imp_le power_mono)

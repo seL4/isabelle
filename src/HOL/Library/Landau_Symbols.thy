@@ -1641,10 +1641,6 @@ qed
 
 subsection \<open>Asymptotic Equivalence\<close>
 
-(* TODO Move *)
-lemma tendsto_eventually: "eventually (\<lambda>x. f x = c) F \<Longrightarrow> filterlim f (nhds c) F"
-  by (simp add: eventually_mono eventually_nhds_x_imp_x filterlim_iff)
-
 named_theorems asymp_equiv_intros
 named_theorems asymp_equiv_simps
 
@@ -1676,7 +1672,7 @@ proof (intro asymp_equivI)
     by (intro always_eventually) simp
   moreover have "((\<lambda>_. 1) \<longlongrightarrow> 1) F" by simp
   ultimately show "((\<lambda>x. if f x = 0 \<and> f x = 0 then 1 else f x / f x) \<longlongrightarrow> 1) F"
-    by (simp add: Landau_Symbols.tendsto_eventually)
+    by (simp add: tendsto_eventually)
 qed
 
 lemma asymp_equiv_symI: 

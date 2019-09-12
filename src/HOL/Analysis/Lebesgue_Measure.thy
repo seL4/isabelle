@@ -462,8 +462,232 @@ lemma integral_restrict_UNIV:
   using integral_restrict_Int [of S UNIV f] assms
   by (simp add: lebesgue_on_UNIV_eq)
 
+lemma integrable_lebesgue_on_empty [iff]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{second_countable_topology,banach}"
+  shows "integrable (lebesgue_on {}) f"
+  by (simp add: integrable_restrict_space)
 
-text\<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
+lemma integral_lebesgue_on_empty [simp]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{second_countable_topology,banach}"
+  shows "integral\<^sup>L (lebesgue_on {}) f = 0"
+  by (simp add: Bochner_Integration.integral_empty)
+lemma has_bochner_integral_restrict_space:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes \<Omega>: "\<Omega> \<inter> space M \<in> sets M"
+  shows "has_bochner_integral (restrict_space M \<Omega>) f i
+     \<longleftrightarrow> has_bochner_integral M (\<lambda>x. indicator \<Omega> x *\<^sub>R f x) i"
+  by (simp add: integrable_restrict_space [OF assms] integral_restrict_space [OF assms] has_bochner_integral_iff)
+
+lemma integrable_restrict_UNIV:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes S: "S \<in> sets lebesgue"
+  shows  "integrable lebesgue (\<lambda>x. if x \<in> S then f x else 0) \<longleftrightarrow> integrable (lebesgue_on S) f"
+  using has_bochner_integral_restrict_space [of S lebesgue f] assms
+  by (simp add: integrable.simps indicator_scaleR_eq_if)
+
+lemma integral_mono_lebesgue_on_AE:
+  fixes f::"_ \<Rightarrow> real"
+  assumes f: "integrable (lebesgue_on T) f"
+    and gf: "AE x in (lebesgue_on S). g x \<le> f x"
+    and f0: "AE x in (lebesgue_on T). 0 \<le> f x"
+    and "S \<subseteq> T" and S: "S \<in> sets lebesgue" and T: "T \<in> sets lebesgue"
+  shows "(\<integral>x. g x \<partial>(lebesgue_on S)) \<le> (\<integral>x. f x \<partial>(lebesgue_on T))"
+proof -
+  have "(\<integral>x. g x \<partial>(lebesgue_on S)) = (\<integral>x. (if x \<in> S then g x else 0) \<partial>lebesgue)"
+    by (simp add: Lebesgue_Measure.integral_restrict_UNIV S)
+  also have "\<dots> \<le> (\<integral>x. (if x \<in> T then f x else 0) \<partial>lebesgue)"
+  proof (rule Bochner_Integration.integral_mono_AE')
+    show "integrable lebesgue (\<lambda>x. if x \<in> T then f x else 0)"
+      by (simp add: integrable_restrict_UNIV T f)
+    show "AE x in lebesgue. (if x \<in> S then g x else 0) \<le> (if x \<in> T then f x else 0)"
+      using assms by (auto simp: AE_restrict_space_iff)
+    show "AE x in lebesgue. 0 \<le> (if x \<in> T then f x else 0)"
+      using f0 by (simp add: AE_restrict_space_iff T)
+  qed
+  also have "\<dots> = (\<integral>x. f x \<partial>(lebesgue_on T))"
+    using Lebesgue_Measure.integral_restrict_UNIV T by blast
+  finally show ?thesis .
+qed
+
+
+subsection \<open>Borel measurability\<close>
+
+lemma borel_measurable_if_I:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f \<in> borel_measurable (lebesgue_on S)" and S: "S \<in> sets lebesgue"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
+proof -
+  have eq: "{x. x \<notin> S} \<union> {x. f x \<in> Y} = {x. x \<notin> S} \<union> {x. f x \<in> Y} \<inter> S" for Y
+    by blast
+  show ?thesis
+  using f S
+  apply (simp add: vimage_def in_borel_measurable_borel Ball_def)
+  apply (elim all_forward imp_forward asm_rl)
+  apply (simp only: Collect_conj_eq Collect_disj_eq imp_conv_disj eq)
+  apply (auto simp: Compl_eq [symmetric] Compl_in_sets_lebesgue sets_restrict_space_iff)
+  done
+qed
+
+lemma borel_measurable_if_D:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+  using assms
+  apply (simp add: in_borel_measurable_borel Ball_def)
+  apply (elim all_forward imp_forward asm_rl)
+  apply (force simp: space_restrict_space sets_restrict_space image_iff intro: rev_bexI)
+  done
+
+lemma borel_measurable_if:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
+  using assms borel_measurable_if_D borel_measurable_if_I by blast
+
+lemma borel_measurable_vimage_halfspace_component_lt:
+     "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+      (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i < a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_less])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_vimage_halfspace_component_ge:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<ge> a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_ge])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_vimage_halfspace_component_gt:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i > a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_greater])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_vimage_halfspace_component_le:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<le> a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_le])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows borel_measurable_vimage_open_interval:
+         "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a b. {x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S))" (is ?thesis1)
+   and borel_measurable_vimage_open:
+         "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. open T \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))" (is ?thesis2)
+proof -
+  have "{x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S)" if "f \<in> borel_measurable (lebesgue_on S)" for a b
+  proof -
+    have "S = S \<inter> space lebesgue"
+      by simp
+    then have "S \<inter> (f -` box a b) \<in> sets (lebesgue_on S)"
+      by (metis (no_types) box_borel in_borel_measurable_borel inf_sup_aci(1) space_restrict_space that)
+    then show ?thesis
+      by (simp add: Collect_conj_eq vimage_def)
+  qed
+  moreover
+  have "{x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)"
+       if T: "\<And>a b. {x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S)" "open T" for T
+  proof -
+    obtain \<D> where "countable \<D>" and \<D>: "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = box a b" "\<Union>\<D> = T"
+      using open_countable_Union_open_box that \<open>open T\<close> by metis
+    then have eq: "{x \<in> S. f x \<in> T} = (\<Union>U \<in> \<D>. {x \<in> S. f x \<in> U})"
+      by blast
+    have "{x \<in> S. f x \<in> U} \<in> sets (lebesgue_on S)" if "U \<in> \<D>" for U
+      using that T \<D> by blast
+    then show ?thesis
+      by (auto simp: eq intro: Sigma_Algebra.sets.countable_UN' [OF \<open>countable \<D>\<close>])
+  qed
+  moreover
+  have eq: "{x \<in> S. f x \<bullet> i < a} = {x \<in> S. f x \<in> {y. y \<bullet> i < a}}" for i a
+    by auto
+  have "f \<in> borel_measurable (lebesgue_on S)"
+    if "\<And>T. open T \<Longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)"
+    by (metis (no_types) eq borel_measurable_vimage_halfspace_component_lt open_halfspace_component_lt that)
+  ultimately show "?thesis1" "?thesis2"
+    by blast+
+qed
+
+lemma borel_measurable_vimage_closed:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. closed T \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof -
+  have eq: "{x \<in> S. f x \<in> T} = S - {x \<in> S. f x \<in> (- T)}" for T
+    by auto
+  show ?thesis
+    apply (simp add: borel_measurable_vimage_open, safe)
+     apply (simp_all (no_asm) add: eq)
+     apply (intro sets.Diff sets_lebesgue_on_refl, force simp: closed_open)
+    apply (intro sets.Diff sets_lebesgue_on_refl, force simp: open_closed)
+    done
+qed
+
+lemma borel_measurable_vimage_closed_interval:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a b. {x \<in> S. f x \<in> cbox a b} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using borel_measurable_vimage_closed by blast
+next
+  assume RHS: ?rhs
+  have "{x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)" if "open T" for T
+  proof -
+    obtain \<D> where "countable \<D>" and \<D>: "\<D> \<subseteq> Pow T" "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = cbox a b" "\<Union>\<D> = T"
+      using open_countable_Union_open_cbox that \<open>open T\<close> by metis
+    then have eq: "{x \<in> S. f x \<in> T} = (\<Union>U \<in> \<D>. {x \<in> S. f x \<in> U})"
+      by blast
+    have "{x \<in> S. f x \<in> U} \<in> sets (lebesgue_on S)" if "U \<in> \<D>" for U
+      using that \<D> by (metis RHS)
+    then show ?thesis
+      by (auto simp: eq intro: Sigma_Algebra.sets.countable_UN' [OF \<open>countable \<D>\<close>])
+  qed
+  then show ?lhs
+    by (simp add: borel_measurable_vimage_open)
+qed
+
+lemma borel_measurable_UNIV_eq: "borel_measurable (lebesgue_on UNIV) = borel_measurable lebesgue"
+  by auto
+
+lemma borel_measurable_vimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. T \<in> sets borel \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof
+  assume f: ?lhs
+  then show ?rhs
+    using measurable_sets [OF f]
+      by (simp add: Collect_conj_eq inf_sup_aci(1) space_restrict_space vimage_def)
+qed (simp add: borel_measurable_vimage_open_interval)
+
+lemma lebesgue_measurable_vimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f \<in> borel_measurable lebesgue" "T \<in> sets borel"
+  shows "{x. f x \<in> T} \<in> sets lebesgue"
+  using assms borel_measurable_vimage_borel [of f UNIV] by auto
+
+lemma borel_measurable_lebesgue_preimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable lebesgue \<longleftrightarrow>
+         (\<forall>T. T \<in> sets borel \<longrightarrow> {x. f x \<in> T} \<in> sets lebesgue)"
+  apply (intro iffI allI impI lebesgue_measurable_vimage_borel)
+    apply (auto simp: in_borel_measurable_borel vimage_def)
+  done
+
+
+subsection \<^marker>\<open>tag unimportant\<close> \<open>Measurability of continuous functions\<close>
 
 lemma continuous_imp_measurable_on_sets_lebesgue:
   assumes f: "continuous_on S f" and S: "S \<in> sets lebesgue"
