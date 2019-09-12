@@ -493,7 +493,7 @@ object Sessions
             List(
               make_info(info.options,
                 dir_selected = false,
-                dir = info.dir,
+                dir = Path.explode("$ISABELLE_TMP_PREFIX"),
                 chapter = info.chapter,
                 Session_Entry(
                   pos = info.pos,
