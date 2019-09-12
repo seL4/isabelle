@@ -148,7 +148,6 @@ class Tools extends Isabelle_Scala_Tools(
   Doc.isabelle_tool,
   Dump.isabelle_tool,
   Export.isabelle_tool,
-  Imports.isabelle_tool,
   ML_Process.isabelle_tool,
   Mkroot.isabelle_tool,
   Options.isabelle_tool,

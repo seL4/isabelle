@@ -85,6 +85,11 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
+* The command-line tool "isabelle imports" has been discontinued: strict
+checking of session directories enforces session-qualified theory names
+in applications -- users are responsible to specify session ROOT entries
+properly.
+
 * Theory export via Isabelle/Scala has been reworked. The former "fact"
 name space is now split into individual "thm" items: names are
 potentially indexed, such as "foo" for singleton facts, or "bar(1)",

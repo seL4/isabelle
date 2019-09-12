@@ -182,8 +182,7 @@ object Sessions
       imports getOrElse Base.bootstrap(session_directories, global_theories)
   }
 
-  sealed case class Deps(
-    sessions_structure: Structure, session_bases: Map[String, Base], all_known: Known)
+  sealed case class Deps(sessions_structure: Structure, session_bases: Map[String, Base])
   {
     override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
 
@@ -429,10 +428,7 @@ object Sessions
           }
       })
 
-    val all_known =
-      Known.make(Path.current, sessions_structure.imports_topological_order.map(session_bases(_)))
-
-    Deps(sessions_structure, session_bases, all_known)
+    Deps(sessions_structure, session_bases)
   }
 
 
