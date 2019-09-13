@@ -4479,6 +4479,22 @@ lemma has_bochner_integral_lebesgue_real_affine_iff:
   unfolding has_bochner_integral_iff lebesgue_integrable_real_affine_iff
   by (simp_all add: lebesgue_integral_real_affine[symmetric] divideR_right cong: conj_cong)
 
+lemma has_bochner_integral_reflect_real_lemma[intro]:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "has_bochner_integral (lebesgue_on {a..b}) f i"
+  shows "has_bochner_integral (lebesgue_on {-b..-a}) (\<lambda>x. f(-x)) i"
+proof -
+  have eq: "indicat_real {a..b} (- x) *\<^sub>R f(- x) = indicat_real {- b..- a} x *\<^sub>R f(- x)" for x
+    by (auto simp: indicator_def)
+  have i: "has_bochner_integral lebesgue (\<lambda>x. indicator {a..b} x *\<^sub>R f x) i"
+    using assms by (auto simp: has_bochner_integral_restrict_space)
+  then have "has_bochner_integral lebesgue (\<lambda>x. indicator {-b..-a} x *\<^sub>R f(-x)) i"
+    using has_bochner_integral_lebesgue_real_affine_iff [of "-1" "(\<lambda>x. indicator {a..b} x *\<^sub>R f x)" i 0]
+    by (auto simp: eq)
+  then show ?thesis
+    by (auto simp: has_bochner_integral_restrict_space)
+qed
+
 subsection\<open>More results on integrability\<close>
 
 lemma integrable_on_all_intervals_UNIV:

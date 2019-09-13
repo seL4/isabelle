@@ -16,9 +16,9 @@ theory Analysis
   Ball_Volume
   Integral_Test
   Improper_Integral
+  Equivalence_Measurable_On_Borel
   (* Unsorted *)
   Lebesgue_Integral_Substitution
-  Improper_Integral
   Embed_Measure
   Complete_Measure
   Radon_Nikodym

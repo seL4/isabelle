@@ -2340,6 +2340,21 @@ proof atomize_elim
     by (auto intro!: exI[of _ L] decseq_ge)
 qed
 
+lemma monoseq_convergent:
+  fixes X :: "nat \<Rightarrow> real"
+  assumes X: "monoseq X" and B: "\<And>i. \<bar>X i\<bar> \<le> B"
+  obtains L where "X \<longlonglongrightarrow> L"
+  using X unfolding monoseq_iff
+proof
+  assume "incseq X"
+  show thesis
+    using abs_le_D1 [OF B] incseq_convergent [OF \<open>incseq X\<close>] that by meson
+next
+  assume "decseq X"
+  show thesis
+    using decseq_convergent [OF \<open>decseq X\<close>] that
+    by (metis B abs_le_iff add.inverse_inverse neg_le_iff_le)
+qed
 
 subsection \<open>Power Sequences\<close>
 

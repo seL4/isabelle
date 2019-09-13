@@ -544,6 +544,20 @@ lemma borel_measurable_if:
   shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
   using assms borel_measurable_if_D borel_measurable_if_I by blast
 
+lemma borel_measurable_if_lebesgue_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue" "T \<in> sets lebesgue" "S \<subseteq> T"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable (lebesgue_on T) \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using measurable_restrict_mono [OF _ \<open>S \<subseteq> T\<close>]
+    by (subst measurable_lebesgue_cong [where g = "(\<lambda>x. if x \<in> S then f x else 0)"]) auto
+next
+  assume ?rhs then show ?lhs
+    by (simp add: \<open>S \<in> sets lebesgue\<close> borel_measurable_if_I measurable_restrict_space1)
+qed
+
 lemma borel_measurable_vimage_halfspace_component_lt:
      "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
       (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i < a} \<in> sets (lebesgue_on S))"
