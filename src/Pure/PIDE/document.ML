@@ -193,15 +193,13 @@ val reset_consolidated =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
     (header, keywords, perspective, entries, result, Lazy.lazy I));
 
-fun get_consolidated (Node {consolidated, ...}) = consolidated;
+fun commit_consolidated (Node {consolidated, ...}) =
+  (Lazy.force consolidated; Output.status [Markup.markup_only Markup.consolidated]);
 
-val is_consolidated = Lazy.is_finished o get_consolidated;
-
-fun commit_consolidated node =
-  (Lazy.force (get_consolidated node); Output.status [Markup.markup_only Markup.consolidated]);
+fun consolidated_node (Node {consolidated, ...}) = Lazy.is_finished consolidated;
 
 fun could_consolidate node =
-  not (is_consolidated node) andalso is_some (finished_result_theory node);
+  not (consolidated_node node) andalso is_some (finished_result_theory node);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -299,14 +297,14 @@ fun edit_keywords edits (Version nodes) =
       (String_Graph.all_succs nodes (map_filter (fn (a, Deps _) => SOME a | _ => NONE) edits))
       nodes);
 
-fun is_suppressed_node (nodes: node String_Graph.T) (name, node) =
+fun suppressed_node (nodes: node String_Graph.T) (name, node) =
   String_Graph.is_maximal nodes name andalso is_empty_node node;
 
 fun put_node (name, node) (Version nodes) =
   let
     val nodes1 = update_node name (K node) nodes;
     val nodes2 =
-      if is_suppressed_node nodes1 (name, node)
+      if suppressed_node nodes1 (name, node)
       then String_Graph.del_node name nodes1
       else nodes1;
   in Version nodes2 end;
