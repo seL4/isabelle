@@ -74,10 +74,7 @@ object Headless
           case current :: rest =>
             val dep_graph1 =
               if (rest.isEmpty) dep_graph
-              else {
-                val exclude = dep_graph.all_succs(rest).toSet
-                dep_graph.restrict(name => !exclude(name))
-              }
+              else dep_graph.exclude(dep_graph.all_succs(rest).toSet)
             dep_graph1.all_succs(List(current))
         }
 
@@ -184,7 +181,7 @@ object Headless
           if (clean.isEmpty) (Nil, this)
           else {
             (dep_graph.topological_order.filter(clean),
-              copy(dep_graph = dep_graph.restrict(name => !clean(name))))
+              copy(dep_graph = dep_graph.exclude(clean)))
           }
         }
       }

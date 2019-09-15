@@ -191,6 +191,8 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def restrict(pred: Key => Boolean): Graph[Key, A] =
     (this /: iterator){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
 
+  def exclude(pred: Key => Boolean): Graph[Key, A] = restrict(name => !pred(name))
+
 
   /* edge operations */
 
