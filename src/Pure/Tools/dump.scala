@@ -214,7 +214,7 @@ object Dump
             unicode_symbols = unicode_symbols,
             share_common_data = false /* FIXME true */,
             progress = progress,
-            checkpoints = Set.empty /* FIXME deps.dump_checkpoints */,
+            checkpoints = deps.dump_checkpoints,
             commit = Some(Consumer.apply _))
 
         val bad_theories = Consumer.shutdown()
