@@ -164,8 +164,30 @@ object Headless
       def cancel_result: Use_Theories_State =
         if (finished_result) this else copy(result = Some(Exn.Exn(Exn.Interrupt())))
 
-      def clean: Set[Document.Node.Name] =
-        already_committed.keySet -- checkpoints_state.nodes
+      def clean_theories: (List[Document.Node.Name], Use_Theories_State) =
+      {
+        @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
+          : Set[Document.Node.Name] =
+        {
+          val add = base.filter(name => dep_graph.imm_succs(name).forall(front))
+          if (add.isEmpty) front
+          else {
+            val preds = add.map(dep_graph.imm_preds)
+            val base1 = (preds.head /: preds.tail)(_ ++ _).toList.filter(already_committed.keySet)
+            frontier(base1, front ++ add)
+          }
+        }
+
+        if (already_committed.isEmpty) (Nil, this)
+        else {
+          val clean = frontier(dep_graph.maximals.filter(already_committed.keySet), Set.empty)
+          if (clean.isEmpty) (Nil, this)
+          else {
+            (dep_graph.topological_order.filter(clean),
+              copy(dep_graph = dep_graph.restrict(name => !clean(name))))
+          }
+        }
+      }
 
       def check(state: Document.State, version: Document.Version, beyond_limit: Boolean)
         : (List[Document.Node.Name], Use_Theories_State) =
@@ -299,7 +321,8 @@ object Headless
 
         val delay_commit_clean =
           Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
-            resources.clean_theories(session, id, use_theories_state.value.clean)
+            val clean_theories = use_theories_state.change_result(_.clean_theories)
+            if (clean_theories.nonEmpty) resources.clean_theories(session, id, clean_theories)
           }
 
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
@@ -538,23 +561,6 @@ object Headless
 
         ((purged, retained), remove_theories(purged))
       }
-
-      def frontier_theories(clean: Set[Document.Node.Name]): Set[Document.Node.Name] =
-      {
-        @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
-          : Set[Document.Node.Name] =
-        {
-          val add = base.filter(b => theory_graph.imm_succs(b).forall(front))
-          if (add.isEmpty) front
-          else {
-            val pre_add = add.map(theory_graph.imm_preds)
-            val base1 = (pre_add.head /: pre_add.tail)(_ ++ _).toList.filter(clean)
-            frontier(base1, front ++ add)
-          }
-        }
-        if (clean.isEmpty) Set.empty
-        else frontier(theory_graph.maximals.filter(clean), Set.empty)
-      }
     }
   }
 
@@ -655,18 +661,11 @@ object Headless
       state.change(_.unload_theories(session, id, theories))
     }
 
-    def clean_theories(session: Session, id: UUID.T, clean: Set[Document.Node.Name])
+    def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
     {
       state.change(st =>
-        {
-          val frontier = st.frontier_theories(clean).toList
-          if (frontier.isEmpty) st
-          else {
-            val st1 = st.unload_theories(session, id, frontier)
-            val (_, st2) = st1.purge_theories(session, frontier)
-            st2
-          }
-        })
+        st.unload_theories(session, id, theories).purge_theories(session, theories)._2
+      )
     }
 
     def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
