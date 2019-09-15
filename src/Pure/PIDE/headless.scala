@@ -177,7 +177,12 @@ object Headless
 
         if (already_committed.isEmpty) (Nil, this)
         else {
-          val clean = frontier(dep_graph.maximals.filter(already_committed.keySet), Set.empty)
+          val base =
+            (for {
+              (name, (_, (_, succs))) <- dep_graph.iterator
+              if succs.isEmpty && already_committed.isDefinedAt(name)
+            } yield name).toList
+          val clean = frontier(base, Set.empty)
           if (clean.isEmpty) (Nil, this)
           else {
             (dep_graph.topological_order.filter(clean),
