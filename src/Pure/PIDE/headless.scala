@@ -141,7 +141,7 @@ object Headless
     /* theories */
 
     private sealed case class Use_Theories_State(
-      dependencies: resources.Dependencies[Unit],
+      dep_graph: Document.Node.Name.Graph[Unit],
       checkpoints_state: Checkpoints_State,
       watchdog_timeout: Time,
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit],
@@ -150,8 +150,6 @@ object Headless
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Option[Exn.Result[Use_Theories_Result]] = None)
     {
-      def dep_graph: Document.Node.Name.Graph[Unit] = dependencies.theory_graph
-
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
 
@@ -263,7 +261,8 @@ object Headless
           Checkpoints_State.init(
             if (checkpoints.isEmpty) Nil
             else dependencies.theory_graph.topological_order.filter(checkpoints(_)))
-        Synchronized(Use_Theories_State(dependencies, checkpoints_state, watchdog_timeout, commit))
+        Synchronized(
+          Use_Theories_State(dependencies.theory_graph, checkpoints_state, watchdog_timeout, commit))
       }
 
       def check_state(beyond_limit: Boolean = false)
