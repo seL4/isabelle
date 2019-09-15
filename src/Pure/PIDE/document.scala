@@ -882,7 +882,7 @@ object Document
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
-        commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
+        commands_redirection = commands_redirection.restrict(commands1.keySet),
         assignments = assignments1,
         history = history.purge(versions1),
         removing_versions = false)
