@@ -212,8 +212,8 @@ object Headless
 
         def finished_theory(name: Document.Node.Name): Boolean =
           loaded_theory(name) ||
-          already_committed1.isDefinedAt(name) ||
-          state.node_consolidated(version, name)
+          (if (commit.isDefined) already_committed1.isDefinedAt(name)
+           else state.node_consolidated(version, name))
 
         val result1 =
           if (!finished_result &&
