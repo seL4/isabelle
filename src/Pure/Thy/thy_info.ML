@@ -370,7 +370,7 @@ fun load_thy context initiators update_time deps text (name, pos) keywords paren
     Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}
   end;
 
-fun check_deps dir name =
+fun check_thy_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, Position.none, get_imports name, [])
   | NONE =>
@@ -402,7 +402,7 @@ and require_thy context initiators qualifier dir (s, require_pos) tasks =
         let
           val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
 
-          val (current, deps, theory_pos, imports, keywords) = check_deps master_dir theory_name
+          val (current, deps, theory_pos, imports, keywords) = check_thy_deps master_dir theory_name
             handle ERROR msg =>
               cat_error msg
                 ("The error(s) above occurred for theory " ^ quote theory_name ^
