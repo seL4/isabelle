@@ -72,8 +72,7 @@ by(induct x y t rule: upd.induct)
   (auto simp: invh_baliL invh_baliR bheight_baliL bheight_baliR)
 
 theorem rbt_update: "rbt t \<Longrightarrow> rbt (update x y t)"
-by (simp add: invc_upd(2) invh_upd(1) color_paint_Black invc_paint_Black invh_paint
-  rbt_def update_def)
+by (simp add: invc_upd(2) invh_upd(1) color_paint_Black invh_paint rbt_def update_def)
 
 
 subsubsection \<open>Deletion\<close>
@@ -102,7 +101,7 @@ case (2 x _ y _ c)
 qed auto
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete k t)"
-by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc2I invh_paint)
+by (metis delete_def rbt_def color_paint_Black del_invc_invh invc2I invh_paint)
 
 interpretation M: Map_by_Ordered
 where empty = empty and lookup = lookup and update = update and delete = delete
