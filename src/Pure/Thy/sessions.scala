@@ -312,14 +312,19 @@ object Sessions
               for ((options, name) <- dependencies.adjunct_theories)
               yield (name, options)
 
+            def used_theories_session_iterator: Iterator[Document.Node.Name] =
+              for {
+                (name, _) <- used_theories.iterator
+                if imports_base.theory_qualifier(name) == session_name
+              } yield name
+
             val dir_errors =
             {
               val ok = info.dirs.map(_.canonical_file).toSet
               val bad =
                 (for {
-                  (name, _) <- used_theories.iterator
-                  if imports_base.theory_qualifier(name) == session_name
-                  val path = name.master_dir_path
+                  name <- used_theories_session_iterator
+                  path = name.master_dir_path
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
                 } yield (path1, name)).toList
@@ -332,8 +337,15 @@ object Sessions
                 if (bad_dirs.isEmpty) Nil
                 else List("Implicit use of session directories: " + commas(bad_dirs))
               val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
+              val errs4 =
+                (for {
+                  name <- used_theories_session_iterator
+                  name1 <- resources.find_theory_node(name.theory)
+                  if name.node != name1.node
+                } yield "Incoherent theory file import:\n  " + name.path + " vs. \n  " + name1.path)
+                .toList
 
-              errs1 ::: errs2 ::: errs3
+              errs1 ::: errs2 ::: errs3 ::: errs4
             }
 
             val sources_errors =
