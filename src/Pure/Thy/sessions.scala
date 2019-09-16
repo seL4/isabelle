@@ -40,25 +40,18 @@ object Sessions
   {
     val empty: Known = Known()
 
-    def make(local_dir: Path, bases: List[Base],
+    def make(bases: List[Base],
       theories: List[Document.Node.Entry] = Nil,
       loaded_files: List[(String, List[Path])] = Nil): Known =
     {
-      def bases_iterator(local: Boolean) =
+      def bases_theories_iterator =
         for {
           base <- bases.iterator
-          (_, entry) <- (if (local) base.known.theories_local else base.known.theories).iterator
+          (_, entry) <- base.known.theories.iterator
         } yield entry
 
-      def local_theories_iterator =
-      {
-        val local_path = local_dir.canonical_file.toPath
-        theories.iterator.filter(entry =>
-          entry.name.path.canonical_file.toPath.startsWith(local_path))
-      }
-
       val known_theories =
-        (Map.empty[String, Document.Node.Entry] /: (bases_iterator(false) ++ theories.iterator))({
+        (Map.empty[String, Document.Node.Entry] /: (bases_theories_iterator ++ theories.iterator))({
           case (known, entry) =>
             known.get(entry.name.theory) match {
               case Some(entry1) if entry.name != entry1.name =>
@@ -67,62 +60,23 @@ object Sessions
               case _ => known + (entry.name.theory -> entry)
             }
           })
-      val known_theories_local =
-        (Map.empty[String, Document.Node.Entry] /:
-            (bases_iterator(true) ++ local_theories_iterator))({
-          case (known, entry) => known + (entry.name.theory -> entry)
-        })
-      val known_files =
-        (Map.empty[JFile, List[Document.Node.Name]] /:
-            (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
-          case (known, entry) =>
-            val name = entry.name
-            val file = name.path.canonical_file
-            val theories1 = known.getOrElse(file, Nil)
-            if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
-              known
-            else known + (file -> (name :: theories1))
-        })
 
       val known_loaded_files =
         (loaded_files.toMap /: bases.map(base => base.known.loaded_files))(_ ++ _)
 
-      Known(
-        known_theories,
-        known_theories_local,
-        known_files.iterator.map(p => (p._1, p._2.reverse)).toMap,
-        known_loaded_files)
+      Known(known_theories, known_loaded_files)
     }
   }
 
   sealed case class Known(
     theories: Map[String, Document.Node.Entry] = Map.empty,
-    theories_local: Map[String, Document.Node.Entry] = Map.empty,
-    files: Map[JFile, List[Document.Node.Name]] = Map.empty,
     loaded_files: Map[String, List[Path]] = Map.empty)
   {
     def platform_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))),
-        theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.platform_path(_))),
-        files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.platform_path(_)))))
+      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))))
 
     def standard_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))),
-        theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.standard_path(_))),
-        files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.standard_path(_)))))
-
-    def theory_names: List[Document.Node.Name] = theories.iterator.map(p => p._2.name).toList
-
-    lazy val theory_graph: Document.Node.Name.Graph[Unit] =
-      Document.Node.Name.make_graph(
-        for ((_, entry) <- theories.toList)
-        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp.theory).name)))
-
-    def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
-    {
-      val res = files.getOrElse(File.canonical(file), Nil).headOption
-      if (bootstrap) res.map(_.map_theory(Thy_Header.bootstrap_name(_))) else res
-    }
+      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))))
   }
 
   object Base
@@ -285,7 +239,7 @@ object Sessions
               }
             val imports_base: Sessions.Base =
               parent_base.copy(known =
-                Known.make(info.dir, parent_base :: info.imports.map(session_bases(_))))
+                Known.make(parent_base :: info.imports.map(session_bases(_))))
 
             val resources = new Resources(sessions_structure, imports_base)
 
@@ -353,7 +307,7 @@ object Sessions
             }
 
             val known =
-              Known.make(info.dir, List(imports_base),
+              Known.make(List(imports_base),
                 theories = dependencies.entries,
                 loaded_files = loaded_files)
 
