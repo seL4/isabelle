@@ -116,6 +116,14 @@ object Thy_Header
   def bootstrap_name(theory: String): String =
     bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
 
+  def try_read_dir(dir: Path): List[String] =
+  {
+    val files =
+      try { File.read_dir(dir) }
+      catch { case ERROR(_) => Nil }
+    for { Thy_File_Name(name) <- files } yield name
+  }
+
 
   /* parser */
 

@@ -55,6 +55,9 @@ class Resources(
     Document.Node.Name(node, master_dir, theory)
   }
 
+  def loaded_theory_node(theory: String): Document.Node.Name =
+    Document.Node.Name(theory, "", theory)
+
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -118,29 +121,29 @@ class Resources(
     else Long_Name.qualify(qualifier, theory)
 
   def find_theory_node(theory: String): Option[Document.Node.Name] =
-    session_base.known.theories.get(theory).map(_.name) orElse {
-      val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
-      val session = session_base.theory_qualifier(theory)
-      val dirs =
-        sessions_structure.get(session) match {
-          case Some(info) => info.dirs
-          case None => Nil
-        }
-      dirs.collectFirst({
-        case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
-    }
+  {
+    val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
+    val session = session_base.theory_qualifier(theory)
+    val dirs =
+      sessions_structure.get(session) match {
+        case Some(info) => info.dirs
+        case None => Nil
+      }
+    dirs.collectFirst({
+      case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
+  }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+    def theory_node = make_theory_node(dir, thy_path(Path.explode(s)), theory)
+
+    if (!Thy_Header.is_base_name(s)) theory_node
+    else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
-        case None =>
-          if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
-            Document.Node.Name.loaded_theory(theory)
-          else make_theory_node(dir, thy_path(Path.explode(s)), theory)
+        case None => if (Long_Name.is_qualified(s)) loaded_theory_node(theory) else theory_node
       }
     }
   }
@@ -151,14 +154,15 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def find_theory(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
+  def find_theory(file: JFile): Option[Document.Node.Name] =
   {
-    val dir = File.canonical(file).getParentFile
-    val qualifier = session_base.session_directories.get(dir).getOrElse(default_qualifier)
-    Thy_Header.theory_name(file.getName) match {
-      case "" => None
-      case s => Some(import_name(qualifier, File.path(file).dir.implode, s))
-    }
+    for {
+      qualifier <- session_base.session_directories.get(File.canonical(file).getParentFile)
+      theory_base <- proper_string(Thy_Header.theory_name(file.getName))
+      theory = theory_name(qualifier, theory_base)
+      theory_node <- find_theory_node(theory)
+      if File.eq(theory_node.path.file, file)
+    } yield theory_node
   }
 
   def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =
@@ -168,26 +172,21 @@ class Resources(
       (thy, _) <- thys.iterator
     } yield import_name(info, thy)).toSet
 
-  def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
+  def complete_import_name(context_name: Document.Node.Name, s: String): List[String] =
   {
-    val name = import_name(qualifier, dir, s)
-    val s1 =
-      if (session_base.loaded_theory(name)) name.theory
-      else {
-        (try { Some(name.path) } catch { case ERROR(_) => None }) match {
-          case None => s
-          case Some(path) =>
-            session_base.known.get_file(path.file) match {
-              case Some(name1) if base.theory_qualifier(name1) != qualifier =>
-                name1.theory
-              case Some(name1) if Thy_Header.is_base_name(s) =>
-                name1.theory_base_name
-              case _ => s
-            }
-        }
-      }
-    val name2 = import_name(qualifier, dir, s1)
-    if (name.node == name2.node) s1 else s
+    val context_session = session_base.theory_qualifier(context_name)
+    val context_dir =
+      try { Some(context_name.master_dir_path) }
+      catch { case ERROR(_) => None }
+    (for {
+      (session, (info, _))  <- sessions_structure.imports_graph.iterator
+      dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
+      theory <- Thy_Header.try_read_dir(dir).iterator
+      if Completion.completed(s)(theory)
+    } yield {
+      if (session == context_session || session_base.global_theories.isDefinedAt(theory)) theory
+      else Long_Name.qualify(session, theory)
+    }).toList.sorted
   }
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
