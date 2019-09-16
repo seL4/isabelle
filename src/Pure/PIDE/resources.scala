@@ -136,14 +136,14 @@ class Resources(
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
+    def theory_node = make_theory_node(dir, thy_path(Path.explode(s)), theory)
+
+    if (!Thy_Header.is_base_name(s)) theory_node
+    else if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
-        case None =>
-          if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
-            loaded_theory_node(theory)
-          else make_theory_node(dir, thy_path(Path.explode(s)), theory)
+        case None => if (Long_Name.is_qualified(s)) loaded_theory_node(theory) else theory_node
       }
     }
   }

@@ -112,7 +112,6 @@ val check_session = check_name #session_positions "session" markup_session;
 val check_doc = check_name #docs "documentation" (fn name => fn _ => Markup.doc name);
 
 
-
 (* manage source files *)
 
 type files =
@@ -170,20 +169,24 @@ fun find_theory_file thy_name =
       in if File.is_file path then SOME path else NONE end)
   end;
 
+fun make_theory_node node_name theory =
+  {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory};
+
+fun loaded_theory_node theory =
+  {node_name = Path.basic theory, master_dir = Path.current, theory_name = theory};
+
 fun import_name qualifier dir s =
-  let val theory = theory_name qualifier (Thy_Header.import_name s) in
-    if loaded_theory theory
-    then {node_name = Path.basic theory, master_dir = Path.current, theory_name = theory}
+  let
+    val theory = theory_name qualifier (Thy_Header.import_name s);
+    fun theory_node () =
+      make_theory_node (File.full_path dir (thy_path (Path.expand (Path.explode s)))) theory;
+  in
+    if not (Thy_Header.is_base_name s) then theory_node ()
+    else if loaded_theory theory then loaded_theory_node theory
     else
-      let
-        val node_name =
-          (case find_theory_file theory of
-            SOME node_name => node_name
-          | NONE =>
-              if Thy_Header.is_base_name s andalso Long_Name.is_qualified s
-              then Path.explode s
-              else File.full_path dir (thy_path (Path.expand (Path.explode s))));
-      in {node_name = node_name, master_dir = Path.dir node_name, theory_name = theory} end
+      (case find_theory_file theory of
+        SOME node_name => make_theory_node node_name theory
+      | NONE => if Long_Name.is_qualified s then loaded_theory_node theory else theory_node ())
   end;
 
 fun check_file dir file = File.check_file (File.full_path dir file);
