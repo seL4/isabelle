@@ -110,9 +110,6 @@ object Sessions
       "Sessions.Base(loaded_theories = " + loaded_theories.size +
         ", used_theories = " + used_theories.length + ")"
 
-    def platform_path: Base = copy(known = known.platform_path)
-    def standard_path: Base = copy(known = known.standard_path)
-
     def theory_qualifier(name: String): String =
       global_theories.getOrElse(name, Long_Name.qualifier(name))
     def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
