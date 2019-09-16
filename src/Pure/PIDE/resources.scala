@@ -154,14 +154,15 @@ class Resources(
   def import_name(info: Sessions.Info, s: String): Document.Node.Name =
     import_name(info.name, info.dir.implode, s)
 
-  def find_theory(default_qualifier: String, file: JFile): Option[Document.Node.Name] =
+  def find_theory(file: JFile): Option[Document.Node.Name] =
   {
-    val dir = File.canonical(file).getParentFile
-    val qualifier = session_base.session_directories.get(dir).getOrElse(default_qualifier)
-    Thy_Header.theory_name(file.getName) match {
-      case "" => None
-      case s => Some(import_name(qualifier, File.path(file).dir.implode, s))
-    }
+    for {
+      qualifier <- session_base.session_directories.get(File.canonical(file).getParentFile)
+      theory_base <- proper_string(Thy_Header.theory_name(file.getName))
+      theory = theory_name(qualifier, theory_base)
+      theory_node <- find_theory_node(theory)
+      if File.eq(theory_node.path.file, file)
+    } yield theory_node
   }
 
   def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =

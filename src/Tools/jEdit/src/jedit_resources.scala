@@ -37,7 +37,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
   /* document node name */
 
   def node_name(path: String): Document.Node.Name =
-    JEdit_Lib.check_file(path).flatMap(file => find_theory(Sessions.DRAFT, file)) getOrElse {
+    JEdit_Lib.check_file(path).flatMap(find_theory(_)) getOrElse {
       val vfs = VFSManager.getVFSForPath(path)
       val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
