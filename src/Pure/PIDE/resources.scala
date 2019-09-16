@@ -168,26 +168,21 @@ class Resources(
       (thy, _) <- thys.iterator
     } yield import_name(info, thy)).toSet
 
-  def standard_import(base: Sessions.Base, qualifier: String, dir: String, s: String): String =
+  def complete_import_name(context_name: Document.Node.Name, s: String): List[String] =
   {
-    val name = import_name(qualifier, dir, s)
-    val s1 =
-      if (session_base.loaded_theory(name)) name.theory
-      else {
-        (try { Some(name.path) } catch { case ERROR(_) => None }) match {
-          case None => s
-          case Some(path) =>
-            session_base.known.get_file(path.file) match {
-              case Some(name1) if base.theory_qualifier(name1) != qualifier =>
-                name1.theory
-              case Some(name1) if Thy_Header.is_base_name(s) =>
-                name1.theory_base_name
-              case _ => s
-            }
-        }
-      }
-    val name2 = import_name(qualifier, dir, s1)
-    if (name.node == name2.node) s1 else s
+    val context_session = session_base.theory_qualifier(context_name)
+    val context_dir =
+      try { Some(context_name.master_dir_path) }
+      catch { case ERROR(_) => None }
+    (for {
+      (session, (info, _))  <- sessions_structure.imports_graph.iterator
+      dir <- (if (session == context_session) context_dir.toList else info.dirs).iterator
+      theory <- Thy_Header.try_read_dir(dir).iterator
+      if Completion.completed(s)(theory)
+    } yield {
+      if (session == context_session || session_base.global_theories.isDefinedAt(theory)) theory
+      else Long_Name.qualify(session, theory)
+    }).toList.sorted
   }
 
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
