@@ -107,9 +107,9 @@ fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc (Node l a c r) =
   (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
 
-fun invc2 :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
-"invc2 Leaf = True" |
-"invc2 (Node l a c r) = (invc l \<and> invc r)"
+text \<open>Weaker version:\<close>
+abbreviation invc2 :: "'a rbt \<Rightarrow> bool" where
+"invc2 t \<equiv> invc(paint Black t)"
 
 fun invh :: "'a rbt \<Rightarrow> bool" where
 "invh Leaf = True" |
@@ -124,10 +124,7 @@ definition rbt :: "'a rbt \<Rightarrow> bool" where
 lemma color_paint_Black: "color (paint Black t) = Black"
 by (cases t) auto
 
-lemma paint_invc2: "invc2 t \<Longrightarrow> invc2 (paint c t)"
-by (cases t) auto
-
-lemma invc_paint_Black: "invc2 t \<Longrightarrow> invc (paint Black t)"
+lemma paint2: "paint c2 (paint c1 t) = paint c2 t"
 by (cases t) auto
 
 lemma invh_paint: "invh t \<Longrightarrow> invh (paint c t)"
@@ -157,23 +154,37 @@ lemma invh_baliR:
   "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk> \<Longrightarrow> invh (baliR l a r)"
 by (induct l a r rule: baliR.induct) auto
 
+text \<open>All in one:\<close>
+
+lemma inv_baliR: "\<lbrakk> invh l; invh r; invc l; invc2 r; bheight l = bheight r \<rbrakk>
+ \<Longrightarrow> invc (baliR l a r) \<and> invh (baliR l a r) \<and> bheight (baliR l a r) = Suc (bheight l)"
+by (induct l a r rule: baliR.induct) auto
+
+lemma inv_baliL: "\<lbrakk> invh l; invh r; invc2 l; invc r; bheight l = bheight r \<rbrakk>
+ \<Longrightarrow> invc (baliL l a r) \<and> invh (baliL l a r) \<and> bheight (baliL l a r) = Suc (bheight l)"
+by (induct l a r rule: baliL.induct) auto
 
 subsubsection \<open>Insertion\<close>
 
-lemma invc_ins: assumes "invc t"
-  shows "color t = Black \<Longrightarrow> invc (ins x t)" "invc2 (ins x t)"
-using assms
+lemma invc_ins: "invc t \<longrightarrow> invc2 (ins x t) \<and> (color t = Black \<longrightarrow> invc (ins x t))"
 by (induct x t rule: ins.induct) (auto simp: invc_baliL invc_baliR invc2I)
 
-lemma invh_ins: assumes "invh t"
-  shows "invh (ins x t)" "bheight (ins x t) = bheight t"
-using assms
+lemma invh_ins: "invh t \<Longrightarrow> invh (ins x t) \<and> bheight (ins x t) = bheight t"
 by(induct x t rule: ins.induct)
   (auto simp: invh_baliL invh_baliR bheight_baliL bheight_baliR)
 
 theorem rbt_insert: "rbt t \<Longrightarrow> rbt (insert x t)"
-by (simp add: invc_ins(2) invh_ins(1) color_paint_Black invc_paint_Black invh_paint
-  rbt_def insert_def)
+by (simp add: invc_ins invh_ins color_paint_Black invh_paint rbt_def insert_def)
+
+text \<open>All in one variant:\<close>
+
+lemma inv_ins: "\<lbrakk> invc t; invh t \<rbrakk> \<Longrightarrow>
+  invc2 (ins x t) \<and> (color t = Black \<longrightarrow> invc (ins x t)) \<and>
+  invh(ins x t) \<and> bheight (ins x t) = bheight t"
+by (induct x t rule: ins.induct) (auto simp: inv_baliL inv_baliR invc2I)
+
+theorem rbt_insert2: "rbt t \<Longrightarrow> rbt (insert x t)"
+by (simp add: inv_ins color_paint_Black invh_paint rbt_def insert_def)
 
 
 subsubsection \<open>Deletion\<close>
@@ -197,7 +208,7 @@ lemma invc_baldL: "\<lbrakk>invc2 l; invc r; color r = Black\<rbrakk> \<Longrigh
 by (induct l a r rule: baldL.induct) (simp_all add: invc_baliR)
 
 lemma invc2_baldL: "\<lbrakk> invc2 l; invc r \<rbrakk> \<Longrightarrow> invc2 (baldL l a r)"
-by (induct l a r rule: baldL.induct) (auto simp: invc_baliR paint_invc2 invc2I)
+by (induct l a r rule: baldL.induct) (auto simp: invc_baliR paint2 invc2I)
 
 lemma invh_baldR_invc:
   "\<lbrakk> invh l;  invh r;  bheight l = bheight r + 1;  invc l \<rbrakk>
@@ -209,7 +220,7 @@ lemma invc_baldR: "\<lbrakk>invc l; invc2 r; color l = Black\<rbrakk> \<Longrigh
 by (induct l a r rule: baldR.induct) (simp_all add: invc_baliL)
 
 lemma invc2_baldR: "\<lbrakk> invc l; invc2 r \<rbrakk> \<Longrightarrow>invc2 (baldR l a r)"
-by (induct l a r rule: baldR.induct) (auto simp: invc_baliL paint_invc2 invc2I)
+by (induct l a r rule: baldR.induct) (auto simp: invc_baliL paint2 invc2I)
 
 lemma invh_combine:
   "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk>
@@ -218,10 +229,8 @@ by (induct l r rule: combine.induct)
    (auto simp: invh_baldL_Black split: tree.splits color.splits)
 
 lemma invc_combine: 
-  assumes "invc l" "invc r"
-  shows "color l = Black \<Longrightarrow> color r = Black \<Longrightarrow> invc (combine l r)"
-         "invc2 (combine l r)"
-using assms 
+  "\<lbrakk> invc l; invc r \<rbrakk> \<Longrightarrow>
+  (color l = Black \<and> color r = Black \<longrightarrow> invc (combine l r)) \<and> invc2 (combine l r)"
 by (induct l r rule: combine.induct)
    (auto simp: invc_baldL invc2I split: tree.splits color.splits)
 
@@ -252,7 +261,7 @@ case (2 x _ y c)
 qed auto
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete x t)"
-by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc2I invh_paint)
+by (metis delete_def rbt_def color_paint_Black del_invc_invh invc2I invh_paint)
 
 text \<open>Overall correctness:\<close>
 

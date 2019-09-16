@@ -101,7 +101,7 @@ qed
 
 (* unused *)
 lemma rbt_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> rbt(join l x r)"
-by(simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint rbt_def
+by(simp add: invc2_joinL invc2_joinR invh_joinL invh_joinR invh_paint rbt_def
     color_paint_Black join_def)
 
 text \<open>To make sure the the black height is not increased unnecessarily:\<close>
@@ -206,7 +206,7 @@ lemma bst_join:
 by(auto simp: bst_paint bst_joinL bst_joinR join_def)
 
 lemma inv_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> invc(join l x r) \<and> invh(join l x r)"
-by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint join_def)
+by (simp add: invc2_joinL invc2_joinR invh_joinL invh_joinR invh_paint join_def)
 
 subsubsection "Interpretation of \<^locale>\<open>Set2_Join\<close> with Red-Black Tree"
 
