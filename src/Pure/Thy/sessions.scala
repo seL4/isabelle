@@ -174,10 +174,6 @@ object Sessions
     def node_syntax(nodes: Document.Nodes, name: Document.Node.Name): Outer_Syntax =
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
 
-    def dest_known_theories: List[(String, String)] =
-      for ((theory, entry) <- known.theories.toList)
-        yield (theory, entry.name.node)
-
     def get_imports: Base =
       imports getOrElse Base.bootstrap(session_directories, global_theories)
   }

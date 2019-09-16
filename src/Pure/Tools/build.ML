@@ -157,7 +157,6 @@ datatype args = Args of
   doc_names: string list,
   global_theories: (string * string) list,
   loaded_theories: string list,
-  known_theories: (string * string) list,
   bibtex_entries: string list};
 
 fun decode_args yxml =
@@ -167,15 +166,14 @@ fun decode_args yxml =
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
       (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
       (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-      (loaded_theories, (known_theories, bibtex_entries)))))))))))))))))) =
+      (loaded_theories, bibtex_entries))))))))))))))))) =
       pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
               (pair (list (pair string properties))
                 (pair (list (pair string string)) (pair (list string)
-                  (pair (list (pair string string)) (pair (list string)
-                    (pair (list (pair string string)) (list string))))))))))))))))))
+                  (pair (list (pair string string)) (pair (list string) (list string)))))))))))))))))
       (YXML.parse_body yxml);
   in
     Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
@@ -185,13 +183,12 @@ fun decode_args yxml =
       name = name, master_dir = Path.explode master_dir, theories = theories,
       session_positions = session_positions, session_directories = session_directories,
       doc_names = doc_names, global_theories = global_theories, loaded_theories = loaded_theories,
-      known_theories = known_theories, bibtex_entries = bibtex_entries}
+      bibtex_entries = bibtex_entries}
   end;
 
 fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
     document_files, graph_file, parent_name, chapter, name, master_dir, theories, session_positions,
-    session_directories, doc_names, global_theories, loaded_theories, known_theories,
-    bibtex_entries}) =
+    session_directories, doc_names, global_theories, loaded_theories, bibtex_entries}) =
   let
     val symbols = HTML.make_symbols symbol_codes;
 
@@ -201,8 +198,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
          session_directories = session_directories,
          docs = doc_names,
          global_theories = global_theories,
-         loaded_theories = loaded_theories,
-         known_theories = known_theories};
+         loaded_theories = loaded_theories};
 
     val _ =
       Session.init

@@ -101,8 +101,7 @@ object ML_Process
             ", session_directories = " + print_table(sessions_structure1.dest_session_directories) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
-            ", loaded_theories = " + print_list(base.loaded_theories.keys) +
-            ", known_theories = " + print_table(base.dest_known_theories) + "}")
+            ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}")
       }
 
     // process

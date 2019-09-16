@@ -221,7 +221,7 @@ object Build
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
-                pair(list(string), pair(list(pair(string, string)), list(string)))))))))))))))))))(
+                pair(list(string), list(string))))))))))))))))))(
               (Symbol.codes, (command_timings, (do_output, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
@@ -229,8 +229,7 @@ object Build
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, (base.dest_known_theories,
-                info.bibtex_entries.map(_.info))))))))))))))))))))
+                (base.loaded_theories.keys, info.bibtex_entries.map(_.info)))))))))))))))))))
             })
 
         val env =

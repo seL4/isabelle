@@ -245,8 +245,7 @@ trait Protocol
       encode_table(resources.sessions_structure.dest_session_directories),
       encode_list(base.doc_names),
       encode_table(base.global_theories.toList),
-      encode_list(base.loaded_theories.keys),
-      encode_table(base.dest_known_theories))
+      encode_list(base.loaded_theories.keys))
   }
 
 

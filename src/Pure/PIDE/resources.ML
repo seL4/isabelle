@@ -12,8 +12,7 @@ sig
      session_directories: (string * string) list,
      docs: string list,
      global_theories: (string * string) list,
-     loaded_theories: string list,
-     known_theories: (string * string) list} -> unit
+     loaded_theories: string list} -> unit
   val finish_session_base: unit -> unit
   val global_theory: string -> string option
   val loaded_theory: string -> bool
@@ -57,14 +56,13 @@ val empty_session_base =
    session_directories = Symtab.empty: Path.T list Symtab.table,
    docs = []: (string * entry) list,
    global_theories = Symtab.empty: string Symtab.table,
-   loaded_theories = Symtab.empty: unit Symtab.table,
-   known_theories = Symtab.empty: Path.T Symtab.table};
+   loaded_theories = Symtab.empty: unit Symtab.table};
 
 val global_session_base =
   Synchronized.var "Sessions.base" empty_session_base;
 
 fun init_session_base
-    {session_positions, session_directories, docs, global_theories, loaded_theories, known_theories} =
+    {session_positions, session_directories, docs, global_theories, loaded_theories} =
   Synchronized.change global_session_base
     (fn _ =>
       {session_positions = sort_by #1 (map (apsnd make_entry) session_positions),
@@ -73,8 +71,7 @@ fun init_session_base
            session_directories Symtab.empty,
        docs = sort_by #1 (map (apsnd make_entry o rpair []) docs),
        global_theories = Symtab.make global_theories,
-       loaded_theories = Symtab.make_set loaded_theories,
-       known_theories = Symtab.make (map (apsnd Path.explode) known_theories)});
+       loaded_theories = Symtab.make_set loaded_theories});
 
 fun finish_session_base () =
   Synchronized.change global_session_base
@@ -83,8 +80,7 @@ fun finish_session_base () =
        session_directories = Symtab.empty,
        docs = [],
        global_theories = global_theories,
-       loaded_theories = loaded_theories,
-       known_theories = #known_theories empty_session_base});
+       loaded_theories = loaded_theories});
 
 fun get_session_base f = f (Synchronized.value global_session_base);
 
@@ -164,18 +160,15 @@ fun theory_name qualifier theory =
   else Long_Name.qualify qualifier theory;
 
 fun find_theory_file thy_name =
-  (case Symtab.lookup (get_session_base #known_theories) thy_name of
-    NONE =>
-      let
-        val thy_file = thy_path (Path.basic (Long_Name.base_name thy_name));
-        val session = theory_qualifier thy_name;
-        val dirs = Symtab.lookup_list (get_session_base #session_directories) session;
-      in
-        dirs |> get_first (fn dir =>
-          let val path = Path.append dir thy_file
-          in if File.is_file path then SOME path else NONE end)
-      end
-  | some => some);
+  let
+    val thy_file = thy_path (Path.basic (Long_Name.base_name thy_name));
+    val session = theory_qualifier thy_name;
+    val dirs = Symtab.lookup_list (get_session_base #session_directories) session;
+  in
+    dirs |> get_first (fn dir =>
+      let val path = Path.append dir thy_file
+      in if File.is_file path then SOME path else NONE end)
+  end;
 
 fun import_name qualifier dir s =
   let val theory = theory_name qualifier (Thy_Header.import_name s) in
@@ -200,7 +193,7 @@ fun check_thy dir thy_name =
     val thy_base_name = Long_Name.base_name thy_name;
     val master_file =
       (case find_theory_file thy_name of
-        SOME known_path => check_file Path.current known_path
+        SOME path => check_file Path.current path
       | NONE => check_file dir (thy_path (Path.basic thy_base_name)));
     val text = File.read master_file;
 

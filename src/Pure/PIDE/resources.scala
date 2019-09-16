@@ -118,17 +118,17 @@ class Resources(
     else Long_Name.qualify(qualifier, theory)
 
   def find_theory_node(theory: String): Option[Document.Node.Name] =
-    session_base.known.theories.get(theory).map(_.name) orElse {
-      val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
-      val session = session_base.theory_qualifier(theory)
-      val dirs =
-        sessions_structure.get(session) match {
-          case Some(info) => info.dirs
-          case None => Nil
-        }
-      dirs.collectFirst({
-        case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
-    }
+  {
+    val thy_file = thy_path(Path.basic(Long_Name.base_name(theory)))
+    val session = session_base.theory_qualifier(theory)
+    val dirs =
+      sessions_structure.get(session) match {
+        case Some(info) => info.dirs
+        case None => Nil
+      }
+    dirs.collectFirst({
+      case dir if (dir + thy_file).is_file => make_theory_node("", dir + thy_file, theory) })
+  }
 
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
