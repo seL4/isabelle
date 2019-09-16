@@ -433,10 +433,6 @@ proof -
     by (auto simp: restrict_space_def)
 qed
 
-lemma integrable_lebesgue_on_UNIV_eq:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}"
-  shows "integrable (lebesgue_on UNIV) f = integrable lebesgue f"
-  by (auto simp: integrable_restrict_space)
 lemma integral_restrict_Int:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "S \<in> sets lebesgue" "T \<in> sets lebesgue"
@@ -670,9 +666,6 @@ next
   then show ?lhs
     by (simp add: borel_measurable_vimage_open)
 qed
-
-lemma borel_measurable_UNIV_eq: "borel_measurable (lebesgue_on UNIV) = borel_measurable lebesgue"
-  by auto
 
 lemma borel_measurable_vimage_borel:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"

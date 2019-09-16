@@ -1360,16 +1360,30 @@ lemma borel_measurable_diff_null:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes N: "N \<in> null_sets (lebesgue_on S)" and S: "S \<in> sets lebesgue"
   shows "f \<in> borel_measurable (lebesgue_on (S-N)) \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
-  unfolding in_borel_measurable borel_measurable_UNIV_eq [symmetric] space_lebesgue_on sets_restrict_UNIV
+  unfolding in_borel_measurable space_lebesgue_on sets_restrict_UNIV
 proof (intro ball_cong iffI)
   show "f -` T \<inter> S \<in> sets (lebesgue_on S)"
     if "f -` T \<inter> (S-N) \<in> sets (lebesgue_on (S-N))" for T
-    using that  assms
-    by (smt Diff_Int_distrib completion.complete2 diff_null_sets_lebesgue inf.idem inf_le2 inf_mono lebesgue_on_UNIV_eq null_setsD2 null_sets_restrict_space sets.Diff sets_restrict_space_iff space_lebesgue_on space_restrict_space)
+  proof -
+    have "N \<inter> S = N"
+      by (metis N S inf.orderE null_sets_restrict_space)
+    moreover have "N \<inter> S \<in> sets lebesgue"
+      by (metis N S inf.orderE null_setsD2 null_sets_restrict_space)
+    moreover have "f -` T \<inter> S \<inter> (f -` T \<inter> N) \<in> sets lebesgue"
+      by (metis N S completion.complete inf.absorb2 inf_le2 inf_mono null_sets_restrict_space)
+    ultimately show ?thesis
+      by (metis Diff_Int_distrib Int_Diff_Un S inf_le2 sets.Diff sets.Un sets_restrict_space_iff space_lebesgue_on space_restrict_space that)
+  qed
   show "f -` T \<inter> (S-N) \<in> sets (lebesgue_on (S-N))"
     if "f -` T \<inter> S \<in> sets (lebesgue_on S)" for T
-    using image_eqI inf.commute inf_top_right sets_restrict_space that
-    by (smt Int_Diff S sets.Int_space_eq2 sets_restrict_space_iff space_lebesgue_on)
+  proof -
+    have "(S - N) \<inter> f -` T = (S - N) \<inter> (f -` T \<inter> S)"
+      by blast
+    then have "(S - N) \<inter> f -` T \<in> sets.restricted_space lebesgue (S - N)"
+      by (metis S image_iff sets.Int_space_eq2 sets_restrict_space_iff that)
+    then show ?thesis
+      by (simp add: inf.commute sets_restrict_space)
+  qed
 qed auto
 
 lemma lebesgue_measurable_diff_null:
@@ -1599,5 +1613,54 @@ next
   then show "f measurable_on S"
     using measurable_on_UNIV by blast
 qed
+
+subsection \<open>Measurability on generalisations of the binary product\<close>
+lemma measurable_on_bilinear:
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  assumes h: "bilinear h" and f: "f measurable_on S" and g: "g measurable_on S"
+  shows "(\<lambda>x. h (f x) (g x)) measurable_on S"
+proof (rule measurable_on_combine [where h = h])
+  show "continuous_on UNIV (\<lambda>x. h (fst x) (snd x))"
+    by (simp add: bilinear_continuous_on_compose [OF continuous_on_fst continuous_on_snd h])
+  show "h 0 0 = 0"
+  by (simp add: bilinear_lzero h)
+qed (auto intro: assms)
+
+lemma borel_measurable_bilinear:
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  assumes "bilinear h" "f \<in> borel_measurable (lebesgue_on S)" "g \<in> borel_measurable (lebesgue_on S)"
+    and S: "S \<in> sets lebesgue"
+  shows "(\<lambda>x. h (f x) (g x)) \<in> borel_measurable (lebesgue_on S)"
+  using assms measurable_on_bilinear [of h f S g]
+  by (simp flip: measurable_on_iff_borel_measurable)
+
+lemma absolutely_integrable_bounded_measurable_product:
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  assumes "bilinear h" and f: "f \<in> borel_measurable (lebesgue_on S)" "S \<in> sets lebesgue"
+    and bou: "bounded (f ` S)" and g: "g absolutely_integrable_on S"
+  shows "(\<lambda>x. h (f x) (g x)) absolutely_integrable_on S"
+proof -
+  obtain B where "B > 0" and B: "\<And>x y. norm (h x y) \<le> B * norm x * norm y"
+    using bilinear_bounded_pos \<open>bilinear h\<close> by blast
+  obtain C where "C > 0" and C: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> C"
+    using bounded_pos by (metis bou imageI)
+  show ?thesis
+  proof (rule measurable_bounded_by_integrable_imp_absolutely_integrable [OF _ \<open>S \<in> sets lebesgue\<close>])
+    show "norm (h (f x) (g x)) \<le> B * C * norm(g x)" if "x \<in> S" for x
+      by (meson less_le mult_left_mono mult_right_mono norm_ge_zero order_trans that \<open>B > 0\<close> B C)
+    show "(\<lambda>x. h (f x) (g x)) \<in> borel_measurable (lebesgue_on S)"
+      using \<open>bilinear h\<close> f g
+      by (blast intro: borel_measurable_bilinear dest: absolutely_integrable_measurable)
+    show "(\<lambda>x. B * C * norm(g x)) integrable_on S"
+      using \<open>0 < B\<close> \<open>0 < C\<close> absolutely_integrable_on_def g by auto
+  qed
+qed
+
+lemma absolutely_integrable_bounded_measurable_product_real:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "f \<in> borel_measurable (lebesgue_on S)" "S \<in> sets lebesgue"
+      and "bounded (f ` S)" and "g absolutely_integrable_on S"
+  shows "(\<lambda>x. f x * g x) absolutely_integrable_on S"
+  using absolutely_integrable_bounded_measurable_product bilinear_times assms by blast
 
 end

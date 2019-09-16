@@ -369,6 +369,10 @@ lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
 lemma bilinear_radd: "bilinear h \<Longrightarrow> h x (y + z) = h x y + h x z"
   by (simp add: bilinear_def linear_iff)
 
+lemma bilinear_times:
+  fixes c::"'a::real_algebra" shows "bilinear (\<lambda>x y::'a. x*y)"
+  by (auto simp: bilinear_def distrib_left distrib_right intro!: linearI)
+
 lemma bilinear_lmul: "bilinear h \<Longrightarrow> h (c *\<^sub>R x) y = c *\<^sub>R h x y"
   by (simp add: bilinear_def linear_iff)
 

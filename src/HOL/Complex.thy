@@ -611,6 +611,9 @@ lemma complex_cnj_pochhammer [simp]: "cnj (pochhammer z n) = pochhammer (cnj z) 
 lemma bounded_linear_cnj: "bounded_linear cnj"
   using complex_cnj_add complex_cnj_scaleR by (rule bounded_linear_intro [where K=1]) simp
 
+lemma linear_cnj: "linear cnj"
+  using bounded_linear.linear[OF bounded_linear_cnj] .
+
 lemmas tendsto_cnj [tendsto_intros] = bounded_linear.tendsto [OF bounded_linear_cnj]
   and isCont_cnj [simp] = bounded_linear.isCont [OF bounded_linear_cnj]
   and continuous_cnj [simp, continuous_intros] = bounded_linear.continuous [OF bounded_linear_cnj]

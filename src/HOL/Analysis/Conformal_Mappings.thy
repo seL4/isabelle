@@ -4783,8 +4783,7 @@ proof -
           then show " (f' has_field_derivative of_int po * pp w * (w - p) powr of_int (po - 1) 
                   + deriv pp w * (w - p) powr of_int po) (at w)"
             unfolding f'_def using \<open>w\<noteq>p\<close>
-            apply (auto intro!: derivative_eq_intros(35) DERIV_cong[OF has_field_derivative_powr_of_int])
-            by (auto intro: derivative_eq_intros)
+            by (auto intro!: derivative_eq_intros DERIV_cong[OF has_field_derivative_powr_of_int])
         qed
         ultimately show "prin w + anal w = ff' w"
           unfolding ff'_def prin_def anal_def

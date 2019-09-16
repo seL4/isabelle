@@ -1564,7 +1564,7 @@ next
     by (subst of_real_in_nonpos_Ints_iff) (auto elim!: nonpos_Ints_cases')
   then have "x \<noteq> 0" by auto
   with x have "(rGamma has_field_derivative - rGamma x * Digamma x) (at x)"
-    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
+    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_field
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
   thus "let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (x + of_nat k))
                        \<longlonglongrightarrow> d) - euler_mascheroni *\<^sub>R 1 in  (\<lambda>y. (rGamma y - rGamma x +
@@ -1574,7 +1574,7 @@ next
 next
   fix n :: nat
   have "(rGamma has_field_derivative (-1)^n * fact n) (at (- of_nat n :: real))"
-    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
+    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_field
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
   thus "let x = - of_nat n in (\<lambda>y. (rGamma y - rGamma x - (- 1) ^ n * prod of_nat {1..n} *
                   (y - x)) /\<^sub>R norm (y - x)) \<midarrow>x::real\<rightarrow> 0"
@@ -1676,7 +1676,7 @@ lemma has_field_derivative_ln_Gamma_real [derivative_intros]:
   shows "(ln_Gamma has_field_derivative Digamma x) (at x)"
 proof (subst DERIV_cong_ev[OF refl _ refl])
   from assms show "((Re \<circ> ln_Gamma \<circ> complex_of_real) has_field_derivative Digamma x) (at x)"
-    by (auto intro!: derivative_eq_intros has_vector_derivative_real_complex
+    by (auto intro!: derivative_eq_intros has_vector_derivative_real_field
              simp: Polygamma_of_real o_def)
   from eventually_nhds_in_nhd[of x "{0<..}"] assms
     show "eventually (\<lambda>y. ln_Gamma y = (Re \<circ> ln_Gamma \<circ> of_real) y) (nhds x)"
@@ -2816,7 +2816,7 @@ proof -
     have "((\<lambda>t. complex_of_real t powr (z - 1)) has_integral
             (of_real 1 powr z / z - of_real 0 powr z / z)) {0..1}" using 0
       by (intro fundamental_theorem_of_calculus_interior)
-         (auto intro!: continuous_intros derivative_eq_intros has_vector_derivative_real_complex)
+         (auto intro!: continuous_intros derivative_eq_intros has_vector_derivative_real_field)
     thus ?case by simp
   next
     case (Suc n)
@@ -2833,9 +2833,9 @@ proof -
     next
       fix t :: real assume t: "t \<in> {0<..<1}"
       show "(?f has_vector_derivative ?f' t) (at t)" using t Suc.prems
-        by (auto intro!: derivative_eq_intros has_vector_derivative_real_complex)
+        by (auto intro!: derivative_eq_intros has_vector_derivative_real_field)
       show "(?g has_vector_derivative ?g' t) (at t)"
-        by (rule has_vector_derivative_real_complex derivative_eq_intros refl)+ simp_all
+        by (rule has_vector_derivative_real_field derivative_eq_intros refl)+ simp_all
     next
       from Suc.prems have [simp]: "z \<noteq> 0" by auto
       from Suc.prems have A: "Re (z + of_nat n) > 0" for n by simp

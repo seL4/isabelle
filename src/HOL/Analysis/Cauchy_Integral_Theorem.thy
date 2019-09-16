@@ -4960,7 +4960,7 @@ lemma has_vector_derivative_part_circlepath [derivative_intros]:
       (\<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)))
      (at x within X)"
   apply (simp add: part_circlepath_def linepath_def scaleR_conv_of_real)
-  apply (rule has_vector_derivative_real_complex)
+  apply (rule has_vector_derivative_real_field)
   apply (rule derivative_eq_intros | simp)+
   done
 
@@ -7824,7 +7824,7 @@ proof -
   hence h_holo: "h holomorphic_on A"
     by (auto simp: h_def intro!: holomorphic_intros)
   have "\<exists>c. \<forall>x\<in>A. f x / exp (h x) - 1 = c"
-  proof (rule DERIV_zero_constant, goal_cases)
+  proof (rule has_field_derivative_zero_constant, goal_cases)
     case (2 x)
     note [simp] = at_within_open[OF _ \<open>open A\<close>]
     from 2 and z0 and f show ?case

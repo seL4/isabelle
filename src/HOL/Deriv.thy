@@ -107,6 +107,9 @@ lemmas has_derivative_mult_right [derivative_intros] =
 lemmas has_derivative_mult_left [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_mult_left]
 
+lemmas has_derivative_of_real[derivative_intros, simp] = 
+  bounded_linear.has_derivative[OF bounded_linear_of_real] 
+
 lemma has_derivative_add[simp, derivative_intros]:
   assumes f: "(f has_derivative f') F"
     and g: "(g has_derivative g') F"
@@ -793,6 +796,11 @@ lemma has_vector_derivative_of_real[derivative_intros]:
   by (rule bounded_linear.has_vector_derivative[OF bounded_linear_of_real])
     (simp add: has_field_derivative_iff_has_vector_derivative)
 
+lemma has_vector_derivative_real_field:
+  "(f has_field_derivative f') (at (of_real a)) \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a within s)"
+  using has_derivative_compose[of of_real of_real a _ f "(*) f'"] 
+  by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
+
 lemma has_vector_derivative_continuous:
   "(f has_vector_derivative D) (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (auto intro: has_derivative_continuous simp: has_vector_derivative_def)
@@ -1084,6 +1092,27 @@ qed
 
 lemmas has_derivative_floor[derivative_intros] =
   floor_has_real_derivative[THEN DERIV_compose_FDERIV]
+
+lemma continuous_floor:
+  fixes x::real
+  shows "x \<notin> \<int> \<Longrightarrow> continuous (at x) (real_of_int \<circ> floor)"
+  using floor_has_real_derivative [where f=id]
+  by (auto simp: o_def has_field_derivative_def intro: has_derivative_continuous)
+
+lemma continuous_frac:
+  fixes x::real
+  assumes "x \<notin> \<int>"
+  shows "continuous (at x) frac"
+proof -
+  have "isCont (\<lambda>x. real_of_int \<lfloor>x\<rfloor>) x"
+    using continuous_floor [OF assms] by (simp add: o_def)
+  then have *: "continuous (at x) (\<lambda>x. x - real_of_int \<lfloor>x\<rfloor>)"
+    by (intro continuous_intros)
+  moreover have "\<forall>\<^sub>F x in nhds x. frac x = x - real_of_int \<lfloor>x\<rfloor>"
+    by (simp add: frac_def)
+  ultimately show ?thesis
+    by (simp add: LIM_imp_LIM frac_def isCont_def)
+qed
 
 text \<open>Caratheodory formulation of derivative at a point\<close>
 

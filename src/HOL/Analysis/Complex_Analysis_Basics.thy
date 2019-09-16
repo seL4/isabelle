@@ -15,32 +15,10 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>General lemmas\<close>
 lemma nonneg_Reals_cmod_eq_Re: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> norm z = Re z"
   by (simp add: complex_nonneg_Reals_iff cmod_eq_Re)
 
-lemma has_derivative_mult_right:
-  fixes c:: "'a :: real_normed_algebra"
-  shows "(((*) c) has_derivative ((*) c)) F"
-by (rule has_derivative_mult_right [OF has_derivative_ident])
-
-lemma has_derivative_of_real[derivative_intros, simp]:
-  "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_derivative (\<lambda>x. of_real (f' x))) F"
-  using bounded_linear.has_derivative[OF bounded_linear_of_real] .
-
-lemma has_vector_derivative_real_field:
-  "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a within s)"
-  using has_derivative_compose[of of_real of_real a _ f "(*) f'"]
-  by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
-lemmas has_vector_derivative_real_complex = has_vector_derivative_real_field
-
 lemma fact_cancel:
   fixes c :: "'a::real_field"
   shows "of_nat (Suc n) * c / (fact (Suc n)) = c / (fact n)"
   using of_nat_neq_0 by force
-
-lemma bilinear_times:
-  fixes c::"'a::real_algebra" shows "bilinear (\<lambda>x y::'a. x*y)"
-  by (auto simp: bilinear_def distrib_left distrib_right intro!: linearI)
-
-lemma linear_cnj: "linear cnj"
-  using bounded_linear.linear[OF bounded_linear_cnj] .
 
 lemma vector_derivative_cnj_within:
   assumes "at x within A \<noteq> bot" and "f differentiable at x within A"
@@ -82,8 +60,6 @@ lemma continuous_within_norm_id [continuous_intros]: "continuous (at x within S)
 
 lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
   by (intro continuous_on_id continuous_on_norm)
-
-lemmas DERIV_zero_constant = has_field_derivative_zero_constant
 
 lemma DERIV_zero_unique:
   assumes "convex S"

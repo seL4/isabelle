@@ -1171,7 +1171,7 @@ proof
     by metis
 next
   assume RHS: ?rhs
-  with borel_measurable_simple_function_limit [of f UNIV, unfolded borel_measurable_UNIV_eq]
+  with borel_measurable_simple_function_limit [of f UNIV, unfolded lebesgue_on_UNIV_eq]
   show ?lhs
     by (blast intro: order_trans)
 qed
@@ -2518,13 +2518,13 @@ proof -
   have "(\<lambda>x. if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) integrable_on UNIV"
     by (simp add: integrable_restrict_UNIV intS)
   then have Df_borel: "(\<lambda>x. if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) \<in> borel_measurable lebesgue"
-    using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+    using integrable_imp_measurable lebesgue_on_UNIV_eq by force
   have S': "S' \<in> sets lebesgue"
   proof -
     from Df_borel borel_measurable_vimage_open [of _ UNIV]
     have "{x. (if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) \<in> T} \<in> sets lebesgue"
       if "open T" for T
-      using that unfolding borel_measurable_UNIV_eq
+      using that unfolding lebesgue_on_UNIV_eq
       by (fastforce simp add: dest!: spec)
     then have "{x. (if x \<in> S then \<bar>?D x\<bar> * f (g x) else 0) \<in> -{0}} \<in> sets lebesgue"
       using open_Compl by blast
@@ -2649,7 +2649,7 @@ proof -
   then have "(\<lambda>x. if x \<in> S then ?D x else 0) integrable_on UNIV"
     by (simp add: integrable_restrict_UNIV)
   then have D_borel: "(\<lambda>x. if x \<in> S then ?D x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
-    using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+    using integrable_imp_measurable lebesgue_on_UNIV_eq by blast
   then have Dlt: "{x \<in> S. ?D x < 0} \<in> sets lebesgue"
     unfolding borel_measurable_vimage_halfspace_component_lt
     by (drule_tac x=0 in spec) (auto simp: eq)
@@ -2860,7 +2860,7 @@ proof -
     then have "(\<lambda>x. if x \<in> S then ?DP x else 0) integrable_on UNIV"
       by (simp add: integrable_restrict_UNIV)
     then have D_borel: "(\<lambda>x. if x \<in> S then ?DP x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
-      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+      using integrable_imp_measurable lebesgue_on_UNIV_eq by blast
     then have SN: "{x \<in> S. ?DP x < 0} \<in> sets lebesgue"
       unfolding borel_measurable_vimage_halfspace_component_lt
       by (drule_tac x=0 in spec) (auto simp: eq)
@@ -2924,7 +2924,7 @@ proof -
     then have "(\<lambda>x. if x \<in> T then f x else 0) integrable_on UNIV"
       by (simp add: integrable_restrict_UNIV)
     then have D_borel: "(\<lambda>x. if x \<in> T then f x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
-      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+      using integrable_imp_measurable lebesgue_on_UNIV_eq by blast
     then have TN: "{x \<in> T. f x < 0} \<in> sets lebesgue"
       unfolding borel_measurable_vimage_halfspace_component_lt
       by (drule_tac x=0 in spec) (auto simp: eq)

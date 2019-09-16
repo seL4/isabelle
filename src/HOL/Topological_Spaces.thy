@@ -2162,6 +2162,9 @@ lemma continuous_at: "continuous (at x) f \<longleftrightarrow> f \<midarrow>x\<
 lemma continuous_ident[continuous_intros, simp]: "continuous (at x within S) (\<lambda>x. x)"
   unfolding continuous_within by (rule tendsto_ident_at)
 
+lemma continuous_id[continuous_intros, simp]: "continuous (at x within S) id"
+  by (simp add: id_def)
+
 lemma continuous_const[continuous_intros, simp]: "continuous F (\<lambda>x. c)"
   unfolding continuous_def by (rule tendsto_const)
 

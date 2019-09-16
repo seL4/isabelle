@@ -4611,7 +4611,7 @@ proof -
   have "(UNIV::'a set) \<in> sets lborel"
     by simp
   then show ?thesis
-    using assms borel_measurable_if_D borel_measurable_UNIV_eq integrable_imp_measurable_weak integrable_restrict_UNIV by blast
+    by (metis (mono_tags, lifting) assms borel_measurable_if_D integrable_imp_measurable_weak integrable_restrict_UNIV lebesgue_on_UNIV_eq sets_lebesgue_on_refl)
 qed
 
 lemma integrable_iff_integrable_on:
@@ -4767,7 +4767,7 @@ proof -
     then have "(\<lambda>x. if x \<in> S then f x else 0) integrable_on UNIV"
       by (simp add: integrable_restrict_UNIV)
     then have borel: "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
-      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+      using integrable_imp_measurable lebesgue_on_UNIV_eq by blast
     then show "{x \<in> S. f x \<noteq> 0} \<in> sets lebesgue"
       unfolding borel_measurable_vimage_open
       by (rule allE [where x = "-{0}"]) auto
@@ -4777,7 +4777,7 @@ proof -
     then have "(\<lambda>x. if x \<in> T then f x else 0) integrable_on UNIV"
       by (simp add: integrable_restrict_UNIV)
     then have borel: "(\<lambda>x. if x \<in> T then f x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
-      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+      using integrable_imp_measurable lebesgue_on_UNIV_eq by blast
     then show "{x \<in> T. f x \<noteq> 0} \<in> sets lebesgue"
       unfolding borel_measurable_vimage_open
       by (rule allE [where x = "-{0}"]) auto
