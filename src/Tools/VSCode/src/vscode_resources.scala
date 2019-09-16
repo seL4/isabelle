@@ -97,7 +97,7 @@ class VSCode_Resources(
     find_theory(Sessions.DRAFT, file) getOrElse {
       val node = file.getPath
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
-      if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+      if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
       else {
         val master_dir = file.getParent
         Document.Node.Name(node, master_dir, theory)

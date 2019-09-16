@@ -55,6 +55,9 @@ class Resources(
     Document.Node.Name(node, master_dir, theory)
   }
 
+  def loaded_theory_node(theory: String): Document.Node.Name =
+    Document.Node.Name(theory, "", theory)
+
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -133,13 +136,13 @@ class Resources(
   def import_name(qualifier: String, dir: String, s: String): Document.Node.Name =
   {
     val theory = theory_name(qualifier, Thy_Header.import_name(s))
-    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+    if (session_base.loaded_theory(theory)) loaded_theory_node(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
         case None =>
           if (Thy_Header.is_base_name(s) && Long_Name.is_qualified(s))
-            Document.Node.Name.loaded_theory(theory)
+            loaded_theory_node(theory)
           else make_theory_node(dir, thy_path(Path.explode(s)), theory)
       }
     }

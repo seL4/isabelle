@@ -102,8 +102,6 @@ object Document
     {
       val empty = Name("")
 
-      def loaded_theory(theory: String): Name = Name(theory, "", theory)
-
       object Ordering extends scala.math.Ordering[Name]
       {
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
