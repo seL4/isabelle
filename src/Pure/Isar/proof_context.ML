@@ -108,8 +108,9 @@ sig
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: (term list * term) list -> Proof.context -> term list * Proof.context
-  val match_bind_cmd: (string list * string) list -> Proof.context -> term list * Proof.context
+  val simult_matches: Proof.context -> term * term list -> (indexname * term) list
+  val maybe_bind_term: indexname * term option -> Proof.context -> Proof.context
+  val bind_term: indexname * term -> Proof.context -> Proof.context
   val cert_propp: Proof.context -> (term * term list) list list ->
     (term list list * (indexname * term) list)
   val read_propp: Proof.context -> (string * string list) list list ->
@@ -847,15 +848,7 @@ fun norm_export_morphism inner outer =
 
 (** term bindings **)
 
-(* simult_matches *)
-
-fun simult_matches ctxt (t, pats) =
-  (case Seq.pull (Unify.matchers (Context.Proof ctxt) (map (rpair t) pats)) of
-    NONE => error "Pattern match failed!"
-  | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
-
-
-(* auto_bind *)
+(* auto bindings *)
 
 fun auto_bind f props ctxt = fold Variable.maybe_bind_term (f ctxt props) ctxt;
 
@@ -863,49 +856,18 @@ val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;
 
 
-(* bind terms (non-schematic) *)
+(* match bindings *)
 
-fun cert_maybe_bind_term (xi, t) ctxt =
+fun simult_matches ctxt (t, pats) =
+  (case Seq.pull (Unify.matchers (Context.Proof ctxt) (map (rpair t) pats)) of
+    NONE => error "Pattern match failed!"
+  | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
+
+fun maybe_bind_term (xi, t) ctxt =
   ctxt
   |> Variable.maybe_bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t);
 
-val cert_bind_term = cert_maybe_bind_term o apsnd SOME;
-
-
-(* match_bind *)
-
-local
-
-fun gen_bind prep_terms raw_binds ctxt =
-  let
-    fun prep_bind (raw_pats, t) ctxt1 =
-      let
-        val T = Term.fastype_of t;
-        val ctxt2 = Variable.declare_term t ctxt1;
-        val pats = prep_terms (set_mode mode_pattern ctxt2) T raw_pats;
-        val binds = simult_matches ctxt2 (t, pats);
-      in (binds, ctxt2) end;
-
-    val ts = prep_terms ctxt dummyT (map snd raw_binds);
-    val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
-    val binds' = map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds);
-
-    val ctxt'' =
-      ctxt
-      |> fold Variable.declare_term (map #2 binds')
-      |> fold cert_bind_term binds';
-    val _ = Variable.warn_extra_tfrees ctxt ctxt'';
-  in (ts, ctxt'') end;
-
-fun read_terms ctxt T =
-  map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
-
-in
-
-val match_bind = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
-val match_bind_cmd = gen_bind read_terms;
-
-end;
+val bind_term = maybe_bind_term o apsnd SOME;
 
 
 (* propositions with patterns *)
@@ -1342,7 +1304,7 @@ fun case_result c ctxt =
     val Rule_Cases.Case {assumes, binds, cases, ...} = Rule_Cases.apply ts c;
   in
     ctxt'
-    |> fold (cert_maybe_bind_term o drop_schematic) binds
+    |> fold (maybe_bind_term o drop_schematic) binds
     |> update_cases (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;

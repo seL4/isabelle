@@ -557,16 +557,36 @@ fun method_error kind pos state =
 
 local
 
-fun gen_bind bind args state =
-  state
-  |> assert_forward
-  |> map_context (bind args #> snd)
-  |> reset_facts;
+fun gen_bind prep_terms raw_binds =
+  assert_forward #> map_context (fn ctxt =>
+    let
+      fun prep_bind (raw_pats, t) ctxt1 =
+        let
+          val T = Term.fastype_of t;
+          val ctxt2 = Variable.declare_term t ctxt1;
+          val pats = prep_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt2) T raw_pats;
+          val binds = Proof_Context.simult_matches ctxt2 (t, pats);
+        in (binds, ctxt2) end;
+
+      val ts = prep_terms ctxt dummyT (map snd raw_binds);
+      val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
+      val binds' = map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds);
+
+      val ctxt'' =
+        ctxt
+        |> fold Variable.declare_term (map #2 binds')
+        |> fold Proof_Context.bind_term binds';
+      val _ = Variable.warn_extra_tfrees ctxt ctxt'';
+    in ctxt'' end)
+  #> reset_facts;
+
+fun read_terms ctxt T =
+  map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
 
 in
 
-val let_bind = gen_bind Proof_Context.match_bind;
-val let_bind_cmd = gen_bind Proof_Context.match_bind_cmd;
+val let_bind = gen_bind (fn ctxt => fn _ => map (Proof_Context.cert_term ctxt));
+val let_bind_cmd = gen_bind read_terms;
 
 end;
 
