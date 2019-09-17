@@ -108,10 +108,8 @@ sig
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: bool -> (term list * term) list -> Proof.context ->
-    term list * Proof.context
-  val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
-    term list * Proof.context
+  val match_bind: (term list * term) list -> Proof.context -> term list * Proof.context
+  val match_bind_cmd: (string list * string) list -> Proof.context -> term list * Proof.context
   val cert_propp: Proof.context -> (term * term list) list list ->
     (term list list * (indexname * term) list)
   val read_propp: Proof.context -> (string * string list) list list ->
@@ -878,7 +876,7 @@ val cert_bind_term = cert_maybe_bind_term o apsnd SOME;
 
 local
 
-fun gen_bind prep_terms gen raw_binds ctxt =
+fun gen_bind prep_terms raw_binds ctxt =
   let
     fun prep_bind (raw_pats, t) ctxt1 =
       let
@@ -890,22 +888,19 @@ fun gen_bind prep_terms gen raw_binds ctxt =
 
     val ts = prep_terms ctxt dummyT (map snd raw_binds);
     val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
-    val binds' =
-      if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
-      else binds;
-    val ctxt'' =
-      tap (Variable.warn_extra_tfrees ctxt)
-       (if gen then
-          ctxt (*sic!*)
-          |> fold Variable.declare_term (map #2 binds')
-          |> fold cert_bind_term binds'
-        else ctxt' |> fold cert_bind_term binds');
-  in (ts, ctxt'') end;
+    val binds' = map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds);
 
-in
+    val ctxt'' =
+      ctxt
+      |> fold Variable.declare_term (map #2 binds')
+      |> fold cert_bind_term binds';
+    val _ = Variable.warn_extra_tfrees ctxt ctxt'';
+  in (ts, ctxt'') end;
 
 fun read_terms ctxt T =
   map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
+
+in
 
 val match_bind = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
 val match_bind_cmd = gen_bind read_terms;

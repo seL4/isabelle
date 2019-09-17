@@ -560,7 +560,7 @@ local
 fun gen_bind bind args state =
   state
   |> assert_forward
-  |> map_context (bind true args #> snd)
+  |> map_context (bind args #> snd)
   |> reset_facts;
 
 in
