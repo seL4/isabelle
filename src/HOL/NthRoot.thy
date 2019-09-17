@@ -268,10 +268,10 @@ proof -
   with assms show ?thesis by simp
 qed
 
-lemma real_root_decreasing: "0 < n \<Longrightarrow> n < N \<Longrightarrow> 1 \<le> x \<Longrightarrow> root N x \<le> root n x"
+lemma real_root_decreasing: "0 < n \<Longrightarrow> n \<le> N \<Longrightarrow> 1 \<le> x \<Longrightarrow> root N x \<le> root n x"
   by (auto simp add: order_le_less real_root_strict_decreasing)
 
-lemma real_root_increasing: "0 < n \<Longrightarrow> n < N \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> root n x \<le> root N x"
+lemma real_root_increasing: "0 < n \<Longrightarrow> n \<le> N \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> root n x \<le> root N x"
   by (auto simp add: order_le_less real_root_strict_increasing)
 
 

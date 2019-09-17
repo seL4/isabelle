@@ -5314,6 +5314,26 @@ lemma sin_inj_pi:
   "- (pi/2) \<le> x \<Longrightarrow> x \<le> pi/2 \<Longrightarrow> - (pi/2) \<le> y \<Longrightarrow> y \<le> pi/2 \<Longrightarrow> sin x = sin y \<Longrightarrow> x = y"
   by (metis arcsin_sin)
 
+lemma arcsin_le_iff:
+  assumes "x \<ge> -1" "x \<le> 1" "y \<ge> -pi/2" "y \<le> pi/2"
+  shows   "arcsin x \<le> y \<longleftrightarrow> x \<le> sin y"
+proof -
+  have "arcsin x \<le> y \<longleftrightarrow> sin (arcsin x) \<le> sin y"
+    using arcsin_bounded[of x] assms by (subst sin_mono_le_eq) auto
+  also from assms have "sin (arcsin x) = x" by simp
+  finally show ?thesis .
+qed
+
+lemma le_arcsin_iff:
+  assumes "x \<ge> -1" "x \<le> 1" "y \<ge> -pi/2" "y \<le> pi/2"
+  shows   "arcsin x \<ge> y \<longleftrightarrow> x \<ge> sin y"
+proof -
+  have "arcsin x \<ge> y \<longleftrightarrow> sin (arcsin x) \<ge> sin y"
+    using arcsin_bounded[of x] assms by (subst sin_mono_le_eq) auto
+  also from assms have "sin (arcsin x) = x" by simp
+  finally show ?thesis .
+qed
+
 lemma cos_mono_less_eq: "0 \<le> x \<Longrightarrow> x \<le> pi \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> pi \<Longrightarrow> cos x < cos y \<longleftrightarrow> y < x"
   by (meson cos_monotone_0_pi cos_monotone_0_pi_le leD le_less_linear)
 

@@ -6935,6 +6935,19 @@ lemma has_integral_substitution:
   by (intro has_integral_substitution_strong[of "{}" a b g c d] assms)
      (auto intro: DERIV_continuous_on assms)
 
+lemma integral_shift:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes cont: "continuous_on {a + c..b + c} f"
+  shows "integral {a..b} (f \<circ> (\<lambda>x. x + c)) = integral {a + c..b + c} f"
+proof (cases "a \<le> b")
+  case True
+  have "((\<lambda>x. 1 *\<^sub>R f (x + c)) has_integral integral {a+c..b+c} f) {a..b}"
+    using True cont
+    by (intro has_integral_substitution[where c = "a + c" and d = "b + c"])
+       (auto intro!: derivative_eq_intros)
+  thus ?thesis by (simp add: has_integral_iff o_def)
+qed auto
+
 
 subsection \<open>Compute a double integral using iterated integrals and switching the order of integration\<close>
 

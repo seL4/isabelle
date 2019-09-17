@@ -987,6 +987,18 @@ proof -
     by (subst plus_emeasure[symmetric]) auto
 qed
 
+lemma emeasure_Un':
+  assumes "A \<in> sets M" "B \<in> sets M" "A \<inter> B \<in> null_sets M"
+  shows   "emeasure M (A \<union> B) = emeasure M A + emeasure M B"
+proof -
+  have "A \<union> B = A \<union> (B - A \<inter> B)" by blast
+  also have "emeasure M \<dots> = emeasure M A + emeasure M (B - A \<inter> B)"
+    using assms by (subst plus_emeasure) auto
+  also have "emeasure M (B - A \<inter> B) = emeasure M B"
+    using assms by (intro emeasure_Diff_null_set) auto
+  finally show ?thesis .
+qed
+
 subsection \<open>The almost everywhere filter (i.e.\ quantifier)\<close>
 
 definition\<^marker>\<open>tag important\<close> ae_filter :: "'a measure \<Rightarrow> 'a filter" where
