@@ -1108,6 +1108,48 @@ lemma absolutely_integrable_on_subinterval:
   shows "\<lbrakk>f absolutely_integrable_on S; {a..b} \<subseteq> S\<rbrakk> \<Longrightarrow> f absolutely_integrable_on {a..b}"
   using absolutely_integrable_on_subcbox by fastforce
 
+lemma integrable_subinterval:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "integrable (lebesgue_on {a..b}) f"
+    and "{c..d} \<subseteq> {a..b}"
+  shows "integrable (lebesgue_on {c..d}) f"
+proof (rule absolutely_integrable_imp_integrable)
+  show "f absolutely_integrable_on {c..d}"
+  proof -
+    have "f integrable_on {c..d}"
+      using assms integrable_on_lebesgue_on integrable_on_subinterval by fastforce
+    moreover have "(\<lambda>x. norm (f x)) integrable_on {c..d}"
+    proof (rule integrable_on_subinterval)
+      show "(\<lambda>x. norm (f x)) integrable_on {a..b}"
+        by (simp add: assms integrable_on_lebesgue_on)
+    qed (use assms in auto)
+    ultimately show ?thesis
+      by (auto simp: absolutely_integrable_on_def)
+  qed
+qed auto
+
+lemma indefinite_integral_continuous_real:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "integrable (lebesgue_on {a..b}) f"
+  shows "continuous_on {a..b} (\<lambda>x. integral\<^sup>L (lebesgue_on {a..x}) f)"
+proof -
+  have "f integrable_on {a..b}"
+    by (simp add: assms integrable_on_lebesgue_on)
+  then have "continuous_on {a..b} (\<lambda>x. integral {a..x} f)"
+    using indefinite_integral_continuous_1 by blast
+  moreover have "integral\<^sup>L (lebesgue_on {a..x}) f = integral {a..x} f" if "a \<le> x" "x \<le> b" for x
+  proof -
+    have "{a..x} \<subseteq> {a..b}"
+      using that by auto
+    then have "integrable (lebesgue_on {a..x}) f"
+      using integrable_subinterval assms by blast
+    then show "integral\<^sup>L (lebesgue_on {a..x}) f = integral {a..x} f"
+      by (simp add: lebesgue_integral_eq_integral)
+  qed
+  ultimately show ?thesis
+    by (metis (no_types, lifting) atLeastAtMost_iff continuous_on_cong)
+qed
+
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
      (simp_all add: lmeasurable_iff_integrable set_integrable_def)
@@ -3132,20 +3174,7 @@ next
   qed
 qed
 
-
 subsection\<open>Lemmas about absolute integrability\<close>
-
-text\<open>FIXME Redundant!\<close>
-lemma absolutely_integrable_add[intro]:
-  fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) absolutely_integrable_on s"
-  by (rule set_integral_add)
-
-text\<open>FIXME Redundant!\<close>
-lemma absolutely_integrable_diff[intro]:
-  fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) absolutely_integrable_on s"
-  by (rule set_integral_diff)
 
 lemma absolutely_integrable_linear:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
@@ -3375,8 +3404,8 @@ proof -
   qed
   moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
-    apply (intro absolutely_integrable_add absolutely_integrable_scaleR_left assms)
-    using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
+    apply (intro set_integral_add absolutely_integrable_scaleR_left assms)
+    using absolutely_integrable_abs [OF set_integral_diff(1) [OF assms]]
     apply (simp add: algebra_simps)
     done
   ultimately show ?thesis by metis
@@ -3410,8 +3439,8 @@ proof -
   qed
   moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
-    apply (intro absolutely_integrable_add absolutely_integrable_diff absolutely_integrable_scaleR_left assms)
-    using absolutely_integrable_abs [OF absolutely_integrable_diff [OF assms]]
+    apply (intro set_integral_add set_integral_diff absolutely_integrable_scaleR_left assms)
+    using absolutely_integrable_abs [OF set_integral_diff(1) [OF assms]]
     apply (simp add: algebra_simps)
     done
   ultimately show ?thesis by metis
@@ -3450,7 +3479,7 @@ lemma absolutely_integrable_component_ubound:
   shows "f absolutely_integrable_on A"
 proof -
   have "(\<lambda>x. g x - (g x - f x)) absolutely_integrable_on A"
-    apply (rule absolutely_integrable_diff [OF g nonnegative_absolutely_integrable])
+    apply (rule set_integral_diff [OF g nonnegative_absolutely_integrable])
     using Henstock_Kurzweil_Integration.integrable_diff absolutely_integrable_on_def f g apply blast
     by (simp add: comp inner_diff_left)
   then show ?thesis
@@ -3464,7 +3493,7 @@ lemma absolutely_integrable_component_lbound:
   shows "g absolutely_integrable_on A"
 proof -
   have "(\<lambda>x. f x + (g x - f x)) absolutely_integrable_on A"
-    apply (rule absolutely_integrable_add [OF f nonnegative_absolutely_integrable])
+    apply (rule set_integral_add [OF f nonnegative_absolutely_integrable])
     using Henstock_Kurzweil_Integration.integrable_diff absolutely_integrable_on_def f g apply blast
     by (simp add: comp inner_diff_left)
   then show ?thesis
@@ -4495,6 +4524,22 @@ proof -
     by (auto simp: has_bochner_integral_restrict_space)
 qed
 
+lemma has_bochner_integral_reflect_real[simp]:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  shows "has_bochner_integral (lebesgue_on {-b..-a}) (\<lambda>x. f(-x)) i \<longleftrightarrow> has_bochner_integral (lebesgue_on {a..b}) f i"
+  by (auto simp: dest: has_bochner_integral_reflect_real_lemma)
+
+lemma integrable_reflect_real[simp]:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  shows "integrable (lebesgue_on {-b..-a}) (\<lambda>x. f(-x)) \<longleftrightarrow> integrable (lebesgue_on {a..b}) f"
+  by (metis has_bochner_integral_iff has_bochner_integral_reflect_real)
+
+lemma integral_reflect_real[simp]:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  shows "integral\<^sup>L (lebesgue_on {-b .. -a}) (\<lambda>x. f(-x)) = integral\<^sup>L (lebesgue_on {a..b::real}) f"
+  using has_bochner_integral_reflect_real [of b a f]
+  by (metis has_bochner_integral_iff not_integrable_integral_eq)
+
 subsection\<open>More results on integrability\<close>
 
 lemma integrable_on_all_intervals_UNIV:
@@ -4790,9 +4835,9 @@ proof -
        "(\<lambda>x. if x \<in> T then f x else 0) absolutely_integrable_on UNIV"
     using S T absolutely_integrable_restrict_UNIV by blast+
   then have "(\<lambda>x. (if x \<in> S then f x else 0) + (if x \<in> T then f x else 0)) absolutely_integrable_on UNIV"
-    by (rule absolutely_integrable_add)
+    by (rule set_integral_add)
   then have "(\<lambda>x. ((if x \<in> S then f x else 0) + (if x \<in> T then f x else 0)) - (if x \<in> ?ST then f x else 0)) absolutely_integrable_on UNIV"
-    using Int by (rule absolutely_integrable_diff)
+    using Int by (rule set_integral_diff)
   then have "(\<lambda>x. if x \<in> S \<union> T then f x else 0) absolutely_integrable_on UNIV"
     by (rule absolutely_integrable_spike) (auto intro: empty_imp_negligible)
   then show ?thesis

@@ -173,11 +173,29 @@ lemma set_integrable_mult_right [simp, intro]:
   unfolding set_integrable_def
   using integrable_mult_right[of a M "\<lambda>x. indicator A x *\<^sub>R f x"] by simp
 
+lemma set_integrable_mult_right_iff [simp]:
+  fixes a :: "'a::{real_normed_field, second_countable_topology}"
+  assumes "a \<noteq> 0"
+  shows "set_integrable M A (\<lambda>t. a * f t) \<longleftrightarrow> set_integrable M A f"
+proof
+  assume "set_integrable M A (\<lambda>t. a * f t)"
+  then have "set_integrable M A (\<lambda>t. 1/a * (a * f t))"
+    using set_integrable_mult_right by blast
+  then show "set_integrable M A f"
+    using assms by auto
+qed auto
+
 lemma set_integrable_mult_left [simp, intro]:
   fixes a :: "'a::{real_normed_field, second_countable_topology}"
   shows "(a \<noteq> 0 \<Longrightarrow> set_integrable M A f) \<Longrightarrow> set_integrable M A (\<lambda>t. f t * a)"
   unfolding set_integrable_def
   using integrable_mult_left[of a M "\<lambda>x. indicator A x *\<^sub>R f x"] by simp
+
+lemma set_integrable_mult_left_iff [simp]:
+  fixes a :: "'a::{real_normed_field, second_countable_topology}"
+  assumes "a \<noteq> 0"
+  shows "set_integrable M A (\<lambda>t. f t * a) \<longleftrightarrow> set_integrable M A f"
+  using assms by (subst set_integrable_mult_right_iff [symmetric]) (auto simp: mult.commute)
 
 lemma set_integrable_divide [simp, intro]:
   fixes a :: "'a::{real_normed_field, field, second_countable_topology}"
@@ -192,6 +210,12 @@ proof -
     unfolding set_integrable_def .
 qed
 
+lemma set_integrable_mult_divide_iff [simp]:
+  fixes a :: "'a::{real_normed_field, second_countable_topology}"
+  assumes "a \<noteq> 0"
+  shows "set_integrable M A (\<lambda>t. f t / a) \<longleftrightarrow> set_integrable M A f"
+  by (simp add: divide_inverse assms)
+
 lemma set_integral_add [simp, intro]:
   fixes f g :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
   assumes "set_integrable M A f" "set_integrable M A g"
@@ -205,8 +229,6 @@ lemma set_integral_diff [simp, intro]:
     (LINT x:A|M. f x) - (LINT x:A|M. g x)"
   using assms unfolding set_integrable_def set_lebesgue_integral_def by (simp_all add: scaleR_diff_right)
 
-(* question: why do we have this for negation, but multiplication by a constant
-   requires an integrability assumption? *)
 lemma set_integral_uminus: "set_integrable M A f \<Longrightarrow> LINT x:A|M. - f x = - (LINT x:A|M. f x)"
   unfolding set_integrable_def set_lebesgue_integral_def
   by (subst integral_minus[symmetric]) simp_all

@@ -860,32 +860,6 @@ proof -
   qed (auto simp: conF)
 qed
 
-
-lemma measurable_on_preimage_lemma0:
-  fixes f :: "'a::euclidean_space \<Rightarrow> real"
-  assumes "m \<in> \<int>" and f: "m / 2^n \<le> (f x)" "(f x) < (m+1) / 2^n" and m: "\<bar>m\<bar> \<le> 2^(2 * n)"
-  shows "(\<Sum>k\<in>{k \<in> \<int>. \<bar>k\<bar> \<le> 2^(2 * n)}.
-             (k / 2^n) * indicator {y. k / 2^n \<le> f y \<and> f y < (k+1) / 2^n} x)
-       = (m / 2^n)"  (is "?lhs = ?rhs")
-proof -
-  have "?lhs = (\<Sum>k\<in>{m}. (k / 2^n) * indicator {y. k / 2^n \<le> f y \<and> f y < (k+1) / 2^n} x)"
-  proof (intro sum.mono_neutral_right ballI)
-    show "finite {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2^(2 * n)}"
-      using finite_abs_int_segment by blast
-    show "(i / 2^n) * indicat_real {y. i / 2^n \<le> f y \<and> f y < (i+1) / 2^n} x = 0"
-      if "i \<in> {N \<in> \<int>. \<bar>N\<bar> \<le> 2^(2 * n)} - {m}" for i
-      using f m \<open>m \<in> \<int>\<close> that Ints_eq_abs_less1 [of i m]
-      by (auto simp: indicator_def divide_simps)
-  qed (auto simp: assms)
-  also have "\<dots> = ?rhs"
-    using assms by (auto simp: indicator_def)
-  finally show ?thesis .
-qed
-
-(*see HOL Light's lebesgue_measurable BUT OUR lmeasurable IS NOT THE SAME. It's more like "sets lebesgue"
- `lebesgue_measurable s <=> (indicator s) measurable_on (:real^N)`;;
-*)
-
 proposition indicator_measurable_on:
   assumes "S \<in> sets lebesgue"
   shows "indicat_real S measurable_on UNIV"
@@ -1615,6 +1589,7 @@ next
 qed
 
 subsection \<open>Measurability on generalisations of the binary product\<close>
+
 lemma measurable_on_bilinear:
   fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
   assumes h: "bilinear h" and f: "f measurable_on S" and g: "g measurable_on S"
@@ -1662,5 +1637,73 @@ lemma absolutely_integrable_bounded_measurable_product_real:
       and "bounded (f ` S)" and "g absolutely_integrable_on S"
   shows "(\<lambda>x. f x * g x) absolutely_integrable_on S"
   using absolutely_integrable_bounded_measurable_product bilinear_times assms by blast
+
+
+lemma borel_measurable_AE:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f \<in> borel_measurable lebesgue" and ae: "AE x in lebesgue. f x = g x"
+  shows "g \<in> borel_measurable lebesgue"
+proof -
+  obtain N where N: "N \<in> null_sets lebesgue" "\<And>x. x \<notin> N \<Longrightarrow> f x = g x"
+    using ae unfolding completion.AE_iff_null_sets by auto
+  have "f measurable_on UNIV"
+    by (simp add: assms lebesgue_measurable_imp_measurable_on)
+  then have "g measurable_on UNIV"
+    by (metis Diff_iff N measurable_on_spike negligible_iff_null_sets)
+  then show ?thesis
+    using measurable_on_imp_borel_measurable_lebesgue_UNIV by blast
+qed
+
+lemma has_bochner_integral_combine:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "a \<le> c" "c \<le> b"
+    and ac: "has_bochner_integral (lebesgue_on {a..c}) f i"
+    and cb: "has_bochner_integral (lebesgue_on {c..b}) f j"
+  shows "has_bochner_integral (lebesgue_on {a..b}) f(i + j)"
+proof -
+  have i: "has_bochner_integral lebesgue (\<lambda>x. indicator {a..c} x *\<^sub>R f x) i"
+   and j: "has_bochner_integral lebesgue (\<lambda>x. indicator {c..b} x *\<^sub>R f x) j"
+    using assms  by (auto simp: has_bochner_integral_restrict_space)
+  have AE: "AE x in lebesgue. indicat_real {a..c} x *\<^sub>R f x + indicat_real {c..b} x *\<^sub>R f x = indicat_real {a..b} x *\<^sub>R f x"
+  proof (rule AE_I')
+    have eq: "indicat_real {a..c} x *\<^sub>R f x + indicat_real {c..b} x *\<^sub>R f x = indicat_real {a..b} x *\<^sub>R f x" if "x \<noteq> c" for x
+      using assms that by (auto simp: indicator_def)
+    then show "{x \<in> space lebesgue. indicat_real {a..c} x *\<^sub>R f x + indicat_real {c..b} x *\<^sub>R f x \<noteq> indicat_real {a..b} x *\<^sub>R f x} \<subseteq> {c}"
+      by auto
+  qed auto
+  have "has_bochner_integral lebesgue (\<lambda>x. indicator {a..b} x *\<^sub>R f x) (i + j)"
+  proof (rule has_bochner_integralI_AE [OF has_bochner_integral_add [OF i j] _ AE])
+    have eq: "indicat_real {a..c} x *\<^sub>R f x + indicat_real {c..b} x *\<^sub>R f x = indicat_real {a..b} x *\<^sub>R f x" if "x \<noteq> c" for x
+      using assms that by (auto simp: indicator_def)
+    show "(\<lambda>x. indicat_real {a..b} x *\<^sub>R f x) \<in> borel_measurable lebesgue"
+    proof (rule borel_measurable_AE [OF borel_measurable_add AE])
+      show "(\<lambda>x. indicator {a..c} x *\<^sub>R f x) \<in> borel_measurable lebesgue"
+           "(\<lambda>x. indicator {c..b} x *\<^sub>R f x) \<in> borel_measurable lebesgue"
+        using i j by auto
+    qed
+  qed
+  then show ?thesis
+    by (simp add: has_bochner_integral_restrict_space)
+qed
+
+lemma integrable_combine:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "integrable (lebesgue_on {a..c}) f" "integrable (lebesgue_on {c..b}) f"
+    and "a \<le> c" "c \<le> b"
+  shows "integrable (lebesgue_on {a..b}) f"
+  using assms has_bochner_integral_combine has_bochner_integral_iff by blast
+
+lemma integral_combine:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes f: "integrable (lebesgue_on {a..b}) f" and "a \<le> c" "c \<le> b"
+  shows "integral\<^sup>L (lebesgue_on {a..b}) f = integral\<^sup>L (lebesgue_on {a..c}) f + integral\<^sup>L (lebesgue_on {c..b}) f"
+proof -
+  have i: "has_bochner_integral (lebesgue_on {a..c}) f(integral\<^sup>L (lebesgue_on {a..c}) f)"
+    using integrable_subinterval \<open>c \<le> b\<close> f has_bochner_integral_iff by fastforce
+  have j: "has_bochner_integral (lebesgue_on {c..b}) f(integral\<^sup>L (lebesgue_on {c..b}) f)"
+    using integrable_subinterval \<open>a \<le> c\<close> f has_bochner_integral_iff by fastforce
+  show ?thesis
+    by (meson \<open>a \<le> c\<close> \<open>c \<le> b\<close> has_bochner_integral_combine has_bochner_integral_iff i j)
+qed
 
 end

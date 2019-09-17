@@ -1757,13 +1757,11 @@ next
             have I_int [simp]: "?I \<inter> box a b = ?I"
               using 1 by (simp add: Int_absorb2)
             have int_fI: "f integrable_on ?I"
-              apply (rule integrable_subinterval [OF int_f order_refl])
-              using "*" box_subset_cbox by blast
+              by (metis I_int inf_le2 int_f)
             then have "(\<lambda>x. f x \<bullet> j) integrable_on ?I"
               by (simp add: integrable_component)
             moreover have "g integrable_on ?I"
-              apply (rule integrable_subinterval [OF int_gab])
-              using "*" box_subset_cbox by blast
+              by (metis I_int inf.orderI int_gab integrable_on_open_interval integrable_on_subcbox)
             moreover
             have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral ?I f)"
               by (simp add: Basis_le_norm int_fI \<open>j \<in> Basis\<close>)
@@ -1837,13 +1835,11 @@ next
             have I_int [simp]: "?I \<inter> box a b = ?I"
               using 1 by (simp add: Int_absorb2)
             have int_fI: "f integrable_on ?I"
-              apply (rule integrable_subinterval [OF int_f order_refl])
-              using "*" box_subset_cbox by blast
+              by (simp add: inf.orderI int_f)
             then have "(\<lambda>x. f x \<bullet> j) integrable_on ?I"
               by (simp add: integrable_component)
             moreover have "g integrable_on ?I"
-              apply (rule integrable_subinterval [OF int_gab])
-              using "*" box_subset_cbox by blast
+              by (metis I_int inf.orderI int_gab integrable_on_open_interval integrable_on_subcbox)
             moreover
             have "\<bar>integral ?I (\<lambda>x. f x \<bullet> j)\<bar> \<le> norm (integral ?I f)"
               by (simp add: Basis_le_norm int_fI \<open>j \<in> Basis\<close>)
@@ -2267,7 +2263,6 @@ corollary second_mean_value_theorem:
                 = g a * integral {a..c} f + g b * integral {c..b} f"
     using second_mean_value_theorem_full [where g=g, OF assms]
     by (metis (full_types) integral_unique)
-
 
 end
 
