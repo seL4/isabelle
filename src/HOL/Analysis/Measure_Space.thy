@@ -472,9 +472,22 @@ lemma plus_emeasure:
   "a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<inter> b = {} \<Longrightarrow> emeasure M a + emeasure M b = emeasure M (a \<union> b)"
   using additiveD[OF emeasure_additive] ..
 
-lemma emeasure_Union:
+lemma emeasure_Un:
   "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> emeasure M (A \<union> B) = emeasure M A + emeasure M (B - A)"
   using plus_emeasure[of A M "B - A"] by auto
+
+lemma emeasure_Un_Int:
+  assumes "A \<in> sets M" "B \<in> sets M"
+  shows "emeasure M A + emeasure M B = emeasure M (A \<union> B) + emeasure M (A \<inter> B)"
+proof -
+  have "A = (A-B) \<union> (A \<inter> B)" by auto
+  then have "emeasure M A = emeasure M (A-B) + emeasure M (A \<inter> B)"
+    by (metis Diff_Diff_Int Diff_disjoint assms plus_emeasure sets.Diff)
+  moreover have "A \<union> B = (A-B) \<union> B" by auto
+  then have "emeasure M (A \<union> B) = emeasure M (A-B) + emeasure M B"
+    by (metis Diff_disjoint Int_commute assms plus_emeasure sets.Diff)
+  ultimately show ?thesis by (metis add.assoc add.commute)
+qed
 
 lemma sum_emeasure:
   "F`I \<subseteq> sets M \<Longrightarrow> disjoint_family_on F I \<Longrightarrow> finite I \<Longrightarrow>

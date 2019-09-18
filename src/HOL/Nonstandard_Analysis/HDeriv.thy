@@ -46,7 +46,7 @@ lemma NSDeriv_unique:
   shows "NSDERIV f x :> D \<Longrightarrow> NSDERIV f x :> E \<Longrightarrow> D = E"
 proof -
   have "\<exists>s. (s::'a star) \<in> Infinitesimal - {0}"
-    by (metis Diff_iff HDeriv.of_hypreal_eq_0_iff Infinitesimal_epsilon Infinitesimal_of_hypreal hypreal_epsilon_not_zero singletonD)
+    by (metis Diff_iff HDeriv.of_hypreal_eq_0_iff Infinitesimal_epsilon Infinitesimal_of_hypreal epsilon_not_zero singletonD)
   with assms show ?thesis
     by (meson approx_trans3 nsderiv_def star_of_approx_iff)
 qed

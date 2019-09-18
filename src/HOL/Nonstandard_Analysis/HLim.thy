@@ -93,7 +93,7 @@ proof -
     have "star_of a + of_hypreal \<epsilon> \<approx> star_of a"
       by (simp add: approx_def)
     then show ?thesis
-      using hypreal_epsilon_not_zero that by (force simp add: NSLIM_def)
+      using epsilon_not_zero that by (force simp add: NSLIM_def)
   qed
   with assms show ?thesis by metis
 qed
@@ -151,7 +151,7 @@ proof (rule LIM_I)
     hnorm (starfun f x - star_of L) < star_of r"
   proof (rule exI, safe)
     show "0 < \<epsilon>"
-      by (rule hypreal_epsilon_gt_zero)
+      by (rule epsilon_gt_zero)
   next
     fix x
     assume neq: "x \<noteq> star_of a"
@@ -291,7 +291,7 @@ proof safe
   have "\<exists>s>0. \<forall>x y. hnorm (x - y) < s \<longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"
   proof (rule exI, safe)
     show "0 < \<epsilon>"
-      by (rule hypreal_epsilon_gt_zero)
+      by (rule epsilon_gt_zero)
   next
     fix x y :: "'a star"
     assume "hnorm (x - y) < \<epsilon>"

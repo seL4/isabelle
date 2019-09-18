@@ -2179,6 +2179,11 @@ lemma continuous_infdist[continuous_intros]:
   shows "continuous F (\<lambda>x. infdist (f x) A)"
   using assms unfolding continuous_def by (rule tendsto_infdist)
 
+lemma continuous_on_infdist [continuous_intros]:
+  assumes "continuous_on S f"
+  shows "continuous_on S (\<lambda>x. infdist (f x) A)"
+using assms unfolding continuous_on by (auto intro: tendsto_infdist)
+
 lemma compact_infdist_le:
   fixes A::"'a::heine_borel set"
   assumes "A \<noteq> {}"
@@ -3231,9 +3236,6 @@ proof -
     by (auto simp: setdist_def infdist_def)
 qed
 
-lemma continuous_on_infdist [continuous_intros]: "continuous_on B (\<lambda>y. infdist y A)"
-  by (simp add: continuous_on_setdist infdist_eq_setdist)
-
 proposition setdist_attains_inf:
   assumes "compact B" "B \<noteq> {}"
   obtains y where "y \<in> B" "setdist A B = infdist y A"
@@ -3244,7 +3246,7 @@ proof (cases "A = {}")
 next
   case False
   obtain y where "y \<in> B" and min: "\<And>y'. y' \<in> B \<Longrightarrow> infdist y A \<le> infdist y' A"
-    using continuous_attains_inf [OF assms continuous_on_infdist] by blast
+    by (metis continuous_attains_inf [OF assms continuous_on_infdist] continuous_on_id)
   show thesis
   proof
     have "setdist A B = (INF y\<in>B. infdist y A)"

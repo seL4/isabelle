@@ -1633,6 +1633,39 @@ lemma (in first_countable_topology) eventually_nhds_iff_sequentially:
   "eventually P (nhds a) \<longleftrightarrow> (\<forall>f. f \<longlonglongrightarrow> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
   using eventually_nhds_within_iff_sequentially[of P a UNIV] by simp
 
+(*Thanks to Sébastien Gouëzel*)
+lemma Inf_as_limit:
+  fixes A::"'a::{linorder_topology, first_countable_topology, complete_linorder} set"
+  assumes "A \<noteq> {}"
+  shows "\<exists>u. (\<forall>n. u n \<in> A) \<and> u \<longlonglongrightarrow> Inf A"
+proof (cases "Inf A \<in> A")
+  case True
+  show ?thesis
+    by (rule exI[of _ "\<lambda>n. Inf A"], auto simp add: True)
+next
+  case False
+  obtain y where "y \<in> A" using assms by auto
+  then have "Inf A < y" using False Inf_lower less_le by auto
+  obtain F :: "nat \<Rightarrow> 'a set" where F: "\<And>i. open (F i)" "\<And>i. Inf A \<in> F i"
+                                       "\<And>u. (\<forall>n. u n \<in> F n) \<Longrightarrow> u \<longlonglongrightarrow> Inf A"
+    by (metis first_countable_topology_class.countable_basis)
+  define u where "u = (\<lambda>n. SOME z. z \<in> F n \<and> z \<in> A)"
+  have "\<exists>z. z \<in> U \<and> z \<in> A" if "Inf A \<in> U" "open U" for U
+  proof -
+    obtain b where "b > Inf A" "{Inf A ..<b} \<subseteq> U"
+      using open_right[OF \<open>open U\<close> \<open>Inf A \<in> U\<close> \<open>Inf A < y\<close>] by auto
+    obtain z where "z < b" "z \<in> A"
+      using \<open>Inf A < b\<close> Inf_less_iff by auto
+    then have "z \<in> {Inf A ..<b}"
+      by (simp add: Inf_lower)
+    then show ?thesis using \<open>z \<in> A\<close> \<open>{Inf A ..<b} \<subseteq> U\<close> by auto
+  qed
+  then have *: "u n \<in> F n \<and> u n \<in> A" for n
+    using \<open>Inf A \<in> F n\<close> \<open>open (F n)\<close> unfolding u_def by (metis (no_types, lifting) someI_ex)
+  then have "u \<longlonglongrightarrow> Inf A" using F(3) by simp
+  then show ?thesis using * by auto
+qed
+
 lemma tendsto_at_iff_sequentially:
   "(f \<longlongrightarrow> a) (at x within s) \<longleftrightarrow> (\<forall>X. (\<forall>i. X i \<in> s - {x}) \<longrightarrow> X \<longlonglongrightarrow> x \<longrightarrow> ((f \<circ> X) \<longlonglongrightarrow> a))"
   for f :: "'a::first_countable_topology \<Rightarrow> _"

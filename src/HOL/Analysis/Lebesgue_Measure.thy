@@ -1219,8 +1219,10 @@ proof-
   finally show ?thesis .
 qed
 
-lemma lborel_distr_plus: "distr lborel borel ((+) c) = (lborel :: real measure)"
-  by (subst lborel_real_affine[of 1 c]) (auto simp: density_1 one_ennreal_def[symmetric])
+lemma lborel_distr_plus:
+  fixes c :: "'a::euclidean_space"
+  shows "distr lborel borel ((+) c) = lborel"
+by (subst lborel_affine[of 1 c], auto simp: density_1)
 
 interpretation lborel: sigma_finite_measure lborel
   by (rule sigma_finite_lborel)

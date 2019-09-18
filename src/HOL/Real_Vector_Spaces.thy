@@ -1981,14 +1981,12 @@ lemma (in metric_space) metric_Cauchy_iff2:
 lemma Cauchy_iff2: "Cauchy X \<longleftrightarrow> (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse (real (Suc j))))"
   by (simp only: metric_Cauchy_iff2 dist_real_def)
 
-lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
+lemma lim_1_over_n [tendsto_intros]: "((\<lambda>n. 1 / of_nat n) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
 proof (subst lim_sequentially, intro allI impI exI)
-  fix e :: real
-  assume e: "e > 0"
-  fix n :: nat
-  assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
+  fix e::real and n
+  assume e: "e > 0" 
   have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
-  also note n
+  also assume "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
   finally show "dist (1 / of_nat n :: 'a) 0 < e"
     using e by (simp add: divide_simps mult.commute norm_divide)
 qed

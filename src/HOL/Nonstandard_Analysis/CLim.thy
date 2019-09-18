@@ -11,7 +11,7 @@ theory CLim
 begin
 
 (*not in simpset?*)
-declare hypreal_epsilon_not_zero [simp]
+declare epsilon_not_zero [simp]
 
 (*??generalize*)
 lemma lemma_complex_mult_inverse_squared [simp]: "x \<noteq> 0 \<Longrightarrow> x * (inverse x)\<^sup>2 = inverse x"

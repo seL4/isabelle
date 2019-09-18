@@ -9,15 +9,6 @@ theory HLog
   imports HTranscendental
 begin
 
-
-(* should be in NSA.ML *)
-lemma epsilon_ge_zero [simp]: "0 \<le> \<epsilon>"
-  by (simp add: epsilon_def star_n_zero_num star_n_le)
-
-lemma hpfinite_witness: "\<epsilon> \<in> {x. 0 \<le> x \<and> x \<in> HFinite}"
-  by auto
-
-
 definition powhr :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"  (infixr "powhr" 80)
   where [transfer_unfold]: "x powhr a = starfun2 (powr) x a"
 
@@ -39,7 +30,7 @@ lemma powhr_gt_zero [simp]: "\<And>a x. 0 < x powhr a \<longleftrightarrow> x \<
 lemma powhr_not_zero [simp]: "\<And>a x. x powhr a \<noteq> 0 \<longleftrightarrow> x \<noteq> 0"
   by transfer simp
 
-lemma powhr_divide: "\<And>a x y. 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> (x / y) powhr a = (x powhr a) / (y powhr a)"
+lemma powhr_divide: "\<And>a x y. 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> (x / y) powhr a = (x powhr a) / (y powhr a)"
   by transfer (rule powr_divide)
 
 lemma powhr_add: "\<And>a b x. x powhr (a + b) = (x powhr a) * (x powhr b)"

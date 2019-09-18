@@ -1187,6 +1187,16 @@ next
     using assms card_eq_0_iff finite_UnionD by fastforce
 qed
 
+lemma card_UN_le:
+  assumes "finite I"
+  shows "card(\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. card(A i))"
+  using assms
+proof induction
+  case (insert i I)
+  then show ?case
+    using card_Un_le nat_add_left_cancel_le by (force intro: order_trans) 
+qed auto
+
 lemma sum_multicount_gen:
   assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
   shows "sum (\<lambda>i. (card {j\<in>t. R i j})) s = sum k t"

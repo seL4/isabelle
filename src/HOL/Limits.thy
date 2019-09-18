@@ -2392,7 +2392,7 @@ next
     by (rule LIMSEQ_imp_Suc) (simp add: True)
 qed
 
-lemma LIMSEQ_power_zero: "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) \<longlonglongrightarrow> 0"
+lemma LIMSEQ_power_zero [tendsto_intros]: "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) \<longlonglongrightarrow> 0"
   for x :: "'a::real_normed_algebra_1"
   apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
   by (simp add: Zfun_le norm_power_ineq tendsto_Zfun_iff)

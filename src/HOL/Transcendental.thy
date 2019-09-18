@@ -2461,7 +2461,7 @@ lemma powr_ge_pzero [simp]: "0 \<le> x powr y"
 lemma powr_non_neg[simp]: "\<not>a powr x < 0" for a x::real
   using powr_ge_pzero[of a x] by arith
 
-lemma powr_divide: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> (x / y) powr a = (x powr a) / (y powr a)"
+lemma powr_divide: "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> (x / y) powr a = (x powr a) / (y powr a)"
   for a b x :: real
   apply (simp add: divide_inverse positive_imp_inverse_positive powr_mult)
   apply (simp add: powr_def exp_minus [symmetric] exp_add [symmetric] ln_inverse)
@@ -2471,7 +2471,7 @@ lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
   for a b x :: "'a::{ln,real_normed_field}"
   by (simp add: powr_def exp_add [symmetric] distrib_right)
 
-lemma powr_mult_base: "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
+lemma powr_mult_base: "0 \<le> x \<Longrightarrow>x * x powr y = x powr (1 + y)"
   for x :: real
   by (auto simp: powr_add)
 

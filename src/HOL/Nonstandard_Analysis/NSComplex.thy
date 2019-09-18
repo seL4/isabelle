@@ -197,8 +197,8 @@ lemma hRe_hcomplex_of_hypreal [simp]: "\<And>z. hRe (hcomplex_of_hypreal z) = z"
 lemma hIm_hcomplex_of_hypreal [simp]: "\<And>z. hIm (hcomplex_of_hypreal z) = 0"
   by transfer (rule Im_complex_of_real)
 
-lemma hcomplex_of_hypreal_epsilon_not_zero [simp]: "hcomplex_of_hypreal \<epsilon> \<noteq> 0"
-  by (simp add: hypreal_epsilon_not_zero)
+lemma hcomplex_of_epsilon_not_zero [simp]: "hcomplex_of_hypreal \<epsilon> \<noteq> 0"
+  by (simp add: epsilon_not_zero)
 
 
 subsection \<open>\<open>HComplex\<close> theorems\<close>

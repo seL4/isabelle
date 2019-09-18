@@ -1592,7 +1592,7 @@ text \<open>Epsilon is a member of Infinitesimal.\<close>
 
 lemma Infinitesimal_epsilon [simp]: "\<epsilon> \<in> Infinitesimal"
   by (auto intro!: HInfinite_inverse_Infinitesimal HInfinite_omega
-      simp add: hypreal_epsilon_inverse_omega)
+      simp add: epsilon_inverse_omega)
 
 lemma HFinite_epsilon [simp]: "\<epsilon> \<in> HFinite"
   by (auto intro: Infinitesimal_subset_HFinite [THEN subsetD])

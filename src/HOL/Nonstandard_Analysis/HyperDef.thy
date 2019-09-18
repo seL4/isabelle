@@ -229,14 +229,17 @@ proof -
     by (auto simp: epsilon_def star_of_def star_n_eq_iff)
 qed
 
-lemma hypreal_epsilon_not_zero: "\<epsilon> \<noteq> 0"
+lemma epsilon_ge_zero [simp]: "0 \<le> \<epsilon>"
+  by (simp add: epsilon_def star_n_zero_num star_n_le)
+
+lemma epsilon_not_zero: "\<epsilon> \<noteq> 0"
   using hypreal_of_real_not_eq_epsilon by force
 
-lemma hypreal_epsilon_inverse_omega: "\<epsilon> = inverse \<omega>"
+lemma epsilon_inverse_omega: "\<epsilon> = inverse \<omega>"
   by (simp add: epsilon_def omega_def star_n_inverse)
 
-lemma hypreal_epsilon_gt_zero: "0 < \<epsilon>"
-  by (simp add: hypreal_epsilon_inverse_omega)
+lemma epsilon_gt_zero: "0 < \<epsilon>"
+  by (simp add: epsilon_inverse_omega)
 
 
 subsection \<open>Embedding the Naturals into the Hyperreals\<close>

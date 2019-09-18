@@ -1493,12 +1493,11 @@ lemma card_Un_disjoint: "finite A \<Longrightarrow> finite B \<Longrightarrow> A
   using card_Un_Int [of A B] by simp
 
 lemma card_Un_le: "card (A \<union> B) \<le> card A + card B"
-  apply (cases "finite A")
-   apply (cases "finite B")
-    apply (use le_iff_add card_Un_Int in blast)
-   apply simp
-  apply simp
-  done
+proof (cases "finite A \<and> finite B")
+  case True
+  then show ?thesis
+    using le_iff_add card_Un_Int [of A B] by auto
+qed auto
 
 lemma card_Diff_subset:
   assumes "finite B"

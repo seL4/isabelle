@@ -585,19 +585,17 @@ lemma summable_mult_D: "summable (\<lambda>n. c * f n) \<Longrightarrow> c \<not
 text \<open>Sum of a geometric progression.\<close>
 
 lemma geometric_sums:
-  assumes less_1: "norm c < 1"
+  assumes "norm c < 1"
   shows "(\<lambda>n. c^n) sums (1 / (1 - c))"
 proof -
-  from less_1 have neq_1: "c \<noteq> 1" by auto
-  then have neq_0: "c - 1 \<noteq> 0" by simp
-  from less_1 have lim_0: "(\<lambda>n. c^n) \<longlonglongrightarrow> 0"
-    by (rule LIMSEQ_power_zero)
+  have neq_0: "c - 1 \<noteq> 0"
+    using assms by auto
   then have "(\<lambda>n. c ^ n / (c - 1) - 1 / (c - 1)) \<longlonglongrightarrow> 0 / (c - 1) - 1 / (c - 1)"
-    using neq_0 by (intro tendsto_intros)
+    by (intro tendsto_intros assms)
   then have "(\<lambda>n. (c ^ n - 1) / (c - 1)) \<longlonglongrightarrow> 1 / (1 - c)"
     by (simp add: nonzero_minus_divide_right [OF neq_0] diff_divide_distrib)
-  then show "(\<lambda>n. c ^ n) sums (1 / (1 - c))"
-    by (simp add: sums_def geometric_sum neq_1)
+  with neq_0 show "(\<lambda>n. c ^ n) sums (1 / (1 - c))"
+    by (simp add: sums_def geometric_sum)
 qed
 
 lemma summable_geometric: "norm c < 1 \<Longrightarrow> summable (\<lambda>n. c^n)"

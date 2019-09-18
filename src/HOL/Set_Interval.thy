@@ -1268,6 +1268,18 @@ next
   qed
 qed
 
+lemma UN_le_add_shift_strict:
+  "(\<Union>i<n::nat. M(i+k)) = (\<Union>i\<in>{k..<n+k}. M i)" (is "?A = ?B")
+proof
+  show "?B \<subseteq> ?A"
+  proof
+    fix x assume "x \<in> ?B"
+    then obtain i where i: "i \<in> {k..<n+k}" "x \<in> M(i)" by auto
+    then have "i - k < n \<and> x \<in> M((i-k) + k)" by auto
+    then show "x \<in> ?A" using UN_le_add_shift by blast
+  qed
+qed (fastforce)
+
 lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
   by (auto simp add: atLeast0LessThan)
 
