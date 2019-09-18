@@ -1057,8 +1057,10 @@ fun local_goal print_results prep_statement prep_att strict_asm
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
 
     (*params*)
-    val ((params, assumes_propss, shows_propss, result_binds, result_text), params_ctxt) = ctxt
+    val ((params, assumes_propss, shows_propss, result_binds, text), params_ctxt) = ctxt
       |> prep_statement raw_fixes (map snd raw_assumes) (map snd raw_shows);
+
+    val result_text = singleton (Variable.export_terms params_ctxt ctxt) text;
 
     (*prems*)
     val (assumes_bindings, shows_bindings) =
