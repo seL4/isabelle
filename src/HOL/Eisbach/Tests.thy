@@ -166,7 +166,7 @@ begin
     done
 
   (* Cut tests *)
-  fix A B C
+  fix A B C D
 
   have "D \<and> C  \<Longrightarrow> A \<and> B  \<Longrightarrow> A \<longrightarrow> C \<Longrightarrow> D \<longrightarrow> True \<Longrightarrow> C"
     by (((match premises in I: "P \<and> Q" (cut)

@@ -645,7 +645,7 @@ fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls sta
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val ((params, prems_propss, concl_propss, result_binds), _) =
+    val ((params, prems_propss, concl_propss, result_binds, _), _) =
       prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt;
     val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
@@ -812,7 +812,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
     val ctxt = context_of state;
 
     (*vars*)
-    val ((vars, propss, _, binds'), vars_ctxt) =
+    val ((vars, propss, _, binds', text'), vars_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
     val (decls, fixes) = chop (length raw_decls) vars;
     val show_term = Syntax.string_of_term vars_ctxt;
@@ -1057,7 +1057,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
 
     (*params*)
-    val ((params, assumes_propss, shows_propss, result_binds), params_ctxt) = ctxt
+    val ((params, assumes_propss, shows_propss, result_binds, result_text), params_ctxt) = ctxt
       |> prep_statement raw_fixes (map snd raw_assumes) (map snd raw_shows);
 
     (*prems*)
@@ -1089,6 +1089,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
         val export = map export0 #> Variable.export result_ctxt ctxt';
       in
         state'
+        |> map_context (Variable.declare_term result_text)
         |> local_results (results_bindings ~~ burrow export results)
         |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
         |> after_qed (result_ctxt, results)

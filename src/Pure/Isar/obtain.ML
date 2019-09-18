@@ -201,7 +201,7 @@ fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis (Proof.context_of state);
 
-    val ((vars, propss, binds, binds'), params_ctxt) =
+    val ((vars, propss, binds, binds', _), params_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (raw_prems @ map #2 raw_concls) thesis_ctxt;
     val (decls, fixes) = chop (length raw_decls) vars ||> map #2;
     val (premss, conclss) = chop (length raw_prems) propss;
