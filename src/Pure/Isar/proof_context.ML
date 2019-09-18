@@ -1363,9 +1363,7 @@ fun prep_stmt prep_var prep_propp raw_vars raw_propps ctxt =
       |> export_binds params_ctxt ctxt params
       |> map (apsnd the);
 
-    val text' =
-      Logic.close_prop params [] (Logic.mk_conjunction_list (flat propss))
-      |> singleton (Variable.export_terms params_ctxt ctxt);
+    val text' = Logic.close_prop params [] (Logic.mk_conjunction_list (flat propss));
 
     val _ = Variable.warn_extra_tfrees fixes_ctxt params_ctxt;
   in ((vars' ~~ params, propss, binds, binds', text'), params_ctxt) end;

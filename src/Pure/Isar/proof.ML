@@ -645,7 +645,7 @@ fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls sta
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val ((params, prems_propss, concl_propss, result_binds, _), _) =
+    val ((params, prems_propss, concl_propss, result_binds, text), _) =
       prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt;
     val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
@@ -653,7 +653,7 @@ fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls sta
     |> assert_forward
     |> map_context_result (fn ctxt =>
       ctxt
-      |> (fold o fold) Variable.declare_term propss
+      |> Proof_Context.augment text
       |> fold Variable.maybe_bind_term result_binds
       |> fold_burrow (Assumption.add_assms export o map (Thm.cterm_of ctxt)) propss
       |-> (fn premss =>
@@ -812,7 +812,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
     val ctxt = context_of state;
 
     (*vars*)
-    val ((vars, propss, _, binds', text'), vars_ctxt) =
+    val ((vars, propss, _, binds', _), vars_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
     val (decls, fixes) = chop (length raw_decls) vars;
     val show_term = Syntax.string_of_term vars_ctxt;
