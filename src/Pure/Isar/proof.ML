@@ -1066,6 +1066,7 @@ fun local_goal print_results prep_statement prep_att strict_asm
     val (assumes_bindings, shows_bindings) =
       apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
     val (that_fact, goal_ctxt) = params_ctxt
+      |> fold Proof_Context.augment (text :: flat (assumes_propss @ shows_propss))
       |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
       |> (fn (premss, ctxt') =>
           let
@@ -1085,13 +1086,13 @@ fun local_goal print_results prep_statement prep_att strict_asm
       let
         val ctxt' = context_of state';
         val export0 =
-          Assumption.export false result_ctxt ctxt' #>
+          Assumption.export false result_ctxt (Proof_Context.augment result_text ctxt') #>
           fold_rev (fn (x, v) => Thm.forall_intr_name (x, Thm.cterm_of params_ctxt v)) params #>
           Raw_Simplifier.norm_hhf_protect ctxt';
         val export = map export0 #> Variable.export result_ctxt ctxt';
       in
         state'
-        |> map_context (Variable.declare_term result_text)
+        |> map_context (Proof_Context.augment result_text)
         |> local_results (results_bindings ~~ burrow export results)
         |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
         |> after_qed (result_ctxt, results)
