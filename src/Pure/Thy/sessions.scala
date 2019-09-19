@@ -71,13 +71,6 @@ object Sessions
   sealed case class Known(
     theories: Map[String, Document.Node.Entry] = Map.empty,
     loaded_files: Map[String, List[Path]] = Map.empty)
-  {
-    def platform_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))))
-
-    def standard_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))))
-  }
 
   object Base
   {
