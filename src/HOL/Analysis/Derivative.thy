@@ -239,6 +239,9 @@ lemma frechet_derivative_const [simp]: "frechet_derivative (\<lambda>x. c) (at a
 lemma frechet_derivative_id [simp]: "frechet_derivative id (at a) = id"
   using differentiable_def frechet_derivative_works has_derivative_id has_derivative_unique by blast
 
+lemma frechet_derivative_ident [simp]: "frechet_derivative (\<lambda>x. x) (at a) = (\<lambda>x. x)"
+  by (metis eq_id_iff frechet_derivative_id)
+
 
 subsection \<open>Differentiability implies continuity\<close>
 
