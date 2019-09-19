@@ -2568,11 +2568,22 @@ lemma lim_ln_over_power:
   apply (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
-lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
+lemma lim_ln_over_n [tendsto_intros]: "((\<lambda>n. ln(real_of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
   using lim_ln_over_power [of 1, THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
   done
+
+lemma lim_log_over_n [tendsto_intros]:
+  "(\<lambda>n. log k n/n) \<longlonglongrightarrow> 0"
+proof -
+  have *: "log k n/n = (1/ln k) * (ln n / n)" for n
+    unfolding log_def by auto
+  have "(\<lambda>n. (1/ln k) * (ln n / n)) \<longlonglongrightarrow> (1/ln k) * 0"
+    by (intro tendsto_intros)
+  then show ?thesis
+    unfolding * by auto
+qed
 
 lemma lim_1_over_complex_power:
   assumes "0 < Re s"

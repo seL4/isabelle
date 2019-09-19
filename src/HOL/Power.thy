@@ -54,12 +54,6 @@ lemma power_add: "a ^ (m + n) = a ^ m * a ^ n"
 lemma power_mult: "a ^ (m * n) = (a ^ m) ^ n"
   by (induct n) (simp_all add: power_add)
 
-lemma power2_eq_square: "a\<^sup>2 = a * a"
-  by (simp add: numeral_2_eq_2)
-
-lemma power3_eq_cube: "a ^ 3 = a * a * a"
-  by (simp add: numeral_3_eq_3 mult.assoc)
-
 lemma power_even_eq: "a ^ (2 * n) = (a ^ n)\<^sup>2"
   by (subst mult.commute) (simp add: power_mult)
 
@@ -72,6 +66,15 @@ lemma power_numeral_even: "z ^ numeral (Num.Bit0 w) = (let w = z ^ (numeral w) i
 lemma power_numeral_odd: "z ^ numeral (Num.Bit1 w) = (let w = z ^ (numeral w) in z * w * w)"
   by (simp only: numeral_Bit1 One_nat_def add_Suc_right add_0_right
       power_Suc power_add Let_def mult.assoc)
+
+lemma power2_eq_square: "a\<^sup>2 = a * a"
+  by (simp add: numeral_2_eq_2)
+
+lemma power3_eq_cube: "a ^ 3 = a * a * a"
+  by (simp add: numeral_3_eq_3 mult.assoc)
+
+lemma power4_eq_xxxx: "x^4 = x * x * x * x"
+  by (simp add: mult.assoc power_numeral_even)
 
 lemma funpow_times_power: "(times x ^^ f x) = times (x ^ f x)"
 proof (induct "f x" arbitrary: f)

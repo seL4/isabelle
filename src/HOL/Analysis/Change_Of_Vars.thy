@@ -9,41 +9,6 @@ theory Change_Of_Vars
 
 begin
 
-subsection \<open>Orthogonal Transformation of Balls\<close>
-
-lemma image_orthogonal_transformation_ball:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "orthogonal_transformation f"
-  shows "f ` ball x r = ball (f x) r"
-proof (intro equalityI subsetI)
-  fix y assume "y \<in> f ` ball x r"
-  with assms show "y \<in> ball (f x) r"
-    by (auto simp: orthogonal_transformation_isometry)
-next
-  fix y assume y: "y \<in> ball (f x) r"
-  then obtain z where z: "y = f z"
-    using assms orthogonal_transformation_surj by blast
-  with y assms show "y \<in> f ` ball x r"
-    by (auto simp: orthogonal_transformation_isometry)
-qed
-
-lemma  image_orthogonal_transformation_cball:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "orthogonal_transformation f"
-  shows "f ` cball x r = cball (f x) r"
-proof (intro equalityI subsetI)
-  fix y assume "y \<in> f ` cball x r"
-  with assms show "y \<in> cball (f x) r"
-    by (auto simp: orthogonal_transformation_isometry)
-next
-  fix y assume y: "y \<in> cball (f x) r"
-  then obtain z where z: "y = f z"
-    using assms orthogonal_transformation_surj by blast
-  with y assms show "y \<in> f ` cball x r"
-    by (auto simp: orthogonal_transformation_isometry)
-qed
-
-
 subsection \<open>Measurable Shear and Stretch\<close>
 
 proposition

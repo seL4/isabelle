@@ -1725,12 +1725,43 @@ lemma ereal_times_divide_eq: "a * (b / c :: ereal) = a * b / c"
   by (cases a b c rule: ereal3_cases)
      (auto simp: field_simps zero_less_mult_iff)
 
-lemma ereal_inverse_real: "\<bar>z\<bar> \<noteq> \<infinity> \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> ereal (inverse (real_of_ereal z)) = inverse z"
-  by (cases z) simp_all
+lemma ereal_inverse_real [simp]: "\<bar>z\<bar> \<noteq> \<infinity> \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> ereal (inverse (real_of_ereal z)) = inverse z"
+  by auto
 
 lemma ereal_inverse_mult:
   "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse (a * (b::ereal)) = inverse a * inverse b"
   by (cases a; cases b) auto
+
+lemma inverse_eq_infinity_iff_eq_zero [simp]:
+  "1/(x::ereal) = \<infinity> \<longleftrightarrow> x = 0"
+by (simp add: divide_ereal_def)
+
+lemma ereal_distrib_left:
+  fixes a b c :: ereal
+  assumes "a \<noteq> \<infinity> \<or> b \<noteq> -\<infinity>"
+    and "a \<noteq> -\<infinity> \<or> b \<noteq> \<infinity>"
+    and "\<bar>c\<bar> \<noteq> \<infinity>"
+  shows "c * (a + b) = c * a + c * b"
+using assms
+by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
+
+lemma ereal_distrib_minus_left:
+  fixes a b c :: ereal
+  assumes "a \<noteq> \<infinity> \<or> b \<noteq> \<infinity>"
+    and "a \<noteq> -\<infinity> \<or> b \<noteq> -\<infinity>"
+    and "\<bar>c\<bar> \<noteq> \<infinity>"
+  shows "c * (a - b) = c * a - c * b"
+using assms
+by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
+
+lemma ereal_distrib_minus_right:
+  fixes a b c :: ereal
+  assumes "a \<noteq> \<infinity> \<or> b \<noteq> \<infinity>"
+    and "a \<noteq> -\<infinity> \<or> b \<noteq> -\<infinity>"
+    and "\<bar>c\<bar> \<noteq> \<infinity>"
+  shows "(a - b) * c = a * c - b * c"
+using assms
+by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
 
 
 subsection "Complete lattice"
@@ -4115,6 +4146,11 @@ proof (rule Liminf_compose_continuous_mono)
     using tendsto_cmult_ereal[of "ereal c" "\<lambda>x. x" ]
     by (force simp: continuous_on_def mult_ac)
 qed (insert assms, auto simp: mono_def ereal_mult_right_mono)
+
+lemma Liminf_ereal_mult_left:
+  assumes "F \<noteq> bot" "(c::real) \<ge> 0"
+    shows "Liminf F (\<lambda>n. ereal c * f n) = ereal c * Liminf F f"
+using Liminf_ereal_mult_right[OF assms] by (subst (1 2) mult.commute)
 
 lemma Limsup_ereal_mult_left:
   assumes "F \<noteq> bot" "(c::real) \<ge> 0"

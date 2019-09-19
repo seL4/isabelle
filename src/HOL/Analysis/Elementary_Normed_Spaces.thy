@@ -9,16 +9,12 @@ section \<open>Elementary Normed Vector Spaces\<close>
 theory Elementary_Normed_Spaces
   imports
   "HOL-Library.FuncSet"
-  Elementary_Metric_Spaces Linear_Algebra
+  Elementary_Metric_Spaces Cartesian_Space
   Connected
 begin
+subsection \<open>Orthogonal Transformation of Balls\<close>
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Various Lemmas Combining Imports\<close>
-
-lemma countable_PiE:
-  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
-  by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
-
 
 lemma open_sums:
   fixes T :: "('b::real_normed_vector) set"
@@ -51,6 +47,38 @@ next
     then show "\<exists>e>0. \<forall>z. dist z (x + y) < e \<longrightarrow> (\<exists>x\<in>S. \<exists>y\<in>T. z = x + y)"
       using \<open>0 < e\<close> \<open>y \<in> T\<close> by blast
   qed
+qed
+
+lemma image_orthogonal_transformation_ball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` ball x r = ball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` ball x r"
+  with assms show "y \<in> ball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> ball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` ball x r"
+    by (auto simp: orthogonal_transformation_isometry)
+qed
+
+lemma image_orthogonal_transformation_cball:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+  assumes "orthogonal_transformation f"
+  shows "f ` cball x r = cball (f x) r"
+proof (intro equalityI subsetI)
+  fix y assume "y \<in> f ` cball x r"
+  with assms show "y \<in> cball (f x) r"
+    by (auto simp: orthogonal_transformation_isometry)
+next
+  fix y assume y: "y \<in> cball (f x) r"
+  then obtain z where z: "y = f z"
+    using assms orthogonal_transformation_surj by blast
+  with y assms show "y \<in> f ` cball x r"
+    by (auto simp: orthogonal_transformation_isometry)
 qed
 
 

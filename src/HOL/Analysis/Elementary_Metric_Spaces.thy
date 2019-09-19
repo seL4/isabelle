@@ -2000,6 +2000,11 @@ lemma infdist_le2: "a \<in> A \<Longrightarrow> dist x a \<le> d \<Longrightarro
 lemma infdist_zero[simp]: "a \<in> A \<Longrightarrow> infdist a A = 0"
   by (auto intro!: antisym infdist_nonneg infdist_le2)
 
+lemma infdist_Un_min:
+  assumes "A \<noteq> {}" "B \<noteq> {}"
+  shows "infdist x (A \<union> B) = min (infdist x A) (infdist x B)"
+using assms by (simp add: infdist_def cINF_union inf_real_def)
+
 lemma infdist_triangle: "infdist x A \<le> infdist y A + dist x y"
 proof (cases "A = {}")
   case True
@@ -2040,6 +2045,9 @@ next
   qed
   finally show ?thesis by simp
 qed
+
+lemma infdist_triangle_abs: "\<bar>infdist x A - infdist y A\<bar> \<le> dist x y"
+  by (metis (full_types) abs_diff_le_iff diff_le_eq dist_commute infdist_triangle)
 
 lemma in_closure_iff_infdist_zero:
   assumes "A \<noteq> {}"
@@ -3235,6 +3243,15 @@ proof -
   then show ?thesis
     by (auto simp: setdist_def infdist_def)
 qed
+
+lemma infdist_mono:
+  assumes "A \<subseteq> B" "A \<noteq> {}"
+  shows "infdist x B \<le> infdist x A"
+  by (simp add: assms infdist_eq_setdist setdist_subset_right)
+
+lemma infdist_singleton [simp]:
+  "infdist x {y} = dist x y"
+  by (simp add: infdist_eq_setdist)
 
 proposition setdist_attains_inf:
   assumes "compact B" "B \<noteq> {}"

@@ -2479,6 +2479,14 @@ lemma homeomorphism_compose:
   unfolding homeomorphism_def
   by (intro conjI ballI continuous_on_compose) (auto simp: image_iff)
 
+lemma homeomorphism_cong:
+  "homeomorphism X' Y' f' g'"
+    if "homeomorphism X Y f g" "X' = X" "Y' = Y" "\<And>x. x \<in> X \<Longrightarrow> f' x = f x" "\<And>y. y \<in> Y \<Longrightarrow> g' y = g y"
+  using that by (auto simp add: homeomorphism_def)
+
+lemma homeomorphism_empty [simp]:
+  "homeomorphism {} {} f g"
+  unfolding homeomorphism_def by auto
 
 lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism t S g f"
   by (simp add: homeomorphism_def)
