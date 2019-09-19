@@ -4844,6 +4844,15 @@ proof -
     unfolding absolutely_integrable_restrict_UNIV .
 qed
 
+lemma absolutely_integrable_on_combine:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "f absolutely_integrable_on {a..c}"
+    and "f absolutely_integrable_on {c..b}"
+    and "a \<le> c"
+    and "c \<le> b"
+  shows "f absolutely_integrable_on {a..b}"
+  by (metis absolutely_integrable_Un assms ivl_disj_un_two_touch(4))
+
 lemma uniform_limit_set_lebesgue_integral_at_top:
   fixes f :: "'a \<Rightarrow> real \<Rightarrow> 'b::{banach, second_countable_topology}"
     and g :: "real \<Rightarrow> real"
