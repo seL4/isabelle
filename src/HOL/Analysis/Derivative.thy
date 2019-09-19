@@ -233,6 +233,12 @@ lemma linear_frechet_derivative: "f differentiable net \<Longrightarrow> linear 
   unfolding frechet_derivative_works has_derivative_def
   by (auto intro: bounded_linear.linear)
 
+lemma frechet_derivative_const [simp]: "frechet_derivative (\<lambda>x. c) (at a) = (\<lambda>x. 0)"
+  using differentiable_const frechet_derivative_works has_derivative_const has_derivative_unique by blast
+
+lemma frechet_derivative_id [simp]: "frechet_derivative id (at a) = id"
+  using differentiable_def frechet_derivative_works has_derivative_id has_derivative_unique by blast
+
 
 subsection \<open>Differentiability implies continuity\<close>
 
@@ -485,6 +491,11 @@ lemma frechet_derivative_at:
   "(f has_derivative f') (at x) \<Longrightarrow> f' = frechet_derivative f (at x)"
   using differentiable_def frechet_derivative_works has_derivative_unique by blast
 
+lemma frechet_derivative_compose:
+  "frechet_derivative (f o g) (at x) = frechet_derivative (f) (at (g x)) o frechet_derivative g (at x)"
+  if "g differentiable at x" "f differentiable at (g x)"
+  by (metis diff_chain_at frechet_derivative_at frechet_derivative_works that)
+
 lemma frechet_derivative_within_cbox:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<And>i. i\<in>Basis \<Longrightarrow> a\<bullet>i < b\<bullet>i"
@@ -493,6 +504,11 @@ lemma frechet_derivative_within_cbox:
   shows "frechet_derivative f (at x within cbox a b) = f'"
   using assms
   by (metis Derivative.differentiableI frechet_derivative_unique_within_closed_interval frechet_derivative_works)
+
+lemma frechet_derivative_transform_within_open:
+  "frechet_derivative f (at x) = frechet_derivative g (at x)"
+  if "f differentiable at x" "open X" "x \<in> X" "\<And>x. x \<in> X \<Longrightarrow> f x = g x"
+  by (meson frechet_derivative_at frechet_derivative_works has_derivative_transform_within_open that)
 
 
 subsection \<open>Derivatives of local minima and maxima are zero\<close>
