@@ -85,13 +85,33 @@ val all_prems_of = #prems o rep_data;
 
 (* local assumptions *)
 
+local
+
+fun drop_prefix eq (args as (x :: xs, y :: ys)) =
+      if eq (x, y) then drop_prefix eq (xs, ys) else args
+  | drop_prefix _ args = args;
+
+fun check_result ctxt kind term_of res =
+  (case res of
+    ([], rest) => rest
+  | (bad :: _, _) =>
+      raise Fail ("Outer context disagrees on " ^ kind ^ ": " ^
+        Syntax.string_of_term ctxt (term_of bad)));
+
+in
+
 fun local_assumptions_of inner outer =
-  drop (length (all_assumptions_of outer)) (all_assumptions_of inner);
+  drop_prefix (eq_snd (eq_list Thm.aconvc)) (apply2 all_assumptions_of (outer, inner))
+  |>> maps #2
+  |> check_result outer "assumption" Thm.term_of;
 
 val local_assms_of = maps #2 oo local_assumptions_of;
 
 fun local_prems_of inner outer =
-  drop (length (all_prems_of outer)) (all_prems_of inner);
+  drop_prefix Thm.eq_thm_prop (apply2 all_prems_of (outer, inner))
+  |> check_result outer "premise" Thm.prop_of;
+
+end;
 
 
 (* add assumptions *)
