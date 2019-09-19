@@ -645,8 +645,8 @@ fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls sta
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val ((params, prems_propss, concl_propss, result_binds, text), _) =
-      prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt;
+    val {fixes = params, assumes = prems_propss, shows = concl_propss, result_binds, text, ...} =
+      #1 (prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt);
     val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
     state
@@ -812,7 +812,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
     val ctxt = context_of state;
 
     (*vars*)
-    val ((vars, propss, _, binds', _), vars_ctxt) =
+    val ({vars, propss, result_binds, ...}, vars_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
     val (decls, fixes) = chop (length raw_decls) vars;
     val show_term = Syntax.string_of_term vars_ctxt;
@@ -846,7 +846,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
         raw_defs def_thmss;
   in
     state
-    |> map_context (K defs_ctxt #> fold Variable.bind_term binds')
+    |> map_context (K defs_ctxt #> fold Variable.bind_term result_binds)
     |> note_thmss notes
   end;
 
@@ -1057,10 +1057,9 @@ fun local_goal print_results prep_statement prep_att strict_asm
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
 
     (*params*)
-    val ((params, assumes_propss, shows_propss, result_binds, text), params_ctxt) = ctxt
+    val ({fixes = params, assumes = assumes_propss, shows = shows_propss,
+          result_binds, result_text, text}, params_ctxt) = ctxt
       |> prep_statement raw_fixes (map snd raw_assumes) (map snd raw_shows);
-
-    val result_text = singleton (Variable.export_terms params_ctxt ctxt) text;
 
     (*prems*)
     val (assumes_bindings, shows_bindings) =

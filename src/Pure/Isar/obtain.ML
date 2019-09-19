@@ -201,7 +201,7 @@ fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis (Proof.context_of state);
 
-    val ((vars, propss, binds, binds', _), params_ctxt) =
+    val ({vars, propss, binds, result_binds, ...}, params_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (raw_prems @ map #2 raw_concls) thesis_ctxt;
     val (decls, fixes) = chop (length raw_decls) vars ||> map #2;
     val (premss, conclss) = chop (length raw_prems) propss;
@@ -230,7 +230,7 @@ fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw
       [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
       [(Binding.empty_atts, [(thesis, [])])] int
     |-> Proof.refine_insert
-    |> Proof.map_context (fold Variable.bind_term binds')
+    |> Proof.map_context (fold Variable.bind_term result_binds)
   end;
 
 in

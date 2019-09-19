@@ -169,22 +169,28 @@ sig
   val generic_add_abbrev: string -> binding * term -> Context.generic ->
     (term * term) * Context.generic
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
-  val cert_stmt:
-    (binding * typ option * mixfix) list -> (term * term list) list list -> Proof.context ->
-    (((binding * typ option * mixfix) * (string * term)) list * term list list *
-      (indexname * term) list * (indexname * term) list * term) * Proof.context
-  val read_stmt:
-    (binding * string option * mixfix) list -> (string * string list) list list -> Proof.context ->
-    (((binding * typ option * mixfix) * (string * term)) list * term list list *
-      (indexname * term) list * (indexname * term) list * term) * Proof.context
+  type stmt =
+   {vars: ((binding * typ option * mixfix) * (string * term)) list,
+    propss: term list list,
+    binds: (indexname * term) list,
+    result_binds: (indexname * term) list}
+  val cert_stmt: (binding * typ option * mixfix) list -> (term * term list) list list ->
+    Proof.context -> stmt * Proof.context
+  val read_stmt: (binding * string option * mixfix) list -> (string * string list) list list ->
+    Proof.context -> stmt * Proof.context
+  type statement =
+   {fixes: (string * term) list,
+    assumes: term list list,
+    shows: term list list,
+    result_binds: (indexname * term option) list,
+    text: term,
+    result_text: term}
   val cert_statement: (binding * typ option * mixfix) list ->
     (term * term list) list list -> (term * term list) list list -> Proof.context ->
-    ((string * term) list * term list list * term list list * (indexname * term option) list * term) *
-      Proof.context
+    statement * Proof.context
   val read_statement: (binding * string option * mixfix) list ->
     (string * string list) list list -> (string * string list) list list -> Proof.context ->
-    ((string * term) list * term list list * term list list * (indexname * term option) list * term) *
-      Proof.context
+    statement * Proof.context
   val print_syntax: Proof.context -> unit
   val print_abbrevs: bool -> Proof.context -> unit
   val pretty_term_bindings: Proof.context -> Pretty.T list
@@ -1334,6 +1340,20 @@ end;
 
 (* structured statements *)
 
+type stmt =
+ {vars: ((binding * typ option * mixfix) * (string * term)) list,
+  propss: term list list,
+  binds: (indexname * term) list,
+  result_binds: (indexname * term) list};
+
+type statement =
+ {fixes: (string * term) list,
+  assumes: term list list,
+  shows: term list list,
+  result_binds: (indexname * term option) list,
+  text: term,
+  result_text: term};
+
 local
 
 fun export_binds ctxt' ctxt params binds =
@@ -1362,25 +1382,36 @@ fun prep_stmt prep_var prep_propp raw_vars raw_propps ctxt =
       |> export_binds params_ctxt ctxt params
       |> map (apsnd the);
 
-    val text' = Logic.close_prop params [] (Logic.mk_conjunction_list (flat propss));
-
     val _ = Variable.warn_extra_tfrees fixes_ctxt params_ctxt;
-  in ((vars' ~~ params, propss, binds, binds', text'), params_ctxt) end;
+    val result : stmt =
+      {vars = vars' ~~ params, propss = propss, binds = binds, result_binds = binds'};
+  in (result, params_ctxt) end;
 
 fun prep_statement prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
   let
-    val ((fixes, (assumes, shows), binds, text'), ctxt') = ctxt
+    val ((fixes, (assumes, shows), binds), ctxt') = ctxt
       |> prep_stmt prep_var prep_propp raw_fixes (raw_assumes @ raw_shows)
-      |-> (fn (vars, propss, binds, _, text') =>
+      |-> (fn {vars, propss, binds, ...} =>
         fold Variable.bind_term binds #>
-        pair (map #2 vars, chop (length raw_assumes) propss, binds, text'));
+        pair (map #2 vars, chop (length raw_assumes) propss, binds));
     val binds' =
       (Auto_Bind.facts ctxt' (flat shows) @
         (case try List.last (flat shows) of
           NONE => []
         | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds))
       |> export_binds ctxt' ctxt fixes;
-  in ((fixes, assumes, shows, binds', text'), ctxt') end;
+
+    val text = Logic.close_prop fixes (flat assumes) (Logic.mk_conjunction_list (flat shows));
+    val text' = singleton (Variable.export_terms ctxt' ctxt) text;
+
+    val result : statement =
+     {fixes = fixes,
+      assumes = assumes,
+      shows = shows,
+      result_binds = binds',
+      text = text,
+      result_text = text'};
+  in (result, ctxt') end;
 
 in
 

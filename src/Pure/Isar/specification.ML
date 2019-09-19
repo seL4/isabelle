@@ -204,7 +204,7 @@ end;
 fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
   let
     (*specification*)
-    val ((vars, [prems, concls], _, _, _), vars_ctxt) =
+    val ({vars, propss = [prems, concls], ...}, vars_ctxt) =
       Proof_Context.init_global thy
       |> prep_stmt (raw_decls @ raw_fixes) ((map o map) (rpair []) [raw_prems, map snd raw_concls]);
     val (decls, fixes) = chop (length raw_decls) vars;
