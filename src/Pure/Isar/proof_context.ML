@@ -108,10 +108,9 @@ sig
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
-  val match_bind: bool -> (term list * term) list -> Proof.context ->
-    term list * Proof.context
-  val match_bind_cmd: bool -> (string list * string) list -> Proof.context ->
-    term list * Proof.context
+  val simult_matches: Proof.context -> term * term list -> (indexname * term) list
+  val maybe_bind_term: indexname * term option -> Proof.context -> Proof.context
+  val bind_term: indexname * term -> Proof.context -> Proof.context
   val cert_propp: Proof.context -> (term * term list) list list ->
     (term list list * (indexname * term) list)
   val read_propp: Proof.context -> (string * string list) list list ->
@@ -170,22 +169,28 @@ sig
   val generic_add_abbrev: string -> binding * term -> Context.generic ->
     (term * term) * Context.generic
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
-  val cert_stmt:
-    (binding * typ option * mixfix) list -> (term * term list) list list -> Proof.context ->
-    (((binding * typ option * mixfix) * (string * term)) list * term list list *
-      (indexname * term) list * (indexname * term) list) * Proof.context
-  val read_stmt:
-    (binding * string option * mixfix) list -> (string * string list) list list -> Proof.context ->
-    (((binding * typ option * mixfix) * (string * term)) list * term list list *
-      (indexname * term) list * (indexname * term) list) * Proof.context
+  type stmt =
+   {vars: ((binding * typ option * mixfix) * (string * term)) list,
+    propss: term list list,
+    binds: (indexname * term) list,
+    result_binds: (indexname * term) list}
+  val cert_stmt: (binding * typ option * mixfix) list -> (term * term list) list list ->
+    Proof.context -> stmt * Proof.context
+  val read_stmt: (binding * string option * mixfix) list -> (string * string list) list list ->
+    Proof.context -> stmt * Proof.context
+  type statement =
+   {fixes: (string * term) list,
+    assumes: term list list,
+    shows: term list list,
+    result_binds: (indexname * term option) list,
+    text: term,
+    result_text: term}
   val cert_statement: (binding * typ option * mixfix) list ->
     (term * term list) list list -> (term * term list) list list -> Proof.context ->
-    ((string * term) list * term list list * term list list * (indexname * term option) list) *
-      Proof.context
+    statement * Proof.context
   val read_statement: (binding * string option * mixfix) list ->
     (string * string list) list list -> (string * string list) list list -> Proof.context ->
-    ((string * term) list * term list list * term list list * (indexname * term option) list) *
-      Proof.context
+    statement * Proof.context
   val print_syntax: Proof.context -> unit
   val print_abbrevs: bool -> Proof.context -> unit
   val pretty_term_bindings: Proof.context -> Pretty.T list
@@ -418,8 +423,7 @@ fun markup_extern_fact ctxt name =
 (* augment context by implicit term declarations *)
 
 fun augment t ctxt = ctxt
-  |> not (Variable.is_body ctxt) ?
-      Variable.add_fixes_direct (rev (Variable.add_free_names ctxt t []))
+  |> Variable.add_fixes_implicit t
   |> Variable.declare_term t
   |> Soft_Type_System.augment t;
 
@@ -849,15 +853,7 @@ fun norm_export_morphism inner outer =
 
 (** term bindings **)
 
-(* simult_matches *)
-
-fun simult_matches ctxt (t, pats) =
-  (case Seq.pull (Unify.matchers (Context.Proof ctxt) (map (rpair t) pats)) of
-    NONE => error "Pattern match failed!"
-  | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
-
-
-(* auto_bind *)
+(* auto bindings *)
 
 fun auto_bind f props ctxt = fold Variable.maybe_bind_term (f ctxt props) ctxt;
 
@@ -865,52 +861,18 @@ val auto_bind_goal = auto_bind Auto_Bind.goal;
 val auto_bind_facts = auto_bind Auto_Bind.facts;
 
 
-(* bind terms (non-schematic) *)
+(* match bindings *)
 
-fun cert_maybe_bind_term (xi, t) ctxt =
+fun simult_matches ctxt (t, pats) =
+  (case Seq.pull (Unify.matchers (Context.Proof ctxt) (map (rpair t) pats)) of
+    NONE => error "Pattern match failed!"
+  | SOME (env, _) => Vartab.fold (fn (v, (_, t)) => cons (v, t)) (Envir.term_env env) []);
+
+fun maybe_bind_term (xi, t) ctxt =
   ctxt
   |> Variable.maybe_bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t);
 
-val cert_bind_term = cert_maybe_bind_term o apsnd SOME;
-
-
-(* match_bind *)
-
-local
-
-fun gen_bind prep_terms gen raw_binds ctxt =
-  let
-    fun prep_bind (raw_pats, t) ctxt1 =
-      let
-        val T = Term.fastype_of t;
-        val ctxt2 = Variable.declare_term t ctxt1;
-        val pats = prep_terms (set_mode mode_pattern ctxt2) T raw_pats;
-        val binds = simult_matches ctxt2 (t, pats);
-      in (binds, ctxt2) end;
-
-    val ts = prep_terms ctxt dummyT (map snd raw_binds);
-    val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
-    val binds' =
-      if gen then map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds)
-      else binds;
-    val ctxt'' =
-      tap (Variable.warn_extra_tfrees ctxt)
-       (if gen then
-          ctxt (*sic!*)
-          |> fold Variable.declare_term (map #2 binds')
-          |> fold cert_bind_term binds'
-        else ctxt' |> fold cert_bind_term binds');
-  in (ts, ctxt'') end;
-
-in
-
-fun read_terms ctxt T =
-  map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
-
-val match_bind = gen_bind (fn ctxt => fn _ => map (cert_term ctxt));
-val match_bind_cmd = gen_bind read_terms;
-
-end;
+val bind_term = maybe_bind_term o apsnd SOME;
 
 
 (* propositions with patterns *)
@@ -1347,7 +1309,7 @@ fun case_result c ctxt =
     val Rule_Cases.Case {assumes, binds, cases, ...} = Rule_Cases.apply ts c;
   in
     ctxt'
-    |> fold (cert_maybe_bind_term o drop_schematic) binds
+    |> fold (maybe_bind_term o drop_schematic) binds
     |> update_cases (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;
@@ -1378,6 +1340,20 @@ end;
 
 (* structured statements *)
 
+type stmt =
+ {vars: ((binding * typ option * mixfix) * (string * term)) list,
+  propss: term list list,
+  binds: (indexname * term) list,
+  result_binds: (indexname * term) list};
+
+type statement =
+ {fixes: (string * term) list,
+  assumes: term list list,
+  shows: term list list,
+  result_binds: (indexname * term option) list,
+  text: term,
+  result_text: term};
+
 local
 
 fun export_binds ctxt' ctxt params binds =
@@ -1407,13 +1383,15 @@ fun prep_stmt prep_var prep_propp raw_vars raw_propps ctxt =
       |> map (apsnd the);
 
     val _ = Variable.warn_extra_tfrees fixes_ctxt params_ctxt;
-  in ((vars' ~~ params, propss, binds, binds'), params_ctxt) end;
+    val result : stmt =
+      {vars = vars' ~~ params, propss = propss, binds = binds, result_binds = binds'};
+  in (result, params_ctxt) end;
 
 fun prep_statement prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
   let
     val ((fixes, (assumes, shows), binds), ctxt') = ctxt
       |> prep_stmt prep_var prep_propp raw_fixes (raw_assumes @ raw_shows)
-      |-> (fn (vars, propss, binds, _) =>
+      |-> (fn {vars, propss, binds, ...} =>
         fold Variable.bind_term binds #>
         pair (map #2 vars, chop (length raw_assumes) propss, binds));
     val binds' =
@@ -1422,7 +1400,18 @@ fun prep_statement prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
           NONE => []
         | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds))
       |> export_binds ctxt' ctxt fixes;
-  in ((fixes, assumes, shows, binds'), ctxt') end;
+
+    val text = Logic.close_prop fixes (flat assumes) (Logic.mk_conjunction_list (flat shows));
+    val text' = singleton (Variable.export_terms ctxt' ctxt) text;
+
+    val result : statement =
+     {fixes = fixes,
+      assumes = assumes,
+      shows = shows,
+      result_binds = binds',
+      text = text,
+      result_text = text'};
+  in (result, ctxt') end;
 
 in
 

@@ -557,16 +557,36 @@ fun method_error kind pos state =
 
 local
 
-fun gen_bind bind args state =
-  state
-  |> assert_forward
-  |> map_context (bind true args #> snd)
-  |> reset_facts;
+fun gen_bind prep_terms raw_binds =
+  assert_forward #> map_context (fn ctxt =>
+    let
+      fun prep_bind (raw_pats, t) ctxt1 =
+        let
+          val T = Term.fastype_of t;
+          val ctxt2 = Variable.declare_term t ctxt1;
+          val pats = prep_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt2) T raw_pats;
+          val binds = Proof_Context.simult_matches ctxt2 (t, pats);
+        in (binds, ctxt2) end;
+
+      val ts = prep_terms ctxt dummyT (map snd raw_binds);
+      val (binds, ctxt') = apfst flat (fold_map prep_bind (map fst raw_binds ~~ ts) ctxt);
+      val binds' = map #1 binds ~~ Variable.exportT_terms ctxt' ctxt (map #2 binds);
+
+      val ctxt'' =
+        ctxt
+        |> fold Variable.declare_term (map #2 binds')
+        |> fold Proof_Context.bind_term binds';
+      val _ = Variable.warn_extra_tfrees ctxt ctxt'';
+    in ctxt'' end)
+  #> reset_facts;
+
+fun read_terms ctxt T =
+  map (Syntax.parse_term ctxt #> Type.constraint T) #> Syntax.check_terms ctxt;
 
 in
 
-val let_bind = gen_bind Proof_Context.match_bind;
-val let_bind_cmd = gen_bind Proof_Context.match_bind_cmd;
+val let_bind = gen_bind (fn ctxt => fn _ => map (Proof_Context.cert_term ctxt));
+val let_bind_cmd = gen_bind read_terms;
 
 end;
 
@@ -625,15 +645,15 @@ fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls sta
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val ((params, prems_propss, concl_propss, result_binds), _) =
-      prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt;
+    val {fixes = params, assumes = prems_propss, shows = concl_propss, result_binds, text, ...} =
+      #1 (prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt);
     val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
     state
     |> assert_forward
     |> map_context_result (fn ctxt =>
       ctxt
-      |> (fold o fold) Variable.declare_term propss
+      |> Proof_Context.augment text
       |> fold Variable.maybe_bind_term result_binds
       |> fold_burrow (Assumption.add_assms export o map (Thm.cterm_of ctxt)) propss
       |-> (fn premss =>
@@ -792,7 +812,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
     val ctxt = context_of state;
 
     (*vars*)
-    val ((vars, propss, _, binds'), vars_ctxt) =
+    val ({vars, propss, result_binds, ...}, vars_ctxt) =
       prep_stmt (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
     val (decls, fixes) = chop (length raw_decls) vars;
     val show_term = Syntax.string_of_term vars_ctxt;
@@ -826,7 +846,7 @@ fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
         raw_defs def_thmss;
   in
     state
-    |> map_context (K defs_ctxt #> fold Variable.bind_term binds')
+    |> map_context (K defs_ctxt #> fold Variable.bind_term result_binds)
     |> note_thmss notes
   end;
 
@@ -1037,13 +1057,15 @@ fun local_goal print_results prep_statement prep_att strict_asm
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
 
     (*params*)
-    val ((params, assumes_propss, shows_propss, result_binds), params_ctxt) = ctxt
+    val ({fixes = params, assumes = assumes_propss, shows = shows_propss,
+          result_binds, result_text, text}, params_ctxt) = ctxt
       |> prep_statement raw_fixes (map snd raw_assumes) (map snd raw_shows);
 
     (*prems*)
     val (assumes_bindings, shows_bindings) =
       apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
     val (that_fact, goal_ctxt) = params_ctxt
+      |> fold Proof_Context.augment (text :: flat (assumes_propss @ shows_propss))
       |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
       |> (fn (premss, ctxt') =>
           let
@@ -1063,12 +1085,13 @@ fun local_goal print_results prep_statement prep_att strict_asm
       let
         val ctxt' = context_of state';
         val export0 =
-          Assumption.export false result_ctxt ctxt' #>
+          Assumption.export false result_ctxt (Proof_Context.augment result_text ctxt') #>
           fold_rev (fn (x, v) => Thm.forall_intr_name (x, Thm.cterm_of params_ctxt v)) params #>
           Raw_Simplifier.norm_hhf_protect ctxt';
         val export = map export0 #> Variable.export result_ctxt ctxt';
       in
         state'
+        |> map_context (Proof_Context.augment result_text)
         |> local_results (results_bindings ~~ burrow export results)
         |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
         |> after_qed (result_ctxt, results)
