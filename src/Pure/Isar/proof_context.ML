@@ -417,8 +417,7 @@ fun markup_extern_fact ctxt name =
 (* augment context by implicit term declarations *)
 
 fun augment t ctxt = ctxt
-  |> not (Variable.is_body ctxt) ?
-      Variable.add_fixes_direct (rev (Variable.add_free_names ctxt t []))
+  |> Variable.add_fixes_implicit t
   |> Variable.declare_term t
   |> Soft_Type_System.augment t;
 
