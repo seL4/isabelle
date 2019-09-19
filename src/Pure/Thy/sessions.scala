@@ -36,49 +36,6 @@ object Sessions
 
   /* base info and source dependencies */
 
-  object Known
-  {
-    val empty: Known = Known()
-
-    def make(bases: List[Base],
-      theories: List[Document.Node.Entry] = Nil,
-      loaded_files: List[(String, List[Path])] = Nil): Known =
-    {
-      def bases_theories_iterator =
-        for {
-          base <- bases.iterator
-          (_, entry) <- base.known.theories.iterator
-        } yield entry
-
-      val known_theories =
-        (Map.empty[String, Document.Node.Entry] /: (bases_theories_iterator ++ theories.iterator))({
-          case (known, entry) =>
-            known.get(entry.name.theory) match {
-              case Some(entry1) if entry.name != entry1.name =>
-                error("Duplicate theory " + quote(entry.name.node) + " vs. " +
-                  quote(entry1.name.node))
-              case _ => known + (entry.name.theory -> entry)
-            }
-          })
-
-      val known_loaded_files =
-        (loaded_files.toMap /: bases.map(base => base.known.loaded_files))(_ ++ _)
-
-      Known(known_theories, known_loaded_files)
-    }
-  }
-
-  sealed case class Known(
-    theories: Map[String, Document.Node.Entry] = Map.empty,
-    loaded_files: Map[String, List[Path]] = Map.empty)
-  {
-    def platform_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.platform_path(_))))
-
-    def standard_path: Known =
-      copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))))
-  }
-
   object Base
   {
     def bootstrap(
@@ -98,7 +55,8 @@ object Sessions
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
     used_theories: List[(Document.Node.Name, Options)] = Nil,
     dump_checkpoints: Set[Document.Node.Name] = Set.empty,
-    known: Known = Known.empty,
+    known_theories: Map[String, Document.Node.Entry] = Map.empty,
+    known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
     sources: List[(Path, SHA1.Digest)] = Nil,
@@ -234,9 +192,21 @@ object Sessions
                     sessions_structure.global_theories)
                 case Some(parent) => session_bases(parent)
               }
+
             val imports_base: Sessions.Base =
-              parent_base.copy(known =
-                Known.make(parent_base :: info.imports.map(session_bases(_))))
+            {
+              val imports_bases = info.imports.map(session_bases(_))
+              parent_base.copy(
+                known_theories =
+                  (parent_base.known_theories /:
+                    (for {
+                      base <- imports_bases.iterator
+                      (_, entry) <- base.known_theories.iterator
+                    } yield (entry.name.theory -> entry)))(_ + _),
+                known_loaded_files =
+                  (parent_base.known_loaded_files /:
+                    imports_bases.iterator.map(_.known_loaded_files))(_ ++ _))
+            }
 
             val resources = new Resources(sessions_structure, imports_base)
 
@@ -303,10 +273,11 @@ object Sessions
                     ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
             }
 
-            val known =
-              Known.make(List(imports_base),
-                theories = dependencies.entries,
-                loaded_files = loaded_files)
+            val known_theories =
+              (imports_base.known_theories /:
+                dependencies.entries.iterator.map(entry => entry.name.theory -> entry))(_ + _)
+
+            val known_loaded_files = imports_base.known_loaded_files ++ loaded_files
 
             val used_theories =
               for ((options, name) <- dependencies.adjunct_theories)
@@ -368,7 +339,8 @@ object Sessions
                 loaded_theories = dependencies.loaded_theories,
                 used_theories = used_theories,
                 dump_checkpoints = dump_checkpoints,
-                known = known,
+                known_theories = known_theories,
+                known_loaded_files = known_loaded_files,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),
                 sources = check_sources(session_files),
