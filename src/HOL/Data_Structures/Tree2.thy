@@ -26,6 +26,10 @@ fun size1 :: "('a,'b) tree \<Rightarrow> nat" where
 "size1 \<langle>\<rangle> = 1" |
 "size1 \<langle>l, _, _, r\<rangle> = size1 l + size1 r"
 
+fun complete :: "('a,'b) tree \<Rightarrow> bool" where
+"complete Leaf = True" |
+"complete (Node l _ _ r) = (complete l \<and> complete r \<and> height l = height r)"
+
 lemma size1_size: "size1 t = size t + 1"
 by (induction t) simp_all
 
