@@ -39,7 +39,7 @@ by (simp add: size1_size)
 lemma finite_set_tree[simp]: "finite(set_tree t)"
 by(induction t) auto
 
-lemma set_tree_empty: "set_tree t = {} \<longleftrightarrow> t = Leaf"
+lemma eq_set_tree_empty[simp]: "set_tree t = {} \<longleftrightarrow> t = Leaf"
 by (cases t) auto
 
 end
