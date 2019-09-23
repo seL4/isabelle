@@ -1,7 +1,5 @@
 (*  Title:      HOL/Set_Interval.thy
-    Author:     Tobias Nipkow
-    Author:     Clemens Ballarin
-    Author:     Jeremy Avigad
+    Author:     Tobias Nipkow, Clemens Ballarin, Jeremy Avigad
 
 lessThan, greaterThan, atLeast, atMost and two-sided intervals
 
@@ -92,7 +90,7 @@ lemma Compl_lessThan [simp]:
     "!!k:: 'a::linorder. -lessThan k = atLeast k"
   by (auto simp add: lessThan_def atLeast_def)
 
-lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
+lemma single_Diff_lessThan [simp]: "!!k:: 'a::preorder. {k} - lessThan k = {k}"
   by auto
 
 lemma (in ord) greaterThan_iff [iff]: "(i \<in> greaterThan k) = (k<i)"
@@ -134,11 +132,11 @@ lemma atMost_UNIV_triv [simp]: "{..UNIV} = UNIV"
   by auto
 
 lemma atLeast_subset_iff [iff]:
-     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))"
+     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::preorder))"
 by (blast intro: order_trans)
 
 lemma atLeast_eq_iff [iff]:
-     "(atLeast x = atLeast y) = (x = (y::'a::linorder))"
+     "(atLeast x = atLeast y) = (x = (y::'a::order))"
 by (blast intro: order_antisym order_trans)
 
 lemma greaterThan_subset_iff [iff]:
@@ -149,10 +147,10 @@ lemma greaterThan_eq_iff [iff]:
      "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))"
   by (auto simp: elim!: equalityE)
 
-lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))"
+lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::preorder))"
   by (blast intro: order_trans)
 
-lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::linorder))"
+lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::order))"
   by (blast intro: order_antisym order_trans)
 
 lemma lessThan_subset_iff [iff]:
@@ -213,63 +211,85 @@ end
 
 subsubsection\<open>Emptyness, singletons, subset\<close>
 
+context preorder
+begin
+
+lemma atLeastatMost_empty_iff[simp]:
+  "{a..b} = {} \<longleftrightarrow> (\<not> a \<le> b)"
+  by auto (blast intro: order_trans)
+
+lemma atLeastatMost_empty_iff2[simp]:
+  "{} = {a..b} \<longleftrightarrow> (\<not> a \<le> b)"
+  by auto (blast intro: order_trans)
+
+lemma atLeastLessThan_empty_iff[simp]:
+  "{a..<b} = {} \<longleftrightarrow> (\<not> a < b)"
+  by auto (blast intro: le_less_trans)
+
+lemma atLeastLessThan_empty_iff2[simp]:
+  "{} = {a..<b} \<longleftrightarrow> (\<not> a < b)"
+  by auto (blast intro: le_less_trans)
+
+lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> \<not> k < l"
+  by auto (blast intro: less_le_trans)
+
+lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> \<not> k < l"
+  by auto (blast intro: less_le_trans)
+
+lemma atLeastatMost_subset_iff[simp]:
+  "{a..b} \<le> {c..d} \<longleftrightarrow> (\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d"
+  unfolding atLeastAtMost_def atLeast_def atMost_def
+  by (blast intro: order_trans)
+
+lemma atLeastatMost_psubset_iff:
+  "{a..b} < {c..d} \<longleftrightarrow>
+   ((\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d \<and> (c < a \<or> b < d)) \<and> c \<le> d"
+  by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
+
+lemma Icc_subset_Ici_iff[simp]:
+  "{l..h} \<subseteq> {l'..} = (\<not> l\<le>h \<or> l\<ge>l')"
+  by(auto simp: subset_eq intro: order_trans)
+
+lemma Icc_subset_Iic_iff[simp]:
+  "{l..h} \<subseteq> {..h'} = (\<not> l\<le>h \<or> h\<le>h')"
+  by(auto simp: subset_eq intro: order_trans)
+
+lemma not_Ici_eq_empty[simp]: "{l..} \<noteq> {}"
+  by(auto simp: set_eq_iff)
+
+lemma not_Iic_eq_empty[simp]: "{..h} \<noteq> {}"
+  by(auto simp: set_eq_iff)
+
+lemmas not_empty_eq_Ici_eq_empty[simp] = not_Ici_eq_empty[symmetric]
+lemmas not_empty_eq_Iic_eq_empty[simp] = not_Iic_eq_empty[symmetric]
+
+end
+
 context order
 begin
 
 lemma atLeastatMost_empty[simp]:
   "b < a \<Longrightarrow> {a..b} = {}"
-by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
-
-lemma atLeastatMost_empty_iff[simp]:
-  "{a..b} = {} \<longleftrightarrow> (\<not> a \<le> b)"
-by auto (blast intro: order_trans)
-
-lemma atLeastatMost_empty_iff2[simp]:
-  "{} = {a..b} \<longleftrightarrow> (\<not> a \<le> b)"
-by auto (blast intro: order_trans)
+  by(auto simp: atLeastAtMost_def atLeast_def atMost_def)
 
 lemma atLeastLessThan_empty[simp]:
-  "b <= a \<Longrightarrow> {a..<b} = {}"
-by(auto simp: atLeastLessThan_def)
-
-lemma atLeastLessThan_empty_iff[simp]:
-  "{a..<b} = {} \<longleftrightarrow> (\<not> a < b)"
-by auto (blast intro: le_less_trans)
-
-lemma atLeastLessThan_empty_iff2[simp]:
-  "{} = {a..<b} \<longleftrightarrow> (\<not> a < b)"
-by auto (blast intro: le_less_trans)
+  "b \<le> a \<Longrightarrow> {a..<b} = {}"
+  by(auto simp: atLeastLessThan_def)
 
 lemma greaterThanAtMost_empty[simp]: "l \<le> k ==> {k<..l} = {}"
-by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
-
-lemma greaterThanAtMost_empty_iff[simp]: "{k<..l} = {} \<longleftrightarrow> \<not> k < l"
-by auto (blast intro: less_le_trans)
-
-lemma greaterThanAtMost_empty_iff2[simp]: "{} = {k<..l} \<longleftrightarrow> \<not> k < l"
-by auto (blast intro: less_le_trans)
+  by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
 lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
-by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
+  by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
-by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
+  by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 
 lemma atLeastAtMost_singleton': "a = b \<Longrightarrow> {a .. b} = {a}" by simp
 
-lemma atLeastatMost_subset_iff[simp]:
-  "{a..b} \<le> {c..d} \<longleftrightarrow> (\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d"
-unfolding atLeastAtMost_def atLeast_def atMost_def
-by (blast intro: order_trans)
-
-lemma atLeastatMost_psubset_iff:
-  "{a..b} < {c..d} \<longleftrightarrow>
-   ((\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d \<and> (c < a \<or> b < d)) \<and> c \<le> d"
-by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
-
 lemma Icc_eq_Icc[simp]:
   "{l..h} = {l'..h'} = (l=l' \<and> h=h' \<or> \<not> l\<le>h \<and> \<not> l'\<le>h')"
-by(simp add: order_class.eq_iff)(auto intro: order_trans)
+  by(simp add: order_class.eq_iff)(auto intro: order_trans)
 
 lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"
@@ -279,23 +299,6 @@ proof
   with \<open>{a..b} = {c}\<close> have "c \<le> a \<and> b \<le> c" by auto
   with * show "a = b \<and> b = c" by auto
 qed simp
-
-lemma Icc_subset_Ici_iff[simp]:
-  "{l..h} \<subseteq> {l'..} = (\<not> l\<le>h \<or> l\<ge>l')"
-by(auto simp: subset_eq intro: order_trans)
-
-lemma Icc_subset_Iic_iff[simp]:
-  "{l..h} \<subseteq> {..h'} = (\<not> l\<le>h \<or> h\<le>h')"
-by(auto simp: subset_eq intro: order_trans)
-
-lemma not_Ici_eq_empty[simp]: "{l..} \<noteq> {}"
-by(auto simp: set_eq_iff)
-
-lemma not_Iic_eq_empty[simp]: "{..h} \<noteq> {}"
-by(auto simp: set_eq_iff)
-
-lemmas not_empty_eq_Ici_eq_empty[simp] = not_Ici_eq_empty[symmetric]
-lemmas not_empty_eq_Iic_eq_empty[simp] = not_Iic_eq_empty[symmetric]
 
 end
 
@@ -811,7 +814,7 @@ by auto
 text \<open>The analogous result is useful on \<^typ>\<open>int\<close>:\<close>
 (* here, because we don't have an own int section *)
 lemma atLeastAtMostPlus1_int_conv:
-  "m <= 1+n \<Longrightarrow> {m..1+n} = insert (1+n) {m..n::int}"
+  "m \<le> 1+n \<Longrightarrow> {m..1+n} = insert (1+n) {m..n::int}"
   by (auto intro: set_eqI)
 
 lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \<union> {j..<j+k::nat}"
@@ -1224,7 +1227,7 @@ proof (cases "finite A")
   next
     case (insert b A)
     hence *: "b \<notin> A" by auto
-    with insert have "A <= {k..<k + card A}" and "b = k + card A"
+    with insert have "A \<le> {k..<k + card A}" and "b = k + card A"
       by fastforce+
     with insert * show ?case by auto
   qed
@@ -2483,6 +2486,6 @@ proof -
     by (simp add: prod.eq_fold fold_atLeastAtMost_nat o_def)
 qed
 
-(* TODO: Add support for more kinds of intervals here *)
+(* TODO: Add support for folding over more kinds of intervals here *)
 
 end
