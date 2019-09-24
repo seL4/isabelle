@@ -1,0 +1,54 @@
+Phabricator server
+==================
+
+- https://www.phacility.com/phabricator
+
+  Slogan: "Discuss. Plan. Code. Review. Test.
+  Every application your project needs, all in one tool."
+
+- Ubuntu 18.04 LTS Linux Server standard installation with
+  Apache and MySQL
+  https://help.ubuntu.com/lts/serverguide
+  https://help.ubuntu.com/lts/serverguide/httpd.html
+  https://help.ubuntu.com/lts/serverguide/mysql.html
+
+- Apache HTTPS via "Let's Encrypt":
+  https://letsencrypt.org/getting-started
+
+- Installation:
+
+  https://secure.phabricator.com/book/phabricator/article/installation_guide
+  https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh
+
+- Configuration/Setup Issues: ignore "Alternate File Domain Not Configured"
+
+- Configuration/Accounts: local, *not* Google, Github etc.
+  https://secure.phabricator.com/book/phabricator/article/configuring_accounts_and_registration
+
+- Configuration/Mail:
+  https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
+
+  e.g. external SMTP via suitable mailers.json:
+  $ ./bin/config set --stdin cluster.mailers < mailers.json
+
+- Configuration/SSH:
+  https://secure.phabricator.com/book/phabricator/article/diffusion_hosting
+
+  $ cp ssh/ssh-hook /usr/local/bin/.
+  $ cp ssh/sshd_config.phabricator /etc/ssh/.
+  $ cp ssh/sshd-phabricator.service /etc/systemd/system/.
+  $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
+
+  Test:
+  $ echo "{}" | ssh -p2222 vcs@phabricator.sketis.net conduit conduit.ping
+
+- Update:
+  https://secure.phabricator.com/book/phabricator/article/upgrading
+
+  sudo ./update
+
+- Backup:
+  https://secure.phabricator.com/book/phabricator/article/configuring_backups
+
+  $ apt install automysqlbackup
+  edit /etc/default/automysqlbackup: BACKUPDIR

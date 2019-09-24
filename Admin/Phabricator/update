@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# Update Phabricator installation in given ROOT directory
+# see https://secure.phabricator.com/book/phabricator/article/upgrading
+
+set -e
+
+ROOT="${1:-/var/www/phabricator}"
+
+"$ROOT/phabricator/bin/phd" stop
+
+systemctl stop apache2
+
+for REPOS in libphutil arcanist phabricator
+do
+  cd "$ROOT/$REPOS"
+  git pull
+done
+
+"$ROOT/phabricator/bin/storage" upgrade --force
+
+systemctl start apache2
+
+"$ROOT/phabricator/bin/phd" start

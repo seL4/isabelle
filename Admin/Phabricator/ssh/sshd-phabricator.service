@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenBSD Secure Shell server (Phabricator)
+After=network.target auditd.service
+ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
+
+[Service]
+EnvironmentFile=-/etc/default/ssh
+ExecStartPre=/usr/sbin/sshd -f /etc/ssh/sshd_config.phabricator -t
+ExecStart=/usr/sbin/sshd -f /etc/ssh/sshd_config.phabricator -D $SSHD_OPTS
+ExecReload=/usr/sbin/sshd -f /etc/ssh/sshd_config.phabricator -t
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+Type=notify
+RuntimeDirectory=sshd-phabricator
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target
+Alias=sshd-phabricator.service
