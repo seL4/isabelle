@@ -198,7 +198,7 @@ lemma inj_injf_max: "\<forall>x. \<exists>y \<in> E. x < y \<Longrightarrow> inj
   apply (rule ccontr)
   apply auto
   apply (drule injf_max_order_preserving2)
-  apply (metis linorder_antisym_conv3 order_less_le)
+  apply (metis antisym_conv3 order_less_le)
   done
 
 lemma infinite_set_has_order_preserving_inj:

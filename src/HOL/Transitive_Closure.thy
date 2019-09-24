@@ -1177,7 +1177,7 @@ lemma acyclic_irrefl [code]: "acyclic r \<longleftrightarrow> irrefl (r\<^sup>+)
 lemma acyclicI: "\<forall>x. (x, x) \<notin> r\<^sup>+ \<Longrightarrow> acyclic r"
   by (simp add: acyclic_def)
 
-lemma (in order) acyclicI_order:
+lemma (in preorder) acyclicI_order:
   assumes *: "\<And>a b. (a, b) \<in> r \<Longrightarrow> f b < f a"
   shows "acyclic r"
 proof -

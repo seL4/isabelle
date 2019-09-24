@@ -99,8 +99,8 @@ fun compose (cvs, f, rule) thm =
 
 local
   val antisym_le1 = mk_meta_eq @{thm order_class.antisym_conv}
-  val antisym_le2 = mk_meta_eq @{thm linorder_class.antisym_conv2}
-  val antisym_less1 = mk_meta_eq @{thm linorder_class.antisym_conv1}
+  val antisym_le2 = mk_meta_eq @{thm order_class.antisym_conv2}
+  val antisym_less1 = mk_meta_eq @{thm order_class.antisym_conv1}
   val antisym_less2 = mk_meta_eq @{thm linorder_class.antisym_conv3}
 
   fun eq_prop t thm = HOLogic.mk_Trueprop t aconv Thm.prop_of thm

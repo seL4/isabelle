@@ -246,6 +246,10 @@ lemma atLeastatMost_psubset_iff:
    ((\<not> a \<le> b) \<or> c \<le> a \<and> b \<le> d \<and> (c < a \<or> b < d)) \<and> c \<le> d"
   by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
 
+lemma atLeastAtMost_subseteq_atLeastLessThan_iff:
+  "{a..b} \<subseteq> {c ..< d} \<longleftrightarrow> (a \<le> b \<longrightarrow> c \<le> a \<and> b < d)" 
+  by auto (blast intro: local.order_trans local.le_less_trans elim: )+
+
 lemma Icc_subset_Ici_iff[simp]:
   "{l..h} \<subseteq> {l'..} = (\<not> l\<le>h \<or> l\<ge>l')"
   by(auto simp: subset_eq intro: order_trans)
@@ -408,11 +412,6 @@ lemma greaterThanLessThan_subseteq_atLeastAtMost_iff:
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
 
-lemma atLeastAtMost_subseteq_atLeastLessThan_iff:
-  "{a .. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a \<le> b \<longrightarrow> c \<le> a \<and> b < d)"
-  using dense[of "max a d" "b"]
-  by (force simp: subset_eq Ball_def not_less[symmetric])
-
 lemma greaterThanLessThan_subseteq_greaterThanLessThan:
   "{a <..< b} \<subseteq> {c <..< d} \<longleftrightarrow> (a < b \<longrightarrow> a \<ge> c \<and> b \<le> d)"
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
@@ -463,7 +462,7 @@ lemma atLeastLessThan_inj:
   fixes a b c d :: "'a::linorder"
   assumes eq: "{a ..< b} = {c ..< d}" and "a < b" "c < d"
   shows "a = c" "b = d"
-using assms by (metis atLeastLessThan_subset_iff eq less_le_not_le linorder_antisym_conv2 subset_refl)+
+using assms by (metis atLeastLessThan_subset_iff eq less_le_not_le antisym_conv2 subset_refl)+
 
 lemma atLeastLessThan_eq_iff:
   fixes a b c d :: "'a::linorder"

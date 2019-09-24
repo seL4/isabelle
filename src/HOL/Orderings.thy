@@ -278,6 +278,14 @@ by (blast intro: antisym)
 lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
 by (fact order.strict_implies_not_eq)
 
+lemma antisym_conv1: "\<not> x < y \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
+  by (simp add: local.le_less)
+
+lemma antisym_conv2: "x \<le> y \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
+  by (simp add: local.less_le)
+
+lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
+  by (auto simp: less_le antisym)
 
 text \<open>Least value operator\<close>
 
@@ -390,20 +398,15 @@ lemma linorder_wlog[case_names le sym]:
   by (cases rule: le_cases[of a b]) blast+
 
 lemma not_less: "\<not> x < y \<longleftrightarrow> y \<le> x"
-apply (simp add: less_le)
-using linear apply (blast intro: antisym)
-done
+  unfolding less_le
+  using linear by (blast intro: antisym)
 
-lemma not_less_iff_gr_or_eq:
- "\<not>(x < y) \<longleftrightarrow> (x > y \<or> x = y)"
-apply(simp add:not_less le_less)
-apply blast
-done
+lemma not_less_iff_gr_or_eq: "\<not>(x < y) \<longleftrightarrow> (x > y \<or> x = y)"
+  by (auto simp add:not_less le_less)
 
 lemma not_le: "\<not> x \<le> y \<longleftrightarrow> y < x"
-apply (simp add: less_le)
-using linear apply (blast intro: antisym)
-done
+  unfolding less_le
+  using linear by (blast intro: antisym)
 
 lemma neq_iff: "x \<noteq> y \<longleftrightarrow> x < y \<or> y < x"
 by (cut_tac x = x and y = y in less_linear, auto)
@@ -411,19 +414,10 @@ by (cut_tac x = x and y = y in less_linear, auto)
 lemma neqE: "x \<noteq> y \<Longrightarrow> (x < y \<Longrightarrow> R) \<Longrightarrow> (y < x \<Longrightarrow> R) \<Longrightarrow> R"
 by (simp add: neq_iff) blast
 
-lemma antisym_conv1: "\<not> x < y \<Longrightarrow> x \<le> y \<longleftrightarrow> x = y"
-by (blast intro: antisym dest: not_less [THEN iffD1])
-
-lemma antisym_conv2: "x \<le> y \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
-by (blast intro: antisym dest: not_less [THEN iffD1])
-
 lemma antisym_conv3: "\<not> y < x \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
 by (blast intro: antisym dest: not_less [THEN iffD1])
 
 lemma leI: "\<not> x < y \<Longrightarrow> y \<le> x"
-unfolding not_less .
-
-lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
 unfolding not_less .
 
 lemma not_le_imp_less: "\<not> y \<le> x \<Longrightarrow> x < y"
@@ -688,7 +682,7 @@ fun antisym_le_simproc ctxt ct =
             let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s)) in
               (case find_first (prp t) prems of
                 NONE => NONE
-              | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1})))
+              | SOME thm => SOME(mk_meta_eq(thm RS @{thm antisym_conv1})))
              end
          | SOME thm => SOME (mk_meta_eq (thm RS @{thm order_class.antisym_conv})))
       end handle THM _ => NONE)
@@ -709,7 +703,7 @@ fun antisym_less_simproc ctxt ct =
                 NONE => NONE
               | SOME thm => SOME (mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3})))
             end
-        | SOME thm => SOME (mk_meta_eq (thm RS @{thm linorder_class.antisym_conv2})))
+        | SOME thm => SOME (mk_meta_eq (thm RS @{thm antisym_conv2})))
       end handle THM _ => NONE)
   | _ => NONE);
 
@@ -1744,8 +1738,5 @@ lemmas linorder_not_less = linorder_class.not_less
 lemmas linorder_not_le = linorder_class.not_le
 lemmas linorder_neq_iff = linorder_class.neq_iff
 lemmas linorder_neqE = linorder_class.neqE
-lemmas linorder_antisym_conv1 = linorder_class.antisym_conv1
-lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
-lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
 end

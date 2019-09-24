@@ -286,7 +286,7 @@ proof -
     by (simp add: closed_Int)
 qed
 
-lemma (in linorder) less_separate:
+lemma (in order) less_separate:
   assumes "x < y"
   shows "\<exists>a b. x \<in> {..< a} \<and> y \<in> {b <..} \<and> {..< a} \<inter> {b <..} = {}"
 proof (cases "\<exists>z. x < z \<and> z < y")
@@ -3673,11 +3673,7 @@ proof -
   have "(\<lambda>(x,y). d y x) = (\<lambda>(x,y). d x y) \<circ> prod.swap"
     by force
   then show ?thesis
-    apply (rule ssubst)
-    apply (rule continuous_on_compose)
-     apply (force intro: continuous_on_subset [OF continuous_on_swap])
-    apply (force intro: continuous_on_subset [OF assms])
-    done
+    by (metis assms continuous_on_compose continuous_on_swap product_swap)
 qed
 
 lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"

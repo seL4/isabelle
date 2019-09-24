@@ -640,7 +640,7 @@ lemma lt2p_lem: "LENGTH('a) \<le> n \<Longrightarrow> uint w < 2 ^ n"
   by (metis bintr_uint bintrunc_mod2p int_mod_lem zless2p)
 
 lemma uint_le_0_iff [simp]: "uint x \<le> 0 \<longleftrightarrow> uint x = 0"
-  by (fact uint_ge_0 [THEN leD, THEN linorder_antisym_conv1])
+  by (fact uint_ge_0 [THEN leD, THEN antisym_conv1])
 
 lemma uint_nat: "uint w = int (unat w)"
   by (auto simp: unat_def)
@@ -1682,7 +1682,7 @@ lemma rtb_rbl_ariths:
 subsection \<open>Arithmetic type class instantiations\<close>
 
 lemmas word_le_0_iff [simp] =
-  word_zero_le [THEN leD, THEN linorder_antisym_conv1]
+  word_zero_le [THEN leD, THEN antisym_conv1]
 
 lemma word_of_int_nat: "0 \<le> x \<Longrightarrow> word_of_int x = of_nat (nat x)"
   by (simp add: word_of_int)
