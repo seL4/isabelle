@@ -21,10 +21,10 @@ But because the map (@{typ "'a rbt"}) is used in a datatype, the HOL type system
 
 However, the development below works verbatim for any map implementation, eg \<open>Tree_Map\<close>,
 and not just \<open>RBT_Map\<close>, except for the termination lemma \<open>lookup_size\<close>.\<close>
-
+term size_tree
 lemma lookup_size[termination_simp]:
   fixes t :: "('a::linorder * 'a trie_map) rbt"
-  shows "lookup t a = Some b \<Longrightarrow> size b < Suc (size_tree (\<lambda>ab. Suc (size (snd ab))) (\<lambda>x. 0) t)"
+  shows "lookup t a = Some b \<Longrightarrow> size b < Suc (size_tree (\<lambda>ab. Suc(Suc (size (snd(fst ab))))) t)"
 apply(induction t a rule: lookup.induct)
 apply(auto split: if_splits)
 done

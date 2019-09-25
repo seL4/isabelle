@@ -31,11 +31,11 @@ definition insert :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" wh
 
 fun color :: "'a rbt \<Rightarrow> color" where
 "color Leaf = Black" |
-"color (Node _ _ c _) = c"
+"color (Node _ (_, c) _) = c"
 
 fun del :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "del x Leaf = Leaf" |
-"del x (Node l a _ r) =
+"del x (Node l (a, _) r) =
   (case cmp x a of
      LT \<Rightarrow> if l \<noteq> Leaf \<and> color l = Black
            then baldL (del x l) a r else R (del x l) a r |
@@ -100,11 +100,11 @@ text\<open>The proofs are due to Markus Reiter and Alexander Krauss.\<close>
 
 fun bheight :: "'a rbt \<Rightarrow> nat" where
 "bheight Leaf = 0" |
-"bheight (Node l x c r) = (if c = Black then bheight l + 1 else bheight l)"
+"bheight (Node l (x, c) r) = (if c = Black then bheight l + 1 else bheight l)"
 
 fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc Leaf = True" |
-"invc (Node l a c r) =
+"invc (Node l (a,c) r) =
   (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
 
 text \<open>Weaker version:\<close>
@@ -113,10 +113,10 @@ abbreviation invc2 :: "'a rbt \<Rightarrow> bool" where
 
 fun invh :: "'a rbt \<Rightarrow> bool" where
 "invh Leaf = True" |
-"invh (Node l x c r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
+"invh (Node l (x, c) r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
 
 lemma invc2I: "invc t \<Longrightarrow> invc2 t"
-by (cases t) simp+
+by (cases t rule: tree2_cases) simp+
 
 definition rbt :: "'a rbt \<Rightarrow> bool" where
 "rbt t = (invc t \<and> invh t \<and> color t = Black)"
@@ -234,8 +234,8 @@ lemma invc_combine:
 by (induct l r rule: combine.induct)
    (auto simp: invc_baldL invc2I split: tree.splits color.splits)
 
-lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>c l x r. t = Node c l x r"
-by(cases t) auto
+lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>l x c r. t = Node l (x,c) r"
+by(cases t rule: tree2_cases) auto
 
 lemma del_invc_invh: "invh t \<Longrightarrow> invc t \<Longrightarrow> invh (del x t) \<and>
    (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>

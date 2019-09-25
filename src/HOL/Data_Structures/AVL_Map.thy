@@ -9,16 +9,16 @@ imports
 begin
 
 fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
-"update x y Leaf = Node Leaf (x,y) 1 Leaf" |
-"update x y (Node l (a,b) h r) = (case cmp x a of
-   EQ \<Rightarrow> Node l (x,y) h r |
+"update x y Leaf = Node Leaf ((x,y), 1) Leaf" |
+"update x y (Node l ((a,b), h) r) = (case cmp x a of
+   EQ \<Rightarrow> Node l ((x,y), h) r |
    LT \<Rightarrow> balL (update x y l) (a,b) r |
    GT \<Rightarrow> balR l (a,b) (update x y r))"
 
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node l (a,b) h r) = (case cmp x a of
-   EQ \<Rightarrow> del_root (Node l (a,b) h r) |
+"delete x (Node l ((a,b), h) r) = (case cmp x a of
+   EQ \<Rightarrow> del_root (Node l ((a,b), h) r) |
    LT \<Rightarrow> balR (delete x l) (a,b) r |
    GT \<Rightarrow> balL l (a,b) (delete x r))"
 
@@ -114,7 +114,7 @@ theorem avl_delete:
   assumes "avl t" 
   shows "avl(delete x t)" and "height t = (height (delete x t)) \<or> height t = height (delete x t) + 1"
 using assms
-proof (induct t)
+proof (induct t rule: tree2_induct)
   case (Node l n h r)
   obtain a b where [simp]: "n = (a,b)" by fastforce
   case 1
@@ -134,8 +134,8 @@ proof (induct t)
   show ?case
   proof(cases "x = a")
     case True
-    with 1 have "height (Node l n h r) = height(del_root (Node l n h r))
-      \<or> height (Node l n h r) = height(del_root (Node l n h r)) + 1"
+    with 1 have "height (Node l (n, h) r) = height(del_root (Node l (n, h) r))
+      \<or> height (Node l (n, h) r) = height(del_root (Node l (n, h) r)) + 1"
       by (subst height_del_root,simp_all)
     with True show ?thesis by simp
   next

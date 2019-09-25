@@ -10,30 +10,30 @@ imports
   Complex_Main
 begin
 
-fun mset_tree :: "('a,'b) tree \<Rightarrow> 'a multiset" where
+fun mset_tree :: "('a*'b) tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |
-"mset_tree (Node l a _ r) = {#a#} + mset_tree l + mset_tree r"
+"mset_tree (Node l (a, _) r) = {#a#} + mset_tree l + mset_tree r"
 
-type_synonym 'a lheap = "('a,nat)tree"
+type_synonym 'a lheap = "('a*nat)tree"
 
 fun rank :: "'a lheap \<Rightarrow> nat" where
 "rank Leaf = 0" |
-"rank (Node _ _ _ r) = rank r + 1"
+"rank (Node _ _ r) = rank r + 1"
 
 fun rk :: "'a lheap \<Rightarrow> nat" where
 "rk Leaf = 0" |
-"rk (Node _ _ n _) = n"
+"rk (Node _ (_, n) _) = n"
 
 text\<open>The invariants:\<close>
 
-fun (in linorder) heap :: "('a,'b) tree \<Rightarrow> bool" where
+fun (in linorder) heap :: "('a*'b) tree \<Rightarrow> bool" where
 "heap Leaf = True" |
-"heap (Node l m _ r) =
+"heap (Node l (m, _) r) =
   (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 fun ltree :: "'a lheap \<Rightarrow> bool" where
 "ltree Leaf = True" |
-"ltree (Node l a n r) =
+"ltree (Node l (a, n) r) =
  (n = rank r + 1 \<and> rank l \<ge> rank r \<and> ltree l & ltree r)"
 
 definition empty :: "'a lheap" where
@@ -42,10 +42,10 @@ definition empty :: "'a lheap" where
 definition node :: "'a lheap \<Rightarrow> 'a \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "node l a r =
  (let rl = rk l; rr = rk r
-  in if rl \<ge> rr then Node l a (rr+1) r else Node r a (rl+1) l)"
+  in if rl \<ge> rr then Node l (a,rr+1) r else Node r (a,rl+1) l)"
 
 fun get_min :: "'a lheap \<Rightarrow> 'a" where
-"get_min(Node l a n r) = a"
+"get_min(Node l (a, n) r) = a"
 
 text \<open>For function \<open>merge\<close>:\<close>
 unbundle pattern_aliases
@@ -53,7 +53,7 @@ unbundle pattern_aliases
 fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge Leaf t = t" |
 "merge t Leaf = t" |
-"merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
+"merge (Node l1 (a1, n1) r1 =: t1) (Node l2 (a2, n2) r2 =: t2) =
    (if a1 \<le> a2 then node l1 a1 (merge r1 t2)
     else node l2 a2 (merge t1 r2))"
 
@@ -63,18 +63,18 @@ of the two arguments. Isabelle uses a lexicographic product.\<close>
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
   (_, Leaf) \<Rightarrow> t1 |
-  (Node l1 a1 n1 r1, Node l2 a2 n2 r2) \<Rightarrow>
+  (Node l1 (a1, n1) r1, Node l2 (a2, n2) r2) \<Rightarrow>
     if a1 \<le> a2 then node l1 a1 (merge r1 t2) else node l2 a2 (merge t1 r2))"
 by(induction t1 t2 rule: merge.induct) (simp_all split: tree.split)
 
 hide_const (open) insert
 
 definition insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
-"insert x t = merge (Node Leaf x 1 Leaf) t"
+"insert x t = merge (Node Leaf (x,1) Leaf) t"
 
 fun del_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
 "del_min Leaf = Leaf" |
-"del_min (Node l x n r) = merge l r"
+"del_min (Node l _ r) = merge l r"
 
 
 subsection "Lemmas"
@@ -177,17 +177,17 @@ qed
 subsection "Complexity"
 
 lemma pow2_rank_size1: "ltree t \<Longrightarrow> 2 ^ rank t \<le> size1 t"
-proof(induction t)
+proof(induction t rule: tree2_induct)
   case Leaf show ?case by simp
 next
   case (Node l a n r)
   hence "rank r \<le> rank l" by simp
   hence *: "(2::nat) ^ rank r \<le> 2 ^ rank l" by simp
-  have "(2::nat) ^ rank \<langle>l, a, n, r\<rangle> = 2 ^ rank r + 2 ^ rank r"
+  have "(2::nat) ^ rank \<langle>l, (a, n), r\<rangle> = 2 ^ rank r + 2 ^ rank r"
     by(simp add: mult_2)
   also have "\<dots> \<le> size1 l + size1 r"
     using Node * by (simp del: power_increasing_iff)
-  also have "\<dots> = size1 \<langle>l, a, n, r\<rangle>" by simp
+  also have "\<dots> = size1 \<langle>l, (a, n), r\<rangle>" by simp
   finally show ?case .
 qed
 
@@ -196,16 +196,16 @@ text\<open>Explicit termination argument: sum of sizes\<close>
 fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_merge Leaf t = 1" |
 "t_merge t Leaf = 1" |
-"t_merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
+"t_merge (Node l1 (a1, n1) r1 =: t1) (Node l2 (a2, n2) r2 =: t2) =
   (if a1 \<le> a2 then 1 + t_merge r1 t2
    else 1 + t_merge t1 r2)"
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
-"t_insert x t = t_merge (Node Leaf x 1 Leaf) t"
+"t_insert x t = t_merge (Node Leaf (x, 1) Leaf) t"
 
 fun t_del_min :: "'a::ord lheap \<Rightarrow> nat" where
 "t_del_min Leaf = 1" |
-"t_del_min (Node l a n r) = t_merge l r"
+"t_del_min (Node l _ r) = t_merge l r"
 
 lemma t_merge_rank: "t_merge l r \<le> rank l + rank r + 1"
 proof(induction l r rule: merge.induct)
@@ -219,7 +219,7 @@ using le_log2_of_power[OF pow2_rank_size1[OF assms(1)]]
 by linarith
 
 corollary t_insert_log: "ltree t \<Longrightarrow> t_insert x t \<le> log 2 (size1 t) + 2"
-using t_merge_log[of "Node Leaf x 1 Leaf" t]
+using t_merge_log[of "Node Leaf (x, 1) Leaf" t]
 by(simp add: t_insert_def split: tree.split)
 
 (* FIXME mv ? *)
@@ -237,7 +237,7 @@ qed
 
 corollary t_del_min_log: assumes "ltree t"
   shows "t_del_min t \<le> 2 * log 2 (size1 t) + 1"
-proof(cases t)
+proof(cases t rule: tree2_cases)
   case Leaf thus ?thesis using assms by simp
 next
   case [simp]: (Node t1 _ _ t2)

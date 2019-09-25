@@ -12,7 +12,7 @@ imports
   "HOL-Number_Theory.Fib"
 begin
 
-type_synonym 'a avl_tree = "('a,nat) tree"
+type_synonym 'a avl_tree = "('a*nat) tree"
 
 definition empty :: "'a avl_tree" where
 "empty = Leaf"
@@ -21,25 +21,25 @@ text \<open>Invariant:\<close>
 
 fun avl :: "'a avl_tree \<Rightarrow> bool" where
 "avl Leaf = True" |
-"avl (Node l a h r) =
+"avl (Node l (a,h) r) =
  ((height l = height r \<or> height l = height r + 1 \<or> height r = height l + 1) \<and> 
   h = max (height l) (height r) + 1 \<and> avl l \<and> avl r)"
 
 fun ht :: "'a avl_tree \<Rightarrow> nat" where
 "ht Leaf = 0" |
-"ht (Node l a h r) = h"
+"ht (Node l (a,h) r) = h"
 
 definition node :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"node l a r = Node l a (max (ht l) (ht r) + 1) r"
+"node l a r = Node l (a, max (ht l) (ht r) + 1) r"
 
 definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "balL l a r =
   (if ht l = ht r + 2 then
      case l of 
-       Node bl b _ br \<Rightarrow>
+       Node bl (b, _) br \<Rightarrow>
          if ht bl < ht br then
            case br of
-             Node cl c _ cr \<Rightarrow> node (node bl b cl) c (node cr a r)
+             Node cl (c, _) cr \<Rightarrow> node (node bl b cl) c (node cr a r)
          else node bl b (node br a r)
    else node l a r)"
 
@@ -47,38 +47,38 @@ definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
 "balR l a r =
    (if ht r = ht l + 2 then
       case r of
-        Node bl b _ br \<Rightarrow>
+        Node bl (b, _) br \<Rightarrow>
           if ht bl > ht br then
             case bl of
-              Node cl c _ cr \<Rightarrow> node (node l a cl) c (node cr b br)
+              Node cl (c, _) cr \<Rightarrow> node (node l a cl) c (node cr b br)
           else node (node l a bl) b br
   else node l a r)"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"insert x Leaf = Node Leaf x 1 Leaf" |
-"insert x (Node l a h r) = (case cmp x a of
-   EQ \<Rightarrow> Node l a h r |
+"insert x Leaf = Node Leaf (x, 1) Leaf" |
+"insert x (Node l (a, h) r) = (case cmp x a of
+   EQ \<Rightarrow> Node l (a, h) r |
    LT \<Rightarrow> balL (insert x l) a r |
    GT \<Rightarrow> balR l a (insert x r))"
 
 fun split_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
-"split_max (Node l a _ r) =
+"split_max (Node l (a, _) r) =
   (if r = Leaf then (l,a) else let (r',a') = split_max r in (balL l a r', a'))"
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
 fun del_root :: "'a avl_tree \<Rightarrow> 'a avl_tree" where
-"del_root (Node Leaf a h r) = r" |
-"del_root (Node l a h Leaf) = l" |
-"del_root (Node l a h r) = (let (l', a') = split_max l in balR l' a' r)"
+"del_root (Node Leaf (a,h) r) = r" |
+"del_root (Node l (a,h) Leaf) = l" |
+"del_root (Node l (a,h) r) = (let (l', a') = split_max l in balR l' a' r)"
 
-lemmas del_root_cases = del_root.cases[case_names Leaf_t Node_Leaf Node_Node]
+lemmas del_root_cases = del_root.cases[split_format(complete), case_names Leaf_t Node_Leaf Node_Node]
 
 fun delete :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node l a h r) =
+"delete x (Node l (a, h) r) =
   (case cmp x a of
-     EQ \<Rightarrow> del_root (Node l a h r) |
+     EQ \<Rightarrow> del_root (Node l (a, h) r) |
      LT \<Rightarrow> balR (delete x l) a r |
      GT \<Rightarrow> balL l a (delete x r))"
 
@@ -113,8 +113,8 @@ by(induction t arbitrary: t' rule: split_max.induct)
   (auto simp: inorder_balL split: if_splits prod.splits tree.split)
 
 lemma inorder_del_root:
-  "inorder (del_root (Node l a h r)) = inorder l @ inorder r"
-by(cases "Node l a h r" rule: del_root.cases)
+  "inorder (del_root (Node l ah r)) = inorder l @ inorder r"
+by(cases "Node l ah r" rule: del_root.cases)
   (auto simp: inorder_balL inorder_balR inorder_split_maxD split: if_splits prod.splits)
 
 theorem inorder_delete:
@@ -134,7 +134,7 @@ subsubsection \<open>Insertion maintains AVL balance\<close>
 declare Let_def [simp]
 
 lemma ht_height[simp]: "avl t \<Longrightarrow> ht t = height t"
-by (cases t) simp_all
+by (cases t rule: tree2_cases) simp_all
 
 lemma height_balL:
   "\<lbrakk> height l = height r + 2; avl l; avl r \<rbrakk> \<Longrightarrow>
@@ -171,7 +171,7 @@ lemma avl_balL:
   assumes "avl l" "avl r" and "height l = height r \<or> height l = height r + 1
     \<or> height r = height l + 1 \<or> height l = height r + 2" 
   shows "avl(balL l a r)"
-proof(cases l)
+proof(cases l rule: tree2_cases)
   case Leaf
   with assms show ?thesis by (simp add: node_def balL_def)
 next
@@ -191,7 +191,7 @@ lemma avl_balR:
   assumes "avl l" and "avl r" and "height l = height r \<or> height l = height r + 1
     \<or> height r = height l + 1 \<or> height r = height l + 2" 
   shows "avl(balR l a r)"
-proof(cases r)
+proof(cases r rule: tree2_cases)
   case Leaf
   with assms show ?thesis by (simp add: node_def balR_def)
 next
@@ -216,7 +216,7 @@ theorem avl_insert:
   shows "avl(insert x t)"
         "(height (insert x t) = height t \<or> height (insert x t) = height t + 1)"
 using assms
-proof (induction t)
+proof (induction t rule: tree2_induct)
   case (Node l a h r)
   case 1
   show ?case
@@ -304,8 +304,8 @@ lemma avl_del_root:
 using assms
 proof (cases t rule:del_root_cases)
   case (Node_Node ll ln lh lr n h rl rn rh rr)
-  let ?l = "Node ll ln lh lr"
-  let ?r = "Node rl rn rh rr"
+  let ?l = "Node ll (ln, lh) lr"
+  let ?r = "Node rl (rn, rh) rr"
   let ?l' = "fst (split_max ?l)"
   from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
   from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
@@ -324,8 +324,8 @@ lemma height_del_root:
 using assms
 proof (cases t rule: del_root_cases)
   case (Node_Node ll ln lh lr n h rl rn rh rr)
-  let ?l = "Node ll ln lh lr"
-  let ?r = "Node rl rn rh rr"
+  let ?l = "Node ll (ln, lh) lr"
+  let ?r = "Node rl (rn, rh) rr"
   let ?l' = "fst (split_max ?l)"
   let ?t' = "balR ?l' (snd(split_max ?l)) ?r"
   from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
@@ -356,7 +356,7 @@ theorem avl_delete:
   assumes "avl t" 
   shows "avl(delete x t)" and "height t = (height (delete x t)) \<or> height t = height (delete x t) + 1"
 using assms
-proof (induct t)
+proof (induct t rule: tree2_induct)
   case (Node l n h r)
   case 1
   show ?case
@@ -375,8 +375,8 @@ proof (induct t)
   show ?case
   proof(cases "x = n")
     case True
-    with 1 have "height (Node l n h r) = height(del_root (Node l n h r))
-      \<or> height (Node l n h r) = height(del_root (Node l n h r)) + 1"
+    with 1 have "height (Node l (n,h) r) = height(del_root (Node l (n,h) r))
+      \<or> height (Node l (n,h) r) = height(del_root (Node l (n,h) r)) + 1"
       by (subst height_del_root,simp_all)
     with True show ?thesis by simp
   next
@@ -449,7 +449,7 @@ text \<open>Based on theorems by Daniel St\"uwe, Manuel Eberl and Peter Lammich.
 
 lemma height_invers: 
   "(height t = 0) = (t = Leaf)"
-  "avl t \<Longrightarrow> (height t = Suc h) = (\<exists> l a r . t = Node l a (Suc h) r)"
+  "avl t \<Longrightarrow> (height t = Suc h) = (\<exists> l a r . t = Node l (a,Suc h) r)"
 by (induction t) auto
 
 text \<open>Any AVL tree of height \<open>h\<close> has at least \<open>fib (h+2)\<close> leaves:\<close>
@@ -462,7 +462,7 @@ next
 next
   case (3 h)
   from "3.prems" obtain l a r where
-    [simp]: "t = Node l a (Suc(Suc h)) r" "avl l" "avl r"
+    [simp]: "t = Node l (a,Suc(Suc h)) r" "avl l" "avl r"
     and C: "
       height r = Suc h \<and> height l = Suc h
     \<or> height r = Suc h \<and> height l = h

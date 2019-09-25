@@ -24,7 +24,7 @@ definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<
 
 fun del :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt" where
 "del x Leaf = Leaf" |
-"del x (Node l (a,b) c r) = (case cmp x a of
+"del x (Node l ((a,b), c) r) = (case cmp x a of
      LT \<Rightarrow> if l \<noteq> Leaf \<and> color l = Black
            then baldL (del x l) (a,b) r else R (del x l) (a,b) r |
      GT \<Rightarrow> if r \<noteq> Leaf\<and> color r = Black
