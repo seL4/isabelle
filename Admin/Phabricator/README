@@ -20,10 +20,25 @@ Phabricator server
   https://secure.phabricator.com/book/phabricator/article/installation_guide
   https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh
 
-- Configuration/Setup Issues: ignore "Alternate File Domain Not Configured"
+  ./bin/storage upgrade --force
+  admin user: makarius
 
-- Configuration/Accounts: local, *not* Google, Github etc.
+- Configuration/Setup Issues:
+
+  ignore "Alternate File Domain Not Configured"
+
+  Add Auth Provider: Username/Password
+  ./bin/auth lock
+
+  ./bin/phd start
+
+- Configuration / Authentication:
   https://secure.phabricator.com/book/phabricator/article/configuring_accounts_and_registration
+
+  . only local User/Password, *not* Google, Github etc.
+  . auth.require-email-verification true
+
+  . policy.allow-public true
 
 - Configuration/Mail:
   https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
@@ -39,13 +54,31 @@ Phabricator server
   $ cp ssh/sshd-phabricator.service /etc/systemd/system/.
   $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
 
+  /etc/passwd:
+  phab-daemon:x:118:126::/nonexistent:/bin/false
+  vcs:x:119:125::/home/vcs:/bin/bash
+
+  /etc/group:
+  phab-daemon:x:126:
+  vcs:x:125:
+
+  ./bin/config set phd.user phab-daemon
+  ./bin/config set diffusion.ssh-user vcs
+  ./bin/config set diffusion.ssh-port 2222
+
   Test:
   $ echo "{}" | ssh -p2222 vcs@phabricator.sketis.net conduit conduit.ping
+
+- Repository Local Path:
+    mkdir -p /var/www/phabricator/repo
+    chown phab-daemon:phab-daemon /var/www/phabricator/repo
 
 - Update:
   https://secure.phabricator.com/book/phabricator/article/upgrading
 
   sudo ./update
+
+  ./bin/diviner generate
 
 - Backup:
   https://secure.phabricator.com/book/phabricator/article/configuring_backups
