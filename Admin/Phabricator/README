@@ -49,10 +49,8 @@ Phabricator server
 - Configuration/SSH:
   https://secure.phabricator.com/book/phabricator/article/diffusion_hosting
 
-  $ cp ssh/ssh-hook /usr/local/bin/.
-  $ cp ssh/sshd_config.phabricator /etc/ssh/.
-  $ cp ssh/sshd-phabricator.service /etc/systemd/system/.
-  $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
+  /etc/ssh/sshd_config:
+  Port 222
 
   /etc/passwd:
   phab-daemon:x:118:126::/nonexistent:/bin/false
@@ -62,12 +60,20 @@ Phabricator server
   phab-daemon:x:126:
   vcs:x:125:
 
-  ./bin/config set phd.user phab-daemon
-  ./bin/config set diffusion.ssh-user vcs
-  ./bin/config set diffusion.ssh-port 2222
+  $ cp ssh/ssh-hook /usr/local/bin/.
+  $ cp ssh/sshd_config.phabricator /etc/ssh/.
+  $ cp ssh/sshd-phabricator.service /lib/systemd/system/.
+  $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
 
-  Test:
-  $ echo "{}" | ssh -p2222 vcs@phabricator.sketis.net conduit conduit.ping
+  $ ./bin/config set phd.user phab-daemon
+  $ ./bin/config set diffusion.ssh-user vcs
+  $ ./bin/config set diffusion.ssh-port 22
+
+  $ systemctl start sshd-phabricator
+  $ systemctl enable sshd-phabricator
+
+  Test on local machine:
+  $ echo "{}" | ssh vcs@phabricator.sketis.net conduit conduit.ping
 
 - Repository Local Path:
     mkdir -p /var/www/phabricator/repo
