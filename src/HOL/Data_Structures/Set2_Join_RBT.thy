@@ -179,7 +179,7 @@ lemma bst_baliR:
 by(cases "(l,a,r)" rule: baliR.cases) (auto simp: ball_Un)
 
 lemma bst_joinL:
-  "\<lbrakk>bst (Node l a n r); bheight l \<le> bheight r\<rbrakk>
+  "\<lbrakk>bst (Node l (a, n) r); bheight l \<le> bheight r\<rbrakk>
   \<Longrightarrow> bst (joinL l a r)"
 proof(induction l a r rule: joinL.induct)
   case (1 l a r)
@@ -202,7 +202,7 @@ lemma bst_paint: "bst (paint c t) = bst t"
 by(cases t) auto
 
 lemma bst_join:
-  "bst (Node l a n r) \<Longrightarrow> bst (join l a r)"
+  "bst (Node l (a, n) r) \<Longrightarrow> bst (join l a r)"
 by(auto simp: bst_paint bst_joinL bst_joinR join_def)
 
 lemma inv_join: "\<lbrakk> invc l; invh l; invc r; invh r \<rbrakk> \<Longrightarrow> invc(join l x r) \<and> invh(join l x r)"

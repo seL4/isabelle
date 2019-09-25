@@ -9,21 +9,21 @@ imports
 begin
 
 fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
-"update x y Leaf = Node Leaf (x,y) 1 Leaf" |
-"update x y (Node t1 (a,b) lv t2) =
+"update x y Leaf = Node Leaf ((x,y), 1) Leaf" |
+"update x y (Node t1 ((a,b), lv) t2) =
   (case cmp x a of
-     LT \<Rightarrow> split (skew (Node (update x y t1) (a,b) lv t2)) |
-     GT \<Rightarrow> split (skew (Node t1 (a,b) lv (update x y t2))) |
-     EQ \<Rightarrow> Node t1 (x,y) lv t2)"
+     LT \<Rightarrow> split (skew (Node (update x y t1) ((a,b), lv) t2)) |
+     GT \<Rightarrow> split (skew (Node t1 ((a,b), lv) (update x y t2))) |
+     EQ \<Rightarrow> Node t1 ((x,y), lv) t2)"
 
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) aa_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node l (a,b) lv r) =
+"delete x (Node l ((a,b), lv) r) =
   (case cmp x a of
-     LT \<Rightarrow> adjust (Node (delete x l) (a,b) lv r) |
-     GT \<Rightarrow> adjust (Node l (a,b) lv (delete x r)) |
+     LT \<Rightarrow> adjust (Node (delete x l) ((a,b), lv) r) |
+     GT \<Rightarrow> adjust (Node l ((a,b), lv) (delete x r)) |
      EQ \<Rightarrow> (if l = Leaf then r
-            else let (l',ab') = split_max l in adjust (Node l' ab' lv r)))"
+            else let (l',ab') = split_max l in adjust (Node l' (ab', lv) r)))"
 
 
 subsection "Invariance"
@@ -64,20 +64,20 @@ proof (induction t rule: update.induct)
 qed simp
 
 lemma lvl_update_incr_iff: "(lvl(update a b t) = lvl t + 1) \<longleftrightarrow>
-  (\<exists>l x r. update a b t = Node l x (lvl t + 1) r \<and> lvl l = lvl r)"
+  (\<exists>l x r. update a b t = Node l (x,lvl t + 1) r \<and> lvl l = lvl r)"
 apply(cases t)
 apply(auto simp add: skew_case split_case split: if_splits)
 apply(auto split: tree.splits if_splits)
 done
 
 lemma invar_update: "invar t \<Longrightarrow> invar(update a b t)"
-proof(induction t)
+proof(induction t rule: tree2_induct)
   case N: (Node l xy n r)
   hence il: "invar l" and ir: "invar r" by auto
   note iil = N.IH(1)[OF il]
   note iir = N.IH(2)[OF ir]
   obtain x y where [simp]: "xy = (x,y)" by fastforce
-  let ?t = "Node l xy n r"
+  let ?t = "Node l (xy, n) r"
   have "a < x \<or> a = x \<or> x < a" by auto
   moreover
   have ?case if "a < x"
@@ -87,16 +87,16 @@ proof(induction t)
       by (simp add: skew_invar split_invar del: invar.simps)
   next
     case (Incr)
-    then obtain t1 w t2 where ial[simp]: "update a b l = Node t1 w n t2"
+    then obtain t1 w t2 where ial[simp]: "update a b l = Node t1 (w, n) t2"
       using N.prems by (auto simp: lvl_Suc_iff)
     have l12: "lvl t1 = lvl t2"
       by (metis Incr(1) ial lvl_update_incr_iff tree.inject)
-    have "update a b ?t = split(skew(Node (update a b l) xy n r))"
+    have "update a b ?t = split(skew(Node (update a b l) (xy, n) r))"
       by(simp add: \<open>a<x\<close>)
-    also have "skew(Node (update a b l) xy n r) = Node t1 w n (Node t2 xy n r)"
+    also have "skew(Node (update a b l) (xy, n) r) = Node t1 (w, n) (Node t2 (xy, n) r)"
       by(simp)
     also have "invar(split \<dots>)"
-    proof (cases r)
+    proof (cases r rule: tree2_cases)
       case Leaf
       hence "l = Leaf" using N.prems by(auto simp: lvl_0_iff)
       thus ?thesis using Leaf ial by simp
@@ -118,14 +118,14 @@ proof(induction t)
     thus ?case
     proof
       assume 0: "n = lvl r"
-      have "update a b ?t = split(skew(Node l xy n (update a b r)))"
+      have "update a b ?t = split(skew(Node l (xy, n) (update a b r)))"
         using \<open>a>x\<close> by(auto)
-      also have "skew(Node l xy n (update a b r)) = Node l xy n (update a b r)"
+      also have "skew(Node l (xy, n) (update a b r)) = Node l (xy, n) (update a b r)"
         using N.prems by(simp add: skew_case split: tree.split)
       also have "invar(split \<dots>)"
       proof -
         from lvl_update_sngl[OF ir sngl_if_invar[OF \<open>invar ?t\<close> 0], of a b]
-        obtain t1 p t2 where iar: "update a b r = Node t1 p n t2"
+        obtain t1 p t2 where iar: "update a b r = Node t1 (p, n) t2"
           using N.prems 0 by (auto simp: lvl_Suc_iff)
         from N.prems iar 0 iir
         show ?thesis by (auto simp: split_case split: tree.splits)
@@ -156,13 +156,13 @@ subsubsection "Proofs for delete"
 declare invar.simps(2)[simp del]
 
 theorem post_delete: "invar t \<Longrightarrow> post_del t (delete x t)"
-proof (induction t)
+proof (induction t  rule: tree2_induct)
   case (Node l ab lv r)
 
   obtain a b where [simp]: "ab = (a,b)" by fastforce
 
   let ?l' = "delete x l" and ?r' = "delete x r"
-  let ?t = "Node l ab lv r" let ?t' = "delete x ?t"
+  let ?t = "Node l (ab, lv) r" let ?t' = "delete x ?t"
 
   from Node.prems have inv_l: "invar l" and inv_r: "invar r" by (auto)
 
