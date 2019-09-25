@@ -215,6 +215,14 @@ object Isabelle_Cronjob
 
   val remote_builds_old: List[Remote_Build] =
     List(
+      Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
+        proxy_host = "lxbroy10", proxy_user = "i21isatest",
+        ssh_host = "10.155.208.96",
+        options = "-m64 -M6 -U30000 -s10 -t AFP",
+        args = "-g large -g slow",
+        afp = true,
+        bulky = true,
+        detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
       Remote_Build("AFP", "lxbroy7",
           args = "-N -X large -X slow",
           afp = true,
@@ -327,15 +335,6 @@ object Isabelle_Cronjob
 
   val remote_builds2: List[List[Remote_Build]] =
     List(
-      List(
-        Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
-          proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.155.208.96",
-          options = "-m64 -M6 -U30000 -s10 -t AFP",
-          args = "-g large -g slow",
-          afp = true,
-          bulky = true,
-          detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP"))),
       List(
         Remote_Build("AFP2", "lrzcloud2", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
