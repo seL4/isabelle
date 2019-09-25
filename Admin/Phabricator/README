@@ -79,6 +79,11 @@ Phabricator server
     mkdir -p /var/www/phabricator/repo
     chown phab-daemon:phab-daemon /var/www/phabricator/repo
 
+- PHP Daemon:
+  $ cp phd/phd-phabricator.service /lib/systemd/system/.
+  $ systemctl start phd-phabricator
+  $ systemctl enable phd-phabricator
+
 - Update:
   https://secure.phabricator.com/book/phabricator/article/upgrading
 
