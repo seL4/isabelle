@@ -14,6 +14,7 @@ Phabricator server
 
 - Apache HTTPS via "Let's Encrypt":
   https://letsencrypt.org/getting-started
+  https://certbot.eff.org/lets-encrypt/ubuntubionic-apache.html
 
 - Installation:
 
