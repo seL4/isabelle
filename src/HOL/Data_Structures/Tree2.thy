@@ -31,4 +31,7 @@ by(induction t) auto
 lemma eq_set_tree_empty[simp]: "set_tree t = {} \<longleftrightarrow> t = Leaf"
 by (cases t) auto
 
+lemma set_inorder[simp]: "set (inorder t) = set_tree t"
+by (induction t) auto
+
 end
