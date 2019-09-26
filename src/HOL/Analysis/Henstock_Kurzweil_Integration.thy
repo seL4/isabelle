@@ -2768,6 +2768,52 @@ proof -
     by (simp add: integral_unique)
 qed
 
+lemma has_integral_sin_nx: "((\<lambda>x. sin(real_of_int n * x)) has_integral 0) {-pi..pi}"
+proof (cases "n = 0")
+  case False
+  have "((\<lambda>x. sin (n * x)) has_integral (- cos (n * pi)/n - - cos (n * - pi)/n)) {-pi..pi}"
+  proof (rule fundamental_theorem_of_calculus)
+    show "((\<lambda>x. - cos (n * x) / n) has_vector_derivative sin (n * a)) (at a within {-pi..pi})"
+      if "a \<in> {-pi..pi}" for a :: real
+      using that False
+      apply (simp only: has_vector_derivative_def)
+      apply (rule derivative_eq_intros | force)+
+      done
+  qed auto
+  then show ?thesis
+    by simp
+qed auto
+
+lemma integral_sin_nx:
+   "integral {-pi..pi} (\<lambda>x. sin(x * real_of_int n)) = 0"
+  using has_integral_sin_nx [of n] by (force simp: mult.commute)
+
+lemma has_integral_cos_nx:
+  "((\<lambda>x. cos(real_of_int n * x)) has_integral (if n = 0 then 2 * pi else 0)) {-pi..pi}"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    using has_integral_const_real [of "1::real" "-pi" pi] by auto
+next
+  case False
+  have "((\<lambda>x. cos (n * x)) has_integral (sin (n * pi)/n - sin (n * - pi)/n)) {-pi..pi}"
+  proof (rule fundamental_theorem_of_calculus)
+    show "((\<lambda>x. sin (n * x) / n) has_vector_derivative cos (n * x)) (at x within {-pi..pi})"
+      if "x \<in> {-pi..pi}"
+      for x :: real
+      using that False
+      apply (simp only: has_vector_derivative_def)
+      apply (rule derivative_eq_intros | force)+
+      done
+  qed auto
+  with False show ?thesis
+    by (simp add: mult.commute)
+qed
+
+lemma integral_cos_nx:
+   "integral {-pi..pi} (\<lambda>x. cos(x * real_of_int n)) = (if n = 0 then 2 * pi else 0)"
+  using has_integral_cos_nx [of n] by (force simp: mult.commute)
+
 
 subsection \<open>Taylor series expansion\<close>
 

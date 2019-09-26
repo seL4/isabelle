@@ -58,7 +58,7 @@ proof (induction "card \<D>" arbitrary: \<D> thesis rule: less_induct)
         and sub3: "\<And>C. \<lbrakk>C \<in> \<D>; \<not> disjnt C D\<rbrakk> \<Longrightarrow> C \<subseteq> cbox a3 b3"
       proof -
         obtain k a b where ab: "D = cbox a b" and k: "\<And>i. i \<in> Basis \<Longrightarrow> b\<bullet>i - a\<bullet>i = k"
-          using less.prems \<open>D \<in> \<D>\<close> by blast
+          using less.prems \<open>D \<in> \<D>\<close> by meson
         then have eqk: "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i \<longleftrightarrow> k \<ge> 0"
           by force
         show thesis
@@ -72,7 +72,7 @@ proof (induction "card \<D>" arbitrary: \<D> thesis rule: less_induct)
           show "C \<subseteq> cbox ?a ?b" if "C \<in> \<D>" and CD: "\<not> disjnt C D" for C
           proof -
             obtain k' a' b' where ab': "C = cbox a' b'" and k': "\<And>i. i \<in> Basis \<Longrightarrow> b'\<bullet>i - a'\<bullet>i = k'"
-              using less.prems \<open>C \<in> \<D>\<close> by blast
+              using less.prems \<open>C \<in> \<D>\<close> by meson
             then have eqk': "\<And>i. i \<in> Basis \<Longrightarrow> a' \<bullet> i \<le> b' \<bullet> i \<longleftrightarrow> k' \<ge> 0"
               by force
             show ?thesis
@@ -1705,5 +1705,39 @@ proof -
   show ?thesis
     by (meson \<open>a \<le> c\<close> \<open>c \<le> b\<close> has_bochner_integral_combine has_bochner_integral_iff i j)
 qed
+
+lemma has_bochner_integral_null [intro]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "N \<in> null_sets lebesgue"
+  shows "has_bochner_integral (lebesgue_on N) f 0"
+  unfolding has_bochner_integral_iff \<comment>\<open>strange that the proof's so long\<close>
+proof
+  show "integrable (lebesgue_on N) f"
+  proof (subst integrable_restrict_space)
+    show "N \<inter> space lebesgue \<in> sets lebesgue"
+      using assms by force
+    show "integrable lebesgue (\<lambda>x. indicat_real N x *\<^sub>R f x)"
+    proof (rule integrable_cong_AE_imp)
+      show "integrable lebesgue (\<lambda>x. 0)"
+        by simp
+      show *: "AE x in lebesgue. 0 = indicat_real N x *\<^sub>R f x"
+        using assms
+        by (simp add: indicator_def completion.null_sets_iff_AE eventually_mono)
+      show "(\<lambda>x. indicat_real N x *\<^sub>R f x) \<in> borel_measurable lebesgue"
+        by (auto intro: borel_measurable_AE [OF _ *])
+    qed
+  qed
+  show "integral\<^sup>L (lebesgue_on N) f = 0"
+  proof (rule integral_eq_zero_AE)
+    show "AE x in lebesgue_on N. f x = 0"
+      by (rule AE_I' [where N=N]) (auto simp: assms null_setsD2 null_sets_restrict_space)
+  qed
+qed
+
+lemma has_bochner_integral_null_eq[simp]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "N \<in> null_sets lebesgue"
+  shows "has_bochner_integral (lebesgue_on N) f i \<longleftrightarrow> i = 0"
+  using assms has_bochner_integral_eq by blast
 
 end
