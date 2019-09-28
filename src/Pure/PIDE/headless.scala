@@ -161,7 +161,7 @@ object Headless
       def cancel_result: Use_Theories_State =
         if (finished_result) this else copy(result = Some(Exn.Exn(Exn.Interrupt())))
 
-      def clean_theories: ((List[Document.Node.Name], Int), Use_Theories_State) =
+      def clean_theories: (List[Document.Node.Name], Use_Theories_State) =
       {
         @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
           : Set[Document.Node.Name] =
@@ -175,7 +175,7 @@ object Headless
           }
         }
 
-        if (already_committed.isEmpty) ((Nil, 0), this)
+        if (already_committed.isEmpty) (Nil, this)
         else {
           val base =
             (for {
@@ -183,9 +183,9 @@ object Headless
               if succs.isEmpty && already_committed.isDefinedAt(name)
             } yield name).toList
           val clean = frontier(base, Set.empty)
-          if (clean.isEmpty) ((Nil, 0), this)
+          if (clean.isEmpty) (Nil, this)
           else {
-            ((dep_graph.topological_order.filter(clean), dep_graph.size - clean.size),
+            (dep_graph.topological_order.filter(clean),
               copy(dep_graph = dep_graph.exclude(clean)))
           }
         }
@@ -323,10 +323,9 @@ object Headless
 
         val delay_commit_clean =
           Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
-            val (clean_theories, remaining) = use_theories_state.change_result(_.clean_theories)
+            val clean_theories = use_theories_state.change_result(_.clean_theories)
             if (clean_theories.nonEmpty) {
-              progress.echo("Removing " + clean_theories.length +
-                " theories (" + remaining + " remaining) ...")
+              progress.echo("Removing " + clean_theories.length)
               resources.clean_theories(session, id, clean_theories)
             }
           }
