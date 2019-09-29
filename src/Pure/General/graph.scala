@@ -111,7 +111,39 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   /* reachability */
 
-  /*nodes reachable from xs -- topologically sorted for acyclic graphs*/
+  /*reachable nodes with length of longest path*/
+  def reachable_length(next: Key => Keys, xs: List[Key]): Map[Key, Int] =
+  {
+    def reach(length: Int)(rs: Map[Key, Int], x: Key): Map[Key, Int] =
+      if (rs.get(x) match { case Some(n) => n >= length case None => false }) rs
+      else ((rs + (x -> length)) /: next(x))(reach(length + 1))
+    (Map.empty[Key, Int] /: xs)(reach(0))
+  }
+  def node_height: Map[Key, Int] = reachable_length(imm_preds(_), maximals)
+  def node_depth: Map[Key, Int] = reachable_length(imm_succs(_), minimals)
+
+  /*reachable nodes with size limit*/
+  def reachable_limit(next: Key => Keys, limit: Int, xs: List[Key]): (List[Key], Keys) =
+  {
+    def reach(res: (Int, Keys), x: Key): (Int, Keys) =
+    {
+      val (n, rs) = res
+      if (rs.contains(x)) res else ((n + 1, rs + x) /: next(x))(reach _)
+    }
+
+    @tailrec def reachs(size: Int, rs: Keys, rest: List[Key]): (List[Key], Keys) =
+      rest match {
+        case Nil => (rest, rs)
+        case head :: tail =>
+          val (size1, rs1) = reach((size, rs), head)
+          if (size > 0 && size1 > limit) (rest, rs)
+          else reachs(size1, rs1, tail)
+      }
+
+    reachs(0, empty_keys, xs)
+  }
+
+  /*reachable nodes with result in topological order (for acyclic graphs)*/
   def reachable(next: Key => Keys, xs: List[Key]): (List[List[Key]], Keys) =
   {
     def reach(x: Key, reached: (List[Key], Keys)): (List[Key], Keys) =
