@@ -302,7 +302,7 @@ object Headless
           Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
             val clean_theories = use_theories_state.change_result(_.clean_theories)
             if (clean_theories.nonEmpty) {
-              progress.echo("Removing " + clean_theories.length)
+              progress.echo("Removing " + clean_theories.length + " theories")
               resources.clean_theories(session, id, clean_theories)
             }
           }
