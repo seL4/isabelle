@@ -44,58 +44,37 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  private object Checkpoints_State
-  {
-    object Status extends Enumeration
-    {
-      val INIT, LOADED, LOADED_DESCENDANTS = Value
-    }
-
-    def init(nodes: List[Document.Node.Name]): Checkpoints_State =
-      Checkpoints_State(Status.INIT, nodes)
-
-    val last: Checkpoints_State =
-      Checkpoints_State(Status.LOADED_DESCENDANTS, Nil)
-  }
-
-  private sealed case class Checkpoints_State(
-    status: Checkpoints_State.Status.Value,
-    nodes: List[Document.Node.Name])
+  private sealed abstract class Load_State
   {
     def next(
       dep_graph: Document.Node.Name.Graph[Unit],
-      finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Checkpoints_State) =
+      finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
     {
-      import Checkpoints_State.Status
-
-      def descendants: List[Document.Node.Name] =
-        nodes match {
-          case Nil => dep_graph.topological_order
-          case current :: rest =>
+      val (load_theories, st1) =
+        this match {
+          case Load_Init(Nil) =>
+            (dep_graph.topological_order, Load_Finished)
+          case Load_Init(target :: rest) =>
+            (dep_graph.all_preds(List(target)).reverse, Load_Target(target, rest))
+          case Load_Target(target, rest) if finished(target) =>
             val dep_graph1 =
               if (rest.isEmpty) dep_graph
               else dep_graph.exclude(dep_graph.all_succs(rest).toSet)
-            dep_graph1.all_succs(List(current))
-        }
-
-      def requirements: List[Document.Node.Name] =
-        dep_graph.all_preds(nodes.headOption.toList).reverse
-
-      val (load_theories, st1) =
-        (status, nodes) match {
-          case (Status.INIT, Nil) =>
-            (descendants, Checkpoints_State.last)
-          case (Status.INIT, current :: _) =>
-            (requirements, copy(status = Status.LOADED))
-          case (Status.LOADED, current :: rest) if finished(current) =>
-            (descendants, copy(status = Status.LOADED_DESCENDANTS))
-          case (Status.LOADED_DESCENDANTS, _ :: rest) if descendants.forall(finished) =>
-            Checkpoints_State.init(rest).next(dep_graph, finished)
-          case _ => (Nil, this)
+            val descendants = dep_graph1.all_succs(List(target))
+            (descendants, Load_Descendants(descendants, rest))
+          case Load_Descendants(descendants, rest) if descendants.forall(finished) =>
+            Load_Init(rest).next(dep_graph, finished)
+          case st => (Nil, st)
         }
       (load_theories.filterNot(finished), st1)
     }
   }
+  private case class Load_Init(checkpoints: List[Document.Node.Name]) extends Load_State
+  private case class Load_Target(
+    target: Document.Node.Name, rest: List[Document.Node.Name]) extends Load_State
+  private case class Load_Descendants(
+    descendants: List[Document.Node.Name], rest: List[Document.Node.Name]) extends Load_State
+  private case object Load_Finished extends Load_State
 
   class Session private[Headless](
     session_name: String,
@@ -139,7 +118,7 @@ object Headless
 
     private sealed case class Use_Theories_State(
       dep_graph: Document.Node.Name.Graph[Unit],
-      checkpoints_state: Checkpoints_State,
+      load_state: Load_State,
       watchdog_timeout: Time,
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit],
       last_update: Time = Time.now(),
@@ -240,12 +219,10 @@ object Headless
           }
           else result
 
-        val (load_theories, checkpoints_state1) =
-          checkpoints_state.next(dep_graph, finished_theory(_))
+        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory(_))
 
         (load_theories,
-          copy(already_committed = already_committed1, result = result1,
-            checkpoints_state = checkpoints_state1))
+          copy(already_committed = already_committed1, result = result1, load_state = load_state1))
       }
     }
 
@@ -281,12 +258,12 @@ object Headless
 
       val use_theories_state =
       {
-        val checkpoints_state =
-          Checkpoints_State.init(
+        val load_state =
+          Load_Init(
             if (checkpoints.isEmpty) Nil
             else dependencies.theory_graph.topological_order.filter(checkpoints(_)))
         Synchronized(
-          Use_Theories_State(dependencies.theory_graph, checkpoints_state, watchdog_timeout, commit))
+          Use_Theories_State(dependencies.theory_graph, load_state, watchdog_timeout, commit))
       }
 
       def check_state(beyond_limit: Boolean = false)
