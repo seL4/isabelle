@@ -54,16 +54,16 @@ object Headless
         this match {
           case Load_Init(Nil) =>
             (dep_graph.topological_order, Load_Finished)
-          case Load_Init(target :: rest) =>
-            (dep_graph.all_preds(List(target)).reverse, Load_Target(target, rest))
-          case Load_Target(target, rest) if finished(target) =>
+          case Load_Init(target :: checkpoints) =>
+            (dep_graph.all_preds(List(target)).reverse, Load_Target(target, checkpoints))
+          case Load_Target(target, checkpoints) if finished(target) =>
             val dep_graph1 =
-              if (rest.isEmpty) dep_graph
-              else dep_graph.exclude(dep_graph.all_succs(rest).toSet)
+              if (checkpoints.isEmpty) dep_graph
+              else dep_graph.exclude(dep_graph.all_succs(checkpoints).toSet)
             val descendants = dep_graph1.all_succs(List(target))
-            (descendants, Load_Descendants(descendants, rest))
-          case Load_Descendants(descendants, rest) if descendants.forall(finished) =>
-            Load_Init(rest).next(dep_graph, finished)
+            (descendants, Load_Descendants(descendants, checkpoints))
+          case Load_Descendants(descendants, checkpoints) if descendants.forall(finished) =>
+            Load_Init(checkpoints).next(dep_graph, finished)
           case st => (Nil, st)
         }
       (load_theories.filterNot(finished), st1)
@@ -71,9 +71,9 @@ object Headless
   }
   private case class Load_Init(checkpoints: List[Document.Node.Name]) extends Load_State
   private case class Load_Target(
-    target: Document.Node.Name, rest: List[Document.Node.Name]) extends Load_State
+    target: Document.Node.Name, checkpoints: List[Document.Node.Name]) extends Load_State
   private case class Load_Descendants(
-    descendants: List[Document.Node.Name], rest: List[Document.Node.Name]) extends Load_State
+    descendants: List[Document.Node.Name], checkpoints: List[Document.Node.Name]) extends Load_State
   private case object Load_Finished extends Load_State
 
   class Session private[Headless](
