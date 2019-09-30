@@ -48,26 +48,45 @@ object Headless
   {
     type Result = (List[Document.Node.Name], Load_State)
 
-    def next(dep_graph: Document.Node.Name.Graph[Unit], finished: Document.Node.Name => Boolean)
-      : Result =
+    def next(
+      limit: Int,
+      dep_graph: Document.Node.Name.Graph[Unit],
+      finished: Document.Node.Name => Boolean): Result =
     {
+      def make_pending(maximals: List[Document.Node.Name]): List[Document.Node.Name] =
+      {
+        val pending = maximals.filterNot(finished)
+        if (pending.isEmpty || pending.tail.isEmpty) pending
+        else {
+          val depth = dep_graph.node_depth
+          pending.sortBy(node => - depth(node))
+        }
+      }
+
       def load_checkpoints(checkpoints: List[Document.Node.Name]): Result =
-        Load_Init(checkpoints).next(dep_graph, finished)
+        Load_Init(checkpoints).next(limit, dep_graph, finished)
 
       def load_requirements(
         pending: List[Document.Node.Name], checkpoints: List[Document.Node.Name]): Result =
       {
-        if (pending.nonEmpty) {
+        if (pending.isEmpty) load_checkpoints(checkpoints)
+        else if (limit == 0) {
           val requirements = dep_graph.all_preds(pending).reverse
-          (requirements, Load_Bulk(pending, checkpoints))
+          (requirements, Load_Bulk(pending, Nil, checkpoints))
         }
-        else load_checkpoints(checkpoints)
+        else {
+          def count(node: Document.Node.Name): Boolean = !finished(node)
+          val reachable = dep_graph.reachable_limit(limit, count _, dep_graph.imm_preds, pending)
+          val (pending1, pending2) = pending.partition(reachable)
+          val requirements = dep_graph.all_preds(pending1).reverse
+          (requirements, Load_Bulk(pending1, pending2, checkpoints))
+        }
       }
 
       val (load_theories, st1) =
         this match {
           case Load_Init(Nil) =>
-            val pending = dep_graph.maximals.filterNot(finished)
+            val pending = make_pending(dep_graph.maximals)
             if (pending.isEmpty) (Nil, Load_Finished) else load_requirements(pending, Nil)
           case Load_Init(target :: checkpoints) =>
             (dep_graph.all_preds(List(target)).reverse, Load_Target(target, checkpoints))
@@ -77,11 +96,10 @@ object Headless
               else dep_graph.exclude(dep_graph.all_succs(checkpoints).toSet)
             val dep_graph2 =
               dep_graph1.restrict(dep_graph.all_succs(List(pending)).toSet)
-            val pending2 =
-              dep_graph.maximals.filter(node => dep_graph2.defined(node) && !finished(node))
+            val pending2 = make_pending(dep_graph.maximals.filter(dep_graph2.defined))
             load_requirements(pending2, checkpoints)
-          case Load_Bulk(pending, checkpoints) if pending.forall(finished) =>
-            load_checkpoints(checkpoints)
+          case Load_Bulk(pending, remaining, checkpoints) if pending.forall(finished) =>
+            load_requirements(remaining, checkpoints)
           case st => (Nil, st)
         }
       (load_theories.filterNot(finished), st1)
@@ -91,7 +109,9 @@ object Headless
   private case class Load_Target(
     pending: Document.Node.Name, checkpoints: List[Document.Node.Name]) extends Load_State
   private case class Load_Bulk(
-    pending: List[Document.Node.Name], checkpoints: List[Document.Node.Name]) extends Load_State
+    pending: List[Document.Node.Name],
+    remaining: List[Document.Node.Name],
+    checkpoints: List[Document.Node.Name]) extends Load_State
   private case object Load_Finished extends Load_State
 
   class Session private[Headless](
@@ -113,6 +133,12 @@ object Headless
     def default_nodes_status_delay: Time = session_options.seconds("headless_nodes_status_delay")
     def default_watchdog_timeout: Time = session_options.seconds("headless_watchdog_timeout")
     def default_commit_cleanup_delay: Time = session_options.seconds("headless_commit_cleanup_delay")
+
+    def load_limit: Int =
+    {
+      val limit = session_options.int("headless_load_limit")
+      if (limit == 0) Integer.MAX_VALUE else limit
+    }
 
 
     /* temporary directory */
@@ -237,7 +263,8 @@ object Headless
           }
           else result
 
-        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory(_))
+        val (load_theories, load_state1) =
+          load_state.next(load_limit, dep_graph, finished_theory(_))
 
         (load_theories,
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
