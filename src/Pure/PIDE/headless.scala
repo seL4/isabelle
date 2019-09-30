@@ -46,24 +46,42 @@ object Headless
 
   private sealed abstract class Load_State
   {
-    def next(
-      dep_graph: Document.Node.Name.Graph[Unit],
-      finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
+    type Result = (List[Document.Node.Name], Load_State)
+
+    def next(dep_graph: Document.Node.Name.Graph[Unit], finished: Document.Node.Name => Boolean)
+      : Result =
     {
+      def load_checkpoints(checkpoints: List[Document.Node.Name]): Result =
+        Load_Init(checkpoints).next(dep_graph, finished)
+
+      def load_requirements(
+        pending: List[Document.Node.Name], checkpoints: List[Document.Node.Name]): Result =
+      {
+        if (pending.nonEmpty) {
+          val requirements = dep_graph.all_preds(pending).reverse
+          (requirements, Load_Bulk(pending, checkpoints))
+        }
+        else load_checkpoints(checkpoints)
+      }
+
       val (load_theories, st1) =
         this match {
           case Load_Init(Nil) =>
-            (dep_graph.topological_order, Load_Finished)
+            val pending = dep_graph.maximals.filterNot(finished)
+            if (pending.isEmpty) (Nil, Load_Finished) else load_requirements(pending, Nil)
           case Load_Init(target :: checkpoints) =>
             (dep_graph.all_preds(List(target)).reverse, Load_Target(target, checkpoints))
           case Load_Target(pending, checkpoints) if finished(pending) =>
             val dep_graph1 =
               if (checkpoints.isEmpty) dep_graph
               else dep_graph.exclude(dep_graph.all_succs(checkpoints).toSet)
-            val descendants = dep_graph1.all_succs(List(pending))
-            (descendants, Load_Bulk(descendants, checkpoints))
+            val dep_graph2 =
+              dep_graph1.restrict(dep_graph.all_succs(List(pending)).toSet)
+            val pending2 =
+              dep_graph.maximals.filter(node => dep_graph2.defined(node) && !finished(node))
+            load_requirements(pending2, checkpoints)
           case Load_Bulk(pending, checkpoints) if pending.forall(finished) =>
-            Load_Init(checkpoints).next(dep_graph, finished)
+            load_checkpoints(checkpoints)
           case st => (Nil, st)
         }
       (load_theories.filterNot(finished), st1)
