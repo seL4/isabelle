@@ -126,8 +126,7 @@ object Dump
           "ML_statistics=false" +
           "parallel_proofs=0" +
           "editor_tracing_messages=0" +
-          "editor_presentation" +
-          "execution_eager"
+          "editor_presentation"
       (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
     }
 

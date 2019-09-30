@@ -41,7 +41,6 @@ sig
   val is_minimal: 'a T -> key -> bool
   val is_maximal: 'a T -> key -> bool
   val is_isolated: 'a T -> key -> bool
-  val maximal_descendants: 'a T -> key -> int option
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
@@ -180,16 +179,6 @@ fun is_minimal G x = Keys.is_empty (imm_preds G x);
 fun is_maximal G x = Keys.is_empty (imm_succs G x);
 
 fun is_isolated G x = is_minimal G x andalso is_maximal G x;
-
-(*longest path to some maximal element*)
-fun maximal_descendants G =
-  let
-    val next = imm_preds G;
-    fun reach depth x R =
-      if (case Table.lookup R x of SOME d => d >= depth | NONE => false) then R
-      else Keys.fold_rev (reach (depth + 1)) (next x) (Table.update (x, depth) R);
-    val result = fold (reach 0) (maximals G) Table.empty;
-  in Table.lookup result end;
 
 
 (* node operations *)
