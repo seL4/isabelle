@@ -44,14 +44,15 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
+  private type Load = (List[Document.Node.Name], Boolean)
+  private val no_load: Load = (Nil, false)
+
   private sealed abstract class Load_State
   {
-    type Result = (List[Document.Node.Name], Load_State)
-
     def next(
       limit: Int,
       dep_graph: Document.Node.Name.Graph[Unit],
-      finished: Document.Node.Name => Boolean): Result =
+      finished: Document.Node.Name => Boolean): (Load, Load_State) =
     {
       def make_pending(maximals: List[Document.Node.Name]): List[Document.Node.Name] =
       {
@@ -63,33 +64,37 @@ object Headless
         }
       }
 
-      def load_checkpoints(checkpoints: List[Document.Node.Name]): Result =
+      def load_checkpoints(checkpoints: List[Document.Node.Name]): (Load, Load_State) =
         Load_Init(checkpoints).next(limit, dep_graph, finished)
 
       def load_requirements(
-        pending: List[Document.Node.Name], checkpoints: List[Document.Node.Name]): Result =
+        pending: List[Document.Node.Name],
+        checkpoints: List[Document.Node.Name] = Nil,
+        share_common_data: Boolean = false): (Load, Load_State) =
       {
         if (pending.isEmpty) load_checkpoints(checkpoints)
         else if (limit == 0) {
           val requirements = dep_graph.all_preds(pending).reverse
-          (requirements, Load_Bulk(pending, Nil, checkpoints))
+          ((requirements, share_common_data), Load_Bulk(pending, Nil, checkpoints))
         }
         else {
           def count(node: Document.Node.Name): Boolean = !finished(node)
           val reachable = dep_graph.reachable_limit(limit, count _, dep_graph.imm_preds, pending)
           val (pending1, pending2) = pending.partition(reachable)
           val requirements = dep_graph.all_preds(pending1).reverse
-          (requirements, Load_Bulk(pending1, pending2, checkpoints))
+          ((requirements, share_common_data), Load_Bulk(pending1, pending2, checkpoints))
         }
       }
 
-      val (load_theories, st1) =
+      val result: (Load, Load_State) =
         this match {
           case Load_Init(Nil) =>
             val pending = make_pending(dep_graph.maximals)
-            if (pending.isEmpty) (Nil, Load_Finished) else load_requirements(pending, Nil)
+            if (pending.isEmpty) (no_load, Load_Finished)
+            else load_requirements(pending)
           case Load_Init(target :: checkpoints) =>
-            (dep_graph.all_preds(List(target)).reverse, Load_Target(target, checkpoints))
+            val requirements = dep_graph.all_preds(List(target)).reverse
+            ((requirements, false), Load_Target(target, checkpoints))
           case Load_Target(pending, checkpoints) if finished(pending) =>
             val dep_graph1 =
               if (checkpoints.isEmpty) dep_graph
@@ -97,12 +102,14 @@ object Headless
             val dep_graph2 =
               dep_graph1.restrict(dep_graph.all_succs(List(pending)).toSet)
             val pending2 = make_pending(dep_graph.maximals.filter(dep_graph2.defined))
-            load_requirements(pending2, checkpoints)
+            load_requirements(pending2, checkpoints = checkpoints, share_common_data = true)
           case Load_Bulk(pending, remaining, checkpoints) if pending.forall(finished) =>
-            load_requirements(remaining, checkpoints)
-          case st => (Nil, st)
+            load_requirements(remaining, checkpoints = checkpoints)
+          case st => (no_load, st)
         }
-      (load_theories.filterNot(finished), st1)
+
+      val ((load_theories, share_common_data), st1) = result
+      ((load_theories.filterNot(finished), share_common_data), st1)
     }
   }
   private case class Load_Init(checkpoints: List[Document.Node.Name]) extends Load_State
@@ -215,7 +222,7 @@ object Headless
       }
 
       def check(state: Document.State, version: Document.Version, beyond_limit: Boolean)
-        : (List[Document.Node.Name], Use_Theories_State) =
+        : ((List[Document.Node.Name], Boolean), Use_Theories_State) =
       {
         val already_committed1 =
           commit match {
@@ -263,10 +270,9 @@ object Headless
           }
           else result
 
-        val (load_theories, load_state1) =
-          load_state.next(load_limit, dep_graph, finished_theory(_))
+        val (load, load_state1) = load_state.next(load_limit, dep_graph, finished_theory(_))
 
-        (load_theories,
+        (load,
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
       }
     }
@@ -281,7 +287,6 @@ object Headless
       watchdog_timeout: Time = default_watchdog_timeout,
       nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID.T = UUID.random(),
-      share_common_data: Boolean = false,
       checkpoints: Set[Document.Node.Name] = Set.empty,
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
@@ -315,7 +320,8 @@ object Headless
       {
         val state = session.current_state()
         for (version <- state.stable_tip_version) {
-          val load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
+          val (load_theories, share_common_data) =
+            use_theories_state.change_result(_.check(state, version, beyond_limit))
           if (load_theories.nonEmpty) {
             resources.load_theories(
               session, id, load_theories, dep_files, unicode_symbols, share_common_data, progress)

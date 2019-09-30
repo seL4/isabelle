@@ -421,6 +421,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     {
       require(prover.defined)
 
+      if (change.share_common_data) {
+        prover.get.protocol_command("ML_Heap.share_common_data")
+      }
+
       // define commands
       {
         val id_commands = new mutable.ListBuffer[Command]
@@ -453,9 +457,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       val assignment = global_state.value.the_assignment(change.previous).check_finished
       global_state.change(_.define_version(change.version, assignment))
 
-      if (change.share_common_data) {
-        prover.get.protocol_command("ML_Heap.share_common_data")
-      }
       prover.get.update(change.previous.id, change.version.id, change.doc_edits, change.consolidate)
       resources.commit(change)
     }

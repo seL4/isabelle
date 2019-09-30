@@ -214,7 +214,6 @@ object Dump
         val use_theories_result =
           session.use_theories(used_theories.map(_.theory),
             unicode_symbols = unicode_symbols,
-            share_common_data = true,
             progress = progress,
             checkpoints = if (dump_checkpoints) deps.dump_checkpoints else Set.empty,
             commit = Some(Consumer.apply _))
