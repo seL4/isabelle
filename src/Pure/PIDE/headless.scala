@@ -56,13 +56,13 @@ object Headless
             (dep_graph.topological_order, Load_Finished)
           case Load_Init(target :: checkpoints) =>
             (dep_graph.all_preds(List(target)).reverse, Load_Target(target, checkpoints))
-          case Load_Target(target, checkpoints) if finished(target) =>
+          case Load_Target(pending, checkpoints) if finished(pending) =>
             val dep_graph1 =
               if (checkpoints.isEmpty) dep_graph
               else dep_graph.exclude(dep_graph.all_succs(checkpoints).toSet)
-            val descendants = dep_graph1.all_succs(List(target))
-            (descendants, Load_Descendants(descendants, checkpoints))
-          case Load_Descendants(descendants, checkpoints) if descendants.forall(finished) =>
+            val descendants = dep_graph1.all_succs(List(pending))
+            (descendants, Load_Bulk(descendants, checkpoints))
+          case Load_Bulk(pending, checkpoints) if pending.forall(finished) =>
             Load_Init(checkpoints).next(dep_graph, finished)
           case st => (Nil, st)
         }
@@ -71,9 +71,9 @@ object Headless
   }
   private case class Load_Init(checkpoints: List[Document.Node.Name]) extends Load_State
   private case class Load_Target(
-    target: Document.Node.Name, checkpoints: List[Document.Node.Name]) extends Load_State
-  private case class Load_Descendants(
-    descendants: List[Document.Node.Name], checkpoints: List[Document.Node.Name]) extends Load_State
+    pending: Document.Node.Name, checkpoints: List[Document.Node.Name]) extends Load_State
+  private case class Load_Bulk(
+    pending: List[Document.Node.Name], checkpoints: List[Document.Node.Name]) extends Load_State
   private case object Load_Finished extends Load_State
 
   class Session private[Headless](
