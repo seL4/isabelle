@@ -546,6 +546,7 @@ text \<open>
   Options are:
     -A NAMES     dump named aspects (default: ...)
     -B NAME      include session NAME and all descendants
+    -C           observe option dump_checkpoint for theories
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: "dump")
     -R           operate on requirements of selected sessions
@@ -582,6 +583,11 @@ text \<open>
   \<^verbatim>\<open>isabelle.Dump.dump()\<close> takes aspects as user-defined operations on the
   final PIDE state and document version. This allows to imitate Prover IDE
   rendering under program control.
+
+  \<^medskip> Option \<^verbatim>\<open>-C\<close> observes option \<^verbatim>\<open>dump_checkpoint\<close> within the
+  \isakeyword{theories} specification of session ROOT definitions. This helps
+  to structure the load process of large collections of theories, and thus
+  reduce overall resource requirements.
 \<close>
 
 

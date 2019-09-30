@@ -88,6 +88,7 @@ object Dump
     def apply(
       options: Options,
       logic: String,
+      dump_checkpoints: Boolean = false,
       aspects: List[Aspect] = Nil,
       progress: Progress = No_Progress,
       log: Logger = No_Logger,
@@ -95,13 +96,15 @@ object Dump
       select_dirs: List[Path] = Nil,
       selection: Sessions.Selection = Sessions.Selection.empty): Session =
     {
-      new Session(options, logic, aspects, progress, log, dirs, select_dirs, selection)
+      new Session(
+        options, logic, dump_checkpoints, aspects, progress, log, dirs, select_dirs, selection)
     }
   }
 
   class Session private(
     options: Options,
     logic: String,
+    dump_checkpoints: Boolean,
     aspects: List[Aspect],
     progress: Progress,
     log: Logger,
@@ -214,7 +217,7 @@ object Dump
             unicode_symbols = unicode_symbols,
             share_common_data = true,
             progress = progress,
-            checkpoints = deps.dump_checkpoints,
+            checkpoints = if (dump_checkpoints) deps.dump_checkpoints else Set.empty,
             commit = Some(Consumer.apply _))
 
         val bad_theories = Consumer.shutdown()
@@ -246,6 +249,7 @@ object Dump
   def dump(
     options: Options,
     logic: String,
+    dump_checkpoints: Boolean = false,
     aspects: List[Aspect] = Nil,
     progress: Progress = No_Progress,
     log: Logger = No_Logger,
@@ -255,8 +259,9 @@ object Dump
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
     val session =
-      Session(options, logic, aspects = aspects, progress = progress, log = log,
-        dirs = dirs, select_dirs = select_dirs, selection = selection)
+      Session(options, logic, dump_checkpoints = dump_checkpoints, aspects = aspects,
+        progress = progress, log = log, dirs = dirs, select_dirs = select_dirs,
+        selection = selection)
 
     session.run((args: Args) =>
       {
@@ -277,6 +282,7 @@ object Dump
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
+      var dump_checkpoints = false
       var output_dir = default_output_dir
       var requirements = false
       var exclude_session_groups: List[String] = Nil
@@ -294,6 +300,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Options are:
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
+    -C           observe option dump_checkpoint for theories
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
@@ -311,6 +318,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+      "C" -> (_ => dump_checkpoints = true),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
@@ -329,6 +337,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
       progress.interrupt_handler {
         dump(options, logic,
+          dump_checkpoints = dump_checkpoints,
           aspects = aspects,
           progress = progress,
           dirs = dirs,
