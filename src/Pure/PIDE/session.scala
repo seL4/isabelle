@@ -399,7 +399,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     {
       require(prover.defined)
 
-      prover.get.discontinue_execution()
+      if (edits.nonEmpty) prover.get.discontinue_execution()
 
       val previous = global_state.value.history.tip.version
       val version = Future.promise[Document.Version]

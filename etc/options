@@ -162,7 +162,7 @@ public option editor_generated_input_delay : real = 1.0
 public option editor_output_delay : real = 0.1
   -- "delay for prover output (markup, common messages etc.)"
 
-public option editor_consolidate_delay : real = 2.0
+public option editor_consolidate_delay : real = 3.0
   -- "delay to consolidate status of command evaluation (execution forks)"
 
 public option editor_prune_delay : real = 15
