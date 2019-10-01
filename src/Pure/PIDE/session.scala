@@ -671,9 +671,12 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   def get_state(): Document.State =
   {
-    val promise = Future.promise[Document.State]
-    manager.send_wait(Get_State(promise))
-    promise.join
+    if (manager.is_active) {
+      val promise = Future.promise[Document.State]
+      manager.send_wait(Get_State(promise))
+      promise.join
+    }
+    else Document.State.init
   }
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
