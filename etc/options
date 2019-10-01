@@ -219,9 +219,6 @@ option headless_commit_cleanup_delay : real = 60
 option headless_load_limit : int = 0
   -- "limit for loaded theories (0 = unlimited)"
 
-option execution_eager : bool = false
-  -- "prefer theories with shorter stack of decendants"
-
 option dump_checkpoint : bool = false
   -- "mark individual theories to share common data in ML"
 
