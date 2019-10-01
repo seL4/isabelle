@@ -141,7 +141,7 @@ class Plugin extends EBPlugin
             if (options.bool("jedit_auto_resolve")) {
               val stable_tip_version =
                 if (models.forall(p => p._2.is_stable))
-                  session.current_state().stable_tip_version
+                  session.get_state().stable_tip_version
                 else None
               stable_tip_version match {
                 case Some(version) => resources.undefined_blobs(version.nodes)

@@ -233,7 +233,7 @@ class VSCode_Resources(
 
         val stable_tip_version =
           if (st.models.forall(entry => entry._2.is_stable))
-            session.current_state().stable_tip_version
+            session.get_state().stable_tip_version
           else None
 
         val aux_files =

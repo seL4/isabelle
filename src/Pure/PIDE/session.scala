@@ -197,6 +197,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   private case class Start(start_prover: Prover.Receiver => Prover)
   private case object Stop
+  private case class Get_State(promise: Promise[Document.State])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Update_Options(options: Options)
@@ -218,17 +219,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   def is_ready: Boolean = phase == Session.Ready
 
 
-  /* global state */
+  /* syslog */
 
   private val syslog = new Session.Syslog(syslog_limit)
   def syslog_content(): String = syslog.content
-
-  private val global_state = Synchronized(Document.State.init)
-  def current_state(): Document.State = global_state.value
-
-  def recent_syntax(name: Document.Node.Name): Outer_Syntax =
-    global_state.value.recent_finished.version.get_finished.nodes(name).syntax getOrElse
-    resources.session_base.overall_syntax
 
 
   /* pipelined change parsing */
@@ -390,6 +384,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   private val manager: Consumer_Thread[Any] =
   {
+    /* global state */
+    val global_state = Synchronized(Document.State.init)
+
+
     /* raw edits */
 
     def handle_raw_edits(
@@ -604,6 +602,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               prover.get.terminate
             }
 
+          case Get_State(promise) =>
+            promise.fulfill(global_state.value)
+
           case Consolidate_Execution =>
             if (prover.defined) {
               val state = global_state.value
@@ -668,9 +669,20 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* main operations */
 
+  def get_state(): Document.State =
+  {
+    val promise = Future.promise[Document.State]
+    manager.send_wait(Get_State(promise))
+    promise.join
+  }
+
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
-    global_state.value.snapshot(name, pending_edits)
+    get_state().snapshot(name, pending_edits)
+
+  def recent_syntax(name: Document.Node.Name): Outer_Syntax =
+    get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
+    resources.session_base.overall_syntax
 
   @tailrec final def await_stable_snapshot(): Document.Snapshot =
   {

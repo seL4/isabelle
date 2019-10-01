@@ -318,7 +318,7 @@ object Headless
 
       def check_state(beyond_limit: Boolean = false)
       {
-        val state = session.current_state()
+        val state = session.get_state()
         for (version <- state.stable_tip_version) {
           val (load_theories, share_common_data) =
             use_theories_state.change_result(_.check(state, version, beyond_limit))
