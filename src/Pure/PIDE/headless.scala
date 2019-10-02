@@ -563,7 +563,7 @@ object Headless
       }
 
       def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
-        : State =
+        : (List[Document.Edit_Text], State) =
       {
         val st1 = remove_required(id, theories)
         val theory_edits =
@@ -576,23 +576,20 @@ object Headless
             val edits = theory1.node_edits(Some(theory))
             (edits, (node_name, theory1))
           }
-        session.update(doc_blobs, theory_edits.flatMap(_._1))
-        st1.update_theories(theory_edits.map(_._2))
+        (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
       }
 
       def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
-        : ((List[Document.Node.Name], List[Document.Node.Name]), State) =
+        : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) =
       {
         val all_nodes = theory_graph.topological_order
         val purge = nodes.getOrElse(all_nodes).filterNot(is_required(_)).toSet
 
         val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
         val (retained, purged) = all_nodes.partition(retain)
-
         val purge_edits = purged.flatMap(name => theories(name).purge_edits)
-        session.update(doc_blobs, purge_edits)
 
-        ((purged, retained), remove_theories(purged))
+        ((purged, retained, purge_edits), remove_theories(purged))
       }
     }
   }
@@ -691,19 +688,33 @@ object Headless
 
     def unload_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
     {
-      state.change(_.unload_theories(session, id, theories))
+      state.change(st =>
+      {
+        val (edits, st1) = st.unload_theories(session, id, theories)
+        session.update(st.doc_blobs, edits)
+        st1
+      })
     }
 
     def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
     {
       state.change(st =>
-        st.unload_theories(session, id, theories).purge_theories(session, None)._2)
+      {
+        val (edits1, st1) = st.unload_theories(session, id, theories)
+        val ((_, _, edits2), st2) = st1.purge_theories(session, None)
+        session.update(st.doc_blobs, edits1 ::: edits2)
+        st2
+      })
     }
 
     def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
       : (List[Document.Node.Name], List[Document.Node.Name]) =
     {
-      state.change_result(_.purge_theories(session, nodes))
+      state.change_result(st =>
+      {
+        val ((purged, retained, _), st1) = st.purge_theories(session, nodes)
+        ((purged, retained), st1)
+      })
     }
   }
 }
