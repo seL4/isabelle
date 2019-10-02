@@ -897,16 +897,18 @@ object Document
       } yield (id -> command)).toMap
     }
 
-    def command_state_eval(version: Version, command: Command): Option[Command.State] =
+    def command_maybe_consolidated(version: Version, command: Command): Boolean =
     {
       require(is_assigned(version))
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil) match {
-          case eval_id :: _ => Some(the_dynamic_state(eval_id))
-          case Nil => None
+          case eval_id :: print_ids =>
+            the_dynamic_state(eval_id).maybe_consolidated &&
+            !print_ids.exists(print_id => the_dynamic_state(print_id).consolidating)
+          case Nil => false
         }
       }
-      catch { case _: State.Fail => None }
+      catch { case _: State.Fail => false }
     }
 
     private def command_states_self(version: Version, command: Command)
@@ -992,13 +994,7 @@ object Document
 
     def node_maybe_consolidated(version: Version, name: Node.Name): Boolean =
       name.is_theory &&
-      {
-        version.nodes(name).commands.reverse.iterator.forall(command =>
-          command_state_eval(version, command) match {
-            case None => false
-            case Some(st) => st.maybe_consolidated
-          })
-      }
+      version.nodes(name).commands.reverse.iterator.forall(command_maybe_consolidated(version, _))
 
     def node_consolidated(version: Version, name: Node.Name): Boolean =
       !name.is_theory ||

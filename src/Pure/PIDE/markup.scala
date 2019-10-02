@@ -467,6 +467,7 @@ object Markup
   val CANCELED = "canceled"
   val INITIALIZED = "initialized"
   val FINALIZED = "finalized"
+  val CONSOLIDATING = "consolidating"
   val CONSOLIDATED = "consolidated"
 
 

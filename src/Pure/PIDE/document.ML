@@ -748,9 +748,11 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                     segments = segments};
                 in
                   fn _ =>
-                    Exn.release
-                      (Exn.capture (Thy_Info.apply_presentation presentation_context) thy
-                        before commit_consolidated node)
+                    let
+                      val _ = Output.status [Markup.markup_only Markup.consolidating];
+                      val res = Exn.capture (Thy_Info.apply_presentation presentation_context) thy;
+                      val _ = commit_consolidated node;
+                    in Exn.release res end
                 end
               else fn _ => commit_consolidated node;
 

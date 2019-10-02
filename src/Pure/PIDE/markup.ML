@@ -182,6 +182,7 @@ sig
   val canceledN: string val canceled: T
   val initializedN: string val initialized: T
   val finalizedN: string val finalized: T
+  val consolidatingN: string val consolidating: T
   val consolidatedN: string val consolidated: T
   val exec_idN: string
   val initN: string
@@ -631,6 +632,7 @@ val (failedN, failed) = markup_elem "failed";
 val (canceledN, canceled) = markup_elem "canceled";
 val (initializedN, initialized) = markup_elem "initialized";
 val (finalizedN, finalized) = markup_elem "finalized";
+val (consolidatingN, consolidating) = markup_elem "consolidating";
 val (consolidatedN, consolidated) = markup_elem "consolidated";
 
 
