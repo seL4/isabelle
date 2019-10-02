@@ -8,6 +8,7 @@ session HOL (main) = Pure +
   directories "../Tools"
   theories [dump_checkpoint]
     Main (global)
+  theories
     Complex_Main (global)
   document_files
     "root.bib"
@@ -65,7 +66,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
   sessions
     "HOL-Library"
     "HOL-Computational_Algebra"
-  theories [dump_checkpoint]
+  theories
     Analysis
   document_files
     "root.tex"
@@ -743,7 +744,7 @@ session "HOL-TPTP" in TPTP = "HOL-Library" +
     ATP_Problem_Import
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
-  theories [dump_checkpoint]
+  theories
     Probability
   document_files "root.tex"
 
@@ -754,7 +755,7 @@ session "HOL-Probability-ex" (timing) in "Probability/ex" = "HOL-Probability" +
     Measure_Not_CCC
 
 session "HOL-Nominal" in Nominal = "HOL-Library" +
-  theories [dump_checkpoint]
+  theories
     Nominal
 
 session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
