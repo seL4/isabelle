@@ -580,11 +580,11 @@ object Headless
         st1.update_theories(theory_edits.map(_._2))
       }
 
-      def purge_theories(session: Session, nodes: List[Document.Node.Name])
+      def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
         : ((List[Document.Node.Name], List[Document.Node.Name]), State) =
       {
         val all_nodes = theory_graph.topological_order
-        val purge = nodes.filterNot(is_required(_)).toSet
+        val purge = nodes.getOrElse(all_nodes).filterNot(is_required(_)).toSet
 
         val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
         val (retained, purged) = all_nodes.partition(retain)
@@ -697,14 +697,13 @@ object Headless
     def clean_theories(session: Session, id: UUID.T, theories: List[Document.Node.Name])
     {
       state.change(st =>
-        st.unload_theories(session, id, theories).purge_theories(session, theories)._2
-      )
+        st.unload_theories(session, id, theories).purge_theories(session, None)._2)
     }
 
     def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
       : (List[Document.Node.Name], List[Document.Node.Name]) =
     {
-      state.change_result(st => st.purge_theories(session, nodes getOrElse st.theory_graph.keys))
+      state.change_result(_.purge_theories(session, nodes))
     }
   }
 }
