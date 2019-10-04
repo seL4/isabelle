@@ -25,7 +25,7 @@ object Term_XML
 
     def term: T[Term] =
       variant[Term](List(
-        { case Const(a, b) => (List(a), typ(b)) },
+        { case Const(a, b) => (List(a), list(typ)(b)) },
         { case Free(a, b) => (List(a), typ(b)) },
         { case Var(Indexname(a, b), c) => (List(a, int_atom(b)), typ(c)) },
         { case Bound(a) => (List(int_atom(a)), Nil) },
@@ -47,7 +47,7 @@ object Term_XML
 
     def term: T[Term] =
       variant[Term](List(
-        { case (List(a), b) => Const(a, typ(b)) },
+        { case (List(a), b) => Const(a, list(typ)(b)) },
         { case (List(a), b) => Free(a, typ(b)) },
         { case (List(a, b), c) => Var(Indexname(a, int_atom(b)), typ(c)) },
         { case (List(a), Nil) => Bound(int_atom(a)) },

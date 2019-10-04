@@ -59,11 +59,11 @@ sig
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
-  val encode: proof XML.Encode.T
-  val encode_body: proof_body XML.Encode.T
-  val encode_full: proof XML.Encode.T
-  val decode: proof XML.Decode.T
-  val decode_body: proof_body XML.Decode.T
+  val encode: Consts.T -> proof XML.Encode.T
+  val encode_body: Consts.T -> proof_body XML.Encode.T
+  val encode_full: Consts.T -> proof XML.Encode.T
+  val decode: Consts.T -> proof XML.Decode.T
+  val decode_body: Consts.T -> proof_body XML.Decode.T
 
   val %> : proof * term -> proof
 
@@ -327,39 +327,40 @@ local
 
 open XML.Encode Term_XML.Encode;
 
-fun proof prf = prf |> variant
+fun proof consts prf = prf |> variant
  [fn MinProof => ([], []),
   fn PBound a => ([int_atom a], []),
-  fn Abst (a, b, c) => ([a], pair (option typ) proof (b, c)),
-  fn AbsP (a, b, c) => ([a], pair (option term) proof (b, c)),
-  fn a % b => ([], pair proof (option term) (a, b)),
-  fn a %% b => ([], pair proof proof (a, b)),
-  fn Hyp a => ([], term a),
-  fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
+  fn Abst (a, b, c) => ([a], pair (option typ) (proof consts) (b, c)),
+  fn AbsP (a, b, c) => ([a], pair (option (term consts)) (proof consts) (b, c)),
+  fn a % b => ([], pair (proof consts) (option (term consts)) (a, b)),
+  fn a %% b => ([], pair (proof consts) (proof consts) (a, b)),
+  fn Hyp a => ([], term consts a),
+  fn PAxm (a, b, c) => ([a], pair (term consts) (option (list typ)) (b, c)),
   fn OfClass (a, b) => ([b], typ a),
-  fn Oracle (a, b, c) => ([a], pair (option term) (option (list typ)) (b, c)),
+  fn Oracle (a, b, c) => ([a], pair (option (term consts)) (option (list typ)) (b, c)),
   fn PThm ({serial, pos, theory_name, name, prop, types}, Thm_Body {open_proof, body, ...}) =>
     ([int_atom serial, theory_name, name],
-      pair (list properties) (pair term (pair (option (list typ)) proof_body))
+      pair (list properties) (pair (term consts) (pair (option (list typ)) (proof_body consts)))
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
-and proof_body (PBody {oracles, thms, proof = prf}) =
-  triple (list (pair string (option term))) (list thm) proof (oracles, thms, prf)
-and thm (a, thm_node) =
-  pair int (pair string (pair string (pair term proof_body)))
+and proof_body consts (PBody {oracles, thms, proof = prf}) =
+  triple (list (pair string (option (term consts)))) (list (thm consts)) (proof consts)
+    (oracles, thms, prf)
+and thm consts (a, thm_node) =
+  pair int (pair string (pair string (pair (term consts) (proof_body consts))))
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
       (Future.join (thm_node_body thm_node))))));
 
-fun full_proof prf = prf |> variant
+fun full_proof consts prf = prf |> variant
  [fn MinProof => ([], []),
   fn PBound a => ([int_atom a], []),
-  fn Abst (a, SOME b, c) => ([a], pair typ full_proof (b, c)),
-  fn AbsP (a, SOME b, c) => ([a], pair term full_proof (b, c)),
-  fn a % SOME b => ([], pair full_proof term (a, b)),
-  fn a %% b => ([], pair full_proof full_proof (a, b)),
-  fn Hyp a => ([], term a),
+  fn Abst (a, SOME b, c) => ([a], pair typ (full_proof consts) (b, c)),
+  fn AbsP (a, SOME b, c) => ([a], pair (term consts) (full_proof consts) (b, c)),
+  fn a % SOME b => ([], pair (full_proof consts) (term consts) (a, b)),
+  fn a %% b => ([], pair (full_proof consts) (full_proof consts) (a, b)),
+  fn Hyp a => ([], term consts a),
   fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
   fn OfClass (T, c) => ([c], typ T),
-  fn Oracle (name, prop, SOME Ts) => ([name], pair (option term) (list typ) (prop, Ts)),
+  fn Oracle (name, prop, SOME Ts) => ([name], pair (option (term consts)) (list typ) (prop, Ts)),
   fn PThm ({serial, theory_name, name, types = SOME Ts, ...}, _) =>
     ([int_atom serial, theory_name, name], list typ Ts)];
 
@@ -378,28 +379,33 @@ local
 
 open XML.Decode Term_XML.Decode;
 
-fun proof prf = prf |> variant
+fun proof consts prf = prf |> variant
  [fn ([], []) => MinProof,
   fn ([a], []) => PBound (int_atom a),
-  fn ([a], b) => let val (c, d) = pair (option typ) proof b in Abst (a, c, d) end,
-  fn ([a], b) => let val (c, d) = pair (option term) proof b in AbsP (a, c, d) end,
-  fn ([], a) => op % (pair proof (option term) a),
-  fn ([], a) => op %% (pair proof proof a),
-  fn ([], a) => Hyp (term a),
-  fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in PAxm (a, c, d) end,
+  fn ([a], b) => let val (c, d) = pair (option typ) (proof consts) b in Abst (a, c, d) end,
+  fn ([a], b) => let val (c, d) = pair (option (term consts)) (proof consts) b in AbsP (a, c, d) end,
+  fn ([], a) => op % (pair (proof consts) (option (term consts)) a),
+  fn ([], a) => op %% (pair (proof consts) (proof consts) a),
+  fn ([], a) => Hyp (term consts a),
+  fn ([a], b) => let val (c, d) = pair (term consts) (option (list typ)) b in PAxm (a, c, d) end,
   fn ([b], a) => OfClass (typ a, b),
-  fn ([a], b) => let val (c, d) = pair (option term) (option (list typ)) b in Oracle (a, c, d) end,
+  fn ([a], b) =>
+    let val (c, d) = pair (option (term consts)) (option (list typ)) b in Oracle (a, c, d) end,
   fn ([a, b, c], d) =>
     let
       val ((e, (f, (g, h)))) =
-        pair (list properties) (pair term (pair (option (list typ)) proof_body)) d;
+        pair (list properties) (pair (term consts) (pair (option (list typ)) (proof_body consts))) d;
       val header = thm_header (int_atom a) (map Position.of_properties e) b c f g;
     in PThm (header, thm_body h) end]
-and proof_body x =
-  let val (a, b, c) = triple (list (pair string (option term))) (list thm) proof x
+and proof_body consts x =
+  let
+    val (a, b, c) =
+      triple (list (pair string (option (term consts)))) (list (thm consts)) (proof consts) x;
   in PBody {oracles = a, thms = b, proof = c} end
-and thm x =
-  let val (a, (b, (c, (d, e)))) = pair int (pair string (pair string (pair term proof_body))) x
+and thm consts x =
+  let
+    val (a, (b, (c, (d, e)))) =
+      pair int (pair string (pair string (pair (term consts) (proof_body consts)))) x
   in (a, make_thm_node b c d (Future.value e)) end;
 
 in
@@ -2065,15 +2071,15 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
-fun encode_export prop prf =
+fun encode_export consts prop prf =
   let open XML.Encode Term_XML.Encode
-  in pair term encode_full (prop, prf) end;
+  in pair (term consts) (encode_full consts) (prop, prf) end;
 
 fun export_proof thy i prop prf =
   let
     val (prop', SOME prf') =
       standard_vars Name.context (prop, SOME (reconstruct_proof thy prop prf));
-    val xml = encode_export prop' prf';
+    val xml = encode_export (Sign.consts_of thy) prop' prf';
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in
     chunks |> Export.export_params

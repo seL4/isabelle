@@ -150,7 +150,6 @@ subsection "Core of tactical proof system";
 
 ML_file "term_ord.ML";
 ML_file "term_subst.ML";
-ML_file "term_xml.ML";
 ML_file "General/completion.ML";
 ML_file "General/name_space.ML";
 ML_file "sorts.ML";
@@ -161,6 +160,7 @@ ML_file "net.ML";
 ML_file "item_net.ML";
 ML_file "envir.ML";
 ML_file "consts.ML";
+ML_file "term_xml.ML";
 ML_file "primitive_defs.ML";
 ML_file "sign.ML";
 ML_file "defs.ML";

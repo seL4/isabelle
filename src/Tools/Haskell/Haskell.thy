@@ -1381,7 +1381,7 @@ dummyT = Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])
 
 
 data Term =
-    Const (String, Typ)
+    Const (String, [Typ])
   | Free (String, Typ)
   | Var (Indexname, Typ)
   | Bound Int
@@ -1424,7 +1424,7 @@ typ ty =
 term :: T Term
 term t =
   t |> variant
-   [\case { Const (a, b) -> Just ([a], typ b); _ -> Nothing },
+   [\case { Const (a, b) -> Just ([a], list typ b); _ -> Nothing },
     \case { Free (a, b) -> Just ([a], typ b); _ -> Nothing },
     \case { Var ((a, b), c) -> Just ([a, int_atom b], typ c); _ -> Nothing },
     \case { Bound a -> Just ([int_atom a], []); _ -> Nothing },
@@ -1464,7 +1464,7 @@ typ ty =
 term :: T Term
 term t =
   t |> variant
-   [\([a], b) -> Const (a, typ b),
+   [\([a], b) -> Const (a, list typ b),
     \([a], b) -> Free (a, typ b),
     \([a, b], c) -> Var ((a, int_atom b), typ c),
     \([a], []) -> Bound (int_atom a),

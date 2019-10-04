@@ -58,6 +58,12 @@ sufficient and more convenient to start editing a particular session.
 
 *** HOL ***
 
+* Term_XML.Encode/Decode.term uses compact representation of Const
+"typargs" from the given declaration environment. This also makes more
+sense for translations to lambda-calculi with explicit polymorphism.
+INCOMPATIBILITY, use Term_XML.Encode/Decode.term_raw in special
+applications.
+
 * ASCII membership syntax concerning big operators for infimum and
 supremum is gone. INCOMPATIBILITY.
 
@@ -97,6 +103,7 @@ potentially indexed, such as "foo" for singleton facts, or "bar(1)",
 exported as well: this spans an overall dependency graph of internal
 inferences; it might help to reconstruct the formal structure of theory
 libraries. See also the module Export_Theory in Isabelle/Scala.
+
 
 
 New in Isabelle2019 (June 2019)

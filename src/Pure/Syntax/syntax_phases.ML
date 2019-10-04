@@ -401,7 +401,7 @@ fun parse_term is_prop ctxt =
       if is_prop
       then (Markup.language_prop, "prop", "prop", Type.constraint propT)
       else (Markup.language_term, "term", Config.get ctxt Syntax.root, I);
-    val decode = constrain o Term_XML.Decode.term;
+    val decode = constrain o Term_XML.Decode.term (Proof_Context.consts_of ctxt);
   in
     Syntax.parse_input ctxt decode markup
       (fn (syms, pos) =>

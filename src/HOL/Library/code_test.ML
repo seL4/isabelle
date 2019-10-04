@@ -112,7 +112,7 @@ fun parse_line line =
     if size line > size failureN then
       String.extract (line, size failureN, NONE)
       |> YXML.parse_body
-      |> Term_XML.Decode.term
+      |> Term_XML.Decode.term_raw
       |> dest_tuples
       |> SOME
     else NONE)

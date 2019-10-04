@@ -196,11 +196,14 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* consts *)
 
+    val consts = Sign.consts_of thy;
+    val encode_term = Term_XML.Encode.term consts;
+
     val encode_const =
       let open XML.Encode Term_XML.Encode in
         pair encode_syntax
           (pair (list string)
-            (pair typ (pair (option term) (pair bool (pair (list string) bool)))))
+            (pair typ (pair (option encode_term) (pair bool (pair (list string) bool)))))
       end;
 
     fun export_const c (T, abbrev) =
@@ -211,13 +214,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val recursion = primrec_types thy_ctxt (c, U);
         val abbrev' = abbrev
           |> Option.map (Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts);
-        val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, U0));
+        val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
         val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
       in encode_const (syntax, (args, (U0, (abbrev', (propositional, recursion))))) end;
 
     val _ =
       export_entities "consts" (SOME oo export_const) Sign.const_space
-        (#constants (Consts.dest (Sign.consts_of thy)));
+        (#constants (Consts.dest consts));
 
 
     (* axioms *)
@@ -233,7 +236,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_prop =
       let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) term end;
+      in triple (list (pair string sort)) (list (pair string typ)) encode_term end;
 
     fun encode_axiom used prop =
       encode_prop (#1 (standard_prop used [] prop NONE));
@@ -268,7 +271,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       in
         (prop, (deps, proof)) |>
           let open XML.Encode Term_XML.Encode
-          in pair encode_prop (pair (list string) (option Proofterm.encode_full)) end
+          in pair encode_prop (pair (list string) (option (Proofterm.encode_full consts))) end
       end;
 
     fun buffer_export_thm (serial, thm_name) =
@@ -356,7 +359,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         let
           open XML.Encode Term_XML.Encode;
           val encode_subst =
-            pair (list (pair (pair string sort) typ)) (list (pair (pair string typ) term));
+            pair (list (pair (pair string sort) typ)) (list (pair (pair string typ) (term consts)));
         in pair string (pair string (pair (list (pair string bool)) encode_subst)) end;
 
     val _ =

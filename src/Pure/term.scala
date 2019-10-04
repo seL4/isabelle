@@ -40,7 +40,7 @@ object Term
   val dummyT = Type("dummy")
 
   sealed abstract class Term
-  case class Const(name: String, typ: Typ = dummyT) extends Term
+  case class Const(name: String, typargs: List[Typ]) extends Term
   case class Free(name: String, typ: Typ = dummyT) extends Term
   case class Var(name: Indexname, typ: Typ = dummyT) extends Term
   case class Bound(index: Int) extends Term
@@ -68,15 +68,14 @@ object Term
   val propT: Typ = Type(Pure_Thy.PROP, Nil)
   def funT(ty1: Typ, ty2: Typ): Typ = Type(Pure_Thy.FUN, List(ty1, ty2))
 
-  def mk_type(ty: Typ): Term = Const(Pure_Thy.TYPE, itselfT(ty))
+  def mk_type(ty: Typ): Term = Const(Pure_Thy.TYPE, List(ty))
 
   def const_of_class(c: String): String = c + "_class"
 
   def mk_of_sort(ty: Typ, s: Sort): List[Term] =
   {
-    val class_type = funT(itselfT(ty), propT)
     val t = mk_type(ty)
-    s.map(c => App(Const(const_of_class(c), class_type), t))
+    s.map(c => App(Const(const_of_class(c), List(ty)), t))
   }
 
 
@@ -154,7 +153,7 @@ object Term
         case Some(y) => y
         case None =>
           x match {
-            case Const(name, typ) => store(Const(cache_string(name), cache_typ(typ)))
+            case Const(name, typargs) => store(Const(cache_string(name), cache_typs(typargs)))
             case Free(name, typ) => store(Free(cache_string(name), cache_typ(typ)))
             case Var(name, typ) => store(Var(cache_indexname(name), cache_typ(typ)))
             case Bound(_) => store(x)
