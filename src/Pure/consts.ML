@@ -30,6 +30,7 @@ sig
   val certify: Context.generic -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
+  val dummy_types: T -> term -> term
   val declare: Context.generic -> binding * typ -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Context.generic -> Type.tsig -> string -> binding * term -> T -> (term * term) * T
@@ -228,6 +229,17 @@ fun instance consts (c, Ts) =
     val inst = vars ~~ Ts handle ListPair.UnequalLengths =>
       raise TYPE ("Consts.instance", Ts, [Const (c, dummyT)]);
   in declT |> Term_Subst.instantiateT inst end;
+
+fun dummy_types consts =
+  let
+    fun dummy (Const (c, T)) =
+          Const (c, instance consts (c, replicate (length (typargs consts (c, T))) dummyT))
+      | dummy (Free (x, _)) = Free (x, dummyT)
+      | dummy (Var (xi, _)) = Var (xi, dummyT)
+      | dummy (b as Bound _) = b
+      | dummy (t $ u) = dummy t $ dummy u
+      | dummy (Abs (a, _, b)) = Abs (a, dummyT, dummy b);
+  in dummy end;
 
 
 
