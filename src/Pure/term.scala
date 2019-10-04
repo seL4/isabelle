@@ -64,10 +64,6 @@ object Term
 
   /* Pure logic */
 
-  def itselfT(ty: Typ): Typ = Type(Pure_Thy.ITSELF, List(ty))
-  val propT: Typ = Type(Pure_Thy.PROP, Nil)
-  def funT(ty1: Typ, ty2: Typ): Typ = Type(Pure_Thy.FUN, List(ty1, ty2))
-
   def mk_type(ty: Typ): Term = Const(Pure_Thy.TYPE, List(ty))
 
   def const_of_class(c: String): String = c + "_class"
@@ -76,32 +72,6 @@ object Term
   {
     val t = mk_type(ty)
     s.map(c => App(Const(const_of_class(c), List(ty)), t))
-  }
-
-
-  /* type arguments of consts */
-
-  def const_typargs(name: String, typ: Typ, typargs: List[String], decl: Typ): List[Typ] =
-  {
-    var subst = Map.empty[String, Typ]
-
-    def bad_match(): Nothing = error("Malformed type instance for " + name + ": " + typ)
-    def raw_match(arg: (Typ, Typ))
-    {
-      arg match {
-        case (TFree(a, _), ty) =>
-          subst.get(a) match {
-            case None => subst += (a -> ty)
-            case Some(ty1) => if (ty != ty1) bad_match()
-          }
-        case (Type(c1, args1), Type(c2, args2)) if c1 == c2 =>
-          (args1 zip args2).foreach(raw_match)
-        case _ => bad_match()
-      }
-    }
-    raw_match(decl, typ)
-
-    typargs.map(subst)
   }
 
 
