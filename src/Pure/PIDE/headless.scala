@@ -135,6 +135,9 @@ object Headless
 
     /* options */
 
+    override def consolidate_delay: Time = session_options.seconds("headless_consolidate_delay")
+    override def prune_delay: Time = session_options.seconds("headless_prune_delay")
+
     def default_check_delay: Time = session_options.seconds("headless_check_delay")
     def default_check_limit: Int = session_options.int("headless_check_limit")
     def default_nodes_status_delay: Time = session_options.seconds("headless_nodes_status_delay")
