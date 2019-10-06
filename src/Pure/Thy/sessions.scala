@@ -547,6 +547,7 @@ object Sessions
   {
     val empty: Selection = Selection()
     val all: Selection = Selection(all_sessions = true)
+    def session(session: String): Selection = Selection(sessions = List(session))
   }
 
   sealed case class Selection(
