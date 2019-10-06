@@ -858,15 +858,16 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     progress: Progress = No_Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
+    fresh: Boolean = false,
     strict: Boolean = false): Int =
   {
     val rc =
-      if (build(options, build_heap = build_heap, no_build = true, dirs = dirs,
+      if (!fresh && build(options, build_heap = build_heap, no_build = true, dirs = dirs,
           sessions = List(logic)).ok) 0
       else {
         progress.echo("Build started for Isabelle/" + logic + " ...")
-        Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
-          sessions = List(logic)).rc
+        Build.build(options, progress = progress, build_heap = build_heap, fresh_build = fresh,
+          dirs = dirs, sessions = List(logic)).rc
       }
 
     if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc
