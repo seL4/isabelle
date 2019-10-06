@@ -11,16 +11,16 @@ object Export_Theory
 {
   /** session content **/
 
-  sealed case class Session(name: String, theory_graph: Graph[String, Theory])
+  sealed case class Session(name: String, theory_graph: Graph[String, Option[Theory]])
   {
     override def toString: String = name
 
-    def theory(theory_name: String): Theory =
+    def theory(theory_name: String): Option[Theory] =
       if (theory_graph.defined(theory_name)) theory_graph.get_node(theory_name)
-      else error("Bad theory " + quote(theory_name))
+      else None
 
     def theories: List[Theory] =
-      theory_graph.topological_order.map(theory_graph.get_node(_))
+      theory_graph.topological_order.flatMap(theory(_))
   }
 
   def read_session(store: Sessions.Store,
@@ -51,11 +51,11 @@ object Export_Theory
       })
 
     val graph0 =
-      (Graph.string[Theory] /: thys) { case (g, thy) => g.new_node(thy.name, thy) }
+      (Graph.string[Option[Theory]] /: thys) { case (g, thy) => g.new_node(thy.name, Some(thy)) }
     val graph1 =
       (graph0 /: thys) { case (g0, thy) =>
         (g0 /: thy.parents) { case (g1, parent) =>
-          g1.default_node(parent, empty_theory(parent)).add_edge_acyclic(parent, thy.name) } }
+          g1.default_node(parent, None).add_edge_acyclic(parent, thy.name) } }
 
     Session(session_name, graph1)
   }
@@ -81,15 +81,14 @@ object Export_Theory
   {
     override def toString: String = name
 
-    lazy val entities: Set[Long] =
-      Set.empty[Long] ++
-        types.iterator.map(_.entity.serial) ++
-        consts.iterator.map(_.entity.serial) ++
-        axioms.iterator.map(_.entity.serial) ++
-        thms.iterator.map(_.entity.serial) ++
-        classes.iterator.map(_.entity.serial) ++
-        locales.iterator.map(_.entity.serial) ++
-        locale_dependencies.iterator.map(_.entity.serial)
+    def entity_iterator: Iterator[Entity] =
+      types.iterator.map(_.entity) ++
+      consts.iterator.map(_.entity) ++
+      axioms.iterator.map(_.entity) ++
+      thms.iterator.map(_.entity) ++
+      classes.iterator.map(_.entity) ++
+      locales.iterator.map(_.entity) ++
+      locale_dependencies.iterator.map(_.entity)
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
@@ -105,9 +104,6 @@ object Export_Theory
         arities.map(_.cache(cache)),
         typedefs.map(_.cache(cache)))
   }
-
-  def empty_theory(name: String): Theory =
-    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     types: Boolean = true,
