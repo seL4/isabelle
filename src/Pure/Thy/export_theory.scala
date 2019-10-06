@@ -23,8 +23,11 @@ object Export_Theory
       theory_graph.topological_order.flatMap(theory(_))
   }
 
-  def read_session(store: Sessions.Store,
+  def read_session(
+    store: Sessions.Store,
+    sessions_structure: Sessions.Structure,
     session_name: String,
+    progress: Progress = No_Progress,
     types: Boolean = true,
     consts: Boolean = true,
     axioms: Boolean = true,
@@ -38,17 +41,21 @@ object Export_Theory
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
-      using(store.open_database(session_name))(db =>
-      {
-        db.transaction {
-          Export.read_theory_names(db, session_name).map((theory_name: String) =>
-            read_theory(Export.Provider.database(db, session_name, theory_name),
-              session_name, theory_name, types = types, consts = consts,
-              axioms = axioms, thms = thms, classes = classes, locales = locales,
-              locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-              typedefs = typedefs, cache = Some(cache)))
-        }
-      })
+      sessions_structure.build_requirements(List(session_name)).flatMap(session =>
+        using(store.open_database(session))(db =>
+        {
+          db.transaction {
+            for (theory <- Export.read_theory_names(db, session))
+            yield {
+              progress.echo("Reading theory " + theory)
+              read_theory(Export.Provider.database(db, session, theory),
+                session, theory, types = types, consts = consts,
+                axioms = axioms, thms = thms, classes = classes, locales = locales,
+                locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
+                typedefs = typedefs, cache = Some(cache))
+            }
+          }
+        }))
 
     val graph0 =
       (Graph.string[Option[Theory]] /: thys) { case (g, thy) => g.new_node(thy.name, Some(thy)) }
