@@ -86,7 +86,9 @@ object Line
   sealed case class Node_Position(name: String, pos: Position = Position.zero)
   {
     def line: Int = pos.line
+    def line1: Int = pos.line1
     def column: Int = pos.column
+    def column1: Int = pos.column1
   }
 
   sealed case class Node_Range(name: String, range: Range = Range.zero)
