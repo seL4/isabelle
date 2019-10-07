@@ -165,13 +165,6 @@ class Resources(
     } yield theory_node
   }
 
-  def dump_checkpoints(info: Sessions.Info): Set[Document.Node.Name] =
-    (for {
-      (options, thys) <- info.theories.iterator
-      if options.bool("dump_checkpoint")
-      (thy, _) <- thys.iterator
-    } yield import_name(info, thy)).toSet
-
   def complete_import_name(context_name: Document.Node.Name, s: String): List[String] =
   {
     val context_session = session_base.theory_qualifier(context_name)
@@ -262,10 +255,8 @@ class Resources(
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text],
-      consolidate: List[Document.Node.Name],
-      share_common_data: Boolean): Session.Change =
-    Thy_Syntax.parse_change(
-      resources, reparse_limit, previous, doc_blobs, edits, consolidate, share_common_data)
+      consolidate: List[Document.Node.Name]): Session.Change =
+    Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits, consolidate)
 
   def commit(change: Session.Change) { }
 

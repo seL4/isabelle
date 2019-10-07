@@ -53,7 +53,6 @@ object Session
     deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
     consolidate: List[Document.Node.Name],
-    share_common_data: Boolean,
     version: Document.Version)
 
   case object Change_Flush
@@ -65,8 +64,7 @@ object Session
   case class Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
-  case class Raw_Edits(
-    doc_blobs: Document.Blobs, edits: List[Document.Edit_Text], share_common_data: Boolean)
+  case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   case class Dialog_Result(id: Document_ID.Generic, serial: Long, result: String)
   case class Build_Theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
   case class Commands_Changed(
@@ -232,17 +230,15 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
     consolidate: List[Document.Node.Name],
-    share_common_data: Boolean,
     version_result: Promise[Document.Version])
 
   private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
   {
-    case Text_Edits(previous, doc_blobs, text_edits, consolidate, share_common_data, version_result) =>
+    case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
       val prev = previous.get_finished
       val change =
         Timing.timeit("parse_change", timing) {
-          resources.parse_change(
-            reparse_limit, prev, doc_blobs, text_edits, consolidate, share_common_data)
+          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits, consolidate)
         }
       version_result.fulfill(change.version)
       manager.send(change)
@@ -393,8 +389,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     def handle_raw_edits(
       doc_blobs: Document.Blobs = Document.Blobs.empty,
       edits: List[Document.Edit_Text] = Nil,
-      consolidate: List[Document.Node.Name] = Nil,
-      share_common_data: Boolean = false)
+      consolidate: List[Document.Node.Name] = Nil)
     //{{{
     {
       require(prover.defined)
@@ -405,9 +400,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       val version = Future.promise[Document.Version]
       global_state.change(_.continue_history(previous, edits, version))
 
-      raw_edits.post(Session.Raw_Edits(doc_blobs, edits, share_common_data))
-      change_parser.send(
-        Text_Edits(previous, doc_blobs, edits, consolidate, share_common_data, version))
+      raw_edits.post(Session.Raw_Edits(doc_blobs, edits))
+      change_parser.send(Text_Edits(previous, doc_blobs, edits, consolidate, version))
     }
     //}}}
 
@@ -418,10 +412,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     //{{{
     {
       require(prover.defined)
-
-      if (change.share_common_data) {
-        prover.get.protocol_command("ML_Heap.share_common_data")
-      }
 
       // define commands
       {
@@ -636,9 +626,8 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
           case Cancel_Exec(exec_id) if prover.defined =>
             prover.get.cancel_exec(exec_id)
 
-          case Session.Raw_Edits(doc_blobs, edits, share_common_data) if prover.defined =>
-            handle_raw_edits(doc_blobs = doc_blobs, edits = edits,
-              share_common_data = share_common_data)
+          case Session.Raw_Edits(doc_blobs, edits) if prover.defined =>
+            handle_raw_edits(doc_blobs = doc_blobs, edits = edits)
 
           case Session.Dialog_Result(id, serial, result) if prover.defined =>
             prover.get.dialog_result(serial, result)
@@ -744,12 +733,9 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   def cancel_exec(exec_id: Document_ID.Exec)
   { manager.send(Cancel_Exec(exec_id)) }
 
-  def update(
-    doc_blobs: Document.Blobs,
-    edits: List[Document.Edit_Text],
-    share_common_data: Boolean = false)
+  def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   {
-    if (edits.nonEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits, share_common_data))
+    if (edits.nonEmpty) manager.send_wait(Session.Raw_Edits(doc_blobs, edits))
   }
 
   def update_options(options: Options)

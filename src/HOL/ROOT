@@ -6,9 +6,8 @@ session HOL (main) = Pure +
   "
   options [strict_facts]
   directories "../Tools"
-  theories [dump_checkpoint]
-    Main (global)
   theories
+    Main (global)
     Complex_Main (global)
   document_files
     "root.bib"
