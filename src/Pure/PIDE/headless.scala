@@ -44,12 +44,15 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  private val load_finished: (List[Document.Node.Name], Load_State) = (Nil, Load_State(Nil, Nil))
+  private object Load_State
+  {
+    def finished: Load_State = Load_State(Nil, Nil, 0)
+  }
 
-  private case class Load_State(pending: List[Document.Node.Name], rest: List[Document.Node.Name])
+  private case class Load_State(
+    pending: List[Document.Node.Name], rest: List[Document.Node.Name], load_limit: Int)
   {
     def next(
-      limit: Int,
       dep_graph: Document.Node.Name.Graph[Unit],
       finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
     {
@@ -57,14 +60,14 @@ object Headless
         : (List[Document.Node.Name], Load_State) =
       {
         val load_theories = dep_graph.all_preds(pending1).reverse.filterNot(finished)
-        (load_theories, Load_State(pending1, rest1))
+        (load_theories, Load_State(pending1, rest1, load_limit))
       }
 
       if (!pending.forall(finished)) (Nil, this)
-      else if (rest.isEmpty) load_finished
-      else if (limit == 0) load_requirements(rest, Nil)
+      else if (rest.isEmpty) (Nil, Load_State.finished)
+      else if (load_limit == 0) load_requirements(rest, Nil)
       else {
-        val reachable = dep_graph.reachable_limit(limit, _ => 1, dep_graph.imm_preds, rest)
+        val reachable = dep_graph.reachable_limit(load_limit, _ => 1, dep_graph.imm_preds, rest)
         val (pending1, rest1) = rest.partition(reachable)
         load_requirements(pending1, rest1)
       }
@@ -93,12 +96,6 @@ object Headless
     def default_nodes_status_delay: Time = session_options.seconds("headless_nodes_status_delay")
     def default_watchdog_timeout: Time = session_options.seconds("headless_watchdog_timeout")
     def default_commit_cleanup_delay: Time = session_options.seconds("headless_commit_cleanup_delay")
-
-    def load_limit: Int =
-    {
-      val limit = session_options.int("headless_load_limit")
-      if (limit == 0) Integer.MAX_VALUE else limit
-    }
 
 
     /* temporary directory */
@@ -223,8 +220,7 @@ object Headless
           }
           else result
 
-        val (load_theories, load_state1) =
-          load_state.next(load_limit, dep_graph, finished_theory(_))
+        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory(_))
 
         (load_theories,
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
@@ -270,7 +266,8 @@ object Headless
             val depth = dep_graph.node_depth(_ => 1)
             maximals.sortBy(node => - depth(node))
           }
-        val load_state = Load_State(Nil, rest)
+        val load_limit = if (commit.isDefined) session_options.int("headless_load_limit") else 0
+        val load_state = Load_State(Nil, rest, load_limit)
 
         Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
       }
