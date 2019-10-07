@@ -44,58 +44,32 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  private sealed abstract class Load_State
+  private val load_finished: (List[Document.Node.Name], Load_State) = (Nil, Load_State(Nil, Nil))
+
+  private case class Load_State(pending: List[Document.Node.Name], rest: List[Document.Node.Name])
   {
     def next(
       limit: Int,
       dep_graph: Document.Node.Name.Graph[Unit],
       finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
     {
-      def make_pending(maximals: List[Document.Node.Name]): List[Document.Node.Name] =
-      {
-        val pending = maximals.filterNot(finished)
-        if (pending.isEmpty || pending.tail.isEmpty) pending
-        else {
-          val depth = dep_graph.node_depth(_ => 1)
-          pending.sortBy(node => - depth(node))
-        }
-      }
-
-      def load_requirements(pending: List[Document.Node.Name])
+      def load_requirements(pending1: List[Document.Node.Name], rest1: List[Document.Node.Name])
         : (List[Document.Node.Name], Load_State) =
       {
-        if (pending.isEmpty) (Nil, Load_Finished)
-        else if (limit == 0) {
-          val requirements = dep_graph.all_preds(pending).reverse
-          (requirements, Load_Bulk(pending, Nil))
-        }
-        else {
-          val reachable = dep_graph.reachable_limit(limit, _ => 1, dep_graph.imm_preds, pending)
-          val (pending1, pending2) = pending.partition(reachable)
-          val requirements = dep_graph.all_preds(pending1).reverse
-          (requirements, Load_Bulk(pending1, pending2))
-        }
+        val load_theories = dep_graph.all_preds(pending1).reverse.filterNot(finished)
+        (load_theories, Load_State(pending1, rest1))
       }
 
-      val (load_theories, st1) =
-        this match {
-          case Load_Init =>
-            val pending = make_pending(dep_graph.maximals)
-            if (pending.isEmpty) (Nil, Load_Finished)
-            else load_requirements(pending)
-          case Load_Bulk(pending, remaining) if pending.forall(finished) =>
-            load_requirements(remaining)
-          case st => (Nil, st)
-        }
-
-      (load_theories.filterNot(finished), st1)
+      if (!pending.forall(finished)) (Nil, this)
+      else if (rest.isEmpty) load_finished
+      else if (limit == 0) load_requirements(rest, Nil)
+      else {
+        val reachable = dep_graph.reachable_limit(limit, _ => 1, dep_graph.imm_preds, rest)
+        val (pending1, rest1) = rest.partition(reachable)
+        load_requirements(pending1, rest1)
+      }
     }
   }
-  private case object Load_Init extends Load_State
-  private case class Load_Bulk(
-    pending: List[Document.Node.Name],
-    remaining: List[Document.Node.Name]) extends Load_State
-  private case object Load_Finished extends Load_State
 
   class Session private[Headless](
     session_name: String,
@@ -286,18 +260,29 @@ object Headless
           map(path => Document.Node.Name(resources.append("", path)))
 
       val use_theories_state =
-        Synchronized(
-          Use_Theories_State(dependencies.theory_graph, Load_Init, watchdog_timeout, commit))
+      {
+        val dep_graph = dependencies.theory_graph
+
+        val maximals = dep_graph.maximals
+        val rest =
+          if (maximals.isEmpty || maximals.tail.isEmpty) maximals
+          else {
+            val depth = dep_graph.node_depth(_ => 1)
+            maximals.sortBy(node => - depth(node))
+          }
+        val load_state = Load_State(Nil, rest)
+
+        Synchronized(Use_Theories_State(dep_graph, load_state, watchdog_timeout, commit))
+      }
 
       def check_state(beyond_limit: Boolean = false)
       {
         val state = session.get_state()
-        for (version <- state.stable_tip_version) {
-          val load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
-          if (load_theories.nonEmpty) {
-            resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
-          }
-        }
+        for {
+          version <- state.stable_tip_version
+          load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
+          if load_theories.nonEmpty
+        } resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
       }
 
       val check_progress =
