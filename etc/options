@@ -225,9 +225,6 @@ option headless_commit_cleanup_delay : real = 60
 option headless_load_limit : int = 100
   -- "limit for loaded theories (0 = unlimited)"
 
-option dump_checkpoint : bool = false
-  -- "mark individual theories to share common data in ML"
-
 
 section "Miscellaneous Tools"
 
