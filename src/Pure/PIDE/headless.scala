@@ -78,8 +78,7 @@ object Headless
           ((requirements, share_common_data), Load_Bulk(pending, Nil, checkpoints))
         }
         else {
-          def count(node: Document.Node.Name): Int = if (finished(node)) 0 else 1
-          val reachable = dep_graph.reachable_limit(limit, count _, dep_graph.imm_preds, pending)
+          val reachable = dep_graph.reachable_limit(limit, _ => 1, dep_graph.imm_preds, pending)
           val (pending1, pending2) = pending.partition(reachable)
           val requirements = dep_graph.all_preds(pending1).reverse
           ((requirements, share_common_data), Load_Bulk(pending1, pending2, checkpoints))
