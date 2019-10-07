@@ -36,19 +36,7 @@ lemma balanced_if_braun: "braun t \<Longrightarrow> balanced t"
 proof(induction t)
   case Leaf show ?case by (simp add: balanced_def)
 next
-  case (Node l x r)
-  have "size l = size r \<or> size l = size r + 1" (is "?A \<or> ?B")
-    using Node.prems by simp
-  thus ?case
-  proof
-    assume "?A"
-    thus ?thesis using Node
-      apply(simp add: balanced_def min_def max_def)
-      by (metis Node.IH balanced_optimal le_antisym le_refl)
-  next
-    assume "?B"
-    thus ?thesis using Node by(intro balanced_Node_if_wbal1) auto
-  qed
+  case (Node l x r) thus ?case using balanced_Node_if_wbal2 by force
 qed
 
 subsection \<open>Numbering Nodes\<close>
