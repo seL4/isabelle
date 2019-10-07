@@ -222,7 +222,7 @@ option headless_watchdog_timeout : real = 600
 option headless_commit_cleanup_delay : real = 60
   -- "delay for cleanup of already imported theories (seconds, 0 = disabled)"
 
-option headless_load_limit : int = 5
+option headless_load_limit : real = 5.0
   -- "limit in MB for loaded theory files (0 = unlimited)"
 
 

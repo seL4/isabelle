@@ -271,7 +271,7 @@ object Headless
             maximals.sortBy(node => - depth(node))
           }
         val load_limit =
-          if (commit.isDefined) session_options.int("headless_load_limit").toLong * 1024 * 1024
+          if (commit.isDefined) (session_options.real("headless_load_limit") * 1024 * 1024).round
           else 0
         val load_state = Load_State(Nil, rest, load_limit)
 
