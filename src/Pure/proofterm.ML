@@ -1576,11 +1576,15 @@ fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of pro
 
 fun app_types shift prop Ts prf =
   let
-    val tvars = rev (Term.add_tvars prop []);
-    val tfrees = rev (Term.add_tfrees prop []);
-    val vs = map (fn ((a, i), _) => (a, i + shift)) tvars @ map (fn (a, _) => (a, ~1)) tfrees;
-    fun varify (v as (a, S)) = if member (op =) tfrees v then TVar ((a, ~1), S) else TFree v;
-  in map_proof_types (typ_subst_TVars (vs ~~ Ts) o map_type_tfree varify) prf end;
+    val tvars = rev (Term.add_tvars prop []) |> map #1;
+    val tfrees = rev (Term.add_tfrees prop []) |> map (fn (a, _) => (a, ~1));
+    val inst = (tvars @ tfrees) ~~ Ts;
+    fun subst_same v = (case AList.lookup (op =) inst v of SOME T => T | NONE => raise Same.SAME);
+    val subst_type_same =
+      Term_Subst.map_atypsT_same
+        (fn TVar ((a, i), _) => subst_same (a, i - shift)
+          | TFree (a, _) => subst_same (a, ~1));
+  in Same.commit (map_proof_types_same subst_type_same) prf end;
 
 fun guess_name (PThm ({name, ...}, _)) = name
   | guess_name (prf %% Hyp _) = guess_name prf
