@@ -1080,6 +1080,7 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
 
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
+fun variables_of t = vars_of t @ frees_of t;
 
 fun test_args _ [] = true
   | test_args is (Bound i :: ts) =
@@ -1566,10 +1567,6 @@ fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 local
 
 exception MIN_PROOF of unit;
-
-fun vars_of t = map Var (rev (Term.add_vars t []));
-fun frees_of t = map Free (rev (Term.add_frees t []));
-fun variables_of t = vars_of t @ frees_of t;
 
 fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
