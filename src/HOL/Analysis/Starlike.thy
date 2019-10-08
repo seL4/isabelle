@@ -956,7 +956,7 @@ next
       unfolding that(1) by (auto simp add:algebra_simps)
     show "norm (a - x) *\<^sub>R (x - b) = norm (x - b) *\<^sub>R (a - x)"
       unfolding norm_minus_commute[of x a] * using \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>
-      by (auto simp add: field_simps)
+      by simp
   qed
   moreover have "\<exists>u. x = (1 - u) *\<^sub>R a + u *\<^sub>R b \<and> 0 \<le> u \<and> u \<le> 1" if "dist a b = dist a x + dist x b" 
   proof -
@@ -1160,8 +1160,7 @@ proof -
   have "z \<in> interior S"
     apply (rule interior_mono[OF d,unfolded subset_eq,rule_format])
     unfolding interior_open[OF open_ball] mem_ball z_def dist_norm using y and assms(4,5)
-    apply (auto simp add:field_simps norm_minus_commute)
-    done
+    by simp (simp add: field_simps norm_minus_commute)
   then show ?thesis
     unfolding *
     using mem_interior_convex_shrink \<open>y \<in> S\<close> assms by blast
@@ -5565,7 +5564,8 @@ next
     have "e / norm (x - a) \<ge> k"
       using k_def by linarith
     then have "a + k *\<^sub>R (x - a) \<in> cball a e"
-      using \<open>0 < k\<close> False by (simp add: dist_norm field_simps)
+      using \<open>0 < k\<close> False
+      by (simp add: dist_norm) (simp add: field_simps)
     then have T: "a + k *\<^sub>R (x - a) \<in> T"
       using e by blast
     have S: "a + k *\<^sub>R (x - a) \<in> S"

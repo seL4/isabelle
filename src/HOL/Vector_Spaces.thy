@@ -66,7 +66,7 @@ lemmas linear_module_homI = module_hom_iff_linear[THEN iffD1]
 context vector_space begin
 
 sublocale module scale rewrites "module_hom = linear"
-  by (unfold_locales) (fact vector_space_assms module_hom_eq_linear)+
+  by unfold_locales (fact vector_space_assms module_hom_eq_linear)+
 
 lemmas\<comment> \<open>from \<open>module\<close>\<close>
       linear_id = module_hom_id

@@ -533,9 +533,8 @@ proof -
     unfolding f_def using \<open>norm b = 1\<close> norm_eq_1
     by (force simp: field_simps inner_add_right inner_diff_right)
   moreover have "f ` T \<subseteq> T"
-    unfolding f_def using assms
-    apply (auto simp: field_simps inner_add_right inner_diff_right)
-    by (metis add_0 diff_zero mem_affine_3_minus)
+    unfolding f_def using assms \<open>subspace T\<close>
+    by (auto simp add: inner_add_right inner_diff_right mem_affine_3_minus subspace_mul)
   moreover have "{x. b\<bullet>x = 0} \<inter> T \<subseteq> f ` ({x. norm x = 1 \<and> b\<bullet>x \<noteq> 1} \<inter> T)"
     apply clarify
     apply (rule_tac x = "g x" in image_eqI, auto)

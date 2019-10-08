@@ -480,7 +480,7 @@ lemma has_vector_derivative_complex_iff: "(f has_vector_derivative x) F \<longle
     ((\<lambda>x. Re (f x)) has_field_derivative (Re x)) F \<and>
     ((\<lambda>x. Im (f x)) has_field_derivative (Im x)) F"
   by (simp add: has_vector_derivative_def has_field_derivative_def has_derivative_def
-      tendsto_complex_iff field_simps bounded_linear_scaleR_left bounded_linear_mult_right)
+      tendsto_complex_iff algebra_simps bounded_linear_scaleR_left bounded_linear_mult_right)
 
 lemma has_field_derivative_Re[derivative_intros]:
   "(f has_vector_derivative D) F \<Longrightarrow> ((\<lambda>x. Re (f x)) has_field_derivative (Re D)) F"

@@ -2419,7 +2419,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   from fx[unfolded has_derivative_within, THEN conjunct2, THEN tendstoD, OF \<open>0 < e\<close>]
   have "\<forall>\<^sub>F x' in at x within X. ?le x'"
     by eventually_elim
-       (auto simp: dist_norm divide_simps blinfun.bilinear_simps field_simps split: if_split_asm)
+      (simp add: dist_norm divide_simps diff_diff_add ac_simps split: if_split_asm)
   then have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. ?le x'"
     by (rule eventually_at_Pair_within_TimesI1)
        (simp add: blinfun.bilinear_simps)

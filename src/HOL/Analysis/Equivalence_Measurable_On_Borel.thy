@@ -390,7 +390,7 @@ proof -
                   unfolding i_def \<Phi>_def BOX_def
                   by (simp add: algebra_simps content_cbox_plus norm_minus_commute)
                 finally have "measure lebesgue (\<Phi> D) * \<mu> \<le> norm (content (\<Phi> D) *\<^sub>R f(tag D) - integral (\<Phi> D) f)"
-                  using m_\<Phi> by (simp add: field_simps)
+                  using m_\<Phi> by simp (simp add: field_simps)
                 then show "\<exists>y\<in>(\<lambda>D. (tag D, \<Phi> D)) ` \<G>.
                         snd y = \<Phi> D \<and> measure lebesgue (\<Phi> D) * \<mu> \<le> (case y of (x, k) \<Rightarrow> norm (content k *\<^sub>R f x - integral k f))"
                   using \<open>D \<in> \<G>\<close> by auto
@@ -643,7 +643,7 @@ proof -
                 using that by (auto simp: dist_norm)
             qed
             then show ?thesis
-              using that by (simp add: dist_norm i_def BOX_def field_simps flip: scaleR_diff_right)
+              using that by (simp add: dist_norm i_def BOX_def flip: scaleR_diff_right) (simp add: field_simps)
           qed
         qed
       qed

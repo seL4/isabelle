@@ -113,6 +113,19 @@ lemmas scaleR_right_imp_eq = real_vector.scale_right_imp_eq
 lemmas scaleR_cancel_left = real_vector.scale_cancel_left
 lemmas scaleR_cancel_right = real_vector.scale_cancel_right
 
+lemma [field_simps]:
+  "c \<noteq> 0 \<Longrightarrow> a = b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a = b"
+  "c \<noteq> 0 \<Longrightarrow> b /\<^sub>R c = a \<longleftrightarrow> b = c *\<^sub>R a"
+  "c \<noteq> 0 \<Longrightarrow> a + b /\<^sub>R c = (c *\<^sub>R a + b) /\<^sub>R c"
+  "c \<noteq> 0 \<Longrightarrow> a /\<^sub>R c + b = (a + c *\<^sub>R b) /\<^sub>R c"
+  "c \<noteq> 0 \<Longrightarrow> a - b /\<^sub>R c = (c *\<^sub>R a - b) /\<^sub>R c"
+  "c \<noteq> 0 \<Longrightarrow> a /\<^sub>R c - b = (a - c *\<^sub>R b) /\<^sub>R c"
+  "c \<noteq> 0 \<Longrightarrow> - (a /\<^sub>R c) + b = (- a + c *\<^sub>R b) /\<^sub>R c"
+  "c \<noteq> 0 \<Longrightarrow> - (a /\<^sub>R c) - b = (- a - c *\<^sub>R b) /\<^sub>R c"
+  for a b :: "'a :: real_vector"
+  by (auto simp add: scaleR_add_right scaleR_add_left scaleR_diff_right scaleR_diff_left)
+
+
 text \<open>Legacy names\<close>
 
 lemmas scaleR_left_distrib = scaleR_add_left
@@ -444,13 +457,15 @@ class ordered_real_vector = real_vector + ordered_ab_group_add +
     and scaleR_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R x"
 begin
 
-lemma scaleR_mono: "a \<le> b \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R y"
-  by (meson local.dual_order.trans local.scaleR_left_mono local.scaleR_right_mono)
-
-lemma scaleR_mono': "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
+lemma scaleR_mono:
+  "a \<le> b \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R y"
+  by (meson order_trans scaleR_left_mono scaleR_right_mono)
+  
+lemma scaleR_mono':
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
   by (rule scaleR_mono) (auto intro: order.trans)
 
-lemma pos_le_divideR_eq:
+lemma pos_le_divideR_eq [field_simps]:
   "a \<le> b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a \<le> b" (is "?P \<longleftrightarrow> ?Q") if "0 < c"
 proof
   assume ?P
@@ -466,35 +481,35 @@ next
     by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
 qed
 
-lemma pos_less_divideR_eq:
+lemma pos_less_divideR_eq [field_simps]:
   "a < b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a < b" if "c > 0"
   using that pos_le_divideR_eq [of c a b]
   by (auto simp add: le_less scaleR_scaleR scaleR_one)
 
-lemma pos_divideR_le_eq:
+lemma pos_divideR_le_eq [field_simps]:
   "b /\<^sub>R c \<le> a \<longleftrightarrow> b \<le> c *\<^sub>R a" if "c > 0"
   using that pos_le_divideR_eq [of "inverse c" b a] by simp
 
-lemma pos_divideR_less_eq:
+lemma pos_divideR_less_eq [field_simps]:
   "b /\<^sub>R c < a \<longleftrightarrow> b < c *\<^sub>R a" if "c > 0"
   using that pos_less_divideR_eq [of "inverse c" b a] by simp
 
-lemma pos_le_minus_divideR_eq:
+lemma pos_le_minus_divideR_eq [field_simps]:
   "a \<le> - (b /\<^sub>R c) \<longleftrightarrow> c *\<^sub>R a \<le> - b" if "c > 0"
   using that by (metis add_minus_cancel diff_0 left_minus minus_minus neg_le_iff_le
     scaleR_add_right uminus_add_conv_diff pos_le_divideR_eq)
   
-lemma pos_less_minus_divideR_eq:
+lemma pos_less_minus_divideR_eq [field_simps]:
   "a < - (b /\<^sub>R c) \<longleftrightarrow> c *\<^sub>R a < - b" if "c > 0"
   using that by (metis le_less less_le_not_le pos_divideR_le_eq
     pos_divideR_less_eq pos_le_minus_divideR_eq)
 
-lemma pos_minus_divideR_le_eq:
+lemma pos_minus_divideR_le_eq [field_simps]:
   "- (b /\<^sub>R c) \<le> a \<longleftrightarrow> - b \<le> c *\<^sub>R a" if "c > 0"
   using that by (metis pos_divideR_le_eq pos_le_minus_divideR_eq that
     inverse_positive_iff_positive le_imp_neg_le minus_minus)
 
-lemma pos_minus_divideR_less_eq:
+lemma pos_minus_divideR_less_eq [field_simps]:
   "- (b /\<^sub>R c) < a \<longleftrightarrow> - b < c *\<^sub>R a" if "c > 0"
   using that by (simp add: less_le_not_le pos_le_minus_divideR_eq pos_minus_divideR_le_eq) 
 
@@ -506,32 +521,32 @@ lemma scaleR_image_atLeastAtMost: "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {
 
 end
 
-lemma neg_le_divideR_eq:
+lemma neg_le_divideR_eq [field_simps]:
   "a \<le> b /\<^sub>R c \<longleftrightarrow> b \<le> c *\<^sub>R a" (is "?P \<longleftrightarrow> ?Q") if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that pos_le_divideR_eq [of "- c" a "- b"] by simp
 
-lemma neg_less_divideR_eq:
+lemma neg_less_divideR_eq [field_simps]:
   "a < b /\<^sub>R c \<longleftrightarrow> b < c *\<^sub>R a" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that neg_le_divideR_eq [of c a b] by (auto simp add: le_less)
 
-lemma neg_divideR_le_eq:
+lemma neg_divideR_le_eq [field_simps]:
   "b /\<^sub>R c \<le> a \<longleftrightarrow> c *\<^sub>R a \<le> b" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that pos_divideR_le_eq [of "- c" "- b" a] by simp
 
-lemma neg_divideR_less_eq:
+lemma neg_divideR_less_eq [field_simps]:
   "b /\<^sub>R c < a \<longleftrightarrow> c *\<^sub>R a < b" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that neg_divideR_le_eq [of c b a] by (auto simp add: le_less)
 
-lemma neg_le_minus_divideR_eq:
+lemma neg_le_minus_divideR_eq [field_simps]:
   "a \<le> - (b /\<^sub>R c) \<longleftrightarrow> - b \<le> c *\<^sub>R a" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that pos_le_minus_divideR_eq [of "- c" a "- b"] by (simp add: minus_le_iff)
   
-lemma neg_less_minus_divideR_eq:
+lemma neg_less_minus_divideR_eq [field_simps]:
   "a < - (b /\<^sub>R c) \<longleftrightarrow> - b < c *\<^sub>R a" if "c < 0"
    for a b :: "'a :: ordered_real_vector"
 proof -
@@ -541,12 +556,12 @@ proof -
   show ?thesis by (auto simp add: le_less *)
 qed
 
-lemma neg_minus_divideR_le_eq:
+lemma neg_minus_divideR_le_eq [field_simps]:
   "- (b /\<^sub>R c) \<le> a \<longleftrightarrow> c *\<^sub>R a \<le> - b" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that pos_minus_divideR_le_eq [of "- c" "- b" a] by (simp add: le_minus_iff) 
 
-lemma neg_minus_divideR_less_eq:
+lemma neg_minus_divideR_less_eq [field_simps]:
   "- (b /\<^sub>R c) < a \<longleftrightarrow> c *\<^sub>R a < - b" if "c < 0"
     for a b :: "'a :: ordered_real_vector"
   using that by (simp add: less_le_not_le neg_le_minus_divideR_eq neg_minus_divideR_le_eq)

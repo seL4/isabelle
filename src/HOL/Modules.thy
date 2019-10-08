@@ -86,7 +86,29 @@ qed
 lemma sum_constant_scale: "(\<Sum>x\<in>A. y) = scale (of_nat (card A)) y"
   by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
 
+end
+
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
+
+context module
+begin
+
+lemma [field_simps]:
+  shows scale_left_distrib_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a + b) *s x = a *s x + b *s x"
+    and scale_right_distrib_NO_MATCH: "NO_MATCH (x div y) a \<Longrightarrow> a *s (x + y) = a *s x + a *s y"
+    and scale_left_diff_distrib_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a - b) *s x = a *s x - b *s x"
+    and scale_right_diff_distrib_NO_MATCH: "NO_MATCH (x div y) a \<Longrightarrow> a *s (x - y) = a *s x - a *s y"
+  by (rule scale_left_distrib scale_right_distrib scale_left_diff_distrib scale_right_diff_distrib)+
+
+end
+
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a::divide \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
+
+
 section \<open>Subspace\<close>
+
+context module
+begin
 
 definition subspace :: "'b set \<Rightarrow> bool"
   where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x\<in>S. \<forall>y\<in>S. x + y \<in> S) \<and> (\<forall>c. \<forall>x\<in>S. c *s x \<in> S)"

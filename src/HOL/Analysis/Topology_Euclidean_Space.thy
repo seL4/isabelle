@@ -132,7 +132,7 @@ proof
       also have "... = norm ((-1 - (r / norm (a - a'))) *\<^sub>R (a - a'))"
         by (simp add: algebra_simps)
       also from \<open>a \<noteq> a'\<close> have "... = \<bar>- norm (a - a') - r\<bar>"
-        by (simp add: abs_mult_pos field_simps)
+        by simp (simp add: field_simps)
       finally have [simp]: "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = \<bar>norm (a - a') + r\<bar>"
         by linarith
       from \<open>a \<noteq> a'\<close> show ?thesis
@@ -176,8 +176,10 @@ proof
             (metis \<open>0 \<le> r\<close> \<open>?lhs\<close> centre_in_cball dist_commute dist_norm less_asym mem_ball subset_eq)
         then show ?thesis
           using subsetD [where c = "a + (r' / norm(a - a') - 1) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close>
-          by (simp add: dist_norm field_simps)
-            (simp add: diff_divide_distrib scaleR_left_diff_distrib)
+          apply (simp add: dist_norm)
+          apply (simp add: scaleR_left_diff_distrib)
+          apply (simp add: field_simps)
+          done
       qed
       then show ?thesis by force
     qed

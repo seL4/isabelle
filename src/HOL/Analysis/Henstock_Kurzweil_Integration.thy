@@ -3585,7 +3585,7 @@ lemma has_integral_affinity_iff:
 proof
   assume ?lhs
   from has_integral_affinity'[OF this, of "1 / m" "-c /\<^sub>R m"] and \<open>m > 0\<close>
-    show ?rhs by (simp add: field_simps vector_add_divide_simps)
+    show ?rhs by (simp add: vector_add_divide_simps) (simp add: field_simps)
 next
   assume ?rhs
   from has_integral_affinity'[OF this, of m c] and \<open>m > 0\<close>
@@ -4253,7 +4253,7 @@ proof -
         show "norm (?SUM p - integral {a..t} f) < e/3"
           using d2_fin by blast
         show "norm ((c - t) *\<^sub>R f c) < e/3"
-          using w cwt \<open>t < c\<close> by (auto simp add: field_simps)
+          using w cwt \<open>t < c\<close> by simp (simp add: field_simps)
       qed
       then show ?thesis by simp
     qed

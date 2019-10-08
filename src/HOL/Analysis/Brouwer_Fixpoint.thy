@@ -2126,7 +2126,6 @@ proof -
           apply (rule_tac x = "dd x / k" in exI)
           apply (simp add: field_simps that)
           apply (simp add: vector_add_divide_simps algebra_simps)
-          apply (metis (no_types) \<open>k \<noteq> 0\<close> divide_inverse_commute inverse_eq_divide mult.left_commute right_inverse)
           done
         ultimately show ?thesis
           using segsub by (auto simp: rel_frontier_def)

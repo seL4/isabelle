@@ -1279,8 +1279,9 @@ proof -
   proof (subst negligible_on_intervals, intro allI)
     fix u v
     show "negligible ((+) (- a) ` S \<inter> cbox u v)"
-      using \<open>closed S\<close> eq1 by (auto simp add: negligible_iff_null_sets field_simps
+      using \<open>closed S\<close> eq1 by (auto simp add: negligible_iff_null_sets algebra_simps
         intro!: closed_translation_subtract starlike_negligible_compact cong: image_cong_simp)
+        (metis add_diff_eq diff_add_cancel scale_right_diff_distrib)
   qed
   then show ?thesis
     by (rule negligible_translation_rev)

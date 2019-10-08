@@ -17,8 +17,9 @@ definition\<^marker>\<open>tag important\<close> interval_bij :: "'a \<times> 'a
 lemma interval_bij_affine:
   "interval_bij (a,b) (u,v) = (\<lambda>x. (\<Sum>i\<in>Basis. ((v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (x\<bullet>i)) *\<^sub>R i) +
     (\<Sum>i\<in>Basis. (u\<bullet>i - (v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (a\<bullet>i)) *\<^sub>R i))"
-  by (auto simp: sum.distrib[symmetric] scaleR_add_left[symmetric] interval_bij_def fun_eq_iff
-    field_simps inner_simps add_divide_distrib[symmetric] intro!: sum.cong)
+  by (auto simp add: interval_bij_def sum.distrib [symmetric] scaleR_add_left [symmetric]
+    fun_eq_iff intro!: sum.cong)
+    (simp add: algebra_simps diff_divide_distrib [symmetric])
 
 lemma continuous_interval_bij:
   fixes a b :: "'a::euclidean_space"

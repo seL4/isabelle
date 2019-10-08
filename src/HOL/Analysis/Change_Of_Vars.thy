@@ -515,7 +515,7 @@ proof -
           obtain \<zeta> where "0 < \<zeta>"
             and \<zeta>: "\<And>y. \<lbrakk>y \<in> S; y \<noteq> x; dist y x < \<zeta>\<rbrakk>
                         \<Longrightarrow> norm (f y - (f x + f' x (y - x))) / norm (y - x) < k"
-            using lim0 \<open>k > 0\<close> by (force simp: Lim_within field_simps)
+            using lim0 \<open>k > 0\<close> by (simp add: Lim_within) (auto simp add: field_simps)
           define r where "r \<equiv> min (min l (\<zeta>/2)) (min 1 (d/2))"
           show ?thesis
           proof (intro exI conjI)
@@ -1738,8 +1738,9 @@ proof -
           then obtain d where "d>0"
             and d: "\<And>y. y\<in>S \<Longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> norm (f y - f x - f' x (y - x)) / (norm (y - x))
                   < e/2"
-            using f [OF \<open>x \<in> S\<close>] unfolding Deriv.has_derivative_at_within Lim_within
-            by (auto simp: field_simps dest: spec [of _ "e/2"])
+            using f [OF \<open>x \<in> S\<close>]
+            by (simp add: Deriv.has_derivative_at_within Lim_within)
+              (auto simp add: field_simps dest: spec [of _ "e/2"])
           let ?A = "matrix(f' x) - (\<chi> i j. if i = m \<and> j = n then e / 4 else 0)"
           obtain B where BRats: "\<And>i j. B$i$j \<in> \<rat>" and Bo_e6: "onorm((*v) (?A - B)) < e/6"
             using matrix_rational_approximation \<open>e > 0\<close>

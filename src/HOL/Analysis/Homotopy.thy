@@ -4701,16 +4701,18 @@ proof -
       assume x: "norm (x - a) \<le> r" and "x \<in> T"
       have "\<exists>v \<in> {0..1}. ((1 - v) * r - norm ((x - a) - v *\<^sub>R (u - a))) \<bullet> 1 = 0"
         by (rule ivt_decreasing_component_on_1) (auto simp: x continuous_intros)
-      then obtain v where "0\<le>v" "v\<le>1" and v: "(1 - v) * r = norm ((x - a) - v *\<^sub>R (u - a))"
+      then obtain v where "0 \<le> v" "v \<le> 1"
+        and v: "(1 - v) * r = norm ((x - a) - v *\<^sub>R (u - a))"
         by auto
+      then have n: "norm (a - (x - v *\<^sub>R (u - a))) = r - r * v"
+        by (simp add: field_simps norm_minus_commute)
       show "x \<in> f ` (cball a r \<inter> T)"
       proof (rule image_eqI)
         show "x = f (x - v *\<^sub>R (u - a))"
-          using \<open>r > 0\<close> v by (simp add: f_def field_simps)
+          using \<open>r > 0\<close> v by (simp add: f_def) (simp add: field_simps)
         have "x - v *\<^sub>R (u - a) \<in> cball a r"
-          using \<open>r > 0\<close> v \<open>0 \<le> v\<close>
-          apply (simp add: field_simps dist_norm norm_minus_commute)
-          by (metis le_add_same_cancel2 order.order_iff_strict zero_le_mult_iff)
+          using \<open>r > 0\<close>\<open>0 \<le> v\<close>
+          by (simp add: dist_norm n)
         moreover have "x - v *\<^sub>R (u - a) \<in> T"
           by (simp add: f_def \<open>affine T\<close> \<open>u \<in> T\<close> \<open>x \<in> T\<close> assms mem_affine_3_minus2)
         ultimately show "x - v *\<^sub>R (u - a) \<in> cball a r \<inter> T"

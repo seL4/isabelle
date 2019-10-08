@@ -779,7 +779,7 @@ proof -
   have zball: "z \<in> ball c d"
     using mem_ball z_def dist_norm[of c]
     using y and assms(4,5)
-    by (auto simp:field_simps norm_minus_commute)
+    by (simp add: norm_minus_commute) (simp add: field_simps)
   have "x \<in> affine hull S"
     using closure_affine_hull assms by auto
   moreover have "y \<in> affine hull S"
@@ -790,7 +790,7 @@ proof -
     using z_def affine_affine_hull[of S]
       mem_affine_3_minus [of "affine hull S" c x y "(1 - e) / e"]
       assms
-    by (auto simp: field_simps)
+    by simp
   then have "z \<in> S" using d zball by auto
   obtain d1 where "d1 > 0" and d1: "ball z d1 \<le> ball c d"
     using zball open_ball[of c d] openE[of "ball c d" z] by auto
@@ -2218,7 +2218,7 @@ proof -
     fix y
     assume "y \<in> cbox (x - ?d) (x + ?d)"
     then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> cbox 0 (\<Sum>Basis)"
-      using assms by (simp add: mem_box field_simps inner_simps)
+      using assms by (simp add: mem_box inner_simps) (simp add: field_simps)
     with \<open>0 < d\<close> show "y \<in> (\<lambda>y. x - sum ((*\<^sub>R) d) Basis + (2 * d) *\<^sub>R y) ` cbox 0 One"
       by (auto intro: image_eqI[where x= "inverse (2 * d) *\<^sub>R (y - (x - ?d))"])
   next

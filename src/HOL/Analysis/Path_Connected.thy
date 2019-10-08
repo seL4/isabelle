@@ -3307,7 +3307,7 @@ next
     have "\<bar>norm (z + C *\<^sub>R (z-a)) - norm (C *\<^sub>R (z-a))\<bar> \<le> norm z"
       by (metis add_diff_cancel norm_triangle_ineq3)
     moreover have "norm (C *\<^sub>R (z-a)) > norm z + B"
-      using zna \<open>B>0\<close> by (simp add: C_def le_max_iff_disj field_simps)
+      using zna \<open>B>0\<close> by (simp add: C_def le_max_iff_disj)
     ultimately have C: "norm (z + C *\<^sub>R (z-a)) > B" by linarith
     { fix u::real
       assume u: "0\<le>u" "u\<le>1" and ins: "(1 - u) *\<^sub>R z + u *\<^sub>R (z + C *\<^sub>R (z - a)) \<in> s"
