@@ -1078,6 +1078,10 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
 
 (** axioms and theorems **)
 
+fun tvars_of t = map TVar (rev (Term.add_tvars t []));
+fun tfrees_of t = map TFree (rev (Term.add_tfrees t []));
+fun type_variables_of t = tvars_of t @ tfrees_of t;
+
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
 fun variables_of t = vars_of t @ frees_of t;
@@ -1573,14 +1577,12 @@ fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of pro
 
 fun app_types shift prop Ts prf =
   let
-    val tvars = rev (Term.add_tvars prop []);
-    val tfrees = rev (Term.add_tfrees prop []) |> map (fn (a, S) => ((a, ~1), S));
-    val inst = (tvars @ tfrees) ~~ Ts;
-    fun subst_same v = (case AList.lookup (op =) inst v of SOME T => T | NONE => raise Same.SAME);
+    val inst = type_variables_of prop ~~ Ts;
+    fun subst_same A =
+      (case AList.lookup (op =) inst A of SOME T => T | NONE => raise Same.SAME);
     val subst_type_same =
       Term_Subst.map_atypsT_same
-        (fn TVar ((a, i), S) => subst_same ((a, i - shift), S)
-          | TFree (a, S) => subst_same ((a, ~1), S));
+        (fn TVar ((a, i), S) => subst_same (TVar ((a, i - shift), S)) | A => subst_same A);
   in Same.commit (map_proof_types_same subst_type_same) prf end;
 
 fun guess_name (PThm ({name, ...}, _)) = name
