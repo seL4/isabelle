@@ -779,13 +779,13 @@ lemma tendsto_mult_right: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<l
   for c :: "'a::topological_semigroup_mult"
   by (rule tendsto_mult [OF _ tendsto_const])
 
-lemma real_tendsto_mult_left_iff:
-   "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. c * f x) (c * l) F \<longleftrightarrow> tendsto f l F" for c :: real
+lemma tendsto_mult_left_iff:
+   "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. c * f x) (c * l) F \<longleftrightarrow> tendsto f l F" for c :: "'a::{topological_semigroup_mult,field}"
   by (auto simp: tendsto_mult_left dest: tendsto_mult_left [where c = "1/c"])
 
-lemma real_tendsto_mult_right_iff:
-   "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. f x * c) (l * c) F \<longleftrightarrow> tendsto f l F" for c :: real
-  by (simp add: mult.commute real_tendsto_mult_left_iff)
+lemma tendsto_mult_right_iff:
+   "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. f x * c) (l * c) F \<longleftrightarrow> tendsto f l F" for c :: "'a::{topological_semigroup_mult,field}"
+  by (auto simp: tendsto_mult_right dest: tendsto_mult_left [where c = "1/c"])
 
 lemma lim_const_over_n [tendsto_intros]:
   fixes a :: "'a::real_normed_field"
