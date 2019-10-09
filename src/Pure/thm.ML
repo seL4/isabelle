@@ -729,7 +729,10 @@ fun deriv_rule2 f
   in make_deriv ps oracles thms prf end;
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
-fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
+
+fun deriv_rule0 make_prf =
+  if ! Proofterm.proofs <= 1 then empty_deriv
+  else deriv_rule1 I (make_deriv [] [] [] (make_prf ()));
 
 fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, proof}}) =
   make_deriv promises oracles thms (f proof);
@@ -803,7 +806,7 @@ fun axiom thy0 name =
       Name_Space.lookup (Theory.axiom_table thy) name
       |> Option.map (fn prop =>
            let
-             val der = deriv_rule0 (Proofterm.axm_proof name prop);
+             val der = deriv_rule0 (fn () => Proofterm.axm_proof name prop);
              val cert = Context.Certificate thy;
              val maxidx = maxidx_of_term prop;
              val shyps = Sorts.insert_term prop [];
@@ -1078,7 +1081,7 @@ fun assume raw_ct =
       raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
       raise THM ("assume: variables", maxidx, [])
-    else Thm (deriv_rule0 (Proofterm.Hyp prop),
+    else Thm (deriv_rule0 (fn () => Proofterm.Hyp prop),
      {cert = cert,
       tags = [],
       maxidx = ~1,
@@ -1205,7 +1208,7 @@ fun forall_elim
   t \<equiv> t
 *)
 fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 Proofterm.reflexive,
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1274,7 +1277,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
       (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
       | _ => raise THM ("beta_conversion: not a redex", 0, []));
   in
-    Thm (deriv_rule0 Proofterm.reflexive,
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1286,7 +1289,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
   end;
 
 fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 Proofterm.reflexive,
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1297,7 +1300,7 @@ fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
     prop = Logic.mk_equals (t, Envir.eta_contract t)});
 
 fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 Proofterm.reflexive,
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1628,7 +1631,7 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
-    Thm (deriv_rule0 (Proofterm.AbsP ("H", NONE, Proofterm.PBound 0)),
+    Thm (deriv_rule0 (fn () => Proofterm.AbsP ("H", NONE, Proofterm.PBound 0)),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1652,7 +1655,7 @@ fun of_class (cT, raw_c) =
     val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
   in
     if Sign.of_sort thy (T, [c]) then
-      Thm (deriv_rule0 (Proofterm.OfClass (T, c)),
+      Thm (deriv_rule0 (fn () => Proofterm.OfClass (T, c)),
        {cert = cert,
         tags = [],
         maxidx = maxidx,
