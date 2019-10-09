@@ -1221,7 +1221,7 @@ proof -
           show "x - min (e/2 / norm (x - a)) 1 *\<^sub>R (x - a) \<in> interior S"
             apply (clarsimp simp add: min_def a)
             apply (rule mem_interior_closure_convex_shrink [OF \<open>convex S\<close> a x])
-            using \<open>0 < e\<close> False apply (auto simp: divide_simps)
+            using \<open>0 < e\<close> False apply (auto simp: field_split_simps)
             done
         qed
       qed
@@ -3433,7 +3433,7 @@ proof -
       qed
     qed
     then show False
-      using \<open>0 < e\<close> \<open>l \<noteq> 0\<close> by (simp add: d_def [symmetric] divide_simps)
+      using \<open>0 < e\<close> \<open>l \<noteq> 0\<close> by (simp add: d_def [symmetric] field_simps)
   qed
   moreover have "a + d *\<^sub>R l \<in> closure S"
   proof (clarsimp simp: closure_approachable)
@@ -3444,7 +3444,7 @@ proof -
     have "norm l * min d (\<eta> / (norm l * 2)) \<le> norm l * (\<eta> / (norm l * 2))"
       by (metis min_def mult_left_mono norm_ge_zero order_refl)
     also have "... < \<eta>"
-      using \<open>l \<noteq> 0\<close> \<open>0 < \<eta>\<close> by (simp add: divide_simps)
+      using \<open>l \<noteq> 0\<close> \<open>0 < \<eta>\<close> by (simp add: field_simps)
     finally have 2: "norm l * min d (\<eta> / (norm l * 2)) < \<eta>" .
     show "\<exists>y\<in>S. dist y (a + d *\<^sub>R l) < \<eta>"
       apply (rule_tac x="a + (d - min d (\<eta> / 2 / norm l)) *\<^sub>R l" in bexI)
@@ -3498,7 +3498,7 @@ proof -
       using xy
       apply (auto simp: in_segment)
       apply (rule_tac x="d" in exI)
-      using \<open>0 < d\<close> that apply (auto simp: divide_simps algebra_simps)
+      using \<open>0 < d\<close> that apply (auto simp: algebra_simps)
       done
     ultimately have "1 \<le> d"
       using df rel_frontier_def by fastforce
@@ -3507,7 +3507,7 @@ proof -
     ultimately show "y \<in> closed_segment x (x + d *\<^sub>R (y - x))"
       apply (auto simp: in_segment)
       apply (rule_tac x="1/d" in exI)
-      apply (auto simp: divide_simps algebra_simps)
+      apply (auto simp: algebra_simps)
       done
   next
     show "open_segment x (x + d *\<^sub>R (y - x)) \<subseteq> rel_interior S"
@@ -5972,7 +5972,7 @@ proof -
       ultimately have ass: "a /\<^sub>R (norm a) \<in> span S \<inter> sphere 0 1"
         by simp
       have aa: "a /\<^sub>R (norm a) \<in> (\<Inter>c\<in>C. {x. 0 \<le> c \<bullet> x})"
-        apply (clarsimp simp add: divide_simps)
+        apply (clarsimp simp add: field_split_simps)
         using ab \<open>0 < b\<close>
         by (metis hull_inc inner_commute less_eq_real_def less_trans)
       show ?thesis
@@ -7446,7 +7446,7 @@ next
         by (intro closure_minimal UN_mono ball_subset_cball order_refl cl)
       also have "... \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})"
         apply (intro UN_mono order_refl)
-        apply (simp add: cball_subset_ball_iff divide_simps)
+        apply (simp add: cball_subset_ball_iff field_split_simps)
         done
       finally show "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
                     \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})" .
@@ -7463,7 +7463,7 @@ next
       obtain N2 where N2: "norm(x - a) \<le> real N2"
         by (meson real_arch_simple)
       have N12: "inverse((N1 + N2) + 1) \<le> inverse(N1)"
-        using \<open>N1 > 0\<close> by (auto simp: divide_simps)
+        using \<open>N1 > 0\<close> by (auto simp: field_split_simps)
       have "x \<noteq> y + z" if "y \<notin> S" "norm z < 1 / (1 + (real N1 + real N2))" for y z
       proof -
         have "e * real N1 < e * (1 + (real N1 + real N2))"

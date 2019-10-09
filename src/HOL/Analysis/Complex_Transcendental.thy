@@ -332,11 +332,11 @@ proof
   proof -
     have "cos (\<theta> j - \<Theta>) = ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)" for j
       apply (subst cmod_diff_squared)
-      using assms by (auto simp: divide_simps less_le)
+      using assms by (auto simp: field_split_simps less_le)
     moreover have "(\<lambda>j. ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)) \<longlonglongrightarrow> ((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R))"
       by (intro L rR tendsto_intros) (use \<open>R > 0\<close> in force)
     moreover have "((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R)) = 1"
-      using \<open>R > 0\<close> by (simp add: power2_eq_square divide_simps)
+      using \<open>R > 0\<close> by (simp add: power2_eq_square field_split_simps)
     ultimately have "(\<lambda>j. cos (\<theta> j - \<Theta>)) \<longlonglongrightarrow> 1"
       by auto
     then show ?thesis
@@ -582,7 +582,7 @@ lemma cos_eq:
 lemma sinh_complex:
   fixes z :: complex
   shows "(exp z - inverse (exp z)) / 2 = -\<i> * sin(\<i> * z)"
-  by (simp add: sin_exp_eq divide_simps exp_minus)
+  by (simp add: sin_exp_eq field_split_simps exp_minus)
 
 lemma sin_i_times:
   fixes z :: complex
@@ -597,12 +597,12 @@ lemma sinh_real:
 lemma cosh_complex:
   fixes z :: complex
   shows "(exp z + inverse (exp z)) / 2 = cos(\<i> * z)"
-  by (simp add: cos_exp_eq divide_simps exp_minus exp_of_real)
+  by (simp add: cos_exp_eq field_split_simps exp_minus exp_of_real)
 
 lemma cosh_real:
   fixes x :: real
   shows "of_real((exp x + inverse (exp x)) / 2) = cos(\<i> * of_real x)"
-  by (simp add: cos_exp_eq divide_simps exp_minus exp_of_real)
+  by (simp add: cos_exp_eq field_split_simps exp_minus exp_of_real)
 
 lemmas cos_i_times = cosh_complex [symmetric]
 
@@ -612,7 +612,7 @@ lemma norm_cos_squared:
   apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib sin_squared_eq)
-  apply (simp add: power2_eq_square algebra_simps divide_simps)
+  apply (simp add: power2_eq_square algebra_simps field_split_simps)
   done
 
 lemma norm_sin_squared:
@@ -621,7 +621,7 @@ lemma norm_sin_squared:
   apply (simp add: sin_add cmod_power2 cos_of_real sin_of_real cos_double_cos exp_double Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib cos_squared_eq)
-  apply (simp add: power2_eq_square algebra_simps divide_simps)
+  apply (simp add: power2_eq_square algebra_simps field_split_simps)
   done
 
 lemma exp_uminus_Im: "exp (- Im z) \<le> exp (cmod z)"
@@ -928,7 +928,7 @@ next
     unfolding is_Arg_def
     apply (rule complex_eqI)
     using t False ReIm
-    apply (auto simp: exp_Euler sin_of_real cos_of_real divide_simps)
+    apply (auto simp: exp_Euler sin_of_real cos_of_real field_split_simps)
     done
   show ?thesis
     apply (simp add: Arg2pi_def False)
@@ -1055,7 +1055,7 @@ lemma Arg2pi_eq_iff:
   using assms Arg2pi_eq [of z] Arg2pi_eq [of w]
   apply auto
   apply (rule_tac x="norm w / norm z" in exI)
-  apply (simp add: divide_simps)
+  apply (simp add: field_split_simps)
   by (metis mult.commute mult.left_commute)
 
 lemma Arg2pi_inverse_eq_0: "Arg2pi(inverse z) = 0 \<longleftrightarrow> Arg2pi z = 0"
@@ -1102,7 +1102,7 @@ lemma Arg2pi_times:
   by auto
 
 lemma Arg2pi_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg2pi (cnj z) = Arg2pi (inverse z)"
-  apply (simp add: Arg2pi_eq_iff divide_simps complex_norm_square [symmetric] mult.commute)
+  apply (simp add: Arg2pi_eq_iff field_split_simps complex_norm_square [symmetric] mult.commute)
   by (metis of_real_power zero_less_norm_iff zero_less_power)
 
 lemma Arg2pi_cnj: "Arg2pi(cnj z) = (if z \<in> \<real> then Arg2pi z else 2*pi - Arg2pi z)"
@@ -1166,10 +1166,10 @@ lemma
 proof -
   obtain \<psi> where z: "z / (cmod z) = Complex (cos \<psi>) (sin \<psi>)"
     using complex_unimodular_polar [of "z / (norm z)"] assms
-    by (auto simp: norm_divide divide_simps)
+    by (auto simp: norm_divide field_split_simps)
   obtain \<phi> where \<phi>: "- pi < \<phi>" "\<phi> \<le> pi" "sin \<phi> = sin \<psi>" "cos \<phi> = cos \<psi>"
     using sincos_principal_value [of "\<psi>"] assms
-    by (auto simp: norm_divide divide_simps)
+    by (auto simp: norm_divide field_split_simps)
   have "exp(ln z) = z & -pi < Im(ln z) & Im(ln z) \<le> pi" unfolding ln_complex_def
     apply (rule theI [where a = "Complex (ln(norm z)) \<phi>"])
     using z assms \<phi>
@@ -1437,7 +1437,7 @@ proof -
     by (intro summable_norm)
        (auto simp: norm_power norm_inverse norm_mult mult_ac simp del: of_nat_add of_nat_Suc)
   also have "norm ((-z)^2 * (-z)^i) * inverse (of_nat (i+2)) \<le> norm ((-z)^2 * (-z)^i) * 1" for i
-    by (intro mult_left_mono) (simp_all add: divide_simps)
+    by (intro mult_left_mono) (simp_all add: field_split_simps)
   hence "(\<Sum>i. norm (-(z^2) * inverse (of_nat (i+2)) * (-z)^i))
          \<le> (\<Sum>i. norm (-(z^2) * (-z)^i))"
     using A assms
@@ -1907,14 +1907,14 @@ lemma Arg_eq_iff:
   using assms Arg_eq [of z] Arg_eq [of w]
   apply auto
   apply (rule_tac x="norm w / norm z" in exI)
-  apply (simp add: divide_simps)
+  apply (simp add: field_split_simps)
   by (metis mult.commute mult.left_commute)
 
 lemma Arg_inverse_eq_0: "Arg(inverse z) = 0 \<longleftrightarrow> Arg z = 0"
   by (metis Arg_eq_0 Arg_inverse inverse_inverse_eq)
 
 lemma Arg_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg (cnj z) = Arg (inverse z)"
-  apply (simp add: Arg_eq_iff divide_simps complex_norm_square [symmetric] mult.commute)
+  apply (simp add: Arg_eq_iff field_split_simps complex_norm_square [symmetric] mult.commute)
   by (metis of_real_power zero_less_norm_iff zero_less_power)
 
 lemma Arg_cnj: "Arg(cnj z) = (if z \<in> \<real> then Arg z else - Arg z)"
@@ -2307,7 +2307,7 @@ proof -
         by auto
       then show ?thesis
         unfolding dd'_def using gderiv that \<open>g z\<noteq>0\<close>
-        by (auto intro!: derivative_eq_intros simp add:divide_simps power_add[symmetric])
+        by (auto intro!: derivative_eq_intros simp add:field_split_simps power_add[symmetric])
     qed
     finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)" .
     then show ?thesis unfolding dd_def by simp
@@ -2549,7 +2549,7 @@ proof (simp add: lim_sequentially dist_norm, clarify)
     using e  by (auto simp: field_simps)
   have "norm (Ln (of_nat n) / of_nat n powr s) < e" if "n \<ge> nat \<lceil>exp xo\<rceil>" for n
     using e xo [of "ln n"] that
-    apply (auto simp: norm_divide norm_powr_real divide_simps)
+    apply (auto simp: norm_divide norm_powr_real field_split_simps)
     apply (metis exp_less_mono exp_ln not_le of_nat_0_less_iff)
     done
   then show "\<exists>no. \<forall>n\<ge>no. norm (Ln (of_nat n) / of_nat n powr s) < e"
@@ -2593,7 +2593,7 @@ proof (rule Lim_null_comparison)
     using ln_272_gt_1
     by (force intro: order_trans [of _ "ln (272/100)"])
   then show "\<forall>\<^sub>F x in sequentially. cmod (1 / of_nat x powr s) \<le> cmod (Ln (of_nat x) / of_nat x powr s)"
-    by (auto simp: norm_divide divide_simps eventually_sequentially)
+    by (auto simp: norm_divide field_split_simps eventually_sequentially)
   show "(\<lambda>n. cmod (Ln (of_nat n) / of_nat n powr s)) \<longlonglongrightarrow> 0"
     using lim_Ln_over_power [OF assms] by (metis tendsto_norm_zero_iff)
 qed
@@ -2609,7 +2609,7 @@ lemma lim_1_over_real_power:
   done
 
 lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) \<longlongrightarrow> 0) sequentially"
-proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
+proof (clarsimp simp add: lim_sequentially dist_norm norm_divide field_split_simps)
   fix r::real
   assume "0 < r"
   have ir: "inverse (exp (inverse r)) > 0"
@@ -2618,7 +2618,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
     using ex_less_of_nat_mult [of _ 1, OF ir]
     by auto
   then have "exp (inverse r) < of_nat n"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
   then have "ln (exp (inverse r)) < ln (of_nat n)"
     by (metis exp_gt_zero less_trans ln_exp ln_less_cancel_iff)
   with \<open>0 < r\<close> have "1 < r * ln (real_of_nat n)"
@@ -2627,7 +2627,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
     using neq0_conv by fastforce
   ultimately show "\<exists>no. \<forall>k. Ln (of_nat k) \<noteq> 0 \<longrightarrow> no \<le> k \<longrightarrow> 1 < r * cmod (Ln (of_nat k))"
     using n \<open>0 < r\<close>
-    by (rule_tac x=n in exI) (force simp: divide_simps intro: less_le_trans)
+    by (rule_tac x=n in exI) (force simp: field_split_simps intro: less_le_trans)
 qed
 
 lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow> 0) sequentially"
@@ -2650,7 +2650,7 @@ proof (rule Lim_transform_eventually)
       then have "ln 3 \<le> ln n" and ln0: "0 \<le> ln n"
         by auto
       with ln3_gt_1 have "1/ ln n \<le> 1"
-        by (simp add: divide_simps)
+        by (simp add: field_split_simps)
       moreover have "ln (1 + 1 / real n) \<le> 1/n"
         by (simp add: ln_add_one_self_le_self)
       ultimately have "ln (1 + 1 / real n) * (1 / ln n) \<le> (1/n) * 1"
@@ -2662,7 +2662,7 @@ proof (rule Lim_transform_eventually)
   then show "(\<lambda>n. 1 + ln(1 + 1/n) / ln n) \<longlonglongrightarrow> 1"
     by (metis (full_types) add.right_neutral tendsto_add_const_iff)
   show "\<forall>\<^sub>F k in sequentially. 1 + ln (1 + 1 / k) / ln k = ln(Suc k) / ln k"
-    by (simp add: divide_simps ln_div eventually_sequentiallyI [of 2])
+    by (simp add: field_split_simps ln_div eventually_sequentiallyI [of 2])
 qed
 
 lemma lim_ln_over_ln1: "(\<lambda>n. ln n / ln(Suc n)) \<longlonglongrightarrow> 1"
@@ -2721,7 +2721,7 @@ proof -
   have z: "z \<noteq> 0"
     using assms by auto
   then have *: "inverse z = inverse (2*z) * 2"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
   have [simp]: "exp (Ln z / 2) * inverse z = inverse (csqrt z)"
     by (simp add: z field_simps csqrt_exp_Ln [symmetric]) (metis power2_csqrt power2_eq_square)
   have "Im z = 0 \<Longrightarrow> 0 < Re z"
@@ -2904,7 +2904,7 @@ proof -
     unfolding Arctan_def scaleR_conv_of_real
     apply (intro derivative_eq_intros | simp add: nz0 *)+
     using nz0 nz1 zz
-    apply (simp add: algebra_simps divide_simps power2_eq_square)
+    apply (simp add: algebra_simps field_split_simps power2_eq_square)
     apply algebra
     done
 qed
@@ -2954,12 +2954,12 @@ proof -
       have "ereal (norm (h u n) / norm (h u (Suc n))) =
              ereal (inverse (norm u)^2) * ereal (((2*Suc n+1) / (Suc n)) /
                  ((2*Suc n-1) / (Suc n)))"
-      by (simp add: h_def norm_mult norm_power norm_divide divide_simps
+      by (simp add: h_def norm_mult norm_power norm_divide field_split_simps
                     power2_eq_square eval_nat_numeral del: of_nat_add of_nat_Suc)
       also have "of_nat (2*Suc n+1) / of_nat (Suc n) = (2::real) + inverse (real (Suc n))"
-        by (auto simp: divide_simps simp del: of_nat_Suc) simp_all?
+        by (auto simp: field_split_simps simp del: of_nat_Suc) simp_all?
       also have "of_nat (2*Suc n-1) / of_nat (Suc n) = (2::real) - inverse (real (Suc n))"
-        by (auto simp: divide_simps simp del: of_nat_Suc) simp_all?
+        by (auto simp: field_split_simps simp del: of_nat_Suc) simp_all?
       finally show "ereal (norm (h u n) / norm (h u (Suc n))) = ereal (inverse (norm u)^2) *
               ereal ((2 + inverse (real (Suc n))) / (2 - inverse (real (Suc n))))" .
     qed
@@ -2968,7 +2968,7 @@ proof -
     finally have "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) = inverse (norm u)^2"
       by (intro lim_imp_Liminf) simp_all
     moreover from power_strict_mono[OF that, of 2] u have "inverse (norm u)^2 > 1"
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
     ultimately have A: "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) > 1" by simp
     from u have "summable (h u)"
       by (intro summable_norm_cancel[OF ratio_test_convergence[OF _ A]])
@@ -3049,7 +3049,7 @@ proof -
     apply (rule norm_exp_imaginary)
     apply (subst exp_Ln)
     using ne apply (simp_all add: cmod_def complex_eq_iff)
-    apply (auto simp: divide_simps)
+    apply (auto simp: field_split_simps)
     apply algebra
     done
   then show ?thesis
@@ -3065,7 +3065,7 @@ proof (rule arctan_unique)
     done
 next
   have *: " (1 - \<i>*x) / (1 + \<i>*x) \<noteq> 0"
-    by (simp add: divide_simps) ( simp add: complex_eq_iff)
+    by (simp add: field_split_simps) ( simp add: complex_eq_iff)
   show "Re (Arctan (complex_of_real x)) < pi / 2"
     using mpi_less_Im_Ln [OF *]
     by (simp add: Arctan_def)
@@ -3143,7 +3143,7 @@ next
   case False
   then have *: "\<bar>arctan x\<bar> < pi / 2 - \<bar>arctan y\<bar>" using assms
     apply (auto simp add: abs_arctan arctan_inverse [symmetric] arctan_less_iff)
-    apply (simp add: divide_simps abs_mult)
+    apply (simp add: field_split_simps abs_mult)
     done
   show ?thesis
     apply (rule arctan_add_raw)
@@ -3192,7 +3192,7 @@ proof -
   have nonneg: "0 \<le> ?a n" for n
     by (force intro!: divide_nonneg_nonneg mult_nonneg_nonneg zero_le_power assms)
   have le: "?a (Suc n) \<le> ?a n" for n
-    by (rule mult_mono[OF _ power_decreasing]) (auto simp: divide_simps assms less_imp_le)
+    by (rule mult_mono[OF _ power_decreasing]) (auto simp: field_split_simps assms less_imp_le)
   from summable_Leibniz'(4)[of ?a, OF tendsto_zero nonneg le, of n]
     summable_Leibniz'(2)[of ?a, OF tendsto_zero nonneg le, of n]
     assms
@@ -3565,7 +3565,7 @@ proof -
   have "(Im (Arccos w))\<^sup>2 \<le> (cmod (cos (Arccos w)))\<^sup>2 - (cos (Re (Arccos w)))\<^sup>2"
     using norm_cos_squared [of "Arccos w"] real_le_abs_sinh [of "Im (Arccos w)"]
     apply (simp only: abs_le_square_iff)
-    apply (simp add: divide_simps)
+    apply (simp add: field_split_simps)
     done
   also have "... \<le> (cmod w)\<^sup>2"
     by (auto simp: cmod_power2)
@@ -3974,7 +3974,7 @@ proof -
    note * = this
   show ?thesis
     using assms
-    by (simp add: exp_eq divide_simps mult_ac of_real_numeral *)
+    by (simp add: exp_eq field_split_simps mult_ac of_real_numeral *)
 qed
 
 corollary bij_betw_roots_unity:
@@ -4059,7 +4059,7 @@ proof -
                           then h (fst z, Arg2pi (snd z) / (2 * pi))
                           else h (fst z, 1 - Arg2pi (cnj (snd z)) / (2 * pi))"
   have Arg2pi_eq: "1 - Arg2pi (cnj y) / (2 * pi) = Arg2pi y / (2 * pi) \<or> Arg2pi y = 0 \<and> Arg2pi (cnj y) = 0" if "cmod y = 1" for y
-    using that Arg2pi_eq_0_pi Arg2pi_eq_pi by (force simp: Arg2pi_cnj divide_simps)
+    using that Arg2pi_eq_0_pi Arg2pi_eq_pi by (force simp: Arg2pi_cnj field_split_simps)
   show ?thesis
   proof (simp add: homotopic_with; intro conjI ballI exI)
     show "continuous_on ({0..1} \<times> sphere 0 1) (\<lambda>w. h (fst w, Arg2pi (snd w) / (2 * pi)))"
@@ -4250,7 +4250,7 @@ proof -
      next
        case False
        then have *: "(Arg2pi (exp (\<i>*(2* of_real pi* of_real x))) / (2*pi)) = x"
-         using that by (auto simp: Arg2pi_exp divide_simps)
+         using that by (auto simp: Arg2pi_exp field_split_simps)
        show ?thesis
          by (rule_tac x="exp(\<i> * of_real(2*pi*x))" in bexI) (auto simp: *)
     qed

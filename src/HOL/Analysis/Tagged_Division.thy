@@ -9,8 +9,6 @@ theory Tagged_Division
   imports Topology_Euclidean_Space
 begin
 
-term comm_monoid
-
 lemma sum_Sigma_product:
   assumes "finite S"
     and "\<And>i. i \<in> S \<Longrightarrow> finite (T i)"
@@ -2337,13 +2335,14 @@ proof -
     show "\<Union>?D0 \<subseteq> cbox a b"
       apply (simp add: UN_subset_iff)
       apply (intro conjI allI ballI subset_box_imp)
-       apply (simp add: divide_simps zero_le_mult_iff aibi)
-      apply (force simp: aibi scaling_mono nat_less_real_le dest: PiE_mem)
+       apply (simp add: field_simps)
+      apply (auto intro: mult_right_mono aibi)
+      apply (force simp: aibi scaling_mono nat_less_real_le dest: PiE_mem intro: mult_right_mono)
       done
   next
     show "\<And>K. K \<in> ?D0 \<Longrightarrow> interior K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
       using \<open>box a b \<noteq> {}\<close>
-      by (clarsimp simp: box_eq_empty) (fastforce simp add: divide_simps dest: PiE_mem)
+      by (clarsimp simp: box_eq_empty) (fastforce simp add: field_split_simps dest: PiE_mem)
   next
     have realff: "(real w) * 2^m < (real v) * 2^n \<longleftrightarrow> w * 2^m < v * 2^n" for m n v w
       using of_nat_less_iff less_imp_of_nat_less by fastforce
@@ -2359,7 +2358,9 @@ proof -
         apply (drule_tac x=i in bspec, assumption)
         using \<open>m\<le>n\<close> realff [of _ _ "1+_"] realff [of "1+_"_ "1+_"]
         apply (auto simp: divide_simps add.commute not_le nat_le_iff_add realff)
-        apply (simp add: power_add, metis (no_types, hide_lams) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)+
+         apply (simp_all add: power_add)
+        apply (metis (no_types, hide_lams) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
+        apply (metis (no_types, hide_lams) mult_Suc mult_less_cancel2 not_less_eq mult.assoc)
         done
       then show "?K0(m,v) \<subseteq> ?K0(n,w) \<or> ?K0(n,w) \<subseteq> ?K0(m,v) \<or> interior(?K0(m,v)) \<inter> interior(?K0(n,w)) = {}"
         by meson
@@ -2387,7 +2388,7 @@ proof -
             also have "... \<le> DIM('a) * (\<epsilon> / (2 * real DIM('a)))"
               by (meson sum_bounded_above that)
             also have "... = \<epsilon> / 2"
-              by (simp add: divide_simps)
+              by (simp add: field_split_simps)
             also have "... < \<epsilon>"
               by (simp add: \<open>0 < \<epsilon>\<close>)
             finally show ?thesis .
@@ -2399,9 +2400,9 @@ proof -
           using \<open>x \<in> S\<close> \<open>S \<subseteq> cbox a b\<close> by blast
         obtain n where n: "norm (b - a) / 2^n < e"
           using real_arch_pow_inv [of "e / norm(b - a)" "1/2"] normab \<open>0 < e\<close>
-          by (auto simp: divide_simps)
+          by (auto simp: field_split_simps)
         then have "norm (b - a) < e * 2^n"
-          by (auto simp: divide_simps)
+          by (auto simp: field_split_simps)
         then have bai: "b \<bullet> i - a \<bullet> i < e * 2 ^ n" if "i \<in> Basis" for i
         proof -
           have "b \<bullet> i - a \<bullet> i \<le> norm (b - a)"
@@ -2423,7 +2424,7 @@ proof -
                           x \<bullet> i \<le> a \<bullet> i + (real k + 1) * (b \<bullet> i - a \<bullet> i) / 2 ^ n)"
           proof cases
             case 1 then show ?thesis
-              by (rule_tac x = "2^n - 1" in exI) (auto simp: algebra_simps divide_simps of_nat_diff \<open>i \<in> Basis\<close> aibi)
+              by (rule_tac x = "2^n - 1" in exI) (auto simp: algebra_simps field_split_simps of_nat_diff \<open>i \<in> Basis\<close> aibi)
           next
             case 2
             then have abi_less: "a \<bullet> i < b \<bullet> i"
@@ -2433,20 +2434,20 @@ proof -
             proof (intro exI conjI)
               show "?k < 2 ^ n"
                 using aibi xab \<open>i \<in> Basis\<close>
-                by (force simp: nat_less_iff floor_less_iff divide_simps 2 mem_box)
+                by (force simp: nat_less_iff floor_less_iff field_split_simps 2 mem_box)
             next
               have "a \<bullet> i + real ?k * (b \<bullet> i - a \<bullet> i) / 2 ^ n \<le>
                     a \<bullet> i + (2 ^ n * (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (b \<bullet> i - a \<bullet> i) / 2 ^ n"
                 apply (intro add_left_mono mult_right_mono divide_right_mono of_nat_floor)
                 using aibi [OF \<open>i \<in> Basis\<close>] xab 2
-                  apply (simp_all add: \<open>i \<in> Basis\<close> mem_box divide_simps)
+                  apply (simp_all add: \<open>i \<in> Basis\<close> mem_box field_split_simps)
                 done
               also have "... = x \<bullet> i"
-                using abi_less by (simp add: divide_simps)
+                using abi_less by (simp add: field_split_simps)
               finally show "a \<bullet> i + real ?k * (b \<bullet> i - a \<bullet> i) / 2 ^ n \<le> x \<bullet> i" .
             next
               have "x \<bullet> i \<le> a \<bullet> i + (2 ^ n * (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (b \<bullet> i - a \<bullet> i) / 2 ^ n"
-                using abi_less by (simp add: divide_simps algebra_simps)
+                using abi_less by (simp add: field_split_simps algebra_simps)
               also have "... \<le> a \<bullet> i + (real ?k + 1) * (b \<bullet> i - a \<bullet> i) / 2 ^ n"
                 apply (intro add_left_mono mult_right_mono divide_right_mono of_nat_floor)
                 using aibi [OF \<open>i \<in> Basis\<close>] xab
@@ -2467,7 +2468,8 @@ proof -
           apply (drule bspec D, assumption)+
           apply (erule order_trans)
           apply (simp add: divide_simps)
-          using bai by (force simp: algebra_simps)
+          using bai apply (force simp add: algebra_simps)
+          done
         ultimately show ?thesis by auto
       qed
     qed
@@ -2486,12 +2488,12 @@ proof -
       proof -
         have dd: "w / m \<le> v / n \<and> (v+1) / n \<le> (w+1) / m
                   \<Longrightarrow> inverse n \<le> inverse m" for w m v n::real
-          by (auto simp: divide_simps algebra_simps)
+          by (auto simp: field_split_simps algebra_simps)
         have bjaj: "b \<bullet> j - a \<bullet> j > 0"
           using \<open>j \<in> Basis\<close> \<open>box a b \<noteq> {}\<close> box_eq_empty(1) by fastforce
         have "((g j) / 2 ^ m) * (b \<bullet> j - a \<bullet> j) \<le> ((f j) / 2 ^ n) * (b \<bullet> j - a \<bullet> j) \<and>
               (((f j) + 1) / 2 ^ n) * (b \<bullet> j - a \<bullet> j) \<le> (((g j) + 1) / 2 ^ m) * (b \<bullet> j - a \<bullet> j)"
-          using that \<open>j \<in> Basis\<close> by (simp add: subset_box algebra_simps divide_simps aibi)
+          using that \<open>j \<in> Basis\<close> by (simp add: subset_box algebra_simps field_split_simps aibi)
         then have "((g j) / 2 ^ m) \<le> ((f j) / 2 ^ n) \<and>
           ((real(f j) + 1) / 2 ^ n) \<le> ((real(g j) + 1) / 2 ^ m)"
           by (metis bjaj mult.commute of_nat_1 of_nat_add real_mult_le_cancel_iff2)

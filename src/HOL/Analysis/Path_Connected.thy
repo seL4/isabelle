@@ -642,14 +642,14 @@ proof -
     assume "g2 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
     then show "x = y"
       using * [of "(x + 1) / 2" "(y + 1) / 2"]
-      by (force simp: joinpaths_def split_ifs divide_simps)
+      by (force simp: joinpaths_def split_ifs field_split_simps)
   qed
   ultimately have "arc g2"
     using assms  by (simp add: arc_def)
   have "g2 y = g1 0 \<or> g2 y = g1 1"
        if "g1 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1" for x y
       using * [of "x / 2" "(y + 1) / 2"] that
-      by (auto simp: joinpaths_def split_ifs divide_simps)
+      by (auto simp: joinpaths_def split_ifs field_split_simps)
   then have "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
     by (fastforce simp: pathstart_def pathfinish_def path_image_def)
   with \<open>arc g1\<close> \<open>arc g2\<close> show ?thesis using that by blast
@@ -674,7 +674,7 @@ proof
     using assms by (simp add: simple_path_def)
   have False if "g1 0 = g2 u" "0 \<le> u" "u \<le> 1" for u
     using * [of 0 "(u + 1) / 2"] that assms arc_distinct_ends [OF \<open>?lhs\<close>]
-    by (auto simp: joinpaths_def pathstart_def pathfinish_def split_ifs divide_simps)
+    by (auto simp: joinpaths_def pathstart_def pathfinish_def split_ifs field_split_simps)
   then have n1: "pathstart g1 \<notin> path_image g2"
     unfolding pathstart_def path_image_def
     using atLeastAtMost_iff by blast
@@ -848,9 +848,9 @@ proof (rule iffI)
   { fix x y
     assume "x \<in> closed_segment u v" "y \<in> closed_segment u v" "g x = g y"
     then have "x = y \<or> x = u \<and> y = v \<or> x = v \<and> y = u"
-    using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
-    by (auto simp: closed_segment_real_eq image_affinity_atLeastAtMost divide_simps
-       split: if_split_asm)
+      using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
+      by (auto split: if_split_asm simp add: closed_segment_real_eq image_affinity_atLeastAtMost)
+        (simp_all add: field_split_simps)
   } moreover
   have "path(subpath u v g) \<and> u\<noteq>v"
     using sim [of "1/3" "2/3"] p
@@ -884,9 +884,10 @@ proof (rule iffI)
   { fix x y
     assume "x \<in> closed_segment u v" "y \<in> closed_segment u v" "g x = g y"
     then have "x = y"
-    using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
-    by (force simp: inj_on_def closed_segment_real_eq image_affinity_atLeastAtMost divide_simps
-       split: if_split_asm)
+      using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
+      by (cases "v = u")
+        (simp_all split: if_split_asm add: inj_on_def closed_segment_real_eq image_affinity_atLeastAtMost,
+           simp add: field_simps)
   } moreover
   have "path(subpath u v g) \<and> u\<noteq>v"
     using sim [of "1/3" "2/3"] p
@@ -937,7 +938,7 @@ lemma path_image_subpath_subset:
   done  
 
 lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p = p"
-  by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
+  by (rule ext) (simp add: joinpaths_def subpath_def field_split_simps)
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>There is a subpath to the frontier\<close>
@@ -2457,9 +2458,8 @@ next
     { fix u
       assume u: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + C *\<^sub>R (x - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have CC: "1 \<le> 1 + (C - 1) * u"
-        using \<open>x \<noteq> a\<close> \<open>0 \<le> u\<close>
-        apply (simp add: C_def divide_simps norm_minus_commute)
-        using Bx by auto
+        using \<open>x \<noteq> a\<close> \<open>0 \<le> u\<close> Bx
+        by (auto simp add: C_def norm_minus_commute)
       have *: "\<And>v. (1 - u) *\<^sub>R x + u *\<^sub>R (a + v *\<^sub>R (x - a)) = a + (1 + (v - 1) * u) *\<^sub>R (x - a)"
         by (simp add: algebra_simps)
       have "a + ((1 / (1 + C * u - u)) *\<^sub>R x + ((u / (1 + C * u - u)) *\<^sub>R a + (C * u / (1 + C * u - u)) *\<^sub>R x)) =
@@ -2492,9 +2492,8 @@ next
     { fix u
       assume u: "(1 - u) *\<^sub>R y + u *\<^sub>R (a + D *\<^sub>R (y - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have DD: "1 \<le> 1 + (D - 1) * u"
-        using \<open>y \<noteq> a\<close> \<open>0 \<le> u\<close>
-        apply (simp add: D_def divide_simps norm_minus_commute)
-        using By by auto
+        using \<open>y \<noteq> a\<close> \<open>0 \<le> u\<close> By
+        by (auto simp add: D_def norm_minus_commute)
       have *: "\<And>v. (1 - u) *\<^sub>R y + u *\<^sub>R (a + v *\<^sub>R (y - a)) = a + (1 + (v - 1) * u) *\<^sub>R (y - a)"
         by (simp add: algebra_simps)
       have "a + ((1 / (1 + D * u - u)) *\<^sub>R y + ((u / (1 + D * u - u)) *\<^sub>R a + (D * u / (1 + D * u - u)) *\<^sub>R y)) =
@@ -3008,11 +3007,20 @@ proof -
       case True with B Bno show ?thesis by force
     next
       case False 
-      with B C
       have "closed_segment x (((B + C) / norm x) *\<^sub>R x) \<subseteq> - ball 0 B"
-        apply (clarsimp simp add: closed_segment_def ball_def dist_norm real_vector_class.scaleR_add_left [symmetric] divide_simps)
-        using segment_bound_lemma [of B "norm x" "B+C" ] Bno
-        by (meson le_add_same_cancel1 less_eq_real_def not_le)
+      proof
+        fix w
+        assume "w \<in> closed_segment x (((B + C) / norm x) *\<^sub>R x)"
+        then obtain u where
+          w: "w = (1 - u + u * (B + C) / norm x) *\<^sub>R x" "0 \<le> u" "u \<le> 1"
+          by (auto simp add: closed_segment_def real_vector_class.scaleR_add_left [symmetric])
+        with False B C have "B \<le> (1 - u) * norm x + u * (B + C)"
+          using segment_bound_lemma [of B "norm x" "B + C" u] Bno
+          by simp
+        with False B C show "w \<in> - ball 0 B"
+          using distrib_right [of _ _ "norm x"]
+          by (simp add: ball_def w not_less)
+      qed
       also have "... \<subseteq> -S"
         by (simp add: B)
       finally have "\<exists>T. connected T \<and> T \<subseteq> - S \<and> x \<in> T \<and> ((B + C) / norm x) *\<^sub>R x \<in> T"
@@ -3303,7 +3311,7 @@ next
       by (metis mem_Collect_eq)
     define C where "C = (B + 1 + norm z) / norm (z-a)"
     have "C > 0"
-      using \<open>0 < B\<close> zna by (simp add: C_def divide_simps add_strict_increasing)
+      using \<open>0 < B\<close> zna by (simp add: C_def field_split_simps add_strict_increasing)
     have "\<bar>norm (z + C *\<^sub>R (z-a)) - norm (C *\<^sub>R (z-a))\<bar> \<le> norm z"
       by (metis add_diff_cancel norm_triangle_ineq3)
     moreover have "norm (C *\<^sub>R (z-a)) > norm z + B"
@@ -3314,10 +3322,10 @@ next
       then have Cpos: "1 + u * C > 0"
         by (meson \<open>0 < C\<close> add_pos_nonneg less_eq_real_def zero_le_mult_iff zero_less_one)
       then have *: "(1 / (1 + u * C)) *\<^sub>R z + (u * C / (1 + u * C)) *\<^sub>R z = z"
-        by (simp add: scaleR_add_left [symmetric] divide_simps)
+        by (simp add: scaleR_add_left [symmetric] field_split_simps)
       then have False
         using convexD_alt [OF s \<open>a \<in> s\<close> ins, of "1/(u*C + 1)"] \<open>C>0\<close> \<open>z \<notin> s\<close> Cpos u
-        by (simp add: * divide_simps algebra_simps)
+        by (simp add: * field_split_simps algebra_simps)
     } note contra = this
     have "connected_component (- s) z (z + C *\<^sub>R (z-a))"
       apply (rule connected_componentI [OF connected_segment [of z "z + C *\<^sub>R (z-a)"]])
@@ -3327,7 +3335,7 @@ next
       done
     then have False
       using zna B [of "z + C *\<^sub>R (z-a)"] C
-      by (auto simp: divide_simps max_mult_distrib_right)
+      by (auto simp: field_split_simps max_mult_distrib_right)
   }
   then show ?thesis
     by (auto simp: outside_def z)

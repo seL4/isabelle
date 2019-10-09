@@ -91,7 +91,7 @@ next
           done
       qed
       moreover have "\<lbrakk>U \<in> \<C>; x \<in> S\<rbrakk> \<Longrightarrow> 0 \<le> F U x" for U x
-        using nonneg [of x] by (simp add: F_def divide_simps setdist_pos_le)
+        using nonneg [of x] by (simp add: F_def field_split_simps setdist_pos_le)
       ultimately show "\<And>U. U \<in> \<C> \<Longrightarrow> continuous_on S (F U) \<and> (\<forall>x\<in>S. 0 \<le> F U x)"
         by metis
     next
@@ -100,7 +100,7 @@ next
     next
       show "supp_sum (\<lambda>W. F W x) \<C> = 1" if "x \<in> S" for x
         using that ss_pos [OF that]
-        by (simp add: F_def divide_simps supp_sum_divide_distrib [symmetric])
+        by (simp add: F_def field_split_simps supp_sum_divide_distrib [symmetric])
     next
       show "\<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. \<exists>x\<in>V. F U x \<noteq> 0}" if "x \<in> S" for x
         using fin [OF that] that
@@ -157,7 +157,7 @@ proof -
         done
       also have "...  \<longleftrightarrow> setdist {x} T = 0 \<and> setdist {x} S \<noteq> 0"
         using sdpos that
-        by (simp add: divide_simps) linarith
+        by (simp add: field_split_simps) linarith
       also have "...  \<longleftrightarrow> x \<in> T"
         using \<open>S \<noteq> {}\<close> \<open>T \<noteq> {}\<close> \<open>S \<inter> T = {}\<close> that
         by (force simp: S0 T0)

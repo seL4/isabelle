@@ -1848,7 +1848,7 @@ next
           using g_near_f[OF x, of n] g_near_f[OF x, of m] by simp
         also have "\<dots> \<le> 1 / (real M) + 1 / (real M)"
           apply (rule add_mono)
-          using \<open>M \<noteq> 0\<close> m n by (auto simp: divide_simps)
+          using \<open>M \<noteq> 0\<close> m n by (auto simp: field_split_simps)
         also have "\<dots> = 2 / real M"
           by auto
         finally show "norm (g n x - g m x) \<le> 2 / real M"
@@ -1900,7 +1900,7 @@ next
       then have norm_less: "norm ((\<Sum>(x,K) \<in> \<D>. content K *\<^sub>R g (N1 + N2) x) - h (N1 + N2)) < e/3"
         using g' by blast
       have "content (cbox a b) < e/3 * (of_nat N2)"
-        using \<open>N2 \<noteq> 0\<close> N2 using True by (auto simp: divide_simps)
+        using \<open>N2 \<noteq> 0\<close> N2 using True by (auto simp: field_split_simps)
       moreover have "e/3 * of_nat N2 \<le> e/3 * (of_nat (N1 + N2) + 1)"
         using \<open>e>0\<close> by auto
       ultimately have "content (cbox a b) < e/3 * (of_nat (N1 + N2) + 1)"
@@ -2904,7 +2904,7 @@ proof goal_cases
     "Dg n s = (if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0)" for n s
   have g0: "Dg 0 = g"
     using \<open>p > 0\<close>
-    by (auto simp add: Dg_def divide_simps g_def split: if_split_asm)
+    by (auto simp add: Dg_def field_split_simps g_def split: if_split_asm)
   {
     fix m
     assume "p > Suc m"
@@ -2916,7 +2916,7 @@ proof goal_cases
   have Dg: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     (Dg m has_vector_derivative Dg (Suc m) t) (at t within {a..b})"
     unfolding Dg_def
-    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def fact_eq divide_simps)
+    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def fact_eq field_split_simps)
   let ?sum = "\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t"
   from sum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
       OF \<open>p > 0\<close> g0 Dg f0 Df]
@@ -6582,7 +6582,7 @@ proof cases
               integrable_continuous continuous_intros)
       also have "\<dots> < e'"
         using \<open>0 < e'\<close> \<open>e > 0\<close>
-        by (auto simp: e_def divide_simps)
+        by (auto simp: e_def field_split_simps)
       finally show "dist (integral (cbox a b) (f y)) (integral (cbox a b) (f x)) < e'" .
     qed
   qed
@@ -6672,8 +6672,8 @@ proof cases
       also have "\<dots> < e' * norm (x - x0)"
         using \<open>e' > 0\<close>
         apply (intro mult_strict_right_mono[OF _ \<open>0 < norm (x - x0)\<close>])
-        apply (auto simp: divide_simps e_def)
-        by (metis \<open>0 < e\<close> e_def order.asym zero_less_divide_iff)
+        apply (simp add: divide_simps e_def not_less)
+        done
       finally have "norm (?F x - ?F x0 - ?dF (x - x0)) < e' * norm (x - x0)" .
       then show ?case
         by (auto simp: divide_simps)
@@ -7263,10 +7263,10 @@ next
             \<le> e * content (cbox w z) / content ?CBOX/2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
         using cbp \<open>0 < e/content ?CBOX\<close>
-        apply (auto simp: divide_simps content_pos_le integrable_diff int_integrable integrable_const)
+        apply (auto simp: field_split_simps content_pos_le integrable_diff int_integrable integrable_const)
         done
       also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
-        by (simp add: content_Pair divide_simps)
+        by (simp add: content_Pair field_split_simps)
       finally have 2: "norm (integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y))) -
                       integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (t1,t2))))
                 \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
@@ -7561,7 +7561,7 @@ proof -
       with assms have "a powr (e + 1) \<ge> n powr (e + 1)"
         by (intro powr_mono2') simp_all
       with assms show ?thesis by (auto simp: divide_simps F_def integral_f)
-    qed (insert assms, simp add: integral_f F_def divide_simps)
+    qed (insert assms, simp add: integral_f F_def field_split_simps)
     thus "bounded (range(\<lambda>k. integral {a..} (f k)))"
       unfolding bounded_iff by (intro exI[of _ "-F a"]) auto
   qed
@@ -7591,12 +7591,12 @@ proof -
   note has_integral_powr_to_inf[OF this \<open>a > 0\<close>]
   also have "- (a powr (real_of_int (- int n) + 1)) / (real_of_int (- int n) + 1) =
                  1 / (real (n - 1) * a powr (real (n - 1)))" using assms
-    by (simp add: divide_simps powr_add [symmetric] of_nat_diff)
+    by (simp add: field_split_simps powr_add [symmetric] of_nat_diff)
   also from assms have "a powr (real (n - 1)) = a ^ (n - 1)"
     by (intro powr_realpow)
   finally show ?thesis
     by (rule has_integral_eq [rotated])
-       (insert assms, simp_all add: powr_minus powr_realpow divide_simps)
+       (insert assms, simp_all add: powr_minus powr_realpow field_split_simps)
 qed
 
 subsubsection \<open>Adaption to ordered Euclidean spaces and the Cartesian Euclidean space\<close>

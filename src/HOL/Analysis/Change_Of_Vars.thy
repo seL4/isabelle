@@ -540,9 +540,9 @@ proof -
                 then have "dist (f' x ((y - x) /\<^sub>R r)) ((f y - f x) /\<^sub>R r) = norm (f' x (y - x) /\<^sub>R r - (f y - f x) /\<^sub>R r)"
                   by (simp add: dist_norm)
                 also have "\<dots> = norm (f' x (y - x) - (f y - f x)) / r"
-                  using \<open>r > 0\<close> by (simp add: scale_right_diff_distrib [symmetric] divide_simps)
+                  using \<open>r > 0\<close> by (simp add: divide_simps scale_right_diff_distrib [symmetric])
                 also have "\<dots> \<le> norm (f y - (f x + f' x (y - x))) / norm (y - x)"
-                  using that \<open>r > 0\<close> False by (simp add: algebra_simps divide_simps dist_norm norm_minus_commute mult_right_mono)
+                  using that \<open>r > 0\<close> False by (simp add: algebra_simps field_split_simps dist_norm norm_minus_commute mult_right_mono)
                 also have "\<dots> < k"
                   using that \<open>0 < \<zeta>\<close> by (simp add: dist_commute r_def  \<zeta> [OF \<open>y \<in> S\<close> False])
                 finally show "dist (f' x ((y - x) /\<^sub>R r)) ((f y - f x) /\<^sub>R r) < k" .
@@ -883,7 +883,7 @@ proof -
       with ml have 0: "0 < - (m - ?\<mu> (f ` S))/2 / ?\<mu> S"
         using that zero_less_measure_iff by force
       then show ?thesis
-        using * [OF 0] that by (auto simp: divide_simps m_def split: if_split_asm)
+        using * [OF 0] that by (auto simp: field_split_simps m_def split: if_split_asm)
     qed
     then show "?\<mu> (f ` S) \<le> integral S (\<lambda>x. \<bar>det (matrix (f' x))\<bar>)"
       by fastforce
@@ -991,7 +991,7 @@ proof
       fix k::real
       assume "k \<in> \<int>" and k: "\<bar>k\<bar> \<le> 2 ^ (2*n)"
       show "0 \<le> k/2^n * ?\<Omega> n k x"
-        using f \<open>k \<in> \<int>\<close> apply (auto simp: indicator_def divide_simps Ints_def)
+        using f \<open>k \<in> \<int>\<close> apply (auto simp: indicator_def field_split_simps Ints_def)
         apply (drule spec [where x=x])
         using zero_le_power [of "2::real" n] mult_nonneg_nonneg [of "f x" "2^n"]
         by linarith
@@ -1002,7 +1002,7 @@ proof
             (\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n).
               k/2^n * (indicator {y. k/2^n \<le> f y \<and> f y < (k+1/2)/2^n} x +
               indicator {y. (k+1/2)/2^n \<le> f y \<and> f y < (k+1)/2^n} x))"
-        by (rule sum.cong [OF refl]) (simp add: indicator_def divide_simps)
+        by (rule sum.cong [OF refl]) (simp add: indicator_def field_split_simps)
       also have "\<dots> = (\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n). k/2^n * indicator {y. k/2^n \<le> f y \<and> f y < (k+1/2)/2^n} x) +
                        (\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n). k/2^n * indicator {y. (k+1/2)/2^n \<le> f y \<and> f y < (k+1)/2^n} x)"
         by (simp add:  comm_monoid_add_class.sum.distrib algebra_simps)
@@ -1021,7 +1021,7 @@ proof
           show "(\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n).
                   2 * k/2 ^ Suc n * indicator {y. (2 * k+1)/2 ^ Suc n \<le> f y \<and> f y < (2 * k+1 + 1)/2 ^ Suc n} x)
                 \<le> sum ?h {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
-            by (rule sum_mono) (simp add: indicator_def divide_simps)
+            by (rule sum_mono) (simp add: indicator_def field_split_simps)
         next
           have \<alpha>: "?a = (\<Sum>k \<in> (*)2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
                          k/2 ^ Suc n * indicator {y. k/2 ^ Suc n \<le> f y \<and> f y < (k+1)/2 ^ Suc n} x)"
@@ -1183,7 +1183,7 @@ proof -
     ultimately have lim_dl: "((\<lambda>x. (\<bar>d \<bullet> x\<bar> - k)) \<circ> (?\<beta> \<circ> \<rho>)) \<longlonglongrightarrow> (\<bar>d \<bullet> l\<bar> - k)"
       by (meson continuous_imp_tendsto)
     have "\<forall>\<^sub>F i in sequentially. 0 \<le> ((\<lambda>x. \<bar>d \<bullet> x\<bar> - k) \<circ> ((\<lambda>n. \<alpha> n /\<^sub>R norm (\<alpha> n)) \<circ> \<rho>)) i"
-      using \<alpha> kd by (auto simp: divide_simps)
+      using \<alpha> kd by (auto simp: field_split_simps)
     then have "k \<le> \<bar>d \<bullet> l\<bar>"
       using tendsto_lowerbound [OF lim_dl, of 0] by auto
     moreover have "d \<bullet> l = 0"
@@ -1606,7 +1606,7 @@ proof -
                       also have "\<dots> = norm ((A i - A j) *v (\<gamma> p - x)) / norm (\<gamma> p - x)"
                         by (simp add: divide_inverse matrix_vector_mult_scaleR)
                       also have "\<dots> \<le> 2 / N"
-                        using no_le by (auto simp: divide_simps)
+                        using no_le by (auto simp: field_split_simps)
                       finally show "norm (?V i p - ?V j p) \<le> 2 / N" .
                     qed
                     have "isCont (\<lambda>w. (norm(A i *v w - A j *v w) - 2 / N)) z"
@@ -1652,7 +1652,7 @@ proof -
             show "linear ((*v) (matrix (f' x) - B))"
               by (rule matrix_vector_mul_linear)
             have "((\<lambda>y. ((f x + f' x (y - x)) - f y) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
-              using tendsto_minus [OF lim_df] by (simp add: algebra_simps divide_simps)
+              using tendsto_minus [OF lim_df] by (simp add: algebra_simps field_split_simps)
             then show "((\<lambda>y. (matrix (f' x) - B) *v (y - x) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
             proof (rule Lim_transform)
               have "((\<lambda>y. ((f y + B *v x - (f x + B *v y)) /\<^sub>R norm (y - x))) \<longlongrightarrow> 0) (at x within S)"
@@ -1704,7 +1704,7 @@ proof -
                     also have "\<dots> \<le> (e - 1 / (Suc (p + q))) * norm (y - x)"
                     proof (rule mult_right_mono)
                       have "1 / Suc (p + q) \<le> 1 / q"
-                        using \<open>q \<noteq> 0\<close> by (auto simp: divide_simps)
+                        using \<open>q \<noteq> 0\<close> by (auto simp: field_split_simps)
                       also have "\<dots> < e/2"
                         using qe2 by auto
                       finally show "e / 2 \<le> e - 1 / real (Suc (p + q))"
@@ -1714,7 +1714,7 @@ proof -
                       by (simp add: algebra_simps)
                   qed
                   then show "inverse (norm (y - x)) * norm (f y + B *v x - (f x + B *v y)) < e"
-                    using \<open>y \<noteq> x\<close> by (simp add: divide_simps algebra_simps)
+                    using \<open>y \<noteq> x\<close> by (simp add: field_split_simps algebra_simps)
                 qed
               qed
               then show "((\<lambda>y. (matrix (f' x) - B) *v (y - x) /\<^sub>R
@@ -1784,7 +1784,7 @@ proof -
                     by (rule Bo_e6)
                   finally have "norm ((?A - B) *v (y - x)) / norm (y - x) < e / 6" .
                   then show "norm ((?A - B) *v (y - x)) \<le> e * norm (y - x) / 6"
-                    by (simp add: divide_simps False)
+                    by (simp add: field_split_simps False)
                   have "norm ((matrix (f' x) - B) *v (y - x) - ((?A - B) *v (y - x))) = norm ((\<chi> i j. if i = m \<and> j = n then e / 4 else 0) *v (y - x))"
                     by (simp add: algebra_simps)
                   also have "\<dots> = norm((e/4) *\<^sub>R (y - x)$n *\<^sub>R axis m (1::real))"
@@ -2192,7 +2192,7 @@ proof -
               finally show ?thesis .
             qed
             finally have *: "1 / real (?m ^ ?m) * norm (v - u) ^ ?n \<le> ?\<mu> K"
-              by (simp add: divide_simps)
+              by (simp add: field_split_simps)
             show ?thesis
               using mult_left_mono [OF *, of "e / (2*c) ^ ?m"] \<open>c > 0\<close> \<open>e > 0\<close> by auto
           qed
@@ -2235,7 +2235,7 @@ proof -
           using \<open>c > 0\<close> by (simp add: content_cbox_if_cart)
         finally have "sum ?\<mu> \<F> \<le> (2 ^ ?m * c ^ ?m)" .
         then show ?thesis
-          using \<open>e > 0\<close> \<open>c > 0\<close> by (auto simp: divide_simps mult_less_0_iff)
+          using \<open>e > 0\<close> \<open>c > 0\<close> by (auto simp: field_split_simps mult_less_0_iff)
       qed
       finally show ?thesis .
     qed
@@ -2362,7 +2362,7 @@ proof -
         show "norm (if x \<in> {t. h n (g t) = y} then ?D x else 0) \<le> ?D x *\<^sub>R f (g x) /\<^sub>R y"
           if "x \<in> S" for x
           using nonneg_h [of n x] \<open>y > 0\<close> nonneg_fg [of x] h_le_f [of x n] that
-          by (auto simp: divide_simps ordered_semiring_class.mult_left_mono)
+          by (auto simp: divide_simps mult_left_mono)
       qed (use S in auto)
       then have int_det: "(\<lambda>t. \<bar>det (matrix (g' t))\<bar>) integrable_on ({t. h n (g t) = y} \<inter> S)"
         using integrable_restrict_Int by force

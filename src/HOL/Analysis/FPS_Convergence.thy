@@ -327,7 +327,7 @@ proof (induction n rule: less_induct)
   show ?case
   proof (cases m)
     case 0
-    thus ?thesis using assms by (simp add: divide_simps norm_inverse norm_divide)
+    thus ?thesis using assms by (simp add: field_split_simps norm_inverse norm_divide)
   next
     case [simp]: (Suc n)
     have "norm (natfun_inverse f (Suc n)) = 
@@ -345,7 +345,7 @@ proof (induction n rule: less_induct)
       also have "\<dots> \<le> norm (fps_nth f i) * inverse (\<delta> ^ (Suc n - i))"
         using 1 by (intro mult_left_mono less.IH) auto
       also have "\<dots> = norm (fps_nth f i) / \<delta> ^ (Suc n - i)"
-        by (simp add: divide_simps)
+        by (simp add: field_split_simps)
       finally show ?case .
     qed
     also have "\<dots> = (\<Sum>i = Suc 0..Suc n. norm (fps_nth f i) * \<delta> ^ i) / \<delta> ^ Suc n"
@@ -360,7 +360,7 @@ proof (induction n rule: less_induct)
       using \<open>\<delta> > 0\<close> by (intro sum_le_suminf ballI mult_nonneg_nonneg zero_le_power summable) auto
     also have "\<dots> \<le> 1" by fact
     finally show ?thesis using \<open>\<delta> > 0\<close> 
-      by (simp add: divide_right_mono divide_simps)
+      by (simp add: divide_right_mono field_split_simps)
   qed
 qed
 
@@ -457,7 +457,7 @@ proof (rule conv_radius_inftyI'')
   have "(\<lambda>n. norm (c * z) ^ n /\<^sub>R fact n) sums exp (norm (c * z))"
     by (rule exp_converges)
   also have "(\<lambda>n. norm (c * z) ^ n /\<^sub>R fact n) = (\<lambda>n. norm (fps_nth (fps_exp c) n * z ^ n))"
-    by (rule ext) (simp add: norm_divide norm_mult norm_power divide_simps power_mult_distrib)
+    by (rule ext) (simp add: norm_divide norm_mult norm_power field_split_simps power_mult_distrib)
   finally have "summable \<dots>" by (simp add: sums_iff)
   thus "summable (\<lambda>n. fps_nth (fps_exp c) n * z ^ n)"
     by (rule summable_norm_cancel)
@@ -494,7 +494,7 @@ next
     by (intro Suc.IH [symmetric]) auto
   also have "\<dots> / of_nat (Suc n) = fps_nth f (Suc n)"
     by (simp add: fps_deriv_def del: of_nat_Suc)
-  finally show ?case by (simp add: divide_simps)
+  finally show ?case by (simp add: field_split_simps)
 qed
 
 theorem eval_fps_eqD:
@@ -613,7 +613,7 @@ qed (simp_all add: eval_fps_at_0)
 lemma eval_fps_exp [simp]:
   fixes c :: "'a :: {banach, real_normed_field}"
   shows "eval_fps (fps_exp c) z = exp (c * z)" unfolding eval_fps_def exp_def
-  by (simp add: eval_fps_def exp_def scaleR_conv_of_real divide_simps power_mult_distrib)
+  by (simp add: eval_fps_def exp_def scaleR_conv_of_real field_split_simps power_mult_distrib)
 
 lemma
   fixes f :: "complex fps" and r :: ereal
@@ -716,7 +716,7 @@ proof -
     by (intro eval_fps_inverse[where r = r] less_le_trans[OF z] nz)
        (auto simp: R_def intro: min.coboundedI1 min.coboundedI2)
   also have "f * inverse g = f / g" by fact
-  finally show "eval_fps (f / g) z = eval_fps f z / eval_fps g z" by (simp add: divide_simps)
+  finally show "eval_fps (f / g) z = eval_fps f z / eval_fps g z" by (simp add: field_split_simps)
 qed
 
 lemma
@@ -1000,7 +1000,7 @@ proof -
       by (subst eval_fps_mult) auto
     also have "eval_fps (inverse F * F) z = 1"
       using assms by (simp add: inverse_mult_eq_1)
-    finally show ?case by (auto simp: divide_simps)
+    finally show ?case by (auto simp: field_split_simps)
   qed
   with radius show ?thesis by (auto simp: has_fps_expansion_def)
 qed

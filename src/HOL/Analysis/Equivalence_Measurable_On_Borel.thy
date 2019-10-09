@@ -114,7 +114,7 @@ proof (induction "card \<D>" arbitrary: \<D> thesis rule: less_induct)
             using \<D>lm less.prems(2) by auto
         qed
         then have "measure lebesgue (\<Union>\<D> - cbox a3 b3) / 3 ^ DIM('a) \<le> measure lebesgue (\<Union> \<D>')"
-          using \<D>'m by (simp add: divide_simps)
+          using \<D>'m by (simp add: field_split_simps)
         then show ?thesis
           by (simp add: m3 field_simps)
       qed
@@ -129,7 +129,7 @@ proof (induction "card \<D>" arbitrary: \<D> thesis rule: less_induct)
         qed (simp add: \<D>lm \<open>D \<in> \<D>\<close>)
       qed
       finally show "measure lebesgue (\<Union>\<D>) / 3 ^ DIM('a) \<le> measure lebesgue (\<Union>(insert D \<D>'))"
-        by (simp add: divide_simps)
+        by (simp add: field_split_simps)
     qed
   qed
 qed
@@ -421,7 +421,7 @@ proof -
                   unfolding fine_def \<Phi>_def using BOX_\<gamma> \<open>\<F> \<subseteq> \<D>\<close> \<open>\<G> \<subseteq> \<F>\<close> tag_in_E by blast
               qed
               finally show ?thesis
-                using \<open>\<mu> > 0\<close> by (auto simp: divide_simps)
+                using \<open>\<mu> > 0\<close> by (auto simp: field_split_simps)
           qed
             finally show ?thesis .
           qed
@@ -448,7 +448,7 @@ proof -
           qed
           ultimately
           have "measure lebesgue (\<Union>\<F>) \<le> e/2"
-            by (auto simp: divide_simps)
+            by (auto simp: field_split_simps)
           then show "measure lebesgue (\<Union>\<D>) \<le> e"
             using \<F> by linarith
         qed
@@ -620,7 +620,7 @@ proof -
             have no: "norm (y - x) < 1"
               using that by (auto simp: dist_norm)
             have le1: "inverse (1 + real n) \<le> 1"
-              by (auto simp: divide_simps)
+              by (auto simp: field_split_simps)
             have "norm (integral (cbox y (y + One /\<^sub>R real (Suc n))) f
                 - integral (cbox x (x + One /\<^sub>R real (Suc n))) f)
                 < e / (1 + real n) ^ DIM('a)"
@@ -742,7 +742,7 @@ proof -
       show "continuous_on UNIV (g \<circ> (\<theta> n))" for n :: nat
         unfolding \<theta>_def
         apply (intro continuous_on_compose2 [OF contg] continuous_intros conth)
-        apply (auto simp: aibi * mem_box less_max_iff_disj min_less_iff_disj algebra_simps divide_simps)
+        apply (auto simp: aibi * mem_box less_max_iff_disj min_less_iff_disj algebra_simps field_split_simps)
         done
       show "(\<lambda>n. (g \<circ> \<theta> n) x) \<longlonglongrightarrow> g (f x)"
         if "x \<notin> N" for x
@@ -1278,7 +1278,7 @@ lemma homeomorphic_open_interval_UNIV:
 proof -
   have "{a<..<b} = ball ((b+a) / 2) ((b-a) / 2)"
     using assms
-    by (auto simp: dist_real_def abs_if divide_simps split: if_split_asm)
+    by (auto simp: dist_real_def abs_if field_split_simps split: if_split_asm)
   then show ?thesis
     by (simp add: homeomorphic_ball_UNIV assms)
 qed

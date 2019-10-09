@@ -48,8 +48,10 @@ text \<open>Modules form the central spaces in linear algebra. They are a genera
 spaces by replacing the scalar field by a scalar ring.\<close>
 locale module =
   fixes scale :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
-  assumes scale_right_distrib [algebra_simps]: "a *s (x + y) = a *s x + a *s y"
-    and scale_left_distrib [algebra_simps]: "(a + b) *s x = a *s x + b *s x"
+  assumes scale_right_distrib [algebra_simps, algebra_split_simps]:
+      "a *s (x + y) = a *s x + a *s y"
+    and scale_left_distrib [algebra_simps, algebra_split_simps]:
+      "(a + b) *s x = a *s x + b *s x"
     and scale_scale [simp]: "a *s (b *s x) = (a * b) *s x"
     and scale_one [simp]: "1 *s x = x"
 begin
@@ -59,7 +61,8 @@ lemma scale_left_commute: "a *s (b *s x) = b *s (a *s x)"
 
 lemma scale_zero_left [simp]: "0 *s x = 0"
   and scale_minus_left [simp]: "(- a) *s x = - (a *s x)"
-  and scale_left_diff_distrib [algebra_simps]: "(a - b) *s x = a *s x - b *s x"
+  and scale_left_diff_distrib [algebra_simps, algebra_split_simps]:
+    "(a - b) *s x = a *s x - b *s x"
   and scale_sum_left: "(sum f A) *s x = (\<Sum>a\<in>A. (f a) *s x)"
 proof -
   interpret s: additive "\<lambda>a. a *s x"
@@ -72,7 +75,8 @@ qed
 
 lemma scale_zero_right [simp]: "a *s 0 = 0"
   and scale_minus_right [simp]: "a *s (- x) = - (a *s x)"
-  and scale_right_diff_distrib [algebra_simps]: "a *s (x - y) = a *s x - a *s y"
+  and scale_right_diff_distrib [algebra_simps, algebra_split_simps]: 
+    "a *s (x - y) = a *s x - a *s y"
   and scale_sum_right: "a *s (sum f A) = (\<Sum>x\<in>A. a *s (f x))"
 proof -
   interpret s: additive "\<lambda>x. a *s x"
@@ -93,7 +97,7 @@ setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOM
 context module
 begin
 
-lemma [field_simps]:
+lemma [field_simps, field_split_simps]:
   shows scale_left_distrib_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a + b) *s x = a *s x + b *s x"
     and scale_right_distrib_NO_MATCH: "NO_MATCH (x div y) a \<Longrightarrow> a *s (x + y) = a *s x + a *s y"
     and scale_left_diff_distrib_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a - b) *s x = a *s x - b *s x"

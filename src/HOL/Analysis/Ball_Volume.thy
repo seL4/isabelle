@@ -46,7 +46,7 @@ proof -
        (auto intro!: derivative_eq_intros continuous_intros simp: set_borel_measurable_def)
   also have "\<dots> = (\<integral>\<^sup>+ x. 2 * ennreal ((1 - x\<^sup>2) powr (real n / 2) * indicator {0..1} x) \<partial>lborel)"
     by (intro nn_integral_cong_AE AE_I[of _ _ "{0}"]) 
-       (auto simp: indicator_def powr_minus powr_half_sqrt divide_simps ennreal_mult' mult_ac)
+       (auto simp: indicator_def powr_minus powr_half_sqrt field_split_simps ennreal_mult' mult_ac)
   also have "\<dots> = (\<integral>\<^sup>+ x. ennreal ((1 - x\<^sup>2) powr (real n / 2) * indicator {0..1} x) \<partial>lborel) +
                     (\<integral>\<^sup>+ x. ennreal ((1 - x\<^sup>2) powr (real n / 2) * indicator {0..1} x) \<partial>lborel)"
     (is "_ = ?I + _") by (simp add: mult_2 nn_integral_add)

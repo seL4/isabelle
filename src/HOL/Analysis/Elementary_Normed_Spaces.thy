@@ -599,7 +599,7 @@ proof
   qed
   show "\<forall>\<^sub>F x in net. dist (f x *\<^sub>R g x) 0 < \<epsilon>"
     apply (rule eventually_mono [OF eventually_conj [OF tendstoD [OF f B] gB] ])
-    apply (auto simp: \<open>0 < \<epsilon>\<close> divide_simps * split: if_split_asm)
+    apply (auto simp: \<open>0 < \<epsilon>\<close> field_split_simps * split: if_split_asm)
     done
 qed
 
@@ -1562,17 +1562,17 @@ lemma homeomorphic_ball01_UNIV:
 proof
   have "x \<in> (\<lambda>z. z /\<^sub>R (1 - norm z)) ` ball 0 1" for x::'a
     apply (rule_tac x="x /\<^sub>R (1 + norm x)" in image_eqI)
-     apply (auto simp: divide_simps)
+     apply (auto simp: field_split_simps)
     using norm_ge_zero [of x] apply linarith+
     done
   then show "(\<lambda>z::'a. z /\<^sub>R (1 - norm z)) ` ?B = ?U"
     by blast
   have "x \<in> range (\<lambda>z. (1 / (1 + norm z)) *\<^sub>R z)" if "norm x < 1" for x::'a
     apply (rule_tac x="x /\<^sub>R (1 - norm x)" in image_eqI)
-    using that apply (auto simp: divide_simps)
+    using that apply (auto simp: field_split_simps)
     done
   then show "(\<lambda>z::'a. z /\<^sub>R (1 + norm z)) ` ?U = ?B"
-    by (force simp: divide_simps dest: add_less_zeroD)
+    by (force simp: field_split_simps dest: add_less_zeroD)
   show "continuous_on (ball 0 1) (\<lambda>z. z /\<^sub>R (1 - norm z))"
     by (rule continuous_intros | force)+
   show "continuous_on UNIV (\<lambda>z. z /\<^sub>R (1 + norm z))"
@@ -1581,9 +1581,9 @@ proof
     done
   show "\<And>x. x \<in> ball 0 1 \<Longrightarrow>
          x /\<^sub>R (1 - norm x) /\<^sub>R (1 + norm (x /\<^sub>R (1 - norm x))) = x"
-    by (auto simp: divide_simps)
+    by (auto simp: field_split_simps)
   show "\<And>y. y /\<^sub>R (1 + norm y) /\<^sub>R (1 - norm (y /\<^sub>R (1 + norm y))) = y"
-    apply (auto simp: divide_simps)
+    apply (auto simp: field_split_simps)
     apply (metis le_add_same_cancel1 norm_ge_zero not_le zero_less_one)
     done
 qed

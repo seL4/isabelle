@@ -57,7 +57,7 @@ proof (rule allI impI)+
     by (rule nonzero_divide_eq_eq[THEN iffD2]) auto
   moreover
   have "(n - m) * t ^ (n - Suc m) * B / fact (n - m) = B * (t ^ (n - Suc m) / fact (n - Suc m))"
-    using \<open>0 < n - m\<close> by (simp add: divide_simps fact_reduce)
+    using \<open>0 < n - m\<close> by (simp add: field_split_simps fact_reduce)
   ultimately show "DERIV (difg m) t :> difg (Suc m) t"
     unfolding difg_def  by (simp add: mult.commute)
 qed

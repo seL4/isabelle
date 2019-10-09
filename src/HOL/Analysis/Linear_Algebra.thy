@@ -1806,7 +1806,7 @@ proof -
     show "pairwise orthogonal ?S"
       using \<open>pairwise orthogonal S\<close> by (auto simp: pairwise_def orthogonal_def)
     show "\<And>x. x \<in> (\<lambda>x. x /\<^sub>R norm x) ` S \<Longrightarrow> norm x = 1"
-      using \<open>0 \<notin> S\<close> by (auto simp: divide_simps)
+      using \<open>0 \<notin> S\<close> by (auto simp: field_split_simps)
     then show "independent ?S"
       by (metis \<open>pairwise orthogonal ((\<lambda>x. x /\<^sub>R norm x) ` S)\<close> norm_zero pairwise_orthogonal_independent zero_neq_one)
     have "inj_on (\<lambda>x. x /\<^sub>R norm x) S"
@@ -1932,7 +1932,7 @@ proof -
       proof (rule eventually_mono)
         show "norm (h (f x) - h l) < e" if "norm (f x - l) < e / B" for x
           using that B
-          apply (simp add: divide_simps)
+          apply (simp add: field_split_simps)
           by (metis \<open>linear h\<close> le_less_trans linear_diff mult.commute)
       qed
     qed

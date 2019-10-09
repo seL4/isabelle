@@ -566,6 +566,30 @@ lemma neg_minus_divideR_less_eq [field_simps]:
     for a b :: "'a :: ordered_real_vector"
   using that by (simp add: less_le_not_le neg_le_minus_divideR_eq neg_minus_divideR_le_eq)
 
+lemma [field_split_simps]:
+  "a = b /\<^sub>R c \<longleftrightarrow> (if c = 0 then a = 0 else c *\<^sub>R a = b)"
+  "b /\<^sub>R c = a \<longleftrightarrow> (if c = 0 then a = 0 else b = c *\<^sub>R a)"
+  "a + b /\<^sub>R c = (if c = 0 then a else (c *\<^sub>R a + b) /\<^sub>R c)"
+  "a /\<^sub>R c + b = (if c = 0 then b else (a + c *\<^sub>R b) /\<^sub>R c)"
+  "a - b /\<^sub>R c = (if c = 0 then a else (c *\<^sub>R a - b) /\<^sub>R c)"
+  "a /\<^sub>R c - b = (if c = 0 then - b else (a - c *\<^sub>R b) /\<^sub>R c)"
+  "- (a /\<^sub>R c) + b = (if c = 0 then b else (- a + c *\<^sub>R b) /\<^sub>R c)"
+  "- (a /\<^sub>R c) - b = (if c = 0 then - b else (- a - c *\<^sub>R b) /\<^sub>R c)"
+    for a b :: "'a :: real_vector"
+  by (auto simp add: field_simps)
+
+lemma [field_split_simps]:
+  "0 < c \<Longrightarrow> a \<le> b /\<^sub>R c \<longleftrightarrow> (if c > 0 then c *\<^sub>R a \<le> b else if c < 0 then b \<le> c *\<^sub>R a else a \<le> 0)"
+  "0 < c \<Longrightarrow> a < b /\<^sub>R c \<longleftrightarrow> (if c > 0 then c *\<^sub>R a < b else if c < 0 then b < c *\<^sub>R a else a < 0)"
+  "0 < c \<Longrightarrow> b /\<^sub>R c \<le> a \<longleftrightarrow> (if c > 0 then b \<le> c *\<^sub>R a else if c < 0 then c *\<^sub>R a \<le> b else a \<ge> 0)"
+  "0 < c \<Longrightarrow> b /\<^sub>R c < a \<longleftrightarrow> (if c > 0 then b < c *\<^sub>R a else if c < 0 then c *\<^sub>R a < b else a > 0)"
+  "0 < c \<Longrightarrow> a \<le> - (b /\<^sub>R c) \<longleftrightarrow> (if c > 0 then c *\<^sub>R a \<le> - b else if c < 0 then - b \<le> c *\<^sub>R a else a \<le> 0)"
+  "0 < c \<Longrightarrow> a < - (b /\<^sub>R c) \<longleftrightarrow> (if c > 0 then c *\<^sub>R a < - b else if c < 0 then - b < c *\<^sub>R a else a < 0)"
+  "0 < c \<Longrightarrow> - (b /\<^sub>R c) \<le> a \<longleftrightarrow> (if c > 0 then - b \<le> c *\<^sub>R a else if c < 0 then c *\<^sub>R a \<le> - b else a \<ge> 0)"
+  "0 < c \<Longrightarrow> - (b /\<^sub>R c) < a \<longleftrightarrow> (if c > 0 then - b < c *\<^sub>R a else if c < 0 then c *\<^sub>R a < - b else a > 0)"
+  for a b :: "'a :: ordered_real_vector"
+  by (clarsimp intro!: field_simps)+
+
 lemma scaleR_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> a *\<^sub>R x"
   for x :: "'a::ordered_real_vector"
   using scaleR_left_mono [of 0 x a] by simp
@@ -1052,7 +1076,7 @@ lemma norm_power_diff:
   shows "norm (z^m - w^m) \<le> m * norm (z - w)"
 proof -
   have "norm (z^m - w^m) = norm ((\<Prod> i < m. z) - (\<Prod> i < m. w))"
-    by (simp add: prod_constant)
+    by simp
   also have "\<dots> \<le> (\<Sum>i<m. norm (z - w))"
     by (intro norm_prod_diff) (auto simp: assms)
   also have "\<dots> = m * norm (z - w)"
@@ -2003,7 +2027,7 @@ proof (subst lim_sequentially, intro allI impI exI)
   have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
   also assume "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
   finally show "dist (1 / of_nat n :: 'a) 0 < e"
-    using e by (simp add: divide_simps mult.commute norm_divide)
+    using e by (simp add: field_split_simps norm_divide)
 qed
 
 lemma (in metric_space) complete_def:

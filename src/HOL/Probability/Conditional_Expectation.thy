@@ -855,7 +855,7 @@ lemma real_cond_exp_cdiv [intro, simp]:
   fixes c::real
   assumes "integrable M f"
   shows "AE x in M. real_cond_exp M F (\<lambda>x. f x / c) x = real_cond_exp M F f x / c"
-using real_cond_exp_cmult[of _ "1/c", OF assms] by (auto simp add: divide_simps)
+using real_cond_exp_cmult[of _ "1/c", OF assms] by (auto simp add: field_split_simps)
 
 lemma real_cond_exp_diff [intro, simp]:
   assumes [measurable]: "integrable M f" "integrable M g"
@@ -1140,7 +1140,7 @@ proof -
     have "q x + phi x * (y-x) \<le> q y"
       unfolding phi_def apply (rule convex_le_Inf_differential) using \<open>convex_on I q\<close> that \<open>interior I = I\<close> by auto
     then have "phi x \<le> (q x - q y) / (x - y)"
-      using that \<open>x < y\<close> by (auto simp add: divide_simps algebra_simps)
+      using that \<open>x < y\<close> by (auto simp add: field_split_simps algebra_simps)
     moreover have "(q x - q y)/(x - y) \<le> phi y"
     unfolding phi_def proof (rule cInf_greatest, auto)
       fix t assume "t \<in> I" "y < t"
@@ -1172,7 +1172,7 @@ proof -
     using X measurable_from_subalg[OF subalg] unfolding G_def g_def by auto
   have int1: "integrable (restr_to_subalg M F) (\<lambda>x. g x * q (real_cond_exp M F X x))"
     apply (rule Bochner_Integration.integrable_bound[of _ f], auto simp add: subalg \<open>integrable (restr_to_subalg M F) f\<close>)
-    unfolding g_def by (auto simp add: divide_simps abs_mult algebra_simps)
+    unfolding g_def by (auto simp add: field_split_simps abs_mult algebra_simps)
   have int2: "integrable M (\<lambda>x. G x * (X x - real_cond_exp M F X x))"
     apply (rule Bochner_Integration.integrable_bound[of _ "\<lambda>x. \<bar>X x\<bar> + \<bar>real_cond_exp M F X x\<bar>"])
     apply (auto intro!: Bochner_Integration.integrable_add integrable_abs real_cond_exp_int \<open>integrable M X\<close> AE_I2)
@@ -1208,7 +1208,7 @@ proof -
   ultimately have "AE x in M. g x * real_cond_exp M F (\<lambda>x. q (X x)) x \<ge> g x * q (real_cond_exp M F X x)"
     by auto
   then show "AE x in M. real_cond_exp M F (\<lambda>x. q (X x)) x \<ge> q (real_cond_exp M F X x)"
-    using g(1) by (auto simp add: divide_simps)
+    using g(1) by (auto simp add: field_split_simps)
 qed
 
 text \<open>Jensen's inequality does not imply that $q(E(X|F))$ is integrable, as it only proves an upper

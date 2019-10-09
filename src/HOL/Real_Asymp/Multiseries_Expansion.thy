@@ -184,7 +184,7 @@ lemma convergent_powser'_exp:
   "convergent_powser' (msllist_of_msstream exp_series_stream) exp"
 proof -
   have "(\<lambda>n. lcoeff (msllist_of_msstream exp_series_stream) n * x ^ n) sums exp x" for x :: real
-    using exp_converges[of x] by (simp add: mssnth_exp_series_stream divide_simps)
+    using exp_converges[of x] by (simp add: mssnth_exp_series_stream field_split_simps)
   thus ?thesis by (auto intro: exI[of _ "1::real"] simp: convergent_powser'_def)
 qed
   
@@ -617,7 +617,7 @@ proof -
     show "\<exists>N. \<forall>n\<ge>N. norm (arctan_coeffs n * x ^ n) \<le> 1 * norm x ^ n"
       unfolding norm_mult norm_power
       by (intro exI[of _ "0::nat"] allI impI mult_right_mono)
-         (simp_all add: arctan_coeffs_def divide_simps)
+         (simp_all add: arctan_coeffs_def field_split_simps)
     from that show "summable (\<lambda>n. 1 * norm x ^ n)"
       by (intro summable_mult summable_geometric) simp_all
   qed
@@ -3334,7 +3334,7 @@ qed
 lemma expands_to_div':
   assumes "basis_wf basis" "(f expands_to F) basis" "((\<lambda>x. inverse (g x)) expands_to G) basis"
   shows   "((\<lambda>x. f x / g x) expands_to F * G) basis"
-  using expands_to_mult[OF assms] by (simp add: divide_simps)
+  using expands_to_mult[OF assms] by (simp add: field_split_simps)
 
 lemma expands_to_basic: 
   assumes "basis_wf (b # basis)" "length basis = expansion_level TYPE('a::multiseries)"
@@ -4270,7 +4270,7 @@ proof (rule expands_to_cong')
   from assms(2) have "eventually (\<lambda>x. b x > 0) at_top" 
     by (simp add: filterlim_at_top_dense basis_wf_Cons)
   with assms(3) show "eventually (\<lambda>x. b x powr c * g x = g x / b x ^ n) at_top"
-    by (auto elim!: eventually_mono simp: powr_realpow powr_minus divide_simps)
+    by (auto elim!: eventually_mono simp: powr_realpow powr_minus field_split_simps)
 qed
 
 lemma eval_monom_collapse: "c * eval_monom (c', es) basis x = eval_monom (c * c', es) basis x"
@@ -4492,7 +4492,7 @@ proof -
     by (auto simp: compare_expansions_def trimmed_imp_dominant_term_nz split: cmp_result.splits)
   have "(\<lambda>x. inverse c * (c' * f x)) \<sim>[at_top] (\<lambda>x. inverse c * (c * g x))"
     by (rule asymp_equiv_mult[OF asymp_equiv_refl]) (rule compare_expansions_EQ[OF assms(1-6)])
-  with assms(7) show ?thesis by (simp add: divide_simps)
+  with assms(7) show ?thesis by (simp add: field_split_simps)
 qed
   
 lemma compare_expansions_EQ_imp_bigtheta:
@@ -4573,7 +4573,7 @@ proof -
        (auto intro: expands_to_hd'' simp: trimmed_ms_aux_MSLCons basis_wf_Cons)
   have "(\<lambda>x. inverse c' * (c' * eval C x)) \<sim>[at_top] (\<lambda>x. inverse c' * (c * g x))"
     by (rule asymp_equiv_mult) (insert *, simp_all)
-  hence "eval C \<sim>[at_top] (\<lambda>x. c / c' * g x)" by (simp add: divide_simps)
+  hence "eval C \<sim>[at_top] (\<lambda>x. c / c' * g x)" by (simp add: field_split_simps)
   finally show ?thesis .
 qed
 

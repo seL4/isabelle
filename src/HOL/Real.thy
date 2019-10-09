@@ -816,7 +816,7 @@ proof -
     then have "\<exists>n. y < r * 2 ^ n"
       by (metis divide_less_eq less_trans mult.commute of_nat_less_two_power that)
     then show ?thesis
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
   qed
   have PA: "\<not> P (A n)" for n
     by (induct n) (simp_all add: a)

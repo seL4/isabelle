@@ -35,7 +35,7 @@ definition [simp]: "division_segment (x :: real) = 1"
 
 instance
   by standard
-    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+    (simp_all add: dvd_field_iff field_split_simps split: if_splits)
 
 end
 
@@ -66,7 +66,7 @@ definition [simp]: "division_segment (x :: rat) = 1"
 
 instance
   by standard
-    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+    (simp_all add: dvd_field_iff field_split_simps split: if_splits)
 
 end
 
@@ -97,7 +97,7 @@ definition [simp]: "division_segment (x :: complex) = 1"
 
 instance
   by standard
-    (simp_all add: dvd_field_iff divide_simps split: if_splits)
+    (simp_all add: dvd_field_iff field_split_simps split: if_splits)
 
 end
 

@@ -70,7 +70,7 @@ proof -
     fix n::nat
     assume "0 < n" "ln (n + sqrt ((real n)\<^sup>2 - 1)) / pi \<le> x"
     then have "ln (n + sqrt ((real n)\<^sup>2 - 1)) \<le> x * pi"
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
     then have *: "exp (ln (n + sqrt ((real n)\<^sup>2 - 1))) \<le> exp (x * pi)"
       by blast
     have 0: "0 \<le> sqrt ((real n)\<^sup>2 - 1)"
@@ -130,10 +130,10 @@ proof -
         by (auto simp: real_le_lsqrt power2_eq_square algebra_simps 1 **)
       then
       have "((1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) / (real n + sqrt ((real n)\<^sup>2 - 1))) \<le> 2"
-        using Schottky_lemma1 \<open>0 < n\<close>  by (simp add: divide_simps)
+        using Schottky_lemma1 \<open>0 < n\<close>  by (simp add: field_split_simps)
       then have "ln ((1 + real n + sqrt ((1 + real n)\<^sup>2 - 1)) / (real n + sqrt ((real n)\<^sup>2 - 1))) \<le> ln 2"
         apply (subst ln_le_cancel_iff)
-        using Schottky_lemma1 \<open>0 < n\<close> by auto (force simp: divide_simps)
+        using Schottky_lemma1 \<open>0 < n\<close> by auto (force simp: field_split_simps)
       also have "... \<le> 3"
         using ln_add_one_self_le_self [of 1] by auto
       finally show ?thesis .
@@ -141,7 +141,7 @@ proof -
     also have "... < pi"
       using pi_approx by simp
     finally show ?thesis
-      by (simp add: a_def b_def divide_simps)
+      by (simp add: a_def b_def field_split_simps)
   qed
   ultimately have "\<bar>x - a\<bar> < 1/2 \<or> \<bar>x - b\<bar> < 1/2"
     by (auto simp: abs_if)
@@ -255,8 +255,8 @@ proof -
     also have "... \<le> 2 + cmod (f 0) * 3"
       by simp
     finally have "1 + norm(2 * f 0 - 1) / 3 \<le> (2 + norm(f 0) - 1) * 3"
-      apply (simp add: divide_simps)
-      using norm_ge_zero [of "2 * f 0 - 1"]
+      apply (simp add: field_split_simps)
+      using norm_ge_zero [of "f 0 * 2 - 1"]
       by linarith
     with nh0 have "norm(h 0) \<le> (2 + norm(f 0) - 1) * 3"
       by linarith
@@ -349,7 +349,7 @@ proof -
       using has_contour_integral_bound_linepath [OF int_g', of "12/(1 - t)"] assms
       by simp
     with \<open>cmod z \<le> t\<close> \<open>t < 1\<close> show ?thesis
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
   qed
   have fz: "f z = (1 + cos(of_real pi * h z)) / 2"
     using h \<open>z \<in> ball 0 1\<close> by (auto simp: field_simps)
@@ -880,13 +880,13 @@ proof -
              then have r4_le_xy: "r/4 \<le> cmod (x - y)"
                using \<open>r > 0\<close> by simp
              then have neq: "x \<noteq> y" "x \<noteq> z"
-               using that \<open>r > 0\<close> by (auto simp: divide_simps norm_minus_commute)
+               using that \<open>r > 0\<close> by (auto simp: field_split_simps norm_minus_commute)
              have leM: "cmod (\<F> n x) \<le> M"
                by (simp add: M dist_commute dist_norm that)
              have "cmod (\<F> n x / (x - y) - \<F> n x / (x - z)) = cmod (\<F> n x) * cmod (1 / (x - y) - 1 / (x - z))"
                by (metis (no_types, lifting) divide_inverse mult.left_neutral norm_mult right_diff_distrib')
              also have "... = cmod (\<F> n x) * cmod ((y - z) / ((x - y) * (x - z)))"
-               using neq by (simp add: divide_simps)
+               using neq by (simp add: field_split_simps)
              also have "... = cmod (\<F> n x) * (cmod (y - z) / (cmod(x - y) * (2/3 * r)))"
                by (simp add: norm_mult norm_divide that)
              also have "... \<le> M * (cmod (y - z) / (cmod(x - y) * (2/3 * r)))"
@@ -899,7 +899,7 @@ proof -
                  apply (simp add: field_simps mult_less_0_iff norm_minus_commute)
                  done
              also have "... \<le> e/r"
-               using \<open>e > 0\<close> \<open>r > 0\<close> r4_le_xy by (simp add: divide_simps)
+               using \<open>e > 0\<close> \<open>r > 0\<close> r4_le_xy by (simp add: field_split_simps)
              finally show ?thesis by simp
            qed
            have "(2 * pi) * cmod (\<F> n y - \<F> n z) = cmod ((2 * pi) * \<i> * \<F> n y - (2 * pi) * \<i> * \<F> n z)"
@@ -908,7 +908,7 @@ proof -
              apply (rule has_contour_integral_bound_circlepath [OF has_contour_integral_diff [OF y z], of "e/r"])
              using \<open>e > 0\<close> \<open>r > 0\<close> le_er by auto
            also have "... = (2 * pi) * e * ((2 / 3))"
-             using \<open>r > 0\<close> by (simp add: divide_simps)
+             using \<open>r > 0\<close> by (simp add: field_split_simps)
            finally have "cmod (\<F> n y - \<F> n z) \<le> e * (2 / 3)"
              by simp
            also have "... < e"
@@ -1142,7 +1142,7 @@ proof
         done
     qed
     with \<open>0 < r\<close> \<open>0 < m\<close> w w_inb show "deriv g w / g w = of_nat m / (w - z0) + deriv h w / h w"
-      by (auto simp: geq divide_simps hnz)
+      by (auto simp: geq field_split_simps hnz)
   qed
   moreover
   have "contour_integral (circlepath z0 (r/2)) (\<lambda>z. m / (z - z0) + deriv h z / h z) =
@@ -1268,7 +1268,7 @@ proof -
           apply (rule subsetD [OF e])
         using \<open>0 < e\<close>  by (auto simp: dist_norm norm_mult)
       have "cmod (h z) \<le> cmod (h (w + of_real e * (inverse e * (z - w))))"
-        using \<open>0 < e\<close> by (simp add: divide_simps)
+        using \<open>0 < e\<close> by (simp add: field_split_simps)
       also have "... \<le> exp (pi * exp (pi * (14 + 2 * r)))"
         using r [OF \<open>h \<in> Y\<close>] Schottky [OF hol_h_o norm_le_r _ _ _ le12] non01 by auto
       finally
@@ -1483,7 +1483,7 @@ proof -
   have [simp]: "cmod (1 + of_nat n) = 1 + of_nat n" for n
     by (metis norm_of_nat of_nat_Suc)
   have *: "(\<lambda>x::complex. x / of_nat (Suc n)) ` (ball 0 1 - {0}) \<subseteq> ball 0 1 - {0}" for n
-    by (auto simp: norm_divide divide_simps split: if_split_asm)
+    by (auto simp: norm_divide field_split_simps split: if_split_asm)
   define h where "h \<equiv> \<lambda>n z::complex. f (z / (Suc n))"
   have holh: "(h n) holomorphic_on ball 0 1 - {0}" for n
     unfolding h_def
@@ -1606,7 +1606,7 @@ proof -
     then have "B > 0"
       by (metis \<open>0 < \<epsilon>\<close> dense leI order.asym vector_choose_size)
     then have "inverse B > 0"
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
     then show ?thesis
       apply (rule that [OF \<open>0 < \<epsilon>\<close> \<open>\<epsilon> < 1\<close>])
       using \<epsilon> by auto 
@@ -1632,7 +1632,7 @@ proof -
       using \<open>0 < r\<close> \<open>a \<noteq> 0\<close> r
       by (auto simp: dist_norm norm_mult subset_eq)
     show "\<And>w. w \<in> ball 0 1 - {0} \<Longrightarrow> f (z + of_real r * w) / a \<noteq> 0 \<and> f (z + of_real r * w) / a \<noteq> 1"
-      apply (simp add: divide_simps \<open>a \<noteq> 0\<close>)
+      apply (simp add: field_split_simps \<open>a \<noteq> 0\<close>)
       apply (rule f0a)
       using \<open>0 < r\<close> r by (auto simp: dist_norm norm_mult subset_eq)
   qed
@@ -1652,14 +1652,14 @@ proof -
       case 1
       have "\<lbrakk>dist z w < e * r; w \<noteq> z\<rbrakk> \<Longrightarrow> cmod (f w) \<le> B * norm a" for w
         using \<open>a \<noteq> 0\<close> \<open>0 < r\<close> 1 [of "(w - z) / r"]
-        by (simp add: norm_divide dist_norm divide_simps)
+        by (simp add: norm_divide dist_norm field_split_simps)
       then show ?thesis
         by (force simp: intro!: boundedI)
     next
       case 2
       have "\<lbrakk>dist z w < e * r; w \<noteq> z\<rbrakk> \<Longrightarrow> cmod (f w) \<ge> B * norm a" for w
         using \<open>a \<noteq> 0\<close> \<open>0 < r\<close> 2 [of "(w - z) / r"]
-        by (simp add: norm_divide dist_norm divide_simps)
+        by (simp add: norm_divide dist_norm field_split_simps)
       then have "\<lbrakk>dist z w < e * r; w \<noteq> z\<rbrakk> \<Longrightarrow> inverse (cmod (f w)) \<le> inverse (B * norm a)" for w
         by (metis \<open>0 < B\<close> \<open>a \<noteq> 0\<close> mult_pos_pos norm_inverse norm_inverse_le_norm zero_less_norm_iff)
       then show ?thesis 
@@ -1754,7 +1754,7 @@ proof -
             apply (rule tendsto_eq_intros refl gz \<open>g z \<noteq> 0\<close>)+
             by (simp add: True)
           show "\<And>x. \<lbrakk>x \<in> ball z r; x \<noteq> z\<rbrakk> \<Longrightarrow> (1 + a * g x) / g x = f x"
-            using fab fab zrM by (fastforce simp add: gf divide_simps)
+            using fab fab zrM by (fastforce simp add: gf field_split_simps)
         qed (use \<open>0 < r\<close> in auto)
         then show ?thesis
           using that by blast 

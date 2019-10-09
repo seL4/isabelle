@@ -401,13 +401,13 @@ lemma deriv_inverse [simp]:
   "\<lbrakk>f field_differentiable at z; f z \<noteq> 0\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. inverse (f w)) z = - deriv f z / f z ^ 2"
   unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (safe intro!: DERIV_imp_deriv derivative_eq_intros) (auto simp: divide_simps power2_eq_square)
+  by (safe intro!: DERIV_imp_deriv derivative_eq_intros) (auto simp: field_split_simps power2_eq_square)
 
 lemma deriv_divide [simp]:
   "\<lbrakk>f field_differentiable at z; g field_differentiable at z; g z \<noteq> 0\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w / g w) z = (deriv f z * g z - f z * deriv g z) / g z ^ 2"
   by (simp add: field_class.field_divide_inverse field_differentiable_inverse)
-     (simp add: divide_simps power2_eq_square)
+     (simp add: field_split_simps power2_eq_square)
 
 lemma deriv_cdivide_right:
   "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"

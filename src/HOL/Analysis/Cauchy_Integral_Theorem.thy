@@ -323,7 +323,7 @@ proof -
       show "(g1 +++ g2 \<circ> (\<lambda>x. (x + 1) / 2)) x' = g2 x'" if "x' \<in> {0..1}" "dist x' x < dist ((x + 1) / 2) (1/2)" for x'
       proof -
         have [simp]: "(2*x'+2)/2 = x'+1"
-          by (simp add: divide_simps)
+          by (simp add: field_split_simps)
         show ?thesis
           using that by (auto simp: joinpaths_def)
       qed
@@ -691,7 +691,7 @@ proof -
     show "g1 +++ g2 \<circ> (\<lambda>x. (x + 1) / 2) differentiable at x"
       using g12D that
       apply (simp only: joinpaths_def)
-      apply (drule_tac x= "(x+1) / 2" in bspec, force simp: divide_simps)
+      apply (drule_tac x= "(x+1) / 2" in bspec, force simp: field_split_simps)
       apply (rule differentiable_chain_at derivative_intros | force)+
       done
     show "\<And>x'. dist x' x < dist ((x + 1) / 2) (1/2) \<Longrightarrow> (g1 +++ g2 \<circ> (\<lambda>x. (x + 1) / 2)) x' = g2 x'"
@@ -699,7 +699,7 @@ proof -
     qed (use that in \<open>auto simp: dist_norm\<close>)
   have [simp]: "vector_derivative (g2 \<circ> (\<lambda>x. 2*x-1)) (at ((x+1)/2)) = 2 *\<^sub>R vector_derivative g2 (at x)"
                if "x \<in> {0..1} - insert 0 ((\<lambda>x. 2*x-1) ` S)" for x
-    using that  by (auto simp: vector_derivative_chain_at divide_simps g2D)
+    using that  by (auto simp: vector_derivative_chain_at field_split_simps g2D)
   have "continuous_on ({1/2..1} - insert (1/2) S) (\<lambda>x. vector_derivative (g1 +++ g2) (at x))"
     using co12 by (rule continuous_on_subset) force
   then have coDhalf: "continuous_on ({1/2..1} - insert (1/2) S) (\<lambda>x. vector_derivative (g2 \<circ> (\<lambda>x. 2*x-1)) (at x))"
@@ -1926,7 +1926,7 @@ next
   { assume *: "((\<lambda>x. f ((1 - x) *\<^sub>R a + x *\<^sub>R c) * (c - a)) has_integral i) {0..1}"
     have **: "\<And>x. ((k - x) / k) *\<^sub>R a + (x / k) *\<^sub>R c = (1 - x) *\<^sub>R a + x *\<^sub>R b"
       using False apply (simp add: c' algebra_simps)
-      apply (simp add: real_vector.scale_left_distrib [symmetric] divide_simps)
+      apply (simp add: real_vector.scale_left_distrib [symmetric] field_split_simps)
       done
     have "((\<lambda>x. f ((1 - x) *\<^sub>R a + x *\<^sub>R b) * (b - a)) has_integral i) {0..k}"
       using k has_integral_affinity01 [OF *, of "inverse k" "0"]
@@ -2185,28 +2185,28 @@ proof -
     case 1 then have "?\<Phi> a c' b'"
       using assms
       apply (clarsimp simp: c'_def b'_def midpoints_in_convex_hull hull_subset [THEN subsetD])
-      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real divide_simps)
+      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real field_split_simps)
       done
     then show ?thesis by blast
   next
     case 2 then  have "?\<Phi> a' c' b"
       using assms
       apply (clarsimp simp: a'_def c'_def midpoints_in_convex_hull hull_subset [THEN subsetD])
-      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real divide_simps)
+      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real field_split_simps)
       done
     then show ?thesis by blast
   next
     case 3 then have "?\<Phi> a' c b'"
       using assms
       apply (clarsimp simp: a'_def b'_def midpoints_in_convex_hull hull_subset [THEN subsetD])
-      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real divide_simps)
+      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real field_split_simps)
       done
     then show ?thesis by blast
   next
     case 4 then have "?\<Phi> a' b' c'"
       using assms
       apply (clarsimp simp: a'_def c'_def b'_def midpoints_in_convex_hull hull_subset [THEN subsetD])
-      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real divide_simps)
+      apply (auto simp: midpoint_def dist_norm scaleR_conv_of_real field_split_simps)
       done
     then show ?thesis by blast
   qed
@@ -2576,7 +2576,7 @@ proof -
           by (simp add: algebra_simps)
         have "cmod y / (24 * C) \<le> cmod y / cmod (b - a) / 12"
           using False \<open>C>0\<close> diff_2C [of b a] ynz
-          by (auto simp: divide_simps hull_inc)
+          by (auto simp: field_split_simps hull_inc)
         have less_C: "\<lbrakk>u \<in> convex hull {a, b, c}; 0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> x * cmod u < C" for x u
           apply (cases "x=0", simp add: \<open>0<C\<close>)
           using Cno [of u] mult_left_le_one_le [of "cmod u" x] le_less_trans norm_ge_zero by blast
@@ -2610,7 +2610,7 @@ proof -
               by (auto simp: hull_inc intro: d1 interior_subset [THEN subsetD] linepath_in_convex_hull)
             also have "\<dots> \<le> cmod y / cmod (v - u) / 12"
               using False uv \<open>C>0\<close> diff_2C [of v u] ynz
-              by (auto simp: divide_simps hull_inc)
+              by (auto simp: field_split_simps hull_inc)
             finally have "cmod (f (linepath (shrink u) (shrink v) x) - f (linepath u v x)) \<le> cmod y / cmod (v - u) / 12"
               by simp
             then have cmod_12_le: "cmod (v - u) * cmod (f (linepath (shrink u) (shrink v) x) - f (linepath u v x)) * 12 \<le> cmod y"
@@ -3993,7 +3993,7 @@ proof -
     using eq by (simp add: exp_eq_1 complex_is_Int_iff)
   have "exp (contour_integral p (\<lambda>w. 1 / (w - z))) = (\<gamma> 1 - z) / (\<gamma> 0 - z)"
     using p winding_number_exp_integral(2) [of p 0 1 z]
-    apply (simp add: valid_path_def path_defs contour_integral_integral exp_minus divide_simps)
+    apply (simp add: valid_path_def path_defs contour_integral_integral exp_minus field_split_simps)
     by (metis path_image_def pathstart_def pathstart_in_path_image)
   then have "winding_number p z \<in> \<int> \<longleftrightarrow> pathfinish p = pathstart p"
     using p wneq iff by (auto simp: path_defs)
@@ -4528,7 +4528,7 @@ proof -
     define z' where "z' = z - (d / (2 * cmod a)) *\<^sub>R a"
     have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
       unfolding z'_def inner_mult_right' divide_inverse
-      apply (simp add: divide_simps algebra_simps dot_square_norm power2_eq_square anz)
+      apply (simp add: field_split_simps algebra_simps dot_square_norm power2_eq_square anz)
       apply (metis \<open>0 < d\<close> add_increasing azb less_eq_real_def mult_nonneg_nonneg mult_right_mono norm_ge_zero norm_numeral)
       done
     have "cmod (winding_number \<gamma> z' - winding_number \<gamma> z) < \<bar>Re (winding_number \<gamma> z)\<bar> - 1/2"
@@ -4542,7 +4542,7 @@ proof -
     moreover have "\<bar>Re (winding_number \<gamma> z')\<bar> < 1/2"
       apply (rule winding_number_lt_half [OF \<gamma> *])
       using azb \<open>d>0\<close> pag
-      apply (auto simp: add_strict_increasing anz divide_simps algebra_simps dest!: subsetD)
+      apply (auto simp: add_strict_increasing anz field_split_simps algebra_simps dest!: subsetD)
       done
     ultimately have False
       by simp
@@ -4620,7 +4620,7 @@ proof -
   show ?thesis
     apply (rule has_contour_integral_eq)
     using znotin has_contour_integral_add [OF has_contour_integral_lmul [OF has_contour_integral_winding_number [OF vpg znotin], of "f z"] *]
-    apply (auto simp: mult_ac divide_simps)
+    apply (auto simp: ac_simps divide_simps)
     done
 qed
 
@@ -5009,7 +5009,7 @@ proof -
     then have "z + of_real r * exp (\<i> * of_real z) \<in> (\<lambda>x. z + of_real r * exp (\<i> * linepath s t x)) ` {0..1}"
       apply (rule_tac x="(z - s)/(t - s)" in image_eqI)
       apply (simp add: linepath_def scaleR_conv_of_real divide_simps exp_eq)
-      apply (auto simp: algebra_simps divide_simps)
+      apply (auto simp: field_split_simps)
       done
   }
   ultimately show ?thesis
@@ -5148,7 +5148,7 @@ next
   have *: "finite {x. cmod (complex_of_real (2 * real_of_int x * pi) * \<i>) \<le> b + cmod (Ln w)}"
     apply (simp add: norm_mult finite_int_iff_bounded_le)
     apply (rule_tac x="\<lfloor>(b + cmod (Ln w)) / (2*pi)\<rfloor>" in exI)
-    apply (auto simp: divide_simps le_floor_iff)
+    apply (auto simp: field_split_simps le_floor_iff)
     done
   have [simp]: "\<And>P f. {z. P z \<and> (\<exists>n. z = f n)} = f ` {n. P (f n)}"
     by blast
@@ -5274,7 +5274,8 @@ next
   proof (rule ccontr)
     assume "\<not> \<bar>s - t\<bar> \<le> 2 * pi"
     then have *: "\<And>n. t - s \<noteq> of_int n * \<bar>s - t\<bar>"
-      using False that [of "2*pi / \<bar>t - s\<bar>"] by (simp add: abs_minus_commute divide_simps)
+      using False that [of "2*pi / \<bar>t - s\<bar>"]
+      by (simp add: abs_minus_commute divide_simps)
     show False
       using * [of 1] * [of "-1"] by auto
   qed
@@ -5292,7 +5293,7 @@ next
     apply (subst abs_away)
     apply (auto simp: 1)
     apply (rule ccontr)
-    apply (auto simp: 2 divide_simps abs_mult dest: of_int_leD)
+    apply (auto simp: 2 field_split_simps abs_mult dest: of_int_leD)
     done
 qed
 
@@ -5408,7 +5409,7 @@ proof -
       apply (rule sincos_total_2pi [of "Re(w/of_real(norm w))" "Im(w/of_real(norm w))"])
       apply (simp add: divide_simps \<open>w \<noteq> 0\<close> cmod_power2 [symmetric])
       apply (rule_tac x="t / (2*pi)" in image_eqI)
-      apply (simp add: divide_simps \<open>w \<noteq> 0\<close>)
+      apply (simp add: field_simps \<open>w \<noteq> 0\<close>)
       using False **
       apply (auto simp: w_def)
       done
@@ -5565,7 +5566,7 @@ proof -
       using eventually_happens [OF eventually_conj]
       by (fastforce simp: contour_integrable_on path_image_def)
     have Ble: "B * e / (\<bar>B\<bar> + 1) \<le> e"
-      using \<open>0 \<le> B\<close>  \<open>0 < e\<close> by (simp add: divide_simps)
+      using \<open>0 \<le> B\<close>  \<open>0 < e\<close> by (simp add: field_split_simps)
     have "\<exists>h. (\<forall>x\<in>{0..1}. cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - h x) \<le> e) \<and> h integrable_on {0..1}"
     proof (intro exI conjI ballI)
       show "cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - f a (\<gamma> x) * vector_derivative \<gamma> (at x)) \<le> e"
@@ -5693,7 +5694,8 @@ proof -
       qed
       { fix a::real and b::real assume ab: "a > 0" "b > 0"
         then have "k * (1 + real k) * (1 / a) \<le> k * (1 + real k) * (4 / b) \<longleftrightarrow> b \<le> 4 * a"
-          by (subst mult_le_cancel_left_pos) (use \<open>k \<noteq> 0\<close> in \<open>auto simp: divide_simps\<close>)
+          by (subst mult_le_cancel_left_pos)
+            (use \<open>k \<noteq> 0\<close> in \<open>auto simp: divide_simps\<close>)
         with ab have "real k * (1 + real k) / a \<le> (real k * 4 + real k * real k * 4) / b \<longleftrightarrow> b \<le> 4 * a"
           by (simp add: field_simps)
       } note canc = this
@@ -5706,14 +5708,14 @@ proof -
           using lessd d x
           by (auto simp add: dist_norm path_image_def ball_def not_less [symmetric] del: divide_const_simps)
         then have "d \<le> cmod (x - v) * 2"
-          by (simp add: divide_simps)
+          by (simp add: field_split_simps)
         then have dpow_le: "d ^ (k+2) \<le> (cmod (x - v) * 2) ^ (k+2)"
           using \<open>0 < d\<close> order_less_imp_le power_mono by blast
         have "x \<noteq> v" using that
           using \<open>x \<in> path_image \<gamma>\<close> ball_divide_subset_numeral d by fastforce
         then show ?thesis
         using \<open>d > 0\<close> apply (simp add: ff_def norm_mult norm_divide norm_power dist_norm canc)
-        using dpow_le apply (simp add: algebra_simps divide_simps mult_less_0_iff)
+        using dpow_le apply (simp add: algebra_simps field_split_simps mult_less_0_iff)
         done
       qed
       have ub: "u \<in> ball w (d/2)"
@@ -6370,7 +6372,7 @@ proof -
   show ?thes1 using *
     using contour_integrable_on_def by blast
   show ?thes2
-    unfolding contour_integral_unique [OF *] by (simp add: divide_simps)
+    unfolding contour_integral_unique [OF *] by (simp add: field_split_simps)
 qed
 
 corollary Cauchy_contour_integral_circlepath:
@@ -6461,7 +6463,7 @@ proof -
       also have "\<dots> \<le> e * norm (u - w)"
         using r kle \<open>0 < e\<close> by (simp add: dist_commute dist_norm)
       finally show ?thesis
-        by (simp add: divide_simps norm_divide del: power_Suc)
+        by (simp add: field_split_simps norm_divide del: power_Suc)
     qed
     with \<open>0 < r\<close> show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>sphere z r.
                 norm ((\<Sum>k<n. (w - z) ^ k * (f x / (x - z) ^ Suc k)) - f x / (x - w)) < e"
@@ -6527,7 +6529,7 @@ proof (rule ccontr)
     by (rule B) (use norm_triangle_ineq4 [of x z] in auto)
   with \<open>R > 0\<close> fz show False
     using has_contour_integral_bound_circlepath [OF *, of "norm(f z)/2/R"]
-    by (auto simp: less_imp_le norm_mult norm_divide divide_simps)
+    by (auto simp: less_imp_le norm_mult norm_divide field_split_simps)
 qed
 
 proposition Liouville_weak:
@@ -6546,7 +6548,7 @@ proof -
     have 2: "((\<lambda>x. 1 / f x) \<longlongrightarrow> 0) at_infinity"
       apply (rule tendstoI [OF eventually_mono])
       apply (rule_tac B="2/e" in unbounded)
-      apply (simp add: dist_norm norm_divide divide_simps mult_ac)
+      apply (simp add: dist_norm norm_divide field_split_simps mult_ac)
       done
     have False
       using Liouville_weak_0 [OF 1 2] f by simp
@@ -6679,7 +6681,7 @@ proof -
       then have f': "f' n w = 1 / (2 * of_real pi * \<i>) * ?conint (\<lambda>u. f n u / (u - w)\<^sup>2)"
         using DERIV_unique [OF fnd] w by blast
       show ?thesis
-        by (simp add: f' Cauchy_contour_integral_circlepath_2 [OF g w] derg [OF w] divide_simps)
+        by (simp add: f' Cauchy_contour_integral_circlepath_2 [OF g w] derg [OF w] field_split_simps)
     qed
     define d where "d = (r - norm(w - z))^2"
     have "d > 0"
@@ -6703,7 +6705,7 @@ proof -
       fix e::real
       assume "0 < e"
       with \<open>r > 0\<close> show "\<forall>\<^sub>F n in F. \<forall>x\<in>sphere z r. dist (f n x / (x - w)\<^sup>2) (g x / (x - w)\<^sup>2) < e"
-        apply (simp add: norm_divide divide_simps sphere_def dist_norm)
+        apply (simp add: norm_divide field_split_simps sphere_def dist_norm)
         apply (rule eventually_mono [OF uniform_limitD [OF ulim], of "e*d"])
          apply (simp add: \<open>0 < d\<close>)
         apply (force simp: dist_norm dle intro: less_le_trans)
@@ -6949,7 +6951,7 @@ proof -
     have inb: "z + complex_of_real ((dist z w + r) / 2) \<in> ball z r"
     proof -
       have wz: "cmod (w - z) < r" using w
-        by (auto simp: divide_simps dist_norm norm_minus_commute)
+        by (auto simp: field_split_simps dist_norm norm_minus_commute)
       then have "0 \<le> r"
         by (meson less_eq_real_def norm_ge_zero order_trans)
       show ?thesis
@@ -7145,7 +7147,7 @@ lemma pole_theorem:
     shows "(\<lambda>z. if z = a then deriv g a
                  else f z - g a/(z - a)) holomorphic_on S"
   using pole_lemma [OF holg a]
-  by (rule holomorphic_transform) (simp add: eq divide_simps)
+  by (rule holomorphic_transform) (simp add: eq field_split_simps)
 
 lemma pole_lemma_open:
   assumes "f holomorphic_on S" "open S"
@@ -7175,7 +7177,7 @@ lemma pole_theorem_0:
       and [simp]: "f a = deriv g a" "g a = 0"
     shows "f holomorphic_on S"
   using pole_theorem [OF holg a eq]
-  by (rule holomorphic_transform) (auto simp: eq divide_simps)
+  by (rule holomorphic_transform) (auto simp: eq field_split_simps)
 
 lemma pole_theorem_open_0:
   assumes holg: "g holomorphic_on S" and S: "open S"
@@ -7183,7 +7185,7 @@ lemma pole_theorem_open_0:
       and [simp]: "f a = deriv g a" "g a = 0"
     shows "f holomorphic_on S"
   using pole_theorem_open [OF holg S eq]
-  by (rule holomorphic_transform) (auto simp: eq divide_simps)
+  by (rule holomorphic_transform) (auto simp: eq field_split_simps)
 
 lemma pole_theorem_analytic:
   assumes g: "g analytic_on S"
@@ -7379,7 +7381,7 @@ proof -
     then have "((\<lambda>x. f z * (1 / (x - z))) has_contour_integral 0) \<gamma>"
       using has_contour_integral_lmul by fastforce
     then have "((\<lambda>x. f z / (x - z)) has_contour_integral 0) \<gamma>"
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
     moreover have "((\<lambda>x. (f x - f z) / (x - z)) has_contour_integral contour_integral \<gamma> (d z)) \<gamma>"
       using z
       apply (auto simp: v_def)
@@ -7467,7 +7469,7 @@ proof -
         apply (rule mult_mono)
         using that D interior_subset apply blast
         using \<open>L>0\<close> \<open>e>0\<close> \<open>D>0\<close> DL2
-        apply (auto simp: norm_divide divide_simps algebra_simps)
+        apply (auto simp: norm_divide field_split_simps algebra_simps)
         done
       finally show ?thesis .
     qed
@@ -7701,7 +7703,7 @@ proof -
   then have "((\<lambda>w. f z * (1 / (w - z))) has_contour_integral complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z * f z) \<gamma>"
     by (metis mult.commute has_contour_integral_lmul)
   then have 1: "((\<lambda>w. f z / (w - z)) has_contour_integral complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z * f z) \<gamma>"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
   moreover have 2: "((\<lambda>w. (f w - f z) / (w - z)) has_contour_integral 0) \<gamma>"
     using U [OF z] pasz d_def by (force elim: has_contour_integral_eq [where g = "\<lambda>w. (f w - f z)/(w - z)"])
   show ?thesis

@@ -438,7 +438,7 @@ proof -
     by (subst binomial_gbinomial) 
        (simp add: gbinomial_pochhammer' numeral_3_eq_3 pochhammer_Suc add_ac)
   moreover have "\<dots> \<sim> (\<lambda>n. 3 / ln 2 * ln n)"
-    by (real_asymp simp: divide_simps)
+    by (real_asymp simp: field_split_simps)
   ultimately show ?thesis by simp
 qed
 
@@ -487,7 +487,7 @@ lemma "eventually (\<lambda>x::real. 1 / x^2 \<ge> 1 / x) (at_left 0)"
   by real_asymp
 
 lemma "A > 1 \<Longrightarrow> (\<lambda>n. ((1 + 1 / sqrt A) / 2) powr real_of_int (2 ^ Suc n)) \<longlonglongrightarrow> 0"
-  by (real_asymp simp: divide_simps add_pos_pos)  
+  by (real_asymp simp: field_split_simps add_pos_pos)  
 
 lemma 
   assumes "c > (1 :: real)" "k \<noteq> 0"

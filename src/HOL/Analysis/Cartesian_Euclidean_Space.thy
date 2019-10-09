@@ -289,7 +289,7 @@ proof -
       apply (rule onorm_le_matrix_component)
       using Bclo by (simp add: abs_minus_commute less_imp_le)
     also have "\<dots> < e"
-      using \<open>0 < e\<close> by (simp add: divide_simps)
+      using \<open>0 < e\<close> by (simp add: field_split_simps)
     finally show "onorm ((*v) (A - B)) < e" .
   qed (use B in auto)
 qed

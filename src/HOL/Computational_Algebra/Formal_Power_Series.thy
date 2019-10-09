@@ -1489,7 +1489,7 @@ proof -
       have "dist (?s n) a < r" if nn0: "n \<ge> n0" for n
       proof -
         from that have thnn0: "(1/2)^n \<le> (1/2 :: real)^n0"
-          by (simp add: divide_simps)
+          by (simp add: field_split_simps)
         show ?thesis
         proof (cases "?s n = a")
           case True
@@ -1505,7 +1505,7 @@ proof -
           then have "dist (?s n) a < (1/2)^n"
             by (simp add: field_simps dist_fps_def)
           also have "\<dots> \<le> (1/2)^n0"
-            using nn0 by (simp add: divide_simps)
+            using nn0 by (simp add: field_split_simps)
           also have "\<dots> < r"
             using n0 by simp
           finally show ?thesis .

@@ -525,7 +525,7 @@ next
               by (metis d1 dist_norm less_le_trans not_less not_less_iff_gr_or_eq segment_bound1 that(4))
           qed (use \<open>e > 0\<close> in auto)
           with \<open>e > 0\<close> have "inverse (norm (y - x)) * norm (z - f x * (y - x)) \<le> e/2"
-            by (simp add: divide_simps)
+            by (simp add: field_split_simps)
           also have "... < e"
             using \<open>e > 0\<close> by simp
           finally show ?thesis
@@ -701,7 +701,7 @@ proof -
       apply (rule 3)
       unfolding norm_divide
       using \<open>r > 0\<close> g_not_r [OF \<open>z \<in> S\<close>] g_not_r [OF \<open>a \<in> S\<close>]
-      by (simp_all add: divide_simps dist_commute dist_norm)
+      by (simp_all add: field_split_simps dist_commute dist_norm)
   then show "?f ` S \<subseteq> ball 0 1"
     by auto
     show "inj_on ?f S"
@@ -945,9 +945,9 @@ proof -
         then obtain n where n: "1 / (1 - norm x) < of_nat n"
           using reals_Archimedean2 by blast
         with \<open>cmod x < 1\<close> gr0I have XX: "1 / of_nat n < 1 - norm x" and "n > 0"
-          by (fastforce simp: divide_simps algebra_simps)+
+          by (fastforce simp: field_split_simps algebra_simps)+
         have "f x \<in> f ` (D n)"
-          using n \<open>cmod x < 1\<close> by (auto simp: divide_simps algebra_simps D_def)
+          using n \<open>cmod x < 1\<close> by (auto simp: field_split_simps algebra_simps D_def)
         moreover have " f ` D n \<inter> closure (f ` A n) = {}"
         proof -
           have op_fDn: "open(f ` (D n))"

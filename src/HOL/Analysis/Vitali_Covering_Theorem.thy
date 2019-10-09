@@ -99,7 +99,7 @@ next
       proof
         assume "i \<in> C"
         have "B/2 ^ Suc n \<le> B/2 ^ n"
-          using \<open>B > 0\<close> by (simp add: divide_simps)
+          using \<open>B > 0\<close> by (simp add: field_split_simps)
         also have "\<dots> \<le> r i"
           using Ble \<open>i \<in> C\<close> by blast
         finally show ?thesis .
@@ -224,7 +224,7 @@ next
     then obtain n where "(1/2) ^ n < r i / B"
       using  \<open>B > 0\<close> assms real_arch_pow_inv by fastforce
     then have B2: "B/2 ^ n < r i"
-      using \<open>B > 0\<close> by (simp add: divide_simps)
+      using \<open>B > 0\<close> by (simp add: field_split_simps)
     have "0 < r i" "r i \<le> B"
       by (auto simp: \<open>i \<in> K\<close> assms)
     show "\<exists>j. j \<in> (Union(range F)) \<and>
@@ -467,7 +467,7 @@ proof -
                   by simp
               qed
                 ultimately show ?thesis
-                  by (simp add: divide_simps)
+                  by (simp add: field_split_simps)
             qed
             have co: "countable (D - D1)"
               by (simp add: \<open>countable D\<close>)
@@ -576,7 +576,7 @@ next
             using ball_subset_ball_iff k by auto
           finally show "ball x r \<subseteq> ball z 1" .
           have "?\<epsilon> * ?\<mu> (ball x r) \<le> e * content (ball x r) / content (ball z 1)"
-            using r \<open>e > 0\<close> by (simp add: ord_class.min_def divide_simps)
+            using r \<open>e > 0\<close> by (simp add: ord_class.min_def field_split_simps)
           with mU show "?\<mu> U < e * content (ball x r) / content (ball z 1)"
             by auto
         qed (use r U x in auto)

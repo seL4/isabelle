@@ -1833,7 +1833,7 @@ proof -
     by (rule asymp_equivD)
   from order_tendstoD(1)[OF this zero_less_one]
     show ?th1 ?th2 ?th3
-    by (eventually_elim; force simp: sgn_if divide_simps split: if_splits)+
+    by (eventually_elim; force simp: sgn_if field_split_simps split: if_splits)+
 qed
 
 lemma asymp_equiv_tendsto_transfer:
@@ -1900,7 +1900,7 @@ proof -
     have ev: "eventually (\<lambda>x. g x = 0 \<longrightarrow> h x = 0) F" by eventually_elim auto
   have "(\<lambda>x. f x + h x) \<sim>[F] g \<longleftrightarrow> ((\<lambda>x. ?T f g x + h x / g x) \<longlongrightarrow> 1) F"
     unfolding asymp_equiv_def using ev
-    by (intro tendsto_cong) (auto elim!: eventually_mono simp: divide_simps)
+    by (intro tendsto_cong) (auto elim!: eventually_mono simp: field_split_simps)
   also have "\<dots> \<longleftrightarrow> ((\<lambda>x. ?T f g x + h x / g x) \<longlongrightarrow> 1 + 0) F" by simp
   also have \<dots> by (intro tendsto_intros asymp_equivD assms smalloD_tendsto)
   finally show "(\<lambda>x. f x + h x) \<sim>[F] g" .
@@ -2154,7 +2154,7 @@ proof (rule landau_o.smallI)
   proof eventually_elim
     case (elim x)
     from elim have "norm (f x - g x) \<le> norm (f x / g x - 1) * norm (g x)"
-      by (subst norm_mult [symmetric]) (auto split: if_splits simp: divide_simps)
+      by (subst norm_mult [symmetric]) (auto split: if_splits simp add: algebra_simps)
     also have "norm (f x / g x - 1) * norm (g x) \<le> c * norm (g x)" using elim
       by (auto split: if_splits simp: mult_right_mono)
     finally show ?case .

@@ -265,7 +265,7 @@ lemma nonpos_Reals_mult_of_nat_iff:
   apply (auto intro: nonpos_Reals_mult_I2)
   apply (auto simp: nonpos_Reals_def)
   apply (rule_tac x="r/n" in exI)
-  apply (auto simp: divide_simps)
+  apply (auto simp: field_split_simps)
   done
 
 lemma nonpos_Reals_inverse_I:
@@ -288,7 +288,7 @@ lemma nonpos_Reals_divide_of_nat_iff:
   apply (auto intro: nonpos_Reals_divide_I2)
   apply (auto simp: nonpos_Reals_def)
   apply (rule_tac x="r*n" in exI)
-  apply (auto simp: divide_simps mult_le_0_iff)
+  apply (auto simp: field_split_simps mult_le_0_iff)
   done
 
 lemma nonpos_Reals_inverse_iff [simp]:

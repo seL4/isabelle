@@ -492,13 +492,13 @@ proof
 qed
 
 lemma mantissa_pos_iff: "0 < mantissa x \<longleftrightarrow> 0 < x"
-  by (auto simp: mantissa_exponent sign_simps)
+  by (auto simp: mantissa_exponent algebra_split_simps)
 
 lemma mantissa_nonneg_iff: "0 \<le> mantissa x \<longleftrightarrow> 0 \<le> x"
-  by (auto simp: mantissa_exponent sign_simps)
+  by (auto simp: mantissa_exponent algebra_split_simps)
 
 lemma mantissa_neg_iff: "0 > mantissa x \<longleftrightarrow> 0 > x"
-  by (auto simp: mantissa_exponent sign_simps)
+  by (auto simp: mantissa_exponent algebra_split_simps)
 
 lemma
   fixes m e :: int
@@ -1139,7 +1139,7 @@ proof -
       auto
         intro!: floor_eq2
         intro: powr_strict powr
-        simp: powr_diff powr_add divide_simps algebra_simps)+
+        simp: powr_diff powr_add field_split_simps algebra_simps)+
   finally
   show ?thesis by simp
 qed

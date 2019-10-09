@@ -252,7 +252,7 @@ proof -
                     ((a + b + c) - 2 * c)"
     unfolding power2_eq_square by (simp add: s_def a_def b_def c_def algebra_simps)
   also have "\<dots> = 16 * s * (s - a) * (s - b) * (s - c)"
-    by (simp add: s_def divide_simps mult_ac)
+    by (simp add: s_def field_split_simps mult_ac)
   finally have "content (convex hull {A, B, C}) ^ 2 = s * (s - a) * (s - b) * (s - c)"
     by simp
   also have "\<dots> = sqrt (s * (s - a) * (s - b) * (s - c)) ^ 2"

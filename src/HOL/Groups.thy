@@ -16,8 +16,9 @@ subsection \<open>Dynamic facts\<close>
 
 named_theorems ac_simps "associativity and commutativity simplification rules"
   and algebra_simps "algebra simplification rules for rings"
+  and algebra_split_simps "algebra simplification rules for rings, with potential goal splitting"
   and field_simps "algebra simplification rules for fields"
-  and sign_simps "algebra simplification rules for comparision with zero"
+  and field_split_simps "algebra simplification rules for fields, with potential goal splitting"
 
 text \<open>
   The rewrites accumulated in \<open>algebra_simps\<close> deal with the classical
@@ -34,9 +35,9 @@ text \<open>
   inequalities). Can be too aggressive and is therefore separate from the more
   benign \<open>algebra_simps\<close>.
 
-  Lemmas \<open>sign_simps\<close> is a first attempt to automate proofs
-  of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close>
-  because the former can lead to case explosions.
+  Collections \<open>algebra_split_simps\<close> and \<open>field_split_simps\<close>
+  correspond to \<open>algebra_simps\<close> and \<open>field_simps\<close>
+  but contain more aggresive rules that may lead to goal splitting.
 \<close>
 
 
@@ -206,7 +207,8 @@ class times =
 subsection \<open>Semigroups and Monoids\<close>
 
 class semigroup_add = plus +
-  assumes add_assoc [algebra_simps, field_simps]: "(a + b) + c = a + (b + c)"
+  assumes add_assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "(a + b) + c = a + (b + c)"
 begin
 
 sublocale add: semigroup plus
@@ -217,13 +219,14 @@ end
 hide_fact add_assoc
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute [algebra_simps, field_simps]: "a + b = b + a"
+  assumes add_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "a + b = b + a"
 begin
 
 sublocale add: abel_semigroup plus
   by standard (fact add_commute)
 
-declare add.left_commute [algebra_simps, field_simps]
+declare add.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 lemmas add_ac = add.assoc add.commute add.left_commute
 
@@ -234,7 +237,8 @@ hide_fact add_commute
 lemmas add_ac = add.assoc add.commute add.left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
+  assumes mult_assoc [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "(a * b) * c = a * (b * c)"
 begin
 
 sublocale mult: semigroup times
@@ -245,13 +249,14 @@ end
 hide_fact mult_assoc
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute [algebra_simps, field_simps]: "a * b = b * a"
+  assumes mult_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "a * b = b * a"
 begin
 
 sublocale mult: abel_semigroup times
   by standard (fact mult_commute)
 
-declare mult.left_commute [algebra_simps, field_simps]
+declare mult.left_commute [algebra_simps, algebra_split_simps, field_simps, field_split_simps]
 
 lemmas mult_ac = mult.assoc mult.commute mult.left_commute
 
@@ -326,7 +331,8 @@ end
 
 class cancel_ab_semigroup_add = ab_semigroup_add + minus +
   assumes add_diff_cancel_left' [simp]: "(a + b) - a = b"
-  assumes diff_diff_add [algebra_simps, field_simps]: "a - b - c = a - (b + c)"
+  assumes diff_diff_add [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "a - b - c = a - (b + c)"
 begin
 
 lemma add_diff_cancel_right' [simp]: "(a + b) - b = a"
@@ -547,19 +553,23 @@ lemma add_eq_0_iff: "a + b = 0 \<longleftrightarrow> b = - a"
 lemma minus_diff_eq [simp]: "- (a - b) = b - a"
   by (simp only: neg_eq_iff_add_eq_0 diff_conv_add_uminus add.assoc minus_add_cancel) simp
 
-lemma add_diff_eq [algebra_simps, field_simps]: "a + (b - c) = (a + b) - c"
+lemma add_diff_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+    "a + (b - c) = (a + b) - c"
   by (simp only: diff_conv_add_uminus add.assoc)
 
 lemma diff_add_eq_diff_diff_swap: "a - (b + c) = a - c - b"
   by (simp only: diff_conv_add_uminus add.assoc minus_add)
 
-lemma diff_eq_eq [algebra_simps, field_simps]: "a - b = c \<longleftrightarrow> a = c + b"
+lemma diff_eq_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a - b = c \<longleftrightarrow> a = c + b"
   by auto
 
-lemma eq_diff_eq [algebra_simps, field_simps]: "a = c - b \<longleftrightarrow> a + b = c"
+lemma eq_diff_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a = c - b \<longleftrightarrow> a + b = c"
   by auto
 
-lemma diff_diff_eq2 [algebra_simps, field_simps]: "a - (b - c) = (a + c) - b"
+lemma diff_diff_eq2 [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a - (b - c) = (a + c) - b"
   by (simp only: diff_conv_add_uminus add.assoc) simp
 
 lemma diff_eq_diff_eq: "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"
@@ -592,7 +602,8 @@ lemma uminus_add_conv_diff [simp]: "- a + b = b - a"
 lemma minus_add_distrib [simp]: "- (a + b) = - a + - b"
   by (simp add: algebra_simps)
 
-lemma diff_add_eq [algebra_simps, field_simps]: "(a - b) + c = (a + c) - b"
+lemma diff_add_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "(a - b) + c = (a + c) - b"
   by (simp add: algebra_simps)
 
 end
@@ -938,13 +949,15 @@ qed
 
 lemmas less_iff_diff_less_0 = diff_less_0_iff_less [symmetric]
 
-lemma diff_less_eq [algebra_simps, field_simps]: "a - b < c \<longleftrightarrow> a < c + b"
+lemma diff_less_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a - b < c \<longleftrightarrow> a < c + b"
   apply (subst less_iff_diff_less_0 [of a])
   apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
   apply (simp add: algebra_simps)
   done
 
-lemma less_diff_eq[algebra_simps, field_simps]: "a < c - b \<longleftrightarrow> a + b < c"
+lemma less_diff_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a < c - b \<longleftrightarrow> a + b < c"
   apply (subst less_iff_diff_less_0 [of "a + b"])
   apply (subst less_iff_diff_less_0 [of a])
   apply (simp add: algebra_simps)
@@ -953,10 +966,12 @@ lemma less_diff_eq[algebra_simps, field_simps]: "a < c - b \<longleftrightarrow>
 lemma diff_gt_0_iff_gt [simp]: "a - b > 0 \<longleftrightarrow> a > b"
   by (simp add: less_diff_eq)
 
-lemma diff_le_eq [algebra_simps, field_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
+lemma diff_le_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
   by (auto simp add: le_less diff_less_eq )
 
-lemma le_diff_eq [algebra_simps, field_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
+lemma le_diff_eq [algebra_simps, algebra_split_simps, field_simps, field_split_simps]:
+  "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
   by (auto simp add: le_less less_diff_eq)
 
 lemma diff_le_0_iff_le [simp]: "a - b \<le> 0 \<longleftrightarrow> a \<le> b"

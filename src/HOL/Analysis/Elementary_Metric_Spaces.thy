@@ -210,9 +210,9 @@ lemma cball_sing:
 
 lemma ball_divide_subset: "d \<ge> 1 \<Longrightarrow> ball x (e/d) \<subseteq> ball x e"
   apply (cases "e \<le> 0")
-  apply (simp add: ball_empty divide_simps)
+  apply (simp add: ball_empty field_split_simps)
   apply (rule subset_ball)
-  apply (simp add: divide_simps)
+  apply (simp add: field_split_simps)
   done
 
 lemma ball_divide_subset_numeral: "ball x (e / numeral w) \<subseteq> ball x e"
@@ -220,7 +220,7 @@ lemma ball_divide_subset_numeral: "ball x (e / numeral w) \<subseteq> ball x e"
 
 lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq> cball x e"
   apply (cases "e < 0")
-  apply (simp add: divide_simps)
+  apply (simp add: field_split_simps)
   apply (rule subset_cball)
   apply (metis div_by_1 frac_le not_le order_refl zero_less_one)
   done
@@ -1335,7 +1335,7 @@ proof (rule order_antisym)
     then have "diameter(closure(S)) - d / 2 < diameter(closure(S))"
       by simp
     have dd: "diameter (closure S) - d / 2 = (diameter(closure(S)) + diameter(S)) / 2"
-      by (simp add: d_def divide_simps)
+      by (simp add: d_def field_split_simps)
      have bocl: "bounded (closure S)"
       using assms by blast
     moreover have "0 \<le> diameter S"
@@ -2423,7 +2423,7 @@ proof -
     then have "dist (f (r (max N1 N2))) x < 1 / real (Suc (r (max N1 N2)))"
       by simp
     also have "... \<le> 1 / real (Suc (max N1 N2))"
-      apply (simp add: divide_simps del: max.bounded_iff)
+      apply (simp add: field_split_simps del: max.bounded_iff)
       using \<open>strict_mono r\<close> seq_suble by blast
     also have "... \<le> 1 / real (Suc N2)"
       by (simp add: field_simps)

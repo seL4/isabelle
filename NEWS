@@ -71,10 +71,11 @@ supremum is gone. INCOMPATIBILITY.
 1): theory HOL/Library/Bit.thy has been renamed accordingly.
 INCOMPATIBILITY.
 
-* Fact collection sign_simps contains only simplification rules for
-products being less / greater / equal to zero; combine with existing
-collections algebra_simps or field_simps to obtain reasonable
-simplification. INCOMPATIBILITY.
+* Fact collections algebra_split_simps and field_split_simps correspond
+to algebra_simps and field_simps but contain more aggressive rules
+potentially splitting goals; algebra_split_simps roughly replaces
+sign_simps and field_split_simps can be used instead of divide_simps.
+INCOMPATIBILITY.
 
 * Theory HOL-Library.Monad_Syntax: infix operation "bind" (>>=)
 associates to the left now as is customary.

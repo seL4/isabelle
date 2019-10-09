@@ -396,7 +396,7 @@ proof
   from this and \<open>summable f\<close> have "summable (\<lambda>n. p N * f N * inverse (p n))"
     by (rule summable_comparison_test_ev)
   from summable_mult[OF this, of "inverse (p N * f N)"] N[OF le_refl]
-    have "summable (\<lambda>n. inverse (p n))" by (simp add: divide_simps)
+    have "summable (\<lambda>n. inverse (p n))" by (simp add: field_split_simps)
   with divergent_p show False by contradiction
 qed
 
@@ -757,7 +757,7 @@ next
   fix r assume r: "0 < r" "ereal r < c"
   let ?l = "liminf (\<lambda>n. ereal (norm (f n * of_real r ^ n) / norm (f (Suc n) * of_real r ^ Suc n)))"
   have "?l = liminf (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n)))) * ereal (inverse r))"
-    using r by (simp add: norm_mult norm_power divide_simps)
+    using r by (simp add: norm_mult norm_power field_split_simps)
   also from r have "\<dots> = liminf (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n))))) * ereal (inverse r)"
     by (intro Liminf_ereal_mult_right) simp_all
   also have "liminf (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n))))) = c"
@@ -771,7 +771,7 @@ next
   fix r assume r: "0 < r" "ereal r > c"
   let ?l = "limsup (\<lambda>n. ereal (norm (f n * of_real r ^ n) / norm (f (Suc n) * of_real r ^ Suc n)))"
   have "?l = limsup (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n)))) * ereal (inverse r))"
-    using r by (simp add: norm_mult norm_power divide_simps)
+    using r by (simp add: norm_mult norm_power field_split_simps)
   also from r have "\<dots> = limsup (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n))))) * ereal (inverse r)"
     by (intro Limsup_ereal_mult_right) simp_all
   also have "limsup (\<lambda>n. ereal (norm (f n) / (norm (f (Suc n))))) = c"

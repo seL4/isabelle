@@ -1001,7 +1001,7 @@ proof (rule lborel_eqI)
     using c by (auto simp: box_def T_def field_simps inner_simps divide_less_eq)
   with le c show "emeasure ?D (box l u) = (\<Prod>b\<in>?B. (u - l) \<bullet> b)"
     by (auto simp: emeasure_density emeasure_distr nn_integral_multc emeasure_lborel_box_eq inner_simps
-                   field_simps divide_simps ennreal_mult'[symmetric] prod_nonneg prod.distrib[symmetric]
+                   field_simps field_split_simps ennreal_mult'[symmetric] prod_nonneg prod.distrib[symmetric]
              intro!: prod.cong)
 qed simp
 

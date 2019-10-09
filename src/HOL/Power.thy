@@ -123,8 +123,9 @@ end
 context comm_monoid_mult
 begin
 
-lemma power_mult_distrib [field_simps]: "(a * b) ^ n = (a ^ n) * (b ^ n)"
-  by (induct n) (simp_all add: ac_simps)
+lemma power_mult_distrib [algebra_simps, algebra_split_simps, field_simps, field_split_simps, divide_simps]:
+  "(a * b) ^ n = (a ^ n) * (b ^ n)"
+  by (induction n) (simp_all add: ac_simps)
 
 end
 
@@ -378,7 +379,7 @@ context division_ring
 begin
 
 text \<open>Perhaps these should be simprules.\<close>
-lemma power_inverse [field_simps, divide_simps]: "inverse a ^ n = inverse (a ^ n)"
+lemma power_inverse [field_simps, field_split_simps, divide_simps]: "inverse a ^ n = inverse (a ^ n)"
 proof (cases "a = 0")
   case True
   then show ?thesis by (simp add: power_0_left)
@@ -389,7 +390,7 @@ next
   then show ?thesis by simp
 qed
 
-lemma power_one_over [field_simps, divide_simps]: "(1 / a) ^ n = 1 / a ^ n"
+lemma power_one_over [field_simps, field_split_simps, divide_simps]: "(1 / a) ^ n = 1 / a ^ n"
   using power_inverse [of a] by (simp add: divide_inverse)
 
 end
@@ -397,7 +398,7 @@ end
 context field
 begin
 
-lemma power_divide [field_simps, divide_simps]: "(a / b) ^ n = a ^ n / b ^ n"
+lemma power_divide [field_simps, field_split_simps, divide_simps]: "(a / b) ^ n = a ^ n / b ^ n"
   by (induct n) simp_all
 
 end

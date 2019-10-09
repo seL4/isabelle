@@ -2832,26 +2832,25 @@ proof -
 qed
 
 lemma fls_lr_inverse_power_divring:
-  fixes f :: "'a::division_ring fls"
-  shows "fls_left_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
-          (fls_left_inverse f (inverse (f $$ fls_subdegree f))) ^ n"
-        "fls_right_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
-          (fls_right_inverse f (inverse (f $$ fls_subdegree f))) ^ n"
+  "fls_left_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
+    (fls_left_inverse f (inverse (f $$ fls_subdegree f))) ^ n" (is ?P)
+  and "fls_right_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
+    (fls_right_inverse f (inverse (f $$ fls_subdegree f))) ^ n" (is ?Q)
+  for f :: "'a::division_ring fls"
 proof -
-  have
+  note fls_left_inverse_eq_inverse [of f] fls_right_inverse_eq_inverse[of f]
+  moreover have
     "fls_right_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
       inverse f ^ n"
+    using fls_right_inverse_eq_inverse [of "f ^ n"]
+    by (simp add: fls_subdegree_pow power_inverse)
+  moreover have
     "fls_left_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
       inverse f ^ n"
-    using fls_left_inverse_eq_inverse[of "f^n"] fls_right_inverse_eq_inverse[of "f^n"]
-    by    (auto simp add: divide_simps fls_subdegree_pow)
-  thus
-    "fls_left_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
-      (fls_left_inverse f (inverse (f $$ fls_subdegree f))) ^ n"
-    "fls_right_inverse (f ^ n) ((inverse (f $$ fls_subdegree f)) ^ n) =
-      (fls_right_inverse f (inverse (f $$ fls_subdegree f))) ^ n"
-    using fls_left_inverse_eq_inverse[of f] fls_right_inverse_eq_inverse[of f]
-    by    auto
+    using fls_left_inverse_eq_inverse [of "f ^ n"]
+    by (simp add: fls_subdegree_pow power_inverse)
+  ultimately show ?P and ?Q
+    by simp_all
 qed
 
 instance fls :: (field) field

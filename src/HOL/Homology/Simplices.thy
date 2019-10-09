@@ -1229,7 +1229,7 @@ proof -
             by simp
           with False show "(\<Sum>j\<le>p. x (Suc j) * inverse (1 - x 0)) = 1"
             by (metis add_diff_cancel_left' diff_diff_eq2 diff_zero right_inverse sum_distrib_right)
-      qed (use x01 x0 xle \<open>x 0 < 1\<close> in \<open>auto simp: divide_simps\<close>)
+      qed (use x01 x0 xle \<open>x 0 < 1\<close> in \<open>auto simp: field_split_simps\<close>)
       then show "(\<lambda>i. inverse (1 - x 0) * (\<Sum>j\<le>p. l j i * x (Suc j))) \<in> S"
         by (simp add: field_simps sum_divide_distrib)
     qed (use x01 in auto)
@@ -1448,11 +1448,11 @@ proof (induction p arbitrary: S c)
       have "(\<lambda>i. \<Sum>j\<le>Suc p. l j i * ((if j \<le> Suc p then (1 - u) * inverse (p + 2) + u * x j else 0))) \<in> S"
       proof (rule l)
         have i2p: "inverse (2 + real p) \<le> 1"
-          by (simp add: divide_simps)
+          by (simp add: field_split_simps)
         show "(\<lambda>j. if j \<le> Suc p then (1 - u) * inverse (real (p + 2)) + u * x j else 0) \<in> standard_simplex (Suc p)"
           using x \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>
           apply (simp add: sum.distrib standard_simplex_def i2p linepath_le_1 flip: sum_distrib_left del: sum.atMost_Suc)
-          apply (simp add: divide_simps)
+          apply (simp add: field_split_simps)
           done
       qed
       moreover have "(\<lambda>i. \<Sum>j\<le>Suc p. l j i * ((1 - u) * inverse (2 + real p) + u * x j))
@@ -1604,7 +1604,7 @@ proof (induction p arbitrary: d c f x y)
                     done
                   show "\<bar>l i k - l i' k\<bar> / real (p + 2) \<le> (1 + real p) * d / real (p + 2) / real (card ({..Suc p} - {i}))"
                     using i i' lf [of i] lf [of i'] 2
-                    by (auto simp: divide_simps image_iff)
+                    by (auto simp: image_iff divide_simps)
                 qed auto
                 finally have "(\<Sum>j\<le>Suc p. \<bar>l i k / (p + 2) - l j k / (p + 2)\<bar>) \<le> (1 + real p) * d / (p + 2)" .
                 then have "\<bar>\<Sum>j\<le>Suc p. l i k / (p + 2) - l j k / (p + 2)\<bar> \<le> (1 + real p) * d / (p + 2)"
@@ -1810,7 +1810,7 @@ next
                   \<in> standard_simplex (Suc p)"
       by (simp add: simplicial_vertex_def standard_simplex_def del: sum.atMost_Suc)
     have ss_Sp: "(\<lambda>i. (if i \<le> Suc p then 1 else 0) / (real p + 2)) \<in> standard_simplex (Suc p)"
-      by (simp add: standard_simplex_def divide_simps)
+      by (simp add: standard_simplex_def field_split_simps)
     obtain l where feq: "f = oriented_simplex (Suc p) l"
       using one unfolding simplicial_simplex by blast
     then have 3: "f (\<lambda>i. (\<Sum>j\<le>Suc p. simplicial_vertex j (restrict id (standard_simplex (Suc p))) i) / (real p + 2))

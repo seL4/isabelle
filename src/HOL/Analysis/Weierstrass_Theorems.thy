@@ -110,12 +110,12 @@ proof -
       then have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
         by (simp add: power2_eq_square)
       then show ?thesis
-        using n by (simp add: sum_divide_distrib divide_simps mult.commute power2_commute)
+        using n by (simp add: sum_divide_distrib field_split_simps mult.commute power2_commute)
     qed
     { fix k
       assume k: "k \<le> n"
       then have kn: "0 \<le> k / n" "k / n \<le> 1"
-        by (auto simp: divide_simps)
+        by (auto simp: field_split_simps)
       consider (lessd) "\<bar>x - k / n\<bar> < d" | (ged) "d \<le> \<bar>x - k / n\<bar>"
         by linarith
       then have "\<bar>(f x - f (k/n))\<bar> \<le> e/2 + 2 * M / d\<^sup>2 * (x - k/n)\<^sup>2"
@@ -158,7 +158,7 @@ proof -
     also have "... < e"
       apply (simp add: field_simps)
       using \<open>d>0\<close> nbig e \<open>n>0\<close>
-      apply (simp add: divide_simps algebra_simps)
+      apply (simp add: field_split_simps algebra_simps)
       using ed0 by linarith
     finally have "\<bar>f x - (\<Sum>k\<le>n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
   }
@@ -282,7 +282,7 @@ proof -
     obtain i where i: "i \<in> subU" "t \<in> Uf i" using subU t by blast
     show ?thesis
       using subU i t
-      apply (clarsimp simp: p_def divide_simps)
+      apply (clarsimp simp: p_def field_split_simps)
       apply (rule sum_pos2 [OF \<open>finite subU\<close>])
       using Uf t pf01 apply auto
       apply (force elim!: subsetCE)
@@ -292,12 +292,12 @@ proof -
   proof -
     have "0 \<le> p x"
       using subU cardp t
-      apply (simp add: p_def divide_simps sum_nonneg)
+      apply (simp add: p_def field_split_simps sum_nonneg)
       apply (rule sum_nonneg)
       using pf01 by force
     moreover have "p x \<le> 1"
       using subU cardp t
-      apply (simp add: p_def divide_simps sum_nonneg)
+      apply (simp add: p_def field_split_simps sum_nonneg)
       apply (rule sum_bounded_above [where 'a=real and K=1, simplified])
       using pf01 by force
     ultimately show ?thesis
@@ -331,12 +331,12 @@ proof -
   with \<delta>01 have "k \<le> (1+\<delta>)/\<delta>"
     by (auto simp: algebra_simps add_divide_distrib)
   also have "... < 2/\<delta>"
-    using \<delta>01 by (auto simp: divide_simps)
+    using \<delta>01 by (auto simp: field_split_simps)
   finally have k2\<delta>: "k < 2/\<delta>" .
   have "1/\<delta> < k"
     using \<delta>01 unfolding k_def by linarith
   with \<delta>01 k2\<delta> have k\<delta>: "1 < k*\<delta>" "k*\<delta> < 2"
-    by (auto simp: divide_simps)
+    by (auto simp: field_split_simps)
   define q where [abs_def]: "q n t = (1 - p t ^ n) ^ (k^n)" for n t
   have qR: "q n \<in> R" for n
     by (simp add: q_def const diff power pR)
@@ -484,12 +484,12 @@ proof -
   proof -
     have "0 \<le> pff x"
       using subA cardp t
-      apply (simp add: pff_def divide_simps sum_nonneg)
+      apply (simp add: pff_def field_split_simps sum_nonneg)
       apply (rule Groups_Big.linordered_semidom_class.prod_nonneg)
       using ff by fastforce
     moreover have "pff x \<le> 1"
       using subA cardp t
-      apply (simp add: pff_def divide_simps sum_nonneg)
+      apply (simp add: pff_def field_split_simps sum_nonneg)
       apply (rule prod_mono [where g = "\<lambda>x. 1", simplified])
       using ff by fastforce
     ultimately show ?thesis
@@ -512,7 +512,7 @@ proof -
       using ff [THEN conjunct2, THEN conjunct2, THEN conjunct1] v subA x
       by auto
     also have "... \<le> e"
-      using cardp e by (simp add: divide_simps)
+      using cardp e by (simp add: field_split_simps)
     finally have "pff x < e" .
   }
   then have "\<And>x. x \<in> A \<Longrightarrow> pff x < e"
@@ -532,7 +532,7 @@ proof -
       apply (rule prod_mono_strict [where f = "\<lambda>x. 1 - e / card subA", simplified])
       apply (simp_all add: subA(2))
       apply (intro ballI conjI)
-      using e apply (force simp: divide_simps)
+      using e apply (force simp: field_split_simps)
       using ff [THEN conjunct2, THEN conjunct2, THEN conjunct2] subA B x
       apply blast
       done

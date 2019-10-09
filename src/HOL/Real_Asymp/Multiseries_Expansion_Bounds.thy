@@ -411,7 +411,7 @@ qualified lemma powr_right_bounds:
 
 (* TODO Move *)
 lemma powr_mono': "a \<le> (b::real) \<Longrightarrow> x \<ge> 0 \<Longrightarrow> x \<le> 1 \<Longrightarrow> x powr b \<le> x powr a"
-  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div divide_simps)
+  using powr_mono[of "-b" "-a" "inverse x"] by (auto simp: powr_def ln_inverse ln_div field_split_simps)
 
 qualified lemma powr_left_bounds:
   fixes f g :: "real \<Rightarrow> real"

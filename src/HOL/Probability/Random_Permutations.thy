@@ -215,7 +215,7 @@ proof (rule pmf_eqI, clarify, goal_cases)
     also have "real (card A choose length xs) = fact (card A) / (fact ?n1 * fact (card A - ?n1))"
       by (subst binomial_fact) (auto intro!: card_mono assms)
     also have "\<dots> / fact (card A) = 1 / (fact ?n1 * fact ?n2)"
-      by (simp add: divide_simps card_eq)
+      by (simp add: field_split_simps card_eq)
     also have "\<dots> = pmf ?rhs (xs, ys)" using True assms by (simp add: pmf_pair)
     finally show ?thesis .
   next

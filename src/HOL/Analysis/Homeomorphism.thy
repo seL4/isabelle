@@ -95,7 +95,7 @@ proof -
       then have [simp]: "(norm x / norm y) *\<^sub>R y = x"
         by (rule eqI) (simp add: \<open>y \<noteq> 0\<close>)
       have no: "0 \<le> norm x / norm y" "norm x / norm y < 1"
-        using * by (auto simp: divide_simps)
+        using * by (auto simp: field_split_simps)
       then show "x = y"
         using starI [OF \<open>y \<in> S\<close> no] xynot by auto
     next
@@ -107,7 +107,7 @@ proof -
       then have [simp]: "(norm y / norm x) *\<^sub>R x = y"
         by (rule eqI) (simp add: \<open>x \<noteq> 0\<close>)
       have no: "0 \<le> norm y / norm x" "norm y / norm x < 1"
-        using * by (auto simp: divide_simps)
+        using * by (auto simp: field_split_simps)
       then show "x = y"
         using starI [OF \<open>x \<in> S\<close> no] xynot by auto
     qed
@@ -133,7 +133,7 @@ proof -
         show "x \<in> (\<lambda>x. x /\<^sub>R norm x) ` (S - rel_interior S)"
           apply (rule_tac x="d *\<^sub>R x" in image_eqI)
           using \<open>0 < d\<close>
-          using dx \<open>closed S\<close> apply (auto simp: rel_frontier_def divide_simps nox)
+          using dx \<open>closed S\<close> apply (auto simp: rel_frontier_def field_split_simps nox)
           done
       qed
     qed
@@ -265,7 +265,7 @@ proof -
     show ?thesis
       apply (rule_tac x="inverse(norm(surf (proj x))) *\<^sub>R x" in image_eqI)
       apply (metis (no_types, hide_lams) mult.commute scaleproj abs_inverse abs_norm_cancel divide_inverse norm_scaleR nxx positive_imp_inverse_positive proj_scaleR psp sproj_nz zero_less_norm_iff)
-      apply (auto simp: divide_simps nole affineI)
+      apply (auto simp: field_split_simps nole affineI)
       done
   qed
   ultimately have im_cball: "(\<lambda>x. norm x *\<^sub>R surf (proj x)) ` ?CBALL = S"
@@ -503,24 +503,28 @@ proof -
   define f where "f \<equiv> \<lambda>x. 2 *\<^sub>R b + (2 / (1 - b\<bullet>x)) *\<^sub>R (x - b)"
   define g where "g \<equiv> \<lambda>y. b + (4 / (norm y ^ 2 + 4)) *\<^sub>R (y - 2 *\<^sub>R b)"
   have [simp]: "\<And>x. \<lbrakk>x \<in> T; b\<bullet>x = 0\<rbrakk> \<Longrightarrow> f (g x) = x"
-    unfolding f_def g_def by (simp add: algebra_simps divide_simps add_nonneg_eq_0_iff)
-  have no: "\<And>x. \<lbrakk>norm x = 1; b\<bullet>x \<noteq> 1\<rbrakk> \<Longrightarrow> (norm (f x))\<^sup>2 = 4 * (1 + b\<bullet>x) / (1 - b\<bullet>x)"
-    apply (simp add: dot_square_norm [symmetric])
-    apply (simp add: f_def vector_add_divide_simps divide_simps norm_eq_1)
-    apply (simp add: algebra_simps inner_commute)
+    unfolding f_def g_def by (simp add: algebra_simps field_split_simps add_nonneg_eq_0_iff)
+  have no: "(norm (f x))\<^sup>2 = 4 * (1 + b \<bullet> x) / (1 - b \<bullet> x)"
+    if "norm x = 1" and "b \<bullet> x \<noteq> 1" for x
+    using that
+    apply (simp flip: dot_square_norm add: norm_eq_1 nonzero_eq_divide_eq)
+    apply (simp add: f_def vector_add_divide_simps inner_simps)
+    apply (use sum_sqs_eq [of 1 "b \<bullet> x"]
+     in \<open>auto simp add: field_split_simps inner_commute\<close>)
     done
   have [simp]: "\<And>u::real. 8 + u * (u * 8) = u * 16 \<longleftrightarrow> u=1"
     by algebra
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> g (f x) = x"
-    unfolding g_def no by (auto simp: f_def divide_simps)
-  have [simp]: "\<And>x. \<lbrakk>x \<in> T; b \<bullet> x = 0\<rbrakk> \<Longrightarrow> norm (g x) = 1"
-    unfolding g_def
+    unfolding g_def no by (auto simp: f_def field_split_simps)
+  have [simp]: "norm (g x) = 1" if "x \<in> T" and "b \<bullet> x = 0" for x
+    using that
+    apply (simp only: g_def)
     apply (rule power2_eq_imp_eq)
     apply (simp_all add: dot_square_norm [symmetric] divide_simps vector_add_divide_simps)
     apply (simp add: algebra_simps inner_commute)
     done
-  have [simp]: "\<And>x. \<lbrakk>x \<in> T; b \<bullet> x = 0\<rbrakk> \<Longrightarrow> b \<bullet> g x \<noteq> 1"
-    unfolding g_def
+  have [simp]: "b \<bullet> g x \<noteq> 1" if "x \<in> T" and "b \<bullet> x = 0" for x
+    using that unfolding g_def
     apply (simp_all add: dot_square_norm [symmetric] divide_simps vector_add_divide_simps add_nonneg_eq_0_iff)
     apply (auto simp: algebra_simps)
     done
@@ -547,7 +551,7 @@ proof -
     apply (auto simp: power2_eq_square algebra_simps inner_commute)
     done
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> b \<bullet> f x = 0"
-    by (simp add: f_def algebra_simps divide_simps)
+    by (simp add: f_def algebra_simps field_split_simps)
   have [simp]: "\<And>x. \<lbrakk>x \<in> T; norm x = 1; b \<bullet> x \<noteq> 1\<rbrakk> \<Longrightarrow> f x \<in> T"
     unfolding f_def
     by (blast intro: \<open>subspace T\<close> \<open>b \<in> T\<close> subspace_add subspace_mul subspace_diff)
@@ -1442,9 +1446,9 @@ proof -
       obtain t where "t \<in> tk" and t: "{real n / real N .. (1 + real n) / real N} \<subseteq> K t"
       proof (rule bexE [OF \<delta>])
         show "{real n / real N .. (1 + real n) / real N} \<subseteq> {0..1}"
-          using Suc.prems by (auto simp: divide_simps algebra_simps)
+          using Suc.prems by (auto simp: field_split_simps algebra_simps)
         show diameter_less: "diameter {real n / real N .. (1 + real n) / real N} < \<delta>"
-          using \<open>0 < \<delta>\<close> N by (auto simp: divide_simps algebra_simps)
+          using \<open>0 < \<delta>\<close> N by (auto simp: field_split_simps algebra_simps)
       qed blast
       have t01: "t \<in> {0..1}"
         using \<open>t \<in> tk\<close> \<open>tk \<subseteq> {0..1}\<close> by blast
@@ -1454,7 +1458,7 @@ proof -
                  and homuu: "\<And>U. U \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism U (UU (X t)) p q"
         using inUS [OF t01] UU by meson
       have n_div_N_in: "real n / real N \<in> {real n / real N .. (1 + real n) / real N}"
-        using N by (auto simp: divide_simps algebra_simps)
+        using N by (auto simp: field_split_simps algebra_simps)
       with t have nN_in_kkt: "real n / real N \<in> K t"
         by blast
       have "k (real n / real N, y) \<in> C \<inter> p -` UU (X t)"
@@ -1466,7 +1470,7 @@ proof -
         also have "... \<in> h ` (({0..1} \<inter> K t) \<times> (U \<inter> NN t))"
           apply (rule imageI)
            using \<open>y \<in> V\<close> t01 \<open>n \<le> N\<close>
-          apply (simp add: nN_in_kkt \<open>y \<in> U\<close> inUS divide_simps)
+          apply (simp add: nN_in_kkt \<open>y \<in> U\<close> inUS field_split_simps)
           done
         also have "... \<subseteq> UU (X t)"
           using him t01 by blast
@@ -1514,7 +1518,7 @@ proof -
       then have "y \<in> Q'" "Q \<subseteq> (U \<inter> NN(t)) \<inter> N' \<inter> V"
         by blast+
       have neq: "{0..real n / real N} \<union> {real n / real N..(1 + real n) / real N} = {0..(1 + real n) / real N}"
-        apply (auto simp: divide_simps)
+        apply (auto simp: field_split_simps)
         by (metis mult_zero_left of_nat_0_le_iff of_nat_0_less_iff order_trans real_mult_le_cancel_iff1)
       then have neqQ': "{0..real n / real N} \<times> Q' \<union> {real n / real N..(1 + real n) / real N} \<times> Q' = {0..(1 + real n) / real N} \<times> Q'"
         by blast

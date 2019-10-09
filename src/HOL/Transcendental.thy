@@ -102,7 +102,7 @@ proof -
   also from k have "fact k = fact (Suc k) / (real k + 1)" by (simp add: field_simps)
   also have "fact n / (fact (Suc k) / (real k + 1) * ((real n - real k) * fact (n - Suc k))) =
                (n choose (Suc k)) * ((real k + 1) / (real n - real k))"
-    using k by (simp add: divide_simps binomial_fact)
+    using k by (simp add: field_split_simps binomial_fact)
   also from assms have "(real k + 1) / (real n - real k) < 1" by simp
   finally show ?thesis using k by (simp add: mult_less_cancel_left)
 qed
@@ -299,7 +299,7 @@ lemma powser_times_n_limit_0:
     shows "(\<lambda>n. of_nat n * x ^ n) \<longlonglongrightarrow> 0"
 proof -
   have "norm x / (1 - norm x) \<ge> 0"
-    using assms by (auto simp: divide_simps)
+    using assms by (auto simp: field_split_simps)
   moreover obtain N where N: "norm x / (1 - norm x) < of_int N"
     using ex_le_of_int by (meson ex_less_of_int)
   ultimately have N0: "N>0"
@@ -326,7 +326,7 @@ corollary lim_n_over_pown:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) \<longlongrightarrow> 0) sequentially"
   using powser_times_n_limit_0 [of "inverse x"]
-  by (simp add: norm_divide divide_simps)
+  by (simp add: norm_divide field_split_simps)
 
 lemma sum_split_even_odd:
   fixes f :: "nat \<Rightarrow> real"
@@ -955,7 +955,7 @@ proof -
     by (intro termdiff_converges[OF norm] sums_summable[OF sums])
   from norm have "eventually (\<lambda>z. z \<in> norm -` {..<K}) (nhds z)"
     by (intro eventually_nhds_in_open open_vimage)
-       (simp_all add: continuous_on_norm continuous_on_id)
+       (simp_all add: continuous_on_norm)
   hence eq: "eventually (\<lambda>z. (\<Sum>n. c n * z^n) = f z) (nhds z)"
     by eventually_elim (insert sums, simp add: sums_iff)
 
@@ -1534,12 +1534,14 @@ proof (induction n arbitrary: x)
     then show ?thesis by simp
   next
     case False
-    then have [simp]: "x * of_nat n / (1 + of_nat n) / of_nat n = x / (1 + of_nat n)"
+    have [simp]: "1 + (of_nat n * of_nat n + of_nat n * 2) \<noteq> (0::'a)"
+      using of_nat_eq_iff [of "1 + n * n + n * 2" "0"]
+      by simp
+    from False have [simp]: "x * of_nat n / (1 + of_nat n) / of_nat n = x / (1 + of_nat n)"
       by simp
     have [simp]: "x / (1 + of_nat n) + x * of_nat n / (1 + of_nat n) = x"
-      apply (simp add: divide_simps)
-      using of_nat_eq_0_iff apply (fastforce simp: distrib_left)
-      done
+      using of_nat_neq_0
+      by (auto simp add: field_split_simps)
     show ?thesis
       using Suc.IH [of "x * of_nat n / (1 + of_nat n)"] False
       by (simp add: exp_add [symmetric])
@@ -3049,7 +3051,7 @@ proof -
   have "((\<lambda>x. exp (f x * ln (g x))) has_derivative
     (\<lambda>h. (g x powr f x) * (f' h * ln (g x) + g' h * f x / g x))) (at x within X)"
     using pos
-    by (auto intro!: derivative_eq_intros simp: divide_simps powr_def)
+    by (auto intro!: derivative_eq_intros simp: field_split_simps powr_def)
   then show ?thesis
     by (rule has_derivative_transform_within[OF _ \<open>d > 0\<close> \<open>x \<in> X\<close>]) (auto simp: powr_def dest: pos')
 qed
@@ -3158,7 +3160,7 @@ lemma tendsto_exp_limit_sequentially: "(\<lambda>n. (1 + x / n) ^ n) \<longlongl
 proof (rule filterlim_mono_eventually)
   from reals_Archimedean2 [of "\<bar>x\<bar>"] obtain n :: nat where *: "real n > \<bar>x\<bar>" ..
   then have "eventually (\<lambda>n :: nat. 0 < 1 + x / real n) at_top"
-    by (intro eventually_sequentiallyI [of n]) (auto simp: divide_simps)
+    by (intro eventually_sequentiallyI [of n]) (auto simp: field_split_simps)
   then show "eventually (\<lambda>n. (1 + x / n) powr n = (1 + x / n) ^ n) at_top"
     by (rule eventually_mono) (erule powr_realpow)
   show "(\<lambda>n. (1 + x / real n) powr real n) \<longlonglongrightarrow> exp x"
@@ -3636,7 +3638,7 @@ proof -
     then have "x * x * x * x ^ (n * 4) < ?k2 * ?k3 * x * x ^ (n * 4)"
       by (intro mult_strict_right_mono zero_less_power \<open>0 < x\<close>)
     then show "0 < ?f n"
-      by (simp add: divide_simps mult_ac del: mult_Suc)
+      by (simp add: ac_simps divide_less_eq)
 qed
   have sums: "?f sums sin x"
     by (rule sin_paired [THEN sums_group]) simp
@@ -4014,12 +4016,12 @@ lemma sin_le_zero: "pi \<le> x \<Longrightarrow> x < 2 * pi \<Longrightarrow> si
 lemma sin_pi_divide_n_ge_0 [simp]:
   assumes "n \<noteq> 0"
   shows "0 \<le> sin (pi / real n)"
-  by (rule sin_ge_zero) (use assms in \<open>simp_all add: divide_simps\<close>)
+  by (rule sin_ge_zero) (use assms in \<open>simp_all add: field_split_simps\<close>)
 
 lemma sin_pi_divide_n_gt_0:
   assumes "2 \<le> n"
   shows "0 < sin (pi / real n)"
-  by (rule sin_gt_zero) (use assms in \<open>simp_all add: divide_simps\<close>)
+  by (rule sin_gt_zero) (use assms in \<open>simp_all add: field_split_simps\<close>)
 
 text\<open>Proof resembles that of \<open>cos_is_zero\<close> but with \<^term>\<open>pi\<close> for the upper bound\<close>
 lemma cos_total:
@@ -4482,9 +4484,9 @@ lemma sin_int_2pin [simp]: "sin ((2 * pi) * of_int n) = 0"
 lemma sincos_principal_value: "\<exists>y. (- pi < y \<and> y \<le> pi) \<and> (sin y = sin x \<and> cos y = cos x)"
   apply (rule exI [where x="pi - (2 * pi) * frac ((pi - x) / (2 * pi))"])
   apply (auto simp: field_simps frac_lt_1)
-   apply (simp_all add: frac_def divide_simps)
+   apply (simp_all add: frac_def field_simps)
    apply (simp_all add: add_divide_distrib diff_divide_distrib)
-   apply (simp_all add: sin_diff cos_diff mult.assoc [symmetric] cos_integer_2pi sin_integer_2pi)
+   apply (simp_all add: sin_add cos_add mult.assoc [symmetric])
   done
 
 
@@ -4810,11 +4812,11 @@ lemma tan_pos_pi2_le: "0 \<le> x \<Longrightarrow> x < pi/2 \<Longrightarrow> 0 
 
 lemma cos_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> cos x = 1 / sqrt (1 + tan x ^ 2)"
   using cos_gt_zero_pi [of x]
-  by (simp add: divide_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
+  by (simp add: field_split_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
 
 lemma sin_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> sin x = tan x / sqrt (1 + tan x ^ 2)"
   using cos_gt_zero [of "x"] cos_gt_zero [of "-x"]
-  by (force simp: divide_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
+  by (force simp: field_split_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
 
 lemma tan_mono_le: "-(pi/2) < x \<Longrightarrow> x \<le> y \<Longrightarrow> y < pi/2 \<Longrightarrow> tan x \<le> tan y"
   using less_eq_real_def tan_monotone by auto
@@ -6450,8 +6452,23 @@ lemma sinh_ln_real: "x > 0 \<Longrightarrow> sinh (ln x :: real) = (x - inverse 
 lemma cosh_ln_real: "x > 0 \<Longrightarrow> cosh (ln x :: real) = (x + inverse x) / 2"
   by (simp add: cosh_def exp_minus)
 
-lemma tanh_ln_real: "x > 0 \<Longrightarrow> tanh (ln x :: real) = (x ^ 2 - 1) / (x ^ 2 + 1)"
-  by (simp add: tanh_def sinh_ln_real cosh_ln_real divide_simps power2_eq_square)
+lemma tanh_ln_real:
+  "tanh (ln x :: real) = (x ^ 2 - 1) / (x ^ 2 + 1)" if "x > 0"
+proof -
+  from that have "(x * 2 - inverse x * 2) * (x\<^sup>2 + 1) =
+    (x\<^sup>2 - 1) * (2 * x + 2 * inverse x)"
+    by (simp add: field_simps power2_eq_square)
+  moreover have "x\<^sup>2 + 1 > 0"
+    using that by (simp add: ac_simps add_pos_nonneg)
+  moreover have "2 * x + 2 * inverse x > 0"
+    using that by (simp add: add_pos_pos)
+  ultimately have "(x * 2 - inverse x * 2) /
+    (2 * x + 2 * inverse x) =
+    (x\<^sup>2 - 1) / (x\<^sup>2 + 1)"
+    by (simp add: frac_eq_eq)
+  with that show ?thesis
+    by (simp add: tanh_def sinh_ln_real cosh_ln_real)
+qed
 
 lemma has_field_derivative_scaleR_right [derivative_intros]:
   "(f has_field_derivative D) F \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_field_derivative (c *\<^sub>R D)) F"
@@ -6470,7 +6487,7 @@ lemma has_field_derivative_cosh [THEN DERIV_chain2, derivative_intros]:
 lemma has_field_derivative_tanh [THEN DERIV_chain2, derivative_intros]:
   "cosh x \<noteq> 0 \<Longrightarrow> (tanh has_field_derivative 1 - tanh x ^ 2)
                      (at (x :: 'a :: {banach, real_normed_field}))"
-  unfolding tanh_def by (auto intro!: derivative_eq_intros simp: power2_eq_square divide_simps)
+  unfolding tanh_def by (auto intro!: derivative_eq_intros simp: power2_eq_square field_split_simps)
 
 lemma has_derivative_sinh [derivative_intros]:
   fixes g :: "'a \<Rightarrow> ('a :: {banach, real_normed_field})"
@@ -6560,8 +6577,21 @@ lemma cosh_diff: "cosh (x - y) = cosh x * cosh y - sinh x * sinh y"
   by (simp add: sinh_def cosh_def algebra_simps scaleR_conv_of_real exp_add [symmetric])
 
 lemma tanh_add:
-  "cosh x \<noteq> 0 \<Longrightarrow> cosh y \<noteq> 0 \<Longrightarrow> tanh (x + y) = (tanh x + tanh y) / (1 + tanh x * tanh y)"
-  by (simp add: tanh_def sinh_add cosh_add divide_simps)
+  "tanh (x + y) = (tanh x + tanh y) / (1 + tanh x * tanh y)"
+  if "cosh x \<noteq> 0" "cosh y \<noteq> 0"
+proof -
+  have "(sinh x * cosh y + cosh x * sinh y) * (1 + sinh x * sinh y / (cosh x * cosh y)) =
+    (cosh x * cosh y + sinh x * sinh y) * ((sinh x * cosh y + sinh y * cosh x) / (cosh y * cosh x))"
+    using that by (simp add: field_split_simps)
+  also have "(sinh x * cosh y + sinh y * cosh x) / (cosh y * cosh x) = sinh x / cosh x + sinh y / cosh y"
+    using that by (simp add: field_split_simps)
+  finally have "(sinh x * cosh y + cosh x * sinh y) * (1 + sinh x * sinh y / (cosh x * cosh y)) =
+    (sinh x / cosh x + sinh y / cosh y) * (cosh x * cosh y + sinh x * sinh y)"
+    by simp
+  then show ?thesis
+    using that by (auto simp add: tanh_def sinh_add cosh_add eq_divide_eq)
+     (simp_all add: field_split_simps)
+qed
 
 lemma sinh_double: "sinh (2 * x) = 2 * sinh x * cosh x"
   using sinh_add[of x] by simp
@@ -6658,7 +6688,7 @@ proof -
   have "arsinh (-x) = ln (sqrt (x\<^sup>2 + 1) - x)"
     by (simp add: arsinh_real_def)
   also have "sqrt (x^2 + 1) - x = inverse (sqrt (x^2 + 1) + x)"
-    using arsinh_real_aux[of x] by (simp add: divide_simps algebra_simps power2_eq_square)
+    using arsinh_real_aux[of x] by (simp add: field_split_simps algebra_simps power2_eq_square)
   also have "ln \<dots> = -arsinh x"
     using arsinh_real_aux[of x] by (simp add: arsinh_real_def ln_inverse)
   finally show ?thesis .
@@ -6680,7 +6710,7 @@ lemma tanh_real_lt_1: "tanh (x :: real) < 1"
 
 lemma tanh_real_gt_neg1: "tanh (x :: real) > -1"
 proof -
-  have "- cosh x < sinh x" by (simp add: sinh_def cosh_def divide_simps)
+  have "- cosh x < sinh x" by (simp add: sinh_def cosh_def field_split_simps)
   thus ?thesis by (simp add: tanh_def field_simps)
 qed
 
@@ -6700,7 +6730,7 @@ lemma arcosh_cosh_real: "x \<ge> 0 \<Longrightarrow> arcosh (cosh x) = x"
 lemma artanh_tanh_real: "artanh (tanh x) = x"
 proof -
   have "artanh (tanh x) = ln (cosh x * (cosh x + sinh x) / (cosh x * (cosh x - sinh x))) / 2"
-    by (simp add: artanh_def tanh_def divide_simps)
+    by (simp add: artanh_def tanh_def field_split_simps)
   also have "cosh x * (cosh x + sinh x) / (cosh x * (cosh x - sinh x)) =
                (cosh x + sinh x) / (cosh x - sinh x)" by simp
   also have "\<dots> = (exp x)^2"
@@ -6921,7 +6951,7 @@ lemma arsinh_real_has_field_derivative [derivative_intros]:
 proof -
   have pos: "1 + x ^ 2 > 0" by (intro add_pos_nonneg) auto
   from pos arsinh_real_aux[of x] show ?thesis unfolding arsinh_def [abs_def]
-    by (auto intro!: derivative_eq_intros simp: powr_minus powr_half_sqrt divide_simps)
+    by (auto intro!: derivative_eq_intros simp: powr_minus powr_half_sqrt field_split_simps)
 qed
 
 lemma arcosh_real_has_field_derivative [derivative_intros]:
@@ -6932,21 +6962,21 @@ proof -
   from assms have "x + sqrt (x\<^sup>2 - 1) > 0" by (simp add: add_pos_pos)
   thus ?thesis using assms unfolding arcosh_def [abs_def]
     by (auto intro!: derivative_eq_intros
-             simp: powr_minus powr_half_sqrt divide_simps power2_eq_1_iff)
+             simp: powr_minus powr_half_sqrt field_split_simps power2_eq_1_iff)
 qed
 
 lemma artanh_real_has_field_derivative [derivative_intros]:
-  fixes x :: real
-  assumes "abs x < 1"
-  shows   "(artanh has_field_derivative (1 / (1 - x ^ 2))) (at x within A)"
+  "(artanh has_field_derivative (1 / (1 - x ^ 2))) (at x within A)" if
+    "\<bar>x\<bar> < 1" for x :: real
 proof -
-  from assms have "x > -1" "x < 1" by linarith+
+  from that have "- 1 < x" "x < 1" by linarith+
   hence "(artanh has_field_derivative (4 - 4 * x) / ((1 + x) * (1 - x) * (1 - x) * 4))
            (at x within A)" unfolding artanh_def [abs_def]
     by (auto intro!: derivative_eq_intros simp: powr_minus powr_half_sqrt)
   also have "(4 - 4 * x) / ((1 + x) * (1 - x) * (1 - x) * 4) = 1 / ((1 + x) * (1 - x))"
-    by (simp add: divide_simps)
-  also have "(1 + x) * (1 - x) = 1 - x ^ 2" by (simp add: algebra_simps power2_eq_square)
+    using \<open>-1 < x\<close> \<open>x < 1\<close> by (simp add: frac_eq_eq)
+  also have "(1 + x) * (1 - x) = 1 - x ^ 2"
+    by (simp add: algebra_simps power2_eq_square)
   finally show ?thesis .
 qed
 

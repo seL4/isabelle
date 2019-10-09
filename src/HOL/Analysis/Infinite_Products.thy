@@ -1732,7 +1732,7 @@ proof -
       have "norm (?f n) = cmod (z k) ^ n / cmod (1 + of_nat n)"
         by (auto simp: norm_divide norm_mult norm_power)
       also have "\<dots> \<le> cmod (z k) ^ n"
-        by (auto simp: divide_simps mult_le_cancel_left1 in_Reals_norm)
+        by (auto simp: field_split_simps mult_le_cancel_left1 in_Reals_norm)
       also have "\<dots> \<le> (1 / 2) ^ n"
         using N [OF that] by (simp add: power_mono)
       finally show "norm (?f n) \<le> (1 / 2) ^ n" .

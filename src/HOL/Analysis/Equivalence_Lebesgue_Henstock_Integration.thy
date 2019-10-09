@@ -147,7 +147,7 @@ proof (rule cld_measure.borel_measurable_cld)
         then have "x \<in> ball (T X k) (1 / (3 * Suc m))"
           using in_s[OF \<open>(x, k) \<in> s\<close>] by (auto simp: C_def subset_eq dist_commute)
         then have "ball x (1 / (3 * Suc m)) \<subseteq> ball (T X k) (1 / Suc m)"
-          by (rule ball_trans) (auto simp: divide_simps)
+          by (rule ball_trans) (auto simp: field_split_simps)
         with k in_s[OF \<open>(x, k) \<in> s\<close>] have "k \<subseteq> d (T X k)"
           by (auto simp: C_def) }
       then have "d fine ?p"
@@ -1423,7 +1423,7 @@ proof
   then have "negligible (cbox ?p ?q)"
     by (meson \<open>cball a e \<subseteq> S\<close> neg negligible_subset)
   with \<open>e > 0\<close> show False
-    by (simp add: negligible_interval box_eq_empty algebra_simps divide_simps mult_le_0_iff)
+    by (simp add: negligible_interval box_eq_empty algebra_simps field_split_simps mult_le_0_iff)
 qed
 
 lemma negligible_convex_interior:
@@ -1661,7 +1661,7 @@ proof (clarsimp simp: completion.null_sets_outer)
   then have "S \<in> sets lebesgue"
     by blast
   have e22: "0 < e/2 / (2 * B * real DIM('M)) ^ DIM('N)"
-    using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
+    using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: field_split_simps)
   obtain T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable"
                  "measure lebesgue (T - S) < e/2 / (2 * B * DIM('M)) ^ DIM('N)"
     using sets_lebesgue_outer_open [OF \<open>S \<in> sets lebesgue\<close> e22]
@@ -3040,7 +3040,7 @@ next
         have 1: "cbox a b - S \<in> lmeasurable"
           by (simp add: fmeasurable.Diff that)
         have 2: "0 < e / (1 + \<bar>m\<bar>)"
-          using \<open>e > 0\<close> by (simp add: divide_simps abs_add_one_gt_zero)
+          using \<open>e > 0\<close> by (simp add: field_split_simps abs_add_one_gt_zero)
         obtain \<D>
           where "countable \<D>"
             and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
@@ -3075,7 +3075,7 @@ next
         fix e :: real
         assume "e > 0"
         have em: "0 < e / (1 + \<bar>m\<bar>)"
-          using \<open>e > 0\<close> by (simp add: divide_simps abs_add_one_gt_zero)
+          using \<open>e > 0\<close> by (simp add: field_split_simps abs_add_one_gt_zero)
         obtain \<D>
           where "countable \<D>"
             and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
@@ -3163,7 +3163,7 @@ next
             by (metis (no_types) abs_minus_commute mult.commute right_diff_distrib' mm)
         qed
         also have "\<dots> < e"
-          using \<open>e > 0\<close> by (auto simp: divide_simps)
+          using \<open>e > 0\<close> by (cases "m \<ge> 0") (simp_all add: field_simps)
         finally have "\<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> < e" .
         with 1 show ?thesis by auto
       qed
@@ -4138,7 +4138,7 @@ proof -
     show "{m} \<subseteq> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
       using assms by auto
     show "\<forall>i\<in>{k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} - {m}. ?f i = 0"
-      using assms by (auto simp: indicator_def Ints_def abs_le_iff divide_simps)
+      using assms by (auto simp: indicator_def Ints_def abs_le_iff field_split_simps)
   qed
   also have "\<dots> = m/2^n"
     using assms by (auto simp: indicator_def not_less)
@@ -4196,7 +4196,7 @@ proof
     proof -
       define m where "m \<equiv> floor(2^n * (f x))"
       have "1 \<le> \<bar>2^n\<bar> * e"
-        using n N2 \<open>e > 0\<close> less_eq_real_def less_le_trans by (fastforce simp add: divide_simps)
+        using n N2 \<open>e > 0\<close> less_eq_real_def less_le_trans by (fastforce simp add: field_split_simps)
       then have *: "\<lbrakk>x \<le> y; y < x + 1\<rbrakk> \<Longrightarrow> abs(x - y) < \<bar>2^n\<bar> * e" for x y::real
         by linarith
       have "\<bar>2^n\<bar> * \<bar>m/2^n - f x\<bar> = \<bar>2^n * (m/2^n - f x)\<bar>"
@@ -4243,7 +4243,7 @@ proof
           by (metis abs_of_nonneg floor_mono le_floor_iff m_def of_int_0_le_iff power2_eq_square power_mult real_mult_le_cancel_iff1 zero_less_numeral mult.commute zero_less_power)
       qed
       then have "?g n x = m/2^n"
-        by (rule indicator_sum_eq) (auto simp: m_def mult.commute divide_simps)
+        by (rule indicator_sum_eq) (auto simp add: m_def field_split_simps, linarith)
       then have "norm (?g n x - f x) = norm (m/2^n - f x)"
         by simp
       also have "\<dots> < e"
@@ -4779,7 +4779,7 @@ proof -
     proof -
       have "1 / real (max i j) < \<delta>"
         using j \<open>j \<noteq> 0\<close> \<open>0 < \<delta>\<close>
-        by (auto simp: divide_simps max_mult_distrib_left of_nat_max)
+        by (auto simp: field_split_simps max_mult_distrib_left of_nat_max)
     then have "norm (y - x) < \<delta>"
       using less by linarith
     with \<delta> \<open>y \<in> S\<close> have le: "norm (f y - f x - f' x (y - x)) \<le> B * norm (y - x) - norm (y - x)/i"
@@ -4789,7 +4789,7 @@ proof -
       using norm_triangle_ineq3 [of "f - f'" y] by simp
     show ?thesis
       apply (rule * [OF le B])
-      using \<open>i \<noteq> 0\<close> \<open>j \<noteq> 0\<close> by (simp add: divide_simps max_mult_distrib_left of_nat_max less_max_iff_disj)
+      using \<open>i \<noteq> 0\<close> \<open>j \<noteq> 0\<close> by (simp add: field_split_simps max_mult_distrib_left of_nat_max less_max_iff_disj)
   qed
   with \<open>x \<in> S\<close> \<open>i \<noteq> 0\<close> \<open>j \<noteq> 0\<close> show "\<exists>n\<in>{0<..}. x \<in> U n"
     by (rule_tac x="max i j" in bexI) (auto simp: field_simps U_def less_max_iff_disj)

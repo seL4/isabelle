@@ -192,7 +192,7 @@ proof
     have nbc: "norm (b - c) + e > 0" using \<open>e > 0\<close>
       by (metis add.commute le_less_trans less_add_same_cancel2 norm_ge_zero)
     then have [simp]: "d \<noteq> c" using False scaleR_cancel_left [of "1 + (e / norm (b - c))" b c]
-      by (simp add: algebra_simps d_def) (simp add: divide_simps)
+      by (simp add: algebra_simps d_def) (simp add: field_split_simps)
     have [simp]: "((e - e * e / (e + norm (b - c))) / norm (b - c)) = (e / (e + norm (b - c)))"
       using False nbc
       by (simp add: divide_simps) (simp add: algebra_simps)
@@ -287,7 +287,7 @@ lemma affine_diff_divide:
 proof -
   have "inverse(k) *\<^sub>R (x - y) = (1 - inverse k) *\<^sub>R inverse(1 - k) *\<^sub>R y + inverse(k) *\<^sub>R x"
     using assms
-    by (simp add: algebra_simps) (simp add: scaleR_left_distrib [symmetric] divide_simps)
+    by (simp add: algebra_simps) (simp add: scaleR_left_distrib [symmetric] field_split_simps)
   then show ?thesis
     using \<open>affine S\<close> xy by (auto simp: affine_alt)
 qed
@@ -1316,7 +1316,7 @@ proof -
     apply (rule_tac x="u/x" in exI)
     apply (rule_tac x="v/x" in exI)
     apply (rule_tac x="w/x" in exI)
-    using x apply (auto simp: algebra_simps divide_simps)
+    using x apply (auto simp: algebra_simps field_split_simps)
     done
   ultimately show ?thesis by force
 qed
@@ -1445,14 +1445,14 @@ next
               have "x = (((1 - v) * ub) *\<^sub>R b + (v * uc) *\<^sub>R c) /\<^sub>R ux"
                 by (metis \<open>ux \<noteq> 0\<close> uxx mult.commute right_inverse scaleR_one scaleR_scaleR)
               also have "... = (1 - v * uc / ux) *\<^sub>R b + (v * uc / ux) *\<^sub>R c"
-                using \<open>ux \<noteq> 0\<close> equx apply (auto simp: algebra_simps divide_simps)
+                using \<open>ux \<noteq> 0\<close> equx apply (auto simp: algebra_simps field_split_simps)
                 by (metis add.commute add_diff_eq add_divide_distrib diff_add_cancel scaleR_add_left)
               finally have "x = (1 - v * uc / ux) *\<^sub>R b + (v * uc / ux) *\<^sub>R c" .
               then have "x \<in> open_segment b c"
                 apply (simp add: in_segment \<open>b \<noteq> c\<close>)
                 apply (rule_tac x="(v * uc) / ux" in exI)
                 using \<open>0 \<le> ux\<close> \<open>ux \<noteq> 0\<close> \<open>0 < uc\<close> \<open>0 < v\<close> \<open>0 < ub\<close> \<open>v < 1\<close> equx
-                apply (force simp: algebra_simps divide_simps)
+                apply (force simp: algebra_simps field_split_simps)
                 done
               then show ?thesis
                 by (rule face_ofD [OF F _ b c \<open>x \<in> F\<close>])
@@ -1841,7 +1841,7 @@ proof -
     also have "... = \<xi> * norm (x - z)"
       using \<open>e > 0\<close> by (simp add: \<xi>_def)
     also have "... < e"
-      using \<open>z \<noteq> x\<close> \<open>e > 0\<close> by (simp add: \<xi>_def min_def divide_simps norm_minus_commute)
+      using \<open>z \<noteq> x\<close> \<open>e > 0\<close> by (simp add: \<xi>_def min_def field_split_simps norm_minus_commute)
     finally have lte: "norm (\<xi> *\<^sub>R x - \<xi> *\<^sub>R z) < e" .
     have \<xi>_aff: "\<xi> *\<^sub>R z + (1 - \<xi>) *\<^sub>R x \<in> affine hull S"
       by (metis \<open>x \<in> S\<close> add.commute affine_affine_hull diff_add_cancel hull_inc mem_affine zaff)
@@ -2034,7 +2034,7 @@ next
     define w where "w = (1 - l) *\<^sub>R x + l *\<^sub>R z"
     have "0 < l" "l < 1"
       using able xltz \<open>b h < a h \<bullet> z\<close> \<open>h \<in> F\<close>
-      by (auto simp: l_def divide_simps)
+      by (auto simp: l_def field_split_simps)
     have awlt: "a i \<bullet> w < b i" if "i \<in> F" "i \<noteq> h" for i
     proof -
       have "(1 - l) * (a i \<bullet> x) < (1 - l) * b i"
@@ -2116,7 +2116,7 @@ next
               done
             then show ?thesis
               using \<open>0 < inff\<close> awlt [OF that] mult_strict_left_mono
-              by (fastforce simp add: algebra_simps divide_simps split: if_split_asm)
+              by (fastforce simp add: algebra_simps field_split_simps split: if_split_asm)
           next
             case False
             with \<open>0 < inff\<close> have "inff * (a j \<bullet> y - a j \<bullet> w) \<le> 0"
@@ -3002,7 +3002,7 @@ proof -
     apply (simp add: C_def)
     apply (erule rev_finite_subset)
     using \<open>0 < e\<close>
-    apply (auto simp: divide_simps)
+    apply (auto simp: field_split_simps)
     done
   then have "finite I"
     by (simp add: I_def)

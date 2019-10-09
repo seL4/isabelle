@@ -16,8 +16,8 @@ begin
 subsection \<open>Semirings and rings\<close>
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes distrib_right [algebra_simps]: "(a + b) * c = a * c + b * c"
-  assumes distrib_left [algebra_simps]: "a * (b + c) = a * b + a * c"
+  assumes distrib_right [algebra_simps, algebra_split_simps]: "(a + b) * c = a * c + b * c"
+  assumes distrib_left [algebra_simps, algebra_split_simps]: "a * (b + c) = a * b + a * c"
 begin
 
 text \<open>For the \<open>combine_numerals\<close> simproc\<close>
@@ -250,14 +250,16 @@ end
 
 class comm_semiring_1_cancel =
   comm_semiring + cancel_comm_monoid_add + zero_neq_one + comm_monoid_mult +
-  assumes right_diff_distrib' [algebra_simps]: "a * (b - c) = a * b - a * c"
+  assumes right_diff_distrib' [algebra_simps, algebra_split_simps]:
+    "a * (b - c) = a * b - a * c"
 begin
 
 subclass semiring_1_cancel ..
 subclass comm_semiring_0_cancel ..
 subclass comm_semiring_1 ..
 
-lemma left_diff_distrib' [algebra_simps]: "(b - c) * a = b * a - c * a"
+lemma left_diff_distrib' [algebra_simps, algebra_split_simps]:
+  "(b - c) * a = b * a - c * a"
   by (simp add: algebra_simps)
 
 lemma dvd_add_times_triv_left_iff [simp]: "a dvd c * a + b \<longleftrightarrow> a dvd b"
@@ -331,10 +333,12 @@ lemma minus_mult_minus [simp]: "- a * - b = a * b"
 lemma minus_mult_commute: "- a * b = a * - b"
   by simp
 
-lemma right_diff_distrib [algebra_simps]: "a * (b - c) = a * b - a * c"
+lemma right_diff_distrib [algebra_simps, algebra_split_simps]:
+  "a * (b - c) = a * b - a * c"
   using distrib_left [of a b "-c "] by simp
 
-lemma left_diff_distrib [algebra_simps]: "(a - b) * c = a * c - b * c"
+lemma left_diff_distrib [algebra_simps, algebra_split_simps]:
+  "(a - b) * c = a * c - b * c"
   using distrib_right [of a "- b" c] by simp
 
 lemmas ring_distribs = distrib_left distrib_right left_diff_distrib right_diff_distrib
@@ -646,7 +650,7 @@ setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOM
 context semiring
 begin
 
-lemma [field_simps]:
+lemma [field_simps, field_split_simps]:
   shows distrib_left_NO_MATCH: "NO_MATCH (x div y) a \<Longrightarrow> a * (b + c) = a * b + a * c"
     and distrib_right_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a + b) * c = a * c + b * c"
   by (rule distrib_left distrib_right)+
@@ -656,7 +660,7 @@ end
 context ring
 begin
 
-lemma [field_simps]:
+lemma [field_simps, field_split_simps]:
   shows left_diff_distrib_NO_MATCH: "NO_MATCH (x div y) c \<Longrightarrow> (a - b) * c = a * c - b * c"
     and right_diff_distrib_NO_MATCH: "NO_MATCH (x div y) a \<Longrightarrow> a * (b - c) = a * b - a * c"
   by (rule left_diff_distrib right_diff_distrib)+
@@ -2176,17 +2180,21 @@ proof
     by (simp add: neq_iff)
 qed
 
-lemma zero_less_mult_iff [sign_simps]: "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
+lemma zero_less_mult_iff [algebra_split_simps, field_split_simps]:
+  "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
   by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
      (auto simp add: mult_neg_neg not_less le_less dest: zero_less_mult_pos zero_less_mult_pos2)
 
-lemma zero_le_mult_iff [sign_simps]: "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
+lemma zero_le_mult_iff [algebra_split_simps, field_split_simps]:
+  "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
   by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
 
-lemma mult_less_0_iff [sign_simps]: "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
+lemma mult_less_0_iff [algebra_split_simps, field_split_simps]:
+  "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
   using zero_less_mult_iff [of "- a" b] by auto
 
-lemma mult_le_0_iff [sign_simps]: "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
+lemma mult_le_0_iff [algebra_split_simps, field_split_simps]:
+  "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
   using zero_le_mult_iff [of "- a" b] by auto
 
 text \<open>

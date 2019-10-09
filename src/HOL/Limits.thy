@@ -285,7 +285,7 @@ proof
   with Bfun_const have "Bseq (\<lambda>x. inverse c * (c * f x))"
     by (rule Bseq_mult)
   with \<open>c \<noteq> 0\<close> show "Bseq f"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
 qed (intro Bseq_mult Bfun_const)
 
 lemma Bseq_subseq: "Bseq f \<Longrightarrow> Bseq (\<lambda>x. f (g x))"

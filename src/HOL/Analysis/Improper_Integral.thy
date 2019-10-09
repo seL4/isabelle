@@ -725,7 +725,7 @@ next
     case False
     have prod_if: "(\<Prod>k\<in>Basis \<inter> - {i}. f k) = (\<Prod>k\<in>Basis. f k) / f i" if "f i \<noteq> (0::real)" for f
       using that mk_disjoint_insert [OF i]
-      apply (clarsimp simp add: divide_simps)
+      apply (clarsimp simp add: field_split_simps)
       by (metis Int_insert_left_if0 finite_Basis finite_insert le_iff_inf mult.commute order_refl prod.insert subset_Compl_singleton)
     have abc: "a \<bullet> i < c" "c < b \<bullet> i"
       using False assms by auto
@@ -733,7 +733,7 @@ next
                   \<le> content(cbox a b') / (c - a \<bullet> i)"
               "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
                  \<le> content(cbox a' b) / (b \<bullet> i - c)"
-      using lec gec by (simp_all add: divide_simps mult.commute)
+      using lec gec by (simp_all add: field_split_simps mult.commute)
     moreover
     have "(\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
           \<le> (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K) +
@@ -780,7 +780,7 @@ next
           \<le> 2 * content (cbox a b) / (b \<bullet> i - a \<bullet> i)"
       by linarith
     then show ?thesis
-      using abc by (simp add: divide_simps mult.commute)
+      using abc by (simp add: field_split_simps mult.commute)
   qed
 qed
 
@@ -856,8 +856,8 @@ next
   have "gauge (\<lambda>x. ball x
                     (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b))))"
     using \<open>0 < content (cbox a b)\<close> \<open>0 < \<epsilon>\<close> a_less_b
-    apply (auto simp: gauge_def divide_simps mult_less_0_iff zero_less_mult_iff add_nonneg_eq_0_iff finite_less_Inf_iff)
-    apply (meson add_nonneg_nonneg mult_nonneg_nonneg norm_ge_zero not_less zero_le_numeral)
+    apply (auto simp: gauge_def field_split_simps mult_less_0_iff zero_less_mult_iff add_nonneg_eq_0_iff finite_less_Inf_iff)
+    apply (meson add_increasing measure_nonneg mult_nonneg_nonneg norm_ge_zero not_le zero_le_numeral)
     done
   then have "gauge \<gamma>"
     unfolding \<gamma>_def using \<open>gauge \<gamma>0\<close> gauge_Int by auto
@@ -936,7 +936,7 @@ next
               by simp
             also have "... < \<epsilon> * (b \<bullet> i - a \<bullet> i) / dist u v / (4 * content (cbox a b))"
               using duv dist_uv contab_gt0
-              apply (simp add: divide_simps algebra_simps mult_less_0_iff zero_less_mult_iff split: if_split_asm)
+              apply (simp add: field_split_simps algebra_simps mult_less_0_iff zero_less_mult_iff split: if_split_asm)
               by (meson add_nonneg_nonneg linorder_not_le measure_nonneg mult_nonneg_nonneg norm_ge_zero zero_le_numeral)
             also have "... = \<epsilon> * (b \<bullet> i - a \<bullet> i) / norm (v - u) / (4 * content (cbox a b))"
               by (simp add: dist_norm norm_minus_commute)
@@ -953,7 +953,7 @@ next
             using mult_left_mono by fastforce
           also have "... = \<epsilon>/4 * (b \<bullet> i - a \<bullet> i) / content (cbox a b) *
                            content K / ?\<Delta>"
-            by (simp add: divide_simps)
+            by (simp add: field_split_simps)
           finally show ?thesis .
         qed
       qed
@@ -1533,7 +1533,7 @@ proof -
               using n \<open>n \<noteq> 0\<close> emin [OF \<open>i \<in> Basis\<close>]
               by (simp_all add: inverse_eq_divide)
             show "1 / real (Suc m) \<le> 1 / real n"
-              using \<open>n \<noteq> 0\<close> \<open>m \<ge> n\<close> by (simp add: divide_simps)
+              using \<open>n \<noteq> 0\<close> \<open>m \<ge> n\<close> by (simp add: field_split_simps)
           qed
           then show ?thesis by (simp add: mem_box)
         qed
@@ -1684,7 +1684,7 @@ next
           with N have "k > ((b - a) \<bullet> i) / ((x - a) \<bullet> i)"
             using \<open>N \<le> k\<close> by linarith
           with x that show ?thesis
-            by (auto simp: mem_box algebra_simps divide_simps)
+            by (auto simp: mem_box algebra_simps field_split_simps)
         qed
         have bx_gt: "(b - x) \<bullet> i > ((b - a) \<bullet> i) / k" if "i \<in> Basis" for i
         proof -
@@ -1696,7 +1696,7 @@ next
           with N have "k > ((b - a) \<bullet> i) / ((b - x) \<bullet> i)"
             using \<open>N \<le> k\<close> by linarith
           with x that show ?thesis
-            by (auto simp: mem_box algebra_simps divide_simps)
+            by (auto simp: mem_box algebra_simps field_split_simps)
         qed
         show "x \<in> cbox (a + (b - a) /\<^sub>R k) (b - (b - a) /\<^sub>R k)"
           using that \<Delta> \<open>k > 0\<close>
@@ -1883,7 +1883,7 @@ proof -
   then obtain m::nat where m: "floor(n * f x) = int m"
     using nonneg_int_cases zero_le_floor by blast
   then have kn: "real k / real n \<le> f x \<longleftrightarrow> k \<le> m" for k
-    using \<open>n \<noteq> 0\<close> by (simp add: divide_simps mult.commute) linarith
+    using \<open>n \<noteq> 0\<close> by (simp add: field_split_simps mult.commute) linarith
   then have "Suc n / real n \<le> f x \<longleftrightarrow> Suc n \<le> m"
     by blast
   have "real n * f x \<le> real n"
@@ -1894,7 +1894,7 @@ proof -
     by (subst sum.inter_restrict) (auto simp: kn)
   also have "\<dots> < inverse n"
     using \<open>m \<le> n\<close> \<open>n \<noteq> 0\<close> m
-    by (simp add: min_absorb2 divide_simps mult.commute) linarith
+    by (simp add: min_absorb2 field_split_simps mult.commute) linarith
   finally show ?thesis .
 qed
 
@@ -2156,7 +2156,7 @@ proof -
                 by (metis Suc_n_not_le_n non0)
             qed (use x 01 non0 in auto)
             also have "\<dots> \<le> inverse N"
-              using seq_suble [OF \<sigma>] \<open>N \<noteq> 0\<close> non0 that by (auto intro: order_trans simp: divide_simps)
+              using seq_suble [OF \<sigma>] \<open>N \<noteq> 0\<close> non0 that by (auto intro: order_trans simp: field_split_simps)
             finally show ?thesis
               by linarith
           qed
@@ -2222,7 +2222,7 @@ proof -
       proof (subst has_integral_cong)
         show "g x * f x - g a * f x = (g b - g a) * h x *\<^sub>R f x"
           if "x \<in> {a..b}" for x
-          using 1 that by (simp add: h_def divide_simps algebra_simps)
+          using 1 that by (simp add: h_def field_split_simps algebra_simps)
         show "((\<lambda>x. (g b - g a) * h x *\<^sub>R f x) has_integral (g b - g a) * integral {c..b} f) {a..b}"
           using has_integral_mult_right [OF c, of "g b - g a"] .
       qed

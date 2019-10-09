@@ -305,7 +305,7 @@ proof (induct n)
     case (Float m e)
     hence "0 < m"
       using assms
-      by (auto simp: sign_simps)
+      by (auto simp: algebra_split_simps)
     hence "0 < sqrt m" by auto
 
     have int_nat_bl: "(nat (bitlen m)) = bitlen m"

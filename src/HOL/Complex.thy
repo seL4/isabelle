@@ -92,8 +92,7 @@ lemma Re_divide: "Re (x / y) = (Re x * Re y + Im x * Im y) / ((Re y)\<^sup>2 + (
   by (simp add: divide_complex_def add_divide_distrib)
 
 lemma Im_divide: "Im (x / y) = (Im x * Re y - Re x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2)"
-  unfolding divide_complex_def times_complex.sel inverse_complex.sel
-  by (simp add: divide_simps)
+  by (simp add: divide_complex_def diff_divide_distrib)
 
 lemma Complex_divide:
     "(x / y) = Complex ((Re x * Re y + Im x * Im y) / ((Re y)\<^sup>2 + (Im y)\<^sup>2))
@@ -184,10 +183,10 @@ lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
   by (simp add: Im_divide sqr_conv_mult)
 
 lemma Re_divide_of_nat [simp]: "Re (z / of_nat n) = Re z / of_nat n"
-  by (cases n) (simp_all add: Re_divide divide_simps power2_eq_square del: of_nat_Suc)
+  by (cases n) (simp_all add: Re_divide field_split_simps power2_eq_square del: of_nat_Suc)
 
 lemma Im_divide_of_nat [simp]: "Im (z / of_nat n) = Im z / of_nat n"
-  by (cases n) (simp_all add: Im_divide divide_simps power2_eq_square del: of_nat_Suc)
+  by (cases n) (simp_all add: Im_divide field_split_simps power2_eq_square del: of_nat_Suc)
 
 lemma of_real_Re [simp]: "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
   by (auto simp: Reals_def)
@@ -397,7 +396,7 @@ lemma complex_abs_le_norm: "\<bar>Re z\<bar> + \<bar>Im z\<bar> \<le> sqrt 2 * n
   done
 
 lemma complex_unit_circle: "z \<noteq> 0 \<Longrightarrow> (Re z / cmod z)\<^sup>2 + (Im z / cmod z)\<^sup>2 = 1"
-  by (simp add: norm_complex_def divide_simps complex_eq_iff)
+  by (simp add: norm_complex_def complex_eq_iff power2_eq_square add_divide_distrib [symmetric])
 
 
 text \<open>Properties of complex signum.\<close>
@@ -1043,7 +1042,8 @@ proof (intro conjI)
     then obtain m :: int where "2 * pi * (real k - real l) / real n = real_of_int m * 2 * pi"
       by (subst (asm) cos_one_2pi_int) blast
     hence "real_of_int (int k - int l) = real_of_int (m * int n)"
-      unfolding of_int_diff of_int_mult using assms by (simp add: divide_simps)
+      unfolding of_int_diff of_int_mult using assms
+      by (simp add: nonzero_divide_eq_eq)
     also note of_int_eq_iff
     finally have *: "abs m * n = abs (int k - int l)" by (simp add: abs_mult)
     also have "\<dots> < int n" using kl by linarith

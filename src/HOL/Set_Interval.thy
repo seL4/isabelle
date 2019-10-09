@@ -2247,7 +2247,7 @@ lemma sum_gp0:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
   using sum_gp_basic[of x n]
-  by (simp add: mult.commute divide_simps)
+  by (simp add: mult.commute field_split_simps)
 
 lemma sum_power_add:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -2264,7 +2264,7 @@ lemma sum_gp_offset:
 lemma sum_gp_strict:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
-  by (induct n) (auto simp: algebra_simps divide_simps)
+  by (induct n) (auto simp: algebra_simps field_split_simps)
 
 
 subsubsection \<open>The formulae for arithmetic sums\<close>

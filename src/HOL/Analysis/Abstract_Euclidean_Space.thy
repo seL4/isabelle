@@ -270,7 +270,7 @@ proof -
       done
   next
     have 1: "\<And>x i. \<lbrakk> i \<le> n; x i \<noteq> 0\<rbrakk> \<Longrightarrow> (\<Sum>i\<le>n. (x i / sqrt (\<Sum>j\<le>n. (x j)\<^sup>2))\<^sup>2) = 1"
-      by (force simp: sum_nonneg sum_nonneg_eq_0_iff divide_simps simp flip: sum_divide_distrib)
+      by (force simp: sum_nonneg sum_nonneg_eq_0_iff field_split_simps simp flip: sum_divide_distrib)
     have cm: "continuous_map ?Y (nsphere n) (\<lambda>x i. x i / sqrt (\<Sum>j\<le>n. (x j)\<^sup>2))"
       unfolding Euclidean_space_def nsphere subtopology_subtopology continuous_map_in_subtopology
     proof (intro continuous_intros conjI)
@@ -390,7 +390,7 @@ proof -
     have 2: "(?g \<circ> ?h) (0, x) = f x" if "x \<in> topspace (nsphere p)" for x
       using that f1 by simp
     have 3: "(?g \<circ> ?h) (1, x) = (\<lambda>i. - a i)" for x
-      using a by (force simp: divide_simps nsphere)
+      using a by (force simp: field_split_simps nsphere)
     then show "homotopic_with (\<lambda>x. True) (nsphere p) (nsphere p) f (\<lambda>x. (\<lambda>i. - a i))"
       by (force simp: homotopic_with intro: 1 2 3)
   qed

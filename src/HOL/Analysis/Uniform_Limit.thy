@@ -596,7 +596,7 @@ proof (rule uniform_limitI)
       using \<open>e > 0\<close> that b [OF \<open>y \<in> S\<close>] apply (simp add: power2_eq_square)
       by (metis \<open>b > 0\<close> less_eq_real_def mult.left_commute mult_mono')
     finally show ?thesis
-      by (auto simp: dist_norm divide_simps norm_mult norm_divide)
+      by (auto simp: dist_norm field_split_simps norm_mult norm_divide)
   qed
   have "\<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < b/2"
     using uniform_limitD [OF f, of "b/2"] by (simp add: \<open>b > 0\<close>)

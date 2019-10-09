@@ -595,7 +595,7 @@ proof (safe, simp)
     have "?d \<le> e/2/(L + 1)" by simp
     also have "(L + 1) * \<dots> \<le> e / 2"
       using \<open>0 < e\<close> \<open>L \<ge> 0\<close>
-      by (auto simp: divide_simps)
+      by (auto simp: field_split_simps)
     finally have le1: "(L + 1) * dist y b < e / 2" using \<open>L \<ge> 0\<close> by simp
 
     have "dist x a \<le> dist (x, y) (a, b)"
@@ -684,7 +684,7 @@ proof -
       from this elim d[of "rx (ry (rt n))"]
       have "\<dots> < dist (f (?t n) (?y n)) (f (?t n) (?x n)) / rx (ry (rt (n)))"
         using lx'(2) ly'(2) lt'(2) \<open>0 < rx _\<close>
-        by (auto simp add: divide_simps algebra_simps strict_mono_def)
+        by (auto simp add: field_split_simps algebra_simps strict_mono_def)
       also have "\<dots> \<le> diameter ?S / n"
         by (force intro!: \<open>0 < n\<close> strict_mono_def xy diameter_bounded_bound frac_le
           compact_imp_bounded compact t

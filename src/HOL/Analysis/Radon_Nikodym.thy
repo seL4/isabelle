@@ -89,7 +89,7 @@ proof -
     show "summable (\<lambda>n. (\<integral>x. norm ((1 / 2) ^ Suc n * indicator (A n) x / (1 + Sigma_Algebra.measure M (A n))) \<partial>M))"
       apply (rule summable_comparison_test'[of "\<lambda>n. (1/2)^(Suc n)" 0], auto)
       using power_half_series summable_def apply auto[1]
-      apply (auto simp add: divide_simps) using measure_nonneg[of M] not_less by fastforce
+      apply (auto simp add: field_split_simps) using measure_nonneg[of M] not_less by fastforce
   qed
 
   define f where "f = (\<lambda>x. if x \<in> space M then g x else 1)"

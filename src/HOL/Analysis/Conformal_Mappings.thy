@@ -39,7 +39,7 @@ proof -
   define a where "a = (2 * pi)/(fact n)"
   have "0 < a"  by (simp add: a_def)
   have "B0/r^(Suc n)*2 * pi * r = a*((fact n)*B0/r^n)"
-    using \<open>0 < r\<close> by (simp add: a_def divide_simps)
+    using \<open>0 < r\<close> by (simp add: a_def field_split_simps)
   have der_dif: "(deriv ^^ n) (\<lambda>w. f w - y) z = (deriv ^^ n) f z"
     using \<open>0 < r\<close> \<open>0 < n\<close>
     by (auto simp: higher_deriv_diff [OF holf holomorphic_on_const])
@@ -123,7 +123,7 @@ next
     then have wge: "fact k * B / cmod ((deriv ^^ k) f 0) < norm w"
       by (metis norm_of_real w_def)
     then have "fact k * B / norm w < cmod ((deriv ^^ k) f 0)"
-      using False by (simp add: divide_simps mult.commute split: if_split_asm)
+      using False by (simp add: field_split_simps mult.commute split: if_split_asm)
     also have "... \<le> fact k * (B * norm w ^ n) / norm w ^ k"
       apply (rule Cauchy_inequality)
          using holf holomorphic_on_subset apply force
@@ -132,7 +132,7 @@ next
        by (metis nof wgeA dist_0_norm dist_norm)
     also have "... = fact k * (B * 1 / cmod w ^ (k-n))"
       apply (simp only: mult_cancel_left times_divide_eq_right [symmetric])
-      using \<open>k>n\<close> \<open>w \<noteq> 0\<close> \<open>0 < B\<close> apply (simp add: divide_simps semiring_normalization_rules)
+      using \<open>k>n\<close> \<open>w \<noteq> 0\<close> \<open>0 < B\<close> apply (simp add: field_split_simps semiring_normalization_rules)
       done
     also have "... = fact k * B / cmod w ^ (k-n)"
       by simp
@@ -862,7 +862,7 @@ proof -
     have h0: "(h has_field_derivative 0) (at \<xi>)"
       apply (simp add: h_def has_field_derivative_iff)
       apply (rule Lim_transform_within [OF that, of 1])
-      apply (auto simp: divide_simps power2_eq_square)
+      apply (auto simp: field_split_simps power2_eq_square)
       done
     have holh: "h holomorphic_on S"
     proof (simp add: holomorphic_on_def, clarify)
@@ -952,7 +952,7 @@ next
       have "cmod (f z) \<le> cmod z ^ n / B" if "2/e \<le> cmod z" for z
       proof -
         have ize: "inverse z \<in> ball 0 e - {0}" using that \<open>0 < e\<close>
-          by (auto simp: norm_divide divide_simps algebra_simps)
+          by (auto simp: norm_divide field_split_simps algebra_simps)
         then have [simp]: "z \<noteq> 0" and izr: "inverse z \<in> ball 0 r - {0}" using  \<open>e \<le> r\<close>
           by auto
         then have [simp]: "f z \<noteq> 0"
@@ -960,7 +960,7 @@ next
         have [simp]: "f z = inverse (g (inverse z))"
           using izr geq [of "inverse z"] by simp
         show ?thesis using ize leg [of "inverse z"]  \<open>0 < B\<close>  \<open>0 < e\<close>
-          by (simp add: divide_simps norm_divide algebra_simps)
+          by (simp add: field_split_simps norm_divide algebra_simps)
       qed
       then show ?thesis
         apply (rule_tac a = "\<lambda>k. (deriv ^^ k) f 0 / (fact k)" and n=n in that)
@@ -1852,7 +1852,7 @@ proof -
           apply (rule Le1) using r x \<open>0 < r\<close> by simp
         also have "... \<le> norm (x *\<^sub>R z) / (r - norm z) * C"
           using r x \<open>0 < r\<close>
-          apply (simp add: divide_simps)
+          apply (simp add: field_split_simps)
           by (simp add: \<open>0 < C\<close> mult.assoc mult_left_le_one_le ordered_comm_semiring_class.comm_mult_left_mono)
         finally have "norm (deriv f (x *\<^sub>R z) - deriv f 0) * norm z \<le> norm (x *\<^sub>R z)  / (r - norm z) * C * norm z"
           by (rule mult_right_mono) simp
@@ -1994,7 +1994,7 @@ proof -
     then have "norm (deriv f y) * abs (r - norm (y - a)) \<le> norm (deriv f p) * abs (r - norm (p - a))"
       by (simp only: dist_norm g_def norm_mult norm_of_real)
     with that \<open>norm (p - a) < r\<close> show ?thesis
-      by (simp add: dist_norm divide_simps)
+      by (simp add: dist_norm field_split_simps)
   qed
   have le_norm_dfp: "r / (r - norm (p - a)) \<le> norm (deriv f p)"
     using gen_le_dfp [of a] \<open>r > 0\<close> by auto
@@ -3044,7 +3044,7 @@ proof -
     by (intro tendsto_mult_filterlim_at_infinity[of _ "f z"]
                  filterlim_compose[OF filterlim_inverse_at_infinity])+
        (insert assms, auto simp: isCont_def)
-  thus ?thesis by (simp add: divide_simps is_pole_def)
+  thus ?thesis by (simp add: field_split_simps is_pole_def)
 qed
 
 lemma is_pole_basic:
@@ -3526,7 +3526,7 @@ proof -
         apply (elim filterlim_transform_within[OF _ _ \<open>r1>0\<close>],simp)
         apply (subst fg_times,simp add:dist_commute)
         apply (subst powr_of_int)
-        using that by (auto simp add:divide_simps)
+        using that by (auto simp add:field_split_simps)
       then show ?thesis unfolding not_essential_def fg_def by auto
     qed
     ultimately show ?thesis unfolding not_essential_def fg_def by fastforce
@@ -4573,7 +4573,7 @@ proof -
   have "eventually (\<lambda>w. w \<noteq> z) (at z)"
     by (auto simp: eventually_at_filter)
   hence "eventually (\<lambda>w. ((f w - f z) / (w - z)) / ((g w - g z) / (w - z)) = f w / g w) (at z)"
-    by eventually_elim (simp add: assms divide_simps)
+    by eventually_elim (simp add: assms field_split_simps)
   moreover have "((\<lambda>w. ((f w - f z) / (w - z)) / ((g w - g z) / (w - z))) \<longlongrightarrow> f' / g') (at z)"
     by (intro tendsto_divide has_field_derivativeD assms)
   ultimately have "((\<lambda>w. f w / g w) \<longlongrightarrow> f' / g') (at z)"
@@ -4654,7 +4654,7 @@ proof -
       show "(g has_field_derivative g') (at z)" by fact
     qed (insert assms, auto)
     then show "((\<lambda>w. (f w / g w) * (w - z)) \<longlongrightarrow> f z / g') (at z)"
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
   qed
 qed
 

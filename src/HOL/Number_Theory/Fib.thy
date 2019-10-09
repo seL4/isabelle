@@ -200,8 +200,10 @@ proof -
     by (rule LIMSEQ_power_zero) (simp_all add: \<phi>_def \<psi>_def field_simps add_pos_pos)
   then have "(\<lambda>n. 1 - (\<psi> / \<phi>) ^ n) \<longlonglongrightarrow> 1 - 0"
     by (intro tendsto_diff tendsto_const)
-  with * show ?thesis
-    by (simp add: divide_simps fib_closed_form [folded \<phi>_def \<psi>_def])
+  with * have "(\<lambda>n. (\<phi> ^ n - \<psi> ^ n) / \<phi> ^ n) \<longlonglongrightarrow> 1"
+    by (simp add: field_simps)
+  then show ?thesis
+    by (simp add: fib_closed_form \<phi>_def \<psi>_def)
 qed
 
 

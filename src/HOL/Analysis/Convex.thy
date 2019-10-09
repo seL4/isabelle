@@ -988,7 +988,7 @@ proof (rule convex_on_subset[OF _ assms], intro convex_on_realI[of _ _ "\<lambda
   assume "u \<in> {0<..}" "v \<in> {0<..}" "u \<le> v"
   with assms show "-inverse (u^2) \<le> -inverse (v^2)"
     by (intro le_imp_neg_le le_imp_inverse_le power_mono) (simp_all)
-qed (insert assms, auto intro!: derivative_eq_intros simp: divide_simps power2_eq_square)
+qed (insert assms, auto intro!: derivative_eq_intros simp: field_split_simps power2_eq_square)
 
 lemma convex_onD_Icc':
   assumes "convex_on {x..y} f" "c \<in> {x..y}"
@@ -999,7 +999,7 @@ proof (cases x y rule: linorder_cases)
   then have d: "d > 0"
     by (simp add: d_def)
   from assms(2) less have A: "0 \<le> (c - x) / d" "(c - x) / d \<le> 1"
-    by (simp_all add: d_def divide_simps)
+    by (simp_all add: d_def field_split_simps)
   have "f c = f (x + (c - x) * 1)"
     by simp
   also from less have "1 = ((y - x) / d)"
@@ -1022,7 +1022,7 @@ proof (cases x y rule: linorder_cases)
   then have d: "d > 0"
     by (simp add: d_def)
   from assms(2) less have A: "0 \<le> (y - c) / d" "(y - c) / d \<le> 1"
-    by (simp_all add: d_def divide_simps)
+    by (simp_all add: d_def field_split_simps)
   have "f c = f (y - (y - c) * 1)"
     by simp
   also from less have "1 = ((y - x) / d)"

@@ -258,7 +258,7 @@ lemma ln_inverse_approx_le:
   shows   "ln (x + a) - ln x \<le> a * (inverse x + inverse (x + a))/2" (is "_ \<le> ?A")
 proof -
   define f' where "f' = (inverse (x + a) - inverse x)/a"
-  have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def divide_simps)
+  have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def field_simps)
   let ?f = "\<lambda>t. (t - x) * f' + inverse x"
   let ?F = "\<lambda>t. (t - x)^2 * f' / 2 + t * inverse x"
   have diff: "\<And>t. t \<in> {x..x+a} \<Longrightarrow> (?F has_vector_derivative ?f t) (at t within {x..x+a})" 
@@ -271,14 +271,14 @@ proof -
              intro!: derivative_eq_intros)
   also have "?F (x+a) - ?F x = (a*2 + f'*a\<^sup>2*x) / (2*x)" using assms by (simp add: field_simps)
   also have "f'*a^2 = - (a^2) / (x*(x + a))" using assms
-    by (simp add: divide_simps f'_def power2_eq_square)
+    by (simp add: f'_def power2_eq_square) (simp add: field_simps)
   also have "(a*2 + - a\<^sup>2/(x*(x+a))*x) / (2*x) = ?A" using assms
-    by (simp add: divide_simps power2_eq_square) (simp add: algebra_simps)
+    by (simp add: power2_eq_square) (simp add: field_split_simps)
   finally have int1: "((\<lambda>t. (t - x) * f' + inverse x) has_integral ?A) {x..x + a}" .
 
   from assms have int2: "(inverse has_integral (ln (x + a) - ln x)) {x..x+a}"
     by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] divide_simps
+       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
              intro!: derivative_eq_intros)
   hence "ln (x + a) - ln x = integral {x..x+a} inverse" by (simp add: integral_unique)
   also have ineq: "\<forall>xa\<in>{x..x + a}. inverse xa \<le> (xa - x) * f' + inverse x"
@@ -291,7 +291,7 @@ proof -
     from convex_onD_Icc[OF this _ t] assms
       have "?A \<le> (1 - (t - x) / a) * inverse x + (t - x) / a * inverse (x + a)" by simp
     also have "\<dots> = (t - x) * f' + inverse x" using assms
-      by (simp add: f'_def divide_simps) (simp add: f'_def field_simps)
+      by (simp add: f'_def divide_simps) (simp add: field_simps)
     finally show "inverse t \<le> (t - x) * f' + inverse x" .
   qed
   hence "integral {x..x+a} inverse \<le> integral {x..x+a} ?f" using f'_nonpos assms
@@ -310,7 +310,7 @@ proof -
   let ?F = "\<lambda>t. (t - m)^2 * f' / 2 + t / m"
   from assms have "((\<lambda>t. (t - m) * f' + inverse m) has_integral (?F y - ?F x)) {x..y}"
     by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] divide_simps
+       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
              intro!: derivative_eq_intros)
   also from m have "?F y - ?F x = ((y - m)^2 - (x - m)^2) * f' / 2 + (y - x) / m"
     by (simp add: field_simps)
@@ -320,7 +320,7 @@ proof -
 
   from assms have int2: "(inverse has_integral (ln y - ln x)) {x..y}"
     by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] divide_simps
+       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
              intro!: derivative_eq_intros)
   hence "ln y - ln x = integral {x..y} inverse" by (simp add: integral_unique)
   also have ineq: "\<forall>xa\<in>{x..y}. inverse xa \<ge> (xa - m) * f' + inverse m"
@@ -484,7 +484,7 @@ proof -
   hence "inverse c * (ln x - (\<Sum>k<n. 2*y^(2*k+1)/of_nat (2*k+1))) \<le> (1 / (1-y^2) / of_nat (2*n+1))"
     by simp
   hence "(ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) / c \<le> (1 / (1 - y^2) / of_nat (2*n+1))"
-    by (auto simp add: divide_simps)
+    by (auto simp add: field_split_simps)
   with c_pos have "ln x \<le> c / (1 - y^2) / of_nat (2*n+1) + approx"
     by (subst (asm) pos_divide_le_eq) (simp_all add: mult_ac approx_def)
   moreover {

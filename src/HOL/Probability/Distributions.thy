@@ -612,7 +612,7 @@ proof -
   also have "\<dots> = (ln l - 1) / ln b"
     by simp
   finally show ?thesis
-    by (simp add: log_def divide_simps ln_div)
+    by (simp add: log_def ln_div) (simp add: field_split_simps)
 qed
 
 subsection \<open>Uniform distribution\<close>
@@ -999,7 +999,7 @@ proof -
     case (Suc k)
     note step[OF this]
     also have "(real (2 * k + 1 + 1) / (2::real) * ((fact k) / 2)) = (fact (Suc k)) / 2"
-      by (simp add: field_simps of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
+      by (simp add: field_simps of_nat_Suc field_split_simps del: fact_Suc) (simp add: field_simps)
     finally show ?case
       by simp
   qed (insert gaussian_moment_1, simp)
@@ -1230,7 +1230,7 @@ proof -
     apply (intro ext nn_integral_cong)
     apply (simp add: normal_density_def \<sigma>'_def[symmetric] \<tau>'_def[symmetric] sqrt mult_exp_exp)
     apply (simp add: divide_simps power2_eq_square)
-    apply (simp add: field_simps)
+    apply (simp add: algebra_simps)
     done
 
   also have "... =
@@ -1365,7 +1365,7 @@ proof -
     by (intro arg_cong[where f="uminus"] Bochner_Integration.integral_cong)
        (auto simp: normal_density_def field_simps ln_mult log_def ln_div ln_sqrt)
   also have "\<dots> = - (\<integral>x. - (normal_density \<mu> \<sigma> x * (ln (2 * pi * \<sigma>\<^sup>2)) + (normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2) / \<sigma>\<^sup>2) / (2 * ln b) \<partial>lborel)"
-    by (intro arg_cong[where f="uminus"] Bochner_Integration.integral_cong) (auto simp: divide_simps field_simps)
+    by (intro arg_cong[where f="uminus"] Bochner_Integration.integral_cong) (auto simp: field_split_simps field_simps)
   also have "\<dots> = (\<integral>x. normal_density \<mu> \<sigma> x * (ln (2 * pi * \<sigma>\<^sup>2)) + (normal_density \<mu> \<sigma> x * (x - \<mu>)\<^sup>2) / \<sigma>\<^sup>2 \<partial>lborel) / (2 * ln b)"
     by (simp del: minus_add_distrib)
   also have "\<dots> = (ln (2 * pi * \<sigma>\<^sup>2) + 1) / (2 * ln b)"

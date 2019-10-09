@@ -997,15 +997,17 @@ proof -
     fix t :: "real"
     assume t: "t \<in> {0..1}"
     show "vector_derivative (exp \<circ> g) (at t) / exp (g t) = vector_derivative g (at t)"
-    proof (simp add: divide_simps, rule vector_derivative_unique_at)
-      show "(exp \<circ> g has_vector_derivative vector_derivative (exp \<circ> g) (at t)) (at t)"
+    proof -
+      have "(exp \<circ> g has_vector_derivative vector_derivative (exp \<circ> g) (at t)) (at t)"
         by (meson DERIV_exp differentiable_def field_vector_diff_chain_at has_vector_derivative_def
             has_vector_derivative_polynomial_function pfg vector_derivative_works)
-      show "(exp \<circ> g has_vector_derivative vector_derivative g (at t) * exp (g t)) (at t)"
+      moreover have "(exp \<circ> g has_vector_derivative vector_derivative g (at t) * exp (g t)) (at t)"
         apply (rule field_vector_diff_chain_at)
         apply (metis has_vector_derivative_polynomial_function pfg vector_derivative_at)
         using DERIV_exp has_field_derivative_def apply blast
         done
+      ultimately show ?thesis
+        by (simp add: divide_simps, rule vector_derivative_unique_at)
     qed
   qed
   also have "... = (pathfinish p - pathstart p) / (2 * of_real pi * \<i>)"

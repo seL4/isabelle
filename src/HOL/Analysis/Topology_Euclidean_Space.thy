@@ -66,7 +66,7 @@ proof
   have "sqrt ((representation B x b)\<^sup>2 * (norm b)\<^sup>2) \<le> sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)"
     using \<open>b \<in> B\<close> \<open>finite B\<close> by (auto intro: member_le_sum)
   then have "\<bar>representation B x b\<bar> \<le> (1 / norm b) * sqrt (\<Sum>b\<in>B. (representation B x b)\<^sup>2 * (norm b)\<^sup>2)"
-    using \<open>b \<noteq> 0\<close> by (simp add: divide_simps real_sqrt_mult del: real_sqrt_le_iff)
+    using \<open>b \<noteq> 0\<close> by (simp add: field_split_simps real_sqrt_mult del: real_sqrt_le_iff)
   ultimately show "\<bar>representation B x b\<bar> \<le> (1 / norm b) * norm x"
     by simp
 next
@@ -2028,7 +2028,7 @@ qed
 lemma diameter_closed_interval [simp]: "diameter {a..b} = (if b < a then 0 else b-a)"
 proof -
   have "{a .. b} = cball ((a+b)/2) ((b-a)/2)"
-    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+    by (auto simp: dist_norm abs_if field_split_simps split: if_split_asm)
   then show ?thesis
     by simp
 qed
@@ -2036,7 +2036,7 @@ qed
 lemma diameter_open_interval [simp]: "diameter {a<..<b} = (if b < a then 0 else b-a)"
 proof -
   have "{a <..< b} = ball ((a+b)/2) ((b-a)/2)"
-    by (auto simp: dist_norm abs_if divide_simps split: if_split_asm)
+    by (auto simp: dist_norm abs_if field_split_simps split: if_split_asm)
   then show ?thesis
     by simp
 qed
@@ -2068,7 +2068,7 @@ proof clarify
   show "\<exists>e>0. \<forall>y. dist y (f x) < e \<longrightarrow> y \<in> f ` A"
   proof (intro exI conjI)
     show "\<delta> > 0"
-      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def divide_simps)
+      using \<open>e > 0\<close> \<open>B > 0\<close>  by (simp add: \<delta>_def field_split_simps)
     have "y \<in> f ` A" if "dist y (f x) * (B * real DIM('b)) < e" for y
     proof -
       define u where "u \<equiv> y - f x"
@@ -2095,7 +2095,7 @@ proof clarify
     qed
     then show "\<forall>y. dist y (f x) < \<delta> \<longrightarrow> y \<in> f ` A"
       using \<open>e > 0\<close> \<open>B > 0\<close>
-      by (auto simp: \<delta>_def divide_simps mult_less_0_iff)
+      by (auto simp: \<delta>_def field_split_simps mult_less_0_iff)
   qed
 qed
 

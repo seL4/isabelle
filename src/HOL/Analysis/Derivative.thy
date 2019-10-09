@@ -2111,7 +2111,10 @@ proof (rule has_derivativeI)
   let ?e = "\<lambda>i x. (inverse (1 + real i) * inverse (fact i) * (x - t) ^ i) *\<^sub>R (A * A ^ i)"
   have "\<forall>\<^sub>F n in sequentially.
       \<forall>x\<in>T \<inter> {t - 1<..<t + 1}. norm (?e n x) \<le> norm (A ^ (n + 1) /\<^sub>R fact (n + 1))"
-    by (auto simp: divide_simps power_abs intro!: mult_left_le_one_le power_le_one eventuallyI)
+    apply (auto simp: algebra_split_simps intro!: eventuallyI)
+    apply (rule mult_left_mono)
+     apply (auto simp add: field_simps power_abs intro!: divide_right_mono power_le_one)
+    done
   then have "uniform_limit (T \<inter> {t - 1<..<t + 1}) (\<lambda>n x. \<Sum>i<n. ?e i x) (\<lambda>x. \<Sum>i. ?e i x) sequentially"
     by (rule Weierstrass_m_test_ev) (intro summable_ignore_initial_segment summable_norm_exp)
   moreover
@@ -2156,7 +2159,7 @@ proof (rule has_derivativeI)
     also have "(\<dots> - (x - t) *\<^sub>R A) /\<^sub>R norm (x - t) = (x - t) *\<^sub>R ((\<Sum>n. ?e n x) - A) /\<^sub>R norm (x - t)"
       by (simp add: algebra_simps)
     finally show ?case
-      by (simp add: divide_simps)
+      by simp (simp add: field_simps)
   qed
 
   ultimately have "((\<lambda>y. (exp ((y - t) *\<^sub>R A) - 1 - (y - t) *\<^sub>R A) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0) (at t within T)"
@@ -2165,7 +2168,7 @@ proof (rule has_derivativeI)
   show "((\<lambda>y. (exp (y *\<^sub>R A) - exp (t *\<^sub>R A) - (y - t) *\<^sub>R (exp (t *\<^sub>R A) * A)) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0)
       (at t within T)"
     by (rule Lim_transform_eventually)
-      (auto simp: algebra_simps divide_simps exp_add_commuting[symmetric])
+      (auto simp: algebra_simps field_split_simps exp_add_commuting[symmetric])
 qed (rule bounded_linear_scaleR_left)
 
 lemma exp_times_scaleR_commute: "exp (t *\<^sub>R A) * A = A * exp (t *\<^sub>R A)"
@@ -2262,7 +2265,7 @@ proof (cases x c rule: linorder_cases)
       using interior_subset[of A]
       by (intro convex_onD_Icc' convex_on_subset[OF convex] connected_contains_Icc) auto
     hence "f y - f c \<le> (f x - f c) / (x - c) * (y - c)" by simp
-    thus "(f y - f c) / (y - c) \<le> (f x - f c) / (x - c)" using y xc by (simp add: divide_simps)
+    thus "(f y - f c) / (y - c) \<le> (f x - f c) / (x - c)" using y xc by (simp add: field_split_simps)
   qed
   hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<le> (f x - f c) / (x - c)) (at c within ?A')"
     by (blast intro: filter_leD at_le)
@@ -2286,7 +2289,7 @@ next
     hence "f y - f c \<le> (f x - f c) * ((c - y) / (c - x))" by simp
     also have "(c - y) / (c - x) = (y - c) / (x - c)" using y xc by (simp add: field_simps)
     finally show "(f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)" using y xc
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
   qed
   hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at c within ?A')"
     by (blast intro: filter_leD at_le)
@@ -2418,8 +2421,8 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   let ?le = "\<lambda>x'. norm (f x' y - f x y - (fx) (x' - x)) \<le> norm (x' - x) * e"
   from fx[unfolded has_derivative_within, THEN conjunct2, THEN tendstoD, OF \<open>0 < e\<close>]
   have "\<forall>\<^sub>F x' in at x within X. ?le x'"
-    by eventually_elim
-      (simp add: dist_norm divide_simps diff_diff_add ac_simps split: if_split_asm)
+    by eventually_elim (simp, 
+      simp add: dist_norm field_split_simps split: if_split_asm)
   then have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. ?le x'"
     by (rule eventually_at_Pair_within_TimesI1)
        (simp add: blinfun.bilinear_simps)
@@ -2476,7 +2479,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
       using \<open>0 < e'\<close> nz
       by (auto simp: e_def)
     finally show "norm ((f x' y' - f x y - (fx (x' - x) + fy x y (y' - y))) /\<^sub>R norm ((x', y') - (x, y))) < e'"
-      by (auto simp: divide_simps dist_norm mult.commute)
+      by (simp add: dist_norm) (auto simp add: field_split_simps)
   qed
   then show ?case
     by eventually_elim (auto simp: dist_norm field_simps)

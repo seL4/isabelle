@@ -106,7 +106,7 @@ proof -
         by (intro interval_lebesgue_integral_add(2) [symmetric] interval_integrable_mirror[THEN iffD2]) simp_all
       also have "\<dots> = (CLBINT t=(0::real)..T. ((iexp(t * (x - a)) - iexp (-(t * (x - a)))) -
           (iexp(t * (x - b)) - iexp (-(t * (x - b))))) / (\<i> * t))"
-        using \<open>T \<ge> 0\<close> by (intro interval_integral_cong) (auto simp add: divide_simps)
+        using \<open>T \<ge> 0\<close> by (intro interval_integral_cong) (auto simp add: field_split_simps)
       also have "\<dots> = (CLBINT t=(0::real)..T. complex_of_real(
           2 * (sin (t * (x - a)) / t) - 2 * (sin (t * (x - b)) / t)))"
         using \<open>T \<ge> 0\<close>

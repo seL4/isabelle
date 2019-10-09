@@ -211,7 +211,7 @@ lemma nat_neq_4k1: "of_nat m \<noteq> (4 * of_nat k + 1) / (2 * 2^n :: 'a::field
 proof
   assume "of_nat m = (4 * of_nat k + 1) / (2 * 2^n :: 'a)"
   then have "of_nat (m * (2 * 2^n)) = (of_nat (Suc (4 * k)) :: 'a)"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
   then have "m * (2 * 2^n) = Suc (4 * k)"
     using of_nat_eq_iff by blast
   then have "odd (m * (2 * 2^n))"
@@ -224,7 +224,7 @@ lemma nat_neq_4k3: "of_nat m \<noteq> (4 * of_nat k + 3) / (2 * 2^n :: 'a::field
 proof
   assume "of_nat m = (4 * of_nat k + 3) / (2 * 2^n :: 'a)"
   then have "of_nat (m * (2 * 2^n)) = (of_nat (4 * k + 3) :: 'a)"
-    by (simp add: divide_simps)
+    by (simp add: field_split_simps)
   then have "m * (2 * 2^n) = (4 * k) + 3"
     using of_nat_eq_iff by blast
   then have "odd (m * (2 * 2^n))"
@@ -520,7 +520,7 @@ lemma rightrec_43: "n > 0 \<Longrightarrow> rightrec u v lc rc ((4 * real m + 3)
 
 lemma dyadics_in_open_unit_interval:
    "{0<..<1} \<inter> (\<Union>k m. {real m / 2^k}) = (\<Union>k. \<Union>m \<in> {0<..<2^k}. {real m / 2^k})"
-  by (auto simp: divide_simps)
+  by (auto simp: field_split_simps)
 
 
 
@@ -738,9 +738,9 @@ proof -
           by simp
         finally have "(real i * 2^n - real j * 2^m) / 2^m \<in> \<int>" .
         with True Ints_abs show "\<bar>2^n\<bar> * \<bar>real i / 2^m - real j / 2^n\<bar> \<in> \<int>"
-          by (fastforce simp: divide_simps)
+          by (fastforce simp: field_split_simps)
         show "\<bar>\<bar>2^n\<bar> * \<bar>real i / 2^m - real j / 2^n\<bar>\<bar> < 1"
-          using less.prems by (auto simp: divide_simps)
+          using less.prems by (auto simp: field_split_simps)
       qed
       then have "real i / 2^m = real j / 2^n"
         by auto
@@ -770,7 +770,7 @@ proof -
         proof (cases "real i / 2^m" "real j / 2^n" rule: linorder_cases)
           case less
           moreover have "real (4 * k + 1) / 2 ^ Suc n + 1 / (2 ^ Suc n) = real j / 2 ^ n"
-            using k by (force simp: divide_simps)
+            using k by (force simp: field_split_simps)
           moreover have "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 2 / (2 ^ Suc n)"
             using less.prems by simp
           ultimately have closer: "\<bar>real i / 2 ^ m - real (4 * k + 1) / 2 ^ Suc n\<bar> < 1 / (2 ^ Suc n)"
@@ -778,7 +778,7 @@ proof -
           have *: "a (real (4 * k + 1) / 2 ^ Suc n) \<le> c (real i / 2 ^ m) \<and>
                    c (real i / 2 ^ m) \<le> b (real (4 * k + 1) / 2 ^ Suc n)"
             apply (rule less.IH [OF _ refl])
-            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: divide_simps  \<open>n < m\<close> diff_less_mono2)
+            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: field_split_simps  \<open>n < m\<close> diff_less_mono2)
             done
           show ?thesis
             using LR [of "c((2*k + 1) / 2^n)" "a((2*k + 1) / 2^n)" "b((2*k + 1) / 2^n)"]
@@ -791,7 +791,7 @@ proof -
         next
           case greater
           moreover have "real (4 * k + 3) / 2 ^ Suc n - 1 / (2 ^ Suc n) = real j / 2 ^ n"
-            using k by (force simp: divide_simps)
+            using k by (force simp: field_split_simps)
           moreover have "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 2 * 1 / (2 ^ Suc n)"
             using less.prems by simp
           ultimately have closer: "\<bar>real i / 2 ^ m - real (4 * k + 3) / 2 ^ Suc n\<bar> < 1 / (2 ^ Suc n)"
@@ -799,7 +799,7 @@ proof -
           have *: "a (real (4 * k + 3) / 2 ^ Suc n) \<le> c (real i / 2 ^ m) \<and>
                    c (real i / 2 ^ m) \<le> b (real (4 * k + 3) / 2 ^ Suc n)"
             apply (rule less.IH [OF _ refl])
-            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: divide_simps  \<open>n < m\<close> diff_less_mono2)
+            using closer \<open>n < m\<close> \<open>d = m - n\<close> apply (auto simp: field_split_simps  \<open>n < m\<close> diff_less_mono2)
             done
           show ?thesis
             using LR [of "c((2*k + 1) / 2^n)" "a((2*k + 1) / 2^n)" "b((2*k + 1) / 2^n)"]
@@ -963,7 +963,7 @@ proof -
     obtain n where n: "1/2^n < min d 1"
       by (metis \<open>0 < d\<close> divide_less_eq_1 less_numeral_extra(1) min_def one_less_numeral_iff power_one_over real_arch_pow_inv semiring_norm(76) zero_less_numeral)
     with gr0I have "n > 0"
-      by (force simp: divide_simps)
+      by (force simp: field_split_simps)
     show "\<exists>d>0. \<forall>x\<in>D01. \<forall>x'\<in>D01. dist x' x < d \<longrightarrow> dist (f (c x')) (f (c x)) < e"
     proof (intro exI ballI impI conjI)
       show "(0::real) < 1/2^n" by auto
@@ -1100,12 +1100,12 @@ proof -
                 by auto
               show "\<bar>real i / 2 ^ m - real j / 2 ^ n\<bar> < 1/2 ^ n"
                 using clo less_j1 j_le
-                apply (auto simp: le_max_iff_disj divide_simps dist_norm)
+                apply (auto simp: le_max_iff_disj field_split_simps dist_norm)
                  apply (auto simp: algebra_simps abs_if split: if_split_asm dest: 1 2)
                 done
               show "\<bar>real k / 2 ^ p - real j / 2 ^ n\<bar> < 1/2 ^ n"
                 using  clo less_j1 j_le
-                apply (auto simp: le_max_iff_disj divide_simps dist_norm)
+                apply (auto simp: le_max_iff_disj field_split_simps dist_norm)
                  apply (auto simp: algebra_simps not_less abs_if split: if_split_asm dest: 3 2)
                 done
             qed (use False in simp)
@@ -1392,7 +1392,7 @@ proof -
       proof cases
         case 1
         with less.prems show ?thesis
-          by (rule_tac x=1 in exI)+ (fastforce simp: divide_simps)
+          by (rule_tac x=1 in exI)+ (fastforce simp: field_split_simps)
       next
         case 2 show ?thesis
         proof (cases m)
@@ -1415,7 +1415,7 @@ proof -
             then show ?thesis
               using less.IH [of "m'+p'" i m' k p'] less.prems \<open>m = Suc m'\<close> 2 Suc
               apply atomize
-              apply (force simp: divide_simps)
+              apply (force simp: field_split_simps)
               done
           qed
         qed
@@ -1464,7 +1464,7 @@ proof -
         have "c(i / 2^m) \<le> b(real(4 * q + 1) / 2 ^ (Suc n'))"
           apply (rule ci_le_bj, force)
           apply (rule * [OF less])
-          using i_le_j clo_ij q apply (auto simp: divide_simps)
+          using i_le_j clo_ij q apply (auto simp: field_split_simps)
           done
         then show ?thesis
           using alec [of "2*q+1" n'] cleb [of "2*q+1" n'] a_ge_0 [of "2*q+1" n'] b_le_1 [of "2*q+1" n'] b41 [of n' q] \<open>n' \<noteq> 0\<close>
@@ -1484,7 +1484,7 @@ proof -
         have "a(real(4*q + 3) / 2 ^ (Suc n')) \<le> c(j / 2^n)"
           apply (rule aj_le_ci, force)
           apply (rule * [OF less])
-          using j_le_j clo_jj q apply (auto simp: divide_simps)
+          using j_le_j clo_jj q apply (auto simp: field_split_simps)
           done
         then show ?thesis
           using alec [of "2*q+1" n'] cleb [of "2*q+1" n'] a_ge_0 [of "2*q+1" n'] b_le_1 [of "2*q+1" n'] a43 [of n' q] \<open>n' \<noteq> 0\<close>
@@ -1589,7 +1589,7 @@ proof -
         then show ?thesis by (metis that)
       qed
       have m_div: "0 < m / 2^n" "m / 2^n < 1"
-        using m  by (auto simp: divide_simps)
+        using m  by (auto simp: field_split_simps)
       have closure0m: "{0..m / 2^n} = closure ({0<..< m / 2^n} \<inter> (\<Union>k m. {real m / 2 ^ k}))"
         by (subst closure_dyadic_rationals_in_convex_set_pos_1, simp_all add: not_le m)
       have closurem1: "{m / 2^n .. 1} = closure ({m / 2^n <..< 1} \<inter> (\<Union>k m. {real m / 2 ^ k}))"
@@ -1611,7 +1611,7 @@ proof -
         fix p q
         assume p: "0 < real p / 2 ^ q" "real p / 2 ^ q < real m / 2 ^ n"
         then have [simp]: "0 < p" "p < 2 ^ q"
-           apply (simp add: divide_simps)
+           apply (simp add: field_split_simps)
           apply (blast intro: p less_2I m_div less_trans)
           done
         have "f (c (real p / 2 ^ q)) \<in> f ` {0..c (real m / 2 ^ n)}"

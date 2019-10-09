@@ -3148,7 +3148,7 @@ proof -
         using Suc_leI assms \<open>2 \<le> n\<close> complex_roots_unity [THEN eqset_imp_iff, of n "w/z"]
         by force
       have "cmod (w/z - 1) < 2 * sin (pi / real n)"
-        using lt assms \<open>z \<noteq> 0\<close> by (simp add: divide_simps norm_divide)
+        using lt assms \<open>z \<noteq> 0\<close> by (simp add: field_split_simps norm_divide)
       then have "cmod (exp (\<i> * of_real (2 * pi * j / n)) - 1) < 2 * sin (pi / real n)"
         by (simp add: j field_simps)
       then have "2 * \<bar>sin((2 * pi * j / n) / 2)\<bar> < 2 * sin (pi / real n)"

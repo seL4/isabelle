@@ -1602,7 +1602,7 @@ next
       by simp
     also have "\<dots> < norm(x - closest_point S x)"
       using clo_notx \<open>e > 0\<close>
-      by (auto simp: mult_less_cancel_right2 divide_simps)
+      by (auto simp: mult_less_cancel_right2 field_split_simps)
     finally have no_less: "norm (x - y) < norm (x - closest_point S x)" .
     have "y \<in> affine hull S"
       unfolding y_def
@@ -2394,7 +2394,7 @@ proof (rule,rule,rule)
           using \<open>0 < t\<close> \<open>2 < t\<close> and \<open>y \<in> S\<close> \<open>w \<in> S\<close>
           by (auto simp:field_simps)
         also have "\<dots> = (f w + t * f y) / (1 + t)"
-          using \<open>t > 0\<close> by (auto simp: divide_simps)
+          using \<open>t > 0\<close> by (simp add: add_divide_distrib) 
         also have "\<dots> < e + f y"
           using \<open>t > 0\<close> * \<open>e > 0\<close> by (auto simp: field_simps)
         finally have "f x - f y < e" by auto
@@ -2504,7 +2504,7 @@ proof
   have "e \<le> e * real DIM('a)"
     using e(2) real_of_nat_ge_one_iff by auto
   then have "d \<le> e"
-    by (simp add: d_def divide_simps)
+    by (simp add: d_def field_split_simps)
   then have dsube: "cball x d \<subseteq> cball x e"
     by (rule subset_cball)
   have conv: "convex_on (cball x d) f"

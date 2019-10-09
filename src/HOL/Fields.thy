@@ -87,7 +87,6 @@ simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = 
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
-
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 
 named_theorems divide_simps "rewrite rules to eliminate divisions"
@@ -198,7 +197,7 @@ by (simp add: divide_inverse)
 lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / a = 1"
 by (simp add: divide_inverse)
 
-lemma inverse_eq_divide [field_simps, divide_simps]: "inverse a = 1 / a"
+lemma inverse_eq_divide [field_simps, field_split_simps, divide_simps]: "inverse a = 1 / a"
 by (simp add: divide_inverse)
 
 lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
@@ -332,7 +331,7 @@ lemma divide_divide_eq_left':
   by (cases "b = 0 \<or> c = 0")
      (auto simp: divide_inverse mult.assoc nonzero_inverse_mult_distrib)
 
-lemma add_divide_eq_if_simps [divide_simps]:
+lemma add_divide_eq_if_simps [field_split_simps, divide_simps]:
     "a + b / z = (if z = 0 then a else (a * z + b) / z)"
     "a / z + b = (if z = 0 then b else (a + b * z) / z)"
     "- (a / z) + b = (if z = 0 then b else (-a + b * z) / z)"
@@ -342,7 +341,7 @@ lemma add_divide_eq_if_simps [divide_simps]:
   by (simp_all add: add_divide_eq_iff divide_add_eq_iff diff_divide_eq_iff divide_diff_eq_iff
       minus_divide_diff_eq_iff)
 
-lemma [divide_simps]:
+lemma [field_split_simps, divide_simps]:
   shows divide_eq_eq: "b / c = a \<longleftrightarrow> (if c \<noteq> 0 then b = a * c else a = 0)"
     and eq_divide_eq: "a = b / c \<longleftrightarrow> (if c \<noteq> 0 then a * c = b else a = 0)"
     and minus_divide_eq_eq: "- (b / c) = a \<longleftrightarrow> (if c \<noteq> 0 then - b = a * c else a = 0)"
@@ -1096,7 +1095,7 @@ lemma inverse_less_1_iff: "inverse x < 1 \<longleftrightarrow> x \<le> 0 \<or> 1
 lemma inverse_le_1_iff: "inverse x \<le> 1 \<longleftrightarrow> x \<le> 0 \<or> 1 \<le> x"
   by (simp add: not_less [symmetric] one_less_inverse_iff)
 
-lemma [divide_simps]:
+lemma [field_split_simps, divide_simps]:
   shows le_divide_eq: "a \<le> b / c \<longleftrightarrow> (if 0 < c then a * c \<le> b else if c < 0 then b \<le> a * c else a \<le> 0)"
     and divide_le_eq: "b / c \<le> a \<longleftrightarrow> (if 0 < c then b \<le> a * c else if c < 0 then a * c \<le> b else 0 \<le> a)"
     and less_divide_eq: "a < b / c \<longleftrightarrow> (if 0 < c then a * c < b else if c < 0 then b < a * c else a < 0)"
@@ -1114,7 +1113,7 @@ lemma
     and divide_less_0_iff: "a / b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
     and zero_le_divide_iff: "0 \<le> a / b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
     and divide_le_0_iff: "a / b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
-  by (auto simp add: divide_simps)
+  by (auto simp add: field_split_simps)
 
 text \<open>Division and the Number One\<close>
 
@@ -1193,19 +1192,19 @@ by (auto simp add: divide_less_eq)
 
 lemma divide_nonneg_nonneg [simp]:
   "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> x / y"
-  by (auto simp add: divide_simps)
+  by (auto simp add: field_split_simps)
 
 lemma divide_nonpos_nonpos:
   "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> 0 \<le> x / y"
-  by (auto simp add: divide_simps)
+  by (auto simp add: field_split_simps)
 
 lemma divide_nonneg_nonpos:
   "0 \<le> x \<Longrightarrow> y \<le> 0 \<Longrightarrow> x / y \<le> 0"
-  by (auto simp add: divide_simps)
+  by (auto simp add: field_split_simps)
 
 lemma divide_nonpos_nonneg:
   "x \<le> 0 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x / y \<le> 0"
-  by (auto simp add: divide_simps)
+  by (auto simp add: field_split_simps)
 
 text \<open>Conditional Simplification Rules: No Case Splits\<close>
 

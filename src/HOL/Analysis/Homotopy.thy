@@ -4624,7 +4624,7 @@ proof -
       using norm_triangle_ineq by blast
     also have "\<dots> = norm y + (norm x - norm y) * (norm u / r)"
       using yx \<open>r > 0\<close>
-      by (simp add: divide_simps)
+      by (simp add: field_split_simps)
     also have "\<dots> < norm y + (norm x - norm y) * 1"
       apply (subst add_less_cancel_left)
       apply (rule mult_strict_left_mono)
@@ -5039,7 +5039,7 @@ proof -
       using assms by auto
     have "f ` {a..b} = {c..d}"
       unfolding f_def image_affinity_atLeastAtMost
-      using assms sum_sqs_eq by (auto simp: divide_simps algebra_simps)
+      using assms sum_sqs_eq by (auto simp: field_split_simps algebra_simps)
     then show "f ` cbox a b = cbox c d"
       by auto
     show "inj_on f (cbox a b)"
@@ -5051,7 +5051,7 @@ proof -
     show "f a = c"
       by (simp add: f_def)
     show "f b = d"
-      using assms sum_sqs_eq [of a b] by (auto simp: f_def divide_simps algebra_simps)
+      using assms sum_sqs_eq [of a b] by (auto simp: f_def field_split_simps algebra_simps)
   qed
 qed
 
@@ -5631,7 +5631,7 @@ next
             also have "\<dots> < e"
               apply (rule d [unfolded dist_norm])
               using greater \<open>0 < d\<close> \<open>b1 \<in> Basis\<close> that
-                by (auto simp: dist_norm divide_simps)
+                by (simp_all add: dist_norm) (simp add: field_simps)
             finally show ?thesis .
           qed
           show ?thesis

@@ -114,7 +114,7 @@ proof (unfold atLeastAtMost_iff, safe)
     from assms have "(\<lambda>k. (x^n / fact n) * (x / 2)^k) sums ((x^n / fact n) * (1 / (1 - x / 2)))"
       by (intro sums_mult geometric_sums) simp_all
     also from assms have "((x^n / fact n) * (1 / (1 - x / 2))) = (2 * x^n / (2 - x)) / fact n"
-      by (auto simp: divide_simps)
+      by (auto simp: field_split_simps)
     finally have "(\<lambda>k. (x^n / fact n) * (x / 2)^k) sums \<dots>" .
   }
   ultimately show "(exp x - approx) \<le> (2 * x^n / (2 - x)) / fact n"
@@ -130,7 +130,7 @@ lemma exp_approx':
 proof -
   from assms have "x^n / (2 - x) \<le> x^n / 1" by (intro frac_le) simp_all 
   hence "(2 * x^n / (2 - x)) / fact n \<le> 2 * x^n / fact n"
-    using assms by (simp add: divide_simps)
+    using assms by (simp add: field_split_simps)
   with exp_approx[of n x] assms
     have "exp (x::real) - (\<Sum>k<n. x^k / fact k) \<in> {0..2 * x^n / fact n}" by simp
   moreover have "(\<Sum>k\<le>n. x^k / fact k) = (\<Sum>k<n. x^k / fact k) + x ^ n / fact n"
@@ -152,7 +152,7 @@ lemma exp_approx'':
 proof -
   from assms have "\<bar>exp x - (\<Sum>k\<le>n. x ^ k / fact k)\<bar> \<le> x ^ n / fact n"
     by (rule exp_approx')
-  also from assms have "\<dots> \<le> 1 / fact n" by (simp add: divide_simps power_le_one)
+  also from assms have "\<dots> \<le> 1 / fact n" by (simp add: field_split_simps power_le_one)
   finally show ?thesis .
 qed
 
@@ -169,7 +169,7 @@ definition euler_approx_aux :: "nat \<Rightarrow> nat" where
 
 lemma exp_1_approx:
   "n > 0 \<Longrightarrow> \<bar>exp (1::real) - euler_approx n\<bar> \<le> 1 / fact n"
-  using exp_approx''[of n 1] by (simp add: euler_approx_def divide_simps)
+  using exp_approx''[of n 1] by (simp add: euler_approx_def field_split_simps)
 
 text \<open>
   The following allows us to compute the numerator and the denominator of the result
@@ -282,7 +282,7 @@ proof (rule approx_coarsen[OF ln_approx_abs[OF x, of n]], goal_cases)
   also have "2 * y * (\<Sum>k<n. inverse (real (2 * k + 1)) * y\<^sup>2 ^ k) = 
                (\<Sum>k<n. 2 * y^(2*k+1) / (real (2 * k + 1)))"
     by (subst sum_distrib_left, simp, subst power_mult) 
-       (simp_all add: divide_simps mult_ac power_mult)
+       (simp_all add: field_split_simps mult_ac power_mult)
   finally show ?case by (simp only: d_def y_def approx_def) 
 qed
 
@@ -629,17 +629,17 @@ proof -
     (is "_ \<in> {-?l..?u1 + ?u2}")
     apply ((rule combine_bounds(1,2))+; (rule combine_bounds(3); (rule arctan_approx)?)?)
     apply (simp_all add: n)
-    apply (simp_all add: divide_simps)?
+    apply (simp_all add: field_split_simps)?
     done
   also {
     have "?l \<le> (1/8) * (1/2)^(46*n)"
-      unfolding power_mult by (intro mult_mono power_mono) (simp_all add: divide_simps)
+      unfolding power_mult by (intro mult_mono power_mono) (simp_all add: field_split_simps)
     also have "\<dots> \<le> (1/2) ^ (46 * n - 1)"
-      by (cases n; simp_all add: power_add divide_simps)
+      by (cases n; simp_all add: power_add field_split_simps)
     finally have "?l \<le> (1/2) ^ (46 * n - 1)" .
     moreover {
       have "?u1 + ?u2 \<le> 4 * (1/2)^(48*n) + 1 * (1/2)^(46*n)"
-        unfolding power_mult by (intro add_mono mult_mono power_mono) (simp_all add: divide_simps)
+        unfolding power_mult by (intro add_mono mult_mono power_mono) (simp_all add: field_split_simps)
       also from \<open>n > 0\<close> have "4 * (1/2::real)^(48*n) \<le> (1/2)^(46*n)"
         by (cases n) (simp_all add: field_simps power_add)
       also from \<open>n > 0\<close> have "(1/2::real) ^ (46 * n) + 1 * (1 / 2) ^ (46 * n) = (1/2) ^ (46 * n - 1)"
@@ -650,7 +650,7 @@ proof -
       by (subst atLeastatMost_subset_iff) simp_all
   }
   finally have "\<bar>pi - pi_approx2 n\<bar> \<le> ((1/2) ^ (46 * n - 1))" by auto
-  thus ?thesis by (simp add: divide_simps)
+  thus ?thesis by (simp add: field_split_simps)
 qed
 
 lemma pi_approx2':

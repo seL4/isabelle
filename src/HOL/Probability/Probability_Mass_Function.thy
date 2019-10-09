@@ -1785,7 +1785,7 @@ lemma pmf_expectation_bind_pmf_of_set:
   assumes "A \<noteq> {}" "finite A" "\<And>x. x \<in> A \<Longrightarrow> finite (set_pmf (f x))"
   shows "measure_pmf.expectation (pmf_of_set A \<bind> f) h =
            (\<Sum>a\<in>A. measure_pmf.expectation (f a) h /\<^sub>R real (card A))"
-  using assms by (subst pmf_expectation_bind[of A]) (auto simp: divide_simps)
+  using assms by (subst pmf_expectation_bind[of A]) (auto simp: field_split_simps)
 
 lemma map_pmf_of_set:
   assumes "finite A" "A \<noteq> {}"
@@ -1995,7 +1995,7 @@ proof (intro pmf_eqI)
     by (simp add: indicator_def)
   show "pmf (binomial_pmf (Suc n) p) k = pmf ?rhs k"
     by (cases k; cases "k > n")
-       (insert assms, auto simp: pmf_bind measure_pmf_single A divide_simps algebra_simps
+       (insert assms, auto simp: pmf_bind measure_pmf_single A field_split_simps algebra_simps
           not_less less_eq_Suc_le [symmetric] power_diff')
 qed
 
