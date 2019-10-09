@@ -6632,7 +6632,7 @@ next
       by (rule tendsto_mult_left [OF tendstoI])
     then have "((\<lambda>u. g u / (u - w)) has_contour_integral 2 * of_real pi * \<i> * g w) (circlepath z r)"
       using has_contour_integral_integral [OF g_cint] tendsto_unique [OF F f_tends_cig] w
-      by (force simp: dist_norm)
+      by fastforce
     then have "((\<lambda>u. g u / (2 * of_real pi * \<i> * (u - w))) has_contour_integral g w) (circlepath z r)"
       using has_contour_integral_div [where c = "2 * of_real pi * \<i>"]
       by (force simp: field_simps)

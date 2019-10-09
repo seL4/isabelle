@@ -779,13 +779,25 @@ lemma tendsto_mult_right: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<l
   for c :: "'a::topological_semigroup_mult"
   by (rule tendsto_mult [OF _ tendsto_const])
 
-lemma tendsto_mult_left_iff:
+lemma tendsto_mult_left_iff [simp]:
    "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. c * f x) (c * l) F \<longleftrightarrow> tendsto f l F" for c :: "'a::{topological_semigroup_mult,field}"
   by (auto simp: tendsto_mult_left dest: tendsto_mult_left [where c = "1/c"])
 
-lemma tendsto_mult_right_iff:
+lemma tendsto_mult_right_iff [simp]:
    "c \<noteq> 0 \<Longrightarrow> tendsto(\<lambda>x. f x * c) (l * c) F \<longleftrightarrow> tendsto f l F" for c :: "'a::{topological_semigroup_mult,field}"
   by (auto simp: tendsto_mult_right dest: tendsto_mult_left [where c = "1/c"])
+
+lemma tendsto_zero_mult_left_iff [simp]:
+  fixes c::"'a::{topological_semigroup_mult,field}" assumes "c \<noteq> 0" shows "(\<lambda>n. c * a n)\<longlonglongrightarrow> 0 \<longleftrightarrow> a \<longlonglongrightarrow> 0"
+  using assms tendsto_mult_left tendsto_mult_left_iff by fastforce
+
+lemma tendsto_zero_mult_right_iff [simp]:
+  fixes c::"'a::{topological_semigroup_mult,field}" assumes "c \<noteq> 0" shows "(\<lambda>n. a n * c)\<longlonglongrightarrow> 0 \<longleftrightarrow> a \<longlonglongrightarrow> 0"
+  using assms tendsto_mult_right tendsto_mult_right_iff by fastforce
+
+lemma tendsto_zero_divide_iff [simp]:
+  fixes c::"'a::{topological_semigroup_mult,field}" assumes "c \<noteq> 0" shows "(\<lambda>n. a n / c)\<longlonglongrightarrow> 0 \<longleftrightarrow> a \<longlonglongrightarrow> 0"
+  using tendsto_zero_mult_right_iff [of "1/c" a] assms by (simp add: field_simps)
 
 lemma lim_const_over_n [tendsto_intros]:
   fixes a :: "'a::real_normed_field"
