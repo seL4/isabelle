@@ -289,7 +289,7 @@ val scan_general_id =
     -- Scan.optional (Scan.repeat ($$ "!") -- Scan.many1 Symbol.is_letdig >> (op ^ o apply2 implode)) ""
     >> op ^
 
-val skip_term =
+fun skip_term x =
   let
     fun skip _ accum [] = (accum, [])
       | skip n accum (ss as s :: ss') =
@@ -302,8 +302,9 @@ val skip_term =
         else
           skip n (s :: accum) ss'
   in
-    skip 0 [] #>> (rev #> implode)
+    (skip 0 [] #>> (rev #> implode)) x
   end
+and skip_terms x = (skip_term ::: Scan.repeat ($$ "," |-- skip_term)) x
 
 datatype source =
   File_Source of string * string option |
@@ -346,7 +347,7 @@ and parse_classes x = (parse_class ::: Scan.repeat ($$ "&" |-- parse_class)) x
 
 fun parse_type x =
   (($$ "(" |-- parse_type --| $$ ")"
-    || Scan.this_string tptp_pi_binder |-- $$ "[" |-- skip_term --| $$ "]" --| $$ ":" -- parse_type
+    || Scan.this_string tptp_pi_binder |-- $$ "[" |-- skip_terms --| $$ "]" --| $$ ":" -- parse_type
        >> (fn (_, ty) => ty (* currently ignoring type constructor declarations anyway *))
     || (scan_general_id -- Scan.optional ($$ "{" |-- parse_classes --| $$ "}") [])
         -- Scan.optional ($$ "(" |-- parse_types --| $$ ")") []
