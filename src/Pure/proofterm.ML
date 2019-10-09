@@ -1862,9 +1862,8 @@ fun reconstruct_proof thy prop cprf =
     val env' = solve thy cs' env
   in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
-fun prop_of_atom prop Ts = subst_atomic_types
-  (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
-  (forall_intr_vfs prop);
+fun prop_of_atom prop Ts =
+  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm Envir.init;
 
