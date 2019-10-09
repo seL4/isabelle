@@ -1157,7 +1157,7 @@ fun forall_intr
     (th as Thm (der, {maxidx = maxidx2, constraints, shyps, hyps, tpairs, prop, ...})) =
   let
     fun result a =
-      Thm (deriv_rule1 (Proofterm.forall_intr_proof x a) der,
+      Thm (deriv_rule1 (Proofterm.forall_intr_proof (a, x) NONE) der,
        {cert = join_certificate1 (ct, th),
         tags = [],
         maxidx = Int.max (maxidx1, maxidx2),
@@ -1208,7 +1208,7 @@ fun forall_elim
   t \<equiv> t
 *)
 fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1226,7 +1226,7 @@ fun reflexive (Cterm {cert, t, T = _, maxidx, sorts}) =
 fun symmetric (th as Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
     (eq as Const ("Pure.eq", _)) $ t $ u =>
-      Thm (deriv_rule1 Proofterm.symmetric der,
+      Thm (deriv_rule1 Proofterm.symmetric_proof der,
        {cert = cert,
         tags = [],
         maxidx = maxidx,
@@ -1251,10 +1251,10 @@ fun transitive th1 th2 =
     fun err msg = raise THM ("transitive: " ^ msg, 0, [th1, th2]);
   in
     case (prop1, prop2) of
-      ((eq as Const ("Pure.eq", Type (_, [T, _]))) $ t1 $ u, Const ("Pure.eq", _) $ u' $ t2) =>
+      ((eq as Const ("Pure.eq", Type (_, [U, _]))) $ t1 $ u, Const ("Pure.eq", _) $ u' $ t2) =>
         if not (u aconv u') then err "middle term"
         else
-          Thm (deriv_rule2 (Proofterm.transitive u T) der1 der2,
+          Thm (deriv_rule2 (Proofterm.transitive_proof U u) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
@@ -1277,7 +1277,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
       (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
       | _ => raise THM ("beta_conversion: not a redex", 0, []));
   in
-    Thm (deriv_rule0 (fn () => Proofterm.reflexive),
+    Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1289,7 +1289,7 @@ fun beta_conversion full (Cterm {cert, t, T = _, maxidx, sorts}) =
   end;
 
 fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1300,7 +1300,7 @@ fun eta_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
     prop = Logic.mk_equals (t, Envir.eta_contract t)});
 
 fun eta_long_conversion (Cterm {cert, t, T = _, maxidx, sorts}) =
-  Thm (deriv_rule0 (fn () => Proofterm.reflexive),
+  Thm (deriv_rule0 (fn () => Proofterm.reflexive_proof),
    {cert = cert,
     tags = [],
     maxidx = maxidx,
@@ -1323,7 +1323,7 @@ fun abstract_rule a
     val (t, u) = Logic.dest_equals prop
       handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
     val result =
-      Thm (deriv_rule1 (Proofterm.abstract_rule x a) der,
+      Thm (deriv_rule1 (Proofterm.abstract_rule_proof (a, x)) der,
        {cert = cert,
         tags = [],
         maxidx = maxidx,
@@ -1367,7 +1367,7 @@ fun combination th1 th2 =
       (Const ("Pure.eq", Type ("fun", [fT, _])) $ f $ g,
        Const ("Pure.eq", Type ("fun", [tT, _])) $ t $ u) =>
         (chktypes fT tT;
-          Thm (deriv_rule2 (Proofterm.combination f g t u fT) der1 der2,
+          Thm (deriv_rule2 (Proofterm.combination_proof (domain_type fT) f g t u) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
@@ -1395,7 +1395,7 @@ fun equal_intr th1 th2 =
     (case (prop1, prop2) of
       (Const("Pure.imp", _) $ A $ B, Const("Pure.imp", _) $ B' $ A') =>
         if A aconv A' andalso B aconv B' then
-          Thm (deriv_rule2 (Proofterm.equal_intr A B) der1 der2,
+          Thm (deriv_rule2 (Proofterm.equal_intr_proof A B) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
@@ -1424,7 +1424,7 @@ fun equal_elim th1 th2 =
     (case prop1 of
       Const ("Pure.eq", _) $ A $ B =>
         if prop2 aconv A then
-          Thm (deriv_rule2 (Proofterm.equal_elim A B) der1 der2,
+          Thm (deriv_rule2 (Proofterm.equal_elim_proof A B) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),

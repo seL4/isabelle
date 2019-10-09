@@ -105,7 +105,7 @@ sig
   (*proof terms for specific inference rules*)
   val implies_intr_proof: term -> proof -> proof
   val implies_intr_proof': term -> proof -> proof
-  val forall_intr_proof: term -> string -> proof -> proof
+  val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
@@ -127,13 +127,13 @@ sig
   val equal_elim_axm: proof
   val abstract_rule_axm: proof
   val combination_axm: proof
-  val reflexive: proof
-  val symmetric: proof -> proof
-  val transitive: term -> typ -> proof -> proof -> proof
-  val abstract_rule: term -> string -> proof -> proof
-  val combination: term -> term -> term -> term -> typ -> proof -> proof -> proof
-  val equal_intr: term -> term -> proof -> proof -> proof
-  val equal_elim: term -> term -> proof -> proof -> proof
+  val reflexive_proof: proof
+  val symmetric_proof: proof -> proof
+  val transitive_proof: typ -> term -> proof -> proof -> proof
+  val equal_intr_proof: term -> term -> proof -> proof -> proof
+  val equal_elim_proof: term -> term -> proof -> proof -> proof
+  val abstract_rule_proof: string * term -> proof -> proof
+  val combination_proof: typ -> term -> term -> term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
@@ -868,11 +868,11 @@ val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 (* forall introduction *)
 
-fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
+fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, prf_abstract_over v prf);
 
-fun forall_intr_proof' t prf =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, SOME T, prf_abstract_over t prf) end;
+fun forall_intr_proof' v prf =
+  let val (a, T) = (case v of Var ((a, _), T) => (a, T) | Free (a, T) => (a, T))
+  in forall_intr_proof (a, v) (SOME T) prf end;
 
 
 (* varify *)
@@ -1237,8 +1237,8 @@ val equality_axms =
   ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
   ("abstract_rule",
     Logic.mk_implies
-      (Logic.all x
-        (Logic.mk_equals (f $ x, g $ x)), Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
+      (Logic.all x (Logic.mk_equals (f $ x, g $ x)),
+        Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
   ("combination", Logic.list_implies
     ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
 
@@ -1246,19 +1246,28 @@ val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
     map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
 
-val reflexive = reflexive_axm % NONE;
+val reflexive_proof = reflexive_axm % NONE;
 
-fun symmetric (prf as PAxm ("Pure.reflexive", _, _) % _) = prf
-  | symmetric prf = symmetric_axm % NONE % NONE %% prf;
+val is_reflexive_proof = fn PAxm ("Pure.reflexive", _, _) % _ => true | _ => false;
 
-fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
-  | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
-  | transitive u (Type ("prop", [])) prf1 prf2 =
-      transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
-  | transitive _ _ prf1 prf2 = transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+fun symmetric_proof prf =
+  if is_reflexive_proof prf then prf
+  else symmetric_axm % NONE % NONE %% prf;
 
-fun abstract_rule x a prf =
-  abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
+fun transitive_proof U u prf1 prf2 =
+  if is_reflexive_proof prf1 then prf2
+  else if is_reflexive_proof prf2 then prf1
+  else if U = propT then transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
+  else transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+
+fun equal_intr_proof A B prf1 prf2 =
+  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+fun equal_elim_proof A B prf1 prf2 =
+  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+fun abstract_rule_proof (a, x) prf =
+  abstract_rule_axm % NONE % NONE %% forall_intr_proof (a, x) NONE prf;
 
 fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
       is_some f orelse check_comb prf
@@ -1267,7 +1276,7 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
   | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
   | check_comb _ = false;
 
-fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
+fun combination_proof A f g t u prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
@@ -1280,7 +1289,7 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
-    (case T of
+    (case A of
       Type ("fun", _) => prf %
         (case head_of f of
           Abs _ => SOME (remove_types t)
@@ -1292,12 +1301,6 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
         | _ => NONE) %% prf1 %% prf2
      | _ => prf % NONE % NONE %% prf1 %% prf2)
   end;
-
-fun equal_intr A B prf1 prf2 =
-  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
-
-fun equal_elim A B prf1 prf2 =
-  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
 
