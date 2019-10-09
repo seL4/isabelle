@@ -626,12 +626,12 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvarsT T [])) T;
+        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])) T;
 
 fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvars t []),
+        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []),
    map_filter (fn (ixnT as (_, T)) =>
      (Envir.lookup env ixnT; NONE) handle TYPE _ =>
         SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
@@ -1055,7 +1055,7 @@ fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
     fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
-    val extra = map (fn S => (TFree ("'dummy", S), S)) extra_sorts;
+    val extra = map (`Logic.dummy_tfree) extra_sorts;
     val replacements = present @ extra @ witnessed;
     fun replace T =
       if exists (fn (T', _) => T' = T) present then raise Same.SAME
