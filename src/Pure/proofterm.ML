@@ -105,7 +105,7 @@ sig
   (*proof terms for specific inference rules*)
   val implies_intr_proof: term -> proof -> proof
   val implies_intr_proof': term -> proof -> proof
-  val forall_intr_proof: term -> string -> proof -> proof
+  val forall_intr_proof: string * term -> typ option -> proof -> proof
   val forall_intr_proof': term -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
@@ -127,13 +127,13 @@ sig
   val equal_elim_axm: proof
   val abstract_rule_axm: proof
   val combination_axm: proof
-  val reflexive: proof
-  val symmetric: proof -> proof
-  val transitive: term -> typ -> proof -> proof -> proof
-  val abstract_rule: term -> string -> proof -> proof
-  val combination: term -> term -> term -> term -> typ -> proof -> proof -> proof
-  val equal_intr: term -> term -> proof -> proof -> proof
-  val equal_elim: term -> term -> proof -> proof -> proof
+  val reflexive_proof: proof
+  val symmetric_proof: proof -> proof
+  val transitive_proof: typ -> term -> proof -> proof -> proof
+  val equal_intr_proof: term -> term -> proof -> proof -> proof
+  val equal_elim_proof: term -> term -> proof -> proof -> proof
+  val abstract_rule_proof: string * term -> proof -> proof
+  val combination_proof: typ -> term -> term -> term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
@@ -626,12 +626,12 @@ fun prf_add_loose_bnos plev _ (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = Term_Subst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvarsT T [])) T;
+        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvarsT T [])) T;
 
 fun del_conflicting_vars env t = Term_Subst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvars t []),
+        SOME (ixnS, Logic.dummy_tfree S)) (Term.add_tvars t []),
    map_filter (fn (ixnT as (_, T)) =>
      (Envir.lookup env ixnT; NONE) handle TYPE _ =>
         SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
@@ -868,11 +868,11 @@ val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 (* forall introduction *)
 
-fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
+fun forall_intr_proof (a, v) opt_T prf = Abst (a, opt_T, prf_abstract_over v prf);
 
-fun forall_intr_proof' t prf =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, SOME T, prf_abstract_over t prf) end;
+fun forall_intr_proof' v prf =
+  let val (a, T) = (case v of Var ((a, _), T) => (a, T) | Free (a, T) => (a, T))
+  in forall_intr_proof (a, v) (SOME T) prf end;
 
 
 (* varify *)
@@ -1055,7 +1055,7 @@ fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
     fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
-    val extra = map (fn S => (TFree ("'dummy", S), S)) extra_sorts;
+    val extra = map (`Logic.dummy_tfree) extra_sorts;
     val replacements = present @ extra @ witnessed;
     fun replace T =
       if exists (fn (T', _) => T' = T) present then raise Same.SAME
@@ -1078,8 +1078,13 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
 
 (** axioms and theorems **)
 
+fun tvars_of t = map TVar (rev (Term.add_tvars t []));
+fun tfrees_of t = map TFree (rev (Term.add_tfrees t []));
+fun type_variables_of t = tvars_of t @ tfrees_of t;
+
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
+fun variables_of t = vars_of t @ frees_of t;
 
 fun test_args _ [] = true
   | test_args is (Bound i :: ts) =
@@ -1232,8 +1237,8 @@ val equality_axms =
   ("equal_elim", Logic.list_implies ([Logic.mk_equals (A, B), A], B)),
   ("abstract_rule",
     Logic.mk_implies
-      (Logic.all x
-        (Logic.mk_equals (f $ x, g $ x)), Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
+      (Logic.all x (Logic.mk_equals (f $ x, g $ x)),
+        Logic.mk_equals (lambda x (f $ x), lambda x (g $ x)))),
   ("combination", Logic.list_implies
     ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)], Logic.mk_equals (f $ x, g $ y)))];
 
@@ -1241,19 +1246,28 @@ val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
     map (fn (s, t) => PAxm ("Pure." ^ s, Logic.varify_global t, NONE)) equality_axms;
 
-val reflexive = reflexive_axm % NONE;
+val reflexive_proof = reflexive_axm % NONE;
 
-fun symmetric (prf as PAxm ("Pure.reflexive", _, _) % _) = prf
-  | symmetric prf = symmetric_axm % NONE % NONE %% prf;
+val is_reflexive_proof = fn PAxm ("Pure.reflexive", _, _) % _ => true | _ => false;
 
-fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
-  | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
-  | transitive u (Type ("prop", [])) prf1 prf2 =
-      transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
-  | transitive _ _ prf1 prf2 = transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+fun symmetric_proof prf =
+  if is_reflexive_proof prf then prf
+  else symmetric_axm % NONE % NONE %% prf;
 
-fun abstract_rule x a prf =
-  abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
+fun transitive_proof U u prf1 prf2 =
+  if is_reflexive_proof prf1 then prf2
+  else if is_reflexive_proof prf2 then prf1
+  else if U = propT then transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
+  else transitive_axm % NONE % NONE % NONE %% prf1 %% prf2;
+
+fun equal_intr_proof A B prf1 prf2 =
+  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+fun equal_elim_proof A B prf1 prf2 =
+  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+fun abstract_rule_proof (a, x) prf =
+  abstract_rule_axm % NONE % NONE %% forall_intr_proof (a, x) NONE prf;
 
 fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
       is_some f orelse check_comb prf
@@ -1262,7 +1276,7 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
   | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
   | check_comb _ = false;
 
-fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
+fun combination_proof A f g t u prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
@@ -1275,7 +1289,7 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
-    (case T of
+    (case A of
       Type ("fun", _) => prf %
         (case head_of f of
           Abs _ => SOME (remove_types t)
@@ -1287,12 +1301,6 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
         | _ => NONE) %% prf1 %% prf2
      | _ => prf % NONE % NONE %% prf1 %% prf2)
   end;
-
-fun equal_intr A B prf1 prf2 =
-  equal_intr_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
-
-fun equal_elim A B prf1 prf2 =
-  equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
 
@@ -1567,20 +1575,18 @@ local
 
 exception MIN_PROOF of unit;
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
-fun frees_of t = map Free (rev (Term.add_frees t []));
-fun variables_of t = vars_of t @ frees_of t;
-
 fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
 
 fun app_types shift prop Ts prf =
   let
-    val tvars = rev (Term.add_tvars prop []);
-    val tfrees = rev (Term.add_tfrees prop []);
-    val vs = map (fn ((a, i), _) => (a, i + shift)) tvars @ map (fn (a, _) => (a, ~1)) tfrees;
-    fun varify (v as (a, S)) = if member (op =) tfrees v then TVar ((a, ~1), S) else TFree v;
-  in map_proof_types (typ_subst_TVars (vs ~~ Ts) o map_type_tfree varify) prf end;
+    val inst = type_variables_of prop ~~ Ts;
+    fun subst_same A =
+      (case AList.lookup (op =) inst A of SOME T => T | NONE => raise Same.SAME);
+    val subst_type_same =
+      Term_Subst.map_atypsT_same
+        (fn TVar ((a, i), S) => subst_same (TVar ((a, i - shift), S)) | A => subst_same A);
+  in Same.commit (map_proof_types_same subst_type_same) prf end;
 
 fun guess_name (PThm ({name, ...}, _)) = name
   | guess_name (prf %% Hyp _) = guess_name prf
@@ -1856,9 +1862,8 @@ fun reconstruct_proof thy prop cprf =
     val env' = solve thy cs' env
   in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
-fun prop_of_atom prop Ts = subst_atomic_types
-  (map TVar (Term.add_tvars prop [] |> rev) @ map TFree (Term.add_tfrees prop [] |> rev) ~~ Ts)
-  (forall_intr_vfs prop);
+fun prop_of_atom prop Ts =
+  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm Envir.init;
 
