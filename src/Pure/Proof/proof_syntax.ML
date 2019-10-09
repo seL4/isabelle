@@ -182,12 +182,13 @@ fun proof_of full thm =
     val thy = Thm.theory_of_thm thm;
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
-    val prf' =
-      (case fst (Proofterm.strip_combt (fst (Proofterm.strip_combP prf))) of
-        PThm ({prop = prop', ...}, thm_body) =>
-          if prop = prop' then Proofterm.thm_body_proof_raw thm_body else prf
-      | _ => prf)
-  in if full then Proofterm.reconstruct_proof thy prop prf' else prf' end;
+  in
+    (case fst (Proofterm.strip_combt (fst (Proofterm.strip_combP prf))) of
+      PThm ({prop = prop', ...}, thm_body) =>
+        if prop = prop' then Proofterm.thm_body_proof_raw thm_body else prf
+    | _ => prf)
+    |> full ? Proofterm.reconstruct_proof thy prop
+  end;
 
 fun pretty_proof ctxt prf =
   Proof_Context.pretty_term_abbrev
