@@ -158,10 +158,10 @@ There are three main ways to install automatic provers on your machine:
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
-already include properly setup executables for CVC4, E, SPASS, Vampire, veriT,
-and Z3, ready to use. To use Vampire, you must confirm that you are a
-noncommercial user, as indicated by the message that is displayed when
-Sledgehammer is invoked the first time.
+already include properly setup executables for CVC4, E, SPASS, Vampire, and Z3,
+ready to use. To use Vampire, you must confirm that you are a noncommercial
+user, as indicated by the message that is displayed when Sledgehammer is
+invoked the first time.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
 CVC4, E, SPASS, Vampire, and Z3 binary packages from \download. Extract the
@@ -200,7 +200,7 @@ Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
 variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
 \texttt{VERIT\_\allowbreak SOLVER}, or \texttt{Z3\_SOLVER} to the complete path
 of the executable, \emph{including the file name}. Sledgehammer has been tested
-with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT smtcomp2014, and Z3 4.3.2.
+with CVC3 2.2 and 2.4.1, CVC4 1.5-prerelease, veriT smtcomp2019, and Z3 4.3.2.
 Since Z3's output format is somewhat unstable, other versions of the solver
 might not work well with Sledgehammer. Ideally, also set
 \texttt{CVC3\_VERSION}, \texttt{CVC4\_VERSION}, \texttt{VERIT\_VERSION}, or
@@ -833,7 +833,7 @@ SMT solver developed by David D\'eharbe, Pascal Fontaine, and their colleagues.
 It is specifically designed to produce detailed proofs for reconstruction in
 proof assistants. To use veriT, set the environment variable
 \texttt{VERIT\_SOLVER} to the complete path of the executable, including the
-file name. Sledgehammer has been tested with version smtcomp2014.
+file name. Sledgehammer has been tested with version smtcomp2019.
 
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
