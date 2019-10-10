@@ -103,6 +103,7 @@ sig
   val term_of_proof: proof -> term
 
   (*proof terms for specific inference rules*)
+  val trivial_proof: proof
   val implies_intr_proof: term -> proof -> proof
   val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: string * term -> typ option -> proof -> proof
@@ -844,6 +845,11 @@ end;
 
 
 (** inference rules **)
+
+(* trivial implication *)
+
+val trivial_proof = AbsP ("H", NONE, PBound 0);
+
 
 (* implication introduction *)
 

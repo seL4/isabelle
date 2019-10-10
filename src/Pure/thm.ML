@@ -1631,7 +1631,7 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
-    Thm (deriv_rule0 (fn () => Proofterm.AbsP ("H", NONE, Proofterm.PBound 0)),
+    Thm (deriv_rule0 (fn () => Proofterm.trivial_proof),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
