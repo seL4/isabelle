@@ -255,20 +255,22 @@ fun elim_defs thy r defs prf =
     val defs' = map (Logic.dest_equals o
       map_types Type.strip_sorts o Thm.prop_of o Drule.abs_def) defs;
     val defnames = map Thm.derivation_name defs;
-    val f = if not r then I else
-      let
-        val cnames = map (fst o dest_Const o fst) defs';
-        val thms = Proofterm.fold_proof_atoms true
-          (fn PThm ({name, prop, ...}, _) =>
-              if member (op =) defnames name orelse
-                not (exists_Const (member (op =) cnames o #1) prop)
-              then I
-              else cons (name, SOME prop)
-            | _ => I) [prf] [];
-      in Proofterm.expand_proof thy thms end;
+    val prf' =
+      if r then
+        let
+          val cnames = map (fst o dest_Const o fst) defs';
+          val thms = Proofterm.fold_proof_atoms true
+            (fn PThm ({name, prop, ...}, _) =>
+                if member (op =) defnames name orelse
+                  not (exists_Const (member (op =) cnames o #1) prop)
+                then I
+                else cons (name, SOME prop)
+              | _ => I) [prf] [];
+        in Proofterm.expand_proof thy thms prf end
+      else prf;
   in
     rewrite_terms (Pattern.rewrite_term thy defs' [])
-      (fst (insert_refl defnames [] (f prf)))
+      (fst (insert_refl defnames [] prf'))
   end;
 
 
