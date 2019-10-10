@@ -1828,23 +1828,24 @@ fun assumption opt_ctxt i state =
     val (context, cert') = make_context_certificate [state] opt_ctxt cert;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
-      Thm (deriv_rule1
-          ((if Envir.is_empty env then I else Proofterm.norm_proof' env) o
-            Proofterm.assumption_proof Bs Bi n) der,
-       {tags = [],
-        maxidx = Envir.maxidx_of env,
-        constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
-        shyps = Envir.insert_sorts env shyps,
-        hyps = hyps,
-        tpairs =
-          if Envir.is_empty env then tpairs
-          else map (apply2 (Envir.norm_term env)) tpairs,
-        prop =
-          if Envir.is_empty env then (*avoid wasted normalizations*)
-            Logic.list_implies (Bs, C)
-          else (*normalize the new rule fully*)
-            Envir.norm_term env (Logic.list_implies (Bs, C)),
-        cert = cert'});
+      let
+        val normt = Envir.norm_term env;
+        fun assumption_proof prf =
+          Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf
+          |> not (Envir.is_empty env) ? Proofterm.norm_proof' env;
+      in
+        Thm (deriv_rule1 assumption_proof der,
+         {tags = [],
+          maxidx = Envir.maxidx_of env,
+          constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
+          shyps = Envir.insert_sorts env shyps,
+          hyps = hyps,
+          tpairs = if Envir.is_empty env then tpairs else map (apply2 normt) tpairs,
+          prop =
+            if Envir.is_empty env then Logic.list_implies (Bs, C) (*avoid wasted normalizations*)
+            else normt (Logic.list_implies (Bs, C)) (*normalize the new rule fully*),
+          cert = cert'})
+      end;
 
     val (close, asms, concl) = Logic.assum_problems (~1, Bi);
     val concl' = close concl;
@@ -1898,7 +1899,7 @@ fun rotate_rule k i state =
         in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
   in
-    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi m) der,
+    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi' params asms m) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1923,14 +1924,16 @@ fun permute_prems j k rl =
       handle General.Subscript => raise THM ("permute_prems: j", j, [rl]);
     val n_j = length moved_prems;
     val m = if k < 0 then n_j + k else k;
-    val prop' =
-      if 0 = m orelse m = n_j then prop
+    val (prems', prop') =
+      if 0 = m orelse m = n_j then (prems, prop)
       else if 0 < m andalso m < n_j then
-        let val (ps, qs) = chop m moved_prems
-        in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
+        let
+          val (ps, qs) = chop m moved_prems;
+          val prems' = fixed_prems @ qs @ ps;
+        in (prems', Logic.list_implies (prems', concl)) end
       else raise THM ("permute_prems: k", k, [rl]);
   in
-    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems j m) der,
+    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems' j m) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -2079,14 +2082,16 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
            val constraints' =
              union_constraints constraints1 constraints2
              |> insert_constraints_env (Context.certificate_theory cert) env;
+           fun bicompose_proof prf1 prf2 =
+             Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1)
+               prf1 prf2
            val th =
              Thm (deriv_rule2
                    ((if Envir.is_empty env then I
                      else if Envir.above env smax then
                        (fn f => fn der => f (Proofterm.norm_proof' env der))
                      else
-                       curry op oo (Proofterm.norm_proof' env))
-                    (Proofterm.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
+                       curry op oo (Proofterm.norm_proof' env)) bicompose_proof) rder' sder,
                 {tags = [],
                  maxidx = Envir.maxidx_of env,
                  constraints = constraints',

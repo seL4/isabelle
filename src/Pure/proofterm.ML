@@ -109,7 +109,7 @@ sig
   val forall_intr_proof': term -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
-  val rotate_proof: term list -> term -> int -> proof -> proof
+  val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
@@ -117,7 +117,7 @@ sig
   val lift_proof: term -> int -> term -> proof -> proof
   val incr_indexes: int -> proof -> proof
   val assumption_proof: term list -> term -> int -> proof -> proof
-  val bicompose_proof: bool -> term list -> term list -> term list -> term option ->
+  val bicompose_proof: bool -> term list -> term list -> term option -> term list ->
     int -> int -> proof -> proof -> proof
   val equality_axms: (string * term) list
   val reflexive_axm: proof
@@ -455,8 +455,8 @@ fun strip_thm (body as PBody {proof, ...}) =
     PThm (_, Thm_Body {body = body', ...}) => Future.join body'
   | _ => body);
 
-val mk_Abst = fold_rev (fn (s, _: typ) => fn prf => Abst (s, NONE, prf));
-fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
+val mk_Abst = fold_rev (fn (x, _: typ) => fn prf => Abst (x, NONE, prf));
+val mk_AbsP = fold_rev (fn _: term => fn prf => AbsP ("H", NONE, prf));
 
 fun map_proof_same term typ ofclass =
   let
@@ -921,26 +921,24 @@ end;
 
 (* rotate assumptions *)
 
-fun rotate_proof Bs Bi m prf =
+fun rotate_proof Bs Bi' params asms m prf =
   let
-    val params = Term.strip_all_vars Bi;
-    val asms = Logic.strip_imp_prems (Term.strip_all_body Bi);
     val i = length asms;
     val j = length Bs;
   in
-    mk_AbsP (j+1, proof_combP (prf, map PBound
-      (j downto 1) @ [mk_Abst params (mk_AbsP (i,
-        proof_combP (proof_combt (PBound i, map Bound ((length params - 1) downto 0)),
+    mk_AbsP (Bs @ [Bi']) (proof_combP (prf, map PBound
+      (j downto 1) @ [mk_Abst params (mk_AbsP asms
+        (proof_combP (proof_combt (PBound i, map Bound ((length params - 1) downto 0)),
           map PBound (((i-m-1) downto 0) @ ((i-1) downto (i-m))))))]))
   end;
 
 
 (* permute premises *)
 
-fun permute_prems_proof prems j k prf =
-  let val n = length prems
-  in mk_AbsP (n, proof_combP (prf,
-    map PBound ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
+fun permute_prems_proof prems' j k prf =
+  let val n = length prems' in
+    mk_AbsP prems'
+      (proof_combP (prf, map PBound ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
   end;
 
 
@@ -1003,7 +1001,7 @@ fun lift_proof Bi inc prop prf =
             map (fn k => (#3 (fold_rev mk_app bs (i-1, j-1, PBound k))))
               (i + k - 1 downto i));
   in
-    mk_AbsP (k, lift [] [] 0 0 Bi)
+    mk_AbsP ps (lift [] [] 0 0 Bi)
   end;
 
 fun incr_indexes i =
@@ -1023,8 +1021,7 @@ fun mk_asm_prf t i m =
   in all_prf t end;
 
 fun assumption_proof Bs Bi n prf =
-  mk_AbsP (length Bs, proof_combP (prf,
-    map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));
+  mk_AbsP Bs (proof_combP (prf, map PBound (length Bs - 1 downto 0) @ [mk_asm_prf Bi n ~1]));
 
 
 (* composition of object rule with proof state *)
@@ -1036,12 +1033,12 @@ fun flatten_params_proof i j n (Const ("Pure.imp", _) $ A $ B, k) =
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (remove (op =) (i-n) (i-1 downto 0)));
 
-fun bicompose_proof flatten Bs oldAs newAs A n m rprf sprf =
+fun bicompose_proof flatten Bs As A oldAs n m rprf sprf =
   let
-    val la = length newAs;
     val lb = length Bs;
+    val la = length As;
   in
-    mk_AbsP (lb+la, proof_combP (sprf,
+    mk_AbsP (Bs @ As) (proof_combP (sprf,
       map PBound (lb + la - 1 downto la)) %%
         proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) n m] else []) @
           map (if flatten then flatten_params_proof 0 0 n else PBound o snd)
