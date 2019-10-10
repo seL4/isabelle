@@ -1831,10 +1831,10 @@ fun assumption opt_ctxt i state =
       let
         val normt = Envir.norm_term env;
         fun assumption_proof prf =
-          Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf
-          |> not (Envir.is_empty env) ? Proofterm.norm_proof' env;
+          Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf;
       in
-        Thm (deriv_rule1 assumption_proof der,
+        Thm (deriv_rule1
+          (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof' env) der,
          {tags = [],
           maxidx = Envir.maxidx_of env,
           constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
@@ -2087,11 +2087,9 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
                prf1 prf2
            val th =
              Thm (deriv_rule2
-                   ((if Envir.is_empty env then I
-                     else if Envir.above env smax then
-                       (fn f => fn der => f (Proofterm.norm_proof' env der))
-                     else
-                       curry op oo (Proofterm.norm_proof' env)) bicompose_proof) rder' sder,
+                   (if Envir.is_empty env then bicompose_proof
+                    else if Envir.above env smax then bicompose_proof o Proofterm.norm_proof' env
+                    else Proofterm.norm_proof' env oo bicompose_proof) rder' sder,
                 {tags = [],
                  maxidx = Envir.maxidx_of env,
                  constraints = constraints',
