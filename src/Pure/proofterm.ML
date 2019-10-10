@@ -112,7 +112,7 @@ sig
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> (string * typ) list -> term list -> int -> proof -> proof
   val permute_prems_proof: term list -> int -> int -> proof -> proof
-  val generalize: string list * string list -> int -> proof -> proof
+  val generalize_proof: string list * string list -> int -> term -> proof -> proof
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
   val lift_proof: term -> int -> term -> proof -> proof
@@ -950,10 +950,21 @@ fun permute_prems_proof prems' j k prf =
 
 (* generalization *)
 
-fun generalize (tfrees, frees) idx =
-  Same.commit (map_proof_terms_same
-    (Term_Subst.generalize_same (tfrees, frees) idx)
-    (Term_Subst.generalizeT_same tfrees idx));
+fun generalize_proof (tfrees, frees) idx prop prf =
+  let
+    val gen =
+      if null frees then []
+      else
+        fold_aterms (fn Free (x, T) => member (op =) frees x ? insert (op =) (x, T) | _ => I)
+          (Term_Subst.generalize (tfrees, []) idx prop) [];
+  in
+    prf
+    |> Same.commit (map_proof_terms_same
+        (Term_Subst.generalize_same (tfrees, []) idx)
+        (Term_Subst.generalizeT_same tfrees idx))
+    |> fold (fn (x, T) => forall_intr_proof (x, Free (x, T)) NONE) gen
+    |> fold_rev (fn (x, T) => fn prf' => prf' %> Var (Name.clean_index (x, idx), T)) gen
+  end;
 
 
 (* instantiation *)

@@ -1496,12 +1496,12 @@ fun generalize ([], []) _ th = th
         val _ = exists bad_term hyps andalso
           raise THM ("generalize: variable free in assumptions", 0, [th]);
 
-        val gen = Term_Subst.generalize (tfrees, frees) idx;
-        val prop' = gen prop;
-        val tpairs' = map (apply2 gen) tpairs;
+        val generalize = Term_Subst.generalize (tfrees, frees) idx;
+        val prop' = generalize prop;
+        val tpairs' = map (apply2 generalize) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
       in
-        Thm (deriv_rule1 (Proofterm.generalize (tfrees, frees) idx) der,
+        Thm (deriv_rule1 (Proofterm.generalize_proof (tfrees, frees) idx prop) der,
          {cert = cert,
           tags = [],
           maxidx = maxidx',
