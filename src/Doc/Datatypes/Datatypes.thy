@@ -1227,10 +1227,17 @@ section \<open>Defining Primitively Recursive Functions
 
 text \<open>
 Recursive functions over datatypes can be specified using the @{command primrec}
-command, which supports primitive recursion, or using the more general
-\keyw{fun}, \keyw{function}, and \keyw{partial_function} commands. In this
-tutorial, the focus is on @{command primrec}; \keyw{fun} and \keyw{function} are
-described in a separate tutorial @{cite "isabelle-function"}.
+command, which supports primitive recursion, or using the \keyw{fun},
+\keyw{function}, and \keyw{partial_function} commands. In this tutorial, the
+focus is on @{command primrec}; \keyw{fun} and \keyw{function} are described in
+a separate tutorial @{cite "isabelle-function"}.
+
+Because it is restricted to primitive recursion, @{command primrec} is less
+powerful than \keyw{fun} and \keyw{function}. However, there are primitively
+recursive specifications (e.g., based on infinitely branching or mutually
+recursive datatypes) for which \keyw{fun}'s termination check fails. It is also
+good style to use the simpler @{command primrec} mechanism when it works, both
+as an optimization and as documentation.
 \<close>
 
 
