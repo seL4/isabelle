@@ -1151,13 +1151,33 @@ appearing in their definitions and of any type arguments. For example:
       by countable_datatype
 
 
+subsection \<open>Antiquotation
+  \label{ssec:datatype-antiquotation}\<close>
+
+subsubsection \<open>\textit{datatype}
+  \label{sssec:datatype-datatype}\<close>
+
+text \<open>
+The \textit{datatype} antiquotation, written
+\texttt{\char`\\\char`<\char`^}\verb|datatype>|\guilsinglleft\textit{t}\guilsinglright{}
+or \texttt{@}\verb|{datatype| \textit{t}\verb|}|, where \textit{t} is a type
+name, expands to \LaTeX{} code for the definition of the datatype, with each
+constructor listed with its argument types. For example, if \textit{t} is
+@{type option}:
+
+\begin{quote}
+\<^datatype>\<open>option\<close>
+\end{quote}
+\<close>
+
+
 subsection \<open>Compatibility Issues
   \label{ssec:datatype-compatibility-issues}\<close>
 
 text \<open>
 The command @{command datatype} has been designed to be highly compatible with
-the old command, to ease migration. There are nonetheless a few
-incompatibilities that may arise when porting:
+the old, pre-Isabelle2015 command, to ease migration. There are nonetheless a
+few incompatibilities that may arise when porting:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1738,9 +1758,9 @@ subsection \<open>Compatibility Issues
 
 text \<open>
 The command @{command primrec}'s behavior on new-style datatypes has been
-designed to be highly compatible with that for old-style datatypes, to ease
-migration. There is nonetheless at least one incompatibility that may arise when
-porting to the new package:
+designed to be highly compatible with that for old, pre-Isabelle2015 datatypes,
+to ease migration. There is nonetheless at least one incompatibility that may
+arise when porting to the new package:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -2023,6 +2043,26 @@ For convenience, @{command codatatype} also provides the following collection:
 
 \end{description}
 \end{indentblock}
+\<close>
+
+
+subsection \<open>Antiquotation
+  \label{ssec:codatatype-antiquotation}\<close>
+
+subsubsection \<open>\textit{codatatype}
+  \label{sssec:codatatype-codatatype}\<close>
+
+text \<open>
+The \textit{codatatype} antiquotation, written
+\texttt{\char`\\\char`<\char`^}\verb|codatatype>|\guilsinglleft\textit{t}\guilsinglright{}
+or \texttt{@}\verb|{codatatype| \textit{t}\verb|}|, where \textit{t} is a type
+name, expands to \LaTeX{} code for the definition of the codatatype, with each
+constructor listed with its argument types. For example, if \textit{t} is
+@{type llist}:
+
+\begin{quote}
+\<^codatatype>\<open>llist\<close>
+\end{quote}
 \<close>
 
 
