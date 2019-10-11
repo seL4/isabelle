@@ -14,7 +14,7 @@ sig
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
   val hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
   val un_hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
-  val mk_of_sort_proof : theory -> term option list -> typ * sort -> Proofterm.proof list
+  val expand_of_sort_proof : theory -> term option list -> typ * sort -> Proofterm.proof list
   val expand_of_class : theory -> typ list -> term option list -> Proofterm.proof ->
     (Proofterm.proof * Proofterm.proof) option
 end;
@@ -342,33 +342,32 @@ and un_hhf_proof P Q prf =
 
 (**** expand OfClass proofs ****)
 
-fun mk_of_sort_proof thy hs (T, S) =
+fun expand_of_sort_proof thy hyps (T, S) =
   let
-    val hs' = map
-      (fn SOME t => (SOME (Logic.dest_of_class t) handle TERM _ => NONE)
-        | NONE => NONE) hs;
-    val sorts = AList.coalesce (op =) (rev (map_filter I hs'));
+    val of_class_hyps = map (fn SOME t => try Logic.dest_of_class t | NONE => NONE) hyps;
+    fun of_class_index p =
+      (case find_index (fn SOME h => h = p | NONE => false) of_class_hyps of
+        ~1 => raise Fail "expand_of_class_proof: missing class hypothesis"
+      | i => PBound i);
+
+    val sorts = AList.coalesce (op =) (rev (map_filter I of_class_hyps));
     fun get_sort T = the_default [] (AList.lookup (op =) sorts T);
     val subst = map_atyps
-      (fn T as TVar (ixn, _) => TVar (ixn, get_sort T)
-        | T as TFree (s, _) => TFree (s, get_sort T));
-    fun hyp T_c = case find_index (equal (SOME T_c)) hs' of
-        ~1 => error "expand_of_class: missing class hypothesis"
-      | i => PBound i;
-    fun reconstruct prf prop = prf |>
-      Proofterm.reconstruct_proof thy prop |>
-      Proofterm.expand_proof thy [("", NONE)] |>
-      Same.commit (Proofterm.map_proof_same Same.same Same.same hyp)
+      (fn T as TVar (ai, _) => TVar (ai, get_sort T)
+        | T as TFree (a, _) => TFree (a, get_sort T));
+
+    fun reconstruct prop =
+      Proofterm.reconstruct_proof thy prop #>
+      Proofterm.expand_proof thy [("", NONE)] #>
+      Same.commit (Proofterm.map_proof_same Same.same Same.same of_class_index);
   in
-    map2 reconstruct
+    map2 reconstruct (Logic.mk_of_sort (T, S))
       (Proofterm.of_sort_proof (Sign.classes_of thy) (Thm.classrel_proof thy) (Thm.arity_proof thy)
         (OfClass o apfst Type.strip_sorts) (subst T, S))
-      (Logic.mk_of_sort (T, S))
   end;
 
-fun expand_of_class thy Ts hs (OfClass (T, c)) =
-      mk_of_sort_proof thy hs (T, [c]) |>
-      hd |> rpair Proofterm.no_skel |> SOME
-  | expand_of_class thy Ts hs _ = NONE;
+fun expand_of_class thy (_: typ list) hs (OfClass (T, c)) =
+      SOME (expand_of_sort_proof thy hs (T, [c]) |> hd, Proofterm.no_skel)
+  | expand_of_class _ _ _ _ = NONE;
 
 end;
