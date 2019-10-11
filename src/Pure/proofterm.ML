@@ -1916,41 +1916,42 @@ fun expand_proof thy thms prf =
     fun do_expand a prop =
       exists (fn (b, NONE) => a = b | (b, SOME prop') => a = b andalso prop = prop') thms;
 
-    fun expand maxidx prfs (AbsP (s, t, prf)) =
-          let val (maxidx', prfs', prf') = expand maxidx prfs prf
-          in (maxidx', prfs', AbsP (s, t, prf')) end
-      | expand maxidx prfs (Abst (s, T, prf)) =
-          let val (maxidx', prfs', prf') = expand maxidx prfs prf
-          in (maxidx', prfs', Abst (s, T, prf')) end
-      | expand maxidx prfs (prf1 %% prf2) =
+    fun expand seen maxidx (AbsP (s, t, prf)) =
+          let val (seen', maxidx', prf') = expand seen maxidx prf
+          in (seen', maxidx', AbsP (s, t, prf')) end
+      | expand seen maxidx (Abst (s, T, prf)) =
+          let val (seen', maxidx', prf') = expand seen maxidx prf
+          in (seen', maxidx', Abst (s, T, prf')) end
+      | expand seen maxidx (prf1 %% prf2) =
           let
-            val (maxidx', prfs', prf1') = expand maxidx prfs prf1;
-            val (maxidx'', prfs'', prf2') = expand maxidx' prfs' prf2;
-          in (maxidx'', prfs'', prf1' %% prf2') end
-      | expand maxidx prfs (prf % t) =
-          let val (maxidx', prfs', prf') = expand maxidx prfs prf
-          in (maxidx', prfs', prf' % t) end
-      | expand maxidx prfs (prf as PThm ({name = a, prop, types = SOME Ts, ...}, thm_body)) =
+            val (seen', maxidx', prf1') = expand seen maxidx prf1;
+            val (seen'', maxidx'', prf2') = expand seen' maxidx' prf2;
+          in (seen'', maxidx'', prf1' %% prf2') end
+      | expand seen maxidx (prf % t) =
+          let val (seen', maxidx', prf') = expand seen maxidx prf
+          in (seen', maxidx', prf' % t) end
+      | expand seen maxidx (prf as PThm ({name = a, prop, types = SOME Ts, ...}, thm_body)) =
           if do_expand a prop then
             let
-              val (maxidx', prfs', prf') =
-                (case AList.lookup (op =) prfs (a, prop) of
+              val (seen', maxidx', prf') =
+                (case AList.lookup (op =) seen (a, prop) of
                   NONE =>
                     let
                       val prf1 =
                         thm_body_proof_open thm_body
                         |> reconstruct_proof thy prop
                         |> forall_intr_vfs_prf prop;
-                      val (maxidx1, prfs1, prf2) = expand (maxidx_proof prf1 ~1) prfs prf1
-                      val prfs2 = ((a, prop), (maxidx1, prf2)) :: prfs1;
-                    in (maxidx1, prfs2, prf2) end
-                | SOME (maxidx1, prf1) => (maxidx1, prfs, prf1));
+                      val (seen1, maxidx1, prf2) = expand_init seen prf1
+                      val seen2 = ((a, prop), (maxidx1, prf2)) :: seen1;
+                    in (seen2, maxidx1, prf2) end
+                | SOME (maxidx1, prf1) => (seen, maxidx1, prf1));
               val prf'' = prf' |> incr_indexes (maxidx + 1) |> app_types (maxidx + 1) prop Ts;
-            in (maxidx' + maxidx + 1, prfs', prf'') end
-          else (maxidx, prfs, prf)
-      | expand maxidx prfs prf = (maxidx, prfs, prf);
+            in (seen', maxidx' + maxidx + 1, prf'') end
+          else (seen, maxidx, prf)
+      | expand seen maxidx prf = (seen, maxidx, prf)
+    and expand_init seen prf = expand seen (maxidx_proof prf ~1) prf;
 
-  in #3 (expand (maxidx_proof prf ~1) [] prf) end;
+  in #3 (expand_init [] prf) end;
 
 end;
 
