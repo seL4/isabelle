@@ -11,6 +11,7 @@ sig
   type 'a A
   type 'a T
   type 'a V
+  type 'a P
   val int_atom: int A
   val bool_atom: bool A
   val unit_atom: unit A
@@ -290,6 +291,7 @@ struct
 type 'a A = 'a -> string;
 type 'a T = 'a -> body;
 type 'a V = 'a -> string list * body;
+type 'a P = 'a -> string list;
 
 
 (* atomic values *)
@@ -347,6 +349,7 @@ struct
 type 'a A = string -> 'a;
 type 'a T = body -> 'a;
 type 'a V = string list * body -> 'a;
+type 'a P = string list -> 'a;
 
 
 (* atomic values *)

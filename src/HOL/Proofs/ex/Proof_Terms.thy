@@ -23,14 +23,14 @@ ML_val \<open>
   val thm = @{thm ex};
 
   (*proof body with digest*)
-  val body = Proofterm.strip_thm (Thm.proof_body_of thm);
+  val body = Proofterm.strip_thm_body (Thm.proof_body_of thm);
 
   (*proof term only*)
   val prf = Proofterm.proof_of body;
 
   (*clean output*)
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> false thm);
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> true thm);
+  Pretty.writeln (Proof_Syntax.pretty_standard_proof_of \<^context> false thm);
+  Pretty.writeln (Proof_Syntax.pretty_standard_proof_of \<^context> true thm);
 
   (*all theorems used in the graph of nested proofs*)
   val all_thms =

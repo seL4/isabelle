@@ -250,7 +250,7 @@ fun string_of_prfs full state arg =
     | SOME srcs =>
         let
           val ctxt = Toplevel.context_of state;
-          val pretty_proof = Proof_Syntax.pretty_clean_proof_of ctxt full;
+          val pretty_proof = Proof_Syntax.pretty_standard_proof_of ctxt full;
         in Pretty.chunks (map pretty_proof (Attrib.eval_thms ctxt srcs)) end);
 
 fun string_of_prop ctxt s =

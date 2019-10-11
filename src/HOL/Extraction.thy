@@ -17,11 +17,11 @@ setup \<open>
       [("bool", ([], NONE))] #>
   Extraction.set_preprocessor (fn thy =>
     Proofterm.rewrite_proof_notypes
-      ([], RewriteHOLProof.elim_cong :: ProofRewriteRules.rprocs true) o
+      ([], Rewrite_HOL_Proof.elim_cong :: Proof_Rewrite_Rules.rprocs true) o
     Proofterm.rewrite_proof thy
-      (RewriteHOLProof.rews,
-       ProofRewriteRules.rprocs true @ [ProofRewriteRules.expand_of_class thy]) o
-    ProofRewriteRules.elim_vars (curry Const \<^const_name>\<open>default\<close>))
+      (Rewrite_HOL_Proof.rews,
+       Proof_Rewrite_Rules.rprocs true @ [Proof_Rewrite_Rules.expand_of_class thy]) o
+    Proof_Rewrite_Rules.elim_vars (curry Const \<^const_name>\<open>default\<close>))
 \<close>
 
 lemmas [extraction_expand] =

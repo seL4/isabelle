@@ -269,7 +269,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
   in (name, (vs,
     if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
     Extraction.abs_corr_shyps thy rule vs vs2
-      (ProofRewriteRules.un_hhf_proof rlz' (attach_typeS rlz)
+      (Proof_Rewrite_Rules.un_hhf_proof rlz' (attach_typeS rlz)
          (fold_rev Proofterm.forall_intr_proof' rs (prf_of thy rrule)))))
   end;
 

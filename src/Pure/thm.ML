@@ -713,6 +713,9 @@ val empty_deriv = make_deriv [] [] [] MinProof;
 
 val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
+fun bad_proofs i =
+  error ("Illegal level of detail for proof objects: " ^ string_of_int i);
+
 fun deriv_rule2 f
     (Deriv {promises = ps1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})
     (Deriv {promises = ps2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
@@ -725,7 +728,7 @@ fun deriv_rule2 f
         2 => f prf1 prf2
       | 1 => MinProof
       | 0 => MinProof
-      | i => error ("Illegal level of detail for proof objects: " ^ string_of_int i));
+      | i => bad_proofs i);
   in make_deriv ps oracles thms prf end;
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
@@ -1043,7 +1046,14 @@ fun add_oracle (b, oracle_fn) thy =
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
-          let val (oracle, prf) = Proofterm.oracle_proof name prop in
+          let
+            val (oracle, prf) =
+              (case ! Proofterm.proofs of
+                2 => ((name, SOME prop), Proofterm.oracle_proof name prop)
+              | 1 => ((name, SOME prop), MinProof)
+              | 0 => ((name, NONE), MinProof)
+              | i => bad_proofs i);
+          in
             Thm (make_deriv [] [oracle] [] prf,
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
               tags = [],
@@ -1496,12 +1506,12 @@ fun generalize ([], []) _ th = th
         val _ = exists bad_term hyps andalso
           raise THM ("generalize: variable free in assumptions", 0, [th]);
 
-        val gen = Term_Subst.generalize (tfrees, frees) idx;
-        val prop' = gen prop;
-        val tpairs' = map (apply2 gen) tpairs;
+        val generalize = Term_Subst.generalize (tfrees, frees) idx;
+        val prop' = generalize prop;
+        val tpairs' = map (apply2 generalize) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
       in
-        Thm (deriv_rule1 (Proofterm.generalize (tfrees, frees) idx) der,
+        Thm (deriv_rule1 (Proofterm.generalize_proof (tfrees, frees) idx prop) der,
          {cert = cert,
           tags = [],
           maxidx = maxidx',
@@ -1631,7 +1641,7 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
-    Thm (deriv_rule0 (fn () => Proofterm.AbsP ("H", NONE, Proofterm.PBound 0)),
+    Thm (deriv_rule0 (fn () => Proofterm.trivial_proof),
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1828,23 +1838,24 @@ fun assumption opt_ctxt i state =
     val (context, cert') = make_context_certificate [state] opt_ctxt cert;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env, tpairs) =
-      Thm (deriv_rule1
-          ((if Envir.is_empty env then I else Proofterm.norm_proof' env) o
-            Proofterm.assumption_proof Bs Bi n) der,
-       {tags = [],
-        maxidx = Envir.maxidx_of env,
-        constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
-        shyps = Envir.insert_sorts env shyps,
-        hyps = hyps,
-        tpairs =
-          if Envir.is_empty env then tpairs
-          else map (apply2 (Envir.norm_term env)) tpairs,
-        prop =
-          if Envir.is_empty env then (*avoid wasted normalizations*)
-            Logic.list_implies (Bs, C)
-          else (*normalize the new rule fully*)
-            Envir.norm_term env (Logic.list_implies (Bs, C)),
-        cert = cert'});
+      let
+        val normt = Envir.norm_term env;
+        fun assumption_proof prf =
+          Proofterm.assumption_proof (map normt Bs) (normt Bi) n prf;
+      in
+        Thm (deriv_rule1
+          (assumption_proof #> not (Envir.is_empty env) ? Proofterm.norm_proof' env) der,
+         {tags = [],
+          maxidx = Envir.maxidx_of env,
+          constraints = insert_constraints_env (Context.certificate_theory cert') env constraints,
+          shyps = Envir.insert_sorts env shyps,
+          hyps = hyps,
+          tpairs = if Envir.is_empty env then tpairs else map (apply2 normt) tpairs,
+          prop =
+            if Envir.is_empty env then Logic.list_implies (Bs, C) (*avoid wasted normalizations*)
+            else normt (Logic.list_implies (Bs, C)) (*normalize the new rule fully*),
+          cert = cert'})
+      end;
 
     val (close, asms, concl) = Logic.assum_problems (~1, Bi);
     val concl' = close concl;
@@ -1898,7 +1909,7 @@ fun rotate_rule k i state =
         in Logic.list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
   in
-    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi m) der,
+    Thm (deriv_rule1 (Proofterm.rotate_proof Bs Bi' params asms m) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1923,14 +1934,16 @@ fun permute_prems j k rl =
       handle General.Subscript => raise THM ("permute_prems: j", j, [rl]);
     val n_j = length moved_prems;
     val m = if k < 0 then n_j + k else k;
-    val prop' =
-      if 0 = m orelse m = n_j then prop
+    val (prems', prop') =
+      if 0 = m orelse m = n_j then (prems, prop)
       else if 0 < m andalso m < n_j then
-        let val (ps, qs) = chop m moved_prems
-        in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
+        let
+          val (ps, qs) = chop m moved_prems;
+          val prems' = fixed_prems @ qs @ ps;
+        in (prems', Logic.list_implies (prems', concl)) end
       else raise THM ("permute_prems: k", k, [rl]);
   in
-    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems j m) der,
+    Thm (deriv_rule1 (Proofterm.permute_prems_proof prems' j m) der,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -2079,14 +2092,14 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
            val constraints' =
              union_constraints constraints1 constraints2
              |> insert_constraints_env (Context.certificate_theory cert) env;
+           fun bicompose_proof prf1 prf2 =
+             Proofterm.bicompose_proof flatten (map normt Bs) (map normt As) A oldAs n (nlift+1)
+               prf1 prf2
            val th =
              Thm (deriv_rule2
-                   ((if Envir.is_empty env then I
-                     else if Envir.above env smax then
-                       (fn f => fn der => f (Proofterm.norm_proof' env der))
-                     else
-                       curry op oo (Proofterm.norm_proof' env))
-                    (Proofterm.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
+                   (if Envir.is_empty env then bicompose_proof
+                    else if Envir.above env smax then bicompose_proof o Proofterm.norm_proof' env
+                    else Proofterm.norm_proof' env oo bicompose_proof) rder' sder,
                 {tags = [],
                  maxidx = Envir.maxidx_of env,
                  constraints = constraints',

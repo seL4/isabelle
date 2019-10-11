@@ -271,7 +271,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       in
         (prop, (deps, proof)) |>
           let open XML.Encode Term_XML.Encode
-          in pair encode_prop (pair (list string) (option (Proofterm.encode_full consts))) end
+          in pair encode_prop (pair (list string) (option (Proofterm.encode_standard consts))) end
       end;
 
     fun buffer_export_thm (serial, thm_name) =

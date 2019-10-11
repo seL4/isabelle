@@ -241,6 +241,7 @@ object XML
   {
     type T[A] = A => XML.Body
     type V[A] = PartialFunction[A, (List[String], XML.Body)]
+    type P[A] = PartialFunction[A, List[String]]
 
 
     /* atomic values */
@@ -309,6 +310,7 @@ object XML
   {
     type T[A] = XML.Body => A
     type V[A] = (List[String], XML.Body) => A
+    type P[A] = PartialFunction[List[String], A]
 
 
     /* atomic values */

@@ -10,7 +10,7 @@ sig
   val elim_cong: typ list -> term option list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option
 end;
 
-structure RewriteHOLProof : REWRITE_HOL_PROOF =
+structure Rewrite_HOL_Proof : REWRITE_HOL_PROOF =
 struct
 
 val rews =

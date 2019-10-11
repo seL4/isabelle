@@ -57,7 +57,7 @@ object Term
   case class Hyp(hyp: Term) extends Proof
   case class PAxm(name: String, types: List[Typ]) extends Proof
   case class OfClass(typ: Typ, cls: String) extends Proof
-  case class Oracle(name: String, prop: Option[Term], types: List[Typ]) extends Proof
+  case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
   case class PThm(serial: Long, theory_name: String, approximative_name: String, types: List[Typ])
     extends Proof
 
@@ -153,7 +153,7 @@ object Term
               case PAxm(name, types) => store(PAxm(cache_string(name), cache_typs(types)))
               case OfClass(typ, cls) => store(OfClass(cache_typ(typ), cache_string(cls)))
               case Oracle(name, prop, types) =>
-                store(Oracle(cache_string(name), prop.map(cache_term(_)), cache_typs(types)))
+                store(Oracle(cache_string(name), cache_term(prop), cache_typs(types)))
               case PThm(serial, theory_name, name, types) =>
                 store(PThm(serial, cache_string(theory_name), cache_string(name), cache_typs(types)))
             }

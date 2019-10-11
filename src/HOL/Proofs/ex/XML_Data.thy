@@ -13,7 +13,8 @@ subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
   fun export_proof thy thm =
-    Proofterm.encode (Sign.consts_of thy) (Thm.clean_proof_of true thm);
+    Proofterm.encode (Sign.consts_of thy)
+      (Proofterm.reconstruct_proof thy (Thm.prop_of thm) (Thm.standard_proof_of true thm));
 
   fun import_proof thy xml =
     let
