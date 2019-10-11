@@ -1043,7 +1043,10 @@ fun add_oracle (b, oracle_fn) thy =
         if T <> propT then
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
-          let val (oracle, prf) = Proofterm.oracle_proof name prop in
+          let
+            val oracle = Proofterm.make_oracle name prop;
+            val prf = if ! Proofterm.proofs = 2 then Proofterm.oracle_proof name prop else MinProof;
+          in
             Thm (make_deriv [] [oracle] [] prf,
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
               tags = [],

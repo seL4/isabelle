@@ -177,7 +177,7 @@ fun make_proof_body prf =
   let
     val (oracles, thms) =
       ([prf], ([], [])) |-> Proofterm.fold_proof_atoms false
-        (fn Oracle (name, prop, _) => apfst (cons (name, prop))
+        (fn Oracle (name, prop, _) => apfst (cons (name, SOME prop))
           | PThm (header, thm_body) => apsnd (cons (Proofterm.make_thm header thm_body))
           | _ => I);
     val body =
