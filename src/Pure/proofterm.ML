@@ -1913,6 +1913,9 @@ val prop_of = prop_of' [];
 
 fun expand_proof thy thms prf =
   let
+    fun do_expand a prop =
+      exists (fn (b, NONE) => a = b | (b, SOME prop') => a = b andalso prop = prop') thms;
+
     fun expand maxidx prfs (AbsP (s, t, prf)) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', AbsP (s, t, prf')) end
@@ -1928,27 +1931,22 @@ fun expand_proof thy thms prf =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
       | expand maxidx prfs (prf as PThm ({name = a, prop, types = SOME Ts, ...}, thm_body)) =
-          if not (exists
-            (fn (b, NONE) => a = b
-              | (b, SOME prop') => a = b andalso prop = prop') thms)
-          then (maxidx, prfs, prf) else
-          let
-            val (maxidx', prf, prfs') =
-              (case AList.lookup (op =) prfs (a, prop) of
-                NONE =>
-                  let
-                    val prf' =
-                      thm_body_proof_open thm_body
-                      |> reconstruct_proof thy prop
-                      |> forall_intr_vfs_prf prop;
-                    val (maxidx', prfs', prf) = expand (maxidx_proof prf' ~1) prfs prf'
-                  in
-                    (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf,
-                      ((a, prop), (maxidx', prf)) :: prfs')
-                  end
-              | SOME (maxidx', prf) =>
-                  (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf, prfs));
-          in (maxidx', prfs', app_types (maxidx + 1) prop Ts prf) end
+          if do_expand a prop then
+            let
+              val (maxidx', prfs', prf') =
+                (case AList.lookup (op =) prfs (a, prop) of
+                  NONE =>
+                    let
+                      val prf1 =
+                        thm_body_proof_open thm_body
+                        |> reconstruct_proof thy prop
+                        |> forall_intr_vfs_prf prop;
+                      val (maxidx1, prfs1, prf2) = expand (maxidx_proof prf1 ~1) prfs prf1
+                      val prfs2 = ((a, prop), (maxidx1, prf2)) :: prfs1;
+                    in (maxidx1, prfs2, incr_indexes (maxidx + 1) prf2) end
+                | SOME (maxidx1, prf1) => (maxidx1, prfs, incr_indexes (maxidx + 1) prf1));
+            in (maxidx' + maxidx + 1, prfs', app_types (maxidx + 1) prop Ts prf') end
+          else (maxidx, prfs, prf)
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
   in #3 (expand (maxidx_proof prf ~1) [] prf) end;
