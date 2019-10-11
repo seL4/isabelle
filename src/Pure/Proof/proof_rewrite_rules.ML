@@ -15,6 +15,7 @@ sig
   val hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
   val un_hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
   val expand_of_sort_proof : theory -> term option list -> typ * sort -> Proofterm.proof list
+  val expand_of_class_proof : theory -> term option list -> typ * class -> proof
   val expand_of_class : theory -> typ list -> term option list -> Proofterm.proof ->
     (Proofterm.proof * Proofterm.proof) option
 end;
@@ -366,8 +367,11 @@ fun expand_of_sort_proof thy hyps (T, S) =
         (OfClass o apfst Type.strip_sorts) (subst T, S))
   end;
 
-fun expand_of_class thy (_: typ list) hs (OfClass (T, c)) =
-      SOME (expand_of_sort_proof thy hs (T, [c]) |> hd, Proofterm.no_skel)
+fun expand_of_class_proof thy hyps (T, c) =
+  hd (expand_of_sort_proof thy hyps (T, [c]));
+
+fun expand_of_class thy (_: typ list) hyps (OfClass (T, c)) =
+      SOME (expand_of_class_proof thy hyps (T, c), Proofterm.no_skel)
   | expand_of_class _ _ _ _ = NONE;
 
 end;
