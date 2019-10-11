@@ -143,7 +143,6 @@ sig
     (string * class list list * class -> proof) ->
     (typ * class -> proof) -> typ * sort -> proof list
   val axm_proof: string -> term -> proof
-  val make_oracle: string -> term -> oracle
   val oracle_proof: string -> term -> proof
   val shrink_proof: proof -> proof
 
@@ -1165,14 +1164,15 @@ fun prop_args prop =
     val frees = map SOME (frees_of prop);
   in vars @ frees end;
 
-fun axm_proof name prop =
-  proof_combt' (PAxm (name, prop, NONE), prop_args prop);
+fun const_proof mk name prop =
+  let
+    val args = prop_args prop;
+    val ({outer_constraints, ...}, prop1) = Logic.unconstrainT [] prop;
+    val head = mk (name, prop1, NONE);
+  in proof_combP (proof_combt' (head, args), map OfClass outer_constraints) end;
 
-fun make_oracle name prop : oracle =
-  if ! proofs = 0 then (name, NONE) else (name, SOME prop);
-
-fun oracle_proof name prop =
-  proof_combt' (Oracle (name, prop, NONE), prop_args prop);
+val axm_proof = const_proof PAxm;
+val oracle_proof = const_proof Oracle;
 
 val shrink_proof =
   let

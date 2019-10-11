@@ -713,6 +713,9 @@ val empty_deriv = make_deriv [] [] [] MinProof;
 
 val promise_ord: (serial * thm future) ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
+fun bad_proofs i =
+  error ("Illegal level of detail for proof objects: " ^ string_of_int i);
+
 fun deriv_rule2 f
     (Deriv {promises = ps1, body = PBody {oracles = oracles1, thms = thms1, proof = prf1}})
     (Deriv {promises = ps2, body = PBody {oracles = oracles2, thms = thms2, proof = prf2}}) =
@@ -725,7 +728,7 @@ fun deriv_rule2 f
         2 => f prf1 prf2
       | 1 => MinProof
       | 0 => MinProof
-      | i => error ("Illegal level of detail for proof objects: " ^ string_of_int i));
+      | i => bad_proofs i);
   in make_deriv ps oracles thms prf end;
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
@@ -1044,8 +1047,12 @@ fun add_oracle (b, oracle_fn) thy =
           raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
         else
           let
-            val oracle = Proofterm.make_oracle name prop;
-            val prf = if ! Proofterm.proofs = 2 then Proofterm.oracle_proof name prop else MinProof;
+            val (oracle, prf) =
+              (case ! Proofterm.proofs of
+                2 => ((name, SOME prop), Proofterm.oracle_proof name prop)
+              | 1 => ((name, SOME prop), MinProof)
+              | 0 => ((name, NONE), MinProof)
+              | i => bad_proofs i);
           in
             Thm (make_deriv [] [oracle] [] prf,
              {cert = Context.join_certificate (Context.Certificate thy', cert2),
