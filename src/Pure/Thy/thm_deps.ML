@@ -105,7 +105,7 @@ fun unused_thms_cmd (base_thys, thys) =
     val used =
       Proofterm.fold_body_thms
         (fn {name = a, ...} => a <> "" ? Symtab.update (a, ()))
-        (map Proofterm.strip_thm (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
+        (map Proofterm.strip_thm_body (Thm.proof_bodies_of (map (#1 o #2) new_thms)))
         Symtab.empty;
 
     fun is_unused a = not (Symtab.defined used a);

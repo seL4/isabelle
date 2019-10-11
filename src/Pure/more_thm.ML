@@ -663,7 +663,7 @@ fun clean_proof_of full thm =
       Logic.unconstrainT (Thm.shyps_of thm)
         (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
   in
-    Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm))
+    Proofterm.strip_thm_proof (Thm.proof_of thm)
     |> Proofterm.reconstruct_proof thy prop
     |> Proofterm.expand_proof thy [("", NONE)]
     |> Proofterm.rew_proof thy
