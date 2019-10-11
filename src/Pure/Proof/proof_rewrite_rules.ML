@@ -20,7 +20,7 @@ sig
     (Proofterm.proof * Proofterm.proof) option
 end;
 
-structure ProofRewriteRules : PROOF_REWRITE_RULES =
+structure Proof_Rewrite_Rules : PROOF_REWRITE_RULES =
 struct
 
 fun rew b _ _ =

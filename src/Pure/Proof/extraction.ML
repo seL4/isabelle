@@ -505,7 +505,7 @@ fun extract thm_vss thy =
     val rtypes = map fst types;
     val typroc = typeof_proc [];
     val prep = the_default (K I) prep thy' o
-      ProofRewriteRules.elim_defs thy' false (map (Thm.transfer thy) defs) o
+      Proof_Rewrite_Rules.elim_defs thy' false (map (Thm.transfer thy) defs) o
       Proofterm.expand_proof thy' (map (rpair NONE) ("" :: expand));
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
@@ -529,7 +529,7 @@ fun extract thm_vss thy =
       Logic.mk_of_sort (TVar (ixn, []), Sign.defaultS thy)) tye;
 
     fun mk_sprfs cs tye = maps (fn (_, T) =>
-      ProofRewriteRules.expand_of_sort_proof thy' (map SOME cs)
+      Proof_Rewrite_Rules.expand_of_sort_proof thy' (map SOME cs)
         (T, Sign.defaultS thy)) tye;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
