@@ -1943,9 +1943,10 @@ fun expand_proof thy thms prf =
                         |> forall_intr_vfs_prf prop;
                       val (maxidx1, prfs1, prf2) = expand (maxidx_proof prf1 ~1) prfs prf1
                       val prfs2 = ((a, prop), (maxidx1, prf2)) :: prfs1;
-                    in (maxidx1, prfs2, incr_indexes (maxidx + 1) prf2) end
-                | SOME (maxidx1, prf1) => (maxidx1, prfs, incr_indexes (maxidx + 1) prf1));
-            in (maxidx' + maxidx + 1, prfs', app_types (maxidx + 1) prop Ts prf') end
+                    in (maxidx1, prfs2, prf2) end
+                | SOME (maxidx1, prf1) => (maxidx1, prfs, prf1));
+              val prf'' = prf' |> incr_indexes (maxidx + 1) |> app_types (maxidx + 1) prop Ts;
+            in (maxidx' + maxidx + 1, prfs', prf'') end
           else (maxidx, prfs, prf)
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
