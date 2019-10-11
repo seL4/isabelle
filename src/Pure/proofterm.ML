@@ -61,7 +61,7 @@ sig
 
   val encode: Consts.T -> proof XML.Encode.T
   val encode_body: Consts.T -> proof_body XML.Encode.T
-  val encode_full: Consts.T -> proof XML.Encode.T
+  val encode_standard: Consts.T -> proof XML.Encode.T
   val decode: Consts.T -> proof XML.Decode.T
   val decode_body: Consts.T -> proof_body XML.Decode.T
 
@@ -351,13 +351,13 @@ and thm consts (a, thm_node) =
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
       (Future.join (thm_node_body thm_node))))));
 
-fun full_proof consts prf = prf |> variant
+fun standard_proof consts prf = prf |> variant
  [fn MinProof => ([], []),
   fn PBound a => ([int_atom a], []),
-  fn Abst (a, SOME b, c) => ([a], pair typ (full_proof consts) (b, c)),
-  fn AbsP (a, SOME b, c) => ([a], pair (term consts) (full_proof consts) (b, c)),
-  fn a % SOME b => ([], pair (full_proof consts) (term consts) (a, b)),
-  fn a %% b => ([], pair (full_proof consts) (full_proof consts) (a, b)),
+  fn Abst (a, SOME b, c) => ([a], pair typ (standard_proof consts) (b, c)),
+  fn AbsP (a, SOME b, c) => ([a], pair (term consts) (standard_proof consts) (b, c)),
+  fn a % SOME b => ([], pair (standard_proof consts) (term consts) (a, b)),
+  fn a %% b => ([], pair (standard_proof consts) (standard_proof consts) (a, b)),
   fn Hyp a => ([], term consts a),
   fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
   fn OfClass (T, c) => ([c], typ T),
@@ -369,7 +369,7 @@ in
 
 val encode = proof;
 val encode_body = proof_body;
-val encode_full = full_proof;
+val encode_standard = standard_proof;
 
 end;
 
@@ -2092,7 +2092,7 @@ fun clean_proof thy = rew_proof thy #> shrink_proof;
 
 fun encode_export consts prop prf =
   let open XML.Encode Term_XML.Encode
-  in pair (term consts) (encode_full consts) (prop, prf) end;
+  in pair (term consts) (encode_standard consts) (prop, prf) end;
 
 fun export_proof thy i prop prf =
   let
