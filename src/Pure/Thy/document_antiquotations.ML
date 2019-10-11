@@ -57,7 +57,7 @@ fun pretty_type ctxt s =
   let val Type (name, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s
   in Pretty.str (Proof_Context.extern_type ctxt name) end;
 
-fun pretty_prf full ctxt = Proof_Syntax.pretty_clean_proof_of ctxt full;
+fun pretty_prf full ctxt = Proof_Syntax.pretty_standard_proof_of ctxt full;
 
 fun pretty_theory ctxt (name, pos) =
   (Theory.check {long = true} ctxt (name, pos); Pretty.str name);

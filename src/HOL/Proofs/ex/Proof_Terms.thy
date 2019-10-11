@@ -29,8 +29,8 @@ ML_val \<open>
   val prf = Proofterm.proof_of body;
 
   (*clean output*)
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> false thm);
-  Pretty.writeln (Proof_Syntax.pretty_clean_proof_of \<^context> true thm);
+  Pretty.writeln (Proof_Syntax.pretty_standard_proof_of \<^context> false thm);
+  Pretty.writeln (Proof_Syntax.pretty_standard_proof_of \<^context> true thm);
 
   (*all theorems used in the graph of nested proofs*)
   val all_thms =

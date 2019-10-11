@@ -13,7 +13,7 @@ sig
   val proof_syntax: Proofterm.proof -> theory -> theory
   val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
-  val pretty_clean_proof_of: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
 structure Proof_Syntax : PROOF_SYNTAX =
@@ -195,7 +195,7 @@ fun pretty_proof ctxt prf =
     (Proof_Context.transfer (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
     (Proofterm.term_of_proof prf);
 
-fun pretty_clean_proof_of ctxt full thm =
-  pretty_proof ctxt (Thm.clean_proof_of full thm);
+fun pretty_standard_proof_of ctxt full thm =
+  pretty_proof ctxt (Thm.standard_proof_of full thm);
 
 end;

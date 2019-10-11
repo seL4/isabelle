@@ -77,7 +77,6 @@ sig
   val proof_combP: proof * proof list -> proof
   val strip_combt: proof -> proof * term option list
   val strip_combP: proof -> proof * proof list
-  val strip_thm_proof: proof -> proof
   val strip_thm_body: proof_body -> proof_body
   val map_proof_same: term Same.operation -> typ Same.operation
     -> (typ * class -> proof) -> proof Same.operation
@@ -449,11 +448,6 @@ fun strip_combP prf =
     let fun stripc (prf %% prf', prfs) = stripc (prf, prf'::prfs)
           | stripc  x =  x
     in  stripc (prf, [])  end;
-
-fun strip_thm_proof proof =
-  (case fst (strip_combt (fst (strip_combP proof))) of
-    PThm (_, thm_body) => thm_body_proof_raw thm_body
-  | _ => proof);
 
 fun strip_thm_body (body as PBody {proof, ...}) =
   (case fst (strip_combt (fst (strip_combP proof))) of
