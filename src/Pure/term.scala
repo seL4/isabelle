@@ -35,16 +35,41 @@ object Term
 
   sealed abstract class Typ
   case class Type(name: String, args: List[Typ] = Nil) extends Typ
+  {
+    override def toString: String =
+      if (this == dummyT) "_"
+      else "Type(" + name + (if (args.isEmpty) "" else "," + args) + ")"
+  }
   case class TFree(name: String, sort: Sort = dummyS) extends Typ
+  {
+    override def toString: String =
+      "TFree(" + name + (if (sort == dummyS) "" else "," + sort) + ")"
+  }
   case class TVar(name: Indexname, sort: Sort = dummyS) extends Typ
+  {
+    override def toString: String =
+      "TVar(" + name + (if (sort == dummyS) "" else "," + sort) + ")"
+  }
   val dummyT = Type("dummy")
 
   sealed abstract class Term
-  case class Const(name: String, typargs: List[Typ]) extends Term
+  case class Const(name: String, typargs: List[Typ] = Nil) extends Term
+  {
+    override def toString: String =
+      "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
+  }
   case class Free(name: String, typ: Typ = dummyT) extends Term
+  {
+    override def toString: String =
+      "Free(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
+  }
   case class Var(name: Indexname, typ: Typ = dummyT) extends Term
+  {
+    override def toString: String =
+      "Var(" + name + (if (typ == dummyT) "" else "," + typ) + ")"
+  }
   case class Bound(index: Int) extends Term
-  case class Abs(name: String, typ: Typ = dummyT, body: Term) extends Term
+  case class Abs(name: String, typ: Typ, body: Term) extends Term
   case class App(fun: Term, arg: Term) extends Term
 
   sealed abstract class Proof
