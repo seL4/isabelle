@@ -875,7 +875,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 module Isabelle.XML.Encode (
-  A, T, V,
+  A, T, V, P,
 
   int_atom, bool_atom, unit_atom,
 
@@ -892,6 +892,7 @@ import qualified Isabelle.XML as XML
 type A a = a -> String
 type T a = a -> XML.Body
 type V a = a -> Maybe ([String], XML.Body)
+type P a = a -> [String]
 
 
 -- atomic values
@@ -961,11 +962,11 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 module Isabelle.XML.Decode (
-  A, T, V,
+  A, T, V, P,
 
   int_atom, bool_atom, unit_atom,
 
-  tree, properties, string, init, bool, unit, pair, triple, list, variant
+  tree, properties, string, int, bool, unit, pair, triple, list, variant
 )
 where
 
@@ -980,6 +981,7 @@ import qualified Isabelle.XML as XML
 type A a = String -> a
 type T a = XML.Body -> a
 type V a = ([String], XML.Body) -> a
+type P a = [String] -> a
 
 err_atom = error "Malformed XML atom"
 err_body = error "Malformed XML body"
@@ -1358,7 +1360,7 @@ module Isabelle.Term (
 
   Sort, dummyS,
 
-  Typ(..), dummyT, Term(..))
+  Typ(..), dummyT, is_dummyT, Term(..))
 where
 
 type Indexname = (String, Int)
@@ -1378,6 +1380,10 @@ data Typ =
 
 dummyT :: Typ
 dummyT = Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])
+
+is_dummyT :: Typ -> Bool
+is_dummyT (Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])) = True
+is_dummyT _ = False
 
 
 data Term =
@@ -1402,7 +1408,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 
 {-# LANGUAGE LambdaCase #-}
 
-module Isabelle.Term_XML.Encode (sort, typ, term)
+module Isabelle.Term_XML.Encode (indexname, sort, typ, typ_body, term)
 where
 
 import Isabelle.Library
@@ -1410,6 +1416,8 @@ import qualified Isabelle.XML as XML
 import Isabelle.XML.Encode
 import Isabelle.Term
 
+indexname :: P Indexname
+indexname (a, b) = if b == 0 then [a] else [a, int_atom b]
 
 sort :: T Sort
 sort = list string
@@ -1419,15 +1427,18 @@ typ ty =
   ty |> variant
    [\case { Type (a, b) -> Just ([a], list typ b); _ -> Nothing },
     \case { TFree (a, b) -> Just ([a], sort b); _ -> Nothing },
-    \case { TVar ((a, b), c) -> Just ([a, int_atom b], sort c); _ -> Nothing }]
+    \case { TVar (a, b) -> Just (indexname a, sort b); _ -> Nothing }]
+
+typ_body :: T Typ
+typ_body ty = if is_dummyT ty then [] else typ ty
 
 term :: T Term
 term t =
   t |> variant
    [\case { Const (a, b) -> Just ([a], list typ b); _ -> Nothing },
-    \case { Free (a, b) -> Just ([a], typ b); _ -> Nothing },
-    \case { Var ((a, b), c) -> Just ([a, int_atom b], typ c); _ -> Nothing },
-    \case { Bound a -> Just ([int_atom a], []); _ -> Nothing },
+    \case { Free (a, b) -> Just ([a], typ_body b); _ -> Nothing },
+    \case { Var (a, b) -> Just (indexname a, typ_body b); _ -> Nothing },
+    \case { Bound a -> Just ([], int a); _ -> Nothing },
     \case { Abs (a, b, c) -> Just ([a], pair typ term (b, c)); _ -> Nothing },
     \case { App a -> Just ([], pair term term a); _ -> Nothing }]
 \<close>
@@ -1442,7 +1453,7 @@ XML data representation of lambda terms.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
-module Isabelle.Term_XML.Decode (sort, typ, term)
+module Isabelle.Term_XML.Decode (indexname, sort, typ, typ_body, term)
 where
 
 import Isabelle.Library
@@ -1450,6 +1461,10 @@ import qualified Isabelle.XML as XML
 import Isabelle.XML.Decode
 import Isabelle.Term
 
+
+indexname :: P Indexname
+indexname [a] = (a, 0)
+indexname [a, b] = (a, int_atom b)
 
 sort :: T Sort
 sort = list string
@@ -1459,15 +1474,19 @@ typ ty =
   ty |> variant
   [\([a], b) -> Type (a, list typ b),
    \([a], b) -> TFree (a, sort b),
-   \([a, b], c) -> TVar ((a, int_atom b), sort c)]
+   \(a, b) -> TVar (indexname a, sort b)]
+
+typ_body :: T Typ
+typ_body [] = dummyT
+typ_body body = typ body
 
 term :: T Term
 term t =
   t |> variant
    [\([a], b) -> Const (a, list typ b),
-    \([a], b) -> Free (a, typ b),
-    \([a, b], c) -> Var ((a, int_atom b), typ c),
-    \([a], []) -> Bound (int_atom a),
+    \([a], b) -> Free (a, typ_body b),
+    \(a, b) -> Var (indexname a, typ_body b),
+    \([], a) -> Bound (int a),
     \([a], b) -> let (c, d) = pair typ term b in Abs (a, c, d),
     \([], a) -> App (pair term term a)]
 \<close>
