@@ -13,7 +13,7 @@ object Term
 {
   /* types and terms */
 
-  sealed case class Indexname(name: String, index: Int)
+  sealed case class Indexname(name: String, index: Int = 0)
   {
     override def toString: String =
       if (index == -1) name
