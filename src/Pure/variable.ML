@@ -265,7 +265,8 @@ fun declare_term t =
 
 val declare_typ = declare_term o Logic.mk_type;
 
-val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
+val declare_prf =
+  Proofterm.fold_proof_terms_types declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms declare_internal;
 
@@ -616,7 +617,7 @@ fun importT ths ctxt =
 
 fun import_prf is_open prf ctxt =
   let
-    val ts = rev (Proofterm.fold_proof_terms cons (cons o Logic.mk_type) prf []);
+    val ts = rev (Proofterm.fold_proof_terms_types cons (cons o Logic.mk_type) prf []);
     val (insts, ctxt') = import_inst is_open ts ctxt;
   in (Proofterm.instantiate insts prf, ctxt') end;
 

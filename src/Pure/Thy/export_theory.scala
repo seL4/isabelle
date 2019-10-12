@@ -357,7 +357,17 @@ object Export_Theory
   {
     val body = provider.focus(theory_name).uncompressed_yxml(export_prefix_proofs + serial)
     if (body.isEmpty) error("Bad proof export " + serial)
-    val (prop, proof) = XML.Decode.pair(Term_XML.Decode.term, Term_XML.Decode.proof)(body)
+
+    val (vars, prop_body, proof_body) =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      triple(list(pair(string, typ)), x => x, x => x)(body)
+    }
+    val env = vars.toMap
+    val prop = Term_XML.Decode.term_env(env)(prop_body)
+    val proof = Term_XML.Decode.proof_env(env)(proof_body)
+
     cache match {
       case None => (prop, proof)
       case Some(cache) => (cache.term(prop), cache.proof(proof))

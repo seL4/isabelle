@@ -61,7 +61,8 @@ sig
 
   val encode: Consts.T -> proof XML.Encode.T
   val encode_body: Consts.T -> proof_body XML.Encode.T
-  val encode_standard: Consts.T -> proof XML.Encode.T
+  val encode_standard_term: Consts.T -> term XML.Encode.T
+  val encode_standard_proof: Consts.T -> proof XML.Encode.T
   val decode: Consts.T -> proof XML.Decode.T
   val decode_body: Consts.T -> proof_body XML.Decode.T
 
@@ -84,7 +85,8 @@ sig
   val map_proof_types_same: typ Same.operation -> proof Same.operation
   val map_proof_terms: (term -> term) -> (typ -> typ) -> proof -> proof
   val map_proof_types: (typ -> typ) -> proof -> proof
-  val fold_proof_terms: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
+  val fold_proof_terms: (term -> 'a -> 'a) -> proof -> 'a -> 'a
+  val fold_proof_terms_types: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
   val maxidx_proof: proof -> int -> int
   val size_of_proof: proof -> int
   val change_types: typ list option -> proof -> proof
@@ -163,6 +165,8 @@ sig
 
   val standard_vars: Name.context -> term * proof option -> term * proof option
   val standard_vars_term: Name.context -> term -> term
+  val add_standard_vars: proof -> (string * typ) list -> (string * typ) list
+  val add_standard_vars_term: term -> (string * typ) list -> (string * typ) list
 
   val export_enabled: unit -> bool
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
@@ -350,17 +354,25 @@ and thm consts (a, thm_node) =
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
       (Future.join (thm_node_body thm_node))))));
 
+fun standard_term consts t = t |> variant
+ [fn Const (a, b) => ([a], list typ (Consts.typargs consts (a, b))),
+  fn Free (a, _) => ([a], []),
+  fn Var (a, _) => (indexname a, []),
+  fn Bound a => ([int_atom a], []),
+  fn Abs (a, b, c) => ([a], pair typ (standard_term consts) (b, c)),
+  fn op $ a => ([], pair (standard_term consts) (standard_term consts) a)];
+
 fun standard_proof consts prf = prf |> variant
  [fn MinProof => ([], []),
   fn PBound a => ([int_atom a], []),
   fn Abst (a, SOME b, c) => ([a], pair typ (standard_proof consts) (b, c)),
-  fn AbsP (a, SOME b, c) => ([a], pair (term consts) (standard_proof consts) (b, c)),
-  fn a % SOME b => ([], pair (standard_proof consts) (term consts) (a, b)),
+  fn AbsP (a, SOME b, c) => ([a], pair (standard_term consts) (standard_proof consts) (b, c)),
+  fn a % SOME b => ([], pair (standard_proof consts) (standard_term consts) (a, b)),
   fn a %% b => ([], pair (standard_proof consts) (standard_proof consts) (a, b)),
-  fn Hyp a => ([], term consts a),
+  fn Hyp a => ([], standard_term consts a),
   fn PAxm (name, _, SOME Ts) => ([name], list typ Ts),
   fn OfClass (T, c) => ([c], typ T),
-  fn Oracle (name, prop, SOME Ts) => ([name], pair (term consts) (list typ) (prop, Ts)),
+  fn Oracle (name, prop, SOME Ts) => ([name], pair (standard_term consts) (list typ) (prop, Ts)),
   fn PThm ({serial, theory_name, name, types = SOME Ts, ...}, _) =>
     ([int_atom serial, theory_name, name], list typ Ts)];
 
@@ -368,7 +380,8 @@ in
 
 val encode = proof;
 val encode_body = proof_body;
-val encode_standard = standard_proof;
+val encode_standard_term = standard_term;
+val encode_standard_proof = standard_proof;
 
 end;
 
@@ -491,21 +504,29 @@ fun same eq f x =
 fun map_proof_terms f g = Same.commit (map_proof_terms_same (same (op =) f) (same (op =) g));
 fun map_proof_types f = Same.commit (map_proof_types_same (same (op =) f));
 
-fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g prf
-  | fold_proof_terms f g (Abst (_, NONE, prf)) = fold_proof_terms f g prf
-  | fold_proof_terms f g (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms f g prf
-  | fold_proof_terms f g (AbsP (_, NONE, prf)) = fold_proof_terms f g prf
-  | fold_proof_terms f g (prf % SOME t) = fold_proof_terms f g prf #> f t
-  | fold_proof_terms f g (prf % NONE) = fold_proof_terms f g prf
-  | fold_proof_terms f g (prf1 %% prf2) =
-      fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
-  | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms _ g (OfClass (T, _)) = g T
-  | fold_proof_terms _ g (Oracle (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms _ g (PThm ({types = SOME Ts, ...}, _)) = fold g Ts
-  | fold_proof_terms _ _ _ = I;
+fun fold_proof_terms f (Abst (_, _, prf)) = fold_proof_terms f prf
+  | fold_proof_terms f (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms f prf
+  | fold_proof_terms f (AbsP (_, NONE, prf)) = fold_proof_terms f prf
+  | fold_proof_terms f (prf % SOME t) = fold_proof_terms f prf #> f t
+  | fold_proof_terms f (prf % NONE) = fold_proof_terms f prf
+  | fold_proof_terms f (prf1 %% prf2) = fold_proof_terms f prf1 #> fold_proof_terms f prf2
+  | fold_proof_terms _ _ = I;
 
-fun maxidx_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf;
+fun fold_proof_terms_types f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (Abst (_, NONE, prf)) = fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (AbsP (_, NONE, prf)) = fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (prf % SOME t) = fold_proof_terms_types f g prf #> f t
+  | fold_proof_terms_types f g (prf % NONE) = fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (prf1 %% prf2) =
+      fold_proof_terms_types f g prf1 #> fold_proof_terms_types f g prf2
+  | fold_proof_terms_types _ g (PAxm (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms_types _ g (OfClass (T, _)) = g T
+  | fold_proof_terms_types _ g (Oracle (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms_types _ g (PThm ({types = SOME Ts, ...}, _)) = fold g Ts
+  | fold_proof_terms_types _ _ _ = I;
+
+fun maxidx_proof prf = fold_proof_terms_types Term.maxidx_term Term.maxidx_typ prf;
 
 fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (AbsP (_, _, prf)) = 1 + size_of_proof prf
@@ -769,7 +790,7 @@ in
 
 fun freeze_thaw_prf prf =
   let
-    val (fs, Tfs, vs, Tvs) = fold_proof_terms
+    val (fs, Tfs, vs, Tvs) = fold_proof_terms_types
       (fn t => fn (fs, Tfs, vs, Tvs) =>
          (Term.add_free_names t fs, Term.add_tfree_names t Tfs,
           Term.add_var_names t vs, Term.add_tvar_names t Tvs))
@@ -1991,12 +2012,7 @@ local
 
 val declare_names_term = Term.declare_term_frees;
 val declare_names_term' = fn SOME t => declare_names_term t | NONE => I;
-
-fun declare_names_proof (Abst (_, _, prf)) = declare_names_proof prf
-  | declare_names_proof (AbsP (_, t, prf)) = declare_names_term' t #> declare_names_proof prf
-  | declare_names_proof (prf % t) = declare_names_proof prf #> declare_names_term' t
-  | declare_names_proof (prf1 %% prf2) = declare_names_proof prf1 #> declare_names_proof prf2
-  | declare_names_proof _ = I;
+val declare_names_proof = fold_proof_terms declare_names_term;
 
 fun variant names bs x =
   #1 (Name.variant x (fold Name.declare bs names));
@@ -2027,7 +2043,7 @@ fun variant_proof bs (Abst (x, T, prf)) =
 
 val used_frees_type = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
 fun used_frees_term t = fold_types used_frees_type t #> Term.declare_term_frees t;
-val used_frees_proof = fold_proof_terms used_frees_term used_frees_type;
+val used_frees_proof = fold_proof_terms_types used_frees_term used_frees_type;
 
 val unvarifyT = Term.map_atyps (fn TVar ((a, _), S) => TFree (a, S) | T => T);
 val unvarify = Term.map_aterms (fn Var ((x, _), T) => Free (x, T) | t => t) #> map_types unvarifyT;
@@ -2037,7 +2053,7 @@ fun hidden_types prop proof =
   let
     val visible = (fold_types o fold_atyps) (insert (op =)) prop [];
     val add_hiddenT = fold_atyps (fn T => not (member (op =) visible T) ? insert (op =) T);
-  in rev (fold_proof_terms (fold_types add_hiddenT) add_hiddenT proof []) end;
+  in rev (fold_proof_terms_types (fold_types add_hiddenT) add_hiddenT proof []) end;
 
 fun standard_hidden_types term proof =
   let
@@ -2052,7 +2068,7 @@ in
 fun standard_vars used (term, opt_proof) =
   let
     val proofs = the_list (Option.map (standard_hidden_types term) opt_proof);
-    val proof_terms = rev (fold (fold_proof_terms cons (cons o Logic.mk_type)) proofs []);
+    val proof_terms = rev (fold (fold_proof_terms_types cons (cons o Logic.mk_type)) proofs []);
     val used_frees = used
       |> used_frees_term term
       |> fold used_frees_proof proofs;
@@ -2062,6 +2078,18 @@ fun standard_vars used (term, opt_proof) =
   in (term', try hd proofs') end;
 
 fun standard_vars_term used t = #1 (standard_vars used (t, NONE));
+
+val add_standard_vars_term = fold_aterms
+  (fn Free (x, T) =>
+    (fn env =>
+      (case AList.lookup (op =) env x of
+        NONE => (x, T) :: env
+      | SOME T' =>
+          if T = T' then env
+          else raise TYPE ("standard_vars_env: type conflict for variable " ^ quote x, [T, T'], [])))
+    | _ => I);
+
+val add_standard_vars = fold_proof_terms add_standard_vars_term;
 
 end;
 
@@ -2090,15 +2118,20 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
 
 fun clean_proof thy = rew_proof thy #> shrink_proof;
 
-fun encode_export consts prop prf =
-  let open XML.Encode Term_XML.Encode
-  in pair (term consts) (encode_standard consts) (prop, prf) end;
+fun encode_export consts =
+  let
+    open XML.Encode Term_XML.Encode;
+    val encode_vars = list (pair string typ);
+    val encode_term = encode_standard_term consts;
+    val encode_proof = encode_standard_proof consts;
+  in triple encode_vars encode_term encode_proof end;
 
 fun export_proof thy i prop prf =
   let
     val (prop', SOME prf') =
       standard_vars Name.context (prop, SOME (reconstruct_proof thy prop prf));
-    val xml = encode_export (Sign.consts_of thy) prop' prf';
+    val vars = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
+    val xml = encode_export (Sign.consts_of thy) (vars, prop', prf');
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in
     chunks |> Export.export_params

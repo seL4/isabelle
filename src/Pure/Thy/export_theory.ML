@@ -270,8 +270,10 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME raw_proof);
       in
         (prop, (deps, proof)) |>
-          let open XML.Encode Term_XML.Encode
-          in pair encode_prop (pair (list string) (option (Proofterm.encode_standard consts))) end
+          let
+            open XML.Encode Term_XML.Encode;
+            val encode_proof = Proofterm.encode_standard_proof consts;
+          in pair encode_prop (pair (list string) (option encode_proof)) end
       end;
 
     fun buffer_export_thm (serial, thm_name) =

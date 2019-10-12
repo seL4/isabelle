@@ -66,18 +66,41 @@ object Term_XML
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
 
-    def proof: T[Proof] =
-      variant[Proof](List(
-        { case (Nil, Nil) => MinProof },
-        { case (List(a), Nil) => PBound(int_atom(a)) },
-        { case (List(a), b) => val (c, d) = pair(typ, proof)(b); Abst(a, c, d) },
-        { case (List(a), b) => val (c, d) = pair(term, proof)(b); AbsP(a, c, d) },
-        { case (Nil, a) => val (b, c) = pair(proof, term)(a); Appt(b, c) },
-        { case (Nil, a) => val (b, c) = pair(proof, proof)(a); AppP(b, c) },
-        { case (Nil, a) => Hyp(term(a)) },
-        { case (List(a), b) => PAxm(a, list(typ)(b)) },
-        { case (List(a), b) => OfClass(typ(b), a) },
-        { case (List(a), b) => val (c, d) = pair(term, list(typ))(b); Oracle(a, c, d) },
-        { case (List(a, b, c), d) => PThm(long_atom(a), b, c, list(typ)(d)) }))
+    def term_env(env: Map[String, Typ]): T[Term] =
+    {
+      def env_type(x: String, t: Typ): Typ =
+        if (t == dummyT && env.isDefinedAt(x)) env(x) else t
+
+      def term: T[Term] =
+        variant[Term](List(
+          { case (List(a), b) => Const(a, list(typ)(b)) },
+          { case (List(a), b) => Free(a, env_type(a, typ_body(b))) },
+          { case (a, b) => Var(indexname(a), typ_body(b)) },
+          { case (List(a), Nil) => Bound(int_atom(a)) },
+          { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
+          { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
+      term
+    }
+
+    def proof_env(env: Map[String, Typ]): T[Proof] =
+    {
+      val term = term_env(env)
+      def proof: T[Proof] =
+        variant[Proof](List(
+          { case (Nil, Nil) => MinProof },
+          { case (List(a), Nil) => PBound(int_atom(a)) },
+          { case (List(a), b) => val (c, d) = pair(typ, proof)(b); Abst(a, c, d) },
+          { case (List(a), b) => val (c, d) = pair(term, proof)(b); AbsP(a, c, d) },
+          { case (Nil, a) => val (b, c) = pair(proof, term)(a); Appt(b, c) },
+          { case (Nil, a) => val (b, c) = pair(proof, proof)(a); AppP(b, c) },
+          { case (Nil, a) => Hyp(term(a)) },
+          { case (List(a), b) => PAxm(a, list(typ)(b)) },
+          { case (List(a), b) => OfClass(typ(b), a) },
+          { case (List(a), b) => val (c, d) = pair(term, list(typ))(b); Oracle(a, c, d) },
+          { case (List(a, b, c), d) => PThm(long_atom(a), b, c, list(typ)(d)) }))
+      proof
+    }
+
+    val proof: T[Proof] = proof_env(Map.empty)
   }
 }
