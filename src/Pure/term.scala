@@ -30,7 +30,8 @@ object Term
       }
   }
 
-  type Sort = List[String]
+  type Class = String
+  type Sort = List[Class]
   val dummyS: Sort = List("")
 
   sealed abstract class Typ
@@ -71,6 +72,13 @@ object Term
   case class Bound(index: Int) extends Term
   case class Abs(name: String, typ: Typ, body: Term) extends Term
   case class App(fun: Term, arg: Term) extends Term
+  {
+    override def toString: String =
+      this match {
+        case OFCLASS(ty, c) => "OFCLASS(" + ty + "," + c + ")"
+        case _ => "App(" + fun + "," + arg + ")"
+      }
+  }
 
   sealed abstract class Proof
   case object MinProof extends Proof
@@ -81,22 +89,35 @@ object Term
   case class AppP(fun: Proof, arg: Proof) extends Proof
   case class Hyp(hyp: Term) extends Proof
   case class PAxm(name: String, types: List[Typ]) extends Proof
-  case class OfClass(typ: Typ, cls: String) extends Proof
+  case class OfClass(typ: Typ, cls: Class) extends Proof
   case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
   case class PThm(serial: Long, theory_name: String, approximative_name: String, types: List[Typ])
     extends Proof
 
 
-  /* Pure logic */
+  /* type classes within the logic */
 
-  def mk_type(ty: Typ): Term = Const(Pure_Thy.TYPE, List(ty))
-
-  def const_of_class(c: String): String = c + "_class"
-
-  def mk_of_sort(ty: Typ, s: Sort): List[Term] =
+  object Class_Const
   {
-    val t = mk_type(ty)
-    s.map(c => App(Const(const_of_class(c), List(ty)), t))
+    val suffix = "_class"
+    def apply(c: Class): String = c + suffix
+    def unapply(s: String): Option[Class] =
+      if (s.endsWith(suffix)) Some(s.substring(0, s.length - suffix.length)) else None
+  }
+
+  object OFCLASS
+  {
+    def apply(ty: Typ, s: Sort): List[Term] = s.map(c => apply(ty, c))
+
+    def apply(ty: Typ, c: Class): Term =
+      App(Const(Class_Const(c), List(ty)), Const(Pure_Thy.TYPE, List(ty)))
+
+    def unapply(t: Term): Option[(Typ, String)] =
+      t match {
+        case App(Const(Class_Const(c), List(ty)), Const(Pure_Thy.TYPE, List(ty1)))
+        if ty == ty1 => Some((ty, c))
+        case _ => None
+      }
   }
 
 
