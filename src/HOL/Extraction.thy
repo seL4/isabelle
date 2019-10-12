@@ -8,8 +8,6 @@ theory Extraction
 imports Option
 begin
 
-ML_file \<open>Tools/rewrite_hol_proof.ML\<close>
-
 subsection \<open>Setup\<close>
 
 setup \<open>

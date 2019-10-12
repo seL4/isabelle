@@ -310,8 +310,8 @@ fun strip_cong ps (PThm ({name = "HOL.cong", ...}, _) % _ % _ % SOME x % SOME y 
   | strip_cong ps (PThm ({name = "HOL.refl", ...}, _) % SOME f %% _) = SOME (f, ps)
   | strip_cong _ _ = NONE;
 
-val subst_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of subst))));
-val sym_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of sym))));
+val subst_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of @{thm subst}))));
+val sym_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of@{thm sym}))));
 
 fun make_subst Ts prf xs (_, []) = prf
   | make_subst Ts prf xs (f, ((x, y), (prf', clprf)) :: ps) =

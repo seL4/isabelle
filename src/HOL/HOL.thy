@@ -777,6 +777,7 @@ lemma atomize_elimL[atomize_elim]: "(\<And>B. (A \<Longrightarrow> B) \<Longrigh
 subsection \<open>Package setup\<close>
 
 ML_file \<open>Tools/hologic.ML\<close>
+ML_file \<open>Tools/rewrite_hol_proof.ML\<close>
 
 
 subsubsection \<open>Sledgehammer setup\<close>
