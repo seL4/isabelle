@@ -34,7 +34,7 @@ object Term_XML
         { case Const(a, b) => (List(a), list(typ)(b)) },
         { case Free(a, b) => (List(a), typ_body(b)) },
         { case Var(a, b) => (indexname(a), typ_body(b)) },
-        { case Bound(a) => (List(int_atom(a)), Nil) },
+        { case Bound(a) => (Nil, int(a)) },
         { case Abs(a, b, c) => (List(a), pair(typ, term)(b, c)) },
         { case App(a, b) => (Nil, pair(term, term)(a, b)) }))
   }
@@ -62,7 +62,7 @@ object Term_XML
         { case (List(a), b) => Const(a, list(typ)(b)) },
         { case (List(a), b) => Free(a, typ_body(b)) },
         { case (a, b) => Var(indexname(a), typ_body(b)) },
-        { case (List(a), Nil) => Bound(int_atom(a)) },
+        { case (Nil, a) => Bound(int(a)) },
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
 
@@ -76,7 +76,7 @@ object Term_XML
           { case (List(a), b) => Const(a, list(typ)(b)) },
           { case (List(a), b) => Free(a, env_type(a, typ_body(b))) },
           { case (a, b) => Var(indexname(a), typ_body(b)) },
-          { case (List(a), Nil) => Bound(int_atom(a)) },
+          { case (Nil, a) => Bound(int(a)) },
           { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
           { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
       term
@@ -88,7 +88,7 @@ object Term_XML
       def proof: T[Proof] =
         variant[Proof](List(
           { case (Nil, Nil) => MinProof },
-          { case (List(a), Nil) => PBound(int_atom(a)) },
+          { case (Nil, a) => PBound(int(a)) },
           { case (List(a), b) => val (c, d) = pair(typ, proof)(b); Abst(a, c, d) },
           { case (List(a), b) => val (c, d) = pair(term, proof)(b); AbsP(a, c, d) },
           { case (Nil, a) => val (b, c) = pair(proof, term)(a); Appt(b, c) },

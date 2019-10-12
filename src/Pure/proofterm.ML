@@ -333,7 +333,7 @@ open XML.Encode Term_XML.Encode;
 
 fun proof consts prf = prf |> variant
  [fn MinProof => ([], []),
-  fn PBound a => ([int_atom a], []),
+  fn PBound a => ([], int a),
   fn Abst (a, b, c) => ([a], pair (option typ) (proof consts) (b, c)),
   fn AbsP (a, b, c) => ([a], pair (option (term consts)) (proof consts) (b, c)),
   fn a % b => ([], pair (proof consts) (option (term consts)) (a, b)),
@@ -358,13 +358,13 @@ fun standard_term consts t = t |> variant
  [fn Const (a, b) => ([a], list typ (Consts.typargs consts (a, b))),
   fn Free (a, _) => ([a], []),
   fn Var (a, _) => (indexname a, []),
-  fn Bound a => ([int_atom a], []),
+  fn Bound a => ([], int a),
   fn Abs (a, b, c) => ([a], pair typ (standard_term consts) (b, c)),
   fn op $ a => ([], pair (standard_term consts) (standard_term consts) a)];
 
 fun standard_proof consts prf = prf |> variant
  [fn MinProof => ([], []),
-  fn PBound a => ([int_atom a], []),
+  fn PBound a => ([], int a),
   fn Abst (a, SOME b, c) => ([a], pair typ (standard_proof consts) (b, c)),
   fn AbsP (a, SOME b, c) => ([a], pair (standard_term consts) (standard_proof consts) (b, c)),
   fn a % SOME b => ([], pair (standard_proof consts) (standard_term consts) (a, b)),
@@ -394,7 +394,7 @@ open XML.Decode Term_XML.Decode;
 
 fun proof consts prf = prf |> variant
  [fn ([], []) => MinProof,
-  fn ([a], []) => PBound (int_atom a),
+  fn ([], a) => PBound (int a),
   fn ([a], b) => let val (c, d) = pair (option typ) (proof consts) b in Abst (a, c, d) end,
   fn ([a], b) => let val (c, d) = pair (option (term consts)) (proof consts) b in AbsP (a, c, d) end,
   fn ([], a) => op % (pair (proof consts) (option (term consts)) a),
