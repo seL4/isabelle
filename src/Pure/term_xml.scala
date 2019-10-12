@@ -21,20 +21,19 @@ object Term_XML
 
     val sort: T[Sort] = list(string)
 
-    def typ_raw: T[Typ] =
+    def typ: T[Typ] =
       variant[Typ](List(
-        { case Type(a, b) => (List(a), list(typ_raw)(b)) },
+        { case Type(a, b) => (List(a), list(typ)(b)) },
         { case TFree(a, b) => (List(a), sort(b)) },
         { case TVar(a, b) => (indexname(a), sort(b)) }))
 
-    val typ: T[Typ] =
-      { case t => option(typ_raw)(if (t == dummyT) None else Some(t)) }
+    val typ_body: T[Typ] = (t: Typ) => if (t == dummyT) Nil else typ(t)
 
     def term: T[Term] =
       variant[Term](List(
         { case Const(a, b) => (List(a), list(typ)(b)) },
-        { case Free(a, b) => (List(a), typ(b)) },
-        { case Var(a, b) => (indexname(a), typ(b)) },
+        { case Free(a, b) => (List(a), typ_body(b)) },
+        { case Var(a, b) => (indexname(a), typ_body(b)) },
         { case Bound(a) => (List(int_atom(a)), Nil) },
         { case Abs(a, b, c) => (List(a), pair(typ, term)(b, c)) },
         { case App(a, b) => (Nil, pair(term, term)(a, b)) }))
@@ -50,19 +49,19 @@ object Term_XML
 
     val sort: T[Sort] = list(string)
 
-    def typ_raw: T[Typ] =
+    def typ: T[Typ] =
       variant[Typ](List(
-        { case (List(a), b) => Type(a, list(typ_raw)(b)) },
+        { case (List(a), b) => Type(a, list(typ)(b)) },
         { case (List(a), b) => TFree(a, sort(b)) },
         { case (a, b) => TVar(indexname(a), sort(b)) }))
 
-    def typ(body: XML.Body): Typ = option(typ_raw)(body).getOrElse(dummyT)
+    val typ_body: T[Typ] = { case Nil => dummyT case body => typ(body) }
 
     def term: T[Term] =
       variant[Term](List(
         { case (List(a), b) => Const(a, list(typ)(b)) },
-        { case (List(a), b) => Free(a, typ(b)) },
-        { case (a, b) => Var(indexname(a), typ(b)) },
+        { case (List(a), b) => Free(a, typ_body(b)) },
+        { case (a, b) => Var(indexname(a), typ_body(b)) },
         { case (List(a), Nil) => Bound(int_atom(a)) },
         { case (List(a), b) => val (c, d) = pair(typ, term)(b); Abs(a, c, d) },
         { case (Nil, a) => val (b, c) = pair(term, term)(a); App(b, c) }))
