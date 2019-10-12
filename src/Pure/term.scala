@@ -32,7 +32,6 @@ object Term
 
   type Class = String
   type Sort = List[Class]
-  val dummyS: Sort = List("")
 
   sealed abstract class Typ
   case class Type(name: String, args: List[Typ] = Nil) extends Typ
@@ -41,15 +40,15 @@ object Term
       if (this == dummyT) "_"
       else "Type(" + name + (if (args.isEmpty) "" else "," + args) + ")"
   }
-  case class TFree(name: String, sort: Sort = dummyS) extends Typ
+  case class TFree(name: String, sort: Sort = Nil) extends Typ
   {
     override def toString: String =
-      "TFree(" + name + (if (sort == dummyS) "" else "," + sort) + ")"
+      "TFree(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
-  case class TVar(name: Indexname, sort: Sort = dummyS) extends Typ
+  case class TVar(name: Indexname, sort: Sort = Nil) extends Typ
   {
     override def toString: String =
-      "TVar(" + name + (if (sort == dummyS) "" else "," + sort) + ")"
+      "TVar(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
   val dummyT = Type("dummy")
 
@@ -134,8 +133,7 @@ object Term
       lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))
 
     protected def cache_sort(x: Sort): Sort =
-      if (x == dummyS) dummyS
-      else lookup(x) getOrElse store(x.map(cache_string(_)))
+      if (x.isEmpty) Nil else lookup(x) getOrElse store(x.map(cache_string(_)))
 
     protected def cache_typ(x: Typ): Typ =
     {
