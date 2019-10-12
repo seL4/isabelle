@@ -150,6 +150,7 @@ sig
   (*rewriting on proof terms*)
   val add_prf_rrule: proof * proof -> theory -> theory
   val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
+  val set_preproc: (theory -> proof -> proof) -> theory -> theory
   val no_skel: proof
   val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
@@ -1586,21 +1587,29 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 structure Data = Theory_Data
 (
   type T =
-    (stamp * (proof * proof)) list *
-    (stamp * (typ list -> term option list -> proof -> (proof * proof) option)) list;
+    ((stamp * (proof * proof)) list *
+     (stamp * (typ list -> term option list -> proof -> (proof * proof) option)) list) *
+    (theory -> proof -> proof) option;
 
-  val empty = ([], []);
+  val empty = (([], []), NONE);
   val extend = I;
-  fun merge ((rules1, procs1), (rules2, procs2)) : T =
-    (AList.merge (op =) (K true) (rules1, rules2),
-      AList.merge (op =) (K true) (procs1, procs2));
+  fun merge (((rules1, procs1), preproc1), ((rules2, procs2), preproc2)) : T =
+    ((AList.merge (op =) (K true) (rules1, rules2),
+      AList.merge (op =) (K true) (procs1, procs2)),
+      merge_options (preproc1, preproc2));
 );
 
-fun get_data thy = let val (rules, procs) = Data.get thy in (map #2 rules, map #2 procs) end;
-fun rew_proof thy = rewrite_prf fst (get_data thy);
+fun get_rew_data thy =
+  let val (rules, procs) = #1 (Data.get thy)
+  in (map #2 rules, map #2 procs) end;
 
-fun add_prf_rrule r = (Data.map o apfst) (cons (stamp (), r));
-fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
+fun rew_proof thy = rewrite_prf fst (get_rew_data thy);
+
+fun add_prf_rrule r = (Data.map o apfst o apfst) (cons (stamp (), r));
+fun add_prf_rproc p = (Data.map o apfst o apsnd) (cons (stamp (), p));
+
+fun set_preproc f = (Data.map o apsnd) (K (SOME f));
+fun apply_preproc thy = (case #2 (Data.get thy) of NONE => I | SOME f => f thy);
 
 
 
@@ -2142,7 +2151,7 @@ fun export_proof thy i prop prf =
       strict = false}
   end;
 
-fun export_proof_boxes proof =
+fun force_export_boxes proof =
   let
     fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
       | export_boxes (Abst (_, _, prf)) = export_boxes prf
@@ -2160,8 +2169,14 @@ fun export_proof_boxes proof =
     val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
 
-fun export thy i prop prf =
-  if export_enabled () then (export_proof_boxes prf; export_proof thy i prop prf) else ();
+fun export thy i prop prf0 =
+  if export_enabled () then
+    let
+      val prf = apply_preproc thy prf0;
+      val _ = force_export_boxes prf;
+      val _ = export_proof thy i prop prf;
+    in () end
+  else ();
 
 fun prune proof =
   if Options.default_bool "prune_proofs" then MinProof
