@@ -5,7 +5,7 @@
 section \<open>The basis of Higher-Order Logic\<close>
 
 theory HOL
-imports Pure "~~/src/Tools/Code_Generator"
+imports Pure Tools.Code_Generator
 keywords
   "try" "solve_direct" "quickcheck" "print_coercions" "print_claset"
     "print_induct_rules" :: diag and

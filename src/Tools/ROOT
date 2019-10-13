@@ -1,5 +1,9 @@
 chapter Tools
 
+session Tools = Pure +
+  theories
+    Code_Generator
+
 session Spec_Check in Spec_Check = Pure +
   theories
     Spec_Check

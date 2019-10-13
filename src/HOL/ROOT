@@ -5,7 +5,7 @@ session HOL (main) = Pure +
     Classical Higher-order Logic.
   "
   options [strict_facts]
-  directories "../Tools"
+  sessions Tools
   theories
     Main (global)
     Complex_Main (global)
