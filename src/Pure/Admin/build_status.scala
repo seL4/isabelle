@@ -191,11 +191,11 @@ object Build_Status
   }
 
   def print_version(
-    isabelle_version: String, afp_version: String = "", chapter: String = "AFP"): String =
+    isabelle_version: String, afp_version: String = "", chapter: String = AFP.chapter): String =
   {
     val body =
       proper_string(isabelle_version).map("Isabelle/" + _).toList :::
-      (if (chapter == "AFP") proper_string(afp_version).map("AFP/" + _) else None).toList
+      (if (chapter == AFP.chapter) proper_string(afp_version).map("AFP/" + _) else None).toList
     if (body.isEmpty) "" else body.mkString(" (", ", ", ")")
   }
 
@@ -335,7 +335,7 @@ object Build_Status
                   Session(session_name, threads, entry :: old.entries, ml_stats1, ml_stats1_date)
               }
 
-            if ((!afp || chapter == "AFP") &&
+            if ((!afp || chapter == AFP.chapter) &&
                 (!profile.bulky || groups.exists(AFP.groups_bulky.toSet))) {
               data_entries += (data_name -> (sessions + (session_name -> session)))
             }

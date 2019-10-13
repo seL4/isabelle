@@ -20,7 +20,9 @@ object AFP
       "slow" -> "CPU time much higher than 60min (on mid-range hardware)",
       "very_slow" -> "elapsed time of many hours (on high-end hardware)")
 
-  def groups_bulky: List[String] = List("large", "slow")
+  val groups_bulky: List[String] = List("large", "slow")
+
+  val chapter: String = "AFP"
 
   val force_partition1: List[String] = List("Category3", "HOL-ODE")
 
