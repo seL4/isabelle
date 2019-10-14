@@ -149,7 +149,7 @@ object Dump
       def session_info(session_name: String): Sessions.Info =
         deps.sessions_structure(session_name)
 
-      val session_graph = deps.sessions_structure.imports_graph
+      val session_graph = deps.sessions_structure.build_graph
       val all_sessions = session_graph.topological_order
 
       val afp_sessions =
@@ -241,7 +241,7 @@ object Dump
     {
       for {
         session_name <-
-          deps.sessions_structure.imports_graph.restrict(selected_session).topological_order
+          deps.sessions_structure.build_graph.restrict(selected_session).topological_order
         (name, theory_options) <- deps(session_name).used_theories
         if !resources.session_base.loaded_theory(name.theory)
         if {
