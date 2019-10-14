@@ -239,26 +239,28 @@ object Dump
               {
                 val (snapshot, status) = args
                 val name = snapshot.node_name
-                if (status.ok && selected_theory(name)) {
-                  try { process_theory(Args(session, snapshot, status)) }
-                  catch {
-                    case exn: Throwable if !Exn.is_interrupt(exn) =>
-                      val msg = Exn.message(exn)
-                      progress.echo("FAILED to process theory " + name)
-                      progress.echo_error_message(msg)
-                      consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
-                  }
-                }
-                else {
-                  val msgs =
-                    for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
-                    yield {
-                      "Error" + Position.here(pos) + ":\n" +
-                        XML.content(Pretty.formatted(List(tree)))
+                if (selected_theory(name)) {
+                  if (status.ok) {
+                    try { process_theory(Args(session, snapshot, status)) }
+                    catch {
+                      case exn: Throwable if !Exn.is_interrupt(exn) =>
+                        val msg = Exn.message(exn)
+                        progress.echo("FAILED to process theory " + name)
+                        progress.echo_error_message(msg)
+                        consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
                     }
-                  progress.echo("FAILED to process theory " + name)
-                  msgs.foreach(progress.echo_error_message)
-                  consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
+                  }
+                  else {
+                    val msgs =
+                      for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
+                      yield {
+                        "Error" + Position.here(pos) + ":\n" +
+                          XML.content(Pretty.formatted(List(tree)))
+                      }
+                    progress.echo("FAILED to process theory " + name)
+                    msgs.foreach(progress.echo_error_message)
+                    consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
+                  }
                 }
                 true
               })
