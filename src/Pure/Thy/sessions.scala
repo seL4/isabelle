@@ -97,35 +97,6 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def used_theories_condition(default_options: Options,
-      restrict: String => Boolean = _ => true,
-      progress: Progress = No_Progress)
-      : List[(Document.Node.Name, Options)] =
-    {
-      val default_skip_proofs = default_options.bool("skip_proofs")
-      for {
-        session_name <- sessions_structure.imports_graph.restrict(restrict).topological_order
-        entry @ (name, options) <- session_bases(session_name).used_theories
-        if {
-          def warn(msg: String): Unit =
-            progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
-
-          val conditions =
-            space_explode(',', options.string("condition")).
-              filter(cond => Isabelle_System.getenv(cond) == "")
-          if (conditions.nonEmpty) {
-            warn("undefined " + conditions.mkString(", "))
-            false
-          }
-          else if (default_skip_proofs && !options.bool("skip_proofs")) {
-            warn("option skip_proofs")
-            false
-          }
-          else true
-        }
-      } yield entry
-    }
-
     def sources(name: String): List[SHA1.Digest] =
       session_bases(name).sources.map(_._2)
 

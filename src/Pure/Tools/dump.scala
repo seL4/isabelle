@@ -177,32 +177,52 @@ object Dump
   }
 
   class Session private[Dump](
-    val context: Context, val logic: String, log: Logger, val selected_sessions: List[String])
+    val context: Context,
+    val logic: String,
+    log: Logger,
+    selected_sessions: List[String])
   {
     /* resources */
 
     def options: Options = context.session_options
 
-    private def progress: Progress = context.progress
+    private def deps = context.deps
+    private def progress = context.progress
 
     private val selected_session = selected_sessions.toSet
 
     private def selected_theory(name: Document.Node.Name): Boolean =
-      selected_session(context.deps.sessions_structure.theory_qualifier(name.theory))
+      selected_session(deps.sessions_structure.theory_qualifier(name.theory))
 
     val resources: Headless.Resources =
       Headless.Resources.make(options, logic, progress = progress, log = log,
         session_dirs = context.session_dirs,
-        include_sessions = context.deps.sessions_structure.imports_topological_order)
+        include_sessions = deps.sessions_structure.imports_topological_order)
 
     val used_theories: List[Document.Node.Name] =
     {
       for {
-        (name, _) <-
-          context.deps.used_theories_condition(options,
-            restrict = selected_session,
-            progress = progress)
+        session_name <-
+          deps.sessions_structure.imports_graph.restrict(selected_session).topological_order
+        (name, theory_options) <- deps(session_name).used_theories
         if !resources.session_base.loaded_theory(name.theory)
+        if {
+          def warn(msg: String): Unit =
+            progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+
+          val conditions =
+            space_explode(',', theory_options.string("condition")).
+              filter(cond => Isabelle_System.getenv(cond) == "")
+          if (conditions.nonEmpty) {
+            warn("undefined " + conditions.mkString(", "))
+            false
+          }
+          else if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {
+            warn("option skip_proofs")
+            false
+          }
+          else true
+        }
       } yield name
     }
 
