@@ -22,7 +22,7 @@ object Update
 
     context.build_logic(logic)
 
-    val path_cartouches = context.session_options.bool("update_path_cartouches")
+    val path_cartouches = context.options.bool("update_path_cartouches")
 
     def update_xml(xml: XML.Body): XML.Body =
       xml flatMap {
