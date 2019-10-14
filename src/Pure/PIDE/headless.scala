@@ -44,40 +44,6 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  private object Load_State
-  {
-    def finished: Load_State = Load_State(Nil, Nil, 0)
-
-    def count_file(name: Document.Node.Name): Long =
-      name.path.file.length
-  }
-
-  private case class Load_State(
-    pending: List[Document.Node.Name], rest: List[Document.Node.Name], load_limit: Long)
-  {
-    def next(
-      dep_graph: Document.Node.Name.Graph[Unit],
-      finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
-    {
-      def load_requirements(pending1: List[Document.Node.Name], rest1: List[Document.Node.Name])
-        : (List[Document.Node.Name], Load_State) =
-      {
-        val load_theories = dep_graph.all_preds(pending1).reverse.filterNot(finished)
-        (load_theories, Load_State(pending1, rest1, load_limit))
-      }
-
-      if (!pending.forall(finished)) (Nil, this)
-      else if (rest.isEmpty) (Nil, Load_State.finished)
-      else if (load_limit == 0) load_requirements(rest, Nil)
-      else {
-        val reachable =
-          dep_graph.reachable_limit(load_limit, Load_State.count_file, dep_graph.imm_preds, rest)
-        val (pending1, rest1) = rest.partition(reachable)
-        load_requirements(pending1, rest1)
-      }
-    }
-  }
-
   class Session private[Headless](
     session_name: String,
     _session_options: => Options,
@@ -120,6 +86,40 @@ object Headless
 
 
     /* theories */
+
+    private object Load_State
+    {
+      def finished: Load_State = Load_State(Nil, Nil, 0)
+
+      def count_file(name: Document.Node.Name): Long =
+        name.path.file.length
+    }
+
+    private case class Load_State(
+      pending: List[Document.Node.Name], rest: List[Document.Node.Name], load_limit: Long)
+    {
+      def next(
+        dep_graph: Document.Node.Name.Graph[Unit],
+        finished: Document.Node.Name => Boolean): (List[Document.Node.Name], Load_State) =
+      {
+        def load_requirements(pending1: List[Document.Node.Name], rest1: List[Document.Node.Name])
+          : (List[Document.Node.Name], Load_State) =
+        {
+          val load_theories = dep_graph.all_preds(pending1).reverse.filterNot(finished)
+          (load_theories, Load_State(pending1, rest1, load_limit))
+        }
+
+        if (!pending.forall(finished)) (Nil, this)
+        else if (rest.isEmpty) (Nil, Load_State.finished)
+        else if (load_limit == 0) load_requirements(rest, Nil)
+        else {
+          val reachable =
+            dep_graph.reachable_limit(load_limit, Load_State.count_file, dep_graph.imm_preds, rest)
+          val (pending1, rest1) = rest.partition(reachable)
+          load_requirements(pending1, rest1)
+        }
+      }
+    }
 
     private sealed case class Use_Theories_State(
       dep_graph: Document.Node.Name.Graph[Unit],
