@@ -548,7 +548,6 @@ text \<open>
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: "dump")
-    -P           split into standard partitions (AFP, non-AFP, ...)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -571,9 +570,6 @@ text \<open>
   \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies an optional base logic image, for improved
   scalability of the PIDE session. Its theories are processed separately,
   always starting from the \<^emph>\<open>Pure\<close> session.
-
-  \<^medskip> Option \<^verbatim>\<open>-P\<close> indicates a split into standard partitions, for improved
-  scalability of the PIDE session.
 
   \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
   (\secref{sec:tool-build}).

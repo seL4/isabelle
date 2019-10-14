@@ -141,16 +141,12 @@ object Dump
 
     def partition_sessions(
       logic: String = default_logic,
-      log: Logger = No_Logger,
-      split_partitions: Boolean = false): List[Session] =
+      log: Logger = No_Logger): List[Session] =
     {
       val session_graph = deps.sessions_structure.imports_graph
 
       val afp_sessions =
-        if (split_partitions) {
-          (for ((name, (info, _)) <- session_graph.iterator if info.is_afp) yield name).toSet
-        }
-        else Set.empty[String]
+        (for ((name, (info, _)) <- session_graph.iterator if info.is_afp) yield name).toSet
 
       val afp_bulky_sessions =
         (for (name <- afp_sessions.iterator if deps.sessions_structure(name).is_afp_bulky)
@@ -321,22 +317,20 @@ object Dump
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
-    split_partitions: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
     val context =
       Context(options, aspects = aspects, progress = progress, dirs = dirs,
         select_dirs = select_dirs, selection = selection)
 
-    context.partition_sessions(logic = logic, log = log, split_partitions = split_partitions).
-      foreach(_.process((args: Args) =>
-        {
-          progress.echo("Processing theory " + args.print_node + " ...")
-          val aspect_args =
-            Aspect_Args(context.session_options, context.deps, progress, output_dir,
-              args.snapshot, args.status)
-          aspects.foreach(_.operation(aspect_args))
-        }))
+    context.partition_sessions(logic = logic, log = log).foreach(_.process((args: Args) =>
+      {
+        progress.echo("Processing theory " + args.print_node + " ...")
+        val aspect_args =
+          Aspect_Args(context.session_options, context.deps, progress, output_dir,
+            args.snapshot, args.status)
+        aspects.foreach(_.operation(aspect_args))
+      }))
   }
 
 
@@ -349,7 +343,6 @@ object Dump
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
-      var split_partitions = false
       var requirements = false
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
@@ -368,7 +361,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
-    -P           split into standard partitions (AFP, non-AFP, ...)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -386,7 +378,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
-      "P" -> (_ => split_partitions = true),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -408,7 +399,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
           dirs = dirs,
           select_dirs = select_dirs,
           output_dir = output_dir,
-          split_partitions = split_partitions,
           selection = Sessions.Selection(
             requirements = requirements,
             all_sessions = all_sessions,
