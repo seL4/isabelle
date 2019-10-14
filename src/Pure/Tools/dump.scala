@@ -125,8 +125,17 @@ object Dump
   {
     def session_dirs: List[Path] = dirs ::: select_dirs
 
+    def build_logic(logic: String)
+    {
+      Build.build_logic(options, logic, build_heap = true, progress = progress,
+        dirs = session_dirs, strict = true)
+    }
+
     def session(logic: String, log: Logger = No_Logger): Session =
+    {
+      build_logic(logic)
       new Session(this, logic, log)
+    }
   }
 
   class Session private[Dump](context: Context, logic: String, log: Logger)
@@ -134,9 +143,6 @@ object Dump
     /* resources */
 
     private val progress = context.progress
-
-    Build.build_logic(context.options, logic, build_heap = true, progress = progress,
-      dirs = context.session_dirs, strict = true)
 
     val resources: Headless.Resources =
       Headless.Resources.make(context.session_options, logic, progress = progress, log = log,
