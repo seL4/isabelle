@@ -177,11 +177,12 @@ object Dump
   }
 
   class Session private[Dump](
-    context: Context, val logic: String, log: Logger, val selected_sessions: List[String])
+    val context: Context, val logic: String, log: Logger, val selected_sessions: List[String])
   {
     /* resources */
 
-    private val progress = context.progress
+    def options: Options = context.session_options
+    def progress: Progress = context.progress
 
     private val selected_session = selected_sessions.toSet
 
@@ -189,7 +190,7 @@ object Dump
       selected_session(context.deps.sessions_structure.theory_qualifier(name.theory))
 
     val resources: Headless.Resources =
-      Headless.Resources.make(context.session_options, logic, progress = progress, log = log,
+      Headless.Resources.make(options, logic, progress = progress, log = log,
         session_dirs = context.session_dirs,
         include_sessions = context.deps.sessions_structure.imports_topological_order)
 
@@ -197,7 +198,7 @@ object Dump
     {
       for {
         (name, _) <-
-          context.deps.used_theories_condition(context.session_options,
+          context.deps.used_theories_condition(options,
             restrict = selected_session,
             progress = progress)
         if !resources.session_base.loaded_theory(name.theory)
@@ -319,14 +320,16 @@ object Dump
 
     context.build_logic(logic)
 
-    context.sessions(logic = logic, log = log).foreach(_.process((args: Args) =>
-      {
-        progress.echo("Processing theory " + args.print_node + " ...")
-        val aspect_args =
-          Aspect_Args(context.session_options, context.deps, progress, output_dir,
-            args.snapshot, args.status)
-        aspects.foreach(_.operation(aspect_args))
-      }))
+    for (session <- context.sessions(logic = logic, log = log)) {
+      session.process((args: Args) =>
+        {
+          progress.echo("Processing theory " + args.print_node + " ...")
+          val aspect_args =
+            Aspect_Args(session.options, context.deps, progress, output_dir,
+              args.snapshot, args.status)
+          aspects.foreach(_.operation(aspect_args))
+        })
+    }
   }
 
 
