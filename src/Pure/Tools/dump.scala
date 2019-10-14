@@ -227,11 +227,6 @@ object Dump
     private def deps = context.deps
     private def progress = context.progress
 
-    private val selected_session = selected_sessions.toSet
-
-    private def selected_theory(name: Document.Node.Name): Boolean =
-      selected_session(deps.sessions_structure.theory_qualifier(name.theory))
-
     val resources: Headless.Resources =
       Headless.Resources.make(options, logic, progress = progress, log = log,
         session_dirs = context.session_dirs,
@@ -241,7 +236,7 @@ object Dump
     {
       for {
         session_name <-
-          deps.sessions_structure.build_graph.restrict(selected_session).topological_order
+          deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
         (name, theory_options) <- deps(session_name).used_theories
         if !resources.session_base.loaded_theory(name.theory)
         if {
@@ -289,28 +284,26 @@ object Dump
               {
                 val (snapshot, status) = args
                 val name = snapshot.node_name
-                if (selected_theory(name)) {
-                  if (status.ok) {
-                    try { process_theory(Args(session, snapshot, status)) }
-                    catch {
-                      case exn: Throwable if !Exn.is_interrupt(exn) =>
-                        val msg = Exn.message(exn)
-                        progress.echo("FAILED to process theory " + name)
-                        progress.echo_error_message(msg)
-                        consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
+                if (status.ok) {
+                  try { process_theory(Args(session, snapshot, status)) }
+                  catch {
+                    case exn: Throwable if !Exn.is_interrupt(exn) =>
+                      val msg = Exn.message(exn)
+                      progress.echo("FAILED to process theory " + name)
+                      progress.echo_error_message(msg)
+                      consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
+                  }
+                }
+                else {
+                  val msgs =
+                    for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
+                    yield {
+                      "Error" + Position.here(pos) + ":\n" +
+                        XML.content(Pretty.formatted(List(tree)))
                     }
-                  }
-                  else {
-                    val msgs =
-                      for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
-                      yield {
-                        "Error" + Position.here(pos) + ":\n" +
-                          XML.content(Pretty.formatted(List(tree)))
-                      }
-                    progress.echo("FAILED to process theory " + name)
-                    msgs.foreach(progress.echo_error_message)
-                    consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
-                  }
+                  progress.echo("FAILED to process theory " + name)
+                  msgs.foreach(progress.echo_error_message)
+                  consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
                 }
                 true
               })
