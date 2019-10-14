@@ -252,6 +252,7 @@ object Dump
   /* dump */
 
   val default_output_dir: Path = Path.explode("dump")
+  val default_logic: String = Thy_Header.PURE
 
   def dump(
     options: Options,
@@ -293,7 +294,7 @@ object Dump
       var all_sessions = false
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var logic = default_logic
       var options = Options.init()
       var verbose = false
       var exclude_sessions: List[String] = Nil
@@ -311,7 +312,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -a           select all sessions
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
+    -l NAME      logic session name (default """ + quote(logic) + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants

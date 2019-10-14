@@ -553,7 +553,7 @@ text \<open>
     -a           select all sessions
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
+    -l NAME      logic session name (default "Pure")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
