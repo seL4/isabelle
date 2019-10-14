@@ -106,10 +106,17 @@ object Dump
         (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
       }
 
-      val deps: Sessions.Deps =
+      val sessions_structure: Sessions.Structure =
         Sessions.load_structure(session_options, dirs = dirs, select_dirs = select_dirs).
-          selection_deps(session_options, selection, progress = progress,
-            uniform_session = true, loading_sessions = true).check_errors
+          selection(selection)
+
+      {
+        val selection_size = sessions_structure.build_graph.size
+        if (selection_size > 1) progress.echo("Loading " + selection_size + " sessions ...")
+      }
+
+      val deps: Sessions.Deps =
+        Sessions.deps(sessions_structure, progress = progress).check_errors
 
       new Context(options, progress, dirs, select_dirs, session_options, deps)
     }
@@ -137,26 +144,55 @@ object Dump
       logic: String = default_logic,
       log: Logger = No_Logger): List[Session] =
     {
+      /* partitions */
+
+      def session_info(session_name: String): Sessions.Info =
+        deps.sessions_structure(session_name)
+
       val session_graph = deps.sessions_structure.imports_graph
+      val all_sessions = session_graph.topological_order
 
       val afp_sessions =
-        (for ((name, (info, _)) <- session_graph.iterator if info.is_afp) yield name).toSet
+        (for (name <- all_sessions if session_info(name).is_afp) yield name).toSet
 
       val afp_bulky_sessions =
-        (for (name <- afp_sessions.iterator if deps.sessions_structure(name).is_afp_bulky)
-          yield name).toList
+        (for (name <- all_sessions if session_info(name).is_afp_bulky) yield name).toList
 
       val base_sessions =
         session_graph.all_preds(List(logic).filter(session_graph.defined)).reverse
 
+      val proof_sessions =
+        session_graph.all_succs(
+          for (name <- all_sessions if session_info(name).record_proofs) yield name)
+
+
+      /* resulting sessions */
+
+      def make_session(
+        selected_sessions: List[String],
+        pure: Boolean = false,
+        record_proofs: Boolean = false): List[Session] =
+      {
+        if (selected_sessions.isEmpty) Nil
+        else {
+          val session_logic = if (pure) isabelle.Thy_Header.PURE else logic
+          List(new Session(context, session_logic, log, selected_sessions, record_proofs))
+        }
+      }
+
       val base =
-        if (logic == isabelle.Thy_Header.PURE || base_sessions.isEmpty) Nil
-        else List(new Session(context, isabelle.Thy_Header.PURE, log, base_sessions))
+        if (logic == isabelle.Thy_Header.PURE) Nil
+        else make_session(base_sessions, pure = true)
 
       val main =
-        new Session(context, logic, log,
+        make_session(
           session_graph.topological_order.filterNot(name =>
-            afp_sessions.contains(name) || base_sessions.contains(name)))
+            afp_sessions.contains(name) ||
+            base_sessions.contains(name) ||
+            proof_sessions.contains(name)))
+
+      val proofs =
+        make_session(proof_sessions, pure = true, record_proofs = true)
 
       val afp =
         if (afp_sessions.isEmpty) Nil
@@ -168,11 +204,10 @@ object Dump
             val force_part1 = graph.all_preds(graph.all_succs(force_partition1)).toSet
             graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
           }
-          for (part <- List(part1, part2, afp_bulky_sessions) if part.nonEmpty)
-            yield new Session(context, logic, log, part)
+          List(part1, part2, afp_bulky_sessions).flatMap(make_session(_))
         }
 
-      base ::: List(main) ::: afp
+      base ::: main ::: proofs ::: afp
     }
   }
 
@@ -180,11 +215,14 @@ object Dump
     val context: Context,
     val logic: String,
     log: Logger,
-    selected_sessions: List[String])
+    selected_sessions: List[String],
+    record_proofs: Boolean)
   {
     /* resources */
 
-    def options: Options = context.session_options
+    val options: Options =
+      if (record_proofs) context.session_options + "record_proofs=2"
+      else context.session_options
 
     private def deps = context.deps
     private def progress = context.progress

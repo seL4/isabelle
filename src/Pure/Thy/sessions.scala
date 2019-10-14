@@ -447,6 +447,8 @@ object Sessions
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
 
+    def record_proofs: Boolean = options.int("record_proofs") >= 2
+
     def is_afp: Boolean = chapter == AFP.chapter
     def is_afp_bulky: Boolean = is_afp && groups.exists(AFP.groups_bulky.contains)
   }
@@ -701,36 +703,12 @@ object Sessions
       options: Options,
       selection: Selection,
       progress: Progress = No_Progress,
-      uniform_session: Boolean = false,
       loading_sessions: Boolean = false,
       inlined_files: Boolean = false,
       verbose: Boolean = false): Deps =
     {
-      val selection1 =
-        if (uniform_session) {
-          val sessions_structure1 = sessions_structure.selection(selection)
-
-          val default_record_proofs = options.int("record_proofs")
-          val sessions_record_proofs =
-            for {
-              name <- sessions_structure1.build_topological_order
-              info <- sessions_structure1.get(name)
-              if info.options.int("record_proofs") > default_record_proofs
-            } yield name
-
-          val excluded =
-            for (name <- sessions_structure1.build_descendants(sessions_record_proofs))
-            yield {
-              progress.echo_warning("Skipping session " + name + "  (option record_proofs)")
-              name
-            }
-
-          selection.copy(exclude_sessions = excluded ::: selection.exclude_sessions)
-        }
-        else selection
-
       val deps =
-        Sessions.deps(sessions_structure.selection(selection1),
+        Sessions.deps(sessions_structure.selection(selection),
           progress = progress, inlined_files = inlined_files, verbose = verbose)
 
       if (loading_sessions) {
