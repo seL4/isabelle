@@ -68,7 +68,7 @@ object Update
       var all_sessions = false
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var logic = Dump.default_logic
       var options = Options.init()
       var verbose = false
       var exclude_sessions: List[String] = Nil
@@ -82,9 +82,9 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b NAME      base logic image (default """ + isabelle.quote(Dump.default_logic) + """)
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       overide update option: shortcut for "-o update_OPT"
     -v           verbose
@@ -97,9 +97,9 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
+      "b:" -> (arg => logic = arg),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "l:" -> (arg => logic = arg),
       "o:" -> (arg => options = options + arg),
       "u:" -> (arg => options = options + ("update_" + arg)),
       "v" -> (_ => verbose = true),

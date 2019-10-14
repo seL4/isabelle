@@ -627,9 +627,9 @@ text \<open>
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b NAME      base logic image (default "Pure")
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       overide update option: shortcut for "-o update_OPT"
     -v           verbose
@@ -641,7 +641,9 @@ text \<open>
   remaining command-line arguments specify sessions as in @{tool build}
   (\secref{sec:tool-build}) or @{tool dump} (\secref{sec:tool-dump}).
 
-  \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies the underlying logic image.
+  \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies an optional base logic image, for improved
+  scalability of the PIDE session. Its theories are only processed if it is
+  included in the overall session selection.
 
   \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
 
@@ -687,19 +689,14 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Update some cartouche notation in all theory sources required for session
-  \<^verbatim>\<open>HOL-Analysis\<close>:
+  \<^verbatim>\<open>HOL-Analysis\<close> (and ancestors):
 
-  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l Pure HOL-Analysis\<close>}
+  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches HOL-Analysis\<close>}
 
   \<^smallskip> Update the same for all application sessions based on \<^verbatim>\<open>HOL-Analysis\<close> ---
-  its image is taken as starting point and its sources are not touched:
+  using its image is taken starting point (for reduced resource requirements):
 
-  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -l HOL-Analysis -B HOL-Analysis\<close>}
-
-  \<^smallskip> This two-stage approach reduces resource requirements of the running PIDE
-  session: a base image like \<^verbatim>\<open>HOL-Analysis\<close> (or \<^verbatim>\<open>HOL\<close>, \<^verbatim>\<open>HOL-Library\<close>) is
-  more compact than importing all required theory (and ML) source files from
-  \<^verbatim>\<open>Pure\<close>.
+  @{verbatim [display] \<open>isabelle update -u mixfix_cartouches -b HOL-Analysis -B HOL-Analysis\<close>}
 
   \<^smallskip> Update sessions that build on \<^verbatim>\<open>HOL-Proofs\<close>, which need to be run
   separately with special options as follows:
