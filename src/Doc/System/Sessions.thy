@@ -551,9 +551,9 @@ text \<open>
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b NAME      base logic image (default "Pure")
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default "Pure")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -568,8 +568,8 @@ text \<open>
   in the current directory).
 
   \<^medskip> Option \<^verbatim>\<open>-b\<close> specifies an optional base logic image, for improved
-  scalability of the PIDE session. Its theories are processed separately,
-  always starting from the \<^emph>\<open>Pure\<close> session.
+  scalability of the PIDE session. Its theories are only processed if it is
+  included in the overall session selection.
 
   \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
   (\secref{sec:tool-build}).
@@ -592,14 +592,14 @@ text \<open>
   @{verbatim [display] \<open>isabelle dump -v -B ZF\<close>}
 
   \<^smallskip>
-  Dump the quite substantial \<^verbatim>\<open>HOL-Analysis\<close> session, using main Isabelle/HOL
-  as starting point:
-  @{verbatim [display] \<open>isabelle dump -v -l HOL HOL-Analysis\<close>}
+  Dump the quite substantial \<^verbatim>\<open>HOL-Analysis\<close> session, with full bootstrap
+  from Isabelle/Pure:
+  @{verbatim [display] \<open>isabelle dump -v HOL-Analysis\<close>}
 
   \<^smallskip>
-  Dump all sessions connected to HOL-Analysis, including a full bootstrap of
-  Isabelle/HOL from Isabelle/Pure:
-  @{verbatim [display] \<open>isabelle dump -v -l Pure -B HOL-Analysis\<close>}
+  Dump all sessions connected to HOL-Analysis, using main Isabelle/HOL as
+  basis:
+  @{verbatim [display] \<open>isabelle dump -v -b HOL -B HOL-Analysis\<close>}
 
   This results in uniform PIDE markup for everything, except for the
   Isabelle/Pure bootstrap process itself. Producing that on the spot requires

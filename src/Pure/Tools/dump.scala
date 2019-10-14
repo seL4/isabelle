@@ -152,10 +152,11 @@ object Dump
         (for (name <- afp_sessions.iterator if deps.sessions_structure(name).is_afp_bulky)
           yield name).toList
 
-      val base_sessions = session_graph.all_preds(List(logic)).reverse
+      val base_sessions =
+        session_graph.all_preds(List(logic).filter(session_graph.defined)).reverse
 
       val base =
-        if (logic == isabelle.Thy_Header.PURE) Nil
+        if (logic == isabelle.Thy_Header.PURE || base_sessions.isEmpty) Nil
         else List(new Session(context, isabelle.Thy_Header.PURE, log, base_sessions))
 
       val main =
@@ -169,7 +170,7 @@ object Dump
           val (part1, part2) =
           {
             val graph = session_graph.restrict(afp_sessions -- afp_bulky_sessions)
-            val force_partition1 = AFP.force_partition1.filter(graph.defined(_))
+            val force_partition1 = AFP.force_partition1.filter(graph.defined)
             val force_part1 = graph.all_preds(graph.all_succs(force_partition1)).toSet
             graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
           }
