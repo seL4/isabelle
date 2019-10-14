@@ -20,6 +20,8 @@ object Update
       Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
         selection = selection)
 
+    context.build_logic(logic)
+
     val path_cartouches = context.session_options.bool("update_path_cartouches")
 
     def update_xml(xml: XML.Body): XML.Body =
@@ -36,7 +38,7 @@ object Update
         case t => List(t)
       }
 
-    context.session(logic, log = log).process((args: Dump.Args) =>
+    context.sessions(logic, log = log).foreach(_.process((args: Dump.Args) =>
       {
         progress.echo("Processing theory " + args.print_node + " ...")
 
@@ -52,7 +54,7 @@ object Update
             File.write(node_name.path, source1)
           }
         }
-      })
+      }))
   }
 
 

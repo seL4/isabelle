@@ -133,13 +133,7 @@ object Dump
         dirs = session_dirs, strict = true)
     }
 
-    def session(logic: String, log: Logger = No_Logger): Session =
-    {
-      build_logic(logic)
-      new Session(context, logic, log, deps.sessions_structure.imports_topological_order)
-    }
-
-    def partition_sessions(
+    def sessions(
       logic: String = default_logic,
       log: Logger = No_Logger): List[Session] =
     {
@@ -178,7 +172,6 @@ object Dump
             yield new Session(context, logic, log, part)
         }
 
-      build_logic(logic)
       base ::: List(main) ::: afp
     }
   }
@@ -324,7 +317,9 @@ object Dump
       Context(options, aspects = aspects, progress = progress, dirs = dirs,
         select_dirs = select_dirs, selection = selection)
 
-    context.partition_sessions(logic = logic, log = log).foreach(_.process((args: Args) =>
+    context.build_logic(logic)
+
+    context.sessions(logic = logic, log = log).foreach(_.process((args: Args) =>
       {
         progress.echo("Processing theory " + args.print_node + " ...")
         val aspect_args =
