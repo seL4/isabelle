@@ -182,7 +182,8 @@ object Dump
     /* resources */
 
     def options: Options = context.session_options
-    def progress: Progress = context.progress
+
+    private def progress: Progress = context.progress
 
     private val selected_session = selected_sessions.toSet
 
