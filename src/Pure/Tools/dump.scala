@@ -73,7 +73,7 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* session */
+  /* context and session */
 
   sealed case class Args(
     session: Headless.Session,
@@ -83,72 +83,79 @@ object Dump
     def print_node: String = snapshot.node_name.toString
   }
 
-  object Session
+  object Context
   {
     def apply(
       options: Options,
-      logic: String,
       aspects: List[Aspect] = Nil,
       progress: Progress = No_Progress,
-      log: Logger = No_Logger,
       dirs: List[Path] = Nil,
       select_dirs: List[Path] = Nil,
-      selection: Sessions.Selection = Sessions.Selection.empty): Session =
+      selection: Sessions.Selection = Sessions.Selection.empty): Context =
     {
-      new Session(options, logic, aspects, progress, log, dirs, select_dirs, selection)
+      val session_options: Options =
+      {
+        val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
+        val options1 =
+          options0 +
+            "completion_limit=0" +
+            "ML_statistics=false" +
+            "parallel_proofs=0" +
+            "editor_tracing_messages=0" +
+            "editor_presentation"
+        (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+      }
+
+      val deps: Sessions.Deps =
+        Sessions.load_structure(session_options, dirs = dirs, select_dirs = select_dirs).
+          selection_deps(session_options, selection, progress = progress,
+            uniform_session = true, loading_sessions = true).check_errors
+
+      new Context(options, progress, dirs, select_dirs, session_options, deps)
     }
   }
 
-  class Session private(
-    options: Options,
-    logic: String,
-    aspects: List[Aspect],
-    progress: Progress,
-    log: Logger,
-    dirs: List[Path],
-    select_dirs: List[Path],
-    selection: Sessions.Selection)
+  class Context private(
+    val options: Options,
+    val progress: Progress,
+    val dirs: List[Path],
+    val select_dirs: List[Path],
+    val session_options: Options,
+    val deps: Sessions.Deps)
   {
-    /* context */
+    def session_dirs: List[Path] = dirs ::: select_dirs
 
-    Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, strict = true)
+    def session(logic: String, log: Logger = No_Logger): Session =
+      new Session(this, logic, log)
+  }
 
-    val dump_options: Options =
-    {
-      val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
-      val options1 =
-        options0 +
-          "completion_limit=0" +
-          "ML_statistics=false" +
-          "parallel_proofs=0" +
-          "editor_tracing_messages=0" +
-          "editor_presentation"
-      (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
-    }
+  class Session private[Dump](context: Context, logic: String, log: Logger)
+  {
+    /* resources */
 
-    val deps: Sessions.Deps =
-      Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(dump_options, selection, progress = progress,
-          uniform_session = true, loading_sessions = true).check_errors
+    private val progress = context.progress
+
+    Build.build_logic(context.options, logic, build_heap = true, progress = progress,
+      dirs = context.session_dirs, strict = true)
 
     val resources: Headless.Resources =
-      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
-        session_dirs = dirs ::: select_dirs,
-        include_sessions = deps.sessions_structure.imports_topological_order)
+      Headless.Resources.make(context.session_options, logic, progress = progress, log = log,
+        session_dirs = context.session_dirs,
+        include_sessions = context.deps.sessions_structure.imports_topological_order)
 
     val used_theories: List[Document.Node.Name] =
     {
       for {
-        (name, _) <- deps.used_theories_condition(dump_options, progress = progress)
+        (name, _) <-
+          context.deps.used_theories_condition(context.session_options, progress = progress)
         if !resources.session_base.loaded_theory(name.theory)
       } yield name
     }
 
 
-    /* run */
+    /* process */
 
-    def run(process_theory: Args => Unit, unicode_symbols: Boolean = false)
+    def process(process_theory: Args => Unit, unicode_symbols: Boolean = false)
     {
       val session = resources.start_session(progress = progress)
 
@@ -251,15 +258,15 @@ object Dump
     output_dir: Path = default_output_dir,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
-    val session =
-      Session(options, logic, aspects = aspects, progress = progress, log = log, dirs = dirs,
+    val context =
+      Context(options, aspects = aspects, progress = progress, dirs = dirs,
         select_dirs = select_dirs, selection = selection)
 
-    session.run((args: Args) =>
+    context.session(logic, log = log).process((args: Args) =>
       {
         progress.echo("Processing theory " + args.print_node + " ...")
         val aspect_args =
-          Aspect_Args(session.dump_options, session.deps, progress, output_dir,
+          Aspect_Args(context.session_options, context.deps, progress, output_dir,
             args.snapshot, args.status)
         aspects.foreach(_.operation(aspect_args))
       })

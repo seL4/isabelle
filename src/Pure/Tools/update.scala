@@ -16,11 +16,11 @@ object Update
     select_dirs: List[Path] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
-    val session =
-      Dump.Session(options, logic, progress = progress, log = log, dirs = dirs,
-        select_dirs = select_dirs, selection = selection)
+    val context =
+      Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
+        selection = selection)
 
-    val path_cartouches = session.dump_options.bool("update_path_cartouches")
+    val path_cartouches = context.session_options.bool("update_path_cartouches")
 
     def update_xml(xml: XML.Body): XML.Body =
       xml flatMap {
@@ -36,7 +36,7 @@ object Update
         case t => List(t)
       }
 
-    session.run((args: Dump.Args) =>
+    context.session(logic, log = log).process((args: Dump.Args) =>
       {
         progress.echo("Processing theory " + args.print_node + " ...")
 
