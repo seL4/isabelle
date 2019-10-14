@@ -97,12 +97,14 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def used_theories_condition(default_options: Options, progress: Progress = No_Progress)
+    def used_theories_condition(default_options: Options,
+      restrict: String => Boolean = _ => true,
+      progress: Progress = No_Progress)
       : List[(Document.Node.Name, Options)] =
     {
       val default_skip_proofs = default_options.bool("skip_proofs")
       for {
-        session_name <- sessions_structure.build_topological_order
+        session_name <- sessions_structure.imports_graph.restrict(restrict).topological_order
         entry @ (name, options) <- session_bases(session_name).used_theories
         if {
           def warn(msg: String): Unit =
@@ -473,6 +475,9 @@ object Sessions
         if Bibtex.is_bibtex(file.file_name)
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
+
+    def is_afp: Boolean = chapter == AFP.chapter
+    def is_afp_bulky: Boolean = is_afp && groups.exists(AFP.groups_bulky.contains)
   }
 
   def make_info(options: Options, dir_selected: Boolean, dir: Path, chapter: String,
@@ -660,6 +665,9 @@ object Sessions
     def defined(name: String): Boolean = imports_graph.defined(name)
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
+
+    def theory_qualifier(name: String): String =
+      global_theories.getOrElse(name, Long_Name.qualifier(name))
 
     def check_sessions(names: List[String])
     {

@@ -123,6 +123,8 @@ object Dump
     val session_options: Options,
     val deps: Sessions.Deps)
   {
+    context =>
+
     def session_dirs: List[Path] = dirs ::: select_dirs
 
     def build_logic(logic: String)
@@ -134,15 +136,67 @@ object Dump
     def session(logic: String, log: Logger = No_Logger): Session =
     {
       build_logic(logic)
-      new Session(this, logic, log)
+      new Session(context, logic, log, deps.sessions_structure.imports_topological_order)
+    }
+
+    def partition_sessions(
+      logic: String = default_logic,
+      log: Logger = No_Logger,
+      split_partitions: Boolean = false): List[Session] =
+    {
+      val session_graph = deps.sessions_structure.imports_graph
+
+      val afp_sessions =
+        if (split_partitions) {
+          (for ((name, (info, _)) <- session_graph.iterator if info.is_afp) yield name).toSet
+        }
+        else Set.empty[String]
+
+      val afp_bulky_sessions =
+        (for (name <- afp_sessions.iterator if deps.sessions_structure(name).is_afp_bulky)
+          yield name).toList
+
+      val base_sessions = session_graph.all_preds(List(logic)).reverse
+
+      val base =
+        if (logic == isabelle.Thy_Header.PURE) Nil
+        else List(new Session(context, isabelle.Thy_Header.PURE, log, base_sessions))
+
+      val main =
+        new Session(context, logic, log,
+          session_graph.topological_order.filterNot(name =>
+            afp_sessions.contains(name) || base_sessions.contains(name)))
+
+      val afp =
+        if (afp_sessions.isEmpty) Nil
+        else {
+          val (part1, part2) =
+          {
+            val graph = session_graph.restrict(afp_sessions -- afp_bulky_sessions)
+            val force_partition1 = AFP.force_partition1.filter(graph.defined(_))
+            val force_part1 = graph.all_preds(graph.all_succs(force_partition1)).toSet
+            graph.keys.partition(a => force_part1(a) || graph.is_isolated(a))
+          }
+          for (part <- List(part1, part2, afp_bulky_sessions) if part.nonEmpty)
+            yield new Session(context, logic, log, part)
+        }
+
+      build_logic(logic)
+      base ::: List(main) ::: afp
     }
   }
 
-  class Session private[Dump](context: Context, logic: String, log: Logger)
+  class Session private[Dump](
+    context: Context, val logic: String, log: Logger, val selected_sessions: List[String])
   {
     /* resources */
 
     private val progress = context.progress
+
+    private val selected_session = selected_sessions.toSet
+
+    private def selected_theory(name: Document.Node.Name): Boolean =
+      selected_session(context.deps.sessions_structure.theory_qualifier(name.theory))
 
     val resources: Headless.Resources =
       Headless.Resources.make(context.session_options, logic, progress = progress, log = log,
@@ -153,7 +207,9 @@ object Dump
     {
       for {
         (name, _) <-
-          context.deps.used_theories_condition(context.session_options, progress = progress)
+          context.deps.used_theories_condition(context.session_options,
+            restrict = selected_session,
+            progress = progress)
         if !resources.session_base.loaded_theory(name.theory)
       } yield name
     }
@@ -183,14 +239,14 @@ object Dump
               {
                 val (snapshot, status) = args
                 val name = snapshot.node_name
-                if (status.ok) {
+                if (status.ok && selected_theory(name)) {
                   try { process_theory(Args(session, snapshot, status)) }
                   catch {
                     case exn: Throwable if !Exn.is_interrupt(exn) =>
-                    val msg = Exn.message(exn)
-                    progress.echo("FAILED to process theory " + name)
-                    progress.echo_error_message(msg)
-                    consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
+                      val msg = Exn.message(exn)
+                      progress.echo("FAILED to process theory " + name)
+                      progress.echo_error_message(msg)
+                      consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
                   }
                 }
                 else {
@@ -263,20 +319,22 @@ object Dump
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
+    split_partitions: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
     val context =
       Context(options, aspects = aspects, progress = progress, dirs = dirs,
         select_dirs = select_dirs, selection = selection)
 
-    context.session(logic, log = log).process((args: Args) =>
-      {
-        progress.echo("Processing theory " + args.print_node + " ...")
-        val aspect_args =
-          Aspect_Args(context.session_options, context.deps, progress, output_dir,
-            args.snapshot, args.status)
-        aspects.foreach(_.operation(aspect_args))
-      })
+    context.partition_sessions(logic = logic, log = log, split_partitions = split_partitions).
+      foreach(_.process((args: Args) =>
+        {
+          progress.echo("Processing theory " + args.print_node + " ...")
+          val aspect_args =
+            Aspect_Args(context.session_options, context.deps, progress, output_dir,
+              args.snapshot, args.status)
+          aspects.foreach(_.operation(aspect_args))
+        }))
   }
 
 
@@ -289,12 +347,13 @@ object Dump
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
+      var split_partitions = false
       var requirements = false
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
+      var logic = default_logic
       var dirs: List[Path] = Nil
       var session_groups: List[String] = Nil
-      var logic = default_logic
       var options = Options.init()
       var verbose = false
       var exclude_sessions: List[String] = Nil
@@ -307,12 +366,13 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
+    -P           split into standard partitions (AFP, non-AFP, ...)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -b NAME      base logic image (default """ + isabelle.quote(default_logic) + """)
     -d DIR       include session directory
     -g NAME      select session group NAME
-    -l NAME      logic session name (default """ + quote(logic) + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
@@ -324,12 +384,13 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
+      "P" -> (_ => split_partitions = true),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
+      "b:" -> (arg => logic = arg),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "g:" -> (arg => session_groups = session_groups ::: List(arg)),
-      "l:" -> (arg => logic = arg),
       "o:" -> (arg => options = options + arg),
       "v" -> (_ => verbose = true),
       "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
@@ -345,6 +406,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
           dirs = dirs,
           select_dirs = select_dirs,
           output_dir = output_dir,
+          split_partitions = split_partitions,
           selection = Sessions.Selection(
             requirements = requirements,
             all_sessions = all_sessions,
