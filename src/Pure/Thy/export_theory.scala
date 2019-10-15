@@ -147,7 +147,7 @@ object Export_Theory
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
-  def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
+  def read_pure[A](store: Sessions.Store, read: (Export.Provider, String, String) => A): A =
   {
     val session_name = Thy_Header.PURE
     val theory_name = Thy_Header.PURE
@@ -155,11 +155,17 @@ object Export_Theory
     using(store.open_database(session_name))(db =>
     {
       db.transaction {
-        read_theory(Export.Provider.database(db, session_name, theory_name),
-          session_name, theory_name, cache = cache)
+        read(Export.Provider.database(db, session_name, theory_name), session_name, theory_name)
       }
     })
   }
+
+  def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
+    read_pure(store, read_theory(_, _, _, cache = cache))
+
+  def read_pure_proof(store: Sessions.Store, serial: Long, cache: Option[Term.Cache] = None): Proof =
+    read_pure(store,
+      (provider, _, theory_name) => read_proof(provider, theory_name, serial, cache = cache))
 
 
   /* entities */
@@ -351,13 +357,17 @@ object Export_Theory
       })
 
   sealed case class Proof(
+    serial: Long,
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
     term: Term.Term,
     proof: Term.Proof)
   {
+    def prop: Prop = Prop(typargs, args, term)
+
     def cache(cache: Term.Cache): Proof =
       Proof(
+        serial,
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
         cache.term(term),
@@ -383,7 +393,7 @@ object Export_Theory
     val prop = Term_XML.Decode.term_env(env)(prop_body)
     val proof = Term_XML.Decode.proof_env(env)(proof_body)
 
-    val result = Proof(typargs, args, prop, proof)
+    val result = Proof(serial, typargs, args, prop, proof)
     cache.map(result.cache(_)) getOrElse result
   }
 
