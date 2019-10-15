@@ -55,6 +55,8 @@ object Update
           }
         }
       }))
+
+    context.check_errors
   }
 
 

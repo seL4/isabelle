@@ -217,6 +217,22 @@ object Dump
 
     def process_theory(theory: String): Boolean =
       processed_theories.change_result(processed => (!processed(theory), processed + theory))
+
+
+    /* errors */
+
+    private val errors = Synchronized(List.empty[String])
+
+    def add_errors(more_errs: List[String])
+    {
+      errors.change(errs => errs ::: more_errs)
+    }
+
+    def check_errors
+    {
+      val errs = errors.value
+      if (errs.nonEmpty) error(errs.mkString("\n\n"))
+    }
   }
 
   class Session private[Dump](
@@ -354,8 +370,7 @@ object Dump
             case pending => List("Pending theories: " + commas(pending.map(p => p._1.toString)))
           }
 
-        val errors = bad_msgs ::: pending_msgs
-        if (errors.nonEmpty) error(errors.mkString("\n\n"))
+        context.add_errors(bad_msgs ::: pending_msgs)
       }
       finally { session.stop() }
     }
@@ -394,6 +409,8 @@ object Dump
           aspects.foreach(_.operation(aspect_args))
         })
     }
+
+    context.check_errors
   }
 
 
