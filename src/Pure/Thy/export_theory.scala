@@ -349,29 +349,41 @@ object Export_Theory
         Thm(entity, prop, deps, prf)
       })
 
+  sealed case class Proof(
+    typargs: List[(String, Term.Sort)],
+    args: List[(String, Term.Typ)],
+    term: Term.Term,
+    proof: Term.Proof)
+  {
+    def cache(cache: Term.Cache): Proof =
+      Proof(
+        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        cache.term(term),
+        cache.proof(proof))
+  }
+
   def read_proof(
     provider: Export.Provider,
     theory_name: String,
     serial: Long,
-    cache: Option[Term.Cache] = None): (Term.Term, Term.Proof) =
+    cache: Option[Term.Cache] = None): Proof =
   {
     val body = provider.focus(theory_name).uncompressed_yxml(export_prefix_proofs + serial)
     if (body.isEmpty) error("Bad proof export " + serial)
 
-    val (vars, prop_body, proof_body) =
+    val (typargs, (args, (prop_body, proof_body))) =
     {
       import XML.Decode._
       import Term_XML.Decode._
-      triple(list(pair(string, typ)), x => x, x => x)(body)
+      pair(list(pair(string, sort)), pair(list(pair(string, typ)), pair(x => x, x => x)))(body)
     }
-    val env = vars.toMap
+    val env = args.toMap
     val prop = Term_XML.Decode.term_env(env)(prop_body)
     val proof = Term_XML.Decode.proof_env(env)(proof_body)
 
-    cache match {
-      case None => (prop, proof)
-      case Some(cache) => (cache.term(prop), cache.proof(proof))
-    }
+    val result = Proof(typargs, args, prop, proof)
+    cache.map(result.cache(_)) getOrElse result
   }
 
 

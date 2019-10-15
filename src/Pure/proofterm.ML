@@ -2125,22 +2125,23 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
     #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
   end;
 
-fun encode_export consts =
-  let
-    open XML.Encode Term_XML.Encode;
-    val encode_vars = list (pair string typ);
-    val encode_term = encode_standard_term consts;
-    val encode_proof = encode_standard_proof consts;
-  in triple encode_vars encode_term encode_proof end;
-
 fun export_proof thy i prop prf0 =
   let
     val prf = prf0
       |> reconstruct_proof thy prop
       |> apply_preproc thy;
     val (prop', SOME prf') = (prop, SOME prf) |> standard_vars Name.context;
-    val vars = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
-    val xml = encode_export (Sign.consts_of thy) (vars, prop', prf');
+    val args = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
+    val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
+
+    val consts = Sign.consts_of thy;
+    val xml = (typargs, (args, (prop', prf'))) |>
+      let
+        open XML.Encode Term_XML.Encode;
+        val encode_vars = list (pair string typ);
+        val encode_term = encode_standard_term consts;
+        val encode_proof = encode_standard_proof consts;
+      in pair (list (pair string sort)) (pair encode_vars (pair encode_term encode_proof)) end;
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
   in
     chunks |> Export.export_params
