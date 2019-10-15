@@ -2125,8 +2125,6 @@ fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.uncon
     #> fold_rev (implies_intr_proof o snd) (#constraints ucontext)
   end;
 
-fun clean_proof thy = rew_proof thy #> shrink_proof;
-
 fun encode_export consts =
   let
     open XML.Encode Term_XML.Encode;
@@ -2199,8 +2197,8 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
         (PBody {oracles = oracles0, thms = thms0,
           proof = if proofs_enabled () then fold_rev implies_intr_proof hyps prf else MinProof});
 
-    fun publish i = map_proof_of (clean_proof thy #> tap (export thy i prop1) #> prune);
-    val open_proof = not named ? clean_proof thy;
+    fun publish i = map_proof_of (rew_proof thy #> tap (export thy i prop1) #> prune);
+    val open_proof = not named ? rew_proof thy;
 
     fun new_prf () =
       let
