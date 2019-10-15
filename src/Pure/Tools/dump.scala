@@ -207,7 +207,7 @@ object Dump
           List(part1, part2, afp_bulky_sessions).flatMap(make_session(_))
         }
 
-      base ::: main ::: proofs ::: afp
+      proofs ::: base ::: main ::: afp
     }
   }
 
