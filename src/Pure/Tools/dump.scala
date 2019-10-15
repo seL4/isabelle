@@ -209,6 +209,14 @@ object Dump
 
       proofs ::: base ::: main ::: afp
     }
+
+
+    /* processed theories */
+
+    private val processed_theories = Synchronized(Set.empty[String])
+
+    def process_theory(theory: String): Boolean =
+      processed_theories.change_result(processed => (!processed(theory), processed + theory))
   }
 
   class Session private[Dump](
@@ -285,7 +293,11 @@ object Dump
                 val (snapshot, status) = args
                 val name = snapshot.node_name
                 if (status.ok) {
-                  try { process_theory(Args(session, snapshot, status)) }
+                  try {
+                    if (context.process_theory(name.theory)) {
+                      process_theory(Args(session, snapshot, status))
+                    }
+                  }
                   catch {
                     case exn: Throwable if !Exn.is_interrupt(exn) =>
                       val msg = Exn.message(exn)
