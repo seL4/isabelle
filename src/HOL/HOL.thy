@@ -70,11 +70,7 @@ setup \<open>Axclass.class_axiomatization (\<^binding>\<open>type\<close>, [])\<
 default_sort type
 setup \<open>Object_Logic.add_base_sort \<^sort>\<open>type\<close>\<close>
 
-setup \<open>
-  Proofterm.set_preproc (fn thy =>
-    Proofterm.rewrite_proof thy
-      ([], Proof_Rewrite_Rules.rprocs true @ [Proof_Rewrite_Rules.expand_of_class thy]))
-\<close>
+setup \<open>Proofterm.set_preproc (Proof_Rewrite_Rules.standard_preproc [])\<close>
 
 axiomatization where fun_arity: "OFCLASS('a \<Rightarrow> 'b, type_class)"
 instance "fun" :: (type, type) type by (rule fun_arity)
@@ -785,12 +781,7 @@ subsection \<open>Package setup\<close>
 ML_file \<open>Tools/hologic.ML\<close>
 ML_file \<open>Tools/rewrite_hol_proof.ML\<close>
 
-setup \<open>
-  Proofterm.set_preproc (fn thy =>
-    Proofterm.rewrite_proof thy
-      (Rewrite_HOL_Proof.rews,
-       Proof_Rewrite_Rules.rprocs true @ [Proof_Rewrite_Rules.expand_of_class thy]))
-\<close>
+setup \<open>Proofterm.set_preproc (Proof_Rewrite_Rules.standard_preproc Rewrite_HOL_Proof.rews)\<close>
 
 
 subsubsection \<open>Sledgehammer setup\<close>

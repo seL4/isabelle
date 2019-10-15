@@ -18,6 +18,7 @@ sig
   val expand_of_class_proof : theory -> term option list -> typ * class -> proof
   val expand_of_class : theory -> typ list -> term option list -> Proofterm.proof ->
     (Proofterm.proof * Proofterm.proof) option
+  val standard_preproc: (proof * proof) list -> theory -> proof -> proof
 end;
 
 structure Proof_Rewrite_Rules : PROOF_REWRITE_RULES =
@@ -373,5 +374,11 @@ fun expand_of_class_proof thy hyps (T, c) =
 fun expand_of_class thy (_: typ list) hyps (OfClass (T, c)) =
       SOME (expand_of_class_proof thy hyps (T, c), Proofterm.no_skel)
   | expand_of_class _ _ _ _ = NONE;
+
+
+(* standard preprocessor *)
+
+fun standard_preproc rews thy =
+  Proofterm.rewrite_proof thy (rews, rprocs true @ [expand_of_class thy]);
 
 end;
