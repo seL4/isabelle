@@ -170,6 +170,7 @@ object Export_Theory
     val CONST = Value("const")
     val AXIOM = Value("axiom")
     val THM = Value("thm")
+    val PROOF = Value("proof")
     val CLASS = Value("class")
     val LOCALE = Value("locale")
     val LOCALE_DEPENDENCY = Value("locale_dependency")
