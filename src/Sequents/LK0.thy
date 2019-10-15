@@ -12,6 +12,8 @@ theory LK0
 imports Sequents
 begin
 
+setup \<open>Proofterm.set_preproc (Proof_Rewrite_Rules.standard_preproc [])\<close>
+
 class "term"
 default_sort "term"
 

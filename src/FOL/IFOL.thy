@@ -23,6 +23,7 @@ ML_file \<open>~~/src/Tools/atomize_elim.ML\<close>
 subsection \<open>Syntax and axiomatic basis\<close>
 
 setup Pure_Thy.old_appl_syntax_setup
+setup \<open>Proofterm.set_preproc (Proof_Rewrite_Rules.standard_preproc [])\<close>
 
 class "term"
 default_sort \<open>term\<close>

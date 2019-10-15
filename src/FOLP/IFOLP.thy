@@ -12,6 +12,7 @@ begin
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 
 setup Pure_Thy.old_appl_syntax_setup
+setup \<open>Proofterm.set_preproc (Proof_Rewrite_Rules.standard_preproc [])\<close>
 
 class "term"
 default_sort "term"
