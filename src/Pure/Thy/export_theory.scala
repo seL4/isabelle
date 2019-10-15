@@ -163,9 +163,8 @@ object Export_Theory
   def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
     read_pure(store, read_theory(_, _, _, cache = cache))
 
-  def read_pure_proof(store: Sessions.Store, serial: Long, cache: Option[Term.Cache] = None): Proof =
-    read_pure(store,
-      (provider, _, theory_name) => read_proof(provider, theory_name, serial, cache = cache))
+  def read_pure_proof(store: Sessions.Store, id: Thm_Id, cache: Option[Term.Cache] = None): Proof =
+    read_pure(store, (provider, _, _) => read_proof(provider, id, cache = cache))
 
 
   /* entities */
@@ -337,27 +336,49 @@ object Export_Theory
 
   /* theorems */
 
-  sealed case class Thm(entity: Entity, prop: Prop, deps: List[String], proof: Option[Term.Proof])
+  sealed case class Thm_Id(serial: Long, theory_name: String)
+  {
+    def pure: Boolean = theory_name == Thy_Header.PURE
+
+    def cache(cache: Term.Cache): Thm_Id =
+      Thm_Id(serial, cache.string(theory_name))
+  }
+
+  sealed case class Thm(
+    entity: Entity,
+    prop: Prop,
+    deps: List[String],
+    proof: Term.Proof,
+    proof_boxes: List[Thm_Id])
   {
     def cache(cache: Term.Cache): Thm =
-      Thm(entity.cache(cache), prop.cache(cache), deps.map(cache.string _), proof.map(cache.proof _))
+      Thm(
+        entity.cache(cache),
+        prop.cache(cache),
+        deps.map(cache.string _),
+        cache.proof(proof),
+        proof_boxes.map(_.cache(cache)))
   }
 
   def read_thms(provider: Export.Provider): List[Thm] =
     provider.uncompressed_yxml(export_prefix + "thms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.THM, tree)
-        val (prop, (deps, prf)) =
+        val (prop, (deps, (prf, prf_boxes))) =
         {
           import XML.Decode._
           import Term_XML.Decode._
-          pair(decode_prop _, pair(list(string), option(proof)))(body)
+          def thm_id(body: XML.Body): Thm_Id =
+          {
+            val (serial, theory_name) = pair(long, string)(body)
+            Thm_Id(serial, theory_name)
+          }
+          pair(decode_prop _, pair(list(string), pair(proof, list(thm_id))))(body)
         }
-        Thm(entity, prop, deps, prf)
+        Thm(entity, prop, deps, prf, prf_boxes)
       })
 
   sealed case class Proof(
-    serial: Long,
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
     term: Term.Term,
@@ -367,21 +388,16 @@ object Export_Theory
 
     def cache(cache: Term.Cache): Proof =
       Proof(
-        serial,
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
         cache.term(term),
         cache.proof(proof))
   }
 
-  def read_proof(
-    provider: Export.Provider,
-    theory_name: String,
-    serial: Long,
-    cache: Option[Term.Cache] = None): Proof =
+  def read_proof(provider: Export.Provider, id: Thm_Id, cache: Option[Term.Cache] = None): Proof =
   {
-    val body = provider.focus(theory_name).uncompressed_yxml(export_prefix_proofs + serial)
-    if (body.isEmpty) error("Bad proof export " + serial)
+    val body = provider.focus(id.theory_name).uncompressed_yxml(export_prefix_proofs + id.serial)
+    if (body.isEmpty) error("Bad proof export " + id.serial)
 
     val (typargs, (args, (prop_body, proof_body))) =
     {
@@ -393,7 +409,7 @@ object Export_Theory
     val prop = Term_XML.Decode.term_env(env)(prop_body)
     val proof = Term_XML.Decode.proof_env(env)(proof_body)
 
-    val result = Proof(serial, typargs, args, prop, proof)
+    val result = Proof(typargs, args, prop, proof)
     cache.map(result.cache(_)) getOrElse result
   }
 

@@ -181,6 +181,7 @@ sig
   type thm_id = {serial: serial, theory_name: string}
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
+  val proof_boxes: proof -> thm_id list
 end
 
 structure Proofterm : PROOFTERM =
@@ -2275,6 +2276,27 @@ fun get_id shyps hyps prop prf : thm_id option =
     NONE => NONE
   | SOME {name = "", ...} => NONE
   | SOME {serial, theory_name, ...} => SOME {serial = serial, theory_name = theory_name});
+
+
+(* proof boxes *)
+
+fun proof_boxes proof =
+  let
+    fun boxes_of (AbsP (_, _, prf)) = boxes_of prf
+      | boxes_of (Abst (_, _, prf)) = boxes_of prf
+      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
+      | boxes_of (prf % _) = boxes_of prf
+      | boxes_of (PThm ({serial = i, name = "", theory_name, ...}, thm_body)) =
+          (fn boxes =>
+            if Inttab.defined boxes i then boxes
+            else
+              let
+                val prf = thm_body_proof_raw thm_body;
+                val boxes' = Inttab.update (i, theory_name) boxes;
+              in boxes_of prf boxes' end)
+      | boxes_of _ = I;
+    val boxes = boxes_of proof Inttab.empty;
+  in Inttab.fold_rev (fn (i, thy) => cons {serial = i, theory_name = thy}) boxes [] end;
 
 end;
 

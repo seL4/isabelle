@@ -264,16 +264,22 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = clean_thm raw_thm;
+        val thm_name = Thm.derivation_name thm;
         val raw_proof =
-          if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else Proofterm.MinProof;
-        val (prop, proof) =
+          if Proofterm.export_enabled () then
+            Thm.reconstruct_proof_of thm
+            |> thm_name <> "" ? Proofterm.expand_proof thy [(thm_name, NONE)]
+          else Proofterm.MinProof;
+        val (prop, SOME proof) =
           standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME raw_proof);
+        val proof_boxes = Proofterm.proof_boxes proof;
       in
-        (prop, (deps, proof)) |>
+        (prop, (deps, (proof, proof_boxes))) |>
           let
             open XML.Encode Term_XML.Encode;
             val encode_proof = Proofterm.encode_standard_proof consts;
-          in pair encode_prop (pair (list string) (option encode_proof)) end
+            fun encode_box {serial, theory_name} = pair int string (serial, theory_name);
+          in pair encode_prop (pair (list string) (pair encode_proof (list encode_box))) end
       end;
 
     fun buffer_export_thm (serial, thm_name) =
