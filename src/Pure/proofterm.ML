@@ -2135,10 +2135,12 @@ fun encode_export consts =
     val encode_proof = encode_standard_proof consts;
   in triple encode_vars encode_term encode_proof end;
 
-fun export_proof thy i prop prf =
+fun export_proof thy i prop prf0 =
   let
-    val (prop', SOME prf') =
-      standard_vars Name.context (prop, SOME (reconstruct_proof thy prop prf));
+    val prf = prf0
+      |> reconstruct_proof thy prop
+      |> apply_preproc thy;
+    val (prop', SOME prf') = (prop, SOME prf) |> standard_vars Name.context;
     val vars = [] |> add_standard_vars_term prop' |> add_standard_vars prf' |> rev;
     val xml = encode_export (Sign.consts_of thy) (vars, prop', prf');
     val chunks = Buffer.chunks (YXML.buffer_body xml Buffer.empty);
@@ -2169,10 +2171,9 @@ fun force_export_boxes proof =
     val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
 
-fun export thy i prop prf0 =
+fun export thy i prop prf =
   if export_enabled () then
     let
-      val prf = apply_preproc thy prf0;
       val _ = force_export_boxes prf;
       val _ = export_proof thy i prop prf;
     in () end
