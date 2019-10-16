@@ -1326,17 +1326,15 @@ fun combination_proof A f g t u prf1 prf2 =
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in
-    (case A of
-      Type ("fun", _) => prf %
-        (case head_of f of
-          Abs _ => SOME (remove_types t)
-        | Var _ => SOME (remove_types t)
-        | _ => NONE) %
-        (case head_of g of
-          Abs _ => SOME (remove_types u)
-        | Var _ => SOME (remove_types u)
-        | _ => NONE) %% prf1 %% prf2
-     | _ => prf % NONE % NONE %% prf1 %% prf2)
+    prf %
+      (case head_of f of
+        Abs _ => SOME (remove_types t)
+      | Var _ => SOME (remove_types t)
+      | _ => NONE) %
+      (case head_of g of
+        Abs _ => SOME (remove_types u)
+      | Var _ => SOME (remove_types u)
+      | _ => NONE) %% prf1 %% prf2
   end;
 
 
