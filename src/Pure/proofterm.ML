@@ -2242,7 +2242,7 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
 in
 
-val thm_proof = prepare_thm_proof false;
+fun thm_proof thy = prepare_thm_proof false thy;
 
 fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises body =
   prepare_thm_proof true thy classrel_proof arity_proof ("", Position.none)
