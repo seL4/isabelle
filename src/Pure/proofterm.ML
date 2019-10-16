@@ -2222,7 +2222,13 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
 
     val export_proof =
       if named orelse not (export_enabled ()) then no_export_proof
-      else Lazy.lazy (fn () => join_proof body' |> open_proof |> export_proof thy i prop1);
+      else
+        Lazy.lazy (fn () =>
+          join_proof body' |> open_proof |> export_proof thy i prop1 handle exn =>
+            if Exn.is_interrupt exn then
+              raise Fail ("Interrupt: potential resource problems while exporting proof " ^
+                string_of_int i)
+            else Exn.reraise exn);
 
     val theory_name = Context.theory_long_name thy;
     val thm = (i, make_thm_node theory_name name prop1 body');
