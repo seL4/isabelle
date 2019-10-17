@@ -271,12 +271,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           SOME (if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else MinProof)
           |> standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
       in
-        (prop, (deps, (proof, boxes))) |>
+        (prop, (deps, (boxes, proof))) |>
           let
             open XML.Encode Term_XML.Encode;
-            val encode_proof = Proofterm.encode_standard_proof consts;
             fun encode_box {serial, theory_name} = pair int string (serial, theory_name);
-          in pair encode_prop (pair (list string) (pair encode_proof (list encode_box))) end
+            val encode_proof = Proofterm.encode_standard_proof consts;
+          in pair encode_prop (pair (list string) (pair (list encode_box) encode_proof)) end
       end;
 
     fun buffer_export_thm (serial, thm_name) =
