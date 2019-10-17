@@ -56,7 +56,8 @@ object Term
   case class Const(name: String, typargs: List[Typ] = Nil) extends Term
   {
     override def toString: String =
-      "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
+      if (this == dummy) "_"
+      else "Const(" + name + (if (typargs.isEmpty) "" else "," + typargs) + ")"
   }
   case class Free(name: String, typ: Typ = dummyT) extends Term
   {
@@ -78,6 +79,9 @@ object Term
         case _ => "App(" + fun + "," + arg + ")"
       }
   }
+
+  def dummy_pattern(ty: Typ): Term = Const("Pure.dummy_pattern", List(ty))
+  val dummy: Term = dummy_pattern(dummyT)
 
   sealed abstract class Proof
   case object MinProof extends Proof
