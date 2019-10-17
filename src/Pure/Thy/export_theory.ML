@@ -248,10 +248,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* theorems *)
 
-    val clean_thm =
-      Thm.transfer thy
-      #> Thm.check_hyps (Context.Theory thy)
-      #> Thm.strip_shyps;
+    val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
@@ -265,16 +262,16 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_thm serial raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
-        fun defined (thm_id: Proofterm.thm_id) =
-          if #serial thm_id = serial then false else is_some (lookup_thm_id thm_id);
+        val boxes =
+          raw_thm |> Thm_Deps.proof_boxes (fn thm_id =>
+            if #serial thm_id = serial then false else is_some (lookup_thm_id thm_id));
 
         val thm = clean_thm raw_thm;
         val (prop, SOME proof) =
           SOME (if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else MinProof)
           |> standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
-        val proof_boxes = Proofterm.proof_boxes defined proof;
       in
-        (prop, (deps, (proof, proof_boxes))) |>
+        (prop, (deps, (proof, boxes))) |>
           let
             open XML.Encode Term_XML.Encode;
             val encode_proof = Proofterm.encode_standard_proof consts;

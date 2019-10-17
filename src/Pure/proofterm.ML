@@ -179,9 +179,9 @@ sig
     (serial * proof_body future) list -> proof_body -> thm * proof
   val get_approximative_name: sort list -> term list -> term -> proof -> string
   type thm_id = {serial: serial, theory_name: string}
+  val make_thm_id: serial * string -> thm_id
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
-  val proof_boxes: (thm_id -> bool) -> proof -> thm_id list
 end
 
 structure Proofterm : PROOFTERM =
@@ -2285,26 +2285,6 @@ fun get_id shyps hyps prop prf : thm_id option =
     NONE => NONE
   | SOME {name = "", ...} => NONE
   | SOME {serial, theory_name, ...} => SOME (make_thm_id (serial, theory_name)));
-
-
-(* proof boxes: undefined PThm nodes *)
-
-fun proof_boxes defined proof =
-  let
-    fun boxes_of (Abst (_, _, prf)) = boxes_of prf
-      | boxes_of (AbsP (_, _, prf)) = boxes_of prf
-      | boxes_of (prf % _) = boxes_of prf
-      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
-      | boxes_of (PThm ({serial = i, theory_name = thy, ...}, thm_body)) =
-          (fn boxes =>
-            if defined (make_thm_id (i, thy)) orelse Inttab.defined boxes i then boxes
-            else
-              let
-                val prf' = thm_body_proof_raw thm_body;
-                val boxes' = Inttab.update (i, thy) boxes;
-              in boxes_of prf' boxes' end)
-      | boxes_of _ = I;
-  in Inttab.fold_rev (cons o make_thm_id) (boxes_of proof Inttab.empty) [] end;
 
 end;
 
