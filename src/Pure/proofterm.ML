@@ -2071,11 +2071,22 @@ fun standard_hidden_types term proof =
     val smashT = map_atyps smash;
   in map_proof_terms (map_types smashT) smashT proof end;
 
+fun standard_hidden_terms term proof =
+  let
+    fun add_not excl x =
+      ((is_Free x orelse is_Var x) andalso not (member (op =) excl x)) ? insert (op =) x;
+    val visible = fold_aterms (add_not []) term [];
+    val hidden = fold_proof_terms (fold_aterms (add_not visible)) proof [];
+    val dummy_term = Term.map_aterms (fn x =>
+      if member (op =) hidden x then Term.dummy_pattern (Term.fastype_of x) else x);
+  in proof |> not (null hidden) ? map_proof_terms dummy_term I end;
+
 in
 
 fun standard_vars used (term, opt_proof) =
   let
-    val proofs = the_list (Option.map (standard_hidden_types term) opt_proof);
+    val proofs = opt_proof
+      |> Option.map (standard_hidden_types term #> standard_hidden_terms term) |> the_list;
     val proof_terms = rev (fold (fold_proof_terms_types cons (cons o Logic.mk_type)) proofs []);
     val used_frees = used
       |> used_frees_term term
