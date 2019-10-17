@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/thm_deps.ML
+(*  Title:      Pure/thm_deps.ML
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Makarius
 

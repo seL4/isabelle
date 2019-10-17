@@ -310,7 +310,7 @@ ML_file "PIDE/query_operation.ML";
 ML_file "PIDE/resources.ML";
 ML_file "Thy/present.ML";
 ML_file "Thy/thy_info.ML";
-ML_file "Thy/thm_deps.ML";
+ML_file "thm_deps.ML";
 ML_file "Thy/export_theory.ML";
 ML_file "Thy/sessions.ML";
 ML_file "PIDE/session.ML";
