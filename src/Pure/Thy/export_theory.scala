@@ -48,14 +48,11 @@ object Export_Theory
             for (theory <- Export.read_theory_names(db, session))
             yield {
               progress.echo("Reading theory " + theory)
-              if (theory == Thy_Header.PURE) read_pure_theory(store, cache = Some(cache))
-              else {
-                read_theory(Export.Provider.database(db, session, theory),
-                  session, theory, types = types, consts = consts,
-                  axioms = axioms, thms = thms, classes = classes, locales = locales,
-                  locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                  typedefs = typedefs, cache = Some(cache))
-              }
+              read_theory(Export.Provider.database(db, session, theory),
+                session, theory, types = types, consts = consts,
+                axioms = axioms, thms = thms, classes = classes, locales = locales,
+                locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
+                typedefs = typedefs, cache = Some(cache))
             }
           }
         }))
@@ -130,11 +127,14 @@ object Export_Theory
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
-      provider(export_prefix + "parents") match {
-        case Some(entry) => split_lines(entry.uncompressed().text)
-        case None =>
-          error("Missing theory export in session " + quote(session_name) + ": " +
-            quote(theory_name))
+      if (theory_name == Thy_Header.PURE) Nil
+      else {
+        provider(export_prefix + "parents") match {
+          case Some(entry) => split_lines(entry.uncompressed().text)
+          case None =>
+            error("Missing theory export in session " + quote(session_name) + ": " +
+              quote(theory_name))
+        }
       }
     val theory =
       Theory(theory_name, parents,
