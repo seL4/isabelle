@@ -181,7 +181,7 @@ sig
   type thm_id = {serial: serial, theory_name: string}
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
-  val proof_boxes: proof -> thm_id list
+  val proof_boxes: (thm_id -> bool) -> proof -> thm_id list
 end
 
 structure Proofterm : PROOFTERM =
@@ -2255,7 +2255,7 @@ fun unconstrain_thm_proof thy classrel_proof arity_proof shyps concl promises bo
 end;
 
 
-(* get PThm identity *)
+(* PThm identity *)
 
 fun get_identity shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
@@ -2270,37 +2270,41 @@ fun get_approximative_name shyps hyps prop prf =
   Option.map #name (get_identity shyps hyps prop prf) |> the_default "";
 
 
+(* thm_id *)
+
 type thm_id = {serial: serial, theory_name: string};
 
+fun make_thm_id (serial, theory_name) : thm_id =
+  {serial = serial, theory_name = theory_name};
+
 fun thm_id (serial, thm_node) : thm_id =
-  {serial = serial, theory_name = thm_node_theory_name thm_node};
+  make_thm_id (serial, thm_node_theory_name thm_node);
 
 fun get_id shyps hyps prop prf : thm_id option =
   (case get_identity shyps hyps prop prf of
     NONE => NONE
   | SOME {name = "", ...} => NONE
-  | SOME {serial, theory_name, ...} => SOME {serial = serial, theory_name = theory_name});
+  | SOME {serial, theory_name, ...} => SOME (make_thm_id (serial, theory_name)));
 
 
-(* proof boxes *)
+(* proof boxes: undefined PThm nodes *)
 
-fun proof_boxes proof =
+fun proof_boxes defined proof =
   let
-    fun boxes_of (AbsP (_, _, prf)) = boxes_of prf
-      | boxes_of (Abst (_, _, prf)) = boxes_of prf
-      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
+    fun boxes_of (Abst (_, _, prf)) = boxes_of prf
+      | boxes_of (AbsP (_, _, prf)) = boxes_of prf
       | boxes_of (prf % _) = boxes_of prf
-      | boxes_of (PThm ({serial = i, name = "", theory_name, ...}, thm_body)) =
+      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
+      | boxes_of (PThm ({serial = i, theory_name = thy, ...}, thm_body)) =
           (fn boxes =>
-            if Inttab.defined boxes i then boxes
+            if defined (make_thm_id (i, thy)) orelse Inttab.defined boxes i then boxes
             else
               let
-                val prf = thm_body_proof_raw thm_body;
-                val boxes' = Inttab.update (i, theory_name) boxes;
-              in boxes_of prf boxes' end)
+                val prf' = thm_body_proof_raw thm_body;
+                val boxes' = Inttab.update (i, thy) boxes;
+              in boxes_of prf' boxes' end)
       | boxes_of _ = I;
-    val boxes = boxes_of proof Inttab.empty;
-  in Inttab.fold_rev (fn (i, thy) => cons {serial = i, theory_name = thy}) boxes [] end;
+  in Inttab.fold_rev (cons o make_thm_id) (boxes_of proof Inttab.empty) [] end;
 
 end;
 

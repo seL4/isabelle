@@ -253,6 +253,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       #> Thm.check_hyps (Context.Theory thy)
       #> Thm.strip_shyps;
 
+    val lookup_thm_id = Global_Theory.lookup_thm_id thy;
+
     fun entity_markup_thm (serial, (name, i)) =
       let
         val space = Facts.space_of (Global_Theory.facts_of thy);
@@ -260,19 +262,17 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val {pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
 
-    fun encode_thm raw_thm =
+    fun encode_thm serial raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
+        fun defined (thm_id: Proofterm.thm_id) =
+          if #serial thm_id = serial then false else is_some (lookup_thm_id thm_id);
+
         val thm = clean_thm raw_thm;
-        val thm_name = Thm.derivation_name thm;
-        val raw_proof =
-          if Proofterm.export_enabled () then
-            Thm.reconstruct_proof_of thm
-            |> thm_name <> "" ? Proofterm.expand_proof thy [(thm_name, NONE)]
-          else Proofterm.MinProof;
         val (prop, SOME proof) =
-          standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME raw_proof);
-        val proof_boxes = Proofterm.proof_boxes proof;
+          SOME (if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else MinProof)
+          |> standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
+        val proof_boxes = Proofterm.proof_boxes defined proof;
       in
         (prop, (deps, (proof, proof_boxes))) |>
           let
@@ -285,7 +285,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun buffer_export_thm (serial, thm_name) =
       let
         val markup = entity_markup_thm (serial, thm_name);
-        val body = encode_thm (Global_Theory.get_thm_name thy (thm_name, Position.none));
+        val body = encode_thm serial (Global_Theory.get_thm_name thy (thm_name, Position.none));
       in YXML.buffer (XML.Elem (markup, body)) end;
 
     val _ =
