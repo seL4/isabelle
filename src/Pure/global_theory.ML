@@ -187,6 +187,7 @@ fun get_thm_name thy ((name, i), pos) =
     | (SOME {thms, ...}, _) =>
         if i > 0 andalso i <= length thms then nth thms (i - 1)
         else Facts.err_selection (print_name (), pos) i thms)
+    |> Thm.transfer thy
   end;
 
 
