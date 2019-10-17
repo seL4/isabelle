@@ -48,17 +48,21 @@ object Export_Theory
             for (theory <- Export.read_theory_names(db, session))
             yield {
               progress.echo("Reading theory " + theory)
-              read_theory(Export.Provider.database(db, session, theory),
-                session, theory, types = types, consts = consts,
-                axioms = axioms, thms = thms, classes = classes, locales = locales,
-                locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                typedefs = typedefs, cache = Some(cache))
+              if (theory == Thy_Header.PURE) read_pure_theory(store, cache = Some(cache))
+              else {
+                read_theory(Export.Provider.database(db, session, theory),
+                  session, theory, types = types, consts = consts,
+                  axioms = axioms, thms = thms, classes = classes, locales = locales,
+                  locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
+                  typedefs = typedefs, cache = Some(cache))
+              }
             }
           }
         }))
 
     val graph0 =
-      (Graph.string[Option[Theory]] /: thys) { case (g, thy) => g.new_node(thy.name, Some(thy)) }
+      (Graph.string[Option[Theory]] /: thys) {
+        case (g, thy) => g.default_node(thy.name, Some(thy)) }
     val graph1 =
       (graph0 /: thys) { case (g0, thy) =>
         (g0 /: thy.parents) { case (g1, parent) =>
