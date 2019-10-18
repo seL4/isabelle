@@ -4,8 +4,9 @@ session Pure =
   description "
     The Pure logical framework.
   "
-  options [threads = 1, export_theory, export_proofs]
-  theories
+  options [threads = 1]
+  theories [export_theory, export_proofs]
     Pure (global)
+  theories
     ML_Bootstrap (global)
     Sessions
