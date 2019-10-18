@@ -167,7 +167,8 @@ object Export_Theory
   def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
     read_pure(store, read_theory(_, _, _, cache = cache))
 
-  def read_pure_proof(store: Sessions.Store, id: Thm_Id, cache: Option[Term.Cache] = None): Proof =
+  def read_pure_proof(
+      store: Sessions.Store, id: Thm_Id, cache: Option[Term.Cache] = None): Option[Proof] =
     read_pure(store, (provider, _, _) => read_proof(provider, id, cache = cache))
 
 
@@ -398,23 +399,25 @@ object Export_Theory
         cache.proof(proof))
   }
 
-  def read_proof(provider: Export.Provider, id: Thm_Id, cache: Option[Term.Cache] = None): Proof =
+  def read_proof(
+    provider: Export.Provider, id: Thm_Id, cache: Option[Term.Cache] = None): Option[Proof] =
   {
-    val body = provider.focus(id.theory_name).uncompressed_yxml(export_prefix_proofs + id.serial)
-    if (body.isEmpty) error("Bad proof export " + id.serial)
+    for { entry <- provider.focus(id.theory_name)(export_prefix_proofs + id.serial) }
+    yield {
+      val body = entry.uncompressed_yxml()
+      val (typargs, (args, (prop_body, proof_body))) =
+      {
+        import XML.Decode._
+        import Term_XML.Decode._
+        pair(list(pair(string, sort)), pair(list(pair(string, typ)), pair(x => x, x => x)))(body)
+      }
+      val env = args.toMap
+      val prop = Term_XML.Decode.term_env(env)(prop_body)
+      val proof = Term_XML.Decode.proof_env(env)(proof_body)
 
-    val (typargs, (args, (prop_body, proof_body))) =
-    {
-      import XML.Decode._
-      import Term_XML.Decode._
-      pair(list(pair(string, sort)), pair(list(pair(string, typ)), pair(x => x, x => x)))(body)
+      val result = Proof(typargs, args, prop, proof)
+      cache.map(result.cache(_)) getOrElse result
     }
-    val env = args.toMap
-    val prop = Term_XML.Decode.term_env(env)(prop_body)
-    val proof = Term_XML.Decode.proof_env(env)(proof_body)
-
-    val result = Proof(typargs, args, prop, proof)
-    cache.map(result.cache(_)) getOrElse result
   }
 
 
