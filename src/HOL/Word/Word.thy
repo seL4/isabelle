@@ -286,6 +286,12 @@ instance
 
 end
 
+quickcheck_generator word
+  constructors:
+    "zero_class.zero :: ('a::len) word",
+    "numeral :: num \<Rightarrow> ('a::len) word",
+    "uminus :: ('a::len) word \<Rightarrow> ('a::len) word"
+
 text \<open>Legacy theorems:\<close>
 
 lemma word_arith_wis [code]:

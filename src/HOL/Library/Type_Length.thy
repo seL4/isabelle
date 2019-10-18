@@ -70,4 +70,37 @@ instance bit0 :: (len) len
 instance bit1 :: (len0) len
   by standard simp
 
+instantiation Enum.finite_1 :: len
+begin
+
+definition
+  "len_of_finite_1 (x :: Enum.finite_1 itself) \<equiv> (1 :: nat)"
+
+instance
+  by standard (auto simp: len_of_finite_1_def)
+
+end
+
+instantiation Enum.finite_2 :: len
+begin
+
+definition
+  "len_of_finite_2 (x :: Enum.finite_2 itself) \<equiv> (2 :: nat)"
+
+instance
+  by standard (auto simp: len_of_finite_2_def)
+
+end
+
+instantiation Enum.finite_3 :: len
+begin
+
+definition
+  "len_of_finite_3 (x :: Enum.finite_3 itself) \<equiv> (4 :: nat)"
+
+instance
+  by standard (auto simp: len_of_finite_3_def)
+
+end
+
 end
