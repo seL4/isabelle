@@ -1279,6 +1279,21 @@ lemma word_less_nat_alt: "a < b \<longleftrightarrow> unat a < unat b"
   unfolding unat_def word_less_alt
   by (rule nat_less_eq_zless [symmetric]) simp
 
+lemmas unat_mono = word_less_nat_alt [THEN iffD1]
+
+instance word :: (len) wellorder
+proof
+  fix P :: "'a word \<Rightarrow> bool" and a
+  assume *: "(\<And>b. (\<And>a. a < b \<Longrightarrow> P a) \<Longrightarrow> P b)"
+  have "wf (measure unat)" ..
+  moreover have "{(a, b :: ('a::len) word). a < b} \<subseteq> measure unat"
+    by (auto simp add: word_less_nat_alt)
+  ultimately have "wf {(a, b :: ('a::len) word). a < b}"
+    by (rule wf_subset)
+  then show "P a" using *
+    by induction blast
+qed
+
 lemma wi_less:
   "(word_of_int n < (word_of_int m :: 'a::len0 word)) =
     (n mod 2 ^ LENGTH('a) < m mod 2 ^ LENGTH('a))"
@@ -1304,8 +1319,6 @@ lemma udvd_nat_alt: "a udvd b \<longleftrightarrow> (\<exists>n\<ge>0. unat b = 
 
 lemma udvd_iff_dvd: "x udvd y \<longleftrightarrow> unat x dvd unat y"
   unfolding dvd_def udvd_nat_alt by force
-
-lemmas unat_mono = word_less_nat_alt [THEN iffD1]
 
 lemma unat_minus_one:
   assumes "w \<noteq> 0"
