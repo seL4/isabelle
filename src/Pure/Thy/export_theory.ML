@@ -259,12 +259,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val {pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
 
-    fun encode_thm serial raw_thm =
+    fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
-        val boxes =
-          raw_thm |> Thm_Deps.proof_boxes (fn thm_id =>
-            if #serial thm_id = serial then false else is_some (lookup_thm_id thm_id));
+        val dep_boxes =
+          raw_thm |> Thm_Deps.proof_boxes (fn thm_id' =>
+            if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
+        val boxes = dep_boxes @ [thm_id];
 
         val thm = clean_thm raw_thm;
         val (prop, SOME proof) =
@@ -279,10 +280,10 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           in pair encode_prop (pair (list string) (pair (list encode_box) encode_proof)) end
       end;
 
-    fun buffer_export_thm (serial, thm_name) =
+    fun buffer_export_thm (thm_id, thm_name) =
       let
-        val markup = entity_markup_thm (serial, thm_name);
-        val body = encode_thm serial (Global_Theory.get_thm_name thy (thm_name, Position.none));
+        val markup = entity_markup_thm (#serial thm_id, thm_name);
+        val body = encode_thm thm_id (Global_Theory.get_thm_name thy (thm_name, Position.none));
       in YXML.buffer (XML.Elem (markup, body)) end;
 
     val _ =
