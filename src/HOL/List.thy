@@ -2698,6 +2698,42 @@ proof -
   with xs ys show ?thesis ..
 qed
 
+lemma semilattice_map2:
+  "semilattice (map2 (\<^bold>*))" if "semilattice (\<^bold>*)"
+    for f (infixl "\<^bold>*" 70)
+proof -
+  from that interpret semilattice f .
+  show ?thesis
+  proof
+    show "map2 (\<^bold>*) (map2 (\<^bold>*) xs ys) zs = map2 (\<^bold>*) xs (map2 (\<^bold>*) ys zs)"
+      for xs ys zs :: "'a list"
+    proof (induction "zip xs (zip ys zs)" arbitrary: xs ys zs)
+      case Nil
+      from Nil [symmetric] show ?case
+        by (auto simp add: zip_eq_Nil_iff)
+    next
+      case (Cons xyz xyzs)
+      from Cons.hyps(2) [symmetric] show ?case
+        by (rule zip_eq_ConsE) (erule zip_eq_ConsE,
+          auto intro: Cons.hyps(1) simp add: ac_simps)
+    qed
+    show "map2 (\<^bold>*) xs ys = map2 (\<^bold>*) ys xs"
+      for xs ys :: "'a list"
+    proof (induction "zip xs ys" arbitrary: xs ys)
+      case Nil
+      then show ?case
+        by (auto simp add: zip_eq_Nil_iff dest: sym)
+    next
+      case (Cons xy xys)
+      from Cons.hyps(2) [symmetric] show ?case
+        by (rule zip_eq_ConsE) (auto intro: Cons.hyps(1) simp add: ac_simps)
+    qed
+    show "map2 (\<^bold>*) xs xs = xs"
+      for xs :: "'a list"
+      by (induction xs) simp_all
+  qed
+qed
+
 lemma pair_list_eqI:
   assumes "map fst xs = map fst ys" and "map snd xs = map snd ys"
   shows "xs = ys"

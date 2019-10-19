@@ -448,6 +448,38 @@ proof -
   finally show ?thesis .
 qed
 
+lemma numeral_Bit0_div_2:
+  "numeral (num.Bit0 n) div 2 = numeral n"
+proof -
+  have "numeral (num.Bit0 n) = numeral n + numeral n"
+    by (simp only: numeral.simps)
+  also have "\<dots> = numeral n * 2"
+    by (simp add: mult_2_right)
+  finally have "numeral (num.Bit0 n) div 2 = numeral n * 2 div 2"
+    by simp
+  also have "\<dots> = numeral n"
+    by (rule nonzero_mult_div_cancel_right) simp
+  finally show ?thesis .
+qed
+
+lemma numeral_Bit1_div_2:
+  "numeral (num.Bit1 n) div 2 = numeral n"
+proof -
+  have "numeral (num.Bit1 n) = numeral n + numeral n + 1"
+    by (simp only: numeral.simps)
+  also have "\<dots> = numeral n * 2 + 1"
+    by (simp add: mult_2_right)
+  finally have "numeral (num.Bit1 n) div 2 = (numeral n * 2 + 1) div 2"
+    by simp
+  also have "\<dots> = numeral n * 2 div 2 + 1 div 2"
+    using dvd_triv_right by (rule div_plus_div_distrib_dvd_left)
+  also have "\<dots> = numeral n * 2 div 2"
+    by simp
+  also have "\<dots> = numeral n"
+    by (rule nonzero_mult_div_cancel_right) simp
+  finally show ?thesis .
+qed
+
 end
 
 class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
@@ -1060,5 +1092,9 @@ lemma take_bit_of_Suc_0 [simp]:
 lemma drop_bit_of_Suc_0 [simp]:
   "drop_bit n (Suc 0) = of_bool (n = 0)"
   using drop_bit_of_1 [where ?'a = nat] by simp
+
+lemma push_bit_minus_one:
+  "push_bit n (- 1 :: int) = - (2 ^ n)"
+  by (simp add: push_bit_eq_mult)
 
 end
