@@ -136,7 +136,7 @@ sig
   val equal_intr_proof: term -> term -> proof -> proof -> proof
   val equal_elim_proof: term -> term -> proof -> proof -> proof
   val abstract_rule_proof: string * term -> proof -> proof
-  val combination_proof: typ -> term -> term -> term -> term -> proof -> proof -> proof
+  val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
@@ -1313,7 +1313,7 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
   | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
   | check_comb _ = false;
 
-fun combination_proof A f g t u prf1 prf2 =
+fun combination_proof f g t u prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
