@@ -132,6 +132,12 @@ end
 instance word :: (len) comm_ring_1
   by standard (transfer; simp)+
 
+quickcheck_generator word
+  constructors:
+    "zero_class.zero :: ('a::len0) word",
+    "numeral :: num \<Rightarrow> ('a::len0) word",
+    "uminus :: ('a::len0) word \<Rightarrow> ('a::len0) word"
+
 
 subsubsection \<open>Conversions\<close>
 
@@ -177,6 +183,20 @@ begin
 lemma word_eq_iff_unsigned:
   "a = b \<longleftrightarrow> unsigned a = unsigned b"
   by safe (transfer; simp add: eq_nat_nat_iff)
+
+end
+
+instantiation word :: (len0) equal
+begin
+
+definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
+  where "equal_word a b \<longleftrightarrow> (unsigned a :: int) = unsigned b"
+
+instance proof
+  fix a b :: "'a word"
+  show "HOL.equal a b \<longleftrightarrow> a = b"
+    using word_eq_iff_unsigned [of a b] by (auto simp add: equal_word_def)
+qed
 
 end
 
