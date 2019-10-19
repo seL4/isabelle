@@ -69,14 +69,11 @@ fun session_timing name verbose f x =
 
 (* protocol messages *)
 
-fun inline_message a args =
-  writeln ("\f" ^ a ^ " = " ^ YXML.string_of_body (XML.Encode.properties args));
-
 fun protocol_message props output =
   (case props of
     function :: args =>
       if function = Markup.ML_statistics orelse function = Markup.task_statistics then
-        inline_message (#2 function) args
+        Protocol_Message.inline (#2 function) args
       else if function = Markup.command_timing then
         let
           val name = the_default "" (Properties.get args Markup.nameN);
@@ -88,23 +85,17 @@ fun protocol_message props output =
         in
           if is_significant then
             (case approximative_id name pos of
-              SOME id => inline_message (#2 function) (Markup.command_timing_properties id elapsed)
+              SOME id =>
+                Protocol_Message.inline (#2 function) (Markup.command_timing_properties id elapsed)
             | NONE => ())
           else ()
         end
       else if function = Markup.theory_timing then
-        inline_message (#2 function) args
-      else if function = (Markup.functionN, Markup.exportN) andalso
-        not (null args) andalso #1 (hd args) = Markup.idN
-      then
-        let
-          val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
-          val _ = File.write_list path output;
-        in inline_message (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
+        Protocol_Message.inline (#2 function) args
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)
-        | NONE => raise Output.Protocol_Message props)
+        | NONE => Export.protocol_message props output)
   | [] => raise Output.Protocol_Message props);
 
 
@@ -240,6 +231,7 @@ fun build args_file =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
       handle exn => (List.app error_message (Runtime.exn_message_list exn); Exn.reraise exn);
+    val _ = Private_Output.protocol_message_fn := Output.protocol_message_undefined;
     val _ = Options.reset_default ();
   in () end;
 
