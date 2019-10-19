@@ -1684,6 +1684,15 @@ lemma minus_mod_eq_div_mult: "a - a mod b = a div b * b"
 lemma minus_mod_eq_mult_div: "a - a mod b = b * (a div b)"
   by (rule add_implies_diff [symmetric]) (fact mult_div_mod_eq)
 
+lemma mod_0_imp_dvd [dest!]:
+  "b dvd a" if "a mod b = 0"
+proof -
+  have "b dvd (a div b) * b" by simp
+  also have "(a div b) * b = a"
+    using div_mult_mod_eq [of a b] by (simp add: that)
+  finally show ?thesis .
+qed
+
 lemma [nitpick_unfold]:
   "a mod b = a - a div b * b"
   by (fact minus_div_mult_eq_mod [symmetric])
@@ -1717,15 +1726,6 @@ lemma mod_self [simp]:
 lemma dvd_imp_mod_0 [simp]:
   "b mod a = 0" if "a dvd b"
   using that minus_div_mult_eq_mod [of b a] by simp
-
-lemma mod_0_imp_dvd [dest!]: 
-  "b dvd a" if "a mod b = 0"
-proof -
-  have "b dvd (a div b) * b" by simp
-  also have "(a div b) * b = a"
-    using div_mult_mod_eq [of a b] by (simp add: that)
-  finally show ?thesis .
-qed
 
 lemma mod_eq_0_iff_dvd:
   "a mod b = 0 \<longleftrightarrow> b dvd a"
