@@ -262,15 +262,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
+        val thm = Thm.unconstrainT (clean_thm raw_thm);
         val dep_boxes =
-          raw_thm |> Thm_Deps.proof_boxes (fn thm_id' =>
+          thm |> Thm_Deps.proof_boxes (fn thm_id' =>
             if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
         val boxes = dep_boxes @ [thm_id];
-
-        val thm = clean_thm raw_thm;
         val (prop, SOME proof) =
           SOME (if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else MinProof)
           |> standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
+        val _ = Proofterm.commit_proof proof;
       in
         (prop, (deps, (boxes, proof))) |>
           let
