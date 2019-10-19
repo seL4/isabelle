@@ -1377,7 +1377,7 @@ fun combination th1 th2 =
       (Const ("Pure.eq", Type ("fun", [fT, _])) $ f $ g,
        Const ("Pure.eq", Type ("fun", [tT, _])) $ t $ u) =>
         (chktypes fT tT;
-          Thm (deriv_rule2 (Proofterm.combination_proof (domain_type fT) f g t u) der1 der2,
+          Thm (deriv_rule2 (Proofterm.combination_proof f g t u) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),

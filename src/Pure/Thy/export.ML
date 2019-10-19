@@ -16,6 +16,7 @@ sig
   val export_executable_file: theory -> Path.binding -> Path.T -> unit
   val markup: theory -> Path.T -> Markup.T
   val message: theory -> Path.T -> string
+  val protocol_message: Properties.T -> string list -> unit
 end;
 
 structure Export: EXPORT =
@@ -66,5 +67,25 @@ fun markup thy path =
 
 fun message thy path =
   "See " ^ Markup.markup (markup thy path) "theory exports";
+
+
+(* protocol message (bootstrap) *)
+
+fun protocol_message props output =
+  (case props of
+    function :: args =>
+      if function = (Markup.functionN, Markup.exportN) andalso
+        not (null args) andalso #1 (hd args) = Markup.idN
+      then
+        let
+          val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
+          val _ = File.write_list path output;
+        in Protocol_Message.inline (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
+      else raise Output.Protocol_Message props
+  | [] => raise Output.Protocol_Message props);
+
+val _ =
+  if Thread_Data.is_virtual then ()
+  else Private_Output.protocol_message_fn := protocol_message;
 
 end;

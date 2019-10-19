@@ -6,12 +6,17 @@ Auxiliary operations on protocol messages.
 
 signature PROTOCOL_MESSAGE =
 sig
+  val inline: string -> Properties.T -> unit
   val command_positions: string -> XML.body -> XML.body
   val command_positions_yxml: string -> string -> string
 end;
 
 structure Protocol_Message: PROTOCOL_MESSAGE =
 struct
+
+fun inline a args =
+  writeln ("\f" ^ a ^ " = " ^ YXML.string_of_body (XML.Encode.properties args));
+
 
 fun command_positions id =
   let

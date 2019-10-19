@@ -136,7 +136,7 @@ sig
   val equal_intr_proof: term -> term -> proof -> proof -> proof
   val equal_elim_proof: term -> term -> proof -> proof -> proof
   val abstract_rule_proof: string * term -> proof -> proof
-  val combination_proof: typ -> term -> term -> term -> term -> proof -> proof -> proof
+  val combination_proof: term -> term -> term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
   val of_sort_proof: Sorts.algebra ->
@@ -171,6 +171,7 @@ sig
 
   val export_enabled: unit -> bool
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
+  val commit_proof: proof -> unit
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
     term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof
@@ -1313,7 +1314,7 @@ fun check_comb (PAxm ("Pure.combination", _, _) % f % _ % _ % _ %% prf %% _) =
   | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
   | check_comb _ = false;
 
-fun combination_proof A f g t u prf1 prf2 =
+fun combination_proof f g t u prf1 prf2 =
   let
     val f = Envir.beta_norm f;
     val g = Envir.beta_norm g;
@@ -2117,6 +2118,24 @@ end;
 
 fun export_enabled () = Options.default_bool "export_proofs";
 
+fun commit_proof proof =
+  let
+    fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
+      | export_boxes (Abst (_, _, prf)) = export_boxes prf
+      | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
+      | export_boxes (prf % _) = export_boxes prf
+      | export_boxes (PThm ({serial = i, name = "", ...}, thm_body)) =
+          (fn boxes =>
+            if Inttab.defined boxes i then boxes
+            else
+              let
+                val prf = thm_body_proof_raw thm_body;
+                val boxes' = Inttab.update (i, thm_body_export_proof thm_body) boxes;
+              in export_boxes prf boxes' end)
+      | export_boxes _ = I;
+    val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
+  in List.app (Lazy.force o #2) boxes end;
+
 local
 
 fun unconstrainT_proof algebra classrel_proof arity_proof (ucontext: Logic.unconstrain_context) =
@@ -2162,28 +2181,10 @@ fun export_proof thy i prop prf0 =
       strict = false}
   end;
 
-fun force_export_boxes proof =
-  let
-    fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
-      | export_boxes (Abst (_, _, prf)) = export_boxes prf
-      | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
-      | export_boxes (prf % _) = export_boxes prf
-      | export_boxes (PThm ({serial = i, name = "", ...}, thm_body)) =
-          (fn boxes =>
-            if Inttab.defined boxes i then boxes
-            else
-              let
-                val prf = thm_body_proof_raw thm_body;
-                val boxes' = Inttab.update (i, thm_body_export_proof thm_body) boxes;
-              in export_boxes prf boxes' end)
-      | export_boxes _ = I;
-    val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
-  in List.app (Lazy.force o #2) boxes end;
-
 fun export thy i prop prf =
   if export_enabled () then
     let
-      val _ = force_export_boxes prf;
+      val _ = commit_proof prf;
       val _ = export_proof thy i prop prf;
     in () end
   else ();

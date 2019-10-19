@@ -29,6 +29,7 @@ sig
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
   exception Protocol_Message of Properties.T
+  val protocol_message_undefined: Properties.T -> string list -> unit
   val writelns: string list -> unit
   val state: string -> unit
   val information: string -> unit
@@ -120,6 +121,9 @@ fun physical_writeln "" = ()
 
 exception Protocol_Message of Properties.T;
 
+fun protocol_message_undefined props (_: string list) =
+  raise Protocol_Message props;
+
 fun init_channels () =
  (writeln_fn := (physical_writeln o implode);
   state_fn := (fn ss => ! writeln_fn ss);
@@ -132,7 +136,7 @@ fun init_channels () =
   status_fn := Output_Primitives.ignore_outputs;
   report_fn := Output_Primitives.ignore_outputs;
   result_fn := (fn _ => Output_Primitives.ignore_outputs);
-  protocol_message_fn := (fn props => fn _ => raise Protocol_Message props));
+  protocol_message_fn := protocol_message_undefined);
 
 val _ = if Thread_Data.is_virtual then () else init_channels ();
 

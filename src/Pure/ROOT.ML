@@ -90,6 +90,7 @@ ML_file "General/sha1.ML";
 
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/yxml.ML";
+ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document_id.ML";
 
 ML_file "General/change_table.ML";
@@ -314,7 +315,6 @@ ML_file "thm_deps.ML";
 ML_file "Thy/export_theory.ML";
 ML_file "Thy/sessions.ML";
 ML_file "PIDE/session.ML";
-ML_file "PIDE/protocol_message.ML";
 ML_file "PIDE/document.ML";
 
 (*theory and proof operations*)
