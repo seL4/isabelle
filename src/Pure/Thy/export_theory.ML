@@ -278,7 +278,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
-        val thm = Thm.unconstrainT (clean_thm raw_thm);
+        val thm = clean_thm (Thm.unconstrainT raw_thm);
         val boxes = proof_boxes_of thm thm_id;
 
         val proof0 =
