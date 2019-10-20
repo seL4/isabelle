@@ -114,7 +114,7 @@ sig
   val untag: string -> attribute
   val kind: string -> attribute
   val reconstruct_proof_of: thm -> Proofterm.proof
-  val standard_proof_of: bool -> thm -> Proofterm.proof
+  val standard_proof_of: {full: bool, expand: string list} -> thm -> Proofterm.proof
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
   val show_consts: bool Config.T
@@ -656,10 +656,10 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 fun reconstruct_proof_of thm =
   Proofterm.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
-fun standard_proof_of full thm =
+fun standard_proof_of {full, expand} thm =
   let val thy = Thm.theory_of_thm thm in
     reconstruct_proof_of thm
-    |> Proofterm.expand_proof thy [("", NONE), (Thm.raw_derivation_name thm, NONE)]
+    |> Proofterm.expand_proof thy (map (rpair NONE) ("" :: expand))
     |> Proofterm.rew_proof thy
     |> Proofterm.no_thm_proofs
     |> not full ? Proofterm.shrink_proof

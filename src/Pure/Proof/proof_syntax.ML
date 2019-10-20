@@ -196,6 +196,7 @@ fun pretty_proof ctxt prf =
     (Proofterm.term_of_proof prf);
 
 fun pretty_standard_proof_of ctxt full thm =
-  pretty_proof ctxt (Thm.standard_proof_of full thm);
+  pretty_proof ctxt
+    (Thm.standard_proof_of {full = full, expand = [Thm.raw_derivation_name thm]} thm);
 
 end;

@@ -291,6 +291,9 @@ option export_document : bool = false
 option export_theory : bool = false
   -- "export theory content to Isabelle/Scala"
 
+option export_standard_proofs : bool = false
+  -- "export standardized proof terms to Isabelle/Scala (not scalable)"
+
 option export_proofs : bool = false
   -- "export proof terms to Isabelle/Scala"
 
