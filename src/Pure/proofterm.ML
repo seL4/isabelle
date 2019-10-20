@@ -56,6 +56,7 @@ sig
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
   val no_proof_body: proof -> proof_body
+  val no_thm_names: proof -> proof
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
@@ -309,6 +310,14 @@ val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body proof = PBody {oracles = [], thms = [], proof = proof};
 val no_thm_body = thm_body (no_proof_body MinProof);
+
+fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
+  | no_thm_names (AbsP (x, t, prf)) = AbsP (x, t, no_thm_names prf)
+  | no_thm_names (prf % t) = no_thm_names prf % t
+  | no_thm_names (prf1 %% prf2) = no_thm_names prf1 %% no_thm_names prf2
+  | no_thm_names (PThm ({serial, pos, theory_name, name = _, prop, types}, thm_body)) =
+      PThm (thm_header serial pos theory_name "" prop types, thm_body)
+  | no_thm_names a = a;
 
 fun no_thm_proofs (Abst (x, T, prf)) = Abst (x, T, no_thm_proofs prf)
   | no_thm_proofs (AbsP (x, t, prf)) = AbsP (x, t, no_thm_proofs prf)
@@ -2175,7 +2184,7 @@ fun export_proof thy i prop prf0 =
     val typargs = [] |> Term.add_tfrees prop' |> fold_proof_terms Term.add_tfrees prf' |> rev;
 
     val consts = Sign.consts_of thy;
-    val xml = (typargs, (args, (prop', prf'))) |>
+    val xml = (typargs, (args, (prop', no_thm_names prf'))) |>
       let
         open XML.Encode Term_XML.Encode;
         val encode_vars = list (pair string typ);
