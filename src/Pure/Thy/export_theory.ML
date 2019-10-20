@@ -255,13 +255,11 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
     fun proof_boxes_of thm thm_id =
-      if export_standard_proofs then []
-      else
-        let
-          val dep_boxes =
-            thm |> Thm_Deps.proof_boxes (fn thm_id' =>
-              if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
-        in dep_boxes @ [thm_id] end;
+      let
+        val dep_boxes =
+          thm |> Thm_Deps.proof_boxes (fn thm_id' =>
+            if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
+      in dep_boxes @ [thm_id] end;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
       if #serial header = #serial thm_id then ""
