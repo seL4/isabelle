@@ -4,7 +4,7 @@ session Pure =
   description "
     The Pure logical framework.
   "
-  options [threads = 1, export_proofs]
+  options [threads = 1, export_proofs, export_standard_proofs, prune_proofs = false]
   theories [export_theory]
     Pure (global)
   theories

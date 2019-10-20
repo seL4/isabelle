@@ -1189,7 +1189,7 @@ text %mlref \<open>
   @{index_ML Proofterm.reconstruct_proof:
   "theory -> term -> proof -> proof"} \\
   @{index_ML Proofterm.expand_proof: "theory ->
-  (string * term option) list -> proof -> proof"} \\
+  (Proofterm.thm_header -> string option) -> proof -> proof"} \\
   @{index_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
   @{index_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
   @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
@@ -1228,10 +1228,11 @@ text %mlref \<open>
   for proofs that are constructed manually, but not for those produced
   automatically by the inference kernel.
 
-  \<^descr> \<^ML>\<open>Proofterm.expand_proof\<close>~\<open>thy [thm\<^sub>1, \<dots>, thm\<^sub>n] prf\<close> expands and
-  reconstructs the proofs of all specified theorems, with the given (full)
-  proof. Theorems that are not unique specified via their name may be
-  disambiguated by giving their proposition.
+  \<^descr> \<^ML>\<open>Proofterm.expand_proof\<close>~\<open>thy expand prf\<close> reconstructs and expands
+  the proofs of nested theorems according to the given \<open>expand\<close> function: a
+  result of @{ML \<open>SOME ""\<close>} means full expansion, @{ML \<open>SOME\<close>}~\<open>name\<close> means to
+  keep the theorem node but replace its internal name, @{ML NONE} means no
+  change.
 
   \<^descr> \<^ML>\<open>Proof_Checker.thm_of_proof\<close>~\<open>thy prf\<close> turns the given (full) proof
   into a theorem, by replaying it using only primitive rules of the inference

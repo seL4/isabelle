@@ -19,11 +19,10 @@ fun name_of_thm thm =
     [name] => name
   | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
 
-fun prf_of thy raw_thm =
-  let val thm = Thm.transfer thy raw_thm in
-    Thm.reconstruct_proof_of thm
-    |> Proofterm.expand_proof (Thm.theory_of_thm thm) [("", NONE)]
-  end;
+fun prf_of thy =
+  Thm.transfer thy #>
+  Thm.reconstruct_proof_of #>
+  Proofterm.expand_proof thy Proofterm.expand_name_empty;
 
 fun subsets [] = [[]]
   | subsets (x::xs) =

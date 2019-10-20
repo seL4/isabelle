@@ -261,14 +261,14 @@ fun elim_defs thy r defs prf =
       if r then
         let
           val cnames = map (fst o dest_Const o fst) defs';
-          val thms = Proofterm.fold_proof_atoms true
-            (fn PThm ({name, prop, ...}, _) =>
+          val expand = Proofterm.fold_proof_atoms true
+            (fn PThm ({serial, name, prop, ...}, _) =>
                 if member (op =) defnames name orelse
                   not (exists_Const (member (op =) cnames o #1) prop)
                 then I
-                else cons (name, SOME prop)
-              | _ => I) [prf] [];
-        in Proofterm.expand_proof thy thms prf end
+                else Inttab.update (serial, "")
+              | _ => I) [prf] Inttab.empty;
+        in Proofterm.expand_proof thy (Inttab.lookup expand o #serial) prf end
       else prf;
   in
     rewrite_terms (Pattern.rewrite_term thy defs' [])
@@ -360,7 +360,7 @@ fun expand_of_sort_proof thy hyps (T, S) =
 
     fun reconstruct prop =
       Proofterm.reconstruct_proof thy prop #>
-      Proofterm.expand_proof thy [("", NONE)] #>
+      Proofterm.expand_proof thy Proofterm.expand_name_empty #>
       Same.commit (Proofterm.map_proof_same Same.same Same.same of_class_index);
   in
     map2 reconstruct (Logic.mk_of_sort (T, S))

@@ -108,6 +108,7 @@ sig
   val derivation_name: thm -> string
   val derivation_id: thm -> Proofterm.thm_id option
   val raw_derivation_name: thm -> string
+  val expand_name: thm -> Proofterm.thm_header -> string option
   val name_derivation: string * Position.T -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
@@ -992,6 +993,15 @@ fun derivation_closed (Thm (Deriv {body, ...}, _)) =
 (*non-deterministic, depends on unknown promises*)
 fun raw_derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
   Proofterm.get_approximative_name shyps hyps prop (Proofterm.proof_of body);
+
+fun expand_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
+  let
+    val self_id =
+      (case Proofterm.get_identity shyps hyps prop (Proofterm.proof_of body) of
+        NONE => K false
+      | SOME {serial, ...} => fn (header: Proofterm.thm_header) => serial = #serial header);
+    fun expand header = if self_id header orelse #name header = "" then SOME "" else NONE;
+  in expand end;
 
 (*deterministic name of finished proof*)
 fun derivation_name (thm as Thm (_, {shyps, hyps, prop, ...})) =

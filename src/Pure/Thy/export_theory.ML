@@ -246,11 +246,27 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         Theory.axiom_space (Theory.axioms_of thy);
 
 
-    (* theorems *)
+    (* theorems and proof terms *)
+
+    val export_standard_proofs = Options.default_bool @{system_option export_standard_proofs};
 
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
+
+    fun proof_boxes_of thm thm_id =
+      let
+        val dep_boxes =
+          thm |> Thm_Deps.proof_boxes (fn thm_id' =>
+            if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
+      in dep_boxes @ [thm_id] end;
+
+    fun expand_name thm_id (header: Proofterm.thm_header) =
+      if #serial header = #serial thm_id then ""
+      else
+        (case lookup_thm_id (Proofterm.thm_header_id header) of
+          NONE => ""
+        | SOME thm_name => Thm_Name.print thm_name);
 
     fun entity_markup_thm (serial, (name, i)) =
       let
@@ -263,13 +279,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = Thm.unconstrainT (clean_thm raw_thm);
-        val dep_boxes =
-          thm |> Thm_Deps.proof_boxes (fn thm_id' =>
-            if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
-        val boxes = dep_boxes @ [thm_id];
+        val boxes = proof_boxes_of thm thm_id;
+
+        val proof0 =
+          if export_standard_proofs then
+            Thm.standard_proof_of {full = true, expand_name = SOME o expand_name thm_id} thm
+          else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
+          else MinProof;
         val (prop, SOME proof) =
-          SOME (if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm else MinProof)
-          |> standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
+          standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
         val _ = Proofterm.commit_proof proof;
       in
         (prop, (deps, (boxes, proof))) |>
@@ -283,7 +301,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun buffer_export_thm (thm_id, thm_name) =
       let
         val markup = entity_markup_thm (#serial thm_id, thm_name);
-        val body = encode_thm thm_id (Global_Theory.get_thm_name thy (thm_name, Position.none));
+        val thm = Global_Theory.get_thm_name thy (thm_name, Position.none);
+        val body = encode_thm thm_id thm;
       in YXML.buffer (XML.Elem (markup, body)) end;
 
     val _ =

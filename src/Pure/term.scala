@@ -94,8 +94,7 @@ object Term
   case class PAxm(name: String, types: List[Typ]) extends Proof
   case class OfClass(typ: Typ, cls: Class) extends Proof
   case class Oracle(name: String, prop: Term, types: List[Typ]) extends Proof
-  case class PThm(serial: Long, theory_name: String, approximative_name: String, types: List[Typ])
-    extends Proof
+  case class PThm(serial: Long, theory_name: String, name: String, types: List[Typ]) extends Proof
 
 
   /* type classes within the logic */
