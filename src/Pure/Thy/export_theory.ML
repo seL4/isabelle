@@ -263,6 +263,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
               if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
         in dep_boxes @ [thm_id] end;
 
+    fun expand_name thm_id (header: Proofterm.thm_header) =
+      if #serial header = #serial thm_id then ""
+      else
+        (case lookup_thm_id (Proofterm.thm_header_id header) of
+          NONE => ""
+        | SOME thm_name => Thm_Name.print thm_name);
+
     fun entity_markup_thm (serial, (name, i)) =
       let
         val space = Facts.space_of (Global_Theory.facts_of thy);
@@ -270,15 +277,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val {pos, ...} = Name_Space.the_entry space name;
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
 
-    fun encode_thm (thm_id, thm_name) raw_thm =
+    fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = Thm.unconstrainT (clean_thm raw_thm);
         val boxes = proof_boxes_of thm thm_id;
 
         val proof0 =
-          if export_standard_proofs
-          then Thm.standard_proof_of {full = true, expand = [Thm_Name.flatten thm_name]} thm
+          if export_standard_proofs then
+            Thm.standard_proof_of {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
         val (prop, SOME proof) =
@@ -297,7 +304,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val markup = entity_markup_thm (#serial thm_id, thm_name);
         val thm = Global_Theory.get_thm_name thy (thm_name, Position.none);
-        val body = encode_thm (thm_id, thm_name) thm;
+        val body = encode_thm thm_id thm;
       in YXML.buffer (XML.Elem (markup, body)) end;
 
     val _ =

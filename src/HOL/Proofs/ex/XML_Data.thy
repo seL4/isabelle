@@ -15,7 +15,7 @@ ML \<open>
   fun export_proof thy thm =
     Proofterm.encode (Sign.consts_of thy)
       (Proofterm.reconstruct_proof thy (Thm.prop_of thm)
-        (Thm.standard_proof_of {full = true, expand = [Thm.raw_derivation_name thm]} thm));
+        (Thm.standard_proof_of {full = true, expand_name = Thm.expand_name thm} thm));
 
   fun import_proof thy xml =
     let

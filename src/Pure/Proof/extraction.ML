@@ -504,9 +504,11 @@ fun extract thm_vss thy =
     val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc [];
+    fun expand_name ({name, ...}: Proofterm.thm_header) =
+      if name = "" orelse member (op =) expand name then SOME "" else NONE;
     val prep = the_default (K I) prep thy' o
       Proof_Rewrite_Rules.elim_defs thy' false (map (Thm.transfer thy) defs) o
-      Proofterm.expand_proof thy' (map (rpair NONE) ("" :: expand));
+      Proofterm.expand_proof thy' expand_name;
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
     fun find_inst prop Ts ts vs =

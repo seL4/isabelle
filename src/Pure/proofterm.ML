@@ -162,7 +162,8 @@ sig
   val reconstruct_proof: theory -> term -> proof -> proof
   val prop_of': term list -> proof -> term
   val prop_of: proof -> term
-  val expand_proof: theory -> (string * term option) list -> proof -> proof
+  val expand_name_empty: thm_header -> string option
+  val expand_proof: theory -> (thm_header -> string option) -> proof -> proof
 
   val standard_vars: Name.context -> term * proof option -> term * proof option
   val standard_vars_term: Name.context -> term -> term
@@ -178,9 +179,12 @@ sig
   val unconstrain_thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> thm * proof
+  val get_identity: sort list -> term list -> term -> proof ->
+    {serial: serial, theory_name: string, name: string} option
   val get_approximative_name: sort list -> term list -> term -> proof -> string
   type thm_id = {serial: serial, theory_name: string}
   val make_thm_id: serial * string -> thm_id
+  val thm_header_id: thm_header -> thm_id
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
 end
@@ -1935,11 +1939,10 @@ val prop_of = prop_of' [];
 
 (* expand and reconstruct subproofs *)
 
-fun expand_proof thy thms prf =
-  let
-    fun do_expand a prop =
-      exists (fn (b, NONE) => a = b | (b, SOME prop') => a = b andalso prop = prop') thms;
+fun expand_name_empty (header: thm_header) = if #name header = "" then SOME "" else NONE;
 
+fun expand_proof thy expand_name prf =
+  let
     fun expand seen maxidx (AbsP (s, t, prf)) =
           let val (seen', maxidx', prf') = expand seen maxidx prf
           in (seen', maxidx', AbsP (s, t, prf')) end
@@ -1954,28 +1957,36 @@ fun expand_proof thy thms prf =
       | expand seen maxidx (prf % t) =
           let val (seen', maxidx', prf') = expand seen maxidx prf
           in (seen', maxidx', prf' % t) end
-      | expand seen maxidx (prf as PThm ({name = a, prop, types = SOME Ts, ...}, thm_body)) =
-          if do_expand a prop then
-            let
-              val (seen', maxidx', prf') =
-                (case AList.lookup (op =) seen (a, prop) of
-                  NONE =>
-                    let
-                      val prf1 =
-                        thm_body_proof_open thm_body
-                        |> reconstruct_proof thy prop
-                        |> forall_intr_vfs_prf prop;
-                      val (seen1, maxidx1, prf2) = expand_init seen prf1
-                      val seen2 = ((a, prop), (maxidx1, prf2)) :: seen1;
-                    in (seen2, maxidx1, prf2) end
-                | SOME (maxidx1, prf1) => (seen, maxidx1, prf1));
-              val prf'' = prf' |> incr_indexes (maxidx + 1) |> app_types (maxidx + 1) prop Ts;
-            in (seen', maxidx' + maxidx + 1, prf'') end
-          else (seen, maxidx, prf)
+      | expand seen maxidx (prf as PThm (header, thm_body)) =
+          let val {serial, pos, theory_name, name, prop, types} = header in
+            (case expand_name header of
+              SOME name' =>
+                if name' = "" andalso is_some types then
+                  let
+                    val (seen', maxidx', prf') =
+                      (case Inttab.lookup seen serial of
+                        NONE =>
+                          let
+                            val prf1 =
+                              thm_body_proof_open thm_body
+                              |> reconstruct_proof thy prop
+                              |> forall_intr_vfs_prf prop;
+                            val (seen1, maxidx1, prf2) = expand_init seen prf1
+                            val seen2 = seen1 |> Inttab.update (serial, (maxidx1, prf2));
+                          in (seen2, maxidx1, prf2) end
+                      | SOME (maxidx1, prf1) => (seen, maxidx1, prf1));
+                    val prf'' = prf'
+                      |> incr_indexes (maxidx + 1) |> app_types (maxidx + 1) prop (the types);
+                  in (seen', maxidx' + maxidx + 1, prf'') end
+                else if name' <> name then
+                  (seen, maxidx, PThm (thm_header serial pos theory_name name' prop types, thm_body))
+                else (seen, maxidx, prf)
+            | NONE => (seen, maxidx, prf))
+          end
       | expand seen maxidx prf = (seen, maxidx, prf)
     and expand_init seen prf = expand seen (maxidx_proof prf ~1) prf;
 
-  in #3 (expand_init [] prf) end;
+  in #3 (expand_init Inttab.empty prf) end;
 
 end;
 
@@ -2288,6 +2299,9 @@ type thm_id = {serial: serial, theory_name: string};
 
 fun make_thm_id (serial, theory_name) : thm_id =
   {serial = serial, theory_name = theory_name};
+
+fun thm_header_id ({serial, theory_name, ...}: thm_header) =
+  make_thm_id (serial, theory_name);
 
 fun thm_id (serial, thm_node) : thm_id =
   make_thm_id (serial, thm_node_theory_name thm_node);
