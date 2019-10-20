@@ -184,6 +184,9 @@ object Export_Theory
     val CLASS = Value("class")
     val LOCALE = Value("locale")
     val LOCALE_DEPENDENCY = Value("locale_dependency")
+    val DOCUMENT_HEADING = Value("document_heading")
+    val DOCUMENT_TEXT = Value("document_text")
+    val PROOF_TEXT = Value("proof_text")
   }
 
   sealed case class Entity(
