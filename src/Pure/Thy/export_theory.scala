@@ -37,6 +37,7 @@ object Export_Theory
     locale_dependencies: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
+    constdefs: Boolean = true,
     typedefs: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
@@ -52,7 +53,7 @@ object Export_Theory
                 session, theory, types = types, consts = consts,
                 axioms = axioms, thms = thms, classes = classes, locales = locales,
                 locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                typedefs = typedefs, cache = Some(cache))
+                constdefs = constdefs, typedefs = typedefs, cache = Some(cache))
             }
           }
         }))
@@ -85,6 +86,7 @@ object Export_Theory
     locale_dependencies: List[Locale_Dependency],
     classrel: List[Classrel],
     arities: List[Arity],
+    constdefs: List[Constdef],
     typedefs: List[Typedef])
   {
     override def toString: String = name
@@ -110,6 +112,7 @@ object Export_Theory
         locale_dependencies.map(_.cache(cache)),
         classrel.map(_.cache(cache)),
         arities.map(_.cache(cache)),
+        constdefs.map(_.cache(cache)),
         typedefs.map(_.cache(cache)))
   }
 
@@ -123,6 +126,7 @@ object Export_Theory
     locale_dependencies: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
+    constdefs: Boolean = true,
     typedefs: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
@@ -147,6 +151,7 @@ object Export_Theory
         if (locale_dependencies) read_locale_dependencies(provider) else Nil,
         if (classrel) read_classrel(provider) else Nil,
         if (arities) read_arities(provider) else Nil,
+        if (constdefs) read_constdefs(provider) else Nil,
         if (typedefs) read_typedefs(provider) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
@@ -552,6 +557,26 @@ object Export_Theory
       list(pair(decode_prop, triple(string, list(sort), string)))(body)
     }
     for ((prop, (a, b, c)) <- arities) yield Arity(a, b, c, prop)
+  }
+
+
+  /* Pure constdefs */
+
+  sealed case class Constdef(name: String, axiom_name: String)
+  {
+    def cache(cache: Term.Cache): Constdef =
+      Constdef(cache.string(name), cache.string(axiom_name))
+  }
+
+  def read_constdefs(provider: Export.Provider): List[Constdef] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "constdefs")
+    val constdefs =
+    {
+      import XML.Decode._
+      list(pair(string, string))(body)
+    }
+    for ((name, axiom_name) <- constdefs) yield Constdef(name, axiom_name)
   }
 
 

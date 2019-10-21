@@ -31,6 +31,7 @@ sig
   val dest: T ->
    {restricts: (entry * string) list,
     reducts: (entry * entry list) list}
+  val dest_constdefs: T list -> T -> (string * string) list
   val empty: T
   val merge: context -> T * T -> T
   val define: context -> bool -> string option -> string -> entry -> entry list -> T -> T
@@ -139,6 +140,19 @@ fun dest (Defs defs) =
     val reducts = Itemtab.fold (fn (c, {reducts, ...}) =>
       fold (fn (args, deps) => cons ((c, args), deps)) reducts) defs [];
   in {restricts = restricts, reducts = reducts} end;
+
+fun dest_constdefs prevs (Defs defs) =
+  let
+    fun prev_spec c i = prevs |> exists (fn Defs prev_defs =>
+      (case Itemtab.lookup prev_defs c of
+        NONE => false
+      | SOME {specs, ...} => Inttab.defined specs i));
+  in
+    (defs, []) |-> Itemtab.fold (fn (c, {specs, ...}) =>
+      specs |> Inttab.fold (fn (i, spec) =>
+        if #1 c = Const andalso is_some (#def spec) andalso not (prev_spec c i)
+        then cons (#2 c, the (#def spec)) else I))
+  end;
 
 val empty = Defs Itemtab.empty;
 

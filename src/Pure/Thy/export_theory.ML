@@ -399,6 +399,20 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       |> export_body thy "locale_dependencies";
 
 
+    (* constdefs *)
+
+    val constdefs =
+      Defs.dest_constdefs (map Theory.defs_of (Theory.parents_of thy)) (Theory.defs_of thy)
+      |> sort_by #1;
+
+    val encode_constdefs =
+      let open XML.Encode
+      in list (pair string string) end;
+
+    val _ =
+      if null constdefs then () else export_body thy "constdefs" (encode_constdefs constdefs);
+
+
     (* parents *)
 
     val _ =
