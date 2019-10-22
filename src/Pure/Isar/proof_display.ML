@@ -122,8 +122,6 @@ fun pretty_theory verbose ctxt =
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
     val cnstrs = Name_Space.markup_entries verbose ctxt const_space constraints;
-
-    val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
   in
     Pretty.chunks
      [Pretty.big_list "classes:" (map pretty_classrel clsses),
@@ -134,7 +132,6 @@ fun pretty_theory verbose ctxt =
       Pretty.big_list "logical consts:" (map (Pretty.block o prt_const) log_cnsts),
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
-      Pretty.big_list "axioms:" (map pretty_axm axms),
       Pretty.block
         (Pretty.breaks (Pretty.str "oracles:" ::
           map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))]
