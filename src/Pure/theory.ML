@@ -18,7 +18,6 @@ sig
   val check: {long: bool} -> Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
-  val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of: theory -> Defs.T
   val at_begin: (theory -> theory option) -> theory -> theory
@@ -88,18 +87,17 @@ fun make_thy (pos, id, axioms, defs, wrappers) =
 structure Thy = Theory_Data'
 (
   type T = thy;
-  val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
-  val empty = make_thy (Position.none, 0, empty_axioms, Defs.empty, ([], []));
+  val empty = make_thy (Position.none, 0, Name_Space.empty_table "axiom", Defs.empty, ([], []));
 
-  fun extend (Thy {pos = _, id = _, axioms = _, defs, wrappers}) =
-    make_thy (Position.none, 0, empty_axioms, defs, wrappers);
+  fun extend (Thy {pos = _, id = _, axioms, defs, wrappers}) =
+    make_thy (Position.none, 0, axioms, defs, wrappers);
 
   fun merge old_thys (thy1, thy2) =
     let
-      val Thy {pos = _, id = _, axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
-      val Thy {pos = _, id = _, axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
+      val Thy {pos = _, id = _, axioms = axioms1, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
+      val Thy {pos = _, id = _, axioms = axioms2, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
-      val axioms' = empty_axioms;
+      val axioms' = Name_Space.merge_tables (axioms1, axioms2);
       val defs' = Defs.merge (Defs.global_context (fst old_thys)) (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
@@ -163,8 +161,7 @@ fun check long ctxt (name, pos) =
 val axiom_table = #axioms o rep_theory;
 val axiom_space = Name_Space.space_of_table o axiom_table;
 
-val axioms_of = Name_Space.dest_table o axiom_table;
-fun all_axioms_of thy = maps axioms_of (nodes_of thy);
+val all_axioms_of = Name_Space.dest_table o axiom_table;
 
 val defs_of = #defs o rep_theory;
 

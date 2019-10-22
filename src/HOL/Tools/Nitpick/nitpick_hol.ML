@@ -1338,8 +1338,7 @@ fun all_defs_of thy subst =
           |> maps snd |> map_filter #def
           |> Ord_List.make fast_string_ord
   in
-    Theory.nodes_of thy
-    |> maps Thm.axioms_of
+    Thm.all_axioms_of thy
     |> map (apsnd (subst_atomic subst o Thm.prop_of))
     |> sort (fast_string_ord o apply2 fst)
     |> Ord_List.inter (fast_string_ord o apsnd fst) def_names

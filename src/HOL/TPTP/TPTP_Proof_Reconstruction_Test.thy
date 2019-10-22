@@ -322,15 +322,6 @@ map length just_the_thms;
 \<close>
 
 ML \<open>
-val axms_of_thy =
-  `Theory.axioms_of
-  #> apsnd cterm_of
-  #> swap
-  #> apsnd (map snd)
-  #> uncurry map
-\<close>
-
-ML \<open>
 (*Show the skeleton-level inference which is done by each element of just_the_tacs. This is useful when debugging using the technique shown next*)
 if test_all @{context} orelse prob_names = [] then ()
 else

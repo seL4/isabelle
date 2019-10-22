@@ -113,7 +113,7 @@ sig
   val close_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
   val axiom: theory -> string -> thm
-  val axioms_of: theory -> (string * thm) list
+  val all_axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
@@ -804,30 +804,23 @@ fun future future_thm ct =
 
 (** Axioms **)
 
-fun axiom thy0 name =
-  let
-    fun get_ax thy =
-      Name_Space.lookup (Theory.axiom_table thy) name
-      |> Option.map (fn prop =>
-           let
-             val der = deriv_rule0 (fn () => Proofterm.axm_proof name prop);
-             val cert = Context.Certificate thy;
-             val maxidx = maxidx_of_term prop;
-             val shyps = Sorts.insert_term prop [];
-           in
-             Thm (der,
-               {cert = cert, tags = [], maxidx = maxidx,
-                 constraints = [], shyps = shyps, hyps = [], tpairs = [], prop = prop})
-           end);
-  in
-    (case get_first get_ax (Theory.nodes_of thy0) of
-      SOME thm => thm
-    | NONE => raise THEORY ("No axiom " ^ quote name, [thy0]))
-  end;
+fun axiom thy name =
+  (case Name_Space.lookup (Theory.axiom_table thy) name of
+    SOME prop =>
+      let
+        val der = deriv_rule0 (fn () => Proofterm.axm_proof name prop);
+        val cert = Context.Certificate thy;
+        val maxidx = maxidx_of_term prop;
+        val shyps = Sorts.insert_term prop [];
+      in
+        Thm (der,
+          {cert = cert, tags = [], maxidx = maxidx,
+            constraints = [], shyps = shyps, hyps = [], tpairs = [], prop = prop})
+      end
+  | NONE => raise THEORY ("No axiom " ^ quote name, [thy]));
 
-(*return additional axioms of this theory node*)
-fun axioms_of thy =
-  map (fn (name, _) => (name, axiom thy name)) (Theory.axioms_of thy);
+fun all_axioms_of thy =
+  map (fn (name, _) => (name, axiom thy name)) (Theory.all_axioms_of thy);
 
 
 (* tags *)

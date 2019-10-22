@@ -242,8 +242,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       encode_prop (#1 (standard_prop used [] prop NONE));
 
     val _ =
-      export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
-        Theory.axiom_space (Theory.axioms_of thy);
+      export_entities "axioms" (K (SOME o encode_axiom Name.context))
+        Theory.axiom_space (Theory.all_axioms_of thy);
 
 
     (* theorems and proof terms *)
