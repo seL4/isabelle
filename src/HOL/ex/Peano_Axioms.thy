@@ -4,12 +4,12 @@ theory Peano_Axioms
   imports Main
 begin
 
-locale peano =
-  fixes zero :: 'n
-  fixes succ :: "'n \<Rightarrow> 'n"
+locale peano =  \<comment> \<open>or: \<^theory_text>\<open>class\<close>\<close>
+  fixes zero :: 'a
+  fixes succ :: "'a \<Rightarrow> 'a"
   assumes succ_neq_zero [simp]: "succ m \<noteq> zero"
   assumes succ_inject [simp]: "succ m = succ n \<longleftrightarrow> m = n"
-  assumes induct [case_names zero succ, induct type: 'n]:
+  assumes induct [case_names zero succ, induct type: 'a]:
     "P zero \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (succ n)) \<Longrightarrow> P n"
 begin
 
@@ -19,13 +19,13 @@ lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
 
 text \<open>\<^medskip> Primitive recursion as a (functional) relation -- polymorphic!\<close>
 
-inductive Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
-  for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
+inductive Rec :: "'b \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+  for e :: 'b and r :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
 where
   Rec_zero: "Rec e r zero e"
 | Rec_succ: "Rec e r m n \<Longrightarrow> Rec e r (succ m) (r m n)"
 
-lemma Rec_functional: "\<exists>!y::'a. Rec e r x y" for x :: 'n
+lemma Rec_functional: "\<exists>!y::'b. Rec e r x y" for x :: 'a
 proof -
   let ?R = "Rec e r"
   show ?thesis
@@ -59,7 +59,7 @@ qed
 
 text \<open>\<^medskip> The recursion operator -- polymorphic!\<close>
 
-definition rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
+definition rec :: "'b \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   where "rec e r x = (THE y. Rec e r x y)"
 
 lemma rec_eval:
@@ -84,7 +84,7 @@ qed
 
 text \<open>\<^medskip> Example: addition (monomorphic)\<close>
 
-definition add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
+definition add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
   where "add m n = rec n (\<lambda>_ k. succ k) m"
 
 lemma add_zero [simp]: "add zero n = n"
@@ -107,7 +107,7 @@ lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
 
 text \<open>\<^medskip> Example: replication (polymorphic)\<close>
 
-definition repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
+definition repl :: "'a \<Rightarrow> 'b \<Rightarrow> 'b list"
   where "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
 
 lemma repl_zero [simp]: "repl zero x = []"
