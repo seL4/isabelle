@@ -4,8 +4,20 @@
 section \<open>Proof(s) of concept for algebraically founded lists of bits\<close>
 
 theory Bit_Lists
-  imports Main
+  imports
+    Main
+    "HOL-Library.Boolean_Algebra"
 begin
+
+context ab_group_add
+begin
+
+lemma minus_diff_commute:
+  "- b - a = - a - b"
+  by (simp only: diff_conv_add_uminus add.commute)
+
+end
+
 
 subsection \<open>Bit representations\<close>
 
@@ -232,7 +244,7 @@ end
 subsection \<open>Syntactic bit operations\<close>
 
 class bit_operations = bit_representation +
-  fixes not :: "'a \<Rightarrow> 'a"  ("NOT _" [70] 71)
+  fixes not :: "'a \<Rightarrow> 'a"  ("NOT")
     and "and" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "AND" 64)
     and or :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "OR"  59)
     and xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "XOR" 59)
@@ -528,6 +540,10 @@ abbreviation (input) complement :: "int \<Rightarrow> int"
 lemma complement_half:
   "complement (k * 2) div 2 = complement k"
   by simp
+
+lemma complement_div_2:
+  "complement (k div 2) = complement k div 2"
+  by linarith
 
 locale zip_int = single: abel_semigroup f
   for f :: "bool \<Rightarrow> bool \<Rightarrow> bool"  (infixl "\<^bold>*" 70)
@@ -903,13 +919,23 @@ global_interpretation xor_int: comm_monoid "(XOR)" "0 :: int"
 
 lemma not_int_simps [simp]:
   "NOT 0 = (- 1 :: int)"
-  "NOT - 1 = (0 :: int)"
+  "NOT (- 1) = (0 :: int)"
   "k \<noteq> 0 \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> NOT k = of_bool (even k) + 2 * NOT (k div 2)" for k :: int
   by (auto simp add: not_int_def elim: oddE)
 
 lemma not_one_int [simp]:
   "NOT 1 = (- 2 :: int)"
   by simp
+
+lemma even_not_iff [simp]:
+  "even (NOT k) \<longleftrightarrow> odd k"
+  for k :: int
+  by (simp add: not_int_def)
+
+lemma not_div_2:
+  "NOT k div 2 = NOT (k div 2)"
+  for k :: int
+  by (simp add: complement_div_2 not_int_def)
 
 lemma one_and_int_eq [simp]:
   "1 AND k = k mod 2" for k :: int
@@ -934,5 +960,87 @@ lemma one_xor_int_eq [simp]:
 lemma xor_one_int_eq [simp]:
   "k XOR 1 = k + of_bool (even k) - of_bool (odd k)" for k :: int
   using one_xor_int_eq [of k] by (simp add: ac_simps)
+
+global_interpretation bit_int: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: int"
+  rewrites "bit_int.xor = ((XOR) :: int \<Rightarrow> _)"
+proof -
+  interpret bit_int: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: int"
+  proof
+    show "k AND (l OR r) = k AND l OR k AND r"
+      for k l r :: int
+    proof (induction k arbitrary: l r rule: int_bit_induct)
+      case zero
+      show ?case
+        by simp
+    next
+      case minus
+      show ?case
+        by simp
+    next
+      case (even k)
+      then show ?case by (simp add: and_int.rec [of "k * 2"]
+        or_int.rec [of "(k AND l div 2) * 2"] or_int.rec [of l])
+    next
+      case (odd k)
+      then show ?case by (simp add: and_int.rec [of "1 + k * 2"]
+        or_int.rec [of "(k AND l div 2) * 2"] or_int.rec [of "1 + (k AND l div 2) * 2"] or_int.rec [of l])
+    qed
+    show "k OR l AND r = (k OR l) AND (k OR r)"
+      for k l r :: int
+    proof (induction k arbitrary: l r rule: int_bit_induct)
+      case zero
+      then show ?case
+        by simp
+    next
+      case minus
+      then show ?case
+        by simp
+    next
+      case (even k)
+      then show ?case by (simp add: or_int.rec [of "k * 2"]
+        and_int.rec [of "(k OR l div 2) * 2"] and_int.rec [of "1 + (k OR l div 2) * 2"] and_int.rec [of l])
+    next
+      case (odd k)
+      then show ?case by (simp add: or_int.rec [of "1 + k * 2"]
+        and_int.rec [of "1 + (k OR l div 2) * 2"] and_int.rec [of l])
+    qed
+    show "k AND NOT k = 0" for k :: int
+      by (induction k rule: int_bit_induct)
+        (simp_all add: not_int_def complement_half minus_diff_commute [of 1])
+    show "k OR NOT k = - 1" for k :: int
+      by (induction k rule: int_bit_induct)
+        (simp_all add: not_int_def complement_half minus_diff_commute [of 1])
+  qed simp_all
+  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: int)"
+    by (fact bit_int.boolean_algebra_axioms)
+  show "bit_int.xor = ((XOR) :: int \<Rightarrow> _)"
+  proof (rule ext)+
+    fix k l :: int
+    have "k XOR l = k AND NOT l OR NOT k AND l"
+    proof (induction k arbitrary: l rule: int_bit_induct)
+      case zero
+      show ?case
+        by simp
+    next
+      case minus
+      show ?case
+        by (simp add: not_int_def)
+    next
+      case (even k)
+      then show ?case
+        by (simp add: xor_int.rec [of "k * 2"] and_int.rec [of "k * 2"]
+          or_int.rec [of _ "1 + 2 * NOT k AND l"] not_div_2)
+          (simp add: and_int.rec [of _ l])
+    next
+      case (odd k)
+      then show ?case
+        by (simp add: xor_int.rec [of "1 + k * 2"] and_int.rec [of "1 + k * 2"]
+          or_int.rec [of _ "2 * NOT k AND l"] not_div_2)
+          (simp add: and_int.rec [of _ l])
+    qed
+    then show "bit_int.xor k l = k XOR l"
+      by (simp add: bit_int.xor_def)
+  qed
+qed
 
 end
