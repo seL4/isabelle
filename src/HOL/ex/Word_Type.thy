@@ -6,8 +6,11 @@ section \<open>Proof of concept for algebraically founded bit word types\<close>
 theory Word_Type
   imports
     Main
+    "HOL-ex.Bit_Lists"
     "HOL-Library.Type_Length"
 begin
+
+subsection \<open>Preliminaries\<close>
 
 lemma take_bit_uminus:
   "take_bit n (- (take_bit n k)) = take_bit n (- k)" for k :: int
@@ -373,5 +376,223 @@ lemma word_less_iff_unsigned:
   by (transfer fixing: less) (auto dest: preorder_class.le_less_trans [OF take_bit_nonnegative])
 
 end
+
+subsection \<open>Bit operation on \<^typ>\<open>'a word\<close>\<close>
+
+context unique_euclidean_semiring_with_nat
+begin
+
+primrec n_bits_of :: "nat \<Rightarrow> 'a \<Rightarrow> bool list"
+  where
+    "n_bits_of 0 a = []"
+  | "n_bits_of (Suc n) a = odd a # n_bits_of n (a div 2)"
+
+lemma n_bits_of_eq_iff:
+  "n_bits_of n a = n_bits_of n b \<longleftrightarrow> take_bit n a = take_bit n b"
+  apply (induction n arbitrary: a b)
+   apply auto
+   apply (metis local.dvd_add_times_triv_left_iff local.dvd_triv_right local.odd_one)
+  apply (metis local.dvd_add_times_triv_left_iff local.dvd_triv_right local.odd_one)
+  done
+
+lemma take_n_bits_of [simp]:
+  "take m (n_bits_of n a) = n_bits_of (min m n) a"
+proof -
+  define q and v and w where "q = min m n" and "v = m - q" and "w = n - q"
+  then have "v = 0 \<or> w = 0"
+    by auto
+  then have "take (q + v) (n_bits_of (q + w) a) = n_bits_of q a"
+    by (induction q arbitrary: a) auto
+  with q_def v_def w_def show ?thesis
+    by simp
+qed
+
+lemma unsigned_of_bits_n_bits_of [simp]:
+  "unsigned_of_bits (n_bits_of n a) = take_bit n a"
+  by (induction n arbitrary: a) (simp_all add: ac_simps)
+
+end
+
+lemma unsigned_of_bits_eq_of_bits:
+  "unsigned_of_bits bs = (of_bits (bs @ [False]) :: int)"
+  by (simp add: of_bits_int_def)
+
+
+instantiation word :: (len) bit_representation
+begin
+
+lift_definition bits_of_word :: "'a word \<Rightarrow> bool list"
+  is "n_bits_of LENGTH('a)"
+  by (simp add: n_bits_of_eq_iff)
+
+lift_definition of_bits_word :: "bool list \<Rightarrow> 'a word"
+  is unsigned_of_bits .
+
+instance proof
+  fix a :: "'a word"
+  show "of_bits (bits_of a) = a"
+    by transfer simp
+qed
+
+end
+
+lemma take_bit_complement_iff:
+  "take_bit n (complement k) = take_bit n (complement l) \<longleftrightarrow> take_bit n k = take_bit n l"
+  for k l :: int
+  by (simp add: take_bit_eq_mod mod_eq_dvd_iff dvd_diff_commute)
+
+lemma take_bit_not_iff:
+  "take_bit n (NOT k) = take_bit n (NOT l) \<longleftrightarrow> take_bit n k = take_bit n l"
+  for k l :: int
+  by (simp add: not_int_def take_bit_complement_iff)
+
+lemma n_bits_of_not:
+  "n_bits_of n (NOT k) = map Not (n_bits_of n k)"
+  for k :: int
+  by (induction n arbitrary: k) (simp_all add: not_div_2)
+
+lemma take_bit_and [simp]:
+  "take_bit n (k AND l) = take_bit n k AND take_bit n l"
+  for k l :: int
+  apply (induction n arbitrary: k l)
+   apply simp
+  apply (subst and_int.rec)
+  apply (subst (2) and_int.rec)
+  apply simp
+  done
+
+lemma take_bit_or [simp]:
+  "take_bit n (k OR l) = take_bit n k OR take_bit n l"
+  for k l :: int
+  apply (induction n arbitrary: k l)
+   apply simp
+  apply (subst or_int.rec)
+  apply (subst (2) or_int.rec)
+  apply simp
+  done
+
+lemma take_bit_xor [simp]:
+  "take_bit n (k XOR l) = take_bit n k XOR take_bit n l"
+  for k l :: int
+  apply (induction n arbitrary: k l)
+   apply simp
+  apply (subst xor_int.rec)
+  apply (subst (2) xor_int.rec)
+  apply simp
+  done
+
+instantiation word :: (len) bit_operations
+begin
+
+lift_definition not_word :: "'a word \<Rightarrow> 'a word"
+  is not
+  by (simp add: take_bit_not_iff)
+
+lift_definition and_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "and"
+  by simp
+
+lift_definition or_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is or
+  by simp
+
+lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is xor
+  by simp
+
+lift_definition shift_left_word :: "'a word \<Rightarrow> nat \<Rightarrow> 'a word"
+  is shift_left
+proof -
+  show "take_bit LENGTH('a) (k << n) = take_bit LENGTH('a) (l << n)"
+    if "take_bit LENGTH('a) k = take_bit LENGTH('a) l" for k l :: int and n :: nat
+  proof -
+    from that
+    have "take_bit (LENGTH('a) - n) (take_bit LENGTH('a) k)
+      = take_bit (LENGTH('a) - n) (take_bit LENGTH('a) l)"
+      by simp
+    moreover have "min (LENGTH('a) - n) LENGTH('a) = LENGTH('a) - n"
+      by simp
+    ultimately show ?thesis by (simp add: take_bit_push_bit)
+  qed
+qed
+
+lift_definition shift_right_word :: "'a word \<Rightarrow> nat \<Rightarrow> 'a word"
+  is "\<lambda>k n. drop_bit n (take_bit LENGTH('a) k)"
+  by simp
+
+instance proof
+  show "semilattice ((AND) :: 'a word \<Rightarrow> _)"
+    by standard (transfer; simp add: ac_simps)+
+  show "semilattice ((OR) :: 'a word \<Rightarrow> _)"
+    by standard (transfer; simp add: ac_simps)+
+  show "abel_semigroup ((XOR) :: 'a word \<Rightarrow> _)"
+    by standard (transfer; simp add: ac_simps)+
+  show "not = (of_bits \<circ> map Not \<circ> bits_of :: 'a word \<Rightarrow> 'a word)"
+  proof
+    fix a :: "'a word"
+    have "NOT a = of_bits (map Not (bits_of a))"
+      by transfer (simp flip: unsigned_of_bits_take n_bits_of_not add: take_map)
+    then show "NOT a = (of_bits \<circ> map Not \<circ> bits_of) a"
+      by simp
+  qed
+  show "of_bits bs AND of_bits cs = (of_bits (map2 (\<and>) bs cs) :: 'a word)"
+    if "length bs = length cs" for bs cs
+    using that apply transfer
+    apply (simp only: unsigned_of_bits_eq_of_bits)
+    apply (subst and_eq)
+    apply simp_all
+    done
+  show "of_bits bs OR of_bits cs = (of_bits (map2 (\<or>) bs cs) :: 'a word)"
+    if "length bs = length cs" for bs cs
+    using that apply transfer
+    apply (simp only: unsigned_of_bits_eq_of_bits)
+    apply (subst or_eq)
+    apply simp_all
+    done
+  show "of_bits bs XOR of_bits cs = (of_bits (map2 (\<noteq>) bs cs) :: 'a word)"
+    if "length bs = length cs" for bs cs
+    using that apply transfer
+    apply (simp only: unsigned_of_bits_eq_of_bits)
+    apply (subst xor_eq)
+    apply simp_all
+    done
+  show "a << n = of_bits (replicate n False @ bits_of a)"
+    for a :: "'a word" and n :: nat
+    by transfer (simp add: push_bit_take_bit)
+  show "a >> n = of_bits (drop n (bits_of a))"
+    if "n < length (bits_of a)"
+    for a :: "'a word" and n :: nat
+    using that by transfer simp
+qed
+
+end
+
+global_interpretation bit_word: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: 'a::len word"
+  rewrites "bit_word.xor = ((XOR) :: 'a word \<Rightarrow> _)"
+proof -
+  interpret bit_word: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: 'a word"
+  proof
+    show "a AND (b OR c) = a AND b OR a AND c"
+      for a b c :: "'a word"
+      by transfer (simp add: bit_int.conj_disj_distrib)
+    show "a OR b AND c = (a OR b) AND (a OR c)"
+      for a b c :: "'a word"
+      by transfer (simp add: bit_int.disj_conj_distrib)
+    show "a AND NOT a = 0" for a :: "'a word"
+      by transfer simp
+    show "a OR NOT a = - 1" for a :: "'a word"
+      by transfer simp
+  qed (transfer; simp)+
+  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)"
+    by (fact bit_word.boolean_algebra_axioms)
+  show "bit_word.xor = ((XOR) :: 'a word \<Rightarrow> _)"
+  proof (rule ext)+
+    fix a b :: "'a word"
+    have "a XOR b = a AND NOT b OR NOT a AND b"
+      by transfer (simp add: bit_int.xor_def)
+    then show "bit_word.xor a b = a XOR b"
+      by (simp add: bit_word.xor_def)
+  qed
+qed
 
 end
