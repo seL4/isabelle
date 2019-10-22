@@ -516,7 +516,7 @@ fun rename_boundvars pat obj th =
 fun stripped_sorts thy t =
   let
     val tfrees = rev (Term.add_tfrees t []);
-    val tfrees' = map (fn a => (a, [])) (Name.invent Name.context Name.aT (length tfrees));
+    val tfrees' = map (fn a => (a, [])) (Name.variant_list [] (map #1 tfrees));
     val recover =
       map2 (fn (a', S') => fn (a, S) => (((a', 0), S'), Thm.global_ctyp_of thy (TVar ((a, 0), S))))
         tfrees' tfrees;
