@@ -28,6 +28,19 @@ abbreviation power2 :: "'a \<Rightarrow> 'a"  ("(_\<^sup>2)" [1000] 999)
 
 end
 
+context
+  includes lifting_syntax
+begin
+
+lemma power_transfer [transfer_rule]:
+  \<open>(R ===> (=) ===> R) (^) (^)\<close>
+    if [transfer_rule]: \<open>R 1 1\<close>
+      \<open>(R ===> R ===> R) (*) (*)\<close>
+    for R :: \<open>'a::power \<Rightarrow> 'b::power \<Rightarrow> bool\<close>
+  by (simp only: power_def [abs_def]) transfer_prover
+
+end
+
 context monoid_mult
 begin
 

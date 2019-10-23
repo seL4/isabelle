@@ -94,6 +94,18 @@ syntax
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>x\<leftarrow>xs. b" == "CONST sum_list (CONST map (\<lambda>x. b) xs)"
 
+context
+  includes lifting_syntax
+begin
+
+lemma sum_list_transfer [transfer_rule]:
+  "(list_all2 A ===> A) sum_list sum_list"
+    if [transfer_rule]: "A 0 0" "(A ===> A ===> A) (+) (+)"
+  unfolding sum_list.eq_foldr [abs_def]
+  by transfer_prover
+
+end
+
 text \<open>TODO duplicates\<close>
 lemmas sum_list_simps = sum_list.Nil sum_list.Cons
 lemmas sum_list_append = sum_list.append
@@ -367,18 +379,6 @@ lemma sum_set_upt_conv_sum_list_nat [code_unfold]:
   "sum f (set [m..<n]) = sum_list (map f [m..<n])"
   by (simp add: interv_sum_list_conv_sum_set_nat)
 
-context
-  includes lifting_syntax
-begin
-
-lemma sum_list_transfer [transfer_rule]:
-  "(list_all2 A ===> A) sum_list sum_list"
-    if [transfer_rule]: "A 0 0" "(A ===> A ===> A) (+) (+)"
-  unfolding sum_list.eq_foldr [abs_def]
-  by transfer_prover
-
-end
-
 
 subsection \<open>List product\<close>
 
@@ -416,10 +416,6 @@ qed
 
 end
 
-lemma prod_list_zero_iff:
-  "prod_list xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
-  by (induction xs) simp_all
-
 text \<open>Some syntactic sugar:\<close>
 
 syntax (ASCII)
@@ -428,5 +424,21 @@ syntax
   "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST prod_list (CONST map (\<lambda>x. b) xs)"
+
+context
+  includes lifting_syntax
+begin
+
+lemma prod_list_transfer [transfer_rule]:
+  "(list_all2 A ===> A) prod_list prod_list"
+    if [transfer_rule]: "A 1 1" "(A ===> A ===> A) (*) (*)"
+  unfolding prod_list.eq_foldr [abs_def]
+  by transfer_prover
+
+end
+
+lemma prod_list_zero_iff:
+  "prod_list xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
+  by (induction xs) simp_all
 
 end
