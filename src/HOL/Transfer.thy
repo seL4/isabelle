@@ -455,12 +455,17 @@ lemma right_total_All_transfer[transfer_rule]:
 using assms unfolding right_total_def Ball_def rel_fun_def Domainp_iff[abs_def]
 by fast
 
-lemma right_total_fun_eq_transfer:
+context
   includes lifting_syntax
+begin
+
+lemma right_total_fun_eq_transfer:
   assumes [transfer_rule]: "right_total A" "bi_unique B"
   shows "((A ===> B) ===> (A ===> B) ===> (=)) (\<lambda>f g. \<forall>x\<in>Collect(Domainp A). f x = g x) (=)"
   unfolding fun_eq_iff
   by transfer_prover
+
+end
 
 lemma All_transfer [transfer_rule]:
   assumes "bi_total A"

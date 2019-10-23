@@ -77,37 +77,44 @@ end
 
 instance integer :: Rings.dvd ..
 
-lemma [transfer_rule]:
-  "rel_fun pcr_integer (rel_fun pcr_integer HOL.iff) Rings.dvd Rings.dvd"
-  unfolding dvd_def by transfer_prover
+context
+  includes lifting_syntax
+  notes transfer_rule_numeral [transfer_rule]
+begin
 
 lemma [transfer_rule]:
-  "rel_fun (=) pcr_integer (of_bool :: bool \<Rightarrow> int) (of_bool :: bool \<Rightarrow> integer)"
+  "(pcr_integer ===> pcr_integer ===> (\<longleftrightarrow>)) (dvd) (dvd)"
+  by (unfold dvd_def) transfer_prover
+
+lemma [transfer_rule]:
+  "((\<longleftrightarrow>) ===> pcr_integer) of_bool of_bool"
   by (unfold of_bool_def [abs_def]) transfer_prover
 
 lemma [transfer_rule]:
-  "rel_fun (=) pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
+  "((=) ===> pcr_integer) int of_nat"
   by (rule transfer_rule_of_nat) transfer_prover+
 
 lemma [transfer_rule]:
-  "rel_fun (=) pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
+  "((=) ===> pcr_integer) (\<lambda>k. k) of_int"
 proof -
-  have "rel_fun HOL.eq pcr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
+  have "((=) ===> pcr_integer) of_int of_int"
     by (rule transfer_rule_of_int) transfer_prover+
   then show ?thesis by (simp add: id_def)
 qed
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (numeral :: num \<Rightarrow> integer)"
-  by (rule transfer_rule_numeral) transfer_prover+
+  "((=) ===> pcr_integer) numeral numeral"
+  by transfer_prover
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq (rel_fun HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  "((=) ===> (=) ===> pcr_integer) Num.sub Num.sub"
   by (unfold Num.sub_def [abs_def]) transfer_prover
 
 lemma [transfer_rule]:
-  "rel_fun pcr_integer (rel_fun (=) pcr_integer) (power :: _ \<Rightarrow> _ \<Rightarrow> int) (power :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  "(pcr_integer ===> (=) ===> pcr_integer) (^) (^)"
   by (unfold power_def [abs_def]) transfer_prover
+
+end
 
 lemma int_of_integer_of_nat [simp]:
   "int_of_integer (of_nat n) = of_nat n"

@@ -1903,7 +1903,11 @@ end
 
 end
 
-lemma prod_filter_parametric [transfer_rule]: includes lifting_syntax shows
+context
+  includes lifting_syntax
+begin
+
+lemma prod_filter_parametric [transfer_rule]:
    "(rel_filter R ===> rel_filter S ===> rel_filter (rel_prod R S)) prod_filter prod_filter"
 proof(intro rel_funI; elim rel_filter.cases; hypsubst)
   fix F G
@@ -1946,6 +1950,9 @@ proof(intro rel_funI; elim rel_filter.cases; hypsubst)
       done
   qed
 qed
+
+end
+
 
 text \<open>Code generation for filters\<close>
 

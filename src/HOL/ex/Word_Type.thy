@@ -144,28 +144,30 @@ quickcheck_generator word
 
 subsubsection \<open>Conversions\<close>
 
-lemma [transfer_rule]:
-  "rel_fun HOL.eq (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) numeral numeral"
-proof -
-  note transfer_rule_numeral [transfer_rule]
-  show ?thesis by transfer_prover
-qed
+context
+  includes lifting_syntax
+  notes transfer_rule_numeral [transfer_rule]
+    transfer_rule_of_nat [transfer_rule]
+    transfer_rule_of_int [transfer_rule]
+begin
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_word int of_nat"
-proof -
-  note transfer_rule_of_nat [transfer_rule]
-  show ?thesis by transfer_prover
-qed
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
+  by transfer_prover
+
+lemma [transfer_rule]:
+  "((=) ===> pcr_word) int of_nat"
+  by transfer_prover
   
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_word (\<lambda>k. k) of_int"
+  "((=) ===> pcr_word) (\<lambda>k. k) of_int"
 proof -
-  note transfer_rule_of_int [transfer_rule]
-  have "rel_fun HOL.eq pcr_word (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> 'a word)"
+  have "((=) ===> pcr_word) of_int of_int"
     by transfer_prover
   then show ?thesis by (simp add: id_def)
 qed
+
+end
 
 context semiring_1
 begin
@@ -266,8 +268,12 @@ instance ..
 
 end
 
+context
+  includes lifting_syntax
+begin
+
 lemma [transfer_rule]:
-  "rel_fun pcr_word (\<longleftrightarrow>) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)"
+  "(pcr_word ===> (\<longleftrightarrow>)) even ((dvd) 2 :: 'a::len word \<Rightarrow> bool)"
 proof -
   have even_word_unfold: "even k \<longleftrightarrow> (\<exists>l. take_bit LENGTH('a) k = take_bit LENGTH('a) (2 * l))" (is "?P \<longleftrightarrow> ?Q")
     for k :: int
@@ -286,6 +292,8 @@ proof -
   show ?thesis by (simp only: even_word_unfold [abs_def] dvd_def [where ?'a = "'a word", abs_def])
     transfer_prover
 qed
+
+end
 
 instance word :: (len) semiring_modulo
 proof

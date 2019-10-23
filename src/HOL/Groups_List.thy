@@ -367,13 +367,17 @@ lemma sum_set_upt_conv_sum_list_nat [code_unfold]:
   "sum f (set [m..<n]) = sum_list (map f [m..<n])"
   by (simp add: interv_sum_list_conv_sum_set_nat)
 
-lemma sum_list_transfer[transfer_rule]:
+context
   includes lifting_syntax
-  assumes [transfer_rule]: "A 0 0"
-  assumes [transfer_rule]: "(A ===> A ===> A) (+) (+)"
-  shows "(list_all2 A ===> A) sum_list sum_list"
+begin
+
+lemma sum_list_transfer [transfer_rule]:
+  "(list_all2 A ===> A) sum_list sum_list"
+    if [transfer_rule]: "A 0 0" "(A ===> A ===> A) (+) (+)"
   unfolding sum_list.eq_foldr [abs_def]
   by transfer_prover
+
+end
 
 
 subsection \<open>List product\<close>

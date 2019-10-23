@@ -549,15 +549,23 @@ lemma numeral_unfold_funpow:
 
 end
 
+context
+  includes lifting_syntax
+begin
+
 lemma transfer_rule_numeral:
-  fixes R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
-  assumes [transfer_rule]: "R 0 0" "R 1 1"
-    "rel_fun R (rel_fun R R) plus plus"
-  shows "rel_fun HOL.eq R numeral numeral"
-  apply (subst (2) numeral_unfold_funpow [abs_def])
-  apply (subst (1) numeral_unfold_funpow [abs_def])
-  apply transfer_prover
-  done
+  "((=) ===> R) numeral numeral"
+    if [transfer_rule]: "R 0 0" "R 1 1"
+      "(R ===> R ===> R) (+) (+)"
+    for R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
+proof -
+  have "((=) ===> R) (\<lambda>k. ((+) 1 ^^ numeral k) 0) (\<lambda>k. ((+) 1 ^^ numeral k) 0)"
+    by transfer_prover
+  then show ?thesis
+    by (simp flip: numeral_unfold_funpow [abs_def])
+qed
+
+end
 
 lemma nat_of_num_numeral [code_abbrev]: "nat_of_num = numeral"
 proof

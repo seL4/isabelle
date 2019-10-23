@@ -74,7 +74,9 @@ abbreviation int :: "nat \<Rightarrow> int"
 lemma int_def: "int n = Abs_Integ (n, 0)"
   by (induct n) (simp add: zero_int.abs_eq, simp add: one_int.abs_eq plus_int.abs_eq)
 
-lemma int_transfer [transfer_rule]: "(rel_fun (=) pcr_int) (\<lambda>n. (n, 0)) int"
+lemma int_transfer [transfer_rule]:
+  includes lifting_syntax
+  shows "rel_fun (=) pcr_int (\<lambda>n. (n, 0)) int"
   by (simp add: rel_fun_def int.pcr_cr_eq cr_int_def int_def)
 
 lemma int_diff_cases: obtains (diff) m n where "z = int m - int n"
@@ -1197,14 +1199,16 @@ qed
 end
 
 lemma transfer_rule_of_int:
+  includes lifting_syntax
   fixes R :: "'a::ring_1 \<Rightarrow> 'b::ring_1 \<Rightarrow> bool"
   assumes [transfer_rule]: "R 0 0" "R 1 1"
-    "rel_fun R (rel_fun R R) plus plus"
-    "rel_fun R R uminus uminus"
-  shows "rel_fun HOL.eq R of_int of_int"
+    "(R ===> R ===> R) (+) (+)"
+    "(R ===> R) uminus uminus"
+  shows "((=) ===> R) of_int of_int"
 proof -
+  note assms
   note transfer_rule_of_nat [transfer_rule]
-  have [transfer_rule]: "rel_fun HOL.eq R of_nat of_nat"
+  have [transfer_rule]: "((=) ===> R) of_nat of_nat"
     by transfer_prover
   show ?thesis
     by (unfold of_int_of_nat [abs_def]) transfer_prover
