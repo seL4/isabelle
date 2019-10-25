@@ -52,7 +52,6 @@ sig
   val eN : string
   val e_malesN : string
   val e_parN : string
-  val e_tofofN : string
   val ehohN : string
   val iproverN : string
   val leo2N : string
@@ -120,7 +119,6 @@ val dummy_thf_mlN = "dummy_thf_ml" (* for experiments *)
 val eN = "e"
 val e_malesN = "e_males"
 val e_parN = "e_par"
-val e_tofofN = "e_tofof"
 val ehohN = "ehoh"
 val iproverN = "iprover"
 val leo2N = "leo2"
@@ -422,8 +420,6 @@ val parse_tstp_extra_arguments =
 
 val waldmeister_conjecture_name = "conjecture_1"
 
-val tofof_fact_prefix = "fof_"
-
 fun is_same_term subst tm1 tm2 =
   let
     fun do_term_pair (AAbs (((var1, typ1), body1), args1)) (AAbs (((var2, typ2), body2), args2))
@@ -573,7 +569,7 @@ fun parse_tstp_thf_line problem =
             if role' = Definition then
               (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
             else
-              (((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]), phi), "", [])
+              (((num, [s]), phi), "", [])
           | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
       in
         [(name, role', phi, rule, map (rpair []) deps)]
@@ -603,8 +599,7 @@ fun parse_tstp_line problem =
                       phi |> not (is_same_formula false [] (mk_anot phi) phi') ? commute_eq)
                    | _ => ((num, []), phi))
                  else
-                   ((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]),
-                    phi),
+                   ((num, [s]), phi),
                  role, "", [])
               | File_Source _ =>
                 (((num, map fst (find_formula_in_problem phi problem)), phi), role, "", [])

@@ -731,9 +731,6 @@ val remote_snark =
   remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
     [("refutation.", "end_refutation.")] [] Hypothesis
     (K (((100, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
-val remote_e_tofof =
-  remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
-    (K (((150, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 
 
@@ -771,8 +768,8 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire,
-   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_e_tofof, remote_iprover, remote_leo2,
-   remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
+   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_iprover, remote_leo2, remote_leo3,
+   remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 

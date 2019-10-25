@@ -102,14 +102,14 @@ and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 historical.}
 %
 The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
-\cite{schulz-2002}, E-ToFoF \cite{tofof}, iProver \cite{korovin-2009}, LEO-II
-\cite{leo2}, Leo-III \cite{leo3}, Satallax \cite{satallax}, SNARK
-\cite{snark}, SPASS \cite{weidenbach-et-al-2009}, Vampire
-\cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
-Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or
-remotely via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The
-supported SMT solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, veriT
-\cite{bouton-et-al-2009}, and Z3 \cite{z3}. These are always run locally.
+\cite{schulz-2002}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
+\cite{leo3}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
+\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
+Waldmeister \cite{waldmeister}, and Zipperposition \cite{cruanes-2014}. The
+ATPs are run either locally or remotely via the System\-On\-TPTP web service
+\cite{sutcliffe-2000}. The supported SMT solvers are CVC3 \cite{cvc3}, CVC4
+\cite{cvc4}, veriT \cite{bouton-et-al-2009}, and Z3 \cite{z3}. These are
+always run locally.
 
 The problem passed to the external provers (or solvers) consists of your current
 goal together with a heuristic selection of hundreds of facts (theorems) from the
@@ -858,11 +858,6 @@ AgsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
-
-\item[\labelitemi] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
-developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
-servers. This ATP supports the TPTP typed first-order format (TFF0). The
-remote version of E-ToFoF runs on Geoff Sutcliffe's Miami servers.
 
 \item[\labelitemi] \textbf{\textit{remote\_iprover}:} The
 remote version of iProver runs on Geoff Sutcliffe's Miami servers
