@@ -398,7 +398,7 @@ val leo3_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((150, ""), THF (Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((150, ""), THF (Polymorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -577,7 +577,7 @@ val zipperposition_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, (((100, ""), THF (Polymorphic, THF_Predicate_Free), "poly_native_higher", keep_lamsN, false), ""))],
+     [(1.0, (((250, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -700,6 +700,9 @@ val remote_vampire =
   remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
     (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
+val remote_zipperposition =
+  remotify_atp zipperposition "Zipperpin" ["1.5"]
+    (K (((250, ""), THF (Monomorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
 
 
 (* Setup *)
@@ -737,7 +740,8 @@ fun effective_term_order ctxt atp =
 val atps =
   [agsyhol, alt_ergo, e, e_par, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
    zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2,
-   remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
+   remote_leo3, remote_pirate, remote_snark, remote_vampire, remote_waldmeister,
+   remote_zipperposition]
 
 val _ = Theory.setup (fold add_atp atps)
 

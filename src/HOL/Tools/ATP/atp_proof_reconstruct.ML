@@ -505,13 +505,13 @@ val resolve_conjectures = map_filter resolve_conjecture
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
-fun add_fact ctxt facts ((_, ss), _, _, rule, deps) =
+fun add_fact ctxt facts ((num, ss), _, _, rule, deps) =
   (if member (op =) [agsyhol_core_rule, leo2_extcnf_equal_neg_rule] rule orelse
       String.isPrefix satallax_tab_rule_prefix rule then
      insert (op =) (short_thm_name ctxt ext, (Global, General))
    else
      I)
-  #> (if null deps then union (op =) (resolve_facts facts ss) else I)
+  #> (if null deps then union (op =) (resolve_facts facts (num :: ss)) else I)
 
 fun used_facts_in_atp_proof ctxt facts atp_proof =
   if null atp_proof then facts else fold (add_fact ctxt facts) atp_proof []
@@ -776,7 +776,7 @@ fun factify_atp_proof facts hyp_ts concl_t atp_proof =
             if j = length hyp_ts then ([], Conjecture, concl_t)
             else ([], Hypothesis, close_form (nth hyp_ts j))
           | _ =>
-            (case resolve_facts facts ss of
+            (case resolve_facts facts (num :: ss) of
               [] => (ss, if role = Lemma then Lemma else Plain, t)
             | facts => (map fst facts, Axiom, t)))
       in

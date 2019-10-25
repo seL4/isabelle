@@ -148,9 +148,10 @@ relies on third-party automatic provers (ATPs and SMT solvers).
 
 Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS,
 Vampire, and Zipperposition can be run locally; in addition, agsyHOL,
-Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, SNARK, Vampire, and
-Waldmeister are available remotely via System\-On\-TPTP \cite{sutcliffe-2000}.
-The SMT solvers CVC3, CVC4, veriT, and Z3 can be run locally.
+Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, SNARK, Vampire, Waldmeister,
+and Zipperposition are available remotely via System\-On\-TPTP
+\cite{sutcliffe-2000}. The SMT solvers CVC3, CVC4, veriT, and Z3 can be run
+locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -881,12 +882,15 @@ equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
 used to prove universally quantified equations using unconditional equations,
 corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
 runs on Geoff Sutcliffe's Miami servers.
+
+\item[\labelitemi] \textbf{\textit{remote\_zipperposition}:} The remote
+version of Zipperposition runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, Sledgehammer runs a subset of CVC4, E, SPASS, Vampire, veriT, and
 Z3 in parallel, either locally or remotely---depending on the number of
 processor cores available and on which provers are actually installed. It is
-generally a good idea to run several provers in parallel.
+generally desirable to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
