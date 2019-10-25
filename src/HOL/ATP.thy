@@ -131,19 +131,6 @@ lemma fequal_laws:
 unfolding fFalse_def fTrue_def fequal_def by auto
 
 
-subsection \<open>Waldmeister helpers\<close>
-
-(* Has all needed simplification lemmas for logic. *)
-lemma boolean_equality: "(P \<longleftrightarrow> P) = True"
-  by simp
-
-lemma boolean_comm: "(P \<longleftrightarrow> Q) = (Q \<longleftrightarrow> P)"
-  by auto
-
-lemmas waldmeister_fol = boolean_equality boolean_comm
-  simp_thms(1-5,7-8,11-25,27-33) disj_comms disj_assoc conj_comms conj_assoc
-
-
 subsection \<open>Basic connection between ATPs and HOL\<close>
 
 ML_file \<open>Tools/lambda_lifting.ML\<close>
@@ -151,8 +138,5 @@ ML_file \<open>Tools/monomorph.ML\<close>
 ML_file \<open>Tools/ATP/atp_problem_generate.ML\<close>
 ML_file \<open>Tools/ATP/atp_proof_reconstruct.ML\<close>
 ML_file \<open>Tools/ATP/atp_systems.ML\<close>
-ML_file \<open>Tools/ATP/atp_waldmeister.ML\<close>
-
-hide_fact (open) waldmeister_fol boolean_equality boolean_comm
 
 end

@@ -29,7 +29,6 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
-open ATP_Waldmeister
 open ATP_Satallax
 open ATP_Systems
 open Sledgehammer_Util
@@ -143,7 +142,6 @@ fun run_atp mode name
 
     val full_proofs = isar_proofs |> the_default (mode = Minimize)
     val local_name = perhaps (try (unprefix remote_prefix)) name
-    val waldmeister_new = (local_name = waldmeister_newN)
     val spassy = (local_name = pirateN orelse local_name = spassN)
 
     val completish = Config.get ctxt atp_completish
@@ -262,7 +260,7 @@ fun run_atp mode name
             val readable_names = not (Config.get ctxt atp_full_names)
             val lam_trans = lam_trans |> the_default best_lam_trans
             val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
-            val value as (atp_problem, _, _, _, _) =
+            val value as (atp_problem, _, _, _) =
               if cache_key = SOME key then
                 cache_value
               else
@@ -271,13 +269,8 @@ fun run_atp mode name
                 |> take num_facts
                 |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
                 |> map (apsnd Thm.prop_of)
-                |> (if waldmeister_new then
-                      generate_waldmeister_problem ctxt hyp_ts concl_t
-                      #> (fn (a, b, c, d, e) => (a, b, c, d, SOME e))
-                    else
-                      generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
-                        lam_trans uncurried_aliases readable_names true hyp_ts concl_t
-                      #> (fn (a, b, c, d) => (a, b, c, d, NONE)))
+                |> generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
+                  lam_trans uncurried_aliases readable_names true hyp_ts concl_t
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
@@ -340,7 +333,7 @@ fun run_atp mode name
             end
           | maybe_run_slice _ result = result
       in
-        ((NONE, ([], Symtab.empty, [], Symtab.empty,NONE)),
+        ((NONE, ([], Symtab.empty, [], Symtab.empty)),
          ("", Time.zeroTime, [], [], SOME InternalError), NONE)
         |> fold maybe_run_slice actual_slices
       end
@@ -352,7 +345,7 @@ fun run_atp mode name
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
 
-    val ((_, (_, pool, lifted, sym_tab,wm_info)), (output, run_time, used_from, atp_proof, outcome),
+    val ((_, (_, pool, lifted, sym_tab)), (output, run_time, used_from, atp_proof, outcome),
          SOME (format, type_enc)) =
       with_cleanup clean_up run () |> tap export
 
@@ -385,10 +378,8 @@ fun run_atp mode name
                       if atp_proof_prefers_lifting atp_proof then SOME liftingN else NONE
                     val atp_proof =
                       atp_proof
-                      |> (if waldmeister_new then termify_waldmeister_proof ctxt pool
-                          else termify_atp_proof ctxt name format type_enc pool lifted sym_tab)
+                      |> termify_atp_proof ctxt name format type_enc pool lifted sym_tab
                       |> spassy ? introduce_spassy_skolems
-                      |> (if waldmeister_new then introduce_waldmeister_skolems (the wm_info) else I)
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,

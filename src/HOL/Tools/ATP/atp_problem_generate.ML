@@ -1697,7 +1697,7 @@ fun bound_tvars type_enc sorts Ts =
          mk_atyquant AForall (map (fn TVar (z as (_, S)) =>
            (AType ((tvar_name z, []), []), map (`make_class) (normalize_classes S) )) Ts)
        | Native (_, Raw_Polymorphic _, _) =>
-         mk_atyquant AForall (map (fn TVar (z as (_, S)) => (AType ((tvar_name z, []), []), [])) Ts)
+         mk_atyquant AForall (map (fn TVar (z as _) => (AType ((tvar_name z, []), []), [])) Ts)
        | _ => mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts)))
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =

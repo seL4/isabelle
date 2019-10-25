@@ -65,7 +65,6 @@ sig
   val spassN : string
   val vampireN : string
   val waldmeisterN : string
-  val waldmeister_newN : string
   val z3_tptpN : string
   val zipperpositionN : string
   val remote_prefix : string
@@ -136,7 +135,6 @@ val snarkN = "snark"
 val spassN = "spass"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
-val waldmeister_newN = "waldmeister_new"
 val z3_tptpN = "z3_tptp"
 val zipperpositionN = "zipperposition"
 val remote_prefix = "remote_"

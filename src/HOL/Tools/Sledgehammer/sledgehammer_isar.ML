@@ -28,9 +28,9 @@ struct
 
 open ATP_Util
 open ATP_Problem
+open ATP_Problem_Generate
 open ATP_Proof
 open ATP_Proof_Reconstruct
-open ATP_Waldmeister
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
@@ -62,8 +62,8 @@ val zipperposition_cnf_rule = "cnf"
 
 val skolemize_rules =
   [e_definition_rule, e_skolemize_rule, leo2_extcnf_forall_neg_rule, satallax_skolemize_rule,
-   spass_skolemize_rule, vampire_skolemisation_rule,
-   veriT_tmp_skolemize_rule, waldmeister_skolemize_rule, z3_skolemize_rule, zipperposition_cnf_rule]
+   spass_skolemize_rule, vampire_skolemisation_rule, veriT_tmp_skolemize_rule, z3_skolemize_rule,
+   zipperposition_cnf_rule]
 
 fun is_ext_rule rule = (rule = leo2_extcnf_equal_neg_rule)
 val is_maybe_ext_rule = is_ext_rule orf String.isPrefix satallax_tab_rule_prefix

@@ -797,7 +797,6 @@ val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
     (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
-val remote_waldmeister_new = gen_remote_waldmeister waldmeister_newN "mono_args"
 
 
 (* Setup *)
@@ -836,7 +835,7 @@ val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, iprover_eq, leo2, leo3, satallax, spass,
    vampire, z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e,
    remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3,
-   remote_vampire, remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
+   remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 
