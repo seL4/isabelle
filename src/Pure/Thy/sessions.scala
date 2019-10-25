@@ -219,15 +219,23 @@ object Sessions
                 else session_node(qualifier)
               }
 
-              val imports_subgraph =
-                sessions_structure.imports_graph.
-                  restrict(sessions_structure.imports_graph.all_preds(info.deps).toSet)
+              val required_sessions =
+                dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
+                  .map(theory => imports_base.theory_qualifier(theory))
+                  .filterNot(_ == info.name)
+
+              val required_subgraph =
+                sessions_structure.imports_graph
+                  .restrict(sessions_structure.imports_graph.all_preds(required_sessions).toSet)
+                  .transitive_closure
+                  .restrict(required_sessions.toSet)
+                  .transitive_reduction_acyclic
 
               val graph0 =
-                (Graph_Display.empty_graph /: imports_subgraph.topological_order)(
+                (Graph_Display.empty_graph /: required_subgraph.topological_order)(
                   { case (g, session) =>
                       val a = session_node(session)
-                      val bs = imports_subgraph.imm_preds(session).toList.map(session_node(_))
+                      val bs = required_subgraph.imm_preds(session).toList.map(session_node(_))
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
               (graph0 /: dependencies.entries)(
