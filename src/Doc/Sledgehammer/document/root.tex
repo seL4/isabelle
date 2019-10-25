@@ -732,14 +732,14 @@ The following local provers are supported:
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{agsyhol}:} AgsyHOL is an automatic
-higher-order prover developed by Fredrik Lindblad \cite{agsyHOL},
-with support for the TPTP typed higher-order syntax (THF0). To use AgsyHOL, set
-the environment variable \texttt{AGSYHOL\_HOME} to the directory that contains
-the \texttt{agsyHOL} executable. Sledgehammer has been tested with version 1.0.
+higher-order prover developed by Fredrik Lindblad \cite{agsyHOL}. To use
+AgsyHOL, set the environment variable \texttt{AGSYHOL\_HOME} to the directory
+that contains the \texttt{agsyHOL} executable. Sledgehammer has been tested
+with version 1.0.
 
 \item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
 ATP developed by Bobot et al.\ \cite{alt-ergo}.
-It supports the TPTP polymorphic typed first-order format (TFF1) via Why3
+It supports the TPTP polymorphic typed first-order format (TF1) via Why3
 \cite{why3}. To use Alt-Ergo, set the environment variable \texttt{WHY3\_HOME}
 to the directory that contains the \texttt{why3} executable. Sledgehammer
 requires Alt-Ergo 0.95.2 and Why3 0.83.
@@ -790,20 +790,20 @@ E to clausify problems, so make sure that E is installed as well.
 
 \item[\labelitemi] \textbf{\textit{leo2}:} LEO-II is an automatic
 higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
-with support for the TPTP typed higher-order syntax (THF0). To use LEO-II, set
+with support for the TPTP typed higher-order syntax (TH0). To use LEO-II, set
 the environment variable \texttt{LEO2\_HOME} to the directory that contains the
 \texttt{leo} executable. Sledgehammer requires version 1.3.4 or above.
 
 \item[\labelitemi] \textbf{\textit{leo3}:} Leo-III is an automatic
 higher-order prover developed by Alexander Steen, Max Wisniewski, Christoph
 Benzm\"uller et al.\ \cite{leo3},
-with support for the TPTP typed higher-order syntax (THF0). To use Leo-III, set
+with support for the TPTP typed higher-order syntax (TH0). To use Leo-III, set
 the environment variable \texttt{LEO3\_HOME} to the directory that contains the
 \texttt{leo3} executable. Sledgehammer requires version 1.1 or above.
 
 \item[\labelitemi] \textbf{\textit{satallax}:} Satallax is an automatic
 higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
-support for the TPTP typed higher-order syntax (THF0). To use Satallax, set the
+support for the TPTP typed higher-order syntax (TH0). To use Satallax, set the
 environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
 \texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
 
@@ -834,16 +834,15 @@ Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the
 file name. Sledgehammer has been tested with a pre-release version of 4.4.0.
 
-\item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to be
-an ATP, exploiting Z3's support for the TPTP untyped and typed first-order
-formats (FOF and TFF0). It is included for experimental purposes. It requires
-version 4.3.1 of Z3 or above. To use it, set the environment variable
-\texttt{Z3\_TPTP\_HOME} to the directory that contains the \texttt{z3\_tptp}
-executable.
+\item[\labelitemi] \textbf{\textit{z3\_tptp}:} This version of Z3 pretends to
+be an ATP, exploiting Z3's support for the TPTP typed first-order format
+(TF0). It is included for experimental purposes. It requires version 4.3.1 of
+Z3 or above. To use it, set the environment variable \texttt{Z3\_TPTP\_HOME}
+to the directory that contains the \texttt{z3\_tptp} executable.
 
 \item[\labelitemi] \textbf{\textit{zipperposition}:} Zipperposition
-\cite{cruanes-2014} is an experimental first-order resolution prover developed
-by Simon Cruane. To use Zipperposition, set the environment variable
+\cite{cruanes-2014} is a first-order resolution prover developed by Simon
+Cruanes and colleagues. To use Zipperposition, set the environment variable
 \texttt{ZIPPERPOSITION\_HOME} to the directory that contains the
 \texttt{zipperposition} executable.
 \end{enum}
@@ -874,9 +873,8 @@ highly experimental first-order resolution prover developed by Daniel Wand.
 The remote version of Pirate run on a private server he generously set up.
 
 \item[\labelitemi] \textbf{\textit{remote\_snark}:} SNARK is a first-order
-resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
-TPTP typed first-order format (TFF0). The remote version of SNARK runs on
-Geoff Sutcliffe's Miami servers.
+resolution prover developed by Stickel et al.\ \cite{snark}. The remote
+version of SNARK runs on Geoff Sutcliffe's Miami servers.
 
 \item[\labelitemi] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers.
@@ -1065,7 +1063,7 @@ combinators.
 
 \item[\labelitemi] \textbf{\textit{keep\_lams}:}
 Keep the $\lambda$-abstractions in the generated problems. This is available
-only with provers that support the THF0 syntax.
+only with provers that support the TH0 syntax.
 
 \item[\labelitemi] \textbf{\textit{smart}:} The actual translation scheme used
 depends on the ATP and should be the most efficient scheme for that ATP.
@@ -1128,17 +1126,17 @@ $\const{t}(\tau, t)$ becomes a unary function
 $\const{t\_}\tau(t)$.
 
 \item[\labelitemi] \textbf{\textit{mono\_native} (sound):} Exploits native
-first-order types if the prover supports the TFF0, TFF1, or THF0 syntax;
+first-order types if the prover supports the TF0, TF1, TH0, or TH1 syntax;
 otherwise, falls back on \textit{mono\_guards}. The problem is monomorphized.
 
 \item[\labelitemi] \textbf{\textit{mono\_native\_higher} (sound):} Exploits
-native higher-order types if the prover supports the THF0 syntax; otherwise,
+native higher-order types if the prover supports the TH0 syntax; otherwise,
 falls back on \textit{mono\_native} or \textit{mono\_guards}. The problem is
 monomorphized.
 
 \item[\labelitemi] \textbf{\textit{poly\_native} (sound):} Exploits native
-first-order polymorphic types if the prover supports the TFF1 syntax; otherwise,
-falls back on \textit{mono\_native}.
+first-order polymorphic types if the prover supports the TF1 or TH1 syntax;
+otherwise, falls back on \textit{mono\_native}.
 
 \item[\labelitemi]
 \textbf{%
