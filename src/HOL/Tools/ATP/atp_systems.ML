@@ -472,6 +472,9 @@ val satallax_thf0 = THF (Monomorphic, THF_Without_Choice)
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+     (case getenv "E_HOME" of
+       "" => ""
+     | home => "-E " ^ home ^ "/eprover ") ^
      "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
      [("% SZS output start Proof", "% SZS output end Proof")],
