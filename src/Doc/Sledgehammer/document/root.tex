@@ -102,10 +102,10 @@ and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 historical.}
 %
 The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
-\cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
-\cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III \cite{leo3}, Satallax
-\cite{satallax}, SNARK \cite{snark}, SPASS \cite{weidenbach-et-al-2009},
-Vampire \cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
+\cite{schulz-2002}, E-ToFoF \cite{tofof}, iProver \cite{korovin-2009}, LEO-II
+\cite{leo2}, Leo-III \cite{leo3}, Satallax \cite{satallax}, SNARK
+\cite{snark}, SPASS \cite{weidenbach-et-al-2009}, Vampire
+\cite{riazanov-voronkov-2002}, Waldmeister \cite{waldmeister}, and
 Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or
 remotely via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The
 supported SMT solvers are CVC3 \cite{cvc3}, CVC4 \cite{cvc4}, veriT
@@ -147,10 +147,10 @@ Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
 Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS, Vampire, and
-Zipperposition can be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF,
-iProver, LEO-II, Leo-III, Satallax, SNARK, Vampire, and Waldmeister are
-available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
-CVC3, CVC4, veriT, and Z3 can be run locally.
+Zipperposition can be run locally; in addition, AgsyHOL, E, E-ToFoF, iProver,
+LEO-II, Leo-III, Satallax, SNARK, Vampire, and Waldmeister are available
+remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers CVC3,
+CVC4, veriT, and Z3 can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -859,10 +859,6 @@ AgsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 \item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
-\item[\labelitemi] \textbf{\textit{remote\_e\_sine}:} E-SInE is a metaprover
-developed by Kry\v stof Hoder \cite{sine} based on E. It runs on Geoff
-Sutcliffe's Miami servers.
-
 \item[\labelitemi] \textbf{\textit{remote\_e\_tofof}:} E-ToFoF is a metaprover
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports the TPTP typed first-order format (TFF0). The
@@ -897,9 +893,9 @@ corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
 runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs a subset of CVC4, E, E-SInE, SPASS, Vampire,
-veriT, and Z3 in parallel, either locally or remotely---depending on the number
-of processor cores available and on which provers are actually installed. It is
+By default, Sledgehammer runs a subset of CVC4, E, SPASS, Vampire, veriT, and
+Z3 in parallel, either locally or remotely---depending on the number of
+processor cores available and on which provers are actually installed. It is
 generally a good idea to run several provers in parallel.
 
 \opnodefault{prover}{string}

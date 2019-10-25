@@ -52,7 +52,6 @@ sig
   val eN : string
   val e_malesN : string
   val e_parN : string
-  val e_sineN : string
   val e_tofofN : string
   val ehohN : string
   val iproverN : string
@@ -121,7 +120,6 @@ val dummy_thf_mlN = "dummy_thf_ml" (* for experiments *)
 val eN = "e"
 val e_malesN = "e_males"
 val e_parN = "e_par"
-val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
 val ehohN = "ehoh"
 val iproverN = "iprover"

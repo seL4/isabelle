@@ -727,9 +727,6 @@ val remote_leo3 =
 val remote_vampire =
   remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
     (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
-val remote_e_sine =
-  remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
-    (K (((500, ""), FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
     [("refutation.", "end_refutation.")] [] Hypothesis
@@ -774,8 +771,8 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire,
-   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
-   remote_leo2, remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
+   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_e_tofof, remote_iprover, remote_leo2,
+   remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 

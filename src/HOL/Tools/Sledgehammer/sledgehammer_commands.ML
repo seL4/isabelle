@@ -177,7 +177,7 @@ fun remotify_prover_if_not_installed ctxt name =
 fun default_provers_param_value mode ctxt =
   [cvc4N] @
   (if is_vampire_noncommercial_license_accepted () = SOME false then [] else [vampireN]) @
-  [z3N, eN, spassN, veritN, e_sineN]
+  [z3N, eN, spassN, veritN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads () - (if mode = Try then 1 else 0))
