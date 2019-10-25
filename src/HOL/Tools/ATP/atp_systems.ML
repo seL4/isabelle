@@ -505,12 +505,10 @@ fun check_vampire_noncommercial () =
 
 val vampire_basic_options = "--proof tptp --output_axiom_names on $VAMPIRE_EXTRA_OPTIONS"
 
-(* cf. p. 20 of https://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
 val vampire_full_proof_options =
-  " --forced_options splitting=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:\
-  \naming=0"
+  " --forced_options equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"
 
-val remote_vampire_full_proof_command =
+val remote_vampire_command =
   "vampire " ^ vampire_basic_options ^ " " ^ vampire_full_proof_options ^ " -t %d %s"
 
 val vampire_config : atp_config =
@@ -642,9 +640,8 @@ val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures prem_role best_slice =
   {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
-   arguments = fn _ => fn full_proofs => fn full_proof_command => fn timeout => fn file_name => fn _ =>
-     (if full_proofs andalso full_proof_command <> "" then "-c " ^ quote full_proof_command ^ " "
-      else "") ^
+   arguments = fn _ => fn _ => fn command => fn timeout => fn file_name => fn _ =>
+     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
      "-s " ^ the_remote_system system_name system_versions ^ " " ^
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
      " " ^ file_name,
@@ -698,7 +695,7 @@ val remote_snark =
     (K (((100, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
-    (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
+    (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
   remotify_atp zipperposition "Zipperpin" ["1.5"]
