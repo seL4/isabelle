@@ -620,9 +620,9 @@ fun find_remote_system name [] systems =
     | res => res
 
 fun get_remote_system name versions =
-  Synchronized.change_result remote_systems
-      (fn systems => (if null systems then get_remote_systems () else systems)
-                     |> `(`(find_remote_system name versions)))
+  Synchronized.change_result remote_systems (fn systems =>
+    (if null systems then get_remote_systems () else systems)
+    |> `(`(find_remote_system name versions)))
 
 fun the_remote_system name versions =
   (case get_remote_system name versions of
@@ -694,8 +694,8 @@ val remote_snark =
     [("refutation.", "end_refutation.")] [] Hypothesis
     (K (((100, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
-    (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_command) (* FUDGE *))
+  remotify_atp vampire "Vampire" ["THF-4.4"]
+    (K (((400, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), remote_vampire_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 val remote_zipperposition =
   remotify_atp zipperposition "Zipperpin" ["1.5"]
