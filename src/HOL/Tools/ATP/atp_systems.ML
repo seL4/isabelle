@@ -311,27 +311,6 @@ val e_config : atp_config =
 val e = (eN, fn () => e_config)
 
 
-(* E-MaLeS *)
-
-val e_males_config : atp_config =
-  {exec = K (["E_MALES_HOME"], ["emales.py"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     "-t " ^ string_of_int (to_secs 1 timeout) ^ " -p " ^ file_name,
-   proof_delims = tstp_proof_delims,
-   known_failures = #known_failures e_config,
-   prem_role = Conjecture,
-   best_slices =
-     (* FUDGE *)
-     K [(0.25, (((500, meshN), FOF, "mono_guards??", combs_or_liftingN, false), "")),
-        (0.25, (((150, meshN), FOF, "poly_tags??", combs_or_liftingN, false), "")),
-        (0.25, (((50, meshN), FOF, "mono_tags??", combs_or_liftingN, false), "")),
-        (0.25, (((1000, meshN), FOF, "poly_guards??", combsN, false), ""))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
-
-val e_males = (e_malesN, fn () => e_males_config)
-
-
 (* E-Par *)
 
 val e_par_config : atp_config =
@@ -341,7 +320,12 @@ val e_par_config : atp_config =
    proof_delims = tstp_proof_delims,
    known_failures = #known_failures e_config,
    prem_role = Conjecture,
-   best_slices = #best_slices e_males_config,
+   best_slices =
+     (* FUDGE *)
+     K [(0.25, (((500, meshN), FOF, "mono_guards??", combs_or_liftingN, false), "")),
+        (0.25, (((150, meshN), FOF, "poly_tags??", combs_or_liftingN, false), "")),
+        (0.25, (((50, meshN), FOF, "mono_tags??", combs_or_liftingN, false), "")),
+        (0.25, (((1000, meshN), FOF, "poly_guards??", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -770,9 +754,9 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire,
-   z3_tptp, zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover,
-   remote_leo2, remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
+  [agsyhol, alt_ergo, e, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
+   zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2,
+   remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 

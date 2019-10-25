@@ -47,10 +47,7 @@ sig
   (* Named ATPs *)
   val agsyholN : string
   val alt_ergoN : string
-  val dummy_thfN : string
-  val dummy_thf_mlN : string
   val eN : string
-  val e_malesN : string
   val e_parN : string
   val ehohN : string
   val iproverN : string
@@ -114,10 +111,7 @@ open ATP_Problem
 
 val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
-val dummy_thfN = "dummy_thf" (* for experiments *)
-val dummy_thf_mlN = "dummy_thf_ml" (* for experiments *)
 val eN = "e"
-val e_malesN = "e_males"
 val e_parN = "e_par"
 val ehohN = "ehoh"
 val iproverN = "iprover"
