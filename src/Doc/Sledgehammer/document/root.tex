@@ -101,7 +101,7 @@ and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 \footnote{The distinction between ATPs and SMT solvers is convenient but mostly
 historical.}
 %
-The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
+The supported ATPs are agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2002}, iProver \cite{korovin-2009}, LEO-II \cite{leo2}, Leo-III
 \cite{leo3}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
 \cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002},
@@ -146,11 +146,11 @@ directed to the author at \authoremail.
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
-Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS, Vampire, and
-Zipperposition can be run locally; in addition, AgsyHOL, E, E-ToFoF, iProver,
-LEO-II, Leo-III, Satallax, SNARK, Vampire, and Waldmeister are available
-remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers CVC3,
-CVC4, veriT, and Z3 can be run locally.
+Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS,
+Vampire, and Zipperposition can be run locally; in addition, agsyHOL,
+Alt-Ergo, E, iProver, LEO-II, Leo-III, Satallax, SNARK, Vampire, and
+Waldmeister are available remotely via System\-On\-TPTP \cite{sutcliffe-2000}.
+The SMT solvers CVC3, CVC4, veriT, and Z3 can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -179,7 +179,7 @@ SPASS to \texttt{/usr/local/spass-3.8ds}, create it with the single line
 
 in it.
 
-\item[\labelitemi] If you prefer to build AgsyHOL, Alt-Ergo, E, LEO-II,
+\item[\labelitemi] If you prefer to build agsyHOL, Alt-Ergo, E, LEO-II,
 Leo-III, or Satallax manually, set the environment variable
 \texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
 \texttt{LEO3\_HOME}, or \texttt{SATALLAX\_HOME}
@@ -188,7 +188,7 @@ to the directory that contains the \texttt{agsyHOL},
 \texttt{leo}, \texttt{leo3}, or \texttt{satallax} executable;
 for Alt-Ergo, set the environment variable \texttt{WHY3\_HOME} to the
 directory that contains the \texttt{why3} executable. Sledgehammer has been
-tested with AgsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 2.0, LEO-II 1.3.4, Leo-III
+tested with agsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 2.0, LEO-II 1.3.4, Leo-III
 1.1, and Satallax 2.7. Since the ATPs' output formats are neither documented
 nor stable, other versions might not work well with Sledgehammer. Ideally, you
 should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
@@ -731,9 +731,9 @@ The following local provers are supported:
 
 \begin{sloppy}
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{agsyhol}:} AgsyHOL is an automatic
+\item[\labelitemi] \textbf{\textit{agsyhol}:} agsyHOL is an automatic
 higher-order prover developed by Fredrik Lindblad \cite{agsyHOL}. To use
-AgsyHOL, set the environment variable \texttt{AGSYHOL\_HOME} to the directory
+agsyHOL, set the environment variable \texttt{AGSYHOL\_HOME} to the directory
 that contains the \texttt{agsyHOL} executable. Sledgehammer has been tested
 with version 1.0.
 
@@ -853,7 +853,10 @@ Moreover, the following remote provers are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{remote\_agsyhol}:} The remote version of
-AgsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+agsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[\labelitemi] \textbf{\textit{remote\_alt\_ergo}:} The remote version of
+Alt-Ergo runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.

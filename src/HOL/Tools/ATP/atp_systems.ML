@@ -712,6 +712,9 @@ fun gen_remote_waldmeister name type_enc =
 val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
     (K (((60, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+val remote_alt_ergo =
+  remotify_atp alt_ergo "Alt-Ergo" ["0.95.2"]
+    (K (((250, ""), TFF Polymorphic, "poly_native", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
   remotify_atp e "E" ["2.0", "1.9.1", "1.8"]
     (K (((750, ""), TFF Monomorphic, "mono_native", combsN, false), "") (* FUDGE *))
@@ -724,13 +727,13 @@ val remote_leo2 =
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
     (K (((150, ""), THF (Polymorphic, THF_Without_Choice), "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
-val remote_vampire =
-  remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
-    (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
     [("refutation.", "end_refutation.")] [] Hypothesis
     (K (((100, ""), TFF Monomorphic, "mono_native", liftingN, false), "") (* FUDGE *))
+val remote_vampire =
+  remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
+    (K (((400, ""), TFF Monomorphic, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_waldmeister = gen_remote_waldmeister waldmeisterN "raw_mono_tags??"
 
 
@@ -768,8 +771,8 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire,
-   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_iprover, remote_leo2, remote_leo3,
-   remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
+   z3_tptp, zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover,
+   remote_leo2, remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 
