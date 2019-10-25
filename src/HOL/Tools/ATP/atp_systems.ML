@@ -261,8 +261,7 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
   else
     "-xAuto "
 
-val e_ord_weights =
-  map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
+val e_ord_weights = map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
 fun e_ord_precedence [_] = ""
   | e_ord_precedence info = info |> map fst |> space_implode "<"
 
@@ -293,17 +292,23 @@ val e_config : atp_config =
      known_szs_status_failures,
    prem_role = Conjecture,
    best_slices = fn ctxt =>
-     let val heuristic = Config.get ctxt e_selection_heuristic in
+     let
+       val heuristic = Config.get ctxt e_selection_heuristic
+       val ehoh = string_ord (getenv "E_VERSION", "2.3") <> LESS
+       val (format, enc) =
+         if ehoh then (THF (Monomorphic, THF_Predicate_Free), "mono_native_higher")
+         else (TFF Monomorphic, "mono_native")
+     in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.15, (((128, meshN), TFF Monomorphic, "mono_native", combsN, false), e_fun_weightN)),
-          (0.15, (((128, mashN), TFF Monomorphic, "mono_native", combsN, false), e_sym_offset_weightN)),
-          (0.15, (((91, mepoN), TFF Monomorphic, "mono_native", combsN, false), e_autoN)),
-          (0.15, (((1000, meshN), TFF Monomorphic, "poly_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.15, (((256, mepoN), TFF Monomorphic, "mono_native", liftingN, false), e_fun_weightN)),
-          (0.25, (((64, mashN), TFF Monomorphic, "mono_native", combsN, false), e_fun_weightN))]
+         [(0.15, (((128, meshN), format, enc, combsN, false), e_fun_weightN)),
+          (0.15, (((128, mashN), format, enc, combsN, false), e_sym_offset_weightN)),
+          (0.15, (((91, mepoN), format, enc, combsN, false), e_autoN)),
+          (0.15, (((1000, meshN), format, "poly_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.15, (((256, mepoN), format, enc, liftingN, false), e_fun_weightN)),
+          (0.25, (((64, mashN), format, enc, combsN, false), e_fun_weightN))]
        else
-         [(1.0, (((500, ""), TFF Monomorphic, "mono_native", combsN, false), heuristic))]
+         [(1.0, (((500, ""), format, enc, combsN, false), heuristic))]
      end,
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
@@ -330,30 +335,6 @@ val e_par_config : atp_config =
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 val e_par = (e_parN, fn () => e_par_config)
-
-
-(* Ehoh *)
-
-val ehoh_config : atp_config =
-  {exec = fn _ => (["E_HOME"], ["eprover"]),
-   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-     "--auto-schedule --tstp-in --tstp-out --silent --cpu-limit=" ^
-     string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ file_name,
-   proof_delims =
-     [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
-     tstp_proof_delims,
-   known_failures =
-     [(TimedOut, "Failure: Resource limit exceeded (time)"),
-      (TimedOut, "time limit exceeded")] @
-     known_szs_status_failures,
-   prem_role = Hypothesis,
-   best_slices =
-     (* FUDGE *)
-     K [(1.0, (((500, ""), THF (Monomorphic, THF_Predicate_Free), "mono_native_higher", liftingN, false), ""))],
-   best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
-
-val ehoh = (ehohN, fn () => ehoh_config)
 
 
 (* iProver *)
@@ -754,7 +735,7 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
+  [agsyhol, alt_ergo, e, e_par, iprover, leo2, leo3, satallax, spass, vampire, z3_tptp,
    zipperposition, remote_agsyhol, remote_alt_ergo, remote_e, remote_iprover, remote_leo2,
    remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 

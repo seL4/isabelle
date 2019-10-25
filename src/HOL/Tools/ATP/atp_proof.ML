@@ -49,7 +49,6 @@ sig
   val alt_ergoN : string
   val eN : string
   val e_parN : string
-  val ehohN : string
   val iproverN : string
   val leo2N : string
   val leo3N : string
@@ -113,7 +112,6 @@ val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
 val eN = "e"
 val e_parN = "e_par"
-val ehohN = "ehoh"
 val iproverN = "iprover"
 val leo2N = "leo2"
 val leo3N = "leo3"
