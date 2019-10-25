@@ -394,21 +394,6 @@ val iprover_config : atp_config =
 val iprover = (iproverN, fn () => iprover_config)
 
 
-(* iProver-Eq *)
-
-val iprover_eq_config : atp_config =
-  {exec = K (["IPROVER_EQ_HOME"], ["iprover-eq"]),
-   arguments = #arguments iprover_config,
-   proof_delims = #proof_delims iprover_config,
-   known_failures = #known_failures iprover_config,
-   prem_role = #prem_role iprover_config,
-   best_slices = #best_slices iprover_config,
-   best_max_mono_iters = #best_max_mono_iters iprover_config,
-   best_max_new_mono_instances = #best_max_new_mono_instances iprover_config}
-
-val iprover_eq = (iprover_eqN, fn () => iprover_eq_config)
-
-
 (* LEO-II *)
 
 val leo2_config : atp_config =
@@ -733,9 +718,6 @@ val remote_e =
 val remote_iprover =
   remotify_atp iprover "iProver" ["0.99"]
     (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
-val remote_iprover_eq =
-  remotify_atp iprover_eq "iProver-Eq" ["0.8"]
-    (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
     (K (((40, ""), THF (Monomorphic, THF_Without_Choice), "mono_native_higher", liftingN, false), "") (* FUDGE *))
@@ -791,10 +773,9 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, iprover_eq, leo2, leo3, satallax, spass,
-   vampire, z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof,
-   remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3, remote_vampire, remote_snark,
-   remote_pirate, remote_waldmeister]
+  [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, leo2, leo3, satallax, spass, vampire,
+   z3_tptp, zipperposition, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
+   remote_leo2, remote_leo3, remote_vampire, remote_snark, remote_pirate, remote_waldmeister]
 
 val _ = Theory.setup (fold add_atp atps)
 
