@@ -124,6 +124,7 @@ fun create_grouped_goal_assumption rule new_goals generated_assumptions =
     else
       raise Fail ("the rule " ^ rule ^" is not supported in the reconstruction")
   end
+
 fun to_satallax_step (((id, role), formula), (SOME (_,((rule, l), used_rules)))) =
     let
       val (used_assumptions, new_goals, generated_assumptions) = seperate_dependices used_rules
@@ -220,7 +221,7 @@ fun transform_inline_assumption hypotheses_step proof_sketch =
           Linear_Part {node = node, succs = []}
         else
           let
-            (*one singel goal is created, two hypothesis can be created, for the "and" rule:
+            (*one single goal is created, two hypothesis can be created, for the "and" rule:
               (A /\ B) create two hypotheses A, and B.*)
             fun set_hypotheses_as_goal [hypothesis] succs =
                 Linear_Part {node = add_detailled_eigen detailed_eigen
@@ -361,7 +362,7 @@ fun transform_to_standard_atp_step already_transformed proof =
       let
         val role' = role_of_tptp_string role
         val new_transformed = filter
-          (fn s => size s >=4 andalso not (is_special_satallax_rule s) andalso not
+          (fn s => size s >= 4 andalso not (is_special_satallax_rule s) andalso not
           (member (op =) already_transformed s)) used_assumptions
       in
         (map create_fact_step new_transformed

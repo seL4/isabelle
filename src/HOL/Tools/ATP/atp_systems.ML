@@ -783,9 +783,6 @@ val remote_leo2 =
 val remote_leo3 =
   remotify_atp leo3 "Leo-III" ["1.1"]
     (K (((150, ""), leo3_thf1, "poly_native_higher", keep_lamsN, false), "") (* FUDGE *))
-val remote_satallax =
-  remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
-    (K (((150, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["4.2", "4.1", "4.0"]
     (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
@@ -839,8 +836,7 @@ val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, iprover_eq, leo2, leo3, satallax, spass,
    vampire, z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e,
    remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3,
-   remote_satallax, remote_vampire, remote_snark, remote_pirate, remote_waldmeister,
-   remote_waldmeister_new]
+   remote_vampire, remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 
