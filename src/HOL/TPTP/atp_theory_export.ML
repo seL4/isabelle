@@ -36,15 +36,15 @@ datatype inference_policy =
 val prefix = Library.prefix
 val fact_name_of = prefix fact_prefix o ascii_of
 
-fun atp_of_format (THF (Polymorphic, _)) = dummy_thfN
+fun atp_of_format (THF (Polymorphic, _)) = leo3N
   | atp_of_format (THF (Monomorphic, _)) = satallaxN
   | atp_of_format (DFG Polymorphic) = pirateN
   | atp_of_format (DFG Monomorphic) = spassN
   | atp_of_format (TFF Polymorphic) = alt_ergoN
   | atp_of_format (TFF Monomorphic) = vampireN
-  | atp_of_format FOF = eN
+  | atp_of_format FOF = eN (* FIXME? *)
   | atp_of_format CNF_UEQ = waldmeisterN
-  | atp_of_format CNF = eN
+  | atp_of_format CNF = eN (* FIXME? *)
 
 fun run_atp ctxt format problem =
   let
@@ -220,8 +220,7 @@ fun write_lines path ss =
     val _ = app (File.append path) ss
   in () end
 
-fun generate_atp_inference_file_for_theory ctxt thy format infer_policy type_enc
-                                           file_name =
+fun generate_atp_inference_file_for_theory ctxt thy format infer_policy type_enc file_name =
   let
     val (_, problem) = problem_of_theory ctxt thy format infer_policy type_enc
     val ss = lines_of_problem ctxt format problem
