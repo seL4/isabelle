@@ -783,10 +783,11 @@ E that supports a $\lambda$-free fragment of higher-order logic. Use at your
 own risks.
 
 \item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
-instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}.
-To use iProver, set the environment variable \texttt{IPROVER\_HOME} to the
-directory that contains the \texttt{iprover} and \texttt{vclausify\_rel}
-executables. Sledgehammer has been tested with version 0.99.
+instantiation-based prover developed by Konstantin Korovin
+\cite{korovin-2009}. To use iProver, set the environment variable
+\texttt{IPROVER\_HOME} to the directory that contains the \texttt{iproveropt}
+executable. Sledgehammer has been tested with version 2.8. iProver depends on
+E to clausify problems, so make sure that E is installed as well.
 
 \item[\labelitemi] \textbf{\textit{iprover\_eq}:} iProver-Eq is an
 instantiation-based prover with native support for equality developed by
