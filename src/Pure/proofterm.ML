@@ -1127,13 +1127,11 @@ fun of_sort_proof algebra classrel_proof arity_proof hyps =
 
 (** axioms and theorems **)
 
-fun tvars_of t = map TVar (rev (Term.add_tvars t []));
-fun tfrees_of t = map TFree (rev (Term.add_tfrees t []));
-fun type_variables_of t = tvars_of t @ tfrees_of t;
+val add_type_variables = (fold_types o fold_atyps) (insert (op =));
+fun type_variables_of t = rev (add_type_variables t []);
 
-fun vars_of t = map Var (rev (Term.add_vars t []));
-fun frees_of t = map Free (rev (Term.add_frees t []));
-fun variables_of t = vars_of t @ frees_of t;
+val add_variables = fold_aterms (fn a => (is_Var a orelse is_Free a) ? insert (op =) a);
+fun variables_of t = rev (add_variables t []);
 
 fun test_args _ [] = true
   | test_args is (Bound i :: ts) =
@@ -1143,6 +1141,8 @@ fun test_args _ [] = true
 fun is_fun (Type ("fun", _)) = true
   | is_fun (TVar _) = true
   | is_fun _ = false;
+
+fun vars_of t = map Var (rev (Term.add_vars t []));
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
@@ -1189,11 +1189,11 @@ fun prop_args prop =
       union (op =) (Library.foldl (uncurry (union (op =)))
         ([], map (uncurry (insert (op =))) (add_npvars true true [] ([], prop))))
       (prop_vars prop);
-    val vars =
-      vars_of prop |> map (fn (v as Var (ixn, _)) =>
-        if member (op =) needed_vars ixn then SOME v else NONE);
-    val frees = map SOME (frees_of prop);
-  in vars @ frees end;
+  in
+    variables_of prop |> map
+      (fn var as Var (ixn, _) => if member (op =) needed_vars ixn then SOME var else NONE
+        | free => SOME free)
+  end;
 
 fun const_proof mk name prop =
   let
@@ -1753,13 +1753,12 @@ fun make_constraints_cprf thy env cprf =
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
           let
-            val tvars = Term.add_tvars prop [] |> rev;
-            val tfrees = Term.add_tfrees prop [] |> rev;
+            val prop_types = type_variables_of prop;
             val (Ts, env') =
               (case opTs of
-                NONE => fold_map mk_tvar (map snd tvars @ map snd tfrees) env
+                NONE => fold_map (mk_tvar o Type.sort_of_atyp) prop_types env
               | SOME Ts => (Ts, env));
-            val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
+            val prop' = subst_atomic_types (prop_types ~~ Ts)
               (forall_intr_vfs prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (guess_name prf))
           in (prop', change_types (SOME Ts) prf, [], env', vTs) end;
