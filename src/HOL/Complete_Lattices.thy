@@ -193,10 +193,10 @@ lemma Inf_UNIV [simp]: "\<Sqinter>UNIV = \<bottom>"
 lemma Sup_UNIV [simp]: "\<Squnion>UNIV = \<top>"
   by (auto intro!: antisym Sup_upper)
 
-lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
+lemma Inf_eq_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
-lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
+lemma Sup_eq_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
 lemma Inf_superset_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<le> \<Sqinter>B"
