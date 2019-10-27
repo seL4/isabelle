@@ -8,6 +8,12 @@ theory Metric_Arith
   imports HOL.Real_Vector_Spaces
 begin
 
+text \<open>
+A port of the decision procedure ``Formalization of metric spaces in HOL Light''
+@{cite "DBLP:journals/jar/Maggesi18"} for the type class @{class metric_space},
+with the \<open>Argo\<close> solver as backend.
+\<close>
+
 named_theorems metric_prenex
 named_theorems metric_nnf
 named_theorems metric_unfold
