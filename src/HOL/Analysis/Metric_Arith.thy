@@ -67,6 +67,9 @@ lemma nnf_thms [metric_nnf]:
 lemmas nnf_simps = nnf_thms linorder_not_less linorder_not_le
 declare nnf_simps[metric_nnf]
 
+lemma ball_insert: "(\<forall>x\<in>insert a B. P x) = (P a \<and> (\<forall>x\<in>B. P x))"
+  by blast
+
 lemma Sup_insert_insert:
   fixes a::real
   shows "Sup (insert a (insert b s)) = Sup (insert (max a b) s)"

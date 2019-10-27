@@ -194,7 +194,7 @@ fun metric_eq_conv ctxt fset_ct ct =
         addsimps @{thms empty_iff insert_iff})))
     val ball_simp =
       Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps
-        @{thms Set.ball_simps(7) Set.ball_simps(5)})
+        @{thms Set.ball_empty ball_insert})
     val dist_refl_sym_simp =
       Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms dist_commute dist_self})
     val metric_eq_thm =
