@@ -9,6 +9,7 @@ chapter \<open>Functional Analysis\<close>
 theory Elementary_Metric_Spaces
   imports
     Abstract_Topology_2
+    Metric_Arith
 begin
 
 section \<open>Elementary Metric Spaces\<close>
@@ -24,10 +25,10 @@ definition\<^marker>\<open>tag important\<close> cball :: "'a::metric_space \<Ri
 definition\<^marker>\<open>tag important\<close> sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "sphere x e = {y. dist x y = e}"
 
-lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
+lemma mem_ball [simp, metric_unfold]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
   by (simp add: ball_def)
 
-lemma mem_cball [simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
+lemma mem_cball [simp, metric_unfold]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
   by (simp add: cball_def)
 
 lemma mem_sphere [simp]: "y \<in> sphere x e \<longleftrightarrow> dist x y = e"
