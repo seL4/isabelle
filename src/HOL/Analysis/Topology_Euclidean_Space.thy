@@ -142,12 +142,7 @@ proof
     then show ?rhs
       by (simp add: dist_norm)
   qed
-next
-  assume ?rhs
-  then show ?lhs
-    by (auto simp: ball_def dist_norm)
-      (metis add.commute add_le_cancel_right dist_norm dist_triangle3 order_trans)
-qed
+qed metric
 
 lemma cball_subset_ball_iff: "cball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r < r' \<or> r < 0"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -188,8 +183,7 @@ proof
 next
   assume ?rhs
   then show ?lhs
-    by (auto simp: ball_def dist_norm)
-      (metis add.commute add_le_cancel_right dist_norm dist_triangle3 le_less_trans)
+    by metric
 qed
 
 lemma ball_subset_cball_iff: "ball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
@@ -198,7 +192,7 @@ lemma ball_subset_cball_iff: "ball a r \<subseteq> cball a' r' \<longleftrightar
 proof (cases "r \<le> 0")
   case True
   then show ?thesis
-    using dist_not_less_zero less_le_trans by force
+    by metric
 next
   case False
   show ?thesis
@@ -211,7 +205,7 @@ next
   next
     assume ?rhs
     with False show ?lhs
-      using ball_subset_cball cball_subset_cball_iff by blast
+      by metric
   qed
 qed
 
@@ -221,24 +215,18 @@ lemma ball_subset_ball_iff:
         (is "?lhs = ?rhs")
 proof (cases "r \<le> 0")
   case True then show ?thesis
-    using dist_not_less_zero less_le_trans by force
+    by metric
 next
   case False show ?thesis
   proof
     assume ?lhs
     then have "0 < r'"
-      by (metis (no_types) False \<open>?lhs\<close> centre_in_ball dist_norm le_less_trans mem_ball norm_ge_zero not_less subsetD)
+      using False by metric
     then have "(cball a r \<subseteq> cball a' r')"
       by (metis False\<open>?lhs\<close> closure_ball closure_mono not_less)
     then show ?rhs
       using False cball_subset_cball_iff by fastforce
-  next
-  assume ?rhs then show ?lhs
-    apply (auto simp: ball_def)
-    apply (metis add.commute add_le_cancel_right dist_commute dist_triangle_lt not_le order_trans)
-    using dist_not_less_zero order.strict_trans2 apply blast
-    done
-  qed
+  qed metric
 qed
 
 

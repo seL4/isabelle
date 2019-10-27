@@ -13,15 +13,7 @@ lemma le_left_mono: "x \<le> y \<Longrightarrow> y \<le> a \<longrightarrow> x \
 
 lemma ball_trans:
   assumes "y \<in> ball z q" "r + q \<le> s" shows "ball y r \<subseteq> ball z s"
-proof safe
-  fix x assume x: "x \<in> ball y r"
-  have "dist z x \<le> dist z y + dist y x"
-    by (rule dist_triangle)
-  also have "\<dots> < s"
-    using assms x by auto
-  finally show "x \<in> ball z s"
-    by simp
-qed
+  using assms by metric
 
 lemma has_integral_implies_lebesgue_measurable_cbox:
   fixes f :: "'a :: euclidean_space \<Rightarrow> real"
