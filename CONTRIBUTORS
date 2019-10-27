@@ -6,6 +6,8 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2019: Maximilian Schäffeler
+  Port of the HOL Light decision procedure for metric spaces.
 
 Contributions to Isabelle2019
 -----------------------------
