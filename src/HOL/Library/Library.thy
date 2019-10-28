@@ -38,6 +38,7 @@ imports
   Groups_Big_Fun
   Indicator_Function
   Infinite_Set
+  Interval
   IArray
   Landau_Symbols
   Lattice_Algebras
