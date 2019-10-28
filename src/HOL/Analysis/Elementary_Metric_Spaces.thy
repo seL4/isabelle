@@ -84,14 +84,7 @@ lemma mem_cball_leI: "x \<in> cball y e \<Longrightarrow> e \<le> f \<Longrighta
   by (auto simp: mem_ball mem_cball)
 
 lemma cball_trans: "y \<in> cball z b \<Longrightarrow> x \<in> cball y a \<Longrightarrow> x \<in> cball z (b + a)"
-  unfolding mem_cball
-proof -
-  have "dist z x \<le> dist z y + dist y x"
-    by (rule dist_triangle)
-  also assume "dist z y \<le> b"
-  also assume "dist y x \<le> a"
-  finally show "dist z x \<le> b + a" by arith
-qed
+  by metric
 
 lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
   by (simp add: set_eq_iff) arith
@@ -133,9 +126,7 @@ lemma open_contains_ball_eq: "open S \<Longrightarrow> x\<in>S \<longleftrightar
 
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   unfolding mem_ball set_eq_iff
-  apply (simp add: not_less)
-  apply (metis zero_le_dist order_trans dist_self)
-  done
+  by (simp add: not_less) metric
 
 lemma ball_empty: "e \<le> 0 \<Longrightarrow> ball x e = {}" by simp
 
@@ -251,8 +242,7 @@ lemma limpt_of_limpts: "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S
   apply (auto simp: simp del: less_divide_eq_numeral1)
   apply (drule_tac x="dist x' x" in spec)
   apply (auto simp: zero_less_dist_iff simp del: less_divide_eq_numeral1)
-  apply (erule rev_bexI)
-  apply (metis dist_commute dist_triangle_half_r less_trans less_irrefl)
+  apply metric
   done
 
 lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt S}"
@@ -345,15 +335,10 @@ proof -
     from e have e2: "e/2 > 0" by arith
     from C[rule_format, OF e2] obtain y where y: "y \<in> S" "y \<noteq> x" "dist y x < e/2"
       by blast
-    let ?m = "min (e/2) (dist x y) "
-    from e2 y(2) have mp: "?m > 0"
+    from e2 y(2) have mp: "min (e/2) (dist x y) > 0"
       by simp
-    from C[OF mp] obtain z where z: "z \<in> S" "z \<noteq> x" "dist z x < ?m"
-      by blast
-    from z y have "dist z y < e"
-      by (intro dist_triangle_lt [where z=x]) simp
-    from d[rule_format, OF y(1) z(1) this] y z show ?thesis
-      by (auto simp: dist_commute)
+    from d y C[OF mp] show ?thesis
+      by metric
   qed
   then show ?thesis
     by (metis islimpt_approachable closed_limpt [where 'a='a])
@@ -542,11 +527,8 @@ proof
       assume "y \<in> f ` (ball x d \<inter> s)"
       then have "y \<in> ball (f x) e"
         using d(2)
-        apply (auto simp: dist_commute)
-        apply (erule_tac x=xa in ballE, auto)
         using \<open>e > 0\<close>
-        apply auto
-        done
+        by (auto simp: dist_commute)
     }
     then have "\<exists>d>0. f ` (ball x d \<inter> s) \<subseteq> ball (f x) e"
       using \<open>d > 0\<close>
@@ -833,14 +815,10 @@ lemma bounded_subset_ballI: "S \<subseteq> ball x r \<Longrightarrow> bounded S"
 lemma bounded_subset_ballD:
   assumes "bounded S" shows "\<exists>r. 0 < r \<and> S \<subseteq> ball x r"
 proof -
-  obtain e::real and y where "S \<subseteq> cball y e"  "0 \<le> e"
+  obtain e::real and y where "S \<subseteq> cball y e" "0 \<le> e"
     using assms by (auto simp: bounded_subset_cball)
   then show ?thesis
-    apply (rule_tac x="dist x y + e + 1" in exI)
-    apply (simp add: add.commute add_pos_nonneg)
-    apply (erule subset_trans)
-    apply (clarsimp simp add: cball_def)
-    by (metis add_le_cancel_right add_strict_increasing dist_commute dist_triangle_le zero_less_one)
+    by (intro exI[where x="dist x y + e + 1"]) metric
 qed
 
 lemma finite_imp_bounded [intro]: "finite S \<Longrightarrow> bounded S"
@@ -860,7 +838,7 @@ proof -
     by (auto simp: bounded_any_center[of _ undefined] dist_commute)
   have "dist (f x) (g x) \<le> M1 + M2" if "x \<in> S" for x
     using *[OF that]
-    by (rule order_trans[OF dist_triangle add_mono])
+    by metric
   then show ?thesis
     by (auto intro!: boundedI)
 qed
@@ -1409,7 +1387,7 @@ next
       have "ball y \<delta> \<subseteq> ball y (r x)"
         by (metis \<delta>_def \<open>S0 \<noteq> {}\<close> \<open>finite S0\<close> \<open>x \<in> S0\<close> empty_is_image finite_imageI finite_less_Inf_iff imageI less_irrefl not_le subset_ball)
       also have "... \<subseteq> ball x (2*r x)"
-        by clarsimp (metis dist_commute dist_triangle_less_add mem_ball mult_2 x)
+        using x by metric
       finally obtain C where "C \<in> \<C>" "ball y \<delta> \<subseteq> C"
         by (meson r \<open>S0 \<subseteq> S\<close> \<open>x \<in> S0\<close> dual_order.trans subsetCE)
       have "bounded T"
@@ -1636,9 +1614,8 @@ proof -
           using lr'[of n] n by auto
         then have "dist (f n) ((f \<circ> r) n) < e / 2"
           using N and n by auto
-        ultimately have "dist (f n) l < e"
-          using dist_triangle_half_r[of "f (r n)" "f n" e l]
-          by (auto simp: dist_commute)
+        ultimately have "dist (f n) l < e" using n M
+          by metric
       }
       then have "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast
     }
@@ -1729,9 +1706,8 @@ proof
           using F_dec t by (auto simp: e_def field_simps of_nat_Suc)
         with F[of N] obtain x where "dist x ((f \<circ> t) n) < e N" "dist x ((f \<circ> t) m) < e N"
           by (auto simp: subset_eq)
-        with dist_triangle[of "(f \<circ> t) m" "(f \<circ> t) n" x] \<open>2 * e N < r\<close>
-        show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
-          by (simp add: dist_commute)
+        with \<open>2 * e N < r\<close> show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
+          by metric
       qed
 
       ultimately show "\<exists>l\<in>s. \<exists>r. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
@@ -2150,7 +2126,7 @@ proof
     proof (auto)
       fix z assume H: "dist x z * 2 < infdist x T" "dist y z * 2 < infdist y S"
       have "2 * dist x y \<le> 2 * dist x z + 2 * dist y z"
-        using dist_triangle[of x y z] by (auto simp add: dist_commute)
+        by metric
       also have "... < infdist x T + infdist y S"
         using H by auto
       finally have "dist x y < infdist x T \<or> dist x y < infdist y S"
@@ -2208,14 +2184,12 @@ proof -
     by (auto simp: compact_eq_bounded_closed bounded_def)
   {
     fix y
-    assume le: "infdist y A \<le> e"
+    assume "infdist y A \<le> e"
+    moreover
     from infdist_attains_inf[OF \<open>closed A\<close> \<open>A \<noteq> {}\<close>, of y]
-    obtain z where z: "z \<in> A" "infdist y A = dist y z" by blast
-    have "dist x0 y \<le> dist y z + dist x0 z"
-      by (metis dist_commute dist_triangle)
-    also have "dist y z \<le> e" using le z by simp
-    also have "dist x0 z \<le> b" using b z by simp
-    finally have "dist x0 y \<le> b + e" by arith
+    obtain z where "z \<in> A" "infdist y A = dist y z" by blast
+    ultimately
+    have "dist x0 y \<le> b + e" using b by metric
   } then
   have "bounded {x. infdist x A \<le> e}"
     by (auto simp: bounded_any_center[where a=x0] intro!: exI[where x="b + e"])
@@ -2434,7 +2408,7 @@ proof -
     moreover have "dist (f (r (max N1 N2))) l < e/2"
       using N1 max.cobounded1 by blast
     ultimately have "dist x l < e"
-      using dist_triangle_half_r by blast
+      by metric
     then show ?thesis
       using e \<open>x \<notin> G\<close> by blast
   qed
@@ -2514,13 +2488,11 @@ next
         using closure_approachable y
         by (metis \<open>0 < \<delta>'\<close> \<open>0 < \<delta>\<close> divide_pos_pos min_less_iff_conj zero_less_numeral)
       have "dist (f z) (f y) < e/2"
-        apply (rule \<delta>' [OF \<open>z \<in> S\<close>])
-        using z \<open>0 < \<delta>'\<close> by linarith
+        using \<delta>' [OF \<open>z \<in> S\<close>] z \<open>0 < \<delta>'\<close> by metric
       moreover have "dist (f z) (f x) < e/2"
-        apply (rule \<delta> [OF \<open>z \<in> S\<close>])
-        using z \<open>0 < \<delta>\<close>  dist_commute[of y z] dist_triangle_half_r [of y] dyx by auto
+        using \<delta>[OF \<open>z \<in> S\<close>] z dyx by metric
       ultimately show ?thesis
-        by (metis dist_commute dist_triangle_half_l less_imp_le)
+        by metric
     qed
     then show "\<exists>d>0. \<forall>x'\<in>closure S. dist x' x < d \<longrightarrow> dist (f x') (f x) \<le> e"
       by (rule_tac x="\<delta>/2" in exI) (simp add: \<open>\<delta> > 0\<close>)
@@ -2568,26 +2540,19 @@ proof (intro allI impI)
     obtain d2::real where "d2 > 0"
            and d2: "\<forall>w \<in> closure S. dist w y < d2 \<longrightarrow> dist (f w) (f y) < e/3"
       using cont [unfolded continuous_on_iff, rule_format, of "y" "e/3"] \<open>0 < e\<close> y by auto
-     obtain y' where "y' \<in> S" and y': "dist y' y < min d2 (d / 3)"
-        using closure_approachable [of y S]
-        by (metis \<open>0 < d2\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj y zero_less_numeral)
-     have "dist x' x < d/3" using x' by auto
-     moreover have "dist x y < d/3"
-       by (metis dist_commute dyx less_divide_eq_numeral1(1))
-     moreover have "dist y y' < d/3"
-       by (metis (no_types) dist_commute min_less_iff_conj y')
-     ultimately have "dist x' y' < d/3 + d/3 + d/3"
-       by (meson dist_commute_lessI dist_triangle_lt add_strict_mono)
-     then have "dist x' y' < d" by simp
-     then have "dist (f x') (f y') < e/3"
-       by (rule d [OF \<open>y' \<in> S\<close> \<open>x' \<in> S\<close>])
-     moreover have "dist (f x') (f x) < e/3" using \<open>x' \<in> S\<close> closure_subset x' d1
-       by (simp add: closure_def)
-     moreover have "dist (f y') (f y) < e/3" using \<open>y' \<in> S\<close> closure_subset y' d2
-       by (simp add: closure_def)
-     ultimately have "dist (f y) (f x) < e/3 + e/3 + e/3"
-       by (meson dist_commute_lessI dist_triangle_lt add_strict_mono)
-    then show "dist (f y) (f x) < e" by simp
+    obtain y' where "y' \<in> S" and y': "dist y' y < min d2 (d / 3)"
+      using closure_approachable [of y S]
+      by (metis \<open>0 < d2\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj y zero_less_numeral)
+    have "dist x' x < d/3" using x' by auto
+    then have "dist x' y' < d"
+      using dyx y' by metric
+    then have "dist (f x') (f y') < e/3"
+      by (rule d [OF \<open>y' \<in> S\<close> \<open>x' \<in> S\<close>])
+    moreover have "dist (f x') (f x) < e/3" using \<open>x' \<in> S\<close> closure_subset x' d1
+      by (simp add: closure_def)
+    moreover have "dist (f y') (f y) < e/3" using \<open>y' \<in> S\<close> closure_subset y' d2
+      by (simp add: closure_def)
+    ultimately show "dist (f y) (f x) < e" by metric
   qed
 qed
 
@@ -2634,7 +2599,7 @@ proof -
       proof eventually_elim
         case (elim n)
         have "dist (f (xs' n)) l \<le> dist (f (xs n)) (f (xs' n)) + dist (f (xs n)) l"
-          by (metis dist_triangle dist_commute)
+          by metric
         also have "dist (f (xs n)) (f (xs' n)) < e'"
           by (auto intro!: d xs \<open>xs' _ \<in> _\<close> elim)
         also note \<open>dist (f (xs n)) l < e'\<close>
@@ -2699,14 +2664,8 @@ proof -
           dist (f (xs' n)) (?g x') + dist (f (xs' n)) (f (xs n)) + dist (f (xs n)) (?g x)"
           by (metis add.commute add_le_cancel_left dist_commute dist_triangle dist_triangle_le)
         also
-        {
-          have "dist (xs' n) (xs n) \<le> dist (xs' n) x' + dist x' x + dist (xs n) x"
-            by (metis add.commute add_le_cancel_left  dist_triangle dist_triangle_le)
-          also note \<open>dist (xs' n) x' < d'\<close>
-          also note \<open>dist x' x < d'\<close>
-          also note \<open>dist (xs n) x < d'\<close>
-          finally have "dist (xs' n) (xs n) < d" by (simp add: d'_def)
-        }
+        from \<open>dist (xs' n) x' < d'\<close> \<open>dist x' x < d'\<close> \<open>dist (xs n) x < d'\<close>
+        have "dist (xs' n) (xs n) < d" unfolding d'_def by metric
         with \<open>xs _ \<in> X\<close> \<open>xs' _ \<in> X\<close> have "dist (f (xs' n)) (f (xs n)) < e'"
           by (rule d)
         also note \<open>dist (f (xs' n)) (?g x') < e'\<close>
