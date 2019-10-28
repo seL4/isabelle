@@ -417,8 +417,7 @@ by(auto simp add: monotone_def fun_ord_def)
 
 context preorder begin
 
-lemma transp_le [simp, cont_intro]: "transp (\<le>)"
-by(rule transpI)(rule order_trans)
+declare transp_le[cont_intro]
 
 lemma monotone_const [simp, cont_intro]: "monotone ord (\<le>) (\<lambda>_. c)"
 by(rule monotoneI) simp
