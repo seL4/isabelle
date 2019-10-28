@@ -689,11 +689,13 @@ session "HOL-Eisbach" in Eisbach = HOL +
   \<close>
   sessions
     FOL
+    "HOL-Analysis"
   theories
     Eisbach
     Tests
     Examples
     Examples_FOL
+    Example_Metric
 
 session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
   description "
