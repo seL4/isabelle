@@ -54,7 +54,7 @@ Phabricator server
   Port 222
 
   /etc/passwd:
-  phab-daemon:x:118:126::/nonexistent:/bin/false
+  phab-daemon:x:118:126::/home/phab-daemon:/bin/bash
   vcs:x:119:125::/home/vcs:/bin/bash
 
   /etc/group:
