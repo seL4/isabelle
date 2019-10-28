@@ -1,6 +1,12 @@
+(*  Title:    Example_Metric.thy
+    Author:   Maximilian Schäffeler
+*)
 theory Example_Metric
   imports "HOL-Analysis.Metric_Arith" "HOL-Eisbach.Eisbach_Tools"
 begin
+
+text \<open>An Eisbach implementation of the method @{method metric}.
+  Slower than the Isabelle/ML implementation but arguably more readable.\<close>
 
 method dist_refl_sym = simp only: simp_thms dist_commute dist_self
 
