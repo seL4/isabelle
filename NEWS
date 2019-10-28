@@ -83,6 +83,9 @@ associates to the left now as is customary.
 * Theory Complete_Lattices:
 renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
 
+* Session HOL-Analysis: Method "metric" implements a decision procedure
+for simple linear statements in metric spaces.
+
 *** ML ***
 
 * Theory construction may be forked internally, the operation
