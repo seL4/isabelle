@@ -46,4 +46,21 @@ object Linux
 
     def is_ubuntu: Boolean = id == "Ubuntu"
   }
+
+
+  /* packages */
+
+  def reboot_required(): Boolean =
+    Path.explode("/var/run/reboot-required").is_file
+
+  def check_reboot_required(): Unit =
+    if (reboot_required()) error("Reboot required")
+
+  def package_update(progress: Progress = No_Progress): Unit =
+    progress.bash(
+      """apt-get update -y && apt-get upgrade -y && apt autoremove -y""",
+      echo = true).check
+
+  def package_install(packages: List[String], progress: Progress = No_Progress): Unit =
+    progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
 }
