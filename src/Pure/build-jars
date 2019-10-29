@@ -125,6 +125,7 @@ declare -a SOURCES=(
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/isabelle_tool.scala
+  System/linux.scala
   System/numa.scala
   System/options.scala
   System/platform.scala
