@@ -154,6 +154,7 @@ declare -a SOURCES=(
   Tools/fontforge.scala
   Tools/main.scala
   Tools/mkroot.scala
+  Tools/phabricator.scala
   Tools/print_operation.scala
   Tools/profiling_report.scala
   Tools/server.scala
