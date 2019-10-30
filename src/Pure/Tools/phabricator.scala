@@ -9,6 +9,9 @@ Support for Phabricator server. See also:
 package isabelle
 
 
+import scala.util.matching.Regex
+
+
 object Phabricator
 {
   /** defaults **/
@@ -37,7 +40,10 @@ object Phabricator
 
   sealed case class Config(name: String, root: Path)
   {
-    def www_root: Path = root + Path.explode("phabricator/webroot")
+    def home: Path = root + Path.explode("phabricator")
+
+    def execute(command: String): Process_Result =
+      Isabelle_System.bash("./bin/" + command, cwd = home.file).check
   }
 
   def read_config(): List[Config] =
@@ -118,6 +124,28 @@ object Phabricator
     write_config(configs ::: List(config))
 
 
+    /* MySQL setup */
+
+    progress.echo("MySQL setup...")
+
+    def mysql_conf(R: Regex): Option[String] =
+      split_lines(File.read(Path.explode(options.string("phabricator_mysql_config")))).
+        collectFirst({ case R(a) => a })
+
+    for (user <- mysql_conf("""^user\s*=\s*(\S*)\s*$""".r)) {
+      config.execute("config set mysql.user " + Bash.string(user))
+    }
+
+    for (pass <- mysql_conf("""^password\s*=\s*(\S*)\s*$""".r)) {
+      config.execute("config set mysql.pass " + Bash.string(pass))
+    }
+
+    config.execute("config set storage.default-namespace " +
+      Bash.string(prefix_name.replace("-", "_")))
+
+    config.execute("storage upgrade --force")
+
+
     /* Apache setup */
 
     progress.echo("Apache setup...")
@@ -132,7 +160,7 @@ object Phabricator
     #ServerName: "lvh.me" is an alias for "localhost" for testing
     ServerName """ + prefix_name + """.lvh.me
     ServerAdmin webmaster@localhost
-    DocumentRoot """ + config.www_root.implode + """
+    DocumentRoot """ + config.home.implode + """/webroot
 
     ErrorLog ${APACHE_LOG_DIR}/error.log
     RewriteEngine on
