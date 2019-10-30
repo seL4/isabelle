@@ -28,9 +28,12 @@ object Phabricator
 
   val packages: List[String] =
     Build_Docker.packages :::
-    // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
-    List("git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
-      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring")
+    List(
+      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
+      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
+      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
+      // more packages
+      "php-zip", "python-pygments")
 
 
 
