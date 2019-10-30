@@ -151,6 +151,8 @@ class Tools extends Isabelle_Scala_Tools(
   ML_Process.isabelle_tool,
   Mkroot.isabelle_tool,
   Options.isabelle_tool,
+  Phabricator.isabelle_tool1,
+  Phabricator.isabelle_tool2,
   Present.isabelle_tool,
   Profiling_Report.isabelle_tool,
   Server.isabelle_tool,
