@@ -15,7 +15,7 @@ object Phabricator
 
   val default_name = "vcs"
 
-  def default_prefix(name: String): String = "phabricator_" + name
+  def default_prefix(name: String): String = "phabricator-" + name
 
   def default_root(options: Options, name: String): Path =
     Path.explode(options.string("phabricator_www_root")) + Path.basic(default_prefix(name))
@@ -36,6 +36,9 @@ object Phabricator
   val global_config = Path.explode("/etc/isabelle-phabricator.conf")
 
   sealed case class Config(name: String, root: Path)
+  {
+    def www_root: Path = root + Path.explode("phabricator/webroot")
+  }
 
   def read_config(): List[Config] =
   {
@@ -113,6 +116,40 @@ object Phabricator
 
     val config = Config(name, root_path)
     write_config(configs ::: List(config))
+
+
+    /* Apache setup */
+
+    progress.echo("Apache setup...")
+
+    val apache_root = Path.explode(options.string("phabricator_apache_root"))
+    val apache_sites = apache_root + Path.explode("sites-available")
+
+    if (!apache_sites.is_dir) error("Bad Apache sites directory " + apache_sites)
+
+    File.write(apache_sites + Path.basic(prefix_name + ".conf"),
+"""<VirtualHost *:80>
+    #ServerName: "lvh.me" is an alias for "localhost" for testing
+    ServerName """ + prefix_name + """.lvh.me
+    ServerAdmin webmaster@localhost
+    DocumentRoot """ + config.www_root.implode + """
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    RewriteEngine on
+    RewriteRule ^(.*)$  /index.php?__path__=$1  [B,L,QSA]
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+""")
+
+    Isabelle_System.bash("""
+      set -e
+      a2enmod rewrite
+      a2ensite """ + Bash.string(prefix_name) + """
+      systemctl restart apache2
+""").check
+
+    progress.echo("\nDONE\nWeb configuration via http://" + prefix_name + ".lvh.me")
   }
 
 

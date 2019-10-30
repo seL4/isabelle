@@ -350,6 +350,8 @@ option phabricator_user : string = "phabricator"
 option phabricator_www_user : string = "www-data"
 option phabricator_www_root : string = "/var/www"
 
+option phabricator_apache_root : string = "/etc/apache2"
+
 option phabricator_smtp_host : string = ""
 option phabricator_smtp_port : int = 465
 option phabricator_smtp_user : string = ""
