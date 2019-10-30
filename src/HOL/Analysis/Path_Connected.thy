@@ -815,7 +815,7 @@ lemma reversepath_subpath: "reversepath(subpath u v g) = subpath v u g"
 lemma subpath_translation: "subpath u v ((\<lambda>x. a + x) \<circ> g) = (\<lambda>x. a + x) \<circ> subpath u v g"
   by (rule ext) (simp add: subpath_def)
 
-lemma subpath_linear_image: "linear f \<Longrightarrow> subpath u v (f \<circ> g) = f \<circ> subpath u v g"
+lemma subpath_image: "subpath u v (f \<circ> g) = f \<circ> subpath u v g"
   by (rule ext) (simp add: subpath_def)
 
 lemma affine_ineq:
