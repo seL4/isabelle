@@ -254,10 +254,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
-    fun proof_boxes_of thm thm_id =
-      (Thm_Deps.thm_boxes
-        {included = fn thm_id' => #serial thm_id = #serial thm_id',
-         excluded = is_some o lookup_thm_id} [thm]) @ [thm_id];
+    fun proof_boxes thm thm_id =
+      let
+        val selection =
+         {included = fn thm_id' => #serial thm_id = #serial thm_id',
+          excluded = is_some o lookup_thm_id};
+        val boxes =
+          map (Proofterm.thm_header_id o #1) (Proofterm.proof_boxes selection [Thm.proof_of thm])
+            handle Proofterm.MIN_PROOF () => Thm_Deps.thm_boxes selection [thm]
+     in boxes @ [thm_id] end;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
       if #serial header = #serial thm_id then ""
@@ -277,7 +282,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = clean_thm (Thm.unconstrainT raw_thm);
-        val boxes = proof_boxes_of thm thm_id;
+        val boxes = proof_boxes thm thm_id;
 
         val proof0 =
           if export_standard_proofs then

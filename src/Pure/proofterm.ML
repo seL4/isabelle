@@ -31,6 +31,7 @@ sig
      proof: proof}
   type oracle = string * term option
   type thm = serial * thm_node
+  exception MIN_PROOF of unit
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -188,6 +189,8 @@ sig
   val thm_header_id: thm_header -> thm_id
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
+  val proof_boxes: {excluded: thm_id -> bool, included: thm_id -> bool} ->
+    proof list -> (thm_header * proof) list  (*exception MIN_PROOF*)
 end
 
 structure Proofterm : PROOFTERM =
@@ -227,6 +230,8 @@ val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
 type thm = serial * thm_node;
 val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
+
+exception MIN_PROOF of unit;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
@@ -1630,8 +1635,6 @@ fun apply_preproc thy = (case #2 (Data.get thy) of NONE => I | SOME f => f thy);
 
 local
 
-exception MIN_PROOF of unit;
-
 fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
 
@@ -2319,6 +2322,30 @@ fun get_id shyps hyps prop prf : thm_id option =
     NONE => NONE
   | SOME {name = "", ...} => NONE
   | SOME {serial, theory_name, ...} => SOME (make_thm_id (serial, theory_name)));
+
+
+(* proof boxes: intermediate PThm nodes *)
+
+fun proof_boxes {included, excluded} proofs =
+  let
+    fun boxes_of (Abst (_, _, prf)) = boxes_of prf
+      | boxes_of (AbsP (_, _, prf)) = boxes_of prf
+      | boxes_of (prf % _) = boxes_of prf
+      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
+      | boxes_of (PThm (header as {serial = i, ...}, thm_body)) =
+          (fn boxes =>
+            let val thm_id = thm_header_id header in
+              if Inttab.defined boxes i orelse (excluded thm_id andalso not (included thm_id))
+              then boxes
+              else
+                let
+                  val prf' = thm_body_proof_open thm_body;
+                  val boxes' = Inttab.update (i, (header, prf')) boxes;
+                in boxes_of prf' boxes' end
+            end)
+      | boxes_of MinProof = raise MIN_PROOF ()
+      | boxes_of _ = I;
+  in Inttab.fold_rev (cons o #2) (fold boxes_of proofs Inttab.empty) [] end;
 
 end;
 
