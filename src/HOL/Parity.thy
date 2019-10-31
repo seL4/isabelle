@@ -1093,6 +1093,10 @@ lemma drop_bit_of_Suc_0 [simp]:
   "drop_bit n (Suc 0) = of_bool (n = 0)"
   using drop_bit_of_1 [where ?'a = nat] by simp
 
+lemma take_bit_eq_self:
+  \<open>take_bit n m = m\<close> if \<open>m < 2 ^ n\<close> for n m :: nat
+  using that by (simp add: take_bit_eq_mod)
+
 lemma push_bit_minus_one:
   "push_bit n (- 1 :: int) = - (2 ^ n)"
   by (simp add: push_bit_eq_mult)

@@ -141,6 +141,17 @@ quickcheck_generator word
     "numeral :: num \<Rightarrow> ('a::len0) word",
     "uminus :: ('a::len0) word \<Rightarrow> ('a::len0) word"
 
+context
+  includes lifting_syntax
+  notes power_transfer [transfer_rule]
+begin
+
+lemma power_transfer_word [transfer_rule]:
+  \<open>(pcr_word ===> (=) ===> pcr_word) (^) (^)\<close>
+  by transfer_prover
+
+end
+
 
 subsubsection \<open>Conversions\<close>
 
@@ -168,6 +179,10 @@ proof -
 qed
 
 end
+
+lemma abs_word_eq:
+  "abs_word = of_int"
+  by (rule ext) (transfer, rule)
 
 context semiring_1
 begin
@@ -230,6 +245,14 @@ lemma of_int_unsigned [simp]:
   "of_int (unsigned a) = a"
   by transfer simp
 
+lemma unsigned_nat_less:
+  \<open>unsigned a < (2 ^ LENGTH('a) :: nat)\<close> for a :: \<open>'a::len0 word\<close>
+  by transfer (simp add: take_bit_eq_mod)
+
+lemma unsigned_int_less:
+  \<open>unsigned a < (2 ^ LENGTH('a) :: int)\<close> for a :: \<open>'a::len0 word\<close>
+  by transfer (simp add: take_bit_eq_mod)
+
 context ring_char_0
 begin
 
@@ -250,6 +273,27 @@ lemma of_int_signed [simp]:
 
 subsubsection \<open>Properties\<close>
 
+lemma length_cases:
+  obtains (triv) "LENGTH('a::len) = 1" "take_bit LENGTH('a) 2 = (0 :: int)"
+    | (take_bit_2) "take_bit LENGTH('a) 2 = (2 :: int)"
+proof (cases "LENGTH('a) \<ge> 2")
+  case False
+  then have "LENGTH('a) = 1"
+    by (auto simp add: not_le dest: less_2_cases)
+  then have "take_bit LENGTH('a) 2 = (0 :: int)"
+    by simp
+  with \<open>LENGTH('a) = 1\<close> triv show ?thesis
+    by simp
+next
+  case True
+  then obtain n where "LENGTH('a) = Suc (Suc n)"
+    by (auto dest: le_Suc_ex)
+  then have "take_bit LENGTH('a) 2 = (2 :: int)"
+    by simp
+  with take_bit_2 show ?thesis
+    by simp
+qed
+
 
 subsubsection \<open>Division\<close>
 
@@ -267,6 +311,14 @@ lift_definition modulo_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a w
 instance ..
 
 end
+
+lemma zero_word_div_eq [simp]:
+  \<open>0 div a = 0\<close> for a :: \<open>'a::len0 word\<close>
+  by transfer simp
+
+lemma div_zero_word_eq [simp]:
+  \<open>a div 0 = 0\<close> for a :: \<open>'a::len0 word\<close>
+  by transfer simp
 
 context
   includes lifting_syntax
@@ -325,32 +377,12 @@ instance word :: (len) semiring_parity
 proof
   show "\<not> 2 dvd (1::'a word)"
     by transfer simp
-  consider (triv) "LENGTH('a) = 1" "take_bit LENGTH('a) 2 = (0 :: int)"
-    | (take_bit_2) "take_bit LENGTH('a) 2 = (2 :: int)"
-  proof (cases "LENGTH('a) \<ge> 2")
-    case False
-    then have "LENGTH('a) = 1"
-      by (auto simp add: not_le dest: less_2_cases)
-    then have "take_bit LENGTH('a) 2 = (0 :: int)"
-      by simp
-    with \<open>LENGTH('a) = 1\<close> triv show ?thesis
-      by simp
-  next
-    case True
-    then obtain n where "LENGTH('a) = Suc (Suc n)"
-      by (auto dest: le_Suc_ex)
-    then have "take_bit LENGTH('a) 2 = (2 :: int)"
-      by simp
-    with take_bit_2 show ?thesis
-      by simp
-  qed
-  note * = this
   show even_iff_mod_2_eq_0: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
     for a :: "'a word"
-    by (transfer; cases rule: *) (simp_all add: mod_2_eq_odd)
+    by (transfer; cases rule: length_cases [where ?'a = 'a]) (simp_all add: mod_2_eq_odd)
   show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
     for a :: "'a word"
-    by (transfer; cases rule: *) (simp_all add: mod_2_eq_odd)
+    by (transfer; cases rule: length_cases [where ?'a = 'a]) (simp_all add: mod_2_eq_odd)
 qed
 
 
@@ -385,6 +417,43 @@ lemma word_less_iff_unsigned:
 
 end
 
+lemma word_greater_zero_iff:
+  \<open>a > 0 \<longleftrightarrow> a \<noteq> 0\<close> for a :: \<open>'a::len0 word\<close>
+  by transfer (simp add: less_le)
+
+lemma of_nat_word_eq_iff:
+  \<open>of_nat m = (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m = take_bit LENGTH('a) n\<close>
+  by transfer (simp add: take_bit_of_nat)
+
+lemma of_nat_word_less_eq_iff:
+  \<open>of_nat m \<le> (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m \<le> take_bit LENGTH('a) n\<close>
+  by transfer (simp add: take_bit_of_nat)
+
+lemma of_nat_word_less_iff:
+  \<open>of_nat m < (of_nat n :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) m < take_bit LENGTH('a) n\<close>
+  by transfer (simp add: take_bit_of_nat)
+
+lemma of_nat_word_eq_0_iff:
+  \<open>of_nat n = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd n\<close>
+  using of_nat_word_eq_iff [where ?'a = 'a, of n 0] by (simp add: take_bit_eq_0_iff)
+
+lemma of_int_word_eq_iff:
+  \<open>of_int k = (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k = take_bit LENGTH('a) l\<close>
+  by transfer rule
+
+lemma of_int_word_less_eq_iff:
+  \<open>of_int k \<le> (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k \<le> take_bit LENGTH('a) l\<close>
+  by transfer rule
+
+lemma of_int_word_less_iff:
+  \<open>of_int k < (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k < take_bit LENGTH('a) l\<close>
+  by transfer rule
+
+lemma of_int_word_eq_0_iff:
+  \<open>of_int k = (0 :: 'a::len word) \<longleftrightarrow> 2 ^ LENGTH('a) dvd k\<close>
+  using of_int_word_eq_iff [where ?'a = 'a, of k 0] by (simp add: take_bit_eq_0_iff)
+
+
 subsection \<open>Bit operation on \<^typ>\<open>'a word\<close>\<close>
 
 context unique_euclidean_semiring_with_nat
@@ -398,9 +467,9 @@ primrec n_bits_of :: "nat \<Rightarrow> 'a \<Rightarrow> bool list"
 lemma n_bits_of_eq_iff:
   "n_bits_of n a = n_bits_of n b \<longleftrightarrow> take_bit n a = take_bit n b"
   apply (induction n arbitrary: a b)
-   apply auto
-   apply (metis local.dvd_add_times_triv_left_iff local.dvd_triv_right local.odd_one)
-  apply (metis local.dvd_add_times_triv_left_iff local.dvd_triv_right local.odd_one)
+   apply (auto elim!: evenE oddE)
+   apply (metis dvd_triv_right even_plus_one_iff)
+  apply (metis dvd_triv_right even_plus_one_iff)
   done
 
 lemma take_n_bits_of [simp]:
@@ -571,6 +640,61 @@ instance proof
     if "n < length (bits_of a)"
     for a :: "'a word" and n :: nat
     using that by transfer simp
+qed
+
+
+subsection \<open>Bit structure on \<^typ>\<open>'a word\<close>\<close>
+
+lemma word_bit_induct [case_names zero even odd]:
+  \<open>P a\<close> if word_zero: \<open>P 0\<close>
+    and word_even: \<open>\<And>a. P a \<Longrightarrow> 0 < a \<Longrightarrow> a < 2 ^ (LENGTH('a) - 1) \<Longrightarrow> P (2 * a)\<close>
+    and word_odd: \<open>\<And>a. P a \<Longrightarrow> a < 2 ^ (LENGTH('a) - 1) \<Longrightarrow> P (1 + 2 * a)\<close>
+  for P and a :: \<open>'a::len word\<close>
+proof -
+  define m :: nat where \<open>m = LENGTH('a) - 1\<close>
+  then have l: \<open>LENGTH('a) = Suc m\<close>
+    by simp
+  define n :: nat where \<open>n = unsigned a\<close>
+  then have \<open>n < 2 ^ LENGTH('a)\<close>
+    by (simp add: unsigned_nat_less)
+  then have \<open>n < 2 * 2 ^ m\<close>
+    by (simp add: l)
+  then have \<open>P (of_nat n)\<close>
+  proof (induction n rule: nat_bit_induct)
+    case zero
+    show ?case
+      by simp (rule word_zero)
+  next
+    case (even n)
+    then have \<open>n < 2 ^ m\<close>
+      by simp
+    with even.IH have \<open>P (of_nat n)\<close>
+      by simp
+    moreover from \<open>n < 2 ^ m\<close> even.hyps have \<open>0 < (of_nat n :: 'a word)\<close>
+      by (auto simp add: word_greater_zero_iff of_nat_word_eq_0_iff l)
+    moreover from \<open>n < 2 ^ m\<close> have \<open>(of_nat n :: 'a word) < 2 ^ (LENGTH('a) - 1)\<close>
+      using of_nat_word_less_iff [where ?'a = 'a, of n \<open>2 ^ m\<close>]
+      by (cases \<open>m = 0\<close>) (simp_all add: not_less take_bit_eq_self ac_simps l)
+    ultimately have \<open>P (2 * of_nat n)\<close>
+      by (rule word_even)
+    then show ?case
+      by simp
+  next
+    case (odd n)
+    then have \<open>Suc n \<le> 2 ^ m\<close>
+      by simp
+    with odd.IH have \<open>P (of_nat n)\<close>
+      by simp
+    moreover from \<open>Suc n \<le> 2 ^ m\<close> have \<open>(of_nat n :: 'a word) < 2 ^ (LENGTH('a) - 1)\<close>
+      using of_nat_word_less_iff [where ?'a = 'a, of n \<open>2 ^ m\<close>]
+      by (cases \<open>m = 0\<close>) (simp_all add: not_less take_bit_eq_self ac_simps l)
+    ultimately have \<open>P (1 + 2 * of_nat n)\<close>
+      by (rule word_odd)
+    then show ?case
+      by simp
+  qed
+  then show ?thesis
+    by (simp add: n_def)
 qed
 
 end
