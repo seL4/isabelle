@@ -255,7 +255,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
     fun proof_boxes_of thm thm_id =
-      (Thm_Deps.proof_boxes
+      (Thm_Deps.thm_boxes
         {included = fn thm_id' => #serial thm_id = #serial thm_id',
          excluded = is_some o lookup_thm_id} [thm]) @ [thm_id];
 

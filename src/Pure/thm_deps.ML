@@ -12,7 +12,7 @@ sig
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
   val pretty_thm_deps: theory -> thm list -> Pretty.T
-  val proof_boxes: {included: Proofterm.thm_id -> bool, excluded: Proofterm.thm_id -> bool} ->
+  val thm_boxes: {included: Proofterm.thm_id -> bool, excluded: Proofterm.thm_id -> bool} ->
     thm list -> Proofterm.thm_id list
   val unused_thms_cmd: theory list * theory list -> (string * thm) list
 end;
@@ -81,9 +81,9 @@ fun pretty_thm_deps thy thms =
   in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
 
 
-(* proof boxes: undefined PThm nodes *)
+(* thm boxes: intermediate PThm nodes *)
 
-fun proof_boxes {included, excluded} thms =
+fun thm_boxes {included, excluded} thms =
   let
     fun boxes (i, thm_node) res =
       let val thm_id = Proofterm.thm_id (i, thm_node) in
