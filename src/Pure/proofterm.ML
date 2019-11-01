@@ -174,8 +174,9 @@ sig
 
   val export_enabled: unit -> bool
   val export_standard_enabled: unit -> bool
+  val export_proof_boxes_required: theory -> bool
+  val export_proof_boxes: proof list -> unit
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val commit_proof: theory -> proof -> unit
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
     term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof
@@ -2091,7 +2092,11 @@ end;
 fun export_enabled () = Options.default_bool "export_proofs";
 fun export_standard_enabled () = Options.default_bool "export_standard_proofs";
 
-fun export_proof_boxes proof =
+fun export_proof_boxes_required thy =
+  Context.theory_name thy = Context.PureN orelse
+    (export_enabled () andalso not (export_standard_enabled ()));
+
+fun export_proof_boxes proofs =
   let
     fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
       | export_boxes (Abst (_, _, prf)) = export_boxes prf
@@ -2107,13 +2112,8 @@ fun export_proof_boxes proof =
                 val boxes' = boxes |> not (Lazy.is_finished export) ? Inttab.update (i, export);
               in export_boxes prf' boxes' end)
       | export_boxes _ = I;
-    val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
+    val boxes = (proofs, Inttab.empty) |-> fold export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
-
-fun commit_proof thy proof =
-  if Context.theory_name thy = Context.PureN orelse
-    (export_enabled () andalso not (export_standard_enabled ()))
-  then export_proof_boxes proof else ();
 
 local
 
@@ -2163,7 +2163,7 @@ fun export_proof thy i prop prf0 =
 fun export thy i prop prf =
   if export_enabled () then
     let
-      val _ = export_proof_boxes prf;
+      val _ = export_proof_boxes [prf];
       val _ = export_proof thy i prop prf;
     in () end
   else ();
