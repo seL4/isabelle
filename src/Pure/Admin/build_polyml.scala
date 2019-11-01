@@ -74,6 +74,10 @@ object Build_PolyML
         case Some(msys) => Isabelle_System.settings() + ("MSYS" -> msys.expand.implode)
       }
 
+    if (Platform.is_linux && !Isabelle_System.bash("chrpath -v").ok) {
+      error("""Missing "chrpath" executable on Linux""")
+    }
+
 
     /* bash */
 
