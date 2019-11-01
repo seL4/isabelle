@@ -7,6 +7,7 @@ Function for parsing and printing proof terms.
 signature PROOF_SYNTAX =
 sig
   val add_proof_syntax: theory -> theory
+  val term_of_proof: proof -> term
   val proof_of_term: theory -> bool -> term -> Proofterm.proof
   val read_term: theory -> bool -> typ -> string -> term
   val read_proof: theory -> bool -> bool -> string -> Proofterm.proof
@@ -14,6 +15,7 @@ sig
   val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_proof_boxes_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
 structure Proof_Syntax : PROOF_SYNTAX =
@@ -21,7 +23,7 @@ struct
 
 (**** add special syntax for embedding proof terms ****)
 
-val proofT = Proofterm.proofT;
+val proofT = Type ("Pure.proof", []);
 
 local
 
@@ -79,7 +81,60 @@ fun add_proof_atom_consts names thy =
   |> Sign.add_consts (map (fn name => (Binding.qualified_name name, proofT, NoSyn)) names);
 
 
-(**** translation between proof terms and pure terms ****)
+
+(** proof terms as pure terms **)
+
+(* term_of_proof *)
+
+local
+
+val AbsPt = Const ("Pure.AbsP", propT --> (proofT --> proofT) --> proofT);
+val AppPt = Const ("Pure.AppP", proofT --> proofT --> proofT);
+val Hypt = Const ("Pure.Hyp", propT --> proofT);
+val Oraclet = Const ("Pure.Oracle", propT --> proofT);
+val MinProoft = Const ("Pure.MinProof", proofT);
+
+fun AppT T prf =
+  Const ("Pure.Appt", proofT --> Term.itselfT T --> proofT) $ prf $ Logic.mk_type T;
+
+fun OfClasst (T, c) =
+  let val U = Term.itselfT T --> propT
+  in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
+
+fun term_of _ (PThm ({serial = i, name, types = Ts, ...}, _)) =
+      fold AppT (these Ts)
+        (Const (Long_Name.append "thm" (if name = "" then string_of_int i else name), proofT))
+  | term_of _ (PAxm (name, _, Ts)) =
+      fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
+  | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
+  | term_of _ (PBound i) = Bound i
+  | term_of Ts (Abst (s, opT, prf)) =
+      let val T = the_default dummyT opT in
+        Const ("Pure.Abst", (T --> proofT) --> proofT) $
+          Abs (s, T, term_of (T::Ts) (Proofterm.incr_pboundvars 1 0 prf))
+      end
+  | term_of Ts (AbsP (s, t, prf)) =
+      AbsPt $ the_default Term.dummy_prop t $
+        Abs (s, proofT, term_of (proofT::Ts) (Proofterm.incr_pboundvars 0 1 prf))
+  | term_of Ts (prf1 %% prf2) =
+      AppPt $ term_of Ts prf1 $ term_of Ts prf2
+  | term_of Ts (prf % opt) =
+      let
+        val t = the_default Term.dummy opt;
+        val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
+      in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
+  | term_of _ (Hyp t) = Hypt $ t
+  | term_of _ (Oracle (_, t, _)) = Oraclet $ t
+  | term_of _ MinProof = MinProoft;
+
+in
+
+val term_of_proof = term_of [];
+
+end;
+
+
+(* proof_of_term *)
 
 fun proof_of_term thy ty =
   let
@@ -193,9 +248,33 @@ fun proof_of full thm =
 fun pretty_proof ctxt prf =
   Proof_Context.pretty_term_abbrev
     (Proof_Context.transfer (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
-    (Proofterm.term_of_proof prf);
+    (term_of_proof prf);
 
 fun pretty_standard_proof_of ctxt full thm =
   pretty_proof ctxt (Thm.standard_proof_of {full = full, expand_name = Thm.expand_name thm} thm);
+
+fun pretty_proof_boxes_of ctxt full thm =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val selection =
+      {included = Proofterm.this_id (Thm.derivation_id thm),
+       excluded = is_some o Global_Theory.lookup_thm_id thy}
+  in
+    Proofterm.proof_boxes selection [Thm.proof_of thm]
+    |> map (fn ({serial = i, pos, prop, ...}, proof) =>
+        let
+          val proof' = proof
+            |> full ? Proofterm.reconstruct_proof thy prop
+            |> Proofterm.forall_intr_variables prop;
+          val prop' = prop
+            |> Proofterm.forall_intr_variables_term;
+          val name = Long_Name.append "thm" (string_of_int i);
+        in
+          Pretty.item
+           [Pretty.str (name ^ Position.here_list pos ^ ":"), Pretty.brk 1,
+            Syntax.pretty_term ctxt prop', Pretty.fbrk, pretty_proof ctxt proof']
+        end)
+    |> Pretty.chunks
+  end;
 
 end;

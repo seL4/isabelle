@@ -248,18 +248,19 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* theorems and proof terms *)
 
-    val export_standard_proofs = Options.default_bool @{system_option export_standard_proofs};
-
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
-    fun proof_boxes_of thm thm_id =
+    fun proof_boxes thm thm_id =
       let
-        val dep_boxes =
-          thm |> Thm_Deps.proof_boxes (fn thm_id' =>
-            if #serial thm_id = #serial thm_id' then false else is_some (lookup_thm_id thm_id'));
-      in dep_boxes @ [thm_id] end;
+        val selection =
+         {included = Proofterm.this_id (SOME thm_id),
+          excluded = is_some o lookup_thm_id};
+        val boxes =
+          map (Proofterm.thm_header_id o #1) (Proofterm.proof_boxes selection [Thm.proof_of thm])
+            handle Proofterm.MIN_PROOF () => Thm_Deps.thm_boxes selection [thm]
+     in boxes @ [thm_id] end;
 
     fun expand_name thm_id (header: Proofterm.thm_header) =
       if #serial header = #serial thm_id then ""
@@ -279,16 +280,18 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = clean_thm (Thm.unconstrainT raw_thm);
-        val boxes = proof_boxes_of thm thm_id;
+        val boxes = proof_boxes thm thm_id;
 
         val proof0 =
-          if export_standard_proofs then
+          if Proofterm.export_standard_enabled () then
             Thm.standard_proof_of {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
         val (prop, SOME proof) =
           standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
-        val _ = Proofterm.commit_proof proof;
+        val _ =
+          if Proofterm.export_proof_boxes_required thy
+          then Proofterm.export_proof_boxes [proof] else ();
       in
         (prop, (deps, (boxes, proof))) |>
           let

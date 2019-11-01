@@ -288,10 +288,17 @@ val app_facts =
     fold_map (Thm.theory_attributes atts) (map (Thm.transfer thy) thms) thy);
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  if Binding.is_empty b then app_facts facts thy |-> register_proofs
+  if Binding.is_empty b then
+    let
+      val (thms, thy') = app_facts facts thy;
+      val _ =
+        if Proofterm.export_proof_boxes_required thy' then
+          Proofterm.export_proof_boxes (map Thm.proof_of thms)
+        else ();
+    in register_proofs thms thy' end
   else
     let
-      val name_pos= bind_name thy b;
+      val name_pos = bind_name thy b;
       val (thms', thy') = thy
         |> app_facts (map (apfst (name_thms name_flags1 name_pos)) facts)
         |>> name_thms name_flags2 name_pos |-> register_proofs;

@@ -31,6 +31,7 @@ sig
      proof: proof}
   type oracle = string * term option
   type thm = serial * thm_node
+  exception MIN_PROOF of unit
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -102,8 +103,6 @@ sig
   val prf_subst_bounds: term list -> proof -> proof
   val prf_subst_pbounds: proof list -> proof -> proof
   val freeze_thaw_prf: proof -> proof * (proof -> proof)
-  val proofT: typ
-  val term_of_proof: proof -> term
 
   (*proof terms for specific inference rules*)
   val trivial_proof: proof
@@ -152,6 +151,8 @@ sig
   val add_prf_rrule: proof * proof -> theory -> theory
   val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val set_preproc: (theory -> proof -> proof) -> theory -> theory
+  val forall_intr_variables_term: term -> term
+  val forall_intr_variables: term -> proof -> proof
   val no_skel: proof
   val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
@@ -172,8 +173,10 @@ sig
   val add_standard_vars_term: term -> (string * typ) list -> (string * typ) list
 
   val export_enabled: unit -> bool
+  val export_standard_enabled: unit -> bool
+  val export_proof_boxes_required: theory -> bool
+  val export_proof_boxes: proof list -> unit
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val commit_proof: proof -> unit
   val thm_proof: theory -> (class * class -> proof) ->
     (string * class list list * class -> proof) -> string * Position.T -> sort list ->
     term list -> term -> (serial * proof_body future) list -> proof_body -> thm * proof
@@ -188,6 +191,9 @@ sig
   val thm_header_id: thm_header -> thm_id
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
+  val this_id: thm_id option -> thm_id -> bool
+  val proof_boxes: {excluded: thm_id -> bool, included: thm_id -> bool} ->
+    proof list -> (thm_header * proof) list  (*exception MIN_PROOF*)
 end
 
 structure Proofterm : PROOFTERM =
@@ -227,6 +233,8 @@ val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
 type thm = serial * thm_node;
 val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
+
+exception MIN_PROOF of unit;
 
 fun proof_of (PBody {proof, ...}) = proof;
 val join_proof = Future.join #> proof_of;
@@ -822,58 +830,6 @@ fun freeze_thaw_prf prf =
     (map_proof_terms (freeze names names') (frzT names') prf,
      map_proof_terms (thaw rnames rnames') (thawT rnames'))
   end;
-
-end;
-
-
-
-(** proof terms as pure terms **)
-
-val proofT = Type ("Pure.proof", []);
-
-local
-
-val AbsPt = Const ("Pure.AbsP", propT --> (proofT --> proofT) --> proofT);
-val AppPt = Const ("Pure.AppP", proofT --> proofT --> proofT);
-val Hypt = Const ("Pure.Hyp", propT --> proofT);
-val Oraclet = Const ("Pure.Oracle", propT --> proofT);
-val MinProoft = Const ("Pure.MinProof", proofT);
-
-fun AppT T prf =
-  Const ("Pure.Appt", proofT --> Term.itselfT T --> proofT) $ prf $ Logic.mk_type T;
-
-fun OfClasst (T, c) =
-  let val U = Term.itselfT T --> propT
-  in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
-
-fun term_of _ (PThm ({name, types = Ts, ...}, _)) =
-      fold AppT (these Ts) (Const (Long_Name.append "thm" name, proofT))
-  | term_of _ (PAxm (name, _, Ts)) =
-      fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
-  | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
-  | term_of _ (PBound i) = Bound i
-  | term_of Ts (Abst (s, opT, prf)) =
-      let val T = the_default dummyT opT in
-        Const ("Pure.Abst", (T --> proofT) --> proofT) $
-          Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
-      end
-  | term_of Ts (AbsP (s, t, prf)) =
-      AbsPt $ the_default Term.dummy_prop t $
-        Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
-  | term_of Ts (prf1 %% prf2) =
-      AppPt $ term_of Ts prf1 $ term_of Ts prf2
-  | term_of Ts (prf % opt) =
-      let
-        val t = the_default Term.dummy opt;
-        val T = fastype_of1 (Ts, t) handle TERM _ => dummyT;
-      in Const ("Pure.Appt", proofT --> T --> proofT) $ term_of Ts prf $ t end
-  | term_of _ (Hyp t) = Hypt $ t
-  | term_of _ (Oracle (_, t, _)) = Oraclet $ t
-  | term_of _ MinProof = MinProoft;
-
-in
-
-val term_of_proof = term_of [];
 
 end;
 
@@ -1628,12 +1584,10 @@ fun apply_preproc thy = (case #2 (Data.get thy) of NONE => I | SOME f => f thy);
 
 (** reconstruction of partial proof terms **)
 
+fun forall_intr_variables_term prop = fold_rev Logic.all (variables_of prop) prop;
+fun forall_intr_variables prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
+
 local
-
-exception MIN_PROOF of unit;
-
-fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
-fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
 
 fun app_types shift prop Ts prf =
   let
@@ -1759,7 +1713,7 @@ fun make_constraints_cprf thy env cprf =
                 NONE => fold_map (mk_tvar o Type.sort_of_atyp) prop_types env
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (prop_types ~~ Ts)
-              (forall_intr_vfs prop) handle ListPair.UnequalLengths =>
+              (forall_intr_variables_term prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (guess_name prf))
           in (prop', change_types (SOME Ts) prf, [], env', vTs) end;
 
@@ -1919,7 +1873,7 @@ fun reconstruct_proof thy prop cprf =
   in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
 fun prop_of_atom prop Ts =
-  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_vfs prop);
+  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_variables_term prop);
 
 val head_norm = Envir.head_norm Envir.init;
 
@@ -1978,7 +1932,7 @@ fun expand_proof thy expand_name prf =
                             val prf1 =
                               thm_body_proof_open thm_body
                               |> reconstruct_proof thy prop
-                              |> forall_intr_vfs_prf prop;
+                              |> forall_intr_variables prop;
                             val (seen1, maxidx1, prf2) = expand_init seen prf1
                             val seen2 = seen1 |> Inttab.update (serial, (maxidx1, prf2));
                           in (seen2, maxidx1, prf2) end
@@ -2136,23 +2090,29 @@ end;
 (* PThm nodes *)
 
 fun export_enabled () = Options.default_bool "export_proofs";
+fun export_standard_enabled () = Options.default_bool "export_standard_proofs";
 
-fun commit_proof proof =
+fun export_proof_boxes_required thy =
+  Context.theory_name thy = Context.PureN orelse
+    (export_enabled () andalso not (export_standard_enabled ()));
+
+fun export_proof_boxes proofs =
   let
     fun export_boxes (AbsP (_, _, prf)) = export_boxes prf
       | export_boxes (Abst (_, _, prf)) = export_boxes prf
       | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
       | export_boxes (prf % _) = export_boxes prf
-      | export_boxes (PThm ({serial = i, name = "", ...}, thm_body)) =
+      | export_boxes (PThm ({serial = i, ...}, thm_body)) =
           (fn boxes =>
             if Inttab.defined boxes i then boxes
             else
               let
-                val prf = thm_body_proof_raw thm_body;
-                val boxes' = Inttab.update (i, thm_body_export_proof thm_body) boxes;
-              in export_boxes prf boxes' end)
+                val prf' = thm_body_proof_raw thm_body;
+                val export = thm_body_export_proof thm_body;
+                val boxes' = boxes |> not (Lazy.is_finished export) ? Inttab.update (i, export);
+              in export_boxes prf' boxes' end)
       | export_boxes _ = I;
-    val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
+    val boxes = (proofs, Inttab.empty) |-> fold export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
 
 local
@@ -2203,7 +2163,7 @@ fun export_proof thy i prop prf0 =
 fun export thy i prop prf =
   if export_enabled () then
     let
-      val _ = commit_proof prf;
+      val _ = export_proof_boxes [prf];
       val _ = export_proof thy i prop prf;
     in () end
   else ();
@@ -2319,6 +2279,33 @@ fun get_id shyps hyps prop prf : thm_id option =
     NONE => NONE
   | SOME {name = "", ...} => NONE
   | SOME {serial, theory_name, ...} => SOME (make_thm_id (serial, theory_name)));
+
+fun this_id NONE _ = false
+  | this_id (SOME (thm_id: thm_id)) (thm_id': thm_id) = #serial thm_id = #serial thm_id';
+
+
+(* proof boxes: intermediate PThm nodes *)
+
+fun proof_boxes {included, excluded} proofs =
+  let
+    fun boxes_of (Abst (_, _, prf)) = boxes_of prf
+      | boxes_of (AbsP (_, _, prf)) = boxes_of prf
+      | boxes_of (prf % _) = boxes_of prf
+      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
+      | boxes_of (PThm (header as {serial = i, ...}, thm_body)) =
+          (fn boxes =>
+            let val thm_id = thm_header_id header in
+              if Inttab.defined boxes i orelse (excluded thm_id andalso not (included thm_id))
+              then boxes
+              else
+                let
+                  val prf' = thm_body_proof_open thm_body;
+                  val boxes' = Inttab.update (i, (header, prf')) boxes;
+                in boxes_of prf' boxes' end
+            end)
+      | boxes_of MinProof = raise MIN_PROOF ()
+      | boxes_of _ = I;
+  in Inttab.fold_rev (cons o #2) (fold boxes_of proofs Inttab.empty) [] end;
 
 end;
 
