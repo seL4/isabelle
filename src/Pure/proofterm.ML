@@ -2095,14 +2095,15 @@ fun commit_proof proof =
       | export_boxes (Abst (_, _, prf)) = export_boxes prf
       | export_boxes (prf1 %% prf2) = export_boxes prf1 #> export_boxes prf2
       | export_boxes (prf % _) = export_boxes prf
-      | export_boxes (PThm ({serial = i, name = "", ...}, thm_body)) =
+      | export_boxes (PThm ({serial = i, ...}, thm_body)) =
           (fn boxes =>
             if Inttab.defined boxes i then boxes
             else
               let
-                val prf = thm_body_proof_raw thm_body;
-                val boxes' = Inttab.update (i, thm_body_export_proof thm_body) boxes;
-              in export_boxes prf boxes' end)
+                val prf' = thm_body_proof_raw thm_body;
+                val export = thm_body_export_proof thm_body;
+                val boxes' = boxes |> not (Lazy.is_finished export) ? Inttab.update (i, export);
+              in export_boxes prf' boxes' end)
       | export_boxes _ = I;
     val boxes = (proof, Inttab.empty) |-> export_boxes |> Inttab.dest;
   in List.app (Lazy.force o #2) boxes end;
