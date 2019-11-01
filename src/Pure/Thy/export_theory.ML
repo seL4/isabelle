@@ -248,8 +248,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* theorems and proof terms *)
 
-    val export_standard_proofs = Options.default_bool @{system_option export_standard_proofs};
-
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
@@ -285,16 +283,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val boxes = proof_boxes thm thm_id;
 
         val proof0 =
-          if export_standard_proofs then
+          if Proofterm.export_standard_enabled () then
             Thm.standard_proof_of {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
         val (prop, SOME proof) =
           standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
-        val _ =
-          if Context.theory_name thy = Context.PureN orelse
-            (not export_standard_proofs andalso Proofterm.export_enabled ())
-          then Proofterm.commit_proof proof else ();
+        val _ = Proofterm.commit_proof thy proof;
       in
         (prop, (deps, (boxes, proof))) |>
           let
