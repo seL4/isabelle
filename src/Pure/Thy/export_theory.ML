@@ -291,7 +291,10 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           else MinProof;
         val (prop, SOME proof) =
           standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
-        val _ = Proofterm.commit_proof proof;
+        val _ =
+          if Context.theory_name thy = Context.PureN orelse
+            (not export_standard_proofs andalso Proofterm.export_enabled ())
+          then Proofterm.commit_proof proof else ();
       in
         (prop, (deps, (boxes, proof))) |>
           let
