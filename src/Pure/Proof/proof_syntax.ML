@@ -14,6 +14,7 @@ sig
   val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
   val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_proof_boxes_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
 structure Proof_Syntax : PROOF_SYNTAX =
@@ -197,5 +198,29 @@ fun pretty_proof ctxt prf =
 
 fun pretty_standard_proof_of ctxt full thm =
   pretty_proof ctxt (Thm.standard_proof_of {full = full, expand_name = Thm.expand_name thm} thm);
+
+fun pretty_proof_boxes_of ctxt full thm =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val selection =
+      {included = Proofterm.this_id (Thm.derivation_id thm),
+       excluded = is_some o Global_Theory.lookup_thm_id thy}
+  in
+    Proofterm.proof_boxes selection [Thm.proof_of thm]
+    |> map (fn ({serial = i, pos, prop, ...}, proof) =>
+        let
+          val proof' = proof
+            |> full ? Proofterm.reconstruct_proof thy prop
+            |> Proofterm.forall_intr_variables prop;
+          val prop' = prop
+            |> Proofterm.forall_intr_variables_term;
+          val name = Long_Name.append "thm" (string_of_int i);
+        in
+          Pretty.item
+           [Pretty.str (name ^ Position.here_list pos ^ ":"), Pretty.brk 1,
+            Syntax.pretty_term ctxt prop', Pretty.fbrk, pretty_proof ctxt proof']
+        end)
+    |> Pretty.chunks
+  end;
 
 end;

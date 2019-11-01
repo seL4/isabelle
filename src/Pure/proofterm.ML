@@ -191,6 +191,7 @@ sig
   val thm_header_id: thm_header -> thm_id
   val thm_id: thm -> thm_id
   val get_id: sort list -> term list -> term -> proof -> thm_id option
+  val this_id: thm_id option -> thm_id -> bool
   val proof_boxes: {excluded: thm_id -> bool, included: thm_id -> bool} ->
     proof list -> (thm_header * proof) list  (*exception MIN_PROOF*)
 end
@@ -853,8 +854,9 @@ fun OfClasst (T, c) =
   let val U = Term.itselfT T --> propT
   in Const ("Pure.OfClass", U --> proofT) $ Const (Logic.const_of_class c, U) end;
 
-fun term_of _ (PThm ({name, types = Ts, ...}, _)) =
-      fold AppT (these Ts) (Const (Long_Name.append "thm" name, proofT))
+fun term_of _ (PThm ({serial = i, name, types = Ts, ...}, _)) =
+      fold AppT (these Ts)
+        (Const (Long_Name.append "thm" (if name = "" then string_of_int i else name), proofT))
   | term_of _ (PAxm (name, _, Ts)) =
       fold AppT (these Ts) (Const (Long_Name.append "axm" name, proofT))
   | term_of _ (OfClass (T, c)) = AppT T (OfClasst (T, c))
@@ -2324,6 +2326,9 @@ fun get_id shyps hyps prop prf : thm_id option =
     NONE => NONE
   | SOME {name = "", ...} => NONE
   | SOME {serial, theory_name, ...} => SOME (make_thm_id (serial, theory_name)));
+
+fun this_id NONE _ = false
+  | this_id (SOME (thm_id: thm_id)) (thm_id': thm_id) = #serial thm_id = #serial thm_id';
 
 
 (* proof boxes: intermediate PThm nodes *)

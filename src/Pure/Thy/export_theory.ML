@@ -257,7 +257,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun proof_boxes thm thm_id =
       let
         val selection =
-         {included = fn thm_id' => #serial thm_id = #serial thm_id',
+         {included = Proofterm.this_id (SOME thm_id),
           excluded = is_some o lookup_thm_id};
         val boxes =
           map (Proofterm.thm_header_id o #1) (Proofterm.proof_boxes selection [Thm.proof_of thm])
