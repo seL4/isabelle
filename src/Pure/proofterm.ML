@@ -153,6 +153,8 @@ sig
   val add_prf_rrule: proof * proof -> theory -> theory
   val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val set_preproc: (theory -> proof -> proof) -> theory -> theory
+  val forall_intr_variables_term: term -> term
+  val forall_intr_variables: term -> proof -> proof
   val no_skel: proof
   val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
@@ -1633,10 +1635,10 @@ fun apply_preproc thy = (case #2 (Data.get thy) of NONE => I | SOME f => f thy);
 
 (** reconstruction of partial proof terms **)
 
-local
+fun forall_intr_variables_term prop = fold_rev Logic.all (variables_of prop) prop;
+fun forall_intr_variables prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
 
-fun forall_intr_vfs prop = fold_rev Logic.all (variables_of prop) prop;
-fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof' (variables_of prop) prf;
+local
 
 fun app_types shift prop Ts prf =
   let
@@ -1762,7 +1764,7 @@ fun make_constraints_cprf thy env cprf =
                 NONE => fold_map (mk_tvar o Type.sort_of_atyp) prop_types env
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (prop_types ~~ Ts)
-              (forall_intr_vfs prop) handle ListPair.UnequalLengths =>
+              (forall_intr_variables_term prop) handle ListPair.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^ quote (guess_name prf))
           in (prop', change_types (SOME Ts) prf, [], env', vTs) end;
 
@@ -1922,7 +1924,7 @@ fun reconstruct_proof thy prop cprf =
   in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
 fun prop_of_atom prop Ts =
-  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_vfs prop);
+  subst_atomic_types (type_variables_of prop ~~ Ts) (forall_intr_variables_term prop);
 
 val head_norm = Envir.head_norm Envir.init;
 
@@ -1981,7 +1983,7 @@ fun expand_proof thy expand_name prf =
                             val prf1 =
                               thm_body_proof_open thm_body
                               |> reconstruct_proof thy prop
-                              |> forall_intr_vfs_prf prop;
+                              |> forall_intr_variables prop;
                             val (seen1, maxidx1, prf2) = expand_init seen prf1
                             val seen2 = seen1 |> Inttab.update (serial, (maxidx1, prf2));
                           in (seen2, maxidx1, prf2) end
