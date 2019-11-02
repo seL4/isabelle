@@ -23,7 +23,7 @@ struct
 
 (* output operations *)
 
-fun write stream = List.app (fn s => BinIO.output (stream, Byte.stringToBytes s));
+fun write stream = List.app (File.output stream);
 
 fun flush stream = ignore (try BinIO.flushOut stream);
 

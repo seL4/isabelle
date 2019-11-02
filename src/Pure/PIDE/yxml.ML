@@ -84,7 +84,7 @@ val string_of = string_of_body o single;
 
 fun write_body path body =
   path |> File.open_output (fn file =>
-    fold (traverse (fn s => fn () => BinIO.output (file, Byte.stringToBytes s))) body ());
+    fold (traverse (fn s => fn () => File.output file s)) body ());
 
 
 (* markup elements *)
