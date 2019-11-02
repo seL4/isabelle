@@ -3162,14 +3162,8 @@ proof -
     assume "z \<in> ?lhs"
     have *: "z = (fst z, snd z)"
       by auto
-    have "z \<in> ?rhs"
-      using rel_interior_convex_cone_aux[of S "fst z" "snd z"] assms \<open>z \<in> ?lhs\<close>
-      apply auto
-      apply (rule_tac x = "fst z" in exI)
-      apply (rule_tac x = x in exI)
-      using *
-      apply auto
-      done
+    then have "z \<in> ?rhs"
+      using rel_interior_convex_cone_aux[of S "fst z" "snd z"] assms \<open>z \<in> ?lhs\<close> by fastforce
   }
   moreover
   {
