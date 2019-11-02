@@ -35,6 +35,8 @@ sig
     | Text of string
   type body = tree list
   val blob: string list -> body
+  val is_empty: tree -> bool
+  val is_empty_body: body -> bool
   val xml_elemN: string
   val xml_nameN: string
   val xml_bodyN: string
@@ -77,6 +79,11 @@ struct
 open Output_Primitives.XML;
 
 val blob = map Text;
+
+fun is_empty (Text "") = true
+  | is_empty _ = false;
+
+val is_empty_body = forall is_empty;
 
 
 (* wrapped elements *)

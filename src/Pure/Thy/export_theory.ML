@@ -126,7 +126,7 @@ fun setup_presentation f =
     if Options.bool (#options context) "export_theory" then f context thy else ()));
 
 fun export_body thy name body =
-  if null body then ()
+  if XML.is_empty_body body then ()
   else Export.export thy (Path.binding0 (Path.make ["theory", name])) body;
 
 
