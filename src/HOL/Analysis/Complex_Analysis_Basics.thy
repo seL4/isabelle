@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-  imports Brouwer_Fixpoint "HOL-Library.Nonpos_Ints"
+  imports Derivative "HOL-Library.Nonpos_Ints"
 begin
 
 (* TODO FIXME: A lot of the things in here have nothing to do with complex analysis *)
@@ -879,32 +879,6 @@ lemma has_field_derivative_inverse_basic:
   apply (rule has_derivative_inverse_basic)
   apply (auto simp:  bounded_linear_mult_right)
   done
-
-lemma has_field_derivative_inverse_strong:
-  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
-  shows "DERIV f x :> f' \<Longrightarrow>
-         f' \<noteq> 0 \<Longrightarrow>
-         open S \<Longrightarrow>
-         x \<in> S \<Longrightarrow>
-         continuous_on S f \<Longrightarrow>
-         (\<And>z. z \<in> S \<Longrightarrow> g (f z) = z)
-         \<Longrightarrow> DERIV g (f x) :> inverse (f')"
-  unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong [of S x f g ])
-  by auto
-
-lemma has_field_derivative_inverse_strong_x:
-  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
-  shows  "DERIV f (g y) :> f' \<Longrightarrow>
-          f' \<noteq> 0 \<Longrightarrow>
-          open S \<Longrightarrow>
-          continuous_on S f \<Longrightarrow>
-          g y \<in> S \<Longrightarrow> f(g y) = y \<Longrightarrow>
-          (\<And>z. z \<in> S \<Longrightarrow> g (f z) = z)
-          \<Longrightarrow> DERIV g y :> inverse (f')"
-  unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong_x [of S g y f])
-  by auto
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Taylor on Complex Numbers\<close>
 
