@@ -291,10 +291,7 @@ fun apply_facts name_flags1 name_flags2 (b, facts) thy =
   if Binding.is_empty b then
     let
       val (thms, thy') = app_facts facts thy;
-      val _ =
-        if Proofterm.export_proof_boxes_required thy' then
-          Proofterm.export_proof_boxes (map Thm.proof_of thms)
-        else ();
+      val _ = Thm.expose_proofs thy' thms;
     in register_proofs thms thy' end
   else
     let

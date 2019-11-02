@@ -113,6 +113,7 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
+  val expose_proofs: theory -> thm list -> unit
   val reconstruct_proof_of: thm -> Proofterm.proof
   val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> string option} ->
     thm -> Proofterm.proof
@@ -653,6 +654,11 @@ fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 
 (** proof terms **)
+
+fun expose_proofs thy thms =
+  if Proofterm.export_proof_boxes_required thy then
+    Proofterm.export_proof_boxes (map Thm.proof_of thms)
+  else ();
 
 fun reconstruct_proof_of thm =
   Proofterm.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
