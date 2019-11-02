@@ -1271,30 +1271,20 @@ qed
 text\<open>Hence a nice clean inverse function theorem\<close>
 
 lemma has_field_derivative_inverse_strong:
-  fixes f :: "'a::{euclidean_space,real_normed_field} ⇒ 'a"
-  shows "DERIV f x :> f' ⟹
-         f' ≠ 0 ⟹
-         open S ⟹
-         x ∈ S ⟹
-         continuous_on S f ⟹
-         (⋀z. z ∈ S ⟹ g (f z) = z)
-         ⟹ DERIV g (f x) :> inverse (f')"
+  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
+  shows "\<lbrakk>DERIV f x :> f'; f' \<noteq> 0; open S; x \<in> S; continuous_on S f;
+         \<And>z. z \<in> S \<Longrightarrow> g (f z) = z\<rbrakk>
+         \<Longrightarrow> DERIV g (f x) :> inverse (f')"
   unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong [of S x f g ])
-  by auto
+  by (rule has_derivative_inverse_strong [of S x f g]) auto
 
 lemma has_field_derivative_inverse_strong_x:
-  fixes f :: "'a::{euclidean_space,real_normed_field} ⇒ 'a"
-  shows  "DERIV f (g y) :> f' ⟹
-          f' ≠ 0 ⟹
-          open S ⟹
-          continuous_on S f ⟹
-          g y ∈ S ⟹ f(g y) = y ⟹
-          (⋀z. z ∈ S ⟹ g (f z) = z)
-          ⟹ DERIV g y :> inverse (f')"
+  fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
+  shows  "\<lbrakk>DERIV f (g y) :> f'; f' \<noteq> 0; open S; continuous_on S f; g y \<in> S; f(g y) = y;
+           \<And>z. z \<in> S \<Longrightarrow> g (f z) = z\<rbrakk>
+          \<Longrightarrow> DERIV g y :> inverse (f')"
   unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong_x [of S g y f])
-  by auto
+  by (rule has_derivative_inverse_strong_x [of S g y f]) auto
 
 proposition holomorphic_has_inverse:
   assumes holf: "f holomorphic_on S"
