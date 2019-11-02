@@ -20,12 +20,12 @@ sig
   val Y: Symbol.symbol
   val embed_controls: string -> string
   val detect: string -> bool
-  val output_markup: Markup.T -> string * string
   val buffer_body: XML.body -> Buffer.T -> Buffer.T
   val buffer: XML.tree -> Buffer.T -> Buffer.T
   val chunks_of_body: XML.body -> string list
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
+  val output_markup: Markup.T -> string * string
   val output_markup_elem: Markup.T -> (string * string) * string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
@@ -65,10 +65,6 @@ fun detect s = Char.contains s X_char orelse Char.contains s Y_char;
 
 (* output *)
 
-fun output_markup (markup as (name, atts)) =
-  if Markup.is_empty markup then Markup.no_output
-  else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
-
 fun buffer_attrib (a, x) =
   Buffer.add Y #> Buffer.add a #> Buffer.add "=" #> Buffer.add x;
 
@@ -84,10 +80,14 @@ fun string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content;
 val string_of = string_of_body o single;
 
 
-(* wrapped elements *)
+(* markup elements *)
 
 val Z = chr 0;
 val Z_text = [XML.Text Z];
+
+fun output_markup (markup as (name, atts)) =
+  if Markup.is_empty markup then Markup.no_output
+  else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
 
 fun output_markup_elem markup =
   let val [bg1, bg2, en] = space_explode Z (string_of (XML.wrap_elem ((markup, Z_text), Z_text)))
