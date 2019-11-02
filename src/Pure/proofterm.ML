@@ -2109,7 +2109,7 @@ fun export_proof_boxes proofs =
               let
                 val prf' = thm_body_proof_raw thm_body;
                 val export = thm_body_export_proof thm_body;
-                val boxes' = boxes |> not (Lazy.is_finished export) ? Inttab.update (i, export);
+                val boxes' = Inttab.update (i, export) boxes;
               in export_boxes prf' boxes' end)
       | export_boxes _ = I;
     val boxes = (proofs, Inttab.empty) |-> fold export_boxes |> Inttab.dest;
