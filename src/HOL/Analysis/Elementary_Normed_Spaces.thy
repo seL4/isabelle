@@ -1192,10 +1192,16 @@ proof -
     by (metis assms continuous_open_vimage vimage_def)
 qed
 
+lemma open_translation_subtract:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open ((\<lambda>x. x - a) ` S)" 
+  using assms open_translation [of S "- a"] by (simp cong: image_cong_simp)
+
 lemma open_neg_translation:
-  fixes s :: "'a::real_normed_vector set"
-  assumes "open s"
-  shows "open((\<lambda>x. a - x) ` s)"
+  fixes S :: "'a::real_normed_vector set"
+  assumes "open S"
+  shows "open((\<lambda>x. a - x) ` S)"
   using open_translation[OF open_negations[OF assms], of a]
   by (auto simp: image_image)
 

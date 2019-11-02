@@ -216,6 +216,8 @@ interpretation blinfun: bounded_bilinear blinfun_apply
 
 lemmas bounded_linear_apply_blinfun[intro, simp] = blinfun.bounded_linear_left
 
+declare blinfun.zero_left [simp] blinfun.zero_right [simp]
+
 
 context bounded_bilinear
 begin
@@ -682,6 +684,28 @@ lemma blinfun_compose_zero[simp]:
   "blinfun_compose x 0 = 0"
   by (auto simp: blinfun.bilinear_simps intro!: blinfun_eqI)
 
+lemma blinfun_bij2:
+  fixes f::"'a \<Rightarrow>\<^sub>L 'a::euclidean_space"
+  assumes "f o\<^sub>L g = id_blinfun"
+  shows "bij (blinfun_apply g)"
+proof (rule bijI)
+  show "inj g"
+    using assms
+    by (metis blinfun_apply_id_blinfun blinfun_compose.rep_eq injI inj_on_imageI2)
+  then show "surj g"
+    using blinfun.bounded_linear_right bounded_linear_def linear_inj_imp_surj by blast
+qed
+
+lemma blinfun_bij1:
+  fixes f::"'a \<Rightarrow>\<^sub>L 'a::euclidean_space"
+  assumes "f o\<^sub>L g = id_blinfun"
+  shows "bij (blinfun_apply f)"
+proof (rule bijI)
+  show "surj (blinfun_apply f)"
+    by (metis assms blinfun_apply_blinfun_compose blinfun_apply_id_blinfun surjI)
+  then show "inj (blinfun_apply f)"
+    using blinfun.bounded_linear_right bounded_linear_def linear_surj_imp_inj by blast
+qed
 
 lift_definition blinfun_inner_right::"'a::real_inner \<Rightarrow> 'a \<Rightarrow>\<^sub>L real" is "(\<bullet>)"
   by (rule bounded_linear_inner_right)

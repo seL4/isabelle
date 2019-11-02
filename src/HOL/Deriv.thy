@@ -169,6 +169,40 @@ proof -
   finally show ?thesis .
 qed
 
+lemma has_derivative_iff_Ex:
+  "(f has_derivative f') (at x) \<longleftrightarrow>
+    bounded_linear f' \<and> (\<exists>e. (\<forall>h. f (x+h) = f x + f' h + e h) \<and> ((\<lambda>h. norm (e h) / norm h) \<longlongrightarrow> 0) (at 0))"
+  unfolding has_derivative_at by force
+
+lemma has_derivative_at_within_iff_Ex:
+  assumes "x \<in> S" "open S"
+  shows "(f has_derivative f') (at x within S) \<longleftrightarrow>
+         bounded_linear f' \<and> (\<exists>e. (\<forall>h. x+h \<in> S \<longrightarrow> f (x+h) = f x + f' h + e h) \<and> ((\<lambda>h. norm (e h) / norm h) \<longlongrightarrow> 0) (at 0))"
+    (is "?lhs = ?rhs")
+proof safe
+  show "bounded_linear f'"
+    if "(f has_derivative f') (at x within S)"
+    using has_derivative_bounded_linear that by blast
+  show "\<exists>e. (\<forall>h. x + h \<in> S \<longrightarrow> f (x + h) = f x + f' h + e h) \<and> (\<lambda>h. norm (e h) / norm h) \<midarrow>0\<rightarrow> 0"
+    if "(f has_derivative f') (at x within S)"
+    by (metis (full_types) assms that has_derivative_iff_Ex at_within_open)
+  show "(f has_derivative f') (at x within S)"
+    if "bounded_linear f'"
+      and eq [rule_format]: "\<forall>h. x + h \<in> S \<longrightarrow> f (x + h) = f x + f' h + e h"
+      and 0: "(\<lambda>h. norm (e (h::'a)::'b) / norm h) \<midarrow>0\<rightarrow> 0"
+    for e 
+  proof -
+    have 1: "f y - f x = f' (y-x) + e (y-x)" if "y \<in> S" for y
+      using eq [of "y-x"] that by simp
+    have 2: "((\<lambda>y. norm (e (y-x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
+      by (simp add: "0" assms tendsto_offset_zero_iff)
+    have "((\<lambda>y. norm (f y - f x - f' (y - x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
+      by (simp add: Lim_cong_within 1 2)
+    then show ?thesis
+      by (simp add: has_derivative_iff_norm \<open>bounded_linear f'\<close>)
+  qed
+qed
+
 lemma has_derivativeI:
   "bounded_linear f' \<Longrightarrow>
     ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within s) \<Longrightarrow>
