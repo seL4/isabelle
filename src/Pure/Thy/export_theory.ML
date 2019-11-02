@@ -125,12 +125,9 @@ fun setup_presentation f =
   Theory.setup (Thy_Info.add_presentation (fn context => fn thy =>
     if Options.bool (#options context) "export_theory" then f context thy else ()));
 
-fun export_buffer thy name buffer =
-  if Buffer.is_empty buffer then ()
-  else Export.export thy (Path.binding0 (Path.make ["theory", name])) (XML.blob (Buffer.chunks buffer));
-
 fun export_body thy name body =
-  export_buffer thy name (fold YXML.buffer body Buffer.empty);
+  if null body then ()
+  else Export.export thy (Path.binding0 (Path.make ["theory", name])) body;
 
 
 (* presentation *)
@@ -301,17 +298,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           in pair encode_prop (pair (list string) (pair (list encode_box) encode_proof)) end
       end;
 
-    fun buffer_export_thm (thm_id, thm_name) =
+    fun export_thm (thm_id, thm_name) =
       let
         val markup = entity_markup_thm (#serial thm_id, thm_name);
         val thm = Global_Theory.get_thm_name thy (thm_name, Position.none);
-        val body = encode_thm thm_id thm;
-      in YXML.buffer (XML.Elem (markup, body)) end;
+      in XML.Elem (markup, encode_thm thm_id thm) end;
 
-    val _ =
-      Buffer.empty
-      |> fold buffer_export_thm (Global_Theory.dest_thm_names thy)
-      |> export_buffer thy "thms";
+    val _ = export_body thy "thms" (map export_thm (Global_Theory.dest_thm_names thy));
 
 
     (* type classes *)
