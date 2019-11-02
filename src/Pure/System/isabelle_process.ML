@@ -106,15 +106,15 @@ fun init_channels out_stream =
     fun message name props body =
       Message_Channel.send msg_channel (Message_Channel.message name props body);
 
-    fun standard_message props name body =
-      if forall (fn s => s = "") body then ()
+    fun standard_message props name ss =
+      if forall (fn s => s = "") ss then ()
       else
         let
           val props' =
             (case (Properties.defined props Markup.idN, Position.get_id (Position.thread_data ())) of
               (false, SOME id') => props @ [(Markup.idN, id')]
             | _ => props);
-        in message name props' body end;
+        in message name props' (XML.blob ss) end;
   in
     Private_Output.status_fn := standard_message [] Markup.statusN;
     Private_Output.report_fn := standard_message [] Markup.reportN;
@@ -130,12 +130,13 @@ fun init_channels out_stream =
     Private_Output.legacy_fn := (fn s => standard_message (serial_props ()) Markup.legacyN s);
     Private_Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
-    Private_Output.system_message_fn := message Markup.systemN [];
+    Private_Output.system_message_fn :=
+      (fn ss => message Markup.systemN [] (XML.blob ss));
     Private_Output.protocol_message_fn :=
-      (fn props => fn body => message Markup.protocolN props (YXML.chunks_of_body body));
+      (fn props => fn body => message Markup.protocolN props body);
 
     Session.init_protocol_handlers ();
-    message Markup.initN [] [Session.welcome ()];
+    message Markup.initN [] [XML.Text (Session.welcome ())];
     msg_channel
   end;
 

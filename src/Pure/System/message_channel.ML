@@ -7,7 +7,7 @@ Preferably asynchronous channel for Isabelle messages.
 signature MESSAGE_CHANNEL =
 sig
   type message
-  val message: string -> Properties.T -> string list -> message
+  val message: string -> Properties.T -> XML.body -> message
   type T
   val send: T -> message -> unit
   val shutdown: T -> unit
@@ -19,19 +19,20 @@ struct
 
 (* message *)
 
-datatype message = Message of string list;
+datatype message = Message of XML.body;
 
-fun chunk ss =
-  string_of_int (fold (Integer.add o size) ss 0) :: "\n" :: ss;
+fun body_size body = fold (YXML.traverse (Integer.add o size)) body 0;
+
+fun chunk body = XML.Text (string_of_int (body_size body) ^ "\n") :: body;
 
 fun message name raw_props body =
   let
     val robust_props = map (apply2 YXML.embed_controls) raw_props;
-    val header = YXML.string_of (XML.Elem ((name, robust_props), []));
+    val header = XML.Elem ((name, robust_props), []);
   in Message (chunk [header] @ chunk body) end;
 
-fun output_message stream (Message ss) =
-  List.app (File.output stream) ss;
+fun output_message stream (Message body) =
+  fold (YXML.traverse (fn s => fn () => File.output stream s)) body ();
 
 
 (* channel *)
