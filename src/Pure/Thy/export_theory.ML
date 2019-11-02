@@ -129,8 +129,8 @@ fun export_buffer thy name buffer =
   if Buffer.is_empty buffer then ()
   else Export.export thy (Path.binding0 (Path.make ["theory", name])) (Buffer.chunks buffer);
 
-fun export_body thy name elems =
-  export_buffer thy name (YXML.buffer_body elems Buffer.empty);
+fun export_body thy name body =
+  export_buffer thy name (fold YXML.buffer body Buffer.empty);
 
 
 (* presentation *)

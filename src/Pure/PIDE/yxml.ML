@@ -20,7 +20,7 @@ sig
   val Y: Symbol.symbol
   val embed_controls: string -> string
   val detect: string -> bool
-  val buffer_body: XML.body -> Buffer.T -> Buffer.T
+  val traverse: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
   val buffer: XML.tree -> Buffer.T -> Buffer.T
   val chunks_of_body: XML.body -> string list
   val string_of_body: XML.body -> string
@@ -65,18 +65,20 @@ fun detect s = Char.contains s X_char orelse Char.contains s Y_char;
 
 (* output *)
 
-fun buffer_attrib (a, x) =
-  Buffer.add Y #> Buffer.add a #> Buffer.add "=" #> Buffer.add x;
+fun traverse string =
+  let
+    fun attrib (a, x) = string Y #> string a #> string "=" #> string x;
+    fun tree (XML.Elem ((name, atts), ts)) =
+          string XY #> string name #> fold attrib atts #> string X #>
+          fold tree ts #>
+          string XYX
+      | tree (XML.Text s) = string s;
+  in tree end;
 
-fun buffer_body ts = fold buffer ts
-and buffer (XML.Elem ((name, atts), ts)) =
-      Buffer.add XY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add X #>
-      buffer_body ts #>
-      Buffer.add XYX
-  | buffer (XML.Text s) = Buffer.add s
+val buffer = traverse Buffer.add;
 
-fun chunks_of_body body = Buffer.empty |> buffer_body body |> Buffer.chunks;
-fun string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content;
+fun chunks_of_body body = Buffer.empty |> fold buffer body |> Buffer.chunks;
+fun string_of_body body = Buffer.empty |> fold buffer body |> Buffer.content;
 val string_of = string_of_body o single;
 
 
