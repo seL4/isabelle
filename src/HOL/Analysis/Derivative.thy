@@ -57,11 +57,6 @@ lemma has_derivative_at_withinI:
   unfolding has_derivative_within' has_derivative_at'
   by blast
 
-lemma has_derivative_within_open:
-  "a \<in> S \<Longrightarrow> open S \<Longrightarrow>
-    (f has_derivative f') (at a within S) \<longleftrightarrow> (f has_derivative f') (at a)"
-  by (simp only: at_within_interior interior_open)
-
 lemma has_derivative_right:
   fixes f :: "real \<Rightarrow> real"
     and y :: "real"
@@ -913,8 +908,7 @@ proof -
     have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within box 0 1)"
       by (intro derivative_intros has_derivative_within_subset [OF derf]) (use u * in auto)
     hence "((f \<circ> ?p) has_vector_derivative f' ?u (y - x)) (at u)"
-      by (simp add: has_derivative_within_open[OF u open_greaterThanLessThan]
-        scaleR has_vector_derivative_def o_def)
+      by (simp add: at_within_open[OF u open_greaterThanLessThan] scaleR has_vector_derivative_def o_def)
   } note 2 = this
   have 3: "continuous_on {0..1} ?\<phi>"
     by (rule continuous_intros)+
@@ -2552,5 +2546,355 @@ lemma has_vector_derivative_If_within_closures:
   subgoal by (rule f'[unfolded has_vector_derivative_def]; assumption)
   subgoal by (rule g'[unfolded has_vector_derivative_def]; assumption)
   by (auto simp: assms)
+
+subsection\<^marker>\<open>tag important\<close>\<open>The Inverse Function Theorem\<close>
+
+lemma linear_injective_contraction:
+  assumes "linear f" "c < 1" and le: "\<And>x. norm (f x - x) \<le> c * norm x"
+  shows "inj f"
+  unfolding linear_injective_0[OF \<open>linear f\<close>]
+proof safe
+  fix x
+  assume "f x = 0"
+  with le [of x] have "norm x \<le> c * norm x"
+    by simp
+  then show "x = 0"
+    using \<open>c < 1\<close> by (simp add: mult_le_cancel_right1)
+qed
+
+text\<open>From an online proof by J. Michael Boardman, Department of Mathematics, Johns Hopkins University\<close>
+lemma inverse_function_theorem_scaled:
+  fixes f::"'a::euclidean_space \<Rightarrow> 'a"
+    and f'::"'a \<Rightarrow> ('a \<Rightarrow>\<^sub>L 'a)"
+  assumes "open U"
+    and derf: "\<And>x. x \<in> U \<Longrightarrow> (f has_derivative blinfun_apply (f' x)) (at x)"
+    and contf: "continuous_on U f'"
+    and "0 \<in> U" and [simp]: "f 0 = 0"
+    and id: "f' 0 = id_blinfun"
+  obtains U' V g g' where "open U'" "U' \<subseteq> U" "0 \<in> U'" "open V" "0 \<in> V" "homeomorphism U' V f g"
+                "\<And>y. y \<in> V \<Longrightarrow> (g has_derivative (g' y)) (at y)"
+                "\<And>y. y \<in> V \<Longrightarrow> g' y = inv (blinfun_apply (f'(g y)))"
+                "\<And>y. y \<in> V \<Longrightarrow> bij (blinfun_apply (f'(g y)))"
+proof -
+  obtain d1 where "cball 0 d1 \<subseteq> U" "d1 > 0"
+    using \<open>open U\<close> \<open>0 \<in> U\<close> open_contains_cball by blast
+  obtain d2 where d2: "\<And>x. \<lbrakk>x \<in> U; dist x 0 \<le> d2\<rbrakk> \<Longrightarrow> dist (f' x) (f' 0) < 1/2" "0 < d2"
+    using continuous_onE [OF contf, of 0 "1/2"] by (metis \<open>0 \<in> U\<close> half_gt_zero_iff zero_less_one)
+  obtain \<delta> where le: "\<And>x. norm x \<le> \<delta> \<Longrightarrow> dist (f' x) id_blinfun \<le> 1/2" and "0 < \<delta>"
+    and subU: "cball 0 \<delta> \<subseteq> U"
+  proof
+    show "min d1 d2 > 0"
+      by (simp add: \<open>0 < d1\<close> \<open>0 < d2\<close>)
+    show "cball 0 (min d1 d2) \<subseteq> U"
+      using \<open>cball 0 d1 \<subseteq> U\<close> by auto
+    show "dist (f' x) id_blinfun \<le> 1/2" if "norm x \<le> min d1 d2" for x
+      using \<open>cball 0 d1 \<subseteq> U\<close> d2 that id by fastforce
+  qed
+  let ?D = "cball 0 \<delta>"
+  define V:: "'a set" where "V \<equiv> ball 0 (\<delta>/2)"
+  have 4: "norm (f (x + h) - f x - h) \<le> 1/2 * norm h"
+    if "x \<in> ?D" "x+h \<in> ?D" for x h
+  proof -
+    let ?w = "\<lambda>x. f x - x"
+    have B: "\<And>x. x \<in> ?D \<Longrightarrow> onorm (blinfun_apply (f' x - id_blinfun)) \<le> 1/2"
+      by (metis dist_norm le mem_cball_0 norm_blinfun.rep_eq)
+    have "\<And>x. x \<in> ?D \<Longrightarrow> (?w has_derivative (blinfun_apply (f' x - id_blinfun))) (at x)"
+      by (rule derivative_eq_intros derf subsetD [OF subU] | force simp: blinfun.diff_left)+
+    then have Dw: "\<And>x. x \<in> ?D \<Longrightarrow> (?w has_derivative (blinfun_apply (f' x - id_blinfun))) (at x within ?D)"
+      using has_derivative_at_withinI by blast
+    have "norm (?w (x+h) - ?w x) \<le> (1/2) * norm h"
+      using differentiable_bound [OF convex_cball Dw B] that by fastforce
+    then show ?thesis
+      by (auto simp: algebra_simps)
+  qed
+  have for_g: "\<exists>!x. norm x < \<delta> \<and> f x = y" if y: "norm y < \<delta>/2" for y
+  proof -
+    let ?u = "\<lambda>x. x + (y - f x)"
+    have *: "norm (?u x) < \<delta>" if "x \<in> ?D" for x
+    proof -
+      have fxx: "norm (f x - x) \<le> \<delta>/2"
+        using 4 [of 0 x] \<open>0 < \<delta>\<close> \<open>f 0 = 0\<close> that by auto
+      have "norm (?u x) \<le> norm y + norm (f x - x)"
+        by (metis add.commute add_diff_eq norm_minus_commute norm_triangle_ineq)
+      also have "\<dots> < \<delta>/2 + \<delta>/2"
+        using fxx y by auto
+      finally show ?thesis
+        by simp
+    qed
+    have "\<exists>!x \<in> ?D. ?u x = x"
+    proof (rule banach_fix)
+      show "cball 0 \<delta> \<noteq> {}"
+        using \<open>0 < \<delta>\<close> by auto
+      show "(\<lambda>x. x + (y - f x)) ` cball 0 \<delta> \<subseteq> cball 0 \<delta>"
+        using * by force
+      have "dist (x + (y - f x)) (xh + (y - f xh)) * 2 \<le> dist x xh"
+        if "norm x \<le> \<delta>" and "norm xh \<le> \<delta>" for x xh
+        using that 4 [of x "xh-x"] by (auto simp: dist_norm norm_minus_commute algebra_simps)
+      then show "\<forall>x\<in>cball 0 \<delta>. \<forall>ya\<in>cball 0 \<delta>. dist (x + (y - f x)) (ya + (y - f ya)) \<le> (1/2) * dist x ya"
+        by auto
+    qed (auto simp: complete_eq_closed)
+    then show ?thesis
+      by (metis "*" add_cancel_right_right eq_iff_diff_eq_0 le_less mem_cball_0)
+  qed
+  define g where "g \<equiv> \<lambda>y. THE x. norm x < \<delta> \<and> f x = y"
+  have g: "norm (g y) < \<delta> \<and> f (g y) = y" if "norm y < \<delta>/2" for y
+    unfolding g_def using that theI' [OF for_g] by meson
+  then have fg[simp]: "f (g y) = y" if "y \<in> V" for y
+    using that by (auto simp: V_def)
+  have 5: "norm (g y' - g y) \<le> 2 * norm (y' - y)" if "y \<in> V" "y' \<in> V" for y y'
+  proof -
+    have no: "norm (g y) \<le> \<delta>" "norm (g y') \<le> \<delta>" and [simp]: "f (g y) = y"
+      using that g unfolding V_def by force+
+    have "norm (g y' - g y) \<le> norm (g y' - g y - (y' - y)) + norm (y' - y)"
+      by (simp add: add.commute norm_triangle_sub)
+    also have "\<dots> \<le> (1/2) * norm (g y' - g y) + norm (y' - y)"
+      using 4 [of "g y" "g y' - g y"] that no by (simp add: g norm_minus_commute V_def)
+    finally show ?thesis
+      by auto
+  qed
+  have contg: "continuous_on V g"
+  proof
+    fix y::'a and e::real
+    assume "0 < e" and y: "y \<in> V"
+    show "\<exists>d>0. \<forall>x'\<in>V. dist x' y < d \<longrightarrow> dist (g x') (g y) \<le> e"
+    proof (intro exI conjI ballI impI)
+      show "0 < e/2"
+        by (simp add: \<open>0 < e\<close>)
+    qed (use 5 y in \<open>force simp: dist_norm\<close>)
+  qed
+  show thesis
+  proof
+    define U' where "U' \<equiv> (f -` V) \<inter> ball 0 \<delta>"
+    have contf: "continuous_on U f"
+      using derf has_derivative_at_withinI by (fast intro: has_derivative_continuous_on)
+    then have "continuous_on (ball 0 \<delta>) f"
+      by (meson ball_subset_cball continuous_on_subset subU)
+    then show "open U'"
+      by (simp add: U'_def V_def Int_commute continuous_open_preimage)
+    show "0 \<in> U'" "U' \<subseteq> U" "open V" "0 \<in> V"
+      using \<open>0 < \<delta>\<close> subU by (auto simp: U'_def V_def)
+    show hom: "homeomorphism U' V f g"
+    proof
+      show "continuous_on U' f"
+        using \<open>U' \<subseteq> U\<close> contf continuous_on_subset by blast
+      show "continuous_on V g"
+        using contg by blast
+      show "f ` U' \<subseteq> V"
+        using U'_def by blast
+      show "g ` V \<subseteq> U'"
+        by (simp add: U'_def V_def g image_subset_iff)
+      show "g (f x) = x" if "x \<in> U'" for x
+        by (metis that fg Int_iff U'_def V_def for_g g mem_ball_0 vimage_eq)
+      show "f (g y) = y" if "y \<in> V" for y
+        using that by (simp add: g V_def)
+    qed
+    show bij: "bij (blinfun_apply (f'(g y)))" if "y \<in> V" for y
+    proof -
+      have inj: "inj (blinfun_apply (f' (g y)))"
+      proof (rule linear_injective_contraction)
+        show "linear (blinfun_apply (f' (g y)))"
+          using blinfun.bounded_linear_right bounded_linear_def by blast
+      next
+        fix x
+        have "norm (blinfun_apply (f' (g y)) x - x) = norm (blinfun_apply (f' (g y) - id_blinfun) x)"
+          by (simp add: blinfun.diff_left)
+        also have "\<dots> \<le> norm (f' (g y) - id_blinfun) * norm x"
+          by (rule norm_blinfun)
+        also have "\<dots> \<le> (1/2) * norm x"
+        proof (rule mult_right_mono)
+          show "norm (f' (g y) - id_blinfun) \<le> 1/2"
+            using that g [of y] le by (auto simp: V_def dist_norm)
+        qed auto
+        finally show "norm (blinfun_apply (f' (g y)) x - x) \<le> (1/2) * norm x" .
+      qed auto
+      moreover
+      have "surj (blinfun_apply (f' (g y)))"
+        using blinfun.bounded_linear_right bounded_linear_def
+        by (blast intro!: linear_inj_imp_surj [OF _ inj])
+      ultimately show ?thesis
+        using bijI by blast
+    qed
+    define g' where "g' \<equiv> \<lambda>y. inv (blinfun_apply (f'(g y)))"
+    show "(g has_derivative g' y) (at y)" if "y \<in> V" for y
+    proof -
+      have gy: "g y \<in> U"
+        using g subU that unfolding V_def by fastforce
+      obtain e where e: "\<And>h. f (g y + h) = y + blinfun_apply (f' (g y)) h + e h"
+        and e0: "(\<lambda>h. norm (e h) / norm h) \<midarrow>0\<rightarrow> 0"
+        using iffD1 [OF has_derivative_iff_Ex derf [OF gy]] \<open>y \<in> V\<close> by auto
+      have [simp]: "e 0 = 0"
+        using e [of 0] that by simp
+      let ?INV = "inv (blinfun_apply (f' (g y)))"
+      have inj: "inj (blinfun_apply (f' (g y)))"
+        using bij bij_betw_def that by blast
+      have "(g has_derivative g' y) (at y within V)"
+        unfolding has_derivative_at_within_iff_Ex [OF \<open>y \<in> V\<close> \<open>open V\<close>]
+      proof
+        show blinv: "bounded_linear (g' y)"
+          unfolding g'_def using derf gy inj inj_linear_imp_inv_bounded_linear by blast
+        define eg where "eg \<equiv> \<lambda>k. - ?INV (e (g (y+k) - g y))"
+        have "g (y+k) = g y + g' y k + eg k" if "y + k \<in> V" for k
+        proof -
+          have "?INV k = ?INV (blinfun_apply (f' (g y)) (g (y+k) - g y) + e (g (y+k) - g y))"
+            using e [of "g(y+k) - g y"] that by simp
+          then have "g (y+k) = g y + ?INV k - ?INV (e (g (y+k) - g y))"
+            using inj blinv by (simp add: linear_simps g'_def)
+          then show ?thesis
+            by (auto simp: eg_def g'_def)
+        qed
+        moreover have "(\<lambda>k. norm (eg k) / norm k) \<midarrow>0\<rightarrow> 0"
+        proof (rule Lim_null_comparison)
+          let ?g = "\<lambda>k. 2 * onorm ?INV * norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)"
+          show "\<forall>\<^sub>F k in at 0. norm (norm (eg k) / norm k) \<le> ?g k"
+            unfolding eventually_at_topological
+          proof (intro exI conjI ballI impI)
+            show "open ((+)(-y) ` V)"
+              using \<open>open V\<close> open_translation by blast
+            show "0 \<in> (+)(-y) ` V"
+              by (simp add: that)
+            show "norm (norm (eg k) / norm k) \<le> 2 * onorm (inv (blinfun_apply (f' (g y)))) * norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)"
+              if "k \<in> (+)(-y) ` V" "k \<noteq> 0" for k
+            proof -
+              have "y+k \<in> V"
+                using that by auto
+              have "norm (norm (eg k) / norm k) \<le> onorm ?INV * norm (e (g (y+k) - g y)) / norm k"
+                using blinv g'_def onorm by (force simp: eg_def divide_simps)
+              also have "\<dots> = (norm (g (y+k) - g y) / norm k) * (onorm ?INV * (norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)))"
+                by (simp add: divide_simps)
+              also have "\<dots> \<le> 2 * (onorm ?INV * (norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)))"
+                apply (rule mult_right_mono)
+                using 5 [of y "y+k"] \<open>y \<in> V\<close> \<open>y + k \<in> V\<close>  onorm_pos_le [OF blinv]
+                 apply (auto simp: divide_simps zero_le_mult_iff zero_le_divide_iff g'_def)
+                done
+              finally show "norm (norm (eg k) / norm k) \<le> 2 * onorm ?INV * norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)"
+                by simp
+            qed
+          qed
+          have 1: "(\<lambda>h. norm (e h) / norm h) \<midarrow>0\<rightarrow> (norm (e 0) / norm 0)"
+            using e0 by auto
+          have 2: "(\<lambda>k. g (y+k) - g y) \<midarrow>0\<rightarrow> 0"
+            using contg \<open>open V\<close> \<open>y \<in> V\<close> LIM_offset_zero_iff LIM_zero_iff at_within_open continuous_on_def by fastforce
+          from tendsto_compose [OF 1 2, simplified]
+          have "(\<lambda>k. norm (e (g (y+k) - g y)) / norm (g (y+k) - g y)) \<midarrow>0\<rightarrow> 0" .
+          from tendsto_mult_left [OF this] show "?g \<midarrow>0\<rightarrow> 0" by auto
+        qed
+        ultimately show "\<exists>e. (\<forall>k. y + k \<in> V \<longrightarrow> g (y+k) = g y + g' y k + e k) \<and> (\<lambda>k. norm (e k) / norm k) \<midarrow>0\<rightarrow> 0"
+          by blast
+      qed
+      then show ?thesis
+        by (metis \<open>open V\<close> at_within_open that)
+    qed
+    show "g' y = inv (blinfun_apply (f' (g y)))"
+      if "y \<in> V" for y
+      by (simp add: g'_def)
+  qed
+qed
+
+
+text\<open>We need all this to justify the scaling and translations.\<close>
+theorem inverse_function_theorem:
+  fixes f::"'a::euclidean_space \<Rightarrow> 'a"
+    and f'::"'a \<Rightarrow> ('a \<Rightarrow>\<^sub>L 'a)"
+  assumes "open U"
+    and derf: "\<And>x. x \<in> U \<Longrightarrow> (f has_derivative (blinfun_apply (f' x))) (at x)"
+    and contf:  "continuous_on U f'"
+    and "x0 \<in> U"
+    and invf: "invf o\<^sub>L f' x0 = id_blinfun"
+  obtains U' V g g' where "open U'" "U' \<subseteq> U" "x0 \<in> U'" "open V" "f x0 \<in> V" "homeomorphism U' V f g"
+    "\<And>y. y \<in> V \<Longrightarrow> (g has_derivative (g' y)) (at y)"
+    "\<And>y. y \<in> V \<Longrightarrow> g' y = inv (blinfun_apply (f'(g y)))"
+    "\<And>y. y \<in> V \<Longrightarrow> bij (blinfun_apply (f'(g y)))"
+proof -
+  have apply1 [simp]: "\<And>i. blinfun_apply invf (blinfun_apply (f' x0) i) = i"
+    by (metis blinfun_apply_blinfun_compose blinfun_apply_id_blinfun invf)
+  have apply2 [simp]: "\<And>i. blinfun_apply (f' x0) (blinfun_apply invf i) = i"
+    by (metis apply1 bij_inv_eq_iff blinfun_bij1 invf)
+  have [simp]: "(range (blinfun_apply invf)) = UNIV"
+    using apply1 surjI by blast
+  let ?f = "invf \<circ> (\<lambda>x. (f \<circ> (+)x0)x - f x0)"
+  let ?f' = "\<lambda>x. invf o\<^sub>L (f' (x + x0))"
+  obtain U' V g g' where "open U'" and U': "U' \<subseteq> (+)(-x0) ` U" "0 \<in> U'"
+    and "open V" "0 \<in> V" and hom: "homeomorphism U' V ?f g"
+    and derg: "\<And>y. y \<in> V \<Longrightarrow> (g has_derivative (g' y)) (at y)"
+    and g': "\<And>y. y \<in> V \<Longrightarrow> g' y = inv (?f'(g y))"
+    and bij: "\<And>y. y \<in> V \<Longrightarrow> bij (?f'(g y))"
+  proof (rule inverse_function_theorem_scaled [of "(+)(-x0) ` U" ?f "?f'"])
+    show ope: "open ((+) (- x0) ` U)"
+      using \<open>open U\<close> open_translation by blast
+    show "(?f has_derivative blinfun_apply (?f' x)) (at x)"
+      if "x \<in> (+) (- x0) ` U" for x
+      using that
+      apply clarify
+      apply (rule derf derivative_eq_intros | simp add: blinfun_compose.rep_eq)+
+      done
+    have YY: "(\<lambda>x. f' (x + x0)) \<midarrow>u-x0\<rightarrow> f' u"
+      if "f' \<midarrow>u\<rightarrow> f' u" "u \<in> U" for u
+      using that LIM_offset [where k = x0] by (auto simp: algebra_simps)
+    then have "continuous_on ((+) (- x0) ` U) (\<lambda>x. f' (x + x0))"
+      using contf \<open>open U\<close> Lim_at_imp_Lim_at_within
+      by (fastforce simp: continuous_on_def at_within_open_NO_MATCH ope)
+    then show "continuous_on ((+) (- x0) ` U) ?f'"
+      by (intro continuous_intros) simp
+  qed (auto simp: invf \<open>x0 \<in> U\<close>)
+  show thesis
+  proof
+    let ?U' = "(+)x0 ` U'"
+    let ?V = "((+)(f x0) \<circ> f' x0) ` V"
+    let ?g = "(+)x0 \<circ> g \<circ> invf \<circ> (+)(- f x0)"
+    let ?g' = "\<lambda>y. inv (blinfun_apply (f' (?g y)))"
+    show oU': "open ?U'"
+      by (simp add: \<open>open U'\<close> open_translation)
+    show subU: "?U' \<subseteq> U"
+      using ComplI \<open>U' \<subseteq> (+) (- x0) ` U\<close> by auto
+    show "x0 \<in> ?U'"
+      by (simp add: \<open>0 \<in> U'\<close>)
+    show "open ?V"
+      using blinfun_bij2 [OF invf]
+      by (metis \<open>open V\<close> bij_is_surj blinfun.bounded_linear_right bounded_linear_def image_comp open_surjective_linear_image open_translation)
+    show "f x0 \<in> ?V"
+      using \<open>0 \<in> V\<close> image_iff by fastforce
+    show "homeomorphism ?U' ?V f ?g"
+    proof
+      show "continuous_on ?U' f"
+        by (meson subU continuous_on_eq_continuous_at derf has_derivative_continuous oU' subsetD)
+      have "?f ` U' \<subseteq> V"
+        using hom homeomorphism_image1 by blast
+      then show "f ` ?U' \<subseteq> ?V"
+        unfolding image_subset_iff
+        by (clarsimp simp: image_def) (metis apply2 add.commute diff_add_cancel)
+      show "?g ` ?V \<subseteq> ?U'"
+        using hom invf by (auto simp: image_def homeomorphism_def)
+      show "?g (f x) = x"
+        if "x \<in> ?U'" for x
+        using that hom homeomorphism_apply1 by fastforce
+      have "continuous_on V g"
+        using hom homeomorphism_def by blast
+      then show "continuous_on ?V ?g"
+        by (intro continuous_intros) (auto elim!: continuous_on_subset)
+      have fg: "?f (g x) = x" if "x \<in> V" for x
+        using hom homeomorphism_apply2 that by blast
+      show "f (?g y) = y"
+        if "y \<in> ?V" for y
+        using that fg by (simp add: image_iff) (metis apply2 add.commute diff_add_cancel)
+    qed
+    show "(?g has_derivative ?g' y) (at y)" "bij (blinfun_apply (f' (?g y)))"
+      if "y \<in> ?V" for y
+    proof -
+      have 1: "bij (blinfun_apply invf)"
+        using blinfun_bij1 invf by blast
+      then have 2: "bij (blinfun_apply (f' (x0 + g x)))" if "x \<in> V" for x
+        by (metis add.commute bij bij_betw_comp_iff2 blinfun_compose.rep_eq that top_greatest)
+      then show "bij (blinfun_apply (f' (?g y)))"
+        using that by auto
+      have "g' x \<circ> blinfun_apply invf = inv (blinfun_apply (f' (x0 + g x)))"
+        if "x \<in> V" for x
+        using that
+        by (simp add: g' o_inv_distrib blinfun_compose.rep_eq 1 2 add.commute bij_is_inj flip: o_assoc)
+      then show "(?g has_derivative ?g' y) (at y)"
+        using that invf
+        by clarsimp (rule derg derivative_eq_intros | simp flip: id_def)+
+    qed
+  qed auto
+qed
 
 end

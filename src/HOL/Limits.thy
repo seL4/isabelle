@@ -703,7 +703,7 @@ lemmas real_tendsto_sandwich = tendsto_sandwich[where 'a=real]
 
 subsubsection \<open>Linear operators and multiplication\<close>
 
-lemma linear_times: "linear (\<lambda>x. c * x)"
+lemma linear_times [simp]: "linear (\<lambda>x. c * x)"
   for c :: "'a::real_algebra"
   by (auto simp: linearI distrib_left)
 
@@ -2471,6 +2471,12 @@ lemma LIM_offset_zero_cancel: "(\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow>
 lemma LIM_offset_zero_iff: "f \<midarrow>a\<rightarrow> L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L"
   for f :: "'a :: real_normed_vector \<Rightarrow> _"
   using LIM_offset_zero_cancel[of f a L] LIM_offset_zero[of f L a] by auto
+
+lemma tendsto_offset_zero_iff:
+  fixes f :: "'a :: real_normed_vector \<Rightarrow> _"
+  assumes "a \<in> S" "open S"
+  shows "(f \<longlongrightarrow> L) (at a within S) \<longleftrightarrow> ((\<lambda>h. f (a + h)) \<longlongrightarrow> L) (at 0)"
+  by (metis LIM_offset_zero_iff assms tendsto_within_open)
 
 lemma LIM_zero: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. f x - l) \<longlongrightarrow> 0) F"
   for f :: "'a \<Rightarrow> 'b::real_normed_vector"

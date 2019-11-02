@@ -1267,23 +1267,55 @@ subsection\<^marker>\<open>tag unimportant\<close>\<open>Derivative of Ln away f
 
 lemma
   assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
-    shows has_field_derivative_Ln: "(Ln has_field_derivative inverse(z)) (at z)"
-      and Im_Ln_less_pi:           "Im (Ln z) < pi"
+  shows has_field_derivative_Ln: "(Ln has_field_derivative inverse(z)) (at z)"
+    and Im_Ln_less_pi:           "Im (Ln z) < pi"
 proof -
-  have znz: "z \<noteq> 0"
+  have znz [simp]: "z \<noteq> 0"
     using assms by auto
   then have "Im (Ln z) \<noteq> pi"
     by (metis (no_types) Im_exp Ln_in_Reals assms complex_nonpos_Reals_iff complex_is_Real_iff exp_Ln mult_zero_right not_less pi_neq_zero sin_pi znz)
   then show *: "Im (Ln z) < pi" using assms Im_Ln_le_pi
-    by (simp add: le_neq_trans znz)
-  have "(exp has_field_derivative z) (at (Ln z))"
-    by (metis znz DERIV_exp exp_Ln)
-  then show "(Ln has_field_derivative inverse(z)) (at z)"
-    apply (rule has_field_derivative_inverse_strong_x
-              [where S = "{w. -pi < Im(w) \<and> Im(w) < pi}"])
-    using znz *
-    apply (auto simp: continuous_on_exp [OF continuous_on_id] open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt mpi_less_Im_Ln)
-    done
+    by (simp add: le_neq_trans)
+  let ?U = "{w. -pi < Im(w) \<and> Im(w) < pi}"
+  have 1: "open ?U"
+    by (simp add: open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt)
+  have 2: "\<And>x. x \<in> ?U \<Longrightarrow> (exp has_derivative blinfun_apply(Blinfun ((*) (exp x)))) (at x)"
+    apply (simp add: bounded_linear_Blinfun_apply bounded_linear_mult_right)
+    using DERIV_exp has_field_derivative_def by blast
+  have 3: "continuous_on ?U (\<lambda>x. Blinfun ((*) (exp x)))"
+    unfolding blinfun_mult_right.abs_eq [symmetric] by (intro continuous_intros)
+  have 4: "Ln z \<in> ?U"
+    by (auto simp: mpi_less_Im_Ln *)
+  have 5: "Blinfun ((*) (inverse z)) o\<^sub>L Blinfun ((*) (exp (Ln z))) = id_blinfun"
+    by (rule blinfun_eqI) (simp add: bounded_linear_mult_right bounded_linear_Blinfun_apply)
+  obtain U' V g g' where "open U'" and sub: "U' \<subseteq> ?U"
+    and "Ln z \<in> U'" "open V" "z \<in> V"
+    and hom: "homeomorphism U' V exp g"
+    and g: "\<And>y. y \<in> V \<Longrightarrow> (g has_derivative (g' y)) (at y)"
+    and g': "\<And>y. y \<in> V \<Longrightarrow> g' y = inv ((*) (exp (g y)))"
+    and bij: "\<And>y. y \<in> V \<Longrightarrow> bij ((*) (exp (g y)))"
+    using inverse_function_theorem [OF 1 2 3 4 5]
+    by (simp add: bounded_linear_Blinfun_apply bounded_linear_mult_right) blast
+  show "(Ln has_field_derivative inverse(z)) (at z)"
+    unfolding has_field_derivative_def
+  proof (rule has_derivative_transform_within_open)
+    show g_eq_Ln: "g y = Ln y" if "y \<in> V" for y
+    proof -
+      obtain x where "y = exp x" "x \<in> U'"
+        using hom homeomorphism_image1 that \<open>y \<in> V\<close> by blast
+      then show ?thesis
+        using sub hom homeomorphism_apply1 by fastforce
+    qed
+    have "0 \<notin> V"
+      by (meson exp_not_eq_zero hom homeomorphism_def)
+    then have "\<And>y. y \<in> V \<Longrightarrow> g' y = inv ((*) y)"
+      by (metis exp_Ln g' g_eq_Ln)
+    then have g': "g' z = (\<lambda>x. x/z)"
+      by (metis (no_types, hide_lams) bij \<open>z \<in> V\<close> bij_inv_eq_iff exp_Ln g_eq_Ln nonzero_mult_div_cancel_left znz)
+    show "(g has_derivative (*) (inverse z)) (at z)"
+      using g [OF \<open>z \<in> V\<close>] g'
+      by (simp add: \<open>z \<in> V\<close> field_class.field_divide_inverse has_derivative_imp_has_field_derivative has_field_derivative_imp_has_derivative)
+  qed (auto simp: \<open>z \<in> V\<close> \<open>open V\<close>)
 qed
 
 declare has_field_derivative_Ln [derivative_intros]

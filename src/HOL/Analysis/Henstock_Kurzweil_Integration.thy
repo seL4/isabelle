@@ -4405,7 +4405,7 @@ proof -
       by (rule continuous_on_subset[OF contf])
     show "(f has_vector_derivative 0) (at z)" if z: "z \<in> {a<..<x}" and notin: "z \<notin> k" for z
       unfolding has_vector_derivative_def
-    proof (simp add: has_derivative_within_open[OF z, symmetric])
+    proof (simp add: at_within_open[OF z, symmetric])
       show "(f has_derivative (\<lambda>x. 0)) (at z within {a<..<x})"
         by (rule has_derivative_within_subset [OF fder]) (use x z notin in auto)
     qed

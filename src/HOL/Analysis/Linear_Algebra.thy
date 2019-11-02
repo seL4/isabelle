@@ -646,6 +646,11 @@ qed
 
 lemmas linear_linear = linear_conv_bounded_linear[symmetric]
 
+lemma inj_linear_imp_inv_bounded_linear:
+  fixes f::"'a::euclidean_space \<Rightarrow> 'a"
+  shows "\<lbrakk>bounded_linear f; inj f\<rbrakk> \<Longrightarrow> bounded_linear (inv f)"
+  by (simp add: inj_linear_imp_inv_linear linear_linear)
+
 lemma linear_bounded_pos:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
