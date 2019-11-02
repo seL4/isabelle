@@ -7,7 +7,8 @@ section \<open>Derivative\<close>
 
 theory Derivative
   imports
-    Starlike
+    Convex_Euclidean_Space 
+    Abstract_Limits
     Operator_Norm
     Uniform_Limit
     Bounded_Linear_Function
