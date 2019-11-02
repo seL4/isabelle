@@ -21,8 +21,6 @@ sig
   val embed_controls: string -> string
   val detect: string -> bool
   val traverse: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
-  val buffer: XML.tree -> Buffer.T -> Buffer.T
-  val chunks_of_body: XML.body -> string list
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val write_body: Path.T -> XML.body -> unit
@@ -76,10 +74,7 @@ fun traverse string =
       | tree (XML.Text s) = string s;
   in tree end;
 
-val buffer = traverse Buffer.add;
-
-fun chunks_of_body body = Buffer.empty |> fold buffer body |> Buffer.chunks;
-fun string_of_body body = Buffer.empty |> fold buffer body |> Buffer.content;
+fun string_of_body body = Buffer.empty |> fold (traverse Buffer.add) body |> Buffer.content;
 val string_of = string_of_body o single;
 
 fun write_body path body =
