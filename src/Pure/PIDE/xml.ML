@@ -51,7 +51,6 @@ sig
   val output_markup: Markup.T -> Markup.output
   val string_of: tree -> string
   val pretty: int -> tree -> Pretty.T
-  val output: tree -> BinIO.outstream -> unit
   val parse_comments: string list -> unit * string list
   val parse_string : string -> string option
   val parse_element: string list -> tree * string list
@@ -181,7 +180,6 @@ fun buffer_of depth tree =
   in Buffer.empty |> traverse depth tree end;
 
 val string_of = Buffer.content o buffer_of ~1;
-val output = Buffer.output o buffer_of ~1;
 
 fun pretty depth tree =
   Pretty.str (Buffer.content (buffer_of (Int.max (0, depth)) tree));
