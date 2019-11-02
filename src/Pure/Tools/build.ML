@@ -239,11 +239,12 @@ fun build args_file =
 val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
-      let
-        val args = decode_args args_yxml;
-        val result = (build_session args; "") handle exn =>
-          (Runtime.exn_message exn handle _ (*sic!*) =>
-            "Exception raised, but failed to print details!");
-    in Output.protocol_message Markup.build_session_finished [result] end | _ => raise Match);
+        let
+          val args = decode_args args_yxml;
+          val result = (build_session args; "") handle exn =>
+            (Runtime.exn_message exn handle _ (*sic!*) =>
+              "Exception raised, but failed to print details!");
+        in Output.protocol_message Markup.build_session_finished [XML.Text result] end
+      | _ => raise Match);
 
 end;

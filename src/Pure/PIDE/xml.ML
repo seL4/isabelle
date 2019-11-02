@@ -34,6 +34,7 @@ sig
       Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
+  val blob: string list -> body
   val xml_elemN: string
   val xml_nameN: string
   val xml_bodyN: string
@@ -73,13 +74,9 @@ struct
 
 (** XML trees **)
 
-type attributes = (string * string) list;
+open Output_Primitives.XML;
 
-datatype tree =
-    Elem of (string * attributes) * tree list
-  | Text of string;
-
-type body = tree list;
+val blob = map Text;
 
 
 (* wrapped elements *)

@@ -127,7 +127,7 @@ fun setup_presentation f =
 
 fun export_buffer thy name buffer =
   if Buffer.is_empty buffer then ()
-  else Export.export thy (Path.binding0 (Path.make ["theory", name])) (Buffer.chunks buffer);
+  else Export.export thy (Path.binding0 (Path.make ["theory", name])) (XML.blob (Buffer.chunks buffer));
 
 fun export_body thy name body =
   export_buffer thy name (fold YXML.buffer body Buffer.empty);
@@ -420,7 +420,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ =
       Export.export thy \<^path_binding>\<open>theory/parents\<close>
-        [YXML.string_of_body (XML.Encode.string (cat_lines (map Context.theory_long_name parents)))];
+        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
 
   in () end);
 

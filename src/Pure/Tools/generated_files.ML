@@ -136,7 +136,7 @@ fun write_file dir (file: file) =
   in () end;
 
 fun export_file thy (file: file) =
-  Export.export thy (file_binding file) [#content file];
+  Export.export thy (file_binding file) [XML.Text (#content file)];
 
 
 (* file types *)
@@ -290,7 +290,7 @@ fun compile_generated_files ctxt args external export export_prefix source =
                 Path.map_binding (Path.append (Path.path_of_binding export_prefix)) binding;
             in
               (if is_some executable then Export.export_executable else Export.export)
-                thy binding' [content]
+                thy binding' [XML.Text content]
             end));
       val _ =
         if null export then ()

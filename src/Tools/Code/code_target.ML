@@ -282,7 +282,7 @@ fun code_export_message thy = writeln (Export.message thy (Path.basic codeN));
 fun export binding content thy =
   let
     val thy' = thy |> Generated_Files.add_files (binding, content);
-    val _ = Export.export thy' binding [content];
+    val _ = Export.export thy' binding [XML.Text content];
   in thy' end;
 
 local

@@ -973,8 +973,8 @@ fun close incomplete thy =
           val prv_path = Path.ext "prv" path;
           val _ =
             Export.export thy (Path.binding (prv_path, Position.none))
-              [implode (map (fn (s, _) => snd (strip_number s) ^
-                " -- proved by " ^ Distribution.version ^ "\n") proved'')];
+              (proved'' |> map (fn (s, _) =>
+                XML.Text (snd (strip_number s) ^ " -- proved by " ^ Distribution.version ^ "\n")));
         in {pfuns = pfuns, type_map = type_map, env = NONE} end))
   |> Sign.parent_path;
 

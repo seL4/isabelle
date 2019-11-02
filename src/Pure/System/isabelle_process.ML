@@ -131,7 +131,8 @@ fun init_channels out_stream =
     Private_Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Private_Output.system_message_fn := message Markup.systemN [];
-    Private_Output.protocol_message_fn := message Markup.protocolN;
+    Private_Output.protocol_message_fn :=
+      (fn props => fn body => message Markup.protocolN props (YXML.chunks_of_body body));
 
     Session.init_protocol_handlers ();
     message Markup.initN [] [Session.welcome ()];

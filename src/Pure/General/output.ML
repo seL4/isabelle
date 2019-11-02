@@ -28,8 +28,9 @@ sig
   val physical_stdout: output -> unit
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
+  type protocol_message_fn = Output_Primitives.protocol_message_fn
   exception Protocol_Message of Properties.T
-  val protocol_message_undefined: Properties.T -> string list -> unit
+  val protocol_message_undefined: protocol_message_fn
   val writelns: string list -> unit
   val state: string -> unit
   val information: string -> unit
@@ -39,8 +40,8 @@ sig
   val status: string list -> unit
   val report: string list -> unit
   val result: Properties.T -> string list -> unit
-  val protocol_message: Properties.T -> string list -> unit
-  val try_protocol_message: Properties.T -> string list -> unit
+  val protocol_message: protocol_message_fn
+  val try_protocol_message: protocol_message_fn
 end;
 
 signature PRIVATE_OUTPUT =
@@ -57,7 +58,7 @@ sig
   val status_fn: (output list -> unit) Unsynchronized.ref
   val report_fn: (output list -> unit) Unsynchronized.ref
   val result_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
-  val protocol_message_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
+  val protocol_message_fn: Output_Primitives.protocol_message_fn Unsynchronized.ref
   val init_channels: unit -> unit
 end;
 
@@ -105,6 +106,8 @@ val system_message_fn = Unsynchronized.ref Output_Primitives.system_message_fn;
 val status_fn = Unsynchronized.ref Output_Primitives.status_fn;
 val report_fn = Unsynchronized.ref Output_Primitives.report_fn;
 val result_fn = Unsynchronized.ref Output_Primitives.result_fn;
+
+type protocol_message_fn = Output_Primitives.protocol_message_fn;
 val protocol_message_fn = Unsynchronized.ref Output_Primitives.protocol_message_fn;
 
 
@@ -121,8 +124,8 @@ fun physical_writeln "" = ()
 
 exception Protocol_Message of Properties.T;
 
-fun protocol_message_undefined props (_: string list) =
-  raise Protocol_Message props;
+val protocol_message_undefined: Output_Primitives.protocol_message_fn =
+  fn props => fn _ => raise Protocol_Message props;
 
 fun init_channels () =
  (writeln_fn := (physical_writeln o implode);
@@ -153,8 +156,8 @@ fun system_message s = ! system_message_fn [output s];
 fun status ss = ! status_fn (map output ss);
 fun report ss = ! report_fn (map output ss);
 fun result props ss = ! result_fn props (map output ss);
-fun protocol_message props ss = ! protocol_message_fn props (map output ss);
-fun try_protocol_message props ss = protocol_message props ss handle Protocol_Message _ => ();
+fun protocol_message props body = ! protocol_message_fn props body;
+fun try_protocol_message props body = protocol_message props body handle Protocol_Message _ => ();
 
 
 (* profiling *)

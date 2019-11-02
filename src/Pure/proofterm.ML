@@ -2151,12 +2151,12 @@ fun export_proof thy i prop prf0 =
         val encode_proof = encode_standard_proof consts;
       in pair (list (pair string sort)) (pair encode_vars (pair encode_term encode_proof)) end;
   in
-    YXML.chunks_of_body xml |> Export.export_params
+    Export.export_params
      {theory = thy,
       binding = Path.binding0 (Path.make ["proofs", string_of_int i]),
       executable = false,
       compress = true,
-      strict = false}
+      strict = false} xml
   end;
 
 fun export thy i prop prf =

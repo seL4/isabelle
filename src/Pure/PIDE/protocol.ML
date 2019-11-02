@@ -62,7 +62,7 @@ fun decode_command id name blobs_xml toks_xml sources : Document.command =
     tokens = toks ~~ sources}
   end;
 
-fun commands_accepted ids = Output.protocol_message Markup.commands_accepted [commas ids];
+fun commands_accepted ids = Output.protocol_message Markup.commands_accepted [XML.Text (commas ids)];
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
@@ -146,8 +146,7 @@ val _ =
                     open XML.Encode;
                     fun encode_upd (a, bs) =
                       string (space_implode "," (map Value.print_int (a :: bs)));
-                  in triple int (list string) (list encode_upd) end
-                  |> YXML.chunks_of_body);
+                  in triple int (list string) (list encode_upd) end);
           in Document.start_execution state' end)));
 
 val _ =
@@ -158,7 +157,7 @@ val _ =
           YXML.parse_body versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.protocol_message Markup.removed_versions [versions_yxml];
+        val _ = Output.protocol_message Markup.removed_versions [XML.Text (versions_yxml)];
       in state1 end));
 
 val _ =

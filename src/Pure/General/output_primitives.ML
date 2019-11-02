@@ -6,6 +6,14 @@ Primitives for Isabelle output channels.
 
 signature OUTPUT_PRIMITIVES =
 sig
+  structure XML:
+  sig
+    type attributes = (string * string) list
+    datatype tree =
+        Elem of (string * attributes) * tree list
+      | Text of string
+    type body = tree list
+  end
   type output = string
   type serial = int
   type properties = (string * string) list
@@ -21,12 +29,30 @@ sig
   val status_fn: output list -> unit
   val report_fn: output list -> unit
   val result_fn: properties -> output list -> unit
-  val protocol_message_fn: properties -> output list -> unit
+  type protocol_message_fn = properties -> XML.body -> unit
+  val protocol_message_fn: protocol_message_fn
   val markup_fn: string * properties -> output * output
 end;
 
 structure Output_Primitives: OUTPUT_PRIMITIVES =
 struct
+
+(** XML trees **)
+
+structure XML =
+struct
+
+type attributes = (string * string) list;
+
+datatype tree =
+    Elem of (string * attributes) * tree list
+  | Text of string;
+
+type body = tree list;
+end;
+
+
+(* output *)
 
 type output = string;
 type serial = int;
@@ -45,7 +71,9 @@ val system_message_fn = ignore_outputs;
 val status_fn = ignore_outputs;
 val report_fn = ignore_outputs;
 fun result_fn (_: properties) = ignore_outputs;
-fun protocol_message_fn (_: properties) = ignore_outputs;
+
+type protocol_message_fn = properties -> XML.body -> unit;
+val protocol_message_fn: protocol_message_fn = fn _ => fn _ => ();
 
 fun markup_fn (_: string * properties) = ("", "");
 

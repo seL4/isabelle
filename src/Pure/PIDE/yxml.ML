@@ -25,6 +25,7 @@ sig
   val chunks_of_body: XML.body -> string list
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
+  val write_body: Path.T -> XML.body -> unit
   val output_markup: Markup.T -> string * string
   val output_markup_elem: Markup.T -> (string * string) * string
   val parse_body: string -> XML.body
@@ -80,6 +81,10 @@ val buffer = traverse Buffer.add;
 fun chunks_of_body body = Buffer.empty |> fold buffer body |> Buffer.chunks;
 fun string_of_body body = Buffer.empty |> fold buffer body |> Buffer.content;
 val string_of = string_of_body o single;
+
+fun write_body path body =
+  path |> File.open_output (fn file =>
+    fold (traverse (fn s => fn () => BinIO.output (file, Byte.stringToBytes s))) body ());
 
 
 (* markup elements *)

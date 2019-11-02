@@ -9,14 +9,14 @@ sig
   val report_export: theory -> Path.binding -> unit
   type params =
     {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool}
-  val export_params: params -> string list -> unit
-  val export: theory -> Path.binding -> string list -> unit
-  val export_executable: theory -> Path.binding -> string list -> unit
+  val export_params: params -> XML.body -> unit
+  val export: theory -> Path.binding -> XML.body -> unit
+  val export_executable: theory -> Path.binding -> XML.body -> unit
   val export_file: theory -> Path.binding -> Path.T -> unit
   val export_executable_file: theory -> Path.binding -> Path.T -> unit
   val markup: theory -> Path.T -> Markup.T
   val message: theory -> Path.T -> string
-  val protocol_message: Properties.T -> string list -> unit
+  val protocol_message: Output.protocol_message_fn
 end;
 
 structure Export: EXPORT =
@@ -34,7 +34,7 @@ fun report_export thy binding =
 type params =
   {theory: theory, binding: Path.binding, executable: bool, compress: bool, strict: bool};
 
-fun export_params ({theory = thy, binding, executable, compress, strict}: params) blob =
+fun export_params ({theory = thy, binding, executable, compress, strict}: params) body =
  (report_export thy binding;
   (Output.try_protocol_message o Markup.export)
    {id = Position.get_id (Position.thread_data ()),
@@ -43,18 +43,21 @@ fun export_params ({theory = thy, binding, executable, compress, strict}: params
     name = Path.implode_binding (tap Path.proper_binding binding),
     executable = executable,
     compress = compress,
-    strict = strict} blob);
+    strict = strict} body);
 
-fun export thy binding blob =
+fun export thy binding body =
   export_params
-    {theory = thy, binding = binding, executable = false, compress = true, strict = true} blob;
+    {theory = thy, binding = binding, executable = false, compress = true, strict = true} body;
 
-fun export_executable thy binding blob =
+fun export_executable thy binding body =
   export_params
-    {theory = thy, binding = binding, executable = true, compress = true, strict = true} blob;
+    {theory = thy, binding = binding, executable = true, compress = true, strict = true} body;
 
-fun export_file thy binding file = export thy binding [File.read file];
-fun export_executable_file thy binding file = export_executable thy binding [File.read file];
+fun export_file thy binding file =
+  export thy binding [XML.Text (File.read file)];
+
+fun export_executable_file thy binding file =
+  export_executable thy binding [XML.Text (File.read file)];
 
 
 (* information message *)
@@ -71,7 +74,7 @@ fun message thy path =
 
 (* protocol message (bootstrap) *)
 
-fun protocol_message props output =
+fun protocol_message props body =
   (case props of
     function :: args =>
       if function = (Markup.functionN, Markup.exportN) andalso
@@ -79,7 +82,7 @@ fun protocol_message props output =
       then
         let
           val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
-          val _ = File.write_list path output;
+          val _ = YXML.write_body path body;
         in Protocol_Message.inline (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
       else raise Output.Protocol_Message props
   | [] => raise Output.Protocol_Message props);

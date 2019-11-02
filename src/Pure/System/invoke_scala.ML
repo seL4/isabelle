@@ -33,7 +33,7 @@ fun promise_method name arg =
     fun abort () = Output.protocol_message (Markup.cancel_scala id) [];
     val promise = Future.promise_name "invoke_scala" abort : string future;
     val _ = Synchronized.change promises (Symtab.update (id, promise));
-    val _ = Output.protocol_message (Markup.invoke_scala name id) [arg];
+    val _ = Output.protocol_message (Markup.invoke_scala name id) [XML.Text arg];
   in promise end;
 
 fun method name arg = Future.join (promise_method name arg);

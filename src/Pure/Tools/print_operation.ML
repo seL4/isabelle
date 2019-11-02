@@ -23,13 +23,9 @@ val print_operations =
 
 fun report () =
   Output.try_protocol_message Markup.print_operations
-    let
-      val yxml =
-        Synchronized.value print_operations
-        |> map (fn (x, (y, _)) => (x, y)) |> rev
-        |> let open XML.Encode in list (pair string string) end
-        |> YXML.string_of_body;
-    in [yxml] end;
+    (Synchronized.value print_operations
+      |> map (fn (x, (y, _)) => (x, y)) |> rev
+      |> let open XML.Encode in list (pair string string) end);
 
 val _ = Isabelle_Process.protocol_command "print_operations" (fn [] => report ());
 
