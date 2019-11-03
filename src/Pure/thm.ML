@@ -102,6 +102,7 @@ sig
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val consolidate: thm list -> unit
+  val expose_proofs: theory -> thm list -> unit
   val future: thm future -> cterm -> thm
   val thm_deps: thm -> Proofterm.thm Ord_List.T
   val derivation_closed: thm -> bool
@@ -759,6 +760,11 @@ val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
 
 val consolidate = ignore o proof_bodies_of;
+
+fun expose_proofs thy thms =
+  if Proofterm.export_proof_boxes_required thy then
+    Proofterm.export_proof_boxes (map proof_of thms)
+  else ();
 
 
 (* future rule *)
