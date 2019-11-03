@@ -221,6 +221,14 @@ object Export
 
   object Provider
   {
+    def none: Provider =
+      new Provider {
+        def apply(export_name: String): Option[Entry] = None
+        def focus(other_theory: String): Provider = this
+
+        override def toString: String = "none"
+      }
+
     def database(db: SQL.Database, session_name: String, theory_name: String): Provider =
       new Provider {
         def apply(export_name: String): Option[Entry] =
