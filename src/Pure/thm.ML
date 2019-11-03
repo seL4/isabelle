@@ -763,7 +763,7 @@ val consolidate = ignore o proof_bodies_of;
 
 fun expose_proofs thy thms =
   if Proofterm.export_proof_boxes_required thy then
-    Proofterm.export_proof_boxes (map proof_of thms)
+    Proofterm.export_proof_boxes (map (proof_of o transfer thy) thms)
   else ();
 
 
