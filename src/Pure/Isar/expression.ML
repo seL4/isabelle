@@ -720,7 +720,8 @@ fun def_pred binding parms defs ts norm_ts thy =
         compose_tac defs_ctxt (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
         compose_tac defs_ctxt
           (false,
-            Conjunction.intr_balanced (map (Thm.assume o Thm.cterm_of defs_ctxt) norm_ts), 0) 1);
+            Conjunction.intr_balanced (map (Thm.assume o Thm.cterm_of defs_ctxt) norm_ts), 0) 1)
+      |> tap (Thm.expose_proof defs_thy);
 
     val conjuncts =
       (Drule.equal_elim_rule2 OF

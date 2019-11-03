@@ -273,9 +273,9 @@ fun transform_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Mor
 
 fun prove_witness ctxt t tac =
   Witness (t,
-    Thm.close_derivation \<^here>
-      (Goal.prove ctxt [] [] (mark_witness t)
-        (fn _ => resolve_tac ctxt [Drule.protectI] 1 THEN tac)));
+    Goal.prove ctxt [] [] (mark_witness t)
+      (fn _ => resolve_tac ctxt [Drule.protectI] 1 THEN tac)
+    |> Thm.expose_derivation \<^here>);
 
 
 local
@@ -290,7 +290,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       (map o map) (fn prop => (mark_witness prop, [])) wit_propss @
         [map (rpair []) eq_props];
     fun after_qed' thmss =
-      let val (wits, eqs) = split_last ((map o map) (Thm.close_derivation \<^here>) thmss);
+      let val (wits, eqs) = split_last ((map o map) (Thm.expose_derivation \<^here>) thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness end;
 
@@ -322,7 +322,9 @@ fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt =
 end;
 
 fun conclude_witness ctxt (Witness (_, th)) =
-  Thm.close_derivation \<^here> (Raw_Simplifier.norm_hhf_protect ctxt (Goal.conclude th));
+  Goal.conclude th
+  |> Raw_Simplifier.norm_hhf_protect ctxt
+  |> Thm.expose_derivation \<^here>;
 
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in

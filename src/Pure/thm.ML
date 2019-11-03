@@ -103,6 +103,7 @@ sig
   val proof_of: thm -> proof
   val consolidate: thm list -> unit
   val expose_proofs: theory -> thm list -> unit
+  val expose_proof: theory -> thm -> unit
   val future: thm future -> cterm -> thm
   val thm_deps: thm -> Proofterm.thm Ord_List.T
   val derivation_closed: thm -> bool
@@ -112,6 +113,7 @@ sig
   val expand_name: thm -> Proofterm.thm_header -> string option
   val name_derivation: string * Position.T -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
+  val expose_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
   val axiom: theory -> string -> thm
   val all_axioms_of: theory -> (string * thm) list
@@ -766,6 +768,8 @@ fun expose_proofs thy thms =
     Proofterm.export_proof_boxes (map (proof_of o transfer thy) thms)
   else ();
 
+fun expose_proof thy = expose_proofs thy o single;
+
 
 (* future rule *)
 
@@ -1039,6 +1043,10 @@ fun close_derivation pos =
   solve_constraints #> (fn thm =>
     if not (null (tpairs_of thm)) orelse derivation_closed thm then thm
     else name_derivation ("", pos) thm);
+
+fun expose_derivation pos thm =
+  close_derivation pos thm
+  |> tap (expose_proof (theory_of_thm thm));
 
 val trim_context = solve_constraints #> trim_context_thm;
 
@@ -2245,7 +2253,7 @@ fun complete_classrels thy =
               |> (map_classrels o Symreltab.update) ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
                 |> standard_tvars
-                |> close_derivation \<^here>
+                |> expose_derivation \<^here>
                 |> trim_context));
 
         val proven = is_classrel thy1;
@@ -2278,7 +2286,7 @@ fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, ar
             val th1 =
               (th RS the_classrel thy (c, c1))
               |> standard_tvars
-              |> close_derivation \<^here>
+              |> expose_derivation \<^here>
               |> trim_context;
           in SOME ((t, Ss, c1), (th1, thy_name, ser)) end);
     val finished' = finished andalso null completions;
@@ -2306,12 +2314,13 @@ val _ =
 fun add_classrel raw_th thy =
   let
     val th = strip_shyps (transfer thy raw_th);
+    val th' = th |> unconstrainT |> tap (expose_proof thy) |> trim_context;
     val prop = plain_prop_of th;
     val (c1, c2) = Logic.dest_classrel prop;
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
-    |> map_classrels (Symreltab.update ((c1, c2), th |> unconstrainT |> trim_context))
+    |> map_classrels (Symreltab.update ((c1, c2), th'))
     |> perhaps complete_classrels
     |> perhaps complete_arities
   end;
@@ -2319,9 +2328,10 @@ fun add_classrel raw_th thy =
 fun add_arity raw_th thy =
   let
     val th = strip_shyps (transfer thy raw_th);
+    val th' = th |> unconstrainT |> tap (expose_proof thy) |> trim_context;
     val prop = plain_prop_of th;
     val (t, Ss, c) = Logic.dest_arity prop;
-    val ar = ((t, Ss, c), (th |> unconstrainT |> trim_context, Context.theory_name thy, serial ()));
+    val ar = ((t, Ss, c), (th', Context.theory_name thy, serial ()));
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
