@@ -161,7 +161,7 @@ class sup =
 
 subsection \<open>Concrete lattices\<close>
 
-class semilattice_inf =  order + inf +
+class semilattice_inf = order + inf +
   assumes inf_le1 [simp]: "x \<sqinter> y \<le> x"
   and inf_le2 [simp]: "x \<sqinter> y \<le> y"
   and inf_greatest: "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<sqinter> z"
