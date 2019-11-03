@@ -431,13 +431,13 @@ object Export_Theory
     var seen = Set.empty[Long]
     var result = SortedMap.empty[Long, (Thm_Id, Proof)]
 
-    def boxes(prf: Term.Proof)
+    def boxes(context: Option[(Long, Term.Proof)], prf: Term.Proof)
     {
       prf match {
-        case Term.Abst(_, _, p) => boxes(p)
-        case Term.AbsP(_, _, p) => boxes(p)
-        case Term.Appt(p, _) => boxes(p)
-        case Term.AppP(p, q) => boxes(p); boxes(q)
+        case Term.Abst(_, _, p) => boxes(context, p)
+        case Term.AbsP(_, _, p) => boxes(context, p)
+        case Term.Appt(p, _) => boxes(context, p)
+        case Term.AppP(p, q) => boxes(context, p); boxes(context, q)
         case thm: Term.PThm if !seen(thm.serial) =>
           seen += thm.serial
           val id = Thm_Id(thm.serial, thm.theory_name)
@@ -448,16 +448,20 @@ object Export_Theory
             read match {
               case Some(p) =>
                 result += (thm.serial -> (id -> p))
-                boxes(p.proof)
+                boxes(Some((thm.serial, p.proof)), p.proof)
               case None =>
-                error("Missing proof " + thm.serial + " (theory " + quote (thm.theory_name) + ")")
+                error("Missing proof " + thm.serial + " (theory " + quote (thm.theory_name) + ")" +
+                  (context match {
+                    case None => ""
+                    case Some((i, p)) => " in proof " + i + ":\n" + p
+                  }))
             }
           }
         case _ =>
       }
     }
 
-    boxes(proof)
+    boxes(None, proof)
     result.iterator.map(_._2).toList
   }
 
