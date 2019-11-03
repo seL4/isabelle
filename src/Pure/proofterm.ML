@@ -151,6 +151,7 @@ sig
   val add_prf_rrule: proof * proof -> theory -> theory
   val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val set_preproc: (theory -> proof -> proof) -> theory -> theory
+  val apply_preproc: theory -> proof -> proof
   val forall_intr_variables_term: term -> term
   val forall_intr_variables: term -> proof -> proof
   val no_skel: proof
