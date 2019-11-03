@@ -12,8 +12,6 @@ sig
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
   val pretty_thm_deps: theory -> thm list -> Pretty.T
-  val thm_boxes: {included: Proofterm.thm_id -> bool, excluded: Proofterm.thm_id -> bool} ->
-    thm list -> Proofterm.thm_id list
   val unused_thms_cmd: theory list * theory list -> (string * thm) list
 end;
 
@@ -79,21 +77,6 @@ fun pretty_thm_deps thy thms =
       |> map (fn ((marks, xname), i) =>
           Pretty.item [Pretty.marks_str (marks, Thm_Name.print (xname, i))]);
   in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
-
-
-(* thm boxes: intermediate PThm nodes *)
-
-fun thm_boxes {included, excluded} thms =
-  let
-    fun boxes (i, thm_node) res =
-      let val thm_id = Proofterm.thm_id (i, thm_node) in
-        if Inttab.defined res i orelse (excluded thm_id andalso not (included thm_id))
-        then res
-        else
-          Inttab.update (i, thm_id) res
-          |> fold boxes (Proofterm.thm_node_thms thm_node)
-      end;
-  in Inttab.fold_rev (cons o #2) (fold (fold boxes o Thm.thm_deps) thms Inttab.empty) [] end;
 
 
 (* unused_thms_cmd *)

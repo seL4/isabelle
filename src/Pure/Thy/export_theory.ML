@@ -249,16 +249,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
-    fun proof_boxes thm thm_id =
-      let
-        val selection =
-         {included = Proofterm.this_id (SOME thm_id),
-          excluded = is_some o lookup_thm_id};
-        val boxes =
-          map (Proofterm.thm_header_id o #1) (Proofterm.proof_boxes selection [Thm.proof_of thm])
-            handle Proofterm.MIN_PROOF () => Thm_Deps.thm_boxes selection [thm]
-     in boxes @ [thm_id] end;
-
     fun expand_name thm_id (header: Proofterm.thm_header) =
       if #serial header = #serial thm_id then ""
       else
@@ -277,7 +267,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
         val thm = clean_thm (Thm.unconstrainT raw_thm);
-        val boxes = proof_boxes thm thm_id;
 
         val proof0 =
           if Proofterm.export_standard_enabled () then
@@ -290,12 +279,11 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           if Proofterm.export_proof_boxes_required thy
           then Proofterm.export_proof_boxes [proof] else ();
       in
-        (prop, (deps, (boxes, proof))) |>
+        (prop, deps, proof) |>
           let
             open XML.Encode Term_XML.Encode;
-            fun encode_box {serial, theory_name} = pair int string (serial, theory_name);
             val encode_proof = Proofterm.encode_standard_proof consts;
-          in pair encode_prop (pair (list string) (pair (list encode_box) encode_proof)) end
+          in triple encode_prop (list string) encode_proof end
       end;
 
     fun export_thm (thm_id, thm_name) =

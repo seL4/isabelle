@@ -7,6 +7,9 @@ Export foundational theory content.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Export_Theory
 {
   /** session content **/
@@ -352,16 +355,12 @@ object Export_Theory
   sealed case class Thm_Id(serial: Long, theory_name: String)
   {
     def pure: Boolean = theory_name == Thy_Header.PURE
-
-    def cache(cache: Term.Cache): Thm_Id =
-      Thm_Id(serial, cache.string(theory_name))
   }
 
   sealed case class Thm(
     entity: Entity,
     prop: Prop,
     deps: List[String],
-    proof_boxes: List[Thm_Id],
     proof: Term.Proof)
   {
     def cache(cache: Term.Cache): Thm =
@@ -369,7 +368,6 @@ object Export_Theory
         entity.cache(cache),
         prop.cache(cache),
         deps.map(cache.string _),
-        proof_boxes.map(_.cache(cache)),
         cache.proof(proof))
   }
 
@@ -377,18 +375,13 @@ object Export_Theory
     provider.uncompressed_yxml(export_prefix + "thms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.THM, tree)
-        val (prop, (deps, (prf_boxes, prf))) =
+        val (prop, deps, prf) =
         {
           import XML.Decode._
           import Term_XML.Decode._
-          def thm_id(body: XML.Body): Thm_Id =
-          {
-            val (serial, theory_name) = pair(long, string)(body)
-            Thm_Id(serial, theory_name)
-          }
-          pair(decode_prop _, pair(list(string), pair(list(thm_id), proof)))(body)
+          triple(decode_prop, list(string), proof)(body)
         }
-        Thm(entity, prop, deps, prf_boxes, prf)
+        Thm(entity, prop, deps, prf)
       })
 
   sealed case class Proof(
@@ -426,6 +419,46 @@ object Export_Theory
       val result = Proof(typargs, args, prop, proof)
       cache.map(result.cache(_)) getOrElse result
     }
+  }
+
+  def read_proof_boxes(
+    store: Sessions.Store,
+    provider: Export.Provider,
+    proof: Term.Proof,
+    suppress: Thm_Id => Boolean = _ => false,
+    cache: Option[Term.Cache] = None): List[(Thm_Id, Proof)] =
+  {
+    var seen = Set.empty[Long]
+    var result = SortedMap.empty[Long, (Thm_Id, Proof)]
+
+    def boxes(prf: Term.Proof)
+    {
+      prf match {
+        case Term.Abst(_, _, p) => boxes(p)
+        case Term.AbsP(_, _, p) => boxes(p)
+        case Term.Appt(p, _) => boxes(p)
+        case Term.AppP(p, q) => boxes(p); boxes(q)
+        case thm: Term.PThm if !seen(thm.serial) =>
+          seen += thm.serial
+          val id = Thm_Id(thm.serial, thm.theory_name)
+          if (!suppress(id)) {
+            val read =
+              if (id.pure) Export_Theory.read_pure_proof(store, id, cache = cache)
+              else Export_Theory.read_proof(provider, id, cache = cache)
+            read match {
+              case Some(p) =>
+                result += (thm.serial -> (id -> p))
+                boxes(p.proof)
+              case None =>
+                error("Missing proof " + thm.serial + " (theory " + quote (thm.theory_name) + ")")
+            }
+          }
+        case _ =>
+      }
+    }
+
+    boxes(proof)
+    result.iterator.map(_._2).toList
   }
 
 
