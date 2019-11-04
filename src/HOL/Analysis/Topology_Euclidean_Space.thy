@@ -1175,7 +1175,7 @@ lemma open_Collect_eucl_less[simp, intro]:
   shows "open {x. x <e a}" "open {x. a <e x}"
   by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Closure of halfspaces and hyperplanes\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Closure and Interior of halfspaces and hyperplanes\<close>
 
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
@@ -1205,6 +1205,97 @@ lemma closed_interval_right:
   shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
   by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
+lemma interior_halfspace_le [simp]:
+  assumes "a \<noteq> 0"
+    shows "interior {x. a \<bullet> x \<le> b} = {x. a \<bullet> x < b}"
+proof -
+  have *: "a \<bullet> x < b" if x: "x \<in> S" and S: "S \<subseteq> {x. a \<bullet> x \<le> b}" and "open S" for S x
+  proof -
+    obtain e where "e>0" and e: "cball x e \<subseteq> S"
+      using \<open>open S\<close> open_contains_cball x by blast
+    then have "x + (e / norm a) *\<^sub>R a \<in> cball x e"
+      by (simp add: dist_norm)
+    then have "x + (e / norm a) *\<^sub>R a \<in> S"
+      using e by blast
+    then have "x + (e / norm a) *\<^sub>R a \<in> {x. a \<bullet> x \<le> b}"
+      using S by blast
+    moreover have "e * (a \<bullet> a) / norm a > 0"
+      by (simp add: \<open>0 < e\<close> assms)
+    ultimately show ?thesis
+      by (simp add: algebra_simps)
+  qed
+  show ?thesis
+    by (rule interior_unique) (auto simp: open_halfspace_lt *)
+qed
+
+lemma interior_halfspace_ge [simp]:
+   "a \<noteq> 0 \<Longrightarrow> interior {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x > b}"
+using interior_halfspace_le [of "-a" "-b"] by simp
+
+lemma closure_halfspace_lt [simp]:
+  assumes "a \<noteq> 0"
+    shows "closure {x. a \<bullet> x < b} = {x. a \<bullet> x \<le> b}"
+proof -
+  have [simp]: "-{x. a \<bullet> x < b} = {x. a \<bullet> x \<ge> b}"
+    by (force simp:)
+  then show ?thesis
+    using interior_halfspace_ge [of a b] assms
+    by (force simp: closure_interior)
+qed
+
+lemma closure_halfspace_gt [simp]:
+   "a \<noteq> 0 \<Longrightarrow> closure {x. a \<bullet> x > b} = {x. a \<bullet> x \<ge> b}"
+using closure_halfspace_lt [of "-a" "-b"] by simp
+
+lemma interior_hyperplane [simp]:
+  assumes "a \<noteq> 0"
+    shows "interior {x. a \<bullet> x = b} = {}"
+proof -
+  have [simp]: "{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}"
+    by (force simp:)
+  then show ?thesis
+    by (auto simp: assms)
+qed
+
+lemma frontier_halfspace_le:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
+    shows "frontier {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
+proof (cases "a = 0")
+  case True with assms show ?thesis by simp
+next
+  case False then show ?thesis
+    by (force simp: frontier_def closed_halfspace_le)
+qed
+
+lemma frontier_halfspace_ge:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
+    shows "frontier {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x = b}"
+proof (cases "a = 0")
+  case True with assms show ?thesis by simp
+next
+  case False then show ?thesis
+    by (force simp: frontier_def closed_halfspace_ge)
+qed
+
+lemma frontier_halfspace_lt:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
+    shows "frontier {x. a \<bullet> x < b} = {x. a \<bullet> x = b}"
+proof (cases "a = 0")
+  case True with assms show ?thesis by simp
+next
+  case False then show ?thesis
+    by (force simp: frontier_def interior_open open_halfspace_lt)
+qed
+
+lemma frontier_halfspace_gt:
+  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
+    shows "frontier {x. a \<bullet> x > b} = {x. a \<bullet> x = b}"
+proof (cases "a = 0")
+  case True with assms show ?thesis by simp
+next
+  case False then show ?thesis
+    by (force simp: frontier_def interior_open open_halfspace_gt)
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Some more convenient intermediate-value theorem formulations\<close>
 

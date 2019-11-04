@@ -2,7 +2,7 @@ section \<open>Ordered Euclidean Space\<close>
 
 theory Ordered_Euclidean_Space
 imports
-  Cartesian_Euclidean_Space Path_Connected
+  Convex_Euclidean_Space
   "HOL-Library.Product_Order"
 begin
 
@@ -205,11 +205,6 @@ proposition
     and eucl_le_atLeast: "{x. \<forall>i\<in>Basis. a \<bullet> i <= x \<bullet> i} = {a..}"
   by (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
 
-lemma vec_nth_real_1_iff_cbox [simp]:
-  fixes a b :: real
-  shows "(\<lambda>x::real^1. x $ 1) ` S = {a..b} \<longleftrightarrow> S = cbox (vec a) (vec b)"
-  by (metis interval_cbox vec_nth_1_iff_cbox)
-
 lemma sums_vec_nth :
   assumes "f sums a"
   shows "(\<lambda>x. f x $ i) sums a $ i"
@@ -265,35 +260,6 @@ lemma connected_interval [simp]:
   fixes a b::"'a::ordered_euclidean_space"
   shows "connected {a..b}"
   using is_interval_cc is_interval_connected by blast
-
-lemma path_connected_interval [simp]:
-  fixes a b::"'a::ordered_euclidean_space"
-  shows "path_connected {a..b}"
-  using is_interval_cc is_interval_path_connected by blast
-
-lemma path_connected_Ioi[simp]: "path_connected {a<..}" for a :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Ici[simp]: "path_connected {a..}" for a :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Iio[simp]: "path_connected {..<a}" for a :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Iic[simp]: "path_connected {..a}" for a :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Ioo[simp]: "path_connected {a<..<b}" for a b :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Ioc[simp]: "path_connected {a<..b}" for a b :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma path_connected_Ico[simp]: "path_connected {a..<b}" for a b :: real
-  by (simp add: convex_imp_path_connected)
-
-lemma is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
-  by (auto simp: real_atLeastGreaterThan_eq)
 
 lemma compact_interval [simp]:
   fixes a b::"'a::ordered_euclidean_space"

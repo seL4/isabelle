@@ -47,33 +47,6 @@ lemma box_vec_eq_empty [simp]:
 
 subsection\<open>Closures and interiors of halfspaces\<close>
 
-lemma interior_halfspace_le [simp]:
-  assumes "a \<noteq> 0"
-    shows "interior {x. a \<bullet> x \<le> b} = {x. a \<bullet> x < b}"
-proof -
-  have *: "a \<bullet> x < b" if x: "x \<in> S" and S: "S \<subseteq> {x. a \<bullet> x \<le> b}" and "open S" for S x
-  proof -
-    obtain e where "e>0" and e: "cball x e \<subseteq> S"
-      using \<open>open S\<close> open_contains_cball x by blast
-    then have "x + (e / norm a) *\<^sub>R a \<in> cball x e"
-      by (simp add: dist_norm)
-    then have "x + (e / norm a) *\<^sub>R a \<in> S"
-      using e by blast
-    then have "x + (e / norm a) *\<^sub>R a \<in> {x. a \<bullet> x \<le> b}"
-      using S by blast
-    moreover have "e * (a \<bullet> a) / norm a > 0"
-      by (simp add: \<open>0 < e\<close> assms)
-    ultimately show ?thesis
-      by (simp add: algebra_simps)
-  qed
-  show ?thesis
-    by (rule interior_unique) (auto simp: open_halfspace_lt *)
-qed
-
-lemma interior_halfspace_ge [simp]:
-   "a \<noteq> 0 \<Longrightarrow> interior {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x > b}"
-using interior_halfspace_le [of "-a" "-b"] by simp
-
 lemma interior_halfspace_component_le [simp]:
      "interior {x. x$k \<le> a} = {x :: (real^'n). x$k < a}" (is "?LE")
   and interior_halfspace_component_ge [simp]:
@@ -88,21 +61,6 @@ proof -
           interior_halfspace_ge [of "axis k (1::real)" a] by auto
 qed
 
-lemma closure_halfspace_lt [simp]:
-  assumes "a \<noteq> 0"
-    shows "closure {x. a \<bullet> x < b} = {x. a \<bullet> x \<le> b}"
-proof -
-  have [simp]: "-{x. a \<bullet> x < b} = {x. a \<bullet> x \<ge> b}"
-    by (force simp:)
-  then show ?thesis
-    using interior_halfspace_ge [of a b] assms
-    by (force simp: closure_interior)
-qed
-
-lemma closure_halfspace_gt [simp]:
-   "a \<noteq> 0 \<Longrightarrow> closure {x. a \<bullet> x > b} = {x. a \<bullet> x \<ge> b}"
-using closure_halfspace_lt [of "-a" "-b"] by simp
-
 lemma closure_halfspace_component_lt [simp]:
      "closure {x. x$k < a} = {x :: (real^'n). x$k \<le> a}" (is "?LE")
   and closure_halfspace_component_gt [simp]:
@@ -115,56 +73,6 @@ proof -
   ultimately show ?LE ?GE
     using closure_halfspace_lt [of "axis k (1::real)" a]
           closure_halfspace_gt [of "axis k (1::real)" a] by auto
-qed
-
-lemma interior_hyperplane [simp]:
-  assumes "a \<noteq> 0"
-    shows "interior {x. a \<bullet> x = b} = {}"
-proof -
-  have [simp]: "{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}"
-    by (force simp:)
-  then show ?thesis
-    by (auto simp: assms)
-qed
-
-lemma frontier_halfspace_le:
-  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
-    shows "frontier {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
-proof (cases "a = 0")
-  case True with assms show ?thesis by simp
-next
-  case False then show ?thesis
-    by (force simp: frontier_def closed_halfspace_le)
-qed
-
-lemma frontier_halfspace_ge:
-  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
-    shows "frontier {x. a \<bullet> x \<ge> b} = {x. a \<bullet> x = b}"
-proof (cases "a = 0")
-  case True with assms show ?thesis by simp
-next
-  case False then show ?thesis
-    by (force simp: frontier_def closed_halfspace_ge)
-qed
-
-lemma frontier_halfspace_lt:
-  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
-    shows "frontier {x. a \<bullet> x < b} = {x. a \<bullet> x = b}"
-proof (cases "a = 0")
-  case True with assms show ?thesis by simp
-next
-  case False then show ?thesis
-    by (force simp: frontier_def interior_open open_halfspace_lt)
-qed
-
-lemma frontier_halfspace_gt:
-  assumes "a \<noteq> 0 \<or> b \<noteq> 0"
-    shows "frontier {x. a \<bullet> x > b} = {x. a \<bullet> x = b}"
-proof (cases "a = 0")
-  case True with assms show ?thesis by simp
-next
-  case False then show ?thesis
-    by (force simp: frontier_def interior_open open_halfspace_gt)
 qed
 
 lemma interior_standard_hyperplane:
@@ -623,6 +531,11 @@ proof
   qed
 qed simp
 
+lemma vec_nth_real_1_iff_cbox [simp]:
+  fixes a b :: real
+  shows "(\<lambda>x::real^1. x $ 1) ` S = {a..b} \<longleftrightarrow> S = cbox (vec a) (vec b)"
+  using vec_nth_1_iff_cbox[of S a b]
+  by simp
 
 lemma interval_split_cart:
   "{a..b::real^'n} \<inter> {x. x$k \<le> c} = {a .. (\<chi> i. if i = k then min (b$k) c else b$i)}"

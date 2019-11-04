@@ -8,6 +8,11 @@ theory Arcwise_Connected
 imports Path_Connected Ordered_Euclidean_Space "HOL-Computational_Algebra.Primes"
 begin
 
+lemma path_connected_interval [simp]:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "path_connected {a..b}"
+  using is_interval_cc is_interval_path_connected by blast
+
 subsection \<open>The Brouwer reduction theorem\<close>
 
 theorem Brouwer_reduction_theorem_gen:

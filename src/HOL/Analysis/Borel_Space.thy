@@ -10,6 +10,9 @@ imports
   Measurable Derivative Ordered_Euclidean_Space Extended_Real_Limits
 begin
 
+lemma is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
+  by (auto simp: real_atLeastGreaterThan_eq)
+
 lemma sets_Collect_eventually_sequentially[measurable]:
   "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"
   unfolding eventually_sequentially by simp

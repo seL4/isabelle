@@ -1826,6 +1826,27 @@ by (auto simp: linear_continuous_on assms path_connected_continuous_image)
 lemma is_interval_path_connected: "is_interval S \<Longrightarrow> path_connected S"
   by (simp add: convex_imp_path_connected is_interval_convex)
 
+lemma path_connected_Ioi[simp]: "path_connected {a<..}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ici[simp]: "path_connected {a..}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Iio[simp]: "path_connected {..<a}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Iic[simp]: "path_connected {..a}" for a :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ioo[simp]: "path_connected {a<..<b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ioc[simp]: "path_connected {a<..b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
+lemma path_connected_Ico[simp]: "path_connected {a..<b}" for a b :: real
+  by (simp add: convex_imp_path_connected)
+
 lemma path_connectedin_path_image:
   assumes "pathin X g" shows "path_connectedin X (g ` ({0..1}))"
   unfolding pathin_def

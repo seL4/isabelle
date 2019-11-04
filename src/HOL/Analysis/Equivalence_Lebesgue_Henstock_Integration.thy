@@ -5,7 +5,13 @@
 *)
 
 theory Equivalence_Lebesgue_Henstock_Integration
-  imports Lebesgue_Measure Henstock_Kurzweil_Integration Complete_Measure Set_Integral Homeomorphism
+  imports
+    Lebesgue_Measure
+    Henstock_Kurzweil_Integration
+    Complete_Measure
+    Set_Integral
+    Homeomorphism
+    Cartesian_Euclidean_Space
 begin
 
 lemma le_left_mono: "x \<le> y \<Longrightarrow> y \<le> a \<longrightarrow> x \<le> (a::'a::preorder)"
