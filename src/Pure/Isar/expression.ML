@@ -752,13 +752,13 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val ((statement, intro, axioms), thy') =
             thy
             |> def_pred abinding parms defs' exts exts';
-          val (_, thy'') =
+          val ((_, [intro']), thy'') =
             thy'
             |> Sign.qualified_path true abinding
             |> Global_Theory.note_thms ""
               ((Binding.name introN, []), [([intro], [Locale.unfold_add])])
             ||> Sign.restore_naming thy';
-          in (SOME statement, SOME intro, axioms, thy'') end;
+          in (SOME statement, SOME intro', axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
       if null ints then (NONE, NONE, [], thy'')
       else
@@ -767,7 +767,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             thy''
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val ctxt''' = Proof_Context.init_global thy''';
-          val (_, thy'''') =
+          val ([(_, [intro']), _], thy'''') =
             thy'''
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
@@ -776,7 +776,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
                     [(map (Drule.export_without_context o Element.conclude_witness ctxt''') axioms,
                       [])])]
             ||> Sign.restore_naming thy''';
-        in (SOME statement, SOME intro, axioms, thy'''') end;
+        in (SOME statement, SOME intro', axioms, thy'''') end;
   in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
 
 end;
