@@ -211,7 +211,7 @@ subsection \<open>Symmetric Difference\<close>
 definition xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
   where "x \<oplus> y = (x \<^bold>\<sqinter> \<sim> y) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> y)"
 
-sublocale xor: abel_semigroup xor
+sublocale xor: comm_monoid xor \<zero>
 proof
   fix x y z :: 'a
   let ?t = "(x \<^bold>\<sqinter> y \<^bold>\<sqinter> z) \<^bold>\<squnion> (x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> y \<^bold>\<sqinter> \<sim> z) \<^bold>\<squnion> (\<sim> x \<^bold>\<sqinter> \<sim> y \<^bold>\<sqinter> z)"
@@ -222,6 +222,8 @@ proof
       (simp only: conj_disj_distribs conj_ac disj_ac)
   show "x \<oplus> y = y \<oplus> x"
     by (simp only: xor_def conj_commute disj_commute)
+  show "x \<oplus> \<zero> = x"
+    by (simp add: xor_def)
 qed
 
 lemmas xor_assoc = xor.assoc
