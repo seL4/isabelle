@@ -113,7 +113,6 @@ sig
   val expand_name: thm -> Proofterm.thm_header -> string option
   val name_derivation: string * Position.T -> thm -> thm
   val close_derivation: Position.T -> thm -> thm
-  val expose_derivation: Position.T -> thm -> thm
   val trim_context: thm -> thm
   val axiom: theory -> string -> thm
   val all_axioms_of: theory -> (string * thm) list
@@ -765,7 +764,7 @@ val consolidate = ignore o proof_bodies_of;
 
 fun expose_proofs thy thms =
   if Proofterm.export_proof_boxes_required thy then
-    Proofterm.export_proof_boxes (map (proof_of o transfer thy) thms)
+    Proofterm.export_proof_boxes (proof_bodies_of (map (transfer thy) thms))
   else ();
 
 fun expose_proof thy = expose_proofs thy o single;
@@ -1043,10 +1042,6 @@ fun close_derivation pos =
   solve_constraints #> (fn thm =>
     if not (null (tpairs_of thm)) orelse derivation_closed thm then thm
     else name_derivation ("", pos) thm);
-
-fun expose_derivation pos thm =
-  close_derivation pos thm
-  |> tap (expose_proof (theory_of_thm thm));
 
 val trim_context = solve_constraints #> trim_context_thm;
 
@@ -2253,7 +2248,8 @@ fun complete_classrels thy =
               |> (map_classrels o Symreltab.update) ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
                 |> standard_tvars
-                |> expose_derivation \<^here>
+                |> close_derivation \<^here>
+                |> tap (expose_proof thy2)
                 |> trim_context));
 
         val proven = is_classrel thy1;
@@ -2286,7 +2282,8 @@ fun insert_arity_completions thy ((t, Ss, c), (th, thy_name, ser)) (finished, ar
             val th1 =
               (th RS the_classrel thy (c, c1))
               |> standard_tvars
-              |> expose_derivation \<^here>
+              |> close_derivation \<^here>
+              |> tap (expose_proof thy)
               |> trim_context;
           in SOME ((t, Ss, c1), (th1, thy_name, ser)) end);
     val finished' = finished andalso null completions;

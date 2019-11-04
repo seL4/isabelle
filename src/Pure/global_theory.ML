@@ -288,11 +288,7 @@ val app_facts =
     fold_map (Thm.theory_attributes atts) (map (Thm.transfer thy) thms) thy);
 
 fun apply_facts name_flags1 name_flags2 (b, facts) thy =
-  if Binding.is_empty b then
-    let
-      val (thms, thy') = app_facts facts thy;
-      val _ = Thm.expose_proofs thy' thms;
-    in register_proofs thms thy' end
+  if Binding.is_empty b then app_facts facts thy |-> register_proofs
   else
     let
       val name_pos = bind_name thy b;

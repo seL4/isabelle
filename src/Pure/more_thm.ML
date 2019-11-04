@@ -682,9 +682,13 @@ fun register_proofs ths =
   (Proofs.map o cons) (Lazy.map_finished (map Thm.trim_context) ths);
 
 fun consolidate_theory thy =
-  rev (Proofs.get thy)
-  |> maps (map (Thm.transfer thy) o Lazy.force)
-  |> Thm.consolidate;
+  let
+    val thms =
+      rev (Proofs.get thy)
+      |> maps (map (Thm.transfer thy) o Lazy.force);
+    val _ = Thm.consolidate thms;
+    val _ = Thm.expose_proofs thy thms;
+  in () end;
 
 
 
