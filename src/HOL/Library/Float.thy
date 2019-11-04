@@ -1104,6 +1104,201 @@ qualified lemma compute_float_round_up[code]:
 
 end
 
+lemma truncate_up_nonneg_mono:
+  assumes "0 \<le> x" "x \<le> y"
+  shows "truncate_up prec x \<le> truncate_up prec y"
+proof -
+  consider "\<lfloor>log 2 x\<rfloor> = \<lfloor>log 2 y\<rfloor>" | "\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>" "0 < x" | "x \<le> 0"
+    by arith
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis
+      using assms
+      by (auto simp: truncate_up_def round_up_def intro!: ceiling_mono)
+  next
+    case 2
+    from assms \<open>0 < x\<close> have "log 2 x \<le> log 2 y"
+      by auto
+    with \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close>
+    have logless: "log 2 x < log 2 y"
+      by linarith
+    have flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
+      using \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close> \<open>log 2 x \<le> log 2 y\<close> by linarith
+    have "truncate_up prec x =
+      real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor> )\<rceil> * 2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)"
+      using assms by (simp add: truncate_up_def round_up_def)
+    also have "\<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)\<rceil> \<le> (2 ^ (Suc prec))"
+    proof (simp only: ceiling_le_iff)
+      have "x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le>
+        x * (2 powr real (Suc prec) / (2 powr log 2 x))"
+        using real_of_int_floor_add_one_ge[of "log 2 x"] assms
+        by (auto simp: algebra_simps simp flip: powr_diff intro!: mult_left_mono)
+      then show "x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le> real_of_int ((2::int) ^ (Suc prec))"
+        using \<open>0 < x\<close> by (simp add: powr_realpow powr_add)
+    qed
+    then have "real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)\<rceil> \<le> 2 powr int (Suc prec)"
+      by (auto simp: powr_realpow powr_add)
+        (metis power_Suc of_int_le_numeral_power_cancel_iff)
+    also
+    have "2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le> 2 powr - real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)"
+      using logless flogless by (auto intro!: floor_mono)
+    also have "2 powr real_of_int (int (Suc prec)) \<le>
+        2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1))"
+      using assms \<open>0 < x\<close>
+      by (auto simp: algebra_simps)
+    finally have "truncate_up prec x \<le>
+        2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)) * 2 powr - real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)"
+      by simp
+    also have "\<dots> = 2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor>) - real_of_int (int prec - \<lfloor>log 2 y\<rfloor>))"
+      by (subst powr_add[symmetric]) simp
+    also have "\<dots> = y"
+      using \<open>0 < x\<close> assms
+      by (simp add: powr_add)
+    also have "\<dots> \<le> truncate_up prec y"
+      by (rule truncate_up)
+    finally show ?thesis .
+  next
+    case 3
+    then show ?thesis
+      using assms
+      by (auto intro!: truncate_up_le)
+  qed
+qed
+
+lemma truncate_up_switch_sign_mono:
+  assumes "x \<le> 0" "0 \<le> y"
+  shows "truncate_up prec x \<le> truncate_up prec y"
+proof -
+  note truncate_up_nonpos[OF \<open>x \<le> 0\<close>]
+  also note truncate_up_le[OF \<open>0 \<le> y\<close>]
+  finally show ?thesis .
+qed
+
+lemma truncate_down_switch_sign_mono:
+  assumes "x \<le> 0"
+    and "0 \<le> y"
+    and "x \<le> y"
+  shows "truncate_down prec x \<le> truncate_down prec y"
+proof -
+  note truncate_down_le[OF \<open>x \<le> 0\<close>]
+  also note truncate_down_nonneg[OF \<open>0 \<le> y\<close>]
+  finally show ?thesis .
+qed
+
+lemma truncate_down_nonneg_mono:
+  assumes "0 \<le> x" "x \<le> y"
+  shows "truncate_down prec x \<le> truncate_down prec y"
+proof -
+  consider "x \<le> 0" | "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> = \<lfloor>log 2 \<bar>y\<bar>\<rfloor>" |
+    "0 < x" "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> \<noteq> \<lfloor>log 2 \<bar>y\<bar>\<rfloor>"
+    by arith
+  then show ?thesis
+  proof cases
+    case 1
+    with assms have "x = 0" "0 \<le> y" by simp_all
+    then show ?thesis
+      by (auto intro!: truncate_down_nonneg)
+  next
+    case 2
+    then show ?thesis
+      using assms
+      by (auto simp: truncate_down_def round_down_def intro!: floor_mono)
+  next
+    case 3
+    from \<open>0 < x\<close> have "log 2 x \<le> log 2 y" "0 < y" "0 \<le> y"
+      using assms by auto
+    with \<open>\<lfloor>log 2 \<bar>x\<bar>\<rfloor> \<noteq> \<lfloor>log 2 \<bar>y\<bar>\<rfloor>\<close>
+    have logless: "log 2 x < log 2 y" and flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
+      unfolding atomize_conj abs_of_pos[OF \<open>0 < x\<close>] abs_of_pos[OF \<open>0 < y\<close>]
+      by (metis floor_less_cancel linorder_cases not_le)
+    have "2 powr prec \<le> y * 2 powr real prec / (2 powr log 2 y)"
+      using \<open>0 < y\<close> by simp
+    also have "\<dots> \<le> y * 2 powr real (Suc prec) / (2 powr (real_of_int \<lfloor>log 2 y\<rfloor> + 1))"
+      using \<open>0 \<le> y\<close> \<open>0 \<le> x\<close> assms(2)
+      by (auto intro!: powr_mono divide_left_mono
+          simp: of_nat_diff powr_add powr_diff)
+    also have "\<dots> = y * 2 powr real (Suc prec) / (2 powr real_of_int \<lfloor>log 2 y\<rfloor> * 2)"
+      by (auto simp: powr_add)
+    finally have "(2 ^ prec) \<le> \<lfloor>y * 2 powr real_of_int (int (Suc prec) - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> - 1)\<rfloor>"
+      using \<open>0 \<le> y\<close>
+      by (auto simp: powr_diff le_floor_iff powr_realpow powr_add)
+    then have "(2 ^ (prec)) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor>) \<le> truncate_down prec y"
+      by (auto simp: truncate_down_def round_down_def)
+    moreover have "x \<le> (2 ^ prec) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor>)"
+    proof -
+      have "x = 2 powr (log 2 \<bar>x\<bar>)" using \<open>0 < x\<close> by simp
+      also have "\<dots> \<le> (2 ^ (Suc prec )) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor>)"
+        using real_of_int_floor_add_one_ge[of "log 2 \<bar>x\<bar>"] \<open>0 < x\<close>
+        by (auto simp flip: powr_realpow powr_add simp: algebra_simps powr_mult_base le_powr_iff)
+      also
+      have "2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor>) \<le> 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> + 1)"
+        using logless flogless \<open>x > 0\<close> \<open>y > 0\<close>
+        by (auto intro!: floor_mono)
+      finally show ?thesis
+        by (auto simp flip: powr_realpow simp: powr_diff assms of_nat_diff)
+    qed
+    ultimately show ?thesis
+      by (metis dual_order.trans truncate_down)
+  qed
+qed
+
+lemma truncate_down_eq_truncate_up: "truncate_down p x = - truncate_up p (-x)"
+  and truncate_up_eq_truncate_down: "truncate_up p x = - truncate_down p (-x)"
+  by (auto simp: truncate_up_uminus_eq truncate_down_uminus_eq)
+
+lemma truncate_down_mono: "x \<le> y \<Longrightarrow> truncate_down p x \<le> truncate_down p y"
+  apply (cases "0 \<le> x")
+  apply (rule truncate_down_nonneg_mono, assumption+)
+  apply (simp add: truncate_down_eq_truncate_up)
+  apply (cases "0 \<le> y")
+  apply (auto intro: truncate_up_nonneg_mono truncate_up_switch_sign_mono)
+  done
+
+lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> truncate_up p y"
+  by (simp add: truncate_up_eq_truncate_down truncate_down_mono)
+
+lemma truncate_up_nonneg: "0 \<le> truncate_up p x" if "0 \<le> x"
+  by (simp add: that truncate_up_le)
+
+lemma truncate_up_pos: "0 < truncate_up p x" if "0 < x"
+  by (meson less_le_trans that truncate_up)
+
+lemma truncate_up_less_zero_iff[simp]: "truncate_up p x < 0 \<longleftrightarrow> x < 0"
+proof -
+  have f1: "\<forall>n r. truncate_up n r + truncate_down n (- 1 * r) = 0"
+    by (simp add: truncate_down_uminus_eq)
+  have f2: "(\<forall>v0 v1. truncate_up v0 v1 + truncate_down v0 (- 1 * v1) = 0) = (\<forall>v0 v1. truncate_up v0 v1 = - 1 * truncate_down v0 (- 1 * v1))"
+    by (auto simp: truncate_up_eq_truncate_down)
+  have f3: "\<forall>x1. ((0::real) < x1) = (\<not> x1 \<le> 0)"
+    by fastforce
+  have "(- 1 * x \<le> 0) = (0 \<le> x)"
+    by force
+  then have "0 \<le> x \<or> \<not> truncate_down p (- 1 * x) \<le> 0"
+    using f3 by (meson truncate_down_pos)
+  then have "(0 \<le> truncate_up p x) \<noteq> (\<not> 0 \<le> x)"
+    using f2 f1 truncate_up_nonneg by force
+  then show ?thesis
+    by linarith
+qed
+
+lemma truncate_up_nonneg_iff[simp]: "truncate_up p x \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+  using truncate_up_less_zero_iff[of p x] truncate_up_nonneg[of x]
+  by linarith
+
+lemma truncate_down_less_zero_iff[simp]: "truncate_down p x < 0 \<longleftrightarrow> x < 0"
+  by (metis le_less_trans not_less_iff_gr_or_eq truncate_down truncate_down_pos truncate_down_zero)
+
+lemma truncate_down_nonneg_iff[simp]: "truncate_down p x \<ge> 0 \<longleftrightarrow> x \<ge> 0"
+  using truncate_down_less_zero_iff[of p x] truncate_down_nonneg[of x p]
+  by linarith
+
+lemma truncate_down_eq_zero_iff[simp]: "truncate_down prec x = 0 \<longleftrightarrow> x = 0"
+  by (metis not_less_iff_gr_or_eq truncate_down_less_zero_iff truncate_down_pos truncate_down_zero)
+
+lemma truncate_up_eq_zero_iff[simp]: "truncate_up prec x = 0 \<longleftrightarrow> x = 0"
+  by (metis not_less_iff_gr_or_eq truncate_up_less_zero_iff truncate_up_pos truncate_up_zero)
+
 
 subsection \<open>Approximation of positive rationals\<close>
 
@@ -1322,109 +1517,6 @@ qualified lemma compute_float_divr[code]:
   by transfer (simp add: real_divr_def real_divl_def truncate_down_uminus_eq)
 
 end
-
-
-subsection \<open>Approximate Power\<close>
-
-lemma div2_less_self[termination_simp]: "odd n \<Longrightarrow> n div 2 < n" for n :: nat
-  by (simp add: odd_pos)
-
-fun power_down :: "nat \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real"
-where
-  "power_down p x 0 = 1"
-| "power_down p x (Suc n) =
-    (if odd n then truncate_down (Suc p) ((power_down p x (Suc n div 2))\<^sup>2)
-     else truncate_down (Suc p) (x * power_down p x n))"
-
-fun power_up :: "nat \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real"
-where
-  "power_up p x 0 = 1"
-| "power_up p x (Suc n) =
-    (if odd n then truncate_up p ((power_up p x (Suc n div 2))\<^sup>2)
-     else truncate_up p (x * power_up p x n))"
-
-lift_definition power_up_fl :: "nat \<Rightarrow> float \<Rightarrow> nat \<Rightarrow> float" is power_up
-  by (induct_tac rule: power_up.induct) simp_all
-
-lift_definition power_down_fl :: "nat \<Rightarrow> float \<Rightarrow> nat \<Rightarrow> float" is power_down
-  by (induct_tac rule: power_down.induct) simp_all
-
-lemma power_float_transfer[transfer_rule]:
-  "(rel_fun pcr_float (rel_fun (=) pcr_float)) (^) (^)"
-  unfolding power_def
-  by transfer_prover
-
-lemma compute_power_up_fl[code]:
-    "power_up_fl p x 0 = 1"
-    "power_up_fl p x (Suc n) =
-      (if odd n then float_round_up p ((power_up_fl p x (Suc n div 2))\<^sup>2)
-       else float_round_up p (x * power_up_fl p x n))"
-  and compute_power_down_fl[code]:
-    "power_down_fl p x 0 = 1"
-    "power_down_fl p x (Suc n) =
-      (if odd n then float_round_down (Suc p) ((power_down_fl p x (Suc n div 2))\<^sup>2)
-       else float_round_down (Suc p) (x * power_down_fl p x n))"
-  unfolding atomize_conj by transfer simp
-
-lemma power_down_pos: "0 < x \<Longrightarrow> 0 < power_down p x n"
-  by (induct p x n rule: power_down.induct)
-    (auto simp del: odd_Suc_div_two intro!: truncate_down_pos)
-
-lemma power_down_nonneg: "0 \<le> x \<Longrightarrow> 0 \<le> power_down p x n"
-  by (induct p x n rule: power_down.induct)
-    (auto simp del: odd_Suc_div_two intro!: truncate_down_nonneg mult_nonneg_nonneg)
-
-lemma power_down: "0 \<le> x \<Longrightarrow> power_down p x n \<le> x ^ n"
-proof (induct p x n rule: power_down.induct)
-  case (2 p x n)
-  have ?case if "odd n"
-  proof -
-    from that 2 have "(power_down p x (Suc n div 2)) ^ 2 \<le> (x ^ (Suc n div 2)) ^ 2"
-      by (auto intro: power_mono power_down_nonneg simp del: odd_Suc_div_two)
-    also have "\<dots> = x ^ (Suc n div 2 * 2)"
-      by (simp flip: power_mult)
-    also have "Suc n div 2 * 2 = Suc n"
-      using \<open>odd n\<close> by presburger
-    finally show ?thesis
-      using that by (auto intro!: truncate_down_le simp del: odd_Suc_div_two)
-  qed
-  then show ?case
-    by (auto intro!: truncate_down_le mult_left_mono 2 mult_nonneg_nonneg power_down_nonneg)
-qed simp
-
-lemma power_up: "0 \<le> x \<Longrightarrow> x ^ n \<le> power_up p x n"
-proof (induct p x n rule: power_up.induct)
-  case (2 p x n)
-  have ?case if "odd n"
-  proof -
-    from that even_Suc have "Suc n = Suc n div 2 * 2"
-      by presburger
-    then have "x ^ Suc n \<le> (x ^ (Suc n div 2))\<^sup>2"
-      by (simp flip: power_mult)
-    also from that 2 have "\<dots> \<le> (power_up p x (Suc n div 2))\<^sup>2"
-      by (auto intro: power_mono simp del: odd_Suc_div_two)
-    finally show ?thesis
-      using that by (auto intro!: truncate_up_le simp del: odd_Suc_div_two)
-  qed
-  then show ?case
-    by (auto intro!: truncate_up_le mult_left_mono 2)
-qed simp
-
-lemmas power_up_le = order_trans[OF _ power_up]
-  and power_up_less = less_le_trans[OF _ power_up]
-  and power_down_le = order_trans[OF power_down]
-
-lemma power_down_fl: "0 \<le> x \<Longrightarrow> power_down_fl p x n \<le> x ^ n"
-  by transfer (rule power_down)
-
-lemma power_up_fl: "0 \<le> x \<Longrightarrow> x ^ n \<le> power_up_fl p x n"
-  by transfer (rule power_up)
-
-lemma real_power_up_fl: "real_of_float (power_up_fl p x n) = power_up p x n"
-  by transfer simp
-
-lemma real_power_down_fl: "real_of_float (power_down_fl p x n) = power_down p x n"
-  by transfer simp
 
 
 subsection \<open>Approximate Addition\<close>
@@ -1794,6 +1886,332 @@ qualified lemma compute_float_le[code]: "a \<le> b \<longleftrightarrow> is_floa
 
 end
 
+lemma plus_down_mono: "plus_down p a b \<le> plus_down p c d" if "a + b \<le> c + d"
+  by (auto simp: plus_down_def intro!: truncate_down_mono that)
+
+lemma plus_up_mono: "plus_up p a b \<le> plus_up p c d" if "a + b \<le> c + d"
+  by (auto simp: plus_up_def intro!: truncate_up_mono that)
+
+subsection \<open>Approximate Multiplication\<close>
+
+lemma mult_mono_nonpos_nonneg: "a * b \<le> c * d"
+  if  "a \<le> c" "a \<le> 0" "0 \<le> d" "d \<le> b" for a b c d::"'a::ordered_ring"
+  by (meson dual_order.trans mult_left_mono_neg mult_right_mono that)
+
+lemma mult_mono_nonneg_nonpos: "b * a \<le> d * c"
+  if  "a \<le> c" "c \<le> 0" "0 \<le> d" "d \<le> b" for a b c d::"'a::ordered_ring"
+  by (meson dual_order.trans mult_right_mono_neg mult_left_mono that)
+
+lemma mult_mono_nonpos_nonpos: "a * b \<le> c * d"
+  if  "a \<ge> c" "a \<le> 0" "b \<ge> d" "d \<le> 0" for a b c d::real
+  by (meson dual_order.trans mult_left_mono_neg mult_right_mono_neg that)
+
+lemma mult_float_mono1:
+  notes mono_rules = plus_down_mono add_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono
+  shows "a \<le> b \<Longrightarrow> ab \<le> bb \<Longrightarrow>
+       aa \<le> a \<Longrightarrow>
+       b \<le> ba \<Longrightarrow>
+       ac \<le> ab \<Longrightarrow>
+       bb \<le> bc \<Longrightarrow>
+       plus_down prec (nprt aa * pprt bc)
+        (plus_down prec (nprt ba * nprt bc)
+          (plus_down prec (pprt aa * pprt ac)
+            (pprt ba * nprt ac)))
+       \<le> plus_down prec (nprt a * pprt bb)
+           (plus_down prec (nprt b * nprt bb)
+             (plus_down prec (pprt a * pprt ab)
+               (pprt b * nprt ab)))"
+  apply (rule order_trans)
+   apply (rule mono_rules | assumption)+
+    apply (rule mult_mono_nonpos_nonneg)
+       apply (rule mono_rules | assumption)+
+    apply (rule mult_mono_nonpos_nonpos)
+       apply (rule mono_rules | assumption)+
+    apply (rule mult_mono)
+       apply (rule mono_rules | assumption)+
+   apply (rule mult_mono_nonneg_nonpos)
+      apply (rule mono_rules | assumption)+
+  by (rule order_refl)+
+
+lemma mult_float_mono2:
+  notes mono_rules = plus_up_mono add_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono
+  shows "a \<le> b \<Longrightarrow>
+       ab \<le> bb \<Longrightarrow>
+       aa \<le> a \<Longrightarrow>
+       b \<le> ba \<Longrightarrow>
+       ac \<le> ab \<Longrightarrow>
+       bb \<le> bc \<Longrightarrow>
+       plus_up prec (pprt b * pprt bb)
+        (plus_up prec (pprt a * nprt bb)
+          (plus_up prec (nprt b * pprt ab)
+            (nprt a * nprt ab)))
+       \<le> plus_up prec (pprt ba * pprt bc)
+           (plus_up prec (pprt aa * nprt bc)
+             (plus_up prec (nprt ba * pprt ac)
+               (nprt aa * nprt ac)))"
+  apply (rule order_trans)
+   apply (rule mono_rules | assumption)+
+    apply (rule mult_mono)
+       apply (rule mono_rules | assumption)+
+    apply (rule mult_mono_nonneg_nonpos)
+       apply (rule mono_rules | assumption)+
+    apply (rule mult_mono_nonpos_nonneg)
+       apply (rule mono_rules | assumption)+
+   apply (rule mult_mono_nonpos_nonpos)
+      apply (rule mono_rules | assumption)+
+  by (rule order_refl)+
+
+
+subsection \<open>Approximate Power\<close>
+
+lemma div2_less_self[termination_simp]: "odd n \<Longrightarrow> n div 2 < n" for n :: nat
+  by (simp add: odd_pos)
+
+fun power_down :: "nat \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real"
+where
+  "power_down p x 0 = 1"
+| "power_down p x (Suc n) =
+    (if odd n then truncate_down (Suc p) ((power_down p x (Suc n div 2))\<^sup>2)
+     else truncate_down (Suc p) (x * power_down p x n))"
+
+fun power_up :: "nat \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real"
+where
+  "power_up p x 0 = 1"
+| "power_up p x (Suc n) =
+    (if odd n then truncate_up p ((power_up p x (Suc n div 2))\<^sup>2)
+     else truncate_up p (x * power_up p x n))"
+
+lift_definition power_up_fl :: "nat \<Rightarrow> float \<Rightarrow> nat \<Rightarrow> float" is power_up
+  by (induct_tac rule: power_up.induct) simp_all
+
+lift_definition power_down_fl :: "nat \<Rightarrow> float \<Rightarrow> nat \<Rightarrow> float" is power_down
+  by (induct_tac rule: power_down.induct) simp_all
+
+lemma power_float_transfer[transfer_rule]:
+  "(rel_fun pcr_float (rel_fun (=) pcr_float)) (^) (^)"
+  unfolding power_def
+  by transfer_prover
+
+lemma compute_power_up_fl[code]:
+    "power_up_fl p x 0 = 1"
+    "power_up_fl p x (Suc n) =
+      (if odd n then float_round_up p ((power_up_fl p x (Suc n div 2))\<^sup>2)
+       else float_round_up p (x * power_up_fl p x n))"
+  and compute_power_down_fl[code]:
+    "power_down_fl p x 0 = 1"
+    "power_down_fl p x (Suc n) =
+      (if odd n then float_round_down (Suc p) ((power_down_fl p x (Suc n div 2))\<^sup>2)
+       else float_round_down (Suc p) (x * power_down_fl p x n))"
+  unfolding atomize_conj by transfer simp
+
+lemma power_down_pos: "0 < x \<Longrightarrow> 0 < power_down p x n"
+  by (induct p x n rule: power_down.induct)
+    (auto simp del: odd_Suc_div_two intro!: truncate_down_pos)
+
+lemma power_down_nonneg: "0 \<le> x \<Longrightarrow> 0 \<le> power_down p x n"
+  by (induct p x n rule: power_down.induct)
+    (auto simp del: odd_Suc_div_two intro!: truncate_down_nonneg mult_nonneg_nonneg)
+
+lemma power_down: "0 \<le> x \<Longrightarrow> power_down p x n \<le> x ^ n"
+proof (induct p x n rule: power_down.induct)
+  case (2 p x n)
+  have ?case if "odd n"
+  proof -
+    from that 2 have "(power_down p x (Suc n div 2)) ^ 2 \<le> (x ^ (Suc n div 2)) ^ 2"
+      by (auto intro: power_mono power_down_nonneg simp del: odd_Suc_div_two)
+    also have "\<dots> = x ^ (Suc n div 2 * 2)"
+      by (simp flip: power_mult)
+    also have "Suc n div 2 * 2 = Suc n"
+      using \<open>odd n\<close> by presburger
+    finally show ?thesis
+      using that by (auto intro!: truncate_down_le simp del: odd_Suc_div_two)
+  qed
+  then show ?case
+    by (auto intro!: truncate_down_le mult_left_mono 2 mult_nonneg_nonneg power_down_nonneg)
+qed simp
+
+lemma power_up: "0 \<le> x \<Longrightarrow> x ^ n \<le> power_up p x n"
+proof (induct p x n rule: power_up.induct)
+  case (2 p x n)
+  have ?case if "odd n"
+  proof -
+    from that even_Suc have "Suc n = Suc n div 2 * 2"
+      by presburger
+    then have "x ^ Suc n \<le> (x ^ (Suc n div 2))\<^sup>2"
+      by (simp flip: power_mult)
+    also from that 2 have "\<dots> \<le> (power_up p x (Suc n div 2))\<^sup>2"
+      by (auto intro: power_mono simp del: odd_Suc_div_two)
+    finally show ?thesis
+      using that by (auto intro!: truncate_up_le simp del: odd_Suc_div_two)
+  qed
+  then show ?case
+    by (auto intro!: truncate_up_le mult_left_mono 2)
+qed simp
+
+lemmas power_up_le = order_trans[OF _ power_up]
+  and power_up_less = less_le_trans[OF _ power_up]
+  and power_down_le = order_trans[OF power_down]
+
+lemma power_down_fl: "0 \<le> x \<Longrightarrow> power_down_fl p x n \<le> x ^ n"
+  by transfer (rule power_down)
+
+lemma power_up_fl: "0 \<le> x \<Longrightarrow> x ^ n \<le> power_up_fl p x n"
+  by transfer (rule power_up)
+
+lemma real_power_up_fl: "real_of_float (power_up_fl p x n) = power_up p x n"
+  by transfer simp
+
+lemma real_power_down_fl: "real_of_float (power_down_fl p x n) = power_down p x n"
+  by transfer simp
+
+lemmas [simp del] = power_down.simps(2) power_up.simps(2)
+
+lemmas power_down_simp = power_down.simps(2)
+lemmas power_up_simp = power_up.simps(2)
+
+lemma power_down_even_nonneg: "even n \<Longrightarrow> 0 \<le> power_down p x n"
+  by (induct p x n rule: power_down.induct)
+    (auto simp: power_down_simp simp del: odd_Suc_div_two intro!: truncate_down_nonneg )
+
+lemma power_down_eq_zero_iff[simp]: "power_down prec b n = 0 \<longleftrightarrow> b = 0 \<and> n \<noteq> 0"
+proof (induction n arbitrary: b rule: less_induct)
+  case (less x)
+  then show ?case
+    using power_down_simp[of _ _ "x - 1"]
+    by (cases x) (auto simp add: div2_less_self)
+qed
+
+lemma power_down_nonneg_iff[simp]:
+  "power_down prec b n \<ge> 0 \<longleftrightarrow> even n \<or> b \<ge> 0"
+proof (induction n arbitrary: b rule: less_induct)
+  case (less x)
+  show ?case
+    using less(1)[of "x - 1" b] power_down_simp[of _ _ "x - 1"]
+    by (cases x) (auto simp: algebra_split_simps zero_le_mult_iff)
+qed
+
+lemma power_down_neg_iff[simp]:
+  "power_down prec b n < 0 \<longleftrightarrow>
+    b < 0 \<and> odd n"
+  using power_down_nonneg_iff[of prec b n] by (auto simp del: power_down_nonneg_iff)
+
+lemma power_down_nonpos_iff[simp]:
+  notes [simp del] = power_down_neg_iff power_down_eq_zero_iff
+  shows "power_down prec b n \<le> 0 \<longleftrightarrow> b < 0 \<and> odd n \<or> b = 0 \<and> n \<noteq> 0"
+  using power_down_neg_iff[of prec b n] power_down_eq_zero_iff[of prec b n]
+  by auto
+
+lemma power_down_mono:
+  "power_down prec a n \<le> power_down prec b n"
+  if "((0 \<le> a \<and> a \<le> b)\<or>(odd n \<and> a \<le> b) \<or> (even n \<and> a \<le> 0 \<and> b \<le> a))"
+  using that
+proof (induction n arbitrary: a b rule: less_induct)
+  case (less i)
+  show ?case
+  proof (cases i)
+    case j: (Suc j)
+    note IH = less[unfolded j even_Suc not_not]
+    note [simp del] = power_down.simps
+    show ?thesis
+    proof cases
+      assume [simp]: "even j"
+      have "a * power_down prec a j \<le> b * power_down prec b j"
+        by (smt IH(1) IH(2) \<open>even j\<close> lessI mult_mono' mult_mono_nonpos_nonneg power_down_even_nonneg)
+      then have "truncate_down (Suc prec) (a * power_down prec a j) \<le> truncate_down (Suc prec) (b * power_down prec b j)"
+        by (auto intro!: truncate_down_mono simp: abs_le_square_iff[symmetric] abs_real_def)
+      then show ?thesis
+        unfolding j
+        by (simp add: power_down_simp)
+    next
+      assume [simp]: "odd j"
+      have "power_down prec 0 (Suc (j div 2)) \<le> - power_down prec b (Suc (j div 2))"
+        if "b < 0" "even (j div 2)"
+        apply (rule order_trans[where y=0])
+        using IH that by (auto simp: div2_less_self)
+      then have "truncate_down (Suc prec) ((power_down prec a (Suc (j div 2)))\<^sup>2)
+        \<le> truncate_down (Suc prec) ((power_down prec b (Suc (j div 2)))\<^sup>2)"
+        using IH
+        by (auto intro!: truncate_down_mono intro: order_trans[where y=0]
+            simp: abs_le_square_iff[symmetric] abs_real_def
+            div2_less_self)
+      then show ?thesis
+        unfolding j
+        by (simp add: power_down_simp)
+    qed
+  qed simp
+qed
+
+lemma power_up_even_nonneg: "even n \<Longrightarrow> 0 \<le> power_up p x n"
+  by (induct p x n rule: power_up.induct)
+    (auto simp: power_up.simps simp del: odd_Suc_div_two intro!: )
+
+lemma power_up_eq_zero_iff[simp]: "power_up prec b n = 0 \<longleftrightarrow> b = 0 \<and> n \<noteq> 0"
+proof (induction n arbitrary: b rule: less_induct)
+  case (less x)
+  then show ?case
+    using power_up_simp[of _ _ "x - 1"]
+    by (cases x) (auto simp: algebra_split_simps zero_le_mult_iff div2_less_self)
+qed
+
+lemma power_up_nonneg_iff[simp]:
+  "power_up prec b n \<ge> 0 \<longleftrightarrow> even n \<or> b \<ge> 0"
+proof (induction n arbitrary: b rule: less_induct)
+  case (less x)
+  show ?case
+    using less(1)[of "x - 1" b] power_up_simp[of _ _ "x - 1"]
+    by (cases x) (auto simp: algebra_split_simps zero_le_mult_iff)
+qed
+
+lemma power_up_neg_iff[simp]:
+  "power_up prec b n < 0 \<longleftrightarrow> b < 0 \<and> odd n"
+  using power_up_nonneg_iff[of prec b n] by (auto simp del: power_up_nonneg_iff)
+
+lemma power_up_nonpos_iff[simp]:
+  notes [simp del] = power_up_neg_iff power_up_eq_zero_iff
+  shows "power_up prec b n \<le> 0 \<longleftrightarrow> b < 0 \<and> odd n \<or> b = 0 \<and> n \<noteq> 0"
+  using power_up_neg_iff[of prec b n] power_up_eq_zero_iff[of prec b n]
+  by auto
+
+lemma power_up_mono:
+  "power_up prec a n \<le> power_up prec b n"
+  if "((0 \<le> a \<and> a \<le> b)\<or>(odd n \<and> a \<le> b) \<or> (even n \<and> a \<le> 0 \<and> b \<le> a))"
+  using that
+proof (induction n arbitrary: a b rule: less_induct)
+  case (less i)
+  show ?case
+  proof (cases i)
+    case j: (Suc j)
+    note IH = less[unfolded j even_Suc not_not]
+    note [simp del] = power_up.simps
+    show ?thesis
+    proof cases
+      assume [simp]: "even j"
+      have "a * power_up prec a j \<le> b * power_up prec b j"
+        by (smt IH(1) IH(2) \<open>even j\<close> lessI mult_mono' mult_mono_nonpos_nonneg power_up_even_nonneg)
+      then have "truncate_up prec (a * power_up prec a j) \<le> truncate_up prec (b * power_up prec b j)"
+        by (auto intro!: truncate_up_mono simp: abs_le_square_iff[symmetric] abs_real_def)
+      then show ?thesis
+        unfolding j
+        by (simp add: power_up_simp)
+    next
+      assume [simp]: "odd j"
+      have "power_up prec 0 (Suc (j div 2)) \<le> - power_up prec b (Suc (j div 2))"
+        if "b < 0" "even (j div 2)"
+        apply (rule order_trans[where y=0])
+        using IH that by (auto simp: div2_less_self)
+      then have "truncate_up prec ((power_up prec a (Suc (j div 2)))\<^sup>2)
+        \<le> truncate_up prec ((power_up prec b (Suc (j div 2)))\<^sup>2)"
+        using IH
+        by (auto intro!: truncate_up_mono intro: order_trans[where y=0]
+            simp: abs_le_square_iff[symmetric] abs_real_def
+            div2_less_self)
+      then show ?thesis
+        unfolding j
+        by (simp add: power_up_simp)
+    qed
+  qed simp
+qed
+
 
 subsection \<open>Lemmas needed by Approximate\<close>
 
@@ -1947,160 +2365,6 @@ lemma real_divr_nonneg_neg_upper_bound: "0 \<le> x \<Longrightarrow> y \<le> 0 \
 lemma float_divr_nonneg_neg_upper_bound:
   "0 \<le> real_of_float x \<Longrightarrow> real_of_float y \<le> 0 \<Longrightarrow> real_of_float (float_divr prec x y) \<le> 0"
   by transfer (rule real_divr_nonneg_neg_upper_bound)
-
-lemma truncate_up_nonneg_mono:
-  assumes "0 \<le> x" "x \<le> y"
-  shows "truncate_up prec x \<le> truncate_up prec y"
-proof -
-  consider "\<lfloor>log 2 x\<rfloor> = \<lfloor>log 2 y\<rfloor>" | "\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>" "0 < x" | "x \<le> 0"
-    by arith
-  then show ?thesis
-  proof cases
-    case 1
-    then show ?thesis
-      using assms
-      by (auto simp: truncate_up_def round_up_def intro!: ceiling_mono)
-  next
-    case 2
-    from assms \<open>0 < x\<close> have "log 2 x \<le> log 2 y"
-      by auto
-    with \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close>
-    have logless: "log 2 x < log 2 y"
-      by linarith
-    have flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
-      using \<open>\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>\<close> \<open>log 2 x \<le> log 2 y\<close> by linarith
-    have "truncate_up prec x =
-      real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor> )\<rceil> * 2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)"
-      using assms by (simp add: truncate_up_def round_up_def)
-    also have "\<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)\<rceil> \<le> (2 ^ (Suc prec))"
-    proof (simp only: ceiling_le_iff)
-      have "x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le>
-        x * (2 powr real (Suc prec) / (2 powr log 2 x))"
-        using real_of_int_floor_add_one_ge[of "log 2 x"] assms
-        by (auto simp: algebra_simps simp flip: powr_diff intro!: mult_left_mono)
-      then show "x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le> real_of_int ((2::int) ^ (Suc prec))"
-        using \<open>0 < x\<close> by (simp add: powr_realpow powr_add)
-    qed
-    then have "real_of_int \<lceil>x * 2 powr real_of_int (int prec - \<lfloor>log 2 x\<rfloor>)\<rceil> \<le> 2 powr int (Suc prec)"
-      by (auto simp: powr_realpow powr_add)
-        (metis power_Suc of_int_le_numeral_power_cancel_iff)
-    also
-    have "2 powr - real_of_int (int prec - \<lfloor>log 2 x\<rfloor>) \<le> 2 powr - real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)"
-      using logless flogless by (auto intro!: floor_mono)
-    also have "2 powr real_of_int (int (Suc prec)) \<le>
-        2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1))"
-      using assms \<open>0 < x\<close>
-      by (auto simp: algebra_simps)
-    finally have "truncate_up prec x \<le>
-        2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)) * 2 powr - real_of_int (int prec - \<lfloor>log 2 y\<rfloor> + 1)"
-      by simp
-    also have "\<dots> = 2 powr (log 2 y + real_of_int (int prec - \<lfloor>log 2 y\<rfloor>) - real_of_int (int prec - \<lfloor>log 2 y\<rfloor>))"
-      by (subst powr_add[symmetric]) simp
-    also have "\<dots> = y"
-      using \<open>0 < x\<close> assms
-      by (simp add: powr_add)
-    also have "\<dots> \<le> truncate_up prec y"
-      by (rule truncate_up)
-    finally show ?thesis .
-  next
-    case 3
-    then show ?thesis
-      using assms
-      by (auto intro!: truncate_up_le)
-  qed
-qed
-
-lemma truncate_up_switch_sign_mono:
-  assumes "x \<le> 0" "0 \<le> y"
-  shows "truncate_up prec x \<le> truncate_up prec y"
-proof -
-  note truncate_up_nonpos[OF \<open>x \<le> 0\<close>]
-  also note truncate_up_le[OF \<open>0 \<le> y\<close>]
-  finally show ?thesis .
-qed
-
-lemma truncate_down_switch_sign_mono:
-  assumes "x \<le> 0"
-    and "0 \<le> y"
-    and "x \<le> y"
-  shows "truncate_down prec x \<le> truncate_down prec y"
-proof -
-  note truncate_down_le[OF \<open>x \<le> 0\<close>]
-  also note truncate_down_nonneg[OF \<open>0 \<le> y\<close>]
-  finally show ?thesis .
-qed
-
-lemma truncate_down_nonneg_mono:
-  assumes "0 \<le> x" "x \<le> y"
-  shows "truncate_down prec x \<le> truncate_down prec y"
-proof -
-  consider "x \<le> 0" | "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> = \<lfloor>log 2 \<bar>y\<bar>\<rfloor>" |
-    "0 < x" "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> \<noteq> \<lfloor>log 2 \<bar>y\<bar>\<rfloor>"
-    by arith
-  then show ?thesis
-  proof cases
-    case 1
-    with assms have "x = 0" "0 \<le> y" by simp_all
-    then show ?thesis
-      by (auto intro!: truncate_down_nonneg)
-  next
-    case 2
-    then show ?thesis
-      using assms
-      by (auto simp: truncate_down_def round_down_def intro!: floor_mono)
-  next
-    case 3
-    from \<open>0 < x\<close> have "log 2 x \<le> log 2 y" "0 < y" "0 \<le> y"
-      using assms by auto
-    with \<open>\<lfloor>log 2 \<bar>x\<bar>\<rfloor> \<noteq> \<lfloor>log 2 \<bar>y\<bar>\<rfloor>\<close>
-    have logless: "log 2 x < log 2 y" and flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
-      unfolding atomize_conj abs_of_pos[OF \<open>0 < x\<close>] abs_of_pos[OF \<open>0 < y\<close>]
-      by (metis floor_less_cancel linorder_cases not_le)
-    have "2 powr prec \<le> y * 2 powr real prec / (2 powr log 2 y)"
-      using \<open>0 < y\<close> by simp
-    also have "\<dots> \<le> y * 2 powr real (Suc prec) / (2 powr (real_of_int \<lfloor>log 2 y\<rfloor> + 1))"
-      using \<open>0 \<le> y\<close> \<open>0 \<le> x\<close> assms(2)
-      by (auto intro!: powr_mono divide_left_mono
-          simp: of_nat_diff powr_add powr_diff)
-    also have "\<dots> = y * 2 powr real (Suc prec) / (2 powr real_of_int \<lfloor>log 2 y\<rfloor> * 2)"
-      by (auto simp: powr_add)
-    finally have "(2 ^ prec) \<le> \<lfloor>y * 2 powr real_of_int (int (Suc prec) - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> - 1)\<rfloor>"
-      using \<open>0 \<le> y\<close>
-      by (auto simp: powr_diff le_floor_iff powr_realpow powr_add)
-    then have "(2 ^ (prec)) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor>) \<le> truncate_down prec y"
-      by (auto simp: truncate_down_def round_down_def)
-    moreover have "x \<le> (2 ^ prec) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor>)"
-    proof -
-      have "x = 2 powr (log 2 \<bar>x\<bar>)" using \<open>0 < x\<close> by simp
-      also have "\<dots> \<le> (2 ^ (Suc prec )) * 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor>)"
-        using real_of_int_floor_add_one_ge[of "log 2 \<bar>x\<bar>"] \<open>0 < x\<close>
-        by (auto simp flip: powr_realpow powr_add simp: algebra_simps powr_mult_base le_powr_iff)
-      also
-      have "2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor>) \<le> 2 powr - real_of_int (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> + 1)"
-        using logless flogless \<open>x > 0\<close> \<open>y > 0\<close>
-        by (auto intro!: floor_mono)
-      finally show ?thesis
-        by (auto simp flip: powr_realpow simp: powr_diff assms of_nat_diff)
-    qed
-    ultimately show ?thesis
-      by (metis dual_order.trans truncate_down)
-  qed
-qed
-
-lemma truncate_down_eq_truncate_up: "truncate_down p x = - truncate_up p (-x)"
-  and truncate_up_eq_truncate_down: "truncate_up p x = - truncate_down p (-x)"
-  by (auto simp: truncate_up_uminus_eq truncate_down_uminus_eq)
-
-lemma truncate_down_mono: "x \<le> y \<Longrightarrow> truncate_down p x \<le> truncate_down p y"
-  apply (cases "0 \<le> x")
-  apply (rule truncate_down_nonneg_mono, assumption+)
-  apply (simp add: truncate_down_eq_truncate_up)
-  apply (cases "0 \<le> y")
-  apply (auto intro: truncate_up_nonneg_mono truncate_up_switch_sign_mono)
-  done
-
-lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> truncate_up p y"
-  by (simp add: truncate_up_eq_truncate_down truncate_down_mono)
 
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
   by (auto simp: zero_float_def mult_le_0_iff)

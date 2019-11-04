@@ -11,12 +11,14 @@
 theory Approximation_Bounds
 imports
   Complex_Main
-  "HOL-Library.Float"
+  "HOL-Library.Interval_Float"
   Dense_Linear_Order
 begin
 
 declare powr_neg_one [simp]
 declare powr_neg_numeral [simp]
+
+context includes interval.lifting begin
 
 section "Horner Scheme"
 
@@ -193,6 +195,44 @@ lemma bnds_power:
     l1 \<le> x ^ n \<and> x ^ n \<le> u1"
   using float_power_bnds by auto
 
+lift_definition power_float_interval :: "nat \<Rightarrow> nat \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>p n (l, u). float_power_bnds p n l u"
+  using float_power_bnds
+  by (auto simp: bnds_power dest!: float_power_bnds[OF sym])
+
+lemma lower_power_float_interval:
+  "lower (power_float_interval p n x) = fst (float_power_bnds p n (lower x) (upper x))"
+  by transfer auto
+lemma upper_power_float_interval:
+  "upper (power_float_interval p n x) = snd (float_power_bnds p n (lower x) (upper x))"
+  by transfer auto
+
+lemma power_float_intervalI: "x \<in>\<^sub>r X \<Longrightarrow> x ^ n \<in>\<^sub>r power_float_interval p n X"
+  using float_power_bnds[OF prod.collapse]
+  by (auto simp: set_of_eq lower_power_float_interval upper_power_float_interval)
+
+lemma power_float_interval_mono:
+  "set_of (power_float_interval prec n A)
+    \<subseteq> set_of (power_float_interval prec n B)"
+  if "set_of A \<subseteq> set_of B"
+proof -
+  define la where "la = real_of_float (lower A)"
+  define ua where "ua = real_of_float (upper A)"
+  define lb where "lb = real_of_float (lower B)"
+  define ub where "ub = real_of_float (upper B)"
+  have ineqs: "lb \<le> la" "la \<le> ua" "ua \<le> ub" "lb \<le> ub"
+    using that lower_le_upper[of A] lower_le_upper[of B]
+    by (auto simp: la_def ua_def lb_def ub_def set_of_eq)
+  show ?thesis
+    using ineqs
+    by (simp add: set_of_subset_iff float_power_bnds_def max_def
+        power_down_fl.rep_eq power_up_fl.rep_eq
+        lower_power_float_interval upper_power_float_interval
+        la_def[symmetric] ua_def[symmetric] lb_def[symmetric] ub_def[symmetric])
+      (auto intro!: power_down_mono power_up_mono intro: order_trans[where y=0])
+qed
+
+
 section \<open>Approximation utility functions\<close>
 
 definition bnds_mult :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<times> float" where
@@ -219,6 +259,42 @@ proof -
        (auto simp: bnds_mult_def intro!: float_plus_up_le)
   ultimately show ?thesis by simp
 qed
+
+lift_definition mult_float_interval::"nat \<Rightarrow> float interval \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(a1, a2). \<lambda>(b1, b2). bnds_mult prec a1 a2 b1 b2"
+  by (auto dest!: bnds_mult[OF sym])
+
+lemma lower_mult_float_interval:
+  "lower (mult_float_interval p x y) = fst (bnds_mult p (lower x) (upper x) (lower y) (upper y))"
+  by transfer auto
+lemma upper_mult_float_interval:
+  "upper (mult_float_interval p x y) = snd (bnds_mult p (lower x) (upper x) (lower y) (upper y))"
+  by transfer auto
+
+lemma mult_float_interval:
+  "set_of (real_interval A) * set_of (real_interval B) \<subseteq>
+    set_of (real_interval (mult_float_interval prec A B))"
+proof -
+  let ?bm = "bnds_mult prec (lower A) (upper A) (lower B) (upper B)"
+  show ?thesis
+    using bnds_mult[of "fst ?bm" "snd ?bm", simplified, OF refl]
+    by (auto simp: set_of_eq set_times_def upper_mult_float_interval lower_mult_float_interval)
+qed
+
+lemma mult_float_intervalI:
+  "x * y \<in>\<^sub>r mult_float_interval prec A B"
+  if "x \<in>\<^sub>i real_interval A" "y \<in>\<^sub>i real_interval B"
+  using mult_float_interval[of A B] that
+  by (auto simp: )
+
+lemma mult_float_interval_mono:
+  "set_of (mult_float_interval prec A B) \<subseteq> set_of (mult_float_interval prec X Y)"
+  if "set_of A \<subseteq> set_of X" "set_of B \<subseteq> set_of Y"
+  using that
+  apply transfer
+  unfolding bnds_mult_def atLeastatMost_subset_iff float_plus_down.rep_eq float_plus_up.rep_eq
+  by (auto simp: float_plus_down.rep_eq float_plus_up.rep_eq mult_float_mono1 mult_float_mono2)
+
 
 definition map_bnds :: "(nat \<Rightarrow> float \<Rightarrow> float) \<Rightarrow> (nat \<Rightarrow> float \<Rightarrow> float) \<Rightarrow>
                            nat \<Rightarrow> (float \<times> float) \<Rightarrow> (float \<times> float)" where
@@ -456,6 +532,25 @@ proof ((rule allI) +, rule impI, erule conjE, rule conjI)
   show "sqrt x \<le> u" unfolding u using bnds_sqrt'[of ux prec] by auto
 qed
 
+lift_definition sqrt_float_interval::"nat \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(lx, ux). (lb_sqrt prec lx, ub_sqrt prec ux)"
+  using bnds_sqrt'
+  by auto (meson order_trans real_sqrt_le_iff)
+
+lemma lower_float_interval: "lower (sqrt_float_interval prec X) = lb_sqrt prec (lower X)"
+  by transfer auto
+
+lemma upper_float_interval: "upper (sqrt_float_interval prec X) = ub_sqrt prec (upper X)"
+  by transfer auto
+
+lemma sqrt_float_interval:
+  "sqrt ` set_of (real_interval X) \<subseteq> set_of (real_interval (sqrt_float_interval prec X))"
+  using bnds_sqrt
+  by (auto simp: set_of_eq lower_float_interval upper_float_interval)
+
+lemma sqrt_float_intervalI: "sqrt x \<in>\<^sub>r sqrt_float_interval p X" if "x \<in>\<^sub>r X"
+  using sqrt_float_interval[of X p] that
+  by auto
 
 section "Arcus tangens and \<pi>"
 
@@ -710,6 +805,18 @@ proof -
       (auto intro!: mult_left_mono float_round_down_le float_round_up_le diff_mono)
   ultimately show ?thesis by auto
 qed
+
+lift_definition pi_float_interval::"nat \<Rightarrow> float interval" is "\<lambda>prec. (lb_pi prec, ub_pi prec)"
+  using pi_boundaries
+  by (auto intro: order_trans)
+
+lemma lower_pi_float_interval: "lower (pi_float_interval prec) = lb_pi prec"
+  by transfer auto
+lemma upper_pi_float_interval: "upper (pi_float_interval prec) = ub_pi prec"
+  by transfer auto
+lemma pi_float_interval: "pi \<in> set_of (real_interval (pi_float_interval prec))"
+  using pi_boundaries
+  by (auto simp: set_of_eq lower_pi_float_interval upper_pi_float_interval)
 
 
 subsection "Compute arcus tangens in the entire domain"
@@ -1055,6 +1162,32 @@ proof (rule allI, rule allI, rule allI, rule impI)
     qed
   qed
 qed
+
+lemmas [simp del] = lb_arctan.simps ub_arctan.simps
+
+lemma lb_arctan: "arctan (real_of_float x) \<le> y \<Longrightarrow> real_of_float (lb_arctan prec x) \<le> y"
+  and ub_arctan: "y \<le> arctan x \<Longrightarrow> y \<le> ub_arctan prec x"
+  for x::float and y::real
+  using arctan_boundaries[of x prec] by auto
+
+lift_definition arctan_float_interval :: "nat \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(lx, ux). (lb_arctan prec lx, ub_arctan prec ux)"
+  by (auto intro!: lb_arctan ub_arctan arctan_monotone')
+
+lemma lower_arctan_float_interval: "lower (arctan_float_interval p x) = lb_arctan p (lower x)"
+  by transfer auto
+lemma upper_arctan_float_interval: "upper (arctan_float_interval p x) = ub_arctan p (upper x)"
+  by transfer auto
+
+lemma arctan_float_interval:
+  "arctan ` set_of (real_interval x) \<subseteq> set_of (real_interval (arctan_float_interval p x))"
+  by (auto simp: set_of_eq lower_arctan_float_interval upper_arctan_float_interval
+      intro!: lb_arctan ub_arctan arctan_monotone')
+
+lemma arctan_float_intervalI:
+  "arctan x \<in>\<^sub>r arctan_float_interval p X" if "x \<in>\<^sub>r X"
+  using arctan_float_interval[of X p] that
+  by auto
 
 
 section "Sinus and Cosinus"
@@ -1794,6 +1927,31 @@ proof (rule allI | rule impI | erule conjE)+
   qed
 qed
 
+lemma bnds_cos_lower: "\<And>x. real_of_float xl \<le> x \<Longrightarrow> x \<le> real_of_float xu \<Longrightarrow> cos x \<le> y \<Longrightarrow> real_of_float (fst (bnds_cos prec xl xu)) \<le> y"
+  and bnds_cos_upper: "\<And>x. real_of_float xl \<le> x \<Longrightarrow> x \<le> real_of_float xu \<Longrightarrow> y \<le> cos x \<Longrightarrow> y \<le> real_of_float (snd (bnds_cos prec xl xu))"
+  for xl xu::float and y::real
+  using bnds_cos[of "fst (bnds_cos prec xl xu)" "snd (bnds_cos prec xl xu)" prec]
+  by force+
+
+lift_definition cos_float_interval :: "nat \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(lx, ux). bnds_cos prec lx ux"
+  using bnds_cos
+  by auto (metis (full_types) order_refl order_trans)
+
+lemma lower_cos_float_interval: "lower (cos_float_interval p x) = fst (bnds_cos p (lower x) (upper x))"
+  by transfer auto
+lemma upper_cos_float_interval: "upper (cos_float_interval p x) = snd (bnds_cos p (lower x) (upper x))"
+  by transfer auto
+
+lemma cos_float_interval:
+  "cos ` set_of (real_interval x) \<subseteq> set_of (real_interval (cos_float_interval p x))"
+  by (auto simp: set_of_eq bnds_cos_lower bnds_cos_upper lower_cos_float_interval
+      upper_cos_float_interval)
+
+lemma cos_float_intervalI: "cos x \<in>\<^sub>r cos_float_interval p X" if "x \<in>\<^sub>r X"
+  using cos_float_interval[of X p] that
+  by auto
+
 
 section "Exponential function"
 
@@ -2137,6 +2295,31 @@ proof (rule allI, rule allI, rule allI, rule impI)
   qed
 qed
 
+lemmas [simp del] = lb_exp.simps ub_exp.simps
+
+lemma lb_exp: "exp x \<le> y \<Longrightarrow> lb_exp prec x \<le> y"
+  and ub_exp: "y \<le> exp x \<Longrightarrow> y \<le> ub_exp prec x"
+  for x::float and y::real using exp_boundaries[of x prec] by auto
+
+lift_definition exp_float_interval :: "nat \<Rightarrow> float interval \<Rightarrow> float interval"
+  is "\<lambda>prec. \<lambda>(lx, ux). (lb_exp prec lx, ub_exp prec ux)"
+  by (auto simp: lb_exp ub_exp)
+
+lemma lower_exp_float_interval: "lower (exp_float_interval p x) = lb_exp p (lower x)"
+  by transfer auto
+lemma upper_exp_float_interval: "upper (exp_float_interval p x) = ub_exp p (upper x)"
+  by transfer auto
+
+lemma exp_float_interval:
+  "exp ` set_of (real_interval x) \<subseteq> set_of (real_interval (exp_float_interval p x))"
+  using exp_boundaries
+  by (auto simp: set_of_eq lower_exp_float_interval upper_exp_float_interval lb_exp ub_exp)
+
+lemma exp_float_intervalI:
+  "exp x \<in>\<^sub>r exp_float_interval p X" if "x \<in>\<^sub>r X"
+  using exp_float_interval[of X p] that
+  by auto
+
 
 section "Logarithm"
 
@@ -2211,7 +2394,7 @@ proof -
   also have "\<dots> \<le> ?ub"
     unfolding power_Suc2 mult.assoc[symmetric] times_float.rep_eq sum_distrib_right[symmetric]
     unfolding mult.commute[of "real_of_float x"] od
-    using horner_bounds(2)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*od+1",
+    using horner_bounds(2)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2 * od + 1",
       OF \<open>0 \<le> real_of_float x\<close> refl lb_ln_horner.simps ub_ln_horner.simps] \<open>0 \<le> real_of_float x\<close>
     unfolding real_of_float_power
     by (rule mult_right_mono)
@@ -2703,6 +2886,41 @@ proof (rule allI, rule allI, rule allI, rule impI)
   ultimately show "l \<le> ln x \<and> ln x \<le> u" ..
 qed
 
+lemmas [simp del] = lb_ln.simps ub_ln.simps
+
+lemma lb_lnD:
+  "y \<le> ln x \<and> 0 < real_of_float x" if "lb_ln prec x = Some y"
+  using lb_ln[OF that[symmetric]] by auto
+
+lemma ub_lnD:
+  "ln x \<le> y\<and> 0 < real_of_float x" if "ub_ln prec x = Some y"
+  using ub_ln[OF that[symmetric]] by auto
+
+lift_definition(code_dt) ln_float_interval :: "nat \<Rightarrow> float interval \<Rightarrow> float interval option"
+  is "\<lambda>prec. \<lambda>(lx, ux).
+    Option.bind (lb_ln prec lx) (\<lambda>l.
+      Option.bind (ub_ln prec ux) (\<lambda>u. Some (l, u)))"
+  by (auto simp: pred_option_def bind_eq_Some_conv ln_le_cancel_iff[symmetric]
+      simp del: ln_le_cancel_iff dest!: lb_lnD ub_lnD)
+
+lemma ln_float_interval_eq_Some_conv:
+  "ln_float_interval p x = Some y \<longleftrightarrow>
+    lb_ln p (lower x) = Some (lower y) \<and> ub_ln p (upper x) = Some (upper y)"
+  by transfer (auto simp: bind_eq_Some_conv)
+
+lemma ln_float_interval: "ln ` set_of (real_interval x) \<subseteq> set_of (real_interval y)"
+  if "ln_float_interval p x = Some y"
+  using that lb_ln[of "lower y" p "lower x"]
+    ub_ln[of "lower y" p "lower x"]
+  apply (auto simp add: set_of_eq ln_float_interval_eq_Some_conv ln_le_cancel_iff)
+   apply (meson less_le_trans ln_less_cancel_iff not_le)
+  by (meson less_le_trans ln_less_cancel_iff not_le ub_lnD)
+
+lemma ln_float_intervalI:
+  "ln x \<in> set_of' (ln_float_interval p X)" if "x \<in>\<^sub>r X"
+  using ln_float_interval[of p X] that
+  by (auto simp: set_of'_def split: option.splits)
+
 
 section \<open>Real power function\<close>
 
@@ -2718,8 +2936,6 @@ definition bnds_powr :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarro
      else
        Some (map_bnds lb_exp ub_exp prec 
                (bnds_mult prec (the (lb_ln prec l1)) (the (ub_ln prec u1)) l2 u2)))"
-
-lemmas [simp del] = lb_exp.simps ub_exp.simps
 
 lemma mono_exp_real: "mono (exp :: real \<Rightarrow> real)"
   by (auto simp: mono_def)
@@ -2797,5 +3013,24 @@ proof -
       by (simp add: powr_def mult_ac)
   qed
 qed
+
+lift_definition(code_dt) powr_float_interval :: "nat \<Rightarrow> float interval \<Rightarrow> float interval \<Rightarrow> float interval option"
+  is "\<lambda>prec. \<lambda>(l1, u1). \<lambda>(l2, u2). bnds_powr prec l1 u1 l2 u2"
+  by (auto simp: pred_option_def dest!: bnds_powr[OF sym])
+
+lemma powr_float_interval:
+  "{x powr y | x y. x \<in> set_of (real_interval X) \<and> y \<in> set_of (real_interval Y)}
+    \<subseteq> set_of (real_interval R)"
+  if "powr_float_interval prec X Y = Some R"
+  using that
+  by transfer (auto dest!: bnds_powr[OF sym])
+
+lemma powr_float_intervalI:
+  "x powr y \<in> set_of' (powr_float_interval p X Y)"
+  if "x \<in>\<^sub>r X" "y \<in>\<^sub>r Y"
+  using powr_float_interval[of p X Y] that
+  by (auto simp: set_of'_def split: option.splits)
+
+end
 
 end

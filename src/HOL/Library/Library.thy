@@ -39,6 +39,7 @@ imports
   Indicator_Function
   Infinite_Set
   Interval
+  Interval_Float
   IArray
   Landau_Symbols
   Lattice_Algebras
