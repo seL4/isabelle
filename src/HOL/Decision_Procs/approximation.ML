@@ -10,7 +10,7 @@ sig
   val approximation_tac : int -> (string * int) list -> int option -> Proof.context -> int -> tactic
 end
 
-structure Approximation: APPROXIMATION =
+structure Approximation =
 struct
 
 fun reorder_bounds_tac ctxt prems i =
@@ -45,9 +45,9 @@ fun reorder_bounds_tac ctxt prems i =
 fun approximate ctxt t = case fastype_of t
    of \<^typ>\<open>bool\<close> =>
         Approximation_Computation.approx_bool ctxt t
-    | \<^typ>\<open>(float \<times> float) option\<close> =>
+    | \<^typ>\<open>(float interval) option\<close> =>
         Approximation_Computation.approx_arith ctxt t
-    | \<^typ>\<open>(float \<times> float) option list\<close> =>
+    | \<^typ>\<open>(float interval) option list\<close> =>
         Approximation_Computation.approx_form_eval ctxt t
     | _ => error ("Bad term: " ^ Syntax.string_of_term ctxt t);
 
@@ -121,14 +121,16 @@ fun dest_float (\<^const>\<open>Float\<close> $ m $ e) = (snd (HOLogic.dest_numb
   | dest_float t = raise TERM ("dest_float", [t])
 
 
-fun dest_ivl (Const (\<^const_name>\<open>Some\<close>, _) $
-              (Const (\<^const_name>\<open>Pair\<close>, _) $ u $ l)) = SOME (dest_float u, dest_float l)
+fun dest_ivl
+  (Const (\<^const_name>\<open>Some\<close>, _) $
+    (Const (\<^const_name>\<open>Interval\<close>, _) $ ((Const (\<^const_name>\<open>Pair\<close>, _) $ u $ l)))) =
+      SOME (dest_float u, dest_float l)
   | dest_ivl (Const (\<^const_name>\<open>None\<close>, _)) = NONE
   | dest_ivl t = raise TERM ("dest_result", [t])
 
 fun mk_approx' prec t = (\<^const>\<open>approx'\<close>
                        $ HOLogic.mk_number \<^typ>\<open>nat\<close> prec
-                       $ t $ \<^term>\<open>[] :: (float * float) option list\<close>)
+                       $ t $ \<^term>\<open>[] :: (float interval) option list\<close>)
 
 fun mk_approx_form_eval prec t xs = (\<^const>\<open>approx_form_eval\<close>
                        $ HOLogic.mk_number \<^typ>\<open>nat\<close> prec
@@ -237,8 +239,8 @@ fun approx_form prec ctxt t =
          |> HOLogic.dest_Trueprop
          |> dest_interpret_form
          |> (fn (data, xs) =>
-            mk_approx_form_eval prec data (HOLogic.mk_list \<^typ>\<open>(float * float) option\<close>
-              (map (fn _ => \<^term>\<open>None :: (float * float) option\<close>) (HOLogic.dest_list xs)))
+            mk_approx_form_eval prec data (HOLogic.mk_list \<^typ>\<open>(float interval) option\<close>
+              (map (fn _ => \<^term>\<open>None :: (float interval) option\<close>) (HOLogic.dest_list xs)))
          |> approximate ctxt
          |> HOLogic.dest_list
          |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)

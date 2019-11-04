@@ -2921,6 +2921,11 @@ lemma ln_float_intervalI:
   using ln_float_interval[of p X] that
   by (auto simp: set_of'_def split: option.splits)
 
+lemma ln_float_interval_eqI:
+  "ln x \<in>\<^sub>r IVL" if "ln_float_interval p X = Some IVL" "x \<in>\<^sub>r X"
+  using ln_float_intervalI[of x X p] that
+  by (auto simp: set_of'_def split: option.splits)
+
 
 section \<open>Real power function\<close>
 
@@ -3029,6 +3034,12 @@ lemma powr_float_intervalI:
   "x powr y \<in> set_of' (powr_float_interval p X Y)"
   if "x \<in>\<^sub>r X" "y \<in>\<^sub>r Y"
   using powr_float_interval[of p X Y] that
+  by (auto simp: set_of'_def split: option.splits)
+
+lemma powr_float_interval_eqI:
+  "x powr y \<in>\<^sub>r IVL"
+  if "powr_float_interval p X Y = Some IVL" "x \<in>\<^sub>r X" "y \<in>\<^sub>r Y"
+  using powr_float_intervalI[of x X y Y p] that
   by (auto simp: set_of'_def split: option.splits)
 
 end

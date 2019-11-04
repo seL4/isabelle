@@ -73,554 +73,93 @@ lemma interpret_floatarith_sin:
 
 subsection "Implement approximation function"
 
-fun lift_bin :: "(float * float) option \<Rightarrow> (float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> (float * float) option) \<Rightarrow> (float * float) option" where
-"lift_bin (Some (l1, u1)) (Some (l2, u2)) f = f l1 u1 l2 u2" |
+fun lift_bin :: "(float interval) option \<Rightarrow> (float interval) option \<Rightarrow> (float interval \<Rightarrow> float interval \<Rightarrow> (float interval) option) \<Rightarrow> (float interval) option" where
+"lift_bin (Some ivl1) (Some ivl2) f = f ivl1 ivl2" |
 "lift_bin a b f = None"
 
-fun lift_bin' :: "(float * float) option \<Rightarrow> (float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> (float * float)) \<Rightarrow> (float * float) option" where
-"lift_bin' (Some (l1, u1)) (Some (l2, u2)) f = Some (f l1 u1 l2 u2)" |
+fun lift_bin' :: "(float interval) option \<Rightarrow> (float interval) option \<Rightarrow> (float interval \<Rightarrow> float interval \<Rightarrow> float interval) \<Rightarrow> (float interval) option" where
+"lift_bin' (Some ivl1) (Some ivl2) f = Some (f ivl1 ivl2)" |
 "lift_bin' a b f = None"
 
-fun lift_un :: "(float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> ((float option) * (float option))) \<Rightarrow> (float * float) option" where
-"lift_un (Some (l1, u1)) f = (case (f l1 u1) of (Some l, Some u) \<Rightarrow> Some (l, u)
-                                             | t \<Rightarrow> None)" |
+fun lift_un :: "float interval option \<Rightarrow> (float interval \<Rightarrow> float interval option) \<Rightarrow> float interval option" where
+"lift_un (Some ivl) f = f ivl" |
 "lift_un b f = None"
 
-fun lift_un' :: "(float * float) option \<Rightarrow> (float \<Rightarrow> float \<Rightarrow> (float * float)) \<Rightarrow> (float * float) option" where
-"lift_un' (Some (l1, u1)) f = Some (f l1 u1)" |
+lemma lift_un_eq:\<comment> \<open>TODO\<close> "lift_un x f = Option.bind x f"
+  by (cases x) auto
+
+fun lift_un' :: "(float interval) option \<Rightarrow> (float interval \<Rightarrow> (float interval)) \<Rightarrow> (float interval) option" where
+"lift_un' (Some ivl1) f = Some (f ivl1)" |
 "lift_un' b f = None"
 
-definition bounded_by :: "real list \<Rightarrow> (float \<times> float) option list \<Rightarrow> bool" where 
-  "bounded_by xs vs \<longleftrightarrow>
-  (\<forall> i < length vs. case vs ! i of None \<Rightarrow> True
-         | Some (l, u) \<Rightarrow> xs ! i \<in> { real_of_float l .. real_of_float u })"
-                                                                     
+definition bounded_by :: "real list \<Rightarrow> (float interval) option list \<Rightarrow> bool" where
+  "bounded_by xs vs \<longleftrightarrow> (\<forall> i < length vs. case vs ! i of None \<Rightarrow> True | Some ivl \<Rightarrow> xs ! i \<in>\<^sub>r ivl)"
+
 lemma bounded_byE:
   assumes "bounded_by xs vs"
   shows "\<And> i. i < length vs \<Longrightarrow> case vs ! i of None \<Rightarrow> True
-         | Some (l, u) \<Rightarrow> xs ! i \<in> { real_of_float l .. real_of_float u }"
-  using assms bounded_by_def by blast
+         | Some ivl \<Rightarrow> xs ! i \<in>\<^sub>r ivl"
+  using assms
+  by (auto simp: bounded_by_def)
 
 lemma bounded_by_update:
   assumes "bounded_by xs vs"
-    and bnd: "xs ! i \<in> { real_of_float l .. real_of_float u }"
-  shows "bounded_by xs (vs[i := Some (l,u)])"
-proof -
-  {
-    fix j
-    let ?vs = "vs[i := Some (l,u)]"
-    assume "j < length ?vs"
-    hence [simp]: "j < length vs" by simp
-    have "case ?vs ! j of None \<Rightarrow> True | Some (l, u) \<Rightarrow> xs ! j \<in> { real_of_float l .. real_of_float u }"
-    proof (cases "?vs ! j")
-      case (Some b)
-      thus ?thesis
-      proof (cases "i = j")
-        case True
-        thus ?thesis using \<open>?vs ! j = Some b\<close> and bnd by auto
-      next
-        case False
-        thus ?thesis using \<open>bounded_by xs vs\<close> unfolding bounded_by_def by auto
-      qed
-    qed auto
-  }
-  thus ?thesis unfolding bounded_by_def by auto
-qed
+    and bnd: "xs ! i \<in>\<^sub>r ivl"
+  shows "bounded_by xs (vs[i := Some ivl])"
+  using assms
+  by (cases "i < length vs") (auto simp: bounded_by_def nth_list_update split: option.splits)
 
 lemma bounded_by_None: "bounded_by xs (replicate (length xs) None)"
   unfolding bounded_by_def by auto
 
-fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float) option list \<Rightarrow> (float * float) option" where
-"approx' prec a bs          = (case (approx prec a bs) of Some (l, u) \<Rightarrow> Some (float_round_down prec l, float_round_up prec u) | None \<Rightarrow> None)" |
-"approx prec (Add a b) bs   =
-  lift_bin' (approx' prec a bs) (approx' prec b bs)
-    (\<lambda> l1 u1 l2 u2. (float_plus_down prec l1 l2, float_plus_up prec u1 u2))" |
-"approx prec (Minus a) bs   = lift_un' (approx' prec a bs) (\<lambda> l u. (-u, -l))" |
-"approx prec (Mult a b) bs  =
-  lift_bin' (approx' prec a bs) (approx' prec b bs) (bnds_mult prec)" |
-"approx prec (Inverse a) bs = lift_un (approx' prec a bs) (\<lambda> l u. if (0 < l \<or> u < 0) then (Some (float_divl prec 1 u), Some (float_divr prec 1 l)) else (None, None))" |
-"approx prec (Cos a) bs     = lift_un' (approx' prec a bs) (bnds_cos prec)" |
-"approx prec Pi bs          = Some (lb_pi prec, ub_pi prec)" |
-"approx prec (Min a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (min l1 l2, min u1 u2))" |
-"approx prec (Max a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (max l1 l2, max u1 u2))" |
-"approx prec (Abs a) bs     = lift_un' (approx' prec a bs) (\<lambda>l u. (if l < 0 \<and> 0 < u then 0 else min \<bar>l\<bar> \<bar>u\<bar>, max \<bar>l\<bar> \<bar>u\<bar>))" |
-"approx prec (Arctan a) bs  = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_arctan prec l, ub_arctan prec u))" |
-"approx prec (Sqrt a) bs    = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_sqrt prec l, ub_sqrt prec u))" |
-"approx prec (Exp a) bs     = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_exp prec l, ub_exp prec u))" |
-"approx prec (Powr a b) bs  = lift_bin (approx' prec a bs) (approx' prec b bs) (bnds_powr prec)" |
-"approx prec (Ln a) bs      = lift_un (approx' prec a bs) (\<lambda> l u. (lb_ln prec l, ub_ln prec u))" |
-"approx prec (Power a n) bs = lift_un' (approx' prec a bs) (float_power_bnds prec n)" |
-"approx prec (Floor a) bs = lift_un' (approx' prec a bs) (\<lambda> l u. (floor_fl l, floor_fl u))" |
-"approx prec (Num f) bs     = Some (f, f)" |
-"approx prec (Var i) bs    = (if i < length bs then bs ! i else None)"
+fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float interval) option list \<Rightarrow> (float interval) option"
+  where
+    "approx' prec a bs          = (case (approx prec a bs) of Some ivl \<Rightarrow> Some (round_interval prec ivl) | None \<Rightarrow> None)" |
+    "approx prec (Add a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (+)" |
+    "approx prec (Minus a) bs   = lift_un' (approx' prec a bs) uminus" |
+    "approx prec (Mult a b) bs  = lift_bin' (approx' prec a bs) (approx' prec b bs) (mult_float_interval prec)" |
+    "approx prec (Inverse a) bs = lift_un (approx' prec a bs) (inverse_float_interval prec)" |
+    "approx prec (Cos a) bs     = lift_un' (approx' prec a bs) (cos_float_interval prec)" |
+    "approx prec Pi bs          = Some (pi_float_interval prec)" |
+    "approx prec (Min a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (min_interval)" |
+    "approx prec (Max a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (max_interval)" |
+    "approx prec (Abs a) bs     = lift_un' (approx' prec a bs) (abs_interval)" |
+    "approx prec (Arctan a) bs  = lift_un' (approx' prec a bs) (arctan_float_interval prec)" |
+    "approx prec (Sqrt a) bs    = lift_un' (approx' prec a bs) (sqrt_float_interval prec)" |
+    "approx prec (Exp a) bs     = lift_un' (approx' prec a bs) (exp_float_interval prec)" |
+    "approx prec (Powr a b) bs  = lift_bin (approx' prec a bs) (approx' prec b bs) (powr_float_interval prec)" |
+    "approx prec (Ln a) bs      = lift_un (approx' prec a bs) (ln_float_interval prec)" |
+    "approx prec (Power a n) bs = lift_un' (approx' prec a bs) (power_float_interval prec n)" |
+    "approx prec (Floor a) bs = lift_un' (approx' prec a bs) (floor_float_interval)" |
+    "approx prec (Num f) bs     = Some (interval_of f)" |
+    "approx prec (Var i) bs    = (if i < length bs then bs ! i else None)"
 
 lemma approx_approx':
-  assumes Pa: "\<And>l u. Some (l, u) = approx prec a vs \<Longrightarrow>
-      l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-    and approx': "Some (l, u) = approx' prec a vs"
-  shows "l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
+  assumes Pa: "\<And>ivl. approx prec a vs = Some ivl \<Longrightarrow> interpret_floatarith a xs \<in>\<^sub>r ivl"
+    and approx': "approx' prec a vs = Some ivl"
+  shows "interpret_floatarith a xs \<in>\<^sub>r ivl"
 proof -
-  obtain l' u' where S: "Some (l', u') = approx prec a vs"
+  obtain ivl' where S: "approx prec a vs = Some ivl'" and ivl_def: "ivl = round_interval prec ivl'"
     using approx' unfolding approx'.simps by (cases "approx prec a vs") auto
-  have l': "l = float_round_down prec l'" and u': "u = float_round_up prec u'"
-    using approx' unfolding approx'.simps S[symmetric] by auto
-  show ?thesis unfolding l' u'
-    using order_trans[OF Pa[OF S, THEN conjunct2] float_round_up[of u']]
-    using order_trans[OF float_round_down[of _ l'] Pa[OF S, THEN conjunct1]] by auto
-qed
-
-lemma lift_bin_ex:
-  assumes lift_bin_Some: "Some (l, u) = lift_bin a b f"
-  shows "\<exists> l1 u1 l2 u2. Some (l1, u1) = a \<and> Some (l2, u2) = b"
-proof (cases a)
-  case None
-  hence "None = lift_bin a b f"
-    unfolding None lift_bin.simps ..
-  thus ?thesis
-    using lift_bin_Some by auto
-next
-  case (Some a')
   show ?thesis
-  proof (cases b)
-    case None
-    hence "None = lift_bin a b f"
-      unfolding None lift_bin.simps ..
-    thus ?thesis using lift_bin_Some by auto
-  next
-    case (Some b')
-    obtain la ua where a': "a' = (la, ua)"
-      by (cases a') auto
-    obtain lb ub where b': "b' = (lb, ub)"
-      by (cases b') auto
-    thus ?thesis
-      unfolding \<open>a = Some a'\<close> \<open>b = Some b'\<close> a' b' by auto
-  qed
-qed
-
-lemma lift_bin_f:
-  assumes lift_bin_Some: "Some (l, u) = lift_bin (g a) (g b) f"
-    and Pa: "\<And>l u. Some (l, u) = g a \<Longrightarrow> P l u a"
-    and Pb: "\<And>l u. Some (l, u) = g b \<Longrightarrow> P l u b"
-  shows "\<exists> l1 u1 l2 u2. P l1 u1 a \<and> P l2 u2 b \<and> Some (l, u) = f l1 u1 l2 u2"
-proof -
-  obtain l1 u1 l2 u2
-    where Sa: "Some (l1, u1) = g a"
-      and Sb: "Some (l2, u2) = g b"
-    using lift_bin_ex[OF assms(1)] by auto
-  have lu: "Some (l, u) = f l1 u1 l2 u2"
-    using lift_bin_Some[unfolded Sa[symmetric] Sb[symmetric] lift_bin.simps] by auto
-  thus ?thesis
-    using Pa[OF Sa] Pb[OF Sb] by auto
-qed
-
-lemma lift_bin:
-  assumes lift_bin_Some: "Some (l, u) = lift_bin (approx' prec a bs) (approx' prec b bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-      real_of_float l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> real_of_float u" (is "\<And>l u. _ = ?g a \<Longrightarrow> ?P l u a")
-    and Pb: "\<And>l u. Some (l, u) = approx prec b bs \<Longrightarrow>
-      real_of_float l \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> real_of_float u"
-  shows "\<exists>l1 u1 l2 u2. (real_of_float l1 \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> real_of_float u1) \<and>
-                       (real_of_float l2 \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> real_of_float u2) \<and>
-                       Some (l, u) = (f l1 u1 l2 u2)"
-proof -
-  { fix l u assume "Some (l, u) = approx' prec a bs"
-    with approx_approx'[of prec a bs, OF _ this] Pa
-    have "l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u" by auto } note Pa = this
-  { fix l u assume "Some (l, u) = approx' prec b bs"
-    with approx_approx'[of prec b bs, OF _ this] Pb
-    have "l \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> u" by auto } note Pb = this
-
-  from lift_bin_f[where g="\<lambda>a. approx' prec a bs" and P = ?P, OF lift_bin_Some, OF Pa Pb]
-  show ?thesis by auto
-qed
-
-lemma lift_bin'_ex:
-  assumes lift_bin'_Some: "Some (l, u) = lift_bin' a b f"
-  shows "\<exists> l1 u1 l2 u2. Some (l1, u1) = a \<and> Some (l2, u2) = b"
-proof (cases a)
-  case None
-  hence "None = lift_bin' a b f"
-    unfolding None lift_bin'.simps ..
-  thus ?thesis
-    using lift_bin'_Some by auto
-next
-  case (Some a')
-  show ?thesis
-  proof (cases b)
-    case None
-    hence "None = lift_bin' a b f"
-      unfolding None lift_bin'.simps ..
-    thus ?thesis using lift_bin'_Some by auto
-  next
-    case (Some b')
-    obtain la ua where a': "a' = (la, ua)"
-      by (cases a') auto
-    obtain lb ub where b': "b' = (lb, ub)"
-      by (cases b') auto
-    thus ?thesis
-      unfolding \<open>a = Some a'\<close> \<open>b = Some b'\<close> a' b' by auto
-  qed
-qed
-
-lemma lift_bin'_f:
-  assumes lift_bin'_Some: "Some (l, u) = lift_bin' (g a) (g b) f"
-    and Pa: "\<And>l u. Some (l, u) = g a \<Longrightarrow> P l u a"
-    and Pb: "\<And>l u. Some (l, u) = g b \<Longrightarrow> P l u b"
-  shows "\<exists> l1 u1 l2 u2. P l1 u1 a \<and> P l2 u2 b \<and> l = fst (f l1 u1 l2 u2) \<and> u = snd (f l1 u1 l2 u2)"
-proof -
-  obtain l1 u1 l2 u2
-    where Sa: "Some (l1, u1) = g a"
-      and Sb: "Some (l2, u2) = g b"
-    using lift_bin'_ex[OF assms(1)] by auto
-  have lu: "(l, u) = f l1 u1 l2 u2"
-    using lift_bin'_Some[unfolded Sa[symmetric] Sb[symmetric] lift_bin'.simps] by auto
-  have "l = fst (f l1 u1 l2 u2)" and "u = snd (f l1 u1 l2 u2)"
-    unfolding lu[symmetric] by auto
-  thus ?thesis
-    using Pa[OF Sa] Pb[OF Sb] by auto
-qed
-
-lemma lift_bin':
-  assumes lift_bin'_Some: "Some (l, u) = lift_bin' (approx' prec a bs) (approx' prec b bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-      l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u" (is "\<And>l u. _ = ?g a \<Longrightarrow> ?P l u a")
-    and Pb: "\<And>l u. Some (l, u) = approx prec b bs \<Longrightarrow>
-      l \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> u"
-  shows "\<exists>l1 u1 l2 u2. (l1 \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u1) \<and>
-                       (l2 \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> u2) \<and>
-                       l = fst (f l1 u1 l2 u2) \<and> u = snd (f l1 u1 l2 u2)"
-proof -
-  { fix l u assume "Some (l, u) = approx' prec a bs"
-    with approx_approx'[of prec a bs, OF _ this] Pa
-    have "l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u" by auto } note Pa = this
-  { fix l u assume "Some (l, u) = approx' prec b bs"
-    with approx_approx'[of prec b bs, OF _ this] Pb
-    have "l \<le> interpret_floatarith b xs \<and> interpret_floatarith b xs \<le> u" by auto } note Pb = this
-
-  from lift_bin'_f[where g="\<lambda>a. approx' prec a bs" and P = ?P, OF lift_bin'_Some, OF Pa Pb]
-  show ?thesis by auto
-qed
-
-lemma lift_un'_ex:
-  assumes lift_un'_Some: "Some (l, u) = lift_un' a f"
-  shows "\<exists> l u. Some (l, u) = a"
-proof (cases a)
-  case None
-  hence "None = lift_un' a f"
-    unfolding None lift_un'.simps ..
-  thus ?thesis
-    using lift_un'_Some by auto
-next
-  case (Some a')
-  obtain la ua where a': "a' = (la, ua)"
-    by (cases a') auto
-  thus ?thesis
-    unfolding \<open>a = Some a'\<close> a' by auto
-qed
-
-lemma lift_un'_f:
-  assumes lift_un'_Some: "Some (l, u) = lift_un' (g a) f"
-    and Pa: "\<And>l u. Some (l, u) = g a \<Longrightarrow> P l u a"
-  shows "\<exists> l1 u1. P l1 u1 a \<and> l = fst (f l1 u1) \<and> u = snd (f l1 u1)"
-proof -
-  obtain l1 u1 where Sa: "Some (l1, u1) = g a"
-    using lift_un'_ex[OF assms(1)] by auto
-  have lu: "(l, u) = f l1 u1"
-    using lift_un'_Some[unfolded Sa[symmetric] lift_un'.simps] by auto
-  have "l = fst (f l1 u1)" and "u = snd (f l1 u1)"
-    unfolding lu[symmetric] by auto
-  thus ?thesis
-    using Pa[OF Sa] by auto
-qed
-
-lemma lift_un':
-  assumes lift_un'_Some: "Some (l, u) = lift_un' (approx' prec a bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-      l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-      (is "\<And>l u. _ = ?g a \<Longrightarrow> ?P l u a")
-  shows "\<exists>l1 u1. (l1 \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u1) \<and>
-    l = fst (f l1 u1) \<and> u = snd (f l1 u1)"
-proof -
-  have Pa: "l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-    if "Some (l, u) = approx' prec a bs" for l u
-    using approx_approx'[of prec a bs, OF _ that] Pa
-     by auto
-  from lift_un'_f[where g="\<lambda>a. approx' prec a bs" and P = ?P, OF lift_un'_Some, OF Pa]
-  show ?thesis by auto
-qed
-
-lemma lift_un'_bnds:
-  assumes bnds: "\<forall> (x::real) lx ux. (l, u) = f lx ux \<and> x \<in> { lx .. ux } \<longrightarrow> l \<le> f' x \<and> f' x \<le> u"
-    and lift_un'_Some: "Some (l, u) = lift_un' (approx' prec a bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-      l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-  shows "real_of_float l \<le> f' (interpret_floatarith a xs) \<and> f' (interpret_floatarith a xs) \<le> real_of_float u"
-proof -
-  from lift_un'[OF lift_un'_Some Pa]
-  obtain l1 u1 where "l1 \<le> interpret_floatarith a xs"
-    and "interpret_floatarith a xs \<le> u1"
-    and "l = fst (f l1 u1)"
-    and "u = snd (f l1 u1)"
-    by blast
-  hence "(l, u) = f l1 u1" and "interpret_floatarith a xs \<in> {l1 .. u1}"
-    by auto
-  thus ?thesis
-    using bnds by auto
-qed
-
-lemma lift_un_ex:
-  assumes lift_un_Some: "Some (l, u) = lift_un a f"
-  shows "\<exists>l u. Some (l, u) = a"
-proof (cases a)
-  case None
-  hence "None = lift_un a f"
-    unfolding None lift_un.simps ..
-  thus ?thesis
-    using lift_un_Some by auto
-next
-  case (Some a')
-  obtain la ua where a': "a' = (la, ua)"
-    by (cases a') auto
-  thus ?thesis
-    unfolding \<open>a = Some a'\<close> a' by auto
-qed
-
-lemma lift_un_f:
-  assumes lift_un_Some: "Some (l, u) = lift_un (g a) f"
-    and Pa: "\<And>l u. Some (l, u) = g a \<Longrightarrow> P l u a"
-  shows "\<exists> l1 u1. P l1 u1 a \<and> Some l = fst (f l1 u1) \<and> Some u = snd (f l1 u1)"
-proof -
-  obtain l1 u1 where Sa: "Some (l1, u1) = g a"
-    using lift_un_ex[OF assms(1)] by auto
-  have "fst (f l1 u1) \<noteq> None \<and> snd (f l1 u1) \<noteq> None"
-  proof (rule ccontr)
-    assume "\<not> (fst (f l1 u1) \<noteq> None \<and> snd (f l1 u1) \<noteq> None)"
-    hence or: "fst (f l1 u1) = None \<or> snd (f l1 u1) = None" by auto
-    hence "lift_un (g a) f = None"
-    proof (cases "fst (f l1 u1) = None")
-      case True
-      then obtain b where b: "f l1 u1 = (None, b)"
-        by (cases "f l1 u1") auto
-      thus ?thesis
-        unfolding Sa[symmetric] lift_un.simps b by auto
-    next
-      case False
-      hence "snd (f l1 u1) = None"
-        using or by auto
-      with False obtain b where b: "f l1 u1 = (Some b, None)"
-        by (cases "f l1 u1") auto
-      thus ?thesis
-        unfolding Sa[symmetric] lift_un.simps b by auto
-    qed
-    thus False
-      using lift_un_Some by auto
-  qed
-  then obtain a' b' where f: "f l1 u1 = (Some a', Some b')"
-    by (cases "f l1 u1") auto
-  from lift_un_Some[unfolded Sa[symmetric] lift_un.simps f]
-  have "Some l = fst (f l1 u1)" and "Some u = snd (f l1 u1)"
-    unfolding f by auto
-  thus ?thesis
-    unfolding Sa[symmetric] lift_un.simps using Pa[OF Sa] by auto
-qed
-
-lemma lift_un:
-  assumes lift_un_Some: "Some (l, u) = lift_un (approx' prec a bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-        l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-      (is "\<And>l u. _ = ?g a \<Longrightarrow> ?P l u a")
-  shows "\<exists>l1 u1. (l1 \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u1) \<and>
-                  Some l = fst (f l1 u1) \<and> Some u = snd (f l1 u1)"
-proof -
-  have Pa: "l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-    if "Some (l, u) = approx' prec a bs" for l u
-    using approx_approx'[of prec a bs, OF _ that] Pa by auto
-  from lift_un_f[where g="\<lambda>a. approx' prec a bs" and P = ?P, OF lift_un_Some, OF Pa]
-  show ?thesis by auto
-qed
-
-lemma lift_un_bnds:
-  assumes bnds: "\<forall>(x::real) lx ux. (Some l, Some u) = f lx ux \<and> x \<in> { lx .. ux } \<longrightarrow> l \<le> f' x \<and> f' x \<le> u"
-    and lift_un_Some: "Some (l, u) = lift_un (approx' prec a bs) f"
-    and Pa: "\<And>l u. Some (l, u) = approx prec a bs \<Longrightarrow>
-      l \<le> interpret_floatarith a xs \<and> interpret_floatarith a xs \<le> u"
-  shows "real_of_float l \<le> f' (interpret_floatarith a xs) \<and> f' (interpret_floatarith a xs) \<le> real_of_float u"
-proof -
-  from lift_un[OF lift_un_Some Pa]
-  obtain l1 u1 where "l1 \<le> interpret_floatarith a xs"
-    and "interpret_floatarith a xs \<le> u1"
-    and "Some l = fst (f l1 u1)"
-    and "Some u = snd (f l1 u1)"
-    by blast
-  hence "(Some l, Some u) = f l1 u1" and "interpret_floatarith a xs \<in> {l1 .. u1}"
-    by auto
-  thus ?thesis
-    using bnds by auto
+    by (auto simp: ivl_def intro!: in_round_intervalI Pa[OF S])
 qed
 
 lemma approx:
   assumes "bounded_by xs vs"
-    and "Some (l, u) = approx prec arith vs" (is "_ = ?g arith")
-  shows "l \<le> interpret_floatarith arith xs \<and> interpret_floatarith arith xs \<le> u" (is "?P l u arith")
-  using \<open>Some (l, u) = approx prec arith vs\<close>
-proof (induct arith arbitrary: l u)
-  case (Add a b)
-  from lift_bin'[OF Add.prems[unfolded approx.simps]] Add.hyps
-  obtain l1 u1 l2 u2 where "l = float_plus_down prec l1 l2"
-    and "u = float_plus_up prec u1 u2" "l1 \<le> interpret_floatarith a xs"
-    and "interpret_floatarith a xs \<le> u1" "l2 \<le> interpret_floatarith b xs"
-    and "interpret_floatarith b xs \<le> u2"
-    unfolding fst_conv snd_conv by blast
-  thus ?case
-    unfolding interpret_floatarith.simps by (auto intro!: float_plus_up_le float_plus_down_le)
-next
-  case (Minus a)
-  from lift_un'[OF Minus.prems[unfolded approx.simps]] Minus.hyps
-  obtain l1 u1 where "l = -u1" "u = -l1"
-    and "l1 \<le> interpret_floatarith a xs" "interpret_floatarith a xs \<le> u1"
-    unfolding fst_conv snd_conv by blast
-  thus ?case
-    unfolding interpret_floatarith.simps using minus_float.rep_eq by auto
-next
-  case (Mult a b)
-  from lift_bin'[OF Mult.prems[unfolded approx.simps]] Mult.hyps
-  obtain l1 u1 l2 u2
-    where l: "l = fst (bnds_mult prec l1 u1 l2 u2)"
-    and u: "u = snd (bnds_mult prec l1 u1 l2 u2)"
-    and a: "l1 \<le> interpret_floatarith a xs" "interpret_floatarith a xs \<le> u1"
-    and b: "l2 \<le> interpret_floatarith b xs" "interpret_floatarith b xs \<le> u2" unfolding fst_conv snd_conv by blast
-  from l u have lu: "(l, u) = bnds_mult prec l1 u1 l2 u2" by simp
-  from bnds_mult[OF lu] a b show ?case by simp
-next
-  case (Inverse a)
-  from lift_un[OF Inverse.prems[unfolded approx.simps], unfolded if_distrib[of fst] if_distrib[of snd] fst_conv snd_conv] Inverse.hyps
-  obtain l1 u1 where l': "Some l = (if 0 < l1 \<or> u1 < 0 then Some (float_divl prec 1 u1) else None)"
-    and u': "Some u = (if 0 < l1 \<or> u1 < 0 then Some (float_divr prec 1 l1) else None)"
-    and l1: "l1 \<le> interpret_floatarith a xs"
-    and u1: "interpret_floatarith a xs \<le> u1"
-    by blast
-  have either: "0 < l1 \<or> u1 < 0"
-  proof (rule ccontr)
-    assume P: "\<not> (0 < l1 \<or> u1 < 0)"
-    show False
-      using l' unfolding if_not_P[OF P] by auto
-  qed
-  moreover have l1_le_u1: "real_of_float l1 \<le> real_of_float u1"
-    using l1 u1 by auto
-  ultimately have "real_of_float l1 \<noteq> 0" and "real_of_float u1 \<noteq> 0"
-    by auto
-
-  have inv: "inverse u1 \<le> inverse (interpret_floatarith a xs)
-           \<and> inverse (interpret_floatarith a xs) \<le> inverse l1"
-  proof (cases "0 < l1")
-    case True
-    hence "0 < real_of_float u1" and "0 < real_of_float l1" "0 < interpret_floatarith a xs"
-      using l1_le_u1 l1 by auto
-    show ?thesis
-      unfolding inverse_le_iff_le[OF \<open>0 < real_of_float u1\<close> \<open>0 < interpret_floatarith a xs\<close>]
-        inverse_le_iff_le[OF \<open>0 < interpret_floatarith a xs\<close> \<open>0 < real_of_float l1\<close>]
-      using l1 u1 by auto
-  next
-    case False
-    hence "u1 < 0"
-      using either by blast
-    hence "real_of_float u1 < 0" and "real_of_float l1 < 0" "interpret_floatarith a xs < 0"
-      using l1_le_u1 u1 by auto
-    show ?thesis
-      unfolding inverse_le_iff_le_neg[OF \<open>real_of_float u1 < 0\<close> \<open>interpret_floatarith a xs < 0\<close>]
-        inverse_le_iff_le_neg[OF \<open>interpret_floatarith a xs < 0\<close> \<open>real_of_float l1 < 0\<close>]
-      using l1 u1 by auto
-  qed
-
-  from l' have "l = float_divl prec 1 u1"
-    by (cases "0 < l1 \<or> u1 < 0") auto
-  hence "l \<le> inverse u1"
-    unfolding nonzero_inverse_eq_divide[OF \<open>real_of_float u1 \<noteq> 0\<close>]
-    using float_divl[of prec 1 u1] by auto
-  also have "\<dots> \<le> inverse (interpret_floatarith a xs)"
-    using inv by auto
-  finally have "l \<le> inverse (interpret_floatarith a xs)" .
-  moreover
-  from u' have "u = float_divr prec 1 l1"
-    by (cases "0 < l1 \<or> u1 < 0") auto
-  hence "inverse l1 \<le> u"
-    unfolding nonzero_inverse_eq_divide[OF \<open>real_of_float l1 \<noteq> 0\<close>]
-    using float_divr[of 1 l1 prec] by auto
-  hence "inverse (interpret_floatarith a xs) \<le> u"
-    by (rule order_trans[OF inv[THEN conjunct2]])
-  ultimately show ?case
-    unfolding interpret_floatarith.simps using l1 u1 by auto
-next
-  case (Abs x)
-  from lift_un'[OF Abs.prems[unfolded approx.simps], unfolded fst_conv snd_conv] Abs.hyps
-  obtain l1 u1 where l': "l = (if l1 < 0 \<and> 0 < u1 then 0 else min \<bar>l1\<bar> \<bar>u1\<bar>)"
-    and u': "u = max \<bar>l1\<bar> \<bar>u1\<bar>"
-    and l1: "l1 \<le> interpret_floatarith x xs"
-    and u1: "interpret_floatarith x xs \<le> u1"
-    by blast
-  thus ?case
-    unfolding l' u'
-    by (cases "l1 < 0 \<and> 0 < u1") (auto simp add: real_of_float_min real_of_float_max)
-next
-  case (Min a b)
-  from lift_bin'[OF Min.prems[unfolded approx.simps], unfolded fst_conv snd_conv] Min.hyps
-  obtain l1 u1 l2 u2 where l': "l = min l1 l2" and u': "u = min u1 u2"
-    and l1: "l1 \<le> interpret_floatarith a xs" and u1: "interpret_floatarith a xs \<le> u1"
-    and l1: "l2 \<le> interpret_floatarith b xs" and u1: "interpret_floatarith b xs \<le> u2"
-    by blast
-  thus ?case
-    unfolding l' u' by (auto simp add: real_of_float_min)
-next
-  case (Max a b)
-  from lift_bin'[OF Max.prems[unfolded approx.simps], unfolded fst_conv snd_conv] Max.hyps
-  obtain l1 u1 l2 u2 where l': "l = max l1 l2" and u': "u = max u1 u2"
-    and l1: "l1 \<le> interpret_floatarith a xs" and u1: "interpret_floatarith a xs \<le> u1"
-    and l1: "l2 \<le> interpret_floatarith b xs" and u1: "interpret_floatarith b xs \<le> u2"
-    by blast
-  thus ?case
-    unfolding l' u' by (auto simp add: real_of_float_max)
-next
-  case (Cos a)
-  with lift_un'_bnds[OF bnds_cos] show ?case by auto
-next
-  case (Arctan a)
-  with lift_un'_bnds[OF bnds_arctan] show ?case by auto
-next
-  case Pi
-  with pi_boundaries show ?case by auto
-next
-  case (Sqrt a)
-  with lift_un'_bnds[OF bnds_sqrt] show ?case by auto
-next
-  case (Exp a)
-  with lift_un'_bnds[OF bnds_exp] show ?case by auto
-next
-  case (Powr a b)
-  from lift_bin[OF Powr.prems[unfolded approx.simps]] Powr.hyps
-    obtain l1 u1 l2 u2 where lu: "Some (l, u) = bnds_powr prec l1 u1 l2 u2"
-      and l1: "l1 \<le> interpret_floatarith a xs" and u1: "interpret_floatarith a xs \<le> u1"
-      and l2: "l2 \<le> interpret_floatarith b xs" and u2: "interpret_floatarith b xs \<le> u2"
-      by blast
-  from bnds_powr[OF lu] l1 u1 l2 u2
-    show ?case by simp
-next
-  case (Ln a)
-  with lift_un_bnds[OF bnds_ln] show ?case by auto
-next
-  case (Power a n)
-  with lift_un'_bnds[OF bnds_power] show ?case by auto
-next
-  case (Floor a)
-  from lift_un'[OF Floor.prems[unfolded approx.simps] Floor.hyps]
-  show ?case by (auto simp: floor_fl.rep_eq floor_mono)
-next
-  case (Num f)
-  thus ?case by auto
-next
-  case (Var n)
-  from this[symmetric] \<open>bounded_by xs vs\<close>[THEN bounded_byE, of n]
-  show ?case by (cases "n < length vs") auto
-qed
+    and "approx prec arith vs = Some ivl"
+  shows "interpret_floatarith arith xs \<in>\<^sub>r ivl"
+  using \<open>approx prec arith vs = Some ivl\<close>
+  using  \<open>bounded_by xs vs\<close>[THEN bounded_byE]
+  by (induct arith arbitrary: ivl)
+    (force split: option.splits if_splits
+      intro!: plus_in_float_intervalI mult_float_intervalI uminus_in_float_intervalI
+      inverse_float_interval_eqI abs_in_float_intervalI
+      min_intervalI max_intervalI
+      cos_float_intervalI
+      arctan_float_intervalI pi_float_interval sqrt_float_intervalI exp_float_intervalI
+      powr_float_interval_eqI ln_float_interval_eqI power_float_intervalI floor_float_intervalI
+      intro: in_round_intervalI)+
 
 datatype form = Bound floatarith floatarith floatarith form
               | Assign floatarith floatarith form
@@ -639,30 +178,32 @@ fun interpret_form :: "form \<Rightarrow> real list \<Rightarrow> bool" where
 "interpret_form (Conj f g) vs \<longleftrightarrow> interpret_form f vs \<and> interpret_form g vs" |
 "interpret_form (Disj f g) vs \<longleftrightarrow> interpret_form f vs \<or> interpret_form g vs"
 
-fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float * float) option list \<Rightarrow> nat list \<Rightarrow> bool" where
-"approx_form' prec f 0 n l u bs ss = approx_form prec f (bs[n := Some (l, u)]) ss" |
-"approx_form' prec f (Suc s) n l u bs ss =
-  (let m = (l + u) * Float 1 (- 1)
-   in (if approx_form' prec f s n l m bs ss then approx_form' prec f s n m u bs ss else False))" |
+fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float interval) option list \<Rightarrow> nat list \<Rightarrow> bool" where
+"approx_form' prec f 0 n ivl bs ss = approx_form prec f (bs[n := Some ivl]) ss" |
+"approx_form' prec f (Suc s) n ivl bs ss =
+  (let (ivl1, ivl2) = split_float_interval ivl
+   in (if approx_form' prec f s n ivl1 bs ss then approx_form' prec f s n ivl2 bs ss else False))" |
 "approx_form prec (Bound (Var n) a b f) bs ss =
    (case (approx prec a bs, approx prec b bs)
-   of (Some (l, _), Some (_, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
+   of (Some ivl1, Some ivl2) \<Rightarrow> approx_form' prec f (ss ! n) n (sup ivl1 ivl2) bs ss
     | _ \<Rightarrow> False)" |
 "approx_form prec (Assign (Var n) a f) bs ss =
    (case (approx prec a bs)
-   of (Some (l, u)) \<Rightarrow> approx_form' prec f (ss ! n) n l u bs ss
+   of (Some ivl) \<Rightarrow> approx_form' prec f (ss ! n) n ivl bs ss
     | _ \<Rightarrow> False)" |
 "approx_form prec (Less a b) bs ss =
    (case (approx prec a bs, approx prec b bs)
-   of (Some (l, u), Some (l', u')) \<Rightarrow> float_plus_up prec u (-l') < 0
+   of (Some ivl, Some ivl') \<Rightarrow> float_plus_up prec (upper ivl) (-lower ivl') < 0
     | _ \<Rightarrow> False)" |
 "approx_form prec (LessEqual a b) bs ss =
    (case (approx prec a bs, approx prec b bs)
-   of (Some (l, u), Some (l', u')) \<Rightarrow> float_plus_up prec u (-l') \<le> 0
+   of (Some ivl, Some ivl') \<Rightarrow> float_plus_up prec (upper ivl) (-lower ivl') \<le> 0
     | _ \<Rightarrow> False)" |
 "approx_form prec (AtLeastAtMost x a b) bs ss =
    (case (approx prec x bs, approx prec a bs, approx prec b bs)
-   of (Some (lx, ux), Some (l, u), Some (l', u')) \<Rightarrow> float_plus_up prec u (-lx) \<le> 0 \<and> float_plus_up prec ux (-l') \<le> 0
+   of (Some ivlx, Some ivl, Some ivl') \<Rightarrow>
+      float_plus_up prec (upper ivl) (-lower ivlx) \<le> 0 \<and>
+      float_plus_up prec (upper ivlx) (-lower ivl') \<le> 0
     | _ \<Rightarrow> False)" |
 "approx_form prec (Conj a b) bs ss \<longleftrightarrow> approx_form prec a bs ss \<and> approx_form prec b bs ss" |
 "approx_form prec (Disj a b) bs ss \<longleftrightarrow> approx_form prec a bs ss \<or> approx_form prec b bs ss" |
@@ -671,32 +212,32 @@ fun approx_form' and approx_form :: "nat \<Rightarrow> form \<Rightarrow> (float
 lemma lazy_conj: "(if A then B else False) = (A \<and> B)" by simp
 
 lemma approx_form_approx_form':
-  assumes "approx_form' prec f s n l u bs ss"
-    and "(x::real) \<in> { l .. u }"
-  obtains l' u' where "x \<in> { l' .. u' }"
-    and "approx_form prec f (bs[n := Some (l', u')]) ss"
-using assms proof (induct s arbitrary: l u)
+  assumes "approx_form' prec f s n ivl bs ss"
+    and "(x::real) \<in>\<^sub>r ivl"
+  obtains ivl' where "x \<in>\<^sub>r ivl'"
+    and "approx_form prec f (bs[n := Some ivl']) ss"
+using assms proof (induct s arbitrary: ivl)
   case 0
-  from this(1)[of l u] this(2,3)
+  from this(1)[of ivl] this(2,3)
   show thesis by auto
 next
   case (Suc s)
-
-  let ?m = "(l + u) * Float 1 (- 1)"
-  have "real_of_float l \<le> ?m" and "?m \<le> real_of_float u"
-    unfolding less_eq_float_def using Suc.prems by auto
-
-  with \<open>x \<in> { l .. u }\<close>
-  have "x \<in> { l .. ?m} \<or> x \<in> { ?m .. u }" by auto
-  thus thesis
-  proof (rule disjE)
-    assume *: "x \<in> { l .. ?m }"
-    with Suc.hyps[OF _ _ *] Suc.prems
-    show thesis by (simp add: Let_def lazy_conj)
+  then obtain ivl1 ivl2 where ivl_split: "split_float_interval ivl = (ivl1, ivl2)"
+    by (fastforce dest: split_float_intervalD)
+  from split_float_interval_realD[OF this \<open>x \<in>\<^sub>r ivl\<close>]
+  consider "x \<in>\<^sub>r ivl1" | "x \<in>\<^sub>r ivl2"
+    by atomize_elim
+  then show thesis
+  proof cases
+    case *: 1
+    from Suc.hyps[OF _ _ *] Suc.prems
+    show ?thesis
+      by (simp add: lazy_conj ivl_split split: prod.splits)
   next
-    assume *: "x \<in> { ?m .. u }"
-    with Suc.hyps[OF _ _ *] Suc.prems
-    show thesis by (simp add: Let_def lazy_conj)
+    case *: 2
+    from Suc.hyps[OF _ _ *] Suc.prems
+    show ?thesis
+      by (simp add: lazy_conj ivl_split split: prod.splits)
   qed
 qed
 
@@ -709,23 +250,24 @@ using assms proof (induct f arbitrary: vs)
   then obtain n
     where x_eq: "x = Var n" by (cases x) auto
 
-  with Bound.prems obtain l u' l' u
-    where l_eq: "Some (l, u') = approx prec a vs"
-    and u_eq: "Some (l', u) = approx prec b vs"
-    and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
+  with Bound.prems obtain ivl1 ivl2
+    where l_eq: "approx prec a vs = Some ivl1"
+    and u_eq: "approx prec b vs = Some ivl2"
+    and approx_form': "approx_form' prec f (ss ! n) n (sup ivl1 ivl2) vs ss"
     by (cases "approx prec a vs", simp) (cases "approx prec b vs", auto)
 
   have "interpret_form f xs"
     if "xs ! n \<in> { interpret_floatarith a xs .. interpret_floatarith b xs }"
   proof -
     from approx[OF Bound.prems(2) l_eq] and approx[OF Bound.prems(2) u_eq] that
-    have "xs ! n \<in> { l .. u}" by auto
+    have "xs ! n \<in>\<^sub>r (sup ivl1 ivl2)"
+      by (auto simp: set_of_eq sup_float_def max_def inf_float_def min_def)
 
     from approx_form_approx_form'[OF approx_form' this]
-    obtain lx ux where bnds: "xs ! n \<in> { lx .. ux }"
-      and approx_form: "approx_form prec f (vs[n := Some (lx, ux)]) ss" .
+    obtain ivlx where bnds: "xs ! n \<in>\<^sub>r ivlx"
+      and approx_form: "approx_form prec f (vs[n := Some ivlx]) ss" .
 
-    from \<open>bounded_by xs vs\<close> bnds have "bounded_by xs (vs[n := Some (lx, ux)])"
+    from \<open>bounded_by xs vs\<close> bnds have "bounded_by xs (vs[n := Some ivlx])"
       by (rule bounded_by_update)
     with Bound.hyps[OF approx_form] show ?thesis
       by blast
@@ -737,22 +279,22 @@ next
   then obtain n where x_eq: "x = Var n"
     by (cases x) auto
 
-  with Assign.prems obtain l u
-    where bnd_eq: "Some (l, u) = approx prec a vs"
+  with Assign.prems obtain ivl
+    where bnd_eq: "approx prec a vs = Some ivl"
     and x_eq: "x = Var n"
-    and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
+    and approx_form': "approx_form' prec f (ss ! n) n ivl vs ss"
     by (cases "approx prec a vs") auto
 
   have "interpret_form f xs"
     if bnds: "xs ! n = interpret_floatarith a xs"
   proof -
     from approx[OF Assign.prems(2) bnd_eq] bnds
-    have "xs ! n \<in> { l .. u}" by auto
+    have "xs ! n \<in>\<^sub>r ivl" by auto
     from approx_form_approx_form'[OF approx_form' this]
-    obtain lx ux where bnds: "xs ! n \<in> { lx .. ux }"
-      and approx_form: "approx_form prec f (vs[n := Some (lx, ux)]) ss" .
+    obtain ivlx where bnds: "xs ! n \<in>\<^sub>r ivlx"
+      and approx_form: "approx_form prec f (vs[n := Some ivlx]) ss" .
 
-    from \<open>bounded_by xs vs\<close> bnds have "bounded_by xs (vs[n := Some (lx, ux)])"
+    from \<open>bounded_by xs vs\<close> bnds have "bounded_by xs (vs[n := Some ivlx])"
       by (rule bounded_by_update)
     with Assign.hyps[OF approx_form] show ?thesis
       by blast
@@ -761,37 +303,38 @@ next
     using interpret_form.simps x_eq and interpret_floatarith.simps by simp
 next
   case (Less a b)
-  then obtain l u l' u'
-    where l_eq: "Some (l, u) = approx prec a vs"
-      and u_eq: "Some (l', u') = approx prec b vs"
-      and inequality: "real_of_float (float_plus_up prec u (-l')) < 0"
+  then obtain ivl ivl'
+    where l_eq: "approx prec a vs = Some ivl"
+      and u_eq: "approx prec b vs = Some ivl'"
+      and inequality: "real_of_float (float_plus_up prec (upper ivl) (-lower ivl')) < 0"
     by (cases "approx prec a vs", auto, cases "approx prec b vs", auto)
   from le_less_trans[OF float_plus_up inequality]
     approx[OF Less.prems(2) l_eq] approx[OF Less.prems(2) u_eq]
-  show ?case by auto
+  show ?case by (auto simp: set_of_eq)
 next
   case (LessEqual a b)
-  then obtain l u l' u'
-    where l_eq: "Some (l, u) = approx prec a vs"
-      and u_eq: "Some (l', u') = approx prec b vs"
-      and inequality: "real_of_float (float_plus_up prec u (-l')) \<le> 0"
+  then obtain ivl ivl'
+    where l_eq: "approx prec a vs = Some ivl"
+      and u_eq: "approx prec b vs = Some ivl'"
+      and inequality: "real_of_float (float_plus_up prec (upper ivl) (-lower ivl')) \<le> 0"
     by (cases "approx prec a vs", auto, cases "approx prec b vs", auto)
   from order_trans[OF float_plus_up inequality]
     approx[OF LessEqual.prems(2) l_eq] approx[OF LessEqual.prems(2) u_eq]
-  show ?case by auto
+  show ?case by (auto simp: set_of_eq)
 next
   case (AtLeastAtMost x a b)
-  then obtain lx ux l u l' u'
-    where x_eq: "Some (lx, ux) = approx prec x vs"
-    and l_eq: "Some (l, u) = approx prec a vs"
-    and u_eq: "Some (l', u') = approx prec b vs"
-    and inequality: "real_of_float (float_plus_up prec u (-lx)) \<le> 0" "real_of_float (float_plus_up prec ux (-l')) \<le> 0"
+  then obtain ivlx ivl ivl'
+    where x_eq: "approx prec x vs = Some ivlx"
+      and l_eq: "approx prec a vs = Some ivl"
+      and u_eq: "approx prec b vs = Some ivl'"
+    and inequality: "real_of_float (float_plus_up prec (upper ivl) (-lower ivlx)) \<le> 0"
+      "real_of_float (float_plus_up prec (upper ivlx) (-lower ivl')) \<le> 0"
     by (cases "approx prec x vs", auto,
       cases "approx prec a vs", auto,
       cases "approx prec b vs", auto)
   from order_trans[OF float_plus_up inequality(1)] order_trans[OF float_plus_up inequality(2)]
     approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
-  show ?case by auto
+  show ?case by (auto simp: set_of_eq)
 qed auto
 
 lemma approx_form:
@@ -907,12 +450,12 @@ qed (auto intro!: derivative_eq_intros)
 
 declare approx.simps[simp del]
 
-fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarrow> (float * float) option list \<Rightarrow> bool" where
+fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarrow> (float interval) option list \<Rightarrow> bool" where
 "isDERIV_approx prec x (Add a b) vs         = (isDERIV_approx prec x a vs \<and> isDERIV_approx prec x b vs)" |
 "isDERIV_approx prec x (Mult a b) vs        = (isDERIV_approx prec x a vs \<and> isDERIV_approx prec x b vs)" |
 "isDERIV_approx prec x (Minus a) vs         = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Inverse a) vs       =
-  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> 0 < l \<or> u < 0 | None \<Rightarrow> False))" |
+  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some ivl \<Rightarrow> 0 < lower ivl \<or> upper ivl < 0 | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Cos a) vs           = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Arctan a) vs        = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Min a b) vs         = False" |
@@ -920,15 +463,15 @@ fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarr
 "isDERIV_approx prec x (Abs a) vs           = False" |
 "isDERIV_approx prec x Pi vs                = True" |
 "isDERIV_approx prec x (Sqrt a) vs          =
-  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> 0 < l | None \<Rightarrow> False))" |
+  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some ivl \<Rightarrow> 0 < lower ivl | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Exp a) vs           = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Powr a b) vs        =
-  (isDERIV_approx prec x a vs \<and> isDERIV_approx prec x b vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> 0 < l | None \<Rightarrow> False))" |
+  (isDERIV_approx prec x a vs \<and> isDERIV_approx prec x b vs \<and> (case approx prec a vs of Some ivl \<Rightarrow> 0 < lower ivl | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Ln a) vs            =
-  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> 0 < l | None \<Rightarrow> False))" |
+  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some ivl \<Rightarrow> 0 < lower ivl | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Power a 0) vs       = True" |
 "isDERIV_approx prec x (Floor a) vs         =
-  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> l > floor u \<and> u < ceiling l | None \<Rightarrow> False))" |
+  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some ivl \<Rightarrow> lower ivl > floor (upper ivl) \<and> upper ivl < ceiling (lower ivl) | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Power a (Suc n)) vs = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Num f) vs           = True" |
 "isDERIV_approx prec x (Var n) vs           = True"
@@ -940,88 +483,65 @@ lemma isDERIV_approx:
   using isDERIV_approx
 proof (induct f)
   case (Inverse a)
-  then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
-    and *: "0 < l \<or> u < 0"
+  then obtain ivl where approx_Some: "approx prec a vs = Some ivl"
+    and *: "0 < lower ivl \<or> upper ivl < 0"
     by (cases "approx prec a vs") auto
   with approx[OF \<open>bounded_by xs vs\<close> approx_Some]
-  have "interpret_floatarith a xs \<noteq> 0" by auto
+  have "interpret_floatarith a xs \<noteq> 0" by (auto simp: set_of_eq)
   thus ?case using Inverse by auto
 next
   case (Ln a)
-  then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
-    and *: "0 < l"
+  then obtain ivl where approx_Some: "approx prec a vs = Some ivl"
+    and *: "0 < lower ivl"
     by (cases "approx prec a vs") auto
   with approx[OF \<open>bounded_by xs vs\<close> approx_Some]
-  have "0 < interpret_floatarith a xs" by auto
+  have "0 < interpret_floatarith a xs" by (auto simp: set_of_eq)
   thus ?case using Ln by auto
 next
   case (Sqrt a)
-  then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
-    and *: "0 < l"
+  then obtain ivl where approx_Some: "approx prec a vs = Some ivl"
+    and *: "0 < lower ivl"
     by (cases "approx prec a vs") auto
   with approx[OF \<open>bounded_by xs vs\<close> approx_Some]
-  have "0 < interpret_floatarith a xs" by auto
+  have "0 < interpret_floatarith a xs" by (auto simp: set_of_eq)
   thus ?case using Sqrt by auto
 next
   case (Power a n)
   thus ?case by (cases n) auto
 next
   case (Powr a b)
-  from Powr obtain l1 u1 where a: "Some (l1, u1) = approx prec a vs" and pos: "0 < l1"
+  from Powr obtain ivl1 where a: "approx prec a vs = Some ivl1"
+    and pos: "0 < lower ivl1"
     by (cases "approx prec a vs") auto
   with approx[OF \<open>bounded_by xs vs\<close> a]
-    have "0 < interpret_floatarith a xs" by auto
+  have "0 < interpret_floatarith a xs" by (auto simp: set_of_eq)
   with Powr show ?case by auto
 next
   case (Floor a)
-  then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
-    and "real_of_int \<lfloor>real_of_float u\<rfloor> < real_of_float l" "real_of_float u < real_of_int \<lceil>real_of_float l\<rceil>"
+  then obtain ivl where approx_Some: "approx prec a vs = Some ivl"
+    and "real_of_int \<lfloor>real_of_float (upper ivl)\<rfloor> < real_of_float (lower ivl)"
+      "real_of_float (upper ivl) < real_of_int \<lceil>real_of_float (lower ivl)\<rceil>"
     and "isDERIV x a xs"
     by (cases "approx prec a vs") auto
   with approx[OF \<open>bounded_by xs vs\<close> approx_Some] le_floor_iff
   show ?case
-    by (force elim!: Ints_cases)
+    by (force elim!: Ints_cases simp: set_of_eq)
 qed auto
 
 lemma bounded_by_update_var:
   assumes "bounded_by xs vs"
-    and "vs ! i = Some (l, u)"
-    and bnd: "x \<in> { real_of_float l .. real_of_float u }"
+    and "vs ! i = Some ivl"
+    and bnd: "x \<in>\<^sub>r ivl"
   shows "bounded_by (xs[i := x]) vs"
-proof (cases "i < length xs")
-  case False
-  thus ?thesis
-    using \<open>bounded_by xs vs\<close> by auto
-next
-  case True
-  let ?xs = "xs[i := x]"
-  from True have "i < length ?xs" by auto
-  have "case vs ! j of None \<Rightarrow> True | Some (l, u) \<Rightarrow> ?xs ! j \<in> {real_of_float l .. real_of_float u}"
-    if "j < length vs" for j
-  proof (cases "vs ! j")
-    case None
-    then show ?thesis by simp
-  next
-    case (Some b)
-    thus ?thesis
-    proof (cases "i = j")
-      case True
-      thus ?thesis using \<open>vs ! i = Some (l, u)\<close> Some and bnd \<open>i < length ?xs\<close>
-        by auto
-    next
-      case False
-      thus ?thesis
-        using \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>j < length vs\<close>] Some by auto
-    qed
-  qed
-  thus ?thesis
-    unfolding bounded_by_def by auto
-qed
+  using assms
+  using nth_list_update
+  by (cases "i < length xs")
+    (force simp: bounded_by_def  split: option.splits)+
 
 lemma isDERIV_approx':
   assumes "bounded_by xs vs"
-    and vs_x: "vs ! x = Some (l, u)"
-    and X_in: "X \<in> {real_of_float l .. real_of_float u}"
+    and vs_x: "vs ! x = Some ivl"
+    and X_in: "X \<in>\<^sub>r ivl"
     and approx: "isDERIV_approx prec x f vs"
   shows "isDERIV x f (xs[x := X])"
 proof -
@@ -1033,14 +553,14 @@ lemma DERIV_approx:
   assumes "n < length xs"
     and bnd: "bounded_by xs vs"
     and isD: "isDERIV_approx prec n f vs"
-    and app: "Some (l, u) = approx prec (DERIV_floatarith n f) vs" (is "_ = approx _ ?D _")
-  shows "\<exists>(x::real). l \<le> x \<and> x \<le> u \<and>
+    and app: "approx prec (DERIV_floatarith n f) vs = Some ivl" (is "approx _ ?D _ = _")
+  shows "\<exists>(x::real). x \<in>\<^sub>r ivl \<and>
              DERIV (\<lambda> x. interpret_floatarith f (xs[n := x])) (xs!n) :> x"
-         (is "\<exists> x. _ \<and> _ \<and> DERIV (?i f) _ :> _")
-proof (rule exI[of _ "?i ?D (xs!n)"], rule conjI[OF _ conjI])
+         (is "\<exists> x. _ \<and> DERIV (?i f) _ :> _")
+proof (rule exI[of _ "?i ?D (xs!n)"], rule conjI)
   let "?i f" = "\<lambda>x. interpret_floatarith f (xs[n := x])"
   from approx[OF bnd app]
-  show "l \<le> ?i ?D (xs!n)" and "?i ?D (xs!n) \<le> u"
+  show "?i ?D (xs!n) \<in>\<^sub>r ivl"
     using \<open>n < length xs\<close> by auto
   from DERIV_floatarith[OF \<open>n < length xs\<close>, of f "xs!n"] isDERIV_approx[OF bnd isD]
   show "DERIV (?i f) (xs!n) :> (?i ?D (xs!n))"
@@ -1048,11 +568,11 @@ proof (rule exI[of _ "?i ?D (xs!n)"], rule conjI[OF _ conjI])
 qed
 
 lemma lift_bin_aux:
-  assumes lift_bin_Some: "Some (l, u) = lift_bin a b f"
-  obtains l1 u1 l2 u2
-  where "a = Some (l1, u1)"
-    and "b = Some (l2, u2)"
-    and "f l1 u1 l2 u2 = Some (l, u)"
+  assumes lift_bin_Some: "lift_bin a b f = Some ivl"
+  obtains ivl1 ivl2
+  where "a = Some ivl1"
+    and "b = Some ivl2"
+    and "f ivl1 ivl2 = Some ivl"
   using assms by (cases a, simp, cases b, simp, auto)
 
 
@@ -1060,22 +580,22 @@ fun approx_tse where
 "approx_tse prec n 0 c k f bs = approx prec f bs" |
 "approx_tse prec n (Suc s) c k f bs =
   (if isDERIV_approx prec n f bs then
-    lift_bin (approx prec f (bs[n := Some (c,c)]))
+    lift_bin (approx prec f (bs[n := Some (interval_of c)]))
              (approx_tse prec n s c (Suc k) (DERIV_floatarith n f) bs)
-             (\<lambda> l1 u1 l2 u2. approx prec
+             (\<lambda>ivl1 ivl2. approx prec
                  (Add (Var 0)
                       (Mult (Inverse (Num (Float (int k) 0)))
                                  (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
-                                       (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), bs!n])
+                                       (Var (Suc 0))))) [Some ivl1, Some ivl2, bs!n])
   else approx prec f bs)"
 
 lemma bounded_by_Cons:
   assumes bnd: "bounded_by xs vs"
-    and x: "x \<in> { real_of_float l .. real_of_float u }"
-  shows "bounded_by (x#xs) ((Some (l, u))#vs)"
+    and x: "x \<in>\<^sub>r ivl"
+  shows "bounded_by (x#xs) ((Some ivl)#vs)"
 proof -
-  have "case ((Some (l,u))#vs) ! i of Some (l, u) \<Rightarrow> (x#xs)!i \<in> { real_of_float l .. real_of_float u } | None \<Rightarrow> True"
-    if *: "i < length ((Some (l, u))#vs)" for i
+  have "case ((Some ivl)#vs) ! i of Some ivl \<Rightarrow> (x#xs)!i \<in>\<^sub>r ivl | None \<Rightarrow> True"
+    if *: "i < length ((Some ivl)#vs)" for i
   proof (cases i)
     case 0
     with x show ?thesis by auto
@@ -1093,25 +613,25 @@ lemma approx_tse_generic:
   assumes "bounded_by xs vs"
     and bnd_c: "bounded_by (xs[x := c]) vs"
     and "x < length vs" and "x < length xs"
-    and bnd_x: "vs ! x = Some (lx, ux)"
-    and ate: "Some (l, u) = approx_tse prec x s c k f vs"
-  shows "\<exists> n. (\<forall> m < n. \<forall> (z::real) \<in> {lx .. ux}.
+    and bnd_x: "vs ! x = Some ivlx"
+    and ate: "approx_tse prec x s c k f vs = Some ivl"
+  shows "\<exists> n. (\<forall> m < n. \<forall> (z::real) \<in> set_of (real_interval ivlx).
       DERIV (\<lambda> y. interpret_floatarith ((DERIV_floatarith x ^^ m) f) (xs[x := y])) z :>
             (interpret_floatarith ((DERIV_floatarith x ^^ (Suc m)) f) (xs[x := z])))
-   \<and> (\<forall> (t::real) \<in> {lx .. ux}.  (\<Sum> i = 0..<n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) *
+   \<and> (\<forall> (t::real) \<in> set_of (real_interval ivlx).  (\<Sum> i = 0..<n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) *
                   interpret_floatarith ((DERIV_floatarith x ^^ i) f) (xs[x := c]) *
                   (xs!x - c)^i) +
       inverse (real (\<Prod> j \<in> {k..<k+n}. j)) *
       interpret_floatarith ((DERIV_floatarith x ^^ n) f) (xs[x := t]) *
-      (xs!x - c)^n \<in> {l .. u})" (is "\<exists> n. ?taylor f k l u n")
+      (xs!x - c)^n \<in>\<^sub>r ivl)" (is "\<exists> n. ?taylor f k ivl n")
   using ate
-proof (induct s arbitrary: k f l u)
+proof (induct s arbitrary: k f ivl)
   case 0
   {
-    fix t::real assume "t \<in> {lx .. ux}"
+    fix t::real assume "t \<in>\<^sub>r ivlx"
     note bounded_by_update_var[OF \<open>bounded_by xs vs\<close> bnd_x this]
     from approx[OF this 0[unfolded approx_tse.simps]]
-    have "(interpret_floatarith f (xs[x := t])) \<in> {l .. u}"
+    have "(interpret_floatarith f (xs[x := t])) \<in>\<^sub>r ivl"
       by (auto simp add: algebra_simps)
   }
   thus ?case by (auto intro!: exI[of _ 0])
@@ -1122,32 +642,32 @@ next
     case False
     note ap = Suc.prems[unfolded approx_tse.simps if_not_P[OF False]]
     {
-      fix t::real assume "t \<in> {lx .. ux}"
+      fix t::real assume "t \<in>\<^sub>r ivlx"
       note bounded_by_update_var[OF \<open>bounded_by xs vs\<close> bnd_x this]
       from approx[OF this ap]
-      have "(interpret_floatarith f (xs[x := t])) \<in> {l .. u}"
+      have "(interpret_floatarith f (xs[x := t])) \<in>\<^sub>r ivl"
         by (auto simp add: algebra_simps)
     }
     thus ?thesis by (auto intro!: exI[of _ 0])
   next
     case True
     with Suc.prems
-    obtain l1 u1 l2 u2
-      where a: "Some (l1, u1) = approx prec f (vs[x := Some (c,c)])"
-        and ate: "Some (l2, u2) = approx_tse prec x s c (Suc k) (DERIV_floatarith x f) vs"
-        and final: "Some (l, u) = approx prec
+    obtain ivl1 ivl2
+      where a: "approx prec f (vs[x := Some (interval_of c)]) = Some ivl1"
+        and ate: "approx_tse prec x s c (Suc k) (DERIV_floatarith x f) vs = Some ivl2"
+        and final: "approx prec
           (Add (Var 0)
                (Mult (Inverse (Num (Float (int k) 0)))
                      (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
-                           (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
+                           (Var (Suc 0))))) [Some ivl1, Some ivl2, vs!x] = Some ivl"
       by (auto elim!: lift_bin_aux)
 
     from bnd_c \<open>x < length xs\<close>
-    have bnd: "bounded_by (xs[x:=c]) (vs[x:= Some (c,c)])"
+    have bnd: "bounded_by (xs[x:=c]) (vs[x:= Some (interval_of c)])"
       by (auto intro!: bounded_by_update)
 
     from approx[OF this a]
-    have f_c: "interpret_floatarith ((DERIV_floatarith x ^^ 0) f) (xs[x := c]) \<in> { l1 .. u1 }"
+    have f_c: "interpret_floatarith ((DERIV_floatarith x ^^ 0) f) (xs[x := c]) \<in>\<^sub>r ivl1"
               (is "?f 0 (real_of_float c) \<in> _")
       by auto
 
@@ -1155,16 +675,16 @@ next
       for f :: "'a \<Rightarrow> 'a" and n :: nat and x :: 'a
       by (induct n) auto
     from Suc.hyps[OF ate, unfolded this] obtain n
-      where DERIV_hyp: "\<And>m z. \<lbrakk> m < n ; (z::real) \<in> { lx .. ux } \<rbrakk> \<Longrightarrow>
+      where DERIV_hyp: "\<And>m z. \<lbrakk> m < n ; (z::real) \<in>\<^sub>r ivlx \<rbrakk> \<Longrightarrow>
         DERIV (?f (Suc m)) z :> ?f (Suc (Suc m)) z"
-      and hyp: "\<forall>t \<in> {real_of_float lx .. real_of_float ux}.
+      and hyp: "\<forall>t \<in> set_of (real_interval ivlx).
         (\<Sum> i = 0..<n. inverse (real (\<Prod> j \<in> {Suc k..<Suc k + i}. j)) * ?f (Suc i) c * (xs!x - c)^i) +
-          inverse (real (\<Prod> j \<in> {Suc k..<Suc k + n}. j)) * ?f (Suc n) t * (xs!x - c)^n \<in> {l2 .. u2}"
+          inverse (real (\<Prod> j \<in> {Suc k..<Suc k + n}. j)) * ?f (Suc n) t * (xs!x - c)^n \<in>\<^sub>r ivl2"
           (is "\<forall> t \<in> _. ?X (Suc k) f n t \<in> _")
       by blast
 
     have DERIV: "DERIV (?f m) z :> ?f (Suc m) z"
-      if "m < Suc n" and bnd_z: "z \<in> { lx .. ux }" for m and z::real
+      if "m < Suc n" and bnd_z: "z \<in>\<^sub>r ivlx" for m and z::real
     proof (cases m)
       case 0
       with DERIV_floatarith[OF \<open>x < length xs\<close>
@@ -1187,16 +707,16 @@ next
     define C where "C = xs!x - c"
 
     {
-      fix t::real assume t: "t \<in> {lx .. ux}"
+      fix t::real assume t: "t \<in>\<^sub>r ivlx"
       hence "bounded_by [xs!x] [vs!x]"
         using \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>x < length vs\<close>]
         by (cases "vs!x", auto simp add: bounded_by_def)
 
       with hyp[THEN bspec, OF t] f_c
-      have "bounded_by [?f 0 c, ?X (Suc k) f n t, xs!x] [Some (l1, u1), Some (l2, u2), vs!x]"
+      have "bounded_by [?f 0 c, ?X (Suc k) f n t, xs!x] [Some ivl1, Some ivl2, vs!x]"
         by (auto intro!: bounded_by_Cons)
       from approx[OF this final, unfolded atLeastAtMost_iff[symmetric]]
-      have "?X (Suc k) f n t * (xs!x - real_of_float c) * inverse k + ?f 0 c \<in> {l .. u}"
+      have "?X (Suc k) f n t * (xs!x - real_of_float c) * inverse k + ?f 0 c \<in>\<^sub>r ivl"
         by (auto simp add: algebra_simps)
       also have "?X (Suc k) f n t * (xs!x - real_of_float c) * inverse (real k) + ?f 0 c =
                (\<Sum> i = 0..<Suc n. inverse (real (\<Prod> j \<in> {k..<k+i}. j)) * ?f i c * (xs!x - c)^i) +
@@ -1204,7 +724,7 @@ next
         unfolding funpow_Suc C_def[symmetric] sum_move0 prod_head_Suc
         by (auto simp add: algebra_simps)
           (simp only: mult.left_commute [of _ "inverse (real k)"] sum_distrib_left [symmetric])
-      finally have "?T \<in> {l .. u}" .
+      finally have "?T \<in>\<^sub>r ivl" .
     }
     thus ?thesis using DERIV by blast
   qed
@@ -1215,11 +735,11 @@ lemma prod_fact: "real (\<Prod> {1..<1 + k}) = fact (k :: nat)"
 
 lemma approx_tse:
   assumes "bounded_by xs vs"
-    and bnd_x: "vs ! x = Some (lx, ux)"
-    and bnd_c: "real_of_float c \<in> {lx .. ux}"
+    and bnd_x: "vs ! x = Some ivlx"
+    and bnd_c: "real_of_float c \<in>\<^sub>r ivlx"
     and "x < length vs" and "x < length xs"
-    and ate: "Some (l, u) = approx_tse prec x s c 1 f vs"
-  shows "interpret_floatarith f xs \<in> {l .. u}"
+    and ate: "approx_tse prec x s c 1 f vs = Some ivl"
+  shows "interpret_floatarith f xs \<in>\<^sub>r ivl"
 proof -
   define F where [abs_def]: "F n z =
     interpret_floatarith ((DERIV_floatarith x ^^ n) f) (xs[x := z])" for n z
@@ -1231,15 +751,15 @@ proof -
 
   from approx_tse_generic[OF \<open>bounded_by xs vs\<close> this bnd_x ate]
   obtain n
-    where DERIV: "\<forall> m z. m < n \<and> real_of_float lx \<le> z \<and> z \<le> real_of_float ux \<longrightarrow> DERIV (F m) z :> F (Suc m) z"
-    and hyp: "\<And> (t::real). t \<in> {lx .. ux} \<Longrightarrow>
+    where DERIV: "\<forall> m z. m < n \<and> real_of_float (lower ivlx) \<le> z \<and> z \<le> real_of_float (upper ivlx) \<longrightarrow> DERIV (F m) z :> F (Suc m) z"
+    and hyp: "\<And> (t::real). t \<in>\<^sub>r ivlx \<Longrightarrow>
            (\<Sum> j = 0..<n. inverse(fact j) * F j c * (xs!x - c)^j) +
              inverse ((fact n)) * F n t * (xs!x - c)^n
-             \<in> {l .. u}" (is "\<And> t. _ \<Longrightarrow> ?taylor t \<in> _")
+             \<in>\<^sub>r ivl" (is "\<And> t. _ \<Longrightarrow> ?taylor t \<in> _")
     unfolding F_def atLeastAtMost_iff[symmetric] prod_fact
-    by blast
+    by (auto simp: set_of_eq Ball_def)
 
-  have bnd_xs: "xs ! x \<in> { lx .. ux }"
+  have bnd_xs: "xs ! x \<in>\<^sub>r ivlx"
     using \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>x < length vs\<close>] bnd_x by auto
 
   show ?thesis
@@ -1257,8 +777,9 @@ proof -
         by auto
     next
       case False
-      have "lx \<le> real_of_float c" "real_of_float c \<le> ux" "lx \<le> xs!x" "xs!x \<le> ux"
-        using Suc bnd_c \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>x < length vs\<close>] bnd_x by auto
+      have "lower ivlx \<le> real_of_float c" "real_of_float c \<le> upper ivlx" "lower ivlx \<le> xs!x" "xs!x \<le> upper ivlx"
+        using Suc bnd_c \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>x < length vs\<close>] bnd_x
+        by (auto simp: set_of_eq)
       from Taylor[OF zero_less_Suc, of F, OF F0 DERIV[unfolded Suc] this False]
       obtain t::real where t_bnd: "if xs ! x < c then xs ! x < t \<and> t < c else c < t \<and> t < xs ! x"
         and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
@@ -1266,12 +787,12 @@ proof -
            F (Suc n') t / (fact (Suc n')) * (xs ! x - c) ^ Suc n'"
         unfolding atLeast0LessThan by blast
 
-      from t_bnd bnd_xs bnd_c have *: "t \<in> {lx .. ux}"
-        by (cases "xs ! x < c") auto
+      from t_bnd bnd_xs bnd_c have *: "t \<in>\<^sub>r ivlx"
+        by (cases "xs ! x < c") (auto simp: set_of_eq)
 
       have "interpret_floatarith f (xs[x := xs ! x]) = ?taylor t"
         unfolding fl_eq Suc by (auto simp add: algebra_simps divide_inverse)
-      also have "\<dots> \<in> {l .. u}"
+      also have "\<dots> \<in>\<^sub>r ivl"
         using * by (rule hyp)
       finally show ?thesis
         by simp
@@ -1280,119 +801,122 @@ proof -
 qed
 
 fun approx_tse_form' where
-"approx_tse_form' prec t f 0 l u cmp =
-  (case approx_tse prec 0 t ((l + u) * Float 1 (- 1)) 1 f [Some (l, u)]
-     of Some (l, u) \<Rightarrow> cmp l u | None \<Rightarrow> False)" |
-"approx_tse_form' prec t f (Suc s) l u cmp =
-  (let m = (l + u) * Float 1 (- 1)
-   in (if approx_tse_form' prec t f s l m cmp then
-      approx_tse_form' prec t f s m u cmp else False))"
+"approx_tse_form' prec t f 0 ivl cmp =
+  (case approx_tse prec 0 t (mid ivl) 1 f [Some ivl]
+     of Some ivl \<Rightarrow> cmp ivl | None \<Rightarrow> False)" |
+"approx_tse_form' prec t f (Suc s) ivl cmp =
+  (let (ivl1, ivl2) = split_float_interval ivl
+   in (if approx_tse_form' prec t f s ivl1 cmp then
+      approx_tse_form' prec t f s ivl2 cmp else False))"
 
 lemma approx_tse_form':
   fixes x :: real
-  assumes "approx_tse_form' prec t f s l u cmp"
-    and "x \<in> {l .. u}"
-  shows "\<exists>l' u' ly uy. x \<in> {l' .. u'} \<and> real_of_float l \<le> l' \<and> u' \<le> real_of_float u \<and> cmp ly uy \<and>
-    approx_tse prec 0 t ((l' + u') * Float 1 (- 1)) 1 f [Some (l', u')] = Some (ly, uy)"
+  assumes "approx_tse_form' prec t f s ivl cmp"
+    and "x \<in>\<^sub>r ivl"
+  shows "\<exists>ivl' ivly. x \<in>\<^sub>r ivl' \<and> ivl' \<le> ivl \<and> cmp ivly \<and>
+    approx_tse prec 0 t (mid ivl') 1 f [Some ivl'] = Some ivly"
   using assms
-proof (induct s arbitrary: l u)
+proof (induct s arbitrary: ivl)
   case 0
-  then obtain ly uy
-    where *: "approx_tse prec 0 t ((l + u) * Float 1 (- 1)) 1 f [Some (l, u)] = Some (ly, uy)"
-    and **: "cmp ly uy" by (auto elim!: case_optionE)
+  then obtain ivly
+    where *: "approx_tse prec 0 t (mid ivl) 1 f [Some ivl] = Some ivly"
+    and **: "cmp ivly" by (auto elim!: case_optionE)
   with 0 show ?case by auto
 next
   case (Suc s)
-  let ?m = "(l + u) * Float 1 (- 1)"
+  let ?ivl1 = "fst (split_float_interval ivl)"
+  let ?ivl2 = "snd (split_float_interval ivl)"
   from Suc.prems
-  have l: "approx_tse_form' prec t f s l ?m cmp"
-    and u: "approx_tse_form' prec t f s ?m u cmp"
+  have l: "approx_tse_form' prec t f s ?ivl1 cmp"
+    and u: "approx_tse_form' prec t f s ?ivl2 cmp"
     by (auto simp add: Let_def lazy_conj)
 
-  have m_l: "real_of_float l \<le> ?m" and m_u: "?m \<le> real_of_float u"
-    unfolding less_eq_float_def using Suc.prems by auto
-  with \<open>x \<in> { l .. u }\<close> consider "x \<in> { l .. ?m}" | "x \<in> {?m .. u}"
-    by atomize_elim auto
-  thus ?case
+  have subintervals: "?ivl1 \<le> ivl" "?ivl2 \<le> ivl"
+    using mid_le
+    by (auto simp: less_eq_interval_def split_float_interval_bounds)
+
+  from split_float_interval_realD[OF _ \<open>x \<in>\<^sub>r ivl\<close>] consider "x \<in>\<^sub>r ?ivl1" | "x \<in>\<^sub>r ?ivl2"
+    by (auto simp: prod_eq_iff)
+  then show ?case
   proof cases
     case 1
     from Suc.hyps[OF l this]
-    obtain l' u' ly uy where
-      "x \<in> {l' .. u'} \<and> real_of_float l \<le> l' \<and> real_of_float u' \<le> ?m \<and> cmp ly uy \<and>
-        approx_tse prec 0 t ((l' + u') * Float 1 (- 1)) 1 f [Some (l', u')] = Some (ly, uy)"
+    obtain ivl' ivly where
+      "x \<in>\<^sub>r ivl' \<and> ivl' \<le> fst (split_float_interval ivl) \<and> cmp ivly \<and>
+        approx_tse prec 0 t (mid ivl') 1 f [Some ivl'] = Some ivly"
       by blast
-    with m_u show ?thesis
-      by (auto intro!: exI)
+    then show ?thesis
+      using subintervals
+      by (auto)
   next
     case 2
     from Suc.hyps[OF u this]
-    obtain l' u' ly uy where
-      "x \<in> { l' .. u' } \<and> ?m \<le> real_of_float l' \<and> u' \<le> real_of_float u \<and> cmp ly uy \<and>
-        approx_tse prec 0 t ((l' + u') * Float 1 (- 1)) 1 f [Some (l', u')] = Some (ly, uy)"
+    obtain ivl' ivly where
+      "x \<in>\<^sub>r ivl' \<and> ivl' \<le> snd (split_float_interval ivl) \<and> cmp ivly \<and>
+        approx_tse prec 0 t (mid ivl') 1 f [Some ivl'] = Some ivly"
       by blast
-    with m_u show ?thesis
-      by (auto intro!: exI)
+    then show ?thesis
+      using subintervals
+      by (auto)
   qed
 qed
 
 lemma approx_tse_form'_less:
   fixes x :: real
-  assumes tse: "approx_tse_form' prec t (Add a (Minus b)) s l u (\<lambda> l u. 0 < l)"
-    and x: "x \<in> {l .. u}"
+  assumes tse: "approx_tse_form' prec t (Add a (Minus b)) s ivl (\<lambda> ivl. 0 < lower ivl)"
+    and x: "x \<in>\<^sub>r ivl"
   shows "interpret_floatarith b [x] < interpret_floatarith a [x]"
 proof -
   from approx_tse_form'[OF tse x]
-  obtain l' u' ly uy
-    where x': "x \<in> {l' .. u'}"
-    and "real_of_float l \<le> real_of_float l'"
-    and "real_of_float u' \<le> real_of_float u" and "0 < ly"
-    and tse: "approx_tse prec 0 t ((l' + u') * Float 1 (- 1)) 1 (Add a (Minus b)) [Some (l', u')] = Some (ly, uy)"
+  obtain ivl' ivly
+    where x': "x \<in>\<^sub>r ivl'"
+    and "ivl' \<le> ivl" and "0 < lower ivly"
+    and tse: "approx_tse prec 0 t (mid ivl') 1 (Add a (Minus b)) [Some ivl'] = Some ivly"
     by blast
 
-  hence "bounded_by [x] [Some (l', u')]"
+  hence "bounded_by [x] [Some ivl']"
     by (auto simp add: bounded_by_def)
-  from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
-  have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
-    by auto
-  from order_less_le_trans[OF _ this, of 0] \<open>0 < ly\<close> show ?thesis
+  from approx_tse[OF this _ _ _ _ tse, of ivl'] x' mid_le
+  have "lower ivly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
+    by (auto simp: set_of_eq)
+  from order_less_le_trans[OF _ this, of 0] \<open>0 < lower ivly\<close> show ?thesis
     by auto
 qed
 
 lemma approx_tse_form'_le:
   fixes x :: real
-  assumes tse: "approx_tse_form' prec t (Add a (Minus b)) s l u (\<lambda> l u. 0 \<le> l)"
-    and x: "x \<in> {l .. u}"
+  assumes tse: "approx_tse_form' prec t (Add a (Minus b)) s ivl (\<lambda> ivl. 0 \<le> lower ivl)"
+    and x: "x \<in>\<^sub>r ivl"
   shows "interpret_floatarith b [x] \<le> interpret_floatarith a [x]"
 proof -
   from approx_tse_form'[OF tse x]
-  obtain l' u' ly uy
-    where x': "x \<in> {l' .. u'}"
-    and "l \<le> real_of_float l'"
-    and "real_of_float u' \<le> u" and "0 \<le> ly"
-    and tse: "approx_tse prec 0 t ((l' + u') * Float 1 (- 1)) 1 (Add a (Minus b)) [Some (l', u')] = Some (ly, uy)"
+  obtain ivl' ivly
+    where x': "x \<in>\<^sub>r ivl'"
+    and "ivl' \<le> ivl" and "0 \<le> lower ivly"
+    and tse: "approx_tse prec 0 t (mid ivl') 1 (Add a (Minus b)) [Some (ivl')] = Some ivly"
     by blast
 
-  hence "bounded_by [x] [Some (l', u')]" by (auto simp add: bounded_by_def)
-  from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
-  have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
-    by auto
-  from order_trans[OF _ this, of 0] \<open>0 \<le> ly\<close> show ?thesis
+  hence "bounded_by [x] [Some ivl']" by (auto simp add: bounded_by_def)
+  from approx_tse[OF this _ _ _ _ tse, of ivl'] x' mid_le
+  have "lower ivly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
+    by (auto simp: set_of_eq)
+  from order_trans[OF _ this, of 0] \<open>0 \<le> lower ivly\<close> show ?thesis
     by auto
 qed
 
 fun approx_tse_concl where
-"approx_tse_concl prec t (Less lf rt) s l u l' u' \<longleftrightarrow>
-    approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)" |
-"approx_tse_concl prec t (LessEqual lf rt) s l u l' u' \<longleftrightarrow>
-    approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)" |
-"approx_tse_concl prec t (AtLeastAtMost x lf rt) s l u l' u' \<longleftrightarrow>
-    (if approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l) then
-      approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l) else False)" |
-"approx_tse_concl prec t (Conj f g) s l u l' u' \<longleftrightarrow>
-    approx_tse_concl prec t f s l u l' u' \<and> approx_tse_concl prec t g s l u l' u'" |
-"approx_tse_concl prec t (Disj f g) s l u l' u' \<longleftrightarrow>
-    approx_tse_concl prec t f s l u l' u' \<or> approx_tse_concl prec t g s l u l' u'" |
-"approx_tse_concl _ _ _ _ _ _ _ _ \<longleftrightarrow> False"
+"approx_tse_concl prec t (Less lf rt) s ivl ivl' \<longleftrightarrow>
+    approx_tse_form' prec t (Add rt (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 < lower ivl)" |
+"approx_tse_concl prec t (LessEqual lf rt) s ivl ivl' \<longleftrightarrow>
+    approx_tse_form' prec t (Add rt (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl)" |
+"approx_tse_concl prec t (AtLeastAtMost x lf rt) s ivl ivl' \<longleftrightarrow>
+    (if approx_tse_form' prec t (Add x (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl) then
+      approx_tse_form' prec t (Add rt (Minus x)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl) else False)" |
+"approx_tse_concl prec t (Conj f g) s ivl ivl' \<longleftrightarrow>
+    approx_tse_concl prec t f s ivl ivl' \<and> approx_tse_concl prec t g s ivl ivl'" |
+"approx_tse_concl prec t (Disj f g) s ivl ivl' \<longleftrightarrow>
+    approx_tse_concl prec t f s ivl ivl' \<or> approx_tse_concl prec t g s ivl ivl'" |
+"approx_tse_concl _ _ _ _ _ _ \<longleftrightarrow> False"
 
 definition
   "approx_tse_form prec t s f =
@@ -1400,7 +924,7 @@ definition
       Bound x a b f \<Rightarrow>
         x = Var 0 \<and>
         (case (approx prec a [None], approx prec b [None]) of
-          (Some (l, u), Some (l', u')) \<Rightarrow> approx_tse_concl prec t f s l u l' u'
+          (Some ivl, Some ivl') \<Rightarrow> approx_tse_concl prec t f s ivl ivl'
         | _ \<Rightarrow> False)
     | _ \<Rightarrow> False)"
 
@@ -1409,9 +933,9 @@ lemma approx_tse_form:
   shows "interpret_form f [x]"
 proof (cases f)
   case f_def: (Bound i a b f')
-  with assms obtain l u l' u'
-    where a: "approx prec a [None] = Some (l, u)"
-    and b: "approx prec b [None] = Some (l', u')"
+  with assms obtain ivl ivl'
+    where a: "approx prec a [None] = Some ivl"
+    and b: "approx prec b [None] = Some ivl'"
     unfolding approx_tse_form_def by (auto elim!: case_optionE)
 
   from f_def assms have "i = Var 0"
@@ -1421,30 +945,31 @@ proof (cases f)
   {
     let ?f = "\<lambda>z. interpret_floatarith z [x]"
     assume "?f i \<in> { ?f a .. ?f b }"
-    with approx[OF _ a[symmetric], of "[x]"] approx[OF _ b[symmetric], of "[x]"]
-    have bnd: "x \<in> { l .. u'}" unfolding bounded_by_def i by auto
+    with approx[OF _ a, of "[x]"] approx[OF _ b, of "[x]"]
+    have bnd: "x \<in>\<^sub>r sup ivl ivl'" unfolding bounded_by_def i
+      by (auto simp: set_of_eq sup_float_def inf_float_def min_def max_def)
 
     have "interpret_form f' [x]"
       using assms[unfolded f_def]
     proof (induct f')
       case (Less lf rt)
       with a b
-      have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 < l)"
+      have "approx_tse_form' prec t (Add rt (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 < lower ivl)"
         unfolding approx_tse_form_def by auto
       from approx_tse_form'_less[OF this bnd]
       show ?case using Less by auto
     next
       case (LessEqual lf rt)
       with f_def a b assms
-      have "approx_tse_form' prec t (Add rt (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
+      have "approx_tse_form' prec t (Add rt (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl)"
         unfolding approx_tse_form_def by auto
       from approx_tse_form'_le[OF this bnd]
       show ?case using LessEqual by auto
     next
       case (AtLeastAtMost x lf rt)
       with f_def a b assms
-      have "approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)"
-        and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
+      have "approx_tse_form' prec t (Add rt (Minus x)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl)"
+        and "approx_tse_form' prec t (Add x (Minus lf)) s (sup ivl ivl') (\<lambda> ivl. 0 \<le> lower ivl)"
         unfolding approx_tse_form_def lazy_conj by (auto split: if_split_asm)
       from approx_tse_form'_le[OF this(1) bnd] approx_tse_form'_le[OF this(2) bnd]
       show ?case using AtLeastAtMost by auto
@@ -1455,14 +980,14 @@ qed (insert assms, auto simp add: approx_tse_form_def)
 
 text \<open>\<^term>\<open>approx_form_eval\<close> is only used for the {\tt value}-command.\<close>
 
-fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float * float) option list \<Rightarrow> (float * float) option list" where
+fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float interval) option list \<Rightarrow> (float interval) option list" where
 "approx_form_eval prec (Bound (Var n) a b f) bs =
    (case (approx prec a bs, approx prec b bs)
-   of (Some (l, _), Some (_, u)) \<Rightarrow> approx_form_eval prec f (bs[n := Some (l, u)])
+   of (Some ivl1, Some ivl2) \<Rightarrow> approx_form_eval prec f (bs[n := Some (sup ivl1 ivl2)])
     | _ \<Rightarrow> bs)" |
 "approx_form_eval prec (Assign (Var n) a f) bs =
    (case (approx prec a bs)
-   of (Some (l, u)) \<Rightarrow> approx_form_eval prec f (bs[n := Some (l, u)])
+   of (Some ivl) \<Rightarrow> approx_form_eval prec f (bs[n := Some ivl])
     | _ \<Rightarrow> bs)" |
 "approx_form_eval prec (Less a b) bs = bs @ [approx prec a bs, approx prec b bs]" |
 "approx_form_eval prec (LessEqual a b) bs = bs @ [approx prec a bs, approx prec b bs]" |
@@ -1491,7 +1016,8 @@ structure Approximation_Computation : APPROXIMATION_COMPUTATION = struct
           "(+)::nat\<Rightarrow>nat\<Rightarrow>nat" "(-)::nat\<Rightarrow>nat\<Rightarrow>nat" "(*)::nat\<Rightarrow>nat\<Rightarrow>nat"
         "0 :: int" "1 :: int" "2 :: int" "3 :: int" "-1 :: int"
           "(+)::int\<Rightarrow>int\<Rightarrow>int" "(-)::int\<Rightarrow>int\<Rightarrow>int" "(*)::int\<Rightarrow>int\<Rightarrow>int" "uminus::int\<Rightarrow>int"
-        "replicate :: _ \<Rightarrow> (float \<times> float) option \<Rightarrow> _"
+        "replicate :: _ \<Rightarrow> (float interval) option \<Rightarrow> _"
+        "interval_of::float\<Rightarrow>float interval"
         approx'
         approx_form
         approx_tse_form
@@ -1501,7 +1027,8 @@ structure Approximation_Computation : APPROXIMATION_COMPUTATION = struct
         nat
         integer
         "nat list"
-        "(float \<times> float) option list"
+        float
+        "(float interval) option list"
         floatarith
         form
     } ctxt ct
@@ -1514,21 +1041,25 @@ structure Approximation_Computation : APPROXIMATION_COMPUTATION = struct
   fun term_of_float (@{code Float} (k, l)) =
     \<^term>\<open>Float\<close> $ mk_int k $ mk_int l;
 
-  fun term_of_float_float_option NONE = \<^term>\<open>None :: (float \<times> float) option\<close>
-    | term_of_float_float_option (SOME ff) = \<^term>\<open>Some :: float \<times> float \<Rightarrow> _\<close>
-        $ HOLogic.mk_prod (apply2 term_of_float ff);
+  fun term_of_float_interval x = @{term "Interval::_\<Rightarrow>float interval"} $
+    HOLogic.mk_prod
+      (apply2 term_of_float (@{code lowerF} x, @{code upperF} x))
 
-  val term_of_float_float_option_list =
-    HOLogic.mk_list \<^typ>\<open>(float \<times> float) option\<close> o map term_of_float_float_option;
+  fun term_of_float_interval_option NONE = \<^term>\<open>None :: (float interval) option\<close>
+    | term_of_float_interval_option (SOME ff) = \<^term>\<open>Some :: float interval \<Rightarrow> _\<close>
+        $ (term_of_float_interval ff);
+
+  val term_of_float_interval_option_list =
+    HOLogic.mk_list \<^typ>\<open>(float interval) option\<close> o map term_of_float_interval_option;
 
   val approx_bool = @{computation bool}
     (fn _ => fn x => case x of SOME b => term_of_bool b
       | NONE => error "Computation approx_bool failed.")
-  val approx_arith = @{computation "(float \<times> float) option"}
-    (fn _ => fn x => case x of SOME ffo => term_of_float_float_option ffo
+  val approx_arith = @{computation "float interval option"}
+    (fn _ => fn x => case x of SOME ffo => term_of_float_interval_option ffo
       | NONE => error "Computation approx_arith failed.")
-  val approx_form_eval = @{computation "(float \<times> float) option list"}
-    (fn _ => fn x => case x of SOME ffos => term_of_float_float_option_list ffos
+  val approx_form_eval = @{computation "float interval option list"}
+    (fn _ => fn x => case x of SOME ffos => term_of_float_interval_option_list ffos
       | NONE => error "Computation approx_form_eval failed.")
 
 end

@@ -729,6 +729,15 @@ lemma split_domain_nonempty:
   using last_in_set assms
   by (induction I, auto)
 
+lemma lower_split_interval1: "lower (fst (split_interval X m)) = min (lower X) m"
+  and lower_split_interval2: "lower (snd (split_interval X m)) = min (upper X) m"
+  and upper_split_interval1: "upper (fst (split_interval X m)) = max (lower X) m"
+  and upper_split_interval2: "upper (snd (split_interval X m)) = max (upper X) m"
+  subgoal by transfer auto
+  subgoal by transfer (auto simp: min.commute)
+  subgoal by transfer (auto simp: )
+  subgoal by transfer (auto simp: )
+  done
 
 lemma split_intervalD: "split_interval X x = (A, B) \<Longrightarrow> set_of X \<subseteq> set_of A \<union> set_of B"
   unfolding set_of_eq

@@ -5,14 +5,6 @@ theory Interval_Float
     Float
 begin
 
-definition "split_float_interval x = split_interval x ((lower x + upper x) * Float 1 (-1))"
-
-lemma split_float_intervalD: "split_float_interval X = (A, B) \<Longrightarrow> set_of X \<subseteq> set_of A \<union> set_of B"
-  by (auto dest!: split_intervalD simp: split_float_interval_def)
-
-lemmas float_round_down_le[intro] = order_trans[OF float_round_down]
-  and float_round_up_ge[intro] = order_trans[OF _ float_round_up]
-
 definition mid :: "float interval \<Rightarrow> float"
   where "mid i = (lower i + upper i) * Float 1 (-1)"
 
@@ -20,8 +12,31 @@ lemma mid_in_interval: "mid i \<in>\<^sub>i i"
   using lower_le_upper[of i]
   by (auto simp: mid_def set_of_eq powr_minus)
 
+lemma mid_le: "lower i \<le> mid i" "mid i \<le> upper i"
+  using mid_in_interval
+  by (auto simp: set_of_eq)
+
 definition centered :: "float interval \<Rightarrow> float interval"
   where "centered i = i - interval_of (mid i)"
+
+definition "split_float_interval x = split_interval x ((lower x + upper x) * Float 1 (-1))"
+
+lemma split_float_intervalD: "split_float_interval X = (A, B) \<Longrightarrow> set_of X \<subseteq> set_of A \<union> set_of B"
+  by (auto dest!: split_intervalD simp: split_float_interval_def)
+
+lemma split_float_interval_bounds:
+  shows
+    lower_split_float_interval1: "lower (fst (split_float_interval X)) = lower X"
+  and lower_split_float_interval2: "lower (snd (split_float_interval X)) = mid X"
+  and upper_split_float_interval1: "upper (fst (split_float_interval X)) = mid X"
+  and upper_split_float_interval2: "upper (snd (split_float_interval X)) = upper X"
+  using mid_le[of X]
+  by (auto simp: split_float_interval_def mid_def[symmetric] min_def max_def real_of_float_eq
+      lower_split_interval1 lower_split_interval2
+      upper_split_interval1 upper_split_interval2)
+
+lemmas float_round_down_le[intro] = order_trans[OF float_round_down]
+  and float_round_up_ge[intro] = order_trans[OF _ float_round_up]
 
 text \<open>TODO: many of the lemmas should move to theories Float or Approximation
   (the latter should be based on type @{type interval}.\<close>
@@ -84,6 +99,45 @@ lemma in_real_intervalI:
   "x \<in>\<^sub>r X" if "lower X \<le> x" "x \<le> upper X" for x::real and X::"float interval"
   using that
   by (intro in_intervalI) auto
+
+subsection \<open>intros for \<open>real_interval\<close>\<close>
+
+lemma in_round_intervalI: "x \<in>\<^sub>r A  \<Longrightarrow> x \<in>\<^sub>r (round_interval prec A)"
+  by (auto simp: set_of_eq float_round_down_le float_round_up_le)
+
+lemma plus_in_float_intervalI: "a + b \<in>\<^sub>r A + B" if "a \<in>\<^sub>r A" "b \<in>\<^sub>r B"
+  using that
+  by (auto simp: set_of_eq)
+
+lemma minus_in_float_intervalI: "a - b \<in>\<^sub>r A - B" if "a \<in>\<^sub>r A" "b \<in>\<^sub>r B"
+  using that
+  by (auto simp: set_of_eq)
+
+lemma uminus_in_float_intervalI: "-a \<in>\<^sub>r -A" if "a \<in>\<^sub>r A"
+  using that
+  by (auto simp: set_of_eq)
+
+lemma real_interval_times: "real_interval (A * B) = real_interval A * real_interval B"
+  by (auto simp: interval_eq_iff lower_times upper_times min_def max_def)
+
+lemma times_in_float_intervalI: "a * b \<in>\<^sub>r A * B" if "a \<in>\<^sub>r A" "b \<in>\<^sub>r B"
+  using times_in_intervalI[OF that]
+  by (auto simp: real_interval_times)
+
+lemma real_interval_abs: "real_interval (abs_interval A) = abs_interval (real_interval A)"
+  by (auto simp: interval_eq_iff min_def max_def)
+
+lemma abs_in_float_intervalI: "abs a \<in>\<^sub>r abs_interval A" if "a \<in>\<^sub>r A"
+  by (auto simp: set_of_abs_interval real_interval_abs intro!: imageI that)
+
+lemma interval_of[intro,simp]: "x \<in>\<^sub>r interval_of x"
+  by (auto simp: set_of_eq)
+
+lemma split_float_interval_realD: "split_float_interval X = (A, B) \<Longrightarrow> x \<in>\<^sub>r X \<Longrightarrow> x \<in>\<^sub>r A \<or> x \<in>\<^sub>r B"
+  by (auto simp: set_of_eq prod_eq_iff split_float_interval_bounds)
+
+
+subsection \<open>bounds for lists\<close>
 
 lemma lower_Interval: "lower (Interval x) = fst x"
   and upper_Interval: "upper (Interval x) = snd x"
@@ -268,6 +322,10 @@ lemma inverse_float_intervalI:
   using inverse_float_interval[of p X]
   by (auto simp: set_of'_def split: option.splits)
 
+lemma inverse_float_interval_eqI: "inverse_float_interval p X = Some IVL \<Longrightarrow> x \<in>\<^sub>r X \<Longrightarrow> inverse x \<in>\<^sub>r IVL"
+  using inverse_float_intervalI[of x X p]
+  by (auto simp: set_of'_def)
+
 lemma real_interval_abs_interval[simp]:
   "real_interval (abs_interval x) = abs_interval (real_interval x)"
   by (auto simp: interval_eq_set_of_iff set_of_eq real_of_float_max real_of_float_min)
@@ -285,5 +343,12 @@ lemma floor_float_intervalI: "\<lfloor>x\<rfloor> \<in>\<^sub>r floor_float_inte
   using that by (auto simp: set_of_eq floor_fl_def floor_mono)
 
 end
+
+
+subsection \<open>constants for code generation\<close>
+
+definition lowerF::"float interval \<Rightarrow> float" where "lowerF = lower"
+definition upperF::"float interval \<Rightarrow> float" where "upperF = upper"
+
 
 end
