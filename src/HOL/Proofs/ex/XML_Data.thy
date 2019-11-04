@@ -12,10 +12,9 @@ begin
 subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
-  fun export_proof thy thm =
-    Proofterm.encode (Sign.consts_of thy)
-      (Proofterm.reconstruct_proof thy (Thm.prop_of thm)
-        (Thm.standard_proof_of {full = true, expand_name = Thm.expand_name thm} thm));
+  fun export_proof thy thm = thm
+    |> Thm.standard_proof_of {full = true, expand_name = Thm.expand_name thm}
+    |> Proofterm.encode (Sign.consts_of thy);
 
   fun import_proof thy xml =
     let
