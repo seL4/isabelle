@@ -294,7 +294,9 @@ fun apply_tr int trans state =
       let
         val State ((node', pr_ctxt), _) =
           node |> apply
-            (fn _ => node_presentation (Theory (Context.Theory (Theory.end_theory thy))))
+            (fn _ =>
+              node_presentation
+                (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
             (K ());
       in State ((Toplevel, pr_ctxt), get_theory node') end
   | (Keep f, node) =>

@@ -118,6 +118,7 @@ sig
     thm -> Proofterm.proof
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
+  val expose_theory: theory -> unit
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
@@ -681,14 +682,13 @@ structure Proofs = Theory_Data
 fun register_proofs ths =
   (Proofs.map o cons) (Lazy.map_finished (map Thm.trim_context) ths);
 
-fun consolidate_theory thy =
-  let
-    val thms =
-      rev (Proofs.get thy)
-      |> maps (map (Thm.transfer thy) o Lazy.force);
-    val _ = Thm.consolidate thms;
-    val _ = Thm.expose_proofs thy thms;
-  in () end;
+fun force_proofs thy = rev (Proofs.get thy) |> maps (map (Thm.transfer thy) o Lazy.force);
+
+val consolidate_theory = Thm.consolidate o force_proofs;
+
+fun expose_theory thy =
+  if Proofterm.export_enabled ()
+  then Thm.expose_proofs thy (force_proofs thy) else ();
 
 
 
