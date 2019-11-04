@@ -5,6 +5,7 @@ imports
   Determinants
   Cross3
   Lipschitz
+  Starlike
 begin
 
 text \<open>Entry point excluding integration and complex analysis.\<close>
