@@ -62,7 +62,8 @@ fun decode_command id name blobs_xml toks_xml sources : Document.command =
     tokens = toks ~~ sources}
   end;
 
-fun commands_accepted ids = Output.protocol_message Markup.commands_accepted [XML.Text (commas ids)];
+fun commands_accepted ids =
+  Output.protocol_message Markup.commands_accepted [XML.Text (space_implode "," ids)];
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
