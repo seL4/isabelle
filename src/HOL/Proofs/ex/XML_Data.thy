@@ -51,7 +51,9 @@ text \<open>Some fairly large proof:\<close>
 ML_val \<open>
   val xml = export_proof thy1 @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
-  \<^assert> (size (YXML.string_of_body xml) > 500000);
+
+  val xml_size = size (YXML.string_of_body xml);
+  \<^assert> (xml_size > 400000);
 \<close>
 
 end
