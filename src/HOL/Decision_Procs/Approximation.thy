@@ -1473,16 +1473,43 @@ fun approx_form_eval :: "nat \<Rightarrow> form \<Rightarrow> (float * float) op
 
 subsection \<open>Implement proof method \texttt{approximation}\<close>
 
-oracle approximation_oracle = \<open>fn (thy, t) =>
-let
-  fun bad t = error ("Bad term: " ^ Syntax.string_of_term_global thy t);
+ML \<open>
+val _ = \<comment> \<open>Trusting the oracle \<close>@{oracle_name "holds_by_evaluation"}
+signature APPROXIMATION_COMPUTATION = sig
+val approx_bool: Proof.context -> term -> term
+val approx_arith: Proof.context -> term -> term
+val approx_form_eval: Proof.context -> term -> term
+val approx_conv: Proof.context -> conv
+end
+
+structure Approximation_Computation : APPROXIMATION_COMPUTATION = struct
+
+  fun approx_conv ctxt ct =
+    @{computation_check
+      terms: Trueprop
+        "0 :: nat" "1 :: nat" "2 :: nat" "3 :: nat" Suc
+          "(+)::nat\<Rightarrow>nat\<Rightarrow>nat" "(-)::nat\<Rightarrow>nat\<Rightarrow>nat" "(*)::nat\<Rightarrow>nat\<Rightarrow>nat"
+        "0 :: int" "1 :: int" "2 :: int" "3 :: int" "-1 :: int"
+          "(+)::int\<Rightarrow>int\<Rightarrow>int" "(-)::int\<Rightarrow>int\<Rightarrow>int" "(*)::int\<Rightarrow>int\<Rightarrow>int" "uminus::int\<Rightarrow>int"
+        "replicate :: _ \<Rightarrow> (float \<times> float) option \<Rightarrow> _"
+        approx'
+        approx_form
+        approx_tse_form
+        approx_form_eval
+      datatypes: bool
+        int
+        nat
+        integer
+        "nat list"
+        "(float \<times> float) option list"
+        floatarith
+        form
+    } ctxt ct
 
   fun term_of_bool true = \<^term>\<open>True\<close>
     | term_of_bool false = \<^term>\<open>False\<close>;
 
   val mk_int = HOLogic.mk_number \<^typ>\<open>int\<close> o @{code integer_of_int};
-  fun dest_int (\<^term>\<open>int_of_integer\<close> $ j) = @{code int_of_integer} (snd (HOLogic.dest_number j))
-    | dest_int i = @{code int_of_integer} (snd (HOLogic.dest_number i));
 
   fun term_of_float (@{code Float} (k, l)) =
     \<^term>\<open>Float\<close> $ mk_int k $ mk_int l;
@@ -1494,84 +1521,17 @@ let
   val term_of_float_float_option_list =
     HOLogic.mk_list \<^typ>\<open>(float \<times> float) option\<close> o map term_of_float_float_option;
 
-  fun nat_of_term t = @{code nat_of_integer}
-    (HOLogic.dest_nat t handle TERM _ => snd (HOLogic.dest_number t));
+  val approx_bool = @{computation bool}
+    (fn _ => fn x => case x of SOME b => term_of_bool b
+      | NONE => error "Computation approx_bool failed.")
+  val approx_arith = @{computation "(float \<times> float) option"}
+    (fn _ => fn x => case x of SOME ffo => term_of_float_float_option ffo
+      | NONE => error "Computation approx_arith failed.")
+  val approx_form_eval = @{computation "(float \<times> float) option list"}
+    (fn _ => fn x => case x of SOME ffos => term_of_float_float_option_list ffos
+      | NONE => error "Computation approx_form_eval failed.")
 
-  fun float_of_term (\<^term>\<open>Float\<close> $ k $ l) =
-        @{code Float} (dest_int k, dest_int l)
-    | float_of_term t = bad t;
-
-  fun floatarith_of_term (\<^term>\<open>Add\<close> $ a $ b) = @{code Add} (floatarith_of_term a, floatarith_of_term b)
-    | floatarith_of_term (\<^term>\<open>Minus\<close> $ a) = @{code Minus} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Mult\<close> $ a $ b) = @{code Mult} (floatarith_of_term a, floatarith_of_term b)
-    | floatarith_of_term (\<^term>\<open>Inverse\<close> $ a) = @{code Inverse} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Cos\<close> $ a) = @{code Cos} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Arctan\<close> $ a) = @{code Arctan} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Abs\<close> $ a) = @{code Abs} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Max\<close> $ a $ b) = @{code Max} (floatarith_of_term a, floatarith_of_term b)
-    | floatarith_of_term (\<^term>\<open>Min\<close> $ a $ b) = @{code Min} (floatarith_of_term a, floatarith_of_term b)
-    | floatarith_of_term \<^term>\<open>Pi\<close> = @{code Pi}
-    | floatarith_of_term (\<^term>\<open>Sqrt\<close> $ a) = @{code Sqrt} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Exp\<close> $ a) = @{code Exp} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Powr\<close> $ a $ b) = @{code Powr} (floatarith_of_term a, floatarith_of_term b)
-    | floatarith_of_term (\<^term>\<open>Ln\<close> $ a) = @{code Ln} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Power\<close> $ a $ n) =
-        @{code Power} (floatarith_of_term a, nat_of_term n)
-    | floatarith_of_term (\<^term>\<open>Floor\<close> $ a) = @{code Floor} (floatarith_of_term a)
-    | floatarith_of_term (\<^term>\<open>Var\<close> $ n) = @{code Var} (nat_of_term n)
-    | floatarith_of_term (\<^term>\<open>Num\<close> $ m) = @{code Num} (float_of_term m)
-    | floatarith_of_term t = bad t;
-
-  fun form_of_term (\<^term>\<open>Bound\<close> $ a $ b $ c $ p) = @{code Bound}
-        (floatarith_of_term a, floatarith_of_term b, floatarith_of_term c, form_of_term p)
-    | form_of_term (\<^term>\<open>Assign\<close> $ a $ b $ p) = @{code Assign}
-        (floatarith_of_term a, floatarith_of_term b, form_of_term p)
-    | form_of_term (\<^term>\<open>Less\<close> $ a $ b) = @{code Less}
-        (floatarith_of_term a, floatarith_of_term b)
-    | form_of_term (\<^term>\<open>LessEqual\<close> $ a $ b) = @{code LessEqual}
-        (floatarith_of_term a, floatarith_of_term b)
-    | form_of_term (\<^term>\<open>Conj\<close> $ a $ b) = @{code Conj}
-        (form_of_term a, form_of_term b)
-    | form_of_term (\<^term>\<open>Disj\<close> $ a $ b) = @{code Disj}
-        (form_of_term a, form_of_term b)
-    | form_of_term (\<^term>\<open>AtLeastAtMost\<close> $ a $ b $ c) = @{code AtLeastAtMost}
-        (floatarith_of_term a, floatarith_of_term b, floatarith_of_term c)
-    | form_of_term t = bad t;
-
-  fun float_float_option_of_term \<^term>\<open>None :: (float \<times> float) option\<close> = NONE
-    | float_float_option_of_term (\<^term>\<open>Some :: float \<times> float \<Rightarrow> _\<close> $ ff) =
-        SOME (apply2 float_of_term (HOLogic.dest_prod ff))
-    | float_float_option_of_term (\<^term>\<open>approx'\<close> $ n $ a $ ffs) = @{code approx'}
-        (nat_of_term n) (floatarith_of_term a) (float_float_option_list_of_term ffs)
-    | float_float_option_of_term t = bad t
-  and float_float_option_list_of_term
-        (\<^term>\<open>replicate :: _ \<Rightarrow> (float \<times> float) option \<Rightarrow> _\<close> $ n $ \<^term>\<open>None :: (float \<times> float) option\<close>) =
-          @{code replicate} (nat_of_term n) NONE
-    | float_float_option_list_of_term (\<^term>\<open>approx_form_eval\<close> $ n $ p $ ffs) =
-        @{code approx_form_eval} (nat_of_term n) (form_of_term p) (float_float_option_list_of_term ffs)
-    | float_float_option_list_of_term t = map float_float_option_of_term
-        (HOLogic.dest_list t);
-
-  val nat_list_of_term = map nat_of_term o HOLogic.dest_list ;
-
-  fun bool_of_term (\<^term>\<open>approx_form\<close> $ n $ p $ ffs $ ms) = @{code approx_form}
-        (nat_of_term n) (form_of_term p) (float_float_option_list_of_term ffs) (nat_list_of_term ms)
-    | bool_of_term (\<^term>\<open>approx_tse_form\<close> $ m $ n $ q $ p) =
-        @{code approx_tse_form} (nat_of_term m) (nat_of_term n) (nat_of_term q) (form_of_term p)
-    | bool_of_term t = bad t;
-
-  fun eval t = case fastype_of t
-   of \<^typ>\<open>bool\<close> =>
-        (term_of_bool o bool_of_term) t
-    | \<^typ>\<open>(float \<times> float) option\<close> =>
-        (term_of_float_float_option o float_float_option_of_term) t
-    | \<^typ>\<open>(float \<times> float) option list\<close> =>
-        (term_of_float_float_option_list o float_float_option_list_of_term) t
-    | _ => bad t;
-
-  val normalize = eval o Envir.beta_norm o Envir.eta_long [];
-
-in Thm.global_cterm_of thy (Logic.mk_equals (t, normalize t)) end
+end
 \<close>
 
 lemma intervalE: "a \<le> x \<and> x \<le> b \<Longrightarrow> \<lbrakk> x \<in> { a .. b } \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"

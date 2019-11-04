@@ -92,6 +92,10 @@ fun random_float_list size xs seed =
 fun real_of_Float (@{code Float} (m, e)) =
     real_of_man_exp (@{code integer_of_int} m) (@{code integer_of_int} e)
 
+fun term_of_int i = (HOLogic.mk_number @{typ int} (@{code integer_of_int} i))
+
+fun term_of_Float (@{code Float} (m, e)) = @{term Float} $ term_of_int m $ term_of_int e
+
 fun is_True \<^term>\<open>True\<close> = true
   | is_True _ = false
 
@@ -142,7 +146,7 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
       | IEEEReal.Unordered => false
     then
       let
-        val ts = map (fn x => snd x ()) rs
+        val ts = map (fn x => term_of_Float (fst x)) rs
         val ts' = map
           (AList.lookup op = (map dest_Free xs ~~ ts)
             #> the_default Term.dummy

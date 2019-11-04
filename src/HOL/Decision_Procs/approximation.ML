@@ -42,18 +42,14 @@ fun reorder_bounds_tac ctxt prems i =
     fold prepend_prem order all_tac
   end
 
-fun approximation_conv ctxt ct =
-  approximation_oracle (Proof_Context.theory_of ctxt, Thm.term_of ct);
-
-fun approximate ctxt t =
-  approximation_oracle (Proof_Context.theory_of ctxt, t)
-  |> Thm.prop_of |> Logic.dest_equals |> snd;
-
-(* Should be in HOL.thy ? *)
-fun gen_eval_tac conv ctxt =
-  CONVERSION
-    (Object_Logic.judgment_conv ctxt (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
-  THEN' resolve_tac ctxt [TrueI]
+fun approximate ctxt t = case fastype_of t
+   of \<^typ>\<open>bool\<close> =>
+        Approximation_Computation.approx_bool ctxt t
+    | \<^typ>\<open>(float \<times> float) option\<close> =>
+        Approximation_Computation.approx_arith ctxt t
+    | \<^typ>\<open>(float \<times> float) option list\<close> =>
+        Approximation_Computation.approx_form_eval ctxt t
+    | _ => error ("Bad term: " ^ Syntax.string_of_term ctxt t);
 
 fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
     fun lookup_splitting (Free (name, _)) =
@@ -286,10 +282,11 @@ val _ =
     (opt_modes -- Parse.term
       >> (fn (modes, t) => Toplevel.keep (approximate_cmd modes t)));
 
-fun approximation_tac prec splitting taylor ctxt i =
-  prepare_form_tac ctxt i
-  THEN reify_form_tac ctxt i
-  THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
-  THEN gen_eval_tac (approximation_conv ctxt) ctxt i
+fun approximation_tac prec splitting taylor ctxt =
+  prepare_form_tac ctxt
+  THEN' reify_form_tac ctxt
+  THEN' rewrite_interpret_form_tac ctxt prec splitting taylor
+  THEN' CONVERSION (Approximation_Computation.approx_conv ctxt)
+  THEN' resolve_tac ctxt [TrueI]
 
 end;
