@@ -267,14 +267,12 @@ val consolidate_bodies =
 
 fun make_thm_node theory_name name prop body export =
   let
-    val body' = body
-      |> Options.default_bool "prune_proofs" ? (Future.map o map_proof_of) (K MinProof);
     val consolidate =
       Lazy.lazy_name "Proofterm.make_thm_node" (fn () =>
-        let val PBody {thms, ...} = Future.join body'
+        let val PBody {thms, ...} = Future.join body
         in consolidate_bodies (join_thms thms) end);
   in
-    Thm_Node {theory_name = theory_name, name = name, prop = prop, body = body',
+    Thm_Node {theory_name = theory_name, name = name, prop = prop, body = body,
       export = export, consolidate = consolidate}
   end;
 
@@ -2094,6 +2092,11 @@ end;
 
 (* PThm nodes *)
 
+fun prune_body body =
+  if Options.default_bool "prune_proofs"
+  then (Future.map o map_proof_of) (K MinProof) body
+  else body;
+
 fun export_enabled () = Options.default_bool "export_proofs";
 fun export_standard_enabled () = Options.default_bool "export_standard_proofs";
 
@@ -2184,16 +2187,18 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
       in (i, fulfill_proof_future thy promises postproc body0) end;
 
     val (i, body') =
-      (*non-deterministic, depends on unknown promises*)
-      (case strip_combt (fst (strip_combP prf)) of
-        (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
-          if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
-            let
-              val Thm_Body {body = body', ...} = thm_body';
-              val i = if a = "" andalso named then serial () else ser;
-            in (i, body' |> ser <> i ? Future.map (map_proof_of (rew_proof thy))) end
-          else new_prf ()
-      | _ => new_prf ());
+      (*somewhat non-deterministic proof boxes!*)
+      if export_enabled () then new_prf ()
+      else
+        (case strip_combt (fst (strip_combP prf)) of
+          (PThm ({serial = ser, name = a, prop = prop', types = NONE, ...}, thm_body'), args') =>
+            if (a = "" orelse a = name) andalso prop' = prop1 andalso args' = args then
+              let
+                val Thm_Body {body = body', ...} = thm_body';
+                val i = if a = "" andalso named then serial () else ser;
+              in (i, body' |> ser <> i ? Future.map (map_proof_of (rew_proof thy))) end
+            else new_prf ()
+        | _ => new_prf ());
 
     val open_proof = not named ? rew_proof thy;
 
@@ -2207,12 +2212,12 @@ fun prepare_thm_proof unconstrain thy classrel_proof arity_proof
             else Exn.reraise exn)
       else no_export;
 
+    val thm_body = prune_body body';
     val theory_name = Context.theory_long_name thy;
-    val thm = (i, make_thm_node theory_name name prop1 body' export);
+    val thm = (i, make_thm_node theory_name name prop1 thm_body export);
 
     val header = thm_header i ([pos, Position.thread_data ()]) theory_name name prop1 NONE;
-    val thm_body = Thm_Body {open_proof = open_proof, body = body'};
-    val head = PThm (header, thm_body);
+    val head = PThm (header, Thm_Body {open_proof = open_proof, body = thm_body});
     val proof =
       if unconstrain then
         proof_combt' (head, (map o Option.map o Term.map_types) (#map_atyps ucontext) args)
