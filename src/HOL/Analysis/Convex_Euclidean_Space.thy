@@ -2615,6 +2615,10 @@ lemma in_segment:
     "x \<in> open_segment a b \<longleftrightarrow> a \<noteq> b \<and> (\<exists>u. 0 < u \<and> u < 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
   using less_eq_real_def by (auto simp: segment algebra_simps)
 
+lemma closed_segmentI:
+  "u \<in> {0..1} \<Longrightarrow> z = (1 - u) *\<^sub>R a + u *\<^sub>R b \<Longrightarrow> z \<in> closed_segment a b"
+  by (auto simp: closed_segment_def)
+
 lemma closed_segment_linear_image:
   "closed_segment (f a) (f b) = f ` (closed_segment a b)" if "linear f"
 proof -

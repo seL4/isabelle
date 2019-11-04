@@ -55,58 +55,8 @@ lemma uniformly_continuous_on_cmul_left[continuous_intros]:
     shows "uniformly_continuous_on s (\<lambda>x. c * f x)"
 by (metis assms bounded_linear.uniformly_continuous_on bounded_linear_mult_right)
 
-lemma continuous_within_norm_id [continuous_intros]: "continuous (at x within S) norm"
-  by (rule continuous_norm [OF continuous_ident])
-
 lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
   by (intro continuous_on_id continuous_on_norm)
-
-lemma DERIV_zero_unique:
-  assumes "convex S"
-      and d0: "\<And>x. x\<in>S \<Longrightarrow> (f has_field_derivative 0) (at x within S)"
-      and "a \<in> S"
-      and "x \<in> S"
-    shows "f x = f a"
-  by (rule has_derivative_zero_unique [OF assms(1) _ assms(4,3)])
-     (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
-
-lemma DERIV_zero_connected_unique:
-  assumes "connected S"
-      and "open S"
-      and d0: "\<And>x. x\<in>S \<Longrightarrow> DERIV f x :> 0"
-      and "a \<in> S"
-      and "x \<in> S"
-    shows "f x = f a"
-    by (rule has_derivative_zero_unique_connected [OF assms(2,1) _ assms(5,4)])
-       (metis has_field_derivative_def lambda_zero d0)
-
-lemma DERIV_transform_within:
-  assumes "(f has_field_derivative f') (at a within S)"
-      and "0 < d" "a \<in> S"
-      and "\<And>x. x\<in>S \<Longrightarrow> dist x a < d \<Longrightarrow> f x = g x"
-    shows "(g has_field_derivative f') (at a within S)"
-  using assms unfolding has_field_derivative_def
-  by (blast intro: has_derivative_transform_within)
-
-lemma DERIV_transform_within_open:
-  assumes "DERIV f a :> f'"
-      and "open S" "a \<in> S"
-      and "\<And>x. x\<in>S \<Longrightarrow> f x = g x"
-    shows "DERIV g a :> f'"
-  using assms unfolding has_field_derivative_def
-by (metis has_derivative_transform_within_open)
-
-lemma DERIV_transform_at:
-  assumes "DERIV f a :> f'"
-      and "0 < d"
-      and "\<And>x. dist x a < d \<Longrightarrow> f x = g x"
-    shows "DERIV g a :> f'"
-  by (blast intro: assms DERIV_transform_within)
-
-(*generalising DERIV_isconst_all, which requires type real (using the ordering)*)
-lemma DERIV_zero_UNIV_unique:
-  "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a"
-  by (metis DERIV_zero_unique UNIV_I convex_UNIV)
 
 lemma
   shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
@@ -184,6 +134,43 @@ by (metis real_lim_sequentially sum_in_Reals)
 lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
+
+
+lemma closed_segment_same_Re:
+  assumes "Re a = Re b"
+  shows   "closed_segment a b = {z. Re z = Re a \<and> Im z \<in> closed_segment (Im a) (Im b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Re z = Re a" by (auto simp: u)
+  from u(1) show "Im z \<in> closed_segment (Im a) (Im b)"
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
+next
+  fix z assume [simp]: "Re z = Re a" and "Im z \<in> closed_segment (Im a) (Im b)"
+  then obtain u where u: "u \<in> {0..1}" "Im z = Im a + of_real u * (Im b - Im a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
+
+lemma closed_segment_same_Im:
+  assumes "Im a = Im b"
+  shows   "closed_segment a b = {z. Im z = Im a \<and> Re z \<in> closed_segment (Re a) (Re b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Im z = Im a" by (auto simp: u)
+  from u(1) show "Re z \<in> closed_segment (Re a) (Re b)"
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
+next
+  fix z assume [simp]: "Im z = Im a" and "Re z \<in> closed_segment (Re a) (Re b)"
+  then obtain u where u: "u \<in> {0..1}" "Re z = Re a + of_real u * (Re b - Re a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
 
 subsection\<open>Holomorphic functions\<close>
 
@@ -418,7 +405,7 @@ lemma complex_derivative_transform_within_open:
    \<Longrightarrow> deriv f z = deriv g z"
   unfolding holomorphic_on_def
   by (rule DERIV_imp_deriv)
-     (metis DERIV_deriv_iff_field_differentiable DERIV_transform_within_open at_within_open)
+     (metis DERIV_deriv_iff_field_differentiable has_field_derivative_transform_within_open at_within_open)
 
 lemma deriv_compose_linear:
   "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
@@ -431,7 +418,7 @@ lemma nonzero_deriv_nonconstant:
   assumes df: "DERIV f \<xi> :> df" and S: "open S" "\<xi> \<in> S" and "df \<noteq> 0"
     shows "\<not> f constant_on S"
 unfolding constant_on_def
-by (metis \<open>df \<noteq> 0\<close> DERIV_transform_within_open [OF df S] DERIV_const DERIV_unique)
+by (metis \<open>df \<noteq> 0\<close> has_field_derivative_transform_within_open [OF df S] DERIV_const DERIV_unique)
 
 lemma holomorphic_nonconstant:
   assumes holf: "f holomorphic_on S" and "open S" "\<xi> \<in> S" "deriv f \<xi> \<noteq> 0"
