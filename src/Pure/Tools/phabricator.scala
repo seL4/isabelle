@@ -41,10 +41,15 @@ object Phabricator
 
   val default_name = "vcs"
 
-  def default_prefix(name: String): String = "phabricator-" + name
+  def phabricator_name(name: String = "", ext: String = ""): String =
+    "phabricator" + (if (name.isEmpty) "" else "-" + name) + (if (ext.isEmpty) "" else "." + ext)
+
+  def isabelle_phabricator_name(name: String = "", ext: String = ""): String =
+    "isabelle-" + phabricator_name(name = name, ext = ext)
 
   def default_root(options: Options, name: String): Path =
-    Path.explode(options.string("phabricator_www_root")) + Path.basic(default_prefix(name))
+    Path.explode(options.string("phabricator_www_root")) +
+    Path.basic(phabricator_name(name = name))
 
   def default_repo(options: Options, name: String): Path =
     default_root(options, name) + Path.basic("repo")
@@ -53,11 +58,11 @@ object Phabricator
 
   /** global configuration **/
 
-  val global_config = Path.explode("/etc/isabelle-phabricator.conf")
+  val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
   sealed case class Config(name: String, root: Path)
   {
-    def home: Path = root + Path.explode("phabricator")
+    def home: Path = root + Path.explode(phabricator_name())
 
     def execute(command: String): Process_Result =
       Isabelle_System.bash("./bin/" + command, cwd = home.file).check
@@ -105,7 +110,6 @@ object Phabricator
   def phabricator_setup(
     options: Options,
     name: String = default_name,
-    prefix: String = "",
     root: String = "",
     repo: String = "",
     package_update: Boolean = false,
@@ -138,7 +142,6 @@ object Phabricator
 
     /* basic installation */
 
-    val prefix_name = proper_string(prefix) getOrElse default_prefix(name)
     val root_path = if (root.nonEmpty) Path.explode(root) else default_root(options, name)
     val repo_path = if (repo.nonEmpty) Path.explode(repo) else default_repo(options, name)
 
@@ -189,7 +192,7 @@ object Phabricator
 
     progress.echo("MySQL setup...")
 
-    File.write(Path.explode("/etc/mysql/mysql.conf.d/phabricator.cnf"),
+    File.write(Path.explode("/etc/mysql/mysql.conf.d/" + isabelle_phabricator_name(ext = "cnf")),
 """[mysqld]
 max_allowed_packet = 32M
 innodb_buffer_pool_size = 1600M
@@ -212,7 +215,7 @@ local_infile = 0
     }
 
     config.execute("config set storage.default-namespace " +
-      Bash.string(prefix_name.replace("-", "_")))
+      Bash.string(phabricator_name(name = name).replace("-", "_")))
 
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
@@ -225,9 +228,9 @@ local_infile = 0
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
 
-    Linux.service_install("phd-" + prefix_name,
+    Linux.service_install(isabelle_phabricator_name(),
 """[Unit]
-Description=PHP daemon (Phabricator """ + quote(name) + """)
+Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
 After=syslog.target network.target apache2.service mysql.service
 
 [Service]
@@ -235,8 +238,8 @@ Type=oneshot
 User=""" + daemon_user + """
 Group=""" + daemon_user + """
 Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
-ExecStart=""" + root_path.expand.implode + """/phabricator/bin/phd start
-ExecStop=""" + root_path.expand.implode + """/phabricator/bin/phd stop
+ExecStart=""" + config.home.implode + """/bin/phd start
+ExecStop=""" + config.home.implode + """/bin/phd stop
 RemainAfterExit=yes
 
 [Install]
@@ -253,7 +256,7 @@ WantedBy=multi-user.target
     config.execute("config set diffusion.ssh-user " + Bash.string(name))
     config.execute("config set diffusion.ssh-port " + ssh_port)
 
-    val sudoers_file = Path.explode("/etc/sudoers.d") + Path.basic(prefix_name)
+    val sudoers_file = Path.explode("/etc/sudoers.d") + Path.basic(isabelle_phabricator_name())
     File.write(sudoers_file,
       www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
       name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
@@ -269,7 +272,8 @@ WantedBy=multi-user.target
 
     val php_conf =
       Path.explode("/etc/php") + Path.basic(php_version) +  // educated guess
-        Path.explode("apache2/conf.d/phabricator.ini")
+        Path.explode("apache2/conf.d") +
+        Path.basic(isabelle_phabricator_name(ext = "ini"))
 
     File.write(php_conf,
       "post_max_size = 32M\n" +
@@ -286,10 +290,12 @@ WantedBy=multi-user.target
 
     if (!apache_sites.is_dir) error("Bad Apache sites directory " + apache_sites)
 
-    File.write(apache_sites + Path.basic(prefix_name + ".conf"),
+    val server_name = phabricator_name(ext = "lvh.me")  // alias for "localhost" for testing
+    val server_url = "http://" + server_name
+
+    File.write(apache_sites + Path.basic(isabelle_phabricator_name(ext = "conf")),
 """<VirtualHost *:80>
-    #ServerName: "lvh.me" is an alias for "localhost" for testing
-    ServerName """ + prefix_name + """.lvh.me
+    ServerName """ + server_name + """
     ServerAdmin webmaster@localhost
     DocumentRoot """ + config.home.implode + """/webroot
 
@@ -304,11 +310,11 @@ WantedBy=multi-user.target
     Isabelle_System.bash( """
       set -e
       a2enmod rewrite
-      a2ensite """ + Bash.string(prefix_name)).check
+      a2ensite """ + Bash.string(isabelle_phabricator_name())).check
 
     Linux.service_restart("apache2")
 
-    progress.echo("\nDONE\nWeb configuration via http://" + prefix_name + ".lvh.me")
+    progress.echo("\nDONE\nWeb configuration via " + server_url)
   }
 
 
@@ -320,7 +326,6 @@ WantedBy=multi-user.target
       var repo = ""
       var package_update = false
       var options = Options.init()
-      var prefix = ""
       var root = ""
 
       val getopts =
@@ -331,7 +336,6 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
     -R DIR       repository directory (default: """ + default_repo(options, "NAME") + """)
     -U           full update of system packages before installation
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p PREFIX    prefix for derived names (default: """ + default_prefix("NAME") + """)
     -r DIR       installation root directory (default: """ + default_root(options, "NAME") + """)
 
   Install Phabricator as Ubuntu LAMP application (Linux, Apache, MySQL, PHP).
@@ -345,7 +349,6 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
           "R:" -> (arg => repo = arg),
           "U" -> (_ => package_update = true),
           "o:" -> (arg => options = options + arg),
-          "p:" -> (arg => prefix = arg),
           "r:" -> (arg => root = arg))
 
       val more_args = getopts(args)
@@ -359,7 +362,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
       val progress = new Console_Progress
 
-      phabricator_setup(options, name, prefix = prefix, root = root, repo = repo,
+      phabricator_setup(options, name, root = root, repo = repo,
         package_update = package_update, progress = progress)
     })
 
