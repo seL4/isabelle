@@ -490,96 +490,6 @@ lemma adjoint_adjoint:
   by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
 
-subsection \<open>Archimedean properties and useful consequences\<close>
-
-text\<open>Bernoulli's inequality\<close>
-proposition Bernoulli_inequality:
-  fixes x :: real
-  assumes "-1 \<le> x"
-    shows "1 + n * x \<le> (1 + x) ^ n"
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
-    by (simp add: algebra_simps)
-  also have "... = (1 + x) * (1 + n*x)"
-    by (auto simp: power2_eq_square algebra_simps  of_nat_Suc)
-  also have "... \<le> (1 + x) ^ Suc n"
-    using Suc.hyps assms mult_left_mono by fastforce
-  finally show ?case .
-qed
-
-corollary Bernoulli_inequality_even:
-  fixes x :: real
-  assumes "even n"
-    shows "1 + n * x \<le> (1 + x) ^ n"
-proof (cases "-1 \<le> x \<or> n=0")
-  case True
-  then show ?thesis
-    by (auto simp: Bernoulli_inequality)
-next
-  case False
-  then have "real n \<ge> 1"
-    by simp
-  with False have "n * x \<le> -1"
-    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
-  then have "1 + n * x \<le> 0"
-    by auto
-  also have "... \<le> (1 + x) ^ n"
-    using assms
-    using zero_le_even_power by blast
-  finally show ?thesis .
-qed
-
-corollary real_arch_pow:
-  fixes x :: real
-  assumes x: "1 < x"
-  shows "\<exists>n. y < x^n"
-proof -
-  from x have x0: "x - 1 > 0"
-    by arith
-  from reals_Archimedean3[OF x0, rule_format, of y]
-  obtain n :: nat where n: "y < real n * (x - 1)" by metis
-  from x0 have x00: "x- 1 \<ge> -1" by arith
-  from Bernoulli_inequality[OF x00, of n] n
-  have "y < x^n" by auto
-  then show ?thesis by metis
-qed
-
-corollary real_arch_pow_inv:
-  fixes x y :: real
-  assumes y: "y > 0"
-    and x1: "x < 1"
-  shows "\<exists>n. x^n < y"
-proof (cases "x > 0")
-  case True
-  with x1 have ix: "1 < 1/x" by (simp add: field_simps)
-  from real_arch_pow[OF ix, of "1/y"]
-  obtain n where n: "1/y < (1/x)^n" by blast
-  then show ?thesis using y \<open>x > 0\<close>
-    by (auto simp add: field_simps)
-next
-  case False
-  with y x1 show ?thesis
-    by (metis less_le_trans not_less power_one_right)
-qed
-
-lemma forall_pos_mono:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
-  by (metis real_arch_inverse)
-
-lemma forall_pos_mono_1:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
-  apply (rule forall_pos_mono)
-  apply auto
-  apply (metis Suc_pred of_nat_Suc)
-  done
-
-
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Euclidean Spaces as Typeclass\<close>
 
 lemma independent_Basis: "independent Basis"
@@ -896,7 +806,7 @@ proof -
     by (simp add: span_span)
   from card_le_dim_spanning[OF CSV SVC C(1)] C(2,3) fB
   have iC: "independent C"
-    by (simp add: dim_span)
+    by (simp)
   from C fB have "card C \<le> dim V"
     by simp
   moreover have "dim V \<le> card C"
@@ -1438,8 +1348,7 @@ proof -
   show ?thesis
     apply (rule that[OF b(1)])
     apply (rule subspace_dim_equal)
-    by (auto simp: assms b dim_hyperplane dim_span subspace_hyperplane
-        subspace_span)
+    by (auto simp: assms b dim_hyperplane subspace_hyperplane)
 qed
 
 lemma dim_eq_hyperplane:
@@ -1448,7 +1357,7 @@ lemma dim_eq_hyperplane:
 by (metis One_nat_def dim_hyperplane dim_span lowdim_eq_hyperplane)
 
 
-subsection\<open> Orthogonal bases, Gram-Schmidt process, and related theorems\<close>
+subsection\<open> Orthogonal bases and Gram-Schmidt process\<close>
 
 lemma pairwise_orthogonal_independent:
   assumes "pairwise orthogonal S" and "0 \<notin> S"
@@ -1509,7 +1418,7 @@ proof -
        if "x \<in> S" for x
   proof -
     have "a \<bullet> x = (\<Sum>y\<in>S. if y = x then y \<bullet> a else 0)"
-      by (simp add: \<open>finite S\<close> inner_commute sum.delta that)
+      by (simp add: \<open>finite S\<close> inner_commute that)
     also have "... =  (\<Sum>b\<in>S. b \<bullet> a * (b \<bullet> x) / (b \<bullet> b))"
       apply (rule sum.cong [OF refl], simp)
       by (meson S orthogonal_def pairwise_def that)
@@ -1662,8 +1571,7 @@ proof -
   obtain B where "B \<subseteq> span S" and orthB: "pairwise orthogonal B"
              and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "card B = dim S" "span B = span S"
-    by (rule orthonormal_basis_subspace [of "span S", OF subspace_span])
-      (auto simp: dim_span)
+    by (rule orthonormal_basis_subspace [of "span S", OF subspace_span]) (auto)
   with assms obtain u where spanBT: "span B \<subseteq> span T" and "u \<notin> span B" "u \<in> span T"
     by auto
   obtain C where orthBC: "pairwise orthogonal (B \<union> C)" and spanBC: "span (B \<union> C) = span (B \<union> {u})"
@@ -1705,11 +1613,11 @@ corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_subspace_exists:
   assumes "dim S < DIM('a)"
   obtains x where "x \<noteq> 0" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
 proof -
-have "span S \<subset> UNIV"
+  have "span S \<subset> UNIV"
   by (metis (mono_tags) UNIV_I assms inner_eq_zero_iff less_le lowdim_subset_hyperplane
       mem_Collect_eq top.extremum_strict top.not_eq_extremum)
   with orthogonal_to_subspace_exists_gen [of S UNIV] that show ?thesis
-    by (auto simp: span_UNIV)
+    by (auto)
 qed
 
 corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_vector_exists:
@@ -1784,7 +1692,7 @@ proof -
       using \<open>independent (S - {0})\<close> independent_imp_finite by blast
     show "card (S - {0}) = DIM('a)"
       using span_delete_0 [of S] S
-      by (simp add: \<open>independent (S - {0})\<close> indep_card_eq_dim_span dim_UNIV)
+      by (simp add: \<open>independent (S - {0})\<close> indep_card_eq_dim_span)
   qed (use S \<open>a \<noteq> 0\<close> in auto)
 qed
 
@@ -1835,7 +1743,7 @@ proof -
   then have 0: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by simp
   have "dim(A \<union> B) = dim (span (A \<union> B))"
-    by (simp add: dim_span)
+    by (simp)
   also have "span (A \<union> B) = ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
     by (auto simp add: span_Un image_def)
   also have "dim \<dots> = dim {x + y |x y. x \<in> span A \<and> y \<in> span B}"
@@ -1843,9 +1751,9 @@ proof -
   also have "... = dim {x + y |x y. x \<in> span A \<and> y \<in> span B} + dim(span A \<inter> span B)"
     by (auto simp: dest: 0)
   also have "... = dim (span A) + dim (span B)"
-    by (rule dim_sums_Int) (auto simp: subspace_span)
+    by (rule dim_sums_Int) (auto)
   also have "... = dim A + dim B"
-    by (simp add: dim_span)
+    by (simp)
   finally show ?thesis .
 qed
 
@@ -1877,8 +1785,7 @@ proof -
         using \<open>y \<in> span A\<close> add.commute by blast
     qed
     show "span B \<subseteq> span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A)"
-      by (rule span_minimal)
-        (auto intro: * span_minimal simp: subspace_span)
+      by (rule span_minimal) (auto intro: * span_minimal)
   qed
   then show ?thesis
     by (metis (no_types, lifting) dim_orthogonal_sum dim_span mem_Collect_eq
@@ -1935,7 +1842,7 @@ proof -
         show "norm (h (f x) - h l) < e" if "norm (f x - l) < e / B" for x
           using that B
           apply (simp add: field_split_simps)
-          by (metis \<open>linear h\<close> le_less_trans linear_diff mult.commute)
+          by (metis \<open>linear h\<close> le_less_trans linear_diff)
       qed
     qed
   qed

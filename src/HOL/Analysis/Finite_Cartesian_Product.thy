@@ -135,8 +135,7 @@ proof (cases "finite (UNIV :: 'a set)")
       by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
     have "CARD('a) ^ CARD('b) = card (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
       (is "_ = card ?A")
-      by (subst card_PiE) (auto simp: prod_constant)
-    
+      by (subst card_PiE) (auto)
     also have "?A = Pi UNIV (\<lambda>_. UNIV)" 
       by auto
     finally show "card \<dots> = CARD('a) ^ CARD('b)" ..
@@ -1075,7 +1074,7 @@ proposition matrix_scalar_ac:
 
 lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
-  apply (simp add: if_distrib if_distribR sum.delta' cong del: if_weak_cong)
+  apply (simp add: if_distrib if_distribR cong del: if_weak_cong)
   done
 
 lemma matrix_transpose_mul:

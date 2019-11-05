@@ -583,7 +583,7 @@ proof -
     finally show ?thesis .
   qed
   then show ?thesis
-    by (simp add: dim_span)
+    by (simp)
 qed
 
 lemma column_rank_def:
@@ -1028,7 +1028,9 @@ proof -
 qed
 
 
-subsection \<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
+subsection \<open>Finding an Orthogonal Matrix\<close>
+
+text \<open>We can find an orthogonal matrix taking any unit vector to any other.\<close>
 
 lemma  orthogonal_matrix_transpose [simp]:
      "orthogonal_matrix(transpose A) \<longleftrightarrow> orthogonal_matrix A"
@@ -1123,9 +1125,9 @@ next
 qed
 
 
-subsection  \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
+subsection  \<open>Scaling and isometry\<close>
 
-lemma  scaling_linear:
+proposition scaling_linear:
   fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
   assumes f0: "f 0 = 0"
     and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
@@ -1158,7 +1160,7 @@ proposition  orthogonal_transformation_isometry:
   by (metis dist_0_norm)
 
 
-subsection  \<open>Can extend an isometry from unit sphere\<close>
+text \<open>Can extend an isometry from unit sphere:\<close>
 
 lemma  isometry_sphere_extend:
   fixes f:: "'a::real_inner \<Rightarrow> 'a"
@@ -1393,8 +1395,7 @@ proof -
     fix A B
     assume "P ((*v) A)" and "P ((*v) B)"
     then show "P ((*v) (A ** B))"
-      by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose matrix_vector_mul_linear
-          intro!: comp)
+      by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose intro!: comp)
   next
     fix A :: "real^'n^'n" and i
     assume "row i A = 0"
