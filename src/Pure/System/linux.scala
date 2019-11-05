@@ -104,4 +104,25 @@ fi
       """).check
     }
   }
+
+
+  /* system services */
+
+  def service_start(name: String): Unit =
+    Isabelle_System.bash("systemctl start " + Bash.string(name)).check
+
+  def service_stop(name: String): Unit =
+    Isabelle_System.bash("systemctl stop " + Bash.string(name)).check
+
+  def service_install(name: String, spec: String)
+  {
+    val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
+    File.write(service_file, spec)
+
+    Isabelle_System.bash("""
+      set -e
+      chmod 0644 """ + File.bash_path(service_file) + """
+      systemctl enable """ + Bash.string(name) + """
+      systemctl start """ + Bash.string(name)).check
+  }
 }
