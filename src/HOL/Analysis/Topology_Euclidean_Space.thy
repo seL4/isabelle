@@ -811,6 +811,18 @@ lemma subset_box_complex:
       (Re a < Re b \<and> Im a < Im b) \<longrightarrow> Re a \<ge> Re c \<and> Im a \<ge> Im c \<and> Re b \<le> Re d \<and> Im b \<le> Im d"
   by (subst subset_box; force simp: Basis_complex_def)+
 
+lemma in_cbox_complex_iff:
+  "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
+  by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
+
+lemma box_Complex_eq:
+  "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
+  by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
+
+lemma in_box_complex_iff:
+  "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
+  by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
+
 lemma Int_interval:
   fixes a :: "'a::euclidean_space"
   shows "cbox a b \<inter> cbox c d =

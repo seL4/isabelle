@@ -785,60 +785,6 @@ using simple_closed_path_winding_number_cases
 
 subsection \<open>Winding number for rectangular paths\<close>
 
-(* TODO: Move *)
-lemma closed_segmentI:
-  "u \<in> {0..1} \<Longrightarrow> z = (1 - u) *\<^sub>R a + u *\<^sub>R b \<Longrightarrow> z \<in> closed_segment a b"
-  by (auto simp: closed_segment_def)
-
-lemma in_cbox_complex_iff:
-  "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
-  by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
-
-lemma box_Complex_eq:
-  "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
-  by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
-
-lemma in_box_complex_iff:
-  "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
-  by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
-(* END TODO *)
-
-lemma closed_segment_same_Re:
-  assumes "Re a = Re b"
-  shows   "closed_segment a b = {z. Re z = Re a \<and> Im z \<in> closed_segment (Im a) (Im b)}"
-proof safe
-  fix z assume "z \<in> closed_segment a b"
-  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from assms show "Re z = Re a" by (auto simp: u)
-  from u(1) show "Im z \<in> closed_segment (Im a) (Im b)"
-    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
-next
-  fix z assume [simp]: "Re z = Re a" and "Im z \<in> closed_segment (Im a) (Im b)"
-  then obtain u where u: "u \<in> {0..1}" "Im z = Im a + of_real u * (Im b - Im a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from u(1) show "z \<in> closed_segment a b" using assms
-    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
-qed
-
-lemma closed_segment_same_Im:
-  assumes "Im a = Im b"
-  shows   "closed_segment a b = {z. Im z = Im a \<and> Re z \<in> closed_segment (Re a) (Re b)}"
-proof safe
-  fix z assume "z \<in> closed_segment a b"
-  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from assms show "Im z = Im a" by (auto simp: u)
-  from u(1) show "Re z \<in> closed_segment (Re a) (Re b)"
-    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps)
-next
-  fix z assume [simp]: "Im z = Im a" and "Re z \<in> closed_segment (Re a) (Re b)"
-  then obtain u where u: "u \<in> {0..1}" "Re z = Re a + of_real u * (Re b - Re a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from u(1) show "z \<in> closed_segment a b" using assms
-    by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
-qed
-
 definition\<^marker>\<open>tag important\<close> rectpath where
   "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
                       in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"

@@ -6054,7 +6054,7 @@ lemma higher_deriv_id [simp]:
 lemma has_complex_derivative_funpow_1:
      "\<lbrakk>(f has_field_derivative 1) (at z); f z = z\<rbrakk> \<Longrightarrow> (f^^n has_field_derivative 1) (at z)"
   apply (induction n, auto)
-  apply (metis DERIV_ident DERIV_transform_at id_apply zero_less_one)
+  apply (simp add: id_def)
   by (metis DERIV_chain comp_funpow comp_id funpow_swap1 mult.right_neutral)
 
 lemma higher_deriv_uminus:
@@ -6068,7 +6068,7 @@ next
   have *: "((deriv ^^ n) f has_field_derivative deriv ((deriv ^^ n) f) z) (at z)"
     using Suc.prems assms has_field_derivative_higher_deriv by auto
   have "((deriv ^^ n) (\<lambda>w. - f w) has_field_derivative - deriv ((deriv ^^ n) f) z) (at z)"
-    apply (rule DERIV_transform_within_open [of "\<lambda>w. -((deriv ^^ n) f w)"])
+    apply (rule has_field_derivative_transform_within_open [of "\<lambda>w. -((deriv ^^ n) f w)"])
        apply (rule derivative_eq_intros | rule * refl assms)+
      apply (auto simp add: Suc)
     done
@@ -6090,7 +6090,7 @@ next
     using Suc.prems assms has_field_derivative_higher_deriv by auto
   have "((deriv ^^ n) (\<lambda>w. f w + g w) has_field_derivative
         deriv ((deriv ^^ n) f) z + deriv ((deriv ^^ n) g) z) (at z)"
-    apply (rule DERIV_transform_within_open [of "\<lambda>w. (deriv ^^ n) f w + (deriv ^^ n) g w"])
+    apply (rule has_field_derivative_transform_within_open [of "\<lambda>w. (deriv ^^ n) f w + (deriv ^^ n) g w"])
        apply (rule derivative_eq_intros | rule * refl assms)+
      apply (auto simp add: Suc)
     done
@@ -6133,7 +6133,7 @@ next
   have "((deriv ^^ n) (\<lambda>w. f w * g w) has_field_derivative
          (\<Sum>i = 0..Suc n. (Suc n choose i) * (deriv ^^ i) f z * (deriv ^^ (Suc n - i)) g z))
         (at z)"
-    apply (rule DERIV_transform_within_open
+    apply (rule has_field_derivative_transform_within_open
         [of "\<lambda>w. (\<Sum>i = 0..n. of_nat (n choose i) * (deriv ^^ i) f w * (deriv ^^ (n - i)) g w)"])
        apply (simp add: algebra_simps)
        apply (rule DERIV_cong [OF DERIV_sum])
@@ -6847,7 +6847,7 @@ proof -
       using  summable_sums centre_in_ball \<open>0 < d\<close> \<open>summable h\<close> le_h
       by (metis (full_types) Int_iff gg' summable_def that)
     moreover have "((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' z) (at z)"
-    proof (rule DERIV_transform_at)
+    proof (rule has_field_derivative_transform_within)
       show "\<And>x. dist x z < r \<Longrightarrow> g x = (\<Sum>n. f n x)"
         by (metis subsetD dist_commute gg' mem_ball r sums_unique)
     qed (use \<open>0 < r\<close> gg' \<open>z \<in> S\<close> \<open>0 < d\<close> in auto)
@@ -6975,7 +6975,7 @@ proof -
         done
     qed
     have "(f has_field_derivative g' w) (at w)"
-      by (rule DERIV_transform_at [where d="(r - norm(z - w))/2"])
+      by (rule has_field_derivative_transform_within [where d="(r - norm(z - w))/2"])
       (use w gg' [of w] in \<open>(force simp: dist_norm)+\<close>)
     then show ?thesis ..
   qed

@@ -234,7 +234,7 @@ proof -
       have False if "\<And>x. x \<in> S \<Longrightarrow> f x = c" for c
       proof -
         have "deriv f 0 = 0"
-          by (metis that \<open>open S\<close> \<open>0 \<in> S\<close> DERIV_imp_deriv [OF DERIV_transform_within_open [OF DERIV_const]])
+          by (metis that \<open>open S\<close> \<open>0 \<in> S\<close> DERIV_imp_deriv [OF has_field_derivative_transform_within_open [OF DERIV_const]])
         with no_df0 have "l = 0"
           by auto
         with eql [OF _ idF] show False by auto
@@ -420,7 +420,7 @@ proof -
         have "norm (deriv (k \<circ> power2 \<circ> q) 0) < 1"
           using that by simp
         moreover have eq: "deriv f 0 = deriv (k \<circ> (\<lambda>z. z ^ 2) \<circ> q) 0 * deriv (p \<circ> \<psi> \<circ> h \<circ> f) 0"
-        proof (intro DERIV_imp_deriv DERIV_transform_within_open [OF DERIV_chain])
+        proof (intro DERIV_imp_deriv has_field_derivative_transform_within_open [OF DERIV_chain])
           show "(k \<circ> power2 \<circ> q has_field_derivative deriv (k \<circ> power2 \<circ> q) 0) (at ((p \<circ> \<psi> \<circ> h \<circ> f) 0))"
             using "1" holomorphic_derivI p0 by auto
           show "(p \<circ> \<psi> \<circ> h \<circ> f has_field_derivative deriv (p \<circ> \<psi> \<circ> h \<circ> f) 0) (at 0)"

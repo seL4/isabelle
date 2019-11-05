@@ -278,6 +278,23 @@ proof -
   show ?thesis .
 qed
 
+lemma has_field_derivative_transform_within:
+  assumes "(f has_field_derivative f') (at a within S)"
+    and "0 < d"
+    and "a \<in> S"
+    and "\<And>x. \<lbrakk>x \<in> S; dist x a < d\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "(g has_field_derivative f') (at a within S)"
+  using assms unfolding has_field_derivative_def
+  by (metis has_derivative_transform_within)
+
+lemma has_field_derivative_transform_within_open:
+  assumes "(f has_field_derivative f') (at a)"
+    and "open S" "a \<in> S"
+    and "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
+  shows "(g has_field_derivative f') (at a)"
+  using assms unfolding has_field_derivative_def
+  by (metis has_derivative_transform_within_open)
+
 
 subsection \<open>Continuity\<close>
 
