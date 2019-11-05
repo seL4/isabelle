@@ -32,7 +32,7 @@ proof -
     by (auto intro!: real_le_rsqrt)
 qed
 
-subsection \<open>Continuity of the representation WRT an orthogonal basis\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuity of the representation WRT an orthogonal basis\<close>
 
 lemma orthogonal_Basis: "pairwise orthogonal Basis"
   by (simp add: inner_not_same_Basis orthogonal_def pairwise_def)
@@ -353,8 +353,8 @@ qed
 
 subsection \<open>Boxes\<close>
 
-abbreviation One :: "'a::euclidean_space"
-  where "One \<equiv> \<Sum>Basis"
+abbreviation\<^marker>\<open>tag important\<close> One :: "'a::euclidean_space" where
+"One \<equiv> \<Sum>Basis"
 
 lemma One_non_0: assumes "One = (0::'a::euclidean_space)" shows False
 proof -
@@ -366,14 +366,14 @@ proof -
   with independent_Basis show False by force
 qed
 
-corollary One_neq_0[iff]: "One \<noteq> 0"
+corollary\<^marker>\<open>tag unimportant\<close> One_neq_0[iff]: "One \<noteq> 0"
   by (metis One_non_0)
 
-corollary Zero_neq_One[iff]: "0 \<noteq> One"
+corollary\<^marker>\<open>tag unimportant\<close> Zero_neq_One[iff]: "0 \<noteq> One"
   by (metis One_non_0)
 
-definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50)
-  where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
+definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50) where 
+"eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
 definition\<^marker>\<open>tag important\<close> box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
 definition\<^marker>\<open>tag important\<close> "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
