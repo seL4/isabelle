@@ -155,7 +155,7 @@ object Phabricator
     progress.bash(cwd = root_path.file, echo = true,
       script = """
         set -e
-        chown """ + Bash.string(www_user) + """ .
+        chown """ + Bash.string(www_user) + ":" + Bash.string(www_user) + """ .
         chmod 755 .
 
         git clone https://github.com/phacility/libphutil.git
@@ -165,6 +165,22 @@ object Phabricator
 
     val config = Config(name, root_path)
     write_config(configs ::: List(config))
+
+
+    /* local repository directory */
+
+    if (!Isabelle_System.bash("mkdir -p " + File.bash_path(repo_path)).ok) {
+      error("Failed to create local repository directory " + repo_path)
+    }
+
+    Isabelle_System.bash(cwd = repo_path.file,
+      script = """
+        set -e
+        chown -R """ + Bash.string(daemon_user) + ":" + Bash.string(daemon_user) + """ .
+        chmod 755 .
+      """).check
+
+    config.execute("config set repository.default-local-path " + File.bash_path(repo_path))
 
 
     /* MySQL setup */
