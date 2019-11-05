@@ -166,6 +166,8 @@ object Phabricator
     val config = Config(name, root_path)
     write_config(configs ::: List(config))
 
+    config.execute("config set pygments.enabled true")
+
 
     /* local repository directory */
 
@@ -187,6 +189,16 @@ object Phabricator
 
     progress.echo("MySQL setup...")
 
+    File.write(Path.explode("/etc/mysql/mysql.conf.d/phabricator.cnf"),
+"""[mysqld]
+max_allowed_packet = 32M
+innodb_buffer_pool_size = 1600M
+local_infile = 0
+""")
+
+    Linux.service_restart("mysql")
+
+
     def mysql_conf(R: Regex): Option[String] =
       split_lines(File.read(Path.explode(options.string("phabricator_mysql_config")))).
         collectFirst({ case R(a) => a })
@@ -201,6 +213,8 @@ object Phabricator
 
     config.execute("config set storage.default-namespace " +
       Bash.string(prefix_name.replace("-", "_")))
+
+    config.execute("config set storage.mysql-engine.max-size 8388608")
 
     config.execute("storage upgrade --force")
 
@@ -247,6 +261,22 @@ WantedBy=multi-user.target
     Isabelle_System.bash("chmod 0440 " + File.bash_path(sudoers_file)).check
 
 
+    /* PHP setup */
+
+    val php_version =
+      Isabelle_System.bash("""php --run 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;'""")
+        .check.out
+
+    val php_conf =
+      Path.explode("/etc/php") + Path.basic(php_version) +  // educated guess
+        Path.explode("apache2/conf.d/phabricator.ini")
+
+    File.write(php_conf,
+      "post_max_size = 32M\n" +
+      "opcache.validate_timestamps = 0\n" +
+      "memory_limit = 512M\n")
+
+
     /* Apache setup */
 
     progress.echo("Apache setup...")
@@ -271,12 +301,12 @@ WantedBy=multi-user.target
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
 """)
 
-    Isabelle_System.bash("""
+    Isabelle_System.bash( """
       set -e
       a2enmod rewrite
-      a2ensite """ + Bash.string(prefix_name) + """
-      systemctl restart apache2
-""").check
+      a2ensite """ + Bash.string(prefix_name)).check
+
+    Linux.service_restart("apache2")
 
     progress.echo("\nDONE\nWeb configuration via http://" + prefix_name + ".lvh.me")
   }
