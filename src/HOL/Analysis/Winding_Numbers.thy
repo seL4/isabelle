@@ -3,7 +3,10 @@ section \<open>Winding Numbers\<close>
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2017)\<close>
 
 theory Winding_Numbers
-imports Polytope Jordan_Curve Riemann_Mapping
+imports
+  Polytope
+  Jordan_Curve
+  Riemann_Mapping
 begin
 
 lemma simply_connected_inside_simple_path:
