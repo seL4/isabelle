@@ -43,6 +43,22 @@ lift_definition(code_dt) Interval'::"'a::preorder \<Rightarrow> 'a::preorder \<R
   is "\<lambda>a b. if a \<le> b then Some (a, b) else None"
   by auto
 
+lemma Interval'_split:
+  "P (Interval' a b) \<longleftrightarrow>
+    (\<forall>ivl. a \<le> b \<longrightarrow> lower ivl = a \<longrightarrow> upper ivl = b \<longrightarrow> P (Some ivl)) \<and> (\<not>a\<le>b \<longrightarrow> P None)"
+  by transfer auto
+
+lemma Interval'_split_asm:
+  "P (Interval' a b) \<longleftrightarrow>
+    \<not>((\<exists>ivl. a \<le> b \<and> lower ivl = a \<and> upper ivl = b \<and> \<not>P (Some ivl)) \<or> (\<not>a\<le>b \<and> \<not>P None))"
+  unfolding Interval'_split
+  by auto
+
+lemmas Interval'_splits = Interval'_split Interval'_split_asm
+
+lemma Interval'_eq_Some: "Interval' a b = Some i \<Longrightarrow> lower i = a \<and> upper i = b"
+  by (simp split: Interval'_splits)
+
 end
 
 instantiation "interval" :: ("{preorder,equal}") equal

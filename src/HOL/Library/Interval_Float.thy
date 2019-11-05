@@ -105,6 +105,9 @@ subsection \<open>intros for \<open>real_interval\<close>\<close>
 lemma in_round_intervalI: "x \<in>\<^sub>r A  \<Longrightarrow> x \<in>\<^sub>r (round_interval prec A)"
   by (auto simp: set_of_eq float_round_down_le float_round_up_le)
 
+lemma zero_in_float_intervalI: "0 \<in>\<^sub>r 0"
+  by (auto simp: set_of_eq)
+
 lemma plus_in_float_intervalI: "a + b \<in>\<^sub>r A + B" if "a \<in>\<^sub>r A" "b \<in>\<^sub>r B"
   using that
   by (auto simp: set_of_eq)
