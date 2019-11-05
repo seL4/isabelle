@@ -2269,7 +2269,7 @@ proof (cases "z=0")
   case False
   show ?thesis
     unfolding powr_def
-  proof (rule DERIV_transform_at)
+  proof (rule has_field_derivative_transform_within)
     show "((\<lambda>z. exp (s * Ln z)) has_field_derivative s * (if z = 0 then 0 else exp ((s - 1) * Ln z)))
            (at z)"
       apply (intro derivative_eq_intros | simp add: assms)+
@@ -2761,7 +2761,7 @@ proof -
   with z have "((\<lambda>z. exp (Ln z / 2)) has_field_derivative inverse (2 * csqrt z)) (at z)"
     by (force intro: derivative_eq_intros * simp add: assms)
   then show ?thesis
-  proof (rule DERIV_transform_at)
+  proof (rule has_field_derivative_transform_within)
     show "\<And>x. dist x z < cmod z \<Longrightarrow> exp (Ln x / 2) = csqrt x"
       by (metis csqrt_exp_Ln dist_0_norm less_irrefl)
   qed (use z in auto)

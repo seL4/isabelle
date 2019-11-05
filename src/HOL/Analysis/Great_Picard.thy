@@ -1136,7 +1136,7 @@ proof
         apply (metis Suc_pred mult.commute power_Suc)
         done
       then show ?thesis
-        apply (rule DERIV_imp_deriv [OF DERIV_transform_within_open [where S = "ball z0 r"]])
+        apply (rule DERIV_imp_deriv [OF has_field_derivative_transform_within_open [where S = "ball z0 r"]])
         using that \<open>m > 0\<close> \<open>0 < r\<close>
           apply (simp_all add: hnz geq)
         done

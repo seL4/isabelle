@@ -32,7 +32,7 @@ proof -
     by (auto intro!: real_le_rsqrt)
 qed
 
-subsection \<open>Continuity of the representation WRT an orthogonal basis\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Continuity of the representation WRT an orthogonal basis\<close>
 
 lemma orthogonal_Basis: "pairwise orthogonal Basis"
   by (simp add: inner_not_same_Basis orthogonal_def pairwise_def)
@@ -353,8 +353,8 @@ qed
 
 subsection \<open>Boxes\<close>
 
-abbreviation One :: "'a::euclidean_space"
-  where "One \<equiv> \<Sum>Basis"
+abbreviation\<^marker>\<open>tag important\<close> One :: "'a::euclidean_space" where
+"One \<equiv> \<Sum>Basis"
 
 lemma One_non_0: assumes "One = (0::'a::euclidean_space)" shows False
 proof -
@@ -366,14 +366,14 @@ proof -
   with independent_Basis show False by force
 qed
 
-corollary One_neq_0[iff]: "One \<noteq> 0"
+corollary\<^marker>\<open>tag unimportant\<close> One_neq_0[iff]: "One \<noteq> 0"
   by (metis One_non_0)
 
-corollary Zero_neq_One[iff]: "0 \<noteq> One"
+corollary\<^marker>\<open>tag unimportant\<close> Zero_neq_One[iff]: "0 \<noteq> One"
   by (metis One_non_0)
 
-definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50)
-  where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
+definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50) where 
+"eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
 definition\<^marker>\<open>tag important\<close> box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
 definition\<^marker>\<open>tag important\<close> "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
@@ -810,6 +810,18 @@ lemma subset_box_complex:
    "box a b \<subseteq> box c d \<longleftrightarrow>
       (Re a < Re b \<and> Im a < Im b) \<longrightarrow> Re a \<ge> Re c \<and> Im a \<ge> Im c \<and> Re b \<le> Re d \<and> Im b \<le> Im d"
   by (subst subset_box; force simp: Basis_complex_def)+
+
+lemma in_cbox_complex_iff:
+  "x \<in> cbox a b \<longleftrightarrow> Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}"
+  by (cases x; cases a; cases b) (auto simp: cbox_Complex_eq)
+
+lemma box_Complex_eq:
+  "box (Complex a c) (Complex b d) = (\<lambda>(x,y). Complex x y) ` (box a b \<times> box c d)"
+  by (auto simp: box_def Basis_complex_def image_iff complex_eq_iff)
+
+lemma in_box_complex_iff:
+  "x \<in> box a b \<longleftrightarrow> Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}"
+  by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
 
 lemma Int_interval:
   fixes a :: "'a::euclidean_space"
