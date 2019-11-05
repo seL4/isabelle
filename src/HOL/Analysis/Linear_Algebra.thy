@@ -50,9 +50,6 @@ qed
 lemma independent_substdbasis: "d \<subseteq> Basis \<Longrightarrow> independent d"
   by (rule independent_mono[OF independent_Basis])
 
-lemma sum_not_0: "sum f A \<noteq> 0 \<Longrightarrow> \<exists>a \<in> A. f a \<noteq> 0"
-  by (rule ccontr) auto
-
 lemma subset_translation_eq [simp]:
     fixes a :: "'a::real_vector" shows "(+) a ` s \<subseteq> (+) a ` t \<longleftrightarrow> s \<subseteq> t"
   by auto

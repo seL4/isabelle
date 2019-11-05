@@ -2696,8 +2696,7 @@ lemma affine_hull_0_dependent:
 proof -
   obtain s u where s_u: "finite s \<and> s \<noteq> {} \<and> s \<subseteq> S \<and> sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
     using assms affine_hull_explicit[of S] by auto
-  then have "\<exists>v\<in>s. u v \<noteq> 0"
-    using sum_not_0[of "u" "s"] by auto
+  then have "\<exists>v\<in>s. u v \<noteq> 0" by auto
   then have "finite s \<and> s \<subseteq> S \<and> (\<exists>v\<in>s. u v \<noteq> 0 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = 0)"
     using s_u by auto
   then show ?thesis
@@ -3483,7 +3482,7 @@ proof -
     have "sum c s = 0"
       by (simp add: c_def comm_monoid_add_class.sum.If_cases \<open>finite s\<close> sum_negf)
     moreover have "\<not> (\<forall>v\<in>s. c v = 0)"
-      by (metis (no_types) IntD1 \<open>s \<inter> t = t\<close> a1 c_def sum_not_0 zero_neq_one)
+      by (metis (no_types) IntD1 \<open>s \<inter> t = t\<close> a1 c_def sum.neutral zero_neq_one)
     moreover have "(\<Sum>v\<in>s. c v *\<^sub>R v) = 0"
       by (simp add: c_def if_smult sum_negf
              comm_monoid_add_class.sum.If_cases \<open>finite s\<close>)
