@@ -54,11 +54,11 @@ Phabricator server
   Port 222
 
   /etc/passwd:
-  phab-daemon:x:118:126::/home/phab-daemon:/bin/bash
+  phabricator:x:118:126::/home/phabricator:/bin/bash
   vcs:x:119:125::/home/vcs:/bin/bash
 
   /etc/group:
-  phab-daemon:x:126:
+  phabricator:x:126:
   vcs:x:125:
 
   $ cp ssh/ssh-hook /usr/local/bin/.
@@ -66,24 +66,24 @@ Phabricator server
   $ cp ssh/sshd-phabricator.service /lib/systemd/system/.
   $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
 
-  $ ./bin/config set phd.user phab-daemon
+  $ ./bin/config set phd.user phabricator
   $ ./bin/config set diffusion.ssh-user vcs
   $ ./bin/config set diffusion.ssh-port 22
 
-  $ systemctl start sshd-phabricator
   $ systemctl enable sshd-phabricator
+  $ systemctl start sshd-phabricator
 
   Test on local machine:
   $ echo "{}" | ssh vcs@phabricator.sketis.net conduit conduit.ping
 
 - Repository Local Path:
     mkdir -p /var/www/phabricator/repo
-    chown phab-daemon:phab-daemon /var/www/phabricator/repo
+    chown phabricator:phabricator /var/www/phabricator/repo
 
 - PHP Daemon:
   $ cp phd/phd-phabricator.service /lib/systemd/system/.
-  $ systemctl start phd-phabricator
   $ systemctl enable phd-phabricator
+  $ systemctl start phd-phabricator
 
 - Update:
   https://secure.phabricator.com/book/phabricator/article/upgrading

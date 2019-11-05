@@ -63,4 +63,73 @@ object Linux
 
   def package_install(packages: List[String], progress: Progress = No_Progress): Unit =
     progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
+
+
+  /* users */
+
+  def user_exists(name: String): Boolean =
+    Isabelle_System.bash("id " + Bash.string(name)).ok
+
+  def user_entry(name: String, field: Int): String =
+  {
+    val result = Isabelle_System.bash("getent passwd " + Bash.string(name)).check
+    val fields = space_explode(':', result.out)
+
+    if (1 <= field && field <= fields.length) fields(field - 1)
+    else error("No passwd field " + field + " for user " + quote(name))
+  }
+
+  def user_description(name: String): String = user_entry(name, 5).takeWhile(_ != ',')
+
+  def user_home(name: String): String = user_entry(name, 6)
+
+  def user_add(name: String,
+    description: String = "",
+    system: Boolean = false,
+    ssh_setup: Boolean = false)
+  {
+    require(!description.contains(','))
+
+    if (user_exists(name)) error("User already exists: " + quote(name))
+
+    Isabelle_System.bash(
+      "adduser --quiet --disabled-password --gecos " + Bash.string(description) +
+        (if (system) " --system --group --shell /bin/bash " else "") +
+        " " + Bash.string(name)).check
+
+    if (ssh_setup) {
+      val id_rsa = user_home(name) + "/.ssh/id_rsa"
+      Isabelle_System.bash("""
+if [ ! -f """ + Bash.string(id_rsa) + """ ]
+then
+  yes '\n' | sudo -i -u """ + Bash.string(name) +
+    """ ssh-keygen -q -f """ + Bash.string(id_rsa) + """
+fi
+      """).check
+    }
+  }
+
+
+  /* system services */
+
+  def service_start(name: String): Unit =
+    Isabelle_System.bash("systemctl start " + Bash.string(name)).check
+
+  def service_stop(name: String): Unit =
+    Isabelle_System.bash("systemctl stop " + Bash.string(name)).check
+
+  def service_restart(name: String): Unit =
+    Isabelle_System.bash("systemctl restart " + Bash.string(name)).check
+
+  def service_install(name: String, spec: String)
+  {
+    val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
+    File.write(service_file, spec)
+
+    Isabelle_System.bash("""
+      set -e
+      chmod 0644 """ + File.bash_path(service_file) + """
+      systemctl enable """ + Bash.string(name) + """
+      systemctl start """ + Bash.string(name)).check
+  }
 }

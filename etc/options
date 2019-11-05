@@ -345,8 +345,6 @@ option build_log_transaction_size : int = 1  -- "number of log files for each db
 
 section "Phabricator server"
 
-option phabricator_user : string = "phabricator"
-
 option phabricator_www_user : string = "www-data"
 option phabricator_www_root : string = "/var/www"
 
