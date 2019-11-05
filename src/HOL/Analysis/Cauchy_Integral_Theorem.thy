@@ -3,7 +3,11 @@ section \<open>Complex Path Integrals and Cauchy's Integral Theorem\<close>
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
 theory Cauchy_Integral_Theorem
-imports Complex_Transcendental Henstock_Kurzweil_Integration Weierstrass_Theorems Retracts
+imports
+  Complex_Transcendental
+  Henstock_Kurzweil_Integration
+  Weierstrass_Theorems
+  Retracts
 begin
 
 lemma leibniz_rule_holomorphic:
@@ -4306,7 +4310,7 @@ proof -
     by (auto simp: open_dist)
 qed
 
-subsection\<open>Winding number is zero "outside" a curve, in various senses\<close>
+subsection\<open>Winding number is zero "outside" a curve\<close>
 
 proposition winding_number_zero_in_outside:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and z: "z \<in> outside (path_image \<gamma>)"

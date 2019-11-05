@@ -1,9 +1,11 @@
 section \<open>Absolute Retracts, Absolute Neighbourhood Retracts and Euclidean Neighbourhood Retracts\<close>
 
 theory Retracts
-  imports Brouwer_Fixpoint Continuous_Extension Ordered_Euclidean_Space
+imports
+  Brouwer_Fixpoint
+  Continuous_Extension
+  Ordered_Euclidean_Space
 begin
-
 
 text \<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also Euclidean neighbourhood
 retracts (ENR). We define AR and ANR by specializing the standard definitions for a set to embedding

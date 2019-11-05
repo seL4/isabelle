@@ -1,4 +1,4 @@
-section\<open>Lindelof spaces\<close>
+section\<open>Lindel\"of spaces\<close>
 
 theory Lindelof_Spaces
 imports T1_Spaces
