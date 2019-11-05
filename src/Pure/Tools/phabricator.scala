@@ -192,7 +192,7 @@ object Phabricator
 
     progress.echo("MySQL setup...")
 
-    File.write(Path.explode("/etc/mysql/mysql.conf.d/" + isabelle_phabricator_name(ext = "cnf")),
+    File.write(Path.explode("/etc/mysql/mysql.conf.d/" + phabricator_name(ext = "cnf")),
 """[mysqld]
 max_allowed_packet = 32M
 innodb_buffer_pool_size = 1600M
