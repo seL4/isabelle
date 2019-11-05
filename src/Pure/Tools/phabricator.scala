@@ -83,14 +83,17 @@ object Phabricator
     prefix: String = "",
     root: String = "",
     repo: String = "",
+    package_update: Boolean = false,
     progress: Progress = No_Progress)
   {
     /* system environment */
 
     Linux.check_system_root()
 
-    Linux.package_update(progress = progress)
-    Linux.check_reboot_required()
+    if (package_update) {
+      Linux.package_update(progress = progress)
+      Linux.check_reboot_required()
+    }
 
     Linux.package_install(packages, progress = progress)
     Linux.check_reboot_required()
@@ -189,10 +192,11 @@ object Phabricator
   val isabelle_tool1 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux", args =>
     {
+      var repo = ""
+      var package_update = false
       var options = Options.init()
       var prefix = ""
       var root = ""
-      var repo = ""
 
       val getopts =
         Getopts("""
@@ -200,6 +204,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
   Options are:
     -R DIR       repository directory (default: """ + default_repo(options, "NAME") + """)
+    -U           full update of system packages before installation
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p PREFIX    prefix for derived names (default: """ + default_prefix("NAME") + """)
     -r DIR       installation root directory (default: """ + default_root(options, "NAME") + """)
@@ -213,6 +218,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
   a regular Unix user and used for public SSH access.
 """,
           "R:" -> (arg => repo = arg),
+          "U" -> (_ => package_update = true),
           "o:" -> (arg => options = options + arg),
           "p:" -> (arg => prefix = arg),
           "r:" -> (arg => root = arg))
@@ -229,7 +235,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
       val progress = new Console_Progress
 
       phabricator_setup(options, name, prefix = prefix, root = root, repo = repo,
-        progress = progress)
+        package_update = package_update, progress = progress)
     })
 
 
