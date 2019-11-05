@@ -16,6 +16,29 @@ object Phabricator
 {
   /** defaults **/
 
+  /* required packages */
+
+  val packages: List[String] =
+    Build_Docker.packages :::
+    List(
+      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
+      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
+      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
+      // more packages
+      "php-zip", "python-pygments", "ssh")
+
+
+  /* global system resources */
+
+  val daemon_user = "phabricator"
+
+  val ssh_standard = 22
+  val ssh_alternative1 = 222
+  val ssh_alternative2 = 2222
+
+
+  /* installation parameters */
+
   val default_name = "vcs"
 
   def default_prefix(name: String): String = "phabricator-" + name
@@ -25,15 +48,6 @@ object Phabricator
 
   def default_repo(options: Options, name: String): Path =
     default_root(options, name) + Path.basic("repo")
-
-  val packages: List[String] =
-    Build_Docker.packages :::
-    List(
-      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
-      "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
-      "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
-      // more packages
-      "php-zip", "python-pygments")
 
 
 
@@ -77,6 +91,17 @@ object Phabricator
 
   /** setup **/
 
+  def user_setup(name: String, description: String, ssh_setup: Boolean = false)
+  {
+    if (!Linux.user_exists(name)) {
+      Linux.user_add(name, description = description, ssh_setup = ssh_setup)
+    }
+    else if (Linux.user_description(name) != description) {
+      error("User " + quote(name) + " already exists --" +
+        " for Phabricator it should have the description:\n  " + quote(description))
+    }
+  }
+
   def phabricator_setup(
     options: Options,
     name: String = default_name,
@@ -99,6 +124,18 @@ object Phabricator
     Linux.check_reboot_required()
 
 
+    /* users */
+
+    if (name == daemon_user) {
+      error("Clash of installation name with daemon user " + quote(daemon_user))
+    }
+
+    user_setup(daemon_user, "Phabricator Daemon User", ssh_setup = true)
+    user_setup(name, "Phabricator SSH User")
+
+    val www_user = options.string("phabricator_www_user")
+
+
     /* basic installation */
 
     val prefix_name = proper_string(prefix) getOrElse default_prefix(name)
@@ -118,7 +155,7 @@ object Phabricator
     progress.bash(cwd = root_path.file, echo = true,
       script = """
         set -e
-        chown """ + Bash.string(options.string("phabricator_www_user")) + """ .
+        chown """ + Bash.string(www_user) + """ .
         chmod 755 .
 
         git clone https://github.com/phacility/libphutil.git
@@ -150,6 +187,48 @@ object Phabricator
       Bash.string(prefix_name.replace("-", "_")))
 
     config.execute("storage upgrade --force")
+
+
+    /* PHP daemon */
+
+    progress.echo("PHP daemon setup...")
+
+    config.execute("config set phd.user " + Bash.string(daemon_user))
+
+    Linux.service_install("phd-" + prefix_name,
+"""[Unit]
+Description=PHP daemon (Phabricator """ + quote(name) + """)
+After=syslog.target network.target apache2.service mysql.service
+
+[Service]
+Type=oneshot
+User=""" + daemon_user + """
+Group=""" + daemon_user + """
+Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+ExecStart=""" + root_path.expand.implode + """/phabricator/bin/phd start
+ExecStop=""" + root_path.expand.implode + """/phabricator/bin/phd stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+""")
+
+
+    /* SSH hosting */
+
+    progress.echo("SSH hosting setup...")
+
+    val ssh_port = ssh_alternative2
+
+    config.execute("config set diffusion.ssh-user " + Bash.string(name))
+    config.execute("config set diffusion.ssh-port " + ssh_port)
+
+    val sudoers_file = Path.explode("/etc/sudoers.d") + Path.basic(prefix_name)
+    File.write(sudoers_file,
+      www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
+      name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
+
+    Isabelle_System.bash("chmod 0440 " + File.bash_path(sudoers_file)).check
 
 
     /* Apache setup */
