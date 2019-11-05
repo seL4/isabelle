@@ -99,7 +99,7 @@ object Phabricator
   def user_setup(name: String, description: String, ssh_setup: Boolean = false)
   {
     if (!Linux.user_exists(name)) {
-      Linux.user_add(name, description = description, ssh_setup = ssh_setup)
+      Linux.user_add(name, description = description, system = true, ssh_setup = ssh_setup)
     }
     else if (Linux.user_description(name) != description) {
       error("User " + quote(name) + " already exists --" +

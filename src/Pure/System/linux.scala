@@ -83,7 +83,10 @@ object Linux
 
   def user_home(name: String): String = user_entry(name, 6)
 
-  def user_add(name: String, description: String = "", ssh_setup: Boolean = false)
+  def user_add(name: String,
+    description: String = "",
+    system: Boolean = false,
+    ssh_setup: Boolean = false)
   {
     require(!description.contains(','))
 
@@ -91,6 +94,7 @@ object Linux
 
     Isabelle_System.bash(
       "adduser --quiet --disabled-password --gecos " + Bash.string(description) +
+        (if (system) " --system --group --shell /bin/bash " else "") +
         " " + Bash.string(name)).check
 
     if (ssh_setup) {
