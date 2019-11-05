@@ -14,7 +14,7 @@ imports
   "HOL-Library.Set_Algebras"
 begin
 
-subsection \<open>Convexity\<close>
+subsection \<open>Convex Sets\<close>
 
 definition\<^marker>\<open>tag important\<close> convex :: "'a::real_vector set \<Rightarrow> bool"
   where "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
@@ -340,7 +340,7 @@ lemma convex_finite:
   done
 
 
-subsection \<open>Functions that are convex on a set\<close>
+subsection \<open>Convex Functions on a Set\<close>
 
 definition\<^marker>\<open>tag important\<close> convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
   where "convex_on s f \<longleftrightarrow>
@@ -1865,7 +1865,7 @@ proof -
 qed
 
 
-subsection \<open>Affine dependence and consequential theorems\<close>
+subsection \<open>Affine Dependence\<close>
 
 text "Formalized by Lars Schewe."
 

@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge; proofs reworked by LCP
 *)
 
-section \<open>Traces, Determinant of square matrices and some properties\<close>
+section \<open>Traces and Determinants of Square Matrices\<close>
 
 theory Determinants
 imports

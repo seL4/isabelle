@@ -806,7 +806,7 @@ proof -
     by (simp add: span_span)
   from card_le_dim_spanning[OF CSV SVC C(1)] C(2,3) fB
   have iC: "independent C"
-    by (simp add: dim_span)
+    by (simp)
   from C fB have "card C \<le> dim V"
     by simp
   moreover have "dim V \<le> card C"
@@ -1348,8 +1348,7 @@ proof -
   show ?thesis
     apply (rule that[OF b(1)])
     apply (rule subspace_dim_equal)
-    by (auto simp: assms b dim_hyperplane dim_span subspace_hyperplane
-        subspace_span)
+    by (auto simp: assms b dim_hyperplane subspace_hyperplane)
 qed
 
 lemma dim_eq_hyperplane:
@@ -1358,7 +1357,7 @@ lemma dim_eq_hyperplane:
 by (metis One_nat_def dim_hyperplane dim_span lowdim_eq_hyperplane)
 
 
-subsection\<open> Orthogonal bases, Gram-Schmidt process, and related theorems\<close>
+subsection\<open> Orthogonal bases and Gram-Schmidt process\<close>
 
 lemma pairwise_orthogonal_independent:
   assumes "pairwise orthogonal S" and "0 \<notin> S"
@@ -1419,7 +1418,7 @@ proof -
        if "x \<in> S" for x
   proof -
     have "a \<bullet> x = (\<Sum>y\<in>S. if y = x then y \<bullet> a else 0)"
-      by (simp add: \<open>finite S\<close> inner_commute sum.delta that)
+      by (simp add: \<open>finite S\<close> inner_commute that)
     also have "... =  (\<Sum>b\<in>S. b \<bullet> a * (b \<bullet> x) / (b \<bullet> b))"
       apply (rule sum.cong [OF refl], simp)
       by (meson S orthogonal_def pairwise_def that)
@@ -1572,8 +1571,7 @@ proof -
   obtain B where "B \<subseteq> span S" and orthB: "pairwise orthogonal B"
              and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "card B = dim S" "span B = span S"
-    by (rule orthonormal_basis_subspace [of "span S", OF subspace_span])
-      (auto simp: dim_span)
+    by (rule orthonormal_basis_subspace [of "span S", OF subspace_span]) (auto)
   with assms obtain u where spanBT: "span B \<subseteq> span T" and "u \<notin> span B" "u \<in> span T"
     by auto
   obtain C where orthBC: "pairwise orthogonal (B \<union> C)" and spanBC: "span (B \<union> C) = span (B \<union> {u})"
@@ -1615,11 +1613,11 @@ corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_subspace_exists:
   assumes "dim S < DIM('a)"
   obtains x where "x \<noteq> 0" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
 proof -
-have "span S \<subset> UNIV"
+  have "span S \<subset> UNIV"
   by (metis (mono_tags) UNIV_I assms inner_eq_zero_iff less_le lowdim_subset_hyperplane
       mem_Collect_eq top.extremum_strict top.not_eq_extremum)
   with orthogonal_to_subspace_exists_gen [of S UNIV] that show ?thesis
-    by (auto simp: span_UNIV)
+    by (auto)
 qed
 
 corollary\<^marker>\<open>tag unimportant\<close> orthogonal_to_vector_exists:
@@ -1694,7 +1692,7 @@ proof -
       using \<open>independent (S - {0})\<close> independent_imp_finite by blast
     show "card (S - {0}) = DIM('a)"
       using span_delete_0 [of S] S
-      by (simp add: \<open>independent (S - {0})\<close> indep_card_eq_dim_span dim_UNIV)
+      by (simp add: \<open>independent (S - {0})\<close> indep_card_eq_dim_span)
   qed (use S \<open>a \<noteq> 0\<close> in auto)
 qed
 
@@ -1745,7 +1743,7 @@ proof -
   then have 0: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by simp
   have "dim(A \<union> B) = dim (span (A \<union> B))"
-    by (simp add: dim_span)
+    by (simp)
   also have "span (A \<union> B) = ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
     by (auto simp add: span_Un image_def)
   also have "dim \<dots> = dim {x + y |x y. x \<in> span A \<and> y \<in> span B}"
@@ -1753,9 +1751,9 @@ proof -
   also have "... = dim {x + y |x y. x \<in> span A \<and> y \<in> span B} + dim(span A \<inter> span B)"
     by (auto simp: dest: 0)
   also have "... = dim (span A) + dim (span B)"
-    by (rule dim_sums_Int) (auto simp: subspace_span)
+    by (rule dim_sums_Int) (auto)
   also have "... = dim A + dim B"
-    by (simp add: dim_span)
+    by (simp)
   finally show ?thesis .
 qed
 
@@ -1787,8 +1785,7 @@ proof -
         using \<open>y \<in> span A\<close> add.commute by blast
     qed
     show "span B \<subseteq> span ({y \<in> B. \<forall>x\<in>A. orthogonal x y} \<union> A)"
-      by (rule span_minimal)
-        (auto intro: * span_minimal simp: subspace_span)
+      by (rule span_minimal) (auto intro: * span_minimal)
   qed
   then show ?thesis
     by (metis (no_types, lifting) dim_orthogonal_sum dim_span mem_Collect_eq
@@ -1845,7 +1842,7 @@ proof -
         show "norm (h (f x) - h l) < e" if "norm (f x - l) < e / B" for x
           using that B
           apply (simp add: field_split_simps)
-          by (metis \<open>linear h\<close> le_less_trans linear_diff mult.commute)
+          by (metis \<open>linear h\<close> le_less_trans linear_diff)
       qed
     qed
   qed
