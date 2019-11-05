@@ -179,10 +179,20 @@ lemma atLeastAtMost_eq_cball:
   shows "{a .. b} = cball ((a + b)/2) ((b - a)/2)"
   by (auto simp: dist_real_def field_simps mem_cball)
 
+lemma cball_eq_atLeastAtMost:
+  fixes a b::real
+  shows "cball a b = {a - b .. a + b}"
+  by (auto simp: dist_real_def)
+
 lemma greaterThanLessThan_eq_ball:
   fixes a b::real
   shows "{a <..< b} = ball ((a + b)/2) ((b - a)/2)"
   by (auto simp: dist_real_def field_simps mem_ball)
+
+lemma ball_eq_greaterThanLessThan:
+  fixes a b::real
+  shows "ball a b = {a - b <..< a + b}"
+  by (auto simp: dist_real_def)
 
 lemma interior_ball [simp]: "interior (ball x e) = ball x e"
   by (simp add: interior_open)

@@ -13,6 +13,20 @@ lemma path_connected_interval [simp]:
   shows "path_connected {a..b}"
   using is_interval_cc is_interval_path_connected by blast
 
+lemma segment_to_closest_point:
+  fixes S :: "'a :: euclidean_space set"
+  shows "\<lbrakk>closed S; S \<noteq> {}\<rbrakk> \<Longrightarrow> open_segment a (closest_point S a) \<inter> S = {}"
+  apply (subst disjoint_iff_not_equal)
+  apply (clarify dest!: dist_in_open_segment)
+  by (metis closest_point_le dist_commute le_less_trans less_irrefl)
+
+lemma segment_to_point_exists:
+  fixes S :: "'a :: euclidean_space set"
+    assumes "closed S" "S \<noteq> {}"
+    obtains b where "b \<in> S" "open_segment a b \<inter> S = {}"
+  by (metis assms segment_to_closest_point closest_point_exists that)
+
+
 subsection \<open>The Brouwer reduction theorem\<close>
 
 theorem Brouwer_reduction_theorem_gen:

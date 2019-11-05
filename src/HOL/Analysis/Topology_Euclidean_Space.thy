@@ -1108,6 +1108,12 @@ lemma is_interval_minus_translation'[simp]:
   using is_interval_translation[of "-c" X]
   by (metis image_cong uminus_add_conv_diff)
 
+lemma is_interval_cball_1[intro, simp]: "is_interval (cball a b)" for a b::real
+  by (simp add: cball_eq_atLeastAtMost is_interval_def)
+
+lemma is_interval_ball_real: "is_interval (ball a b)" for a b::real
+  by (simp add: ball_eq_greaterThanLessThan is_interval_def)
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounded Projections\<close>
 

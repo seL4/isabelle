@@ -8,7 +8,10 @@
 chapter \<open>Unsorted\<close>
 
 theory Starlike
-imports Convex_Euclidean_Space Abstract_Limits
+  imports
+    Convex_Euclidean_Space
+    Abstract_Limits
+    Line_Segment
 begin
 
 subsection\<open>Starlike sets\<close>

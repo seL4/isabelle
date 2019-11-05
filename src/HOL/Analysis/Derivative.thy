@@ -7,11 +7,12 @@ section \<open>Derivative\<close>
 
 theory Derivative
   imports
-    Convex_Euclidean_Space 
+    Convex_Euclidean_Space
     Abstract_Limits
     Operator_Norm
     Uniform_Limit
     Bounded_Linear_Function
+    Line_Segment
 begin
 
 declare bounded_linear_inner_left [intro]
