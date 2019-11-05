@@ -222,31 +222,6 @@ local_infile = 0
     config.execute("storage upgrade --force")
 
 
-    /* PHP daemon */
-
-    progress.echo("PHP daemon setup...")
-
-    config.execute("config set phd.user " + Bash.string(daemon_user))
-
-    Linux.service_install(isabelle_phabricator_name(),
-"""[Unit]
-Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
-After=syslog.target network.target apache2.service mysql.service
-
-[Service]
-Type=oneshot
-User=""" + daemon_user + """
-Group=""" + daemon_user + """
-Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
-ExecStart=""" + config.home.implode + """/bin/phd start
-ExecStop=""" + config.home.implode + """/bin/phd stop
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-""")
-
-
     /* SSH hosting */
 
     progress.echo("SSH hosting setup...")
@@ -313,6 +288,32 @@ WantedBy=multi-user.target
       a2ensite """ + Bash.string(isabelle_phabricator_name())).check
 
     Linux.service_restart("apache2")
+
+
+    /* PHP daemon */
+
+    progress.echo("PHP daemon setup...")
+
+    config.execute("config set phd.user " + Bash.string(daemon_user))
+
+    Linux.service_install(isabelle_phabricator_name(),
+"""[Unit]
+Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
+After=syslog.target network.target apache2.service mysql.service
+
+[Service]
+Type=oneshot
+User=""" + daemon_user + """
+Group=""" + daemon_user + """
+Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
+ExecStart=""" + config.home.implode + """/bin/phd start
+ExecStop=""" + config.home.implode + """/bin/phd stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+""")
+
 
     progress.echo("\nDONE\nWeb configuration via " + server_url)
   }
