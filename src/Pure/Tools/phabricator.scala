@@ -287,6 +287,8 @@ local_infile = 0
       a2enmod rewrite
       a2ensite """ + Bash.string(isabelle_phabricator_name())).check
 
+    config.execute("config set phabricator.base-uri " + Bash.string(server_url))
+
     Linux.service_restart("apache2")
 
 
