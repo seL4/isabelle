@@ -296,7 +296,7 @@ local_infile = 0
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
 
-    Linux.service_install(isabelle_phabricator_name(),
+    Linux.service_install(isabelle_phabricator_name(name = name),
 """[Unit]
 Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
 After=syslog.target network.target apache2.service mysql.service
