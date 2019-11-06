@@ -54,6 +54,24 @@ object Phabricator
   def default_repo(options: Options, name: String): Path =
     default_root(options, name) + Path.basic("repo")
 
+  val mailers_path: Path = Path.explode("mailers.json")
+
+  val mailers_template: String =
+"""[
+  {
+    "key": "example.org",
+    "type": "smtp",
+    "options": {
+      "host": "mail.example.org",
+      "port": 465,
+      "user": "phabricator@example.org",
+      "password": "********",
+      "protocol": "ssl",
+      "message-id": true
+    }
+  }
+]"""
+
 
 
   /** global configuration **/
@@ -317,6 +335,15 @@ WantedBy=multi-user.target
 """)
 
 
+    /* mail configuration */
+
+    val mail_config = config.home + mailers_path
+
+    progress.echo("Template for mail configuration: " + mail_config)
+
+    File.write(mail_config, mailers_template)
+
+
     progress.echo("\nDONE\nWeb configuration via " + server_url)
   }
 
@@ -371,38 +398,79 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
 
 
-  /** update **/
+  /** setup mail **/
 
-  def phabricator_update(name: String, progress: Progress = No_Progress)
+  def phabricator_setup_mail(
+    name: String = default_name,
+    config_file: Option[Path] = None,
+    test_user: String = "",
+    progress: Progress = No_Progress)
   {
     Linux.check_system_root()
 
-    ???
+    val config = get_config(name)
+    val default_config_file = config.home + mailers_path
+
+    val mail_config = config_file getOrElse default_config_file
+
+    def setup_mail
+    {
+      progress.echo("Using mail configuration from " + mail_config)
+      config.execute("config set cluster.mailers --stdin < " + File.bash_path(mail_config))
+
+      if (test_user.nonEmpty) {
+        progress.echo("Sending test mail to " + quote(test_user))
+        progress.bash(cwd = config.home.file, echo = true,
+          script = """echo "Test from Phabricator ($(date))" | ./bin/mail send-test --subject "Test" --to """ +
+            Bash.string(test_user)).check
+      }
+    }
+
+    if (config_file.isEmpty) {
+      if (!default_config_file.is_file) File.write(default_config_file, mailers_template)
+      if (File.read(default_config_file) == mailers_template) {
+        progress.echo(
+          "Please invoke the tool again, after providing details in\n  " + default_config_file)
+      }
+      else setup_mail
+    }
+    else setup_mail
   }
 
 
   /* Isabelle tool wrapper */
 
   val isabelle_tool2 =
-    Isabelle_Tool("phabricator_update", "update Phabricator server installation", args =>
+    Isabelle_Tool("phabricator_setup_mail",
+      "setup mail configuration for existing Phabricator server", args =>
     {
+      var test_user = ""
+      var name = default_name
+      var config_file: Option[Path] = None
+
       val getopts =
         Getopts("""
-Usage: isabelle phabricator_update [NAME]
+Usage: isabelle phabricator_setup_mail [OPTIONS]
 
-  Update Phabricator installation, with lookup of NAME (default + """ + quote(default_name) + """)
-  in """ + global_config + "\n")
+  Options are:
+    -T USER      send test mail to Phabricator user
+    -f FILE      config file (default: """ + mailers_path + """ within installation home)
+    -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
+
+  Provide mail configuration for existing Phabricator installation. See also
+  https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
+  (notably section "Mailer: SMTP").
+""",
+          "T:" -> (arg => test_user = arg),
+          "f:" -> (arg => config_file = Some(Path.explode(arg))),
+          "n:" -> (arg => name = arg))
 
       val more_args = getopts(args)
-      val name =
-        more_args match {
-          case Nil => default_name
-          case List(name) => name
-          case _ => getopts.usage()
-        }
+      if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress
 
-      phabricator_update(name, progress = progress)
+      phabricator_setup_mail(name = name, config_file = config_file,
+        test_user = test_user, progress = progress)
     })
 }
