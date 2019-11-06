@@ -10,13 +10,19 @@
 \usepackage{pdfsetup}
 
 \usepackage{tocloft}
-\setlength{\cftsubsecnumwidth}{3em}
+\setlength{\cftsubsecnumwidth}{3.5em}
 \cftsetpnumwidth{2em}
 \cftsetrmarg{3em}
+\renewcommand\cftchapafterpnum{\vskip5pt}
+\addtolength{\cftsubsecindent}{-1\cftsecindent}% Reduce indent for \subsection
+\setlength{\cftsecindent}{0pt}% Remove indent for \section
+%\renewcommand{\numberline}[1]{#1~}% More compact but uneven indentation
 
 \urlstyle{rm}
 \isabellestyle{literalunderscore}
 \pagestyle{myheadings}
+
+\raggedbottom
 
 \begin{document}
 
