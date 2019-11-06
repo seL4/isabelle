@@ -455,7 +455,7 @@ qed
 lemma ev_at_shift: "ev_at (HLD X) i (stake (Suc i) \<omega> @- \<omega>' :: 's stream) \<longleftrightarrow> ev_at (HLD X) i \<omega>"
   by (induction i arbitrary: \<omega>) (auto simp: HLD_iff)
 
-lemma ev_iff_ev_at_unqiue: "ev P \<omega> \<longleftrightarrow> (\<exists>!n. ev_at P n \<omega>)"
+lemma ev_iff_ev_at_unique: "ev P \<omega> \<longleftrightarrow> (\<exists>!n. ev_at P n \<omega>)"
   by (auto intro: ev_at_unique simp: ev_iff_ev_at)
 
 lemma alw_HLD_iff_streams: "alw (HLD X) \<omega> \<longleftrightarrow> \<omega> \<in> streams X"
