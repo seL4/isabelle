@@ -1,7 +1,9 @@
 /*  Title:      Pure/Tools/phabricator.scala
     Author:     Makarius
 
-Support for Phabricator server. See also:
+Support for Phabricator server, notably for Ubuntu 18.04 LTS.
+
+See also:
   - https://www.phacility.com/phabricator
   - https://secure.phabricator.com/book/phabricator
 */
@@ -30,6 +32,8 @@ object Phabricator
 
   /* global system resources */
 
+  val www_user = "www-data"
+
   val daemon_user = "phabricator"
 
   val ssh_standard = 22
@@ -47,12 +51,10 @@ object Phabricator
   def isabelle_phabricator_name(name: String = "", ext: String = ""): String =
     "isabelle-" + phabricator_name(name = name, ext = ext)
 
-  def default_root(options: Options, name: String): Path =
-    Path.explode(options.string("phabricator_www_root")) +
-    Path.basic(phabricator_name(name = name))
+  def default_root(name: String): Path =
+    Path.explode("/var/www") + Path.basic(phabricator_name(name = name))
 
-  def default_repo(options: Options, name: String): Path =
-    default_root(options, name) + Path.basic("repo")
+  def default_repo(name: String): Path = default_root(name) + Path.basic("repo")
 
   val mailers_path: Path = Path.explode("mailers.json")
 
@@ -126,7 +128,6 @@ object Phabricator
   }
 
   def phabricator_setup(
-    options: Options,
     name: String = default_name,
     root: String = "",
     repo: String = "",
@@ -155,13 +156,11 @@ object Phabricator
     user_setup(daemon_user, "Phabricator Daemon User", ssh_setup = true)
     user_setup(name, "Phabricator SSH User")
 
-    val www_user = options.string("phabricator_www_user")
-
 
     /* basic installation */
 
-    val root_path = if (root.nonEmpty) Path.explode(root) else default_root(options, name)
-    val repo_path = if (repo.nonEmpty) Path.explode(repo) else default_repo(options, name)
+    val root_path = if (root.nonEmpty) Path.explode(root) else default_root(name)
+    val repo_path = if (repo.nonEmpty) Path.explode(repo) else default_repo(name)
 
     val configs = read_config()
 
@@ -221,8 +220,7 @@ local_infile = 0
 
 
     def mysql_conf(R: Regex): Option[String] =
-      split_lines(File.read(Path.explode(options.string("phabricator_mysql_config")))).
-        collectFirst({ case R(a) => a })
+      split_lines(File.read(Path.explode("/etc/mysql/debian.cnf"))).collectFirst({ case R(a) => a })
 
     for (user <- mysql_conf("""^user\s*=\s*(\S*)\s*$""".r)) {
       config.execute("config set mysql.user " + Bash.string(user))
@@ -278,7 +276,7 @@ local_infile = 0
 
     progress.echo("Apache setup...")
 
-    val apache_root = Path.explode(options.string("phabricator_apache_root"))
+    val apache_root = Path.explode("/etc/apache2")
     val apache_sites = apache_root + Path.explode("sites-available")
 
     if (!apache_sites.is_dir) error("Bad Apache sites directory " + apache_sites)
@@ -355,7 +353,6 @@ WantedBy=multi-user.target
     {
       var repo = ""
       var package_update = false
-      var options = Options.init()
       var root = ""
 
       val getopts =
@@ -363,10 +360,9 @@ WantedBy=multi-user.target
 Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
   Options are:
-    -R DIR       repository directory (default: """ + default_repo(options, "NAME") + """)
+    -R DIR       repository directory (default: """ + default_repo("NAME") + """)
     -U           full update of system packages before installation
-    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -r DIR       installation root directory (default: """ + default_root(options, "NAME") + """)
+    -r DIR       installation root directory (default: """ + default_root("NAME") + """)
 
   Install Phabricator as Ubuntu LAMP application (Linux, Apache, MySQL, PHP).
 
@@ -378,7 +374,6 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 """,
           "R:" -> (arg => repo = arg),
           "U" -> (_ => package_update = true),
-          "o:" -> (arg => options = options + arg),
           "r:" -> (arg => root = arg))
 
       val more_args = getopts(args)
@@ -392,7 +387,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
       val progress = new Console_Progress
 
-      phabricator_setup(options, name, root = root, repo = repo,
+      phabricator_setup(name, root = root, repo = repo,
         package_update = package_update, progress = progress)
     })
 

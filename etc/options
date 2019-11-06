@@ -343,15 +343,6 @@ option build_log_history : int = 30  -- "length of relevant history (in days)"
 option build_log_transaction_size : int = 1  -- "number of log files for each db update"
 
 
-section "Phabricator server"
-
-option phabricator_www_user : string = "www-data"
-option phabricator_www_root : string = "/var/www"
-
-option phabricator_mysql_config : string = "/etc/mysql/debian.cnf"
-option phabricator_apache_root : string = "/etc/apache2"
-
-
 section "Isabelle/Scala/ML system channel"
 
 option system_channel_address : string = ""
