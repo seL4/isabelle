@@ -16,11 +16,6 @@ begin
 
 section \<open>Elementary Topology\<close>
 
-subsection \<open>TODO: move?\<close>
-
-lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
-  using openI by auto
-
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Affine transformations of intervals\<close>
 
@@ -47,7 +42,6 @@ lemma real_affinity_eq: "m \<noteq> 0 \<Longrightarrow> m * x + c = y \<longleft
 lemma real_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m * x + c  \<longleftrightarrow> inverse m * y + - (c / m) = x"
   for m :: "'a::linordered_field"
   by (simp add: field_simps)
-
 
 
 subsection \<open>Topological Basis\<close>
