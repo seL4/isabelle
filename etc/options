@@ -351,13 +351,6 @@ option phabricator_www_root : string = "/var/www"
 option phabricator_mysql_config : string = "/etc/mysql/debian.cnf"
 option phabricator_apache_root : string = "/etc/apache2"
 
-option phabricator_smtp_host : string = ""
-option phabricator_smtp_port : int = 465
-option phabricator_smtp_user : string = ""
-option phabricator_smtp_passwd : string = ""
-option phabricator_smtp_protocol : string = "ssl"
-option phabricator_smtp_message_id : bool = true
-
 
 section "Isabelle/Scala/ML system channel"
 
