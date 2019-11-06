@@ -49,6 +49,9 @@ proof -
   ultimately show "open S" by simp
 qed
 
+lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
+by (auto intro: openI)
+
 lemma closed_empty [continuous_intros, intro, simp]: "closed {}"
   unfolding closed_def by simp
 
