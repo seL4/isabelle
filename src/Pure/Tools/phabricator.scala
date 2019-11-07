@@ -219,7 +219,7 @@ local_infile = 0
 
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
-    config.execute("storage upgrade --force")
+    progress.bash("./bin/storage upgrade --force", cwd = config.home.file, echo = true).check
 
 
     /* SSH hosting */
