@@ -419,7 +419,8 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
       }
       if (File.read(default_config_file) == mailers_template) {
         progress.echo(
-          "Please invoke the tool again, after providing details in\n  " + default_config_file)
+          "Please invoke the tool again, after providing details in:\n  " +
+          default_config_file.implode)
       }
       else setup_mail
     }
