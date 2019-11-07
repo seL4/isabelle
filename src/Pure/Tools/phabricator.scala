@@ -333,15 +333,6 @@ WantedBy=multi-user.target
 """)
 
 
-    /* mail configuration */
-
-    val mail_config = config.home + mailers_path
-
-    progress.echo("Template for mail configuration: " + mail_config)
-
-    File.write(mail_config, mailers_template)
-
-
     progress.echo("\nDONE\nWeb configuration via " + server_url)
   }
 
@@ -422,7 +413,10 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
     }
 
     if (config_file.isEmpty) {
-      if (!default_config_file.is_file) File.write(default_config_file, mailers_template)
+      if (!default_config_file.is_file) {
+        File.write(default_config_file, mailers_template)
+        Isabelle_System.bash("chmod 600 " + File.bash_path(default_config_file)).check
+      }
       if (File.read(default_config_file) == mailers_template) {
         progress.echo(
           "Please invoke the tool again, after providing details in\n  " + default_config_file)
