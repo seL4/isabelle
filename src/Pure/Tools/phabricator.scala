@@ -421,8 +421,13 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
       }
       if (File.read(default_config_file) == mailers_template) {
         progress.echo(
-          "Please invoke the tool again, after providing details in:\n  " +
-          default_config_file.implode)
+"""
+Please invoke the tool again, after providing details in
+  """ + default_config_file.implode + """
+
+See also section "Mailer: SMTP" in
+  https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
+""")
       }
       else setup_mail
     }
@@ -449,9 +454,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     -f FILE      config file (default: """ + default_mailers + """ within installation root)
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
-  Provide mail configuration for existing Phabricator installation. See also
-  https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
-  (notably section "Mailer: SMTP").
+  Provide mail configuration for existing Phabricator installation.
 """,
           "T:" -> (arg => test_user = arg),
           "f:" -> (arg => config_file = Some(Path.explode(arg))),
