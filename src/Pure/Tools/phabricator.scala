@@ -330,15 +330,17 @@ WantedBy=multi-user.target
     {
       var repo = ""
       var package_update = false
+      var name = default_name
       var root = ""
 
       val getopts =
         Getopts("""
-Usage: isabelle phabricator_setup [OPTIONS] [NAME]
+Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
     -R DIR       repository directory (default: """ + default_repo("NAME") + """)
     -U           full update of system packages before installation
+    -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
 
   Install Phabricator as Ubuntu LAMP application (Linux, Apache, MySQL, PHP).
@@ -346,25 +348,20 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
   Slogan: "Discuss. Plan. Code. Review. Test.
   Every application your project needs, all in one tool."
 
-  The installation NAME (default: """ + quote(default_name) + """) is mapped to
-  a regular Unix user and used for public SSH access.
+  The installation name (default: """ + quote(default_name) + """) is mapped to a regular
+  Unix user; this is relevant for public SSH access.
 """,
           "R:" -> (arg => repo = arg),
           "U" -> (_ => package_update = true),
+          "n:" -> (arg => name = arg),
           "r:" -> (arg => root = arg))
 
       val more_args = getopts(args)
-
-      val name =
-        more_args match {
-          case Nil => default_name
-          case List(name) => name
-          case _ => getopts.usage()
-        }
+      if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress
 
-      phabricator_setup(name, root = root, repo = repo,
+      phabricator_setup(name = name, root = root, repo = repo,
         package_update = package_update, progress = progress)
     })
 
