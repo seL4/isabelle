@@ -162,7 +162,7 @@ lemma bin_minus_type [TC]: "w \<in> bin ==> bin_minus(w) \<in> bin"
 by (induct_tac "w", auto)
 
 (*This proof is complicated by the mutual recursion*)
-lemma bin_add_type [rule_format,TC]:
+lemma bin_add_type [rule_format]:
      "v \<in> bin ==> \<forall>w\<in>bin. bin_add(v,w) \<in> bin"
 apply (unfold bin_add_def)
 apply (induct_tac "v")
@@ -171,6 +171,8 @@ apply (rename_tac [3] "w'")
 apply (induct_tac [3] "w'")
 apply (simp_all add: NCons_type)
 done
+
+declare bin_add_type [TC]
 
 lemma bin_mult_type [TC]: "[| v \<in> bin; w \<in> bin |] ==> bin_mult(v,w) \<in> bin"
 by (induct_tac "v", auto)
