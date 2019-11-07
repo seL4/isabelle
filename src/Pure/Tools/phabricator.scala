@@ -143,6 +143,8 @@ object Phabricator
 
     /* basic installation */
 
+    progress.echo("\nPhabricator installation...")
+
     val root_path = if (root.nonEmpty) Path.explode(root) else default_root(name)
     val repo_path = if (repo.nonEmpty) Path.explode(repo) else default_repo(name)
 
@@ -191,7 +193,7 @@ object Phabricator
 
     /* MySQL setup */
 
-    progress.echo("MySQL setup...")
+    progress.echo("\nMySQL setup...")
 
     File.write(Path.explode("/etc/mysql/mysql.conf.d/" + phabricator_name(ext = "cnf")),
 """[mysqld]
@@ -224,7 +226,7 @@ local_infile = 0
 
     /* SSH hosting */
 
-    progress.echo("SSH hosting setup...")
+    progress.echo("\nSSH hosting setup...")
 
     val ssh_port = ssh_alternative2
 
@@ -258,7 +260,7 @@ local_infile = 0
 
     /* Apache setup */
 
-    progress.echo("Apache setup...")
+    progress.echo("\nApache setup...")
 
     val apache_root = Path.explode("/etc/apache2")
     val apache_sites = apache_root + Path.explode("sites-available")
@@ -294,7 +296,7 @@ local_infile = 0
 
     /* PHP daemon */
 
-    progress.echo("PHP daemon setup...")
+    progress.echo("\nPHP daemon setup...")
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
 
