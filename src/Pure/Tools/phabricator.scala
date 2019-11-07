@@ -69,7 +69,7 @@ object Phabricator
     def home: Path = root + Path.explode(phabricator_name())
 
     def execute(command: String): Process_Result =
-      Isabelle_System.bash("./bin/" + command, cwd = home.file).check
+      Isabelle_System.bash("./bin/" + command, cwd = home.file, redirect = true).check
   }
 
   def read_config(): List[Config] =
