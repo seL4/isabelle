@@ -395,7 +395,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
     Linux.check_system_root()
 
     val config = get_config(name)
-    val default_config_file = config.home + default_mailers
+    val default_config_file = config.root + default_mailers
 
     val mail_config = config_file getOrElse default_config_file
 
@@ -444,7 +444,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
     -T USER      send test mail to Phabricator user
-    -f FILE      config file (default: """ + default_mailers + """ within installation home)
+    -f FILE      config file (default: """ + default_mailers + """ within installation root)
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
   Provide mail configuration for existing Phabricator installation. See also
