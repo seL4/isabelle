@@ -57,9 +57,9 @@ fun mk_frees a [] = []
 
 (*internal version, accepting terms*)
 fun add_inductive_i verbose (rec_tms, dom_sum)
-  raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy =
+  raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy0 =
 let
-  val ctxt = Proof_Context.init_global thy;
+  val ctxt0 = Proof_Context.init_global thy0;
 
   val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
@@ -70,7 +70,7 @@ let
 
   val dummy = rec_hds |> forall (fn t => is_Const t orelse
       error ("Recursive set not previously declared as constant: " ^
-                   Syntax.string_of_term ctxt t));
+                   Syntax.string_of_term ctxt0 t));
 
   (*Now we know they are all Consts, so get their names, type and params*)
   val rec_names = map (#1 o dest_Const) rec_hds
@@ -81,18 +81,18 @@ let
     error ("Base name of recursive set not an identifier: " ^ a));
 
   local (*Checking the introduction rules*)
-    val intr_sets = map (#2 o Ind_Syntax.rule_concl_msg thy) intr_tms;
+    val intr_sets = map (#2 o Ind_Syntax.rule_concl_msg thy0) intr_tms;
     fun intr_ok set =
         case head_of set of Const(a,recT) => member (op =) rec_names a | _ => false;
   in
     val dummy = intr_sets |> forall (fn t => intr_ok t orelse
       error ("Conclusion of rule does not name a recursive set: " ^
-                Syntax.string_of_term ctxt t));
+                Syntax.string_of_term ctxt0 t));
   end;
 
   val dummy = rec_params |> forall (fn t => is_Free t orelse
       error ("Param in recursion term not a free variable: " ^
-               Syntax.string_of_term ctxt t));
+               Syntax.string_of_term ctxt0 t));
 
   (*** Construct the fixedpoint definition ***)
   val mk_variant = singleton (Name.variant_list (List.foldr Misc_Legacy.add_term_names [] intr_tms));
@@ -101,7 +101,7 @@ let
 
   fun dest_tprop (Const(\<^const_name>\<open>Trueprop\<close>,_) $ P) = P
     | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^
-                            Syntax.string_of_term ctxt Q);
+                            Syntax.string_of_term ctxt0 Q);
 
   (*Makes a disjunct from an introduction rule*)
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
@@ -142,7 +142,7 @@ let
     If no mutual recursion then it equals the one recursive set.
     If mutual recursion then it differs from all the recursive sets. *)
   val big_rec_base_name = space_implode "_" rec_base_names;
-  val big_rec_name = Proof_Context.intern_const ctxt big_rec_base_name;
+  val big_rec_name = Proof_Context.intern_const ctxt0 big_rec_base_name;
 
 
   val _ =
@@ -163,12 +163,12 @@ let
 
   (*tracing: print the fixedpoint definition*)
   val dummy = if !Ind_Syntax.trace then
-              writeln (cat_lines (map (Syntax.string_of_term ctxt o #2) axpairs))
+              writeln (cat_lines (map (Syntax.string_of_term ctxt0 o #2) axpairs))
           else ()
 
   (*add definitions of the inductive sets*)
   val (_, thy1) =
-    thy
+    thy0
     |> Sign.add_path big_rec_base_name
     |> Global_Theory.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
@@ -189,12 +189,15 @@ let
         [resolve_tac ctxt [@{thm Collect_subset} RS @{thm bnd_monoI}] 1,
          REPEAT (ares_tac ctxt (@{thms basic_monos} @ monos) 1)]);
 
-  val (bnd_mono, thy2) = thy1
-    |> Global_Theory.add_thm ((Binding.name "bnd_mono", bnd_mono0), [])
+  val dom_subset0 = Drule.export_without_context (big_rec_def RS Fp.subs);
 
-  val dom_subset = Drule.export_without_context (big_rec_def RS Fp.subs);
+  val ([bnd_mono, dom_subset], thy2) = thy1
+    |> Global_Theory.add_thms
+      [((Binding.name "bnd_mono", bnd_mono0), []),
+       ((Binding.name "dom_subset", dom_subset0), [])];
 
   val unfold = Drule.export_without_context ([big_rec_def, bnd_mono] MRS Fp.Tarski);
+
 
   (********)
   val dummy = writeln "  Proving the introduction rules...";
@@ -337,7 +340,7 @@ let
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
      val min_ss =
-           (empty_simpset (Proof_Context.init_global thy4)
+           (empty_simpset ctxt4
              |> Simplifier.set_mksimps (fn ctxt => map mk_eq o ZF_atomize o Variable.gen_all ctxt))
            setSolver (mk_solver "minimal"
                       (fn ctxt => resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt)
@@ -513,18 +516,18 @@ let
 
      val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (pred_var $ _) = Thm.concl_of induct0
 
-     val induct =
-       CP.split_rule_var (Proof_Context.init_global thy4)
+     val induct0 =
+       CP.split_rule_var ctxt4
         (pred_var, elem_type-->FOLogic.oT, induct0)
        |> Drule.export_without_context
-     and mutual_induct = CP.remove_split (Proof_Context.init_global thy4) mutual_induct_fsplit
+     and mutual_induct = CP.remove_split ctxt4 mutual_induct_fsplit
 
-     val ([induct', mutual_induct'], thy') =
+     val ([induct, mutual_induct], thy5) =
        thy4
-       |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), induct),
+       |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), induct0),
              [case_names, Induct.induct_pred big_rec_name]),
            ((Binding.name "mutual_induct", mutual_induct), [case_names])];
-    in ((induct', mutual_induct'), thy')
+    in ((induct, mutual_induct), thy5)
     end;  (*of induction_rules*)
 
   val raw_induct = Drule.export_without_context ([big_rec_def, bnd_mono] MRS Fp.induct)
@@ -534,28 +537,27 @@ let
     else
       thy4
       |> Global_Theory.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
-      |> apfst (hd #> pair @{thm TrueI})
-  and defs = big_rec_def :: part_rec_defs
+      |> apfst (hd #> pair @{thm TrueI});
 
 
-  val (([dom_subset', elim'], [defs']), thy6) =
+  val (([cases], [defs]), thy6) =
     thy5
     |> IndCases.declare big_rec_name make_cases
     |> Global_Theory.add_thms
-      [((Binding.name "dom_subset", dom_subset), []),
-       ((Binding.name "cases", elim), [case_names, Induct.cases_pred big_rec_name])]
-    ||>> (Global_Theory.add_thmss o map Thm.no_attributes) [(Binding.name "defs", defs)];
-  val (intrs', thy7) =
+      [((Binding.name "cases", elim), [case_names, Induct.cases_pred big_rec_name])]
+    ||>> (Global_Theory.add_thmss o map Thm.no_attributes)
+      [(Binding.name "defs", big_rec_def :: part_rec_defs)];
+  val (named_intrs, thy7) =
     thy6
     |> Global_Theory.add_thms ((map Binding.name intr_names ~~ intrs) ~~ map #2 intr_specs)
     ||> Sign.parent_path;
   in
     (thy7,
-      {defs = defs',
+      {defs = defs,
        bnd_mono = bnd_mono,
-       dom_subset = dom_subset',
-       intrs = intrs',
-       elim = elim',
+       dom_subset = dom_subset,
+       intrs = named_intrs,
+       elim = cases,
        induct = induct,
        mutual_induct = mutual_induct})
   end;
