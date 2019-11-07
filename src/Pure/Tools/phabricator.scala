@@ -56,23 +56,7 @@ object Phabricator
 
   def default_repo(name: String): Path = default_root(name) + Path.basic("repo")
 
-  val mailers_path: Path = Path.explode("mailers.json")
-
-  val mailers_template: String =
-"""[
-  {
-    "key": "example.org",
-    "type": "smtp",
-    "options": {
-      "host": "mail.example.org",
-      "port": 465,
-      "user": "phabricator@example.org",
-      "password": "********",
-      "protocol": "ssl",
-      "message-id": true
-    }
-  }
-]"""
+  val default_mailers: Path = Path.explode("mailers.json")
 
 
 
@@ -386,6 +370,22 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
 
   /** setup mail **/
 
+  val mailers_template: String =
+"""[
+  {
+    "key": "example.org",
+    "type": "smtp",
+    "options": {
+      "host": "mail.example.org",
+      "port": 465,
+      "user": "phabricator@example.org",
+      "password": "********",
+      "protocol": "ssl",
+      "message-id": true
+    }
+  }
+]"""
+
   def phabricator_setup_mail(
     name: String = default_name,
     config_file: Option[Path] = None,
@@ -395,7 +395,7 @@ Usage: isabelle phabricator_setup [OPTIONS] [NAME]
     Linux.check_system_root()
 
     val config = get_config(name)
-    val default_config_file = config.home + mailers_path
+    val default_config_file = config.home + default_mailers
 
     val mail_config = config_file getOrElse default_config_file
 
@@ -444,7 +444,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
     -T USER      send test mail to Phabricator user
-    -f FILE      config file (default: """ + mailers_path + """ within installation home)
+    -f FILE      config file (default: """ + default_mailers + """ within installation home)
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
   Provide mail configuration for existing Phabricator installation. See also
