@@ -8,8 +8,8 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
-  val primrec: ((binding * string) * Token.src list) list -> theory -> theory * thm list
-  val primrec_i: ((binding * term) * attribute list) list -> theory -> theory * thm list
+  val primrec: ((binding * string) * Token.src list) list -> theory -> thm list * theory
+  val primrec_i: ((binding * term) * attribute list) list -> theory -> thm list * theory
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -173,20 +173,19 @@ fun primrec_i args thy =
       |> Global_Theory.add_defs false [Thm.no_attributes (apfst Binding.name def)];
 
     val rewrites = def_thm :: map (mk_meta_eq o Thm.transfer thy1) (#rec_rewrites con_info)
-    val eqn_thms =
+    val eqn_thms0 =
       eqn_terms |> map (fn t =>
         Goal.prove_global thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
           (fn {context = ctxt, ...} =>
             EVERY [rewrite_goals_tac ctxt rewrites, resolve_tac ctxt @{thms refl} 1]));
-
-    val (eqn_thms', thy2) =
-      thy1
-      |> Global_Theory.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
-    val (_, thy3) =
-      thy2
-      |> Global_Theory.add_thmss [((Binding.name "simps", eqn_thms'), [Simplifier.simp_add])]
-      ||> Sign.parent_path;
-  in (thy3, eqn_thms') end;
+  in
+    thy1
+    |> Global_Theory.add_thms ((eqn_names ~~ eqn_thms0) ~~ eqn_atts)
+    |-> (fn eqn_thms =>
+      Global_Theory.add_thmss [((Binding.name "simps", eqn_thms), [Simplifier.simp_add])])
+    |>> the_single
+    ||> Sign.parent_path
+  end;
 
 fun primrec args thy =
   primrec_i (map (fn ((name, s), srcs) =>
@@ -199,7 +198,7 @@ fun primrec args thy =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>primrec\<close> "define primitive recursive functions on datatypes"
     (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
-      >> (Toplevel.theory o (#1 oo (primrec o map (fn ((x, y), z) => ((x, z), y))))));
+      >> (Toplevel.theory o (#2 oo (primrec o map (fn ((x, y), z) => ((x, z), y))))));
 
 end;
 
