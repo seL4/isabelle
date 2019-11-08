@@ -286,7 +286,7 @@ fun standard_proof_of {full, expand_name} thm =
   let val thy = Thm.theory_of_thm thm in
     Thm.reconstruct_proof_of thm
     |> Proofterm.expand_proof thy expand_name
-    |> Proofterm.rew_proof thy
+    |> Proofterm.rewrite_proof thy ([], Proof_Rewrite_Rules.rprocs true)
     |> Proofterm.no_thm_proofs
     |> not full ? Proofterm.shrink_proof
   end;
