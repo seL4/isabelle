@@ -329,17 +329,16 @@ apply (erule wf_Memrel [THEN wf_induct2], blast+)
 done
 
 (*Induction over an ordinal*)
-lemmas Ord_induct [consumes 2] = Transset_induct [rule_format, OF _ Ord_is_Transset]
+lemma Ord_induct [consumes 2]:
+  "i \<in> k \<Longrightarrow> Ord(k) \<Longrightarrow> (\<And>x. x \<in> k \<Longrightarrow> (\<And>y. y \<in> x \<Longrightarrow> P(y)) \<Longrightarrow> P(x)) \<Longrightarrow> P(i)"
+  using Transset_induct [OF _ Ord_is_Transset, of i k P] by simp
 
 (*Induction over the class of ordinals -- a useful corollary of Ord_induct*)
-
-lemma trans_induct [rule_format, consumes 1, case_names step]:
-    "[| Ord(i);
-        !!x.[| Ord(x);  \<forall>y\<in>x. P(y) |] ==> P(x) |]
-     ==>  P(i)"
-apply (rule Ord_succ [THEN succI1 [THEN Ord_induct]], assumption)
-apply (blast intro: Ord_succ [THEN Ord_in_Ord])
-done
+lemma trans_induct [consumes 1, case_names step]:
+  "Ord(i) \<Longrightarrow> (\<And>x. Ord(x) \<Longrightarrow> (\<And>y. y \<in> x \<Longrightarrow> P(y)) \<Longrightarrow> P(x)) \<Longrightarrow> P(i)"
+  apply (rule Ord_succ [THEN succI1 [THEN Ord_induct]], assumption)
+  apply (blast intro: Ord_succ [THEN Ord_in_Ord])
+  done
 
 
 section\<open>Fundamental properties of the epsilon ordering (< on ordinals)\<close>
@@ -716,7 +715,9 @@ apply (erule trans_induct)
 apply (erule Ord_cases, blast+)
 done
 
-lemmas trans_induct3 = trans_induct3_raw [rule_format, case_names 0 succ limit, consumes 1]
+lemma trans_induct3 [case_names 0 succ limit, consumes 1]:
+  "Ord(i) \<Longrightarrow> P(0) \<Longrightarrow> (\<And>x. Ord(x) \<Longrightarrow> P(x) \<Longrightarrow> P(succ(x))) \<Longrightarrow> (\<And>x. Limit(x) \<Longrightarrow> (\<And>y. y \<in> x \<Longrightarrow> P(y)) \<Longrightarrow> P(x)) \<Longrightarrow> P(i)"
+  using trans_induct3_raw [of i P] by simp
 
 text\<open>A set of ordinals is either empty, contains its own union, or its
 union is a limit ordinal.\<close>
@@ -756,7 +757,7 @@ text\<open>If the union of a set of ordinals is a successor, then it is an eleme
 lemma Ord_Union_eq_succD: "[|\<forall>x\<in>X. Ord(x);  \<Union>X = succ(j)|] ==> succ(j) \<in> X"
   by (drule Ord_set_cases, auto)
 
-lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  \<forall>i\<in>I. Limit(i) |] ==> Limit(\<Union>I)"
+lemma Limit_Union [rule_format]: "[| I \<noteq> 0;  (\<And>i. i\<in>I \<Longrightarrow> Limit(i)) |] ==> Limit(\<Union>I)"
 apply (simp add: Limit_def lt_def)
 apply (blast intro!: equalityI)
 done

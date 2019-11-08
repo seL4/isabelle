@@ -105,7 +105,7 @@ by blast
 lemma Diff_cons_eq: "cons(a,B) - C = (if a\<in>C then B-C else cons(a,B-C))"
 by auto
 
-lemma equal_singleton [rule_format]: "[| a: C;  \<forall>y\<in>C. y=b |] ==> C = {b}"
+lemma equal_singleton: "[| a: C;  \<And>y. y \<in>C \<Longrightarrow> y=b |] ==> C = {b}"
 by blast
 
 lemma [simp]: "cons(a,cons(a,B)) = cons(a,B)"

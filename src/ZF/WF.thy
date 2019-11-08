@@ -137,9 +137,9 @@ apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
 
-lemmas wf_on_induct =
-  wf_on_induct_raw [rule_format, consumes 2, case_names step, induct set: wf_on]
-
+lemma wf_on_induct [consumes 2, case_names step, induct set: wf_on]:
+  "wf[A](r) \<Longrightarrow> a \<in> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> (\<And>y. y \<in> A \<Longrightarrow> \<langle>y, x\<rangle> \<in> r \<Longrightarrow> P(y)) \<Longrightarrow> P(x)) \<Longrightarrow> P(a)"
+  using wf_on_induct_raw [of A r a P] by simp
 
 text\<open>If \<^term>\<open>r\<close> allows well-founded induction
    then we have \<^term>\<open>wf(r)\<close>.\<close>
@@ -169,8 +169,9 @@ lemmas wf_asym = wf_not_sym [THEN swap]
 lemma wf_on_not_refl: "[| wf[A](r); a \<in> A |] ==> <a,a> \<notin> r"
 by (erule_tac a=a in wf_on_induct, assumption, blast)
 
-lemma wf_on_not_sym [rule_format]:
-     "[| wf[A](r);  a \<in> A |] ==> \<forall>b\<in>A. <a,b>:r \<longrightarrow> <b,a>\<notin>r"
+lemma wf_on_not_sym:
+     "[| wf[A](r);  a \<in> A |] ==> (\<And>b. b\<in>A \<Longrightarrow> <a,b>:r \<Longrightarrow> <b,a>\<notin>r)"
+apply (atomize (full), intro impI)
 apply (erule_tac a=a in wf_on_induct, assumption, blast)
 done
 
