@@ -270,7 +270,8 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
         val proof0 =
           if Proofterm.export_standard_enabled () then
-            Thm.standard_proof_of {full = true, expand_name = SOME o expand_name thm_id} thm
+            Proof_Syntax.standard_proof_of
+              {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
         val (prop, SOME proof) =

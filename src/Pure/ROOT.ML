@@ -287,8 +287,8 @@ ML_file "Isar/proof_node.ML";
 ML_file "Isar/toplevel.ML";
 
 (*proof term operations*)
-ML_file "Proof/proof_syntax.ML";
 ML_file "Proof/proof_rewrite_rules.ML";
+ML_file "Proof/proof_syntax.ML";
 ML_file "Proof/proof_checker.ML";
 ML_file "Proof/extraction.ML";
 

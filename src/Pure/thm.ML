@@ -101,6 +101,7 @@ sig
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
+  val reconstruct_proof_of: thm -> Proofterm.proof
   val consolidate: thm list -> unit
   val expose_proofs: theory -> thm list -> unit
   val expose_proof: theory -> thm -> unit
@@ -759,6 +760,9 @@ fun fulfill_body (th as Thm (Deriv {promises, body}, _)) =
 fun proof_bodies_of thms = (join_promises_of thms; map fulfill_body thms);
 val proof_body_of = singleton proof_bodies_of;
 val proof_of = Proofterm.proof_of o proof_body_of;
+
+fun reconstruct_proof_of thm =
+  Proofterm.reconstruct_proof (theory_of_thm thm) (prop_of thm) (proof_of thm);
 
 val consolidate = ignore o proof_bodies_of;
 

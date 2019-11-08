@@ -14,9 +14,11 @@ sig
   val proof_syntax: Proofterm.proof -> theory -> theory
   val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
-  val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
   val pretty_proof_boxes_of: Proof.context ->
     {full: bool, preproc: theory -> proof -> proof} -> thm -> Pretty.T
+  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> string option} ->
+    thm -> Proofterm.proof
+  val pretty_standard_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
 structure Proof_Syntax : PROOF_SYNTAX =
@@ -251,9 +253,6 @@ fun pretty_proof ctxt prf =
     (Proof_Context.transfer (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
     (term_of_proof prf);
 
-fun pretty_standard_proof_of ctxt full thm =
-  pretty_proof ctxt (Thm.standard_proof_of {full = full, expand_name = Thm.expand_name thm} thm);
-
 fun pretty_proof_boxes_of ctxt {full, preproc} thm =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -279,5 +278,20 @@ fun pretty_proof_boxes_of ctxt {full, preproc} thm =
         end)
     |> Pretty.chunks
   end;
+
+
+(* standardized proofs *)
+
+fun standard_proof_of {full, expand_name} thm =
+  let val thy = Thm.theory_of_thm thm in
+    Thm.reconstruct_proof_of thm
+    |> Proofterm.expand_proof thy expand_name
+    |> Proofterm.rew_proof thy
+    |> Proofterm.no_thm_proofs
+    |> not full ? Proofterm.shrink_proof
+  end;
+
+fun pretty_standard_proof_of ctxt full thm =
+  pretty_proof ctxt (standard_proof_of {full = full, expand_name = Thm.expand_name thm} thm);
 
 end;
