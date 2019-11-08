@@ -161,11 +161,7 @@ definition part :: "nat \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> ('a
 text \<open>For induction, we decrease the value of \<^term>\<open>r\<close> in partitions.\<close>
 lemma part_Suc_imp_part:
   "\<lbrakk>infinite Y; part (Suc r) s Y f; y \<in> Y\<rbrakk> \<Longrightarrow> part r s (Y - {y}) (\<lambda>u. f (insert y u))"
-  apply (simp add: part_def)
-  apply clarify
-  apply (drule_tac x="insert y X" in spec)
-  apply force
-  done
+  by (simp add: part_def subset_Diff_insert)
 
 lemma part_subset: "part r s YY f \<Longrightarrow> Y \<subseteq> YY \<Longrightarrow> part r s Y f"
   unfolding part_def by blast
@@ -356,11 +352,13 @@ lemma transition_idx_in:
 text \<open>To be equal to the union of some well-founded relations is equivalent
   to being the subset of such a union.\<close>
 lemma disj_wf: "disj_wf r \<longleftrightarrow> (\<exists>T. \<exists>n::nat. (\<forall>i<n. wf(T i)) \<and> r \<subseteq> (\<Union>i<n. T i))"
-  apply (auto simp add: disj_wf_def)
-  apply (rule_tac x="\<lambda>i. T i Int r" in exI)
-  apply (rule_tac x=n in exI)
-  apply (force simp add: wf_Int1)
-  done
+proof -
+  have *: "\<And>T n. \<lbrakk>\<forall>i<n. wf (T i); r \<subseteq> \<Union> (T ` {..<n})\<rbrakk>
+           \<Longrightarrow> (\<forall>i<n. wf (T i \<inter> r)) \<and> r = (\<Union>i<n. T i \<inter> r)"
+    by (force simp add: wf_Int1)
+  show ?thesis
+    unfolding disj_wf_def by auto (metis "*")
+qed
 
 theorem trans_disj_wf_implies_wf:
   assumes "trans r"
@@ -384,12 +382,10 @@ proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
     qed
     then show ?thesis by (auto simp add: r)
   qed
-  have trless: "i \<noteq> j \<Longrightarrow> transition_idx s T {i, j} < n" for i j
-    apply (auto simp add: linorder_neq_iff)
-     apply (blast dest: s_in_T transition_idx_less)
-    apply (subst insert_commute)
-    apply (blast dest: s_in_T transition_idx_less)
-    done
+  have "i < j \<Longrightarrow> transition_idx s T {i, j} < n" for i j
+    using s_in_T transition_idx_less by blast
+  then have trless: "i \<noteq> j \<Longrightarrow> transition_idx s T {i, j} < n" for i j
+    by (metis doubleton_eq_iff less_linear)
   have "\<exists>K k. K \<subseteq> UNIV \<and> infinite K \<and> k < n \<and>
       (\<forall>i\<in>K. \<forall>j\<in>K. i \<noteq> j \<longrightarrow> transition_idx s T {i, j} = k)"
     by (rule Ramsey2) (auto intro: trless infinite_UNIV_nat)
@@ -407,7 +403,7 @@ proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
     then show "(s ?j, s ?i) \<in> T k" by (simp add: k transition_idx_in ij)
   qed
   then have "\<not> wf (T k)"
-    unfolding wf_iff_no_infinite_down_chain by fast
+    by (meson wf_iff_no_infinite_down_chain)
   with wfT \<open>k < n\<close> show False by blast
 qed
 
