@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/rewrite_hol_proof.ML
     Author:     Stefan Berghofer, TU Muenchen
 
-Rewrite rules for HOL proofs
+Rewrite rules for HOL proofs.
 *)
 
 signature REWRITE_HOL_PROOF =
