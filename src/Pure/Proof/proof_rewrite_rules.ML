@@ -29,9 +29,11 @@ fun rew b _ _ =
     fun ?? x = if b then SOME x else NONE;
     fun ax (prf as PAxm (s, prop, _)) Ts =
       if b then PAxm (s, prop, SOME Ts) else prf;
-    fun ty T = if b then
-        let val Type (_, [Type (_, [U, _]), _]) = T
-        in SOME U end
+    fun ty T =
+      if b then
+        (case T of
+          Type (_, [Type (_, [U, _]), _]) => SOME U
+        | _ => NONE)
       else NONE;
     val equal_intr_axm = ax Proofterm.equal_intr_axm [];
     val equal_elim_axm = ax Proofterm.equal_elim_axm [];

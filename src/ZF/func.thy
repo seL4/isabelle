@@ -356,8 +356,8 @@ apply (unfold Pi_def)
 apply (blast intro!: rel_Union function_Union)
 done
 
-lemma gen_relation_Union [rule_format]:
-     "\<forall>f\<in>F. relation(f) \<Longrightarrow> relation(\<Union>(F))"
+lemma gen_relation_Union:
+     "(\<And>f. f\<in>F \<Longrightarrow> relation(f)) \<Longrightarrow> relation(\<Union>(F))"
 by (simp add: relation_def)
 
 

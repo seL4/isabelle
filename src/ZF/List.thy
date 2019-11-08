@@ -1123,14 +1123,13 @@ apply (rule_tac [2] sym)
 apply (auto dest!: not_lt_imp_le simp add: diff_succ diff_is_0_iff)
 done
 
-lemma nth_upt [rule_format]:
-     "[| i \<in> nat; j \<in> nat; k \<in> nat |] ==> i #+ k < j \<longrightarrow> nth(k, upt(i,j)) = i #+ k"
+lemma nth_upt [simp]:
+     "[| i \<in> nat; j \<in> nat; k \<in> nat; i #+ k < j |] ==> nth(k, upt(i,j)) = i #+ k"
+apply (rotate_tac -1, erule rev_mp)
 apply (induct_tac "j", simp)
-apply (simp add: nth_append le_iff)
 apply (auto dest!: not_lt_imp_le
-            simp add: nth_append less_diff_conv add_commute)
+            simp add: nth_append le_iff less_diff_conv add_commute)
 done
-declare nth_upt [simp]
 
 lemma take_upt [rule_format]:
      "[| m \<in> nat; n \<in> nat |] ==>

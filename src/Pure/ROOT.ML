@@ -111,6 +111,7 @@ ML_file "soft_type_system.ML";
 subsection "Concurrency within the ML runtime";
 
 ML_file "ML/exn_properties.ML";
+ML_file_no_debug "ML/exn_debugger.ML";
 
 ML_file "ML/ml_statistics.ML";
 
@@ -199,7 +200,6 @@ ML_file "ML/ml_syntax.ML";
 ML_file "ML/ml_env.ML";
 ML_file "ML/ml_options.ML";
 ML_file "ML/ml_print_depth.ML";
-ML_file_no_debug "ML/exn_debugger.ML";
 ML_file_no_debug "Isar/runtime.ML";
 ML_file "PIDE/execution.ML";
 ML_file "ML/ml_compiler.ML";
@@ -287,8 +287,8 @@ ML_file "Isar/proof_node.ML";
 ML_file "Isar/toplevel.ML";
 
 (*proof term operations*)
-ML_file "Proof/proof_syntax.ML";
 ML_file "Proof/proof_rewrite_rules.ML";
+ML_file "Proof/proof_syntax.ML";
 ML_file "Proof/proof_checker.ML";
 ML_file "Proof/extraction.ML";
 

@@ -155,26 +155,21 @@ subsection\<open>Variations on Mathematical Induction\<close>
 
 lemmas complete_induct = Ord_induct [OF _ Ord_nat, case_names less, consumes 1]
 
-lemmas complete_induct_rule =
-        complete_induct [rule_format, case_names less, consumes 1]
-
-
-lemma nat_induct_from_lemma [rule_format]:
-    "[| n \<in> nat;  m \<in> nat;
-        !!x. [| x \<in> nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
-     ==> m \<le> n \<longrightarrow> P(m) \<longrightarrow> P(n)"
-apply (erule nat_induct)
-apply (simp_all add: distrib_simps le0_iff le_succ_iff)
-done
+lemma complete_induct_rule [case_names less, consumes 1]:
+  "i \<in> nat \<Longrightarrow> (\<And>x. x \<in> nat \<Longrightarrow> (\<And>y. y \<in> x \<Longrightarrow> P(y)) \<Longrightarrow> P(x)) \<Longrightarrow> P(i)"
+  using complete_induct [of i P] by simp
 
 (*Induction starting from m rather than 0*)
 lemma nat_induct_from:
-    "[| m \<le> n;  m \<in> nat;  n \<in> nat;
-        P(m);
-        !!x. [| x \<in> nat;  m \<le> x;  P(x) |] ==> P(succ(x)) |]
-     ==> P(n)"
-apply (blast intro: nat_induct_from_lemma)
-done
+  assumes "m \<le> n" "m \<in> nat" "n \<in> nat"
+    and "P(m)"
+    and "!!x. [| x \<in> nat;  m \<le> x;  P(x) |] ==> P(succ(x))"
+  shows "P(n)"
+proof -
+  from assms(3) have "m \<le> n \<longrightarrow> P(m) \<longrightarrow> P(n)"
+    by (rule nat_induct) (use assms(5) in \<open>simp_all add: distrib_simps le_succ_iff\<close>)
+  with assms(1,2,4) show ?thesis by blast
+qed
 
 (*Induction suitable for subtraction and less-than*)
 lemma diff_induct [case_names 0 0_succ succ_succ, consumes 2]:

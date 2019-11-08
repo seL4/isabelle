@@ -13,7 +13,7 @@ subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
   fun export_proof thy thm = thm
-    |> Thm.standard_proof_of {full = true, expand_name = Thm.expand_name thm}
+    |> Proof_Syntax.standard_proof_of {full = true, expand_name = Thm.expand_name thm}
     |> Proofterm.encode (Sign.consts_of thy);
 
   fun import_proof thy xml =

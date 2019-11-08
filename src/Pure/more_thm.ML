@@ -113,9 +113,6 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
-  val reconstruct_proof_of: thm -> Proofterm.proof
-  val standard_proof_of: {full: bool, expand_name: Proofterm.thm_header -> string option} ->
-    thm -> Proofterm.proof
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
   val expose_theory: theory -> unit
@@ -650,22 +647,6 @@ fun simple_fact x = [(x, [])];
 fun tag tg = rule_attribute [] (K (tag_rule tg));
 fun untag s = rule_attribute [] (K (untag_rule s));
 fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
-
-
-
-(** proof terms **)
-
-fun reconstruct_proof_of thm =
-  Proofterm.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
-
-fun standard_proof_of {full, expand_name} thm =
-  let val thy = Thm.theory_of_thm thm in
-    reconstruct_proof_of thm
-    |> Proofterm.expand_proof thy expand_name
-    |> Proofterm.rew_proof thy
-    |> Proofterm.no_thm_proofs
-    |> not full ? Proofterm.shrink_proof
-  end;
 
 
 
