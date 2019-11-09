@@ -606,6 +606,10 @@ lemma diff_add_eq [algebra_simps, algebra_split_simps, field_simps, field_split_
   "(a - b) + c = (a + c) - b"
   by (simp add: algebra_simps)
 
+lemma minus_diff_commute:
+  "- b - a = - a - b"
+  by (simp only: diff_conv_add_uminus add.commute)
+
 end
 
 

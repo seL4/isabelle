@@ -11,15 +11,6 @@ begin
 
 subsection \<open>Preliminaries\<close>
 
-context ab_group_add
-begin
-
-lemma minus_diff_commute:
-  "- b - a = - a - b"
-  by (simp only: diff_conv_add_uminus add.commute)
-
-end
-
 lemma take_bit_uminus:
   "take_bit n (- (take_bit n k)) = take_bit n (- k)" for k :: int
   by (simp add: take_bit_eq_mod mod_minus_eq)
