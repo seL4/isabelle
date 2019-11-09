@@ -2041,7 +2041,7 @@ lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n
   by (subst sum_subtractf_nat) auto
 
 
-context unique_euclidean_semiring_with_nat
+context unique_euclidean_semiring_with_bit_shifts
 begin
 
 lemma take_bit_sum:

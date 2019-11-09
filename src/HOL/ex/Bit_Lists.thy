@@ -26,7 +26,7 @@ lemma unsigned_of_bits_replicate_False [simp]:
 
 end
 
-context unique_euclidean_semiring_with_nat
+context unique_euclidean_semiring_with_bit_shifts
 begin
 
 lemma unsigned_of_bits_append [simp]:
@@ -285,7 +285,7 @@ class semiring_bit_representation = semiring_bit_operations + bit_representation
       of_bits bs OR of_bits cs = of_bits (map2 (\<or>) bs cs)"
     and xor_eq: "length bs = length cs \<Longrightarrow>
       of_bits bs XOR of_bits cs = of_bits (map2 (\<noteq>) bs cs)"
-    and shift_bit_eq: "shift_bit n a = of_bits (replicate n False @ bits_of a)"
+    and push_bit_eq: "push_bit n a = of_bits (replicate n False @ bits_of a)"
     and drop_bit_eq: "n < length (bits_of a) \<Longrightarrow> drop_bit n a = of_bits (drop n (bits_of a))"
 
 class ring_bit_representation = ring_bit_operations + semiring_bit_representation +
@@ -314,7 +314,7 @@ end
 instance nat :: semiring_bit_representation
   apply standard
       apply (simp_all only: and_nat.of_bits or_nat.of_bits xor_nat.of_bits)
-   apply (simp_all add: drop_bit_eq_div Parity.drop_bit_eq_div shift_bit_eq_mult push_bit_eq_mult)
+   apply simp_all
   done
 
 context zip_int
@@ -359,10 +359,9 @@ proof
     show "(of_bits \<circ> map Not \<circ> bits_of) k = NOT k"
       by (induction k rule: int_bit_induct) (simp_all add: not_int_def)
   qed
-  show "shift_bit n k = of_bits (replicate n False @ bits_of k)"
+  show "push_bit n k = of_bits (replicate n False @ bits_of k)"
     for k :: int and n :: nat
-    by (cases "n = 0") (simp_all add: shift_bit_eq_push_bit)
-qed (simp_all add: and_int.of_bits or_int.of_bits xor_int.of_bits
-  drop_bit_eq_drop_bit)
+    by (cases "n = 0") simp_all
+qed (simp_all add: and_int.of_bits or_int.of_bits xor_int.of_bits)
 
 end

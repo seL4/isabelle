@@ -562,4 +562,91 @@ next
   qed
 qed
 
+subsubsection \<open>Instance \<^typ>\<open>'a word\<close>\<close>
+
+instance word :: (len) semiring_bits
+proof
+  show \<open>of_bool (odd a) + 2 * (a div 2) = a\<close>
+    for a :: \<open>'a word\<close>
+    apply (cases \<open>even a\<close>; simp, transfer; cases rule: length_cases [where ?'a = 'a])
+      apply auto
+    apply (auto simp add: take_bit_eq_mod)
+    apply (metis add.commute even_take_bit_eq len_not_eq_0 mod_mod_trivial odd_two_times_div_two_succ take_bit_eq_mod)
+    done
+  show \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
+    for a b :: \<open>'a word\<close>
+    apply transfer
+    apply (cases rule: length_cases [where ?'a = 'a])
+     apply auto
+       apply (metis even_take_bit_eq len_not_eq_0)
+      apply (metis even_take_bit_eq len_not_eq_0)
+    apply (metis (no_types, hide_lams) diff_add_cancel dvd_div_mult_self even_take_bit_eq mult_2_right take_bit_add take_bit_minus)
+    apply (metis bit_ident drop_bit_eq_div drop_bit_half even_take_bit_eq even_two_times_div_two mod_div_trivial odd_two_times_div_two_succ take_bit_eq_mod)
+    done
+  show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
+    and rec: \<open>\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a)\<close>
+  for P and a :: \<open>'a word\<close>
+  proof (induction a rule: word_bit_induct)
+    case zero
+    from stable [of 0] show ?case
+      by simp
+  next
+    case (even a)
+    with rec [of a False] show ?case
+      using bit_word_half_eq [of a False] by (simp add: ac_simps)
+  next
+    case (odd a)
+    with rec [of a True] show ?case
+      using bit_word_half_eq [of a True] by (simp add: ac_simps)
+  qed
+qed
+
+
+subsubsection \<open>Instance \<^typ>\<open>'a word\<close>\<close>
+
+instantiation word :: (len) semiring_bit_shifts
+begin
+
+lift_definition push_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is push_bit
+proof -
+  show \<open>Parity.take_bit LENGTH('a) (push_bit n k) = Parity.take_bit LENGTH('a) (push_bit n l)\<close>
+    if \<open>Parity.take_bit LENGTH('a) k = Parity.take_bit LENGTH('a) l\<close> for k l :: int and n :: nat
+  proof -
+    from that
+    have \<open>Parity.take_bit (LENGTH('a) - n) (Parity.take_bit LENGTH('a) k)
+      = Parity.take_bit (LENGTH('a) - n) (Parity.take_bit LENGTH('a) l)\<close>
+      by simp
+    moreover have \<open>min (LENGTH('a) - n) LENGTH('a) = LENGTH('a) - n\<close>
+      by simp
+    ultimately show ?thesis
+      by (simp add: take_bit_push_bit)
+  qed
+qed
+
+lift_definition drop_bit_word :: \<open>nat \<Rightarrow> 'a word \<Rightarrow> 'a word\<close>
+  is \<open>\<lambda>n. drop_bit n \<circ> take_bit LENGTH('a)\<close>
+  by (simp add: take_bit_eq_mod)
+
+instance proof
+  show \<open>push_bit n a = a * 2 ^ n\<close> for n :: nat and a :: "'a word"
+    by transfer (simp add: push_bit_eq_mult)
+  show \<open>drop_bit n a = a div 2 ^ n\<close> for n :: nat and a :: "'a word"
+  proof (cases \<open>n < LENGTH('a)\<close>)
+    case True
+    then show ?thesis
+      by transfer
+        (simp add: take_bit_eq_mod drop_bit_eq_div)
+  next
+    case False
+    then obtain m where n: \<open>n = LENGTH('a) + m\<close>
+      by (auto simp add: not_less dest: le_Suc_ex)
+    then show ?thesis
+      by transfer
+        (simp add: take_bit_eq_mod drop_bit_eq_div power_add zdiv_zmult2_eq)
+  qed
+qed
+
+end
+
 end

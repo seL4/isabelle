@@ -573,35 +573,6 @@ lemma not_mod2_eq_Suc_0_eq_0 [simp]:
   "n mod 2 \<noteq> Suc 0 \<longleftrightarrow> n mod 2 = 0"
   using not_mod_2_eq_1_eq_0 [of n] by simp
 
-lemma nat_bit_induct [case_names zero even odd]:
-  "P n" if zero: "P 0"
-    and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
-    and odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
-proof (induction n rule: less_induct)
-  case (less n)
-  show "P n"
-  proof (cases "n = 0")
-    case True with zero show ?thesis by simp
-  next
-    case False
-    with less have hyp: "P (n div 2)" by simp
-    show ?thesis
-    proof (cases "even n")
-      case True
-      then have "n \<noteq> 1"
-        by auto
-      with \<open>n \<noteq> 0\<close> have "n div 2 > 0"
-        by simp
-      with \<open>even n\<close> hyp even [of "n div 2"] show ?thesis
-        by simp
-    next
-      case False
-      with hyp odd [of "n div 2"] show ?thesis
-        by simp
-    qed
-  qed
-qed
-
 lemma odd_card_imp_not_empty:
   \<open>A \<noteq> {}\<close> if \<open>odd (card A)\<close>
   using that by auto
@@ -774,6 +745,72 @@ lemma even_add_abs_iff:
 lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
   by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
 
+
+subsection \<open>Abstract bit shifts\<close>
+
+class semiring_bits = semiring_parity +
+  assumes bit_split_eq: \<open>\<And>a. of_bool (odd a) + 2 * (a div 2) = a\<close>
+    and bit_eq_rec: \<open>\<And>a b. a = b \<longleftrightarrow> (even a = even b) \<and> a div 2 = b div 2\<close>
+    and bit_induct [case_names stable rec]:
+    \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
+     \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
+        \<Longrightarrow> P a\<close>
+
+lemma nat_bit_induct [case_names zero even odd]:
+  "P n" if zero: "P 0"
+    and even: "\<And>n. P n \<Longrightarrow> n > 0 \<Longrightarrow> P (2 * n)"
+    and odd: "\<And>n. P n \<Longrightarrow> P (Suc (2 * n))"
+proof (induction n rule: less_induct)
+  case (less n)
+  show "P n"
+  proof (cases "n = 0")
+    case True with zero show ?thesis by simp
+  next
+    case False
+    with less have hyp: "P (n div 2)" by simp
+    show ?thesis
+    proof (cases "even n")
+      case True
+      then have "n \<noteq> 1"
+        by auto
+      with \<open>n \<noteq> 0\<close> have "n div 2 > 0"
+        by simp
+      with \<open>even n\<close> hyp even [of "n div 2"] show ?thesis
+        by simp
+    next
+      case False
+      with hyp odd [of "n div 2"] show ?thesis
+        by simp
+    qed
+  qed
+qed
+
+instance nat :: semiring_bits
+proof
+  show \<open>of_bool (odd n) + 2 * (n div 2) = n\<close>
+    for n :: nat
+    by simp
+  show \<open>m = n \<longleftrightarrow> (even m \<longleftrightarrow> even n) \<and> m div 2 = n div 2\<close>
+    for m n :: nat
+    by (auto dest: odd_two_times_div_two_succ)
+  show \<open>P n\<close> if stable: \<open>\<And>n. n div 2 = n \<Longrightarrow> P n\<close>
+    and rec: \<open>\<And>n b. P n \<Longrightarrow> (of_bool b + 2 * n) div 2 = n \<Longrightarrow> P (of_bool b + 2 * n)\<close>
+    for P and n :: nat
+  proof (induction n rule: nat_bit_induct)
+    case zero
+    from stable [of 0] show ?case
+      by simp
+  next
+    case (even n)
+    with rec [of n False] show ?case
+      by simp
+  next
+    case (odd n)
+    with rec [of n True] show ?case
+      by simp
+  qed
+qed
+
 lemma int_bit_induct [case_names zero minus even odd]:
   "P k" if zero_int: "P 0"
     and minus_int: "P (- 1)"
@@ -831,27 +868,98 @@ next
   qed
 qed
 
+instance int :: semiring_bits
+proof
+  show \<open>of_bool (odd k) + 2 * (k div 2) = k\<close>
+    for k :: int
+    by (auto elim: oddE)
+  show \<open>k = l \<longleftrightarrow> (even k \<longleftrightarrow> even l) \<and> k div 2 = l div 2\<close>
+    for k l :: int
+    by (auto dest: odd_two_times_div_two_succ)
+  show \<open>P k\<close> if stable: \<open>\<And>k. k div 2 = k \<Longrightarrow> P k\<close>
+    and rec: \<open>\<And>k b. P k \<Longrightarrow> (of_bool b + 2 * k) div 2 = k \<Longrightarrow> P (of_bool b + 2 * k)\<close>
+    for P and k :: int
+  proof (induction k rule: int_bit_induct)
+    case zero
+    from stable [of 0] show ?case
+      by simp
+  next
+    case minus
+    from stable [of \<open>- 1\<close>] show ?case
+      by simp
+  next
+    case (even k)
+    with rec [of k False] show ?case
+      by (simp add: ac_simps)
+  next
+    case (odd k)
+    with rec [of k True] show ?case
+      by (simp add: ac_simps)
+  qed
+qed
 
-subsection \<open>Abstract bit operations\<close>
-
-context semiring_parity
+class semiring_bit_shifts = semiring_bits +
+  fixes push_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  assumes push_bit_eq_mult: \<open>push_bit n a = a * 2 ^ n\<close>
+  fixes drop_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  assumes drop_bit_eq_div: \<open>drop_bit n a = a div 2 ^ n\<close>
 begin
 
-text \<open>The primary purpose of the following operations is
-  to avoid ad-hoc simplification of concrete expressions \<^term>\<open>2 ^ n\<close>\<close>
+definition take_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where take_bit_eq_mod: \<open>take_bit n a = a mod 2 ^ n\<close>
 
-definition push_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where push_bit_eq_mult: "push_bit n a = a * 2 ^ n"
- 
-definition take_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where take_bit_eq_mod: "take_bit n a = a mod 2 ^ n"
-
-definition drop_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where drop_bit_eq_div: "drop_bit n a = a div 2 ^ n"
+text \<open>
+  Logically, \<^const>\<open>push_bit\<close>,
+  \<^const>\<open>drop_bit\<close> and \<^const>\<open>take_bit\<close> are just aliases; having them
+  as separate operations makes proofs easier, otherwise proof automation
+  would fiddle with concrete expressions \<^term>\<open>2 ^ n\<close> in a way obfuscating the basic
+  algebraic relationships between those operations.
+  Having
+  \<^const>\<open>push_bit\<close> and \<^const>\<open>drop_bit\<close> as definitional class operations
+  takes into account that specific instances of these can be implemented
+  differently wrt. code generation.
+\<close>
 
 end
 
-context unique_euclidean_semiring_with_nat
+instantiation nat :: semiring_bit_shifts
+begin
+
+definition push_bit_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>push_bit_nat n m = m * 2 ^ n\<close>
+
+definition drop_bit_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where \<open>drop_bit_nat n m = m div 2 ^ n\<close>
+
+instance proof
+  show \<open>push_bit n m = m * 2 ^ n\<close> for n m :: nat
+    by (simp add: push_bit_nat_def)
+  show \<open>drop_bit n m = m div 2 ^ n\<close> for n m :: nat
+    by (simp add: drop_bit_nat_def)
+qed
+
+end
+
+instantiation int :: semiring_bit_shifts
+begin
+
+definition push_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>push_bit_int n k = k * 2 ^ n\<close>
+
+definition drop_bit_int :: \<open>nat \<Rightarrow> int \<Rightarrow> int\<close>
+  where \<open>drop_bit_int n k = k div 2 ^ n\<close>
+
+instance proof
+  show \<open>push_bit n k = k * 2 ^ n\<close> for n :: nat and k :: int
+    by (simp add: push_bit_int_def)
+  show \<open>drop_bit n k = k div 2 ^ n\<close> for n :: nat and k :: int
+    by (simp add: drop_bit_int_def)
+qed
+
+end
+
+class unique_euclidean_semiring_with_bit_shifts =
+  unique_euclidean_semiring_with_nat + semiring_bit_shifts
 begin
 
 lemma bit_ident:
@@ -1080,6 +1188,10 @@ lemma drop_bit_of_nat:
   by (simp add: drop_bit_eq_div Parity.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
 
 end
+
+instance nat :: unique_euclidean_semiring_with_bit_shifts ..
+
+instance int :: unique_euclidean_semiring_with_bit_shifts ..
 
 lemma push_bit_of_Suc_0 [simp]:
   "push_bit n (Suc 0) = 2 ^ n"

@@ -45,7 +45,7 @@ lemma of_char_Char [simp]:
 
 end
 
-context unique_euclidean_semiring_with_nat
+context unique_euclidean_semiring_with_bit_shifts
 begin
 
 definition char_of :: "'a \<Rightarrow> char"

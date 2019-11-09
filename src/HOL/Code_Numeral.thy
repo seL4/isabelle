@@ -287,17 +287,30 @@ lemma [code]:
 instance integer :: unique_euclidean_ring_with_nat
   by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
-lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
-  by (unfold push_bit_eq_mult [abs_def]) transfer_prover
+instantiation integer :: semiring_bit_shifts
+begin
+
+lift_definition push_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is \<open>push_bit\<close> .
+
+lift_definition drop_bit_integer :: \<open>nat \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is \<open>drop_bit\<close> .
+
+instance by (standard; transfer)
+  (fact bit_split_eq bit_eq_rec bit_induct push_bit_eq_mult drop_bit_eq_div)+
+
+end
 
 lemma [transfer_rule]:
   "rel_fun (=) (rel_fun pcr_integer pcr_integer) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold take_bit_eq_mod [abs_def]) transfer_prover
 
-lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
-  by (unfold drop_bit_eq_div [abs_def]) transfer_prover
+instance integer :: unique_euclidean_semiring_with_bit_shifts ..
+
+lemma [code]:
+  \<open>push_bit n k = k * 2 ^ n\<close>
+  \<open>drop_bit n k = k div 2 ^ n\<close> for k :: integer
+  by (fact push_bit_eq_mult drop_bit_eq_div)+
 
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
@@ -968,17 +981,30 @@ instance natural :: linordered_semidom
 instance natural :: unique_euclidean_semiring_with_nat
   by (standard; transfer) simp_all
 
-lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold push_bit_eq_mult [abs_def]) transfer_prover
+instantiation natural :: semiring_bit_shifts
+begin
+
+lift_definition push_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is \<open>push_bit\<close> .
+
+lift_definition drop_bit_natural :: \<open>nat \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is \<open>drop_bit\<close> .
+
+instance by (standard; transfer)
+  (fact bit_split_eq bit_eq_rec bit_induct push_bit_eq_mult drop_bit_eq_div)+
+
+end
 
 lemma [transfer_rule]:
   "rel_fun (=) (rel_fun pcr_natural pcr_natural) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
   by (unfold take_bit_eq_mod [abs_def]) transfer_prover
 
-lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold drop_bit_eq_div [abs_def]) transfer_prover
+instance natural :: unique_euclidean_semiring_with_bit_shifts ..
+
+lemma [code]:
+  \<open>push_bit n m = m * 2 ^ n\<close>
+  \<open>drop_bit n m = m div 2 ^ n\<close> for m :: natural
+  by (fact push_bit_eq_mult drop_bit_eq_div)+
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"
