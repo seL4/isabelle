@@ -5,7 +5,7 @@ section \<open>Proof(s) of concept for algebraically founded lists of bits\<clos
 
 theory Bit_Lists
   imports
-    Bit_Operations
+    Word
 begin
 
 subsection \<open>Fragments of algebraic bit representations\<close>

@@ -6,7 +6,7 @@ section \<open>Proof of concept for purely algebraically founded lists of bits\<
 theory Bit_Operations
   imports
     "HOL-Library.Boolean_Algebra"
-    Word
+    Main
 begin
 
 subsection \<open>Bit operations in suitable algebraic structures\<close>
@@ -740,51 +740,5 @@ lemma take_bit_xor [simp]:
   apply (subst (2) xor_int.rec)
   apply simp
   done
-
-
-subsubsection \<open>Instance \<^typ>\<open>'a word\<close>\<close>
-
-instantiation word :: (len) ring_bit_operations
-begin
-
-lift_definition not_word :: "'a word \<Rightarrow> 'a word"
-  is not
-  by (simp add: take_bit_not_iff)
-
-lift_definition and_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "and"
-  by simp
-
-lift_definition or_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is or
-  by simp
-
-lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is xor
-  by simp
-
-instance proof
-  interpret bit_word: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: 'a word"
-  proof
-    show "a AND (b OR c) = a AND b OR a AND c"
-      for a b c :: "'a word"
-      by transfer (simp add: bit.conj_disj_distrib)
-    show "a OR b AND c = (a OR b) AND (a OR c)"
-      for a b c :: "'a word"
-      by transfer (simp add: bit.disj_conj_distrib)
-  qed (transfer; simp add: ac_simps)+
-  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)"
-    by (fact bit_word.boolean_algebra_axioms)
-  show "bit_word.xor = ((XOR) :: 'a word \<Rightarrow> _)"
-  proof (rule ext)+
-    fix a b :: "'a word"
-    have "a XOR b = a AND NOT b OR NOT a AND b"
-      by transfer (simp add: bit.xor_def)
-    then show "bit_word.xor a b = a XOR b"
-      by (simp add: bit_word.xor_def)
-  qed
-qed
-
-end
 
 end

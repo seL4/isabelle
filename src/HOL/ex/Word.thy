@@ -7,6 +7,7 @@ theory Word
   imports
     Main
     "HOL-Library.Type_Length"
+    "HOL-ex.Bit_Operations"
 begin
 
 subsection \<open>Preliminaries\<close>
@@ -562,8 +563,6 @@ next
   qed
 qed
 
-subsubsection \<open>Instance \<^typ>\<open>'a word\<close>\<close>
-
 instance word :: (len) semiring_bits
 proof
   show \<open>of_bool (odd a) + 2 * (a div 2) = a\<close>
@@ -600,9 +599,6 @@ proof
       using bit_word_half_eq [of a True] by (simp add: ac_simps)
   qed
 qed
-
-
-subsubsection \<open>Instance \<^typ>\<open>'a word\<close>\<close>
 
 instantiation word :: (len) semiring_bit_shifts
 begin
@@ -644,6 +640,49 @@ instance proof
     then show ?thesis
       by transfer
         (simp add: take_bit_eq_mod drop_bit_eq_div power_add zdiv_zmult2_eq)
+  qed
+qed
+
+end
+
+instantiation word :: (len) ring_bit_operations
+begin
+
+lift_definition not_word :: "'a word \<Rightarrow> 'a word"
+  is not
+  by (simp add: take_bit_not_iff)
+
+lift_definition and_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is "and"
+  by simp
+
+lift_definition or_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is or
+  by simp
+
+lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
+  is xor
+  by simp
+
+instance proof
+  interpret bit_word: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: 'a word"
+  proof
+    show "a AND (b OR c) = a AND b OR a AND c"
+      for a b c :: "'a word"
+      by transfer (simp add: bit.conj_disj_distrib)
+    show "a OR b AND c = (a OR b) AND (a OR c)"
+      for a b c :: "'a word"
+      by transfer (simp add: bit.disj_conj_distrib)
+  qed (transfer; simp add: ac_simps)+
+  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)"
+    by (fact bit_word.boolean_algebra_axioms)
+  show "bit_word.xor = ((XOR) :: 'a word \<Rightarrow> _)"
+  proof (rule ext)+
+    fix a b :: "'a word"
+    have "a XOR b = a AND NOT b OR NOT a AND b"
+      by transfer (simp add: bit.xor_def)
+    then show "bit_word.xor a b = a XOR b"
+      by (simp add: bit_word.xor_def)
   qed
 qed
 
