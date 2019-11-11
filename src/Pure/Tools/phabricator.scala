@@ -98,6 +98,41 @@ object Phabricator
 
 
 
+  /** command-line tools **/
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool1 =
+    Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory", args =>
+    {
+      var name = default_name
+
+      val getopts =
+        Getopts("""
+Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
+
+  Options are:
+    -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
+
+  Invoke a command-line tool within the home directory of the named Phabricator
+  installation.
+""",
+          "n:" -> (arg => name = arg))
+
+      val more_args = getopts(args)
+      if (more_args.isEmpty) getopts.usage()
+
+      val progress = new Console_Progress
+
+      val config = get_config(name)
+
+      if (!progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true).ok) {
+        error("Command failed")
+      }
+    })
+
+
+
   /** setup **/
 
   def user_setup(name: String, description: String, ssh_setup: Boolean = false)
@@ -327,7 +362,7 @@ WantedBy=multi-user.target
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool1 =
+  val isabelle_tool2 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux", args =>
     {
       var repo = ""
@@ -436,7 +471,7 @@ See also section "Mailer: SMTP" in
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool2 =
+  val isabelle_tool3 =
     Isabelle_Tool("phabricator_setup_mail",
       "setup mail configuration for existing Phabricator server", args =>
     {
