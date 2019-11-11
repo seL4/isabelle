@@ -126,9 +126,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
       val config = get_config(name)
 
-      if (!progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true).ok) {
-        error("Command failed")
-      }
+      val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
+      if (!result.ok) error("Return code: " + result.rc.toString)
     })
 
 
