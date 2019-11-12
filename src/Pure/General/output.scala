@@ -21,25 +21,25 @@ object Output
   def error_message_text(msg: String): String =
     cat_lines(split_lines(clean_yxml(msg)).map("*** " + _))
 
-  def writeln(msg: String, stdout: Boolean = false)
+  def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
   {
-    if (msg != "") {
+    if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(writeln_text(msg) + "\n")
       else Console.err.print(writeln_text(msg) + "\n")
     }
   }
 
-  def warning(msg: String, stdout: Boolean = false)
+  def warning(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
   {
-    if (msg != "") {
+    if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(warning_text(msg) + "\n")
       else Console.err.print(warning_text(msg) + "\n")
     }
   }
 
-  def error_message(msg: String, stdout: Boolean = false)
+  def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
   {
-    if (msg != "") {
+    if (msg.nonEmpty || include_empty) {
       if (stdout) Console.print(error_message_text(msg) + "\n")
       else Console.err.print(error_message_text(msg) + "\n")
     }

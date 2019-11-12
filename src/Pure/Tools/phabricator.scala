@@ -69,7 +69,7 @@ object Phabricator
     def home: Path = root + Path.explode(phabricator_name())
 
     def execute(command: String): Process_Result =
-      Isabelle_System.bash("./bin/" + command, cwd = home.file, redirect = true).check
+      Isabelle_System.bash("bin/" + command, cwd = home.file, redirect = true).check
   }
 
   def read_config(): List[Config] =
@@ -95,6 +95,49 @@ object Phabricator
   def get_config(name: String): Config =
     read_config().find(config => config.name == name) getOrElse
       error("Bad Isabelle/Phabricator installation " + quote(name))
+
+
+
+  /** command-line tools **/
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool1 =
+    Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory", args =>
+    {
+      var list = false
+      var name = default_name
+
+      val getopts =
+        Getopts("""
+Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
+
+  Options are:
+    -l           list available Phabricator installations
+    -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
+
+  Invoke a command-line tool within the home directory of the named
+  Phabricator installation.
+""",
+          "l" -> (_ => list = true),
+          "n:" -> (arg => name = arg))
+
+      val more_args = getopts(args)
+      if (more_args.isEmpty && !list) getopts.usage()
+
+      val progress = new Console_Progress
+
+      if (list) {
+        for (config <- read_config()) {
+          progress.echo("phabricator " + quote(config.name) + " root " + config.root)
+        }
+      }
+
+      val config = get_config(name)
+
+      val result = progress.bash(Bash.strings(more_args), cwd = config.home.file, echo = true)
+      if (!result.ok) error("Return code: " + result.rc.toString)
+    })
 
 
 
@@ -223,7 +266,7 @@ local_infile = 0
 
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
-    progress.bash("./bin/storage upgrade --force", cwd = config.home.file, echo = true).check
+    progress.bash("bin/storage upgrade --force", cwd = config.home.file, echo = true).check
 
 
     /* SSH hosting */
@@ -327,7 +370,7 @@ WantedBy=multi-user.target
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool1 =
+  val isabelle_tool2 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux", args =>
     {
       var repo = ""
@@ -345,10 +388,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
 
-  Install Phabricator as Ubuntu LAMP application (Linux, Apache, MySQL, PHP).
-
-  Slogan: "Discuss. Plan. Code. Review. Test.
-  Every application your project needs, all in one tool."
+  Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
 
   The installation name (default: """ + quote(default_name) + """) is mapped to a regular
   Unix user; this is relevant for public SSH access.
@@ -408,7 +448,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
       if (test_user.nonEmpty) {
         progress.echo("Sending test mail to " + quote(test_user))
         progress.bash(cwd = config.home.file, echo = true,
-          script = """echo "Test from Phabricator ($(date))" | ./bin/mail send-test --subject "Test" --to """ +
+          script = """echo "Test from Phabricator ($(date))" | bin/mail send-test --subject "Test" --to """ +
             Bash.string(test_user)).check
       }
     }
@@ -436,7 +476,7 @@ See also section "Mailer: SMTP" in
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool2 =
+  val isabelle_tool3 =
     Isabelle_Tool("phabricator_setup_mail",
       "setup mail configuration for existing Phabricator server", args =>
     {
@@ -450,7 +490,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
     -T USER      send test mail to Phabricator user
-    -f FILE      config file (default: """ + default_mailers + """ within installation root)
+    -f FILE      config file (default: """ + default_mailers + """ within Phabricator root)
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
   Provide mail configuration for existing Phabricator installation.

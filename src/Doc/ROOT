@@ -387,6 +387,7 @@ session System (doc) in "System" = Pure +
     Presentation
     Server
     Scala
+    Phabricator
     Misc
   document_files (in "..")
     "prepare_document"
