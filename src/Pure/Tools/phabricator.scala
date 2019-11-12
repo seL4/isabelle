@@ -116,8 +116,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     -l           list available Phabricator installations
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
-  Invoke a command-line tool within the home directory of the named Phabricator
-  installation.
+  Invoke a command-line tool within the home directory of the named
+  Phabricator installation.
 """,
           "l" -> (_ => list = true),
           "n:" -> (arg => name = arg))
@@ -129,7 +129,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
       if (list) {
         for (config <- read_config()) {
-          progress.echo("phabricator " + quote(config.name) + " in " + config.root.implode)
+          progress.echo("phabricator " + quote(config.name) + " root " + config.root)
         }
       }
 
@@ -388,10 +388,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
 
-  Install Phabricator as Ubuntu LAMP application (Linux, Apache, MySQL, PHP).
-
-  Slogan: "Discuss. Plan. Code. Review. Test.
-  Every application your project needs, all in one tool."
+  Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
 
   The installation name (default: """ + quote(default_name) + """) is mapped to a regular
   Unix user; this is relevant for public SSH access.
@@ -493,7 +490,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
     -T USER      send test mail to Phabricator user
-    -f FILE      config file (default: """ + default_mailers + """ within installation root)
+    -f FILE      config file (default: """ + default_mailers + """ within Phabricator root)
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
   Provide mail configuration for existing Phabricator installation.

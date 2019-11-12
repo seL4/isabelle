@@ -105,7 +105,7 @@ text \<open>
   With the Auth Provider available, the administrator can now set a proper
   password. This works e.g.\ by initiating a local password reset procedure:
 
-  @{verbatim [display] \<open>  isabelle phabricator ./bin/auth recover makarius\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator bin/auth recover makarius\<close>}
 
   The printed URL gives access to a password dialog in the web browser.
 
@@ -116,7 +116,7 @@ text \<open>
   The pending request in Phabricator Setup Issues to lock the configuration
   can be fulfilled as follows:
 
-  @{verbatim [display] \<open>  isabelle phabricator ./bin/auth lock\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator bin/auth lock\<close>}
 \<close>
 
 
@@ -153,7 +153,162 @@ text \<open>
   For information, the resulting mailer configuration can be queried like
   this:
 
-  @{verbatim [display] \<open>  isabelle phabricator ./bin/config get cluster.mailers\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator bin/config get cluster.mailers\<close>}
+\<close>
+
+
+section \<open>Reference of command-line tools\<close>
+
+text \<open>
+  The subsequent command-line tools usually require root user privileges on
+  the underlying Linux system (e.g.\ via \<^verbatim>\<open>sudo bash\<close> to open a subshell, or
+  directly via \<^verbatim>\<open>sudo isabelle ...\<close>). Note that Isabelle refers to
+  user-specific configuration in the user home directory via @{setting
+  ISABELLE_HOME_USER} (\secref{sec:settings}); that may be different or absent
+  for the root user and thus cause confusion.
+\<close>
+
+
+subsection \<open>\<^verbatim>\<open>isabelle phabricator\<close>\<close>
+
+text \<open>
+  The @{tool_def phabricator} tool invokes a GNU bash command-line within the
+  Phabricator home directory:
+  @{verbatim [display]
+\<open>Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
+
+  Options are:
+    -l           list available Phabricator installations
+    -n NAME      Phabricator installation name (default: "vcs")
+
+  Invoke a command-line tool within the home directory of the named
+  Phabricator installation.\<close>}
+
+  Isabelle/Phabricator installations are registered in the global
+  configuration file \<^path>\<open>/etc/isabelle-phabricator.conf\<close>, with name and
+  root directory separated by colon (no extra whitespace). The home directory
+  is the subdirectory \<^verbatim>\<open>phabricator\<close> within the root.
+
+  \<^medskip> Option \<^verbatim>\<open>-l\<close> lists the available Phabricator installations with name and
+  root directory.
+
+  Option \<^verbatim>\<open>-n\<close> selects the explicitly named Phabricator installation.
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Print the home directory of the Phabricator installation:
+  @{verbatim [display] \<open>isabelle phabricator pwd\<close>}
+
+  Print some Phabricator configuration information:
+  @{verbatim [display] \<open>isabelle phabricator bin/config get phabricator.base-uri\<close>}
+
+  The latter conforms to typical command templates seen in the original
+  Phabricator documentation:
+  @{verbatim [display] \<open>phabricator/ $ ./bin/config get phabricator.base-uri\<close>}
+
+  Here the user is meant to navigate to the Phabricator home manually, in
+  contrast to \<^verbatim>\<open>isabelle phabricator\<close> doing it automatically based on
+  \<^path>\<open>/etc/isabelle-phabricator.conf\<close>.
+\<close>
+
+
+subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup\<close>\<close>
+
+text \<open>
+  The @{tool_def phabricator_setup} installs a fresh Phabricator instance on
+  Ubuntu Linux (notably 18.04 LTS):
+  @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
+
+  Options are:
+    -R DIR       repository directory (default: "/var/www/phabricator-NAME/repo")
+    -U           full update of system packages before installation
+    -n NAME      Phabricator installation name (default: "vcs")
+    -r DIR       installation root directory (default: "/var/www/phabricator-NAME")
+
+  Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
+
+  The installation name (default: "vcs") is mapped to a regular
+  Unix user; this is relevant for public SSH access.\<close>}
+
+  Installation requires Linux root user access. All required packages are
+  installed automatically beforehand, this includes the Apache web server and
+  the MySQL database engine.
+
+  Global configuration in \<^verbatim>\<open>/etc\<close> and other directories like \<^verbatim>\<open>/var/www\<close>
+  always use name prefixes \<^verbatim>\<open>isabelle-phabricator\<close> or \<^verbatim>\<open>phabricator\<close>. Local
+  configuration for a particular installation uses more specific names derived
+  from \<^verbatim>\<open>phabricator-\<close>\<open>NAME\<close>, e.g. \<^verbatim>\<open>/var/www/phabricator-vcs\<close> for a default
+  installation.
+
+  Knowing the conventions, it is possible to purge a Linux installation from
+  Isabelle/Phabricator with some effort. There is no automated
+  de-installation: it is often better to re-install a clean virtual machine
+  image.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-U\<close> ensures a full update of system packages, before installing
+  further packages required by Phabricator.
+
+  Option \<^verbatim>\<open>-n\<close> provides an alternative installation name. The default name
+  \<^verbatim>\<open>vcs\<close> means ``Version Control System''. The name will appear in the URL for
+  SSH access, and thus has some relevance to end-users. The initial server URL
+  also uses that name suffix, but it can be changed later via regular Apache
+  configuration.
+
+  Option \<^verbatim>\<open>-r\<close> specifies an alternative installation root directory: it needs
+  to be accessible for the Apache web server.
+
+  Option \<^verbatim>\<open>-R\<close> specifies an alternative directory for repositories that are
+  hosted by Phabricator. Provided that it is accessible for the Apache web
+  server, the directory can be re-used directly for the builtin \<^verbatim>\<open>hgweb\<close> view
+  by Mercurial. See also the documentation
+  \<^url>\<open>https://www.mercurial-scm.org/wiki/PublishingRepositories#hgweb\<close> and the
+  example \<^url>\<open>https://isabelle.sketis.net/repos\<close> for repositories in
+  \<^url>\<open>https://isabelle-dev.sketis.net/diffusion\<close>.
+\<close>
+
+
+subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup_mail\<close>\<close>
+
+text \<open>
+  The @{tool_def phabricator_setup_mail} provides mail configuration for an
+  existing Phabricator installation (preferably via SMTP):
+  @{verbatim [display] \<open>Usage: isabelle phabricator_setup_mail [OPTIONS]
+
+  Options are:
+    -T USER      send test mail to Phabricator user
+    -f FILE      config file (default: "mailers.json" within
+                 Phabricator root)
+    -n NAME      Phabricator installation name (default: "vcs")
+
+  Provide mail configuration for existing Phabricator installation.\<close>}
+
+  Proper mail configuration is vital for Phabricator, but the details can be
+  tricky. A common approach is to re-use an existing SMTP mail service, as is
+  often included in regular web hosting packages. A single account for
+  multiple Phabricator installations is sufficient, but the configuration
+  needs to be set for each installation separately.
+
+  The first invocation of \<^verbatim>\<open>isabelle phabricator_setup_mail\<close> without options
+  creates a JSON template file. Its \<^verbatim>\<open>key\<close> entry should be changed to
+  something sensible to identify the configuration, e.g.\ the Internet Domain
+  Name of the mail address being used here. The \<^verbatim>\<open>options\<close> specify the SMTP
+  server address and account information.
+
+  Another invocation of \<^verbatim>\<open>isabelle phabricator_setup_mail\<close> with updated JSON
+  file will change the underlying Phabricator installation. This can be done
+  repeatedly, until everything works as expected.
+
+  Option \<^verbatim>\<open>-T\<close> invokes a standard Phabricator test procedure for the mail
+  configuration. The argument needs to be a valid Phabricator user: the mail
+  address is derived from the user profile.
+
+  Option \<^verbatim>\<open>-f\<close> refers to an existing JSON configuration file, e.g.\ from a
+  different Phabricator installation: sharing mailers setup with the same mail
+  address works for outgoing mails; incoming mails are not strictly needed.
 \<close>
 
 end
