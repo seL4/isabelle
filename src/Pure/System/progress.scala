@@ -60,7 +60,7 @@ object No_Progress extends Progress
 class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress
 {
   override def echo(msg: String): Unit =
-    Output.writeln(msg, stdout = !stderr)
+    Output.writeln(msg, stdout = !stderr, include_empty = true)
 
   override def theory(theory: Progress.Theory): Unit =
     if (verbose) echo(theory.message)
