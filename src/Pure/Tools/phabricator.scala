@@ -105,6 +105,7 @@ object Phabricator
   val isabelle_tool1 =
     Isabelle_Tool("phabricator", "invoke command-line tool within Phabricator home directory", args =>
     {
+      var list = false
       var name = default_name
 
       val getopts =
@@ -112,17 +113,25 @@ object Phabricator
 Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   Options are:
+    -l           list available Phabricator installations
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
 
   Invoke a command-line tool within the home directory of the named Phabricator
   installation.
 """,
+          "l" -> (_ => list = true),
           "n:" -> (arg => name = arg))
 
       val more_args = getopts(args)
-      if (more_args.isEmpty) getopts.usage()
+      if (more_args.isEmpty && !list) getopts.usage()
 
       val progress = new Console_Progress
+
+      if (list) {
+        for (config <- read_config()) {
+          progress.echo("phabricator " + quote(config.name) + " in " + config.root.implode)
+        }
+      }
 
       val config = get_config(name)
 
