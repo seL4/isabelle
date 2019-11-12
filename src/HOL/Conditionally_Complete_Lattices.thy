@@ -337,7 +337,8 @@ lemma cSUP_mono: "A \<noteq> {} \<Longrightarrow> bdd_above (g ` B) \<Longrighta
 lemma cINF_superset_mono: "A \<noteq> {} \<Longrightarrow> bdd_below (g ` B) \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> g x \<le> f x) \<Longrightarrow> \<Sqinter>(g ` B) \<le> \<Sqinter>(f ` A)"
   by (rule cINF_mono) auto
 
-lemma cSUP_subset_mono: "A \<noteq> {} \<Longrightarrow> bdd_above (g ` B) \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<le> g x) \<Longrightarrow> \<Squnion>(f ` A) \<le> \<Squnion>(g ` B)"
+lemma cSUP_subset_mono: 
+  "\<lbrakk>A \<noteq> {}; bdd_above (g ` B); A \<subseteq> B; \<And>x. x \<in> A \<Longrightarrow> f x \<le> g x\<rbrakk> \<Longrightarrow> \<Squnion> (f ` A) \<le> \<Squnion> (g ` B)"
   by (rule cSUP_mono) auto
 
 lemma less_eq_cInf_inter: "bdd_below A \<Longrightarrow> bdd_below B \<Longrightarrow> A \<inter> B \<noteq> {} \<Longrightarrow> inf (Inf A) (Inf B) \<le> Inf (A \<inter> B)"
