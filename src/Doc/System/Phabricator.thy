@@ -42,9 +42,12 @@ text \<open>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
 
   \<^medskip> Initial Phabricator server configuration requires many details to be done
-  right. Isabelle provides some command-line tools to help with it, but
-  afterwards Isabelle support is optional: it is possible to run and maintain
-  the server, without requiring a full Isabelle distribution again.
+  right.\<^footnote>\<open>See also
+  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/installation_guide\<close>
+  in the context of \<^url>\<open>https://help.ubuntu.com/lts/serverguide\<close>.\<close> Isabelle
+  provides some command-line tools to help with the setup, and afterwards
+  Isabelle support is optional: it is possible to run and maintain the server,
+  without requiring a full Isabelle distribution again.
 \<close>
 
 
@@ -113,10 +116,14 @@ text \<open>
   Auth Provider is now active.
 
   \<^medskip>
-  The pending request in Phabricator Setup Issues to lock the configuration
+  The pending request in Phabricator \<^bold>\<open>Setup Issues\<close> to lock the configuration
   can be fulfilled as follows:
 
   @{verbatim [display] \<open>  isabelle phabricator bin/auth lock\<close>}
+
+  \<^medskip>
+  Most other Setup Issues can be ignored, after reading through them briefly
+  to make sure that there are no genuine problems remaining.
 \<close>
 
 
