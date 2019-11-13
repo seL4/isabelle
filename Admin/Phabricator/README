@@ -8,39 +8,9 @@ Phabricator server
 - Configuration / Authentication:
   https://secure.phabricator.com/book/phabricator/article/configuring_accounts_and_registration
 
-  . only local User/Password, *not* Google, Github etc.
   . auth.require-email-verification true
 
   . policy.allow-public true
-
-- Configuration/SSH:
-  https://secure.phabricator.com/book/phabricator/article/diffusion_hosting
-
-  /etc/ssh/sshd_config:
-  Port 222
-
-  /etc/passwd:
-  phabricator:x:118:126::/home/phabricator:/bin/bash
-  vcs:x:119:125::/home/vcs:/bin/bash
-
-  /etc/group:
-  phabricator:x:126:
-  vcs:x:125:
-
-  $ cp ssh/ssh-hook /usr/local/bin/.
-  $ cp ssh/sshd_config.phabricator /etc/ssh/.
-  $ cp ssh/sshd-phabricator.service /lib/systemd/system/.
-  $ cp ssh/sudoers.d/phabricator /etc/sudoers.d/.
-
-  $ ./bin/config set phd.user phabricator
-  $ ./bin/config set diffusion.ssh-user vcs
-  $ ./bin/config set diffusion.ssh-port 22
-
-  $ systemctl enable sshd-phabricator
-  $ systemctl start sshd-phabricator
-
-  Test on local machine:
-  $ echo "{}" | ssh vcs@phabricator.sketis.net conduit conduit.ping
 
 - Update:
   https://secure.phabricator.com/book/phabricator/article/upgrading
@@ -49,7 +19,7 @@ Phabricator server
 
 - Documentation:
   /var/www/phabricator-vcs/libphutil/scripts/build_xhpast.php
-  ./bin/diviner generate
+  ./bin/diviner generate  #slow
 
 - Backup:
   https://secure.phabricator.com/book/phabricator/article/configuring_backups
