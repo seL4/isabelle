@@ -569,13 +569,15 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     val ssh_name = isabelle_phabricator_name(name = "ssh")
     val ssh_command = Path.explode("/usr/local/bin") + Path.basic(ssh_name)
 
+    Linux.service_shutdown(ssh_name)
+
     val old_system_port = read_ssh_port(sshd_conf_system)
     if (old_system_port != system_port) {
       progress.echo("Reconfigurig system ssh service")
-      Linux.service_stop("ssh")
+      Linux.service_shutdown("ssh")
       write_ssh_port(sshd_conf_system, system_port)
+      Linux.service_start("ssh")
     }
-
 
     progress.echo("Configuring " + ssh_name + " service")
 
@@ -650,11 +652,6 @@ Alias=""" + ssh_name + """.service
           " -o StrictHostKeyChecking=false " +
           Bash.string(config.name) + """@localhost conduit conduit.ping""").print
       }
-    }
-
-    if (old_system_port != system_port) {
-      progress.echo("Restarting system ssh service")
-      Linux.service_start("ssh")
     }
   }
 

@@ -121,8 +121,16 @@ fi
   def service_stop(name: String) { service_operation("stop", name) }
   def service_restart(name: String) { service_operation("restart", name) }
 
+  def service_shutdown(name: String)
+  {
+    try { service_stop(name) }
+    catch { case ERROR(_) => }
+  }
+
   def service_install(name: String, spec: String)
   {
+    service_shutdown(name)
+
     val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
     File.write(service_file, spec)
     Isabelle_System.bash("chmod 0644 " + File.bash_path(service_file)).check
