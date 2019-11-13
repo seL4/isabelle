@@ -128,6 +128,6 @@ fi
     Isabelle_System.bash("chmod 0644 " + File.bash_path(service_file)).check
 
     service_enable(name)
-    service_start(name)
+    service_restart(name)
   }
 }
