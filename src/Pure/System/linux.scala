@@ -112,24 +112,22 @@ fi
 
   /* system services */
 
-  def service_start(name: String): Unit =
-    Isabelle_System.bash("systemctl start " + Bash.string(name)).check
+  def service_operation(op: String, name: String): Unit =
+    Isabelle_System.bash("systemctl " + Bash.string(op) + " " + Bash.string(name)).check
 
-  def service_stop(name: String): Unit =
-    Isabelle_System.bash("systemctl stop " + Bash.string(name)).check
-
-  def service_restart(name: String): Unit =
-    Isabelle_System.bash("systemctl restart " + Bash.string(name)).check
+  def service_enable(name: String) { service_operation("enable", name) }
+  def service_disable(name: String) { service_operation("disable", name) }
+  def service_start(name: String) { service_operation("start", name) }
+  def service_stop(name: String) { service_operation("stop", name) }
+  def service_restart(name: String) { service_operation("restart", name) }
 
   def service_install(name: String, spec: String)
   {
     val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
     File.write(service_file, spec)
+    Isabelle_System.bash("chmod 0644 " + File.bash_path(service_file)).check
 
-    Isabelle_System.bash("""
-      set -e
-      chmod 0644 """ + File.bash_path(service_file) + """
-      systemctl enable """ + Bash.string(name) + """
-      systemctl start """ + Bash.string(name)).check
+    service_enable(name)
+    service_start(name)
   }
 }
