@@ -341,6 +341,8 @@ local_infile = 0
     progress.echo("PHP daemon setup ...")
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
+    config.execute("config set phd.log-directory /var/tmp/phd/" +
+      isabelle_phabricator_name(name = name) + "/log")
 
     Linux.service_install(isabelle_phabricator_name(name = name),
 """[Unit]
@@ -352,7 +354,7 @@ Type=oneshot
 User=""" + daemon_user + """
 Group=""" + daemon_user + """
 Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
-ExecStart=""" + config.home.implode + """/bin/phd start
+ExecStart=""" + config.home.implode + """/bin/phd start --force
 ExecStop=""" + config.home.implode + """/bin/phd stop
 RemainAfterExit=yes
 
