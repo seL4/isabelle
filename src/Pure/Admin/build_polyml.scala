@@ -39,11 +39,12 @@ object Build_PolyML
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
         setup =
           """PATH=/usr/bin:/bin:/mingw64/bin
-            export CONFIG_SITE=/etc/config.site""",
+            export CONFIG_SITE=/mingw64/etc/config.site""",
         copy_files =
           List("$MSYS/mingw64/bin/libgcc_s_seh-1.dll",
             "$MSYS/mingw64/bin/libgmp-10.dll",
-            "$MSYS/mingw64/bin/libstdc++-6.dll")))
+            "$MSYS/mingw64/bin/libstdc++-6.dll",
+            "$MSYS/mingw64/bin/libwinpthread-1.dll")))
 
   def build_polyml(
     root: Path,

@@ -3,29 +3,19 @@ MinGW for native Windows support
 
 - always "Run as administrator ..."
 
-- http://sourceforge.net/projects/msys2
+- download from https://www.msys2.org
+  install target c:\msys64
 
-  target c:\msys64
+- package update and installation within msys2 shell:
 
-- http://sourceforge.net/projects/mingw-w64
+  pacman -Syuu
 
-  mingw-w64-install.exe
+  pacman -Su
 
-  i686-4.9.3-win32-dwarf-rt_v4-rev0
-  x86_64-4.9.3-win32-seh-rt_v4-rev0
+  pacman -S --needed base-devel gmp-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-gmp
 
-  target c:\msys64
+- build (as regular user) e.g. on vmnipkow9 with Cygwin-Terminal from Isabelle2018
+  (to avoid address relocation problems):
 
-- within msys shell:
-
-    pacman --needed -Sy bash pacman pacman-mirrors msys2-runtime
-
-  after restart of msys shell:
-
-    pacman -Su
-    pacman -S make diffutils texinfo gmp-devel mingw-w64-i686-gmp mingw-w64-x86_64-gmp
-
-- build (as regular user) e.g. on vmnipkow9
-
-  isabelle/repos/Admin/polyml/build polyml-git x86-windows --build=i686-pc-msys --with-gmp
-  isabelle/repos/Admin/polyml/build polyml-git x86_64-windows --build=x86_64-pc-msys --with-gmp
+    isabelle build_polyml -M /cygdrive/c/msys64 -m32 -s sha1 src
+    isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src
