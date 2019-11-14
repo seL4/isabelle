@@ -79,7 +79,7 @@ lemma content_unit[iff]: "content (cbox 0 (One::'a::euclidean_space)) = 1"
 lemma content_pos_le [iff]: "0 \<le> content X"
   by simp
 
-corollary content_nonneg [simp]: "\<not> content (cbox a b) < 0"
+corollary\<^marker>\<open>tag unimportant\<close> content_nonneg [simp]: "\<not> content (cbox a b) < 0"
   using not_le by blast
 
 lemma content_pos_lt: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i \<Longrightarrow> 0 < content (cbox a b)"

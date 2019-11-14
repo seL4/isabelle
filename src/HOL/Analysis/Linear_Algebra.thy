@@ -698,10 +698,10 @@ lemma independent_bound:
 
 lemmas independent_imp_finite = finiteI_independent
 
-corollary
+corollary\<^marker>\<open>tag unimportant\<close> independent_card_le:
   fixes S :: "'a::euclidean_space set"
   assumes "independent S"
-  shows independent_card_le:"card S \<le> DIM('a)"
+  shows "card S \<le> DIM('a)"
   using assms independent_bound by auto
 
 lemma dependent_biggerset:
