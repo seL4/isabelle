@@ -27,7 +27,7 @@ object Phabricator
       "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
       "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
       // more packages
-      "php-zip", "python-pygments", "ssh")
+      "php-zip", "python-pygments", "ssh", "subversion", "mercurial")
 
 
   /* global system resources */
