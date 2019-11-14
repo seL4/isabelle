@@ -354,10 +354,12 @@ local_infile = 0
 
     Linux.service_restart("apache2")
 
+    progress.echo("\nWeb configuration via " + server_url)
+
 
     /* PHP daemon */
 
-    progress.echo("PHP daemon setup ...")
+    progress.echo("\nPHP daemon setup ...")
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
     config.execute("config set phd.log-directory /var/tmp/phd/" +
@@ -373,7 +375,8 @@ local_infile = 0
     Isabelle_System.chmod("755", phd_command)
     Isabelle_System.chown("root:root", phd_command)
 
-    Linux.service_install(phd_name,
+    try {
+      Linux.service_install(phd_name,
 """[Unit]
 Description=PHP daemon manager for Isabelle/Phabricator
 After=syslog.target network.target apache2.service mysql.service
@@ -390,9 +393,12 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 """)
-
-
-    progress.echo("\nDONE\nWeb configuration via " + server_url)
+    }
+    catch {
+      case ERROR(msg) =>
+        progress.bash("bin/phd status", cwd = config.home.file, echo = true).check
+        error(msg)
+    }
   }
 
 
