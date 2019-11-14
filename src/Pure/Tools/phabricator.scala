@@ -494,14 +494,8 @@ Usage: isabelle phabricator_setup [OPTIONS]
         Isabelle_System.chmod("600", default_config_file)
       }
       if (File.read(default_config_file) == mailers_template) {
-        progress.echo(
-"""
-Please invoke the tool again, after providing details in
-  """ + default_config_file.implode + """
-
-See also section "Mailer: SMTP" in
-  https://secure.phabricator.com/book/phabricator/article/configuring_outbound_email
-""")
+        progress.echo("Please invoke the tool again, after providing details in\n  " +
+          default_config_file.implode + "\n")
       }
       else setup_mail
     }
