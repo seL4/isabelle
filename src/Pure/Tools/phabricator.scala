@@ -316,7 +316,8 @@ local_infile = 0
     File.write(php_conf,
       "post_max_size = 32M\n" +
       "opcache.validate_timestamps = 0\n" +
-      "memory_limit = 512M\n")
+      "memory_limit = 512M\n" +
+      "max_execution_time = 120\n")
 
 
     /* Apache setup */
