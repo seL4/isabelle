@@ -362,9 +362,17 @@ local_infile = 0
     config.execute("config set phd.log-directory /var/tmp/phd/" +
       isabelle_phabricator_name(name = name) + "/log")
 
-    Linux.service_install(isabelle_phabricator_name(name = name),
+    val phd_name = isabelle_phabricator_name(name = "phd")
+    val phd_command = Path.explode("/usr/local/bin") + Path.basic(phd_name)
+
+    File.write(phd_command,
+      global_config_script(header = true, body = """"$ROOT/phabricator/bin/phd" "$@" """))
+    Isabelle_System.chmod("755", phd_command)
+    Isabelle_System.chown("root:root", phd_command)
+
+    Linux.service_install(phd_name,
 """[Unit]
-Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
+Description=PHP daemon manager for Isabelle/Phabricator
 After=syslog.target network.target apache2.service mysql.service
 
 [Service]
@@ -372,8 +380,8 @@ Type=oneshot
 User=""" + daemon_user + """
 Group=""" + daemon_user + """
 Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
-ExecStart=""" + config.home.implode + """/bin/phd start --force
-ExecStop=""" + config.home.implode + """/bin/phd stop
+ExecStart=""" + phd_command.implode + """ start --force
+ExecStop=""" + phd_command.implode + """ stop
 RemainAfterExit=yes
 
 [Install]
