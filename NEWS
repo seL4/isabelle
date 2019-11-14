@@ -97,6 +97,11 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
+* The command-line tools "isabelle phabricator_setup", "isabelle
+phabricator" etc. simplify the management of the Phabricator
+software-development platform for Ubuntu LAMP servers. For documentation
+see chapter "Phabricator server administration" in the "system" manual.
+
 * The command-line tool "isabelle imports" has been discontinued: strict
 checking of session directories enforces session-qualified theory names
 in applications -- users are responsible to specify session ROOT entries
