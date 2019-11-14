@@ -351,8 +351,8 @@ object File
 
   def set_executable(path: Path, flag: Boolean)
   {
-    if (Platform.is_windows && flag) Isabelle_System.bash("chmod a+x " + bash_path(path)).check
-    else if (Platform.is_windows) Isabelle_System.bash("chmod a-x " + bash_path(path)).check
+    if (Platform.is_windows && flag) Isabelle_System.chmod("a+x", path)
+    else if (Platform.is_windows) Isabelle_System.chmod("a-x", path)
     else path.file.setExecutable(flag, false)
   }
 }

@@ -92,7 +92,7 @@ object Present
 
       val session_graph = session_prefix + Path.basic("session_graph.pdf")
       File.copy(graph_file, session_graph.file)
-      Isabelle_System.bash("chmod a+r " + File.bash_path(session_graph))
+      Isabelle_System.chmod("a+r", session_graph)
 
       HTML.write_isabelle_css(session_prefix)
 

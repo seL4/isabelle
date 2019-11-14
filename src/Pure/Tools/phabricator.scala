@@ -230,12 +230,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       error("Failed to create local repository directory " + repo_path)
     }
 
-    Isabelle_System.bash(cwd = repo_path.file,
-      script = """
-        set -e
-        chown -R """ + Bash.string(daemon_user) + ":" + Bash.string(daemon_user) + """ .
-        chmod 755 .
-      """).check
+    Isabelle_System.chown(
+      "-R " + Bash.string(daemon_user) + ":" + Bash.string(daemon_user), repo_path)
+    Isabelle_System.chmod("755", repo_path)
 
     config.execute("config set repository.default-local-path " + File.bash_path(repo_path))
 
@@ -245,7 +242,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
       name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
 
-    Isabelle_System.bash("chmod 0440 " + File.bash_path(sudoers_file)).check
+    Isabelle_System.chmod("0440", sudoers_file)
 
     config.execute("config set diffusion.ssh-user " + Bash.string(config.name))
 
@@ -455,7 +452,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     if (config_file.isEmpty) {
       if (!default_config_file.is_file) {
         File.write(default_config_file, mailers_template)
-        Isabelle_System.bash("chmod 600 " + File.bash_path(default_config_file)).check
+        Isabelle_System.chmod("600", default_config_file)
       }
       if (File.read(default_config_file) == mailers_template) {
         progress.echo(
@@ -598,8 +595,8 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   exit 1
 } < /etc/isabelle-phabricator.conf
 """)
-    Isabelle_System.bash("chmod 755 " + File.bash_path(ssh_command)).check
-    Isabelle_System.bash("chown root:root " + File.bash_path(ssh_command)).check
+    Isabelle_System.chmod("755", ssh_command)
+    Isabelle_System.chown("root:root", ssh_command)
 
     File.write(sshd_conf_server,
 """# OpenBSD Secure Shell server for Isabelle/Phabricator

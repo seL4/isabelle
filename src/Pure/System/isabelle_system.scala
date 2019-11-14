@@ -149,6 +149,15 @@ object Isabelle_System
 
   /** file-system operations **/
 
+  /* permissions */
+
+  def chmod(arg: String, path: Path): Unit =
+    bash("chmod " + Bash.string(arg) + " -- " + File.bash_path(path)).check
+
+  def chown(arg: String, path: Path): Unit =
+    bash("chown " + Bash.string(arg) + " -- " + File.bash_path(path)).check
+
+
   /* directories */
 
   def mkdirs(path: Path): Unit =

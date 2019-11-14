@@ -404,7 +404,7 @@ object Server
     using(SQLite.open_database(Data.database))(db =>
       {
         db.transaction {
-          Isabelle_System.bash("chmod 600 " + File.bash_path(Data.database)).check
+          Isabelle_System.chmod("600", Data.database)
           db.create_table(Data.table)
           list(db).filterNot(_.active).foreach(server_info =>
             db.using_statement(Data.table.delete(Data.name.where_equal(server_info.name)))(

@@ -133,7 +133,7 @@ fi
 
     val service_file = Path.explode("/lib/systemd/system") + Path.basic(name).ext("service")
     File.write(service_file, spec)
-    Isabelle_System.bash("chmod 0644 " + File.bash_path(service_file)).check
+    Isabelle_System.chmod("0644", service_file)
 
     service_enable(name)
     service_restart(name)
