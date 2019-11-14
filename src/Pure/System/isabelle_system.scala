@@ -152,10 +152,10 @@ object Isabelle_System
   /* permissions */
 
   def chmod(arg: String, path: Path): Unit =
-    bash("chmod " + Bash.string(arg) + " " + File.bash_path(path)).check
+    bash("chmod " + arg + " " + File.bash_path(path)).check
 
   def chown(arg: String, path: Path): Unit =
-    bash("chown " + Bash.string(arg) + " " + File.bash_path(path)).check
+    bash("chown " + arg + " " + File.bash_path(path)).check
 
 
   /* directories */
