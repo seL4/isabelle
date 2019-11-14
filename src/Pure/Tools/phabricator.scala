@@ -242,7 +242,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
       name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
 
-    Isabelle_System.chmod("0440", sudoers_file)
+    Isabelle_System.chmod("440", sudoers_file)
 
     config.execute("config set diffusion.ssh-user " + Bash.string(config.name))
 
