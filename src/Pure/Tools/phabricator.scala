@@ -366,6 +366,8 @@ local_infile = 0
     val phd_name = isabelle_phabricator_name(name = "phd")
     val phd_command = Path.explode("/usr/local/bin") + Path.basic(phd_name)
 
+    Linux.service_shutdown(phd_name)
+
     File.write(phd_command,
       global_config_script(header = true, body = """"$ROOT/phabricator/bin/phd" "$@" """))
     Isabelle_System.chmod("755", phd_command)
