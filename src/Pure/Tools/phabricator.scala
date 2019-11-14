@@ -200,8 +200,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
     /* users */
 
-    if (name == daemon_user) {
-      error("Clash of installation name with daemon user " + quote(daemon_user))
+    if (name.contains((c: Char) => !(Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c))) ||
+        Set("", "ssh", "phd", daemon_user).contains(name)) {
+      error("Bad installation name: " + quote(name))
     }
 
     user_setup(daemon_user, "Phabricator Daemon User", ssh_setup = true)
