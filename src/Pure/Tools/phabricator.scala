@@ -205,12 +205,13 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       error("Failed to create root directory " + root_path)
     }
 
+    Isabelle_System.chown(Bash.string(www_user) + ":" + Bash.string(www_user), root_path)
+    Isabelle_System.chmod("755", root_path)
+
     progress.bash(cwd = root_path.file, echo = true,
       script = """
         set -e
-        chown """ + Bash.string(www_user) + ":" + Bash.string(www_user) + """ .
-        chmod 755 .
-
+        echo "Cloning distribution repositories"
         git clone https://github.com/phacility/libphutil.git
         git clone https://github.com/phacility/arcanist.git
         git clone https://github.com/phacility/phabricator.git
