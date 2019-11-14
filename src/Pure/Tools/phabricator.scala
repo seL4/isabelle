@@ -66,6 +66,26 @@ object Phabricator
 
   val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
+  def global_config_script(
+    header: Boolean = false,
+    init: String = "",
+    body: String = "",
+    exit: String = ""): String =
+  {
+    (if (header) "#!/bin/bash\n" else "") +
+"""
+{""" + (if (init.nonEmpty) "\n" + Library.prefix_lines("  ", init) else "") + """
+  while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+  do
+    NAME="$(echo "$REPLY" | cut -d: -f1)"
+    ROOT="$(echo "$REPLY" | cut -d: -f2)"
+""" + Library.prefix_lines("    ", body) + """
+  done""" +
+    (if (exit.nonEmpty) "\n" + Library.prefix_lines("  ", exit) else "") + """
+} < """ + File.bash_path(global_config) + """
+"""
+  }
+
   sealed case class Config(name: String, root: Path)
   {
     def home: Path = root + Path.explode(phabricator_name())
@@ -582,20 +602,14 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     progress.echo("Configuring " + ssh_name + " service")
 
     File.write(ssh_command,
-"""#!/bin/bash
-{
-  while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
-  do
-    NAME="$(echo "$REPLY" | cut -d: -f1)"
-    ROOT="$(echo "$REPLY" | cut -d: -f2)"
-    if [ "$1" = "$NAME" ]
-    then
-      exec "$ROOT/phabricator/bin/ssh-auth" "$@"
-    fi
-  done
-  exit 1
-} < /etc/isabelle-phabricator.conf
-""")
+      global_config_script(
+        header = true,
+        body =
+"""if [ "$1" = "$NAME" ]
+then
+  exec "$ROOT/phabricator/bin/ssh-auth" "$@"
+fi""",
+        exit = "exit 1"))
     Isabelle_System.chmod("755", ssh_command)
     Isabelle_System.chown("root:root", ssh_command)
 
