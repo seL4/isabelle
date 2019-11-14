@@ -172,6 +172,34 @@ text \<open>
 \<close>
 
 
+subsection \<open>SSH configuration\<close>
+
+text \<open>
+  SSH configuration is optional, but important to access hosted repositories
+  with public-key authentication.
+
+  The subsequent configuration is convenient, but also ambitious: it takes
+  away the standard port 22 from the operating system and assigns it to
+  Isabelle/Phabricator!
+
+  @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 22 -q 222\<close>}
+
+  Afterwards, remote login to the server host needs to use that alternative
+  port 222. If there is a problem with it, there is usually remote console
+  access to the hosted virtual machine via some web interface of the provider.
+
+  \<^medskip>
+  The following more modest configuration uses port 2222 for Phabricator,
+  and restains port 22 for the operating system:
+
+  @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 2222 -q 22\<close>}
+
+  \<^medskip>
+  The tool can be invoked multiple times with different parameters; ports are
+  changed back and forth each time and services restarted.
+\<close>
+
+
 section \<open>Reference of command-line tools\<close>
 
 text \<open>
@@ -212,14 +240,14 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Print the home directory of the Phabricator installation:
-  @{verbatim [display] \<open>isabelle phabricator pwd\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator pwd\<close>}
 
   Print some Phabricator configuration information:
-  @{verbatim [display] \<open>isabelle phabricator bin/config get phabricator.base-uri\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator bin/config get phabricator.base-uri\<close>}
 
   The latter conforms to typical command templates seen in the original
   Phabricator documentation:
-  @{verbatim [display] \<open>phabricator/ $ ./bin/config get phabricator.base-uri\<close>}
+  @{verbatim [display] \<open>  phabricator/ $ ./bin/config get phabricator.base-uri\<close>}
 
   Here the user is meant to navigate to the Phabricator home manually, in
   contrast to \<^verbatim>\<open>isabelle phabricator\<close> doing it automatically thanks to the
@@ -321,6 +349,56 @@ text \<open>
   previous successful Phabricator installation: sharing mailers setup with the
   same mail address is fine for outgoing mails; incoming mails are optional
   and not configured here.
+\<close>
+
+
+subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup_ssh\<close>\<close>
+
+text \<open>
+  The @{tool_def phabricator_setup_ssh} configures a special SSH service
+  for all Phabricator installations:
+  @{verbatim [display] \<open>Usage: isabelle phabricator_setup_ssh [OPTIONS]
+
+  Options are:
+    -p PORT      sshd port for Phabricator servers (default: 2222)
+    -q PORT      sshd port for the operating system (default: 22)
+    -T           test the ssh service for each Phabricator installation
+
+  Configure ssh service for all Phabricator installations: a separate sshd
+  is run in addition to the one of the operating system, and ports need to
+  be distinct.
+
+  A particular Phabricator installation is addressed by using its
+  name as the ssh user; the actual Phabricator user is determined via
+  stored ssh keys.\<close>}
+
+  This is optional, but very useful. It allows to refer to hosted repositories
+  via ssh with the usual public-key authentication. It also allows to
+  communicate with a Phabricator server via the JSON API of
+  \<^emph>\<open>Conduit\<close>\<^footnote>\<open>\<^url>\<open>https://secure.phabricator.com/book/phabricator/article/conduit\<close>\<close>.
+
+  \<^medskip> The Phabricator SSH server distinguishes installations by their name,
+  e.g.\ \<^verbatim>\<open>vcs\<close> as SSH user name. The public key that is used for
+  authentication identifies the user within Phabricator: there is a web
+  interface to provide that as part of the user profile.
+
+  The operating system already has an SSH server (by default on port 22) that
+  remains important for remote administration of the machine.
+
+  \<^medskip>
+  Options \<^verbatim>\<open>-p\<close> and \<^verbatim>\<open>-q\<close> allow to change the port assignment for both servers.
+  A common scheme is \<^verbatim>\<open>-p 22 -q 222\<close> to leave the standard port to
+  Phabricator, to simplify the ssh URL that users will see for remote
+  repository clones.
+
+  Redirecting the operating system sshd to port 222 requires some care: it
+  requires to adjust the remote login procedure, e.g.\ in \<^verbatim>\<open>$HOME/.ssh/config\<close>
+  to add a \<^verbatim>\<open>Port\<close> specification for the server machine.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-T\<close> tests the SSH connection by communicating via Conduit. This
+  requires to install the public key of the Linux root in some Phabricator
+  user profile, e.g.\ for the administrator.
 \<close>
 
 end
