@@ -66,6 +66,26 @@ object Phabricator
 
   val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
+  def global_config_script(
+    header: Boolean = false,
+    init: String = "",
+    body: String = "",
+    exit: String = ""): String =
+  {
+    (if (header) "#!/bin/bash\n" else "") +
+"""
+{""" + (if (init.nonEmpty) "\n" + Library.prefix_lines("  ", init) else "") + """
+  while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+  do
+    NAME="$(echo "$REPLY" | cut -d: -f1)"
+    ROOT="$(echo "$REPLY" | cut -d: -f2)"
+""" + Library.prefix_lines("    ", body) + """
+  done""" +
+    (if (exit.nonEmpty) "\n" + Library.prefix_lines("  ", exit) else "") + """
+} < """ + File.bash_path(global_config) + """
+"""
+  }
+
   sealed case class Config(name: String, root: Path)
   {
     def home: Path = root + Path.explode(phabricator_name())
@@ -180,8 +200,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
     /* users */
 
-    if (name == daemon_user) {
-      error("Clash of installation name with daemon user " + quote(daemon_user))
+    if (name.contains((c: Char) => !(Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c))) ||
+        Set("", "ssh", "phd", daemon_user).contains(name)) {
+      error("Bad installation name: " + quote(name))
     }
 
     user_setup(daemon_user, "Phabricator Daemon User", ssh_setup = true)
@@ -211,7 +232,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     progress.bash(cwd = root_path.file, echo = true,
       script = """
         set -e
-        echo "Cloning distribution repositories"
+        echo "Cloning distribution repositories:"
         git clone https://github.com/phacility/libphutil.git
         git clone https://github.com/phacility/arcanist.git
         git clone https://github.com/phacility/phabricator.git
@@ -295,7 +316,8 @@ local_infile = 0
     File.write(php_conf,
       "post_max_size = 32M\n" +
       "opcache.validate_timestamps = 0\n" +
-      "memory_limit = 512M\n")
+      "memory_limit = 512M\n" +
+      "max_execution_time = 120\n")
 
 
     /* Apache setup */
@@ -333,18 +355,31 @@ local_infile = 0
 
     Linux.service_restart("apache2")
 
+    progress.echo("\nWeb configuration via " + server_url)
+
 
     /* PHP daemon */
 
-    progress.echo("PHP daemon setup ...")
+    progress.echo("\nPHP daemon setup ...")
 
     config.execute("config set phd.user " + Bash.string(daemon_user))
     config.execute("config set phd.log-directory /var/tmp/phd/" +
       isabelle_phabricator_name(name = name) + "/log")
 
-    Linux.service_install(isabelle_phabricator_name(name = name),
+    val phd_name = isabelle_phabricator_name(name = "phd")
+    val phd_command = Path.explode("/usr/local/bin") + Path.basic(phd_name)
+
+    Linux.service_shutdown(phd_name)
+
+    File.write(phd_command,
+      global_config_script(header = true, body = """"$ROOT/phabricator/bin/phd" "$@" """))
+    Isabelle_System.chmod("755", phd_command)
+    Isabelle_System.chown("root:root", phd_command)
+
+    try {
+      Linux.service_install(phd_name,
 """[Unit]
-Description=PHP daemon for Isabelle/Phabricator """ + quote(name) + """
+Description=PHP daemon manager for Isabelle/Phabricator
 After=syslog.target network.target apache2.service mysql.service
 
 [Service]
@@ -352,16 +387,19 @@ Type=oneshot
 User=""" + daemon_user + """
 Group=""" + daemon_user + """
 Environment=PATH=/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin
-ExecStart=""" + config.home.implode + """/bin/phd start --force
-ExecStop=""" + config.home.implode + """/bin/phd stop
+ExecStart=""" + phd_command.implode + """ start --force
+ExecStop=""" + phd_command.implode + """ stop
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 """)
-
-
-    progress.echo("\nDONE\nWeb configuration via " + server_url)
+    }
+    catch {
+      case ERROR(msg) =>
+        progress.bash("bin/phd status", cwd = config.home.file, echo = true).check
+        error(msg)
+    }
   }
 
 
@@ -582,20 +620,14 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     progress.echo("Configuring " + ssh_name + " service")
 
     File.write(ssh_command,
-"""#!/bin/bash
-{
-  while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
-  do
-    NAME="$(echo "$REPLY" | cut -d: -f1)"
-    ROOT="$(echo "$REPLY" | cut -d: -f2)"
-    if [ "$1" = "$NAME" ]
-    then
-      exec "$ROOT/phabricator/bin/ssh-auth" "$@"
-    fi
-  done
-  exit 1
-} < /etc/isabelle-phabricator.conf
-""")
+      global_config_script(
+        header = true,
+        body =
+"""if [ "$1" = "$NAME" ]
+then
+  exec "$ROOT/phabricator/bin/ssh-auth" "$@"
+fi""",
+        exit = "exit 1"))
     Isabelle_System.chmod("755", ssh_command)
     Isabelle_System.chown("root:root", ssh_command)
 
