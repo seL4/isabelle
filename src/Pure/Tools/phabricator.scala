@@ -232,7 +232,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     progress.bash(cwd = root_path.file, echo = true,
       script = """
         set -e
-        echo "Cloning distribution repositories"
+        echo "Cloning distribution repositories:"
         git clone https://github.com/phacility/libphutil.git
         git clone https://github.com/phacility/arcanist.git
         git clone https://github.com/phacility/phabricator.git
