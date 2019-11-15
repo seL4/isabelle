@@ -569,9 +569,9 @@ proof -
 qed
 
 
+subsection\<open>Lemmas about components\<close>
 
-subsection\<open>A couple of lemmas about components (see Newman IV, 3.3 and 3.4)\<close>
-
+text  \<open>See Newman IV, 3.3 and 3.4.\<close>
 
 lemma connected_Un_clopen_in_complement:
   fixes S U :: "'a::metric_space set"

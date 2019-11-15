@@ -1,11 +1,13 @@
-section \<open>Neigbourhood bases and Locally path-connected spaces\<close>
+section \<open>Neighbourhood bases and Locally path-connected spaces\<close>
 
 theory Locally
   imports
     Path_Connected Function_Topology
 begin
 
-subsection\<open>Neigbourhood bases (useful for "local" properties of various kinds)\<close>
+subsection\<open>Neighbourhood Bases\<close>
+
+text \<open>Useful for "local" properties of various kinds\<close>
 
 definition neighbourhood_base_at where
  "neighbourhood_base_at x P X \<equiv>
