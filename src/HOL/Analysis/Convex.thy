@@ -1412,7 +1412,7 @@ lemma mem_affine_3_minus:
   using mem_affine_3[of S x y z 1 v "-v"] assms
   by (simp add: algebra_simps)
 
-corollary mem_affine_3_minus2:
+corollary%unimportant mem_affine_3_minus2:
     "\<lbrakk>affine S; x \<in> S; y \<in> S; z \<in> S\<rbrakk> \<Longrightarrow> x - v *\<^sub>R (y-z) \<in> S"
   by (metis add_uminus_conv_diff mem_affine_3_minus real_vector.scale_minus_left)
 
@@ -1977,8 +1977,8 @@ proof (rule connectedI)
   ultimately show False by auto
 qed
 
-corollary connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
-  by (simp add: convex_connected)
+corollary%unimportant connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
+by (simp add: convex_connected)
 
 lemma convex_prod:
   assumes "\<And>i. i \<in> Basis \<Longrightarrow> convex {x. P i x}"
@@ -1987,7 +1987,7 @@ lemma convex_prod:
   by (auto simp: inner_add_left)
 
 lemma convex_positive_orthant: "convex {x::'a::euclidean_space. (\<forall>i\<in>Basis. 0 \<le> x\<bullet>i)}"
-  by (rule convex_prod) (simp add: atLeast_def[symmetric] convex_real_interval)
+by (rule convex_prod) (simp flip: atLeast_def)
 
 subsection \<open>Convex hull\<close>
 
