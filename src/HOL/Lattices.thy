@@ -772,6 +772,14 @@ lemma split_min [no_atp]: "P (min i j) \<longleftrightarrow> (i \<le> j \<longri
 lemma split_max [no_atp]: "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
   by (simp add: max_def)
 
+lemma split_min_lin [no_atp]:
+  \<open>P (min a b) \<longleftrightarrow> (b = a \<longrightarrow> P a) \<and> (a < b \<longrightarrow> P a) \<and> (b < a \<longrightarrow> P b)\<close>
+  by (cases a b rule: linorder_cases) (auto simp add: min.absorb1 min.absorb2)
+
+lemma split_max_lin [no_atp]:
+  \<open>P (max a b) \<longleftrightarrow> (b = a \<longrightarrow> P a) \<and> (a < b \<longrightarrow> P b) \<and> (b < a \<longrightarrow> P a)\<close>
+  by (cases a b rule: linorder_cases) (auto simp add: max.absorb1 max.absorb2)
+
 lemma min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)" for f :: "'a \<Rightarrow> 'b::linorder"
   by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
 

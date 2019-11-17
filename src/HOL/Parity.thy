@@ -480,6 +480,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma exp_mod_exp:
+  \<open>2 ^ m mod 2 ^ n = of_bool (m < n) * 2 ^ m\<close>
+proof -
+  have \<open>(2::nat) ^ m mod 2 ^ n = of_bool (m < n) * 2 ^ m\<close> (is \<open>?lhs = ?rhs\<close>)
+    by (auto simp add: not_less monoid_mult_class.power_add dest!: le_Suc_ex)
+  then have \<open>of_nat ?lhs = of_nat ?rhs\<close>
+    by simp
+  then show ?thesis
+    by (simp add: of_nat_mod)
+qed
+
 end
 
 class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
@@ -599,6 +610,7 @@ proof (induct n rule: less_induct)
       by (simp add: k)
   qed
 qed
+
 
 subsection \<open>Parity and powers\<close>
 
@@ -745,16 +757,99 @@ lemma even_add_abs_iff:
 lemma even_nat_iff: "0 \<le> k \<Longrightarrow> even (nat k) \<longleftrightarrow> even k"
   by (simp add: even_of_nat [of "nat k", where ?'a = int, symmetric])
 
+lemma zdiv_zmult2_eq:
+  \<open>a div (b * c) = (a div b) div c\<close> if \<open>c \<ge> 0\<close> for a b c :: int
+proof (cases \<open>b \<ge> 0\<close>)
+  case True
+  with that show ?thesis
+    using div_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
+next
+  case False
+  with that show ?thesis
+    using div_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
+qed
+
+lemma zmod_zmult2_eq:
+  \<open>a mod (b * c) = b * (a div b mod c) + a mod b\<close> if \<open>c \<ge> 0\<close> for a b c :: int
+proof (cases \<open>b \<ge> 0\<close>)
+  case True
+  with that show ?thesis
+    using mod_mult2_eq' [of a \<open>nat b\<close> \<open>nat c\<close>] by simp
+next
+  case False
+  with that show ?thesis
+    using mod_mult2_eq' [of \<open>- a\<close> \<open>nat (- b)\<close> \<open>nat c\<close>] by simp
+qed
+
 
 subsection \<open>Abstract bit shifts\<close>
 
 class semiring_bits = semiring_parity +
-  assumes bit_split_eq: \<open>\<And>a. of_bool (odd a) + 2 * (a div 2) = a\<close>
-    and bit_eq_rec: \<open>\<And>a b. a = b \<longleftrightarrow> (even a = even b) \<and> a div 2 = b div 2\<close>
+  assumes bit_eq_rec: \<open>a = b \<longleftrightarrow> (even a = even b) \<and> a div 2 = b div 2\<close>
     and bit_induct [case_names stable rec]:
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
+  assumes bits_div_0 [simp]: \<open>0 div a = 0\<close>
+    and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
+    and bit_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
+    and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
+    and div_exp_eq: \<open>a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)\<close>
+    and mod_exp_eq: \<open>a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n\<close>
+    and mult_exp_mod_exp_eq: \<open>m \<le> n \<Longrightarrow> (a * 2 ^ m) mod (2 ^ n) = (a mod 2 ^ (n - m)) * 2 ^ m\<close>
+    and div_exp_mod_exp_eq: \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
+begin
+
+lemma bits_1_div_2 [simp]:
+  \<open>1 div 2 = 0\<close>
+  using even_succ_div_2 [of 0] by simp
+
+lemma bits_1_div_exp [simp]:
+  \<open>1 div 2 ^ n = of_bool (n = 0)\<close>
+  using div_exp_eq [of 1 1] by (cases n) simp_all
+
+lemma even_succ_div_exp [simp]:
+  \<open>(1 + a) div 2 ^ n = a div 2 ^ n\<close> if \<open>even a\<close> and \<open>n > 0\<close>
+proof (cases n)
+  case 0
+  with that show ?thesis
+    by simp
+next
+  case (Suc n)
+  with \<open>even a\<close> have \<open>(1 + a) div 2 ^ Suc n = a div 2 ^ Suc n\<close>
+  proof (induction n)
+    case 0
+    then show ?case
+      by simp
+  next
+    case (Suc n)
+    then show ?case
+      using div_exp_eq [of _ 1 \<open>Suc n\<close>, symmetric]
+      by simp
+  qed
+  with Suc show ?thesis
+    by simp
+qed
+
+lemma even_succ_mod_exp [simp]:
+  \<open>(1 + a) mod 2 ^ n = 1 + (a mod 2 ^ n)\<close> if \<open>even a\<close> and \<open>n > 0\<close>
+  using div_mult_mod_eq [of \<open>1 + a\<close> \<open>2 ^ n\<close>] that
+  apply simp
+  by (metis local.add.left_commute local.add_left_cancel local.div_mult_mod_eq)
+
+lemma bits_mod_by_1 [simp]:
+  \<open>a mod 1 = 0\<close>
+  using div_mult_mod_eq [of a 1] by simp
+
+lemma bits_mod_0 [simp]:
+  \<open>0 mod a = 0\<close>
+  using div_mult_mod_eq [of 0 a] by simp
+
+lemma one_mod_two_eq_one [simp]:
+  \<open>1 mod 2 = 1\<close>
+  by (simp add: mod2_eq_if)
+
+end
 
 lemma nat_bit_induct [case_names zero even odd]:
   "P n" if zero: "P 0"
@@ -787,9 +882,6 @@ qed
 
 instance nat :: semiring_bits
 proof
-  show \<open>of_bool (odd n) + 2 * (n div 2) = n\<close>
-    for n :: nat
-    by simp
   show \<open>m = n \<longleftrightarrow> (even m \<longleftrightarrow> even n) \<and> m div 2 = n div 2\<close>
     for m n :: nat
     by (auto dest: odd_two_times_div_two_succ)
@@ -809,7 +901,18 @@ proof
     with rec [of n True] show ?case
       by simp
   qed
-qed
+  show \<open>q mod 2 ^ m mod 2 ^ n = q mod 2 ^ min m n\<close>
+    for q m n :: nat
+    apply (auto simp add: less_iff_Suc_add power_add mod_mod_cancel split: split_min_lin)
+    apply (metis div_mult2_eq mod_div_trivial mod_eq_self_iff_div_eq_0 mod_mult_self2_is_0 power_commutes)
+    done
+  show \<open>(q * 2 ^ m) mod (2 ^ n) = (q mod 2 ^ (n - m)) * 2 ^ m\<close> if \<open>m \<le> n\<close>
+    for q m n :: nat
+    using that
+    apply (auto simp add: mod_mod_cancel div_mult2_eq power_add mod_mult2_eq le_iff_add split: split_min_lin)
+    apply (simp add: mult.commute)
+    done
+qed (auto simp add: div_mult2_eq mod_mult2_eq power_add)
 
 lemma int_bit_induct [case_names zero minus even odd]:
   "P k" if zero_int: "P 0"
@@ -870,9 +973,6 @@ qed
 
 instance int :: semiring_bits
 proof
-  show \<open>of_bool (odd k) + 2 * (k div 2) = k\<close>
-    for k :: int
-    by (auto elim: oddE)
   show \<open>k = l \<longleftrightarrow> (even k \<longleftrightarrow> even l) \<and> k div 2 = l div 2\<close>
     for k l :: int
     by (auto dest: odd_two_times_div_two_succ)
@@ -896,7 +996,21 @@ proof
     with rec [of k True] show ?case
       by (simp add: ac_simps)
   qed
-qed
+  show \<open>k mod 2 ^ m mod 2 ^ n = k mod 2 ^ min m n\<close>
+    for m n :: nat and k :: int
+    using mod_exp_eq [of \<open>nat k\<close> m n]
+    apply (auto simp add: mod_mod_cancel zdiv_zmult2_eq power_add zmod_zmult2_eq le_iff_add split: split_min_lin)
+     apply (auto simp add: less_iff_Suc_add mod_mod_cancel power_add)
+    apply (simp only: flip: mult.left_commute [of \<open>2 ^ m\<close>])
+    apply (subst zmod_zmult2_eq) apply simp_all
+    done
+  show \<open>(k * 2 ^ m) mod (2 ^ n) = (k mod 2 ^ (n - m)) * 2 ^ m\<close>
+    if \<open>m \<le> n\<close> for m n :: nat and k :: int
+    using that
+    apply (auto simp add: power_add zmod_zmult2_eq le_iff_add split: split_min_lin)
+    apply (simp add: ac_simps)
+    done
+qed (auto simp add: zdiv_zmult2_eq zmod_zmult2_eq power_add)
 
 class semiring_bit_shifts = semiring_bits +
   fixes push_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
@@ -919,6 +1033,146 @@ text \<open>
   takes into account that specific instances of these can be implemented
   differently wrt. code generation.
 \<close>
+
+lemma bit_ident:
+  "push_bit n (drop_bit n a) + take_bit n a = a"
+  using div_mult_mod_eq by (simp add: push_bit_eq_mult take_bit_eq_mod drop_bit_eq_div)
+
+lemma push_bit_push_bit [simp]:
+  "push_bit m (push_bit n a) = push_bit (m + n) a"
+  by (simp add: push_bit_eq_mult power_add ac_simps)
+
+lemma push_bit_0_id [simp]:
+  "push_bit 0 = id"
+  by (simp add: fun_eq_iff push_bit_eq_mult)
+
+lemma push_bit_of_0 [simp]:
+  "push_bit n 0 = 0"
+  by (simp add: push_bit_eq_mult)
+
+lemma push_bit_of_1:
+  "push_bit n 1 = 2 ^ n"
+  by (simp add: push_bit_eq_mult)
+
+lemma push_bit_Suc [simp]:
+  "push_bit (Suc n) a = push_bit n (a * 2)"
+  by (simp add: push_bit_eq_mult ac_simps)
+
+lemma push_bit_double:
+  "push_bit n (a * 2) = push_bit n a * 2"
+  by (simp add: push_bit_eq_mult ac_simps)
+
+lemma push_bit_add:
+  "push_bit n (a + b) = push_bit n a + push_bit n b"
+  by (simp add: push_bit_eq_mult algebra_simps)
+
+lemma take_bit_0 [simp]:
+  "take_bit 0 a = 0"
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_Suc [simp]:
+  \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
+proof -
+  have \<open>take_bit (Suc n) (a div 2 * 2 + of_bool (odd a)) = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
+    using even_succ_mod_exp [of \<open>2 * (a div 2)\<close> \<open>Suc n\<close>]
+      mult_exp_mod_exp_eq [of 1 \<open>Suc n\<close> \<open>a div 2\<close>]
+    by (auto simp add: take_bit_eq_mod ac_simps)
+  then show ?thesis
+    using div_mult_mod_eq [of a 2] by (simp add: mod_2_eq_odd)
+qed
+
+lemma take_bit_of_0 [simp]:
+  "take_bit n 0 = 0"
+  by (simp add: take_bit_eq_mod)
+
+lemma take_bit_of_1 [simp]:
+  "take_bit n 1 = of_bool (n > 0)"
+  by (cases n) simp_all
+
+lemma drop_bit_of_0 [simp]:
+  "drop_bit n 0 = 0"
+  by (simp add: drop_bit_eq_div)
+
+lemma drop_bit_of_1 [simp]:
+  "drop_bit n 1 = of_bool (n = 0)"
+  by (simp add: drop_bit_eq_div)
+
+lemma drop_bit_0 [simp]:
+  "drop_bit 0 = id"
+  by (simp add: fun_eq_iff drop_bit_eq_div)
+
+lemma drop_bit_Suc [simp]:
+  "drop_bit (Suc n) a = drop_bit n (a div 2)"
+  using div_exp_eq [of a 1] by (simp add: drop_bit_eq_div)
+
+lemma drop_bit_half:
+  "drop_bit n (a div 2) = drop_bit n a div 2"
+  by (induction n arbitrary: a) simp_all
+
+lemma drop_bit_of_bool [simp]:
+  "drop_bit n (of_bool d) = of_bool (n = 0 \<and> d)"
+  by (cases n) simp_all
+
+lemma take_bit_eq_0_imp_dvd:
+  "take_bit n a = 0 \<Longrightarrow> 2 ^ n dvd a"
+  by (simp add: take_bit_eq_mod mod_0_imp_dvd)
+
+lemma even_take_bit_eq [simp]:
+  \<open>even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a\<close>
+  by (cases n) simp_all
+
+lemma take_bit_take_bit [simp]:
+  "take_bit m (take_bit n a) = take_bit (min m n) a"
+  by (simp add: take_bit_eq_mod mod_exp_eq ac_simps)
+
+lemma drop_bit_drop_bit [simp]:
+  "drop_bit m (drop_bit n a) = drop_bit (m + n) a"
+  by (simp add: drop_bit_eq_div power_add div_exp_eq ac_simps)
+
+lemma push_bit_take_bit:
+  "push_bit m (take_bit n a) = take_bit (m + n) (push_bit m a)"
+  apply (simp add: push_bit_eq_mult take_bit_eq_mod power_add ac_simps)
+  using mult_exp_mod_exp_eq [of m \<open>m + n\<close> a] apply (simp add: ac_simps power_add)
+  done
+
+lemma take_bit_push_bit:
+  "take_bit m (push_bit n a) = push_bit n (take_bit (m - n) a)"
+proof (cases "m \<le> n")
+  case True
+  then show ?thesis
+    apply (simp add:)
+    apply (simp_all add: push_bit_eq_mult take_bit_eq_mod)
+    apply (auto dest!: le_Suc_ex simp add: power_add ac_simps)
+    using mult_exp_mod_exp_eq [of m m \<open>a * 2 ^ n\<close> for n]
+    apply (simp add: ac_simps)
+    done
+next
+  case False
+  then show ?thesis
+    using push_bit_take_bit [of n "m - n" a]
+    by simp
+qed
+
+lemma take_bit_drop_bit:
+  "take_bit m (drop_bit n a) = drop_bit n (take_bit (m + n) a)"
+  by (simp add: drop_bit_eq_div take_bit_eq_mod ac_simps div_exp_mod_exp_eq)
+
+lemma drop_bit_take_bit:
+  "drop_bit m (take_bit n a) = take_bit (n - m) (drop_bit m a)"
+proof (cases "m \<le> n")
+  case True
+  then show ?thesis
+    using take_bit_drop_bit [of "n - m" m a] by simp
+next
+  case False
+  then obtain q where \<open>m = n + q\<close>
+    by (auto simp add: not_le dest: less_imp_Suc_add)
+  then have \<open>drop_bit m (take_bit n a) = 0\<close>
+    using div_exp_eq [of \<open>a mod 2 ^ n\<close> n q]
+    by (simp add: take_bit_eq_mod drop_bit_eq_div)
+  with False show ?thesis
+    by simp
+qed
 
 end
 
@@ -962,114 +1216,17 @@ class unique_euclidean_semiring_with_bit_shifts =
   unique_euclidean_semiring_with_nat + semiring_bit_shifts
 begin
 
-lemma bit_ident:
-  "push_bit n (drop_bit n a) + take_bit n a = a"
-  using div_mult_mod_eq by (simp add: push_bit_eq_mult take_bit_eq_mod drop_bit_eq_div)
+lemma take_bit_of_exp [simp]:
+  \<open>take_bit m (2 ^ n) = of_bool (n < m) * 2 ^ n\<close>
+  by (simp add: take_bit_eq_mod exp_mod_exp)
 
-lemma push_bit_push_bit [simp]:
-  "push_bit m (push_bit n a) = push_bit (m + n) a"
-  by (simp add: push_bit_eq_mult power_add ac_simps)
-
-lemma take_bit_take_bit [simp]:
-  "take_bit m (take_bit n a) = take_bit (min m n) a"
-proof (cases "m \<le> n")
-  case True
-  then show ?thesis
-    by (simp add: take_bit_eq_mod not_le min_def mod_mod_cancel le_imp_power_dvd)
-next
-  case False
-  then have "n < m" and "min m n = n"
-    by simp_all
-  then have "2 ^ m = of_nat (2 ^ n) * of_nat (2 ^ (m - n))"
-    by (simp add: power_add [symmetric])
-  then have "a mod 2 ^ n mod 2 ^ m = a mod 2 ^ n mod (of_nat (2 ^ n) * of_nat (2 ^ (m - n)))"
-    by simp
-  also have "\<dots> = of_nat (2 ^ n) * (a mod 2 ^ n div of_nat (2 ^ n) mod of_nat (2 ^ (m - n))) + a mod 2 ^ n mod of_nat (2 ^ n)"
-    by (simp only: mod_mult2_eq')
-  finally show ?thesis
-    using \<open>min m n = n\<close> by (simp add: take_bit_eq_mod)
-qed
-
-lemma drop_bit_drop_bit [simp]:
-  "drop_bit m (drop_bit n a) = drop_bit (m + n) a"
-proof -
-  have "a div (2 ^ m * 2 ^ n) = a div (of_nat (2 ^ n) * of_nat (2 ^ m))"
-    by (simp add: ac_simps)
-  also have "\<dots> = a div of_nat (2 ^ n) div of_nat (2 ^ m)"
-    by (simp only: div_mult2_eq')
-  finally show ?thesis
-    by (simp add: drop_bit_eq_div power_add)
-qed
-
-lemma push_bit_take_bit:
-  "push_bit m (take_bit n a) = take_bit (m + n) (push_bit m a)"
-  by (simp add: push_bit_eq_mult take_bit_eq_mod power_add mult_mod_right ac_simps)
-
-lemma take_bit_push_bit:
-  "take_bit m (push_bit n a) = push_bit n (take_bit (m - n) a)"
-proof (cases "m \<le> n")
-  case True
-  then show ?thesis
-    by (simp_all add: push_bit_eq_mult take_bit_eq_mod mod_eq_0_iff_dvd dvd_power_le)
-next
-  case False
-  then show ?thesis
-    using push_bit_take_bit [of n "m - n" a]
-    by simp
-qed
-
-lemma take_bit_drop_bit:
-  "take_bit m (drop_bit n a) = drop_bit n (take_bit (m + n) a)"
-  using mod_mult2_eq' [of a "2 ^ n" "2 ^ m"]
-  by (simp add: drop_bit_eq_div take_bit_eq_mod power_add ac_simps)
-
-lemma drop_bit_take_bit:
-  "drop_bit m (take_bit n a) = take_bit (n - m) (drop_bit m a)"
-proof (cases "m \<le> n")
-  case True
-  then show ?thesis
-    using take_bit_drop_bit [of "n - m" m a] by simp
-next
-  case False
-  then have "a mod 2 ^ n div 2 ^ m = a mod 2 ^ n div 2 ^ (n + (m - n))"
-    by simp
-  also have "\<dots> = a mod 2 ^ n div (2 ^ n * 2 ^ (m - n))"
-    by (simp add: power_add)
-  also have "\<dots> = a mod 2 ^ n div (of_nat (2 ^ n) * of_nat (2 ^ (m - n)))"
-    by simp
-  also have "\<dots> = a mod 2 ^ n div of_nat (2 ^ n) div of_nat (2 ^ (m - n))"
-    by (simp only: div_mult2_eq')
-  finally show ?thesis
-    using False by (simp add: take_bit_eq_mod drop_bit_eq_div)
-qed
-
-lemma push_bit_0_id [simp]:
-  "push_bit 0 = id"
-  by (simp add: fun_eq_iff push_bit_eq_mult)
-
-lemma push_bit_of_0 [simp]:
-  "push_bit n 0 = 0"
-  by (simp add: push_bit_eq_mult)
-
-lemma push_bit_of_1:
-  "push_bit n 1 = 2 ^ n"
-  by (simp add: push_bit_eq_mult)
-
-lemma push_bit_Suc [simp]:
-  "push_bit (Suc n) a = push_bit n (a * 2)"
-  by (simp add: push_bit_eq_mult ac_simps)
-
-lemma push_bit_double:
-  "push_bit n (a * 2) = push_bit n a * 2"
-  by (simp add: push_bit_eq_mult ac_simps)
+lemma take_bit_of_2 [simp]:
+  \<open>take_bit n 2 = of_bool (2 \<le> n) * 2\<close>
+  using take_bit_of_exp [of n 1] by simp
 
 lemma push_bit_eq_0_iff [simp]:
   "push_bit n a = 0 \<longleftrightarrow> a = 0"
   by (simp add: push_bit_eq_mult)
-
-lemma push_bit_add:
-  "push_bit n (a + b) = push_bit n a + push_bit n b"
-  by (simp add: push_bit_eq_mult algebra_simps)
 
 lemma push_bit_numeral [simp]:
   "push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))"
@@ -1078,31 +1235,6 @@ lemma push_bit_numeral [simp]:
 lemma push_bit_of_nat:
   "push_bit n (of_nat m) = of_nat (push_bit n m)"
   by (simp add: push_bit_eq_mult Parity.push_bit_eq_mult)
-
-lemma take_bit_0 [simp]:
-  "take_bit 0 a = 0"
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_Suc [simp]:
-  "take_bit (Suc n) a = take_bit n (a div 2) * 2 + of_bool (odd a)"
-proof -
-  have "1 + 2 * (a div 2) mod (2 * 2 ^ n) = (a div 2 * 2 + a mod 2) mod (2 * 2 ^ n)"
-    if "odd a"
-    using that mod_mult2_eq' [of "1 + 2 * (a div 2)" 2 "2 ^ n"]
-    by (simp add: ac_simps odd_iff_mod_2_eq_one mult_mod_right)
-  also have "\<dots> = a mod (2 * 2 ^ n)"
-    by (simp only: div_mult_mod_eq)
-  finally show ?thesis
-    by (simp add: take_bit_eq_mod algebra_simps mult_mod_right)
-qed
-
-lemma take_bit_of_0 [simp]:
-  "take_bit n 0 = 0"
-  by (simp add: take_bit_eq_mod)
-
-lemma take_bit_of_1 [simp]:
-  "take_bit n 1 = of_bool (n > 0)"
-  by (simp add: take_bit_eq_mod)
 
 lemma take_bit_add:
   "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
@@ -1115,10 +1247,6 @@ lemma take_bit_eq_0_iff:
 lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
   by (simp add: take_bit_eq_mod)
-
-lemma even_take_bit_eq [simp]:
-  "even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a"
-  by (cases n) (simp_all add: take_bit_eq_mod dvd_mod_iff)
 
 lemma take_bit_numeral_bit0 [simp]:
   "take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2"
@@ -1133,45 +1261,6 @@ lemma take_bit_numeral_bit1 [simp]:
 lemma take_bit_of_nat:
   "take_bit n (of_nat m) = of_nat (take_bit n m)"
   by (simp add: take_bit_eq_mod Parity.take_bit_eq_mod of_nat_mod [of m "2 ^ n"])
-
-lemma drop_bit_0 [simp]:
-  "drop_bit 0 = id"
-  by (simp add: fun_eq_iff drop_bit_eq_div)
-
-lemma drop_bit_of_0 [simp]:
-  "drop_bit n 0 = 0"
-  by (simp add: drop_bit_eq_div)
-
-lemma drop_bit_of_1 [simp]:
-  "drop_bit n 1 = of_bool (n = 0)"
-  by (simp add: drop_bit_eq_div)
-
-lemma drop_bit_Suc [simp]:
-  "drop_bit (Suc n) a = drop_bit n (a div 2)"
-proof (cases "even a")
-  case True
-  then obtain b where "a = 2 * b" ..
-  moreover have "drop_bit (Suc n) (2 * b) = drop_bit n b"
-    by (simp add: drop_bit_eq_div)
-  ultimately show ?thesis
-    by simp
-next
-  case False
-  then obtain b where "a = 2 * b + 1" ..
-  moreover have "drop_bit (Suc n) (2 * b + 1) = drop_bit n b"
-    using div_mult2_eq' [of "1 + b * 2" 2 "2 ^ n"]
-    by (auto simp add: drop_bit_eq_div ac_simps)
-  ultimately show ?thesis
-    by simp
-qed
-
-lemma drop_bit_half:
-  "drop_bit n (a div 2) = drop_bit n a div 2"
-  by (induction n arbitrary: a) simp_all
-
-lemma drop_bit_of_bool [simp]:
-  "drop_bit n (of_bool d) = of_bool (n = 0 \<and> d)"
-  by (cases n) simp_all
 
 lemma drop_bit_numeral_bit0 [simp]:
   "drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)"

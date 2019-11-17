@@ -393,26 +393,6 @@ by (auto simp add: mult.assoc eucl_rel_int_iff linorder_neq_iff
                    zero_less_mult_iff distrib_left [symmetric]
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: if_split_asm)
 
-lemma zdiv_zmult2_eq:
-  fixes a b c :: int
-  assumes "0 \<le> c"
-  shows "a div (b * c) = (a div b) div c"
-proof (cases "b = 0")
-  case False
-  with assms show ?thesis
-    by (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN div_int_unique])
-qed auto
-
-lemma zmod_zmult2_eq:
-  fixes a b c :: int
-  assumes "0 \<le> c"
-  shows "a mod (b * c) = b * (a div b mod c) + a mod b"
-proof (cases "b = 0")
-  case False
-  with assms show ?thesis
-    by (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN mod_int_unique])
-qed auto
-
 lemma div_pos_geq:
   fixes k l :: int
   assumes "0 < l" and "l \<le> k"

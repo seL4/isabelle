@@ -12,6 +12,10 @@ begin
 
 subsection \<open>Preliminaries\<close>
 
+lemma length_not_greater_eq_2_iff [simp]:
+  \<open>\<not> 2 \<le> LENGTH('a::len) \<longleftrightarrow> LENGTH('a) = 1\<close>
+  by (auto simp add: not_le dest: less_2_cases)
+
 lemma take_bit_uminus:
   "take_bit n (- (take_bit n k)) = take_bit n (- k)" for k :: int
   by (simp add: take_bit_eq_mod mod_minus_eq)
@@ -565,22 +569,14 @@ qed
 
 instance word :: (len) semiring_bits
 proof
-  show \<open>of_bool (odd a) + 2 * (a div 2) = a\<close>
-    for a :: \<open>'a word\<close>
-    apply (cases \<open>even a\<close>; simp, transfer; cases rule: length_cases [where ?'a = 'a])
-      apply auto
-    apply (auto simp add: take_bit_eq_mod)
-    apply (metis add.commute even_take_bit_eq len_not_eq_0 mod_mod_trivial odd_two_times_div_two_succ take_bit_eq_mod)
-    done
   show \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
     for a b :: \<open>'a word\<close>
     apply transfer
-    apply (cases rule: length_cases [where ?'a = 'a])
-     apply auto
-       apply (metis even_take_bit_eq len_not_eq_0)
+    apply auto
+       apply (metis bit_ident drop_bit_eq_div drop_bit_half even_take_bit_eq even_two_times_div_two mod_div_trivial odd_two_times_div_two_succ take_bit_eq_mod)
       apply (metis even_take_bit_eq len_not_eq_0)
-    apply (metis (no_types, hide_lams) diff_add_cancel dvd_div_mult_self even_take_bit_eq mult_2_right take_bit_add take_bit_minus)
-    apply (metis bit_ident drop_bit_eq_div drop_bit_half even_take_bit_eq even_two_times_div_two mod_div_trivial odd_two_times_div_two_succ take_bit_eq_mod)
+     apply (metis even_take_bit_eq len_not_eq_0)
+    apply (metis (no_types, hide_lams) div_0 drop_bit_eq_div drop_bit_half dvd_mult_div_cancel even_take_bit_eq mod_div_trivial mod_eq_self_iff_div_eq_0 take_bit_eq_mod)
     done
   show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
     and rec: \<open>\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a)\<close>
@@ -598,6 +594,56 @@ proof
     with rec [of a True] show ?case
       using bit_word_half_eq [of a True] by (simp add: ac_simps)
   qed
+  show \<open>0 div a = 0\<close>
+    for a :: \<open>'a word\<close>
+    by transfer simp
+  show \<open>a div 1 = a\<close>
+    for a :: \<open>'a word\<close>
+    by transfer simp
+  show \<open>a mod b div b = 0\<close>
+    for a b :: \<open>'a word\<close>
+    apply transfer
+    apply (simp add: take_bit_eq_mod)
+    apply (subst (3) mod_pos_pos_trivial [of _ \<open>2 ^ LENGTH('a)\<close>])
+      apply simp_all
+     apply (metis le_less mod_by_0 pos_mod_conj zero_less_numeral zero_less_power)
+    using pos_mod_bound [of \<open>2 ^ LENGTH('a)\<close>] apply simp
+  proof -
+    fix aa :: int and ba :: int
+    have f1: "\<And>i n. (i::int) mod 2 ^ n = 0 \<or> 0 < i mod 2 ^ n"
+      by (metis le_less take_bit_eq_mod take_bit_nonnegative)
+    have "(0::int) < 2 ^ len_of (TYPE('a)::'a itself) \<and> ba mod 2 ^ len_of (TYPE('a)::'a itself) \<noteq> 0 \<or> aa mod 2 ^ len_of (TYPE('a)::'a itself) mod (ba mod 2 ^ len_of (TYPE('a)::'a itself)) < 2 ^ len_of (TYPE('a)::'a itself)"
+      by (metis (no_types) mod_by_0 unique_euclidean_semiring_numeral_class.pos_mod_bound zero_less_numeral zero_less_power)
+    then show "aa mod 2 ^ len_of (TYPE('a)::'a itself) mod (ba mod 2 ^ len_of (TYPE('a)::'a itself)) < 2 ^ len_of (TYPE('a)::'a itself)"
+      using f1 by (meson le_less less_le_trans unique_euclidean_semiring_numeral_class.pos_mod_bound)
+  qed
+  show \<open>(1 + a) div 2 = a div 2\<close>
+    if \<open>even a\<close>
+    for a :: \<open>'a word\<close>
+    using that by transfer (auto dest: le_Suc_ex)
+  show "a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)"
+    for a :: "'a word" and m n :: nat
+    apply transfer
+    apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: drop_bit_eq_div)
+    apply (simp add: drop_bit_take_bit)
+    done
+  show "a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n"
+    for a :: "'a word" and m n :: nat
+    apply transfer
+    apply (auto simp flip: take_bit_eq_mod)
+    apply (simp add: ac_simps)
+    done
+  show \<open>a * 2 ^ m mod 2 ^ n = a mod 2 ^ (n - m) * 2 ^ m\<close>
+    if \<open>m \<le> n\<close> for a :: "'a word" and m n :: nat
+    using that apply transfer
+    apply (auto simp flip: take_bit_eq_mod)
+           apply (auto simp flip: push_bit_eq_mult simp add: push_bit_take_bit split: split_min_lin)
+    done
+  show \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
+    for a :: "'a word" and m n :: nat
+    apply transfer
+    apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
+    done
 qed
 
 instantiation word :: (len) semiring_bit_shifts
