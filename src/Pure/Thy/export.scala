@@ -84,6 +84,8 @@ object Export
   {
     override def toString: String = name
 
+    def compound_name: String = Export.compound_name(theory_name, name)
+
     val name_elems: List[String] = explode_name(name)
 
     def name_extends(elems: List[String]): Boolean =
