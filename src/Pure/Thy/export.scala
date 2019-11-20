@@ -191,21 +191,27 @@ object Export
     private val errors = Synchronized[List[String]](Nil)
 
     private val consumer =
-      Consumer_Thread.fork(name = "export")(consume = (arg: (Entry, Boolean)) =>
-        {
-          val (entry, strict) = arg
-          entry.body.join
-          db.transaction {
-            if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
-              if (strict) {
-                val msg = message("Duplicate export", entry.theory_name, entry.name)
-                errors.change(msg :: _)
+      Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
+        bulk = { case (entry, _) => entry.body.is_finished },
+        consume =
+          (args: List[(Entry, Boolean)]) =>
+          {
+            val results =
+              db.transaction {
+                for ((entry, strict) <- args)
+                yield {
+                  if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
+                    if (strict) {
+                      val msg = message("Duplicate export", entry.theory_name, entry.name)
+                      errors.change(msg :: _)
+                    }
+                    Exn.Res(())
+                  }
+                  else Exn.capture { entry.write(db) }
+                }
               }
-            }
-            else entry.write(db)
-          }
-          true
-        })
+            (results, true)
+          })
 
     def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
       consumer.send(make_entry(session_name, args, body, cache = cache) -> args.strict)
