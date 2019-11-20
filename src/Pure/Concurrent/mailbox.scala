@@ -21,7 +21,7 @@ class Mailbox[A] private()
 
   def send(msg: A): Unit = mailbox.change(msg :: _)
 
-  def receive(timeout: Option[Time]): List[A] =
+  def receive(timeout: Option[Time] = None): List[A] =
     (mailbox.timed_access(_ => timeout.map(t => Time.now() + t),
       { case Nil => None case msgs => Some((msgs, Nil)) }) getOrElse Nil).reverse
 

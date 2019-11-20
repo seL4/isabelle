@@ -85,7 +85,7 @@ final class Consumer_Thread[A] private(
 
   @tailrec private def main_loop(msgs: List[Option[Request]]): Unit =
     msgs match {
-      case Nil => main_loop(mailbox.receive(None))
+      case Nil => main_loop(mailbox.receive())
       case None :: _ => robust_finish()
       case _ =>
         val reqs =
@@ -106,7 +106,7 @@ final class Consumer_Thread[A] private(
 
         if (continue) {
           val msgs1 = msgs.drop(reqs.length)
-          val msgs2 = mailbox.receive(Some(Time.zero))
+          val msgs2 = mailbox.receive(timeout = Some(Time.zero))
           main_loop(msgs1 ::: msgs2)
         }
         else robust_finish()
