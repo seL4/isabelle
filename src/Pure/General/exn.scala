@@ -47,6 +47,12 @@ object Exn
         case Exn(ERROR(msg)) => Exn(ERROR(msg))
         case _ => this
       }
+
+    def map[B](f: A => B): Result[B] =
+      this match {
+        case Res(res) => Res(f(res))
+        case Exn(exn) => Exn(exn)
+      }
   }
   case class Res[A](res: A) extends Result[A]
   case class Exn[A](exn: Throwable) extends Result[A]
