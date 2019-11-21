@@ -260,6 +260,16 @@ val _ = Theory.setup
       in #1 (Input.source_content text) end));
 
 
+(* system options *)
+
+val _ = Theory.setup
+  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
+    (Scan.lift Args.embedded_position)
+    (fn ctxt => fn (name, pos) =>
+      let val _ = Completion.check_option (Options.default ()) ctxt (name, pos);
+      in name end));
+
+
 (* ML text *)
 
 local

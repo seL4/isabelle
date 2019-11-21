@@ -108,6 +108,7 @@ text \<open>
     @{antiquotation_def emph} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def bold} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def verbatim} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def system_option} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def session} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "file"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "url"} & : & \<open>antiquotation\<close> \\
@@ -198,6 +199,7 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
+      @@{antiquotation system_option} options @{syntax embedded} |
       @@{antiquotation session} options @{syntax embedded} |
       @@{antiquotation path} options @{syntax embedded} |
       @@{antiquotation "file"} options @{syntax name} |
@@ -289,6 +291,10 @@ text \<open>
 
   \<^descr> \<open>@{verbatim s}\<close> prints uninterpreted source text literally as ASCII
   characters, using some type-writer font style.
+
+  \<^descr> \<open>@{system_option name}\<close> prints the given system option verbatim. The name
+  is checked wrt.\ cumulative \<^verbatim>\<open>etc/options\<close> of all Isabelle components,
+  notably \<^file>\<open>~~/etc/options\<close>.
 
   \<^descr> \<open>@{session name}\<close> prints given session name verbatim. The name is checked
   wrt.\ the dependencies of the current session.
