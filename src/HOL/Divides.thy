@@ -330,69 +330,6 @@ proof (rule zdiv_mono2_neg_lemma)
     by simp
 qed (use assms in auto)
 
-
-subsubsection \<open>Proving  \<^term>\<open>a div (b * c) = (a div b) div c\<close>\<close>
-
-(*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but
-  7 div 2 div ~3 = 3 div ~3 = ~1.  The subcase (a div b) mod c = 0 seems
-  to cause particular problems.*)
-
-text\<open>first, four lemmas to bound the remainder for the cases b<0 and b>0\<close>
-
-lemma zmult2_lemma_aux1: 
-  fixes c::int
-  assumes "0 < c" "b < r" "r \<le> 0"
-  shows "b * c < b * (q mod c) + r"
-proof -
-  have "b * (c - q mod c) \<le> b * 1"
-    by (rule mult_left_mono_neg) (use assms in \<open>auto simp: int_one_le_iff_zero_less\<close>)
-  also have "... < r * 1"
-    by (simp add: \<open>b < r\<close>)
-  finally show ?thesis
-    by (simp add: algebra_simps)
-qed
-
-lemma zmult2_lemma_aux2:
-  fixes c::int
-  assumes "0 < c" "b < r" "r \<le> 0"
-  shows "b * (q mod c) + r \<le> 0"
-proof -
-  have "b * (q mod c) \<le> 0"
-    using assms by (simp add: mult_le_0_iff)
-  with assms show ?thesis
-    by arith
-qed
-
-lemma zmult2_lemma_aux3:
-  fixes c::int
-  assumes "0 < c" "0 \<le> r" "r < b"
-  shows "0 \<le> b * (q mod c) + r"
-proof -
-  have "0 \<le> b * (q mod c)"
-    using assms by (simp add: mult_le_0_iff)
-  with assms show ?thesis
-    by arith
-qed
-
-lemma zmult2_lemma_aux4: 
-  fixes c::int
-  assumes "0 < c" "0 \<le> r" "r < b"
-  shows "b * (q mod c) + r < b * c"
-proof -
-  have "r * 1 < b * 1"
-    by (simp add: \<open>r < b\<close>)
-  also have "\<dots> \<le> b * (c - q mod c) "
-    by (rule mult_left_mono) (use assms in \<open>auto simp: int_one_le_iff_zero_less\<close>)
-  finally show ?thesis
-    by (simp add: algebra_simps)
-qed
-
-lemma zmult2_lemma: "[| eucl_rel_int a b (q, r); 0 < c |]
-      ==> eucl_rel_int a (b * c) (q div c, b*(q mod c) + r)"
-by (auto simp add: mult.assoc eucl_rel_int_iff linorder_neq_iff
-                   zero_less_mult_iff distrib_left [symmetric]
-                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: if_split_asm)
-
 lemma div_pos_geq:
   fixes k l :: int
   assumes "0 < l" and "l \<le> k"
