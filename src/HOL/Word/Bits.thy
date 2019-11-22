@@ -9,7 +9,7 @@ theory Bits
 begin
 
 class bit_operations =
-  fixes bitNOT :: "'a \<Rightarrow> 'a"  ("NOT _" [70] 71)
+  fixes bitNOT :: "'a \<Rightarrow> 'a"  ("NOT")
     and bitAND :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "AND" 64)
     and bitOR :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "OR"  59)
     and bitXOR :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "XOR" 59)

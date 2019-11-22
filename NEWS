@@ -87,6 +87,9 @@ renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
 procedure for simple linear statements in metric spaces.
 
 
+* Word: Bitwise NOT-operator has proper prefix syntax.  Minor
+INCOMPATIBILITY.
+
 *** ML ***
 
 * Theory construction may be forked internally, the operation

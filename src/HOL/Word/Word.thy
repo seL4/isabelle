@@ -2116,7 +2116,7 @@ lemmas word_log_binary_defs =
   word_and_def word_or_def word_xor_def
 
 lemma word_wi_log_defs:
-  "NOT word_of_int a = word_of_int (NOT a)"
+  "NOT (word_of_int a) = word_of_int (NOT a)"
   "word_of_int a AND word_of_int b = word_of_int (a AND b)"
   "word_of_int a OR word_of_int b = word_of_int (a OR b)"
   "word_of_int a XOR word_of_int b = word_of_int (a XOR b)"
@@ -2285,7 +2285,7 @@ lemma word_ao_absorbs [simp]:
   for x :: "'a::len0 word"
   by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
-lemma word_not_not [simp]: "NOT NOT x = x"
+lemma word_not_not [simp]: "NOT (NOT x) = x"
   for x :: "'a::len0 word"
   by (auto simp: word_eq_iff word_ops_nth_size [unfolded word_size])
 
@@ -4119,8 +4119,8 @@ lemmas ths_map [where xs = "to_bl v"] = rotate_map rotater_map for v
 lemmas th1s [simplified word_rot_defs' [symmetric]] = ths_map2 ths_map
 
 lemma word_rot_logs:
-  "word_rotl n (NOT v) = NOT word_rotl n v"
-  "word_rotr n (NOT v) = NOT word_rotr n v"
+  "word_rotl n (NOT v) = NOT (word_rotl n v)"
+  "word_rotr n (NOT v) = NOT (word_rotr n v)"
   "word_rotl n (x AND y) = word_rotl n x AND word_rotl n y"
   "word_rotr n (x AND y) = word_rotr n x AND word_rotr n y"
   "word_rotl n (x OR y) = word_rotl n x OR word_rotl n y"
