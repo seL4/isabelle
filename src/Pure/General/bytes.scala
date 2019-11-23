@@ -66,7 +66,7 @@ object Bytes
     }
 
   def read(file: JFile): Bytes =
-    using(new FileInputStream(file))(read_stream(_, file.length.toInt))
+    using(new FileInputStream(file))(read_stream(_, limit = file.length.toInt))
 
   def read(path: Path): Bytes = read(path.file)
 
