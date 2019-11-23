@@ -66,7 +66,11 @@ object Bytes
     }
 
   def read(file: JFile): Bytes =
-    using(new FileInputStream(file))(read_stream(_, limit = file.length.toInt))
+  {
+    val length = file.length
+    val limit = if (length < 0 || length > Integer.MAX_VALUE) Integer.MAX_VALUE else length.toInt
+    using(new FileInputStream(file))(read_stream(_, limit = limit))
+  }
 
   def read(path: Path): Bytes = read(path.file)
 
