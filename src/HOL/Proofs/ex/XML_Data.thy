@@ -52,7 +52,7 @@ ML_val \<open>
   val thm = import_proof thy1 xml;
 
   val xml_size = size (YXML.string_of_body xml);
-  \<^assert> (xml_size > 400000);
+  \<^assert> (xml_size > 100000);
 \<close>
 
 end
