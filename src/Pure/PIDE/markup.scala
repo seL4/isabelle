@@ -636,6 +636,9 @@ object Markup
       executable: Boolean,
       compress: Boolean,
       strict: Boolean)
+    {
+      def compound_name: String = isabelle.Export.compound_name(theory_name, name)
+    }
 
     val THEORY_NAME = "theory_name"
     val EXECUTABLE = "executable"

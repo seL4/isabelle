@@ -305,7 +305,12 @@ object Build
                     (args, path) <-
                       Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
                   } {
-                    val body = Bytes.read(path)
+                    val body =
+                      try { Bytes.read(path) }
+                      catch {
+                        case ERROR(msg) =>
+                          error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
+                      }
                     path.file.delete
                     export_consumer(name, args, body)
                   }
