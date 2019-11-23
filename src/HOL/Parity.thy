@@ -166,106 +166,8 @@ end
 
 subsection \<open>Special case: euclidean rings containing the natural numbers\<close>
 
-class unique_euclidean_semiring_with_nat = semidom + semiring_char_0 + unique_euclidean_semiring +
-  assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
-    and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
-    and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"
+context unique_euclidean_semiring_with_nat
 begin
-
-lemma division_segment_eq_iff:
-  "a = b" if "division_segment a = division_segment b"
-    and "euclidean_size a = euclidean_size b"
-  using that division_segment_euclidean_size [of a] by simp
-
-lemma euclidean_size_of_nat [simp]:
-  "euclidean_size (of_nat n) = n"
-proof -
-  have "division_segment (of_nat n) * of_nat (euclidean_size (of_nat n)) = of_nat n"
-    by (fact division_segment_euclidean_size)
-  then show ?thesis by simp
-qed
-
-lemma of_nat_euclidean_size:
-  "of_nat (euclidean_size a) = a div division_segment a"
-proof -
-  have "of_nat (euclidean_size a) = division_segment a * of_nat (euclidean_size a) div division_segment a"
-    by (subst nonzero_mult_div_cancel_left) simp_all
-  also have "\<dots> = a div division_segment a"
-    by simp
-  finally show ?thesis .
-qed
-
-lemma division_segment_1 [simp]:
-  "division_segment 1 = 1"
-  using division_segment_of_nat [of 1] by simp
-
-lemma division_segment_numeral [simp]:
-  "division_segment (numeral k) = 1"
-  using division_segment_of_nat [of "numeral k"] by simp
-
-lemma euclidean_size_1 [simp]:
-  "euclidean_size 1 = 1"
-  using euclidean_size_of_nat [of 1] by simp
-
-lemma euclidean_size_numeral [simp]:
-  "euclidean_size (numeral k) = numeral k"
-  using euclidean_size_of_nat [of "numeral k"] by simp
-
-lemma of_nat_dvd_iff:
-  "of_nat m dvd of_nat n \<longleftrightarrow> m dvd n" (is "?P \<longleftrightarrow> ?Q")
-proof (cases "m = 0")
-  case True
-  then show ?thesis
-    by simp
-next
-  case False
-  show ?thesis
-  proof
-    assume ?Q
-    then show ?P
-      by auto
-  next
-    assume ?P
-    with False have "of_nat n = of_nat n div of_nat m * of_nat m"
-      by simp
-    then have "of_nat n = of_nat (n div m * m)"
-      by (simp add: of_nat_div)
-    then have "n = n div m * m"
-      by (simp only: of_nat_eq_iff)
-    then have "n = m * (n div m)"
-      by (simp add: ac_simps)
-    then show ?Q ..
-  qed
-qed
-
-lemma of_nat_mod:
-  "of_nat (m mod n) = of_nat m mod of_nat n"
-proof -
-  have "of_nat m div of_nat n * of_nat n + of_nat m mod of_nat n = of_nat m"
-    by (simp add: div_mult_mod_eq)
-  also have "of_nat m = of_nat (m div n * n + m mod n)"
-    by simp
-  finally show ?thesis
-    by (simp only: of_nat_div of_nat_mult of_nat_add) simp
-qed
-
-lemma one_div_two_eq_zero [simp]:
-  "1 div 2 = 0"
-proof -
-  from of_nat_div [symmetric] have "of_nat 1 div of_nat 2 = of_nat 0"
-    by (simp only:) simp
-  then show ?thesis
-    by simp
-qed
-
-lemma one_mod_two_eq_one [simp]:
-  "1 mod 2 = 1"
-proof -
-  from of_nat_mod [symmetric] have "of_nat 1 mod of_nat 2 = of_nat 1"
-    by (simp only:) simp
-  then show ?thesis
-    by simp
-qed
 
 subclass semiring_parity
 proof
@@ -323,20 +225,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma one_mod_2_pow_eq [simp]:
-  "1 mod (2 ^ n) = of_bool (n > 0)"
-proof -
-  have "1 mod (2 ^ n) = of_nat (1 mod (2 ^ n))"
-    using of_nat_mod [of 1 "2 ^ n"] by simp
-  also have "\<dots> = of_bool (n > 0)"
-    by simp
-  finally show ?thesis .
-qed
-
-lemma one_div_2_pow_eq [simp]:
-  "1 div (2 ^ n) = of_bool (n = 0)"
-  using div_mult_mod_eq [of 1 "2 ^ n"] by auto
-
 lemma even_succ_div_two [simp]:
   "even a \<Longrightarrow> (a + 1) div 2 = a div 2"
   by (cases "a = 0") (auto elim!: evenE dest: mult_not_zero)
@@ -386,114 +274,9 @@ lemma coprime_right_2_iff_odd [simp]:
   "coprime a 2 \<longleftrightarrow> odd a"
   using coprime_left_2_iff_odd [of a] by (simp add: ac_simps)
 
-lemma div_mult2_eq':
-  "a div (of_nat m * of_nat n) = a div of_nat m div of_nat n"
-proof (cases a "of_nat m * of_nat n" rule: divmod_cases)
-  case (divides q)
-  then show ?thesis
-    using nonzero_mult_div_cancel_right [of "of_nat m" "q * of_nat n"]
-    by (simp add: ac_simps)
-next
-  case (remainder q r)
-  then have "division_segment r = 1"
-    using division_segment_of_nat [of "m * n"] by simp
-  with division_segment_euclidean_size [of r]
-  have "of_nat (euclidean_size r) = r"
-    by simp
-  have "a mod (of_nat m * of_nat n) div (of_nat m * of_nat n) = 0"
-    by simp
-  with remainder(6) have "r div (of_nat m * of_nat n) = 0"
-    by simp
-  with \<open>of_nat (euclidean_size r) = r\<close>
-  have "of_nat (euclidean_size r) div (of_nat m * of_nat n) = 0"
-    by simp
-  then have "of_nat (euclidean_size r div (m * n)) = 0"
-    by (simp add: of_nat_div)
-  then have "of_nat (euclidean_size r div m div n) = 0"
-    by (simp add: div_mult2_eq)
-  with \<open>of_nat (euclidean_size r) = r\<close> have "r div of_nat m div of_nat n = 0"
-    by (simp add: of_nat_div)
-  with remainder(1)
-  have "q = (r div of_nat m + q * of_nat n * of_nat m div of_nat m) div of_nat n"
-    by simp
-  with remainder(5) remainder(7) show ?thesis
-    using div_plus_div_distrib_dvd_right [of "of_nat m" "q * (of_nat m * of_nat n)" r]
-    by (simp add: ac_simps)
-next
-  case by0
-  then show ?thesis
-    by auto
-qed
-
-lemma mod_mult2_eq':
-  "a mod (of_nat m * of_nat n) = of_nat m * (a div of_nat m mod of_nat n) + a mod of_nat m"
-proof -
-  have "a div (of_nat m * of_nat n) * (of_nat m * of_nat n) + a mod (of_nat m * of_nat n) = a div of_nat m div of_nat n * of_nat n * of_nat m + (a div of_nat m mod of_nat n * of_nat m + a mod of_nat m)"
-    by (simp add: combine_common_factor div_mult_mod_eq)
-  moreover have "a div of_nat m div of_nat n * of_nat n * of_nat m = of_nat n * of_nat m * (a div of_nat m div of_nat n)"
-    by (simp add: ac_simps)
-  ultimately show ?thesis
-    by (simp add: div_mult2_eq' mult_commute)
-qed
-
-lemma div_mult2_numeral_eq:
-  "a div numeral k div numeral l = a div numeral (k * l)" (is "?A = ?B")
-proof -
-  have "?A = a div of_nat (numeral k) div of_nat (numeral l)"
-    by simp
-  also have "\<dots> = a div (of_nat (numeral k) * of_nat (numeral l))"
-    by (fact div_mult2_eq' [symmetric])
-  also have "\<dots> = ?B"
-    by simp
-  finally show ?thesis .
-qed
-
-lemma numeral_Bit0_div_2:
-  "numeral (num.Bit0 n) div 2 = numeral n"
-proof -
-  have "numeral (num.Bit0 n) = numeral n + numeral n"
-    by (simp only: numeral.simps)
-  also have "\<dots> = numeral n * 2"
-    by (simp add: mult_2_right)
-  finally have "numeral (num.Bit0 n) div 2 = numeral n * 2 div 2"
-    by simp
-  also have "\<dots> = numeral n"
-    by (rule nonzero_mult_div_cancel_right) simp
-  finally show ?thesis .
-qed
-
-lemma numeral_Bit1_div_2:
-  "numeral (num.Bit1 n) div 2 = numeral n"
-proof -
-  have "numeral (num.Bit1 n) = numeral n + numeral n + 1"
-    by (simp only: numeral.simps)
-  also have "\<dots> = numeral n * 2 + 1"
-    by (simp add: mult_2_right)
-  finally have "numeral (num.Bit1 n) div 2 = (numeral n * 2 + 1) div 2"
-    by simp
-  also have "\<dots> = numeral n * 2 div 2 + 1 div 2"
-    using dvd_triv_right by (rule div_plus_div_distrib_dvd_left)
-  also have "\<dots> = numeral n * 2 div 2"
-    by simp
-  also have "\<dots> = numeral n"
-    by (rule nonzero_mult_div_cancel_right) simp
-  finally show ?thesis .
-qed
-
-lemma exp_mod_exp:
-  \<open>2 ^ m mod 2 ^ n = of_bool (m < n) * 2 ^ m\<close>
-proof -
-  have \<open>(2::nat) ^ m mod 2 ^ n = of_bool (m < n) * 2 ^ m\<close> (is \<open>?lhs = ?rhs\<close>)
-    by (auto simp add: not_less monoid_mult_class.power_add dest!: le_Suc_ex)
-  then have \<open>of_nat ?lhs = of_nat ?rhs\<close>
-    by simp
-  then show ?thesis
-    by (simp add: of_nat_mod)
-qed
-
 end
 
-class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
+context unique_euclidean_ring_with_nat
 begin
 
 subclass ring_parity ..
@@ -738,9 +521,6 @@ end
 
 
 subsection \<open>Instance for \<^typ>\<open>int\<close>\<close>
-
-instance int :: unique_euclidean_ring_with_nat
-  by standard (simp_all add: dvd_eq_mod_eq_0 divide_int_def division_segment_int_def)
 
 lemma even_diff_iff:
   "even (k - l) \<longleftrightarrow> even (k + l)" for k l :: int
