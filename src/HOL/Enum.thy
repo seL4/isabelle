@@ -534,7 +534,7 @@ where
 instance
 apply (intro_classes)
 apply (auto simp add: less_finite_1_def less_eq_finite_1_def)
-apply (metis finite_1.exhaust)
+apply (metis (full_types) finite_1.exhaust)
 done
 
 end
@@ -807,8 +807,8 @@ next
   from this have [simp]: "z \<le> \<Squnion>UNIV"
     using local.le_iff_sup by auto
   have "(\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A"
-    apply (rule finite_induct [of A "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A"])
-    by (simp_all add: Inf_finite_empty Inf_finite_insert)
+    by (rule finite_induct [of A "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A"])
+      (simp_all add: Inf_finite_empty Inf_finite_insert)
   from this show "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> \<Sqinter>A"
     by simp
 
@@ -868,18 +868,17 @@ proof (rule finite_induct [of A "\<lambda>A. \<Sqinter>(Sup ` A) \<le> \<Squnion
   assume "\<Sqinter>(Sup ` F) \<le> \<Squnion>(Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y})"
 
   from this have "\<Squnion>x \<sqinter> \<Sqinter>(Sup ` F) \<le> \<Squnion>x \<sqinter> \<Squnion>(Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y})"
-    apply simp
-    using inf.coboundedI2 by blast
+    using inf.coboundedI2 by auto
   also have "... = Sup {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
     by (simp add: finite_inf_Sup)
 
   also have "... = Sup {Sup {Inf (f ` F) \<sqinter> b | b . b \<in> x} |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
-    apply (subst inf_commute)
-    by (simp add: finite_inf_Sup)
+    by (subst inf_commute) (simp add: finite_inf_Sup)
 
   also have "... \<le> \<Squnion>(Inf ` {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)})"
     apply (rule Sup_least, clarsimp)+
-    by (subst inf_commute, simp)
+    apply (subst inf_commute, simp)
+    done
 
   finally show "\<Squnion>x \<sqinter> \<Sqinter>(Sup ` F) \<le> \<Squnion>(Inf ` {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)})"
     by simp
