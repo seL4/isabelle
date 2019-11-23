@@ -78,7 +78,7 @@ val token_markers =
   ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
 
 val _ = Theory.setup
-  (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
+  (Sign.theory_naming #>
    Old_Appl_Syntax.put false #>
    Sign.add_types_global
    [(Binding.make ("fun", \<^here>), 2, NoSyn),

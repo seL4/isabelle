@@ -194,7 +194,7 @@ fun begin_theory (name, pos) imports =
       thy
       |> init_markup (name, pos)
       |> Sign.local_path
-      |> Sign.map_naming (Name_Space.set_theory_name (Long_Name.base_name name))
+      |> Sign.theory_naming
       |> apply_wrappers wrappers
       |> tap (Syntax.force_syntax o Sign.syn_of)
     end;
