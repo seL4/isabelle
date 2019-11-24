@@ -170,19 +170,16 @@ object Dump
 
       def make_session(
         selected_sessions: List[String],
-        pure: Boolean = false,
+        session_logic: String = logic,
         record_proofs: Boolean = false): List[Session] =
       {
         if (selected_sessions.isEmpty) Nil
-        else {
-          val session_logic = if (pure) isabelle.Thy_Header.PURE else logic
-          List(new Session(context, session_logic, log, selected_sessions, record_proofs))
-        }
+        else List(new Session(context, session_logic, log, selected_sessions, record_proofs))
       }
 
       val base =
         if (logic == isabelle.Thy_Header.PURE) Nil
-        else make_session(base_sessions, pure = true)
+        else make_session(base_sessions, session_logic = isabelle.Thy_Header.PURE)
 
       val main =
         make_session(
@@ -192,7 +189,7 @@ object Dump
             proof_sessions.contains(name)))
 
       val proofs =
-        make_session(proof_sessions, pure = true, record_proofs = true)
+        make_session(proof_sessions, session_logic = isabelle.Thy_Header.PURE, record_proofs = true)
 
       val afp =
         if (afp_sessions.isEmpty) Nil
