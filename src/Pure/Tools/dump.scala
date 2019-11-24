@@ -171,15 +171,17 @@ object Dump
       def make_session(
         selected_sessions: List[String],
         session_logic: String = logic,
+        strict: Boolean = false,
         record_proofs: Boolean = false): List[Session] =
       {
-        if (selected_sessions.isEmpty) Nil
+        if (selected_sessions.isEmpty && !strict) Nil
         else List(new Session(context, session_logic, log, selected_sessions, record_proofs))
       }
 
       val base =
-        if (logic == isabelle.Thy_Header.PURE) Nil
-        else make_session(base_sessions, session_logic = isabelle.Thy_Header.PURE)
+        make_session(base_sessions,
+          session_logic = isabelle.Thy_Header.PURE,
+          strict = logic == isabelle.Thy_Header.PURE)
 
       val main =
         make_session(
