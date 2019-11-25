@@ -91,7 +91,8 @@ object Dump
       progress: Progress = No_Progress,
       dirs: List[Path] = Nil,
       select_dirs: List[Path] = Nil,
-      selection: Sessions.Selection = Sessions.Selection.empty): Context =
+      selection: Sessions.Selection = Sessions.Selection.empty,
+      pure_base: Boolean = false): Context =
     {
       val session_options: Options =
       {
@@ -118,7 +119,7 @@ object Dump
       val deps: Sessions.Deps =
         Sessions.deps(sessions_structure, progress = progress).check_errors
 
-      new Context(options, progress, dirs, select_dirs, session_options, deps)
+      new Context(options, progress, dirs, select_dirs, pure_base, session_options, deps)
     }
   }
 
@@ -127,6 +128,7 @@ object Dump
     val progress: Progress,
     val dirs: List[Path],
     val select_dirs: List[Path],
+    val pure_base: Boolean,
     val session_options: Options,
     val deps: Sessions.Deps)
   {
@@ -178,10 +180,11 @@ object Dump
         else List(new Session(context, session_logic, log, selected_sessions, record_proofs))
       }
 
+      val PURE = isabelle.Thy_Header.PURE
+
       val base =
-        make_session(base_sessions,
-          session_logic = isabelle.Thy_Header.PURE,
-          strict = logic == isabelle.Thy_Header.PURE)
+        if (logic == PURE && !pure_base) Nil
+        else make_session(base_sessions, session_logic = PURE, strict = logic == PURE)
 
       val main =
         make_session(
@@ -190,8 +193,7 @@ object Dump
             base_sessions.contains(name) ||
             proof_sessions.contains(name)))
 
-      val proofs =
-        make_session(proof_sessions, session_logic = isabelle.Thy_Header.PURE, record_proofs = true)
+      val proofs = make_session(proof_sessions, session_logic = PURE, record_proofs = true)
 
       val afp =
         if (afp_sessions.isEmpty) Nil
