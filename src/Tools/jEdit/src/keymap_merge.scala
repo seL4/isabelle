@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.{Class, Boolean => JBoolean}
+import java.lang.Class
 import java.awt.{Color, Dimension, BorderLayout}
 import javax.swing.{JPanel, JTable, JScrollPane, JOptionPane}
 import javax.swing.table.AbstractTableModel
@@ -145,7 +145,7 @@ object Keymap_Merge
     override def getColumnCount: Int = 2
 
     override def getColumnClass(i: Int): Class[_ <: Object] =
-      if (i == 0) classOf[JBoolean] else classOf[Object]
+      if (i == 0) classOf[java.lang.Boolean] else classOf[Object]
 
     override def getColumnName(i: Int): String =
       if (i == 0) " " else if (i == 1) "Keyboard shortcut" else "???"
@@ -155,7 +155,7 @@ object Keymap_Merge
     override def getValueAt(row: Int, column: Int): AnyRef =
     {
       get_entry(row) match {
-        case Some(entry) if column == 0 => JBoolean.valueOf(is_selected(row))
+        case Some(entry) if column == 0 => java.lang.Boolean.valueOf(is_selected(row))
         case Some(entry) if column == 1 => entry
         case _ => null
       }
@@ -167,7 +167,7 @@ object Keymap_Merge
     override def setValueAt(value: AnyRef, row: Int, column: Int)
     {
       value match {
-        case obj: JBoolean if has_entry(row) && column == 0 =>
+        case obj: java.lang.Boolean if has_entry(row) && column == 0 =>
           val b = obj.booleanValue
           val entry = entries(row)
           entry.head match {
