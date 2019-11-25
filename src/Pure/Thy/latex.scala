@@ -21,7 +21,7 @@ object Latex
     val root_log_path = dir + Path.explode(root_name).ext("log")
     if (root_log_path.is_file) {
       for { (msg, pos) <- filter_errors(dir, File.read(root_log_path)) }
-      yield "Latex error" + Position.here(pos) + ":\n" + cat_lines(split_lines(msg).map("  " + _))
+      yield "Latex error" + Position.here(pos) + ":\n" + Library.prefix_lines("  ", msg)
     }
     else Nil
   }

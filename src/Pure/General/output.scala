@@ -16,10 +16,10 @@ object Output
   def writeln_text(msg: String): String = clean_yxml(msg)
 
   def warning_text(msg: String): String =
-    cat_lines(split_lines(clean_yxml(msg)).map("### " + _))
+    Library.prefix_lines("### ", clean_yxml(msg))
 
   def error_message_text(msg: String): String =
-    cat_lines(split_lines(clean_yxml(msg)).map("*** " + _))
+    Library.prefix_lines("*** ", clean_yxml(msg))
 
   def writeln(msg: String, stdout: Boolean = false, include_empty: Boolean = false)
   {
