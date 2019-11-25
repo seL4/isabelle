@@ -150,6 +150,14 @@ object Protocol
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
+  def message_text(msg: XML.Tree): String =
+  {
+    val text = Pretty.string_of(List(msg))
+    if (is_warning(msg) || is_legacy(msg)) Library.prefix_lines("### ", text)
+    else if (is_error(msg)) Library.prefix_lines("*** ", text)
+    else text
+  }
+
 
   /* breakpoints */
 
