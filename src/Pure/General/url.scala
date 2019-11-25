@@ -19,7 +19,9 @@ object Url
   /* special characters */
 
   def escape_special(c: Char): String =
-    if ("!#$&'()*+,/:;=?@[]".contains(c)) String.format(Locale.ROOT, "%%%02X", new Integer(c.toInt))
+    if ("!#$&'()*+,/:;=?@[]".contains(c)) {
+      String.format(Locale.ROOT, "%%%02X", Integer.valueOf(c.toInt))
+    }
     else c.toString
 
   def escape_special(s: String): String = s.iterator.map(escape_special(_)).mkString

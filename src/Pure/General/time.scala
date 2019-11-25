@@ -59,7 +59,9 @@ final class Time private(val ms: Long) extends AnyVal
   {
     val s = ms / 1000
     String.format(Locale.ROOT, "%d:%02d:%02d",
-      new java.lang.Long(s / 3600), new java.lang.Long((s / 60) % 60), new java.lang.Long(s % 60))
+      java.lang.Long.valueOf(s / 3600),
+      java.lang.Long.valueOf((s / 60) % 60),
+      java.lang.Long.valueOf(s % 60))
   }
 
   def instant: Instant = Instant.ofEpochMilli(ms)

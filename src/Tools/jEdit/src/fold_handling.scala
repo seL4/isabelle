@@ -43,7 +43,7 @@ object Fold_Handling
         else Nil
 
       if (result.isEmpty) null
-      else WrapAsJava.seqAsJavaList(result.map(i => new Integer(i)))
+      else WrapAsJava.seqAsJavaList(result.map(Integer.valueOf))
     }
   }
 

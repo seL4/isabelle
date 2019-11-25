@@ -24,7 +24,7 @@ object Fontforge
   def string(s: String): Script =
   {
     def err(c: Char): Nothing =
-      error("Bad character \\u" + String.format(Locale.ROOT, "%04x", new Integer(c)) +
+      error("Bad character \\u" + String.format(Locale.ROOT, "%04x", Integer.valueOf(c)) +
         " in fontforge string " + quote(s))
 
     val q = if (s.contains('"')) '\'' else '"'
