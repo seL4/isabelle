@@ -42,9 +42,6 @@ sig
     (term list list * term list list * (string * morphism) list * (Attrib.binding * term) list list * morphism) * Proof.context
   val read_goal_expression: expression -> Proof.context ->
     (term list list * term list list * (string * morphism) list * (Attrib.binding * term) list list * morphism) * Proof.context
-
-  (* Diagnostic *)
-  val pretty_dependencies: Proof.context -> bool -> expression -> Pretty.T
 end;
 
 structure Expression : EXPRESSION =
@@ -871,16 +868,5 @@ val add_locale = gen_add_locale cert_declaration;
 val add_locale_cmd = gen_add_locale read_declaration;
 
 end;
-
-
-(** Print the instances that would be activated by an interpretation
-  of the expression in the current context (clean = false) or in an
-  empty context (clean = true). **)
-
-fun pretty_dependencies ctxt clean expression =
-  let
-    val ((_, _, deps, _, export), expr_ctxt) = read_goal_expression expression ctxt;
-    val export' = if clean then Morphism.identity else export;
-  in Locale.pretty_dependencies expr_ctxt clean export' deps end;
 
 end;

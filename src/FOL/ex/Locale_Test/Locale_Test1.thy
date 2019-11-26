@@ -814,7 +814,6 @@ begin
     then interpret local_fixed: lgrp \<open>(+)\<close> \<open>zero\<close> \<open>minus\<close>
       by unfold_locales
     thm local_fixed.lone
-    print_dependencies! lgrp \<open>(+)\<close> \<open>0\<close> \<open>minus\<close> + lgrp \<open>(+)\<close> \<open>zero\<close> \<open>minus\<close>
   }
   assume \<open>!!x zero. zero + x = x\<close> \<open>!!x zero. (-x) + x = zero\<close>
   then interpret local_free: lgrp \<open>(+)\<close> \<open>zero\<close> \<open>minus\<close> for zero

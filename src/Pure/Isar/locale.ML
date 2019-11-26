@@ -90,7 +90,6 @@ sig
   val pretty_locales: theory -> bool -> Pretty.T
   val pretty_locale: theory -> bool -> string -> Pretty.T
   val pretty_registrations: Proof.context -> string -> Pretty.T
-  val pretty_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> Pretty.T
   val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
   type locale_dependency =
     {source: string, target: string, prefix: (string * bool) list, morphism: morphism,
@@ -759,16 +758,6 @@ fun pretty_registrations ctxt name =
   (case registrations_of (Context.Proof ctxt) name of
     [] => Pretty.str "no interpretations"
   | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)));
-
-fun pretty_dependencies ctxt clean export insts =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val idents = if clean then empty_idents else Idents.get (Context.Proof ctxt);
-  in
-    (case fold (roundup thy cons export) insts (idents, []) |> snd of
-      [] => Pretty.str "no dependencies"
-    | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt export) (rev deps)))
-  end;
 
 fun pretty_locale_deps thy =
   let

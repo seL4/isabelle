@@ -81,7 +81,7 @@ keywords
   and "help" "print_commands" "print_options" "print_context" "print_theory"
     "print_definitions" "print_syntax" "print_abbrevs" "print_defn_rules"
     "print_theorems" "print_locales" "print_classes" "print_locale"
-    "print_interps" "print_dependencies" "print_attributes"
+    "print_interps" "print_attributes"
     "print_simpset" "print_rules" "print_trans_rules" "print_methods"
     "print_antiquotations" "print_ML_antiquotations" "thy_deps"
     "locale_deps" "class_deps" "thm_deps" "thm_oracles" "print_term_bindings"
@@ -1163,13 +1163,6 @@ val _ =
           val thy = Toplevel.theory_of state;
           val name = Locale.check thy raw_name;
         in Pretty.writeln (Locale.pretty_registrations ctxt name) end)));
-
-val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>print_dependencies\<close>
-    "print dependencies of locale expression"
-    (Parse.opt_bang -- Parse_Spec.locale_expression >> (fn (clean, expr) =>
-      Toplevel.keep (fn state =>
-        Pretty.writeln (Expression.pretty_dependencies (Toplevel.context_of state) clean expr))));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_attributes\<close>

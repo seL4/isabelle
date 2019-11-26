@@ -618,7 +618,6 @@ text \<open>
 
   \<^descr> \<^theory_text>\<open>locale_deps\<close> visualizes all locales and their relations as a Hasse
   diagram. This includes locales defined as type classes (\secref{sec:class}).
-  See also \<^theory_text>\<open>print_dependencies\<close> below.
 
   \<^descr> @{method intro_locales} and @{method unfold_locales} repeatedly expand all
   introduction rules of locale predicates of the theory. While @{method
@@ -644,7 +643,6 @@ text \<open>
     @{command_def "interpret"} & : & \<open>proof(state) | proof(chain) \<rightarrow> proof(prove)\<close> \\
     @{command_def "global_interpretation"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "sublocale"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
-    @{command_def "print_dependencies"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "print_interps"}\<open>\<^sup>*\<close> & :  & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
@@ -664,8 +662,6 @@ text \<open>
     ;
     @@{command sublocale} (@{syntax name} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
       definitions?
-    ;
-    @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
     @@{command print_interps} @{syntax name}
     ;
@@ -760,15 +756,7 @@ text \<open>
   locale argument must be omitted. The command then refers to the locale (or
   class) target of the context block.
 
-  \<^descr> \<^theory_text>\<open>print_dependencies expr\<close> is useful for understanding the effect of an
-  interpretation of \<open>expr\<close> in the current context. It lists all locale
-  instances for which interpretations would be added to the current context.
-  Variant \<^theory_text>\<open>print_dependencies!\<close> does not generalize parameters and assumes an
-  empty context --- that is, it prints all locale instances that would be
-  considered for interpretation. The latter is useful for understanding the
-  dependencies of a locale expression.
-
-  \<^descr> \<^theory_text>\<open>print_interps locale\<close> lists all interpretations of \<open>locale\<close> in the
+  \<^descr> \<^theory_text>\<open>print_interps name\<close> lists all interpretations of locale \<open>name\<close> in the
   current theory or proof context, including those due to a combination of an
   \<^theory_text>\<open>interpretation\<close> or \<^theory_text>\<open>interpret\<close> and one or several \<^theory_text>\<open>sublocale\<close>
   declarations.
