@@ -3,12 +3,11 @@
 *)
 
 section \<open>Complex Analysis Basics\<close>
+text \<open>Definitions of analytic and holomorphic functions, limit theorems, complex differentiation\<close>
 
 theory Complex_Analysis_Basics
   imports Derivative "HOL-Library.Nonpos_Ints"
 begin
-
-(* TODO FIXME: A lot of the things in here have nothing to do with complex analysis *)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>General lemmas\<close>
 
@@ -37,26 +36,6 @@ lemma vector_derivative_cnj:
   assumes "f differentiable at x"
   shows   "vector_derivative (\<lambda>z. cnj (f z)) (at x) = cnj (vector_derivative f (at x))"
   using assms by (intro vector_derivative_cnj_within) auto
-
-lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = (*) 0"
-  by auto
-
-lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = (*) 1"
-  by auto
-
-lemma uniformly_continuous_on_cmul_right [continuous_intros]:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"
-  using bounded_linear.uniformly_continuous_on[OF bounded_linear_mult_left] .
-
-lemma uniformly_continuous_on_cmul_left[continuous_intros]:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  assumes "uniformly_continuous_on s f"
-    shows "uniformly_continuous_on s (\<lambda>x. c * f x)"
-by (metis assms bounded_linear.uniformly_continuous_on bounded_linear_mult_right)
-
-lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
-  by (intro continuous_on_id continuous_on_norm)
 
 lemma
   shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
@@ -134,7 +113,6 @@ by (metis real_lim_sequentially sum_in_Reals)
 lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
-
 
 lemma closed_segment_same_Re:
   assumes "Re a = Re b"
@@ -425,20 +403,6 @@ lemma holomorphic_nonconstant:
     shows "\<not> f constant_on S"
   by (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
     (use assms in \<open>auto simp: holomorphic_derivI\<close>)
-
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Caratheodory characterization\<close>
-
-lemma field_differentiable_caratheodory_at:
-  "f field_differentiable (at z) \<longleftrightarrow>
-         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z) g)"
-  using CARAT_DERIV [of f]
-  by (simp add: field_differentiable_def has_field_derivative_def)
-
-lemma field_differentiable_caratheodory_within:
-  "f field_differentiable (at z within s) \<longleftrightarrow>
-         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z within s) g)"
-  using DERIV_caratheodory_within [of f]
-  by (simp add: field_differentiable_def has_field_derivative_def)
 
 subsection\<open>Analyticity on a set\<close>
 
@@ -813,60 +777,6 @@ proof -
   qed
 qed
 
-
-lemma field_differentiable_series:
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
-  assumes "convex S" "open S"
-  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)" and x: "x \<in> S"
-  shows  "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
-proof -
-  from assms(4) obtain g' where A: "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
-    unfolding uniformly_convergent_on_def by blast
-  from x and \<open>open S\<close> have S: "at x within S = at x" by (rule at_within_open)
-  have "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within S)"
-    by (intro has_field_derivative_series[of S f f' g' x0] assms A has_field_derivative_at_within)
-  then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
-    "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
-  from g(2)[OF x] have g': "(g has_derivative (*) (g' x)) (at x)"
-    by (simp add: has_field_derivative_def S)
-  have "((\<lambda>x. \<Sum>n. f n x) has_derivative (*) (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
-       (insert g, auto simp: sums_iff)
-  thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def
-    by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
-qed
-
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Bound theorem\<close>
-
-lemma field_differentiable_bound:
-  fixes S :: "'a::real_normed_field set"
-  assumes cvs: "convex S"
-      and df:  "\<And>z. z \<in> S \<Longrightarrow> (f has_field_derivative f' z) (at z within S)"
-      and dn:  "\<And>z. z \<in> S \<Longrightarrow> norm (f' z) \<le> B"
-      and "x \<in> S"  "y \<in> S"
-    shows "norm(f x - f y) \<le> B * norm(x - y)"
-  apply (rule differentiable_bound [OF cvs])
-  apply (erule df [unfolded has_field_derivative_def])
-  apply (rule onorm_le, simp_all add: norm_mult mult_right_mono assms)
-  done
-
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Inverse function theorem for complex derivatives\<close>
-
-lemma has_field_derivative_inverse_basic:
-  shows "DERIV f (g y) :> f' \<Longrightarrow>
-        f' \<noteq> 0 \<Longrightarrow>
-        continuous (at y) g \<Longrightarrow>
-        open t \<Longrightarrow>
-        y \<in> t \<Longrightarrow>
-        (\<And>z. z \<in> t \<Longrightarrow> f (g z) = z)
-        \<Longrightarrow> DERIV g y :> inverse (f')"
-  unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_basic)
-  apply (auto simp:  bounded_linear_mult_right)
-  done
-
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Taylor on Complex Numbers\<close>
 
 lemma sum_Suc_reindex:
@@ -1052,93 +962,5 @@ proof -
     done
 qed
 
-
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Polynomal function extremal theorem, from HOL Light\<close>
-
-lemma polyfun_extremal_lemma: (*COMPLEX_POLYFUN_EXTREMAL_LEMMA in HOL Light*)
-    fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes "0 < e"
-    shows "\<exists>M. \<forall>z. M \<le> norm(z) \<longrightarrow> norm (\<Sum>i\<le>n. c(i) * z^i) \<le> e * norm(z) ^ (Suc n)"
-proof (induct n)
-  case 0 with assms
-  show ?case
-    apply (rule_tac x="norm (c 0) / e" in exI)
-    apply (auto simp: field_simps)
-    done
-next
-  case (Suc n)
-  obtain M where M: "\<And>z. M \<le> norm z \<Longrightarrow> norm (\<Sum>i\<le>n. c i * z^i) \<le> e * norm z ^ Suc n"
-    using Suc assms by blast
-  show ?case
-  proof (rule exI [where x= "max M (1 + norm(c(Suc n)) / e)"], clarsimp simp del: power_Suc)
-    fix z::'a
-    assume z1: "M \<le> norm z" and "1 + norm (c (Suc n)) / e \<le> norm z"
-    then have z2: "e + norm (c (Suc n)) \<le> e * norm z"
-      using assms by (simp add: field_simps)
-    have "norm (\<Sum>i\<le>n. c i * z^i) \<le> e * norm z ^ Suc n"
-      using M [OF z1] by simp
-    then have "norm (\<Sum>i\<le>n. c i * z^i) + norm (c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc n + norm (c (Suc n) * z ^ Suc n)"
-      by simp
-    then have "norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc n + norm (c (Suc n) * z ^ Suc n)"
-      by (blast intro: norm_triangle_le elim: )
-    also have "... \<le> (e + norm (c (Suc n))) * norm z ^ Suc n"
-      by (simp add: norm_power norm_mult algebra_simps)
-    also have "... \<le> (e * norm z) * norm z ^ Suc n"
-      by (metis z2 mult.commute mult_left_mono norm_ge_zero norm_power)
-    finally show "norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * z ^ Suc n) \<le> e * norm z ^ Suc (Suc n)"
-      by simp
-  qed
-qed
-
-lemma polyfun_extremal: (*COMPLEX_POLYFUN_EXTREMAL in HOL Light*)
-    fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes k: "c k \<noteq> 0" "1\<le>k" and kn: "k\<le>n"
-    shows "eventually (\<lambda>z. norm (\<Sum>i\<le>n. c(i) * z^i) \<ge> B) at_infinity"
-using kn
-proof (induction n)
-  case 0
-  then show ?case
-    using k  by simp
-next
-  case (Suc m)
-  let ?even = ?case
-  show ?even
-  proof (cases "c (Suc m) = 0")
-    case True
-    then show ?even using Suc k
-      by auto (metis antisym_conv less_eq_Suc_le not_le)
-  next
-    case False
-    then obtain M where M:
-          "\<And>z. M \<le> norm z \<Longrightarrow> norm (\<Sum>i\<le>m. c i * z^i) \<le> norm (c (Suc m)) / 2 * norm z ^ Suc m"
-      using polyfun_extremal_lemma [of "norm(c (Suc m)) / 2" c m] Suc
-      by auto
-    have "\<exists>b. \<forall>z. b \<le> norm z \<longrightarrow> B \<le> norm (\<Sum>i\<le>Suc m. c i * z^i)"
-    proof (rule exI [where x="max M (max 1 (\<bar>B\<bar> / (norm(c (Suc m)) / 2)))"], clarsimp simp del: power_Suc)
-      fix z::'a
-      assume z1: "M \<le> norm z" "1 \<le> norm z"
-         and "\<bar>B\<bar> * 2 / norm (c (Suc m)) \<le> norm z"
-      then have z2: "\<bar>B\<bar> \<le> norm (c (Suc m)) * norm z / 2"
-        using False by (simp add: field_simps)
-      have nz: "norm z \<le> norm z ^ Suc m"
-        by (metis \<open>1 \<le> norm z\<close> One_nat_def less_eq_Suc_le power_increasing power_one_right zero_less_Suc)
-      have *: "\<And>y x. norm (c (Suc m)) * norm z / 2 \<le> norm y - norm x \<Longrightarrow> B \<le> norm (x + y)"
-        by (metis abs_le_iff add.commute norm_diff_ineq order_trans z2)
-      have "norm z * norm (c (Suc m)) + 2 * norm (\<Sum>i\<le>m. c i * z^i)
-            \<le> norm (c (Suc m)) * norm z + norm (c (Suc m)) * norm z ^ Suc m"
-        using M [of z] Suc z1  by auto
-      also have "... \<le> 2 * (norm (c (Suc m)) * norm z ^ Suc m)"
-        using nz by (simp add: mult_mono del: power_Suc)
-      finally show "B \<le> norm ((\<Sum>i\<le>m. c i * z^i) + c (Suc m) * z ^ Suc m)"
-        using Suc.IH
-        apply (auto simp: eventually_at_infinity)
-        apply (rule *)
-        apply (simp add: field_simps norm_mult norm_power)
-        done
-    qed
-    then show ?even
-      by (simp add: eventually_at_infinity)
-  qed
-qed
 
 end

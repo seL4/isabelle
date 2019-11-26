@@ -128,6 +128,11 @@ lemma of_bool_conj:
 
 end
 
+lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = (*) 0"
+  by auto
+
+lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = (*) 1"
+  by auto
 
 subsection \<open>Abstract divisibility\<close>
 

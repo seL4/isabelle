@@ -386,8 +386,7 @@ proof -
       have frne: "frontier (cball \<xi> r) \<noteq> {}"
         using \<open>0 < r\<close> by auto
       have contfr: "continuous_on (frontier (cball \<xi> r)) (\<lambda>z. norm (f z - f \<xi>))"
-        apply (rule continuous_on_compose2 [OF Complex_Analysis_Basics.continuous_on_norm_id])
-        using hol frsbU holomorphic_on_imp_continuous_on holomorphic_on_subset by blast+
+        by (metis continuous_on_norm continuous_on_subset frsbU hol holomorphic_on_imp_continuous_on)
       obtain w where "norm (\<xi> - w) = r"
                  and w: "(\<And>z. norm (\<xi> - z) = r \<Longrightarrow> norm (f w - f \<xi>) \<le> norm(f z - f \<xi>))"
         apply (rule bexE [OF continuous_attains_inf [OF cof frne contfr]])

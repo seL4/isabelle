@@ -937,6 +937,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma field_differentiable_bound:
+  fixes S :: "'a::real_normed_field set"
+  assumes cvs: "convex S"
+      and df:  "\<And>z. z \<in> S \<Longrightarrow> (f has_field_derivative f' z) (at z within S)"
+      and dn:  "\<And>z. z \<in> S \<Longrightarrow> norm (f' z) \<le> B"
+      and "x \<in> S"  "y \<in> S"
+    shows "norm(f x - f y) \<le> B * norm(x - y)"
+  apply (rule differentiable_bound [OF cvs])
+  apply (erule df [unfolded has_field_derivative_def])
+  apply (rule onorm_le, simp_all add: norm_mult mult_right_mono assms)
+  done
+
 lemma
   differentiable_bound_segment:
   fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -1161,6 +1173,20 @@ proof -
     qed (use k in auto)
   qed
 qed
+
+text\<^marker>\<open>tag unimportant\<close>\<open>Inverse function theorem for complex derivatives\<close>
+lemma has_field_derivative_inverse_basic:
+  shows "DERIV f (g y) :> f' \<Longrightarrow>
+        f' \<noteq> 0 \<Longrightarrow>
+        continuous (at y) g \<Longrightarrow>
+        open t \<Longrightarrow>
+        y \<in> t \<Longrightarrow>
+        (\<And>z. z \<in> t \<Longrightarrow> f (g z) = z)
+        \<Longrightarrow> DERIV g y :> inverse (f')"
+  unfolding has_field_derivative_def
+  apply (rule has_derivative_inverse_basic)
+  apply (auto simp:  bounded_linear_mult_right)
+  done
 
 text \<open>Simply rewrite that based on the domain point x.\<close>
 
@@ -2175,6 +2201,45 @@ lemma exp_scaleR_has_vector_derivative_left: "((\<lambda>t. exp (t *\<^sub>R A))
   using exp_scaleR_has_vector_derivative_right[of A t]
   by (simp add: exp_times_scaleR_commute)
 
+lemma field_differentiable_series:
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
+  assumes "convex S" "open S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)" and x: "x \<in> S"
+  shows  "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
+proof -
+  from assms(4) obtain g' where A: "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+    unfolding uniformly_convergent_on_def by blast
+  from x and \<open>open S\<close> have S: "at x within S = at x" by (rule at_within_open)
+  have "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within S)"
+    by (intro has_field_derivative_series[of S f f' g' x0] assms A has_field_derivative_at_within)
+  then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
+  from g(2)[OF x] have g': "(g has_derivative (*) (g' x)) (at x)"
+    by (simp add: has_field_derivative_def S)
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative (*) (g' x)) (at x)"
+    by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
+       (insert g, auto simp: sums_iff)
+  thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def
+    by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
+qed
+
+subsubsection\<^marker>\<open>tag unimportant\<close>\<open>Caratheodory characterization\<close>
+
+lemma field_differentiable_caratheodory_at:
+  "f field_differentiable (at z) \<longleftrightarrow>
+         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z) g)"
+  using CARAT_DERIV [of f]
+  by (simp add: field_differentiable_def has_field_derivative_def)
+
+lemma field_differentiable_caratheodory_within:
+  "f field_differentiable (at z within s) \<longleftrightarrow>
+         (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z within s) g)"
+  using DERIV_caratheodory_within [of f]
+  by (simp add: field_differentiable_def has_field_derivative_def)
+
+
 subsection \<open>Field derivative\<close>
 
 definition\<^marker>\<open>tag important\<close> deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -2235,7 +2300,6 @@ lemma vector_derivative_chain_at_general:
   shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
   apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
   using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
-
 
 subsection \<open>Relation between convexity and derivative\<close>
 

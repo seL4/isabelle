@@ -1944,6 +1944,9 @@ corollary shift_bounds_cl_Suc_ivl:
   "F g {Suc m..Suc n} = F (\<lambda>i. g(Suc i)){m..n}"
 by (simp add: shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
 
+corollary Suc_reindex_ivl: "m \<le> n \<Longrightarrow> F g {m..n} \<^bold>* g (Suc n) = g m \<^bold>* F (\<lambda>i. g (Suc i)) {m..n}"
+  by (simp add: assoc atLeast_Suc_atMost flip: shift_bounds_cl_Suc_ivl)
+
 corollary shift_bounds_Suc_ivl:
   "F g {Suc m..<Suc n} = F (\<lambda>i. g(Suc i)){m..<n}"
 by (simp add: shift_bounds_nat_ivl[where k="Suc 0", simplified])

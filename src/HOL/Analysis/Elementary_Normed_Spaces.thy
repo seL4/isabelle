@@ -1085,6 +1085,17 @@ proof -
     unfolding dist_real_def by simp
 qed
 
+lemma uniformly_continuous_on_cmul_right [continuous_intros]:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
+  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"
+  using bounded_linear.uniformly_continuous_on[OF bounded_linear_mult_left] .
+
+lemma uniformly_continuous_on_cmul_left[continuous_intros]:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
+  assumes "uniformly_continuous_on s f"
+    shows "uniformly_continuous_on s (\<lambda>x. c * f x)"
+by (metis assms bounded_linear.uniformly_continuous_on bounded_linear_mult_right)
+
 lemma uniformly_continuous_on_norm[continuous_intros]:
   fixes f :: "'a :: metric_space \<Rightarrow> 'b :: real_normed_vector"
   assumes "uniformly_continuous_on s f"
