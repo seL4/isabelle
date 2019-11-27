@@ -277,7 +277,7 @@ lemma of_int_signed [simp]:
 
 subsubsection \<open>Properties\<close>
 
-lemma length_cases:
+lemma length_cases: \<comment> \<open>TODO get rid of\<close>
   obtains (triv) "LENGTH('a::len) = 1" "take_bit LENGTH('a) 2 = (0 :: int)"
     | (take_bit_2) "take_bit LENGTH('a) 2 = (2 :: int)"
 proof (cases "LENGTH('a) \<ge> 2")
@@ -569,15 +569,6 @@ qed
 
 instance word :: (len) semiring_bits
 proof
-  show \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
-    for a b :: \<open>'a word\<close>
-    apply transfer
-    apply auto
-       apply (metis bit_ident drop_bit_eq_div drop_bit_half even_take_bit_eq even_two_times_div_two mod_div_trivial odd_two_times_div_two_succ take_bit_eq_mod)
-      apply (metis even_take_bit_eq len_not_eq_0)
-     apply (metis even_take_bit_eq len_not_eq_0)
-    apply (metis (no_types, hide_lams) div_0 drop_bit_eq_div drop_bit_half dvd_mult_div_cancel even_take_bit_eq mod_div_trivial mod_eq_self_iff_div_eq_0 take_bit_eq_mod)
-    done
   show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
     and rec: \<open>\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a)\<close>
   for P and a :: \<open>'a word\<close>

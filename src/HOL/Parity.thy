@@ -30,6 +30,10 @@ lemma parity_cases [case_names even odd]:
   using assms by (cases "even a")
     (simp_all add: even_iff_mod_2_eq_zero [symmetric] odd_iff_mod_2_eq_one [symmetric])
 
+lemma odd_of_bool_self [simp]:
+  \<open>odd (of_bool p) \<longleftrightarrow> p\<close>
+  by (cases p) simp_all
+
 lemma not_mod_2_eq_0_eq_1 [simp]:
   "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
   by (cases a rule: parity_cases) simp_all
@@ -562,11 +566,10 @@ next
 qed
 
 
-subsection \<open>Abstract bit shifts\<close>
+subsection \<open>Abstract bit structures\<close>
 
 class semiring_bits = semiring_parity +
-  assumes bit_eq_rec: \<open>a = b \<longleftrightarrow> (even a = even b) \<and> a div 2 = b div 2\<close>
-    and bit_induct [case_names stable rec]:
+  assumes bit_induct [case_names stable rec]:
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
@@ -629,6 +632,124 @@ lemma one_mod_two_eq_one [simp]:
   \<open>1 mod 2 = 1\<close>
   by (simp add: mod2_eq_if)
 
+definition bit :: \<open>'a \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where \<open>bit a n \<longleftrightarrow> odd (a div 2 ^ n)\<close>
+
+lemma bit_0 [simp]:
+  \<open>bit a 0 \<longleftrightarrow> odd a\<close>
+  by (simp add: bit_def)
+
+lemma bit_Suc [simp]:
+  \<open>bit a (Suc n) \<longleftrightarrow> bit (a div 2) n\<close>
+  using div_exp_eq [of a 1 n] by (simp add: bit_def)
+
+context
+  fixes a
+  assumes stable: \<open>a div 2 = a\<close>
+begin
+
+lemma stable_imp_add_self:
+  \<open>a + a mod 2 = 0\<close>
+proof -
+  have \<open>a div 2 * 2 + a mod 2 = a\<close>
+    by (fact div_mult_mod_eq)
+  then have \<open>a * 2 + a mod 2 = a\<close>
+    by (simp add: stable)
+  then show ?thesis
+    by (simp add: mult_2_right ac_simps)
+qed
+
+lemma stable_imp_bit_iff_odd:
+  \<open>bit a n \<longleftrightarrow> odd a\<close>
+  by (induction n) (simp_all add: stable)
+
+end
+
+lemma bit_iff_idd_imp_stable:
+  \<open>a div 2 = a\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> odd a\<close>
+using that proof (induction a rule: bit_induct)
+  case (stable a)
+  then show ?case
+    by simp
+next
+  case (rec a b)
+  from rec.prems [of 1] have [simp]: \<open>b = odd a\<close>
+    by (simp add: rec.hyps)
+  from rec.hyps have hyp: \<open>(of_bool (odd a) + 2 * a) div 2 = a\<close>
+    by simp
+  have \<open>bit a n \<longleftrightarrow> odd a\<close> for n
+    using rec.prems [of \<open>Suc n\<close>] by (simp add: hyp)
+  then have \<open>a div 2 = a\<close>
+    by (rule rec.IH)
+  then have \<open>of_bool (odd a) + 2 * a = 2 * (a div 2) + of_bool (odd a)\<close>
+    by (simp add: ac_simps)
+  also have \<open>\<dots> = a\<close>
+    using mult_div_mod_eq [of 2 a]
+    by (simp add: of_bool_odd_eq_mod_2)
+  finally show ?case
+    using \<open>a div 2 = a\<close> by (simp add: hyp)
+qed
+
+lemma bit_eqI:
+  \<open>a = b\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> bit b n\<close>
+using that proof (induction a arbitrary: b rule: bit_induct)
+  case (stable a)
+  from stable(2) [of 0] have **: \<open>even b \<longleftrightarrow> even a\<close>
+    by simp
+  have \<open>b div 2 = b\<close>
+  proof (rule bit_iff_idd_imp_stable)
+    fix n
+    from stable have *: \<open>bit b n \<longleftrightarrow> bit a n\<close>
+      by simp
+    also have \<open>bit a n \<longleftrightarrow> odd a\<close>
+      using stable by (simp add: stable_imp_bit_iff_odd)
+    finally show \<open>bit b n \<longleftrightarrow> odd b\<close>
+      by (simp add: **)
+  qed
+  from ** have \<open>a mod 2 = b mod 2\<close>
+    by (simp add: mod2_eq_if)
+  then have \<open>a mod 2 + (a + b) = b mod 2 + (a + b)\<close>
+    by simp
+  then have \<open>a + a mod 2 + b = b + b mod 2 + a\<close>
+    by (simp add: ac_simps)
+  with \<open>a div 2 = a\<close> \<open>b div 2 = b\<close> show ?case
+    by (simp add: stable_imp_add_self)
+next
+  case (rec a p)
+  from rec.prems [of 0] have [simp]: \<open>p = odd b\<close>
+    by simp
+  from rec.hyps have \<open>bit a n \<longleftrightarrow> bit (b div 2) n\<close> for n
+    using rec.prems [of \<open>Suc n\<close>] by simp
+  then have \<open>a = b div 2\<close>
+    by (rule rec.IH)
+  then have \<open>2 * a = 2 * (b div 2)\<close>
+    by simp
+  then have \<open>b mod 2 + 2 * a = b mod 2 + 2 * (b div 2)\<close>
+    by simp
+  also have \<open>\<dots> = b\<close>
+    by (fact mod_mult_div_eq)
+  finally show ?case
+    by (auto simp add: mod2_eq_if)
+qed
+
+lemma bit_eq_iff:
+  \<open>a = b \<longleftrightarrow> (\<forall>n. bit a n \<longleftrightarrow> bit b n)\<close>
+  by (auto intro: bit_eqI)
+
+lemma bit_eq_rec:
+  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
+  apply (simp add: bit_eq_iff)
+  apply auto
+  using bit_0 apply blast
+  using bit_0 apply blast
+  using bit_Suc apply blast
+  using bit_Suc apply blast
+     apply (metis bit_eq_iff local.even_iff_mod_2_eq_zero local.mod_div_mult_eq)
+    apply (metis bit_eq_iff local.even_iff_mod_2_eq_zero local.mod_div_mult_eq)
+   apply (metis bit_eq_iff local.mod2_eq_if local.mod_div_mult_eq)
+  apply (metis bit_eq_iff local.mod2_eq_if local.mod_div_mult_eq)
+  done
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -662,9 +783,6 @@ qed
 
 instance nat :: semiring_bits
 proof
-  show \<open>m = n \<longleftrightarrow> (even m \<longleftrightarrow> even n) \<and> m div 2 = n div 2\<close>
-    for m n :: nat
-    by (auto dest: odd_two_times_div_two_succ)
   show \<open>P n\<close> if stable: \<open>\<And>n. n div 2 = n \<Longrightarrow> P n\<close>
     and rec: \<open>\<And>n b. P n \<Longrightarrow> (of_bool b + 2 * n) div 2 = n \<Longrightarrow> P (of_bool b + 2 * n)\<close>
     for P and n :: nat
@@ -753,9 +871,6 @@ qed
 
 instance int :: semiring_bits
 proof
-  show \<open>k = l \<longleftrightarrow> (even k \<longleftrightarrow> even l) \<and> k div 2 = l div 2\<close>
-    for k l :: int
-    by (auto dest: odd_two_times_div_two_succ)
   show \<open>P k\<close> if stable: \<open>\<And>k. k div 2 = k \<Longrightarrow> P k\<close>
     and rec: \<open>\<And>k b. P k \<Longrightarrow> (of_bool b + 2 * k) div 2 = k \<Longrightarrow> P (of_bool b + 2 * k)\<close>
     for P and k :: int
@@ -953,6 +1068,14 @@ next
   with False show ?thesis
     by simp
 qed
+
+lemma bit_drop_bit_eq:
+  \<open>bit (drop_bit n a) = bit a \<circ> (+) n\<close>
+  by (simp add: bit_def fun_eq_iff ac_simps flip: drop_bit_eq_div)
+
+lemma bit_take_bit_iff:
+  \<open>bit (take_bit m a) n \<longleftrightarrow> n < m \<and> bit a n\<close>
+  by (simp add: bit_def drop_bit_take_bit not_le flip: drop_bit_eq_div)
 
 end
 

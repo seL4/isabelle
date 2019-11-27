@@ -26,11 +26,8 @@ text \<open>
 
 \<close>
 
-definition bit :: \<open>'a \<Rightarrow> nat \<Rightarrow> bool\<close>
-  where \<open>bit a n \<longleftrightarrow> odd (drop_bit n a)\<close>
-
 definition map_bit :: \<open>nat \<Rightarrow> (bool \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>map_bit n f a = take_bit n a + push_bit n (of_bool (f (bit a n)) + drop_bit (Suc n) a)\<close>
+  where \<open>map_bit n f a = take_bit n a + push_bit n (of_bool (f (bit a n)) + 2 * drop_bit (Suc n) a)\<close>
 
 definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   where \<open>set_bit n = map_bit n top\<close>
@@ -42,10 +39,47 @@ definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
   where \<open>flip_bit n = map_bit n Not\<close>
 
 text \<open>
-  The logical core are \<^const>\<open>bit\<close> and \<^const>\<open>map_bit\<close>; having 
+  Having 
   <^const>\<open>set_bit\<close>, \<^const>\<open>unset_bit\<close> and \<^const>\<open>flip_bit\<close> as separate
   operations allows to implement them using bit masks later.
 \<close>
+
+lemma stable_imp_drop_eq:
+  \<open>drop_bit n a = a\<close> if \<open>a div 2 = a\<close>
+  by (induction n) (simp_all add: that)
+
+lemma map_bit_0 [simp]:
+  \<open>map_bit 0 f a = of_bool (f (odd a)) + 2 * (a div 2)\<close>
+  by (simp add: map_bit_def)
+
+lemma map_bit_Suc [simp]:
+  \<open>map_bit (Suc n) f a = a mod 2 + 2 * map_bit n f (a div 2)\<close>
+  by (auto simp add: map_bit_def algebra_simps mod2_eq_if push_bit_add mult_2
+    elim: evenE oddE)
+
+lemma set_bit_0 [simp]:
+  \<open>set_bit 0 a = 1 + 2 * (a div 2)\<close>
+  by (simp add: set_bit_def)
+
+lemma set_bit_Suc [simp]:
+  \<open>set_bit (Suc n) a = a mod 2 + 2 * set_bit n (a div 2)\<close>
+  by (simp add: set_bit_def)
+
+lemma unset_bit_0 [simp]:
+  \<open>unset_bit 0 a = 2 * (a div 2)\<close>
+  by (simp add: unset_bit_def)
+
+lemma unset_bit_Suc [simp]:
+  \<open>unset_bit (Suc n) a = a mod 2 + 2 * unset_bit n (a div 2)\<close>
+  by (simp add: unset_bit_def)
+
+lemma flip_bit_0 [simp]:
+  \<open>flip_bit 0 a = of_bool (even a) + 2 * (a div 2)\<close>
+  by (simp add: flip_bit_def)
+
+lemma flip_bit_Suc [simp]:
+  \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
+  by (simp add: flip_bit_def)
 
 end
 
@@ -126,7 +160,7 @@ proof
   next
     case (even m)
     with rec [of "2 * m"] rec [of _ q] show ?case
-      by (cases "even n") (auto dest: False_P_imp)
+      by (cases "even n") (auto simp add: ac_simps dest: False_P_imp)
   next
     case (odd m)
     with rec [of "Suc (2 * m)"] rec [of _ q] show ?case

@@ -1623,7 +1623,8 @@ lemma bin_add_not: "x + NOT x = (-1::int)"
   apply (case_tac bit, auto)
   done
 
-lemma mod_BIT: "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
+lemma mod_BIT:
+  "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit" for bit
 proof -
   have "2 * (bin mod 2 ^ n) + 1 = (2 * bin mod 2 ^ Suc n) + 1"
     by (simp add: mod_mult_mult1)
