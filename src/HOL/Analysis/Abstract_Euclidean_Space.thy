@@ -4,7 +4,7 @@
 section\<open>Euclidean space and n-spheres, as subtopologies of n-dimensional space\<close>
 
 theory Abstract_Euclidean_Space
-imports Homotopy Locally T1_Spaces
+imports Homotopy Locally
 begin
 
 subsection \<open>Euclidean spaces as abstract topologies\<close>

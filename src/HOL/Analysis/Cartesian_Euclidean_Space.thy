@@ -5,7 +5,7 @@
 section \<open>Finite Cartesian Products of Euclidean Spaces\<close>
 
 theory Cartesian_Euclidean_Space
-imports Cartesian_Space Derivative
+imports Convex_Euclidean_Space Derivative
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
