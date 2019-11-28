@@ -124,7 +124,7 @@ lemma "\<bar>x - z\<bar> \<le> e \<and> \<bar>y - z\<bar> \<le> e \<and> 0 \<le>
   by sos
 
 lemma "(x::real) - y - 2 * x^4 = 0 \<and> 0 \<le> x \<and> x \<le> 2 \<and> 0 \<le> y \<and> y \<le> 3 \<longrightarrow> y\<^sup>2 - 7 * y - 12 * x + 17 \<ge> 0"
-  oops (*Too hard?*)
+  oops (*Too hard; left it running for 80 minutes -- LCP*)
 
 lemma "(0::real) \<le> x \<longrightarrow> (1 + x + x\<^sup>2) / (1 + x\<^sup>2) \<le> 1 + x"
   by sos
