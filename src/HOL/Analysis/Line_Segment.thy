@@ -14,7 +14,7 @@ imports
   Topology_Euclidean_Space
 begin
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological Properties of Convex Sets and Functions\<close>
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Topological Properties of Convex Sets, Metric Spaces and Functions\<close>
 
 lemma convex_supp_sum:
   assumes "convex S" and 1: "supp_sum u I = 1"
@@ -23,13 +23,11 @@ lemma convex_supp_sum:
 proof -
   have fin: "finite {i \<in> I. u i \<noteq> 0}"
     using 1 sum.infinite by (force simp: supp_sum_def support_on_def)
-  then have eq: "supp_sum (\<lambda>i. u i *\<^sub>R f i) I = sum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
+  then have "supp_sum (\<lambda>i. u i *\<^sub>R f i) I = sum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
     by (force intro: sum.mono_neutral_left simp: supp_sum_def support_on_def)
-  show ?thesis
-    apply (simp add: eq)
-    apply (rule convex_sum [OF fin \<open>convex S\<close>])
-    using 1 assms apply (auto simp: supp_sum_def support_on_def)
-    done
+  also have "... \<in> S"
+    using 1 assms by (force simp: supp_sum_def support_on_def intro: convex_sum [OF fin \<open>convex S\<close>])
+  finally show ?thesis .
 qed
 
 lemma closure_bounded_linear_image_subset:
@@ -135,7 +133,7 @@ corollary component_complement_connected:
 proposition clopen:
   fixes S :: "'a :: real_normed_vector set"
   shows "closed S \<and> open S \<longleftrightarrow> S = {} \<or> S = UNIV"
-    by (force intro!: connected_UNIV [unfolded connected_clopen, rule_format])
+  by (force intro!: connected_UNIV [unfolded connected_clopen, rule_format])
 
 corollary compact_open:
   fixes S :: "'a :: euclidean_space set"
@@ -143,8 +141,8 @@ corollary compact_open:
   by (auto simp: compact_eq_bounded_closed clopen)
 
 corollary finite_imp_not_open:
-    fixes S :: "'a::{real_normed_vector, perfect_space} set"
-    shows "\<lbrakk>finite S; open S\<rbrakk> \<Longrightarrow> S={}"
+  fixes S :: "'a::{real_normed_vector, perfect_space} set"
+  shows "\<lbrakk>finite S; open S\<rbrakk> \<Longrightarrow> S={}"
   using clopen [of S] finite_imp_closed not_bounded_UNIV by blast
 
 corollary empty_interior_finite:
@@ -246,11 +244,7 @@ proof -
   from assms obtain B where B: "\<forall>x\<in>s. norm x \<le> B"
     unfolding bounded_iff by auto
   show ?thesis
-    apply (rule bounded_subset[OF bounded_cball, of _ 0 B])
-    unfolding subset_hull[of convex, OF convex_cball]
-    unfolding subset_eq mem_cball dist_norm using B
-    apply auto
-    done
+    by (simp add: bounded_subset[OF bounded_cball, of _ 0 B] B subsetI subset_hull)
 qed
 
 lemma finite_imp_bounded_convex_hull:
@@ -259,8 +253,6 @@ lemma finite_imp_bounded_convex_hull:
   using bounded_convex_hull finite_imp_bounded
   by auto
 
-
-section \<open>Line Segments\<close>
 
 subsection \<open>Midpoint\<close>
 
@@ -338,7 +330,7 @@ lemma midpoint_linear_image:
 by (simp add: linear_iff midpoint_def)
 
 
-subsection \<open>Line segments\<close>
+subsection \<open>Open and closed segments\<close>
 
 definition\<^marker>\<open>tag important\<close> closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
   where "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
@@ -528,8 +520,7 @@ qed
 lemma segment_bound:
   assumes "x \<in> closed_segment a b"
   shows "norm (x - a) \<le> norm (b - a)" "norm (x - b) \<le> norm (b - a)"
-apply (simp add: assms segment_bound1)
-by (metis assms closed_segment_commute dist_commute dist_norm segment_bound1)
+by (metis assms closed_segment_commute dist_commute dist_norm segment_bound1)+
 
 lemma open_segment_commute: "open_segment a b = open_segment b a"
 proof -
@@ -564,8 +555,11 @@ proof safe
     by (auto intro!: mult_left_mono u assms)
   then show "x \<in> {a .. b}"
     unfolding x_def by (auto simp: algebra_simps)
-qed (auto simp: closed_segment_def divide_simps algebra_simps
-    intro!: exI[where x="(x - a) / (b - a)" for x])
+next
+  show "\<And>x. x \<in> {a..b} \<Longrightarrow> x \<in> closed_segment a b"
+    by (force simp: closed_segment_def divide_simps algebra_simps
+              intro: exI[where x="(x - a) / (b - a)" for x])
+qed 
 
 lemma closed_segment_eq_real_ivl:
   fixes a b::real
