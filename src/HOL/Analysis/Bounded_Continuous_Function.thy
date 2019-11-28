@@ -33,7 +33,7 @@ lemma bcontfunE:
   by (blast intro: apply_bcontfun_cases assms )
 
 lemma const_bcontfun: "(\<lambda>x. b) \<in> bcontfun"
-  by (auto simp: bcontfun_def continuous_on_const image_def)
+  by (auto simp: bcontfun_def image_def)
 
 lift_definition const_bcontfun::"'b::metric_space \<Rightarrow> ('a::topological_space \<Rightarrow>\<^sub>C 'b)" is "\<lambda>c _. c"
   by (rule const_bcontfun)

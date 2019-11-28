@@ -79,16 +79,16 @@ proof (cases "l \<in> S \<inter> topspace X")
     have "\<forall>\<^sub>F b in F. f b \<in> topspace X \<inter> S"
       by (metis (no_types) limitin_def openin_topspace topspace_subtopology)
     with L show ?rhs
-      apply (clarsimp simp add: limitin_def eventually_mono topspace_subtopology openin_subtopology_alt)
+      apply (clarsimp simp add: limitin_def eventually_mono openin_subtopology_alt)
       apply (drule_tac x="S \<inter> U" in spec, force simp: elim: eventually_mono)
       done
   next
     assume ?rhs
     then show ?lhs
       using eventually_elim2
-      by (fastforce simp add: limitin_def topspace_subtopology openin_subtopology_alt)
+      by (fastforce simp add: limitin_def openin_subtopology_alt)
   qed
-qed (auto simp: limitin_def topspace_subtopology)
+qed (auto simp: limitin_def)
 
 
 lemma limitin_canonical_iff_gen [simp]:

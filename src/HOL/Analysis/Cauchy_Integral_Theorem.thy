@@ -406,10 +406,10 @@ lemma C1_diff_imp_diff: "f C1_differentiable_on S \<Longrightarrow> f differenti
   by (simp add: C1_differentiable_on_eq differentiable_at_imp_differentiable_on)
 
 lemma C1_differentiable_on_ident [simp, derivative_intros]: "(\<lambda>x. x) C1_differentiable_on S"
-  by (auto simp: C1_differentiable_on_eq continuous_on_const)
+  by (auto simp: C1_differentiable_on_eq)
 
 lemma C1_differentiable_on_const [simp, derivative_intros]: "(\<lambda>z. a) C1_differentiable_on S"
-  by (auto simp: C1_differentiable_on_eq continuous_on_const)
+  by (auto simp: C1_differentiable_on_eq)
 
 lemma C1_differentiable_on_add [simp, derivative_intros]:
   "f C1_differentiable_on S \<Longrightarrow> g C1_differentiable_on S \<Longrightarrow> (\<lambda>x. f x + g x) C1_differentiable_on S"
@@ -498,7 +498,7 @@ lemma piecewise_C1_differentiable_affine:
 proof (cases "m = 0")
   case True
   then show ?thesis
-    unfolding o_def by (auto simp: piecewise_C1_differentiable_on_def continuous_on_const)
+    unfolding o_def by (auto simp: piecewise_C1_differentiable_on_def)
 next
   case False
   have *: "\<And>x. finite (S \<inter> {y. m * y + c = x})"
@@ -919,7 +919,7 @@ proof -
     unfolding reversepath_def
     apply (rule C1_differentiable_compose [of "\<lambda>x::real. 1-x" _ g, unfolded o_def])
     using S
-    by (force simp: finite_vimageI inj_on_def C1_differentiable_on_eq continuous_on_const elim!: continuous_on_subset)+
+    by (force simp: finite_vimageI inj_on_def C1_differentiable_on_eq elim!: continuous_on_subset)+
   ultimately show ?thesis using assms
     by (auto simp: valid_path_def piecewise_C1_differentiable_on_def path_def [symmetric])
 qed
@@ -1342,7 +1342,7 @@ lemma valid_path_linepath [iff]: "valid_path (linepath a b)"
 lemma has_contour_integral_linepath:
   shows "(f has_contour_integral i) (linepath a b) \<longleftrightarrow>
          ((\<lambda>x. f(linepath a b x) * (b - a)) has_integral i) {0..1}"
-  by (simp add: has_contour_integral vector_derivative_linepath_at)
+  by (simp add: has_contour_integral)
 
 lemma linepath_in_path:
   shows "x \<in> {0..1} \<Longrightarrow> linepath a b x \<in> closed_segment a b"
@@ -1432,7 +1432,7 @@ lemma contour_integrable_subpath_refl [iff]: "f contour_integrable_on (subpath u
   using has_contour_integral_subpath_refl contour_integrable_on_def by blast
 
 lemma contour_integral_subpath_refl [simp]: "contour_integral (subpath u u g) f = 0"
-  by (simp add: has_contour_integral_subpath_refl contour_integral_unique)
+  by (simp add: contour_integral_unique)
 
 lemma has_contour_integral_subpath:
   assumes f: "f contour_integrable_on g" and g: "valid_path g"
@@ -1544,14 +1544,14 @@ proof (cases "u\<noteq>v \<and> v\<noteq>w \<and> u\<noteq>w")
       apply simp
       apply (elim disjE)
       apply (auto simp: * contour_integral_reversepath contour_integrable_subpath
-                   valid_path_reversepath valid_path_subpath algebra_simps)
+               valid_path_subpath algebra_simps)
       done
 next
   case False
   then show ?thesis
-    apply (auto simp: contour_integral_subpath_refl)
+    apply (auto)
     using assms
-    by (metis eq_neg_iff_add_eq_0 contour_integrable_subpath contour_integral_reversepath reversepath_subpath valid_path_subpath)
+    by (metis eq_neg_iff_add_eq_0 contour_integral_reversepath reversepath_subpath valid_path_subpath)
 qed
 
 lemma contour_integral_integral:
@@ -1699,10 +1699,10 @@ lemma contour_integral_id [simp]: "contour_integral (linepath a b) (\<lambda>y. 
   done
 
 lemma contour_integrable_on_const [iff]: "(\<lambda>x. c) contour_integrable_on (linepath a b)"
-  by (simp add: continuous_on_const contour_integrable_continuous_linepath)
+  by (simp add: contour_integrable_continuous_linepath)
 
 lemma contour_integrable_on_id [iff]: "(\<lambda>x. x) contour_integrable_on (linepath a b)"
-  by (simp add: continuous_on_id contour_integrable_continuous_linepath)
+  by (simp add: contour_integrable_continuous_linepath)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetical combining theorems\<close>
 
@@ -4546,7 +4546,7 @@ proof -
     moreover have "\<bar>Re (winding_number \<gamma> z')\<bar> < 1/2"
       apply (rule winding_number_lt_half [OF \<gamma> *])
       using azb \<open>d>0\<close> pag
-      apply (auto simp: add_strict_increasing anz field_split_simps algebra_simps dest!: subsetD)
+      apply (auto simp: add_strict_increasing anz field_split_simps dest!: subsetD)
       done
     ultimately have False
       by simp
@@ -5719,7 +5719,7 @@ proof -
           using \<open>x \<in> path_image \<gamma>\<close> ball_divide_subset_numeral d by fastforce
         then show ?thesis
         using \<open>d > 0\<close> apply (simp add: ff_def norm_mult norm_divide norm_power dist_norm canc)
-        using dpow_le apply (simp add: algebra_simps field_split_simps mult_less_0_iff)
+        using dpow_le apply (simp add: field_split_simps)
         done
       qed
       have ub: "u \<in> ball w (d/2)"
@@ -6187,7 +6187,7 @@ next
     apply (rule deriv_cmult)
     apply (rule analytic_on_imp_differentiable_at [OF _ Suc.prems])
     apply (rule analytic_on_compose_gen [where g="(deriv ^^ n) f" and T=T, unfolded o_def])
-      apply (simp add: analytic_on_linear)
+      apply (simp)
      apply (simp add: analytic_on_open f holomorphic_higher_deriv T)
     apply (blast intro: fg)
     done
@@ -6195,7 +6195,7 @@ next
       apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "(*) u", unfolded o_def])
       apply (rule derivative_intros)
       using Suc.prems field_differentiable_def f fg has_field_derivative_higher_deriv T apply blast
-      apply (simp add: deriv_linear)
+      apply (simp)
       done
   finally show ?case
     by simp
@@ -6540,7 +6540,7 @@ proposition Liouville_weak:
   assumes "f holomorphic_on UNIV" and "(f \<longlongrightarrow> l) at_infinity"
     shows "f z = l"
   using Liouville_weak_0 [of "\<lambda>z. f z - l"]
-  by (simp add: assms holomorphic_on_const holomorphic_on_diff LIM_zero)
+  by (simp add: assms holomorphic_on_diff LIM_zero)
 
 proposition Liouville_weak_inverse:
   assumes "f holomorphic_on UNIV" and unbounded: "\<And>B. eventually (\<lambda>x. norm (f x) \<ge> B) at_infinity"
@@ -6548,11 +6548,11 @@ proposition Liouville_weak_inverse:
 proof -
   { assume f: "\<And>z. f z \<noteq> 0"
     have 1: "(\<lambda>x. 1 / f x) holomorphic_on UNIV"
-      by (simp add: holomorphic_on_divide holomorphic_on_const assms f)
+      by (simp add: holomorphic_on_divide assms f)
     have 2: "((\<lambda>x. 1 / f x) \<longlongrightarrow> 0) at_infinity"
       apply (rule tendstoI [OF eventually_mono])
       apply (rule_tac B="2/e" in unbounded)
-      apply (simp add: dist_norm norm_divide field_split_simps mult_ac)
+      apply (simp add: dist_norm norm_divide field_split_simps)
       done
     have False
       using Liouville_weak_0 [OF 1 2] f by simp
@@ -7473,7 +7473,7 @@ proof -
         apply (rule mult_mono)
         using that D interior_subset apply blast
         using \<open>L>0\<close> \<open>e>0\<close> \<open>D>0\<close> DL2
-        apply (auto simp: norm_divide field_split_simps algebra_simps)
+        apply (auto simp: norm_divide field_split_simps)
         done
       finally show ?thesis .
     qed

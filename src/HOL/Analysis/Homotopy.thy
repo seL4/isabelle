@@ -217,7 +217,7 @@ proof -
                (k2 \<circ> (\<lambda>x. (2 *\<^sub>R fst x -1, snd x)))"
         apply (rule fst continuous_map_compose [OF _ contk2] continuous_intros continuous_map_into_subtopology | simp)+
           apply (rule continuous_intros fst continuous_map_from_subtopology | simp)+
-         apply (force simp: topspace_subtopology prod_topology_subtopology)
+         apply (force simp: prod_topology_subtopology)
         using continuous_map_snd  continuous_map_from_subtopology by blast
       show "(k1 \<circ> (\<lambda>x. (2 *\<^sub>R fst x, snd x))) y = (k2 \<circ> (\<lambda>x. (2 *\<^sub>R fst x -1, snd x))) y"
         if "y \<in> topspace ?X01" and "fst y = 1/2" for y
@@ -481,7 +481,7 @@ next
     have pab: "path_component T a b" if "a \<in> T" "b \<in> T" for a b
     proof -
       have "homotopic_with_canon (\<lambda>x. True) S T (\<lambda>x. a) (\<lambda>x. b)"
-        by (simp add: LHS continuous_on_const image_subset_iff that)
+        by (simp add: LHS image_subset_iff that)
       then show ?thesis
         using False homotopic_constant_maps [of "top_of_set S" "top_of_set T" a b] by auto
     qed
@@ -572,7 +572,7 @@ proposition homotopic_paths_eq:
      "\<lbrakk>path p; path_image p \<subseteq> s; \<And>t. t \<in> {0..1} \<Longrightarrow> p t = q t\<rbrakk> \<Longrightarrow> homotopic_paths s p q"
   apply (simp add: homotopic_paths_def)
   apply (rule homotopic_with_eq)
-  apply (auto simp: path_def homotopic_with_refl pathstart_def pathfinish_def path_image_def elim: continuous_on_eq)
+  apply (auto simp: path_def pathstart_def pathfinish_def path_image_def elim: continuous_on_eq)
   done
 
 proposition homotopic_paths_reparametrize:
@@ -1414,7 +1414,7 @@ lemma nullhomotopic_into_contractible:
     obtains c where "homotopic_with_canon (\<lambda>h. True) S T f (\<lambda>x. c)"
 apply (rule nullhomotopic_through_contractible [OF f, of id T])
 using assms
-apply (auto simp: continuous_on_id)
+apply (auto)
 done
 
 lemma nullhomotopic_from_contractible:
@@ -3583,7 +3583,7 @@ proof (cases "S \<subseteq> topspace X")
         by (rule homotopic_with_trans [OF f])
     next
       show "retraction_maps X (subtopology X S) r id"
-        by (simp add: r req retraction_maps_def topspace_subtopology)
+        by (simp add: r req retraction_maps_def)
     qed
   qed (use True in \<open>auto simp: retraction_maps_def topspace_subtopology_subset continuous_map_in_subtopology\<close>)
   ultimately show ?thesis by simp
@@ -3824,8 +3824,6 @@ next
 qed
 
 
-
-
 lemma contractible_space_product_topology:
   "contractible_space(product_topology X I) \<longleftrightarrow>
     topspace (product_topology X I) = {} \<or> (\<forall>i \<in> I. contractible_space(X i))"
@@ -3846,7 +3844,7 @@ proof (cases "topspace (product_topology X I) = {}")
       using cs unfolding contractible_space_def by metis
     have "homotopic_with (\<lambda>x. True)
                          (product_topology X I) (product_topology X I) id (\<lambda>x. restrict f I)"
-      by (rule homotopic_with_eq [OF homotopic_with_product_topology [OF f]]) (auto simp: topspace_product_topology)
+      by (rule homotopic_with_eq [OF homotopic_with_product_topology [OF f]]) (auto)
     then show ?thesis
       by (auto simp: contractible_space_def)
   qed
@@ -4101,7 +4099,7 @@ next
     apply (rule_tac x="\<lambda>x. b" in exI)
     apply (rule_tac x="\<lambda>x. a" in exI)
     apply (intro assms conjI continuous_on_id' homotopic_into_contractible)
-    apply (auto simp: o_def continuous_on_const)
+    apply (auto simp: o_def)
     done
 qed
 
@@ -4578,7 +4576,7 @@ corollary path_connected_open_diff_countable:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    by (simp add: path_connected_empty)
+    by (simp)
 next
   case False
   show ?thesis
@@ -4714,7 +4712,7 @@ proof -
           using \<open>r > 0\<close>\<open>0 \<le> v\<close>
           by (simp add: dist_norm n)
         moreover have "x - v *\<^sub>R (u - a) \<in> T"
-          by (simp add: f_def \<open>affine T\<close> \<open>u \<in> T\<close> \<open>x \<in> T\<close> assms mem_affine_3_minus2)
+          by (simp add: f_def \<open>u \<in> T\<close> \<open>x \<in> T\<close> assms mem_affine_3_minus2)
         ultimately show "x - v *\<^sub>R (u - a) \<in> cball a r \<inter> T"
           by blast
       qed
@@ -4782,7 +4780,7 @@ proof -
         apply (simp add: ff_def)
         apply (rule continuous_on_cases)
         using homeomorphism_cont1 [OF hom]
-            apply (auto simp: affine_closed \<open>affine T\<close> continuous_on_id fid)
+            apply (auto simp: affine_closed \<open>affine T\<close> fid)
         done
       then show "continuous_on S ff"
         apply (rule continuous_on_subset)
@@ -4791,7 +4789,7 @@ proof -
         apply (simp add: gg_def)
         apply (rule continuous_on_cases)
         using homeomorphism_cont2 [OF hom]
-            apply (auto simp: affine_closed \<open>affine T\<close> continuous_on_id gid)
+            apply (auto simp: affine_closed \<open>affine T\<close> gid)
         done
       then show "continuous_on S gg"
         apply (rule continuous_on_subset)
@@ -5039,7 +5037,7 @@ proof -
       using assms by auto
     have "f ` {a..b} = {c..d}"
       unfolding f_def image_affinity_atLeastAtMost
-      using assms sum_sqs_eq by (auto simp: field_split_simps algebra_simps)
+      using assms sum_sqs_eq by (auto simp: field_split_simps)
     then show "f ` cbox a b = cbox c d"
       by auto
     show "inj_on f (cbox a b)"
@@ -5051,7 +5049,7 @@ proof -
     show "f a = c"
       by (simp add: f_def)
     show "f b = d"
-      using assms sum_sqs_eq [of a b] by (auto simp: f_def field_split_simps algebra_simps)
+      using assms sum_sqs_eq [of a b] by (auto simp: f_def field_split_simps)
   qed
 qed
 
@@ -5078,7 +5076,7 @@ proof -
     show "continuous_on (cbox a c) f"
       apply (simp add: f_def)
       apply (rule continuous_on_cases_le [OF continuous_on_subset [OF cf1] continuous_on_subset [OF cf2]])
-      using le eq apply (force simp: continuous_on_id)+
+      using le eq apply (force)+
       done
     have "f ` cbox a b = f1 ` cbox a b" "f ` cbox b c = f2 ` cbox b c"
       unfolding f_def using eq by force+
@@ -5390,7 +5388,7 @@ next
       using \<open>U \<noteq> {}\<close> \<open>K \<subseteq> S\<close> openin_imp_subset [OF opeU] by blast
     show ?thesis
       apply (rule that [of id id])
-      using \<open>K \<subseteq> U\<close> by (auto simp: continuous_on_id intro: homeomorphismI)
+      using \<open>K \<subseteq> U\<close> by (auto intro: homeomorphismI)
   next
     assume "aff_dim S = 1"
     then have "affine hull S homeomorphic (UNIV :: real set)"

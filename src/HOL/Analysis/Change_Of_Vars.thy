@@ -1433,7 +1433,7 @@ proof -
             with \<open>r > 0\<close> \<open>d > 0\<close> \<open>e > 0\<close> show ?thesis
               apply (simp add: content_cbox_if_cart mem_box_cart)
               apply (auto simp: prod_nonneg)
-              apply (simp add: abs if_distrib prod.delta_remove prod_constant field_simps power_diff split: if_split_asm)
+              apply (simp add: abs if_distrib prod.delta_remove field_simps power_diff split: if_split_asm)
               done
           qed
           also have "\<dots> \<le> e/2 * measure lebesgue (cball ?x' (min d r))"

@@ -127,7 +127,7 @@ qed
 lemma component_le_onorm:
   fixes f :: "real^'m \<Rightarrow> real^'n"
   shows "linear f \<Longrightarrow> \<bar>matrix f $ i $ j\<bar> \<le> onorm f"
-  by (metis linear_matrix_vector_mul_eq matrix_component_le_onorm matrix_vector_mul)
+  by (metis matrix_component_le_onorm matrix_vector_mul(2))
 
 lemma onorm_le_matrix_component_sum:
   fixes A :: "real^'n^'m"
@@ -223,7 +223,7 @@ lemma continuous_on_vec_lambda[continuous_intros]:
   unfolding continuous_on_def by (auto intro: tendsto_vec_lambda)
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_component)
 
 lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
   unfolding bounded_def
@@ -243,7 +243,7 @@ lemma compact_lemma_cart:
 proof -
   have "\<forall>d' \<subseteq> d. ?th d'"
     by (rule compact_lemma_general[where unproj=vec_lambda])
-      (auto intro!: f bounded_component_cart simp: vec_lambda_eta)
+      (auto intro!: f bounded_component_cart)
   then show "?th d" by simp
 qed
 
@@ -372,12 +372,12 @@ lemma Int_interval_cart:
 lemma closed_interval_left_cart:
   fixes b :: "real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_component)
 
 lemma closed_interval_right_cart:
   fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_component)
 
 lemma is_interval_cart:
   "is_interval (s::(real^'n) set) \<longleftrightarrow>
@@ -430,7 +430,7 @@ lemma closed_substandard_cart:
 proof -
   { fix i::'n
     have "closed {x::'a ^ 'n. P i \<longrightarrow> x$i = 0}"
-      by (cases "P i") (simp_all add: closed_Collect_eq continuous_on_const continuous_on_id continuous_on_component) }
+      by (cases "P i") (simp_all add: closed_Collect_eq continuous_on_component) }
   thus ?thesis
     unfolding Collect_all_eq by (simp add: closed_INT)
 qed

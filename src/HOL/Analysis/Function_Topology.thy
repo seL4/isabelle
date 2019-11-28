@@ -285,7 +285,7 @@ proof -
   unfolding topology_eq
   apply clarify
   apply (simp add: openin_product_topology flip: openin_relative_to)
-  apply (simp add: arbitrary_union_of_relative_to topspace_product_topology topspace_subtopology flip: PiE_Int)
+  apply (simp add: arbitrary_union_of_relative_to flip: PiE_Int)
   done
 qed
 
@@ -1960,8 +1960,7 @@ qed (simp add: connected_space_topspace_empty)
 lemma connectedin_PiE:
    "connectedin (product_topology X I) (PiE I S) \<longleftrightarrow>
         PiE I S = {} \<or> (\<forall>i \<in> I. connectedin (X i) (S i))"
-  by (fastforce simp add: connectedin_def subtopology_PiE connected_space_product_topology subset_PiE PiE_eq_empty_iff
-      topspace_subtopology_subset)
+  by (fastforce simp add: connectedin_def subtopology_PiE connected_space_product_topology subset_PiE PiE_eq_empty_iff)
 
 lemma path_connected_space_product_topology:
    "path_connected_space(product_topology X I) \<longleftrightarrow>

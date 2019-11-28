@@ -2233,7 +2233,7 @@ proof
       unfolding 2
       by (clarsimp simp: dist_norm) (metis inner_commute inner_diff_right norm_bound_Basis_le)
     have e': "e = (\<Sum>(i::'a)\<in>Basis. d)"
-      by (simp add: d_def DIM_positive)
+      by (simp add: d_def)
     show "convex hull c \<subseteq> cball x e"
       unfolding 2
       apply clarsimp

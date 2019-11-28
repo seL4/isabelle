@@ -644,7 +644,7 @@ proof -
     fix i :: 'a
     assume i: "i \<in> Basis"
     show "0 < ?a \<bullet> i"
-      unfolding **[OF i] by (auto simp add: Suc_le_eq DIM_positive)
+      unfolding **[OF i] by (auto simp add: Suc_le_eq)
   next
     have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
       apply (rule sum.cong)
@@ -3676,7 +3676,7 @@ next
   case False
   { assume "card s = Suc (card Basis)"
     then have cs: "Suc 0 < card s"
-      by (simp add: DIM_positive)
+      by (simp)
     with subset_singletonD have "\<exists>y \<in> s. y \<noteq> x"
       by (cases "s \<le> {x}") fastforce+
   } note [dest!] = this
@@ -4242,9 +4242,9 @@ next
     show "{x. 0 < f x} \<inter> {x. f x < 0} = {}"
       by auto
     show "open {x. 0 < f x}"
-      by (simp add: open_Collect_less contf continuous_on_const)
+      by (simp add: open_Collect_less contf)
     show "open {x. f x < 0}"
-      by (simp add: open_Collect_less contf continuous_on_const)
+      by (simp add: open_Collect_less contf)
     show "S \<subseteq> {x. 0 < f x}"
       apply (clarsimp simp add: f_def setdist_sing_in_set)
       using assms

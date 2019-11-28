@@ -177,7 +177,7 @@ proof -
       by (simp add: proj_def) (metis surf xy homeomorphism_def)
   qed
   have co01: "compact ?SPHER"
-    by (simp add: closed_affine_hull compact_Int_closed)
+    by (simp add: compact_Int_closed)
   show "?SMINUS homeomorphic ?SPHER"
     apply (subst homeomorphic_sym)
     apply (rule homeomorphic_compact [OF co01 cont_nosp [unfolded o_def] no_sp_im inj_spher])
@@ -293,7 +293,7 @@ proof -
     qed
   qed
   have co01: "compact ?CBALL"
-    by (simp add: closed_affine_hull compact_Int_closed)
+    by (simp add: compact_Int_closed)
   show "S homeomorphic ?CBALL"
     apply (subst homeomorphic_sym)
     apply (rule homeomorphic_compact [OF co01 cont_nosp2 [unfolded o_def] im_cball inj_cball])
@@ -1446,9 +1446,9 @@ proof -
       obtain t where "t \<in> tk" and t: "{real n / real N .. (1 + real n) / real N} \<subseteq> K t"
       proof (rule bexE [OF \<delta>])
         show "{real n / real N .. (1 + real n) / real N} \<subseteq> {0..1}"
-          using Suc.prems by (auto simp: field_split_simps algebra_simps)
+          using Suc.prems by (auto simp: field_split_simps)
         show diameter_less: "diameter {real n / real N .. (1 + real n) / real N} < \<delta>"
-          using \<open>0 < \<delta>\<close> N by (auto simp: field_split_simps algebra_simps)
+          using \<open>0 < \<delta>\<close> N by (auto simp: field_split_simps)
       qed blast
       have t01: "t \<in> {0..1}"
         using \<open>t \<in> tk\<close> \<open>tk \<subseteq> {0..1}\<close> by blast
@@ -1458,7 +1458,7 @@ proof -
                  and homuu: "\<And>U. U \<in> \<V> \<Longrightarrow> \<exists>q. homeomorphism U (UU (X t)) p q"
         using inUS [OF t01] UU by meson
       have n_div_N_in: "real n / real N \<in> {real n / real N .. (1 + real n) / real N}"
-        using N by (auto simp: field_split_simps algebra_simps)
+        using N by (auto simp: field_split_simps)
       with t have nN_in_kkt: "real n / real N \<in> K t"
         by blast
       have "k (real n / real N, y) \<in> C \<inter> p -` UU (X t)"
@@ -1850,7 +1850,7 @@ proof -
              and hpk: "\<And>z. z \<in> {0..1} \<times> {0..1} \<Longrightarrow> h z = p (k z)"
     apply (rule covering_space_lift_homotopy_alt [OF cov conth him, of "\<lambda>x. h2 0"])
     using h1h2 ph1 ph2 apply (force simp: heq0 pathstart_def pathfinish_def)
-    using path_image_def pih2 continuous_on_const by fastforce+
+    using path_image_def pih2 by fastforce+
   have contg1: "continuous_on {0..1} g1" and contg2: "continuous_on {0..1} g2"
     using \<open>path g1\<close> \<open>path g2\<close> path_def by blast+
   have g1im: "g1 ` {0..1} \<subseteq> S" and g2im: "g2 ` {0..1} \<subseteq> S"
@@ -1892,7 +1892,7 @@ proof -
         by (intro continuous_intros continuous_on_compose2 [OF contk]) auto
       show "\<And>x. x \<in> {0..1} \<Longrightarrow> g1 1 = p ((k \<circ> Pair x) 1)"
         using heq1 hpk by auto
-    qed (use contk kim g1im h1im that in \<open>auto simp: ph1 continuous_on_const\<close>)
+    qed (use contk kim g1im h1im that in \<open>auto simp: ph1\<close>)
   qed (use contk kim in auto)
 qed
 
@@ -1993,7 +1993,7 @@ proof -
       have "q' t = (h \<circ> (*\<^sub>R) 2) t" if "0 \<le> t" "t \<le> 1/2" for t
       proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> (*\<^sub>R) 2" "{0..1/2}" "f \<circ> g \<circ> (*\<^sub>R) 2" t])
         show "q' 0 = (h \<circ> (*\<^sub>R) 2) 0"
-          by (metis \<open>pathstart q' = pathstart q\<close> comp_def g h pastq pathstart_def pth_4(2))
+          by (metis \<open>pathstart q' = pathstart q\<close> comp_def h pastq pathstart_def pth_4(2))
         show "continuous_on {0..1/2} (f \<circ> g \<circ> (*\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
           using g(2) path_image_def by fastforce+

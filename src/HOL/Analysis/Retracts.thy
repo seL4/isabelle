@@ -604,7 +604,7 @@ next
       show "continuous_on W (\<lambda>x. if x \<in> W - V then a else h (j x, g x))"
         apply (subst Weq)
         apply (rule continuous_on_cases_local)
-            apply (simp_all add: Weq [symmetric] WWV continuous_on_const *)
+            apply (simp_all add: Weq [symmetric] WWV *)
           using WV' closedin_diff apply fastforce
          apply (auto simp: j0 j1)
         done
@@ -1408,7 +1408,7 @@ proof -
   proof (intro exI conjI)
     show "continuous_on (S \<union> T) (\<lambda>x. if x \<in> S then x else r x)"
       apply (rule continuous_on_cases_local [OF clS clT])
-      using r by (auto simp: continuous_on_id)
+      using r by (auto)
   qed (use r in auto)
   also have "\<dots> retract_of U"
     by (rule Un)
@@ -2136,7 +2136,7 @@ next
   proof
     have "continuous_on (T \<union> (S - T)) ?g"
       apply (rule continuous_on_cases_local)
-      using Seq clo ope by (auto simp: contf continuous_on_const intro: continuous_on_cases_local)
+      using Seq clo ope by (auto simp: contf intro: continuous_on_cases_local)
     with Seq show "continuous_on S ?g"
       by metis
     show "?g ` S \<subseteq> U"

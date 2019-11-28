@@ -155,7 +155,7 @@ lemma locally_path_connected_space:
 lemma locally_path_connected_space_open_path_components:
    "locally_path_connected_space X \<longleftrightarrow>
         (\<forall>U c. openin X U \<and> c \<in> path_components_of(subtopology X U) \<longrightarrow> openin X c)"
-  apply (auto simp: locally_path_connected_space_eq_open_path_component_of path_components_of_def topspace_subtopology)
+  apply (auto simp: locally_path_connected_space_eq_open_path_component_of path_components_of_def)
   by (metis imageI inf.absorb_iff2 openin_closedin_eq)
 
 lemma openin_path_component_of_locally_path_connected_space:
@@ -275,7 +275,7 @@ proof clarify
           by (metis (no_types, lifting) \<open>f x \<in> C\<close> x disjnt_iff image_eqI)
       qed
       then show "?T \<subseteq> {x \<in> topspace X. f x \<in> C}"
-        by (force simp: path_component_of_equiv topspace_subtopology)
+        by (force simp: path_component_of_equiv)
     qed
   qed
   then show "openin Y C"

@@ -939,7 +939,7 @@ proof -
     apply (rule iffD1[OF continuous_on_cong, of "{..0}" _ "\<lambda>x. -x"])
     using less_eq_ereal_def apply (auto simp add: continuous_uminus_ereal)
     apply (rule iffD1[OF continuous_on_cong, of "{0..}" _ "\<lambda>x. x"])
-      apply (auto simp add: continuous_on_id)
+      apply (auto)
     done
   moreover have "(UNIV::ereal set) = {..0} \<union> {(0::ereal)..}" by auto
   ultimately show ?thesis by auto

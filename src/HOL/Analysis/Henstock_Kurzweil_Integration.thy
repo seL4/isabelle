@@ -7263,7 +7263,7 @@ next
             \<le> e * content (cbox w z) / content ?CBOX/2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
         using cbp \<open>0 < e/content ?CBOX\<close>
-        apply (auto simp: field_split_simps content_pos_le integrable_diff int_integrable integrable_const)
+        apply (auto simp: field_split_simps integrable_diff int_integrable integrable_const)
         done
       also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
         by (simp add: content_Pair field_split_simps)
@@ -7430,7 +7430,7 @@ proof (cases "c = 0")
                inverse (real (Suc k)) powr (a + 1) / (a + 1)) {inverse (real (Suc k))..c}"
         using True a by (intro fundamental_theorem_of_calculus)
            (auto intro!: derivative_eq_intros continuous_on_powr' continuous_on_const
-             continuous_on_id simp: has_field_derivative_iff_has_vector_derivative [symmetric])
+              simp: has_field_derivative_iff_has_vector_derivative [symmetric])
       with True show ?thesis unfolding f_def F_def by (subst has_integral_restrict) simp_all
     next
       case False

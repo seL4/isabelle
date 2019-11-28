@@ -144,7 +144,7 @@ proof -
     unfolding homeomorphic_space_def homeomorphic_maps_def
     apply (rule_tac x="\<lambda>f. restrict f {..<n}" in exI)
     apply (rule_tac x="\<lambda>f i. if i < n then f i else 0" in exI)
-    apply (simp add: Euclidean_space_def topspace_subtopology continuous_map_in_subtopology)
+    apply (simp add: Euclidean_space_def continuous_map_in_subtopology)
     apply (intro conjI continuous_map_from_subtopology)
        apply (force simp: continuous_map_componentwise cm intro: continuous_map_product_projection)+
     done
@@ -247,7 +247,7 @@ proof -
   define p:: "nat \<Rightarrow> real" where "p \<equiv> \<lambda>i. if i = k then 1 else 0"
   have "p \<in> topspace(nsphere n)"
     using assms
-    by (simp add: nsphere topspace_subtopology p_def power2_eq_square if_distrib [where f = "\<lambda>x. x * _"] cong: if_cong)
+    by (simp add: nsphere p_def power2_eq_square if_distrib [where f = "\<lambda>x. x * _"] cong: if_cong)
   let ?g = "\<lambda>x i. x i / sqrt(\<Sum>j\<le>n. x j ^ 2)"
   let ?h = "\<lambda>(t,q) i. (1 - t) * q i + t * p i"
   let ?Y = "subtopology (Euclidean_space (Suc n)) {x. 0 \<le> x k \<and> (\<exists>i\<le>n. x i \<noteq> 0)}"
@@ -262,7 +262,7 @@ proof -
       by (metis add.commute add_le_same_cancel2 diff_ge_0_iff_ge diff_zero less_eq_real_def mult_eq_0_iff mult_nonneg_nonneg not_le numeral_One zero_neq_numeral)
     show "continuous_map (prod_topology (top_of_set {0..1}) (subtopology (nsphere n) {x. 0 \<le> x k})) ?Y ?h"
       using assms
-      apply (auto simp: * nsphere topspace_subtopology continuous_map_componentwise_UNIV
+      apply (auto simp: * nsphere continuous_map_componentwise_UNIV
                prod_topology_subtopology subtopology_subtopology case_prod_unfold
                continuous_map_in_subtopology Euclidean_space_def p_def if_distrib [where f = "\<lambda>x. _ * x"] cong: if_cong)
       apply (intro continuous_map_prod_snd continuous_intros continuous_map_from_subtopology)
@@ -286,7 +286,7 @@ proof -
   moreover have "(?g \<circ> ?h) (0, x) = x"
     if "x \<in> topspace (subtopology (nsphere n) {x. 0 \<le> x k})" for x
     using that
-    by (simp add: assms topspace_subtopology nsphere)
+    by (simp add: assms nsphere)
   moreover
   have "(?g \<circ> ?h) (1, x) = p"
     if "x \<in> topspace (subtopology (nsphere n) {x. 0 \<le> x k})" for x

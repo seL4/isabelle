@@ -1536,7 +1536,7 @@ proof (cases "S = {}")
     then obtain y where "y \<in> rel_frontier U"
       by auto
     with \<open>S = {}\<close> show ?thesis
-      by (rule_tac K="{}" and g="\<lambda>x. y" in that)  (auto simp: continuous_on_const)
+      by (rule_tac K="{}" and g="\<lambda>x. y" in that)  (auto)
   qed
 next
   case False
@@ -1662,7 +1662,7 @@ corollary extend_map_affine_to_sphere_cofinite:
 proof (cases "r = 0")
   case True
   with fim show ?thesis
-    by (rule_tac K="{}" and g = "\<lambda>x. a" in that) (auto simp: continuous_on_const)
+    by (rule_tac K="{}" and g = "\<lambda>x. a" in that) (auto)
 next
   case False
   with assms have "0 < r" by auto
@@ -2836,7 +2836,7 @@ lemma simply_connected_eq_homotopic_circlemaps1:
 proof -
   have "homotopic_loops S (f \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi * t) * \<i>)) (g \<circ> exp \<circ> (\<lambda>t. of_real(2 * pi *  t) * \<i>))"
     apply (rule S [unfolded simply_connected_homotopic_loops, rule_format])
-    apply (simp add: homotopic_circlemaps_imp_homotopic_loops homotopic_with_refl contf fim contg gim)
+    apply (simp add: homotopic_circlemaps_imp_homotopic_loops contf fim contg gim)
     done
   then show ?thesis
     apply (rule homotopic_with_eq [OF homotopic_loops_imp_homotopic_circlemaps])
@@ -2854,8 +2854,7 @@ lemma simply_connected_eq_homotopic_circlemaps2a:
             shows "\<exists>a. homotopic_with_canon (\<lambda>h. True) (sphere 0 1) S h (\<lambda>x. a)"
     apply (rule_tac x="h 1" in exI)
     apply (rule hom)
-    using assms
-    by (auto simp: continuous_on_const)
+    using assms by (auto)
 
 lemma simply_connected_eq_homotopic_circlemaps2b:
   fixes S :: "'a::real_normed_vector set"
@@ -2869,7 +2868,7 @@ proof (clarsimp simp add: path_connected_eq_homotopic_points)
   assume "a \<in> S" "b \<in> S"
   then show "homotopic_loops S (linepath a a) (linepath b b)"
     using homotopic_circlemaps_imp_homotopic_loops [OF assms [of "\<lambda>x. a" "\<lambda>x. b"]]
-    by (auto simp: o_def continuous_on_const linepath_def)
+    by (auto simp: o_def linepath_def)
 qed
 
 lemma simply_connected_eq_homotopic_circlemaps3:
@@ -3876,7 +3875,7 @@ proof -
       apply (rule continuous_intros)
       using homotopic_with_imp_continuous [OF L] apply blast
       apply (rule continuous_on_subset [of "sphere 0 1", OF continuous_on_inverse])
-        apply (auto simp: continuous_on_id)
+        apply (auto)
       done
     have "homotopic_with_canon (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
       using homotopic_with_sphere_times [OF L cont]
@@ -4473,7 +4472,7 @@ lemma retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Lon
   apply (auto simp: retract_of_def retraction_def)
   apply (erule (1) Borsukian_retraction_gen)
   apply (meson retraction retraction_def)
-    apply (auto simp: continuous_on_id)
+    apply (auto)
     done
 
 lemma homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
@@ -5595,8 +5594,7 @@ proof
   show ?rhs
   proof (cases "S = {}")
     case True
-    with a show ?thesis
-      using continuous_on_const by force
+    with a show ?thesis by force
   next
     case False
     have anr: "ANR (-{0::complex})"

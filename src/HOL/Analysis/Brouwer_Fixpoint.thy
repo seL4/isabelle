@@ -717,7 +717,7 @@ proof safe
     then have "a = enum 0"
       using \<open>a \<in> s\<close> na by (subst enum_0_bot) (auto simp: le_less intro!: less[of a _ n])
     then have s_eq: "s - {a} = enum ` Suc ` {.. n}"
-      using s_eq by (simp add: atMost_Suc_eq_insert_0 insert_ident zero_notin_Suc_image in_enum_image subset_eq)
+      using s_eq by (simp add: atMost_Suc_eq_insert_0 insert_ident in_enum_image subset_eq)
     then have "enum 1 \<in> s - {a}"
       by auto
     then have "upd 0 = n"
@@ -1212,7 +1212,7 @@ proof cases
         have "c = t.enum (Suc l)" unfolding c_eq ..
         also have "t.enum (Suc l) = b.enum (Suc i')"
           using u \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close>
-          by (simp_all add: enum_Suc t.enum_Suc l b.enum_Suc \<open>b.enum i' = enum i'\<close> swap_apply1)
+          by (simp_all add: enum_Suc t.enum_Suc l b.enum_Suc \<open>b.enum i' = enum i'\<close>)
              (simp add: Suc_i')
         also have "\<dots> = b.enum i"
           using i by (simp add: i'_def)
@@ -1576,7 +1576,7 @@ lemma brouwer_cube:
 proof (rule ccontr)
   define n where "n = DIM('a)"
   have n: "1 \<le> n" "0 < n" "n \<noteq> 0"
-    unfolding n_def by (auto simp: Suc_le_eq DIM_positive)
+    unfolding n_def by (auto simp: Suc_le_eq)
   assume "\<not> ?thesis"
   then have *: "\<not> (\<exists>x\<in>cbox 0 One. f x - x = 0)"
     by auto
@@ -1633,7 +1633,7 @@ proof (rule ccontr)
       \<bar>(f(z) - z)\<bullet>i\<bar> < d / (real n)"
   proof -
     have d': "d / real n / 8 > 0"
-      using d(1) by (simp add: n_def DIM_positive)
+      using d(1) by (simp add: n_def)
     have *: "uniformly_continuous_on (cbox 0 One) f"
       by (rule compact_uniformly_continuous[OF assms(1) compact_cbox])
     obtain e where e:
@@ -1732,7 +1732,7 @@ proof (rule ccontr)
   { fix x :: "nat \<Rightarrow> nat" and i assume "\<forall>i<n. x i \<le> p" "i < n" "x i = p \<or> x i = 0"
     then have "(\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<in> (cbox 0 One::'a set)"
       using b'_Basis
-      by (auto simp: cbox_def inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
+      by (auto simp: cbox_def bij_betw_def zero_le_divide_iff divide_le_eq_1) }
   note cube = this
   have q2: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = 0 \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
@@ -1855,7 +1855,7 @@ proof -
   proof (rule interiorI)
     let ?I = "(\<Inter>i\<in>Basis. {x::'a. 0 < x \<bullet> i} \<inter> {x. x \<bullet> i < 1})"
     show "open ?I"
-      by (intro open_INT finite_Basis ballI open_Int, auto intro: open_Collect_less simp: continuous_on_inner continuous_on_const continuous_on_id)
+      by (intro open_INT finite_Basis ballI open_Int, auto intro: open_Collect_less simp: continuous_on_inner)
     show "\<Sum>Basis /\<^sub>R 2 \<in> ?I"
       by simp
     show "?I \<subseteq> cbox 0 One"
@@ -1963,7 +1963,7 @@ next
   case False
   then show ?thesis
     unfolding contractible_def nullhomotopic_from_sphere_extension
-    using continuous_on_const less_eq_real_def by auto
+    using less_eq_real_def by auto
 qed
 
 corollary connected_sphere_eq:
@@ -2028,9 +2028,7 @@ proof (rule ccontr)
   have "continuous_on (closure S \<union> closure(-S)) g"
     unfolding g_def
     apply (rule continuous_on_cases)
-    using fros fid frontier_closures
-        apply (auto simp: contf continuous_on_id)
-    done
+    using fros fid frontier_closures by (auto simp: contf)
   moreover have "closure S \<union> closure(- S) = UNIV"
     using closure_Un by fastforce
   ultimately have contg: "continuous_on UNIV g" by metis

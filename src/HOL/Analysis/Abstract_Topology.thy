@@ -299,7 +299,7 @@ lemma topspace_subtopology [simp]: "topspace (subtopology U V) = topspace U \<in
 
 lemma topspace_subtopology_subset:
    "S \<subseteq> topspace X \<Longrightarrow> topspace(subtopology X S) = S"
-  by (simp add: inf.absorb_iff2 topspace_subtopology)
+  by (simp add: inf.absorb_iff2)
 
 lemma closedin_subtopology: "closedin (subtopology U V) S \<longleftrightarrow> (\<exists>T. closedin U T \<and> S = T \<inter> V)"
   unfolding closedin_def topspace_subtopology
@@ -391,7 +391,7 @@ by (metis Int_iff openin_subtopology subsetI)
 
 lemma closedin_imp_subset:
    "closedin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
-by (simp add: closedin_def topspace_subtopology)
+by (simp add: closedin_def)
 
 lemma openin_open_subtopology:
      "openin X S \<Longrightarrow> openin (subtopology X S) T \<longleftrightarrow> openin X T \<and> T \<subseteq> S"
@@ -436,7 +436,7 @@ lemma topspace_euclidean [simp]: "topspace euclidean = UNIV"
   by (force simp: topspace_def)
 
 lemma topspace_euclidean_subtopology[simp]: "topspace (top_of_set S) = S"
-  by (simp add: topspace_subtopology)
+  by (simp)
 
 lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
   by (simp add: closed_def closedin_def Compl_eq_Diff_UNIV)
@@ -623,7 +623,7 @@ lemma derived_set_of_subset_topspace:
 
 lemma derived_set_of_subtopology:
    "(subtopology X U) derived_set_of S = U \<inter> (X derived_set_of (U \<inter> S))"
-  by (simp add: derived_set_of_def openin_subtopology topspace_subtopology) blast
+  by (simp add: derived_set_of_def openin_subtopology) blast
 
 lemma derived_set_of_subset_subtopology:
    "(subtopology X S) derived_set_of T \<subseteq> S"
@@ -666,7 +666,7 @@ lemma discrete_topology_unique_derived_set:
 lemma subtopology_eq_discrete_topology_eq:
    "subtopology X U = discrete_topology U \<longleftrightarrow> U \<subseteq> topspace X \<and> U \<inter> X derived_set_of U = {}"
   using discrete_topology_unique_derived_set [of U "subtopology X U"]
-  by (auto simp: eq_commute topspace_subtopology derived_set_of_subtopology)
+  by (auto simp: eq_commute derived_set_of_subtopology)
 
 lemma subtopology_eq_discrete_topology:
    "S \<subseteq> topspace X \<and> S \<inter> X derived_set_of S = {}
@@ -816,7 +816,7 @@ lemma derived_set_subset: "S \<subseteq> topspace X \<Longrightarrow> (X derived
 lemma closedin_derived_set:
      "closedin (subtopology X T) S \<longleftrightarrow>
       S \<subseteq> topspace X \<and> S \<subseteq> T \<and> (\<forall>x. x \<in> X derived_set_of S \<and> x \<in> T \<longrightarrow> x \<in> S)"
-  by (auto simp: closedin_contains_derived_set topspace_subtopology derived_set_of_subtopology Int_absorb1)
+  by (auto simp: closedin_contains_derived_set derived_set_of_subtopology Int_absorb1)
 
 lemma closedin_Int_closure_of:
      "closedin (subtopology X S) T \<longleftrightarrow> S \<inter> X closure_of T = T"
@@ -1348,7 +1348,7 @@ proof safe
     with fin show "finite {U \<in> \<A>. U \<inter> (S \<inter> V) \<noteq> {}}"
       using finite_subset by auto
     show "x \<in> S \<inter> V"
-      using x \<open>x \<in> V\<close> by (simp add: topspace_subtopology)
+      using x \<open>x \<in> V\<close> by (simp)
   qed
 next
   show "\<And>x A. \<lbrakk>x \<in> A; A \<in> \<A>\<rbrakk> \<Longrightarrow> x \<in> topspace (subtopology X S)"
@@ -1672,13 +1672,13 @@ next
   show ?lhs
     using R
     unfolding continuous_map
-    by (auto simp: topspace_subtopology openin_subtopology eq)
+    by (auto simp: openin_subtopology eq)
 qed
 
 
 lemma continuous_map_from_subtopology:
      "continuous_map X X' f \<Longrightarrow> continuous_map (subtopology X S) X' f"
-  by (auto simp: continuous_map topspace_subtopology openin_subtopology)
+  by (auto simp: continuous_map openin_subtopology)
 
 lemma continuous_map_into_fulltopology:
    "continuous_map X (subtopology X' T) f \<Longrightarrow> continuous_map X X' f"
@@ -2134,17 +2134,17 @@ proof
     unfolding quotient_map_def
   proof (intro conjI allI impI)
     show "f ` topspace (subtopology X U) = topspace (subtopology Y V)"
-      using sub U fim by (auto simp: topspace_subtopology)
+      using sub U fim by (auto)
   next
     fix Y' :: "'b set"
     assume "Y' \<subseteq> topspace (subtopology Y V)"
     then have "Y' \<subseteq> topspace Y" "Y' \<subseteq> V"
-      by (simp_all add: topspace_subtopology)
+      by (simp_all)
     then have eq: "{x \<in> topspace X. x \<in> U \<and> f x \<in> Y'} = {x \<in> topspace X. f x \<in> Y'}"
       using U by blast
     then show "openin (subtopology X U) {x \<in> topspace (subtopology X U). f x \<in> Y'} = openin (subtopology Y V) Y'"
       using U V Y \<open>openin X U\<close>  \<open>Y' \<subseteq> topspace Y\<close> \<open>Y' \<subseteq> V\<close>
-      by (simp add: topspace_subtopology openin_open_subtopology eq) (auto simp: openin_closedin_eq)
+      by (simp add: openin_open_subtopology eq) (auto simp: openin_closedin_eq)
   qed
 next
   assume V: "closedin Y V"
@@ -2159,17 +2159,17 @@ next
     unfolding quotient_map_closedin
   proof (intro conjI allI impI)
     show "f ` topspace (subtopology X U) = topspace (subtopology Y V)"
-      using sub U fim by (auto simp: topspace_subtopology)
+      using sub U fim by (auto)
   next
     fix Y' :: "'b set"
     assume "Y' \<subseteq> topspace (subtopology Y V)"
     then have "Y' \<subseteq> topspace Y" "Y' \<subseteq> V"
-      by (simp_all add: topspace_subtopology)
+      by (simp_all)
     then have eq: "{x \<in> topspace X. x \<in> U \<and> f x \<in> Y'} = {x \<in> topspace X. f x \<in> Y'}"
       using U by blast
     then show "closedin (subtopology X U) {x \<in> topspace (subtopology X U). f x \<in> Y'} = closedin (subtopology Y V) Y'"
       using U V Y \<open>closedin X U\<close>  \<open>Y' \<subseteq> topspace Y\<close> \<open>Y' \<subseteq> V\<close>
-      by (simp add: topspace_subtopology closedin_closed_subtopology eq) (auto simp: closedin_def)
+      by (simp add: closedin_closed_subtopology eq) (auto simp: closedin_def)
   qed
 qed
 
@@ -2264,7 +2264,7 @@ lemma separatedin_closed_sets:
 
 lemma separatedin_subtopology:
      "separatedin (subtopology X U) S T \<longleftrightarrow> S \<subseteq> U \<and> T \<subseteq> U \<and> separatedin X S T"
-  apply (simp add: separatedin_def closure_of_subtopology topspace_subtopology)
+  apply (simp add: separatedin_def closure_of_subtopology)
   apply (safe; metis Int_absorb1 inf.assoc inf.orderE insert_disjoint(2) mk_disjoint_insert)
   done
 
@@ -2715,13 +2715,13 @@ lemma homeomorphic_maps_subtopologies:
    "\<lbrakk>homeomorphic_maps X Y f g;  f ` (topspace X \<inter> S) = topspace Y \<inter> T\<rbrakk>
         \<Longrightarrow> homeomorphic_maps (subtopology X S) (subtopology Y T) f g"
   unfolding homeomorphic_maps_def
-  by (force simp: continuous_map_from_subtopology topspace_subtopology continuous_map_in_subtopology)
+  by (force simp: continuous_map_from_subtopology continuous_map_in_subtopology)
 
 lemma homeomorphic_maps_subtopologies_alt:
      "\<lbrakk>homeomorphic_maps X Y f g; f ` (topspace X \<inter> S) \<subseteq> T; g ` (topspace Y \<inter> T) \<subseteq> S\<rbrakk>
       \<Longrightarrow> homeomorphic_maps (subtopology X S) (subtopology Y T) f g"
   unfolding homeomorphic_maps_def
-  by (force simp: continuous_map_from_subtopology topspace_subtopology continuous_map_in_subtopology)
+  by (force simp: continuous_map_from_subtopology continuous_map_in_subtopology)
 
 lemma homeomorphic_map_subtopologies:
    "\<lbrakk>homeomorphic_map X Y f; f ` (topspace X \<inter> S) = topspace Y \<inter> T\<rbrakk>
@@ -2810,7 +2810,7 @@ lemma connected_space_subtopology:
 
 lemma connectedin_subtopology:
      "connectedin (subtopology X S) T \<longleftrightarrow> connectedin X T \<and> T \<subseteq> S"
-  by (force simp: connectedin_def subtopology_subtopology topspace_subtopology inf_absorb2)
+  by (force simp: connectedin_def subtopology_subtopology inf_absorb2)
 
 lemma connected_space_eq:
      "connected_space X \<longleftrightarrow>
@@ -3256,7 +3256,7 @@ proof -
   have eq: "(\<forall>U \<in> \<U>. \<exists>Y. openin X Y \<and> U = Y \<inter> S) \<longleftrightarrow> \<U> \<subseteq> (\<lambda>Y. Y \<inter> S) ` {y. openin X y}" for \<U>
     by auto
   show ?thesis
-    by (auto simp: compactin_def topspace_subtopology openin_subtopology eq imp_conjL all_subset_image ex_finite_subset_image)
+    by (auto simp: compactin_def openin_subtopology eq imp_conjL all_subset_image ex_finite_subset_image)
 qed
 
 lemma compactin_subspace: "compactin X S \<longleftrightarrow> S \<subseteq> topspace X \<and> compact_space (subtopology X S)"
@@ -3267,7 +3267,7 @@ lemma compact_space_subtopology: "compactin X S \<Longrightarrow> compact_space 
   by (simp add: compactin_subspace)
 
 lemma compactin_subtopology: "compactin (subtopology X S) T \<longleftrightarrow> compactin X T \<and> T \<subseteq> S"
-apply (simp add: compactin_subspace topspace_subtopology)
+apply (simp add: compactin_subspace)
   by (metis inf.orderE inf_commute subtopology_subtopology)
 
 
@@ -3361,7 +3361,7 @@ by (induction rule: finite_induct) (simp_all add: compactin_Un)
 lemma compactin_subtopology_imp_compact:
   assumes "compactin (subtopology X S) K" shows "compactin X K"
   using assms
-proof (clarsimp simp add: compactin_def topspace_subtopology)
+proof (clarsimp simp add: compactin_def)
   fix \<U>
   define \<V> where "\<V> \<equiv> (\<lambda>U. U \<inter> S) ` \<U>"
   assume "K \<subseteq> topspace X" and "K \<subseteq> S" and "\<forall>x\<in>\<U>. openin X x" and "K \<subseteq> \<Union>\<U>"
@@ -3394,7 +3394,7 @@ qed
 lemma compact_imp_compactin_subtopology:
   assumes "compactin X K" "K \<subseteq> S" shows "compactin (subtopology X S) K"
   using assms
-proof (clarsimp simp add: compactin_def topspace_subtopology)
+proof (clarsimp simp add: compactin_def)
   fix \<U> :: "'a set set"
   define \<V> where "\<V> \<equiv> {V. openin X V \<and> (\<exists>U \<in> \<U>. U = V \<inter> S)}"
   assume "K \<subseteq> S" and "K \<subseteq> topspace X" and "\<forall>U\<in>\<U>. openin (subtopology X S) U" and "K \<subseteq> \<Union>\<U>"
@@ -3556,7 +3556,7 @@ qed
 lemma compactin_imp_Bolzano_Weierstrass:
    "\<lbrakk>compactin X S; infinite T \<and> T \<subseteq> S\<rbrakk> \<Longrightarrow> S \<inter> X derived_set_of T \<noteq> {}"
   using compact_space_imp_Bolzano_Weierstrass [of "subtopology X S"]
-  by (simp add: compactin_subspace derived_set_of_subtopology inf_absorb2 topspace_subtopology)
+  by (simp add: compactin_subspace derived_set_of_subtopology inf_absorb2)
 
 lemma compact_closure_of_imp_Bolzano_Weierstrass:
    "\<lbrakk>compactin X (X closure_of S); infinite T; T \<subseteq> S; T \<subseteq> topspace X\<rbrakk> \<Longrightarrow> X derived_set_of T \<noteq> {}"
@@ -3739,7 +3739,7 @@ lemma section_and_retraction_eq_homeomorphic_map:
 lemma section_imp_embedding_map:
    "section_map X Y f \<Longrightarrow> embedding_map X Y f"
   unfolding section_map_def embedding_map_def homeomorphic_map_maps retraction_maps_def homeomorphic_maps_def
-  by (force simp: continuous_map_in_subtopology continuous_map_from_subtopology topspace_subtopology)
+  by (force simp: continuous_map_in_subtopology continuous_map_from_subtopology)
 
 lemma retraction_imp_quotient_map:
   assumes "retraction_map X Y f"

@@ -347,7 +347,7 @@ proof -
   then have "span (cball 0 e) = (UNIV :: 'n::euclidean_space set)"
     by auto
   then show ?thesis
-    using dim_span[of "cball (0 :: 'n::euclidean_space) e"] by (auto simp: dim_UNIV)
+    using dim_span[of "cball (0 :: 'n::euclidean_space) e"] by (auto)
 qed
 
 
@@ -424,7 +424,7 @@ lemma rational_boxes:
 proof -
   define e' where "e' = e / (2 * sqrt (real (DIM ('a))))"
   then have e: "e' > 0"
-    using assms by (auto simp: DIM_positive)
+    using assms by (auto)
   have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
   proof
     fix i
@@ -884,7 +884,7 @@ proof (cases "m = 0")
       by (simp add: dual_order.antisym euclidean_eqI)
   }
   moreover have "c \<in> cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)"
-    unfolding True by (auto simp: cbox_sing)
+    unfolding True by (auto)
   ultimately show ?thesis using True by (auto simp: cbox_def)
 next
   case False
@@ -1171,16 +1171,16 @@ lemma continuous_on_inner[continuous_intros]:
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Openness of halfspaces.\<close>
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
-  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: open_Collect_less continuous_on_inner)
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
-  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: open_Collect_less continuous_on_inner)
 
 lemma open_halfspace_component_lt: "open {x::'a::euclidean_space. x\<bullet>i < a}"
-  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: open_Collect_less continuous_on_inner)
 
 lemma open_halfspace_component_gt: "open {x::'a::euclidean_space. x\<bullet>i > a}"
-  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: open_Collect_less continuous_on_inner)
 
 lemma eucl_less_eq_halfspaces:
   fixes a :: "'a::euclidean_space"
@@ -1199,29 +1199,29 @@ lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
-  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: closed_Collect_le continuous_on_inner)
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
-  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: closed_Collect_le continuous_on_inner)
 
 lemma closed_hyperplane: "closed {x. inner a x = b}"
-  by (simp add: closed_Collect_eq continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: closed_Collect_eq continuous_on_inner)
 
 lemma closed_halfspace_component_le: "closed {x::'a::euclidean_space. x\<bullet>i \<le> a}"
-  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: closed_Collect_le continuous_on_inner)
 
 lemma closed_halfspace_component_ge: "closed {x::'a::euclidean_space. x\<bullet>i \<ge> a}"
-  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: closed_Collect_le continuous_on_inner)
 
 lemma closed_interval_left:
   fixes b :: "'a::euclidean_space"
   shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
-  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner)
 
 lemma closed_interval_right:
   fixes a :: "'a::euclidean_space"
   shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
-  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner)
 
 lemma interior_halfspace_le [simp]:
   assumes "a \<noteq> 0"
@@ -1646,7 +1646,7 @@ proof
   {
     fix e::real
     assume "e > 0"
-    hence "e / real_of_nat DIM('a) > 0" by (simp add: DIM_positive)
+    hence "e / real_of_nat DIM('a) > 0" by (simp)
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
       by simp
     moreover
@@ -1948,7 +1948,7 @@ proof cases
     fix e :: real
     assume "e > 0"
     moreover have "clamp a b x \<in> cbox a b"
-      by (simp add: clamp_in_interval le)
+      by (simp add: le)
     moreover note f_cont[simplified continuous_on_iff]
     ultimately
     obtain d where d: "0 < d"
@@ -2192,7 +2192,7 @@ proof clarify
     qed
     then show "\<forall>y. dist y (f x) < \<delta> \<longrightarrow> y \<in> f ` A"
       using \<open>e > 0\<close> \<open>B > 0\<close>
-      by (auto simp: \<delta>_def field_split_simps mult_less_0_iff)
+      by (auto simp: \<delta>_def field_split_simps)
   qed
 qed
 
@@ -2349,8 +2349,7 @@ lemma closed_substandard: "closed {x::'a::euclidean_space. \<forall>i\<in>Basis.
 proof -
   let ?D = "{i\<in>Basis. P i}"
   have "closed (\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0})"
-    by (simp add: closed_INT closed_Collect_eq continuous_on_inner
-        continuous_on_const continuous_on_id)
+    by (simp add: closed_INT closed_Collect_eq continuous_on_inner)
   also have "(\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0}) = ?A"
     by auto
   finally show "closed ?A" .
@@ -2392,7 +2391,7 @@ lemma complete_subspace: "subspace s \<Longrightarrow> complete s"
 
 lemma closed_span [iff]: "closed (span s)"
   for s :: "'a::euclidean_space set"
-  by (simp add: closed_subspace subspace_span)
+  by (simp add: closed_subspace)
 
 lemma dim_closure [simp]: "dim (closure s) = dim s" (is "?dc = ?d")
   for s :: "'a::euclidean_space set"

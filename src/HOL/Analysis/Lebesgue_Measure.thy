@@ -363,7 +363,7 @@ proof (rule tendsto_unique)
   qed
   show "((\<lambda>a. ennreal (F b - F a)) \<longlongrightarrow> F b - F a) (at_left a)"
     by (rule continuous_on_tendsto_compose[where g="\<lambda>x. x" and s=UNIV])
-       (auto simp: continuous_on_ennreal continuous_on_diff cont_F continuous_on_const)
+       (auto simp: continuous_on_ennreal continuous_on_diff cont_F)
 qed (rule trivial_limit_at_left_real)
 
 lemma\<^marker>\<open>tag important\<close> sigma_finite_interval_measure:
@@ -745,7 +745,7 @@ proof -
   have "((\<lambda>f. f 1) -` {l..u} \<inter> space (Pi\<^sub>M {1} (\<lambda>b. interval_measure (\<lambda>x. x)))) = {1::real} \<rightarrow>\<^sub>E {l..u}"
     by (auto simp: space_PiM)
   then show ?thesis
-    by (simp add: lborel_def emeasure_distr emeasure_PiM emeasure_interval_measure_Icc continuous_on_id)
+    by (simp add: lborel_def emeasure_distr emeasure_PiM emeasure_interval_measure_Icc)
 qed
 
 lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ennreal (if l \<le> u then u - l else 0)"
@@ -821,7 +821,7 @@ lemma emeasure_lborel_box_eq:
 
 lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis
-  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: prod_constant)
+  by (auto simp del: emeasure_lborel_cbox nonempty_Basis)
 
 lemma fmeasurable_cbox [iff]: "cbox a b \<in> fmeasurable lborel"
   and fmeasurable_box [iff]: "box a b \<in> fmeasurable lborel"
@@ -872,14 +872,14 @@ proof -
     have "... \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba"
       apply (rule mult_left_mono)
       apply (metis DIM_positive One_nat_def less_eq_Suc_le less_imp_le of_nat_le_iff of_nat_power self_le_power zero_less_Suc)
-      apply (simp add: DIM_positive)
+      apply (simp)
       done
     finally have "real n \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba" .
   } note [intro!] = this
   show ?thesis
     unfolding UN_box_eq_UNIV[symmetric]
     apply (subst SUP_emeasure_incseq[symmetric])
-    apply (auto simp: incseq_def subset_box inner_add_left prod_constant
+    apply (auto simp: incseq_def subset_box inner_add_left
       simp del: Sup_eq_top_iff SUP_eq_top_iff
       intro!: ennreal_SUP_eq_top)
     done
@@ -1001,7 +1001,7 @@ proof (rule lborel_eqI)
     using c by (auto simp: box_def T_def field_simps inner_simps divide_less_eq)
   with le c show "emeasure ?D (box l u) = (\<Prod>b\<in>?B. (u - l) \<bullet> b)"
     by (auto simp: emeasure_density emeasure_distr nn_integral_multc emeasure_lborel_box_eq inner_simps
-                   field_simps field_split_simps ennreal_mult'[symmetric] prod_nonneg prod.distrib[symmetric]
+                   field_split_simps ennreal_mult'[symmetric] prod_nonneg prod.distrib[symmetric]
              intro!: prod.cong)
 qed simp
 
@@ -1153,7 +1153,7 @@ proof -
         apply (subst lebesgue_affine_euclidean[of "\<lambda>_. m" \<delta>])
         apply (simp_all add: emeasure_density trans_eq_T nn_integral_cmult emeasure_distr
                         del: space_completion emeasure_completion)
-        apply (simp add: vimage_comp s_comp_s prod_constant)
+        apply (simp add: vimage_comp s_comp_s)
         done
     next
       assume "S \<notin> sets lebesgue"

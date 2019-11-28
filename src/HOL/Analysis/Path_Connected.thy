@@ -457,7 +457,7 @@ proof -
 qed
 
 lemma path_join_imp: "\<lbrakk>path g1; path g2; pathfinish g1 = pathstart g2\<rbrakk> \<Longrightarrow> path(g1 +++ g2)"
-  by (simp add: path_join)
+  by (simp)
 
 lemma simple_path_join_loop:
   assumes "arc g1" "arc g2"
@@ -547,7 +547,7 @@ proof -
    } note * = this
   show ?thesis
     apply (simp add: arc_def inj_on_def)
-    apply (clarsimp simp add: arc_imp_path assms path_join)
+    apply (clarsimp simp add: arc_imp_path assms)
     apply (simp add: joinpaths_def split: if_split_asm)
     apply (force dest: inj_onD [OF injg1])
     apply (metis *)
@@ -831,7 +831,7 @@ qed
 
 lemma sum_le_prod1:
   fixes a::real shows "\<lbrakk>a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a + b \<le> 1 + a * b"
-by (metis add.commute affine_ineq less_eq_real_def mult.right_neutral)
+by (metis add.commute affine_ineq mult.right_neutral)
 
 lemma simple_path_subpath_eq:
   "simple_path(subpath u v g) \<longleftrightarrow>
@@ -1545,7 +1545,7 @@ proof (rule connectedI)
   then obtain g where g: "path g" "path_image g \<subseteq> S" "pathstart g = x1" "pathfinish g = x2"
     using assms[unfolded path_connected_def,rule_format,of x1 x2] by auto
   have *: "connected {0..1::real}"
-    by (auto intro!: convex_connected convex_real_interval)
+    by (auto intro!: convex_connected)
   have "{0..1} \<subseteq> {x \<in> {0..1}. g x \<in> e1} \<union> {x \<in> {0..1}. g x \<in> e2}"
     using as(3) g(2)[unfolded path_defs] by blast
   moreover have "{x \<in> {0..1}. g x \<in> e1} \<inter> {x \<in> {0..1}. g x \<in> e2} = {}"
@@ -1691,7 +1691,7 @@ lemma path_connected_singleton [simp]: "path_connected {a}"
   apply clarify
   apply (rule_tac x="\<lambda>x. a" in exI)
   apply (simp add: image_constant_conv)
-  apply (simp add: path_def continuous_on_const)
+  apply (simp add: path_def)
   done
 
 lemma path_connected_Un:
@@ -1796,7 +1796,7 @@ proof (cases "x \<in> S")
   case True show ?thesis
     apply (rule subset_antisym)
     apply (simp add: path_component_subset)
-    by (simp add: True path_component_maximal path_component_refl path_connected_path_component)
+    by (simp add: True path_component_maximal path_component_refl)
 next
   case False then show ?thesis
     by (metis False empty_iff path_component_eq_empty)
@@ -2183,7 +2183,7 @@ proof -
   obtain a where "\<And>S. S \<in> \<A> \<Longrightarrow> a \<in> S"
     using assms by blast
   then have "\<And>x. x \<in> topspace (subtopology X (\<Union>\<A>)) \<Longrightarrow> path_component_of (subtopology X (\<Union>\<A>)) a x"
-    apply (simp add: topspace_subtopology)
+    apply (simp)
     by (meson Union_upper \<A> path_component_of path_connectedin_subtopology)
   then show ?thesis
     using \<A> unfolding path_connectedin_def
@@ -2429,11 +2429,11 @@ proposition path_connected_sphere:
 proof (cases r "0::real" rule: linorder_cases)
   case less
   then show ?thesis
-    by (simp add: path_connected_empty)
+    by (simp)
 next
   case equal
   then show ?thesis
-    by (simp add: path_connected_singleton)
+    by (simp)
 next
   case greater
   then have eq: "(sphere (0::'a) r) = (\<lambda>x. (r / norm x) *\<^sub>R x) ` (- {0::'a})"
@@ -3303,7 +3303,7 @@ proof -
 qed
 
 lemma inside_empty [simp]: "inside {} = ({} :: 'a :: {real_normed_vector, perfect_space} set)"
-  by (simp add: inside_def connected_component_UNIV)
+  by (simp add: inside_def)
 
 lemma outside_empty [simp]: "outside {} = (UNIV :: 'a :: {real_normed_vector, perfect_space} set)"
 using inside_empty inside_Un_outside by blast
@@ -3346,7 +3346,7 @@ next
         by (simp add: scaleR_add_left [symmetric] field_split_simps)
       then have False
         using convexD_alt [OF s \<open>a \<in> s\<close> ins, of "1/(u*C + 1)"] \<open>C>0\<close> \<open>z \<notin> s\<close> Cpos u
-        by (simp add: * field_split_simps algebra_simps)
+        by (simp add: * field_split_simps)
     } note contra = this
     have "connected_component (- s) z (z + C *\<^sub>R (z-a))"
       apply (rule connected_componentI [OF connected_segment [of z "z + C *\<^sub>R (z-a)"]])

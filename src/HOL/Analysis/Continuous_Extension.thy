@@ -91,7 +91,7 @@ next
           done
       qed
       moreover have "\<lbrakk>U \<in> \<C>; x \<in> S\<rbrakk> \<Longrightarrow> 0 \<le> F U x" for U x
-        using nonneg [of x] by (simp add: F_def field_split_simps setdist_pos_le)
+        using nonneg [of x] by (simp add: F_def field_split_simps)
       ultimately show "\<And>U. U \<in> \<C> \<Longrightarrow> continuous_on S (F U) \<and> (\<forall>x\<in>S. 0 \<le> F U x)"
         by metis
     next
@@ -194,7 +194,7 @@ proof (cases "S = {}")
     show ?thesis
     proof (cases "T = U")
       case True with \<open>S = {}\<close> \<open>a \<noteq> b\<close> show ?thesis
-        by (rule_tac f = "\<lambda>x. b" in that) (auto simp: continuous_on_const)
+        by (rule_tac f = "\<lambda>x. b" in that) (auto)
     next
       case False
       with UT closedin_subset obtain c where c: "c \<in> U" "c \<notin> T"
@@ -220,7 +220,7 @@ next
     case True show ?thesis
     proof (cases "S = U")
       case True with \<open>T = {}\<close> \<open>a \<noteq> b\<close> show ?thesis
-        by (rule_tac f = "\<lambda>x. a" in that) (auto simp: continuous_on_const)
+        by (rule_tac f = "\<lambda>x. a" in that) (auto)
     next
       case False
       with US closedin_subset obtain c where c: "c \<in> U" "c \<notin> S"
@@ -260,7 +260,7 @@ lemma Urysohn_local:
           "\<And>x. x \<in> T \<Longrightarrow> f x = b"
 proof (cases "a = b")
   case True then show ?thesis
-    by (rule_tac f = "\<lambda>x. b" in that) (auto simp: continuous_on_const)
+    by (rule_tac f = "\<lambda>x. b" in that) (auto)
 next
   case False
   then show ?thesis

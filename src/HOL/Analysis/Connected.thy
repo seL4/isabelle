@@ -726,7 +726,7 @@ proof -
       apply (subst tus [symmetric])
       apply (rule continuous_on_cases_local)
       using clt clu tue
-      apply (auto simp: tus continuous_on_const)
+      apply (auto simp: tus)
       done
     have fi: "finite ((\<lambda>x. if x \<in> t then 0 else 1) ` S)"
       by (rule finite_subset [of _ "{0,1}"]) auto

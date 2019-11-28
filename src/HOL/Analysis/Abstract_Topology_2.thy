@@ -87,7 +87,7 @@ next
     assume int: "x \<in> interior A"
     then obtain U where U: "open U" "x \<in> U" "U \<subseteq> A" unfolding interior_def by auto
     hence "\<forall>y\<in>U. indicator A y = (1::real)" unfolding indicator_def by auto
-    hence "continuous_on U (indicator A)" by (simp add: continuous_on_const indicator_eq_1_iff)
+    hence "continuous_on U (indicator A)" by (simp add: indicator_eq_1_iff)
     thus ?thesis using U continuous_on_eq_continuous_at by auto
   next
     assume ext: "x \<in> interior (-A)"
@@ -388,7 +388,7 @@ lemma continuous_on_cases_1:
       and "a \<in> s \<Longrightarrow> f a = g a"
     shows "continuous_on s (\<lambda>t. if t \<le> a then f(t) else g(t))"
 using assms
-by (auto simp: continuous_on_id intro: continuous_on_cases_le [where h = id, simplified])
+by (auto intro: continuous_on_cases_le [where h = id, simplified])
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Inverse function property for open/closed maps\<close>
@@ -1249,7 +1249,7 @@ definition path_connectedin :: "'a topology \<Rightarrow> 'a set \<Rightarrow> b
 
 lemma path_connectedin_absolute [simp]:
      "path_connectedin (subtopology X S) S \<longleftrightarrow> path_connectedin X S"
-  by (simp add: path_connectedin_def subtopology_subtopology topspace_subtopology)
+  by (simp add: path_connectedin_def subtopology_subtopology)
 
 lemma path_connectedin_subset_topspace:
      "path_connectedin X S \<Longrightarrow> S \<subseteq> topspace X"
@@ -1257,14 +1257,14 @@ lemma path_connectedin_subset_topspace:
 
 lemma path_connectedin_subtopology:
      "path_connectedin (subtopology X S) T \<longleftrightarrow> path_connectedin X T \<and> T \<subseteq> S"
-  by (auto simp: path_connectedin_def subtopology_subtopology topspace_subtopology inf.absorb2)
+  by (auto simp: path_connectedin_def subtopology_subtopology inf.absorb2)
 
 lemma path_connectedin:
      "path_connectedin X S \<longleftrightarrow>
         S \<subseteq> topspace X \<and>
         (\<forall>x \<in> S. \<forall>y \<in> S. \<exists>g. pathin X g \<and> g ` {0..1} \<subseteq> S \<and> g 0 = x \<and> g 1 = y)"
   unfolding path_connectedin_def path_connected_space_def pathin_def continuous_map_in_subtopology
-  by (intro conj_cong refl ball_cong) (simp_all add: inf.absorb_iff2 topspace_subtopology)
+  by (intro conj_cong refl ball_cong) (simp_all add: inf.absorb_iff2)
 
 lemma path_connectedin_topspace:
      "path_connectedin X (topspace X) \<longleftrightarrow> path_connected_space X"

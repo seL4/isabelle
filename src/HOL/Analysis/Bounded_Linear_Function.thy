@@ -548,7 +548,7 @@ proof
     fix e::real
     let ?d = "real_of_nat DIM('a) * real_of_nat DIM('b)"
     assume "e > 0"
-    hence "e / ?d > 0" by (simp add: DIM_positive)
+    hence "e / ?d > 0" by (simp)
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) i) (l i) < e / ?d) sequentially"
       by simp
     moreover

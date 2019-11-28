@@ -526,7 +526,7 @@ proof -
       using Bernoulli_inequality [of "-e / card subA" "card subA"] e cardp
       by (auto simp: field_simps)
     also have "... = (\<Prod>w \<in> subA. 1 - e / card subA)"
-      by (simp add: prod_constant subA(2))
+      by (simp add: subA(2))
     also have "... < pff x"
       apply (simp add: pff_def)
       apply (rule prod_mono_strict [where f = "\<lambda>x. 1 - e / card subA", simplified])
@@ -1117,7 +1117,7 @@ proof -
     have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> S. \<bar>f x \<bullet> b - p x\<bar> < e / DIM('b))"
       apply (rule exE [OF Stone_Weierstrass_real_polynomial_function [OF S _, of "\<lambda>x. f x \<bullet> b" "e / card Basis"]])
       using e f
-      apply (auto simp: Euclidean_Space.DIM_positive intro: continuous_intros)
+      apply (auto intro: continuous_intros)
       done
   }
   then obtain pf where pf:
@@ -1140,7 +1140,7 @@ proof -
       apply (rule DIM_positive)
       done
     also have "... = e"
-      using DIM_positive by (simp add: field_simps)
+      by (simp add: field_simps)
     finally have "norm (\<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b - pf b x *\<^sub>R b) < e" .
   }
   ultimately
