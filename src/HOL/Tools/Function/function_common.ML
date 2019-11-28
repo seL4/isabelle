@@ -314,6 +314,7 @@ fun import_function_data t ctxt =
       SOME (transform_function_data (inst_morph u) data) handle Pattern.MATCH => NONE
   in
     get_first match (retrieve_function_data ctxt t)
+    |> Option.map (transform_function_data (Morphism.transfer_morphism' ctxt))
   end
 
 fun import_last_function ctxt =
