@@ -5,7 +5,7 @@
 section \<open>Finite Cartesian Products of Euclidean Spaces\<close>
 
 theory Cartesian_Euclidean_Space
-imports Convex_Euclidean_Space Derivative
+imports Derivative
 begin
 
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
@@ -450,6 +450,7 @@ lemma convex_box_cart:
   shows "convex {x. \<forall>i. P i (x$i)}"
   using assms unfolding convex_def by auto
 
+(* Unused
 lemma convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
   by (rule convex_box_cart) (simp add: atLeast_def[symmetric])
 
@@ -464,12 +465,12 @@ proposition cube_convex_hull_cart:
     where "finite s" "cbox (x - (\<chi> i. d)) (x + (\<chi> i. d)) = convex hull s"
 proof -
   from assms obtain s where "finite s"
-    and "cbox (x - sum ((*\<^sub>R) d) Basis) (x + sum ((*\<^sub>R) d) Basis) = convex hull s"
+    and "cbox (x - sum (( *\<^sub>R) d) Basis) (x + sum (( *\<^sub>R) d) Basis) = convex hull s"
     by (rule cube_convex_hull)
   with that[of s] show thesis
     by (simp add: const_vector_cart)
 qed
-
+*)
 
 subsection "Derivative"
 
