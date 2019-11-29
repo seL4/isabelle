@@ -212,7 +212,7 @@ fun get_specification options thy t =
         [] =>
           (case Spec_Rules.retrieve ctxt t of
             [] => error ("No specification for " ^ Syntax.string_of_term_global thy t)
-          | ((_, (_, ths)) :: _) => filter_defs ths)
+          | ({rules = ths, ...} :: _) => filter_defs ths)
       | ths => ths)
     val _ =
       if show_intermediate_results options then

@@ -317,12 +317,12 @@ fun clasimpset_rule_table_of ctxt =
 *)
         val specs = Spec_Rules.get ctxt
         val (rec_defs, nonrec_defs) = specs
-          |> filter (Spec_Rules.is_equational o fst)
-          |> maps (snd o snd)
+          |> filter (Spec_Rules.is_equational o #rough_classification)
+          |> maps #rules
           |> List.partition (is_rec_def o Thm.prop_of)
         val spec_intros = specs
-          |> filter ((Spec_Rules.is_inductive orf Spec_Rules.is_co_inductive) o fst)
-          |> maps (snd o snd)
+          |> filter (Spec_Rules.is_relational o #rough_classification)
+          |> maps #rules
       in
         Termtab.empty
         |> fold (add Simp o snd) simps

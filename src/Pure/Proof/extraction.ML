@@ -815,14 +815,16 @@ fun extract thm_vss thy =
         val ft = Type.legacy_freeze t;
         val fu = Type.legacy_freeze u;
         val head = head_of (strip_abs_body fu);
+        val b = Binding.qualified_name (extr_name s vs);
+        val const_name = Sign.full_name thy b;
       in
         thy
-        |> Sign.add_consts [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
+        |> Sign.add_consts [(b, fastype_of ft, NoSyn)]
         |> Global_Theory.add_defs false
            [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
              Logic.mk_equals (head, ft)), [])]
         |-> (fn [def_thm] =>
-           Spec_Rules.add_global Spec_Rules.equational ([head], [def_thm])
+           Spec_Rules.add_global const_name Spec_Rules.equational [head] [def_thm]
            #> Code.declare_default_eqns_global [(def_thm, true)])
       end;
 

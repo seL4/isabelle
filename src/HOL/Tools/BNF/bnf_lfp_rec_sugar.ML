@@ -637,6 +637,7 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     val transfer = exists (can (fn Transfer_Option => ())) opts;
 
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
+    val spec_name = Local_Theory.full_name lthy (Binding.conglomerate (map (#1 o #1) fixes));
 
     val mk_notes =
       flat oooo @{map 4} (fn js => fn prefix => fn qualify => fn thms =>
@@ -654,7 +655,7 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     lthy
     |> primrec_simple0 int plugins nonexhaustive transfer fixes (map snd specs)
     |-> (fn {prefix = (names, qualifys), types, result = (ts, defs, (jss, simpss))} =>
-      Spec_Rules.add (Spec_Rules.equational_primrec types) (ts, flat simpss)
+      Spec_Rules.add spec_name (Spec_Rules.equational_primrec types) ts (flat simpss)
       #> Local_Theory.notes (mk_notes jss names qualifys simpss)
       #-> (fn notes =>
         plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (maps snd notes))

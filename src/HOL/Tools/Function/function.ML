@@ -211,7 +211,7 @@ fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
              lthy2
              |> Local_Theory.declaration {syntax = false, pervasive = false}
                (fn phi => add_function_data (transform_function_data phi info'))
-             |> Spec_Rules.add Spec_Rules.equational_recdef (fs, tsimps))
+             |> Spec_Rules.add "" Spec_Rules.equational_recdef fs tsimps)
           end)
       end
   in
