@@ -4,7 +4,6 @@ theory Retracts
 imports
   Brouwer_Fixpoint
   Continuous_Extension
-  Ordered_Euclidean_Space
 begin
 
 text \<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also Euclidean neighbourhood
@@ -1322,6 +1321,7 @@ lemma AR_Times:
   assumes "AR S" "AR T" shows "AR(S \<times> T)"
   using assms by (simp add: AR_ANR ANR_Times contractible_Times)
 
+(* Unused
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Retracts and intervals in ordered euclidean space\<close>
 
 lemma ANR_interval [iff]:
@@ -1333,6 +1333,7 @@ lemma ENR_interval [iff]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "ENR{a..b}"
   by (auto simp: interval_cbox)
+*)
 
 subsection \<open>More advanced properties of ANRs and ENRs\<close>
 
