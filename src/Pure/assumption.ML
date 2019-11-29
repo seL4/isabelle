@@ -128,14 +128,10 @@ val add_assumes = add_assms assume_export;
 
 (* export *)
 
-fun normalize ctxt0 th0 =
-  let val (ctxt, th) = Thm.join_transfer_context (ctxt0, th0)
-  in Raw_Simplifier.norm_hhf_protect ctxt th end;
-
 fun export is_goal inner outer =
-  normalize inner #>
+  Raw_Simplifier.norm_hhf_protect inner #>
   fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
-  normalize outer;
+  Raw_Simplifier.norm_hhf_protect outer;
 
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);

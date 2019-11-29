@@ -278,6 +278,7 @@ local
 fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
+    val spec_name = Local_Theory.full_name lthy (Binding.conglomerate (map (#1 o #1) fixes));
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
       (Binding.qualify false prefix b, attrs)) spec;
     fun simp_attr_binding prefix =
@@ -286,7 +287,7 @@ fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
     lthy
     |> primrec_simple int fixes (map snd spec)
     |-> (fn {prefix, types, result = (ts, simps)} =>
-      Spec_Rules.add (Spec_Rules.equational_primrec types) (ts, simps)
+      Spec_Rules.add spec_name (Spec_Rules.equational_primrec types) ts simps
       #> fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
       #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')
         #-> (fn (_, simps'') => 

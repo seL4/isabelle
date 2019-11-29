@@ -229,7 +229,7 @@ fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
     (*facts*)
     val (facts, facts_lthy) = axioms_thy
       |> Named_Target.theory_init
-      |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
+      |> Spec_Rules.add "" Spec_Rules.Unknown consts (maps (maps #1 o #2) axioms)
       |> Local_Theory.notes axioms;
 
   in ((consts, map (the_single o #2) facts), Local_Theory.exit_global facts_lthy) end;
@@ -258,12 +258,14 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
           else
             error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
               Position.here (Binding.pos_of b)));
+    val const_name = Local_Theory.full_name lthy b;
+
     val name = Thm.def_binding_optional b a;
     val ((lhs, (_, raw_th)), lthy2) = lthy
       |> Local_Theory.define_internal ((b, mx), ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
-    val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.equational ([lhs], [th]);
+    val lthy3 = lthy2 |> Spec_Rules.add const_name Spec_Rules.equational [lhs] [th];
 
     val ([(def_name, [th'])], lthy4) = lthy3
       |> Local_Theory.notes [((name, atts), [([th], [])])];

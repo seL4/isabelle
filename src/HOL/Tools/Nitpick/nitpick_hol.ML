@@ -1353,8 +1353,8 @@ fun is_built_in_theory thy_id =
 
 fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get
-       |> filter (Spec_Rules.is_unknown o fst)
-       |> maps (snd o snd)
+       |> filter (Spec_Rules.is_unknown o #rough_classification)
+       |> maps #rules
        |> filter_out (is_built_in_theory o Thm.theory_id)
        |> map (subst_atomic subst o Thm.prop_of)
 
@@ -1945,10 +1945,9 @@ fun const_choice_spec_table ctxt subst =
 fun inductive_intro_table ctxt subst def_tables =
   let val thy = Proof_Context.theory_of ctxt in
     def_table_for
-        (maps (map (unfold_mutually_inductive_preds thy def_tables o Thm.prop_of)
-               o snd o snd)
-         (filter ((Spec_Rules.is_inductive orf Spec_Rules.is_co_inductive) o #1)
-           (Spec_Rules.get ctxt))) subst
+      (maps (map (unfold_mutually_inductive_preds thy def_tables o Thm.prop_of) o #rules)
+        (filter (Spec_Rules.is_relational o #rough_classification)
+         (Spec_Rules.get ctxt))) subst
   end
 
 fun ground_theorem_table thy =

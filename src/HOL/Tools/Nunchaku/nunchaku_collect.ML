@@ -479,7 +479,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
       try (Sign.typ_match thy (fastype_of t0, T)) Vartab.empty;
 
     fun process_spec _ (res as SOME _) = res
-      | process_spec (classif, (ts0, ths as _ :: _)) NONE =
+      | process_spec {rough_classification = classif, terms = ts0, rules = ths as _ :: _, ...} NONE =
         (case get_first subst_of ts0 of
           SOME subst =>
           (let
@@ -496,18 +496,21 @@ fun spec_rules_of ctxt (x as (s, T)) =
 
     fun spec_rules () =
       Spec_Rules.retrieve ctxt (Const x)
-      |> sort (Spec_Rules.rough_classification_ord o apply2 fst);
+      |> sort (Spec_Rules.rough_classification_ord o apply2 #rough_classification);
 
     val specs =
       if s = \<^const_name>\<open>The\<close> then
-        [(Spec_Rules.Unknown, ([Logic.varify_global \<^term>\<open>The\<close>], [@{thm theI_unique}]))]
+        [{name = "", rough_classification = Spec_Rules.Unknown,
+          terms = [Logic.varify_global \<^term>\<open>The\<close>],
+          rules = [@{thm theI_unique}]}]
       else if s = \<^const_name>\<open>finite\<close> then
         let val card = card_of_type ctxt T in
           if card = Inf orelse card = Fin_or_Inf then
             spec_rules ()
           else
-            [(Spec_Rules.equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
-               [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]))]
+            [{name = "", rough_classification = Spec_Rules.equational,
+              terms = [Logic.varify_global \<^term>\<open>finite\<close>],
+              rules = [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]}]
         end
       else
         spec_rules ();
@@ -537,10 +540,9 @@ fun is_builtin_theory thy_id =
 
 val orphan_axioms_of =
   Spec_Rules.get
-  #> filter (Spec_Rules.is_unknown o fst)
-  #> map snd
-  #> filter (null o fst)
-  #> maps snd
+  #> filter (Spec_Rules.is_unknown o #rough_classification)
+  #> filter (null o #terms)
+  #> maps #rules
   #> filter_out (is_builtin_theory o Thm.theory_id)
   #> map Thm.prop_of;
 
@@ -961,7 +963,7 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
                                     pat_complete = is_apparently_pat_complete ctxt props})
                                  consts propss)])
                            | NONE => def_or_spec ())
-                         else if (Spec_Rules.is_inductive orf Spec_Rules.is_co_inductive) classif
+                         else if Spec_Rules.is_relational classif
                          then
                            if is_inductive_set_intro (hd props) then
                              def_or_spec ()

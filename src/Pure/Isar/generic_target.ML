@@ -180,9 +180,9 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
 
 fun background_declaration decl lthy =
   let
-    val theory_decl =
+    fun theory_decl context =
       Local_Theory.standard_form lthy
-        (Proof_Context.init_global (Proof_Context.theory_of lthy)) decl;
+        (Proof_Context.init_global (Context.theory_of context)) decl context;
   in Local_Theory.background_theory (Context.theory_map theory_decl) lthy end;
 
 fun background_abbrev (b, global_rhs) params =

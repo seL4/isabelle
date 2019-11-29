@@ -503,10 +503,11 @@ fun add_ind_set_def
     val rec_name =
       if Binding.is_empty alt_name then Binding.conglomerate (map #1 cnames_syn) else alt_name;
     val cnames = map (Local_Theory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
+    val spec_name = Local_Theory.full_name lthy3 (Binding.conglomerate (map #1 cnames_syn));
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
     val (intrs', elims', eqs', induct, inducts, lthy4) =
-      Inductive.declare_rules rec_name coind no_ind cnames (map fst defs)
+      Inductive.declare_rules rec_name coind no_ind spec_name cnames (map fst defs)
         (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
         (map (fn th => (to_set [] (Context.Proof lthy3) th,
            map (fst o fst) (fst (Rule_Cases.get th)),

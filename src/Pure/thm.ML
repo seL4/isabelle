@@ -610,9 +610,9 @@ fun join_transfer thy th =
   else transfer thy th;
 
 fun join_transfer_context (ctxt, th) =
-  if Context.subthy_id (Context.theory_id (Proof_Context.theory_of ctxt), theory_id th) then
-    (Context.raw_transfer (theory_of_thm th) ctxt, th)
-  else (ctxt, transfer' ctxt th);
+  if Context.subthy_id (theory_id th, Context.theory_id (Proof_Context.theory_of ctxt))
+  then (ctxt, transfer' ctxt th)
+  else (Context.raw_transfer (theory_of_thm th) ctxt, th);
 
 
 (* matching *)

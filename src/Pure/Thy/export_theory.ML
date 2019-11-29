@@ -60,9 +60,10 @@ fun add_tfrees used =
 fun primrec_types ctxt const =
   Spec_Rules.retrieve ctxt (Const const)
   |> get_first
-    (fn (Spec_Rules.Equational (Spec_Rules.Primrec types), _) => SOME (types, false)
-      | (Spec_Rules.Equational (Spec_Rules.Primcorec types), _) => SOME (types, true)
-      | _ => NONE)
+    (#rough_classification #>
+      (fn Spec_Rules.Equational (Spec_Rules.Primrec types) => SOME (types, false)
+        | Spec_Rules.Equational (Spec_Rules.Primcorec types) => SOME (types, true)
+        | _ => NONE))
   |> the_default ([], false);
 
 
