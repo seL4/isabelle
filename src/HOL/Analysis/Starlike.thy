@@ -745,7 +745,7 @@ proof -
       have "0 < card D" using \<open>D \<noteq> {}\<close> \<open>finite D\<close>
         by (simp add: card_gt_0_iff)
       have "Min (((\<bullet>) x) ` D) > 0"
-        using as \<open>D \<noteq> {}\<close> \<open>finite D\<close> by (simp add: Min_gr_iff)
+        using as \<open>D \<noteq> {}\<close> \<open>finite D\<close> by (simp)
       moreover have "?d > 0" using as using \<open>0 < card D\<close> by auto
       ultimately have h3: "min (Min (((\<bullet>) x) ` D)) ?d > 0"
         by auto
@@ -957,8 +957,7 @@ proof -
     then have "rel_interior S \<noteq> {}"
       using rel_interior_translation [of "- a"] by simp
   }
-  then show ?thesis
-    using rel_interior_empty by auto
+  then show ?thesis by auto
 qed
 
 lemma interior_simplex_nonempty:
@@ -1052,8 +1051,7 @@ proof -
     then show ?thesis using h1 by auto
   next
     case True
-    then have "rel_interior S = {}"
-      using rel_interior_empty by auto
+    then have "rel_interior S = {}" by auto
     then have "closure (rel_interior S) = {}"
       using closure_empty by auto
     with True show ?thesis by auto
@@ -1581,7 +1579,7 @@ proof (cases "aff_dim S = int DIM('n)")
     then have "affine hull S = UNIV"
       by auto
     then have "aff_dim S = int DIM('n)"
-      using aff_dim_affine_hull[of S] by (simp add: aff_dim_UNIV)
+      using aff_dim_affine_hull[of S] by (simp)
     then have False
       using False by auto
   }
@@ -1984,7 +1982,7 @@ lemma rel_interior_convex_linear_image:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    using assms rel_interior_empty rel_interior_eq_empty by auto
+    using assms by auto
 next
   case False
   interpret linear f by fact
@@ -2043,7 +2041,7 @@ lemma rel_interior_convex_linear_preimage:
 proof -
   interpret linear f by fact
   have "S \<noteq> {}"
-    using assms rel_interior_empty by auto
+    using assms by auto
   have nonemp: "f -` S \<noteq> {}"
     by (metis assms(3) rel_interior_subset subset_empty vimage_mono)
   then have "S \<inter> (range f) \<noteq> {}"
@@ -2179,7 +2177,7 @@ proof (cases "\<Inter>{rel_interior S |S. S \<in> I} = {}")
   then have "\<Inter>I = {}"
     using assms unfolding rel_open_def by auto
   then show ?thesis
-    unfolding rel_open_def using rel_interior_empty by auto
+    unfolding rel_open_def by auto
 next
   case False
   then have "rel_open (\<Inter>I)"
@@ -2209,7 +2207,7 @@ proof (cases "f -` (rel_interior S) = {}")
   then have "f -` S = {}"
     using assms unfolding rel_open_def by auto
   then show ?thesis
-    unfolding rel_open_def using rel_interior_empty by auto
+    unfolding rel_open_def by auto
 next
   case False
   then have "rel_open (f -` S)"
@@ -2333,7 +2331,7 @@ lemma cone_rel_interior:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    by (simp add: rel_interior_empty cone_0)
+    by (simp add: cone_0)
 next
   case False
   then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` S = S)"
@@ -2353,7 +2351,7 @@ lemma rel_interior_convex_cone_aux:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    by (simp add: rel_interior_empty cone_hull_empty)
+    by (simp add: cone_hull_empty)
 next
   case False
   then obtain s where "s \<in> S" by auto
@@ -2980,7 +2978,7 @@ lemma rel_interior_convex_hull_union:
 proof (cases "I = {}")
   case True
   then show ?thesis
-    using convex_hull_empty rel_interior_empty by auto
+    using convex_hull_empty by auto
 next
   case False
   define C0 where "C0 = convex hull (\<Union>(S ` I))"
@@ -3375,7 +3373,7 @@ next
       } note * = this
       have "y \<notin> rel_interior (convex hull s)"
         using y
-        apply (simp add: mem_rel_interior affine_hull_convex_hull)
+        apply (simp add: mem_rel_interior)
         apply (auto simp: convex_hull_finite [OF fs])
         apply (drule_tac x=u in spec)
         apply (auto intro: *)
@@ -4081,7 +4079,7 @@ next
   case False with assms show ?thesis
     apply (auto simp: collinear_3 collinear_lemma between_norm)
     apply (drule_tac x="-(norm(b - x) / norm(x - a))" in spec)
-    apply (simp add: vector_add_divide_simps eq_vector_fraction_iff real_vector.scale_minus_right [symmetric])
+    apply (simp add: vector_add_divide_simps real_vector.scale_minus_right [symmetric])
     done
 qed
 
@@ -4925,11 +4923,11 @@ lemma aff_dim_halfspace_le:
         (if a = 0 \<and> r < 0 then -1 else DIM('a))"
 proof -
   have "int (DIM('a)) = aff_dim (UNIV::'a set)"
-    by (simp add: aff_dim_UNIV)
+    by (simp)
   then have "aff_dim (affine hull {x. a \<bullet> x \<le> r}) = DIM('a)" if "(a = 0 \<longrightarrow> r \<ge> 0)"
     using that by (simp add: affine_hull_halfspace_le not_less)
   then show ?thesis
-    by (force simp: aff_dim_affine_hull)
+    by (force)
 qed
 
 lemma aff_dim_halfspace_gt:
@@ -5105,11 +5103,11 @@ proof
   then have "aff_dim {x. a \<bullet> x = 0} \<le> 0"
     by (simp add: affine_bounded_eq_lowdim affine_hyperplane)
   with assms show "DIM('a) = 1"
-    by (simp add: le_Suc_eq aff_dim_hyperplane)
+    by (simp add: le_Suc_eq)
 next
   assume "DIM('a) = 1"
   then show "bounded {x. a \<bullet> x = 0}"
-    by (simp add: aff_dim_hyperplane affine_bounded_eq_lowdim affine_hyperplane assms)
+    by (simp add: affine_bounded_eq_lowdim affine_hyperplane assms)
 qed
 
 lemma bounded_hyperplane_eq_trivial:
@@ -5573,7 +5571,7 @@ next
   proof
     assume "b \<in> closed_segment a c"
     moreover have "\<not> affine_dependent {a, c}"
-      by (simp add: affine_independent_2)
+      by (simp)
     ultimately show ?thesis
       using False convex_hull_exchange_Int [of "{a,c}" b "{a}" "{c}"]
       by (simp add: segment_convex_hull insert_commute)
@@ -5631,7 +5629,7 @@ proof -
       by (simp add: aff_dim_affine_independent indb)
     then show ?thesis
       using fbc aff
-      by (simp add: \<open>\<not> affine_dependent c\<close> \<open>b \<subseteq> c\<close> aff_dim_affine_independent aff_dim_UNIV card_Diff_subset of_nat_diff)
+      by (simp add: \<open>\<not> affine_dependent c\<close> \<open>b \<subseteq> c\<close> aff_dim_affine_independent card_Diff_subset of_nat_diff)
   qed
   show ?thesis
   proof (cases "c = b")
@@ -6099,7 +6097,7 @@ proof -
   also have "... = dim {x - c |x. x \<in> B}"
     by (simp add: affine_independent_card_dim_diffs [OF ind \<open>c \<in> B\<close>])
   also have "... = dim {x - c | x. x \<in> affine hull B}"
-     by (simp add: diffs_affine_hull_span \<open>c \<in> B\<close> dim_span)
+     by (simp add: diffs_affine_hull_span \<open>c \<in> B\<close>)
   also have "... = dim {x - a |x. x \<in> S}"
      by (simp add: affS aff *)
    finally show ?thesis .
