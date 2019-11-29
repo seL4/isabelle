@@ -796,8 +796,7 @@ let
              [@{thm plus_vec_def}, @{thm times_vec_def},
               @{thm minus_vec_def}, @{thm uminus_vec_def},
               @{thm one_vec_def}, @{thm zero_vec_def}, @{thm vec_def},
-              @{thm scaleR_vec_def},
-              @{thm vec_lambda_beta}, @{thm vector_scalar_mult_def}])
+              @{thm scaleR_vec_def}, @{thm vector_scalar_mult_def}])
   fun vector_arith_tac ctxt ths =
     simp_tac (put_simpset ss1 ctxt)
     THEN' (fn i => resolve_tac ctxt @{thms Finite_Cartesian_Product.sum_cong_aux} i

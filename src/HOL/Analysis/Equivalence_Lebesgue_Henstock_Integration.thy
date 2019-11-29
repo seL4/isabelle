@@ -1779,7 +1779,7 @@ proof (clarsimp simp: completion.null_sets_outer)
       have 0: "0 \<le> prj1 (vf X - uf X)"
         using \<open>X \<in> \<D>\<close> prj1_def vu_pos by fastforce
       have "(measure lebesgue \<circ> fbx) X \<le> (2 * B * DIM('M)) ^ DIM('N) * content (cbox (uf X) (vf X))"
-        apply (simp add: fbx_def content_cbox_cases algebra_simps BM_ge0 \<open>X \<in> \<D>'\<close> prod_constant)
+        apply (simp add: fbx_def content_cbox_cases algebra_simps BM_ge0 \<open>X \<in> \<D>'\<close>)
         apply (simp add: power_mult_distrib \<open>0 < B\<close> prj1_eq [symmetric])
         using MleN 0 1 uvz \<open>X \<in> \<D>\<close>
         apply (fastforce simp add: box_ne_empty power_decreasing)

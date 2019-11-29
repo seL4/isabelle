@@ -236,7 +236,7 @@ definition "card_UNIV = Phantom(integer) 0"
 instance
   by standard
     (auto simp add: finite_UNIV_integer_def card_UNIV_integer_def card_eq_0_iff
-      type_definition.univ [OF type_definition_integer] infinite_UNIV_int
+      type_definition.univ [OF type_definition_integer]
       dest!: finite_imageD intro: inj_onI)
 end
 

@@ -99,7 +99,7 @@ lemma ball_biholomorphism_exists:
                 "\<And>z. z \<in> ball 0 1 \<Longrightarrow> g (f z) = z"
 proof
   show "Moebius_function 0 a holomorphic_on ball 0 1"  "Moebius_function 0 (-a) holomorphic_on ball 0 1"
-    using Moebius_function_holomorphic assms mem_ball_0 by auto
+    using Moebius_function_holomorphic assms by auto
   show "Moebius_function 0 a a = 0"
     by (simp add: Moebius_function_eq_zero)
   show "Moebius_function 0 a ` ball 0 1 \<subseteq> ball 0 1"

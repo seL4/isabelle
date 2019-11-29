@@ -63,7 +63,7 @@ lemma ball_subset_cball [simp, intro]: "ball x e \<subseteq> cball x e"
   by (simp add: subset_eq)
 
 lemma mem_ball_imp_mem_cball: "x \<in> ball y e \<Longrightarrow> x \<in> cball y e"
-  by (auto simp: mem_ball mem_cball)
+  by (auto)
 
 lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
   by force
@@ -78,10 +78,10 @@ lemma subset_cball[intro]: "d \<le> e \<Longrightarrow> cball x d \<subseteq> cb
   by (simp add: subset_eq)
 
 lemma mem_ball_leI: "x \<in> ball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> ball y f"
-  by (auto simp: mem_ball mem_cball)
+  by (auto)
 
 lemma mem_cball_leI: "x \<in> cball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> cball y f"
-  by (auto simp: mem_ball mem_cball)
+  by (auto)
 
 lemma cball_trans: "y \<in> cball z b \<Longrightarrow> x \<in> cball y a \<Longrightarrow> x \<in> cball z (b + a)"
   by metric
@@ -177,7 +177,7 @@ lemma at_within_ball: "e > 0 \<Longrightarrow> dist x y < e \<Longrightarrow> at
 lemma atLeastAtMost_eq_cball:
   fixes a b::real
   shows "{a .. b} = cball ((a + b)/2) ((b - a)/2)"
-  by (auto simp: dist_real_def field_simps mem_cball)
+  by (auto simp: dist_real_def field_simps)
 
 lemma cball_eq_atLeastAtMost:
   fixes a b::real
@@ -187,7 +187,7 @@ lemma cball_eq_atLeastAtMost:
 lemma greaterThanLessThan_eq_ball:
   fixes a b::real
   shows "{a <..< b} = ball ((a + b)/2) ((b - a)/2)"
-  by (auto simp: dist_real_def field_simps mem_ball)
+  by (auto simp: dist_real_def field_simps)
 
 lemma ball_eq_greaterThanLessThan:
   fixes a b::real
@@ -251,7 +251,7 @@ lemma limpt_of_limpts: "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S
   apply (drule_tac x="e/2" in spec)
   apply (auto simp: simp del: less_divide_eq_numeral1)
   apply (drule_tac x="dist x' x" in spec)
-  apply (auto simp: zero_less_dist_iff simp del: less_divide_eq_numeral1)
+  apply (auto simp del: less_divide_eq_numeral1)
   apply metric
   done
 
@@ -1713,7 +1713,7 @@ proof
         fix r :: real and N n m
         assume "1 / Suc N < r" "Suc N \<le> n" "Suc N \<le> m"
         then have "(f \<circ> t) n \<in> F (Suc N)" "(f \<circ> t) m \<in> F (Suc N)" "2 * e N < r"
-          using F_dec t by (auto simp: e_def field_simps of_nat_Suc)
+          using F_dec t by (auto simp: e_def field_simps)
         with F[of N] obtain x where "dist x ((f \<circ> t) n) < e N" "dist x ((f \<circ> t) m) < e N"
           by (auto simp: subset_eq)
         with \<open>2 * e N < r\<close> show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
@@ -3164,7 +3164,7 @@ next
     apply (rule antisym)
      using False closure_subset apply (blast intro: setdist_subset_left)
     using False *
-    apply (force simp add: closure_eq_empty intro!: le_setdistI)
+    apply (force intro!: le_setdistI)
     done
 qed
 

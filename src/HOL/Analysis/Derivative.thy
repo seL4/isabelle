@@ -2441,7 +2441,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   moreover
   have ev_dist: "\<forall>\<^sub>F xy in at (x, y) within X \<times> Y. dist xy (x, y) < d" if "d > 0" for d
     using eventually_at_ball[OF that]
-    by (rule eventually_elim2) (auto simp: dist_commute mem_ball intro!: eventually_True)
+    by (rule eventually_elim2) (auto simp: dist_commute intro!: eventually_True)
   note ev_dist[OF \<open>0 < d\<close>]
   ultimately
   have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y.

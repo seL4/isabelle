@@ -544,7 +544,7 @@ proof (rule local_lipschitzI)
   show "\<exists>u>0. \<exists>L. \<forall>t\<in>cball t u \<inter> T. L-lipschitz_on  (cball x u \<inter> X) (f (g t))"
     using d \<open>0 < u\<close>
     by (fastforce intro: exI[where x="(min d u)/2"] exI[where x=L]
-      intro!: less_imp_le[OF d(2)] lipschitz_on_subset[OF l] simp: dist_commute mem_ball mem_cball)
+      intro!: less_imp_le[OF d(2)] lipschitz_on_subset[OF l] simp: dist_commute)
 qed
 
 context
@@ -610,7 +610,7 @@ proof (safe, simp)
     finally have "dist x a < u" .
     then have "x \<in> cball a u \<inter> T"
       using \<open>x \<in> T\<close>
-      by (auto simp: dist_commute mem_cball)
+      by (auto simp: dist_commute)
     have "dist (f x y) (f a b) \<le> dist (f x y) (f x b) + dist (f x b) (f a b)"
       by (rule dist_triangle)
     also have "(L + 1)-lipschitz_on (cball b u \<inter> X) (f x)"
@@ -711,7 +711,7 @@ proof -
       "eventually (\<lambda>n. ?t n \<in> ball lt u) sequentially"
       "eventually (\<lambda>n. ?y n \<in> ball lx u) sequentially"
       "eventually (\<lambda>n. ?x n \<in> ball lx u) sequentially"
-      by (auto simp: dist_commute Lim mem_ball)
+      by (auto simp: dist_commute Lim)
     moreover have "eventually (\<lambda>n. n > L) sequentially"
       by (metis filterlim_at_top_dense filterlim_real_sequentially)
     ultimately
@@ -721,7 +721,7 @@ proof -
       hence "dist (f (?t n) (?y n)) (f (?t n) (?x n)) \<le> L * dist (?y n) (?x n)"
         using assms xy t
         unfolding dist_norm[symmetric]
-        by (intro lipschitz_onD[OF L(2)]) (auto simp: mem_ball mem_cball)
+        by (intro lipschitz_onD[OF L(2)]) (auto)
       also have "\<dots> \<le> n * dist (?y n) (?x n)"
         using elim by (intro mult_right_mono) auto
       also have "\<dots> \<le> rx (ry (rt n)) * dist (?y n) (?x n)"
@@ -772,7 +772,7 @@ proof (rule local_lipschitzI)
     by metis
   then show "\<exists>u>0. \<exists>L. \<forall>t\<in>cball t u \<inter> A. L-lipschitz_on (cball x u \<inter> B) (\<lambda>b. (f t b, g t b))"
     by (intro exI[where x="min u v"])
-      (force intro: lipschitz_on_subset intro!: lipschitz_on_Pair simp: mem_cball)
+      (force intro: lipschitz_on_subset intro!: lipschitz_on_Pair)
 qed
 
 lemma local_lipschitz_constI: "local_lipschitz S T (\<lambda>t x. f t)"
@@ -809,7 +809,7 @@ proof (rule local_lipschitzI)
   then have "compact (f' ` (cball t v \<times> cball x u))"
     by (auto intro!: compact_continuous_image continuous_on_subset[OF cont_f'])
   then obtain B where B: "B > 0" "\<And>s y. s \<in> cball t v \<Longrightarrow> y \<in> cball x u \<Longrightarrow> norm (f' (s, y)) \<le> B"
-    by (auto dest!: compact_imp_bounded simp: bounded_pos simp: mem_ball)
+    by (auto dest!: compact_imp_bounded simp: bounded_pos)
 
   have lipschitz: "B-lipschitz_on (cball x (min u v) \<inter> X) (f s)" if s: "s \<in> cball t v" for s
   proof -
@@ -824,13 +824,13 @@ proof (rule local_lipschitzI)
       for y z
       using s that
       by (intro differentiable_bound[OF convex_cball deriv])
-        (auto intro!: B  simp: norm_blinfun.rep_eq[symmetric] mem_cball)
+        (auto intro!: B  simp: norm_blinfun.rep_eq[symmetric])
     then show ?thesis
       using \<open>0 < B\<close>
-      by (auto intro!: lipschitz_onI simp: dist_norm mem_cball)
+      by (auto intro!: lipschitz_onI simp: dist_norm)
   qed
   show "\<exists>u>0. \<exists>L. \<forall>t\<in>cball t u \<inter> T. L-lipschitz_on (cball x u \<inter> X) (f t)"
-    by (force intro: exI[where x="min u v"] exI[where x=B] intro!: lipschitz simp: u v mem_cball)
+    by (force intro: exI[where x="min u v"] exI[where x=B] intro!: lipschitz simp: u v)
 qed
 
 end

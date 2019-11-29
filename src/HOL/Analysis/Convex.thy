@@ -1998,7 +1998,7 @@ lemma convex_convex_hull [iff]: "convex (convex hull s)"
 
 lemma convex_hull_subset:
     "s \<subseteq> convex hull t \<Longrightarrow> convex hull s \<subseteq> convex hull t"
-  by (simp add: convex_convex_hull subset_hull)
+  by (simp add: subset_hull)
 
 lemma convex_hull_eq: "convex hull s = s \<longleftrightarrow> convex s"
   by (metis convex_convex_hull hull_same)

@@ -522,8 +522,7 @@ qed
 
 lemma dimension_pair: "p.dimension = vs1.dimension + vs2.dimension"
   using dim_Times[OF vs1.subspace_UNIV vs2.subspace_UNIV]
-  by (auto simp: p.dim_UNIV vs1.dim_UNIV vs2.dim_UNIV
-      p.dimension_def vs1.dimension_def vs2.dimension_def)
+  by (auto simp: p.dimension_def vs1.dimension_def vs2.dimension_def)
 
 end
 

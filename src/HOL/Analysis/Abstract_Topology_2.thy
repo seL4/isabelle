@@ -706,7 +706,7 @@ lemma pasting_lemma:
   unfolding continuous_map_openin_preimage_eq
 proof (intro conjI allI impI)
   show "g ` topspace X \<subseteq> topspace Y"
-    using g cont continuous_map_image_subset_topspace topspace_subtopology by fastforce
+    using g cont continuous_map_image_subset_topspace by fastforce
 next
   fix U
   assume Y: "openin Y U"
@@ -747,7 +747,7 @@ lemma pasting_lemma_locally_finite:
   unfolding continuous_map_closedin_preimage_eq
 proof (intro conjI allI impI)
   show "g ` topspace X \<subseteq> topspace Y"
-    using g cont continuous_map_image_subset_topspace topspace_subtopology by fastforce
+    using g cont continuous_map_image_subset_topspace by fastforce
 next
   fix U
   assume Y: "closedin Y U"

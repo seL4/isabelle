@@ -1143,7 +1143,7 @@ next
       hence *: "0 < e/norm(z-x)" using e False by auto
       define y where "y = z + (e/norm(z-x)) *\<^sub>R (z-x)"
       have yball: "y \<in> cball z e"
-        using mem_cball y_def dist_norm[of z y] e by auto
+        using y_def dist_norm[of z y] e by auto
       have "x \<in> affine hull closure S"
         using x rel_interior_subset_closure hull_inc[of x "closure S"] by blast
       moreover have "z \<in> affine hull closure S"

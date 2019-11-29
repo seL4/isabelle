@@ -3492,7 +3492,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis
       by (simp add: image_affinity_cbox True content_cbox'
-        prod.distrib prod_constant inner_diff_left)
+        prod.distrib inner_diff_left)
   next
     case False
     with \<open>cbox a b \<noteq> {}\<close> have "cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c) \<noteq> {}"
