@@ -1,7 +1,9 @@
 (*  Title:      Pure/Isar/spec_rules.ML
     Author:     Makarius
 
-Rules that characterize specifications, with rough classification.
+Rules that characterize specifications, with optional name and
+rough classification.
+
 NB: In the face of arbitrary morphisms, the original shape of
 specifications may get lost.
 *)
@@ -11,6 +13,7 @@ sig
   datatype recursion =
     Primrec of string list | Recdef | Primcorec of string list | Corec | Unknown_Recursion
   val recursion_ord: recursion ord
+  val encode_recursion: recursion XML.Encode.T
   datatype rough_classification = Equational of recursion | Inductive | Co_Inductive | Unknown
   val rough_classification_ord: rough_classification ord
   val equational_primrec: string list -> rough_classification
@@ -23,10 +26,12 @@ sig
   val is_co_inductive: rough_classification -> bool
   val is_relational: rough_classification -> bool
   val is_unknown: rough_classification -> bool
+  val encode_rough_classification: rough_classification XML.Encode.T
   type spec =
     {name: string, rough_classification: rough_classification, terms: term list, rules: thm list}
   val get: Proof.context -> spec list
   val get_global: theory -> spec list
+  val dest_theory: theory -> spec list
   val retrieve: Proof.context -> term -> spec list
   val retrieve_global: theory -> term -> spec list
   val add: string -> rough_classification -> term list -> thm list -> local_theory -> local_theory
@@ -48,6 +53,16 @@ fun recursion_ord (Primrec Ts1, Primrec Ts2) = list_ord fast_string_ord (Ts1, Ts
   | recursion_ord (Primcorec Ts1, Primcorec Ts2) = list_ord fast_string_ord (Ts1, Ts2)
   | recursion_ord rs = int_ord (apply2 recursion_index rs);
 
+val encode_recursion =
+  let open XML.Encode in
+    variant
+     [fn Primrec a => ([], list string a),
+      fn Recdef => ([], []),
+      fn Primcorec a => ([], list string a),
+      fn Corec => ([], []),
+      fn Unknown_Recursion => ([], [])]
+  end;
+
 
 (* rough classification *)
 
@@ -68,6 +83,15 @@ val is_inductive = fn Inductive => true | _ => false;
 val is_co_inductive = fn Co_Inductive => true | _ => false;
 val is_relational = is_inductive orf is_co_inductive;
 val is_unknown = fn Unknown => true | _ => false;
+
+val encode_rough_classification =
+  let open XML.Encode in
+    variant
+     [fn Equational r => ([], encode_recursion r),
+      fn Inductive => ([], []),
+      fn Co_Inductive => ([], []),
+      fn Unknown => ([], [])]
+  end;
 
 
 (* rules *)
@@ -95,17 +119,22 @@ structure Rules = Generic_Data
 
 (* get *)
 
-fun get_generic context =
+fun get_generic imports context =
   let
     val thy = Context.theory_of context;
     val transfer = Global_Theory.transfer_theories thy;
+    fun imported spec =
+      imports |> exists (fn thy => Item_Net.member (Rules.get (Context.Theory thy)) spec);
   in
     Item_Net.content (Rules.get context)
+    |> filter_out imported
     |> (map o map_spec_rules) transfer
   end;
 
-val get = get_generic o Context.Proof;
-val get_global = get_generic o Context.Theory;
+val get = get_generic [] o Context.Proof;
+val get_global = get_generic [] o Context.Theory;
+
+fun dest_theory thy = rev (get_generic (Theory.parents_of thy) (Context.Theory thy));
 
 
 (* retrieve *)

@@ -42,6 +42,7 @@ object Export_Theory
     arities: Boolean = true,
     constdefs: Boolean = true,
     typedefs: Boolean = true,
+    spec_rules: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
@@ -56,7 +57,8 @@ object Export_Theory
                 session, theory, types = types, consts = consts,
                 axioms = axioms, thms = thms, classes = classes, locales = locales,
                 locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                constdefs = constdefs, typedefs = typedefs, cache = Some(cache))
+                constdefs = constdefs, typedefs = typedefs,
+                spec_rules = spec_rules, cache = Some(cache))
             }
           }
         }))
@@ -90,7 +92,8 @@ object Export_Theory
     classrel: List[Classrel],
     arities: List[Arity],
     constdefs: List[Constdef],
-    typedefs: List[Typedef])
+    typedefs: List[Typedef],
+    spec_rules: List[Spec_Rule])
   {
     override def toString: String = name
 
@@ -116,7 +119,8 @@ object Export_Theory
         classrel.map(_.cache(cache)),
         arities.map(_.cache(cache)),
         constdefs.map(_.cache(cache)),
-        typedefs.map(_.cache(cache)))
+        typedefs.map(_.cache(cache)),
+        spec_rules.map(_.cache(cache)))
   }
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
@@ -131,6 +135,7 @@ object Export_Theory
     arities: Boolean = true,
     constdefs: Boolean = true,
     typedefs: Boolean = true,
+    spec_rules: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
@@ -155,7 +160,8 @@ object Export_Theory
         if (classrel) read_classrel(provider) else Nil,
         if (arities) read_arities(provider) else Nil,
         if (constdefs) read_constdefs(provider) else Nil,
-        if (typedefs) read_typedefs(provider) else Nil)
+        if (typedefs) read_typedefs(provider) else Nil,
+        if (spec_rules) read_spec_rules(provider) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
@@ -642,5 +648,93 @@ object Export_Theory
     }
     for { (name, (rep_type, (abs_type, (rep_name, (abs_name, axiom_name))))) <- typedefs }
     yield Typedef(name, rep_type, abs_type, rep_name, abs_name, axiom_name)
+  }
+
+
+  /* Pure spec rules */
+
+  sealed abstract class Recursion
+  {
+    def cache(cache: Term.Cache): Recursion =
+      this match {
+        case Primrec(types) => Primrec(types.map(cache.string))
+        case Primcorec(types) => Primcorec(types.map(cache.string))
+        case _ => this
+      }
+  }
+  case class Primrec(types: List[String]) extends Recursion
+  case object Recdef extends Recursion
+  case class Primcorec(types: List[String]) extends Recursion
+  case object Corec extends Recursion
+  case object Unknown_Recursion extends Recursion
+
+  val decode_recursion: XML.Decode.T[Recursion] =
+  {
+    import XML.Decode._
+    variant(List(
+      { case (Nil, a) => Primrec(list(string)(a)) },
+      { case (Nil, Nil) => Recdef },
+      { case (Nil, a) => Primcorec(list(string)(a)) },
+      { case (Nil, Nil) => Corec },
+      { case (Nil, Nil) => Unknown_Recursion }))
+  }
+
+
+  sealed abstract class Rough_Classification
+  {
+    def is_equational: Boolean = this.isInstanceOf[Equational]
+    def is_inductive: Boolean = this == Inductive
+    def is_co_inductive: Boolean = this == Co_Inductive
+    def is_relational: Boolean = is_inductive || is_co_inductive
+    def is_unknown: Boolean = this == Unknown
+
+    def cache(cache: Term.Cache): Rough_Classification =
+      this match {
+        case Equational(recursion) => Equational(recursion.cache(cache))
+        case _ => this
+      }
+  }
+  case class Equational(recursion: Recursion) extends Rough_Classification
+  case object Inductive extends Rough_Classification
+  case object Co_Inductive extends Rough_Classification
+  case object Unknown extends Rough_Classification
+
+  val decode_rough_classification: XML.Decode.T[Rough_Classification] =
+  {
+    import XML.Decode._
+    variant(List(
+      { case (Nil, a) => Equational(decode_recursion(a)) },
+      { case (Nil, Nil) => Inductive },
+      { case (Nil, Nil) => Co_Inductive },
+      { case (Nil, Nil) => Unknown }))
+  }
+
+
+  sealed case class Spec_Rule(
+    name: String,
+    rough_classification: Rough_Classification,
+    terms: List[Term.Term],
+    rules: List[Prop])
+  {
+    def cache(cache: Term.Cache): Spec_Rule =
+      Spec_Rule(
+        cache.string(name),
+        rough_classification.cache(cache),
+        terms.map(cache.term(_)),
+        rules.map(_.cache(cache)))
+  }
+
+  def read_spec_rules(provider: Export.Provider): List[Spec_Rule] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "spec_rules")
+    val spec_rules =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      list(pair(string, pair(decode_rough_classification, pair(list(term), list(decode_prop)))))(
+        body)
+    }
+    for ((name, (rough_classification, (terms, rules))) <- spec_rules)
+      yield Spec_Rule(name, rough_classification, terms, rules)
   }
 }

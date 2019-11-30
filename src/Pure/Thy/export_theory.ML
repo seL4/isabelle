@@ -232,6 +232,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
       in ((sorts @ typargs, args, prop), proof) end;
 
+    fun standard_prop_of thm =
+      standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
+
     val encode_prop =
       let open XML.Encode Term_XML.Encode
       in triple (list (pair string sort)) (list (pair string typ)) encode_term end;
@@ -247,6 +250,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     (* theorems and proof terms *)
 
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
+    val prep_thm = clean_thm #> Thm.unconstrainT;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
@@ -267,7 +271,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
-        val thm = clean_thm (Thm.unconstrainT raw_thm);
+        val thm = prep_thm raw_thm;
 
         val proof0 =
           if Proofterm.export_standard_enabled () then
@@ -275,8 +279,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
               {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
-        val (prop, SOME proof) =
-          standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
+        val (prop, SOME proof) = standard_prop_of thm (SOME proof0);
         val _ = Thm.expose_proofs thy [thm];
       in
         (prop, deps, proof) |>
@@ -395,6 +398,25 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ =
       if null constdefs then () else export_body thy "constdefs" (encode_constdefs constdefs);
+
+
+    (* spec rules *)
+
+    fun encode_spec {name, rough_classification, terms, rules} =
+      let
+        val terms' = map Logic.unvarify_global terms;
+        val rules' = map (fn rule => #1 (standard_prop_of (prep_thm rule) NONE)) rules;
+        open XML.Encode;
+      in
+        pair string (pair Spec_Rules.encode_rough_classification
+          (pair (list encode_term) (list encode_prop)))
+          (name, (rough_classification, (terms', rules')))
+      end;
+
+    val _ =
+      (case Spec_Rules.dest_theory thy of
+        [] => ()
+      | spec_rules => export_body thy "spec_rules" (XML.Encode.list encode_spec spec_rules));
 
 
     (* parents *)
