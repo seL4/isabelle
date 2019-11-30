@@ -2053,7 +2053,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val def_rhs = mk_corec_fun_def_rhs lthy7 arg_Ts corecUU0 corecUU_arg;
         val def = ((b, mx), ((Binding.concealed (Thm.def_binding b), []), def_rhs));
 
-        val ((fun_t0, (_, fun_def0)), (lthy9, lthy8')) = lthy7
+        val ((fun_lhs0, (_, fun_def0)), (lthy9, lthy8')) = lthy7
           |> Local_Theory.open_target |> snd
           |> Local_Theory.define def
           |> tap (fn (def, lthy') => print_def_consts int [def] lthy')
@@ -2065,7 +2065,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val lthy9' = lthy9 |> fold Variable.declare_typ (res_T :: arg_Ts);
         val phi = Proof_Context.export_morphism lthy8' lthy9';
 
-        val fun_t = Morphism.term phi fun_t0; (* FIXME: shadows "fun_t" -- identical? *)
+        val fun_lhs = Morphism.term phi fun_lhs0;
         val fun_def = Morphism.thm phi fun_def0;
         val inner_fp_elims = map (Morphism.thm phi) inner_fp_elims0;
         val inner_fp_inducts = map (Morphism.thm phi) inner_fp_inducts0;
@@ -2078,7 +2078,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
             val rho_def = snd (the_single rho_datas);
 
             val (eq_algrho, algrho_eq) = derive_eq_algrho lthy' corec_info (the_single friend_infos)
-              fun_t k_T code_goal const_transfers rho_def fun_def;
+              fun_lhs k_T code_goal const_transfers rho_def fun_def;
 
             val notes =
               (if Config.get lthy' bnf_internals then
@@ -2097,7 +2097,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
 
         val lthy10 = lthy9 |> friend ? derive_and_note_friend_extra_theorems;
 
-        val code_thm = derive_code lthy10 inner_fp_simps code_goal corec_info fun_t fun_def;
+        val code_thm = derive_code lthy10 inner_fp_simps code_goal corec_info fun_lhs fun_def;
 (* TODO:
         val ctr_thmss = map mk_thm (#2 views);
         val disc_thmss = map mk_thm (#3 views);
@@ -2157,7 +2157,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat ctr_thmss)
 *)
-        |> Spec_Rules.add "" Spec_Rules.equational [fun_t0] [code_thm]
+        |> Spec_Rules.add "" Spec_Rules.equational [fun_lhs0] [code_thm]
         |> plugins code_plugin ? Code.declare_default_eqns [(code_thm, true)]
         |> Local_Theory.notes (anonymous_notes @ notes)
         |> snd
