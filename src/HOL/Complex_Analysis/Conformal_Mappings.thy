@@ -976,8 +976,8 @@ next
       proof -
         have DIM_complex[intro]: "2 \<le> DIM(complex)"  \<comment> \<open>should not be necessary!\<close>
           by simp
-        from lt1 have "f (inverse x) \<noteq> 0 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> cmod x < r \<Longrightarrow> 1 < cmod (f (inverse x))" for x
-          using one_less_inverse by force
+        have "f (inverse x) \<noteq> 0 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> cmod x < r \<Longrightarrow> 1 < cmod (f (inverse x))" for x
+          using lt1[of x] by (auto simp: field_simps)
         then have **: "cmod (f (inverse x)) \<le> 1 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> cmod x < r \<Longrightarrow> f (inverse x) = 0" for x
           by force
         then have *: "(f \<circ> inverse) ` (ball 0 r - {0}) \<subseteq> {0} \<union> - ball 0 1"
@@ -1041,7 +1041,7 @@ proof -
       using that by (metis (no_types) less_eq_real_def not_less order_trans)
   qed
   have "bounded {z. (\<Sum>i\<le>n. c i * z ^ i) \<in> K}"
-    using polyfun_extremal [where c=c and B="B+1", OF c]
+    using Limits.polyfun_extremal [where c=c and B="B+1", OF c]
     by (auto simp: bounded_pos eventually_at_infinity_pos *)
   moreover have "closed ((\<lambda>z. (\<Sum>i\<le>n. c i * z ^ i)) -` K)"
     apply (intro allI continuous_closed_vimage continuous_intros)
@@ -1958,13 +1958,13 @@ proof -
              \<subseteq> (\<lambda>z. f (a + z) - f a) ` ball 0 r"
     apply (rule Bloch_lemma_0)
     apply (simp_all add: \<open>0 < r\<close>)
-    apply (simp add: fz complex_derivative_chain)
+    apply (simp add: fz deriv_chain)
     apply (simp add: dist_norm le)
     done
   then show ?thesis
     apply clarify
     apply (drule_tac c="x - f a" in subsetD)
-     apply (force simp: fz \<open>0 < r\<close> dist_norm complex_derivative_chain field_differentiable_compose)+
+     apply (force simp: fz \<open>0 < r\<close> dist_norm deriv_chain field_differentiable_compose)+
     done
 qed
 
@@ -2106,7 +2106,7 @@ next
     apply (rule derivative_eq_intros | simp add: C_def False fo)+
     using \<open>0 < r\<close>
     apply (simp add: C_def False fo)
-    apply (simp add: derivative_intros dfa complex_derivative_chain)
+    apply (simp add: derivative_intros dfa deriv_chain)
     done
   have sb1: "(*) (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
              \<subseteq> f ` ball a r"
@@ -2534,6 +2534,19 @@ lemma residue_holomorphic_over_power':
   assumes "open A" "0 \<in> A" "f holomorphic_on A"
   shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
   using residue_holomorphic_over_power[OF assms] by simp
+
+theorem residue_fps_expansion_over_power_at_0:
+  assumes "f has_fps_expansion F"
+  shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = fps_nth F n"
+proof -
+  from has_fps_expansion_imp_holomorphic[OF assms] guess s . note s = this
+  have "residue (\<lambda>z. f z / (z - 0) ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
+    using assms s unfolding has_fps_expansion_def
+    by (intro residue_holomorphic_over_power[of s]) (auto simp: zero_ereal_def)
+  also from assms have "\<dots> = fps_nth F n"
+    by (subst fps_nth_fps_expansion) auto
+  finally show ?thesis by simp
+qed
 
 lemma get_integrable_path:
   assumes "open s" "connected (s-pts)" "finite pts" "f holomorphic_on (s-pts) " "a\<in>s-pts" "b\<in>s-pts"
@@ -5081,5 +5094,23 @@ proof -
     by auto
   then show ?thesis unfolding c_def using w_def by auto
 qed
+
+
+subsection \<open>Poles and residues of some well-known functions\<close>
+
+(* TODO: add more material here for other functions *)
+lemma is_pole_Gamma: "is_pole Gamma (-of_nat n)"
+  unfolding is_pole_def using Gamma_poles .
+
+lemma Gamme_residue:
+  "residue Gamma (-of_nat n) = (-1) ^ n / fact n"
+proof (rule residue_simple')
+  show "open (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) :: complex set)"
+    by (intro open_Compl closed_subset_Ints) auto
+  show "Gamma holomorphic_on (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) - {- of_nat n})"
+    by (rule holomorphic_Gamma) auto
+  show "(\<lambda>w. Gamma w * (w - (-of_nat n))) \<midarrow>(-of_nat n)\<rightarrow> (- 1) ^ n / fact n"
+    using Gamma_residues[of n] by simp
+qed auto
 
 end

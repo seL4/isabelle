@@ -6,7 +6,6 @@ section \<open>The Gamma Function\<close>
 
 theory Gamma_Function
   imports
-  Conformal_Mappings
   Equivalence_Lebesgue_Henstock_Integration
   Summation_Tests
   Harmonic_Numbers
@@ -2065,7 +2064,208 @@ proof -
     by (simp add: field_split_simps Gamma_eq_zero_iff ring_distribs exp_diff exp_of_real ac_simps)
 qed
 
-theorem Gamma_reflection_complex:
+text \<open>
+  The following lemma is somewhat annoying. With a little bit of complex analysis
+  (Cauchy's integral theorem, to be exact), this would be completely trivial. However,
+  we want to avoid depending on the complex analysis session at this point, so we prove it
+  the hard way.
+\<close>
+private lemma Gamma_reflection_aux:
+  defines "h \<equiv> \<lambda>z::complex. if z \<in> \<int> then 0 else
+                 (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
+  defines "a \<equiv> complex_of_real pi"
+  obtains h' where "continuous_on UNIV h'" "\<And>z. (h has_field_derivative (h' z)) (at z)"
+proof -
+  define f where "f n = a * of_real (cos_coeff (n+1) - sin_coeff (n+2))" for n
+  define F where "F z = (if z = 0 then 0 else (cos (a*z) - sin (a*z)/(a*z)) / z)" for z
+  define g where "g n = complex_of_real (sin_coeff (n+1))" for n
+  define G where "G z = (if z = 0 then 1 else sin (a*z)/(a*z))" for z
+  have a_nz: "a \<noteq> 0" unfolding a_def by simp
+
+  have "(\<lambda>n. f n * (a*z)^n) sums (F z) \<and> (\<lambda>n. g n * (a*z)^n) sums (G z)"
+    if "abs (Re z) < 1" for z
+  proof (cases "z = 0"; rule conjI)
+    assume "z \<noteq> 0"
+    note z = this that
+
+    from z have sin_nz: "sin (a*z) \<noteq> 0" unfolding a_def by (auto simp: sin_eq_0)
+    have "(\<lambda>n. of_real (sin_coeff n) * (a*z)^n) sums (sin (a*z))" using sin_converges[of "a*z"]
+      by (simp add: scaleR_conv_of_real)
+    from sums_split_initial_segment[OF this, of 1]
+      have "(\<lambda>n. (a*z) * of_real (sin_coeff (n+1)) * (a*z)^n) sums (sin (a*z))" by (simp add: mult_ac)
+    from sums_mult[OF this, of "inverse (a*z)"] z a_nz
+      have A: "(\<lambda>n. g n * (a*z)^n) sums (sin (a*z)/(a*z))"
+      by (simp add: field_simps g_def)
+    with z show "(\<lambda>n. g n * (a*z)^n) sums (G z)" by (simp add: G_def)
+    from A z a_nz sin_nz have g_nz: "(\<Sum>n. g n * (a*z)^n) \<noteq> 0" by (simp add: sums_iff g_def)
+
+    have [simp]: "sin_coeff (Suc 0) = 1" by (simp add: sin_coeff_def)
+    from sums_split_initial_segment[OF sums_diff[OF cos_converges[of "a*z"] A], of 1]
+    have "(\<lambda>n. z * f n * (a*z)^n) sums (cos (a*z) - sin (a*z) / (a*z))"
+      by (simp add: mult_ac scaleR_conv_of_real ring_distribs f_def g_def)
+    from sums_mult[OF this, of "inverse z"] z assms
+      show "(\<lambda>n. f n * (a*z)^n) sums (F z)" by (simp add: divide_simps mult_ac f_def F_def)
+  next
+    assume z: "z = 0"
+    have "(\<lambda>n. f n * (a * z) ^ n) sums f 0" using powser_sums_zero[of f] z by simp
+    with z show "(\<lambda>n. f n * (a * z) ^ n) sums (F z)"
+      by (simp add: f_def F_def sin_coeff_def cos_coeff_def)
+    have "(\<lambda>n. g n * (a * z) ^ n) sums g 0" using powser_sums_zero[of g] z by simp
+    with z show "(\<lambda>n. g n * (a * z) ^ n) sums (G z)"
+      by (simp add: g_def G_def sin_coeff_def cos_coeff_def)
+  qed
+  note sums = conjunct1[OF this] conjunct2[OF this]
+
+  define h2 where [abs_def]:
+    "h2 z = (\<Sum>n. f n * (a*z)^n) / (\<Sum>n. g n * (a*z)^n) + Digamma (1 + z) - Digamma (1 - z)" for z
+  define POWSER where [abs_def]: "POWSER f z = (\<Sum>n. f n * (z^n :: complex))" for f z
+  define POWSER' where [abs_def]: "POWSER' f z = (\<Sum>n. diffs f n * (z^n))" for f and z :: complex
+  define h2' where [abs_def]:
+    "h2' z = a * (POWSER g (a*z) * POWSER' f (a*z) - POWSER f (a*z) * POWSER' g (a*z)) /
+      (POWSER g (a*z))^2 + Polygamma 1 (1 + z) + Polygamma 1 (1 - z)" for z
+
+  have h_eq: "h t = h2 t" if "abs (Re t) < 1" for t
+  proof -
+    from that have t: "t \<in> \<int> \<longleftrightarrow> t = 0" by (auto elim!: Ints_cases simp: dist_0_norm)
+    hence "h t = a*cot (a*t) - 1/t + Digamma (1 + t) - Digamma (1 - t)"
+      unfolding h_def using Digamma_plus1[of t] by (force simp: field_simps a_def)
+    also have "a*cot (a*t) - 1/t = (F t) / (G t)"
+      using t by (auto simp add: divide_simps sin_eq_0 cot_def a_def F_def G_def)
+    also have "\<dots> = (\<Sum>n. f n * (a*t)^n) / (\<Sum>n. g n * (a*t)^n)"
+      using sums[of t] that by (simp add: sums_iff dist_0_norm)
+    finally show "h t = h2 t" by (simp only: h2_def)
+  qed
+
+  let ?A = "{z. abs (Re z) < 1}"
+  have "open ({z. Re z < 1} \<inter> {z. Re z > -1})"
+    using open_halfspace_Re_gt open_halfspace_Re_lt by auto
+  also have "({z. Re z < 1} \<inter> {z. Re z > -1}) = {z. abs (Re z) < 1}" by auto
+  finally have open_A: "open ?A" .
+  hence [simp]: "interior ?A = ?A" by (simp add: interior_open)
+
+  have summable_f: "summable (\<lambda>n. f n * z^n)" for z
+    by (rule powser_inside, rule sums_summable, rule sums[of "\<i> * of_real (norm z + 1) / a"])
+       (simp_all add: norm_mult a_def del: of_real_add)
+  have summable_g: "summable (\<lambda>n. g n * z^n)" for z
+    by (rule powser_inside, rule sums_summable, rule sums[of "\<i> * of_real (norm z + 1) / a"])
+       (simp_all add: norm_mult a_def del: of_real_add)
+  have summable_fg': "summable (\<lambda>n. diffs f n * z^n)" "summable (\<lambda>n. diffs g n * z^n)" for z
+    by (intro termdiff_converges_all summable_f summable_g)+
+  have "(POWSER f has_field_derivative (POWSER' f z)) (at z)"
+               "(POWSER g has_field_derivative (POWSER' g z)) (at z)" for z
+    unfolding POWSER_def POWSER'_def
+    by (intro termdiffs_strong_converges_everywhere summable_f summable_g)+
+  note derivs = this[THEN DERIV_chain2[OF _ DERIV_cmult[OF DERIV_ident]], unfolded POWSER_def]
+  have "isCont (POWSER f) z" "isCont (POWSER g) z" "isCont (POWSER' f) z" "isCont (POWSER' g) z"
+    for z unfolding POWSER_def POWSER'_def
+    by (intro isCont_powser_converges_everywhere summable_f summable_g summable_fg')+
+  note cont = this[THEN isCont_o2[rotated], unfolded POWSER_def POWSER'_def]
+
+  {
+    fix z :: complex assume z: "abs (Re z) < 1"
+    define d where "d = \<i> * of_real (norm z + 1)"
+    have d: "abs (Re d) < 1" "norm z < norm d" by (simp_all add: d_def norm_mult del: of_real_add)
+    have "eventually (\<lambda>z. h z = h2 z) (nhds z)"
+      using eventually_nhds_in_nhd[of z ?A] using h_eq z
+      by (auto elim!: eventually_mono simp: dist_0_norm)
+
+    moreover from sums(2)[OF z] z have nz: "(\<Sum>n. g n * (a * z) ^ n) \<noteq> 0"
+      unfolding G_def by (auto simp: sums_iff sin_eq_0 a_def)
+    have A: "z \<in> \<int> \<longleftrightarrow> z = 0" using z by (auto elim!: Ints_cases)
+    have no_int: "1 + z \<in> \<int> \<longleftrightarrow> z = 0" using z Ints_diff[of "1+z" 1] A
+      by (auto elim!: nonpos_Ints_cases)
+    have no_int': "1 - z \<in> \<int> \<longleftrightarrow> z = 0" using z Ints_diff[of 1 "1-z"] A
+      by (auto elim!: nonpos_Ints_cases)
+    from no_int no_int' have no_int: "1 - z \<notin> \<int>\<^sub>\<le>\<^sub>0" "1 + z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
+    have "(h2 has_field_derivative h2' z) (at z)" unfolding h2_def
+      by (rule DERIV_cong, (rule derivative_intros refl derivs[unfolded POWSER_def] nz no_int)+)
+         (auto simp: h2'_def POWSER_def field_simps power2_eq_square)
+    ultimately have deriv: "(h has_field_derivative h2' z) (at z)"
+      by (subst DERIV_cong_ev[OF refl _ refl])
+
+    from sums(2)[OF z] z have "(\<Sum>n. g n * (a * z) ^ n) \<noteq> 0"
+      unfolding G_def by (auto simp: sums_iff a_def sin_eq_0)
+    hence "isCont h2' z" using no_int unfolding h2'_def[abs_def] POWSER_def POWSER'_def
+      by (intro continuous_intros cont
+            continuous_on_compose2[OF _ continuous_on_Polygamma[of "{z. Re z > 0}"]]) auto
+    note deriv and this
+  } note A = this
+
+  interpret h: periodic_fun_simple' h
+  proof
+    fix z :: complex
+    show "h (z + 1) = h z"
+    proof (cases "z \<in> \<int>")
+      assume z: "z \<notin> \<int>"
+      hence A: "z + 1 \<notin> \<int>" "z \<noteq> 0" using Ints_diff[of "z+1" 1] by auto
+      hence "Digamma (z + 1) - Digamma (-z) = Digamma z - Digamma (-z + 1)"
+        by (subst (1 2) Digamma_plus1) simp_all
+      with A z show "h (z + 1) = h z"
+        by (simp add: h_def sin_plus_pi cos_plus_pi ring_distribs cot_def)
+    qed (simp add: h_def)
+  qed
+
+  have h2'_eq: "h2' (z - 1) = h2' z" if z: "Re z > 0" "Re z < 1" for z
+  proof -
+    have "((\<lambda>z. h (z - 1)) has_field_derivative h2' (z - 1)) (at z)"
+      by (rule DERIV_cong, rule DERIV_chain'[OF _ A(1)])
+         (insert z, auto intro!: derivative_eq_intros)
+    hence "(h has_field_derivative h2' (z - 1)) (at z)" by (subst (asm) h.minus_1)
+    moreover from z have "(h has_field_derivative h2' z) (at z)" by (intro A) simp_all
+    ultimately show "h2' (z - 1) = h2' z" by (rule DERIV_unique)
+  qed
+
+  define h2'' where "h2'' z = h2' (z - of_int \<lfloor>Re z\<rfloor>)" for z
+  have deriv: "(h has_field_derivative h2'' z) (at z)" for z
+  proof -
+    fix z :: complex
+    have B: "\<bar>Re z - real_of_int \<lfloor>Re z\<rfloor>\<bar> < 1" by linarith
+    have "((\<lambda>t. h (t - of_int \<lfloor>Re z\<rfloor>)) has_field_derivative h2'' z) (at z)"
+      unfolding h2''_def by (rule DERIV_cong, rule DERIV_chain'[OF _ A(1)])
+                            (insert B, auto intro!: derivative_intros)
+    thus "(h has_field_derivative h2'' z) (at z)" by (simp add: h.minus_of_int)
+  qed
+
+  have cont: "continuous_on UNIV h2''"
+  proof (intro continuous_at_imp_continuous_on ballI)
+    fix z :: complex
+    define r where "r = \<lfloor>Re z\<rfloor>"
+    define A where "A = {t. of_int r - 1 < Re t \<and> Re t < of_int r + 1}"
+    have "continuous_on A (\<lambda>t. h2' (t - of_int r))" unfolding A_def
+      by (intro continuous_at_imp_continuous_on isCont_o2[OF _ A(2)] ballI continuous_intros)
+         (simp_all add: abs_real_def)
+    moreover have "h2'' t = h2' (t - of_int r)" if t: "t \<in> A" for t
+    proof (cases "Re t \<ge> of_int r")
+      case True
+      from t have "of_int r - 1 < Re t" "Re t < of_int r + 1" by (simp_all add: A_def)
+      with True have "\<lfloor>Re t\<rfloor> = \<lfloor>Re z\<rfloor>" unfolding r_def by linarith
+      thus ?thesis by (auto simp: r_def h2''_def)
+    next
+      case False
+      from t have t: "of_int r - 1 < Re t" "Re t < of_int r + 1" by (simp_all add: A_def)
+      with False have t': "\<lfloor>Re t\<rfloor> = \<lfloor>Re z\<rfloor> - 1" unfolding r_def by linarith
+      moreover from t False have "h2' (t - of_int r + 1 - 1) = h2' (t - of_int r + 1)"
+        by (intro h2'_eq) simp_all
+      ultimately show ?thesis by (auto simp: r_def h2''_def algebra_simps t')
+    qed
+    ultimately have "continuous_on A h2''" by (subst continuous_on_cong[OF refl])
+    moreover {
+      have "open ({t. of_int r - 1 < Re t} \<inter> {t. of_int r + 1 > Re t})"
+        by (intro open_Int open_halfspace_Re_gt open_halfspace_Re_lt)
+      also have "{t. of_int r - 1 < Re t} \<inter> {t. of_int r + 1 > Re t} = A"
+        unfolding A_def by blast
+      finally have "open A" .
+    }
+    ultimately have C: "isCont h2'' t" if "t \<in> A" for t using that
+      by (subst (asm) continuous_on_eq_continuous_at) auto
+    have "of_int r - 1 < Re z" "Re z  < of_int r + 1" unfolding r_def by linarith+
+    thus "isCont h2'' z" by (intro C) (simp_all add: A_def)
+  qed
+
+  from that[OF cont deriv] show ?thesis .
+qed
+
+lemma Gamma_reflection_complex:
   fixes z :: complex
   shows "Gamma z * Gamma (1 - z) = of_real pi / sin (of_real pi * z)"
 proof -
@@ -2074,7 +2274,7 @@ proof -
   let ?h = "\<lambda>z::complex. (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
   define h where [abs_def]: "h z = (if z \<in> \<int> then 0 else ?h z)" for z :: complex
 
-  \<comment> \<open>\<^term>\<open>g\<close> is periodic with period 1.\<close>
+  \<comment> \<open>@{term g} is periodic with period 1.\<close>
   interpret g: periodic_fun_simple' g
   proof
     fix z :: complex
@@ -2094,8 +2294,8 @@ proof -
     qed (simp add: g_def)
   qed
 
-  \<comment> \<open>\<^term>\<open>g\<close> is entire.\<close>
-  have g_g' [derivative_intros]: "(g has_field_derivative (h z * g z)) (at z)" for z :: complex
+  \<comment> \<open>@{term g} is entire.\<close>
+  have g_g': "(g has_field_derivative (h z * g z)) (at z)" for z :: complex
   proof (cases "z \<in> \<int>")
     let ?h' = "\<lambda>z. Beta z (1 - z) * ((Digamma z - Digamma (1 - z)) * sin (z * of_real pi) +
                      of_real pi * cos (z * of_real pi))"
@@ -2143,10 +2343,6 @@ proof -
     also have "g \<circ> (\<lambda>x. x - of_int n) = g" by (intro ext) (simp add: g.minus_of_int)
     finally show "(g has_field_derivative (h z * g z)) (at z)" by (simp add: z h_def)
   qed
-
-  have g_holo [holomorphic_intros]: "g holomorphic_on A" for A
-    by (rule holomorphic_on_subset[of _ UNIV])
-       (force simp: holomorphic_on_open intro!: derivative_intros)+
 
   have g_eq: "g (z/2) * g ((z+1)/2) = Gamma (1/2)^2 * g z" if "Re z > -1" "Re z < 2" for z
   proof (cases "z \<in> \<int>")
@@ -2208,9 +2404,6 @@ proof -
   unfolding g_def using Ints_diff[of 1 "1 - z"]
     by (auto simp: Gamma_eq_zero_iff sin_eq_0 dest!: nonpos_Ints_Int)
 
-  have h_altdef: "h z = deriv g z / g z" for z :: complex
-    using DERIV_imp_deriv[OF g_g', of z] by simp
-
   have h_eq: "h z = (h (z/2) + h ((z+1)/2)) / 2" for z
   proof -
     have "((\<lambda>t. g (t/2) * g ((t+1)/2)) has_field_derivative
@@ -2230,16 +2423,9 @@ proof -
     thus "h z = (h (z/2) + h ((z+1)/2)) / 2" by simp
   qed
 
-  have h_holo [holomorphic_intros]: "h holomorphic_on A" for A
-    unfolding h_altdef [abs_def]
-    by (rule holomorphic_on_subset[of _ UNIV]) (auto intro!: holomorphic_intros)
-  define h' where "h' = deriv h"
-  have h_h': "(h has_field_derivative h' z) (at z)" for z unfolding h'_def
-    by (auto intro!: holomorphic_derivI[of _ UNIV] holomorphic_intros)
-  have h'_holo [holomorphic_intros]: "h' holomorphic_on A" for A unfolding h'_def
-    by (rule holomorphic_on_subset[of _ UNIV]) (auto intro!: holomorphic_intros)
-  have h'_cont: "continuous_on UNIV h'"
-    by (intro holomorphic_on_imp_continuous_on holomorphic_intros)
+  obtain h' where h'_cont: "continuous_on UNIV h'" and
+                  h_h': "\<And>z. (h has_field_derivative h' z) (at z)"
+     unfolding h_def by (erule Gamma_reflection_aux)
 
   have h'_eq: "h' z = (h' (z/2) + h' ((z+1)/2)) / 4" for z
   proof -
@@ -2307,13 +2493,16 @@ proof -
     unfolding g_def using that by (auto intro!: Reals_mult Gamma_complex_real)
   have h_real: "h z \<in> \<real>" if "z \<in> \<real>" for z
     unfolding h_def using that by (auto intro!: Reals_mult Reals_add Reals_diff Polygamma_Real)
+  have g_nz: "g z \<noteq> 0" for z unfolding g_def using Ints_diff[of 1 "1-z"]
+    by (auto simp: Gamma_eq_zero_iff sin_eq_0)
 
   from h'_zero h_h'_2 have "\<exists>c. \<forall>z\<in>UNIV. h z = c"
-    by (intro has_field_derivative_zero_constant) simp_all
+    by (intro has_field_derivative_zero_constant) (simp_all add: dist_0_norm)
   then obtain c where c: "\<And>z. h z = c" by auto
   have "\<exists>u. u \<in> closed_segment 0 1 \<and> Re (g 1) - Re (g 0) = Re (h u * g u * (1 - 0))"
     by (intro complex_mvt_line g_g')
-  then guess u by (elim exE conjE) note u = this
+  then obtain u where u: "u \<in> closed_segment 0 1" "Re (g 1) - Re (g 0) = Re (h u * g u)"
+    by auto
   from u(1) have u': "u \<in> \<real>" unfolding closed_segment_def
     by (auto simp: scaleR_conv_of_real)
   from u' g_real[of u] g_nz[of u] have "Re (g u) \<noteq> 0" by (auto elim!: Reals_cases)
@@ -2330,7 +2519,7 @@ proof -
   show ?thesis
   proof (cases "z \<in> \<int>")
     case False
-    with \<open>g z = pi\<close> show ?thesis by (auto simp: g_def field_split_simps)
+    with \<open>g z = pi\<close> show ?thesis by (auto simp: g_def divide_simps)
   next
     case True
     then obtain n where n: "z = of_int n" by (elim Ints_cases)
@@ -2445,20 +2634,6 @@ proof (subst tendsto_cong)
     by (simp_all add: field_simps flip: power_mult_distrib)
   finally show "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow> ?c" .
 qed
-
-lemma is_pole_Gamma: "is_pole Gamma (- of_nat n)"
-  unfolding is_pole_def using Gamma_poles .
-
-lemma Gamme_residue:
-  "residue Gamma (- of_nat n) = (-1) ^ n / fact n"
-proof (rule residue_simple')
-  show "open (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) :: complex set)"
-    by (intro open_Compl closed_subset_Ints) auto
-  show "Gamma holomorphic_on (- (\<int>\<^sub>\<le>\<^sub>0 - {-of_nat n}) - {- of_nat n})"
-    by (rule holomorphic_Gamma) auto
-  show "(\<lambda>w. Gamma w * (w - - of_nat n)) \<midarrow>- of_nat n \<rightarrow> (- 1) ^ n / fact n"
-    using Gamma_residues[of n] by simp
-qed auto
 
 
 subsection \<open>Alternative definitions\<close>

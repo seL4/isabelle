@@ -3388,7 +3388,7 @@ proof (cases "det(matrix g) = 0")
 next
   case False
   then obtain h where h: "\<And>x. x \<in> S \<Longrightarrow> h (g x) = x" "linear h"
-    using assms det_nz_iff_inj linear_injective_isomorphism by blast
+    using assms det_nz_iff_inj linear_injective_isomorphism by metis
   show ?thesis
   proof (rule has_absolute_integral_change_of_variables_invertible)
     show "(g has_derivative g) (at x within S)" for x

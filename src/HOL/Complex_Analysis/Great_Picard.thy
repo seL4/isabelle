@@ -3,7 +3,7 @@ section \<open>The Great Picard Theorem and its Applications\<close>
 text\<open>Ported from HOL Light (cauchy.ml) by L C Paulson, 2017\<close>
 
 theory Great_Picard
-  imports Conformal_Mappings Further_Topology
+  imports Conformal_Mappings
 
 begin
   
@@ -921,9 +921,19 @@ proof -
       qed
       show "\<And>n x.  x \<in> K i \<Longrightarrow> cmod (\<F> n x) \<le> B i"
         using B \<open>\<And>n. \<F> n \<in> \<H>\<close> by blast
-    qed (use comK in \<open>fastforce+\<close>)
+    next
+      fix g :: "complex \<Rightarrow> complex" and k :: "nat \<Rightarrow> nat"
+      assume *: "\<And>(g::complex\<Rightarrow>complex) (k::nat\<Rightarrow>nat). continuous_on (K i) g \<Longrightarrow>
+                  strict_mono k \<Longrightarrow>
+                  (\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod (\<F> (k n) x - g x) < e) \<Longrightarrow> thesis"
+           "continuous_on (K i) g"
+           "strict_mono k"
+           "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. N \<le> n \<and> x \<in> K i \<longrightarrow> cmod (\<F> (k n) x - g x) < e"
+      show ?thesis
+        by (rule *(1)[OF *(2,3)], drule *(4)) auto
+    qed (use comK in simp_all)
     then show ?thesis
-      by fastforce
+      by auto
   qed
   have "\<exists>k g. strict_mono (k::nat\<Rightarrow>nat) \<and> (\<forall>e > 0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> K i. norm((\<F> \<circ> r \<circ> k) n x - g x) < e)"
          for i r
@@ -933,10 +943,14 @@ proof -
     by (force simp: o_assoc)
   obtain k :: "nat \<Rightarrow> nat" where "strict_mono k"
              and "\<And>i. \<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> (id \<circ> k)) n x - g x) < e"
-    apply (rule subsequence_diagonalization_lemma [OF **, of id])
+    (* TODO: clean up this mess *)
+    apply (rule subsequence_diagonalization_lemma [OF **, of id id])
      apply (erule ex_forward all_forward imp_forward)+
-      apply auto
-    apply (rule_tac x="max N Na" in exI, fastforce+)
+      apply force
+     apply (erule exE)
+    apply (rename_tac i r k1 k2 N g e Na)
+     apply (rule_tac x="max N Na" in exI)
+     apply fastforce+
     done
   then have lt_e: "\<And>i. \<exists>g. \<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>K i. cmod ((\<F> \<circ> k) n x - g x) < e"
     by simp

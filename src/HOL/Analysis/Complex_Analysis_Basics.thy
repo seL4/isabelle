@@ -114,42 +114,6 @@ lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
 
-lemma closed_segment_same_Re:
-  assumes "Re a = Re b"
-  shows   "closed_segment a b = {z. Re z = Re a \<and> Im z \<in> closed_segment (Im a) (Im b)}"
-proof safe
-  fix z assume "z \<in> closed_segment a b"
-  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from assms show "Re z = Re a" by (auto simp: u)
-  from u(1) show "Im z \<in> closed_segment (Im a) (Im b)"
-    by (force simp: u closed_segment_def algebra_simps)
-next
-  fix z assume [simp]: "Re z = Re a" and "Im z \<in> closed_segment (Im a) (Im b)"
-  then obtain u where u: "u \<in> {0..1}" "Im z = Im a + of_real u * (Im b - Im a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from u(1) show "z \<in> closed_segment a b" using assms
-    by (force simp: u closed_segment_def algebra_simps scaleR_conv_of_real complex_eq_iff)
-qed
-
-lemma closed_segment_same_Im:
-  assumes "Im a = Im b"
-  shows   "closed_segment a b = {z. Im z = Im a \<and> Re z \<in> closed_segment (Re a) (Re b)}"
-proof safe
-  fix z assume "z \<in> closed_segment a b"
-  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from assms show "Im z = Im a" by (auto simp: u)
-  from u(1) show "Re z \<in> closed_segment (Re a) (Re b)"
-    by (force simp: u closed_segment_def algebra_simps)
-next
-  fix z assume [simp]: "Im z = Im a" and "Re z \<in> closed_segment (Re a) (Re b)"
-  then obtain u where u: "u \<in> {0..1}" "Re z = Re a + of_real u * (Re b - Re a)"
-    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
-  from u(1) show "z \<in> closed_segment a b" using assms
-    by (force simp: u closed_segment_def algebra_simps scaleR_conv_of_real complex_eq_iff)
-qed
-
 subsection\<open>Holomorphic functions\<close>
 
 definition\<^marker>\<open>tag important\<close> holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
@@ -310,73 +274,10 @@ next
   finally show \<dots> .
 qed (insert assms, auto)
 
-lemma DERIV_deriv_iff_field_differentiable:
-  "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
-  unfolding field_differentiable_def by (metis DERIV_imp_deriv)
-
 lemma holomorphic_derivI:
      "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
       \<Longrightarrow> (f has_field_derivative deriv f x) (at x within T)"
 by (metis DERIV_deriv_iff_field_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
-
-lemma complex_derivative_chain:
-  "f field_differentiable at x \<Longrightarrow> g field_differentiable at (f x)
-    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
-  by (metis DERIV_deriv_iff_field_differentiable DERIV_chain DERIV_imp_deriv)
-
-lemma deriv_linear [simp]: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
-  by (metis DERIV_imp_deriv DERIV_cmult_Id)
-
-lemma deriv_ident [simp]: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
-  by (metis DERIV_imp_deriv DERIV_ident)
-
-lemma deriv_id [simp]: "deriv id = (\<lambda>z. 1)"
-  by (simp add: id_def)
-
-lemma deriv_const [simp]: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
-  by (metis DERIV_imp_deriv DERIV_const)
-
-lemma deriv_add [simp]:
-  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
-   \<Longrightarrow> deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv derivative_intros)
-
-lemma deriv_diff [simp]:
-  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
-   \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv derivative_intros)
-
-lemma deriv_mult [simp]:
-  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
-   \<Longrightarrow> deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
-
-lemma deriv_cmult:
-  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
-  by simp
-
-lemma deriv_cmult_right:
-  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
-  by simp
-
-lemma deriv_inverse [simp]:
-  "\<lbrakk>f field_differentiable at z; f z \<noteq> 0\<rbrakk>
-   \<Longrightarrow> deriv (\<lambda>w. inverse (f w)) z = - deriv f z / f z ^ 2"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (safe intro!: DERIV_imp_deriv derivative_eq_intros) (auto simp: field_split_simps power2_eq_square)
-
-lemma deriv_divide [simp]:
-  "\<lbrakk>f field_differentiable at z; g field_differentiable at z; g z \<noteq> 0\<rbrakk>
-   \<Longrightarrow> deriv (\<lambda>w. f w / g w) z = (deriv f z * g z - f z * deriv g z) / g z ^ 2"
-  by (simp add: field_class.field_divide_inverse field_differentiable_inverse)
-     (simp add: field_split_simps power2_eq_square)
-
-lemma deriv_cdivide_right:
-  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
-  by (simp add: field_class.field_divide_inverse)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk>
@@ -384,19 +285,6 @@ lemma complex_derivative_transform_within_open:
   unfolding holomorphic_on_def
   by (rule DERIV_imp_deriv)
      (metis DERIV_deriv_iff_field_differentiable has_field_derivative_transform_within_open at_within_open)
-
-lemma deriv_compose_linear:
-  "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
-apply (rule DERIV_imp_deriv)
-  unfolding DERIV_deriv_iff_field_differentiable [symmetric]
-  by (metis (full_types) DERIV_chain2 DERIV_cmult_Id mult.commute)
-
-
-lemma nonzero_deriv_nonconstant:
-  assumes df: "DERIV f \<xi> :> df" and S: "open S" "\<xi> \<in> S" and "df \<noteq> 0"
-    shows "\<not> f constant_on S"
-unfolding constant_on_def
-by (metis \<open>df \<noteq> 0\<close> has_field_derivative_transform_within_open [OF df S] DERIV_const DERIV_unique)
 
 lemma holomorphic_nonconstant:
   assumes holf: "f holomorphic_on S" and "open S" "\<xi> \<in> S" "deriv f \<xi> \<noteq> 0"
@@ -615,7 +503,7 @@ proof -
     by (simp add: algebra_simps)
   also have "... = deriv (g o f) w"
     using assms
-    by (metis analytic_on_imp_differentiable_at analytic_on_open complex_derivative_chain image_subset_iff)
+    by (metis analytic_on_imp_differentiable_at analytic_on_open deriv_chain image_subset_iff)
   also have "... = deriv id w"
   proof (rule complex_derivative_transform_within_open [where s=S])
     show "g \<circ> f holomorphic_on S"

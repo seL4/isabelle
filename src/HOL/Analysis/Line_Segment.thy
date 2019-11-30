@@ -576,6 +576,42 @@ lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
   by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
 
+lemma closed_segment_same_Re:
+  assumes "Re a = Re b"
+  shows   "closed_segment a b = {z. Re z = Re a \<and> Im z \<in> closed_segment (Im a) (Im b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Re z = Re a" by (auto simp: u)
+  from u(1) show "Im z \<in> closed_segment (Im a) (Im b)"
+    by (force simp: u closed_segment_def algebra_simps)
+next
+  fix z assume [simp]: "Re z = Re a" and "Im z \<in> closed_segment (Im a) (Im b)"
+  then obtain u where u: "u \<in> {0..1}" "Im z = Im a + of_real u * (Im b - Im a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (force simp: u closed_segment_def algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
+
+lemma closed_segment_same_Im:
+  assumes "Im a = Im b"
+  shows   "closed_segment a b = {z. Im z = Im a \<and> Re z \<in> closed_segment (Re a) (Re b)}"
+proof safe
+  fix z assume "z \<in> closed_segment a b"
+  then obtain u where u: "u \<in> {0..1}" "z = a + of_real u * (b - a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from assms show "Im z = Im a" by (auto simp: u)
+  from u(1) show "Re z \<in> closed_segment (Re a) (Re b)"
+    by (force simp: u closed_segment_def algebra_simps)
+next
+  fix z assume [simp]: "Im z = Im a" and "Re z \<in> closed_segment (Re a) (Re b)"
+  then obtain u where u: "u \<in> {0..1}" "Re z = Re a + of_real u * (Re b - Re a)"
+    by (auto simp: closed_segment_def scaleR_conv_of_real algebra_simps)
+  from u(1) show "z \<in> closed_segment a b" using assms
+    by (force simp: u closed_segment_def algebra_simps scaleR_conv_of_real complex_eq_iff)
+qed
+
 lemma dist_in_closed_segment:
   fixes a :: "'a :: euclidean_space"
   assumes "x \<in> closed_segment a b"

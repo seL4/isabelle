@@ -9,12 +9,19 @@ section \<open>Convergence of Formal Power Series\<close>
 
 theory FPS_Convergence
 imports
-  Conformal_Mappings
   Generalised_Binomial_Theorem
   "HOL-Computational_Algebra.Formal_Power_Series"
 begin
 
+text \<open>
+  In this theory, we will connect formal power series (which are algebraic objects) with analytic
+  functions. This will become more important in complex analysis, and indeed some of the less
+  trivial results will only be proven there.
+\<close>
+
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Balls with extended real radius\<close>
+
+(* TODO: This should probably go somewhere else *)
 
 text \<open>
   The following is a variant of \<^const>\<open>ball\<close> that also allows an infinite radius.
@@ -61,9 +68,6 @@ definition\<^marker>\<open>tag important\<close> fps_conv_radius :: "'a :: {bana
 definition\<^marker>\<open>tag important\<close> eval_fps :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> 'a \<Rightarrow> 'a" where
   "eval_fps f z = (\<Sum>n. fps_nth f n * z ^ n)"
 
-definition\<^marker>\<open>tag important\<close> fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
-  "fps_expansion f z0 = Abs_fps (\<lambda>n. (deriv ^^ n) f z0 / fact n)"
-
 lemma norm_summable_fps:
   fixes f :: "'a :: {banach, real_normed_div_algebra} fps"
   shows "norm z < fps_conv_radius f \<Longrightarrow> summable (\<lambda>n. norm (fps_nth f n * z ^ n))"
@@ -80,38 +84,6 @@ theorem sums_eval_fps:
   shows   "(\<lambda>n. fps_nth f n * z ^ n) sums eval_fps f z"
   using assms unfolding eval_fps_def fps_conv_radius_def
   by (intro summable_sums summable_in_conv_radius) simp_all
-
-lemma
-  fixes r :: ereal
-  assumes "f holomorphic_on eball z0 r"
-  shows   conv_radius_fps_expansion: "fps_conv_radius (fps_expansion f z0) \<ge> r"
-    and   eval_fps_expansion: "\<And>z. z \<in> eball z0 r \<Longrightarrow> eval_fps (fps_expansion f z0) (z - z0) = f z"
-    and   eval_fps_expansion': "\<And>z. norm z < r \<Longrightarrow> eval_fps (fps_expansion f z0) z = f (z0 + z)"
-proof -
-  have "(\<lambda>n. fps_nth (fps_expansion f z0) n * (z - z0) ^ n) sums f z"
-    if "z \<in> ball z0 r'" "ereal r' < r" for z r'
-  proof -
-    from that(2) have "ereal r' \<le> r" by simp
-    from assms(1) and this have "f holomorphic_on ball z0 r'"
-      by (rule holomorphic_on_subset[OF _ ball_eball_mono])
-    from holomorphic_power_series [OF this that(1)] 
-      show ?thesis by (simp add: fps_expansion_def)
-  qed
-  hence *: "(\<lambda>n. fps_nth (fps_expansion f z0) n * (z - z0) ^ n) sums f z"
-    if "z \<in> eball z0 r" for z
-    using that by (subst (asm) eball_conv_UNION_balls) blast
-  show "fps_conv_radius (fps_expansion f z0) \<ge> r" unfolding fps_conv_radius_def
-  proof (rule conv_radius_geI_ex)
-    fix r' :: real assume r': "r' > 0" "ereal r' < r"
-    thus "\<exists>z. norm z = r' \<and> summable (\<lambda>n. fps_nth (fps_expansion f z0) n * z ^ n)"
-      using *[of "z0 + of_real r'"]
-      by (intro exI[of _ "of_real r'"]) (auto simp: summable_def dist_norm)
-  qed
-  show "eval_fps (fps_expansion f z0) (z - z0) = f z" if "z \<in> eball z0 r" for z
-    using *[OF that] by (simp add: eval_fps_def sums_iff)
-  show "eval_fps (fps_expansion f z0) z = f (z0 + z)" if "ereal (norm z) < r" for z
-    using *[of "z0 + z"] and that by (simp add: eval_fps_def sums_iff dist_norm)
-qed
 
 lemma continuous_on_eval_fps:
   fixes f :: "'a :: {banach, real_normed_div_algebra} fps"
@@ -615,181 +587,14 @@ lemma eval_fps_exp [simp]:
   shows "eval_fps (fps_exp c) z = exp (c * z)" unfolding eval_fps_def exp_def
   by (simp add: eval_fps_def exp_def scaleR_conv_of_real field_split_simps power_mult_distrib)
 
-lemma
-  fixes f :: "complex fps" and r :: ereal
-  assumes "\<And>z. ereal (norm z) < r \<Longrightarrow> eval_fps f z \<noteq> 0"
-  shows   fps_conv_radius_inverse: "fps_conv_radius (inverse f) \<ge> min r (fps_conv_radius f)"
-    and   eval_fps_inverse: "\<And>z. ereal (norm z) < fps_conv_radius f \<Longrightarrow> ereal (norm z) < r \<Longrightarrow> 
-                               eval_fps (inverse f) z = inverse (eval_fps f z)"
-proof -
-  define R where "R = min (fps_conv_radius f) r"
-  have *: "fps_conv_radius (inverse f) \<ge> min r (fps_conv_radius f) \<and> 
-          (\<forall>z\<in>eball 0 (min (fps_conv_radius f) r). eval_fps (inverse f) z = inverse (eval_fps f z))"
-  proof (cases "min r (fps_conv_radius f) > 0")
-    case True
-    define f' where "f' = fps_expansion (\<lambda>z. inverse (eval_fps f z)) 0"
-    have holo: "(\<lambda>z. inverse (eval_fps f z)) holomorphic_on eball 0 (min r (fps_conv_radius f))"
-      using assms by (intro holomorphic_intros) auto
-    from holo have radius: "fps_conv_radius f' \<ge> min r (fps_conv_radius f)"
-      unfolding f'_def by (rule conv_radius_fps_expansion)
-    have eval_f': "eval_fps f' z = inverse (eval_fps f z)" 
-      if "norm z < fps_conv_radius f" "norm z < r" for z
-      using that unfolding f'_def by (subst eval_fps_expansion'[OF holo]) auto
-  
-    have "f * f' = 1"
-    proof (rule eval_fps_eqD)
-      from radius and True have "0 < min (fps_conv_radius f) (fps_conv_radius f')"
-        by (auto simp: min_def split: if_splits)
-      also have "\<dots> \<le> fps_conv_radius (f * f')" by (rule fps_conv_radius_mult)
-      finally show "\<dots> > 0" .
-    next
-      from True have "R > 0" by (auto simp: R_def)
-      hence "eventually (\<lambda>z. z \<in> eball 0 R) (nhds 0)"
-        by (intro eventually_nhds_in_open) (auto simp: zero_ereal_def)
-      thus "eventually (\<lambda>z. eval_fps (f * f') z = eval_fps 1 z) (nhds 0)"
-      proof eventually_elim
-        case (elim z)
-        hence "eval_fps (f * f') z = eval_fps f z * eval_fps f' z"
-          using radius by (intro eval_fps_mult) 
-                          (auto simp: R_def min_def split: if_splits intro: less_trans)
-        also have "eval_fps f' z = inverse (eval_fps f z)"
-          using elim by (intro eval_f') (auto simp: R_def)
-        also from elim have "eval_fps f z \<noteq> 0"
-          by (intro assms) (auto simp: R_def)
-        hence "eval_fps f z * inverse (eval_fps f z) = eval_fps 1 z" 
-          by simp
-        finally show "eval_fps (f * f') z = eval_fps 1 z" .
-      qed
-    qed simp_all
-    hence "f' = inverse f"
-      by (intro fps_inverse_unique [symmetric]) (simp_all add: mult_ac)
-    with eval_f' and radius show ?thesis by simp
-  next
-    case False
-    hence *: "eball 0 R = {}" 
-      by (intro eball_empty) (auto simp: R_def min_def split: if_splits)
-    show ?thesis
-    proof safe
-      from False have "min r (fps_conv_radius f) \<le> 0"
-        by (simp add: min_def)
-      also have "0 \<le> fps_conv_radius (inverse f)"
-        by (simp add: fps_conv_radius_def conv_radius_nonneg)
-      finally show "min r (fps_conv_radius f) \<le> \<dots>" .
-    qed (unfold * [unfolded R_def], auto)
-  qed
-
-  from * show "fps_conv_radius (inverse f) \<ge> min r (fps_conv_radius f)" by blast
-  from * show "eval_fps (inverse f) z = inverse (eval_fps f z)" 
-    if "ereal (norm z) < fps_conv_radius f" "ereal (norm z) < r" for z
-    using that by auto
-qed
-
-lemma
-  fixes f g :: "complex fps" and r :: ereal
-  defines "R \<equiv> Min {r, fps_conv_radius f, fps_conv_radius g}"
-  assumes "fps_conv_radius f > 0" "fps_conv_radius g > 0" "r > 0"
-  assumes nz: "\<And>z. z \<in> eball 0 r \<Longrightarrow> eval_fps g z \<noteq> 0"
-  shows   fps_conv_radius_divide': "fps_conv_radius (f / g) \<ge> R"
-    and   eval_fps_divide':
-            "ereal (norm z) < R \<Longrightarrow> eval_fps (f / g) z = eval_fps f z / eval_fps g z"
-proof -
-  from nz[of 0] and \<open>r > 0\<close> have nz': "fps_nth g 0 \<noteq> 0" 
-    by (auto simp: eval_fps_at_0 zero_ereal_def)
-  have "R \<le> min r (fps_conv_radius g)"
-    by (auto simp: R_def intro: min.coboundedI2)
-  also have "min r (fps_conv_radius g) \<le> fps_conv_radius (inverse g)"
-    by (intro fps_conv_radius_inverse assms) (auto simp: zero_ereal_def)
-  finally have radius: "fps_conv_radius (inverse g) \<ge> R" .
-  have "R \<le> min (fps_conv_radius f) (fps_conv_radius (inverse g))"
-    by (intro radius min.boundedI) (auto simp: R_def intro: min.coboundedI1 min.coboundedI2)
-  also have "\<dots> \<le> fps_conv_radius (f * inverse g)"
-    by (rule fps_conv_radius_mult)
-  also have "f * inverse g = f / g"
-    by (intro fps_divide_unit [symmetric] nz')
-  finally show "fps_conv_radius (f / g) \<ge> R" .
-
-  assume z: "ereal (norm z) < R"
-  have "eval_fps (f * inverse g) z = eval_fps f z * eval_fps (inverse g) z"
-    using radius by (intro eval_fps_mult less_le_trans[OF z])
-                    (auto simp: R_def intro: min.coboundedI1 min.coboundedI2)
-  also have "eval_fps (inverse g) z = inverse (eval_fps g z)" using \<open>r > 0\<close>
-    by (intro eval_fps_inverse[where r = r] less_le_trans[OF z] nz)
-       (auto simp: R_def intro: min.coboundedI1 min.coboundedI2)
-  also have "f * inverse g = f / g" by fact
-  finally show "eval_fps (f / g) z = eval_fps f z / eval_fps g z" by (simp add: field_split_simps)
-qed
-
-lemma
-  fixes f g :: "complex fps" and r :: ereal
-  defines "R \<equiv> Min {r, fps_conv_radius f, fps_conv_radius g}"
-  assumes "subdegree g \<le> subdegree f"
-  assumes "fps_conv_radius f > 0" "fps_conv_radius g > 0" "r > 0"
-  assumes "\<And>z. z \<in> eball 0 r \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> eval_fps g z \<noteq> 0"
-  shows   fps_conv_radius_divide: "fps_conv_radius (f / g) \<ge> R"
-    and   eval_fps_divide:
-            "ereal (norm z) < R \<Longrightarrow> c = fps_nth f (subdegree g) / fps_nth g (subdegree g) \<Longrightarrow>
-               eval_fps (f / g) z = (if z = 0 then c else eval_fps f z / eval_fps g z)"
-proof -
-  define f' g' where "f' = fps_shift (subdegree g) f" and "g' = fps_shift (subdegree g) g"
-  have f_eq: "f = f' * fps_X ^ subdegree g" and g_eq: "g = g' * fps_X ^ subdegree g"
-    unfolding f'_def g'_def by (rule subdegree_decompose' le_refl | fact)+
-  have subdegree: "subdegree f' = subdegree f - subdegree g" "subdegree g' = 0"
-    using assms(2) by (simp_all add: f'_def g'_def)
-  have [simp]: "fps_conv_radius f' = fps_conv_radius f" "fps_conv_radius g' = fps_conv_radius g"
-    by (simp_all add: f'_def g'_def)
-  have [simp]: "fps_nth f' 0 = fps_nth f (subdegree g)"
-               "fps_nth g' 0 = fps_nth g (subdegree g)" by (simp_all add: f'_def g'_def)
-  have g_nz: "g \<noteq> 0"
-  proof -
-    define z :: complex where "z = (if r = \<infinity> then 1 else of_real (real_of_ereal r / 2))"
-    from \<open>r > 0\<close> have "z \<in> eball 0 r"
-      by (cases r) (auto simp: z_def eball_def)
-    moreover have "z \<noteq> 0" using \<open>r > 0\<close> 
-      by (cases r) (auto simp: z_def)
-    ultimately have "eval_fps g z \<noteq> 0" by (rule assms(6))
-    thus "g \<noteq> 0" by auto
-  qed
-  have fg: "f / g = f' * inverse g'"
-    by (subst f_eq, subst (2) g_eq) (insert g_nz, simp add: fps_divide_unit)
-
-  have g'_nz: "eval_fps g' z \<noteq> 0" if z: "norm z < min r (fps_conv_radius g)" for z
-  proof (cases "z = 0")
-    case False
-    with assms and z have "eval_fps g z \<noteq> 0" by auto
-    also from z have "eval_fps g z = eval_fps g' z * z ^ subdegree g"
-      by (subst g_eq) (auto simp: eval_fps_mult)
-    finally show ?thesis by auto
-  qed (insert \<open>g \<noteq> 0\<close>, auto simp: g'_def eval_fps_at_0)
-
-  have "R \<le> min (min r (fps_conv_radius g)) (fps_conv_radius g')"
-    by (auto simp: R_def min.coboundedI1 min.coboundedI2)
-  also have "\<dots> \<le> fps_conv_radius (inverse g')"
-    using g'_nz by (rule fps_conv_radius_inverse)
-  finally have conv_radius_inv: "R \<le> fps_conv_radius (inverse g')" .
-  hence "R \<le> fps_conv_radius (f' * inverse g')"
-    by (intro order.trans[OF _ fps_conv_radius_mult])
-       (auto simp: R_def intro: min.coboundedI1 min.coboundedI2)
-  thus "fps_conv_radius (f / g) \<ge> R" by (simp add: fg)
-
-  fix z c :: complex assume z: "ereal (norm z) < R"
-  assume c: "c = fps_nth f (subdegree g) / fps_nth g (subdegree g)"
-  show "eval_fps (f / g) z = (if z = 0 then c else eval_fps f z / eval_fps g z)"
-  proof (cases "z = 0")
-    case False
-    from z and conv_radius_inv have "ereal (norm z) < fps_conv_radius (inverse g')"
-      by simp
-    with z have "eval_fps (f / g) z = eval_fps f' z * eval_fps (inverse g') z"
-      unfolding fg by (subst eval_fps_mult) (auto simp: R_def)
-    also have "eval_fps (inverse g') z = inverse (eval_fps g' z)"
-      using z by (intro eval_fps_inverse[of "min r (fps_conv_radius g')"] g'_nz) (auto simp: R_def)
-    also have "eval_fps f' z * \<dots> = eval_fps f z / eval_fps g z"
-      using z False assms(2) by (simp add: f'_def g'_def eval_fps_shift R_def)
-    finally show ?thesis using False by simp
-  qed (simp_all add: eval_fps_at_0 fg field_simps c)
-qed
+text \<open>
+  The case of division is more complicated and will therefore not be handled here.
+  Handling division becomes much more easy using complex analysis, and we will do so once
+  that is available.
+\<close>
 
 
-subsection \<open>Power series expansion of complex functions\<close>
+subsection \<open>Power series expansions of analytic functions\<close>
 
 text \<open>
   This predicate contains the notion that the given formal power series converges
@@ -829,25 +634,6 @@ proof -
   also have "(deriv ^^ n) (eval_fps F) 0 = (deriv ^^ n) f 0"
     using assms by (intro higher_deriv_cong_ev) (auto simp: has_fps_expansion_def)
   finally show ?thesis .
-qed
-
-lemma has_fps_expansion_fps_expansion [intro]:
-  assumes "open A" "0 \<in> A" "f holomorphic_on A"
-  shows   "f has_fps_expansion fps_expansion f 0"
-proof -
-  from assms(1,2) obtain r where r: "r > 0 " "ball 0 r \<subseteq> A"
-    by (auto simp: open_contains_ball)
-  have holo: "f holomorphic_on eball 0 (ereal r)" 
-    using r(2) and assms(3) by auto
-  from r(1) have "0 < ereal r" by simp
-  also have "r \<le> fps_conv_radius (fps_expansion f 0)"
-    using holo by (intro conv_radius_fps_expansion) auto
-  finally have "\<dots> > 0" .
-  moreover have "eventually (\<lambda>z. z \<in> ball 0 r) (nhds 0)"
-    using r(1) by (intro eventually_nhds_in_open) auto
-  hence "eventually (\<lambda>z. eval_fps (fps_expansion f 0) z = f z) (nhds 0)"
-    by eventually_elim (subst eval_fps_expansion'[OF holo], auto)
-  ultimately show ?thesis using r(1) by (auto simp: has_fps_expansion_def)
 qed
 
 lemma has_fps_expansion_imp_continuous:
@@ -1146,35 +932,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma fps_conv_radius_tan:
-  fixes c :: complex
-  assumes "c \<noteq> 0"
-  shows   "fps_conv_radius (fps_tan c) \<ge> pi / (2 * norm c)"
-proof -
-  have "fps_conv_radius (fps_tan c) \<ge> 
-          Min {pi / (2 * norm c), fps_conv_radius (fps_sin c), fps_conv_radius (fps_cos c)}"
-    unfolding fps_tan_def
-  proof (rule fps_conv_radius_divide)
-    fix z :: complex assume "z \<in> eball 0 (pi / (2 * norm c))"
-    with cos_eq_zero_imp_norm_ge[of "c*z"] assms 
-      show "eval_fps (fps_cos  c) z \<noteq> 0" by (auto simp: norm_mult field_simps)
-  qed (insert assms, auto)
-  thus ?thesis by (simp add: min_def)
-qed
 
-lemma eval_fps_tan:
-  fixes c :: complex
-  assumes "norm z < pi / (2 * norm c)"
-  shows   "eval_fps (fps_tan c) z = tan (c * z)"
-proof (cases "c = 0")
-  case False
-  show ?thesis unfolding fps_tan_def
-  proof (subst eval_fps_divide'[where r = "pi / (2 * norm c)"])
-    fix z :: complex assume "z \<in> eball 0 (pi / (2 * norm c))"
-    with cos_eq_zero_imp_norm_ge[of "c*z"] assms 
-      show "eval_fps (fps_cos  c) z \<noteq> 0" using False by (auto simp: norm_mult field_simps)
-    qed (insert False assms, auto simp: field_simps tan_def)
-qed simp_all
 
 lemma eval_fps_binomial:
   fixes c :: complex
@@ -1293,19 +1051,6 @@ proof -
     using s by (intro holomorphic_cong) auto
   finally show ?thesis using s assms
     by (intro that[of ?s']) (auto simp: has_fps_expansion_def zero_ereal_def)
-qed
-
-theorem residue_fps_expansion_over_power_at_0:
-  assumes "f has_fps_expansion F"
-  shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = fps_nth F n"
-proof -
-  from has_fps_expansion_imp_holomorphic[OF assms] guess s . note s = this
-  have "residue (\<lambda>z. f z / (z - 0) ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
-    using assms s unfolding has_fps_expansion_def
-    by (intro residue_holomorphic_over_power[of s]) (auto simp: zero_ereal_def)
-  also from assms have "\<dots> = fps_nth F n"
-    by (subst fps_nth_fps_expansion) auto
-  finally show ?thesis by simp
 qed
 
 end

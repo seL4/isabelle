@@ -71,6 +71,15 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     "root.tex"
     "root.bib"
 
+session "HOL-Complex_Analysis" (main timing) in Complex_Analysis = "HOL-Analysis" +
+  options [document_tags = "theorem%important,corollary%important,proposition%important,class%important,instantiation%important,subsubsection%unimportant,%unimportant",
+    document_variants = "document:manual=-proof,-ML,-unimportant"]
+  theories
+    Complex_Analysis
+  document_files
+    "root.tex"
+    "root.bib"
+
 session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories
     Approximations

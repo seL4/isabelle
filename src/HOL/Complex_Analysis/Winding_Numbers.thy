@@ -4,8 +4,6 @@ text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2017)\
 
 theory Winding_Numbers
 imports
-  Polytope
-  Jordan_Curve
   Riemann_Mapping
 begin
 
@@ -787,62 +785,6 @@ using simple_closed_path_winding_number_cases
   by fastforce
 
 subsection \<open>Winding number for rectangular paths\<close>
-
-definition\<^marker>\<open>tag important\<close> rectpath where
-  "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
-                      in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"
-
-lemma path_rectpath [simp, intro]: "path (rectpath a b)"
-  by (simp add: Let_def rectpath_def)
-
-lemma valid_path_rectpath [simp, intro]: "valid_path (rectpath a b)"
-  by (simp add: Let_def rectpath_def)
-
-lemma pathstart_rectpath [simp]: "pathstart (rectpath a1 a3) = a1"
-  by (simp add: rectpath_def Let_def)
-
-lemma pathfinish_rectpath [simp]: "pathfinish (rectpath a1 a3) = a1"
-  by (simp add: rectpath_def Let_def)
-
-lemma simple_path_rectpath [simp, intro]:
-  assumes "Re a1 \<noteq> Re a3" "Im a1 \<noteq> Im a3"
-  shows   "simple_path (rectpath a1 a3)"
-  unfolding rectpath_def Let_def using assms
-  by (intro simple_path_join_loop arc_join arc_linepath)
-     (auto simp: complex_eq_iff path_image_join closed_segment_same_Re closed_segment_same_Im)
-
-lemma path_image_rectpath:
-  assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
-  shows "path_image (rectpath a1 a3) =
-           {z. Re z \<in> {Re a1, Re a3} \<and> Im z \<in> {Im a1..Im a3}} \<union>
-           {z. Im z \<in> {Im a1, Im a3} \<and> Re z \<in> {Re a1..Re a3}}" (is "?lhs = ?rhs")
-proof -
-  define a2 a4 where "a2 = Complex (Re a3) (Im a1)" and "a4 = Complex (Re a1) (Im a3)"
-  have "?lhs = closed_segment a1 a2 \<union> closed_segment a2 a3 \<union>
-                  closed_segment a4 a3 \<union> closed_segment a1 a4"
-    by (simp_all add: rectpath_def Let_def path_image_join closed_segment_commute
-                      a2_def a4_def Un_assoc)
-  also have "\<dots> = ?rhs" using assms
-    by (auto simp: rectpath_def Let_def path_image_join a2_def a4_def
-          closed_segment_same_Re closed_segment_same_Im closed_segment_eq_real_ivl)
-  finally show ?thesis .
-qed
-
-lemma path_image_rectpath_subset_cbox:
-  assumes "Re a \<le> Re b" "Im a \<le> Im b"
-  shows   "path_image (rectpath a b) \<subseteq> cbox a b"
-  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff)
-
-lemma path_image_rectpath_inter_box:
-  assumes "Re a \<le> Re b" "Im a \<le> Im b"
-  shows   "path_image (rectpath a b) \<inter> box a b = {}"
-  using assms by (auto simp: path_image_rectpath in_box_complex_iff)
-
-lemma path_image_rectpath_cbox_minus_box:
-  assumes "Re a \<le> Re b" "Im a \<le> Im b"
-  shows   "path_image (rectpath a b) = cbox a b - box a b"
-  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff
-                             in_box_complex_iff)
 
 proposition winding_number_rectpath:
   assumes "z \<in> box a1 a3"

@@ -584,7 +584,7 @@ next
       have "\<exists>U. case p of (x,d) \<Rightarrow> S \<inter> ball x d \<subseteq> U \<and>
                         U \<in> lmeasurable \<and> ?\<mu> U < e / ?\<mu> (ball z 1) * ?\<mu> (ball x d)"
         if "p \<in> C" for p
-        using that Csub by auto
+        using that Csub unfolding case_prod_unfold by blast
       then obtain U where U:
                 "\<And>p. p \<in> C \<Longrightarrow>
                        case p of (x,d) \<Rightarrow> S \<inter> ball x d \<subseteq> U p \<and>

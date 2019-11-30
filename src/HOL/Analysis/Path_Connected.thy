@@ -1063,6 +1063,9 @@ subsection \<open>Shift Path to Start at Some Given Point\<close>
 definition\<^marker>\<open>tag important\<close> shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
 
+lemma shiftpath_alt_def: "shiftpath a f = (\<lambda>x. if x \<le> 1-a then f (a + x) else f (a + x - 1))"
+  by (auto simp: shiftpath_def)
+
 lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart (shiftpath a g) = g a"
   unfolding pathstart_def shiftpath_def by auto
 
@@ -1272,6 +1275,55 @@ qed
 lemma linepath_le_1:
   fixes a::"'a::linordered_idom" shows "\<lbrakk>a \<le> 1; b \<le> 1; 0 \<le> u; u \<le> 1\<rbrakk> \<Longrightarrow> (1 - u) * a + u * b \<le> 1"
   using mult_left_le [of a "1-u"] mult_left_le [of b u] by auto
+
+lemma linepath_in_path:
+  shows "x \<in> {0..1} \<Longrightarrow> linepath a b x \<in> closed_segment a b"
+  by (auto simp: segment linepath_def)
+
+lemma linepath_image_01: "linepath a b ` {0..1} = closed_segment a b"
+  by (auto simp: segment linepath_def)
+
+lemma linepath_in_convex_hull:
+    fixes x::real
+    assumes a: "a \<in> convex hull s"
+        and b: "b \<in> convex hull s"
+        and x: "0\<le>x" "x\<le>1"
+       shows "linepath a b x \<in> convex hull s"
+  apply (rule closed_segment_subset_convex_hull [OF a b, THEN subsetD])
+  using x
+  apply (auto simp: linepath_image_01 [symmetric])
+  done
+
+lemma Re_linepath: "Re(linepath (of_real a) (of_real b) x) = (1 - x)*a + x*b"
+  by (simp add: linepath_def)
+
+lemma Im_linepath: "Im(linepath (of_real a) (of_real b) x) = 0"
+  by (simp add: linepath_def)
+
+lemma bounded_linear_linepath:
+  assumes "bounded_linear f"
+  shows   "f (linepath a b x) = linepath (f a) (f b) x"
+proof -
+  interpret f: bounded_linear f by fact
+  show ?thesis by (simp add: linepath_def f.add f.scale)
+qed
+
+lemma bounded_linear_linepath':
+  assumes "bounded_linear f"
+  shows   "f \<circ> linepath a b = linepath (f a) (f b)"
+  using bounded_linear_linepath[OF assms] by (simp add: fun_eq_iff)
+
+lemma linepath_cnj': "cnj \<circ> linepath a b = linepath (cnj a) (cnj b)"
+  by (simp add: linepath_def fun_eq_iff)
+
+lemma differentiable_linepath [intro]: "linepath a b differentiable at x within A"
+  by (auto simp: linepath_def)
+
+lemma has_vector_derivative_linepath_within:
+    "(linepath a b has_vector_derivative (b - a)) (at x within s)"
+apply (simp add: linepath_def has_vector_derivative_def algebra_simps)
+apply (rule derivative_eq_intros | simp)+
+done
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Segments via convex hulls\<close>
@@ -4002,5 +4054,61 @@ lemma homeomorphism_into_1d:
   assumes "path_connected S" "continuous_on S f" "f ` S = T" "inj_on f S"
   shows "\<exists>g. homeomorphism S T f g"
   using assms injective_into_1d_eq_homeomorphism by blast
+
+
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Rectangular paths\<close>
+
+definition\<^marker>\<open>tag unimportant\<close> rectpath where
+  "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
+                      in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"
+
+lemma path_rectpath [simp, intro]: "path (rectpath a b)"
+  by (simp add: Let_def rectpath_def)
+
+lemma pathstart_rectpath [simp]: "pathstart (rectpath a1 a3) = a1"
+  by (simp add: rectpath_def Let_def)
+
+lemma pathfinish_rectpath [simp]: "pathfinish (rectpath a1 a3) = a1"
+  by (simp add: rectpath_def Let_def)
+
+lemma simple_path_rectpath [simp, intro]:
+  assumes "Re a1 \<noteq> Re a3" "Im a1 \<noteq> Im a3"
+  shows   "simple_path (rectpath a1 a3)"
+  unfolding rectpath_def Let_def using assms
+  by (intro simple_path_join_loop arc_join arc_linepath)
+     (auto simp: complex_eq_iff path_image_join closed_segment_same_Re closed_segment_same_Im)
+
+lemma path_image_rectpath:
+  assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
+  shows "path_image (rectpath a1 a3) =
+           {z. Re z \<in> {Re a1, Re a3} \<and> Im z \<in> {Im a1..Im a3}} \<union>
+           {z. Im z \<in> {Im a1, Im a3} \<and> Re z \<in> {Re a1..Re a3}}" (is "?lhs = ?rhs")
+proof -
+  define a2 a4 where "a2 = Complex (Re a3) (Im a1)" and "a4 = Complex (Re a1) (Im a3)"
+  have "?lhs = closed_segment a1 a2 \<union> closed_segment a2 a3 \<union>
+                  closed_segment a4 a3 \<union> closed_segment a1 a4"
+    by (simp_all add: rectpath_def Let_def path_image_join closed_segment_commute
+                      a2_def a4_def Un_assoc)
+  also have "\<dots> = ?rhs" using assms
+    by (auto simp: rectpath_def Let_def path_image_join a2_def a4_def
+          closed_segment_same_Re closed_segment_same_Im closed_segment_eq_real_ivl)
+  finally show ?thesis .
+qed
+
+lemma path_image_rectpath_subset_cbox:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) \<subseteq> cbox a b"
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff)
+
+lemma path_image_rectpath_inter_box:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) \<inter> box a b = {}"
+  using assms by (auto simp: path_image_rectpath in_box_complex_iff)
+
+lemma path_image_rectpath_cbox_minus_box:
+  assumes "Re a \<le> Re b" "Im a \<le> Im b"
+  shows   "path_image (rectpath a b) = cbox a b - box a b"
+  using assms by (auto simp: path_image_rectpath in_cbox_complex_iff
+                             in_box_complex_iff)
 
 end

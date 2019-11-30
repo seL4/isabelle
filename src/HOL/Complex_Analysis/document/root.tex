@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{latexsym}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{pdfsetup}
+
+\usepackage{tocloft}
+
+\urlstyle{rm}
+\isabellestyle{literalunderscore}
+\pagestyle{myheadings}
+
+\raggedbottom
+
+\begin{document}
+
+\title{Complex Analysis}
+\maketitle
+
+\tableofcontents
+
+\begin{center}
+  \includegraphics[height=\textheight]{session_graph}
+\end{center}
+
+\newpage
+
+\renewcommand{\setisabellecontext}[1]{\markright{\href{#1.html}{#1.thy}}}
+
+\parindent 0pt\parskip 0.5ex
+\input{session}
+
+\pagestyle{headings}
+\bibliographystyle{abbrv}
+\bibliography{root}
+\nocite{dummy}
+
+\end{document}

@@ -35,16 +35,14 @@ theory Analysis
   Weierstrass_Theorems
   Polytope
   Jordan_Curve
-  Winding_Numbers
-  Riemann_Mapping
   Poly_Roots
-  Conformal_Mappings
-  FPS_Convergence
   Generalised_Binomial_Theorem
   Gamma_Function
   Change_Of_Vars
   Multivariate_Analysis
   Simplex_Content
+  FPS_Convergence
+  Smooth_Paths
 begin
 
 end
