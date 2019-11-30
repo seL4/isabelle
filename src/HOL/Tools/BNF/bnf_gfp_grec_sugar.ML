@@ -1630,21 +1630,21 @@ fun extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z 
 
     val ssig_bnf = #fp_bnf ssig_fp_sugar;
 
-    val (dead_ssig_bnf, lthy) = bnf_kill_all_but 1 ssig_bnf lthy;
+    val (dead_ssig_bnf, lthy') = bnf_kill_all_but 1 ssig_bnf lthy;
 
     val dead_pre_rel = mk_rel preT dead_pre_bnf;
     val dead_k_rel = mk_rel k_T dead_k_bnf;
     val dead_ssig_rel = mk_rel ssig_T dead_ssig_bnf;
 
-    val (((parametric_consts, rho_rhs), rho_data), lthy) =
-      extract_rho_from_equation friend_parse_info fun_b version Y preT ssig_T fun_t parsed_eq lthy;
+    val (((parametric_consts, rho_rhs), rho_data), lthy'') =
+      extract_rho_from_equation friend_parse_info fun_b version Y preT ssig_T fun_t parsed_eq lthy';
 
-    val const_transfer_goals = map (mk_const_transfer_goal lthy) parametric_consts;
+    val const_transfer_goals = map (mk_const_transfer_goal lthy'') parametric_consts;
 
     val rho_transfer_goal =
-      mk_rho_parametricity_goal lthy Y Z preT ssig_T dead_pre_rel dead_k_rel dead_ssig_rel rho_rhs;
+      mk_rho_parametricity_goal lthy'' Y Z preT ssig_T dead_pre_rel dead_k_rel dead_ssig_rel rho_rhs;
   in
-    ((rho_data, (const_transfer_goals, rho_transfer_goal)), lthy)
+    ((rho_data, (const_transfer_goals, rho_transfer_goal)), lthy'')
   end;
 
 fun explore_corec_equation ctxt could_be_friend friend fun_name fun_free
@@ -1814,12 +1814,12 @@ fun add_function binding parsed_eq lthy =
     fun pat_completeness_auto ctxt =
       Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt;
 
-    val ({defname, pelims = [[pelim]], pinducts = [pinduct], psimps = [psimp], ...}, lthy) =
+    val ({defname, pelims = [[pelim]], pinducts = [pinduct], psimps = [psimp], ...}, lthy') =
       Function.add_function [(Binding.concealed binding, NONE, NoSyn)]
         [(((Binding.concealed Binding.empty, []), parsed_eq), [], [])]
         Function_Common.default_config pat_completeness_auto lthy;
   in
-    ((defname, (pelim, pinduct, psimp)), lthy)
+    ((defname, (pelim, pinduct, psimp)), lthy')
   end;
 
 fun build_corecUU_arg_and_goals prove_termin (Free (fun_base_name, _)) (arg_ts, explored_rhs) lthy =
@@ -1983,48 +1983,48 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
       (* FIXME: does this work with locales that fix variables? *)
 
     val no_base = has_no_corec_info lthy fpT_name;
-    val lthy = lthy |> no_base ? setup_base fpT_name;
+    val lthy1 = lthy |> no_base ? setup_base fpT_name;
 
-    fun extract_rho lthy =
+    fun extract_rho lthy' =
       let
-        val lthy = lthy |> Variable.declare_typ fun_T;
+        val lthy'' = lthy' |> Variable.declare_typ fun_T;
         val (prepared as (_, _, version, Y, Z, preT, k_T, ssig_T, dead_pre_bnf, dead_k_bnf, _,
-               ssig_fp_sugar, buffer), lthy) =
-          prepare_friend_corec fun_name fun_T lthy;
-        val friend_parse_info = friend_parse_info_of lthy arg_Ts res_T buffer;
+               ssig_fp_sugar, buffer), lthy''') =
+          prepare_friend_corec fun_name fun_T lthy'';
+        val friend_parse_info = friend_parse_info_of lthy''' arg_Ts res_T buffer;
 
         val parsed_eq' = parsed_eq ||> subst_atomic [(fun_free, fun_t)];
       in
-        lthy
+        lthy'''
         |> extract_rho_return_transfer_goals b version dead_pre_bnf dead_k_bnf Y Z preT k_T ssig_T
           ssig_fp_sugar friend_parse_info fun_t parsed_eq'
         |>> pair prepared
       end;
 
-    val ((prepareds, (rho_datas, transfer_goal_datas)), lthy) =
-      if friend then extract_rho lthy |>> (apfst single ##> (apfst single #> apsnd single))
-      else (([], ([], [])), lthy);
+    val ((prepareds, (rho_datas, transfer_goal_datas)), lthy2) =
+      if friend then extract_rho lthy1 |>> (apfst single ##> (apfst single #> apsnd single))
+      else (([], ([], [])), lthy1);
 
-    val ((buffer, corec_infos), lthy) =
+    val ((buffer, corec_infos), lthy3) =
       if friend then
-        ((#13 (the_single prepareds), []), lthy)
+        ((#13 (the_single prepareds), []), lthy2)
       else
-        corec_info_of res_T lthy
+        corec_info_of res_T lthy2
         ||> no_base ? update_coinduct_cong_intross_dynamic fpT_name
         |>> (fn info as {buffer, ...} => (buffer, [info]));
 
-    val corec_parse_info = corec_parse_info_of lthy arg_Ts res_T buffer;
+    val corec_parse_info = corec_parse_info_of lthy3 arg_Ts res_T buffer;
 
     val explored_eq =
-      explore_corec_equation lthy true friend fun_name fun_free corec_parse_info res_T parsed_eq;
+      explore_corec_equation lthy3 true friend fun_name fun_free corec_parse_info res_T parsed_eq;
 
-    val (((inner_fp_triple, termin_goals), corecUU_arg), lthy) =
-      build_corecUU_arg_and_goals (not long_cmd) fun_free explored_eq lthy;
+    val (((inner_fp_triple, termin_goals), corecUU_arg), lthy4) =
+      build_corecUU_arg_and_goals (not long_cmd) fun_free explored_eq lthy3;
 
     fun def_fun (inner_fp_elims0, inner_fp_inducts0, inner_fp_simps0) const_transfers
-        rho_transfers_foldeds lthy =
+        rho_transfers_foldeds lthy5 =
       let
-        fun register_friend lthy =
+        fun register_friend lthy' =
           let
             val [(old_corec_info, fp_b, version, Y, Z, _, k_T, _, _, dead_k_bnf, sig_fp_sugar,
                   ssig_fp_sugar, _)] = prepareds;
@@ -2035,35 +2035,35 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
             val rho_transfer_folded =
               (case rho_transfers_foldeds of
                 [] =>
-                derive_rho_transfer_folded lthy fpT_name const_transfers rho_def rho_transfer_goal
+                derive_rho_transfer_folded lthy' fpT_name const_transfers rho_def rho_transfer_goal
               | [thm] => thm);
           in
-            lthy
+            lthy'
             |> register_coinduct_dynamic_friend fpT_name fun_name
             |> register_friend_corec fun_name fp_b version Y Z k_T dead_k_bnf sig_fp_sugar
               ssig_fp_sugar fun_t rho rho_transfer_folded old_corec_info
           end;
 
-        val (friend_infos, lthy) = lthy |> (if friend then register_friend #>> single else pair []);
-        val (corec_info as {corecUU = corecUU0, ...}, lthy) =
+        val (friend_infos, lthy6) = lthy5 |> (if friend then register_friend #>> single else pair []);
+        val (corec_info as {corecUU = corecUU0, ...}, lthy7) =
           (case corec_infos of
-            [] => corec_info_of res_T lthy
-          | [info] => (info, lthy));
+            [] => corec_info_of res_T lthy6
+          | [info] => (info, lthy6));
 
-        val def_rhs = mk_corec_fun_def_rhs lthy arg_Ts corecUU0 corecUU_arg;
+        val def_rhs = mk_corec_fun_def_rhs lthy7 arg_Ts corecUU0 corecUU_arg;
         val def = ((b, mx), ((Binding.concealed (Thm.def_binding b), []), def_rhs));
 
-        val ((fun_t0, (_, fun_def0)), (lthy, lthy_old)) = lthy
+        val ((fun_t0, (_, fun_def0)), (lthy9, lthy8')) = lthy7
           |> Local_Theory.open_target |> snd
           |> Local_Theory.define def
-          |> tap (fn (def, lthy) => print_def_consts int [def] lthy)
+          |> tap (fn (def, lthy') => print_def_consts int [def] lthy')
           ||> `Local_Theory.close_target;
 
-        val parsed_eq = parse_corec_equation lthy [fun_free] eq;
-        val views0 = generate_views lthy eq fun_free parsed_eq;
+        val parsed_eq = parse_corec_equation lthy9 [fun_free] eq;
+        val views0 = generate_views lthy9 eq fun_free parsed_eq;
 
-        val lthy' = lthy |> fold Variable.declare_typ (res_T :: arg_Ts);
-        val phi = Proof_Context.export_morphism lthy_old lthy';
+        val lthy9' = lthy9 |> fold Variable.declare_typ (res_T :: arg_Ts);
+        val phi = Proof_Context.export_morphism lthy8' lthy9';
 
         val fun_t = Morphism.term phi fun_t0; (* FIXME: shadows "fun_t" -- identical? *)
         val fun_def = Morphism.thm phi fun_def0;
@@ -2072,16 +2072,16 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val inner_fp_simps = map (Morphism.thm phi) inner_fp_simps0;
         val (code_goal, _, _, _, _) = morph_views phi views0;
 
-        fun derive_and_note_friend_extra_theorems lthy =
+        fun derive_and_note_friend_extra_theorems lthy' =
           let
             val k_T = #7 (the_single prepareds);
             val rho_def = snd (the_single rho_datas);
 
-            val (eq_algrho, algrho_eq) = derive_eq_algrho lthy corec_info (the_single friend_infos)
+            val (eq_algrho, algrho_eq) = derive_eq_algrho lthy' corec_info (the_single friend_infos)
               fun_t k_T code_goal const_transfers rho_def fun_def;
 
             val notes =
-              (if Config.get lthy bnf_internals then
+              (if Config.get lthy' bnf_internals then
                  [(eq_algrhoN, [eq_algrho])]
                else
                  [])
@@ -2090,14 +2090,14 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
                     (Binding.qualify false friendN (Binding.name thmN)), []),
                  [(thms, [])]));
           in
-            lthy
+            lthy'
             |> register_friend_extra fun_name eq_algrho algrho_eq
             |> Local_Theory.notes notes |> snd
           end;
 
-        val lthy = lthy |> friend ? derive_and_note_friend_extra_theorems;
+        val lthy10 = lthy9 |> friend ? derive_and_note_friend_extra_theorems;
 
-        val code_thm = derive_code lthy inner_fp_simps code_goal corec_info fun_t fun_def;
+        val code_thm = derive_code lthy10 inner_fp_simps code_goal corec_info fun_t fun_def;
 (* TODO:
         val ctr_thmss = map mk_thm (#2 views);
         val disc_thmss = map mk_thm (#3 views);
@@ -2107,7 +2107,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
 
         val uniques =
           if null inner_fp_simps then
-            [derive_unique lthy phi (#1 views0) corec_info fpT_name fun_def]
+            [derive_unique lthy10 phi (#1 views0) corec_info fpT_name fun_def]
           else
             [];
 
@@ -2117,7 +2117,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val simp_thmss = map2 append disc_iff_or_disc_thmss sel_thmss;
 *)
 
-        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
+        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy11) = lthy10
           |> derive_and_update_coinduct_cong_intross [corec_info];
         val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
@@ -2134,7 +2134,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
            (inner_inductN, inner_fp_inducts, []),
            (uniqueN, uniques, [])] @
            map (fn (thmN, thms) => (thmN, thms, [])) cong_intros_pairs @
-          (if Config.get lthy bnf_internals then
+          (if Config.get lthy11 bnf_internals then
              [(inner_elimN, inner_fp_elims, []),
               (inner_simpN, inner_fp_simps, [])]
            else
@@ -2152,7 +2152,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
                [(thms, [])]))
           |> filter_out (null o fst o hd o snd);
       in
-        lthy
+        lthy11
 (* TODO:
         |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.equational ([fun_t0], flat ctr_thmss)
@@ -2177,16 +2177,16 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
     val const_transfer_goals = fold (union (op aconv) o fst) transfer_goal_datas [];
     val (const_transfers, const_transfer_goals') =
       if long_cmd then ([], const_transfer_goals)
-      else fold (maybe_prove_transfer_goal lthy) const_transfer_goals ([], []);
+      else fold (maybe_prove_transfer_goal lthy4) const_transfer_goals ([], []);
   in
     ((def_fun, (([res_T], prepareds, rho_datas, map snd transfer_goal_datas),
-        (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals'))), lthy)
+        (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals'))), lthy4)
   end;
 
 fun corec_cmd int opts (raw_fixes, raw_eq) lthy =
   let
     val ((def_fun, (_, (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals))),
-         lthy) =
+         lthy') =
       prepare_corec_ursive_cmd int false opts (raw_fixes, raw_eq) lthy;
   in
     if not (null termin_goals) then
@@ -2196,32 +2196,32 @@ fun corec_cmd int opts (raw_fixes, raw_eq) lthy =
       error ("Transfer prover failed (try " ^ quote (#1 \<^command_keyword>\<open>corecursive\<close>) ^
         " instead of " ^ quote (#1 \<^command_keyword>\<open>corec\<close>) ^ ")")
     else
-      def_fun inner_fp_triple const_transfers [] lthy
+      def_fun inner_fp_triple const_transfers [] lthy'
   end;
 
 fun corecursive_cmd int opts (raw_fixes, raw_eq) lthy =
   let
     val ((def_fun, (([Type (fpT_name, _)], prepareds, rho_datas, rho_transfer_goals),
-            (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals))), lthy) =
+            (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals))), lthy') =
       prepare_corec_ursive_cmd int true opts (raw_fixes, raw_eq) lthy;
 
     val (rho_transfer_goals', unprime_rho_transfer_and_folds) =
       @{map 3} (fn (_, _, _, _, _, _, _, _, _, _, _, _, _) => fn (_, rho_def) =>
-          prime_rho_transfer_goal lthy fpT_name rho_def)
+          prime_rho_transfer_goal lthy' fpT_name rho_def)
         prepareds rho_datas rho_transfer_goals
       |> split_list;
   in
     Proof.theorem NONE (fn [termin_thms, const_transfers', rho_transfers'] =>
       let
         val remove_domain_condition =
-          full_simplify (put_simpset HOL_basic_ss lthy
+          full_simplify (put_simpset HOL_basic_ss lthy'
             addsimps (@{thm True_implies_equals} :: termin_thms));
       in
         def_fun (@{apply 3} (map remove_domain_condition) inner_fp_triple)
           (const_transfers @ const_transfers')
           (map2 (fn f => f) unprime_rho_transfer_and_folds rho_transfers')
       end)
-      (map (map (rpair [])) [termin_goals, const_transfer_goals, rho_transfer_goals']) lthy
+      (map (map (rpair [])) [termin_goals, const_transfer_goals, rho_transfer_goals']) lthy'
   end;
 
 fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
@@ -2248,24 +2248,24 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
     val (arg_Ts, res_T as Type (fpT_name, _)) = strip_type fun_T;
 
     val no_base = has_no_corec_info lthy fpT_name;
-    val lthy = lthy |> no_base ? setup_base fpT_name;
+    val lthy1 = lthy |> no_base ? setup_base fpT_name;
 
-    val lthy = lthy |> Variable.declare_typ fun_T;
+    val lthy2 = lthy1 |> Variable.declare_typ fun_T;
     val ((old_corec_info, fp_b, version, Y, Z, preT, k_T, ssig_T, dead_pre_bnf, dead_k_bnf,
-          sig_fp_sugar, ssig_fp_sugar, buffer), lthy) =
-      prepare_friend_corec fun_name fun_T lthy;
-    val friend_parse_info = friend_parse_info_of lthy arg_Ts res_T buffer;
+          sig_fp_sugar, ssig_fp_sugar, buffer), lthy3) =
+      prepare_friend_corec fun_name fun_T lthy2;
+    val friend_parse_info = friend_parse_info_of lthy3 arg_Ts res_T buffer;
 
-    val parsed_eq = parse_corec_equation lthy [] code_goal;
+    val parsed_eq = parse_corec_equation lthy3 [] code_goal;
 
-    val (((rho, rho_def), (const_transfer_goals, rho_transfer_goal)), lthy) =
+    val (((rho, rho_def), (const_transfer_goals, rho_transfer_goal)), lthy4) =
       extract_rho_return_transfer_goals fun_b version dead_pre_bnf dead_k_bnf Y Z preT k_T ssig_T
-        ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy;
+        ssig_fp_sugar friend_parse_info fun_t parsed_eq lthy3;
 
     fun register_friend_extra_and_note_thms code_goal code_thm const_transfers k_T friend_info
-        lthy =
+        lthy5 =
       let
-        val (corec_info, lthy) = corec_info_of res_T lthy;
+        val (corec_info, lthy6) = corec_info_of res_T lthy5;
 
         val fun_free = Free (Binding.name_of fun_b, fun_T);
 
@@ -2273,25 +2273,25 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
           | freeze_fun t = t;
 
         val eq = Term.map_aterms freeze_fun code_goal;
-        val parsed_eq = parse_corec_equation lthy [fun_free] eq;
+        val parsed_eq = parse_corec_equation lthy6 [fun_free] eq;
 
-        val corec_parse_info = corec_parse_info_of lthy arg_Ts res_T buffer;
-        val explored_eq = explore_corec_equation lthy false false fun_name fun_free corec_parse_info
+        val corec_parse_info = corec_parse_info_of lthy6 arg_Ts res_T buffer;
+        val explored_eq = explore_corec_equation lthy6 false false fun_name fun_free corec_parse_info
           res_T parsed_eq;
 
-        val ((_, corecUU_arg), _) = build_corecUU_arg_and_goals false fun_free explored_eq lthy;
+        val ((_, corecUU_arg), _) = build_corecUU_arg_and_goals false fun_free explored_eq lthy6;
 
-        val eq_corecUU = derive_eq_corecUU lthy corec_info fun_t corecUU_arg code_thm;
-        val (eq_algrho, algrho_eq) = derive_eq_algrho lthy corec_info friend_info fun_t k_T
+        val eq_corecUU = derive_eq_corecUU lthy6 corec_info fun_t corecUU_arg code_thm;
+        val (eq_algrho, algrho_eq) = derive_eq_algrho lthy6 corec_info friend_info fun_t k_T
           code_goal const_transfers rho_def eq_corecUU;
 
-        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
+        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy7) = lthy6
           |> register_friend_extra fun_name eq_algrho algrho_eq
           |> register_coinduct_dynamic_friend fpT_name fun_name
           |> derive_and_update_coinduct_cong_intross [corec_info];
         val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
-        val unique = derive_unique lthy Morphism.identity code_goal corec_info fpT_name eq_corecUU;
+        val unique = derive_unique lthy7 Morphism.identity code_goal corec_info fpT_name eq_corecUU;
 
         val notes =
           [(codeN, [code_thm], []),
@@ -2299,7 +2299,7 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
            (cong_introsN, maps snd cong_intros_pairs, []),
            (uniqueN, [unique], [])] @
            map (fn (thmN, thms) => (thmN, thms, [])) cong_intros_pairs @
-          (if Config.get lthy bnf_internals then
+          (if Config.get lthy7 bnf_internals then
              [(eq_algrhoN, [eq_algrho], []),
               (eq_corecUUN, [eq_corecUU], [])]
            else
@@ -2309,14 +2309,14 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
                 (Binding.qualify false friendN (Binding.name thmN)), attrs),
              [(thms, [])]));
       in
-        lthy
+        lthy7
         |> Local_Theory.notes notes |> snd
       end;
 
     val (rho_transfer_goal', unprime_rho_transfer_and_fold) =
-      prime_rho_transfer_goal lthy fpT_name rho_def rho_transfer_goal;
+      prime_rho_transfer_goal lthy4 fpT_name rho_def rho_transfer_goal;
   in
-    lthy
+    lthy4
     |> Proof.theorem NONE (fn [[code_thm], const_transfers, [rho_transfer']] =>
         register_friend_corec fun_name fp_b version Y Z k_T dead_k_bnf sig_fp_sugar ssig_fp_sugar
           fun_t rho (unprime_rho_transfer_and_fold rho_transfer') old_corec_info
@@ -2331,13 +2331,13 @@ fun coinduction_upto_cmd (base_name, raw_fpT) lthy =
 
     val no_base = has_no_corec_info lthy fpT_name;
 
-    val (corec_info as {version, ...}, lthy) = lthy
+    val (corec_info as {version, ...}, lthy1) = lthy
       |> corec_info_of fpT;
-    val lthy = lthy |> no_base ? setup_base fpT_name;
+    val lthy2 = lthy1 |> no_base ? setup_base fpT_name;
 
-    val ((changed, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
+    val ((changed, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy3) = lthy2
       |> derive_and_update_coinduct_cong_intross [corec_info];
-    val lthy = lthy |> (changed orelse no_base) ? update_coinduct_cong_intross_dynamic fpT_name;
+    val lthy4 = lthy3 |> (changed orelse no_base) ? update_coinduct_cong_intross_dynamic fpT_name;
     val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
     val notes =
@@ -2349,16 +2349,16 @@ fun coinduction_upto_cmd (base_name, raw_fpT) lthy =
             (Binding.qualify false ("v" ^ string_of_int version) (Binding.name thmN))), attrs),
          [(thms, [])]));
   in
-    lthy |> Local_Theory.notes notes |> snd
+    lthy4 |> Local_Theory.notes notes |> snd
   end;
 
 fun consolidate lthy =
   let
     val corec_infoss = map (corec_infos_of lthy o fst) (all_codatatype_extras_of lthy);
-    val (changeds, lthy) = lthy
+    val (changeds, lthy') = lthy
       |> fold_map (apfst fst oo derive_and_update_coinduct_cong_intross) corec_infoss;
   in
-    if exists I changeds then lthy else raise Same.SAME
+    if exists I changeds then lthy' else raise Same.SAME
   end;
 
 fun consolidate_global thy =
