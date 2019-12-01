@@ -4053,4 +4053,6 @@ lemma complex_not_root_unity:
   apply (auto simp: Re_complex_div_eq_0 exp_of_nat_mult [symmetric] mult_ac exp_Euler)
   done
 
+
+
 end

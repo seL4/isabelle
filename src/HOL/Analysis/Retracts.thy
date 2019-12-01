@@ -2591,4 +2591,51 @@ lemma connected_complement_homeomorphic_interval:
   shows "connected(-S)"
   using assms path_connected_complement_homeomorphic_interval path_connected_imp_connected by blast
 
+
+lemma path_connected_arc_complement:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>" "2 \<le> DIM('a)"
+  shows "path_connected(- path_image \<gamma>)"
+proof -
+  have "path_image \<gamma> homeomorphic {0..1::real}"
+    by (simp add: assms homeomorphic_arc_image_interval)
+  then
+  show ?thesis
+    apply (rule path_connected_complement_homeomorphic_convex_compact)
+      apply (auto simp: assms)
+    done
+qed
+
+lemma connected_arc_complement:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>" "2 \<le> DIM('a)"
+  shows "connected(- path_image \<gamma>)"
+  by (simp add: assms path_connected_arc_complement path_connected_imp_connected)
+
+lemma inside_arc_empty:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "arc \<gamma>"
+    shows "inside(path_image \<gamma>) = {}"
+proof (cases "DIM('a) = 1")
+  case True
+  then show ?thesis
+    using assms connected_arc_image connected_convex_1_gen inside_convex by blast
+next
+  case False
+  show ?thesis
+  proof (rule inside_bounded_complement_connected_empty)
+    show "connected (- path_image \<gamma>)"
+      apply (rule connected_arc_complement [OF assms])
+      using False
+      by (metis DIM_ge_Suc0 One_nat_def Suc_1 not_less_eq_eq order_class.order.antisym)
+    show "bounded (path_image \<gamma>)"
+      by (simp add: assms bounded_arc_image)
+  qed
+qed
+
+lemma inside_simple_curve_imp_closed:
+  fixes \<gamma> :: "real \<Rightarrow> 'a::euclidean_space"
+    shows "\<lbrakk>simple_path \<gamma>; x \<in> inside(path_image \<gamma>)\<rbrakk> \<Longrightarrow> pathfinish \<gamma> = pathstart \<gamma>"
+  using arc_simple_path  inside_arc_empty by blast
+
 end

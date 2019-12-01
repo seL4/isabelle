@@ -5,12 +5,10 @@ text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2016)\
 text\<open>Also Cauchy's residue theorem by Wenda Li (2016)\<close>
 
 theory Conformal_Mappings
-imports Cauchy_Integral_Theorem
-
+imports Cauchy_Integral_Formula
 begin
 
-(* FIXME mv to Cauchy_Integral_Theorem.thy *)
-subsection\<open>Cauchy's inequality and more versions of Liouville\<close>
+subsection\<open>Liouville's theorem\<close>
 
 lemma Cauchy_higher_deriv_bound:
     assumes holf: "f holomorphic_on (ball z r)"
@@ -54,6 +52,7 @@ proof -
     using \<open>0 < r\<close>
     by (auto simp: norm_divide norm_mult norm_power field_simps der_dif le_B0)
 qed
+
 
 lemma Cauchy_inequality:
     assumes holf: "f holomorphic_on (ball \<xi> r)"

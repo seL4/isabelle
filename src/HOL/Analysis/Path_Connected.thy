@@ -4003,4 +4003,5 @@ lemma homeomorphism_into_1d:
   shows "\<exists>g. homeomorphism S T f g"
   using assms injective_into_1d_eq_homeomorphism by blast
 
+
 end
