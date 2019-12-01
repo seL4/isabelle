@@ -711,13 +711,17 @@ object Export_Theory
 
 
   sealed case class Spec_Rule(
+    pos: Position.T,
     name: String,
     rough_classification: Rough_Classification,
     terms: List[Term.Term],
     rules: List[Prop])
   {
+    def id: Option[Long] = Position.Id.unapply(pos)
+
     def cache(cache: Term.Cache): Spec_Rule =
       Spec_Rule(
+        cache.position(pos),
         cache.string(name),
         rough_classification.cache(cache),
         terms.map(cache.term(_)),
@@ -731,10 +735,11 @@ object Export_Theory
     {
       import XML.Decode._
       import Term_XML.Decode._
-      list(pair(string, pair(decode_rough_classification, pair(list(term), list(decode_prop)))))(
-        body)
+      list(
+        pair(properties, pair(string, pair(decode_rough_classification,
+        pair(list(term), list(decode_prop))))))(body)
     }
-    for ((name, (rough_classification, (terms, rules))) <- spec_rules)
-      yield Spec_Rule(name, rough_classification, terms, rules)
+    for ((pos, (name, (rough_classification, (terms, rules)))) <- spec_rules)
+      yield Spec_Rule(pos, name, rough_classification, terms, rules)
   }
 }

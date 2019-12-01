@@ -28,7 +28,11 @@ sig
   val is_unknown: rough_classification -> bool
   val encode_rough_classification: rough_classification XML.Encode.T
   type spec =
-    {name: string, rough_classification: rough_classification, terms: term list, rules: thm list}
+   {pos: Position.T,
+    name: string,
+    rough_classification: rough_classification,
+    terms: term list,
+    rules: thm list}
   val get: Proof.context -> spec list
   val get_global: theory -> spec list
   val dest_theory: theory -> spec list
@@ -97,7 +101,11 @@ val encode_rough_classification =
 (* rules *)
 
 type spec =
-  {name: string, rough_classification: rough_classification, terms: term list, rules: thm list};
+ {pos: Position.T,
+  name: string,
+  rough_classification: rough_classification,
+  terms: term list,
+  rules: thm list};
 
 fun eq_spec (specs: spec * spec) =
   (op =) (apply2 #name specs) andalso
@@ -105,8 +113,9 @@ fun eq_spec (specs: spec * spec) =
   eq_list (op aconv) (apply2 #terms specs) andalso
   eq_list Thm.eq_thm_prop (apply2 #rules specs);
 
-fun map_spec_rules f ({name, rough_classification, terms, rules}: spec) : spec =
-  {name = name, rough_classification = rough_classification, terms = terms, rules = map f rules};
+fun map_spec_rules f ({pos, name, rough_classification, terms, rules}: spec) : spec =
+  {pos = pos, name = name, rough_classification = rough_classification, terms = terms,
+    rules = map f rules};
 
 structure Rules = Generic_Data
 (
@@ -150,7 +159,10 @@ val retrieve_global = retrieve_generic o Context.Theory;
 (* add *)
 
 fun add name rough_classification terms rules lthy =
-  let val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules) in
+  let
+    val pos = Position.thread_data ();
+    val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules);
+  in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => fn context =>
         let
@@ -162,14 +174,14 @@ fun add name rough_classification terms rules lthy =
             ||> map Thm.trim_context;
         in
           context |> (Rules.map o Item_Net.update)
-            {name = name, rough_classification = rough_classification,
+            {pos = pos, name = name, rough_classification = rough_classification,
               terms = terms', rules = rules'}
         end)
   end;
 
 fun add_global name rough_classification terms rules =
   (Context.theory_map o Rules.map o Item_Net.update)
-    {name = name, rough_classification = rough_classification,
+    {pos = Position.thread_data (), name = name, rough_classification = rough_classification,
       terms = terms, rules = map Thm.trim_context rules};
 
 end;

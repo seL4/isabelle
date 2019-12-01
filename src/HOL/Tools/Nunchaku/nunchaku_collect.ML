@@ -500,7 +500,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
 
     val specs =
       if s = \<^const_name>\<open>The\<close> then
-        [{name = "", rough_classification = Spec_Rules.Unknown,
+        [{pos = Position.none, name = "", rough_classification = Spec_Rules.Unknown,
           terms = [Logic.varify_global \<^term>\<open>The\<close>],
           rules = [@{thm theI_unique}]}]
       else if s = \<^const_name>\<open>finite\<close> then
@@ -508,7 +508,7 @@ fun spec_rules_of ctxt (x as (s, T)) =
           if card = Inf orelse card = Fin_or_Inf then
             spec_rules ()
           else
-            [{name = "", rough_classification = Spec_Rules.equational,
+            [{pos = Position.none, name = "", rough_classification = Spec_Rules.equational,
               terms = [Logic.varify_global \<^term>\<open>finite\<close>],
               rules = [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]}]
         end

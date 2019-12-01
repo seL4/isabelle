@@ -402,15 +402,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* spec rules *)
 
-    fun encode_spec {name, rough_classification, terms, rules} =
+    fun encode_spec {pos, name, rough_classification, terms, rules} =
       let
         val terms' = map Logic.unvarify_global terms;
         val rules' = map (fn rule => #1 (standard_prop_of (prep_thm rule) NONE)) rules;
         open XML.Encode;
       in
-        pair string (pair Spec_Rules.encode_rough_classification
-          (pair (list encode_term) (list encode_prop)))
-          (name, (rough_classification, (terms', rules')))
+        pair properties (pair string (pair Spec_Rules.encode_rough_classification
+          (pair (list encode_term) (list encode_prop))))
+          (Position.properties_of pos, (name, (rough_classification, (terms', rules'))))
       end;
 
     val _ =
