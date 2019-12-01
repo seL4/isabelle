@@ -577,6 +577,7 @@ class semiring_bits = semiring_parity +
     and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
     and bit_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
     and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
+    and exp_div_exp_eq: \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
     and div_exp_eq: \<open>a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)\<close>
     and mod_exp_eq: \<open>a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n\<close>
     and mult_exp_mod_exp_eq: \<open>m \<le> n \<Longrightarrow> (a * 2 ^ m) mod (2 ^ n) = (a mod 2 ^ (n - m)) * 2 ^ m\<close>
@@ -750,6 +751,10 @@ lemma bit_eq_rec:
   apply (metis bit_eq_iff local.mod2_eq_if local.mod_div_mult_eq)
   done
 
+lemma bit_exp_iff:
+  \<open>bit (2 ^ m) n \<longleftrightarrow> 2 ^ m \<noteq> 0 \<and> m = n\<close>
+  by (auto simp add: bit_def exp_div_exp_eq)
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -810,7 +815,7 @@ proof
     apply (auto simp add: mod_mod_cancel div_mult2_eq power_add mod_mult2_eq le_iff_add split: split_min_lin)
     apply (simp add: mult.commute)
     done
-qed (auto simp add: div_mult2_eq mod_mult2_eq power_add)
+qed (auto simp add: div_mult2_eq mod_mult2_eq power_add power_diff)
 
 lemma int_bit_induct [case_names zero minus even odd]:
   "P k" if zero_int: "P 0"
@@ -891,6 +896,24 @@ proof
     with rec [of k True] show ?case
       by (simp add: ac_simps)
   qed
+  show \<open>(2::int) ^ m div 2 ^ n = of_bool ((2::int) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
+    for m n :: nat
+  proof (cases \<open>m < n\<close>)
+    case True
+    then have \<open>n = m + (n - m)\<close>
+      by simp
+    then have \<open>(2::int) ^ m div 2 ^ n = (2::int) ^ m div 2 ^ (m + (n - m))\<close>
+      by simp
+    also have \<open>\<dots> = (2::int) ^ m div (2 ^ m * 2 ^ (n - m))\<close>
+      by (simp add: power_add)
+    also have \<open>\<dots> = (2::int) ^ m div 2 ^ m div 2 ^ (n - m)\<close>
+      by (simp add: zdiv_zmult2_eq)
+    finally show ?thesis using \<open>m < n\<close> by simp
+  next
+    case False
+    then show ?thesis
+      by (simp add: power_diff)
+  qed
   show \<open>k mod 2 ^ m mod 2 ^ n = k mod 2 ^ min m n\<close>
     for m n :: nat and k :: int
     using mod_exp_eq [of \<open>nat k\<close> m n]
@@ -905,7 +928,7 @@ proof
     apply (auto simp add: power_add zmod_zmult2_eq le_iff_add split: split_min_lin)
     apply (simp add: ac_simps)
     done
-qed (auto simp add: zdiv_zmult2_eq zmod_zmult2_eq power_add)
+qed (auto simp add: zdiv_zmult2_eq zmod_zmult2_eq power_add power_diff not_le)
 
 class semiring_bit_shifts = semiring_bits +
   fixes push_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>

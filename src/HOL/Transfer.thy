@@ -642,13 +642,25 @@ unfolding map_fun_def[abs_def] by transfer_prover
 end
 
 
-subsection \<open>\<^const>\<open>of_nat\<close>\<close>
+subsection \<open>\<^const>\<open>of_bool\<close> and \<^const>\<open>of_nat\<close>\<close>
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_of_bool:
+  \<open>((\<longleftrightarrow>) ===> (\<cong>)) of_bool of_bool\<close>
+    if [transfer_rule]: \<open>0 \<cong> 0\<close> \<open>1 \<cong> 1\<close>
+    for R :: \<open>'a::zero_neq_one \<Rightarrow> 'b::zero_neq_one \<Rightarrow> bool\<close>  (infix \<open>\<cong>\<close> 50)
+  by (unfold of_bool_def [abs_def]) transfer_prover
 
 lemma transfer_rule_of_nat:
-  fixes R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"
-  assumes [transfer_rule]: "R 0 0" "R 1 1"
-    "rel_fun R (rel_fun R R) plus plus"
-  shows "rel_fun HOL.eq R of_nat of_nat"
+  "((=) ===> (\<cong>)) of_nat of_nat"
+    if [transfer_rule]: \<open>0 \<cong> 0\<close> \<open>1 \<cong> 1\<close>
+    \<open>((\<cong>) ===> (\<cong>) ===> (\<cong>)) (+) (+)\<close>
+  for R :: \<open>'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool\<close>  (infix \<open>\<cong>\<close> 50)
   by (unfold of_nat_def [abs_def]) transfer_prover
+
+end
 
 end
