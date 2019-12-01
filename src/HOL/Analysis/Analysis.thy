@@ -35,7 +35,7 @@ theory Analysis
   Weierstrass_Theorems
   Polytope
   Jordan_Curve
-  Winding_Numbers
+  Winding_Numbers_2
   Riemann_Mapping
   Poly_Roots
   Conformal_Mappings
