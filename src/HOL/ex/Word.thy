@@ -161,10 +161,16 @@ subsubsection \<open>Conversions\<close>
 
 context
   includes lifting_syntax
-  notes transfer_rule_numeral [transfer_rule]
+  notes 
+    transfer_rule_of_bool [transfer_rule]
+    transfer_rule_numeral [transfer_rule]
     transfer_rule_of_nat [transfer_rule]
     transfer_rule_of_int [transfer_rule]
 begin
+
+lemma [transfer_rule]:
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) of_bool of_bool"
+  by transfer_prover
 
 lemma [transfer_rule]:
   "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
@@ -612,6 +618,9 @@ proof
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
     using that by transfer (auto dest: le_Suc_ex)
+  show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
+    for m n :: nat
+    by transfer (simp, simp add: exp_div_exp_eq)
   show "a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)"
     for a :: "'a word" and m n :: nat
     apply transfer
@@ -636,6 +645,23 @@ proof
     apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
     done
 qed
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_bit_word:
+  \<open>((pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) ===> (=)) (\<lambda>k n. n < LENGTH('a) \<and> bit k n) bit\<close>
+proof -
+  let ?t = \<open>\<lambda>a n. odd (take_bit LENGTH('a) a div take_bit LENGTH('a) ((2::int) ^ n))\<close>
+  have \<open>((pcr_word :: int \<Rightarrow> 'a word \<Rightarrow> bool) ===> (=)) ?t bit\<close>
+    by (unfold bit_def) transfer_prover
+  also have \<open>?t = (\<lambda>k n. n < LENGTH('a) \<and> bit k n)\<close>
+    by (simp add: fun_eq_iff bit_take_bit_iff flip: bit_def)
+  finally show ?thesis .
+qed
+
+end
 
 instantiation word :: (len) semiring_bit_shifts
 begin
