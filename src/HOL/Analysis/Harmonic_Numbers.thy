@@ -8,7 +8,6 @@ theory Harmonic_Numbers
 imports
   Complex_Transcendental
   Summation_Tests
-  Integral_Test
 begin
 
 text \<open>
@@ -116,46 +115,71 @@ definition euler_mascheroni :: "'a :: real_normed_algebra_1" where
 lemma of_real_euler_mascheroni [simp]: "of_real euler_mascheroni = euler_mascheroni"
   by (simp add: euler_mascheroni_def)
 
-interpretation euler_mascheroni: antimono_fun_sum_integral_diff "\<lambda>x. inverse (x + 1)"
-  by unfold_locales (auto intro!: continuous_intros)
-
-lemma euler_mascheroni_sum_integral_diff_series:
-  "euler_mascheroni.sum_integral_diff_series n = harm (Suc n) - ln (of_nat (Suc n))"
+lemma harm_ge_ln: "harm n \<ge> ln (real n + 1)"
 proof -
-  have "harm (Suc n) = (\<Sum>k=0..n. inverse (of_nat k + 1) :: real)" unfolding harm_def
-    unfolding One_nat_def by (subst sum.shift_bounds_cl_Suc_ivl) (simp add: add_ac)
-  moreover have "((\<lambda>x. inverse (x + 1) :: real) has_integral ln (of_nat n + 1) - ln (0 + 1))
-                   {0..of_nat n}"
-    by (intro fundamental_theorem_of_calculus)
-       (auto intro!: derivative_eq_intros simp: divide_inverse
-           has_field_derivative_iff_has_vector_derivative[symmetric])
-  hence "integral {0..of_nat n} (\<lambda>x. inverse (x + 1) :: real) = ln (of_nat (Suc n))"
-    by (auto dest!: integral_unique)
-  ultimately show ?thesis
-    by (simp add: euler_mascheroni.sum_integral_diff_series_def atLeast0AtMost)
+  have "ln (n + 1) = (\<Sum>j<n. ln (real (Suc j + 1)) - ln (real (j + 1)))"
+    by (subst sum_lessThan_telescope) auto
+  also have "\<dots> \<le> (\<Sum>j<n. 1 / (Suc j))"
+  proof (intro sum_mono, clarify)
+    fix j assume j: "j < n"
+    have "\<exists>\<xi>. \<xi> > real j + 1 \<and> \<xi> < real j + 2 \<and>
+            ln (real j + 2) - ln (real j + 1) = (real j + 2 - (real j + 1)) * (1 / \<xi>)"
+      by (intro MVT2) (auto intro!: derivative_eq_intros)
+    then obtain \<xi> :: real
+      where \<xi>: "\<xi> \<in> {real j + 1..real j + 2}" "ln (real j + 2) - ln (real j + 1) = 1 / \<xi>"
+      by auto
+    note \<xi>(2)
+    also have "1 / \<xi> \<le> 1 / (Suc j)"
+      using \<xi>(1) by (auto simp: field_simps)
+    finally show "ln (real (Suc j + 1)) - ln (real (j + 1)) \<le> 1 / (Suc j)"
+      by (simp add: add_ac)
+  qed
+  also have "\<dots> = harm n"
+    by (simp add: harm_altdef field_simps)
+  finally show ?thesis by (simp add: add_ac)
+qed
+
+lemma decseq_harm_diff_ln: "decseq (\<lambda>n. harm (Suc n) - ln (Suc n))"
+proof (rule decseq_SucI)
+  fix m :: nat
+  define n where "n = Suc m"
+  have "n > 0" by (simp add: n_def)
+  have "convex_on {0<..} (\<lambda>x :: real. -ln x)"
+    by (rule convex_on_realI[where f' = "\<lambda>x. -1/x"])
+       (auto intro!: derivative_eq_intros simp: field_simps)
+  hence "(-1 / (n + 1)) * (real n - real (n + 1)) \<le> (- ln (real n)) - (-ln (real (n + 1)))"
+    using \<open>n > 0\<close> by (intro convex_on_imp_above_tangent[where A = "{0<..}"])
+                     (auto intro!: derivative_eq_intros simp: interior_open)
+  thus "harm (Suc n) - ln (Suc n) \<le> harm n - ln n"
+    by (auto simp: harm_Suc field_simps)
+qed
+
+lemma euler_mascheroni_sequence_nonneg:
+  assumes "n > 0"
+  shows   "harm n - ln (real n) \<ge> (0 :: real)"
+proof -
+  have "ln (real n) \<le> ln (real n + 1)"
+    using assms by simp
+  also have "\<dots> \<le> harm n"
+    by (rule harm_ge_ln)
+  finally show ?thesis by simp
+qed
+
+lemma euler_mascheroni_convergent: "convergent (\<lambda>n. harm n - ln n)"
+proof -
+  have "harm (Suc n) - ln (real (Suc n)) \<ge> 0" for n :: nat
+    using euler_mascheroni_sequence_nonneg[of "Suc n"] by simp
+  hence "convergent (\<lambda>n. harm (Suc n) - ln (Suc n))"
+    by (intro Bseq_monoseq_convergent decseq_bounded[of _ 0] decseq_harm_diff_ln decseq_imp_monoseq)
+       auto
+  thus ?thesis
+    by (subst (asm) convergent_Suc_iff)
 qed
 
 lemma euler_mascheroni_sequence_decreasing:
   "m > 0 \<Longrightarrow> m \<le> n \<Longrightarrow> harm n - ln (of_nat n) \<le> harm m - ln (of_nat m :: real)"
-  by (cases m, simp, cases n, simp, hypsubst,
-      subst (1 2) euler_mascheroni_sum_integral_diff_series [symmetric],
-      rule euler_mascheroni.sum_integral_diff_series_antimono, simp)
-
-lemma euler_mascheroni_sequence_nonneg:
-  "n > 0 \<Longrightarrow> harm n - ln (of_nat n) \<ge> (0::real)"
-  by (cases n, simp, hypsubst, subst euler_mascheroni_sum_integral_diff_series [symmetric],
-      rule euler_mascheroni.sum_integral_diff_series_nonneg)
-
-lemma euler_mascheroni_convergent: "convergent (\<lambda>n. harm n - ln (of_nat n) :: real)"
-proof -
-  have A: "(\<lambda>n. harm (Suc n) - ln (of_nat (Suc n))) =
-             euler_mascheroni.sum_integral_diff_series"
-    by (subst euler_mascheroni_sum_integral_diff_series [symmetric]) (rule refl)
-  have "convergent (\<lambda>n. harm (Suc n) - ln (of_nat (Suc n) :: real))"
-    by (subst A) (fact euler_mascheroni.sum_integral_diff_series_convergent)
-  thus ?thesis by (subst (asm) convergent_Suc_iff)
-qed
-
+  using decseqD[OF decseq_harm_diff_ln, of "m - 1" "n - 1"] by simp
+  
 lemma\<^marker>\<open>tag important\<close> euler_mascheroni_LIMSEQ:
   "(\<lambda>n. harm n - ln (of_nat n) :: real) \<longlonglongrightarrow> euler_mascheroni"
   unfolding euler_mascheroni_def
@@ -251,6 +275,7 @@ qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Bounds on the Euler-Mascheroni constant\<close>
+(* TODO: perhaps move this section away to remove unnecessary dependency on integration *)
 
 (* TODO: Move? *)
 lemma ln_inverse_approx_le:
@@ -258,46 +283,29 @@ lemma ln_inverse_approx_le:
   shows   "ln (x + a) - ln x \<le> a * (inverse x + inverse (x + a))/2" (is "_ \<le> ?A")
 proof -
   define f' where "f' = (inverse (x + a) - inverse x)/a"
-  have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def field_simps)
   let ?f = "\<lambda>t. (t - x) * f' + inverse x"
   let ?F = "\<lambda>t. (t - x)^2 * f' / 2 + t * inverse x"
-  have diff: "\<And>t. t \<in> {x..x+a} \<Longrightarrow> (?F has_vector_derivative ?f t) (at t within {x..x+a})" 
-    using assms
-    by (auto intro!: derivative_eq_intros
-             simp: has_field_derivative_iff_has_vector_derivative[symmetric])
-  from assms have "(?f has_integral (?F (x+a) - ?F x)) {x..x+a}"
-    by (intro fundamental_theorem_of_calculus[OF _ diff])
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_simps
-             intro!: derivative_eq_intros)
-  also have "?F (x+a) - ?F x = (a*2 + f'*a\<^sup>2*x) / (2*x)" using assms by (simp add: field_simps)
-  also have "f'*a^2 = - (a^2) / (x*(x + a))" using assms
-    by (simp add: f'_def power2_eq_square) (simp add: field_simps)
-  also have "(a*2 + - a\<^sup>2/(x*(x+a))*x) / (2*x) = ?A" using assms
-    by (simp add: power2_eq_square) (simp add: field_split_simps)
-  finally have int1: "((\<lambda>t. (t - x) * f' + inverse x) has_integral ?A) {x..x + a}" .
 
-  from assms have int2: "(inverse has_integral (ln (x + a) - ln x)) {x..x+a}"
-    by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
-             intro!: derivative_eq_intros)
-  hence "ln (x + a) - ln x = integral {x..x+a} inverse" by (simp add: integral_unique)
-  also have ineq: "\<forall>xa\<in>{x..x + a}. inverse xa \<le> (xa - x) * f' + inverse x"
-  proof
-    fix t assume t': "t \<in> {x..x+a}"
-    with assms have t: "0 \<le> (t - x) / a" "(t - x) / a \<le> 1" by simp_all
-    have "inverse t = inverse ((1 - (t - x) / a) *\<^sub>R x + ((t - x) / a) *\<^sub>R (x + a))" (is "_ = ?A")
-      using assms t' by (simp add: field_simps)
+  have deriv: "\<exists>D. ((\<lambda>x. ?F x - ln x) has_field_derivative D) (at \<xi>) \<and> D \<ge> 0"
+    if "\<xi> \<ge> x" "\<xi> \<le> x + a" for \<xi>
+  proof -
+    from that assms have t: "0 \<le> (\<xi> - x) / a" "(\<xi> - x) / a \<le> 1" by simp_all
+    have "inverse \<xi> = inverse ((1 - (\<xi> - x) / a) *\<^sub>R x + ((\<xi> - x) / a) *\<^sub>R (x + a))" (is "_ = ?A")
+      using assms by (simp add: field_simps)
     also from assms have "convex_on {x..x+a} inverse" by (intro convex_on_inverse) auto
     from convex_onD_Icc[OF this _ t] assms
-      have "?A \<le> (1 - (t - x) / a) * inverse x + (t - x) / a * inverse (x + a)" by simp
-    also have "\<dots> = (t - x) * f' + inverse x" using assms
+      have "?A \<le> (1 - (\<xi> - x) / a) * inverse x + (\<xi> - x) / a * inverse (x + a)" by simp
+    also have "\<dots> = (\<xi> - x) * f' + inverse x" using assms
       by (simp add: f'_def divide_simps) (simp add: field_simps)
-    finally show "inverse t \<le> (t - x) * f' + inverse x" .
+    finally have "?f \<xi> - 1 / \<xi> \<ge> 0" by (simp add: field_simps)
+    moreover have "((\<lambda>x. ?F x - ln x) has_field_derivative ?f \<xi> - 1 / \<xi>) (at \<xi>)"
+      using that assms by (auto intro!: derivative_eq_intros simp: field_simps)
+    ultimately show ?thesis by blast
   qed
-  hence "integral {x..x+a} inverse \<le> integral {x..x+a} ?f" using f'_nonpos assms
-    by (blast intro: integral_le has_integral_integrable[OF int1] has_integral_integrable[OF int2] ineq)
-  also have "\<dots> = ?A" using int1 by (rule integral_unique)
-  finally show ?thesis .
+  have "?F x - ln x \<le> ?F (x + a) - ln (x + a)"
+    by (rule DERIV_nonneg_imp_nondecreasing[of x "x + a", OF _ deriv]) (use assms in auto)
+  thus ?thesis
+    using assms by (simp add: f'_def divide_simps) (simp add: algebra_simps power2_eq_square)?
 qed
 
 lemma ln_inverse_approx_ge:
@@ -308,36 +316,27 @@ proof -
   define f' where "f' = -inverse (m^2)"
   from assms have m: "m > 0" by (simp add: m_def)
   let ?F = "\<lambda>t. (t - m)^2 * f' / 2 + t / m"
-  from assms have "((\<lambda>t. (t - m) * f' + inverse m) has_integral (?F y - ?F x)) {x..y}"
-    by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
-             intro!: derivative_eq_intros)
-  also from m have "?F y - ?F x = ((y - m)^2 - (x - m)^2) * f' / 2 + (y - x) / m"
-    by (simp add: field_simps)
-  also have "((y - m)^2 - (x - m)^2) = 0" by (simp add: m_def power2_eq_square field_simps)
-  also have "0 * f' / 2 + (y - x) / m = ?A" by (simp add: m_def)
-  finally have int1: "((\<lambda>t. (t - m) * f' + inverse m) has_integral ?A) {x..y}" .
-
-  from assms have int2: "(inverse has_integral (ln y - ln x)) {x..y}"
-    by (intro fundamental_theorem_of_calculus)
-       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric] field_split_simps
-             intro!: derivative_eq_intros)
-  hence "ln y - ln x = integral {x..y} inverse" by (simp add: integral_unique)
-  also have ineq: "\<forall>xa\<in>{x..y}. inverse xa \<ge> (xa - m) * f' + inverse m"
-  proof
-    fix t assume t: "t \<in> {x..y}"
-    from t assms have "inverse t - inverse m \<ge> f' * (t - m)"
+  let ?f = "\<lambda>t. (t - m) * f' + inverse m"
+  
+  have deriv: "\<exists>D. ((\<lambda>x. ln x - ?F x) has_field_derivative D) (at \<xi>) \<and> D \<ge> 0"
+    if "\<xi> \<ge> x" "\<xi> \<le> y" for \<xi>
+  proof -
+    from that assms have "inverse \<xi> - inverse m \<ge> f' * (\<xi> - m)"
       by (intro convex_on_imp_above_tangent[of "{0<..}"] convex_on_inverse)
          (auto simp: m_def interior_open f'_def power2_eq_square intro!: derivative_eq_intros)
-    thus "(t - m) * f' + inverse m \<le> inverse t" by (simp add: algebra_simps)
+    hence "1 / \<xi> - ?f \<xi> \<ge> 0" by (simp add: field_simps f'_def)
+    moreover have "((\<lambda>x. ln x - ?F x) has_field_derivative 1 / \<xi> - ?f \<xi>) (at \<xi>)"
+      using that assms m by (auto intro!: derivative_eq_intros simp: field_simps)
+    ultimately show ?thesis by blast
   qed
-  hence "integral {x..y} inverse \<ge> integral {x..y} (\<lambda>t. (t - m) * f' + inverse m)"
-    using int1 int2 by (blast intro: integral_le has_integral_integrable)
-  also have "integral {x..y} (\<lambda>t. (t - m) * f' + inverse m) = ?A"
-    using integral_unique[OF int1] by simp
+  have "ln x - ?F x \<le> ln y - ?F y"
+    by (rule DERIV_nonneg_imp_nondecreasing[of x y, OF _ deriv]) (use assms in auto)
+  hence "ln y - ln x \<ge> ?F y - ?F x"
+    by (simp add: algebra_simps)
+  also have "?F y - ?F x = ?A"
+    using assms by (simp add: f'_def m_def divide_simps) (simp add: algebra_simps power2_eq_square)
   finally show ?thesis .
 qed
-
 
 lemma euler_mascheroni_lower:
           "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
