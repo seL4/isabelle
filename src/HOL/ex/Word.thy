@@ -646,6 +646,23 @@ proof
     done
 qed
 
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_bit_word:
+  \<open>((pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) ===> (=)) (\<lambda>k n. n < LENGTH('a) \<and> bit k n) bit\<close>
+proof -
+  let ?t = \<open>\<lambda>a n. odd (take_bit LENGTH('a) a div take_bit LENGTH('a) ((2::int) ^ n))\<close>
+  have \<open>((pcr_word :: int \<Rightarrow> 'a word \<Rightarrow> bool) ===> (=)) ?t bit\<close>
+    by (unfold bit_def) transfer_prover
+  also have \<open>?t = (\<lambda>k n. n < LENGTH('a) \<and> bit k n)\<close>
+    by (simp add: fun_eq_iff bit_take_bit_iff flip: bit_def)
+  finally show ?thesis .
+qed
+
+end
+
 instantiation word :: (len) semiring_bit_shifts
 begin
 
