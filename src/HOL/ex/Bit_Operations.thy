@@ -9,12 +9,39 @@ theory Bit_Operations
     Main
 begin
 
+lemma minus_1_div_exp_eq_int [simp]:
+  \<open>- 1 div (2 :: int) ^ n = - 1\<close>
+  for n :: nat
+  by (induction n) (use div_exp_eq [symmetric, of \<open>- 1 :: int\<close> 1] in \<open>simp_all add: ac_simps\<close>)
+
+context semiring_bits
+begin
+
+lemma bits_div_by_0 [simp]:
+  \<open>a div 0 = 0\<close>
+  by (metis local.add_cancel_right_right local.bit_mod_div_trivial local.mod_mult_div_eq local.mult_not_zero)
+
+lemma bit_0_eq [simp]:
+  \<open>bit 0 = bot\<close>
+  by (simp add: fun_eq_iff bit_def)
+
+end
+
+context semiring_bit_shifts
+begin
+
+end
+
+
 subsection \<open>Bit operations in suitable algebraic structures\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +
-  fixes "and" :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "AND" 64)
-    and or :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "OR"  59)
-    and xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "XOR" 59)
+  fixes "and" :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "AND" 64)
+    and or :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "OR"  59)
+    and xor :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "XOR" 59)
+  assumes bit_and_iff: \<open>\<And>n. bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
+    and bit_or_iff: \<open>\<And>n. bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+    and bit_xor_iff: \<open>\<And>n. bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
 begin
 
 text \<open>
@@ -40,7 +67,7 @@ definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
 
 text \<open>
   Having 
-  <^const>\<open>set_bit\<close>, \<^const>\<open>unset_bit\<close> and \<^const>\<open>flip_bit\<close> as separate
+  \<^const>\<open>set_bit\<close>, \<^const>\<open>unset_bit\<close> and \<^const>\<open>flip_bit\<close> as separate
   operations allows to implement them using bit masks later.
 \<close>
 
@@ -85,19 +112,38 @@ end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
   fixes not :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>NOT\<close>)
-  assumes boolean_algebra: \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
-    and boolean_algebra_xor_eq: \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>
+  assumes bits_even_minus_1_div_exp_iff [simp]: \<open>even (- 1 div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0\<close>
+  assumes bit_not_iff: \<open>\<And>n. bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
 begin
+
+lemma bits_minus_1_mod_2_eq [simp]:
+  \<open>(- 1) mod 2 = 1\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma bit_minus_1_iff [simp]:
+  \<open>bit (- 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
+  by (simp add: bit_def)
 
 sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
   rewrites \<open>bit.xor = (XOR)\<close>
 proof -
   interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-    by (fact boolean_algebra)
+    apply standard
+             apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
+     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    done
   show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
     by standard
-  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>  
-    by (fact boolean_algebra_xor_eq)
+  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close> 
+    apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
+         apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+        apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+       apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+      apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    done
 qed
 
 text \<open>
@@ -265,7 +311,39 @@ lemma xor_zero_nat_eq [simp]:
   "n XOR 0 = n" for n :: nat
   by simp
 
-instance ..
+instance proof
+  fix m n q :: nat
+  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
+  proof (rule sym, induction q arbitrary: m n)
+    case 0
+    then show ?case
+      by (simp add: and_nat.even_iff)
+  next
+    case (Suc q)
+    with and_nat.rec [of m n] show ?case
+      by simp
+  qed
+  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
+  proof (rule sym, induction q arbitrary: m n)
+    case 0
+    then show ?case
+      by (simp add: or_nat.even_iff)
+  next
+    case (Suc q)
+    with or_nat.rec [of m n] show ?case
+      by simp
+  qed
+  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
+  proof (rule sym, induction q arbitrary: m n)
+    case 0
+    then show ?case
+      by (simp add: xor_nat.even_iff)
+  next
+    case (Suc q)
+    with xor_nat.rec [of m n] show ?case
+      by simp
+  qed
+qed
 
 end
 
@@ -625,89 +703,49 @@ lemma not_one_int [simp]:
 
 lemma even_not_iff [simp]:
   "even (NOT k) \<longleftrightarrow> odd k"
-  for k :: int
+    for k :: int
   by (simp add: not_int_def)
 
+lemma bit_not_iff_int:
+  \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
+    for k :: int
+    by (induction n arbitrary: k)
+      (simp_all add: not_int_def flip: complement_div_2)
+
+
 instance proof
-  interpret bit_int: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: int"
-  proof
-    show "k AND (l OR r) = k AND l OR k AND r"
-      for k l r :: int
-    proof (induction k arbitrary: l r rule: int_bit_induct)
-      case zero
-      show ?case
-        by simp
-    next
-      case minus
-      show ?case
-        by simp
-    next
-      case (even k)
-      then show ?case by (simp add: and_int.rec [of "k * 2"]
-        or_int.rec [of "(k AND l div 2) * 2"] or_int.rec [of l])
-    next
-      case (odd k)
-      then show ?case by (simp add: and_int.rec [of "1 + k * 2"]
-        or_int.rec [of "(k AND l div 2) * 2"] or_int.rec [of "1 + (k AND l div 2) * 2"] or_int.rec [of l])
-    qed
-    show "k OR l AND r = (k OR l) AND (k OR r)"
-      for k l r :: int
-    proof (induction k arbitrary: l r rule: int_bit_induct)
-      case zero
-      then show ?case
-        by simp
-    next
-      case minus
-      then show ?case
-        by simp
-    next
-      case (even k)
-      then show ?case by (simp add: or_int.rec [of "k * 2"]
-        and_int.rec [of "(k OR l div 2) * 2"] and_int.rec [of "1 + (k OR l div 2) * 2"] and_int.rec [of l])
-    next
-      case (odd k)
-      then show ?case by (simp add: or_int.rec [of "1 + k * 2"]
-        and_int.rec [of "1 + (k OR l div 2) * 2"] and_int.rec [of l])
-    qed
-    show "k AND NOT k = 0" for k :: int
-      by (induction k rule: int_bit_induct)
-        (simp_all add: not_int_def complement_half minus_diff_commute [of 1])
-    show "k OR NOT k = - 1" for k :: int
-      by (induction k rule: int_bit_induct)
-        (simp_all add: not_int_def complement_half minus_diff_commute [of 1])
-  qed (simp_all add: and_int.assoc or_int.assoc,
-    simp_all add: and_int.commute or_int.commute)
-  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: int)"
-    by (fact bit_int.boolean_algebra_axioms)
-  show "bit_int.xor = ((XOR) :: int \<Rightarrow> _)"
-  proof (rule ext)+
-    fix k l :: int
-    have "k XOR l = k AND NOT l OR NOT k AND l"
-    proof (induction k arbitrary: l rule: int_bit_induct)
-      case zero
-      show ?case
-        by simp
-    next
-      case minus
-      show ?case
-        by (simp add: not_int_def)
-    next
-      case (even k)
-      then show ?case
-        by (simp add: xor_int.rec [of "k * 2"] and_int.rec [of "k * 2"]
-          or_int.rec [of _ "1 + 2 * NOT k AND l"] not_div_2)
-          (simp add: and_int.rec [of _ l])
-    next
-      case (odd k)
-      then show ?case
-        by (simp add: xor_int.rec [of "1 + k * 2"] and_int.rec [of "1 + k * 2"]
-          or_int.rec [of _ "2 * NOT k AND l"] not_div_2)
-          (simp add: and_int.rec [of _ l])
-    qed
-    then show "bit_int.xor k l = k XOR l"
-      by (simp add: bit_int.xor_def)
+  fix k l :: int and n :: nat
+  show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
+  proof (rule sym, induction n arbitrary: k l)
+    case 0
+    then show ?case
+      by (simp add: and_int.even_iff)
+  next
+    case (Suc n)
+    with and_int.rec [of k l] show ?case
+      by simp
   qed
-qed
+  show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
+  proof (rule sym, induction n arbitrary: k l)
+    case 0
+    then show ?case
+      by (simp add: or_int.even_iff)
+  next
+    case (Suc n)
+    with or_int.rec [of k l] show ?case
+      by simp
+  qed
+  show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
+  proof (rule sym, induction n arbitrary: k l)
+    case 0
+    then show ?case
+      by (simp add: xor_int.even_iff)
+  next
+    case (Suc n)
+    with xor_int.rec [of k l] show ?case
+      by simp
+  qed
+qed (simp_all add: bit_not_iff_int)
 
 end
 
@@ -743,36 +781,21 @@ lemma take_bit_complement_iff:
 lemma take_bit_not_iff:
   "Parity.take_bit n (NOT k) = Parity.take_bit n (NOT l) \<longleftrightarrow> Parity.take_bit n k = Parity.take_bit n l"
   for k l :: int
-  by (simp add: not_int_def take_bit_complement_iff)
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff_int)
 
 lemma take_bit_and [simp]:
   "Parity.take_bit n (k AND l) = Parity.take_bit n k AND Parity.take_bit n l"
   for k l :: int
-  apply (induction n arbitrary: k l)
-   apply simp
-  apply (subst and_int.rec)
-  apply (subst (2) and_int.rec)
-  apply simp
-  done
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_and_iff)
 
 lemma take_bit_or [simp]:
   "Parity.take_bit n (k OR l) = Parity.take_bit n k OR Parity.take_bit n l"
   for k l :: int
-  apply (induction n arbitrary: k l)
-   apply simp
-  apply (subst or_int.rec)
-  apply (subst (2) or_int.rec)
-  apply simp
-  done
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_or_iff)
 
 lemma take_bit_xor [simp]:
   "Parity.take_bit n (k XOR l) = Parity.take_bit n k XOR Parity.take_bit n l"
   for k l :: int
-  apply (induction n arbitrary: k l)
-   apply simp
-  apply (subst xor_int.rec)
-  apply (subst (2) xor_int.rec)
-  apply simp
-  done
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
 
 end
