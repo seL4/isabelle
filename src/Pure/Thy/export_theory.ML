@@ -120,6 +120,25 @@ fun get_dependencies prev_thys thy =
       in SOME (dep, (substT, subst)) end);
 
 
+(* spec rules *)
+
+fun spec_content (spec: Spec_Rules.spec) =
+  let
+    val {pos, name, rough_classification, terms = terms0, rules = rules0} = spec;
+    val terms = map Logic.unvarify_global terms0;
+    val rules = map (Logic.unvarify_global o Thm.plain_prop_of) rules0;
+    val text = terms @ rules;
+  in
+   {props = Position.properties_of pos,
+    name = name,
+    rough_classification = rough_classification,
+    typargs = rev (fold Term.add_tfrees text []),
+    args = rev (fold Term.add_frees text []),
+    terms = terms,
+    rules = rules}
+  end;
+
+
 (* general setup *)
 
 fun setup_presentation f =
@@ -402,21 +421,19 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* spec rules *)
 
-    fun encode_spec {pos, name, rough_classification, terms, rules} =
-      let
-        val terms' = map Logic.unvarify_global terms;
-        val rules' = map (fn rule => #1 (standard_prop_of (prep_thm rule) NONE)) rules;
-        open XML.Encode;
-      in
-        pair properties (pair string (pair Spec_Rules.encode_rough_classification
-          (pair (list encode_term) (list encode_prop))))
-          (Position.properties_of pos, (name, (rough_classification, (terms', rules'))))
+    val encode_specs =
+      let open XML.Encode Term_XML.Encode in
+        list (fn {props, name, rough_classification, typargs, args, terms, rules} =>
+          pair properties (pair string (pair Spec_Rules.encode_rough_classification
+            (pair (list (pair string sort)) (pair (list (pair string typ))
+              (pair (list encode_term) (list encode_term))))))
+              (props, (name, (rough_classification, (typargs, (args, (terms, rules)))))))
       end;
 
     val _ =
       (case Spec_Rules.dest_theory thy of
         [] => ()
-      | spec_rules => export_body thy "spec_rules" (XML.Encode.list encode_spec spec_rules));
+      | spec_rules => export_body thy "spec_rules" (encode_specs (map spec_content spec_rules)));
 
 
     (* parents *)

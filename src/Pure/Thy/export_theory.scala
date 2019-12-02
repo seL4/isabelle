@@ -714,8 +714,10 @@ object Export_Theory
     pos: Position.T,
     name: String,
     rough_classification: Rough_Classification,
+    typargs: List[(String, Term.Sort)],
+    args: List[(String, Term.Typ)],
     terms: List[Term.Term],
-    rules: List[Prop])
+    rules: List[Term.Term])
   {
     def id: Option[Long] = Position.Id.unapply(pos)
 
@@ -724,8 +726,10 @@ object Export_Theory
         cache.position(pos),
         cache.string(name),
         rough_classification.cache(cache),
+        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
         terms.map(cache.term(_)),
-        rules.map(_.cache(cache)))
+        rules.map(cache.term(_)))
   }
 
   def read_spec_rules(provider: Export.Provider): List[Spec_Rule] =
@@ -737,9 +741,10 @@ object Export_Theory
       import Term_XML.Decode._
       list(
         pair(properties, pair(string, pair(decode_rough_classification,
-        pair(list(term), list(decode_prop))))))(body)
+          pair(list(pair(string, sort)), pair(list(pair(string, typ)),
+            pair(list(term), list(term))))))))(body)
     }
-    for ((pos, (name, (rough_classification, (terms, rules)))) <- spec_rules)
-      yield Spec_Rule(pos, name, rough_classification, terms, rules)
+    for ((pos, (name, (rough_classification, (typargs, (args, (terms, rules)))))) <- spec_rules)
+      yield Spec_Rule(pos, name, rough_classification, typargs, args, terms, rules)
   }
 }
