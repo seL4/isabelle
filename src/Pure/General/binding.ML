@@ -122,7 +122,7 @@ val empty_atts = (empty, []);
 fun is_empty_atts (b, atts) = is_empty b andalso null atts;
 
 fun conglomerate [b] = b
-  | conglomerate bs = name (space_implode "_" (map name_of bs));
+  | conglomerate bs = name (space_implode "_" (map name_of (filter_out is_empty bs)));
 
 
 (* user qualifier *)
