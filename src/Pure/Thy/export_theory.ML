@@ -122,19 +122,20 @@ fun get_dependencies prev_thys thy =
 
 (* spec rules *)
 
-fun spec_rule_content {pos, name, rough_classification, terms = terms0, rules = rules0} =
+fun spec_rule_content {pos, name, rough_classification, terms, rules} =
   let
-    val terms = map Logic.unvarify_global terms0;
-    val rules = map (Logic.unvarify_global o Thm.plain_prop_of) rules0;
-    val text = terms @ rules;
+    val spec =
+      terms @ map Thm.plain_prop_of rules
+      |> Term_Subst.zero_var_indexes_list
+      |> map Logic.unvarify_global;
   in
    {props = Position.properties_of pos,
     name = name,
     rough_classification = rough_classification,
-    typargs = rev (fold Term.add_tfrees text []),
-    args = rev (fold Term.add_frees text []),
-    terms = map (fn t => (t, Term.type_of t)) terms,
-    rules = rules}
+    typargs = rev (fold Term.add_tfrees spec []),
+    args = rev (fold Term.add_frees spec []),
+    terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
+    rules = drop (length terms) spec}
   end;
 
 
