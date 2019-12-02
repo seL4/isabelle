@@ -159,13 +159,11 @@ val retrieve_global = retrieve_generic o Context.Theory;
 (* add *)
 
 fun add b rough_classification terms rules lthy =
-  let
-    val pos = Position.thread_data ();
-    val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules);
-  in
+  let val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules) in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => fn context =>
         let
+          val pos = Position.thread_data ();
           val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi b);
           val (terms', rules') =
             map (Thm.transfer (Context.theory_of context)) thms0
