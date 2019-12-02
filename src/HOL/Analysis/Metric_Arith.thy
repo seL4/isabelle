@@ -2,13 +2,15 @@
     Author:   Maximilian Schäffeler (port from HOL Light)
 *)
 
-section \<open>A decision procedure for metric spaces\<close>
+chapter \<open>Functional Analysis\<close>
+
+section\<^marker>\<open>tag unimportant\<close> \<open>A decision procedure for metric spaces\<close>
 
 theory Metric_Arith
   imports HOL.Real_Vector_Spaces
 begin
 
-text \<open>
+text\<^marker>\<open>tag unimportant\<close> \<open>
 A port of the decision procedure ``Formalization of metric spaces in HOL Light''
 @{cite "DBLP:journals/jar/Maggesi18"} for the type class @{class metric_space},
 with the \<open>Argo\<close> solver as backend.
