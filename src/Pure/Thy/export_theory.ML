@@ -67,7 +67,7 @@ fun primrec_types ctxt const =
   |> the_default ([], false);
 
 
-(* locales content *)
+(* locales *)
 
 fun locale_content thy loc =
   let
