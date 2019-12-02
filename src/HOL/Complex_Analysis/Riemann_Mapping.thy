@@ -1486,4 +1486,256 @@ proof -
   ultimately show ?thesis by metis
 qed
 
+
+subsection \<open>Applications to Winding Numbers\<close>
+
+lemma simply_connected_inside_simple_path:
+  fixes p :: "real \<Rightarrow> complex"
+  shows "simple_path p \<Longrightarrow> simply_connected(inside(path_image p))"
+  using Jordan_inside_outside connected_simple_path_image inside_simple_curve_imp_closed simply_connected_eq_frontier_properties
+  by fastforce
+
+lemma simply_connected_Int:
+  fixes S :: "complex set"
+  assumes "open S" "open T" "simply_connected S" "simply_connected T" "connected (S \<inter> T)"
+  shows "simply_connected (S \<inter> T)"
+  using assms by (force simp: simply_connected_eq_winding_number_zero open_Int)
+
+
+subsection\<^marker>\<open>tag unimportant\<close> \<open>The winding number defines a continuous logarithm for the path itself\<close>
+
+lemma winding_number_as_continuous_log:
+  assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
+  obtains q where "path q"
+                  "pathfinish q - pathstart q = 2 * of_real pi * \<i> * winding_number p \<zeta>"
+                  "\<And>t. t \<in> {0..1} \<Longrightarrow> p t = \<zeta> + exp(q t)"
+proof -
+  let ?q = "\<lambda>t. 2 * of_real pi * \<i> * winding_number(subpath 0 t p) \<zeta> + Ln(pathstart p - \<zeta>)"
+  show ?thesis
+  proof
+    have *: "continuous (at t within {0..1}) (\<lambda>x. winding_number (subpath 0 x p) \<zeta>)"
+      if t: "t \<in> {0..1}" for t
+    proof -
+      let ?B = "ball (p t) (norm(p t - \<zeta>))"
+      have "p t \<noteq> \<zeta>"
+        using path_image_def that \<zeta> by blast
+      then have "simply_connected ?B"
+        by (simp add: convex_imp_simply_connected)
+      then have "\<And>f::complex\<Rightarrow>complex. continuous_on ?B f \<and> (\<forall>\<zeta> \<in> ?B. f \<zeta> \<noteq> 0)
+                  \<longrightarrow> (\<exists>g. continuous_on ?B g \<and> (\<forall>\<zeta> \<in> ?B. f \<zeta> = exp (g \<zeta>)))"
+        by (simp add: simply_connected_eq_continuous_log)
+      moreover have "continuous_on ?B (\<lambda>w. w - \<zeta>)"
+        by (intro continuous_intros)
+      moreover have "(\<forall>z \<in> ?B. z - \<zeta> \<noteq> 0)"
+        by (auto simp: dist_norm)
+      ultimately obtain g where contg: "continuous_on ?B g"
+        and geq: "\<And>z. z \<in> ?B \<Longrightarrow> z - \<zeta> = exp (g z)" by blast
+      obtain d where "0 < d" and d:
+        "\<And>x. \<lbrakk>x \<in> {0..1}; dist x t < d\<rbrakk> \<Longrightarrow> dist (p x) (p t) < cmod (p t - \<zeta>)"
+        using \<open>path p\<close> t unfolding path_def continuous_on_iff
+        by (metis \<open>p t \<noteq> \<zeta>\<close> right_minus_eq zero_less_norm_iff)
+      have "((\<lambda>x. winding_number (\<lambda>w. subpath 0 x p w - \<zeta>) 0 -
+                  winding_number (\<lambda>w. subpath 0 t p w - \<zeta>) 0) \<longlongrightarrow> 0)
+            (at t within {0..1})"
+      proof (rule Lim_transform_within [OF _ \<open>d > 0\<close>])
+        have "continuous (at t within {0..1}) (g o p)"
+        proof (rule continuous_within_compose)
+          show "continuous (at t within {0..1}) p"
+            using \<open>path p\<close> continuous_on_eq_continuous_within path_def that by blast
+          show "continuous (at (p t) within p ` {0..1}) g"
+            by (metis (no_types, lifting) open_ball UNIV_I \<open>p t \<noteq> \<zeta>\<close> centre_in_ball contg continuous_on_eq_continuous_at continuous_within_topological right_minus_eq zero_less_norm_iff)
+        qed
+        with LIM_zero have "((\<lambda>u. (g (subpath t u p 1) - g (subpath t u p 0))) \<longlongrightarrow> 0) (at t within {0..1})"
+          by (auto simp: subpath_def continuous_within o_def)
+        then show "((\<lambda>u.  (g (subpath t u p 1) - g (subpath t u p 0)) / (2 * of_real pi * \<i>)) \<longlongrightarrow> 0)
+           (at t within {0..1})"
+          by (simp add: tendsto_divide_zero)
+        show "(g (subpath t u p 1) - g (subpath t u p 0)) / (2 * of_real pi * \<i>) =
+              winding_number (\<lambda>w. subpath 0 u p w - \<zeta>) 0 - winding_number (\<lambda>w. subpath 0 t p w - \<zeta>) 0"
+          if "u \<in> {0..1}" "0 < dist u t" "dist u t < d" for u
+        proof -
+          have "closed_segment t u \<subseteq> {0..1}"
+            using closed_segment_eq_real_ivl t that by auto
+          then have piB: "path_image(subpath t u p) \<subseteq> ?B"
+            apply (clarsimp simp add: path_image_subpath_gen)
+            by (metis subsetD le_less_trans \<open>dist u t < d\<close> d dist_commute dist_in_closed_segment)
+          have *: "path (g \<circ> subpath t u p)"
+            apply (rule path_continuous_image)
+            using \<open>path p\<close> t that apply auto[1]
+            using piB contg continuous_on_subset by blast
+          have "(g (subpath t u p 1) - g (subpath t u p 0)) / (2 * of_real pi * \<i>)
+              =  winding_number (exp \<circ> g \<circ> subpath t u p) 0"
+            using winding_number_compose_exp [OF *]
+            by (simp add: pathfinish_def pathstart_def o_assoc)
+          also have "... = winding_number (\<lambda>w. subpath t u p w - \<zeta>) 0"
+          proof (rule winding_number_cong)
+            have "exp(g y) = y - \<zeta>" if "y \<in> (subpath t u p) ` {0..1}" for y
+              by (metis that geq path_image_def piB subset_eq)
+            then show "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> (exp \<circ> g \<circ> subpath t u p) x = subpath t u p x - \<zeta>"
+              by auto
+          qed
+          also have "... = winding_number (\<lambda>w. subpath 0 u p w - \<zeta>) 0 -
+                           winding_number (\<lambda>w. subpath 0 t p w - \<zeta>) 0"
+            apply (simp add: winding_number_offset [symmetric])
+            using winding_number_subpath_combine [OF \<open>path p\<close> \<zeta>, of 0 t u] \<open>t \<in> {0..1}\<close> \<open>u \<in> {0..1}\<close>
+            by (simp add: add.commute eq_diff_eq)
+          finally show ?thesis .
+        qed
+      qed
+      then show ?thesis
+        by (subst winding_number_offset) (simp add: continuous_within LIM_zero_iff)
+    qed
+    show "path ?q"
+      unfolding path_def
+      by (intro continuous_intros) (simp add: continuous_on_eq_continuous_within *)
+
+    have "\<zeta> \<noteq> p 0"
+      by (metis \<zeta> pathstart_def pathstart_in_path_image)
+    then show "pathfinish ?q - pathstart ?q = 2 * of_real pi * \<i> * winding_number p \<zeta>"
+      by (simp add: pathfinish_def pathstart_def)
+    show "p t = \<zeta> + exp (?q t)" if "t \<in> {0..1}" for t
+    proof -
+      have "path (subpath 0 t p)"
+        using \<open>path p\<close> that by auto
+      moreover
+      have "\<zeta> \<notin> path_image (subpath 0 t p)"
+        using \<zeta> [unfolded path_image_def] that by (auto simp: path_image_subpath)
+      ultimately show ?thesis
+        using winding_number_exp_2pi [of "subpath 0 t p" \<zeta>] \<open>\<zeta> \<noteq> p 0\<close>
+        by (auto simp: exp_add algebra_simps pathfinish_def pathstart_def subpath_def)
+    qed
+  qed
+qed
+
+subsection \<open>Winding number equality is the same as path/loop homotopy in C - {0}\<close>
+
+lemma winding_number_homotopic_loops_null_eq:
+  assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
+  shows "winding_number p \<zeta> = 0 \<longleftrightarrow> (\<exists>a. homotopic_loops (-{\<zeta>}) p (\<lambda>t. a))"
+    (is "?lhs = ?rhs")
+proof
+  assume [simp]: ?lhs
+  obtain q where "path q"
+             and qeq:  "pathfinish q - pathstart q = 2 * of_real pi * \<i> * winding_number p \<zeta>"
+             and peq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p t = \<zeta> + exp(q t)"
+    using winding_number_as_continuous_log [OF assms] by blast
+  have *: "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r)
+                       {0..1} (-{\<zeta>}) ((\<lambda>w. \<zeta> + exp w) \<circ> q) ((\<lambda>w. \<zeta> + exp w) \<circ> (\<lambda>t. 0))"
+  proof (rule homotopic_with_compose_continuous_left)
+    show "homotopic_with_canon (\<lambda>f. pathfinish ((\<lambda>w. \<zeta> + exp w) \<circ> f) = pathstart ((\<lambda>w. \<zeta> + exp w) \<circ> f))
+              {0..1} UNIV q (\<lambda>t. 0)"
+    proof (rule homotopic_with_mono, simp_all add: pathfinish_def pathstart_def)
+      have "homotopic_loops UNIV q (\<lambda>t. 0)"
+        by (rule homotopic_loops_linear) (use qeq \<open>path q\<close> in \<open>auto simp: path_defs\<close>)
+      then have "homotopic_with (\<lambda>r. r 1 = r 0) (top_of_set {0..1}) euclidean q (\<lambda>t. 0)"
+        by (simp add: homotopic_loops_def pathfinish_def pathstart_def)
+      then show "homotopic_with (\<lambda>h. exp (h 1) = exp (h 0)) (top_of_set {0..1}) euclidean q (\<lambda>t. 0)"
+        by (rule homotopic_with_mono) simp
+    qed
+    show "continuous_on UNIV (\<lambda>w. \<zeta> + exp w)"
+      by (rule continuous_intros)+
+    show "range (\<lambda>w. \<zeta> + exp w) \<subseteq> -{\<zeta>}"
+      by auto
+  qed
+  then have "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r) {0..1} (-{\<zeta>}) p (\<lambda>x. \<zeta> + 1)"
+    by (rule homotopic_with_eq) (auto simp: o_def peq pathfinish_def pathstart_def)
+  then have "homotopic_loops (-{\<zeta>}) p (\<lambda>t. \<zeta> + 1)"
+    by (simp add: homotopic_loops_def)
+  then show ?rhs ..
+next
+  assume ?rhs
+  then obtain a where "homotopic_loops (-{\<zeta>}) p (\<lambda>t. a)" ..
+  then have "winding_number p \<zeta> = winding_number (\<lambda>t. a) \<zeta>" "a \<noteq> \<zeta>"
+    using winding_number_homotopic_loops homotopic_loops_imp_subset by (force simp:)+
+  moreover have "winding_number (\<lambda>t. a) \<zeta> = 0"
+    by (metis winding_number_zero_const \<open>a \<noteq> \<zeta>\<close>)
+  ultimately show ?lhs by metis
+qed
+
+lemma winding_number_homotopic_paths_null_explicit_eq:
+  assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
+  shows "winding_number p \<zeta> = 0 \<longleftrightarrow> homotopic_paths (-{\<zeta>}) p (linepath (pathstart p) (pathstart p))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (auto simp: winding_number_homotopic_loops_null_eq [OF assms])
+    apply (rule homotopic_loops_imp_homotopic_paths_null)
+    apply (simp add: linepath_refl)
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    by (metis \<zeta> pathstart_in_path_image winding_number_homotopic_paths winding_number_trivial)
+qed
+
+lemma winding_number_homotopic_paths_null_eq:
+  assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
+  shows "winding_number p \<zeta> = 0 \<longleftrightarrow> (\<exists>a. homotopic_paths (-{\<zeta>}) p (\<lambda>t. a))"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (auto simp: winding_number_homotopic_paths_null_explicit_eq [OF assms] linepath_refl)
+next
+  assume ?rhs
+  then show ?lhs
+    by (metis \<zeta> homotopic_paths_imp_pathfinish pathfinish_def pathfinish_in_path_image winding_number_homotopic_paths winding_number_zero_const)
+qed
+
+proposition winding_number_homotopic_paths_eq:
+  assumes "path p" and \<zeta>p: "\<zeta> \<notin> path_image p"
+      and "path q" and \<zeta>q: "\<zeta> \<notin> path_image q"
+      and qp: "pathstart q = pathstart p" "pathfinish q = pathfinish p"
+    shows "winding_number p \<zeta> = winding_number q \<zeta> \<longleftrightarrow> homotopic_paths (-{\<zeta>}) p q"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "winding_number (p +++ reversepath q) \<zeta> = 0"
+    using assms by (simp add: winding_number_join winding_number_reversepath)
+  moreover
+  have "path (p +++ reversepath q)" "\<zeta> \<notin> path_image (p +++ reversepath q)"
+    using assms by (auto simp: not_in_path_image_join)
+  ultimately obtain a where "homotopic_paths (- {\<zeta>}) (p +++ reversepath q) (linepath a a)"
+    using winding_number_homotopic_paths_null_explicit_eq by blast
+  then show ?rhs
+    using homotopic_paths_imp_pathstart assms
+    by (fastforce simp add: dest: homotopic_paths_imp_homotopic_loops homotopic_paths_loop_parts)
+next
+  assume ?rhs
+  then show ?lhs
+    by (simp add: winding_number_homotopic_paths)
+qed
+
+lemma winding_number_homotopic_loops_eq:
+  assumes "path p" and \<zeta>p: "\<zeta> \<notin> path_image p"
+      and "path q" and \<zeta>q: "\<zeta> \<notin> path_image q"
+      and loops: "pathfinish p = pathstart p" "pathfinish q = pathstart q"
+    shows "winding_number p \<zeta> = winding_number q \<zeta> \<longleftrightarrow> homotopic_loops (-{\<zeta>}) p q"
+    (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  have "pathstart p \<noteq> \<zeta>" "pathstart q \<noteq> \<zeta>"
+    using \<zeta>p \<zeta>q by blast+
+  moreover have "path_connected (-{\<zeta>})"
+    by (simp add: path_connected_punctured_universe)
+  ultimately obtain r where "path r" and rim: "path_image r \<subseteq> -{\<zeta>}"
+                        and pas: "pathstart r = pathstart p" and paf: "pathfinish r = pathstart q"
+    by (auto simp: path_connected_def)
+  then have "pathstart r \<noteq> \<zeta>" by blast
+  have "homotopic_loops (- {\<zeta>}) p (r +++ q +++ reversepath r)"
+  proof (rule homotopic_paths_imp_homotopic_loops)
+    show "homotopic_paths (- {\<zeta>}) p (r +++ q +++ reversepath r)"
+      by (metis (mono_tags, hide_lams) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
+  qed (use loops pas in auto)
+  moreover have "homotopic_loops (- {\<zeta>}) (r +++ q +++ reversepath r) q"
+    using rim \<zeta>q by (auto simp: homotopic_loops_conjugate paf \<open>path q\<close> \<open>path r\<close> loops)
+  ultimately show ?rhs
+    using homotopic_loops_trans by metis
+next
+  assume ?rhs
+  then show ?lhs
+    by (simp add: winding_number_homotopic_loops)
+qed
+
 end

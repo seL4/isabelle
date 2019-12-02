@@ -1,6 +1,7 @@
 theory Complex_Analysis
-  imports
-  Winding_Numbers
+imports
+  Residue_Theorem
+  Riemann_Mapping
 begin
 
 end

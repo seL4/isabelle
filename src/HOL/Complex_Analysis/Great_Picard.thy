@@ -4,7 +4,6 @@ text\<open>Ported from HOL Light (cauchy.ml) by L C Paulson, 2017\<close>
 
 theory Great_Picard
   imports Conformal_Mappings
-
 begin
   
 subsection\<open>Schottky's theorem\<close>
