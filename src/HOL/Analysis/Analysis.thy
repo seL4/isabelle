@@ -6,7 +6,6 @@ theory Analysis
   (* Topology *)
   Connected
   Abstract_Limits
-  Abstract_Euclidean_Space
   (* Functional Analysis *)
   Elementary_Normed_Spaces
   Norm_Arith
@@ -46,6 +45,7 @@ theory Analysis
   Simplex_Content
   FPS_Convergence
   Smooth_Paths
+  Abstract_Euclidean_Space
 begin
 
 end
