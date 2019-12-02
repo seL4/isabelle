@@ -5,7 +5,7 @@
 section  \<open>Vitali Covering Theorem and an Application to Negligibility\<close>
 
 theory Vitali_Covering_Theorem
-  imports Ball_Volume "HOL-Library.Permutations"
+  imports Equivalence_Lebesgue_Henstock_Integration "HOL-Library.Permutations"
 
 begin
 
@@ -428,10 +428,10 @@ proof -
                 by (simp add: comm_monoid_add_class.sum.reindex [OF inj])
               also have "\<dots> = (\<Sum>i\<in>D2. 5 ^ DIM('n) * ?\<mu> (ball (a i) (r i)))"
               proof (rule sum.cong [OF refl])
-                fix i
-                assume "i \<in> D2"
-                show "?\<mu> (ball (a i) (5 * r i)) = 5 ^ DIM('n) * ?\<mu> (ball (a i) (r i))"
-                  using rgt0 [OF \<open>i \<in> D2\<close>] by (simp add: content_ball)
+                fix i assume "i \<in> D2"
+                thus "?\<mu> (ball (a i) (5 * r i)) = 5 ^ DIM('n) * ?\<mu> (ball (a i) (r i))"
+                  using content_ball_conv_unit_ball[of "5 * r i" "a i"]
+                        content_ball_conv_unit_ball[of "r i" "a i"] rgt0[of i] by auto
               qed
               also have "\<dots> = (\<Sum>i\<in>D2. ?\<mu> (ball (a i) (r i))) * 5 ^ DIM('n)"
                 by (simp add: sum_distrib_left mult.commute)
@@ -450,7 +450,7 @@ proof -
                 have ds: "disjoint ((\<lambda>i. cball (a i) (r i)) ` D2)"
                   using D2 \<open>D \<subseteq> C\<close> by (auto intro: pairwiseI pairwiseD [OF pwC])
                 have "(\<Sum>i\<in>D2. ?\<mu> (ball (a i) (r i))) = (\<Sum>i\<in>D2. ?\<mu> (cball (a i) (r i)))"
-                  using rgt0 by (simp add: content_ball content_cball less_eq_real_def)
+                  by (simp add: content_cball_conv_ball)
                 also have "\<dots> = sum ?\<mu> ((\<lambda>i. cball (a i) (r i)) ` D2)"
                   by (simp add: comm_monoid_add_class.sum.reindex [OF inj])
                 also have "\<dots> = ?\<mu> (\<Union>i\<in>D2. cball (a i) (r i))"
@@ -537,7 +537,8 @@ proof (intro iffI ballI allI impI)
               measure lebesgue U < e * measure lebesgue (ball x d)"
     apply (rule_tac x=e in exI)
     apply (rule_tac x="S \<inter> ball x e" in exI)
-    apply (auto simp: negligible_imp_measurable negligible_Int negligible_imp_measure0 zero_less_measure_iff)
+    apply (auto simp: negligible_imp_measurable negligible_Int negligible_imp_measure0 zero_less_measure_iff
+                intro: mult_pos_pos content_ball_pos)
     done
 next
   assume R [rule_format]: "\<forall>x \<in> S. \<forall>e > 0. ?Q x e"
@@ -567,7 +568,7 @@ next
         let ?\<epsilon> = "min (e / ?\<mu> (ball z 1) / 2) (min (d / 2) k)"
         obtain r U where r: "r > 0" "r \<le> ?\<epsilon>" and U: "S \<inter> ball x r \<subseteq> U" "U \<in> lmeasurable"
           and mU: "?\<mu> U < ?\<epsilon> * ?\<mu> (ball x r)"
-          using R [of x ?\<epsilon>] \<open>d > 0\<close> \<open>e > 0\<close> \<open>k > 0\<close> x by auto
+          using R [of x ?\<epsilon>] \<open>d > 0\<close> \<open>e > 0\<close> \<open>k > 0\<close> x by (auto simp: content_ball_pos)
         show "\<exists>i. i \<in> ?K \<and> x \<in> ball (fst i) (snd i) \<and> snd i < d"
         proof (rule exI [of _ "(x,r)"], simp, intro conjI exI)
           have "ball x r \<subseteq> ball x k"
@@ -576,7 +577,7 @@ next
             using ball_subset_ball_iff k by auto
           finally show "ball x r \<subseteq> ball z 1" .
           have "?\<epsilon> * ?\<mu> (ball x r) \<le> e * content (ball x r) / content (ball z 1)"
-            using r \<open>e > 0\<close> by (simp add: ord_class.min_def field_split_simps)
+            using r \<open>e > 0\<close> by (simp add: ord_class.min_def field_split_simps content_ball_pos)
           with mU show "?\<mu> U < e * content (ball x r) / content (ball z 1)"
             by auto
         qed (use r U x in auto)
@@ -603,7 +604,7 @@ next
               apply (rule measure_mono_fmeasurable)
               using \<open>I \<subseteq> C\<close> \<open>finite I\<close> Csub by (force simp: prod.case_eq_if sets.finite_UN)+
             then have le1: "(?\<mu> (\<Union>(x,d)\<in>I. ball x d) / ?\<mu> (ball z 1)) \<le> 1"
-              by simp
+              by (simp add: content_ball_pos)
             have "?\<mu> (\<Union>i\<in>I. U i) \<le> (\<Sum>i\<in>I. ?\<mu> (U i))"
               using that U by (blast intro: measure_UNION_le)
             also have "\<dots> \<le> (\<Sum>(x,r)\<in>I. e / ?\<mu> (ball z 1) * ?\<mu> (ball x r))"
@@ -648,7 +649,7 @@ proof -
     assume L [rule_format]: "\<forall>e>0. \<exists>d>0. d \<le> e \<and> ?Q x d e" and "r > 0" "e > 0"
     show "\<exists>d>0. d \<le> r \<and> ?Q x d e"
       using L [of "min r e"] apply (rule ex_forward)
-      using \<open>r > 0\<close> \<open>e > 0\<close>  by (auto intro: less_le_trans elim!: ex_forward)
+      using \<open>r > 0\<close> \<open>e > 0\<close>  by (auto intro: less_le_trans elim!: ex_forward simp: content_ball_pos)
   qed auto
   then show ?thesis
     by (force simp: negligible_eq_zero_density_alt)

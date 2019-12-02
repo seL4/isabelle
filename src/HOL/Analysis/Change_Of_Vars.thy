@@ -504,11 +504,12 @@ proof -
           have neg: "negligible (frontier (f' x ` ball 0 1))"
             using deriv has_derivative_linear \<open>x \<in> S\<close>
             by (auto intro!: negligible_convex_frontier [OF convex_linear_image])
-          have 0: "0 < e * unit_ball_vol (real CARD('n))"
-            using  \<open>e > 0\<close> by simp
+          let ?unit_vol = "content (ball (0 :: real ^ 'n :: {finite, wellorder}) 1)"
+          have 0: "0 < e * ?unit_vol"
+            using \<open>e > 0\<close> by (simp add: content_ball_pos)
           obtain k where "k > 0" and k:
                   "\<And>U. \<lbrakk>U \<in> lmeasurable; \<And>y. y \<in> U \<Longrightarrow> \<exists>z. z \<in> f' x ` ball 0 1 \<and> dist z y < k\<rbrakk>
-                        \<Longrightarrow> ?\<mu> U < ?\<mu> (f' x ` ball 0 1) + e * unit_ball_vol (CARD('n))"
+                        \<Longrightarrow> ?\<mu> U < ?\<mu> (f' x ` ball 0 1) + e * ?unit_vol"
             using measure_semicontinuous_with_hausdist_explicit [OF bo neg 0] by blast
           obtain l where "l > 0" and l: "ball x l \<subseteq> T"
             using \<open>x \<in> S\<close> \<open>open T\<close> \<open>S \<subseteq> T\<close> openE by blast
@@ -577,17 +578,18 @@ proof -
             have "?\<mu> (f ` (S \<inter> ball x r)) = ?\<mu> (?rfs) * r ^ CARD('n)"
               using \<open>r > 0\<close> fsb
               by (simp add: measure_linear_image measure_translation_subtract measurable_translation_subtract field_simps cong: image_cong_simp)
-            also have "\<dots> \<le> (\<bar>det (matrix (f' x))\<bar> * unit_ball_vol (CARD('n)) + e * unit_ball_vol (CARD('n))) * r ^ CARD('n)"
+            also have "\<dots> \<le> (\<bar>det (matrix (f' x))\<bar> * ?unit_vol + e * ?unit_vol) * r ^ CARD('n)"
             proof -
-              have "?\<mu> (?rfs) < ?\<mu> (f' x ` ball 0 1) + e * unit_ball_vol (CARD('n))"
+              have "?\<mu> (?rfs) < ?\<mu> (f' x ` ball 0 1) + e * ?unit_vol"
                 using rfs_mble by (force intro: k dest!: ex_lessK)
-              then have "?\<mu> (?rfs) < \<bar>det (matrix (f' x))\<bar> * unit_ball_vol (CARD('n)) + e * unit_ball_vol (CARD('n))"
-                by (simp add: lin measure_linear_image [of "f' x"] content_ball)
+              then have "?\<mu> (?rfs) < \<bar>det (matrix (f' x))\<bar> * ?unit_vol + e * ?unit_vol"
+                by (simp add: lin measure_linear_image [of "f' x"])
               with \<open>r > 0\<close> show ?thesis
                 by auto
             qed
             also have "\<dots> \<le> (B + e) * ?\<mu> (ball x r)"
-              using bounded [OF \<open>x \<in> S\<close>] \<open>r > 0\<close> by (simp add: content_ball algebra_simps)
+              using bounded [OF \<open>x \<in> S\<close>] \<open>r > 0\<close>
+              by (simp add: algebra_simps content_ball_conv_unit_ball[of r] content_ball_pos)
             finally show "?\<mu> (f ` (S \<inter> ball x r)) \<le> (B + e) * ?\<mu> (ball x r)" .
           qed
         qed
@@ -1453,9 +1455,11 @@ proof -
               by (simp add: abs_diff_le_iff abs_minus_commute)
           qed (use \<open>e > 0\<close> in auto)
           also have "\<dots> < e * content (cball ?x' (min d r))"
-            using \<open>r > 0\<close> \<open>d > 0\<close> \<open>e > 0\<close> by auto
+            using \<open>r > 0\<close> \<open>d > 0\<close> \<open>e > 0\<close> by (auto intro: content_cball_pos)
           also have "\<dots> = e * content (ball x (min d r))"
-            using \<open>r > 0\<close> \<open>d > 0\<close> by (simp add: content_cball content_ball)
+            using \<open>r > 0\<close> \<open>d > 0\<close> content_ball_conv_unit_ball[of "min d r" "inv T x"]
+                  content_ball_conv_unit_ball[of "min d r" x]
+            by (simp add: content_cball_conv_ball)
           finally show "measure lebesgue ?W < e * content (ball x (min d r))" .
       qed
     qed

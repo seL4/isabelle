@@ -128,6 +128,44 @@ lemma content_0_subset: "content(cbox a b) = 0 \<Longrightarrow> s \<subseteq> c
   using emeasure_mono[of s "cbox a b" lborel]
   by (auto simp: measure_def enn2real_eq_0_iff emeasure_lborel_cbox_eq)
 
+lemma content_ball_pos:
+  assumes "r > 0"
+  shows   "content (ball c r) > 0"
+proof -
+  from rational_boxes[OF assms, of c] obtain a b where ab: "c \<in> box a b" "box a b \<subseteq> ball c r"
+    by auto
+  from ab have "0 < content (box a b)"
+    by (subst measure_lborel_box_eq) (auto intro!: prod_pos simp: algebra_simps box_def)
+  have "emeasure lborel (box a b) \<le> emeasure lborel (ball c r)"
+    using ab by (intro emeasure_mono) auto
+  also have "emeasure lborel (box a b) = ennreal (content (box a b))"
+    using emeasure_lborel_box_finite[of a b] by (intro emeasure_eq_ennreal_measure) auto
+  also have "emeasure lborel (ball c r) = ennreal (content (ball c r))"
+    using emeasure_lborel_ball_finite[of c r] by (intro emeasure_eq_ennreal_measure) auto
+  finally show ?thesis
+    using \<open>content (box a b) > 0\<close> by simp
+qed
+
+lemma content_cball_pos:
+  assumes "r > 0"
+  shows   "content (cball c r) > 0"
+proof -
+  from rational_boxes[OF assms, of c] obtain a b where ab: "c \<in> box a b" "box a b \<subseteq> ball c r"
+    by auto
+  from ab have "0 < content (box a b)"
+    by (subst measure_lborel_box_eq) (auto intro!: prod_pos simp: algebra_simps box_def)
+  have "emeasure lborel (box a b) \<le> emeasure lborel (ball c r)"
+    using ab by (intro emeasure_mono) auto
+  also have "\<dots> \<le> emeasure lborel (cball c r)"
+    by (intro emeasure_mono) auto
+  also have "emeasure lborel (box a b) = ennreal (content (box a b))"
+    using emeasure_lborel_box_finite[of a b] by (intro emeasure_eq_ennreal_measure) auto
+  also have "emeasure lborel (cball c r) = ennreal (content (cball c r))"
+    using emeasure_lborel_cball_finite[of c r] by (intro emeasure_eq_ennreal_measure) auto
+  finally show ?thesis
+    using \<open>content (box a b) > 0\<close> by simp
+qed
+
 lemma content_split:
   fixes a :: "'a::euclidean_space"
   assumes "k \<in> Basis"

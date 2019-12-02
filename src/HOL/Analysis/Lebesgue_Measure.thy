@@ -823,6 +823,34 @@ lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis
   by (auto simp del: emeasure_lborel_cbox nonempty_Basis)
 
+lemma emeasure_lborel_cbox_finite: "emeasure lborel (cbox a b) < \<infinity>"
+  by (auto simp: emeasure_lborel_cbox_eq)
+
+lemma emeasure_lborel_box_finite: "emeasure lborel (box a b) < \<infinity>"
+  by (auto simp: emeasure_lborel_box_eq)
+
+lemma emeasure_lborel_ball_finite: "emeasure lborel (ball c r) < \<infinity>"
+proof -
+  have "bounded (ball c r)" by simp
+  from bounded_subset_cbox_symmetric[OF this] obtain a where a: "ball c r \<subseteq> cbox (-a) a"
+    by auto
+  hence "emeasure lborel (ball c r) \<le> emeasure lborel (cbox (-a) a)"
+    by (intro emeasure_mono) auto
+  also have "\<dots> < \<infinity>" by (simp add: emeasure_lborel_cbox_eq)
+  finally show ?thesis .
+qed
+
+lemma emeasure_lborel_cball_finite: "emeasure lborel (cball c r) < \<infinity>"
+proof -
+  have "bounded (cball c r)" by simp
+  from bounded_subset_cbox_symmetric[OF this] obtain a where a: "cball c r \<subseteq> cbox (-a) a"
+    by auto
+  hence "emeasure lborel (cball c r) \<le> emeasure lborel (cbox (-a) a)"
+    by (intro emeasure_mono) auto
+  also have "\<dots> < \<infinity>" by (simp add: emeasure_lborel_cbox_eq)
+  finally show ?thesis .
+qed
+
 lemma fmeasurable_cbox [iff]: "cbox a b \<in> fmeasurable lborel"
   and fmeasurable_box [iff]: "box a b \<in> fmeasurable lborel"
   by (auto simp: fmeasurable_def emeasure_lborel_box_eq emeasure_lborel_cbox_eq)

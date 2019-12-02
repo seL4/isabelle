@@ -230,6 +230,61 @@ lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq
 lemma cball_divide_subset_numeral: "cball x (e / numeral w) \<subseteq> cball x e"
   using cball_divide_subset one_le_numeral by blast
 
+lemma cball_scale:
+  assumes "a \<noteq> 0"
+  shows   "(\<lambda>x. a *\<^sub>R x) ` cball c r = cball (a *\<^sub>R c :: 'a :: real_normed_vector) (\<bar>a\<bar> * r)"
+proof -
+  have 1: "(\<lambda>x. a *\<^sub>R x) ` cball c r \<subseteq> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)" if "a \<noteq> 0" for a r and c :: 'a
+  proof safe
+    fix x
+    assume x: "x \<in> cball c r"
+    have "dist (a *\<^sub>R c) (a *\<^sub>R x) = norm (a *\<^sub>R c - a *\<^sub>R x)"
+      by (auto simp: dist_norm)
+    also have "a *\<^sub>R c - a *\<^sub>R x = a *\<^sub>R (c - x)"
+      by (simp add: algebra_simps)
+    finally show "a *\<^sub>R x \<in> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+      using that x by (auto simp: dist_norm)
+  qed
+
+  have "cball (a *\<^sub>R c) (\<bar>a\<bar> * r) = (\<lambda>x. a *\<^sub>R x) ` (\<lambda>x. inverse a *\<^sub>R x) ` cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    unfolding image_image using assms by simp
+  also have "\<dots> \<subseteq> (\<lambda>x. a *\<^sub>R x) ` cball (inverse a *\<^sub>R (a *\<^sub>R c)) (\<bar>inverse a\<bar> * (\<bar>a\<bar> * r))"
+    using assms by (intro image_mono 1) auto
+  also have "\<dots> = (\<lambda>x. a *\<^sub>R x) ` cball c r"
+    using assms by (simp add: algebra_simps)
+  finally have "cball (a *\<^sub>R c) (\<bar>a\<bar> * r) \<subseteq> (\<lambda>x. a *\<^sub>R x) ` cball c r" .
+  moreover from assms have "(\<lambda>x. a *\<^sub>R x) ` cball c r \<subseteq> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    by (intro 1) auto
+  ultimately show ?thesis by blast
+qed
+
+lemma ball_scale:
+  assumes "a \<noteq> 0"
+  shows   "(\<lambda>x. a *\<^sub>R x) ` ball c r = ball (a *\<^sub>R c :: 'a :: real_normed_vector) (\<bar>a\<bar> * r)"
+proof -
+  have 1: "(\<lambda>x. a *\<^sub>R x) ` ball c r \<subseteq> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)" if "a \<noteq> 0" for a r and c :: 'a
+  proof safe
+    fix x
+    assume x: "x \<in> ball c r"
+    have "dist (a *\<^sub>R c) (a *\<^sub>R x) = norm (a *\<^sub>R c - a *\<^sub>R x)"
+      by (auto simp: dist_norm)
+    also have "a *\<^sub>R c - a *\<^sub>R x = a *\<^sub>R (c - x)"
+      by (simp add: algebra_simps)
+    finally show "a *\<^sub>R x \<in> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+      using that x by (auto simp: dist_norm)
+  qed
+
+  have "ball (a *\<^sub>R c) (\<bar>a\<bar> * r) = (\<lambda>x. a *\<^sub>R x) ` (\<lambda>x. inverse a *\<^sub>R x) ` ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    unfolding image_image using assms by simp
+  also have "\<dots> \<subseteq> (\<lambda>x. a *\<^sub>R x) ` ball (inverse a *\<^sub>R (a *\<^sub>R c)) (\<bar>inverse a\<bar> * (\<bar>a\<bar> * r))"
+    using assms by (intro image_mono 1) auto
+  also have "\<dots> = (\<lambda>x. a *\<^sub>R x) ` ball c r"
+    using assms by (simp add: algebra_simps)
+  finally have "ball (a *\<^sub>R c) (\<bar>a\<bar> * r) \<subseteq> (\<lambda>x. a *\<^sub>R x) ` ball c r" .
+  moreover from assms have "(\<lambda>x. a *\<^sub>R x) ` ball c r \<subseteq> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    by (intro 1) auto
+  ultimately show ?thesis by blast
+qed
 
 subsection \<open>Limit Points\<close>
 

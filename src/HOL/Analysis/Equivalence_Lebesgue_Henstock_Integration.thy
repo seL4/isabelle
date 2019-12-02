@@ -1561,6 +1561,15 @@ qed
 lemma measurable_convex: "\<lbrakk>convex S; bounded S\<rbrakk> \<Longrightarrow> S \<in> lmeasurable"
   by (simp add: measurable_Jordan negligible_convex_frontier)
 
+lemma content_cball_conv_ball: "content (cball c r) = content (ball c r)"
+proof -
+  have "ball c r - cball c r \<union> (cball c r - ball c r) = sphere c r"
+    by auto
+  hence "measure lebesgue (cball c r) = measure lebesgue (ball c r)"
+    using negligible_sphere[of c r] by (intro measure_negligible_symdiff) simp_all
+  thus ?thesis by simp
+qed
+
 subsection\<open>Negligibility of image under non-injective linear map\<close>
 
 lemma negligible_Union_nat:
@@ -2901,6 +2910,41 @@ qed
 
 
 subsection\<open>Transformation of measure by linear maps\<close>
+
+lemma emeasure_lebesgue_ball_conv_unit_ball:
+  fixes c :: "'a :: euclidean_space"
+  assumes "r \<ge> 0"
+  shows "emeasure lebesgue (ball c r) =
+           ennreal (r ^ DIM('a)) * emeasure lebesgue (ball (0 :: 'a) 1)"
+proof (cases "r = 0")
+  case False
+  with assms have r: "r > 0" by auto
+  have "emeasure lebesgue ((\<lambda>x. c + x) ` (\<lambda>x. r *\<^sub>R x) ` ball (0 :: 'a) 1) =
+          r ^ DIM('a) * emeasure lebesgue (ball (0 :: 'a) 1)"
+    unfolding image_image using emeasure_lebesgue_affine[of r c "ball 0 1"] assms
+    by (simp add: add_ac)
+  also have "(\<lambda>x. r *\<^sub>R x) ` ball 0 1 = ball (0 :: 'a) r"
+    using r by (subst ball_scale) auto
+  also have "(\<lambda>x. c + x) ` \<dots> = ball c r"
+    by (subst image_add_ball) (simp_all add: algebra_simps)
+  finally show ?thesis by simp
+qed auto
+
+lemma content_ball_conv_unit_ball:
+  fixes c :: "'a :: euclidean_space"
+  assumes "r \<ge> 0"
+  shows "content (ball c r) = r ^ DIM('a) * content (ball (0 :: 'a) 1)"
+proof -
+  have "ennreal (content (ball c r)) = emeasure lebesgue (ball c r)"
+    using emeasure_lborel_ball_finite[of c r] by (subst emeasure_eq_ennreal_measure) auto
+  also have "\<dots> = ennreal (r ^ DIM('a)) * emeasure lebesgue (ball (0 :: 'a) 1)"
+    using assms by (intro emeasure_lebesgue_ball_conv_unit_ball) auto
+  also have "\<dots> = ennreal (r ^ DIM('a) * content (ball (0::'a) 1))"
+    using emeasure_lborel_ball_finite[of "0::'a" 1] assms
+    by (subst emeasure_eq_ennreal_measure) (auto simp: ennreal_mult')
+  finally show ?thesis 
+    using assms by (subst (asm) ennreal_inj) auto
+qed
 
 lemma measurable_linear_image_interval:
    "linear f \<Longrightarrow> f ` (cbox a b) \<in> lmeasurable"
