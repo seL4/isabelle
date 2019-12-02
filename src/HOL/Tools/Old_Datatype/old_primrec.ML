@@ -278,7 +278,7 @@ local
 fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
-    val spec_name = Local_Theory.full_name lthy (Binding.conglomerate (map (#1 o #1) fixes));
+    val spec_name = Binding.conglomerate (map (#1 o #1) fixes);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
       (Binding.qualify false prefix b, attrs)) spec;
     fun simp_attr_binding prefix =

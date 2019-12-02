@@ -217,8 +217,7 @@ fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
       map ((apsnd o map) (prep_att vars_ctxt) o fst) raw_concls ~~ map close concls;
 
     val spec_name =
-      Sign.full_name thy
-        (Binding.conglomerate (if null decls then map (#1 o #1) specs else map (#1 o #1) decls));
+      Binding.conglomerate (if null decls then map (#1 o #1) specs else map (#1 o #1) decls);
 
 
     (*consts*)
@@ -270,7 +269,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
       |> Local_Theory.define_internal ((b, mx), ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
-    val lthy3 = lthy2 |> Spec_Rules.add const_name Spec_Rules.equational [lhs] [th];
+    val lthy3 = lthy2 |> Spec_Rules.add b Spec_Rules.equational [lhs] [th];
 
     val ([(def_name, [th'])], lthy4) = lthy3
       |> Local_Theory.notes [((name, atts), [([th], [])])];

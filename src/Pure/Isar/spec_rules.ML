@@ -38,8 +38,8 @@ sig
   val dest_theory: theory -> spec_rule list
   val retrieve: Proof.context -> term -> spec_rule list
   val retrieve_global: theory -> term -> spec_rule list
-  val add: string -> rough_classification -> term list -> thm list -> local_theory -> local_theory
-  val add_global: string -> rough_classification -> term list -> thm list -> theory -> theory
+  val add: binding -> rough_classification -> term list -> thm list -> local_theory -> local_theory
+  val add_global: binding -> rough_classification -> term list -> thm list -> theory -> theory
 end;
 
 structure Spec_Rules: SPEC_RULES =
@@ -158,7 +158,7 @@ val retrieve_global = retrieve_generic o Context.Theory;
 
 (* add *)
 
-fun add name rough_classification terms rules lthy =
+fun add b rough_classification terms rules lthy =
   let
     val pos = Position.thread_data ();
     val thms0 = map Thm.trim_context (map (Drule.mk_term o Thm.cterm_of lthy) terms @ rules);
@@ -166,6 +166,7 @@ fun add name rough_classification terms rules lthy =
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => fn context =>
         let
+          val name = Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi b);
           val (terms', rules') =
             map (Thm.transfer (Context.theory_of context)) thms0
             |> Morphism.fact phi
@@ -179,9 +180,12 @@ fun add name rough_classification terms rules lthy =
         end)
   end;
 
-fun add_global name rough_classification terms rules =
-  (Context.theory_map o Rules.map o Item_Net.update)
-    {pos = Position.thread_data (), name = name, rough_classification = rough_classification,
-      terms = terms, rules = map Thm.trim_context rules};
+fun add_global b rough_classification terms rules thy =
+  thy |> (Context.theory_map o Rules.map o Item_Net.update)
+   {pos = Position.thread_data (),
+    name = Sign.full_name thy b,
+    rough_classification = rough_classification,
+    terms = terms,
+    rules = map Thm.trim_context rules};
 
 end;

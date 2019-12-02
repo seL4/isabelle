@@ -71,7 +71,7 @@ sig
     term list -> (Attrib.binding * term) list -> thm list ->
     term list -> (binding * mixfix) list ->
     local_theory -> result * local_theory
-  val declare_rules: binding -> bool -> bool -> string -> string list -> term list ->
+  val declare_rules: binding -> bool -> bool -> binding -> string list -> term list ->
     thm list -> binding list -> Token.src list list -> (thm * string list * int) list ->
     thm list -> thm -> local_theory -> thm list * thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
@@ -1099,7 +1099,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val _ = message (quiet_mode andalso not verbose)
       ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^ commas_quote names);
 
-    val spec_name = Local_Theory.full_name lthy (Binding.conglomerate (map #1 cnames_syn));
+    val spec_name = Binding.conglomerate (map #1 cnames_syn);
     val cnames = map (Local_Theory.full_name lthy o #1) cnames_syn;  (* FIXME *)
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule lthy cs params) intros));
