@@ -103,4 +103,8 @@ instance
 
 end
 
+lemma length_not_greater_eq_2_iff [simp]:
+  \<open>\<not> 2 \<le> LENGTH('a::len) \<longleftrightarrow> LENGTH('a) = 1\<close>
+  by (auto simp add: not_le dest: less_2_cases)
+
 end

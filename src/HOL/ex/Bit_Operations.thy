@@ -9,21 +9,8 @@ theory Bit_Operations
     Main
 begin
 
-lemma minus_1_div_exp_eq_int [simp]:
-  \<open>- 1 div (2 :: int) ^ n = - 1\<close>
-  for n :: nat
-  by (induction n) (use div_exp_eq [symmetric, of \<open>- 1 :: int\<close> 1] in \<open>simp_all add: ac_simps\<close>)
-
 context semiring_bits
 begin
-
-lemma bits_div_by_0 [simp]:
-  \<open>a div 0 = 0\<close>
-  by (metis local.add_cancel_right_right local.bit_mod_div_trivial local.mod_mult_div_eq local.mult_not_zero)
-
-lemma bit_0_eq [simp]:
-  \<open>bit 0 = bot\<close>
-  by (simp add: fun_eq_iff bit_def)
 
 end
 
@@ -50,7 +37,6 @@ text \<open>
   For the sake of code generation
   the operations \<^const>\<open>and\<close>, \<^const>\<open>or\<close> and \<^const>\<open>xor\<close>
   are specified as definitional class operations.
-
 \<close>
 
 definition map_bit :: \<open>nat \<Rightarrow> (bool \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a\<close>
@@ -712,7 +698,6 @@ lemma bit_not_iff_int:
     by (induction n arbitrary: k)
       (simp_all add: not_int_def flip: complement_div_2)
 
-
 instance proof
   fix k l :: int and n :: nat
   show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
@@ -745,7 +730,7 @@ instance proof
     with xor_int.rec [of k l] show ?case
       by simp
   qed
-qed (simp_all add: bit_not_iff_int)
+qed (simp_all add: minus_1_div_exp_eq_int bit_not_iff_int)
 
 end
 
@@ -774,27 +759,32 @@ lemma xor_one_int_eq [simp]:
   using one_xor_int_eq [of k] by (simp add: ac_simps)
 
 lemma take_bit_complement_iff:
-  "Parity.take_bit n (complement k) = Parity.take_bit n (complement l) \<longleftrightarrow> Parity.take_bit n k = Parity.take_bit n l"
+  "take_bit n (complement k) = take_bit n (complement l) \<longleftrightarrow> take_bit n k = take_bit n l"
   for k l :: int
-  by (simp add: Parity.take_bit_eq_mod mod_eq_dvd_iff dvd_diff_commute)
+  by (simp add: take_bit_eq_mod mod_eq_dvd_iff dvd_diff_commute)
 
 lemma take_bit_not_iff:
-  "Parity.take_bit n (NOT k) = Parity.take_bit n (NOT l) \<longleftrightarrow> Parity.take_bit n k = Parity.take_bit n l"
+  "take_bit n (NOT k) = take_bit n (NOT l) \<longleftrightarrow> take_bit n k = take_bit n l"
   for k l :: int
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff_int)
 
+lemma take_bit_not_take_bit:
+  \<open>take_bit n (NOT (take_bit n k)) = take_bit n (NOT k)\<close>
+  for k :: int
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff)
+
 lemma take_bit_and [simp]:
-  "Parity.take_bit n (k AND l) = Parity.take_bit n k AND Parity.take_bit n l"
+  "take_bit n (k AND l) = take_bit n k AND take_bit n l"
   for k l :: int
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_and_iff)
 
 lemma take_bit_or [simp]:
-  "Parity.take_bit n (k OR l) = Parity.take_bit n k OR Parity.take_bit n l"
+  "take_bit n (k OR l) = take_bit n k OR take_bit n l"
   for k l :: int
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_or_iff)
 
 lemma take_bit_xor [simp]:
-  "Parity.take_bit n (k XOR l) = Parity.take_bit n k XOR Parity.take_bit n l"
+  "take_bit n (k XOR l) = take_bit n k XOR take_bit n l"
   for k l :: int
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
 

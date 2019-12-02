@@ -569,13 +569,13 @@ qed
 subsection \<open>Abstract bit structures\<close>
 
 class semiring_bits = semiring_parity +
-  assumes bit_induct [case_names stable rec]:
+  assumes bits_induct [case_names stable rec]:
     \<open>(\<And>a. a div 2 = a \<Longrightarrow> P a)
      \<Longrightarrow> (\<And>a b. P a \<Longrightarrow> (of_bool b + 2 * a) div 2 = a \<Longrightarrow> P (of_bool b + 2 * a))
         \<Longrightarrow> P a\<close>
   assumes bits_div_0 [simp]: \<open>0 div a = 0\<close>
     and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
-    and bit_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
+    and bits_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
     and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
     and exp_div_exp_eq: \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
     and div_exp_eq: \<open>a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)\<close>
@@ -583,6 +583,10 @@ class semiring_bits = semiring_parity +
     and mult_exp_mod_exp_eq: \<open>m \<le> n \<Longrightarrow> (a * 2 ^ m) mod (2 ^ n) = (a mod 2 ^ (n - m)) * 2 ^ m\<close>
     and div_exp_mod_exp_eq: \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
 begin
+
+lemma bits_div_by_0 [simp]:
+  \<open>a div 0 = 0\<close>
+  by (metis add_cancel_right_right bits_mod_div_trivial mod_mult_div_eq mult_not_zero)
 
 lemma bits_1_div_2 [simp]:
   \<open>1 div 2 = 0\<close>
@@ -629,7 +633,7 @@ lemma bits_mod_0 [simp]:
   \<open>0 mod a = 0\<close>
   using div_mult_mod_eq [of 0 a] by simp
 
-lemma one_mod_two_eq_one [simp]:
+lemma bits_one_mod_two_eq_one [simp]:
   \<open>1 mod 2 = 1\<close>
   by (simp add: mod2_eq_if)
 
@@ -644,12 +648,16 @@ lemma bit_Suc [simp]:
   \<open>bit a (Suc n) \<longleftrightarrow> bit (a div 2) n\<close>
   using div_exp_eq [of a 1 n] by (simp add: bit_def)
 
+lemma bit_0_eq [simp]:
+  \<open>bit 0 = bot\<close>
+  by (simp add: fun_eq_iff bit_def)
+
 context
   fixes a
   assumes stable: \<open>a div 2 = a\<close>
 begin
 
-lemma stable_imp_add_self:
+lemma bits_stable_imp_add_self:
   \<open>a + a mod 2 = 0\<close>
 proof -
   have \<open>a div 2 * 2 + a mod 2 = a\<close>
@@ -668,7 +676,7 @@ end
 
 lemma bit_iff_idd_imp_stable:
   \<open>a div 2 = a\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> odd a\<close>
-using that proof (induction a rule: bit_induct)
+using that proof (induction a rule: bits_induct)
   case (stable a)
   then show ?case
     by simp
@@ -693,7 +701,7 @@ qed
 
 lemma bit_eqI:
   \<open>a = b\<close> if \<open>\<And>n. bit a n \<longleftrightarrow> bit b n\<close>
-using that proof (induction a arbitrary: b rule: bit_induct)
+using that proof (induction a arbitrary: b rule: bits_induct)
   case (stable a)
   from stable(2) [of 0] have **: \<open>even b \<longleftrightarrow> even a\<close>
     by simp
@@ -714,7 +722,7 @@ using that proof (induction a arbitrary: b rule: bit_induct)
   then have \<open>a + a mod 2 + b = b + b mod 2 + a\<close>
     by (simp add: ac_simps)
   with \<open>a div 2 = a\<close> \<open>b div 2 = b\<close> show ?case
-    by (simp add: stable_imp_add_self)
+    by (simp add: bits_stable_imp_add_self)
 next
   case (rec a p)
   from rec.prems [of 0] have [simp]: \<open>p = odd b\<close>
@@ -952,7 +960,7 @@ text \<open>
   differently wrt. code generation.
 \<close>
 
-lemma bit_ident:
+lemma bits_ident:
   "push_bit n (drop_bit n a) + take_bit n a = a"
   using div_mult_mod_eq by (simp add: push_bit_eq_mult take_bit_eq_mod drop_bit_eq_div)
 
@@ -1227,5 +1235,28 @@ lemma take_bit_eq_self:
 lemma push_bit_minus_one:
   "push_bit n (- 1 :: int) = - (2 ^ n)"
   by (simp add: push_bit_eq_mult)
+
+lemma minus_1_div_exp_eq_int:
+  \<open>- 1 div (2 :: int) ^ n = - 1\<close>
+  by (induction n) (use div_exp_eq [symmetric, of \<open>- 1 :: int\<close> 1] in \<open>simp_all add: ac_simps\<close>)
+
+lemma drop_bit_minus_one [simp]:
+  \<open>drop_bit n (- 1 :: int) = - 1\<close>
+  by (simp add: drop_bit_eq_div minus_1_div_exp_eq_int)
+
+lemma take_bit_uminus:
+  "take_bit n (- (take_bit n k)) = take_bit n (- k)"
+    for k :: int
+  by (simp add: take_bit_eq_mod mod_minus_eq)
+
+lemma take_bit_minus:
+  "take_bit n (take_bit n k - take_bit n l) = take_bit n (k - l)"
+    for k l :: int
+  by (simp add: take_bit_eq_mod mod_diff_eq)
+
+lemma take_bit_nonnegative [simp]:
+  "take_bit n k \<ge> 0"
+    for k :: int
+  by (simp add: take_bit_eq_mod)
 
 end
