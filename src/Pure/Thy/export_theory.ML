@@ -122,7 +122,7 @@ fun get_dependencies prev_thys thy =
 
 (* spec rules *)
 
-fun spec_content {pos, name, rough_classification, terms = terms0, rules = rules0} =
+fun spec_rule_content {pos, name, rough_classification, terms = terms0, rules = rules0} =
   let
     val terms = map Logic.unvarify_global terms0;
     val rules = map (Logic.unvarify_global o Thm.plain_prop_of) rules0;
@@ -133,7 +133,7 @@ fun spec_content {pos, name, rough_classification, terms = terms0, rules = rules
     rough_classification = rough_classification,
     typargs = rev (fold Term.add_tfrees text []),
     args = rev (fold Term.add_frees text []),
-    terms = terms,
+    terms = map (fn t => (t, Term.type_of t)) terms,
     rules = rules}
   end;
 
@@ -425,14 +425,14 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         list (fn {props, name, rough_classification, typargs, args, terms, rules} =>
           pair properties (pair string (pair Spec_Rules.encode_rough_classification
             (pair (list (pair string sort)) (pair (list (pair string typ))
-              (pair (list encode_term) (list encode_term))))))
+              (pair (list (pair encode_term typ)) (list encode_term))))))
               (props, (name, (rough_classification, (typargs, (args, (terms, rules)))))))
       end;
 
     val _ =
       (case Spec_Rules.dest_theory thy of
         [] => ()
-      | spec_rules => export_body thy "spec_rules" (encode_specs (map spec_content spec_rules)));
+      | spec_rules => export_body thy "spec_rules" (encode_specs (map spec_rule_content spec_rules)));
 
 
     (* parents *)

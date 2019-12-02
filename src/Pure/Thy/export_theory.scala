@@ -716,7 +716,7 @@ object Export_Theory
     rough_classification: Rough_Classification,
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
-    terms: List[Term.Term],
+    terms: List[(Term.Term, Term.Typ)],
     rules: List[Term.Term])
   {
     def id: Option[Long] = Position.Id.unapply(pos)
@@ -728,7 +728,7 @@ object Export_Theory
         rough_classification.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        terms.map(cache.term(_)),
+        terms.map({ case (term, typ) => (cache.term(term), cache.typ(typ)) }),
         rules.map(cache.term(_)))
   }
 
@@ -742,7 +742,7 @@ object Export_Theory
       list(
         pair(properties, pair(string, pair(decode_rough_classification,
           pair(list(pair(string, sort)), pair(list(pair(string, typ)),
-            pair(list(term), list(term))))))))(body)
+            pair(list(pair(term, typ)), list(term))))))))(body)
     }
     for ((pos, (name, (rough_classification, (typargs, (args, (terms, rules)))))) <- spec_rules)
       yield Spec_Rule(pos, name, rough_classification, typargs, args, terms, rules)
