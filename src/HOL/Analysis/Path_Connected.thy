@@ -4055,7 +4055,6 @@ lemma homeomorphism_into_1d:
   shows "\<exists>g. homeomorphism S T f g"
   using assms injective_into_1d_eq_homeomorphism by blast
 
-
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Rectangular paths\<close>
 
 definition\<^marker>\<open>tag unimportant\<close> rectpath where

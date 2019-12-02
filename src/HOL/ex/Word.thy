@@ -10,6 +10,19 @@ theory Word
     "HOL-ex.Bit_Operations"
 begin
 
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_of_bool:
+  \<open>((\<longleftrightarrow>) ===> (\<cong>)) of_bool of_bool\<close>
+    if [transfer_rule]: \<open>0 \<cong> 0\<close> \<open>1 \<cong> 1\<close>
+    for R :: \<open>'a::zero_neq_one \<Rightarrow> 'b::zero_neq_one \<Rightarrow> bool\<close>  (infix \<open>\<cong>\<close> 50)
+  by (unfold of_bool_def [abs_def]) transfer_prover
+
+end
+
+
 subsection \<open>Preliminaries\<close>
 
 lemma length_not_greater_eq_2_iff [simp]:
@@ -161,10 +174,16 @@ subsubsection \<open>Conversions\<close>
 
 context
   includes lifting_syntax
-  notes transfer_rule_numeral [transfer_rule]
+  notes 
+    transfer_rule_of_bool [transfer_rule]
+    transfer_rule_numeral [transfer_rule]
     transfer_rule_of_nat [transfer_rule]
     transfer_rule_of_int [transfer_rule]
 begin
+
+lemma [transfer_rule]:
+  "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) of_bool of_bool"
+  by transfer_prover
 
 lemma [transfer_rule]:
   "((=) ===> (pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool)) numeral numeral"
@@ -324,6 +343,10 @@ lemma div_zero_word_eq [simp]:
   \<open>a div 0 = 0\<close> for a :: \<open>'a::len0 word\<close>
   by transfer simp
 
+(*lemma
+  \<open>a div a = of_bool (a \<noteq> 0)\<close> for a :: \<open>'a::len word\<close>
+  by transfer  simp*)
+
 context
   includes lifting_syntax
 begin
@@ -388,6 +411,11 @@ proof
     for a :: "'a word"
     by (transfer; cases rule: length_cases [where ?'a = 'a]) (simp_all add: mod_2_eq_odd)
 qed
+
+(*lemma
+  \<open>2 ^ n = (0 :: 'a word) \<longleftrightarrow> LENGTH('a::len) \<le> n\<close>
+  apply transfer*)
+  
 
 
 subsubsection \<open>Orderings\<close>
@@ -612,6 +640,9 @@ proof
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
     using that by transfer (auto dest: le_Suc_ex)
+  show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
+    for m n :: nat
+    by transfer (simp, simp add: exp_div_exp_eq)
   show "a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)"
     for a :: "'a word" and m n :: nat
     apply transfer
@@ -636,6 +667,23 @@ proof
     apply (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
     done
 qed
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_bit_word [transfer_rule]:
+  \<open>((pcr_word :: int \<Rightarrow> 'a::len word \<Rightarrow> bool) ===> (=)) (\<lambda>k n. n < LENGTH('a) \<and> bit k n) bit\<close>
+proof -
+  let ?t = \<open>\<lambda>a n. odd (take_bit LENGTH('a) a div take_bit LENGTH('a) ((2::int) ^ n))\<close>
+  have \<open>((pcr_word :: int \<Rightarrow> 'a word \<Rightarrow> bool) ===> (=)) ?t bit\<close>
+    by (unfold bit_def) transfer_prover
+  also have \<open>?t = (\<lambda>k n. n < LENGTH('a) \<and> bit k n)\<close>
+    by (simp add: fun_eq_iff bit_take_bit_iff flip: bit_def)
+  finally show ?thesis .
+qed
+
+end
 
 instantiation word :: (len) semiring_bit_shifts
 begin
@@ -702,25 +750,18 @@ lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wor
   by simp
 
 instance proof
-  interpret bit_word: boolean_algebra "(AND)" "(OR)" NOT 0 "- 1 :: 'a word"
-  proof
-    show "a AND (b OR c) = a AND b OR a AND c"
-      for a b c :: "'a word"
-      by transfer (simp add: bit.conj_disj_distrib)
-    show "a OR b AND c = (a OR b) AND (a OR c)"
-      for a b c :: "'a word"
-      by transfer (simp add: bit.disj_conj_distrib)
-  qed (transfer; simp add: ac_simps)+
-  show "boolean_algebra (AND) (OR) NOT 0 (- 1 :: 'a word)"
-    by (fact bit_word.boolean_algebra_axioms)
-  show "bit_word.xor = ((XOR) :: 'a word \<Rightarrow> _)"
-  proof (rule ext)+
-    fix a b :: "'a word"
-    have "a XOR b = a AND NOT b OR NOT a AND b"
-      by transfer (simp add: bit.xor_def)
-    then show "bit_word.xor a b = a XOR b"
-      by (simp add: bit_word.xor_def)
-  qed
+  fix a b :: \<open>'a word\<close> and n :: nat
+  show \<open>even (- 1 div (2 :: 'a word) ^ n) \<longleftrightarrow> (2 :: 'a word) ^ n = 0\<close>
+    by transfer
+      (simp flip: drop_bit_eq_div add: drop_bit_take_bit, simp add: drop_bit_eq_div)
+  show \<open>bit (NOT a) n \<longleftrightarrow> (2 :: 'a word) ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+    by transfer (simp add: bit_not_iff)
+  show \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
+    by transfer (auto simp add: bit_and_iff)
+  show \<open>bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
+    by transfer (auto simp add: bit_or_iff)
+  show \<open>bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
+    by transfer (auto simp add: bit_xor_iff)
 qed
 
 end

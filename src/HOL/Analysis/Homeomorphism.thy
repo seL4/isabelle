@@ -2184,7 +2184,6 @@ proof -
   qed
 qed
 
-
 corollary covering_space_lift_stronger:
   fixes p :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
     and f :: "'c::real_normed_vector \<Rightarrow> 'b"
@@ -2250,6 +2249,38 @@ next
     by (metis cov covering_space_imp_surjective fim image_iff image_subset_iff)
   then show ?thesis
     by (metis that covering_space_lift_strong [OF cov _ \<open>z \<in> U\<close> U contf fim])
+qed
+
+subsection\<^marker>\<open>tag unimportant\<close> \<open>Homeomorphisms of arc images\<close>
+
+lemma homeomorphism_arc:
+  fixes g :: "real \<Rightarrow> 'a::t2_space"
+  assumes "arc g"
+  obtains h where "homeomorphism {0..1} (path_image g) g h"
+using assms by (force simp: arc_def homeomorphism_compact path_def path_image_def)
+
+lemma homeomorphic_arc_image_interval:
+  fixes g :: "real \<Rightarrow> 'a::t2_space" and a::real
+  assumes "arc g" "a < b"
+  shows "(path_image g) homeomorphic {a..b}"
+proof -
+  have "(path_image g) homeomorphic {0..1::real}"
+    by (meson assms(1) homeomorphic_def homeomorphic_sym homeomorphism_arc)
+  also have "\<dots> homeomorphic {a..b}"
+    using assms by (force intro: homeomorphic_closed_intervals_real)
+  finally show ?thesis .
+qed
+
+lemma homeomorphic_arc_images:
+  fixes g :: "real \<Rightarrow> 'a::t2_space" and h :: "real \<Rightarrow> 'b::t2_space"
+  assumes "arc g" "arc h"
+  shows "(path_image g) homeomorphic (path_image h)"
+proof -
+  have "(path_image g) homeomorphic {0..1::real}"
+    by (meson assms homeomorphic_def homeomorphic_sym homeomorphism_arc)
+  also have "\<dots> homeomorphic (path_image h)"
+    by (meson assms homeomorphic_def homeomorphism_arc)
+  finally show ?thesis .
 qed
 
 end
