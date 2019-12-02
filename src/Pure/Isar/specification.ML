@@ -216,6 +216,11 @@ fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
     val specs =
       map ((apsnd o map) (prep_att vars_ctxt) o fst) raw_concls ~~ map close concls;
 
+    val spec_name =
+      Sign.full_name thy
+        (Binding.conglomerate (if null decls then map (#1 o #1) specs else map (#1 o #1) decls));
+
+
     (*consts*)
     val (consts, consts_thy) = thy
       |> fold_map (fn ((b, _, mx), (_, t)) => Theory.specify_const ((b, Term.type_of t), mx)) decls;
@@ -229,7 +234,7 @@ fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
     (*facts*)
     val (facts, facts_lthy) = axioms_thy
       |> Named_Target.theory_init
-      |> Spec_Rules.add "" Spec_Rules.Unknown consts (maps (maps #1 o #2) axioms)
+      |> Spec_Rules.add spec_name Spec_Rules.Unknown consts (maps (maps #1 o #2) axioms)
       |> Local_Theory.notes axioms;
 
   in ((consts, map (the_single o #2) facts), Local_Theory.exit_global facts_lthy) end;
