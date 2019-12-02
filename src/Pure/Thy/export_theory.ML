@@ -122,9 +122,8 @@ fun get_dependencies prev_thys thy =
 
 (* spec rules *)
 
-fun spec_content (spec: Spec_Rules.spec) =
+fun spec_content {pos, name, rough_classification, terms = terms0, rules = rules0} =
   let
-    val {pos, name, rough_classification, terms = terms0, rules = rules0} = spec;
     val terms = map Logic.unvarify_global terms0;
     val rules = map (Logic.unvarify_global o Thm.plain_prop_of) rules0;
     val text = terms @ rules;

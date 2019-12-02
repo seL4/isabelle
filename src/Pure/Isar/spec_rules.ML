@@ -27,17 +27,17 @@ sig
   val is_relational: rough_classification -> bool
   val is_unknown: rough_classification -> bool
   val encode_rough_classification: rough_classification XML.Encode.T
-  type spec =
+  type spec_rule =
    {pos: Position.T,
     name: string,
     rough_classification: rough_classification,
     terms: term list,
     rules: thm list}
-  val get: Proof.context -> spec list
-  val get_global: theory -> spec list
-  val dest_theory: theory -> spec list
-  val retrieve: Proof.context -> term -> spec list
-  val retrieve_global: theory -> term -> spec list
+  val get: Proof.context -> spec_rule list
+  val get_global: theory -> spec_rule list
+  val dest_theory: theory -> spec_rule list
+  val retrieve: Proof.context -> term -> spec_rule list
+  val retrieve_global: theory -> term -> spec_rule list
   val add: string -> rough_classification -> term list -> thm list -> local_theory -> local_theory
   val add_global: string -> rough_classification -> term list -> thm list -> theory -> theory
 end;
@@ -100,26 +100,26 @@ val encode_rough_classification =
 
 (* rules *)
 
-type spec =
+type spec_rule =
  {pos: Position.T,
   name: string,
   rough_classification: rough_classification,
   terms: term list,
   rules: thm list};
 
-fun eq_spec (specs: spec * spec) =
+fun eq_spec (specs: spec_rule * spec_rule) =
   (op =) (apply2 #name specs) andalso
   is_equal (rough_classification_ord (apply2 #rough_classification specs)) andalso
   eq_list (op aconv) (apply2 #terms specs) andalso
   eq_list Thm.eq_thm_prop (apply2 #rules specs);
 
-fun map_spec_rules f ({pos, name, rough_classification, terms, rules}: spec) : spec =
+fun map_spec_rules f ({pos, name, rough_classification, terms, rules}: spec_rule) : spec_rule =
   {pos = pos, name = name, rough_classification = rough_classification, terms = terms,
     rules = map f rules};
 
 structure Rules = Generic_Data
 (
-  type T = spec Item_Net.T;
+  type T = spec_rule Item_Net.T;
   val empty : T = Item_Net.init eq_spec #terms;
   val extend = I;
   val merge = Item_Net.merge;
