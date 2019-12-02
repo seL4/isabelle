@@ -267,6 +267,10 @@ lemma of_int_signed [simp]:
 
 subsubsection \<open>Properties\<close>
 
+lemma exp_eq_zero_iff:
+  \<open>(2 :: 'a::len word) ^ n = 0 \<longleftrightarrow> LENGTH('a) \<le> n\<close>
+  by transfer simp
+
 
 subsubsection \<open>Division\<close>
 
