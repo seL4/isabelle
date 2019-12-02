@@ -12,18 +12,22 @@ theory Analysis
   Norm_Arith
   (* Vector Analysis *)
   Convex_Euclidean_Space
+  Operator_Norm
+  (* Unsorted *)
+  Line_Segment
+  Derivative
+  Cartesian_Euclidean_Space
+  Weierstrass_Theorems
   (* Measure and Integration Theory *)
   Ball_Volume
   Integral_Test
   Improper_Integral
   Equivalence_Measurable_On_Borel
-  (* Unsorted *)
   Lebesgue_Integral_Substitution
   Embed_Measure
   Complete_Measure
   Radon_Nikodym
   Fashoda_Theorem
-  Determinants
   Cross3
   Homeomorphism
   Bounded_Continuous_Function
@@ -32,7 +36,6 @@ theory Analysis
   Lindelof_Spaces
   Infinite_Products
   Infinite_Set_Sum
-  Weierstrass_Theorems
   Polytope
   Jordan_Curve
   Poly_Roots
