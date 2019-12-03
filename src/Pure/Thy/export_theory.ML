@@ -55,18 +55,6 @@ fun add_tfrees used =
   (fold_types o fold_atyps) (fn TFree (a, S) => is_free used a ? insert (op =) (a, S) | _ => I);
 
 
-(* spec rules *)
-
-fun primrec_types ctxt const =
-  Spec_Rules.retrieve ctxt (Const const)
-  |> get_first
-    (#rough_classification #>
-      (fn Spec_Rules.Equational (Spec_Rules.Primrec types) => SOME (types, false)
-        | Spec_Rules.Equational (Spec_Rules.Primcorec types) => SOME (types, true)
-        | _ => NONE))
-  |> the_default ([], false);
-
-
 (* locales *)
 
 fun locale_content thy loc =
@@ -216,23 +204,19 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val encode_term = Term_XML.Encode.term consts;
 
     val encode_const =
-      let open XML.Encode Term_XML.Encode in
-        pair encode_syntax
-          (pair (list string)
-            (pair typ (pair (option encode_term) (pair bool (pair (list string) bool)))))
-      end;
+      let open XML.Encode Term_XML.Encode
+      in pair encode_syntax (pair (list string) (pair typ (pair (option encode_term) bool))) end;
 
     fun export_const c (T, abbrev) =
       let
         val syntax = get_syntax_const thy_ctxt c;
         val U = Logic.unvarifyT_global T;
         val U0 = Type.strip_sorts U;
-        val recursion = primrec_types thy_ctxt (c, U);
         val abbrev' = abbrev
           |> Option.map (Proofterm.standard_vars_term Name.context #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
         val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
-      in encode_const (syntax, (args, (U0, (abbrev', (propositional, recursion))))) end;
+      in encode_const (syntax, (args, (U0, (abbrev', propositional)))) end;
 
     val _ =
       export_entities "consts" (SOME oo export_const) Sign.const_space
