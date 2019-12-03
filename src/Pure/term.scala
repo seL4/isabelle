@@ -53,6 +53,13 @@ object Term
   val dummyT = Type("dummy")
 
   sealed abstract class Term
+  {
+    def head: Term =
+      this match {
+        case App(fun, _) => fun.head
+        case _ => this
+      }
+  }
   case class Const(name: String, typargs: List[Typ] = Nil) extends Term
   {
     override def toString: String =
