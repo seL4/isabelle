@@ -637,7 +637,7 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     val transfer = exists (can (fn Transfer_Option => ())) opts;
 
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
-    val spec_name = Local_Theory.full_name lthy (Binding.conglomerate (map (#1 o #1) fixes));
+    val spec_name = Binding.conglomerate (map (#1 o #1) fixes);
 
     val mk_notes =
       flat oooo @{map 4} (fn js => fn prefix => fn qualify => fn thms =>

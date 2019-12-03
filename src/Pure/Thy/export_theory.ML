@@ -67,7 +67,7 @@ fun primrec_types ctxt const =
   |> the_default ([], false);
 
 
-(* locales content *)
+(* locales *)
 
 fun locale_content thy loc =
   let
@@ -141,14 +141,32 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val thy_ctxt = Proof_Context.init_global thy;
 
 
+    (* spec rules *)
+
+    fun position_properties pos =
+      Position.offset_properties_of (adjust_pos pos) @ Position.id_properties_of pos;
+
+    fun spec_rule_content {pos, name, rough_classification, terms, rules} =
+      let
+        val spec =
+          terms @ map Thm.plain_prop_of rules
+          |> Term_Subst.zero_var_indexes_list
+          |> map Logic.unvarify_global;
+      in
+       {props = position_properties pos,
+        name = name,
+        rough_classification = rough_classification,
+        typargs = rev (fold Term.add_tfrees spec []),
+        args = rev (fold Term.add_frees spec []),
+        terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
+        rules = drop (length terms) spec}
+      end;
+
+
     (* entities *)
 
     fun make_entity_markup name xname pos serial =
-      let
-        val props =
-          Position.offset_properties_of (adjust_pos pos) @
-          Position.id_properties_of pos @
-          Markup.serial_properties serial;
+      let val props = position_properties pos @ Markup.serial_properties serial;
       in (Markup.entityN, (Markup.nameN, name) :: (Markup.xnameN, xname) :: props) end;
 
     fun entity_markup space name =
@@ -232,6 +250,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
       in ((sorts @ typargs, args, prop), proof) end;
 
+    fun standard_prop_of thm =
+      standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm);
+
     val encode_prop =
       let open XML.Encode Term_XML.Encode
       in triple (list (pair string sort)) (list (pair string typ)) encode_term end;
@@ -247,6 +268,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     (* theorems and proof terms *)
 
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
+    val prep_thm = clean_thm #> Thm.unconstrainT;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
@@ -267,7 +289,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun encode_thm thm_id raw_thm =
       let
         val deps = map (Thm_Name.print o #2) (Thm_Deps.thm_deps thy [raw_thm]);
-        val thm = clean_thm (Thm.unconstrainT raw_thm);
+        val thm = prep_thm raw_thm;
 
         val proof0 =
           if Proofterm.export_standard_enabled () then
@@ -275,8 +297,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
               {full = true, expand_name = SOME o expand_name thm_id} thm
           else if Proofterm.export_enabled () then Thm.reconstruct_proof_of thm
           else MinProof;
-        val (prop, SOME proof) =
-          standard_prop Name.context (Thm.extra_shyps thm) (Thm.full_prop_of thm) (SOME proof0);
+        val (prop, SOME proof) = standard_prop_of thm (SOME proof0);
         val _ = Thm.expose_proofs thy [thm];
       in
         (prop, deps, proof) |>
@@ -395,6 +416,23 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ =
       if null constdefs then () else export_body thy "constdefs" (encode_constdefs constdefs);
+
+
+    (* spec rules *)
+
+    val encode_specs =
+      let open XML.Encode Term_XML.Encode in
+        list (fn {props, name, rough_classification, typargs, args, terms, rules} =>
+          pair properties (pair string (pair Spec_Rules.encode_rough_classification
+            (pair (list (pair string sort)) (pair (list (pair string typ))
+              (pair (list (pair encode_term typ)) (list encode_term))))))
+              (props, (name, (rough_classification, (typargs, (args, (terms, rules)))))))
+      end;
+
+    val _ =
+      (case Spec_Rules.dest_theory thy of
+        [] => ()
+      | spec_rules => export_body thy "spec_rules" (encode_specs (map spec_rule_content spec_rules)));
 
 
     (* parents *)
