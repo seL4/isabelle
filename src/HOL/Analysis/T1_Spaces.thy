@@ -1,7 +1,7 @@
 section\<open>T1 and Hausdorff spaces\<close>
 
 theory T1_Spaces
-imports Product_Topology 
+imports Product_Topology
 begin
 
 section\<open>T1 spaces with equivalences to many naturally "nice" properties. \<close>
@@ -591,24 +591,6 @@ lemma proper_map_paired_continuous_map_left:
         \<Longrightarrow> proper_map X (prod_topology Y X) (\<lambda>x. (f x,x))"
   using closed_injective_imp_proper_map closed_map_paired_continuous_map_left
   by (metis (mono_tags, lifting) Pair_inject inj_onI)
-
-lemma Hausdorff_space_euclidean [simp]: "Hausdorff_space (euclidean :: 'a::metric_space topology)"
-proof -
-  have "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
-    if "x \<noteq> y"
-    for x y :: 'a
-  proof (intro exI conjI)
-    let ?r = "dist x y / 2"
-    have [simp]: "?r > 0"
-      by (simp add: that)
-    show "open (ball x ?r)" "open (ball y ?r)" "x \<in> (ball x ?r)" "y \<in> (ball y ?r)"
-      by (auto simp add: that)
-    show "disjnt (ball x ?r) (ball y ?r)"
-      unfolding disjnt_def by (simp add: disjoint_ballI)
-  qed
-  then show ?thesis
-    by (simp add: Hausdorff_space_def)
-qed
 
 lemma Hausdorff_space_prod_topology:
   "Hausdorff_space(prod_topology X Y) \<longleftrightarrow> topspace(prod_topology X Y) = {} \<or> Hausdorff_space X \<and> Hausdorff_space Y"

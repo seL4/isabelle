@@ -1,10 +1,10 @@
 section\<open>The binary product topology\<close>
 
 theory Product_Topology
-imports Function_Topology Abstract_Limits
+imports Function_Topology
 begin
 
-section \<open>Product Topology\<close> 
+section \<open>Product Topology\<close>
 
 subsection\<open>Definition\<close>
 

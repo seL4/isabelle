@@ -399,7 +399,7 @@ qed
 lemma Hausdorff_Euclidean_space:
    "Hausdorff_space (Euclidean_space n)"
   unfolding Euclidean_space_def
-  by (rule Hausdorff_space_subtopology) (metis Hausdorff_space_euclidean euclidean_product_topology)
+  by (rule Hausdorff_space_subtopology) (metis Hausdorff_space_euclidean Hausdorff_space_product_topology)
 
 end
 

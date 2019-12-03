@@ -3874,6 +3874,24 @@ qed
 
 subsubsection\<open>Special characterizations of classes of functions into and out of R.\<close>
 
+lemma Hausdorff_space_euclidean [simp]: "Hausdorff_space (euclidean :: 'a::metric_space topology)"
+proof -
+  have "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> disjnt U V"
+    if "x \<noteq> y"
+    for x y :: 'a
+  proof (intro exI conjI)
+    let ?r = "dist x y / 2"
+    have [simp]: "?r > 0"
+      by (simp add: that)
+    show "open (ball x ?r)" "open (ball y ?r)" "x \<in> (ball x ?r)" "y \<in> (ball y ?r)"
+      by (auto simp add: that)
+    show "disjnt (ball x ?r) (ball y ?r)"
+      unfolding disjnt_def by (simp add: disjoint_ballI)
+  qed
+  then show ?thesis
+    by (simp add: Hausdorff_space_def)
+qed
+
 proposition embedding_map_into_euclideanreal:
   assumes "path_connected_space X"
   shows "embedding_map X euclideanreal f \<longleftrightarrow>

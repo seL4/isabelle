@@ -46,6 +46,7 @@ theory Analysis
   FPS_Convergence
   Smooth_Paths
   Abstract_Euclidean_Space
+  Function_Metric
 begin
 
 end
