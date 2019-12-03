@@ -120,25 +120,6 @@ fun get_dependencies prev_thys thy =
       in SOME (dep, (substT, subst)) end);
 
 
-(* spec rules *)
-
-fun spec_rule_content {pos, name, rough_classification, terms, rules} =
-  let
-    val spec =
-      terms @ map Thm.plain_prop_of rules
-      |> Term_Subst.zero_var_indexes_list
-      |> map Logic.unvarify_global;
-  in
-   {props = Position.properties_of pos,
-    name = name,
-    rough_classification = rough_classification,
-    typargs = rev (fold Term.add_tfrees spec []),
-    args = rev (fold Term.add_frees spec []),
-    terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
-    rules = drop (length terms) spec}
-  end;
-
-
 (* general setup *)
 
 fun setup_presentation f =
@@ -160,14 +141,32 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val thy_ctxt = Proof_Context.init_global thy;
 
 
+    (* spec rules *)
+
+    fun position_properties pos =
+      Position.offset_properties_of (adjust_pos pos) @ Position.id_properties_of pos;
+
+    fun spec_rule_content {pos, name, rough_classification, terms, rules} =
+      let
+        val spec =
+          terms @ map Thm.plain_prop_of rules
+          |> Term_Subst.zero_var_indexes_list
+          |> map Logic.unvarify_global;
+      in
+       {props = position_properties pos,
+        name = name,
+        rough_classification = rough_classification,
+        typargs = rev (fold Term.add_tfrees spec []),
+        args = rev (fold Term.add_frees spec []),
+        terms = map (fn t => (t, Term.type_of t)) (take (length terms) spec),
+        rules = drop (length terms) spec}
+      end;
+
+
     (* entities *)
 
     fun make_entity_markup name xname pos serial =
-      let
-        val props =
-          Position.offset_properties_of (adjust_pos pos) @
-          Position.id_properties_of pos @
-          Markup.serial_properties serial;
+      let val props = position_properties pos @ Markup.serial_properties serial;
       in (Markup.entityN, (Markup.nameN, name) :: (Markup.xnameN, xname) :: props) end;
 
     fun entity_markup space name =
