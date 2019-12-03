@@ -44,6 +44,8 @@ fun indexify_names names =
 fun make_tnames Ts =
   let
     fun type_name (TFree (name, _)) = unprefix "'" name
+      | type_name (TVar ((name, idx), _)) =
+          unprefix "'" name ^ (if idx = 0 then "" else string_of_int idx)
       | type_name (Type (name, _)) =
           let val name' = Long_Name.base_name name
           in if Symbol_Pos.is_identifier name' then name' else "x" end;
@@ -259,8 +261,7 @@ fun fresh_constr colty used c =
   let
     val (_, T) = dest_Const c;
     val Ts = binder_types T;
-    val (names, _) =
-      fold_map Name.variant (make_tnames (map Logic.unvarifyT_global Ts)) used;
+    val (names, _) = fold_map Name.variant (make_tnames Ts) used;
     val ty = body_type T;
     val ty_theta = Type.raw_match (ty, colty) Vartab.empty
       handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);
