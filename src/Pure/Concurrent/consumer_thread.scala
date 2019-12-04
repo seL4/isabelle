@@ -104,11 +104,7 @@ final class Consumer_Thread[A] private(
           }
         }
 
-        if (continue) {
-          val msgs1 = msgs.drop(reqs.length)
-          val msgs2 = mailbox.receive(timeout = Some(Time.zero))
-          main_loop(msgs1 ::: msgs2)
-        }
+        if (continue) main_loop(msgs.drop(reqs.length))
         else robust_finish()
     }
 
