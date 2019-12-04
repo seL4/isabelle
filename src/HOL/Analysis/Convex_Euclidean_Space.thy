@@ -455,6 +455,11 @@ lemma closure_affine_hull:
   shows "closure S \<subseteq> affine hull S"
   by (intro closure_minimal hull_subset affine_closed affine_affine_hull)
 
+lemma closed_affine_hull [iff]:
+  fixes S :: "'n::euclidean_space set"
+  shows "closed (affine hull S)"
+  by (metis affine_affine_hull affine_closed)
+
 lemma closure_same_affine_hull [simp]:
   fixes S :: "'n::euclidean_space set"
   shows "affine hull (closure S) = affine hull S"

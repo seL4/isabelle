@@ -1296,11 +1296,6 @@ lemma rel_frontier_translation:
   shows "rel_frontier((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (rel_frontier S)"
 by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
 
-lemma closed_affine_hull [iff]:
-  fixes S :: "'n::euclidean_space set"
-  shows "closed (affine hull S)"
-  by (metis affine_affine_hull affine_closed)
-
 lemma rel_frontier_nonempty_interior:
   fixes S :: "'n::euclidean_space set"
   shows "interior S \<noteq> {} \<Longrightarrow> rel_frontier S = frontier S"
