@@ -1057,6 +1057,39 @@ proof (rule closure_unique)
     done
 qed
 
+lemma closure_open_Int_superset:
+  assumes "open S" "S \<subseteq> closure T"
+  shows "closure(S \<inter> T) = closure S"
+proof -
+  have "closure S \<subseteq> closure(S \<inter> T)"
+    by (metis assms closed_closure closure_minimal inf.orderE open_Int_closure_subset)
+  then show ?thesis
+    by (simp add: closure_mono dual_order.antisym)
+qed
+
+lemma closure_Int: "closure (\<Inter>I) \<le> \<Inter>{closure S |S. S \<in> I}"
+proof -
+  {
+    fix y
+    assume "y \<in> \<Inter>I"
+    then have y: "\<forall>S \<in> I. y \<in> S" by auto
+    {
+      fix S
+      assume "S \<in> I"
+      then have "y \<in> closure S"
+        using closure_subset y by auto
+    }
+    then have "y \<in> \<Inter>{closure S |S. S \<in> I}"
+      by auto
+  }
+  then have "\<Inter>I \<subseteq> \<Inter>{closure S |S. S \<in> I}"
+    by auto
+  moreover have "closed (\<Inter>{closure S |S. S \<in> I})"
+    unfolding closed_Inter closed_closure by auto
+  ultimately show ?thesis using closure_hull[of "\<Inter>I"]
+    hull_minimal[of "\<Inter>I" "\<Inter>{closure S |S. S \<in> I}" "closed"] by auto
+qed
+
 lemma islimpt_in_closure: "(x islimpt S) = (x\<in>closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
