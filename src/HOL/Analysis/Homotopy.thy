@@ -1478,6 +1478,38 @@ lemma homotopic_from_contractible:
 using homotopic_through_contractible [of S id S f T id g]
 by (simp add: assms contractible_imp_path_connected)
 
+subsection\<open>Starlike sets\<close>
+
+definition\<^marker>\<open>tag important\<close> "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
+
+lemma starlike_UNIV [simp]: "starlike UNIV"
+  by (simp add: starlike_def)
+
+lemma convex_imp_starlike:
+  "convex S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> starlike S"
+  unfolding convex_contains_segment starlike_def by auto
+
+lemma starlike_convex_tweak_boundary_points:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "S \<noteq> {}" and ST: "rel_interior S \<subseteq> T" and TS: "T \<subseteq> closure S"
+  shows "starlike T"
+proof -
+  have "rel_interior S \<noteq> {}"
+    by (simp add: assms rel_interior_eq_empty)
+  then obtain a where a: "a \<in> rel_interior S"  by blast
+  with ST have "a \<in> T"  by blast
+  have *: "\<And>x. x \<in> T \<Longrightarrow> open_segment a x \<subseteq> rel_interior S"
+    apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> a])
+    using assms by blast
+  show ?thesis
+    unfolding starlike_def
+    apply (rule bexI [OF _ \<open>a \<in> T\<close>])
+    apply (simp add: closed_segment_eq_open)
+    apply (intro conjI ballI a \<open>a \<in> T\<close> rel_interior_closure_convex_segment [OF \<open>convex S\<close> a])
+    apply (simp add: order_trans [OF * ST])
+    done
+qed
+
 lemma starlike_imp_contractible_gen:
   fixes S :: "'a::real_normed_vector set"
   assumes S: "starlike S"
