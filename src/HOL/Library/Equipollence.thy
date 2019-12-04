@@ -693,4 +693,19 @@ corollary finite_funcset_iff:
   apply (auto simp: finite_PiE_iff PiE_eq_empty_iff dest: not_finite_existsD)
   using finite.simps by auto
 
+lemma lists_lepoll_mono:
+  assumes "A \<lesssim> B" shows "lists A \<lesssim> lists B"
+proof -
+  obtain f where f: "inj_on f A" "f ` A \<subseteq> B"
+    by (meson assms lepoll_def)
+  moreover have "inj_on (map f) (lists A)"
+    using f unfolding inj_on_def
+    by clarsimp (metis list.inj_map_strong)
+  ultimately show ?thesis
+    unfolding lepoll_def by force
+qed
+
+lemma lepoll_lists: "A \<lesssim> lists A"
+  unfolding lepoll_def inj_on_def by(rule_tac x="\<lambda>x. [x]" in exI) auto
+
 end
