@@ -2887,14 +2887,11 @@ proof -
     done
 qed
 
-lemma affine_hull_nonempty: "S \<noteq> {} \<longleftrightarrow> affine hull S \<noteq> {}"
-proof -
-  have "S = {} \<Longrightarrow> affine hull S = {}"
-    using affine_hull_empty by auto
-  moreover have "affine hull S = {} \<Longrightarrow> S = {}"
-    unfolding hull_def by auto
-  ultimately show ?thesis by blast
-qed
+lemma affine_hull_eq_empty [simp]: "affine hull S = {} \<longleftrightarrow> S = {}"
+by (metis affine_empty subset_empty subset_hull)
+
+lemma empty_eq_affine_hull[simp]: "{} = affine hull S \<longleftrightarrow> S = {}"
+by (metis affine_hull_eq_empty)
 
 lemma aff_dim_parallel_subspace_aux:
   fixes B :: "'n::euclidean_space set"
@@ -2939,7 +2936,7 @@ proof -
     B: "affine hull B = affine hull V \<and> \<not> affine_dependent B \<and> int (card B) = aff_dim V + 1"
     using aff_dim_basis_exists by auto
   then have "B \<noteq> {}"
-    using assms B affine_hull_nonempty[of V] affine_hull_nonempty[of B]
+    using assms B
     by auto
   then obtain a where a: "a \<in> B" by auto
   define Lb where "Lb = span ((\<lambda>x. -a+x) ` (B-{a}))"
@@ -2951,7 +2948,7 @@ proof -
   moreover have "subspace Lb"
     using Lb_def subspace_span by auto
   moreover have "affine hull B \<noteq> {}"
-    using assms B affine_hull_nonempty[of V] by auto
+    using assms B by auto
   ultimately have "L = Lb"
     using assms affine_parallel_subspace[of "affine hull B"] affine_affine_hull[of B] B
     by auto
@@ -3031,7 +3028,7 @@ proof -
     using aff_dim_basis_exists by auto
   moreover
   from * have "S = {} \<longleftrightarrow> B = {}"
-    using affine_hull_nonempty[of B] affine_hull_nonempty[of S] by auto
+    by auto
   ultimately show ?thesis
     using aff_independent_finite[of B] card_gt_0_iff[of B] by auto
 qed
@@ -3054,7 +3051,7 @@ lemma aff_dim_unique:
 proof (cases "B = {}")
   case True
   then have "V = {}"
-    using affine_hull_nonempty[of V] affine_hull_nonempty[of B] assms
+    using assms
     by auto
   then have "aff_dim V = (-1::int)"
     using aff_dim_empty by auto
@@ -3140,7 +3137,7 @@ proof -
     assume "T \<noteq> {}" "S \<noteq> {}"
     then obtain L where L: "subspace L \<and> affine_parallel (affine hull T) L"
       using affine_parallel_subspace[of "affine hull T"]
-        affine_affine_hull[of T] affine_hull_nonempty
+        affine_affine_hull[of T]
       by auto
     then have "aff_dim T = int (dim L)"
       using aff_dim_parallel_subspace \<open>T \<noteq> {}\<close> by auto
@@ -3154,7 +3151,7 @@ proof -
   {
     assume "S = {}"
     then have "S = {}" and "T = {}"
-      using assms affine_hull_nonempty
+      using assms
       unfolding affine_parallel_def
       by auto
     then have ?thesis using aff_dim_empty by auto
@@ -3163,7 +3160,7 @@ proof -
   {
     assume "T = {}"
     then have "S = {}" and "T = {}"
-      using assms affine_hull_nonempty
+      using assms
       unfolding affine_parallel_def
       by auto
     then have ?thesis

@@ -3842,9 +3842,6 @@ proof -
     by (simp add: collinear_subset)
 qed
 
-lemma affine_hull_eq_empty [simp]: "affine hull S = {} \<longleftrightarrow> S = {}"
-  using affine_hull_nonempty by blast
-
 lemma affine_hull_2_alt:
   fixes a b :: "'a::real_vector"
   shows "affine hull {a,b} = range (\<lambda>u. a + u *\<^sub>R (b - a))"
