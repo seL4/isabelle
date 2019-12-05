@@ -73,19 +73,9 @@ sig
   exception SIMPLIFIER of string * thm list
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory
-  val internal_ss: simpset ->
-   {congs: (cong_name * thm) list * cong_name list,
-    procs: proc Net.net,
-    mk_rews:
-     {mk: Proof.context -> thm -> thm list,
-      mk_cong: Proof.context -> thm -> thm,
-      mk_sym: Proof.context -> thm -> thm option,
-      mk_eq_True: Proof.context -> thm -> thm option,
-      reorient: Proof.context -> term list -> term -> term -> bool},
-    term_ord: term ord,
-    subgoal_tac: Proof.context -> int -> tactic,
-    loop_tacs: (string * (Proof.context -> int -> tactic)) list,
-    solvers: solver list * solver list}
+  val subgoal_tac: Proof.context -> int -> tactic
+  val loop_tac: Proof.context -> int -> tactic
+  val solvers: Proof.context -> solver list * solver list
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
@@ -382,6 +372,16 @@ fun map_ss f = Context.mapping (map_theory_simpset (f o Context_Position.not_rea
 val clear_simpset =
   map_simpset (fn Simpset ({depth, ...}, {mk_rews, term_ord, subgoal_tac, solvers, ...}) =>
     init_ss depth mk_rews term_ord subgoal_tac solvers);
+
+
+(* accessors for tactis *)
+
+fun subgoal_tac ctxt = (#subgoal_tac o internal_ss o simpset_of) ctxt ctxt;
+
+fun loop_tac ctxt =
+  FIRST' (map (fn (_, tac) => tac ctxt) (rev ((#loop_tacs o internal_ss o simpset_of) ctxt)));
+
+val solvers = #solvers o internal_ss o simpset_of
 
 
 (* simp depth *)

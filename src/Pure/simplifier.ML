@@ -197,16 +197,15 @@ fun pretty_simpset verbose ctxt =
 
 fun solve_all_tac solvers ctxt =
   let
-    val {subgoal_tac, ...} = Raw_Simplifier.internal_ss (simpset_of ctxt);
-    val solve_tac = subgoal_tac (Raw_Simplifier.set_solvers solvers ctxt) THEN_ALL_NEW (K no_tac);
+    val subgoal_tac = Raw_Simplifier.subgoal_tac (Raw_Simplifier.set_solvers solvers ctxt);
+    val solve_tac = subgoal_tac THEN_ALL_NEW (K no_tac);
   in DEPTH_SOLVE (solve_tac 1) end;
 
 (*NOTE: may instantiate unknowns that appear also in other subgoals*)
 fun generic_simp_tac safe mode ctxt =
   let
-    val {loop_tacs, solvers = (unsafe_solvers, solvers), ...} =
-      Raw_Simplifier.internal_ss (simpset_of ctxt);
-    val loop_tac = FIRST' (map (fn (_, tac) => tac ctxt) (rev loop_tacs));
+    val loop_tac = Raw_Simplifier.loop_tac ctxt;
+    val (unsafe_solvers, solvers) = Raw_Simplifier.solvers ctxt;
     val solve_tac = FIRST' (map (Raw_Simplifier.solver ctxt)
       (rev (if safe then solvers else unsafe_solvers)));
 
@@ -219,7 +218,7 @@ local
 
 fun simp rew mode ctxt thm =
   let
-    val {solvers = (unsafe_solvers, _), ...} = Raw_Simplifier.internal_ss (simpset_of ctxt);
+    val (unsafe_solvers, _) = Raw_Simplifier.solvers ctxt;
     val tacf = solve_all_tac (rev unsafe_solvers);
     fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ctxt thm end;
