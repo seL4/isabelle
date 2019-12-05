@@ -172,20 +172,20 @@ lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<le> u \<longleftrightarrow> (\<for
 lemma Inf_insert [simp]: "\<Sqinter>(insert a A) = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
-lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
-  by (simp cong del: INF_cong_simp)
+lemma INF_insert: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
+  by simp
 
 lemma Sup_insert [simp]: "\<Squnion>(insert a A) = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
-lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
-  by (simp cong del: SUP_cong_simp)
+lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
+  by simp
 
-lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
-  by (simp cong del: INF_cong_simp)
+lemma INF_empty: "(\<Sqinter>x\<in>{}. f x) = \<top>"
+  by simp
 
-lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
-  by (simp cong del: SUP_cong_simp)
+lemma SUP_empty: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
+  by simp
 
 lemma Inf_UNIV [simp]: "\<Sqinter>UNIV = \<bottom>"
   by (auto intro!: antisym Inf_lower)

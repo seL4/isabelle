@@ -323,10 +323,10 @@ lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (\<Squnion>i\<in>A. f i) < 
   by (metis cSUP_upper le_less_trans)
 
 lemma cINF_insert: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> \<Sqinter>(f ` insert a A) = inf (f a) (\<Sqinter>(f ` A))"
-  by (simp add: cInf_insert cong del: INF_cong)
+  by (simp add: cInf_insert)
 
 lemma cSUP_insert: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> \<Squnion>(f ` insert a A) = sup (f a) (\<Squnion>(f ` A))"
-  by (simp add: cSup_insert cong del: SUP_cong)
+  by (simp add: cSup_insert)
 
 lemma cINF_mono: "B \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> (\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> \<Sqinter>(f ` A) \<le> \<Sqinter>(g ` B)"
   using cInf_mono [of "g ` B" "f ` A"] by auto
@@ -351,13 +351,13 @@ lemma cInf_union_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below A \<Longrig
   by (intro antisym le_infI cInf_greatest cInf_lower) (auto intro: le_infI1 le_infI2 cInf_lower)
 
 lemma cINF_union: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_below (f ` B) \<Longrightarrow> \<Sqinter> (f ` (A \<union> B)) = \<Sqinter> (f ` A) \<sqinter> \<Sqinter> (f ` B)"
-  using cInf_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un cong del: INF_cong)
+  using cInf_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un)
 
 lemma cSup_union_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_above B \<Longrightarrow> Sup (A \<union> B) = sup (Sup A) (Sup B)"
   by (intro antisym le_supI cSup_least cSup_upper) (auto intro: le_supI1 le_supI2 cSup_upper)
 
 lemma cSUP_union: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_above (f ` B) \<Longrightarrow> \<Squnion> (f ` (A \<union> B)) = \<Squnion> (f ` A) \<squnion> \<Squnion> (f ` B)"
-  using cSup_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un cong del: SUP_cong)
+  using cSup_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un)
 
 lemma cINF_inf_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> bdd_below (g`A) \<Longrightarrow> \<Sqinter> (f ` A) \<sqinter> \<Sqinter> (g ` A) = (\<Sqinter>a\<in>A. inf (f a) (g a))"
   by (intro antisym le_infI cINF_greatest cINF_lower2)
