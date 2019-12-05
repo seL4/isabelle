@@ -10,7 +10,6 @@ chapter \<open>Unsorted\<close>
 theory Starlike
   imports
     Convex_Euclidean_Space
-    Abstract_Limits
     Line_Segment
 begin
 
@@ -6108,48 +6107,6 @@ proof -
     by (simp_all add: contf contg cong: continuous_on_cong)
   then show ?thesis
     by (rule continuous_on_Un_local_open [OF opS opT])
-qed
-
-lemma continuous_map_cases_le:
-  assumes contp: "continuous_map X euclideanreal p"
-    and contq: "continuous_map X euclideanreal q"
-    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
-    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
-    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "continuous_map X Y (\<lambda>x. if p x \<le> q x then f x else g x)"
-proof -
-  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0..} then f x else g x)"
-  proof (rule continuous_map_cases_function)
-    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
-      by (intro contp contq continuous_intros)
-    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0..}}) Y f"
-      by (simp add: contf)
-    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0..})}) Y g"
-      by (simp add: contg flip: Compl_eq_Diff_UNIV)
-  qed (auto simp: fg)
-  then show ?thesis
-    by simp
-qed
-
-lemma continuous_map_cases_lt:
-  assumes contp: "continuous_map X euclideanreal p"
-    and contq: "continuous_map X euclideanreal q"
-    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
-    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
-    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "continuous_map X Y (\<lambda>x. if p x < q x then f x else g x)"
-proof -
-  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0<..} then f x else g x)"
-  proof (rule continuous_map_cases_function)
-    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
-      by (intro contp contq continuous_intros)
-    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0<..}}) Y f"
-      by (simp add: contf)
-    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0<..})}) Y g"
-      by (simp add: contg flip: Compl_eq_Diff_UNIV)
-  qed (auto simp: fg)
-  then show ?thesis
-    by simp
 qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>The union of two collinear segments is another segment\<close>

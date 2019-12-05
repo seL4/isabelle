@@ -5,7 +5,9 @@
 section \<open>Path-Connectedness\<close>
 
 theory Path_Connected
-  imports Starlike T1_Spaces
+imports
+  Starlike
+  T1_Spaces
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -2080,6 +2082,48 @@ lemma path_component_of_sym:
 lemma path_component_of_sym_iff:
    "path_component_of X x y \<longleftrightarrow> path_component_of X y x"
   by (metis path_component_of_sym)
+
+lemma continuous_map_cases_le:
+  assumes contp: "continuous_map X euclideanreal p"
+    and contq: "continuous_map X euclideanreal q"
+    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
+    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
+    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "continuous_map X Y (\<lambda>x. if p x \<le> q x then f x else g x)"
+proof -
+  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0..} then f x else g x)"
+  proof (rule continuous_map_cases_function)
+    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
+      by (intro contp contq continuous_intros)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0..}}) Y f"
+      by (simp add: contf)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0..})}) Y g"
+      by (simp add: contg flip: Compl_eq_Diff_UNIV)
+  qed (auto simp: fg)
+  then show ?thesis
+    by simp
+qed
+
+lemma continuous_map_cases_lt:
+  assumes contp: "continuous_map X euclideanreal p"
+    and contq: "continuous_map X euclideanreal q"
+    and contf: "continuous_map (subtopology X {x. x \<in> topspace X \<and> p x \<le> q x}) Y f"
+    and contg: "continuous_map (subtopology X {x. x \<in> topspace X \<and> q x \<le> p x}) Y g"
+    and fg: "\<And>x. \<lbrakk>x \<in> topspace X; p x = q x\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "continuous_map X Y (\<lambda>x. if p x < q x then f x else g x)"
+proof -
+  have "continuous_map X Y (\<lambda>x. if q x - p x \<in> {0<..} then f x else g x)"
+  proof (rule continuous_map_cases_function)
+    show "continuous_map X euclideanreal (\<lambda>x. q x - p x)"
+      by (intro contp contq continuous_intros)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of {0<..}}) Y f"
+      by (simp add: contf)
+    show "continuous_map (subtopology X {x \<in> topspace X. q x - p x \<in> euclideanreal closure_of (topspace euclideanreal - {0<..})}) Y g"
+      by (simp add: contg flip: Compl_eq_Diff_UNIV)
+  qed (auto simp: fg)
+  then show ?thesis
+    by simp
+qed
 
 lemma path_component_of_trans:
   assumes "path_component_of X x y" and "path_component_of X y z"
