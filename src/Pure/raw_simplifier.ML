@@ -122,6 +122,8 @@ fun cong_name (Const (a, _)) = SOME (true, a)
   | cong_name (Free (a, _)) = SOME (false, a)
   | cong_name _ = NONE;
 
+structure Congtab = Table(type key = cong_name val ord = prod_ord bool_ord fast_string_ord);
+
 
 (* rewrite rules *)
 
@@ -250,7 +252,7 @@ datatype simpset =
    {rules: rrule Net.net,
     prems: thm list,
     depth: int * bool Unsynchronized.ref} *
-   {congs: (cong_name * thm) list * cong_name list,
+   {congs: thm Congtab.table * cong_name list,
     procs: proc Net.net,
     mk_rews:
      {mk: Proof.context -> thm -> thm list,
@@ -285,8 +287,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
     |> map (fn Proc {name, lhs, stamp, ...} => ((name, lhs), stamp))
     |> partition_eq (eq_snd op =)
     |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
-  congs = #1 congs,
-  weak_congs = #2 congs,
+  congs = congs |> fst |> Congtab.dest,
+  weak_congs = congs |> snd,
   loopers = map fst loop_tacs,
   unsafe_solvers = map solver_name (#1 solvers),
   safe_solvers = map solver_name (#2 solvers)};
@@ -296,7 +298,7 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
 
 fun init_ss depth mk_rews term_ord subgoal_tac solvers =
   make_simpset ((Net.empty, [], depth),
-    (([], []), Net.empty, mk_rews, term_ord, subgoal_tac, [], solvers));
+    ((Congtab.empty, []), Net.empty, mk_rews, term_ord, subgoal_tac, [], solvers));
 
 fun default_mk_sym _ th = SOME (th RS Drule.symmetric_thm);
 
@@ -326,7 +328,7 @@ fun merge_ss (ss1, ss2) =
       val rules' = Net.merge eq_rrule (rules1, rules2);
       val prems' = Thm.merge_thms (prems1, prems2);
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
-      val congs' = AList.merge (op =) (K true) (congs1, congs2);
+      val congs' = Congtab.merge (K true) (congs1, congs2);
       val weak' = merge (op =) (weak1, weak2);
       val procs' = Net.merge eq_proc (procs1, procs2);
       val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
@@ -678,7 +680,7 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", [thm]);
       val (xs, weak) = congs;
-      val xs' = AList.update (op =) (a, Thm.trim_context thm) xs;
+      val xs' = Congtab.update (a, Thm.trim_context thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
@@ -691,8 +693,8 @@ fun del_eqcong thm ctxt = ctxt |> map_simpset2
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", [thm]);
       val (xs, _) = congs;
-      val xs' = filter_out (fn (x : cong_name, _) => x = a) xs;
-      val weak' = xs' |> map_filter (fn (a, th) => if is_full_cong th then NONE else SOME a);
+      val xs' = Congtab.delete_safe a xs;
+      val weak' = Congtab.fold (fn (a, th) => if is_full_cong th then I else insert (op =) a) xs' [];
     in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
 fun add_cong thm ctxt = add_eqcong (mk_cong ctxt thm) ctxt;
@@ -1178,7 +1180,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                   in
                     (case cong_name h of
                       SOME a =>
-                        (case AList.lookup (op =) (fst congs) a of
+                        (case Congtab.lookup (fst congs) a of
                           NONE => appc ()
                         | SOME cong =>
      (*post processing: some partial applications h t1 ... tj, j <= length ts,
