@@ -42,6 +42,7 @@ object Export_Theory
     arities: Boolean = true,
     constdefs: Boolean = true,
     typedefs: Boolean = true,
+    datatypes: Boolean = true,
     spec_rules: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
@@ -57,7 +58,7 @@ object Export_Theory
                 session, theory, types = types, consts = consts,
                 axioms = axioms, thms = thms, classes = classes, locales = locales,
                 locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                constdefs = constdefs, typedefs = typedefs,
+                constdefs = constdefs, typedefs = typedefs, datatypes = datatypes,
                 spec_rules = spec_rules, cache = Some(cache))
             }
           }
@@ -93,6 +94,7 @@ object Export_Theory
     arities: List[Arity],
     constdefs: List[Constdef],
     typedefs: List[Typedef],
+    datatypes: List[Datatype],
     spec_rules: List[Spec_Rule])
   {
     override def toString: String = name
@@ -120,6 +122,7 @@ object Export_Theory
         arities.map(_.cache(cache)),
         constdefs.map(_.cache(cache)),
         typedefs.map(_.cache(cache)),
+        datatypes.map(_.cache(cache)),
         spec_rules.map(_.cache(cache)))
   }
 
@@ -135,6 +138,7 @@ object Export_Theory
     arities: Boolean = true,
     constdefs: Boolean = true,
     typedefs: Boolean = true,
+    datatypes: Boolean = true,
     spec_rules: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
@@ -161,6 +165,7 @@ object Export_Theory
         if (arities) read_arities(provider) else Nil,
         if (constdefs) read_constdefs(provider) else Nil,
         if (typedefs) read_typedefs(provider) else Nil,
+        if (datatypes) read_datatypes(provider) else Nil,
         if (spec_rules) read_spec_rules(provider) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
@@ -643,6 +648,43 @@ object Export_Theory
     }
     for { (name, (rep_type, (abs_type, (rep_name, (abs_name, axiom_name))))) <- typedefs }
     yield Typedef(name, rep_type, abs_type, rep_name, abs_name, axiom_name)
+  }
+
+
+  /* HOL datatypes */
+
+  sealed case class Datatype(
+    pos: Position.T,
+    name: String,
+    co: Boolean,
+    typargs: List[(String, Term.Sort)],
+    typ: Term.Typ,
+    constructors: List[(Term.Term, Term.Typ)])
+  {
+    def id: Option[Long] = Position.Id.unapply(pos)
+
+    def cache(cache: Term.Cache): Datatype =
+      Datatype(
+        cache.position(pos),
+        cache.string(name),
+        co,
+        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        cache.typ(typ),
+        constructors.map({ case (term, typ) => (cache.term(term), cache.typ(typ)) }))
+  }
+
+  def read_datatypes(provider: Export.Provider): List[Datatype] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "datatypes")
+    val datatypes =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      list(pair(properties, pair(string, pair(bool, pair(list(pair(string, sort)),
+            pair(typ, list(pair(term, typ))))))))(body)
+    }
+    for ((pos, (name, (co, (typargs, (typ, constructors))))) <- datatypes)
+      yield Datatype(pos, name, co, typargs, typ, constructors)
   }
 
 
