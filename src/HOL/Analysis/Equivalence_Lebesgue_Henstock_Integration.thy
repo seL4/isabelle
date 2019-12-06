@@ -1999,7 +1999,7 @@ proof -
     using diff_f
     apply (clarsimp simp add: differentiable_on_def)
     apply (intro differentiable_chain_within linear_imp_differentiable [OF \<open>linear drop\<close>]
-             linear_imp_differentiable [OF fst_linear])
+             linear_imp_differentiable [OF linear_fst])
     apply (force simp: image_comp o_def)
     done
   have "f = (f o fst o drop o (\<lambda>x. lift (x, 0)))"

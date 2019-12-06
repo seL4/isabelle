@@ -545,7 +545,7 @@ proof
     have "convex c"
       using c by (metis face_of_imp_convex)
     have conv: "convex (fst ` c)" "convex (snd ` c)"
-      by (simp_all add: \<open>convex c\<close> convex_linear_image fst_linear snd_linear)
+      by (simp_all add: \<open>convex c\<close> convex_linear_image linear_fst linear_snd)
     have fstab: "a \<in> fst ` c \<and> b \<in> fst ` c"
             if "a \<in> S" "b \<in> S" "x \<in> open_segment a b" "(x,x') \<in> c" for a b x x'
     proof -
@@ -567,7 +567,7 @@ proof
     have snd: "snd ` c face_of S'"
       by (force simp: face_of_def 1 conv sndab)
     have cc: "rel_interior c \<subseteq> rel_interior (fst ` c) \<times> rel_interior (snd ` c)"
-      by (force simp: face_of_Times rel_interior_Times conv fst snd \<open>convex c\<close> fst_linear snd_linear rel_interior_convex_linear_image [symmetric])
+      by (force simp: face_of_Times rel_interior_Times conv fst snd \<open>convex c\<close> linear_fst linear_snd rel_interior_convex_linear_image [symmetric])
     have "c = fst ` c \<times> snd ` c"
       apply (rule face_of_eq [OF c])
       apply (simp_all add: face_of_Times rel_interior_Times conv fst snd)

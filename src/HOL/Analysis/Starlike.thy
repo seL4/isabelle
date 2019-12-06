@@ -1830,13 +1830,13 @@ proof -
     then have "fst -` rel_interior S \<noteq> {}"
       using fst_vimage_eq_Times[of "rel_interior S"] by auto
     then have "rel_interior ((fst :: 'n * 'm \<Rightarrow> 'n) -` S) = fst -` rel_interior S"
-      using fst_linear \<open>convex S\<close> rel_interior_convex_linear_preimage[of fst S] by auto
+      using linear_fst \<open>convex S\<close> rel_interior_convex_linear_preimage[of fst S] by auto
     then have s: "rel_interior (S \<times> (UNIV :: 'm set)) = rel_interior S \<times> UNIV"
       by (simp add: fst_vimage_eq_Times)
     from ri have "snd -` rel_interior T \<noteq> {}"
       using snd_vimage_eq_Times[of "rel_interior T"] by auto
     then have "rel_interior ((snd :: 'n * 'm \<Rightarrow> 'm) -` T) = snd -` rel_interior T"
-      using snd_linear \<open>convex T\<close> rel_interior_convex_linear_preimage[of snd T] by auto
+      using linear_snd \<open>convex T\<close> rel_interior_convex_linear_preimage[of snd T] by auto
     then have t: "rel_interior ((UNIV :: 'n set) \<times> T) = UNIV \<times> rel_interior T"
       by (simp add: snd_vimage_eq_Times)
     from s t have *: "rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T) =
@@ -1951,7 +1951,7 @@ proof -
   then have "fst ` S = {y. f y \<noteq> {}}"
     unfolding fst_def using assms by auto
   then have h1: "fst ` rel_interior S = rel_interior {y. f y \<noteq> {}}"
-    using rel_interior_convex_linear_image[of fst S] assms fst_linear by auto
+    using rel_interior_convex_linear_image[of fst S] assms linear_fst by auto
   {
     fix y
     assume "y \<in> rel_interior {y. f y \<noteq> {}}"
@@ -1977,7 +1977,7 @@ proof -
     then have "snd ` (S \<inter> fst -` {y}) = f y"
       using assms by auto
     then have ***: "rel_interior (f y) = snd ` rel_interior (S \<inter> fst -` {y})"
-      using rel_interior_convex_linear_image[of snd "S \<inter> fst -` {y}"] snd_linear conv
+      using rel_interior_convex_linear_image[of snd "S \<inter> fst -` {y}"] linear_snd conv
       by auto
     {
       fix z

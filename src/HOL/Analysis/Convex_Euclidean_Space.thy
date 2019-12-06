@@ -180,9 +180,6 @@ lemma rel_interior_open:
   shows "rel_interior S = S"
   by (metis assms interior_eq interior_subset_rel_interior rel_interior_subset set_eq_subset)
 
-lemma interior_ball [simp]: "interior (ball x e) = ball x e"
-  by (simp add: interior_open)
-
 lemma interior_rel_interior_gen:
   fixes S :: "'n::euclidean_space set"
   shows "interior S = (if aff_dim S = int(DIM('n)) then rel_interior S else {})"
@@ -1200,15 +1197,12 @@ definition\<^marker>\<open>tag important\<close> closest_point :: "'a::{real_inn
 lemma closest_point_exists:
   assumes "closed S"
     and "S \<noteq> {}"
-  shows "closest_point S a \<in> S"
+  shows closest_point_in_set: "closest_point S a \<in> S"
     and "\<forall>y\<in>S. dist a (closest_point S a) \<le> dist a y"
   unfolding closest_point_def
   apply(rule_tac[!] someI2_ex)
   apply (auto intro: distance_attains_inf[OF assms(1,2), of a])
   done
-
-lemma closest_point_in_set: "closed S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> closest_point S a \<in> S"
-  by (meson closest_point_exists)
 
 lemma closest_point_le: "closed S \<Longrightarrow> x \<in> S \<Longrightarrow> dist a (closest_point S a) \<le> dist a x"
   using closest_point_exists[of S] by auto

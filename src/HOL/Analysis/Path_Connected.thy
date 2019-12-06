@@ -2910,7 +2910,7 @@ proof -
   have "T \<inter> \<Union>(B - {T}) = {}" using \<open>T \<in> B\<close> \<open>pairwise disjnt B\<close>
     by (auto simp: pairwise_def disjnt_def)
   then have 4: "T \<inter> \<Union>(B - {T}) \<inter> S = {}" by auto
-  from connectedD [OF \<open>connected S\<close> 1 2 3 4]
+  from connectedD [OF \<open>connected S\<close> 1 2 4 3]
   have "S \<inter> \<Union>(B-{T}) = {}"
     by (auto simp: Int_commute \<open>S \<inter> T \<noteq> {}\<close>)
   with \<open>T \<in> B\<close> have "S \<subseteq> T"

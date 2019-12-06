@@ -562,36 +562,6 @@ proof -
     using convex_translation[OF convex_scaling[OF assms], of a c] by auto
 qed
 
-lemma pos_is_convex: "convex {0 :: real <..}"
-  unfolding convex_alt
-proof safe
-  fix y x \<mu> :: real
-  assume *: "y > 0" "x > 0" "\<mu> \<ge> 0" "\<mu> \<le> 1"
-  {
-    assume "\<mu> = 0"
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y = y"
-      by simp
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
-      using * by simp
-  }
-  moreover
-  {
-    assume "\<mu> = 1"
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
-      using * by simp
-  }
-  moreover
-  {
-    assume "\<mu> \<noteq> 1" "\<mu> \<noteq> 0"
-    then have "\<mu> > 0" "(1 - \<mu>) > 0"
-      using * by auto
-    then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0"
-      using * by (auto simp: add_pos_pos)
-  }
-  ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0"
-    by fastforce
-qed
-
 lemma convex_on_sum:
   fixes a :: "'a \<Rightarrow> real"
     and y :: "'a \<Rightarrow> 'b::real_vector"
@@ -923,7 +893,7 @@ proof -
     unfolding inverse_eq_divide by (auto simp: mult.assoc)
   have f''_ge0: "\<And>z::real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
     using \<open>b > 1\<close> by (auto intro!: less_imp_le)
-  from f''_ge0_imp_convex[OF pos_is_convex, unfolded greaterThan_iff, OF f' f''0 f''_ge0]
+  from f''_ge0_imp_convex[OF convex_real_interval(3), unfolded greaterThan_iff, OF f' f''0 f''_ge0]
   show ?thesis
     by auto
 qed
@@ -1048,12 +1018,6 @@ lemma convex_linear_image_eq [simp]:
     fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
     shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> convex (f ` s) \<longleftrightarrow> convex s"
     by (metis (no_types) convex_linear_image convex_linear_vimage inj_vimage_image_eq)
-
-lemma fst_linear: "linear fst"
-  unfolding linear_iff by (simp add: algebra_simps)
-
-lemma snd_linear: "linear snd"
-  unfolding linear_iff by (simp add: algebra_simps)
 
 lemma fst_snd_linear: "linear (\<lambda>(x,y). x + y)"
   unfolding linear_iff by (simp add: algebra_simps)
@@ -1283,10 +1247,6 @@ qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Connectedness of convex sets\<close>
-
-lemma connectedD:
-  "connected S \<Longrightarrow> open A \<Longrightarrow> open B \<Longrightarrow> S \<subseteq> A \<union> B \<Longrightarrow> A \<inter> B \<inter> S = {} \<Longrightarrow> A \<inter> S = {} \<or> B \<inter> S = {}"
-  by (rule Topological_Spaces.topological_space_class.connectedD)
 
 lemma convex_connected:
   fixes S :: "'a::real_normed_vector set"
