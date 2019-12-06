@@ -1187,4 +1187,48 @@ val _ =
        -- parse_sel_default_eqs
      >> free_constructors_cmd Unknown);
 
+
+
+(** document antiquotations **)
+
+local
+
+fun antiquote_setup binding co =
+  Thy_Output.antiquotation_pretty_source_embedded binding
+    ((Scan.ahead (Scan.lift Parse.not_eof) >> Token.pos_of) --
+      Args.type_name {proper = true, strict = true})
+    (fn ctxt => fn (pos, type_name) =>
+      let
+        fun err () =
+          error ("Bad " ^ Binding.name_of binding ^ ": " ^ quote type_name ^ Position.here pos);
+      in
+        (case ctr_sugar_of ctxt type_name of
+          NONE => err ()
+        | SOME {kind, T = T0, ctrs = ctrs0, ...} =>
+            let
+              val _ = if co = (kind = Codatatype) then () else err ();
+
+              val T = Logic.unvarifyT_global T0;
+              val ctrs = map Logic.unvarify_global ctrs0;
+
+              val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
+              fun pretty_ctr ctr =
+                Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
+                  map pretty_typ_bracket (binder_types (fastype_of ctr))));
+            in
+              Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
+                Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
+                flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
+            end)
+        end);
+
+in
+
+val _ =
+  Theory.setup
+   (antiquote_setup \<^binding>\<open>datatype\<close> false #>
+    antiquote_setup \<^binding>\<open>codatatype\<close> true);
+
+end;
+
 end;
