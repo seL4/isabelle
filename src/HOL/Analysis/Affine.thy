@@ -1,3 +1,5 @@
+section "Affine Sets"
+
 theory Affine
 imports Linear_Algebra
 begin
