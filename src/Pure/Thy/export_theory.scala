@@ -31,19 +31,6 @@ object Export_Theory
     sessions_structure: Sessions.Structure,
     session_name: String,
     progress: Progress = No_Progress,
-    types: Boolean = true,
-    consts: Boolean = true,
-    axioms: Boolean = true,
-    thms: Boolean = true,
-    classes: Boolean = true,
-    locales: Boolean = true,
-    locale_dependencies: Boolean = true,
-    classrel: Boolean = true,
-    arities: Boolean = true,
-    constdefs: Boolean = true,
-    typedefs: Boolean = true,
-    datatypes: Boolean = true,
-    spec_rules: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
@@ -55,11 +42,7 @@ object Export_Theory
             yield {
               progress.echo("Reading theory " + theory)
               read_theory(Export.Provider.database(db, session, theory),
-                session, theory, types = types, consts = consts,
-                axioms = axioms, thms = thms, classes = classes, locales = locales,
-                locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
-                constdefs = constdefs, typedefs = typedefs, datatypes = datatypes,
-                spec_rules = spec_rules, cache = Some(cache))
+                session, theory, cache = Some(cache))
             }
           }
         }))
@@ -127,19 +110,6 @@ object Export_Theory
   }
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
-    types: Boolean = true,
-    consts: Boolean = true,
-    axioms: Boolean = true,
-    thms: Boolean = true,
-    classes: Boolean = true,
-    locales: Boolean = true,
-    locale_dependencies: Boolean = true,
-    classrel: Boolean = true,
-    arities: Boolean = true,
-    constdefs: Boolean = true,
-    typedefs: Boolean = true,
-    datatypes: Boolean = true,
-    spec_rules: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
@@ -154,19 +124,19 @@ object Export_Theory
       }
     val theory =
       Theory(theory_name, parents,
-        if (types) read_types(provider) else Nil,
-        if (consts) read_consts(provider) else Nil,
-        if (axioms) read_axioms(provider) else Nil,
-        if (thms) read_thms(provider) else Nil,
-        if (classes) read_classes(provider) else Nil,
-        if (locales) read_locales(provider) else Nil,
-        if (locale_dependencies) read_locale_dependencies(provider) else Nil,
-        if (classrel) read_classrel(provider) else Nil,
-        if (arities) read_arities(provider) else Nil,
-        if (constdefs) read_constdefs(provider) else Nil,
-        if (typedefs) read_typedefs(provider) else Nil,
-        if (datatypes) read_datatypes(provider) else Nil,
-        if (spec_rules) read_spec_rules(provider) else Nil)
+        read_types(provider),
+        read_consts(provider),
+        read_axioms(provider),
+        read_thms(provider),
+        read_classes(provider),
+        read_locales(provider),
+        read_locale_dependencies(provider),
+        read_classrel(provider),
+        read_arities(provider),
+        read_constdefs(provider),
+        read_typedefs(provider),
+        read_datatypes(provider),
+        read_spec_rules(provider))
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
