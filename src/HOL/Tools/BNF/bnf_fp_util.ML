@@ -986,35 +986,41 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
 
 local
 
-fun antiquote_setup binding =
+fun antiquote_setup binding co =
   Thy_Output.antiquotation_pretty_source_embedded binding
-    (Args.type_name {proper = true, strict = true})
-    (fn ctxt => fn fcT_name =>
-       (case Ctr_Sugar.ctr_sugar_of ctxt fcT_name of
-         NONE => error ("Not a known freely generated type name: " ^ quote fcT_name)
-       | SOME {T = T0, ctrs = ctrs0, ...} =>
-         let
-           val freezeT = Term.map_atyps (fn TVar ((s, _), S) => TFree (s, S) | T => T);
+    ((Scan.ahead (Scan.lift Parse.not_eof) >> Token.pos_of) --
+      Args.type_name {proper = true, strict = true})
+    (fn ctxt => fn (pos, type_name) =>
+      let
+        fun err () =
+          error ("Bad " ^ Binding.name_of binding ^ ": " ^ quote type_name ^ Position.here pos);
+      in
+        (case Ctr_Sugar.ctr_sugar_of ctxt type_name of
+          NONE => err ()
+        | SOME {kind, T = T0, ctrs = ctrs0, ...} =>
+            let
+              val _ = if co = (kind = Codatatype) then () else err ();
 
-           val T = freezeT T0;
-           val ctrs = map (Term.map_types freezeT) ctrs0;
+              val T = Logic.unvarifyT_global T0;
+              val ctrs = map Logic.unvarify_global ctrs0;
 
-           val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
-           fun pretty_ctr ctr =
-             Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
-               map pretty_typ_bracket (binder_types (fastype_of ctr))));
-         in
-           Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
-             Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
-             flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
-         end));
+              val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
+              fun pretty_ctr ctr =
+                Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
+                  map pretty_typ_bracket (binder_types (fastype_of ctr))));
+            in
+              Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
+                Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
+                flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
+            end)
+        end);
 
 in
 
 val _ =
   Theory.setup
-   (antiquote_setup \<^binding>\<open>datatype\<close> #>
-    antiquote_setup \<^binding>\<open>codatatype\<close>);
+   (antiquote_setup \<^binding>\<open>datatype\<close> false #>
+    antiquote_setup \<^binding>\<open>codatatype\<close> true);
 
 end;
 
