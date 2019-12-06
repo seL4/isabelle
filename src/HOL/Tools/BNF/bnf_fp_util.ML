@@ -213,7 +213,6 @@ sig
     binding list -> (string * sort) list -> (string * sort) list -> (string * sort) list ->
     typ list -> BNF_Comp.comp_cache -> local_theory ->
     ((BNF_Def.bnf list * BNF_Comp.absT_info list) * BNF_Comp.comp_cache) * 'a
-  val fp_antiquote_setup: binding -> theory -> theory
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -982,7 +981,12 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
     (((pre_bnfs, absT_infos), comp_cache'), res)
   end;
 
-fun fp_antiquote_setup binding =
+
+(** document antiquotations **)
+
+local
+
+fun antiquote_setup binding =
   Thy_Output.antiquotation_pretty_source_embedded binding
     (Args.type_name {proper = true, strict = true})
     (fn ctxt => fn fcT_name =>
@@ -1004,5 +1008,14 @@ fun fp_antiquote_setup binding =
              Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
              flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
          end));
+
+in
+
+val _ =
+  Theory.setup
+   (antiquote_setup \<^binding>\<open>datatype\<close> #>
+    antiquote_setup \<^binding>\<open>codatatype\<close>);
+
+end;
 
 end;

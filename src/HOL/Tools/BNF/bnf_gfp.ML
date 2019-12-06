@@ -2606,6 +2606,4 @@ val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>codatatype\<close> "define coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
-val _ = Theory.setup (fp_antiquote_setup \<^binding>\<open>codatatype\<close>);
-
 end;
