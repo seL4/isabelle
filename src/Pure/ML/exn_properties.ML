@@ -9,7 +9,7 @@ sig
   val position_of_polyml_location: ML_Compiler0.polyml_location -> Position.T
   val position: exn -> Position.T
   val get: exn -> Properties.T
-  val update: Properties.entry list -> exn -> exn
+  val update: Properties.T -> exn -> exn
 end;
 
 structure Exn_Properties: EXN_PROPERTIES =

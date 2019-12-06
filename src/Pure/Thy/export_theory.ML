@@ -121,18 +121,17 @@ fun export_body thy name body =
 
 (* presentation *)
 
-val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
+val _ = setup_presentation (fn context => fn thy =>
   let
     val parents = Theory.parents_of thy;
     val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
 
     val thy_ctxt = Proof_Context.init_global thy;
 
+    val pos_properties = Thy_Info.adjust_pos_properties context;
+
 
     (* spec rules *)
-
-    fun position_properties pos =
-      Position.offset_properties_of (adjust_pos pos) @ Position.id_properties_of pos;
 
     fun spec_rule_content {pos, name, rough_classification, terms, rules} =
       let
@@ -141,7 +140,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           |> Term_Subst.zero_var_indexes_list
           |> map Logic.unvarify_global;
       in
-       {props = position_properties pos,
+       {props = pos_properties pos,
         name = name,
         rough_classification = rough_classification,
         typargs = rev (fold Term.add_tfrees spec []),
@@ -154,7 +153,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     (* entities *)
 
     fun make_entity_markup name xname pos serial =
-      let val props = position_properties pos @ Markup.serial_properties serial;
+      let val props = pos_properties pos @ Markup.serial_properties serial;
       in (Markup.entityN, (Markup.nameN, name) :: (Markup.xnameN, xname) :: props) end;
 
     fun entity_markup space name =

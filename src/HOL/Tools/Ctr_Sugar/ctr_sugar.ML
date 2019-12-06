@@ -177,17 +177,17 @@ val transfer_ctr_sugar = morph_ctr_sugar o Morphism.transfer_morphism;
 
 structure Data = Generic_Data
 (
-  type T = ctr_sugar Symtab.table;
+  type T = (Position.T * ctr_sugar) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun ctr_sugar_of_generic context =
-  Option.map (transfer_ctr_sugar (Context.theory_of context)) o Symtab.lookup (Data.get context);
+  Option.map (transfer_ctr_sugar (Context.theory_of context) o #2) o Symtab.lookup (Data.get context);
 
 fun ctr_sugars_of_generic context =
-  Symtab.fold (cons o transfer_ctr_sugar (Context.theory_of context) o snd) (Data.get context) [];
+  Symtab.fold (cons o transfer_ctr_sugar (Context.theory_of context) o #2 o #2) (Data.get context) [];
 
 fun ctr_sugar_of_case_generic context s =
   find_first (fn {casex = Const (s', _), ...} => s' = s | _ => false)
@@ -210,20 +210,24 @@ fun ctr_sugar_interpretation name f =
 
 val interpret_ctr_sugar = Ctr_Sugar_Plugin.data;
 
-fun register_ctr_sugar_raw (ctr_sugar as {T = Type (s, _), ...}) =
+fun register_ctr_sugar_raw (ctr_sugar as {T = Type (name, _), ...}) =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (s, morph_ctr_sugar phi ctr_sugar)));
+    (fn phi => fn context =>
+      let val pos = Position.thread_data ()
+      in Data.map (Symtab.update (name, (pos, morph_ctr_sugar phi ctr_sugar))) context end);
 
 fun register_ctr_sugar plugins ctr_sugar =
   register_ctr_sugar_raw ctr_sugar #> interpret_ctr_sugar plugins ctr_sugar;
 
-fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (s, _), ...}) thy =
-  let val tab = Data.get (Context.Theory thy) in
-    if Symtab.defined tab s then
-      thy
+fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (name, _), ...}) thy =
+  let
+    val tab = Data.get (Context.Theory thy);
+    val pos = Position.thread_data ();
+  in
+    if Symtab.defined tab name then thy
     else
       thy
-      |> Context.theory_map (Data.put (Symtab.update_new (s, ctr_sugar) tab))
+      |> Context.theory_map (Data.put (Symtab.update_new (name, (pos, ctr_sugar)) tab))
       |> Named_Target.theory_map (Ctr_Sugar_Plugin.data plugins ctr_sugar)
   end;
 
@@ -1186,5 +1190,81 @@ val _ =
     (parse_ctr_options -- Parse.binding --| \<^keyword>\<open>for\<close> -- parse_ctr_specs
        -- parse_sel_default_eqs
      >> free_constructors_cmd Unknown);
+
+
+
+(** external views **)
+
+(* document antiquotations *)
+
+local
+
+fun antiquote_setup binding co =
+  Thy_Output.antiquotation_pretty_source_embedded binding
+    ((Scan.ahead (Scan.lift Parse.not_eof) >> Token.pos_of) --
+      Args.type_name {proper = true, strict = true})
+    (fn ctxt => fn (pos, type_name) =>
+      let
+        fun err () =
+          error ("Bad " ^ Binding.name_of binding ^ ": " ^ quote type_name ^ Position.here pos);
+      in
+        (case ctr_sugar_of ctxt type_name of
+          NONE => err ()
+        | SOME {kind, T = T0, ctrs = ctrs0, ...} =>
+            let
+              val _ = if co = (kind = Codatatype) then () else err ();
+
+              val T = Logic.unvarifyT_global T0;
+              val ctrs = map Logic.unvarify_global ctrs0;
+
+              val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
+              fun pretty_ctr ctr =
+                Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
+                  map pretty_typ_bracket (binder_types (fastype_of ctr))));
+            in
+              Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
+                Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
+                flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
+            end)
+        end);
+
+in
+
+val _ =
+  Theory.setup
+   (antiquote_setup \<^binding>\<open>datatype\<close> false #>
+    antiquote_setup \<^binding>\<open>codatatype\<close> true);
+
+end;
+
+
+(* theory export *)
+
+val _ = Export_Theory.setup_presentation (fn context => fn thy =>
+  let
+    val parents = map (Data.get o Context.Theory) (Theory.parents_of thy);
+    val datatypes =
+      (Data.get (Context.Theory thy), []) |-> Symtab.fold
+        (fn (name, (pos, {kind, T, ctrs, ...})) =>
+          if kind = Record orelse exists (fn tab => Symtab.defined tab name) parents then I
+          else
+            let
+              val pos_properties = Thy_Info.adjust_pos_properties context pos;
+              val typ = Logic.unvarifyT_global T;
+              val constrs = map Logic.unvarify_global ctrs;
+              val typargs = rev (fold Term.add_tfrees (Logic.mk_type typ :: constrs) []);
+              val constructors = map (fn t => (t, Term.type_of t)) constrs;
+            in
+              cons (pos_properties, (name, (kind = Codatatype, (typargs, (typ, constructors)))))
+            end);
+  in
+    if null datatypes then ()
+    else
+      Export_Theory.export_body thy "datatypes"
+        let open XML.Encode Term_XML.Encode in
+          list (pair properties (pair string (pair bool (pair (list (pair string sort))
+            (pair typ (list (pair (term (Sign.consts_of thy)) typ))))))) datatypes
+        end
+  end);
 
 end;

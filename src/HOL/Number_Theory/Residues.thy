@@ -465,7 +465,6 @@ lemma roots_mod_prime_bound:
   shows   "card A \<le> n"
 proof -
   define R where "R = residue_ring (int p)"
-  term monom
   from assms(1) interpret residues_prime p R
     by unfold_locales (simp_all add: R_def)
   interpret R: UP_domain R "UP R" by (unfold_locales)

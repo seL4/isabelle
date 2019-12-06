@@ -213,7 +213,6 @@ sig
     binding list -> (string * sort) list -> (string * sort) list -> (string * sort) list ->
     typ list -> BNF_Comp.comp_cache -> local_theory ->
     ((BNF_Def.bnf list * BNF_Comp.absT_info list) * BNF_Comp.comp_cache) * 'a
-  val fp_antiquote_setup: binding -> theory -> theory
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -981,28 +980,5 @@ fun fixpoint_bnf force_out_of_line extra_qualify construct_fp bs resBs Ds0 Xs rh
   in
     (((pre_bnfs, absT_infos), comp_cache'), res)
   end;
-
-fun fp_antiquote_setup binding =
-  Thy_Output.antiquotation_pretty_source_embedded binding
-    (Args.type_name {proper = true, strict = true})
-    (fn ctxt => fn fcT_name =>
-       (case Ctr_Sugar.ctr_sugar_of ctxt fcT_name of
-         NONE => error ("Not a known freely generated type name: " ^ quote fcT_name)
-       | SOME {T = T0, ctrs = ctrs0, ...} =>
-         let
-           val freezeT = Term.map_atyps (fn TVar ((s, _), S) => TFree (s, S) | T => T);
-
-           val T = freezeT T0;
-           val ctrs = map (Term.map_types freezeT) ctrs0;
-
-           val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
-           fun pretty_ctr ctr =
-             Pretty.block (Pretty.breaks (Syntax.pretty_term ctxt ctr ::
-               map pretty_typ_bracket (binder_types (fastype_of ctr))));
-         in
-           Pretty.block (Pretty.keyword1 (Binding.name_of binding) :: Pretty.brk 1 ::
-             Syntax.pretty_typ ctxt T :: Pretty.str " =" :: Pretty.brk 1 ::
-             flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_ctr) ctrs)))
-         end));
 
 end;
