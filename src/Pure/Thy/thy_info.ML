@@ -10,6 +10,7 @@ sig
   type presentation_context =
     {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
       segments: Thy_Output.segment list}
+  val adjust_pos_properties: presentation_context -> Position.T -> Properties.T
   val apply_presentation: presentation_context -> theory -> unit
   val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
@@ -37,6 +38,9 @@ struct
 type presentation_context =
   {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
     segments: Thy_Output.segment list};
+
+fun adjust_pos_properties (context: presentation_context) pos =
+  Position.offset_properties_of (#adjust_pos context pos) @ Position.id_properties_of pos;
 
 structure Presentation = Theory_Data
 (

@@ -1240,7 +1240,7 @@ end;
 
 (* theory export *)
 
-val _ = Export_Theory.setup_presentation (fn {adjust_pos, ...} => fn thy =>
+val _ = Export_Theory.setup_presentation (fn context => fn thy =>
   let
     val parents = map (Data.get o Context.Theory) (Theory.parents_of thy);
     val datatypes =
@@ -1249,8 +1249,7 @@ val _ = Export_Theory.setup_presentation (fn {adjust_pos, ...} => fn thy =>
           if exists (fn tab => Symtab.defined tab name) parents then I
           else
             let
-              val pos_properties =
-                Position.offset_properties_of (adjust_pos pos) @ Position.id_properties_of pos;
+              val pos_properties = Thy_Info.adjust_pos_properties context pos;
               val typ = Logic.unvarifyT_global T;
               val constrs = map Logic.unvarify_global ctrs;
               val typargs = rev (fold Term.add_tfrees (Logic.mk_type typ :: constrs) []);
