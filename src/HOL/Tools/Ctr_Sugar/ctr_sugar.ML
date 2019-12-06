@@ -1246,7 +1246,7 @@ val _ = Export_Theory.setup_presentation (fn context => fn thy =>
     val datatypes =
       (Data.get (Context.Theory thy), []) |-> Symtab.fold
         (fn (name, (pos, {kind, T, ctrs, ...})) =>
-          if exists (fn tab => Symtab.defined tab name) parents then I
+          if kind = Record orelse exists (fn tab => Symtab.defined tab name) parents then I
           else
             let
               val pos_properties = Thy_Info.adjust_pos_properties context pos;
