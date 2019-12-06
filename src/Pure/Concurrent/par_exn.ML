@@ -7,7 +7,7 @@ evaluations.  Interrupt counts as neutral element.
 
 signature PAR_EXN =
 sig
-  val identify: Properties.entry list -> exn -> exn
+  val identify: Properties.T -> exn -> exn
   val the_serial: exn -> int
   val make: exn list -> exn
   val dest: exn -> exn list option
