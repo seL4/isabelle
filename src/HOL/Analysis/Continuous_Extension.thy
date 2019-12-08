@@ -298,6 +298,20 @@ subsection\<open>Dugundji's Extension Theorem and Tietze Variants\<close>
 
 text \<open>See \cite{dugundji}.\<close>
 
+lemma convex_supp_sum:
+  assumes "convex S" and 1: "supp_sum u I = 1"
+      and "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> u i \<and> (u i = 0 \<or> f i \<in> S)"
+    shows "supp_sum (\<lambda>i. u i *\<^sub>R f i) I \<in> S"
+proof -
+  have fin: "finite {i \<in> I. u i \<noteq> 0}"
+    using 1 sum.infinite by (force simp: supp_sum_def support_on_def)
+  then have "supp_sum (\<lambda>i. u i *\<^sub>R f i) I = sum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
+    by (force intro: sum.mono_neutral_left simp: supp_sum_def support_on_def)
+  also have "... \<in> S"
+    using 1 assms by (force simp: supp_sum_def support_on_def intro: convex_sum [OF fin \<open>convex S\<close>])
+  finally show ?thesis .
+qed
+
 theorem Dugundji:
   fixes f :: "'a::{metric_space,second_countable_topology} \<Rightarrow> 'b::real_inner"
   assumes "convex C" "C \<noteq> {}"
