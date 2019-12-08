@@ -2340,6 +2340,77 @@ proof -
     using complete_isometric_image[OF \<open>e>0\<close> assms(1,2) e] and assms(4)
     unfolding complete_eq_closed[symmetric] by auto
 qed
+                               
+
+lemma closure_bounded_linear_image_subset:
+  assumes f: "bounded_linear f"
+  shows "f ` closure S \<subseteq> closure (f ` S)"
+  using linear_continuous_on [OF f] closed_closure closure_subset
+  by (rule image_closure_subset)
+
+lemma closure_linear_image_subset:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::real_normed_vector"
+  assumes "linear f"
+  shows "f ` (closure S) \<subseteq> closure (f ` S)"
+  using assms unfolding linear_conv_bounded_linear
+  by (rule closure_bounded_linear_image_subset)
+
+lemma closed_injective_linear_image:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    assumes S: "closed S" and f: "linear f" "inj f"
+    shows "closed (f ` S)"
+proof -
+  obtain g where g: "linear g" "g \<circ> f = id"
+    using linear_injective_left_inverse [OF f] by blast
+  then have confg: "continuous_on (range f) g"
+    using linear_continuous_on linear_conv_bounded_linear by blast
+  have [simp]: "g ` f ` S = S"
+    using g by (simp add: image_comp)
+  have cgf: "closed (g ` f ` S)"
+    by (simp add: \<open>g \<circ> f = id\<close> S image_comp)
+  have [simp]: "(range f \<inter> g -` S) = f ` S"
+    using g unfolding o_def id_def image_def by auto metis+
+  show ?thesis
+  proof (rule closedin_closed_trans [of "range f"])
+    show "closedin (top_of_set (range f)) (f ` S)"
+      using continuous_closedin_preimage [OF confg cgf] by simp
+    show "closed (range f)"
+      apply (rule closed_injective_image_subspace)
+      using f apply (auto simp: linear_linear linear_injective_0)
+      done
+  qed
+qed
+
+lemma closed_injective_linear_image_eq:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    assumes f: "linear f" "inj f"
+      shows "(closed(image f s) \<longleftrightarrow> closed s)"
+  by (metis closed_injective_linear_image closure_eq closure_linear_image_subset closure_subset_eq f(1) f(2) inj_image_subset_iff)
+
+lemma closure_injective_linear_image:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
+  apply (rule subset_antisym)
+  apply (simp add: closure_linear_image_subset)
+  by (simp add: closure_minimal closed_injective_linear_image closure_subset image_mono)
+
+lemma closure_bounded_linear_image:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    shows "\<lbrakk>linear f; bounded S\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
+  apply (rule subset_antisym, simp add: closure_linear_image_subset)
+  apply (rule closure_minimal, simp add: closure_subset image_mono)
+  by (meson bounded_closure closed_closure compact_continuous_image compact_eq_bounded_closed linear_continuous_on linear_conv_bounded_linear)
+
+lemma closure_scaleR:
+  fixes S :: "'a::real_normed_vector set"
+  shows "((*\<^sub>R) c) ` (closure S) = closure (((*\<^sub>R) c) ` S)"
+proof
+  show "((*\<^sub>R) c) ` (closure S) \<subseteq> closure (((*\<^sub>R) c) ` S)"
+    using bounded_linear_scaleR_right
+    by (rule closure_bounded_linear_image_subset)
+  show "closure (((*\<^sub>R) c) ` S) \<subseteq> ((*\<^sub>R) c) ` (closure S)"
+    by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
+qed
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Some properties of a canonical subspace\<close>
