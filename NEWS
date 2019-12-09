@@ -81,6 +81,9 @@ INCOMPATIBILITY.
 * Theory HOL-Library.Monad_Syntax: infix operation "bind" (>>=)
 associates to the left now as is customary.
 
+* Theory HOL-Library.Ramsey: full finite Ramsey's theorem with
+multiple colours and arbitrary exponents.
+
 * Theory Complete_Lattices:
 renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
 
