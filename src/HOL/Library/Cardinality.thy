@@ -161,7 +161,7 @@ begin
 subclass finite
 proof
   from CARD_1 show "finite (UNIV :: 'a set)"
-    by (auto intro!: card_ge_0_finite)
+    using finite_UNIV_fun by fastforce
 qed
 
 end

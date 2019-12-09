@@ -1644,6 +1644,22 @@ lemma ivl_subset [simp]: "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<l
    apply (force intro: leI)+
   done
 
+lemma get_smaller_card:
+  assumes "finite A" "k \<le> card A"
+  obtains B where "B \<subseteq> A" "card B = k"
+proof -
+  obtain h where h: "bij_betw h {0..<card A} A"
+    using \<open>finite A\<close> ex_bij_betw_nat_finite by blast
+  show thesis
+  proof
+    show "h ` {0..<k} \<subseteq> A"
+      by (metis \<open>k \<le> card A\<close> bij_betw_def h image_mono ivl_subset zero_le)
+    have "inj_on h {0..<k}"
+      by (meson \<open>k \<le> card A\<close> bij_betw_def h inj_on_subset ivl_subset zero_le)
+    then show "card (h ` {0..<k}) = k"
+      by (simp add: card_image)
+  qed
+qed
 
 subsection \<open>Generic big monoid operation over intervals\<close>
 

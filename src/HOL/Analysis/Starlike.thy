@@ -3580,23 +3580,26 @@ proof -
   have "card s = 0 \<or> card s = 1 \<or> card s = 2"
     using assms by linarith
   then show ?thesis using assms
-    using card_eq_SucD
-    by auto (metis collinear_2 numeral_2_eq_2)
+    using card_eq_SucD numeral_2_eq_2 by (force simp: card_1_singleton_iff)
 qed
 
 lemma coplanar_small:
   assumes "finite s" "card s \<le> 3"
     shows "coplanar s"
 proof -
-  have "card s \<le> 2 \<or> card s = Suc (Suc (Suc 0))"
+  consider "card s \<le> 2" | "card s = Suc (Suc (Suc 0))"
     using assms by linarith
-  then show ?thesis using assms
-    apply safe
-    apply (simp add: collinear_small collinear_imp_coplanar)
-    apply (safe dest!: card_eq_SucD)
-    apply (auto simp: coplanar_def)
-    apply (metis hull_subset insert_subset)
-    done
+  then show ?thesis
+  proof cases
+    case 1
+    then show ?thesis
+      by (simp add: \<open>finite s\<close> collinear_imp_coplanar collinear_small)
+  next
+    case 2
+    then show ?thesis
+      using hull_subset [of "{_,_,_}"]
+      by (fastforce simp: coplanar_def dest!: card_eq_SucD)
+  qed
 qed
 
 lemma coplanar_empty: "coplanar {}"

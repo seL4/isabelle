@@ -319,7 +319,7 @@ proof induct
 next
   case insert
   then show ?case
-    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast  
+    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast
 qed
 
 lemma all_subset_image: "(\<forall>B. B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. B \<subseteq> A \<longrightarrow> P(f ` B))"
@@ -1785,9 +1785,17 @@ lemma card_1_singletonE:
   obtains x where "A = {x}"
   using assms by (auto simp: card_Suc_eq)
 
+lemma card_2_doubletonE:
+  assumes "card A = Suc (Suc 0)"
+  obtains x y where "A = {x,y}" "x\<noteq>y"
+  using assms by (blast dest: card_eq_SucD)
+
 lemma is_singleton_altdef: "is_singleton A \<longleftrightarrow> card A = 1"
   unfolding is_singleton_def
   by (auto elim!: card_1_singletonE is_singletonE simp del: One_nat_def)
+
+lemma card_1_singleton_iff: "card A = Suc 0 \<longleftrightarrow> (\<exists>x. A = {x})"
+  by (simp add: card_Suc_eq)
 
 lemma card_le_Suc0_iff_eq:
   assumes "finite A"

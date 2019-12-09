@@ -68,16 +68,16 @@ lemma funcset_image: "f \<in> A \<rightarrow> B \<Longrightarrow> f ` A \<subset
 lemma image_subset_iff_funcset: "F ` A \<subseteq> B \<longleftrightarrow> F \<in> A \<rightarrow> B"
   by auto
 
+lemma funcset_to_empty_iff: "A \<rightarrow> {} = (if A={} then UNIV else {})"
+  by auto
+
 lemma Pi_eq_empty[simp]: "(\<Pi> x \<in> A. B x) = {} \<longleftrightarrow> (\<exists>x\<in>A. B x = {})"
-  apply (simp add: Pi_def)
-  apply auto
-  txt \<open>Converse direction requires Axiom of Choice to exhibit a function
-  picking an element from each non-empty \<^term>\<open>B x\<close>\<close>
-  apply (drule_tac x = "\<lambda>u. SOME y. y \<in> B u" in spec)
-  apply auto
-  apply (cut_tac P = "\<lambda>y. y \<in> B x" in some_eq_ex)
-  apply auto
-  done
+proof -
+  have "\<exists>x\<in>A. B x = {}" if "\<And>f. \<exists>y. y \<in> A \<and> f y \<notin> B y" 
+    using that [of "\<lambda>u. SOME y. y \<in> B u"] some_in_eq by blast
+  then show ?thesis
+    by force
+qed
 
 lemma Pi_empty [simp]: "Pi {} B = UNIV"
   by (simp add: Pi_def)
@@ -149,11 +149,8 @@ lemma Pi_cancel_fupd[simp]: "i \<notin> I \<Longrightarrow> x(i := a) \<in> Pi I
 
 lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longleftrightarrow> f \<in> Pi (I - {i}) B \<and> f i \<in> A"
   apply auto
-  apply (drule_tac x=x in Pi_mem)
-  apply (simp_all split: if_split_asm)
-  apply (drule_tac x=i in Pi_mem)
-  apply (auto dest!: Pi_mem)
-  done
+  apply (metis PiE fun_upd_apply)
+  by force
 
 
 subsection \<open>Composition With a Restricted Domain: \<^term>\<open>compose\<close>\<close>
@@ -437,6 +434,9 @@ lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Lo
 
 lemma PiE_iff: "f \<in> Pi\<^sub>E I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
   by (simp add: PiE_def Pi_iff)
+
+lemma ext_funcset_to_sing_iff [simp]: "A \<rightarrow>\<^sub>E {a} = {\<lambda>x\<in>A. a}"
+  by (auto simp: PiE_def Pi_iff extensionalityI)
 
 lemma PiE_restrict[simp]:  "f \<in> Pi\<^sub>E A B \<Longrightarrow> restrict f A = f"
   by (simp add: extensional_restrict PiE_def)
