@@ -525,7 +525,8 @@ val qualified_path = map_naming oo Name_Space.qualified_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
-fun theory_naming thy = thy |> map_naming (Name_Space.set_theory_name (Context.theory_name thy));
+fun theory_naming thy = thy
+  |> map_naming (Name_Space.set_theory_long_name (Context.theory_long_name thy));
 
 val private_scope = map_naming o Name_Space.private_scope;
 val private = map_naming o Name_Space.private;

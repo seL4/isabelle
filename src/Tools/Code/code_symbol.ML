@@ -97,8 +97,8 @@ fun default_base (Constant "") = "value"
 end;
 
 local
-  fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
-  fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
+  val thyname_of_type = Name_Space.the_entry_theory_name o Sign.type_space;
+  val thyname_of_class = Name_Space.the_entry_theory_name o Sign.class_space;
   fun thyname_of_instance thy inst = case Thm.thynames_of_arity thy inst
    of [] => error ("No such instance: " ^ quote (fst inst ^ " :: " ^  snd inst))
     | thyname :: _ => thyname;
@@ -106,7 +106,7 @@ local
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => thyname_of_type thy tyco
-        | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
+        | NONE => Name_Space.the_entry_theory_name (Sign.const_space thy) c);
   fun prefix thy (Constant "") = "Code"
     | prefix thy (Constant c) = thyname_of_const thy c
     | prefix thy (Type_Constructor tyco) = thyname_of_type thy tyco

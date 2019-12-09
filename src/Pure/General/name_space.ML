@@ -15,7 +15,12 @@ sig
   val markup: T -> string -> Markup.T
   val markup_def: T -> string -> Markup.T
   val the_entry: T -> string ->
-    {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
+   {concealed: bool,
+    group: serial option,
+    theory_long_name: string,
+    pos: Position.T,
+    serial: serial}
+  val the_entry_theory_name: T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
@@ -41,7 +46,7 @@ sig
   val concealed: naming -> naming
   val get_group: naming -> serial option
   val set_group: serial option -> naming -> naming
-  val set_theory_name: string -> naming -> naming
+  val set_theory_long_name: string -> naming -> naming
   val new_group: naming -> naming
   val reset_group: naming -> naming
   val add_path: string -> naming -> naming
@@ -102,7 +107,7 @@ struct
 type entry =
  {concealed: bool,
   group: serial option,
-  theory_name: string,
+  theory_long_name: string,
   pos: Position.T,
   serial: serial};
 
@@ -181,6 +186,9 @@ fun the_entry (space as Name_Space {entries, ...}) name =
   (case Change_Table.lookup entries name of
     NONE => error (undefined space name)
   | SOME (_, entry) => entry);
+
+fun the_entry_theory_name space name =
+  Long_Name.base_name (#theory_long_name (the_entry space name));
 
 fun entry_ord space = int_ord o apply2 (#serial o the_entry space);
 
@@ -317,15 +325,15 @@ datatype naming = Naming of
   restricted: (bool * Binding.scope) option,
   concealed: bool,
   group: serial option,
-  theory_name: string,
+  theory_long_name: string,
   path: (string * bool) list};
 
-fun make_naming (scopes, restricted, concealed, group, theory_name, path) =
+fun make_naming (scopes, restricted, concealed, group, theory_long_name, path) =
   Naming {scopes = scopes, restricted = restricted, concealed = concealed,
-    group = group, theory_name = theory_name, path = path};
+    group = group, theory_long_name = theory_long_name, path = path};
 
-fun map_naming f (Naming {scopes, restricted, concealed, group, theory_name, path}) =
-  make_naming (f (scopes, restricted, concealed, group, theory_name, path));
+fun map_naming f (Naming {scopes, restricted, concealed, group, theory_long_name, path}) =
+  make_naming (f (scopes, restricted, concealed, group, theory_long_name, path));
 
 
 (* scope and access restriction *)
@@ -337,13 +345,13 @@ fun new_scope naming =
   let
     val scope = Binding.new_scope ();
     val naming' =
-      naming |> map_naming (fn (scopes, restricted, concealed, group, theory_name, path) =>
-        (scope :: scopes, restricted, concealed, group, theory_name, path));
+      naming |> map_naming (fn (scopes, restricted, concealed, group, theory_long_name, path) =>
+        (scope :: scopes, restricted, concealed, group, theory_long_name, path));
   in (scope, naming') end;
 
 fun restricted_scope strict scope =
-  map_naming (fn (scopes, _, concealed, group, theory_name, path) =>
-    (scopes, SOME (strict, scope), concealed, group, theory_name, path));
+  map_naming (fn (scopes, _, concealed, group, theory_long_name, path) =>
+    (scopes, SOME (strict, scope), concealed, group, theory_long_name, path));
 
 fun restricted strict pos naming =
   (case get_scope naming of
@@ -356,19 +364,21 @@ val private = restricted true;
 val qualified_scope = restricted_scope false;
 val qualified = restricted false;
 
-val concealed = map_naming (fn (scopes, restricted, _, group, theory_name, path) =>
-  (scopes, restricted, true, group, theory_name, path));
+val concealed = map_naming (fn (scopes, restricted, _, group, theory_long_name, path) =>
+  (scopes, restricted, true, group, theory_long_name, path));
 
 
 (* additional structural info *)
 
-fun set_theory_name theory_name = map_naming (fn (scopes, restricted, concealed, group, _, path) =>
-  (scopes, restricted, concealed, group, theory_name, path));
+fun set_theory_long_name theory_long_name =
+  map_naming (fn (scopes, restricted, concealed, group, _, path) =>
+    (scopes, restricted, concealed, group, theory_long_name, path));
 
 fun get_group (Naming {group, ...}) = group;
 
-fun set_group group = map_naming (fn (scopes, restricted, concealed, _, theory_name, path) =>
-  (scopes, restricted, concealed, group, theory_name, path));
+fun set_group group =
+  map_naming (fn (scopes, restricted, concealed, _, theory_long_name, path) =>
+    (scopes, restricted, concealed, group, theory_long_name, path));
 
 fun new_group naming = set_group (SOME (serial ())) naming;
 val reset_group = set_group NONE;
@@ -378,8 +388,9 @@ val reset_group = set_group NONE;
 
 fun get_path (Naming {path, ...}) = path;
 
-fun map_path f = map_naming (fn (scopes, restricted, concealed, group, theory_name, path) =>
-  (scopes, restricted, concealed, group, theory_name, f path));
+fun map_path f =
+  map_naming (fn (scopes, restricted, concealed, group, theory_long_name, path) =>
+    (scopes, restricted, concealed, group, theory_long_name, f path));
 
 fun add_path elems = map_path (fn path => path @ [(elems, false)]);
 val root_path = map_path (fn _ => []);
@@ -502,7 +513,7 @@ fun declared (Name_Space {entries, ...}) = Change_Table.defined entries;
 fun declare context strict binding space =
   let
     val naming = naming_of context;
-    val Naming {group, theory_name, ...} = naming;
+    val Naming {group, theory_long_name, ...} = naming;
     val {concealed, spec, ...} = name_spec naming binding;
     val accesses = make_accesses naming binding;
 
@@ -513,7 +524,7 @@ fun declare context strict binding space =
     val entry =
      {concealed = concealed,
       group = group,
-      theory_name = theory_name,
+      theory_long_name = theory_long_name,
       pos = pos,
       serial = serial ()};
     val space' =
