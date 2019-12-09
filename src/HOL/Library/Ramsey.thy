@@ -602,20 +602,20 @@ next
 qed
 
 
-subsubsection \<open>Partitions of a Set\<close>
+subsubsection \<open>Partition functions\<close>
 
-definition part :: "nat \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> ('a set \<Rightarrow> nat) \<Rightarrow> bool"
+definition part_fn :: "nat \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> ('a set \<Rightarrow> nat) \<Rightarrow> bool"
   \<comment> \<open>the function \<^term>\<open>f\<close> partitions the \<^term>\<open>r\<close>-subsets of the typically
       infinite set \<^term>\<open>Y\<close> into \<^term>\<open>s\<close> distinct categories.\<close>
-  where "part r s Y f \<longleftrightarrow> (\<forall>X \<in> nsets Y r. f X < s)"
+  where "part_fn r s Y f \<longleftrightarrow> (f \<in> nsets Y r \<rightarrow> {..<s})"
 
 text \<open>For induction, we decrease the value of \<^term>\<open>r\<close> in partitions.\<close>
-lemma part_Suc_imp_part:
-  "\<lbrakk>infinite Y; part (Suc r) s Y f; y \<in> Y\<rbrakk> \<Longrightarrow> part r s (Y - {y}) (\<lambda>u. f (insert y u))"
-  by (simp add: part_def nsets_def subset_Diff_insert)
+lemma part_fn_Suc_imp_part_fn:
+  "\<lbrakk>infinite Y; part_fn (Suc r) s Y f; y \<in> Y\<rbrakk> \<Longrightarrow> part_fn r s (Y - {y}) (\<lambda>u. f (insert y u))"
+  by (simp add: part_fn_def nsets_def Pi_def subset_Diff_insert)
 
-lemma part_subset: "part r s YY f \<Longrightarrow> Y \<subseteq> YY \<Longrightarrow> part r s Y f"
-  unfolding part_def nsets_def by blast
+lemma part_fn_subset: "part_fn r s YY f \<Longrightarrow> Y \<subseteq> YY \<Longrightarrow> part_fn r s Y f"
+  unfolding part_fn_def nsets_def by blast
 
 
 subsection \<open>Ramsey's Theorem: Infinitary Version\<close>
@@ -624,13 +624,13 @@ lemma Ramsey_induction:
   fixes s r :: nat
     and YY :: "'a set"
     and f :: "'a set \<Rightarrow> nat"
-  assumes "infinite YY" "part r s YY f"
+  assumes "infinite YY" "part_fn r s YY f"
   shows "\<exists>Y' t'. Y' \<subseteq> YY \<and> infinite Y' \<and> t' < s \<and> (\<forall>X. X \<subseteq> Y' \<and> finite X \<and> card X = r \<longrightarrow> f X = t')"
   using assms
 proof (induct r arbitrary: YY f)
   case 0
   then show ?case
-    by (auto simp add: part_def card_eq_0_iff cong: conj_cong)
+    by (auto simp add: part_fn_def card_eq_0_iff cong: conj_cong)
 next
   case (Suc r)
   show ?case
@@ -642,8 +642,8 @@ next
                  y \<in> YY \<and> y \<notin> Y \<and> Y \<subseteq> YY \<and> infinite Y \<and> t < s
                  \<and> (\<forall>X. X\<subseteq>Y \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert y) X = t)"
     from Suc.prems have infYY': "infinite (YY - {yy})" by auto
-    from Suc.prems have partf': "part r s (YY - {yy}) (f \<circ> insert yy)"
-      by (simp add: o_def part_Suc_imp_part yy)
+    from Suc.prems have partf': "part_fn r s (YY - {yy}) (f \<circ> insert yy)"
+      by (simp add: o_def part_fn_Suc_imp_part_fn yy)
     have transr: "trans ?ramr" by (force simp add: trans_def)
     from Suc.hyps [OF infYY' partf']
     obtain Y0 and t0 where "Y0 \<subseteq> YY - {yy}" "infinite Y0" "t0 < s"
@@ -656,8 +656,8 @@ next
       with x obtain yx' where yx': "yx' \<in> Yx"
         by (blast dest: infinite_imp_nonempty)
       from fields x have infYx': "infinite (Yx - {yx'})" by auto
-      with fields x yx' Suc.prems have partfx': "part r s (Yx - {yx'}) (f \<circ> insert yx')"
-        by (simp add: o_def part_Suc_imp_part part_subset [where YY=YY and Y=Yx])
+      with fields x yx' Suc.prems have partfx': "part_fn r s (Yx - {yx'}) (f \<circ> insert yx')"
+        by (simp add: o_def part_fn_Suc_imp_part_fn part_fn_subset [where YY=YY and Y=Yx])
       from Suc.hyps [OF infYx' partfx'] obtain Y' and t'
         where Y': "Y' \<subseteq> Yx - {yx'}" "infinite Y'" "t' < s"
           "X \<subseteq> Y' \<and> finite X \<and> card X = r \<longrightarrow> (f \<circ> insert yx') X = t'" for X
@@ -750,7 +750,7 @@ theorem Ramsey:
       \<forall>X. X \<subseteq> Z \<and> finite X \<and> card X = r \<longrightarrow> f X < s\<rbrakk>
     \<Longrightarrow> \<exists>Y t. Y \<subseteq> Z \<and> infinite Y \<and> t < s
             \<and> (\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = r \<longrightarrow> f X = t)"
-  by (blast intro: Ramsey_induction [unfolded part_def nsets_def])
+  by (blast intro: Ramsey_induction [unfolded part_fn_def nsets_def])
 
 
 corollary Ramsey2:
