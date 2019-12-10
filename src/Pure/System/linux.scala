@@ -50,6 +50,7 @@ object Linux
     override def toString: String = description
 
     def is_ubuntu: Boolean = id == "Ubuntu"
+    def is_ubuntu_18_04: Boolean = is_ubuntu && release == "18.04"
   }
 
 

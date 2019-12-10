@@ -453,6 +453,9 @@ Usage: isabelle phabricator_setup [OPTIONS]
 
       val progress = new Console_Progress
 
+      val release = Linux.Release()
+      if (!release.is_ubuntu_18_04) error("Bad Linux version: Ubuntu 18.04 LTS required")
+
       phabricator_setup(name = name, root = root, repo = repo,
         package_update = package_update, progress = progress)
     })
