@@ -12,6 +12,11 @@ import scala.util.matching.Regex
 
 object Linux
 {
+  /* required packages */
+
+  val packages: List[String] = List("pwgen")
+
+
   /* check system */
 
   def check_system(): Unit =
@@ -137,5 +142,14 @@ fi
 
     service_enable(name)
     service_restart(name)
+  }
+
+
+  /* passwords */
+
+  def generate_password(length: Int = 10): String =
+  {
+    require(length >= 6)
+    Isabelle_System.bash("pwgen " + length + " 1").check.out
   }
 }
