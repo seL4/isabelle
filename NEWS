@@ -59,6 +59,11 @@ sufficient and more convenient to start editing a particular session.
 
 *** HOL ***
 
+* Improvements of the "lift_bnf" command:
+  - Add support for quotient types.
+  - Generate transfer rules for the lifted map/set/rel/pred
+    constants (theorems "<type>.<constant>_transfer_raw").
+
 * Term_XML.Encode/Decode.term uses compact representation of Const
 "typargs" from the given declaration environment. This also makes more
 sense for translations to lambda-calculi with explicit polymorphism.

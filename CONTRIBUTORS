@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* December 2019:
+  Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy Traytel
+  Extension of lift_bnf to support quotient types.
+
 * October 2019: Maximilian Schäffeler
   Port of the HOL Light decision procedure for metric spaces.
 
