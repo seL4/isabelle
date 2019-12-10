@@ -181,17 +181,18 @@ text \<open>
 
   The subsequent configuration is convenient, but also ambitious: it takes
   away the standard port 22 from the operating system and assigns it to
-  Isabelle/Phabricator!
+  Isabelle/Phabricator:
 
   @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 22 -q 222\<close>}
 
   Afterwards, remote login to the server host needs to use that alternative
-  port 222. If there is a problem with it, there is usually remote console
-  access to the hosted virtual machine via some web interface of the provider.
+  port 222. If there is a problem with it, the administrator can usually
+  connect to a remote console via some web interface of the virtual server
+  provider.
 
   \<^medskip>
-  The following more modest configuration uses port 2222 for Phabricator,
-  and restains port 22 for the operating system:
+  The following alternative is more modest: it uses port 2222 for Phabricator,
+  and retains port 22 for the operating system:
 
   @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 2222 -q 22\<close>}
 
