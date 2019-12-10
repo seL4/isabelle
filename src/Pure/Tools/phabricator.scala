@@ -283,20 +283,35 @@ local_infile = 0
     Linux.service_restart("mysql")
 
 
-    def mysql_conf(R: Regex): Option[String] =
-      split_lines(File.read(Path.explode("/etc/mysql/debian.cnf"))).collectFirst({ case R(a) => a })
-
-    for (user <- mysql_conf("""^user\s*=\s*(\S*)\s*$""".r)) {
-      config.execute("config set mysql.user " + Bash.string(user))
+    def mysql_conf(R: Regex, which: String): String =
+    {
+      val conf = Path.explode("/etc/mysql/debian.cnf")
+      split_lines(File.read(conf)).collectFirst({ case R(a) => a }) match {
+        case Some(res) => res
+        case None => error("Cannot determine " + which + " from " + conf)
+      }
     }
 
-    for (pass <- mysql_conf("""^password\s*=\s*(\S*)\s*$""".r)) {
-      config.execute("config set mysql.pass " + Bash.string(pass))
-    }
+    val mysql_root_user = mysql_conf("""^user\s*=\s*(\S*)\s*$""".r, "superuser name")
+    val mysql_root_password = mysql_conf("""^password\s*=\s*(\S*)\s*$""".r, "superuser password")
 
-    config.execute("config set storage.default-namespace " +
-      Bash.string(phabricator_name(name = name).replace("-", "_")))
+    val mysql_name = phabricator_name(name = name).replace("-", "_")
+    val mysql_user_string = SQL.string(mysql_name) + "@'localhost'"
+    val mysql_password = Linux.generate_password()
 
+    Isabelle_System.bash("mysql --user=" + Bash.string(mysql_root_user) +
+      " --password=" + Bash.string(mysql_root_password) + " --execute=" +
+      Bash.string(
+        """CREATE USER IF NOT EXISTS """ + mysql_user_string +
+        """ IDENTIFIED BY """ + SQL.string(mysql_password) + """ PASSWORD EXPIRE NEVER; """ +
+        """GRANT ALL ON `""" + (mysql_name + "_%").replace("_", "\\_") +
+        """`.* TO """ + mysql_user_string + ";")).check
+
+    config.execute("config set mysql.user " + Bash.string(mysql_name))
+    config.execute("config set mysql.pass " + Bash.string(mysql_password))
+
+    config.execute("config set phabricator.cache-namespace " + Bash.string(mysql_name))
+    config.execute("config set storage.default-namespace " + Bash.string(mysql_name))
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
     progress.bash("bin/storage upgrade --force", cwd = config.home.file, echo = true).check
