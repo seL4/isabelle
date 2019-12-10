@@ -9,7 +9,9 @@ imports Lifting
 keywords
   "print_quotmapsQ3" "print_quotientsQ3" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal_defn and "/" and
-  "quotient_definition" :: thy_goal_defn
+  "quotient_definition" :: thy_goal_defn and
+  "copy_bnf" :: thy_defn and
+  "lift_bnf" :: thy_goal_defn
 begin
 
 text \<open>
@@ -68,14 +70,14 @@ lemma Quotient3_rel:
   unfolding Quotient3_def
   by blast
 
-lemma Quotient3_refl1: 
+lemma Quotient3_refl1:
   "R r s \<Longrightarrow> R r r"
-  using a unfolding Quotient3_def 
+  using a unfolding Quotient3_def
   by fast
 
-lemma Quotient3_refl2: 
+lemma Quotient3_refl2:
   "R r s \<Longrightarrow> R s s"
-  using a unfolding Quotient3_def 
+  using a unfolding Quotient3_def
   by fast
 
 lemma Quotient3_rel_rep:
@@ -153,10 +155,10 @@ proof -
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s)" for r s
   proof -
     have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) r r" unfolding rel_fun_def
-      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
+      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2]
       by (metis (full_types) part_equivp_def)
     moreover have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) s s" unfolding rel_fun_def
-      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
+      using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2]
       by (metis (full_types) part_equivp_def)
     moreover have "(R1 ===> R2) r s \<Longrightarrow> (rep1 ---> abs2) r  = (rep1 ---> abs2) s"
       by (auto simp add: rel_fun_def fun_eq_iff)
@@ -368,7 +370,7 @@ lemma bex_rsp:
 lemma bex1_rsp:
   assumes a: "(R ===> (=)) f g"
   shows "Ex1 (\<lambda>x. x \<in> Respects R \<and> f x) = Ex1 (\<lambda>x. x \<in> Respects R \<and> g x)"
-  using a by (auto elim: rel_funE simp add: Ex1_def in_respects) 
+  using a by (auto elim: rel_funE simp add: Ex1_def in_respects)
 
 (* 2 lemmas needed for cleaning of quantifiers *)
 lemma all_prs:
@@ -416,7 +418,7 @@ lemma ex1_prs:
 lemma bex1_bexeq_reg:
   shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
   by (auto simp add: Ex1_def Bex1_rel_def Bex_def Ball_def in_respects)
- 
+
 lemma bex1_bexeq_reg_eqv:
   assumes a: "equivp R"
   shows "(\<exists>!x. P x) \<longrightarrow> Bex1_rel R P"
@@ -554,7 +556,7 @@ lemma OOO_quotient3:
   assumes Rep1: "\<And>x y. R2 x y \<Longrightarrow> R2' (Rep1 x) (Rep1 y)"
   shows "Quotient3 (R1 OO R2' OO R1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
 proof -
-  have *: "(R1 OOO R2') r r \<and> (R1 OOO R2') s s \<and> (Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s 
+  have *: "(R1 OOO R2') r r \<and> (R1 OOO R2') s s \<and> (Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s
            \<longleftrightarrow> (R1 OOO R2') r s" for r s
     apply safe
     subgoal for a b c d
@@ -694,12 +696,12 @@ end
 subsection \<open>Methods / Interface\<close>
 
 method_setup lifting =
-  \<open>Attrib.thms >> (fn thms => fn ctxt => 
+  \<open>Attrib.thms >> (fn thms => fn ctxt =>
        SIMPLE_METHOD' (Quotient_Tacs.lift_tac ctxt [] thms))\<close>
   \<open>lift theorems to quotient types\<close>
 
 method_setup lifting_setup =
-  \<open>Attrib.thm >> (fn thm => fn ctxt => 
+  \<open>Attrib.thm >> (fn thm => fn ctxt =>
        SIMPLE_METHOD' (Quotient_Tacs.lift_procedure_tac ctxt [] thm))\<close>
   \<open>set up the three goals for the quotient lifting procedure\<close>
 
@@ -716,7 +718,7 @@ method_setup partiality_descending =
   \<open>decend theorems to the raw level\<close>
 
 method_setup partiality_descending_setup =
-  \<open>Scan.succeed (fn ctxt => 
+  \<open>Scan.succeed (fn ctxt =>
        SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_procedure_tac ctxt []))\<close>
   \<open>set up the three goals for the decending theorems\<close>
 
@@ -738,6 +740,101 @@ attribute_setup quot_lifted =
 
 no_notation
   rel_conj (infixr "OOO" 75)
+
+section \<open>Lifting of BNFs\<close>
+
+lemma sum_insert_Inl_unit: "x \<in> A \<Longrightarrow> (\<And>y. x = Inr y \<Longrightarrow> Inr y \<in> B) \<Longrightarrow> x \<in> insert (Inl ()) B"
+  by (cases x) (simp_all)
+
+lemma lift_sum_unit_vimage_commute:
+  "insert (Inl ()) (Inr ` f -` A) = map_sum id f -` insert (Inl ()) (Inr ` A)"
+  by (auto simp: map_sum_def split: sum.splits)
+
+lemma insert_Inl_int_map_sum_unit: "insert (Inl ()) A \<inter> range (map_sum id f) \<noteq> {}"
+  by (auto simp: map_sum_def split: sum.splits)
+
+lemma image_map_sum_unit_subset:
+  "A \<subseteq> insert (Inl ()) (Inr ` B) \<Longrightarrow> map_sum id f ` A \<subseteq> insert (Inl ()) (Inr ` f ` B)"
+  by auto
+
+lemma subset_lift_sum_unitD: "A \<subseteq> insert (Inl ()) (Inr ` B) \<Longrightarrow> Inr x \<in> A \<Longrightarrow> x \<in> B"
+  unfolding insert_def by auto
+
+lemma UNIV_sum_unit_conv: "insert (Inl ()) (range Inr) = UNIV"
+  unfolding UNIV_sum UNIV_unit image_insert image_empty Un_insert_left sup_bot.left_neutral..
+
+lemma subset_vimage_image_subset: "A \<subseteq> f -` B \<Longrightarrow> f ` A \<subseteq> B"
+  by auto
+
+lemma relcompp_mem_Grp_neq_bot:
+  "A \<inter> range f \<noteq> {} \<Longrightarrow> (\<lambda>x y. x \<in> A \<and> y \<in> A) OO (Grp UNIV f)\<inverse>\<inverse> \<noteq> bot"
+  unfolding Grp_def relcompp_apply fun_eq_iff by blast
+
+lemma comp_projr_Inr: "projr \<circ> Inr = id"
+  by auto
+
+lemma in_rel_sum_in_image_projr:
+  "B \<subseteq> {(x,y). rel_sum ((=) :: unit \<Rightarrow> unit \<Rightarrow> bool) A x y} \<Longrightarrow>
+   Inr ` C = fst ` B \<Longrightarrow> snd ` B = Inr ` D \<Longrightarrow> map_prod projr projr ` B \<subseteq> {(x,y). A x y}"
+  by (force simp: projr_def image_iff dest!: spec[of _ "Inl ()"]  split: sum.splits)
+
+lemma subset_rel_sumI: "B \<subseteq> {(x,y). A x y} \<Longrightarrow> rel_sum ((=) :: unit => unit => bool) A
+    (if x \<in> B then Inr (fst x) else Inl ())
+    (if x \<in> B then Inr (snd x) else Inl ())"
+  by auto
+
+lemma relcompp_eq_Grp_neq_bot: "(=) OO (Grp UNIV f)\<inverse>\<inverse> \<noteq> bot"
+  unfolding Grp_def relcompp_apply fun_eq_iff by blast
+
+lemma rel_fun_rel_OO1: "(rel_fun Q (rel_fun R (=))) A B \<Longrightarrow> conversep Q OO A OO R \<le> B"
+  by (auto simp: rel_fun_def)
+
+lemma rel_fun_rel_OO2: "(rel_fun Q (rel_fun R (=))) A B \<Longrightarrow> Q OO B OO conversep R \<le> A"
+  by (auto simp: rel_fun_def)
+
+lemma rel_sum_eq2_nonempty: "rel_sum (=) A OO rel_sum (=) B \<noteq> bot"
+  by (auto simp: fun_eq_iff relcompp_apply intro!: exI[of _ "Inl _"])
+
+lemma rel_sum_eq3_nonempty: "rel_sum (=) A OO (rel_sum (=) B OO rel_sum (=) C) \<noteq> bot"
+  by (auto simp: fun_eq_iff relcompp_apply intro!: exI[of _ "Inl _"])
+
+lemma hypsubst: "A = B \<Longrightarrow> x \<in> B \<Longrightarrow> (x \<in> A \<Longrightarrow> P) \<Longrightarrow> P" by simp
+
+lemma Quotient_crel_quotient: "Quotient R Abs Rep T \<Longrightarrow> equivp R \<Longrightarrow> T \<equiv> (\<lambda>x y. Abs x = y)"
+  by (drule Quotient_cr_rel) (auto simp: fun_eq_iff equivp_reflp intro!: eq_reflection)
+
+lemma Quotient_crel_typedef: "Quotient (eq_onp P) Abs Rep T \<Longrightarrow> T \<equiv> (\<lambda>x y. x = Rep y)"
+  unfolding Quotient_def
+  by (auto 0 4 simp: fun_eq_iff eq_onp_def intro: sym intro!: eq_reflection)
+
+lemma Quotient_crel_typecopy: "Quotient (=) Abs Rep T \<Longrightarrow> T \<equiv> (\<lambda>x y. x = Rep y)"
+  by (subst (asm) eq_onp_True[symmetric]) (rule Quotient_crel_typedef)
+
+lemma equivp_add_relconj:
+  assumes equiv: "equivp R" "equivp R'" and le: "S OO T OO U \<le> R OO STU OO R'"
+  shows "R OO S OO T OO U OO R' \<le> R OO STU OO R'"
+proof -
+  have trans: "R OO R \<le> R" "R' OO R' \<le> R'"
+    using equiv unfolding equivp_reflp_symp_transp transp_relcompp by blast+
+  have "R OO S OO T OO U OO R' = R OO (S OO T OO U) OO R'"
+    unfolding relcompp_assoc ..
+  also have "\<dots> \<le> R OO (R OO STU OO R') OO R'"
+    by (intro le relcompp_mono order_refl)
+  also have "\<dots> \<le> (R OO R) OO STU OO (R' OO R')"
+    unfolding relcompp_assoc ..
+  also have "\<dots> \<le> R OO STU OO R'"
+    by (intro trans relcompp_mono order_refl)
+  finally show ?thesis .
+qed
+
+ML_file "Tools/BNF/bnf_lift.ML"
+
+hide_fact
+  sum_insert_Inl_unit lift_sum_unit_vimage_commute insert_Inl_int_map_sum_unit
+  image_map_sum_unit_subset subset_lift_sum_unitD UNIV_sum_unit_conv subset_vimage_image_subset
+  relcompp_mem_Grp_neq_bot comp_projr_Inr in_rel_sum_in_image_projr subset_rel_sumI
+  relcompp_eq_Grp_neq_bot rel_fun_rel_OO1 rel_fun_rel_OO2 rel_sum_eq2_nonempty rel_sum_eq3_nonempty
+  hypsubst equivp_add_relconj
 
 end
 

@@ -545,7 +545,7 @@ by (simp add: eq_onp_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 end
 
 (* needed for lifting_def_code_dt.ML (moved from Lifting_Set) *)
-lemma right_total_UNIV_transfer: 
+lemma right_total_UNIV_transfer:
   assumes "right_total A"
   shows "(rel_set A) (Collect (Domainp A)) UNIV"
   using assms unfolding right_total_def rel_set_def Domainp_iff by blast

@@ -837,23 +837,6 @@ lift_bnf ('a, fmran': 'b) fmap [wits: Map.empty]
 
 declare fmap.pred_mono[mono]
 
-context includes lifting_syntax begin
-
-lemma fmmap_transfer[transfer_rule]:
-  "((=) ===> pcr_fmap (=) (=) ===> pcr_fmap (=) (=)) (\<lambda>f. (\<circ>) (map_option f)) fmmap"
-  unfolding fmmap_def
-  by (rule rel_funI ext)+ (auto simp: fmap.Abs_fmap_inverse fmap.pcr_cr_eq cr_fmap_def)
-
-lemma fmran'_transfer[transfer_rule]:
-  "(pcr_fmap (=) (=) ===> (=)) (\<lambda>x. \<Union>(set_option ` (range x))) fmran'"
-  unfolding fmran'_def fmap.pcr_cr_eq cr_fmap_def by fastforce
-
-lemma fmrel_transfer[transfer_rule]:
-  "((=) ===> pcr_fmap (=) (=) ===> pcr_fmap (=) (=) ===> (=)) rel_map fmrel"
-  unfolding fmrel_def fmap.pcr_cr_eq cr_fmap_def vimage2p_def by fastforce
-
-end
-
 
 lemma fmran'_alt_def: "fmran' m = fset (fmran m)"
 including fset.lifting
