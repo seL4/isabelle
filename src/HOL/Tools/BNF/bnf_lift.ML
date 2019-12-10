@@ -91,7 +91,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
     val _ = (case alphas of [] => error "No live variables" | _ => ());
 
-    val defs = #map_unfolds unfolds @ flat (#set_unfoldss unfolds) @ #rel_unfolds unfolds;
+    val defs = #map_unfolds unfolds @ flat (#set_unfoldss unfolds) @ #rel_unfolds unfolds @ #pred_unfolds unfolds;
 
     (* number of live variables *)
     val lives = length alphas;

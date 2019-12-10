@@ -21,7 +21,8 @@ sig
   type unfold_set =
     {map_unfolds: thm list,
      set_unfoldss: thm list list,
-     rel_unfolds: thm list}
+     rel_unfolds: thm list,
+     pred_unfolds: thm list}
 
   val empty_comp_cache: comp_cache
   val empty_unfolds: unfold_set
@@ -124,23 +125,25 @@ fun cache_comp key (bnf_Ds_As, ((cache, unfold_set), lthy)) =
 type unfold_set = {
   map_unfolds: thm list,
   set_unfoldss: thm list list,
-  rel_unfolds: thm list
+  rel_unfolds: thm list,
+  pred_unfolds: thm list
 };
 
 val empty_comp_cache = Typtab.empty;
-val empty_unfolds = {map_unfolds = [], set_unfoldss = [], rel_unfolds = []};
+val empty_unfolds = {map_unfolds = [], set_unfoldss = [], rel_unfolds = [], pred_unfolds = []};
 
 fun add_to_thms thms new = thms |> not (Thm.is_reflexive new) ? insert Thm.eq_thm new;
 fun adds_to_thms thms news = insert (eq_set Thm.eq_thm) (no_reflexive news) thms;
 
-fun add_to_unfolds map sets rel
-  {map_unfolds, set_unfoldss, rel_unfolds} =
+fun add_to_unfolds map sets rel pred
+  {map_unfolds, set_unfoldss, rel_unfolds, pred_unfolds} =
   {map_unfolds = add_to_thms map_unfolds map,
     set_unfoldss = adds_to_thms set_unfoldss sets,
-    rel_unfolds = add_to_thms rel_unfolds rel};
+    rel_unfolds = add_to_thms rel_unfolds rel,
+    pred_unfolds = add_to_thms pred_unfolds pred};
 
 fun add_bnf_to_unfolds bnf =
-  add_to_unfolds (map_def_of_bnf bnf) (set_defs_of_bnf bnf) (rel_def_of_bnf bnf);
+  add_to_unfolds (map_def_of_bnf bnf) (set_defs_of_bnf bnf) (rel_def_of_bnf bnf) (pred_def_of_bnf bnf);
 
 val bdTN = "bdT";
 
@@ -955,7 +958,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
         (((((((b, TA), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel), SOME bnf_pred) lthy;
 
     val unfolds = @{thm id_bnf_apply} ::
-      (#map_unfolds unfold_set @ flat (#set_unfoldss unfold_set) @ #rel_unfolds unfold_set);
+      (#map_unfolds unfold_set @ flat (#set_unfoldss unfold_set) @
+       #rel_unfolds unfold_set @ #pred_unfolds unfold_set);
 
     val bnf'' = bnf' |> morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy' unfolds));
 
