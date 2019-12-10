@@ -822,6 +822,7 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Lift_BNF
     Milner_Tofte
     Stream_Processor
+    TLList
     Misc_Codatatype
     Misc_Datatype
     Misc_Primcorec
