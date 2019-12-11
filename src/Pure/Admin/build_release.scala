@@ -699,17 +699,23 @@ rm -rf "${DIST_NAME}-old"
           if (release.dist_dir + bundle_info.path).is_file
         } yield (bundle_info.name, bundle_info)
 
+      val isabelle_link =
+        HTML.link(Isabelle_Cronjob.isabelle_repos_source + "/rev/" + release.ident,
+          HTML.text("Isabelle/" + release.ident))
       val afp_link =
         HTML.link(AFP.repos_source + "/rev/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),
         List(
-          HTML.chapter(release.dist_name + " (" + release.ident + ")"),
+          HTML.section(release.dist_name + " (" + release.ident + ")"),
+          HTML.subsection("Platforms"),
           HTML.itemize(
             website_platform_bundles.map({ case (bundle, bundle_info) =>
-              List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) }))) :::
-        (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link)))))
+              List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) })),
+          HTML.subsection("Repositories"),
+          HTML.itemize(
+            List(List(isabelle_link)) ::: (if (afp_rev == "") Nil else List(List(afp_link))))))
 
       for ((bundle, _) <- website_platform_bundles)
         File.copy(release.dist_dir + Path.explode(bundle), dir)
