@@ -176,6 +176,15 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     }
   }
 
+  def command_setup(name: String, body: String, exit: String = ""): Path =
+  {
+    val command = Path.explode("/usr/local/bin") + Path.basic(name)
+    File.write(command, global_config_script(header = true, body = body, exit = exit))
+    Isabelle_System.chmod("755", command)
+    Isabelle_System.chown("root:root", command)
+    command
+  }
+
   def phabricator_setup(
     name: String = default_name,
     root: String = "",
@@ -320,16 +329,11 @@ local_infile = 0
     /* database dump */
 
     val dump_name = isabelle_phabricator_name(name = "dump")
-    val dump_command = Path.explode("/usr/local/bin") + Path.basic(dump_name)
-
-    File.write(dump_command,
-      global_config_script(header = true, body =
+    command_setup(dump_name,
 """mkdir -p "$ROOT/database" && chown root:root "$ROOT/database" && chmod 700 "$ROOT/database"
 [ -e "$ROOT/database/dump.sql.gz" ] && mv -f "$ROOT/database/dump.sql.gz" "$ROOT/database/dump-old.sql.gz"
 echo "Creating $ROOT/database/dump.sql.gz"
-"$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure' """))
-    Isabelle_System.chmod("755", dump_command)
-    Isabelle_System.chown("root:root", dump_command)
+"$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure' """)
 
 
     /* PHP setup */
@@ -397,15 +401,8 @@ echo "Creating $ROOT/database/dump.sql.gz"
       isabelle_phabricator_name(name = name) + "/log")
 
     val phd_name = isabelle_phabricator_name(name = "phd")
-    val phd_command = Path.explode("/usr/local/bin") + Path.basic(phd_name)
-
     Linux.service_shutdown(phd_name)
-
-    File.write(phd_command,
-      global_config_script(header = true, body = """"$ROOT/phabricator/bin/phd" "$@" """))
-    Isabelle_System.chmod("755", phd_command)
-    Isabelle_System.chown("root:root", phd_command)
-
+    val phd_command = command_setup(phd_name, """"$ROOT/phabricator/bin/phd" "$@" """)
     try {
       Linux.service_install(phd_name,
 """[Unit]
@@ -632,8 +629,6 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     val sshd_conf_server = sshd_conf_system.ext(isabelle_phabricator_name())
 
     val ssh_name = isabelle_phabricator_name(name = "ssh")
-    val ssh_command = Path.explode("/usr/local/bin") + Path.basic(ssh_name)
-
     Linux.service_shutdown(ssh_name)
 
     val old_system_port = read_ssh_port(sshd_conf_system)
@@ -646,17 +641,11 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
     progress.echo("Configuring " + ssh_name + " service")
 
-    File.write(ssh_command,
-      global_config_script(
-        header = true,
-        body =
+    val ssh_command = command_setup(ssh_name,
 """if [ "$1" = "$NAME" ]
 then
   exec "$ROOT/phabricator/bin/ssh-auth" "$@"
-fi""",
-        exit = "exit 1"))
-    Isabelle_System.chmod("755", ssh_command)
-    Isabelle_System.chown("root:root", ssh_command)
+fi""", exit = "exit 1")
 
     File.write(sshd_conf_server,
 """# OpenBSD Secure Shell server for Isabelle/Phabricator
