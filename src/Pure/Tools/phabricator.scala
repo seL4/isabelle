@@ -201,7 +201,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     /* users */
 
     if (name.contains((c: Char) => !(Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c))) ||
-        Set("", "ssh", "phd", daemon_user).contains(name)) {
+        Set("", "ssh", "phd", "dump", daemon_user).contains(name)) {
       error("Bad installation name: " + quote(name))
     }
 
@@ -315,6 +315,21 @@ local_infile = 0
     config.execute("config set storage.mysql-engine.max-size 8388608")
 
     progress.bash("bin/storage upgrade --force", cwd = config.home.file, echo = true).check
+
+
+    /* database dump */
+
+    val dump_name = isabelle_phabricator_name(name = "dump")
+    val dump_command = Path.explode("/usr/local/bin") + Path.basic(dump_name)
+
+    File.write(dump_command,
+      global_config_script(header = true, body =
+"""mkdir -p "$ROOT/database" && chown root:root "$ROOT/database" && chmod 700 "$ROOT/database"
+[ -e "$ROOT/database/dump.sql.gz" ] && mv -f "$ROOT/database/dump.sql.gz" "$ROOT/database/dump-old.sql.gz"
+echo "Creating $ROOT/database/dump.sql.gz"
+"$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure' """))
+    Isabelle_System.chmod("755", dump_command)
+    Isabelle_System.chown("root:root", dump_command)
 
 
     /* PHP setup */
