@@ -202,6 +202,28 @@ text \<open>
 \<close>
 
 
+section \<open>Global data storage and backups\<close>
+
+text \<open>
+  The global state of a Phabricator installation consists of two main parts:
+
+    \<^enum> The \<^emph>\<open>root directory\<close> according to
+    \<^path>\<open>/etc/isabelle-phabricator.conf\<close> or \<^verbatim>\<open>isabelle phabricator -l\<close>: it
+    contains the main PHP program suite with administrative tools, and some
+    configuration files. The default setup also puts hosted repositories here
+    (subdirectory \<^verbatim>\<open>repo\<close>).
+
+    \<^enum> Multiple \<^emph>\<open>MySQL databases\<close> with a common prefix derived from the
+    installation name --- the same name is used as database user name.
+
+  The Linux root may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close> to
+  create a complete database dump within the root directory. Afterwards it is
+  sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
+  restore the database state, see the explanations on \<^verbatim>\<open>mysqldump\<close> in
+  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/configuring_backups\<close>.
+\<close>
+
+
 section \<open>Reference of command-line tools\<close>
 
 text \<open>
