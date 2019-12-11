@@ -311,7 +311,8 @@ local_infile = 0
     Isabelle_System.bash("mysql --user=" + Bash.string(mysql_root_user) +
       " --password=" + Bash.string(mysql_root_password) + " --execute=" +
       Bash.string(
-        """CREATE USER IF NOT EXISTS """ + mysql_user_string +
+        """DROP USER IF EXISTS """ + mysql_user_string + "; " +
+        """CREATE USER """ + mysql_user_string +
         """ IDENTIFIED BY """ + SQL.string(mysql_password) + """ PASSWORD EXPIRE NEVER; """ +
         """GRANT ALL ON `""" + (mysql_name + "_%").replace("_", "\\_") +
         """`.* TO """ + mysql_user_string + ";")).check
