@@ -22,29 +22,13 @@ object Isabelle_Devel
 
   def make_index()
   {
-    val header = "Isabelle Development Resources"
+    val redirect = "https://isabelle-dev.sketis.net/home/menu/view/20"
 
     HTML.write_document(root, "index.html",
-      List(HTML.title(header)),
-      List(HTML.chapter(header),
-        HTML.itemize(
-          List(
-            HTML.text("Isabelle nightly ") :::
-            List(HTML.link(RELEASE_SNAPSHOT, HTML.text("release snapshot"))) :::
-            HTML.text(" (for all platforms)"),
-
-            HTML.text("Cronjob ") ::: List(HTML.link(CRONJOB_LOG, HTML.text("log file"))),
-
-            HTML.text("Isabelle ") :::
-            List(HTML.link(BUILD_STATUS + "/index.html", HTML.text("build status"))) :::
-            HTML.text(" information"),
-
-            HTML.text("Database with recent ") :::
-            List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
-            HTML.text(" information (e.g. for ") :::
-            List(HTML.link("https://sqlitebrowser.org",
-              List(HTML.code(HTML.text("sqlitebrowser"))))) :::
-            HTML.text(")")))))
+      List(
+        XML.Elem(Markup("meta",
+          List("http-equiv" -> "Refresh", "content" -> ("0; url=" + redirect))), Nil)),
+      List(HTML.link(redirect, HTML.text("Isabelle Development Resources"))))
   }
 
 
