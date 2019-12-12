@@ -202,6 +202,48 @@ text \<open>
 \<close>
 
 
+subsection \<open>Public domain name and HTTPS configuration\<close>
+
+text \<open>
+  So far the Phabricator server has been accessible only on \<^verbatim>\<open>localhost\<close> (via
+  the alias \<^verbatim>\<open>lvh.me\<close>). Proper configuration of a public Internet domain name
+  (with HTTPS certificate from \<^emph>\<open>Let's Encrypt\<close>) works as follows.
+
+    \<^item> Register a subdomain (e.g.\ \<^verbatim>\<open>vcs.example.org\<close>) as an alias for the IP
+    address of the underlying Linux host. This usually works by some web
+    interface of the hosting provider to edit DNS entries; it might require
+    some time for updated DNS records to become publicly available.
+
+    \<^item> Edit the Phabricator website configuration file in
+    \<^path>\<open>/etc/apache2/sites-available/\<close> to specify \<^verbatim>\<open>ServerName\<close> and
+    \<^verbatim>\<open>ServerAdmin\<close> like this: @{verbatim [display] \<open>  ServerName vcs.example.org
+  ServerAdmin webmaster@example.org\<close>}
+
+    Then reload (or restart) Apache like this:
+    @{verbatim [display] \<open>  systemctl reload apache2\<close>}
+
+    \<^item> Install \<^verbatim>\<open>certbot\<close> from \<^url>\<open>https://certbot.eff.org\<close> following the
+    description for Apache and Ubuntu 18.04 on
+    \<^url>\<open>https://certbot.eff.org/lets-encrypt/ubuntubionic-apache\<close>. Run
+    \<^verbatim>\<open>certbot\<close> interactively and let it operate on the domain
+    \<^verbatim>\<open>vcs.example.org\<close>.
+
+    \<^item> Inform Phabricator about its new domain name like this:
+    @{verbatim [display] \<open>  isabelle phabricator bin/config set
+    phabricator.base-uri https://vcs.example.org\<close>}
+
+    \<^item> Visit the website \<^verbatim>\<open>https://vcs.example.org\<close> and continue Phabricator
+    configuration as described before. The following options are particularly
+    relevant for a public website:
+
+      \<^item> \<^emph>\<open>Auth Provider / Username/Password\<close>: disable \<^emph>\<open>Allow Registration\<close> to
+      avoid arbitrary registrants; users can be invited via email instead.
+
+      \<^item> Enable \<^verbatim>\<open>policy.allow-public\<close> to allow read-only access to resources,
+      without requiring user registration.
+\<close>
+
+
 section \<open>Global data storage and backups\<close>
 
 text \<open>
