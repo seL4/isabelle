@@ -258,11 +258,35 @@ text \<open>
     \<^enum> Multiple \<^emph>\<open>MySQL databases\<close> with a common prefix derived from the
     installation name --- the same name is used as database user name.
 
-  The Linux root may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close> to
-  create a complete database dump within the root directory. Afterwards it is
-  sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
+  The Linux root user may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close>
+  to create a complete database dump within the root directory. Afterwards it
+  is sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
   restore the database state, see the explanations on \<^verbatim>\<open>mysqldump\<close> in
   \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/configuring_backups\<close>.
+
+  \<^medskip> The following command-line tools are particularly interesting for advanced
+  database maintenance (within the Phabricator root directory):
+  @{verbatim [display] \<open>  phabricator/bin/storage help dump
+  phabricator/bin/storage help shell
+  phabricator/bin/storage help destroy
+  phabricator/bin/storage help renamespace\<close>}
+
+  For example, copying a database snapshot from one installation to another
+  works as follows. Run on the first installation root directory:
+
+  @{verbatim [display] \<open>  phabricator/bin/storage dump > dump1.sql
+  phabricator/bin/storage renamespace --from phabricator_vcs
+    --to phabricator_xyz --input dump1.sql --output dump2.sql\<close>}
+
+  Now run on the second installation root directory:
+  @{verbatim [display] \<open>  phabricator/bin/storage destroy
+  phabricator/bin/storage shell < dump2.sql\<close>}
+
+  Local configuration in \<^verbatim>\<open>phabricator/config/local/\<close> and hosted repositories
+  need to be treated separately within the file-system. For the latter
+  see also these tools:
+  @{verbatim [display] \<open>  phabricator/bin/repository help list-paths
+  phabricator/bin/repository help move-paths\<close>}
 \<close>
 
 
