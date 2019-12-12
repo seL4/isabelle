@@ -268,7 +268,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     config.execute("config set repository.default-local-path " + File.bash_path(repo_path))
 
 
-    val sudoers_file = Path.explode("/etc/sudoers.d") + Path.basic(isabelle_phabricator_name())
+    val sudoers_file =
+      Path.explode("/etc/sudoers.d") + Path.basic(isabelle_phabricator_name(name = name))
     File.write(sudoers_file,
       www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
       name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
