@@ -254,7 +254,7 @@ text \<open>
   is the subdirectory \<^verbatim>\<open>phabricator\<close> within the root.
 
   \<^medskip> Option \<^verbatim>\<open>-l\<close> lists the available Phabricator installations with name and
-  root directory.
+  root directory --- without invoking a command.
 
   Option \<^verbatim>\<open>-n\<close> selects the explicitly named Phabricator installation.
 \<close>
