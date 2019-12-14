@@ -191,7 +191,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
   def mercurial_setup(mercurial_source: String, progress: Progress = No_Progress)
   {
-    progress.echo("\nBuilding Mercurial from source: " + quote(mercurial_source))
+    progress.echo("\nMercurial installation from source " + quote(mercurial_source) + " ...")
     Isabelle_System.with_tmp_dir("mercurial")(tmp_dir =>
     {
       val archive =
