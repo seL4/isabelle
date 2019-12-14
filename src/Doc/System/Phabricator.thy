@@ -86,7 +86,7 @@ text \<open>
 
   The initial setup works as follows (with full Linux package upgrade):
 
-  @{verbatim [display] \<open>  isabelle phabricator_setup -U\<close>}
+  @{verbatim [display] \<open>  isabelle phabricator_setup -U -M:\<close>}
 
   After installing many packages, cloning the Phabricator distribution,
   initializing the MySQL database and Apache, the tool prints an URL for
@@ -353,6 +353,7 @@ text \<open>
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
+    -M SOURCE    install Mercurial from source: local PATH, or URL, or ":"
     -R DIR       repository directory (default: "/var/www/phabricator-NAME/repo")
     -U           full update of system packages before installation
     -n NAME      Phabricator installation name (default: "vcs")
@@ -381,6 +382,12 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-U\<close> ensures a full update of system packages, before installing
   further packages required by Phabricator. This might require to reboot.
+
+  Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source: this works
+  better than the package provided by Ubuntu 18.04. Alternatively, an explicit
+  file path or URL the source archive (\<^verbatim>\<open>.tar.gz\<close>) may be here. This option is
+  recommended for production use, but it requires to \<^emph>\<open>uninstall\<close> existing
+  Mercurial packages provided by the operating system.
 
   Option \<^verbatim>\<open>-n\<close> provides an alternative installation name. The default name
   \<^verbatim>\<open>vcs\<close> means ``version control system''. The name appears in the URL for SSH

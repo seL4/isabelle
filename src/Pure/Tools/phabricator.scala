@@ -27,7 +27,9 @@ object Phabricator
       "git", "mysql-server", "apache2", "libapache2-mod-php", "php", "php-mysql",
       "php-gd", "php-curl", "php-apcu", "php-cli", "php-json", "php-mbstring",
       // more packages
-      "php-zip", "python-pygments", "ssh", "subversion", "mercurial")
+      "php-zip", "python-pygments", "ssh", "subversion",
+      // mercurial build packages
+      "make", "gcc", "python", "python-dev", "python-docutils", "python-pygments", "python-openssl")
 
 
   /* global system resources */
@@ -59,6 +61,8 @@ object Phabricator
   val default_system_port = 22
   val alternative_system_port = 222
   val default_server_port = 2222
+
+  val standard_mercurial_source = "https://www.mercurial-scm.org/release/mercurial-5.2.1.tar.gz"
 
 
 
@@ -185,11 +189,38 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     command
   }
 
+  def mercurial_setup(mercurial_source: String, progress: Progress = No_Progress)
+  {
+    progress.echo("\nBuilding Mercurial from source: " + quote(mercurial_source))
+    Isabelle_System.with_tmp_dir("mercurial")(tmp_dir =>
+    {
+      val archive =
+        if (Url.is_wellformed(mercurial_source)) {
+          val archive = tmp_dir + Path.basic("mercurial.tar.gz")
+          Bytes.write(archive, Url.read_bytes(Url(mercurial_source)))
+          archive
+        }
+        else Path.explode(mercurial_source)
+
+      Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
+
+      File.read_dir(tmp_dir).filter(name => (tmp_dir + Path.basic(name)).is_dir) match {
+        case List(dir) =>
+          val build_dir = tmp_dir + Path.basic(dir)
+          progress.bash("make all && make install", cwd = build_dir.file, echo = true).check
+        case dirs =>
+          error("Bad archive " + archive +
+            (if (dirs.isEmpty) "" else "\nmultiple directory entries " + commas_quote(dirs)))
+      }
+    })
+  }
+
   def phabricator_setup(
     name: String = default_name,
     root: String = "",
     repo: String = "",
     package_update: Boolean = false,
+    mercurial_source: String = "",
     progress: Progress = No_Progress)
   {
     /* system environment */
@@ -205,6 +236,15 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
     Linux.package_install(packages, progress = progress)
     Linux.check_reboot_required()
+
+
+    if (mercurial_source.nonEmpty) {
+      for { name <- List("mercurial", "mercurial-common") if Linux.package_installed(name) } {
+        error("Cannot install Mercurial from source:" +
+          "package package " + quote(name) + " already installed")
+      }
+      mercurial_setup(mercurial_source, progress = progress)
+    }
 
 
     /* users */
@@ -271,8 +311,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     val sudoers_file =
       Path.explode("/etc/sudoers.d") + Path.basic(isabelle_phabricator_name(name = name))
     File.write(sudoers_file,
-      www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
-      name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
+      www_user + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/local/bin/hg, /usr/bin/hg, /usr/bin/ssh, /usr/bin/id\n" +
+      name + " ALL=(" + daemon_user + ") SETENV: NOPASSWD: /usr/bin/git, /usr/bin/git-upload-pack, /usr/bin/git-receive-pack, /usr/local/bin/hg, /usr/bin/hg, /usr/bin/svnserve, /usr/bin/ssh, /usr/bin/id\n")
 
     Isabelle_System.chmod("440", sudoers_file)
 
@@ -443,6 +483,7 @@ WantedBy=multi-user.target
   val isabelle_tool2 =
     Isabelle_Tool("phabricator_setup", "setup Phabricator server on Ubuntu Linux", args =>
     {
+      var mercurial_source = ""
       var repo = ""
       var package_update = false
       var name = default_name
@@ -453,6 +494,8 @@ WantedBy=multi-user.target
 Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
+    -M SOURCE    install Mercurial from source: local PATH, or URL, or ":" for
+                 """ + standard_mercurial_source + """
     -R DIR       repository directory (default: """ + default_repo("NAME") + """)
     -U           full update of system packages before installation
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
@@ -463,6 +506,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
   The installation name (default: """ + quote(default_name) + """) is mapped to a regular
   Unix user; this is relevant for public SSH access.
 """,
+          "M:" -> (arg => mercurial_source = (if (arg == ":") standard_mercurial_source else arg)),
           "R:" -> (arg => repo = arg),
           "U" -> (_ => package_update = true),
           "n:" -> (arg => name = arg),
@@ -477,7 +521,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
       if (!release.is_ubuntu_18_04) error("Bad Linux version: Ubuntu 18.04 LTS required")
 
       phabricator_setup(name = name, root = root, repo = repo,
-        package_update = package_update, progress = progress)
+        package_update = package_update, mercurial_source = mercurial_source, progress = progress)
     })
 
 

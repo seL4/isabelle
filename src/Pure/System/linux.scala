@@ -70,6 +70,9 @@ object Linux
   def package_install(packages: List[String], progress: Progress = No_Progress): Unit =
     progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
 
+  def package_installed(name: String): Boolean =
+    Isabelle_System.bash("dpkg-query -s " + Bash.string(name)).ok
+
 
   /* users */
 
