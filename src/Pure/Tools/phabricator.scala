@@ -76,17 +76,18 @@ object Phabricator
     exit: String = ""): String =
   {
 """#!/bin/bash
-
-{""" + (if (init.nonEmpty) "\n" + Library.prefix_lines("  ", init) else "") + """
+""" + (if (init.nonEmpty) "\n" + init else "") + """
+{
   while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
   do
     NAME="$(echo "$REPLY" | cut -d: -f1)"
     ROOT="$(echo "$REPLY" | cut -d: -f2)"
-""" + Library.prefix_lines("    ", body) + """
-  done""" +
-    (if (exit.nonEmpty) "\n" + Library.prefix_lines("  ", exit) else "") + """
-} < """ + File.bash_path(global_config) + """
-"""
+    {
+""" + Library.prefix_lines("      ", body) + """
+    } < /dev/null
+  done
+} < """ + File.bash_path(global_config) + "\n" +
+    (if (exit.nonEmpty) "\n" + exit + "\n" else "")
   }
 
   sealed case class Config(name: String, root: Path)
