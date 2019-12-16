@@ -284,9 +284,9 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       script = """
         set -e
         echo "Cloning distribution repositories:"
-        git clone https://github.com/phacility/libphutil.git
-        git clone https://github.com/phacility/arcanist.git
-        git clone https://github.com/phacility/phabricator.git
+        git clone --branch stable https://github.com/phacility/libphutil.git
+        git clone --branch stable https://github.com/phacility/arcanist.git
+        git clone --branch stable https://github.com/phacility/phabricator.git
       """).check
 
     val config = Config(name, root_path)
@@ -378,6 +378,37 @@ local_infile = 0
 [ -e "$ROOT/database/dump.sql.gz" ] && mv -f "$ROOT/database/dump.sql.gz" "$ROOT/database/dump-old.sql.gz"
 echo "Creating $ROOT/database/dump.sql.gz"
 "$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure' """)
+
+
+    /* Phabricator upgrade */
+
+    command_setup(isabelle_phabricator_name(name = "upgrade"),
+      init =
+"""BRANCH="${1:stable}"
+if [ "$BRANCH" != "master" -a "$BRANCH" != "stable" ]
+then
+  echo "Bad branch: \"$BRANCH\""
+  exit 1
+fi
+
+systemctl stop isabelle-phabricator-phd
+systemctl stop apache2
+""",
+      body =
+"""echo -e "\nUpgrading phabricator \"$NAME\" root \"$ROOT\" ..."
+for REPO in libphutil arcanist phabricator
+do
+  cd "$ROOT/$REPO"
+  echo -e "\nUpdating \"$REPO\" ..."
+  git checkout "$BRANCH"
+  git pull
+done
+echo -e "\nUpgrading storage ..."
+"$ROOT/phabricator/bin/storage" upgrade --force
+""",
+      exit =
+"""systemctl start apache2
+systemctl start isabelle-phabricator-phd""")
 
 
     /* PHP setup */
