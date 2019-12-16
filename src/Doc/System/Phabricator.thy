@@ -37,7 +37,7 @@ text \<open>
 
     \<^item> Phabricator development \<^url>\<open>https://secure.phabricator.com\<close>
     \<^item> Wikimedia development \<^url>\<open>https://phabricator.wikimedia.org\<close>
-    \<^item> Blender development \<^url>\<open>https://developer.blender.org/\<close>
+    \<^item> Blender development \<^url>\<open>https://developer.blender.org\<close>
     \<^item> Mercurial development \<^url>\<open>https://phab.mercurial-scm.org\<close>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
 
@@ -61,11 +61,11 @@ text \<open>
 
   For production use, a proper \<^emph>\<open>Virtual Server\<close> or \<^emph>\<open>Root Server\<close> product
   from a hosting provider will be required, including an Internet Domain Name
-  (a pseudo sub-domain in the style of Apache is sufficient).
+  (\secref{sec:phabricator-domain}).
 
   Initial experimentation also works on a local host, e.g.\ via
   VirtualBox\<^footnote>\<open>\<^url>\<open>https://www.virtualbox.org\<close>\<close>. The public domain \<^verbatim>\<open>lvh.me\<close> is
-  used below: it maps arbitrary subdomains to \<^verbatim>\<open>localhost\<close>.
+  used by default: it maps arbitrary subdomains to \<^verbatim>\<open>localhost\<close>.
 
   All administrative commands need to be run as \<^verbatim>\<open>root\<close> user (e.g.\ via
   \<^verbatim>\<open>sudo\<close>). Note that Isabelle refers to user-specific configuration in the
@@ -81,8 +81,8 @@ text \<open>
   Isabelle can manage multiple named Phabricator installations: this allows to
   separate administrative responsibilities, e.g.\ different approaches to user
   management for different projects. Subsequently we always use the default
-  name ``\<^verbatim>\<open>vcs\<close>'': it will appear in file and directory locations, internal
-  database names and URLs.
+  name ``\<^verbatim>\<open>vcs\<close>'': the name will appear in file and directory locations,
+  internal database names and URLs.
 
   The initial setup works as follows (with full Linux package upgrade):
 
@@ -90,8 +90,8 @@ text \<open>
 
   After installing many packages, cloning the Phabricator distribution,
   initializing the MySQL database and Apache, the tool prints an URL for
-  further configuration. The following needs to be provided by the web
-  interface:
+  further configuration. Now the following needs to be provided by the web
+  interface.
 
     \<^item> An initial user that will get administrator rights. There is no need to
     create a special \<^verbatim>\<open>admin\<close> account. Instead, a regular user that will take
@@ -105,8 +105,8 @@ text \<open>
 
     Alternatively, Phabricator can delegate the responsibility of
     authentication to big corporations like Google and Facebook, but these can
-    be ignored. Genuine self-hosting means to manage users directly, without
-    outsourcing of authentication.
+    be easily ignored. Genuine self-hosting means to manage users directly,
+    without outsourcing of authentication.
 
     \<^item> A proper password for the administrator can now be set, e.g.\ by the
     following command:
@@ -120,14 +120,14 @@ text \<open>
     Auth Provider is already active.
 
     \<^item> The list of Phabricator \<^bold>\<open>Setup Issues\<close> should be studied with some
-    care, to make sure that no serious problems are remaining. The request to
-    lock the configuration can be fulfilled as follows:
+    care, to make sure that no serious problems are remaining. For example,
+    the request to lock the configuration can be fulfilled as follows:
 
     @{verbatim [display] \<open>  isabelle phabricator bin/auth lock\<close>}
 
     \<^medskip> A few other Setup Issues might be relevant as well, e.g.\ the timezone
     of the server. Some more exotic points can be ignored: Phabricator
-    provides careful explanations about what it thinks could be wrong, always
+    provides careful explanations about what it thinks could be wrong, while
     leaving some room for interpretation.
 \<close>
 
@@ -167,7 +167,7 @@ text \<open>
   \<^verbatim>\<open>isabelle phabricator_setup_mail\<close>.
 
   \<^medskip>
-  This is how to query the current mail configuration:
+  The effective mail configuration can be queried like this:
 
   @{verbatim [display] \<open>  isabelle phabricator bin/config get cluster.mailers\<close>}
 \<close>
@@ -179,20 +179,20 @@ text \<open>
   SSH configuration is optional, but important to access hosted repositories
   with public-key authentication.
 
-  The subsequent configuration is convenient, but also ambitious: it takes
-  away the standard port 22 from the operating system and assigns it to
-  Isabelle/Phabricator:
+  The subsequent configuration is convenient (and ambitious): it takes away
+  the standard port 22 from the operating system and assigns it to
+  Isabelle/Phabricator.
 
   @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 22 -q 222\<close>}
 
   Afterwards, remote login to the server host needs to use that alternative
-  port 222. If there is a problem with it, the administrator can usually
-  connect to a remote console via some web interface of the virtual server
+  port 222. If there is a problem connecting again, the administrator can
+  usually access a remote console via some web interface of the virtual server
   provider.
 
   \<^medskip>
   The following alternative is more modest: it uses port 2222 for Phabricator,
-  and retains port 22 for the operating system:
+  and retains port 22 for the operating system.
 
   @{verbatim [display] \<open>  isabelle phabricator_setup_ssh -p 2222 -q 22\<close>}
 
@@ -202,7 +202,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Public domain name and HTTPS configuration\<close>
+subsection \<open>Public domain name and HTTPS configuration \label{sec:phabricator-domain}\<close>
 
 text \<open>
   So far the Phabricator server has been accessible only on \<^verbatim>\<open>localhost\<close> (via
@@ -229,15 +229,16 @@ text \<open>
     \<^verbatim>\<open>vcs.example.org\<close>.
 
     \<^item> Inform Phabricator about its new domain name like this:
-    @{verbatim [display] \<open>  isabelle phabricator bin/config set
+    @{verbatim [display] \<open>  isabelle phabricator bin/config set \
     phabricator.base-uri https://vcs.example.org\<close>}
 
-    \<^item> Visit the website \<^verbatim>\<open>https://vcs.example.org\<close> and continue Phabricator
-    configuration as described before. The following options are particularly
-    relevant for a public website:
+    \<^item> Visit the website \<^verbatim>\<open>https://vcs.example.org\<close> and configure Phabricator
+    as described before. The following options are particularly relevant for a
+    public website:
 
       \<^item> \<^emph>\<open>Auth Provider / Username/Password\<close>: disable \<^emph>\<open>Allow Registration\<close> to
-      avoid arbitrary registrants; users can be invited via email instead.
+      avoid uncontrolled registrants; users can still be invited via email
+      instead.
 
       \<^item> Enable \<^verbatim>\<open>policy.allow-public\<close> to allow read-only access to resources,
       without requiring user registration.
@@ -258,7 +259,7 @@ text \<open>
     \<^enum> Multiple \<^emph>\<open>MySQL databases\<close> with a common prefix derived from the
     installation name --- the same name is used as database user name.
 
-  The Linux root user may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close>
+  The root user may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close>
   to create a complete database dump within the root directory. Afterwards it
   is sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
   restore the database state, see the explanations on \<^verbatim>\<open>mysqldump\<close> in
@@ -275,12 +276,12 @@ text \<open>
   works as follows. Run on the first installation root directory:
 
   @{verbatim [display] \<open>  phabricator/bin/storage dump > dump1.sql
-  phabricator/bin/storage renamespace --from phabricator_vcs
+  phabricator/bin/storage renamespace --from phabricator_vcs \
     --to phabricator_xyz --input dump1.sql --output dump2.sql\<close>}
 
-  Now run on the second installation root directory:
+  Them run on the second installation root directory:
   @{verbatim [display] \<open>  phabricator/bin/storage destroy
-  phabricator/bin/storage shell < dump2.sql\<close>}
+  phabricator/bin/storage shell < .../dump2.sql\<close>}
 
   Local configuration in \<^verbatim>\<open>phabricator/config/local/\<close> and hosted repositories
   need to be treated separately within the file-system. For the latter
@@ -368,8 +369,8 @@ text \<open>
 subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup\<close>\<close>
 
 text \<open>
-  The @{tool_def phabricator_setup} installs a fresh Phabricator instance on
-  Ubuntu 18.04 LTS:
+  The @{tool_def phabricator_setup} tool installs a fresh Phabricator instance
+  on Ubuntu 18.04 LTS:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
@@ -401,7 +402,7 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-U\<close> ensures a full update of system packages, before installing
-  further packages required by Phabricator. This might require to reboot.
+  further packages required by Phabricator. This might require a reboot.
 
   Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source: this works
   better than the package provided by Ubuntu 18.04. Alternatively, an explicit
@@ -430,8 +431,8 @@ text \<open>
 subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup_mail\<close>\<close>
 
 text \<open>
-  The @{tool_def phabricator_setup_mail} provides mail configuration for an
-  existing Phabricator installation:
+  The @{tool_def phabricator_setup_mail} tool provides mail configuration for
+  an existing Phabricator installation:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   Options are:
@@ -472,7 +473,7 @@ text \<open>
 subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup_ssh\<close>\<close>
 
 text \<open>
-  The @{tool_def phabricator_setup_ssh} configures a special SSH service
+  The @{tool_def phabricator_setup_ssh} tool configures a special SSH service
   for all Phabricator installations:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
