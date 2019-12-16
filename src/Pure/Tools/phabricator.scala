@@ -385,7 +385,7 @@ echo "Creating $ROOT/database/dump.sql.gz"
 
     command_setup(isabelle_phabricator_name(name = "upgrade"),
       init =
-"""BRANCH="${1:stable}"
+"""BRANCH="${1:-stable}"
 if [ "$BRANCH" != "master" -a "$BRANCH" != "stable" ]
 then
   echo "Bad branch: \"$BRANCH\""
