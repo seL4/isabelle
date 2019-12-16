@@ -285,9 +285,15 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       script = """
         set -e
         echo "Cloning distribution repositories:"
+
         git clone --branch stable https://github.com/phacility/libphutil.git
+        git -C libphutil reset --hard 1750586fdc50a6cd98adba4aa2f5a7649bd91dbe
+
         git clone --branch stable https://github.com/phacility/arcanist.git
+        git -C arcanist reset --hard bac2028421a4be6e34e08764bbbda49e68b3a604
+
         git clone --branch stable https://github.com/phacility/phabricator.git
+        git -C phabricator reset --hard c4b4a53cad7722f031b725f8b41511e9d341d033
       """).check
 
     val config = Config(name, root_path)
