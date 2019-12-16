@@ -504,10 +504,12 @@ text \<open>
   remains important for remote administration of the machine.
 
   \<^medskip>
-  Options \<^verbatim>\<open>-p\<close> and \<^verbatim>\<open>-q\<close> allow to change the port assignment for both servers.
-  A common scheme is \<^verbatim>\<open>-p 22 -q 222\<close> to leave the standard port to
+  Options \<^verbatim>\<open>-p\<close> and \<^verbatim>\<open>-q\<close> allow to change the port assignment for both
+  servers. A common scheme is \<^verbatim>\<open>-p 22 -q 222\<close> to leave the standard port to
   Phabricator, to simplify the ssh URL that users will see for remote
-  repository clones.
+  repository clones.\<^footnote>\<open>For the rare case of hosting Subversion repositories,
+  port 22 is de-facto required. Otherwise Phabricator presents malformed
+  \<^verbatim>\<open>svn+ssh\<close> URLs with port specification.\<close>
 
   Redirecting the operating system sshd to port 222 requires some care: it
   requires to adjust the remote login procedure, e.g.\ in \<^verbatim>\<open>$HOME/.ssh/config\<close>

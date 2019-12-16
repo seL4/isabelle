@@ -784,6 +784,7 @@ Alias=""" + ssh_name + """.service
     for (config <- configs) {
       progress.echo("phabricator " + quote(config.name) + " port " +  server_port)
       config.execute("config set diffusion.ssh-port " + Bash.string(server_port.toString))
+      if (server_port == 22) config.execute("config delete diffusion.ssh-port")
 
       if (test_server) {
         progress.bash(
