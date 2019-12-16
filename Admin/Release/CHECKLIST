@@ -54,6 +54,10 @@ Checklist for official releases
 
 - Windows: check recent MiKTeX;
 
+- Phabricator:
+    . src/Doc/System/Phabricator.thy: check/update underlying Ubuntu version
+    . src/Pure/Tools/phabricator.scala: check/update hardwired repository versions;
+
 
 Repository fork
 ===============
