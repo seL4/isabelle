@@ -71,13 +71,12 @@ object Phabricator
   val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
   def global_config_script(
-    header: Boolean = false,
     init: String = "",
     body: String = "",
     exit: String = ""): String =
   {
-    (if (header) "#!/bin/bash\n" else "") +
-"""
+"""#!/bin/bash
+
 {""" + (if (init.nonEmpty) "\n" + Library.prefix_lines("  ", init) else "") + """
   while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
   do
@@ -180,10 +179,13 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
     }
   }
 
-  def command_setup(name: String, body: String, exit: String = ""): Path =
+  def command_setup(name: String,
+    init: String = "",
+    body: String = "",
+    exit: String = ""): Path =
   {
     val command = Path.explode("/usr/local/bin") + Path.basic(name)
-    File.write(command, global_config_script(header = true, body = body, exit = exit))
+    File.write(command, global_config_script(init = init, body = body, exit = exit))
     Isabelle_System.chmod("755", command)
     Isabelle_System.chown("root:root", command)
     command
@@ -371,7 +373,7 @@ local_infile = 0
     /* database dump */
 
     val dump_name = isabelle_phabricator_name(name = "dump")
-    command_setup(dump_name,
+    command_setup(dump_name, body =
 """mkdir -p "$ROOT/database" && chown root:root "$ROOT/database" && chmod 700 "$ROOT/database"
 [ -e "$ROOT/database/dump.sql.gz" ] && mv -f "$ROOT/database/dump.sql.gz" "$ROOT/database/dump-old.sql.gz"
 echo "Creating $ROOT/database/dump.sql.gz"
@@ -450,7 +452,7 @@ echo "Creating $ROOT/database/dump.sql.gz"
 
     val phd_name = isabelle_phabricator_name(name = "phd")
     Linux.service_shutdown(phd_name)
-    val phd_command = command_setup(phd_name, """"$ROOT/phabricator/bin/phd" "$@" """)
+    val phd_command = command_setup(phd_name, body = """"$ROOT/phabricator/bin/phd" "$@" """)
     try {
       Linux.service_install(phd_name,
 """[Unit]
@@ -693,7 +695,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
     progress.echo("Configuring " + ssh_name + " service")
 
-    val ssh_command = command_setup(ssh_name,
+    val ssh_command = command_setup(ssh_name, body =
 """if [ "$1" = "$NAME" ]
 then
   exec "$ROOT/phabricator/bin/ssh-auth" "$@"
