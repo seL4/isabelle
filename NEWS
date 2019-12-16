@@ -110,11 +110,13 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
-* The command-line tool "isabelle phabricator_setup" (and some more)
-supports the management of the Phabricator software-development platform
-for Ubuntu 18.04 servers. For documentation, see chapter "Phabricator
-server administration" in the "system" manual. This helps to escape the
-gravity of centralized version control by Github or Bitbucket.
+* The command-line tool "isabelle phabricator_setup" facilitates
+self-hosting of the Phabricator software-development platform, with
+support for Git, Mercurial, Subversion repositories. This helps to avoid
+monoculture and to escape the gravity of centralized version control by
+Github and/or Bitbucket. For further documentation, see chapter
+"Phabricator server administration" in the "system" manual. A notable
+example installation is https://isabelle-dev.sketis.net/.
 
 * The command-line tool "isabelle imports" has been discontinued: strict
 checking of session directories enforces session-qualified theory names
