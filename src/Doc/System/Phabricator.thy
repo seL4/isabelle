@@ -290,6 +290,26 @@ text \<open>
 \<close>
 
 
+section \<open>Upgrading Phabricator installations\<close>
+
+text \<open>
+  The Phabricator developers publish a new version approx.\ every 1--4 weeks:
+  see also \<^url>\<open>https://secure.phabricator.com/w/changelog\<close>. There is no need to
+  follow such frequent updates on the spot, but it is a good idea to upgrade
+  occasionally, see also
+  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/upgrading\<close> for
+  general explanations.
+
+  The Isabelle/Phabricator setup provides a convenience tool to upgrade all
+  installations uniformly:
+  @{verbatim [display] \<open>  /usr/local/bin/isabelle-phabricator-upgrade\<close>}
+
+  This refers to the \<^verbatim>\<open>stable\<close> branch of the distribution repositories by
+  default. Alternatively, it also possible to use the \<^verbatim>\<open>master\<close> like this:
+  @{verbatim [display] \<open>  /usr/local/bin/isabelle-phabricator-upgrade master\<close>}
+\<close>
+
+
 section \<open>Reference of command-line tools\<close>
 
 text \<open>
