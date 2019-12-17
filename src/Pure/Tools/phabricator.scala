@@ -706,7 +706,6 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   def phabricator_setup_ssh(
     server_port: Int = default_server_port,
     system_port: Int = default_system_port,
-    test_server: Boolean = false,
     progress: Progress = No_Progress)
   {
     Linux.check_system_root()
@@ -785,14 +784,6 @@ Alias=""" + ssh_name + """.service
       progress.echo("phabricator " + quote(config.name) + " port " +  server_port)
       config.execute("config set diffusion.ssh-port " + Bash.string(server_port.toString))
       if (server_port == 22) config.execute("config delete diffusion.ssh-port")
-
-      if (test_server) {
-        progress.bash(
-          """unset DISPLAY
-          echo "{}" | ssh -p """ + Bash.string(server_port.toString) +
-          " -o StrictHostKeyChecking=false " +
-          Bash.string(config.name) + """@localhost conduit conduit.ping""").print
-      }
     }
   }
 
@@ -805,7 +796,6 @@ Alias=""" + ssh_name + """.service
     {
       var server_port = default_server_port
       var system_port = default_system_port
-      var test_server = false
 
       val getopts =
         Getopts("""
@@ -814,7 +804,6 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
   Options are:
     -p PORT      sshd port for Phabricator servers (default: """ + default_server_port + """)
     -q PORT      sshd port for the operating system (default: """ + default_system_port + """)
-    -T           test the ssh service for each Phabricator installation
 
   Configure ssh service for all Phabricator installations: a separate sshd
   is run in addition to the one of the operating system, and ports need to
@@ -825,8 +814,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
   stored ssh keys.
 """,
           "p:" -> (arg => server_port = Value.Int.parse(arg)),
-          "q:" -> (arg => system_port = Value.Int.parse(arg)),
-          "T" -> (_ => test_server = true))
+          "q:" -> (arg => system_port = Value.Int.parse(arg)))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -834,7 +822,6 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       val progress = new Console_Progress
 
       phabricator_setup_ssh(
-        server_port = server_port, system_port = system_port, test_server = test_server,
-        progress = progress)
+        server_port = server_port, system_port = system_port, progress = progress)
     })
 }

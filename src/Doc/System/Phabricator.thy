@@ -480,7 +480,6 @@ text \<open>
   Options are:
     -p PORT      sshd port for Phabricator servers (default: 2222)
     -q PORT      sshd port for the operating system (default: 22)
-    -T           test the ssh service for each Phabricator installation
 
   Configure ssh service for all Phabricator installations: a separate sshd
   is run in addition to the one of the operating system, and ports need to
@@ -514,11 +513,6 @@ text \<open>
   Redirecting the operating system sshd to port 222 requires some care: it
   requires to adjust the remote login procedure, e.g.\ in \<^verbatim>\<open>$HOME/.ssh/config\<close>
   to add a \<^verbatim>\<open>Port\<close> specification for the server machine.
-
-  \<^medskip>
-  Option \<^verbatim>\<open>-T\<close> tests the SSH connection by communicating via Conduit. This
-  requires to install the public key of the Linux root in some Phabricator
-  user profile, e.g.\ for the administrator.
 \<close>
 
 end
