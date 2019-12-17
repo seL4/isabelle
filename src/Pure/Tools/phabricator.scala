@@ -849,37 +849,29 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* execute methods */
 
-    def execute(
-      method: String,
-      args: List[String] = Nil,
-      input: JSON.T = JSON.Object.empty): JSON.T =
+    def execute_raw(method: String, params: JSON.T = JSON.Object.empty): JSON.T =
     {
-      Isabelle_System.with_tmp_file("input", "json")(input_file =>
+      Isabelle_System.with_tmp_file("params", "json")(params_file =>
       {
-        File.write(input_file, JSON.Format(JSON.Object("params" -> JSON.Format(input))))
+        File.write(params_file, JSON.Format(JSON.Object("params" -> JSON.Format(params))))
         val result =
           Isabelle_System.bash(
             "ssh -p " + ssh_port + " " + Bash.string(ssh_user_prefix + ssh_host) +
-            " conduit " + Bash.strings(method :: args) + " < " + File.bash_path(input_file)).check
+            " conduit " + Bash.string(method) + " < " + File.bash_path(params_file)).check
         JSON.parse(result.out, strict = false)
       })
     }
 
-    def execute_result(
-      method: String,
-      args: List[String] = Nil,
-      input: JSON.T = JSON.Object.empty): API.Result =
-    {
-      API.make_result(execute(method, args = args, input = input))
-    }
+    def execute(method: String, params: JSON.T = JSON.Object.empty): API.Result =
+      API.make_result(execute_raw(method, params = params))
 
 
     /* concrete methods */
 
-    def ping(): String = execute_result("conduit.ping").get_string
+    def ping(): String = execute("conduit.ping").get_string
 
-    lazy val user_phid: String = execute_result("user.whoami").get_value(JSON.string(_, "phid"))
-    lazy val user_name: String = execute_result("user.whoami").get_value(JSON.string(_, "userName"))
+    lazy val user_phid: String = execute("user.whoami").get_value(JSON.string(_, "phid"))
+    lazy val user_name: String = execute("user.whoami").get_value(JSON.string(_, "userName"))
   }
 
   object API
