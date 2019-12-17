@@ -907,6 +907,20 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   object API
   {
+    /* repository parameters */
+
+    object VCS extends Enumeration
+    {
+      val hg, git, svn = Value
+    }
+
+    def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
+      List(JSON.Object("type" -> typ, "value" -> value))
+
+    def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
+      value.toList.flatMap(edits(typ, _))
+
+
     /* result with optional error */
 
     sealed case class Result(result: JSON.T, error: Option[String])
@@ -927,19 +941,5 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       val error_code = JSON.string(json, "error_code")
       Result(result, error_info orElse error_code)
     }
-
-
-    /* repository operations */
-
-    object VCS extends Enumeration
-    {
-      val hg, git, svn = Value
-    }
-
-    def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
-      List(JSON.Object("type" -> typ, "value" -> value))
-
-    def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
-      value.toList.flatMap(edits(typ, _))
   }
 }
