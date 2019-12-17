@@ -1,4 +1,5 @@
 SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
 MAILTO=makarius
 
 03 00 * * *       $HOME/cronjob/self_update
