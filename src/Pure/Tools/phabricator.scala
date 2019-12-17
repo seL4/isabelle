@@ -124,7 +124,7 @@ object Phabricator
 
 
 
-  /** command-line tools **/
+  /** administrative tools **/
 
   /* Isabelle tool wrapper */
 
@@ -824,4 +824,152 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       phabricator_setup_ssh(
         server_port = server_port, system_port = system_port, progress = progress)
     })
+
+
+
+  /** conduit API **/
+
+  object Conduit
+  {
+    def apply(ssh_host: String, ssh_user: String, ssh_port: Int = 22): Conduit =
+      new Conduit(ssh_host, ssh_user, ssh_port)
+  }
+
+  final class Conduit private(ssh_host: String, ssh_user: String, ssh_port: Int)
+  {
+    /* connection */
+
+    require(ssh_host.nonEmpty && ssh_port >= 0)
+
+    private def ssh_user_prefix: String = if (ssh_user.isEmpty) "" else ssh_user + "@"
+    private def ssh_port_suffix: String = if (ssh_port == 22) "" else ":" + ssh_port
+
+    override def toString: String = ssh_user_prefix + ssh_host + ssh_port_suffix
+
+
+    /* execute methods */
+
+    def execute(
+      method: String,
+      args: List[String] = Nil,
+      input: JSON.T = JSON.Object.empty): JSON.T =
+    {
+      Isabelle_System.with_tmp_file("input", "json")(input_file =>
+      {
+        File.write(input_file, JSON.Format(JSON.Object("params" -> JSON.Format(input))))
+        val result =
+          Isabelle_System.bash(
+            "ssh -p " + ssh_port + " " + Bash.string(ssh_user_prefix + ssh_host) +
+            " conduit " + Bash.strings(method :: args) + " < " + File.bash_path(input_file)).check
+        JSON.parse(result.out, strict = false)
+      })
+    }
+
+    def execute_result(
+      method: String,
+      args: List[String] = Nil,
+      input: JSON.T = JSON.Object.empty): API.Result =
+    {
+      API.make_result(execute(method, args = args, input = input))
+    }
+
+
+    /* concrete methods */
+
+    def ping(): String = execute_result("conduit.ping").get_string
+
+    lazy val user_phid: String = execute_result("user.whoami").get_value(JSON.string(_, "phid"))
+    lazy val user_name: String = execute_result("user.whoami").get_value(JSON.string(_, "userName"))
+  }
+
+  object API
+  {
+    /* result with optional error */
+
+    object Error_Code extends Enumeration
+    {
+      val bad_diff = Value("ERR-BAD-DIFF")
+      val bad_document = Value("ERR-BAD-DOCUMENT")
+      val bad_file = Value("ERR-BAD-FILE")
+      val bad_phid = Value("ERR-BAD-PHID")
+      val bad_revision = Value("ERR-BAD-REVISION")
+      val bad_task = Value("ERR-BAD-TASK")
+      val bad_token = Value("ERR-BAD-TOKEN")
+      val bad_version = Value("ERR-BAD-VERSION")
+      val conduit_call = Value("ERR-CONDUIT-CALL")
+      val conduit_core = Value("ERR-CONDUIT-CORE")
+      val invalid_auth = Value("ERR-INVALID-AUTH")
+      val invalid_certificate = Value("ERR-INVALID-CERTIFICATE")
+      val invalid_engine_ = Value("ERR-INVALID_ENGINE")  // FIXME !?
+      val invalid_engine = Value("ERR-INVALID-ENGINE")
+      val invalid_parameter = Value("ERR-INVALID-PARAMETER")
+      val invalid_session = Value("ERR-INVALID-SESSION")
+      val invalid_token = Value("ERR-INVALID-TOKEN")
+      val invalid_usage = Value("ERR-INVALID-USAGE")
+      val invalid_user = Value("ERR-INVALID-USER")
+      val need_diff = Value("ERR-NEED-DIFF")
+      val need_file = Value("ERR-NEED-FILE")
+      val no_certificate = Value("ERR-NO-CERTIFICATE")
+      val no_content = Value("ERR-NO-CONTENT")
+      val no_effect = Value("ERR-NO-EFFECT")
+      val no_paste = Value("ERR-NO-PASTE")
+      val not_found = Value("ERR-NOT-FOUND")
+      val not_pusher = Value("ERR-NOT-PUSHER")
+      val oauth_access = Value("ERR-OAUTH-ACCESS")
+      val permissions = Value("ERR-PERMISSIONS")
+      val rate_limit = Value("ERR-RATE-LIMIT")
+      val unknown_client = Value("ERR-UNKNOWN-CLIENT")
+      val unknown_repository = Value("ERR-UNKNOWN-REPOSITORY")
+      val unknown_type = Value("ERR-UNKNOWN-TYPE")
+      val unknown_vcs_type = Value("ERR-UNKNOWN-VCS-TYPE")
+      val unsupported_vcs = Value("ERR-UNSUPPORTED-VCS")
+
+      val unknown_error = Value("ERR-UNKNOWN-ERROR")
+    }
+
+    sealed case class Result(
+      result: JSON.T,
+      error_code: Option[Error_Code.Value],
+      error_info: String)
+    {
+      def ok: Boolean = error_code.isEmpty && error_info.isEmpty
+
+      def get: JSON.T =
+        if (error_info.nonEmpty) error(error_info)
+        else if (error_code.nonEmpty) error(error_code.get.toString)
+        else result
+
+      def get_value[A](unapply: JSON.T => Option[A]): A =
+        unapply(get) getOrElse error("Bad JSON result: " + JSON.Format(result))
+
+      def get_string: String = get_value(JSON.Value.String.unapply)
+    }
+
+    def make_error_code(str: String): Error_Code.Value =
+      try { Error_Code.withName(str) }
+      catch { case _: java.util.NoSuchElementException => Error_Code.unknown_error }
+
+    def make_result(json: JSON.T): Result =
+      Result(
+        JSON.value(json, "result").getOrElse(JSON.Object.empty),
+        JSON.string(json, "error_code").map(make_error_code),
+        JSON.string(json, "error_info").getOrElse(""))
+
+
+    /* repository operations */
+
+    object VCS extends Enumeration
+    {
+      val hg, git, svn = Value
+    }
+
+    def edit(typ: String, value: JSON.T): JSON.Object.T =
+      JSON.Object("type" -> typ, "value" -> value)
+
+    def edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
+      List(edit(typ, value))
+
+    def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
+      value.map(edit(typ, _)).toList
+  }
 }
