@@ -251,7 +251,8 @@ object JSON
         }
     }
 
-    object String {
+    object String
+    {
       def unapply(json: T): Option[java.lang.String] =
         json match {
           case x: java.lang.String => Some(x)
@@ -259,7 +260,8 @@ object JSON
         }
     }
 
-    object Double {
+    object Double
+    {
       def unapply(json: T): Option[scala.Double] =
         json match {
           case x: scala.Double => Some(x)
@@ -269,7 +271,8 @@ object JSON
         }
     }
 
-    object Long {
+    object Long
+    {
       def unapply(json: T): Option[scala.Long] =
         json match {
           case x: scala.Double if x.toLong.toDouble == x => Some(x.toLong)
@@ -279,7 +282,8 @@ object JSON
         }
     }
 
-    object Int {
+    object Int
+    {
       def unapply(json: T): Option[scala.Int] =
         json match {
           case x: scala.Double if x.toInt.toDouble == x => Some(x.toInt)
@@ -289,7 +293,8 @@ object JSON
         }
     }
 
-    object Boolean {
+    object Boolean
+    {
       def unapply(json: T): Option[scala.Boolean] =
         json match {
           case x: scala.Boolean => Some(x)
@@ -308,7 +313,8 @@ object JSON
         }
     }
 
-    object Seconds {
+    object Seconds
+    {
       def unapply(json: T): Option[Time] =
         Double.unapply(json).map(Time.seconds(_))
     }
