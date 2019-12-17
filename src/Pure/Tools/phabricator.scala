@@ -872,6 +872,37 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     lazy val user_phid: String = execute("user.whoami").get_value(JSON.string(_, "phid"))
     lazy val user_name: String = execute("user.whoami").get_value(JSON.string(_, "userName"))
+
+    def create_repository(
+      name: String,
+      callsign: String = "",    // unique name, UPPERCASE
+      short_name: String = "",  // unique name
+      description: String = "",
+      public: Boolean = false,
+      vcs: API.VCS.Value = API.VCS.hg): String =
+    {
+      require(name.nonEmpty)
+
+      val transactions =
+        API.edits("vcs", vcs.toString) :::
+        API.edits("name", name) :::
+        API.opt_edits("callsign", proper_string(callsign)) :::
+        API.opt_edits("shortName", proper_string(short_name)) :::
+        API.opt_edits("description", proper_string(description)) :::
+        (if (public) Nil
+         else API.edits("view", user_phid) ::: API.edits("policy.push", user_phid)) :::
+        API.edits("status", "active")
+
+      val repo_phid =
+        execute("diffusion.repository.edit",
+          params = JSON.Object("transactions" -> transactions))
+        .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
+
+      execute("diffusion.looksoon",
+        params = JSON.Object("repositories" -> List(repo_phid))).get
+
+      repo_phid
+    }
   }
 
   object API
@@ -955,13 +986,10 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       val hg, git, svn = Value
     }
 
-    def edit(typ: String, value: JSON.T): JSON.Object.T =
-      JSON.Object("type" -> typ, "value" -> value)
-
-    def edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
-      List(edit(typ, value))
+    def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
+      List(JSON.Object("type" -> typ, "value" -> value))
 
     def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
-      value.map(edit(typ, _)).toList
+      value.toList.flatMap(edits(typ, _))
   }
 }
