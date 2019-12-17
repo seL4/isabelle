@@ -41,13 +41,12 @@ text \<open>
     \<^item> Mercurial development \<^url>\<open>https://phab.mercurial-scm.org\<close>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
 
-  \<^medskip> Initial Phabricator configuration requires many details to be done
-  right.\<^footnote>\<open>See also
-  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/installation_guide\<close>
-  in the context of \<^url>\<open>https://help.ubuntu.com/lts/serverguide\<close>.\<close> Isabelle
-  provides some command-line tools to help with the setup, and afterwards
-  Isabelle support is optional: it is possible to run and maintain the server,
-  without requiring the somewhat bulky Isabelle distribution again.
+  \<^medskip>
+  Initial Phabricator configuration requires many details to be done right.
+  Isabelle provides some command-line tools to help with the setup, and
+  afterwards Isabelle support is optional: it is possible to run and maintain
+  the server, without requiring the somewhat bulky Isabelle distribution
+  again.
 \<close>
 
 
@@ -245,7 +244,7 @@ text \<open>
 \<close>
 
 
-section \<open>Global data storage and backups\<close>
+section \<open>Global data storage and backups \label{sec:phabricator-backup}\<close>
 
 text \<open>
   The global state of a Phabricator installation consists of two main parts:
@@ -297,9 +296,7 @@ text \<open>
   The Phabricator developers publish a new version approx.\ every 1--4 weeks:
   see also \<^url>\<open>https://secure.phabricator.com/w/changelog\<close>. There is no need to
   follow such frequent updates on the spot, but it is a good idea to upgrade
-  occasionally, see also
-  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/upgrading\<close> for
-  general explanations.
+  occasionally --- after dump and/or backup (\secref{sec:phabricator-backup}).
 
   The Isabelle/Phabricator setup provides a convenience tool to upgrade all
   installations uniformly:
@@ -308,6 +305,11 @@ text \<open>
   This refers to the \<^verbatim>\<open>stable\<close> branch of the distribution repositories by
   default. Alternatively, it also possible to use the \<^verbatim>\<open>master\<close> like this:
   @{verbatim [display] \<open>  /usr/local/bin/isabelle-phabricator-upgrade master\<close>}
+
+  \<^medskip>
+  See
+  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/upgrading\<close> for
+  further explanations on Phabricator upgrade.
 \<close>
 
 
