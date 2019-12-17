@@ -54,6 +54,8 @@ by (induction t) auto
 lemma finite_braun_indices: "finite(braun_indices t)"
 by (induction t) auto
 
+text "One direction:"
+
 lemma braun_indices_if_braun: "braun t \<Longrightarrow> braun_indices t = {1..size t}"
 proof(induction t)
   case Leaf thus ?case by simp
@@ -82,19 +84,10 @@ next
   qed
 qed
 
+text "The other direction is more complicated. The following proof is due to Thomas Sewell."
+
 lemma disj_evens_odds: "(*) 2 ` A \<inter> Suc ` (*) 2 ` B = {}"
 using double_not_eq_Suc_double by auto
-
-lemma Suc0_notin_double: "Suc 0 \<notin> (*) 2 ` A"
-by(auto)
-
-lemma zero_in_double_iff: "(0::nat) \<in> (*) 2 ` A \<longleftrightarrow> 0 \<in> A"
-by(auto)
-
-lemma Suc_in_Suc_image_iff: "Suc n \<in> Suc ` A \<longleftrightarrow> n \<in> A"
-by(auto)
-
-lemmas nat_in_image = Suc0_notin_double zero_in_double_iff Suc_in_Suc_image_iff
 
 lemma card_braun_indices: "card (braun_indices t) = size t"
 proof (induction t)
@@ -105,6 +98,99 @@ next
     by(auto simp: UNION_singleton_eq_range finite_braun_indices card_Un_disjoint
                   card_insert_if disj_evens_odds card_image inj_on_def braun_indices1)
 qed
+
+lemma braun_indices_intvl_base_1:
+  assumes bi: "braun_indices t = {m..n}"
+  shows "{m..n} = {1..size t}"
+proof (cases "t = Leaf")
+  case True then show ?thesis using bi by simp
+next
+  case False
+  note eqs = eqset_imp_iff[OF bi]
+  from eqs[of 0] have 0: "0 < m"
+    by (simp add: braun_indices1)
+  from eqs[of 1] have 1: "m \<le> 1"
+    by (cases t; simp add: False)
+  from 0 1 have eq1: "m = 1" by simp
+  from card_braun_indices[of t] show ?thesis
+    by (simp add: bi eq1)
+qed
+
+lemma even_of_intvl_intvl:
+  fixes S :: "nat set"
+  assumes "S = {m..n} \<inter> {i. even i}"
+  shows "\<exists>m' n'. S = (\<lambda>i. i * 2) ` {m'..n'}"
+  apply (rule exI[where x="Suc m div 2"], rule exI[where x="n div 2"])
+  apply (fastforce simp add: assms mult.commute)
+  done
+
+lemma odd_of_intvl_intvl:
+  fixes S :: "nat set"
+  assumes "S = {m..n} \<inter> {i. odd i}"
+  shows "\<exists>m' n'. S = Suc ` (\<lambda>i. i * 2) ` {m'..n'}"
+proof -
+  have step1: "\<exists>m'. S = Suc ` ({m'..n - 1} \<inter> {i. even i})"
+    apply (rule_tac x="if n = 0 then 1 else m - 1" in exI)
+    apply (auto simp: assms image_def elim!: oddE)
+    done
+  thus ?thesis
+    by (metis even_of_intvl_intvl)
+qed
+
+lemma image_int_eq_image:
+  "(\<forall>i \<in> S. f i \<in> T) \<Longrightarrow> (f ` S) \<inter> T = f ` S"
+  "(\<forall>i \<in> S. f i \<notin> T) \<Longrightarrow> (f ` S) \<inter> T = {}"
+  by auto
+
+lemma braun_indices1_le:
+  "i \<in> braun_indices t \<Longrightarrow> Suc 0 \<le> i"
+  using braun_indices1 not_less_eq_eq by blast
+
+lemma braun_if_braun_indices: "braun_indices t = {1..size t} \<Longrightarrow> braun t"
+proof(induction t)
+case Leaf
+  then show ?case by simp
+next
+  case (Node l x r)
+  obtain t where t: "t = Node l x r" by simp
+  from Node.prems have eq: "{2 .. size t} = (\<lambda>i. i * 2) ` braun_indices l \<union> Suc ` (\<lambda>i. i * 2) ` braun_indices r"
+    (is "?R = ?S \<union> ?T")
+    apply clarsimp
+    apply (drule_tac f="\<lambda>S. S \<inter> {2..}" in arg_cong)
+    apply (simp add: t mult.commute Int_Un_distrib2 image_int_eq_image braun_indices1_le)
+    done
+  then have ST: "?S = ?R \<inter> {i. even i}" "?T = ?R \<inter> {i. odd i}"
+    by (simp_all add: Int_Un_distrib2 image_int_eq_image)
+  from ST have l: "braun_indices l = {1 .. size l}"
+    by (fastforce dest: braun_indices_intvl_base_1 dest!: even_of_intvl_intvl
+                  simp: mult.commute inj_image_eq_iff[OF inj_onI])
+  from ST have r: "braun_indices r = {1 .. size r}"
+    by (fastforce dest: braun_indices_intvl_base_1 dest!: odd_of_intvl_intvl
+                  simp: mult.commute inj_image_eq_iff[OF inj_onI])
+  note STa = ST[THEN eqset_imp_iff, THEN iffD2]
+  note STb = STa[of "size t"] STa[of "size t - 1"]
+  then have sizes: "size l = size r \<or> size l = size r + 1"
+    apply (clarsimp simp: t l r inj_image_mem_iff[OF inj_onI])
+    apply (cases "even (size l)"; cases "even (size r)"; clarsimp elim!: oddE; fastforce)
+    done
+  from l r sizes show ?case
+    by (clarsimp simp: Node.IH)
+qed
+
+lemma braun_iff_braun_indices: "braun t \<longleftrightarrow> braun_indices t = {1..size t}"
+using braun_if_braun_indices braun_indices_if_braun by blast
+
+(* An older less appealing proof:
+lemma Suc0_notin_double: "Suc 0 \<notin> ( * ) 2 ` A"
+by(auto)
+
+lemma zero_in_double_iff: "(0::nat) \<in> ( * ) 2 ` A \<longleftrightarrow> 0 \<in> A"
+by(auto)
+
+lemma Suc_in_Suc_image_iff: "Suc n \<in> Suc ` A \<longleftrightarrow> n \<in> A"
+by(auto)
+
+lemmas nat_in_image = Suc0_notin_double zero_in_double_iff Suc_in_Suc_image_iff
 
 lemma disj_union_eq_iff:
   "\<lbrakk> L1 \<inter> R2 = {}; L2 \<inter> R1 = {} \<rbrakk> \<Longrightarrow> L1 \<union> R1 = L2 \<union> R2 \<longleftrightarrow> L1 = L2 \<and> R1 = R2"
@@ -235,15 +321,13 @@ next
   case (Node t1 x2 t2)
   have 1: "i > 0 \<Longrightarrow> Suc(Suc(2 * (i - Suc 0))) = 2*i" for i::nat by(simp add: algebra_simps)
   have 2: "i > 0 \<Longrightarrow> 2 * (i - Suc 0) + 3 = 2*i + 1" for i::nat by(simp add: algebra_simps)
-  have 3: "(*) 2 ` braun_indices t1 \<union> Suc ` (*) 2 ` braun_indices t2 =
+  have 3: "( * ) 2 ` braun_indices t1 \<union> Suc ` ( * ) 2 ` braun_indices t2 =
      {2..size t1 + size t2 + 1}" using Node.prems
     by (simp add: insert_ident Icc_eq_insert_lb_nat nat_in_image braun_indices1)
   thus ?case using Node.IH even_odd_decomp[OF _ _ 3]
     by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff image_comp
            cong: image_cong_simp)
 qed
-
-lemma braun_iff_braun_indices: "braun t \<longleftrightarrow> braun_indices t = {1..size t}"
-using braun_if_braun_indices braun_indices_if_braun by blast
+*)
 
 end
