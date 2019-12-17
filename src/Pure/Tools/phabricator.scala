@@ -909,74 +909,24 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
   {
     /* result with optional error */
 
-    object Error_Code extends Enumeration
+    sealed case class Result(result: JSON.T, error: Option[String])
     {
-      val bad_diff = Value("ERR-BAD-DIFF")
-      val bad_document = Value("ERR-BAD-DOCUMENT")
-      val bad_file = Value("ERR-BAD-FILE")
-      val bad_phid = Value("ERR-BAD-PHID")
-      val bad_revision = Value("ERR-BAD-REVISION")
-      val bad_task = Value("ERR-BAD-TASK")
-      val bad_token = Value("ERR-BAD-TOKEN")
-      val bad_version = Value("ERR-BAD-VERSION")
-      val conduit_call = Value("ERR-CONDUIT-CALL")
-      val conduit_core = Value("ERR-CONDUIT-CORE")
-      val invalid_auth = Value("ERR-INVALID-AUTH")
-      val invalid_certificate = Value("ERR-INVALID-CERTIFICATE")
-      val invalid_engine_ = Value("ERR-INVALID_ENGINE")  // FIXME !?
-      val invalid_engine = Value("ERR-INVALID-ENGINE")
-      val invalid_parameter = Value("ERR-INVALID-PARAMETER")
-      val invalid_session = Value("ERR-INVALID-SESSION")
-      val invalid_token = Value("ERR-INVALID-TOKEN")
-      val invalid_usage = Value("ERR-INVALID-USAGE")
-      val invalid_user = Value("ERR-INVALID-USER")
-      val need_diff = Value("ERR-NEED-DIFF")
-      val need_file = Value("ERR-NEED-FILE")
-      val no_certificate = Value("ERR-NO-CERTIFICATE")
-      val no_content = Value("ERR-NO-CONTENT")
-      val no_effect = Value("ERR-NO-EFFECT")
-      val no_paste = Value("ERR-NO-PASTE")
-      val not_found = Value("ERR-NOT-FOUND")
-      val not_pusher = Value("ERR-NOT-PUSHER")
-      val oauth_access = Value("ERR-OAUTH-ACCESS")
-      val permissions = Value("ERR-PERMISSIONS")
-      val rate_limit = Value("ERR-RATE-LIMIT")
-      val unknown_client = Value("ERR-UNKNOWN-CLIENT")
-      val unknown_repository = Value("ERR-UNKNOWN-REPOSITORY")
-      val unknown_type = Value("ERR-UNKNOWN-TYPE")
-      val unknown_vcs_type = Value("ERR-UNKNOWN-VCS-TYPE")
-      val unsupported_vcs = Value("ERR-UNSUPPORTED-VCS")
-
-      val unknown_error = Value("ERR-UNKNOWN-ERROR")
-    }
-
-    sealed case class Result(
-      result: JSON.T,
-      error_code: Option[Error_Code.Value],
-      error_info: String)
-    {
-      def ok: Boolean = error_code.isEmpty && error_info.isEmpty
-
-      def get: JSON.T =
-        if (error_info.nonEmpty) error(error_info)
-        else if (error_code.nonEmpty) error(error_code.get.toString)
-        else result
+      def ok: Boolean = error.isEmpty
+      def get: JSON.T = if (ok) result else Exn.error(error.get)
 
       def get_value[A](unapply: JSON.T => Option[A]): A =
-        unapply(get) getOrElse error("Bad JSON result: " + JSON.Format(result))
+        unapply(get) getOrElse Exn.error("Bad JSON result: " + JSON.Format(result))
 
       def get_string: String = get_value(JSON.Value.String.unapply)
     }
 
-    def make_error_code(str: String): Error_Code.Value =
-      try { Error_Code.withName(str) }
-      catch { case _: java.util.NoSuchElementException => Error_Code.unknown_error }
-
     def make_result(json: JSON.T): Result =
-      Result(
-        JSON.value(json, "result").getOrElse(JSON.Object.empty),
-        JSON.string(json, "error_code").map(make_error_code),
-        JSON.string(json, "error_info").getOrElse(""))
+    {
+      val result = JSON.value(json, "result").getOrElse(JSON.Object.empty)
+      val error_info = JSON.string(json, "error_info")
+      val error_code = JSON.string(json, "error_code")
+      Result(result, error_info orElse error_code)
+    }
 
 
     /* repository operations */
