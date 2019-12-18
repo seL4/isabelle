@@ -908,6 +908,12 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
           })))
     }
 
+    def the_repository(phid: String): API.Repository =
+      get_repositories(phid = phid) match {
+        case List(repo) => repo
+        case _ => error("Bad repository " + quote(phid))
+      }
+
     def create_repository(
       name: String,
       callsign: String = "",    // unique name, UPPERCASE
@@ -934,10 +940,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
       execute("diffusion.looksoon", params = JSON.Object("repositories" -> List(phid))).get
 
-      get_repositories(phid = phid) match {
-        case List(repo) => repo
-        case _ => error("Failed to access new repository: " + quote(phid))
-      }
+      the_repository(phid)
     }
   }
 
