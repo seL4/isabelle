@@ -831,11 +831,11 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   object Conduit
   {
-    def apply(ssh_host: String, ssh_user: String, ssh_port: Int = 22): Conduit =
-      new Conduit(ssh_host, ssh_user, ssh_port)
+    def apply(user: String, host: String, port: Int = 22): Conduit =
+      new Conduit(user, host, port)
   }
 
-  final class Conduit private(ssh_host: String, ssh_user: String, ssh_port: Int)
+  final class Conduit private(ssh_user: String, ssh_host: String, ssh_port: Int)
   {
     /* connection */
 
@@ -845,6 +845,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     private def ssh_port_suffix: String = if (ssh_port == 22) "" else ":" + ssh_port
 
     override def toString: String = ssh_user_prefix + ssh_host + ssh_port_suffix
+    def hg_url: String = "ssh://" + ssh_user_prefix + ssh_host + ssh_port_suffix
 
 
     /* execute methods */
@@ -926,13 +927,11 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
           }
           yield {
             val vcs = API.VCS.read(vcs_name)
-            val ssh_url0 =
-              "ssh://" + ssh_user_prefix + ssh_host + ssh_port_suffix +
-              (if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name)
+            val url_path = if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name
             val ssh_url =
               vcs match {
-                case API.VCS.hg => ssh_url0
-                case API.VCS.git => ssh_url0 + ".git"
+                case API.VCS.hg => hg_url + url_path
+                case API.VCS.git => hg_url + url_path + ".git"
                 case API.VCS.svn => ""
               }
             API.Repository(vcs, id, phid, name, callsign, short_name, importing, ssh_url)
