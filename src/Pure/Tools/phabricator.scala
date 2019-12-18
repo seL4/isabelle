@@ -874,36 +874,6 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     lazy val user_phid: String = execute("user.whoami").get_value(JSON.string(_, "phid"))
     lazy val user_name: String = execute("user.whoami").get_value(JSON.string(_, "userName"))
 
-    def create_repository(
-      name: String,
-      callsign: String = "",    // unique name, UPPERCASE
-      short_name: String = "",  // unique name
-      description: String = "",
-      public: Boolean = false,
-      vcs: API.VCS.Value = API.VCS.hg): String =
-    {
-      require(name.nonEmpty)
-
-      val transactions =
-        API.edits("vcs", vcs.toString) :::
-        API.edits("name", name) :::
-        API.opt_edits("callsign", proper_string(callsign)) :::
-        API.opt_edits("shortName", proper_string(short_name)) :::
-        API.opt_edits("description", proper_string(description)) :::
-        (if (public) Nil
-         else API.edits("view", user_phid) ::: API.edits("policy.push", user_phid)) :::
-        API.edits("status", "active")
-
-      val repo_phid =
-        execute("diffusion.repository.edit", params = JSON.Object("transactions" -> transactions))
-          .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
-
-      execute("diffusion.looksoon",
-        params = JSON.Object("repositories" -> List(repo_phid))).get
-
-      repo_phid
-    }
-
     def get_repositories(
       phid: String = "", callsign: String = "", short_name: String = ""): List[API.Repository] =
     {
@@ -936,6 +906,36 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
               }
             API.Repository(vcs, id, phid, name, callsign, short_name, importing, ssh_url)
           })))
+    }
+
+    def create_repository(
+      name: String,
+      callsign: String = "",    // unique name, UPPERCASE
+      short_name: String = "",  // unique name
+      description: String = "",
+      public: Boolean = false,
+      vcs: API.VCS.Value = API.VCS.hg): String =
+    {
+      require(name.nonEmpty)
+
+      val transactions =
+        API.edits("vcs", vcs.toString) :::
+        API.edits("name", name) :::
+        API.opt_edits("callsign", proper_string(callsign)) :::
+        API.opt_edits("shortName", proper_string(short_name)) :::
+        API.opt_edits("description", proper_string(description)) :::
+        (if (public) Nil
+         else API.edits("view", user_phid) ::: API.edits("policy.push", user_phid)) :::
+        API.edits("status", "active")
+
+      val repo_phid =
+        execute("diffusion.repository.edit", params = JSON.Object("transactions" -> transactions))
+          .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
+
+      execute("diffusion.looksoon",
+        params = JSON.Object("repositories" -> List(repo_phid))).get
+
+      repo_phid
     }
   }
 
