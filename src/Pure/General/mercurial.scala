@@ -79,7 +79,7 @@ object Mercurial
   {
     hg =>
 
-    val root = ssh.expand_path(root_path)
+    val root: Path = ssh.expand_path(root_path)
     def root_url: String = ssh.hg_url + root.implode
 
     override def toString: String = ssh.prefix + root.implode
@@ -178,4 +178,115 @@ object Mercurial
     check(files)
     (outside.toList, unknown.toList)
   }
+
+
+  /* setup remote vs. local repository */
+
+  val default_path_name = "default"
+
+  def hg_setup(
+    remote: String,
+    local_path: Path,
+    remote_name: String = "",
+    pull_source: String = "",
+    path_name: String = default_path_name,
+    progress: Progress = No_Progress)
+  {
+    /* local repository */
+
+    Isabelle_System.mkdirs(local_path)
+
+    val repos_name =
+      proper_string(remote_name) getOrElse local_path.absolute.base.implode
+
+    val local_hg =
+      if (is_repository(local_path)) repository(local_path)
+      else init_repository(local_path)
+
+    progress.echo("Local repository " + local_hg.root.absolute)
+
+
+    /* remote repository */
+
+    val remote_url =
+      remote match {
+        case _ if remote.startsWith("ssh://") =>
+          val ssh_url = remote + "/" + repos_name
+
+          try { local_hg.command("init", ssh_url, repository = false).check }
+          catch { case ERROR(msg) => progress.echo_warning(msg) }
+
+          ssh_url
+
+        case SSH.Target(user, host) =>
+          val phabricator = Phabricator.Conduit(user, host)
+
+          var repos =
+            phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse
+            phabricator.create_repository(repos_name, short_name = repos_name)
+
+          while (repos.importing) {
+            progress.echo("Awaiting remote repository ...")
+            Thread.sleep(500)
+            repos = phabricator.the_repository(repos.phid)
+          }
+
+          repos.ssh_url
+
+        case _ => error("Malformed remote specification " + quote(remote))
+      }
+
+    progress.echo("Remote repository " + quote(remote_url))
+
+
+    /* synchronize local and remote state */
+
+    progress.echo("Synchronizing ...")
+
+    if (pull_source.nonEmpty) local_hg.pull(remote = pull_source)
+
+    val hgrc = local_hg.root + Path.explode(".hg/hgrc")
+    File.append(hgrc, "\n[paths]\ndefault = " + remote_url + "\n")
+
+    local_hg.pull(options = "-u")
+
+    local_hg.push(remote = remote_url)
+  }
+
+  val isabelle_tool =
+    Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository", args =>
+    {
+      var pull_source = ""
+      var remote_name = ""
+      var path_name = default_path_name
+
+      val getopts = Getopts("""
+Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
+
+  Options are:
+    -P SOURCE    pull local repository from existing source
+    -n NAME      remote repository name (default: base name of LOCAL directory)
+    -p PATH      Mercurial path name (default: """ + quote(default_path_name) + """)
+
+  Setup a remote vs. local Mercurial repository: REMOTE either refers to a
+  Phabricator server "user@host" or SSH file server "ssh://user@host/path".
+  Both the remote and local repository are initialized on demand.
+""",
+        "P" -> (arg => pull_source = arg),
+        "n:" -> (arg => remote_name = arg),
+        "p:" -> (arg => path_name = arg))
+
+      val more_args = getopts(args)
+
+      val (remote, local_path) =
+        more_args match {
+          case List(arg1, arg2) => (arg1, Path.explode(arg2))
+          case _ => getopts.usage()
+        }
+
+      val progress = new Console_Progress
+
+      hg_setup(remote, local_path, remote_name = remote_name, pull_source = pull_source,
+        path_name = path_name, progress = progress)
+    })
 }
