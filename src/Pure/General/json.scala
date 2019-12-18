@@ -260,6 +260,16 @@ object JSON
         }
     }
 
+    object String0
+    {
+      def unapply(json: T): Option[java.lang.String] =
+        json match {
+          case null => Some("")
+          case x: java.lang.String => Some(x)
+          case _ => None
+        }
+    }
+
     object Double
     {
       def unapply(json: T): Option[scala.Double] =
@@ -360,6 +370,11 @@ object JSON
     value(obj, name, Value.String.unapply)
   def string_default(obj: T, name: String, default: => String = ""): Option[String] =
     value_default(obj, name, Value.String.unapply, default)
+
+  def string0(obj: T, name: String): Option[String] =
+    value(obj, name, Value.String0.unapply)
+  def string0_default(obj: T, name: String, default: => String = ""): Option[String] =
+    value_default(obj, name, Value.String0.unapply, default)
 
   def double(obj: T, name: String): Option[Double] =
     value(obj, name, Value.Double.unapply)
