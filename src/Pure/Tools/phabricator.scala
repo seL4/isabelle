@@ -894,24 +894,75 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
         API.edits("status", "active")
 
       val repo_phid =
-        execute("diffusion.repository.edit",
-          params = JSON.Object("transactions" -> transactions))
-        .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
+        execute("diffusion.repository.edit", params = JSON.Object("transactions" -> transactions))
+          .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
 
       execute("diffusion.looksoon",
         params = JSON.Object("repositories" -> List(repo_phid))).get
 
       repo_phid
     }
+
+    def get_repositories(
+      phid: String = "", callsign: String = "", short_name: String = ""): List[API.Repository] =
+    {
+      val constraints: JSON.Object.T =
+        (for {
+          (key, value) <- List("phids" -> phid, "callsigns" -> callsign, "shortNames" -> short_name)
+          if value.nonEmpty
+        } yield (key, List(value))).toMap
+
+      execute("diffusion.repository.search",
+          JSON.Object("queryKey" -> "active", "constraints" -> constraints))
+        .get_value(JSON.list(_, "data", data => JSON.value(data, "fields", fields =>
+          for {
+            vcs_name <- JSON.string(fields, "vcs")
+            id <- JSON.long(data, "id")
+            phid <- JSON.string(data, "phid")
+            name <- JSON.string(fields, "name")
+            callsign <- JSON.string0(fields, "callsign")
+            short_name <- JSON.string0(fields, "shortName")
+            importing <- JSON.bool(fields, "isImporting")
+          }
+          yield {
+            val vcs = API.VCS.read(vcs_name)
+            val ssh_url0 =
+              "ssh://" + ssh_user_prefix + ssh_host + ssh_port_suffix +
+              (if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name)
+            val ssh_url =
+              vcs match {
+                case API.VCS.hg => ssh_url0
+                case API.VCS.git => ssh_url0 + ".git"
+                case API.VCS.svn => ""
+              }
+            API.Repository(vcs, id, phid, name, callsign, short_name, importing, ssh_url)
+          })))
+    }
   }
 
   object API
   {
-    /* repository parameters */
+    /* repository information */
+
+    sealed case class Repository(
+      vcs: VCS.Value,
+      id: Long,
+      phid: String,
+      name: String,
+      callsign: String,
+      short_name: String,
+      importing: Boolean,
+      ssh_url: String)
+    {
+      def is_hg: Boolean = vcs == VCS.hg
+    }
 
     object VCS extends Enumeration
     {
       val hg, git, svn = Value
+      def read(s: String): Value =
+        try { withName(s) }
+        catch { case _: java.util.NoSuchElementException  => error("Unknown vcs type " + quote(s)) }
     }
 
     def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
