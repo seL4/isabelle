@@ -21,11 +21,11 @@ object SSH
 
   object Target
   {
-    val Pattern = "^([^@]+)@(.+)$".r
+    val User_Host = "^([^@]+)@(.+)$".r
 
     def parse(s: String): (String, String) =
       s match {
-        case Pattern(user, host) => (user, host)
+        case User_Host(user, host) => (user, host)
         case _ => ("", s)
       }
 
