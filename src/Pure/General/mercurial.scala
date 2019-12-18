@@ -194,7 +194,7 @@ object Mercurial
 
     def commit(lines: List[String]): Boolean =
     {
-      File.write(hgrc, cat_lines(lines))
+      File.write_backup(hgrc, cat_lines(lines))
       true
     }
     val edited =
