@@ -108,6 +108,9 @@ object Mercurial
 
     def id(rev: String = "tip"): String = identify(rev, options = "-i")
 
+    def paths(args: String = "", options: String = ""): List[String] =
+      hg.command("paths", args = args, options = options).check.out_lines
+
     def manifest(rev: String = "", options: String = ""): List[String] =
       hg.command("manifest", opt_rev(rev), options).check.out_lines
 
@@ -182,6 +185,41 @@ object Mercurial
 
   /* setup remote vs. local repository */
 
+  private def edit_hgrc(local_hg: Repository, path_name: String, source: String)
+  {
+    val hgrc = local_hg.root + Path.explode(".hg/hgrc")
+    def header(line: String): Boolean = line.startsWith("[paths]")
+    val Entry = """^(\S+)\s*=\s*(.*)$""".r
+    val new_entry = path_name + " = " + source
+
+    def commit(lines: List[String]): Boolean =
+    {
+      File.write(hgrc, cat_lines(lines))
+      true
+    }
+    val edited =
+      hgrc.is_file && {
+        val lines = split_lines(File.read(hgrc))
+        lines.filter(header).length == 1 && {
+          if (local_hg.paths(options = "-q").contains(path_name)) {
+            val old_source = local_hg.paths(args = path_name).head
+            val lines1 =
+              lines.map {
+                case Entry(a, b) if a == path_name && b == old_source => new_entry
+                case line => line
+              }
+            lines != lines1 && commit(lines1)
+          }
+          else {
+            val prefix = lines.takeWhile(line => !header(line))
+            val n = prefix.length
+            commit(prefix ::: List(lines(n), new_entry) ::: lines.drop(n + 1))
+          }
+        }
+      }
+    if (!edited) File.append(hgrc, "\n[paths]\n" + new_entry + "\n")
+  }
+
   val default_path_name = "default"
 
   def hg_setup(
@@ -245,8 +283,7 @@ object Mercurial
 
     if (pull_source.nonEmpty) local_hg.pull(remote = pull_source)
 
-    val hgrc = local_hg.root + Path.explode(".hg/hgrc")
-    File.append(hgrc, "\n[paths]\ndefault = " + remote_url + "\n")
+    edit_hgrc(local_hg, path_name, remote_url)
 
     local_hg.pull(options = "-u")
 
