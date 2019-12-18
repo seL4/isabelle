@@ -458,26 +458,10 @@ proof (induct xs arbitrary: i k rule: measure_induct_rule[where f=length])
   have IH: "\<lbrakk> j = i + 2 ^ k;  i < min (length ?zs) (2 ^ (k+1)) \<rbrakk> \<Longrightarrow>
     braun_list (?ts ! i) (take_nths j (Suc k) xs)" for i j
     using \<open>xs \<noteq> []\<close> by (simp add: take_nths_drop)
-  let ?xs' = "take_nths i k xs"
-  let ?ts' = "drop (2^k) ?ts"
   show ?case
-  proof (cases "i < length ?ts \<and> \<not> i < length ?ts'")
-    case True
-    have "braun_list (brauns k xs ! i) ?xs' \<longleftrightarrow>
-          braun_list (nodes ?ts (take (2^k) xs) ?ts' ! i) ?xs'"
-      using \<open>xs \<noteq> []\<close> by (simp add: brauns.simps[of k xs] Let_def)
-    also have "\<dots> \<longleftrightarrow> braun_list (?ts ! i) (take_nths (2^k + i) (k+1) xs)
-                    \<and> braun_list Leaf (take_nths (2^(k+1) + i) (k+1) xs)"
-      using less.prems True
-      by (clarsimp simp: nth_nodes take_nths_take_nths take_nths_empty hd_take_nths)
-    also have "\<dots>" using less.prems True by (auto simp: IH take_nths_empty length_brauns)
-    finally show ?thesis .
-  next
-    case False
-    thus ?thesis using less.prems
+    using less.prems
     by (auto simp: brauns.simps[of k xs] Let_def nth_nodes take_nths_take_nths
                    IH take_nths_empty hd_take_nths length_brauns)
-  qed
 qed
 
 corollary brauns1_correct:
