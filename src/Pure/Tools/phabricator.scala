@@ -914,7 +914,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       short_name: String = "",  // unique name
       description: String = "",
       public: Boolean = false,
-      vcs: API.VCS.Value = API.VCS.hg): String =
+      vcs: API.VCS.Value = API.VCS.hg): API.Repository =
     {
       require(name.nonEmpty)
 
@@ -928,14 +928,16 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
          else API.edits("view", user_phid) ::: API.edits("policy.push", user_phid)) :::
         API.edits("status", "active")
 
-      val repo_phid =
+      val phid =
         execute("diffusion.repository.edit", params = JSON.Object("transactions" -> transactions))
           .get_value(JSON.value(_, "object", JSON.string(_, "phid")))
 
-      execute("diffusion.looksoon",
-        params = JSON.Object("repositories" -> List(repo_phid))).get
+      execute("diffusion.looksoon", params = JSON.Object("repositories" -> List(phid))).get
 
-      repo_phid
+      get_repositories(phid = phid) match {
+        case List(repo) => repo
+        case _ => error("Failed to access new repository: " + quote(phid))
+      }
     }
   }
 
