@@ -829,13 +829,67 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   /** conduit API **/
 
-  object Conduit
+  object API
   {
-    def apply(user: String, host: String, port: Int = 22): Conduit =
-      new Conduit(user, host, port)
+    /* repository information */
+
+    sealed case class Repository(
+      vcs: VCS.Value,
+      id: Long,
+      phid: String,
+      name: String,
+      callsign: String,
+      short_name: String,
+      importing: Boolean,
+      ssh_url: String)
+    {
+      def is_hg: Boolean = vcs == VCS.hg
+    }
+
+    object VCS extends Enumeration
+    {
+      val hg, git, svn = Value
+      def read(s: String): Value =
+        try { withName(s) }
+        catch { case _: java.util.NoSuchElementException  => error("Unknown vcs type " + quote(s)) }
+    }
+
+    def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
+      List(JSON.Object("type" -> typ, "value" -> value))
+
+    def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
+      value.toList.flatMap(edits(typ, _))
+
+
+    /* result with optional error */
+
+    sealed case class Result(result: JSON.T, error: Option[String])
+    {
+      def ok: Boolean = error.isEmpty
+      def get: JSON.T = if (ok) result else Exn.error(error.get)
+
+      def get_value[A](unapply: JSON.T => Option[A]): A =
+        unapply(get) getOrElse Exn.error("Bad JSON result: " + JSON.Format(result))
+
+      def get_string: String = get_value(JSON.Value.String.unapply)
+    }
+
+    def make_result(json: JSON.T): Result =
+    {
+      val result = JSON.value(json, "result").getOrElse(JSON.Object.empty)
+      val error_info = JSON.string(json, "error_info")
+      val error_code = JSON.string(json, "error_code")
+      Result(result, error_info orElse error_code)
+    }
+
+
+    /* context for operations */
+
+    def apply(user: String, host: String, port: Int = 22): API =
+      new API(user, host, port)
   }
 
-  final class Conduit private(ssh_user: String, ssh_host: String, ssh_port: Int)
+  final class API private(ssh_user: String, ssh_host: String, ssh_port: Int)
   {
     /* connection */
 
@@ -911,7 +965,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     def the_repository(phid: String): API.Repository =
       get_repositories(phid = phid) match {
         case List(repo) => repo
-        case _ => error("Bad repository " + quote(phid))
+        case _ => error("Bad repository PHID " + quote(phid))
       }
 
     def create_repository(
@@ -941,60 +995,6 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       execute("diffusion.looksoon", params = JSON.Object("repositories" -> List(phid))).get
 
       the_repository(phid)
-    }
-  }
-
-  object API
-  {
-    /* repository information */
-
-    sealed case class Repository(
-      vcs: VCS.Value,
-      id: Long,
-      phid: String,
-      name: String,
-      callsign: String,
-      short_name: String,
-      importing: Boolean,
-      ssh_url: String)
-    {
-      def is_hg: Boolean = vcs == VCS.hg
-    }
-
-    object VCS extends Enumeration
-    {
-      val hg, git, svn = Value
-      def read(s: String): Value =
-        try { withName(s) }
-        catch { case _: java.util.NoSuchElementException  => error("Unknown vcs type " + quote(s)) }
-    }
-
-    def edits(typ: String, value: JSON.T): List[JSON.Object.T] =
-      List(JSON.Object("type" -> typ, "value" -> value))
-
-    def opt_edits(typ: String, value: Option[JSON.T]): List[JSON.Object.T] =
-      value.toList.flatMap(edits(typ, _))
-
-
-    /* result with optional error */
-
-    sealed case class Result(result: JSON.T, error: Option[String])
-    {
-      def ok: Boolean = error.isEmpty
-      def get: JSON.T = if (ok) result else Exn.error(error.get)
-
-      def get_value[A](unapply: JSON.T => Option[A]): A =
-        unapply(get) getOrElse Exn.error("Bad JSON result: " + JSON.Format(result))
-
-      def get_string: String = get_value(JSON.Value.String.unapply)
-    }
-
-    def make_result(json: JSON.T): Result =
-    {
-      val result = JSON.value(json, "result").getOrElse(JSON.Object.empty)
-      val error_info = JSON.string(json, "error_info")
-      val error_code = JSON.string(json, "error_code")
-      Result(result, error_info orElse error_code)
     }
   }
 }

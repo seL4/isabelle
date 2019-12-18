@@ -257,7 +257,7 @@ object Mercurial
           ssh_url
 
         case SSH.Target(user, host) =>
-          val phabricator = Phabricator.Conduit(user, host)
+          val phabricator = Phabricator.API(user, host)
 
           var repos =
             phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse
