@@ -429,10 +429,10 @@ fun new_fixed ((x, x'), pos) ctxt =
       |> declare_constraints (Syntax.free x')
   end;
 
-fun new_fixes names' xs xs' ps =
+fun new_fixes names' args =
   map_names (K names') #>
-  fold new_fixed ((xs ~~ xs') ~~ ps) #>
-  pair xs';
+  fold new_fixed args #>
+  pair (map (#2 o #1) args);
 
 in
 
@@ -452,13 +452,14 @@ fun add_fixes_binding bs ctxt =
     val (xs', names') =
       if is_body ctxt then fold_map Name.variant xs names |>> map Name.skolem
       else (xs, fold Name.declare xs names);
-  in ctxt |> new_fixes names' xs xs' (map Binding.pos_of bs) end;
+  in ctxt |> new_fixes names' ((xs ~~ xs') ~~ map Binding.pos_of bs) end;
 
 fun bound_fixes xs ctxt =
   let
     val (xs', ctxt') = fold_map next_bound xs ctxt;
+    val names' = names_of ctxt';
     val no_ps = replicate (length xs) Position.none;
-  in ctxt' |> new_fixes (names_of ctxt') (map #1 xs) (map (#1 o dest_Free) xs') no_ps end;
+  in ctxt' |> new_fixes names' ((map #1 xs ~~ map (#1 o dest_Free) xs') ~~ no_ps) end;
 
 fun variant_fixes raw_xs ctxt =
   let
@@ -466,7 +467,7 @@ fun variant_fixes raw_xs ctxt =
     val xs = map (fn x => Name.clean x |> Name.is_internal x ? Name.internal) raw_xs;
     val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
     val no_ps = replicate (length xs) Position.none;
-  in ctxt |> new_fixes names' xs xs' no_ps end;
+  in ctxt |> new_fixes names' ((xs ~~ xs') ~~ no_ps) end;
 
 end;
 
