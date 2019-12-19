@@ -226,7 +226,6 @@ object Mercurial
     remote: String,
     local_path: Path,
     remote_name: String = "",
-    pull_source: String = "",
     path_name: String = default_path_name,
     progress: Progress = No_Progress)
   {
@@ -281,8 +280,6 @@ object Mercurial
 
     progress.echo("Synchronizing ...")
 
-    if (pull_source.nonEmpty) local_hg.pull(remote = pull_source)
-
     edit_hgrc(local_hg, path_name, remote_url)
 
     local_hg.pull(options = "-u")
@@ -293,7 +290,6 @@ object Mercurial
   val isabelle_tool =
     Isabelle_Tool("hg_setup", "setup remote vs. local Mercurial repository", args =>
     {
-      var pull_source = ""
       var remote_name = ""
       var path_name = default_path_name
 
@@ -301,7 +297,6 @@ object Mercurial
 Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
 
   Options are:
-    -P SOURCE    pull local repository from existing source
     -n NAME      remote repository name (default: base name of LOCAL directory)
     -p PATH      Mercurial path name (default: """ + quote(default_path_name) + """)
 
@@ -309,7 +304,6 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
   Phabricator server "user@host" or SSH file server "ssh://user@host/path".
   Both the remote and local repository are initialized on demand.
 """,
-        "P" -> (arg => pull_source = arg),
         "n:" -> (arg => remote_name = arg),
         "p:" -> (arg => path_name = arg))
 
@@ -323,7 +317,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
 
       val progress = new Console_Progress
 
-      hg_setup(remote, local_path, remote_name = remote_name, pull_source = pull_source,
-        path_name = path_name, progress = progress)
+      hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
+        progress = progress)
     })
 }
