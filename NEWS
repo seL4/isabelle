@@ -118,6 +118,10 @@ Github and/or Bitbucket. For further documentation, see chapter
 "Phabricator server administration" in the "system" manual. A notable
 example installation is https://isabelle-dev.sketis.net/.
 
+* The command-line tool "isabelle hg_setup" simplifies the setup of
+Mercurial repositories, with hosting via Phabricator or SSH file server
+access.
+
 * The command-line tool "isabelle imports" has been discontinued: strict
 checking of session directories enforces session-qualified theory names
 in applications -- users are responsible to specify session ROOT entries

@@ -153,8 +153,8 @@ section \<open>Mercurial repository setup \label{sec:hg-setup}\<close>
 
 text \<open>
   The @{tool_def hg_setup} tool simplifies the setup of Mercurial
-  repositories, with hosting via Phabricator (\chref{ch:phabricator}) or plain
-  SSH file-system access.
+  repositories, with hosting via Phabricator (\chref{ch:phabricator}) or SSH
+  file server access.
 
   @{verbatim [display]
 \<open>Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
