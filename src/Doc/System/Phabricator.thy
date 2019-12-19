@@ -183,8 +183,9 @@ text \<open>
 subsection \<open>SSH configuration\<close>
 
 text \<open>
-  SSH configuration is optional, but important to access hosted repositories
-  with public-key authentication.
+  SSH configuration is important to access hosted repositories with public-key
+  authentication. It is done by a separate tool, because it affects the
+  operating-system and all installations of Phabricator simultaneously.
 
   The subsequent configuration is convenient (and ambitious): it takes away
   the standard port 22 from the operating system and assigns it to
