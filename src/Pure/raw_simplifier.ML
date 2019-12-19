@@ -1350,6 +1350,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
 
     val ctxt =
       raw_ctxt
+      |> Variable.set_body true
       |> Context_Position.set_visible false
       |> inc_simp_depth
       |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = Thm.term_of ct} ctxt);
