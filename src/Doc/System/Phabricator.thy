@@ -4,7 +4,7 @@ theory Phabricator
 imports Base
 begin
 
-chapter \<open>Phabricator server administration\<close>
+chapter \<open>Phabricator server setup \label{ch:phabricator}\<close>
 
 text \<open>
   Phabricator\<^footnote>\<open>\<^url>\<open>https://www.phacility.com/phabricator\<close>\<close> is an open-source
@@ -47,6 +47,14 @@ text \<open>
   afterwards Isabelle support is optional: it is possible to run and maintain
   the server, without requiring the somewhat bulky Isabelle distribution
   again.
+
+  \<^medskip>
+  Assuming an existing Phabricator installation, the command-line tool @{tool
+  hg_setup} (\secref{sec:hg-setup}) helps to create new repositories or to
+  migrate old ones. In particular, this avoids the lengthy sequence of clicks
+  in Phabricator to make a new private repository with hosting on the server.
+  (Phabricator is a software project management platform, where initial
+  repository setup happens rarely in practice.)
 \<close>
 
 

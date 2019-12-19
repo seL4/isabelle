@@ -305,10 +305,10 @@ object Mercurial
       var remote_exists = false
 
       val getopts = Getopts("""
-Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
+Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
 
   Options are:
-    -n NAME      remote repository name (default: base name of LOCAL directory)
+    -n NAME      remote repository name (default: base name of LOCAL_DIR)
     -p PATH      Mercurial path name (default: """ + quote(default_path_name) + """)
     -r           assume that remote repository already exists
 

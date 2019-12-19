@@ -149,6 +149,38 @@ text \<open>
 \<close>
 
 
+section \<open>Mercurial repository setup \label{sec:hg-setup}\<close>
+
+text \<open>
+  The @{tool_def hg_setup} tool simplifies the setup of Mercurial
+  repositories, with hosting via Phabricator (\chref{ch:phabricator}) or plain
+  SSH file-system access.
+
+  @{verbatim [display]
+\<open>Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
+
+  Options are:
+    -n NAME      remote repository name (default: base name of LOCAL_DIR)
+    -p PATH      Mercurial path name (default: "default")
+    -r           assume that remote repository already exists
+
+  Setup a remote vs. local Mercurial repository: REMOTE either refers to a
+  Phabricator server "user@host" or SSH file server "ssh://user@host/path".\<close>}
+
+  The \<^verbatim>\<open>REMOTE\<close> repository specification \<^emph>\<open>excludes\<close> the actual repository
+  name: that is given by the base name of \<^verbatim>\<open>LOCAL_DIR\<close>, or via option \<^verbatim>\<open>-n\<close>.
+
+  By default, both sides of the repository are created on demand by default.
+  In contrast, option \<^verbatim>\<open>-r\<close> assumes that the remote repository already exists:
+  it avoids accidental creation of a persistent repository with unintended
+  name.
+
+  The local \<^verbatim>\<open>.hg/hgrc\<close> file is changed to refer to the remote repository,
+  usually via the symbolic path name ``\<^verbatim>\<open>default\<close>''; option \<^verbatim>\<open>-p\<close> allows to
+  provided a different name.
+\<close>
+
+
 section \<open>Installing standalone Isabelle executables \label{sec:tool-install}\<close>
 
 text \<open>
