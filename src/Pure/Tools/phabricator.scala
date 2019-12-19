@@ -243,7 +243,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
 
     if (mercurial_source.nonEmpty) {
       for { name <- List("mercurial", "mercurial-common") if Linux.package_installed(name) } {
-        error("Cannot install Mercurial from source:" +
+        error("Cannot install Mercurial from source:\n" +
           "package package " + quote(name) + " already installed")
       }
       mercurial_setup(mercurial_source, progress = progress)
