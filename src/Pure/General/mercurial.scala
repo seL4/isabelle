@@ -229,6 +229,7 @@ object Mercurial
     local_path: Path,
     remote_name: String = "",
     path_name: String = default_path_name,
+    remote_exists: Boolean = false,
     progress: Progress = No_Progress)
   {
     /* local repository */
@@ -252,8 +253,10 @@ object Mercurial
         case _ if remote.startsWith("ssh://") =>
           val ssh_url = remote + "/" + repos_name
 
-          try { local_hg.command("init", ssh_url, repository = false).check }
-          catch { case ERROR(msg) => progress.echo_warning(msg) }
+          if (!remote_exists) {
+            try { local_hg.command("init", ssh_url, repository = false).check }
+            catch { case ERROR(msg) => progress.echo_warning(msg) }
+          }
 
           ssh_url
 
@@ -261,8 +264,13 @@ object Mercurial
           val phabricator = Phabricator.API(user, host)
 
           var repos =
-            phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse
-            phabricator.create_repository(repos_name, short_name = repos_name)
+            phabricator.get_repositories().find(r => r.short_name == repos_name) getOrElse {
+              if (remote_exists) {
+                error("Remote repository " +
+                  quote(phabricator.hg_url + "/source/" + repos_name) + " expected to exist")
+              }
+              else phabricator.create_repository(repos_name, short_name = repos_name)
+            }
 
           while (repos.importing) {
             progress.echo("Awaiting remote repository ...")
@@ -294,6 +302,7 @@ object Mercurial
     {
       var remote_name = ""
       var path_name = default_path_name
+      var remote_exists = false
 
       val getopts = Getopts("""
 Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
@@ -301,13 +310,14 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
   Options are:
     -n NAME      remote repository name (default: base name of LOCAL directory)
     -p PATH      Mercurial path name (default: """ + quote(default_path_name) + """)
+    -r           assume that remote repository already exists
 
   Setup a remote vs. local Mercurial repository: REMOTE either refers to a
   Phabricator server "user@host" or SSH file server "ssh://user@host/path".
-  Both the remote and local repository are initialized on demand.
 """,
         "n:" -> (arg => remote_name = arg),
-        "p:" -> (arg => path_name = arg))
+        "p:" -> (arg => path_name = arg),
+        "r" -> (_ => remote_exists = true))
 
       val more_args = getopts(args)
 
@@ -320,6 +330,6 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL
       val progress = new Console_Progress
 
       hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
-        progress = progress)
+        remote_exists = remote_exists, progress = progress)
     })
 }
