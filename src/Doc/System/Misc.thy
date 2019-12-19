@@ -180,6 +180,21 @@ text \<open>
   provided a different name.
 \<close>
 
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Setup the current directory as a repository with Phabricator server hosting:
+  @{verbatim [display] \<open>  isabelle hg_setup vcs@vcs.example.org .\<close>}
+
+  \<^medskip>
+  Setup the current directory as a repository with plain SSH server hosting:
+  @{verbatim [display] \<open>  isabelle hg_setup ssh://files.example.org/data/repositories .\<close>}
+
+  \<^medskip>
+  Both variants require SSH access to the target server, via public key
+  without password.
+\<close>
+
 
 section \<open>Installing standalone Isabelle executables \label{sec:tool-install}\<close>
 
