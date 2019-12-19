@@ -194,7 +194,7 @@ object Mercurial
 
     def commit(lines: List[String]): Boolean =
     {
-      File.write_backup(hgrc, cat_lines(lines))
+      File.write(hgrc, cat_lines(lines))
       true
     }
     val edited =
@@ -203,9 +203,11 @@ object Mercurial
         lines.filter(header).length == 1 && {
           if (local_hg.paths(options = "-q").contains(path_name)) {
             val old_source = local_hg.paths(args = path_name).head
+            val old_entry = path_name + ".old = " + old_source
             val lines1 =
               lines.map {
-                case Entry(a, b) if a == path_name && b == old_source => new_entry
+                case Entry(a, b) if a == path_name && b == old_source =>
+                  new_entry + "\n" + old_entry
                 case line => line
               }
             lines != lines1 && commit(lines1)
