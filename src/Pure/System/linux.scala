@@ -71,7 +71,11 @@ object Linux
     progress.bash("apt-get install -y -- " + Bash.strings(packages), echo = true).check
 
   def package_installed(name: String): Boolean =
-    Isabelle_System.bash("dpkg-query -s " + Bash.string(name)).ok
+  {
+    val result = Isabelle_System.bash("dpkg-query -s " + Bash.string(name))
+    val pattern = """^Status:.*installed.*$""".r.pattern
+    result.ok && result.out_lines.exists(line => pattern.matcher(line).matches)
+  }
 
 
   /* users */
