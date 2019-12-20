@@ -383,8 +383,9 @@ local_infile = 0
     command_setup(dump_name, body =
 """mkdir -p "$ROOT/database" && chown root:root "$ROOT/database" && chmod 700 "$ROOT/database"
 [ -e "$ROOT/database/dump.sql.gz" ] && mv -f "$ROOT/database/dump.sql.gz" "$ROOT/database/dump-old.sql.gz"
-echo "Creating $ROOT/database/dump.sql.gz"
-"$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure' """)
+echo -n "Creating $ROOT/database/dump.sql.gz ..."
+"$ROOT/phabricator/bin/storage" dump --compress --output "$ROOT/database/dump.sql.gz" 2>&1 | fgrep -v '[Warning] Using a password on the command line interface can be insecure'
+echo " $(ls -hs "$ROOT/database/dump.sql.gz" | cut -d" " -f1)" """)
 
 
     /* Phabricator upgrade */
@@ -471,7 +472,7 @@ systemctl start isabelle-phabricator-phd""")
 
     Linux.service_restart("apache2")
 
-    progress.echo("\nWeb configuration via " + server_url)
+    progress.echo("\nFurther manual configuration via " + server_url)
 
 
     /* PHP daemon */
