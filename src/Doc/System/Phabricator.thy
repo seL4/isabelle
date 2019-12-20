@@ -267,11 +267,13 @@ text \<open>
     \<^enum> Multiple \<^emph>\<open>MySQL databases\<close> with a common prefix derived from the
     installation name --- the same name is used as database user name.
 
-  The root user may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close>
-  to create a complete database dump within the root directory. Afterwards it
-  is sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
+  The root user may invoke \<^verbatim>\<open>/usr/local/bin/isabelle-phabricator-dump\<close> to
+  create a complete database dump within the root directory. Afterwards it is
+  sufficient to make a conventional \<^bold>\<open>file-system backup\<close> of everything. To
   restore the database state, see the explanations on \<^verbatim>\<open>mysqldump\<close> in
-  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/configuring_backups\<close>.
+  \<^url>\<open>https://secure.phabricator.com/book/phabricator/article/configuring_backups\<close>;
+  some background information is in
+  \<^url>\<open>https://secure.phabricator.com/book/phabflavor/article/so_many_databases\<close>.
 
   \<^medskip> The following command-line tools are particularly interesting for advanced
   database maintenance (within the Phabricator root directory):
