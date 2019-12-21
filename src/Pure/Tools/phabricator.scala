@@ -833,6 +833,24 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
   object API
   {
+    /* user information */
+
+    sealed case class User(
+      id: Long,
+      phid: String,
+      name: String,
+      real_name: String,
+      roles: List[String])
+    {
+      def is_valid: Boolean =
+        roles.contains("verified") &&
+        roles.contains("approved") &&
+        roles.contains("activated")
+      def is_admin: Boolean = roles.contains("admin")
+      def is_regular: Boolean = !(roles.contains("bot") || roles.contains("list"))
+    }
+
+
     /* repository information */
 
     sealed case class Repository(
@@ -938,13 +956,43 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
       results.toList
     }
 
-
-    /* concrete methods */
-
     def ping(): String = execute("conduit.ping").get_string
+
+
+    /* users */
 
     lazy val user_phid: String = execute("user.whoami").get_value(JSON.string(_, "phid"))
     lazy val user_name: String = execute("user.whoami").get_value(JSON.string(_, "userName"))
+
+    def get_users(
+      all: Boolean = false,
+      phid: String = "",
+      name: String = ""): List[API.User] =
+    {
+      val constraints: JSON.Object.T =
+        (for { (key, value) <- List("phids" -> phid, "usernames" -> name) if value.nonEmpty }
+          yield (key, List(value))).toMap
+
+      execute_search("user.search",
+          JSON.Object("queryKey" -> (if (all) "all" else "active"), "constraints" -> constraints),
+            data => JSON.value(data, "fields", fields =>
+              for {
+                id <- JSON.long(data, "id")
+                phid <- JSON.string(data, "phid")
+                name <- JSON.string(fields, "username")
+                real_name <- JSON.string0(fields, "realName")
+                roles <- JSON.strings(fields, "roles")
+              } yield API.User(id, phid, name, real_name, roles)))
+    }
+
+    def the_user(phid: String): API.User =
+      get_users(phid = phid) match {
+        case List(user) => user
+        case _ => error("Bad user PHID " + quote(phid))
+      }
+
+
+    /* repositories */
 
     def get_repositories(
       all: Boolean = false,
