@@ -11,6 +11,7 @@ See also:
 package isabelle
 
 
+import scala.collection.mutable
 import scala.util.matching.Regex
 
 
@@ -921,6 +922,22 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     def execute(method: String, params: JSON.T = JSON.Object.empty): API.Result =
       API.make_result(execute_raw(method, params = params))
 
+    def execute_search[A](
+      method: String, params: JSON.Object.T, unapply: JSON.T => Option[A]): List[A] =
+    {
+      val results = new mutable.ListBuffer[A]
+      var after = ""
+
+      do {
+        val result =
+          execute(method, params = params ++ JSON.optional("after" -> proper_string(after)))
+        results ++= result.get_value(JSON.list(_, "data", unapply))
+        after = result.get_value(JSON.value(_, "cursor", JSON.string0(_, "after")))
+      } while (after.nonEmpty)
+
+      results.toList
+    }
+
 
     /* concrete methods */
 
@@ -938,29 +955,30 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
           if value.nonEmpty
         } yield (key, List(value))).toMap
 
-      execute("diffusion.repository.search",
-          JSON.Object("queryKey" -> "active", "constraints" -> constraints))
-        .get_value(JSON.list(_, "data", data => JSON.value(data, "fields", fields =>
-          for {
-            vcs_name <- JSON.string(fields, "vcs")
-            id <- JSON.long(data, "id")
-            phid <- JSON.string(data, "phid")
-            name <- JSON.string(fields, "name")
-            callsign <- JSON.string0(fields, "callsign")
-            short_name <- JSON.string0(fields, "shortName")
-            importing <- JSON.bool(fields, "isImporting")
-          }
-          yield {
-            val vcs = API.VCS.read(vcs_name)
-            val url_path = if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name
-            val ssh_url =
-              vcs match {
-                case API.VCS.hg => hg_url + url_path
-                case API.VCS.git => hg_url + url_path + ".git"
-                case API.VCS.svn => ""
+      execute_search("diffusion.repository.search",
+          JSON.Object("queryKey" -> "active", "constraints" -> constraints),
+            data => JSON.value(data, "fields", fields =>
+              for {
+                vcs_name <- JSON.string(fields, "vcs")
+                id <- JSON.long(data, "id")
+                phid <- JSON.string(data, "phid")
+                name <- JSON.string(fields, "name")
+                callsign <- JSON.string0(fields, "callsign")
+                short_name <- JSON.string0(fields, "shortName")
+                importing <- JSON.bool(fields, "isImporting")
               }
-            API.Repository(vcs, id, phid, name, callsign, short_name, importing, ssh_url)
-          })))
+              yield {
+                val vcs = API.VCS.read(vcs_name)
+                val url_path =
+                  if (short_name.isEmpty) "/diffusion/" + id else "/source/" + short_name
+                val ssh_url =
+                  vcs match {
+                    case API.VCS.hg => hg_url + url_path
+                    case API.VCS.git => hg_url + url_path + ".git"
+                    case API.VCS.svn => ""
+                  }
+                API.Repository(vcs, id, phid, name, callsign, short_name, importing, ssh_url)
+              }))
     }
 
     def the_repository(phid: String): API.Repository =
