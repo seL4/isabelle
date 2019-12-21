@@ -947,7 +947,10 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
     lazy val user_name: String = execute("user.whoami").get_value(JSON.string(_, "userName"))
 
     def get_repositories(
-      phid: String = "", callsign: String = "", short_name: String = ""): List[API.Repository] =
+      all: Boolean = false,
+      phid: String = "",
+      callsign: String = "",
+      short_name: String = ""): List[API.Repository] =
     {
       val constraints: JSON.Object.T =
         (for {
@@ -956,7 +959,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
         } yield (key, List(value))).toMap
 
       execute_search("diffusion.repository.search",
-          JSON.Object("queryKey" -> "active", "constraints" -> constraints),
+          JSON.Object("queryKey" -> (if (all) "all" else "active"), "constraints" -> constraints),
             data => JSON.value(data, "fields", fields =>
               for {
                 vcs_name <- JSON.string(fields, "vcs")
