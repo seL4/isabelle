@@ -1,28 +1,11 @@
 Phabricator server
 ==================
 
-- Apache HTTPS via "Let's Encrypt":
-  https://letsencrypt.org/getting-started
-  https://certbot.eff.org/lets-encrypt/ubuntubionic-apache.html
-
 - Configuration / Authentication:
   https://secure.phabricator.com/book/phabricator/article/configuring_accounts_and_registration
 
   . auth.require-email-verification true
 
-  . policy.allow-public true
-
-- Update:
-  https://secure.phabricator.com/book/phabricator/article/upgrading
-
-  sudo ./update
-
 - Documentation:
   /var/www/phabricator-vcs/libphutil/scripts/build_xhpast.php
   ./bin/diviner generate  #slow
-
-- Backup:
-  https://secure.phabricator.com/book/phabricator/article/configuring_backups
-
-  $ apt install automysqlbackup
-  edit /etc/default/automysqlbackup: BACKUPDIR
