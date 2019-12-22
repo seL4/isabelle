@@ -3,5 +3,5 @@ Isabelle/JVM application bundle for Mac OS X
 
 * http://java.net/projects/appbundler
 
-  see appbundler-1.0.jar
-  see com/oracle/appbundler/JavaAppLauncher
+  - see appbundler-1.0.jar
+  - see com/oracle/appbundler/JavaAppLauncher
