@@ -1,77 +1,84 @@
-                       The Isabelle System Distribution
+The Isabelle System Distribution
+================================
 
 Version information
+-------------------
 
-   This is some repository version of Isabelle.
+This is some repository version of Isabelle.
 
-   See the NEWS file in the distribution for details on user-relevant
-   changes.
+See the NEWS file in the distribution for details on user-relevant
+changes.
+
 
 Installation
+------------
 
-   Isabelle works on the three main platform families: Linux, Windows,
-   and macOS.  The application bundles from the Isabelle web page
-   include sources, documentation, and add-on tools for all supported
-   platforms.
+Isabelle works on the three main platform families: Linux, Windows,
+and macOS.  The application bundles from the Isabelle web page
+include sources, documentation, and add-on tools for all supported
+platforms.
 
-   Some technical background information may be found in the Isabelle
-   System Manual (directory doc).
+Some technical background information may be found in the Isabelle
+System Manual (directory doc).
+
 
 User interface
+--------------
 
-   Isabelle/jEdit is an advanced Prover IDE based on jEdit and
-   Isabelle/Scala.  It is the main example application of the
-   Isabelle/PIDE framework, and the default user interface of
-   Isabelle.  It provides a metaphor of continuous proof checking of a
-   versioned collection of theory sources, with instantaneous feedback
-   in real-time and rich semantic markup associated with the formal
-   text.
+Isabelle/jEdit is an advanced Prover IDE based on jEdit and
+Isabelle/Scala.  It is the main example application of the
+Isabelle/PIDE framework, and the default user interface of
+Isabelle.  It provides a metaphor of continuous proof checking of a
+versioned collection of theory sources, with instantaneous feedback
+in real-time and rich semantic markup associated with the formal
+text.
+
 
 Other sources of information
+----------------------------
 
-  The Isabelle Page
+  * The Isabelle Page
 
-   The Isabelle home page may be accessed from the following mirror
-   sites:
+    The Isabelle home page may be accessed from the following mirror
+    sites:
 
      * https://www.cl.cam.ac.uk/research/hvg/Isabelle
      * https://isabelle.in.tum.de
      * https://mirror.cse.unsw.edu.au/pub/isabelle
      * https://mirror.clarkson.edu/isabelle
 
-  Mailing list
+  * Mailing list
 
-   The electronic mailing list isabelle-users@cl.cam.ac.uk provides a
-   forum for Isabelle users to discuss problems and exchange
-   information.  To join, send a message to
-   isabelle-users-request@cl.cam.ac.uk.
+    The electronic mailing list isabelle-users@cl.cam.ac.uk provides a
+    forum for Isabelle users to discuss problems and exchange
+    information.  To join, send a message to
+    isabelle-users-request@cl.cam.ac.uk.
 
-  Personal mail
+  * Personal mail
 
-   Lawrence C Paulson
-   Computer Laboratory
-   University of Cambridge
-   JJ Thomson Avenue
-   Cambridge CB3 0FD
-   England
-   E-mail: lcp@cl.cam.ac.uk
-   Phone: +44-223-763500
-   Fax: +44-223-334748
+    Lawrence C Paulson
+    Computer Laboratory
+    University of Cambridge
+    JJ Thomson Avenue
+    Cambridge CB3 0FD
+    England
+    E-mail: lcp@cl.cam.ac.uk
+    Phone: +44-223-763500
+    Fax: +44-223-334748
 
-   or
+    or
 
-   Tobias Nipkow
-   Institut fuer Informatik
-   Technische Universitaet Muenchen
-   Boltzmannstr. 3
-   D-85748 Garching
-   Germany
-   E-mail: nipkow@in.tum.de
-   Phone: +49-89-289-17302
-   Fax: +49-89-289-17307
-     _________________________________________________________________
+    Tobias Nipkow
+    Institut fuer Informatik
+    Technische Universitaet Muenchen
+    Boltzmannstr. 3
+    D-85748 Garching
+    Germany
+    E-mail: nipkow@in.tum.de
+    Phone: +49-89-289-17302
+    Fax: +49-89-289-17307
 
-   Please report any problems you encounter. While we shall try to be
-   helpful, we can accept no responsibility for the deficiencies of
-   Isabelle and their consequences.
-     _________________________________________________________________
+NOTE:
+    Please report any problems you encounter. While we shall try to be
+    helpful, we can accept no responsibility for the deficiencies of
+    Isabelle and their consequences.
