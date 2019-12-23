@@ -12,39 +12,25 @@ ISABELLE_WINDOWS_PLATFORM64=""
 case $(uname -s) in
   Linux)
     ISABELLE_PLATFORM_FAMILY="linux"
-    case $(uname -m) in
-      i?86)
-        ISABELLE_PLATFORM32=x86-linux
-        ;;
-      x86_64)
-        ISABELLE_PLATFORM32=x86-linux
-        ISABELLE_PLATFORM64=x86_64-linux
-        ;;
-    esac
+    ISABELLE_PLATFORM32=x86-linux
+    ISABELLE_PLATFORM64=x86_64-linux
     ;;
   Darwin)
     ISABELLE_PLATFORM_FAMILY="macos"
-    case $(uname -m) in
-      i?86)
+    case $(sw_vers -productVersion) in
+      10.10*|10.11*|10.12*|10.13*|10.14*)
         ISABELLE_PLATFORM32=x86-darwin
-        if [ "$(sysctl -n hw.optional.x86_64 2>/dev/null)" = 1 ]; then
-          ISABELLE_PLATFORM64=x86_64-darwin
-        fi
+        ISABELLE_PLATFORM64=x86_64-darwin
         ;;
-      x86_64)
-        ISABELLE_PLATFORM32=x86-darwin
+      *)
         ISABELLE_PLATFORM64=x86_64-darwin
         ;;
     esac
     ;;
   CYGWIN_NT*)
     ISABELLE_PLATFORM_FAMILY="windows"
-    if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" -o "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
-      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-      ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
-    else
-      ISABELLE_WINDOWS_PLATFORM32="x86-windows"
-    fi
+    ISABELLE_WINDOWS_PLATFORM32="x86-windows"
+    ISABELLE_WINDOWS_PLATFORM64="x86_64-windows"
     case $(uname -m) in
       x86_64)
         ISABELLE_PLATFORM64=x86_64-cygwin
@@ -55,6 +41,3 @@ case $(uname -s) in
     esac
     ;;
 esac
-
-ISABELLE_PLATFORM="${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"
-ISABELLE_WINDOWS_PLATFORM="${ISABELLE_WINDOWS_PLATFORM32:-$ISABELLE_WINDOWS_PLATFORM64}"

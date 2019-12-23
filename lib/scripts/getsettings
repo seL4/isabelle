@@ -60,7 +60,7 @@ PATH="$ISABELLE_HOME/bin:$PATH"
 
 #platform
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
-if [ -z "$ISABELLE_PLATFORM" ]; then
+if [ -z "$ISABELLE_PLATFORM32" -a -z "$ISABELLE_PLATFORM64" ]; then
   echo 1>&2 "Failed to determine hardware and operating system type!"
   exit 2
 fi
