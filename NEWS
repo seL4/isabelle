@@ -110,6 +110,9 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
+* Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
+have been discontinued -- deprecated since Isabelle2018.
+
 * The command-line tool "isabelle phabricator_setup" facilitates
 self-hosting of the Phabricator software-development platform, with
 support for Git, Mercurial, Subversion repositories. This helps to avoid
