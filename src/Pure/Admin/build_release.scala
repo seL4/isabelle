@@ -509,7 +509,8 @@ rm -rf "${DIST_NAME}-old"
             File.write(isabelle_target + Path.explode(isabelle_name + ".options"),
               terminate_lines(java_options_title :: java_options))
 
-            val isabelle_run = isabelle_target + Path.explode(isabelle_name + ".run")
+            val isabelle_run =
+              isabelle_target + Path.explode("lib/scripts/" + isabelle_name + ".run")
             File.write(isabelle_run,
               File.read(Path.explode("~~/Admin/Linux/Isabelle.run"))
                 .replaceAllLiterally("{CLASSPATH}",
