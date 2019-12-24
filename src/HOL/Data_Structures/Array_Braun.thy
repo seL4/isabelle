@@ -272,7 +272,7 @@ subsection "Faster"
 subsubsection \<open>Size\<close>
 
 fun diff :: "'a tree \<Rightarrow> nat \<Rightarrow> nat" where
-"diff Leaf 0 = 0" |
+"diff Leaf _ = 0" |
 "diff (Node l x r) n = (if n=0 then 1 else if even n then diff r (n div 2 - 1) else diff l (n div 2))"
 
 fun size_fast :: "'a tree \<Rightarrow> nat" where
