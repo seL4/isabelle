@@ -291,7 +291,7 @@ lemma neq_Black[simp]: "(c \<noteq> Black) = (c = Red)"
 by (cases c) auto
 
 lemma rbt_height_bheight_if: "invc t \<Longrightarrow> invh t \<Longrightarrow>
-  height t \<le> (if color t = Black then 2 * bheight t else 2 * bheight t + 1)"
+  height t \<le> 2 * bheight t + (if color t = Black then 0 else 1)"
 by(induction t) (auto split: if_split_asm)
 
 lemma rbt_height_bheight: "rbt t \<Longrightarrow> height t / 2 \<le> bheight t "
