@@ -195,7 +195,7 @@ by (cases t) auto
 
 lemma invh_baldL_invc:
   "\<lbrakk> invh l;  invh r;  bheight l + 1 = bheight r;  invc r \<rbrakk>
-   \<Longrightarrow> invh (baldL l a r) \<and> bheight (baldL l a r) = bheight l + 1"
+   \<Longrightarrow> invh (baldL l a r) \<and> bheight (baldL l a r) = bheight r"
 by (induct l a r rule: baldL.induct)
    (auto simp: invh_baliR invh_paint bheight_baliR bheight_paint_Red)
 

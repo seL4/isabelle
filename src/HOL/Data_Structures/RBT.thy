@@ -48,7 +48,7 @@ fun combine :: "'a rbt \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
      t23 \<Rightarrow> R t1 a (R t23 c t4))" |
 "combine (B t1 a t2) (B t3 c t4) =
   (case combine t2 t3 of
-     R t2' b t3' \<Rightarrow> R (B t1 a t2') b (B t3' c t4) |
+     R u2 b u3 \<Rightarrow> R (B t1 a u2) b (B u3 c t4) |
      t23 \<Rightarrow> baldL t1 a (B t23 c t4))" |
 "combine t1 (R t2 a t3) = R (combine t1 t2) a t3" |
 "combine (R t1 a t2) t3 = R t1 a (combine t2 t3)" 
