@@ -38,6 +38,8 @@ text \<open>
     \<^item> Phabricator development \<^url>\<open>https://secure.phabricator.com\<close>
     \<^item> Wikimedia development \<^url>\<open>https://phabricator.wikimedia.org\<close>
     \<^item> Blender development \<^url>\<open>https://developer.blender.org\<close>
+    \<^item> LLVM development \<^url>\<open>https://reviews.llvm.org\<close>
+    \<^item> Mozilla development \<^url>\<open>https://phabricator.services.mozilla.com\<close>
     \<^item> Mercurial development \<^url>\<open>https://phab.mercurial-scm.org\<close>
     \<^item> Isabelle development \<^url>\<open>https://isabelle-dev.sketis.net\<close>
 
