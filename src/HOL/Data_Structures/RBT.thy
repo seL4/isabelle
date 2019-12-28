@@ -29,8 +29,8 @@ fun paint :: "color \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 
 fun baldL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "baldL (R t1 a t2) b t3 = R (B t1 a t2) b t3" |
-"baldL bl a (B t1 b t2) = baliR bl a (R t1 b t2)" |
-"baldL bl a (R (B t1 b t2) c t3) = R (B bl a t1) b (baliR t2 c (paint Red t3))" |
+"baldL t1 a (B t2 b t3) = baliR t1 a (R t2 b t3)" |
+"baldL t1 a (R (B t2 b t3) c t4) = R (B t1 a t2) b (baliR t3 c (paint Red t4))" |
 "baldL t1 a t2 = R t1 a t2"
 
 fun baldR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
