@@ -237,6 +237,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Balance
     Tree_Map
     AVL_Map
+    RBT_Set2
     RBT_Map
     Tree23_Map
     Tree234_Map
