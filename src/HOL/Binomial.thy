@@ -155,7 +155,7 @@ lemma times_binomial_minus1_eq: "0 < k \<Longrightarrow> k * (n choose k) = n * 
 subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>
 
 text \<open>Avigad's version, generalized to any commutative ring\<close>
-theorem binomial_ring: "(a + b :: 'a::{comm_ring_1,power})^n =
+theorem binomial_ring: "(a + b :: 'a::comm_semiring_1)^n =
   (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n-k))"
 proof (induct n)
   case 0
@@ -177,10 +177,11 @@ next
   also have "\<dots> = (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k))"
     by (simp add: atMost_atLeast0 sum.shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum.cl_ivl_Suc)
-  also have "\<dots> = a^(n + 1) + b^(n + 1) +
-      (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k)) +
-      (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n + 1 - k))"
-    by (simp add: atMost_atLeast0 decomp2)
+  also have "\<dots> = b^(n + 1) +
+      (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n + 1 - k)) + (a^(n + 1) +
+      (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k)))"
+      using sum.nat_ivl_Suc' [of 1 n "\<lambda>k. of_nat (n choose (k-1)) * a ^ k * b ^ (n + 1 - k)"]
+    by (simp add: sum.atLeast_Suc_atMost atMost_atLeast0)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
     by (auto simp add: field_simps sum.distrib [symmetric] choose_reduce_nat)
