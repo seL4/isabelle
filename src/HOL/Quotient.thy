@@ -827,6 +827,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Grp_conversep_eq_onp: "((BNF_Def.Grp UNIV f)\<inverse>\<inverse> OO BNF_Def.Grp UNIV f) = eq_onp (\<lambda>x. x \<in> range f)"
+  by (auto simp: fun_eq_iff Grp_def eq_onp_def image_iff)
+
+lemma Grp_conversep_nonempty: "(BNF_Def.Grp UNIV f)\<inverse>\<inverse> OO BNF_Def.Grp UNIV f \<noteq> bot"
+  by (auto simp: fun_eq_iff Grp_def)
+
+lemma relcomppI2: "r a b \<Longrightarrow> s b c \<Longrightarrow> t c d \<Longrightarrow> (r OO s OO t) a d"
+  by (auto)
+
+lemma rel_conj_eq_onp: "equivp R \<Longrightarrow> rel_conj R (eq_onp P) \<le> R"
+  by (auto simp: eq_onp_def transp_def equivp_def)
+
 ML_file "Tools/BNF/bnf_lift.ML"
 
 hide_fact
@@ -834,7 +846,7 @@ hide_fact
   image_map_sum_unit_subset subset_lift_sum_unitD UNIV_sum_unit_conv subset_vimage_image_subset
   relcompp_mem_Grp_neq_bot comp_projr_Inr in_rel_sum_in_image_projr subset_rel_sumI
   relcompp_eq_Grp_neq_bot rel_fun_rel_OO1 rel_fun_rel_OO2 rel_sum_eq2_nonempty rel_sum_eq3_nonempty
-  hypsubst equivp_add_relconj
+  hypsubst equivp_add_relconj Grp_conversep_eq_onp Grp_conversep_nonempty relcomppI2 rel_conj_eq_onp
 
 end
 

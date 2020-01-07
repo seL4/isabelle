@@ -923,10 +923,6 @@ fun quotient_bnf {equiv_rel, equiv_thm, quot_thm, ...} _ wits specs map_b rel_b 
     val equiv_rel_a  = #tm REL;
     val (equiv_rel_b, equiv_rel_c) = apply2 (subst_Ts equiv_rel_a) (betas, gammas);
 
-    (* map_F_respect: @{term "((=) ===> REL ===> REL) map_F map_F"} *)
-    val map_F_respect = HOLogic.mk_Trueprop (fold_rev mk_rel_fun (map2 (fn xT => fn yT =>
-      HOLogic.eq_const (xT --> yT)) alphas betas @ [equiv_rel_a]) (equiv_rel_b) $ map_F $ map_F);
-
     (* rel_pos_distr: @{term "\<And>A B.
       A \<circ>\<circ> B \<noteq> bot \<Longrightarrow> REL \<circ>\<circ> rel_F A \<circ>\<circ> REL \<circ>\<circ> rel_F B \<circ>\<circ> REL \<le> REL \<circ>\<circ> rel_F (A \<circ>\<circ> B) \<circ>\<circ> REL"} *)
     fun compp_not_bot comp aT cT = let
@@ -1012,7 +1008,7 @@ fun quotient_bnf {equiv_rel, equiv_thm, quot_thm, ...} _ wits specs map_b rel_b 
     val (Iwits, wit_goals) =
       prepare_wits true repT wits opts alphas wits_F var_as var_as' sets' lthy;
 
-    val goals = map_F_respect :: rel_pos_distr :: rel_Inters @
+    val goals = rel_pos_distr :: rel_Inters @
       (case wits of NONE => [] | _ => wit_goals);
 
     val plugins =
@@ -1020,7 +1016,7 @@ fun quotient_bnf {equiv_rel, equiv_thm, quot_thm, ...} _ wits specs map_b rel_b 
       the_default Plugin_Name.default_filter;
 
     fun after_qed thmss lthy =
-      (case thmss of [map_F_respect_thm] :: [rel_pos_distr_thm0] :: thmss =>
+      (case thmss of [rel_pos_distr_thm0] :: thmss =>
         let
           val equiv_thm' = REL_rewr_all lthy equiv_thm;
           val rel_pos_distr_thm =
@@ -1097,12 +1093,37 @@ fun quotient_bnf {equiv_rel, equiv_thm, quot_thm, ...} _ wits specs map_b rel_b 
           val map_F_id0 = map_id0_of_bnf bnf_F;
           val map_F_id = map_id_of_bnf bnf_F;
           val rel_conversep = rel_conversep_of_bnf bnf_F;
+          val rel_flip = rel_flip_of_bnf bnf_F;
+          val rel_eq_onp = rel_eq_onp_of_bnf bnf_F;
           val rel_Grp = rel_Grp_of_bnf bnf_F;
           val rel_OO = rel_OO_of_bnf bnf_F;
           val rel_map = rel_map_of_bnf bnf_F;
           val rel_refl_strong = rel_refl_strong_of_bnf bnf_F;
           val set_bd_thms = set_bd_of_bnf bnf_F;
           val set_map_thms = set_map_of_bnf bnf_F;
+
+
+
+          (* map_F_respect: @{term "((=) ===> REL ===> REL) map_F map_F"} *)
+          val map_F_respect = HOLogic.mk_Trueprop (fold_rev mk_rel_fun (map2 (fn xT => fn yT =>
+            HOLogic.eq_const (xT --> yT)) alphas betas @ [equiv_rel_a]) (equiv_rel_b) $ map_F $ map_F);
+
+          fun map_F_respect_tac ctxt =
+            HEADGOAL (EVERY'
+             [REPEAT_DETERM_N (live + 1) o rtac ctxt @{thm rel_funI}, hyp_subst_tac ctxt,
+              rtac ctxt (BNF_FP_Util.split_conj_prems live rel_pos_distr_thm0 OF
+                replicate live @{thm Grp_conversep_nonempty} RS rev_mp),
+              rtac ctxt impI, dtac ctxt @{thm predicate2D}, etac ctxt @{thm relcomppI2[rotated]},
+              rtac ctxt (rel_Grp RS @{thm predicate2_eqD} RS iffD2), rtac ctxt @{thm GrpI[OF refl]},
+              REPEAT_DETERM o resolve_tac ctxt [CollectI, conjI, subset_UNIV],
+              rtac ctxt (rel_flip RS iffD2),
+              rtac ctxt (rel_Grp RS @{thm predicate2_eqD} RS iffD2), rtac ctxt @{thm GrpI[OF refl]},
+              REPEAT_DETERM o resolve_tac ctxt [CollectI, conjI, subset_UNIV],
+              SELECT_GOAL (unfold_thms_tac ctxt (rel_eq_onp :: @{thms Grp_conversep_eq_onp})),
+              etac ctxt @{thm predicate2D[OF rel_conj_eq_onp, rotated]},
+              rtac ctxt equiv_thm']);
+
+          val map_F_respect_thm = prove lthy [] map_F_respect map_F_respect_tac;
 
           val rel_funD = mk_rel_funDN (live+1);
           val map_F_rsp = (rel_funD map_F_respect_thm) OF (replicate live refl);
