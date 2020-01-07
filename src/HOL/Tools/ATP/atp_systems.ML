@@ -45,7 +45,6 @@ sig
   val spass_H2NuVS0 : string
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
-  val spass_extra_options : string Config.T
   val is_vampire_noncommercial_license_accepted : unit -> bool option
   val remote_atp : string -> string -> string list -> (string * string) list ->
     (atp_failure * string) list -> atp_formula_role -> (Proof.context -> slice_spec * string) ->
@@ -437,9 +436,6 @@ val spass_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
 val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
-val spass_extra_options =
-  Attrib.setup_config_string \<^binding>\<open>atp_spass_extra_options\<close> (K "")
-
 val spass_config : atp_config =
   {exec = K (["SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn file_name => fn _ =>
@@ -466,10 +462,7 @@ val spass_config : atp_config =
       (0.1000, (((1000, mepoN), DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
       (0.1000, (((150, meshN), DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
       (0.1000, (((300, meshN), DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.1000, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
-     |> (case Config.get ctxt spass_extra_options of
-           "" => I
-         | opts => map (apsnd (apsnd (K opts)))),
+      (0.1000, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
