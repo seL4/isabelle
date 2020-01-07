@@ -96,6 +96,9 @@ by (auto simp: delete_def inorder_del inorder_paint)
 
 subsection \<open>Structural invariants\<close>
 
+lemma neq_Black[simp]: "(c \<noteq> Black) = (c = Red)"
+by (cases c) auto
+
 text\<open>The proofs are due to Markus Reiter and Alexander Krauss.\<close>
 
 fun bheight :: "'a rbt \<Rightarrow> nat" where
@@ -176,7 +179,7 @@ by(induct x t rule: ins.induct)
 theorem rbt_insert: "rbt t \<Longrightarrow> rbt (insert x t)"
 by (simp add: invc_ins invh_ins color_paint_Black invh_paint rbt_def insert_def)
 
-text \<open>All in one variant:\<close>
+text \<open>All in one:\<close>
 
 lemma inv_ins: "\<lbrakk> invc t; invh t \<rbrakk> \<Longrightarrow>
   invc2 (ins x t) \<and> (color t = Black \<longrightarrow> invc (ins x t)) \<and>
@@ -234,34 +237,41 @@ lemma invc_combine:
 by (induct l r rule: combine.induct)
    (auto simp: invc_baldL invc2I split: tree.splits color.splits)
 
+text \<open>All in one:\<close>
+
+lemma inv_baldL:
+  "\<lbrakk> invh l;  invh r;  bheight l + 1 = bheight r; invc2 l; invc r \<rbrakk>
+   \<Longrightarrow> invh (baldL l a r) \<and> bheight (baldL l a r) = bheight r
+  \<and> invc2 (baldL l a r) \<and> (color r = Black \<longrightarrow> invc (baldL l a r))"
+by (induct l a r rule: baldL.induct)
+   (auto simp: inv_baliR invh_paint bheight_baliR bheight_paint_Red paint2 invc2I)
+
+lemma inv_baldR:
+  "\<lbrakk> invh l;  invh r;  bheight l = bheight r + 1; invc l; invc2 r \<rbrakk>
+   \<Longrightarrow> invh (baldR l a r) \<and> bheight (baldR l a r) = bheight l
+  \<and> invc2 (baldR l a r) \<and> (color l = Black \<longrightarrow> invc (baldR l a r))"
+by (induct l a r rule: baldR.induct)
+   (auto simp: inv_baliL invh_paint bheight_baliL bheight_paint_Red paint2 invc2I)
+
+lemma inv_combine:
+  "\<lbrakk> invh l; invh r; bheight l = bheight r; invc l; invc r \<rbrakk>
+  \<Longrightarrow> invh (combine l r) \<and> bheight (combine l r) = bheight l
+  \<and> invc2 (combine l r) \<and> (color l = Black \<and> color r = Black \<longrightarrow> invc (combine l r))"
+by (induct l r rule: combine.induct) 
+   (auto simp: invh_baldL_Black inv_baldL invc2I split: tree.splits color.splits)
+
 lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>l x c r. t = Node l (x,c) r"
 by(cases t rule: tree2_cases) auto
 
-lemma del_invc_invh: "invh t \<Longrightarrow> invc t \<Longrightarrow> invh (del x t) \<and>
+lemma inv_del: "\<lbrakk> invh t; invc t \<rbrakk> \<Longrightarrow>
+   invh (del x t) \<and>
    (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
     color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
-proof (induct x t rule: del.induct)
-case (2 x _ y c)
-  have "x = y \<or> x < y \<or> x > y" by auto
-  thus ?case proof (elim disjE)
-    assume "x = y"
-    with 2 show ?thesis
-    by (cases c) (simp_all add: invh_combine invc_combine)
-  next
-    assume "x < y"
-    with 2 show ?thesis
-      by(cases c)
-        (auto simp: invh_baldL_invc invc_baldL invc2_baldL dest: neq_LeafD)
-  next
-    assume "y < x"
-    with 2 show ?thesis
-      by(cases c)
-        (auto simp: invh_baldR_invc invc_baldR invc2_baldR dest: neq_LeafD)
-  qed
-qed auto
+by(induct x t rule: del.induct)
+  (auto simp: inv_baldL inv_baldR inv_combine dest!: neq_LeafD)
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete x t)"
-by (metis delete_def rbt_def color_paint_Black del_invc_invh invc2I invh_paint)
+by (metis delete_def rbt_def color_paint_Black inv_del invc2I invh_paint)
 
 text \<open>Overall correctness:\<close>
 
@@ -286,9 +296,6 @@ qed
 
 
 subsection \<open>Height-Size Relation\<close>
-
-lemma neq_Black[simp]: "(c \<noteq> Black) = (c = Red)"
-by (cases c) auto
 
 lemma rbt_height_bheight_if: "invc t \<Longrightarrow> invh t \<Longrightarrow>
   height t \<le> 2 * bheight t + (if color t = Black then 0 else 1)"
