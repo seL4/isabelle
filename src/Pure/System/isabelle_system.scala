@@ -56,8 +56,6 @@ object Isabelle_System
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
     if (_settings.isEmpty) {
-      import scala.collection.JavaConversions._
-
       val isabelle_root1 =
         bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 

@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
-import scala.collection.{mutable, JavaConversions}
+import scala.collection.mutable
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
   OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
