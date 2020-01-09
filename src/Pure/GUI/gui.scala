@@ -13,6 +13,8 @@ import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
   JButton, JTextField, JLabel}
 
+
+import scala.collection.JavaConverters
 import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
 
@@ -216,10 +218,7 @@ object GUI
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
   def transform_font(font: Font, transform: AffineTransform): Font =
-  {
-    import scala.collection.JavaConversions._
-    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
-  }
+    font.deriveFont(java.util.Map.of(TextAttribute.TRANSFORM, new TransformAttribute(transform)))
 
   def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
     new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
