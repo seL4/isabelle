@@ -261,7 +261,7 @@ object GUI
       "TextArea.font",
       "TextField.font",
       "TextPane.font",
-      "Tooltip.font",
+      "ToolTip.font",
       "Tree.font"))
     {
       val font = ui.get(prop) match { case font: Font => font case _ => default_font }
