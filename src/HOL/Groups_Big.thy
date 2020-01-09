@@ -1187,6 +1187,29 @@ next
     using assms card_eq_0_iff finite_UnionD by fastforce
 qed
 
+lemma card_Union_le_sum_card:
+  fixes U :: "'a set set"
+  assumes "\<forall>u \<in> U. finite u"
+  shows "card (\<Union>U) \<le> sum card U"
+proof (cases "finite U")
+  case False
+  then show "card (\<Union>U) \<le> sum card U"
+    using card_eq_0_iff finite_UnionD by auto
+next
+  case True
+  then show "card (\<Union>U) \<le> sum card U"
+  proof (induct U rule: finite_induct)
+    case empty
+    then show ?case by auto
+  next
+    case (insert x F)
+    then have "card(\<Union>(insert x F)) \<le> card(x) + card (\<Union>F)" using card_Un_le by auto
+    also have "... \<le> card(x) + sum card F" using insert.hyps by auto
+    also have "... = sum card (insert x F)" using sum.insert_if and insert.hyps by auto
+    finally show ?case .
+  qed
+qed
+
 lemma card_UN_le:
   assumes "finite I"
   shows "card(\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. card(A i))"
