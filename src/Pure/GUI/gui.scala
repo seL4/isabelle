@@ -256,6 +256,8 @@ object GUI
       "Menu.font",
       "MenuItem.font",
       "PopupMenu.font",
+      "Table.font",
+      "TableHeader.font",
       "TextArea.font",
       "TextField.font",
       "TextPane.font",
