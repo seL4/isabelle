@@ -419,9 +419,11 @@ text \<open>
   Option \<^verbatim>\<open>-U\<close> ensures a full update of system packages, before installing
   further packages required by Phabricator. This might require a reboot.
 
-  Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source: this works
-  better than the package provided by Ubuntu 18.04. Alternatively, an explicit
-  file path or URL the source archive (\<^verbatim>\<open>.tar.gz\<close>) may be here. This option is
+  Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source --- the one
+  that is used by the Phabricator hosting service
+  \<^url>\<open>https://admin.phacility.com\<close>. This avoids various problems with the
+  package provided by Ubuntu 18.04. Alternatively, an explicit file path or
+  URL the source archive (\<^verbatim>\<open>.tar.gz\<close>) may be given here. This option is
   recommended for production use, but it requires to \<^emph>\<open>uninstall\<close> existing
   Mercurial packages provided by the operating system.
 
