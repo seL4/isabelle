@@ -20,19 +20,19 @@ static void fail(const char *msg)
 
 int main(int argc, char *argv[])
 {
-  char **cmd_line = NULL, *cmd = NULL, *dcmd = NULL, *bcmd = NULL, *dname = NULL, *bname = NULL;
+  char **cmd_line = NULL, *cmd = NULL, *dcmd = NULL, *dname = NULL;
   int i = 0;
 
-  dcmd = strdup(argv[0]); dname = dirname(dcmd);
-  bcmd = strdup(argv[0]); bname = basename(bcmd);
+  dcmd = strdup(argv[0]);
+  dname = dirname(dcmd);
 
   cmd_line = malloc(sizeof(char *) * (argc + 1));
   if (cmd_line == NULL) fail("Failed to allocate command line");
 
   cmd = cmd_line[0];
-  cmd = malloc(strlen(dname) + strlen(bname) + strlen("/lib/scripts/.run") + 1);
+  cmd = malloc(strlen(dname) + strlen("/lib/scripts/Isabelle_app") + 1);
   if (cmd == NULL) fail("Failed to allocate command name");
-  sprintf(cmd, "%s/lib/scripts/%s.run", dname, bname);
+  sprintf(cmd, "%s/lib/scripts/Isabelle_app", dname);
 
   for (i = 1; i < argc; i++) cmd_line[i] = argv[i];
 
