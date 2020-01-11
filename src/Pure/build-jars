@@ -257,24 +257,22 @@ shift $(($OPTIND - 1))
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/Pure.jar"
 
+[ -n "$FRESH" ] && rm -f "$TARGET"
+
 declare -a UPDATED=()
 
-if [ -n "$FRESH" ]; then
+if [ ! -e "$TARGET" ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  if [ ! -e "$TARGET" ]; then
-    OUTDATED=true
-  else
-    for DEP in "${SOURCES[@]}"
-    do
-      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
-      [ "$DEP" -nt "$TARGET" ] && {
-        OUTDATED=true
-        UPDATED["${#UPDATED[@]}"]="$DEP"
-      }
-    done
-  fi
+  for DEP in "${SOURCES[@]}"
+  do
+    [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+    [ "$DEP" -nt "$TARGET" ] && {
+      OUTDATED=true
+      UPDATED["${#UPDATED[@]}"]="$DEP"
+    }
+  done
 fi
 
 if [ "$OUTDATED" = true ]
