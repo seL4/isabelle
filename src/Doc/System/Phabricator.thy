@@ -309,7 +309,8 @@ text \<open>
   The Phabricator developers publish a new version approx.\ every 1--4 weeks:
   see also \<^url>\<open>https://secure.phabricator.com/w/changelog\<close>. There is no need to
   follow such frequent updates on the spot, but it is a good idea to upgrade
-  occasionally --- after dump and/or backup (\secref{sec:phabricator-backup}).
+  occasionally --- with the usual care to avoid breaking a production system
+  (see also \secref{sec:phabricator-backup} for database dump and backup).
 
   The Isabelle/Phabricator setup provides a convenience tool to upgrade all
   installations uniformly:
