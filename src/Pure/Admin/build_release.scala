@@ -509,13 +509,13 @@ rm -rf "${DIST_NAME}-old"
             File.write(isabelle_target + Path.explode(isabelle_name + ".options"),
               terminate_lines(java_options_title :: java_options))
 
-            val isabelle_run = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
-            File.write(isabelle_run,
+            val isabelle_app = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
+            File.write(isabelle_app,
               File.read(Path.explode("~~/Admin/Linux/Isabelle_app"))
                 .replaceAllLiterally("{CLASSPATH}",
                   classpath.map("$ISABELLE_HOME/" + _).mkString(":"))
                 .replaceAllLiterally("/jdk/", "/" + jdk_component + "/"))
-            File.set_executable(isabelle_run, true)
+            File.set_executable(isabelle_app, true)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
             File.move(linux_app + Path.explode("Isabelle"),
