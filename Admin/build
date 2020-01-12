@@ -65,8 +65,8 @@ function build_browser ()
 
 function build_jars ()
 {
-  pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" env ./build-jars "$@" || exit $?
+  pushd "$ISABELLE_HOME" >/dev/null
+  "$ISABELLE_TOOL" env src/Pure/build-jars "$@" || exit $?
   popd >/dev/null
 }
 

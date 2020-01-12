@@ -9,196 +9,196 @@
 ## sources
 
 declare -a SOURCES=(
-  Admin/afp.scala
-  Admin/build_cygwin.scala
-  Admin/build_doc.scala
-  Admin/build_fonts.scala
-  Admin/build_history.scala
-  Admin/build_jdk.scala
-  Admin/build_log.scala
-  Admin/build_polyml.scala
-  Admin/build_release.scala
-  Admin/build_status.scala
-  Admin/check_sources.scala
-  Admin/ci_profile.scala
-  Admin/components.scala
-  Admin/isabelle_cronjob.scala
-  Admin/isabelle_devel.scala
-  Admin/jenkins.scala
-  Admin/other_isabelle.scala
-  Concurrent/consumer_thread.scala
-  Concurrent/counter.scala
-  Concurrent/event_timer.scala
-  Concurrent/future.scala
-  Concurrent/mailbox.scala
-  Concurrent/par_list.scala
-  Concurrent/standard_thread.scala
-  Concurrent/synchronized.scala
-  GUI/color_value.scala
-  GUI/gui.scala
-  GUI/gui_thread.scala
-  GUI/popup.scala
-  GUI/wrap_panel.scala
-  General/antiquote.scala
-  General/bytes.scala
-  General/cache.scala
-  General/codepoint.scala
-  General/comment.scala
-  General/completion.scala
-  General/csv.scala
-  General/date.scala
-  General/exn.scala
-  General/file.scala
-  General/file_watcher.scala
-  General/graph.scala
-  General/graph_display.scala
-  General/graphics_file.scala
-  General/http.scala
-  General/json.scala
-  General/linear_set.scala
-  General/logger.scala
-  General/long_name.scala
-  General/mercurial.scala
-  General/multi_map.scala
-  General/output.scala
-  General/path.scala
-  General/position.scala
-  General/pretty.scala
-  General/properties.scala
-  General/rdf.scala
-  General/scan.scala
-  General/sha1.scala
-  General/sql.scala
-  General/ssh.scala
-  General/symbol.scala
-  General/time.scala
-  General/timing.scala
-  General/untyped.scala
-  General/url.scala
-  General/utf8.scala
-  General/uuid.scala
-  General/value.scala
-  General/word.scala
-  General/xz.scala
-  Isar/document_structure.scala
-  Isar/keyword.scala
-  Isar/line_structure.scala
-  Isar/outer_syntax.scala
-  Isar/parse.scala
-  Isar/token.scala
-  ML/ml_console.scala
-  ML/ml_lex.scala
-  ML/ml_process.scala
-  ML/ml_statistics.scala
-  ML/ml_syntax.scala
-  PIDE/byte_message.scala
-  PIDE/command.scala
-  PIDE/command_span.scala
-  PIDE/document.scala
-  PIDE/document_id.scala
-  PIDE/document_status.scala
-  PIDE/editor.scala
-  PIDE/headless.scala
-  PIDE/line.scala
-  PIDE/markup.scala
-  PIDE/markup_tree.scala
-  PIDE/protocol.scala
-  PIDE/protocol_handlers.scala
-  PIDE/protocol_message.scala
-  PIDE/prover.scala
-  PIDE/query_operation.scala
-  PIDE/rendering.scala
-  PIDE/resources.scala
-  PIDE/session.scala
-  PIDE/text.scala
-  PIDE/xml.scala
-  PIDE/yxml.scala
-  ROOT.scala
-  System/bash.scala
-  System/command_line.scala
-  System/cygwin.scala
-  System/distribution.scala
-  System/getopts.scala
-  System/invoke_scala.scala
-  System/isabelle_charset.scala
-  System/isabelle_fonts.scala
-  System/isabelle_process.scala
-  System/isabelle_system.scala
-  System/isabelle_tool.scala
-  System/linux.scala
-  System/numa.scala
-  System/options.scala
-  System/platform.scala
-  System/posix_interrupt.scala
-  System/process_result.scala
-  System/progress.scala
-  System/system_channel.scala
-  System/tty_loop.scala
-  Thy/bibtex.scala
-  Thy/export.scala
-  Thy/export_theory.scala
-  Thy/file_format.scala
-  Thy/html.scala
-  Thy/latex.scala
-  Thy/present.scala
-  Thy/sessions.scala
-  Thy/thy_element.scala
-  Thy/thy_header.scala
-  Thy/thy_syntax.scala
-  Tools/build.scala
-  Tools/build_docker.scala
-  Tools/check_keywords.scala
-  Tools/debugger.scala
-  Tools/doc.scala
-  Tools/dump.scala
-  Tools/fontforge.scala
-  Tools/main.scala
-  Tools/mkroot.scala
-  Tools/phabricator.scala
-  Tools/print_operation.scala
-  Tools/profiling_report.scala
-  Tools/server.scala
-  Tools/server_commands.scala
-  Tools/simplifier_trace.scala
-  Tools/spell_checker.scala
-  Tools/task_statistics.scala
-  Tools/update.scala
-  Tools/update_cartouches.scala
-  Tools/update_comments.scala
-  Tools/update_header.scala
-  Tools/update_then.scala
-  Tools/update_theorems.scala
-  library.scala
-  pure_thy.scala
-  term.scala
-  term_xml.scala
-  thm_name.scala
-  ../Tools/Graphview/graph_file.scala
-  ../Tools/Graphview/graph_panel.scala
-  ../Tools/Graphview/graphview.scala
-  ../Tools/Graphview/layout.scala
-  ../Tools/Graphview/main_panel.scala
-  ../Tools/Graphview/metrics.scala
-  ../Tools/Graphview/model.scala
-  ../Tools/Graphview/mutator.scala
-  ../Tools/Graphview/mutator_dialog.scala
-  ../Tools/Graphview/mutator_event.scala
-  ../Tools/Graphview/popups.scala
-  ../Tools/Graphview/shapes.scala
-  ../Tools/Graphview/tree_panel.scala
-  ../Tools/VSCode/src/build_vscode.scala
-  ../Tools/VSCode/src/channel.scala
-  ../Tools/VSCode/src/document_model.scala
-  ../Tools/VSCode/src/dynamic_output.scala
-  ../Tools/VSCode/src/grammar.scala
-  ../Tools/VSCode/src/preview_panel.scala
-  ../Tools/VSCode/src/protocol.scala
-  ../Tools/VSCode/src/server.scala
-  ../Tools/VSCode/src/state_panel.scala
-  ../Tools/VSCode/src/vscode_javascript.scala
-  ../Tools/VSCode/src/vscode_rendering.scala
-  ../Tools/VSCode/src/vscode_resources.scala
-  ../Tools/VSCode/src/vscode_spell_checker.scala
+  src/Pure/Admin/afp.scala
+  src/Pure/Admin/build_cygwin.scala
+  src/Pure/Admin/build_doc.scala
+  src/Pure/Admin/build_fonts.scala
+  src/Pure/Admin/build_history.scala
+  src/Pure/Admin/build_jdk.scala
+  src/Pure/Admin/build_log.scala
+  src/Pure/Admin/build_polyml.scala
+  src/Pure/Admin/build_release.scala
+  src/Pure/Admin/build_status.scala
+  src/Pure/Admin/check_sources.scala
+  src/Pure/Admin/ci_profile.scala
+  src/Pure/Admin/components.scala
+  src/Pure/Admin/isabelle_cronjob.scala
+  src/Pure/Admin/isabelle_devel.scala
+  src/Pure/Admin/jenkins.scala
+  src/Pure/Admin/other_isabelle.scala
+  src/Pure/Concurrent/consumer_thread.scala
+  src/Pure/Concurrent/counter.scala
+  src/Pure/Concurrent/event_timer.scala
+  src/Pure/Concurrent/future.scala
+  src/Pure/Concurrent/mailbox.scala
+  src/Pure/Concurrent/par_list.scala
+  src/Pure/Concurrent/standard_thread.scala
+  src/Pure/Concurrent/synchronized.scala
+  src/Pure/GUI/color_value.scala
+  src/Pure/GUI/gui.scala
+  src/Pure/GUI/gui_thread.scala
+  src/Pure/GUI/popup.scala
+  src/Pure/GUI/wrap_panel.scala
+  src/Pure/General/antiquote.scala
+  src/Pure/General/bytes.scala
+  src/Pure/General/cache.scala
+  src/Pure/General/codepoint.scala
+  src/Pure/General/comment.scala
+  src/Pure/General/completion.scala
+  src/Pure/General/csv.scala
+  src/Pure/General/date.scala
+  src/Pure/General/exn.scala
+  src/Pure/General/file.scala
+  src/Pure/General/file_watcher.scala
+  src/Pure/General/graph.scala
+  src/Pure/General/graph_display.scala
+  src/Pure/General/graphics_file.scala
+  src/Pure/General/http.scala
+  src/Pure/General/json.scala
+  src/Pure/General/linear_set.scala
+  src/Pure/General/logger.scala
+  src/Pure/General/long_name.scala
+  src/Pure/General/mercurial.scala
+  src/Pure/General/multi_map.scala
+  src/Pure/General/output.scala
+  src/Pure/General/path.scala
+  src/Pure/General/position.scala
+  src/Pure/General/pretty.scala
+  src/Pure/General/properties.scala
+  src/Pure/General/rdf.scala
+  src/Pure/General/scan.scala
+  src/Pure/General/sha1.scala
+  src/Pure/General/sql.scala
+  src/Pure/General/ssh.scala
+  src/Pure/General/symbol.scala
+  src/Pure/General/time.scala
+  src/Pure/General/timing.scala
+  src/Pure/General/untyped.scala
+  src/Pure/General/url.scala
+  src/Pure/General/utf8.scala
+  src/Pure/General/uuid.scala
+  src/Pure/General/value.scala
+  src/Pure/General/word.scala
+  src/Pure/General/xz.scala
+  src/Pure/Isar/document_structure.scala
+  src/Pure/Isar/keyword.scala
+  src/Pure/Isar/line_structure.scala
+  src/Pure/Isar/outer_syntax.scala
+  src/Pure/Isar/parse.scala
+  src/Pure/Isar/token.scala
+  src/Pure/ML/ml_console.scala
+  src/Pure/ML/ml_lex.scala
+  src/Pure/ML/ml_process.scala
+  src/Pure/ML/ml_statistics.scala
+  src/Pure/ML/ml_syntax.scala
+  src/Pure/PIDE/byte_message.scala
+  src/Pure/PIDE/command.scala
+  src/Pure/PIDE/command_span.scala
+  src/Pure/PIDE/document.scala
+  src/Pure/PIDE/document_id.scala
+  src/Pure/PIDE/document_status.scala
+  src/Pure/PIDE/editor.scala
+  src/Pure/PIDE/headless.scala
+  src/Pure/PIDE/line.scala
+  src/Pure/PIDE/markup.scala
+  src/Pure/PIDE/markup_tree.scala
+  src/Pure/PIDE/protocol.scala
+  src/Pure/PIDE/protocol_handlers.scala
+  src/Pure/PIDE/protocol_message.scala
+  src/Pure/PIDE/prover.scala
+  src/Pure/PIDE/query_operation.scala
+  src/Pure/PIDE/rendering.scala
+  src/Pure/PIDE/resources.scala
+  src/Pure/PIDE/session.scala
+  src/Pure/PIDE/text.scala
+  src/Pure/PIDE/xml.scala
+  src/Pure/PIDE/yxml.scala
+  src/Pure/ROOT.scala
+  src/Pure/System/bash.scala
+  src/Pure/System/command_line.scala
+  src/Pure/System/cygwin.scala
+  src/Pure/System/distribution.scala
+  src/Pure/System/getopts.scala
+  src/Pure/System/invoke_scala.scala
+  src/Pure/System/isabelle_charset.scala
+  src/Pure/System/isabelle_fonts.scala
+  src/Pure/System/isabelle_process.scala
+  src/Pure/System/isabelle_system.scala
+  src/Pure/System/isabelle_tool.scala
+  src/Pure/System/linux.scala
+  src/Pure/System/numa.scala
+  src/Pure/System/options.scala
+  src/Pure/System/platform.scala
+  src/Pure/System/posix_interrupt.scala
+  src/Pure/System/process_result.scala
+  src/Pure/System/progress.scala
+  src/Pure/System/system_channel.scala
+  src/Pure/System/tty_loop.scala
+  src/Pure/Thy/bibtex.scala
+  src/Pure/Thy/export.scala
+  src/Pure/Thy/export_theory.scala
+  src/Pure/Thy/file_format.scala
+  src/Pure/Thy/html.scala
+  src/Pure/Thy/latex.scala
+  src/Pure/Thy/present.scala
+  src/Pure/Thy/sessions.scala
+  src/Pure/Thy/thy_element.scala
+  src/Pure/Thy/thy_header.scala
+  src/Pure/Thy/thy_syntax.scala
+  src/Pure/Tools/build.scala
+  src/Pure/Tools/build_docker.scala
+  src/Pure/Tools/check_keywords.scala
+  src/Pure/Tools/debugger.scala
+  src/Pure/Tools/doc.scala
+  src/Pure/Tools/dump.scala
+  src/Pure/Tools/fontforge.scala
+  src/Pure/Tools/main.scala
+  src/Pure/Tools/mkroot.scala
+  src/Pure/Tools/phabricator.scala
+  src/Pure/Tools/print_operation.scala
+  src/Pure/Tools/profiling_report.scala
+  src/Pure/Tools/server.scala
+  src/Pure/Tools/server_commands.scala
+  src/Pure/Tools/simplifier_trace.scala
+  src/Pure/Tools/spell_checker.scala
+  src/Pure/Tools/task_statistics.scala
+  src/Pure/Tools/update.scala
+  src/Pure/Tools/update_cartouches.scala
+  src/Pure/Tools/update_comments.scala
+  src/Pure/Tools/update_header.scala
+  src/Pure/Tools/update_then.scala
+  src/Pure/Tools/update_theorems.scala
+  src/Pure/library.scala
+  src/Pure/pure_thy.scala
+  src/Pure/term.scala
+  src/Pure/term_xml.scala
+  src/Pure/thm_name.scala
+  src/Tools/Graphview/graph_file.scala
+  src/Tools/Graphview/graph_panel.scala
+  src/Tools/Graphview/graphview.scala
+  src/Tools/Graphview/layout.scala
+  src/Tools/Graphview/main_panel.scala
+  src/Tools/Graphview/metrics.scala
+  src/Tools/Graphview/model.scala
+  src/Tools/Graphview/mutator.scala
+  src/Tools/Graphview/mutator_dialog.scala
+  src/Tools/Graphview/mutator_event.scala
+  src/Tools/Graphview/popups.scala
+  src/Tools/Graphview/shapes.scala
+  src/Tools/Graphview/tree_panel.scala
+  src/Tools/VSCode/src/build_vscode.scala
+  src/Tools/VSCode/src/channel.scala
+  src/Tools/VSCode/src/document_model.scala
+  src/Tools/VSCode/src/dynamic_output.scala
+  src/Tools/VSCode/src/grammar.scala
+  src/Tools/VSCode/src/preview_panel.scala
+  src/Tools/VSCode/src/protocol.scala
+  src/Tools/VSCode/src/server.scala
+  src/Tools/VSCode/src/state_panel.scala
+  src/Tools/VSCode/src/vscode_javascript.scala
+  src/Tools/VSCode/src/vscode_rendering.scala
+  src/Tools/VSCode/src/vscode_resources.scala
+  src/Tools/VSCode/src/vscode_spell_checker.scala
 )
 
 
@@ -252,69 +252,54 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 0 ] && usage
 
 
+## target
+
+TARGET_DIR="lib/classes"
+TARGET_JAR="$TARGET_DIR/Pure.jar"
+TARGET_SHASUM="$TARGET_DIR/Pure.shasum"
+
+function target_clean()
+{
+  rm -rf "$TARGET_DIR"
+}
+
+function target_shasum()
+{
+  shasum -a1 -b "$TARGET_JAR" "${SOURCES[@]}" 2>/dev/null
+}
+
+[ -n "$FRESH" ] && target_clean
+
+
 ## build
 
-TARGET_DIR="$ISABELLE_HOME/lib/classes"
-TARGET="$TARGET_DIR/Pure.jar"
-
-[ -n "$FRESH" ] && rm -f "$TARGET"
-
-declare -a UPDATED=()
-
-if [ ! -e "$TARGET" ]; then
-  OUTDATED=true
-else
-  OUTDATED=false
-  for DEP in "${SOURCES[@]}"
-  do
-    [ ! -e "$DEP" ] && fail "Missing file: $DEP"
-    [ "$DEP" -nt "$TARGET" ] && {
-      OUTDATED=true
-      UPDATED["${#UPDATED[@]}"]="$DEP"
-    }
-  done
-fi
-
-if [ "$OUTDATED" = true ]
-then
+target_shasum | cmp "$TARGET_SHASUM" 2>/dev/null
+if [ "$?" -ne 0 ]; then
   echo "### Building Isabelle/Scala ..."
 
-  [ "${#UPDATED[@]}" -gt 0 ] && {
-    echo "Changed files:"
-    for FILE in "${UPDATED[@]}"
-    do
-      echo "  $FILE"
-    done
-  }
+  target_clean
 
-  rm -f "$TARGET"
-  rm -rf classes && mkdir classes
-
-  SCALAC_OPTIONS="$ISABELLE_SCALAC_OPTIONS -d classes"
+  BUILD_DIR="$TARGET_DIR/build"
+  mkdir -p "$BUILD_DIR"
 
   (
-    classpath classes
     export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
-
-    isabelle_scala scalac $SCALAC_OPTIONS "${SOURCES[@]}" || \
-      fail "Failed to compile sources"
-  ) || exit "$?"
-
-  mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
-
-  pushd classes >/dev/null
+    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS \
+      -d "$BUILD_DIR" "${SOURCES[@]}"
+  ) || fail "Failed to compile sources"
 
   CHARSET_SERVICE="META-INF/services/java.nio.charset.spi.CharsetProvider"
-  mkdir -p "$(dirname "$CHARSET_SERVICE")"
-  echo isabelle.Isabelle_Charset_Provider > "$CHARSET_SERVICE"
+  mkdir -p "$BUILD_DIR/$(dirname "$CHARSET_SERVICE")"
+  echo isabelle.Isabelle_Charset_Provider > "$BUILD_DIR/$CHARSET_SERVICE"
 
-  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" isabelle/.
-  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent.gif" isabelle/.
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" "$BUILD_DIR/isabelle/."
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent.gif" "$BUILD_DIR/isabelle/."
 
-  isabelle_jdk jar cfe "$(platform_path "$TARGET")" isabelle.Main META-INF isabelle || \
-    fail "Failed to produce $TARGET"
+  isabelle_jdk jar -c -f "$(platform_path "$TARGET_JAR")" -e isabelle.Main \
+    -C "$BUILD_DIR" META-INF \
+    -C "$BUILD_DIR" isabelle || fail "Failed to produce $TARGET_JAR"
 
-  popd >/dev/null
+  rm -rf "$BUILD_DIR"
 
-  rm -rf classes
+  target_shasum > "$TARGET_SHASUM"
 fi
