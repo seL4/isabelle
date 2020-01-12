@@ -7,86 +7,86 @@
 
 ## sources
 
-declare -a SOURCES_BASE=(
-  "src-base/dockable.scala"
-  "src-base/isabelle_encoding.scala"
-  "src-base/jedit_lib.scala"
-  "src-base/pide_docking_framework.scala"
-  "src-base/plugin.scala"
-  "src-base/syntax_style.scala"
+declare -a SOURCES0=(
+  "src/Tools/jEdit/src-base/dockable.scala"
+  "src/Tools/jEdit/src-base/isabelle_encoding.scala"
+  "src/Tools/jEdit/src-base/jedit_lib.scala"
+  "src/Tools/jEdit/src-base/pide_docking_framework.scala"
+  "src/Tools/jEdit/src-base/plugin.scala"
+  "src/Tools/jEdit/src-base/syntax_style.scala"
 )
 
-declare -a RESOURCES_BASE=(
-  "src-base/Isabelle_Base.props"
-  "src-base/services.xml"
+declare -a RESOURCES0=(
+  "src/Tools/jEdit/src-base/Isabelle_Base.props"
+  "src/Tools/jEdit/src-base/services.xml"
 )
 
 declare -a SOURCES=(
-  "src/active.scala"
-  "src/completion_popup.scala"
-  "src/context_menu.scala"
-  "src/debugger_dockable.scala"
-  "src/document_model.scala"
-  "src/document_view.scala"
-  "src/documentation_dockable.scala"
-  "src/fold_handling.scala"
-  "src/font_info.scala"
-  "src/graphview_dockable.scala"
-  "src/info_dockable.scala"
-  "src/isabelle.scala"
-  "src/isabelle_encoding.scala"
-  "src/isabelle_export.scala"
-  "src/isabelle_options.scala"
-  "src/isabelle_session.scala"
-  "src/isabelle_sidekick.scala"
-  "src/isabelle_vfs.scala"
-  "src/jedit_bibtex.scala"
-  "src/jedit_editor.scala"
-  "src/jedit_lib.scala"
-  "src/jedit_options.scala"
-  "src/jedit_rendering.scala"
-  "src/jedit_resources.scala"
-  "src/jedit_sessions.scala"
-  "src/jedit_spell_checker.scala"
-  "src/keymap_merge.scala"
-  "src/monitor_dockable.scala"
-  "src/output_dockable.scala"
-  "src/plugin.scala"
-  "src/pretty_text_area.scala"
-  "src/pretty_tooltip.scala"
-  "src/process_indicator.scala"
-  "src/protocol_dockable.scala"
-  "src/query_dockable.scala"
-  "src/raw_output_dockable.scala"
-  "src/rich_text_area.scala"
-  "src/scala_console.scala"
-  "src/session_build.scala"
-  "src/simplifier_trace_dockable.scala"
-  "src/simplifier_trace_window.scala"
-  "src/sledgehammer_dockable.scala"
-  "src/state_dockable.scala"
-  "src/symbols_dockable.scala"
-  "src/syntax_style.scala"
-  "src/syslog_dockable.scala"
-  "src/text_overview.scala"
-  "src/text_structure.scala"
-  "src/theories_dockable.scala"
-  "src/timing_dockable.scala"
-  "src/token_markup.scala"
+  "src/Tools/jEdit/src/active.scala"
+  "src/Tools/jEdit/src/completion_popup.scala"
+  "src/Tools/jEdit/src/context_menu.scala"
+  "src/Tools/jEdit/src/debugger_dockable.scala"
+  "src/Tools/jEdit/src/document_model.scala"
+  "src/Tools/jEdit/src/document_view.scala"
+  "src/Tools/jEdit/src/documentation_dockable.scala"
+  "src/Tools/jEdit/src/fold_handling.scala"
+  "src/Tools/jEdit/src/font_info.scala"
+  "src/Tools/jEdit/src/graphview_dockable.scala"
+  "src/Tools/jEdit/src/info_dockable.scala"
+  "src/Tools/jEdit/src/isabelle.scala"
+  "src/Tools/jEdit/src/isabelle_encoding.scala"
+  "src/Tools/jEdit/src/isabelle_export.scala"
+  "src/Tools/jEdit/src/isabelle_options.scala"
+  "src/Tools/jEdit/src/isabelle_session.scala"
+  "src/Tools/jEdit/src/isabelle_sidekick.scala"
+  "src/Tools/jEdit/src/isabelle_vfs.scala"
+  "src/Tools/jEdit/src/jedit_bibtex.scala"
+  "src/Tools/jEdit/src/jedit_editor.scala"
+  "src/Tools/jEdit/src/jedit_lib.scala"
+  "src/Tools/jEdit/src/jedit_options.scala"
+  "src/Tools/jEdit/src/jedit_rendering.scala"
+  "src/Tools/jEdit/src/jedit_resources.scala"
+  "src/Tools/jEdit/src/jedit_sessions.scala"
+  "src/Tools/jEdit/src/jedit_spell_checker.scala"
+  "src/Tools/jEdit/src/keymap_merge.scala"
+  "src/Tools/jEdit/src/monitor_dockable.scala"
+  "src/Tools/jEdit/src/output_dockable.scala"
+  "src/Tools/jEdit/src/plugin.scala"
+  "src/Tools/jEdit/src/pretty_text_area.scala"
+  "src/Tools/jEdit/src/pretty_tooltip.scala"
+  "src/Tools/jEdit/src/process_indicator.scala"
+  "src/Tools/jEdit/src/protocol_dockable.scala"
+  "src/Tools/jEdit/src/query_dockable.scala"
+  "src/Tools/jEdit/src/raw_output_dockable.scala"
+  "src/Tools/jEdit/src/rich_text_area.scala"
+  "src/Tools/jEdit/src/scala_console.scala"
+  "src/Tools/jEdit/src/session_build.scala"
+  "src/Tools/jEdit/src/simplifier_trace_dockable.scala"
+  "src/Tools/jEdit/src/simplifier_trace_window.scala"
+  "src/Tools/jEdit/src/sledgehammer_dockable.scala"
+  "src/Tools/jEdit/src/state_dockable.scala"
+  "src/Tools/jEdit/src/symbols_dockable.scala"
+  "src/Tools/jEdit/src/syntax_style.scala"
+  "src/Tools/jEdit/src/syslog_dockable.scala"
+  "src/Tools/jEdit/src/text_overview.scala"
+  "src/Tools/jEdit/src/text_structure.scala"
+  "src/Tools/jEdit/src/theories_dockable.scala"
+  "src/Tools/jEdit/src/timing_dockable.scala"
+  "src/Tools/jEdit/src/token_markup.scala"
 )
 
 declare -a RESOURCES=(
-  "src/actions.xml"
-  "src/dockables.xml"
-  "src/Isabelle.props"
-  "src/jEdit.props"
-  "src/services.xml"
-  "src/modes/isabelle-ml.xml"
-  "src/modes/isabelle-news.xml"
-  "src/modes/isabelle-options.xml"
-  "src/modes/isabelle-root.xml"
-  "src/modes/isabelle.xml"
-  "src/modes/sml.xml"
+  "src/Tools/jEdit/src/actions.xml"
+  "src/Tools/jEdit/src/dockables.xml"
+  "src/Tools/jEdit/src/Isabelle.props"
+  "src/Tools/jEdit/src/jEdit.props"
+  "src/Tools/jEdit/src/services.xml"
+  "src/Tools/jEdit/src/modes/isabelle-ml.xml"
+  "src/Tools/jEdit/src/modes/isabelle-news.xml"
+  "src/Tools/jEdit/src/modes/isabelle-options.xml"
+  "src/Tools/jEdit/src/modes/isabelle-root.xml"
+  "src/Tools/jEdit/src/modes/isabelle.xml"
+  "src/Tools/jEdit/src/modes/sml.xml"
 )
 
 
@@ -245,77 +245,63 @@ if [ -e "$ISABELLE_HOME/Admin/build" ]; then
   "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
 fi
 
-PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
+JEDIT_BUILD_JAR="$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
 
-pushd "$JEDIT_HOME" >/dev/null || failed
-
-JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
-
-JEDIT_JARS=(
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Code2HTML.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/CommonControls.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/kappalayout.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/MacOSX.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Navigator.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
+declare -a JEDIT_BUILD_JARS=(
+  "Code2HTML.jar"
+  "CommonControls.jar"
+  "Console.jar"
+  "ErrorList.jar"
+  "Highlight.jar"
+  "kappalayout.jar"
+  "MacOSX.jar"
+  "Navigator.jar"
+  "SideKick.jar"
+  "idea-icons.jar"
+  "jsr305-2.0.0.jar"
 )
 
 
 # target
 
-TARGET_BASE="dist/jars/Isabelle-jEdit-base.jar"
-TARGET="dist/jars/Isabelle-jEdit.jar"
+pushd "$ISABELLE_HOME" >/dev/null || failed
 
-declare -a UPDATED=()
+TARGET_DIR="src/Tools/jEdit/dist"
+TARGET_JAR0="$TARGET_DIR/jars/Isabelle-jEdit-base.jar"
+TARGET_JAR="$TARGET_DIR/jars/Isabelle-jEdit.jar"
+TARGET_SHASUM="$TARGET_DIR/Isabelle-jEdit.shasum"
 
-if [ "$BUILD_JARS" = jars_fresh ]; then
-  OUTDATED=true
-else
-  OUTDATED=false
-  if [ ! -e "$TARGET_BASE" -a ! -e "$TARGET" ]; then
-    OUTDATED=true
-  else
-    if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-      declare -a DEPS=(
-        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
-        "${SOURCES_BASE[@]}" "${RESOURCES_BASE[@]}"
-        "${SOURCES[@]}" "${RESOURCES[@]}"
-      )
-    elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
-      declare -a DEPS=(
-        "$PURE_JAR"
-        "${SOURCES_BASE[@]}" "${RESOURCES_BASE[@]}"
-        "${SOURCES[@]}" "${RESOURCES[@]}"
-      )
-    else
-      declare -a DEPS=()
-    fi
-    for DEP in "${DEPS[@]}"
-    do
-      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
-      [ "$DEP" -nt "$TARGET_BASE" -o "$DEP" -nt "$TARGET" ] && {
-        OUTDATED=true
-        UPDATED["${#UPDATED[@]}"]="$DEP"
-      }
-    done
-  fi
-fi
+declare -a TARGET_DEPS=("lib/classes/Pure.jar" "$TARGET_DIR/jedit.jar")
+for DEP in "${JEDIT_BUILD_JARS[@]}"
+do
+  TARGET_DEPS["${#TARGET_DEPS[@]}"]="$TARGET_DIR/jars/$DEP"
+done
+
+function target_shasum()
+(
+  shasum -a1 -b "$TARGET_JAR0" "$TARGET_JAR" "${TARGET_DEPS[@]}" \
+    "${SOURCES0[@]}" "${RESOURCES0[@]}" "${SOURCES[@]}" "${RESOURCES[@]}" 2>/dev/null
+)
+
+function target_clean()
+{
+  rm -rf "$ISABELLE_HOME/$TARGET_DIR"
+}
+
+[ "$BUILD_JARS" = jars_fresh ] && target_clean
 
 
-# build
+## build
+
+BUILD_DIR="$TARGET_DIR/build"
 
 function init_resources ()
 {
-  mkdir -p dist/classes || failed
-  cp -p -R -f "$@" dist/classes/.
+  mkdir -p "$BUILD_DIR" || failed
+  cp -p -R "$@" "$BUILD_DIR/."
 }
 
-function compile_sources ()
+function compile_sources()
 {
   (
     #FIXME workarounds for scalac 2.11.0
@@ -323,51 +309,46 @@ function compile_sources ()
     function stty() { :; }
     export -f stty
 
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR"
+    for DEP in "${TARGET_DEPS[@]}"
     do
-      classpath "$JAR"
+      classpath "$DEP"
     done
     export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
-    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d dist/classes "$@"
+    isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS -d "$BUILD_DIR" "$@"
   ) || fail "Failed to compile sources"
 }
 
-function make_jar ()
+function make_jar()
 {
-  cd dist/classes
-  isabelle_jdk jar cf "../../$1" * || failed
-  cd ../..
-  rm -rf dist/classes
+  isabelle_jdk jar -c -f "$1" -C "$BUILD_DIR" . || failed
+  rm -rf "$ISABELLE_HOME/$BUILD_DIR"
 }
 
-if [ "$OUTDATED" = true ]
-then
+target_shasum | cmp "$TARGET_SHASUM" 2>/dev/null
+if [ "$?" -ne 0 ]; then
   echo "### Building Isabelle/jEdit ..."
-
-  [ "${#UPDATED[@]}" -gt 0 ] && {
-    echo "Changed files:"
-    for FILE in "${UPDATED[@]}"
-    do
-      echo "  $FILE"
-    done
-  }
 
   [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
     fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
 
-  rm -rf dist || failed
-  mkdir -p dist || failed
+  target_clean || failed
+  mkdir -p "$TARGET_DIR" || failed
 
-  cp -p -R -f "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
+  cp -p -R "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." "$TARGET_DIR/."
 
-  init_resources "${RESOURCES_BASE[@]}"
-  compile_sources "${SOURCES_BASE[@]}"
-  make_jar "$TARGET_BASE"
-  classpath "$PWD/$TARGET_BASE"
+  for DEP in "${JEDIT_BUILD_JARS[@]}"
+  do
+    cp -p "$ISABELLE_JEDIT_BUILD_HOME/contrib/$DEP" "$TARGET_DIR/jars/."
+  done
+
+  init_resources "${RESOURCES0[@]}"
+  compile_sources "${SOURCES0[@]}"
+  make_jar "$TARGET_JAR0"
+  classpath "$TARGET_JAR0"
 
   init_resources "${RESOURCES[@]}"
-  cp src/jEdit.props dist/properties/.
-  cp -p -R -f src/modes/. dist/modes/.
+  cp src/Tools/jEdit/src/jEdit.props "$TARGET_DIR/properties/."
+  cp -p -R -f "src/Tools/jEdit/src/modes/." "$TARGET_DIR/modes/."
 
   perl -i -e 'while (<>) {
     if (m/FILE="ml.xml"/ or m/FILE_NAME_GLOB="...sml,ml."/ or m/FILE_NAME_GLOB="..ftl"/) { }
@@ -384,25 +365,27 @@ then
       print;
     }
     else { print; }
-  }' dist/modes/catalog
+  }' "$TARGET_DIR/modes/catalog"
 
-  cd dist
-  isabelle_jdk jar xf jedit.jar
-  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
-    "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
-  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
-    "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
-  isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
-  rm -rf META-INF org
-  cd ..
+  (
+    cd "$TARGET_DIR"
+    isabelle_jdk jar -x -f jedit.jar
+    cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
+      "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
+    cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
+      "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
+    isabelle_jdk jar -c -f jedit.jar -e org.gjt.sp.jedit.jEdit org || failed
+    rm -rf META-INF org
+  )
 
-  cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   compile_sources "${SOURCES[@]}"
-  make_jar "$TARGET"
+  make_jar "$TARGET_JAR"
 
-  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.5.0manual-a4.pdf" dist/doc/jedit-manual.pdf
-  cp dist/doc/CHANGES.txt dist/doc/jedit-changes
-  cat > dist/doc/Contents <<EOF
+  target_shasum > "$TARGET_SHASUM"
+
+  cp "$ISABELLE_JEDIT_BUILD_HOME/doc/jedit5.5.0manual-a4.pdf" "$TARGET_DIR/doc/jedit-manual.pdf"
+  cp "$TARGET_DIR/doc/CHANGES.txt" "$TARGET_DIR/doc/jedit-changes"
+  cat > "$TARGET_DIR/doc/Contents" <<EOF
 Original jEdit Documentation
   jedit-manual    jEdit 5.5 User's Guide
   jedit-changes   jEdit 5.5 Version History
@@ -411,10 +394,10 @@ EOF
 
 fi
 
-popd >/dev/null
-
 
 ## main
+
+popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
