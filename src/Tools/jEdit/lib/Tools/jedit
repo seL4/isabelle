@@ -325,7 +325,7 @@ function make_jar()
 }
 
 target_shasum | cmp "$TARGET_SHASUM" 2>/dev/null
-if [ "$?" -ne 0 ]; then
+if [ -e "$ISABELLE_HOME/Admin/build" -a "$?" -ne 0 ]; then
   echo "### Building Isabelle/jEdit ..."
 
   [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
