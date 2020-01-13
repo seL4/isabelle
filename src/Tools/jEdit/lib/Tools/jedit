@@ -141,7 +141,7 @@ function failed()
 # options
 
 BUILD_ONLY=false
-BUILD_JARS="jars"
+FRESH_BUILD=""
 ML_PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
@@ -185,7 +185,7 @@ function getoptions()
         fi
         ;;
       f)
-        BUILD_JARS="jars_fresh"
+        FRESH_BUILD="true"
         ;;
       j)
         ARGS["${#ARGS[@]}"]="$OPTARG"
@@ -242,7 +242,14 @@ done
 
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
   isabelle browser -b || exit $?
-  "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
+  if [ -n "$FRESH_BUILD" ]; then
+    "$ISABELLE_HOME/Admin/build" jars_fresh || exit $?
+  else
+    "$ISABELLE_HOME/Admin/build" jars || exit $?
+  fi
+elif [ -n "$FRESH_BUILD" ]; then
+  echo >&2 "### Ignoring fresh build option: not a repository clone"
+  FRESH_BUILD=""
 fi
 
 JEDIT_BUILD_JAR="$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
@@ -288,7 +295,7 @@ function target_clean()
   rm -rf "$ISABELLE_HOME/$TARGET_DIR"
 }
 
-[ "$BUILD_JARS" = jars_fresh ] && target_clean
+[ -n "$FRESH_BUILD" ] && target_clean
 
 
 ## build
