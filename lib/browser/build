@@ -59,7 +59,7 @@ done
 
 if [ "$OUTDATED" = true ]
 then
-  echo "### Building graph browser ..."
+  echo >&2 "### Building graph browser ..."
 
   rm -rf classes && mkdir classes
 

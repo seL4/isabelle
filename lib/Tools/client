@@ -64,6 +64,6 @@ if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
   exec "$ISABELLE_LINE_EDITOR" isabelle server "${SERVER_OPTS[@]}"
 else
-  echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
+  echo >&2 "### No line editor: \"$ISABELLE_LINE_EDITOR\""
   exec isabelle server "${SERVER_OPTS[@]}"
 fi

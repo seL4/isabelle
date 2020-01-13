@@ -14,6 +14,6 @@ if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
   exec "$ISABELLE_LINE_EDITOR" isabelle java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
 else
-  echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
+  echo >&2 "### No line editor: \"$ISABELLE_LINE_EDITOR\""
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
 fi
