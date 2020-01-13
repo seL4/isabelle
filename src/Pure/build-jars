@@ -258,14 +258,14 @@ TARGET_DIR="lib/classes"
 TARGET_JAR="$TARGET_DIR/Pure.jar"
 TARGET_SHASUM="$TARGET_DIR/Pure.shasum"
 
-function target_clean()
-{
-  rm -rf "$TARGET_DIR"
-}
-
 function target_shasum()
 {
   shasum -a1 -b "$TARGET_JAR" "${SOURCES[@]}" 2>/dev/null
+}
+
+function target_clean()
+{
+  rm -rf "$TARGET_DIR"
 }
 
 [ -n "$FRESH" ] && target_clean
