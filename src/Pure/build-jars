@@ -273,7 +273,7 @@ function target_clean()
 
 ## build
 
-target_shasum | cmp "$TARGET_SHASUM" 2>/dev/null
+target_shasum | cmp "$TARGET_SHASUM" >/dev/null 2>/dev/null
 if [ "$?" -ne 0 ]; then
   echo "### Building Isabelle/Scala ..."
 

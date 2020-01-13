@@ -331,7 +331,7 @@ function make_jar()
   rm -rf "$ISABELLE_HOME/$BUILD_DIR"
 }
 
-target_shasum | cmp "$TARGET_SHASUM" 2>/dev/null
+target_shasum | cmp "$TARGET_SHASUM" >/dev/null 2>/dev/null
 if [ -e "$ISABELLE_HOME/Admin/build" -a "$?" -ne 0 ]; then
   echo "### Building Isabelle/jEdit ..."
 
