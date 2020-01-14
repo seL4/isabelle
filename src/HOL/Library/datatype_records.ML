@@ -296,7 +296,7 @@ val parse_ctr_options =
 
 val parser =
   (parse_ctr_options -- BNF_Util.parse_type_args_named_constrained -- Parse.binding) --
-    (\<^keyword>\<open>=\<close> |-- Scan.repeat1 (Parse.binding -- (Parse.$$$ "::" |-- Parse.!!! Parse.typ)))
+    (\<^keyword>\<open>=\<close> |-- Scan.repeat1 (Parse.binding -- (\<^keyword>\<open>::\<close> |-- Parse.!!! Parse.typ)))
 
 val _ =
   Outer_Syntax.local_theory

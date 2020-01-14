@@ -2379,12 +2379,12 @@ val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>corecursive
 
 val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>friend_of_corec\<close>
   "register a function as a legal context for nonprimitive corecursion"
-  (Parse.const -- Scan.option (Parse.$$$ "::" |-- Parse.typ) --| Parse.where_ -- Parse.prop
+  (Parse.const -- Scan.option (\<^keyword>\<open>::\<close> |-- Parse.typ) --| Parse.where_ -- Parse.prop
    >> friend_of_corec_cmd);
 
 val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>coinduction_upto\<close>
   "derive a coinduction up-to principle and a corresponding congruence closure"
-  (Parse.name --| Parse.$$$ ":" -- Parse.typ >> coinduction_upto_cmd);
+  (Parse.name --| \<^keyword>\<open>:\<close> -- Parse.typ >> coinduction_upto_cmd);
 
 val _ = Theory.setup (Theory.at_begin consolidate_global);
 
