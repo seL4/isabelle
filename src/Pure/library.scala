@@ -268,9 +268,6 @@ object Library
 
   /* proper values */
 
-  def proper[A](x: A): Option[A] =
-    if (x == null) None else Some(x)
-
   def proper_string(s: String): Option[String] =
     if (s == null || s == "") None else Some(s)
 
