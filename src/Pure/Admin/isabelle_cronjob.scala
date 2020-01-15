@@ -116,7 +116,7 @@ object Isabelle_Cronjob
 
     def known_versions(rev: String, afp_rev: Option[String]): Boolean =
       known && rev != "" && isabelle_version == rev &&
-      (afp_rev.isEmpty || afp_rev.get != "" && afp_version == afp_rev.get)
+      (afp_rev.isEmpty || afp_rev.get != "" && afp_version == afp_rev)
   }
 
   def recent_items(db: SQL.Database,
