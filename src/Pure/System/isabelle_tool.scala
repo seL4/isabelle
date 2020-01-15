@@ -159,6 +159,7 @@ class Tools extends Isabelle_Scala_Tools(
   Present.isabelle_tool,
   Profiling_Report.isabelle_tool,
   Server.isabelle_tool,
+  Scala_Project.isabelle_tool,
   Update.isabelle_tool,
   Update_Cartouches.isabelle_tool,
   Update_Comments.isabelle_tool,

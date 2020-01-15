@@ -110,6 +110,10 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
+* The command-line tool "isabelle scala_project" creates a Gradle
+project configuration for Isabelle/Scala/jEdit, to support Scala IDEs
+such as IntelliJ IDEA.
+
 * Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
 have been discontinued -- deprecated since Isabelle2018.
 
