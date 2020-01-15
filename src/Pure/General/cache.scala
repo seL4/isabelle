@@ -24,11 +24,7 @@ class Cache(initial_size: Int = 131071, max_string: Int = 100)
   {
     val ref = table.get(x)
     if (ref == null) None
-    else {
-      val y = ref.asInstanceOf[WeakReference[A]].get
-      if (y == null) None
-      else Some(y)
-    }
+    else Option(ref.asInstanceOf[WeakReference[A]].get)
   }
 
   protected def store[A](x: A): A =
