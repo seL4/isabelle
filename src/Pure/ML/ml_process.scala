@@ -128,8 +128,8 @@ object ML_Process
     // bash
     val bash_args =
       ml_runtime_options :::
-      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base ::: eval_process).
-        map(eval => List("--eval", eval)).flatten ::: args
+      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base ::: eval_process)
+        .flatMap(eval => List("--eval", eval)) ::: args
 
     Bash.process(
       "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +
@@ -180,7 +180,7 @@ Usage: isabelle process [OPTIONS]
       "o:" -> (arg => options = options + arg))
 
     val more_args = getopts(args)
-    if (args.isEmpty || !more_args.isEmpty) getopts.usage()
+    if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
     val rc = ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
       result().print_stdout.rc

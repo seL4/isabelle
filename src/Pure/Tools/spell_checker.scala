@@ -198,7 +198,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
 
   def reset_enabled(): Int =
-    updates.valuesIterator.filter(upd => !upd.permanent).length
+    updates.valuesIterator.count(upd => !upd.permanent)
 
 
   /* check known words */

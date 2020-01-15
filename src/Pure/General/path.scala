@@ -233,7 +233,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
         case x => List(x)
       }
 
-    new Path(Path.norm_elems(elems.map(eval).flatten))
+    new Path(Path.norm_elems(elems.flatMap(eval)))
   }
 
   def expand: Path = expand_env(Isabelle_System.settings())

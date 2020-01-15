@@ -90,7 +90,7 @@ object SSH
       host_key_alias: String = "",
       on_close: () => Unit = () => ()): Session =
     {
-      val session = jsch.getSession(proper_string(user) getOrElse null, host, make_port(port))
+      val session = jsch.getSession(proper_string(user).orNull, host, make_port(port))
 
       session.setUserInfo(No_User_Info)
       session.setServerAliveInterval(alive_interval(options))

@@ -179,7 +179,7 @@ class Mutator_Dialog(
     contents += enabledBox
     contents += Swing.RigidBox(new Dimension(5, 0))
     focusList = enabledBox.peer :: focusList
-    inputs.map(_ match {
+    inputs.map({
       case (n, c) =>
         contents += Swing.RigidBox(new Dimension(10, 0))
         if (n != "") {
@@ -189,7 +189,6 @@ class Mutator_Dialog(
         contents += c.asInstanceOf[Component]
 
         focusList = c.asInstanceOf[Component].peer :: focusList
-      case _ =>
     })
 
     {
@@ -371,12 +370,12 @@ class Mutator_Dialog(
     }
 
     def getFirstComponent(root: java.awt.Container): java.awt.Component =
-      if (items.length > 0) items(0) else null
+      if (items.nonEmpty) items(0) else null
 
     def getDefaultComponent(root: java.awt.Container): java.awt.Component =
       getFirstComponent(root)
 
     def getLastComponent(root: java.awt.Container): java.awt.Component =
-      if (items.length > 0) items.last else null
+      if (items.nonEmpty) items.last else null
   }
 }

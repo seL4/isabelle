@@ -153,7 +153,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
             new Markup_Tree(branches -- body.keys, Entry(new_markup, new Markup_Tree(body)))
           else {
             Output.warning("Ignored overlapping markup information: " + new_markup + "\n" +
-              body.filter(e => !new_range.contains(e._1)).map(_._2).mkString("\n"))
+              body.filter(e => !new_range.contains(e._1)).values.mkString("\n"))
             this
           }
         }

@@ -47,7 +47,7 @@ Usage: isabelle console [OPTIONS]
         "r" -> (_ => raw_ml_system = true))
 
       val more_args = getopts(args)
-      if (!more_args.isEmpty) getopts.usage()
+      if (more_args.nonEmpty) getopts.usage()
 
 
       // build logic

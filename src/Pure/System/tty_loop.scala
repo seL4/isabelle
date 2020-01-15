@@ -21,12 +21,12 @@ class TTY_Loop(writer: Writer, reader: Reader,
       while (!finished) {
         var c = -1
         var done = false
-        while (!done && (result.length == 0 || reader.ready)) {
+        while (!done && (result.isEmpty || reader.ready)) {
           c = reader.read
           if (c >= 0) result.append(c.asInstanceOf[Char])
           else done = true
         }
-        if (result.length > 0) {
+        if (result.nonEmpty) {
           System.out.print(result.toString)
           System.out.flush()
           result.clear

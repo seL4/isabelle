@@ -117,7 +117,7 @@ final class Linear_Set[A] private(
 
   override def stringPrefix = "Linear_Set"
 
-  override def isEmpty: Boolean = !start.isDefined
+  override def isEmpty: Boolean = start.isEmpty
   override def size: Int = if (isEmpty) 0 else nexts.size + 1
 
   def contains(elem: A): Boolean =

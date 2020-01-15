@@ -368,7 +368,7 @@ object Completion_Popup
         }
 
         val selection = text_area.getSelection()
-        if (!special && (selection == null || selection.length == 0))
+        if (!special && (selection == null || selection.isEmpty))
           Isabelle.indent_input(text_area)
       }
     }

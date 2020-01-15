@@ -200,7 +200,7 @@ object Mercurial
     val edited =
       hgrc.is_file && {
         val lines = split_lines(File.read(hgrc))
-        lines.filter(header).length == 1 && {
+        lines.count(header) == 1 && {
           if (local_hg.paths(options = "-q").contains(path_name)) {
             val old_source = local_hg.paths(args = path_name).head
             val old_entry = path_name + ".old = " + old_source

@@ -11,9 +11,9 @@ object Platform
 {
   /* platform family */
 
-  val is_linux = System.getProperty("os.name", "") == "Linux"
-  val is_macos = System.getProperty("os.name", "") == "Mac OS X"
-  val is_windows = System.getProperty("os.name", "").startsWith("Windows")
+  val is_linux: Boolean = System.getProperty("os.name", "") == "Linux"
+  val is_macos: Boolean = System.getProperty("os.name", "") == "Mac OS X"
+  val is_windows: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
   def family: Family.Value =
     if (is_linux) Family.linux
@@ -58,7 +58,7 @@ object Platform
   /* JVM version */
 
   private val Version = """1\.(\d+)\.0_(\d+)""".r
-  lazy val jvm_version =
+  lazy val jvm_version: String =
     System.getProperty("java.version") match {
       case Version(a, b) => a + "u" + b
       case a => a

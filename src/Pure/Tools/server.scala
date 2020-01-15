@@ -520,7 +520,7 @@ class Server private(_port: Int, val log: Logger)
 
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
   def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))
-  def the_session(id: UUID.T): Headless.Session = _sessions.value.get(id) getOrElse err_session(id)
+  def the_session(id: UUID.T): Headless.Session = _sessions.value.getOrElse(id, err_session(id))
   def add_session(entry: (UUID.T, Headless.Session)) { _sessions.change(_ + entry) }
   def remove_session(id: UUID.T): Headless.Session =
   {

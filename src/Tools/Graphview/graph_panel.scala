@@ -148,7 +148,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
       (scale * font_height).floor / font_height
     }
 
-    def apply() =
+    def apply(): AffineTransform =
     {
       val box = graphview.bounding_box()
       val t = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)

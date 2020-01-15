@@ -232,8 +232,8 @@ object Layout
           case (outer_parent, outer_parent_index) =>
             graph.imm_succs(outer_parent).iterator.map(bot.indexOf(_)).map(outer_child =>
               (0 until outer_parent_index).iterator.map(inner_parent =>
-                graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_)).
-                  filter(inner_child => outer_child < inner_child).size).sum).sum
+                graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_))
+                  .count(inner_child => outer_child < inner_child)).sum).sum
         }.sum
       case _ => 0
     }.sum
@@ -289,7 +289,7 @@ object Layout
 
     def deflect(level: List[Region], top_down: Boolean, graph: Graph): (Graph, Boolean) =
     {
-      ((graph, false) /: (0 until level.length)) {
+      ((graph, false) /: level.indices) {
         case ((graph, moved), i) =>
           val r = level(i)
           val d = r.deflection(graph, top_down)

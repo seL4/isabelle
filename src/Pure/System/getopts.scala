@@ -47,11 +47,11 @@ class Getopts private(usage_text: String, options: Map[Char, (Boolean, String =>
   private def getopts(args: List[List[Char]]): List[List[Char]] =
     args match {
       case List('-', '-') :: rest_args => rest_args
-      case ('-' :: opt :: rest_opts) :: rest_args if is_option0(opt) && !rest_opts.isEmpty =>
+      case ('-' :: opt :: rest_opts) :: rest_args if is_option0(opt) && rest_opts.nonEmpty =>
         option(opt, Nil); getopts(('-' :: rest_opts) :: rest_args)
       case List('-', opt) :: rest_args if is_option0(opt) =>
         option(opt, Nil); getopts(rest_args)
-      case ('-' :: opt :: opt_arg) :: rest_args if is_option1(opt) && !opt_arg.isEmpty =>
+      case ('-' :: opt :: opt_arg) :: rest_args if is_option1(opt) && opt_arg.nonEmpty =>
         option(opt, opt_arg); getopts(rest_args)
       case List('-', opt) :: opt_arg :: rest_args if is_option1(opt) =>
         option(opt, opt_arg); getopts(rest_args)

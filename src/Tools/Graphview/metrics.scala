@@ -36,7 +36,7 @@ class Metrics private(val font: Font)
 {
   def string_bounds(s: String): Rectangle2D = font.getStringBounds(s, Metrics.font_render_context)
   private val mix = string_bounds("mix")
-  val space_width = string_bounds(" ").getWidth
+  val space_width: Double = string_bounds(" ").getWidth
   def char_width: Double = mix.getWidth / 3
   def height: Double = mix.getHeight
   def ascent: Double = font.getLineMetrics("", Metrics.font_render_context).getAscent
@@ -56,7 +56,7 @@ class Metrics private(val font: Font)
 
   object Pretty_Metric extends Pretty.Metric
   {
-    val unit = space_width max 1.0
+    val unit: Double = space_width max 1.0
     def apply(s: String): Double = if (s == "\n") 1.0 else string_bounds(s).getWidth / unit
   }
 }

@@ -379,11 +379,10 @@ object Symbol
     }
 
     val groups: List[(String, List[Symbol])] =
-      symbols.map({ case (sym, props) =>
+      symbols.flatMap({ case (sym, props) =>
         val gs = for (("group", g) <- props) yield g
         if (gs.isEmpty) List(sym -> "unsorted") else gs.map(sym -> _)
-      }).flatten
-        .groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
+      }).groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
         .sortBy(_._1)
 
     val abbrevs: Multi_Map[Symbol, String] =
@@ -444,7 +443,7 @@ object Symbol
       recode_map((for ((sym, Font(font)) <- symbols) yield sym -> font): _*)
 
     val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
-    val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
+    val font_index: Map[String, Int] = Map((font_names zip font_names.indices.toList): _*)
 
 
     /* classification */

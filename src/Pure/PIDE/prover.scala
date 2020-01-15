@@ -22,8 +22,8 @@ object Prover
   {
     override def toString: String =
       XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
-        args.map(s =>
-          List(XML.newline, XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
+        args.flatMap(s =>
+          List(XML.newline, XML.elem(Markup.PROVER_ARG, YXML.parse_body(s))))).toString
   }
 
   class Output(val message: XML.Elem) extends Message
@@ -224,12 +224,12 @@ class Prover(
           //{{{
           var c = -1
           var done = false
-          while (!done && (result.length == 0 || reader.ready)) {
+          while (!done && (result.isEmpty || reader.ready)) {
             c = reader.read
             if (c >= 0) result.append(c.asInstanceOf[Char])
             else done = true
           }
-          if (result.length > 0) {
+          if (result.nonEmpty) {
             output(markup, Nil, List(XML.Text(Symbol.decode(result.toString))))
             result.clear
           }

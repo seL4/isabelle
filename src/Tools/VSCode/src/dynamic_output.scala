@@ -28,7 +28,7 @@ object Dynamic_Output
                 case None => copy(output = Nil)
                 case Some(command) =>
                   copy(output =
-                    if (!restriction.isDefined || restriction.get.contains(command))
+                    if (restriction.isEmpty || restriction.get.contains(command))
                       Rendering.output_messages(snapshot.command_results(command))
                     else output)
               }

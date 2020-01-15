@@ -82,7 +82,7 @@ object Isabelle_Tool
   }
 
   private def find_external(name: String): Option[List[String] => Unit] =
-    dirs.collectFirst({
+    dirs().collectFirst({
       case dir if is_external(dir, name + ".scala") =>
         compile(dir + Path.explode(name + ".scala"))
       case dir if is_external(dir, name) =>

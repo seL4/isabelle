@@ -412,7 +412,7 @@ object Scan
       val offset = in.offset
       val len = source.length - offset
 
-      def scan_tree(tree: Lexicon.Tree, result: String, i: Int): String =
+      @tailrec def scan_tree(tree: Lexicon.Tree, result: String, i: Int): String =
       {
         if (i < len) {
           tree.branches.get(source.charAt(offset + i)) match {
