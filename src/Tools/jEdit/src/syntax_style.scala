@@ -40,7 +40,7 @@ object Syntax_Style
     font_style(style, font0 =>
       {
         val font1 =
-          font0.deriveFont(java.util.Map.of(TextAttribute.SUPERSCRIPT, new java.lang.Integer(i)))
+          font0.deriveFont(java.util.Map.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
 
         def shift(y: Float): Font =
           GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))

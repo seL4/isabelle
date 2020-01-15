@@ -27,10 +27,10 @@ object Color_Value
 
   def print(c: Color): String =
   {
-    val r = new java.lang.Integer(c.getRed)
-    val g = new java.lang.Integer(c.getGreen)
-    val b = new java.lang.Integer(c.getBlue)
-    val a = new java.lang.Integer(c.getAlpha)
+    val r = java.lang.Integer.valueOf(c.getRed)
+    val g = java.lang.Integer.valueOf(c.getGreen)
+    val b = java.lang.Integer.valueOf(c.getBlue)
+    val a = java.lang.Integer.valueOf(c.getAlpha)
     Word.uppercase(String.format(Locale.ROOT, "%02x%02x%02x%02x", r, g, b, a))
   }
 
