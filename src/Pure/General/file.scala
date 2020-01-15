@@ -118,9 +118,6 @@ object File
     else None
   }
 
-  def rebase_path(base: Path, other: Path): Option[Path] =
-    relative_path(base, other).map(base + _)
-
 
   /* bash path */
 
