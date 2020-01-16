@@ -97,8 +97,8 @@ Console.println("document = " + options.string("document"))\<close>}
 section \<open>Project setup for common Scala IDEs\<close>
 
 text \<open>
-  The @{tool_def scala_project} tool creates a Gradle project configuration
-  for Isabelle/Scala/jEdit:
+  The @{tool_def scala_project} tool creates a project configuration for
+  Isabelle/Scala/jEdit:
   @{verbatim [display]
 \<open>Usage: isabelle scala_project [OPTIONS] PROJECT_DIR
 
@@ -108,23 +108,23 @@ text \<open>
   Setup Gradle project for Isabelle/Scala/jEdit --- to support Scala IDEs
   such as IntelliJ IDEA.\<close>}
 
-  The generated project configuration is for Gradle\<^footnote>\<open>\<^url>\<open>https://gradle.org\<close>\<close>,
-  but the main purpose is to import it into common Scala IDEs, such as
-  IntelliJ IDEA\<^footnote>\<open>\<^url>\<open>https://www.jetbrains.com/idea\<close>\<close>. This allows to explore
-  the sources with static analysis and other hints in real-time.
+  The generated configuration is for Gradle\<^footnote>\<open>\<^url>\<open>https://gradle.org\<close>\<close>, but the
+  main purpose is to import it into common Scala IDEs, such as IntelliJ
+  IDEA\<^footnote>\<open>\<^url>\<open>https://www.jetbrains.com/idea\<close>\<close>. This allows to explore the
+  sources with static analysis and other hints in real-time.
 
   The specified project directory must not exist yet. The generated files
-  refer to physical file locations, using the path notation of the underlying
-  OS platform. Thus the project needs to be recreated whenever the Isabelle
-  installation is changed or moved.
+  refer to physical file-system locations, using the path notation of the
+  underlying OS platform. Thus the project needs to be recreated whenever the
+  Isabelle installation is changed or moved.
 
   \<^medskip> By default, Scala sources are \<^emph>\<open>copied\<close> from the Isabelle distribution and
   editing them within the IDE has no permanent effect.
 
-  Alternatively, option \<^verbatim>\<open>-l\<close> may be used to produce symlinks to the original
-  files: this allows to develop Isabelle/Scala/jEdit within an external Scala
-  IDE. Note that building the result always requires \<^verbatim>\<open>isabelle jedit -b\<close> on
-  the command-line.
+  Option \<^verbatim>\<open>-l\<close> produces \<^emph>\<open>symlinks\<close> to the original files: this allows to
+  develop Isabelle/Scala/jEdit within an external Scala IDE. Note that
+  building the result always requires \<^verbatim>\<open>isabelle jedit -b\<close> on the
+  command-line.
 \<close>
 
 end
