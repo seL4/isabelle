@@ -252,6 +252,10 @@ text \<open>
 
       \<^item> Enable \<^verbatim>\<open>policy.allow-public\<close> to allow read-only access to resources,
       without requiring user registration.
+
+    \<^item> Adjust \<^verbatim>\<open>phabricator.cookie-prefix\<close> for multiple installations with
+    overlapping domains (see also the documentation of this configuration
+    option within Phabricator).
 \<close>
 
 
