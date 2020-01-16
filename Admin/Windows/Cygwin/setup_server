@@ -18,9 +18,6 @@ function download()
   curl --fail --silent "$URL" > "$DIR"/"$(basename "$URL")" || fail "FAILED"
 }
 
-download "$CYGWIN_MAIN/setup-x86.exe"
 download "$CYGWIN_MAIN/setup-x86_64.exe"
-download "$CYGWIN_MIRROR/x86/setup.xz" "x86"
-download "$CYGWIN_MIRROR/x86/setup.xz.sig" "x86"
 download "$CYGWIN_MIRROR/x86_64/setup.xz" "x86_64"
 download "$CYGWIN_MIRROR/x86_64/setup.xz.sig" "x86_64"
