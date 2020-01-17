@@ -646,11 +646,6 @@ lemma (in monoid) Units_pow_closed :
   shows "x [^] d \<in> Units G"
     by (metis assms group.is_monoid monoid.nat_pow_closed units_group units_of_carrier units_of_pow)
 
-lemma (in comm_monoid) is_monoid:
-  shows "monoid G" by unfold_locales
-
-declare comm_monoid.is_monoid[intro?]
-
 lemma (in ring) r_right_minus_eq[simp]:
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "a \<ominus> b = \<zero> \<longleftrightarrow> a = b"
