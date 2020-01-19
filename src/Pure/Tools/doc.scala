@@ -33,20 +33,13 @@ object Doc
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
-  private val Variable_Path = new Regex("""^\$[^/]+/+(.+)$""")
-
   def text_file(path: Path): Option[Text_File] =
-  {
     if (path.is_file) {
-      val name =
-        path.implode match {
-          case Variable_Path(name) => name
-          case name => name
-        }
-      Some(Text_File(name, path))
+      val a = path.implode
+      val b = Library.try_unprefix("$ISABELLE_HOME/", a).getOrElse(a)
+      Some(Text_File(b, path))
     }
     else None
-  }
 
   private val Section_Entry = new Regex("""^(\S.*)\s*$""")
   private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
