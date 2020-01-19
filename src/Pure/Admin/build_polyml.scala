@@ -193,18 +193,58 @@ object Build_PolyML
 
   /** skeleton for component **/
 
-  def build_polyml_component(component: Path, sha1_root: Option[Path] = None)
+  private def extract_sources(source_archive: Path, component_dir: Path) =
   {
-    if (component.is_dir) error("Directory already exists: " + component)
+    if (source_archive.get_ext == "zip") {
+      Isabelle_System.bash(
+        "unzip -x " + File.bash_path(source_archive.absolute), cwd = component_dir.file).check
+    }
+    else {
+      Isabelle_System.gnutar("-xzf " + File.bash_path(source_archive), dir = component_dir).check
+    }
 
-    val etc = component + Path.explode("etc")
-    Isabelle_System.mkdirs(etc)
-    File.copy(Path.explode("~~/Admin/polyml/settings"), etc)
-    File.copy(Path.explode("~~/Admin/polyml/README"), component)
+    val src_dir = component_dir + Path.explode("src")
+    File.read_dir(component_dir) match {
+      case List(s) => File.move(component_dir + Path.basic(s), src_dir)
+      case _ => error("Source archive contains multiple directories")
+    }
+
+    val lines = split_lines(File.read(src_dir + Path.explode("RootX86.ML")))
+    val ml_files =
+      for {
+        line <- lines
+        rest <- Library.try_unprefix("use", line)
+      } yield "ML_file" + rest
+
+    File.write(src_dir + Path.explode("ROOT.ML"),
+"""(* Poly/ML Compiler root file.
+
+When this file is open in the Prover IDE, the ML files of the Poly/ML
+compiler can be explored interactively. This is a separate copy: it does
+not affect the running ML session. *)
+""" + ml_files.mkString("\n", "\n", "\n"))
+  }
+
+  def build_polyml_component(
+    source_archive: Path,
+    component_dir: Path,
+    sha1_root: Option[Path] = None)
+  {
+    if (component_dir.is_file || component_dir.is_dir)
+      error("Component directory already exists: " + component_dir)
+
+    Isabelle_System.mkdirs(component_dir)
+    extract_sources(source_archive, component_dir)
+
+    File.copy(Path.explode("~~/Admin/polyml/README"), component_dir)
+
+    val etc_dir = component_dir + Path.explode("etc")
+    Isabelle_System.mkdirs(etc_dir)
+    File.copy(Path.explode("~~/Admin/polyml/settings"), etc_dir)
 
     sha1_root match {
       case Some(dir) =>
-        Mercurial.repository(dir).archive(File.standard_path(component + Path.explode("sha1")))
+        Mercurial.repository(dir).archive(File.standard_path(component_dir + Path.explode("sha1")))
       case None =>
     }
   }
@@ -259,22 +299,24 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var sha1_root: Option[Path] = None
 
         val getopts = Getopts("""
-Usage: isabelle build_polyml_component [OPTIONS] TARGET
+Usage: isabelle build_polyml_component [OPTIONS] SOURCE_ARCHIVE COMPONENT_DIR
 
   Options are:
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
-  Make skeleton for Poly/ML component in directory TARGET.
+  Make skeleton for Poly/ML component, based on official source archive
+  (zip or tar.gz).
 """,
           "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
 
         val more_args = getopts(args)
-        val component =
+
+        val (source_archive, component_dir) =
           more_args match {
-            case List(arg) => Path.explode(arg)
+            case List(archive, dir) => (Path.explode(archive), Path.explode(dir))
             case _ => getopts.usage()
           }
-        build_polyml_component(component, sha1_root = sha1_root)
+        build_polyml_component(source_archive, component_dir, sha1_root = sha1_root)
       }
     })
 }
