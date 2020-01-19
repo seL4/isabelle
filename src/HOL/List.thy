@@ -1519,7 +1519,7 @@ next
     also have "\<dots> = Suc(card(Suc ` ?S))" using fin
       by (simp add: card_image)
     also have "\<dots> = card ?S'" using eq fin
-      by (simp add:card_insert_if) 
+      by (simp add:card_insert_if)
     finally show ?thesis .
   next
     assume "\<not> p x"
@@ -1663,6 +1663,30 @@ qed (auto)
 lemma concat_injective: "concat xs = concat ys ==> length xs = length ys ==> \<forall>(x, y) \<in> set (zip xs ys). length x = length y ==> xs = ys"
   by (simp add: concat_eq_concat_iff)
 
+lemma concat_eq_appendD:
+  assumes "concat xss = ys @ zs" "xss \<noteq> []"
+  shows "\<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2"
+  using assms
+proof(induction xss arbitrary: ys)
+  case (Cons xs xss)
+  from Cons.prems consider
+    us where "xs @ us = ys" "concat xss = us @ zs" |
+    us where "xs = ys @ us" "us @ concat xss = zs"
+    by(auto simp add: append_eq_append_conv2)
+  then show ?case
+  proof cases
+    case 1
+    then show ?thesis using Cons.IH[OF 1(2)]
+      by(cases xss)(auto intro: exI[where x="[]"], metis append.assoc append_Cons concat.simps(2))
+  qed(auto intro: exI[where x="[]"])
+qed simp
+
+lemma concat_eq_append_conv:
+  "concat xss = ys @ zs \<longleftrightarrow>
+  (if xss = [] then ys = [] \<and> zs = []
+   else \<exists>xss1 xs xs' xss2. xss = xss1 @ (xs @ xs') # xss2 \<and> ys = concat xss1 @ xs \<and> zs = xs' @ concat xss2)"
+  by(auto dest: concat_eq_appendD)
+
 
 subsubsection \<open>\<^const>\<open>nth\<close>\<close>
 
@@ -1709,7 +1733,7 @@ lemma list_eq_iff_nth_eq:
   "(xs = ys) = (length xs = length ys \<and> (\<forall>i<length xs. xs!i = ys!i))"
 proof (induct xs arbitrary: ys)
   case (Cons x xs ys)
-  show ?case 
+  show ?case
   proof (cases ys)
     case (Cons y ys)
     then show ?thesis
@@ -2241,6 +2265,20 @@ proof (induct xs arbitrary: zs)
     by (cases zs, auto)
 qed auto
 
+lemma map_eq_append_conv:
+  "map f xs = ys @ zs \<longleftrightarrow> (\<exists>us vs. xs = us @ vs \<and> ys = map f us \<and> zs = map f vs)"
+proof -
+  have "map f xs \<noteq> ys @ zs \<and> map f xs \<noteq> ys @ zs \<or> map f xs \<noteq> ys @ zs \<or> map f xs = ys @ zs \<and>
+    (\<exists>bs bsa. xs = bs @ bsa \<and> ys = map f bs \<and> zs = map f bsa)"
+    by (metis append_eq_conv_conj append_take_drop_id drop_map take_map)
+  then show ?thesis
+    using map_append by blast
+qed
+
+lemma append_eq_map_conv:
+  "ys @ zs = map f xs \<longleftrightarrow> (\<exists>us vs. xs = us @ vs \<and> ys = map f us \<and> zs = map f vs)"
+by (metis map_eq_append_conv)
+
 lemma take_add:  "take (i+j) xs = take i xs @ take j (drop i xs)"
 proof (induct xs arbitrary: i)
   case (Cons x xs i) then show ?case
@@ -2296,7 +2334,7 @@ proof (cases "n \<ge> length xs")
     by (simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc split: nat.split)
 qed auto
 
-lemma drop_update_swap: 
+lemma drop_update_swap:
   assumes "m \<le> n" shows "drop m (xs[n := x]) = (drop m xs)[n-m := x]"
 proof (cases "n \<ge> length xs")
   case False
@@ -3351,7 +3389,7 @@ apply(subst upto_rec1)
 apply(auto simp add: nth_Cons')
 done
 
-lemma upto_split1: 
+lemma upto_split1:
   "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j-1] @ [j..k]"
 proof (induction j rule: int_ge_induct)
   case base thus ?case by (simp add: upto_rec1)
@@ -3359,7 +3397,7 @@ next
   case step thus ?case using upto_rec1 upto_rec2 by simp
 qed
 
-lemma upto_split2: 
+lemma upto_split2:
   "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j] @ [j+1..k]"
 using upto_rec1 upto_rec2 upto_split1 by auto
 
@@ -3475,7 +3513,7 @@ proof (cases "i < length xs")
   next
     case False
     then show ?thesis
-      using d anot \<open>i < length xs\<close> 
+      using d anot \<open>i < length xs\<close>
       apply (simp add: upd_conv_take_nth_drop)
       by (metis disjoint_insert(1) distinct_append id_take_nth_drop set_simps(2))
   qed
@@ -3611,6 +3649,10 @@ qed simp
 lemma length_remdups_concat:
   "length (remdups (concat xss)) = card (\<Union>xs\<in>set xss. set xs)"
 by (simp add: distinct_card [symmetric])
+
+lemma remdups_append2:
+  "remdups (xs @ remdups ys) = remdups (xs @ ys)"
+by(induction xs) auto
 
 lemma length_remdups_card_conv: "length(remdups xs) = card(set xs)"
 proof -
@@ -4407,6 +4449,9 @@ by(simp add:rotate_def funpow_add)
 
 lemma rotate_rotate: "rotate m (rotate n xs) = rotate (m+n) xs"
 by(simp add:rotate_add)
+
+lemma rotate1_map: "rotate1 (map f xs) = map f (rotate1 xs)"
+by(cases xs) simp_all
 
 lemma rotate1_rotate_swap: "rotate1 (rotate n xs) = rotate n (rotate1 xs)"
 by(simp add:rotate_def funpow_swap1)
@@ -6155,7 +6200,7 @@ proof (induction x arbitrary: y)
 next
   case (Cons a x y) then show ?case
     by (cases y) (force+)
-qed 
+qed
 
 lemma lexord_irrefl:
   "irrefl R \<Longrightarrow> irrefl (lexord R)"

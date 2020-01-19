@@ -484,6 +484,105 @@ lemma equivp_symp: "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
 lemma equivp_transp: "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   by (erule equivpE, erule transpE)
 
+lemma equivp_rtranclp: "symp r \<Longrightarrow> equivp r\<^sup>*\<^sup>*"
+  by(intro equivpI reflpI sympI transpI)(auto dest: sympD[OF symp_rtranclp])
+
+lemmas equivp_rtranclp_symclp [simp] = equivp_rtranclp[OF symp_symclp]
+
+lemma equivp_vimage2p: "equivp R \<Longrightarrow> equivp (vimage2p f f R)"
+  by(auto simp add: equivp_def vimage2p_def dest: fun_cong)
+
+lemma equivp_imp_transp: "equivp R \<Longrightarrow> transp R"
+  by(simp add: equivp_reflp_symp_transp)
+
+
+subsection \<open>Equivalence closure\<close>
+
+definition equivclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
+  "equivclp r = (symclp r)\<^sup>*\<^sup>*"
+
+lemma transp_equivclp [simp]: "transp (equivclp r)"
+  by(simp add: equivclp_def)
+
+lemma reflp_equivclp [simp]: "reflp (equivclp r)"
+  by(simp add: equivclp_def)
+
+lemma symp_equivclp [simp]: "symp (equivclp r)"
+  by(simp add: equivclp_def)
+
+lemma equivp_evquivclp [simp]: "equivp (equivclp r)"
+  by(simp add: equivpI)
+
+lemma tranclp_equivclp [simp]: "(equivclp r)\<^sup>+\<^sup>+ = equivclp r"
+  by(simp add: equivclp_def)
+
+lemma rtranclp_equivclp [simp]: "(equivclp r)\<^sup>*\<^sup>* = equivclp r"
+  by(simp add: equivclp_def)
+
+lemma symclp_equivclp [simp]: "symclp (equivclp r) = equivclp r"
+  by(simp add: equivclp_def symp_symclp_eq)
+
+lemma equivclp_symclp [simp]: "equivclp (symclp r) = equivclp r"
+  by(simp add: equivclp_def)
+
+lemma equivclp_conversep [simp]: "equivclp (conversep r) = equivclp r"
+  by(simp add: equivclp_def)
+
+lemma equivclp_sym [sym]: "equivclp r x y \<Longrightarrow> equivclp r y x"
+  by(rule sympD[OF symp_equivclp])
+
+lemma equivclp_OO_equivclp_le_equivclp: "equivclp r OO equivclp r \<le> equivclp r"
+  by(rule transp_relcompp_less_eq transp_equivclp)+
+
+lemma rtranlcp_le_equivclp: "r\<^sup>*\<^sup>* \<le> equivclp r"
+  unfolding equivclp_def by(rule rtranclp_mono)(simp add: symclp_pointfree)
+
+lemma rtranclp_conversep_le_equivclp: "r\<inverse>\<inverse>\<^sup>*\<^sup>* \<le> equivclp r"
+  unfolding equivclp_def by(rule rtranclp_mono)(simp add: symclp_pointfree)
+
+lemma symclp_rtranclp_le_equivclp: "symclp r\<^sup>*\<^sup>* \<le> equivclp r"
+  unfolding symclp_pointfree
+  by(rule le_supI)(simp_all add: rtranclp_conversep[symmetric] rtranlcp_le_equivclp rtranclp_conversep_le_equivclp)
+
+lemma r_OO_conversep_into_equivclp:
+  "r\<^sup>*\<^sup>* OO r\<inverse>\<inverse>\<^sup>*\<^sup>* \<le> equivclp r"
+  by(blast intro: order_trans[OF _ equivclp_OO_equivclp_le_equivclp] relcompp_mono rtranlcp_le_equivclp rtranclp_conversep_le_equivclp del: predicate2I)
+
+lemma equivclp_induct [consumes 1, case_names base step, induct pred: equivclp]:
+  assumes a: "equivclp r a b"
+    and cases: "P a" "\<And>y z. equivclp r a y \<Longrightarrow> r y z \<or> r z y \<Longrightarrow> P y \<Longrightarrow> P z"
+  shows "P b"
+  using a unfolding equivclp_def
+  by(induction rule: rtranclp_induct; fold equivclp_def; blast intro: cases elim: symclpE)
+
+lemma converse_equivclp_induct [consumes 1, case_names base step]:
+  assumes major: "equivclp r a b"
+    and cases: "P b" "\<And>y z. r y z \<or> r z y \<Longrightarrow> equivclp r z b \<Longrightarrow> P z \<Longrightarrow> P y"
+  shows "P a"
+  using major unfolding equivclp_def
+  by(induction rule: converse_rtranclp_induct; fold equivclp_def; blast intro: cases elim: symclpE)
+
+lemma equivclp_refl [simp]: "equivclp r x x"
+  by(rule reflpD[OF reflp_equivclp])
+
+lemma r_into_equivclp [intro]: "r x y \<Longrightarrow> equivclp r x y"
+  unfolding equivclp_def by(blast intro: symclpI)
+
+lemma converse_r_into_equivclp [intro]: "r y x \<Longrightarrow> equivclp r x y"
+  unfolding equivclp_def by(blast intro: symclpI)
+
+lemma rtranclp_into_equivclp: "r\<^sup>*\<^sup>* x y \<Longrightarrow> equivclp r x y"
+  using rtranlcp_le_equivclp[of r] by blast
+
+lemma converse_rtranclp_into_equivclp: "r\<^sup>*\<^sup>* y x \<Longrightarrow> equivclp r x y"
+  by(blast intro: equivclp_sym rtranclp_into_equivclp)
+
+lemma equivclp_into_equivclp: "\<lbrakk> equivclp r a b; r b c \<or> r c b \<rbrakk> \<Longrightarrow> equivclp r a c"
+  unfolding equivclp_def by(erule rtranclp.rtrancl_into_rtrancl)(auto intro: symclpI)
+
+lemma equivclp_trans [trans]: "\<lbrakk> equivclp r a b; equivclp r b c \<rbrakk> \<Longrightarrow> equivclp r a c"
+  using equivclp_OO_equivclp_le_equivclp[of r] by blast
+
 hide_const (open) proj
 
 end

@@ -538,7 +538,7 @@ proof -
     show ?thesis
       by (rule rtrancl_into_trancl1) (use step in auto)
   qed auto
-  ultimately show ?thesis 
+  ultimately show ?thesis
     by auto
 qed
 
@@ -619,7 +619,7 @@ lemma trancl_domain [simp]: "Domain (r\<^sup>+) = Domain r"
 lemma trancl_range [simp]: "Range (r\<^sup>+) = Range r"
   unfolding Domain_converse [symmetric] by (simp add: trancl_converse [symmetric])
 
-lemma Not_Domain_rtrancl: 
+lemma Not_Domain_rtrancl:
   assumes "x \<notin> Domain R" shows "(x, y) \<in> R\<^sup>* \<longleftrightarrow> x = y"
 proof -
 have "(x, y) \<in> R\<^sup>* \<Longrightarrow> x = y"
@@ -661,7 +661,7 @@ lemma single_valued_confluent:
 proof (induction rule: rtrancl_induct)
   case base
   show ?case
-    by (simp add: assms)   
+    by (simp add: assms)
 next
   case (step y z)
   with xz \<open>single_valued r\<close> show ?case
@@ -683,6 +683,17 @@ lemma tranclp_rtranclp_tranclp: "r\<^sup>+\<^sup>+ a b \<Longrightarrow> r\<^sup
   apply (drule (2) rtranclp_into_tranclp2)
   done
 
+lemma rtranclp_conversep: "r\<inverse>\<inverse>\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*\<inverse>\<inverse>"
+  by(auto simp add: fun_eq_iff intro: rtranclp_converseI rtranclp_converseD)
+
+lemmas symp_rtranclp = sym_rtrancl[to_pred]
+
+lemmas symp_conv_conversep_eq = sym_conv_converse_eq[to_pred]
+
+lemmas rtranclp_tranclp_absorb [simp] = rtrancl_trancl_absorb[to_pred]
+lemmas tranclp_rtranclp_absorb [simp] = trancl_rtrancl_absorb[to_pred]
+lemmas rtranclp_reflclp_absorb [simp] = rtrancl_reflcl_absorb[to_pred]
+
 lemmas trancl_rtrancl_trancl = tranclp_rtranclp_tranclp [to_set]
 
 lemmas transitive_closure_trans [trans] =
@@ -699,6 +710,47 @@ lemmas transitive_closurep_trans' [trans] =
 
 declare trancl_into_rtrancl [elim]
 
+subsection \<open>Symmetric closure\<close>
+
+definition symclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+where "symclp r x y \<longleftrightarrow> r x y \<or> r y x"
+
+lemma symclpI [simp, intro?]:
+  shows symclpI1: "r x y \<Longrightarrow> symclp r x y"
+  and symclpI2: "r y x \<Longrightarrow> symclp r x y"
+by(simp_all add: symclp_def)
+
+lemma symclpE [consumes 1, cases pred]:
+  assumes "symclp r x y"
+  obtains (base) "r x y" | (sym) "r y x"
+using assms by(auto simp add: symclp_def)
+
+lemma symclp_pointfree: "symclp r = sup r r\<inverse>\<inverse>"
+  by(auto simp add: symclp_def fun_eq_iff)
+
+lemma symclp_greater: "r \<le> symclp r"
+  by(simp add: symclp_pointfree)
+
+lemma symclp_conversep [simp]: "symclp r\<inverse>\<inverse> = symclp r"
+  by(simp add: symclp_pointfree sup.commute)
+
+lemma symp_symclp [simp]: "symp (symclp r)"
+  by(auto simp add: symp_def elim: symclpE intro: symclpI)
+
+lemma symp_symclp_eq: "symp r \<Longrightarrow> symclp r = r"
+  by(simp add: symclp_pointfree symp_conv_conversep_eq)
+
+lemma symp_rtranclp_symclp [simp]: "symp (symclp r)\<^sup>*\<^sup>*"
+  by(simp add: symp_rtranclp)
+
+lemma rtranclp_symclp_sym [sym]: "(symclp r)\<^sup>*\<^sup>* x y \<Longrightarrow> (symclp r)\<^sup>*\<^sup>* y x"
+  by(rule sympD[OF symp_rtranclp_symclp])
+
+lemma symclp_idem [simp]: "symclp (symclp r) = symclp r"
+  by(simp add: symclp_pointfree sup_commute converse_join)
+
+lemma reflp_rtranclp [simp]: "reflp R\<^sup>*\<^sup>*"
+  using refl_rtrancl[to_pred, of R] reflp_refl_eq[of "{(x, y). R\<^sup>*\<^sup>* x y}"] by simp
 
 subsection \<open>The power operation on relations\<close>
 
@@ -1272,6 +1324,8 @@ setup \<open>
     addSolver (mk_solver "Rtranclp" Tranclp_Tac.rtrancl_tac))
 \<close>
 
+lemma transp_rtranclp [simp]: "transp R\<^sup>*\<^sup>*"
+  by(auto simp add: transp_def)
 
 text \<open>Optional methods.\<close>
 

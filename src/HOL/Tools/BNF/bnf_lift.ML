@@ -805,10 +805,10 @@ fun mk_quotient_transfer_tacs bnf_F Tss live qthms thms set_F'_thmss old_defs
   end;
 
 
-fun quotient_bnf {equiv_rel, equiv_thm, quot_thm, ...} _ wits specs map_b rel_b pred_b opts lthy =
+fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy =
   let
     (* extract rep_G and abs_G *)
-    val (_, abs_G, rep_G) = strip3 quot_thm;
+    val (equiv_rel, abs_G, rep_G) = strip3 quot_thm;
     val (repT, absT) = dest_funT (fastype_of abs_G); (* ("?'a F", "?'a G") *)
     val absT_name = fst (dest_Type absT);
 
@@ -1944,8 +1944,19 @@ fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
     val specs =
       map (apsnd (apsnd (the_default @{sort type} o Option.map (prepare_sort lthy)))) raw_specs;
 
-    val which_bnf = (case Quotient_Info.lookup_quotients lthy absT_name of
-        SOME qs => quotient_bnf qs
+    val which_bnf = (case (xthm_opt, Quotient_Info.lookup_quotients lthy absT_name) of
+        (NONE, SOME qs) => quotient_bnf (#equiv_thm qs, #quot_thm qs)
+      | (SOME _, _) =>
+          if can (fn thm => thm RS @{thm bnf_lift_Quotient_equivp}) input_thm
+          then quotient_bnf (input_thm RS conjunct2, input_thm RS conjunct1 RS @{thm Quotient_Quotient3})
+          else if can (fn thm => thm RS @{thm type_definition.Rep}) input_thm
+            then typedef_bnf
+            else Pretty.chunks [Pretty.para ("Expected theorem of either form:"),
+                Pretty.item [Syntax.pretty_term lthy @{term "Quotient R Abs Rep T \<and> equivp R"}],
+                Pretty.item [Syntax.pretty_term lthy @{term "type_definition Rep Abs A"}],
+                Pretty.para ("Got"), Pretty.item [Thm.pretty_thm lthy input_thm]]
+              |> Pretty.string_of
+              |> error
       | _ => typedef_bnf);
 
   in

@@ -14,6 +14,8 @@ imports
   Combine_PER
   Complete_Partial_Order2
   Conditional_Parametricity
+  Confluence
+  Confluent_Quotient
   Countable
   Countable_Complete_Lattices
   Countable_Set_Type
