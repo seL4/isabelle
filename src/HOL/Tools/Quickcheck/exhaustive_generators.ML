@@ -443,7 +443,7 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
   in HOLogic.mk_comp (wrap, mk_validator_expr ctxt t) end
 
 
-(** generator compiliation **)
+(** generator compilation **)
 
 structure Data = Proof_Data
 (
