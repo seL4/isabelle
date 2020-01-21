@@ -48,7 +48,7 @@ lemma is_nth_power_Suc_0 [simp]: "is_nth_power n (Suc 0)"
   by (simp add: One_nat_def [symmetric] del: One_nat_def)
 
 lemma is_nth_power_conv_multiplicity: 
-  fixes x :: "'a :: factorial_semiring"
+  fixes x :: "'a :: {factorial_semiring, normalization_semidom_multiplicative}"
   assumes "n > 0"
   shows   "is_nth_power n (normalize x) \<longleftrightarrow> (\<forall>p. prime p \<longrightarrow> n dvd multiplicity p x)"
 proof (cases "x = 0")

@@ -377,7 +377,7 @@ qed (auto intro: unit_imp_dvd simp: is_unit_power_iff le_imp_power_dvd)
 
 end
 
-context normalization_semidom
+context normalization_semidom_multiplicative
 begin
 
 lemma normalize_power: "normalize (a ^ n) = normalize a ^ n"

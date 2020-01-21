@@ -2495,15 +2495,26 @@ lemma (in semidom_divide) prod_mset_minus:
   shows "prod_mset (A - {#a#}) = prod_mset A div a"
   using assms prod_mset_diff [of "{#a#}" A] by auto
 
+lemma (in normalization_semidom) normalize_prod_mset_normalize:
+  "normalize (prod_mset (image_mset normalize A)) = normalize (prod_mset A)"
+proof (induction A)
+  case (add x A)
+  have "normalize (prod_mset (image_mset normalize (add_mset x A))) =
+          normalize (x * normalize (prod_mset (image_mset normalize A)))"
+    by simp
+  also note add.IH
+  finally show ?case by simp
+qed auto
+
 lemma (in algebraic_semidom) is_unit_prod_mset_iff:
   "is_unit (prod_mset A) \<longleftrightarrow> (\<forall>x \<in># A. is_unit x)"
   by (induct A) (auto simp: is_unit_mult_iff)
 
-lemma (in normalization_semidom) normalize_prod_mset:
+lemma (in normalization_semidom_multiplicative) normalize_prod_mset:
   "normalize (prod_mset A) = prod_mset (image_mset normalize A)"
   by (induct A) (simp_all add: normalize_mult)
 
-lemma (in normalization_semidom) normalized_prod_msetI:
+lemma (in normalization_semidom_multiplicative) normalized_prod_msetI:
   assumes "\<And>a. a \<in># A \<Longrightarrow> normalize a = a"
   shows "normalize (prod_mset A) = prod_mset A"
 proof -

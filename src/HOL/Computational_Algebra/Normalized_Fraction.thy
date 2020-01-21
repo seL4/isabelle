@@ -12,7 +12,7 @@ begin
 definition quot_to_fract :: "'a :: {idom} \<times> 'a \<Rightarrow> 'a fract" where
   "quot_to_fract = (\<lambda>(a,b). Fraction_Field.Fract a b)"
 
-definition normalize_quot :: "'a :: {ring_gcd,idom_divide} \<times> 'a \<Rightarrow> 'a \<times> 'a" where
+definition normalize_quot :: "'a :: {ring_gcd,idom_divide,semiring_gcd_mult_normalize} \<times> 'a \<Rightarrow> 'a \<times> 'a" where
   "normalize_quot = 
      (\<lambda>(a,b). if b = 0 then (0,1) else let d = gcd a b * unit_factor b in (a div d, b div d))" 
 
@@ -118,7 +118,8 @@ lemma fractrel_normalize_quot_right:
   using assms by (subst (1 2) fractrel_iff_normalize_quot_eq) auto
 
   
-lift_definition quot_of_fract :: "'a :: {ring_gcd,idom_divide} fract \<Rightarrow> 'a \<times> 'a" 
+lift_definition quot_of_fract :: 
+  "'a :: {ring_gcd,idom_divide,semiring_gcd_mult_normalize} fract \<Rightarrow> 'a \<times> 'a" 
     is normalize_quot
   by (subst (asm) fractrel_iff_normalize_quot_eq) simp_all
   

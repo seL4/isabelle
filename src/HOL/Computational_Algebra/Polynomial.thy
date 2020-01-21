@@ -3445,9 +3445,17 @@ next
   assume "p \<noteq> 0"
   then show "is_unit (unit_factor p)"
     by (simp add: unit_factor_poly_def monom_0 is_unit_poly_iff unit_factor_is_unit)
+next
+  fix a b :: "'a poly" assume "is_unit a" 
+  thus "unit_factor (a * b) = a * unit_factor b"
+    by (auto simp: unit_factor_poly_def lead_coeff_mult unit_factor_mult elim!: is_unit_polyE)
 qed (simp_all add: normalize_poly_def unit_factor_poly_def monom_0 lead_coeff_mult unit_factor_mult)
 
 end
+
+instance poly :: ("{semidom_divide_unit_factor,idom_divide,normalization_semidom_multiplicative}") 
+  normalization_semidom_multiplicative
+  by intro_classes (auto simp: unit_factor_poly_def lead_coeff_mult unit_factor_mult)
 
 lemma normalize_poly_eq_map_poly: "normalize p = map_poly (\<lambda>x. x div unit_factor (lead_coeff p)) p"
 proof -
@@ -3489,7 +3497,9 @@ lemma unit_factor_monom [simp]: "unit_factor (monom a n) = [:unit_factor a:]"
 lemma normalize_const_poly: "normalize [:c:] = [:normalize c:]"
   by (simp add: normalize_poly_eq_map_poly map_poly_pCons)
 
-lemma normalize_smult: "normalize (smult c p) = smult (normalize c) (normalize p)"
+lemma normalize_smult:
+  fixes c :: "'a :: {normalization_semidom_multiplicative, idom_divide}"
+  shows "normalize (smult c p) = smult (normalize c) (normalize p)"
 proof -
   have "smult c p = [:c:] * p" by simp
   also have "normalize \<dots> = smult (normalize c) (normalize p)"
@@ -4488,8 +4498,10 @@ proof
   then show "content p = 1" by simp
 qed auto
 
-lemma content_smult [simp]: "content (smult c p) = normalize c * content p"
-  by (simp add: content_def coeffs_smult Gcd_fin_mult)
+lemma content_smult [simp]:
+  fixes c :: "'a :: {normalization_semidom_multiplicative, semiring_gcd}"
+  shows "content (smult c p) = normalize c * content p"
+  by (simp add: content_def coeffs_smult Gcd_fin_mult normalize_mult)
 
 lemma content_eq_zero_iff [simp]: "content p = 0 \<longleftrightarrow> p = 0"
   by (auto simp: content_def simp: poly_eq_iff coeffs_def)
@@ -4528,6 +4540,7 @@ next
 qed
 
 lemma content_primitive_part [simp]:
+  fixes p :: "'a :: {normalization_semidom_multiplicative, semiring_gcd} poly"
   assumes "p \<noteq> 0"
   shows "content (primitive_part p) = 1"
 proof -
@@ -4544,7 +4557,7 @@ proof -
 qed
 
 lemma content_decompose:
-  obtains p' :: "'a::semiring_gcd poly"
+  obtains p' :: "'a :: {normalization_semidom_multiplicative, semiring_gcd} poly"
   where "p = smult (content p) p'" "content p' = 1"
 proof (cases "p = 0")
   case True
@@ -4581,7 +4594,8 @@ next
 qed
 
 lemma smult_content_normalize_primitive_part [simp]:
-  "smult (content p) (normalize (primitive_part p)) = normalize p"
+  fixes p :: "'a :: {normalization_semidom_multiplicative, semiring_gcd, idom_divide} poly"
+  shows "smult (content p) (normalize (primitive_part p)) = normalize p"
 proof -
   have "smult (content p) (normalize (primitive_part p)) =
       normalize ([:content p:] * primitive_part p)"
@@ -4623,7 +4637,7 @@ proof (cases "f * g = 0")
 qed (insert assms, auto)
 
 lemma content_mult:
-  fixes p q :: "'a :: {factorial_semiring, semiring_gcd} poly"
+  fixes p q :: "'a :: {factorial_semiring, semiring_gcd, normalization_semidom_multiplicative} poly"
   shows "content (p * q) = content p * content q"
 proof (cases "p * q = 0")
   case False
@@ -4646,7 +4660,8 @@ qed
 end
 
 lemma primitive_part_mult:
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide,
+                       normalization_semidom_multiplicative} poly"
   shows "primitive_part (p * q) = primitive_part p * primitive_part q"
 proof -
   have "primitive_part (p * q) = p * q div [:content (p * q):]"
@@ -4659,7 +4674,8 @@ proof -
 qed
 
 lemma primitive_part_smult:
-  fixes p :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide,
+                     normalization_semidom_multiplicative} poly"
   shows "primitive_part (smult a p) = smult (unit_factor a) (primitive_part p)"
 proof -
   have "smult a p = [:a:] * p" by simp
@@ -4669,17 +4685,19 @@ proof -
 qed  
 
 lemma primitive_part_dvd_primitive_partI [intro]:
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide,
+                       normalization_semidom_multiplicative} poly"
   shows "p dvd q \<Longrightarrow> primitive_part p dvd primitive_part q"
   by (auto elim!: dvdE simp: primitive_part_mult)
 
 lemma content_prod_mset: 
-  fixes A :: "'a :: {factorial_semiring, semiring_Gcd} poly multiset"
+  fixes A :: "'a :: {factorial_semiring, semiring_Gcd, normalization_semidom_multiplicative}
+      poly multiset"
   shows "content (prod_mset A) = prod_mset (image_mset content A)"
   by (induction A) (simp_all add: content_mult mult_ac)
 
 lemma content_prod_eq_1_iff: 
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd} poly"
+  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, normalization_semidom_multiplicative} poly"
   shows "content (p * q) = 1 \<longleftrightarrow> content p = 1 \<and> content q = 1"
 proof safe
   assume A: "content (p * q) = 1"

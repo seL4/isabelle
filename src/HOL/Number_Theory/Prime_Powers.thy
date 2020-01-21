@@ -95,6 +95,7 @@ lemma prime_factorization_primepow:
   by (auto simp: primepow_def aprimedivisor_prime_power prime_factorization_prime_power)
 
 lemma primepow_decompose:
+  fixes n :: "'a :: factorial_semiring_multiplicative"
   assumes "primepow n"
   shows   "aprimedivisor n ^ multiplicity (aprimedivisor n) n = n"
 proof -
@@ -133,11 +134,13 @@ lemma not_primepow_Suc_0_nat [simp]: "\<not>primepow (Suc 0)"
 lemma primepow_gt_0_nat: "primepow n \<Longrightarrow> n > (0::nat)"
   using primepow_gt_Suc_0[of n] by simp
 
-lemma unit_factor_primepow: "primepow p \<Longrightarrow> unit_factor p = 1"
+lemma unit_factor_primepow:
+  fixes p :: "'a :: factorial_semiring_multiplicative"
+  shows "primepow p \<Longrightarrow> unit_factor p = 1"
   by (auto simp: primepow_def unit_factor_power)
 
 lemma aprimedivisor_primepow:
-  assumes "prime p" "p dvd n" "primepow (n :: 'a :: factorial_semiring)"
+  assumes "prime p" "p dvd n" "primepow (n :: 'a :: factorial_semiring_multiplicative)"
   shows   "aprimedivisor (p * n) = p" "aprimedivisor n = p"
 proof -
   from assms have [simp]: "n \<noteq> 0" by auto
@@ -187,8 +190,9 @@ qed
   
 
 lemma primepow_power_iff:
+  fixes p :: "'a :: factorial_semiring_multiplicative"
   assumes "unit_factor p = 1"
-  shows   "primepow (p ^ n) \<longleftrightarrow> primepow (p :: 'a :: factorial_semiring) \<and> n > 0"
+  shows   "primepow (p ^ n) \<longleftrightarrow> primepow p \<and> n > 0"
 proof safe
   assume "primepow (p ^ n)"
   hence n: "n \<noteq> 0" by (auto intro!: Nat.gr0I)
@@ -218,11 +222,11 @@ lemma primepow_prime [simp]: "prime n \<Longrightarrow> primepow n"
   by (auto simp: primepow_def intro!: exI[of _ n] exI[of _ "1::nat"])
 
 lemma primepow_prime_power [simp]: 
-    "prime (p :: 'a :: factorial_semiring) \<Longrightarrow> primepow (p ^ n) \<longleftrightarrow> n > 0"
+    "prime (p :: 'a :: factorial_semiring_multiplicative) \<Longrightarrow> primepow (p ^ n) \<longleftrightarrow> n > 0"
   by (subst primepow_power_iff) auto
 
 lemma aprimedivisor_vimage:
-  assumes "prime (p :: 'a :: factorial_semiring)"
+  assumes "prime (p :: 'a :: factorial_semiring_multiplicative)"
   shows   "aprimedivisor -` {p} \<inter> primepow_factors n = {p ^ k |k. k > 0 \<and> p ^ k dvd n}"
 proof safe
   fix q assume q: "q \<in> primepow_factors n"
@@ -267,7 +271,7 @@ proof -
 qed
 
 lemma bij_betw_primepows: 
-  "bij_betw (\<lambda>(p,k). p ^ Suc k :: 'a :: factorial_semiring) 
+  "bij_betw (\<lambda>(p,k). p ^ Suc k :: 'a :: factorial_semiring_multiplicative) 
      (Collect prime \<times> UNIV) (Collect primepow)"
 proof (rule bij_betwI [where ?g = "(\<lambda>n. (aprimedivisor n, multiplicity (aprimedivisor n) n - 1))"], 
        goal_cases)
@@ -310,14 +314,14 @@ proof -
 qed
 
 lemma primepow_mult_aprimedivisorI:
-  assumes "primepow (n :: 'a :: factorial_semiring)"
+  assumes "primepow (n :: 'a :: factorial_semiring_multiplicative)"
   shows   "primepow (aprimedivisor n * n)"
   by (subst (2) primepow_decompose[OF assms, symmetric], subst power_Suc [symmetric],
       subst primepow_prime_power) 
      (insert assms, auto intro!: prime_aprimedivisor' dest: primepow_gt_Suc_0)
  
 lemma primepow_factors_altdef:
-  fixes x :: "'a :: factorial_semiring"
+  fixes x :: "'a :: factorial_semiring_multiplicative"
   assumes "x \<noteq> 0"
   shows "primepow_factors x = {p ^ k |p k. p \<in> prime_factors x \<and> k \<in> {0<.. multiplicity p x}}"
 proof (intro equalityI subsetI)
@@ -330,7 +334,7 @@ proof (intro equalityI subsetI)
 qed (auto simp: primepow_factors_def prime_factors_multiplicity multiplicity_dvd')
 
 lemma finite_primepow_factors:
-  assumes "x \<noteq> (0 :: 'a :: factorial_semiring)"
+  assumes "x \<noteq> (0 :: 'a :: factorial_semiring_multiplicative)"
   shows   "finite (primepow_factors x)"
 proof -
   have "finite (SIGMA p:prime_factors x. {0<..multiplicity p x})"
@@ -342,7 +346,7 @@ proof -
 qed
 
 lemma aprimedivisor_primepow_factors_conv_prime_factorization:
-  assumes [simp]: "n \<noteq> (0 :: 'a :: factorial_semiring)"
+  assumes [simp]: "n \<noteq> (0 :: 'a :: factorial_semiring_multiplicative)"
   shows   "image_mset aprimedivisor (mset_set (primepow_factors n)) = prime_factorization n" 
           (is "?lhs = ?rhs")
 proof (intro multiset_eqI)
@@ -403,6 +407,7 @@ lemma not_primepowI:
   using assms by (auto simp: primepow_def dest!: prime_dvd_power[rotated] dest: primes_dvd_imp_eq)
 
 lemma sum_prime_factorization_conv_sum_primepow_factors:
+  fixes n :: "'a :: factorial_semiring_multiplicative"
   assumes "n \<noteq> 0"
   shows "(\<Sum>q\<in>primepow_factors n. f (aprimedivisor q)) = (\<Sum>p\<in>#prime_factorization n. f p)"
 proof -
@@ -414,7 +419,7 @@ proof -
 qed    
 
 lemma multiplicity_aprimedivisor_Suc_0_iff:
-  assumes "primepow (n :: 'a :: factorial_semiring)"
+  assumes "primepow (n :: 'a :: factorial_semiring_multiplicative)"
   shows   "multiplicity (aprimedivisor n) n = Suc 0 \<longleftrightarrow> prime n"
   by (subst (3) primepow_decompose [OF assms, symmetric])
      (insert assms, auto simp add: prime_power_iff intro!: prime_aprimedivisor')

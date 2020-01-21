@@ -24,7 +24,8 @@ definition mod_field :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 
 end
 
-instantiation real :: "{unique_euclidean_ring, normalization_euclidean_semiring}"
+instantiation real ::
+  "{unique_euclidean_ring, normalization_euclidean_semiring, normalization_semidom_multiplicative}"
 begin
 
 definition [simp]: "normalize_real = (normalize_field :: real \<Rightarrow> _)"
@@ -55,7 +56,11 @@ instance by standard (simp_all add: gcd_real_def lcm_real_def Gcd_real_def Lcm_r
 
 end
 
-instantiation rat :: "{unique_euclidean_ring, normalization_euclidean_semiring}"
+instance real :: field_gcd ..
+
+
+instantiation rat :: 
+  "{unique_euclidean_ring, normalization_euclidean_semiring, normalization_semidom_multiplicative}"
 begin
 
 definition [simp]: "normalize_rat = (normalize_field :: rat \<Rightarrow> _)"
@@ -86,7 +91,11 @@ instance by standard (simp_all add: gcd_rat_def lcm_rat_def Gcd_rat_def Lcm_rat_
 
 end
 
-instantiation complex :: "{unique_euclidean_ring, normalization_euclidean_semiring}"
+instance rat :: field_gcd ..
+
+
+instantiation complex ::
+  "{unique_euclidean_ring, normalization_euclidean_semiring, normalization_semidom_multiplicative}"
 begin
 
 definition [simp]: "normalize_complex = (normalize_field :: complex \<Rightarrow> _)"
@@ -116,5 +125,7 @@ definition Lcm_complex :: "complex set \<Rightarrow> complex" where
 instance by standard (simp_all add: gcd_complex_def lcm_complex_def Gcd_complex_def Lcm_complex_def)
 
 end
+
+instance complex :: field_gcd ..
 
 end

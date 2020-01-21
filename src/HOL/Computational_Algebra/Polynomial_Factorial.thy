@@ -160,7 +160,7 @@ lemma fract_poly_is_unit: "p dvd 1 \<Longrightarrow> fract_poly p dvd 1"
   using fract_poly_dvd[of p 1] by simp
 
 lemma fract_poly_smult_eqE:
-  fixes c :: "'a :: {idom_divide,ring_gcd} fract"
+  fixes c :: "'a :: {idom_divide,ring_gcd,semiring_gcd_mult_normalize} fract"
   assumes "fract_poly p = smult c (fract_poly q)"
   obtains a b 
     where "c = to_fract b / to_fract a" "smult a p = smult b q" "coprime a b" "normalize a = a"
@@ -180,16 +180,16 @@ qed
 subsection \<open>Fractional content\<close>
 
 abbreviation (input) Lcm_coeff_denoms 
-    :: "'a :: {semiring_Gcd,idom_divide,ring_gcd} fract poly \<Rightarrow> 'a"
+    :: "'a :: {semiring_Gcd,idom_divide,ring_gcd,semiring_gcd_mult_normalize} fract poly \<Rightarrow> 'a"
   where "Lcm_coeff_denoms p \<equiv> Lcm (snd ` quot_of_fract ` set (coeffs p))"
   
 definition fract_content :: 
-      "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} fract poly \<Rightarrow> 'a fract" where
+      "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} fract poly \<Rightarrow> 'a fract" where
   "fract_content p = 
      (let d = Lcm_coeff_denoms p in Fract (content (unfract_poly (smult (to_fract d) p))) d)" 
 
 definition primitive_part_fract :: 
-      "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} fract poly \<Rightarrow> 'a poly" where
+      "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} fract poly \<Rightarrow> 'a poly" where
   "primitive_part_fract p = 
      primitive_part (unfract_poly (smult (to_fract (Lcm_coeff_denoms p)) p))"
 
@@ -201,7 +201,10 @@ lemma fract_content_eq_0_iff [simp]:
   unfolding fract_content_def Let_def Zero_fract_def
   by (subst eq_fract) (auto simp: Lcm_0_iff map_poly_eq_0_iff)
 
-lemma content_primitive_part_fract [simp]: "p \<noteq> 0 \<Longrightarrow> content (primitive_part_fract p) = 1"
+lemma content_primitive_part_fract [simp]:
+  fixes p :: "'a :: {semiring_gcd_mult_normalize,
+                     factorial_semiring, ring_gcd, semiring_Gcd,idom_divide} fract poly"
+  shows "p \<noteq> 0 \<Longrightarrow> content (primitive_part_fract p) = 1"
   unfolding primitive_part_fract_def
   by (rule content_primitive_part)
      (auto simp: primitive_part_fract_def map_poly_eq_0_iff Lcm_0_iff)  
@@ -256,7 +259,8 @@ proof -
 qed
 
 lemma content_decompose_fract:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} fract poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,
+                     semiring_gcd_mult_normalize} fract poly"
   obtains c p' where "p = smult c (map_poly to_fract p')" "content p' = 1"
 proof (cases "p = 0")
   case True
@@ -347,7 +351,8 @@ proof
 qed (auto intro: lift_prime_elem_poly)
 
 lemma fract_poly_dvdD:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,
+                     semiring_gcd_mult_normalize} poly"
   assumes "fract_poly p dvd fract_poly q" "content p = 1"
   shows   "p dvd q"
 proof -
@@ -372,7 +377,7 @@ context
 begin
 
 interpretation field_poly: 
-  normalization_euclidean_semiring where zero = "0 :: 'a :: field poly"
+  normalization_euclidean_semiring_multiplicative where zero = "0 :: 'a :: field poly"
     and one = 1 and plus = plus and minus = minus
     and times = times
     and normalize = "\<lambda>p. smult (inverse (lead_coeff p)) p"
@@ -392,7 +397,7 @@ proof -
     by (simp add: irreducible_dict)
   show "comm_semiring_1.prime_elem times 1 0 = prime_elem"
     by (simp add: prime_elem_dict)
-  show "class.normalization_euclidean_semiring divide plus minus (0 :: 'a poly) times 1
+  show "class.normalization_euclidean_semiring_multiplicative divide plus minus (0 :: 'a poly) times 1
     modulo (\<lambda>p. if p = 0 then 0 else 2 ^ degree p)
     (\<lambda>p. [:lead_coeff p:]) (\<lambda>p. smult (inverse (lead_coeff p)) p)"
   proof (standard, fold dvd_dict)
@@ -407,13 +412,17 @@ proof -
     fix p :: "'a poly" assume "p \<noteq> 0"
     then show "is_unit [:lead_coeff p:]"
       by (simp add: is_unit_pCons_iff)
+  next
+    fix a b :: "'a poly" assume "is_unit a"
+    thus "[:lead_coeff (a * b):] = a * [:lead_coeff b:]"
+      by (auto elim!: is_unit_polyE)
   qed (auto simp: lead_coeff_mult Rings.div_mult_mod_eq intro!: degree_mod_less' degree_mult_right_le)
 qed
 
 lemma field_poly_irreducible_imp_prime:
   "prime_elem p" if "irreducible p" for p :: "'a :: field poly"
   using that by (fact field_poly.irreducible_imp_prime_elem)
-
+find_theorems name:prod_mset_prime_factorization
 lemma field_poly_prod_mset_prime_factorization:
   "prod_mset (field_poly.prime_factorization p) = smult (inverse (lead_coeff p)) p"
   if "p \<noteq> 0" for p :: "'a :: field poly"
@@ -429,7 +438,7 @@ lemma field_poly_in_prime_factorization_imp_prime:
 subsection \<open>Primality and irreducibility in polynomial rings\<close>
 
 lemma nonconst_poly_irreducible_iff:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "degree p \<noteq> 0"
   shows   "irreducible p \<longleftrightarrow> irreducible (fract_poly p) \<and> content p = 1"
 proof safe
@@ -507,7 +516,7 @@ next
 qed
 
 private lemma irreducible_imp_prime_poly:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "irreducible p"
   shows   "prime_elem p"
 proof (cases "degree p = 0")
@@ -542,7 +551,7 @@ proof -
 qed
 
 lemma irreducible_primitive_part_fract:
-  fixes p :: "'a :: {idom_divide, ring_gcd, factorial_semiring, semiring_Gcd} fract poly"
+  fixes p :: "'a :: {idom_divide, ring_gcd, factorial_semiring, semiring_Gcd,semiring_gcd_mult_normalize} fract poly"
   assumes "irreducible p"
   shows   "irreducible (primitive_part_fract p)"
 proof -
@@ -561,7 +570,7 @@ proof -
 qed
 
 lemma prime_elem_primitive_part_fract:
-  fixes p :: "'a :: {idom_divide, ring_gcd, factorial_semiring, semiring_Gcd} fract poly"
+  fixes p :: "'a :: {idom_divide, ring_gcd, factorial_semiring, semiring_Gcd,semiring_gcd_mult_normalize} fract poly"
   shows "irreducible p \<Longrightarrow> prime_elem (primitive_part_fract p)"
   by (intro irreducible_imp_prime_poly irreducible_primitive_part_fract)
 
@@ -583,13 +592,13 @@ lemma prime_elem_linear_field_poly:
   by (rule field_poly_irreducible_imp_prime, rule irreducible_linear_field_poly)
 
 lemma irreducible_linear_poly:
-  fixes a b :: "'a::{idom_divide,ring_gcd,factorial_semiring,semiring_Gcd}"
+  fixes a b :: "'a::{idom_divide,ring_gcd,factorial_semiring,semiring_Gcd,semiring_gcd_mult_normalize}"
   shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> irreducible [:a,b:]"
   by (auto intro!: irreducible_linear_field_poly 
            simp:   nonconst_poly_irreducible_iff content_def map_poly_pCons)
 
 lemma prime_elem_linear_poly:
-  fixes a b :: "'a::{idom_divide,ring_gcd,factorial_semiring,semiring_Gcd}"
+  fixes a b :: "'a::{idom_divide,ring_gcd,factorial_semiring,semiring_Gcd,semiring_gcd_mult_normalize}"
   shows "b \<noteq> 0 \<Longrightarrow> coprime a b \<Longrightarrow> prime_elem [:a,b:]"
   by (rule irreducible_imp_prime_poly, rule irreducible_linear_poly)
 
@@ -597,7 +606,7 @@ lemma prime_elem_linear_poly:
 subsection \<open>Prime factorisation of polynomials\<close>   
 
 private lemma poly_prime_factorization_exists_content_1:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "p \<noteq> 0" "content p = 1"
   shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize p"
 proof -
@@ -657,19 +666,25 @@ proof -
 qed
 
 lemma poly_prime_factorization_exists:
-  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide} poly"
+  fixes p :: "'a :: {factorial_semiring,semiring_Gcd,ring_gcd,idom_divide,semiring_gcd_mult_normalize} poly"
   assumes "p \<noteq> 0"
-  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize p"
+  shows   "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> normalize (prod_mset A) = normalize p"
 proof -
   define B where "B = image_mset (\<lambda>x. [:x:]) (prime_factorization (content p))"
   have "\<exists>A. (\<forall>p. p \<in># A \<longrightarrow> prime_elem p) \<and> prod_mset A = normalize (primitive_part p)"
     by (rule poly_prime_factorization_exists_content_1) (insert assms, simp_all)
   then guess A by (elim exE conjE) note A = this
-  moreover from assms have "prod_mset B = [:content p:]"
-    by (simp add: B_def prod_mset_const_poly prod_mset_prime_factorization)
+  have "normalize (prod_mset (A + B)) = normalize (prod_mset A * normalize (prod_mset B))"
+    by simp
+  also from assms have "normalize (prod_mset B) = normalize [:content p:]"
+    by (simp add: prod_mset_const_poly normalize_const_poly prod_mset_prime_factorization_weak B_def)
+  also have "prod_mset A = normalize (primitive_part p)"
+    using A by simp
+  finally have "normalize (prod_mset (A + B)) = normalize (primitive_part p * [:content p:])"
+    by simp
   moreover have "\<forall>p. p \<in># B \<longrightarrow> prime_elem p"
     by (auto simp: B_def intro!: lift_prime_elem_poly dest: in_prime_factors_imp_prime)
-  ultimately show ?thesis by (intro exI[of _ "B + A"]) auto
+  ultimately show ?thesis using A by (intro exI[of _ "A + B"]) (auto)
 qed
 
 end
@@ -677,10 +692,10 @@ end
 
 subsection \<open>Typeclass instances\<close>
 
-instance poly :: (factorial_ring_gcd) factorial_semiring
+instance poly :: ("{factorial_ring_gcd,semiring_gcd_mult_normalize}") factorial_semiring
   by standard (rule poly_prime_factorization_exists)  
 
-instantiation poly :: (factorial_ring_gcd) factorial_ring_gcd
+instantiation poly :: ("{factorial_ring_gcd, semiring_gcd_mult_normalize}") factorial_ring_gcd
 begin
 
 definition gcd_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
@@ -699,7 +714,10 @@ instance by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_p
 
 end
 
-instantiation poly :: ("{field,factorial_ring_gcd}") "{unique_euclidean_ring, normalization_euclidean_semiring}"
+instance poly :: ("{factorial_ring_gcd, semiring_gcd_mult_normalize}") semiring_gcd_mult_normalize ..
+
+instantiation poly :: ("{field,factorial_ring_gcd,semiring_gcd_mult_normalize}")
+   "{unique_euclidean_ring, normalization_euclidean_semiring}"
 begin
 
 definition euclidean_size_poly :: "'a poly \<Rightarrow> nat"
@@ -724,14 +742,15 @@ qed (auto simp: euclidean_size_poly_def Rings.div_mult_mod_eq div_poly_less degr
 
 end
 
-instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd}") euclidean_ring_gcd
+instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd,
+                    semiring_gcd_mult_normalize}") euclidean_ring_gcd
   by (rule euclidean_ring_gcd_class.intro, rule factorial_euclidean_semiring_gcdI) standard
 
   
 subsection \<open>Polynomial GCD\<close>
 
 lemma gcd_poly_decompose:
-  fixes p q :: "'a :: factorial_ring_gcd poly"
+  fixes p q :: "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"
   shows "gcd p q = 
            smult (gcd (content p) (content q)) (gcd (primitive_part p) (primitive_part q))"
 proof (rule sym, rule gcdI)
@@ -755,7 +774,7 @@ qed (auto simp: normalize_smult)
   
 
 lemma gcd_poly_pseudo_mod:
-  fixes p q :: "'a :: factorial_ring_gcd poly"
+  fixes p q :: "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"
   assumes nz: "q \<noteq> 0" and prim: "content p = 1" "content q = 1"
   shows   "gcd p q = gcd q (primitive_part (pseudo_mod p q))"
 proof -
@@ -834,12 +853,14 @@ lemma gcd_poly_code [code]: "gcd p q = gcd_poly_code p q"
   by (simp add: gcd_poly_code_def gcd_poly_code_aux_correct gcd_poly_decompose [symmetric])
 
 lemma lcm_poly_code [code]: 
-  fixes p q :: "'a :: factorial_ring_gcd poly"
-  shows "lcm p q = normalize (p * q) div gcd p q"
+  fixes p q :: "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"
+  shows "lcm p q = normalize (p * q div gcd p q)"
   by (fact lcm_gcd)
 
-lemmas Gcd_poly_set_eq_fold [code] = Gcd_set_eq_fold [where ?'a = "'a :: factorial_ring_gcd poly"]
-lemmas Lcm_poly_set_eq_fold [code] = Lcm_set_eq_fold [where ?'a = "'a :: factorial_ring_gcd poly"]
+lemmas Gcd_poly_set_eq_fold [code] =
+  Gcd_set_eq_fold [where ?'a = "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"]
+lemmas Lcm_poly_set_eq_fold [code] =
+  Lcm_set_eq_fold [where ?'a = "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"]
 
 text \<open>Example:
   @{lemma "Lcm {[:1, 2, 3:], [:2, 3, 4:]} = [:[:2:], [:7:], [:16:], [:17:], [:12 :: int:]:]" by eval}

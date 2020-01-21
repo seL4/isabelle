@@ -2906,7 +2906,7 @@ proof
 
 qed (rule fps_divide_times_eq, simp_all add: fps_divide_def)
 
-instantiation fps :: (field) normalization_semidom
+instantiation fps :: (field) normalization_semidom_multiplicative
 begin
 
 definition fps_normalize_def [simp]:
@@ -2914,10 +2914,17 @@ definition fps_normalize_def [simp]:
 
 instance proof
   fix f g :: "'a fps"
-  show "unit_factor (f * g) = unit_factor f * unit_factor g"
-    using fps_unit_factor_mult by simp
+  assume "is_unit f"
+  thus "unit_factor (f * g) = f * unit_factor g"
+    using fps_unit_factor_mult[of f g] by simp
+next
+  fix f g :: "'a fps"
   show "unit_factor f * normalize f = f"
     by (simp add: fps_shift_times_fps_X_power)
+next
+  fix f g :: "'a fps"
+  show "unit_factor (f * g) = unit_factor f * unit_factor g"
+    using fps_unit_factor_mult[of f g] by simp
 qed (simp_all add: fps_divide_def Let_def)
 
 end

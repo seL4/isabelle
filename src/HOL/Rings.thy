@@ -1290,9 +1290,17 @@ class semidom_divide_unit_factor = semidom_divide + unit_factor +
   assumes unit_factor_0 [simp]: "unit_factor 0 = 0"
     and is_unit_unit_factor: "a dvd 1 \<Longrightarrow> unit_factor a = a"
     and unit_factor_is_unit: "a \<noteq> 0 \<Longrightarrow> unit_factor a dvd 1"
-    and unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
+    and unit_factor_mult_unit_left: "a dvd 1 \<Longrightarrow> unit_factor (a * b) = a * unit_factor b"
   \<comment> \<open>This fine-grained hierarchy will later on allow lean normalization of polynomials\<close>
-  
+begin
+
+lemma unit_factor_mult_unit_right: "a dvd 1 \<Longrightarrow> unit_factor (b * a) = unit_factor b * a"
+  using unit_factor_mult_unit_left[of a b] by (simp add: mult_ac)
+
+lemmas [simp] = unit_factor_mult_unit_left unit_factor_mult_unit_right
+
+end
+
 class normalization_semidom = algebraic_semidom + semidom_divide_unit_factor +
   fixes normalize :: "'a \<Rightarrow> 'a"
   assumes unit_factor_mult_normalize [simp]: "unit_factor a * normalize a = a"
@@ -1434,47 +1442,41 @@ next
   then show ?lhs by simp
 qed
 
-lemma normalize_mult: "normalize (a * b) = normalize a * normalize b"
-proof (cases "a = 0 \<or> b = 0")
-  case True
-  then show ?thesis by auto
-next
-  case False
-  have "unit_factor (a * b) * normalize (a * b) = a * b"
-    by (rule unit_factor_mult_normalize)
-  then have "normalize (a * b) = a * b div unit_factor (a * b)"
-    by simp
-  also have "\<dots> = a * b div unit_factor (b * a)"
-    by (simp add: ac_simps)
-  also have "\<dots> = a * b div unit_factor b div unit_factor a"
-    using False by (simp add: unit_factor_mult is_unit_div_mult2_eq [symmetric])
-  also have "\<dots> = a * (b div unit_factor b) div unit_factor a"
-    using False by (subst unit_div_mult_swap) simp_all
-  also have "\<dots> = normalize a * normalize b"
-    using False
-    by (simp add: mult.commute [of a] mult.commute [of "normalize a"] unit_div_mult_swap [symmetric])
-  finally show ?thesis .
-qed
-
 lemma unit_factor_idem [simp]: "unit_factor (unit_factor a) = unit_factor a"
   by (cases "a = 0") (auto intro: is_unit_unit_factor)
 
 lemma normalize_unit_factor [simp]: "a \<noteq> 0 \<Longrightarrow> normalize (unit_factor a) = 1"
   by (rule is_unit_normalize) simp
 
+lemma normalize_mult_unit_left [simp]:
+  assumes "a dvd 1"
+  shows   "normalize (a * b) = normalize b"
+proof (cases "b = 0")
+  case False
+  have "a * unit_factor b * normalize (a * b) = unit_factor (a * b) * normalize (a * b)"
+    using assms by (subst unit_factor_mult_unit_left) auto
+  also have "\<dots> = a * b" by simp
+  also have "b = unit_factor b * normalize b" by simp
+  hence "a * b = a * unit_factor b * normalize b"
+    by (simp only: mult_ac)
+  finally show ?thesis
+    using assms False by auto
+qed auto
+
+lemma normalize_mult_unit_right [simp]:
+  assumes "b dvd 1"
+  shows   "normalize (a * b) = normalize a"
+  using assms by (subst mult.commute) auto
+
 lemma normalize_idem [simp]: "normalize (normalize a) = normalize a"
 proof (cases "a = 0")
-  case True
-  then show ?thesis by simp
-next
   case False
   have "normalize a = normalize (unit_factor a * normalize a)"
     by simp
-  also have "\<dots> = normalize (unit_factor a) * normalize (normalize a)"
-    by (simp only: normalize_mult)
-  finally show ?thesis
-    using False by simp_all
-qed
+  also from False have "\<dots> = normalize (normalize a)"
+    by (subst normalize_mult_unit_left) auto
+  finally show ?thesis ..
+qed auto
 
 lemma unit_factor_normalize [simp]:
   assumes "a \<noteq> 0"
@@ -1490,30 +1492,6 @@ proof -
     by simp
   with * show ?thesis
     by simp
-qed
-
-lemma dvd_unit_factor_div:
-  assumes "b dvd a"
-  shows "unit_factor (a div b) = unit_factor a div unit_factor b"
-proof -
-  from assms have "a = a div b * b"
-    by simp
-  then have "unit_factor a = unit_factor (a div b * b)"
-    by simp
-  then show ?thesis
-    by (cases "b = 0") (simp_all add: unit_factor_mult)
-qed
-
-lemma dvd_normalize_div:
-  assumes "b dvd a"
-  shows "normalize (a div b) = normalize a div normalize b"
-proof -
-  from assms have "a = a div b * b"
-    by simp
-  then have "normalize a = normalize (a div b * b)"
-    by simp
-  then show ?thesis
-    by (cases "b = 0") (simp_all add: normalize_mult)
 qed
 
 lemma normalize_dvd_iff [simp]: "normalize a dvd b \<longleftrightarrow> a dvd b"
@@ -1582,7 +1560,7 @@ next
   then have "is_unit c" and "is_unit d"
     by auto
   with a b show ?thesis
-    by (simp add: normalize_mult is_unit_normalize)
+    by (simp add: is_unit_normalize)
 qed
 
 lemma associatedD1: "normalize a = normalize b \<Longrightarrow> a dvd b"
@@ -1643,7 +1621,68 @@ proof -
     by simp
 qed
 
+lemma normalize_mult_normalize_left [simp]: "normalize (normalize a * b) = normalize (a * b)"
+  by (rule associated_eqI) (auto intro!: mult_dvd_mono)
+
+lemma normalize_mult_normalize_right [simp]: "normalize (a * normalize b) = normalize (a * b)"
+  by (rule associated_eqI) (auto intro!: mult_dvd_mono)
+
 end
+
+
+class normalization_semidom_multiplicative = normalization_semidom +
+  assumes unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
+begin
+
+lemma normalize_mult: "normalize (a * b) = normalize a * normalize b"
+proof (cases "a = 0 \<or> b = 0")
+  case True
+  then show ?thesis by auto
+next
+  case False
+  have "unit_factor (a * b) * normalize (a * b) = a * b"
+    by (rule unit_factor_mult_normalize)
+  then have "normalize (a * b) = a * b div unit_factor (a * b)"
+    by simp
+  also have "\<dots> = a * b div unit_factor (b * a)"
+    by (simp add: ac_simps)
+  also have "\<dots> = a * b div unit_factor b div unit_factor a"
+    using False by (simp add: unit_factor_mult is_unit_div_mult2_eq [symmetric])
+  also have "\<dots> = a * (b div unit_factor b) div unit_factor a"
+    using False by (subst unit_div_mult_swap) simp_all
+  also have "\<dots> = normalize a * normalize b"
+    using False
+    by (simp add: mult.commute [of a] mult.commute [of "normalize a"] unit_div_mult_swap [symmetric])
+  finally show ?thesis .
+qed
+
+lemma dvd_unit_factor_div:
+  assumes "b dvd a"
+  shows "unit_factor (a div b) = unit_factor a div unit_factor b"
+proof -
+  from assms have "a = a div b * b"
+    by simp
+  then have "unit_factor a = unit_factor (a div b * b)"
+    by simp
+  then show ?thesis
+    by (cases "b = 0") (simp_all add: unit_factor_mult)
+qed
+
+lemma dvd_normalize_div:
+  assumes "b dvd a"
+  shows "normalize (a div b) = normalize a div normalize b"
+proof -
+  from assms have "a = a div b * b"
+    by simp
+  then have "normalize a = normalize (a div b * b)"
+    by simp
+  then show ?thesis
+    by (cases "b = 0") (simp_all add: normalize_mult)
+qed
+
+end
+
+
 
 
 text \<open>Syntactic division remainder operator\<close>

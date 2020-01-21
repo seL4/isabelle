@@ -166,7 +166,7 @@ class semiring_gcd = normalization_semidom + gcd +
     and gcd_dvd2 [iff]: "gcd a b dvd b"
     and gcd_greatest: "c dvd a \<Longrightarrow> c dvd b \<Longrightarrow> c dvd gcd a b"
     and normalize_gcd [simp]: "normalize (gcd a b) = gcd a b"
-    and lcm_gcd: "lcm a b = normalize (a * b) div gcd a b"
+    and lcm_gcd: "lcm a b = normalize (a * b div gcd a b)"
 begin
 
 lemma gcd_greatest_iff [simp]: "a dvd gcd b c \<longleftrightarrow> a dvd b \<and> a dvd c"
@@ -272,211 +272,6 @@ lemma gcd_left_idem: "gcd a (gcd a b) = gcd a b"
 lemma gcd_right_idem: "gcd (gcd a b) b = gcd a b"
   by (fact gcd.right_idem)
 
-lemma gcd_mult_left: "gcd (c * a) (c * b) = normalize c * gcd a b"
-proof (cases "c = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have *: "c * gcd a b dvd gcd (c * a) (c * b)"
-    by (auto intro: gcd_greatest)
-  moreover from False * have "gcd (c * a) (c * b) dvd c * gcd a b"
-    by (metis div_dvd_iff_mult dvd_mult_left gcd_dvd1 gcd_dvd2 gcd_greatest mult_commute)
-  ultimately have "normalize (gcd (c * a) (c * b)) = normalize (c * gcd a b)"
-    by (auto intro: associated_eqI)
-  then show ?thesis
-    by (simp add: normalize_mult)
-qed
-
-lemma gcd_mult_right: "gcd (a * c) (b * c) = gcd b a * normalize c"
-  using gcd_mult_left [of c a b] by (simp add: ac_simps)
-
-lemma mult_gcd_left: "c * gcd a b = unit_factor c * gcd (c * a) (c * b)"
-  by (simp add: gcd_mult_left mult.assoc [symmetric])
-
-lemma mult_gcd_right: "gcd a b * c = gcd (a * c) (b * c) * unit_factor c"
-  using mult_gcd_left [of c a b] by (simp add: ac_simps)
-
-lemma dvd_lcm1 [iff]: "a dvd lcm a b"
-proof -
-  have "normalize (a * b) div gcd a b = normalize a * (normalize b div gcd a b)"
-    by (simp add: lcm_gcd normalize_mult div_mult_swap)
-  then show ?thesis
-    by (simp add: lcm_gcd)
-qed
-
-lemma dvd_lcm2 [iff]: "b dvd lcm a b"
-proof -
-  have "normalize (a * b) div gcd a b = normalize b * (normalize a div gcd a b)"
-    by (simp add: lcm_gcd normalize_mult div_mult_swap ac_simps)
-  then show ?thesis
-    by (simp add: lcm_gcd)
-qed
-
-lemma dvd_lcmI1: "a dvd b \<Longrightarrow> a dvd lcm b c"
-  by (rule dvd_trans) (assumption, blast)
-
-lemma dvd_lcmI2: "a dvd c \<Longrightarrow> a dvd lcm b c"
-  by (rule dvd_trans) (assumption, blast)
-
-lemma lcm_dvdD1: "lcm a b dvd c \<Longrightarrow> a dvd c"
-  using dvd_lcm1 [of a b] by (blast intro: dvd_trans)
-
-lemma lcm_dvdD2: "lcm a b dvd c \<Longrightarrow> b dvd c"
-  using dvd_lcm2 [of a b] by (blast intro: dvd_trans)
-
-lemma lcm_least:
-  assumes "a dvd c" and "b dvd c"
-  shows "lcm a b dvd c"
-proof (cases "c = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then have *: "is_unit (unit_factor c)"
-    by simp
-  show ?thesis
-  proof (cases "gcd a b = 0")
-    case True
-    with assms show ?thesis by simp
-  next
-    case False
-    then have "a \<noteq> 0 \<or> b \<noteq> 0"
-      by simp
-    with \<open>c \<noteq> 0\<close> assms have "a * b dvd a * c" "a * b dvd c * b"
-      by (simp_all add: mult_dvd_mono)
-    then have "normalize (a * b) dvd gcd (a * c) (b * c)"
-      by (auto intro: gcd_greatest simp add: ac_simps)
-    then have "normalize (a * b) dvd gcd (a * c) (b * c) * unit_factor c"
-      using * by (simp add: dvd_mult_unit_iff)
-    then have "normalize (a * b) dvd gcd a b * c"
-      by (simp add: mult_gcd_right [of a b c])
-    then have "normalize (a * b) div gcd a b dvd c"
-      using False by (simp add: div_dvd_iff_mult ac_simps)
-    then show ?thesis
-      by (simp add: lcm_gcd)
-  qed
-qed
-
-lemma lcm_least_iff [simp]: "lcm a b dvd c \<longleftrightarrow> a dvd c \<and> b dvd c"
-  by (blast intro!: lcm_least intro: dvd_trans)
-
-lemma normalize_lcm [simp]: "normalize (lcm a b) = lcm a b"
-  by (simp add: lcm_gcd dvd_normalize_div)
-
-lemma lcm_0_left [simp]: "lcm 0 a = 0"
-  by (simp add: lcm_gcd)
-
-lemma lcm_0_right [simp]: "lcm a 0 = 0"
-  by (simp add: lcm_gcd)
-
-lemma lcm_eq_0_iff: "lcm a b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
-  (is "?P \<longleftrightarrow> ?Q")
-proof
-  assume ?P
-  then have "0 dvd lcm a b"
-    by simp
-  then have "0 dvd normalize (a * b) div gcd a b"
-    by (simp add: lcm_gcd)
-  then have "0 * gcd a b dvd normalize (a * b)"
-    using dvd_div_iff_mult [of "gcd a b" _ 0] by (cases "gcd a b = 0") simp_all
-  then have "normalize (a * b) = 0"
-    by simp
-  then show ?Q
-    by simp
-next
-  assume ?Q
-  then show ?P
-    by auto
-qed
-
-lemma lcm_eq_1_iff [simp]: "lcm a b = 1 \<longleftrightarrow> is_unit a \<and> is_unit b"
-  by (auto intro: associated_eqI)
-
-lemma unit_factor_lcm: "unit_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
-  by (simp add: unit_factor_gcd dvd_unit_factor_div lcm_gcd)
-
-sublocale lcm: abel_semigroup lcm
-proof
-  fix a b c
-  show "lcm a b = lcm b a"
-    by (simp add: lcm_gcd ac_simps normalize_mult dvd_normalize_div)
-  have "lcm (lcm a b) c dvd lcm a (lcm b c)"
-    and "lcm a (lcm b c) dvd lcm (lcm a b) c"
-    by (auto intro: lcm_least
-      dvd_trans [of b "lcm b c" "lcm a (lcm b c)"]
-      dvd_trans [of c "lcm b c" "lcm a (lcm b c)"]
-      dvd_trans [of a "lcm a b" "lcm (lcm a b) c"]
-      dvd_trans [of b "lcm a b" "lcm (lcm a b) c"])
-  then show "lcm (lcm a b) c = lcm a (lcm b c)"
-    by (rule associated_eqI) simp_all
-qed
-
-sublocale lcm: bounded_quasi_semilattice lcm 1 0 normalize
-proof
-  show "lcm a a = normalize a" for a
-  proof -
-    have "lcm a a dvd a"
-      by (rule lcm_least) simp_all
-    then show ?thesis
-      by (auto intro: associated_eqI)
-  qed
-  show "lcm (normalize a) b = lcm a b" for a b
-    using dvd_lcm1 [of "normalize a" b] unfolding normalize_dvd_iff
-    by (auto intro: associated_eqI)
-  show "lcm 1 a = normalize a" for a
-    by (rule associated_eqI) simp_all
-qed simp_all
-
-lemma lcm_self: "lcm a a = normalize a"
-  by (fact lcm.idem_normalize)
-
-lemma lcm_left_idem: "lcm a (lcm a b) = lcm a b"
-  by (fact lcm.left_idem)
-
-lemma lcm_right_idem: "lcm (lcm a b) b = lcm a b"
-  by (fact lcm.right_idem)
-
-lemma gcd_mult_lcm [simp]: "gcd a b * lcm a b = normalize a * normalize b"
-  by (simp add: lcm_gcd normalize_mult)
-
-lemma lcm_mult_gcd [simp]: "lcm a b * gcd a b = normalize a * normalize b"
-  using gcd_mult_lcm [of a b] by (simp add: ac_simps)
-
-lemma gcd_lcm:
-  assumes "a \<noteq> 0" and "b \<noteq> 0"
-  shows "gcd a b = normalize (a * b) div lcm a b"
-proof -
-  from assms have "lcm a b \<noteq> 0"
-    by (simp add: lcm_eq_0_iff)
-  have "gcd a b * lcm a b = normalize a * normalize b"
-    by simp
-  then have "gcd a b * lcm a b div lcm a b = normalize (a * b) div lcm a b"
-    by (simp_all add: normalize_mult)
-  with \<open>lcm a b \<noteq> 0\<close> show ?thesis
-    using nonzero_mult_div_cancel_right [of "lcm a b" "gcd a b"] by simp
-qed
-
-lemma lcm_1_left: "lcm 1 a = normalize a"
-  by (fact lcm.top_left_normalize)
-
-lemma lcm_1_right: "lcm a 1 = normalize a"
-  by (fact lcm.top_right_normalize)
-
-lemma lcm_mult_left: "lcm (c * a) (c * b) = normalize c * lcm a b"
-  by (cases "c = 0")
-    (simp_all add: gcd_mult_right lcm_gcd div_mult_swap normalize_mult ac_simps,
-      simp add: dvd_div_mult2_eq mult.left_commute [of "normalize c", symmetric])
-
-lemma lcm_mult_right: "lcm (a * c) (b * c) = lcm b a * normalize c"
-  using lcm_mult_left [of c a b] by (simp add: ac_simps)
-
-lemma mult_lcm_left: "c * lcm a b = unit_factor c * lcm (c * a) (c * b)"
-  by (simp add: lcm_mult_left mult.assoc [symmetric])
-
-lemma mult_lcm_right: "lcm a b * c = lcm (a * c) (b * c) * unit_factor c"
-  using mult_lcm_left [of c a b] by (simp add: ac_simps)
-
 lemma gcdI:
   assumes "c dvd a" and "c dvd b"
     and greatest: "\<And>d. d dvd a \<Longrightarrow> d dvd b \<Longrightarrow> d dvd c"
@@ -520,20 +315,198 @@ qed
 lemma gcd_proj2_iff: "gcd m n = normalize n \<longleftrightarrow> n dvd m"
   using gcd_proj1_iff [of n m] by (simp add: ac_simps)
 
-lemma gcd_mult_distrib': "normalize c * gcd a b = gcd (c * a) (c * b)"
-  by (rule gcdI) (auto simp: normalize_mult gcd_greatest mult_dvd_mono gcd_mult_left[symmetric])
-
-lemma gcd_mult_distrib: "k * gcd a b = gcd (k * a) (k * b) * unit_factor k"
-proof-
-  have "normalize k * gcd a b = gcd (k * a) (k * b)"
-    by (simp add: gcd_mult_distrib')
-  then have "normalize k * gcd a b * unit_factor k = gcd (k * a) (k * b) * unit_factor k"
-    by simp
-  then have "normalize k * unit_factor k * gcd a b  = gcd (k * a) (k * b) * unit_factor k"
-    by (simp only: ac_simps)
+lemma gcd_mult_left: "gcd (c * a) (c * b) = normalize (c * gcd a b)"
+proof (cases "c = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have *: "c * gcd a b dvd gcd (c * a) (c * b)"
+    by (auto intro: gcd_greatest)
+  moreover from False * have "gcd (c * a) (c * b) dvd c * gcd a b"
+    by (metis div_dvd_iff_mult dvd_mult_left gcd_dvd1 gcd_dvd2 gcd_greatest mult_commute)
+  ultimately have "normalize (gcd (c * a) (c * b)) = normalize (c * gcd a b)"
+    by (auto intro: associated_eqI)
   then show ?thesis
-    by simp
+    by (simp add: normalize_mult)
 qed
+
+lemma gcd_mult_right: "gcd (a * c) (b * c) = normalize (gcd b a * c)"
+  using gcd_mult_left [of c a b] by (simp add: ac_simps)
+
+lemma dvd_lcm1 [iff]: "a dvd lcm a b"
+  by (metis div_mult_swap dvd_mult2 dvd_normalize_iff dvd_refl gcd_dvd2 lcm_gcd)
+
+lemma dvd_lcm2 [iff]: "b dvd lcm a b"
+  by (metis dvd_div_mult dvd_mult dvd_normalize_iff dvd_refl gcd_dvd1 lcm_gcd)
+
+lemma dvd_lcmI1: "a dvd b \<Longrightarrow> a dvd lcm b c"
+  by (rule dvd_trans) (assumption, blast)
+
+lemma dvd_lcmI2: "a dvd c \<Longrightarrow> a dvd lcm b c"
+  by (rule dvd_trans) (assumption, blast)
+
+lemma lcm_dvdD1: "lcm a b dvd c \<Longrightarrow> a dvd c"
+  using dvd_lcm1 [of a b] by (blast intro: dvd_trans)
+
+lemma lcm_dvdD2: "lcm a b dvd c \<Longrightarrow> b dvd c"
+  using dvd_lcm2 [of a b] by (blast intro: dvd_trans)
+
+lemma lcm_least:
+  assumes "a dvd c" and "b dvd c"
+  shows "lcm a b dvd c"
+proof (cases "c = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have *: "is_unit (unit_factor c)"
+    by simp
+  show ?thesis
+  proof (cases "gcd a b = 0")
+    case True
+    with assms show ?thesis by simp
+  next
+    case False
+    have "a * b dvd normalize (c * gcd a b)"
+      using assms by (subst gcd_mult_left [symmetric]) (auto intro!: gcd_greatest simp: mult_ac)
+    with False have "(a * b div gcd a b) dvd c"
+      by (subst div_dvd_iff_mult) auto
+    thus ?thesis by (simp add: lcm_gcd)
+  qed
+qed
+
+lemma lcm_least_iff [simp]: "lcm a b dvd c \<longleftrightarrow> a dvd c \<and> b dvd c"
+  by (blast intro!: lcm_least intro: dvd_trans)
+
+lemma normalize_lcm [simp]: "normalize (lcm a b) = lcm a b"
+  by (simp add: lcm_gcd dvd_normalize_div)
+
+lemma lcm_0_left [simp]: "lcm 0 a = 0"
+  by (simp add: lcm_gcd)
+
+lemma lcm_0_right [simp]: "lcm a 0 = 0"
+  by (simp add: lcm_gcd)
+
+lemma lcm_eq_0_iff: "lcm a b = 0 \<longleftrightarrow> a = 0 \<or> b = 0"
+  (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then have "0 dvd lcm a b"
+    by simp
+  also have "lcm a b dvd (a * b)"
+    by simp
+  finally show ?Q
+    by auto
+next
+  assume ?Q
+  then show ?P
+    by auto
+qed
+
+lemma zero_eq_lcm_iff: "0 = lcm a b \<longleftrightarrow> a = 0 \<or> b = 0"
+  using lcm_eq_0_iff[of a b] by auto
+
+lemma lcm_eq_1_iff [simp]: "lcm a b = 1 \<longleftrightarrow> is_unit a \<and> is_unit b"
+  by (auto intro: associated_eqI)
+
+lemma unit_factor_lcm: "unit_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
+  using lcm_eq_0_iff[of a b] by (cases "lcm a b = 0") (auto simp: lcm_gcd)
+
+sublocale lcm: abel_semigroup lcm
+proof
+  fix a b c
+  show "lcm a b = lcm b a"
+    by (simp add: lcm_gcd ac_simps normalize_mult dvd_normalize_div)
+  have "lcm (lcm a b) c dvd lcm a (lcm b c)"
+    and "lcm a (lcm b c) dvd lcm (lcm a b) c"
+    by (auto intro: lcm_least
+      dvd_trans [of b "lcm b c" "lcm a (lcm b c)"]
+      dvd_trans [of c "lcm b c" "lcm a (lcm b c)"]
+      dvd_trans [of a "lcm a b" "lcm (lcm a b) c"]
+      dvd_trans [of b "lcm a b" "lcm (lcm a b) c"])
+  then show "lcm (lcm a b) c = lcm a (lcm b c)"
+    by (rule associated_eqI) simp_all
+qed
+
+sublocale lcm: bounded_quasi_semilattice lcm 1 0 normalize
+proof
+  show "lcm a a = normalize a" for a
+  proof -
+    have "lcm a a dvd a"
+      by (rule lcm_least) simp_all
+    then show ?thesis
+      by (auto intro: associated_eqI)
+  qed
+  show "lcm (normalize a) b = lcm a b" for a b
+    using dvd_lcm1 [of "normalize a" b] unfolding normalize_dvd_iff
+    by (auto intro: associated_eqI)
+  show "lcm 1 a = normalize a" for a
+    by (rule associated_eqI) simp_all
+qed simp_all
+
+lemma lcm_self: "lcm a a = normalize a"
+  by (fact lcm.idem_normalize)
+
+lemma lcm_left_idem: "lcm a (lcm a b) = lcm a b"
+  by (fact lcm.left_idem)
+
+lemma lcm_right_idem: "lcm (lcm a b) b = lcm a b"
+  by (fact lcm.right_idem)
+
+lemma gcd_lcm:
+  assumes "a \<noteq> 0" and "b \<noteq> 0"
+  shows "gcd a b = normalize (a * b div lcm a b)"
+proof -
+  from assms have [simp]: "a * b div gcd a b \<noteq> 0"
+    by (subst dvd_div_eq_0_iff) auto
+  let ?u = "unit_factor (a * b div gcd a b)"
+  have "gcd a b * normalize (a * b div gcd a b) =
+          gcd a b * ((a * b div gcd a b) * (1 div ?u))"
+    by simp
+  also have "\<dots> = a * b div ?u"
+    by (subst mult.assoc [symmetric]) auto
+  also have "\<dots> dvd a * b"
+    by (subst div_unit_dvd_iff) auto
+  finally have "gcd a b dvd ((a * b) div lcm a b)"
+    by (intro dvd_mult_imp_div) (auto simp: lcm_gcd)
+  moreover have "a * b div lcm a b dvd a" and "a * b div lcm a b dvd b"
+    using assms by (subst div_dvd_iff_mult; simp add: lcm_eq_0_iff mult.commute[of b "lcm a b"])+
+  ultimately have "normalize (gcd a b) = normalize (a * b div lcm a b)"
+    apply -
+    apply (rule associated_eqI)
+    using assms
+    apply (auto simp: div_dvd_iff_mult zero_eq_lcm_iff)
+    done
+  thus ?thesis by simp
+qed
+
+lemma lcm_1_left: "lcm 1 a = normalize a"
+  by (fact lcm.top_left_normalize)
+
+lemma lcm_1_right: "lcm a 1 = normalize a"
+  by (fact lcm.top_right_normalize)
+
+lemma lcm_mult_left: "lcm (c * a) (c * b) = normalize (c * lcm a b)"
+proof (cases "c = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then have *: "lcm (c * a) (c * b) dvd c * lcm a b"
+    by (auto intro: lcm_least)
+  moreover have "lcm a b dvd lcm (c * a) (c * b) div c"
+    by (intro lcm_least) (auto intro!: dvd_mult_imp_div simp: mult_ac)
+  hence "c * lcm a b dvd lcm (c * a) (c * b)"
+    using False by (subst (asm) dvd_div_iff_mult) (auto simp: mult_ac intro: dvd_lcmI1)
+  ultimately have "normalize (lcm (c * a) (c * b)) = normalize (c * lcm a b)"
+    by (auto intro: associated_eqI)
+  then show ?thesis
+    by (simp add: normalize_mult)
+qed
+
+lemma lcm_mult_right: "lcm (a * c) (b * c) = normalize (lcm b a * c)"
+  using lcm_mult_left [of c a b] by (simp add: ac_simps)
 
 lemma lcm_mult_unit1: "is_unit a \<Longrightarrow> lcm (b * a) c = lcm b c"
   by (rule associated_eqI) (simp_all add: mult_unit_dvd_iff dvd_lcmI1)
@@ -553,30 +526,6 @@ lemma normalize_lcm_left: "lcm (normalize a) b = lcm a b"
 
 lemma normalize_lcm_right: "lcm a (normalize b) = lcm a b"
   by (fact lcm.normalize_right_idem)
-
-lemma gcd_mult_unit1: 
-  assumes "is_unit a" shows "gcd (b * a) c = gcd b c"
-proof -
-  have "gcd (b * a) c dvd b"
-    using assms local.dvd_mult_unit_iff by blast
-  then show ?thesis
-    by (rule gcdI) simp_all
-qed
-
-lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
-  using gcd.commute gcd_mult_unit1 by auto
-
-lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
-  by (erule is_unitE [of _ b]) (simp add: gcd_mult_unit1)
-
-lemma gcd_div_unit2: "is_unit a \<Longrightarrow> gcd b (c div a) = gcd b c"
-  by (erule is_unitE [of _ c]) (simp add: gcd_mult_unit2)
-
-lemma normalize_gcd_left: "gcd (normalize a) b = gcd a b"
-  by (fact gcd.normalize_left_idem)
-
-lemma normalize_gcd_right: "gcd a (normalize b) = gcd a b"
-  by (fact gcd.normalize_right_idem)
 
 lemma comp_fun_idem_gcd: "comp_fun_idem gcd"
   by standard (simp_all add: fun_eq_iff ac_simps)
@@ -605,18 +554,6 @@ proof (rule gcdI)
     by (rule dvd_trans)
 qed
 
-lemma gcd_add1 [simp]: "gcd (m + n) n = gcd m n"
-  by (rule gcdI [symmetric]) (simp_all add: dvd_add_left_iff)
-
-lemma gcd_add2 [simp]: "gcd m (m + n) = gcd m n"
-  using gcd_add1 [of n m] by (simp add: ac_simps)
-
-lemma gcd_add_mult: "gcd m (k * m + n) = gcd m n"
-  by (rule gcdI [symmetric]) (simp_all add: dvd_add_right_iff)
-
-lemma lcm_gcd_prod: "lcm a b * gcd a b = normalize (a * b)"
-  by (simp add: lcm_gcd)
-
 declare unit_factor_lcm [simp]
 
 lemma lcmI:
@@ -636,11 +573,11 @@ lemma lcm_unique:
 
 lemma lcm_proj1_if_dvd:
   assumes "b dvd a" shows "lcm a b = normalize a"
-proof (cases "a = 0")
-  case False
-  then show ?thesis
-    using assms gcd_proj2_if_dvd lcm_mult_gcd local.lcm_gcd by auto
-qed auto
+proof -
+  have "normalize (lcm a b) = normalize a"
+    by (rule associatedI) (use assms in auto)
+  thus ?thesis by simp
+qed
 
 lemma lcm_proj2_if_dvd: "a dvd b \<Longrightarrow> lcm a b = normalize b"
   using lcm_proj1_if_dvd [of a b] by (simp add: ac_simps)
@@ -667,21 +604,6 @@ qed
 lemma lcm_proj2_iff: "lcm m n = normalize n \<longleftrightarrow> m dvd n"
   using lcm_proj1_iff [of n m] by (simp add: ac_simps)
 
-lemma lcm_mult_distrib': "normalize c * lcm a b = lcm (c * a) (c * b)"
-  by (rule lcmI) (auto simp: normalize_mult lcm_least mult_dvd_mono lcm_mult_left [symmetric])
-
-lemma lcm_mult_distrib: "k * lcm a b = lcm (k * a) (k * b) * unit_factor k"
-proof-
-  have "normalize k * lcm a b = lcm (k * a) (k * b)"
-    by (simp add: lcm_mult_distrib')
-  then have "normalize k * lcm a b * unit_factor k = lcm (k * a) (k * b) * unit_factor k"
-    by simp
-  then have "normalize k * unit_factor k * lcm a b  = lcm (k * a) (k * b) * unit_factor k"
-    by (simp only: ac_simps)
-  then show ?thesis
-    by simp
-qed
-
 lemma gcd_mono: "a dvd c \<Longrightarrow> b dvd d \<Longrightarrow> gcd a b dvd gcd c d"
   by (simp add: gcd_dvdI1 gcd_dvdI2)
 
@@ -701,11 +623,44 @@ next
   moreover have "x dvd a" by (simp add: x_def)
   moreover from assms have "p dvd gcd (b * a) (b * p)"
     by (intro gcd_greatest) (simp_all add: mult.commute)
-  hence "p dvd b * gcd a p" by (simp add: gcd_mult_distrib)
+  hence "p dvd b * gcd a p" by (subst (asm) gcd_mult_left) auto
   with False have "y dvd b"
     by (simp add: x_def y_def div_dvd_iff_mult assms)
   ultimately show ?thesis by (rule that)
 qed
+
+lemma gcd_mult_unit1: 
+  assumes "is_unit a" shows "gcd (b * a) c = gcd b c"
+proof -
+  have "gcd (b * a) c dvd b"
+    using assms dvd_mult_unit_iff by blast
+  then show ?thesis
+    by (rule gcdI) simp_all
+qed
+
+lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
+  using gcd.commute gcd_mult_unit1 by auto
+
+lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
+  by (erule is_unitE [of _ b]) (simp add: gcd_mult_unit1)
+
+lemma gcd_div_unit2: "is_unit a \<Longrightarrow> gcd b (c div a) = gcd b c"
+  by (erule is_unitE [of _ c]) (simp add: gcd_mult_unit2)
+
+lemma normalize_gcd_left: "gcd (normalize a) b = gcd a b"
+  by (fact gcd.normalize_left_idem)
+
+lemma normalize_gcd_right: "gcd a (normalize b) = gcd a b"
+  by (fact gcd.normalize_right_idem)
+
+lemma gcd_add1 [simp]: "gcd (m + n) n = gcd m n"
+  by (rule gcdI [symmetric]) (simp_all add: dvd_add_left_iff)
+
+lemma gcd_add2 [simp]: "gcd m (m + n) = gcd m n"
+  using gcd_add1 [of n m] by (simp add: ac_simps)
+
+lemma gcd_add_mult: "gcd m (k * m + n) = gcd m n"
+  by (rule gcdI [symmetric]) (simp_all add: dvd_add_right_iff)
 
 end
 
@@ -831,9 +786,9 @@ lemma Lcm_subset: "A \<subseteq> B \<Longrightarrow> Lcm A dvd Lcm B"
 lemma Lcm_Un: "Lcm (A \<union> B) = lcm (Lcm A) (Lcm B)"
 proof -
   have "\<And>d. \<lbrakk>Lcm A dvd d; Lcm B dvd d\<rbrakk> \<Longrightarrow> Lcm (A \<union> B) dvd d"
-    by (meson UnE local.Lcm_least local.dvd_Lcm local.dvd_trans)
+    by (meson UnE Lcm_least dvd_Lcm dvd_trans)
   then show ?thesis
-    by (meson Lcm_subset local.lcm_unique local.normalize_Lcm sup.cobounded1 sup.cobounded2)
+    by (meson Lcm_subset lcm_unique normalize_Lcm sup.cobounded1 sup.cobounded2)
 qed
 
 lemma Gcd_0_iff [simp]: "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}"
@@ -982,7 +937,7 @@ lemma dvd_GcdD: "x dvd Gcd A \<Longrightarrow> y \<in> A \<Longrightarrow> x dvd
 lemma dvd_Gcd_iff: "x dvd Gcd A \<longleftrightarrow> (\<forall>y\<in>A. x dvd y)"
   by (blast dest: dvd_GcdD intro: Gcd_greatest)
 
-lemma Gcd_mult: "Gcd ((*) c ` A) = normalize c * Gcd A"
+lemma Gcd_mult: "Gcd ((*) c ` A) = normalize (c * Gcd A)"
 proof (cases "c = 0")
   case True
   then show ?thesis by auto
@@ -993,17 +948,11 @@ next
        (auto intro!: Gcd_greatest Gcd_dvd simp: mult.commute[of _ c])
   then have "Gcd ((*) c ` A) dvd c * Gcd A"
     by (subst (asm) div_dvd_iff_mult) (auto intro: Gcd_greatest simp: mult_ac)
-  also have "c * Gcd A = (normalize c * Gcd A) * unit_factor c"
-    by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "Gcd ((*) c ` A) dvd \<dots> \<longleftrightarrow> Gcd ((*) c ` A) dvd normalize c * Gcd A"
-    by (simp add: dvd_mult_unit_iff)
-  finally have "Gcd ((*) c ` A) dvd normalize c * Gcd A" .
-  moreover have "normalize c * Gcd A dvd Gcd ((*) c ` A)"
+  moreover have "c * Gcd A dvd Gcd ((*) c ` A)"
     by (intro Gcd_greatest) (auto intro: mult_dvd_mono Gcd_dvd)
-  ultimately have "normalize (Gcd ((*) c ` A)) = normalize (normalize c * Gcd A)"
+  ultimately have "normalize (Gcd ((*) c ` A)) = normalize (c * Gcd A)"
     by (rule associatedI)
-  then show ?thesis
-    by (simp add: normalize_mult)
+  then show ?thesis by simp    
 qed
 
 lemma Lcm_eqI:
@@ -1021,7 +970,7 @@ lemma Lcm_dvd_iff: "Lcm A dvd x \<longleftrightarrow> (\<forall>y\<in>A. y dvd x
 
 lemma Lcm_mult:
   assumes "A \<noteq> {}"
-  shows "Lcm ((*) c ` A) = normalize c * Lcm A"
+  shows "Lcm ((*) c ` A) = normalize (c * Lcm A)"
 proof (cases "c = 0")
   case True
   with assms have "(*) c ` A = {0}"
@@ -1041,17 +990,11 @@ next
       (auto intro!: Lcm_least dvd_Lcm simp: mult.commute[of _ c])
   ultimately have "c * Lcm A dvd Lcm ((*) c ` A)"
     by auto
-  also have "c * Lcm A = (normalize c * Lcm A) * unit_factor c"
-    by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "\<dots> dvd Lcm ((*) c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm ((*) c ` A)"
-    by (simp add: mult_unit_dvd_iff)
-  finally have "normalize c * Lcm A dvd Lcm ((*) c ` A)" .
-  moreover have "Lcm ((*) c ` A) dvd normalize c * Lcm A"
+  moreover have "Lcm ((*) c ` A) dvd c * Lcm A"
     by (intro Lcm_least) (auto intro: mult_dvd_mono dvd_Lcm)
-  ultimately have "normalize (normalize c * Lcm A) = normalize (Lcm ((*) c ` A))"
+  ultimately have "normalize (c * Lcm A) = normalize (Lcm ((*) c ` A))"
     by (rule associatedI)
-  then show ?thesis
-    by (simp add: normalize_mult)
+  then show ?thesis by simp
 qed
 
 lemma Lcm_no_units: "Lcm A = Lcm (A - {a. is_unit a})"
@@ -1175,23 +1118,11 @@ lemma lcm_list_dvd_iff:
   by (simp add: Lcm_fin_dvd_iff)
 
 lemma Gcd_fin_mult:
-  "Gcd\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize b * Gcd\<^sub>f\<^sub>i\<^sub>n A" if "finite A"
-using that proof induct
-  case empty
-  then show ?case
-    by simp
-next
-  case (insert a A)
-  have "gcd (b * a) (b * Gcd\<^sub>f\<^sub>i\<^sub>n A) = gcd (b * a) (normalize (b * Gcd\<^sub>f\<^sub>i\<^sub>n A))"
-    by simp
-  also have "\<dots> = gcd (b * a) (normalize b * Gcd\<^sub>f\<^sub>i\<^sub>n A)"
-    by (simp add: normalize_mult)
-  finally show ?case
-    using insert by (simp add: gcd_mult_distrib')
-qed
+  "Gcd\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize (b * Gcd\<^sub>f\<^sub>i\<^sub>n A)" if "finite A"
+  using that by induction (auto simp: gcd_mult_left)
 
 lemma Lcm_fin_mult:
-  "Lcm\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize b * Lcm\<^sub>f\<^sub>i\<^sub>n A" if "A \<noteq> {}"
+  "Lcm\<^sub>f\<^sub>i\<^sub>n (image (times b) A) = normalize (b * Lcm\<^sub>f\<^sub>i\<^sub>n A)" if "A \<noteq> {}"
 proof (cases "b = 0")
   case True
   moreover from that have "times 0 ` A = {0}"
@@ -1210,19 +1141,8 @@ next
       by simp
   next
     case True
-    then show ?thesis using that proof (induct A rule: finite_ne_induct)
-      case (singleton a)
-      then show ?case
-        by (simp add: normalize_mult)
-    next
-      case (insert a A)
-      have "lcm (b * a) (b * Lcm\<^sub>f\<^sub>i\<^sub>n A) = lcm (b * a) (normalize (b * Lcm\<^sub>f\<^sub>i\<^sub>n A))"
-        by simp
-      also have "\<dots> = lcm (b * a) (normalize b * Lcm\<^sub>f\<^sub>i\<^sub>n A)"
-        by (simp add: normalize_mult)
-      finally show ?case
-        using insert by (simp add: lcm_mult_distrib')
-    qed
+    then show ?thesis using that
+      by (induct A rule: finite_ne_induct) (auto simp: lcm_mult_left)
   qed
 qed
 
@@ -1413,9 +1333,9 @@ next
     case False
     then have unit: "is_unit (unit_factor b)"
       by simp
-    from \<open>coprime a c\<close> mult_gcd_left [of b a c]
+    from \<open>coprime a c\<close>
     have "gcd (b * a) (b * c) * unit_factor b = b"
-      by (simp add: ac_simps)
+      by (subst gcd_mult_left) (simp add: ac_simps)
     moreover from \<open>a dvd b * c\<close>
     have "a dvd gcd (b * a) (b * c) * unit_factor b"
       by (simp add: dvd_mult_unit_iff unit)
@@ -1479,9 +1399,9 @@ proof -
     by simp
   with div_gcd_coprime have "coprime (a div gcd a b) (b div gcd a b)" .
   also from assms have "a div gcd a b = a'"
-    using dvd_div_eq_mult local.gcd_dvd1 by blast
+    using dvd_div_eq_mult gcd_dvd1 by blast
   also from assms have "b div gcd a b = b'"
-    using dvd_div_eq_mult local.gcd_dvd1 by blast
+    using dvd_div_eq_mult gcd_dvd1 by blast
   finally show ?thesis .
 qed
 
@@ -1574,24 +1494,6 @@ next
   ultimately show ?rhs ..
 qed
 
-lemma coprime_crossproduct':
-  fixes a b c d
-  assumes "b \<noteq> 0"
-  assumes unit_factors: "unit_factor b = unit_factor d"
-  assumes coprime: "coprime a b" "coprime c d"
-  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
-proof safe
-  assume eq: "a * d = b * c"
-  hence "normalize a * normalize d = normalize c * normalize b"
-    by (simp only: normalize_mult [symmetric] mult_ac)
-  with coprime have "normalize b = normalize d"
-    by (subst (asm) coprime_crossproduct) simp_all
-  from this and unit_factors show "b = d"
-    by (rule normalize_unit_factor_eqI)
-  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
-  with \<open>b \<noteq> 0\<close> \<open>b = d\<close> show "a = c" by simp
-qed (simp_all add: mult_ac)
-
 lemma gcd_mult_left_left_cancel:
   "gcd (c * a) b = gcd a b" if "coprime b c"
 proof -
@@ -1619,8 +1521,8 @@ lemma gcd_mult_right_right_cancel:
   using that gcd_mult_right_left_cancel [of a c b]
   by (simp add: ac_simps)
 
-lemma gcd_exp [simp]:
-  "gcd (a ^ n) (b ^ n) = gcd a b ^ n"
+lemma gcd_exp_weak:
+  "gcd (a ^ n) (b ^ n) = normalize (gcd a b ^ n)"
 proof (cases "a = 0 \<and> b = 0 \<or> n = 0")
   case True
   then show ?thesis
@@ -1633,11 +1535,10 @@ next
     by simp
   then have "1 = gcd ((a div gcd a b) ^ n) ((b div gcd a b) ^ n)"
     by simp
-  then have "gcd a b ^ n = gcd a b ^ n * \<dots>"
+  then have "normalize (gcd a b ^ n) = normalize (gcd a b ^ n * \<dots>)"
     by simp
-  also note gcd_mult_distrib
-  also have "unit_factor (gcd a b ^ n) = 1"
-    using False by (auto simp: unit_factor_power unit_factor_gcd)
+  also have "\<dots> = gcd (gcd a b ^ n * (a div gcd a b) ^ n) (gcd a b ^ n * (b div gcd a b) ^ n)"
+    by (rule gcd_mult_left [symmetric])
   also have "(gcd a b) ^ n * (a div gcd a b) ^ n = a ^ n"
     by (simp add: ac_simps div_power dvd_power_same)
   also have "(gcd a b) ^ n * (b div gcd a b) ^ n = b ^ n"
@@ -1733,6 +1634,87 @@ lemma Lcm_coprime':
     (\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> coprime a b) \<Longrightarrow>
     Lcm A = normalize (\<Prod>A)"
   by (rule Lcm_coprime) (simp_all add: card_eq_0_iff)
+
+end
+
+
+subsection \<open>GCD and LCM for multiplicative normalisation functions\<close>
+
+class semiring_gcd_mult_normalize = semiring_gcd + normalization_semidom_multiplicative
+begin
+
+lemma mult_gcd_left: "c * gcd a b = unit_factor c * gcd (c * a) (c * b)"
+  by (simp add: gcd_mult_left normalize_mult mult.assoc [symmetric])
+
+lemma mult_gcd_right: "gcd a b * c = gcd (a * c) (b * c) * unit_factor c"
+  using mult_gcd_left [of c a b] by (simp add: ac_simps)
+
+lemma gcd_mult_distrib': "normalize c * gcd a b = gcd (c * a) (c * b)"
+  by (subst gcd_mult_left) (simp_all add: normalize_mult)
+
+lemma gcd_mult_distrib: "k * gcd a b = gcd (k * a) (k * b) * unit_factor k"
+proof-
+  have "normalize k * gcd a b = gcd (k * a) (k * b)"
+    by (simp add: gcd_mult_distrib')
+  then have "normalize k * gcd a b * unit_factor k = gcd (k * a) (k * b) * unit_factor k"
+    by simp
+  then have "normalize k * unit_factor k * gcd a b  = gcd (k * a) (k * b) * unit_factor k"
+    by (simp only: ac_simps)
+  then show ?thesis
+    by simp
+qed
+
+lemma gcd_mult_lcm [simp]: "gcd a b * lcm a b = normalize a * normalize b"
+  by (simp add: lcm_gcd normalize_mult dvd_normalize_div)
+
+lemma lcm_mult_gcd [simp]: "lcm a b * gcd a b = normalize a * normalize b"
+  using gcd_mult_lcm [of a b] by (simp add: ac_simps)
+
+lemma mult_lcm_left: "c * lcm a b = unit_factor c * lcm (c * a) (c * b)"
+  by (simp add: lcm_mult_left mult.assoc [symmetric] normalize_mult)
+
+lemma mult_lcm_right: "lcm a b * c = lcm (a * c) (b * c) * unit_factor c"
+  using mult_lcm_left [of c a b] by (simp add: ac_simps)
+
+lemma lcm_gcd_prod: "lcm a b * gcd a b = normalize (a * b)"
+  by (simp add: lcm_gcd dvd_normalize_div normalize_mult)
+
+lemma lcm_mult_distrib': "normalize c * lcm a b = lcm (c * a) (c * b)"
+  by (subst lcm_mult_left) (simp add: normalize_mult)
+
+lemma lcm_mult_distrib: "k * lcm a b = lcm (k * a) (k * b) * unit_factor k"
+proof-
+  have "normalize k * lcm a b = lcm (k * a) (k * b)"
+    by (simp add: lcm_mult_distrib')
+  then have "normalize k * lcm a b * unit_factor k = lcm (k * a) (k * b) * unit_factor k"
+    by simp
+  then have "normalize k * unit_factor k * lcm a b  = lcm (k * a) (k * b) * unit_factor k"
+    by (simp only: ac_simps)
+  then show ?thesis
+    by simp
+qed
+
+lemma coprime_crossproduct':
+  fixes a b c d
+  assumes "b \<noteq> 0"
+  assumes unit_factors: "unit_factor b = unit_factor d"
+  assumes coprime: "coprime a b" "coprime c d"
+  shows "a * d = b * c \<longleftrightarrow> a = c \<and> b = d"
+proof safe
+  assume eq: "a * d = b * c"
+  hence "normalize a * normalize d = normalize c * normalize b"
+    by (simp only: normalize_mult [symmetric] mult_ac)
+  with coprime have "normalize b = normalize d"
+    by (subst (asm) coprime_crossproduct) simp_all
+  from this and unit_factors show "b = d"
+    by (rule normalize_unit_factor_eqI)
+  from eq have "a * d = c * d" by (simp only: \<open>b = d\<close> mult_ac)
+  with \<open>b \<noteq> 0\<close> \<open>b = d\<close> show "a = c" by simp
+qed (simp_all add: mult_ac)
+
+lemma gcd_exp [simp]:
+  "gcd (a ^ n) (b ^ n) = gcd a b ^ n"
+  using gcd_exp_weak[of a n b] by (simp add: normalize_power)
 
 end
 
@@ -1946,13 +1928,13 @@ qed (simp_all add: lcm_nat_def)
 instance int :: ring_gcd
 proof
   fix k l r :: int
-  show "gcd k l dvd k" "gcd k l dvd l"
+  show [simp]: "gcd k l dvd k" "gcd k l dvd l"
     using gcd_dvd1 [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
       gcd_dvd2 [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
     by simp_all
-  show "lcm k l = normalize (k * l) div gcd k l"
+  show "lcm k l = normalize (k * l div gcd k l)"
     using lcm_gcd [of "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
-    by (simp add: nat_eq_iff of_nat_div abs_mult)
+    by (simp add: nat_eq_iff of_nat_div abs_mult abs_div)
   assume "r dvd k" "r dvd l"
   then show "r dvd gcd k l"
     using gcd_greatest [of "nat \<bar>r\<bar>" "nat \<bar>k\<bar>" "nat \<bar>l\<bar>"]
@@ -2010,15 +1992,11 @@ text \<open>\<^medskip> Multiplication laws.\<close>
 lemma gcd_mult_distrib_nat: "k * gcd m n = gcd (k * m) (k * n)"
   for k m n :: nat
   \<comment> \<open>@{cite \<open>page 27\<close> davenport92}\<close>
-proof (induct m n rule: gcd_nat_induct)
-  case (step m n)
-  then show ?case
-    by (metis gcd_mult_distrib' gcd_red_nat)
-qed auto
+  by (simp add: gcd_mult_left)
 
 lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"
   for k m n :: int
-  using gcd_mult_distrib' [of k m n] by simp
+  by (simp add: gcd_mult_left abs_mult)
 
 text \<open>\medskip Addition laws.\<close>
 
@@ -2400,15 +2378,15 @@ subsection \<open>LCM properties on \<^typ>\<open>nat\<close> and \<^typ>\<open>
 
 lemma lcm_altdef_int [code]: "lcm a b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
   for a b :: int
-  by (simp add: abs_mult lcm_gcd)
+  by (simp add: abs_mult lcm_gcd abs_div)
   
 lemma prod_gcd_lcm_nat: "m * n = gcd m n * lcm m n"
   for m n :: nat
-  by simp
+  by (simp add: lcm_gcd)
 
 lemma prod_gcd_lcm_int: "\<bar>m\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
   for m n :: int
-  by simp
+  by (simp add: lcm_gcd abs_div abs_mult)
 
 lemma lcm_pos_nat: "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> lcm m n > 0"
   for m n :: nat
@@ -2553,6 +2531,9 @@ lemma Gcd_nat_eq_one: "1 \<in> N \<Longrightarrow> Gcd N = 1"
   for N :: "nat set"
   by (rule Gcd_eq_1_I) auto
 
+instance nat :: semiring_gcd_mult_normalize
+  by intro_classes (auto simp: unit_factor_nat_def)
+
 
 text \<open>Alternative characterizations of Gcd:\<close>
 
@@ -2695,7 +2676,10 @@ proof
       by (rule Lcm_least) (use that in auto)
     then show ?thesis by simp
   qed
-qed simp_all
+qed (simp_all add: sgn_mult)
+
+instance int :: semiring_gcd_mult_normalize
+  by intro_classes (auto simp: sgn_mult)
 
 
 subsection \<open>GCD and LCM on \<^typ>\<open>integer\<close>\<close>

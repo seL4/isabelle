@@ -67,7 +67,7 @@ qualified lemma gcd_mod:
   by (simp add: gcd.simps [of b 0] gcd.simps [of b a])
 
 qualified definition lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  where "lcm a b = normalize (a * b) div gcd a b"
+  where "lcm a b = normalize (a * b div gcd a b)"
 
 qualified definition Lcm :: "'a set \<Rightarrow> 'a" \<comment> \<open>Somewhat complicated definition of Lcm that has the advantage of working
     for infinite sets as well\<close>
@@ -106,7 +106,7 @@ next
     by (induct a b rule: eucl_induct)
       (simp_all add: local.gcd_0 local.gcd_mod)
 next
-  show "lcm a b = normalize (a * b) div gcd a b" for a b
+  show "lcm a b = normalize (a * b div gcd a b)" for a b
     by (fact local.lcm_def)
 qed
 
@@ -234,31 +234,30 @@ proof -
         from y have x: "x = y * z" by (simp add: z_def)
         with less.prems have "y \<noteq> 0" "z \<noteq> 0" by auto
         have normalized_factors_product:
-          "{p. p dvd a * b \<and> normalize p = p} = 
-             (\<lambda>(x,y). x * y) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
+          "{p. p dvd a * b \<and> normalize p = p} \<subseteq>
+             (\<lambda>(x,y). normalize (x * y)) ` ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
           for a b
         proof safe
           fix p assume p: "p dvd a * b" "normalize p = p"
           from p(1) obtain x y where xy: "p = x * y" "x dvd a" "y dvd b"
             by (rule dvd_productE)
           define x' y' where "x' = normalize x" and "y' = normalize y"
-          have "p = x' * y'"
-            by (subst p(2) [symmetric]) (simp add: xy x'_def y'_def normalize_mult)
-          moreover from xy have "normalize x' = x'" "normalize y' = y'" "x' dvd a" "y' dvd b" 
-            by (simp_all add: x'_def y'_def)
-          ultimately show "p \<in> (\<lambda>(x, y). x * y) ` 
-            ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})"
-            by blast
-        qed (auto simp: normalize_mult mult_dvd_mono)
+          have "p = normalize (x' * y')"
+            using p by (simp add: xy x'_def y'_def)
+          moreover have "x' dvd a \<and> normalize x' = x'" and "y' dvd b \<and> normalize y' = y'"
+            using xy by (auto simp: x'_def y'_def)
+          ultimately show "p \<in> (\<lambda>(x, y). normalize (x * y)) `
+              ({p. p dvd a \<and> normalize p = p} \<times> {p. p dvd b \<and> normalize p = p})" by fast
+        qed
         from x y have "\<not>is_unit z" by (auto simp: mult_unit_dvd_iff)
-        have "?fctrs x = (\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z)"
+        have "?fctrs x \<subseteq> (\<lambda>(p,p'). normalize (p * p')) ` (?fctrs y \<times> ?fctrs z)"
           by (subst x) (rule normalized_factors_product)
-        also have "\<not>y * z dvd y * 1" "\<not>y * z dvd 1 * z"
+        moreover have "\<not>y * z dvd y * 1" "\<not>y * z dvd 1 * z"
           by (subst dvd_times_left_cancel_iff dvd_times_right_cancel_iff; fact)+
-        hence "finite ((\<lambda>(p,p'). p * p') ` (?fctrs y \<times> ?fctrs z))"
+        hence "finite ((\<lambda>(p,p'). normalize (p * p')) ` (?fctrs y \<times> ?fctrs z))"
           by (intro finite_imageI finite_cartesian_product less dvd_proper_imp_size_less)
              (auto simp: x)
-        finally show ?thesis .
+        ultimately show ?thesis by (rule finite_subset)
       qed
     qed
   next
@@ -566,6 +565,26 @@ declare euclid_ext_eq [symmetric, code_unfold]
 
 end
 
+class normalization_euclidean_semiring_multiplicative =
+  normalization_euclidean_semiring + normalization_semidom_multiplicative
+begin
+
+subclass factorial_semiring_multiplicative ..
+
+end
+
+class field_gcd =
+  field + unique_euclidean_ring + euclidean_ring_gcd + normalization_semidom_multiplicative
+begin
+
+subclass normalization_euclidean_semiring_multiplicative ..
+
+subclass normalization_euclidean_semiring ..
+
+subclass semiring_gcd_mult_normalize ..
+
+end
+
 
 subsection \<open>Typical instances\<close>
 
@@ -602,6 +621,8 @@ proof
   show "(Euclidean_Algorithm.Gcd :: nat set \<Rightarrow> _) = Gcd"
     by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
+
+instance nat :: normalization_euclidean_semiring_multiplicative ..
 
 lemma prime_factorization_Suc_0 [simp]: "prime_factorization (Suc 0) = {#}"
   unfolding One_nat_def [symmetric] using prime_factorization_1 .
@@ -651,5 +672,7 @@ proof
   show "(Euclidean_Algorithm.Gcd :: int set \<Rightarrow> _) = Gcd"
     by (simp add: fun_eq_iff Euclidean_Algorithm.Gcd_def semiring_Gcd_class.Gcd_Lcm)
 qed
+
+instance int :: normalization_euclidean_semiring_multiplicative ..
 
 end
