@@ -171,8 +171,8 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
         val U = Term.fastype_of1 (rev (map snd ps), t);
         val Q = Data.dest_Trueprop (Logic.strip_assums_concl Bi);
         val rl' = Thm.lift_rule cBi rl;
-        val Var (ixn, T) = Term.head_of (Data.dest_Trueprop
-          (Logic.strip_assums_concl (Thm.prop_of rl')));
+        val (ixn, T) = dest_Var (Term.head_of (Data.dest_Trueprop
+          (Logic.strip_assums_concl (Thm.prop_of rl'))));
         val (v1, v2) = Data.dest_eq (Data.dest_Trueprop
           (Logic.strip_assums_concl (hd (Thm.prems_of rl'))));
         val (Ts, V) = split_last (Term.binder_types T);
