@@ -139,8 +139,6 @@ fun mk_eqs bnd th =
       else Thm.symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle TERM _ => [] | Match => [];
 
-fun bool2s true = "true" | bool2s false = "false"
-
 local
 in
 
