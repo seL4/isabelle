@@ -357,9 +357,9 @@ fun map_simpset f = Context.proof_map (Simpset.map f);
 fun map_simpset1 f = map_simpset (fn Simpset (ss1, ss2) => Simpset (map_ss1 f ss1, ss2));
 fun map_simpset2 f = map_simpset (fn Simpset (ss1, ss2) => Simpset (ss1, map_ss2 f ss2));
 
-fun simpset_map ctxt f ss = ctxt |> map_simpset (K ss) |> f |> Context.Proof |> Simpset.get;
-
 fun put_simpset ss = map_simpset (K ss);
+
+fun simpset_map ctxt f ss = ctxt |> put_simpset ss |> f |> simpset_of;
 
 val empty_simpset = put_simpset empty_ss;
 
