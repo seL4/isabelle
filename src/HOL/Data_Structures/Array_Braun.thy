@@ -340,6 +340,30 @@ fun take_nths :: "nat \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a l
 "take_nths i k (x # xs) = (if i = 0 then x # take_nths (2^k - 1) k xs
   else take_nths (i - 1) k xs)"
 
+text \<open>This is the more concise definition but seems to complicate the proofs:\<close>
+
+lemma take_nths_eq_nths: "take_nths i k xs = nths xs (\<Union>n. {n*2^k + i})"
+proof(induction xs arbitrary: i)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof cases
+    assume [simp]: "i = 0"
+    have "(\<Union>n. {(n+1) * 2 ^ k - 1}) = {m. \<exists>n. Suc m = n * 2 ^ k}"
+      apply (auto simp del: mult_Suc)
+      by (metis diff_Suc_Suc diff_zero mult_eq_0_iff not0_implies_Suc)
+    thus ?thesis by (simp add: Cons.IH ac_simps nths_Cons)
+  next
+    assume [arith]: "i \<noteq> 0"
+    have "(\<Union>n. {n * 2 ^ k + i - 1}) = {m. \<exists>n. Suc m = n * 2 ^ k + i}"
+      apply auto
+      by (metis diff_Suc_Suc diff_zero)
+    thus ?thesis by (simp add: Cons.IH nths_Cons)
+  qed
+qed
+
 lemma take_nths_drop:
   "take_nths i k (drop j xs) = take_nths (i + j) k xs"
 by (induct xs arbitrary: i j; simp add: drop_Cons split: nat.split)
