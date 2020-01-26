@@ -139,25 +139,20 @@ fun mk_eqs bnd th =
       else Thm.symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle TERM _ => [] | Match => [];
 
-local
-in
-
-  (*Select a suitable equality assumption; substitute throughout the subgoal
-    If bnd is true, then it replaces Bound variables only. *)
-  fun gen_hyp_subst_tac ctxt bnd =
-    SUBGOAL (fn (Bi, i) =>
-      let
-        val (k, (orient, is_free)) = eq_var bnd true true Bi
-        val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
-      in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
-        if not is_free then eresolve_tac ctxt [thin_rl] i
-          else if orient then eresolve_tac ctxt [Data.rev_mp] i
-          else eresolve_tac ctxt [Data.sym RS Data.rev_mp] i,
-        rotate_tac (~k) i,
-        if is_free then resolve_tac ctxt [Data.imp_intr] i else all_tac]
-      end handle THM _ => no_tac | EQ_VAR => no_tac)
-
-end;
+(*Select a suitable equality assumption; substitute throughout the subgoal
+  If bnd is true, then it replaces Bound variables only. *)
+fun gen_hyp_subst_tac ctxt bnd =
+  SUBGOAL (fn (Bi, i) =>
+    let
+      val (k, (orient, is_free)) = eq_var bnd true true Bi
+      val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
+    in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
+      if not is_free then eresolve_tac ctxt [thin_rl] i
+        else if orient then eresolve_tac ctxt [Data.rev_mp] i
+        else eresolve_tac ctxt [Data.sym RS Data.rev_mp] i,
+      rotate_tac (~k) i,
+      if is_free then resolve_tac ctxt [Data.imp_intr] i else all_tac]
+    end handle THM _ => no_tac | EQ_VAR => no_tac)
 
 val ssubst = Drule.zero_var_indexes (Data.sym RS Data.subst);
 
