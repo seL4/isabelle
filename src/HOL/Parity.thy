@@ -763,6 +763,14 @@ lemma bit_exp_iff:
   \<open>bit (2 ^ m) n \<longleftrightarrow> 2 ^ m \<noteq> 0 \<and> m = n\<close>
   by (auto simp add: bit_def exp_div_exp_eq)
 
+lemma bit_1_iff:
+  \<open>bit 1 n \<longleftrightarrow> 1 \<noteq> 0 \<and> n = 0\<close>
+  using bit_exp_iff [of 0 n] by simp
+
+lemma bit_2_iff:
+  \<open>bit 2 n \<longleftrightarrow> 2 \<noteq> 0 \<and> n = 1\<close>
+  using bit_exp_iff [of 1 n] by auto
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -959,6 +967,14 @@ text \<open>
   takes into account that specific instances of these can be implemented
   differently wrt. code generation.
 \<close>
+
+lemma bit_iff_odd_drop_bit:
+  \<open>bit a n \<longleftrightarrow> odd (drop_bit n a)\<close>
+  by (simp add: bit_def drop_bit_eq_div)
+
+lemma even_drop_bit_iff_not_bit:
+  \<open>even (drop_bit n a) \<longleftrightarrow> \<not> bit a n\<close>
+  by (simp add: bit_iff_odd_drop_bit)
 
 lemma bits_ident:
   "push_bit n (drop_bit n a) + take_bit n a = a"
@@ -1157,6 +1173,10 @@ lemma take_bit_of_exp [simp]:
 lemma take_bit_of_2 [simp]:
   \<open>take_bit n 2 = of_bool (2 \<le> n) * 2\<close>
   using take_bit_of_exp [of n 1] by simp
+
+lemma take_bit_of_range:
+  \<open>take_bit m (2 ^ n - 1) = 2 ^ min m n - 1\<close>
+  by (simp add: take_bit_eq_mod range_mod_exp)
 
 lemma push_bit_eq_0_iff [simp]:
   "push_bit n a = 0 \<longleftrightarrow> a = 0"

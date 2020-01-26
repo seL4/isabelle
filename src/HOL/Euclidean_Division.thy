@@ -1933,6 +1933,35 @@ proof -
     by (simp add: of_nat_mod)
 qed
 
+lemma range_mod_exp:
+  \<open>(2 ^ n - 1) mod 2 ^ m = 2 ^ min m n - 1\<close>
+proof -
+  have \<open>(2 ^ n - 1) mod 2 ^ m = 2 ^ min m n - (1::nat)\<close> (is \<open>?lhs = ?rhs\<close>)
+  proof (cases \<open>n \<le> m\<close>)
+    case True
+    then show ?thesis
+      by (simp add: Suc_le_lessD min.absorb2)
+  next
+    case False
+    then have \<open>m < n\<close>
+      by simp
+    then obtain q where n: \<open>n = Suc q + m\<close>
+      by (auto dest: less_imp_Suc_add)
+    then have \<open>min m n = m\<close>
+      by simp
+    moreover have \<open>(2::nat) ^ m \<le> 2 * 2 ^ q * 2 ^ m\<close>
+      using mult_le_mono1 [of 1 \<open>2 * 2 ^ q\<close> \<open>2 ^ m\<close>] by simp
+    with n have \<open>2 ^ n - 1 = (2 ^ Suc q - 1) * 2 ^ m + (2 ^ m - (1::nat))\<close>
+      by (simp add: monoid_mult_class.power_add algebra_simps)
+    ultimately show ?thesis
+      by (simp only: euclidean_semiring_cancel_class.mod_mult_self3) simp
+  qed
+  then have \<open>of_nat ?lhs = of_nat ?rhs\<close>
+    by simp
+  then show ?thesis
+    by (simp add: of_nat_mod of_nat_diff)
+qed
+
 end
 
 class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat
