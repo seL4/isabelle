@@ -540,6 +540,18 @@ next
   qed
 qed
 
+lemma even_mult_exp_div_word_iff:
+  \<open>even (a * 2 ^ m div 2 ^ n) \<longleftrightarrow> \<not> (
+    m \<le> n \<and>
+    n < LENGTH('a) \<and> odd (a div 2 ^ (n - m)))\<close> for a :: \<open>'a::len word\<close>
+  by transfer
+    (auto simp flip: drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_take_bit_iff,
+      simp_all flip: push_bit_eq_mult add: bit_push_bit_eq_int)
+
+(*lemma even_range_div_iff_word:
+  \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a::len word) \<or> m \<le> n\<close>
+  by transfer (auto simp add: take_bit_of_range even_range_div_iff)*)
+
 instance word :: (len) semiring_bits
 proof
   show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
@@ -663,10 +675,10 @@ begin
 
 lift_definition not_word :: "'a word \<Rightarrow> 'a word"
   is not
-  by (simp add: take_bit_not_iff)
+  by (simp add: take_bit_not_iff_int)
 
 lift_definition and_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
-  is "and"
+  is \<open>and\<close>
   by simp
 
 lift_definition or_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
@@ -679,8 +691,8 @@ lift_definition xor_word ::  "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wor
 
 instance proof
   fix a b :: \<open>'a word\<close> and n :: nat
-  show \<open>even (- 1 div (2 :: 'a word) ^ n) \<longleftrightarrow> (2 :: 'a word) ^ n = 0\<close>
-    by transfer (simp flip: drop_bit_eq_div add: drop_bit_take_bit)
+  show \<open>- a = NOT (a - 1)\<close>
+    by transfer (simp add: minus_eq_not_minus_1)
   show \<open>bit (NOT a) n \<longleftrightarrow> (2 :: 'a word) ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
     by transfer (simp add: bit_not_iff)
   show \<open>bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>

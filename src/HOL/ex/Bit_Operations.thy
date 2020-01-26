@@ -9,13 +9,48 @@ theory Bit_Operations
     Main
 begin
 
+lemma bit_push_bit_eq_int:
+  \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
+proof (cases \<open>m \<le> n\<close>)
+  case True
+  then obtain q where \<open>n = m + q\<close>
+    using le_Suc_ex by blast
+  with True show ?thesis
+    by (simp add: push_bit_eq_mult bit_def power_add)
+next
+  case False
+  then obtain q where \<open>m = Suc (n + q)\<close>
+    using less_imp_Suc_add not_le by blast
+  with False show ?thesis
+    by (simp add: push_bit_eq_mult bit_def power_add)
+qed
+
 context semiring_bits
 begin
+
+(*lemma range_rec:
+  \<open>2 ^ Suc n - 1 = 1 + 2 * (2 ^ n - 1)\<close>
+  sorry
+
+lemma even_range_div_iff:
+  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
+  sorry*)
+
+(*lemma even_range_iff [simp]:
+  \<open>even (2 ^ n - 1) \<longleftrightarrow> n = 0\<close>
+  by (induction n) (simp_all only: range_rec, simp_all)
+
+lemma bit_range_iff:
+  \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
+  by (simp add: bit_def even_range_div_iff not_le)*)
 
 end
 
 context semiring_bit_shifts
 begin
+
+(*lemma bit_push_bit_iff:
+  \<open>bit (push_bit m a) n \<longleftrightarrow> n \<ge> m \<and> 2 ^ n \<noteq> 0 \<and> bit a (n - m)\<close>*)
 
 end
 
@@ -94,43 +129,25 @@ lemma flip_bit_Suc [simp]:
   \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
   by (simp add: flip_bit_def)
 
+lemma take_bit_and [simp]:
+  \<open>take_bit n (a AND b) = take_bit n a AND take_bit n b\<close>
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_and_iff)
+
+lemma take_bit_or [simp]:
+  \<open>take_bit n (a OR b) = take_bit n a OR take_bit n b\<close>
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_or_iff)
+
+lemma take_bit_xor [simp]:
+  \<open>take_bit n (a XOR b) = take_bit n a XOR take_bit n b\<close>
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
+
 end
 
 class ring_bit_operations = semiring_bit_operations + ring_parity +
   fixes not :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>NOT\<close>)
-  assumes bits_even_minus_1_div_exp_iff [simp]: \<open>even (- 1 div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0\<close>
   assumes bit_not_iff: \<open>\<And>n. bit (NOT a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit a n\<close>
+  assumes minus_eq_not_minus_1: \<open>- a = NOT (a - 1)\<close>
 begin
-
-lemma bits_minus_1_mod_2_eq [simp]:
-  \<open>(- 1) mod 2 = 1\<close>
-  by (simp add: mod_2_eq_odd)
-
-lemma bit_minus_1_iff [simp]:
-  \<open>bit (- 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
-  by (simp add: bit_def)
-
-sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-  rewrites \<open>bit.xor = (XOR)\<close>
-proof -
-  interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
-    apply standard
-             apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
-     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-    done
-  show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
-    by standard
-  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close> 
-    apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
-         apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-        apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-       apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-      apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-    done
-qed
 
 text \<open>
   For the sake of code generation \<^const>\<open>not\<close> is specified as
@@ -138,6 +155,63 @@ text \<open>
   sensible definition for unlimited but only positive bit strings
   (type \<^typ>\<open>nat\<close>).
 \<close>
+
+lemma bits_minus_1_mod_2_eq [simp]:
+  \<open>(- 1) mod 2 = 1\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma not_eq_complement:
+  \<open>NOT a = - a - 1\<close>
+  using minus_eq_not_minus_1 [of \<open>a + 1\<close>] by simp
+
+lemma minus_eq_not_plus_1:
+  \<open>- a = NOT a + 1\<close>
+  using not_eq_complement [of a] by simp
+
+lemma bit_minus_iff:
+  \<open>bit (- a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit (a - 1) n\<close>
+  by (simp add: minus_eq_not_minus_1 bit_not_iff)
+
+lemma bit_not_exp_iff:
+  \<open>bit (NOT (2 ^ m)) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n \<noteq> m\<close>
+  by (auto simp add: bit_not_iff bit_exp_iff)
+
+lemma bit_minus_1_iff [simp]:
+  \<open>bit (- 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0\<close>
+  by (simp add: bit_minus_iff)
+
+lemma bit_minus_exp_iff:
+  \<open>bit (- (2 ^ m)) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n \<ge> m\<close>
+  oops
+
+lemma bit_minus_2_iff [simp]:
+  \<open>bit (- 2) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n > 0\<close>
+  by (simp add: bit_minus_iff bit_1_iff)
+
+sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
+  rewrites \<open>bit.xor = (XOR)\<close>
+proof -
+  interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
+    apply standard
+             apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
+     apply (simp_all add: bit_exp_iff)
+     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+    done
+  show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
+    by standard
+  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close> 
+    apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
+         apply (simp add: bit_exp_iff, simp add: bit_def)
+        apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+       apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+      apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
+    done
+qed
+
+lemma take_bit_not_take_bit:
+  \<open>take_bit n (NOT (take_bit n a)) = take_bit n (NOT a)\<close>
+  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff)
 
 end
 
@@ -700,6 +774,8 @@ lemma bit_not_iff_int:
 
 instance proof
   fix k l :: int and n :: nat
+  show \<open>- k = NOT (k - 1)\<close>
+    by (simp add: not_int_def)
   show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
   proof (rule sym, induction n arbitrary: k l)
     case 0
@@ -736,7 +812,7 @@ end
 
 lemma one_and_int_eq [simp]:
   "1 AND k = k mod 2" for k :: int
-  using and_int.rec [of 1] by (simp add: mod2_eq_if)
+  by (simp add: bit_eq_iff bit_and_iff mod2_eq_if) (auto simp add: bit_1_iff)
 
 lemma and_one_int_eq [simp]:
   "k AND 1 = k mod 2" for k :: int
@@ -763,29 +839,9 @@ lemma take_bit_complement_iff:
   for k l :: int
   by (simp add: take_bit_eq_mod mod_eq_dvd_iff dvd_diff_commute)
 
-lemma take_bit_not_iff:
+lemma take_bit_not_iff_int:
   "take_bit n (NOT k) = take_bit n (NOT l) \<longleftrightarrow> take_bit n k = take_bit n l"
   for k l :: int
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff_int)
-
-lemma take_bit_not_take_bit:
-  \<open>take_bit n (NOT (take_bit n k)) = take_bit n (NOT k)\<close>
-  for k :: int
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff)
-
-lemma take_bit_and [simp]:
-  "take_bit n (k AND l) = take_bit n k AND take_bit n l"
-  for k l :: int
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_and_iff)
-
-lemma take_bit_or [simp]:
-  "take_bit n (k OR l) = take_bit n k OR take_bit n l"
-  for k l :: int
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_or_iff)
-
-lemma take_bit_xor [simp]:
-  "take_bit n (k XOR l) = take_bit n k XOR take_bit n l"
-  for k l :: int
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_xor_iff)
 
 end
