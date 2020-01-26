@@ -1696,11 +1696,17 @@ end
 
 declare of_nat_code [code]
 
-context ring_1
+context semiring_1_cancel
 begin
 
-lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_nat n"
-  by (simp add: algebra_simps of_nat_add [symmetric])
+lemma of_nat_diff:
+  \<open>of_nat (m - n) = of_nat m - of_nat n\<close> if \<open>n \<le> m\<close>
+proof -
+  from that obtain q where \<open>m = n + q\<close>
+    by (blast dest: le_Suc_ex)
+  then show ?thesis
+    by simp
+qed
 
 end
 
