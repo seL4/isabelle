@@ -734,17 +734,31 @@ lemma less_Suc_eq_0_disj: "m < Suc n \<longleftrightarrow> m = 0 \<or> (\<exists
   by (cases m) simp_all
 
 lemma All_less_Suc: "(\<forall>i < Suc n. P i) = (P n \<and> (\<forall>i < n. P i))"
-by (auto simp: less_Suc_eq)
+  by (auto simp: less_Suc_eq)
 
 lemma All_less_Suc2: "(\<forall>i < Suc n. P i) = (P 0 \<and> (\<forall>i < n. P(Suc i)))"
-by (auto simp: less_Suc_eq_0_disj)
+  by (auto simp: less_Suc_eq_0_disj)
 
 lemma Ex_less_Suc: "(\<exists>i < Suc n. P i) = (P n \<or> (\<exists>i < n. P i))"
-by (auto simp: less_Suc_eq)
+  by (auto simp: less_Suc_eq)
 
 lemma Ex_less_Suc2: "(\<exists>i < Suc n. P i) = (P 0 \<or> (\<exists>i < n. P(Suc i)))"
-by (auto simp: less_Suc_eq_0_disj)
+  by (auto simp: less_Suc_eq_0_disj)
 
+text \<open>@{term mono} (non-strict) doesn't imply increasing, as the function could be constant\<close>
+lemma strict_mono_imp_increasing:
+  fixes n::nat
+  assumes "strict_mono f" shows "f n \<ge> n"
+proof (induction n)
+  case 0
+  then show ?case
+    by auto
+next
+  case (Suc n)
+  then show ?case
+    unfolding not_less_eq_eq [symmetric]
+    using Suc_n_not_le_n assms order_trans strict_mono_less_eq by blast
+qed
 
 subsubsection \<open>Monotonicity of Addition\<close>
 
@@ -1213,19 +1227,19 @@ lemma diff_Suc_less [simp]: "0 < n \<Longrightarrow> n - Suc i < n"
 
 lemma diff_add_assoc: "k \<le> j \<Longrightarrow> (i + j) - k = i + (j - k)"
   for i j k :: nat
-  by (induct j k rule: diff_induct) simp_all
+  by (fact ordered_cancel_comm_monoid_diff_class.diff_add_assoc) 
 
 lemma add_diff_assoc [simp]: "k \<le> j \<Longrightarrow> i + (j - k) = i + j - k"
   for i j k :: nat
-  by (fact diff_add_assoc [symmetric])
+  by (fact ordered_cancel_comm_monoid_diff_class.add_diff_assoc)
 
 lemma diff_add_assoc2: "k \<le> j \<Longrightarrow> (j + i) - k = (j - k) + i"
   for i j k :: nat
-  by (simp add: ac_simps)
+  by (fact ordered_cancel_comm_monoid_diff_class.diff_add_assoc2)
 
 lemma add_diff_assoc2 [simp]: "k \<le> j \<Longrightarrow> j - k + i = j + i - k"
   for i j k :: nat
-  by (fact diff_add_assoc2 [symmetric])
+  by (fact ordered_cancel_comm_monoid_diff_class.add_diff_assoc2)
 
 lemma le_imp_diff_is_add: "i \<le> j \<Longrightarrow> (j - i = k) = (j = k + i)"
   for i j k :: nat

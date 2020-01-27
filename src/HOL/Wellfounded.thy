@@ -583,6 +583,9 @@ lemma trans_less_than [iff]: "trans less_than"
 lemma less_than_iff [iff]: "((x,y) \<in> less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
 
+lemma total_less_than: "total less_than"
+  using total_on_def by force
+
 lemma wf_less: "wf {(x, y::nat). x < y}"
   by (rule Wellfounded.wellorder_class.wf)
 
@@ -777,9 +780,14 @@ lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightar
   by (auto simp:lex_prod_def)
 
 text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
-lemma trans_lex_prod [intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
+lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
   unfolding trans_def lex_prod_def by blast
 
+lemma total_on_lex_prod [simp]: "total_on A r \<Longrightarrow> total_on B s \<Longrightarrow> total_on (A \<times> B) (r <*lex*> s)"
+  by (auto simp: total_on_def)
+
+lemma total_lex_prod [simp]: "total r \<Longrightarrow> total s \<Longrightarrow> total (r <*lex*> s)"
+  by (auto simp: total_on_def)
 
 text \<open>lexicographic combinations with measure functions\<close>
 

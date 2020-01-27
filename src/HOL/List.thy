@@ -367,10 +367,20 @@ fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] = True" |
 "sorted (x # ys) = ((\<forall>y \<in> set ys. x \<le> y) \<and> sorted ys)"
 
+fun strict_sorted :: "'a list \<Rightarrow> bool" where
+"strict_sorted [] = True" |
+"strict_sorted (x # ys) = ((\<forall>y \<in> List.set ys. x < y) \<and> strict_sorted ys)"
+
 lemma sorted_sorted_wrt: "sorted = sorted_wrt (\<le>)"
 proof (rule ext)
   fix xs show "sorted xs = sorted_wrt (\<le>) xs"
     by(induction xs rule: sorted.induct) auto
+qed
+
+lemma strict_sorted_sorted_wrt: "strict_sorted = sorted_wrt (<)"
+proof (rule ext)
+  fix xs show "strict_sorted xs = sorted_wrt (<) xs"
+    by(induction xs rule: strict_sorted.induct) auto
 qed
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
@@ -5089,6 +5099,36 @@ qed
 lemma infinite_UNIV_listI: "\<not> finite(UNIV::'a list set)"
   by (metis UNIV_I finite_maxlen length_replicate less_irrefl)
 
+lemma same_length_different: 
+  assumes "xs \<noteq> ys" and "length xs = length ys"
+  shows "\<exists>pre x xs' y ys'. x\<noteq>y \<and> xs = pre @ [x] @ xs' \<and> ys = pre @ [y] @ ys'"
+  using assms
+proof (induction xs arbitrary: ys)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons x xs)
+  then obtain z zs where ys: "ys = Cons z zs"
+    by (metis length_Suc_conv)
+  show ?case
+  proof (cases "x=z")
+    case True
+    then have "xs \<noteq> zs" "length xs = length zs"
+      using Cons.prems ys by auto
+    then obtain pre u xs' v ys' where "u\<noteq>v" and xs: "xs = pre @ [u] @ xs'" and zs: "zs = pre @ [v] @ys'"
+      using Cons.IH by meson
+    then have "x # xs = (z#pre) @ [u] @ xs' \<and> ys = (z#pre) @ [v] @ ys'"
+      by (simp add: True ys)
+    with \<open>u\<noteq>v\<close> show ?thesis
+      by blast
+  next
+    case False
+    then have "x # xs = [] @ [x] @ xs \<and> ys = [] @ [z] @ zs"
+      by (simp add: ys)
+    then show ?thesis
+      using False by blast
+  qed
+qed
 
 subsection \<open>Sorting\<close>
 
@@ -5802,6 +5842,18 @@ lemma sorted_list_of_set_range [simp]:
   "sorted_list_of_set {m..<n} = [m..<n]"
 by (rule sorted_distinct_set_unique) simp_all
 
+lemma strict_sorted_iff: "strict_sorted l \<longleftrightarrow> sorted l \<and> distinct l"
+  by (induction l) (use less_le in auto)
+
+lemma strict_sorted_list_of_set [simp]: "strict_sorted (sorted_list_of_set A)"
+  by (simp add: strict_sorted_iff)
+
+lemma finite_set_strict_sorted:
+  fixes A :: "'a::linorder set" 
+  assumes "finite A"
+  obtains l where "strict_sorted l" "List.set l = A" "length l = card A"
+  by (metis assms distinct_card distinct_sorted_list_of_set set_sorted_list_of_set strict_sorted_list_of_set)
+
 
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
 
@@ -6048,6 +6100,24 @@ lemma lenlex_conv:
     "lenlex r = {(xs,ys). length xs < length ys \<or>
                  length xs = length ys \<and> (xs, ys) \<in> lex r}"
 by (simp add: lenlex_def Id_on_def lex_prod_def inv_image_def)
+
+lemma total_lenlex:
+  assumes "total r"
+  shows "total (lenlex r)"
+proof -
+  have "(xs,ys) \<in> lexn r (length xs) \<or> (ys,xs) \<in> lexn r (length xs)"
+    if "xs \<noteq> ys" and len: "length xs = length ys" for xs ys
+  proof -
+    obtain pre x xs' y ys' where "x\<noteq>y" and xs: "xs = pre @ [x] @ xs'" and ys: "ys = pre @ [y] @ys'"
+      by (meson len \<open>xs \<noteq> ys\<close> same_length_different) 
+    then consider "(x,y) \<in> r" | "(y,x) \<in> r"
+      by (meson UNIV_I assms total_on_def)
+    then show ?thesis
+    by cases (use len in \<open>(force simp add: lexn_conv xs ys)+\<close>)
+qed
+  then show ?thesis
+    by (fastforce simp: lenlex_def total_on_def lex_def)
+qed
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)

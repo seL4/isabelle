@@ -207,6 +207,9 @@ definition "min_weak = min_ext pair_leq \<union> {({}, {})}"
 lemma wf_pair_less[simp]: "wf pair_less"
   by (auto simp: pair_less_def)
 
+lemma total_pair_less [iff]: "total_on A pair_less" and trans_pair_less [iff]: "trans pair_less"
+  by (auto simp: total_on_def pair_less_def)
+
 text \<open>Introduction rules for \<open>pair_less\<close>/\<open>pair_leq\<close>\<close>
 lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_leqI2: "a \<le> b \<Longrightarrow> s \<le> t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"

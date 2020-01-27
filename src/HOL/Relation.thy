@@ -1127,12 +1127,13 @@ lemma sym_inv_image: "sym r \<Longrightarrow> sym (inv_image r f)"
 
 lemma trans_inv_image: "trans r \<Longrightarrow> trans (inv_image r f)"
   unfolding trans_def inv_image_def
-  apply (simp (no_asm))
-  apply blast
-  done
+  by (simp (no_asm)) blast
+
+lemma total_inv_image: "\<lbrakk>inj f; total r\<rbrakk> \<Longrightarrow> total (inv_image r f)"
+  unfolding inv_image_def total_on_def by (auto simp: inj_eq)
 
 lemma in_inv_image[simp]: "(x, y) \<in> inv_image r f \<longleftrightarrow> (f x, f y) \<in> r"
-  by (auto simp:inv_image_def)
+  by (auto simp: inv_image_def)
 
 lemma converse_inv_image[simp]: "(inv_image R f)\<inverse> = inv_image (R\<inverse>) f"
   unfolding inv_image_def converse_unfold by auto

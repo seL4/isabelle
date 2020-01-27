@@ -283,15 +283,22 @@ proof -
   from this A \<open>x = f x'\<close> B show ?thesis ..
 qed
 
+lemma linorder_inj_onI:
+  fixes A :: "'a::order set"
+  assumes ne: "\<And>x y. \<lbrakk>x < y; x\<in>A; y\<in>A\<rbrakk> \<Longrightarrow> f x \<noteq> f y" and lin: "\<And>x y. \<lbrakk>x\<in>A; y\<in>A\<rbrakk> \<Longrightarrow> x\<le>y \<or> y\<le>x"
+  shows "inj_on f A"
+proof (rule inj_onI)
+  fix x y
+  assume eq: "f x = f y" and "x\<in>A" "y\<in>A"
+  then show "x = y"
+    using lin [of x y] ne by (force simp: dual_order.order_iff_strict)
+qed
+
 lemma linorder_injI:
   assumes "\<And>x y::'a::linorder. x < y \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
-  \<comment> \<open>Courtesy of Stephan Merz\<close>
-proof (rule inj_onI)
-  show "x = y" if "f x = f y" for x y
-   by (rule linorder_cases) (auto dest: assms simp: that)
-qed
-
+    \<comment> \<open>Courtesy of Stephan Merz\<close>
+using assms by (auto intro: linorder_inj_onI linear)
 
 lemma inj_on_image_Pow: "inj_on f A \<Longrightarrow>inj_on (image f) (Pow A)"
   unfolding Pow_def inj_on_def by blast
