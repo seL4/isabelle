@@ -62,6 +62,24 @@ lemma nsets_zero [simp]: "nsets A 0 = {{}}"
 lemma nsets_one: "nsets A (Suc 0) = (\<lambda>x. {x}) ` A"
   using card_eq_SucD by (force simp: nsets_def)
 
+lemma inj_on_nsets:
+  assumes "inj_on f A"
+  shows "inj_on (\<lambda>X. f ` X) ([A]\<^bsup>n\<^esup>)"
+  using assms unfolding nsets_def
+  by (metis (no_types, lifting) inj_on_inverseI inv_into_image_cancel mem_Collect_eq)
+
+lemma bij_betw_nsets:
+  assumes "bij_betw f A B"
+  shows "bij_betw (\<lambda>X. f ` X) ([A]\<^bsup>n\<^esup>) ([B]\<^bsup>n\<^esup>)"
+proof -
+  have "(`) f ` [A]\<^bsup>n\<^esup> = [f ` A]\<^bsup>n\<^esup>"
+    using assms
+    apply (auto simp: nsets_def bij_betw_def image_iff card_image inj_on_subset)
+    by (metis card_image inj_on_finite order_refl subset_image_inj)
+  with assms show ?thesis
+    by (auto simp: bij_betw_def inj_on_nsets)
+qed
+
 subsubsection \<open>Partition predicates\<close>
 
 definition partn :: "'a set \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'b set \<Rightarrow> bool"
