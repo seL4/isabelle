@@ -68,11 +68,8 @@ lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
     and lin: "OFCLASS('a::ord, linorder_class)"
   shows "OFCLASS('a::ord, wellorder_class)"
-  using lin
-  apply (rule wellorder_class.intro)
-  apply (rule class.wellorder_axioms.intro)
-  apply (rule wf_induct_rule [OF wf])
-  apply simp
+  apply (rule wellorder_class.intro [OF lin])
+  apply (simp add: wellorder_class.intro class.wellorder_axioms.intro wf_induct_rule [OF wf])
   done
 
 lemma (in wellorder) wf: "wf {(x, y). x < y}"
@@ -225,7 +222,7 @@ proof
     by (blast elim: wf_trancl [THEN wf_irrefl]
         intro: rtrancl_into_trancl1 wf_subset rtrancl_mono [THEN subsetD])
 next
-  assume R: ?rhs 
+  assume R: ?rhs
   then have R': "Q \<noteq> {} \<Longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)" for Q
     by (auto simp: wf_eq_minimal)
   show ?lhs
@@ -277,10 +274,10 @@ proof (unfold wf_eq_minimal, clarify)
     case False
     then obtain a0 where "a0 \<in> A" and "\<forall>a. (a, a0) \<in> r \<longrightarrow> a \<notin> A"
       using wfE_min[OF wf_r] by auto
-    thus ?thesis 
+    thus ?thesis
       using inj unfolding A_def
       by (intro bexI[of _ "f a0"]) auto
-  qed (insert \<open>b \<in> B\<close>, unfold A_def, auto) 
+  qed (insert \<open>b \<in> B\<close>, unfold A_def, auto)
 qed
 
 lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map_prod f f ` r)"
@@ -333,7 +330,7 @@ proof clarify
     have ri: "\<And>Q. Q \<noteq> {} \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r i \<longrightarrow> y \<notin> Q"
       using r [OF \<open>i \<in> I\<close>] unfolding wf_eq_minimal by auto
     show ?thesis
-      using ri [of "{a. a \<in> A \<and> (\<exists>b\<in>A. (b, a) \<in> r i) }"] ibc disj 
+      using ri [of "{a. a \<in> A \<and> (\<exists>b\<in>A. (b, a) \<in> r i) }"] ibc disj
       by blast
   next
     case False
@@ -760,24 +757,33 @@ subsubsection \<open>Lexicographic combinations\<close>
 
 definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set"
     (infixr "<*lex*>" 80)
-  where "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
-
-lemma wf_lex_prod [intro!]: "wf ra \<Longrightarrow> wf rb \<Longrightarrow> wf (ra <*lex*> rb)"
-  unfolding wf_def lex_prod_def
-  apply (rule allI)
-  apply (rule impI)
-  apply (simp only: split_paired_All)
-  apply (drule spec)
-  apply (erule mp)
-  apply (rule allI)
-  apply (rule impI)
-  apply (drule spec)
-  apply (erule mp)
-  apply blast
-  done
+    where "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
 lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
   by (auto simp:lex_prod_def)
+
+lemma wf_lex_prod [intro!]:
+  assumes "wf ra" "wf rb"
+  shows "wf (ra <*lex*> rb)"
+proof (rule wfI)
+  fix z :: "'a \<times> 'b" and P
+  assume * [rule_format]: "\<forall>u. (\<forall>v. (v, u) \<in> ra <*lex*> rb \<longrightarrow> P v) \<longrightarrow> P u"
+  obtain x y where zeq: "z = (x,y)"
+    by fastforce
+  have "P(x,y)" using \<open>wf ra\<close>
+  proof (induction x arbitrary: y rule: wf_induct_rule)
+    case (less x)
+    note lessx = less
+    show ?case using \<open>wf rb\<close> less
+    proof (induction y rule: wf_induct_rule)
+      case (less y)
+      show ?case
+        by (force intro: * less.IH lessx)
+    qed
+  qed
+  then show "P z"
+    by (simp add: zeq)
+qed auto
 
 text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
 lemma trans_lex_prod [simp,intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
