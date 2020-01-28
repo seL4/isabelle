@@ -16,6 +16,7 @@ syntax: regexp
 ^heaps/
 ^browser_info/
 ^doc/.*\.pdf
+^lib/classes/
 ^src/Tools/jEdit/dist/
 ^src/Tools/VSCode/out/
 ^src/Tools/VSCode/extension/node_modules/
