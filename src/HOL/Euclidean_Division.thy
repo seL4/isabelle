@@ -327,6 +327,26 @@ lemma div_plus_div_distrib_dvd_right:
   using div_plus_div_distrib_dvd_left [of c b a]
   by (simp add: ac_simps)
 
+lemma sum_div_partition:
+  \<open>(\<Sum>a\<in>A. f a) div b = (\<Sum>a\<in>A \<inter> {a. b dvd f a}. f a div b) + (\<Sum>a\<in>A \<inter> {a. \<not> b dvd f a}. f a) div b\<close>
+    if \<open>finite A\<close>
+proof -
+  have \<open>A = A \<inter> {a. b dvd f a} \<union> A \<inter> {a. \<not> b dvd f a}\<close>
+    by auto
+  then have \<open>(\<Sum>a\<in>A. f a) = (\<Sum>a\<in>A \<inter> {a. b dvd f a} \<union> A \<inter> {a. \<not> b dvd f a}. f a)\<close>
+    by simp
+  also have \<open>\<dots> = (\<Sum>a\<in>A \<inter> {a. b dvd f a}. f a) + (\<Sum>a\<in>A \<inter> {a. \<not> b dvd f a}. f a)\<close>
+    using \<open>finite A\<close> by (auto intro: sum.union_inter_neutral)
+  finally have *: \<open>sum f A = sum f (A \<inter> {a. b dvd f a}) + sum f (A \<inter> {a. \<not> b dvd f a})\<close> .
+  define B where B: \<open>B = A \<inter> {a. b dvd f a}\<close>
+  with \<open>finite A\<close> have \<open>finite B\<close> and \<open>a \<in> B \<Longrightarrow> b dvd f a\<close> for a
+    by simp_all
+  then have \<open>(\<Sum>a\<in>B. f a) div b = (\<Sum>a\<in>B. f a div b)\<close> and \<open>b dvd (\<Sum>a\<in>B. f a)\<close>
+    by induction (simp_all add: div_plus_div_distrib_dvd_left)
+  then show ?thesis using *
+    by (simp add: B div_plus_div_distrib_dvd_left)
+qed
+
 named_theorems mod_simps
 
 text \<open>Addition respects modular equivalence.\<close>
@@ -440,6 +460,26 @@ next
     by (simp add: mod_mult_right_eq)
   with Suc show ?case
     by (simp add: mod_mult_left_eq mod_mult_right_eq)
+qed
+
+lemma power_diff_power_eq:
+  \<open>a ^ m div a ^ n = (if n \<le> m then a ^ (m - n) else 1 div a ^ (n - m))\<close>
+    if \<open>a \<noteq> 0\<close>
+proof (cases \<open>n \<le> m\<close>)
+  case True
+  with that power_diff [symmetric, of a n m] show ?thesis by simp
+next
+  case False
+  then obtain q where n: \<open>n = m + Suc q\<close>
+    by (auto simp add: not_le dest: less_imp_Suc_add)
+  then have \<open>a ^ m div a ^ n = (a ^ m * 1) div (a ^ m * a ^ Suc q)\<close>
+    by (simp add: power_add ac_simps)
+  moreover from that have \<open>a ^ m \<noteq> 0\<close>
+    by simp
+  ultimately have \<open>a ^ m div a ^ n = 1 div a ^ Suc q\<close>
+    by (subst (asm) div_mult_mult1) simp
+  with False n show ?thesis
+    by simp
 qed
 
 end

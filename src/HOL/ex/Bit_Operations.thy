@@ -12,13 +12,9 @@ begin
 context semiring_bits
 begin
 
-(*lemma even_mask_div_iff:
-  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
-  sorry
-
 lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
-  by (simp add: bit_def even_mask_div_iff not_le)*)
+  by (simp add: bit_def even_mask_div_iff not_le)
 
 end
 

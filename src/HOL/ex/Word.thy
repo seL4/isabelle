@@ -548,10 +548,6 @@ lemma even_mult_exp_div_word_iff:
     (auto simp flip: drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_take_bit_iff,
       simp_all flip: push_bit_eq_mult add: bit_push_bit_iff_int)
 
-(*lemma even_mask_div_iff_word:
-  \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a::len word) \<or> m \<le> n\<close>
-  by transfer (auto simp add: take_bit_of_mask even_mask_div_iff)*)
-
 instance word :: (len) semiring_bits
 proof
   show \<open>P a\<close> if stable: \<open>\<And>a. a div 2 = a \<Longrightarrow> P a\<close>
@@ -618,6 +614,9 @@ proof
   show \<open>a div 2 ^ n mod 2 ^ m = a mod (2 ^ (n + m)) div 2 ^ n\<close>
     for a :: "'a word" and m n :: nat
     by transfer (auto simp add: not_less take_bit_drop_bit ac_simps simp flip: take_bit_eq_mod drop_bit_eq_div split: split_min_lin)
+  show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a word) \<or> m \<le> n\<close>
+    for m n :: nat
+    by transfer (auto simp add: take_bit_of_mask even_mask_div_iff)
 qed
 
 context

@@ -411,6 +411,10 @@ proof (induct n rule: less_induct)
   qed
 qed
 
+lemma mask_eq_sum_exp_nat:
+  \<open>2 ^ n - Suc 0 = (\<Sum>m\<in>{q. q < n}. 2 ^ m)\<close>
+  using mask_eq_sum_exp [where ?'a = nat] by simp
+
 context semiring_parity
 begin
 
@@ -573,6 +577,43 @@ lemma power_even_abs_numeral [simp]:
 
 end
 
+context unique_euclidean_semiring_with_nat
+begin
+
+lemma even_mask_div_iff':
+  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> m \<le> n\<close>
+proof -
+  have \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> even (of_nat ((2 ^ m - Suc 0) div 2 ^ n))\<close>
+    by (simp only: of_nat_div) (simp add: of_nat_diff)
+  also have \<open>\<dots> \<longleftrightarrow> even ((2 ^ m - Suc 0) div 2 ^ n)\<close>
+    by simp
+  also have \<open>\<dots> \<longleftrightarrow> m \<le> n\<close>
+  proof (cases \<open>m \<le> n\<close>)
+    case True
+    then show ?thesis
+      by (simp add: Suc_le_lessD)
+  next
+    case False
+    then obtain r where r: \<open>m = n + Suc r\<close>
+      using less_imp_Suc_add by fastforce
+    from r have \<open>{q. q < m} \<inter> {q. 2 ^ n dvd (2::nat) ^ q} = {q. n \<le> q \<and> q < m}\<close>
+      by (auto simp add: dvd_power_iff_le)
+    moreover from r have \<open>{q. q < m} \<inter> {q. \<not> 2 ^ n dvd (2::nat) ^ q} = {q. q < n}\<close>
+      by (auto simp add: dvd_power_iff_le)
+    moreover from False have \<open>{q. n \<le> q \<and> q < m \<and> q \<le> n} = {n}\<close>
+      by auto
+    then have \<open>odd ((\<Sum>a\<in>{q. n \<le> q \<and> q < m}. 2 ^ a div (2::nat) ^ n) + sum ((^) 2) {q. q < n} div 2 ^ n)\<close>
+      by (simp_all add: euclidean_semiring_cancel_class.power_diff_power_eq semiring_parity_class.even_sum_iff not_less mask_eq_sum_exp_nat [symmetric])
+    ultimately have \<open>odd (sum ((^) (2::nat)) {q. q < m} div 2 ^ n)\<close>
+      by (subst euclidean_semiring_cancel_class.sum_div_partition) simp_all
+    with False show ?thesis
+      by (simp add: mask_eq_sum_exp_nat)
+  qed
+  finally show ?thesis .
+qed
+
+end
+
 
 subsection \<open>Instance for \<^typ>\<open>int\<close>\<close>
 
@@ -627,6 +668,7 @@ class semiring_bits = semiring_parity +
     and bits_div_by_1 [simp]: \<open>a div 1 = a\<close>
     and bits_mod_div_trivial [simp]: \<open>a mod b div b = 0\<close>
     and even_succ_div_2 [simp]: \<open>even a \<Longrightarrow> (1 + a) div 2 = a div 2\<close>
+    and even_mask_div_iff: \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
     and exp_div_exp_eq: \<open>2 ^ m div 2 ^ n = of_bool (2 ^ m \<noteq> 0 \<and> m \<ge> n) * 2 ^ (m - n)\<close>
     and div_exp_eq: \<open>a div 2 ^ m div 2 ^ n = a div 2 ^ (m + n)\<close>
     and mod_exp_eq: \<open>a mod 2 ^ m mod 2 ^ n = a mod 2 ^ min m n\<close>
@@ -881,6 +923,9 @@ proof
     apply (auto simp add: mod_mod_cancel div_mult2_eq power_add mod_mult2_eq le_iff_add split: split_min_lin)
     apply (simp add: mult.commute)
     done
+  show \<open>even ((2 ^ m - (1::nat)) div 2 ^ n) \<longleftrightarrow> 2 ^ n = (0::nat) \<or> m \<le> n\<close>
+    for m n :: nat
+    using even_mask_div_iff' [where ?'a = nat, of m n] by simp
 qed (auto simp add: div_mult2_eq mod_mult2_eq power_add power_diff)
 
 lemma int_bit_induct [case_names zero minus even odd]:
@@ -994,6 +1039,9 @@ proof
     apply (auto simp add: power_add zmod_zmult2_eq le_iff_add split: split_min_lin)
     apply (simp add: ac_simps)
     done
+  show \<open>even ((2 ^ m - (1::int)) div 2 ^ n) \<longleftrightarrow> 2 ^ n = (0::int) \<or> m \<le> n\<close>
+    for m n :: nat
+    using even_mask_div_iff' [where ?'a = int, of m n] by simp
 qed (auto simp add: zdiv_zmult2_eq zmod_zmult2_eq power_add power_diff not_le)
 
 class semiring_bit_shifts = semiring_bits +
