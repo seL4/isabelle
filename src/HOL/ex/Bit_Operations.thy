@@ -9,40 +9,16 @@ theory Bit_Operations
     Main
 begin
 
-lemma bit_push_bit_eq_int:
-  \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
-proof (cases \<open>m \<le> n\<close>)
-  case True
-  then obtain q where \<open>n = m + q\<close>
-    using le_Suc_ex by blast
-  with True show ?thesis
-    by (simp add: push_bit_eq_mult bit_def power_add)
-next
-  case False
-  then obtain q where \<open>m = Suc (n + q)\<close>
-    using less_imp_Suc_add not_le by blast
-  with False show ?thesis
-    by (simp add: push_bit_eq_mult bit_def power_add)
-qed
-
 context semiring_bits
 begin
 
-(*lemma range_rec:
-  \<open>2 ^ Suc n - 1 = 1 + 2 * (2 ^ n - 1)\<close>
+(*lemma even_mask_div_iff:
+  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
   sorry
 
-lemma even_range_div_iff:
-  \<open>even ((2 ^ m - 1) div 2 ^ n) \<longleftrightarrow> 2 ^ n = 0 \<or> m \<le> n\<close>
-  sorry*)
-
-(*lemma even_range_iff [simp]:
-  \<open>even (2 ^ n - 1) \<longleftrightarrow> n = 0\<close>
-  by (induction n) (simp_all only: range_rec, simp_all)
-
-lemma bit_range_iff:
+lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
-  by (simp add: bit_def even_range_div_iff not_le)*)
+  by (simp add: bit_def even_mask_div_iff not_le)*)
 
 end
 
@@ -129,6 +105,30 @@ lemma flip_bit_Suc [simp]:
   \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
   by (simp add: flip_bit_def)
 
+lemma zero_and_eq [simp]:
+  "0 AND a = 0"
+  by (simp add: bit_eq_iff bit_and_iff)
+
+lemma and_zero_eq [simp]:
+  "a AND 0 = 0"
+  by (simp add: bit_eq_iff bit_and_iff)
+
+lemma zero_or_eq [simp]:
+  "0 OR a = a"
+  by (simp add: bit_eq_iff bit_or_iff)
+
+lemma or_zero_eq [simp]:
+  "a OR 0 = a"
+  by (simp add: bit_eq_iff bit_or_iff)
+
+lemma zero_xor_eq [simp]:
+  "0 XOR a = a"
+  by (simp add: bit_eq_iff bit_xor_iff)
+
+lemma xor_zero_eq [simp]:
+  "a XOR 0 = a"
+  by (simp add: bit_eq_iff bit_xor_iff)
+
 lemma take_bit_and [simp]:
   \<open>take_bit n (a AND b) = take_bit n a AND take_bit n b\<close>
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_and_iff)
@@ -208,6 +208,10 @@ proof -
       apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
     done
 qed
+
+lemma push_bit_minus:
+  \<open>push_bit n (- a) = - push_bit n a\<close>
+  by (simp add: push_bit_eq_mult)
 
 lemma take_bit_not_take_bit:
   \<open>take_bit n (NOT (take_bit n a)) = take_bit n (NOT a)\<close>
@@ -327,14 +331,6 @@ qed
 declare and_nat.simps [simp] \<comment> \<open>inconsistent declaration handling by
   \<open>global_interpretation\<close> in \<open>instantiation\<close>\<close>
 
-lemma zero_nat_and_eq [simp]:
-  "0 AND n = 0" for n :: nat
-  by simp
-
-lemma and_zero_nat_eq [simp]:
-  "n AND 0 = 0" for n :: nat
-  by simp
-
 global_interpretation or_nat: zip_nat "(\<or>)"
   defines or_nat = or_nat.F
   by standard auto
@@ -348,28 +344,12 @@ qed
 declare or_nat.simps [simp] \<comment> \<open>inconsistent declaration handling by
   \<open>global_interpretation\<close> in \<open>instantiation\<close>\<close>
 
-lemma zero_nat_or_eq [simp]:
-  "0 OR n = n" for n :: nat
-  by simp
-
-lemma or_zero_nat_eq [simp]:
-  "n OR 0 = n" for n :: nat
-  by simp
-
 global_interpretation xor_nat: zip_nat "(\<noteq>)"
   defines xor_nat = xor_nat.F
   by standard auto
 
 declare xor_nat.simps [simp] \<comment> \<open>inconsistent declaration handling by
   \<open>global_interpretation\<close> in \<open>instantiation\<close>\<close>
-
-lemma zero_nat_xor_eq [simp]:
-  "0 XOR n = n" for n :: nat
-  by simp
-
-lemma xor_zero_nat_eq [simp]:
-  "n XOR 0 = n" for n :: nat
-  by simp
 
 instance proof
   fix m n q :: nat
@@ -678,22 +658,6 @@ proof (rule semilattice.intro, fact and_int.abel_semigroup_axioms, standard)
     by (simp add: and_int.self)
 qed
 
-lemma zero_int_and_eq [simp]:
-  "0 AND k = 0" for k :: int
-  by simp
-
-lemma and_zero_int_eq [simp]:
-  "k AND 0 = 0" for k :: int
-  by simp
-
-lemma minus_int_and_eq [simp]:
-  "- 1 AND k = k" for k :: int
-  by simp
-
-lemma and_minus_int_eq [simp]:
-  "k AND - 1 = k" for k :: int
-  by simp
-
 global_interpretation or_int: zip_int "(\<or>)"
   defines or_int = or_int.F
   by standard
@@ -707,64 +671,12 @@ proof (rule semilattice.intro, fact or_int.abel_semigroup_axioms, standard)
     by (simp add: or_int.self)
 qed
 
-lemma zero_int_or_eq [simp]:
-  "0 OR k = k" for k :: int
-  by simp
-
-lemma and_zero_or_eq [simp]:
-  "k OR 0 = k" for k :: int
-  by simp
-
-lemma minus_int_or_eq [simp]:
-  "- 1 OR k = - 1" for k :: int
-  by simp
-
-lemma or_minus_int_eq [simp]:
-  "k OR - 1 = - 1" for k :: int
-  by simp
-
 global_interpretation xor_int: zip_int "(\<noteq>)"
   defines xor_int = xor_int.F
   by standard
 
 declare xor_int.simps [simp] \<comment> \<open>inconsistent declaration handling by
   \<open>global_interpretation\<close> in \<open>instantiation\<close>\<close>
-
-lemma zero_int_xor_eq [simp]:
-  "0 XOR k = k" for k :: int
-  by simp
-
-lemma and_zero_xor_eq [simp]:
-  "k XOR 0 = k" for k :: int
-  by simp
-
-lemma minus_int_xor_eq [simp]:
-  "- 1 XOR k = complement k" for k :: int
-  by simp
-
-lemma xor_minus_int_eq [simp]:
-  "k XOR - 1 = complement k" for k :: int
-  by simp
-
-lemma not_div_2:
-  "NOT k div 2 = NOT (k div 2)"
-  for k :: int
-  by (simp add: complement_div_2 not_int_def)
-
-lemma not_int_simps [simp]:
-  "NOT 0 = (- 1 :: int)"
-  "NOT (- 1) = (0 :: int)"
-  "k \<noteq> 0 \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> NOT k = of_bool (even k) + 2 * NOT (k div 2)" for k :: int
-  by (auto simp add: not_int_def elim: oddE)
-
-lemma not_one_int [simp]:
-  "NOT 1 = (- 2 :: int)"
-  by simp
-
-lemma even_not_iff [simp]:
-  "even (NOT k) \<longleftrightarrow> odd k"
-    for k :: int
-  by (simp add: not_int_def)
 
 lemma bit_not_iff_int:
   \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
@@ -810,12 +722,28 @@ qed (simp_all add: minus_1_div_exp_eq_int bit_not_iff_int)
 
 end
 
+lemma not_div_2:
+  "NOT k div 2 = NOT (k div 2)" for k :: int
+  by (simp add: complement_div_2 not_int_def)
+
+lemma not_int_rec [simp]:
+  "k \<noteq> 0 \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> NOT k = of_bool (even k) + 2 * NOT (k div 2)" for k :: int
+  by (auto simp add: not_int_def elim: oddE)
+
+lemma not_one_int [simp]:
+  "NOT 1 = (- 2 :: int)"
+  by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
+
+lemma even_not_int_iff [simp]:
+  "even (NOT k) \<longleftrightarrow> odd k" for k :: int
+  using bit_not_iff [of k 0] by auto
+
 lemma one_and_int_eq [simp]:
-  "1 AND k = k mod 2" for k :: int
-  by (simp add: bit_eq_iff bit_and_iff mod2_eq_if) (auto simp add: bit_1_iff)
+  "1 AND k = of_bool (odd k)" for k :: int
+  by (simp add: bit_eq_iff bit_and_iff) (auto simp add: bit_1_iff)
 
 lemma and_one_int_eq [simp]:
-  "k AND 1 = k mod 2" for k :: int
+  "k AND 1 = of_bool (odd k)" for k :: int
   using one_and_int_eq [of 1] by (simp add: ac_simps)
 
 lemma one_or_int_eq [simp]:

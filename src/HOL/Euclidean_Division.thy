@@ -1933,7 +1933,7 @@ proof -
     by (simp add: of_nat_mod)
 qed
 
-lemma range_mod_exp:
+lemma mask_mod_exp:
   \<open>(2 ^ n - 1) mod 2 ^ m = 2 ^ min m n - 1\<close>
 proof -
   have \<open>(2 ^ n - 1) mod 2 ^ m = 2 ^ min m n - (1::nat)\<close> (is \<open>?lhs = ?rhs\<close>)

@@ -546,11 +546,11 @@ lemma even_mult_exp_div_word_iff:
     n < LENGTH('a) \<and> odd (a div 2 ^ (n - m)))\<close> for a :: \<open>'a::len word\<close>
   by transfer
     (auto simp flip: drop_bit_eq_div simp add: even_drop_bit_iff_not_bit bit_take_bit_iff,
-      simp_all flip: push_bit_eq_mult add: bit_push_bit_eq_int)
+      simp_all flip: push_bit_eq_mult add: bit_push_bit_iff_int)
 
-(*lemma even_range_div_iff_word:
+(*lemma even_mask_div_iff_word:
   \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a::len word) \<or> m \<le> n\<close>
-  by transfer (auto simp add: take_bit_of_range even_range_div_iff)*)
+  by transfer (auto simp add: take_bit_of_mask even_mask_div_iff)*)
 
 instance word :: (len) semiring_bits
 proof
