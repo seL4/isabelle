@@ -9,15 +9,6 @@ theory Bit_Operations
     Main
 begin
 
-context semiring_bits
-begin
-
-lemma bit_mask_iff:
-  \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
-  by (simp add: bit_def even_mask_div_iff not_le)
-
-end
-
 context semiring_bit_shifts
 begin
 
@@ -101,6 +92,15 @@ lemma flip_bit_Suc [simp]:
   \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
   by (simp add: flip_bit_def)
 
+sublocale "and": semilattice \<open>(AND)\<close>
+  by standard (auto simp add: bit_eq_iff bit_and_iff)
+
+sublocale or: semilattice_neutr \<open>(OR)\<close> 0
+  by standard (auto simp add: bit_eq_iff bit_or_iff)
+
+sublocale xor: comm_monoid \<open>(XOR)\<close> 0
+  by standard (auto simp add: bit_eq_iff bit_xor_iff)
+
 lemma zero_and_eq [simp]:
   "0 AND a = 0"
   by (simp add: bit_eq_iff bit_and_iff)
@@ -109,21 +109,29 @@ lemma and_zero_eq [simp]:
   "a AND 0 = 0"
   by (simp add: bit_eq_iff bit_and_iff)
 
-lemma zero_or_eq [simp]:
-  "0 OR a = a"
-  by (simp add: bit_eq_iff bit_or_iff)
+lemma one_and_eq [simp]:
+  "1 AND a = of_bool (odd a)"
+  by (simp add: bit_eq_iff bit_and_iff) (auto simp add: bit_1_iff)
 
-lemma or_zero_eq [simp]:
-  "a OR 0 = a"
-  by (simp add: bit_eq_iff bit_or_iff)
+lemma and_one_eq [simp]:
+  "a AND 1 = of_bool (odd a)"
+  using one_and_eq [of a] by (simp add: ac_simps)
 
-lemma zero_xor_eq [simp]:
-  "0 XOR a = a"
-  by (simp add: bit_eq_iff bit_xor_iff)
+lemma one_or_eq [simp]:
+  "1 OR a = a + of_bool (even a)"
+  by (simp add: bit_eq_iff bit_or_iff add.commute [of _ 1] even_bit_succ_iff) (auto simp add: bit_1_iff)
 
-lemma xor_zero_eq [simp]:
-  "a XOR 0 = a"
-  by (simp add: bit_eq_iff bit_xor_iff)
+lemma or_one_eq [simp]:
+  "a OR 1 = a + of_bool (even a)"
+  using one_or_eq [of a] by (simp add: ac_simps)
+
+lemma one_xor_eq [simp]:
+  "1 XOR a = a + of_bool (even a) - of_bool (odd a)"
+  by (simp add: bit_eq_iff bit_xor_iff add.commute [of _ 1] even_bit_succ_iff) (auto simp add: bit_1_iff odd_bit_iff_bit_pred elim: oddE)
+
+lemma xor_one_int_eq [simp]:
+  "a XOR 1 = a + of_bool (even a) - of_bool (odd a)"
+  using one_xor_eq [of a] by (simp add: ac_simps)
 
 lemma take_bit_and [simp]:
   \<open>take_bit n (a AND b) = take_bit n a AND take_bit n b\<close>
@@ -168,6 +176,10 @@ lemma bit_minus_iff:
   \<open>bit (- a) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> \<not> bit (a - 1) n\<close>
   by (simp add: minus_eq_not_minus_1 bit_not_iff)
 
+lemma even_not_iff [simp]:
+  "even (NOT a) \<longleftrightarrow> odd a"
+  using bit_not_iff [of a 0] by auto
+
 lemma bit_not_exp_iff:
   \<open>bit (NOT (2 ^ m)) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n \<noteq> m\<close>
   by (auto simp add: bit_not_iff bit_exp_iff)
@@ -184,24 +196,34 @@ lemma bit_minus_2_iff [simp]:
   \<open>bit (- 2) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n > 0\<close>
   by (simp add: bit_minus_iff bit_1_iff)
 
+lemma not_one [simp]:
+  "NOT 1 = - 2"
+  by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
+
+sublocale "and": semilattice_neutr \<open>(AND)\<close> \<open>- 1\<close>
+  apply standard
+  apply (auto simp add: bit_eq_iff bit_and_iff)
+  apply (simp add: bit_exp_iff)
+  apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+  done
+
 sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
   rewrites \<open>bit.xor = (XOR)\<close>
 proof -
   interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
     apply standard
-             apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
-     apply (simp_all add: bit_exp_iff)
-     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+         apply simp_all
+       apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
+    apply (simp add: bit_exp_iff)
     apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
     done
   show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
     by standard
   show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close> 
     apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
-         apply (simp add: bit_exp_iff, simp add: bit_def)
-        apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-       apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
-      apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
+         apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
+        apply (metis local.bit_exp_iff local.bits_div_by_0)
+       apply (metis local.bit_exp_iff local.bits_div_by_0)
     done
 qed
 
@@ -212,6 +234,13 @@ lemma push_bit_minus:
 lemma take_bit_not_take_bit:
   \<open>take_bit n (NOT (take_bit n a)) = take_bit n (NOT a)\<close>
   by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff)
+
+lemma take_bit_not_iff:
+  "take_bit n (NOT a) = take_bit n (NOT b) \<longleftrightarrow> take_bit n a = take_bit n b"
+  apply (simp add: bit_eq_iff bit_not_iff bit_take_bit_iff)
+  apply (simp add: bit_exp_iff)
+  apply (use local.exp_eq_0_imp_not_bit in blast)
+  done
 
 end
 
@@ -718,54 +747,12 @@ qed (simp_all add: minus_1_div_exp_eq_int bit_not_iff_int)
 
 end
 
-lemma not_div_2:
+lemma not_int_div_2:
   "NOT k div 2 = NOT (k div 2)" for k :: int
   by (simp add: complement_div_2 not_int_def)
 
 lemma not_int_rec [simp]:
   "k \<noteq> 0 \<Longrightarrow> k \<noteq> - 1 \<Longrightarrow> NOT k = of_bool (even k) + 2 * NOT (k div 2)" for k :: int
   by (auto simp add: not_int_def elim: oddE)
-
-lemma not_one_int [simp]:
-  "NOT 1 = (- 2 :: int)"
-  by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
-
-lemma even_not_int_iff [simp]:
-  "even (NOT k) \<longleftrightarrow> odd k" for k :: int
-  using bit_not_iff [of k 0] by auto
-
-lemma one_and_int_eq [simp]:
-  "1 AND k = of_bool (odd k)" for k :: int
-  by (simp add: bit_eq_iff bit_and_iff) (auto simp add: bit_1_iff)
-
-lemma and_one_int_eq [simp]:
-  "k AND 1 = of_bool (odd k)" for k :: int
-  using one_and_int_eq [of 1] by (simp add: ac_simps)
-
-lemma one_or_int_eq [simp]:
-  "1 OR k = k + of_bool (even k)" for k :: int
-  using or_int.rec [of 1] by (auto elim: oddE)
-
-lemma or_one_int_eq [simp]:
-  "k OR 1 = k + of_bool (even k)" for k :: int
-  using one_or_int_eq [of k] by (simp add: ac_simps)
-
-lemma one_xor_int_eq [simp]:
-  "1 XOR k = k + of_bool (even k) - of_bool (odd k)" for k :: int
-  using xor_int.rec [of 1] by (auto elim: oddE)
-
-lemma xor_one_int_eq [simp]:
-  "k XOR 1 = k + of_bool (even k) - of_bool (odd k)" for k :: int
-  using one_xor_int_eq [of k] by (simp add: ac_simps)
-
-lemma take_bit_complement_iff:
-  "take_bit n (complement k) = take_bit n (complement l) \<longleftrightarrow> take_bit n k = take_bit n l"
-  for k l :: int
-  by (simp add: take_bit_eq_mod mod_eq_dvd_iff dvd_diff_commute)
-
-lemma take_bit_not_iff_int:
-  "take_bit n (NOT k) = take_bit n (NOT l) \<longleftrightarrow> take_bit n k = take_bit n l"
-  for k l :: int
-  by (auto simp add: bit_eq_iff bit_take_bit_iff bit_not_iff_int)
 
 end

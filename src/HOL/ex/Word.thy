@@ -674,7 +674,7 @@ begin
 
 lift_definition not_word :: "'a word \<Rightarrow> 'a word"
   is not
-  by (simp add: take_bit_not_iff_int)
+  by (simp add: take_bit_not_iff)
 
 lift_definition and_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is \<open>and\<close>
