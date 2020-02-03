@@ -40,21 +40,21 @@ text \<open>Now we can forget how exactly intervals were defined.\<close>
 
 instantiation ivl :: (linorder) linorder begin
 
-definition int_less: "(x < y) = (low x < low y | (low x = low y \<and> high x < high y))"
-definition int_less_eq: "(x \<le> y) = (low x < low y | (low x = low y \<and> high x \<le> high y))"
+definition ivl_less: "(x < y) = (low x < low y | (low x = low y \<and> high x < high y))"
+definition ivl_less_eq: "(x \<le> y) = (low x < low y | (low x = low y \<and> high x \<le> high y))"
 
 instance proof
   fix x y z :: "'a ivl"
   show a: "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
-    using int_less int_less_eq by force
+    using ivl_less ivl_less_eq by force
   show b: "x \<le> x"
-    by (simp add: int_less_eq)
+    by (simp add: ivl_less_eq)
   show c: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-    by (smt int_less_eq dual_order.trans less_trans)
+    by (smt ivl_less_eq dual_order.trans less_trans)
   show d: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
-    using int_less_eq a ivl_inj int_less by fastforce
+    using ivl_less_eq a ivl_inj ivl_less by fastforce
   show e: "x \<le> y \<or> y \<le> x"
-    by (meson int_less_eq leI not_less_iff_gr_or_eq)
+    by (meson ivl_less_eq leI not_less_iff_gr_or_eq)
 qed end
 
 
@@ -234,7 +234,7 @@ next
             have "p \<in> set (inorder l)" using p(1) by (simp)
             moreover have "rp \<in> set (inorder r)" using asm by (simp)
             ultimately have "low p \<le> low rp"
-              using Node(4) by(fastforce simp: sorted_wrt_append int_less)
+              using Node(4) by(fastforce simp: sorted_wrt_append ivl_less)
             then show ?thesis
               using False by (auto simp: overlap_def)
           qed
