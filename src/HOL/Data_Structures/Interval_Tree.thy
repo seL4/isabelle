@@ -231,16 +231,14 @@ next
           case False
           have "\<not>overlap x rp" if asm: "rp \<in> set_tree r" for rp
           proof -
-            have "p \<in> set (inorder l)" using p(1) by (simp)
-            moreover have "rp \<in> set (inorder r)" using asm by (simp)
-            ultimately have "low p \<le> low rp"
-              using Node(4) by(fastforce simp: sorted_wrt_append ivl_less)
+            have "low p \<le> low rp"
+              using asm p(1) Node(4) by(fastforce simp: sorted_wrt_append ivl_less)
             then show ?thesis
               using False by (auto simp: overlap_def)
           qed
           then show ?thesis
             unfolding search_eval search_l
-            using a_disjoint by (fastforce simp: has_overlap_def overlap_def)
+            using a_disjoint by (auto simp: has_overlap_def overlap_def)
         qed
       next
         case False
@@ -251,7 +249,7 @@ next
           by (fastforce simp: overlap_def)
         then show ?thesis
           unfolding search_eval search_r
-          using a_disjoint by (fastforce simp: has_overlap_def overlap_def)
+          using a_disjoint by (auto simp: has_overlap_def overlap_def)
       qed
     qed
   qed
