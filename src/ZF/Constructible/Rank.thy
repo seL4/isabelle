@@ -109,7 +109,7 @@ txt\<open>case \<^term>\<open>i=j\<close> yields a contradiction\<close>
    apply (blast intro: wellordered_subset [OF _ pred_subset]) 
   apply (simp add: trans_pred_pred_eq)
   apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans) 
- apply (simp_all add: pred_iff pred_closed converse_closed comp_closed)
+ apply (simp_all add: pred_iff)
 txt\<open>case \<^term>\<open>j<i\<close> also yields a contradiction\<close>
 apply (frule restrict_ord_iso2, assumption+) 
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun]) 
@@ -162,7 +162,7 @@ lemma (in M_ordertype) omap_iff:
       ==> z \<in> f \<longleftrightarrow>
           (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                                 g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
-apply (simp add: omap_def Memrel_closed pred_closed) 
+apply (simp add: omap_def) 
 apply (rule iffI)
  apply (drule_tac [2] x=z in rspec)
  apply (drule_tac x=z in rspec)
@@ -222,7 +222,7 @@ done
 lemma (in M_ordertype) domain_omap:
      "[| omap(M,A,r,f);  M(A); M(r); M(B); M(f) |] 
       ==> domain(f) = obase(M,A,r)"
-apply (simp add: domain_closed obase_def) 
+apply (simp add: obase_def) 
 apply (rule equality_iffI) 
 apply (simp add: domain_iff omap_iff, blast) 
 done
@@ -354,15 +354,13 @@ apply (insert omap_replacement [of A r])
 apply (simp add: strong_replacement_def) 
 apply (drule_tac x="obase(M,A,r)" in rspec) 
  apply (simp add: obase_exists) 
-apply (simp add: Memrel_closed pred_closed obase_def)
+apply (simp add: obase_def)
 apply (erule impE) 
  apply (clarsimp simp add: univalent_def)
  apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans, clarify)  
 apply (rule_tac x=Y in rexI) 
-apply (simp add: Memrel_closed pred_closed obase_def, blast, assumption)
+apply (simp add: obase_def, blast, assumption)
 done
-
-declare rall_simps [simp] rex_simps [simp]
 
 lemma (in M_ordertype) otype_exists:
      "[| wellordered(M,A,r); M(A); M(r) |] ==> \<exists>i[M]. otype(M,A,r,i)"
@@ -379,7 +377,7 @@ apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], 
 apply (rename_tac i) 
 apply (subgoal_tac "Ord(i)", blast intro: omap_ord_iso_otype)
 apply (rule Ord_otype) 
-    apply (force simp add: otype_def range_closed) 
+    apply (force simp add: otype_def) 
    apply (simp_all add: wellordered_is_trans_on) 
 done
 
@@ -484,9 +482,9 @@ lemma (in M_ord_arith) is_oadd_fun_iff:
     ==> is_oadd_fun(M,i,j,a,f) \<longleftrightarrow>
         f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) \<longrightarrow> x < a \<longrightarrow> f`x = i \<union> f``x)"
 apply (frule lt_Ord) 
-apply (simp add: is_oadd_fun_def Memrel_closed Un_closed 
+apply (simp add: is_oadd_fun_def  
              relation2_def is_recfun_abs [of "%x g. i \<union> g``x"]
-             image_closed is_recfun_iff_equation  
+             is_recfun_iff_equation  
              Ball_def lt_trans [OF ltI, of _ a] lt_Memrel)
 apply (simp add: lt_def) 
 apply (blast dest: transM) 
@@ -559,7 +557,7 @@ lemma (in M_ord_arith) oadd_closed [intro,simp]:
 apply (simp add: oadd_eq_if_raw_oadd, clarify) 
 apply (simp add: raw_oadd_eq_oadd) 
 apply (frule exists_oadd_fun [of j i], auto)
-apply (simp add: apply_closed is_oadd_fun_iff_oadd [symmetric]) 
+apply (simp add: is_oadd_fun_iff_oadd [symmetric]) 
 done
 
 
@@ -605,7 +603,7 @@ apply (case_tac "Ord(x)")
  prefer 2 apply (simp add: omult_eqns_Not) \<comment> \<open>trivial, non-Ord case\<close>
 apply (erule Ord_cases) 
   apply (simp add: omult_eqns_0)
- apply (simp add: omult_eqns_succ apply_closed oadd_closed) 
+ apply (simp add: omult_eqns_succ) 
 apply (simp add: omult_eqns_Limit) 
 done
 
@@ -642,7 +640,7 @@ by (simp add: is_omult_fun_def omult_eqns_def lt_def, blast)
 lemma (in M_ord_arith) is_omult_fun_apply_Limit:
     "[| x < j; Limit(x); M(j); M(f); is_omult_fun(M,i,j,f) |] 
      ==> f ` x = (\<Union>y\<in>x. f`y)"
-apply (simp add: is_omult_fun_def omult_eqns_def domain_closed lt_def, clarify)
+apply (simp add: is_omult_fun_def omult_eqns_def lt_def, clarify)
 apply (drule subset_trans [OF OrdmemD], assumption+)  
 apply (simp add: ball_conj_distrib omult_Limit image_function)
 done
@@ -905,7 +903,7 @@ txt\<open>We have used equations for wellfoundedrank and now must use some
     for  \<open>is_recfun\<close>.\<close>
 apply (rule_tac a=a in rangeI)
 apply (simp add: is_recfun_type [THEN apply_iff] vimage_singleton_iff
-                 r_into_trancl apply_recfun r_into_trancl)
+                 r_into_trancl apply_recfun)
 done
 
 

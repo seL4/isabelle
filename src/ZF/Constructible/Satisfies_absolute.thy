@@ -41,7 +41,7 @@ lemma depth_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j < length(env); env \<in> list(A)|]
        ==> is_depth(##A, x, y) \<longleftrightarrow> sats(A, depth_fm(i,j), env)"
-by (simp add: sats_depth_fm)
+by (simp)
 
 theorem depth_reflection:
      "REFLECTS[\<lambda>x. is_depth(L, f(x), g(x)),  
@@ -443,7 +443,7 @@ lemma (in M_satisfies) formula_case_satisfies_closed:
                          g ` succ(depth(u)) ` u, g ` succ(depth(v)) ` v),
        \<lambda>u. satisfies_d (A, u, g ` succ(depth(u)) ` u),
        x))"
-by (blast intro: formula_case_closed a_closed b_closed c_closed d_closed) 
+by (blast intro: a_closed b_closed c_closed d_closed) 
 
 lemma (in M_satisfies) fr_lam_replace:
    "[|M(g); M(A)|] ==>
@@ -479,7 +479,7 @@ done
 
 theorem (in M_satisfies) Formula_Rec_M: 
     "M(A) ==>
-     PROP Formula_Rec(M, satisfies_a(A), satisfies_is_a(M,A), 
+     Formula_Rec(M, satisfies_a(A), satisfies_is_a(M,A), 
                          satisfies_b(A), satisfies_is_b(M,A), 
                          satisfies_c(A), satisfies_is_c(M,A), 
                          satisfies_d(A), satisfies_is_d(M,A))"
@@ -842,7 +842,7 @@ lemma Member_replacement:
 apply (rule strong_replacementI)
 apply (rule_tac u="{list(A),B,x,y}" 
          in gen_separation_multi [OF Member_Reflects], 
-       auto simp add: nat_into_M list_closed)
+       auto)
 apply (rule_tac env="[list(A),B,x,y]" in DPow_LsetI)
 apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
@@ -872,7 +872,7 @@ lemma Equal_replacement:
 apply (rule strong_replacementI)
 apply (rule_tac u="{list(A),B,x,y}" 
          in gen_separation_multi [OF Equal_Reflects], 
-       auto simp add: nat_into_M list_closed)
+       auto)
 apply (rule_tac env="[list(A),B,x,y]" in DPow_LsetI)
 apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
@@ -904,7 +904,7 @@ lemma Nand_replacement:
 apply (rule strong_replacementI)
 apply (rule_tac u="{list(A),B,rp,rq}" 
          in gen_separation_multi [OF Nand_Reflects],
-       auto simp add: list_closed)
+       auto)
 apply (rule_tac env="[list(A),B,rp,rq]" in DPow_LsetI)
 apply (rule sep_rules is_and_iff_sats is_not_iff_sats | simp)+
 done
@@ -943,7 +943,7 @@ lemma Forall_replacement:
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,list(A),B,rp}" 
          in gen_separation_multi [OF Forall_Reflects],
-       auto simp add: list_closed)
+       auto)
 apply (rule_tac env="[A,list(A),B,rp]" in DPow_LsetI)
 apply (rule sep_rules is_bool_of_o_iff_sats Cons_iff_sats | simp)+
 done
@@ -1026,7 +1026,7 @@ lemma M_satisfies_axioms_L: "M_satisfies_axioms(L)"
          formula_rec_replacement formula_rec_lambda_replacement)+
   done
 
-theorem M_satisfies_L: "PROP M_satisfies(L)"
+theorem M_satisfies_L: "M_satisfies(L)"
   apply (rule M_satisfies.intro)
    apply (rule M_eclose_L)
   apply (rule M_satisfies_axioms_L)

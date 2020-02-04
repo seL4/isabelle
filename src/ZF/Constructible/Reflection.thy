@@ -121,7 +121,7 @@ lemma (in reflection) FF_works:
      "[| M(z); y\<in>Mset(a); P(<y,z>); Ord(a) |] ==> \<exists>z\<in>Mset(FF(P,a)). P(<y,z>)"
 apply (simp add: FF_def)
 apply (simp_all add: cont_Ord_Union [of concl: Mset]
-                     Mset_cont Mset_mono_le not_emptyI Ord_F0)
+                     Mset_cont Mset_mono_le not_emptyI)
 apply (blast intro: F0_works)
 done
 

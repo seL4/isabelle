@@ -162,32 +162,32 @@ by simp
 lemma conj_iff_sats:
       "[| P \<longleftrightarrow> sats(A,p,env); Q \<longleftrightarrow> sats(A,q,env); env \<in> list(A)|]
        ==> (P & Q) \<longleftrightarrow> sats(A, And(p,q), env)"
-by (simp add: sats_And_iff)
+by (simp)
 
 lemma disj_iff_sats:
       "[| P \<longleftrightarrow> sats(A,p,env); Q \<longleftrightarrow> sats(A,q,env); env \<in> list(A)|]
        ==> (P | Q) \<longleftrightarrow> sats(A, Or(p,q), env)"
-by (simp add: sats_Or_iff)
+by (simp)
 
 lemma iff_iff_sats:
       "[| P \<longleftrightarrow> sats(A,p,env); Q \<longleftrightarrow> sats(A,q,env); env \<in> list(A)|]
        ==> (P \<longleftrightarrow> Q) \<longleftrightarrow> sats(A, Iff(p,q), env)"
-by (simp add: sats_Forall_iff)
+by (simp)
 
 lemma imp_iff_sats:
       "[| P \<longleftrightarrow> sats(A,p,env); Q \<longleftrightarrow> sats(A,q,env); env \<in> list(A)|]
        ==> (P \<longrightarrow> Q) \<longleftrightarrow> sats(A, Implies(p,q), env)"
-by (simp add: sats_Forall_iff)
+by (simp)
 
 lemma ball_iff_sats:
       "[| !!x. x\<in>A ==> P(x) \<longleftrightarrow> sats(A, p, Cons(x, env)); env \<in> list(A)|]
        ==> (\<forall>x\<in>A. P(x)) \<longleftrightarrow> sats(A, Forall(p), env)"
-by (simp add: sats_Forall_iff)
+by (simp)
 
 lemma bex_iff_sats:
       "[| !!x. x\<in>A ==> P(x) \<longleftrightarrow> sats(A, p, Cons(x, env)); env \<in> list(A)|]
        ==> (\<exists>x\<in>A. P(x)) \<longleftrightarrow> sats(A, Exists(p), env)"
-by (simp add: sats_Exists_iff)
+by (simp)
 
 lemmas FOL_iff_sats =
         mem_iff_sats equal_iff_sats not_iff_sats conj_iff_sats
@@ -451,7 +451,7 @@ apply (rule_tac x="envp@envq" in bexI)
   apply typecheck
 apply (rule conjI)
 (*finally check the arity!*)
- apply (simp add: arity_iterates_incr_bv1_eq length_app Un_least_lt_iff)
+ apply (simp add: arity_iterates_incr_bv1_eq Un_least_lt_iff)
  apply (force intro: add_le_self le_trans)
 apply (simp add: arity_sats1_iff formula_add_params1, blast)
 done

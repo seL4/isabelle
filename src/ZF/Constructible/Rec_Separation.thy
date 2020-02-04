@@ -62,7 +62,7 @@ lemma rtran_closure_mem_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> rtran_closure_mem(##A, x, y, z) \<longleftrightarrow> sats(A, rtran_closure_mem_fm(i,j,k), env)"
-by (simp add: sats_rtran_closure_mem_fm)
+by (simp)
 
 lemma rtran_closure_mem_reflection:
      "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)),
@@ -178,10 +178,10 @@ subsubsection\<open>Instantiating the locale \<open>M_trancl\<close>\<close>
 
 lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
   apply (rule M_trancl_axioms.intro)
-   apply (assumption | rule rtrancl_separation wellfounded_trancl_separation)+
+   apply (assumption | rule rtrancl_separation wellfounded_trancl_separation L_nat)+
   done
 
-theorem M_trancl_L: "PROP M_trancl(L)"
+theorem M_trancl_L: "M_trancl(L)"
 by (rule M_trancl.intro [OF M_basic_L M_trancl_axioms_L])
 
 interpretation L?: M_trancl L by (rule M_trancl_L)
@@ -209,7 +209,7 @@ apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
 apply (rule_tac u="{B,A,n,0,Memrel(succ(n))}" 
          in gen_separation_multi [OF list_replacement1_Reflects], 
-       auto simp add: nonempty)
+       auto)
 apply (rule_tac env="[B,A,n,0,Memrel(succ(n))]" in DPow_LsetI)
 apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
@@ -231,7 +231,7 @@ lemma list_replacement2:
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B,0,nat}" 
          in gen_separation_multi [OF list_replacement2_Reflects], 
-       auto simp add: L_nat nonempty)
+       auto)
 apply (rule_tac env="[A,B,0,nat]" in DPow_LsetI)
 apply (rule sep_rules list_functor_iff_sats is_iterates_iff_sats | simp)+
 done
@@ -260,7 +260,7 @@ apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
 apply (rule_tac u="{B,n,0,Memrel(succ(n))}" 
          in gen_separation_multi [OF formula_replacement1_Reflects], 
-       auto simp add: nonempty)
+       auto)
 apply (rule_tac env="[n,B,0,Memrel(succ(n))]" in DPow_LsetI)
 apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
             is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
@@ -281,7 +281,7 @@ lemma formula_replacement2:
 apply (rule strong_replacementI)
 apply (rule_tac u="{B,0,nat}" 
          in gen_separation_multi [OF formula_replacement2_Reflects], 
-       auto simp add: nonempty L_nat)
+       auto)
 apply (rule_tac env="[B,0,nat]" in DPow_LsetI)
 apply (rule sep_rules formula_functor_iff_sats is_iterates_iff_sats | simp)+
 done
@@ -316,7 +316,7 @@ lemma nth_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i < length(env); j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> is_nth(##A, x, y, z) \<longleftrightarrow> sats(A, nth_fm(i,j,k), env)"
-by (simp add: sats_nth_fm)
+by (simp)
 
 theorem nth_reflection:
      "REFLECTS[\<lambda>x. is_nth(L, f(x), g(x), h(x)),  
@@ -365,7 +365,7 @@ lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
         nth_replacement)+
   done
 
-theorem M_datatypes_L: "PROP M_datatypes(L)"
+theorem M_datatypes_L: "M_datatypes(L)"
   apply (rule M_datatypes.intro)
    apply (rule M_trancl_L)
   apply (rule M_datatypes_axioms_L) 
@@ -415,7 +415,7 @@ lemma eclose_replacement2:
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B,nat}" 
          in gen_separation_multi [OF eclose_replacement2_Reflects],
-       auto simp add: L_nat)
+       auto)
 apply (rule_tac env="[A,B,nat]" in DPow_LsetI)
 apply (rule sep_rules is_iterates_iff_sats big_union_iff_sats | simp)+
 done
@@ -428,7 +428,7 @@ lemma M_eclose_axioms_L: "M_eclose_axioms(L)"
    apply (assumption | rule eclose_replacement1 eclose_replacement2)+
   done
 
-theorem M_eclose_L: "PROP M_eclose(L)"
+theorem M_eclose_L: "M_eclose(L)"
   apply (rule M_eclose.intro)
    apply (rule M_datatypes_L)
   apply (rule M_eclose_axioms_L)

@@ -298,10 +298,10 @@ lemma M_basic_axioms_L: "M_basic_axioms(L)"
          Inter_separation Diff_separation cartprod_separation image_separation
          converse_separation restrict_separation
          comp_separation pred_separation Memrel_separation
-         funspace_succ_replacement is_recfun_separation)+
+         funspace_succ_replacement is_recfun_separation power_ax)+
   done
 
-theorem M_basic_L: "PROP M_basic(L)"
+theorem M_basic_L: " M_basic(L)"
 by (rule M_basic.intro [OF M_trivial_L M_basic_axioms_L])
 
 interpretation L?: M_basic L by (rule M_basic_L)

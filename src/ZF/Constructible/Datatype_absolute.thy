@@ -137,7 +137,7 @@ lemma (in M_basic) iterates_MH_abs:
 by (simp add: nat_case_abs [of _ "\<lambda>m. F(g ` m)"]
               relation1_def iterates_MH_def)  
 
-lemma (in M_basic) iterates_imp_wfrec_replacement:
+lemma (in M_trancl) iterates_imp_wfrec_replacement:
   "[|relation1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
    ==> wfrec_replacement(M, \<lambda>n f z. z = nat_case(v, \<lambda>m. F(f`m), n), 
                        Memrel(succ(n)))" 
@@ -148,7 +148,7 @@ theorem (in M_trancl) iterates_abs:
       n \<in> nat; M(v); M(z); \<forall>x[M]. M(F(x)) |] 
    ==> is_iterates(M,isF,v,n,z) \<longleftrightarrow> z = iterates(F,n,v)" 
 apply (frule iterates_imp_wfrec_replacement, assumption+)
-apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
+apply (simp add: wf_Memrel trans_Memrel relation_Memrel 
                  is_iterates_def relation2_def iterates_MH_abs 
                  iterates_nat_def recursor_def transrec_def 
                  eclose_sing_Ord_eq nat_into_M
@@ -161,7 +161,7 @@ lemma (in M_trancl) iterates_closed [intro,simp]:
       n \<in> nat; M(v); \<forall>x[M]. M(F(x)) |] 
    ==> M(iterates(F,n,v))"
 apply (frule iterates_imp_wfrec_replacement, assumption+)
-apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
+apply (simp add: wf_Memrel trans_Memrel relation_Memrel 
                  relation2_def iterates_MH_abs 
                  iterates_nat_def recursor_def transrec_def 
                  eclose_sing_Ord_eq nat_into_M
@@ -270,7 +270,7 @@ definition
           cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & 
           is_sum(M,natnatsum,X3,Z)"
 
-lemma (in M_basic) formula_functor_abs [simp]: 
+lemma (in M_trancl) formula_functor_abs [simp]: 
      "[| M(X); M(Z) |] 
       ==> is_formula_functor(M,X,Z) \<longleftrightarrow> 
           Z = ((nat*nat) + (nat*nat)) + (X*X + X)"
@@ -935,13 +935,13 @@ lemma (in M_datatypes) Relation1_formula_rec_case:
                          is_formula_case (M, is_a, is_b, is_c, is_d),
                          formula_rec_case(a, b, c, d, h))"
 apply (simp (no_asm) add: formula_rec_case_def Relation1_def)
-apply (simp add: formula_case_abs)
+apply (simp)
 done
 
 
 text\<open>This locale packages the premises of the following theorems,
       which is the normal purpose of locales.  It doesn't accumulate
-      constraints on the class \<^term>\<open>M\<close>, as in most of this deveopment.\<close>
+      constraints on the class \<^term>\<open>M\<close>, as in most of this development.\<close>
 locale Formula_Rec = M_eclose +
   fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
   defines

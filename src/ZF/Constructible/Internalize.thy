@@ -343,7 +343,7 @@ lemma Member_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> is_Member(##A, x, y, z) \<longleftrightarrow> sats(A, Member_fm(i,j,k), env)"
-by (simp add: sats_Member_fm)
+by (simp)
 
 theorem Member_reflection:
      "REFLECTS[\<lambda>x. is_Member(L,f(x),g(x),h(x)),
@@ -376,7 +376,7 @@ lemma Equal_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> is_Equal(##A, x, y, z) \<longleftrightarrow> sats(A, Equal_fm(i,j,k), env)"
-by (simp add: sats_Equal_fm)
+by (simp)
 
 theorem Equal_reflection:
      "REFLECTS[\<lambda>x. is_Equal(L,f(x),g(x),h(x)),
@@ -409,7 +409,7 @@ lemma Nand_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> is_Nand(##A, x, y, z) \<longleftrightarrow> sats(A, Nand_fm(i,j,k), env)"
-by (simp add: sats_Nand_fm)
+by (simp)
 
 theorem Nand_reflection:
      "REFLECTS[\<lambda>x. is_Nand(L,f(x),g(x),h(x)),
@@ -440,7 +440,7 @@ lemma Forall_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
        ==> is_Forall(##A, x, y) \<longleftrightarrow> sats(A, Forall_fm(i,j), env)"
-by (simp add: sats_Forall_fm)
+by (simp)
 
 theorem Forall_reflection:
      "REFLECTS[\<lambda>x. is_Forall(L,f(x),g(x)),
@@ -737,7 +737,7 @@ lemma cartprod_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> cartprod(##A, x, y, z) \<longleftrightarrow> sats(A, cartprod_fm(i,j,k), env)"
-by (simp add: sats_cartprod_fm)
+by (simp)
 
 theorem cartprod_reflection:
      "REFLECTS[\<lambda>x. cartprod(L,f(x),g(x),h(x)),
@@ -1043,7 +1043,7 @@ lemma eclose_n_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
        ==> is_eclose_n(##A, x, y, z) \<longleftrightarrow> sats(A, eclose_n_fm(i,j,k), env)"
-by (simp add: sats_eclose_n_fm)
+by (simp)
 
 theorem eclose_n_reflection:
      "REFLECTS[\<lambda>x. is_eclose_n(L, f(x), g(x), h(x)),  
@@ -1186,7 +1186,7 @@ lemma list_N_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
        ==> is_list_N(##A, x, y, z) \<longleftrightarrow> sats(A, list_N_fm(i,j,k), env)"
-by (simp add: sats_list_N_fm)
+by (simp)
 
 theorem list_N_reflection:
      "REFLECTS[\<lambda>x. is_list_N(L, f(x), g(x), h(x)),  
@@ -1336,7 +1336,7 @@ lemma formula_N_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i < length(env); j < length(env); env \<in> list(A)|]
        ==> is_formula_N(##A, x, y) \<longleftrightarrow> sats(A, formula_N_fm(i,j), env)"
-by (simp add: sats_formula_N_fm)
+by (simp)
 
 theorem formula_N_reflection:
      "REFLECTS[\<lambda>x. is_formula_N(L, f(x), g(x)),  

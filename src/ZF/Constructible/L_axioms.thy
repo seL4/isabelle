@@ -78,6 +78,17 @@ apply (rule_tac x=Y in rexI)
 apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
+lemma strong_replacementI [rule_format]:
+    "[| \<forall>B[L]. separation(L, %u. \<exists>x[L]. x\<in>B & P(x,u)) |]
+     ==> strong_replacement(L,P)"
+apply (simp add: strong_replacement_def, clarify)
+apply (frule replacementD [OF replacement], assumption, clarify)
+apply (drule_tac x=A in rspec, clarify)
+apply (drule_tac z=Y in separationD, assumption, clarify)
+apply (rule_tac x=y in rexI, force, assumption)
+done
+
+
 subsection\<open>Instantiating the locale \<open>M_trivial\<close>\<close>
 text\<open>No instances of Separation yet.\<close>
 
@@ -89,14 +100,14 @@ by (simp add: cont_Ord_def Limit_Lset_eq OUnion_def Limit_is_Ord)
 
 lemmas L_nat = Ord_in_L [OF Ord_nat]
 
-theorem M_trivial_L: "PROP M_trivial(L)"
+theorem M_trivial_L: "M_trivial(L)"
   apply (rule M_trivial.intro)
-       apply (erule (1) transL)
+  apply (rule M_trans.intro)
+    apply (erule (1) transL)
+   apply(rule exI,rule  nonempty)
+  apply (rule M_trivial_axioms.intro)
       apply (rule upair_ax)
-     apply (rule Union_ax)
-    apply (rule power_ax)
-   apply (rule replacement)
-  apply (rule L_nat)
+   apply (rule Union_ax)
   done
 
 interpretation L?: M_trivial L by (rule M_trivial_L)
@@ -352,7 +363,7 @@ lemma upair_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> upair(##A, x, y, z) \<longleftrightarrow> sats(A, upair_fm(i,j,k), env)"
-by (simp add: sats_upair_fm)
+by (simp)
 
 text\<open>Useful? At least it refers to "real" unordered pairs\<close>
 lemma sats_upair_fm2 [simp]:
@@ -394,7 +405,7 @@ lemma pair_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> pair(##A, x, y, z) \<longleftrightarrow> sats(A, pair_fm(i,j,k), env)"
-by (simp add: sats_pair_fm)
+by (simp)
 
 theorem pair_reflection:
      "REFLECTS[\<lambda>x. pair(L,f(x),g(x),h(x)),
@@ -426,7 +437,7 @@ lemma union_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> union(##A, x, y, z) \<longleftrightarrow> sats(A, union_fm(i,j,k), env)"
-by (simp add: sats_union_fm)
+by (simp)
 
 theorem union_reflection:
      "REFLECTS[\<lambda>x. union(L,f(x),g(x),h(x)),
@@ -671,7 +682,7 @@ lemma pred_set_iff_sats:
       "[| nth(i,env) = U; nth(j,env) = x; nth(k,env) = r; nth(l,env) = B;
           i \<in> nat; j \<in> nat; k \<in> nat; l \<in> nat; env \<in> list(A)|]
        ==> pred_set(##A,U,x,r,B) \<longleftrightarrow> sats(A, pred_set_fm(i,j,k,l), env)"
-by (simp add: sats_pred_set_fm)
+by (simp)
 
 theorem pred_set_reflection:
      "REFLECTS[\<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)),
@@ -815,7 +826,7 @@ lemma image_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> image(##A, x, y, z) \<longleftrightarrow> sats(A, image_fm(i,j,k), env)"
-by (simp add: sats_image_fm)
+by (simp)
 
 theorem image_reflection:
      "REFLECTS[\<lambda>x. image(L,f(x),g(x),h(x)),
@@ -851,7 +862,7 @@ lemma pre_image_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> pre_image(##A, x, y, z) \<longleftrightarrow> sats(A, pre_image_fm(i,j,k), env)"
-by (simp add: sats_pre_image_fm)
+by (simp)
 
 theorem pre_image_reflection:
      "REFLECTS[\<lambda>x. pre_image(L,f(x),g(x),h(x)),

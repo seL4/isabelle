@@ -82,17 +82,7 @@ definition
   tran_closure :: "[i=>o,i,i] => o" where
     "tran_closure(M,r,t) ==
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
-
-lemma (in M_basic) rtran_closure_mem_iff:
-     "[|M(A); M(r); M(p)|]
-      ==> rtran_closure_mem(M,A,r,p) \<longleftrightarrow>
-          (\<exists>n[M]. n\<in>nat & 
-           (\<exists>f[M]. f \<in> succ(n) -> A &
-            (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
-                           (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
-by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
-
-
+    
 locale M_trancl = M_basic +
   assumes rtrancl_separation:
          "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
@@ -101,7 +91,17 @@ locale M_trancl = M_basic +
           separation (M, \<lambda>x. 
               \<exists>w[M]. \<exists>wx[M]. \<exists>rp[M]. 
                w \<in> Z & pair(M,w,x,wx) & tran_closure(M,r,rp) & wx \<in> rp)"
+      and M_nat [iff] : "M(nat)"
 
+lemma (in M_trancl) rtran_closure_mem_iff:
+     "[|M(A); M(r); M(p)|]
+      ==> rtran_closure_mem(M,A,r,p) \<longleftrightarrow>
+          (\<exists>n[M]. n\<in>nat & 
+           (\<exists>f[M]. f \<in> succ(n) -> A &
+            (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
+                           (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
+  apply (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
+done
 
 lemma (in M_trancl) rtran_closure_rtrancl:
      "M(r) ==> rtran_closure(M,r,rtrancl(r))"
@@ -130,7 +130,7 @@ done
 
 lemma (in M_trancl) trancl_closed [intro,simp]:
      "M(r) ==> M(trancl(r))"
-by (simp add: trancl_def comp_closed rtrancl_closed)
+by (simp add: trancl_def)
 
 lemma (in M_trancl) trancl_abs [simp]:
      "[| M(r); M(z) |] ==> tran_closure(M,r,z) \<longleftrightarrow> z = trancl(r)"
@@ -144,7 +144,7 @@ text\<open>Alternative proof of \<open>wf_on_trancl\<close>; inspiration for the
       relativized version.  Original version is on theory WF.\<close>
 lemma "[| wf[A](r);  r-``A \<subseteq> A |] ==> wf[A](r^+)"
 apply (simp add: wf_on_def wf_def)
-apply (safe intro!: equalityI)
+apply (safe)
 apply (drule_tac x = "{x\<in>A. \<exists>w. \<langle>w,x\<rangle> \<in> r^+ & w \<in> Z}" in spec)
 apply (blast elim: tranclE)
 done

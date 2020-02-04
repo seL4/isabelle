@@ -311,7 +311,7 @@ lemma (in Nat_Times_Nat) well_ord_DPow_r:
     "well_ord(A,r) ==> well_ord(DPow(A), DPow_r(fn,r,A))"
 apply (simp add: DPow_r_def)
 apply (rule well_ord_measure)
- apply (simp add: DPow_least_def Ord_Least)
+ apply (simp add: DPow_least_def)
 apply (drule DPow_imp_DPow_least, assumption)+
 apply simp
 apply (blast intro: DPow_ord_unique)
@@ -357,7 +357,7 @@ apply (rule equalityI)
                       Ord_mem_iff_lt)
  apply (blast intro: lt_trans)
 apply (rule_tac x = "succ(lrank(x))" in bexI)
- apply (simp add: Lset_succ_lrank_iff)
+ apply (simp)
 apply (blast intro: Limit_has_succ ltD)
 done
 

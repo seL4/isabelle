@@ -162,7 +162,7 @@ subsection\<open>Relativized versions of order-isomorphisms and order types\<clo
 lemma (in M_basic) order_isomorphism_abs [simp]: 
      "[| M(A); M(B); M(f) |] 
       ==> order_isomorphism(M,A,r,B,s,f) \<longleftrightarrow> f \<in> ord_iso(A,r,B,s)"
-by (simp add: apply_closed order_isomorphism_def ord_iso_def)
+by (simp add: order_isomorphism_def ord_iso_def)
 
 lemma (in M_basic) pred_set_abs [simp]: 
      "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) \<longleftrightarrow> B = Order.pred(A,x,r)"

@@ -92,14 +92,13 @@ lemma sats_satisfies_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, satisfies_fm(x,y,z), env) \<longleftrightarrow>
         is_satisfies(##A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: satisfies_fm_def is_satisfies_def sats_satisfies_MH_fm
-              sats_formula_rec_fm)
+by (simp add: satisfies_fm_def is_satisfies_def sats_formula_rec_fm)
 
 lemma satisfies_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
        ==> is_satisfies(##A, x, y, z) \<longleftrightarrow> sats(A, satisfies_fm(i,j,k), env)"
-by (simp add: sats_satisfies_fm)
+by (simp)
 
 theorem satisfies_reflection:
      "REFLECTS[\<lambda>x. is_satisfies(L,f(x),g(x),h(x)),
@@ -294,7 +293,7 @@ lemma M_DPow_axioms_L: "M_DPow_axioms(L)"
    apply (assumption | rule DPow_separation DPow_replacement)+
   done
 
-theorem M_DPow_L: "PROP M_DPow(L)"
+theorem M_DPow_L: "M_DPow(L)"
   apply (rule M_DPow.intro)
    apply (rule M_satisfies_L)
   apply (rule M_DPow_axioms_L)
@@ -443,7 +442,7 @@ lemma DPow'_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
        ==> is_DPow'(##A, x, y) \<longleftrightarrow> sats(A, DPow'_fm(i,j), env)"
-by (simp add: sats_DPow'_fm)
+by (simp)
 
 theorem DPow'_reflection:
      "REFLECTS[\<lambda>x. is_DPow'(L,f(x),g(x)),
@@ -600,7 +599,7 @@ lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
        apply (assumption | rule strong_rep transrec_rep)+
   done
 
-theorem M_Lset_L: "PROP M_Lset(L)"
+theorem M_Lset_L: "M_Lset(L)"
   apply (rule M_Lset.intro) 
    apply (rule M_DPow_L)
   apply (rule M_Lset_axioms_L) 

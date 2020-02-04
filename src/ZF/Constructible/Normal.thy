@@ -64,12 +64,12 @@ theorem Closed_Unbounded_Limit [simp]: "Closed_Unbounded(Limit)"
 apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Limit_Union, 
        clarify)
 apply (rule_tac x="i++nat" in exI)  
-apply (blast intro: oadd_lt_self oadd_LimitI Limit_nat Limit_has_0) 
+apply (blast intro: oadd_lt_self oadd_LimitI Limit_has_0) 
 done
 
 text\<open>The class of cardinals, \<^term>\<open>Card\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Card  [simp]: "Closed_Unbounded(Card)"
-apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Card_Union)
+apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def)
 apply (blast intro: lt_csucc Card_csucc)
 done
 
@@ -101,7 +101,7 @@ by (simp add: sup_greater_def next_greater_def)
 
 lemma (in cub_family) Ord_next_greater:
      "Ord(next_greater(a,x))"
-by (simp add: next_greater_def Ord_Least)
+by (simp add: next_greater_def)
 
 text\<open>\<^term>\<open>next_greater\<close> works as expected: it returns a larger value
 and one that belongs to class \<^term>\<open>P(a)\<close>.\<close>
@@ -146,10 +146,10 @@ txt\<open>Opposite bound:
 @{subgoals[display,indent=0,margin=65]}
 \<close>
 apply (rule UN_least_le) 
-apply (blast intro: Ord_UN Ord_iterates Ord_sup_greater)  
+apply (blast intro: Ord_iterates Ord_sup_greater)  
 apply (rule_tac a="succ(n)" in UN_upper_le)
 apply (simp_all add: next_greater_le_sup_greater) 
-apply (blast intro: Ord_UN Ord_iterates Ord_sup_greater)  
+apply (blast intro: Ord_iterates Ord_sup_greater)  
 done
 
 lemma (in cub_family) P_omega_sup_greater:
@@ -166,7 +166,7 @@ lemma (in cub_family) omega_sup_greater_gt:
 apply (simp add: iterates_omega_def)
 apply (rule UN_upper_lt [of 1], simp_all) 
  apply (blast intro: sup_greater_gt) 
-apply (blast intro: Ord_UN Ord_iterates Ord_sup_greater)
+apply (blast intro: Ord_iterates Ord_sup_greater)
 done
 
 lemma (in cub_family) Unbounded_INT: "Unbounded(\<lambda>x. \<forall>a\<in>A. P(a,x))"
@@ -299,7 +299,7 @@ txt\<open>First inclusion:\<close>
  apply (simp add: mono_le_subset_def, blast intro: leI) 
 txt\<open>Second inclusion:\<close>
 apply (rule UN_least) 
-apply (frule Union_upper_le, blast, blast intro: Ord_Union)
+apply (frule Union_upper_le, blast, blast)
 apply (erule leE, drule ltD, elim UnionE)
  apply (simp add: OUnion_def)
  apply blast+
@@ -327,7 +327,7 @@ done
 
 lemma Ord_iterates_Normal:
      "[| n\<in>nat;  Normal(F);  Ord(x) |] ==> Ord(F^n (x))"  
-by (simp add: Ord_iterates) 
+by (simp) 
 
 text\<open>THIS RESULT IS UNUSED\<close>
 lemma iterates_omega_Limit:
@@ -337,7 +337,7 @@ apply (simp add: iterates_omega_def)
 apply (rule increasing_LimitI) 
    \<comment> \<open>this lemma is @{thm increasing_LimitI [no_vars]}\<close>
  apply (blast intro: UN_upper_lt [of "1"]   Normal_imp_Ord
-                     Ord_UN Ord_iterates lt_imp_0_lt
+                     Ord_iterates lt_imp_0_lt
                      iterates_Normal_increasing, clarify)
 apply (rule bexI) 
  apply (blast intro: Ord_in_Ord [OF Ord_iterates_Normal]) 
