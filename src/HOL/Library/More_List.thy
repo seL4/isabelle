@@ -378,5 +378,18 @@ next
     by simp
 qed
 
+lemma nth_default_map2:
+  \<open>nth_default d (map2 f xs ys) n = f (nth_default d1 xs n) (nth_default d2 ys n)\<close>
+    if \<open>length xs = length ys\<close> and \<open>f d1 d2 = d\<close> for bs cs
+using that proof (induction xs ys arbitrary: n rule: list_induct2)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs y ys)
+  then show ?case
+    by (cases n) simp_all
+qed
+
 end
 

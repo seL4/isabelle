@@ -5,8 +5,18 @@ section \<open>Proof(s) of concept for algebraically founded lists of bits\<clos
 
 theory Bit_Lists
   imports
-    Word
+    Word "HOL-Library.More_List"
 begin
+
+lemma hd_zip:
+  \<open>hd (zip xs ys) = (hd xs, hd ys)\<close> if \<open>xs \<noteq> []\<close> and \<open>ys \<noteq> []\<close>
+  using that by (cases xs; cases ys) simp_all
+
+lemma last_zip:
+  \<open>last (zip xs ys) = (last xs, last ys)\<close> if \<open>xs \<noteq> []\<close> and \<open>ys \<noteq> []\<close>
+    and \<open>length xs = length ys\<close>
+  using that by (cases xs rule: rev_cases; cases ys rule: rev_cases) simp_all
+
 
 subsection \<open>Fragments of algebraic bit representations\<close>
 
@@ -36,7 +46,7 @@ lemma unsigned_of_bits_append [simp]:
     simp_all add: algebra_simps)
 
 lemma unsigned_of_bits_take [simp]:
-  "unsigned_of_bits (take n bs) = Parity.take_bit n (unsigned_of_bits bs)"
+  "unsigned_of_bits (take n bs) = take_bit n (unsigned_of_bits bs)"
 proof (induction bs arbitrary: n)
   case Nil
   then show ?case
@@ -49,6 +59,18 @@ qed
 
 lemma unsigned_of_bits_drop [simp]:
   "unsigned_of_bits (drop n bs) = Parity.drop_bit n (unsigned_of_bits bs)"
+proof (induction bs arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  then show ?case
+    by (cases n) simp_all
+qed
+
+lemma bit_unsigned_of_bits_iff:
+  \<open>bit (unsigned_of_bits bs) n \<longleftrightarrow> nth_default False bs n\<close>
 proof (induction bs arbitrary: n)
   case Nil
   then show ?case
@@ -124,6 +146,10 @@ instance proof
 qed
 
 end
+
+lemma bit_of_bits_nat_iff:
+  \<open>bit (of_bits bs :: nat) n \<longleftrightarrow> nth_default False bs n\<close>
+  by (simp add: bit_unsigned_of_bits_iff)
 
 lemma bits_of_Suc_0 [simp]:
   "bits_of (Suc 0) = [True]"
@@ -211,6 +237,18 @@ proof -
     by (simp_all add: *)
 qed
 
+lemma bit_of_bits_int_iff:
+  \<open>bit (of_bits bs :: int) n \<longleftrightarrow> nth_default (bs \<noteq> [] \<and> last bs) bs n\<close>
+proof (induction bs arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  then show ?case
+    by (cases n; cases b; cases bs) simp_all
+qed
+
 lemma of_bits_append [simp]:
   "of_bits (bs @ cs) = of_bits bs + push_bit (length bs) (of_bits cs :: int)"
     if "bs \<noteq> []" "\<not> last bs"
@@ -291,24 +329,14 @@ class semiring_bit_representation = semiring_bit_operations + bit_representation
 class ring_bit_representation = ring_bit_operations + semiring_bit_representation +
   assumes not_eq: "not = of_bits \<circ> map Not \<circ> bits_of"
 
-
 context zip_nat
 begin
 
 lemma of_bits:
   "of_bits bs \<^bold>\<times> of_bits cs = (of_bits (map2 (\<^bold>*) bs cs) :: nat)"
-    if "length bs = length cs" for bs cs
-using that proof (induction bs cs rule: list_induct2)
-  case Nil
-  then show ?case
-    by simp
-next
-  case (Cons b bs c cs)
-  then show ?case
-    by (cases "of_bits bs = (0::nat) \<or> of_bits cs = (0::nat)")
-      (auto simp add: ac_simps end_of_bits rec [of "Suc 0"])
-qed
-
+  if "length bs = length cs" for bs cs
+  by (simp add: Parity.bit_eq_iff bit_unsigned_of_bits_iff bit_eq_iff)
+    (simp add: that end_of_bits nth_default_map2 [of _ _ _ False False])
 end
 
 instance nat :: semiring_bit_representation
@@ -321,32 +349,22 @@ context zip_int
 begin
  
 lemma of_bits:
-  "of_bits bs \<^bold>\<times> of_bits cs = (of_bits (map2 (\<^bold>*) bs cs) :: int)"
-    if "length bs = length cs" and "\<not> False \<^bold>* False" for bs cs
-using \<open>length bs = length cs\<close> proof (induction bs cs rule: list_induct2)
-  case Nil
-  then show ?case
-    using \<open>\<not> False \<^bold>* False\<close> by (auto simp add: False_False_imp_True_True split: bool.splits)
+  \<open>of_bits bs \<^bold>\<times> of_bits cs = (of_bits (map2 (\<^bold>*) bs cs) :: int)\<close>
+  if \<open>length bs = length cs\<close> and \<open>\<not> False \<^bold>* False\<close> for bs cs
+proof (cases \<open>bs = []\<close>)
+  case True
+  moreover have \<open>cs = []\<close>
+    using True that by simp
+  ultimately show ?thesis
+    by (simp add: Parity.bit_eq_iff bit_eq_iff that)
 next
-  case (Cons b bs c cs)
-  show ?case
-  proof (cases "bs = []")
-    case True
-    with Cons show ?thesis
-      using \<open>\<not> False \<^bold>* False\<close> by (cases b; cases c)
-        (auto simp add: ac_simps split: bool.splits)
-  next
-    case False
-    with Cons.hyps have "cs \<noteq> []"
-      by auto
-    with \<open>bs \<noteq> []\<close> have "map2 (\<^bold>*) bs cs \<noteq> []"
-      by (simp add: zip_eq_Nil_iff)
-    from \<open>bs \<noteq> []\<close> \<open>cs \<noteq> []\<close> \<open>map2 (\<^bold>*) bs cs \<noteq> []\<close> Cons show ?thesis
-      by (cases b; cases c)
-        (auto simp add: \<open>\<not> False \<^bold>* False\<close> ac_simps
-          rec [of "of_bits bs * 2"] rec [of "of_bits cs * 2"]
-          rec [of "1 + of_bits bs * 2"])
-  qed
+  case False
+  moreover have \<open>cs \<noteq> []\<close>
+    using False that by auto
+  ultimately show ?thesis
+    apply (simp add: Parity.bit_eq_iff bit_of_bits_int_iff bit_eq_iff zip_eq_Nil_iff last_map last_zip that)
+    apply (simp add: that nth_default_map2 [of _ _ _ \<open>last bs\<close> \<open>last cs\<close>])
+    done
 qed
 
 end
