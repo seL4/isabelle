@@ -129,7 +129,7 @@ lemma one_xor_eq [simp]:
   "1 XOR a = a + of_bool (even a) - of_bool (odd a)"
   by (simp add: bit_eq_iff bit_xor_iff add.commute [of _ 1] even_bit_succ_iff) (auto simp add: bit_1_iff odd_bit_iff_bit_pred elim: oddE)
 
-lemma xor_one_int_eq [simp]:
+lemma xor_one_eq [simp]:
   "a XOR 1 = a + of_bool (even a) - of_bool (odd a)"
   using one_xor_eq [of a] by (simp add: ac_simps)
 
@@ -419,28 +419,28 @@ global_interpretation xor_nat: comm_monoid "(XOR)" "0 :: nat"
   by standard simp
 
 lemma Suc_0_and_eq [simp]:
-  "Suc 0 AND n = n mod 2"
-  by (cases n) auto
+  \<open>Suc 0 AND n = of_bool (odd n)\<close>
+  using one_and_eq [of n] by simp
 
 lemma and_Suc_0_eq [simp]:
-  "n AND Suc 0 = n mod 2"
-  using Suc_0_and_eq [of n] by (simp add: ac_simps)
+  \<open>n AND Suc 0 = of_bool (odd n)\<close>
+  using and_one_eq [of n] by simp
 
 lemma Suc_0_or_eq [simp]:
-  "Suc 0 OR n = n + of_bool (even n)"
-  by (cases n) (simp_all add: ac_simps)
+  \<open>Suc 0 OR n = n + of_bool (even n)\<close>
+  using one_or_eq [of n] by simp
 
 lemma or_Suc_0_eq [simp]:
-  "n OR Suc 0 = n + of_bool (even n)"
-  using Suc_0_or_eq [of n] by (simp add: ac_simps)
+  \<open>n OR Suc 0 = n + of_bool (even n)\<close>
+  using or_one_eq [of n] by simp
 
 lemma Suc_0_xor_eq [simp]:
-  "Suc 0 XOR n = n + of_bool (even n) - of_bool (odd n)"
-  by (cases n) (simp_all add: ac_simps)
+  \<open>Suc 0 XOR n = n + of_bool (even n) - of_bool (odd n)\<close>
+  using one_xor_eq [of n] by simp
 
 lemma xor_Suc_0_eq [simp]:
-  "n XOR Suc 0 = n + of_bool (even n) - of_bool (odd n)"
-  using Suc_0_xor_eq [of n] by (simp add: ac_simps)
+  \<open>n XOR Suc 0 = n + of_bool (even n) - of_bool (odd n)\<close>
+  using xor_one_eq [of n] by simp
 
 
 subsubsection \<open>Instance \<^typ>\<open>int\<close>\<close>
