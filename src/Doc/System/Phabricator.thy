@@ -398,6 +398,7 @@ text \<open>
     -R DIR       repository directory (default: "/var/www/phabricator-NAME/repo")
     -U           full update of system packages before installation
     -n NAME      Phabricator installation name (default: "vcs")
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r DIR       installation root directory (default: "/var/www/phabricator-NAME")
 
   Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
@@ -437,6 +438,10 @@ text \<open>
   access, and thus has some relevance to end-users. The initial server URL
   also uses the same suffix, but that can (and should) be changed later via
   regular Apache configuration.
+
+  Option \<^verbatim>\<open>-o\<close> augments the environment of Isabelle system options: relevant
+  options for Isabelle/Phabricator have the prefix ``\<^verbatim>\<open>phabricator_\<close>'' (see
+  also the result of e.g. ``\<^verbatim>\<open>isabelle options -l\<close>'').
 
   Option \<^verbatim>\<open>-r\<close> specifies an alternative installation root directory: it needs
   to be accessible for the Apache web server.

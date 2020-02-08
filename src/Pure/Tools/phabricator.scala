@@ -220,6 +220,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
   }
 
   def phabricator_setup(
+    options: Options,
     name: String = default_name,
     root: String = "",
     repo: String = "",
@@ -287,14 +288,17 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         set -e
         echo "Cloning distribution repositories:"
 
-        git clone --branch stable https://github.com/phacility/libphutil.git
-        git -C libphutil reset --hard 034cf7cc39940b935e83923dbb1bacbcfe645a85
-
         git clone --branch stable https://github.com/phacility/arcanist.git
-        git -C arcanist reset --hard 729100955129851a52588cdfd9b425197cf05815
+        git -C arcanist reset --hard """ +
+          Bash.string(options.string("phabricator_version_arcanist")) + """
+
+        git clone --branch stable https://github.com/phacility/libphutil.git
+        git -C libphutil reset --hard """ +
+          Bash.string(options.string("phabricator_version_libphutil")) + """
 
         git clone --branch stable https://github.com/phacility/phabricator.git
-        git -C phabricator reset --hard 46fcd135ae681bb90a1282114fb2147ab21e4f34
+        git -C phabricator reset --hard """ +
+          Bash.string(options.string("phabricator_version_phabricator")) + """
       """).check
 
     val config = Config(name, root_path)
@@ -529,6 +533,7 @@ WantedBy=multi-user.target
       var repo = ""
       var package_update = false
       var name = default_name
+      var options = Options.init()
       var root = ""
 
       val getopts =
@@ -541,6 +546,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
     -R DIR       repository directory (default: """ + default_repo("NAME") + """)
     -U           full update of system packages before installation
     -n NAME      Phabricator installation name (default: """ + quote(default_name) + """)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r DIR       installation root directory (default: """ + default_root("NAME") + """)
 
   Install Phabricator as LAMP application (Linux, Apache, MySQL, PHP).
@@ -552,6 +558,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
           "R:" -> (arg => repo = arg),
           "U" -> (_ => package_update = true),
           "n:" -> (arg => name = arg),
+          "o:" -> (arg => options = options + arg),
           "r:" -> (arg => root = arg))
 
       val more_args = getopts(args)
@@ -562,7 +569,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
       val release = Linux.Release()
       if (!release.is_ubuntu_18_04) error("Bad Linux version: Ubuntu 18.04 LTS required")
 
-      phabricator_setup(name = name, root = root, repo = repo,
+      phabricator_setup(options, name = name, root = root, repo = repo,
         package_update = package_update, mercurial_source = mercurial_source, progress = progress)
     })
 

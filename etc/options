@@ -283,6 +283,18 @@ option ssh_alive_count_max : int = 3
   -- "maximum number of messages to keep SSH server connection alive"
 
 
+section "Phabricator"
+
+option phabricator_version_arcanist : string = "729100955129851a52588cdfd9b425197cf05815"
+  -- "repository version for arcanist"
+
+option phabricator_version_libphutil : string = "034cf7cc39940b935e83923dbb1bacbcfe645a85"
+  -- "repository version for libphutil"
+
+option phabricator_version_phabricator : string = "46fcd135ae681bb90a1282114fb2147ab21e4f34"
+  -- "repository version for phabricator"
+
+
 section "Theory Export"
 
 option export_document : bool = false
