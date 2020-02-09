@@ -8,16 +8,6 @@ theory Bit_Lists
     Word "HOL-Library.More_List"
 begin
 
-lemma hd_zip:
-  \<open>hd (zip xs ys) = (hd xs, hd ys)\<close> if \<open>xs \<noteq> []\<close> and \<open>ys \<noteq> []\<close>
-  using that by (cases xs; cases ys) simp_all
-
-lemma last_zip:
-  \<open>last (zip xs ys) = (last xs, last ys)\<close> if \<open>xs \<noteq> []\<close> and \<open>ys \<noteq> []\<close>
-    and \<open>length xs = length ys\<close>
-  using that by (cases xs rule: rev_cases; cases ys rule: rev_cases) simp_all
-
-
 subsection \<open>Fragments of algebraic bit representations\<close>
 
 context comm_semiring_1

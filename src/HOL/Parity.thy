@@ -1106,6 +1106,10 @@ lemma even_drop_bit_iff_not_bit:
   \<open>even (drop_bit n a) \<longleftrightarrow> \<not> bit a n\<close>
   by (simp add: bit_iff_odd_drop_bit)
 
+lemma div_push_bit_of_1_eq_drop_bit:
+  \<open>a div push_bit n 1 = drop_bit n a\<close>
+  by (simp add: push_bit_eq_mult drop_bit_eq_div)
+
 lemma bits_ident:
   "push_bit n (drop_bit n a) + take_bit n a = a"
   using div_mult_mod_eq by (simp add: push_bit_eq_mult take_bit_eq_mod drop_bit_eq_div)
