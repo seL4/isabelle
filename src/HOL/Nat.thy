@@ -793,7 +793,6 @@ lemma add_less_mono: "i < j \<Longrightarrow> k < l \<Longrightarrow> i + k < j 
    apply simp_all
   done
 
-text \<open>Deleted \<open>less_natE\<close>; use \<open>less_imp_Suc_add RS exE\<close>\<close>
 lemma less_imp_Suc_add: "m < n \<Longrightarrow> \<exists>k. n = Suc (m + k)"
 proof (induct n)
   case 0
@@ -808,6 +807,11 @@ qed
 lemma le_Suc_ex: "k \<le> l \<Longrightarrow> (\<exists>n. l = k + n)"
   for k l :: nat
   by (auto simp: less_Suc_eq_le[symmetric] dest: less_imp_Suc_add)
+
+lemma less_natE:
+  assumes \<open>m < n\<close>
+  obtains q where \<open>n = Suc (m + q)\<close>
+  using assms by (auto dest: less_imp_Suc_add intro: that)
 
 text \<open>strict, in 1st argument; proof is by induction on \<open>k > 0\<close>\<close>
 lemma mult_less_mono2:

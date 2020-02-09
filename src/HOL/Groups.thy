@@ -1413,6 +1413,25 @@ lemma add_eq_0_iff_both_eq_0[simp]: "x + y = 0 \<longleftrightarrow> x = 0 \<and
 lemma zero_eq_add_iff_both_eq_0[simp]: "0 = x + y \<longleftrightarrow> x = 0 \<and> y = 0"
   using add_eq_0_iff_both_eq_0[of x y] unfolding eq_commute[of 0] .
 
+lemma less_eqE:
+  assumes \<open>a \<le> b\<close>
+  obtains c where \<open>b = a + c\<close>
+  using assms by (auto simp add: le_iff_add)
+
+lemma lessE:
+  assumes \<open>a < b\<close>
+  obtains c where \<open>b = a + c\<close> and \<open>c \<noteq> 0\<close>
+proof -
+  from assms have \<open>a \<le> b\<close> \<open>a \<noteq> b\<close>
+    by simp_all
+  from \<open>a \<le> b\<close> obtain c where \<open>b = a + c\<close>
+    by (rule less_eqE)
+  moreover have \<open>c \<noteq> 0\<close> using \<open>a \<noteq> b\<close> \<open>b = a + c\<close>
+    by auto
+  ultimately show ?thesis
+    by (rule that)
+qed
+
 lemmas zero_order = zero_le le_zero_eq not_less_zero zero_less_iff_neq_zero not_gr_zero
   \<comment> \<open>This should be attributed with \<open>[iff]\<close>, but then \<open>blast\<close> fails in \<open>Set\<close>.\<close>
 
