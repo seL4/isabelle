@@ -105,11 +105,11 @@ lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wor
 
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word"
   is uminus
-  by (subst take_bit_uminus [symmetric]) (simp add: take_bit_uminus)
+  by (subst take_bit_minus [symmetric]) (simp add: take_bit_minus)
 
 lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is minus
-  by (subst take_bit_minus [symmetric]) (simp add: take_bit_minus)
+  by (subst take_bit_diff [symmetric]) (simp add: take_bit_diff)
 
 lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is times
@@ -617,6 +617,17 @@ proof
   show \<open>even ((2 ^ m - 1) div (2::'a word) ^ n) \<longleftrightarrow> 2 ^ n = (0::'a word) \<or> m \<le> n\<close>
     for m n :: nat
     by transfer (auto simp add: take_bit_of_mask even_mask_div_iff)
+  show \<open>even (a * 2 ^ m div 2 ^ n) \<longleftrightarrow> n < m \<or> (2::'a word) ^ n = 0 \<or> m \<le> n \<and> even (a div 2 ^ (n - m))\<close>
+    for a :: \<open>'a word\<close> and m n :: nat
+  proof transfer
+    show \<open>even (take_bit LENGTH('a) (k * 2 ^ m) div take_bit LENGTH('a) (2 ^ n)) \<longleftrightarrow>
+      n < m
+      \<or> take_bit LENGTH('a) ((2::int) ^ n) = take_bit LENGTH('a) 0
+      \<or> (m \<le> n \<and> even (take_bit LENGTH('a) k div take_bit LENGTH('a) (2 ^ (n - m))))\<close>
+    for m n :: nat and k l :: int
+      by (auto simp flip: take_bit_eq_mod drop_bit_eq_div push_bit_eq_mult
+        simp add: div_push_bit_of_1_eq_drop_bit drop_bit_take_bit drop_bit_push_bit_int [of n m])
+  qed
 qed
 
 context

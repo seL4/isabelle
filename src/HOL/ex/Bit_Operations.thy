@@ -9,15 +9,6 @@ theory Bit_Operations
     Main
 begin
 
-context semiring_bit_shifts
-begin
-
-(*lemma bit_push_bit_iff:
-  \<open>bit (push_bit m a) n \<longleftrightarrow> n \<ge> m \<and> 2 ^ n \<noteq> 0 \<and> bit a (n - m)\<close>*)
-
-end
-
-
 subsection \<open>Bit operations in suitable algebraic structures\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +

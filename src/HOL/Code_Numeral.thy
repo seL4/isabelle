@@ -300,7 +300,7 @@ instance by (standard; transfer)
   (fact bit_eq_rec bits_induct push_bit_eq_mult drop_bit_eq_div
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
-    even_mask_div_iff)+
+    even_mask_div_iff even_mult_exp_div_exp_iff)+
 
 end
 
@@ -997,7 +997,7 @@ instance by (standard; transfer)
   (fact bit_eq_rec bits_induct push_bit_eq_mult drop_bit_eq_div
     bits_div_0 bits_div_by_1 bits_mod_div_trivial even_succ_div_2
     exp_div_exp_eq div_exp_eq mod_exp_eq mult_exp_mod_exp_eq div_exp_mod_exp_eq
-    even_mask_div_iff)+
+    even_mask_div_iff even_mult_exp_div_exp_iff)+
 
 end
 
