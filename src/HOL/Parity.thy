@@ -42,9 +42,6 @@ lemma not_mod_2_eq_1_eq_0 [simp]:
   "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
   by (cases a rule: parity_cases) simp_all
 
-lemma mod2_eq_if: "a mod 2 = (if 2 dvd a then 0 else 1)"
-  by (simp add: even_iff_mod_2_eq_zero odd_iff_mod_2_eq_one)
-
 lemma evenE [elim?]:
   assumes "even a"
   obtains b where "a = 2 * b"
@@ -67,6 +64,14 @@ lemma mod_2_eq_odd:
 
 lemma of_bool_odd_eq_mod_2:
   "of_bool (odd a) = a mod 2"
+  by (simp add: mod_2_eq_odd)
+
+lemma even_mod_2_iff [simp]:
+  \<open>even (a mod 2) \<longleftrightarrow> even a\<close>
+  by (simp add: mod_2_eq_odd)
+
+lemma mod2_eq_if:
+  "a mod 2 = (if even a then 0 else 1)"
   by (simp add: mod_2_eq_odd)
 
 lemma even_zero [simp]:
@@ -854,19 +859,6 @@ lemma bit_eq_iff:
   \<open>a = b \<longleftrightarrow> (\<forall>n. bit a n \<longleftrightarrow> bit b n)\<close>
   by (auto intro: bit_eqI)
 
-lemma bit_eq_rec:
-  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
-  apply (auto simp add: bit_eq_iff)
-  using bit_0 apply blast
-  using bit_0 apply blast
-  using bit_Suc apply blast
-  using bit_Suc apply blast
-     apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
-    apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
-   apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
-  apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
-  done
-
 lemma bit_exp_iff:
   \<open>bit (2 ^ m) n \<longleftrightarrow> 2 ^ m \<noteq> 0 \<and> m = n\<close>
   by (auto simp add: bit_def exp_div_exp_eq)
@@ -891,6 +883,24 @@ proof -
     using even_bit_succ_iff by simp
   ultimately show ?thesis by (simp add: ac_simps)
 qed
+
+lemma bit_double_iff:
+  \<open>bit (2 * a) n \<longleftrightarrow> bit a (n - 1) \<and> n \<noteq> 0 \<and> 2 ^ n \<noteq> 0\<close>
+  using even_mult_exp_div_exp_iff [of a 1 n]
+  by (cases n, auto simp add: bit_def ac_simps)
+
+lemma bit_eq_rec:
+  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
+  apply (auto simp add: bit_eq_iff)
+  using bit_0 apply blast
+  using bit_0 apply blast
+  using bit_Suc apply blast
+  using bit_Suc apply blast
+     apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
+    apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
+   apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
+  apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
+  done
 
 lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>

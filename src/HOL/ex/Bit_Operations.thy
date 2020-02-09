@@ -12,9 +12,9 @@ begin
 subsection \<open>Bit operations in suitable algebraic structures\<close>
 
 class semiring_bit_operations = semiring_bit_shifts +
-  fixes "and" :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "AND" 64)
-    and or :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "OR"  59)
-    and xor :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr "XOR" 59)
+  fixes "and" :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>AND\<close> 64)
+    and or :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>OR\<close>  59)
+    and xor :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>XOR\<close> 59)
   assumes bit_and_iff: \<open>\<And>n. bit (a AND b) n \<longleftrightarrow> bit a n \<and> bit b n\<close>
     and bit_or_iff: \<open>\<And>n. bit (a OR b) n \<longleftrightarrow> bit a n \<or> bit b n\<close>
     and bit_xor_iff: \<open>\<And>n. bit (a XOR b) n \<longleftrightarrow> bit a n \<noteq> bit b n\<close>
@@ -28,60 +28,9 @@ text \<open>
   are specified as definitional class operations.
 \<close>
 
-definition map_bit :: \<open>nat \<Rightarrow> (bool \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>map_bit n f a = take_bit n a + push_bit n (of_bool (f (bit a n)) + 2 * drop_bit (Suc n) a)\<close>
-
-definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>set_bit n = map_bit n top\<close>
-
-definition unset_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>unset_bit n = map_bit n bot\<close>
-
-definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
-  where \<open>flip_bit n = map_bit n Not\<close>
-
-text \<open>
-  Having 
-  \<^const>\<open>set_bit\<close>, \<^const>\<open>unset_bit\<close> and \<^const>\<open>flip_bit\<close> as separate
-  operations allows to implement them using bit masks later.
-\<close>
-
 lemma stable_imp_drop_eq:
   \<open>drop_bit n a = a\<close> if \<open>a div 2 = a\<close>
   by (induction n) (simp_all add: that)
-
-lemma map_bit_0 [simp]:
-  \<open>map_bit 0 f a = of_bool (f (odd a)) + 2 * (a div 2)\<close>
-  by (simp add: map_bit_def)
-
-lemma map_bit_Suc [simp]:
-  \<open>map_bit (Suc n) f a = a mod 2 + 2 * map_bit n f (a div 2)\<close>
-  by (auto simp add: map_bit_def algebra_simps mod2_eq_if push_bit_add mult_2
-    elim: evenE oddE)
-
-lemma set_bit_0 [simp]:
-  \<open>set_bit 0 a = 1 + 2 * (a div 2)\<close>
-  by (simp add: set_bit_def)
-
-lemma set_bit_Suc [simp]:
-  \<open>set_bit (Suc n) a = a mod 2 + 2 * set_bit n (a div 2)\<close>
-  by (simp add: set_bit_def)
-
-lemma unset_bit_0 [simp]:
-  \<open>unset_bit 0 a = 2 * (a div 2)\<close>
-  by (simp add: unset_bit_def)
-
-lemma unset_bit_Suc [simp]:
-  \<open>unset_bit (Suc n) a = a mod 2 + 2 * unset_bit n (a div 2)\<close>
-  by (simp add: unset_bit_def)
-
-lemma flip_bit_0 [simp]:
-  \<open>flip_bit 0 a = of_bool (even a) + 2 * (a div 2)\<close>
-  by (simp add: flip_bit_def)
-
-lemma flip_bit_Suc [simp]:
-  \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
-  by (simp add: flip_bit_def)
 
 sublocale "and": semilattice \<open>(AND)\<close>
   by standard (auto simp add: bit_eq_iff bit_and_iff)
@@ -193,9 +142,8 @@ lemma not_one [simp]:
 
 sublocale "and": semilattice_neutr \<open>(AND)\<close> \<open>- 1\<close>
   apply standard
-  apply (auto simp add: bit_eq_iff bit_and_iff)
-  apply (simp add: bit_exp_iff)
-  apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+  apply (simp add: bit_eq_iff bit_and_iff)
+  apply (auto simp add: exp_eq_0_imp_not_bit bit_exp_iff)
   done
 
 sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
@@ -203,14 +151,12 @@ sublocale bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<
 proof -
   interpret bit: boolean_algebra \<open>(AND)\<close> \<open>(OR)\<close> NOT 0 \<open>- 1\<close>
     apply standard
-         apply simp_all
-       apply (auto simp add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
-    apply (simp add: bit_exp_iff)
-    apply (metis local.bit_def local.bit_exp_iff local.bits_div_by_0)
+         apply (simp_all add: bit_eq_iff bit_and_iff bit_or_iff bit_not_iff)
+      apply (auto simp add: exp_eq_0_imp_not_bit bit_exp_iff)
     done
   show \<open>boolean_algebra (AND) (OR) NOT 0 (- 1)\<close>
     by standard
-  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close> 
+  show \<open>boolean_algebra.xor (AND) (OR) NOT = (XOR)\<close>
     apply (auto simp add: fun_eq_iff bit.xor_def bit_eq_iff bit_and_iff bit_or_iff bit_not_iff bit_xor_iff)
          apply (simp_all add: bit_exp_iff, simp_all add: bit_def)
         apply (metis local.bit_exp_iff local.bits_div_by_0)
@@ -232,6 +178,130 @@ lemma take_bit_not_iff:
   apply (simp add: bit_exp_iff)
   apply (use local.exp_eq_0_imp_not_bit in blast)
   done
+
+definition set_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>set_bit n a = a OR 2 ^ n\<close>
+
+definition unset_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>unset_bit n a = a AND NOT (2 ^ n)\<close>
+
+definition flip_bit :: \<open>nat \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  where \<open>flip_bit n a = a XOR 2 ^ n\<close>
+
+lemma bit_set_bit_iff:
+  \<open>bit (set_bit m a) n \<longleftrightarrow> bit a n \<or> (m = n \<and> 2 ^ n \<noteq> 0)\<close>
+  by (auto simp add: set_bit_def bit_or_iff bit_exp_iff)
+
+lemma even_set_bit_iff:
+  \<open>even (set_bit m a) \<longleftrightarrow> even a \<and> m \<noteq> 0\<close>
+  using bit_set_bit_iff [of m a 0] by auto
+
+lemma bit_unset_bit_iff:
+  \<open>bit (unset_bit m a) n \<longleftrightarrow> bit a n \<and> m \<noteq> n\<close>
+  by (auto simp add: unset_bit_def bit_and_iff bit_not_iff bit_exp_iff exp_eq_0_imp_not_bit)
+
+lemma even_unset_bit_iff:
+  \<open>even (unset_bit m a) \<longleftrightarrow> even a \<or> m = 0\<close>
+  using bit_unset_bit_iff [of m a 0] by auto
+
+lemma bit_flip_bit_iff:
+  \<open>bit (flip_bit m a) n \<longleftrightarrow> (m = n \<longleftrightarrow> \<not> bit a n) \<and> 2 ^ n \<noteq> 0\<close>
+  by (auto simp add: flip_bit_def bit_xor_iff bit_exp_iff exp_eq_0_imp_not_bit)
+
+lemma even_flip_bit_iff:
+  \<open>even (flip_bit m a) \<longleftrightarrow> \<not> (even a \<longleftrightarrow> m = 0)\<close>
+  using bit_flip_bit_iff [of m a 0] by auto
+
+lemma set_bit_0 [simp]:
+  \<open>set_bit 0 a = 1 + 2 * (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  then show \<open>bit (set_bit 0 a) m = bit (1 + 2 * (a div 2)) m\<close>
+    by (simp add: bit_set_bit_iff bit_double_iff even_bit_succ_iff)
+      (cases m, simp_all)
+qed
+
+lemma set_bit_Suc [simp]:
+  \<open>set_bit (Suc n) a = a mod 2 + 2 * set_bit n (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  show \<open>bit (set_bit (Suc n) a) m \<longleftrightarrow> bit (a mod 2 + 2 * set_bit n (a div 2)) m\<close>
+  proof (cases m)
+    case 0
+    then show ?thesis
+      by (simp add: even_set_bit_iff)
+  next
+    case (Suc m)
+    with * have \<open>2 ^ m \<noteq> 0\<close>
+      using mult_2 by auto
+    show ?thesis
+      by (cases a rule: parity_cases)
+        (simp_all add: bit_set_bit_iff bit_double_iff even_bit_succ_iff *,
+        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close>)
+  qed
+qed
+
+lemma unset_bit_0 [simp]:
+  \<open>unset_bit 0 a = 2 * (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  then show \<open>bit (unset_bit 0 a) m = bit (2 * (a div 2)) m\<close>
+    by (simp add: bit_unset_bit_iff bit_double_iff)
+      (cases m, simp_all)
+qed
+
+lemma unset_bit_Suc [simp]:
+  \<open>unset_bit (Suc n) a = a mod 2 + 2 * unset_bit n (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  then show \<open>bit (unset_bit (Suc n) a) m \<longleftrightarrow> bit (a mod 2 + 2 * unset_bit n (a div 2)) m\<close>
+  proof (cases m)
+    case 0
+    then show ?thesis
+      by (simp add: even_unset_bit_iff)
+  next
+    case (Suc m)
+    show ?thesis
+      by (cases a rule: parity_cases)
+        (simp_all add: bit_unset_bit_iff bit_double_iff even_bit_succ_iff *,
+         simp_all add: Suc)
+  qed
+qed
+
+lemma flip_bit_0 [simp]:
+  \<open>flip_bit 0 a = of_bool (even a) + 2 * (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  then show \<open>bit (flip_bit 0 a) m = bit (of_bool (even a) + 2 * (a div 2)) m\<close>
+    by (simp add: bit_flip_bit_iff bit_double_iff even_bit_succ_iff)
+      (cases m, simp_all)
+qed
+
+lemma flip_bit_Suc [simp]:
+  \<open>flip_bit (Suc n) a = a mod 2 + 2 * flip_bit n (a div 2)\<close>
+proof (rule bit_eqI)
+  fix m
+  assume *: \<open>2 ^ m \<noteq> 0\<close>
+  show \<open>bit (flip_bit (Suc n) a) m \<longleftrightarrow> bit (a mod 2 + 2 * flip_bit n (a div 2)) m\<close>
+  proof (cases m)
+    case 0
+    then show ?thesis
+      by (simp add: even_flip_bit_iff)
+  next
+    case (Suc m)
+    with * have \<open>2 ^ m \<noteq> 0\<close>
+      using mult_2 by auto
+    show ?thesis
+      by (cases a rule: parity_cases)
+        (simp_all add: bit_flip_bit_iff bit_double_iff even_bit_succ_iff,
+        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close>)
+  qed
+qed
 
 end
 
