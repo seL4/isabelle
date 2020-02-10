@@ -112,6 +112,8 @@ in theory "HOL-ex.Join_Theory".
 
 *** System ***
 
+* Standard rendering for more Isabelle symbols: \<llangle> \<rrangle> \<bbar> \<sqdot>
+
 * The command-line tool "isabelle scala_project" creates a Gradle
 project configuration for Isabelle/Scala/jEdit, to support Scala IDEs
 such as IntelliJ IDEA.
