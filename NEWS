@@ -83,14 +83,14 @@ potentially splitting goals; algebra_split_simps roughly replaces
 sign_simps and field_split_simps can be used instead of divide_simps.
 INCOMPATIBILITY.
 
+* Theory HOL.Complete_Lattices:
+renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
+
 * Theory HOL-Library.Monad_Syntax: infix operation "bind" (>>=)
 associates to the left now as is customary.
 
 * Theory HOL-Library.Ramsey: full finite Ramsey's theorem with
 multiple colours and arbitrary exponents.
-
-* Theory Complete_Lattices:
-renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
 
 * Session HOL-Analysis: proof method "metric" implements a decision
 procedure for simple linear statements in metric spaces.
@@ -113,9 +113,6 @@ in theory "HOL-ex.Join_Theory".
 * The command-line tool "isabelle scala_project" creates a Gradle
 project configuration for Isabelle/Scala/jEdit, to support Scala IDEs
 such as IntelliJ IDEA.
-
-* Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
-have been discontinued -- deprecated since Isabelle2018.
 
 * The command-line tool "isabelle phabricator_setup" facilitates
 self-hosting of the Phabricator software-development platform, with
@@ -141,6 +138,9 @@ potentially indexed, such as "foo" for singleton facts, or "bar(1)",
 exported as well: this spans an overall dependency graph of internal
 inferences; it might help to reconstruct the formal structure of theory
 libraries. See also the module Export_Theory in Isabelle/Scala.
+
+* Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
+have been discontinued -- deprecated since Isabelle2018.
 
 
 
