@@ -131,6 +131,11 @@ checking of session directories enforces session-qualified theory names
 in applications -- users are responsible to specify session ROOT entries
 properly.
 
+* The command-line tool "isabelle dump" and its underlying
+Isabelle/Scala module isabelle.Dump has become more scalable, by
+splitting sessions and supporting a base logic image. Minor
+INCOMPATIBILITY in options and parameters.
+
 * Theory export via Isabelle/Scala has been reworked. The former "fact"
 name space is now split into individual "thm" items: names are
 potentially indexed, such as "foo" for singleton facts, or "bar(1)",
