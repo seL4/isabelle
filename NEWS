@@ -42,9 +42,9 @@ subproofs internally. This impacts the internal construction of proof
 terms: it makes a cascade of let-expressions within the derivation tree
 and may thus improve scalability.
 
-* New attribute "trace_locales" for tracing activation of locale
-instances during roundup.  It replaces the diagnostic command
-'print_dependencies', which was removed.
+* Attribute "trace_locales" activates tracing of locale instances during
+roundup. It replaces the diagnostic command 'print_dependencies', which
+has been discontinued.
 
 
 *** Isabelle/jEdit Prover IDE ***
@@ -59,10 +59,10 @@ sufficient and more convenient to start editing a particular session.
 
 *** HOL ***
 
-* Improvements of the "lift_bnf" command:
+* Improvements of the 'lift_bnf' command:
   - Add support for quotient types.
-  - Generate transfer rules for the lifted map/set/rel/pred
-    constants (theorems "<type>.<constant>_transfer_raw").
+  - Generate transfer rules for the lifted map/set/rel/pred constants
+    (theorems "<type>.<constant>_transfer_raw").
 
 * Term_XML.Encode/Decode.term uses compact representation of Const
 "typargs" from the given declaration environment. This also makes more
@@ -71,13 +71,13 @@ INCOMPATIBILITY, use Term_XML.Encode/Decode.term_raw in special
 applications.
 
 * ASCII membership syntax concerning big operators for infimum and
-supremum is gone. INCOMPATIBILITY.
+supremum has been discontinued. INCOMPATIBILITY.
 
 * Clear distinction between types for bits (False / True) and Z2 (0 /
-1): theory HOL/Library/Bit.thy has been renamed accordingly.
+1): theory HOL-Library.Bit has been renamed accordingly.
 INCOMPATIBILITY.
 
-* Fact collections algebra_split_simps and field_split_simps correspond
+* Dynamic facts "algebra_split_simps" and "field_split_simps" correspond
 to algebra_simps and field_simps but contain more aggressive rules
 potentially splitting goals; algebra_split_simps roughly replaces
 sign_simps and field_split_simps can be used instead of divide_simps.
@@ -95,7 +95,7 @@ renamed Inf_Sup -> Inf_eq_Sup and Sup_Inf -> Sup_eq_Inf
 * Session HOL-Analysis: proof method "metric" implements a decision
 procedure for simple linear statements in metric spaces.
 
-* Word: Bitwise NOT-operator has proper prefix syntax.  Minor
+* Session HOL-Word: Bitwise NOT-operator has proper prefix syntax. Minor
 INCOMPATIBILITY.
 
 
