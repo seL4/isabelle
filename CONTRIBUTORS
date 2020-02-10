@@ -3,8 +3,11 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to this Isabelle2020
+----------------------------------
+
+* 2019: Makarius Wenzel
+  More scalable Isabelle dump and underlying headless PIDE session.
 
 * December 2019:
   Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy Traytel
@@ -12,6 +15,7 @@ Contributions to this Isabelle version
 
 * October 2019: Maximilian Schäffeler
   Port of the HOL Light decision procedure for metric spaces.
+
 
 Contributions to Isabelle2019
 -----------------------------
