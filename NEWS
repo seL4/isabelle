@@ -56,6 +56,8 @@ the "session focus" of option "isabelle jedit -S" has become obsolete
 (likewise for "isabelle vscode_server -S"). Existing option "-R" is both
 sufficient and more convenient to start editing a particular session.
 
+* Support more brackets: \<llangle> \<rrangle> (intended for implicit argument syntax).
+
 
 *** HOL ***
 
