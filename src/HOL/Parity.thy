@@ -890,17 +890,32 @@ lemma bit_double_iff:
   by (cases n, auto simp add: bit_def ac_simps)
 
 lemma bit_eq_rec:
-  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close>
-  apply (auto simp add: bit_eq_iff)
-  using bit_0 apply blast
-  using bit_0 apply blast
-  using bit_Suc apply blast
-  using bit_Suc apply blast
-     apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
-    apply (metis bit_eq_iff even_iff_mod_2_eq_zero mod_div_mult_eq)
-   apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
-  apply (metis bit_eq_iff mod2_eq_if mod_div_mult_eq)
-  done
+  \<open>a = b \<longleftrightarrow> (even a \<longleftrightarrow> even b) \<and> a div 2 = b div 2\<close> (is \<open>?P = ?Q\<close>)
+proof
+  assume ?P
+  then show ?Q
+    by simp
+next
+  assume ?Q
+  then have \<open>even a \<longleftrightarrow> even b\<close> and \<open>a div 2 = b div 2\<close>
+    by simp_all
+  show ?P
+  proof (rule bit_eqI)
+    fix n
+    show \<open>bit a n \<longleftrightarrow> bit b n\<close>
+    proof (cases n)
+      case 0
+      with \<open>even a \<longleftrightarrow> even b\<close> show ?thesis
+        by simp
+    next
+      case (Suc n)
+      moreover from \<open>a div 2 = b div 2\<close> have \<open>bit (a div 2) n = bit (b div 2) n\<close>
+        by simp
+      ultimately show ?thesis
+        by simp
+    qed
+  qed
+qed
 
 lemma bit_mask_iff:
   \<open>bit (2 ^ m - 1) n \<longleftrightarrow> 2 ^ n \<noteq> 0 \<and> n < m\<close>
