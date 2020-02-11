@@ -904,13 +904,14 @@ next
   from power_strict_increasing_iff [OF this] less show ?thesis ..
 qed
 
-lemma power_dvd_imp_le: "i ^ m dvd i ^ n \<Longrightarrow> 1 < i \<Longrightarrow> m \<le> n"
-  for i m n :: nat
-  apply (rule power_le_imp_le_exp)
-   apply assumption
-  apply (erule dvd_imp_le)
-  apply simp
-  done
+lemma power_gt_expt: "n > Suc 0 \<Longrightarrow> n^k > k"
+  by (induction k) (auto simp: less_trans_Suc n_less_m_mult_n)
+
+lemma power_dvd_imp_le:
+  fixes i :: nat
+  assumes "i ^ m dvd i ^ n" "1 < i"
+  shows "m \<le> n"
+  using assms by (auto intro: power_le_imp_le_exp [OF \<open>1 < i\<close> dvd_imp_le])
 
 lemma dvd_power_iff_le:
   fixes k::nat
@@ -968,7 +969,7 @@ next
 qed
 
 lemma ex_power_ivl2: fixes b k :: nat assumes "b \<ge> 2" "k \<ge> 2"
-shows "\<exists>n. b^n < k \<and> k \<le> b^(n+1)"
+  shows "\<exists>n. b^n < k \<and> k \<le> b^(n+1)"
 proof -
   have "1 \<le> k - 1" using assms(2) by arith
   from ex_power_ivl1[OF assms(1) this]

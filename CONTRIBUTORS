@@ -16,6 +16,14 @@ Contributions to this Isabelle2020
 * October 2019: Maximilian Schäffeler
   Port of the HOL Light decision procedure for metric spaces.
 
+* January 2020: LC Paulson
+  The full finite Ramsey's theorem and elements of finite and infinite 
+  Ramsey theory.
+
+* February 2020: E. Gunther, M. Pagano and P. Sánchez Terraf
+  Simplified, generalised version of ZF/Constructible.
+
+
 
 Contributions to Isabelle2019
 -----------------------------

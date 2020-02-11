@@ -6031,7 +6031,7 @@ apply (case_tac xys, simp_all, blast)
 done
 
 text\<open>By Mathias Fleury:\<close>
-lemma lexn_transI:
+proposition lexn_transI:
   assumes "trans r" shows "trans (lexn r n)"
 unfolding trans_def
 proof (intro allI impI)
@@ -6096,6 +6096,11 @@ proof (intro allI impI)
   qed
 qed
 
+corollary lex_transI:
+    assumes "trans r" shows "trans (lex r)"
+  using lexn_transI [OF assms]
+  by (clarsimp simp add: lex_def trans_def) (metis lexn_length)
+
 lemma lex_conv:
   "lex r =
     {(xs,ys). length xs = length ys \<and>
@@ -6128,6 +6133,10 @@ qed
     by (fastforce simp: lenlex_def total_on_def lex_def)
 qed
 
+lemma lenlex_transI [intro]: "trans r \<Longrightarrow> trans (lenlex r)"
+  unfolding lenlex_def
+  by (meson lex_transI trans_inv_image trans_less_than trans_lex_prod)
+
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)
 
@@ -6141,6 +6150,20 @@ lemma Cons_in_lex [simp]:
   apply (rule iffI)
    prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
   by (metis hd_append append_Nil list.sel(1) list.sel(3) tl_append2)
+
+lemma Nil_lenlex_iff1 [simp]: "([], ns) \<in> lenlex r \<longleftrightarrow> ns \<noteq> []" 
+  and Nil_lenlex_iff2 [simp]: "(ns,[]) \<notin> lenlex r"
+  by (auto simp: lenlex_def)
+
+lemma Cons_lenlex_iff: 
+  "((m # ms, n # ns) \<in> lenlex r) \<longleftrightarrow> 
+    length ms < length ns 
+  \<or> length ms = length ns \<and> (m,n) \<in> r 
+  \<or> (m = n \<and> (ms,ns) \<in> lenlex r)"
+  by (auto simp: lenlex_def)
+
+lemma lenlex_length: "(ms, ns) \<in> lenlex r \<Longrightarrow> length ms \<le> length ns"
+  by (auto simp: lenlex_def)
 
 lemma lex_append_rightI:
   "(xs, ys) \<in> lex r \<Longrightarrow> length vs = length us \<Longrightarrow> (xs @ us, ys @ vs) \<in> lex r"
