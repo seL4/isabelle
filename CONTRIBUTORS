@@ -6,8 +6,12 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle2020
 ----------------------------------
 
-* 2019: Makarius Wenzel
-  More scalable Isabelle dump and underlying headless PIDE session.
+* February 2020: E. Gunther, M. Pagano and P. Sánchez Terraf
+  Simplified, generalised version of ZF/Constructible.
+
+* January 2020: LC Paulson
+  The full finite Ramsey's theorem and elements of finite and infinite
+  Ramsey theory.
 
 * December 2019:
   Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy Traytel
@@ -16,17 +20,12 @@ Contributions to this Isabelle2020
 * October 2019: Maximilian Schäffeler
   Port of the HOL Light decision procedure for metric spaces.
 
-* January 2020: LC Paulson
-  The full finite Ramsey's theorem and elements of finite and infinite 
-  Ramsey theory.
-
-* February 2020: E. Gunther, M. Pagano and P. Sánchez Terraf
-  Simplified, generalised version of ZF/Constructible.
+* October 2019: Makarius Wenzel
+  More scalable Isabelle dump and underlying headless PIDE session.
 
 * July 2019: Alexander Krauss, Makarius Wenzel
   Minimal support for a soft-type system within the Isabelle logical
   framework.
-
 
 
 Contributions to Isabelle2019
