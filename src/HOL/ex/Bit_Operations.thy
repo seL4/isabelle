@@ -530,4 +530,84 @@ qed (simp_all add: bit_not_iff_int)
 
 end
 
+
+subsubsection \<open>Instances for \<^typ>\<open>integer\<close> and \<^typ>\<open>natural\<close>\<close>
+
+unbundle integer.lifting natural.lifting
+
+context
+  includes lifting_syntax
+begin
+
+lemma transfer_rule_bit_integer [transfer_rule]:
+  \<open>((pcr_integer :: int \<Rightarrow> integer \<Rightarrow> bool) ===> (=)) bit bit\<close>
+  by (unfold bit_def) transfer_prover
+
+lemma transfer_rule_bit_natural [transfer_rule]:
+  \<open>((pcr_natural :: nat \<Rightarrow> natural \<Rightarrow> bool) ===> (=)) bit bit\<close>
+  by (unfold bit_def) transfer_prover
+
+end
+
+instantiation integer :: ring_bit_operations
+begin
+
+lift_definition not_integer :: \<open>integer \<Rightarrow> integer\<close>
+  is not .
+
+lift_definition and_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is \<open>and\<close> .
+
+lift_definition or_integer :: \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is or .
+
+lift_definition xor_integer ::  \<open>integer \<Rightarrow> integer \<Rightarrow> integer\<close>
+  is xor .
+
+instance proof
+  fix k l :: \<open>integer\<close> and n :: nat
+  show \<open>- k = NOT (k - 1)\<close>
+    by transfer (simp add: minus_eq_not_minus_1)
+  show \<open>bit (NOT k) n \<longleftrightarrow> (2 :: integer) ^ n \<noteq> 0 \<and> \<not> bit k n\<close>
+    by transfer (fact bit_not_iff)
+  show \<open>bit (k AND l) n \<longleftrightarrow> bit k n \<and> bit l n\<close>
+    by transfer (fact and_int.bit_eq_iff)
+  show \<open>bit (k OR l) n \<longleftrightarrow> bit k n \<or> bit l n\<close>
+    by transfer (fact or_int.bit_eq_iff)
+  show \<open>bit (k XOR l) n \<longleftrightarrow> bit k n \<noteq> bit l n\<close>
+    by transfer (fact xor_int.bit_eq_iff)
+qed
+
+end
+
+instantiation natural :: semiring_bit_operations
+begin
+
+lift_definition and_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is \<open>and\<close> .
+
+lift_definition or_natural :: \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is or .
+
+lift_definition xor_natural ::  \<open>natural \<Rightarrow> natural \<Rightarrow> natural\<close>
+  is xor .
+
+instance proof
+  fix m n :: \<open>natural\<close> and q :: nat
+  show \<open>bit (m AND n) q \<longleftrightarrow> bit m q \<and> bit n q\<close>
+    by transfer (fact and_nat.bit_eq_iff)
+  show \<open>bit (m OR n) q \<longleftrightarrow> bit m q \<or> bit n q\<close>
+    by transfer (fact or_nat.bit_eq_iff)
+  show \<open>bit (m XOR n) q \<longleftrightarrow> bit m q \<noteq> bit n q\<close>
+    by transfer (fact xor_nat.bit_eq_iff)
+qed
+
+end
+
+lifting_update integer.lifting
+lifting_forget integer.lifting
+
+lifting_update natural.lifting
+lifting_forget natural.lifting
+
 end
