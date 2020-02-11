@@ -109,6 +109,13 @@ in theory "HOL-ex.Join_Theory".
 
 * Antiquotation @{oracle_name} inlines a formally checked oracle name.
 
+* Minimal support for a soft-type system within the Isabelle logical
+framework (module Soft_Type_System).
+
+* Former Proof_Context.auto_fixes has been replaced by slightly more
+general Proof_Context.augment: it is subject to an optional soft-type
+system of the underlying object-logic. Minor INCOMPATIBILITY.
+
 
 *** System ***
 

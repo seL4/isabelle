@@ -23,6 +23,10 @@ Contributions to this Isabelle2020
 * February 2020: E. Gunther, M. Pagano and P. Sánchez Terraf
   Simplified, generalised version of ZF/Constructible.
 
+* July 2019: Alexander Krauss, Makarius Wenzel
+  Minimal support for a soft-type system within the Isabelle logical
+  framework.
+
 
 
 Contributions to Isabelle2019
