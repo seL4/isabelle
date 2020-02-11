@@ -97,8 +97,11 @@ multiple colours and arbitrary exponents.
 * Session HOL-Analysis: proof method "metric" implements a decision
 procedure for simple linear statements in metric spaces.
 
-* Session HOL-Word: Bitwise NOT-operator has proper prefix syntax. Minor
+* Session HOL-Word: bitwise NOT-operator has proper prefix syntax. Minor
 INCOMPATIBILITY.
+
+* Session HOL-Proofs: build faster thanks to better treatment of proof
+terms in Isabelle/Pure.
 
 
 *** ML ***
@@ -115,6 +118,9 @@ framework (module Soft_Type_System).
 * Former Proof_Context.auto_fixes has been replaced by slightly more
 general Proof_Context.augment: it is subject to an optional soft-type
 system of the underlying object-logic. Minor INCOMPATIBILITY.
+
+* More scalable Export.export using XML.tree to avoid premature string
+allocations, with convenient shortcut XML.blob. Minor INCOMPATIBILITY.
 
 
 *** System ***
@@ -147,6 +153,12 @@ Isabelle/Scala module isabelle.Dump has become more scalable, by
 splitting sessions and supporting a base logic image. Minor
 INCOMPATIBILITY in options and parameters.
 
+* Isabelle/Scala support for the Linux platform (Ubuntu): packages,
+users, system services.
+
+* Isabelle/Scala support for proof terms (with full type/term
+information) in module isabelle.Term.
+
 * Theory export via Isabelle/Scala has been reworked. The former "fact"
 name space is now split into individual "thm" items: names are
 potentially indexed, such as "foo" for singleton facts, or "bar(1)",
@@ -157,6 +169,13 @@ libraries. See also the module Export_Theory in Isabelle/Scala.
 
 * Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
 have been discontinued -- deprecated since Isabelle2018.
+
+* More complete x86_64 platform support on macOS, notably Catalina where
+old x86 has been discontinued.
+
+* Update to GHC stack 2.1.3 with stackage lts-13.19/ghc-8.6.4.
+
+* Update to OCaml Opam 2.0.6 (using ocaml 4.05.0 as before).
 
 
 

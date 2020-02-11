@@ -13,15 +13,23 @@ Contributions to this Isabelle2020
   The full finite Ramsey's theorem and elements of finite and infinite
   Ramsey theory.
 
-* December 2019:
-  Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy Traytel
+* December 2019: Basil Fürer, Andreas Lochbihler, Joshua Schneider, Dmitriy
+  Traytel
   Extension of lift_bnf to support quotient types.
+
+* October..December 2019: Makarius Wenzel
+  Isabelle/Phabrictor server setup, including Linux platform support in
+  Isabelle/Scala. Client-side tool "isabelle hg_setup".
 
 * October 2019: Maximilian Schäffeler
   Port of the HOL Light decision procedure for metric spaces.
 
 * October 2019: Makarius Wenzel
   More scalable Isabelle dump and underlying headless PIDE session.
+
+* August 2019: Makarius Wenzel
+  Better support for proof terms in Isabelle/Pure, notably via method
+  combinator SUBPROOFS (ML) and "subproofs" (Isar).
 
 * July 2019: Alexander Krauss, Makarius Wenzel
   Minimal support for a soft-type system within the Isabelle logical
