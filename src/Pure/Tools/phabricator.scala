@@ -63,7 +63,7 @@ object Phabricator
   val alternative_system_port = 222
   val default_server_port = 2222
 
-  val standard_mercurial_source = "https://www.mercurial-scm.org/release/mercurial-2.8.2.tar.gz"
+  val standard_mercurial_source = "https://www.mercurial-scm.org/release/mercurial-3.9.2.tar.gz"
 
 
 
