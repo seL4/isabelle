@@ -461,6 +461,8 @@ systemctl start isabelle-phabricator-phd""")
     DocumentRoot """ + config.home.implode + """/webroot
 
     ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
     RewriteEngine on
     RewriteRule ^(.*)$  /index.php?__path__=$1  [B,L,QSA]
 </VirtualHost>
