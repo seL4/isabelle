@@ -5172,6 +5172,20 @@ lemma sorted_wrt_map:
   "sorted_wrt R (map f xs) = sorted_wrt (\<lambda>x y. R (f x) (f y)) xs"
 by (induction xs) simp_all
 
+lemma
+  assumes "sorted_wrt f xs"
+  shows sorted_wrt_take: "sorted_wrt f (take n xs)"
+  and   sorted_wrt_drop: "sorted_wrt f (drop n xs)"
+proof -
+  from assms have "sorted_wrt f (take n xs @ drop n xs)" by simp
+  thus "sorted_wrt f (take n xs)" and "sorted_wrt f (drop n xs)"
+    unfolding sorted_wrt_append by simp_all
+qed
+
+lemma sorted_wrt_filter:
+  "sorted_wrt f xs \<Longrightarrow> sorted_wrt f (filter P xs)"
+by (induction xs) auto
+
 lemma sorted_wrt_rev:
   "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
 by (induction xs) (auto simp add: sorted_wrt_append)
