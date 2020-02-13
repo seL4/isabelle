@@ -285,6 +285,8 @@ lemma unsigned_of_bits_eq_of_bits:
   "unsigned_of_bits bs = (of_bits (bs @ [False]) :: int)"
   by (simp add: of_bits_int_def)
 
+unbundle word.lifting
+
 instantiation word :: (len) bit_representation
 begin
 
@@ -302,6 +304,9 @@ instance proof
 qed
 
 end
+
+lifting_update word.lifting
+lifting_forget word.lifting
 
 
 subsection \<open>Bit representations with bit operations\<close>

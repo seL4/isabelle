@@ -715,4 +715,7 @@ qed
 
 end
 
+lifting_update word.lifting
+lifting_forget word.lifting
+
 end
