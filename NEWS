@@ -33,6 +33,9 @@ covering the full graph of transitive dependencies.
 facts. The former graph visualization has been discontinued, because it
 was hardly usable.
 
+* Refined treatment of proof terms, including type-class proofs for
+minor object-logics (FOL, FOLP, Sequents).
+
 
 *** Isar ***
 
