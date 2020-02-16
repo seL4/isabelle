@@ -851,9 +851,6 @@ proof cases
     by simp
 qed
 
-lemma card_2_exists: "card s = 2 \<longleftrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y))"
-  by (auto simp: card_Suc_eq eval_nat_numeral)
-
 lemma ksimplex_replace_2:
   assumes s: "ksimplex p n s" and "a \<in> s" and "n \<noteq> 0"
     and lb: "\<forall>j<n. \<exists>x\<in>s - {a}. x j \<noteq> 0"
@@ -1231,7 +1228,7 @@ proof cases
       done
   qed
   then show ?thesis
-    using s \<open>a \<in> s\<close> by (simp add: card_2_exists Ex1_def) metis
+    using s \<open>a \<in> s\<close> by (simp add: card_2_iff' Ex1_def) metis
 qed
 
 text \<open>Hence another step towards concreteness.\<close>
