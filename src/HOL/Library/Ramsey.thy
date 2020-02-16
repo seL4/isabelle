@@ -19,8 +19,7 @@ lemma nsets_mono: "A \<subseteq> B \<Longrightarrow> nsets A n \<subseteq> nsets
   by (auto simp: nsets_def)
 
 lemma nsets_2_eq: "nsets A 2 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}})"
-  unfolding numeral_2_eq_2
-  by (auto simp: nsets_def  elim!: card_2_doubletonE)
+by (auto simp: nsets_def card_2_iff)
 
 lemma binomial_eq_nsets: "n choose k = card (nsets {0..<n} k)"
   apply (simp add: binomial_def nsets_def)

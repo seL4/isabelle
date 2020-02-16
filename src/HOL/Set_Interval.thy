@@ -15,6 +15,13 @@ theory Set_Interval
 imports Divides
 begin
 
+(* Belongs in Finite_Set but 2 is not available there *)
+lemma card_2_iff: "card S = 2 \<longleftrightarrow> (\<exists>x y. S = {x,y} \<and> x \<noteq> y)"
+by (auto simp: card_Suc_eq numeral_eq_Suc)
+
+lemma card_2_iff': "card S = 2 \<longleftrightarrow> (\<exists>x\<in>S. \<exists>y\<in>S. x \<noteq> y \<and> (\<forall>z\<in>S. z = x \<or> z = y))"
+by (auto simp: card_Suc_eq numeral_eq_Suc)
+
 context ord
 begin
 
