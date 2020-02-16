@@ -36,6 +36,9 @@ was hardly usable.
 * Refined treatment of proof terms, including type-class proofs for
 minor object-logics (FOL, FOLP, Sequents).
 
+* The inference kernel is now confined to one main module: structure
+Thm, without the former circular dependency on structure Axclass.
+
 
 *** Isar ***
 
