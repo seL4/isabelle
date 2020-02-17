@@ -1107,8 +1107,11 @@ text \<open>Case analysis on \<^term>\<open>n < 2\<close>.\<close>
 lemma less_2_cases: "n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0"
   by (auto simp add: numeral_2_eq_2)
 
+lemma less_2_cases_iff: "n < 2 \<longleftrightarrow> n = 0 \<or> n = Suc 0"
+  by (auto simp add: numeral_2_eq_2)
+
 text \<open>Removal of Small Numerals: 0, 1 and (in additive positions) 2.\<close>
-text \<open>bh: Are these rules really a good idea?\<close>
+text \<open>bh: Are these rules really a good idea? LCP: well, it already happens for 0 and 1!\<close>
 
 lemma add_2_eq_Suc [simp]: "2 + n = Suc (Suc n)"
   by simp

@@ -22,6 +22,12 @@ lemma nsets_2_eq: "nsets A 2 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}}
   unfolding numeral_2_eq_2
   by (auto simp: nsets_def  elim!: card_2_doubletonE)
 
+lemma nsets_doubleton_2_eq [simp]: "[{x, y}]\<^bsup>2\<^esup> = (if x=y then {} else {{x, y}})"
+  by (auto simp: nsets_2_eq)
+
+lemma doubleton_in_nsets_2 [simp]: "{x,y} \<in> [A]\<^bsup>2\<^esup> \<longleftrightarrow> x \<in> A \<and> y \<in> A \<and> x \<noteq> y"
+  by (auto simp: nsets_2_eq Set.doubleton_eq_iff)
+
 lemma binomial_eq_nsets: "n choose k = card (nsets {0..<n} k)"
   apply (simp add: binomial_def nsets_def)
   by (meson subset_eq_atLeast0_lessThan_finite)
@@ -42,7 +48,7 @@ next
     using that card_mono leD by auto
 qed
 
-lemma nsets_eq_empty: "n < r \<Longrightarrow> nsets {..<n} r = {}"
+lemma nsets_eq_empty: "\<lbrakk>finite A; card A < r\<rbrakk> \<Longrightarrow> nsets A r = {}"
   by (simp add: nsets_eq_empty_iff)
 
 lemma nsets_empty_iff: "nsets {} r = (if r=0 then {{}} else {})"
@@ -78,6 +84,29 @@ proof -
     by (metis card_image inj_on_finite order_refl subset_image_inj)
   with assms show ?thesis
     by (auto simp: bij_betw_def inj_on_nsets)
+qed
+
+lemma nset_image_obtains:
+  assumes "X \<in> [f`A]\<^bsup>k\<^esup>" "inj_on f A"
+  obtains Y where "Y \<in> [A]\<^bsup>k\<^esup>" "X = f ` Y"
+  using assms
+  apply (clarsimp simp add: nsets_def subset_image_iff)
+  by (metis card_image finite_imageD inj_on_subset)
+
+lemma nsets_image_funcset:
+  assumes "g \<in> S \<rightarrow> T" and "inj_on g S"
+  shows "(\<lambda>X. g ` X) \<in> [S]\<^bsup>k\<^esup> \<rightarrow> [T]\<^bsup>k\<^esup>"
+    using assms
+    by (fastforce simp add: nsets_def card_image inj_on_subset subset_iff simp flip: image_subset_iff_funcset)
+
+lemma nsets_compose_image_funcset:
+  assumes f: "f \<in> [T]\<^bsup>k\<^esup> \<rightarrow> D" and "g \<in> S \<rightarrow> T" and "inj_on g S"
+  shows "f \<circ> (\<lambda>X. g ` X) \<in> [S]\<^bsup>k\<^esup> \<rightarrow> D"
+proof -
+  have "(\<lambda>X. g ` X) \<in> [S]\<^bsup>k\<^esup> \<rightarrow> [T]\<^bsup>k\<^esup>"
+    using assms by (simp add: nsets_image_funcset)
+  then show ?thesis
+    using f by fastforce 
 qed
 
 subsubsection \<open>Partition predicates\<close>
