@@ -37,7 +37,6 @@ sig
   val inter_sort: algebra -> sort * sort -> sort
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
-  val minimal_sorts: algebra -> sort list -> sort Ord_List.T
   val add_class: Context.generic -> class * class list -> algebra -> algebra
   val add_classrel: Context.generic -> class * class -> algebra -> algebra
   val add_arities: Context.generic -> string * (class * sort list) list -> algebra -> algebra
@@ -176,12 +175,6 @@ fun minimize_sort _ [] = []
 
 fun complete_sort algebra =
   Graph.all_succs (classes_of algebra) o minimize_sort algebra;
-
-fun minimal_sorts algebra raw_sorts =
-  let
-    fun le S1 S2 = sort_le algebra (S1, S2);
-    val sorts = make (map (minimize_sort algebra) raw_sorts);
-  in sorts |> filter_out (fn S => exists (fn S' => le S' S andalso not (le S S')) sorts) end;
 
 
 

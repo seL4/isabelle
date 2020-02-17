@@ -1700,14 +1700,29 @@ fun strip_shyps thm =
   | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
       let
         val thy = theory_of_thm thm;
+
         val algebra = Sign.classes_of thy;
+        val minimize = Sorts.minimize_sort algebra;
+        val le = Sorts.sort_le algebra;
+        fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
+        fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
 
         val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
-        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
-          |> Sorts.minimal_sorts algebra;
-        val constraints' = fold (insert_constraints thy) witnessed constraints;
+        val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
+
+        val extra' =
+          non_witnessed |> map_filter (fn (S, _) =>
+            if non_witnessed |> exists (fn (S', _) => lt (S', S)) then NONE else SOME S)
+          |> Sorts.make;
+
+        val constrs' =
+          non_witnessed |> maps (fn (S1, S2) =>
+            let val S0 = the (find_first (fn S => le (S, S1)) extra')
+            in rel (S0, S1) @ rel (S1, S2) end);
+
+        val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
       in
         Thm (deriv_rule_unconditional
