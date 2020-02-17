@@ -1694,8 +1694,10 @@ fun of_class (cT, raw_c) =
   end |> solve_constraints;
 
 (*Remove extra sorts that are witnessed by type signature information*)
-fun strip_shyps0 (thm as Thm (_, {shyps = [], ...})) = thm
-  | strip_shyps0 (thm as Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop})) =
+fun strip_shyps thm =
+  (case thm of
+    Thm (_, {shyps = [], ...}) => thm
+  | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
       let
         val thy = theory_of_thm thm;
         val algebra = Sign.classes_of thy;
@@ -1712,9 +1714,8 @@ fun strip_shyps0 (thm as Thm (_, {shyps = [], ...})) = thm
           (Proofterm.strip_shyps_proof algebra present witnessed extra') der,
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
-      end;
-
-val strip_shyps = solve_constraints #> strip_shyps0 #> solve_constraints;
+      end)
+  |> solve_constraints;
 
 
 (*Internalize sort constraints of type variables*)
