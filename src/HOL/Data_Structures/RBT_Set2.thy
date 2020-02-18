@@ -92,43 +92,26 @@ next
   proof cases
     assume "x < a"
     show ?thesis
-    proof cases
-      assume "l \<noteq> Leaf \<and> color l = Black"
-      then show ?thesis using \<open>x < a\<close> "2.IH"(1) "2.prems"
-        by(auto simp: inv_baldL dest: neq_LeafD)
+    proof cases (* For readability; could be automated more: *)
+      assume *: "l \<noteq> Leaf \<and> color l = Black"
+      hence "bheight l > 0" using neq_LeafD[of l] by auto
+      thus ?thesis using \<open>x < a\<close> "2.IH"(1) "2.prems" inv_baldL[of "del x l"] * by(auto)
     next
       assume "\<not>(l \<noteq> Leaf \<and> color l = Black)"
-      then show ?thesis using \<open>x < a\<close> "2.IH"(1) "2.prems"
-        by(auto)
+      thus ?thesis using \<open>x < a\<close> "2.prems" "2.IH"(1) by(auto)
     qed
-  next
+  next (* more automation: *)
     assume "\<not> x < a"
     show ?thesis
     proof cases
       assume "x > a"
-      show ?thesis
-      proof cases
-        assume "r \<noteq> Leaf \<and> color r = Black"
-        then show ?thesis using \<open>a < x\<close> "2.IH"(2) "2.prems"
-          by(auto simp: inv_baldR dest: neq_LeafD)
-      next
-        assume "\<not>(r \<noteq> Leaf \<and> color r = Black)"
-        then show ?thesis using \<open>a < x\<close> "2.IH"(2) "2.prems"
-          by(auto)
-      qed
+      show ?thesis using \<open>a < x\<close> "2.IH"(2) "2.prems" neq_LeafD[of r] inv_baldR[of _ "del x r"]
+          by(auto simp: Let_def split: if_split)
+    
     next
       assume "\<not> x > a"
-      show ?thesis
-      proof cases
-        assume "r = Leaf"
-        then show ?thesis using "2.prems" \<open>\<not> x < a\<close> \<open>\<not> x > a\<close>
-          by(auto simp: invc2I)
-      next
-        assume "\<not> r = Leaf"
-        then show ?thesis using "2.prems" \<open>\<not> x < a\<close> \<open>\<not> x > a\<close>
-          by(auto simp: inv_baldR dest!: inv_split_min dest: neq_LeafD split: prod.split if_split)
-      qed
-    next
+      show ?thesis using "2.prems" \<open>\<not> x < a\<close> \<open>\<not> x > a\<close>
+          by(auto simp: inv_baldR invc2I dest!: inv_split_min dest: neq_LeafD split: prod.split if_split)
     qed
   qed
 qed
