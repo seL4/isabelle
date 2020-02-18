@@ -128,8 +128,9 @@ fun print_term (Const arg) = "Term.Const " ^ print_pair print_string print_typ a
 fun pretty_string max_len str =
   let
     val body =
-      maps (fn XML.Elem _ => ["<markup>"] | XML.Text s => Symbol.explode s) (YXML.parse_body str)
-        handle Fail _ => Symbol.explode str;
+      if YXML.is_wellformed str then
+        maps (fn XML.Elem _ => ["<markup>"] | XML.Text s => Symbol.explode s) (YXML.parse_body str)
+      else Symbol.explode str;
     val body' =
       if length body <= max_len then body
       else take (Int.max (max_len, 0)) body @ ["..."];

@@ -29,6 +29,7 @@ sig
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
   val content_of: string -> string
+  val is_wellformed: string -> bool
 end;
 
 structure YXML: YXML =
@@ -158,5 +159,7 @@ end;
 
 val content_of = parse_body #> XML.content_of;
 
-end;
+fun is_wellformed s = string_of_body (parse_body s) = s
+  handle Fail _ => false;
 
+end;
