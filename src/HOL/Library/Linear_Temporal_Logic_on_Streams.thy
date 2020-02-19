@@ -827,4 +827,46 @@ lemma until_as_suntil: "(\<phi> until \<psi>) \<omega> = ((\<phi> suntil \<psi>)
   using alw_implies_until not_alw_iff suntil_implies_until until_ev_suntil until_must_release_ev
   by blast
 
+lemma alw_holds: "alw (holds P) (h##t) = (P h \<and> alw (holds P) t)"
+  by (metis alw.simps holds_Stream stream.sel(2))
+
+lemma alw_holds2: "alw (holds P) ss = (P (shd ss) \<and> alw (holds P) (stl ss))"
+  by (meson alw.simps holds.elims(2) holds.elims(3))
+
+lemma alw_eq_sconst: "(alw (HLD {h}) t) = (t = sconst h)"
+  unfolding sconst_alt alw_HLD_iff_streams streams_iff_sset
+  using stream.set_sel(1) by force
+
+lemma sdrop_if_suntil: "(p suntil q) \<omega> \<Longrightarrow> \<exists>j. q (sdrop j \<omega>) \<and> (\<forall>k < j. p (sdrop k \<omega>))"
+proof(induction rule: suntil.induct)
+  case (base \<omega>)
+  then show ?case
+    by force
+next
+  case (step \<omega>)
+  then obtain j where "q (sdrop j (stl \<omega>))" "\<forall>k<j. p (sdrop k (stl \<omega>))" by blast
+  with step(1,2) show ?case
+    using ev_at_imp_snth less_Suc_eq_0_disj by (auto intro!: exI[where x="j+1"])
+qed
+
+lemma not_suntil: "(\<not> (p suntil q) \<omega>) = (\<not> (p until q) \<omega> \<or> alw (not q) \<omega>)"
+  by (simp add: suntil_as_until alw_iff_sdrop ev_iff_sdrop)
+
+lemma sdrop_until: "q (sdrop j \<omega>) \<Longrightarrow> \<forall>k<j. p (sdrop k \<omega>) \<Longrightarrow> (p until q) \<omega>"
+proof(induct j arbitrary: \<omega>)
+  case 0
+  then show ?case
+    by (simp add: UNTIL.base)
+next
+  case (Suc j)
+  then show ?case
+    by (metis Suc_mono UNTIL.simps sdrop.simps(1) sdrop.simps(2) zero_less_Suc)
+qed
+
+lemma sdrop_suntil: "q (sdrop j \<omega>) \<Longrightarrow> (\<forall>k < j. p (sdrop k \<omega>)) \<Longrightarrow> (p suntil q) \<omega>"
+  by (metis ev_iff_sdrop sdrop_until suntil_as_until)
+
+lemma suntil_iff_sdrop: "(p suntil q) \<omega> = (\<exists>j. q (sdrop j \<omega>) \<and> (\<forall>k < j. p (sdrop k \<omega>)))"
+  using sdrop_if_suntil sdrop_suntil by blast
+
 end
