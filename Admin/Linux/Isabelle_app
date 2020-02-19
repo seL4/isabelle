@@ -12,8 +12,7 @@ source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 # Java runtime options
 
-ISABELLE_NAME="$(basename "$0" .run)"
-declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/${ISABELLE_NAME}.options"))
+declare -a JAVA_OPTIONS=($(perl -p -e 's,#.*$,,g;' "$ISABELLE_HOME/Isabelle.options"))
 
 
 # main

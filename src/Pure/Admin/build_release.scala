@@ -506,7 +506,7 @@ rm -rf "${DIST_NAME}-old"
 
         platform match {
           case Platform.Family.linux =>
-            File.write(isabelle_target + Path.explode(isabelle_name + ".options"),
+            File.write(isabelle_target + Path.explode("Isabelle.options"),
               terminate_lines(java_options_title :: java_options))
 
             val isabelle_app = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
