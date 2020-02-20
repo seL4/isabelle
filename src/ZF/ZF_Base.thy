@@ -242,8 +242,8 @@ definition "apply" :: "[i, i] \<Rightarrow> i"  (infixl \<open>`\<close> 90)  \<
 definition Pi :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
   where "Pi(A,B) == {f\<in>Pow(Sigma(A,B)). A\<subseteq>domain(f) & function(f)}"
 
-abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr \<open>->\<close> 60)  \<comment> \<open>function space\<close>
-  where "A -> B \<equiv> Pi(A, \<lambda>_. B)"
+abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr \<open>\<rightarrow>\<close> 60)  \<comment> \<open>function space\<close>
+  where "A \<rightarrow> B \<equiv> Pi(A, \<lambda>_. B)"
 
 
 (* binder syntax *)
@@ -264,7 +264,7 @@ notation (ASCII)
   cart_prod       (infixr \<open>*\<close> 80) and
   Int             (infixl \<open>Int\<close> 70) and
   Un              (infixl \<open>Un\<close> 65) and
-  function_space  (infixr \<open>\<rightarrow>\<close> 60) and
+  function_space  (infixr \<open>->\<close> 60) and
   Subset          (infixl \<open><=\<close> 50) and
   mem             (infixl \<open>:\<close> 50) and
   not_mem         (infixl \<open>~:\<close> 50)
