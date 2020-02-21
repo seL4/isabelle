@@ -41,7 +41,7 @@ fun del :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
            then baldL (del x l) a r else R (del x l) a r |
      GT \<Rightarrow> if r \<noteq> Leaf\<and> color r = Black
            then baldR l a (del x r) else R l a (del x r) |
-     EQ \<Rightarrow> combine l r)"
+     EQ \<Rightarrow> app l r)"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "delete x t = paint Black (del x t)"
@@ -79,15 +79,15 @@ lemma inorder_baldR:
 by(cases "(l,a,r)" rule: baldR.cases)
   (auto simp:  inorder_baliL inorder_baliR inorder_paint)
 
-lemma inorder_combine:
-  "inorder(combine l r) = inorder l @ inorder r"
-by(induction l r rule: combine.induct)
+lemma inorder_app:
+  "inorder(app l r) = inorder l @ inorder r"
+by(induction l r rule: app.induct)
   (auto simp: inorder_baldL inorder_baldR split: tree.split color.split)
 
 lemma inorder_del:
  "sorted(inorder t) \<Longrightarrow>  inorder(del x t) = del_list x (inorder t)"
 by(induction x t rule: del.induct)
-  (auto simp: del_list_simps inorder_combine inorder_baldL inorder_baldR)
+  (auto simp: del_list_simps inorder_app inorder_baldL inorder_baldR)
 
 lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -225,16 +225,16 @@ by (induct l a r rule: baldR.induct) (simp_all add: invc_baliL)
 lemma invc2_baldR: "\<lbrakk> invc l; invc2 r \<rbrakk> \<Longrightarrow>invc2 (baldR l a r)"
 by (induct l a r rule: baldR.induct) (auto simp: invc_baliL paint2 invc2I)
 
-lemma invh_combine:
+lemma invh_app:
   "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk>
-  \<Longrightarrow> invh (combine l r) \<and> bheight (combine l r) = bheight l"
-by (induct l r rule: combine.induct) 
+  \<Longrightarrow> invh (app l r) \<and> bheight (app l r) = bheight l"
+by (induct l r rule: app.induct) 
    (auto simp: invh_baldL_Black split: tree.splits color.splits)
 
-lemma invc_combine: 
+lemma invc_app: 
   "\<lbrakk> invc l; invc r \<rbrakk> \<Longrightarrow>
-  (color l = Black \<and> color r = Black \<longrightarrow> invc (combine l r)) \<and> invc2 (combine l r)"
-by (induct l r rule: combine.induct)
+  (color l = Black \<and> color r = Black \<longrightarrow> invc (app l r)) \<and> invc2 (app l r)"
+by (induct l r rule: app.induct)
    (auto simp: invc_baldL invc2I split: tree.splits color.splits)
 
 text \<open>All in one:\<close>
@@ -253,11 +253,11 @@ lemma inv_baldR:
 by (induct l a r rule: baldR.induct)
    (auto simp: inv_baliL invh_paint bheight_baliL bheight_paint_Red paint2 invc2I)
 
-lemma inv_combine:
+lemma inv_app:
   "\<lbrakk> invh l; invh r; bheight l = bheight r; invc l; invc r \<rbrakk>
-  \<Longrightarrow> invh (combine l r) \<and> bheight (combine l r) = bheight l
-  \<and> invc2 (combine l r) \<and> (color l = Black \<and> color r = Black \<longrightarrow> invc (combine l r))"
-by (induct l r rule: combine.induct) 
+  \<Longrightarrow> invh (app l r) \<and> bheight (app l r) = bheight l
+  \<and> invc2 (app l r) \<and> (color l = Black \<and> color r = Black \<longrightarrow> invc (app l r))"
+by (induct l r rule: app.induct) 
    (auto simp: invh_baldL_Black inv_baldL invc2I split: tree.splits color.splits)
 
 lemma neq_LeafD: "t \<noteq> Leaf \<Longrightarrow> \<exists>l x c r. t = Node l (x,c) r"
@@ -268,7 +268,7 @@ lemma inv_del: "\<lbrakk> invh t; invc t \<rbrakk> \<Longrightarrow>
    (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
     color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
 by(induct x t rule: del.induct)
-  (auto simp: inv_baldL inv_baldR inv_combine dest!: neq_LeafD)
+  (auto simp: inv_baldL inv_baldR inv_app dest!: neq_LeafD)
 
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete x t)"
 by (metis delete_def rbt_def color_paint_Black inv_del invc2I invh_paint)
