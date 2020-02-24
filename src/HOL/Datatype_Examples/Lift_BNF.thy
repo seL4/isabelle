@@ -186,7 +186,7 @@ subsection \<open>Lifting \textbf{quotient_type}s\<close>
 quotient_type 'a cpy_list = "'a list" / "(=)"
   by (rule identity_equivp)
 
-lift_bnf 'a cpy_list [wits: "[]"]
+lift_bnf 'a cpy_list
   by (auto intro: list_all2_trans)
 
 quotient_type ('a, 'b) funk = "('a \<Rightarrow> 'b)" / "\<lambda>f g. \<forall>a. f a = g a"
@@ -195,7 +195,7 @@ quotient_type ('a, 'b) funk = "('a \<Rightarrow> 'b)" / "\<lambda>f g. \<forall>
 lemma funk_closure: "{(x, x'). \<forall>a. x a = x' a} `` {x. range x \<subseteq> A} = {x. range x \<subseteq> A}"
   by auto
 
-lift_bnf (dead 'a, 'b) funk [wits: "\<lambda>b _.b :: 'b"]
+lift_bnf (dead 'a, 'b) funk
   unfolding funk_closure rel_fun_def by (auto 0 10 split: if_splits)
 
 lemma assumes "equivp REL"

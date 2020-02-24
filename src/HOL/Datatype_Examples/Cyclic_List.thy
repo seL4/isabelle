@@ -34,10 +34,9 @@ lemma confluent_quotient_cyclic1:
   by(unfold_locales)
     (auto dest: retract_cyclic1 cyclic_set_eq simp add: list.in_rel list.rel_compp map_respect_cyclic[THEN rel_funD, OF refl] confluentp_cyclic1 intro: rtranclp_mono[THEN predicate2D, OF symclp_greater])
 
-lift_bnf 'a cyclic_list [wits: "[]"]
+lift_bnf 'a cyclic_list
   subgoal by(rule confluent_quotient.subdistributivity[OF confluent_quotient_cyclic1])
   subgoal by(force dest: cyclic_set_eq)
-  subgoal by(auto elim: allE[where x="[]"])
   done
 
 end

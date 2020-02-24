@@ -256,10 +256,9 @@ lemma confluent_quotient_fim:
   "confluent_quotient cancel1\<inverse>\<inverse> eq eq eq eq eq (map fst) (map snd) (map fst) (map snd) list_all2 list_all2 list_all2 set set"
   by(unfold_locales)(auto dest: retract_cancel1 eq_set_eq simp add: list.in_rel list.rel_compp map_respect_eq[THEN rel_funD, OF refl] semiconfluentp_imp_confluentp semiconfluentp_cancel1)+
 
-lift_bnf 'a fim [wits: "[]"]
+lift_bnf 'a fim
   subgoal for A B by(rule confluent_quotient.subdistributivity[OF confluent_quotient_fim])
   subgoal by(force dest: eq_set_eq)
-  subgoal by(auto elim: allE[where x="[]"])
   done
 
 end

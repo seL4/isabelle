@@ -140,9 +140,36 @@ fun prepare_wits is_quotient RepT wits opts alphas wits_F var_as var_as' sets lt
     val Iwits = the_default wits_F (Option.map (map (`(map (fn T =>
       find_index (fn U => T = U) alphas) o binder_types_until_eq RepT o fastype_of))) wits);
 
+    val Iwits = if is_quotient then
+        let
+          val subsumed_Iwits =
+            filter (fn (J, _) => exists (fn (I, _) => subset (op =) (I, J)) wits_F) Iwits;
+          val _ =  if null subsumed_Iwits orelse exists (fn No_Warn_Wits => true | _ => false) opts
+            then ()
+            else
+              let
+                val (suffix1, suffix2, be) =
+                  (if length subsumed_Iwits = 1 then ("", "", "is") else ("s", "es", "are"))
+              in
+                subsumed_Iwits
+                |> map (Syntax.pretty_typ lthy o fastype_of o snd)
+                |> Pretty.big_list
+                  ("The following type" ^ suffix1 ^ " of nonemptiness witness" ^ suffix2 ^
+                    " of the raw type's BNF " ^ be ^ " subsumed by the existing raw witnesses:")
+                |> (fn pt => Pretty.chunks [pt,
+                  Pretty.para ("You do not need to lift these subsumed witnesses.")])
+                |> Pretty.string_of
+                |> warning
+              end;
+        in
+          filter_out (fn (J, _) => exists (fn (I, _) => subset (op =) (I, J)) wits_F) Iwits
+        end
+      else Iwits;
+
     val wit_goals = maps (BNF_Def.mk_wit_goals var_as var_as' sets) Iwits;
 
-    val lost_wits = filter_out (fn (J, _) => exists (fn (I, _) => subset (op =) (I, J)) Iwits) wits_F;
+    val lost_wits = if is_quotient then [] else
+      filter_out (fn (J, _) => exists (fn (I, _) => subset (op =) (I, J)) Iwits) wits_F;
 
     val _ =
       if null lost_wits orelse exists (fn No_Warn_Wits => true | _ => false) opts then ()
@@ -1023,9 +1050,6 @@ fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy
             @{thm equivp_add_relconj} OF [equiv_thm', equiv_thm', rel_pos_distr_thm0];
 
           val (rel_Inter_thms, wit_thmss) = apply2 (fn f => flat (f live thmss)) (take, drop);
-          val wit_thms = (case wit_thmss of
-              [] => wit_thms_of_bnf bnf_F
-            | _ => wit_thmss);
 
           (* construct map_G, sets_G, bd_G, rel_G and wits_G *)
 
@@ -1078,10 +1102,6 @@ fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy
           val rel_G = fold_rev lambda var_Ps (mk_vimage2p rep_G (subst_Ts rep_G betas) $ rel_F'_tm);
           val rel_raw = fold_rev lambda var_Ps rel_F'_tm
             |> subst_atomic_types (betas ~~ gammas);
-
-          (* val wits_G = [abs_G o wit_F] *)
-          val wits_G = map (fn (I, wit) => let val vars = (map (fn n => nth var_as n) I)
-              in fold_rev lambda vars (abs_G $ list_comb (wit, vars)) end) Iwits;
 
           (* auxiliary lemmas *)
           val bd_card_order = bd_card_order_of_bnf bnf_F;
@@ -1843,6 +1863,22 @@ fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy
             bd_card_order_tac :: bd_cinfinite_tac ::
             map2 mk_set_G_bd_tac set_F'_thmss set_bd_thms @
             rel_compp_tac :: rel_compp_Grp_tac :: [pred_G_set_G_tac];
+
+          (* val wits_G = [abs_G o wit_F] *)
+          val (wits_G, wit_thms) =
+            let
+              val wit_F_thmss = map (map2 (fn set_F' => fn wit =>
+                    (#set_F'_subset set_F' RS set_mp RS wit)
+                    |> unfold_thms lthy [#set_F'_def set_F']) set_F'_thmss)
+                (wit_thmss_of_bnf bnf_F);
+              val (wits_F, wit_F_thmss) = split_list
+                (filter_out (fn ((J, _), _) => exists (fn (I, _) => subset (op =) (I, J)) Iwits)
+                  (wits_F ~~ wit_F_thmss));
+              fun mk_wit (I, wit) = let val vars = (map (fn n => nth var_as n) I)
+                in fold_rev lambda vars (abs_G $ list_comb (wit, vars)) end;
+            in
+              (map mk_wit (Iwits @ wits_F), wit_thmss @ flat wit_F_thmss)
+            end;
 
           fun mk_wit_tacs ({set_F'_def, set_F'_respect, ...} :: set_F'_thmss) (w :: ws) ctxt =
                 EVERY [unfold_thms_tac ctxt [@{thm o_def},

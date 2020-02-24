@@ -71,10 +71,9 @@ qualified lemma confluent_quotient_dlist:
   "confluent_quotient double dlist_eq dlist_eq dlist_eq dlist_eq dlist_eq (map fst) (map snd) (map fst) (map snd) list_all2 list_all2 list_all2 set set"
   by(unfold_locales)(auto intro: strong_confluentp_imp_confluentp strong_confluentp_double dest: factor_double_map dlist_eq_into_doubles[THEN predicate2D] dlist_eq_set_eq simp add: list.in_rel list.rel_compp dlist_eq_map_respect equivp_dlist_eq equivp_imp_transp)
 
-lift_bnf 'a dlist [wits: "[]"]
+lift_bnf 'a dlist
   subgoal for A B by(rule confluent_quotient.subdistributivity[OF confluent_quotient_dlist])
   subgoal by(force dest: dlist_eq_set_eq intro: equivp_reflp[OF equivp_dlist_eq])
-  subgoal by(auto simp add: dlist_eq_def vimage2p_def)
   done
 
 end

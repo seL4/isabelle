@@ -328,7 +328,7 @@ lemma ACIEQ_alt: "(\<approx>) = (~~)"
 quotient_type 'a ACI_rexp = "'a rexp" / "(\<approx>)"
   unfolding ACIEQ_alt by (auto intro!: equivpI reflpI sympI transpI)
 
-lift_bnf (no_warn_wits) 'a ACI_rexp
+lift_bnf 'a ACI_rexp
   unfolding ACIEQ_alt
   subgoal for A Q by (rule confluent_quotient.subdistributivity[OF confluent_quotient_ACI])
   subgoal for Ss by (intro eq_set_preserves_inter[rotated] ACIcl_set_eq; auto)

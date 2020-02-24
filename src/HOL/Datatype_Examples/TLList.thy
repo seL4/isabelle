@@ -83,7 +83,7 @@ lemma lset_lconst: "x \<in> lset (lconst b) \<Longrightarrow> x = b"
   done
 
 lift_bnf (tlset1: 'a, tlset2: 'b) tllist
-  [wits: "\<lambda>b. (LNil :: 'a llist, b)" "\<lambda>a. (lconst a, undefined)" ]
+  [wits: "\<lambda>a. (lconst a, undefined)" ]
   for map: tlmap rel: tlrel
   subgoal for P Q P' Q'
     by (force simp: eq_tllist_def relcompp_apply llist.rel_compp lfinite_lrel_eq split: if_splits)
@@ -92,10 +92,6 @@ lift_bnf (tlset1: 'a, tlset2: 'b) tllist
   subgoal for Ss
     apply (auto 0 0 simp: eq_tllist_def)
     by metis
-  subgoal for x b
-    by (auto simp: eq_tllist_def split: if_splits)
-  subgoal for x b
-    by (auto simp: eq_tllist_def split: if_splits)
   subgoal for x b
     by (auto simp: eq_tllist_def llist.set_map dest: lset_lconst split: if_splits)
   subgoal for x b
