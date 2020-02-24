@@ -341,6 +341,9 @@ lemma bij_betw_empty2: "bij_betw f A {} \<Longrightarrow> A = {}"
 lemma inj_on_imp_bij_betw: "inj_on f A \<Longrightarrow> bij_betw f A (f ` A)"
   unfolding bij_betw_def by simp
 
+lemma bij_betw_apply: "\<lbrakk>bij_betw f A B; a \<in> A\<rbrakk> \<Longrightarrow> f a \<in> B"
+  unfolding bij_betw_def by auto
+
 lemma bij_def: "bij f \<longleftrightarrow> inj f \<and> surj f"
   by (rule bij_betw_def)
 
