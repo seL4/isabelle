@@ -128,7 +128,12 @@ fun add_production prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
           if chains_member chains (from, lhs)
           then (SOME from, false, chains)
           else (SOME from, true, chains_insert (from, lhs) chains)
-      | _ => (NONE, false, chains_declare lhs chains));
+      | _ =>
+        let
+          val chains' = chains
+            |> chains_declare lhs
+            |> fold (fn Nonterminal (nt, _) => chains_declare nt | _ => I) rhs;
+        in (NONE, false, chains') end);
 
     (*propagate new chain in lookahead and lambdas;
       added_starts is used later to associate existing
