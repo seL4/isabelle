@@ -26,10 +26,10 @@ sig
    | Oracle of string * term * typ list option
    | PThm of thm_header * thm_body
   and proof_body = PBody of
-    {oracles: (string * term option) Ord_List.T,
+    {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      proof: proof}
-  type oracle = string * term option
+  type oracle = (string * Position.T) * term option
   type thm = serial * thm_node
   exception MIN_PROOF of unit
   val proof_of: proof_body -> proof
@@ -218,7 +218,7 @@ datatype proof =
  | Oracle of string * term * typ list option
  | PThm of thm_header * thm_body
 and proof_body = PBody of
-  {oracles: (string * term option) Ord_List.T,
+  {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
    proof: proof}
 and thm_body =
@@ -227,8 +227,9 @@ and thm_node =
   Thm_Node of {theory_name: string, name: string, prop: term,
     body: proof_body future, export: unit lazy, consolidate: unit lazy};
 
-type oracle = string * term option;
-val oracle_ord = prod_ord fast_string_ord (option_ord Term_Ord.fast_term_ord);
+type oracle = (string * Position.T) * term option;
+val oracle_ord: oracle ord =
+  prod_ord (prod_ord fast_string_ord Position.ord) (option_ord Term_Ord.fast_term_ord);
 
 type thm = serial * thm_node;
 val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
@@ -374,8 +375,8 @@ fun proof consts prf = prf |> variant
       pair (list properties) (pair (term consts) (pair (option (list typ)) (proof_body consts)))
         (map Position.properties_of pos, (prop, (types, map_proof_of open_proof (Future.join body)))))]
 and proof_body consts (PBody {oracles, thms, proof = prf}) =
-  triple (list (pair string (option (term consts)))) (list (thm consts)) (proof consts)
-    (oracles, thms, prf)
+  triple (list (pair (pair string (properties o Position.properties_of))
+      (option (term consts)))) (list (thm consts)) (proof consts) (oracles, thms, prf)
 and thm consts (a, thm_node) =
   pair int (pair string (pair string (pair (term consts) (proof_body consts))))
     (a, (thm_node_theory_name thm_node, (thm_node_name thm_node, (thm_node_prop thm_node,
@@ -439,7 +440,8 @@ fun proof consts prf = prf |> variant
 and proof_body consts x =
   let
     val (a, b, c) =
-      triple (list (pair string (option (term consts)))) (list (thm consts)) (proof consts) x;
+      triple (list (pair (pair string (Position.of_properties o properties))
+        (option (term consts)))) (list (thm consts)) (proof consts) x;
   in PBody {oracles = a, thms = b, proof = c} end
 and thm consts x =
   let

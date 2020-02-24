@@ -598,7 +598,7 @@ text %mlref \<open>
   \begin{mldecls}
   @{index_ML Theory.add_deps: "Defs.context -> string ->
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
-  @{index_ML Thm_Deps.all_oracles: "thm list -> (string * term option) list"} \\
+  @{index_ML Thm_Deps.all_oracles: "thm list -> Proofterm.oracle list"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Logic.all\<close>~\<open>a B\<close> produces a Pure quantification \<open>\<And>a. B\<close>, where
@@ -676,9 +676,10 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Thm_Deps.all_oracles\<close>~\<open>thms\<close> returns all oracles used in the
   internal derivation of the given theorems; this covers the full graph of
-  transitive dependencies. The result contains a name, plus the original
-  proposition, if @{ML Proofterm.proofs} was at least @{ML 1} during the
-  oracle inference. See also the command @{command_ref "thm_oracles"}.
+  transitive dependencies. The result contains an authentic oracle name; if
+  @{ML Proofterm.proofs} was at least @{ML 1} during the oracle inference, it
+  also contains the position of the oracle invocation and its proposition. See
+  also the command @{command_ref "thm_oracles"}.
 \<close>
 
 text %mlantiq \<open>

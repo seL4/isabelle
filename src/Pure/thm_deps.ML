@@ -33,15 +33,15 @@ fun all_oracles thms =
   in fold collect bodies ([], Inttab.empty) |> #1 |> Proofterm.unions_oracles end;
 
 fun has_skip_proof thms =
-  all_oracles thms |> exists (fn (name, _) => name = \<^oracle_name>\<open>skip_proof\<close>);
+  all_oracles thms |> exists (fn ((name, _), _) => name = \<^oracle_name>\<open>skip_proof\<close>);
 
 fun pretty_thm_oracles ctxt thms =
   let
     val thy = Proof_Context.theory_of ctxt;
-    fun prt_oracle (name, NONE) = [Thm.pretty_oracle ctxt name]
-      | prt_oracle (name, SOME prop) =
-          [Thm.pretty_oracle ctxt name, Pretty.str ":", Pretty.brk 1,
-            Syntax.pretty_term_global thy prop];
+    fun prt_ora (name, pos) = Thm.pretty_oracle ctxt name :: Pretty.here pos;
+    fun prt_oracle (ora, NONE) = prt_ora ora
+      | prt_oracle (ora, SOME prop) =
+          prt_ora ora @ [Pretty.str ":", Pretty.brk 1, Syntax.pretty_term_global thy prop];
   in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) (all_oracles thms)) end;
 
 

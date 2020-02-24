@@ -7,6 +7,7 @@ Source positions: counting Isabelle symbols, starting from 1.
 signature POSITION =
 sig
   eqtype T
+  val ord: T ord
   val make: Thread_Position.T -> T
   val dest: T -> Thread_Position.T
   val line_of: T -> int option
@@ -52,6 +53,7 @@ sig
   val store_reports: report_text list Unsynchronized.ref ->
     T list -> ('a -> Markup.T list) -> 'a -> unit
   val append_reports: report_text list Unsynchronized.ref -> report list -> unit
+  val here_strs: T -> string * string
   val here: T -> string
   val here_list: T list -> string
   type range = T * T
@@ -72,6 +74,19 @@ struct
 (* datatype position *)
 
 datatype T = Pos of (int * int * int) * Properties.T;
+
+fun ord (pos1 as Pos ((i, j, k), props), pos2 as Pos ((i', j', k'), props')) =
+  if pointer_eq (pos1, pos2) then EQUAL
+  else
+    (case int_ord (i, i') of
+      EQUAL =>
+        (case int_ord (j, j') of
+          EQUAL =>
+            (case int_ord (k, k') of
+              EQUAL => Properties.ord (props, props')
+            | ord => ord)
+        | ord => ord)
+    | ord => ord);
 
 fun norm_props (props: Properties.T) =
   maps (fn a => the_list (find_first (fn (b, _) => a = b) props))
@@ -228,15 +243,17 @@ fun append_reports (r: report_text list Unsynchronized.ref) reports =
 
 (* here: user output *)
 
+fun here_strs pos =
+  (case (line_of pos, file_of pos) of
+    (SOME i, NONE) => (" ", "(line " ^ Value.print_int i ^ ")")
+  | (SOME i, SOME name) => (" ", "(line " ^ Value.print_int i ^ " of " ^ quote name ^ ")")
+  | (NONE, SOME name) => (" ", "(file " ^ quote name ^ ")")
+  | _ => if is_reported pos then ("", "\092<^here>") else ("", ""));
+
 fun here pos =
   let
     val props = properties_of pos;
-    val (s1, s2) =
-      (case (line_of pos, file_of pos) of
-        (SOME i, NONE) => (" ", "(line " ^ Value.print_int i ^ ")")
-      | (SOME i, SOME name) => (" ", "(line " ^ Value.print_int i ^ " of " ^ quote name ^ ")")
-      | (NONE, SOME name) => (" ", "(file " ^ quote name ^ ")")
-      | _ => if is_reported pos then ("", "\092<^here>") else ("", ""));
+    val (s1, s2) = here_strs pos;
   in
     if s2 = "" then ""
     else s1 ^ Markup.markup (Markup.properties props Markup.position) s2

@@ -1065,9 +1065,9 @@ fun add_oracle (b, oracle_fn) thy =
           let
             val (oracle, prf) =
               (case ! Proofterm.proofs of
-                2 => ((name, SOME prop), Proofterm.oracle_proof name prop)
-              | 1 => ((name, SOME prop), MinProof)
-              | 0 => ((name, NONE), MinProof)
+                2 => (((name, Position.thread_data ()), SOME prop), Proofterm.oracle_proof name prop)
+              | 1 => (((name, Position.thread_data ()), SOME prop), MinProof)
+              | 0 => (((name, Position.none), NONE), MinProof)
               | i => bad_proofs i);
           in
             Thm (make_deriv [] [oracle] [] prf,

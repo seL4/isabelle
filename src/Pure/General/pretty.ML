@@ -53,6 +53,7 @@ sig
   val enclose: string -> string -> T list -> T
   val enum: string -> string -> string -> T list -> T
   val position: Position.T -> T
+  val here: Position.T -> T list
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
@@ -190,6 +191,15 @@ fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
 
 val position =
   enum "," "{" "}" o map (fn (x, y) => str (x ^ "=" ^ y)) o Position.properties_of;
+
+fun here pos =
+  let
+    val props = Position.properties_of pos;
+    val (s1, s2) = Position.here_strs pos;
+  in
+    if s2 = "" then []
+    else [str s1, mark_str (Markup.properties props Markup.position, s2)]
+  end;
 
 val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);

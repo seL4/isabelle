@@ -8,6 +8,8 @@ signature PROPERTIES =
 sig
   type entry = string * string
   type T = entry list
+  val entry_ord: entry ord
+  val ord: T ord
   val defined: T -> string -> bool
   val get: T -> string -> string option
   val put: entry -> T -> T
@@ -20,6 +22,9 @@ struct
 
 type entry = string * string;
 type T = entry list;
+
+val entry_ord = prod_ord string_ord string_ord;
+val ord = list_ord entry_ord;
 
 fun defined (props: T) name = AList.defined (op =) props name;
 fun get (props: T) name = AList.lookup (op =) props name;
