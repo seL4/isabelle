@@ -197,7 +197,7 @@ class Plugin extends EBPlugin
           "Isabelle Syslog", GUI.scrollable_text(session.syslog_content()))
       }
 
-    case Session.Ready =>
+    case Session.Ready if !shutting_down.value =>
       init_models()
 
       if (!Isabelle.continuous_checking) {
@@ -442,6 +442,8 @@ class Plugin extends EBPlugin
 
   /* start and stop */
 
+  private val shutting_down = Synchronized(false)
+
   override def start()
   {
     /* strict initialization */
@@ -475,6 +477,8 @@ class Plugin extends EBPlugin
         Log.log(Log.ERROR, this, exn)
     }
 
+    shutting_down.change(_ => false)
+
     val view = jEdit.getActiveView()
     if (view != null) init_view(view)
   }
@@ -493,6 +497,8 @@ class Plugin extends EBPlugin
     }
 
     exit_models(JEdit_Lib.jedit_buffers().toList)
+
+    shutting_down.change(_ => true)
     session.stop()
     file_watcher.shutdown()
     PIDE.editor.shutdown()
