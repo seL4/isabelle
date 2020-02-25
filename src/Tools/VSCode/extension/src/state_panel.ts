@@ -3,8 +3,8 @@
 import * as library from './library'
 import * as protocol from './protocol'
 import { Content_Provider } from './content_provider'
-import { LanguageClient } from 'vscode-languageclient';
-import { Uri, ExtensionContext, workspace, commands, window } from 'vscode'
+import { LanguageClient, VersionedTextDocumentIdentifier } from 'vscode-languageclient';
+import { Uri, ExtensionContext, workspace, commands, window, Webview, WebviewPanel } from 'vscode'
 
 
 /* HTML content */
@@ -34,23 +34,24 @@ export function setup(context: ExtensionContext, client: LanguageClient)
 {
   context.subscriptions.push(content_provider.register())
 
+  var panel: WebviewPanel
   language_client = client
   language_client.onNotification(protocol.state_output_type, params =>
     {
       const uri = encode_state(params.id)
-      if (uri) {
-        content_provider.set_content(uri, params.content)
-        content_provider.update(uri)
-
-        const existing_document =
-          workspace.textDocuments.find(document =>
-            document.uri.scheme === uri.scheme &&
-            document.uri.fragment === uri.fragment)
-        if (!existing_document) {
-          const column = library.adjacent_editor_column(window.activeTextEditor, true)
-          commands.executeCommand("vscode.previewHtml", uri, column, "State")
-        }
+      if (!panel) {
+        const column = library.adjacent_editor_column(window.activeTextEditor, true)
+        panel = window.createWebviewPanel(
+          uri.fsPath,
+          "State",
+          column,
+          {
+            enableScripts: true,
+            retainContextWhenHidden: true
+          }
+        );
       }
+      panel.webview.html = params.content;
     })
 }
 

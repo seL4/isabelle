@@ -17,7 +17,7 @@
         "url": "https://isabelle.in.tum.de/repos/isabelle"
     },
     "engines": {
-        "vscode": "^1.8.0"
+        "vscode": "^1.32.0"
     },
     "categories": [
         "Languages"
@@ -317,7 +317,7 @@
         "@types/node": "^7.0.66",
         "mocha": "^3.5.3",
         "typescript": "^2.9.2",
-        "vscode": "^1.1.18"
+        "vscode": "^1.1.36"
     },
     "dependencies": {
         "vscode-languageclient": "~3.2.2"

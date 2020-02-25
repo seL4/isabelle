@@ -3,7 +3,7 @@
 import * as timers from 'timers'
 import { ViewColumn, TextDocument, TextEditor, TextDocumentContentProvider,
   ExtensionContext, Event, EventEmitter, Uri, Position, workspace,
-  window, commands } from 'vscode'
+  window, commands, WebviewPanel } from 'vscode'
 import { LanguageClient } from 'vscode-languageclient';
 import * as library from './library'
 import * as protocol from './protocol'
@@ -39,22 +39,23 @@ export function setup(context: ExtensionContext, client: LanguageClient)
 {
   context.subscriptions.push(content_provider.register())
 
+  var panel: WebviewPanel
   language_client = client
   language_client.onNotification(protocol.preview_response_type, params =>
     {
       const preview_uri = encode_preview(Uri.parse(params.uri))
-      if (preview_uri) {
-        content_provider.set_content(preview_uri, params.content)
-        content_provider.update(preview_uri)
-
-        const existing_document =
-          workspace.textDocuments.find(document =>
-            document.uri.scheme === preview_uri.scheme &&
-            document.uri.query === preview_uri.query)
-        if (!existing_document && params.column != 0) {
-          commands.executeCommand("vscode.previewHtml", preview_uri, params.column, params.label)
-        }
+      if (!panel) {
+        panel = window.createWebviewPanel(
+          preview_uri.fsPath,
+          params.label,
+          params.column,
+          {
+            enableScripts: true,
+            retainContextWhenHidden: true
+          }
+        );
       }
+      panel.webview.html = params.content;
     })
 }
 
