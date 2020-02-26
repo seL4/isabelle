@@ -17,6 +17,9 @@ Contributions to this Isabelle2020
   Traytel
   Extension of lift_bnf to support quotient types.
 
+* November 2019: Peter Zeller, TU Kaiserslautern
+  Update of Isabelle/VSCode to WebviewPanel API.
+
 * October..December 2019: Makarius Wenzel
   Isabelle/Phabrictor server setup, including Linux platform support in
   Isabelle/Scala. Client-side tool "isabelle hg_setup".

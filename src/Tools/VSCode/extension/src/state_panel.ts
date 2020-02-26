@@ -2,89 +2,91 @@
 
 import * as library from './library'
 import * as protocol from './protocol'
-import { Content_Provider } from './content_provider'
 import { LanguageClient } from 'vscode-languageclient';
-import { Uri, ExtensionContext, workspace, commands, window } from 'vscode'
+import { Uri, ExtensionContext, window, WebviewPanel, ViewColumn } from 'vscode'
 
-
-/* HTML content */
-
-const content_provider = new Content_Provider("isabelle-state")
-
-function encode_state(id: number | undefined): Uri | undefined
-{
-  return id ? content_provider.uri_template.with({ fragment: id.toString() }) : undefined
-}
-
-function decode_state(uri: Uri | undefined): number | undefined
-{
-  if (uri && uri.scheme === content_provider.uri_scheme) {
-    const id = parseInt(uri.fragment)
-    return id ? id : undefined
-  }
-  else undefined
-}
-
-
-/* setup */
 
 let language_client: LanguageClient
 
-export function setup(context: ExtensionContext, client: LanguageClient)
+function panel_column(): ViewColumn
 {
-  context.subscriptions.push(content_provider.register())
-
-  language_client = client
-  language_client.onNotification(protocol.state_output_type, params =>
-    {
-      const uri = encode_state(params.id)
-      if (uri) {
-        content_provider.set_content(uri, params.content)
-        content_provider.update(uri)
-
-        const existing_document =
-          workspace.textDocuments.find(document =>
-            document.uri.scheme === uri.scheme &&
-            document.uri.fragment === uri.fragment)
-        if (!existing_document) {
-          const column = library.adjacent_editor_column(window.activeTextEditor, true)
-          commands.executeCommand("vscode.previewHtml", uri, column, "State")
-        }
-      }
-    })
+  return library.adjacent_editor_column(window.activeTextEditor, true)
 }
 
+class Panel
+{
+  private state_id: number
+  private webview_panel: WebviewPanel
 
-/* commands */
+  public get_id(): number { return this.state_id }
+  public check_id(id: number): boolean { return this.state_id == id }
+
+  public set_content(id: number, body: string)
+  {
+    this.state_id = id
+    this.webview_panel.webview.html = body
+  }
+
+  public reveal()
+  {
+    this.webview_panel.reveal(panel_column())
+  }
+
+  constructor()
+  {
+    this.webview_panel =
+      window.createWebviewPanel("isabelle-state", "State", panel_column(),
+        {
+          enableScripts: true
+        });
+    this.webview_panel.onDidDispose(exit_panel)
+    this.webview_panel.webview.onDidReceiveMessage(message =>
+      {
+        switch (message.command) {
+          case 'auto_update':
+            language_client.sendNotification(
+              protocol.state_auto_update_type, { id: this.state_id, enabled: message.enabled })
+            break;
+
+          case 'update':
+            language_client.sendNotification(protocol.state_update_type, { id: this.state_id })
+            break;
+
+          case 'locate':
+            language_client.sendNotification(protocol.state_locate_type, { id: this.state_id })
+            break;
+
+          default:
+            break;
+        }
+      })
+  }
+}
+
+let panel: Panel
+
+function exit_panel()
+{
+  if (panel) {
+    language_client.sendNotification(protocol.state_exit_type, { id: panel.get_id() })
+    panel = null
+  }
+}
 
 export function init(uri: Uri)
 {
-  if (language_client) language_client.sendNotification(protocol.state_init_type)
+  if (language_client) {
+    if (panel) panel.reveal()
+    else language_client.sendNotification(protocol.state_init_type)
+  }
 }
 
-export function exit(id: number)
+export function setup(context: ExtensionContext, client: LanguageClient)
 {
-  if (language_client) language_client.sendNotification(protocol.state_exit_type, { id: id })
-}
-
-export function exit_uri(uri: Uri)
-{
-  const id = decode_state(uri)
-  if (id) exit(id)
-}
-
-export function locate(id: number)
-{
-  if (language_client) language_client.sendNotification(protocol.state_locate_type, { id: id })
-}
-
-export function update(id: number)
-{
-  if (language_client) language_client.sendNotification(protocol.state_update_type, { id: id })
-}
-
-export function auto_update(id: number, enabled: boolean)
-{
-  if (language_client)
-    language_client.sendNotification(protocol.state_auto_update_type, { id: id, enabled: enabled })
+  language_client = client
+  language_client.onNotification(protocol.state_output_type, params =>
+    {
+      if (!panel) { panel = new Panel() }
+      panel.set_content(params.id, params.content)
+    })
 }

@@ -130,11 +130,7 @@ export function activate(context: ExtensionContext)
     /* state panel */
 
     context.subscriptions.push(
-      commands.registerCommand("isabelle.state", uri => state_panel.init(uri)),
-      commands.registerCommand("_isabelle.state-locate", state_panel.locate),
-      commands.registerCommand("_isabelle.state-update", state_panel.update),
-      commands.registerCommand("_isabelle.state-auto-update", state_panel.auto_update),
-      workspace.onDidCloseTextDocument(document => state_panel.exit_uri(document.uri)))
+      commands.registerCommand("isabelle.state", uri => state_panel.init(uri)))
 
     language_client.onReady().then(() => state_panel.setup(context, language_client))
 
@@ -143,9 +139,7 @@ export function activate(context: ExtensionContext)
 
     context.subscriptions.push(
       commands.registerCommand("isabelle.preview", uri => preview_panel.request(uri, false)),
-      commands.registerCommand("isabelle.preview-split", uri => preview_panel.request(uri, true)),
-      commands.registerCommand("isabelle.preview-source", preview_panel.source),
-      commands.registerCommand("isabelle.preview-update", preview_panel.update))
+      commands.registerCommand("isabelle.preview-split", uri => preview_panel.request(uri, true)))
 
     language_client.onReady().then(() => preview_panel.setup(context, language_client))
 

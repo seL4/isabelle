@@ -65,6 +65,11 @@ sufficient and more convenient to start editing a particular session.
 * Support more brackets: \<llangle> \<rrangle> (intended for implicit argument syntax).
 
 
+*** Isabelle/VSCode Prover IDE ***
+
+* Update to WebviewPanel API.
+
+
 *** HOL ***
 
 * Improvements of the 'lift_bnf' command:

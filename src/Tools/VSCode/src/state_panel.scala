@@ -109,14 +109,17 @@ class State_Panel private(val server: Server)
   /* controls */
 
   private def controls_script =
-    VSCode_JavaScript.invoke_command +
 """
+const vscode = acquireVsCodeApi();
+
 function invoke_auto_update(enabled)
-{ invoke_command("_isabelle.state-auto-update", [""" + id + """, enabled]) }
+{ vscode.postMessage({'command': 'auto_update', 'enabled': enabled}) }
 
-function invoke_update() { invoke_command("_isabelle.state-update", [""" + id + """]) }
+function invoke_update()
+{ vscode.postMessage({'command': 'update'}) }
 
-function invoke_locate() { invoke_command("_isabelle.state-locate", [""" + id + """]) }
+function invoke_locate()
+{ vscode.postMessage({'command': 'locate'}) }
 """
 
   private def auto_update_button: XML.Elem =

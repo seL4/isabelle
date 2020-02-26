@@ -10,25 +10,24 @@
         "document preparation"
     ],
     "icon": "isabelle.png",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
-        "url": "https://isabelle.in.tum.de/repos/isabelle"
+        "url": "https://isabelle-dev.sketis.net"
     },
     "engines": {
-        "vscode": "^1.8.0"
+        "vscode": "^1.32.0"
     },
     "categories": [
-        "Languages"
+        "Programming Languages"
     ],
     "activationEvents": [
         "onLanguage:isabelle",
         "onLanguage:isabelle-ml",
         "onLanguage:bibtex",
         "onCommand:isabelle.preview",
-        "onCommand:isabelle.preview-split",
-        "onCommand:isabelle.preview-source"
+        "onCommand:isabelle.preview-split"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -48,30 +47,12 @@
                 }
             },
             {
-                "command": "isabelle.preview-update",
-                "title": "Update Preview",
-                "category": "Isabelle",
-                "icon": {
-                    "light": "./media/Preview.svg",
-                    "dark": "./media/Preview_inverse.svg"
-                }
-            },
-            {
                 "command": "isabelle.preview-split",
                 "title": "Open Preview (Split Editor)",
                 "category": "Isabelle",
                 "icon": {
                     "light": "./media/PreviewOnRightPane_16x.svg",
                     "dark": "./media/PreviewOnRightPane_16x_dark.svg"
-                }
-            },
-            {
-                "command": "isabelle.preview-source",
-                "title": "Show Source",
-                "category": "Isabelle",
-                "icon": {
-                    "light": "./media/ViewSource.svg",
-                    "dark": "./media/ViewSource_inverse.svg"
                 }
             },
             {
@@ -130,16 +111,6 @@
                 {
                     "when": "editorLangId == bibtex",
                     "command": "isabelle.preview-split",
-                    "group": "navigation"
-                },
-                {
-                    "when": "resourceScheme == isabelle-preview",
-                    "command": "isabelle.preview-update",
-                    "group": "navigation"
-                },
-                {
-                    "when": "resourceScheme == isabelle-preview",
-                    "command": "isabelle.preview-source",
                     "group": "navigation"
                 }
             ],
@@ -317,7 +288,7 @@
         "@types/node": "^7.0.66",
         "mocha": "^3.5.3",
         "typescript": "^2.9.2",
-        "vscode": "^1.1.18"
+        "vscode": "^1.1.36"
     },
     "dependencies": {
         "vscode-languageclient": "~3.2.2"
