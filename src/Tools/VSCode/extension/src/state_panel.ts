@@ -2,10 +2,8 @@
 
 import * as library from './library'
 import * as protocol from './protocol'
-import { Content_Provider } from './content_provider'
-import { LanguageClient, VersionedTextDocumentIdentifier } from 'vscode-languageclient';
-import { Uri, ExtensionContext, workspace, commands, window, Webview, WebviewPanel, ViewColumn } from 'vscode'
-import { create } from 'domain';
+import { LanguageClient } from 'vscode-languageclient';
+import { Uri, ExtensionContext, window, WebviewPanel, ViewColumn } from 'vscode'
 
 
 let language_client: LanguageClient
@@ -23,10 +21,10 @@ class Panel
   public get_id(): number { return this.state_id }
   public check_id(id: number): boolean { return this.state_id == id }
 
-  public set_content(id: number, html: string)
+  public set_content(id: number, body: string)
   {
     this.state_id = id
-    this.webview_panel.webview.html = html
+    this.webview_panel.webview.html = body
   }
 
   public reveal()
@@ -65,15 +63,7 @@ class Panel
   }
 }
 
-
-/* global panel */
-
 let panel: Panel
-
-function check_panel(id: number): boolean
-{
-  return panel && panel.check_id(id)
-}
 
 function exit_panel()
 {
@@ -85,8 +75,10 @@ function exit_panel()
 
 export function init(uri: Uri)
 {
-  if (panel) panel.reveal()
-  else language_client.sendNotification(protocol.state_init_type)
+  if (language_client) {
+    if (panel) panel.reveal()
+    else language_client.sendNotification(protocol.state_init_type)
+  }
 }
 
 export function setup(context: ExtensionContext, client: LanguageClient)
