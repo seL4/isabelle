@@ -10,12 +10,17 @@ import { create } from 'domain';
 
 let language_client: LanguageClient
 
+function panel_column(): ViewColumn
+{
+  return library.adjacent_editor_column(window.activeTextEditor, true)
+}
+
 class Panel
 {
   private state_id: number
   private webview_panel: WebviewPanel
 
-  public get_id(): number { return this.state_id}
+  public get_id(): number { return this.state_id }
   public check_id(id: number): boolean { return this.state_id == id }
 
   public set_content(id: number, html: string)
@@ -24,32 +29,41 @@ class Panel
     this.webview_panel.webview.html = html
   }
 
-  constructor(column: ViewColumn)
+  public reveal()
+  {
+    this.webview_panel.reveal(panel_column())
+  }
+
+  constructor()
   {
     this.webview_panel =
-      window.createWebviewPanel("isabelle-state", "State", column,
+      window.createWebviewPanel("isabelle-state", "State", panel_column(),
         {
           enableScripts: true,
           enableCommandUris: true,
           retainContextWhenHidden: true,
         });
     this.webview_panel.onDidDispose(exit_panel)
-  }
+    this.webview_panel.webview.onDidReceiveMessage(message =>
+      {
+        switch (message.command) {
+          case 'auto_update':
+            language_client.sendNotification(
+              protocol.state_auto_update_type, { id: this.state_id, enabled: message.enabled })
+            break;
 
-  public locate()
-  {
-    language_client.sendNotification(protocol.state_locate_type, { id: this.state_id })
-  }
+          case 'update':
+            language_client.sendNotification(protocol.state_update_type, { id: this.state_id })
+            break;
 
-  public update()
-  {
-    language_client.sendNotification(protocol.state_update_type, { id: this.state_id })
-  }
+          case 'locate':
+            language_client.sendNotification(protocol.state_locate_type, { id: this.state_id })
+            break;
 
-  public auto_update(enabled: boolean)
-  {
-    language_client.sendNotification(
-    protocol.state_auto_update_type, { id: this.state_id, enabled: enabled })
+          default:
+            break;
+        }
+      })
   }
 }
 
@@ -71,31 +85,18 @@ function exit_panel()
   }
 }
 
+export function init(uri: Uri)
+{
+  if (panel) panel.reveal()
+  else language_client.sendNotification(protocol.state_init_type)
+}
+
 export function setup(context: ExtensionContext, client: LanguageClient)
 {
   language_client = client
   language_client.onNotification(protocol.state_output_type, params =>
     {
-      if (!panel) {
-        const column = library.adjacent_editor_column(window.activeTextEditor, true)
-        panel = new Panel(column)
-      }
+      if (!panel) { panel = new Panel() }
       panel.set_content(params.id, params.content)
     })
-}
-
-
-/* commands */
-
-export function init(uri: Uri) {
-  language_client.sendNotification(protocol.state_init_type)
-}
-
-export function locate(id: number) { if (check_panel(id)) panel.locate() }
-
-export function update(id: number) { if (check_panel(id)) panel.update() }
-
-export function auto_update(id: number, enabled: boolean)
-{
-  if (check_panel(id)) { panel.auto_update(enabled) }
 }
