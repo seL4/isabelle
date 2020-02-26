@@ -1,36 +1,40 @@
-Subject: Announcing Isabelle2019
+Subject: Announcing Isabelle2020
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2019 is now available.
+Isabelle2020 is now available.
 
-This version introduces many changes over Isabelle2018: see the NEWS
+This version introduces many changes over Isabelle2019: see the NEWS
 file for further details. Here are some notable points:
 
-* Improved "Isabelle DejaVu" font collection, suitable for text and GUI.
+* PIDE: much faster startup of Isabelle/jEdit thanks to more scalable
+session directory structure.
 
-* Various Isabelle/jEdit improvements, with virtual file-system access to
-sessions and exports.
+* PIDE: updated Isabelle/VSCode to follow recent moves of VSCode.
 
-* Improved headless PIDE session (and server).
+* Pure: improved treatment of theorem dependencies and proof terms,
+accessible via command 'thm_deps'.
 
-* HOL: 'export_code' now generates logical files in the theory and session
-context, e.g. browsable as "isabelle-export:" in Isabelle/jEdit.
+* Pure: proper treatment of oracles within internal proof objects,
+accessible via command 'thm_oracles'.
 
-* HOL: various syntax and library improvements.
+* HOL: various library improvements.
 
-* HOL libraries: better organization and much more material in HOL-Algebra,
-HOL-Analysis, HOL-Homology.
+* HOL: better organization of HOL-Analysis vs. HOL-Complex_Analysis.
 
-* Isabelle/ML environments for separate SML applications.
+* ML: more scalable export artifacts via XML blobs.
 
-* Isabelle/Haskell library for implementation of Isabelle/PIDE backends.
+* Scala: support for external IDEs based on Gradle (e.g. IntelliJ IDEA).
 
-* Installation management for Haskell (Stack) and OCaml (OPAM).
+* Scala: support for Ubuntu server applications (Linux-Apache-MySQL-PHP).
 
-* Update to current Java 11 and Poly/ML 5.8 with better scalability.
+* System: Isabelle/Phabricator as self-hosted project management platform.
+
+* System: more robust support for Windows.
+
+* System: improved support for macOS, notably 10.15 Catalina.
 
 
-You may get Isabelle2019 from the following mirror sites:
+You may get Isabelle2020 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
