@@ -39,9 +39,7 @@ class Panel
     this.webview_panel =
       window.createWebviewPanel("isabelle-state", "State", panel_column(),
         {
-          enableScripts: true,
-          enableCommandUris: true,
-          retainContextWhenHidden: true,
+          enableScripts: true
         });
     this.webview_panel.onDidDispose(exit_panel)
     this.webview_panel.webview.onDidReceiveMessage(message =>
