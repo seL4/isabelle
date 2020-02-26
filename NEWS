@@ -67,7 +67,8 @@ sufficient and more convenient to start editing a particular session.
 
 *** Isabelle/VSCode Prover IDE ***
 
-* Update to WebviewPanel API.
+* Update of State and Preview panels to use new WebviewPanel API of
+VSCode.
 
 
 *** HOL ***
@@ -105,14 +106,16 @@ associates to the left now as is customary.
 * Theory HOL-Library.Ramsey: full finite Ramsey's theorem with
 multiple colours and arbitrary exponents.
 
-* Session HOL-Analysis: proof method "metric" implements a decision
-procedure for simple linear statements in metric spaces.
+* Session HOL-Proofs: build faster thanks to better treatment of proof
+terms in Isabelle/Pure.
 
 * Session HOL-Word: bitwise NOT-operator has proper prefix syntax. Minor
 INCOMPATIBILITY.
 
-* Session HOL-Proofs: build faster thanks to better treatment of proof
-terms in Isabelle/Pure.
+* Session HOL-Analysis: proof method "metric" implements a decision
+procedure for simple linear statements in metric spaces.
+
+* Session HOL-Complex_Analysis has been split off from HOL-Analysis.
 
 
 *** ML ***
@@ -177,6 +180,10 @@ potentially indexed, such as "foo" for singleton facts, or "bar(1)",
 exported as well: this spans an overall dependency graph of internal
 inferences; it might help to reconstruct the formal structure of theory
 libraries. See also the module Export_Theory in Isabelle/Scala.
+
+* Theory export of structured specifications, based on internal
+declarations of Spec_Rules by packages like 'definition', 'inductive',
+'primrec', 'function'.
 
 * Old settings variables ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM
 have been discontinued -- deprecated since Isabelle2018.
