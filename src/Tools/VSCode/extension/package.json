@@ -14,13 +14,13 @@
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
-        "url": "https://isabelle.in.tum.de/repos/isabelle"
+        "url": "https://isabelle-dev.sketis.net"
     },
     "engines": {
         "vscode": "^1.32.0"
     },
     "categories": [
-        "Languages"
+        "Programming Languages"
     ],
     "activationEvents": [
         "onLanguage:isabelle",
