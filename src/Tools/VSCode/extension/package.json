@@ -27,8 +27,7 @@
         "onLanguage:isabelle-ml",
         "onLanguage:bibtex",
         "onCommand:isabelle.preview",
-        "onCommand:isabelle.preview-split",
-        "onCommand:isabelle.preview-source"
+        "onCommand:isabelle.preview-split"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -48,30 +47,12 @@
                 }
             },
             {
-                "command": "isabelle.preview-update",
-                "title": "Update Preview",
-                "category": "Isabelle",
-                "icon": {
-                    "light": "./media/Preview.svg",
-                    "dark": "./media/Preview_inverse.svg"
-                }
-            },
-            {
                 "command": "isabelle.preview-split",
                 "title": "Open Preview (Split Editor)",
                 "category": "Isabelle",
                 "icon": {
                     "light": "./media/PreviewOnRightPane_16x.svg",
                     "dark": "./media/PreviewOnRightPane_16x_dark.svg"
-                }
-            },
-            {
-                "command": "isabelle.preview-source",
-                "title": "Show Source",
-                "category": "Isabelle",
-                "icon": {
-                    "light": "./media/ViewSource.svg",
-                    "dark": "./media/ViewSource_inverse.svg"
                 }
             },
             {
@@ -130,16 +111,6 @@
                 {
                     "when": "editorLangId == bibtex",
                     "command": "isabelle.preview-split",
-                    "group": "navigation"
-                },
-                {
-                    "when": "resourceScheme == isabelle-preview",
-                    "command": "isabelle.preview-update",
-                    "group": "navigation"
-                },
-                {
-                    "when": "resourceScheme == isabelle-preview",
-                    "command": "isabelle.preview-source",
                     "group": "navigation"
                 }
             ],
