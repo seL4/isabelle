@@ -40,25 +40,25 @@ proof
     by (metis insert_iff singletonD)
 qed
 
-lemma nsets_disjoint_2: 
+lemma nsets_disjoint_2:
   "X \<inter> Y = {} \<Longrightarrow> [X \<union> Y]\<^bsup>2\<^esup> = [X]\<^bsup>2\<^esup> \<union> [Y]\<^bsup>2\<^esup> \<union> (\<Union>x\<in>X. \<Union>y\<in>Y. {{x,y}})"
   by (fastforce simp: nsets_2_eq Set.doubleton_eq_iff)
 
-lemma ordered_nsets_2_eq: 
-  fixes A :: "'a::linorder set" 
+lemma ordered_nsets_2_eq:
+  fixes A :: "'a::linorder set"
   shows "nsets A 2 = {{x,y} | x y. x \<in> A \<and> y \<in> A \<and> x<y}"
      (is "_ = ?rhs")
 proof
   show "nsets A 2 \<subseteq> ?rhs"
-    unfolding numeral_nat 
+    unfolding numeral_nat
     apply (clarsimp simp add: nsets_def card_Suc_eq Set.doubleton_eq_iff not_less)
-    by (metis antisym) 
+    by (metis antisym)
   show "?rhs \<subseteq> nsets A 2"
     unfolding numeral_nat by (auto simp: nsets_def card_Suc_eq)
 qed
 
-lemma ordered_nsets_3_eq: 
-  fixes A :: "'a::linorder set" 
+lemma ordered_nsets_3_eq:
+  fixes A :: "'a::linorder set"
   shows "nsets A 3 = {{x,y,z} | x y z. x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> x<y \<and> y<z}"
      (is "_ = ?rhs")
 proof
@@ -70,8 +70,8 @@ proof
   by (metis empty_iff insert_iff not_less_iff_gr_or_eq)
 qed
 
-lemma ordered_nsets_4_eq: 
-  fixes A :: "'a::linorder set" 
+lemma ordered_nsets_4_eq:
+  fixes A :: "'a::linorder set"
   shows "[A]\<^bsup>4\<^esup> = {U. \<exists>u x y z. U = {u,x,y,z} \<and> u \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < x \<and> x < y \<and> y < z}"
     (is "_ = Collect ?RHS")
 proof -
@@ -90,8 +90,8 @@ proof -
     by auto
 qed
 
-lemma ordered_nsets_5_eq: 
-  fixes A :: "'a::linorder set" 
+lemma ordered_nsets_5_eq:
+  fixes A :: "'a::linorder set"
   shows "[A]\<^bsup>5\<^esup> = {U. \<exists>u v x y z. U = {u,v,x,y,z} \<and> u \<in> A \<and> v \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < v \<and> v < x \<and> x < y \<and> y < z}"
     (is "_ = Collect ?RHS")
 proof -
@@ -122,7 +122,7 @@ proof (intro iffI conjI)
   show "finite A"
     using infinite_arbitrarily_large that by auto
   then have "\<not> r \<le> card A"
-    using that by (simp add: set_eq_iff) (metis finite_subset get_smaller_card [of A r])
+    using that by (simp add: set_eq_iff) (metis obtain_subset_with_card_n)
   then show "card A < r"
     using not_less by blast
 next
@@ -189,7 +189,7 @@ proof -
   have "(\<lambda>X. g ` X) \<in> [S]\<^bsup>k\<^esup> \<rightarrow> [T]\<^bsup>k\<^esup>"
     using assms by (simp add: nsets_image_funcset)
   then show ?thesis
-    using f by fastforce 
+    using f by fastforce
 qed
 
 subsubsection \<open>Partition predicates\<close>
@@ -198,7 +198,7 @@ definition partn :: "'a set \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'b
   where "partn \<beta> \<alpha> \<gamma> \<delta> \<equiv> \<forall>f \<in> nsets \<beta> \<gamma>  \<rightarrow>  \<delta>. \<exists>H \<in> nsets \<beta> \<alpha>. \<exists>\<xi>\<in>\<delta>. f ` (nsets H \<gamma>) \<subseteq> {\<xi>}"
 
 definition partn_lst :: "'a set \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool"
-  where "partn_lst \<beta> \<alpha> \<gamma> \<equiv> \<forall>f \<in> nsets \<beta> \<gamma>  \<rightarrow>  {..<length \<alpha>}. 
+  where "partn_lst \<beta> \<alpha> \<gamma> \<equiv> \<forall>f \<in> nsets \<beta> \<gamma>  \<rightarrow>  {..<length \<alpha>}.
               \<exists>i < length \<alpha>. \<exists>H \<in> nsets \<beta> (\<alpha>!i). f ` (nsets H \<gamma>) \<subseteq> {i}"
 
 lemma partn_lst_greater_resource:
@@ -247,8 +247,8 @@ qed
 lemma partn_lst_eq_partn: "partn_lst {..<n} [m,m] 2 = partn {..<n} m 2 {..<2::nat}"
   apply (simp add: partn_lst_def partn_def numeral_2_eq_2)
   by (metis less_2_cases numeral_2_eq_2 lessThan_iff nth_Cons_0 nth_Cons_Suc)
-  
- 
+
+
 subsection \<open>Finite versions of Ramsey's theorem\<close>
 
 text \<open>
@@ -266,7 +266,7 @@ text \<open>Just the pigeon hole principle, since we are dealing with 1-sets\<cl
 lemma ramsey1: "\<exists>N::nat. partn_lst {..<N} [q0,q1] 1"
 proof -
   have "\<exists>i<Suc (Suc 0). \<exists>H\<in>nsets {..<Suc (q0 + q1)} ([q0, q1] ! i). f ` nsets H (Suc 0) \<subseteq> {i}"
-    if "f \<in> nsets {..<Suc (q0 + q1)} (Suc 0) \<rightarrow> {..<Suc (Suc 0)}" for f 
+    if "f \<in> nsets {..<Suc (q0 + q1)} (Suc 0) \<rightarrow> {..<Suc (Suc 0)}" for f
   proof -
     define A where "A \<equiv> \<lambda>i. {q. q \<le> q0+q1 \<and> f {q} = i}"
     have "A 0 \<union> A 1 = {..q0 + q1}"
@@ -280,7 +280,7 @@ proof -
     then obtain i where "i < Suc (Suc 0)" "card (A i) \<ge> [q0, q1] ! i"
       by (metis One_nat_def lessI nth_Cons_0 nth_Cons_Suc zero_less_Suc)
     then obtain B where "B \<subseteq> A i" "card B = [q0, q1] ! i" "finite B"
-      by (meson finite_subset get_smaller_card infinite_arbitrarily_large)
+      by (meson obtain_subset_with_card_n)
     then have "B \<in> nsets {..<Suc (q0 + q1)} ([q0, q1] ! i) \<and> f ` nsets B (Suc 0) \<subseteq> {i}"
       by (auto simp: A_def nsets_def card_1_singleton_iff)
     then show ?thesis
@@ -297,11 +297,11 @@ proposition ramsey2_full: "\<exists>N::nat. partn_lst {..<N} [q1,q2] r"
 proof (induction r arbitrary: q1 q2)
   case 0
   then show ?case
-    by (simp add: ramsey0) 
+    by (simp add: ramsey0)
 next
   case (Suc r)
   note outer = this
-  show ?case 
+  show ?case
   proof (cases "r = 0")
     case True
     then show ?thesis
@@ -314,7 +314,7 @@ next
       using Suc.prems
     proof (induct k \<equiv> "q1 + q2" arbitrary: q1 q2)
       case 0
-      show ?case 
+      show ?case
       proof
         show "partn_lst {..<1::nat} [q1, q2] (Suc r)"
           using nsets_empty_iff subset_insert 0
@@ -323,7 +323,7 @@ next
     next
       case (Suc k)
       consider "q1 = 0 \<or> q2 = 0" | "q1 \<noteq> 0" "q2 \<noteq> 0" by auto
-      then show ?case 
+      then show ?case
       proof cases
         case 1
         then have "partn_lst {..< Suc 0} [q1, q2] (Suc r)"
@@ -335,12 +335,12 @@ next
         with Suc have "k = (q1 - 1) + q2" "k = q1 + (q2 - 1)" by auto
         then obtain p1 p2::nat where  p1: "partn_lst {..<p1} [q1-1,q2] (Suc r)" and p2: "partn_lst {..<p2} [q1,q2-1] (Suc r)"
           using Suc.hyps by blast
-        then obtain p::nat where p: "partn_lst {..<p} [p1,p2] r" 
+        then obtain p::nat where p: "partn_lst {..<p} [p1,p2] r"
           using outer Suc.prems by auto
         show ?thesis
         proof (intro exI conjI)
           have "\<exists>i<Suc (Suc 0). \<exists>H\<in>nsets {..p} ([q1,q2] ! i). f ` nsets H (Suc r) \<subseteq> {i}"
-            if f: "f \<in> nsets {..p} (Suc r) \<rightarrow> {..<Suc (Suc 0)}" for f 
+            if f: "f \<in> nsets {..p} (Suc r) \<rightarrow> {..<Suc (Suc 0)}" for f
           proof -
             define g where "g \<equiv> \<lambda>R. f (insert p R)"
             have "f (insert p i) \<in> {..<Suc (Suc 0)}" if "i \<in> nsets {..<p} r" for i
@@ -348,7 +348,7 @@ next
             then have g: "g \<in> nsets {..<p} r \<rightarrow> {..<Suc (Suc 0)}"
               by (force simp: g_def PiE_iff)
             then obtain i U where i: "i < Suc (Suc 0)" and gi: "g ` nsets U r \<subseteq> {i}"
-              and U: "U \<in> nsets {..<p} ([p1, p2] ! i)" 
+              and U: "U \<in> nsets {..<p} ([p1, p2] ! i)"
               using p by (auto simp: partn_lst_def)
             then have Usub: "U \<subseteq> {..<p}"
               by (auto simp: nsets_def)
@@ -359,7 +359,7 @@ next
               case izero
               then have "U \<in> nsets {..<p} p1"
                 using U by simp
-              then obtain u where u: "bij_betw u {..<p1} U" 
+              then obtain u where u: "bij_betw u {..<p1} U"
                 using ex_bij_betw_nat_finite lessThan_atLeast0 by (fastforce simp add: nsets_def)
               have u_nsets: "u ` X \<in> nsets {..p} n" if "X \<in> nsets {..<p1} n" for X n
               proof -
@@ -373,7 +373,7 @@ next
               have "h \<in> nsets {..<p1} (Suc r) \<rightarrow> {..<Suc (Suc 0)}"
                 unfolding h_def using f u_nsets by auto
               then obtain j V where j: "j <Suc (Suc 0)" and hj: "h ` nsets V (Suc r) \<subseteq> {j}"
-                and V: "V \<in> nsets {..<p1} ([q1 - Suc 0, q2] ! j)" 
+                and V: "V \<in> nsets {..<p1} ([q1 - Suc 0, q2] ! j)"
                 using p1 by (auto simp: partn_lst_def)
               then have Vsub: "V \<subseteq> {..<p1}"
                 by (auto simp: nsets_def)
@@ -389,11 +389,11 @@ next
                   using V by simp
                 then have "u ` V \<in> nsets {..<p} (q1 - Suc 0)"
                   using u_nsets [of _ "q1 - Suc 0"] nsets_mono [OF Vsub] Usub u
-                  unfolding bij_betw_def nsets_def 
+                  unfolding bij_betw_def nsets_def
                   by (fastforce elim!: subsetD)
                 then have inq1: "?W \<in> nsets {..p} q1"
                   unfolding nsets_def using \<open>q1 \<noteq> 0\<close> card_insert_if by fastforce
-                have invu_nsets: "inv_into {..<p1} u ` X \<in> nsets V r" 
+                have invu_nsets: "inv_into {..<p1} u ` X \<in> nsets V r"
                   if "X \<in> nsets (u ` V) r" for X r
                 proof -
                   have "X \<subseteq> u ` V \<and> finite X \<and> card X = r"
@@ -418,13 +418,13 @@ next
                     using gi True \<open>X - {p} \<in> nsets U r\<close> insert_Diff
                     by (fastforce simp add: g_def image_subset_iff)
                   then show ?thesis
-                    by (simp add: \<open>f X = i\<close> \<open>g (X - {p}) = i\<close>) 
+                    by (simp add: \<open>f X = i\<close> \<open>g (X - {p}) = i\<close>)
                 next
                   case False
                   then have Xim: "X \<in> nsets (u ` V) (Suc r)"
                     using X by (auto simp: nsets_def subset_insert)
                   then have "u ` inv_into {..<p1} u ` X = X"
-                    using Vsub bij_betw_imp_inj_on u 
+                    using Vsub bij_betw_imp_inj_on u
                     by (fastforce simp: nsets_def image_mono invinv_eq subset_trans)
                   then show ?thesis
                     using izero jzero hj Xim invu_nsets unfolding h_def
@@ -433,22 +433,22 @@ next
                 moreover have "insert p (u ` V) \<in> nsets {..p} q1"
                   by (simp add: izero inq1)
                 ultimately show ?thesis
-                  by (metis izero image_subsetI insertI1 nth_Cons_0 zero_less_Suc) 
+                  by (metis izero image_subsetI insertI1 nth_Cons_0 zero_less_Suc)
               next
                 case jone
                 then have "u ` V \<in> nsets {..p} q2"
                   using V u_nsets by auto
                 moreover have "f ` nsets (u ` V) (Suc r) \<subseteq> {j}"
-                  using hj 
+                  using hj
                   by (force simp add: h_def image_subset_iff nsets_def subset_image_inj card_image dest: finite_imageD)
                 ultimately show ?thesis
                   using jone not_less_eq by fastforce
               qed
-            next 
+            next
               case ione
               then have "U \<in> nsets {..<p} p2"
                 using U by simp
-              then obtain u where u: "bij_betw u {..<p2} U" 
+              then obtain u where u: "bij_betw u {..<p2} U"
                 using ex_bij_betw_nat_finite lessThan_atLeast0 by (fastforce simp add: nsets_def)
               have u_nsets: "u ` X \<in> nsets {..p} n" if "X \<in> nsets {..<p2} n" for X n
               proof -
@@ -462,7 +462,7 @@ next
               have "h \<in> nsets {..<p2} (Suc r) \<rightarrow> {..<Suc (Suc 0)}"
                 unfolding h_def using f u_nsets by auto
               then obtain j V where j: "j <Suc (Suc 0)" and hj: "h ` nsets V (Suc r) \<subseteq> {j}"
-                and V: "V \<in> nsets {..<p2} ([q1, q2 - Suc 0] ! j)" 
+                and V: "V \<in> nsets {..<p2} ([q1, q2 - Suc 0] ! j)"
                 using p2 by (auto simp: partn_lst_def)
               then have Vsub: "V \<subseteq> {..<p2}"
                 by (auto simp: nsets_def)
@@ -478,11 +478,11 @@ next
                   using V by simp
                 then have "u ` V \<in> nsets {..<p} (q2 - Suc 0)"
                   using u_nsets [of _ "q2 - Suc 0"] nsets_mono [OF Vsub] Usub u
-                  unfolding bij_betw_def nsets_def 
+                  unfolding bij_betw_def nsets_def
                   by (fastforce elim!: subsetD)
                 then have inq1: "?W \<in> nsets {..p} q2"
                   unfolding nsets_def using \<open>q2 \<noteq> 0\<close> card_insert_if by fastforce
-                have invu_nsets: "inv_into {..<p2} u ` X \<in> nsets V r" 
+                have invu_nsets: "inv_into {..<p2} u ` X \<in> nsets V r"
                   if "X \<in> nsets (u ` V) r" for X r
                 proof -
                   have "X \<subseteq> u ` V \<and> finite X \<and> card X = r"
@@ -507,13 +507,13 @@ next
                     using gi True \<open>X - {p} \<in> nsets U r\<close> insert_Diff
                     by (fastforce simp add: g_def image_subset_iff)
                   then show ?thesis
-                    by (simp add: \<open>f X = i\<close> \<open>g (X - {p}) = i\<close>) 
+                    by (simp add: \<open>f X = i\<close> \<open>g (X - {p}) = i\<close>)
                 next
                   case False
                   then have Xim: "X \<in> nsets (u ` V) (Suc r)"
                     using X by (auto simp: nsets_def subset_insert)
                   then have "u ` inv_into {..<p2} u ` X = X"
-                    using Vsub bij_betw_imp_inj_on u 
+                    using Vsub bij_betw_imp_inj_on u
                     by (fastforce simp: nsets_def image_mono invinv_eq subset_trans)
                   then show ?thesis
                     using ione jone hj Xim invu_nsets unfolding h_def
@@ -528,7 +528,7 @@ next
                 then have "u ` V \<in> nsets {..p} q1"
                   using V u_nsets by auto
                 moreover have "f ` nsets (u ` V) (Suc r) \<subseteq> {j}"
-                  using hj 
+                  using hj
                   apply (clarsimp simp add: h_def image_subset_iff nsets_def)
                   by (metis Zero_not_Suc card_eq_0_iff card_image subset_image_inj)
                 ultimately show ?thesis
@@ -566,9 +566,9 @@ next
     then obtain q1 q2 l where qs: "qs = q1#q2#l"
       by (metis Suc.hyps(2) length_Suc_conv)
     then obtain q::nat where q: "partn_lst {..<q} [q1,q2] r"
-      using ramsey2_full by blast 
+      using ramsey2_full by blast
     then obtain p::nat where p: "partn_lst {..<p} (q#l) r"
-      using IH \<open>qs = q1 # q2 # l\<close> by fastforce 
+      using IH \<open>qs = q1 # q2 # l\<close> by fastforce
     have keq: "Suc (length l) = k"
       using IH qs by auto
     show ?thesis
@@ -582,21 +582,21 @@ next
           unfolding g_def using f Suc IH
           by (auto simp: Pi_def not_less)
         then obtain i U where i: "i < k" and gi: "g ` nsets U r \<subseteq> {i}"
-                and U: "U \<in> nsets {..<p} ((q#l) ! i)" 
+                and U: "U \<in> nsets {..<p} ((q#l) ! i)"
           using p keq by (auto simp: partn_lst_def)
         show "\<exists>i<length qs. \<exists>H\<in>nsets {..<p} (qs ! i). f ` nsets H r \<subseteq> {i}"
         proof (cases "i = 0")
           case True
           then have "U \<in> nsets {..<p} q" and f01: "f ` nsets U r \<subseteq> {0, Suc 0}"
             using U gi unfolding g_def by (auto simp: image_subset_iff)
-          then obtain u where u: "bij_betw u {..<q} U" 
+          then obtain u where u: "bij_betw u {..<q} U"
             using ex_bij_betw_nat_finite lessThan_atLeast0 by (fastforce simp add: nsets_def)
           then have Usub: "U \<subseteq> {..<p}"
             by (smt \<open>U \<in> nsets {..<p} q\<close> mem_Collect_eq nsets_def)
           have u_nsets: "u ` X \<in> nsets {..<p} n" if "X \<in> nsets {..<q} n" for X n
           proof -
             have "inj_on u X"
-              using u that bij_betw_imp_inj_on inj_on_subset              
+              using u that bij_betw_imp_inj_on inj_on_subset
               by (force simp: nsets_def)
             then show ?thesis
               using Usub u that bij_betwE
@@ -611,9 +611,9 @@ next
               using f01 by auto
           qed
           then have "h \<in> nsets {..<q} r \<rightarrow> {..<Suc (Suc 0)}"
-            unfolding h_def by blast  
+            unfolding h_def by blast
           then obtain j V where j: "j < Suc (Suc 0)" and hj: "h ` nsets V r \<subseteq> {j}"
-            and V: "V \<in> nsets {..<q} ([q1,q2] ! j)" 
+            and V: "V \<in> nsets {..<q} ([q1,q2] ! j)"
             using q by (auto simp: partn_lst_def)
           show ?thesis
           proof (intro exI conjI bexI)
@@ -663,7 +663,7 @@ lemma ramsey2:
 proof -
   obtain N where "N \<ge> Suc 0" and N: "partn_lst {..<N} [m,n] 2"
     using ramsey2_full nat_le_linear partn_lst_greater_resource by blast
-  have "\<exists>R\<subseteq>V. card R = m \<and> clique R E \<or> card R = n \<and> indep R E" 
+  have "\<exists>R\<subseteq>V. card R = m \<and> clique R E \<or> card R = n \<and> indep R E"
     if "finite V" "N \<le> card V" for V :: "'a set" and E :: "'a set set"
   proof -
     from that
@@ -673,7 +673,7 @@ proof -
     have f: "f \<in> nsets {..<N} 2 \<rightarrow> {..<Suc (Suc 0)}"
       by (simp add: f_def)
     then obtain i U where i: "i < 2" and gi: "f ` nsets U 2 \<subseteq> {i}"
-      and U: "U \<in> nsets {..<N} ([m,n] ! i)" 
+      and U: "U \<in> nsets {..<N} ([m,n] ! i)"
       using N numeral_2_eq_2 by (auto simp: partn_lst_def)
     show ?thesis
     proof (intro exI conjI)

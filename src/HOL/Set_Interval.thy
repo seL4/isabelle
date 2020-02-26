@@ -17,10 +17,10 @@ begin
 
 (* Belongs in Finite_Set but 2 is not available there *)
 lemma card_2_iff: "card S = 2 \<longleftrightarrow> (\<exists>x y. S = {x,y} \<and> x \<noteq> y)"
-by (auto simp: card_Suc_eq numeral_eq_Suc)
+  by (auto simp: card_Suc_eq numeral_eq_Suc)
 
 lemma card_2_iff': "card S = 2 \<longleftrightarrow> (\<exists>x\<in>S. \<exists>y\<in>S. x \<noteq> y \<and> (\<forall>z\<in>S. z = x \<or> z = y))"
-by (auto simp: card_Suc_eq numeral_eq_Suc)
+  by (auto simp: card_Suc_eq numeral_eq_Suc)
 
 context ord
 begin
@@ -1651,20 +1651,21 @@ lemma ivl_subset [simp]: "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<l
    apply (force intro: leI)+
   done
 
-lemma get_smaller_card:
-  assumes "finite A" "k \<le> card A"
-  obtains B where "B \<subseteq> A" "card B = k"
+lemma obtain_subset_with_card_n:
+  assumes "n \<le> card S"
+  obtains T where "T \<subseteq> S" "card T = n" "finite T"
 proof -
-  obtain h where h: "bij_betw h {0..<card A} A"
-    using \<open>finite A\<close> ex_bij_betw_nat_finite by blast
-  show thesis
-  proof
-    show "h ` {0..<k} \<subseteq> A"
-      by (metis \<open>k \<le> card A\<close> bij_betw_def h image_mono ivl_subset zero_le)
-    have "inj_on h {0..<k}"
-      by (meson \<open>k \<le> card A\<close> bij_betw_def h inj_on_subset ivl_subset zero_le)
-    then show "card (h ` {0..<k}) = k"
-      by (simp add: card_image)
+  obtain n' where "card S = n + n'" 
+    by (metis assms le_add_diff_inverse)
+  with that show thesis
+  proof (induct n' arbitrary: S)
+    case 0 
+    then show ?case
+      by (cases "finite S") auto
+  next
+    case Suc 
+    then show ?case 
+      by (simp add: card_Suc_eq) (metis subset_insertI2)
   qed
 qed
 

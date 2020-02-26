@@ -913,6 +913,84 @@ proof
   then show False by blast
 qed
 
+subsection \<open>Monotonic functions over a set\<close>
+
+definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
+
+lemma mono_onI:
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on f A"
+  unfolding mono_on_def by simp
+
+lemma mono_onD:
+  "\<lbrakk>mono_on f A; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
+  unfolding mono_on_def by simp
+
+lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on f A"
+  unfolding mono_def mono_on_def by auto
+
+lemma mono_on_subset: "mono_on f A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on f B"
+  unfolding mono_on_def by auto
+
+definition "strict_mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
+
+lemma strict_mono_onI:
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on f A"
+  unfolding strict_mono_on_def by simp
+
+lemma strict_mono_onD:
+  "\<lbrakk>strict_mono_on f A; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
+  unfolding strict_mono_on_def by simp
+
+lemma mono_on_greaterD:
+  assumes "mono_on g A" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
+  shows "x > y"
+proof (rule ccontr)
+  assume "\<not>x > y"
+  hence "x \<le> y" by (simp add: not_less)
+  from assms(1-3) and this have "g x \<le> g y" by (rule mono_onD)
+  with assms(4) show False by simp
+qed
+
+lemma strict_mono_inv:
+  fixes f :: "('a::linorder) \<Rightarrow> ('b::linorder)"
+  assumes "strict_mono f" and "surj f" and inv: "\<And>x. g (f x) = x"
+  shows "strict_mono g"
+proof
+  fix x y :: 'b assume "x < y"
+  from \<open>surj f\<close> obtain x' y' where [simp]: "x = f x'" "y = f y'" by blast
+  with \<open>x < y\<close> and \<open>strict_mono f\<close> have "x' < y'" by (simp add: strict_mono_less)
+  with inv show "g x < g y" by simp
+qed
+
+lemma strict_mono_on_imp_inj_on:
+  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> (_ :: preorder)) A"
+  shows "inj_on f A"
+proof (rule inj_onI)
+  fix x y assume "x \<in> A" "y \<in> A" "f x = f y"
+  thus "x = y"
+    by (cases x y rule: linorder_cases)
+       (auto dest: strict_mono_onD[OF assms, of x y] strict_mono_onD[OF assms, of y x])
+qed
+
+lemma strict_mono_on_leD:
+  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A" "x \<in> A" "y \<in> A" "x \<le> y"
+  shows "f x \<le> f y"
+proof (insert le_less_linear[of y x], elim disjE)
+  assume "x < y"
+  with assms have "f x < f y" by (rule_tac strict_mono_onD[OF assms(1)]) simp_all
+  thus ?thesis by (rule less_imp_le)
+qed (insert assms, simp)
+
+lemma strict_mono_on_eqD:
+  fixes f :: "(_ :: linorder) \<Rightarrow> (_ :: preorder)"
+  assumes "strict_mono_on f A" "f x = f y" "x \<in> A" "y \<in> A"
+  shows "y = x"
+  using assms by (rule_tac linorder_cases[of x y]) (auto dest: strict_mono_onD)
+
+lemma strict_mono_on_imp_mono_on:
+  "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A \<Longrightarrow> mono_on f A"
+  by (rule mono_onI, rule strict_mono_on_leD)
+
 
 subsection \<open>Setup\<close>
 
