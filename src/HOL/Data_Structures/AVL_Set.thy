@@ -483,38 +483,28 @@ next
   } ultimately show ?case using C by blast
 qed
 
-lemma fib_alt_induct [consumes 1, case_names 1 2 rec]:
-  assumes "n > 0" "P 1" "P 2" "\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (Suc n) \<Longrightarrow> P (Suc (Suc n))"
-  shows   "P n"
-  using assms(1)
-proof (induction n rule: fib.induct)
-  case (3 n)
-  thus ?case using assms by (cases n) (auto simp: eval_nat_numeral)
-qed (insert assms, auto)
-
 text \<open>An exponential lower bound for \<^const>\<open>fib\<close>:\<close>
 
 lemma fib_lowerbound:
   defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
-  defines "c \<equiv> 1 / \<phi> ^ 2"
-  assumes "n > 0"
-  shows   "real (fib n) \<ge> c * \<phi> ^ n"
-proof -
-  have "\<phi> > 1" by (simp add: \<phi>_def)
-  hence "c > 0" by (simp add: c_def)
-  from \<open>n > 0\<close> show ?thesis
-  proof (induction n rule: fib_alt_induct)
-    case (rec n)
-    have "c * \<phi> ^ Suc (Suc n) = \<phi> ^ 2 * (c * \<phi> ^ n)"
-      by (simp add: field_simps power2_eq_square)
-    also have "\<dots> \<le> (\<phi> + 1) * (c * \<phi> ^ n)"
-      by (rule mult_right_mono) (insert \<open>c > 0\<close>, simp_all add: \<phi>_def power2_eq_square field_simps)
-    also have "\<dots> = c * \<phi> ^ Suc n + c * \<phi> ^ n"
+  shows "real (fib(n+2)) \<ge> \<phi> ^ n"
+proof (induction n rule: fib.induct)
+  case 1
+  then show ?case by simp
+next
+  case 2
+  then show ?case by (simp add: \<phi>_def real_le_lsqrt)
+next
+  case (3 n) term ?case
+  have "\<phi> ^ Suc (Suc n) = \<phi> ^ 2 * \<phi> ^ n"
+    by (simp add: field_simps power2_eq_square)
+  also have "\<dots> = (\<phi> + 1) * \<phi> ^ n"
+    by (simp_all add: \<phi>_def power2_eq_square field_simps)
+  also have "\<dots> = \<phi> ^ Suc n + \<phi> ^ n"
       by (simp add: field_simps)
-    also have "\<dots> \<le> real (fib (Suc n)) + real (fib n)"
-      by (intro add_mono rec.IH)
-    finally show ?case by simp
-  qed (insert \<open>\<phi> > 1\<close>, simp_all add: c_def power2_eq_square eval_nat_numeral)
+  also have "\<dots> \<le> real (fib (Suc n + 2)) + real (fib (n + 2))"
+      by (intro add_mono "3.IH")
+  finally show ?case by simp
 qed
 
 text \<open>The size of an AVL tree is (at least) exponential in its height:\<close>
@@ -524,11 +514,8 @@ lemma avl_size_lowerbound:
   assumes "avl t"
   shows   "\<phi> ^ (height t) \<le> size1 t"
 proof -
-  have "\<phi> > 0" by(simp add: \<phi>_def add_pos_nonneg)
-  hence "\<phi> ^ height t = (1 / \<phi> ^ 2) * \<phi> ^ (height t + 2)"
-    by(simp add: field_simps power2_eq_square)
-  also have "\<dots> \<le> fib (height t + 2)"
-    using fib_lowerbound[of "height t + 2"] by(simp add: \<phi>_def)
+  have "\<phi> ^ height t \<le> fib (height t + 2)"
+    unfolding \<phi>_def by(rule fib_lowerbound)
   also have "\<dots> \<le> size1 t"
     using avl_fib_bound[of t "height t"] assms by simp
   finally show ?thesis .
