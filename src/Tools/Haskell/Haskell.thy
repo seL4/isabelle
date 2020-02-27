@@ -322,7 +322,7 @@ module Isabelle.Markup (
 
   citationN, citation,
 
-  pathN, urlN, docN,
+  pathN, path, urlN, url, docN, doc,
 
   markupN, consistentN, unbreakableN, indentN, widthN,
   blockN, block, breakN, break, fbreakN, fbreak, itemN, item,
