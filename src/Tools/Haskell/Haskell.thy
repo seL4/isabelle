@@ -879,7 +879,7 @@ module Isabelle.XML.Encode (
 
   int_atom, bool_atom, unit_atom,
 
-  tree, properties, string, int, bool, unit, pair, triple, list, variant
+  tree, properties, string, int, bool, unit, pair, triple, list, option, variant
 )
 where
 
@@ -947,6 +947,10 @@ triple f g h (x, y, z) = [node (f x), node (g y), node (h z)]
 list :: T a -> T [a]
 list f xs = map (node . f) xs
 
+option :: T a -> T (Maybe a)
+option _ Nothing = []
+option f (Just x) = [node (f x)]
+
 variant :: [V a] -> T a
 variant fs x = [tagged (the (get_index (\f -> f x) fs))]
 \<close>
@@ -966,7 +970,7 @@ module Isabelle.XML.Decode (
 
   int_atom, bool_atom, unit_atom,
 
-  tree, properties, string, int, bool, unit, pair, triple, list, variant
+  tree, properties, string, int, bool, unit, pair, triple, list, option, variant
 )
 where
 
