@@ -445,20 +445,15 @@ qed
 
 subsection \<open>Height-Size Relation\<close>
 
-text \<open>Based on theorems by Daniel St\"uwe, Manuel Eberl and Peter Lammich.\<close>
-
-lemma height_invers: 
-  "(height t = 0) = (t = Leaf)"
-  "avl t \<Longrightarrow> (height t = Suc n) = (\<exists> l a r . t = Node l (a,Suc n) r)"
-by (induction t) auto
+text \<open>Based on theorems by Daniel St\"uwe, Manuel Eberl and Peter Lammich, much simplified.\<close>
 
 text \<open>Any AVL tree of height \<open>n\<close> has at least \<open>fib (n+2)\<close> leaves:\<close>
 
 lemma avl_fib_bound: "avl t \<Longrightarrow> height t = n \<Longrightarrow> fib (n+2) \<le> size1 t"
 proof (induction n arbitrary: t rule: fib.induct)
-  case 1 thus ?case by (simp add: height_invers)
+  case 1 thus ?case by (simp)
 next
-  case 2 thus ?case by (cases t) (auto simp: height_invers)
+  case 2 thus ?case by (cases t) (auto)
 next
   case (3 h)
   from "3.prems" obtain l a r where
