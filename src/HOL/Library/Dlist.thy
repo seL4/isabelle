@@ -1,10 +1,10 @@
-(* Author: Florian Haftmann, TU Muenchen 
+(* Author: Florian Haftmann, TU Muenchen
    Author: Andreas Lochbihler, ETH Zurich *)
 
 section \<open>Lists with elements distinct as canonical example for datatype invariants\<close>
 
 theory Dlist
-imports Main
+imports Confluent_Quotient
 begin
 
 subsection \<open>The type of distinct lists\<close>
@@ -14,6 +14,28 @@ typedef 'a dlist = "{xs::'a list. distinct xs}"
 proof
   show "[] \<in> {xs. distinct xs}" by simp
 qed
+
+context begin
+
+qualified definition dlist_eq where "dlist_eq = BNF_Def.vimage2p remdups remdups (=)"
+
+qualified lemma equivp_dlist_eq: "equivp dlist_eq"
+  unfolding dlist_eq_def by(rule equivp_vimage2p)(rule identity_equivp)
+
+qualified definition abs_dlist :: "'a list \<Rightarrow> 'a dlist" where "abs_dlist = Abs_dlist o remdups"
+
+definition qcr_dlist :: "'a list \<Rightarrow> 'a dlist \<Rightarrow> bool" where "qcr_dlist x y \<longleftrightarrow> y = abs_dlist x"
+
+qualified lemma Quotient_dlist_remdups: "Quotient dlist_eq abs_dlist list_of_dlist qcr_dlist"
+  unfolding Quotient_def dlist_eq_def qcr_dlist_def vimage2p_def abs_dlist_def
+  by (auto simp add: fun_eq_iff Abs_dlist_inject
+    list_of_dlist[simplified] list_of_dlist_inverse distinct_remdups_id)
+
+end
+
+locale Quotient_dlist begin
+setup_lifting Dlist.Quotient_dlist_remdups Dlist.equivp_dlist_eq[THEN equivp_reflp2]
+end
 
 setup_lifting type_definition_dlist
 
@@ -184,7 +206,7 @@ proof (cases dxs)
   show thesis
   proof (cases xs)
     case Nil with dxs
-    have "dxs = Dlist.empty" by (simp add: Dlist.empty_def) 
+    have "dxs = Dlist.empty" by (simp add: Dlist.empty_def)
     with empty show ?thesis .
   next
     case (Cons x xs)
@@ -210,135 +232,92 @@ subsection \<open>BNF instance\<close>
 
 context begin
 
-qualified fun wpull :: "('a \<times> 'b) list \<Rightarrow> ('b \<times> 'c) list \<Rightarrow> ('a \<times> 'c) list"
-where
-  "wpull [] ys = []"
-| "wpull xs [] = []"
-| "wpull ((a, b) # xs) ((b', c) # ys) =
-  (if b \<in> snd ` set xs then
-     (a, the (map_of (rev ((b', c) # ys)) b)) # wpull xs ((b', c) # ys)
-   else if b' \<in> fst ` set ys then
-     (the (map_of (map prod.swap (rev ((a, b) # xs))) b'), c) # wpull ((a, b) # xs) ys
-   else (a, c) # wpull xs ys)"
+qualified inductive double :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  "double (xs @ ys) (xs @ x # ys)" if "x \<in> set ys"
 
-qualified lemma wpull_eq_Nil_iff [simp]: "wpull xs ys = [] \<longleftrightarrow> xs = [] \<or> ys = []"
-by(cases "(xs, ys)" rule: wpull.cases) simp_all
-
-qualified lemma wpull_induct
-  [consumes 1, 
-   case_names Nil left[xs eq in_set IH] right[xs ys eq in_set IH] step[xs ys eq IH] ]:
-  assumes eq: "remdups (map snd xs) = remdups (map fst ys)"
-  and Nil: "P [] []"
-  and left: "\<And>a b xs b' c ys.
-    \<lbrakk> b \<in> snd ` set xs; remdups (map snd xs) = remdups (map fst ((b', c) # ys)); 
-      (b, the (map_of (rev ((b', c) # ys)) b)) \<in> set ((b', c) # ys); P xs ((b', c) # ys) \<rbrakk>
-    \<Longrightarrow> P ((a, b) # xs) ((b', c) # ys)"
-  and right: "\<And>a b xs b' c ys.
-    \<lbrakk> b \<notin> snd ` set xs; b' \<in> fst ` set ys;
-      remdups (map snd ((a, b) # xs)) = remdups (map fst ys);
-      (the (map_of (map prod.swap (rev ((a, b) #xs))) b'), b') \<in> set ((a, b) # xs);
-      P ((a, b) # xs) ys \<rbrakk>
-    \<Longrightarrow> P ((a, b) # xs) ((b', c) # ys)"
-  and step: "\<And>a b xs c ys.
-    \<lbrakk> b \<notin> snd ` set xs; b \<notin> fst ` set ys; remdups (map snd xs) = remdups (map fst ys); 
-      P xs ys \<rbrakk>
-    \<Longrightarrow> P ((a, b) # xs) ((b, c) # ys)"
-  shows "P xs ys"
-using eq
-proof(induction xs ys rule: wpull.induct)
-  case 1 thus ?case by(simp add: Nil)
-next
-  case 2 thus ?case by(simp split: if_split_asm)
-next
-  case Cons: (3 a b xs b' c ys)
-  let ?xs = "(a, b) # xs" and ?ys = "(b', c) # ys"
-  consider (xs) "b \<in> snd ` set xs" | (ys) "b \<notin> snd ` set xs" "b' \<in> fst ` set ys"
-    | (step) "b \<notin> snd ` set xs" "b' \<notin> fst ` set ys" by auto
-  thus ?case
+qualified lemma strong_confluentp_double: "strong_confluentp double"
+proof
+  fix xs ys zs :: "'a list"
+  assume ys: "double xs ys" and zs: "double xs zs"
+  consider (left) as y bs z cs where "xs = as @ bs @ cs" "ys = as @ y # bs @ cs" "zs = as @ bs @ z # cs" "y \<in> set (bs @ cs)" "z \<in> set cs"
+    | (right) as y bs z cs where "xs = as @ bs @ cs" "ys = as @ bs @ y # cs" "zs = as @ z # bs @ cs" "y \<in> set cs" "z \<in> set (bs @ cs)"
+  proof -
+    show thesis using ys zs
+      by(clarsimp simp add: double.simps append_eq_append_conv2)(auto intro: that)
+  qed
+  then show "\<exists>us. double\<^sup>*\<^sup>* ys us \<and> double\<^sup>=\<^sup>= zs us"
   proof cases
-    case xs
-    with Cons.prems have eq: "remdups (map snd xs) = remdups (map fst ?ys)" by auto
-    from xs eq have "b \<in> fst ` set ?ys" by (metis list.set_map set_remdups)
-    hence "map_of (rev ?ys) b \<noteq> None" unfolding map_of_eq_None_iff by auto
-    then obtain c' where "map_of (rev ?ys) b = Some c'" by blast
-    then have "(b, the (map_of (rev ?ys) b)) \<in> set ?ys" by(auto dest: map_of_SomeD split: if_split_asm)
-    from xs eq this Cons.IH(1)[OF xs eq] show ?thesis by(rule left)
+    case left
+    let ?us = "as @ y # bs @ z # cs"
+    have "double ys ?us" "double zs ?us" using left
+      by(auto 4 4 simp add: double.simps)(metis append_Cons append_assoc)+
+    then show ?thesis by blast
   next
-    case ys
-    from ys Cons.prems have eq: "remdups (map snd ?xs) = remdups (map fst ys)" by auto
-    from ys eq have "b' \<in> snd ` set ?xs" by (metis list.set_map set_remdups)
-    hence "map_of (map prod.swap (rev ?xs)) b' \<noteq> None"
-      unfolding map_of_eq_None_iff by(auto simp add: image_image)
-    then obtain a' where "map_of (map prod.swap (rev ?xs)) b' = Some a'" by blast
-    then have "(the (map_of (map prod.swap (rev ?xs)) b'), b') \<in> set ?xs"
-      by(auto dest: map_of_SomeD split: if_split_asm)
-    from ys eq this Cons.IH(2)[OF ys eq] show ?thesis by(rule right)
-  next
-    case *: step
-    hence "remdups (map snd xs) = remdups (map fst ys)" "b = b'" using Cons.prems by auto
-    from * this(1) Cons.IH(3)[OF * this(1)] show ?thesis unfolding \<open>b = b'\<close> by(rule step)
+    case right
+    let ?us = "as @ z # bs @ y # cs"
+    have "double ys ?us" "double zs ?us" using right
+      by(auto 4 4 simp add: double.simps)(metis append_Cons append_assoc)+
+    then show ?thesis by blast
   qed
 qed
 
-qualified lemma set_wpull_subset:
-  assumes "remdups (map snd xs) = remdups (map fst ys)"
-  shows "set (wpull xs ys) \<subseteq> set xs O set ys"
-using assms by(induction xs ys rule: wpull_induct) auto
+qualified lemma double_Cons1 [simp]: "double xs (x # xs)" if "x \<in> set xs"
+  using double.intros[of x xs "[]"] that by simp
 
-qualified lemma set_fst_wpull:
-  assumes "remdups (map snd xs) = remdups (map fst ys)"
-  shows "fst ` set (wpull xs ys) = fst ` set xs"
-using assms by(induction xs ys rule: wpull_induct)(auto intro: rev_image_eqI)
+qualified lemma double_Cons_same [simp]: "double xs ys \<Longrightarrow> double (x # xs) (x # ys)"
+  by(auto simp add: double.simps Cons_eq_append_conv)
 
-qualified lemma set_snd_wpull:
-  assumes "remdups (map snd xs) = remdups (map fst ys)"
-  shows "snd ` set (wpull xs ys) = snd ` set ys"
-using assms by(induction xs ys rule: wpull_induct)(auto intro: rev_image_eqI)
-  
-qualified lemma wpull:
-  assumes "distinct xs"
-  and "distinct ys"
-  and "set xs \<subseteq> {(x, y). R x y}"
-  and "set ys \<subseteq> {(x, y). S x y}"
-  and eq: "remdups (map snd xs) = remdups (map fst ys)"
-  shows "\<exists>zs. distinct zs \<and> set zs \<subseteq> {(x, y). (R OO S) x y} \<and>
-         remdups (map fst zs) = remdups (map fst xs) \<and> remdups (map snd zs) = remdups (map snd ys)"
-proof(intro exI conjI)
-  let ?zs = "remdups (wpull xs ys)"
-  show "distinct ?zs" by simp
-  show "set ?zs \<subseteq> {(x, y). (R OO S) x y}" using assms(3-4) set_wpull_subset[OF eq] by fastforce
-  show "remdups (map fst ?zs) = remdups (map fst xs)" unfolding remdups_map_remdups using eq
-    by(induction xs ys rule: wpull_induct)(auto simp add: set_fst_wpull intro: rev_image_eqI)
-  show "remdups (map snd ?zs) = remdups (map snd ys)" unfolding remdups_map_remdups using eq
-    by(induction xs ys rule: wpull_induct)(auto simp add: set_snd_wpull intro: rev_image_eqI)
-qed
+qualified lemma doubles_Cons_same: "double\<^sup>*\<^sup>* xs ys \<Longrightarrow> double\<^sup>*\<^sup>* (x # xs) (x # ys)"
+  by(induction rule: rtranclp_induct)(auto intro: rtranclp.rtrancl_into_rtrancl)
 
-qualified lift_definition set :: "'a dlist \<Rightarrow> 'a set" is List.set .
+qualified lemma remdups_into_doubles: "double\<^sup>*\<^sup>* (remdups xs) xs"
+  by(induction xs)(auto intro: doubles_Cons_same rtranclp.rtrancl_into_rtrancl)
 
-qualified lemma map_transfer [transfer_rule]:
-  "(rel_fun (=) (rel_fun (pcr_dlist (=)) (pcr_dlist (=)))) (\<lambda>f x. remdups (List.map f x)) Dlist.map"
-by(simp add: rel_fun_def dlist.pcr_cr_eq cr_dlist_def Dlist.map_def remdups_remdups)
+qualified lemma dlist_eq_into_doubles: "Dlist.dlist_eq \<le> equivclp double"
+  by(auto 4 4 simp add: Dlist.dlist_eq_def vimage2p_def
+     intro: equivclp_trans converse_rtranclp_into_equivclp rtranclp_into_equivclp remdups_into_doubles)
 
-bnf "'a dlist"
-  map: Dlist.map
-  sets: set
-  bd: natLeq
-  wits: Dlist.empty
-unfolding OO_Grp_alt mem_Collect_eq
-subgoal by(rule ext)(simp add: dlist_eq_iff)
-subgoal by(rule ext)(simp add: dlist_eq_iff remdups_map_remdups)
-subgoal by(simp add: dlist_eq_iff set_def cong: list.map_cong)
-subgoal by(simp add: set_def fun_eq_iff)
-subgoal by(simp add: natLeq_card_order)
-subgoal by(simp add: natLeq_cinfinite)
-subgoal by(rule ordLess_imp_ordLeq)(simp add: finite_iff_ordLess_natLeq[symmetric] set_def)
-subgoal by(rule predicate2I)(transfer; auto simp add: wpull)
-subgoal by(simp add: set_def)
-done
+qualified lemma factor_double_map: "double (map f xs) ys \<Longrightarrow> \<exists>zs. Dlist.dlist_eq xs zs \<and> ys = map f zs"
+  by(auto simp add: double.simps Dlist.dlist_eq_def vimage2p_def map_eq_append_conv)
+    (metis list.simps(9) map_append remdups.simps(2) remdups_append2)
+
+qualified lemma dlist_eq_set_eq: "Dlist.dlist_eq xs ys \<Longrightarrow> set xs = set ys"
+  by(simp add: Dlist.dlist_eq_def vimage2p_def)(metis set_remdups)
+
+qualified lemma dlist_eq_map_respect: "Dlist.dlist_eq xs ys \<Longrightarrow> Dlist.dlist_eq (map f xs) (map f ys)"
+  by(clarsimp simp add: Dlist.dlist_eq_def vimage2p_def)(metis remdups_map_remdups)
+
+qualified lemma confluent_quotient_dlist:
+  "confluent_quotient double Dlist.dlist_eq Dlist.dlist_eq Dlist.dlist_eq Dlist.dlist_eq Dlist.dlist_eq
+     (map fst) (map snd) (map fst) (map snd) list_all2 list_all2 list_all2 set set"
+  by(unfold_locales)(auto intro: strong_confluentp_imp_confluentp strong_confluentp_double
+    dest: factor_double_map dlist_eq_into_doubles[THEN predicate2D] dlist_eq_set_eq
+    simp add: list.in_rel list.rel_compp dlist_eq_map_respect Dlist.equivp_dlist_eq equivp_imp_transp)
+
 
 lifting_update dlist.lifting
 lifting_forget dlist.lifting
 
 end
+
+context begin
+interpretation Quotient_dlist: Quotient_dlist .
+
+lift_bnf (plugins del: code) 'a dlist
+  subgoal for A B by(rule confluent_quotient.subdistributivity[OF Dlist.confluent_quotient_dlist])
+  subgoal by(force dest: Dlist.dlist_eq_set_eq intro: equivp_reflp[OF Dlist.equivp_dlist_eq])
+  done
+
+qualified lemma list_of_dlist_transfer[transfer_rule]:
+  "bi_unique R \<Longrightarrow> (rel_fun (Quotient_dlist.pcr_dlist R) (list_all2 R)) remdups list_of_dlist"
+  unfolding rel_fun_def Quotient_dlist.pcr_dlist_def qcr_dlist_def Dlist.abs_dlist_def
+  by (auto simp: Abs_dlist_inverse intro!: remdups_transfer[THEN rel_funD])
+
+lemma list_of_dlist_map_dlist[simp]:
+  "list_of_dlist (map_dlist f xs) = remdups (map f (list_of_dlist xs))"
+  by transfer (auto simp: remdups_map_remdups)
+
+end
+
 
 end

@@ -825,7 +825,6 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Milner_Tofte
     Stream_Processor
     Cyclic_List
-    Dlist
     Free_Idempotent_Monoid
     LDL
     TLList

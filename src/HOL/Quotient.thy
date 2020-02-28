@@ -842,8 +842,18 @@ lemma rel_conj_eq_onp: "equivp R \<Longrightarrow> rel_conj R (eq_onp P) \<le> R
 lemma Quotient_Quotient3: "Quotient R Abs Rep T \<Longrightarrow> Quotient3 R Abs Rep"
   unfolding Quotient_def Quotient3_def by blast
 
-lemma bnf_lift_Quotient_equivp: "Quotient R Abs Rep T \<and> equivp R \<Longrightarrow> True"
-  by auto
+lemma Quotient_reflp_imp_equivp: "Quotient R Abs Rep T \<Longrightarrow> reflp R \<Longrightarrow> equivp R"
+  using Quotient_symp Quotient_transp equivpI by blast
+
+lemma Quotient_eq_onp_typedef:
+  "Quotient (eq_onp P) Abs Rep cr \<Longrightarrow> type_definition Rep Abs {x. P x}"
+  unfolding Quotient_def eq_onp_def
+  by unfold_locales auto
+
+lemma Quotient_eq_onp_type_copy:
+  "Quotient (=) Abs Rep cr \<Longrightarrow> type_definition Rep Abs UNIV"
+  unfolding Quotient_def eq_onp_def
+  by unfold_locales auto
 
 ML_file "Tools/BNF/bnf_lift.ML"
 
@@ -853,7 +863,6 @@ hide_fact
   relcompp_mem_Grp_neq_bot comp_projr_Inr in_rel_sum_in_image_projr subset_rel_sumI
   relcompp_eq_Grp_neq_bot rel_fun_rel_OO1 rel_fun_rel_OO2 rel_sum_eq2_nonempty rel_sum_eq3_nonempty
   hypsubst equivp_add_relconj Grp_conversep_eq_onp Grp_conversep_nonempty relcomppI2 rel_conj_eq_onp
-  bnf_lift_Quotient_equivp Quotient_Quotient3
+  Quotient_reflp_imp_equivp Quotient_Quotient3
 
 end
-

@@ -3117,7 +3117,7 @@ text \<open>
 \<^rail>\<open>
   @@{command lift_bnf} target? lb_options? \<newline>
     @{syntax tyargs} name wit_terms?  \<newline>
-    ('via' thm)? @{syntax map_rel_pred}?
+    ('via' thm thm?)? @{syntax map_rel_pred}?
   ;
   @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits' | 'no_warn_transfer') + ',') ')'
   ;
@@ -3132,7 +3132,9 @@ type}) using the @{command typedef} command or as a quotient type of a BNF (also
 \emph{raw type}) using the @{command quotient_type}. To achieve this, it lifts the BNF
 structure on the raw type to the abstract type following a \<^term>\<open>type_definition\<close> or a
 \<^term>\<open>Quotient\<close> theorem. The theorem is usually inferred from the type, but can
-also be explicitly supplied by means of the optional \<open>via\<close> clause. In
+also be explicitly supplied by means of the optional \<open>via\<close> clause. In case of quotients, it
+is sometimes also necessary to supply a second theorem of the form \<^term>\<open>reflp eq\<close>,
+that expresses the reflexivity (and thus totality) of the equivalence relation. In
 addition, custom names for the set functions, the map function, the predicator, and the relator,
 as well as nonemptiness witnesses can be specified.
 

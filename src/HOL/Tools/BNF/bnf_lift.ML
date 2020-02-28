@@ -24,12 +24,12 @@ sig
       local_theory -> local_theory
   val lift_bnf:
     ((((lift_bnf_option list * (binding option * (string * sort option)) list) *
-      string) * term list option) * thm option) * (binding * binding * binding) ->
+      string) * term list option) * thm list option) * (binding * binding * binding) ->
       ({context: Proof.context, prems: thm list} -> tactic) list ->
       local_theory -> local_theory
   val lift_bnf_cmd:
      ((((lift_bnf_option list * (binding option * (string * string option)) list) *
-       string) * string list) * (Facts.ref * Token.src list) option) *
+       string) * string list) * (Facts.ref * Token.src list) list option) *
        (binding * binding * binding) -> local_theory -> Proof.state
 end
 
@@ -47,7 +47,7 @@ datatype lift_bnf_option =
 | No_Warn_Wits
 | No_Warn_Transfer;
 
-datatype lift_thm = Typedef of thm | Quotient of thm
+datatype equiv_thm = Typedef | Quotient of thm
 
 (** Util **)
 
@@ -327,7 +327,7 @@ fun mk_transfer_thms quiet bnf_F bnf_G name consts thm Tss defs lthy = let
     fun mk_crel_def quot_thm =
       (case thm of
         Quotient equiv => @{thm Quotient_crel_quotient} OF [quot_thm, equiv]
-      | Typedef _ => hd ([quot_thm] RL @{thms Quotient_crel_typedef Quotient_crel_typecopy}));
+      | Typedef => hd ([quot_thm] RL @{thms Quotient_crel_typedef Quotient_crel_typecopy}));
     fun no_quotient _ = [Pretty.para ("No quotient theorem has been registered for " ^
         Binding.name_of (name_of_bnf bnf_G) ^ "."),
       Pretty.para "Use setup_lifting to register a quotient or type definition theorem."];
@@ -686,14 +686,13 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
             val (bnf_G, lthy) = morph_bnf_defs unfold_morphism bnf_G
               |> (fn bnf => note_bnf_defs bnf lthy);
 
-            val setup_lifting_thm = Typedef thm;
             val quiet = exists (fn No_Warn_Transfer => true | _ => false) opts;
 
             val transfer_consts = mk_typedef_transfer_tacs bnf_F bnf_G
               {map_closed=map_closed_thm,typedef=thm} old_defs map_raw rel_raw pred_raw sets_F;
           in
             lthy |> BNF_Def.register_bnf plugins AbsT_name bnf_G |>
-              mk_transfer_thms quiet bnf_F bnf_G AbsT_name transfer_consts setup_lifting_thm
+              mk_transfer_thms quiet bnf_F bnf_G AbsT_name transfer_consts Typedef
               {abs=typ_subst_atomic (alphas ~~ alphas') AbsT, rep=RepT, Ds0=map TFree Ds0,
                deads = deads, alphas=alphas, betas=alphas', gammas=betas, deltas=betas'} defs
           end
@@ -832,7 +831,7 @@ fun mk_quotient_transfer_tacs bnf_F Tss live qthms thms set_F'_thmss old_defs
   end;
 
 
-fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy =
+fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
   let
     (* extract rep_G and abs_G *)
     val (equiv_rel, abs_G, rep_G) = strip3 quot_thm;
@@ -1968,35 +1967,70 @@ fun quotient_bnf (equiv_thm, quot_thm) _ wits specs map_b rel_b pred_b opts lthy
 local
 
 fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
-    (((((plugins, raw_specs), raw_absT_name), raw_wits), xthm_opt), (map_b, rel_b, pred_b)) lthy =
+    (((((plugins, raw_specs), raw_absT_name), raw_wits), xthms_opt), (map_b, rel_b, pred_b)) lthy =
   let
     val absT_name = prepare_name lthy raw_absT_name;
 
-    val input_thm =
-      (case xthm_opt of
-        SOME xthm => prepare_thm lthy xthm
-      | NONE => Typedef.get_info lthy absT_name |> hd |> snd |> #type_definition);
+    fun bad_input input =
+      Pretty.chunks [Pretty.para ("Expected theorem(s) of either form:"),
+      Pretty.item [Pretty.enum "," "" "" [Syntax.pretty_term lthy @{term "Quotient R Abs Rep T"},
+        Syntax.pretty_term lthy @{term "reflp R"}]],
+      Pretty.item [Syntax.pretty_term lthy @{term "Quotient R Abs Rep T"}],
+      Pretty.item [Syntax.pretty_term lthy @{term "type_definition Rep Abs A"}],
+      Pretty.para ("Got"), Pretty.enum "," "" "" (map (Thm.pretty_thm lthy) input)]
+      |> Pretty.string_of
+      |> error;
+
+    fun no_refl qthm =
+      Pretty.chunks [Pretty.para ("Could not find a reflexivity rule for the Quotient theorem:"),
+      Pretty.item [Thm.pretty_thm lthy qthm],
+      Pretty.para ("Try supplying a reflexivity theorem manually or registering it in setup_lifting.")]
+      |> Pretty.string_of
+      |> error;
+
+    fun find_equiv_thm_via_Quotient qthm =
+      let
+        val refl_thms = Lifting_Info.get_reflexivity_rules lthy
+         |> map (unfold_thms lthy @{thms reflp_eq[symmetric]});
+      in
+        (case refl_thms RL [qthm RS @{thm Quotient_reflp_imp_equivp}] of
+          [] => no_refl qthm
+        | thm :: _ => thm)
+      end;
+
+    val (lift_thm, equiv_thm) =
+      (case Option.map (prepare_thm lthy) xthms_opt of
+        SOME (thms as [qthm, _]) =>
+          (case try (fn thms => @{thm Quotient_reflp_imp_equivp} OF thms) thms of
+            SOME equiv_thm => (qthm RS @{thm Quotient_Quotient3}, Quotient equiv_thm)
+          | NONE => bad_input thms)
+      | SOME [thm] =>
+          (case try (fn thm => thm RS @{thm Quotient_Quotient3}) thm of
+            SOME qthm => (qthm, Quotient (find_equiv_thm_via_Quotient thm))
+          | NONE => if can (fn thm => thm RS @{thm type_definition.Rep}) thm
+              then (thm, Typedef)
+              else bad_input [thm])
+      | NONE => (case Lifting_Info.lookup_quotients lthy absT_name of
+            SOME {quot_thm = qthm, ...} =>
+              let
+                val qthm = Thm.transfer' lthy qthm;
+              in
+                case [qthm] RL @{thms Quotient_eq_onp_typedef Quotient_eq_onp_type_copy} of
+                  thm :: _ => (thm, Typedef)
+                | _ => (qthm RS @{thm Quotient_Quotient3},
+                   Quotient (find_equiv_thm_via_Quotient qthm))
+              end
+          | NONE => (Typedef.get_info lthy absT_name |> hd |> snd |> #type_definition, Typedef))
+      | SOME thms => bad_input thms);
     val wits = (Option.map o map) (prepare_term lthy) raw_wits;
     val specs =
       map (apsnd (apsnd (the_default @{sort type} o Option.map (prepare_sort lthy)))) raw_specs;
 
-    val which_bnf = (case (xthm_opt, Quotient_Info.lookup_quotients lthy absT_name) of
-        (NONE, SOME qs) => quotient_bnf (#equiv_thm qs, #quot_thm qs)
-      | (SOME _, _) =>
-          if can (fn thm => thm RS @{thm bnf_lift_Quotient_equivp}) input_thm
-          then quotient_bnf (input_thm RS conjunct2, input_thm RS conjunct1 RS @{thm Quotient_Quotient3})
-          else if can (fn thm => thm RS @{thm type_definition.Rep}) input_thm
-            then typedef_bnf
-            else Pretty.chunks [Pretty.para ("Expected theorem of either form:"),
-                Pretty.item [Syntax.pretty_term lthy @{term "Quotient R Abs Rep T \<and> equivp R"}],
-                Pretty.item [Syntax.pretty_term lthy @{term "type_definition Rep Abs A"}],
-                Pretty.para ("Got"), Pretty.item [Thm.pretty_thm lthy input_thm]]
-              |> Pretty.string_of
-              |> error
-      | _ => typedef_bnf);
-
+    val which_bnf = (case equiv_thm of
+        Quotient thm => quotient_bnf (thm, lift_thm)
+      | Typedef => typedef_bnf lift_thm);
   in
-    which_bnf input_thm wits specs map_b rel_b pred_b plugins lthy
+    which_bnf wits specs map_b rel_b pred_b plugins lthy
   end;
 
 fun prepare_lift_bnf prepare_name prepare_sort prepare_term prepare_thm =
@@ -2022,7 +2056,7 @@ in
 val lift_bnf_cmd =
   prepare_lift_bnf
     (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
-    Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms);
+    Syntax.read_sort Syntax.read_term Attrib.eval_thms;
 
 fun lift_bnf args tacs =
   prepare_solve (K I) (K I) (K I) (K I) (K tacs) args;
@@ -2032,14 +2066,16 @@ fun copy_bnf_tac {context = ctxt, prems = _} =
 
 val copy_bnf =
   apfst (apfst (rpair NONE))
+  #> apfst (apsnd (Option.map single))
   #> prepare_solve (K I) (K I) (K I) (K I)
     (fn n => replicate n copy_bnf_tac);
 
 val copy_bnf_cmd =
   apfst (apfst (rpair NONE))
+  #> apfst (apsnd (Option.map single))
   #> prepare_solve
     (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
-    Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms)
+    Syntax.read_sort Syntax.read_term Attrib.eval_thms
     (fn n => replicate n copy_bnf_tac);
 
 end;
@@ -2068,6 +2104,7 @@ val parse_lift_opts = Parse.reserved "no_warn_wits" >> K No_Warn_Wits |> parse_c
 val parse_copy_opts = parse_common_opts Scan.fail;
 
 val parse_xthm = Scan.option (Parse.reserved "via" |-- Parse.thm);
+val parse_xthms = Scan.option (Parse.reserved "via" |-- Parse.thms1);
 
 in
 
@@ -2077,7 +2114,7 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword lift_bnf}
     "register a quotient type/subtype of a bounded natural functor (BNF) as a BNF"
     ((parse_lift_opts -- parse_type_args_named_constrained -- Parse.type_const -- parse_wits --
-      parse_xthm -- parse_map_rel_pred_bindings) >> lift_bnf_cmd);
+      parse_xthms -- parse_map_rel_pred_bindings) >> lift_bnf_cmd);
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword copy_bnf}
