@@ -2,7 +2,7 @@ Poly/ML for Isabelle
 ====================
 
 This test version of Poly/ML pre-5.8.1 is based on the repository
-snapshot https://github.com/polyml/polyml/commit/055f20cdc326
+snapshot https://github.com/polyml/polyml/commit/6025c250b4f1
 
 The Isabelle repository provides an administrative tool "isabelle
 build_polyml", which can be used in the polyml component directory as
@@ -13,7 +13,7 @@ follows.
   $ isabelle build_polyml -m32 -s sha1 src
   $ isabelle build_polyml -m64 -s sha1 src
 
-* Mac OS X:
+* macOS:
 
   $ isabelle build_polyml -m32 -s sha1 src
   $ isabelle build_polyml -m64 -s sha1 src
@@ -24,11 +24,11 @@ follows.
   $ isabelle build_polyml -M /cygdrive/c/msys64 -m64 -s sha1 src
 
 
-Building libgmp on Mac OS X
-===========================
+Building libgmp on macOS
+========================
 
 The build_polyml invocations above implicitly use the GNU Multiple Precision
-Arithmetic Library (libgmp), but that is not available on Mac OS X by default.
+Arithmetic Library (libgmp), but that is not available on macOS by default.
 Appending "--without-gmp" to the command-line omits this library. Building
 libgmp properly from sources works as follows (library headers and binaries
 will be placed in /usr/local).
@@ -47,4 +47,4 @@ will be placed in /usr/local).
 
 
         Makarius
-        24-Nov-2019
+        28-Feb-2020
