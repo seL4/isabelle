@@ -136,6 +136,10 @@ system of the underlying object-logic. Minor INCOMPATIBILITY.
 * More scalable Export.export using XML.tree to avoid premature string
 allocations, with convenient shortcut XML.blob. Minor INCOMPATIBILITY.
 
+* Prover IDE support for the underlying Poly/ML compiler (not the basis
+library). Open $ML_SOURCES/ROOT.ML in Isabelle/jEdit to browse the
+implementation with full markup.
+
 
 *** System ***
 
