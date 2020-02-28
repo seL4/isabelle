@@ -29,7 +29,8 @@ accessible via command 'thm_oracles'.
 
 * System: Isabelle/Phabricator as self-hosted project management platform.
 
-* System: more robust support for Windows.
+* System: update to current Poly/ML 5.8.1 with improved robustness,
+especially on Windows.
 
 * System: improved support for macOS, notably 10.15 Catalina.
 
