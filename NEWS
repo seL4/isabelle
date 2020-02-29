@@ -55,6 +55,10 @@ has been discontinued.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Actions isabelle.tooltip (CS+b) and isabelle.message (CS+m) display
+tooltip message popups, corresponding to mouse hovering with/without the
+CONTROL/COMMAND key pressed.
+
 * Prover IDE startup is now much faster, because theory dependencies are
 no longer explored in advance. The overall session structure with its
 declarations of 'directories' is sufficient to locate theory files. Thus

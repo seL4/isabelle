@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Frame
+import java.awt.{Frame, Point}
 
 import scala.swing.CheckBox
 import scala.swing.event.ButtonClicked
@@ -514,5 +514,27 @@ object Isabelle
     if (Pretty_Tooltip.dismissed_all()) dismissed = true
 
     dismissed
+  }
+
+
+  /* tooltips */
+
+  def show_tooltip(view: View, control: Boolean)
+  {
+    GUI_Thread.require {}
+
+    val text_area = view.getTextArea
+    val painter = text_area.getPainter
+    val caret_range = JEdit_Lib.caret_range(text_area)
+    for {
+      doc_view <- Document_View.get(text_area)
+      rendering = doc_view.get_rendering()
+      tip <- rendering.tooltip(caret_range, control)
+      loc0 <- Option(text_area.offsetToXY(caret_range.start))
+    } {
+      val loc = new Point(loc0.x, loc0.y + painter.getLineHeight / 2)
+      val results = rendering.snapshot.command_results(tip.range)
+      Pretty_Tooltip(view, painter, loc, rendering, results, tip)
+    }
   }
 }

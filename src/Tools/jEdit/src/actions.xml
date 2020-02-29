@@ -77,6 +77,16 @@
 	    isabelle.jedit.Isabelle.complete(view, false);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.tooltip">
+	  <CODE>
+	    isabelle.jedit.Isabelle.show_tooltip(view, true);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.message">
+	  <CODE>
+	    isabelle.jedit.Isabelle.show_tooltip(view, false);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.complete-word">
 	  <CODE>
 	    isabelle.jedit.Isabelle.complete(view, true);
