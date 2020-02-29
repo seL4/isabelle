@@ -362,10 +362,8 @@ object Isabelle
 
   def select_entity(text_area: JEditTextArea)
   {
-    for {
-      doc_view <- Document_View.get(text_area)
-      rendering = doc_view.get_rendering()
-    } {
+    for (doc_view <- Document_View.get(text_area)) {
+      val rendering = doc_view.get_rendering()
       val caret_range = JEdit_Lib.caret_range(text_area)
       val buffer_range = JEdit_Lib.buffer_range(text_area.getBuffer)
       val active_focus = rendering.caret_focus_ranges(caret_range, buffer_range)
