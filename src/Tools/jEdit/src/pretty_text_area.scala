@@ -242,13 +242,13 @@ class Pretty_Text_Area(
       {
         evt.getKeyCode match {
           case KeyEvent.VK_C | KeyEvent.VK_INSERT
-          if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 &&
+          if (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 &&
               text_area.getSelectionCount != 0 =>
             Registers.copy(text_area, '$')
             evt.consume
 
           case KeyEvent.VK_A
-          if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
+          if (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 =>
             text_area.selectAll
             evt.consume
 

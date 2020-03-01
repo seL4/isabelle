@@ -388,10 +388,10 @@ object JEdit_Lib
   def special_key(evt: KeyEvent): Boolean =
   {
     // cf. 5.2.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
-    val mod = evt.getModifiers
-    (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
-    (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
+    val mod = evt.getModifiersEx
+    (mod & InputEvent.CTRL_DOWN_MASK) != 0 && (mod & InputEvent.ALT_DOWN_MASK) == 0 ||
+    (mod & InputEvent.CTRL_DOWN_MASK) == 0 && (mod & InputEvent.ALT_DOWN_MASK) != 0 &&
       !Debug.ALT_KEY_PRESSED_DISABLED ||
-    (mod & InputEvent.META_MASK) != 0
+    (mod & InputEvent.META_DOWN_MASK) != 0
   }
 }
