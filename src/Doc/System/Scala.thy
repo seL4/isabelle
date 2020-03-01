@@ -103,7 +103,7 @@ text \<open>
 \<open>Usage: isabelle scala_project [OPTIONS] PROJECT_DIR
 
   Options are:
-    -l           make symlinks to original scala files
+    -L           make symlinks to original scala files
 
   Setup Gradle project for Isabelle/Scala/jEdit --- to support Scala IDEs
   such as IntelliJ IDEA.\<close>}
