@@ -11,7 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Font, Toolkit, Window}
-import java.awt.event.KeyEvent
+import java.awt.event.{InputEvent, KeyEvent}
 import java.awt.im.InputMethodRequests
 import javax.swing.JTextField
 import javax.swing.event.{DocumentListener, DocumentEvent}
@@ -240,15 +240,21 @@ class Pretty_Text_Area(
   addKeyListener(JEdit_Lib.key_listener(
     key_pressed = (evt: KeyEvent) =>
       {
+        val strict_control =
+        {
+          val mod = evt.getModifiersEx
+          (mod & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 &&
+          (mod & InputEvent.SHIFT_DOWN_MASK) == 0
+        }
+
         evt.getKeyCode match {
           case KeyEvent.VK_C | KeyEvent.VK_INSERT
-          if (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 &&
-              text_area.getSelectionCount != 0 =>
+          if strict_control && text_area.getSelectionCount != 0 =>
             Registers.copy(text_area, '$')
             evt.consume
 
           case KeyEvent.VK_A
-          if (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0 =>
+          if strict_control =>
             text_area.selectAll
             evt.consume
 
