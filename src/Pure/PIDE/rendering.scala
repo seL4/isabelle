@@ -208,6 +208,9 @@ object Rendering
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
 
+  val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
+  val error_elements = Markup.Elements(Markup.ERROR)
+
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
@@ -651,6 +654,15 @@ abstract class Rendering(
       if (all_tips.isEmpty) None else Some(Text.Info(r, all_tips))
     }
   }
+
+
+  /* messages */
+
+  def warnings(range: Text.Range): List[Text.Markup] =
+    snapshot.select(range, Rendering.warning_elements, _ => Some(_)).map(_.info)
+
+  def errors(range: Text.Range): List[Text.Markup] =
+    snapshot.select(range, Rendering.error_elements, _ => Some(_)).map(_.info)
 
 
   /* command status overview */

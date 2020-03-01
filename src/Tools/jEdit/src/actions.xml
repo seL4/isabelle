@@ -87,6 +87,26 @@
 	    isabelle.jedit.Isabelle.show_tooltip(view, false);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.first-error">
+	  <CODE>
+	    isabelle.jedit.Isabelle.goto_first_error(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.last-error">
+	  <CODE>
+	    isabelle.jedit.Isabelle.goto_last_error(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.prev-error">
+	  <CODE>
+	    isabelle.jedit.Isabelle.goto_prev_error(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.next-error">
+	  <CODE>
+	    isabelle.jedit.Isabelle.goto_next_error(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.complete-word">
 	  <CODE>
 	    isabelle.jedit.Isabelle.complete(view, true);

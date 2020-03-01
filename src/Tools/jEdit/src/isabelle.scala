@@ -537,4 +537,45 @@ object Isabelle
       Pretty_Tooltip(view, painter, loc, rendering, results, tip)
     }
   }
+
+
+  /* error navigation */
+
+  private def goto_error(
+    view: View, range: Text.Range, which: String = "")(get: List[Text.Markup] => Option[Text.Markup])
+  {
+    GUI_Thread.require {}
+
+    val text_area = view.getTextArea
+    for (doc_view <- Document_View.get(text_area)) {
+      val rendering = doc_view.get_rendering()
+      get(rendering.errors(range)) match {
+        case Some(err) =>
+          PIDE.editor.goto_buffer(false, view, view.getBuffer, err.range.start)
+        case None =>
+          view.getStatus.setMessageAndClear("No " + which + "error in current document snapshot")
+      }
+    }
+  }
+
+  def goto_first_error(view: View): Unit =
+    goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.headOption)
+
+  def goto_last_error(view: View): Unit =
+    goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.lastOption)
+
+  def goto_prev_error(view: View): Unit =
+    goto_error(view, JEdit_Lib.buffer_range_to_caret(view.getTextArea), which = "previous ")(
+      list =>
+        list.reverse match {
+          case _ :: err :: _ => Some(err)
+          case _ => None
+        })
+
+  def goto_next_error(view: View): Unit =
+    goto_error(view, JEdit_Lib.buffer_range_from_caret(view.getTextArea), which = "next ")(
+      {
+        case _ :: err :: _ => Some(err)
+        case _ => None
+      })
 }
