@@ -542,14 +542,18 @@ object Isabelle
   /* error navigation */
 
   private def goto_error(
-    view: View, range: Text.Range, which: String = "")(get: List[Text.Markup] => Option[Text.Markup])
+    view: View,
+    range: Text.Range,
+    avoid_range: Text.Range = Text.Range.offside,
+    which: String = "")(get: List[Text.Markup] => Option[Text.Markup])
   {
     GUI_Thread.require {}
 
     val text_area = view.getTextArea
     for (doc_view <- Document_View.get(text_area)) {
       val rendering = doc_view.get_rendering()
-      get(rendering.errors(range)) match {
+      val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
+      get(errs) match {
         case Some(err) =>
           PIDE.editor.goto_buffer(false, view, view.getBuffer, err.range.start)
         case None =>
@@ -564,18 +568,17 @@ object Isabelle
   def goto_last_error(view: View): Unit =
     goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.lastOption)
 
-  def goto_prev_error(view: View): Unit =
-    goto_error(view, JEdit_Lib.buffer_range_to_caret(view.getTextArea), which = "previous ")(
-      list =>
-        list.reverse match {
-          case _ :: err :: _ => Some(err)
-          case _ => None
-        })
+  def goto_prev_error(view: View)
+  {
+    val caret_range = JEdit_Lib.caret_range(view.getTextArea)
+    val range = Text.Range(0, caret_range.stop)
+    goto_error(view, range, avoid_range = caret_range, which = "previous ")(_.lastOption)
+  }
 
-  def goto_next_error(view: View): Unit =
-    goto_error(view, JEdit_Lib.buffer_range_from_caret(view.getTextArea), which = "next ")(
-      {
-        case _ :: err :: _ => Some(err)
-        case _ => None
-      })
+  def goto_next_error(view: View)
+  {
+    val caret_range = JEdit_Lib.caret_range(view.getTextArea)
+    val range = Text.Range(caret_range.start, view.getBuffer.getLength)
+    goto_error(view, range, avoid_range = caret_range, which = "next ")(_.headOption)
+  }
 }
