@@ -1074,6 +1074,23 @@ text \<open>
   recursively via further popups and hyperlinks (see
   \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate certain
   actions (see \secref{sec:auto-tools} and \secref{sec:sledgehammer}).
+
+  \<^medskip>
+  Alternatively, the subsequent actions (with keyboard shortcuts) allow to
+  show tooltip messages or navigate error positions:
+
+  \<^medskip>
+  \begin{tabular}[t]{l}
+  @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close>) \\
+  @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close>) \\
+  \end{tabular}\quad
+  \begin{tabular}[t]{l}
+  @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close>) \\
+  @{action_ref "isabelle.last-error"} (\<^verbatim>\<open>CS+z\<close>) \\
+  @{action_ref "isabelle.next-error"} (\<^verbatim>\<open>CS+n\<close>) \\
+  @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close>) \\
+  \end{tabular}
+  \<^medskip>
 \<close>
 
 

@@ -63,9 +63,9 @@ CONTROL/COMMAND key pressed.
 document snapshot:
 
   isabelle.first-error (CS+a)
-  isabelle-last-error (CS+z)
-  isabelle-next-error (CS+n)
-  isabelle-prev-error (CS+p)
+  isabelle.last-error (CS+z)
+  isabelle.next-error (CS+n)
+  isabelle.prev-error (CS+p)
 
 * Prover IDE startup is now much faster, because theory dependencies are
 no longer explored in advance. The overall session structure with its
