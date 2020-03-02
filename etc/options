@@ -291,7 +291,7 @@ option phabricator_version_arcanist : string = "729100955129851a52588cdfd9b42519
 option phabricator_version_libphutil : string = "034cf7cc39940b935e83923dbb1bacbcfe645a85"
   -- "repository version for libphutil"
 
-option phabricator_version_phabricator : string = "46fcd135ae681bb90a1282114fb2147ab21e4f34"
+option phabricator_version_phabricator : string = "ff6f24db2bc016533bca9040954a218c54ca324e"
   -- "repository version for phabricator"
 
 
