@@ -1432,6 +1432,10 @@ lemmas meta_allE = meta_spec [elim_format]
 lemma swap_params:
   "(\<And>x y. PROP P x y) \<equiv> (\<And>y x. PROP P x y)" ..
 
+lemma equal_allI:
+  \<open>(\<And>x. PROP P x) \<equiv> (\<And>x. PROP Q x)\<close> if \<open>\<And>x. PROP P x \<equiv> PROP Q x\<close>
+  by (simp only: that)
+
 
 subsection \<open>Meta-level conjunction\<close>
 

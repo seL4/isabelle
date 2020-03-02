@@ -67,6 +67,7 @@ sig
   val prove_one_point_all_tac: Proof.context -> tactic
   val prove_one_point_ex_tac: Proof.context -> tactic
   val rearrange_all: Proof.context -> cterm -> thm option
+  val rearrange_All: Proof.context -> cterm -> thm option
   val rearrange_ex: Proof.context -> cterm -> thm option
   val rearrange_ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
   val rearrange_bex: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
@@ -113,22 +114,36 @@ fun extract_imp fst xs t =
               NONE => NONE
             | SOME (xs, eq, Q') => SOME (xs, eq, Data.imp $ P $ Q'))));
 
-fun extract_quant extract q =
+fun extract_conj_from_judgment ctxt fst xs t =
+  if Object_Logic.is_judgment ctxt t
+  then
+    (case extract_conj fst xs (Object_Logic.drop_judgment ctxt t) of
+      NONE => NONE
+    | SOME (xs, eq, P) => SOME (xs, Object_Logic.ensure_propT ctxt eq, Object_Logic.ensure_propT ctxt P))
+  else NONE;
+
+fun extract_implies ctxt fst xs t =
+  (case try Logic.dest_implies t of
+    NONE => NONE
+  | SOME (P, Q) =>
+      if def xs P then (if fst then NONE else SOME (xs, P, Q))
+      else
+        (case extract_conj_from_judgment ctxt false xs P of
+          SOME (xs, eq, P') => SOME (xs, eq, Logic.implies $ P' $ Q)
+        | NONE =>
+            (case extract_implies ctxt false xs Q of
+              NONE => NONE
+            | SOME (xs, eq, Q') => (SOME (xs, eq, Logic.implies $ P $ Q')))));
+
+fun extract_quant ctxt extract q =
   let
     fun exqu xs ((qC as Const (qa, _)) $ Abs (x, T, Q)) =
           if qa = q then exqu ((qC, x, T) :: xs) Q else NONE
-      | exqu xs P = extract (null xs) xs P
+      | exqu xs P = extract ctxt (null xs) xs P
   in exqu [] end;
 
-fun prove_conv ctxt tu tac =
-  let
-    val (goal, ctxt') =
-      yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
-    val thm =
-      Goal.prove ctxt' [] [] goal
-        (fn {context = ctxt'', ...} =>
-          resolve_tac ctxt'' [Data.iff_reflection] 1 THEN tac ctxt'');
-  in singleton (Variable.export ctxt' ctxt) thm end;
+fun iff_reflection_tac ctxt =
+  resolve_tac ctxt [Data.iff_reflection] 1;
 
 fun qcomm_tac ctxt qcomm qI i =
   REPEAT_DETERM (resolve_tac ctxt [qcomm] i THEN resolve_tac ctxt [qI] i);
@@ -158,13 +173,33 @@ local
         eresolve_tac ctxt [Data.mp],
         REPEAT o eresolve_tac ctxt [Data.conjE],
         REPEAT o ares_tac ctxt [Data.conjI]]);
-  val allcomm = Data.all_comm RS Data.iff_trans;
+  val all_comm = Data.all_comm RS Data.iff_trans;
+  val All_comm = @{thm swap_params [THEN transitive]};
 in
   fun prove_one_point_all_tac ctxt =
-    EVERY1 [qcomm_tac ctxt allcomm Data.iff_allI,
+    EVERY1 [qcomm_tac ctxt all_comm Data.iff_allI,
       resolve_tac ctxt [Data.iff_allI],
-      resolve_tac ctxt [Data.iffI], tac ctxt, tac ctxt];
+      resolve_tac ctxt [Data.iffI],
+      tac ctxt,
+      tac ctxt];
+  fun prove_one_point_All_tac ctxt =
+    EVERY1 [qcomm_tac ctxt All_comm @{thm equal_allI},
+      resolve_tac ctxt [@{thm equal_allI}],
+      resolve_tac ctxt [@{thm equal_intr_rule}],
+      Object_Logic.atomize_prems_tac ctxt,
+      tac ctxt,
+      Object_Logic.atomize_prems_tac ctxt,
+      tac ctxt];
 end
+
+fun prove_conv ctxt tu tac =
+  let
+    val (goal, ctxt') =
+      yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
+    val thm =
+      Goal.prove ctxt' [] [] goal
+        (fn {context = ctxt'', ...} => tac ctxt'');
+  in singleton (Variable.export ctxt' ctxt) thm end;
 
 fun renumber l u (Bound i) =
       Bound (if i < l orelse i > u then i else if i = u then l else i + 1)
@@ -183,11 +218,21 @@ fun quantify qC x T xs P =
 fun rearrange_all ctxt ct =
   (case Thm.term_of ct of
     F as (all as Const (q, _)) $ Abs (x, T, P) =>
-      (case extract_quant extract_imp q P of
+      (case extract_quant ctxt (K extract_imp) q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) prove_one_point_all_tac) end)
+          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_all_tac)) end)
+  | _ => NONE);
+
+fun rearrange_All ctxt ct =
+  (case Thm.term_of ct of
+    F as (all as Const (q, _)) $ Abs (x, T, P) =>
+      (case extract_quant ctxt extract_implies q P of
+        NONE => NONE
+      | SOME (xs, eq, Q) =>
+          let val R = quantify all x T xs (Logic.implies $ eq $ Q)
+            in SOME (prove_conv ctxt (F, R) prove_one_point_All_tac) end)
   | _ => NONE);
 
 fun rearrange_ball tac ctxt ct =
@@ -199,17 +244,17 @@ fun rearrange_ball tac ctxt ct =
           if not (null xs) then NONE
           else
             let val R = Data.imp $ eq $ Q
-            in SOME (prove_conv ctxt (F, Ball $ A $ Abs (x, T, R)) tac) end)
+            in SOME (prove_conv ctxt (F, Ball $ A $ Abs (x, T, R)) (iff_reflection_tac THEN' tac)) end)
   | _ => NONE);
 
 fun rearrange_ex ctxt ct =
   (case Thm.term_of ct of
     F as (ex as Const (q, _)) $ Abs (x, T, P) =>
-      (case extract_quant extract_conj q P of
+      (case extract_quant ctxt (K extract_conj) q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) prove_one_point_ex_tac) end)
+          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' prove_one_point_ex_tac)) end)
   | _ => NONE);
 
 fun rearrange_bex tac ctxt ct =
@@ -219,7 +264,7 @@ fun rearrange_bex tac ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           if not (null xs) then NONE
-          else SOME (prove_conv ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q)) tac))
+          else SOME (prove_conv ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q)) (iff_reflection_tac THEN' tac)))
   | _ => NONE);
 
 fun rearrange_Collect tac ctxt ct =
@@ -229,7 +274,7 @@ fun rearrange_Collect tac ctxt ct =
         NONE => NONE
       | SOME (_, eq, Q) =>
           let val R = Collect $ Abs (x, T, Data.conj $ eq $ Q)
-          in SOME (prove_conv ctxt (F, R) tac) end)
+          in SOME (prove_conv ctxt (F, R) (iff_reflection_tac THEN' tac)) end)
   | _ => NONE);
 
 end;
