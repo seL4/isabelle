@@ -175,30 +175,30 @@ end;
 (* presentation tokens *)
 
 datatype token =
-    Ignore_Token
-  | Basic_Token of Token.T
-  | Markup_Token of string * Input.source
-  | Markup_Env_Token of string * Input.source
-  | Raw_Token of Input.source;
+    Ignore
+  | Token of Token.T
+  | Heading of string * Input.source
+  | Body of string * Input.source
+  | Raw of Input.source;
 
-fun basic_token pred (Basic_Token tok) = pred tok
-  | basic_token _ _ = false;
+fun token_with pred (Token tok) = pred tok
+  | token_with _ _ = false;
 
-val white_token = basic_token Document_Source.is_white;
-val white_comment_token = basic_token Document_Source.is_white_comment;
-val blank_token = basic_token Token.is_blank;
-val newline_token = basic_token Token.is_newline;
+val white_token = token_with Document_Source.is_white;
+val white_comment_token = token_with Document_Source.is_white_comment;
+val blank_token = token_with Token.is_blank;
+val newline_token = token_with Token.is_newline;
 
 fun present_token ctxt tok =
   (case tok of
-    Ignore_Token => []
-  | Basic_Token tok => output_token ctxt tok
-  | Markup_Token (cmd, source) =>
+    Ignore => []
+  | Token tok => output_token ctxt tok
+  | Heading (cmd, source) =>
       Latex.enclose_body ("%\n\\isamarkup" ^ cmd ^ "{") "%\n}\n"
         (output_document ctxt {markdown = false} source)
-  | Markup_Env_Token (cmd, source) =>
+  | Body (cmd, source) =>
       [Latex.environment_block ("isamarkup" ^ cmd) (output_document ctxt {markdown = true} source)]
-  | Raw_Token source =>
+  | Raw source =>
       Latex.string "%\n" :: output_document ctxt {markdown = true} source @ [Latex.string "\n"]);
 
 
@@ -367,7 +367,7 @@ fun present_thy options thy (segments: segment list) =
     (* tokens *)
 
     val ignored = Scan.state --| ignore
-      >> (fn d => (NONE, (Ignore_Token, ("", d))));
+      >> (fn d => (NONE, (Ignore, ("", d))));
 
     fun markup pred mk flag = Scan.peek (fn d =>
       Document_Source.improper |--
@@ -384,29 +384,29 @@ fun present_thy options thy (segments: segment list) =
       Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
       Scan.one Token.is_command --| Document_Source.annotation
       >> (fn (cmd_mod, cmd) =>
-        map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
+        map (fn tok => (NONE, (Token tok, ("", d)))) cmd_mod @
           [(SOME (Token.content_of cmd, Token.pos_of cmd),
-            (Basic_Token cmd, (markup_false, d)))]));
+            (Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Scan.one Document_Source.is_black_comment >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
+      Scan.one Document_Source.is_black_comment >> (fn tok => (NONE, (Token tok, ("", d)))));
 
     val other = Scan.peek (fn d =>
-       Parse.not_eof >> (fn tok => (NONE, (Basic_Token tok, ("", d)))));
+       Parse.not_eof >> (fn tok => (NONE, (Token tok, ("", d)))));
 
     val tokens =
       (ignored ||
-        markup Keyword.is_document_heading Markup_Token markup_true ||
-        markup Keyword.is_document_body Markup_Env_Token markup_true ||
-        markup Keyword.is_document_raw (Raw_Token o #2) "") >> single ||
+        markup Keyword.is_document_heading Heading markup_true ||
+        markup Keyword.is_document_body Body markup_true ||
+        markup Keyword.is_document_raw (Raw o #2) "") >> single ||
       command ||
       (cmt || other) >> single;
 
 
     (* spans *)
 
-    val is_eof = fn (_, (Basic_Token x, _)) => Token.is_eof x | _ => false;
-    val stopper = Scan.stopper (K (NONE, (Basic_Token Token.eof, ("", 0)))) is_eof;
+    val is_eof = fn (_, (Token x, _)) => Token.is_eof x | _ => false;
+    val stopper = Scan.stopper (K (NONE, (Token Token.eof, ("", 0)))) is_eof;
 
     val cmd = Scan.one (is_some o fst);
     val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
