@@ -1,20 +1,19 @@
 (*  Title:      Pure/Tools/jedit.ML
     Author:     Makarius
 
-jEdit support.
+Support for Isabelle/jEdit.
 *)
 
 signature JEDIT =
 sig
+  val get_actions: unit -> string list
   val check_action: string * Position.T -> string
 end;
 
 structure JEdit: JEDIT =
 struct
 
-(* jEdit actions *)
-
-local
+(* parse XML *)
 
 fun parse_named a (XML.Elem ((b, props), _)) =
       (case Properties.get props "NAME" of
@@ -22,39 +21,41 @@ fun parse_named a (XML.Elem ((b, props), _)) =
       | NONE => [])
   | parse_named _ _ = [];
 
-val isabelle_jedit_actions =
-  Lazy.lazy (fn () =>
-    (case XML.parse (File.read \<^file>\<open>~~/src/Tools/jEdit/src/actions.xml\<close>) of
-      XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
-    | _ => []));
+fun parse_actions (XML.Elem (("ACTIONS", _), body)) = maps (parse_named "ACTION") body
+  | parse_actions _ = [];
 
-val isabelle_jedit_dockables =
-  Lazy.lazy (fn () =>
-    (case XML.parse (File.read \<^file>\<open>~~/src/Tools/jEdit/src/dockables.xml\<close>) of
-      XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
-    | _ => [])
-    |> maps (fn a => [a, a ^ "-toggle", a ^ "-float"]));
+fun parse_dockables (XML.Elem (("DOCKABLES", _), body)) =
+      maps (parse_named "DOCKABLE") body
+      |> maps (fn a => [a, a ^ "-toggle", a ^ "-float"])
+  | parse_dockables _ = [];
 
-val jedit_actions =
-  Lazy.lazy (fn () =>
-    (case Isabelle_System.bash_output
-      "unzip -p \"$JEDIT_HOME/dist/jedit.jar\" org/gjt/sp/jedit/actions.xml" of
-      (txt, 0) =>
-        (case XML.parse txt of
-          XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
-        | _ => [])
-    | (_, rc) => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc)));
 
-val all_actions =
-  Lazy.lazy (fn () =>
-    Lazy.force isabelle_jedit_actions @
-    Lazy.force isabelle_jedit_dockables @
-    Lazy.force jedit_actions);
+(* XML resources *)
 
-in
+val xml_file = XML.parse o File.read;
+
+fun xml_resource name =
+  let val script = "unzip -p \"$JEDIT_HOME/dist/jedit.jar\" " ^ Bash.string name in
+    (case Isabelle_System.bash_output script of
+      (txt, 0) => XML.parse txt
+    | (_, rc) => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc))
+  end;
+
+
+(* actions *)
+
+val lazy_actions =
+  Lazy.lazy (fn () =>
+    (parse_actions (xml_file \<^file>\<open>~~/src/Tools/jEdit/src/actions.xml\<close>) @
+      parse_dockables (xml_file \<^file>\<open>~~/src/Tools/jEdit/src/dockables.xml\<close>) @
+      parse_actions (xml_resource "org/gjt/sp/jedit/actions.xml") @
+      parse_dockables (xml_resource "org/gjt/sp/jedit/dockables.xml"))
+    |> sort_strings);
+
+fun get_actions () = Lazy.force lazy_actions;
 
 fun check_action (name, pos) =
-  if member (op =) (Lazy.force all_actions) name then
+  if member (op =) (get_actions ()) name then
     let
       val ((bg1, bg2), en) =
         YXML.output_markup_elem
@@ -66,11 +67,11 @@ fun check_action (name, pos) =
       val completion_report =
         Completion.make_report (name, pos)
           (fn completed =>
-            Lazy.force all_actions
+            get_actions ()
             |> filter completed
             |> sort_strings
             |> map (fn a => (a, ("action", a))));
-    in error ("Bad jEdit action " ^ quote name ^ Position.here pos ^ completion_report) end
+    in error ("Bad jEdit action " ^ quote name ^ Position.here pos ^ completion_report) end;
 
 val _ =
   Theory.setup
@@ -82,7 +83,5 @@ val _ =
             then ignore (check_action (name, pos))
             else ();
         in name end));
-
-end;
 
 end;
