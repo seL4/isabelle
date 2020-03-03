@@ -271,6 +271,7 @@ metal.primary.font=Isabelle DejaVu Sans
 metal.secondary.font=Isabelle DejaVu Sans
 navigator.showOnToolbar=true
 next-bracket.shortcut2=C+e C+9
+new-file-in-mode.shortcut=
 options.shortcuts.deletekeymap.label=Delete
 options.shortcuts.duplicatekeymap.dialog.title=Keymap name
 options.shortcuts.duplicatekeymap.label=Duplicate
