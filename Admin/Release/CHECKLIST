@@ -80,7 +80,7 @@ Packaging
 
 - Docker image:
 
-  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2019 Isabelle2019_linux.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2020 Isabelle2020_linux.tar.gz
 
   https://hub.docker.com/r/makarius/isabelle
   https://docs.docker.com/engine/reference/commandline/push
