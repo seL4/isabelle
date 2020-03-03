@@ -1215,8 +1215,8 @@ setup \<open>
   Simplifier.method_setup Splitter.split_modifiers
 \<close>
 
-simproc_setup defined_Ex ("\<exists>x. P x") = \<open>fn _ => Quantifier1.rearrange_ex\<close>
-simproc_setup defined_All ("\<forall>x. P x") = \<open>fn _ => Quantifier1.rearrange_all\<close>
+simproc_setup defined_Ex ("\<exists>x. P x") = \<open>K Quantifier1.rearrange_ex\<close>
+simproc_setup defined_All ("\<forall>x. P x") = \<open>K Quantifier1.rearrange_all\<close>
 
 text \<open>Simproc for proving \<open>(y = x) \<equiv> False\<close> from premise \<open>\<not> (x = y)\<close>:\<close>
 
