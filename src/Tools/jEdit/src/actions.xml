@@ -212,4 +212,9 @@
 	    isabelle.jedit.Keymap_Merge.check_dialog(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.jconsole">
+	  <CODE>
+	    isabelle.jedit.Isabelle.jconsole(view);
+	  </CODE>
+	</ACTION>
 </ACTIONS>

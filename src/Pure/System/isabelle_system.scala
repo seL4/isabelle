@@ -317,6 +317,9 @@ object Isabelle_System
       result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
+  def jconsole(): Process_Result =
+    bash("isabelle_jdk jconsole " + java.lang.ProcessHandle.current().pid).check
+
   private lazy val gnutar_check: Boolean =
     try { bash("tar --version").check.out.containsSlice("GNU tar") || error("") }
     catch { case ERROR(_) => false }

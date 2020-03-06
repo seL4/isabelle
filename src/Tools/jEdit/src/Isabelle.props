@@ -34,6 +34,7 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle-session-browser \
   isabelle.preview \
   isabelle.draft \
+  isabelle.jconsole \
   - \
   isabelle-debugger \
   isabelle-documentation \

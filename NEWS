@@ -76,6 +76,10 @@ sufficient and more convenient to start editing a particular session.
 
 * Support more brackets: \<llangle> \<rrangle> (intended for implicit argument syntax).
 
+* Action isabelle.jconsole (menu item Plugins / Isabelle / Java/VM
+Monitor) applies the jconsole tool on the running Isabelle/jEdit
+process. This allows to monitor resource usage etc.
+
 
 *** Isabelle/VSCode Prover IDE ***
 

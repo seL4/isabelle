@@ -581,4 +581,19 @@ object Isabelle
     val range = Text.Range(caret_range.start, view.getBuffer.getLength)
     goto_error(view, range, avoid_range = caret_range, which = "next ")(_.headOption)
   }
+
+
+  /* jconsole */
+
+  def jconsole(view: View) {
+    Future.thread(name = "jconsole", daemon = true) {
+      try { Isabelle_System.jconsole() }
+      catch {
+        case exn: Throwable =>
+          GUI_Thread.later {
+            GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+          }
+      }
+    }
+  }
 }
