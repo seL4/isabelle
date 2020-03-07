@@ -43,6 +43,7 @@ object Scala_Project
           if (line.length > 42 && line(41) == '*') line.substring(42)
           else error("Bad shasum entry: " + quote(line))
         if name != "lib/classes/Pure.jar" &&
+          name != "src/Tools/jEdit/dist/jedit.jar" &&
           name != "src/Tools/jEdit/dist/jars/Isabelle-jEdit-base.jar" &&
           name != "src/Tools/jEdit/dist/jars/Isabelle-jEdit.jar"
       } yield name)
@@ -70,7 +71,11 @@ object Scala_Project
       error("Project directory already exists: " + project_dir)
 
     val src_dir = project_dir + Path.explode("src/main/scala")
-    Isabelle_System.mkdirs(src_dir)
+    val java_src_dir = project_dir + Path.explode("src/main/java")
+    val scala_src_dir = project_dir + Path.explode("src/main/scala")
+    Isabelle_System.mkdirs(scala_src_dir)
+
+    Isabelle_System.copy_dir(Path.explode("~~/src/Tools/jEdit/dist/jEdit"), java_src_dir)
 
     val files = isabelle_files()
 
@@ -78,7 +83,7 @@ object Scala_Project
       val (path, target) =
         isabelle_dirs.collectFirst({
           case (prfx, p) if file.startsWith(prfx) =>
-            (Path.explode("~~") + Path.explode(file), src_dir + p)
+            (Path.explode("~~") + Path.explode(file), scala_src_dir + p)
         }).getOrElse(error("Unknown directory prefix for " + quote(file)))
 
       Isabelle_System.mkdirs(target)
