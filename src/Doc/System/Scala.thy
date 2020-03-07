@@ -121,7 +121,7 @@ text \<open>
   \<^medskip> By default, Scala sources are \<^emph>\<open>copied\<close> from the Isabelle distribution and
   editing them within the IDE has no permanent effect.
 
-  Option \<^verbatim>\<open>-l\<close> produces \<^emph>\<open>symlinks\<close> to the original files: this allows to
+  Option \<^verbatim>\<open>-L\<close> produces \<^emph>\<open>symlinks\<close> to the original files: this allows to
   develop Isabelle/Scala/jEdit within an external Scala IDE. Note that
   building the result always requires \<^verbatim>\<open>isabelle jedit -b\<close> on the
   command-line.
