@@ -297,7 +297,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* focus */
 
-  override def focusOnDefaultComponent { eval_button.requestFocus }
+  override def focusOnDefaultComponent() { eval_button.requestFocus }
 
   addFocusListener(new FocusAdapter {
     override def focusGained(e: FocusEvent) { update_focus() }

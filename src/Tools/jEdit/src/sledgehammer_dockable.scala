@@ -144,7 +144,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   add(controls.peer, BorderLayout.NORTH)
 
-  override def focusOnDefaultComponent { provers.requestFocus }
+  override def focusOnDefaultComponent() { provers.requestFocus }
 
 
   /* main */

@@ -110,7 +110,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   set_content(graphview)
 
 
-  override def focusOnDefaultComponent
+  override def focusOnDefaultComponent()
   {
     graphview match {
       case main_panel: isabelle.graphview.Main_Panel =>

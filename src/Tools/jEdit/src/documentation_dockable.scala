@@ -49,7 +49,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   tree.setRowHeight(0)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
-  override def focusOnDefaultComponent { tree.requestFocusInWindow }
+  override def focusOnDefaultComponent() { tree.requestFocusInWindow }
 
   private def action(node: DefaultMutableTreeNode)
   {

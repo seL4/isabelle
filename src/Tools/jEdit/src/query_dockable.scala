@@ -297,7 +297,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     operations_pane.revalidate
   }
 
-  override def focusOnDefaultComponent { for (op <- get_operation()) op.query.requestFocus }
+  override def focusOnDefaultComponent() { for (op <- get_operation()) op.query.requestFocus }
 
   select_operation()
   set_content(operations_pane)
