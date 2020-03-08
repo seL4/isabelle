@@ -2002,6 +2002,10 @@ proof -
     by (simp add: of_nat_mod of_nat_diff)
 qed
 
+lemma of_bool_half_eq_0 [simp]:
+  \<open>of_bool b div 2 = 0\<close>
+  by simp
+
 end
 
 class unique_euclidean_ring_with_nat = ring + unique_euclidean_semiring_with_nat

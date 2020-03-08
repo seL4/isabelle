@@ -1,4 +1,4 @@
-(*  Author:  Florian Haftmann, TUM
+ (*  Author:  Florian Haftmann, TUM
 *)
 
 section \<open>Proof(s) of concept for algebraically founded lists of bits\<close>
@@ -44,11 +44,11 @@ proof (induction bs arbitrary: n)
 next
   case (Cons b bs)
   then show ?case
-    by (cases n) (simp_all add: ac_simps)
+    by (cases n) (simp_all add: ac_simps take_bit_Suc)
 qed
 
 lemma unsigned_of_bits_drop [simp]:
-  "unsigned_of_bits (drop n bs) = Parity.drop_bit n (unsigned_of_bits bs)"
+  "unsigned_of_bits (drop n bs) = drop_bit n (unsigned_of_bits bs)"
 proof (induction bs arbitrary: n)
   case Nil
   then show ?case
@@ -56,7 +56,7 @@ proof (induction bs arbitrary: n)
 next
   case (Cons b bs)
   then show ?case
-    by (cases n) simp_all
+    by (cases n) (simp_all add: drop_bit_Suc)
 qed
 
 lemma bit_unsigned_of_bits_iff:
@@ -68,7 +68,7 @@ proof (induction bs arbitrary: n)
 next
   case (Cons b bs)
   then show ?case
-    by (cases n) simp_all
+    by (cases n) (simp_all add: bit_Suc)
 qed
 
 primrec n_bits_of :: "nat \<Rightarrow> 'a \<Rightarrow> bool list"
@@ -77,9 +77,9 @@ primrec n_bits_of :: "nat \<Rightarrow> 'a \<Rightarrow> bool list"
   | "n_bits_of (Suc n) a = odd a # n_bits_of n (a div 2)"
 
 lemma n_bits_of_eq_iff:
-  "n_bits_of n a = n_bits_of n b \<longleftrightarrow> Parity.take_bit n a = Parity.take_bit n b"
+  "n_bits_of n a = n_bits_of n b \<longleftrightarrow> take_bit n a = take_bit n b"
   apply (induction n arbitrary: a b)
-   apply (auto elim!: evenE oddE)
+   apply (auto elim!: evenE oddE simp add: take_bit_Suc)
    apply (metis dvd_triv_right even_plus_one_iff)
   apply (metis dvd_triv_right even_plus_one_iff)
   done
@@ -97,8 +97,8 @@ proof -
 qed
 
 lemma unsigned_of_bits_n_bits_of [simp]:
-  "unsigned_of_bits (n_bits_of n a) = Parity.take_bit n a"
-  by (induction n arbitrary: a) (simp_all add: ac_simps)
+  "unsigned_of_bits (n_bits_of n a) = take_bit n a"
+  by (induction n arbitrary: a) (simp_all add: ac_simps take_bit_Suc)
 
 end
 
@@ -236,7 +236,7 @@ proof (induction bs arbitrary: n)
 next
   case (Cons b bs)
   then show ?case
-    by (cases n; cases b; cases bs) simp_all
+    by (cases n; cases b; cases bs) (simp_all add: bit_Suc)
 qed
 
 lemma of_bits_append [simp]:
@@ -257,7 +257,7 @@ lemma of_bits_replicate_False [simp]:
   by (auto simp add: of_bits_int_def)
 
 lemma of_bits_drop [simp]:
-  "of_bits (drop n bs) = Parity.drop_bit n (of_bits bs :: int)"
+  "of_bits (drop n bs) = drop_bit n (of_bits bs :: int)"
     if "n < length bs"
 using that proof (induction bs arbitrary: n)
   case Nil
@@ -275,7 +275,7 @@ next
     with Cons.prems have "bs \<noteq> []"
       by auto
     with Suc Cons.IH [of n] Cons.prems show ?thesis
-      by (cases b) simp_all
+      by (cases b) (simp_all add: drop_bit_Suc)
   qed
 qed
 

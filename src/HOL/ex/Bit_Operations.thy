@@ -28,10 +28,6 @@ text \<open>
   are specified as definitional class operations.
 \<close>
 
-lemma stable_imp_drop_eq:
-  \<open>drop_bit n a = a\<close> if \<open>a div 2 = a\<close>
-  by (induction n) (simp_all add: that)
-
 sublocale "and": semilattice \<open>(AND)\<close>
   by standard (auto simp add: bit_eq_iff bit_and_iff)
 
@@ -219,7 +215,7 @@ proof (rule bit_eqI)
   assume *: \<open>2 ^ m \<noteq> 0\<close>
   then show \<open>bit (set_bit 0 a) m = bit (1 + 2 * (a div 2)) m\<close>
     by (simp add: bit_set_bit_iff bit_double_iff even_bit_succ_iff)
-      (cases m, simp_all)
+      (cases m, simp_all add: bit_Suc)
 qed
 
 lemma set_bit_Suc [simp]:
@@ -239,7 +235,7 @@ proof (rule bit_eqI)
     show ?thesis
       by (cases a rule: parity_cases)
         (simp_all add: bit_set_bit_iff bit_double_iff even_bit_succ_iff *,
-        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close>)
+        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close> bit_Suc)
   qed
 qed
 
@@ -250,7 +246,7 @@ proof (rule bit_eqI)
   assume *: \<open>2 ^ m \<noteq> 0\<close>
   then show \<open>bit (unset_bit 0 a) m = bit (2 * (a div 2)) m\<close>
     by (simp add: bit_unset_bit_iff bit_double_iff)
-      (cases m, simp_all)
+      (cases m, simp_all add: bit_Suc)
 qed
 
 lemma unset_bit_Suc [simp]:
@@ -268,7 +264,7 @@ proof (rule bit_eqI)
     show ?thesis
       by (cases a rule: parity_cases)
         (simp_all add: bit_unset_bit_iff bit_double_iff even_bit_succ_iff *,
-         simp_all add: Suc)
+         simp_all add: Suc bit_Suc)
   qed
 qed
 
@@ -279,7 +275,7 @@ proof (rule bit_eqI)
   assume *: \<open>2 ^ m \<noteq> 0\<close>
   then show \<open>bit (flip_bit 0 a) m = bit (of_bool (even a) + 2 * (a div 2)) m\<close>
     by (simp add: bit_flip_bit_iff bit_double_iff even_bit_succ_iff)
-      (cases m, simp_all)
+      (cases m, simp_all add: bit_Suc)
 qed
 
 lemma flip_bit_Suc [simp]:
@@ -299,7 +295,7 @@ proof (rule bit_eqI)
     show ?thesis
       by (cases a rule: parity_cases)
         (simp_all add: bit_flip_bit_iff bit_double_iff even_bit_succ_iff,
-        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close>)
+        simp_all add: Suc \<open>2 ^ m \<noteq> 0\<close> bit_Suc)
   qed
 qed
 
@@ -348,7 +344,7 @@ proof (induction q arbitrary: m n)
 next
   case (Suc n)
   then show ?case
-    by (simp add: rec [of m n])
+    by (simp add: rec [of m n] bit_Suc)
 qed
 
 sublocale abel_semigroup F
@@ -461,7 +457,7 @@ proof (induction n arbitrary: k l)
 next
   case (Suc n)
   then show ?case
-    by (simp add: rec [of k l])
+    by (simp add: rec [of k l] bit_Suc)
 qed
 
 sublocale abel_semigroup F
@@ -514,7 +510,7 @@ lemma not_int_div_2:
 lemma bit_not_iff_int:
   \<open>bit (NOT k) n \<longleftrightarrow> \<not> bit k n\<close>
     for k :: int
-  by (induction n arbitrary: k) (simp_all add: not_int_div_2 even_not_iff_int)
+  by (induction n arbitrary: k) (simp_all add: not_int_div_2 even_not_iff_int bit_Suc)
 
 instance proof
   fix k l :: int and n :: nat

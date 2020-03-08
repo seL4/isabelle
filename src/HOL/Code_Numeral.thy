@@ -88,7 +88,7 @@ lemma [transfer_rule]:
 
 lemma [transfer_rule]:
   "((\<longleftrightarrow>) ===> pcr_integer) of_bool of_bool"
-  by (unfold of_bool_def [abs_def]) transfer_prover
+  by (unfold of_bool_def) transfer_prover
 
 lemma [transfer_rule]:
   "((=) ===> pcr_integer) int of_nat"
@@ -108,11 +108,11 @@ lemma [transfer_rule]:
 
 lemma [transfer_rule]:
   "((=) ===> (=) ===> pcr_integer) Num.sub Num.sub"
-  by (unfold Num.sub_def [abs_def]) transfer_prover
+  by (unfold Num.sub_def) transfer_prover
 
 lemma [transfer_rule]:
   "(pcr_integer ===> (=) ===> pcr_integer) (^) (^)"
-  by (unfold power_def [abs_def]) transfer_prover
+  by (unfold power_def) transfer_prover
 
 end
 
@@ -218,13 +218,19 @@ instance
 
 end
 
-lemma [transfer_rule]:
-  "rel_fun pcr_integer (rel_fun pcr_integer pcr_integer) (min :: _ \<Rightarrow> _ \<Rightarrow> int) (min :: _ \<Rightarrow> _ \<Rightarrow> integer)"
-  by (unfold min_def [abs_def]) transfer_prover
+context
+  includes lifting_syntax
+begin
 
 lemma [transfer_rule]:
-  "rel_fun pcr_integer (rel_fun pcr_integer pcr_integer) (max :: _ \<Rightarrow> _ \<Rightarrow> int) (max :: _ \<Rightarrow> _ \<Rightarrow> integer)"
-  by (unfold max_def [abs_def]) transfer_prover
+  \<open>(pcr_integer ===> pcr_integer ===> pcr_integer) min min\<close>
+  by (unfold min_def) transfer_prover
+
+lemma [transfer_rule]:
+  \<open>(pcr_integer ===> pcr_integer ===> pcr_integer) max max\<close>
+  by (unfold max_def) transfer_prover
+
+end
 
 lemma int_of_integer_min [simp]:
   "int_of_integer (min k l) = min (int_of_integer k) (int_of_integer l)"
@@ -304,9 +310,19 @@ instance by (standard; transfer)
 
 end
 
+context
+  includes lifting_syntax
+begin
+
 lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
-  by (unfold take_bit_eq_mod [abs_def]) transfer_prover
+  \<open>(pcr_integer ===> (=) ===> (\<longleftrightarrow>)) bit bit\<close>
+  by (unfold bit_def) transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_integer ===> pcr_integer) take_bit take_bit\<close>
+  by (unfold take_bit_eq_mod) transfer_prover
+
+end
 
 instance integer :: unique_euclidean_semiring_with_bit_shifts ..
 
@@ -372,9 +388,15 @@ definition Pos :: "num \<Rightarrow> integer"
 where
   [simp, code_post]: "Pos = numeral"
 
+context
+  includes lifting_syntax
+begin
+
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_integer numeral Pos"
+  \<open>((=) ===> pcr_integer) numeral Pos\<close>
   by simp transfer_prover
+
+end
 
 lemma Pos_fold [code_unfold]:
   "numeral Num.One = Pos Num.One"
@@ -386,9 +408,15 @@ definition Neg :: "num \<Rightarrow> integer"
 where
   [simp, code_abbrev]: "Neg n = - Pos n"
 
+context
+  includes lifting_syntax
+begin
+
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_integer (\<lambda>n. - numeral n) Neg"
-  by (simp add: Neg_def [abs_def]) transfer_prover
+  \<open>((=) ===> pcr_integer) (\<lambda>n. - numeral n) Neg\<close>
+  by (unfold Neg_def) transfer_prover
+
+end
 
 code_datatype "0::integer" Pos Neg
 
@@ -853,33 +881,39 @@ end
 
 instance natural :: Rings.dvd ..
 
-lemma [transfer_rule]:
-  "rel_fun pcr_natural (rel_fun pcr_natural HOL.iff) Rings.dvd Rings.dvd"
-  unfolding dvd_def by transfer_prover
+context
+  includes lifting_syntax
+begin
 
 lemma [transfer_rule]:
-  "rel_fun (=) pcr_natural (of_bool :: bool \<Rightarrow> nat) (of_bool :: bool \<Rightarrow> natural)"
-  by (unfold of_bool_def [abs_def]) transfer_prover
+  \<open>(pcr_natural ===> pcr_natural ===> (\<longleftrightarrow>)) (dvd) (dvd)\<close>
+  by (unfold dvd_def) transfer_prover
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
+  \<open>((\<longleftrightarrow>) ===> pcr_natural) of_bool of_bool\<close>
+  by (unfold of_bool_def) transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_natural) (\<lambda>n. n) of_nat\<close>
 proof -
   have "rel_fun HOL.eq pcr_natural (of_nat :: nat \<Rightarrow> nat) (of_nat :: nat \<Rightarrow> natural)"
-    by (unfold of_nat_def [abs_def]) transfer_prover
+    by (unfold of_nat_def) transfer_prover
   then show ?thesis by (simp add: id_def)
 qed
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (numeral :: num \<Rightarrow> natural)"
+  \<open>((=) ===> pcr_natural) numeral numeral\<close>
 proof -
-  have "rel_fun HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (\<lambda>n. of_nat (numeral n))"
+  have \<open>((=) ===> pcr_natural) numeral (\<lambda>n. of_nat (numeral n))\<close>
     by transfer_prover
   then show ?thesis by simp
 qed
 
 lemma [transfer_rule]:
-  "rel_fun pcr_natural (rel_fun (=) pcr_natural) (power :: _ \<Rightarrow> _ \<Rightarrow> nat) (power :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold power_def [abs_def]) transfer_prover
+  \<open>(pcr_natural ===> (=) ===> pcr_natural) (^) (^)\<close>
+  by (unfold power_def) transfer_prover
+
+end
 
 lemma nat_of_natural_of_nat [simp]:
   "nat_of_natural (of_nat n) = n"
@@ -921,13 +955,19 @@ qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] linear)+
 
 end
 
-lemma [transfer_rule]:
-  "rel_fun pcr_natural (rel_fun pcr_natural pcr_natural) (min :: _ \<Rightarrow> _ \<Rightarrow> nat) (min :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold min_def [abs_def]) transfer_prover
+context
+  includes lifting_syntax
+begin
 
 lemma [transfer_rule]:
-  "rel_fun pcr_natural (rel_fun pcr_natural pcr_natural) (max :: _ \<Rightarrow> _ \<Rightarrow> nat) (max :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold max_def [abs_def]) transfer_prover
+  \<open>(pcr_natural ===> pcr_natural ===> pcr_natural) min min\<close>
+  by (unfold min_def) transfer_prover
+
+lemma [transfer_rule]:
+  \<open>(pcr_natural ===> pcr_natural ===> pcr_natural) max max\<close>
+  by (unfold max_def) transfer_prover
+
+end
 
 lemma nat_of_natural_min [simp]:
   "nat_of_natural (min k l) = min (nat_of_natural k) (nat_of_natural l)"
@@ -1001,9 +1041,19 @@ instance by (standard; transfer)
 
 end
 
+context
+  includes lifting_syntax
+begin
+
 lemma [transfer_rule]:
-  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
-  by (unfold take_bit_eq_mod [abs_def]) transfer_prover
+  \<open>(pcr_natural ===> (=) ===> (\<longleftrightarrow>)) bit bit\<close>
+  by (unfold bit_def) transfer_prover
+
+lemma [transfer_rule]:
+  \<open>((=) ===> pcr_natural ===> pcr_natural) take_bit take_bit\<close>
+  by (unfold take_bit_eq_mod) transfer_prover
+
+end
 
 instance natural :: unique_euclidean_semiring_with_bit_shifts ..
 

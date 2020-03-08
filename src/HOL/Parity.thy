@@ -168,6 +168,15 @@ proof -
     by simp
 qed
 
+lemma mask_eq_seq_sum:
+  \<open>2 ^ n - 1 = ((\<lambda>k. 1 + k * 2) ^^ n) 0\<close>
+proof -
+  have \<open>2 ^ n = ((\<lambda>k. 1 + k * 2) ^^ n) 0 + 1\<close>
+    by (induction n) (simp_all add: ac_simps mult_2)
+  then show ?thesis
+    by simp
+qed
+
 end
 
 class ring_parity = ring + semiring_parity
@@ -742,9 +751,13 @@ lemma bit_0 [simp]:
   \<open>bit a 0 \<longleftrightarrow> odd a\<close>
   by (simp add: bit_def)
 
-lemma bit_Suc [simp]:
+lemma bit_Suc:
   \<open>bit a (Suc n) \<longleftrightarrow> bit (a div 2) n\<close>
   using div_exp_eq [of a 1 n] by (simp add: bit_def)
+
+lemma bit_rec:
+  \<open>bit a n \<longleftrightarrow> (if n = 0 then odd a else bit (a div 2) (n - 1))\<close>
+  by (cases n) (simp_all add: bit_Suc)
 
 lemma bit_0_eq [simp]:
   \<open>bit 0 = bot\<close>
@@ -768,7 +781,7 @@ qed
 
 lemma stable_imp_bit_iff_odd:
   \<open>bit a n \<longleftrightarrow> odd a\<close>
-  by (induction n) (simp_all add: stable)
+  by (induction n) (simp_all add: stable bit_Suc)
 
 end
 
@@ -781,11 +794,11 @@ using that proof (induction a rule: bits_induct)
 next
   case (rec a b)
   from rec.prems [of 1] have [simp]: \<open>b = odd a\<close>
-    by (simp add: rec.hyps)
+    by (simp add: rec.hyps bit_Suc)
   from rec.hyps have hyp: \<open>(of_bool (odd a) + 2 * a) div 2 = a\<close>
     by simp
   have \<open>bit a n \<longleftrightarrow> odd a\<close> for n
-    using rec.prems [of \<open>Suc n\<close>] by (simp add: hyp)
+    using rec.prems [of \<open>Suc n\<close>] by (simp add: hyp bit_Suc)
   then have \<open>a div 2 = a\<close>
     by (rule rec.IH)
   then have \<open>of_bool (odd a) + 2 * a = 2 * (a div 2) + of_bool (odd a)\<close>
@@ -841,7 +854,7 @@ proof -
     from rec.prems [of 0] have [simp]: \<open>p = odd b\<close>
       by simp
     from rec.hyps have \<open>bit a n \<longleftrightarrow> bit (b div 2) n\<close> for n
-      using rec.prems [of \<open>Suc n\<close>] by simp
+      using rec.prems [of \<open>Suc n\<close>] by (simp add: bit_Suc)
     then have \<open>a = b div 2\<close>
       by (rule rec.IH)
     then have \<open>2 * a = 2 * (b div 2)\<close>
@@ -912,7 +925,7 @@ next
       moreover from \<open>a div 2 = b div 2\<close> have \<open>bit (a div 2) n = bit (b div 2) n\<close>
         by simp
       ultimately show ?thesis
-        by simp
+        by (simp add: bit_Suc)
     qed
   qed
 qed
@@ -1182,7 +1195,7 @@ lemma take_bit_0 [simp]:
   "take_bit 0 a = 0"
   by (simp add: take_bit_eq_mod)
 
-lemma take_bit_Suc [simp]:
+lemma take_bit_Suc:
   \<open>take_bit (Suc n) a = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
 proof -
   have \<open>take_bit (Suc n) (a div 2 * 2 + of_bool (odd a)) = take_bit n (a div 2) * 2 + of_bool (odd a)\<close>
@@ -1193,13 +1206,17 @@ proof -
     using div_mult_mod_eq [of a 2] by (simp add: mod_2_eq_odd)
 qed
 
+lemma take_bit_rec:
+  \<open>take_bit n a = (if n = 0 then 0 else take_bit (n - 1) (a div 2) * 2 + of_bool (odd a))\<close>
+  by (cases n) (simp_all add: take_bit_Suc)
+
 lemma take_bit_of_0 [simp]:
   "take_bit n 0 = 0"
   by (simp add: take_bit_eq_mod)
 
 lemma take_bit_of_1 [simp]:
   "take_bit n 1 = of_bool (n > 0)"
-  by (cases n) simp_all
+  by (cases n) (simp_all add: take_bit_Suc)
 
 lemma drop_bit_of_0 [simp]:
   "drop_bit n 0 = 0"
@@ -1213,16 +1230,20 @@ lemma drop_bit_0 [simp]:
   "drop_bit 0 = id"
   by (simp add: fun_eq_iff drop_bit_eq_div)
 
-lemma drop_bit_Suc [simp]:
+lemma drop_bit_Suc:
   "drop_bit (Suc n) a = drop_bit n (a div 2)"
   using div_exp_eq [of a 1] by (simp add: drop_bit_eq_div)
 
+lemma drop_bit_rec:
+  "drop_bit n a = (if n = 0 then a else drop_bit (n - 1) (a div 2))"
+  by (cases n) (simp_all add: drop_bit_Suc)
+
 lemma drop_bit_half:
   "drop_bit n (a div 2) = drop_bit n a div 2"
-  by (induction n arbitrary: a) simp_all
+  by (induction n arbitrary: a) (simp_all add: drop_bit_Suc)
 
 lemma drop_bit_of_bool [simp]:
-  "drop_bit n (of_bool d) = of_bool (n = 0 \<and> d)"
+  "drop_bit n (of_bool b) = of_bool (n = 0 \<and> b)"
   by (cases n) simp_all
 
 lemma take_bit_eq_0_imp_dvd:
@@ -1231,7 +1252,7 @@ lemma take_bit_eq_0_imp_dvd:
 
 lemma even_take_bit_eq [simp]:
   \<open>even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a\<close>
-  by (cases n) simp_all
+  by (simp add: take_bit_rec [of n a])
 
 lemma take_bit_take_bit [simp]:
   "take_bit m (take_bit n a) = take_bit (min m n) a"
@@ -1301,6 +1322,21 @@ lemma bit_drop_bit_eq:
 lemma bit_take_bit_iff:
   \<open>bit (take_bit m a) n \<longleftrightarrow> n < m \<and> bit a n\<close>
   by (simp add: bit_def drop_bit_take_bit not_le flip: drop_bit_eq_div)
+
+lemma stable_imp_drop_bit_eq:
+  \<open>drop_bit n a = a\<close>
+  if \<open>a div 2 = a\<close>
+  by (induction n) (simp_all add: that drop_bit_Suc)
+
+lemma stable_imp_take_bit_eq:
+  \<open>take_bit n a = (if even a then 0 else 2 ^ n - 1)\<close>
+    if \<open>a div 2 = a\<close>
+proof (rule bit_eqI)
+  fix m
+  assume \<open>2 ^ m \<noteq> 0\<close>
+  with that show \<open>bit (take_bit n a) m \<longleftrightarrow> bit (if even a then 0 else 2 ^ n - 1) m\<close>
+    by (simp add: bit_take_bit_iff bit_mask_iff stable_imp_bit_iff_odd)
+qed
 
 end
 

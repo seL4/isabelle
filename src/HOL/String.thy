@@ -21,6 +21,81 @@ text \<open>
 
 subsubsection \<open>Bytes as datatype\<close>
 
+context unique_euclidean_semiring_with_bit_shifts
+begin
+
+lemma bit_horner_sum_iff:
+  \<open>bit (foldr (\<lambda>b k. of_bool b + k * 2) bs 0) n \<longleftrightarrow> n < length bs \<and> bs ! n\<close>
+proof (induction bs arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc m)
+    with bit_rec [of _ n] Cons.prems Cons.IH [of m]
+    show ?thesis by simp
+  qed
+qed
+
+lemma take_bit_horner_sum_eq:
+  \<open>take_bit n (foldr (\<lambda>b k. of_bool b + k * 2) bs 0) = foldr (\<lambda>b k. of_bool b + k * 2) (take n bs) 0\<close>
+proof (induction bs arbitrary: n)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons b bs)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc m)
+    with take_bit_rec [of n] Cons.prems Cons.IH [of m]
+    show ?thesis by (simp add: ac_simps)
+  qed
+qed
+
+lemma (in semiring_bit_shifts) take_bit_eq_horner_sum:
+  \<open>take_bit n a = foldr (\<lambda>b k. of_bool b + k * 2) (map (bit a) [0..<n]) 0\<close>
+proof (induction a arbitrary: n rule: bits_induct)
+  case (stable a)
+  have *: \<open>((\<lambda>k. k * 2) ^^ n) 0 = 0\<close>
+    by (induction n) simp_all
+  from stable have \<open>bit a = (\<lambda>_. odd a)\<close>
+    by (simp add: stable_imp_bit_iff_odd fun_eq_iff)
+  then have \<open>map (bit a) [0..<n] = replicate n (odd a)\<close>
+    by (simp add: map_replicate_const)
+  with stable show ?case
+    by (simp add: stable_imp_take_bit_eq mask_eq_seq_sum *)
+next
+  case (rec a b)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis
+      by simp
+  next
+    case (Suc m)
+    have \<open>map (bit (of_bool b + 2 * a)) [0..<Suc m] = b # map (bit (of_bool b + 2 * a)) [Suc 0..<Suc m]\<close>
+      by (simp only: upt_conv_Cons) simp
+    also have \<open>\<dots> = b # map (bit a) [0..<m]\<close>
+      by (simp only: flip: map_Suc_upt) (simp add: bit_Suc rec.hyps)
+    finally show ?thesis
+      using Suc rec.IH [of m] by (simp add: take_bit_Suc rec.hyps, simp add: ac_simps)
+  qed
+qed
+
+end
+
 datatype char =
   Char (digit0: bool) (digit1: bool) (digit2: bool) (digit3: bool)
        (digit4: bool) (digit5: bool) (digit6: bool) (digit7: bool)
@@ -28,49 +103,37 @@ datatype char =
 context comm_semiring_1
 begin
 
-definition of_char :: "char \<Rightarrow> 'a"
-  where "of_char c = ((((((of_bool (digit7 c) * 2
-    + of_bool (digit6 c)) * 2
-    + of_bool (digit5 c)) * 2
-    + of_bool (digit4 c)) * 2
-    + of_bool (digit3 c)) * 2
-    + of_bool (digit2 c)) * 2
-    + of_bool (digit1 c)) * 2
-    + of_bool (digit0 c)"
+definition of_char :: \<open>char \<Rightarrow> 'a\<close>
+  where \<open>of_char c = foldr (\<lambda>b k. of_bool b + k * 2) 
+    [digit0 c, digit1 c, digit2 c, digit3 c, digit4 c, digit5 c, digit6 c, digit7 c] 0\<close>
 
 lemma of_char_Char [simp]:
-  "of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
-    foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0"
-  by (simp add: of_char_def ac_simps)
+  \<open>of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
+    foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0\<close>
+  by (simp add: of_char_def)
 
 end
 
 context unique_euclidean_semiring_with_bit_shifts
 begin
 
-definition char_of :: "'a \<Rightarrow> char"
-  where "char_of n = Char (odd n) (odd (drop_bit 1 n))
-    (odd (drop_bit 2 n)) (odd (drop_bit 3 n))
-    (odd (drop_bit 4 n)) (odd (drop_bit 5 n))
-    (odd (drop_bit 6 n)) (odd (drop_bit 7 n))"
+definition char_of :: \<open>'a \<Rightarrow> char\<close>
+  where \<open>char_of n = Char (odd n) (bit n 1) (bit n 2) (bit n 3) (bit n 4) (bit n 5) (bit n 6) (bit n 7)\<close>
+
+lemma char_of_take_bit_eq:
+  \<open>char_of (take_bit n m) = char_of m\<close> if \<open>n \<ge> 8\<close>
+  using that by (simp add: char_of_def bit_take_bit_iff)
 
 lemma char_of_char [simp]:
-  "char_of (of_char c) = c"
-proof (cases c)
-  have **: "drop_bit n (q * 2 + of_bool d) = drop_bit (n - 1) q + drop_bit n (of_bool d)"
-    if "n > 0" for q :: 'a and n :: nat and d :: bool
-    using that by (cases n) simp_all
-  case (Char d0 d1 d2 d3 d4 d5 d6 d7)
-  then show ?thesis
-    by (simp only: of_char_def char_of_def char.simps char.sel drop_bit_of_bool **) simp
-qed
+  \<open>char_of (of_char c) = c\<close>
+  by (simp only: of_char_def char_of_def bit_horner_sum_iff) simp
 
 lemma char_of_comp_of_char [simp]:
   "char_of \<circ> of_char = id"
   by (simp add: fun_eq_iff)
 
 lemma inj_of_char:
-  "inj of_char"
+  \<open>inj of_char\<close>
 proof (rule injI)
   fix c d
   assume "of_char c = of_char d"
@@ -79,45 +142,61 @@ proof (rule injI)
   then show "c = d"
     by simp
 qed
-  
+
+lemma of_char_eqI:
+  \<open>c = d\<close> if \<open>of_char c = of_char d\<close>
+  using that inj_of_char by (simp add: inj_eq)
+
 lemma of_char_eq_iff [simp]:
-  "of_char c = of_char d \<longleftrightarrow> c = d"
-  by (simp add: inj_eq inj_of_char)
+  \<open>of_char c = of_char d \<longleftrightarrow> c = d\<close>
+  by (auto intro: of_char_eqI)
 
 lemma of_char_of [simp]:
-  "of_char (char_of a) = a mod 256"
+  \<open>of_char (char_of a) = a mod 256\<close>
 proof -
-  have *: "{0::nat..<8} = {0, 1, 2, 3, 4, 5, 6, 7}"
-    by auto
-  have "of_char (char_of (take_bit 8 a)) =
-    (\<Sum>k\<in>{0, 1, 2, 3, 4, 5, 6, 7}. push_bit k (of_bool (odd (drop_bit k a))))"
-    by (simp add: of_char_def char_of_def push_bit_of_1 drop_bit_take_bit)
-  also have "\<dots> = take_bit 8 a"
-    using * take_bit_sum [of 8 a] by simp
-  also have "char_of(take_bit 8 a) = char_of a"
-    by (simp add: char_of_def drop_bit_take_bit)
-  finally show ?thesis
+  have \<open>[0..<8] = [0, Suc 0, 2, 3, 4, 5, 6, 7 :: nat]\<close>
+    by (simp add: upt_eq_Cons_conv)
+  then have \<open>[odd a, bit a 1, bit a 2, bit a 3, bit a 4, bit a 5, bit a 6, bit a 7] = map (bit a) [0..<8]\<close>
+    by simp
+  then have \<open>of_char (char_of a) = take_bit 8 a\<close>
+    by (simp only: char_of_def of_char_def char.sel take_bit_eq_horner_sum)
+  then show ?thesis
     by (simp add: take_bit_eq_mod)
 qed
 
 lemma char_of_mod_256 [simp]:
-  "char_of (n mod 256) = char_of n"
-  by (metis char_of_char of_char_of)
+  \<open>char_of (n mod 256) = char_of n\<close>
+  by (rule of_char_eqI) simp
 
 lemma of_char_mod_256 [simp]:
-  "of_char c mod 256 = of_char c"
-  by (metis char_of_char of_char_of)
+  \<open>of_char c mod 256 = of_char c\<close>
+proof -
+  have \<open>of_char (char_of (of_char c)) mod 256 = of_char (char_of (of_char c))\<close>
+    by (simp only: of_char_of) simp
+  then show ?thesis
+    by simp
+qed
 
 lemma char_of_quasi_inj [simp]:
-  "char_of m = char_of n \<longleftrightarrow> m mod 256 = n mod 256"
-  by (metis char_of_mod_256 of_char_of)
+  \<open>char_of m = char_of n \<longleftrightarrow> m mod 256 = n mod 256\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?Q
+  then show ?P
+    by (auto intro: of_char_eqI)
+next
+  assume ?P
+  then have \<open>of_char (char_of m) = of_char (char_of n)\<close>
+    by simp
+  then show ?Q
+    by simp
+qed
 
-lemma char_of_nat_eq_iff:
-  "char_of n = c \<longleftrightarrow> take_bit 8 n = of_char c"
-  by (simp add: take_bit_eq_mod) (use of_char_eq_iff in fastforce)
+lemma char_of_eq_iff:
+  \<open>char_of n = c \<longleftrightarrow> take_bit 8 n = of_char c\<close>
+  by (auto intro: of_char_eqI simp add: take_bit_eq_mod)
 
 lemma char_of_nat [simp]:
-  "char_of (of_nat n) = char_of n"
+  \<open>char_of (of_nat n) = char_of n\<close>
   by (simp add: char_of_def String.char_of_def drop_bit_of_nat)
 
 end
@@ -168,20 +247,20 @@ context
 begin
 
 lemma [transfer_rule]:
-  "(pcr_integer ===> (=)) (char_of :: int \<Rightarrow> char) (char_of :: integer \<Rightarrow> char)"
-  by (unfold char_of_def [abs_def]) transfer_prover
+  \<open>(pcr_integer ===> (=)) char_of char_of\<close>
+  by (unfold char_of_def) transfer_prover
 
 lemma [transfer_rule]:
-  "((=) ===> pcr_integer) (of_char :: char \<Rightarrow> int) (of_char :: char \<Rightarrow> integer)"
-  by (unfold of_char_def [abs_def]) transfer_prover
+  \<open>((=) ===> pcr_integer) of_char of_char\<close>
+  by (unfold of_char_def) transfer_prover
 
 lemma [transfer_rule]:
-  "(pcr_natural ===> (=)) (char_of :: nat \<Rightarrow> char) (char_of :: natural \<Rightarrow> char)"
-  by (unfold char_of_def [abs_def]) transfer_prover
+  \<open>(pcr_natural ===> (=)) char_of char_of\<close>
+  by (unfold char_of_def) transfer_prover
 
 lemma [transfer_rule]:
-  "((=) ===> pcr_natural) (of_char :: char \<Rightarrow> nat) (of_char :: char \<Rightarrow> natural)"
-  by (unfold of_char_def [abs_def]) transfer_prover
+  \<open>((=) ===> pcr_natural) of_char of_char\<close>
+  by (unfold of_char_def) transfer_prover
 
 end
 
@@ -326,7 +405,7 @@ lemma char_of_integer_code [code]:
      (q6, b6) = bit_cut_integer q5;
      (_, b7) = bit_cut_integer q6
     in Char b0 b1 b2 b3 b4 b5 b6 b7)"
-  by (simp add: bit_cut_integer_def char_of_integer_def char_of_def div_mult2_numeral_eq odd_iff_mod_2_eq_one drop_bit_eq_div)
+  by (simp add: bit_cut_integer_def char_of_integer_def char_of_def div_mult2_numeral_eq bit_iff_odd_drop_bit drop_bit_eq_div)
 
 lemma integer_of_char_code [code]:
   "integer_of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
@@ -334,7 +413,7 @@ lemma integer_of_char_code [code]:
       of_bool b5) * 2 + of_bool b4) * 2 +
         of_bool b3) * 2 + of_bool b2) * 2 +
           of_bool b1) * 2 + of_bool b0"
-  by (simp only: integer_of_char_def of_char_def char.sel)
+  by (simp add: integer_of_char_def of_char_def)
 
 
 subsection \<open>Strings as dedicated type for target language code generation\<close>
@@ -361,8 +440,7 @@ qualified lemma ascii_of_idem:
 
 qualified lemma char_of_ascii_of [simp]:
   "of_char (ascii_of c) = take_bit 7 (of_char c :: nat)"
-  by (cases c)
-    (simp add: numeral_3_eq_3 [symmetric] numeral_2_eq_2 [symmetric])
+  by (cases c) (simp only: ascii_of_Char of_char_Char take_bit_horner_sum_eq, simp)
 
 qualified typedef literal = "{cs. \<forall>c\<in>set cs. \<not> digit7 c}"
   morphisms explode Abs_literal
@@ -632,9 +710,17 @@ qualified definition Literal' :: "bool \<Rightarrow> bool \<Rightarrow> bool \<R
   where [simp]: "Literal' = String.Literal"
 
 lemma [code]:
-  "Literal' b0 b1 b2 b3 b4 b5 b6 s = String.literal_of_asciis
-    [foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6] 0] + s" 
-  unfolding Literal'_def by transfer (simp add: char_of_def)
+  \<open>Literal' b0 b1 b2 b3 b4 b5 b6 s = String.literal_of_asciis
+    [foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6] 0] + s\<close>
+proof -
+  have \<open>foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6] 0 = of_char (Char b0 b1 b2 b3 b4 b5 b6 False)\<close>
+    by simp
+  moreover have \<open>Literal' b0 b1 b2 b3 b4 b5 b6 s = String.literal_of_asciis
+    [of_char (Char b0 b1 b2 b3 b4 b5 b6 False)] + s\<close>
+    by (unfold Literal'_def) (transfer, simp only: list.simps comp_apply char_of_char, simp)
+  ultimately show ?thesis
+    by simp
+qed
 
 lemma [code_computation_unfold]:
   "String.Literal = Literal'"

@@ -29,16 +29,16 @@ proof (cases "even k")
   then have "(k + 1) mod 2 = 1"
     by (simp add: even_iff_mod_2_eq_zero)
   with True show ?thesis
-    by (simp add: signed_take_bit_eq_take_bit)
+    by (simp add: signed_take_bit_eq_take_bit take_bit_Suc)
 next
   case False
   then show ?thesis
-    by (simp add: signed_take_bit_eq_take_bit odd_iff_mod_2_eq_one)
+    by (simp add: signed_take_bit_eq_take_bit odd_iff_mod_2_eq_one take_bit_Suc)
 qed
 
-lemma signed_take_bit_Suc [simp]:
+lemma signed_take_bit_Suc:
   "signed_take_bit (Suc n) k = signed_take_bit n (k div 2) * 2 + k mod 2"
-  by (simp add: odd_iff_mod_2_eq_one signed_take_bit_eq_take_bit algebra_simps)
+  by (simp add: odd_iff_mod_2_eq_one signed_take_bit_eq_take_bit algebra_simps take_bit_Suc)
 
 lemma signed_take_bit_of_0 [simp]:
   "signed_take_bit n 0 = 0"
@@ -46,7 +46,7 @@ lemma signed_take_bit_of_0 [simp]:
 
 lemma signed_take_bit_of_minus_1 [simp]:
   "signed_take_bit n (- 1) = - 1"
-  by (induct n) simp_all
+  by (induct n) (simp_all add: signed_take_bit_Suc)
 
 lemma signed_take_bit_eq_iff_take_bit_eq:
   "signed_take_bit (n - Suc 0) k = signed_take_bit (n - Suc 0) l \<longleftrightarrow> take_bit n k = take_bit n l" (is "?P \<longleftrightarrow> ?Q")
@@ -356,10 +356,10 @@ proof
     by transfer simp
   show even_iff_mod_2_eq_0: "2 dvd a \<longleftrightarrow> a mod 2 = 0"
     for a :: "'a word"
-    by transfer (simp_all add: mod_2_eq_odd)
+    by transfer (simp_all add: mod_2_eq_odd take_bit_Suc)
   show "\<not> 2 dvd a \<longleftrightarrow> a mod 2 = 1"
     for a :: "'a word"
-    by transfer (simp_all add: mod_2_eq_odd)
+    by transfer (simp_all add: mod_2_eq_odd take_bit_Suc)
 qed
 
 
@@ -494,7 +494,7 @@ proof (cases \<open>2 \<le> LENGTH('a::len)\<close>)
   have \<open>of_bool (odd k) < (1 :: int) \<longleftrightarrow> even k\<close> for k :: int
     by auto
   with False that show ?thesis
-    by (auto; transfer) simp_all
+    by transfer (simp add: eq_iff)
 next
   case True
   obtain n where length: \<open>LENGTH('a) = Suc n\<close>
@@ -533,7 +533,7 @@ next
         by (simp add: take_bit_eq_mod)
       with True show \<open>take_bit LENGTH('a) (take_bit LENGTH('a) (1 + k * 2) div take_bit LENGTH('a) 2)
         = take_bit LENGTH('a) k\<close>
-        by auto
+        by (auto simp add: take_bit_Suc)
     qed
     ultimately show ?thesis
       by simp
@@ -592,7 +592,7 @@ proof
   show \<open>(1 + a) div 2 = a div 2\<close>
     if \<open>even a\<close>
     for a :: \<open>'a word\<close>
-    using that by transfer (auto dest: le_Suc_ex)
+    using that by transfer (auto dest: le_Suc_ex simp add: take_bit_Suc)
   show \<open>(2 :: 'a word) ^ m div 2 ^ n = of_bool ((2 :: 'a word) ^ m \<noteq> 0 \<and> n \<le> m) * 2 ^ (m - n)\<close>
     for m n :: nat
     by transfer (simp, simp add: exp_div_exp_eq)
