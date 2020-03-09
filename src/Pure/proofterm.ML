@@ -2049,7 +2049,12 @@ fun standard_hidden_types term proof =
   let
     val hidden = hidden_types term proof;
     val idx = Term.maxidx_term term (maxidx_proof proof ~1) + 1;
-    fun smash T = if member (op =) hidden T then TVar (("'", idx), Type.sort_of_atyp T) else T;
+    fun smash T =
+      if member (op =) hidden T then
+        (case Type.sort_of_atyp T of
+          [] => dummyT
+        | S => TVar (("'", idx), S))
+      else T;
     val smashT = map_atyps smash;
   in map_proof_terms (map_types smashT) smashT proof end;
 
