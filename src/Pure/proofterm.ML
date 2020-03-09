@@ -1064,7 +1064,7 @@ fun bicompose_proof flatten Bs As A oldAs n m rprf sprf =
 
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
-    fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
+    fun get S (T', S') = if Sorts.sort_le algebra (S', S) then SOME T' else NONE;
     val extra = map (`Logic.dummy_tfree) extra_sorts;
     val replacements = present @ extra @ witnessed;
     fun replace T =
