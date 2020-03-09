@@ -97,7 +97,6 @@ sig
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
-  val extra_shyps: thm -> sort list
   val proof_bodies_of: thm list -> proof_body list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
@@ -107,6 +106,8 @@ sig
   val expose_proof: theory -> thm -> unit
   val future: thm future -> cterm -> thm
   val thm_deps: thm -> Proofterm.thm Ord_List.T
+  val extra_shyps: thm -> sort list
+  val strip_shyps: thm -> thm
   val derivation_closed: thm -> bool
   val derivation_name: thm -> string
   val derivation_id: thm -> Proofterm.thm_id option
@@ -159,7 +160,6 @@ sig
     cterm -> cterm
   val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
-  val strip_shyps: thm -> thm
   val unconstrainT: thm -> thm
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val varifyT_global: thm -> thm
@@ -699,10 +699,6 @@ fun weaken_sorts raw_sorts ct =
     val sorts' = Sorts.union sorts more_sorts;
   in Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
 
-(*dangling sort constraints of a thm*)
-fun extra_shyps (th as Thm (_, {shyps, ...})) =
-  Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
-
 
 
 (** derivations and promised proofs **)
@@ -987,6 +983,49 @@ fun solve_constraints (thm as Thm (_, {constraints = [], ...})) = thm
       end;
 
 end;
+
+(*Dangling sort constraints of a thm*)
+fun extra_shyps (th as Thm (_, {shyps, ...})) =
+  Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
+
+(*Remove extra sorts that are witnessed by type signature information*)
+fun strip_shyps thm =
+  (case thm of
+    Thm (_, {shyps = [], ...}) => thm
+  | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
+      let
+        val thy = theory_of_thm thm;
+
+        val algebra = Sign.classes_of thy;
+        val minimize = Sorts.minimize_sort algebra;
+        val le = Sorts.sort_le algebra;
+        fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
+        fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
+
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
+        val extra = fold (Sorts.remove_sort o #2) present shyps;
+        val witnessed = Sign.witness_sorts thy present extra;
+        val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
+
+        val extra' =
+          non_witnessed |> map_filter (fn (S, _) =>
+            if non_witnessed |> exists (fn (S', _) => lt (S', S)) then NONE else SOME S)
+          |> Sorts.make;
+
+        val constrs' =
+          non_witnessed |> maps (fn (S1, S2) =>
+            let val S0 = the (find_first (fn S => le (S, S1)) extra')
+            in rel (S0, S1) @ rel (S1, S2) end);
+
+        val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
+        val shyps' = fold (Sorts.insert_sort o #2) present extra';
+      in
+        Thm (deriv_rule_unconditional
+          (Proofterm.strip_shyps_proof algebra present witnessed extra') der,
+         {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
+          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
+      end)
+  |> solve_constraints;
 
 
 
@@ -1692,46 +1731,6 @@ fun of_class (cT, raw_c) =
         prop = prop})
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
   end |> solve_constraints;
-
-(*Remove extra sorts that are witnessed by type signature information*)
-fun strip_shyps thm =
-  (case thm of
-    Thm (_, {shyps = [], ...}) => thm
-  | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
-      let
-        val thy = theory_of_thm thm;
-
-        val algebra = Sign.classes_of thy;
-        val minimize = Sorts.minimize_sort algebra;
-        val le = Sorts.sort_le algebra;
-        fun lt (S1, S2) = le (S1, S2) andalso not (le (S2, S1));
-        fun rel (S1, S2) = if S1 = S2 then [] else [(Term.aT S1, S2)];
-
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
-        val extra = fold (Sorts.remove_sort o #2) present shyps;
-        val witnessed = Sign.witness_sorts thy present extra;
-        val non_witnessed = fold (Sorts.remove_sort o #2) witnessed extra |> map (`minimize);
-
-        val extra' =
-          non_witnessed |> map_filter (fn (S, _) =>
-            if non_witnessed |> exists (fn (S', _) => lt (S', S)) then NONE else SOME S)
-          |> Sorts.make;
-
-        val constrs' =
-          non_witnessed |> maps (fn (S1, S2) =>
-            let val S0 = the (find_first (fn S => le (S, S1)) extra')
-            in rel (S0, S1) @ rel (S1, S2) end);
-
-        val constraints' = fold (insert_constraints thy) (witnessed @ constrs') constraints;
-        val shyps' = fold (Sorts.insert_sort o #2) present extra';
-      in
-        Thm (deriv_rule_unconditional
-          (Proofterm.strip_shyps_proof algebra present witnessed extra') der,
-         {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
-          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
-      end)
-  |> solve_constraints;
-
 
 (*Internalize sort constraints of type variables*)
 val unconstrainT =
