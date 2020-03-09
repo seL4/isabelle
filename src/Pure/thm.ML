@@ -1065,7 +1065,7 @@ fun thm_deps (thm as Thm (Deriv {promises = [], body = PBody {thms, ...}, ...}, 
   | thm_deps thm = raise THM ("thm_deps: bad promises", 0, [thm]);
 
 fun name_derivation name_pos =
-  solve_constraints #> (fn thm as Thm (der, args) =>
+  strip_shyps #> (fn thm as Thm (der, args) =>
     let
       val thy = theory_of_thm thm;
 
@@ -1734,7 +1734,7 @@ fun of_class (cT, raw_c) =
 
 (*Internalize sort constraints of type variables*)
 val unconstrainT =
-  solve_constraints #> (fn thm as Thm (der, args) =>
+  strip_shyps #> (fn thm as Thm (der, args) =>
     let
       val Deriv {promises, body} = der;
       val {cert, shyps, hyps, tpairs, prop, ...} = args;
