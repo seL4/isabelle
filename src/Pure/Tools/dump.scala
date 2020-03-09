@@ -6,6 +6,8 @@ Dump cumulative PIDE session database.
 
 package isabelle
 
+import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter}
+
 
 object Dump
 {
@@ -19,18 +21,22 @@ object Dump
     snapshot: Document.Snapshot,
     status: Document_Status.Node_Status)
   {
-    def write(file_name: Path, bytes: Bytes)
+    def write_path(file_name: Path): Path =
     {
       val path = output_dir + Path.basic(snapshot.node_name.theory) + file_name
       Isabelle_System.mkdirs(path.dir)
-      Bytes.write(path, bytes)
+      path
     }
+
+    def write(file_name: Path, bytes: Bytes): Unit =
+      Bytes.write(write_path(file_name), bytes)
 
     def write(file_name: Path, text: String): Unit =
       write(file_name, Bytes(text))
 
     def write(file_name: Path, body: XML.Body): Unit =
-      write(file_name, Symbol.encode(YXML.string_of_body(body)))
+      using(File.writer(write_path(file_name).file))(
+        writer => YXML.traversal(s => writer.write(Symbol.encode(s)), body))
   }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit,

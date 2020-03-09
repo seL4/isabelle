@@ -24,6 +24,7 @@ object YXML
   val X_string = X.toString
   val Y_string = Y.toString
   val XY_string = X_string + Y_string
+  val XYX_string = XY_string + X_string
 
   def detect(s: String): Boolean = s.exists(c => c == X || c == Y)
   def detect_elem(s: String): Boolean = s.startsWith(XY_string)
@@ -31,19 +32,26 @@ object YXML
 
   /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
 
-  def string_of_body(body: XML.Body): String =
+  def traversal(string: String => Unit, body: XML.Body): Unit =
   {
-    val s = new StringBuilder
-    def attrib(p: (String, String)) { s += Y; s ++= p._1; s += '='; s ++= p._2 }
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(Markup(name, atts), ts) =>
-          s += X; s += Y; s ++= name; atts.foreach(attrib); s += X
+          string(XY_string)
+          string(name)
+          for ((a, x) <- atts) { string(Y_string); string(a); string("="); string(x) }
+          string(X_string)
           ts.foreach(tree)
-          s += X; s += Y; s += X
-        case XML.Text(text) => s ++= text
+          string(XYX_string)
+        case XML.Text(text) => string(text)
       }
     body.foreach(tree)
+  }
+
+  def string_of_body(body: XML.Body): String =
+  {
+    val s = new StringBuilder
+    traversal(str => s ++= str, body)
     s.toString
   }
 

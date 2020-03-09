@@ -231,6 +231,9 @@ object File
 
   /* write */
 
+  def writer(file: JFile): BufferedWriter =
+    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8.charset))
+
   def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
   {
     val stream = make_stream(new FileOutputStream(file))
