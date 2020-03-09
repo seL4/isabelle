@@ -1877,7 +1877,7 @@ fun reconstruct_proof thy prop cprf =
     val cs' =
       map (apply2 (Envir.norm_term env)) ((t, prop') :: cs)
       |> map (fn p => (true, p, Term.add_var_names (#1 p) (Term.add_var_names (#2 p) [])));
-    val env' = solve thy cs' env
+    val env' = solve thy cs' env;
   in thawf (norm_proof env' prf) end handle MIN_PROOF () => MinProof;
 
 fun prop_of_atom prop Ts =
@@ -2055,10 +2055,10 @@ fun standard_hidden_types term proof =
 
 fun standard_hidden_terms term proof =
   let
-    fun add_not excl x =
-      ((is_Free x orelse is_Var x) andalso not (member (op =) excl x)) ? insert (op =) x;
-    val visible = fold_aterms (add_not []) term [];
-    val hidden = fold_proof_terms (fold_aterms (add_not visible)) proof [];
+    fun add_unless excluded x =
+      ((is_Free x orelse is_Var x) andalso not (member (op =) excluded x)) ? insert (op =) x;
+    val visible = fold_aterms (add_unless []) term [];
+    val hidden = fold_proof_terms (fold_aterms (add_unless visible)) proof [];
     val dummy_term = Term.map_aterms (fn x =>
       if member (op =) hidden x then Term.dummy_pattern (Term.fastype_of x) else x);
   in proof |> not (null hidden) ? map_proof_terms dummy_term I end;
