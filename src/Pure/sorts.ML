@@ -134,13 +134,13 @@ val super_classes = Graph.immediate_succs o classes_of;
 
 (* class relations *)
 
-val class_less = Graph.is_edge o classes_of;
+val class_less : algebra -> class * class -> bool = Graph.is_edge o classes_of;
 fun class_le algebra (c1, c2) = c1 = c2 orelse class_less algebra (c1, c2);
 
 
 (* sort relations *)
 
-fun sort_le algebra (S1, S2) =
+fun sort_le algebra (S1: sort, S2: sort) =
   S1 = S2 orelse forall (fn c2 => exists (fn c1 => class_le algebra (c1, c2)) S1) S2;
 
 fun sorts_le algebra (Ss1, Ss2) =
@@ -454,7 +454,7 @@ fun classrel_derivation algebra class_relation =
 
 (* witness_sorts *)
 
-fun witness_sorts algebra types hyps sorts =
+fun witness_sorts algebra ground_types hyps sorts =
   let
     fun le S1 S2 = sort_le algebra (S1, S2);
     fun get S2 (T, S1) = if le S1 S2 then SOME (T, S2) else NONE;
@@ -469,7 +469,7 @@ fun witness_sorts algebra types hyps sorts =
             | NONE =>
                 (case get_first (get S) hyps of
                   SOME w => (SOME w, (w :: solved, failed))
-                | NONE => witn_types path types S (solved, failed)))
+                | NONE => witn_types path ground_types S (solved, failed)))
 
     and witn_sorts path x = fold_map (witn_sort path) x
 
