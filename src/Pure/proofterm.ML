@@ -1062,15 +1062,16 @@ fun bicompose_proof flatten Bs As A oldAs n m rprf sprf =
 
 (** type classes **)
 
-fun strip_shyps_proof algebra present witnessed extra_sorts prf =
+fun strip_shyps_proof algebra present witnessed extra prf =
   let
-    fun get S (T', S') = if Sorts.sort_le algebra (S', S) then SOME T' else NONE;
-    val extra = map (`Logic.dummy_tfree) extra_sorts;
-    val replacements = present @ extra @ witnessed;
+    val replacements = present @ witnessed @ map (`Logic.dummy_tfree) extra;
+    fun get_replacement S =
+      replacements |> get_first (fn (T', S') =>
+        if Sorts.sort_le algebra (S', S) then SOME T' else NONE);
     fun replace T =
       if exists (fn (T', _) => T' = T) present then raise Same.SAME
       else
-        (case get_first (get (Type.sort_of_atyp T)) replacements of
+        (case get_replacement (Type.sort_of_atyp T) of
           SOME T' => T'
         | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
   in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
