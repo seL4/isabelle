@@ -1637,18 +1637,19 @@ fun chaseT env (T as TVar v) =
       | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
-fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
-      (t as Const (s, T)) = if T = dummyT then
+fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs (t as Const (s, T)) =
+      if T = dummyT then
         (case Sign.const_type thy s of
           NONE => error ("reconstruct_proof: No such constant: " ^ quote s)
         | SOME T =>
-            let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T)
-            in (Const (s, T'), T', vTs,
-              Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv})
+            let val T' = Type.strip_sorts (Logic.incr_tvar (maxidx + 1) T) in
+              (Const (s, T'), T', vTs,
+                Envir.Envir {maxidx = maxidx + 1, tenv = tenv, tyenv = tyenv})
             end)
       else (t, T, vTs, env)
   | infer_type _ env _ vTs (t as Free (s, T)) =
-      if T = dummyT then (case Symtab.lookup vTs s of
+      if T = dummyT then
+        (case Symtab.lookup vTs s of
           NONE =>
             let val (T, env') = mk_tvar [] env
             in (Free (s, T), T, Symtab.update_new (s, T) vTs, env') end
@@ -1664,7 +1665,8 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs
       let
         val (t', T, vTs1, env1) = infer_type thy env Ts vTs t;
         val (u', U, vTs2, env2) = infer_type thy env1 Ts vTs1 u;
-      in (case chaseT env2 T of
+      in
+        (case chaseT env2 T of
           Type ("fun", [U', V]) => (t' $ u', V, vTs2, unifyT thy env2 U U')
         | _ =>
           let val (V, env3) = mk_tvar [] env2
