@@ -89,6 +89,12 @@ VSCode.
 
 *** HOL ***
 
+* Removed multiplicativity assumption from normalization_semidom typeclass.
+  Introduced various new intermediate typeclasses with the multiplicativity
+  assumption; many theorem statements (especially involving GCD/LCM) had
+  to be adapted. This allows for a more natural instantiation of the 
+  algebraic typeclasses for e.g. Gaussian integers. INCOMPATIBILITY.
+
 * Improvements of the 'lift_bnf' command:
   - Add support for quotient types.
   - Generate transfer rules for the lifted map/set/rel/pred constants
