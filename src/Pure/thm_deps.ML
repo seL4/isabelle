@@ -87,10 +87,10 @@ fun unused_thms_cmd (base_thys, thys) =
       if exists (fn thy => Global_Theory.defined_fact thy name) base_thys then I
       else
         let val {concealed, group, ...} = Name_Space.the_entry space name in
-          fold_rev (fn th =>
+          fold_rev (transfer #> (fn th =>
             (case Thm.derivation_name th of
               "" => I
-            | a => cons (a, (transfer th, concealed, group)))) ths
+            | a => cons (a, (th, concealed, group))))) ths
         end;
     fun add_facts thy =
       let
