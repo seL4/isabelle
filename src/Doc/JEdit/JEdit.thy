@@ -360,15 +360,14 @@ text \<open>
 subsection \<open>Displays with high resolution \label{sec:hdpi}\<close>
 
 text \<open>
-  In 2019, we usually see displays with high resolution like ``Ultra HD'' /
+  In 2020, we usually see displays with high resolution like ``Ultra HD'' /
   ``4K'' at $3840 \times 2160$, or more. Old ``Full HD'' displays at $1920
   \times 1080$ pixels are still being used, but Java 11 font-rendering might
-  look bad on it (see \secref{sec:problems}) --- this is a good opportunity to
-  upgrade to current 4K or 5K technology. GUI layouts are lagging behind the
-  high resolution trends, and implicitly assume very old-fashioned $1024
-  \times 768$ or $1280 \times 1024$ screens and fonts with 12 or 14 pixels.
-  Java and jEdit do provide reasonable support for high resolution, but this
-  requires manual adjustments as described below.
+  look bad on it. GUI layouts are lagging behind the high resolution trends,
+  and implicitly assume very old-fashioned $1024 \times 768$ or $1280 \times
+  1024$ screens and fonts with 12 or 14 pixels. Java and jEdit do provide
+  reasonable support for high resolution, but this requires manual
+  adjustments as described below.
 
   \<^medskip> The \<^bold>\<open>operating-system\<close> often provides some configuration for global
   scaling of text fonts, e.g.\ to enlarge it uniformly by $200\%$. This
