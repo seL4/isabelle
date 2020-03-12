@@ -55,6 +55,13 @@ has been discontinued.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Prover IDE startup is now much faster, because theory dependencies are
+no longer explored in advance. The overall session structure with its
+declarations of 'directories' is sufficient to locate theory files. Thus
+the "session focus" of option "isabelle jedit -S" has become obsolete
+(likewise for "isabelle vscode_server -S"). Existing option "-R" is both
+sufficient and more convenient to start editing a particular session.
+
 * Actions isabelle.tooltip (CS+b) and isabelle.message (CS+m) display
 tooltip message popups, corresponding to mouse hovering with/without the
 CONTROL/COMMAND key pressed.
@@ -67,18 +74,15 @@ document snapshot:
   isabelle.next-error (CS+n)
   isabelle.prev-error (CS+p)
 
-* Prover IDE startup is now much faster, because theory dependencies are
-no longer explored in advance. The overall session structure with its
-declarations of 'directories' is sufficient to locate theory files. Thus
-the "session focus" of option "isabelle jedit -S" has become obsolete
-(likewise for "isabelle vscode_server -S"). Existing option "-R" is both
-sufficient and more convenient to start editing a particular session.
-
 * Support more brackets: \<llangle> \<rrangle> (intended for implicit argument syntax).
 
 * Action isabelle.jconsole (menu item Plugins / Isabelle / Java/VM
 Monitor) applies the jconsole tool on the running Isabelle/jEdit
 process. This allows to monitor resource usage etc.
+
+* More adequate default font sizes for Linux on HD / UHD displays:
+automatic font scaling is usually absent on Linux, in contrast to
+Windows and macOS.
 
 
 *** Isabelle/VSCode Prover IDE ***
@@ -88,12 +92,6 @@ VSCode.
 
 
 *** HOL ***
-
-* Removed multiplicativity assumption from normalization_semidom typeclass.
-  Introduced various new intermediate typeclasses with the multiplicativity
-  assumption; many theorem statements (especially involving GCD/LCM) had
-  to be adapted. This allows for a more natural instantiation of the 
-  algebraic typeclasses for e.g. Gaussian integers. INCOMPATIBILITY.
 
 * Improvements of the 'lift_bnf' command:
   - Add support for quotient types.
@@ -108,6 +106,13 @@ applications.
 
 * ASCII membership syntax concerning big operators for infimum and
 supremum has been discontinued. INCOMPATIBILITY.
+
+* Removed multiplicativity assumption from class
+"normalization_semidom". Introduced various new intermediate classes
+with the multiplicativity assumption; many theorem statements
+(especially involving GCD/LCM) had to be adapted. This allows for a more
+natural instantiation of the algebraic typeclasses for e.g. Gaussian
+integers. INCOMPATIBILITY.
 
 * Clear distinction between types for bits (False / True) and Z2 (0 /
 1): theory HOL-Library.Bit has been renamed accordingly.
