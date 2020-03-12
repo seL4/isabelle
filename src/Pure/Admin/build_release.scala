@@ -491,6 +491,7 @@ rm -rf "${DIST_NAME}-old"
           }) ::: List(Path.explode("src/Tools/jEdit/dist/jedit.jar"))
         }
 
+        val jedit_options = Path.explode("src/Tools/jEdit/etc/options")
         val jedit_props = Path.explode("src/Tools/jEdit/dist/properties/jEdit.props")
 
 
@@ -506,6 +507,19 @@ rm -rf "${DIST_NAME}-old"
 
         platform match {
           case Platform.Family.linux =>
+            File.write(isabelle_target + jedit_options,
+              File.read(isabelle_target + jedit_options)
+                .replaceAll("jedit_reset_font_size : int =.*", "jedit_reset_font_size : int = 24"))
+
+            File.write(isabelle_target + jedit_props,
+              File.read(isabelle_target + jedit_props)
+                .replaceAll("console.fontsize=.*", "console.fontsize=18")
+                .replaceAll("helpviewer.fontsize=.*", "helpviewer.fontsize=18")
+                .replaceAll("metal.primary.fontsize=.*", "metal.primary.fontsize=18")
+                .replaceAll("metal.secondary.fontsize=.*", "metal.secondary.fontsize=18")
+                .replaceAll("view.fontsize=.*", "view.fontsize=24")
+                .replaceAll("view.gutter.fontsize=.*", "view.gutter.fontsize=16"))
+
             File.write(isabelle_target + Path.explode("Isabelle.options"),
               terminate_lines(java_options_title :: java_options))
 
