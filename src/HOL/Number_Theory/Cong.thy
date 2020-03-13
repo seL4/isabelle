@@ -37,10 +37,10 @@ subsection \<open>Generic congruences\<close>
 context unique_euclidean_semiring
 begin
 
-definition cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ = _] '(()mod _'))\<close>)
+definition cong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ = _] '(' mod _'))\<close>)
   where "cong b c a \<longleftrightarrow> b mod a = c mod a"
   
-abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ \<noteq> _] '(()mod _'))\<close>)
+abbreviation notcong :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(1[_ \<noteq> _] '(' mod _'))\<close>)
   where "notcong b c a \<equiv> \<not> cong b c a"
 
 lemma cong_refl [simp]:
