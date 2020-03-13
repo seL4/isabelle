@@ -89,7 +89,7 @@ definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> 
   "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^sub>F i \<in> A i) } "
 
 syntax
-  "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>' _\<in>_./ _)"   10)
+  "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>'' _\<in>_./ _)"   10)
 translations
   "\<Pi>' x\<in>A. B" == "CONST Pi' A (\<lambda>x. B)"
 
