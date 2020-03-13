@@ -243,7 +243,7 @@ fun read_block_properties ss =
 val read_block_indent =
   Bg o block_indent o #1 o Library.read_int o map Symbol_Pos.symbol;
 
-val is_meta = member (op =) ["(", ")", "/", "_", "\<index>", Symbol.open_, Symbol.close];
+val is_meta = member (op =) ["'", "(", ")", "/", "_", "\<index>", Symbol.open_, Symbol.close];
 
 val scan_delim =
   scan_one Symbol.is_control ::: Symbol_Pos.scan_cartouche "Mixfix error: " ||

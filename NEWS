@@ -39,6 +39,10 @@ minor object-logics (FOL, FOLP, Sequents).
 * The inference kernel is now confined to one main module: structure
 Thm, without the former circular dependency on structure Axclass.
 
+* Mixfix annotations may use "' " (single quote followed by space) to
+separate delimiters (as documented in the isar-ref manual), without
+requiring an auxiliary empty block.
+
 
 *** Isar ***
 
