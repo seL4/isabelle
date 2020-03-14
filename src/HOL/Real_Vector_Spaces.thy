@@ -277,7 +277,7 @@ lemma of_real_diff [simp]: "of_real (x - y) = of_real x - of_real y"
   by (simp add: of_real_def scaleR_left_diff_distrib)
 
 lemma of_real_mult [simp]: "of_real (x * y) = of_real x * of_real y"
-  by (simp add: of_real_def mult.commute)
+  by (simp add: of_real_def)
 
 lemma of_real_sum[simp]: "of_real (sum f s) = (\<Sum>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
@@ -1365,7 +1365,7 @@ lemma sgn_of_real: "sgn (of_real r :: 'a::real_normed_algebra_1) = of_real (sgn 
 
 lemma sgn_mult: "sgn (x * y) = sgn x * sgn y"
   for x y :: "'a::real_normed_div_algebra"
-  by (simp add: sgn_div_norm norm_mult mult.commute)
+  by (simp add: sgn_div_norm norm_mult)
 
 hide_fact (open) sgn_mult
 

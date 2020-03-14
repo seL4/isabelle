@@ -96,15 +96,17 @@ lemma same_fstI [intro!]: "P x \<Longrightarrow> (y', y) \<in> R x \<Longrightar
   by (simp add: same_fst_def)
 
 lemma wf_same_fst:
-  assumes prem: "\<And>x. P x \<Longrightarrow> wf (R x)"
+  assumes "\<And>x. P x \<Longrightarrow> wf (R x)"
   shows "wf (same_fst P R)"
-  apply (simp cong del: imp_cong add: wf_def same_fst_def)
-  apply (intro strip)
-  apply (rename_tac a b)
-  apply (case_tac "wf (R a)")
-   apply (erule_tac a = b in wf_induct)
-   apply blast
-  apply (blast intro: prem)
-  done
+proof (clarsimp simp add: wf_def same_fst_def)
+  fix Q a b
+  assume *: "\<forall>a b. (\<forall>x. P a \<and> (x,b) \<in> R a \<longrightarrow> Q (a,x)) \<longrightarrow> Q (a,b)"
+  show "Q(a,b)"
+  proof (cases "wf (R a)")
+    case True
+    then show ?thesis
+      by (induction b rule: wf_induct_rule) (use * in blast)
+  qed (use * assms in blast)
+qed
 
 end

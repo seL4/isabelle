@@ -57,6 +57,10 @@ lemma someI_ex [elim?]: "\<exists>x. P x \<Longrightarrow> P (SOME x. P x)"
   apply (erule someI)
   done
 
+lemma some_eq_imp:
+  assumes "Eps P = a" "P b" shows "P a"
+  using assms someI_ex by force
+
 text \<open>
   Easier to apply than \<open>someI\<close> because the conclusion has only one
   occurrence of \<^term>\<open>P\<close>.

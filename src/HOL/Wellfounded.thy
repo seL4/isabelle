@@ -724,17 +724,20 @@ subsection \<open>Tools for building wellfounded relations\<close>
 
 text \<open>Inverse Image\<close>
 
-lemma wf_inv_image [simp,intro!]: "wf r \<Longrightarrow> wf (inv_image r f)"
-  for f :: "'a \<Rightarrow> 'b"
-  apply (simp add: inv_image_def wf_eq_minimal)
-  apply clarify
-  apply (subgoal_tac "\<exists>w::'b. w \<in> {w. \<exists>x::'a. x \<in> Q \<and> f x = w}")
-   prefer 2
-   apply (blast del: allE)
-  apply (erule allE)
-  apply (erule (1) notE impE)
-  apply blast
-  done
+lemma wf_inv_image [simp,intro!]: 
+  fixes f :: "'a \<Rightarrow> 'b"
+  assumes "wf r"
+  shows "wf (inv_image r f)"
+proof (clarsimp simp: inv_image_def wf_eq_minimal)
+  fix P and x::'a
+  assume "x \<in> P"
+  then obtain w where w: "w \<in> {w. \<exists>x::'a. x \<in> P \<and> f x = w}"
+    by auto
+  have *: "\<And>Q u. u \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
+    using assms by (auto simp add: wf_eq_minimal)
+  show "\<exists>z\<in>P. \<forall>y. (f y, f z) \<in> r \<longrightarrow> y \<notin> P"
+    using * [OF w] by auto
+qed
 
 text \<open>Measure functions into \<^typ>\<open>nat\<close>\<close>
 
