@@ -606,8 +606,7 @@ val transfer' = transfer o Proof_Context.theory_of;
 val transfer'' = transfer o Context.theory_of;
 
 fun join_transfer thy th =
-  if Context.subthy_id (Context.theory_id thy, theory_id th) then th
-  else transfer thy th;
+  (Context.subthy_id (theory_id th, Context.theory_id thy) ? transfer thy) th;
 
 fun join_transfer_context (ctxt, th) =
   if Context.subthy_id (theory_id th, Context.theory_id (Proof_Context.theory_of ctxt))
