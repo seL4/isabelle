@@ -39,6 +39,15 @@ object SSH
   val default_port = 22
   def make_port(port: Int): Int = if (port > 0) port else default_port
 
+  def port_suffix(port: Int): String =
+    if (port == default_port) "" else ":" + port
+
+  def user_prefix(user: String): String =
+    proper_string(user) match {
+      case None => ""
+      case Some(name) => name + "@"
+    }
+
   def connect_timeout(options: Options): Int =
     options.seconds("ssh_connect_timeout").ms.toInt
 
@@ -85,9 +94,10 @@ object SSH
   {
     def update_options(new_options: Options): Context = new Context(new_options, jsch)
 
-    def connect_session(host: String, user: String = "", port: Int = 0,
+    private def connect_session(host: String, user: String = "", port: Int = 0,
       host_key_permissive: Boolean = false,
-      host_key_alias: String = "",
+      nominal_host: String = "",
+      nominal_user: String = "",
       on_close: () => Unit = () => ()): Session =
     {
       val session = jsch.getSession(proper_string(user).orNull, host, make_port(port))
@@ -97,7 +107,7 @@ object SSH
       session.setServerAliveCountMax(alive_count_max(options))
       session.setConfig("MaxAuthTries", "3")
       if (host_key_permissive) session.setConfig("StrictHostKeyChecking", "no")
-      if (host_key_alias != "") session.setHostKeyAlias(host_key_alias)
+      if (nominal_host != "") session.setHostKeyAlias(nominal_host)
 
       if (options.bool("ssh_compression")) {
         session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none")
@@ -105,7 +115,9 @@ object SSH
         session.setConfig("compression_level", "9")
       }
       session.connect(connect_timeout(options))
-      new Session(options, session, on_close)
+      new Session(options, session, on_close,
+        proper_string(nominal_host) getOrElse host,
+        proper_string(nominal_user) getOrElse user)
     }
 
     def open_session(host: String, user: String = "", port: Int = 0,
@@ -122,8 +134,9 @@ object SSH
 
         try {
           connect_session(host = fw.local_host, port = fw.local_port,
-            host_key_permissive = permissive, host_key_alias = host,
-            user = user, on_close = () => { fw.close; proxy.close })
+            host_key_permissive = permissive,
+            nominal_host = host, nominal_user = user, user = user,
+            on_close = () => { fw.close; proxy.close })
         }
         catch { case exn: Throwable => fw.close; proxy.close; throw exn }
       }
@@ -292,21 +305,24 @@ object SSH
   class Session private[SSH](
     val options: Options,
     val session: JSch_Session,
-    on_close: () => Unit) extends System with AutoCloseable
+    on_close: () => Unit,
+    val nominal_host: String,
+    val nominal_user: String) extends System with AutoCloseable
   {
     def update_options(new_options: Options): Session =
-      new Session(new_options, session, on_close)
+      new Session(new_options, session, on_close, nominal_host, nominal_user)
 
-    def user_prefix: String = if (session.getUserName == null) "" else session.getUserName + "@"
     def host: String = if (session.getHost == null) "" else session.getHost
-    def port_suffix: String = if (session.getPort == default_port) "" else ":" + session.getPort
-    override def hg_url: String = "ssh://" + user_prefix + host + port_suffix + "/"
+
+    override def hg_url: String =
+      "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
     override def prefix: String =
-      user_prefix + host + port_suffix + ":"
+      user_prefix(session.getUserName) + host + port_suffix(session.getPort) + ":"
 
     override def toString: String =
-      user_prefix + host + port_suffix + (if (session.isConnected) "" else " (disconnected)")
+      user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
+      (if (session.isConnected) "" else " (disconnected)")
 
 
     /* port forwarding */
