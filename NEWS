@@ -42,7 +42,7 @@ Thm, without the former circular dependency on structure Axclass.
 * Mixfix annotations may use "' " (single quote followed by space) to
 separate delimiters (as documented in the isar-ref manual), without
 requiring an auxiliary empty block. A literal single quote needs to be
-escaped properly: rare INCOMPATIBILITY.
+escaped properly. Minor INCOMPATIBILITY.
 
 
 *** Isar ***
