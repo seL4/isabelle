@@ -59,7 +59,7 @@ object Phabricator
 
   val default_mailers: Path = Path.explode("mailers.json")
 
-  val default_system_port = 22
+  val default_system_port = SSH.default_port
   val alternative_system_port = 222
   val default_server_port = 2222
 
@@ -681,7 +681,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
   private val Any_Port = """^#?\s*Port\b.*$""".r
 
   def conf_ssh_port(port: Int): String =
-    if (port == 22) "#Port 22" else "Port " + port
+    if (port == SSH.default_port) "#Port " + SSH.default_port else "Port " + port
 
   def read_ssh_port(conf: Path): Int =
   {
@@ -689,7 +689,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
     val ports =
       lines.flatMap({
         case Port(Value.Int(p)) => Some(p)
-        case No_Port() => Some(22)
+        case No_Port() => Some(SSH.default_port)
         case _ => None
       })
     ports match {
@@ -794,7 +794,7 @@ Alias=""" + ssh_name + """.service
     for (config <- configs) {
       progress.echo("phabricator " + quote(config.name) + " port " +  server_port)
       config.execute("config set diffusion.ssh-port " + Bash.string(server_port.toString))
-      if (server_port == 22) config.execute("config delete diffusion.ssh-port")
+      if (server_port == SSH.default_port) config.execute("config delete diffusion.ssh-port")
     }
   }
 
@@ -914,7 +914,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     /* context for operations */
 
-    def apply(user: String, host: String, port: Int = 22): API =
+    def apply(user: String, host: String, port: Int = SSH.default_port): API =
       new API(user, host, port)
   }
 
@@ -924,8 +924,8 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
 
     require(ssh_host.nonEmpty && ssh_port >= 0)
 
-    private def ssh_user_prefix: String = if (ssh_user.isEmpty) "" else ssh_user + "@"
-    private def ssh_port_suffix: String = if (ssh_port == 22) "" else ":" + ssh_port
+    private def ssh_user_prefix: String = SSH.user_prefix(ssh_user)
+    private def ssh_port_suffix: String = SSH.port_suffix(ssh_port)
 
     override def toString: String = ssh_user_prefix + ssh_host + ssh_port_suffix
     def hg_url: String = "ssh://" + ssh_user_prefix + ssh_host + ssh_port_suffix

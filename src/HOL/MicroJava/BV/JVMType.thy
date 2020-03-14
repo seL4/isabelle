@@ -50,7 +50,7 @@ definition sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
 definition sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ <=' _"  [71,71] 70) where
+                   ("_ \<turnstile> _ <='' _"  [71,71] 70) where
   "sup_state_opt G == Opt.le (sup_state G)"
 
 

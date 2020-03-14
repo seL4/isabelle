@@ -9,9 +9,9 @@ declare [[default_code_width = 74]]
 
 syntax
   "_alpha" :: "type"  ("\<alpha>")
-  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()::_" [0] 1000)
+  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>' ::_" [0] 1000)
   "_beta" :: "type"  ("\<beta>")
-  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()::_" [0] 1000)
+  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>' ::_" [0] 1000)
 
 parse_ast_translation \<open>
   let

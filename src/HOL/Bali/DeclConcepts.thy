@@ -23,7 +23,7 @@ its element type is accessible\<close>
  
 primrec
   accessible_in :: "prog \<Rightarrow> ty \<Rightarrow> pname \<Rightarrow> bool"  ("_ \<turnstile> _ accessible'_in _" [61,61,61] 60) and
-  rt_accessible_in :: "prog \<Rightarrow> ref_ty \<Rightarrow> pname \<Rightarrow> bool"  ("_ \<turnstile> _ accessible'_in' _" [61,61,61] 60)
+  rt_accessible_in :: "prog \<Rightarrow> ref_ty \<Rightarrow> pname \<Rightarrow> bool"  ("_ \<turnstile> _ accessible'_in'' _" [61,61,61] 60)
 where
   "G\<turnstile>(PrimT p) accessible_in pack = True"
 | accessible_in_RefT_simp:
