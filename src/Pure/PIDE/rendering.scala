@@ -209,7 +209,7 @@ object Rendering
       Markup.BAD)
 
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
-  val error_elements = Markup.Elements(Markup.ERROR)
+  val error_elements = Markup.Elements(Markup.ERROR, Markup.BAD)
 
   val caret_focus_elements = Markup.Elements(Markup.ENTITY)
 
