@@ -150,7 +150,6 @@ object Isabelle_Cronjob
     user: String = "",
     port: Int = 0,
     ssh_host: String = "",
-    ssh_permissive: Boolean = false,
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
@@ -169,7 +168,7 @@ object Isabelle_Cronjob
     def ssh_session(context: SSH.Context): SSH.Session =
       context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
-        permissive = ssh_permissive)
+        permissive = proxy_host.nonEmpty)
 
     def sql: SQL.Source =
       Build_Log.Prop.build_engine + " = " + SQL.string(Build_History.engine) + " AND " +
