@@ -302,7 +302,7 @@ object Isabelle_Cronjob
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
-        self_update = true, options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
+        self_update = true, options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
