@@ -149,7 +149,6 @@ object Isabelle_Cronjob
     host: String,
     user: String = "",
     port: Int = 0,
-    ssh_host: String = "",
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
@@ -166,7 +165,7 @@ object Isabelle_Cronjob
     active: Boolean = true)
   {
     def ssh_session(context: SSH.Context): SSH.Session =
-      context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
+      context.open_session(host = host, user = user, port = port,
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
@@ -216,7 +215,6 @@ object Isabelle_Cronjob
     List(
       Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
-        ssh_host = "10.155.208.96",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
         afp = true,
@@ -341,7 +339,6 @@ object Isabelle_Cronjob
       List(
         Remote_Build("AFP2", "lrzcloud2", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m32 -M1x8 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
@@ -352,7 +349,6 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
         Remote_Build("AFP bulky2", "lrzcloud2", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
           afp = true,
