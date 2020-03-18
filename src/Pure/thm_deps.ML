@@ -42,7 +42,11 @@ fun pretty_thm_oracles ctxt thms =
     fun prt_oracle (ora, NONE) = prt_ora ora
       | prt_oracle (ora, SOME prop) =
           prt_ora ora @ [Pretty.str ":", Pretty.brk 1, Syntax.pretty_term_global thy prop];
-  in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) (all_oracles thms)) end;
+    val oracles =
+      (case try all_oracles thms of
+        SOME oracles => oracles
+      | NONE => error "Malformed proofs")
+  in Pretty.big_list "oracles:" (map (Pretty.item o prt_oracle) oracles) end;
 
 
 (* thm_deps *)
@@ -70,8 +74,12 @@ fun thm_deps thy =
 fun pretty_thm_deps thy thms =
   let
     val ctxt = Proof_Context.init_global thy;
+    val deps =
+      (case try (thm_deps thy) thms of
+        SOME deps => deps
+      | NONE => error "Malformed proofs");
     val items =
-      map #2 (thm_deps thy thms)
+      map #2 deps
       |> map (fn (name, i) => (Proof_Context.markup_extern_fact ctxt name, i))
       |> sort_by (#2 o #1)
       |> map (fn ((marks, xname), i) =>
