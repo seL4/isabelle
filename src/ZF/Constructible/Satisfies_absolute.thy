@@ -961,11 +961,11 @@ by (intro FOL_reflections function_reflections satisfies_MH_reflection
 lemma formula_rec_replacement: 
       \<comment> \<open>For the \<^term>\<open>transrec\<close>\<close>
    "[|n \<in> nat; L(A)|] ==> transrec_replacement(L, satisfies_MH(L,A), n)"
-apply (rule transrec_replacementI, simp add: nat_into_M) 
+apply (rule L.transrec_replacementI, simp add: L.nat_into_M)
 apply (rule strong_replacementI)
 apply (rule_tac u="{B,A,n,Memrel(eclose({n}))}"
          in gen_separation_multi [OF formula_rec_replacement_Reflects],
-       auto simp add: nat_into_M)
+       auto simp add: L.nat_into_M)
 apply (rule_tac env="[B,A,n,Memrel(eclose({n}))]" in DPow_LsetI)
 apply (rule sep_rules satisfies_MH_iff_sats is_wfrec_iff_sats | simp)+
 done

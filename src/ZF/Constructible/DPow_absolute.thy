@@ -581,7 +581,7 @@ lemma transrec_rep:
     ==> transrec_replacement(L, \<lambda>x f u. 
               \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) & 
                      big_union(L, r, u), j)"
-apply (rule transrec_replacementI, assumption)
+apply (rule L.transrec_replacementI, assumption)
 apply (unfold transrec_body_def)  
 apply (rule strong_replacementI)
 apply (rule_tac u="{j,B,Memrel(eclose({j}))}" 

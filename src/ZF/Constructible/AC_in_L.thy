@@ -460,7 +460,7 @@ apply (simp add: Transset_def L_def)
 apply (blast dest!: well_ord_L_r intro: well_ord_subset)
 done
 
-interpretation L?: M_basic L by (rule M_basic_L)
+interpretation L: M_basic L by (rule M_basic_L)
 
 theorem "\<forall>x[L]. \<exists>r. wellordered(L,x,r)"
 proof 
@@ -469,7 +469,7 @@ proof
   then obtain r where "well_ord(x,r)" 
     by (blast dest: L_implies_AC) 
   thus "\<exists>r. wellordered(L,x,r)" 
-    by (blast intro: well_ord_imp_relativized)
+    by (blast intro: L.well_ord_imp_relativized)
 qed
 
 text\<open>In order to prove \<^term>\<open> \<exists>r[L]. wellordered(L,x,r)\<close>, it's necessary to know 
