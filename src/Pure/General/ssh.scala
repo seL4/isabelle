@@ -317,9 +317,6 @@ object SSH
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
-    override def prefix: String =
-      user_prefix(session.getUserName) + host + port_suffix(session.getPort) + ":"
-
     override def toString: String =
       user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
       (if (session.isConnected) "" else " (disconnected)")
@@ -480,7 +477,6 @@ object SSH
   trait System
   {
     def hg_url: String = ""
-    def prefix: String = ""
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)
