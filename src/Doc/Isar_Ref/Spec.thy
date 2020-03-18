@@ -194,7 +194,7 @@ text \<open>
   arguments; a syntactic abbreviation links the long form with the abstract
   version of the target context. For example, \<open>a \<equiv> t[x]\<close> becomes \<open>c.a ?x \<equiv>
   t[?x]\<close> at the theory level (for arbitrary \<open>?x\<close>), together with a local
-  abbreviation \<open>c \<equiv> c.a x\<close> in the target context (for the fixed parameter
+  abbreviation \<open>a \<equiv> c.a x\<close> in the target context (for the fixed parameter
   \<open>x\<close>).
 
   Theorems are exported by discharging the assumptions and generalizing the
@@ -365,7 +365,7 @@ text \<open>
   \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants
   simultaneously and states axiomatic properties for these. The constants are
   marked as being specified once and for all, which prevents additional
-  specifications for the same constants later on, but it is always possible do
+  specifications for the same constants later on, but it is always possible to
   emit axiomatizations without referring to particular constants. Note that
   lack of precise dependency tracking of axiomatizations may disrupt the
   well-formedness of an otherwise definitional theory.
@@ -542,7 +542,7 @@ text \<open>
   expressions automatically takes care of the most general typing that the
   combined context elements may acquire.
 
-  The \<open>import\<close> consists of a locale expression; see \secref{sec:proof-context}
+  The \<open>import\<close> consists of a locale expression; see \secref{sec:locale-expr}
   above. Its \<^theory_text>\<open>for\<close> clause defines the parameters of \<open>import\<close>. These are
   parameters of the defined locale. Locale parameters whose instantiation is
   omitted automatically extend the (possibly empty) \<^theory_text>\<open>for\<close> clause: they are
@@ -949,7 +949,7 @@ text \<open>
 
   \<^medskip>
   Co-regularity is a very fundamental property of the order-sorted algebra of
-  types. For example, it entails principle types and most general unifiers,
+  types. For example, it entails principal types and most general unifiers,
   e.g.\ see @{cite "nipkow-prehofer"}.
 \<close>
 

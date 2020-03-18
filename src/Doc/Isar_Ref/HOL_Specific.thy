@@ -2434,7 +2434,7 @@ text \<open>
   Variant \<open>code nbe\<close> accepts also non-left-linear equations for
   \<^emph>\<open>normalization by evaluation\<close> only.
 
-  Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constant as arguments
+  Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constants as arguments
   and drop all code equations declared for them. In the case of \<open>abort\<close>,
   these constants then do not require to a specification by means of
   code equations; if needed these are implemented by program abort (exception)

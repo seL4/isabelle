@@ -1301,8 +1301,8 @@ text \<open>The proof tools of the Classical Reasoner depend on
 
   The rule \<open>P \<Longrightarrow> P \<or> Q\<close> is unsafe because it reduces \<open>P
   \<or> Q\<close> to \<open>P\<close>, which might turn out as premature choice of an
-  unprovable subgoal.  Any rule is unsafe whose premises contain new
-  unknowns.  The elimination rule \<open>\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q\<close> is
+  unprovable subgoal.  Any rule whose premises contain new unknowns is
+  unsafe. The elimination rule \<open>\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q\<close> is
   unsafe, since it is applied via elim-resolution, which discards the
   assumption \<open>\<forall>x. P x\<close> and replaces it by the weaker
   assumption \<open>P t\<close>.  The rule \<open>P t \<Longrightarrow> \<exists>x. P x\<close> is
@@ -1316,8 +1316,8 @@ text \<open>The proof tools of the Classical Reasoner depend on
   that \<open>(\<or>E)\<close> is unsafe, because repeated application of it
   could generate exponentially many subgoals.  Induction rules are
   unsafe because inductive proofs are difficult to set up
-  automatically.  Any inference is unsafe that instantiates an unknown
-  in the proof state --- thus matching must be used, rather than
+  automatically.  Any inference that instantiates an unknown
+  in the proof state is unsafe --- thus matching must be used, rather than
   unification.  Even proof by assumption is unsafe if it instantiates
   unknowns shared with other subgoals.
 

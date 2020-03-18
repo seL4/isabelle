@@ -1190,10 +1190,10 @@ text \<open>
   declared using the @{attribute_def induct_simp} attribute.
 
   The optional ``\<open>arbitrary: x\<^sub>1 \<dots> x\<^sub>m\<close>'' specification generalizes variables
-  \<open>x\<^sub>1, \<dots>, x\<^sub>m\<close> of the original goal before applying induction. One can
-  separate variables by ``\<open>and\<close>'' to generalize them in other goals then the
-  first. Thus induction hypotheses may become sufficiently general to get the
-  proof through. Together with definitional instantiations, one may
+  \<open>x\<^sub>1, \<dots>, x\<^sub>m\<close> of the original goal before applying induction. It is possible
+  to separate variables by ``\<open>and\<close>'' to generalize in goals other than
+  the first. Thus induction hypotheses may become sufficiently general to get
+  the proof through. Together with definitional instantiations, one may
   effectively perform induction over expressions of a certain structure.
 
   The optional ``\<open>taking: t\<^sub>1 \<dots> t\<^sub>n\<close>'' specification provides additional
