@@ -386,6 +386,8 @@ object Sessions
         if (required_theories.isEmpty) (ancestor.get, Nil)
         else {
           val other_name = info.name + "_requirements(" + ancestor.get + ")"
+          Isabelle_System.isabelle_tmp_prefix()
+
           (other_name,
             List(
               make_info(info.options,

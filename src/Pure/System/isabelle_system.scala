@@ -170,7 +170,7 @@ object Isabelle_System
 
   /* tmp files */
 
-  private def isabelle_tmp_prefix(): JFile =
+  def isabelle_tmp_prefix(): JFile =
   {
     val path = Path.explode("$ISABELLE_TMP_PREFIX")
     path.file.mkdirs  // low-level mkdirs
