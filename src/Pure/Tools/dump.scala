@@ -98,7 +98,8 @@ object Dump
       dirs: List[Path] = Nil,
       select_dirs: List[Path] = Nil,
       selection: Sessions.Selection = Sessions.Selection.empty,
-      pure_base: Boolean = false): Context =
+      pure_base: Boolean = false,
+      skip_base: Boolean = false): Context =
     {
       val session_options: Options =
       {
@@ -125,7 +126,7 @@ object Dump
       val deps: Sessions.Deps =
         Sessions.deps(sessions_structure, progress = progress).check_errors
 
-      new Context(options, progress, dirs, select_dirs, pure_base, session_options, deps)
+      new Context(options, progress, dirs, select_dirs, pure_base, skip_base, session_options, deps)
     }
   }
 
@@ -135,6 +136,7 @@ object Dump
     val dirs: List[Path],
     val select_dirs: List[Path],
     val pure_base: Boolean,
+    val skip_base: Boolean,
     val session_options: Options,
     val deps: Sessions.Deps)
   {
@@ -189,7 +191,7 @@ object Dump
       val PURE = isabelle.Thy_Header.PURE
 
       val base =
-        if (logic == PURE && !pure_base) Nil
+        if ((logic == PURE && !pure_base) || skip_base) Nil
         else make_session(base_sessions, session_logic = PURE, strict = logic == PURE)
 
       val main =

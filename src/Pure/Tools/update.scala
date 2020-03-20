@@ -18,7 +18,7 @@ object Update
   {
     val context =
       Dump.Context(options, progress = progress, dirs = dirs, select_dirs = select_dirs,
-        selection = selection)
+        selection = selection, skip_base = true)
 
     context.build_logic(logic)
 
