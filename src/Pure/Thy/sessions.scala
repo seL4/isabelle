@@ -222,7 +222,7 @@ object Sessions
               val required_sessions =
                 dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
                   .map(theory => imports_base.theory_qualifier(theory))
-                  .filterNot(_ == info.name)
+                  .filter(name => name != info.name && sessions_structure.defined(name))
 
               val required_subgraph =
                 sessions_structure.imports_graph
