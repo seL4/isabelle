@@ -1496,6 +1496,9 @@ native Windows platform (independently of the Cygwin installation). This
 is analogous to ISABELLE_PLATFORM, ISABELLE_PLATFORM32,
 ISABELLE_PLATFORM64.
 
+* The command-line tool "isabelle build_docker" has been slightly
+improved: it is now properly documented in the "system" manual.
+
 * Command-line tool "isabelle build_docker" builds a Docker image from
 the Isabelle application bundle for Linux. See also
 https://hub.docker.com/r/makarius/isabelle
