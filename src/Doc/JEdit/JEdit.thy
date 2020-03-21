@@ -2194,6 +2194,24 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Use action @{action isabelle.draft} and print via the Web
   browser.
 
+  \<^item> \<^bold>\<open>Problem:\<close> Antialiased text rendering may show bad performance or bad
+  visual quality, notably on Linux/X11.
+
+  \<^bold>\<open>Workaround:\<close> The property \<^verbatim>\<open>view.antiAlias\<close> (via menu item Utilities /
+  Global Options / Text Area / Anti Aliased smooth text) has the main impact
+  on text rendering, but some related properties may also change the
+  behaviour. The default is \<^verbatim>\<open>view.antiAlias=subpixel HRGB\<close>: it can be much
+  faster than \<^verbatim>\<open>standard\<close>, but occasionally causes problems with odd color
+  shades. An alternative is to have \<^verbatim>\<open>view.antiAlias=standard\<close> and set a Java
+  system property like this:\<^footnote>\<open>See also
+  \<^url>\<open>https://docs.oracle.com/javase/10/troubleshoot/java-2d-pipeline-rendering-and-properties.htm\<close>.\<close>
+  @{verbatim [display] \<open>isabelle jedit -Dsun.java2d.opengl=true\<close>}
+
+  If this works reliably, it can be made persistent via @{setting
+  JEDIT_JAVA_OPTIONS} within \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close>. For
+  the Isabelle desktop ``app'', there is a corresponding file with Java
+  runtime options in the main directory (name depends on the OS platform).
+
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus tend to disrupt key
   event handling of Java/AWT/Swing.
 
