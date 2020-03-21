@@ -11,6 +11,113 @@ text \<open>
   alphabetical order.
 \<close>
 
+section \<open>Building Isabelle docker images\<close>
+
+text \<open>
+  Docker\<^footnote>\<open>\<^url>\<open>https://docs.docker.com\<close>\<close> provides a self-contained environment
+  for complex applications called \<^emph>\<open>container\<close>, although it does not fully
+  contain the program in a strict sense of the word. This includes basic
+  operating system services (usually based on Linux), shared libraries and
+  other required packages. Thus Docker is a light-weight alternative to
+  regular virtual machines, or a heavy-weight alternative to conventional
+  self-contained applications.
+
+  Although Isabelle can be easily run on a variety of OS environments without
+  extra containment, Docker images may occasionally be useful when a
+  standardized Linux environment is required, even on
+  Windows\<^footnote>\<open>\<^url>\<open>https://docs.docker.com/docker-for-windows\<close>\<close> and
+  macOS\<^footnote>\<open>\<^url>\<open>https://docs.docker.com/docker-for-mac\<close>\<close>. Further uses are in
+  common cloud computing environments, where applications need to be submitted
+  as Docker images in the first place.
+
+  \<^medskip>
+  The @{tool_def build_docker} tool builds docker images from a standard
+  Isabelle application archive for Linux:
+
+  @{verbatim [display]
+\<open>Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
+
+  Options are:
+    -B NAME      base image (default "ubuntu")
+    -E           set bin/isabelle as entrypoint
+    -P NAME      additional Ubuntu package collection ("X11", "latex")
+    -l NAME      default logic (default ISABELLE_LOGIC="HOL")
+    -n           no docker build
+    -o FILE      output generated Dockerfile
+    -p NAME      additional Ubuntu package
+    -t TAG       docker build tag
+    -v           verbose
+
+  Build Isabelle docker image with default logic image, using a standard
+  Isabelle application archive for Linux (local file or remote URL).\<close>}
+
+  Option \<^verbatim>\<open>-E\<close> sets \<^verbatim>\<open>bin/isabelle\<close> of the contained Isabelle distribution as
+  the standard entry point of the Docker image. Thus \<^verbatim>\<open>docker run\<close> will
+  imitate the \<^verbatim>\<open>isabelle\<close> command-line tool (\secref{sec:isabelle-tool}) of a
+  regular local installation, but it lacks proper GUI support: \<^verbatim>\<open>isabelle jedit\<close>
+  will not work without further provisions. Note that the default entrypoint
+  may be changed later via \<^verbatim>\<open>docker run --entrypoint="..."\<close>.
+
+  Option \<^verbatim>\<open>-t\<close> specifies the Docker image tag: this a symbolic name within the
+  local Docker name space, but also relevant for Docker
+  Hub\<^footnote>\<open>\<^url>\<open>https://hub.docker.com\<close>\<close>.
+
+  Option \<^verbatim>\<open>-l\<close> specifies the default logic image of the Isabelle distribution
+  contained in the Docker environment: it will be produced by \<^verbatim>\<open>isabelle build -b\<close>
+  as usual (\secref{sec:tool-build}) and stored within the image.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
+  Isabelle installation: it needs to be a suitable version of Ubuntu Linux.
+  The default \<^verbatim>\<open>ubuntu\<close> refers to the latest LTS version provided by Canonical
+  as the official Ubuntu vendor\<^footnote>\<open>\<^url>\<open>https://hub.docker.com/_/ubuntu\<close>\<close>. For
+  Isabelle2020 this should be Ubuntu 18.04 LTS.
+
+  Option \<^verbatim>\<open>-p\<close> includes additional Ubuntu packages, using the terminology
+  of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
+
+  Option \<^verbatim>\<open>-P\<close> refers to high-level package collections: \<^verbatim>\<open>X11\<close> or \<^verbatim>\<open>latex\<close> as
+  provided by \<^verbatim>\<open>isabelle build_docker\<close> (assuming Ubuntu 18.04 LTS). This
+  imposes extra weight on the resulting Docker images. Note that \<^verbatim>\<open>X11\<close> will
+  only provide remote X11 support according to the modest GUI quality
+  standards of the late 1990-ies.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-n\<close> suppresses the actual \<^verbatim>\<open>docker build\<close> process. Option \<^verbatim>\<open>-o\<close>
+  outputs the generated \<^verbatim>\<open>Dockerfile\<close>. Both options together produce a
+  Dockerfile only, which might be useful for informative purposes or other
+  tools.
+
+  Option \<^verbatim>\<open>-v\<close> disables quiet-mode of the underlying \<^verbatim>\<open>docker build\<close> process.
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Produce a Dockerfile (without image) from a remote Isabelle distribution:
+  @{verbatim [display]
+\<open>  isabelle build_docker -E -n -o Dockerfile
+    https://isabelle.in.tum.de/website-Isabelle2020/dist/Isabelle2020_linux.tar.gz\<close>}
+
+  Build a standard Isabelle Docker image from a local Isabelle distribution,
+  with \<^verbatim>\<open>bin/isabelle\<close> as executable entry point:
+
+  @{verbatim [display]
+\<open>  isabelle build_docker -E -t test/isabelle:Isabelle2020 Isabelle2020_linux.tar.gz\<close>}
+
+  Invoke the raw Isabelle/ML process within that image:
+  @{verbatim [display]
+\<open>  docker run test/isabelle:Isabelle2020 process -e "Session.welcome ()"\<close>}
+
+  Invoke a Linux command-line tool within the contained Isabelle system
+  environment:
+  @{verbatim [display]
+\<open>  docker run test/isabelle:Isabelle2020 env uname -a\<close>}
+  The latter should always report a Linux operating system, even when running
+  on Windows or macOS.
+\<close>
+
 
 section \<open>Resolving Isabelle components \label{sec:tool-components}\<close>
 

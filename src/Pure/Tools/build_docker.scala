@@ -128,13 +128,6 @@ Usage: isabelle build_docker [OPTIONS] APP_ARCHIVE
 
   Build Isabelle docker image with default logic image, using a standard
   Isabelle application archive for Linux (local file or remote URL).
-
-  Examples:
-
-    isabelle build_docker -E -t test/isabelle:Isabelle2019 Isabelle2019_linux.tar.gz
-
-    isabelle build_docker -E -n -o Dockerfile http://isabelle.in.tum.de/dist/Isabelle2019_linux.tar.gz
-
 """,
           "B:" -> (arg => base = arg),
           "E" -> (_ => entrypoint = true),
