@@ -82,7 +82,7 @@ object Mercurial
     val root: Path = ssh.expand_path(root_path)
     def root_url: String = ssh.hg_url + root.implode
 
-    override def toString: String = ssh.prefix + root.implode
+    override def toString: String = ssh.hg_url + root.implode
 
     def command(name: String, args: String = "", options: String = "",
       repository: Boolean = true): Process_Result =

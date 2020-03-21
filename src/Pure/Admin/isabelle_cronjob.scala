@@ -147,9 +147,9 @@ object Isabelle_Cronjob
   sealed case class Remote_Build(
     description: String,
     host: String,
+    actual_host: String = "",
     user: String = "",
     port: Int = 0,
-    ssh_host: String = "",
     proxy_host: String = "",
     proxy_user: String = "",
     proxy_port: Int = 0,
@@ -166,7 +166,7 @@ object Isabelle_Cronjob
     active: Boolean = true)
   {
     def ssh_session(context: SSH.Context): SSH.Session =
-      context.open_session(host = proper_string(ssh_host) getOrElse host, user = user, port = port,
+      context.open_session(host = host, user = user, port = port, actual_host = actual_host,
         proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
         permissive = proxy_host.nonEmpty)
 
@@ -216,7 +216,6 @@ object Isabelle_Cronjob
     List(
       Remote_Build("AFP bulky", "lrzcloud1", self_update = true,
         proxy_host = "lxbroy10", proxy_user = "i21isatest",
-        ssh_host = "10.155.208.96",
         options = "-m64 -M6 -U30000 -s10 -t AFP",
         args = "-g large -g slow",
         afp = true,
@@ -291,18 +290,18 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("skip_proofs"),
           history_base = "2c0f24e927dd")),
       List(
-        Remote_Build("macOS 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
+        Remote_Build("Mac OS X 10.12 Sierra", "macbroy30", options = "-m32 -M2", args = "-a",
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
-      List(Remote_Build("macOS 10.13 High Sierra", "lapbroy68",
+      List(Remote_Build("Mac OS X 10.13 High Sierra", "lapbroy68",
         options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("macOS 10.14 Mojave", "lapnipkow3",
+      List(Remote_Build("Mac OS X 10.14 Mojave", "lapnipkow3",
         options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true",
         self_update = true, args = "-a -d '~~/src/Benchmarks'")),
-      List(Remote_Build("macOS 10.15 Catalina", "laramac01", user = "makarius",
+      List(Remote_Build("Mac OS X 10.15 Catalina", "laramac01", user = "makarius",
         proxy_host = "laraserver", proxy_user = "makarius",
-        self_update = true, options = "-m32 -M1,2,4 -e ISABELLE_GHC_SETUP=true",
+        self_update = true, options = "-m32 -M4 -e ISABELLE_GHC_SETUP=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
@@ -339,9 +338,8 @@ object Isabelle_Cronjob
   val remote_builds2: List[List[Remote_Build]] =
     List(
       List(
-        Remote_Build("AFP2", "lrzcloud2", self_update = true,
+        Remote_Build("AFP2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m32 -M1x8 -t AFP" +
             " -e ISABELLE_GHC=ghc" +
             " -e ISABELLE_MLTON=mlton" +
@@ -350,9 +348,8 @@ object Isabelle_Cronjob
           args = "-a -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags + " = " + SQL.string("AFP")),
-        Remote_Build("AFP bulky2", "lrzcloud2", self_update = true,
+        Remote_Build("AFP bulky2", "lrzcloud2", actual_host = "10.195.2.10", self_update = true,
           proxy_host = "lxbroy10", proxy_user = "i21isatest",
-          ssh_host = "10.195.2.10",
           options = "-m64 -M8 -U30000 -s10 -t AFP",
           args = "-g large -g slow",
           afp = true,

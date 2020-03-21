@@ -83,10 +83,12 @@ object SSH
     new Context(options, jsch)
   }
 
-  def open_session(options: Options, host: String, user: String = "", port: Int = 0,
+  def open_session(options: Options,
+      host: String, user: String = "", port: Int = 0, actual_host: String = "",
       proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
       permissive: Boolean = false): Session =
-    init_context(options).open_session(host = host, user = user, port = port,
+    init_context(options).open_session(
+      host = host, user = user, port = port, actual_host = actual_host,
       proxy_host = proxy_host, proxy_user = proxy_user, proxy_port = proxy_port,
       permissive = permissive)
 
@@ -120,16 +122,18 @@ object SSH
         proper_string(nominal_user) getOrElse user)
     }
 
-    def open_session(host: String, user: String = "", port: Int = 0,
+    def open_session(
+      host: String, user: String = "", port: Int = 0, actual_host: String = "",
       proxy_host: String = "", proxy_user: String = "", proxy_port: Int = 0,
       permissive: Boolean = false): Session =
     {
-      if (proxy_host == "") connect_session(host = host, user = user, port = port)
+      val connect_host = proper_string(actual_host) getOrElse host
+      if (proxy_host == "") connect_session(host = connect_host, user = user, port = port)
       else {
         val proxy = connect_session(host = proxy_host, port = proxy_port, user = proxy_user)
 
         val fw =
-          try { proxy.port_forwarding(remote_host = host, remote_port = make_port(port)) }
+          try { proxy.port_forwarding(remote_host = connect_host, remote_port = make_port(port)) }
           catch { case exn: Throwable => proxy.close; throw exn }
 
         try {
@@ -317,9 +321,6 @@ object SSH
     override def hg_url: String =
       "ssh://" + user_prefix(nominal_user) + nominal_host + "/"
 
-    override def prefix: String =
-      user_prefix(session.getUserName) + host + port_suffix(session.getPort) + ":"
-
     override def toString: String =
       user_prefix(session.getUserName) + host + port_suffix(session.getPort) +
       (if (session.isConnected) "" else " (disconnected)")
@@ -480,7 +481,6 @@ object SSH
   trait System
   {
     def hg_url: String = ""
-    def prefix: String = ""
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)

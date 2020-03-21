@@ -2012,14 +2012,10 @@ fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
               else bad_input [thm])
       | NONE => (case Lifting_Info.lookup_quotients lthy absT_name of
             SOME {quot_thm = qthm, ...} =>
-              let
-                val qthm = Thm.transfer' lthy qthm;
-              in
-                case [qthm] RL @{thms Quotient_eq_onp_typedef Quotient_eq_onp_type_copy} of
-                  thm :: _ => (thm, Typedef)
-                | _ => (qthm RS @{thm Quotient_Quotient3},
-                   Quotient (find_equiv_thm_via_Quotient qthm))
-              end
+              (case [qthm] RL @{thms Quotient_eq_onp_typedef Quotient_eq_onp_type_copy} of
+                thm :: _ => (thm, Typedef)
+              | _ => (qthm RS @{thm Quotient_Quotient3},
+                 Quotient (find_equiv_thm_via_Quotient qthm)))
           | NONE => (Typedef.get_info lthy absT_name |> hd |> snd |> #type_definition, Typedef))
       | SOME thms => bad_input thms);
     val wits = (Option.map o map) (prepare_term lthy) raw_wits;
