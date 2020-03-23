@@ -2458,6 +2458,7 @@ lemma nat_mult_1: "1 * n = n"
 lemma nat_mult_1_right: "n * 1 = n"
   for n :: nat
   by (fact mult_1_right)
+
 lemma diff_mult_distrib: "(m - n) * k = (m * k) - (n * k)"
   for k m n :: nat
   by (fact left_diff_distrib')
@@ -2465,6 +2466,11 @@ lemma diff_mult_distrib: "(m - n) * k = (m * k) - (n * k)"
 lemma diff_mult_distrib2: "k * (m - n) = (k * m) - (k * n)"
   for k m n :: nat
   by (fact right_diff_distrib')
+
+(*Used in AUTO2 and Groups.le_diff_conv2 (with variables renamed) doesn't work for some reason*)
+lemma le_diff_conv2: "k \<le> j \<Longrightarrow> (i \<le> j - k) = (i + k \<le> j)"
+  for i j k :: nat
+  by (fact le_diff_conv2) 
 
 lemma diff_self_eq_0 [simp]: "m - m = 0"
   for m :: nat
