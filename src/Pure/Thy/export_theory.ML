@@ -251,7 +251,7 @@ val _ = setup_presentation (fn context => fn thy =>
     (* theorems and proof terms *)
 
     val clean_thm = Thm.check_hyps (Context.Theory thy) #> Thm.strip_shyps;
-    val prep_thm = clean_thm #> Thm.unconstrainT;
+    val prep_thm = clean_thm #> Thm.unconstrainT #> Thm.strip_shyps;
 
     val lookup_thm_id = Global_Theory.lookup_thm_id thy;
 
