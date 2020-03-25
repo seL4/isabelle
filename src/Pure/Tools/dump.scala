@@ -481,6 +481,10 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
+      val start_date = Date.now()
+
+      if (verbose) progress.echo("Started at " + Build_Log.print_date(start_date))
+
       progress.interrupt_handler {
         dump(options, logic,
           aspects = aspects,
@@ -497,5 +501,11 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
             session_groups = session_groups,
             sessions = sessions))
       }
+
+      val end_date = Date.now()
+      val timing = end_date.time - start_date.time
+
+      if (verbose) progress.echo("\nFinished at " + Build_Log.print_date(end_date))
+      progress.echo(timing.message_hms + " elapsed time")
     })
 }
