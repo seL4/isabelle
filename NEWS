@@ -222,6 +222,9 @@ users, system services.
 * Isabelle/Scala support for proof terms (with full type/term
 information) in module isabelle.Term.
 
+* Isabelle/Scala: more scalable output of YXML files, e.g. relevant for
+"isabelle dump".
+
 * Theory export via Isabelle/Scala has been reworked. The former "fact"
 name space is now split into individual "thm" items: names are
 potentially indexed, such as "foo" for singleton facts, or "bar(1)",
