@@ -337,7 +337,6 @@ object Sessions
 
   sealed case class Base_Info(
     options: Options,
-    dirs: List[Path],
     session: String,
     sessions_structure: Structure,
     errors: List[String],
@@ -420,7 +419,7 @@ object Sessions
 
     val deps1 = Sessions.deps(selected_sessions1, progress = progress)
 
-    Base_Info(options, dirs, session1, full_sessions1, deps1.errors, deps1(session1), infos1)
+    Base_Info(options, session1, full_sessions1, deps1.errors, deps1(session1), infos1)
   }
 
 
