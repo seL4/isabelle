@@ -281,14 +281,14 @@ object Build
           val process =
             if (Sessions.is_pure(name)) {
               ML_Process(options, deps.sessions_structure, raw_ml_system = true,
-                cwd = info.dir.file, env = env, store = Some(store),
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
-                  List("--eval", eval),
+                    List("--eval", eval),
+                cwd = info.dir.file, env = env, store = Some(store),
                 cleanup = () => args_file.delete)
             }
             else {
-              ML_Process(options, deps.sessions_structure, parent, List("--eval", eval),
+              ML_Process(options, deps.sessions_structure, logic = parent, args = List("--eval", eval),
                 cwd = info.dir.file, env = env, store = Some(store),
                 cleanup = () => args_file.delete)
             }
