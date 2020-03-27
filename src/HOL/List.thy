@@ -3550,8 +3550,9 @@ lemma distinct_concat:
    \<rbrakk> \<Longrightarrow> distinct (concat xs)"
 by (induct xs) auto
 
-text \<open>It is best to avoid this indexed version of distinct, but
-sometimes it is useful.\<close>
+text \<open>An iff-version of @{thm distinct_concat} is available further down as \<open>distinct_concat_iff\<close>.\<close>
+
+text \<open>It is best to avoid the following indexed version of distinct, but sometimes it is useful.\<close>
 
 lemma distinct_conv_nth: "distinct xs = (\<forall>i < size xs. \<forall>j < size xs. i \<noteq> j \<longrightarrow> xs!i \<noteq> xs!j)"
 proof (induct xs)
@@ -4178,6 +4179,14 @@ lemma length_removeAll_less_eq [simp]:
 lemma length_removeAll_less [termination_simp]:
   "x \<in> set xs \<Longrightarrow> length (removeAll x xs) < length xs"
   by (auto dest: length_filter_less simp add: removeAll_filter_not_eq)
+
+lemma distinct_concat_iff: "distinct (concat xs) \<longleftrightarrow>
+  distinct (removeAll [] xs) \<and> 
+  (\<forall>ys. ys \<in> set xs \<longrightarrow> distinct ys) \<and>
+  (\<forall>ys zs. ys \<in> set xs \<and> zs \<in> set xs \<and> ys \<noteq> zs \<longrightarrow> set ys \<inter> set zs = {})"
+apply (induct xs)
+ apply(simp_all, safe, auto)
+by (metis Int_iff UN_I empty_iff equals0I set_empty)
 
 
 subsubsection \<open>\<^const>\<open>replicate\<close>\<close>
