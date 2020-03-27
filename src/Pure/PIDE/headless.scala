@@ -584,9 +584,11 @@ object Headless
         }
       session.phase_changed += session_phase
 
+      val sessions_structure = Sessions.load_structure(options, dirs = session_base_info.dirs)
+
       progress.echo("Starting session " + session_base_info.session + " ...")
-      Isabelle_Process.start(session, options,
-        logic = session_base_info.session, dirs = session_base_info.dirs, modes = print_mode)
+      Isabelle_Process.start(session, options, sessions_structure,
+        logic = session_base_info.session, modes = print_mode)
 
       session_error.join match {
         case "" => session

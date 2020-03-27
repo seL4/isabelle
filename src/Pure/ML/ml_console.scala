@@ -50,6 +50,8 @@ Usage: isabelle console [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
 
+      val sessions_structure = Sessions.load_structure(options, dirs = dirs)
+
       // build logic
       if (!no_build && !raw_ml_system) {
         val progress = new Console_Progress()
@@ -62,7 +64,7 @@ Usage: isabelle console [OPTIONS]
 
       // process loop
       val process =
-        ML_Process(options, logic = logic, args = List("-i"), dirs = dirs, redirect = true,
+        ML_Process(options, sessions_structure, logic = logic, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
           raw_ml_system = raw_ml_system,
           store = Some(Sessions.store(options)),

@@ -138,7 +138,7 @@ object JEdit_Sessions
     val options = session_options(options0)
 
     Isabelle_Process.start(PIDE.session, options,
-      sessions_structure = Some(PIDE.resources.session_base_info.sessions_structure),
+      PIDE.resources.session_base_info.sessions_structure,
       logic = PIDE.resources.session_name,
       store = Some(Sessions.store(options)),
       modes =

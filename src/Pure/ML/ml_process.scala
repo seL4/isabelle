@@ -13,29 +13,25 @@ import java.io.{File => JFile}
 object ML_Process
 {
   def apply(options: Options,
+    sessions_structure: Sessions.Structure,
     logic: String = "",
     args: List[String] = Nil,
-    dirs: List[Path] = Nil,
     modes: List[String] = Nil,
     raw_ml_system: Boolean = false,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    sessions_structure: Option[Sessions.Structure] = None,
     session_base: Option[Sessions.Base] = None,
     store: Option[Sessions.Store] = None): Bash.Process =
   {
     val logic_name = Isabelle_System.default_logic(logic)
     val _store = store.getOrElse(Sessions.store(options))
 
-    val sessions_structure1 =
-      sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
-
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        sessions_structure1.selection(Sessions.Selection.session(logic_name)).
+        sessions_structure.selection(Sessions.Selection.session(logic_name)).
           build_requirements(List(logic_name)).
           map(a => File.platform_path(_store.the_heap(a)))
       }
@@ -96,8 +92,8 @@ object ML_Process
               ML_Syntax.print_pair(ML_Syntax.print_string_bytes, ML_Syntax.print_properties))(list)
 
           List("Resources.init_session_base" +
-            " {session_positions = " + print_sessions(sessions_structure1.session_positions) +
-            ", session_directories = " + print_table(sessions_structure1.dest_session_directories) +
+            " {session_positions = " + print_sessions(sessions_structure.session_positions) +
+            ", session_directories = " + print_table(sessions_structure.dest_session_directories) +
             ", docs = " + print_list(base.doc_names) +
             ", global_theories = " + print_table(base.global_theories.toList) +
             ", loaded_theories = " + print_list(base.loaded_theories.keys) + "}")
@@ -182,8 +178,11 @@ Usage: isabelle process [OPTIONS]
     val more_args = getopts(args)
     if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
-    val rc = ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
-      result().print_stdout.rc
+    val sessions_structure = Sessions.load_structure(options, dirs = dirs)
+
+    val rc =
+      ML_Process(options, sessions_structure, logic = logic, args = eval_args, modes = modes)
+        .result().print_stdout.rc
     sys.exit(rc)
   })
 }

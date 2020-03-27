@@ -250,8 +250,8 @@ object Build
 
           val session_result = Future.promise[Process_Result]
 
-          Isabelle_Process.start(session, options, logic = parent, cwd = info.dir.file, env = env,
-            sessions_structure = Some(sessions_structure), store = Some(store),
+          Isabelle_Process.start(session, options, sessions_structure,
+            logic = parent, cwd = info.dir.file, env = env, store = Some(store),
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)
@@ -280,16 +280,16 @@ object Build
 
           val process =
             if (Sessions.is_pure(name)) {
-              ML_Process(options, raw_ml_system = true, cwd = info.dir.file,
+              ML_Process(options, deps.sessions_structure, raw_ml_system = true,
+                cwd = info.dir.file, env = env, store = Some(store),
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                   List("--eval", eval),
-                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
                 cleanup = () => args_file.delete)
             }
             else {
-              ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
-                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
+              ML_Process(options, deps.sessions_structure, parent, List("--eval", eval),
+                cwd = info.dir.file, env = env, store = Some(store),
                 cleanup = () => args_file.delete)
             }
 
