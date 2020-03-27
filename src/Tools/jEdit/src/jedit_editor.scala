@@ -202,7 +202,7 @@ class JEdit_Editor extends Editor[View]
       case doc: Doc.Text_File if doc.name == name => doc.path
       case doc: Doc.Doc if doc.name == name => doc.path}).map(path =>
         new Hyperlink {
-          override val external = !path.is_file
+          override val external: Boolean = !path.is_file
           def follow(view: View): Unit = goto_doc(view, path)
           override def toString: String = "doc " + quote(name)
         })

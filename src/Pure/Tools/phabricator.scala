@@ -39,7 +39,7 @@ object Phabricator
 
   val daemon_user = "phabricator"
 
-  val sshd_config = Path.explode("/etc/ssh/sshd_config")
+  val sshd_config: Path = Path.explode("/etc/ssh/sshd_config")
 
 
   /* installation parameters */
@@ -59,7 +59,7 @@ object Phabricator
 
   val default_mailers: Path = Path.explode("mailers.json")
 
-  val default_system_port = SSH.default_port
+  val default_system_port: Int = SSH.default_port
   val alternative_system_port = 222
   val default_server_port = 2222
 
@@ -69,7 +69,7 @@ object Phabricator
 
   /** global configuration **/
 
-  val global_config = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
+  val global_config: Path = Path.explode("/etc/" + isabelle_phabricator_name(ext = "conf"))
 
   def global_config_script(
     init: String = "",

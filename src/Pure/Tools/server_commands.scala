@@ -49,7 +49,7 @@ object Server_Commands
       : (JSON.Object.T, Build.Results, Options, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.preferences, opts = args.options)
-      val dirs = args.dirs.map(Path.explode(_))
+      val dirs = args.dirs.map(Path.explode)
 
       val base_info =
         Sessions.base_info(options, args.session, progress = progress, dirs = dirs,

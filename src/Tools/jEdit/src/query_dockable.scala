@@ -302,7 +302,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
   select_operation()
   set_content(operations_pane)
 
-  override def detach_operation =
+  override def detach_operation: Option[() => Unit] =
     get_operation() match {
       case None => None
       case Some(op) => op.pretty_text_area.detach_operation

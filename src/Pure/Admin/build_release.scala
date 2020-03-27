@@ -163,7 +163,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
       terminate_lines("#bundled components" ::
         (for {
           (catalog, bundled) <- catalogs.iterator
-          val path = Components.admin(dir) + Path.basic(catalog)
+          path = Components.admin(dir) + Path.basic(catalog)
           if path.is_file
           line <- split_lines(File.read(path))
           if line.nonEmpty && !line.startsWith("#") && !line.startsWith("jedit_build")
@@ -196,7 +196,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
             if (Components.check_dir(Components.contrib(dir, name))) Some(contrib_name(name))
             else None
           case _ => if (Bundled.detect(line)) None else Some(line)
-        }) ::: more_names.map(contrib_name(_)))
+        }) ::: more_names.map(contrib_name))
   }
 
   def make_contrib(dir: Path)
@@ -428,7 +428,6 @@ rm -rf "${DIST_NAME}-old"
     val bundle_infos = platform_families.map(release.bundle_info)
 
     for (bundle_info <- bundle_infos) {
-      val bundle_archive = release.dist_dir + bundle_info.path
       val isabelle_name = release.dist_name
       val platform = bundle_info.platform
 

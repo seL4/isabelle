@@ -224,7 +224,7 @@ object Headless
           }
           else result
 
-        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory(_))
+        val (load_theories, load_state1) = load_state.next(dep_graph, finished_theory)
 
         (load_theories,
           copy(already_committed = already_committed1, result = result1, load_state = load_state1))
@@ -350,7 +350,7 @@ object Headless
                     (theory_progress, st.update(nodes_status1))
                   })
 
-              theory_progress.foreach(progress.theory(_))
+              theory_progress.foreach(progress.theory)
 
               check_state()
 
@@ -496,7 +496,7 @@ object Headless
       lazy val theory_graph: Document.Node.Name.Graph[Unit] =
         Document.Node.Name.make_graph(
           for ((name, theory) <- theories.toList)
-          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt(_))))
+          yield ((name, ()), theory.node_header.imports.filter(theories.isDefinedAt)))
 
       def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
 
@@ -542,7 +542,7 @@ object Headless
         : ((List[Document.Node.Name], List[Document.Node.Name], List[Document.Edit_Text]), State) =
       {
         val all_nodes = theory_graph.topological_order
-        val purge = nodes.getOrElse(all_nodes).filterNot(is_required(_)).toSet
+        val purge = nodes.getOrElse(all_nodes).filterNot(is_required).toSet
 
         val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
         val (retained, purged) = all_nodes.partition(retain)

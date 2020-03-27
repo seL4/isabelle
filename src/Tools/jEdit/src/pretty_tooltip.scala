@@ -146,7 +146,7 @@ object Pretty_Tooltip
   }
 
   def dismiss_descendant(parent: JComponent): Unit =
-    descendant(parent).foreach(dismiss(_))
+    descendant(parent).foreach(dismiss)
 
   def dismissed_all(): Boolean =
   {
@@ -203,7 +203,7 @@ class Pretty_Tooltip private(
 
   /* text area */
 
-  val pretty_text_area =
+  val pretty_text_area: Pretty_Text_Area =
     new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(tip), true) {
       override def get_background() = Some(rendering.tooltip_color)
     }
@@ -262,7 +262,7 @@ class Pretty_Tooltip private(
       val formatted = Pretty.formatted(info.info, margin = margin, metric = metric)
       val lines =
         XML.traverse_text(formatted)(if (XML.text_length(formatted) == 0) 0 else 1)(
-          (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+          (n: Int, s: String) => n + s.iterator.count(_ == '\n'))
 
       val h = painter.getLineHeight * lines + geometry.deco_height
       val margin1 =

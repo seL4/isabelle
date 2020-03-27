@@ -140,7 +140,7 @@ class Server(
     }
 
   private val file_watcher =
-    File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
+    File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private def close_document(file: JFile)
   {
@@ -486,7 +486,7 @@ class Server(
       channel.read() match {
         case Some(json) =>
           json match {
-            case bulk: List[_] => bulk.foreach(handle(_))
+            case bulk: List[_] => bulk.foreach(handle)
             case _ => handle(json)
           }
           loop()

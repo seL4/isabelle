@@ -81,7 +81,7 @@ object Document_Model
   private val state = Synchronized(State())  // owned by GUI thread
 
   def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
-  def get(name: Document.Node.Name): Option[Document_Model] = get_models.get(name)
+  def get(name: Document.Node.Name): Option[Document_Model] = get_models().get(name)
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
 
   def document_blobs(): Document.Blobs = state.value.document_blobs
@@ -313,7 +313,7 @@ object Document_Model
     val preview =
       HTTP.get(preview_root, arg =>
         for {
-          query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode(_))
+          query <- Library.try_unprefix(preview_root + "?", arg.uri.toString).map(Url.decode)
           name = Library.perhaps_unprefix(plain_text_prefix, query)
           model <- get(PIDE.resources.node_name(name))
         }
@@ -348,7 +348,7 @@ sealed abstract class Document_Model extends Document.Model
         if (hidden) Text.Perspective.empty
         else {
           val view_ranges = document_view_ranges(snapshot)
-          val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node(_))
+          val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node)
           Text.Perspective(view_ranges ::: load_ranges)
         }
       val overlays = PIDE.editor.node_overlays(node_name)
@@ -589,7 +589,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
         if (reparse || edits.nonEmpty || last_perspective != perspective) {
           pending.clear
           last_perspective = perspective
-          node_edits(node_header, edits, perspective)
+          node_edits(node_header(), edits, perspective)
         }
         else Nil
       }

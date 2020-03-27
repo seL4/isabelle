@@ -56,7 +56,7 @@ object File_Format
 trait File_Format
 {
   def format_name: String
-  override def toString = format_name
+  override def toString: String = format_name
 
   def file_ext: String
   def detect(name: String): Boolean = name.endsWith("." + file_ext)

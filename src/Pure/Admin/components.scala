@@ -38,7 +38,7 @@ object Components
 
   /* component collections */
 
-  val default_components_base = Path.explode("$ISABELLE_COMPONENTS_BASE")
+  val default_components_base: Path = Path.explode("$ISABELLE_COMPONENTS_BASE")
 
   def admin(dir: Path): Path = dir + Path.explode("Admin/components")
 
@@ -125,7 +125,7 @@ object Components
         case _ => error("Bad components.sha1 entry: " + quote(line))
       })
 
-  def write_components_sha1(entries: List[SHA1_Digest]) =
+  def write_components_sha1(entries: List[SHA1_Digest]): Unit =
     File.write(components_sha1, entries.sortBy(_.file_name).mkString("", "\n", "\n"))
 
 

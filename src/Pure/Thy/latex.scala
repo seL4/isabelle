@@ -10,6 +10,7 @@ package isabelle
 import java.io.{File => JFile}
 
 import scala.annotation.tailrec
+import scala.util.matching.Regex
 
 
 object Latex
@@ -102,7 +103,7 @@ object Latex
 
     object File_Line_Error
     {
-      val Pattern = """^(.*?\.\w\w\w):(\d+): (.*)$""".r
+      val Pattern: Regex = """^(.*?\.\w\w\w):(\d+): (.*)$""".r
       def unapply(line: String): Option[(Path, Int, String)] =
         line match {
           case Pattern(file, Value.Int(line), message) =>

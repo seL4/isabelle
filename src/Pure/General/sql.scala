@@ -37,7 +37,7 @@ object SQL
     }
 
   def string(s: String): Source =
-    s.iterator.map(escape_char(_)).mkString("'", "", "'")
+    s.iterator.map(escape_char).mkString("'", "", "'")
 
   def ident(s: String): Source =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
@@ -288,7 +288,7 @@ object SQL
     }
     def date(column: Column): Date = stmt.db.date(res, column)
 
-    def timing(c1: Column, c2: Column, c3: Column) =
+    def timing(c1: Column, c2: Column, c3: Column): Timing =
       Timing(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
 
     def get[A](column: Column, f: Column => A): Option[A] =
@@ -296,13 +296,13 @@ object SQL
       val x = f(column)
       if (rep.wasNull) None else Some(x)
     }
-    def get_bool(column: Column): Option[Boolean] = get(column, bool _)
-    def get_int(column: Column): Option[Int] = get(column, int _)
-    def get_long(column: Column): Option[Long] = get(column, long _)
-    def get_double(column: Column): Option[Double] = get(column, double _)
-    def get_string(column: Column): Option[String] = get(column, string _)
-    def get_bytes(column: Column): Option[Bytes] = get(column, bytes _)
-    def get_date(column: Column): Option[Date] = get(column, date _)
+    def get_bool(column: Column): Option[Boolean] = get(column, bool)
+    def get_int(column: Column): Option[Int] = get(column, int)
+    def get_long(column: Column): Option[Long] = get(column, long)
+    def get_double(column: Column): Option[Double] = get(column, double)
+    def get_string(column: Column): Option[String] = get(column, string)
+    def get_bytes(column: Column): Option[Bytes] = get(column, bytes)
+    def get_date(column: Column): Option[Date] = get(column, date)
   }
 
 

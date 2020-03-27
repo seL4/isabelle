@@ -235,7 +235,7 @@ object Sessions
                 (Graph_Display.empty_graph /: required_subgraph.topological_order)(
                   { case (g, session) =>
                       val a = session_node(session)
-                      val bs = required_subgraph.imm_preds(session).toList.map(session_node(_))
+                      val bs = required_subgraph.imm_preds(session).toList.map(session_node)
                       ((g /: (a :: bs))(_.default_node(_, Nil)) /: bs)(_.add_edge(_, a)) })
 
               (graph0 /: dependencies.entries)(
@@ -369,7 +369,7 @@ object Sessions
           deps.get(ancestor.get) match {
             case Some(ancestor_base)
             if !selected_sessions.imports_requirements(List(ancestor.get)).contains(session) =>
-              ancestor_base.loaded_theories.defined(_)
+              ancestor_base.loaded_theories.defined _
             case _ =>
               error("Bad ancestor " + quote(ancestor.get) + " for session " + quote(session))
           }
@@ -652,7 +652,7 @@ object Sessions
 
     def check_sessions(names: List[String])
     {
-      val bad_sessions = SortedSet(names.filterNot(defined(_)): _*).toList
+      val bad_sessions = SortedSet(names.filterNot(defined): _*).toList
       if (bad_sessions.nonEmpty)
         error("Undefined session(s): " + commas_quote(bad_sessions))
     }
@@ -744,8 +744,8 @@ object Sessions
 
   /* parser */
 
-  val ROOT = Path.explode("ROOT")
-  val ROOTS = Path.explode("ROOTS")
+  val ROOT: Path = Path.explode("ROOT")
+  val ROOTS: Path = Path.explode("ROOTS")
 
   private val CHAPTER = "chapter"
   private val SESSION = "session"
@@ -759,7 +759,7 @@ object Sessions
   private val DOCUMENT_FILES = "document_files"
   private val EXPORT_FILES = "export_files"
 
-  val root_syntax =
+  val root_syntax: Outer_Syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       GLOBAL + IN +
       (CHAPTER, Keyword.THY_DECL) +
@@ -895,7 +895,7 @@ object Sessions
 
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
+    val default_dirs = Isabelle_System.components().filter(is_session_dir)
     for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
     yield (select, dir.canonical)
   }
@@ -1073,7 +1073,7 @@ object Sessions
       input_dirs.map(_ + heap(name)).find(_.is_file)
 
     def find_heap_digest(name: String): Option[String] =
-      find_heap(name).flatMap(read_heap_digest(_))
+      find_heap(name).flatMap(read_heap_digest)
 
     def the_heap(name: String): Path =
       find_heap(name) getOrElse
@@ -1105,7 +1105,7 @@ object Sessions
         if (output || has_session_info(db, name)) Some(db) else { db.close; None }
       }
       else if (output) Some(SQLite.open_database(output_database(name)))
-      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database(_))
+      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database)
     }
 
     def open_database(name: String, output: Boolean = false): SQL.Database =

@@ -208,7 +208,7 @@ final class ML_Statistics private(
     chart(fields._1, fields._2)
 
   def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.main_fields): Unit =
-    fields.map(chart(_)).foreach(c =>
+    fields.map(chart).foreach(c =>
       GUI_Thread.later {
         new Frame {
           iconImage = GUI.isabelle_image()

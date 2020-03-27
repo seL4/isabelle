@@ -150,7 +150,7 @@ class Plugin extends EBPlugin
             }
             else Nil
 
-          (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt(_))
+          (thy_files1 ::: thy_files2 ::: aux_files).filterNot(models.isDefinedAt)
         }
         if (required_files.nonEmpty) {
           try {
@@ -184,7 +184,7 @@ class Plugin extends EBPlugin
     if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
-    File_Watcher(file_watcher_action _, options.seconds("editor_load_delay"))
+    File_Watcher(file_watcher_action, options.seconds("editor_load_delay"))
 
 
   /* session phase */
@@ -460,11 +460,11 @@ class Plugin extends EBPlugin
       completion_history.load()
       spell_checker.update(options.value)
 
-      JEdit_Lib.jedit_views.foreach(init_title(_))
+      JEdit_Lib.jedit_views.foreach(init_title)
 
       isabelle.jedit_base.Syntax_Style.set_style_extender(Syntax_Style.Extender)
       init_mode_provider()
-      JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
+      JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init)
 
       http_server.start
 
@@ -489,7 +489,7 @@ class Plugin extends EBPlugin
 
     isabelle.jedit_base.Syntax_Style.dummy_style_extender()
     exit_mode_provider()
-    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
+    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit)
 
     if (startup_failure.isEmpty) {
       options.value.save_prefs()

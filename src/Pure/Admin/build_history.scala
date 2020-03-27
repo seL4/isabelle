@@ -454,7 +454,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         "B" -> (_ => multicore_base = true),
         "C:" -> (arg => components_base = Path.explode(arg)),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
-        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
+        "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse)),
         "N:" -> (arg => isabelle_identifier = arg),
         "P:" -> (arg => afp_partition = Value.Int.parse(arg)),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),

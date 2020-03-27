@@ -40,7 +40,7 @@ object Session_Build
 
   private class Dialog(view: View) extends JDialog(view)
   {
-    val options = PIDE.options.value
+    val options: Options = PIDE.options.value
 
 
     /* text */

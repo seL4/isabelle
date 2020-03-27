@@ -336,7 +336,7 @@ object Build
     {
       val result0 = future_result.join
       val result1 =
-        export_consumer.shutdown(close = true).map(Output.error_message_text(_)) match {
+        export_consumer.shutdown(close = true).map(Output.error_message_text) match {
           case Nil => result0
           case errs => result0.errors(errs).error_rc
         }
@@ -380,7 +380,7 @@ object Build
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
-    val rc =
+    val rc: Int =
       (0 /: results.iterator.map(
         { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
     def ok: Boolean = rc == 0
@@ -580,7 +580,7 @@ object Build
             }
 
             // messages
-            process_result.err_lines.foreach(progress.echo(_))
+            process_result.err_lines.foreach(progress.echo)
 
             if (process_result.ok)
               progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
@@ -594,7 +594,7 @@ object Build
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
-            pending.dequeue(running.isDefinedAt(_)) match {
+            pending.dequeue(running.isDefinedAt) match {
               case Some((name, info)) =>
                 val ancestor_results =
                   deps.sessions_structure.build_requirements(List(name)).filterNot(_ == name).
@@ -639,7 +639,7 @@ object Build
                   store.clean_output(name)
                   using(store.open_database(name, output = true))(store.init_session_info(_, name))
 
-                  val numa_node = numa_nodes.next(used_node(_))
+                  val numa_node = numa_nodes.next(used_node)
                   val job =
                     new Job(progress, name, info, deps, store, do_output, verbose, pide = pide,
                       numa_node, queue.command_timings(name))

@@ -10,6 +10,7 @@ package isabelle
 import java.io.{InputStream, OutputStream, ByteArrayOutputStream}
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 import com.jcraft.jsch.{JSch, Logger => JSch_Logger, Session => JSch_Session, SftpException,
   OpenSSHConfig, UserInfo, Channel => JSch_Channel, ChannelExec, ChannelSftp, SftpATTRS}
@@ -21,7 +22,7 @@ object SSH
 
   object Target
   {
-    val User_Host = "^([^@]+)@(.+)$".r
+    val User_Host: Regex = "^([^@]+)@(.+)$".r
 
     def parse(s: String): (String, String) =
       s match {
@@ -76,7 +77,7 @@ object SSH
     jsch.setKnownHosts(File.platform_path(known_hosts))
 
     val identity_files =
-      space_explode(':', options.string("ssh_identity_files")).map(Path.explode(_))
+      space_explode(':', options.string("ssh_identity_files")).map(Path.explode)
     for (identity_file <- identity_files if identity_file.is_file)
       jsch.addIdentity(File.platform_path(identity_file))
 
@@ -431,12 +432,12 @@ object SSH
     def read_file(path: Path, local_path: Path): Unit =
       sftp.get(remote_path(path), File.platform_path(local_path))
     def read_bytes(path: Path): Bytes = using(open_input(path))(Bytes.read_stream(_))
-    def read(path: Path): String = using(open_input(path))(File.read_stream(_))
+    def read(path: Path): String = using(open_input(path))(File.read_stream)
 
     def write_file(path: Path, local_path: Path): Unit =
       sftp.put(File.platform_path(local_path), remote_path(path))
     def write_bytes(path: Path, bytes: Bytes): Unit =
-      using(open_output(path))(bytes.write_stream(_))
+      using(open_output(path))(bytes.write_stream)
     def write(path: Path, text: String): Unit =
       using(open_output(path))(stream => Bytes(text).write_stream(stream))
 

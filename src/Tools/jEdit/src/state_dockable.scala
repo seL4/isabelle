@@ -29,7 +29,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
-  override def detach_operation = pretty_text_area.detach_operation
+  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
   private val print_state =
     new Query_Operation(PIDE.editor, view, "print_state", _ => (),

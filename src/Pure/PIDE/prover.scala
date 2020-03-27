@@ -32,14 +32,14 @@ object Prover
     def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
 
-    def is_init = kind == Markup.INIT
-    def is_exit = kind == Markup.EXIT
-    def is_stdout = kind == Markup.STDOUT
-    def is_stderr = kind == Markup.STDERR
-    def is_system = kind == Markup.SYSTEM
-    def is_status = kind == Markup.STATUS
-    def is_report = kind == Markup.REPORT
-    def is_syslog = is_init || is_exit || is_system || is_stderr
+    def is_init: Boolean = kind == Markup.INIT
+    def is_exit: Boolean = kind == Markup.EXIT
+    def is_stdout: Boolean = kind == Markup.STDOUT
+    def is_stderr: Boolean = kind == Markup.STDERR
+    def is_system: Boolean = kind == Markup.SYSTEM
+    def is_status: Boolean = kind == Markup.STATUS
+    def is_report: Boolean = kind == Markup.REPORT
+    def is_syslog: Boolean = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {

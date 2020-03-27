@@ -35,8 +35,8 @@ object Server
 
     def split(msg: String): (String, String) =
     {
-      val name = msg.takeWhile(is_name_char(_))
-      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank(_))
+      val name = msg.takeWhile(is_name_char)
+      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank)
       (name, argument)
     }
 
@@ -607,7 +607,7 @@ class Server private(_port: Int, val log: Logger)
         Exn.capture(server_socket.accept) match {
           case Exn.Res(socket) =>
             Standard_Thread.fork("server_connection")
-              { using(Server.Connection(socket))(handle(_)) }
+              { using(Server.Connection(socket))(handle) }
           case Exn.Exn(_) => finished = true
         }
       }

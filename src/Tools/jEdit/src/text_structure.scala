@@ -21,7 +21,7 @@ object Text_Structure
 
   class Navigator(syntax: Outer_Syntax, buffer: JEditBuffer, comments: Boolean)
   {
-    val limit = PIDE.options.value.int("jedit_structure_limit") max 0
+    val limit: Int = PIDE.options.value.int("jedit_structure_limit") max 0
 
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
@@ -137,7 +137,7 @@ object Text_Structure
                   else i })
 
           def indent_extra: Int =
-            if (prev_span.exists(keywords.is_quasi_command(_))) indent_size
+            if (prev_span.exists(keywords.is_quasi_command)) indent_size
             else 0
 
           val indent =

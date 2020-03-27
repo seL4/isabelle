@@ -312,7 +312,7 @@ object Export
         // list
         if (export_list) {
           (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
-            sorted.foreach(progress.echo(_))
+            sorted.foreach(progress.echo)
         }
 
         // export
@@ -348,7 +348,7 @@ object Export
 
   /* Isabelle tool wrapper */
 
-  val default_export_dir = Path.explode("export")
+  val default_export_dir: Path = Path.explode("export")
 
   val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports", args =>
   {

@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Font, Point, BorderLayout, Dimension}
-import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
+import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import java.io.{File => JFile}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
@@ -18,7 +18,6 @@ import javax.swing.text.DefaultCaret
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
-
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, Selection}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
@@ -399,7 +398,7 @@ object Completion_Popup
     /* activation */
 
     private val outer_key_listener =
-      JEdit_Lib.key_listener(key_typed = input _)
+      JEdit_Lib.key_listener(key_typed = input)
 
     private def activate()
     {
@@ -570,7 +569,7 @@ class Completion_Popup private(
   GUI_Thread.require {}
 
   require(items.nonEmpty)
-  val multi = items.length > 1
+  val multi: Boolean = items.length > 1
 
 
   /* actions */
@@ -621,7 +620,7 @@ class Completion_Popup private(
 
   /* event handling */
 
-  val inner_key_listener =
+  val inner_key_listener: KeyListener =
     JEdit_Lib.key_listener(
       key_pressed = (e: KeyEvent) =>
         {
@@ -655,7 +654,7 @@ class Completion_Popup private(
           }
           propagate(e)
         },
-      key_typed = propagate _
+      key_typed = propagate
     )
 
   list_view.peer.addKeyListener(inner_key_listener)

@@ -217,7 +217,7 @@ object XML
       else
         lookup(x) match {
           case Some(y) => y
-          case None => x.map(cache_tree(_))
+          case None => x.map(cache_tree)
         }
     }
 

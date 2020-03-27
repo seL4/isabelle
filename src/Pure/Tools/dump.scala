@@ -363,7 +363,7 @@ object Dump
           session.use_theories(used_theories.map(_.theory),
             unicode_symbols = unicode_symbols,
             progress = progress,
-            commit = Some(Consumer.apply _))
+            commit = Some(Consumer.apply))
 
         val bad_theories = Consumer.shutdown()
         val bad_msgs =
@@ -463,7 +463,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Dump cumulative PIDE session database, with the following aspects:
 
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
-      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
+      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect)),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),

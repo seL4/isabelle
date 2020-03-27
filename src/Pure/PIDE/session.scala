@@ -213,7 +213,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val _phase = Synchronized[Session.Phase](Session.Inactive)
   private def phase_=(new_phase: Session.Phase): Unit = _phase.change(_ => post_phase(new_phase))
 
-  def phase = _phase.value
+  def phase: Session.Phase = _phase.value
   def is_ready: Boolean = phase == Session.Ready
 
 
@@ -645,7 +645,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
           case Session.Change_Flush if prover.defined =>
             val state = global_state.value
             if (!state.removing_versions)
-              postponed_changes.flush(state).foreach(handle_change(_))
+              postponed_changes.flush(state).foreach(handle_change)
 
           case bad =>
             if (verbose) Output.warning("Ignoring bad message: " + bad.toString)

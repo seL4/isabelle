@@ -21,20 +21,20 @@ object Rendering
     // background
     val unprocessed1, running1, canceled, bad, intensify, entity, active, active_result,
       markdown_bullet1, markdown_bullet2, markdown_bullet3, markdown_bullet4 = Value
-    val background_colors = values
+    val background_colors: ValueSet = values
 
     // foreground
     val quoted, antiquoted = Value
-    val foreground_colors = values -- background_colors
+    val foreground_colors: ValueSet = values -- background_colors
 
     // message underline
     val writeln, information, warning, legacy, error = Value
-    val message_underline_colors = values -- background_colors -- foreground_colors
+    val message_underline_colors: ValueSet = values -- background_colors -- foreground_colors
 
     // message background
     val writeln_message, information_message, tracing_message,
       warning_message, legacy_message, error_message = Value
-    val message_background_colors =
+    val message_background_colors: ValueSet =
       values -- background_colors -- foreground_colors -- message_underline_colors
 
     // text
@@ -42,7 +42,7 @@ object Rendering
       tfree, tvar, free, skolem, bound, `var`, inner_numeral, inner_quoted,
       inner_cartouche, comment1, comment2, comment3, dynamic, class_parameter,
       antiquote, raw_text, plain_text = Value
-    val text_colors =
+    val text_colors: ValueSet =
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
 
