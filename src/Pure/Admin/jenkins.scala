@@ -106,7 +106,7 @@ object Jenkins
         Isabelle_System.mkdirs(log_dir)
 
         val ml_statistics =
-          session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
+          session_logs.map(_._1).distinct.sorted.flatMap(session_name =>
             read_ml_statistics(store, session_name).
               map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
 

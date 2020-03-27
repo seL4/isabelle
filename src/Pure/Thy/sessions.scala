@@ -271,7 +271,7 @@ object Sessions
                   if !ok(path.canonical_file)
                   path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
                 } yield (path1, name)).toList
-              val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).toSet.toList.sorted
+              val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).distinct.sorted
 
               val errs1 =
                 for { (path1, name) <- bad }

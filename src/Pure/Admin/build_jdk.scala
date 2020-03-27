@@ -144,7 +144,7 @@ esac
         val extracted = archives.map(extract_archive(dir, _))
 
         val version =
-          extracted.map(_._1).toSet.toList match {
+          extracted.map(_._1).distinct match {
             case List(version) => version
             case Nil => error("No archives")
             case versions =>
