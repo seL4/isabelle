@@ -562,6 +562,8 @@ object Headless
   {
     resources =>
 
+    val store: Sessions.Store = Sessions.store(options)
+
 
     /* session */
 
@@ -584,7 +586,6 @@ object Headless
       session.phase_changed += session_phase
 
       progress.echo("Starting session " + session_base_info.session + " ...")
-      val store = Sessions.store(options)
       Isabelle_Process(session, options, session_base_info.sessions_structure, store,
         logic = session_base_info.session, modes = print_mode)
 
