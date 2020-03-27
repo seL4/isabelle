@@ -14,6 +14,7 @@ object ML_Process
 {
   def apply(options: Options,
     sessions_structure: Sessions.Structure,
+    store: Sessions.Store,
     logic: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
@@ -22,18 +23,16 @@ object ML_Process
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    session_base: Option[Sessions.Base] = None,
-    store: Option[Sessions.Store] = None): Bash.Process =
+    session_base: Option[Sessions.Base] = None): Bash.Process =
   {
     val logic_name = Isabelle_System.default_logic(logic)
-    val _store = store.getOrElse(Sessions.store(options))
 
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
         sessions_structure.selection(Sessions.Selection.session(logic_name)).
           build_requirements(List(logic_name)).
-          map(a => File.platform_path(_store.the_heap(a)))
+          map(a => File.platform_path(store.the_heap(a)))
       }
 
     val eval_init =
@@ -179,9 +178,10 @@ Usage: isabelle process [OPTIONS]
     if (args.isEmpty || more_args.nonEmpty) getopts.usage()
 
     val sessions_structure = Sessions.load_structure(options, dirs = dirs)
+    val store = Sessions.store(options)
 
     val rc =
-      ML_Process(options, sessions_structure, logic = logic, args = eval_args, modes = modes)
+      ML_Process(options, sessions_structure, store, logic = logic, args = eval_args, modes = modes)
         .result().print_stdout.rc
     sys.exit(rc)
   })

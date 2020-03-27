@@ -318,8 +318,9 @@ class Server(
         }
       session.phase_changed += session_phase
 
-      Isabelle_Process(
-        session, options, base_info.sessions_structure, modes = modes, logic = base_info.session)
+      val store = Sessions.store(options)
+      Isabelle_Process(session, options, base_info.sessions_structure, store,
+        modes = modes, logic = base_info.session)
     }
   }
 

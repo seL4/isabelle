@@ -136,11 +136,11 @@ object JEdit_Sessions
   def session_start(options0: Options)
   {
     val options = session_options(options0)
+    val store = Sessions.store(options)
 
     Isabelle_Process(PIDE.session, options,
-      PIDE.resources.session_base_info.sessions_structure,
+      PIDE.resources.session_base_info.sessions_structure, store,
       logic = PIDE.resources.session_name,
-      store = Some(Sessions.store(options)),
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse,

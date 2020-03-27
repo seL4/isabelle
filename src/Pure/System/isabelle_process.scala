@@ -16,12 +16,12 @@ object Isabelle_Process
     session: Session,
     options: Options,
     sessions_structure: Sessions.Structure,
+    store: Sessions.Store,
     logic: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
-    store: Option[Sessions.Store] = None,
     phase_changed: Session.Phase => Unit = null)
   {
     val channel = System_Channel()
@@ -30,9 +30,8 @@ object Isabelle_Process
         val channel_options =
           options.string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(
-          channel_options, sessions_structure, logic = logic, args = args, modes = modes,
-          cwd = cwd, env = env, store = store)
+        ML_Process(channel_options, sessions_structure, store,
+          logic = logic, args = args, modes = modes, cwd = cwd, env = env)
       }
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
     process.stdin.close
