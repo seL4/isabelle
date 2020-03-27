@@ -74,7 +74,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   val pretty_text_area = new Pretty_Text_Area(view)
 
-  override def detach_operation = pretty_text_area.detach_operation
+  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
   private def handle_resize()
   {
@@ -208,22 +208,22 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val continue_button = new Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.continue(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.continue) }
   }
 
   private val step_button = new Button("Step") {
     tooltip = "Single-step in depth-first order"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step) }
   }
 
   private val step_over_button = new Button("Step over") {
     tooltip = "Single-step within this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_over(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_over) }
   }
 
   private val step_out_button = new Button("Step out") {
     tooltip = "Single-step outside this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_out(_)) }
+    reactions += { case ButtonClicked(_) => thread_selection().map(debugger.step_out) }
   }
 
   private val context_label = new Label("Context:") {
@@ -318,7 +318,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* main panel */
 
-  val main_panel = new SplitPane(Orientation.Vertical) {
+  val main_panel: SplitPane = new SplitPane(Orientation.Vertical) {
     oneTouchExpandable = true
     leftComponent = tree_pane
     rightComponent = Component.wrap(pretty_text_area)

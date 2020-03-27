@@ -284,7 +284,7 @@ object Build_Fonts
       val domain =
         (for ((name, index) <- targets if index == 0)
           yield Fontforge.font_domain(target_dir + hinted_path(false) + name))
-        .flatten.toSet.toList.sorted
+        .flatten.distinct.sorted
 
       Fontforge.execute(
         Fontforge.commands(

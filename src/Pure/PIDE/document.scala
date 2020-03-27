@@ -95,12 +95,12 @@ object Document
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
     }
 
-    val no_header = Header()
+    val no_header: Header = Header()
     def bad_header(msg: String): Header = Header(errors = List(msg))
 
     object Name
     {
-      val empty = Name("")
+      val empty: Name = Name("")
 
       object Ordering extends scala.math.Ordering[Name]
       {
@@ -375,7 +375,7 @@ object Document
     }
 
     def purge_suppressed: Option[Nodes] =
-      graph.keys_iterator.filter(is_suppressed(_)).toList match {
+      graph.keys_iterator.filter(is_suppressed).toList match {
         case Nil => None
         case del => Some(new Nodes((graph /: del)(_.del_node(_))))
       }
@@ -527,7 +527,7 @@ object Document
 
   object Snapshot
   {
-    val init = State.init.snapshot()
+    val init: Snapshot = State.init.snapshot()
   }
 
   abstract class Snapshot
@@ -737,13 +737,13 @@ object Document
     {
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st.accumulate(self_id(st), other_id _, message, xml_cache)
+          val new_st = st.accumulate(self_id(st), other_id, message, xml_cache)
           val execs1 = execs + (id -> new_st)
           (new_st, copy(execs = execs1, commands_redirection = redirection(new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st.accumulate(self_id(st), other_id _, message, xml_cache)
+              val new_st = st.accumulate(self_id(st), other_id, message, xml_cache)
               val commands1 = commands + (id -> new_st)
               (new_st, copy(commands = commands1, commands_redirection = redirection(new_st)))
             case None => fail
@@ -1039,11 +1039,11 @@ object Document
 
         /* local node content */
 
-        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def convert(offset: Text.Offset): Text.Offset = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset): Text.Offset = (offset /: reverse_edits)((i, edit) => edit.revert(i))
 
-        def convert(range: Text.Range) = range.map(convert(_))
-        def revert(range: Text.Range) = range.map(revert(_))
+        def convert(range: Text.Range): Text.Range = range.map(convert)
+        def revert(range: Text.Range): Text.Range = range.map(revert)
 
         val node_name: Node.Name = name
         val node: Node = version.nodes(name)
@@ -1166,7 +1166,7 @@ object Document
                 case some => Some(some)
               }
           }
-          for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1 _, status))
+          for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
             yield Text.Info(r, x)
         }
 

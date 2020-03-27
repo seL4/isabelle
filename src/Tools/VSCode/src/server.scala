@@ -140,7 +140,7 @@ class Server(
     }
 
   private val file_watcher =
-    File_Watcher(sync_documents(_), options.seconds("vscode_load_delay"))
+    File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private def close_document(file: JFile)
   {
@@ -318,8 +318,9 @@ class Server(
         }
       session.phase_changed += session_phase
 
-      Isabelle_Process.start(session, options, modes = modes,
-        sessions_structure = Some(base_info.sessions_structure), logic = base_info.session)
+      val store = Sessions.store(options)
+      Isabelle_Process(session, options, base_info.sessions_structure, store,
+        modes = modes, logic = base_info.session)
     }
   }
 
@@ -485,7 +486,7 @@ class Server(
       channel.read() match {
         case Some(json) =>
           json match {
-            case bulk: List[_] => bulk.foreach(handle(_))
+            case bulk: List[_] => bulk.foreach(handle)
             case _ => handle(json)
           }
           loop()

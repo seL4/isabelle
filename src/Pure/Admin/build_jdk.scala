@@ -106,7 +106,7 @@ esac
       }
 
       val dir_entry =
-        File.read_dir(tmp_dir).filterNot(suppress_name(_)) match {
+        File.read_dir(tmp_dir).filterNot(suppress_name) match {
           case List(s) => s
           case _ => error("Archive contains multiple directories")
         }
@@ -144,7 +144,7 @@ esac
         val extracted = archives.map(extract_archive(dir, _))
 
         val version =
-          extracted.map(_._1).toSet.toList match {
+          extracted.map(_._1).distinct match {
             case List(version) => version
             case Nil => error("No archives")
             case versions =>
@@ -232,7 +232,7 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
       val more_args = getopts(args)
       if (more_args.isEmpty) getopts.usage()
 
-      val archives = more_args.map(Path.explode(_))
+      val archives = more_args.map(Path.explode)
       val progress = new Console_Progress()
 
       build_jdk(archives = archives, progress = progress, target_dir = target_dir)

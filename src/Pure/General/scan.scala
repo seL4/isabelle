@@ -10,10 +10,10 @@ package isabelle
 import scala.annotation.tailrec
 import scala.collection.{IndexedSeq, Traversable, TraversableOnce}
 import scala.collection.immutable.PagedSeq
+import scala.util.matching.Regex
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition,
   Reader, CharSequenceReader}
 import scala.util.parsing.combinator.RegexParsers
-
 import java.io.{File => JFile, BufferedInputStream, FileInputStream, InputStream}
 import java.net.URL
 
@@ -39,7 +39,7 @@ object Scan
 
   trait Parsers extends RegexParsers
   {
-    override val whiteSpace = "".r
+    override val whiteSpace: Regex = "".r
 
 
     /* optional termination */
@@ -237,7 +237,7 @@ object Scan
     {
       require(depth >= 0)
 
-      val comment_text =
+      val comment_text: Parser[List[String]] =
         rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
 
       def apply(in: Input) =
@@ -399,7 +399,7 @@ object Scan
       else this ++ other.raw_iterator
 
     def -- (remove: Traversable[String]): Lexicon =
-      if (remove.exists(contains(_)))
+      if (remove.exists(contains))
         Lexicon.empty ++ iterator.filterNot(a => remove.exists(b => a == b))
       else this
 

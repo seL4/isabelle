@@ -24,7 +24,7 @@ object Url
     }
     else c.toString
 
-  def escape_special(s: String): String = s.iterator.map(escape_special(_)).mkString
+  def escape_special(s: String): String = s.iterator.map(escape_special).mkString
 
   def escape_name(name: String): String =
     name.iterator.map({ case '\'' => "%27" case c => c.toString }).mkString

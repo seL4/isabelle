@@ -123,6 +123,6 @@ class Invoke_Scala extends Session.Protocol_Handler
 
   val functions =
     List(
-      Markup.INVOKE_SCALA -> invoke_scala _,
-      Markup.CANCEL_SCALA -> cancel_scala _)
+      Markup.INVOKE_SCALA -> invoke_scala,
+      Markup.CANCEL_SCALA -> cancel_scala)
 }

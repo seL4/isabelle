@@ -32,7 +32,7 @@ object Protocol
             case a :: bs => (a, bs)
             case _ => throw new XML.XML_Body(body)
           }
-        Some(triple(long, list(string), list(decode_upd _))(Symbol.decode_yxml(text)))
+        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(text)))
       }
       catch {
         case ERROR(_) => None
@@ -310,7 +310,7 @@ trait Protocol
   def define_commands_bulk(commands: List[Command])
   {
     val (irregular, regular) = commands.partition(command => YXML.detect(command.source))
-    irregular.foreach(define_command(_))
+    irregular.foreach(define_command)
     regular match {
       case Nil =>
       case List(command) => define_command(command)

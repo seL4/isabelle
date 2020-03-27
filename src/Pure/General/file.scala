@@ -213,7 +213,7 @@ object File
     val line =
       try { reader.readLine}
       catch { case _: IOException => null }
-    if (line == null) None else Some(line)
+    Option(line)
   }
 
   def read_lines(reader: BufferedReader, progress: String => Unit): List[String] =

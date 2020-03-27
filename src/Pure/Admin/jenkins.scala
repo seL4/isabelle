@@ -43,7 +43,7 @@ object Jenkins
     options: Options, job_names: List[String], dir: Path, progress: Progress = No_Progress)
   {
     val store = Sessions.store(options)
-    val infos = job_names.flatMap(build_job_infos(_))
+    val infos = job_names.flatMap(build_job_infos)
     Par_List.map((info: Job_Info) => info.download_log(store, dir, progress), infos)
   }
 
@@ -106,7 +106,7 @@ object Jenkins
         Isabelle_System.mkdirs(log_dir)
 
         val ml_statistics =
-          session_logs.map(_._1).toSet.toList.sorted.flatMap(session_name =>
+          session_logs.map(_._1).distinct.sorted.flatMap(session_name =>
             read_ml_statistics(store, session_name).
               map(props => (Build_Log.SESSION_NAME -> session_name) :: props))
 

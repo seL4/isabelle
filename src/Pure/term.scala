@@ -50,7 +50,7 @@ object Term
     override def toString: String =
       "TVar(" + name + (if (sort.isEmpty) "" else "," + sort) + ")"
   }
-  val dummyT = Type("dummy")
+  val dummyT: Type = Type("dummy")
 
   sealed abstract class Term
   {
@@ -143,7 +143,7 @@ object Term
       lookup(x) getOrElse store(Indexname(cache_string(x.name), x.index))
 
     protected def cache_sort(x: Sort): Sort =
-      if (x.isEmpty) Nil else lookup(x) getOrElse store(x.map(cache_string(_)))
+      if (x.isEmpty) Nil else lookup(x) getOrElse store(x.map(cache_string))
 
     protected def cache_typ(x: Typ): Typ =
     {
@@ -166,7 +166,7 @@ object Term
       else {
         lookup(x) match {
           case Some(y) => y
-          case None => store(x.map(cache_typ(_)))
+          case None => store(x.map(cache_typ))
         }
       }
     }

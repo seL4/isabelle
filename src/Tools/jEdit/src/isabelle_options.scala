@@ -39,7 +39,7 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
 
 class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
 {
-  val options = PIDE.options
+  val options: JEdit_Options = PIDE.options
 
   private val predefined =
     List(JEdit_Sessions.logic_selector(options, false),

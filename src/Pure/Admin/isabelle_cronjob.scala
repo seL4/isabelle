@@ -18,14 +18,14 @@ object Isabelle_Cronjob
   /* global resources: owned by main cronjob */
 
   val backup = "lxbroy10:cronjob"
-  val main_dir = Path.explode("~/cronjob")
-  val main_state_file = main_dir + Path.explode("run/main.state")
-  val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
-  val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
+  val main_dir: Path = Path.explode("~/cronjob")
+  val main_state_file: Path = main_dir + Path.explode("run/main.state")
+  val current_log: Path = main_dir + Path.explode("run/main.log")  // owned by log service
+  val cumulative_log: Path = main_dir + Path.explode("log/main.log")  // owned by log service
 
   val isabelle_repos_source = "https://isabelle.sketis.net/repos/isabelle"
-  val isabelle_repos = main_dir + Path.explode("isabelle")
-  val afp_repos = main_dir + Path.explode("AFP")
+  val isabelle_repos: Path = main_dir + Path.explode("isabelle")
+  val afp_repos: Path = main_dir + Path.explode("AFP")
 
   val build_log_dirs =
     List(Path.explode("~/log"), Path.explode("~/afp/log"), Path.explode("~/cronjob/log"))
@@ -42,7 +42,7 @@ object Isabelle_Cronjob
   def get_rev(): String = Mercurial.repository(isabelle_repos).id()
   def get_afp_rev(): String = Mercurial.repository(afp_repos).id()
 
-  val init =
+  val init: Logger_Task =
     Logger_Task("init", logger =>
       {
         Isabelle_Devel.make_index()
@@ -61,7 +61,7 @@ object Isabelle_Cronjob
           Files.createSymbolicLink(Isabelle_Devel.cronjob_log.file.toPath, current_log.file.toPath)
       })
 
-  val exit =
+  val exit: Logger_Task =
     Logger_Task("exit", logger =>
       {
         Isabelle_System.bash(
@@ -72,7 +72,7 @@ object Isabelle_Cronjob
 
   /* build release */
 
-  val build_release =
+  val build_release: Logger_Task =
     Logger_Task("build_release", logger =>
       {
         Isabelle_Devel.release_snapshot(logger.options, rev = get_rev(), afp_rev = get_afp_rev())
@@ -81,7 +81,7 @@ object Isabelle_Cronjob
 
   /* integrity test of build_history vs. build_history_base */
 
-  val build_history_base =
+  val build_history_base: Logger_Task =
     Logger_Task("build_history_base", logger =>
       {
         using(logger.ssh_context.open_session("lxbroy10"))(ssh =>
@@ -414,7 +414,7 @@ object Isabelle_Cronjob
 
     def shutdown() { thread.shutdown() }
 
-    val hostname = Isabelle_System.hostname()
+    val hostname: String = Isabelle_System.hostname()
 
     def log(date: Date, task_name: String, msg: String): Unit =
       if (task_name != "")

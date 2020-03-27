@@ -368,7 +368,7 @@ object HTML
         (if (entry.is_italic) List("  font-style: italic;") else Nil) :::
         List("}"))
 
-    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(hidden = true).map(font_face(_)))
+    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(hidden = true).map(font_face))
       .mkString("", "\n\n", "\n")
   }
 

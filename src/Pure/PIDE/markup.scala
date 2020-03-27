@@ -58,8 +58,8 @@ object Markup
 
   /* basic markup */
 
-  val Empty = Markup("", Nil)
-  val Broken = Markup("broken", Nil)
+  val Empty: Markup = Markup("", Nil)
+  val Broken: Markup = Markup("broken", Nil)
 
   class Markup_String(val name: String, prop: String)
   {

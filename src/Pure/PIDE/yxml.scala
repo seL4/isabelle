@@ -21,10 +21,10 @@ object YXML
   val is_X = (c: Char) => c == X
   val is_Y = (c: Char) => c == Y
 
-  val X_string = X.toString
-  val Y_string = Y.toString
-  val XY_string = X_string + Y_string
-  val XYX_string = XY_string + X_string
+  val X_string: String = X.toString
+  val Y_string: String = Y.toString
+  val XY_string: String = X_string + Y_string
+  val XYX_string: String = XY_string + X_string
 
   def detect(s: String): Boolean = s.exists(c => c == X || c == Y)
   def detect_elem(s: String): Boolean = s.startsWith(XY_string)

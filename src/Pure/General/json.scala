@@ -9,6 +9,7 @@ See also http://seriot.ch/parsing_json.php "Parsing JSON is a Minefield".
 package isabelle
 
 
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.combinator.lexical.Scanners
 import scala.util.parsing.input.CharArrayReader.EofCh
@@ -61,14 +62,14 @@ object JSON
     def errorToken(msg: String): Token = Token(Kind.ERROR, msg)
 
     val white_space: String = " \t\n\r"
-    override val whiteSpace = ("[" + white_space + "]+").r
+    override val whiteSpace: Regex = ("[" + white_space + "]+").r
     def whitespace: Parser[Any] = many(character(white_space.contains(_)))
 
-    val letter: Parser[String] = one(character(Symbol.is_ascii_letter(_)))
-    val letters1: Parser[String] = many1(character(Symbol.is_ascii_letter(_)))
+    val letter: Parser[String] = one(character(Symbol.is_ascii_letter))
+    val letters1: Parser[String] = many1(character(Symbol.is_ascii_letter))
 
-    def digits: Parser[String] = many(character(Symbol.is_ascii_digit(_)))
-    def digits1: Parser[String] = many1(character(Symbol.is_ascii_digit(_)))
+    def digits: Parser[String] = many(character(Symbol.is_ascii_digit))
+    def digits1: Parser[String] = many1(character(Symbol.is_ascii_digit))
 
 
     /* keyword */
@@ -114,8 +115,8 @@ object JSON
       one(character("eE".contains(_))) ~ maybe(character("-+".contains(_))) ~ digits1 ^^
         { case a ~ b ~ c => a + b + c }
 
-    def zero = one(character(c => c == '0'))
-    def nonzero = one(character(c => c != '0' && Symbol.is_ascii_digit(c)))
+    def zero: Parser[String] = one(character(c => c == '0'))
+    def nonzero: Parser[String] = one(character(c => c != '0' && Symbol.is_ascii_digit(c)))
     def positive: Parser[String] = nonzero ~ digits ^^ { case a ~ b => a + b }
 
 
@@ -326,7 +327,7 @@ object JSON
     object Seconds
     {
       def unapply(json: T): Option[Time] =
-        Double.unapply(json).map(Time.seconds(_))
+        Double.unapply(json).map(Time.seconds)
     }
   }
 
@@ -402,9 +403,9 @@ object JSON
     : Option[List[A]] = value_default(obj, name, Value.List.unapply(_, unapply), default)
 
   def strings(obj: T, name: String): Option[List[String]] =
-    list(obj, name, JSON.Value.String.unapply _)
+    list(obj, name, JSON.Value.String.unapply)
   def strings_default(obj: T, name: String, default: => List[String] = Nil): Option[List[String]] =
-    list_default(obj, name, JSON.Value.String.unapply _, default)
+    list_default(obj, name, JSON.Value.String.unapply, default)
 
   def seconds(obj: T, name: String): Option[Time] =
     value(obj, name, Value.Seconds.unapply)

@@ -34,7 +34,7 @@ class Progress
   def echo_error_message(msg: String) { echo(Output.error_message_text(msg)) }
 
   def timeit[A](message: String = "", enabled: Boolean = true)(e: => A): A =
-    Timing.timeit(message, enabled, echo(_))(e)
+    Timing.timeit(message, enabled, echo)(e)
 
   def stopped: Boolean = false
   def interrupt_handler[A](e: => A): A = e
