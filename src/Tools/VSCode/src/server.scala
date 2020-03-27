@@ -318,7 +318,7 @@ class Server(
         }
       session.phase_changed += session_phase
 
-      Isabelle_Process.start(
+      Isabelle_Process(
         session, options, base_info.sessions_structure, modes = modes, logic = base_info.session)
     }
   }

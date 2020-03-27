@@ -250,7 +250,7 @@ object Build
 
           val session_result = Future.promise[Process_Result]
 
-          Isabelle_Process.start(session, options, sessions_structure,
+          Isabelle_Process(session, options, sessions_structure,
             logic = parent, cwd = info.dir.file, env = env, store = Some(store),
             phase_changed =
             {
