@@ -566,14 +566,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         //{{{
         arg match {
           case output: Prover.Output =>
-            if (output.is_stdout || output.is_stderr)
-              raw_output_messages.post(output)
-            else handle_output(output)
-
             if (output.is_syslog) {
               syslog += output.message
               syslog_messages.post(output)
             }
+
+            if (output.is_stdout || output.is_stderr)
+              raw_output_messages.post(output)
+            else handle_output(output)
 
             all_messages.post(output)
 
