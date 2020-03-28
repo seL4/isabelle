@@ -189,7 +189,7 @@ object Build
     val info: Sessions.Info,
     deps: Sessions.Deps,
     store: Sessions.Store,
-    do_output: Boolean,
+    do_store: Boolean,
     verbose: Boolean,
     pide: Boolean,
     val numa_node: Option[Int],
@@ -240,7 +240,7 @@ object Build
         val is_pure = Sessions.is_pure(name)
 
         val eval_store =
-          if (!do_output) Nil
+          if (!do_store) Nil
           else {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
@@ -359,7 +359,7 @@ object Build
         else result1
 
       val heap_digest =
-        if (result2.ok && do_output && store.output_heap(name).is_file)
+        if (result2.ok && do_store && store.output_heap(name).is_file)
           Some(Sessions.write_heap_digest(store.output_heap(name)))
         else None
 
@@ -598,7 +598,7 @@ object Build
                     map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
-                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+                val do_store = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heap_digest) =
                 {
@@ -613,7 +613,7 @@ object Build
                             build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
-                            !(do_output && heap_digest.isEmpty)
+                            !(do_store && heap_digest.isEmpty)
                           (current, heap_digest)
                         case None => (false, None)
                       }
@@ -631,14 +631,14 @@ object Build
                     results + (name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  progress.echo((if (do_store) "Building " else "Running ") + name + " ...")
 
                   store.clean_output(name)
                   using(store.open_database(name, output = true))(store.init_session_info(_, name))
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_output, verbose, pide = pide,
+                    new Job(progress, name, info, deps, store, do_store, verbose, pide = pide,
                       numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
