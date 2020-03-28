@@ -1079,6 +1079,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                 Normal (ps, js, first_error)
             end
         in remove_temporary_files (); outcome end
+        handle exn => (remove_temporary_files (); Exn.reraise exn)
       end
   end
 
