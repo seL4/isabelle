@@ -249,11 +249,7 @@ text \<open>Useful with \<open>erule\<close> for proving equalities from known e
         |   |
         c = d   *)
 lemma box_equals: "\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d"
-  apply (rule trans)
-   apply (rule trans)
-    apply (rule sym)
-    apply assumption+
-  done
+  by (iprover intro: sym trans)
 
 text \<open>For calculational reasoning:\<close>
 
@@ -268,25 +264,17 @@ subsubsection \<open>Congruence rules for application\<close>
 
 text \<open>Similar to \<open>AP_THM\<close> in Gordon's HOL.\<close>
 lemma fun_cong: "(f :: 'a \<Rightarrow> 'b) = g \<Longrightarrow> f x = g x"
-  apply (erule subst)
-  apply (rule refl)
-  done
+  by (iprover intro: refl elim: subst)
 
 text \<open>Similar to \<open>AP_TERM\<close> in Gordon's HOL and FOL's \<open>subst_context\<close>.\<close>
 lemma arg_cong: "x = y \<Longrightarrow> f x = f y"
-  apply (erule subst)
-  apply (rule refl)
-  done
+  by (iprover intro: refl elim: subst)
 
 lemma arg_cong2: "\<lbrakk>a = b; c = d\<rbrakk> \<Longrightarrow> f a c = f b d"
-  apply (erule ssubst)+
-  apply (rule refl)
-  done
+  by (iprover intro: refl elim: subst)
 
 lemma cong: "\<lbrakk>f = g; (x::'a) = y\<rbrakk> \<Longrightarrow> f x = g y"
-  apply (erule subst)+
-  apply (rule refl)
-  done
+  by (iprover intro: refl elim: subst)
 
 ML \<open>fun cong_tac ctxt = Cong_Tac.cong_tac ctxt @{thm cong}\<close>
 
@@ -324,20 +312,15 @@ lemma eqTrueE: "P = True \<Longrightarrow> P"
 subsubsection \<open>Universal quantifier (1)\<close>
 
 lemma spec: "\<forall>x::'a. P x \<Longrightarrow> P x"
-  apply (unfold All_def)
-  apply (rule eqTrueE)
-  apply (erule fun_cong)
-  done
+  unfolding All_def by (iprover intro: eqTrueE fun_cong)
 
 lemma allE:
-  assumes major: "\<forall>x. P x"
-    and minor: "P x \<Longrightarrow> R"
+  assumes major: "\<forall>x. P x" and minor: "P x \<Longrightarrow> R"
   shows R
   by (iprover intro: minor major [THEN spec])
 
 lemma all_dupE:
-  assumes major: "\<forall>x. P x"
-    and minor: "\<lbrakk>P x; \<forall>x. P x\<rbrakk> \<Longrightarrow> R"
+  assumes major: "\<forall>x. P x" and minor: "\<lbrakk>P x; \<forall>x. P x\<rbrakk> \<Longrightarrow> R"
   shows R
   by (iprover intro: minor major major [THEN spec])
 
@@ -350,9 +333,7 @@ text \<open>
 \<close>
 
 lemma FalseE: "False \<Longrightarrow> P"
-  apply (unfold False_def)
-  apply (erule spec)
-  done
+  unfolding False_def by (erule spec)
 
 lemma False_neq_True: "False = True \<Longrightarrow> P"
   by (erule eqTrueE [THEN FalseE])
@@ -363,29 +344,17 @@ subsubsection \<open>Negation\<close>
 lemma notI:
   assumes "P \<Longrightarrow> False"
   shows "\<not> P"
-  apply (unfold not_def)
-  apply (iprover intro: impI assms)
-  done
+  unfolding not_def by (iprover intro: impI assms)
 
 lemma False_not_True: "False \<noteq> True"
-  apply (rule notI)
-  apply (erule False_neq_True)
-  done
+  by (iprover intro: notI elim: False_neq_True)
 
 lemma True_not_False: "True \<noteq> False"
-  apply (rule notI)
-  apply (drule sym)
-  apply (erule False_neq_True)
-  done
+  by (iprover intro: notI dest: sym elim: False_neq_True)
 
 lemma notE: "\<lbrakk>\<not> P; P\<rbrakk> \<Longrightarrow> R"
-  apply (unfold not_def)
-  apply (erule mp [THEN FalseE])
-  apply assumption
-  done
-
-lemma notI2: "(P \<Longrightarrow> \<not> Pa) \<Longrightarrow> (P \<Longrightarrow> Pa) \<Longrightarrow> \<not> P"
-  by (erule notE [THEN notI]) (erule meta_mp)
+  unfolding not_def
+  by (iprover intro: mp [THEN FalseE])
 
 
 subsubsection \<open>Implication\<close>
@@ -397,7 +366,7 @@ lemma impE:
 
 text \<open>Reduces \<open>Q\<close> to \<open>P \<longrightarrow> Q\<close>, allowing substitution in \<open>P\<close>.\<close>
 lemma rev_mp: "\<lbrakk>P; P \<longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-  by (iprover intro: mp)
+  by (rule mp)
 
 lemma contrapos_nn:
   assumes major: "\<not> Q"
@@ -510,10 +479,10 @@ lemma conjE:
   assumes major: "P \<and> Q"
     and minor: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R"
   shows R
-  apply (rule minor)
-   apply (rule major [THEN conjunct1])
-  apply (rule major [THEN conjunct2])
-  done
+proof (rule minor)
+  show P by (rule major [THEN conjunct1])
+  show Q by (rule major [THEN conjunct2])
+qed
 
 lemma context_conjI:
   assumes P "P \<Longrightarrow> Q"
@@ -533,14 +502,18 @@ lemma disjI2: "Q \<Longrightarrow> P \<or> Q"
 subsubsection \<open>Classical logic\<close>
 
 lemma classical:
-  assumes prem: "\<not> P \<Longrightarrow> P"
+  assumes "\<not> P \<Longrightarrow> P"
   shows P
-  apply (rule True_or_False [THEN disjE, THEN eqTrueE])
-   apply assumption
-  apply (rule notI [THEN prem, THEN eqTrueI])
-  apply (erule subst)
-  apply assumption
-  done
+proof (rule True_or_False [THEN disjE])
+  show P if "P = True"
+    using that by (iprover intro: eqTrueE)
+  show P if "P = False"
+  proof (intro notI assms)
+    assume P
+    with that show False
+      by (iprover elim: subst)
+  qed
+qed
 
 lemmas ccontr = FalseE [THEN classical]
 
@@ -550,16 +523,12 @@ lemma rev_notE:
   assumes premp: P
     and premnot: "\<not> R \<Longrightarrow> \<not> P"
   shows R
-  apply (rule ccontr)
-  apply (erule notE [OF premnot premp])
-  done
+  by (iprover intro: ccontr notE [OF premnot premp])
+
 
 text \<open>Double negation law.\<close>
 lemma notnotD: "\<not>\<not> P \<Longrightarrow> P"
-  apply (rule classical)
-  apply (erule notE)
-  apply assumption
-  done
+  by (iprover intro: ccontr notE )
 
 lemma contrapos_pp:
   assumes p1: Q
@@ -583,19 +552,15 @@ lemma ex_ex1I:
   by (iprover intro: ex_prem [THEN exE] ex1I eq)
 
 lemma ex1E:
-  assumes major: "\<exists>!x. P x"
-    and minor: "\<And>x. \<lbrakk>P x; \<forall>y. P y \<longrightarrow> y = x\<rbrakk> \<Longrightarrow> R"
+  assumes major: "\<exists>!x. P x" and minor: "\<And>x. \<lbrakk>P x; \<forall>y. P y \<longrightarrow> y = x\<rbrakk> \<Longrightarrow> R"
   shows R
-  apply (rule major [unfolded Ex1_def, THEN exE])
-  apply (erule conjE)
-  apply (iprover intro: minor)
-  done
+proof (rule major [unfolded Ex1_def, THEN exE])
+  show "\<And>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x) \<Longrightarrow> R"
+    by (iprover intro: minor elim: conjE)
+qed
 
 lemma ex1_implies_ex: "\<exists>!x. P x \<Longrightarrow> \<exists>x. P x"
-  apply (erule ex1E)
-  apply (rule exI)
-  apply assumption
-  done
+  by (iprover intro: exI elim: ex1E)
 
 
 subsubsection \<open>Classical intro rules for disjunction and existential quantifiers\<close>
@@ -613,22 +578,18 @@ text \<open>
   Note that \<open>\<not> P\<close> is the second case, not the first.
 \<close>
 lemma case_split [case_names True False]:
-  assumes prem1: "P \<Longrightarrow> Q"
-    and prem2: "\<not> P \<Longrightarrow> Q"
+  assumes "P \<Longrightarrow> Q" "\<not> P \<Longrightarrow> Q"
   shows Q
-  apply (rule excluded_middle [THEN disjE])
-   apply (erule prem2)
-  apply (erule prem1)
-  done
+  using excluded_middle [of P]
+    by (iprover intro: assms elim: disjE)
 
 text \<open>Classical implies (\<open>\<longrightarrow>\<close>) elimination.\<close>
 lemma impCE:
   assumes major: "P \<longrightarrow> Q"
     and minor: "\<not> P \<Longrightarrow> R" "Q \<Longrightarrow> R"
   shows R
-  apply (rule excluded_middle [of P, THEN disjE])
-   apply (iprover intro: minor major [THEN mp])+
-  done
+  using excluded_middle [of P]
+  by (iprover intro: minor major [THEN mp] elim: disjE)+
 
 text \<open>
   This version of \<open>\<longrightarrow>\<close> elimination works on \<open>Q\<close> before \<open>P\<close>.  It works best for
@@ -639,9 +600,8 @@ lemma impCE':
   assumes major: "P \<longrightarrow> Q"
     and minor: "Q \<Longrightarrow> R" "\<not> P \<Longrightarrow> R"
   shows R
-  apply (rule excluded_middle [of P, THEN disjE])
-   apply (iprover intro: minor major [THEN mp])+
-  done
+  using assms by (elim impCE)
+
 
 text \<open>Classical \<open>\<longleftrightarrow>\<close> elimination.\<close>
 lemma iffCE:
@@ -874,9 +834,7 @@ declare exE [elim!]
 ML \<open>val HOL_cs = claset_of \<^context>\<close>
 
 lemma contrapos_np: "\<not> Q \<Longrightarrow> (\<not> P \<Longrightarrow> Q) \<Longrightarrow> P"
-  apply (erule swap)
-  apply (erule (1) meta_mp)
-  done
+  by (erule swap)
 
 declare ex_ex1I [rule del, intro! 2]
   and ex1I [intro]
@@ -889,15 +847,13 @@ lemmas [intro?] = ext
 text \<open>Better than \<open>ex1E\<close> for classical reasoner: needs no quantifier duplication!\<close>
 lemma alt_ex1E [elim!]:
   assumes major: "\<exists>!x. P x"
-    and prem: "\<And>x. \<lbrakk>P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y'\<rbrakk> \<Longrightarrow> R"
+    and minor: "\<And>x. \<lbrakk>P x; \<forall>y y'. P y \<and> P y' \<longrightarrow> y = y'\<rbrakk> \<Longrightarrow> R"
   shows R
-  apply (rule ex1E [OF major])
-  apply (rule prem)
-   apply assumption
-  apply (rule allI)+
-  apply (tactic \<open>eresolve_tac \<^context> [Classical.dup_elim \<^context> @{thm allE}] 1\<close>)
-  apply iprover
-  done
+proof (rule ex1E [OF major minor])
+  show "\<forall>y y'. P y \<and> P y' \<longrightarrow> y = y'" if "P x" and \<section>: "\<forall>y. P y \<longrightarrow> y = x" for x
+    using \<open>P x\<close> \<section> \<section> by fast
+qed assumption
+
 
 ML \<open>
   structure Blast = Blast
@@ -1101,12 +1057,12 @@ lemma if_not_P: "\<not> P \<Longrightarrow> (if P then x else y) = y"
   unfolding If_def by blast
 
 lemma if_split: "P (if Q then x else y) = ((Q \<longrightarrow> P x) \<and> (\<not> Q \<longrightarrow> P y))"
-  apply (rule case_split [of Q])
-   apply (simplesubst if_P)
-    prefer 3
-    apply (simplesubst if_not_P)
-     apply blast+
-  done
+proof (rule case_split [of Q])
+  show ?thesis if Q
+    using that by (simplesubst if_P) blast+
+  show ?thesis if "\<not> Q"
+    using that by (simplesubst if_not_P) blast+
+qed
 
 lemma if_split_asm: "P (if Q then x else y) = (\<not> ((Q \<and> \<not> P x) \<or> (\<not> Q \<and> \<not> P y)))"
   by (simplesubst if_split) blast
@@ -1150,20 +1106,15 @@ definition simp_implies :: "prop \<Rightarrow> prop \<Rightarrow> prop"  (infixr
 lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"
   shows "PROP P =simp=> PROP Q"
-  apply (unfold simp_implies_def)
-  apply (rule PQ)
-  apply assumption
-  done
+  unfolding simp_implies_def
+  by (iprover intro: PQ)
 
 lemma simp_impliesE:
   assumes PQ: "PROP P =simp=> PROP Q"
     and P: "PROP P"
     and QR: "PROP Q \<Longrightarrow> PROP R"
   shows "PROP R"
-  apply (rule QR)
-  apply (rule PQ [unfolded simp_implies_def])
-  apply (rule P)
-  done
+  by (iprover intro: QR P PQ [unfolded simp_implies_def])
 
 lemma simp_implies_cong:
   assumes PP' :"PROP P \<equiv> PROP P'"
@@ -1658,22 +1609,32 @@ lemma ex_cong: "(\<And>x. Q x \<Longrightarrow> P x = P' x) \<Longrightarrow> (\
 lemma ex1_eq [iff]: "\<exists>!x. x = t" "\<exists>!x. t = x"
   by blast+
 
-lemma choice_eq: "(\<forall>x. \<exists>!y. P x y) = (\<exists>!f. \<forall>x. P x (f x))"
-  apply (rule iffI)
-   apply (rule_tac a = "\<lambda>x. THE y. P x y" in ex1I)
-    apply (fast dest!: theI')
-   apply (fast intro: the1_equality [symmetric])
-  apply (erule ex1E)
-  apply (rule allI)
-  apply (rule ex1I)
-   apply (erule spec)
-  apply (erule_tac x = "\<lambda>z. if z = x then y else f z" in allE)
-  apply (erule impE)
-   apply (rule allI)
-   apply (case_tac "xa = x")
-    apply (drule_tac [3] x = x in fun_cong)
-    apply simp_all
-  done
+lemma choice_eq: "(\<forall>x. \<exists>!y. P x y) = (\<exists>!f. \<forall>x. P x (f x))" (is "?lhs = ?rhs")
+proof (intro iffI allI)
+  assume L: ?lhs
+  then have \<section>: "\<forall>x. P x (THE y. P x y)"
+    by (best intro: theI')
+  show ?rhs
+    by (rule ex1I) (use L \<section> in \<open>fast+\<close>)
+next
+  fix x
+  assume R: ?rhs
+  then obtain f where f: "\<forall>x. P x (f x)" and f1: "\<And>y. (\<forall>x. P x (y x)) \<Longrightarrow> y = f"
+    by (blast elim: ex1E)
+  show "\<exists>!y. P x y"
+  proof (rule ex1I)
+    show "P x (f x)"
+      using f by blast
+    show "y = f x" if "P x y" for y
+    proof -
+      have "P z (if z = x then y else f z)" for z
+        using f that by (auto split: if_split)
+      with f1 [of "\<lambda>z. if z = x then y else f z"] f
+      show ?thesis
+        by (auto simp add: split: if_split_asm dest: fun_cong)
+    qed
+  qed
+qed
 
 lemmas eq_sym_conv = eq_commute
 
