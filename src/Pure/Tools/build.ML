@@ -133,7 +133,6 @@ fun build_theories symbols bibtex_entries last_timing qualifier master_dir (opti
 datatype args = Args of
  {symbol_codes: (string * int) list,
   command_timings: Properties.T list,
-  do_output: bool,
   verbose: bool,
   browser_info: Path.T,
   document_files: (Path.T * Path.T) list,
@@ -154,20 +153,20 @@ fun decode_args yxml =
   let
     open XML.Decode;
     val position = Position.of_properties o properties;
-    val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
+    val (symbol_codes, (command_timings, (verbose, (browser_info,
       (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
       (theories, (session_positions, (session_directories, (doc_names, (global_theories,
-      (loaded_theories, bibtex_entries))))))))))))))))) =
-      pair (list (pair string int)) (pair (list properties) (pair bool (pair bool (pair string
+      (loaded_theories, bibtex_entries)))))))))))))))) =
+      pair (list (pair string int)) (pair (list properties) (pair bool (pair string
         (pair (list (pair string string)) (pair string (pair string (pair string (pair string
           (pair string
             (pair (((list (pair Options.decode (list (pair string position))))))
               (pair (list (pair string properties))
                 (pair (list (pair string string)) (pair (list string)
-                  (pair (list (pair string string)) (pair (list string) (list string)))))))))))))))))
+                  (pair (list (pair string string)) (pair (list string) (list string))))))))))))))))
       (YXML.parse_body yxml);
   in
-    Args {symbol_codes = symbol_codes, command_timings = command_timings, do_output = do_output,
+    Args {symbol_codes = symbol_codes, command_timings = command_timings,
       verbose = verbose, browser_info = Path.explode browser_info,
       document_files = map (apply2 Path.explode) document_files,
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
@@ -177,7 +176,7 @@ fun decode_args yxml =
       bibtex_entries = bibtex_entries}
   end;
 
-fun build_session (Args {symbol_codes, command_timings, do_output, verbose, browser_info,
+fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
     document_files, graph_file, parent_name, chapter, name, master_dir, theories, session_positions,
     session_directories, doc_names, global_theories, loaded_theories, bibtex_entries}) =
   let
@@ -194,7 +193,6 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
     val _ =
       Session.init
         symbols
-        do_output
         (Options.default_bool "browser_info")
         browser_info
         (Options.default_string "document")
