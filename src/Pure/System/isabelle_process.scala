@@ -21,8 +21,7 @@ object Isabelle_Process
     args: List[String] = Nil,
     modes: List[String] = Nil,
     cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings(),
-    phase_changed: Session.Phase => Unit = null)
+    env: Map[String, String] = Isabelle_System.settings()): Isabelle_Process =
   {
     val channel = System_Channel()
     val process =
@@ -36,9 +35,28 @@ object Isabelle_Process
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
     process.stdin.close
 
-    if (phase_changed != null)
-      session.phase_changed += Session.Consumer("Isabelle_Process")(phase_changed)
-
-    session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
+    new Isabelle_Process(session, channel, process)
   }
+}
+
+class Isabelle_Process private(session: Session, channel: System_Channel, process: Bash.Process)
+{
+  private val startup_error = Future.promise[String]
+
+  session.phase_changed +=
+    Session.Consumer(getClass.getName) {
+      case Session.Ready =>
+        startup_error.fulfill("")
+      case Session.Terminated(result) if !result.ok && !startup_error.is_finished =>
+        startup_error.fulfill("Session start failed: return code " + result.rc)
+      case _ =>
+    }
+
+  def startup_join(): Unit =
+    startup_error.join match {
+      case "" =>
+      case msg => session.stop(); error(msg)
+    }
+
+  session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
 }

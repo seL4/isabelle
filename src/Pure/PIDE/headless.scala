@@ -571,28 +571,11 @@ object Headless
     {
       val session = new Session(session_base_info.session, options, resources)
 
-      val session_error = Future.promise[String]
-      var session_phase: Session.Consumer[Session.Phase] = null
-      session_phase =
-        Session.Consumer(getClass.getName) {
-          case Session.Ready =>
-            session.phase_changed -= session_phase
-            session_error.fulfill("")
-          case Session.Terminated(result) if !result.ok =>
-            session.phase_changed -= session_phase
-            session_error.fulfill("Session start failed: return code " + result.rc)
-          case _ =>
-        }
-      session.phase_changed += session_phase
-
       progress.echo("Starting session " + session_base_info.session + " ...")
       Isabelle_Process(session, options, session_base_info.sessions_structure, store,
-        logic = session_base_info.session, modes = print_mode)
+        logic = session_base_info.session, modes = print_mode).startup_join()
 
-      session_error.join match {
-        case "" => session
-        case msg => session.stop(); error(msg)
-      }
+      session
     }
 
 

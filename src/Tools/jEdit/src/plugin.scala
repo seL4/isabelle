@@ -189,7 +189,7 @@ class Plugin extends EBPlugin
 
   /* session phase */
 
-  val session_phase_changed: Session.Phase => Unit =
+  val session_phase_changed: Session.Consumer[Session.Phase] = Session.Consumer("Isabelle/jEdit")
   {
     case Session.Terminated(result) if !result.ok =>
       GUI_Thread.later {

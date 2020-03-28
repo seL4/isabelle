@@ -249,15 +249,14 @@ object Build
           session.init_protocol_handler(handler)
 
           val session_result = Future.promise[Process_Result]
-
+          session.phase_changed += Session.Consumer("build_session")
+          {
+            case Session.Ready => session.protocol_command("build_session", args_yxml)
+            case Session.Terminated(result) => session_result.fulfill(result)
+            case _ =>
+          }
           Isabelle_Process(session, options, sessions_structure, store,
-            logic = parent, cwd = info.dir.file, env = env,
-            phase_changed =
-            {
-              case Session.Ready => session.protocol_command("build_session", args_yxml)
-              case Session.Terminated(result) => session_result.fulfill(result)
-              case _ =>
-            })
+            logic = parent, cwd = info.dir.file, env = env)
 
           val result = session_result.join
           handler.result_error.join match {

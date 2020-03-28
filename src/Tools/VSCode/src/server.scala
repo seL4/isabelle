@@ -305,22 +305,14 @@ class Server(
 
       dynamic_output.init()
 
-      var session_phase: Session.Consumer[Session.Phase] = null
-      session_phase =
-        Session.Consumer(getClass.getName) {
-          case Session.Ready =>
-            session.phase_changed -= session_phase
-            reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
-          case Session.Terminated(result) if !result.ok =>
-            session.phase_changed -= session_phase
-            reply_error("Prover startup failed: return code " + result.rc)
-          case _ =>
-        }
-      session.phase_changed += session_phase
-
-      val store = Sessions.store(options)
-      Isabelle_Process(session, options, base_info.sessions_structure, store,
-        modes = modes, logic = base_info.session)
+      val process =
+        Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
+          modes = modes, logic = base_info.session)
+      try {
+        process.startup_join()
+        reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
+      }
+      catch { case ERROR(msg) => reply_error(msg) }
     }
   }
 
