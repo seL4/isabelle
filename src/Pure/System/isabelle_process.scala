@@ -48,7 +48,9 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
       case Session.Ready =>
         startup_error.fulfill("")
       case Session.Terminated(result) if !result.ok && !startup_error.is_finished =>
-        startup_error.fulfill("Session start failed: return code " + result.rc)
+        val syslog = session.syslog_content()
+        val err = "Session startup failed" + (if (syslog.isEmpty) "" else ":\n" + syslog)
+        startup_error.fulfill(err)
       case _ =>
     }
 
