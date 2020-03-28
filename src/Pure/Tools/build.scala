@@ -177,8 +177,8 @@ object Build
 
     val functions =
       List(
-        Markup.BUILD_SESSION_FINISHED -> build_session_finished _,
-        Markup.LOADING_THEORY -> loading_theory _)
+        Markup.BUILD_SESSION_FINISHED -> build_session_finished,
+        Markup.LOADING_THEORY -> loading_theory)
   }
 
 
@@ -195,9 +195,9 @@ object Build
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val options = NUMA.policy_options(info.options, numa_node)
+    private val options = NUMA.policy_options(info.options, numa_node)
 
-    val sessions_structure = deps.sessions_structure
+    private val sessions_structure = deps.sessions_structure
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
@@ -237,12 +237,14 @@ object Build
             ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
+        val is_pure = Sessions.is_pure(name)
+
         def save_heap: String =
           (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
             "ML_Heap.save_child " +
             ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
 
-        if (pide && !Sessions.is_pure(name)) {
+        if (pide && !is_pure) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
@@ -270,11 +272,11 @@ object Build
           val eval =
             "Command_Line.tool0 (fn () => (" +
             "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file)) +
-            (if (Sessions.is_pure(name)) "; Theory.install_pure (Thy_Info.get_theory Context.PureN)"
-             else "") + (if (do_output) "; " + save_heap else "") + "));"
+            (if (is_pure) "; Theory.install_pure (Thy_Info.get_theory Context.PureN)" else "") +
+            (if (do_output) "; " + save_heap else "") + "));"
 
           val process =
-            if (Sessions.is_pure(name)) {
+            if (is_pure) {
               ML_Process(options, deps.sessions_structure, store, raw_ml_system = true,
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
