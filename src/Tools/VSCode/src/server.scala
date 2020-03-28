@@ -305,11 +305,9 @@ class Server(
 
       dynamic_output.init()
 
-      val process =
-        Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
-          modes = modes, logic = base_info.session)
       try {
-        process.startup_join()
+        Isabelle_Process(session, options, base_info.sessions_structure, Sessions.store(options),
+          modes = modes, logic = base_info.session).await_startup
         reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
       }
       catch { case ERROR(msg) => reply_error(msg) }

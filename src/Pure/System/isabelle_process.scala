@@ -41,24 +41,30 @@ object Isabelle_Process
 
 class Isabelle_Process private(session: Session, channel: System_Channel, process: Bash.Process)
 {
-  private val startup_error = Future.promise[String]
+  private val startup = Future.promise[String]
+  private val terminated = Future.promise[Process_Result]
 
   session.phase_changed +=
     Session.Consumer(getClass.getName) {
       case Session.Ready =>
-        startup_error.fulfill("")
-      case Session.Terminated(result) if !result.ok && !startup_error.is_finished =>
-        val syslog = session.syslog_content()
-        val err = "Session startup failed" + (if (syslog.isEmpty) "" else ":\n" + syslog)
-        startup_error.fulfill(err)
+        startup.fulfill("")
+      case Session.Terminated(result) =>
+        if (!result.ok && !startup.is_finished) {
+          val syslog = session.syslog_content()
+          val err = "Session startup failed" + (if (syslog.isEmpty) "" else ":\n" + syslog)
+          startup.fulfill(err)
+        }
+        terminated.fulfill(result)
       case _ =>
     }
 
-  def startup_join(): Unit =
-    startup_error.join match {
-      case "" =>
-      case msg => session.stop(); error(msg)
+  session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
+
+  def await_startup(): Isabelle_Process =
+    startup.join match {
+      case "" => this
+      case err => session.stop(); error(err)
     }
 
-  session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
+  def join(): Process_Result = terminated.join
 }

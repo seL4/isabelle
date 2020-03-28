@@ -573,7 +573,7 @@ object Headless
 
       progress.echo("Starting session " + session_base_info.session + " ...")
       Isabelle_Process(session, options, session_base_info.sessions_structure, store,
-        logic = session_base_info.session, modes = print_mode).startup_join()
+        logic = session_base_info.session, modes = print_mode).await_startup
 
       session
     }
