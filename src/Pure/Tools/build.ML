@@ -215,6 +215,8 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
 
     val _ = Resources.finish_session_base ();
     val _ = Par_Exn.release_all [res1, res2];
+    val _ =
+      if name = Context.PureN then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
   in () end;
 
 (*command-line tool*)

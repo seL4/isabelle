@@ -239,20 +239,13 @@ object Build
 
         val is_pure = Sessions.is_pure(name)
 
-        val eval_suffix =
-        {
-          val eval_pure =
-            if (is_pure) List("Theory.install_pure (Thy_Info.get_theory Context.PureN)") else Nil
-          val eval_share =
-            if (do_output && info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil
-          val eval_save =
-            if (do_output) {
-              List("ML_Heap.save_child " +
-                ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
-            }
-            else Nil
-          eval_pure ::: eval_share ::: eval_save
-        }
+        val eval_store =
+          if (!do_output) Nil
+          else {
+            (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
+            List("ML_Heap.save_child " +
+              ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
+          }
 
         if (pide && !is_pure) {
           val resources = new Resources(sessions_structure, deps(parent))
@@ -280,7 +273,7 @@ object Build
           File.write(args_file, args_yxml)
 
           val eval_build = "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
-          val eval = Command_Line.ML_tool0(eval_build :: eval_suffix)
+          val eval = Command_Line.ML_tool0(eval_build :: eval_store)
 
           val process =
             if (is_pure) {
