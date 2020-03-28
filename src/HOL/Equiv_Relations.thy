@@ -34,21 +34,21 @@ lemma refl_on_comp_subset: "refl_on A r \<Longrightarrow> r \<subseteq> r\<inver
   unfolding refl_on_def by blast
 
 lemma equiv_comp_eq: "equiv A r \<Longrightarrow> r\<inverse> O r = r"
-  apply (unfold equiv_def)
-  apply clarify
-  apply (rule equalityI)
-   apply (iprover intro: sym_trans_comp_subset refl_on_comp_subset)+
-  done
+  unfolding equiv_def
+  by (iprover intro: sym_trans_comp_subset refl_on_comp_subset equalityI)
 
 text \<open>Second half.\<close>
 
-lemma comp_equivI: "r\<inverse> O r = r \<Longrightarrow> Domain r = A \<Longrightarrow> equiv A r"
-  apply (unfold equiv_def refl_on_def sym_def trans_def)
-  apply (erule equalityE)
-  apply (subgoal_tac "\<forall>x y. (x, y) \<in> r \<longrightarrow> (y, x) \<in> r")
-   apply fast
-  apply fast
-  done
+lemma comp_equivI:
+  assumes "r\<inverse> O r = r" "Domain r = A"
+  shows "equiv A r"
+proof -
+  have *: "\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r"
+    using assms by blast
+  show ?thesis
+    unfolding equiv_def refl_on_def sym_def trans_def
+    using assms by (auto intro: *)
+qed
 
 
 subsection \<open>Equivalence classes\<close>
@@ -58,10 +58,7 @@ lemma equiv_class_subset: "equiv A r \<Longrightarrow> (a, b) \<in> r \<Longrigh
   unfolding equiv_def trans_def sym_def by blast
 
 theorem equiv_class_eq: "equiv A r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> r``{a} = r``{b}"
-  apply (assumption | rule equalityI equiv_class_subset)+
-  apply (unfold equiv_def sym_def)
-  apply blast
-  done
+  by (intro equalityI equiv_class_subset; force simp add: equiv_def sym_def)
 
 lemma equiv_class_self: "equiv A r \<Longrightarrow> a \<in> A \<Longrightarrow> a \<in> r``{a}"
   unfolding equiv_def refl_on_def by blast
@@ -91,7 +88,7 @@ subsection \<open>Quotients\<close>
 definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl "'/'/" 90)
   where "A//r = (\<Union>x \<in> A. {r``{x}})"  \<comment> \<open>set of equiv classes\<close>
 
-lemma quotientI: "x \<in> A ==> r``{x} \<in> A//r"
+lemma quotientI: "x \<in> A \<Longrightarrow> r``{x} \<in> A//r"
   unfolding quotient_def by blast
 
 lemma quotientE: "X \<in> A//r \<Longrightarrow> (\<And>x. X = r``{x} \<Longrightarrow> x \<in> A \<Longrightarrow> P) \<Longrightarrow> P"
@@ -101,32 +98,31 @@ lemma Union_quotient: "equiv A r \<Longrightarrow> \<Union>(A//r) = A"
   unfolding equiv_def refl_on_def quotient_def by blast
 
 lemma quotient_disj: "equiv A r \<Longrightarrow> X \<in> A//r \<Longrightarrow> Y \<in> A//r \<Longrightarrow> X = Y \<or> X \<inter> Y = {}"
-  apply (unfold quotient_def)
-  apply clarify
-  apply (rule equiv_class_eq)
-   apply assumption
-  apply (unfold equiv_def trans_def sym_def)
-  apply blast
-  done
+  unfolding quotient_def equiv_def trans_def sym_def by blast
 
 lemma quotient_eqI:
-  "equiv A r \<Longrightarrow> X \<in> A//r \<Longrightarrow> Y \<in> A//r \<Longrightarrow> x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> X = Y"
-  apply (clarify elim!: quotientE)
-  apply (rule equiv_class_eq)
-   apply assumption
-  apply (unfold equiv_def sym_def trans_def)
-  apply blast
-  done
+  assumes "equiv A r" "X \<in> A//r" "Y \<in> A//r" and xy: "x \<in> X" "y \<in> Y" "(x, y) \<in> r"
+  shows "X = Y"
+proof -
+  obtain a b where "a \<in> A" and a: "X = r `` {a}" and "b \<in> A" and b: "Y = r `` {b}"
+    using assms by (auto elim!: quotientE)
+  then have "(a,b) \<in> r"
+      using xy \<open>equiv A r\<close> unfolding equiv_def sym_def trans_def by blast
+  then show ?thesis
+    unfolding a b by (rule equiv_class_eq [OF \<open>equiv A r\<close>])
+qed
 
 lemma quotient_eq_iff:
-  "equiv A r \<Longrightarrow> X \<in> A//r \<Longrightarrow> Y \<in> A//r \<Longrightarrow> x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> X = Y \<longleftrightarrow> (x, y) \<in> r"
-  apply (rule iffI)
-   prefer 2
-   apply (blast del: equalityI intro: quotient_eqI)
-  apply (clarify elim!: quotientE)
-  apply (unfold equiv_def sym_def trans_def)
-  apply blast
-  done
+  assumes "equiv A r" "X \<in> A//r" "Y \<in> A//r" and xy: "x \<in> X" "y \<in> Y" 
+  shows "X = Y \<longleftrightarrow> (x, y) \<in> r"
+proof
+  assume L: "X = Y" 
+  with assms show "(x, y) \<in> r" 
+    unfolding equiv_def sym_def trans_def by (blast elim!: quotientE)
+next
+  assume \<section>: "(x, y) \<in> r" show "X = Y"
+    by (rule quotient_eqI) (use \<section> assms in \<open>blast+\<close>)
+qed
 
 lemma eq_equiv_class_iff2: "equiv A r \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> {x}//r = {y}//r \<longleftrightarrow> (x, y) \<in> r"
   by (simp add: quotient_def eq_equiv_class_iff)
@@ -189,22 +185,22 @@ lemma UN_constant_eq: "a \<in> A \<Longrightarrow> \<forall>y \<in> A. f y = c \
   \<comment> \<open>lemma required to prove \<open>UN_equiv_class\<close>\<close>
   by auto
 
-lemma UN_equiv_class: "equiv A r \<Longrightarrow> f respects r \<Longrightarrow> a \<in> A \<Longrightarrow> (\<Union>x \<in> r``{a}. f x) = f a"
+lemma UN_equiv_class:
+  assumes "equiv A r" "f respects r" "a \<in> A"
+  shows "(\<Union>x \<in> r``{a}. f x) = f a"
   \<comment> \<open>Conversion rule\<close>
-  apply (rule equiv_class_self [THEN UN_constant_eq])
-    apply assumption
-   apply assumption
-  apply (unfold equiv_def congruent_def sym_def)
-  apply (blast del: equalityI)
-  done
+proof -
+  have \<section>: "\<forall>x\<in>r `` {a}. f x = f a"
+    using assms unfolding equiv_def congruent_def sym_def by blast
+  show ?thesis
+    by (iprover intro: assms UN_constant_eq [OF equiv_class_self \<section>])
+qed
 
 lemma UN_equiv_class_type:
-  "equiv A r \<Longrightarrow> f respects r \<Longrightarrow> X \<in> A//r \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> (\<Union>x \<in> X. f x) \<in> B"
-  apply (unfold quotient_def)
-  apply clarify
-  apply (subst UN_equiv_class)
-     apply auto
-  done
+  assumes r: "equiv A r" "f respects r" and X: "X \<in> A//r" and AB: "\<And>x. x \<in> A \<Longrightarrow> f x \<in> B"
+  shows "(\<Union>x \<in> X. f x) \<in> B"
+  using assms unfolding quotient_def
+  by (auto simp: UN_equiv_class [OF r])
 
 text \<open>
   Sufficient conditions for injectiveness.  Could weaken premises!
@@ -213,19 +209,23 @@ text \<open>
 \<close>
 
 lemma UN_equiv_class_inject:
-  "equiv A r \<Longrightarrow> f respects r \<Longrightarrow>
-    (\<Union>x \<in> X. f x) = (\<Union>y \<in> Y. f y) \<Longrightarrow> X \<in> A//r ==> Y \<in> A//r
-    \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<Longrightarrow> (x, y) \<in> r)
-    \<Longrightarrow> X = Y"
-  apply (unfold quotient_def)
-  apply clarify
-  apply (rule equiv_class_eq)
-   apply assumption
-  apply (subgoal_tac "f x = f xa")
-   apply blast
-  apply (erule box_equals)
-   apply (assumption | rule UN_equiv_class)+
-  done
+  assumes "equiv A r" "f respects r"
+    and eq: "(\<Union>x \<in> X. f x) = (\<Union>y \<in> Y. f y)" 
+    and X: "X \<in> A//r" and Y: "Y \<in> A//r" 
+    and fr: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> f x = f y \<Longrightarrow> (x, y) \<in> r"
+  shows "X = Y"
+proof -
+  obtain a b where "a \<in> A" and a: "X = r `` {a}" and "b \<in> A" and b: "Y = r `` {b}"
+    using assms by (auto elim!: quotientE)
+  then have "\<Union> (f ` r `` {a}) = f a" "\<Union> (f ` r `` {b}) = f b"
+    by (iprover intro: UN_equiv_class [OF \<open>equiv A r\<close>] assms)+
+  then have "f a = f b"
+    using eq unfolding a b by (iprover intro: trans sym)
+  then have "(a,b) \<in> r"
+    using fr \<open>a \<in> A\<close> \<open>b \<in> A\<close> by blast
+  then show ?thesis
+    unfolding a b by (rule equiv_class_eq [OF \<open>equiv A r\<close>])
+qed
 
 
 subsection \<open>Defining binary operations upon equivalence classes\<close>
@@ -253,15 +253,20 @@ lemma congruent2_implies_congruent:
   unfolding congruent_def congruent2_def equiv_def refl_on_def by blast
 
 lemma congruent2_implies_congruent_UN:
-  "equiv A1 r1 \<Longrightarrow> equiv A2 r2 \<Longrightarrow> congruent2 r1 r2 f \<Longrightarrow> a \<in> A2 \<Longrightarrow>
-    congruent r1 (\<lambda>x1. \<Union>x2 \<in> r2``{a}. f x1 x2)"
-  apply (unfold congruent_def)
-  apply clarify
-  apply (rule equiv_type [THEN subsetD, THEN SigmaE2], assumption+)
-  apply (simp add: UN_equiv_class congruent2_implies_congruent)
-  apply (unfold congruent2_def equiv_def refl_on_def)
-  apply (blast del: equalityI)
-  done
+  assumes "equiv A1 r1" "equiv A2 r2" "congruent2 r1 r2 f" "a \<in> A2" 
+  shows "congruent r1 (\<lambda>x1. \<Union>x2 \<in> r2``{a}. f x1 x2)"
+  unfolding congruent_def
+proof clarify
+  fix c d
+  assume cd: "(c,d) \<in> r1"
+  then have "c \<in> A1" "d \<in> A1"
+    using \<open>equiv A1 r1\<close> by (auto elim!: equiv_type [THEN subsetD, THEN SigmaE2])
+  with assms show "\<Union> (f c ` r2 `` {a}) = \<Union> (f d ` r2 `` {a})"
+  proof (simp add: UN_equiv_class congruent2_implies_congruent)
+    show "f c a = f d a"
+      using assms cd unfolding congruent2_def equiv_def refl_on_def by blast
+  qed
+qed
 
 lemma UN_equiv_class2:
   "equiv A1 r1 \<Longrightarrow> equiv A2 r2 \<Longrightarrow> congruent2 r1 r2 f \<Longrightarrow> a1 \<in> A1 \<Longrightarrow> a2 \<in> A2 \<Longrightarrow>
@@ -273,11 +278,10 @@ lemma UN_equiv_class_type2:
     \<Longrightarrow> X1 \<in> A1//r1 \<Longrightarrow> X2 \<in> A2//r2
     \<Longrightarrow> (\<And>x1 x2. x1 \<in> A1 \<Longrightarrow> x2 \<in> A2 \<Longrightarrow> f x1 x2 \<in> B)
     \<Longrightarrow> (\<Union>x1 \<in> X1. \<Union>x2 \<in> X2. f x1 x2) \<in> B"
-  apply (unfold quotient_def)
-  apply clarify
-  apply (blast intro: UN_equiv_class_type congruent2_implies_congruent_UN
-      congruent2_implies_congruent quotientI)
-  done
+  unfolding quotient_def
+  by (blast intro: UN_equiv_class_type congruent2_implies_congruent_UN
+                   congruent2_implies_congruent quotientI)
+
 
 lemma UN_UN_split_split_eq:
   "(\<Union>(x1, x2) \<in> X. \<Union>(y1, y2) \<in> Y. A x1 x2 y1 y2) =
@@ -293,60 +297,63 @@ lemma congruent2I:
     \<Longrightarrow> congruent2 r1 r2 f"
   \<comment> \<open>Suggested by John Harrison -- the two subproofs may be\<close>
   \<comment> \<open>\<^emph>\<open>much\<close> simpler than the direct proof.\<close>
-  apply (unfold congruent2_def equiv_def refl_on_def)
-  apply clarify
-  apply (blast intro: trans)
-  done
+  unfolding congruent2_def equiv_def refl_on_def
+  by (blast intro: trans)
 
 lemma congruent2_commuteI:
   assumes equivA: "equiv A r"
     and commute: "\<And>y z. y \<in> A \<Longrightarrow> z \<in> A \<Longrightarrow> f y z = f z y"
     and congt: "\<And>y z w. w \<in> A \<Longrightarrow> (y,z) \<in> r \<Longrightarrow> f w y = f w z"
   shows "f respects2 r"
-  apply (rule congruent2I [OF equivA equivA])
-   apply (rule commute [THEN trans])
-     apply (rule_tac [3] commute [THEN trans, symmetric])
-       apply (rule_tac [5] sym)
-       apply (rule congt | assumption |
-         erule equivA [THEN equiv_type, THEN subsetD, THEN SigmaE2])+
-  done
+proof (rule congruent2I [OF equivA equivA])
+  note eqv = equivA [THEN equiv_type, THEN subsetD, THEN SigmaE2]
+  show "\<And>y z w. \<lbrakk>w \<in> A; (y, z) \<in> r\<rbrakk> \<Longrightarrow> f y w = f z w"
+    by (iprover intro: commute [THEN trans] sym congt elim: eqv)
+  show "\<And>y z w. \<lbrakk>w \<in> A; (y, z) \<in> r\<rbrakk> \<Longrightarrow> f w y = f w z"
+    by (iprover intro: congt elim: eqv)
+qed
 
 
 subsection \<open>Quotients and finiteness\<close>
 
 text \<open>Suggested by Florian Kammüller\<close>
 
-lemma finite_quotient: "finite A \<Longrightarrow> r \<subseteq> A \<times> A \<Longrightarrow> finite (A//r)"
-  \<comment> \<open>recall @{thm equiv_type}\<close>
-  apply (rule finite_subset)
-   apply (erule_tac [2] finite_Pow_iff [THEN iffD2])
-  apply (unfold quotient_def)
-  apply blast
-  done
+lemma finite_quotient:
+  assumes "finite A" "r \<subseteq> A \<times> A"
+  shows "finite (A//r)"
+    \<comment> \<open>recall @{thm equiv_type}\<close>
+proof -
+  have "A//r \<subseteq> Pow A"
+    using assms unfolding quotient_def by blast
+  moreover have "finite (Pow A)"
+    using assms by simp
+  ultimately show ?thesis
+    by (iprover intro: finite_subset)
+qed
 
 lemma finite_equiv_class: "finite A \<Longrightarrow> r \<subseteq> A \<times> A \<Longrightarrow> X \<in> A//r \<Longrightarrow> finite X"
-  apply (unfold quotient_def)
-  apply (rule finite_subset)
-   prefer 2 apply assumption
-  apply blast
-  done
+  unfolding quotient_def
+  by (erule rev_finite_subset) blast
 
-lemma equiv_imp_dvd_card: "finite A \<Longrightarrow> equiv A r \<Longrightarrow> \<forall>X \<in> A//r. k dvd card X \<Longrightarrow> k dvd card A"
-  apply (rule Union_quotient [THEN subst [where P="\<lambda>A. k dvd card A"]])
-   apply assumption
-  apply (rule dvd_partition)
-    prefer 3 apply (blast dest: quotient_disj)
-   apply (simp_all add: Union_quotient equiv_type)
-  done
+lemma equiv_imp_dvd_card:
+  assumes "finite A" "equiv A r" "\<And>X. X \<in> A//r \<Longrightarrow> k dvd card X"
+  shows "k dvd card A"
+proof (rule Union_quotient [THEN subst])
+  show "k dvd card (\<Union> (A // r))"
+    apply (rule dvd_partition)
+    using assms
+    by (auto simp: Union_quotient dest: quotient_disj)
+qed (use assms in blast)
 
-lemma card_quotient_disjoint: "finite A \<Longrightarrow> inj_on (\<lambda>x. {x} // r) A \<Longrightarrow> card (A//r) = card A"
-  apply (simp add:quotient_def)
-  apply (subst card_UN_disjoint)
-     apply assumption
-    apply simp
-   apply (fastforce simp add:inj_on_def)
-  apply simp
-  done
+lemma card_quotient_disjoint:
+  assumes "finite A" "inj_on (\<lambda>x. {x} // r) A"
+  shows "card (A//r) = card A"
+proof -
+  have "\<forall>i\<in>A. \<forall>j\<in>A. i \<noteq> j \<longrightarrow> r `` {j} \<noteq> r `` {i}"
+    using assms by (fastforce simp add: quotient_def inj_on_def)
+  with assms show ?thesis
+    by (simp add: quotient_def card_UN_disjoint)
+qed
 
 
 subsection \<open>Projection\<close>
