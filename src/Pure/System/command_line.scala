@@ -36,5 +36,7 @@ object Command_Line
   }
 
   def tool0(body: => Unit): Nothing = tool { body; 0 }
-}
 
+  def ML_tool0(body: List[String]): String =
+    "Command_Line.tool0 (fn () => (" + body.mkString("; ") + "));"
+}

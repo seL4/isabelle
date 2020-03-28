@@ -177,8 +177,8 @@ object Build
 
     val functions =
       List(
-        Markup.BUILD_SESSION_FINISHED -> build_session_finished _,
-        Markup.LOADING_THEORY -> loading_theory _)
+        Markup.BUILD_SESSION_FINISHED -> build_session_finished,
+        Markup.LOADING_THEORY -> loading_theory)
   }
 
 
@@ -189,15 +189,15 @@ object Build
     val info: Sessions.Info,
     deps: Sessions.Deps,
     store: Sessions.Store,
-    do_output: Boolean,
+    do_store: Boolean,
     verbose: Boolean,
     pide: Boolean,
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val options = NUMA.policy_options(info.options, numa_node)
+    private val options = NUMA.policy_options(info.options, numa_node)
 
-    val sessions_structure = deps.sessions_structure
+    private val sessions_structure = deps.sessions_structure
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
@@ -214,22 +214,22 @@ object Build
           YXML.string_of_body(
             {
               import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
+              pair(list(pair(string, int)), pair(list(properties), pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
-                pair(list(string), list(string))))))))))))))))))(
-              (Symbol.codes, (command_timings, (do_output, (verbose,
+                pair(list(string), list(string)))))))))))))))))(
+              (Symbol.codes, (command_timings, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
                 (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, info.bibtex_entries.map(_.info)))))))))))))))))))
+                (base.loaded_theories.keys, info.bibtex_entries.map(_.info))))))))))))))))))
             })
 
         val env =
@@ -237,12 +237,17 @@ object Build
             ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
-        def save_heap: String =
-          (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
-            "ML_Heap.save_child " +
-            ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
+        val is_pure = Sessions.is_pure(name)
 
-        if (pide && !Sessions.is_pure(name)) {
+        val eval_store =
+          if (!do_store) Nil
+          else {
+            (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
+            List("ML_Heap.save_child " +
+              ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
+          }
+
+        if (pide && !is_pure) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
@@ -267,14 +272,11 @@ object Build
           val args_file = Isabelle_System.tmp_file("build")
           File.write(args_file, args_yxml)
 
-          val eval =
-            "Command_Line.tool0 (fn () => (" +
-            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file)) +
-            (if (Sessions.is_pure(name)) "; Theory.install_pure (Thy_Info.get_theory Context.PureN)"
-             else "") + (if (do_output) "; " + save_heap else "") + "));"
+          val eval_build = "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
+          val eval = Command_Line.ML_tool0(eval_build :: eval_store)
 
           val process =
-            if (Sessions.is_pure(name)) {
+            if (is_pure) {
               ML_Process(options, deps.sessions_structure, store, raw_ml_system = true,
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
@@ -357,7 +359,7 @@ object Build
         else result1
 
       val heap_digest =
-        if (result2.ok && do_output && store.output_heap(name).is_file)
+        if (result2.ok && do_store && store.output_heap(name).is_file)
           Some(Sessions.write_heap_digest(store.output_heap(name)))
         else None
 
@@ -596,7 +598,7 @@ object Build
                     map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
-                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+                val do_store = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heap_digest) =
                 {
@@ -611,7 +613,7 @@ object Build
                             build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
-                            !(do_output && heap_digest.isEmpty)
+                            !(do_store && heap_digest.isEmpty)
                           (current, heap_digest)
                         case None => (false, None)
                       }
@@ -629,14 +631,14 @@ object Build
                     results + (name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  progress.echo((if (do_store) "Building " else "Running ") + name + " ...")
 
                   store.clean_output(name)
                   using(store.open_database(name, output = true))(store.init_session_info(_, name))
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_output, verbose, pide = pide,
+                    new Job(progress, name, info, deps, store, do_store, verbose, pide = pide,
                       numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
