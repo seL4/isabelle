@@ -103,7 +103,7 @@ object Build_Log
 
     def plain_name(name: String): String =
     {
-      List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith(_)) match {
+      List(".log", ".log.gz", ".log.xz", ".gz", ".xz").find(name.endsWith) match {
         case Some(s) => Library.try_unsuffix(s, name).get
         case None => name
       }
@@ -138,8 +138,8 @@ object Build_Log
     {
       val name = file.getName
 
-      prefixes.exists(name.startsWith(_)) &&
-      suffixes.exists(name.endsWith(_)) &&
+      prefixes.exists(name.startsWith) &&
+      suffixes.exists(name.endsWith) &&
       name != "isatest.log" &&
       name != "afp-test.log" &&
       name != "main.log"
@@ -179,8 +179,8 @@ object Build_Log
       def tune(s: String): String =
         Word.implode(
           Word.explode(s) match {
-            case a :: "M\uFFFDr" :: bs => tune_weekday(a) :: "Mär" :: bs.map(tune_timezone(_))
-            case a :: bs => tune_weekday(a) :: bs.map(tune_timezone(_))
+            case a :: "M\uFFFDr" :: bs => tune_weekday(a) :: "Mär" :: bs.map(tune_timezone)
+            case a :: bs => tune_weekday(a) :: bs.map(tune_timezone)
             case Nil => Nil
           }
         )
@@ -290,7 +290,7 @@ object Build_Log
       Properties.get(settings, c.name)
 
     def get_date(c: SQL.Column): Option[Date] =
-      get(c).map(Log_File.Date_Format.parse(_))
+      get(c).map(Log_File.Date_Format.parse)
   }
 
   object Identify
@@ -667,7 +667,7 @@ object Build_Log
   def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.cache()): List[String] =
     if (bytes.isEmpty) Nil
     else {
-      XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress(cache = cache).text))
+      XML.Decode.list(YXML.string_of_body)(YXML.parse_body(bytes.uncompress(cache = cache).text))
     }
 
 
@@ -740,7 +740,7 @@ object Build_Log
 
     /* earliest pull date for repository version (PostgreSQL queries) */
 
-    def pull_date(afp: Boolean = false) =
+    def pull_date(afp: Boolean = false): SQL.Column =
       if (afp) SQL.Column.date("afp_pull_date")
       else SQL.Column.date("pull_date")
 
@@ -1096,7 +1096,7 @@ object Build_Log
             files.filter(file => status.exists(_.required(file))).
               grouped(options.int("build_log_transaction_size") max 1))
       {
-        val log_files = Par_List.map[JFile, Log_File](Log_File.apply _, file_group)
+        val log_files = Par_List.map[JFile, Log_File](Log_File.apply, file_group)
         db.transaction { log_files.foreach(log_file => status.foreach(_.update(log_file))) }
       }
     }
@@ -1168,7 +1168,7 @@ object Build_Log
                   res.timing(Data.ml_timing_elapsed, Data.ml_timing_cpu, Data.ml_timing_gc),
                 sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size),
-                status = res.get_string(Data.status).map(Session_Status.withName(_)),
+                status = res.get_string(Data.status).map(Session_Status.withName),
                 errors = uncompress_errors(res.bytes(Data.errors), cache = xz_cache),
                 ml_statistics =
                   if (ml_statistics) {
