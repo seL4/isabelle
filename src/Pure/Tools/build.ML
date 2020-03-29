@@ -58,7 +58,7 @@ fun session_timing name verbose f x =
 
     val timing_props =
       [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
-    val _ = writeln ("\fTiming = " ^ YXML.string_of_body (XML.Encode.properties timing_props));
+    val _ = Protocol_Message.inline_properties "Timing" timing_props;
     val _ =
       if verbose then
         Output.physical_stderr ("Timing " ^ name ^ " (" ^
@@ -73,7 +73,7 @@ fun protocol_message props output =
   (case props of
     function :: args =>
       if function = Markup.ML_statistics orelse function = Markup.task_statistics then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.inline_properties (#2 function) args
       else if function = Markup.command_timing then
         let
           val name = the_default "" (Properties.get args Markup.nameN);
@@ -86,15 +86,16 @@ fun protocol_message props output =
           if is_significant then
             (case approximative_id name pos of
               SOME id =>
-                Protocol_Message.inline (#2 function) (Markup.command_timing_properties id elapsed)
+                Protocol_Message.inline_properties (#2 function)
+                  (Markup.command_timing_properties id elapsed)
             | NONE => ())
           else ()
         end
       else if function = Markup.theory_timing then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.inline_properties (#2 function) args
       else
         (case Markup.dest_loading_theory props of
-          SOME name => writeln ("\floading_theory = " ^ name)
+          SOME name => Protocol_Message.inline_text "loading_theory" name
         | NONE => Export.protocol_message props output)
   | [] => raise Output.Protocol_Message props);
 
@@ -221,7 +222,7 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
 
 fun inline_errors exn =
   Runtime.exn_message_list exn
-  |> List.app (fn msg => writeln ("\ferror_message = " ^ encode_lines (YXML.content_of msg)));
+  |> List.app (fn msg => Protocol_Message.inline_text "error_message" (YXML.content_of msg));
 
 (*command-line tool*)
 fun build args_file =
