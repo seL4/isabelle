@@ -143,7 +143,7 @@ object Export
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
-  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes,
+  def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes,
     cache: XZ.Cache = XZ.cache()): Entry =
   {
     Entry(session_name, args.theory_name, args.name, args.executable,
@@ -213,7 +213,7 @@ object Export
             (results, true)
           })
 
-    def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
+    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit =
       consumer.send(make_entry(session_name, args, body, cache = cache) -> args.strict)
 
     def shutdown(close: Boolean = false): List[String] =

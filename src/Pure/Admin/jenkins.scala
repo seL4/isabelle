@@ -112,7 +112,7 @@ object Jenkins
 
         File.write_xz(log_path,
           terminate_lines(Url.read(main_log) ::
-            ml_statistics.map(Build_Log.Log_File.print_props(Build_Log.ML_STATISTICS_MARKER, _))),
+            ml_statistics.map(Build_Log.ML_Statistics_Marker.apply)),
           XZ.options(6))
       }
     }

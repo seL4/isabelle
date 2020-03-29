@@ -58,7 +58,7 @@ fun session_timing name verbose f x =
 
     val timing_props =
       [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
-    val _ = writeln ("\fTiming = " ^ YXML.string_of_body (XML.Encode.properties timing_props));
+    val _ = Protocol_Message.marker "Timing" timing_props;
     val _ =
       if verbose then
         Output.physical_stderr ("Timing " ^ name ^ " (" ^
@@ -73,7 +73,7 @@ fun protocol_message props output =
   (case props of
     function :: args =>
       if function = Markup.ML_statistics orelse function = Markup.task_statistics then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.marker (#2 function) args
       else if function = Markup.command_timing then
         let
           val name = the_default "" (Properties.get args Markup.nameN);
@@ -86,15 +86,16 @@ fun protocol_message props output =
           if is_significant then
             (case approximative_id name pos of
               SOME id =>
-                Protocol_Message.inline (#2 function) (Markup.command_timing_properties id elapsed)
+                Protocol_Message.marker (#2 function)
+                  (Markup.command_timing_properties id elapsed)
             | NONE => ())
           else ()
         end
       else if function = Markup.theory_timing then
-        Protocol_Message.inline (#2 function) args
+        Protocol_Message.marker (#2 function) args
       else
         (case Markup.dest_loading_theory props of
-          SOME name => writeln ("\floading_theory = " ^ name)
+          SOME name => Protocol_Message.marker_text "loading_theory" name
         | NONE => Export.protocol_message props output)
   | [] => raise Output.Protocol_Message props);
 
@@ -219,6 +220,10 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
       if name = Context.PureN then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
   in () end;
 
+fun inline_errors exn =
+  Runtime.exn_message_list exn
+  |> List.app (fn msg => Protocol_Message.marker_text "error_message" (YXML.content_of msg));
+
 (*command-line tool*)
 fun build args_file =
   let
@@ -226,11 +231,10 @@ fun build args_file =
     val _ = Options.load_default ();
     val _ = Isabelle_Process.init_options ();
     val args = decode_args (File.read (Path.explode args_file));
-    fun error_message msg = writeln ("\ferror_message = " ^ encode_lines (YXML.content_of msg));
     val _ =
       Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
         build_session args
-      handle exn => (List.app error_message (Runtime.exn_message_list exn); Exn.reraise exn);
+      handle exn => (inline_errors exn; Exn.reraise exn);
     val _ = Private_Output.protocol_message_fn := Output.protocol_message_undefined;
     val _ = Options.reset_default ();
   in () end;
