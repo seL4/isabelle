@@ -184,6 +184,8 @@ object Build
 
   /* job: running prover process */
 
+  private val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
+
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
@@ -291,24 +293,19 @@ object Build
 
           process.result(
             progress_stdout = (line: String) =>
-              Library.try_unprefix("\floading_theory = ", line) match {
-                case Some(theory) =>
+              line match {
+                case Loading_Theory_Marker(theory) =>
                   progress.theory(Progress.Theory(theory, session = name))
-                case None =>
-                  for {
-                    text <- Library.try_unprefix("\fexport = ", line)
-                    (args, path) <-
-                      Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
-                  } {
-                    val body =
-                      try { Bytes.read(path) }
-                      catch {
-                        case ERROR(msg) =>
-                          error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
-                      }
-                    path.file.delete
-                    export_consumer(name, args, body)
-                  }
+                case Markup.Export.Marker((args, path)) =>
+                  val body =
+                    try { Bytes.read(path) }
+                    catch {
+                      case ERROR(msg) =>
+                        error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
+                    }
+                  path.file.delete
+                  export_consumer(name, args, body)
+                case _ =>
               },
             progress_limit =
               options.int("process_output_limit") match {
@@ -540,7 +537,7 @@ object Build
 
             val (process_result, heap_digest) = job.join
 
-            val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
+            val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
             val process_result_tail =
             {
               val tail = job.info.options.int("process_output_tail")

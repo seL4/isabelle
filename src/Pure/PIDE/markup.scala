@@ -625,6 +625,7 @@ object Markup
   /* export */
 
   val EXPORT = "export"
+  val Export_Marker = Protocol_Message.Marker(EXPORT)
 
   object Export
   {
@@ -645,25 +646,34 @@ object Markup
     val COMPRESS = "compress"
     val STRICT = "strict"
 
-    def dest_inline(props: Properties.T): Option[(Args, Path)] =
-      props match {
-        case
-          List(
-            (SERIAL, Value.Long(serial)),
-            (THEORY_NAME, theory_name),
-            (NAME, name),
-            (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress)),
-            (STRICT, Value.Boolean(strict)),
-            (FILE, file)) if isabelle.Path.is_valid(file) =>
-          val args = Args(None, serial, theory_name, name, executable, compress, strict)
-          Some((args, isabelle.Path.explode(file)))
-        case _ => None
-      }
+    object Marker
+    {
+      def unapply(line: String): Option[(Args, Path)] =
+        line match {
+          case Export_Marker(text) =>
+            val props = XML.Decode.properties(YXML.parse_body(text))
+            props match {
+              case
+                List(
+                  (SERIAL, Value.Long(serial)),
+                  (THEORY_NAME, theory_name),
+                  (NAME, name),
+                  (EXECUTABLE, Value.Boolean(executable)),
+                  (COMPRESS, Value.Boolean(compress)),
+                  (STRICT, Value.Boolean(strict)),
+                  (FILE, file)) if isabelle.Path.is_valid(file) =>
+                val args = Args(None, serial, theory_name, name, executable, compress, strict)
+                Some((args, isabelle.Path.explode(file)))
+              case _ => None
+            }
+          case _ => None
+        }
+    }
 
     def unapply(props: Properties.T): Option[Args] =
       props match {
-        case List(
+        case
+          List(
             (FUNCTION, EXPORT),
             (ID, id),
             (SERIAL, Value.Long(serial)),

@@ -15,6 +15,8 @@ object Protocol_Message
   {
     def apply(a: String): Marker =
       new Marker { override def name: String = a }
+
+    def test(line: String): Boolean = line.startsWith("\f")
   }
 
   abstract class Marker private
