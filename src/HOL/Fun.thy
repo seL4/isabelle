@@ -738,7 +738,7 @@ lemma fun_upd_upd [simp]: "f(x := y, x := z) = f(x := z)"
   by (simp add: fun_eq_iff)
 
 lemma fun_upd_twist: "a \<noteq> c \<Longrightarrow> (m(a := b))(c := d) = (m(c := d))(a := b)"
-  by (rule ext) auto
+  by auto
 
 lemma inj_on_fun_updI: "inj_on f A \<Longrightarrow> y \<notin> f ` A \<Longrightarrow> inj_on (f(x := y)) A"
   by (auto simp: inj_on_def)
