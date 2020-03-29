@@ -296,7 +296,7 @@ object Build
               line match {
                 case Loading_Theory_Marker(theory) =>
                   progress.theory(Progress.Theory(theory, session = name))
-                case Markup.Export.Marker((args, path)) =>
+                case Protocol.Export.Marker((args, path)) =>
                   val body =
                     try { Bytes.read(path) }
                     catch {

@@ -486,7 +486,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Theory_Timing(_, _) =>
                 // FIXME
 
-              case Markup.Export(args)
+              case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
