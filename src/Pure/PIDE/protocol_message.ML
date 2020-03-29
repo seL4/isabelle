@@ -6,8 +6,8 @@ Auxiliary operations on protocol messages.
 
 signature PROTOCOL_MESSAGE =
 sig
-  val inline_text: string -> string -> unit
-  val inline_properties: string -> Properties.T -> unit
+  val marker_text: string -> string -> unit
+  val marker: string -> Properties.T -> unit
   val command_positions: string -> XML.body -> XML.body
   val command_positions_yxml: string -> string -> string
 end;
@@ -15,11 +15,11 @@ end;
 structure Protocol_Message: PROTOCOL_MESSAGE =
 struct
 
-fun inline_text a text =
+fun marker_text a text =
   Output.physical_writeln ("\f" ^ a ^ " = " ^ encode_lines text);
 
-fun inline_properties a props =
-  inline_text a (YXML.string_of_body (XML.Encode.properties props));
+fun marker a props =
+  marker_text a (YXML.string_of_body (XML.Encode.properties props));
 
 
 fun command_positions id =
