@@ -87,9 +87,7 @@ lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) (=)) =
 
 lemma r_into_rtrancl [intro]: "\<And>p. p \<in> r \<Longrightarrow> p \<in> r\<^sup>*"
   \<comment> \<open>\<open>rtrancl\<close> of \<open>r\<close> contains \<open>r\<close>\<close>
-  apply (simp only: split_tupled_all)
-  apply (erule rtrancl_refl [THEN rtrancl_into_rtrancl])
-  done
+  by (simp add: split_tupled_all rtrancl_refl [THEN rtrancl_into_rtrancl])
 
 lemma r_into_rtranclp [intro]: "r x y \<Longrightarrow> r\<^sup>*\<^sup>* x y"
   \<comment> \<open>\<open>rtrancl\<close> of \<open>r\<close> contains \<open>r\<close>\<close>
@@ -97,10 +95,11 @@ lemma r_into_rtranclp [intro]: "r x y \<Longrightarrow> r\<^sup>*\<^sup>* x y"
 
 lemma rtranclp_mono: "r \<le> s \<Longrightarrow> r\<^sup>*\<^sup>* \<le> s\<^sup>*\<^sup>*"
   \<comment> \<open>monotonicity of \<open>rtrancl\<close>\<close>
-  apply (rule predicate2I)
-  apply (erule rtranclp.induct)
-   apply (rule_tac [2] rtranclp.rtrancl_into_rtrancl, blast+)
-  done
+proof (rule predicate2I)
+  show "s\<^sup>*\<^sup>* x y" if "r \<le> s" "r\<^sup>*\<^sup>* x y" for x y
+    using \<open>r\<^sup>*\<^sup>* x y\<close> \<open>r \<le> s\<close>
+    by (induction rule: rtranclp.induct) (blast intro: rtranclp.rtrancl_into_rtrancl)+
+qed
 
 lemma mono_rtranclp[mono]: "(\<And>a b. x a b \<longrightarrow> y a b) \<Longrightarrow> x\<^sup>*\<^sup>* a b \<longrightarrow> y\<^sup>*\<^sup>* a b"
    using rtranclp_mono[of x y] by auto
@@ -164,9 +163,7 @@ proof -
 qed
 
 lemma rtrancl_Int_subset: "Id \<subseteq> s \<Longrightarrow> (r\<^sup>* \<inter> s) O r \<subseteq> s \<Longrightarrow> r\<^sup>* \<subseteq> s"
-  apply clarify
-  apply (erule rtrancl_induct, auto)
-  done
+  by (fastforce elim: rtrancl_induct)
 
 lemma converse_rtranclp_into_rtranclp: "r a b \<Longrightarrow> r\<^sup>*\<^sup>* b c \<Longrightarrow> r\<^sup>*\<^sup>* a c"
   by (rule rtranclp_trans) iprover+
@@ -176,27 +173,23 @@ lemmas converse_rtrancl_into_rtrancl = converse_rtranclp_into_rtranclp [to_set]
 text \<open>\<^medskip> More \<^term>\<open>r\<^sup>*\<close> equations and inclusions.\<close>
 
 lemma rtranclp_idemp [simp]: "(r\<^sup>*\<^sup>*)\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*"
-  apply (auto intro!: order_antisym)
-  apply (erule rtranclp_induct)
-   apply (rule rtranclp.rtrancl_refl)
-  apply (blast intro: rtranclp_trans)
-  done
+proof -
+  have "r\<^sup>*\<^sup>*\<^sup>*\<^sup>* x y \<Longrightarrow> r\<^sup>*\<^sup>* x y" for x y
+    by (induction rule: rtranclp_induct) (blast intro: rtranclp_trans)+
+  then show ?thesis
+    by (auto intro!: order_antisym)
+qed
 
 lemmas rtrancl_idemp [simp] = rtranclp_idemp [to_set]
 
 lemma rtrancl_idemp_self_comp [simp]: "R\<^sup>* O R\<^sup>* = R\<^sup>*"
-  apply (rule set_eqI)
-  apply (simp only: split_tupled_all)
-  apply (blast intro: rtrancl_trans)
-  done
+  by (force intro: rtrancl_trans)
 
 lemma rtrancl_subset_rtrancl: "r \<subseteq> s\<^sup>* \<Longrightarrow> r\<^sup>* \<subseteq> s\<^sup>*"
-by (drule rtrancl_mono, simp)
+  by (drule rtrancl_mono, simp)
 
 lemma rtranclp_subset: "R \<le> S \<Longrightarrow> S \<le> R\<^sup>*\<^sup>* \<Longrightarrow> S\<^sup>*\<^sup>* = R\<^sup>*\<^sup>*"
-  apply (drule rtranclp_mono)
-  apply (drule rtranclp_mono, simp)
-  done
+  by (fastforce dest: rtranclp_mono)
 
 lemmas rtrancl_subset = rtranclp_subset [to_set]
 
@@ -319,11 +312,15 @@ qed
 
 subsection \<open>Transitive closure\<close>
 
-lemma trancl_mono: "\<And>p. p \<in> r\<^sup>+ \<Longrightarrow> r \<subseteq> s \<Longrightarrow> p \<in> s\<^sup>+"
-  apply (simp add: split_tupled_all)
-  apply (erule trancl.induct)
-   apply (iprover dest: subsetD)+
-  done
+lemma trancl_mono:
+  assumes "p \<in> r\<^sup>+" "r \<subseteq> s"
+  shows "p \<in> s\<^sup>+"
+proof -
+  have "\<lbrakk>(a, b) \<in> r\<^sup>+; r \<subseteq> s\<rbrakk> \<Longrightarrow> (a, b) \<in> s\<^sup>+" for a b
+    by (induction rule: trancl.induct) (iprover dest: subsetD)+
+  with assms show ?thesis
+    by (cases p) force
+qed
 
 lemma r_into_trancl': "\<And>p. p \<in> r \<Longrightarrow> p \<in> r\<^sup>+"
   by (simp only: split_tupled_all) (erule r_into_trancl)
@@ -342,12 +339,19 @@ lemma rtranclp_into_tranclp1:
 
 lemmas rtrancl_into_trancl1 = rtranclp_into_tranclp1 [to_set]
 
-lemma rtranclp_into_tranclp2: "r a b \<Longrightarrow> r\<^sup>*\<^sup>* b c \<Longrightarrow> r\<^sup>+\<^sup>+ a c"
+lemma rtranclp_into_tranclp2:
+  assumes "r a b" "r\<^sup>*\<^sup>* b c" shows "r\<^sup>+\<^sup>+ a c"
   \<comment> \<open>intro rule from \<open>r\<close> and \<open>rtrancl\<close>\<close>
-  apply (erule rtranclp.cases, iprover)
-  apply (rule rtranclp_trans [THEN rtranclp_into_tranclp1])
-    apply (simp | rule r_into_rtranclp)+
-  done
+  using \<open>r\<^sup>*\<^sup>* b c\<close>
+proof (cases rule: rtranclp.cases)
+  case rtrancl_refl
+  with assms show ?thesis
+    by iprover
+next
+  case rtrancl_into_rtrancl
+  with assms show ?thesis
+    by (auto intro: rtranclp_trans [THEN rtranclp_into_tranclp1])
+qed
 
 lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
@@ -384,9 +388,7 @@ lemma tranclE [cases set: trancl]:
   using assms by cases simp_all
 
 lemma trancl_Int_subset: "r \<subseteq> s \<Longrightarrow> (r\<^sup>+ \<inter> s) O r \<subseteq> s \<Longrightarrow> r\<^sup>+ \<subseteq> s"
-  apply clarify
-  apply (erule trancl_induct, auto)
-  done
+  by (fastforce simp add: elim: trancl_induct)
 
 lemma trancl_unfold: "r\<^sup>+ = r \<union> r\<^sup>+ O r"
   by (auto intro: trancl_into_trancl elim: tranclE)
@@ -418,10 +420,7 @@ lemma tranclp_trans:
   using assms(2,1) by induct iprover+
 
 lemma trancl_id [simp]: "trans r \<Longrightarrow> r\<^sup>+ = r"
-  apply auto
-  apply (erule trancl_induct, assumption)
-  apply (unfold trans_def, blast)
-  done
+  unfolding trans_def by (fastforce simp add: elim: trancl_induct)
 
 lemma rtranclp_tranclp_tranclp:
   assumes "r\<^sup>*\<^sup>* x y"
@@ -435,19 +434,30 @@ lemma tranclp_into_tranclp2: "r a b \<Longrightarrow> r\<^sup>+\<^sup>+ b c \<Lo
 
 lemmas trancl_into_trancl2 = tranclp_into_tranclp2 [to_set]
 
-lemma tranclp_converseI: "(r\<^sup>+\<^sup>+)\<inverse>\<inverse> x y \<Longrightarrow> (r\<inverse>\<inverse>)\<^sup>+\<^sup>+ x y"
-  apply (drule conversepD)
-  apply (erule tranclp_induct)
-   apply (iprover intro: conversepI tranclp_trans)+
-  done
+lemma tranclp_converseI:
+  assumes "(r\<^sup>+\<^sup>+)\<inverse>\<inverse> x y" shows "(r\<inverse>\<inverse>)\<^sup>+\<^sup>+ x y"
+  using conversepD [OF assms]
+proof (induction rule: tranclp_induct)
+  case (base y)
+  then show ?case 
+    by (iprover intro: conversepI)
+next
+  case (step y z)
+  then show ?case
+    by (iprover intro: conversepI tranclp_trans)
+qed
 
 lemmas trancl_converseI = tranclp_converseI [to_set]
 
-lemma tranclp_converseD: "(r\<inverse>\<inverse>)\<^sup>+\<^sup>+ x y \<Longrightarrow> (r\<^sup>+\<^sup>+)\<inverse>\<inverse> x y"
-  apply (rule conversepI)
-  apply (erule tranclp_induct)
-   apply (iprover dest: conversepD intro: tranclp_trans)+
-  done
+lemma tranclp_converseD:
+  assumes "(r\<inverse>\<inverse>)\<^sup>+\<^sup>+ x y" shows "(r\<^sup>+\<^sup>+)\<inverse>\<inverse> x y"
+proof -
+  have "r\<^sup>+\<^sup>+ y x"
+    using assms
+    by (induction rule: tranclp_induct) (iprover dest: conversepD intro: tranclp_trans)+
+  then show ?thesis
+    by (rule conversepI)
+qed
 
 lemmas trancl_converseD = tranclp_converseD [to_set]
 
@@ -463,17 +473,21 @@ lemma converse_tranclp_induct [consumes 1, case_names base step]:
   assumes major: "r\<^sup>+\<^sup>+ a b"
     and cases: "\<And>y. r y b \<Longrightarrow> P y" "\<And>y z. r y z \<Longrightarrow> r\<^sup>+\<^sup>+ z b \<Longrightarrow> P z \<Longrightarrow> P y"
   shows "P a"
-  apply (rule tranclp_induct [OF tranclp_converseI, OF conversepI, OF major])
-   apply (blast intro: cases)
-  apply (blast intro: assms dest!: tranclp_converseD)
-  done
+proof -
+  have "r\<inverse>\<inverse>\<^sup>+\<^sup>+ b a"
+    by (intro tranclp_converseI conversepI major)
+  then show ?thesis
+    by (induction rule: tranclp_induct) (blast intro: cases dest: tranclp_converseD)+
+qed
 
 lemmas converse_trancl_induct = converse_tranclp_induct [to_set]
 
 lemma tranclpD: "R\<^sup>+\<^sup>+ x y \<Longrightarrow> \<exists>z. R x z \<and> R\<^sup>*\<^sup>* z y"
-  apply (erule converse_tranclp_induct, auto)
-  apply (blast intro: rtranclp_trans)
-  done
+proof (induction rule: converse_tranclp_induct)
+  case (step u v)
+  then show ?case
+    by (blast intro: rtranclp_trans)
+qed auto
 
 lemmas tranclD = tranclpD [to_set]
 
@@ -492,7 +506,7 @@ proof -
       by iprover
   next
     case rtrancl_into_rtrancl
-    from this have "tranclp r y z"
+    then have "tranclp r y z"
       by (iprover intro: rtranclp_into_tranclp1)
     with \<open>r x y\<close> step show P
       by iprover
@@ -513,17 +527,15 @@ lemma irrefl_trancl_rD: "\<forall>x. (x, x) \<notin> r\<^sup>+ \<Longrightarrow>
 lemma trancl_subset_Sigma_aux: "(a, b) \<in> r\<^sup>* \<Longrightarrow> r \<subseteq> A \<times> A \<Longrightarrow> a = b \<or> a \<in> A"
   by (induct rule: rtrancl_induct) auto
 
-lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A \<Longrightarrow> r\<^sup>+ \<subseteq> A \<times> A"
-  apply (clarsimp simp:)
-  apply (erule tranclE)
-   apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
-  done
+lemma trancl_subset_Sigma:
+  assumes "r \<subseteq> A \<times> A" shows "r\<^sup>+ \<subseteq> A \<times> A"
+proof (rule trancl_Int_subset [OF assms])
+  show "(r\<^sup>+ \<inter> A \<times> A) O r \<subseteq> A \<times> A"
+    using assms by auto
+qed
 
 lemma reflclp_tranclp [simp]: "(r\<^sup>+\<^sup>+)\<^sup>=\<^sup>= = r\<^sup>*\<^sup>*"
-  apply (safe intro!: order_antisym)
-   apply (erule tranclp_into_rtranclp)
-  apply (blast elim: rtranclp.cases dest: rtranclp_into_tranclp1)
-  done
+  by (fast elim: rtranclp.cases tranclp_into_rtranclp dest: rtranclp_into_tranclp1)
 
 lemmas reflcl_trancl [simp] = reflclp_tranclp [to_set]
 
@@ -629,19 +641,14 @@ have "(x, y) \<in> R\<^sup>* \<Longrightarrow> x = y"
 qed
 
 lemma trancl_subset_Field2: "r\<^sup>+ \<subseteq> Field r \<times> Field r"
-  apply clarify
-  apply (erule trancl_induct)
-   apply (auto simp: Field_def)
-  done
+  by (rule trancl_Int_subset) (auto simp: Field_def)
 
 lemma finite_trancl[simp]: "finite (r\<^sup>+) = finite r"
 proof
   show "finite (r\<^sup>+) \<Longrightarrow> finite r"
     by (blast intro: r_into_trancl' finite_subset)
   show "finite r \<Longrightarrow> finite (r\<^sup>+)"
-   apply (rule trancl_subset_Field2 [THEN finite_subset])
-   apply (auto simp: finite_Field)
-  done
+    by (auto simp: finite_Field trancl_subset_Field2 [THEN finite_subset])
 qed
 
 lemma finite_rtrancl_Image[simp]: assumes "finite R" "finite A" shows "finite (R\<^sup>* `` A)"
@@ -665,9 +672,7 @@ proof (induction rule: rtrancl_induct)
 next
   case (step y z)
   with xz \<open>single_valued r\<close> show ?case
-    apply (auto simp: elim: converse_rtranclE dest: single_valuedD)
-    apply (blast intro: rtrancl_trans)
-    done
+    by (auto elim: converse_rtranclE dest: single_valuedD intro: rtrancl_trans)
 qed
 
 lemma r_r_into_trancl: "(a, b) \<in> R \<Longrightarrow> (b, c) \<in> R \<Longrightarrow> (a, c) \<in> R\<^sup>+"
@@ -676,12 +681,14 @@ lemma r_r_into_trancl: "(a, b) \<in> R \<Longrightarrow> (b, c) \<in> R \<Longri
 lemma trancl_into_trancl: "(a, b) \<in> r\<^sup>+ \<Longrightarrow> (b, c) \<in> r \<Longrightarrow> (a, c) \<in> r\<^sup>+"
   by (induct rule: trancl_induct) (fast intro: r_r_into_trancl trancl_trans)+
 
-lemma tranclp_rtranclp_tranclp: "r\<^sup>+\<^sup>+ a b \<Longrightarrow> r\<^sup>*\<^sup>* b c \<Longrightarrow> r\<^sup>+\<^sup>+ a c"
-  apply (drule tranclpD)
-  apply (elim exE conjE)
-  apply (drule rtranclp_trans, assumption)
-  apply (drule (2) rtranclp_into_tranclp2)
-  done
+lemma tranclp_rtranclp_tranclp:
+  assumes "r\<^sup>+\<^sup>+ a b" "r\<^sup>*\<^sup>* b c" shows "r\<^sup>+\<^sup>+ a c"
+proof -
+  obtain z where "r a z" "r\<^sup>*\<^sup>* z c"
+    using assms by (iprover dest: tranclpD rtranclp_trans)
+  then show ?thesis
+    by (blast dest: rtranclp_into_tranclp2)
+qed
 
 lemma rtranclp_conversep: "r\<inverse>\<inverse>\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*\<inverse>\<inverse>"
   by(auto simp add: fun_eq_iff intro: rtranclp_converseI rtranclp_converseD)
@@ -717,13 +724,13 @@ where "symclp r x y \<longleftrightarrow> r x y \<or> r y x"
 
 lemma symclpI [simp, intro?]:
   shows symclpI1: "r x y \<Longrightarrow> symclp r x y"
-  and symclpI2: "r y x \<Longrightarrow> symclp r x y"
-by(simp_all add: symclp_def)
+    and symclpI2: "r y x \<Longrightarrow> symclp r x y"
+  by(simp_all add: symclp_def)
 
 lemma symclpE [consumes 1, cases pred]:
   assumes "symclp r x y"
   obtains (base) "r x y" | (sym) "r y x"
-using assms by(auto simp add: symclp_def)
+  using assms by(auto simp add: symclp_def)
 
 lemma symclp_pointfree: "symclp r = sup r r\<inverse>\<inverse>"
   by(auto simp add: symclp_def fun_eq_iff)
@@ -962,12 +969,10 @@ lemma rtranclp_power: "(P\<^sup>*\<^sup>*) x y \<longleftrightarrow> (\<exists>n
 
 lemma trancl_power: "p \<in> R\<^sup>+ \<longleftrightarrow> (\<exists>n > 0. p \<in> R ^^ n)"
 proof -
-  have "((a, b) \<in> R\<^sup>+) = (\<exists>n>0. (a, b) \<in> R ^^ n)" for a b
+  have "(a, b) \<in> R\<^sup>+ \<longleftrightarrow> (\<exists>n>0. (a, b) \<in> R ^^ n)" for a b
   proof safe
     show "(a, b) \<in> R\<^sup>+ \<Longrightarrow> \<exists>n>0. (a, b) \<in> R ^^ n"
-      apply (drule tranclD2)
-      apply (fastforce simp: rtrancl_is_UN_relpow relcomp_unfold)
-      done
+      by (fastforce simp: rtrancl_is_UN_relpow relcomp_unfold dest: tranclD2)
     show "(a, b) \<in> R\<^sup>+" if "n > 0" "(a, b) \<in> R ^^ n" for n
     proof (cases n)
       case (Suc m)
@@ -1117,17 +1122,23 @@ lemma relpow_finite_bounded:
   fixes R :: "('a \<times> 'a) set"
   assumes "finite R"
   shows "R^^k \<subseteq> (\<Union>n\<in>{n. n \<le> card R}. R^^n)"
-  apply (cases k, force)
-  apply (use relpow_finite_bounded1[OF assms, of k] in auto)
-  done
+proof (cases k)
+  case (Suc k')
+  then show ?thesis
+    using relpow_finite_bounded1[OF assms, of k] by auto
+qed force
 
 lemma rtrancl_finite_eq_relpow: "finite R \<Longrightarrow> R\<^sup>* = (\<Union>n\<in>{n. n \<le> card R}. R^^n)"
   by (fastforce simp: rtrancl_power dest: relpow_finite_bounded)
 
-lemma trancl_finite_eq_relpow: "finite R \<Longrightarrow> R\<^sup>+ = (\<Union>n\<in>{n. 0 < n \<and> n \<le> card R}. R^^n)"
-  apply (auto simp: trancl_power)
-  apply (auto dest: relpow_finite_bounded1)
-  done
+lemma trancl_finite_eq_relpow:
+  assumes "finite R" shows "R\<^sup>+ = (\<Union>n\<in>{n. 0 < n \<and> n \<le> card R}. R^^n)"
+proof -
+  have "\<And>a b n. \<lbrakk>0 < n; (a, b) \<in> R ^^ n\<rbrakk> \<Longrightarrow> \<exists>x>0. x \<le> card R \<and> (a, b) \<in> R ^^ x"
+    using assms by (auto dest: relpow_finite_bounded1)
+  then show ?thesis
+    by (auto simp: trancl_power)
+qed
 
 lemma finite_relcomp[simp,intro]:
   assumes "finite R" and "finite S"
@@ -1189,7 +1200,7 @@ proof
     show ?thesis
     proof (cases "i = 1")
       case True
-      from this \<open>(a, b) \<in> R ^^ i\<close> show ?thesis
+      with \<open>(a, b) \<in> R ^^ i\<close> show ?thesis
         by (auto simp: ntrancl_def)
     next
       case False
