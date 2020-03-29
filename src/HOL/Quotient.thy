@@ -253,27 +253,29 @@ lemma ball_reg_eqv_range:
   fixes P::"'a \<Rightarrow> bool"
   and x::"'a"
   assumes a: "equivp R2"
-  shows   "(Ball (Respects (R1 ===> R2)) (\<lambda>f. P (f x)) = All (\<lambda>f. P (f x)))"
-  apply(rule iffI)
-  apply(rule allI)
-  apply(drule_tac x="\<lambda>y. f x" in bspec)
-  apply(simp add: in_respects rel_fun_def)
-  apply(rule impI)
-  using a equivp_reflp_symp_transp[of "R2"]
-  apply (auto elim: equivpE reflpE)
-  done
+  shows "(Ball (Respects (R1 ===> R2)) (\<lambda>f. P (f x)) = All (\<lambda>f. P (f x)))"
+proof (intro allI iffI)
+  fix f
+  assume "\<forall>f \<in> Respects (R1 ===> R2). P (f x)"
+  moreover have "(\<lambda>y. f x) \<in> Respects (R1 ===> R2)"
+    using a equivp_reflp_symp_transp[of "R2"]
+    by(auto simp add: in_respects rel_fun_def elim: equivpE reflpE)
+  ultimately show "P (f x)"
+    by auto
+qed auto
 
 lemma bex_reg_eqv_range:
   assumes a: "equivp R2"
   shows   "(Bex (Respects (R1 ===> R2)) (\<lambda>f. P (f x)) = Ex (\<lambda>f. P (f x)))"
-  apply(auto)
-  apply(rule_tac x="\<lambda>y. f x" in bexI)
-  apply(simp)
-  apply(simp add: Respects_def in_respects rel_fun_def)
-  apply(rule impI)
-  using a equivp_reflp_symp_transp[of "R2"]
-  apply (auto elim: equivpE reflpE)
-  done
+proof -
+  { fix f
+    assume "P (f x)"
+    have "(\<lambda>y. f x) \<in> Respects (R1 ===> R2)"
+      using a equivp_reflp_symp_transp[of "R2"]
+      by (auto simp add: Respects_def in_respects rel_fun_def elim: equivpE reflpE) }
+  then show ?thesis
+    by auto
+qed
 
 (* Next four lemmas are unused *)
 lemma all_reg:
@@ -322,35 +324,42 @@ lemma babs_rsp:
   assumes q: "Quotient3 R1 Abs1 Rep1"
   and     a: "(R1 ===> R2) f g"
   shows      "(R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)"
-  apply (auto simp add: Babs_def in_respects rel_fun_def)
-  apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
-  using a apply (simp add: Babs_def rel_fun_def)
-  apply (simp add: in_respects rel_fun_def)
-  using Quotient3_rel[OF q]
-  by metis
+proof (clarsimp simp add: Babs_def in_respects rel_fun_def)
+  fix x y
+  assume "R1 x y"
+  then have "x \<in> Respects R1 \<and> y \<in> Respects R1"
+    unfolding in_respects rel_fun_def using Quotient3_rel[OF q]by metis
+  then show "R2 (Babs (Respects R1) f x) (Babs (Respects R1) g y)"
+  using \<open>R1 x y\<close> a by (simp add: Babs_def rel_fun_def)
+qed
 
 lemma babs_prs:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
-  shows "((Rep1 ---> Abs2) (Babs (Respects R1) ((Abs1 ---> Rep2) f))) = f"
-  apply (rule ext)
-  apply (simp add:)
-  apply (subgoal_tac "Rep1 x \<in> Respects R1")
-  apply (simp add: Babs_def Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
-  apply (simp add: in_respects Quotient3_rel_rep[OF q1])
-  done
+shows "((Rep1 ---> Abs2) (Babs (Respects R1) ((Abs1 ---> Rep2) f))) = f"
+proof -
+  { fix x
+    have "Rep1 x \<in> Respects R1"
+      by (simp add: in_respects Quotient3_rel_rep[OF q1])
+    then have "Abs2 (Babs (Respects R1) ((Abs1 ---> Rep2) f) (Rep1 x)) = f x" 
+      by (simp add: Babs_def Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
+  }
+  then show ?thesis
+    by force
+qed
 
 lemma babs_simp:
   assumes q: "Quotient3 R1 Abs Rep"
   shows "((R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)) = ((R1 ===> R2) f g)"
-  apply(rule iffI)
-  apply(simp_all only: babs_rsp[OF q])
-  apply(auto simp add: Babs_def rel_fun_def)
-  apply(metis Babs_def in_respects  Quotient3_rel[OF q])
-  done
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    unfolding rel_fun_def by (metis Babs_def in_respects  Quotient3_rel[OF q])
+qed (simp add: babs_rsp[OF q])
 
-(* If a user proves that a particular functional relation
-   is an equivalence this may be useful in regularising *)
+text \<open>If a user proves that a particular functional relation
+   is an equivalence, this may be useful in regularising\<close>
 lemma babs_reg_eqv:
   shows "equivp R \<Longrightarrow> Babs (Respects R) P = P"
   by (simp add: fun_eq_iff Babs_def in_respects equivp_reflp)
@@ -372,7 +381,8 @@ lemma bex1_rsp:
   shows "Ex1 (\<lambda>x. x \<in> Respects R \<and> f x) = Ex1 (\<lambda>x. x \<in> Respects R \<and> g x)"
   using a by (auto elim: rel_funE simp add: Ex1_def in_respects)
 
-(* 2 lemmas needed for cleaning of quantifiers *)
+text \<open>Two lemmas needed for cleaning of quantifiers\<close>
+
 lemma all_prs:
   assumes a: "Quotient3 R absf repf"
   shows "Ball (Respects R) ((absf ---> id) f) = All f"
@@ -410,10 +420,10 @@ lemma bex1_rel_rsp:
 lemma ex1_prs:
   assumes "Quotient3 R absf repf"
   shows "((absf ---> id) ---> id) (Bex1_rel R) f = Ex1 f"
-  apply (auto simp: Bex1_rel_def Respects_def)
-  apply (metis Quotient3_def assms)
-  apply (metis (full_types) Quotient3_def assms)
-  by (meson Quotient3_rel assms)
+         (is "?lhs = ?rhs")
+  using assms
+  apply (auto simp add: Bex1_rel_def Respects_def)
+  by (metis (full_types) Quotient3_def)+
 
 lemma bex1_bexeq_reg:
   shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
@@ -543,7 +553,6 @@ end
 
 subsection \<open>Quotient composition\<close>
 
-
 lemma OOO_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
@@ -558,29 +567,35 @@ lemma OOO_quotient3:
 proof -
   have *: "(R1 OOO R2') r r \<and> (R1 OOO R2') s s \<and> (Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s
            \<longleftrightarrow> (R1 OOO R2') r s" for r s
-    apply safe
-    subgoal for a b c d
-      apply simp
-      apply (rule_tac b="Rep1 (Abs1 r)" in relcomppI)
-      using Quotient3_refl1 R1 rep_abs_rsp apply fastforce
-      apply (rule_tac b="Rep1 (Abs1 s)" in relcomppI)
-       apply (metis (full_types) Rep1 Abs1 Quotient3_rel R2  Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
-      by (metis Quotient3_rel R1 rep_abs_rsp_left)
-    subgoal for x y
-      apply (drule Abs1)
-        apply (erule Quotient3_refl2 [OF R1])
-       apply (erule Quotient3_refl1 [OF R1])
-      apply (drule Quotient3_refl1 [OF R2], drule Rep1)
-      by (metis (full_types) Quotient3_def R1 relcompp.relcompI)
-    subgoal for x y
-      apply (drule Abs1)
-        apply (erule Quotient3_refl2 [OF R1])
-       apply (erule Quotient3_refl1 [OF R1])
-      apply (drule Quotient3_refl2 [OF R2], drule Rep1)
-      by (metis (full_types) Quotient3_def R1 relcompp.relcompI)
-    subgoal for x y
-      by simp (metis (full_types) Abs1 Quotient3_rel R1 R2)
-    done
+  proof (intro iffI conjI; clarify) 
+    show "(R1 OOO R2') r s"
+      if r: "R1 r a" "R2' a b" "R1 b r" and eq: "(Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s" 
+        and s: "R1 s c" "R2' c d" "R1 d s" for a b c d
+    proof -
+      have "R1 r (Rep1 (Abs1 r))"
+        using r Quotient3_refl1 R1 rep_abs_rsp by fastforce
+      moreover have "R2' (Rep1 (Abs1 r)) (Rep1 (Abs1 s))"
+        using that
+        apply (simp add: )
+        apply (metis (full_types) Rep1 Abs1 Quotient3_rel R2 Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
+        done
+      moreover have "R1 (Rep1 (Abs1 s)) s"
+        by (metis s Quotient3_rel R1 rep_abs_rsp_left)
+      ultimately show ?thesis
+        by (metis relcomppI)
+    qed
+  next
+    fix x y
+    assume xy: "R1 r x" "R2' x y" "R1 y s"
+    then have "R2 (Abs1 x) (Abs1 y)"
+      by (iprover dest: Abs1 elim: Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1])
+    then have "R2' (Rep1 (Abs1 x)) (Rep1 (Abs1 x))" "R2' (Rep1 (Abs1 y)) (Rep1 (Abs1 y))"
+      by (simp_all add: Quotient3_refl1 [OF R2] Quotient3_refl2 [OF R2] Rep1)
+    with \<open>R1 r x\<close> \<open>R1 y s\<close> show "(R1 OOO R2') r r" "(R1 OOO R2') s s"
+      by (metis (full_types) Quotient3_def R1 relcompp.relcompI)+
+    show "(Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s"
+      using xy by simp (metis (full_types) Abs1 Quotient3_rel R1 R2)
+  qed
   show ?thesis
     apply (rule Quotient3I)
     using * apply (simp_all add: o_def Quotient3_abs_rep [OF R2] Quotient3_abs_rep [OF R1])
