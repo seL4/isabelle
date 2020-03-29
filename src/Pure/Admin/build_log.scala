@@ -187,12 +187,6 @@ object Build_Log
 
       Date.Format.make(fmts, tune)
     }
-
-
-    /* inlined content */
-
-    def print_props(marker: String, props: Properties.T): String =
-      marker + YXML.string_of_body(XML.Encode.properties(Properties.encode_lines(props)))
   }
 
   class Log_File private(val name: String, val lines: List[String])
@@ -217,13 +211,13 @@ object Build_Log
     }
 
 
-    /* inlined content */
+    /* inlined text */
 
-    def find[A](f: String => Option[A]): Option[A] =
-      lines.iterator.map(f).find(_.isDefined).map(_.get)
+    def filter(Marker: Protocol_Message.Marker): List[String] =
+      for (Marker(text) <- lines) yield text
 
-    def find_line(marker: String): Option[String] =
-      find(Library.try_unprefix(marker, _))
+    def find(Marker: Protocol_Message.Marker): Option[String] =
+      lines.collectFirst({ case Marker(text) => text })
 
     def find_match(regexes: List[Regex]): Option[String] =
       regexes match {
@@ -249,25 +243,17 @@ object Build_Log
 
     /* properties (YXML) */
 
-    val xml_cache = XML.make_cache()
+    val xml_cache: XML.Cache = XML.make_cache()
 
     def parse_props(text: String): Properties.T =
-      try {
-        xml_cache.props(Properties.decode_lines(XML.Decode.properties(YXML.parse_body(text))))
-      }
+      try { xml_cache.props(XML.Decode.properties(YXML.parse_body(text))) }
       catch { case _: XML.Error => log_file.err("malformed properties") }
 
-    def filter_lines(marker: String): List[String] =
-      for (line <- lines; s <- Library.try_unprefix(marker, line)) yield s
+    def filter_props(marker: Protocol_Message.Marker): List[Properties.T] =
+      for (text <- filter(marker) if YXML.detect(text)) yield parse_props(text)
 
-    def filter_props(marker: String): List[Properties.T] =
-      for (s <- filter_lines(marker) if YXML.detect(s)) yield parse_props(s)
-
-    def find_props(marker: String): Option[Properties.T] =
-      find_line(marker) match {
-        case Some(text) if YXML.detect(text) => Some(parse_props(text))
-        case _ => None
-      }
+    def find_props(marker: Protocol_Message.Marker): Option[Properties.T] =
+      for (text <- find(marker) if YXML.detect(text)) yield parse_props(text)
 
 
     /* parse various formats */
@@ -401,9 +387,8 @@ object Build_Log
     }
 
     log_file.lines match {
-      case line :: _ if line.startsWith(Build_History.META_INFO_MARKER) =>
-        Meta_Info(log_file.find_props(Build_History.META_INFO_MARKER).get,
-          log_file.get_all_settings)
+      case line :: _ if Meta_Info_Marker.test_yxml(line) =>
+        Meta_Info(log_file.find_props(Meta_Info_Marker).get, log_file.get_all_settings)
 
       case Identify.Start(log_file.Strict_Date(start)) :: _ =>
         parse(Identify.engine(log_file), "", start, Identify.No_End,
@@ -446,9 +431,13 @@ object Build_Log
 
   /** build info: toplevel output of isabelle build or Admin/build_history **/
 
-  val THEORY_TIMING_MARKER = "\ftheory_timing = "
-  val ML_STATISTICS_MARKER = "\fML_statistics = "
-  val ERROR_MESSAGE_MARKER = "\ferror_message = "
+  val Meta_Info_Marker = Protocol_Message.Marker("meta_info")
+  val Timing_Marker = Protocol_Message.Marker("Timing")
+  val Command_Timing_Marker = Protocol_Message.Marker("command_timing")
+  val Theory_Timing_Marker = Protocol_Message.Marker("theory_timing")
+  val ML_Statistics_Marker = Protocol_Message.Marker("ML_statistics")
+  val Task_Statistics_Marker = Protocol_Message.Marker("task_statistics")
+  val Error_Message_Marker = Protocol_Message.Marker("error_message")
   val SESSION_NAME = "session_name"
 
   object Session_Status extends Enumeration
@@ -514,9 +503,7 @@ object Build_Log
     object Theory_Timing
     {
       def unapply(line: String): Option[(String, (String, Timing))] =
-      {
-        val line1 = line.replace('~', '-')
-        Library.try_unprefix(THEORY_TIMING_MARKER, line1).map(log_file.parse_props(_)) match {
+        Theory_Timing_Marker.unapply(line.replace('~', '-')).map(log_file.parse_props) match {
           case Some((SESSION_NAME, name) :: props) =>
             (props, props) match {
               case (Markup.Name(thy), Markup.Timing_Properties(t)) => Some((name, thy -> t))
@@ -524,7 +511,6 @@ object Build_Log
             }
           case _ => None
         }
-      }
     }
 
     var chapter = Map.empty[String, String]
@@ -586,24 +572,24 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _ if line.startsWith(THEORY_TIMING_MARKER) && YXML.detect(line) =>
+        case _ if Theory_Timing_Marker.test_yxml(line) =>
           line match {
             case Theory_Timing(name, theory_timing) =>
               theory_timings += (name -> (theory_timings.getOrElse(name, Map.empty) + theory_timing))
             case _ => log_file.err("malformed theory_timing " + quote(line))
           }
 
-        case _ if parse_ml_statistics && line.startsWith(ML_STATISTICS_MARKER) && YXML.detect(line) =>
-          Library.try_unprefix(ML_STATISTICS_MARKER, line).map(log_file.parse_props(_)) match {
+        case _ if parse_ml_statistics && ML_Statistics_Marker.test_yxml(line) =>
+          ML_Statistics_Marker.unapply(line).map(log_file.parse_props) match {
             case Some((SESSION_NAME, name) :: props) =>
               ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
             case _ => log_file.err("malformed ML_statistics " + quote(line))
           }
 
-        case _ if line.startsWith(ERROR_MESSAGE_MARKER) && YXML.detect(line) =>
-          Library.try_unprefix(ERROR_MESSAGE_MARKER, line).map(log_file.parse_props(_)) match {
+        case _ if Error_Message_Marker.test_yxml(line) =>
+          Error_Message_Marker.unapply(line).map(log_file.parse_props) match {
             case Some(List((SESSION_NAME, name), (Markup.CONTENT, msg))) =>
-              errors += (name -> (Library.decode_lines(msg) :: errors.getOrElse(name, Nil)))
+              errors += (name -> (msg :: errors.getOrElse(name, Nil)))
             case _ => log_file.err("malformed error message " + quote(line))
           }
 
@@ -663,12 +649,12 @@ object Build_Log
     task_statistics: Boolean): Session_Info =
   {
     Session_Info(
-      session_timing = log_file.find_props("\fTiming = ") getOrElse Nil,
-      command_timings = if (command_timings) log_file.filter_props("\fcommand_timing = ") else Nil,
-      theory_timings = if (theory_timings) log_file.filter_props(THEORY_TIMING_MARKER) else Nil,
-      ml_statistics = if (ml_statistics) log_file.filter_props(ML_STATISTICS_MARKER) else Nil,
-      task_statistics = if (task_statistics) log_file.filter_props("\ftask_statistics = ") else Nil,
-      errors = log_file.filter_lines(ERROR_MESSAGE_MARKER).map(Library.decode_lines(_)))
+      session_timing = log_file.find_props(Timing_Marker) getOrElse Nil,
+      command_timings = if (command_timings) log_file.filter_props(Command_Timing_Marker) else Nil,
+      theory_timings = if (theory_timings) log_file.filter_props(Theory_Timing_Marker) else Nil,
+      ml_statistics = if (ml_statistics) log_file.filter_props(ML_Statistics_Marker) else Nil,
+      task_statistics = if (task_statistics) log_file.filter_props(Task_Statistics_Marker) else Nil,
+      errors = log_file.filter(Error_Message_Marker))
   }
 
   def compress_errors(errors: List[String], cache: XZ.Cache = XZ.cache()): Option[Bytes] =
