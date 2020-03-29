@@ -292,8 +292,8 @@ object Build
             }
 
           process.result(
-            progress_stdout = (line: String) =>
-              line match {
+            progress_stdout =
+              {
                 case Loading_Theory_Marker(theory) =>
                   progress.theory(Progress.Theory(theory, session = name))
                 case Protocol.Export.Marker((args, path)) =>
