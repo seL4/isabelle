@@ -32,7 +32,7 @@ object Profiling_Report
   val isabelle_tool =
     Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files", args =>
     {
-      Command_Line.tool0 {
+      Command_Line.tool {
         val getopts =
           Getopts("""
 Usage: isabelle profiling_report [LOGS ...]

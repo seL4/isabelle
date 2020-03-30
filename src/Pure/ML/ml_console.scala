@@ -81,7 +81,9 @@ Usage: isabelle console [OPTIONS]
         rc
       }
       tty_loop.join
-      process_result.join
+
+      val rc = process_result.join
+      if (rc != 0) sys.exit(rc)
     }
   }
 }

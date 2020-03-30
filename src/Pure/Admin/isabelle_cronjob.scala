@@ -579,7 +579,7 @@ object Isabelle_Cronjob
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       var force = false
       var verbose = false
       var exclude_task = Set.empty[String]

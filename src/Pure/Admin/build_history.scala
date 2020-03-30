@@ -393,7 +393,7 @@ object Build_History
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       var afp_rev: Option[String] = None
       var multicore_base = false
       var components_base: Path = Components.default_components_base

@@ -7,8 +7,7 @@ Support for Isabelle/ML command line tools.
 signature COMMAND_LINE =
 sig
   exception EXIT of int
-  val tool: (unit -> int) -> unit
-  val tool0: (unit -> unit) -> unit
+  val tool: (unit -> unit) -> unit
 end;
 
 structure Command_Line: COMMAND_LINE =
@@ -20,11 +19,9 @@ fun tool body =
   Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val rc =
-        restore_attributes body ()
+        (restore_attributes body (); 0)
           handle EXIT rc => rc
             | exn => Exn.capture_exit 2 (fn () => (Runtime.exn_error_message exn; raise exn)) ();
     in exit rc end) ();
-
-fun tool0 body = tool (fn () => (body (); 0));
 
 end;

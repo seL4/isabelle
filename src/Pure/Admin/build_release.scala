@@ -775,7 +775,7 @@ rm -rf "${DIST_NAME}-old"
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       var afp_rev = ""
       var components_base: Path = Components.default_components_base
       var official_release = false

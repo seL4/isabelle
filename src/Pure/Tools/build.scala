@@ -276,7 +276,7 @@ object Build
           File.write(args_file, args_yxml)
 
           val eval_build = "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
-          val eval = Command_Line.ML_tool0(eval_build :: eval_store)
+          val eval = Command_Line.ML_tool(eval_build :: eval_store)
 
           val process =
             if (is_pure) {
