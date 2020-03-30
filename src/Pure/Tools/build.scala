@@ -153,16 +153,19 @@ object Build
   class Handler(progress: Progress, session: Session, session_name: String)
     extends Session.Protocol_Handler
   {
-    val result_error: Promise[String] = Future.promise
+    val build_session_errors: Promise[List[String]] = Future.promise
 
-    override def exit() { result_error.cancel }
+    override def exit() { build_session_errors.cancel }
 
     private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
     {
-      val error_message =
-        try { Pretty.string_of(Symbol.decode_yxml(msg.text)) }
-        catch { case ERROR(msg) => msg }
-      result_error.fulfill(error_message)
+      val errors =
+        try {
+          XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text)).
+            map(err => Pretty.string_of(Protocol_Message.expose_no_reports(err)))
+        }
+        catch { case ERROR(err) => List(err) }
+      build_session_errors.fulfill(errors)
       session.send_stop()
       true
     }
@@ -260,12 +263,12 @@ object Build
           session.protocol_command("build_session", args_yxml)
 
           val result = process.join
-          handler.result_error.join match {
-            case "" => result
-            case msg =>
-              result.copy(
-                rc = result.rc max 1,
-                out_lines = result.out_lines ::: split_lines(Output.error_message_text(msg)))
+          handler.build_session_errors.join match {
+            case Nil => result
+            case errors =>
+              result.error_rc.output(
+                errors.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                errors.map(Protocol.Error_Message_Marker.apply))
           }
         }
         else {

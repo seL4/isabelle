@@ -9,6 +9,7 @@ sig
   val is_active: unit -> bool
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
+  exception EXIT of exn
   val crashes: exn list Synchronized.var
   val init_options: unit -> unit
   val init_options_interactive: unit -> unit
@@ -143,6 +144,8 @@ fun init_channels out_stream =
 
 (* protocol loop -- uninterruptible *)
 
+exception EXIT of exn;
+
 val crashes = Synchronized.var "Isabelle_Process.crashes" ([]: exn list);
 
 local
@@ -151,6 +154,8 @@ fun recover crash =
   (Synchronized.change crashes (cons crash);
     Output.physical_stderr
       "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
+
+fun shutdown () = (Future.shutdown (); ignore (Execution.reset ()));
 
 in
 
@@ -161,11 +166,9 @@ fun loop stream =
         NONE => false
       | SOME [] => (Output.system_message "Isabelle process: no input"; true)
       | SOME (name :: args) => (run_command name args; true))
-      handle exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
-  in
-    if continue then loop stream
-    else (Future.shutdown (); Execution.reset (); ())
-  end;
+      handle EXIT exn => (shutdown (); Exn.reraise exn)
+        | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
+  in if continue then loop stream else shutdown () end;
 
 end;
 

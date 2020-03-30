@@ -53,6 +53,14 @@ object Protocol_Message
       case t => t
     }
 
+  def expose_no_reports(body: XML.Body): XML.Body =
+    body flatMap {
+      case XML.Wrapped_Elem(markup, body, ts) => List(XML.Wrapped_Elem(markup, body, expose_no_reports(ts)))
+      case XML.Elem(Markup(Markup.NO_REPORT, _), ts) => ts
+      case XML.Elem(markup, ts) => List(XML.Elem(markup, expose_no_reports(ts)))
+      case t => List(t)
+    }
+
   def reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
       case XML.Wrapped_Elem(Markup(Markup.REPORT, ps), body, ts) =>

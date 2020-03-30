@@ -220,11 +220,13 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
       if name = Context.PureN then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
   in () end;
 
+
+(* command-line tool *)
+
 fun inline_errors exn =
   Runtime.exn_message_list exn
   |> List.app (fn msg => Protocol_Message.marker_text "error_message" (YXML.content_of msg));
 
-(*command-line tool*)
 fun build args_file =
   let
     val _ = SHA1.test_samples ();
@@ -239,16 +241,26 @@ fun build args_file =
     val _ = Options.reset_default ();
   in () end;
 
-(*PIDE version*)
+
+(* PIDE version *)
+
+fun build_session_finished errs =
+  XML.Encode.list XML.Encode.string errs
+  |> Output.protocol_message Markup.build_session_finished;
+
 val _ =
   Isabelle_Process.protocol_command "build_session"
     (fn [args_yxml] =>
         let
           val args = decode_args args_yxml;
-          val result = (build_session args; "") handle exn =>
-            (Runtime.exn_message exn handle _ (*sic!*) =>
-              "Exception raised, but failed to print details!");
-        in Output.protocol_message Markup.build_session_finished [XML.Text result] end
+          val errs =
+            Future.interruptible_task (fn () =>
+              (build_session args; []) handle exn =>
+              (Runtime.exn_message_list exn handle _ (*sic!*) =>
+                (build_session_finished ["CRASHED"];
+                  raise Isabelle_Process.EXIT exn))) ();
+          val _ = build_session_finished errs;
+        in if null errs then () else raise Isabelle_Process.EXIT (Command_Line.EXIT 1) end
       | _ => raise Match);
 
 end;
