@@ -281,7 +281,7 @@ object Build_History
                 val theory_timings =
                   try {
                     store.read_theory_timings(db, session_name).map(ps =>
-                      Build_Log.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
+                      Protocol.Theory_Timing_Marker((Build_Log.SESSION_NAME, session_name) :: ps))
                   }
                   catch { case ERROR(_) => Nil }
 
@@ -355,10 +355,10 @@ object Build_History
       build_out_progress.echo("Writing log file " + log_path.ext("xz") + " ...")
       File.write_xz(log_path.ext("xz"),
         terminate_lines(
-          Build_Log.Meta_Info_Marker(meta_info) :: build_result.out_lines :::
+          Protocol.Meta_Info_Marker(meta_info) :: build_result.out_lines :::
           session_build_info :::
-          ml_statistics.map(Build_Log.ML_Statistics_Marker.apply) :::
-          session_errors.map(Build_Log.Error_Message_Marker.apply) :::
+          ml_statistics.map(Protocol.ML_Statistics_Marker.apply) :::
+          session_errors.map(Protocol.Error_Message_Marker.apply) :::
           heap_sizes), XZ.options(6))
 
 

@@ -184,8 +184,6 @@ object Build
 
   /* job: running prover process */
 
-  private val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
-
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
@@ -294,7 +292,7 @@ object Build
           process.result(
             progress_stdout =
               {
-                case Loading_Theory_Marker(theory) =>
+                case Protocol.Loading_Theory_Marker(theory) =>
                   progress.theory(Progress.Theory(theory, session = name))
                 case Protocol.Export.Marker((args, path)) =>
                   val body =

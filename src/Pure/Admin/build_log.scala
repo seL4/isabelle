@@ -387,8 +387,8 @@ object Build_Log
     }
 
     log_file.lines match {
-      case line :: _ if Meta_Info_Marker.test_yxml(line) =>
-        Meta_Info(log_file.find_props(Meta_Info_Marker).get, log_file.get_all_settings)
+      case line :: _ if Protocol.Meta_Info_Marker.test_yxml(line) =>
+        Meta_Info(log_file.find_props(Protocol.Meta_Info_Marker).get, log_file.get_all_settings)
 
       case Identify.Start(log_file.Strict_Date(start)) :: _ =>
         parse(Identify.engine(log_file), "", start, Identify.No_End,
@@ -431,13 +431,6 @@ object Build_Log
 
   /** build info: toplevel output of isabelle build or Admin/build_history **/
 
-  val Meta_Info_Marker = Protocol_Message.Marker("meta_info")
-  val Timing_Marker = Protocol_Message.Marker("Timing")
-  val Command_Timing_Marker = Protocol_Message.Marker("command_timing")
-  val Theory_Timing_Marker = Protocol_Message.Marker("theory_timing")
-  val ML_Statistics_Marker = Protocol_Message.Marker("ML_statistics")
-  val Task_Statistics_Marker = Protocol_Message.Marker("task_statistics")
-  val Error_Message_Marker = Protocol_Message.Marker("error_message")
   val SESSION_NAME = "session_name"
 
   object Session_Status extends Enumeration
@@ -503,7 +496,8 @@ object Build_Log
     object Theory_Timing
     {
       def unapply(line: String): Option[(String, (String, Timing))] =
-        Theory_Timing_Marker.unapply(line.replace('~', '-')).map(log_file.parse_props) match {
+        Protocol.Theory_Timing_Marker.unapply(line.replace('~', '-')).map(log_file.parse_props)
+        match {
           case Some((SESSION_NAME, name) :: props) =>
             (props, props) match {
               case (Markup.Name(thy), Markup.Timing_Properties(t)) => Some((name, thy -> t))
@@ -572,22 +566,22 @@ object Build_Log
         case Heap(name, Value.Long(size)) =>
           heap_sizes += (name -> size)
 
-        case _ if Theory_Timing_Marker.test_yxml(line) =>
+        case _ if Protocol.Theory_Timing_Marker.test_yxml(line) =>
           line match {
             case Theory_Timing(name, theory_timing) =>
               theory_timings += (name -> (theory_timings.getOrElse(name, Map.empty) + theory_timing))
             case _ => log_file.err("malformed theory_timing " + quote(line))
           }
 
-        case _ if parse_ml_statistics && ML_Statistics_Marker.test_yxml(line) =>
-          ML_Statistics_Marker.unapply(line).map(log_file.parse_props) match {
+        case _ if parse_ml_statistics && Protocol.ML_Statistics_Marker.test_yxml(line) =>
+          Protocol.ML_Statistics_Marker.unapply(line).map(log_file.parse_props) match {
             case Some((SESSION_NAME, name) :: props) =>
               ml_statistics += (name -> (props :: ml_statistics.getOrElse(name, Nil)))
             case _ => log_file.err("malformed ML_statistics " + quote(line))
           }
 
-        case _ if Error_Message_Marker.test_yxml(line) =>
-          Error_Message_Marker.unapply(line).map(log_file.parse_props) match {
+        case _ if Protocol.Error_Message_Marker.test_yxml(line) =>
+          Protocol.Error_Message_Marker.unapply(line).map(log_file.parse_props) match {
             case Some(List((SESSION_NAME, name), (Markup.CONTENT, msg))) =>
               errors += (name -> (msg :: errors.getOrElse(name, Nil)))
             case _ => log_file.err("malformed error message " + quote(line))
@@ -649,12 +643,16 @@ object Build_Log
     task_statistics: Boolean): Session_Info =
   {
     Session_Info(
-      session_timing = log_file.find_props(Timing_Marker) getOrElse Nil,
-      command_timings = if (command_timings) log_file.filter_props(Command_Timing_Marker) else Nil,
-      theory_timings = if (theory_timings) log_file.filter_props(Theory_Timing_Marker) else Nil,
-      ml_statistics = if (ml_statistics) log_file.filter_props(ML_Statistics_Marker) else Nil,
-      task_statistics = if (task_statistics) log_file.filter_props(Task_Statistics_Marker) else Nil,
-      errors = log_file.filter(Error_Message_Marker))
+      session_timing = log_file.find_props(Protocol.Timing_Marker) getOrElse Nil,
+      command_timings =
+        if (command_timings) log_file.filter_props(Protocol.Command_Timing_Marker) else Nil,
+      theory_timings =
+        if (theory_timings) log_file.filter_props(Protocol.Theory_Timing_Marker) else Nil,
+      ml_statistics =
+        if (ml_statistics) log_file.filter_props(Protocol.ML_Statistics_Marker) else Nil,
+      task_statistics =
+        if (task_statistics) log_file.filter_props(Protocol.Task_Statistics_Marker) else Nil,
+      errors = log_file.filter(Protocol.Error_Message_Marker))
   }
 
   def compress_errors(errors: List[String], cache: XZ.Cache = XZ.cache()): Option[Bytes] =

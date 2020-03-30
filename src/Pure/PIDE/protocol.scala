@@ -9,6 +9,19 @@ package isabelle
 
 object Protocol
 {
+  /* markers for inlined messages */
+
+  val Loading_Theory_Marker = Protocol_Message.Marker("loading_theory")
+  val Export_Marker = Protocol_Message.Marker("export")
+  val Meta_Info_Marker = Protocol_Message.Marker("meta_info")
+  val Timing_Marker = Protocol_Message.Marker("Timing")
+  val Command_Timing_Marker = Protocol_Message.Marker("command_timing")
+  val Theory_Timing_Marker = Protocol_Message.Marker("theory_timing")
+  val ML_Statistics_Marker = Protocol_Message.Marker("ML_statistics")
+  val Task_Statistics_Marker = Protocol_Message.Marker("task_statistics")
+  val Error_Message_Marker = Protocol_Message.Marker("error_message")
+
+
   /* document editing */
 
   object Commands_Accepted
@@ -160,8 +173,6 @@ object Protocol
 
 
   /* export */
-
-  val Export_Marker = Protocol_Message.Marker(Markup.EXPORT)
 
   object Export
   {
