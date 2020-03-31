@@ -543,7 +543,7 @@ proof -
                 also have "\<dots> = norm (f' x (y - x) - (f y - f x)) / r"
                   using \<open>r > 0\<close> by (simp add: divide_simps scale_right_diff_distrib [symmetric])
                 also have "\<dots> \<le> norm (f y - (f x + f' x (y - x))) / norm (y - x)"
-                  using that \<open>r > 0\<close> False by (simp add: algebra_simps field_split_simps dist_norm norm_minus_commute mult_right_mono)
+                  using that \<open>r > 0\<close> False by (simp add: field_split_simps dist_norm norm_minus_commute mult_right_mono)
                 also have "\<dots> < k"
                   using that \<open>0 < \<zeta>\<close> by (simp add: dist_commute r_def  \<zeta> [OF \<open>y \<in> S\<close> False])
                 finally show "dist (f' x ((y - x) /\<^sub>R r)) ((f y - f x) /\<^sub>R r) < k" .
@@ -1656,7 +1656,7 @@ proof -
             show "linear ((*v) (matrix (f' x) - B))"
               by (rule matrix_vector_mul_linear)
             have "((\<lambda>y. ((f x + f' x (y - x)) - f y) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
-              using tendsto_minus [OF lim_df] by (simp add: algebra_simps field_split_simps)
+              using tendsto_minus [OF lim_df] by (simp add: field_split_simps)
             then show "((\<lambda>y. (matrix (f' x) - B) *v (y - x) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
             proof (rule Lim_transform)
               have "((\<lambda>y. ((f y + B *v x - (f x + B *v y)) /\<^sub>R norm (y - x))) \<longlongrightarrow> 0) (at x within S)"
@@ -1724,7 +1724,7 @@ proof -
               then show "((\<lambda>y. (matrix (f' x) - B) *v (y - x) /\<^sub>R
                            norm (y - x) - (f x + f' x (y - x) - f y) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0)
                           (at x within S)"
-                by (simp add: algebra_simps diff lin_df matrix_vector_mul_linear scalar_mult_eq_scaleR)
+                by (simp add: algebra_simps diff lin_df scalar_mult_eq_scaleR)
             qed
           qed (use x in \<open>simp; auto simp: not_less\<close>)
           ultimately have "f' x = (*v) B"
@@ -2168,7 +2168,7 @@ proof -
         proof (rule order_trans [OF measT])
           have "?DVU = (d * 2 * (4 * B) ^ (?n - 1)) * norm (v - u)^?n"
             using \<open>c > 0\<close>
-            apply (simp add: algebra_simps power_mult_distrib)
+            apply (simp add: algebra_simps)
             by (metis Suc_pred power_Suc zero_less_card_finite)
           also have "\<dots> \<le> (e / (2*c) ^ ?m / (?m ^ ?m)) * norm(v - u) ^ ?n"
             by (rule mult_right_mono [OF d]) auto
@@ -2239,7 +2239,7 @@ proof -
           using \<open>c > 0\<close> by (simp add: content_cbox_if_cart)
         finally have "sum ?\<mu> \<F> \<le> (2 ^ ?m * c ^ ?m)" .
         then show ?thesis
-          using \<open>e > 0\<close> \<open>c > 0\<close> by (auto simp: field_split_simps mult_less_0_iff)
+          using \<open>e > 0\<close> \<open>c > 0\<close> by (auto simp: field_split_simps)
       qed
       finally show ?thesis .
     qed
@@ -2384,7 +2384,7 @@ proof -
         done
       ultimately show ?thesis
         using \<open>y > 0\<close> integral_restrict_Int [of S "{t. h n (g t) = y}" "\<lambda>t. \<bar>det (matrix (g' t))\<bar> * y"]
-        apply (simp add: integrable_on_indicator integrable_on_cmult_iff integral_indicator)
+        apply (simp add: integrable_on_indicator integral_indicator)
         apply (simp add: indicator_def if_distrib cong: if_cong)
         done
     qed

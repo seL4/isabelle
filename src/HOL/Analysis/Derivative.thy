@@ -1056,7 +1056,7 @@ proof (rule connected_local_const[where f=f, OF \<open>connected s\<close> \<ope
       by (rule openE)
     then have "\<exists>c. \<forall>x\<in>ball a e. f x = c"
       by (intro has_derivative_zero_constant)
-         (auto simp: at_within_open[OF _ open_ball] f convex_ball)
+         (auto simp: at_within_open[OF _ open_ball] f)
     with \<open>0<e\<close> have "\<forall>x\<in>ball a e. f a = f x"
       by auto
     then show "eventually (\<lambda>b. f a = f b) (at a within s)"
@@ -2187,7 +2187,7 @@ proof (rule has_derivativeI)
   show "((\<lambda>y. (exp (y *\<^sub>R A) - exp (t *\<^sub>R A) - (y - t) *\<^sub>R (exp (t *\<^sub>R A) * A)) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0)
       (at t within T)"
     by (rule Lim_transform_eventually)
-      (auto simp: algebra_simps field_split_simps exp_add_commuting[symmetric])
+      (auto simp: field_split_simps exp_add_commuting[symmetric])
 qed (rule bounded_linear_scaleR_left)
 
 lemma exp_times_scaleR_commute: "exp (t *\<^sub>R A) * A = A * exp (t *\<^sub>R A)"

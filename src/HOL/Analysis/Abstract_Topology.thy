@@ -2383,12 +2383,6 @@ next
     by (simp add: closed_map_id continuous_closed_imp_quotient_map)
 qed
 
-lemma homeomorphic_maps_i [simp]:"homeomorphic_maps X Y id id \<longleftrightarrow> Y = X"
-  by (metis (full_types) eq_id_iff homeomorphic_maps_id)
-
-lemma homeomorphic_map_i [simp]: "homeomorphic_map X Y id \<longleftrightarrow> Y = X"
-  by (metis (no_types) eq_id_iff homeomorphic_map_id)
-
 lemma homeomorphic_map_compose:
   assumes "homeomorphic_map X Y f" "homeomorphic_map Y X'' g"
   shows "homeomorphic_map X X'' (g \<circ> f)"

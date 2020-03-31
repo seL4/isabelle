@@ -158,7 +158,7 @@ lemma path_connected_Euclidean_space: "path_connected_space (Euclidean_space n)"
   by (simp add: contractible_imp_path_connected_space)
 
 lemma connected_Euclidean_space: "connected_space (Euclidean_space n)"
-  by (simp add: contractible_Euclidean_space contractible_imp_connected_space)
+  by (simp add: contractible_imp_connected_space)
 
 lemma locally_path_connected_Euclidean_space:
    "locally_path_connected_space (Euclidean_space n)"

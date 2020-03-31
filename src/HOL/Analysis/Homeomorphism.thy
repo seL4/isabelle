@@ -1993,7 +1993,7 @@ proof -
       have "q' t = (h \<circ> (*\<^sub>R) 2) t" if "0 \<le> t" "t \<le> 1/2" for t
       proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> (*\<^sub>R) 2" "{0..1/2}" "f \<circ> g \<circ> (*\<^sub>R) 2" t])
         show "q' 0 = (h \<circ> (*\<^sub>R) 2) 0"
-          by (metis \<open>pathstart q' = pathstart q\<close> comp_def h pastq pathstart_def pth_4(2))
+          by (metis \<open>pathstart q' = pathstart q\<close> comp_def h(3) pastq pathstart_def pth_4(2))
         show "continuous_on {0..1/2} (f \<circ> g \<circ> (*\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
           using g(2) path_image_def by fastforce+

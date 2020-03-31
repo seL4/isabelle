@@ -1574,7 +1574,7 @@ lemma emeasure_eq_ennreal_measure:
   by (cases "emeasure M A" rule: ennreal_cases) (auto simp: measure_def)
 
 lemma measure_zero_top: "emeasure M A = top \<Longrightarrow> measure M A = 0"
-  by (simp add: measure_def enn2ereal_top)
+  by (simp add: measure_def)
 
 lemma measure_eq_emeasure_eq_ennreal: "0 \<le> x \<Longrightarrow> emeasure M A = ennreal x \<Longrightarrow> measure M A = x"
   using emeasure_eq_ennreal_measure[of M A]

@@ -994,13 +994,13 @@ lemma hyperplane_facet_of_halfspace_le:
    "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<le> b}"
 unfolding facet_of_def hyperplane_eq_empty
 by (auto simp: hyperplane_face_of_halfspace_ge hyperplane_face_of_halfspace_le
-           DIM_positive Suc_leI of_nat_diff aff_dim_halfspace_le)
+           Suc_leI of_nat_diff aff_dim_halfspace_le)
 
 lemma hyperplane_facet_of_halfspace_ge:
     "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<ge> b}"
 unfolding facet_of_def hyperplane_eq_empty
 by (auto simp: hyperplane_face_of_halfspace_le hyperplane_face_of_halfspace_ge
-           DIM_positive Suc_leI of_nat_diff aff_dim_halfspace_ge)
+           Suc_leI of_nat_diff aff_dim_halfspace_ge)
 
 lemma facet_of_halfspace_le:
     "F facet_of {x. a \<bullet> x \<le> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
@@ -1316,7 +1316,7 @@ proof -
     apply (rule_tac x="u/x" in exI)
     apply (rule_tac x="v/x" in exI)
     apply (rule_tac x="w/x" in exI)
-    using x apply (auto simp: algebra_simps field_split_simps)
+    using x apply (auto simp: field_split_simps)
     done
   ultimately show ?thesis by force
 qed
@@ -1445,14 +1445,14 @@ next
               have "x = (((1 - v) * ub) *\<^sub>R b + (v * uc) *\<^sub>R c) /\<^sub>R ux"
                 by (metis \<open>ux \<noteq> 0\<close> uxx mult.commute right_inverse scaleR_one scaleR_scaleR)
               also have "... = (1 - v * uc / ux) *\<^sub>R b + (v * uc / ux) *\<^sub>R c"
-                using \<open>ux \<noteq> 0\<close> equx apply (auto simp: algebra_simps field_split_simps)
+                using \<open>ux \<noteq> 0\<close> equx apply (auto simp: field_split_simps)
                 by (metis add.commute add_diff_eq add_divide_distrib diff_add_cancel scaleR_add_left)
               finally have "x = (1 - v * uc / ux) *\<^sub>R b + (v * uc / ux) *\<^sub>R c" .
               then have "x \<in> open_segment b c"
                 apply (simp add: in_segment \<open>b \<noteq> c\<close>)
                 apply (rule_tac x="(v * uc) / ux" in exI)
                 using \<open>0 \<le> ux\<close> \<open>ux \<noteq> 0\<close> \<open>0 < uc\<close> \<open>0 < v\<close> \<open>0 < ub\<close> \<open>v < 1\<close> equx
-                apply (force simp: algebra_simps field_split_simps)
+                apply (force simp: field_split_simps)
                 done
               then show ?thesis
                 by (rule face_ofD [OF F _ b c \<open>x \<in> F\<close>])
@@ -2116,7 +2116,7 @@ next
               done
             then show ?thesis
               using \<open>0 < inff\<close> awlt [OF that] mult_strict_left_mono
-              by (fastforce simp add: algebra_simps field_split_simps split: if_split_asm)
+              by (fastforce simp add: field_split_simps split: if_split_asm)
           next
             case False
             with \<open>0 < inff\<close> have "inff * (a j \<bullet> y - a j \<bullet> w) \<le> 0"

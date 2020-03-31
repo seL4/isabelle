@@ -429,7 +429,7 @@ proof (rule conv_radius_inftyI'')
   have "(\<lambda>n. norm (c * z) ^ n /\<^sub>R fact n) sums exp (norm (c * z))"
     by (rule exp_converges)
   also have "(\<lambda>n. norm (c * z) ^ n /\<^sub>R fact n) = (\<lambda>n. norm (fps_nth (fps_exp c) n * z ^ n))"
-    by (rule ext) (simp add: norm_divide norm_mult norm_power field_split_simps power_mult_distrib)
+    by (rule ext) (simp add: norm_divide norm_mult norm_power field_split_simps)
   finally have "summable \<dots>" by (simp add: sums_iff)
   thus "summable (\<lambda>n. fps_nth (fps_exp c) n * z ^ n)"
     by (rule summable_norm_cancel)
@@ -585,7 +585,7 @@ qed (simp_all add: eval_fps_at_0)
 lemma eval_fps_exp [simp]:
   fixes c :: "'a :: {banach, real_normed_field}"
   shows "eval_fps (fps_exp c) z = exp (c * z)" unfolding eval_fps_def exp_def
-  by (simp add: eval_fps_def exp_def scaleR_conv_of_real field_split_simps power_mult_distrib)
+  by (simp add: eval_fps_def exp_def scaleR_conv_of_real field_split_simps)
 
 text \<open>
   The case of division is more complicated and will therefore not be handled here.

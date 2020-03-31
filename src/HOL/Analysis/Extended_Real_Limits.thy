@@ -304,7 +304,7 @@ proof (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
-    by (auto simp: zero_less_dist_iff dist_commute)
+    by (auto simp: dist_commute)
   then show "\<exists>r>0. Inf (f ` (Collect P)) \<le> Inf (f ` (S \<inter> ball x r - {x}))"
     by (intro exI[of _ d] INF_mono conjI \<open>0 < d\<close>) auto
 next
@@ -324,7 +324,7 @@ proof (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
-    by (auto simp: zero_less_dist_iff dist_commute)
+    by (auto simp: dist_commute)
   then show "\<exists>r>0. Sup (f ` (S \<inter> ball x r - {x})) \<le> Sup (f ` (Collect P))"
     by (intro exI[of _ d] SUP_mono conjI \<open>0 < d\<close>) auto
 next

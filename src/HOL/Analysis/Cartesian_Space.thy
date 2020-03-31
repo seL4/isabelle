@@ -1436,7 +1436,7 @@ proof -
       using idplus [OF \<open>m \<noteq> n\<close>] by simp
   qed
   then show ?thesis
-    by (metis \<open>linear f\<close> matrix_vector_mul)
+    by (metis \<open>linear f\<close> matrix_vector_mul(2))
 qed
 
 end
