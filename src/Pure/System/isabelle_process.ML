@@ -204,6 +204,8 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, pass
     val _ = Future.shutdown ();
     val _ = Execution.reset ();
     val _ = Message_Channel.shutdown msg_channel;
+    val _ = BinIO.closeIn in_stream;
+    val _ = BinIO.closeOut out_stream;
 
   in Exn.release result end);
 
