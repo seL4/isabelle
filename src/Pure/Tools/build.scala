@@ -242,23 +242,29 @@ object Build
 
         val is_pure = Sessions.is_pure(name)
 
+        val use_prelude = if (is_pure) Thy_Header.ml_roots.map(_._1) else Nil
+
         val eval_store =
-          if (!do_store) Nil
-          else {
+          if (do_store) {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
               ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
           }
+          else Nil
 
         if (pide && !is_pure) {
-          val resources = new Resources(sessions_structure, deps(parent))
+          val resources = new Resources(sessions_structure, deps(name))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
+          val eval_main = Command_Line.ML_tool("Isabelle_Process.init ()" :: eval_store)
+
           val process =
             Isabelle_Process(session, options, sessions_structure, store,
-              logic = parent, cwd = info.dir.file, env = env).await_startup
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env).await_startup
 
           session.protocol_command("build_session", args_yxml)
 
@@ -275,22 +281,15 @@ object Build
           val args_file = Isabelle_System.tmp_file("build")
           File.write(args_file, args_yxml)
 
-          val eval_build = "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
-          val eval = Command_Line.ML_tool(eval_build :: eval_store)
+          val eval_build =
+            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
+          val eval_main = Command_Line.ML_tool(eval_build :: eval_store)
 
           val process =
-            if (is_pure) {
-              ML_Process(options, deps.sessions_structure, store, raw_ml_system = true,
-                args =
-                  (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
-                    List("--eval", eval),
-                cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
-            }
-            else {
-              ML_Process(options, deps.sessions_structure, store, logic = parent,
-                args = List("--eval", eval),
-                cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
-            }
+            ML_Process(options, deps.sessions_structure, store,
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
 
           process.result(
             progress_stdout =
