@@ -149,7 +149,7 @@ proof (induction n)
   also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
     by (intro sum.cong) simp_all
-  also have "\<dots> = 2^n * f (2^n)" by (simp add: of_nat_power)
+  also have "\<dots> = 2^n * f (2^n)" by (simp)
   finally show ?case by simp
 qed simp
 
@@ -163,7 +163,7 @@ proof (induction n)
   also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
   hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
     by (intro sum.cong) simp_all
-  also have "\<dots> = 2^n * f (2^Suc n)" by (simp add: of_nat_power)
+  also have "\<dots> = 2^n * f (2^Suc n)" by (simp)
   finally show ?case by simp
 qed simp
 

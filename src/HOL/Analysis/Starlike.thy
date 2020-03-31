@@ -5199,7 +5199,7 @@ next
         using \<open>T \<subseteq> S\<close> apply (auto simp: \<open>a \<notin> S\<close> cc0)
         done
       also have "... = c a + (1 - c a)"
-        by (metis \<open>a \<notin> S\<close> fun_upd_other sum.cong sumSS')
+        by (metis \<open>a \<notin> S\<close> fun_upd_other sum.cong sumSS'(1))
       finally show "sum (cc(a := c a)) (insert a (T \<inter> T')) = 1"
         by simp
       have "(\<Sum>x\<in>insert a (T \<inter> T'). (cc(a := c a)) x *\<^sub>R x) = c a *\<^sub>R a + (\<Sum>x \<in> T \<inter> T'. (cc(a := c a)) x *\<^sub>R x)"

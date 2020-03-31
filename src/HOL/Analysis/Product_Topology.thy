@@ -290,7 +290,7 @@ proof (cases "topspace Y = {}")
 next
   case False
   then show ?thesis
-    by (simp add: continuous_compose_quotient_map_eq quotient_map_fst)
+    by (simp add: continuous_compose_quotient_map_eq)
 qed
 
 lemma continuous_map_of_snd:
@@ -302,7 +302,7 @@ proof (cases "topspace X = {}")
 next
   case False
   then show ?thesis
-    by (simp add: continuous_compose_quotient_map_eq quotient_map_snd)
+    by (simp add: continuous_compose_quotient_map_eq)
 qed
 
 lemma continuous_map_prod_top:

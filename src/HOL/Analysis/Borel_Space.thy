@@ -1758,7 +1758,7 @@ proof (subst measurable_cong)
       also have "\<dots> < ?I i / 2 + ?I i / 2"
         by (intro add_strict_mono d less_trans[OF _ j] *)
       also have "\<dots> \<le> ?I i"
-        by (simp add: field_simps of_nat_Suc)
+        by (simp add: field_simps)
       finally show "dist (f y) (f z) \<le> ?I i"
         by simp
     qed

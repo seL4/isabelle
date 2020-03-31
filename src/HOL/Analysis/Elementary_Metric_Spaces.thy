@@ -109,7 +109,7 @@ proof -
 qed
 
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
-  by (simp add: open_dist subset_eq mem_ball Ball_def dist_commute)
+  by (simp add: open_dist subset_eq Ball_def dist_commute)
 
 lemma openI [intro?]: "(\<And>x. x\<in>S \<Longrightarrow> \<exists>e>0. ball x e \<subseteq> S) \<Longrightarrow> open S"
   by (auto simp: open_contains_ball)
