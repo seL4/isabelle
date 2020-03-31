@@ -28,6 +28,9 @@ fun is_active () = Print_Mode.print_mode_active isabelle_processN;
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
 val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 
+val protocol_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
+val protocol_modes2 = [isabelle_processN, Pretty.symbolicN];
+
 
 (* protocol commands *)
 
@@ -92,15 +95,42 @@ fun update_tracing () =
       end);
 
 
-(* output channels *)
+(* init protocol -- uninterruptible *)
 
-val serial_props = Markup.serial_properties o serial;
+exception EXIT of exn;
 
-fun init_channels out_stream =
+val crashes = Synchronized.var "Isabelle_Process.crashes" ([]: exn list);
+
+local
+
+fun recover crash =
+  (Synchronized.change crashes (cons crash);
+    Output.physical_stderr
+      "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
+
+in
+
+val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
   let
+    val _ = SHA1.test_samples ()
+      handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
+
+    val _ = Output.physical_stderr Symbol.STX;
+
+    val _ = Context.put_generic_context NONE;
+
+
+    (* streams *)
+
+    val (in_stream, out_stream) = Socket_IO.open_streams address;
+    val _ = Byte_Message.write_line out_stream password;
+
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
     val _ = BinIO.StreamIO.setBufferMode (BinIO.getOutstream out_stream, IO.BLOCK_BUF);
+
+
+    (* messages *)
 
     val msg_channel = Message_Channel.make out_stream;
 
@@ -116,88 +146,68 @@ fun init_channels out_stream =
               (false, SOME id') => props @ [(Markup.idN, id')]
             | _ => props);
         in message name props' (XML.blob ss) end;
-  in
-    Private_Output.status_fn := standard_message [] Markup.statusN;
-    Private_Output.report_fn := standard_message [] Markup.reportN;
-    Private_Output.result_fn :=
-      (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s);
-    Private_Output.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
-    Private_Output.state_fn := (fn s => standard_message (serial_props ()) Markup.stateN s);
-    Private_Output.information_fn :=
-      (fn s => standard_message (serial_props ()) Markup.informationN s);
-    Private_Output.tracing_fn :=
-      (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
-    Private_Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
-    Private_Output.legacy_fn := (fn s => standard_message (serial_props ()) Markup.legacyN s);
-    Private_Output.error_message_fn :=
-      (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
-    Private_Output.system_message_fn :=
-      (fn ss => message Markup.systemN [] (XML.blob ss));
-    Private_Output.protocol_message_fn :=
-      (fn props => fn body => message Markup.protocolN props body);
 
-    Session.init_protocol_handlers ();
-    message Markup.initN [] [XML.Text (Session.welcome ())];
-    msg_channel
-  end;
+    val serial_props = Markup.serial_properties o serial;
+
+    val message_context =
+      Unsynchronized.setmp Private_Output.status_fn
+        (standard_message [] Markup.statusN) #>
+      Unsynchronized.setmp Private_Output.report_fn
+        (standard_message [] Markup.reportN) #>
+      Unsynchronized.setmp Private_Output.result_fn
+        (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s) #>
+      Unsynchronized.setmp Private_Output.writeln_fn
+        (fn s => standard_message (serial_props ()) Markup.writelnN s) #>
+      Unsynchronized.setmp Private_Output.state_fn
+        (fn s => standard_message (serial_props ()) Markup.stateN s) #>
+      Unsynchronized.setmp Private_Output.information_fn
+        (fn s => standard_message (serial_props ()) Markup.informationN s) #>
+      Unsynchronized.setmp Private_Output.tracing_fn
+        (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s)) #>
+      Unsynchronized.setmp Private_Output.warning_fn
+        (fn s => standard_message (serial_props ()) Markup.warningN s) #>
+      Unsynchronized.setmp Private_Output.legacy_fn
+        (fn s => standard_message (serial_props ()) Markup.legacyN s) #>
+      Unsynchronized.setmp Private_Output.error_message_fn
+        (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s) #>
+      Unsynchronized.setmp Private_Output.system_message_fn
+        (fn ss => message Markup.systemN [] (XML.blob ss)) #>
+      Unsynchronized.setmp Private_Output.protocol_message_fn
+        (fn props => fn body => message Markup.protocolN props body) #>
+      Unsynchronized.setmp print_mode
+        ((! print_mode @ protocol_modes1) |> fold (update op =) protocol_modes2);
 
 
-(* protocol loop -- uninterruptible *)
+    (* protocol *)
 
-exception EXIT of exn;
+    fun protocol_loop () =
+      let
+        val continue =
+          (case Byte_Message.read_message in_stream of
+            NONE => false
+          | SOME [] => (Output.system_message "Isabelle process: no input"; true)
+          | SOME (name :: args) => (run_command name args; true))
+          handle EXIT exn => Exn.reraise exn
+            | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
+      in if continue then protocol_loop () else () end;
 
-val crashes = Synchronized.var "Isabelle_Process.crashes" ([]: exn list);
+    fun protocol () =
+     (Session.init_protocol_handlers ();
+      message Markup.initN [] [XML.Text (Session.welcome ())];
+      protocol_loop ());
 
-local
+    val result = Exn.capture (message_context protocol) ();
 
-fun recover crash =
-  (Synchronized.change crashes (cons crash);
-    Output.physical_stderr
-      "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
 
-fun shutdown () = (Future.shutdown (); ignore (Execution.reset ()));
+    (* shutdown *)
 
-in
+    val _ = Future.shutdown ();
+    val _ = Execution.reset ();
+    val _ = Message_Channel.shutdown msg_channel;
 
-fun loop stream =
-  let
-    val continue =
-      (case Byte_Message.read_message stream of
-        NONE => false
-      | SOME [] => (Output.system_message "Isabelle process: no input"; true)
-      | SOME (name :: args) => (run_command name args; true))
-      handle EXIT exn => (shutdown (); Exn.reraise exn)
-        | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
-  in if continue then loop stream else shutdown () end;
+  in Exn.release result end);
 
 end;
-
-
-(* init protocol *)
-
-val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
-val default_modes2 = [isabelle_processN, Pretty.symbolicN];
-
-val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
-  let
-    val _ = SHA1.test_samples ()
-      handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
-    val _ = Output.physical_stderr Symbol.STX;
-
-    val _ = Context.put_generic_context NONE;
-    val _ =
-      Unsynchronized.change print_mode
-        (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
-
-    val (in_stream, out_stream) = Socket_IO.open_streams address;
-    val _ = Byte_Message.write_line out_stream password;
-    val msg_channel = init_channels out_stream;
-    val _ = loop in_stream;
-    val _ = Message_Channel.shutdown msg_channel;
-    val _ = Private_Output.init_channels ();
-
-    val _ = print_mode := [];
-  in () end);
 
 
 (* init options *)
