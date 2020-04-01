@@ -123,22 +123,22 @@ object Simplifier_Trace
   def handle_results(session: Session, id: Document_ID.Command, results: Command.Results): Context =
   {
     val slot = Future.promise[Context]
-    manager.send(Handle_Results(session, id, results, slot))
+    the_manager(session).send(Handle_Results(session, id, results, slot))
     slot.join
   }
 
-  def generate_trace(results: Command.Results): Trace =
+  def generate_trace(session: Session, results: Command.Results): Trace =
   {
     val slot = Future.promise[Trace]
-    manager.send(Generate_Trace(results, slot))
+    the_manager(session).send(Generate_Trace(results, slot))
     slot.join
   }
 
-  def clear_memory() =
-    manager.send(Clear_Memory)
+  def clear_memory(session: Session): Unit =
+    the_manager(session).send(Clear_Memory)
 
-  def send_reply(session: Session, serial: Long, answer: Answer) =
-    manager.send(Reply(session, serial, answer))
+  def send_reply(session: Session, serial: Long, answer: Answer): Unit =
+    the_manager(session).send(Reply(session, serial, answer))
 
   def make_manager: Consumer_Thread[Any] =
   {
@@ -283,10 +283,10 @@ object Simplifier_Trace
     )
   }
 
-  private val manager_variable = Synchronized[Option[Consumer_Thread[Any]]](None)
+  private val managers = Synchronized(Map.empty[Session, Consumer_Thread[Any]])
 
-  def manager: Consumer_Thread[Any] =
-    manager_variable.value match {
+  def the_manager(session: Session): Consumer_Thread[Any] =
+    managers.value.get(session) match {
       case Some(thread) if thread.is_active => thread
       case _ => error("Bad Simplifier_Trace.manager thread")
     }
@@ -296,20 +296,31 @@ object Simplifier_Trace
 
   class Handler extends Session.Protocol_Handler
   {
-    try { manager }
-    catch { case ERROR(_) => manager_variable.change(_ => Some(make_manager)) }
+    private var the_session: Session = null
 
-    override def exit() =
+    override def init(session: Session)
     {
-      manager.send(Clear_Memory)
-      manager.shutdown()
-      manager_variable.change(_ => None)
+      try { the_manager(session) }
+      catch { case ERROR(_) => managers.change(map => map + (session -> make_manager)) }
+      the_session = session
+    }
+
+    override def exit()
+    {
+      val session = the_session
+      if (session != null) {
+        val manager = the_manager(session)
+        manager.send(Clear_Memory)
+        manager.shutdown()
+        managers.change(map => map - session)
+        the_session = null
+      }
     }
 
     private def cancel(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Simp_Trace_Cancel(serial) =>
-          manager.send(Cancel(serial))
+          the_manager(the_session).send(Cancel(serial))
           true
         case _ =>
           false
