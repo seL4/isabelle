@@ -252,8 +252,8 @@ object Build
           }
           else Nil
 
-        if (pide && !is_pure) {
-          val resources = new Resources(sessions_structure, deps(name))
+        if (pide) {
+          val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
