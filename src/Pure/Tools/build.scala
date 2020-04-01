@@ -258,7 +258,7 @@ object Build
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
-          val eval_main = Command_Line.ML_tool("Isabelle_Process.init ()" :: eval_store)
+          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
           val process =
             Isabelle_Process(session, options, sessions_structure, store,

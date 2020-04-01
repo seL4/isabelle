@@ -14,6 +14,7 @@ sig
   val init_options: unit -> unit
   val init_options_interactive: unit -> unit
   val init: unit -> unit
+  val init_build: unit -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -110,7 +111,7 @@ fun recover crash =
 
 in
 
-val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
+fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
   let
     val _ = SHA1.test_samples ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
@@ -173,7 +174,7 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, pass
       Unsynchronized.setmp Private_Output.protocol_message_fn
         (fn props => fn body => message Markup.protocolN props body) #>
       Unsynchronized.setmp print_mode
-        ((! print_mode @ protocol_modes1) |> fold (update op =) protocol_modes2);
+        ((! print_mode @ #1 modes) |> fold (update op =) (#2 modes));
 
 
     (* protocol *)
@@ -231,14 +232,17 @@ fun init_options_interactive () =
 
 (* generic init *)
 
-fun init () =
+fun init_modes modes =
   let
     val address = Options.default_string \<^system_option>\<open>system_channel_address\<close>;
     val password = Options.default_string \<^system_option>\<open>system_channel_password\<close>;
   in
     if address <> "" andalso password <> ""
-    then init_protocol (address, password)
+    then init_protocol modes (address, password)
     else init_options ()
   end;
+
+fun init () = init_modes (protocol_modes1, protocol_modes2);
+fun init_build () = init_modes ([], protocol_modes2);
 
 end;
