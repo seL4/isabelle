@@ -143,21 +143,19 @@ object Sessions
 
     val doc_names = Doc.doc_names()
 
+    val bootstrap =
+      Sessions.Base.bootstrap(
+        sessions_structure.session_directories,
+        sessions_structure.global_theories)
+
     val session_bases =
-      (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
+      (Map("" -> bootstrap) /: sessions_structure.imports_topological_order)({
         case (session_bases, session_name) =>
           progress.expose_interrupt()
 
           val info = sessions_structure(session_name)
           try {
-            val parent_base: Sessions.Base =
-              info.parent match {
-                case None =>
-                  Base.bootstrap(
-                    sessions_structure.session_directories,
-                    sessions_structure.global_theories)
-                case Some(parent) => session_bases(parent)
-              }
+            val parent_base = session_bases(info.parent.getOrElse(""))
 
             val imports_base: Sessions.Base =
             {

@@ -59,7 +59,6 @@ sig
   val report_fn: (output list -> unit) Unsynchronized.ref
   val result_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
   val protocol_message_fn: Output_Primitives.protocol_message_fn Unsynchronized.ref
-  val init_channels: unit -> unit
 end;
 
 structure Private_Output: PRIVATE_OUTPUT =

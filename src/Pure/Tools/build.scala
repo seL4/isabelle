@@ -8,7 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.SortedSet
+import scala.collection.{SortedSet, mutable}
 import scala.annotation.tailrec
 
 
@@ -161,8 +161,8 @@ object Build
     {
       val errors =
         try {
-          XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text)).
-            map(err => Pretty.string_of(Protocol_Message.expose_no_reports(err)))
+          for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text))) yield
+            Pretty.string_of(Protocol_Message.expose_no_reports(err), metric = Symbol.Metric)
         }
         catch { case ERROR(err) => List(err) }
       build_session_errors.fulfill(errors)
@@ -194,7 +194,6 @@ object Build
     store: Sessions.Store,
     do_store: Boolean,
     verbose: Boolean,
-    pide: Boolean,
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
@@ -212,7 +211,7 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
-        val base = deps(name)
+        val base = deps(parent)
         val args_yxml =
           YXML.string_of_body(
             {
@@ -242,27 +241,72 @@ object Build
 
         val is_pure = Sessions.is_pure(name)
 
+        val use_prelude = if (is_pure) Thy_Header.ml_roots.map(_._1) else Nil
+
         val eval_store =
-          if (!do_store) Nil
-          else {
+          if (do_store) {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
               ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
           }
+          else Nil
 
-        if (pide && !is_pure) {
+        if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
+          val stdout = new StringBuilder(1000)
+          val messages = new mutable.ListBuffer[String]
+          val command_timings = new mutable.ListBuffer[Properties.T]
+          val theory_timings = new mutable.ListBuffer[Properties.T]
+          val runtime_statistics = new mutable.ListBuffer[Properties.T]
+          val task_statistics = new mutable.ListBuffer[Properties.T]
+
+          val consumer =
+            Session.Consumer[Any]("build_session_output") {
+              case msg: Prover.Output =>
+                val message = msg.message
+                if (msg.is_stdout) {
+                  stdout ++= Symbol.encode(XML.content(message))
+                }
+                else if (Protocol.is_exported(message)) {
+                  messages +=
+                    Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
+                }
+              case Session.Command_Timing(props) => command_timings += props
+              case Session.Theory_Timing(props) => theory_timings += props
+              case Session.Runtime_Statistics(props) => runtime_statistics += props
+              case Session.Task_Statistics(props) => task_statistics += props
+              case _ =>
+            }
+
+          session.all_messages += consumer
+          session.command_timings += consumer
+          session.theory_timings += consumer
+          session.runtime_statistics += consumer
+          session.task_statistics += consumer
+
+          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
+
           val process =
             Isabelle_Process(session, options, sessions_structure, store,
-              logic = parent, cwd = info.dir.file, env = env).await_startup
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env).await_startup
 
           session.protocol_command("build_session", args_yxml)
 
-          val result = process.join
+          val process_result = process.join
+          val process_output =
+            stdout.toString :: messages.toList :::
+            command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+            theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+            runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+            task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
+
+          val result = process_result.output(process_output)
           handler.build_session_errors.join match {
             case Nil => result
             case errors =>
@@ -275,22 +319,15 @@ object Build
           val args_file = Isabelle_System.tmp_file("build")
           File.write(args_file, args_yxml)
 
-          val eval_build = "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
-          val eval = Command_Line.ML_tool(eval_build :: eval_store)
+          val eval_build =
+            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
+          val eval_main = Command_Line.ML_tool(eval_build :: eval_store)
 
           val process =
-            if (is_pure) {
-              ML_Process(options, deps.sessions_structure, store, raw_ml_system = true,
-                args =
-                  (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
-                    List("--eval", eval),
-                cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
-            }
-            else {
-              ML_Process(options, deps.sessions_structure, store, logic = parent,
-                args = List("--eval", eval),
-                cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
-            }
+            ML_Process(options, deps.sessions_structure, store,
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
 
           process.result(
             progress_stdout =
@@ -401,7 +438,6 @@ object Build
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
-    pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     base_sessions: List[String] = Nil,
@@ -636,7 +672,7 @@ object Build
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_store, verbose, pide = pide,
+                    new Job(progress, name, info, deps, store, do_store, verbose,
                       numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
@@ -724,7 +760,6 @@ object Build
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
-    var pide = false
     var requirements = false
     var soft_build = false
     var exclude_session_groups: List[String] = Nil
@@ -750,7 +785,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -P           build via PIDE protocol
     -R           operate on requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
@@ -775,7 +809,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
-      "P" -> (_ => pide = true),
       "R" -> (_ => requirements = true),
       "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -825,7 +858,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           soft_build = soft_build,
           verbose = verbose,
           export_files = export_files,
-          pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,
           base_sessions = base_sessions,

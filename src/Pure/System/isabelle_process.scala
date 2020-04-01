@@ -18,7 +18,9 @@ object Isabelle_Process
     sessions_structure: Sessions.Structure,
     store: Sessions.Store,
     logic: String = "",
-    args: List[String] = Nil,
+    raw_ml_system: Boolean = false,
+    use_prelude: List[String] = Nil,
+    eval_main: String = "",
     modes: List[String] = Nil,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings()): Isabelle_Process =
@@ -30,7 +32,9 @@ object Isabelle_Process
           options.string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
         ML_Process(channel_options, sessions_structure, store,
-          logic = logic, args = args, modes = modes, cwd = cwd, env = env)
+          logic = logic, raw_ml_system = raw_ml_system,
+          use_prelude = use_prelude, eval_main = eval_main,
+          modes = modes, cwd = cwd, env = env)
       }
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
     process.stdin.close

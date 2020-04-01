@@ -64,7 +64,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def show_trace()
   {
-    val trace = Simplifier_Trace.generate_trace(current_results)
+    val trace = Simplifier_Trace.generate_trace(PIDE.session, current_results)
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
@@ -181,7 +181,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
         new Button("Clear memory") {
           reactions += {
             case ButtonClicked(_) =>
-              Simplifier_Trace.clear_memory()
+              Simplifier_Trace.clear_memory(PIDE.session)
           }
         }))
 

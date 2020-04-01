@@ -16,9 +16,11 @@ object ML_Process
     sessions_structure: Sessions.Structure,
     store: Sessions.Store,
     logic: String = "",
+    raw_ml_system: Boolean = false,
+    use_prelude: List[String] = Nil,
+    eval_main: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
-    raw_ml_system: Boolean = false,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
@@ -100,9 +102,11 @@ object ML_Process
 
     // process
     val eval_process =
-      if (heaps.isEmpty)
-        List("PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth")))
-      else List("Isabelle_Process.init ()")
+      proper_string(eval_main).getOrElse(
+        if (heaps.isEmpty) {
+          "PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth"))
+        }
+        else "Isabelle_Process.init ()")
 
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
@@ -123,8 +127,8 @@ object ML_Process
     // bash
     val bash_args =
       ml_runtime_options :::
-      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base ::: eval_process)
-        .flatMap(eval => List("--eval", eval)) ::: args
+      (eval_init ::: eval_modes ::: eval_options ::: eval_session_base).flatMap(List("--eval", _)) :::
+      use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
     Bash.process(
       "exec " + options.string("ML_process_policy") + """ "$ML_HOME/poly" -q """ +

@@ -45,7 +45,7 @@ object Prover
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
-        else Pretty.string_of(message.body)
+        else Pretty.string_of(message.body, metric = Symbol.Metric)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
       else
@@ -114,6 +114,8 @@ class Prover(
 
   private val process_manager = Standard_Thread.fork("process_manager")
   {
+    val stdout = physical_output(false)
+
     val (startup_failed, startup_errors) =
     {
       var finished: Option[Boolean] = None
@@ -127,7 +129,7 @@ class Prover(
           }
           catch { case _: IOException => finished = Some(false) }
         }
-        Thread.sleep(10)
+        Thread.sleep(50)
       }
       (finished.isEmpty || !finished.get, result.toString.trim)
     }
@@ -136,13 +138,13 @@ class Prover(
     if (startup_failed) {
       terminate_process()
       process_result.join
+      stdout.join
       exit_message(Process_Result(127))
     }
     else {
       val (command_stream, message_stream) = channel.rendezvous()
 
       command_input_init(command_stream)
-      val stdout = physical_output(false)
       val stderr = physical_output(true)
       val message = message_output(message_stream)
 
