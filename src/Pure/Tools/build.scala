@@ -194,7 +194,6 @@ object Build
     store: Sessions.Store,
     do_store: Boolean,
     verbose: Boolean,
-    pide: Boolean,
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
@@ -252,7 +251,7 @@ object Build
           }
           else Nil
 
-        if (pide) {
+        if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
@@ -419,7 +418,6 @@ object Build
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
-    pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     base_sessions: List[String] = Nil,
@@ -654,7 +652,7 @@ object Build
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_store, verbose, pide = pide,
+                    new Job(progress, name, info, deps, store, do_store, verbose,
                       numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
@@ -742,7 +740,6 @@ object Build
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
-    var pide = false
     var requirements = false
     var soft_build = false
     var exclude_session_groups: List[String] = Nil
@@ -768,7 +765,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -P           build via PIDE protocol
     -R           operate on requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
@@ -793,7 +789,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
-      "P" -> (_ => pide = true),
       "R" -> (_ => requirements = true),
       "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -843,7 +838,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           soft_build = soft_build,
           verbose = verbose,
           export_files = export_files,
-          pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,
           base_sessions = base_sessions,
