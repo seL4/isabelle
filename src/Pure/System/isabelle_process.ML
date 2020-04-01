@@ -117,8 +117,6 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, pass
 
     val _ = Output.physical_stderr Symbol.STX;
 
-    val _ = Context.put_generic_context NONE;
-
 
     (* streams *)
 
