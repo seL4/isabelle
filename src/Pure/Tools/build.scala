@@ -8,7 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.SortedSet
+import scala.collection.{SortedSet, mutable}
 import scala.annotation.tailrec
 
 
@@ -258,6 +258,22 @@ object Build
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
+          val stdout = new StringBuilder(1000)
+          val messages = new mutable.ListBuffer[String]
+
+          session.all_messages +=
+            Session.Consumer("build_session_output") {
+              case msg: Prover.Output =>
+                val message = msg.message
+                if (msg.is_stdout) {
+                  stdout ++= Symbol.encode(XML.content(message))
+                }
+                else if (Protocol.is_exported(message)) {
+                  messages += Symbol.encode(Protocol.message_text(List(message)))
+                }
+              case _ =>
+            }
+
           val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
           val process =
@@ -268,7 +284,9 @@ object Build
 
           session.protocol_command("build_session", args_yxml)
 
-          val result = process.join
+          val process_result = process.join
+
+          val result = process_result.output(stdout.toString :: messages.toList)
           handler.build_session_errors.join match {
             case Nil => result
             case errors =>
