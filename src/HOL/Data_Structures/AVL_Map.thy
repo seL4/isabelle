@@ -18,7 +18,8 @@ fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) avl_tree \<Ri
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node l ((a,b), h) r) = (case cmp x a of
-   EQ \<Rightarrow> del_root (Node l ((a,b), h) r) |
+   EQ \<Rightarrow> if l = Leaf then r
+         else let (l', ab') = split_max l in balR l' ab' r |
    LT \<Rightarrow> balR (delete x l) (a,b) r |
    GT \<Rightarrow> balL l (a,b) (delete x r))"
 
@@ -34,7 +35,7 @@ theorem inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_balL inorder_balR
-     inorder_del_root inorder_split_maxD split: prod.splits)
+      inorder_split_maxD split: prod.splits)
 
 
 subsection \<open>AVL invariants\<close>
@@ -120,7 +121,8 @@ proof (induct t rule: tree2_induct)
   case 1
   show ?case
   proof(cases "x = a")
-    case True with Node 1 show ?thesis by (auto simp:avl_del_root)
+    case True with Node 1 show ?thesis
+      using avl_split_max[of l] by (auto simp: avl_balR split: prod.split)
   next
     case False
     show ?thesis 
@@ -133,11 +135,8 @@ proof (induct t rule: tree2_induct)
   case 2
   show ?case
   proof(cases "x = a")
-    case True
-    with 1 have "height (Node l (n, h) r) = height(del_root (Node l (n, h) r))
-      \<or> height (Node l (n, h) r) = height(del_root (Node l (n, h) r)) + 1"
-      by (subst height_del_root,simp_all)
-    with True show ?thesis by simp
+    case True then show ?thesis using 1 avl_split_max[of l]
+      by(auto simp: balR_def max_absorb2 split!: if_splits prod.split tree.split)
   next
     case False
     show ?thesis 
