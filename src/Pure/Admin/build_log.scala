@@ -110,10 +110,10 @@ object Build_Log
     }
 
     def apply(name: String, lines: List[String]): Log_File =
-      new Log_File(plain_name(name), lines)
+      new Log_File(plain_name(name), lines.map(Library.trim_line))
 
     def apply(name: String, text: String): Log_File =
-      Log_File(name, Library.trim_split_lines(text))
+      new Log_File(plain_name(name), Library.trim_split_lines(text))
 
     def apply(file: JFile): Log_File =
     {
