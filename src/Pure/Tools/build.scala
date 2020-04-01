@@ -259,9 +259,13 @@ object Build
 
           val stdout = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[String]
+          val command_timings = new mutable.ListBuffer[Properties.T]
+          val theory_timings = new mutable.ListBuffer[Properties.T]
+          val runtime_statistics = new mutable.ListBuffer[Properties.T]
+          val task_statistics = new mutable.ListBuffer[Properties.T]
 
-          session.all_messages +=
-            Session.Consumer("build_session_output") {
+          val consumer =
+            Session.Consumer[Any]("build_session_output") {
               case msg: Prover.Output =>
                 val message = msg.message
                 if (msg.is_stdout) {
@@ -271,8 +275,18 @@ object Build
                   messages +=
                     Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
                 }
+              case Session.Command_Timing(props) => command_timings += props
+              case Session.Theory_Timing(props) => theory_timings += props
+              case Session.Runtime_Statistics(props) => runtime_statistics += props
+              case Session.Task_Statistics(props) => task_statistics += props
               case _ =>
             }
+
+          session.all_messages += consumer
+          session.command_timings += consumer
+          session.theory_timings += consumer
+          session.runtime_statistics += consumer
+          session.task_statistics += consumer
 
           val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
@@ -285,8 +299,14 @@ object Build
           session.protocol_command("build_session", args_yxml)
 
           val process_result = process.join
+          val process_output =
+            stdout.toString :: messages.toList :::
+            command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+            theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+            runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+            task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 
-          val result = process_result.output(stdout.toString :: messages.toList)
+          val result = process_result.output(process_output)
           handler.build_session_errors.join match {
             case Nil => result
             case errors =>
