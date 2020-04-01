@@ -23,6 +23,7 @@ object Symbol
 
   /* spaces */
 
+  val space_char = ' '
   val space = " "
 
   private val static_spaces = space * 4000
@@ -36,6 +37,8 @@ object Symbol
 
 
   /* ASCII characters */
+
+  def is_ascii_printable(c: Char): Boolean = space_char <= c && c <= '~'
 
   def is_ascii_letter(c: Char): Boolean = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
 
@@ -654,4 +657,23 @@ object Symbol
   def esub_decoded: Symbol = symbols.esub_decoded
   def bsup_decoded: Symbol = symbols.bsup_decoded
   def esup_decoded: Symbol = symbols.esup_decoded
+
+
+  /* metric */
+
+  def is_printable(sym: Symbol): Boolean =
+    if (is_ascii(sym)) is_ascii_printable(sym(0))
+    else !is_control(sym)
+
+  object Metric extends Pretty.Metric
+  {
+    val unit = 1.0
+    def apply(str: String): Double =
+      (for (s <- iterator(str)) yield {
+        val sym = encode(s)
+        if (sym.startsWith("\\<long") || sym.startsWith("\\<Long")) 2
+        else if (is_printable(sym)) 1
+        else 0
+      }).sum
+  }
 }

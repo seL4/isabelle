@@ -169,9 +169,15 @@ object Protocol
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
-  def message_text(body: XML.Body, margin: Double = Pretty.default_margin): String =
+  def message_text(body: XML.Body,
+    margin: Double = Pretty.default_margin,
+    breakgain: Double = Pretty.default_breakgain,
+    metric: Pretty.Metric = Pretty.Default_Metric): String =
   {
-    val text = Pretty.string_of(Protocol_Message.expose_no_reports(body), margin = margin)
+    val text =
+      Pretty.string_of(Protocol_Message.expose_no_reports(body),
+        margin = margin, breakgain = breakgain, metric = metric)
+
     if (is_message(is_warning, body) || is_message(is_legacy, body)) Output.warning_prefix(text)
     else if (is_message(is_error, body)) Output.error_prefix(text)
     else text

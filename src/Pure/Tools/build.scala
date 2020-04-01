@@ -161,8 +161,8 @@ object Build
     {
       val errors =
         try {
-          XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text)).
-            map(err => Pretty.string_of(Protocol_Message.expose_no_reports(err)))
+          for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text))) yield
+            Pretty.string_of(Protocol_Message.expose_no_reports(err), metric = Symbol.Metric)
         }
         catch { case ERROR(err) => List(err) }
       build_session_errors.fulfill(errors)
@@ -269,7 +269,8 @@ object Build
                   stdout ++= Symbol.encode(XML.content(message))
                 }
                 else if (Protocol.is_exported(message)) {
-                  messages += Symbol.encode(Protocol.message_text(List(message)))
+                  messages +=
+                    Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
                 }
               case _ =>
             }
