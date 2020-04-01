@@ -212,7 +212,7 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
-        val base = deps(name)
+        val base = deps(parent)
         val args_yxml =
           YXML.string_of_body(
             {
