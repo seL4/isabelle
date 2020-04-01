@@ -1,6 +1,6 @@
 (*
 Author:     Tobias Nipkow, Daniel Stüwe
-Largely derived from AFP entry AVL.
+Based on the AFP entry AVL.
 *)
 
 section "AVL Tree Implementation of Sets"
@@ -33,26 +33,26 @@ definition node :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
 "node l a r = Node l (a, max (ht l) (ht r) + 1) r"
 
 definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balL l a r =
-  (if ht l = ht r + 2 then
-     case l of 
-       Node bl (b, _) br \<Rightarrow>
-         if ht bl < ht br then
-           case br of
-             Node cl (c, _) cr \<Rightarrow> node (node bl b cl) c (node cr a r)
-         else node bl b (node br a r)
-   else node l a r)"
+"balL AB b C =
+  (if ht AB = ht C + 2 then
+     case AB of 
+       Node A (a, _) B \<Rightarrow>
+         if ht A \<ge> ht B then node A a (node B b C)
+         else
+           case B of
+             Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
+   else node AB b C)"
 
 definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balR l a r =
-   (if ht r = ht l + 2 then
-      case r of
-        Node bl (b, _) br \<Rightarrow>
-          if ht bl > ht br then
-            case bl of
-              Node cl (c, _) cr \<Rightarrow> node (node l a cl) c (node cr b br)
-          else node (node l a bl) b br
-  else node l a r)"
+"balR A a BC =
+   (if ht BC = ht A + 2 then
+      case BC of
+        Node B (b, _) C \<Rightarrow>
+          if ht B \<le> ht C then node (node A a B) b C
+          else
+            case B of
+              Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
+  else node A a BC)"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "insert x Leaf = Node Leaf (x, 1) Leaf" |
@@ -136,6 +136,8 @@ declare Let_def [simp]
 lemma ht_height[simp]: "avl t \<Longrightarrow> ht t = height t"
 by (cases t rule: tree2_cases) simp_all
 
+text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
+
 lemma height_balL:
   "\<lbrakk> height l = height r + 2; avl l; avl r \<rbrakk> \<Longrightarrow>
    height (balL l a r) = height r + 2 \<or>
@@ -207,9 +209,7 @@ next
   qed
 qed
 
-(* It appears that these two properties need to be proved simultaneously: *)
-
-text\<open>Insertion maintains the AVL property:\<close>
+text\<open>Insertion maintains the AVL property. Requires simultaneous proof.\<close>
 
 theorem avl_insert:
   assumes "avl t"
@@ -275,6 +275,15 @@ proof (induction t rule: tree2_induct)
     qed
   qed
 qed simp_all
+
+text \<open>Now an automatic proof without lemmas:\<close>
+
+theorem avl_insert_auto: "avl t \<Longrightarrow>
+  avl(insert x t) \<and> height (insert x t) \<in> {height t, height t + 1}"
+apply (induction t rule: tree2_induct)
+ apply (auto split!: if_splits)
+ apply (auto simp: balL_def balR_def node_def max_absorb2 split!: tree.splits)
+done
 
 
 subsubsection \<open>Deletion maintains AVL balance\<close>
