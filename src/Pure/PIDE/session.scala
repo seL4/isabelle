@@ -705,22 +705,17 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
       })
   }
 
-  def send_stop()
+  def stop(): Process_Result =
   {
     val was_ready =
-      _phase.guarded_access(phase =>
-        phase match {
+      _phase.guarded_access(
+        {
           case Session.Startup | Session.Shutdown => None
           case Session.Terminated(_) => Some((false, phase))
           case Session.Inactive => Some((false, post_phase(Session.Terminated(Process_Result(0)))))
           case Session.Ready => Some((true, post_phase(Session.Shutdown)))
         })
     if (was_ready) manager.send(Stop)
-  }
-
-  def stop(): Process_Result =
-  {
-    send_stop()
     prover.await_reset()
 
     change_parser.shutdown()

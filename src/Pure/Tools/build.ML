@@ -254,13 +254,16 @@ val _ =
         let
           val args = decode_args args_yxml;
           val errs =
-            Future.interruptible_task (fn () =>
-              (build_session args; []) handle exn =>
+            Future.interruptible_task (fn () => (build_session args; [])) () handle exn =>
               (Runtime.exn_message_list exn handle _ (*sic!*) =>
                 (build_session_finished ["CRASHED"];
-                  raise Isabelle_Process.EXIT 1))) ();
+                  raise Isabelle_Process.EXIT 2));
           val _ = build_session_finished errs;
-        in if null errs then () else raise Isabelle_Process.EXIT 1 end
+        in
+          if null errs
+          then raise Isabelle_Process.STOP
+          else raise Isabelle_Process.EXIT 1
+        end
       | _ => raise Match);
 
 end;

@@ -70,5 +70,10 @@ class Isabelle_Process private(session: Session, channel: System_Channel, proces
       case err => session.stop(); error(err)
     }
 
-  def join(): Process_Result = terminated.join
+  def await_shutdown(): Process_Result =
+  {
+    val result = terminated.join
+    session.stop()
+    result
+  }
 }

@@ -166,7 +166,6 @@ object Build
         }
         catch { case ERROR(err) => List(err) }
       build_session_errors.fulfill(errors)
-      session.send_stop()
       true
     }
 
@@ -297,8 +296,9 @@ object Build
               cwd = info.dir.file, env = env).await_startup
 
           session.protocol_command("build_session", args_yxml)
+          val errors = handler.build_session_errors.join
 
-          val process_result = process.join
+          val process_result = process.await_shutdown
           val process_output =
             stdout.toString :: messages.toList :::
             command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
@@ -307,12 +307,11 @@ object Build
             task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
 
           val result = process_result.output(process_output)
-          handler.build_session_errors.join match {
-            case Nil => result
-            case errors =>
-              result.error_rc.output(
-                errors.flatMap(s => split_lines(Output.error_message_text(s))) :::
-                errors.map(Protocol.Error_Message_Marker.apply))
+          if (errors.isEmpty) result
+          else {
+            result.error_rc.output(
+              errors.flatMap(s => split_lines(Output.error_message_text(s))) :::
+              errors.map(Protocol.Error_Message_Marker.apply))
           }
         }
         else {
