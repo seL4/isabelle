@@ -293,10 +293,15 @@ object Build
             Isabelle_Process(session, options, sessions_structure, store,
               logic = parent, raw_ml_system = is_pure,
               use_prelude = use_prelude, eval_main = eval_main,
-              cwd = info.dir.file, env = env).await_startup
+              cwd = info.dir.file, env = env)
 
-          session.protocol_command("build_session", args_yxml)
-          val errors = handler.build_session_errors.join
+          val errors =
+            Exn.capture { process.await_startup } match {
+              case Exn.Res(_) =>
+                session.protocol_command("build_session", args_yxml)
+                handler.build_session_errors.join
+              case Exn.Exn(exn) => List(Exn.message(exn))
+            }
 
           val process_result = process.await_shutdown
           val process_output =
