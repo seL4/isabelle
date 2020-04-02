@@ -445,7 +445,7 @@ proof -
     obtain u v where K: "K = cbox u v" "K \<noteq> {}" "K \<subseteq> cbox a b"
       using K cbox_division_memE [OF _ div] by (meson div_subset_cbox)
     with i show "extend K \<noteq> {}" "extend K \<subseteq> cbox a b"
-      apply (auto simp: extend_def subset_box box_ne_empty sum_if_inner)
+      apply (auto simp: extend_def subset_box box_ne_empty)
       by fastforce
   qed
   have int_extend_disjoint:
@@ -468,7 +468,7 @@ proof -
        and xv: "\<And>k. k \<in> Basis - {i} \<Longrightarrow> x \<bullet> k < v \<bullet> k"
        and wx: "\<And>k. k \<in> Basis - {i} \<Longrightarrow> w \<bullet> k < x \<bullet> k"
        and xz: "\<And>k. k \<in> Basis - {i} \<Longrightarrow> x \<bullet> k < z \<bullet> k"
-        using that K1 K2 i by (auto simp: extend_def box_ne_empty sum_if_inner mem_box)
+        using that K1 K2 i by (auto simp: extend_def box_ne_empty mem_box)
       have "box u v \<noteq> {}" "box w z \<noteq> {}"
         using cboxes interior_cbox by (auto simp: content_eq_0_interior dest: mt)
       then obtain q s
@@ -630,7 +630,7 @@ next
     show "\<Union>Dlec \<subseteq> cbox a b'"
       using Dlec_def div S by (auto simp: b'_def division_of_def mem_box)
     show "(\<forall>K\<in>Dlec. K \<inter> {x. x \<bullet> i = a \<bullet> i} \<noteq> {}) \<or> (\<forall>K\<in>Dlec. K \<inter> {x. x \<bullet> i = b' \<bullet> i} \<noteq> {})"
-      using nonmt by (fastforce simp: Dlec_def b'_def sum_if_inner i)
+      using nonmt by (fastforce simp: Dlec_def b'_def i)
   qed (use i Dlec_def in auto)
   moreover
   have "(\<Sum>K\<in>Dlec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) =
@@ -640,7 +640,7 @@ next
     unfolding Dlec_def using \<open>finite \<D>\<close> apply (auto simp: sum.mono_neutral_left)
     done
   moreover have "(b' \<bullet> i - a \<bullet> i) = (c - a \<bullet> i)"
-    by (simp add: b'_def sum_if_inner i)
+    by (simp add: b'_def i)
   ultimately
   have lec: "(c - a \<bullet> i) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
              \<le> content(cbox a b')"
@@ -657,7 +657,7 @@ next
     show "\<Union>Dgec \<subseteq> cbox a' b"
       using Dgec_def div S by (auto simp: a'_def division_of_def mem_box)
     show "(\<forall>K\<in>Dgec. K \<inter> {x. x \<bullet> i = a' \<bullet> i} \<noteq> {}) \<or> (\<forall>K\<in>Dgec. K \<inter> {x. x \<bullet> i = b \<bullet> i} \<noteq> {})"
-      using nonmt by (fastforce simp: Dgec_def a'_def sum_if_inner i)
+      using nonmt by (fastforce simp: Dgec_def a'_def i)
   qed (use i Dgec_def in auto)
   moreover
   have "(\<Sum>K\<in>Dgec. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) =
@@ -667,7 +667,7 @@ next
     unfolding Dgec_def using \<open>finite \<D>\<close> apply (auto simp: sum.mono_neutral_left)
     done
   moreover have "(b \<bullet> i - a' \<bullet> i) = (b \<bullet> i - c)"
-    by (simp add: a'_def sum_if_inner i)
+    by (simp add: a'_def i)
   ultimately
   have gec: "(b \<bullet> i - c) * (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
              \<le> content(cbox a' b)"
@@ -679,7 +679,7 @@ next
     proof
       assume c: "c = a \<bullet> i"
       then have "a' = a"
-        apply (simp add: sum_if_inner i a'_def cong: if_cong)
+        apply (simp add: i a'_def cong: if_cong)
         using euclidean_representation [of a] sum.cong [OF refl, of Basis "\<lambda>i. (a \<bullet> i) *\<^sub>R i"] by presburger
       then have "content (cbox a' b) \<le> 2 * content (cbox a b)"  by simp
       moreover
@@ -701,7 +701,7 @@ next
     next
       assume c: "c = b \<bullet> i"
       then have "b' = b"
-        apply (simp add: sum_if_inner i b'_def cong: if_cong)
+        apply (simp add: i b'_def cong: if_cong)
         using euclidean_representation [of b] sum.cong [OF refl, of Basis "\<lambda>i. (b \<bullet> i) *\<^sub>R i"] by presburger
       then have "content (cbox a b') \<le> 2 * content (cbox a b)"  by simp
       moreover
@@ -726,14 +726,14 @@ next
     have prod_if: "(\<Prod>k\<in>Basis \<inter> - {i}. f k) = (\<Prod>k\<in>Basis. f k) / f i" if "f i \<noteq> (0::real)" for f
       using that mk_disjoint_insert [OF i]
       apply (clarsimp simp add: field_split_simps)
-      by (metis Int_insert_left_if0 finite_Basis finite_insert le_iff_inf mult.commute order_refl prod.insert subset_Compl_singleton)
+      by (metis Int_insert_left_if0 finite_Basis finite_insert le_iff_inf order_refl prod.insert subset_Compl_singleton)
     have abc: "a \<bullet> i < c" "c < b \<bullet> i"
       using False assms by auto
     then have "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K)
                   \<le> content(cbox a b') / (c - a \<bullet> i)"
               "(\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<ge> c}))) K)
                  \<le> content(cbox a' b) / (b \<bullet> i - c)"
-      using lec gec by (simp_all add: field_split_simps mult.commute)
+      using lec gec by (simp_all add: field_split_simps)
     moreover
     have "(\<Sum>K\<in>\<D>. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i))
           \<le> (\<Sum>K\<in>\<D>. ((\<lambda>K. content K / (interval_upperbound K \<bullet> i - interval_lowerbound K \<bullet> i)) \<circ> ((\<lambda>K. K \<inter> {x. x \<bullet> i \<le> c}))) K) +
@@ -780,7 +780,7 @@ next
           \<le> 2 * content (cbox a b) / (b \<bullet> i - a \<bullet> i)"
       by linarith
     then show ?thesis
-      using abc by (simp add: field_split_simps mult.commute)
+      using abc by (simp add: field_split_simps)
   qed
 qed
 
@@ -856,7 +856,7 @@ next
   have "gauge (\<lambda>x. ball x
                     (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b))))"
     using \<open>0 < content (cbox a b)\<close> \<open>0 < \<epsilon>\<close> a_less_b
-    apply (auto simp: gauge_def field_split_simps mult_less_0_iff zero_less_mult_iff add_nonneg_eq_0_iff finite_less_Inf_iff)
+    apply (auto simp: gauge_def field_split_simps add_nonneg_eq_0_iff finite_less_Inf_iff)
     apply (meson add_increasing measure_nonneg mult_nonneg_nonneg norm_ge_zero not_le zero_le_numeral)
     done
   then have "gauge \<gamma>"
@@ -936,7 +936,7 @@ next
               by simp
             also have "... < \<epsilon> * (b \<bullet> i - a \<bullet> i) / dist u v / (4 * content (cbox a b))"
               using duv dist_uv contab_gt0
-              apply (simp add: field_split_simps algebra_simps mult_less_0_iff zero_less_mult_iff split: if_split_asm)
+              apply (simp add: field_split_simps split: if_split_asm)
               by (meson add_nonneg_nonneg linorder_not_le measure_nonneg mult_nonneg_nonneg norm_ge_zero zero_le_numeral)
             also have "... = \<epsilon> * (b \<bullet> i - a \<bullet> i) / norm (v - u) / (4 * content (cbox a b))"
               by (simp add: dist_norm norm_minus_commute)
@@ -1239,7 +1239,7 @@ next
                 obtain u v where uv: "K = cbox u v"
                   using T''_tagged \<open>(x,K) \<in> T''\<close> by blast
                 then have "connected K"
-                  by (simp add: is_interval_cbox is_interval_connected)
+                  by (simp add: is_interval_connected)
                 then have "(\<exists>z \<in> K. z \<bullet> i = c)"
                   using y connected_ivt_component by fastforce
                 then show ?thesis
@@ -1883,7 +1883,7 @@ proof -
   then obtain m::nat where m: "floor(n * f x) = int m"
     using nonneg_int_cases zero_le_floor by blast
   then have kn: "real k / real n \<le> f x \<longleftrightarrow> k \<le> m" for k
-    using \<open>n \<noteq> 0\<close> by (simp add: field_split_simps mult.commute) linarith
+    using \<open>n \<noteq> 0\<close> by (simp add: field_split_simps) linarith
   then have "Suc n / real n \<le> f x \<longleftrightarrow> Suc n \<le> m"
     by blast
   have "real n * f x \<le> real n"
@@ -1894,7 +1894,7 @@ proof -
     by (subst sum.inter_restrict) (auto simp: kn)
   also have "\<dots> < inverse n"
     using \<open>m \<le> n\<close> \<open>n \<noteq> 0\<close> m
-    by (simp add: min_absorb2 field_split_simps mult.commute) linarith
+    by (simp add: min_absorb2 field_split_simps) linarith
   finally show ?thesis .
 qed
 
@@ -2222,7 +2222,7 @@ proof -
       proof (subst has_integral_cong)
         show "g x * f x - g a * f x = (g b - g a) * h x *\<^sub>R f x"
           if "x \<in> {a..b}" for x
-          using 1 that by (simp add: h_def field_split_simps algebra_simps)
+          using 1 that by (simp add: h_def field_split_simps)
         show "((\<lambda>x. (g b - g a) * h x *\<^sub>R f x) has_integral (g b - g a) * integral {c..b} f) {a..b}"
           using has_integral_mult_right [OF c, of "g b - g a"] .
       qed

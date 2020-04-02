@@ -66,8 +66,8 @@ object Spell_Checker
 
   class Dictionary private[Spell_Checker](val path: Path)
   {
-    val lang = path.drop_ext.file_name
-    val user_path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
+    val lang: String = path.drop_ext.file_name
+    val user_path: Path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
     override def toString: String = lang
   }
 

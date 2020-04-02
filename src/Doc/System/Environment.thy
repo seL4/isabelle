@@ -390,8 +390,8 @@ text \<open>
   \<^medskip>
   This is how to invoke a function body with proper return code and printing
   of errors, and without printing of a redundant \<^verbatim>\<open>val it = (): unit\<close> result:
-  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool0 (fn () => writeln "OK")'\<close>}
-  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool0 (fn () => error "Bad")'\<close>}
+  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool (fn () => writeln "OK")'\<close>}
+  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool (fn () => error "Bad")'\<close>}
 \<close>
 
 

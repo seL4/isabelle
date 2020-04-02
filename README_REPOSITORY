@@ -34,8 +34,6 @@ Quick start in 30min
 
     ./bin/isabelle jedit -l HOL
 
-    ./bin/isabelle jedit -b -f  #optional: force fresh build of Isabelle/Scala
-
 4. Access documentation (bash shell commands):
 
     ./bin/isabelle build_doc -a
@@ -48,11 +46,9 @@ Introduction
 
 Mercurial https://www.mercurial-scm.org belongs to source code
 management systems that follow the so-called paradigm of "distributed
-version control".  This means plain revision control without the
-legacy of CVS or SVN (and without the extra complexity introduced by
-git).  See also http://hginit.com/ for an introduction to the main
-ideas.  The Mercurial book http://hgbook.red-bean.com/ explains many
-more details.
+version control".  This means plain versioning without the legacy of
+SVN and the extra complexity of GIT.  See also
+https://www.mercurial-scm.org/learn
 
 Mercurial offers some flexibility in organizing the flow of changes,
 both between individual developers and designated pull/push areas that
@@ -100,7 +96,7 @@ initial configuration requires at least an entry to identify yourself
 as follows:
 
   [ui]
-  username = XXX
+  username = ABC
 
 Isabelle contributors are free to choose either a short "login name"
 (for accounts at TU Munich) or a "full name" -- with or without mail
@@ -136,8 +132,7 @@ mail to someone with write access to that file space.  It is also
 quite easy to publish changed clones again on the web, using the
 ad-hoc command "hg serve -v", or the hgweb.cgi or hgwebdir.cgi scripts
 that are included in the Mercurial distribution, and send a "pull
-request" to someone else.  There are also public hosting services for
-Mercurial repositories, notably Bitbucket.
+request" to someone else.
 
 The downstream/upstream mode of operation is quite common in the
 distributed version control community, and works well for occasional

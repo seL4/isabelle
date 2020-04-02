@@ -249,9 +249,9 @@ object Token
 
   private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader
   {
-    def first = tokens.head
-    def rest = new Token_Reader(tokens.tail, pos.advance(first))
-    def atEnd = tokens.isEmpty
+    def first: Token = tokens.head
+    def rest: Token_Reader = new Token_Reader(tokens.tail, pos.advance(first))
+    def atEnd: Boolean = tokens.isEmpty
   }
 
   def reader(tokens: List[Token], start: Token.Pos): Reader =
@@ -321,8 +321,8 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
     source.startsWith(Symbol.open) ||
     source.startsWith(Symbol.open_decoded))
 
-  def is_open_bracket: Boolean = is_keyword && Word.open_brackets.exists(is_keyword(_))
-  def is_close_bracket: Boolean = is_keyword && Word.close_brackets.exists(is_keyword(_))
+  def is_open_bracket: Boolean = is_keyword && Word.open_brackets.exists(is_keyword)
+  def is_close_bracket: Boolean = is_keyword && Word.close_brackets.exists(is_keyword)
 
   def is_begin: Boolean = is_keyword("begin")
   def is_end: Boolean = is_command("end")
@@ -341,7 +341,7 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   {
     val s = content
     is_name && Path.is_wellformed(s) &&
-      !s.exists(Symbol.is_ascii_blank(_)) &&
+      !s.exists(Symbol.is_ascii_blank) &&
       !Path.is_reserved(s)
   }
 }

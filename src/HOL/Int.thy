@@ -136,21 +136,23 @@ next
     by (cases "k = 0") (simp_all add: distrib_right add_strict_mono)
 qed
 
-lemma zero_le_imp_eq_int: "0 \<le> k \<Longrightarrow> \<exists>n. k = int n"
-  for k :: int
-  apply transfer
-  apply clarsimp
-  apply (rule_tac x="a - b" in exI)
-  apply simp
-  done
+lemma zero_le_imp_eq_int:
+  assumes "k \<ge> (0::int)" shows "\<exists>n. k = int n"
+proof -
+  have "b \<le> a \<Longrightarrow> \<exists>n::nat. a = n + b" for a b
+    by (rule_tac x="a - b" in exI) simp
+  with assms show ?thesis
+    by transfer auto
+qed
 
-lemma zero_less_imp_eq_int: "0 < k \<Longrightarrow> \<exists>n>0. k = int n"
-  for k :: int
-  apply transfer
-  apply clarsimp
-  apply (rule_tac x="a - b" in exI)
-  apply simp
-  done
+lemma zero_less_imp_eq_int:
+  assumes "k > (0::int)" shows "\<exists>n>0. k = int n"
+proof -
+  have "b < a \<Longrightarrow> \<exists>n::nat. n>0 \<and> a = n + b" for a b
+    by (rule_tac x="a - b" in exI) simp
+  with assms show ?thesis
+    by transfer auto
+qed
 
 lemma zmult_zless_mono2: "i < j \<Longrightarrow> 0 < k \<Longrightarrow> k * i < k * j"
   for i j k :: int
@@ -185,12 +187,12 @@ lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + 1 \<le> z"
 
 lemma zless_iff_Suc_zadd: "w < z \<longleftrightarrow> (\<exists>n. z = w + int (Suc n))"
   for w z :: int
-  apply transfer
-  apply auto
-  apply (rename_tac a b c d)
-  apply (rule_tac x="c+b - Suc(a+d)" in exI)
-  apply arith
-  done
+proof -
+  have "\<And>a b c d. a + d < c + b \<Longrightarrow> \<exists>n. c + b = Suc (a + n + d)"
+    by (rule_tac x="c+b - Suc(a+d)" in exI) arith
+  then show ?thesis
+    by transfer auto
+qed
 
 lemma zabs_less_one_iff [simp]: "\<bar>z\<bar> < 1 \<longleftrightarrow> z = 0" (is "?lhs \<longleftrightarrow> ?rhs")
   for z :: int
@@ -471,16 +473,16 @@ proof
 qed
 
 instance int :: no_top
-  apply standard
-  apply (rule_tac x="x + 1" in exI)
-  apply simp
-  done
+proof
+  show "\<And>x::int. \<exists>y. x < y"
+    by (rule_tac x="x + 1" in exI) simp
+qed
 
 instance int :: no_bot
-  apply standard
-  apply (rule_tac x="x - 1" in exI)
-  apply simp
-  done
+proof
+  show "\<And>x::int. \<exists>y. y < x"
+    by (rule_tac x="x - 1" in exI) simp
+qed
 
 
 subsection \<open>Magnitude of an Integer, as a Natural Number: \<open>nat\<close>\<close>
@@ -732,12 +734,14 @@ lemma abs_split [arith_split, no_atp]: "P \<bar>a\<bar> \<longleftrightarrow> (0
   for a :: "'a::linordered_idom"
   by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
-lemma negD: "x < 0 \<Longrightarrow> \<exists>n. x = - (int (Suc n))"
-  apply transfer
-  apply clarsimp
-  apply (rule_tac x="b - Suc a" in exI)
-  apply arith
-  done
+lemma negD:
+  assumes "x < 0" shows "\<exists>n. x = - (int (Suc n))"
+proof -
+  have "\<And>a b. a < b \<Longrightarrow> \<exists>n. Suc (a + n) = b"
+    by (rule_tac x="b - Suc a" in exI) arith
+  with assms show ?thesis
+    by transfer auto
+qed
 
 
 subsection \<open>Cases and induction\<close>
@@ -754,13 +758,17 @@ lemma int_cases2 [case_names nonneg nonpos, cases type: int]:
 
 text \<open>This is the default, with a negative case.\<close>
 lemma int_cases [case_names nonneg neg, cases type: int]:
-  "(\<And>n. z = int n \<Longrightarrow> P) \<Longrightarrow> (\<And>n. z = - (int (Suc n)) \<Longrightarrow> P) \<Longrightarrow> P"
-  apply (cases "z < 0")
-   apply (blast dest!: negD)
-  apply (simp add: linorder_not_less del: of_nat_Suc)
-  apply auto
-  apply (blast dest: nat_0_le [THEN sym])
-  done
+  assumes pos: "\<And>n. z = int n \<Longrightarrow> P" and neg: "\<And>n. z = - (int (Suc n)) \<Longrightarrow> P"
+  shows P
+proof (cases "z < 0")
+  case True
+  with neg show ?thesis
+    by (blast dest!: negD)
+next
+  case False
+  with pos show ?thesis
+    by (force simp add: linorder_not_less dest: nat_0_le [THEN sym])
+qed
 
 lemma int_cases3 [case_names zero pos neg]:
   fixes k :: int
@@ -891,31 +899,19 @@ lemma Ints_numeral [simp]: "numeral n \<in> \<int>"
   by (subst of_nat_numeral [symmetric], rule Ints_of_nat)
 
 lemma Ints_add [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a + b \<in> \<int>"
-  apply (auto simp add: Ints_def)
-  apply (rule range_eqI)
-  apply (rule of_int_add [symmetric])
-  done
+  by (force simp add: Ints_def simp flip: of_int_add intro: range_eqI)
 
 lemma Ints_minus [simp]: "a \<in> \<int> \<Longrightarrow> -a \<in> \<int>"
-  apply (auto simp add: Ints_def)
-  apply (rule range_eqI)
-  apply (rule of_int_minus [symmetric])
-  done
+  by (force simp add: Ints_def simp flip: of_int_minus intro: range_eqI)
 
 lemma minus_in_Ints_iff: "-x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
   using Ints_minus[of x] Ints_minus[of "-x"] by auto
 
 lemma Ints_diff [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a - b \<in> \<int>"
-  apply (auto simp add: Ints_def)
-  apply (rule range_eqI)
-  apply (rule of_int_diff [symmetric])
-  done
+  by (force simp add: Ints_def simp flip: of_int_diff intro: range_eqI)
 
 lemma Ints_mult [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a * b \<in> \<int>"
-  apply (auto simp add: Ints_def)
-  apply (rule range_eqI)
-  apply (rule of_int_mult [symmetric])
-  done
+  by (force simp add: Ints_def simp flip: of_int_mult intro: range_eqI)
 
 lemma Ints_power [simp]: "a \<in> \<int> \<Longrightarrow> a ^ n \<in> \<int>"
   by (induct n) simp_all
@@ -1234,12 +1230,15 @@ next
          of_nat_nat [OF assms] of_nat_nat [OF ge_0], simp)
 qed
 
-lemma nat_mult_distrib_neg: "z \<le> 0 \<Longrightarrow> nat (z * z') = nat (- z) * nat (- z')"
-  for z z' :: int
-  apply (rule trans)
-   apply (rule_tac [2] nat_mult_distrib)
-   apply auto
-  done
+lemma nat_mult_distrib_neg:
+  assumes "z \<le> (0::int)" shows "nat (z * z') = nat (- z) * nat (- z')" (is "?L = ?R")
+proof -
+  have "?L = nat (- z * - z')"
+    using assms by auto
+  also have "... = ?R"
+    by (rule nat_mult_distrib) (use assms in auto)
+  finally show ?thesis .
+qed
 
 lemma nat_abs_mult_distrib: "nat \<bar>w * z\<bar> = nat \<bar>w\<bar> * nat \<bar>z\<bar>"
   by (cases "z = 0 \<or> w = 0")
@@ -1332,16 +1331,14 @@ qed
 (* `set:int': dummy construction *)
 theorem int_gr_induct [case_names base step, induct set: int]:
   fixes i k :: int
-  assumes gr: "k < i"
-    and base: "P (k + 1)"
-    and step: "\<And>i. k < i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
+  assumes "k < i" "P (k + 1)" "\<And>i. k < i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
   shows "P i"
-  apply (rule int_ge_induct[of "k + 1"])
-  using gr apply arith
-   apply (rule base)
-  apply (rule step)
-   apply simp_all
-  done
+proof -
+  have "k+1 \<le> i"
+    using assms by auto
+  then show ?thesis
+    by (induction i rule: int_ge_induct) (auto simp: assms)
+qed
 
 theorem int_le_induct [consumes 1, case_names base step]:
   fixes i k :: int
@@ -1367,16 +1364,14 @@ qed
 
 theorem int_less_induct [consumes 1, case_names base step]:
   fixes i k :: int
-  assumes less: "i < k"
-    and base: "P (k - 1)"
-    and step: "\<And>i. i < k \<Longrightarrow> P i \<Longrightarrow> P (i - 1)"
+  assumes "i < k" "P (k - 1)" "\<And>i. i < k \<Longrightarrow> P i \<Longrightarrow> P (i - 1)"
   shows "P i"
-  apply (rule int_le_induct[of _ "k - 1"])
-  using less apply arith
-   apply (rule base)
-  apply (rule step)
-   apply simp_all
-  done
+proof -
+  have "i \<le> k-1"
+    using assms by auto
+  then show ?thesis
+    by (induction i rule: int_le_induct) (auto simp: assms)
+qed
 
 theorem int_induct [case_names base step1 step2]:
   fixes k :: int
@@ -1401,26 +1396,30 @@ qed
 
 subsection \<open>Intermediate value theorems\<close>
 
-lemma nat_intermed_int_val:
-  "\<exists>i. m \<le> i \<and> i \<le> n \<and> f i = k"
-  if "\<forall>i. m \<le> i \<and> i < n \<longrightarrow> \<bar>f (Suc i) - f i\<bar> \<le> 1"
-    "m \<le> n" "f m \<le> k" "k \<le> f n"
+lemma nat_ivt_aux: 
+  "\<lbrakk>\<forall>i<n. \<bar>f (Suc i) - f i\<bar> \<le> 1; f 0 \<le> k; k \<le> f n\<rbrakk> \<Longrightarrow> \<exists>i \<le> n. f i = k"
   for m n :: nat and k :: int
+proof (induct n)
+  case (Suc n)
+  show ?case
+  proof (cases "k = f (Suc n)")
+    case False
+    with Suc have "k \<le> f n"
+      by auto
+    with Suc show ?thesis
+      by (auto simp add: abs_if split: if_split_asm intro: le_SucI)
+  qed (use Suc in auto)
+qed auto
+
+lemma nat_intermed_int_val:
+  fixes m n :: nat and k :: int
+  assumes "\<forall>i. m \<le> i \<and> i < n \<longrightarrow> \<bar>f (Suc i) - f i\<bar> \<le> 1" "m \<le> n" "f m \<le> k" "k \<le> f n"
+  shows "\<exists>i. m \<le> i \<and> i \<le> n \<and> f i = k"
 proof -
-  have "(\<forall>i<n. \<bar>f (Suc i) - f i\<bar> \<le> 1) \<Longrightarrow> f 0 \<le> k \<Longrightarrow> k \<le> f n
-    \<Longrightarrow> (\<exists>i \<le> n. f i = k)"
-  for n :: nat and f
-    apply (induct n)
-     apply auto
-    apply (erule_tac x = n in allE)
-    apply (case_tac "k = f (Suc n)")
-     apply (auto simp add: abs_if split: if_split_asm intro: le_SucI)
-    done
-  from this [of "n - m" "f \<circ> plus m"] that show ?thesis
-    apply auto
-    apply (rule_tac x = "m + i" in exI)
-    apply auto
-    done
+  obtain i where "i \<le> n - m" "k = f (m + i)"
+    using nat_ivt_aux [of "n - m" "f \<circ> plus m" k] assms by auto
+  with assms show ?thesis
+    by (rule_tac x = "m + i" in exI) auto
 qed
 
 lemma nat0_intermed_int_val:
@@ -1465,14 +1464,12 @@ proof -
     by (auto dest: pos_zmult_eq_1_iff_lemma)
 qed
 
-lemma zmult_eq_1_iff: "m * n = 1 \<longleftrightarrow> (m = 1 \<and> n = 1) \<or> (m = - 1 \<and> n = - 1)"
+lemma zmult_eq_1_iff: "m * n = 1 \<longleftrightarrow> (m = 1 \<and> n = 1) \<or> (m = - 1 \<and> n = - 1)" (is "?L = ?R")
   for m n :: int
-  apply (rule iffI)
-   apply (frule pos_zmult_eq_1_iff_lemma)
-   apply (simp add: mult.commute [of m])
-   apply (frule pos_zmult_eq_1_iff_lemma)
-   apply auto
-  done
+proof
+  assume L: ?L show ?R
+    using pos_zmult_eq_1_iff_lemma [OF L] L by force
+qed auto
 
 lemma infinite_UNIV_int [simp]: "\<not> finite (UNIV::int set)"
 proof
@@ -1677,13 +1674,12 @@ lemma nat_less_numeral_power_cancel_iff [simp]:
   using nat_less_eq_zless[of a "numeral x ^ n"]
   by (cases "a < 0") (auto simp: nat_power_eq less_le_trans[where y=0])
 
-lemma zdvd_imp_le: "z dvd n \<Longrightarrow> 0 < n \<Longrightarrow> z \<le> n"
-  for n z :: int
-  apply (cases n)
-  apply auto
-  apply (cases z)
-   apply (auto simp add: dvd_imp_le)
-  done
+lemma zdvd_imp_le: "z \<le> n" if "z dvd n" "0 < n" for n z :: int
+proof (cases n)
+  case (nonneg n)
+  show ?thesis
+    by (cases z) (use nonneg dvd_imp_le that in auto)
+qed (use that in auto)
 
 lemma zdvd_period:
   fixes a d :: int

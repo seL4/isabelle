@@ -23,7 +23,7 @@ object Grammar
   def generate(keywords: Keyword.Keywords): JSON.S =
   {
     val (minor_keywords, operators) =
-      keywords.minor.iterator.toList.partition(Symbol.is_ascii_identifier(_))
+      keywords.minor.iterator.toList.partition(Symbol.is_ascii_identifier)
 
     def major_keywords(pred: String => Boolean): List[String] =
       (for {
@@ -39,7 +39,7 @@ object Grammar
 
 
     def grouped_names(as: List[String]): String =
-      JSON.Format("\\b(" + as.sorted.map(Library.escape_regex(_)).mkString("|") + ")\\b")
+      JSON.Format("\\b(" + as.sorted.map(Library.escape_regex).mkString("|") + ")\\b")
 
     """{
   "name": "Isabelle",

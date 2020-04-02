@@ -108,7 +108,7 @@ object Isabelle_Tool
   private def find_internal(name: String): Option[List[String] => Unit] =
     internal_tools.collectFirst({
       case tool if tool.name == name =>
-        args => Command_Line.tool0 { tool.body(args) }
+        args => Command_Line.tool { tool.body(args) }
       })
 
 
@@ -116,7 +116,7 @@ object Isabelle_Tool
 
   def main(args: Array[String])
   {
-    Command_Line.tool0 {
+    Command_Line.tool {
       args.toList match {
         case Nil | List("-?") =>
           val tool_descriptions =

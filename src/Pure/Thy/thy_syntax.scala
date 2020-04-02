@@ -136,7 +136,7 @@ object Thy_Syntax
             val new_commands = insert_text(Some(cmd), text) - cmd
             edit_text(rest.toList ::: es, new_commands)
 
-          case Some((cmd, cmd_start)) =>
+          case Some((cmd, _)) =>
             edit_text(es, insert_text(Some(cmd), e.text))
 
           case None =>

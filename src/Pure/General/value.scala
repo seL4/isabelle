@@ -70,7 +70,7 @@ object Value
       val s = t.seconds
       if (s.toInt.toDouble == s) s.toInt.toString else t.toString
     }
-    def unapply(s: java.lang.String): Option[Time] = Double.unapply(s).map(Time.seconds(_))
+    def unapply(s: java.lang.String): Option[Time] = Double.unapply(s).map(Time.seconds)
     def parse(s: java.lang.String): Time =
       unapply(s) getOrElse error("Bad real (for seconds): " + quote(s))
   }

@@ -20,7 +20,7 @@ object CSV
 
   sealed case class Record(fields: Any*)
   {
-    override def toString: String = fields.iterator.map(print_field(_)).mkString(",")
+    override def toString: String = fields.iterator.map(print_field).mkString(",")
   }
 
   sealed case class File(name: String, header: List[String], records: List[Record])

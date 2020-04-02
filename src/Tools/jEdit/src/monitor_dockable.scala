@@ -108,7 +108,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
-      case stats: Session.Statistics =>
+      case stats: Session.Runtime_Statistics =>
         add_statistics(stats.props)
         update_delay.invoke()
 
@@ -118,13 +118,13 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   override def init()
   {
-    PIDE.session.statistics += main
+    PIDE.session.runtime_statistics += main
     PIDE.session.global_options += main
   }
 
   override def exit()
   {
-    PIDE.session.statistics -= main
+    PIDE.session.runtime_statistics -= main
     PIDE.session.global_options -= main
   }
 }

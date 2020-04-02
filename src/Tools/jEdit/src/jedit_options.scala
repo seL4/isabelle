@@ -129,7 +129,7 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
         case None => if (filter(opt.name)) List(make_component(opt)) else Nil
       }
     value.sections.sortBy(_._1).map(
-        { case (a, opts) => (a, opts.sortBy(_.title("jedit")).flatMap(mk_component _)) })
+        { case (a, opts) => (a, opts.sortBy(_.title("jedit")).flatMap(mk_component)) })
       .filterNot(_._2.isEmpty)
   }
 }

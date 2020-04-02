@@ -44,7 +44,7 @@ object Mercurial
 
   def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] =
   {
-    def find(root: Path): Option[Repository] =
+    @tailrec def find(root: Path): Option[Repository] =
       if (is_repository(root, ssh)) Some(repository(root, ssh = ssh))
       else if (root.is_root) None
       else find(root + Path.parent)
@@ -82,7 +82,7 @@ object Mercurial
     val root: Path = ssh.expand_path(root_path)
     def root_url: String = ssh.hg_url + root.implode
 
-    override def toString: String = ssh.prefix + root.implode
+    override def toString: String = ssh.hg_url + root.implode
 
     def command(name: String, args: String = "", options: String = "",
       repository: Boolean = true): Process_Result =
@@ -95,7 +95,7 @@ object Mercurial
     }
 
     def add(files: List[Path]): Unit =
-      hg.command("add", files.map(ssh.bash_path(_)).mkString(" "))
+      hg.command("add", files.map(ssh.bash_path).mkString(" "))
 
     def archive(target: String, rev: String = "", options: String = ""): Unit =
       hg.command("archive", opt_rev(rev) + " " + Bash.string(target), options).check

@@ -46,7 +46,7 @@ object Doc
 
   private def release_notes(): List[Entry] =
     Section("Release Notes", true) ::
-      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file(_))
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file)
 
   private def examples(): List[Entry] =
     Section("Examples", true) ::

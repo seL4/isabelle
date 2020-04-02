@@ -403,7 +403,7 @@ proof -
   from g have "simple_bochner_integral M (\<lambda>x. f (g x)) =
     (\<Sum>y\<in>g ` space M. measure M {x \<in> space M. g x = y} *\<^sub>R f y)"
     by (intro simple_bochner_integral_partition)
-       (auto simp: simple_bochner_integrable_compose2[where p="\<lambda>x y. f x"] zero
+       (auto simp: simple_bochner_integrable_compose2[where p="\<lambda>x y. f x"]
              elim: simple_bochner_integrable.cases)
   also have "\<dots> = f (simple_bochner_integral M g)"
     by (simp add: simple_bochner_integral_def sum scale)
@@ -1379,7 +1379,7 @@ lemma integrable_min[simp, intro]:
 lemma integral_minus_iff[simp]:
   "integrable M (\<lambda>x. - f x ::'a::{banach, second_countable_topology}) \<longleftrightarrow> integrable M f"
   unfolding integrable_iff_bounded
-  by (auto intro: borel_measurable_uminus[of "\<lambda>x. - f x" M, simplified])
+  by (auto)
 
 lemma integrable_indicator_iff:
   "integrable M (indicator A::_ \<Rightarrow> real) \<longleftrightarrow> A \<inter> space M \<in> sets M \<and> emeasure M (A \<inter> space M) < \<infinity>"
@@ -1634,7 +1634,7 @@ proof cases
       with seq show "\<exists>N. \<forall>n\<ge>N. 0 \<le> integral\<^sup>L M (U n)"
         by auto
     qed
-  qed (auto simp: integrable_mult_left_iff)
+  qed (auto)
   also have "\<dots> = integral\<^sup>L M f"
     using nonneg by (auto intro!: integral_cong_AE)
   finally show ?thesis .
@@ -1657,7 +1657,7 @@ proof -
         by (simp add: integrable_indicator_iff ennreal_indicator emeasure_eq_ennreal_measure)
     next
       case (mult f c) then show ?case
-        by (auto simp add: integrable_mult_left_iff nn_integral_cmult ennreal_mult integral_nonneg_AE)
+        by (auto simp add: nn_integral_cmult ennreal_mult integral_nonneg_AE)
     next
       case (add g f)
       then have "integrable M f" "integrable M g"
@@ -2756,7 +2756,7 @@ proof -
       by (auto split: split_indicator simp: eq_commute[of x] cong: conj_cong)
   qed
   also have "\<dots> = (\<Sum>a\<in>A. f a * measure M {a})"
-    using finite by (subst integral_sum) (auto simp add: integrable_mult_left_iff)
+    using finite by (subst integral_sum) (auto)
   finally show ?thesis .
 qed
 

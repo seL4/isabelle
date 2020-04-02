@@ -256,7 +256,7 @@ not affect the running ML session. *)
   val isabelle_tool1 =
     Isabelle_Tool("build_polyml", "build Poly/ML from sources", args =>
     {
-      Command_Line.tool0 {
+      Command_Line.tool {
         var msys_root: Option[Path] = None
         var arch_64 = false
         var sha1_root: Option[Path] = None
@@ -295,7 +295,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   val isabelle_tool2 =
     Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component", args =>
     {
-      Command_Line.tool0 {
+      Command_Line.tool {
         var sha1_root: Option[Path] = None
 
         val getopts = Getopts("""

@@ -300,11 +300,11 @@ class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, optio
   def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[XML.Body]] =
   {
     val elements = if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements
-    tooltips(elements, range).map(info => info.map(Pretty.fbreaks(_)))
+    tooltips(elements, range).map(info => info.map(Pretty.fbreaks))
   }
 
-  lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
-  lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
+  lazy val tooltip_close_icon: Icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
+  lazy val tooltip_detach_icon: Icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 
 
   /* gutter */
@@ -378,7 +378,7 @@ class JEdit_Rendering(snapshot: Document.Snapshot, _model: Document_Model, optio
     else
       snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>
         {
-          case (_, Text.Info(_, elem)) => Rendering.text_color.get(elem.name).map(color(_))
+          case (_, Text.Info(_, elem)) => Rendering.text_color.get(elem.name).map(color)
         })
   }
 

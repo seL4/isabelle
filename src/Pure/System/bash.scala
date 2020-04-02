@@ -35,10 +35,10 @@ object Bash
 
   def string(s: String): String =
     if (s == "") "\"\""
-    else UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
+    else UTF8.bytes(s).iterator.map(bash_chr).mkString
 
   def strings(ss: List[String]): String =
-    ss.iterator.map(Bash.string(_)).mkString(" ")
+    ss.iterator.map(Bash.string).mkString(" ")
 
 
   /* process and result */

@@ -123,6 +123,9 @@ option profiling : string = ""
 option system_heaps : bool = false
   -- "store session heaps in $ISABELLE_HEAPS_SYSTEM, not $ISABELLE_HEAPS"
 
+option pide_build : bool = false
+  -- "build session heaps via PIDE"
+
 
 section "ML System"
 

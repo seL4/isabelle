@@ -7,13 +7,16 @@ Update theory syntax to use cartouches etc.
 package isabelle
 
 
+import scala.util.matching.Regex
+
+
 object Update_Cartouches
 {
   /* update cartouches */
 
   private val Verbatim_Body = """(?s)[ \t]*(.*?)[ \t]*""".r
 
-  val Text_Antiq = """(?s)@\{\s*text\b\s*(.+)\}""".r
+  val Text_Antiq: Regex = """(?s)@\{\s*text\b\s*(.+)\}""".r
 
   def update_text(content: String): String =
   {

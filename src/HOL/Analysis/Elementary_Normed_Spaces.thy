@@ -798,7 +798,7 @@ qed
 corollary cobounded_imp_unbounded:
     fixes S :: "'a::{real_normed_vector, perfect_space} set"
     shows "bounded (- S) \<Longrightarrow> \<not> bounded S"
-  using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
+  using bounded_Un [of S "-S"]  by (simp)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relations among convergence and absolute convergence for power series\<close>
 

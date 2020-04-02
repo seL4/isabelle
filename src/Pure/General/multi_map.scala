@@ -14,7 +14,7 @@ import scala.collection.generic.{ImmutableMapFactory, CanBuildFrom}
 object Multi_Map extends ImmutableMapFactory[Multi_Map]
 {
   private val empty_val: Multi_Map[Any, Nothing] = new Multi_Map[Any, Nothing](Map.empty)
-  override def empty[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
+  override def empty[A, B]: Multi_Map[A, B] = empty_val.asInstanceOf[Multi_Map[A, B]]
 
   implicit def canBuildFrom[A, B]: CanBuildFrom[Coll, (A, B), Multi_Map[A, B]] =
     new MapCanBuildFrom[A, B]
@@ -63,7 +63,7 @@ final class Multi_Map[A, +B] private(protected val rep: Map[A, List[B]])
 
   override def stringPrefix = "Multi_Map"
 
-  override def empty = Multi_Map.empty
+  override def empty: Multi_Map[A, Nothing] = Multi_Map.empty
   override def isEmpty: Boolean = rep.isEmpty
 
   override def keySet: Set[A] = rep.keySet

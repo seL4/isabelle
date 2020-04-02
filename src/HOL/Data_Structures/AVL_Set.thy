@@ -1,6 +1,6 @@
 (*
 Author:     Tobias Nipkow, Daniel Stüwe
-Largely derived from AFP entry AVL.
+Based on the AFP entry AVL.
 *)
 
 section "AVL Tree Implementation of Sets"
@@ -33,26 +33,26 @@ definition node :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
 "node l a r = Node l (a, max (ht l) (ht r) + 1) r"
 
 definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balL l a r =
-  (if ht l = ht r + 2 then
-     case l of 
-       Node bl (b, _) br \<Rightarrow>
-         if ht bl < ht br then
-           case br of
-             Node cl (c, _) cr \<Rightarrow> node (node bl b cl) c (node cr a r)
-         else node bl b (node br a r)
-   else node l a r)"
+"balL AB b C =
+  (if ht AB = ht C + 2 then
+     case AB of 
+       Node A (a, _) B \<Rightarrow>
+         if ht A \<ge> ht B then node A a (node B b C)
+         else
+           case B of
+             Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
+   else node AB b C)"
 
 definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balR l a r =
-   (if ht r = ht l + 2 then
-      case r of
-        Node bl (b, _) br \<Rightarrow>
-          if ht bl > ht br then
-            case bl of
-              Node cl (c, _) cr \<Rightarrow> node (node l a cl) c (node cr b br)
-          else node (node l a bl) b br
-  else node l a r)"
+"balR A a BC =
+   (if ht BC = ht A + 2 then
+      case BC of
+        Node B (b, _) C \<Rightarrow>
+          if ht B \<le> ht C then node (node A a B) b C
+          else
+            case B of
+              Node B\<^sub>1 (ab, _) B\<^sub>2 \<Rightarrow> node (node A a B\<^sub>1) ab (node B\<^sub>2 b C)
+  else node A a BC)"
 
 fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "insert x Leaf = Node Leaf (x, 1) Leaf" |
@@ -67,18 +67,12 @@ fun split_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
 
 lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
-fun del_root :: "'a avl_tree \<Rightarrow> 'a avl_tree" where
-"del_root (Node Leaf (a,_) r) = r" |
-"del_root (Node l (a,_) Leaf) = l" |
-"del_root (Node l (a,_) r) = (let (l', a') = split_max l in balR l' a' r)"
-
-lemmas del_root_cases = del_root.cases[split_format(complete), case_names Leaf_t Node_Leaf Node_Node]
-
 fun delete :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node l (a, n) r) =
   (case cmp x a of
-     EQ \<Rightarrow> del_root (Node l (a, n) r) |
+     EQ \<Rightarrow> if l = Leaf then r
+           else let (l', a') = split_max l in balR l' a' r |
      LT \<Rightarrow> balR (delete x l) a r |
      GT \<Rightarrow> balL l a (delete x r))"
 
@@ -112,16 +106,10 @@ lemma inorder_split_maxD:
 by(induction t arbitrary: t' rule: split_max.induct)
   (auto simp: inorder_balL split: if_splits prod.splits tree.split)
 
-lemma inorder_del_root:
-  "inorder (del_root (Node l ah r)) = inorder l @ inorder r"
-by(cases "Node l ah r" rule: del_root.cases)
-  (auto simp: inorder_balL inorder_balR inorder_split_maxD split: if_splits prod.splits)
-
 theorem inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
-  (auto simp: del_list_simps inorder_balL inorder_balR
-    inorder_del_root inorder_split_maxD split: prod.splits)
+  (auto simp: del_list_simps inorder_balL inorder_balR inorder_split_maxD split: prod.splits)
 
 
 subsection \<open>AVL invariants\<close>
@@ -135,6 +123,8 @@ declare Let_def [simp]
 
 lemma ht_height[simp]: "avl t \<Longrightarrow> ht t = height t"
 by (cases t rule: tree2_cases) simp_all
+
+text \<open>First, a fast but relatively manual proof with many lemmas:\<close>
 
 lemma height_balL:
   "\<lbrakk> height l = height r + 2; avl l; avl r \<rbrakk> \<Longrightarrow>
@@ -207,9 +197,7 @@ next
   qed
 qed
 
-(* It appears that these two properties need to be proved simultaneously: *)
-
-text\<open>Insertion maintains the AVL property:\<close>
+text\<open>Insertion maintains the AVL property. Requires simultaneous proof.\<close>
 
 theorem avl_insert:
   assumes "avl t"
@@ -276,6 +264,15 @@ proof (induction t rule: tree2_induct)
   qed
 qed simp_all
 
+text \<open>Now an automatic proof without lemmas:\<close>
+
+theorem avl_insert_auto: "avl t \<Longrightarrow>
+  avl(insert x t) \<and> height (insert x t) \<in> {height t, height t + 1}"
+apply (induction t rule: tree2_induct)
+ apply (auto split!: if_splits)
+ apply (auto simp: balL_def balR_def node_def max_absorb2 split!: tree.splits)
+done
+
 
 subsubsection \<open>Deletion maintains AVL balance\<close>
 
@@ -298,58 +295,6 @@ next
     apply (auto split:prod.splits simp del:avl.simps) by arith+
 qed auto
 
-lemma avl_del_root:
-  assumes "avl t" and "t \<noteq> Leaf"
-  shows "avl(del_root t)" 
-using assms
-proof (cases t rule:del_root_cases)
-  case (Node_Node ll ln lh lr n h rl rn rh rr)
-  let ?l = "Node ll (ln, lh) lr"
-  let ?r = "Node rl (rn, rh) rr"
-  let ?l' = "fst (split_max ?l)"
-  from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
-  from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
-  hence "avl(?l')" "height ?l = height(?l') \<or>
-         height ?l = height(?l') + 1" by (rule avl_split_max,simp)+
-  with \<open>avl t\<close> Node_Node have "height ?l' = height ?r \<or> height ?l' = height ?r + 1
-            \<or> height ?r = height ?l' + 1 \<or> height ?r = height ?l' + 2" by fastforce
-  with \<open>avl ?l'\<close> \<open>avl ?r\<close> have "avl(balR ?l' (snd(split_max ?l)) ?r)"
-    by (rule avl_balR)
-  with Node_Node show ?thesis by (auto split:prod.splits)
-qed simp_all
-
-lemma height_del_root:
-  assumes "avl t" and "t \<noteq> Leaf" 
-  shows "height t = height(del_root t) \<or> height t = height(del_root t) + 1"
-using assms
-proof (cases t rule: del_root_cases)
-  case (Node_Node ll lx lh lr x h rl rx rh rr)
-  let ?l = "Node ll (lx, lh) lr"
-  let ?r = "Node rl (rx, rh) rr"
-  let ?l' = "fst (split_max ?l)"
-  let ?t' = "balR ?l' (snd(split_max ?l)) ?r"
-  from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
-  from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
-  hence "avl(?l')"  by (rule avl_split_max,simp)
-  have l'_height: "height ?l = height ?l' \<or> height ?l = height ?l' + 1" using \<open>avl ?l\<close> by (intro avl_split_max) auto
-  have t_height: "height t = 1 + max (height ?l) (height ?r)" using \<open>avl t\<close> Node_Node by simp
-  have "height t = height ?t' \<or> height t = height ?t' + 1" using  \<open>avl t\<close> Node_Node
-  proof(cases "height ?r = height ?l' + 2")
-    case False
-    show ?thesis using l'_height t_height False
-      by (subst height_balR2[OF \<open>avl ?l'\<close> \<open>avl ?r\<close> False])+ arith
-  next
-    case True
-    show ?thesis
-    proof(cases rule: disjE[OF height_balR[OF True \<open>avl ?l'\<close> \<open>avl ?r\<close>, of "snd (split_max ?l)"]])
-      case 1 thus ?thesis using l'_height t_height True by arith
-    next
-      case 2 thus ?thesis using l'_height t_height True by arith
-    qed
-  qed
-  thus ?thesis using Node_Node by (auto split:prod.splits)
-qed simp_all
-
 text\<open>Deletion maintains the AVL property:\<close>
 
 theorem avl_delete:
@@ -361,7 +306,8 @@ proof (induct t rule: tree2_induct)
   case 1
   show ?case
   proof(cases "x = a")
-    case True with Node 1 show ?thesis by (auto simp:avl_del_root)
+    case True with Node 1 show ?thesis
+      using avl_split_max[of l] by (auto simp: avl_balR split: prod.split)
   next
     case False
     show ?thesis 
@@ -374,11 +320,8 @@ proof (induct t rule: tree2_induct)
   case 2
   show ?case
   proof(cases "x = a")
-    case True
-    with 1 have "height (Node l (a,n) r) = height(del_root (Node l (a,n) r))
-      \<or> height (Node l (a,n) r) = height(del_root (Node l (a,n) r)) + 1"
-      by (subst height_del_root,simp_all)
-    with True show ?thesis by simp
+    case True then show ?thesis using 1 avl_split_max[of l]
+      by(auto simp: balR_def max_absorb2 split!: if_splits prod.split tree.split)
   next
     case False
     show ?thesis 

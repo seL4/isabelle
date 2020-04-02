@@ -14,8 +14,8 @@ object Isabelle_Devel
   val BUILD_STATUS = "build_status"
   val CRONJOB_LOG = "cronjob-main.log"
 
-  val root = Path.explode("~/html-data/devel")
-  val cronjob_log = root + Path.basic(CRONJOB_LOG)
+  val root: Path = Path.explode("~/html-data/devel")
+  val cronjob_log: Path = root + Path.basic(CRONJOB_LOG)
 
 
   /* index */

@@ -612,7 +612,7 @@ lemma norm_cos_squared:
   apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib sin_squared_eq)
-  apply (simp add: power2_eq_square algebra_simps field_split_simps)
+  apply (simp add: power2_eq_square field_split_simps)
   done
 
 lemma norm_sin_squared:
@@ -621,7 +621,7 @@ lemma norm_sin_squared:
   apply (simp add: sin_add cmod_power2 cos_of_real sin_of_real cos_double_cos exp_double Complex_eq)
   apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib cos_squared_eq)
-  apply (simp add: power2_eq_square algebra_simps field_split_simps)
+  apply (simp add: power2_eq_square field_split_simps)
   done
 
 lemma exp_uminus_Im: "exp (- Im z) \<le> exp (cmod z)"
@@ -1102,7 +1102,7 @@ lemma Arg2pi_times:
   by auto
 
 lemma Arg2pi_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg2pi (cnj z) = Arg2pi (inverse z)"
-  apply (simp add: Arg2pi_eq_iff field_split_simps complex_norm_square [symmetric] mult.commute)
+  apply (simp add: Arg2pi_eq_iff field_split_simps complex_norm_square [symmetric])
   by (metis of_real_power zero_less_norm_iff zero_less_power)
 
 lemma Arg2pi_cnj: "Arg2pi(cnj z) = (if z \<in> \<real> then Arg2pi z else 2*pi - Arg2pi z)"
@@ -1946,7 +1946,7 @@ lemma Arg_inverse_eq_0: "Arg(inverse z) = 0 \<longleftrightarrow> Arg z = 0"
   by (metis Arg_eq_0 Arg_inverse inverse_inverse_eq)
 
 lemma Arg_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg (cnj z) = Arg (inverse z)"
-  apply (simp add: Arg_eq_iff field_split_simps complex_norm_square [symmetric] mult.commute)
+  apply (simp add: Arg_eq_iff field_split_simps complex_norm_square [symmetric])
   by (metis of_real_power zero_less_norm_iff zero_less_power)
 
 lemma Arg_cnj: "Arg(cnj z) = (if z \<in> \<real> then Arg z else - Arg z)"
@@ -2936,7 +2936,7 @@ proof -
     unfolding Arctan_def scaleR_conv_of_real
     apply (intro derivative_eq_intros | simp add: nz0 *)+
     using nz0 nz1 zz
-    apply (simp add: algebra_simps field_split_simps power2_eq_square)
+    apply (simp add: field_split_simps power2_eq_square)
     apply algebra
     done
 qed
@@ -3014,7 +3014,7 @@ proof -
   have "\<exists>c. \<forall>u\<in>ball 0 1. Arctan u - G u = c"
   proof (rule has_field_derivative_zero_constant)
     fix u :: complex assume "u \<in> ball 0 1"
-    hence u: "norm u < 1" by (simp add: dist_0_norm)
+    hence u: "norm u < 1" by (simp)
     define K where "K = (norm u + 1) / 2"
     from u and abs_Im_le_cmod[of u] have Im_u: "\<bar>Im u\<bar> < 1" by linarith
     from u have K: "0 \<le> K" "norm u < K" "K < 1" by (simp_all add: K_def)
@@ -3634,7 +3634,7 @@ lemma cos_Arcsin_nonzero:
   assumes "z\<^sup>2 \<noteq> 1" shows "cos(Arcsin z) \<noteq> 0"
 proof -
   have eq: "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = z\<^sup>2 * (z\<^sup>2 - 1)"
-    by (simp add: power_mult_distrib algebra_simps)
+    by (simp add: algebra_simps)
   have "\<i> * z * (csqrt (1 - z\<^sup>2)) \<noteq> z\<^sup>2 - 1"
   proof
     assume "\<i> * z * (csqrt (1 - z\<^sup>2)) = z\<^sup>2 - 1"
@@ -3665,7 +3665,7 @@ lemma sin_Arccos_nonzero:
   assumes "z\<^sup>2 \<noteq> 1" shows "sin(Arccos z) \<noteq> 0"
 proof -
   have eq: "(\<i> * z * (csqrt (1 - z\<^sup>2)))\<^sup>2 = -(z\<^sup>2) * (1 - z\<^sup>2)"
-    by (simp add: power_mult_distrib algebra_simps)
+    by (simp add: algebra_simps)
   have "\<i> * z * (csqrt (1 - z\<^sup>2)) \<noteq> 1 - z\<^sup>2"
   proof
     assume "\<i> * z * (csqrt (1 - z\<^sup>2)) = 1 - z\<^sup>2"
@@ -3971,7 +3971,7 @@ theorem complex_root_unity:
     shows "exp(2 * of_real pi * \<i> * of_nat j / of_nat n)^n = 1"
 proof -
   have *: "of_nat j * (complex_of_real pi * 2) = complex_of_real (2 * real j * pi)"
-    by (simp add: of_real_numeral)
+    by (simp)
   then show ?thesis
     apply (simp add: exp_of_nat_mult [symmetric] mult_ac exp_Euler)
     apply (simp only: * cos_of_real sin_of_real)
@@ -4006,7 +4006,7 @@ proof -
    note * = this
   show ?thesis
     using assms
-    by (simp add: exp_eq field_split_simps mult_ac of_real_numeral *)
+    by (simp add: exp_eq field_split_simps *)
 qed
 
 corollary bij_betw_roots_unity:

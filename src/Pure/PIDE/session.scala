@@ -61,7 +61,10 @@ object Session
   /* events */
 
   //{{{
-  case class Statistics(props: Properties.T)
+  case class Command_Timing(props: Properties.T)
+  case class Theory_Timing(props: Properties.T)
+  case class Runtime_Statistics(props: Properties.T)
+  case class Task_Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
@@ -175,7 +178,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
 
   /* outlets */
 
-  val statistics = new Session.Outlet[Session.Statistics](dispatcher)
+  val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
+  val theory_timings = new Session.Outlet[Session.Theory_Timing](dispatcher)
+  val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
+  val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher)
   val global_options = new Session.Outlet[Session.Global_Options](dispatcher)
   val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher)
   val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher)
@@ -213,7 +219,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
   private val _phase = Synchronized[Session.Phase](Session.Inactive)
   private def phase_=(new_phase: Session.Phase): Unit = _phase.change(_ => post_phase(new_phase))
 
-  def phase = _phase.value
+  def phase: Session.Phase = _phase.value
   def is_ready: Boolean = phase == Session.Ready
 
 
@@ -480,13 +486,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 init_protocol_handler(name)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
+                command_timings.post(Session.Command_Timing(msg.properties.tail))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
 
               case Protocol.Theory_Timing(_, _) =>
-                // FIXME
+                theory_timings.post(Session.Theory_Timing(msg.properties.tail))
 
-              case Markup.Export(args)
+              case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
@@ -526,10 +533,10 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 }
 
               case Markup.ML_Statistics(props) =>
-                statistics.post(Session.Statistics(props))
+                runtime_statistics.post(Session.Runtime_Statistics(props))
 
               case Markup.Task_Statistics(props) =>
-                // FIXME
+                task_statistics.post(Session.Task_Statistics(props))
 
               case _ => bad_output()
             }
@@ -566,14 +573,14 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
         //{{{
         arg match {
           case output: Prover.Output =>
-            if (output.is_stdout || output.is_stderr)
-              raw_output_messages.post(output)
-            else handle_output(output)
-
             if (output.is_syslog) {
               syslog += output.message
               syslog_messages.post(output)
             }
+
+            if (output.is_stdout || output.is_stderr)
+              raw_output_messages.post(output)
+            else handle_output(output)
 
             all_messages.post(output)
 
@@ -645,7 +652,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
           case Session.Change_Flush if prover.defined =>
             val state = global_state.value
             if (!state.removing_versions)
-              postponed_changes.flush(state).foreach(handle_change(_))
+              postponed_changes.flush(state).foreach(handle_change)
 
           case bad =>
             if (verbose) Output.warning("Ignoring bad message: " + bad.toString)

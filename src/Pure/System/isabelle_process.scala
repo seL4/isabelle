@@ -12,39 +12,18 @@ import java.io.{File => JFile}
 
 object Isabelle_Process
 {
-  def start(session: Session,
-    options: Options,
-    logic: String = "",
-    args: List[String] = Nil,
-    dirs: List[Path] = Nil,
-    modes: List[String] = Nil,
-    cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings(),
-    sessions_structure: Option[Sessions.Structure] = None,
-    store: Option[Sessions.Store] = None,
-    phase_changed: Session.Phase => Unit = null)
-  {
-    if (phase_changed != null)
-      session.phase_changed += Session.Consumer("Isabelle_Process")(phase_changed)
-
-    session.start(receiver =>
-      Isabelle_Process(options, logic = logic, args = args, dirs = dirs, modes = modes,
-        cwd = cwd, env = env, receiver = receiver, xml_cache = session.xml_cache,
-        sessions_structure = sessions_structure, store = store))
-  }
-
   def apply(
+    session: Session,
     options: Options,
+    sessions_structure: Sessions.Structure,
+    store: Sessions.Store,
     logic: String = "",
-    args: List[String] = Nil,
-    dirs: List[Path] = Nil,
+    raw_ml_system: Boolean = false,
+    use_prelude: List[String] = Nil,
+    eval_main: String = "",
     modes: List[String] = Nil,
     cwd: JFile = null,
-    env: Map[String, String] = Isabelle_System.settings(),
-    receiver: Prover.Receiver = (msg: Prover.Message) => Output.writeln(msg.toString, stdout = true),
-    xml_cache: XML.Cache = XML.make_cache(),
-    sessions_structure: Option[Sessions.Structure] = None,
-    store: Option[Sessions.Store] = None): Prover =
+    env: Map[String, String] = Isabelle_System.settings()): Isabelle_Process =
   {
     val channel = System_Channel()
     val process =
@@ -52,12 +31,44 @@ object Isabelle_Process
         val channel_options =
           options.string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(channel_options, logic = logic, args = args, dirs = dirs, modes = modes,
-            cwd = cwd, env = env, sessions_structure = sessions_structure, store = store)
+        ML_Process(channel_options, sessions_structure, store,
+          logic = logic, raw_ml_system = raw_ml_system,
+          use_prelude = use_prelude, eval_main = eval_main,
+          modes = modes, cwd = cwd, env = env)
       }
       catch { case exn @ ERROR(_) => channel.shutdown(); throw exn }
     process.stdin.close
 
-    new Prover(receiver, xml_cache, channel, process)
+    new Isabelle_Process(session, channel, process)
   }
+}
+
+class Isabelle_Process private(session: Session, channel: System_Channel, process: Bash.Process)
+{
+  private val startup = Future.promise[String]
+  private val terminated = Future.promise[Process_Result]
+
+  session.phase_changed +=
+    Session.Consumer(getClass.getName) {
+      case Session.Ready =>
+        startup.fulfill("")
+      case Session.Terminated(result) =>
+        if (!result.ok && !startup.is_finished) {
+          val syslog = session.syslog_content()
+          val err = "Session startup failed" + (if (syslog.isEmpty) "" else ":\n" + syslog)
+          startup.fulfill(err)
+        }
+        terminated.fulfill(result)
+      case _ =>
+    }
+
+  session.start(receiver => new Prover(receiver, session.xml_cache, channel, process))
+
+  def await_startup(): Isabelle_Process =
+    startup.join match {
+      case "" => this
+      case err => session.stop(); error(err)
+    }
+
+  def join(): Process_Result = terminated.join
 }

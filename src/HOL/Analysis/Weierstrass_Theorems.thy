@@ -110,7 +110,7 @@ proof -
       then have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
         by (simp add: power2_eq_square)
       then show ?thesis
-        using n by (simp add: sum_divide_distrib field_split_simps mult.commute power2_commute)
+        using n by (simp add: sum_divide_distrib field_split_simps power2_commute)
     qed
     { fix k
       assume k: "k \<le> n"
@@ -158,7 +158,7 @@ proof -
     also have "... < e"
       apply (simp add: field_simps)
       using \<open>d>0\<close> nbig e \<open>n>0\<close>
-      apply (simp add: field_split_simps algebra_simps)
+      apply (simp add: field_split_simps)
       using ed0 by linarith
     finally have "\<bar>f x - (\<Sum>k\<le>n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
   }
@@ -576,7 +576,7 @@ proof -
   define B where "B j = {x \<in> S. f x \<ge> (j + 1/3)*e}" for j :: nat
   have ngt: "(n-1) * e \<ge> normf f" "n\<ge>1"
     using e
-    apply (simp_all add: n_def field_simps of_nat_Suc)
+    apply (simp_all add: n_def field_simps)
     by (metis real_nat_ceiling_ge mult.commute not_less pos_less_divide_eq)
   then have ge_fx: "(n-1) * e \<ge> f x" if "x \<in> S" for x
     using f normf_upper that by fastforce
@@ -646,7 +646,7 @@ proof -
       then have "t \<in> B i"
         using Anj e ge_fx [OF t] \<open>1 \<le> n\<close> fpos [OF t] t
         apply (simp add: A_def B_def)
-        apply (clarsimp simp add: field_simps of_nat_diff not_le of_nat_Suc)
+        apply (clarsimp simp add: field_simps of_nat_diff not_le)
         apply (rule order_trans [of _ "e * 2 + (e * (real d * 3) + e * (real i * 3))"])
         apply auto
         done
@@ -693,7 +693,7 @@ proof -
         apply simp
         apply (rule order_trans [OF _ sum_bounded_below [OF less_imp_le [OF ****]]])
         using True
-        apply (simp_all add: of_nat_Suc of_nat_diff)
+        apply (simp_all add: of_nat_diff)
         done
       also have "... \<le> g t"
         using jn e
@@ -744,7 +744,7 @@ proof -
       have "\<not> real (Suc n) < inverse e"
         using \<open>N \<le> n\<close> N using less_imp_inverse_less by force
       then have "1 / (1 + real n) \<le> e"
-        using e by (simp add: field_simps of_nat_Suc)
+        using e by (simp add: field_simps)
       then have "\<bar>f x - g x\<bar> < e"
         using n(2) x by auto
     } note * = this
@@ -927,7 +927,7 @@ next
   show ?case
     apply (rule_tac x="\<lambda>i. c" in exI)
     apply (rule_tac x=0 in exI)
-    apply (auto simp: mult_ac of_nat_Suc)
+    apply (auto simp: mult_ac)
     done
   case (add f1 f2)
   then obtain a1 n1 a2 n2 where
@@ -1328,7 +1328,7 @@ proof (rule vector_eq_dot_span [OF _ \<open>x \<in> span B\<close>])
     also have "... = (\<Sum>j\<in>B. if j = i then x \<bullet> i else 0)"
       by (rule sum.cong; simp)
     also have "... = i \<bullet> x"
-      by (simp add: \<open>finite B\<close> that inner_commute sum.delta)
+      by (simp add: \<open>finite B\<close> that inner_commute)
     finally show ?thesis .
   qed
 qed

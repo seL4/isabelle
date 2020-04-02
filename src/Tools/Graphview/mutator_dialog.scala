@@ -110,7 +110,7 @@ class Mutator_Dialog(
     filter_panel.repaint
   }
 
-  val filter_panel = new BoxPanel(Orientation.Vertical) {}
+  val filter_panel: BoxPanel = new BoxPanel(Orientation.Vertical) {}
 
   private val mutator_box = new ComboBox[Mutator](container.available)
 

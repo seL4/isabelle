@@ -23,10 +23,10 @@ object Command_Line
 
   var debug = false
 
-  def tool(body: => Int): Nothing =
+  def tool(body: => Unit): Nothing =
   {
     val rc =
-      try { body }
+      try { body; 0 }
       catch {
         case exn: Throwable =>
           Output.error_message(Exn.message(exn) + (if (debug) "\n" + Exn.trace(exn) else ""))
@@ -35,6 +35,6 @@ object Command_Line
     sys.exit(rc)
   }
 
-  def tool0(body: => Unit): Nothing = tool { body; 0 }
+  def ML_tool(body: List[String]): String =
+    "Command_Line.tool (fn () => (" + body.mkString("; ") + "));"
 }
-

@@ -8,7 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import scala.collection.SortedSet
+import scala.collection.{SortedSet, mutable}
 import scala.annotation.tailrec
 
 
@@ -153,16 +153,19 @@ object Build
   class Handler(progress: Progress, session: Session, session_name: String)
     extends Session.Protocol_Handler
   {
-    val result_error: Promise[String] = Future.promise
+    val build_session_errors: Promise[List[String]] = Future.promise
 
-    override def exit() { result_error.cancel }
+    override def exit() { build_session_errors.cancel }
 
     private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
     {
-      val error_message =
-        try { Pretty.string_of(Symbol.decode_yxml(msg.text)) }
-        catch { case ERROR(msg) => msg }
-      result_error.fulfill(error_message)
+      val errors =
+        try {
+          for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text))) yield
+            Pretty.string_of(Protocol_Message.expose_no_reports(err), metric = Symbol.Metric)
+        }
+        catch { case ERROR(err) => List(err) }
+      build_session_errors.fulfill(errors)
       session.send_stop()
       true
     }
@@ -177,8 +180,8 @@ object Build
 
     val functions =
       List(
-        Markup.BUILD_SESSION_FINISHED -> build_session_finished _,
-        Markup.LOADING_THEORY -> loading_theory _)
+        Markup.BUILD_SESSION_FINISHED -> build_session_finished,
+        Markup.LOADING_THEORY -> loading_theory)
   }
 
 
@@ -189,15 +192,14 @@ object Build
     val info: Sessions.Info,
     deps: Sessions.Deps,
     store: Sessions.Store,
-    do_output: Boolean,
+    do_store: Boolean,
     verbose: Boolean,
-    pide: Boolean,
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val options = NUMA.policy_options(info.options, numa_node)
+    private val options = NUMA.policy_options(info.options, numa_node)
 
-    val sessions_structure = deps.sessions_structure
+    private val sessions_structure = deps.sessions_structure
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
@@ -209,27 +211,27 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
-        val base = deps(name)
+        val base = deps(parent)
         val args_yxml =
           YXML.string_of_body(
             {
               import XML.Encode._
-              pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
+              pair(list(pair(string, int)), pair(list(properties), pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
                 pair(list(pair(Options.encode, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
-                pair(list(string), list(string))))))))))))))))))(
-              (Symbol.codes, (command_timings, (do_output, (verbose,
+                pair(list(string), list(string)))))))))))))))))(
+              (Symbol.codes, (command_timings, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                 (parent, (info.chapter, (name, (Path.current,
                 (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
                 (base.doc_names, (base.global_theories.toList,
-                (base.loaded_theories.keys, info.bibtex_entries.map(_.info)))))))))))))))))))
+                (base.loaded_theories.keys, info.bibtex_entries.map(_.info))))))))))))))))))
             })
 
         val env =
@@ -237,82 +239,111 @@ object Build
             ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
-        def save_heap: String =
-          (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
-            "ML_Heap.save_child " +
-            ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
+        val is_pure = Sessions.is_pure(name)
 
-        if (pide && !Sessions.is_pure(name)) {
+        val use_prelude = if (is_pure) Thy_Header.ml_roots.map(_._1) else Nil
+
+        val eval_store =
+          if (do_store) {
+            (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
+            List("ML_Heap.save_child " +
+              ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
+          }
+          else Nil
+
+        if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
           val handler = new Handler(progress, session, name)
           session.init_protocol_handler(handler)
 
-          val session_result = Future.promise[Process_Result]
+          val stdout = new StringBuilder(1000)
+          val messages = new mutable.ListBuffer[String]
+          val command_timings = new mutable.ListBuffer[Properties.T]
+          val theory_timings = new mutable.ListBuffer[Properties.T]
+          val runtime_statistics = new mutable.ListBuffer[Properties.T]
+          val task_statistics = new mutable.ListBuffer[Properties.T]
 
-          Isabelle_Process.start(session, options, logic = parent, cwd = info.dir.file, env = env,
-            sessions_structure = Some(sessions_structure), store = Some(store),
-            phase_changed =
-            {
-              case Session.Ready => session.protocol_command("build_session", args_yxml)
-              case Session.Terminated(result) => session_result.fulfill(result)
+          val consumer =
+            Session.Consumer[Any]("build_session_output") {
+              case msg: Prover.Output =>
+                val message = msg.message
+                if (msg.is_stdout) {
+                  stdout ++= Symbol.encode(XML.content(message))
+                }
+                else if (Protocol.is_exported(message)) {
+                  messages +=
+                    Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
+                }
+              case Session.Command_Timing(props) => command_timings += props
+              case Session.Theory_Timing(props) => theory_timings += props
+              case Session.Runtime_Statistics(props) => runtime_statistics += props
+              case Session.Task_Statistics(props) => task_statistics += props
               case _ =>
-            })
+            }
 
-          val result = session_result.join
-          handler.result_error.join match {
-            case "" => result
-            case msg =>
-              result.copy(
-                rc = result.rc max 1,
-                out_lines = result.out_lines ::: split_lines(Output.error_message_text(msg)))
+          session.all_messages += consumer
+          session.command_timings += consumer
+          session.theory_timings += consumer
+          session.runtime_statistics += consumer
+          session.task_statistics += consumer
+
+          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
+
+          val process =
+            Isabelle_Process(session, options, sessions_structure, store,
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env).await_startup
+
+          session.protocol_command("build_session", args_yxml)
+
+          val process_result = process.join
+          val process_output =
+            stdout.toString :: messages.toList :::
+            command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+            theory_timings.toList.map(Protocol.Theory_Timing_Marker.apply) :::
+            runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+            task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply)
+
+          val result = process_result.output(process_output)
+          handler.build_session_errors.join match {
+            case Nil => result
+            case errors =>
+              result.error_rc.output(
+                errors.flatMap(s => split_lines(Output.error_message_text(s))) :::
+                errors.map(Protocol.Error_Message_Marker.apply))
           }
         }
         else {
           val args_file = Isabelle_System.tmp_file("build")
           File.write(args_file, args_yxml)
 
-          val eval =
-            "Command_Line.tool0 (fn () => (" +
-            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file)) +
-            (if (Sessions.is_pure(name)) "; Theory.install_pure (Thy_Info.get_theory Context.PureN)"
-             else "") + (if (do_output) "; " + save_heap else "") + "));"
+          val eval_build =
+            "Build.build " + ML_Syntax.print_string_bytes(File.standard_path(args_file))
+          val eval_main = Command_Line.ML_tool(eval_build :: eval_store)
 
           val process =
-            if (Sessions.is_pure(name)) {
-              ML_Process(options, raw_ml_system = true, cwd = info.dir.file,
-                args =
-                  (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
-                  List("--eval", eval),
-                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
-                cleanup = () => args_file.delete)
-            }
-            else {
-              ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
-                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
-                cleanup = () => args_file.delete)
-            }
+            ML_Process(options, deps.sessions_structure, store,
+              logic = parent, raw_ml_system = is_pure,
+              use_prelude = use_prelude, eval_main = eval_main,
+              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
 
           process.result(
-            progress_stdout = (line: String) =>
-              Library.try_unprefix("\floading_theory = ", line) match {
-                case Some(theory) =>
+            progress_stdout =
+              {
+                case Protocol.Loading_Theory_Marker(theory) =>
                   progress.theory(Progress.Theory(theory, session = name))
-                case None =>
-                  for {
-                    text <- Library.try_unprefix("\fexport = ", line)
-                    (args, path) <-
-                      Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
-                  } {
-                    val body =
-                      try { Bytes.read(path) }
-                      catch {
-                        case ERROR(msg) =>
-                          error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
-                      }
-                    path.file.delete
-                    export_consumer(name, args, body)
-                  }
+                case Protocol.Export.Marker((args, path)) =>
+                  val body =
+                    try { Bytes.read(path) }
+                    catch {
+                      case ERROR(msg) =>
+                        error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
+                    }
+                  path.file.delete
+                  export_consumer(name, args, body)
+                case _ =>
               },
             progress_limit =
               options.int("process_output_limit") match {
@@ -337,7 +368,7 @@ object Build
     {
       val result0 = future_result.join
       val result1 =
-        export_consumer.shutdown(close = true).map(Output.error_message_text(_)) match {
+        export_consumer.shutdown(close = true).map(Output.error_message_text) match {
           case Nil => result0
           case errs => result0.errors(errs).error_rc
         }
@@ -363,7 +394,7 @@ object Build
         else result1
 
       val heap_digest =
-        if (result2.ok && do_output && store.output_heap(name).is_file)
+        if (result2.ok && do_store && store.output_heap(name).is_file)
           Some(Sessions.write_heap_digest(store.output_heap(name)))
         else None
 
@@ -381,7 +412,7 @@ object Build
     def cancelled(name: String): Boolean = results(name)._1.isEmpty
     def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
     def info(name: String): Sessions.Info = results(name)._2
-    val rc =
+    val rc: Int =
       (0 /: results.iterator.map(
         { case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
     def ok: Boolean = rc == 0
@@ -407,7 +438,6 @@ object Build
     soft_build: Boolean = false,
     verbose: Boolean = false,
     export_files: Boolean = false,
-    pide: Boolean = false,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     base_sessions: List[String] = Nil,
@@ -544,7 +574,7 @@ object Build
 
             val (process_result, heap_digest) = job.join
 
-            val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
+            val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
             val process_result_tail =
             {
               val tail = job.info.options.int("process_output_tail")
@@ -581,7 +611,7 @@ object Build
             }
 
             // messages
-            process_result.err_lines.foreach(progress.echo(_))
+            process_result.err_lines.foreach(progress.echo)
 
             if (process_result.ok)
               progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
@@ -595,14 +625,14 @@ object Build
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
-            pending.dequeue(running.isDefinedAt(_)) match {
+            pending.dequeue(running.isDefinedAt) match {
               case Some((name, info)) =>
                 val ancestor_results =
                   deps.sessions_structure.build_requirements(List(name)).filterNot(_ == name).
                     map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
-                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+                val do_store = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heap_digest) =
                 {
@@ -617,7 +647,7 @@ object Build
                             build.sources == sources_stamp(deps, name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
-                            !(do_output && heap_digest.isEmpty)
+                            !(do_store && heap_digest.isEmpty)
                           (current, heap_digest)
                         case None => (false, None)
                       }
@@ -635,14 +665,14 @@ object Build
                     results + (name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  progress.echo((if (do_store) "Building " else "Running ") + name + " ...")
 
                   store.clean_output(name)
                   using(store.open_database(name, output = true))(store.init_session_info(_, name))
 
-                  val numa_node = numa_nodes.next(used_node(_))
+                  val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_output, verbose, pide = pide,
+                    new Job(progress, name, info, deps, store, do_store, verbose,
                       numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
@@ -730,7 +760,6 @@ object Build
     var base_sessions: List[String] = Nil
     var select_dirs: List[Path] = Nil
     var numa_shuffling = false
-    var pide = false
     var requirements = false
     var soft_build = false
     var exclude_session_groups: List[String] = Nil
@@ -756,7 +785,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -P           build via PIDE protocol
     -R           operate on requirements of selected sessions
     -S           soft build: only observe changes of sources, not heap images
     -X NAME      exclude sessions from group NAME and all descendants
@@ -781,7 +809,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "N" -> (_ => numa_shuffling = true),
-      "P" -> (_ => pide = true),
       "R" -> (_ => requirements = true),
       "S" -> (_ => soft_build = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
@@ -831,7 +858,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
           soft_build = soft_build,
           verbose = verbose,
           export_files = export_files,
-          pide = pide,
           requirements = requirements,
           all_sessions = all_sessions,
           base_sessions = base_sessions,

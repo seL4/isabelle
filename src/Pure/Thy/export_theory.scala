@@ -23,7 +23,7 @@ object Export_Theory
       else None
 
     def theories: List[Theory] =
-      theory_graph.topological_order.flatMap(theory(_))
+      theory_graph.topological_order.flatMap(theory)
   }
 
   def read_session(

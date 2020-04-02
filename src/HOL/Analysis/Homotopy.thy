@@ -901,7 +901,7 @@ proof -
     apply (rule pip [unfolded path_image_def, THEN subsetD])
     apply (rule image_eqI, blast)
     apply (simp add: algebra_simps)
-    by (metis add_mono_thms_linordered_semiring(1) affine_ineq linear mult.commute mult.left_neutral mult_right_mono not_le
+    by (metis add_mono_thms_linordered_semiring(1) affine_ineq linear mult.commute mult.left_neutral mult_right_mono
               add.commute zero_le_numeral)
   have qs: "\<And>a b. \<lbrakk>4 * b \<le> 3; \<not> b * 2 \<le> 1\<rbrakk> \<Longrightarrow> q (4 * b - 2) \<in> s"
     using path_image_def piq by fastforce

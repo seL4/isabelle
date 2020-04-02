@@ -10,7 +10,7 @@ sig
   val theory_qualifier: theory -> string
   val document_option: Options.T -> {enabled: bool, disabled: bool}
   val document_variants: Options.T -> (string * string) list
-  val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
+  val init: HTML.symbols -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
   val theory_output: theory -> string list -> unit
@@ -165,28 +165,25 @@ fun document_variants options =
 
 (* init session *)
 
-fun init symbols build info info_path doc document_output doc_variants doc_files graph_file
+fun init symbols info info_path doc document_output doc_variants doc_files graph_file
     (chapter, name) verbose =
-  if not build andalso not info andalso doc = "" then
-    (Synchronized.change browser_info (K empty_browser_info); session_info := NONE)
-  else
-    let
-      val doc_output =
-        if document_output = "" then NONE else SOME (Path.explode document_output);
+  let
+    val doc_output =
+      if document_output = "" then NONE else SOME (Path.explode document_output);
 
-      val documents = if doc = "" orelse null doc_files then [] else doc_variants;
-      val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
+    val documents = if doc = "" orelse null doc_files then [] else doc_variants;
+    val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
 
-      val docs =
-        (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
-          map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
-    in
-      session_info :=
-        SOME (make_session_info (symbols, name, chapter, info_path, info, doc,
-          doc_output, doc_files, graph_file, documents, verbose, readme));
-      Synchronized.change browser_info (K empty_browser_info);
-      add_html_index (0, HTML.begin_session_index symbols name (Url.File session_graph_path) docs)
-    end;
+    val docs =
+      (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
+        map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
+  in
+    session_info :=
+      SOME (make_session_info (symbols, name, chapter, info_path, info, doc,
+        doc_output, doc_files, graph_file, documents, verbose, readme));
+    Synchronized.change browser_info (K empty_browser_info);
+    add_html_index (0, HTML.begin_session_index symbols name (Url.File session_graph_path) docs)
+  end;
 
 
 (* isabelle tool wrappers *)

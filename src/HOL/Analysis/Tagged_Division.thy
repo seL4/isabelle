@@ -2447,7 +2447,7 @@ proof -
               finally show "a \<bullet> i + real ?k * (b \<bullet> i - a \<bullet> i) / 2 ^ n \<le> x \<bullet> i" .
             next
               have "x \<bullet> i \<le> a \<bullet> i + (2 ^ n * (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (b \<bullet> i - a \<bullet> i) / 2 ^ n"
-                using abi_less by (simp add: field_split_simps algebra_simps)
+                using abi_less by (simp add: field_split_simps)
               also have "... \<le> a \<bullet> i + (real ?k + 1) * (b \<bullet> i - a \<bullet> i) / 2 ^ n"
                 apply (intro add_left_mono mult_right_mono divide_right_mono of_nat_floor)
                 using aibi [OF \<open>i \<in> Basis\<close>] xab
@@ -2488,12 +2488,12 @@ proof -
       proof -
         have dd: "w / m \<le> v / n \<and> (v+1) / n \<le> (w+1) / m
                   \<Longrightarrow> inverse n \<le> inverse m" for w m v n::real
-          by (auto simp: field_split_simps algebra_simps)
+          by (auto simp: field_split_simps)
         have bjaj: "b \<bullet> j - a \<bullet> j > 0"
           using \<open>j \<in> Basis\<close> \<open>box a b \<noteq> {}\<close> box_eq_empty(1) by fastforce
         have "((g j) / 2 ^ m) * (b \<bullet> j - a \<bullet> j) \<le> ((f j) / 2 ^ n) * (b \<bullet> j - a \<bullet> j) \<and>
               (((f j) + 1) / 2 ^ n) * (b \<bullet> j - a \<bullet> j) \<le> (((g j) + 1) / 2 ^ m) * (b \<bullet> j - a \<bullet> j)"
-          using that \<open>j \<in> Basis\<close> by (simp add: subset_box algebra_simps field_split_simps aibi)
+          using that \<open>j \<in> Basis\<close> by (simp add: subset_box field_split_simps aibi)
         then have "((g j) / 2 ^ m) \<le> ((f j) / 2 ^ n) \<and>
           ((real(f j) + 1) / 2 ^ n) \<le> ((real(g j) + 1) / 2 ^ m)"
           by (metis bjaj mult.commute of_nat_1 of_nat_add real_mult_le_cancel_iff2)

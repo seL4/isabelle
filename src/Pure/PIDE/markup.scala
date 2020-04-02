@@ -58,8 +58,8 @@ object Markup
 
   /* basic markup */
 
-  val Empty = Markup("", Nil)
-  val Broken = Markup("broken", Nil)
+  val Empty: Markup = Markup("", Nil)
+  val Broken: Markup = Markup("broken", Nil)
 
   class Markup_String(val name: String, prop: String)
   {
@@ -625,57 +625,10 @@ object Markup
   /* export */
 
   val EXPORT = "export"
-
-  object Export
-  {
-    sealed case class Args(
-      id: Option[String],
-      serial: Long,
-      theory_name: String,
-      name: String,
-      executable: Boolean,
-      compress: Boolean,
-      strict: Boolean)
-    {
-      def compound_name: String = isabelle.Export.compound_name(theory_name, name)
-    }
-
-    val THEORY_NAME = "theory_name"
-    val EXECUTABLE = "executable"
-    val COMPRESS = "compress"
-    val STRICT = "strict"
-
-    def dest_inline(props: Properties.T): Option[(Args, Path)] =
-      props match {
-        case
-          List(
-            (SERIAL, Value.Long(serial)),
-            (THEORY_NAME, theory_name),
-            (NAME, name),
-            (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress)),
-            (STRICT, Value.Boolean(strict)),
-            (FILE, file)) if isabelle.Path.is_valid(file) =>
-          val args = Args(None, serial, theory_name, name, executable, compress, strict)
-          Some((args, isabelle.Path.explode(file)))
-        case _ => None
-      }
-
-    def unapply(props: Properties.T): Option[Args] =
-      props match {
-        case List(
-            (FUNCTION, EXPORT),
-            (ID, id),
-            (SERIAL, Value.Long(serial)),
-            (THEORY_NAME, theory_name),
-            (NAME, name),
-            (EXECUTABLE, Value.Boolean(executable)),
-            (COMPRESS, Value.Boolean(compress)),
-            (STRICT, Value.Boolean(strict))) =>
-          Some(Args(proper_string(id), serial, theory_name, name, executable, compress, strict))
-        case _ => None
-      }
-  }
+  val THEORY_NAME = "theory_name"
+  val EXECUTABLE = "executable"
+  val COMPRESS = "compress"
+  val STRICT = "strict"
 
 
   /* debugger output */

@@ -23,7 +23,7 @@ object Debugger
   {
     def size: Int = debug_states.length + 1
     def reset: Context = copy(index = 0)
-    def select(i: Int) = copy(index = i + 1)
+    def select(i: Int): Context = copy(index = i + 1)
 
     def thread_state: Option[Debug_State] = debug_states.headOption
 
@@ -143,8 +143,8 @@ object Debugger
 
     val functions =
       List(
-        Markup.DEBUGGER_STATE -> debugger_state _,
-        Markup.DEBUGGER_OUTPUT -> debugger_output _)
+        Markup.DEBUGGER_STATE -> debugger_state,
+        Markup.DEBUGGER_OUTPUT -> debugger_output)
   }
 }
 

@@ -143,7 +143,7 @@ object Export
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
-  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes,
+  def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes,
     cache: XZ.Cache = XZ.cache()): Entry =
   {
     Entry(session_name, args.theory_name, args.name, args.executable,
@@ -213,7 +213,7 @@ object Export
             (results, true)
           })
 
-    def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
+    def apply(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit =
       consumer.send(make_entry(session_name, args, body, cache = cache) -> args.strict)
 
     def shutdown(close: Boolean = false): List[String] =
@@ -312,7 +312,7 @@ object Export
         // list
         if (export_list) {
           (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
-            sorted.foreach(progress.echo(_))
+            sorted.foreach(progress.echo)
         }
 
         // export
@@ -348,7 +348,7 @@ object Export
 
   /* Isabelle tool wrapper */
 
-  val default_export_dir = Path.explode("export")
+  val default_export_dir: Path = Path.explode("export")
 
   val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports", args =>
   {
