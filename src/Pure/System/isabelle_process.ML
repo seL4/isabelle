@@ -9,7 +9,7 @@ sig
   val is_active: unit -> bool
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
-  exception EXIT of exn
+  exception EXIT of int
   val crashes: exn list Synchronized.var
   val init_options: unit -> unit
   val init_options_interactive: unit -> unit
@@ -98,7 +98,7 @@ fun update_tracing () =
 
 (* init protocol -- uninterruptible *)
 
-exception EXIT of exn;
+exception EXIT of int;
 
 val crashes = Synchronized.var "Isabelle_Process.crashes" ([]: exn list);
 
@@ -186,7 +186,7 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
             NONE => false
           | SOME [] => (Output.system_message "Isabelle process: no input"; true)
           | SOME (name :: args) => (run_command name args; true))
-          handle EXIT exn => Exn.reraise exn
+          handle exn as EXIT _ => Exn.reraise exn
             | exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
       in if continue then protocol_loop () else () end;
 
@@ -205,8 +205,11 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     val _ = Message_Channel.shutdown msg_channel;
     val _ = BinIO.closeIn in_stream;
     val _ = BinIO.closeOut out_stream;
-
-  in Exn.release result end);
+  in
+    (case result of
+      Exn.Exn (EXIT rc) => exit rc
+    | _ => Exn.release result)
+  end);
 
 end;
 

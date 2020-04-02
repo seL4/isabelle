@@ -258,9 +258,9 @@ val _ =
               (build_session args; []) handle exn =>
               (Runtime.exn_message_list exn handle _ (*sic!*) =>
                 (build_session_finished ["CRASHED"];
-                  raise Isabelle_Process.EXIT exn))) ();
+                  raise Isabelle_Process.EXIT 1))) ();
           val _ = build_session_finished errs;
-        in if null errs then () else raise Isabelle_Process.EXIT (Command_Line.EXIT 1) end
+        in if null errs then () else raise Isabelle_Process.EXIT 1 end
       | _ => raise Match);
 
 end;
