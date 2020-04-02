@@ -486,12 +486,12 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 init_protocol_handler(name)
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
-                command_timings.post(Session.Command_Timing(msg.properties))
+                command_timings.post(Session.Command_Timing(msg.properties.tail))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
 
               case Protocol.Theory_Timing(_, _) =>
-                theory_timings.post(Session.Theory_Timing(msg.properties))
+                theory_timings.post(Session.Theory_Timing(msg.properties.tail))
 
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
