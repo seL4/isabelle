@@ -106,9 +106,9 @@ object Dump
         val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
         val options1 =
           options0 +
-            "completion_limit=0" +
             "ML_statistics=false" +
             "parallel_proofs=0" +
+            "completion_limit=0" +
             "editor_tracing_messages=0" +
             "editor_presentation"
         (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
