@@ -150,10 +150,11 @@ object Build
 
   /* PIDE protocol handler */
 
-  class Handler(progress: Progress, session: Session, session_name: String)
+  private class Protocol_Handler(progress: Progress, session: Session, session_name: String)
     extends Session.Protocol_Handler
   {
-    val build_session_errors: Promise[List[String]] = Future.promise
+    private val build_session_errors: Promise[List[String]] = Future.promise
+    def build_session_join: List[String] = build_session_errors.join
 
     override def exit() { build_session_errors.cancel }
 
@@ -253,7 +254,7 @@ object Build
         if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
-          val handler = new Handler(progress, session, session_name)
+          val handler = new Protocol_Handler(progress, session, session_name)
           session.init_protocol_handler(handler)
 
           val stdout = new StringBuilder(1000)
@@ -299,7 +300,7 @@ object Build
             Exn.capture { process.await_startup } match {
               case Exn.Res(_) =>
                 session.protocol_command("build_session", args_yxml)
-                handler.build_session_errors.join
+                handler.build_session_join
               case Exn.Exn(exn) => List(Exn.message(exn))
             }
 
