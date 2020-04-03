@@ -485,13 +485,13 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Markup.Protocol_Handler(name) if prover.defined =>
                 init_protocol_handler(name)
 
-              case Protocol.Command_Timing(state_id, timing) if prover.defined =>
-                command_timings.post(Session.Command_Timing(msg.properties.tail))
+              case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
+                command_timings.post(Session.Command_Timing(props))
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
                 change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
 
-              case Protocol.Theory_Timing(_, _) =>
-                theory_timings.post(Session.Theory_Timing(msg.properties.tail))
+              case Markup.Theory_Timing(props) =>
+                theory_timings.post(Session.Theory_Timing(props))
 
               case Markup.ML_Statistics(props) =>
                 runtime_statistics.post(Session.Runtime_Statistics(props))
@@ -505,7 +505,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
                 change_command(_.add_export(id, (args.serial, export)))
 
-              case Markup.Commands_Accepted =>
+              case List(Markup.Commands_Accepted.PROPERTY) =>
                 msg.text match {
                   case Protocol.Commands_Accepted(ids) =>
                     ids.foreach(id =>
@@ -513,7 +513,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                   case _ => bad_output()
                 }
 
-              case Markup.Assign_Update =>
+              case List(Markup.Assign_Update.PROPERTY) =>
                 msg.text match {
                   case Protocol.Assign_Update(id, edited, update) =>
                     try {
@@ -527,7 +527,7 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                 }
                 delay_prune.invoke()
 
-              case Markup.Removed_Versions =>
+              case List(Markup.Removed_Versions.PROPERTY) =>
                 msg.text match {
                   case Protocol.Removed(removed) =>
                     try {

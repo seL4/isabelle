@@ -257,8 +257,8 @@ object Build
 
               val functions =
                 List(
-                  Markup.BUILD_SESSION_FINISHED -> build_session_finished,
-                  Markup.LOADING_THEORY -> loading_theory)
+                  Markup.Build_Session_Finished.name -> build_session_finished,
+                  Markup.Loading_Theory.name -> loading_theory)
             })
 
           val session_consumer =

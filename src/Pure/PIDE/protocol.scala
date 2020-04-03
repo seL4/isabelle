@@ -72,11 +72,11 @@ object Protocol
 
   object Command_Timing
   {
-    def unapply(props: Properties.T): Option[(Document_ID.Generic, isabelle.Timing)] =
+    def unapply(props: Properties.T): Option[(Properties.T, Document_ID.Generic, isabelle.Timing)] =
       props match {
-        case Markup.COMMAND_TIMING :: args =>
+        case Markup.Command_Timing(args) =>
           (args, args) match {
-            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((id, timing))
+            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((args, id, timing))
             case _ => None
           }
         case _ => None
@@ -90,7 +90,7 @@ object Protocol
   {
     def unapply(props: Properties.T): Option[(String, isabelle.Timing)] =
       props match {
-        case Markup.THEORY_TIMING :: args =>
+        case Markup.Theory_Timing(args) =>
           (args, args) match {
             case (Markup.Name(name), Markup.Timing_Properties(timing)) => Some((name, timing))
             case _ => None
