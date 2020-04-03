@@ -493,6 +493,12 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
               case Protocol.Theory_Timing(_, _) =>
                 theory_timings.post(Session.Theory_Timing(msg.properties.tail))
 
+              case Markup.ML_Statistics(props) =>
+                runtime_statistics.post(Session.Runtime_Statistics(props))
+
+              case Markup.Task_Statistics(props) =>
+                task_statistics.post(Session.Task_Statistics(props))
+
               case Protocol.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
@@ -531,12 +537,6 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
                     catch { case _: Document.State.Fail => bad_output() }
                   case _ => bad_output()
                 }
-
-              case Markup.ML_Statistics(props) =>
-                runtime_statistics.post(Session.Runtime_Statistics(props))
-
-              case Markup.Task_Statistics(props) =>
-                task_statistics.post(Session.Task_Statistics(props))
 
               case _ => bad_output()
             }
