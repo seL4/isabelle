@@ -46,7 +46,7 @@ fun get_timings timings tr =
 
 (* session timing *)
 
-fun session_timing name verbose f x =
+fun session_timing session_name verbose f x =
   let
     val start = Timing.start ();
     val y = f x;
@@ -61,7 +61,7 @@ fun session_timing name verbose f x =
     val _ = Protocol_Message.marker "Timing" timing_props;
     val _ =
       if verbose then
-        Output.physical_stderr ("Timing " ^ name ^ " (" ^
+        Output.physical_stderr ("Timing " ^ session_name ^ " (" ^
           threads ^ " threads, " ^ Timing.message timing ^ ", factor " ^ factor ^ ")\n")
       else ();
   in y end;
@@ -140,7 +140,7 @@ datatype args = Args of
   graph_file: Path.T,
   parent_name: string,
   chapter: string,
-  name: string,
+  session_name: string,
   master_dir: Path.T,
   theories: (Options.T * (string * Position.T) list) list,
   session_positions: (string * Properties.T) list,
@@ -155,7 +155,7 @@ fun decode_args yxml =
     open XML.Decode;
     val position = Position.of_properties o properties;
     val (symbol_codes, (command_timings, (verbose, (browser_info,
-      (document_files, (graph_file, (parent_name, (chapter, (name, (master_dir,
+      (document_files, (graph_file, (parent_name, (chapter, (session_name, (master_dir,
       (theories, (session_positions, (session_directories, (doc_names, (global_theories,
       (loaded_theories, bibtex_entries)))))))))))))))) =
       pair (list (pair string int)) (pair (list properties) (pair bool (pair string
@@ -171,14 +171,14 @@ fun decode_args yxml =
       verbose = verbose, browser_info = Path.explode browser_info,
       document_files = map (apply2 Path.explode) document_files,
       graph_file = Path.explode graph_file, parent_name = parent_name, chapter = chapter,
-      name = name, master_dir = Path.explode master_dir, theories = theories,
+      session_name = session_name, master_dir = Path.explode master_dir, theories = theories,
       session_positions = session_positions, session_directories = session_directories,
       doc_names = doc_names, global_theories = global_theories, loaded_theories = loaded_theories,
       bibtex_entries = bibtex_entries}
   end;
 
-fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
-    document_files, graph_file, parent_name, chapter, name, master_dir, theories, session_positions,
+fun build_session (Args {symbol_codes, command_timings, verbose, browser_info, document_files,
+    graph_file, parent_name, chapter, session_name, master_dir, theories, session_positions,
     session_directories, doc_names, global_theories, loaded_theories, bibtex_entries}) =
   let
     val symbols = HTML.make_symbols symbol_codes;
@@ -202,22 +202,23 @@ fun build_session (Args {symbol_codes, command_timings, verbose, browser_info,
         document_files
         graph_file
         parent_name
-        (chapter, name)
+        (chapter, session_name)
         verbose;
 
     val last_timing = get_timings (fold update_timings command_timings empty_timings);
 
     val res1 =
       theories |>
-        (List.app (build_theories symbols bibtex_entries last_timing name master_dir)
-          |> session_timing name verbose
+        (List.app (build_theories symbols bibtex_entries last_timing session_name master_dir)
+          |> session_timing session_name verbose
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
 
     val _ = Resources.finish_session_base ();
     val _ = Par_Exn.release_all [res1, res2];
     val _ =
-      if name = Context.PureN then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
+      if session_name = Context.PureN
+      then Theory.install_pure (Thy_Info.get_theory Context.PureN) else ();
   in () end;
 
 

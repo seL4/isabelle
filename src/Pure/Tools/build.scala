@@ -34,11 +34,11 @@ object Build
   {
     type Timings = (List[Properties.T], Double)
 
-    def load_timings(progress: Progress, store: Sessions.Store, name: String): Timings =
+    def load_timings(progress: Progress, store: Sessions.Store, session_name: String): Timings =
     {
       val no_timings: Timings = (Nil, 0.0)
 
-      store.access_database(name) match {
+      store.access_database(session_name) match {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) =
@@ -47,9 +47,9 @@ object Build
             no_timings
           }
           try {
-            val command_timings = store.read_command_timings(db, name)
+            val command_timings = store.read_command_timings(db, session_name)
             val session_timing =
-              store.read_session_timing(db, name) match {
+              store.read_session_timing(db, session_name) match {
                 case Markup.Elapsed(t) => t
                 case _ => 0.0
               }
@@ -68,11 +68,11 @@ object Build
       : Map[String, Double] =
     {
       val maximals = sessions_structure.build_graph.maximals.toSet
-      def desc_timing(name: String): Double =
+      def desc_timing(session_name: String): Double =
       {
-        if (maximals.contains(name)) timing(name)
+        if (maximals.contains(session_name)) timing(session_name)
         else {
-          val descendants = sessions_structure.build_descendants(List(name)).toSet
+          val descendants = sessions_structure.build_descendants(List(session_name)).toSet
           val g = sessions_structure.build_graph.restrict(descendants)
           (0.0 :: g.maximals.flatMap(desc => {
             val ps = g.all_preds(List(desc))
@@ -187,7 +187,7 @@ object Build
   /* job: running prover process */
 
   private class Job(progress: Progress,
-    name: String,
+    session_name: String,
     val info: Sessions.Info,
     deps: Sessions.Deps,
     store: Sessions.Store,
@@ -201,11 +201,11 @@ object Build
     private val sessions_structure = deps.sessions_structure
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
+    graphview.Graph_File.write(options, graph_file, deps(session_name).session_graph_display)
 
     private val export_tmp_dir = Isabelle_System.tmp_dir("export")
     private val export_consumer =
-      Export.consumer(store.open_database(name, output = true), cache = store.xz_cache)
+      Export.consumer(store.open_database(session_name, output = true), cache = store.xz_cache)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
@@ -225,7 +225,7 @@ object Build
                 pair(list(string), list(string)))))))))))))))))(
               (Symbol.codes, (command_timings, (verbose,
                 (store.browser_info, (info.document_files, (File.standard_path(graph_file),
-                (parent, (info.chapter, (name, (Path.current,
+                (parent, (info.chapter, (session_name, (Path.current,
                 (info.theories,
                 (sessions_structure.session_positions,
                 (sessions_structure.dest_session_directories,
@@ -238,7 +238,7 @@ object Build
             ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
-        val is_pure = Sessions.is_pure(name)
+        val is_pure = Sessions.is_pure(session_name)
 
         val use_prelude = if (is_pure) Thy_Header.ml_roots.map(_._1) else Nil
 
@@ -246,14 +246,14 @@ object Build
           if (do_store) {
             (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
             List("ML_Heap.save_child " +
-              ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name))))
+              ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(session_name))))
           }
           else Nil
 
         if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
-          val handler = new Handler(progress, session, name)
+          val handler = new Handler(progress, session, session_name)
           session.init_protocol_handler(handler)
 
           val stdout = new StringBuilder(1000)
@@ -337,7 +337,7 @@ object Build
             progress_stdout =
               {
                 case Protocol.Loading_Theory_Marker(theory) =>
-                  progress.theory(Progress.Theory(theory, session = name))
+                  progress.theory(Progress.Theory(theory, session = session_name))
                 case Protocol.Export.Marker((args, path)) =>
                   val body =
                     try { Bytes.read(path) }
@@ -346,7 +346,7 @@ object Build
                         error("Failed to read export " + quote(args.compound_name) + "\n" + msg)
                     }
                   path.file.delete
-                  export_consumer(name, args, body)
+                  export_consumer(session_name, args, body)
                 case _ =>
               },
             progress_limit =
@@ -380,7 +380,7 @@ object Build
       Isabelle_System.rm_tree(export_tmp_dir)
 
       if (result1.ok)
-        Present.finish(progress, store.browser_info, graph_file, info, name)
+        Present.finish(progress, store.browser_info, graph_file, info, session_name)
 
       graph_file.delete
 
@@ -398,8 +398,8 @@ object Build
         else result1
 
       val heap_digest =
-        if (result2.ok && do_store && store.output_heap(name).is_file)
-          Some(Sessions.write_heap_digest(store.output_heap(name)))
+        if (result2.ok && do_store && store.output_heap(session_name).is_file)
+          Some(Sessions.write_heap_digest(store.output_heap(session_name)))
         else None
 
       (result2, heap_digest)
@@ -463,10 +463,12 @@ object Build
     val full_sessions =
       Sessions.load_structure(build_options, dirs = dirs, select_dirs = select_dirs, infos = infos)
 
-    def sources_stamp(deps: Sessions.Deps, name: String): String =
+    def sources_stamp(deps: Sessions.Deps, session_name: String): String =
     {
       val digests =
-        full_sessions(name).meta_digest :: deps.sources(name) ::: deps.imported_sources(name)
+        full_sessions(session_name).meta_digest ::
+        deps.sources(session_name) :::
+        deps.imported_sources(session_name)
       SHA1.digest(cat_lines(digests.map(_.toString).sorted)).toString
     }
 
@@ -573,7 +575,7 @@ object Build
           for ((_, (_, job)) <- running) job.terminate
 
         running.find({ case (_, (_, job)) => job.is_finished }) match {
-          case Some((name, (input_heaps, job))) =>
+          case Some((session_name, (input_heaps, job))) =>
             //{{{ finish job
 
             val (process_result, heap_digest) = job.join
@@ -584,33 +586,33 @@ object Build
               val tail = job.info.options.int("process_output_tail")
               process_result.copy(
                 out_lines =
-                  "(see also " + store.output_log(name).file.toString + ")" ::
+                  "(see also " + store.output_log(session_name).file.toString + ")" ::
                   (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
 
             // write log file
             if (process_result.ok) {
-              File.write_gzip(store.output_log_gz(name), terminate_lines(log_lines))
+              File.write_gzip(store.output_log_gz(session_name), terminate_lines(log_lines))
             }
-            else File.write(store.output_log(name), terminate_lines(log_lines))
+            else File.write(store.output_log(session_name), terminate_lines(log_lines))
 
             // write database
             {
               val build_log =
-                Build_Log.Log_File(name, process_result.out_lines).
+                Build_Log.Log_File(session_name, process_result.out_lines).
                   parse_session_info(
                     command_timings = true,
                     theory_timings = true,
                     ml_statistics = true,
                     task_statistics = true)
 
-              using(store.open_database(name, output = true))(db =>
-                store.write_session_info(db, name,
+              using(store.open_database(session_name, output = true))(db =>
+                store.write_session_info(db, session_name,
                   build_log =
                     if (process_result.timeout) build_log.error("Timeout") else build_log,
                   build =
-                    Session_Info(sources_stamp(deps, name), input_heaps, heap_digest,
+                    Session_Info(sources_stamp(deps, session_name), input_heaps, heap_digest,
                       process_result.rc)))
             }
 
@@ -618,37 +620,40 @@ object Build
             process_result.err_lines.foreach(progress.echo)
 
             if (process_result.ok)
-              progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
+              progress.echo(
+                "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
             else {
-              progress.echo(name + " FAILED")
+              progress.echo(session_name + " FAILED")
               if (!process_result.interrupted) progress.echo(process_result_tail.out)
             }
 
-            loop(pending - name, running - name,
-              results + (name -> Result(false, heap_digest, Some(process_result_tail), job.info)))
+            loop(pending - session_name, running - session_name,
+              results +
+                (session_name -> Result(false, heap_digest, Some(process_result_tail), job.info)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt) match {
-              case Some((name, info)) =>
+              case Some((session_name, info)) =>
                 val ancestor_results =
-                  deps.sessions_structure.build_requirements(List(name)).filterNot(_ == name).
-                    map(results(_))
+                  deps.sessions_structure.build_requirements(List(session_name)).
+                    filterNot(_ == session_name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
-                val do_store = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+                val do_store =
+                  build_heap || Sessions.is_pure(session_name) || queue.is_inner(session_name)
 
                 val (current, heap_digest) =
                 {
-                  store.access_database(name) match {
+                  store.access_database(session_name) match {
                     case Some(db) =>
-                      using(db)(store.read_build(_, name)) match {
+                      using(db)(store.read_build(_, session_name)) match {
                         case Some(build) =>
-                          val heap_digest = store.find_heap_digest(name)
+                          val heap_digest = store.find_heap_digest(session_name)
                           val current =
                             !fresh_build &&
                             build.ok &&
-                            build.sources == sources_stamp(deps, name) &&
+                            build.sources == sources_stamp(deps, session_name) &&
                             build.input_heaps == ancestor_heaps &&
                             build.output_heap == heap_digest &&
                             !(do_store && heap_digest.isEmpty)
@@ -661,29 +666,32 @@ object Build
                 val all_current = current && ancestor_results.forall(_.current)
 
                 if (all_current)
-                  loop(pending - name, running,
-                    results + (name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
+                  loop(pending - session_name, running,
+                    results +
+                      (session_name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
                 else if (no_build) {
-                  if (verbose) progress.echo("Skipping " + name + " ...")
-                  loop(pending - name, running,
-                    results + (name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
+                  if (verbose) progress.echo("Skipping " + session_name + " ...")
+                  loop(pending - session_name, running,
+                    results +
+                      (session_name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  progress.echo((if (do_store) "Building " else "Running ") + name + " ...")
+                  progress.echo((if (do_store) "Building " else "Running ") + session_name + " ...")
 
-                  store.clean_output(name)
-                  using(store.open_database(name, output = true))(store.init_session_info(_, name))
+                  store.clean_output(session_name)
+                  using(store.open_database(session_name, output = true))(
+                    store.init_session_info(_, session_name))
 
                   val numa_node = numa_nodes.next(used_node)
                   val job =
-                    new Job(progress, name, info, deps, store, do_store, verbose,
-                      numa_node, queue.command_timings(name))
-                  loop(pending, running + (name -> (ancestor_heaps, job)), results)
+                    new Job(progress, session_name, info, deps, store, do_store, verbose,
+                      numa_node, queue.command_timings(session_name))
+                  loop(pending, running + (session_name -> (ancestor_heaps, job)), results)
                 }
                 else {
-                  progress.echo(name + " CANCELLED")
-                  loop(pending - name, running,
-                    results + (name -> Result(false, heap_digest, None, info)))
+                  progress.echo(session_name + " CANCELLED")
+                  loop(pending - session_name, running,
+                    results + (session_name -> Result(false, heap_digest, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
