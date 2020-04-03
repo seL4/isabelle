@@ -477,7 +477,11 @@ object Build
     selection: Sessions.Selection = Sessions.Selection.empty): Results =
   {
     val build_options =
-      options + "pide_reports=false" + "completion_limit=0" + "ML_statistics"
+      options +
+        "ML_statistics" +
+        "completion_limit=0" +
+        "editor_tracing_messages=0" +
+        "pide_reports=false"
 
     val store = Sessions.store(build_options)
 
