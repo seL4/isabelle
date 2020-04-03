@@ -792,7 +792,7 @@ fun prepare_sorts ctxt tms =
 fun check_tfree ctxt v =
   let
     val (sorting_report, [TFree a]) = prepare_sortsT ctxt [TFree v];
-    val _ = if Context_Position.is_visible ctxt then Output.report sorting_report else ();
+    val _ = if Context_Position.reports_enabled ctxt then Output.report sorting_report else ();
   in a end;
 
 end;
@@ -1103,7 +1103,7 @@ fun check_mixfix ctxt (b, T, mx) =
   let
     val ([x], ctxt') = Variable.add_fixes_binding [Binding.reset_pos b] ctxt;
     val mx' = Mixfix.reset_pos mx;
-    val _ = add_syntax [(x, T, if Context_Position.is_visible ctxt then mx else mx')] ctxt';
+    val _ = add_syntax [(x, T, if Context_Position.reports_enabled ctxt then mx else mx')] ctxt';
   in mx' end;
 
 fun prep_var prep_typ internal (b, raw_T, mx) ctxt =

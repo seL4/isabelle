@@ -191,7 +191,7 @@ and tree =
   ANTIQUOTE of (bool * Antiquote.antiq) * Position.range;
 
 fun reports_of_tree ctxt =
-  if Context_Position.is_visible ctxt then
+  if Context_Position.reports_enabled ctxt then
     let
       fun reports r =
         if r = Position.no_range then []

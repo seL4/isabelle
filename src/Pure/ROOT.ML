@@ -96,6 +96,8 @@ ML_file "PIDE/document_id.ML";
 ML_file "General/change_table.ML";
 ML_file "General/graph.ML";
 
+ML_file "System/options.ML";
+
 
 subsection "Fundamental structures";
 
@@ -103,7 +105,6 @@ ML_file "name.ML";
 ML_file "term.ML";
 ML_file "context.ML";
 ML_file "context_position.ML";
-ML_file "System/options.ML";
 ML_file "config.ML";
 ML_file "soft_type_system.ML";
 

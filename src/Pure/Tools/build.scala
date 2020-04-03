@@ -162,12 +162,13 @@ object Build
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    private val options = NUMA.policy_options(info.options, numa_node)
+    private def build_options(options: Options): Options = options + "pide_reports=false"
+    private val job_options = build_options(NUMA.policy_options(info.options, numa_node))
 
     private val sessions_structure = deps.sessions_structure
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
-    graphview.Graph_File.write(options, graph_file, deps(session_name).session_graph_display)
+    graphview.Graph_File.write(job_options, graph_file, deps(session_name).session_graph_display)
 
     private val export_tmp_dir = Isabelle_System.tmp_dir("export")
     private val export_consumer =
@@ -177,6 +178,8 @@ object Build
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
         val base = deps(parent)
+        val encode_theory_options: XML.Encode.T[Options] =
+          (options => Options.encode(build_options(options)))
         val args_yxml =
           YXML.string_of_body(
             {
@@ -184,7 +187,7 @@ object Build
               pair(list(pair(string, int)), pair(list(properties), pair(bool,
                 pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                 pair(string, pair(string, pair(string, pair(Path.encode,
-                pair(list(pair(Options.encode, list(pair(string, properties)))),
+                pair(list(pair(encode_theory_options, list(pair(string, properties)))),
                 pair(list(pair(string, properties)),
                 pair(list(pair(string, string)),
                 pair(list(string), pair(list(pair(string, string)),
@@ -202,7 +205,7 @@ object Build
         val env =
           Isabelle_System.settings() +
             ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
-            ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
+            ("ISABELLE_ML_DEBUGGER" -> job_options.bool("ML_debugger").toString)
 
         val is_pure = Sessions.is_pure(session_name)
 
@@ -216,9 +219,9 @@ object Build
           }
           else Nil
 
-        if (options.bool("pide_build")) {
+        if (job_options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
-          val session = new Session(options, resources)
+          val session = new Session(job_options, resources)
 
           val stdout = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[String]
@@ -288,7 +291,7 @@ object Build
           val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
           val process =
-            Isabelle_Process(session, options, sessions_structure, store,
+            Isabelle_Process(session, job_options, sessions_structure, store,
               logic = parent, raw_ml_system = is_pure,
               use_prelude = use_prelude, eval_main = eval_main,
               cwd = info.dir.file, env = env)
@@ -326,7 +329,7 @@ object Build
           val eval_main = Command_Line.ML_tool(eval_build :: eval_store)
 
           val process =
-            ML_Process(options, deps.sessions_structure, store,
+            ML_Process(job_options, deps.sessions_structure, store,
               logic = parent, raw_ml_system = is_pure,
               use_prelude = use_prelude, eval_main = eval_main,
               cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
@@ -348,7 +351,7 @@ object Build
                 case _ =>
               },
             progress_limit =
-              options.int("process_output_limit") match {
+              job_options.int("process_output_limit") match {
                 case 0 => None
                 case m => Some(m * 1000000L)
               },

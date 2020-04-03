@@ -50,11 +50,11 @@ fun breakpoint_position loc =
 
 fun report_parse_tree redirect depth name_space parse_tree =
   let
-    val is_visible =
+    val reports_enabled =
       (case Context.get_generic_context () of
-        SOME context => Context_Position.is_visible_generic context
-      | NONE => true);
-    fun is_reported pos = is_visible andalso Position.is_reported pos;
+        SOME context => Context_Position.reports_enabled_generic context
+      | NONE => Context_Position.pide_reports ());
+    fun is_reported pos = reports_enabled andalso Position.is_reported pos;
 
 
     (* syntax reports *)

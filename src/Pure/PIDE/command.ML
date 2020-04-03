@@ -58,7 +58,9 @@ type blob =
 
 fun read_file_node file_node master_dir pos src_path =
   let
-    val _ = Position.report pos Markup.language_path;
+    val _ =
+      if Context_Position.pide_reports ()
+      then Position.report pos Markup.language_path else ();
     val _ =
       (case try Url.explode file_node of
         NONE => ()

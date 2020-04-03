@@ -17,6 +17,10 @@ sig
   val restore_visible_generic: Context.generic -> Context.generic -> Context.generic
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val restore_visible_global: theory -> theory -> theory
+  val pide_reports: unit -> bool
+  val reports_enabled_generic: Context.generic -> bool
+  val reports_enabled: Proof.context -> bool
+  val reports_enabled_global: theory -> bool
   val is_reported_generic: Context.generic -> Position.T -> bool
   val is_reported: Proof.context -> Position.T -> bool
   val is_reported_global: theory -> Position.T -> bool
@@ -62,7 +66,14 @@ val restore_visible_global = Context.theory_map o Data.put o Data.get o Context.
 
 (* PIDE reports *)
 
-fun is_reported_generic context pos = is_visible_generic context andalso Position.is_reported pos;
+fun pide_reports () = Options.default_bool "pide_reports";
+
+fun reports_enabled_generic context = pide_reports () andalso is_visible_generic context;
+val reports_enabled = reports_enabled_generic o Context.Proof;
+val reports_enabled_global = reports_enabled_generic o Context.Theory;
+
+fun is_reported_generic context pos =
+  reports_enabled_generic context andalso Position.is_reported pos;
 
 val is_reported = is_reported_generic o Context.Proof;
 val is_reported_global = is_reported_generic o Context.Theory;
@@ -78,8 +89,11 @@ fun reported_text ctxt pos markup txt =
 fun report_text ctxt pos markup txt = Output.report [reported_text ctxt pos markup txt];
 fun report ctxt pos markup = report_text ctxt pos markup "";
 
-fun reports_text ctxt reps = if is_visible ctxt then Position.reports_text reps else ();
-fun reports_generic context reps = if is_visible_generic context then Position.reports reps else ();
+fun reports_text ctxt reps =
+  if reports_enabled ctxt then Position.reports_text reps else ();
+
+fun reports_generic context reps =
+  if reports_enabled_generic context then Position.reports reps else ();
 
 val reports = reports_generic o Context.Proof;
 val reports_global = reports_generic o Context.Theory;

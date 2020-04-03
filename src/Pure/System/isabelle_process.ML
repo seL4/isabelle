@@ -152,13 +152,15 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
             | _ => props);
         in message name props' (XML.blob ss) end;
 
+    fun report_message ss =
+      if Context_Position.pide_reports ()
+      then standard_message [] Markup.reportN ss else ();
+
     val serial_props = Markup.serial_properties o serial;
 
     val message_context =
-      Unsynchronized.setmp Private_Output.status_fn
-        (standard_message [] Markup.statusN) #>
-      Unsynchronized.setmp Private_Output.report_fn
-        (standard_message [] Markup.reportN) #>
+      Unsynchronized.setmp Private_Output.status_fn (standard_message [] Markup.statusN) #>
+      Unsynchronized.setmp Private_Output.report_fn report_message #>
       Unsynchronized.setmp Private_Output.result_fn
         (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s) #>
       Unsynchronized.setmp Private_Output.writeln_fn
