@@ -223,6 +223,7 @@ object Build
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(job_options, resources)
 
+          val build_session_errors: Promise[List[String]] = Future.promise
           val stdout = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[String]
           val command_timings = new mutable.ListBuffer[Properties.T]
@@ -230,7 +231,6 @@ object Build
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
 
-          val build_session_errors: Promise[List[String]] = Future.promise
           session.init_protocol_handler(new Session.Protocol_Handler
             {
               override def exit() { build_session_errors.cancel }
@@ -258,14 +258,51 @@ object Build
                   case _ => false
                 }
 
+              private def export(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Protocol.Export(args) =>
+                    export_consumer(session_name, args, msg.bytes)
+                    true
+                  case _ => false
+                }
+
+              private def command_timing(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Markup.Command_Timing(props) => command_timings += props; true
+                  case _ => false
+                }
+
+              private def theory_timing(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Markup.Theory_Timing(props) => theory_timings += props; true
+                  case _ => false
+                }
+
+              private def ml_stats(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Markup.ML_Statistics(props) => runtime_statistics += props; true
+                  case _ => false
+                }
+
+              private def task_stats(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Markup.Task_Statistics(props) => task_statistics += props; true
+                  case _ => false
+                }
+
               val functions =
                 List(
                   Markup.Build_Session_Finished.name -> build_session_finished,
-                  Markup.Loading_Theory.name -> loading_theory)
+                  Markup.Loading_Theory.name -> loading_theory,
+                  Markup.EXPORT -> export,
+                  Markup.Command_Timing.name -> command_timing,
+                  Markup.Theory_Timing.name -> theory_timing,
+                  Markup.ML_Statistics.name -> ml_stats,
+                  Markup.Task_Statistics.name -> task_stats)
             })
 
-          val session_consumer =
-            Session.Consumer[Any]("build_session_output") {
+          session.all_messages += Session.Consumer[Any]("build_session_output")
+            {
               case msg: Prover.Output =>
                 val message = msg.message
                 if (msg.is_stdout) {
@@ -275,18 +312,8 @@ object Build
                   messages +=
                     Symbol.encode(Protocol.message_text(List(message), metric = Symbol.Metric))
                 }
-              case Session.Command_Timing(props) => command_timings += props
-              case Session.Theory_Timing(props) => theory_timings += props
-              case Session.Runtime_Statistics(props) => runtime_statistics += props
-              case Session.Task_Statistics(props) => task_statistics += props
               case _ =>
             }
-
-          session.all_messages += session_consumer
-          session.command_timings += session_consumer
-          session.theory_timings += session_consumer
-          session.runtime_statistics += session_consumer
-          session.task_statistics += session_consumer
 
           val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
