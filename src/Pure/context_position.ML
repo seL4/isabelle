@@ -39,29 +39,27 @@ struct
 
 (* visible context *)
 
-structure Data = Generic_Data
-(
-  type T = bool option * bool option;  (*really, visible*)
-  val empty: T = (NONE, NONE);
-  val extend = I;
-  fun merge ((a, b), (a', b')) : T = (merge_options (a, a'), merge_options (b, b'));
-);
+val really = Config.declare_bool ("really", Position.none) (K true);
+val visible = Config.declare_bool ("visible", Position.none) (K true);
 
-val is_visible_generic = the_default true o snd o Data.get;
-val is_visible = is_visible_generic o Context.Proof;
-val is_visible_global = is_visible_generic o Context.Theory;
+val is_visible_generic = Config.apply_generic visible;
+val is_visible = Config.apply visible;
+val is_visible_global = Config.apply_global visible;
 
-val set_visible_generic = Data.map o apsnd o K o SOME;
-val set_visible = Context.proof_map o Data.map o apsnd o K o SOME;
-val set_visible_global = Context.theory_map o Data.map o apsnd o K o SOME;
+val set_visible_generic = Config.put_generic visible;
+val set_visible = Config.put visible;
+val set_visible_global = Config.put_global visible;
 
-val is_really = the_default true o fst o Data.get o Context.Proof;
+val is_really = Config.apply really;
 fun is_really_visible ctxt = is_really ctxt andalso is_visible ctxt;
-val not_really = Context.proof_map (Data.map (apfst (K (SOME false))));
+val not_really = Config.put really false;
 
-val restore_visible_generic = Data.put o Data.get;
-val restore_visible = Context.proof_map o Data.put o Data.get o Context.Proof;
-val restore_visible_global = Context.theory_map o Data.put o Data.get o Context.Theory;
+fun restore_visible_generic context =
+  Config.restore_generic really context #>
+  Config.restore_generic visible context;
+
+val restore_visible = Context.proof_map o restore_visible_generic o Context.Proof;
+val restore_visible_global = Context.theory_map o restore_visible_generic o Context.Theory;
 
 
 (* PIDE reports *)
