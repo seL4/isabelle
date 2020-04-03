@@ -150,41 +150,6 @@ object Build
 
   /* PIDE protocol handler */
 
-  private class Protocol_Handler(progress: Progress, session: Session, session_name: String)
-    extends Session.Protocol_Handler
-  {
-    private val build_session_errors: Promise[List[String]] = Future.promise
-    def build_session_join: List[String] = build_session_errors.join
-
-    override def exit() { build_session_errors.cancel }
-
-    private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
-    {
-      val errors =
-        try {
-          for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text))) yield
-            Pretty.string_of(Protocol_Message.expose_no_reports(err), metric = Symbol.Metric)
-        }
-        catch { case ERROR(err) => List(err) }
-      build_session_errors.fulfill(errors)
-      true
-    }
-
-    private def loading_theory(msg: Prover.Protocol_Output): Boolean =
-      msg.properties match {
-        case Markup.Loading_Theory(name) =>
-          progress.theory(Progress.Theory(name, session = session_name))
-          true
-        case _ => false
-      }
-
-    val functions =
-      List(
-        Markup.BUILD_SESSION_FINISHED -> build_session_finished,
-        Markup.LOADING_THEORY -> loading_theory)
-  }
-
-
   /* job: running prover process */
 
   private class Job(progress: Progress,
@@ -254,8 +219,6 @@ object Build
         if (options.bool("pide_build")) {
           val resources = new Resources(sessions_structure, deps(parent))
           val session = new Session(options, resources)
-          val handler = new Protocol_Handler(progress, session, session_name)
-          session.init_protocol_handler(handler)
 
           val stdout = new StringBuilder(1000)
           val messages = new mutable.ListBuffer[String]
@@ -264,7 +227,41 @@ object Build
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
 
-          val consumer =
+          val build_session_errors: Promise[List[String]] = Future.promise
+          session.init_protocol_handler(new Session.Protocol_Handler
+            {
+              override def exit() { build_session_errors.cancel }
+
+              private def build_session_finished(msg: Prover.Protocol_Output): Boolean =
+              {
+                val errors =
+                  try {
+                    for (err <- XML.Decode.list(x => x)(Symbol.decode_yxml(msg.text)))
+                    yield {
+                      val prt = Protocol_Message.expose_no_reports(err)
+                      Pretty.string_of(prt, metric = Symbol.Metric)
+                    }
+                  }
+                  catch { case ERROR(err) => List(err) }
+                build_session_errors.fulfill(errors)
+                true
+              }
+
+              private def loading_theory(msg: Prover.Protocol_Output): Boolean =
+                msg.properties match {
+                  case Markup.Loading_Theory(name) =>
+                    progress.theory(Progress.Theory(name, session = session_name))
+                    true
+                  case _ => false
+                }
+
+              val functions =
+                List(
+                  Markup.BUILD_SESSION_FINISHED -> build_session_finished,
+                  Markup.LOADING_THEORY -> loading_theory)
+            })
+
+          val session_consumer =
             Session.Consumer[Any]("build_session_output") {
               case msg: Prover.Output =>
                 val message = msg.message
@@ -282,11 +279,11 @@ object Build
               case _ =>
             }
 
-          session.all_messages += consumer
-          session.command_timings += consumer
-          session.theory_timings += consumer
-          session.runtime_statistics += consumer
-          session.task_statistics += consumer
+          session.all_messages += session_consumer
+          session.command_timings += session_consumer
+          session.theory_timings += session_consumer
+          session.runtime_statistics += session_consumer
+          session.task_statistics += session_consumer
 
           val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
 
@@ -300,7 +297,7 @@ object Build
             Exn.capture { process.await_startup } match {
               case Exn.Res(_) =>
                 session.protocol_command("build_session", args_yxml)
-                handler.build_session_join
+                build_session_errors.join
               case Exn.Exn(exn) => List(Exn.message(exn))
             }
 
